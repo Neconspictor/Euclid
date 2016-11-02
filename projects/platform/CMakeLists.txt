@@ -8,6 +8,9 @@ set(
     include/platform/Renderer.hpp
     include/platform/Window.hpp
     
+    #platform/event
+    include/platform/event/Channel.hpp
+    
     #platform/logging
     include/platform/logging/Logger.hpp
     include/platform/logging/LogLevel.hpp
