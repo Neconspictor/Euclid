@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <string>
 #include <model/Model.hpp>
+#include <glm/mat4x2.hpp>
 
 class Shader
 {
@@ -23,7 +24,7 @@ protected:
 private:
 
 	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
-	bool loadShaderFromFile(const std::string& file, std::string* shaderContent);
+	//bool loadShaderFromFile(const std::string& file, std::string* shaderContent);
 	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 };
 

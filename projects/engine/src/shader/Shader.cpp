@@ -9,6 +9,7 @@
 
 #include "shader/shader.hpp"
 #include <platform/util/Util.hpp>
+#include <platform/FileSystem.hpp>
 
 using namespace std;
 using namespace util;
@@ -67,13 +68,13 @@ GLuint Shader::loadShaders(const string& vertexFile, const string& fragmentFile)
 	string fragmentFilePath = global_path::SHADER_PATH + fragmentFile;
 
 	// Read the Vertex Shader code from the file
-	if (!loadShaderFromFile(vertexFilePath, &vertexShaderCode))
+	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
 	{
 		cerr << "Error: Shader::loadShaders(): Couldn't initialize vertex shader!" << endl;
 		return GL_FALSE;
 	}
 
-	if (!loadShaderFromFile(fragmentFilePath, &fragmentShaderCode))
+	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
 		cerr << "Error: Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
 		return GL_FALSE;
@@ -125,7 +126,7 @@ GLuint Shader::loadShaders(const string& vertexFile, const string& fragmentFile)
 	return programID;
 }
 
-bool Shader::loadShaderFromFile(const string& file, string* shaderContent)
+/*bool Shader::loadShaderFromFile(const string& file, string* shaderContent)
 {
 	ifstream shaderStreamFile;
 	bool loadingWasSuccessful = true;
@@ -163,7 +164,7 @@ bool Shader::loadShaderFromFile(const string& file, string* shaderContent)
 	shaderStreamFile.close();
 
 	return loadingWasSuccessful;
-}
+}*/
 
 bool Shader::compileShader(const string& shaderContent, GLuint shaderResourceID)
 {

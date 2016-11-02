@@ -2,61 +2,80 @@ set(
     PLATFORM_SOURCES 
     
     #platform
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/Platform.hpp
+    include/platform/FileSystem.hpp
     include/platform/Input.hpp
+    include/platform/Platform.hpp
     include/platform/Renderer.hpp
     include/platform/Window.hpp
     
+    #platform/logging
+    include/platform/logging/Logger.hpp
+    include/platform/logging/LogLevel.hpp
+    include/platform/logging/LogMessage.hpp
+    include/platform/logging/LogSink.hpp
+    include/platform/logging/LogSink.inl
+    
     #platform/mockup
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/mockup/PlatformMockup.hpp
+    include/platform/mockup/PlatformMockup.hpp
     #platform/mockup/window
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/mockup/window/WindowMockup.hpp
+    include/platform/mockup/window/WindowMockup.hpp
     #platform/windows/
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/PlatformWindows.hpp
+    include/platform/windows/PlatformWindows.hpp
     #platform/windows/input
     #platform/windows/input/gainput
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/gainput/HoldResetGesture.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/gainput/WindowsInputDevice.hpp
+    include/platform/windows/input/gainput/HoldResetGesture.hpp
+    include/platform/windows/input/gainput/WindowsInputDevice.hpp
     #platform/windows/input/OIS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/OIS/OISWindowsID.hpp
+    include/platform/windows/input/OIS/OISWindowsID.hpp
     #platform/windows/input/SDL
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/SDL/SDL.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/SDL/SDLInitException.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/input/SDL/SDLInputDevice.hpp
+    include/platform/windows/input/SDL/SDL.hpp
+    include/platform/windows/input/SDL/SDLInitException.hpp
+    include/platform/windows/input/SDL/SDLInputDevice.hpp
     #platform/windows/window
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/platform/windows/window/WindowWin32.hpp
+    include/platform/windows/window/WindowWin32.hpp
     
-    #util
+    #platform/util
     include/platform/util/CallbackContainer.hpp
     include/platform/util/Signal.hpp
     include/platform/util/Util.hpp
     
+    #platform/util/concurrent
+    include/platform/util/concurrent/Active.hpp
+    
     
     ###source files###
-    
+    src/platform/FileSystem.cpp
     src/platform/Input.cpp
     src/platform/Renderer.cpp
     src/platform/Window.cpp
     
-    #platform
+    #platform/logging
+    src/platform/logging/Logger.cpp
+    src/platform/logging/LogLevel.cpp
+    src/platform/logging/LogMessage.cpp
+    src/platform/logging/LogSink.cpp
+    
     #platform/mockup
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/mockup/PlatformMockup.cpp
+    src/platform/mockup/PlatformMockup.cpp
     #platform/mockup/window
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/mockup/window/WindowMockup.cpp
+    src/platform/mockup/window/WindowMockup.cpp
     #platform/windows
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/PlatformWindows.cpp
+    src/platform/windows/PlatformWindows.cpp
     #platform/windows/input
     #platform/windows/input/gainput
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/input/gainput/HoldResetGesture.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/input/gainput/WindowsInputDevice.cpp
+    src/platform/windows/input/gainput/HoldResetGesture.cpp
+    src/platform/windows/input/gainput/WindowsInputDevice.cpp
     #platform/windows/input/OIS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/input/OIS/OISWindowsID.cpp
+    src/platform/windows/input/OIS/OISWindowsID.cpp
     #platform/windows/input/SDL
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/input/SDL/SDLInputDevice.cpp
+    src/platform/windows/input/SDL/SDLInputDevice.cpp
     #platform/windows/window
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows/window/WindowWin32.cpp
+    src/platform/windows/window/WindowWin32.cpp
     
-    #util
+    #platform/util
+    src/platform/util/Util.cpp
+    #platform/util/concurrent
+    src/platform/util/concurrent/Active.cpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -74,6 +93,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/libs/OIS/include 
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
+    ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -102,6 +122,18 @@ find_library(SDL2_lib_release NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5
 find_library(SDL2main_lib_debug NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
 find_library(SDL2main_lib_release NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
 
+# boost libraries libs\boost_1_62_0\x64\Debug
+find_library(libboost_chrono_release NAMES libboost_chrono-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_chrono_debug NAMES libboost_chrono-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+
+find_library(libboost_date_time_release NAMES libboost_date_time-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_date_time_debug NAMES libboost_date_time-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+
+find_library(libboost_system_release NAMES libboost_system-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+
+find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(platform PUBLIC opengl32)
@@ -123,3 +155,16 @@ target_link_libraries(platform PUBLIC debug ${SDL2_lib_debug})
 target_link_libraries(platform PUBLIC optimized ${SDL2_lib_release})
 target_link_libraries(platform PUBLIC debug ${SDL2main_lib_debug})
 target_link_libraries(platform PUBLIC optimized ${SDL2main_lib_release})
+
+#boost libraries
+target_link_libraries(platform PUBLIC debug ${libboost_chrono_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_chrono_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_date_time_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_date_time_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_system_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
