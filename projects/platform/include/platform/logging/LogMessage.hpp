@@ -25,12 +25,12 @@ namespace platform
 	private:
 
 		std::ostringstream mBuffer;
-		Logger* mOwner;
+		const Logger* mOwner;
 		Meta mMeta;
 
 		LogMessage(LogMessage&);
 		LogMessage(LogMessage&&);
-		LogMessage(LogLevel level, const std::string& file, const std::string& function, int line, Logger* owner);
+		LogMessage(LogLevel level, const std::string& file, const std::string& function, int line, const Logger* owner);
 		LogMessage();
 	};
 

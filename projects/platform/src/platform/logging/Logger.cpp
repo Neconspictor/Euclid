@@ -6,7 +6,7 @@ using namespace std;
 
 namespace platform
 {
-	LogMessage  Logger::operator()(LogLevel level, const string& file, const string& function, int line) {
+	LogMessage  Logger::operator()(LogLevel level, const string& file, const string& function, int line) const {
 		// performs return value optimization. No copy will be created
 		if (!isActive(level)) return LogMessage();
 		LogMessage result(level, file,
@@ -19,7 +19,7 @@ namespace platform
 		return result;
 	}
 
-	void Logger::flush(const LogMessage& message) {
+	void Logger::flush(const LogMessage& message) const {
 		//string asString = message.mBuffer.str();
 		//string time = util::getCurrentTime();
 		//cout << time << "[" << message.mMeta.mFunction << "] " << asString << endl; // auto-append newlines
@@ -32,11 +32,11 @@ namespace platform
 
 		mActive->send([=] {
 			for (auto&& sink : sinks)
-				sink.forward(meta, msg);
+				sink.forward(prefix, meta, msg);
 		});
 	}
 
-	Logger::Logger()
+	Logger::Logger() : prefix("")
 	{
 		currentLogLevel = Debug;
 		mActive = util::Active::create();
@@ -57,17 +57,22 @@ namespace platform
 		mSinks.erase(it);
 	}
 
+	void Logger::setPrefix(const std::string& prefix)
+	{
+		this->prefix = prefix;
+	}
+
 	void Logger::setLogLevel(LogLevel newLevel)
 	{
 		currentLogLevel = newLevel;
 	}
 
-	bool Logger::isActive(LogLevel level)
+	bool Logger::isActive(LogLevel level) const
 	{
 		return level >= currentLogLevel;
 	}
 
-	void Logger::terminate()
+	void Logger::terminate() const
 	{
 		mActive->terminate();
 	}

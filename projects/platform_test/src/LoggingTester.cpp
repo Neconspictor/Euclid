@@ -10,6 +10,7 @@ Logger logger;
 
 void testLogging()
 {
+	logger.setPrefix("[LoggingTester]");
 	TestClass testClass(1);
 	TestClass testClass2(1);
 	testClass.foo(Debug);

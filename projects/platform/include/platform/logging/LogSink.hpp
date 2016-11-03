@@ -15,14 +15,15 @@ namespace platform
 
 		LogSink& operator =(LogSink sink);
 		bool operator==(const LogSink& sink) const;
-		void forward(const LogMessage::Meta& meta, const std::string& message) const;
+		void forward(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) const;
 	private:
 		struct Concept {
 			virtual ~Concept() {}
 			virtual Concept* clone() const = 0;
-			virtual void operator()(const LogMessage::Meta& meta, const std::string& message) = 0;
+			virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) = 0;
 
 			virtual void forward(
+				const std::string& prefix,
 				const LogMessage::Meta& meta,
 				const std::string& message
 				) = 0;
@@ -35,9 +36,9 @@ namespace platform
 
 			virtual Concept* clone() const override;
 
-			virtual void operator()(const LogMessage::Meta& meta, const std::string& message) override;
+			virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
 
-			void forward(const LogMessage::Meta& meta, const std::string& message) override;
+			void forward(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
 
 			T mImpl;
 		};

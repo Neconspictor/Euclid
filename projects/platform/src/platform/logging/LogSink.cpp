@@ -24,18 +24,22 @@ namespace platform
 	}
 
 	void LogSink::forward(
+		const string& prefix,
 		const LogMessage::Meta& meta,
 		const string& message
 		) const {
-		mWrapper->forward(meta, message);
+		mWrapper->forward(prefix, meta, message);
 	}
 
 	LogSink makeConsoleSink() {
 		return LogSink([](
+			const string& prefix,
 			const LogMessage::Meta& meta,
 			const string& message
 			) {
 			cout
+				<< prefix
+				<< " "
 				<< meta.level
 				<< " : "
 				<< message
@@ -54,10 +58,12 @@ namespace platform
 			}
 		}
 
-		void operator()(const LogMessage::Meta& meta, const string& message) {
+		void operator()(const string& prefix, const LogMessage::Meta& meta, const string& message) {
 			string file = meta.mFile;
 			file = util::makeAbsolute(file);
 			(*mFile)
+				<< prefix
+				<< " "
 				<< meta.level
 				<< " : "
 				<< message

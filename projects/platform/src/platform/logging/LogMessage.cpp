@@ -34,7 +34,7 @@ namespace platform
 		other.mOwner = nullptr;
 	}
 
-	LogMessage::LogMessage(LogLevel level, const string& file, const string& function, int line, Logger* owner) :
+	LogMessage::LogMessage(LogLevel level, const string& file, const string& function, int line, const Logger* owner) :
 		mOwner(owner)
 	{
 		mMeta.mFile = file;

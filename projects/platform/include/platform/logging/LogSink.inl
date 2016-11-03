@@ -22,17 +22,19 @@ namespace platform
 	}
 
 	template <typename T>
-	void LogSink::Model<T>::operator()(const LogMessage::Meta& meta, const std::string& message)
+	void LogSink::Model<T>::operator()(const std::string& prefix, 
+		const LogMessage::Meta& meta, const std::string& message)
 	{
-		mImpl(meta, message);
+		mImpl(prefix, meta, message);
 	}
 
 	template <typename T>
 	void LogSink::Model<T>::forward(
+		const std::string& prefix,
 		const LogMessage::Meta& meta,
 		const std::string& message
 		) {
-		mImpl(meta, message);
+		mImpl(prefix, meta, message);
 	}
 }
 #endif

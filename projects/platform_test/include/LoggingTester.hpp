@@ -15,7 +15,7 @@ public:
 
 	void foo(platform::LogLevel level)
 	{
-		logDetailed(logger, level) << "Hello World! " << test << std::endl;
+		log(logger, level) << "Hello World! " << test << std::endl;
 		++test;
 	}
 
@@ -49,7 +49,7 @@ class MyMessageHandler
 public:
 	void operator() (const MyMessage& msg)
 	{
-		logDetailed(logger, platform::Warning) << "MyMessageHandler: msg="
+		log(logger, platform::Warning) << "MyMessageHandler: msg="
 			<< msg.msg << std::endl << "value= " << msg.value << std::endl;
 	}
 };
@@ -59,7 +59,7 @@ class IntHandler
 public:
 	void operator() (const IntEvent& event)
 	{
-		logDetailed(logger, platform::Warning) << "IntHandler: value= " << event.value << std::endl;
+		log(logger, platform::Warning) << "IntHandler: value= " << event.value << std::endl;
 	}
 };
 

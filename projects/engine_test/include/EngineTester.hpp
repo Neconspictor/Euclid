@@ -1,0 +1,4 @@
+#ifndef ENGINE_TEST_ENGINE_TESTER_HPP
+#define ENGINE_TEST_ENGINE_TESTER_HPP
+void testEngine();
+#endif
