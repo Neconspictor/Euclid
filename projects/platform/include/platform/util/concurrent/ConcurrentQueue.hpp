@@ -1,87 +1,102 @@
+/*
+* Copyright (c) 2014 GrandMaster (gijsber@gmail)
+*
+* Permission is hereby granted, free of charge, to any person
+* obtaining a copy of this software and associated documentation
+* files (the "Software"), to deal in the Software without
+* restriction, including without limitation the rights to use,
+* copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following
+* conditions:
+*
+* The above copyright notice and this permission notice shall be
+* included in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+* OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+* HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #ifndef CONCURRENT_QUEUE_HPP
 #define CONCURRENT_QUEUE_HPP
 
-/************************************************************************************
-*
-*	This class is from GrandMaster's tutorial:
-*  http://www.grandmaster.nu/blog/?page_id=261
-*
-************************************************************************************/
-
 #include <queue>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+#include <mutex>
 
-namespace platform {
+template <typename T>
+class ConcurrentQueue {
+private:
+	typedef std::queue<T> Queue;
+	typedef std::mutex Mutex;
+	typedef std::unique_lock<Mutex> ScopedLock;
+	typedef std::condition_variable Condition;
 
-	template <typename T>
-	class ConcurrentQueue {
-	private:
-		typedef std::queue<T> Queue;
-		typedef boost::mutex Mutex;
-		typedef Mutex::scoped_lock ScopedLock;
-		typedef boost::condition_variable Condition;
+public:
+	bool empty() const;
+	void push(const T& value);
+	bool try_pop(T& result);
+	T wait_pop();
+	size_t size() const;
 
-	public:
-		bool empty() const;
-		size_t size() const;
-		void push(const T& value);
-		bool try_pop(T& result);
-		T wait_pop();
+private:
+	Queue mQueue;
+	mutable Mutex mMutex;
+	Condition mCondition;
+};
 
-	private:
-		Queue mQueue;
-		mutable Mutex mMutex;
-		Condition mCondition;
-	};
+/* implementation */
+template <typename T>
+bool ConcurrentQueue<T>::empty() const {
+	ScopedLock lock(mMutex);
+	return mQueue.empty();
+}
 
-	/* implementation */
-	template <typename T>
-	bool ConcurrentQueue<T>::empty() const {
-		ScopedLock lock(mMutex);
-		return mQueue.empty();
-	}
+template <typename T>
+std::size_t ConcurrentQueue<T>::size() const {
+	ScopedLock lock(mMutex);
+	return mQueue.size();
+}
 
-	template <typename T>
-	size_t ConcurrentQueue<T>::size() const {
-		ScopedLock lock(mMutex);
-		return mQueue.size();
-	}
-
-	template <typename T>
-	void ConcurrentQueue<T>::push(const T& value) {
+template <typename T>
+void ConcurrentQueue<T>::push(const T& value) {
+	{
 		ScopedLock lock(mMutex);
 
 		mQueue.push(value);
-		lock.unlock();
-
-		mCondition.notify_one();
 	}
 
-	template <typename T>
-	bool ConcurrentQueue<T>::try_pop(T& result) {
-		ScopedLock lock(mMutex);
+	mCondition.notify_one();
+}
 
-		if (mQueue.empty())
-			return false;
+template <typename T>
+bool ConcurrentQueue<T>::try_pop(T& result) {
+	ScopedLock lock(mMutex);
 
-		result = mQueue.front();
-		mQueue.pop();
+	if (mQueue.empty())
+		return false;
 
-		return true;
-	}
+	result = mQueue.front();
+	mQueue.pop();
 
-	template <typename T>
-	T ConcurrentQueue<T>::wait_pop() {
-		ScopedLock lock(mMutex);
+	return true;
+}
 
-		while (mQueue.empty())
-			mCondition.wait(lock);
+template <typename T>
+T ConcurrentQueue<T>::wait_pop() {
+	ScopedLock lock(mMutex);
 
-		T result(mQueue.front());
-		mQueue.pop();
+	while (mQueue.empty())
+		mCondition.wait(lock);
 
-		return result;
-	}
+	T result(mQueue.front());
+	mQueue.pop();
+
+	return result;
 }
 #endif

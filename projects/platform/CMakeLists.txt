@@ -10,6 +10,12 @@ set(
     
     #platform/event
     include/platform/event/Channel.hpp
+    include/platform/event/EventChannel.hpp
+    include/platform/event/EventHandler.hpp
+    include/platform/event/EventHandlerQueue.hpp
+    include/platform/event/Task.hpp
+    include/platform/event/TaskManager.hpp
+    
     
     #platform/logging
     include/platform/logging/Logger.hpp
@@ -51,6 +57,10 @@ set(
     src/platform/Input.cpp
     src/platform/Renderer.cpp
     src/platform/Window.cpp
+    
+    #platform/event
+    src/platform/event/Task.cpp
+    src/platform/event/TaskManager.cpp
     
     #platform/logging
     src/platform/logging/Logger.cpp

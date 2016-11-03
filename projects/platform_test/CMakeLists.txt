@@ -1,8 +1,15 @@
 set(
     PLATFORM_TEST_SOURCES 
     
+    ###header files###
+    include/LoggingTester.hpp
+    include/TaskManagementTester.hpp
+    include/PlatformTestMain.hpp
+    
     ###source files###
     src/LoggingTester.cpp
+    src/TaskManagementTester.cpp
+    src/PlatformTestMain.cpp
 )
 
 # Create named folders for the sources within the .vcproj
