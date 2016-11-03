@@ -4,7 +4,6 @@ set(
     ###header files###
     include/LoggingTester.hpp
     include/TaskManagementTester.hpp
-    include/PlatformTestMain.hpp
     
     ###source files###
     src/LoggingTester.cpp
