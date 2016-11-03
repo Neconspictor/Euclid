@@ -27,16 +27,17 @@ namespace platform
 		auto&& sinks = mSinks;
 		auto&& meta = message.mMeta;
 		auto msg = message.mBuffer.str();
+		auto&& prefixCpy = prefix;
 
 		if (!isActive(meta.level)) return;
 
 		mActive->send([=] {
 			for (auto&& sink : sinks)
-				sink.forward(prefix, meta, msg);
+				sink.forward(prefixCpy, meta, msg);
 		});
 	}
 
-	Logger::Logger() : prefix("")
+	Logger::Logger()
 	{
 		currentLogLevel = Debug;
 		mActive = util::Active::create();
@@ -57,9 +58,9 @@ namespace platform
 		mSinks.erase(it);
 	}
 
-	void Logger::setPrefix(const std::string& prefix)
+	void Logger::setPrefix(const string& prefix)
 	{
-		this->prefix = prefix;
+		this->prefix = string(prefix);
 	}
 
 	void Logger::setLogLevel(LogLevel newLevel)

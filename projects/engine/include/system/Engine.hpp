@@ -6,6 +6,7 @@
 #include <memory>
 #include <list>
 #include <map>
+#include "Configuration.hpp"
 
 
 class Engine
@@ -34,6 +35,7 @@ private:
 	EventChannel channel;
 	SystemMap systemMap;
 	platform::Logger logger;
+	Configuration config;
 };
 
 #endif

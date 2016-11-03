@@ -15,6 +15,7 @@ void System::init()
 
 	logger.setPrefix(name);
 	logger.add(platform::makeFileSink(getName() + ".log"));
+	logger.add(platform::makeConsoleSink());
 }
 
 void System::shutdown()
@@ -29,4 +30,9 @@ void System::update()
 const std::string& System::getName() const
 {
 	return name;
+}
+
+void System::enableUpdater(unsigned taskFlags)
+{
+	updater.reset(new SystemUpdater(this, taskFlags));
 }

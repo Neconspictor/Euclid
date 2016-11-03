@@ -5,11 +5,11 @@ using namespace platform;
 
 Engine::Engine()
 {
-	logger.add(makeConsoleSink());
-	logger.setLogLevel(Debug);
-	logger.setPrefix("[Engine]");
+	//logger.add(makeConsoleSink());
+	//logger.setLogLevel(Debug);
+	//logger.setPrefix("[Engine]");
 
-	log(logger, Info) << "Engine created!";
+	//LOG(logger, Info) << "Engine created!";
 }
 
 Engine::~Engine()
@@ -18,6 +18,26 @@ Engine::~Engine()
 
 void Engine::run()
 {
+	config.init();
+	logger.add(makeConsoleSink());
+	logger.setLogLevel(Debug);
+	logger.setPrefix("[Engine]");
+
+	// merge all system settings into config
+	for (auto it : systemMap)
+	{
+		SystemPtr system = it.second;
+		config.settings().add(system->settings);
+	}
+
+	LOG(logger, Info) << "Loading configuration file...";
+	if (!config.load("config.ini"))
+	{
+		LOG(logger, Fault) << "Configuration file couldn't be read. Aborting...";
+		return;
+	}
+	LOG(logger, Info) << "Configuration file loaded.";
+
 	initSystems();
 	taskManager.start();
 	shutdownSystems();
@@ -32,7 +52,7 @@ void Engine::add(SystemPtr system)
 {
 	if (systemMap.find(system->getName()) != systemMap.end())
 	{
-		log(logger, platform::Warning) << "System already added: " << system->getName();
+		LOG(logger, platform::Warning) << "System already added: " << system->getName();
 		return;
 	}
 	if (system->updater.get() != nullptr)
@@ -47,7 +67,7 @@ Engine::SystemPtr Engine::get(const string& name) const
 
 	if (it == systemMap.end())
 	{
-		log(logger, Warning) << "Cannot find System" << name;
+		LOG(logger, Warning) << "Cannot find System" << name;
 		return nullptr;
 	}
 
@@ -59,7 +79,7 @@ void Engine::initSystems()
 	for (auto it : systemMap)
 	{
 		SystemPtr system = it.second;
-		log(logger, Info) << "Initializing" << system->getName();
+		LOG(logger, Info) << "Initializing " << system->getName();
 		system->init();
 	}
 }
@@ -69,7 +89,7 @@ void Engine::shutdownSystems()
 	for (auto it : systemMap)
 	{
 		SystemPtr system = it.second;
-		log(logger, Info) << "Shutting down" << system->getName();
+		LOG(logger, Info) << "Shutting down" << system->getName();
 		system->shutdown();
 	}
 }

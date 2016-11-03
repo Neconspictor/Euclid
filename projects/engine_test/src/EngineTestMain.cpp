@@ -6,7 +6,14 @@ using namespace std;
 
 int main()
 {
+	shared_ptr<TestSystem> ts(new TestSystem());
 	Engine engine;
-	testEngine();
+
+	engine.add(ts);
+
+	cout << "Running" << endl;
+	engine.run();
+	cout << "Done" << endl;
+	//testEngine();
 	return EXIT_SUCCESS;
 }

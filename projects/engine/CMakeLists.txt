@@ -27,6 +27,7 @@ set(
     include/shader/SimpleLightShader.hpp
     
     #system
+    include/system/Configuration.hpp
     include/system/Engine.hpp
     include/system/System.hpp
     
@@ -57,6 +58,7 @@ set(
     src/shader/SimpleLightShader.cpp
     
     #system
+    src/system/Configuration.cpp
     src/system/Engine.cpp
     src/system/System.cpp
     
@@ -118,6 +120,9 @@ find_library(SDL2_lib_release NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5
 find_library(SDL2main_lib_debug NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
 find_library(SDL2main_lib_release NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
 
+#boost libraries
+find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_program_options_debug NAMES libboost_program_options-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(engine PUBLIC opengl32)
@@ -139,4 +144,9 @@ target_link_libraries(engine PUBLIC debug ${SDL2_lib_debug})
 target_link_libraries(engine PUBLIC optimized ${SDL2_lib_release})
 target_link_libraries(engine PUBLIC debug ${SDL2main_lib_debug})
 target_link_libraries(engine PUBLIC optimized ${SDL2main_lib_release})
+
 target_link_libraries(engine PUBLIC platform)   
+
+#boost libraries
+target_link_libraries(engine PUBLIC debug ${libboost_program_options_debug})
+target_link_libraries(engine PUBLIC optimized ${libboost_program_options_release})

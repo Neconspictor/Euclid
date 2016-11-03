@@ -7,7 +7,7 @@
 #include <platform/logging/LogLevel.hpp>
 #include <platform/util/concurrent/Active.hpp>
 
-#define log(logger, logLevel) \
+#define LOG(logger, logLevel) \
 	logger(logLevel, __FILE__, \
 	BOOST_CURRENT_FUNCTION, \
 	__LINE__)

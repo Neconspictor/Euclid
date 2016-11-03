@@ -3,6 +3,8 @@
 #include <platform/event/EventChannel.hpp>
 #include <platform/event/Task.hpp>
 #include <platform/logging/Logger.hpp>
+#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/options_description.hpp>
 
 class Engine;
 
@@ -40,6 +42,16 @@ public:
 
 	virtual ~System();
 
+	template<typename T>
+	void addSetting(const std::string& nameInConfigFile, T* var)
+	{
+		std::stringstream ss;
+		ss << getName() << "." << nameInConfigFile;
+		settings.add_options()
+			(ss.str().c_str(), boost::program_options::value<T>(var))
+			;
+	}
+
 	virtual void init();
 
 	virtual void shutdown();
@@ -48,12 +60,18 @@ public:
 
 	const std::string& getName() const;
 
+
 protected:
+
+	void enableUpdater(unsigned int taskFlags = Task::SINGLETHREADED_REPEATING);
+
 	friend class Engine;
 	EventChannel channel;
 	std::shared_ptr<SystemUpdater> updater;
 	platform::Logger logger;
 	std::string name;
+	boost::program_options::options_description settings;
+
 };
 
 #endif
