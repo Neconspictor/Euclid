@@ -11,7 +11,7 @@ System::~System()
 
 void System::init()
 {
-	channel.broadcast(new SystemInitEvent(this));
+	channel.broadcast(SystemInitEvent(this));
 
 	logger.setPrefix(name);
 	logger.add(platform::makeFileSink(getName() + ".log"));
@@ -20,7 +20,7 @@ void System::init()
 
 void System::shutdown()
 {
-	channel.broadcast(new SystemShutdownEvent(this));
+	channel.broadcast(SystemShutdownEvent(this));
 }
 
 void System::update()
