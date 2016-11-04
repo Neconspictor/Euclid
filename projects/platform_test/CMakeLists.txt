@@ -20,7 +20,6 @@ assign_source_group(${PLATFORM_TEST_SOURCES})
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
-    ${CMAKE_SOURCE_DIR}/projects/platform/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -29,16 +28,4 @@ include_directories (
 add_executable (Platform_Test ${PLATFORM_TEST_SOURCES})
 
 #choose the right libraries by absolute paths!
-#target_link_libraries(Platform_Test PUBLIC platform)
-
-#project dependencies
-find_library(platform_lib_release NAMES platform HINTS ${CMAKE_SOURCE_DIR}/bin)
-find_library(platform_lib_debug NAMES platformd HINTS ${CMAKE_SOURCE_DIR}/bin)
-
-
-#project dependencies
-target_link_libraries(Platform_Test PUBLIC debug ${platform_lib_debug})
-target_link_libraries(Platform_Test PUBLIC optimized ${platform_lib_release})
-
-target_link_libraries(Platform_Test PUBLIC debug "${PLATFORM_DEPENDENCIES_LIBS_DEBUG}")
-target_link_libraries(Platform_Test PUBLIC optimized "${PLATFORM_DEPENDENCIES_LIBS_RELEASE}")
+target_link_libraries(Platform_Test PUBLIC platform)

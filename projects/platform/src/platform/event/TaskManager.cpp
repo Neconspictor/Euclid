@@ -40,10 +40,7 @@ TaskManager::TaskManager(unsigned int numThreads): mRunning(false)
 
 TaskManager::~TaskManager() {
 	for (auto itr : mThreads)
-	{
 		itr->join();
-		delete itr;
-	}
 }
 
 void TaskManager::add(TaskPtr task) {
@@ -68,7 +65,6 @@ void TaskManager::start() {
 	chan.add<StopEvent>(*this);
 
 	for (unsigned int i = 0; i < mNumThreads; ++i)
-		//std::shared_ptr<std::thread> sharedPtr = std::make_shared<std::thread>(new std::thread(std::bind(&TaskManager::worker, this)));
 		mThreads.push_back(new std::thread(std::bind(&TaskManager::worker, this)));
 
 	while (mRunning) {

@@ -5,7 +5,6 @@
 *******************************************************************************************/
 
 #include <platform/util/concurrent/Active.hpp>
-#include <boost/thread/sync_queue.hpp>
 
 using namespace std;
 
@@ -13,31 +12,15 @@ namespace platform
 {
 	namespace util
 	{
-
-		class MessageQueue : public Active::MessageQueueWrapper
-		{
-		public:
-			boost::sync_queue<Callback> queue;
-		};
-
-
 		Active::Active() :
 			mIsDone(false)
 		{
-			mMessageQueue = new MessageQueue();
 		}
 
 		Active::~Active() {
-			MessageQueue* queue = (MessageQueue*)mMessageQueue;
-			if (queue->queue.closed()) {
-				delete queue;
-				mMessageQueue = nullptr;
-				return;
-			}
+			if (mMessageQueue.closed()) return;
 			send([this] { mIsDone = true; });
 			mThread.join();
-			delete queue;
-			mMessageQueue = nullptr;
 		}
 
 		unique_ptr<Active> Active::create() {
@@ -49,26 +32,24 @@ namespace platform
 		}
 
 		void Active::send(Callback message) {
-			MessageQueue* queue = (MessageQueue*)mMessageQueue;
-			queue->queue.push(move(message));
+			mMessageQueue.push(move(message));
 		}
 
 		void Active::terminate()
 		{
-			MessageQueue* queue = (MessageQueue*)mMessageQueue;
-			if (queue->queue.closed()) return;
-			while (!queue->queue.empty())
-				queue->queue.pull();
+			if (mMessageQueue.closed()) return;
+			while (!mMessageQueue.empty())
+				mMessageQueue.pull();
 			send([this] { mIsDone = true; });
 			mThread.join();
-			queue->queue.close();
+			mMessageQueue.close();
 		}
 
 		void Active::run() {
 			while (!mIsDone) {
 				Callback fn;
-				MessageQueue* queue = (MessageQueue*)mMessageQueue;
-				queue->queue.wait_pull(fn);
+
+				mMessageQueue.wait_pull(fn);
 
 				fn();
 			}

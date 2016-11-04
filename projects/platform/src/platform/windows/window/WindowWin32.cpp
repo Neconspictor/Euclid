@@ -2,8 +2,6 @@
 #include <iostream>
 #include <platform/windows/PlatformWindows.hpp>
 #include <platform/windows/input/gainput/WindowsInputDevice.hpp>
-#include "platform/windows/input/OIS/OISWindowsID.hpp"
-#include <platform/windows/input/SDL/SDLInputDevice.hpp>
 
 using namespace std;
 
@@ -30,7 +28,7 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 	//inputDevice = new OISWindowsID(hwnd, width, height);
 	//inputDeviceTest = new WindowsInputDevice(width, height);
 	sdlInputDevice = new SDLInputDevice(hwnd, width, height);
-	if (!((SDLInputDevice*)sdlInputDevice)->isInit())
+	if (!sdlInputDevice->isInit())
 	{
 		cerr << "WindowWin32::WindowWin32: ERROR: Couldn't init sdl input device!" << endl;
 		delete sdlInputDevice;
@@ -205,7 +203,7 @@ void WindowWin32::pollEvents()
 		DispatchMessage(&msg);
 	}
 
-	((SDLInputDevice*)sdlInputDevice)->pollEvents();
+	sdlInputDevice->pollEvents();
 }
 
 void WindowWin32::swapBuffers()

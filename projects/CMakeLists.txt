@@ -8,14 +8,6 @@ SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
 # have all targets (exe, lib, dll) as projects (.vcproj)
 project (NecEngine)
 
-set(PLATFORM_TARGET_NAME platform)
-set(PLATFORM_DEPENDENCIES_LIBS_DEBUG "")
-set(PLATFORM_DEPENDENCIES_LIBS_RELEASE "")
-
-set(ENGINE_TARGET_NAME engine)
-set(ENGINE_DEPENDENCIES_LIBS_DEBUG "")
-set(ENGINE_DEPENDENCIES_LIBS_RELEASE "")
-
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(platform)
 add_subdirectory(platform_test)

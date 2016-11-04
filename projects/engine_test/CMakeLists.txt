@@ -16,12 +16,7 @@ assign_source_group(${ENGINE_TEST_SOURCES})
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
     include/ 
-    ${CMAKE_SOURCE_DIR}/libs/glm/include  
-    ${CMAKE_SOURCE_DIR}/libs/glew/include 
-    ${CMAKE_SOURCE_DIR}/libs/glfw/include 
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
-    ${CMAKE_SOURCE_DIR}/projects/engine/include
-    ${CMAKE_SOURCE_DIR}/projects/platform/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -30,29 +25,7 @@ include_directories (
 add_executable (Engine_Test ${ENGINE_TEST_SOURCES})
 
 #choose the right libraries by absolute paths!
-#target_link_libraries(Engine_Test PUBLIC engine)
-
-#project dependencies
-find_library(platform_lib_release NAMES platform HINTS ${CMAKE_SOURCE_DIR}/bin)
-find_library(platform_lib_debug NAMES platformd HINTS ${CMAKE_SOURCE_DIR}/bin)
-
-set (engine_lib_release  ${CMAKE_SOURCE_DIR}/bin/engine.lib)
-set (engine_lib_debug  ${CMAKE_SOURCE_DIR}/bin/engined.lib)
-
-#project dependencies
-target_link_libraries(Engine_Test PUBLIC debug ${platform_lib_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${platform_lib_release})
-
-target_link_libraries(Engine_Test PUBLIC debug ${engine_lib_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${engine_lib_release})
-
-target_link_libraries(Engine_Test PUBLIC debug "${PLATFORM_DEPENDENCIES_LIBS_DEBUG}")
-target_link_libraries(Engine_Test PUBLIC optimized "${PLATFORM_DEPENDENCIES_LIBS_RELEASE}")
-
-target_link_libraries(Engine_Test PUBLIC debug "${ENGINE_DEPENDENCIES_LIBS_DEBUG}")
-target_link_libraries(Engine_Test PUBLIC optimized "${ENGINE_DEPENDENCIES_LIBS_RELEASE}")
-
-add_dependencies(Engine_Test platform engine)
+target_link_libraries(Engine_Test PUBLIC engine)
 
 #if debug then ${DEBUG_EXE_PATH} elseif release then ${RELEASE_EXE_PATH}
 #$<$<CONFIG:debug>:${DEBUG_EXE_PATH}>$<$<CONFIG:release>:${RELEASE_EXE_PATH}>

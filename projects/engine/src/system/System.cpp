@@ -11,7 +11,7 @@ System::~System()
 
 void System::init()
 {
-	channel.broadcast(SystemInitEvent(this));
+	channel.broadcast(new SystemInitEvent(this));
 
 	logger.setPrefix(name);
 	logger.add(platform::makeFileSink(getName() + ".log"));
@@ -20,7 +20,7 @@ void System::init()
 
 void System::shutdown()
 {
-	channel.broadcast(SystemShutdownEvent(this));
+	channel.broadcast(new SystemShutdownEvent(this));
 }
 
 void System::update()
@@ -32,7 +32,7 @@ const std::string& System::getName() const
 	return name;
 }
 
-void System::enableUpdater(unsigned int taskFlags)
+void System::enableUpdater(unsigned taskFlags)
 {
 	updater.reset(new SystemUpdater(this, taskFlags));
 }

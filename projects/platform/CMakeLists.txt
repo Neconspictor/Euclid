@@ -1,7 +1,3 @@
-if(NOT CMAKE_DEBUG_POSTFIX)
-  set(CMAKE_DEBUG_POSTFIX d)
-endif()
-
 set(
     PLATFORM_SOURCES 
     
@@ -116,8 +112,8 @@ include_directories (
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
-add_library ( ${PLATFORM_TARGET_NAME} ${PLATFORM_SOURCES})
-#target_include_directories (${PLATFORM_TARGET_NAME} PUBLIC include)
+add_library (platform ${PLATFORM_SOURCES})
+target_include_directories (platform PUBLIC include)
 
 
 #set additional library directories
@@ -152,47 +148,36 @@ find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS 
 find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 
+# Properties->Linker->Input->Additional Dependencies
+target_link_libraries(platform PUBLIC opengl32)
+target_link_libraries(platform PUBLIC ${glfw3_lib})
+target_link_libraries(platform PUBLIC ${libglew32_lib})
+target_link_libraries(platform PUBLIC ${soil2_lib})
+target_link_libraries(platform PUBLIC glu32)
 
-set(PLATFORM_DEPENDENCIES_LIBS_DEBUG
-    opengl32
-    ${glfw3_lib}
-    ${libglew32_lib}
-    ${soil2_lib}
-    ${gainputstatic_lib_debug}
-    Xinput9_1_0
-    ws2_32
-    ${ois_lib_debug}
-    ${SDL2_lib_debug}
-    ${SDL2main_lib_debug}
-    ${libboost_chrono_debug}
-    ${libboost_date_time_debug}
-    ${libboost_system_debug}
-    ${libboost_thread_debug}
-    PARENT_SCOPE
-)
+target_link_libraries(platform PUBLIC debug ${gainputstatic_lib_debug})
+target_link_libraries(platform PUBLIC optimized ${gainputstatic_lib_release})
 
-set(PLATFORM_DEPENDENCIES_LIBS_RELEASE
-    opengl32
-    ${glfw3_lib}
-    ${libglew32_lib}
-    ${soil2_lib}
-    ${gainputstatic_lib_release}
-    Xinput9_1_0
-    ws2_32
-    ${ois_lib_release}
-    ${SDL2_lib_release}
-    ${SDL2main_lib_release}
-    ${libboost_chrono_release}
-    ${libboost_date_time_release}
-    ${libboost_system_release}
-    ${libboost_thread_release}
-    PARENT_SCOPE
-)
+target_link_libraries(platform PUBLIC Xinput9_1_0)
+target_link_libraries(platform PUBLIC ws2_32)
 
+target_link_libraries(platform PUBLIC debug ${ois_lib_debug})
+target_link_libraries(platform PUBLIC optimized ${ois_lib_release})
 
-add_custom_command(TARGET ${PLATFORM_TARGET_NAME} POST_BUILD
-    #COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${ENGINE_TARGET_NAME}>" "${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>/${ENGINE_TARGET_NAME}$<$<CONFIG:debug>:d>.lib"
-    
-    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${PLATFORM_TARGET_NAME}>" "${CMAKE_SOURCE_DIR}/bin/${PLATFORM_TARGET_NAME}$<$<CONFIG:debug>:d>.lib"
-    #COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release/SDL2.dll" "$<TARGET_FILE_DIR:Engine>/SDL2.dll"
-)
+target_link_libraries(platform PUBLIC debug ${SDL2_lib_debug})
+target_link_libraries(platform PUBLIC optimized ${SDL2_lib_release})
+target_link_libraries(platform PUBLIC debug ${SDL2main_lib_debug})
+target_link_libraries(platform PUBLIC optimized ${SDL2main_lib_release})
+
+#boost libraries
+target_link_libraries(platform PUBLIC debug ${libboost_chrono_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_chrono_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_date_time_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_date_time_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_system_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
+
+target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
