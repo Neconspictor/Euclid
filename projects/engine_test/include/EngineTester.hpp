@@ -2,6 +2,7 @@
 #define ENGINE_TEST_ENGINE_TESTER_HPP
 #include <platform/event/TaskManager.hpp>
 #include <system/System.hpp>
+#include <iostream>
 
 class TestSystem : public System {
 public:

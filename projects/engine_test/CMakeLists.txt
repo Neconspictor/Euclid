@@ -32,47 +32,12 @@ add_executable (Engine_Test ${ENGINE_TEST_SOURCES})
 #choose the right libraries by absolute paths!
 #target_link_libraries(Engine_Test PUBLIC engine)
 
-
-# boost libraries
-find_library(libboost_chrono_release NAMES libboost_chrono-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_chrono_debug NAMES libboost_chrono-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
-find_library(libboost_date_time_release NAMES libboost_date_time-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_date_time_debug NAMES libboost_date_time-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
-find_library(libboost_system_release NAMES libboost_system-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
-find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
-find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_program_options_debug NAMES libboost_program_options-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
 #project dependencies
 find_library(platform_lib_release NAMES platform HINTS ${CMAKE_SOURCE_DIR}/bin)
 find_library(platform_lib_debug NAMES platformd HINTS ${CMAKE_SOURCE_DIR}/bin)
 
-find_library(engine_lib_release NAMES engine HINTS ${CMAKE_SOURCE_DIR}/bin)
-find_library(engine_lib_debug NAMES engined HINTS ${CMAKE_SOURCE_DIR}/bin)
-
-
-#boost libraries
-target_link_libraries(Engine_Test PUBLIC debug ${libboost_chrono_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${libboost_chrono_release})
-
-target_link_libraries(Engine_Test PUBLIC debug ${libboost_date_time_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${libboost_date_time_release})
-
-target_link_libraries(Engine_Test PUBLIC debug ${libboost_system_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${libboost_system_release})
-
-target_link_libraries(Engine_Test PUBLIC debug ${libboost_thread_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${libboost_thread_release})
-
-target_link_libraries(Engine_Test PUBLIC debug ${libboost_program_options_debug})
-target_link_libraries(Engine_Test PUBLIC optimized ${libboost_program_options_release})
-
+set (engine_lib_release  ${CMAKE_SOURCE_DIR}/bin/engine.lib)
+set (engine_lib_debug  ${CMAKE_SOURCE_DIR}/bin/engined.lib)
 
 #project dependencies
 target_link_libraries(Engine_Test PUBLIC debug ${platform_lib_debug})
@@ -81,8 +46,13 @@ target_link_libraries(Engine_Test PUBLIC optimized ${platform_lib_release})
 target_link_libraries(Engine_Test PUBLIC debug ${engine_lib_debug})
 target_link_libraries(Engine_Test PUBLIC optimized ${engine_lib_release})
 
-target_link_libraries(Engine_Test PUBLIC debug ${PLATFORM_DEPENDENCIES_LIBS_DEBUG})
-target_link_libraries(Engine_Test PUBLIC optimized ${PLATFORM_DEPENDENCIES_LIBS_RELEASE})
+target_link_libraries(Engine_Test PUBLIC debug "${PLATFORM_DEPENDENCIES_LIBS_DEBUG}")
+target_link_libraries(Engine_Test PUBLIC optimized "${PLATFORM_DEPENDENCIES_LIBS_RELEASE}")
+
+target_link_libraries(Engine_Test PUBLIC debug "${ENGINE_DEPENDENCIES_LIBS_DEBUG}")
+target_link_libraries(Engine_Test PUBLIC optimized "${ENGINE_DEPENDENCIES_LIBS_RELEASE}")
+
+add_dependencies(Engine_Test platform engine)
 
 #if debug then ${DEBUG_EXE_PATH} elseif release then ${RELEASE_EXE_PATH}
 #$<$<CONFIG:debug>:${DEBUG_EXE_PATH}>$<$<CONFIG:release>:${RELEASE_EXE_PATH}>

@@ -152,39 +152,6 @@ find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS 
 find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 
-# Properties->Linker->Input->Additional Dependencies
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC opengl32)
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC ${glfw3_lib})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC ${libglew32_lib})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC ${soil2_lib})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC glu32)
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${gainputstatic_lib_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${gainputstatic_lib_release})
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC Xinput9_1_0)
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC ws2_32)
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${ois_lib_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${ois_lib_release})
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${SDL2_lib_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${SDL2_lib_release})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${SDL2main_lib_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${SDL2main_lib_release})
-
-#boost libraries
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${libboost_chrono_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${libboost_chrono_release})
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${libboost_date_time_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${libboost_date_time_release})
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${libboost_system_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${libboost_system_release})
-
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC debug ${libboost_thread_debug})
-target_link_libraries(${PLATFORM_TARGET_NAME} PUBLIC optimized ${libboost_thread_release})
 
 set(PLATFORM_DEPENDENCIES_LIBS_DEBUG
     opengl32
@@ -201,7 +168,6 @@ set(PLATFORM_DEPENDENCIES_LIBS_DEBUG
     ${libboost_date_time_debug}
     ${libboost_system_debug}
     ${libboost_thread_debug}
-    
     PARENT_SCOPE
 )
 
@@ -220,7 +186,6 @@ set(PLATFORM_DEPENDENCIES_LIBS_RELEASE
     ${libboost_date_time_release}
     ${libboost_system_release}
     ${libboost_thread_release}
-    
     PARENT_SCOPE
 )
 
