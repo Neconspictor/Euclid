@@ -10,15 +10,13 @@
 #include <memory>
 #include <functional>
 #include <thread>
-#include <boost/thread/sync_queue.hpp>
-
 
 namespace platform
 {
 
 	namespace util
 	{
-
+		
 		/**
 		Based on Sutters this is an Active object
 		Allows threadsafe execution of void() functions in an object (by internally queuing calls)
@@ -30,7 +28,11 @@ namespace platform
 		private:
 			Active(); //only allow creation via the factory method
 
-		public:
+		public: 
+
+			class MessageQueueWrapper{};
+
+
 			Active(const Active&) = delete;
 			Active& operator = (const Active&) = delete;
 
@@ -53,7 +55,7 @@ namespace platform
 			void run(); // thread method
 
 			bool mIsDone;
-			boost::sync_queue<Callback> mMessageQueue;
+			MessageQueueWrapper* mMessageQueue;
 			std::thread mThread;
 		};
 	}

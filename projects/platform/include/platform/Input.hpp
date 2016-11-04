@@ -1,8 +1,5 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
-#include "GL/glew.h"
-#include <GLFW/glfw3.h>
-#include <list>
 
 class Window;
 
@@ -101,7 +98,7 @@ public:
 	static void onScroll(Window* window, double xoffset, double yoffset);
 
 
-	void updateOnFrame(GLFWwindow* window, double frameTime);
+	//void updateOnFrame(GLFWwindow* window, double frameTime);
 
 	virtual MouseOffset getFrameMouseOffset();
 
