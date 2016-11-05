@@ -19,6 +19,7 @@ set(
     
     #platform/logging
     include/platform/logging/Logger.hpp
+    include/platform/logging/LoggingClient.hpp
     include/platform/logging/LogLevel.hpp
     include/platform/logging/LogMessage.hpp
     include/platform/logging/LogSink.hpp
@@ -64,6 +65,7 @@ set(
     
     #platform/logging
     src/platform/logging/Logger.cpp
+    src/platform/logging/LoggingClient.cpp
     src/platform/logging/LogLevel.cpp
     src/platform/logging/LogMessage.cpp
     src/platform/logging/LogSink.cpp
