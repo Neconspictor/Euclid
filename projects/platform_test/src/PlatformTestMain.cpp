@@ -1,6 +1,8 @@
 #include <LoggingTester.hpp>
 #include <TaskManagementTester.hpp>
 #include <platform/event/Channel.hpp>
+#include <platform/logging/LogSink.hpp>
+#include <platform/logging/Logger.hpp>
 
 using namespace std;
 using namespace platform;
@@ -30,9 +32,10 @@ void testChannel()
 
 int main()
 {
-	logger.add(makeConsoleSink());
-	logger.add(makeFileSink("./log.log"));
-	logger.setLogLevel(Debug);
+	LoggingClient logClient(Logger::getInstance());
+	logClient.add(makeConsoleSink());
+	logClient.add(makeFileSink("./log.log"));
+	logClient.setLogLevel(Debug);
 
 	testLogging();
 	testChannel();

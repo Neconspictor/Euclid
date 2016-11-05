@@ -34,7 +34,7 @@ private:
 	TaskManager taskManager;
 	EventChannel channel;
 	SystemMap systemMap;
-	platform::Logger logger;
+	platform::LoggingClient logClient;
 	Configuration config;
 };
 

@@ -2,9 +2,9 @@
 #define PLATFORM_TEST_LOGGING_TESTER_HPP
 #include <ostream>
 #include <platform/logging/LogLevel.hpp>
-#include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingClient.hpp>
 
-extern platform::Logger logger;
+extern platform::LoggingClient logClient;
 
 class TestClass
 {
@@ -15,7 +15,7 @@ public:
 
 	void foo(platform::LogLevel level)
 	{
-		LOG(logger, level) << "Hello World! " << test << std::endl;
+		LOG(logClient, level) << "Hello World! " << test << std::endl;
 		++test;
 	}
 
@@ -49,7 +49,7 @@ class MyMessageHandler
 public:
 	void operator() (const MyMessage& msg)
 	{
-		LOG(logger, platform::Warning) << "MyMessageHandler: msg="
+		LOG(logClient, platform::Warning) << "MyMessageHandler: msg="
 			<< msg.msg << std::endl << "value= " << msg.value << std::endl;
 	}
 };
@@ -59,7 +59,7 @@ class IntHandler
 public:
 	void operator() (const IntEvent& event)
 	{
-		LOG(logger, platform::Warning) << "IntHandler: value= " << event.value << std::endl;
+		LOG(logClient, platform::Warning) << "IntHandler: value= " << event.value << std::endl;
 	}
 };
 

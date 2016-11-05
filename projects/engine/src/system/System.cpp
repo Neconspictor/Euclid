@@ -1,7 +1,13 @@
 #include <system/System.hpp>
 #include <fstream>
+#include <platform/logging/Logger.hpp>
+#include <platform/logging/LogSink.hpp>
 
-System::System(std::string name) : name(name)
+
+using namespace platform;
+
+System::System(std::string name) : logClient(Logger::getInstance()),
+name(name)
 {
 }
 
@@ -13,9 +19,9 @@ void System::init()
 {
 	channel.broadcast(SystemInitEvent(this));
 
-	logger.setPrefix(name);
-	logger.add(platform::makeFileSink(getName() + ".log"));
-	logger.add(platform::makeConsoleSink());
+	logClient.setPrefix(name);
+	logClient.add(makeFileSink(getName() + ".log"));
+	logClient.add(makeConsoleSink());
 }
 
 void System::shutdown()

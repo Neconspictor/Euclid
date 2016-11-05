@@ -1,16 +1,17 @@
 #include <TaskManagementTester.hpp>
 #include <LoggingTester.hpp>
 #include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingClient.hpp>
 #include <iostream>
 
 using namespace std;
 using namespace platform;
 
-Logger logger;
+LoggingClient logClient(Logger::getInstance());
 
 void testLogging()
 {
-	logger.setPrefix("[LoggingTester]");
+	logClient.setPrefix("[LoggingTester]");
 	TestClass testClass(1);
 	TestClass testClass2(1);
 	testClass.foo(Debug);

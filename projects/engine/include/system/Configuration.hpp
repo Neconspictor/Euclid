@@ -29,7 +29,7 @@ public:
 	{
 		if (!isSet(settingName))
 		{
-			LOG(logger, platform::Warning) << "Failed to find variable: " << settingName;
+			LOG(logClient, platform::Warning) << "Failed to find variable: " << settingName;
 			return T();
 		}
 

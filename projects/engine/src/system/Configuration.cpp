@@ -16,7 +16,7 @@ bool Configuration::load(const string& fileName)
 
 	if (!file)
 	{
-		LOG(logger, Error) << "Couldn't open configuration file: " << fileName;
+		LOG(logClient, Error) << "Couldn't open configuration file: " << fileName;
 		return false;
 	}
 

@@ -14,6 +14,6 @@ int main()
 	cout << "Running" << endl;
 	engine.run();
 	cout << "Done" << endl;
-	//testEngine();
+	testEngine();
 	return EXIT_SUCCESS;
 }

@@ -40,7 +40,12 @@ TaskManager::TaskManager(unsigned int numThreads): mRunning(false)
 
 TaskManager::~TaskManager() {
 	for (auto itr : mThreads)
+	{
 		itr->join();
+		delete itr;
+	}
+
+	mThreads.clear();
 }
 
 void TaskManager::add(TaskPtr task) {

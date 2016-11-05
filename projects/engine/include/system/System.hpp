@@ -2,9 +2,9 @@
 #define NEC_ENGINE_SYSTEM_HPP
 #include <platform/event/EventChannel.hpp>
 #include <platform/event/Task.hpp>
-#include <platform/logging/Logger.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/options_description.hpp>
+#include <platform/logging/LoggingClient.hpp>
 
 class Engine;
 
@@ -68,7 +68,7 @@ protected:
 	friend class Engine;
 	EventChannel channel;
 	std::shared_ptr<SystemUpdater> updater;
-	platform::Logger logger;
+	platform::LoggingClient logClient;
 	std::string name;
 	boost::program_options::options_description settings;
 

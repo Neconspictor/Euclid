@@ -17,7 +17,8 @@ namespace platform
 			int mLine;
 		};
 
-		friend class Logger; // only allow the Logger class to instantiate a LogMessage
+		friend class Logger;
+		friend class LoggingClient; // only allow the Logger and LoggingClient classes to instantiate a LogMessage
 		template <typename T>
 		LogMessage& operator << (const T& value);
 		LogMessage& operator << (std::ostream& (*fn)(std::ostream& os));
