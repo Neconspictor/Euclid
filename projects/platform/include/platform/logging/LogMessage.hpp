@@ -6,6 +6,8 @@
 
 namespace platform
 {
+	class LoggingClient;
+
 	class LogMessage {
 	public:
 		struct Meta {
@@ -24,19 +26,19 @@ namespace platform
 
 	private:
 
-		std::ostringstream mBuffer;
-		const Logger* mOwner;
-		Meta mMeta;
+		std::ostringstream buffer;
+		const LoggingClient* client;
+		Meta meta;
 
 		LogMessage(LogMessage&);
 		LogMessage(LogMessage&&);
-		LogMessage(LogLevel level, const std::string& file, const std::string& function, int line, const Logger* owner);
+		LogMessage(LogLevel level, const std::string& file, const std::string& function, int line, const LoggingClient* owner);
 		LogMessage();
 	};
 
 	template <typename T>
 	LogMessage& LogMessage::operator << (const T& value) {
-		mBuffer << value;
+		buffer << value;
 		return *this;
 	}
 }

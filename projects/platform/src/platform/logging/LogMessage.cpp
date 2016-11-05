@@ -1,22 +1,22 @@
 #include <platform/logging/LogMessage.hpp>
-#include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingClient.hpp>
 
 using namespace std;
 
 namespace platform
 {
 	LogMessage& LogMessage::operator << (ostream& (*fn)(ostream& os)) {
-		fn(mBuffer);
+		fn(buffer);
 		return *this;
 	}
 
 	LogMessage::LogMessage(LogMessage& other)
 	{
-		this->mBuffer << other.mBuffer.str();
-		this->mOwner = other.mOwner;
-		this->mMeta.mFile = other.mMeta.mFile;
-		this->mMeta.mLine = other.mMeta.mLine;
-		this->mMeta.level = other.mMeta.level;
+		this->buffer << other.buffer.str();
+		this->client = other.client;
+		this->meta.mFile = other.meta.mFile;
+		this->meta.mLine = other.meta.mLine;
+		this->meta.level = other.meta.level;
 	}
 
 	/*LogMessage::LogMessage(const LogMessage& other)
@@ -27,31 +27,31 @@ namespace platform
 	}*/
 
 	LogMessage::LogMessage(LogMessage&& other) :
-		mBuffer(move(other.mBuffer)),
-		mOwner(move(other.mOwner)),
-		mMeta(move(other.mMeta))
+		buffer(move(other.buffer)),
+		client(move(other.client)),
+		meta(move(other.meta))
 	{
-		other.mOwner = nullptr;
+		other.client = nullptr;
 	}
 
-	LogMessage::LogMessage(LogLevel level, const string& file, const string& function, int line, const Logger* owner) :
-		mOwner(owner)
+	LogMessage::LogMessage(LogLevel level, const string& file, const string& function, int line, const LoggingClient* owner) :
+		client(owner)
 	{
-		mMeta.mFile = file;
-		mMeta.mLine = line;
-		mMeta.mFunction = function;
-		mMeta.level = level;
+		meta.mFile = file;
+		meta.mLine = line;
+		meta.mFunction = function;
+		meta.level = level;
 	}
 
 	LogMessage::LogMessage()
 	{
-		mOwner = nullptr;
+		client = nullptr;
 	}
 
 	LogMessage::~LogMessage() {
-		if (mOwner)
+		if (client)
 		{
-			mOwner->flush(*this);
+			client->flush(*this);
 		}
 	}
 }

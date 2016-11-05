@@ -26,7 +26,7 @@ namespace platform
 
 		auto&& sinks = mSinks;
 		auto&& meta = message.mMeta;
-		auto msg = message.mBuffer.str();
+		auto msg = message.buffer.str();
 		auto&& prefixCpy = prefix;
 
 		if (!isActive(meta.level)) return;
