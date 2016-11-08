@@ -13,12 +13,13 @@ set(
     include/platform/event/EventChannel.hpp
     include/platform/event/EventHandler.hpp
     include/platform/event/EventHandlerQueue.hpp
+    include/platform/event/GlobalEventChannel.hpp
     include/platform/event/Task.hpp
     include/platform/event/TaskManager.hpp
     
     
     #platform/logging
-    include/platform/logging/Logger.hpp
+    include/platform/logging/LoggingServer.hpp
     include/platform/logging/LoggingClient.hpp
     include/platform/logging/LogLevel.hpp
     include/platform/logging/LogMessage.hpp
@@ -47,7 +48,10 @@ set(
     #platform/util
     include/platform/util/CallbackContainer.hpp
     include/platform/util/Signal.hpp
+    include/platform/util/StringUtils.hpp
+    include/platform/util/TimeUtils.hpp
     include/platform/util/Util.hpp
+    
     
     #platform/util/concurrent
     include/platform/util/concurrent/Active.hpp
@@ -64,7 +68,7 @@ set(
     src/platform/event/TaskManager.cpp
     
     #platform/logging
-    src/platform/logging/Logger.cpp
+    src/platform/logging/LoggingServer.cpp
     src/platform/logging/LoggingClient.cpp
     src/platform/logging/LogLevel.cpp
     src/platform/logging/LogMessage.cpp
@@ -88,7 +92,7 @@ set(
     src/platform/windows/window/WindowWin32.cpp
     
     #platform/util
-    src/platform/util/Util.cpp
+    src/platform/util/StringUtils.cpp
     #platform/util/concurrent
     src/platform/util/concurrent/Active.cpp
 )

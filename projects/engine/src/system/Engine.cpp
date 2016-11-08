@@ -4,9 +4,8 @@
 using namespace std;
 using namespace platform;
 
-Engine::Engine() :
-	logClient(Logger::getInstance())
-
+Engine::Engine(const weak_ptr<LoggingServer>& logger) :
+	logClient(logger), config(logger)
 {
 	//logger.add(makeConsoleSink());
 	//logger.setLogLevel(Debug);
@@ -37,7 +36,9 @@ void Engine::run()
 	if (!config.load("config.ini"))
 	{
 		LOG(logClient, Fault) << "Configuration file couldn't be read. Aborting...";
-		return;
+		stringstream ss;
+		ss << BOOST_CURRENT_FUNCTION << ": Configuration file couldn't be read." << endl;
+		throw(runtime_error(ss.str()));
 	}
 	LOG(logClient, Info) << "Configuration file loaded.";
 
@@ -48,7 +49,7 @@ void Engine::run()
 
 void Engine::stop()
 {
-	channel.broadcast(TaskManager::StopEvent());
+	eventChannel.broadcast(TaskManager::StopEvent());
 }
 
 void Engine::add(SystemPtr system)

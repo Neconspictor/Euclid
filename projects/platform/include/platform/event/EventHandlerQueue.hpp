@@ -1,4 +1,6 @@
 /*
+* Modified code from: https://github.com/IanBullard/event_taskmanager
+*
 * Copyright (c) 2014 GrandMaster (gijsber@gmail)
 *
 * Permission is hereby granted, free of charge, to any person
@@ -46,10 +48,7 @@ private: //the entire class is private, so no object may use it
 
 	HandlerList mHandlerList;
 
-	static EventHandlerQueue& instance() {
-		static EventHandlerQueue anInstance;
-		return anInstance;
-	}
+public:
 
 	template <class tHandler>
 	void add(tHandler& handler) {

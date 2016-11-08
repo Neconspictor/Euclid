@@ -2,7 +2,7 @@
 #define ACTIVE_HPP
 /******************************************************************************************
 *
-* Taken and adapted from http://www.grandmaster.nu/blog/?page_id=158
+* Modified code version from http://www.grandmaster.nu/blog/?page_id=158
 *
 *******************************************************************************************/
 

@@ -12,7 +12,7 @@ public:
 	using Options = boost::program_options::options_description;
 	using Variables = boost::program_options::variables_map;
 
-	Configuration();
+	Configuration(const std::weak_ptr<platform::LoggingServer>& server);
 
 	virtual ~Configuration();
 

@@ -3,9 +3,11 @@ set(
     
     ###header files###
     include/EngineTester.hpp
+    include/Boost_OptionsTest.hpp
     ###source files###
     src/EngineTester.cpp
     src/EngineTestMain.cpp
+    src/Boost_OptionsTest.cpp
 )
 
 # Create named folders for the sources within the .vcproj

@@ -4,7 +4,6 @@
 #include <system/System.hpp>
 #include <platform/event/TaskManager.hpp>
 #include <memory>
-#include <list>
 #include <map>
 #include "Configuration.hpp"
 
@@ -15,7 +14,7 @@ public:
 	using SystemPtr = std::shared_ptr<System>;
 	using SystemMap = std::map<std::string, SystemPtr>;
 
-	Engine();
+	Engine(const std::weak_ptr<platform::LoggingServer>& logger);
 
 	virtual ~Engine();
 
@@ -32,7 +31,8 @@ private:
 	void shutdownSystems();
 
 	TaskManager taskManager;
-	EventChannel channel;
+	//std::weak_ptr<EventChannel> eventChannel;
+	GlobalEventChannel eventChannel;
 	SystemMap systemMap;
 	platform::LoggingClient logClient;
 	Configuration config;

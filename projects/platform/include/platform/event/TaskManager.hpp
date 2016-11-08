@@ -1,4 +1,6 @@
 /*
+* Modified code from: https://github.com/IanBullard/event_taskmanager
+*
 * Copyright (c) 2014 GrandMaster (gijsber@gmail)
 *
 * Permission is hereby granted, free of charge, to any person
@@ -31,6 +33,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <platform/event/GlobalEventChannel.hpp>
 
 // Note: when using this there must be at least one background task!
 class TaskManager {
@@ -41,6 +44,7 @@ public:
 	struct StopEvent {};
 
 	TaskManager(unsigned int numThreads = 0); //0 for autodetect
+
 	~TaskManager();
 
 	void add(TaskPtr task);
@@ -56,7 +60,7 @@ private:
 	void execute(TaskPtr task);
 	void synchronize();
 
-	std::list<std::thread*> mThreads;
+	std::list<std::unique_ptr<std::thread>> mThreads;
 	unsigned int mNumThreads;
 
 	bool mRunning;
@@ -64,6 +68,8 @@ private:
 	TaskList mTaskList[2];
 	TaskList mBackgroundTasks;
 	TaskList mSyncTasks;
+
+	GlobalEventChannel eventChannel;
 
 	unsigned int mReadList;
 	unsigned int mWriteList;

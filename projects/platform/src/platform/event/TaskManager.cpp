@@ -26,11 +26,14 @@
 #include <platform/event/TaskManager.hpp>
 #include <platform/event/EventChannel.hpp>
 
-TaskManager::TaskManager(unsigned int numThreads): mRunning(false)
+using namespace std;
+
+TaskManager::TaskManager(unsigned int numThreads)
+	: mRunning(false)
 {
 	mNumThreads = numThreads;
 	if (numThreads == 0)
-		mNumThreads = std::thread::hardware_concurrency() + 1;
+		mNumThreads = thread::hardware_concurrency() + 1;
 
 	mWriteList = 0;
 	mReadList = 1;
@@ -39,10 +42,9 @@ TaskManager::TaskManager(unsigned int numThreads): mRunning(false)
 }
 
 TaskManager::~TaskManager() {
-	for (auto itr : mThreads)
+	for (auto&& itr : mThreads)
 	{
 		itr->join();
-		delete itr;
 	}
 
 	mThreads.clear();
@@ -64,13 +66,11 @@ void TaskManager::add(TaskPtr task) {
 void TaskManager::start() {
 	mRunning = true;
 
-	EventChannel chan;
-
-	chan.add<Task::TaskCompleted>(*this);
-	chan.add<StopEvent>(*this);
+	eventChannel.add<Task::TaskCompleted>(*this);
+	eventChannel.add<StopEvent>(*this);
 
 	for (unsigned int i = 0; i < mNumThreads; ++i)
-		mThreads.push_back(new std::thread(std::bind(&TaskManager::worker, this)));
+		mThreads.push_back(make_unique<thread>(bind(&TaskManager::worker, this)));
 
 	while (mRunning) {
 		if (!mTaskList[mReadList].empty()) {
@@ -79,15 +79,15 @@ void TaskManager::start() {
 		}
 		else {
 			synchronize();
-			std::swap(mReadList, mWriteList);
+			swap(mReadList, mWriteList);
 		}
 
-		std::this_thread::yield();
+		this_thread::yield();
 	}
 }
 
 void TaskManager::synchronize() {
-	std::unique_lock<std::mutex> lock(mSyncMutex);
+	unique_lock<mutex> lock(mSyncMutex);
 
 	while (mNumTasksToWaitFor > 0)
 		mCondition.wait(lock);
@@ -103,14 +103,13 @@ void TaskManager::stop() {
 }
 
 void TaskManager::execute(TaskPtr t) {
-	EventChannel chan;
 
-	chan.broadcast(Task::TaskBeginning(t));
+	eventChannel.broadcast(Task::TaskBeginning(t));
 	t->run();
-	chan.broadcast(Task::TaskCompleted(t));
+	eventChannel.broadcast(Task::TaskCompleted(t));
 }
 
-void TaskManager::handle(const TaskManager::StopEvent&) {
+void TaskManager::handle(const StopEvent&) {
 	stop();
 }
 
@@ -130,18 +129,18 @@ void TaskManager::worker() {
 
 			if (task->getTaskFlags() & Task::FRAME_SYNC) {
 				{
-					std::lock_guard<std::mutex> lock(mSyncMutex);
+					lock_guard<mutex> lock(mSyncMutex);
 					mNumTasksToWaitFor -= 1;
 				}
 
 				mCondition.notify_one();
 			}
 
-			std::this_thread::yield();
+			this_thread::yield();
 		}
 		else {
 			// nothing is ready to run, sleep for 1.667 milliseconds (1/10th of a frame @ 60 FPS)
-			std::this_thread::sleep_for(std::chrono::microseconds(1667));
+			this_thread::sleep_for(chrono::microseconds(1667));
 		}
 	}
 }

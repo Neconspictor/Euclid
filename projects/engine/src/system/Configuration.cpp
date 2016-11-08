@@ -5,7 +5,7 @@ using namespace std;
 using namespace platform;
 using namespace boost::program_options;
 
-Configuration::Configuration() : System("Configuration"){}
+Configuration::Configuration(const weak_ptr<LoggingServer>& server) : System("Configuration", server){}
 
 
 Configuration::~Configuration(){}

@@ -48,8 +48,8 @@ namespace platform
 	}
 
 	struct FileSink {
-		FileSink(const string& filename) :
-			mFile(make_shared<ofstream>(filename))
+		FileSink(const string& filename)
+			: mFile(make_shared<ofstream>(filename))
 		{
 			if (!mFile->good()) {
 				string message = "Failed to open file sink: ";

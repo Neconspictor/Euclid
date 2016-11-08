@@ -5,7 +5,7 @@
 #include <boost/current_function.hpp>
 #include <platform/logging/LogMessage.hpp>
 #include <platform/logging/LogSink.hpp>
-#include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LogLevel.hpp>
 
 #define LOG(loggingClient, logLevel) \
@@ -34,7 +34,7 @@ namespace platform
 
 		void flush(const LogMessage& message) const;
 
-		LoggingClient(Logger* server);
+		LoggingClient(const std::weak_ptr<LoggingServer>& logger);
 		LoggingClient(const LoggingClient& other);
 		LoggingClient(LoggingClient&& other);
 
@@ -57,7 +57,7 @@ namespace platform
 		std::string prefix;
 		LogLevel currentLogLevel;
 		std::vector<LogSink> sinks;
-		Logger* server;
+		const std::weak_ptr<LoggingServer> server;
 	};
 }
 

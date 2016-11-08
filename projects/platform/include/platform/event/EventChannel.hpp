@@ -1,4 +1,6 @@
 /*
+* Modified code from: https://github.com/IanBullard/event_taskmanager
+*
 * Copyright (c) 2014 GrandMaster (gijsber@gmail)
 *
 * Permission is hereby granted, free of charge, to any person
@@ -26,23 +28,46 @@
 #define EVENT_CHANNEL_HPP
 
 #include <platform/event/EventHandlerQueue.hpp>
+#include <unordered_map>
+#include <boost/any.hpp>
+#include <typeindex>
 
 class EventChannel {
 public:
 	template <typename tEvent, class tHandler>
 	void add(tHandler& handler) {
-		EventHandlerQueue<tEvent>::instance().add(handler);
+		EventHandlerQueue<tEvent>& queue = getQueue<tEvent>();
+		queue.add(handler);
 	}
 
 	template <typename tEvent, class tHandler>
 	void remove(const tHandler& handler) {
-		EventHandlerQueue<tEvent>::instance().remove(handler);
+		EventHandlerQueue<tEvent>& queue = getQueue<tEvent>();
+		queue.remove(handler);
 	}
 
 	template <typename tEvent>
 	void broadcast(const tEvent& object) {
-		EventHandlerQueue<tEvent>::instance().broadcast(object);
+		//EventHandlerQueue<tEvent>::instance().broadcast(object);
+		EventHandlerQueue<tEvent>& queue = getQueue<tEvent>();
+		queue.broadcast(object);
 	}
+
+private:
+
+	template <typename tEvent>
+	EventHandlerQueue<tEvent>& getQueue()
+	{
+		auto key = std::type_index(typeid(EventHandlerQueue<tEvent>));
+		auto it = queueMap.find(key);
+		if (it == queueMap.end())
+		{
+			it = queueMap.emplace(key, boost::any(EventHandlerQueue<tEvent>())).first;
+		}
+		return boost::any_cast<EventHandlerQueue<tEvent>&>(it->second);
+	}
+
+	std::unordered_map<std::type_index, boost::any> queueMap;
 };
 
 #endif

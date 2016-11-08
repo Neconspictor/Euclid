@@ -2,7 +2,7 @@
 #include <iostream>
 #include <SOIL2/SOIL2.h>
 #include <algorithm>
-#include <platform/util/Util.hpp>
+#include <util/GlobalPaths.hpp>
 
 using namespace std;
 

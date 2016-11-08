@@ -1,5 +1,5 @@
 #include <platform/logging/LoggingClient.hpp>
-#include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LogSink.hpp>
 
 using namespace std;
@@ -30,10 +30,10 @@ namespace platform
 		if (!isActive(message.meta.level)) return;
 
 		// just forward the message to the logging server. Non blocking!
-		server->send(*this, message);
+		server._Get()->send(*this, message);
 	}
 
-	LoggingClient::LoggingClient(Logger* server) :
+	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server) :
 		prefix(""), currentLogLevel(Debug), server(server){}
 
 	LoggingClient::LoggingClient(const LoggingClient& other): 

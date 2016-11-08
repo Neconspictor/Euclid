@@ -4,23 +4,21 @@
 #include <functional>
 #include <vector>
 #include <algorithm>
-#include <iostream>
-#include <map>
 #include <memory>
 
 template<class CallbackType>
 class CallbackItem
 {
 private:
-	std::function<CallbackType> _callback;
+	std::function<CallbackType> callback;
 public:
 	using Callback = std::function<CallbackType>;
 
-	explicit CallbackItem(const Callback& callback) : _callback(callback){}
+	explicit CallbackItem(const Callback& callback) : callback(callback){}
 
 	const Callback& getCallback()
 	{
-		return _callback;
+		return callback;
 	}
 
 };
@@ -58,7 +56,7 @@ public:
 		callbacks.erase(it);
 	}
 
-	const std::vector<SharedItem> getCallbacks()
+	const std::vector<SharedItem>& getCallbacks()
 	{
 		std::vector<SharedItem> result;
 		for (auto elem : callbacks) 

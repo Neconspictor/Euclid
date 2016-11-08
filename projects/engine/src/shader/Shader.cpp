@@ -2,14 +2,12 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <fstream>
-#include <sstream>
 
 #include <GL/glew.h>
 
 #include "shader/shader.hpp"
-#include <platform/util/Util.hpp>
 #include <platform/FileSystem.hpp>
+#include <util/GlobalPaths.hpp>
 
 using namespace std;
 using namespace util;

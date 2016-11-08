@@ -7,7 +7,7 @@
 using namespace std;
 using namespace platform;
 
-LoggingClient logClient(Logger::getInstance());
+LoggingClient logClient(LoggingServer::getInstance());
 
 void testLogging()
 {

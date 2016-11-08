@@ -1,10 +1,11 @@
 #ifndef NEC_ENGINE_SYSTEM_HPP
 #define NEC_ENGINE_SYSTEM_HPP
-#include <platform/event/EventChannel.hpp>
 #include <platform/event/Task.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/options_description.hpp>
+#include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LoggingClient.hpp>
+#include <platform/event/GlobalEventChannel.hpp>
 
 class Engine;
 
@@ -38,7 +39,7 @@ public:
 		System* system;
 	};
 
-	System(std::string name);
+	System(std::string name, const std::weak_ptr<platform::LoggingServer>& server);
 
 	virtual ~System();
 
@@ -66,7 +67,7 @@ protected:
 	void enableUpdater(unsigned int taskFlags = Task::SINGLETHREADED_REPEATING);
 
 	friend class Engine;
-	EventChannel channel;
+	GlobalEventChannel channel;
 	std::shared_ptr<SystemUpdater> updater;
 	platform::LoggingClient logClient;
 	std::string name;

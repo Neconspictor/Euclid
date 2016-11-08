@@ -34,6 +34,9 @@ set(
     #texture
     include/texture/TextureManager.hpp
     
+    #util
+    include/util/GlobalPaths.hpp
+    
     ###source files###
     #camera
     src/camera/Camera.cpp
@@ -64,6 +67,8 @@ set(
     
     #texture
     src/texture/TextureManager.cpp
+    
+    #util
 )
 
 # Create named folders for the sources within the .vcproj

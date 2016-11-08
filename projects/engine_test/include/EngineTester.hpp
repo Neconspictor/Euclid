@@ -5,8 +5,8 @@
 
 class TestSystem : public System {
 public:
-	TestSystem() :
-		System("TestSystem")
+	TestSystem(const std::weak_ptr<platform::LoggingServer>& server) :
+		System("TestSystem", server)
 	{
 		enableUpdater();
 		mSomeConfigSetting = 25;

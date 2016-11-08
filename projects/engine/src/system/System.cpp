@@ -1,12 +1,13 @@
 #include <system/System.hpp>
 #include <fstream>
-#include <platform/logging/Logger.hpp>
+#include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LogSink.hpp>
 
 
+using namespace std;
 using namespace platform;
 
-System::System(std::string name) : logClient(Logger::getInstance()),
+System::System(string name, const weak_ptr<LoggingServer>& server) : logClient(server),
 name(name)
 {
 }
@@ -33,7 +34,7 @@ void System::update()
 {
 }
 
-const std::string& System::getName() const
+const string& System::getName() const
 {
 	return name;
 }
