@@ -85,10 +85,10 @@ namespace platform {
 			throw runtime_error(ss.str());
 		}
 
-		std::string buildStr = NEC_BUILD_PATH;
-		std::string sourceCpy = source;
-		std::transform(buildStr.begin(), buildStr.end(), buildStr.begin(), ::tolower);
-		std::transform(sourceCpy.begin(), sourceCpy.end(), sourceCpy.begin(), ::tolower);
+		string buildStr = NEC_BUILD_PATH;
+		string sourceCpy = source;
+		transform(buildStr.begin(), buildStr.end(), buildStr.begin(), ::tolower);
+		transform(sourceCpy.begin(), sourceCpy.end(), sourceCpy.begin(), ::tolower);
 
 		return splitString(sourceCpy, buildStr);
 	}

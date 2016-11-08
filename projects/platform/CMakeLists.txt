@@ -9,7 +9,6 @@ set(
     include/platform/Window.hpp
     
     #platform/event
-    include/platform/event/Channel.hpp
     include/platform/event/EventChannel.hpp
     include/platform/event/EventHandler.hpp
     include/platform/event/EventHandlerQueue.hpp
