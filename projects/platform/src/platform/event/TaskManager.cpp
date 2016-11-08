@@ -24,8 +24,6 @@
 */
 
 #include <platform/event/TaskManager.hpp>
-#include <platform/event/EventChannel.hpp>
-#include <iostream>
 
 using namespace std;
 
@@ -61,7 +59,11 @@ void TaskManager::add(TaskPtr task) {
 			mBackgroundTasks.push(task);
 	}
 	else
+	{
+		// synchronize access on read and write list indices
+		lock_guard<mutex> lock(mSwapMutex);
 		mTaskList[mWriteList].push(task);
+	}
 }
 
 void TaskManager::start() {
@@ -80,7 +82,12 @@ void TaskManager::start() {
 		}
 		else {
 			synchronize();
+
+			// If TaskManager::add() pushes on write list, it can accidentally push on the read list.
+			// so the list indices have to be synchronized!
+			lock_guard<mutex> lock(mSwapMutex);
 			swap(mReadList, mWriteList);
+
 		}
 
 		this_thread::yield();

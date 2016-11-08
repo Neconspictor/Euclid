@@ -21,20 +21,13 @@ class Window
 {
 private:
 
-	//using  WindowFocusChanged = Signal<Window*, bool>;
 	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
 	WindowFocusChanged windowFocusChanged;
 
 public:
 
-	//using WindowFocusCallback = WindowFocusChanged::Callback;
 	using WindowFocusCallback = WindowFocusChanged::Callback;
-	//using WindowFocusConnection = WindowFocusChanged::Connection;
 	using WindowFocusConnection = WindowFocusChanged::SharedItem;
-	//using WindowFocusScopedConnection = WindowFocusChanged::ScopedConnection;
-
-	//using WindowFocusCallbackType = void(Window* window, bool hasFocus);
-	//using WindowFocusCallback = std::function<WindowFocusCallbackType>;
 
 	virtual ~Window(){}
 
@@ -144,7 +137,15 @@ public:
 	 */
 	virtual bool hasFocus() = 0;
 
+	/**
+	 * Adds a callback to windows focus events. Every time, when this windows receives or
+	 * looses focus, the callback will be called.
+	 */
 	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
+	
+	/**
+	* Removes a giveen window focus callback.
+	*/
 	void removeWindowFocusCallback(const WindowFocusConnection& connection);
 
 protected:
@@ -204,10 +205,9 @@ protected:
 	*/
 	bool m_hasFocus;
 
-	//std::vector<WindowFocusCallback> windowFocusCallbacks;
-	//CallbackContainer<WindowFocusCallbackType> windowFocusCallbackContainer;
-
-
+	/**
+	 * Informs windows focus listeners that this window lost or gained focus.
+	 */
 	void informWindowFocusListeners(bool receivedFocus);
 };
 
