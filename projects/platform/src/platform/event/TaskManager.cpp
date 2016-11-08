@@ -25,6 +25,7 @@
 
 #include <platform/event/TaskManager.hpp>
 #include <platform/event/EventChannel.hpp>
+#include <iostream>
 
 using namespace std;
 

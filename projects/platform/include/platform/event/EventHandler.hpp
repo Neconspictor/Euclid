@@ -1,4 +1,6 @@
 /*
+* Modified code from: https://github.com/IanBullard/event_taskmanager
+*
 * Copyright (c) 2014 GrandMaster (gijsber@gmail)
 *
 * Permission is hereby granted, free of charge, to any person
@@ -25,8 +27,11 @@
 #ifndef EVENT_HANDLER_HPP
 #define EVENT_HANDLER_HPP
 
-template <class> class EventHandlerQueue; //forward definition
+template <class> class EventHandlerQueue;
 
+/**
+ * 
+ */
 template <class tEvent>
 class EventHandler {
 public:
