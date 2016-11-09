@@ -1,4 +1,4 @@
-#include <platform/logging/LogSink.hpp>
+#include <platform/logging/LogEndpoint.hpp>
 #include <platform/util/Util.hpp>
 #include <iostream>
 #include <fstream>
@@ -7,23 +7,23 @@ using namespace std;
 
 namespace platform
 {
-	LogSink::LogSink(const LogSink& sink) :
+	LogEndpoint::LogEndpoint(const LogEndpoint& sink) :
 		mWrapper(sink.mWrapper->clone())
 	{
 	}
 
-	LogSink& LogSink::operator=(LogSink sink)
+	LogEndpoint& LogEndpoint::operator=(LogEndpoint sink)
 	{
 		// the function signature already specifies a copy, so we only need to move the result from the temporary
 		mWrapper = move(sink.mWrapper);
 		return *this;
 	}
 
-	bool LogSink::operator == (const LogSink& sink) const {
+	bool LogEndpoint::operator == (const LogEndpoint& sink) const {
 		return (mWrapper.get() == sink.mWrapper.get());
 	}
 
-	void LogSink::forward(
+	void LogEndpoint::forward(
 		const string& prefix,
 		const LogMessage::Meta& meta,
 		const string& message
@@ -31,8 +31,8 @@ namespace platform
 		mWrapper->forward(prefix, meta, message);
 	}
 
-	LogSink makeConsoleSink() {
-		return LogSink([](
+	LogEndpoint makeConsoleSink() {
+		return LogEndpoint([](
 			const string& prefix,
 			const LogMessage::Meta& meta,
 			const string& message
@@ -79,7 +79,7 @@ namespace platform
 	};
 
 
-	LogSink makeFileSink(const string& filename) {
-		return LogSink(FileSink(filename)); // implicitly converted to LogSink
+	LogEndpoint makeFileSink(const string& filename) {
+		return LogEndpoint(FileSink(filename)); // implicitly converted to LogSink
 	}
 }

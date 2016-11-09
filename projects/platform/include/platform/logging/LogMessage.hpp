@@ -35,8 +35,17 @@ namespace platform
 {
 	class LoggingClient;
 
+	/**
+	 * A log message is a facility for logging string messages. It uses overlaoded streaming operators (<<) for allowing
+	 * to log any object type, that can be streamed to a string.
+	 * the 
+	 */
 	class LogMessage {
 	public:
+		/**
+		 * A log message contains meta information: the log (priority) level, the file and the function and
+		 * the line the logging is taken on.
+		 */
 		struct Meta {
 			LogLevel level;
 			std::string mFile;
@@ -44,23 +53,48 @@ namespace platform
 			int mLine;
 		};
 
-		friend class LoggingServer;
-		friend class LoggingClient; // only allow the Logger and LoggingClient classes to instantiate a LogMessage
+		/**
+		 * Templated overloaded streaming operator for forwarding objects of any type to the log message.
+		 */
 		template <typename T>
 		LogMessage& operator << (const T& value);
+
 		LogMessage& operator << (std::ostream& (*fn)(std::ostream& os));
 
 		~LogMessage();
 
 	private:
 
+		// only allow the logging client and server classes to instantiate a LogMessage
+		friend class LoggingServer;
+		friend class LoggingClient;
+
 		std::ostringstream buffer;
 		const LoggingClient* client;
 		Meta meta;
 
+		/**
+		 * Copy constructor
+		 */
 		LogMessage(LogMessage&);
+		
+		/**
+		* Move constructor
+		*/
 		LogMessage(LogMessage&&);
+		
+		/**
+		* Constructs a new log message using a given log level, file and function name and the line number for
+		* meta information. The specified logging client is considered to be the owner of this log message, that 
+		* will also handle it.
+		*
+		* NOTE: This constructor is private, as the creation of log messages is done by the logging clients. 
+		*/
 		LogMessage(LogLevel level, const std::string& file, const std::string& function, int line, const LoggingClient* owner);
+		
+		/**
+		* Default constructor
+		*/
 		LogMessage();
 	};
 

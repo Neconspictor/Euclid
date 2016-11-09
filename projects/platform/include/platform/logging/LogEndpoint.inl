@@ -25,38 +25,38 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LOG_SINK_INL
-#define LOG_SINK_INL
+#ifndef LOG_ENDPOINT_INL
+#define LOG_ENDPOINT_INL
 
 namespace platform
 {
 	template <typename T>
-	LogSink::LogSink(T impl) :
+	LogEndpoint::LogEndpoint(T impl) :
 		mWrapper(new Model<T>(std::move(impl)))
 	{
 	}
 
 	template <typename T>
-	LogSink::Model<T>::Model(T impl) :
+	LogEndpoint::Model<T>::Model(T impl) :
 		mImpl(std::move(impl))
 	{
 	}
 
 	template <typename T>
-	LogSink::Concept* LogSink::Model<T>::clone() const
+	LogEndpoint::Concept* LogEndpoint::Model<T>::clone() const
 	{
 		return new Model<T>(mImpl);
 	}
 
 	template <typename T>
-	void LogSink::Model<T>::operator()(const std::string& prefix, 
+	void LogEndpoint::Model<T>::operator()(const std::string& prefix, 
 		const LogMessage::Meta& meta, const std::string& message)
 	{
 		mImpl(prefix, meta, message);
 	}
 
 	template <typename T>
-	void LogSink::Model<T>::forward(
+	void LogEndpoint::Model<T>::forward(
 		const std::string& prefix,
 		const LogMessage::Meta& meta,
 		const std::string& message

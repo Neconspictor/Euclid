@@ -1,6 +1,6 @@
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/logging/LoggingServer.hpp>
-#include <platform/logging/LogSink.hpp>
+#include <platform/logging/LogEndpoint.hpp>
 
 using namespace std;
 
@@ -30,30 +30,30 @@ namespace platform
 		if (!isActive(message.meta.level)) return;
 
 		// just forward the message to the logging server. Non blocking!
-		server._Get()->send(*this, message);
+		server.lock()->send(*this, message);
 	}
 
 	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server) :
 		prefix(""), currentLogLevel(Debug), server(server){}
 
 	LoggingClient::LoggingClient(const LoggingClient& other): 
-		currentLogLevel(other.currentLogLevel), prefix(other.prefix),
+		prefix(other.prefix), currentLogLevel(other.currentLogLevel),
 		server(other.server)
 	{
-		for (auto& sink : other.sinks)
-			sinks.push_back(sink);
+		for (auto& endpoint : other.endpoints)
+			endpoints.push_back(endpoint);
 	}
 
 	LoggingClient::LoggingClient(LoggingClient&& other) :
 		currentLogLevel(other.currentLogLevel), prefix(other.prefix),
-		server(other.server), sinks(other.sinks)
+		server(other.server), endpoints(other.endpoints)
 	{
-		other.sinks.clear();
+		other.endpoints.clear();
 	}
 
-	void LoggingClient::add(const LogSink& sink)
+	void LoggingClient::add(const LogEndpoint& endpoint)
 	{
-		sinks.push_back(sink);
+		endpoints.push_back(endpoint);
 	}
 
 	const string& LoggingClient::getPrefix() const
@@ -61,9 +61,9 @@ namespace platform
 		return prefix;
 	}
 
-	const vector<LogSink>& LoggingClient::getSinks() const
+	const vector<LogEndpoint>& LoggingClient::getEndpoints() const
 	{
-		return sinks;
+		return endpoints;
 	}
 
 	bool LoggingClient::isActive(LogLevel level) const
@@ -71,14 +71,14 @@ namespace platform
 		return level >= currentLogLevel;
 	}
 
-	void LoggingClient::remove(const LogSink& sink)
+	void LoggingClient::remove(const LogEndpoint& endpoint)
 	{
-		auto it = find(sinks.begin(), sinks.end(), sink);
+		auto it = find(endpoints.begin(), endpoints.end(), endpoint);
 
-		if (it == sinks.end())
-			throw runtime_error("Tried to remove a sink that was not added yet");
+		if (it == endpoints.end())
+			throw runtime_error("Tried to remove a logging endpoint that was not added yet");
 
-		sinks.erase(it);
+		endpoints.erase(it);
 	}
 
 	void LoggingClient::setPrefix(const string& prefix)

@@ -1,5 +1,5 @@
 #include <platform/logging/LoggingServer.hpp>
-#include <platform/logging/LogSink.hpp>
+#include <platform/logging/LogEndpoint.hpp>
 #include <platform/logging/LoggingClient.hpp>
 
 using namespace std;
@@ -8,14 +8,14 @@ using namespace std;
 namespace platform
 {
 	void LoggingServer::send(const LoggingClient& client, const LogMessage& message) const {
-		auto&& sinks = client.getSinks();
+		auto&& endpoints = client.getEndpoints();
 		auto&& meta = message.meta;
 		auto msg = message.buffer.str();
 		auto&& prefixCpy = client.getPrefix();
 
 		active->send([=] {
-			for (auto&& sink : sinks)
-				sink.forward(prefixCpy, meta, msg);
+			for (auto&& endpoint : endpoints)
+				endpoint.forward(prefixCpy, meta, msg);
 		});
 	}
 

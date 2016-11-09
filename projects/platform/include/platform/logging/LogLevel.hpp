@@ -30,16 +30,44 @@
 #include <ostream>
 
 namespace platform{
+
+	/**
+	 * A log level specifies the priority of a log message resp. how important a log message is.
+	 */
 	enum LogLevel
 	{
+		/**
+		 * Use this level, if the log message has a debug purpose.
+		 */
 		Debug,
+
+		/**
+		 * Use this level to log common informations
+		 */
 		Info,
+
+		/**
+		 * Use this level to log something that isn't technically an error but maybe is something
+		 * unexpected or potentially dangerous.
+		 */
 		Warning,
+
+		/**
+		 * Use this level if an error occurred, but this situation can be handled. 
+		 */
 		Error,
+
+		/**
+		 * Use this level if an error occurred from there no meaningful recovering is possible.
+		 */
 		Fault
 	};
 }
 
+/**
+ * the overloaded streaming operator enables to put a string representation of a log level
+ * into an output stream. The output stream has to support std::string
+ */
 std::ostream& operator << (std::ostream& os, const platform::LogLevel& level);
 
 #endif

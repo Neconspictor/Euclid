@@ -18,12 +18,12 @@ set(
     
     
     #platform/logging
+    include/platform/logging/LogEndpoint.hpp
+    include/platform/logging/LogEndpoint.inl
     include/platform/logging/LoggingServer.hpp
     include/platform/logging/LoggingClient.hpp
     include/platform/logging/LogLevel.hpp
     include/platform/logging/LogMessage.hpp
-    include/platform/logging/LogSink.hpp
-    include/platform/logging/LogSink.inl
     
     #platform/mockup
     include/platform/mockup/PlatformMockup.hpp
@@ -67,11 +67,11 @@ set(
     src/platform/event/TaskManager.cpp
     
     #platform/logging
+    src/platform/logging/LogEndpoint.cpp
     src/platform/logging/LoggingServer.cpp
     src/platform/logging/LoggingClient.cpp
     src/platform/logging/LogLevel.cpp
     src/platform/logging/LogMessage.cpp
-    src/platform/logging/LogSink.cpp
     
     #platform/mockup
     src/platform/mockup/PlatformMockup.cpp

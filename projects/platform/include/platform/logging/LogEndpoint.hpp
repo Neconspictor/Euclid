@@ -25,23 +25,26 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LOG_SINK_HPP
-#define LOG_SINK_HPP
+#ifndef LOG_ENDPOINT_HPP
+#define LOG_ENDPOINT_HPP
 #include <platform/logging/LogMessage.hpp>
 #include <memory>
 
 namespace platform
 {
-	class LogSink {
+	/**
+	 * A logging endpoint describes the destination where a logging message should be written to.
+	 */
+	class LogEndpoint {
 	public:
 
 		template <typename T>
-		explicit LogSink(T impl);
+		explicit LogEndpoint(T impl);
 
-		LogSink(const LogSink& sink);
+		LogEndpoint(const LogEndpoint& endpoint);
 
-		LogSink& operator =(LogSink sink);
-		bool operator==(const LogSink& sink) const;
+		LogEndpoint& operator =(LogEndpoint sink);
+		bool operator==(const LogEndpoint& sink) const;
 		void forward(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) const;
 	private:
 		struct Concept {
@@ -73,10 +76,10 @@ namespace platform
 		std::unique_ptr<Concept> mWrapper;
 	};
 
-	LogSink makeConsoleSink();
+	LogEndpoint makeConsoleSink();
 
-	LogSink makeFileSink(const std::string& filename);
+	LogEndpoint makeFileSink(const std::string& filename);
 }
 
-#include <platform/logging/LogSink.inl>
+#include <platform/logging/LogEndpoint.inl>
 #endif
