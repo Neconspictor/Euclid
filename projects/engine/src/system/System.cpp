@@ -1,7 +1,7 @@
 #include <system/System.hpp>
 #include <fstream>
 #include <platform/logging/LoggingServer.hpp>
-#include <platform/logging/LogSink.hpp>
+#include <platform/logging/LogEndpoint.hpp>
 
 
 using namespace std;
@@ -21,8 +21,8 @@ void System::init()
 	channel.broadcast(SystemInitEvent(this));
 
 	logClient.setPrefix(name);
-	logClient.add(makeFileSink(getName() + ".log"));
-	logClient.add(makeConsoleSink());
+	logClient.add(makeFileEndpoint(getName() + ".log"));
+	logClient.add(makeConsoleEndpoint());
 }
 
 void System::shutdown()

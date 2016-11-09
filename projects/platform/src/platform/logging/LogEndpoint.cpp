@@ -23,7 +23,7 @@ namespace platform
 		return (mWrapper.get() == sink.mWrapper.get());
 	}
 
-	void LogEndpoint::forward(
+	void LogEndpoint::log(
 		const string& prefix,
 		const LogMessage::Meta& meta,
 		const string& message
@@ -31,7 +31,7 @@ namespace platform
 		mWrapper->forward(prefix, meta, message);
 	}
 
-	LogEndpoint makeConsoleSink() {
+	LogEndpoint makeConsoleEndpoint() {
 		return LogEndpoint([](
 			const string& prefix,
 			const LogMessage::Meta& meta,
@@ -79,7 +79,7 @@ namespace platform
 	};
 
 
-	LogEndpoint makeFileSink(const string& filename) {
+	LogEndpoint makeFileEndpoint(const string& filename) {
 		return LogEndpoint(FileSink(filename)); // implicitly converted to LogSink
 	}
 }

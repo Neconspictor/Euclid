@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	testEngine();*/
 	shared_ptr<LoggingServer> loggingServer(new LoggingServer());
 	LoggingClient logger (loggingServer);
-	logger.add(makeConsoleSink());
+	logger.add(makeConsoleEndpoint());
 	try
 	{
 		//testBoostOptions(argc, argv);

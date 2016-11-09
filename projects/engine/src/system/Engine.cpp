@@ -21,7 +21,7 @@ Engine::~Engine()
 void Engine::run()
 {
 	config.init();
-	logClient.add(makeConsoleSink());
+	logClient.add(makeConsoleEndpoint());
 	logClient.setLogLevel(Debug);
 	logClient.setPrefix("[Engine]");
 

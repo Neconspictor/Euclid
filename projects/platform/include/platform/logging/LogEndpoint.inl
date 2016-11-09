@@ -32,31 +32,31 @@ namespace platform
 {
 	template <typename T>
 	LogEndpoint::LogEndpoint(T impl) :
-		mWrapper(new Model<T>(std::move(impl)))
+		mWrapper(new WrapperImpl<T>(std::move(impl)))
 	{
 	}
 
 	template <typename T>
-	LogEndpoint::Model<T>::Model(T impl) :
+	LogEndpoint::WrapperImpl<T>::WrapperImpl(T impl) :
 		mImpl(std::move(impl))
 	{
 	}
 
 	template <typename T>
-	LogEndpoint::Concept* LogEndpoint::Model<T>::clone() const
+	LogEndpoint::Wrapper* LogEndpoint::WrapperImpl<T>::clone() const
 	{
-		return new Model<T>(mImpl);
+		return new WrapperImpl<T>(mImpl);
 	}
 
-	template <typename T>
-	void LogEndpoint::Model<T>::operator()(const std::string& prefix, 
+	/*template <typename T>
+	void LogEndpoint::WrapperImpl<T>::operator()(const std::string& prefix, 
 		const LogMessage::Meta& meta, const std::string& message)
 	{
 		mImpl(prefix, meta, message);
-	}
+	}*/
 
 	template <typename T>
-	void LogEndpoint::Model<T>::forward(
+	void LogEndpoint::WrapperImpl<T>::forward(
 		const std::string& prefix,
 		const LogMessage::Meta& meta,
 		const std::string& message

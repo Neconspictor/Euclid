@@ -33,8 +33,8 @@ void testChannel()
 int main()
 {
 	LoggingClient logClient(LoggingServer::getInstance());
-	logClient.add(makeConsoleSink());
-	logClient.add(makeFileSink("./log.log"));
+	logClient.add(makeConsoleEndpoint());
+	logClient.add(makeFileEndpoint("./log.log"));
 	logClient.setLogLevel(Debug);
 
 	testLogging();

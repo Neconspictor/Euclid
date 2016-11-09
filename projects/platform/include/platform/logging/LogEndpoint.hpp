@@ -38,20 +38,54 @@ namespace platform
 	class LogEndpoint {
 	public:
 
+		/**
+		 * Creates a new logging endpoint of type T. T is suppossed to be a class or function, on that the following
+		 * operator can be called: 
+		 * ---------------------------------------------------------------------------------------------------------
+		 * void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message);
+		 *----------------------------------------------------------------------------------------------------------
+		 * This operator handles the logging of a log message.
+		 * Using templates enables a user also to provide lambda expressions for creating a LogEndpoint.
+		 * E.g. a user can do the following for creating a new logging endpoint:
+		 * LogEndpoint myLogEndpoint([] (const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) {
+		 * //logging stuff...
+		 * });
+		 */
 		template <typename T>
 		explicit LogEndpoint(T impl);
 
+		/**
+		 * Copy constructor
+		 */
 		LogEndpoint(const LogEndpoint& endpoint);
 
-		LogEndpoint& operator =(LogEndpoint sink);
-		bool operator==(const LogEndpoint& sink) const;
-		void forward(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) const;
-	private:
-		struct Concept {
-			virtual ~Concept() {}
-			virtual Concept* clone() const = 0;
-			virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) = 0;
+		/**
+		* Assignment operator
+		*/
+		LogEndpoint& operator =(LogEndpoint endpoint);
 
+		/**
+		 * Comparator operator
+		 */
+		bool operator==(const LogEndpoint& endpoint) const;
+
+		/**
+		 * Logs a message with some meta information and a prefix.
+		 */
+		void log(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) const;
+	private:
+
+		/**
+		 * Abstraction class for wrapping the implementation of the logging endpoint.
+		 */
+		struct Wrapper {
+			virtual ~Wrapper() {}
+			virtual Wrapper* clone() const = 0;
+			//virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) = 0;
+
+			/**
+			* Forwards the log message to the implementation.
+			*/
 			virtual void forward(
 				const std::string& prefix,
 				const LogMessage::Meta& meta,
@@ -59,26 +93,44 @@ namespace platform
 				) = 0;
 		};
 
+		/**
+		 * The used implementation of the wrapper abstraction class used internally in the LogEndpoint class.
+		 * 
+		 */
 		template <typename T>
-		struct Model : Concept {
+		struct WrapperImpl : Wrapper {
 
-			Model(T impl);
+			WrapperImpl(T impl);
 
-			virtual Concept* clone() const override;
+			/**
+			 * Creates a deep copy of this wrapper object.
+			 */
+			virtual Wrapper* clone() const override;
 
-			virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
+			//virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
 
+			/**
+			 * @coypdoc Wrapper::forward(const std::string&, const LogMessage::Meta&, const std::string&)
+			 */
 			void forward(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
 
 			T mImpl;
 		};
 
-		std::unique_ptr<Concept> mWrapper;
+		std::unique_ptr<Wrapper> mWrapper;
 	};
 
-	LogEndpoint makeConsoleSink();
+	/**
+	 * Creates a logging endpoint that writes log messages to the standard output stream (std::cout).
+	 */
+	LogEndpoint makeConsoleEndpoint();
 
-	LogEndpoint makeFileSink(const std::string& filename);
+	/**
+	* Creates a logging endpoint that writes log messages to a file named by the parameter fileName.
+	* All log messages will be appended to the end of the file. 
+	* NOTE: If the file already exists the old file will be overwritten.
+	*/
+	LogEndpoint makeFileEndpoint(const std::string& fileName);
 }
 
 #include <platform/logging/LogEndpoint.inl>

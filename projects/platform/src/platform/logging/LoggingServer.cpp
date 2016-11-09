@@ -15,7 +15,7 @@ namespace platform
 
 		active->send([=] {
 			for (auto&& endpoint : endpoints)
-				endpoint.forward(prefixCpy, meta, msg);
+				endpoint.log(prefixCpy, meta, msg);
 		});
 	}
 
