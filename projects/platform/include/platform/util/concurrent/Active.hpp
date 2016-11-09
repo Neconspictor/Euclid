@@ -31,30 +31,56 @@ namespace platform
 			Active(); //only allow creation via the factory method
 
 		public:
+
+			/**
+			 * An active object can only be created with the factory method. So the copy
+			 * constructor has to be deleted.
+			 */
 			Active(const Active&) = delete;
+			
+			/**
+			* An active object can only be created with the factory method. So the assignment
+			* operator has to be deleted.
+			*/
 			Active& operator = (const Active&) = delete;
 
 			~Active();
 
-			static std::unique_ptr<Active> create(); // factory method (make sure 
+			/**
+			 * Factory method: Creates and configures a new active object.
+			 */
+			static std::unique_ptr<Active> create();
 
 			/**
-			In practice, call this with [=] lambda's -- by copying the data
-			we ensure that the data to be worked on is still live by the time
-			the active object gets to actually process it.
-
-			[NOTE] if the callback calls non-const methods the lambda will have to be mutable... -_-
+			* Executes a function on this active object.
+			*
+			* In practice, call this with [=] lambda's -- by copying the data
+			* we ensure that the data to be worked on is still live by the time
+			* the active object gets to actually process it.
+			*
+			* [NOTE] if the callback calls non-const methods the lambda will have to be mutable...
 			*/
 			void send(Callback message);
 
+			/**
+			 * Clears the message queue (so some queued callbacks might not be called anymore!)
+			 * and than terminates this active objects. After it has terminated it doesn't accept 
+			 * no more new callbacks.
+			 */
 			void terminate();
 
 		private:
+
+			/**
+			 * Starts this active thread. This function is private at it is invoked by the factory method, 
+			 * since this function is intended to be called only once in its life time.
+			 *
+			 */
 			void run(); // thread method
 
-			bool mIsDone;
-			boost::sync_queue<Callback> mMessageQueue;
-			std::thread mThread;
+			bool isDone;
+			boost::sync_queue<Callback> messageQueue;
+			std::thread workingThread;
 		};
 	}
 }

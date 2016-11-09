@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <memory>
 
+/**
+ * A wrapper class for storing callbacks of the type CallbackType.
+ */
 template<class CallbackType>
 class CallbackItem
 {
@@ -23,6 +26,10 @@ public:
 
 };
 
+/**
+ * A callback container stores callbacks of the type CallbackType and provides methods
+ * for managing these callbacks.
+ */
 template <class CallbackType>
 class CallbackContainer
 {
@@ -34,10 +41,16 @@ private:
 	std::vector<SharedItem> callbacks;
 public:
 
+	/**
+	 * Default constructor.
+	 */
 	CallbackContainer()
 	{
 	}
 
+	/**
+	 * Adds a callback to this container.
+	 */
 	SharedItem addCallback(const Callback& callback)
 	{
 		SharedItem sharedItem =
@@ -46,6 +59,9 @@ public:
 		return sharedItem;
 	}
 
+	/**
+	* Removes a callback from this container.
+	*/
 	void removeCallback(const SharedItem& item)
 	{
 		auto it = std::remove_if(callbacks.begin(), callbacks.end(), [&] (const SharedItem& current) ->bool
@@ -56,6 +72,9 @@ public:
 		callbacks.erase(it);
 	}
 
+	/**
+	* Provides immutable access to the stored callbacks.
+	*/
 	const std::vector<SharedItem>& getCallbacks()
 	{
 		std::vector<SharedItem> result;
