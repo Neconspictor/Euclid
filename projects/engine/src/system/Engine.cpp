@@ -23,12 +23,6 @@ void Engine::run()
 	logClient.setLogLevel(Debug);
 	logClient.setPrefix("[Engine]");
 
-	// merge all system settings into config
-	/*for (auto it : systemMap)
-	{
-		SystemPtr system = it.second;
-		config.settings().add(system->settings);
-	}*/
 	eventChannel.broadcast(CollectOptions(&config));
 
 
@@ -36,15 +30,11 @@ void Engine::run()
 	if (!config.load(configFileName))
 	{
 		LOG(logClient, Warning) << "Configuration file couldn't be read. Default values are used.";
-		//stringstream ss;
-		//ss << BOOST_CURRENT_FUNCTION << ": Configuration file couldn't be read." << endl;
-		//throw(runtime_error(ss.str()));
 	} else
 	{
 		LOG(logClient, Info) << "Configuration file loaded.";
 	}
 
-	//stringToLogLevel
 	try
 	{
 		systemLogLevel = stringToLogLevel(systemLogLevelStr);
@@ -53,6 +43,7 @@ void Engine::run()
 		//log error and proceed
 		LOG(logClient, Error) << "Couldn't get log level from " << systemLogLevelStr << endl
 			<< "Log level is set now to 'Warning'" << endl;
+
 		systemLogLevel = Warning;
 		systemLogLevelStr = "Warning";
 	}

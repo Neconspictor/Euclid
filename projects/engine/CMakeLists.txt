@@ -29,6 +29,7 @@ set(
     #system
     include/system/Configuration.hpp
     include/system/Engine.hpp
+    include/system/Video.hpp
     include/system/System.hpp
     
     #texture
@@ -64,6 +65,7 @@ set(
     src/system/Configuration.cpp
     src/system/Engine.cpp
     src/system/System.cpp
+    src/system/Video.cpp
     
     #texture
     src/texture/TextureManager.cpp
