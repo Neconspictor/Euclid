@@ -9,6 +9,9 @@
 
 class WindowsInputDevice;
 
+/**
+ * A window class for the Windows platform.
+ */
 class WindowWin32 : public Window
 {
 public:

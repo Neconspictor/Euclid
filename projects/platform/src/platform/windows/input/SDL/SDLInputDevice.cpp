@@ -33,7 +33,7 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height)
 
 		init = true;
 		
-	} catch(const InitError& err)
+	} catch(const SDLInitError& err)
 	{
 		cerr
 			<< "Error while initializing SDL:  "
@@ -139,7 +139,7 @@ void SDLInputDevice::pollEvents()
 		gotEvents = true;
 		switch (event.type) {
 			case SDL_KEYDOWN: {
-				KeyState current = pressedKeys[event.key.keysym.scancode];
+				InputItemState current = pressedKeys[event.key.keysym.scancode];
 				if (current != Pressed && current != Down)
 				{
 					pressedKeys[event.key.keysym.scancode] = Pressed;
@@ -191,7 +191,7 @@ void SDLInputDevice::pollEvents()
 		}
 
 		int scancode = *it;
-		KeyState state = pressedKeys[scancode];
+		InputItemState state = pressedKeys[scancode];
 		if (state == Pressed) pressedKeys[scancode] = Down;
 		if (state == Released) pressedKeys[scancode] = Up;
 		it = tempStates.erase(it);
@@ -208,7 +208,7 @@ void SDLInputDevice::pollEvents()
 
 		int scancode = (*it);
 
-		KeyState state = pressedMouseButtons[scancode];
+		InputItemState state = pressedMouseButtons[scancode];
 		if (state == Pressed) {
 			pressedMouseButtons[scancode] = Down;
 		}
@@ -221,7 +221,7 @@ void SDLInputDevice::pollEvents()
 	// check if any key is pressed
 	for (int i = 0; i < SDL_NUM_SCANCODES; ++i)
 	{
-		KeyState state = pressedKeys[i];
+		InputItemState state = pressedKeys[i];
 		if (state == Pressed || state == Down)
 		{
 			anyPressedKey = (Key)i;
@@ -231,7 +231,7 @@ void SDLInputDevice::pollEvents()
 
 	for (int i = 0; i < MOUSE_BUTTON_SIZE; ++i)
 	{
-		KeyState state = pressedMouseButtons[i];
+		InputItemState state = pressedMouseButtons[i];
 		if (state == Pressed || state == Down)
 		{
 			anyPressedMouseButton = (Button)i;

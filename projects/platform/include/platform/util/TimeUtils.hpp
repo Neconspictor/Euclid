@@ -7,6 +7,11 @@
 
 namespace platform {
 	namespace util {
+
+		/**
+		 * Provides the current time in the following format:
+		 * [hours:minutes:seconds]
+		 */
 		inline std::string getCurrentTime()
 		{
 			auto currentTime = time(nullptr);

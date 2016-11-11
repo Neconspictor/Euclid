@@ -5,6 +5,9 @@
 #include "platform/windows/PlatformWindows.hpp"
 #include <gainput/gainput.h>
 
+/**
+ * An input device for the windows platform.
+ */
 class WindowsInputDevice : public Input {
 public:
 	WindowsInputDevice(int width, int height);

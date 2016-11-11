@@ -4,6 +4,9 @@
 #include <windows.h>
 #include <OIS/OIS.h>
 
+/**
+ * An input device for the OIS library.
+ */
 class OISWindowsID : public Input
 {
 public:
@@ -27,7 +30,7 @@ private:
 	OIS::Mouse* m_Mouse;
 	OIS::Keyboard* m_Keyboard;
 
-	KeyState pressedKeys[KEY_SIZE];
+	InputItemState pressedKeys[KEY_SIZE];
 
 	OIS::KeyCode mapKey(Key key);
 	OIS::KeyCode mapButton(Button button);

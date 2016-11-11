@@ -26,21 +26,27 @@ void Engine::run()
 	logClient.setPrefix("[Engine]");
 
 	// merge all system settings into config
-	for (auto it : systemMap)
+	/*for (auto it : systemMap)
 	{
 		SystemPtr system = it.second;
 		config.settings().add(system->settings);
-	}
+	}*/
+	eventChannel.broadcast(CollectOptions(&config));
+
 
 	LOG(logClient, Info) << "Loading configuration file...";
 	if (!config.load("config.ini"))
 	{
-		LOG(logClient, Fault) << "Configuration file couldn't be read. Aborting...";
-		stringstream ss;
-		ss << BOOST_CURRENT_FUNCTION << ": Configuration file couldn't be read." << endl;
-		throw(runtime_error(ss.str()));
+		LOG(logClient, Warning) << "Configuration file couldn't be read. Default values are used.";
+		//stringstream ss;
+		//ss << BOOST_CURRENT_FUNCTION << ": Configuration file couldn't be read." << endl;
+		//throw(runtime_error(ss.str()));
+	} else
+	{
+		LOG(logClient, Info) << "Configuration file loaded.";
 	}
-	LOG(logClient, Info) << "Configuration file loaded.";
+
+	config.write("config.ini");
 
 	initSystems();
 	taskManager.start();
@@ -63,6 +69,7 @@ void Engine::add(SystemPtr system)
 		taskManager.add(system->updater);
 
 	systemMap.insert(make_pair(system->getName(), system));
+	eventChannel.add<CollectOptions>(*system.get());
 }
 
 Engine::SystemPtr Engine::get(const string& name) const

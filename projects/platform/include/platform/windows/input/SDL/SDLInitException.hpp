@@ -5,25 +5,34 @@
 #include <string>
 #include <SDL/SDL.h>
 
-class InitError : public std::exception {
+/**
+ * An exception class that represents an exception while initiliazing a SDL context.
+ */
+class SDLInitError : public std::exception {
 public:
-	InitError();
-	InitError(const std::string&);
-	virtual ~InitError() throw();
+	SDLInitError();
+	SDLInitError(const std::string&);
+	virtual ~SDLInitError() throw();
 	virtual const char* what() const throw() override;
 private:
 	std::string msg;
 };
 
-inline InitError::InitError() :
+inline SDLInitError::SDLInitError() :
 	exception(), msg(SDL_GetError()) {}
 
-inline InitError::InitError(const std::string& m) :
+/**
+ * Creates a new sdl initialization exception and puts a description, what did go wrong, to it.
+ */
+inline SDLInitError::SDLInitError(const std::string& m) :
 	exception(), msg(m) {}
 
-inline InitError::~InitError() throw() {}
+inline SDLInitError::~SDLInitError() throw() {}
 
-inline const char* InitError::what() const throw() {
+/**
+ * Provides the exception descrption.
+ */
+inline const char* SDLInitError::what() const throw() {
 	return msg.c_str();
 }
 

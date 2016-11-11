@@ -24,8 +24,9 @@ namespace platform {
 		return systemPath.string();
 	}
 
-	string util::splitString(const string& source, const string& split)
+	string util::splitPath(const string& source, const string& split)
 	{
+		//TODO specification isn't implmeneted yet!
 		// Unify source and split
 		string result = backSlasheshToForwards(source);
 		string splitCpy = backSlasheshToForwards(split);
@@ -77,6 +78,7 @@ namespace platform {
 
 	string util::relativePathToBuildDirectory(const string& source)
 	{
+		// TODO match specification!
 		if (!isParentFolderOf(NEC_BUILD_PATH, source))
 		{
 			stringstream ss;
@@ -90,7 +92,7 @@ namespace platform {
 		transform(buildStr.begin(), buildStr.end(), buildStr.begin(), ::tolower);
 		transform(sourceCpy.begin(), sourceCpy.end(), sourceCpy.begin(), ::tolower);
 
-		return splitString(sourceCpy, buildStr);
+		return splitPath(sourceCpy, buildStr);
 	}
 
 	string util::stringFromRegex(const string& source, const string& pattern, int splitIndex)

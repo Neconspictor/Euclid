@@ -18,16 +18,17 @@ System::~System()
 
 void System::init()
 {
-	channel.broadcast(SystemInitEvent(this));
+	//channel.broadcast(SystemInitEvent(this));
 
-	logClient.setPrefix(name);
-	logClient.add(makeFileEndpoint(getName() + ".log"));
+	stringstream ss; ss << "[" << name << "]";
+	logClient.setPrefix(ss.str());
+	logClient.add(makeFileEndpoint(ss.str() + ".log"));
 	logClient.add(makeConsoleEndpoint());
 }
 
 void System::shutdown()
 {
-	channel.broadcast(SystemShutdownEvent(this));
+	//channel.broadcast(SystemShutdownEvent(this));
 }
 
 void System::update()

@@ -7,13 +7,16 @@
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/event/GlobalEventChannel.hpp>
 
+
 class Engine;
+class Configuration;
+class CollectOptions;
 
 class System
 {
 public:
 
-	struct SystemInitEvent
+	/*struct SystemInitEvent
 	{
 		SystemInitEvent(System* system) : system(system){}
 		System* system;
@@ -23,7 +26,7 @@ public:
 	{
 		SystemShutdownEvent(System* system) : system(system) {}
 		System* system;
-	};
+	};*/
 
 	struct SystemUpdater : Task
 	{
@@ -43,17 +46,21 @@ public:
 
 	virtual ~System();
 
-	template<typename T>
-	void addSetting(const std::string& nameInConfigFile, T* var)
+	/*template<typename T>
+	void addSetting(Configuration* config, const std::string& nameInConfigFile, T* var, T defaultValue)
 	{
 		std::stringstream ss;
 		ss << getName() << "." << nameInConfigFile;
 		settings.add_options()
-			(ss.str().c_str(), boost::program_options::value<T>(var))
+			(ss.str().c_str(), boost::program_options::value<T>()->default_value(*var))
 			;
-	}
+
+		config->addOption(getName(), nameInConfigFile, var, defaultValue);
+	}*/
 
 	virtual void init();
+
+	virtual void handle(const CollectOptions& config) = 0;
 
 	virtual void shutdown();
 

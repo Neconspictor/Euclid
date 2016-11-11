@@ -5,6 +5,9 @@
 #include "SDL.hpp"
 #include <vector>
 
+/**
+ * An input device for a SDL context.
+ */
 class SDLInputDevice : public Input
 {
 public:
@@ -30,8 +33,8 @@ private:
 
 	static const int MOUSE_BUTTON_SIZE = 5;
 	SDL* sdl;
-	KeyState pressedKeys[SDL_NUM_SCANCODES];
-	KeyState pressedMouseButtons[MOUSE_BUTTON_SIZE];
+	InputItemState pressedKeys[SDL_NUM_SCANCODES];
+	InputItemState pressedMouseButtons[MOUSE_BUTTON_SIZE];
 	std::vector<int> tempStates, tempMouseStates;
 	Key anyPressedKey;
 	Button anyPressedMouseButton;
