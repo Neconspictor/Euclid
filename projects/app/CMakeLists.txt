@@ -6,7 +6,7 @@ set(
     include/Boost_OptionsTest.hpp
     ###source files###
     src/EngineTester.cpp
-    src/EngineTestMain.cpp
+    src/Main.cpp
     src/Boost_OptionsTest.cpp
 )
 

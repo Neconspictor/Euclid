@@ -1,17 +1,15 @@
 #include <system/Engine.hpp>
 #include <platform/logging/LoggingClient.hpp>
+#include <platform/exception/EnumFormatException.hpp>
 
 using namespace std;
 using namespace platform;
 
 Engine::Engine(const weak_ptr<LoggingServer>& logger) :
-	logClient(logger), config(logger)
+	logClient(logger), config(logger), systemLogLevel(Debug)
 {
-	//logger.add(makeConsoleSink());
-	//logger.setLogLevel(Debug);
-	//logger.setPrefix("[Engine]");
-
-	//LOG(logger, Info) << "Engine created!";
+	configFileName = "config.ini";
+	config.addOption("Logging", "logLevel", &systemLogLevelStr, string(""));
 }
 
 Engine::~Engine()
@@ -35,7 +33,7 @@ void Engine::run()
 
 
 	LOG(logClient, Info) << "Loading configuration file...";
-	if (!config.load("config.ini"))
+	if (!config.load(configFileName))
 	{
 		LOG(logClient, Warning) << "Configuration file couldn't be read. Default values are used.";
 		//stringstream ss;
@@ -46,11 +44,30 @@ void Engine::run()
 		LOG(logClient, Info) << "Configuration file loaded.";
 	}
 
-	config.write("config.ini");
+	//stringToLogLevel
+	try
+	{
+		systemLogLevel = stringToLogLevel(systemLogLevelStr);
+	} catch(const EnumFormatException& e)
+	{
+		//log error and proceed
+		LOG(logClient, Error) << "Couldn't get log level from " << systemLogLevelStr << endl
+			<< "Log level is set now to 'Warning'" << endl;
+		systemLogLevel = Warning;
+		systemLogLevelStr = "Warning";
+	}
+	logClient.setLogLevel(systemLogLevel);
+	config.setLogLevel(systemLogLevel);
+	config.write(configFileName);
 
 	initSystems();
 	taskManager.start();
 	shutdownSystems();
+}
+
+void Engine::setConfigFileName(const string & fileName)
+{
+	configFileName = fileName;
 }
 
 void Engine::stop()
@@ -91,6 +108,7 @@ void Engine::initSystems()
 	{
 		SystemPtr system = it.second;
 		LOG(logClient, Info) << "Initializing " << system->getName();
+		system->setLogLevel(systemLogLevel);
 		system->init();
 	}
 }

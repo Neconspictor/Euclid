@@ -1,6 +1,4 @@
-#include "platform/Input.hpp"
-
-using namespace std;
+#include <platform/Input.hpp>
 
 Input* Input::instance = nullptr;
 
@@ -42,14 +40,14 @@ void Input::onScroll(Window* window, double xoffset, double yoffset)
 	}*/
 }
 
-void Input::updateOnFrame(GLFWwindow* window, double frameTime)
+/*void Input::updateOnFrame(GLFWwindow* window, double frameTime)
 {
-	/*double xPos, yPos;
+	double xPos, yPos;
 	glfwGetCursorPos(window, &xPos, &yPos);
 	instance->frameMouseXOffset = xPos - 400;
 	instance->frameMouseYOffset = yPos - 300;
-	glfwSetCursorPos(window, 400, 300);*/
-}
+	glfwSetCursorPos(window, 400, 300);
+}*/
 
 MouseOffset Input::getFrameMouseOffset()
 {

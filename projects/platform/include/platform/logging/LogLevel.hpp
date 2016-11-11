@@ -28,6 +28,10 @@
 #ifndef PLATFORM_LOG_LEVEL_HPP
 #define PLATFORM_LOG_LEVEL_HPP
 #include <ostream>
+#include <sstream>
+#include <boost/current_function.hpp>
+#include <algorithm>
+#include <platform/exception/EnumFormatException.hpp>
 
 namespace platform{
 
@@ -39,7 +43,7 @@ namespace platform{
 		/**
 		 * Use this level, if the log message has a debug purpose.
 		 */
-		Debug,
+		Debug = 0,
 
 		/**
 		 * Use this level to log common informations
@@ -62,6 +66,33 @@ namespace platform{
 		 */
 		Fault
 	};
+
+
+	const static struct {
+		LogLevel      val;
+		std::string str;
+	} conversion[] = {
+		{ Debug, "DEBUG" },
+		{ Info, "INFO" },
+		{ Warning, "WARNING" },
+		{ Error, "ERROR" },
+		{ Fault, "FAULT" },
+	};
+
+	static LogLevel stringToLogLevel(const std::string& str)
+	{
+		std::string upper = str;
+		transform(str.begin(), str.end(), upper.begin(), ::toupper);
+		for (int i = 0; i < sizeof(conversion) / sizeof(conversion[0]); ++i)
+		{
+			if (upper.compare(conversion[i].str) == 0)
+				return conversion[i].val;
+		}
+
+		std::stringstream ss;
+		ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert string to LogLevel enum: " << str;
+		throw EnumFormatException(ss.str());
+	}
 }
 
 /**

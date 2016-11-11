@@ -1,8 +1,5 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
-#include "GL/glew.h"
-#include <GLFW/glfw3.h>
-#include <list>
 
 class Window;
 
@@ -170,7 +167,7 @@ public:
 	/**
 	 * Deprectaed function. Don't use it! TODO: remove function!
 	 */
-	void updateOnFrame(GLFWwindow* window, double frameTime);
+	//void updateOnFrame(GLFWwindow* window, double frameTime);
 
 	/**
 	 *  Provides information about how much the cursor moved since the last frame.

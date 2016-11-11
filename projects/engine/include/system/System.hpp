@@ -66,6 +66,8 @@ public:
 
 	virtual void update();
 
+	void setLogLevel(platform::LogLevel logLevel);
+
 	const std::string& getName() const;
 
 

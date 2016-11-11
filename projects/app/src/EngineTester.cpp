@@ -1,8 +1,6 @@
 #include <iostream>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
-#include "mesh/TestMeshes.cpp"
+#include <mesh/TestMeshes.cpp>
 #include <shader/Shader.hpp>
 #include <texture/TextureManager.hpp>
 
@@ -92,7 +90,7 @@ void testEngine()
 	myPath = canonical(myPath, current_path());
 	cout << "myPath = " << myPath << endl;
 	Window::WindowStruct desc;
-	desc.title = "WindowWin32 test";
+	desc.title = "App";
 	desc.fullscreen = false;
 	desc.colorBitDepth = 32;
 	desc.refreshRate = 60;
@@ -103,7 +101,6 @@ void testEngine()
 	desc.visible = true;
 
 	Window* window = new WindowWin32(desc);
-	//window->setWindowed();
 
 	Renderer* renderer = new RendererOpenGL();
 
@@ -124,9 +121,6 @@ void testEngine()
 	Window::WindowFocusConnection con1 = window->addWindowFocusCallback(callback);
 	test.setCallbackConnection(con1);
 	test2.setCallbackConnection(window->addWindowFocusCallback(callback2));
-
-	//window->setFullscreen();
-	//window->setWindowed();
 
 	while (window->isOpen())
 	{
@@ -152,11 +146,6 @@ void testEngine()
 		{
 			cout << "Return is pressed!" << endl;
 		}
-
-		/*if (input->isDown(Input::KeyEscape))
-		{
-		cout << "Escape is down!" << endl;
-		}*/
 
 		if (input->isReleased(Input::KeyEscape))
 		{

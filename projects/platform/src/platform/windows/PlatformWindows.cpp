@@ -1,4 +1,5 @@
-#include "platform/windows/PlatformWindows.hpp"
+#include <platform/windows/PlatformWindows.hpp>
+#include <platform/windows/window/WindowWin32.hpp>
 #include <GL/glew.h>
 #include <GL/wglew.h>
 

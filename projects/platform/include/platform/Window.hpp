@@ -2,12 +2,9 @@
 #define WINDOW_HPP
 
 #include <platform/Renderer.hpp>
-#include <string>
 #include <platform/Input.hpp>
-#include <vector>
 #include <functional>
 #include <platform/util/CallbackContainer.hpp>
-#include <platform/util/Signal.hpp>
 
 class WindowFocusListener;
 

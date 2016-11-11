@@ -68,7 +68,6 @@ public:
 private:
 	Options options;
 	Variables variables;
-
 };
 
 #endif

@@ -75,7 +75,7 @@ public:
 	/**
 	* Provides immutable access to the stored callbacks.
 	*/
-	const std::vector<SharedItem>& getCallbacks()
+	std::vector<SharedItem> getCallbacks()
 	{
 		std::vector<SharedItem> result;
 		for (auto elem : callbacks) 

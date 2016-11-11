@@ -1,7 +1,7 @@
 #ifndef PLATFORM_WINDOWS_HPP
 #define PLATFORM_WINDOWS_HPP
-#include "platform/windows/window/WindowWin32.hpp"
-#include "platform/Platform.hpp"
+#include <Windows.h>
+#include <platform/Platform.hpp>
 
 //if MVSC is used, Visual Leak Detector is used for debugging
 #include <vld.h>

@@ -20,6 +20,8 @@ public:
 
 	void run();
 
+	void setConfigFileName(const std::string& fileName);
+
 	void stop();
 
 	void add(SystemPtr system);
@@ -36,6 +38,9 @@ private:
 	SystemMap systemMap;
 	platform::LoggingClient logClient;
 	Configuration config;
+	std::string configFileName;
+	std::string systemLogLevelStr;
+	platform::LogLevel systemLogLevel;
 };
 
 #endif

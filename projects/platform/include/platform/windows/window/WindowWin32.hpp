@@ -4,7 +4,6 @@
 #include <Windows.h>
 #include <string>
 #include <map>
-#include "platform/windows/input/OIS/OISWindowsID.hpp"
 #include <platform/windows/input/SDL/SDLInputDevice.hpp>
 
 class WindowsInputDevice;
@@ -49,8 +48,6 @@ protected:
 	virtual void embedOpenGLRenderer(Renderer* renderer);
 	static Window* getWindowByHWND(HWND hwnd);
 
-	WindowsInputDevice* inputDeviceTest;
-	OISWindowsID* inputDevice;
 	SDLInputDevice* sdlInputDevice;
 
 private:

@@ -1,22 +1,12 @@
 #include <EngineTester.hpp>
 #include <system/Engine.hpp>
 #include <iostream>
-#include <Boost_OptionsTest.hpp>
 
 using namespace std;
 using namespace platform;
 
 int main(int argc, char** argv)
 {
-	/*shared_ptr<TestSystem> ts(new TestSystem());
-	Engine engine;
-
-	engine.add(ts);
-
-	cout << "Running" << endl;
-	engine.run();
-	cout << "Done" << endl;
-	testEngine();*/
 	shared_ptr<LoggingServer> loggingServer(new LoggingServer());
 	LoggingClient logger (loggingServer);
 	logger.add(makeConsoleEndpoint());
@@ -28,10 +18,12 @@ int main(int argc, char** argv)
 
 		engine.add(ts);
 
+		engine.setConfigFileName("AppConfig.ini");
+
 		cout << "Running" << endl;
 		engine.run();
 		cout << "Done" << endl;
-		//testEngine();
+		testEngine();
 	} catch(const exception& e)
 	{
 		LOG(logger, platform::Fault) << "EngineTestMain, line " << __LINE__ <<": Exception occurred: " << e.what();

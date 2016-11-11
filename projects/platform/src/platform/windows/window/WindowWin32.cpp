@@ -1,7 +1,6 @@
-#include "platform/windows/window/WindowWin32.hpp"
+#include <platform/windows/window/WindowWin32.hpp>
 #include <iostream>
 #include <platform/windows/PlatformWindows.hpp>
-#include <platform/windows/input/gainput/WindowsInputDevice.hpp>
 
 using namespace std;
 
@@ -23,10 +22,6 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 
 	windowTable.insert(pair<HWND, Window*>(hwnd, this));
 
-	//if (fullscreen) WindowWin32::setFullscreen();
-	//inputDevice = new WindowsInputDevice(width, height);
-	//inputDevice = new OISWindowsID(hwnd, width, height);
-	//inputDeviceTest = new WindowsInputDevice(width, height);
 	sdlInputDevice = new SDLInputDevice(hwnd, width, height);
 	if (!sdlInputDevice->isInit())
 	{
@@ -223,8 +218,6 @@ void WindowWin32::activate()
 Input* WindowWin32::getInputDevice()
 {
 	return sdlInputDevice;
-	//return inputDevice;
-	//return inputDeviceTest;
 }
 
 bool WindowWin32::hasFocus()

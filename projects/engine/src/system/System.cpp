@@ -35,6 +35,11 @@ void System::update()
 {
 }
 
+void System::setLogLevel(LogLevel logLevel)
+{
+	logClient.setLogLevel(logLevel);
+}
+
 const string& System::getName() const
 {
 	return name;
