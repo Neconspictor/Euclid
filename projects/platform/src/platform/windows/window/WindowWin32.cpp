@@ -1,5 +1,6 @@
 #include <platform/windows/window/WindowWin32.hpp>
 #include <platform/windows/PlatformWindows.hpp>
+#include <Brofiler.h>
 
 using namespace std;
 using namespace platform;
@@ -196,6 +197,7 @@ void WindowWin32::pollEvents()
 
 void WindowWin32::swapBuffers()
 {
+	//BROFILER_EVENT("WindowWin32::swapBuffers()");
 	SwapBuffers(hdc);
 }
 

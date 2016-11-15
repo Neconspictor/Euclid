@@ -101,7 +101,10 @@ include_directories (
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
 add_library (platform ${PLATFORM_SOURCES})
-target_include_directories (platform PUBLIC include)
+target_include_directories (platform PUBLIC 
+    include
+    ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
+)
 
 
 #set additional library directories
@@ -115,6 +118,8 @@ find_library(SDL2_lib_debug NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x
 find_library(SDL2_lib_release NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
 find_library(SDL2main_lib_debug NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
 find_library(SDL2main_lib_release NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
+
+find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)
 
 # boost libraries libs\boost_1_62_0\x64\Debug
 find_library(libboost_chrono_release NAMES libboost_chrono-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
@@ -151,3 +156,5 @@ target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
 
 target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
 target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
+
+target_link_libraries(platform PUBLIC  ${brofiler_lib})

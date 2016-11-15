@@ -10,6 +10,7 @@ using namespace platform;
 
 int main(int argc, char** argv)
 {
+	BROFILER_THREAD("Main");
 	LoggingClient logger (getLogServer());
 	logger.add(makeConsoleEndpoint());
 	logger.setPrefix("[main]");

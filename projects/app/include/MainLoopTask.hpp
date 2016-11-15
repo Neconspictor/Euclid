@@ -8,6 +8,7 @@
 #include <system/Engine.hpp>
 #include <platform/Renderer.hpp>
 #include <platform/Window.hpp>
+#include <Brofiler.h>
 
 class MainLoopTask : public Task
 {
@@ -33,6 +34,7 @@ public:
 	};
 
 	void run() override {
+		BROFILER_FRAME("MainLoopTask");
 		using namespace std;
 		using namespace chrono;
 		using namespace platform;
@@ -62,6 +64,7 @@ public:
 			return;
 		}
 
+		BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
 		window->pollEvents();
 
 		Input* input = window->getInputDevice();
@@ -87,11 +90,14 @@ public:
 			window->close();
 		}
 
+		BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
+
 		renderer->beginScene();
 		renderer->endScene();
 		renderer->present();
+		BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 		window->swapBuffers();
-
+		BROFILER_CATEGORY("After buffer swapping", Profiler::Color::Aquamarine);
 	};
 
 private:

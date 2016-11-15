@@ -2,7 +2,6 @@
 #include <TaskManagementTester.hpp>
 #include <platform/logging/LogEndpoint.hpp>
 #include <platform/logging/LoggingClient.hpp>
-#include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;

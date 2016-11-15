@@ -24,6 +24,7 @@
 */
 
 #include <platform/event/TaskManager.hpp>
+#include <Brofiler.h>
 
 using namespace std;
 
@@ -76,6 +77,7 @@ void TaskManager::start() {
 		mThreads.push_back(make_unique<thread>(bind(&TaskManager::worker, this)));
 
 	while (mRunning) {
+		BROFILER_FRAME("TaskManagerLoop");
 		if (!mTaskList[mReadList].empty()) {
 			TaskPtr t = mTaskList[mReadList].wait_pop();
 			execute(t);
@@ -126,6 +128,7 @@ void TaskManager::handle(const Task::TaskCompleted& tc) {
 }
 
 void TaskManager::worker() {
+	BROFILER_THREAD("TaskManager::BackgroundWorker")
 	TaskPtr task;
 
 	while (mRunning) {
@@ -147,7 +150,7 @@ void TaskManager::worker() {
 		}
 		else {
 			// nothing is ready to run, sleep for 1.667 milliseconds (1/10th of a frame @ 60 FPS)
-			this_thread::sleep_for(chrono::microseconds(20000));
+			this_thread::sleep_for(chrono::microseconds(1667));
 		}
 	}
 }

@@ -1,13 +1,13 @@
 #include <TaskManagementTester.hpp>
 #include <LoggingTester.hpp>
-#include <platform/logging/Logger.hpp>
 #include <platform/logging/LoggingClient.hpp>
 #include <iostream>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
 using namespace platform;
 
-LoggingClient logClient(LoggingServer::getInstance());
+LoggingClient logClient(getLogServer());
 
 void testLogging()
 {

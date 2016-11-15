@@ -5,6 +5,7 @@
 *******************************************************************************************/
 
 #include <platform/util/concurrent/Active.hpp>
+#include <Brofiler.h>
 
 using namespace std;
 
@@ -46,7 +47,9 @@ namespace platform
 		}
 
 		void Active::run() {
+			BROFILER_THREAD("Active::Worker")
 			while (!isDone) {
+				BROFILER_FRAME("Active::WorkerLoop");
 				Callback fn;
 
 				messageQueue.wait_pull(fn);

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 #include "mesh/TestMeshes.cpp"
 #include <shader/Shader.hpp>
@@ -107,7 +107,7 @@ void testEngine()
 
 	Renderer* renderer = new RendererOpenGL();
 
-	window->embedRenderer(renderer);
+	//window->embedRenderer(renderer);
 
 	window->activate();
 
