@@ -4,7 +4,10 @@
 #include <platform/Platform.hpp>
 
 //if MVSC is used, Visual Leak Detector is used for debugging
+#include <Brofiler.h>
+#ifdef VDL_USED
 #include <vld.h>
+#endif
 #include <platform/logging/LoggingClient.hpp>
 
 /**

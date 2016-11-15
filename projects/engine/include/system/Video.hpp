@@ -13,7 +13,7 @@ public:
 
 	virtual void init() override;
 
-	void useRenderer(std::shared_ptr<Renderer>& renderer);
+	void useRenderer(std::shared_ptr<Renderer> renderer);
 
 	std::shared_ptr<Window> getWindow();
 

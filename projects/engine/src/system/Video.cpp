@@ -7,7 +7,7 @@
 using namespace std;
 
 Video::Video() :
-	System("Video"), fullscreen(false), colorBitDepth(0), refreshRate(0)
+	System("Video"), fullscreen(false), colorBitDepth(0), refreshRate(0), vSync(false)
 {
 	//we dont't need a frame updater
 	updater.reset();
@@ -53,7 +53,7 @@ void Video::init()
 	window->setVisible(true);
 }
 
-void Video::useRenderer(shared_ptr<Renderer>& renderer)
+void Video::useRenderer(shared_ptr<Renderer> renderer)
 {
 	this->renderer = renderer;
 	if (window)
