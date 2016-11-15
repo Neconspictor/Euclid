@@ -1,8 +1,6 @@
 #ifndef PLATFORM_HPP
 #define PLATFORM_HPP
 
-#define PLATFORM_WINDOWS
-
 #include <platform/Window.hpp>
 
 
@@ -10,6 +8,8 @@
  * A platform represents the environment the application is running on. A platform object wraps the 
  * OS specific code and provides a unified interface to os specific things like windows and device input
  * events.
+ * 
+ * Additionally this class provides a method to get a platform object for the current active platform!
  */
 class Platform
 {
@@ -18,24 +18,20 @@ public:
 
 
 	/**
-	 * Creates a new window and returns a handle for this window.
+	 * Creates a new platform independent window.
 	 */
-	virtual int createWindow(Window::WindowStruct const& desc) = 0;
+	virtual std::unique_ptr<Window> createWindow(Window::WindowStruct const& desc) = 0;
+
+	virtual void setVSync(const Renderer& renderer, bool value) = 0;
 
 	/**
-	 * Sets the visibility of a window specified by its handle. 
-	 */
-	virtual void showWindow(int handle, bool showIt) = 0;
+	* Provides access to the current active platform.
+	*/
+	static std::shared_ptr<Platform> getActivePlatform();
 
-	/**
-	 * Destroys a given window by its handle
-	 */
-	virtual void destroyWindow(int handle) = 0;
+private:
+	static std::shared_ptr<Platform> singleton;
 
-	/**
-	 * Releases all memory allocated by this platform object.
-	 */
-	virtual void release() = 0;
 };
 
 #endif

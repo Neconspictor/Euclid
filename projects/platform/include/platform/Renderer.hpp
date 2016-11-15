@@ -1,5 +1,6 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
+#include "logging/LoggingClient.hpp"
 
 class Platform;
 #include <ostream>
@@ -37,7 +38,10 @@ inline std::ostream& operator<< (std::ostream & os, RendererType type)
  */
 class Renderer
 {
+
 public:
+
+	Renderer();
 
 	virtual ~Renderer()
 	{
@@ -75,13 +79,21 @@ public:
 	/**
 	 * Provides the type of renderer class, this renderer belongs to.
 	 */
-	virtual RendererType getType() = 0;
+	virtual RendererType getType() const = 0;
 
 	/**
 	 * Sets the base folder where the renderer can access shader files the underlying
 	 * rendering API understands.
 	 */
-	void Renderer::setShaderBaseFolder(std::string baseFolder);
+	void setShaderBaseFolder(std::string baseFolder);
 
+	void setViewPort(int x, int y, int width, int height);
+
+protected:
+	platform::LoggingClient logClient;
+	int width;
+	int height;
+	int xPos;
+	int yPos;
 };
 #endif

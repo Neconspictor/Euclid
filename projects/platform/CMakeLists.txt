@@ -18,6 +18,7 @@ set(
     
     
     #platform/logging
+    include/platform/logging/GlobalLoggingServer.hpp
     include/platform/logging/LogEndpoint.hpp
     include/platform/logging/LogEndpoint.inl
     include/platform/logging/LoggingServer.hpp
@@ -51,6 +52,7 @@ set(
     ###source files###
     src/platform/FileSystem.cpp
     src/platform/Input.cpp
+	src/platform/Platform.cpp
     src/platform/Renderer.cpp
     src/platform/Window.cpp
     
@@ -59,6 +61,7 @@ set(
     src/platform/event/TaskManager.cpp
     
     #platform/logging
+    src/platform/logging/GlobalLoggingServer.cpp
     src/platform/logging/LogEndpoint.cpp
     src/platform/logging/LoggingServer.cpp
     src/platform/logging/LoggingClient.cpp

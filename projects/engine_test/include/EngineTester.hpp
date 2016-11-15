@@ -5,12 +5,12 @@
 
 class TestSystem : public System {
 public:
-	TestSystem(const std::weak_ptr<platform::LoggingServer>& server) :
-		System("TestSystem", server)
+	TestSystem() :
+		System("TestSystem")
 	{
 		enableUpdater();
 		mSomeConfigSetting = 25;
-		addSetting("SomeConfigSetting", &mSomeConfigSetting);
+		//addSetting("SomeConfigSetting", &mSomeConfigSetting);
 	}
 
 	virtual ~TestSystem() {

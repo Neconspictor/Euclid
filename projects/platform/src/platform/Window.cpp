@@ -1,6 +1,8 @@
-#include "platform//Window.hpp"
+#include <platform/Window.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
-Window::Window(WindowStruct const& description): renderer(nullptr)
+Window::Window(WindowStruct const& description): renderer(nullptr),
+logClient(platform::getLogServer())
 {
 	width = description.width;
 	height = description.height;
@@ -13,6 +15,10 @@ Window::Window(WindowStruct const& description): renderer(nullptr)
 	m_isVisible = description.visible;
 	m_isOpen = true;
 	m_hasFocus = false;
+	vSync = description.vSync;
+
+	logClient.setPrefix("[Window]");
+	logClient.add(platform::makeConsoleEndpoint());
 }
 
 Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCallback& callback)

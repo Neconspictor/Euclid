@@ -2,22 +2,34 @@
 #include <platform/windows/window/WindowWin32.hpp>
 #include <GL/glew.h>
 #include <GL/wglew.h>
+#include <platform/logging/LoggingClient.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
-int PlatformWindows::createWindow(Window::WindowStruct const& desc)
-{
-	return 0;
-}
+using namespace std;
 
-void PlatformWindows::showWindow(int handle, bool showIt)
-{
-}
-
-void PlatformWindows::destroyWindow(int handle)
+PlatformWindows::PlatformWindows() : logClient(platform::getLogServer())
 {
 }
 
-void PlatformWindows::release()
+void PlatformWindows::setVSync(const Renderer& renderer, bool value)
 {
+	switch(renderer.getType())
+	{
+	case OPENGL: {
+		setVSyncOpenGL(value);
+		break;
+	}
+	case DIRECTX: {
+		LOG(logClient, platform::Error) << "Renderer type currently not supported: " << DIRECTX;
+		break; 
+	}
+	default: break;
+	}
+}
+
+unique_ptr<Window> PlatformWindows::createWindow(Window::WindowStruct const& desc)
+{
+	return make_unique<WindowWin32>(desc);
 }
 
 void PlatformWindows::setOpenGLPixelFormat(HDC& hdc)
@@ -81,7 +93,7 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
-		MessageBox(NULL, "GLEW is not initialized!",
+		MessageBox(nullptr, "GLEW is not initialized!",
 			"OpenGL Rendering Context Error", MB_OK);
 	}
 
@@ -98,9 +110,8 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 		hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
 		destroyOpenGLContext(tempContext);
 		wglMakeCurrent(hdc, hglrc);
-	}
-	else
-	{	//It's not possible to make a GL 3.x context. Use the old style context (GL 2.1 and before)
+	} else {	
+		//It's not possible to make a GL 3.x context. Use the old style context (GL 2.1 and before)
 		hglrc = tempContext;
 	}
 
@@ -117,6 +128,26 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 
 void PlatformWindows::destroyOpenGLContext(HGLRC hglrc)
 {
-	wglMakeCurrent(NULL, NULL);
+	wglMakeCurrent(nullptr, nullptr);
 	wglDeleteContext(hglrc);
+}
+
+void PlatformWindows::setVSyncOpenGL(bool value)
+{
+	typedef BOOL(APIENTRY *PFNWGLSWAPINTERVALFARPROC)(int);
+	PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
+
+	const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+	if (strstr(extensions, "WGL_EXT_swap_control") == 0)
+	{
+		cerr << "WGL_EXT_swap_control extension not supported on your computer" << endl;
+		return; // Error: WGL_EXT_swap_control extension not supported on your computer.\n");	
+	}
+	else
+	{
+		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress("wglSwapIntervalEXT");
+
+		if (wglSwapIntervalEXT)
+			wglSwapIntervalEXT(value);
+	}
 }

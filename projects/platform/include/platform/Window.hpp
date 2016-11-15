@@ -5,6 +5,7 @@
 #include <platform/Input.hpp>
 #include <functional>
 #include <platform/util/CallbackContainer.hpp>
+#include "logging/LoggingClient.hpp"
 
 class WindowFocusListener;
 
@@ -42,6 +43,7 @@ public:
 		int posY;
 		std::string title;
 		bool visible;
+		bool vSync;
 
 		WindowStruct()
 		{
@@ -54,6 +56,7 @@ public:
 			posY = 0;
 			title = "";
 			visible = false;
+			vSync = false;
 		};
 	};
 
@@ -66,7 +69,7 @@ public:
 	 * Embeds the specified renderer. 
 	 * All draw calls of the renderer will be presented on this window.
 	 */
-	virtual void embedRenderer(Renderer* renderer) = 0;
+	virtual void embedRenderer(std::shared_ptr<Renderer>& renderer) = 0;
 
 	/**
 	 * Shows or hides a window.
@@ -195,12 +198,19 @@ protected:
 	/**
 	* The renderer that is associated with this window (if any renderer is associated at all).
 	*/
-	Renderer* renderer;
+	std::shared_ptr<Renderer> renderer;
 
 	/**
 	* Is this window currently focused for input events?
 	*/
 	bool m_hasFocus;
+
+	/**
+	 * Checks if window buffer swapping should be synchronized to monitor refresh rate. 
+	 */
+	bool vSync;
+
+	platform::LoggingClient logClient;
 
 	/**
 	 * Informs windows focus listeners that this window lost or gained focus.

@@ -1,12 +1,13 @@
-#include "renderer/RendererOpenGL.hpp"
-#include <iostream>
+#include <renderer/RendererOpenGL.hpp>
 #include <GL/glew.h>
 #include <GL/GLU.h>
 
 using namespace std;
+using namespace platform;
 
-RendererOpenGL::RendererOpenGL()
+RendererOpenGL::RendererOpenGL() : Renderer()
 {
+	logClient.setPrefix("[RendererOpenGL]");
 }
 
 RendererOpenGL::~RendererOpenGL()
@@ -15,13 +16,13 @@ RendererOpenGL::~RendererOpenGL()
 
 void RendererOpenGL::init()
 {
-	cout << "RendererOpenGL::init() called." << endl;
-	glViewport(0, 0, 800, 600);
-	int aspectratio = 800 / 600;
+	LOG(logClient, Info) << "Initializing...";
+	glViewport(xPos, yPos, width, height);
+	int aspectratio = width / height;
 	glMatrixMode(GL_PROJECTION);
 
 	glLoadIdentity();
-
+	
 	gluPerspective(45.0f, aspectratio, 0.2f, 255.0f);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -54,7 +55,7 @@ void RendererOpenGL::release()
 {
 }
 
-RendererType RendererOpenGL::getType()
+RendererType RendererOpenGL::getType() const
 {
 	return OPENGL;
 }

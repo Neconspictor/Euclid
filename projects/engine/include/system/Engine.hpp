@@ -14,19 +14,25 @@ public:
 	using SystemPtr = std::shared_ptr<System>;
 	using SystemMap = std::map<std::string, SystemPtr>;
 
-	Engine(const std::weak_ptr<platform::LoggingServer>& logger);
+	Engine();
+
+	Engine(const Engine&);
 
 	virtual ~Engine();
-
-	void run();
-
-	void setConfigFileName(const std::string& fileName);
-
-	void stop();
 
 	void add(SystemPtr system);
 
 	SystemPtr get(const std::string& name) const;
+
+	platform::LogLevel getLogLevel();
+	
+	void init();
+
+	void run(const TaskManager::TaskPtr& mainLoop);
+
+	void setConfigFileName(const std::string& fileName);
+
+	void stop();
 
 private:
 	void initSystems();

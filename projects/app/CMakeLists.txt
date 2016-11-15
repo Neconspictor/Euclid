@@ -4,6 +4,7 @@ set(
     ###header files###
     include/EngineTester.hpp
     include/Boost_OptionsTest.hpp
+    include/MainLoopTask.hpp
     ###source files###
     src/EngineTester.cpp
     src/Main.cpp

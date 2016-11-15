@@ -42,7 +42,7 @@ public:
 		System* system;
 	};
 
-	System(std::string name, const std::weak_ptr<platform::LoggingServer>& server);
+	System(const std::string& name);
 
 	virtual ~System();
 

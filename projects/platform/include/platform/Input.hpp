@@ -1,5 +1,6 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
+#include "logging/LoggingClient.hpp"
 
 class Window;
 
@@ -211,6 +212,8 @@ protected:
 	float frameScrollOffset;
 	bool m_windowHasFocus;
 	bool firstMouseInput;
+
+	platform::LoggingClient logClient;
 };
 
 #endif

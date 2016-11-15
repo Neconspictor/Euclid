@@ -1,35 +1,42 @@
 #include <EngineTester.hpp>
 #include <system/Engine.hpp>
-#include <iostream>
+#include <system/Video.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
+#include <renderer/RendererOpenGL.hpp>
+#include <MainLoopTask.hpp>
 
 using namespace std;
 using namespace platform;
 
 int main(int argc, char** argv)
 {
-	shared_ptr<LoggingServer> loggingServer(new LoggingServer());
-	LoggingClient logger (loggingServer);
+	LoggingClient logger (getLogServer());
 	logger.add(makeConsoleEndpoint());
+	logger.setPrefix("[main]");
 	try
 	{
-		//testBoostOptions(argc, argv);
-		shared_ptr<TestSystem> ts(new TestSystem(loggingServer));
-		Engine engine(loggingServer);
+		shared_ptr<Video> video = make_shared<Video>(Video());
+		shared_ptr<Renderer> renderer = make_shared<RendererOpenGL>(RendererOpenGL());
+		shared_ptr<Engine> engine  = make_shared<Engine>(Engine());
 
-		engine.add(ts);
+		video->useRenderer(renderer);
+		engine->add(video);
+		engine->setConfigFileName("AppConfig.ini");
 
-		engine.setConfigFileName("AppConfig.ini");
+		LOG(logger, Info) << "Starting Engine...";
+		engine->init();
 
-		cout << "Running" << endl;
-		engine.run();
-		cout << "Done" << endl;
-		testEngine();
+		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
+			video->getWindow().get(), renderer.get());
+		mainLoop.get()->setLogLevel(engine.get()->getLogLevel());
+		engine->run(mainLoop);
+		LOG(logger, Info) << "Done.";
 	} catch(const exception& e)
 	{
-		LOG(logger, platform::Fault) << "EngineTestMain, line " << __LINE__ <<": Exception occurred: " << e.what();
+		LOG(logger, platform::Fault) << "Main.cpp, line " << __LINE__ <<": Exception occurred: " << e.what();
 	} catch(...)
 	{
-		LOG(logger, platform::Fault) << "EngineTestMain, line " << __LINE__ << ": Unknown Exception occurred.";
+		LOG(logger, platform::Fault) << "Main.cpp, line " << __LINE__ << ": Unknown Exception occurred.";
 	}
 
 	//terminate running log threads

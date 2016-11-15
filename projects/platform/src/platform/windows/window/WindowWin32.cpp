@@ -1,13 +1,14 @@
 #include <platform/windows/window/WindowWin32.hpp>
-#include <iostream>
 #include <platform/windows/PlatformWindows.hpp>
 
 using namespace std;
+using namespace platform;
 
 map<HWND, Window*> WindowWin32::windowTable;
 
 WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 {
+	logClient.setPrefix("[WindowWin32]");
 	m_isVisible = desc.visible;
 	width = desc.width;
 	height = desc.height;
@@ -25,7 +26,7 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 	sdlInputDevice = new SDLInputDevice(hwnd, width, height);
 	if (!sdlInputDevice->isInit())
 	{
-		cerr << "WindowWin32::WindowWin32: ERROR: Couldn't init sdl input device!" << endl;
+		LOG(logClient, Error) << "Couldn't init sdl input device!";
 		delete sdlInputDevice;
 		sdlInputDevice = nullptr;
 	}
@@ -34,53 +35,51 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 	// E.g. SDL has problems to do resizing a window that was previously in fullscreen mode
 	// and was set later to windowed mode!
 	if (fullscreen) setFullscreen();
+
 	update();
+	LOG(logClient, Debug) << "WindowWin32 successfully created!";
+
 }
 
-void WindowWin32::embedOpenGLRenderer(Renderer* renderer)
+void WindowWin32::embedOpenGLRenderer(shared_ptr<Renderer>& renderer)
 {
-	cout << "WindowWin32::embedRenderer(Renderer*): embed openGL renderer..." << endl;
-	//PlatformWindows::setOpenGLPixelFormat(hdc);
+	LOG(logClient, Debug)  << " Embed openGL renderer...";
 	if (!openglContext)
 		openglContext = PlatformWindows::createOpenGLContext(hdc);
-	renderer->init();
+	renderer->setViewPort(0, 0, width, height);
 	this->renderer = renderer;
 }
 
 WindowWin32::~WindowWin32()
 {
-	cout << "WindowWin32::~WindowWin32() called." << endl;
+	LOG(logClient, Debug) << "WindowWin32::~WindowWin32() called.";
 	
 	if (openglContext)
 	{
 		PlatformWindows::destroyOpenGLContext(openglContext);
 		openglContext = nullptr;
-		cout << "WindowWin32::~WindowWin32(): destroyed openglContext." << endl;
 	}
 
 	if (sdlInputDevice)
 	{
 		delete sdlInputDevice;
 		sdlInputDevice = nullptr;
-		cout << "WindowWin32::~WindowWin32(): destroyed sdlInputDevice." << endl;
 	}
 	
 	if (hwnd)
 	{
 		DestroyWindow(hwnd);
 		hwnd = nullptr;
-		cout << "WindowWin32::~WindowWin32(): destroyed hwnd." << endl;
 	}
 
 	if (hdc)
 	{
 		ReleaseDC(hwnd, hdc);
 		hdc = nullptr;
-		cout << "WindowWin32::~WindowWin32(): destroyed hdc." << endl;
 	}
 }
 
-void WindowWin32::embedRenderer(Renderer* renderer)
+void WindowWin32::embedRenderer(shared_ptr<Renderer>& renderer)
 {
 	RendererType type = renderer->getType();
 	switch(type)
@@ -90,7 +89,7 @@ void WindowWin32::embedRenderer(Renderer* renderer)
 		break;
 	}
 	default: {
-		cout << "WindowWin32::embedRenderer(Renderer*): unsupported Renderer type: " << type << endl;
+		LOG(logClient, Error) << "Unsupported Renderer type: " << type;
 		break;
 	}
 	}
@@ -114,7 +113,7 @@ void WindowWin32::setFullscreen()
 	DEVMODE fullscreenSettings;
 	bool isChangeSuccessful;
 
-	EnumDisplaySettings(NULL, 0, &fullscreenSettings);
+	EnumDisplaySettings(nullptr, 0, &fullscreenSettings);
 	fullscreenSettings.dmPelsWidth = width;
 	fullscreenSettings.dmPelsHeight = height;
 	fullscreenSettings.dmBitsPerPel = colorBitDepth;
@@ -134,8 +133,7 @@ void WindowWin32::setFullscreen()
 	}
 	else
 	{
-		// TODO ERROR log
-		cout << "WindowWin32::setFullscreen(): Couldn't change display settings." << endl;
+		LOG(logClient, Error) << "WindowWin32::setFullscreen(): Couldn't change display settings.";
 	}
 }
 
@@ -147,18 +145,15 @@ void WindowWin32::setWindowed()
 
 	SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LEFT);
 	SetWindowLongPtr(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_THICKFRAME);
-	isChangeSuccessful = ChangeDisplaySettings(NULL, CDS_RESET) == DISP_CHANGE_SUCCESSFUL;
-	//SetWindowPos(hwnd, HWND_NOTOPMOST, posX, posY, width, height, SWP_SHOWWINDOW);
-	//ShowWindow(hwnd, SW_RESTORE);
+	isChangeSuccessful = ChangeDisplaySettings(nullptr, CDS_RESET) == DISP_CHANGE_SUCCESSFUL;
+
 	if (isChangeSuccessful)
 	{
-		//update();
-		cout << "WindowWin32::setWindowed(): Change was successful!" << endl;
+		LOG(logClient, Debug) << "WindowWin32::setWindowed(): Change was successful!";
 		update();
 	} else
 	{
-		// TODO ERROR log	
-		cerr << "WindowWin32::setWindowed(): Couldn't change!" << endl;
+		LOG(logClient, Error) << "WindowWin32::setWindowed(): Couldn't change!";
 	}
 }
 
@@ -189,9 +184,7 @@ void WindowWin32::close()
 void WindowWin32::pollEvents()
 {
 	MSG msg;
-	//inputDevice->update();
-	//inputDeviceTest->update();
-	while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
+	while (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE))
 	{
 		//inputDeviceTest->handleMessage(msg);
 		TranslateMessage(&msg);
@@ -248,12 +241,12 @@ HWND WindowWin32::createWindow(HINSTANCE& hinst, string title)
 	ex.cbClsExtra = 0;
 	ex.cbWndExtra = 0;
 	ex.hInstance = hinst;
-	ex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	ex.hCursor = LoadCursor(NULL, IDC_ARROW);
+	ex.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+	ex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	ex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	ex.lpszMenuName = NULL;
+	ex.lpszMenuName = nullptr;
 	ex.lpszClassName = WNDCLASSNAME.c_str();
-	ex.hIconSm = NULL;
+	ex.hIconSm = nullptr;
 
 	RegisterClassEx(&ex);
 
@@ -264,11 +257,6 @@ HWND WindowWin32::createWindow(HINSTANCE& hinst, string title)
 	// set up the window for a windowed application by default
 	long wndStyle = WS_POPUP | WS_OVERLAPPEDWINDOW;
 
-	if (fullscreen)	// create a full-screen application if requested
-	{
-		//wndStyle = WS_POPUP;
-	}
-
 	// create the window
 	hwnd = CreateWindowEx(NULL,
 		WNDCLASSNAME.c_str(),
@@ -276,10 +264,10 @@ HWND WindowWin32::createWindow(HINSTANCE& hinst, string title)
 		wndStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 		posX, posY,
 		width, height,
-		NULL,
-		NULL,
+		nullptr,
+		nullptr,
 		hinst,
-		NULL);
+		nullptr);
 
 	return hwnd;
 }
@@ -289,23 +277,9 @@ LRESULT WindowWin32::dispatchInputEvents(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	switch (uMsg)
 	{
 
-	/*case WM_CREATE:
+	case WM_QUIT:
 	{
-		if ((hdc = GetDC(hwnd)) == NULL)	// get device context
-		{
-			MessageBox(hwnd, "Failed to Get the Window Device Context",
-				"Device Context Error", MB_OK);
-			SysShutdown();
-			break;
-		}
-		SetGLFormat();			// select pixel format
-		break;
-	}*/
-	case WM_QUIT: // do the same as for WM_CLOSE{
-	{
-		Window* target = getWindowByHWND(hwnd);
-		target->close();
-		break;
+		//do the same for WM_CLOSE !!!
 	}
 	case WM_CLOSE:
 	{
@@ -330,7 +304,7 @@ LRESULT WindowWin32::dispatchInputEvents(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void WindowWin32::update()
+void WindowWin32::update() const
 {
 	if (!hwnd) return;
 	if (m_isVisible)
@@ -349,7 +323,6 @@ void WindowWin32::update()
 		} else
 		{
 			SetWindowPos(hwnd, HWND_NOTOPMOST, posX, posY, width, height, SWP_SHOWWINDOW);
-			//SetWindowPos(hwnd, HWND_NOTOPMOST, posX, posY, width, height, SWP_SHOWWINDOW);
 			ShowWindow(hwnd, SW_SHOW);
 		}
 	} else

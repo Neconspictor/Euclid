@@ -87,7 +87,6 @@ void TaskManager::start() {
 			// so the list indices have to be synchronized!
 			lock_guard<mutex> lock(mSwapMutex);
 			swap(mReadList, mWriteList);
-
 		}
 
 		this_thread::yield();
@@ -148,7 +147,7 @@ void TaskManager::worker() {
 		}
 		else {
 			// nothing is ready to run, sleep for 1.667 milliseconds (1/10th of a frame @ 60 FPS)
-			this_thread::sleep_for(chrono::microseconds(1667));
+			this_thread::sleep_for(chrono::microseconds(20000));
 		}
 	}
 }

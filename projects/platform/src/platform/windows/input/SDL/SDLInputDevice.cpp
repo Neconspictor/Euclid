@@ -2,9 +2,12 @@
 #include <iostream>
 
 using namespace std;
+using namespace platform;
 
-SDLInputDevice::SDLInputDevice(HWND window, int width, int height)
+SDLInputDevice::SDLInputDevice(HWND window, int width, int height) : 
+	Input()
 {
+	logClient.setPrefix("[SDLInputDevice]");
 	init = false;
 	try
 	{
@@ -21,10 +24,10 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height)
 		SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, nullptr);
 
 		SDL_GLContext glcontext = SDL_GL_CreateContext(sdl->getWindow());
-		if (glcontext == NULL) cerr << "SDL_GLContext is null!" << endl;
+		if (glcontext == NULL) LOG(logClient, Error) << "SDL_GLContext is null!";
 		if (sdl->getWindow())
 		{
-			cout << "SDLInputDevice::SDLInputDevice(): window isn't null!" << endl;
+			LOG(logClient, Debug) << "SDLInputDevice(): window isn't null!";
 		}
 
 		SDL_DestroyWindow(pSampleWin);
@@ -35,9 +38,9 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height)
 		
 	} catch(const SDLInitError& err)
 	{
-		cerr
+		LOG(logClient, Error)
 			<< "Error while initializing SDL:  "
-			<< err.what() << endl;
+			<< err.what();
 		sdl = nullptr;
 	}
 
@@ -60,7 +63,7 @@ SDLInputDevice::~SDLInputDevice()
 	if (sdl) delete sdl;
 	sdl = nullptr;
 
-	cout << "SDL is shut down!" << endl;
+	LOG(logClient, Debug) << "SDL is shut down!" << endl;
 }
 
 bool SDLInputDevice::isDown(Key key)
@@ -128,7 +131,6 @@ void SDLInputDevice::pollEvents()
 	SDL_Event event;
 	vector<int> currentStateChanges,
 		currentMouseStateChanges;
-	bool gotEvents = false;
 	frameScrollOffset = 0;
 	frameMouseXOffset = frameMouseYOffset = 0;
 	anyPressedKey = InvalidKey;
@@ -136,7 +138,6 @@ void SDLInputDevice::pollEvents()
 
 	while (SDL_PollEvent(&event))
 	{
-		gotEvents = true;
 		switch (event.type) {
 			case SDL_KEYDOWN: {
 				InputItemState current = pressedKeys[event.key.keysym.scancode];

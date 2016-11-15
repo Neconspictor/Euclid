@@ -100,10 +100,10 @@ void testEngine()
 	desc.height = 600;
 	desc.visible = true;
 
-	Window* window = new WindowWin32(desc);
+	unique_ptr<Window> window = Platform::getActivePlatform()->createWindow(desc);
 
-	Renderer* renderer = new RendererOpenGL();
-
+	//Renderer* renderer = new RendererOpenGL();
+	shared_ptr<Renderer> renderer(new RendererOpenGL());
 	window->embedRenderer(renderer);
 
 	window->activate();
@@ -217,7 +217,7 @@ void testEngine()
 		//if (!(offset.xOffset == 0 && offset.yOffset == 0))
 		//	cout << "Mouse offset: (" << offset.xOffset << ", " << offset.yOffset << ")" << endl;
 
-		handleWindowEvents(window);
+		handleWindowEvents(window.get());
 		updateMixValueByInput(input);
 		doUserMovement(input, 0);
 
@@ -228,10 +228,6 @@ void testEngine()
 	}
 
 	cout << "testEngine(): terminating..." << endl;
-	delete window;
-	window = nullptr;
-	delete renderer;
-	renderer = nullptr;
 }
 
 

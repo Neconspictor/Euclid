@@ -1,8 +1,12 @@
 #include <platform/Input.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
+
+using namespace platform;
 
 Input* Input::instance = nullptr;
 
-Input::Input()
+Input::Input() :
+	logClient(getLogServer())
 {
 	frameMouseXOffset = frameMouseYOffset = 0;
 	frameScrollOffset = 0;
@@ -10,6 +14,9 @@ Input::Input()
 	mouseYabsolut = 0;
 	firstMouseInput = true;
 	m_windowHasFocus = true;
+
+	logClient.add(makeConsoleEndpoint());
+	logClient.setPrefix("[Input]");
 }
 
 Input::Input(const Input& other) : Input()

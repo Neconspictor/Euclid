@@ -2,12 +2,13 @@
 #include <fstream>
 #include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LogEndpoint.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 
 using namespace std;
 using namespace platform;
 
-System::System(string name, const weak_ptr<LoggingServer>& server) : logClient(server),
+System::System(const string& name) : logClient(getLogServer()),
 name(name)
 {
 }

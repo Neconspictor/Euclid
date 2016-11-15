@@ -7,8 +7,8 @@ using namespace std;
 using namespace platform;
 using namespace boost::program_options;
 
-Configuration::Configuration(const weak_ptr<LoggingServer>& server) : 
-	System("Configuration", server) {}
+Configuration::Configuration() : 
+	System("Configuration") {}
 
 
 Configuration::~Configuration() {}
@@ -20,8 +20,6 @@ bool Configuration::load(const string& fileName)
 	if (!file)
 	{
 		LOG(logClient, Error) << "Couldn't open configuration file: " << fileName;
-		//parse_config_file(file, options, true);
-		//return false;
 	}
 
 	store(parse_config_file(file, options, true), variables);
@@ -50,8 +48,17 @@ bool Configuration::write(const string& fileName)
 		} else if (auto v = boost::any_cast<double>(&value)) {
 			LOG(logClient, Debug) << *v << endl;
 			pt.put(desc, *v);
-		} else
-		{
+		} else if (auto v = boost::any_cast<bool>(&value)) {
+			LOG(logClient, Debug) << *v << endl;
+			pt.put(desc, *v);
+		} else if (auto v = boost::any_cast<unsigned int>(&value)) {
+			LOG(logClient, Debug) << *v << endl;
+			pt.put(desc, *v);
+		} else if (auto v = boost::any_cast<int>(&value)) {
+			LOG(logClient, Debug) << *v << endl;
+			pt.put(desc, *v);
+		}
+		else {
 			stringstream ss;
 			ss << BOOST_CURRENT_FUNCTION << " couldn't convert value for program option: " << desc << endl;
 			throw runtime_error(ss.str());
@@ -60,6 +67,7 @@ bool Configuration::write(const string& fileName)
 	}
 
 	write_ini(fileName, pt);
+	return true;
 }
 
 void Configuration::parseCmdLine(int argc, char* argv[])

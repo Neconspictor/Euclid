@@ -5,21 +5,21 @@
 
 //if MVSC is used, Visual Leak Detector is used for debugging
 #include <vld.h>
+#include <platform/logging/LoggingClient.hpp>
 
 /**
  * The platform class for the windows platform
  */
 class PlatformWindows : public Platform
 {
+
 public:
 
-	int createWindow(Window::WindowStruct const& desc) override;
-	
-	void showWindow(int handle, bool showIt) override;
-	
-	void destroyWindow(int handle) override;
-	
-	void release() override;
+	PlatformWindows();
+
+	void setVSync(const Renderer& renderer, bool value) override;
+
+	std::unique_ptr<Window> createWindow(Window::WindowStruct const& desc) override;
 
 	/**
 	 * Sets the OpenGL pixel format for a given device context.
@@ -36,7 +36,10 @@ public:
 	*/
 	static void destroyOpenGLContext(HGLRC hglrc);
 protected:
+	void setVSyncOpenGL(bool value);
+
 private:
+	platform::LoggingClient logClient;
 };
 
 #endif

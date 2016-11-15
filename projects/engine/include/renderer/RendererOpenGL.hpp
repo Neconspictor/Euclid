@@ -12,7 +12,7 @@ public:
 	void endScene() override;
 	void present() override;
 	void release() override;
-	RendererType getType() override;
+	RendererType getType() const override;
 };
 
 #endif
