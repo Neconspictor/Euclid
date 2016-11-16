@@ -66,20 +66,68 @@ public:
 	Window(WindowStruct const& description);
 
 	/**
+	* Activates this window. All drawing calls of an registered renderer are going to this window as long
+	* as it is active.
+	*/
+	virtual void activate() = 0;
+
+	/**
+	* Adds a callback to windows focus events. Every time, when this windows receives or
+	* looses focus, the callback will be called.
+	*/
+	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
+
+	/**
+	* Closes this window and releases any allocated memory.
+	*/
+	virtual void close() = 0;
+
+	/**
 	 * Embeds the specified renderer. 
 	 * All draw calls of the renderer will be presented on this window.
 	 */
 	virtual void embedRenderer(std::shared_ptr<Renderer>& renderer) = 0;
 
 	/**
-	 * Shows or hides a window.
+	* Provides access to the underlying input device.
+	* With that device input actions can be queried from the user.
+	*/
+	virtual Input* getInputDevice() = 0;
+
+	/**
+	 * Provides the title of thi window.
 	 */
-	virtual void setVisible(bool visible) = 0;
+	const std::string& getTitle() const;
+
+	/**
+	* Checks, if this window is on the foreground, i.e. it is able to receive input events.
+	*/
+	virtual bool hasFocus() = 0;
+
+	/**
+	* Checks if this window is still open.
+	*/
+	virtual bool isOpen() = 0;
 
 	/**
 	 * Minimizes this window 
 	 */
 	virtual void minimize() = 0;
+
+	/**
+	* Polls and process events for this window.
+	*/
+	virtual void pollEvents() = 0;
+
+	/**
+	* Removes a giveen window focus callback.
+	*/
+	void removeWindowFocusCallback(const WindowFocusConnection& connection);
+
+	/**
+	* Updates the width and height of this window.
+	*/
+	virtual void resize(int newWidth, int newHeight) = 0;
 
 	/**
 	 * Sets this window to fullscreen mode.
@@ -88,65 +136,27 @@ public:
 	virtual void setFullscreen() = 0;
 
 	/**
+	 * Sets the title of this window. The title will only be visible, if this
+	 * window has a border and isn't in fullscreen mode.
+	 */
+	virtual void setTitle(const std::string& newTitle);
+
+	/**
+	* Shows or hides a window.
+	*/
+	virtual void setVisible(bool visible) = 0;
+
+	/**
 	 * Sets the mode of this window to windowed. If this window was previously in windowed mode, the monitor
 	 * resolution will be restored to the width, height and colorbit depth, the monitor had had, before this 
 	 * window was set to fullscreen mode.
 	 */
 	virtual void setWindowed() = 0;
 
-
-	/**
-	 * Updates the width and height of this window.
-	 */
-	virtual void resize(int newWidth, int newHeight) = 0;
-
-	/**
-	 * Checks if this window is still open.
-	 */
-	virtual bool isOpen() = 0;
-
-	/**
-	 * Closes this window and releases any allocated memory.
-	 */
-	virtual void close() = 0;
-
-	/**
-	 * Polls and process events for this window.
-	 */
-	virtual void pollEvents() = 0;
-
 	/**
 	 * Swaps the buffers of the graphics card, the content of this Window is send to.
 	 */
 	virtual void swapBuffers() = 0;
-
-	/**
-	 * Activates this window. All drawing calls of an registered renderer are going to this window as long
-	 * as it is active.
-	 */
-	virtual void activate() = 0;
-
-	/**
-	 * Provides access to the underlying input device. 
-	 * With that device input actions can be queried from the user.
-	 */
-	virtual Input* getInputDevice() = 0;
-
-	/**
-	 * Checks, if this window is on the foreground, i.e. it is able to receive input events.
-	 */
-	virtual bool hasFocus() = 0;
-
-	/**
-	 * Adds a callback to windows focus events. Every time, when this windows receives or
-	 * looses focus, the callback will be called.
-	 */
-	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
-	
-	/**
-	* Removes a giveen window focus callback.
-	*/
-	void removeWindowFocusCallback(const WindowFocusConnection& connection);
 
 protected:
 	/**
@@ -210,6 +220,9 @@ protected:
 	 */
 	bool vSync;
 
+	/**
+	 * a logging client for logging internals.
+	 */
 	platform::LoggingClient logClient;
 
 	/**

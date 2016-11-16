@@ -138,6 +138,13 @@ void WindowWin32::setFullscreen()
 	}
 }
 
+void WindowWin32::setTitle(const string& newTitle)
+{
+	Window::setTitle(newTitle);
+	if(!SetWindowText(hwnd, title.c_str()))
+		LOG(logClient, Error) << "setTitle(): Couldn't set window title!";
+}
+
 void WindowWin32::setWindowed()
 {
 	fullscreen = false;

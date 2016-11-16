@@ -1,6 +1,7 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
-#include "logging/LoggingClient.hpp"
+#include <platform/logging/LoggingClient.hpp>
+#include <platform/util/CallbackContainer.hpp>
 
 class Window;
 
@@ -27,6 +28,10 @@ struct MouseOffset
 class Input
 {
 public:
+
+	using ScrollContainer = CallbackContainer<void(float scrollDiff)>;
+	using ScrollCallback = ScrollContainer::Callback;
+	using ScrollConnection = ScrollContainer::SharedItem;
 
 	/**
 	* Amount of valid buttons (without InvalidButton!!!)
@@ -98,47 +103,17 @@ public:
 	virtual ~Input();
 
 	/**
-	 * Checks if a given input key is currently hold down.
-	 */
-	virtual bool isDown(Key key) = 0;
+	* Adds a callback to scrolling events. Every time, when the user scrolls,
+	* the added callback will be called.
+	*/
+	ScrollConnection addScrollCallback(const ScrollCallback& callback);	
 
 	/**
-	* Checks if a given input button is currently hold down.
+	* Provides any button that was currently pressed.
+	* If no valid key is pressed than Button::InvalidButton
+	* will be returned.
 	*/
-	virtual bool isDown(Button button) = 0;
-
-	/**
-	 * Checks if a given input key is currently pressed.
-	 * Note: Pressing is an event that is only triggered onetime.
-	 * The user has to release the key again, before another 
-	 * key press event can be triggered!
-	 */
-	virtual bool isPressed(Key key) = 0;
-	
-	/**
-	* Checks if a given input button is currently pressed.
-	* Note: Pressing is an event that is only triggered onetime.
-	* The user has to release the button again, before another
-	* button press event can be triggered!
-	*/
-	virtual bool isPressed(Button button) = 0;
-
-	/**
-	* Checks if a given input key, that was pressed or hold, is currently released.
-	* Note: Releasing is an event that is only triggered onetime.
-	* The user has to press the key again, before another
-	* key press event can be triggered!
-	*/
-	virtual bool isReleased(Key key) = 0;
-	
-	
-	/**
-	* Checks if a given input button, that was pressed or hold, is currently released.
-	* Note: Releasing is an event that is only triggered onetime.
-	* The user has to press the button again, before another
-	* button press event can be triggered!
-	*/
-	virtual bool isReleased(Button button) = 0;
+	virtual Button getAnyPressedButton() = 0;
 
 	/**
 	 * Provides any key that was currently pressed.
@@ -148,11 +123,51 @@ public:
 	virtual Key getAnyPressedKey() = 0;
 
 	/**
-	* Provides any button that was currently pressed.
-	* If no valid key is pressed than Button::InvalidButton
-	* will be returned.
+	*  Provides information about how much the cursor moved since the last frame.
 	*/
-	virtual Button getAnyPressedButton() = 0;
+	virtual MouseOffset getFrameMouseOffset();
+
+	/**
+	* Checks if a given input button is currently hold down.
+	*/
+	virtual bool isDown(Button button) = 0;
+
+	/**
+	* Checks if a given input key is currently hold down.
+	*/
+	virtual bool isDown(Key key) = 0;
+
+	/**
+	* Checks if a given input button is currently pressed.
+	* Note: Pressing is an event that is only triggered onetime.
+	* The user has to release the button again, before another
+	* button press event can be triggered!
+	*/
+	virtual bool isPressed(Button button) = 0;
+
+	/**
+	* Checks if a given input key is currently pressed.
+	* Note: Pressing is an event that is only triggered onetime.
+	* The user has to release the key again, before another
+	* key press event can be triggered!
+	*/
+	virtual bool isPressed(Key key) = 0;
+
+	/**
+	* Checks if a given input button, that was pressed or hold, is currently released.
+	* Note: Releasing is an event that is only triggered onetime.
+	* The user has to press the button again, before another
+	* button press event can be triggered!
+	*/
+	virtual bool isReleased(Button button) = 0;
+
+	/**
+	* Checks if a given input key, that was pressed or hold, is currently released.
+	* Note: Releasing is an event that is only triggered onetime.
+	* The user has to press the key again, before another
+	* key press event can be triggered!
+	*/
+	virtual bool isReleased(Key key) = 0;
 
 	/**
 	 * An input device can be a listener for focus change events triggered
@@ -170,10 +185,12 @@ public:
 	 */
 	//void updateOnFrame(GLFWwindow* window, double frameTime);
 
+
 	/**
-	 *  Provides information about how much the cursor moved since the last frame.
+	 * Removes a previously established scrolling connection. The callback of the connection
+	 * won't be notified anymore if scrolling events occurs.
 	 */
-	virtual MouseOffset getFrameMouseOffset();
+	void removeScrollConnection(const ScrollConnection& connection);
 
 	/**
 	*  Checks, if a window, this input class is listening on, is currently on focus or inactive.
@@ -214,6 +231,14 @@ protected:
 	bool firstMouseInput;
 
 	platform::LoggingClient logClient;
+
+	ScrollContainer scrollContainer;
+
+	/**
+	 * Calls all regsitered scrolling callbacks.
+	 * This function is intended to be called when the user scrolls.
+	 */
+	void informScrollListeners(float scrollDiff);
 };
 
 #endif

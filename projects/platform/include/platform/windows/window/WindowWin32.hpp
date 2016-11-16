@@ -17,31 +17,34 @@ public:
 	explicit WindowWin32(WindowStruct const& desc);
 
 	virtual ~WindowWin32();
-	void embedRenderer(std::shared_ptr<Renderer>& renderer) override;
 
-	void setVisible(bool visible) override;
-
-	void minimize() override;
-
-	void setFullscreen() override;
-
-	void setWindowed() override;
-	
-	void resize(int newWidth, int newHeight) override;
-
-	bool isOpen() override;
+	void activate() override;
 
 	void close() override;
 
-	void pollEvents() override;
-
-	void swapBuffers() override;
-
-	void activate() override;
+	void embedRenderer(std::shared_ptr<Renderer>& renderer) override;
 
 	Input* getInputDevice() override;
 
 	bool hasFocus() override;
+
+	bool isOpen() override;
+
+	void minimize() override;
+
+	void pollEvents() override;
+
+	void resize(int newWidth, int newHeight) override;
+
+	void setFullscreen() override;
+
+	void setTitle(const std::string& newTitle) override;
+
+	void setVisible(bool visible) override;
+
+	void setWindowed() override;
+
+	void swapBuffers() override;
 
 protected:
 

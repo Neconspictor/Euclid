@@ -19,6 +19,15 @@ Input::Input() :
 	logClient.setPrefix("[Input]");
 }
 
+void Input::informScrollListeners(float scrollDiff)
+{
+	for (ScrollConnection connection : scrollContainer.getCallbacks())
+	{
+		ScrollCallback callback = connection.get()->getCallback();
+		callback(scrollDiff);
+	}
+}
+
 Input::Input(const Input& other) : Input()
 {
 
@@ -26,6 +35,11 @@ Input::Input(const Input& other) : Input()
 
 Input::~Input()
 {
+}
+
+Input::ScrollConnection Input::addScrollCallback(const ScrollCallback& callback)
+{
+	return scrollContainer.addCallback(callback);
 }
 
 void Input::onWindowsFocus(Window* window, int focused)
@@ -59,6 +73,11 @@ void Input::onScroll(Window* window, double xoffset, double yoffset)
 MouseOffset Input::getFrameMouseOffset()
 {
 	return MouseOffset(frameMouseXOffset, frameMouseYOffset);
+}
+
+void Input::removeScrollConnection(const ScrollConnection& connection)
+{
+	scrollContainer.removeCallback(connection);
 }
 
 bool Input::windowHasFocus()

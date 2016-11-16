@@ -9,6 +9,11 @@
 #include <platform/Renderer.hpp>
 #include <platform/Window.hpp>
 #include <Brofiler.h>
+#include <util/Timer.hpp>
+#include <util/FPSCounter.hpp>
+#include <glm/glm.hpp>
+#include <camera/Camera.hpp>
+
 
 class MainLoopTask : public Task
 {
@@ -19,13 +24,19 @@ public:
 	using RendererPtr = Renderer*;
 
 	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags = SINGLETHREADED_REPEATING) :
-		Task(flags), logClient(platform::getLogServer()), runtime(0), FPScounter(0)
+		Task(flags), logClient(platform::getLogServer()), runtime(0)
 	{
 		this->window = window;
 		this->renderer = renderer;
 		this->engine = engine;
+		originalTitle = window->getTitle();
 		logClient.add(platform::makeConsoleEndpoint());
 		logClient.setPrefix("[MainLoop]");
+		auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, std::placeholders::_1, std::placeholders::_2);
+		auto scrollCallback = bind(&MainLoopTask::onScrolling, this, std::placeholders::_1);
+		this->window->addWindowFocusCallback(focusCallback);
+		this->window->getInputDevice()->addScrollCallback(scrollCallback);
+		mixValue = 0.2f;
 	}
 
 	void setLogLevel(platform::LogLevel level)
@@ -33,30 +44,17 @@ public:
 		logClient.setLogLevel(level);
 	};
 
+
 	void run() override {
 		BROFILER_FRAME("MainLoopTask");
 		using namespace std;
 		using namespace chrono;
 		using namespace platform;
-		auto currentFrameTime = timer.now();
-		if (!lastFrameTime.time_since_epoch().count())
-		{
-			lastFrameTime = currentFrameTime;
-			FPScounter = 0;
-			runtime = 0;
-		}
+		
+		long double frameTime = timer.update();
+		long double fps = counter.update(frameTime);
 
-		auto frameDiff = duration_cast<duration<double>>(currentFrameTime - lastFrameTime);
-		lastFrameTime = currentFrameTime;
-		runtime += frameDiff.count();
-		FPScounter += 1;
-
-		if (runtime > 1)
-		{
-			LOG(logClient, Debug) << "current fps: " << FPScounter;
-			runtime -= 1;
-			FPScounter = 0;
-		}
+		updateWindowTitle(frameTime, fps);
 
 		if (!window->isOpen())
 		{
@@ -64,31 +62,7 @@ public:
 			return;
 		}
 
-		BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
-		window->pollEvents();
-
-		Input* input = window->getInputDevice();
-
-		if (input->isPressed(Input::KeyEscape))
-		{
-			LOG(logClient, platform::Warning) << "Escape is pressed!";
-		}
-
-		if (input->isPressed(Input::KeyKpAdd))
-		{
-			LOG(logClient, platform::Warning) << "Numpad add key is pressed!";
-		}
-
-		if (input->isPressed(Input::KeyEnter))
-		{
-			LOG(logClient, Warning) << "Enter is pressed!";
-		}
-
-
-		if (input->isPressed(Input::KeyEscape))
-		{
-			window->close();
-		}
+		handleInputEvents();
 
 		BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
@@ -97,7 +71,6 @@ public:
 		renderer->present();
 		BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 		window->swapBuffers();
-		BROFILER_CATEGORY("After buffer swapping", Profiler::Color::Aquamarine);
 	};
 
 private:
@@ -105,10 +78,102 @@ private:
 	RendererPtr renderer;
 	EnginePtr engine;
 	platform::LoggingClient logClient;
-	std::chrono::high_resolution_clock timer;
-	std::chrono::time_point<std::chrono::steady_clock> lastFrameTime;
-	double runtime;
-	int FPScounter;
+	Timer timer;
+	FPSCounter counter;
+	long double runtime;
+	std::string originalTitle;
+	Camera camera;
+	float mixValue;
+
+	void doUserMovement(Input* input, double deltaTime)
+	{
+		using namespace glm;
+		// camera movements
+		float cameraSpeed = 5.0f * deltaTime;
+		vec3 cameraPos = camera.getPosition();
+		vec3 cameraLook = camera.getLookDirection();
+		vec3 cameraUp = camera.getUpDirection();
+		vec3 cameraRight = normalize(cross(cameraLook, cameraUp));
+
+		if (input->isDown(Input::KeyW))
+			cameraPos += cameraSpeed * cameraLook;
+
+		if (input->isDown(Input::KeyS))
+			cameraPos -= cameraSpeed * cameraLook;
+
+		if (input->isDown(Input::KeyD))
+			cameraPos += cameraSpeed * cameraRight;
+
+		if (input->isDown(Input::KeyA))
+			cameraPos -= cameraSpeed * cameraRight;
+
+		camera.setPosition(cameraPos);
+		camera.setLookDirection(cameraLook);
+		camera.setUpDirection(cameraUp);
+	}
+
+	void handleInputEvents()
+	{
+		using namespace platform;
+		BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
+		window->pollEvents();
+		Input* input = window->getInputDevice();
+
+
+		if (input->isPressed(Input::KeyEscape))
+		{
+			window->close();
+		}
+
+		if (input->isPressed(Input::KeyEnter) || input->isPressed(Input::KeyReturn))
+		{
+			window->minimize();
+		}
+
+		if (input->isPressed(Input::KeyUp))
+		{
+			mixValue += 0.1f;
+			if (mixValue >= 1.0f)
+				mixValue = 1.0f;
+
+			mixValue = round(mixValue * 10) / 10;
+			LOG(logClient, Debug) << "MixValue: " << mixValue;
+		}
+
+		if (input->isPressed(Input::KeyDown))
+		{
+			mixValue -= 0.1f;
+			if (mixValue <= 0.0f)
+				mixValue = 0.0f;
+
+			mixValue = round(mixValue * 10) / 10;
+			LOG(logClient, Debug) << "MixValue: " << mixValue;
+		}
+	};
+
+	void updateWindowTitle(long double frameTime, long double fps)
+	{
+		runtime += frameTime;
+		if (runtime > 1)
+		{
+			std::stringstream ss; ss << originalTitle << " : FPS= " << (int)fps;
+			window->setTitle(ss.str());
+			runtime -= 1;
+		}
+	};
+
+	void onScrolling(float scrollAmount)
+	{
+		LOG(logClient, platform::Debug) << "user is scrolling with strength: " << scrollAmount;
+	}
+
+	 void onWindowsFocus(Window* window, bool receivedFocus)
+	{
+		if (receivedFocus)
+			LOG(logClient, platform::Debug) << "received focus!";
+		else
+			LOG(logClient, platform::Debug) << "lost focus!";
+	}
 };
 
 #endif

@@ -36,7 +36,9 @@ set(
     include/texture/TextureManager.hpp
     
     #util
+    include/util/FPSCounter.hpp
     include/util/GlobalPaths.hpp
+    include/util/Timer.hpp
     
     ###source files###
     #camera

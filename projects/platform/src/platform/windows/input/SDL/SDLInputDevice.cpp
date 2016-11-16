@@ -157,7 +157,6 @@ void SDLInputDevice::pollEvents()
 			}
 			case SDL_MOUSEWHEEL: {
 				frameScrollOffset += event.wheel.y;
-				cout << "frameScrollOffset = " << frameScrollOffset << endl;
 				break;
 			}
 			case SDL_MOUSEMOTION: {
@@ -238,6 +237,11 @@ void SDLInputDevice::pollEvents()
 			anyPressedMouseButton = (Button)i;
 			break;
 		}
+	}
+
+	if (frameScrollOffset)
+	{
+		informScrollListeners(frameScrollOffset);
 	}
 }
 

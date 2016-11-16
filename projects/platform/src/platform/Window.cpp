@@ -21,6 +21,16 @@ logClient(platform::getLogServer())
 	logClient.add(platform::makeConsoleEndpoint());
 }
 
+void Window::setTitle(const std::string& newTitle)
+{
+	title = newTitle;
+}
+
+const std::string& Window::getTitle() const
+{
+	return title;
+}
+
 Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCallback& callback)
 {
 	return windowFocusChanged.addCallback(callback);
