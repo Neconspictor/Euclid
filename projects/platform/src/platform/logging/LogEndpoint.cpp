@@ -49,19 +49,28 @@ namespace platform
 
 	struct FileSink {
 		FileSink(const string& filename)
-			: mFile(make_shared<ofstream>(filename))
+			//: mFile(make_shared<ofstream>(filename))
 		{
-			if (!mFile->good()) {
+			ofstream file(filename);
+			if (!file.good()) {
 				string message = "Failed to open file sink: ";
 				message.append(filename);
 				throw runtime_error(message);
 			}
+
+			this->filename = filename;
 		}
 
 		void operator()(const string& prefix, const LogMessage::Meta& meta, const string& message) {
 			string file = meta.mFile;
 			file = util::makeAbsolute(file);
-			(*mFile)
+			ofstream logFile(filename);
+			if (!logFile.good()) {
+				string message = "Failed to open file sink: ";
+				message.append(filename);
+				throw runtime_error(message);
+			}
+			logFile
 				<< prefix
 				<< " "
 				<< meta.level
@@ -72,10 +81,10 @@ namespace platform
 				<< ":"
 				<< meta.mLine
 				<< endl;
-			mFile->flush();
 		}
 
-		shared_ptr<ofstream> mFile; // by using shared_ptr this can be copied around
+		//shared_ptr<ofstream> mFile; // by using shared_ptr this can be copied around
+		string filename;
 	};
 
 
