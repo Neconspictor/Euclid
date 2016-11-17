@@ -64,7 +64,7 @@ namespace platform
 		void operator()(const string& prefix, const LogMessage::Meta& meta, const string& message) {
 			string file = meta.mFile;
 			file = util::makeAbsolute(file);
-			ofstream logFile(filename);
+			ofstream logFile(filename, ios::app);
 			if (!logFile.good()) {
 				string message = "Failed to open file sink: ";
 				message.append(filename);

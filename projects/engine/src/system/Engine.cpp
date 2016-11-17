@@ -76,8 +76,6 @@ LogLevel Engine::getLogLevel()
 void Engine::init()
 {
 	config.init();
-	logClient.add(makeConsoleEndpoint());
-	logClient.setLogLevel(Debug);
 	logClient.setPrefix("[Engine]");
 
 	eventChannel.broadcast(CollectOptions(&config));
@@ -106,8 +104,7 @@ void Engine::init()
 		systemLogLevel = Warning;
 		systemLogLevelStr = "Warning";
 	}
-	logClient.setLogLevel(systemLogLevel);
-	config.setLogLevel(systemLogLevel);
+	getLogServer().get()->setMinLogLevel(systemLogLevel);
 	config.write(configFileName);
 
 	initSystems();
@@ -119,7 +116,6 @@ void Engine::initSystems()
 	{
 		SystemPtr system = it.second;
 		LOG(logClient, Info) << "Initializing " << system->getName();
-		system->setLogLevel(systemLogLevel);
 		system->init();
 	}
 }

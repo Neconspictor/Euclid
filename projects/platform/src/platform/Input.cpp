@@ -15,7 +15,6 @@ Input::Input() :
 	firstMouseInput = true;
 	m_windowHasFocus = true;
 
-	logClient.add(makeConsoleEndpoint());
 	logClient.setPrefix("[Input]");
 }
 

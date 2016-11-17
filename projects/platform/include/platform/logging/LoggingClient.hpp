@@ -75,25 +75,12 @@ namespace platform
 		 */
 		const std::string& getPrefix() const;
 
-
-		/**
-		* Checks, if logging messages having the given log level, will be processed by this logging client.
-		* If this function returns false, the given log level is ignored.
-		*/
-		bool isActive(LogLevel level) const;
-
 		/**
 		 * Removes a logging endpoint.
 		 * NOTE: This function will throw a runtime error, 
 		 * if the endpoint isn't registered to this logging client!
 		 */
 		void remove(const LogEndpoint& endpoint);
-
-		/**
-		* Sets the minimimal log level. All log messages that have a lower priority log level won't be processed
-		* by this logging client.
-		*/
-		void setLogLevel(LogLevel newLevel);
 
 		/**
 		* A logging client will put the specified prefix in front of all logging messages, thus 
@@ -103,7 +90,6 @@ namespace platform
 
 	private:
 		std::string prefix;
-		LogLevel currentLogLevel;
 
 		std::vector<LogEndpoint> endpoints;
 		const std::weak_ptr<LoggingServer> server;

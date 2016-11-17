@@ -6,7 +6,6 @@ using namespace std;
 Renderer::Renderer() : 
 	logClient(platform::getLogServer()), width(0), height(0), xPos(0), yPos(0)
 {
-	logClient.add(platform::makeConsoleEndpoint());
 	logClient.setPrefix("[Renderer]");
 }
 

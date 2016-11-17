@@ -23,8 +23,6 @@ void System::init()
 
 	stringstream ss; ss << "[" << name << "]";
 	logClient.setPrefix(ss.str());
-	logClient.add(makeFileEndpoint(ss.str() + ".log"));
-	logClient.add(makeConsoleEndpoint());
 }
 
 void System::shutdown()
@@ -34,11 +32,6 @@ void System::shutdown()
 
 void System::update()
 {
-}
-
-void System::setLogLevel(LogLevel logLevel)
-{
-	logClient.setLogLevel(logLevel);
 }
 
 const string& System::getName() const

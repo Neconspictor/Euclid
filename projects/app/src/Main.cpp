@@ -12,7 +12,6 @@ int main(int argc, char** argv)
 {
 	BROFILER_THREAD("Main");
 	LoggingClient logger (getLogServer());
-	logger.add(makeConsoleEndpoint());
 	logger.setPrefix("[main]");
 	try
 	{
@@ -29,7 +28,6 @@ int main(int argc, char** argv)
 
 		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
 			video->getWindow().get(), renderer.get());
-		mainLoop.get()->setLogLevel(engine.get()->getLogLevel());
 		engine->run(mainLoop);
 		LOG(logger, Info) << "Done.";
 	} catch(const exception& e)

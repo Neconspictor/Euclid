@@ -30,7 +30,6 @@ public:
 		this->renderer = renderer;
 		this->engine = engine;
 		originalTitle = window->getTitle();
-		logClient.add(platform::makeConsoleEndpoint());
 		logClient.setPrefix("[MainLoop]");
 		auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, std::placeholders::_1, std::placeholders::_2);
 		auto scrollCallback = bind(&Camera::onScroll, &this->camera, std::placeholders::_1);
@@ -39,13 +38,9 @@ public:
 		mixValue = 0.2f;
 	}
 
-	void setLogLevel(platform::LogLevel level)
-	{
-		logClient.setLogLevel(level);
-	};
-
 
 	void run() override {
+		LOG(logClient, platform::Debug) << "Test";
 		BROFILER_FRAME("MainLoopTask");
 		using namespace std;
 		using namespace chrono;

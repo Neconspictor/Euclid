@@ -9,7 +9,6 @@ Camera::Camera() : logClient(getLogServer())
 {
 	yaw = pitch = 0;
 	fov = 45.0f;
-	logClient.add(makeConsoleEndpoint());
 	logClient.setPrefix("[Camera]");
 }
 
@@ -20,7 +19,6 @@ Camera::Camera(vec3 position, vec3 look, vec3 up) :  fov(0), logClient(getLogSer
 	this->up = up;
 
 	yaw = pitch = 0;
-	logClient.add(makeConsoleEndpoint());
 	logClient.setPrefix("[Camera]");
 }
 
@@ -32,7 +30,6 @@ Camera::Camera(const Camera& other) :  logClient(getLogServer())
 	this->yaw = other.yaw;
 	this->pitch = other.pitch;
 	this->fov = other.fov;
-	logClient.add(makeConsoleEndpoint());
 	logClient.setPrefix("[Camera]");
 }
 

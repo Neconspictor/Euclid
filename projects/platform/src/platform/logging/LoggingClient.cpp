@@ -9,7 +9,7 @@ namespace platform
 	LogMessage LoggingClient::operator()(LogLevel level, const string& file, const string& function, int line) const
 	{
 		// performs return value optimization. No copy will be created
-		if (!isActive(level)) return LogMessage();
+		if (!server.lock()->isActive(level)) return LogMessage();
 		LogMessage result(level, file,
 			//util::stringFromRegex(function, "(.* .* )(.*\\(.*)", 1), 
 			function,
@@ -27,7 +27,7 @@ namespace platform
 
 	void LoggingClient::flush(const LogMessage& message) const
 	{
-		if (!isActive(message.meta.level)) return;
+		if (!server.lock()->isActive(message.meta.level)) return;
 
 		// just forward the message to the logging server. Non blocking!
 		server.lock()->send(*this, message);
@@ -35,7 +35,7 @@ namespace platform
 
 	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server, bool useConsoleEndpoint,
 		bool useFileEndpoint) :
-		prefix(""), currentLogLevel(Debug), server(server)
+		prefix(""), server(server)
 	{
 		if (useConsoleEndpoint)
 		{
@@ -49,16 +49,14 @@ namespace platform
 	}
 
 	LoggingClient::LoggingClient(const LoggingClient& other): 
-		prefix(other.prefix), currentLogLevel(other.currentLogLevel),
-		server(other.server)
+		prefix(other.prefix), server(other.server)
 	{
 		for (auto endpoint : other.endpoints)
 			endpoints.push_back(endpoint);
 	}
 
 	LoggingClient::LoggingClient(LoggingClient&& other) :
-		currentLogLevel(other.currentLogLevel), prefix(other.prefix),
-		server(other.server), endpoints(other.endpoints)
+		prefix(other.prefix), server(other.server), endpoints(other.endpoints)
 	{
 		other.endpoints.clear();
 	}
@@ -82,11 +80,6 @@ namespace platform
 		return endpoints;
 	}
 
-	bool LoggingClient::isActive(LogLevel level) const
-	{
-		return level >= currentLogLevel;
-	}
-
 	void LoggingClient::remove(const LogEndpoint& endpoint)
 	{
 		auto it = find(endpoints.begin(), endpoints.end(), endpoint);
@@ -100,10 +93,5 @@ namespace platform
 	void LoggingClient::setPrefix(const string& prefix)
 	{
 		this->prefix = string(prefix);
-	}
-
-	void LoggingClient::setLogLevel(LogLevel newLevel)
-	{
-		currentLogLevel = newLevel;
 	}
 }

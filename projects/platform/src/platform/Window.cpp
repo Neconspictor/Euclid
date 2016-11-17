@@ -18,7 +18,6 @@ logClient(platform::getLogServer())
 	vSync = description.vSync;
 
 	logClient.setPrefix("[Window]");
-	logClient.add(platform::makeConsoleEndpoint());
 }
 
 void Window::setTitle(const std::string& newTitle)
