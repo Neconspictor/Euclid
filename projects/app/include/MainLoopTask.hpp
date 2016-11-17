@@ -24,7 +24,7 @@ public:
 	using RendererPtr = Renderer*;
 
 	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags = SINGLETHREADED_REPEATING) :
-		Task(flags), logClient(platform::getLogServer()), runtime(0)
+		Task(flags), logClient(platform::getLogServer()), runtime(0), camera()
 	{
 		this->window = window;
 		this->renderer = renderer;
@@ -33,7 +33,7 @@ public:
 		logClient.add(platform::makeConsoleEndpoint());
 		logClient.setPrefix("[MainLoop]");
 		auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, std::placeholders::_1, std::placeholders::_2);
-		auto scrollCallback = bind(&MainLoopTask::onScrolling, this, std::placeholders::_1);
+		auto scrollCallback = bind(&Camera::onScroll, &this->camera, std::placeholders::_1);
 		this->window->addWindowFocusCallback(focusCallback);
 		this->window->getInputDevice()->addScrollCallback(scrollCallback);
 		mixValue = 0.2f;
@@ -161,11 +161,6 @@ private:
 			runtime -= 1;
 		}
 	};
-
-	void onScrolling(float scrollAmount)
-	{
-		LOG(logClient, platform::Debug) << "user is scrolling with strength: " << scrollAmount;
-	}
 
 	 void onWindowsFocus(Window* window, bool receivedFocus)
 	{

@@ -1,9 +1,9 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 #include <glm/detail/type_vec3.hpp>
-#include "listener/ScrollListener.hpp"
+#include <platform/logging/LoggingClient.hpp>
 
-class Camera : public ScrollListener
+class Camera
 {
 public:
 	Camera();
@@ -21,11 +21,11 @@ public:
 
 	void update(float mouseXFrameOffset, float mouseYFrameOffset);
 
-	float getYaw();
-	float getPitch();
-	float getFOV();
+	float getYaw() const;
+	float getPitch() const;
+	float getFOV() const;
 
-	virtual void onScroll(float yOffset);
+	void onScroll(float yOffset);
 
 
 protected:
@@ -35,6 +35,7 @@ private:
 	glm::vec3 up;
 	float yaw, pitch;
 	float fov;
+	platform::LoggingClient logClient;
 };
 
 #endif

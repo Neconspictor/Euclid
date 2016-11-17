@@ -7,7 +7,7 @@
 using namespace std;
 
 Video::Video() :
-	System("Video"), fullscreen(false), colorBitDepth(0), refreshRate(0), vSync(false)
+	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), vSync(false)
 {
 	//we dont't need a frame updater
 	updater.reset();
@@ -22,6 +22,8 @@ void Video::handle(const CollectOptions& config)
 {
 	config.config->addOption(getName(), "Title", &windowTitle, string(""));
 	config.config->addOption(getName(), "Fullscreen", &fullscreen, false);
+	config.config->addOption(getName(), "WindowWidth", &width, unsigned int(800));
+	config.config->addOption(getName(), "WindowHeight", &height, unsigned int(600));
 	config.config->addOption(getName(), "ColorBitDepth", &colorBitDepth, unsigned int(32));
 	config.config->addOption(getName(), "RefreshRate", &refreshRate, unsigned int(60));
 	config.config->addOption(getName(), "VSync", &vSync, false);
@@ -38,8 +40,8 @@ void Video::init()
 	desc.refreshRate = refreshRate;
 	desc.posX = 0;
 	desc.posY = 0;
-	desc.width = 800;
-	desc.height = 600;
+	desc.width = width;
+	desc.height = height;
 	desc.visible = false;
 
 	window = Platform::getActivePlatform()->createWindow(desc);

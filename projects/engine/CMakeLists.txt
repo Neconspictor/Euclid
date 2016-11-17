@@ -25,6 +25,8 @@ set(
     include/shader/PlaygroundShader.hpp
     include/shader/Shader.hpp
     include/shader/SimpleLightShader.hpp
+    #shader/opengl
+    include/shader/opengl/ShaderGL.hpp
     
     #system
     include/system/Configuration.hpp
@@ -60,8 +62,9 @@ set(
     #shader
     src/shader/LampShader.cpp
     src/shader/PlaygroundShader.cpp
-    src/shader/Shader.cpp
     src/shader/SimpleLightShader.cpp
+    #shader/opengl
+    src/shader/opengl/ShaderGL.cpp
     
     #system
     src/system/Configuration.cpp

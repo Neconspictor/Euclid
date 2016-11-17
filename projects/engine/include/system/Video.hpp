@@ -20,6 +20,8 @@ public:
 private:
 	std::string windowTitle;
 	bool fullscreen;
+	unsigned int width;
+	unsigned int height;
 	unsigned int colorBitDepth;
 	unsigned int refreshRate;
 	bool vSync;

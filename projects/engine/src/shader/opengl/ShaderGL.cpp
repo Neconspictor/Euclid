@@ -5,7 +5,7 @@
 
 #include <GL/glew.h>
 
-#include "shader/shader.hpp"
+#include <shader/opengl/ShaderGL.hpp>
 #include <platform/FileSystem.hpp>
 #include <util/GlobalPaths.hpp>
 
@@ -14,7 +14,7 @@ using namespace util;
 
 
 
-Shader::Shader(const string& vertexShaderFile, const string& fragmentShaderFile)
+ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile);
 
@@ -24,27 +24,31 @@ Shader::Shader(const string& vertexShaderFile, const string& fragmentShaderFile)
 	}
 }
 
-void Shader::use()
+void ShaderGL::use()
 {
 	glUseProgram(this->programID);
 }
 
-GLuint Shader::getProgramID()
+GLuint ShaderGL::getProgramID()
 {
 	return programID;
 }
 
-bool Shader::loadingFailed()
+bool ShaderGL::loadingFailed()
 {
 	return this->programID == GL_FALSE;
 }
 
-void Shader::release()
+void ShaderGL::release()
 {
 	glDeleteProgram(programID);
 }
 
-void Shader::draw(Model const& model, glm::mat4 const& transform)
+ShaderGL::~ShaderGL()
+{
+}
+
+void ShaderGL::draw(Model const& model, glm::mat4 const& transform)
 {
 	use();
 	glBindVertexArray(model.getVertexArrayObject());
@@ -52,7 +56,7 @@ void Shader::draw(Model const& model, glm::mat4 const& transform)
 	glBindVertexArray(0);
 }
 
-GLuint Shader::loadShaders(const string& vertexFile, const string& fragmentFile)
+GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile)
 {
 	// Create the shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -124,47 +128,8 @@ GLuint Shader::loadShaders(const string& vertexFile, const string& fragmentFile)
 	return programID;
 }
 
-/*bool Shader::loadShaderFromFile(const string& file, string* shaderContent)
-{
-	ifstream shaderStreamFile;
-	bool loadingWasSuccessful = true;
 
-	// ensure ifstream can throw exceptions!
-	shaderStreamFile.exceptions(ifstream::failbit | ifstream::badbit);
-
-	try
-	{
-		shaderStreamFile.open(file);
-		stringstream shaderStream;
-
-		// read file content to stream
-		shaderStream << shaderStreamFile.rdbuf();
-		*shaderContent = shaderStream.str();
-	}
-	catch (ifstream::failure e)
-	{
-		if (shaderStreamFile.fail())
-		{
-			cerr << "Error: Shader::loadShaderFromFile(): Couldn't opened file: "
-				<< file << endl;
-		}
-
-		if (shaderStreamFile.bad())
-		{
-			cerr << "Error: Shader::loadShaderFromFile() : Couldn't read file properly." << endl;
-		}
-		loadingWasSuccessful = false;
-		*shaderContent = "";
-	}
-
-	//clear exceptions as close shouldn't throw any exceptions!
-	shaderStreamFile.exceptions(0);
-	shaderStreamFile.close();
-
-	return loadingWasSuccessful;
-}*/
-
-bool Shader::compileShader(const string& shaderContent, GLuint shaderResourceID)
+bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID)
 {
 	int result = 0;
 	GLint logInfoLength;
