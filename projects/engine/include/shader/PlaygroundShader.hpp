@@ -13,9 +13,6 @@ public:
 	
 	virtual void setTexture2(const std::string& textureName) = 0;
 	
-	void setTextureMixValue(float mixValue);
-
-protected:
-	float mixValue;
+	virtual void setTextureMixValue(float mixValue) = 0;
 };
 #endif

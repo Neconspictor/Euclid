@@ -6,9 +6,8 @@
 using namespace glm;
 
 PlaygroundShaderGL::PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), PlaygroundShader(), texture(GL_FALSE), texture2(GL_FALSE)
+	ShaderGL(vertexShaderFile, fragmentShaderFile), PlaygroundShader(), mixValue(0), texture(GL_FALSE), texture2(GL_FALSE)
 {
-	mixValue = 0;
 }
 
 PlaygroundShaderGL::~PlaygroundShaderGL()
@@ -46,6 +45,11 @@ void PlaygroundShaderGL::setTexture1(const std::string& textureName)
 void PlaygroundShaderGL::setTexture2(const std::string& textureName)
 {
 	texture2 = TextureManager::getInstance()->loadImage(textureName);
+}
+
+void PlaygroundShaderGL::setTextureMixValue(float mixValue)
+{
+	this->mixValue = mixValue;
 }
 
 void PlaygroundShaderGL::use()

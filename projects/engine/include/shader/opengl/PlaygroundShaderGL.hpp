@@ -13,7 +13,11 @@ public:
 	void release() override;
 	void setTexture1(const std::string& textureName) override;
 	void setTexture2(const std::string& textureName) override;
+	void setTextureMixValue(float mixValue) override;
 	void use() override;
+
+protected:
+	float mixValue;
 
 private:
 	GLuint texture, texture2;
