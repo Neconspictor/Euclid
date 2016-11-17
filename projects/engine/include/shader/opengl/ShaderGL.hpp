@@ -6,21 +6,20 @@
 
 class ShaderGL : public Shader
 {
-	 ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
-
-	 virtual ~ShaderGL();
-
 public:
+	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	virtual ~ShaderGL();
+
+	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 	void draw(Model const& model, glm::mat4 const& transform) override;
 	GLuint getProgramID();
 	bool loadingFailed() override;
+	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
 	void release() override;
 	void use() override;
+
 protected:
 	GLuint programID;
-private:
-	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
-	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 };
 
 #endif
