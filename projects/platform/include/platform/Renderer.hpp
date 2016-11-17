@@ -1,7 +1,8 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
-#include "logging/LoggingClient.hpp"
+#include <platform/logging/LoggingClient.hpp>
 
+class TextureManager;
 class Platform;
 #include <ostream>
 
@@ -64,22 +65,24 @@ public:
 	 */
 	virtual void endScene() = 0;
 	//virtual void addEntityToScene(Entity* entity) = 0;
-	
-	/**
-	 * Displays the calculdated scene on the screen. This function has to be called after 
-	 * virtual void Renderer::endSene().
-	 */
-	virtual void present() = 0;
 
-	/**
-	 * Shuts down this renderer and releases all allocated memory.
-	 */
-	virtual void release() = 0;
+	virtual TextureManager* getTextureManager() = 0;
 
 	/**
 	 * Provides the type of renderer class, this renderer belongs to.
 	 */
 	virtual RendererType getType() const = 0;
+
+	/**
+	* Displays the calculdated scene on the screen. This function has to be called after
+	* virtual void Renderer::endSene().
+	*/
+	virtual void present() = 0;
+
+	/**
+	* Shuts down this renderer and releases all allocated memory.
+	*/
+	virtual void release() = 0;
 
 	/**
 	 * Sets the base folder where the renderer can access shader files the underlying

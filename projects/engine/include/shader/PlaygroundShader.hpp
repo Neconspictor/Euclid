@@ -6,8 +6,8 @@
 class PlaygroundShader : public Shader
 {
 public:
-	PlaygroundShader();
-	virtual ~PlaygroundShader();
+	PlaygroundShader() {};
+	virtual ~PlaygroundShader() {};
 	
 	virtual void setTexture1(const std::string& textureName) = 0;
 	

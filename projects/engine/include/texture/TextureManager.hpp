@@ -1,23 +1,19 @@
 #ifndef TEXTURE_MANAGER_HPP
 #define TEXTURE_MANAGER_HPP
-#include <GL/glew.h>
 #include <string>
-#include <map>
 
 class TextureManager
 {
 public:
-	static TextureManager* getInstance();
-	static void release();
 
-	GLuint loadImage(const std::string& file);
+	TextureManager() {}
 
-protected:
-	TextureManager();
-	bool init();
-	virtual ~TextureManager();
-	static TextureManager* instance;
-	std::map<std::string, GLuint> textures;
+	virtual ~TextureManager(){}
+
+	/**
+	 * Loads all images from a specified image folder and all its sub folders.
+	 */
+	virtual void loadImages(const std::string& imageFolder) = 0;
 };
 
 #endif

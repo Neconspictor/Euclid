@@ -1,40 +1,24 @@
-#include <texture/TextureManager.hpp>
-#include <iostream>
+#include <texture/opengl/TextureManagerGL.hpp>
 #include <SOIL2/SOIL2.h>
-#include <algorithm>
+#include <iostream>
 #include <util/GlobalPaths.hpp>
+#include <algorithm>
 
 using namespace std;
 
-TextureManager* TextureManager::instance = nullptr;
-
-TextureManager::TextureManager()
+TextureManagerGL::TextureManagerGL() : TextureManager()
 {
 	textures = map<string, GLuint>();
 }
 
-TextureManager::~TextureManager()
+TextureManagerGL::~TextureManagerGL()
 {
+	for_each(textures.begin(), textures.end(), [](pair<string, GLuint> elem) {
+		glDeleteTextures(1, &elem.second);
+	});
 }
 
-bool TextureManager::init()
-{
-	return true;
-}
-
-TextureManager* TextureManager::getInstance()
-{
-	if (instance == nullptr)
-	{
-		instance = new TextureManager();
-		instance->init();
-	}
-
-	return instance;
-}
-
-// Function load a image, turn it into a texture, and return the texture ID as a GLuint for use
-GLuint TextureManager::loadImage(const string& file)
+GLuint TextureManagerGL::getImage(const string& file)
 {
 	auto it = textures.find(file);
 
@@ -56,7 +40,7 @@ GLuint TextureManager::loadImage(const string& file)
 										   // Set our texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);    // Note that we set our container wrapping method to GL_CLAMP_TO_EDGE
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);    // Note that we set our container wrapping method to GL_CLAMP_TO_EDGE
-																			// Set texture filtering
+																	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -68,8 +52,8 @@ GLuint TextureManager::loadImage(const string& file)
 	unsigned char* image = SOIL_load_image(file.c_str(), &width, &height, nullptr, SOIL_LOAD_RGBA);
 	if (image == nullptr)
 	{
-		std::cout << "Error: TextureManager::loadImage: Couldn't load image: " << file << std::endl;
-		return GL_FALSE;
+	std::cout << "Error: TextureManager::loadImage: Couldn't load image: " << file << std::endl;
+	return GL_FALSE;
 	}
 
 	GLuint texture = GL_FALSE;
@@ -83,12 +67,7 @@ GLuint TextureManager::loadImage(const string& file)
 	return texture;
 }
 
-void TextureManager::release()
+void TextureManagerGL::loadImages(const std::string& imageFolder)
 {
-	if (instance == nullptr) return;
-	for_each(instance->textures.begin(), instance->textures.end(), [](pair<string, GLuint> elem) {
-		glDeleteTextures(1, &elem.second);
-	});
-	delete instance;
-	instance = nullptr;
+	//TODO!
 }

@@ -1,7 +1,7 @@
 #include <shader/opengl/PlaygroundShaderGL.hpp>
-#include <texture/TextureManager.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <renderer/RendererOpenGL.hpp>
 
 using namespace glm;
 
@@ -39,12 +39,12 @@ void PlaygroundShaderGL::release()
 
 void PlaygroundShaderGL::setTexture1(const std::string& textureName)
 {
-	texture = TextureManager::getInstance()->loadImage(textureName);
+	texture = RendererOpenGL::getTextureManagerGL()->getImage(textureName);
 }
 
 void PlaygroundShaderGL::setTexture2(const std::string& textureName)
 {
-	texture2 = TextureManager::getInstance()->loadImage(textureName);
+	texture2 = RendererOpenGL::getTextureManagerGL()->getImage(textureName);
 }
 
 void PlaygroundShaderGL::setTextureMixValue(float mixValue)

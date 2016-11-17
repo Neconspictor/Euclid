@@ -5,6 +5,8 @@
 using namespace std;
 using namespace platform;
 
+TextureManagerGL textureManager;
+
 RendererOpenGL::RendererOpenGL() : Renderer()
 {
 	logClient.setPrefix("[RendererOpenGL]");
@@ -47,15 +49,25 @@ void RendererOpenGL::endScene()
 {
 }
 
+TextureManager* RendererOpenGL::getTextureManager()
+{
+	return &textureManager;
+}
+
+TextureManagerGL* RendererOpenGL::getTextureManagerGL()
+{
+	return &textureManager;
+}
+
+RendererType RendererOpenGL::getType() const
+{
+	return OPENGL;
+}
+
 void RendererOpenGL::present()
 {
 }
 
 void RendererOpenGL::release()
 {
-}
-
-RendererType RendererOpenGL::getType() const
-{
-	return OPENGL;
 }

@@ -39,6 +39,8 @@ set(
     
     #texture
     include/texture/TextureManager.hpp
+    #texture/opengl
+    include/texture/opengl/TextureManagerGL.hpp
     
     #util
     include/util/FPSCounter.hpp
@@ -76,7 +78,8 @@ set(
     src/system/Video.cpp
     
     #texture
-    src/texture/TextureManager.cpp
+    #texture/opengl
+    src/texture/opengl/TextureManagerGL.cpp
     
     #util
 )

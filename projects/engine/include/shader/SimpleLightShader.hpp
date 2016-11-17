@@ -1,7 +1,6 @@
 #ifndef SIMPLE_LIGHT_SHADER_HPP
 #define SIMPLE_LIGHT_SHADER_HPP
 #include <shader/shader.hpp>
-#include <glm/glm.hpp>
 
 class SimpleLightShader : public Shader
 {
