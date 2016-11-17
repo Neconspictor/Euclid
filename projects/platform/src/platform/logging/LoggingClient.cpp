@@ -33,14 +33,26 @@ namespace platform
 		server.lock()->send(*this, message);
 	}
 
-	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server) :
-		prefix(""), currentLogLevel(Debug), server(server){}
+	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server, bool useConsoleEndpoint,
+		bool useFileEndpoint) :
+		prefix(""), currentLogLevel(Debug), server(server)
+	{
+		if (useConsoleEndpoint)
+		{
+			add(server.lock()->getConsoleEndpoint());
+		}
+
+		if (useFileEndpoint)
+		{
+			add(server.lock()->getFileEndpoint());
+		}
+	}
 
 	LoggingClient::LoggingClient(const LoggingClient& other): 
 		prefix(other.prefix), currentLogLevel(other.currentLogLevel),
 		server(other.server)
 	{
-		for (auto& endpoint : other.endpoints)
+		for (auto endpoint : other.endpoints)
 			endpoints.push_back(endpoint);
 	}
 
@@ -49,6 +61,10 @@ namespace platform
 		server(other.server), endpoints(other.endpoints)
 	{
 		other.endpoints.clear();
+	}
+
+	LoggingClient::~LoggingClient()
+	{
 	}
 
 	void LoggingClient::add(const LogEndpoint& endpoint)

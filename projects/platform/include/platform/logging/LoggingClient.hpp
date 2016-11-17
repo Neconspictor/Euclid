@@ -27,29 +27,28 @@ namespace platform
 	class LoggingClient
 	{
 	public:
-		LogMessage __cdecl operator()(LogLevel level, const std::string& file, const std::string& function, int line) const;
-
-		LoggingClient& operator=(const LoggingClient&);
-
 		/**
-		 * Sends a specific logging message to the logging server. The logging server logs than the registered logging endpoints.
-		 */
-		void flush(const LogMessage& message) const;
+		* Constructs a new logging client that will send logging messages to the specified logging server.
+		*/
+		LoggingClient(const std::weak_ptr<LoggingServer>& logger, bool useConsoleEndpoint = true, 
+			bool useFileEndpoint = true);
 
 		/**
-		 * Constructs a new logging client that will send logging messages to the specified logging server.
-		 */
-		LoggingClient(const std::weak_ptr<LoggingServer>& logger);
-		
-		/**
-		 * Copy constructor.
-		 */
+		* Copy constructor.
+		*/
 		LoggingClient(const LoggingClient& other);
-		
+
 		/**
 		* Move constructor.
 		*/
 		LoggingClient(LoggingClient&& other);
+
+		virtual ~LoggingClient();
+
+
+		LogMessage __cdecl operator()(LogLevel level, const std::string& file, const std::string& function, int line) const;
+
+		LoggingClient& operator=(const LoggingClient&);
 
 
 		/** 
@@ -59,9 +58,26 @@ namespace platform
 		void add(const LogEndpoint& endpoint);
 
 		/**
+		* Sends a specific logging message to the logging server. The logging server logs than the registered logging endpoints.
+		*/
+		void flush(const LogMessage& message) const;
+
+		/**
+		* Provides immutable access to the registered logging endpoints.
+		*/
+		const std::vector<LogEndpoint>& getEndpoints() const;
+
+		/**
 		 * Provides the current prefix, that all logging mesages will have brokered by this logging client.
 		 */
 		const std::string& getPrefix() const;
+
+
+		/**
+		* Checks, if logging messages having the given log level, will be processed by this logging client.
+		* If this function returns false, the given log level is ignored.
+		*/
+		bool isActive(LogLevel level) const;
 
 		/**
 		 * Removes a logging endpoint.
@@ -71,31 +87,21 @@ namespace platform
 		void remove(const LogEndpoint& endpoint);
 
 		/**
+		* Sets the minimimal log level. All log messages that have a lower priority log level won't be processed
+		* by this logging client.
+		*/
+		void setLogLevel(LogLevel newLevel);
+
+		/**
 		* A logging client will put the specified prefix in front of all logging messages, thus 
 		* customizing the logging messages.
 		*/
 		void setPrefix(const std::string& prefix);
 
-		/**
-		 * Sets the minimimal log level. All log messages that have a lower priority log level won't be processed 
-		 * by this logging client.
-		 */
-		void setLogLevel(LogLevel newLevel);
-
-		/**
-		 * Checks, if logging messages having the given log level, will be processed by this logging client.
-		 * If this function returns false, the given log level is ignored.
-		 */
-		bool isActive(LogLevel level) const;
-
-		/**
-		 * Provides immutable access to the registered logging endpoints.
-		 */
-		const std::vector<LogEndpoint>& getEndpoints() const;
-
 	private:
 		std::string prefix;
 		LogLevel currentLogLevel;
+
 		std::vector<LogEndpoint> endpoints;
 		const std::weak_ptr<LoggingServer> server;
 	};

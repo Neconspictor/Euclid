@@ -3,12 +3,14 @@
 #include <shader/Shader.hpp>
 #include <GL/glew.h>
 #include <string>
+#include <platform/logging/LoggingClient.hpp>
 
 class ShaderGL : public Shader
 {
 public:
 	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
-	virtual ~ShaderGL();
+	ShaderGL(const ShaderGL& other);
+	virtual ~ShaderGL() override;
 
 	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 	void draw(Model const& model, glm::mat4 const& transform) override;
@@ -20,6 +22,7 @@ public:
 
 protected:
 	GLuint programID;
+	platform::LoggingClient logClient;
 };
 
 #endif

@@ -8,7 +8,7 @@ class LampShaderGL : public ShaderGL, public LampShader
 public:
 	LampShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	
-	virtual ~LampShaderGL() override;
+	~LampShaderGL() override;
 	
 	void draw(Model const& model, glm::mat4 const& transform) override;
 

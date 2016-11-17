@@ -3,6 +3,8 @@
 #include <platform/util/Util.hpp>
 #include <platform/logging/LogMessage.hpp>
 #include <platform/util/concurrent/Active.hpp>
+#include <atomic>
+#include "LogEndpoint.hpp"
 
 namespace platform
 {
@@ -30,12 +32,23 @@ namespace platform
 		virtual ~LoggingServer();
 
 		/**
-		 * Sends a log message from a given client to this server. The server will
-		 * process the log message using the LogSinks added to the client.
-		 * @param message : The message to be logged
-		 * @param client : The logging client
+		 * Checks if a message with a given log level is processed by this log server.
 		 */
+		bool isActive(const LogLevel level) const;
+
+		/**
+				 * Sends a log message from a given client to this server. The server will
+				 * process the log message using the endpoints added to the client.
+				 * @param message : The message to be logged
+				 * @param client : The logging client
+				 */
 		void send(const LoggingClient& client, const LogMessage& message) const;
+
+		/**
+		 * Sets the minimum log level. All messages having a log level smaller the specified log level
+		 * won't be processed anymore.
+		 */
+		void setMinLogLevel(LogLevel level);
 		
 		/**
 		 * Terminates this logging server immediately. 
@@ -43,8 +56,23 @@ namespace platform
 		 */
 		void terminate() const;
 
+		/**
+		 * A log server manages a file log endpoint.
+		 * This methods grants read access to this endpoint.
+		 */
+		const LogEndpoint& getFileEndpoint();
+
+		/**
+		* A log server manages a console log endpoint.
+		* This methods grants read access to this endpoint.
+		*/
+		const LogEndpoint& getConsoleEndpoint();
+
 	private:
 		std::unique_ptr<util::Active> active;
+		std::atomic<LogLevel> minLogLevel;
+		LogEndpoint fileEndpoint;
+		LogEndpoint consoleEndpoint;
 	};
 }
 

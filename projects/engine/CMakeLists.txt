@@ -5,6 +5,10 @@ set(
     #camera
     include/camera/Camera.hpp
     
+    #exception
+    include/exception/ShaderInitException.hpp
+    include/exception/ShaderNotFoundException.hpp
+    
     #listener
     include/listener/ScrollListener.hpp
     
@@ -30,6 +34,7 @@ set(
     include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/PlaygroundShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
+    include/shader/opengl/ShaderManagerGL.hpp
     include/shader/opengl/SimpleLightShaderGL.hpp
     
     #system
@@ -50,7 +55,7 @@ set(
     
     ###source files###
     #camera
-    src/camera/Camera.cpp
+    src/camera/Camera.cpp    
     
     #listener
     
@@ -70,6 +75,7 @@ set(
     src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/PlaygroundShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
+    src/shader/opengl/ShaderManagerGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
     
     #system

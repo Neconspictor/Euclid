@@ -8,20 +8,29 @@
 #include <shader/opengl/ShaderGL.hpp>
 #include <platform/FileSystem.hpp>
 #include <util/GlobalPaths.hpp>
+#include <exception/ShaderInitException.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
-using namespace util;
-
+using namespace platform;
+using namespace ::util;
 
 
 ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
+	: logClient(getLogServer())
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile);
 
 	if (programID == GL_FALSE)
 	{
-		cerr << "Shader::Error: Couldn't construct shader properly!" << endl;
+		throw ShaderInitException("ShaderGL::ShaderGL: couldn't load shader");
 	}
+}
+
+ShaderGL::ShaderGL(const ShaderGL& other) : 
+	logClient(other.logClient)
+{
+	programID = other.programID;
 }
 
 void ShaderGL::use()
@@ -72,26 +81,23 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	// Read the Vertex Shader code from the file
 	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
 	{
-		cerr << "Error: Shader::loadShaders(): Couldn't initialize vertex shader!" << endl;
-		return GL_FALSE;
+		throw ShaderInitException("Shader::loadShaders(): Couldn't initialize vertex shader!");
 	}
 
 	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
 		cerr << "Error: Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
-		return GL_FALSE;
+		throw ShaderInitException("Shader::loadShaders(): Couldn't initialize fragment shader!");
 	}
 
 	if (!compileShader(vertexShaderCode.c_str(), vertexShaderID))
 	{
-		cerr << "Error: Shader::loadShaders(): Couldn't compile vertex shader!" << endl;
-		return GL_FALSE;
+		throw ShaderInitException("Shader::loadShaders(): Couldn't compile vertex shader!");
 	}
 
 	if (!compileShader(fragmentShaderCode.c_str(), fragmentShaderID))
 	{
-		cerr << "Error: Shader::loadShaders(): Couldn't compile fragment shader!" << endl;
-		return GL_FALSE;
+		throw ShaderInitException("Shader::loadShaders(): Couldn't compile fragment shader!");
 	}
 
 	// link the program
@@ -106,16 +112,12 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 
 	if (result == GL_FALSE)
 	{
-
-		cerr << "Error: Shader::loadShaders(): Couldn't create shader program!" << endl;
-
 		if (infoLogLength > 0) {
 			vector<char> ProgramErrorMessage(infoLogLength + 1);
 			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
 			cerr << "Error: Shader::loadShaders(): " << &ProgramErrorMessage[0] << endl;
 		}
-
-		return GL_FALSE;
+		throw ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!");
 	}
 
 	// release not needed memory

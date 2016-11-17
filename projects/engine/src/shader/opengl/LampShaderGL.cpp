@@ -3,7 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 LampShaderGL::LampShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), LampShader()
+	LampShader(), ShaderGL(vertexShaderFile, fragmentShaderFile)
 {
 }
 
