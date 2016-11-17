@@ -24,6 +24,7 @@ set(
     include/shader/LampShader.hpp
     include/shader/PlaygroundShader.hpp
     include/shader/Shader.hpp
+    include/shader/ShaderManager.hpp
     include/shader/SimpleLightShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
