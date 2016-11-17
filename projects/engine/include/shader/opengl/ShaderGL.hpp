@@ -1,5 +1,5 @@
-#ifndef ENGINE_SHADER_OPENGL_SAHDERGL_HPP
-#define ENGINE_SHADER_OPENGL_SAHDERGL_HPP
+#ifndef ENGINE_SHADER_OPENGL_SHADERGL_HPP
+#define ENGINE_SHADER_OPENGL_SHADERGL_HPP
 #include <shader/Shader.hpp>
 #include <GL/glew.h>
 #include <string>
