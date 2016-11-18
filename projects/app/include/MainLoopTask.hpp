@@ -6,7 +6,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <platform/event/Task.hpp>
 #include <system/Engine.hpp>
-#include <platform/Renderer.hpp>
+#include <renderer/Renderer3D.hpp>
 #include <platform/Window.hpp>
 #include <Brofiler.h>
 #include <util/Timer.hpp>
@@ -21,7 +21,7 @@ public:
 
 	using EnginePtr = Engine*;
 	using WindowPtr = Window*;
-	using RendererPtr = Renderer*;
+	using RendererPtr = Renderer3D*;
 
 	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags = SINGLETHREADED_REPEATING) :
 		Task(flags), logClient(platform::getLogServer()), runtime(0), camera()

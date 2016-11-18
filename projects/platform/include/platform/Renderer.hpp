@@ -1,10 +1,9 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 #include <platform/logging/LoggingClient.hpp>
-
-class TextureManager;
-class Platform;
 #include <ostream>
+
+class Platform;
 
 /**
  * A description for the renderer class which category of renderer it belongs to.
@@ -64,9 +63,6 @@ public:
 	 * Finishes the current active scene and sends the resulting data to the GPU.
 	 */
 	virtual void endScene() = 0;
-	//virtual void addEntityToScene(Entity* entity) = 0;
-
-	virtual TextureManager* getTextureManager() = 0;
 
 	/**
 	 * Provides the type of renderer class, this renderer belongs to.
@@ -85,11 +81,8 @@ public:
 	virtual void release() = 0;
 
 	/**
-	 * Sets the base folder where the renderer can access shader files the underlying
-	 * rendering API understands.
+	 * Sets the viewport size and position.
 	 */
-	void setShaderBaseFolder(std::string baseFolder);
-
 	void setViewPort(int x, int y, int width, int height);
 
 protected:

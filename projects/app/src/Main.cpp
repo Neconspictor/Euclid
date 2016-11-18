@@ -16,12 +16,12 @@ int main(int argc, char** argv)
 	try
 	{
 		shared_ptr<Video> video = make_shared<Video>(Video());
-		shared_ptr<Renderer> renderer = make_shared<RendererOpenGL>(RendererOpenGL());
+		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>(RendererOpenGL());
 		shared_ptr<Engine> engine  = make_shared<Engine>(Engine());
 
 		video->useRenderer(renderer);
 		engine->add(video);
-		engine->setConfigFileName("AppConfig.ini");
+		engine->setConfigFileName("config.ini");
 
 		LOG(logger, Info) << "Starting Engine...";
 		engine->init();
@@ -37,9 +37,6 @@ int main(int argc, char** argv)
 	{
 		LOG(logger, platform::Fault) << "Main.cpp, line " << __LINE__ << ": Unknown Exception occurred.";
 	}
-
-	//terminate running log threads
-
 
 	return EXIT_SUCCESS;
 }

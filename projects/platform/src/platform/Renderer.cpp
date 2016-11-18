@@ -9,10 +9,6 @@ Renderer::Renderer() :
 	logClient.setPrefix("[Renderer]");
 }
 
-void Renderer::setShaderBaseFolder(string baseFolder)
-{
-}
-
 void Renderer::setViewPort(int x, int y, int width, int height)
 {
 	xPos = x;

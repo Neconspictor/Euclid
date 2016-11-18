@@ -1,13 +1,15 @@
 #include <renderer/RendererOpenGL.hpp>
 #include <GL/glew.h>
 #include <GL/GLU.h>
+#include <shader/opengl/ShaderManagerGL.hpp>
 
 using namespace std;
 using namespace platform;
 
 TextureManagerGL textureManager;
+ShaderManagerGL shaderManager;
 
-RendererOpenGL::RendererOpenGL() : Renderer()
+RendererOpenGL::RendererOpenGL() : Renderer3D()
 {
 	logClient.setPrefix("[RendererOpenGL]");
 }
@@ -47,6 +49,11 @@ void RendererOpenGL::beginScene()
 
 void RendererOpenGL::endScene()
 {
+}
+
+ShaderManager* RendererOpenGL::getShaderManager()
+{
+	return &shaderManager;
 }
 
 TextureManager* RendererOpenGL::getTextureManager()
