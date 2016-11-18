@@ -4,9 +4,15 @@
 #include <shader/opengl/SimpleLightShaderGL.hpp>
 #include <exception/ShaderNotFoundException.hpp>
 #include <sstream>
-#include <exception/ShaderInitException.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
+using namespace platform;
+
+ShaderManagerGL::ShaderManagerGL() : 
+	logClient(getLogServer())
+{
+}
 
 ShaderManagerGL::~ShaderManagerGL()
 {
@@ -17,6 +23,7 @@ Shader* ShaderManagerGL::getShader(const string& shaderName)
 	auto it = shaderMap.find(shaderName);
 	if (it == shaderMap.end())
 	{
+		LOG(logClient, Error) << "shader couldn't be matched to s valid shader: " << shaderName;
 		stringstream ss; 
 		ss << "ShaderManagerGL::getShader:: shader couldn't be matched to s valid shader: " << shaderName;
 		throw ShaderNotFoundException(ss.str());
