@@ -6,6 +6,10 @@
 class LampShaderGL : public ShaderGL, public LampShader
 {
 public:
+	/**
+	* Creates a new lamp shader program.
+	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
+	*/
 	LampShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	
 	~LampShaderGL() override;

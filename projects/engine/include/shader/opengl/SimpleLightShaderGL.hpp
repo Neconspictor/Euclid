@@ -6,6 +6,10 @@
 class SimpleLightShaderGL : public ShaderGL, public SimpleLightShader
 {
 public:
+	/**
+	* Creates a new simple light shader program.
+	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
+	*/
 	SimpleLightShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	
 	virtual ~SimpleLightShaderGL();

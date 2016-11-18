@@ -6,6 +6,10 @@
 class PlaygroundShaderGL : public ShaderGL, public PlaygroundShader
 {
 public:
+	/**
+	* Creates a new playground shader program.
+	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
+	*/
 	PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	virtual ~PlaygroundShaderGL();
 	void draw(Model const& model, glm::mat4 const& transform) override;
