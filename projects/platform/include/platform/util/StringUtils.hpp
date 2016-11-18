@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <boost/current_function.hpp>
+#include <sstream>
+#include <platform/exception/EnumFormatException.hpp>
 
 namespace platform {
 	namespace util {
@@ -58,6 +61,45 @@ namespace platform {
 		 * possible splittings. With the argument 'splitIndex' one can access a specific result.
 		 */
 		std::string stringFromRegex(const std::string& source, const std::string& pattern, int splitIndex);
+
+
+		/**
+		 * A class for mapping an enum to a string representation
+		 * and vice versa
+		 * NOTE: Mappings are supposed to be in upper case!
+		 */
+		template<class E>
+		struct EnumString
+		{
+			E enumValue;
+			std::string strValue;
+		};
+
+		/**
+		 * Maps a given string 'str' to an enum of type 'E'.
+		 * @param str: The string to map
+		 * @param converter: An array of enum to string mappings. It is assumed, that
+		 * all string mappings are in upper case!
+		 * @return: The mapped enum.
+		 *
+		 * ATTENTION: This function throws a EnumFormatException if the string couldn't
+		 * be mapped to an enum.
+		 */
+		template<class E, size_t S>
+		E stringToEnum(const std::string& str, const EnumString<E> (& converter)[S])
+		{
+			std::string upper = str;
+			transform(str.begin(), str.end(), upper.begin(), ::toupper);
+			for (int i = 0; i < S; ++i)
+			{
+				if (upper.compare(converter[i].strValue) == 0)
+					return converter[i].enumValue;
+			}
+
+			std::stringstream ss;
+			ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert string to enum: " << str;
+			throw EnumFormatException(ss.str());
+		}
 	}
 }
 #endif

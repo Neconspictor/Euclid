@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-
 #include <GL/glew.h>
-
 #include <shader/opengl/ShaderGL.hpp>
 #include <platform/FileSystem.hpp>
-#include <util/GlobalPaths.hpp>
+#include <util/Globals.hpp>
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
@@ -74,8 +72,8 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	int infoLogLength;
 	GLuint programID;
 
-	string vertexFilePath = global_path::SHADER_PATH + vertexFile;
-	string fragmentFilePath = global_path::SHADER_PATH + fragmentFile;
+	string vertexFilePath = globals::SHADER_PATH_OPENGL + vertexFile;
+	string fragmentFilePath = globals::SHADER_PATH_OPENGL + fragmentFile;
 
 	// Read the Vertex Shader code from the file
 	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))

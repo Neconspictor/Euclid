@@ -28,6 +28,7 @@ set(
     include/shader/LampShader.hpp
     include/shader/PlaygroundShader.hpp
     include/shader/Shader.hpp
+    include/shader/ShaderEnum.hpp
     include/shader/ShaderManager.hpp
     include/shader/SimpleLightShader.hpp
     #shader/opengl
@@ -50,7 +51,7 @@ set(
     
     #util
     include/util/FPSCounter.hpp
-    include/util/GlobalPaths.hpp
+    include/util/Globals.hpp
     include/util/Timer.hpp
     
     ###source files###
@@ -71,6 +72,7 @@ set(
     src/renderer/RendererOpenGL.cpp
     
     #shader
+    src/shader/ShaderEnum.cpp
     #shader/opengl
     src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/PlaygroundShaderGL.cpp

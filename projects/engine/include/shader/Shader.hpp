@@ -1,5 +1,5 @@
-#ifndef SHADER_HPP
-#define SHADER_HPP
+#ifndef ENGINE_SHADER_SHADER_HPP
+#define ENGINE_SHADER_SHADER_HPP
 
 #include <model/Model.hpp>
 #include <glm/glm.hpp>

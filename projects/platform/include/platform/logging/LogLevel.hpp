@@ -28,10 +28,7 @@
 #ifndef PLATFORM_LOG_LEVEL_HPP
 #define PLATFORM_LOG_LEVEL_HPP
 #include <ostream>
-#include <sstream>
-#include <boost/current_function.hpp>
-#include <algorithm>
-#include <platform/exception/EnumFormatException.hpp>
+#include <platform/util/StringUtils.hpp>
 
 namespace platform{
 
@@ -67,11 +64,10 @@ namespace platform{
 		Fault
 	};
 
-
-	const static struct {
-		LogLevel      val;
-		std::string str;
-	} conversion[] = {
+	/**
+	 * Maps log levels to a string representation.
+	 */
+	const static util::EnumString<LogLevel> converter[] = {
 		{ Debug, "DEBUG" },
 		{ Info, "INFO" },
 		{ Warning, "WARNING" },
@@ -79,19 +75,17 @@ namespace platform{
 		{ Fault, "FAULT" },
 	};
 
+	/**
+	 * Maps a string to log level enumeration. 
+	 * @param str: The string to be mapped.
+	 * @return: The mapped log level
+	 *
+	 * ATTENTION: If the string can't be mapped to a log level,
+	 * a EnumFormatException is thrown!
+	 */
 	static LogLevel stringToLogLevel(const std::string& str)
 	{
-		std::string upper = str;
-		transform(str.begin(), str.end(), upper.begin(), ::toupper);
-		for (int i = 0; i < sizeof(conversion) / sizeof(conversion[0]); ++i)
-		{
-			if (upper.compare(conversion[i].str) == 0)
-				return conversion[i].val;
-		}
-
-		std::stringstream ss;
-		ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert string to LogLevel enum: " << str;
-		throw EnumFormatException(ss.str());
+		return stringToEnum(str, converter);
 	}
 }
 

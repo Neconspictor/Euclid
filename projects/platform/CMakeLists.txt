@@ -16,6 +16,9 @@ set(
     include/platform/event/Task.hpp
     include/platform/event/TaskManager.hpp
     
+    #platform/exception
+    include/platform/exception/EnumFormatException.hpp;
+    
     
     #platform/logging
     include/platform/logging/GlobalLoggingServer.hpp

@@ -1,7 +1,7 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <SOIL2/SOIL2.h>
 #include <iostream>
-#include <util/GlobalPaths.hpp>
+#include <util/Globals.hpp>
 #include <algorithm>
 
 using namespace std;
@@ -28,7 +28,7 @@ GLuint TextureManagerGL::getImage(const string& file)
 		return it->second;
 	}
 
-	string path = util::global_path::TEXTURE_PATH + file;
+	string path = util::globals::TEXTURE_PATH + file;
 
 	GLuint texture = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
 	if (texture == GL_FALSE)
