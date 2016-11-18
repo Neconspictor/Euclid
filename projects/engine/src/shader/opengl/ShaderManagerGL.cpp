@@ -2,9 +2,9 @@
 #include <shader/opengl/PlaygroundShaderGL.hpp>
 #include <shader/opengl/LampShaderGL.hpp>
 #include <shader/opengl/SimpleLightShaderGL.hpp>
-#include <exception/ShaderNotFoundException.hpp>
 #include <sstream>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <exception/ShaderInitException.hpp>
 
 using namespace std;
 using namespace platform;
@@ -18,33 +18,51 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
-Shader* ShaderManagerGL::getShader(const string& shaderName)
+Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 {
-	auto it = shaderMap.find(shaderName);
+	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
 	{
-		LOG(logClient, Error) << "shader couldn't be matched to s valid shader: " << shaderName;
-		stringstream ss; 
-		ss << "ShaderManagerGL::getShader:: shader couldn't be matched to s valid shader: " << shaderName;
-		throw ShaderNotFoundException(ss.str());
+		LOG(logClient, Debug) << "Create singleton for shader: " << shaderEnum;
+		return createShader(shaderEnum);
 	}
 
 	return it->second.get();
 }
 
-void ShaderManagerGL::loadShaders(const string& folder)
+void ShaderManagerGL::loadShaders()
 {
-	//TODO : load shaders from folder!
-	auto playground = make_unique<PlaygroundShaderGL>
-		("vertex.gls", "fragment.glsl");
-	shaderMap.insert(make_pair("PLAYGROUND", move(playground)));
-	
-	auto lamp = make_unique<LampShaderGL>
-		("vs_light.gls", "fs_light.glsl");
-	shaderMap.insert(make_pair("LAMP", move(lamp)));
+	createShader(Lamp);
+	createShader(Playground);
+	createShader(SimpleLight);
+}
 
+Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
+{
+	unique_ptr<ShaderGL> shaderPtr;
+	switch(shaderEnum)
+	{
+	case Lamp: {
+		shaderPtr = make_unique<LampShaderGL>("vs_light.gls", "fs_light.glsl");
+			break;
+	}
+	case Playground: {
+		shaderPtr = make_unique<PlaygroundShaderGL>("vertex.gls", "fragment.glsl");
+		break;
+	}
+	case SimpleLight: {
+		shaderPtr = make_unique<SimpleLightShaderGL>
+			("vs_simpleLightColor.glsl", "fs_simpleLightColor.glsl");
+		break;
+	}
+	default: {
+		stringstream ss;
+		ss << BOOST_CURRENT_FUNCTION << " : couldn't create shader for: " << shaderEnum;
+		throw ShaderInitException(ss.str());
+	}
+	}
 
-	auto simpleLight = make_unique<SimpleLightShaderGL>
-		("vs_simpleLightColor.glsl", "fs_simpleLightColor.glsl");
-	shaderMap.insert(make_pair("SIMPLE_LIGHT", move(simpleLight)));
+	Shader* result = shaderPtr.get();
+	shaderMap.insert(make_pair(shaderEnum, move(shaderPtr)));
+	return result;
 }

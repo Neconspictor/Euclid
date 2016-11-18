@@ -10,10 +10,18 @@ class ShaderManagerGL : public ShaderManager
 public:
 	ShaderManagerGL();
 	virtual ~ShaderManagerGL() override;
-	virtual Shader* getShader(const std::string& shaderName) override;
-	virtual void loadShaders(const std::string& folder) override;
+	virtual Shader* getShader(ShaderEnum shader) override;
+	virtual void loadShaders() override;
 private:
-	std::map<std::string, std::unique_ptr<ShaderGL>> shaderMap;
+	std::map<ShaderEnum, std::unique_ptr<ShaderGL>> shaderMap;
 	platform::LoggingClient logClient;
+
+	/**
+	 * Creates a shader by its enum and registers it to the shader map.
+	 * @return : A pointer to the created shader.
+	 *
+	 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
+	 */
+	Shader* createShader(ShaderEnum shaderEnum);
 };
 #endif
