@@ -4,6 +4,7 @@
 #include <map>
 #include <GL/glew.h>
 #include <memory>
+#include <platform/logging/LoggingClient.hpp>
 
 /**
  * A texture manager for an opengl renderer.
@@ -25,7 +26,7 @@ public:
 
 protected:
 	std::map<std::string, GLuint> textures;
-
+	platform::LoggingClient logClient;
 private:
 	// this class is a singleton, thus private constructor
 	TextureManagerGL(); 

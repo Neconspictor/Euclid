@@ -29,8 +29,7 @@ Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 		return createShader(shaderEnum);
 	}
 
-	//return it->second.get();
-	return nullptr;
+	return it->second.get();
 }
 
 void ShaderManagerGL::loadShaders()
@@ -47,19 +46,19 @@ ShaderManagerGL* ShaderManagerGL::get()
 
 Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 {
-	unique_ptr<ShaderGL> shaderPtr;
+	shared_ptr<ShaderGL> shaderPtr;
 	switch(shaderEnum)
 	{
 	case Lamp: {
-		shaderPtr = make_unique<LampShaderGL>("vs_light.gls", "fs_light.glsl");
+		shaderPtr = make_shared<LampShaderGL>("vs_light.glsl", "fs_light.glsl");
 		break;
 	}
 	case Playground: {
-		shaderPtr = make_unique<PlaygroundShaderGL>("vertex.gls", "fragment.glsl");
+		shaderPtr = make_shared<PlaygroundShaderGL>("vertex.glsl", "fragment.glsl");
 		break;
 	}
 	case SimpleLight: {
-		shaderPtr = make_unique<SimpleLightShaderGL>
+		shaderPtr = make_shared<SimpleLightShaderGL>
 			("vs_simpleLightColor.glsl", "fs_simpleLightColor.glsl");
 		break;
 	}
@@ -71,6 +70,7 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	}
 	
 	Shader* result = shaderPtr.get();
-	shaderMap[shaderEnum] = move(shaderPtr);
+	assert(result != nullptr);
+	shaderMap[shaderEnum] = shaderPtr;
 	return result;
 }

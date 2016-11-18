@@ -3,14 +3,17 @@
 #include <iostream>
 #include <util/Globals.hpp>
 #include <algorithm>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
+using namespace platform;
 
 unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
 
-TextureManagerGL::TextureManagerGL() : TextureManager()
+TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
 {
 	textures = map<string, GLuint>();
+	logClient.setPrefix("[TextureManagerGL]");
 }
 
 TextureManagerGL::~TextureManagerGL()
@@ -30,12 +33,13 @@ GLuint TextureManagerGL::getImage(const string& file)
 		return it->second;
 	}
 
-	string path = util::globals::TEXTURE_PATH + file;
+	string path = ::util::globals::TEXTURE_PATH + file;
 
 	GLuint texture = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
 	if (texture == GL_FALSE)
 	{
-		cerr << "Error: TextureManager::loadImage(): Couldn't load image file: " << file << endl;
+		LOG(logClient, Error) << "Couldn't load image file: " << file << endl;
+		return GL_FALSE;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object

@@ -13,6 +13,7 @@
 #include <util/FPSCounter.hpp>
 #include <glm/glm.hpp>
 #include <camera/Camera.hpp>
+#include <shader/PlaygroundShader.hpp>
 
 
 class MainLoopTask : public Task
@@ -26,6 +27,8 @@ public:
 	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags = SINGLETHREADED_REPEATING) :
 		Task(flags), logClient(platform::getLogServer()), runtime(0), camera()
 	{
+		using namespace glm;
+
 		this->window = window;
 		this->renderer = renderer;
 		this->engine = engine;
@@ -35,12 +38,22 @@ public:
 		auto scrollCallback = bind(&Camera::onScroll, &this->camera, std::placeholders::_1);
 		this->window->addWindowFocusCallback(focusCallback);
 		this->window->getInputDevice()->addScrollCallback(scrollCallback);
+
+		camera.setPosition(vec3(0.0f, 0.0f, 3.0f));
+		camera.setLookDirection(vec3(0.0f, 0.0f, -1.0f));
+		camera.setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+
 		mixValue = 0.2f;
+
+		renderer->getShaderManager()->loadShaders();
+		PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
+			(renderer->getShaderManager()->getShader(Playground));
+		playground->setTexture1("jpg.jpg");
+		playground->setTexture2("png.png");
 	}
 
 
 	void run() override {
-		LOG(logClient, platform::Debug) << "Test";
 		BROFILER_FRAME("MainLoopTask");
 		using namespace std;
 		using namespace chrono;

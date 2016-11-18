@@ -17,6 +17,7 @@
  */
 class Renderer3D : public Renderer
 {
+public:
 	/**
 	 * Provides access to a shader manager that creates and stores shaders
 	 * compatible to this renderer

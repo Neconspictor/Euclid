@@ -2,8 +2,11 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <platform/logging/LoggingClient.hpp>
+#include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
+using namespace platform;
 
 bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 {
@@ -24,15 +27,18 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	}
 	catch (ifstream::failure e)
 	{
+		LoggingClient logClient(getLogServer());
+		logClient.setPrefix("[filesystem::loadFileIntoString()]");
+
 		if (shaderStreamFile.fail())
 		{
-			cerr << "Error: filesystem::loadFileIntoString(): Couldn't opened file: "
-				<< filePath << endl;
+			LOG(logClient, Error) << "Couldn't opened file: "
+				<< filePath;
 		}
 
 		if (shaderStreamFile.bad())
 		{
-			cerr << "Error: filesystem::loadFileIntoString : Couldn't read file properly." << endl;
+			LOG(logClient, Error) << "Couldn't read file properly.";
 		}
 		loadingWasSuccessful = false;
 		*destination = "";
