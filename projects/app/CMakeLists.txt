@@ -2,13 +2,14 @@ set(
     APP_SOURCES 
     
     ###header files###
-    include/EngineTester.hpp
     include/Boost_OptionsTest.hpp
+    include/EngineTester.hpp
     include/MainLoopTask.hpp
     ###source files###
+    src/Boost_OptionsTest.cpp
     src/EngineTester.cpp
     src/Main.cpp
-    src/Boost_OptionsTest.cpp
+    src/MainLoopTask.cpp
 )
 
 # Create named folders for the sources within the .vcproj
