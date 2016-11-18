@@ -7,10 +7,8 @@
 #include <system/Engine.hpp>
 #include <renderer/Renderer3D.hpp>
 #include <platform/Window.hpp>
-#include <Brofiler.h>
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
-#include <glm/glm.hpp>
 #include <camera/Camera.hpp>
 
 

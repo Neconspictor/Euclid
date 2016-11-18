@@ -1,6 +1,8 @@
 #include <MainLoopTask.hpp>
 #include <shader/PlaygroundShader.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <Brofiler.h>
+#include <glm/glm.hpp>
 
 using namespace glm;
 
