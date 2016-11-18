@@ -12,11 +12,11 @@ public:
 	ShaderGL(const ShaderGL& other);
 	virtual ~ShaderGL() override;
 
-	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
+	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 	void draw(Model const& model, glm::mat4 const& transform) override;
 	GLuint getProgramID();
 	bool loadingFailed() override;
-	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
+	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
 	void release() override;
 	void use() override;
 

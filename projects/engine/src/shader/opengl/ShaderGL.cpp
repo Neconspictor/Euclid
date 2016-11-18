@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include <GL/glew.h>
 
@@ -86,7 +85,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 
 	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
-		cerr << "Error: Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
+		LOG(logClient, Error) << "Couldn't initialize fragment shader!";
 		throw ShaderInitException("Shader::loadShaders(): Couldn't initialize fragment shader!");
 	}
 
@@ -115,7 +114,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 		if (infoLogLength > 0) {
 			vector<char> ProgramErrorMessage(infoLogLength + 1);
 			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
-			cerr << "Error: Shader::loadShaders(): " << &ProgramErrorMessage[0] << endl;
+			LOG(logClient, Error) << &ProgramErrorMessage[0];
 		}
 		throw ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!");
 	}
@@ -138,7 +137,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 
 	if (!shaderContent.size())
 	{
-		cerr << "Error: Shader::compileShader: shaderContent is suppossed to be no null-string!" << endl;
+		LOG(logClient, Error) << "shaderContent is suppossed to be no null-string!";
 		return GL_FALSE;
 	}
 
@@ -155,7 +154,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 	{
 		vector<char> shaderErrorMessage(logInfoLength + 1);
 		glGetShaderInfoLog(shaderResourceID, logInfoLength, nullptr, &shaderErrorMessage[0]);
-		cerr << "Error: Shader::compileShader: " << &shaderErrorMessage[0] << endl;
+		LOG(logClient, Error) << &shaderErrorMessage[0];
 	}
 
 	return result;

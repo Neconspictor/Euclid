@@ -3,7 +3,7 @@
 #include <shader/ShaderManager.hpp>
 #include <map>
 #include <memory>
-#include "ShaderGL.hpp"
+#include <shader/opengl/ShaderGL.hpp>
 
 class ShaderManagerGL : public ShaderManager
 {
