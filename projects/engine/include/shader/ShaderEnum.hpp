@@ -16,9 +16,9 @@ enum ShaderEnum
 * Maps shader enumerations to a string representation.
 */
 const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
-	{ Lamp, "LAMP" },
-	{ Playground, "PLAYGROUND" },
-	{ SimpleLight, "SIMPLE_LIGHT" },
+	{Lamp, "LAMP" },
+	{Playground, "PLAYGROUND" },
+	{SimpleLight, "SIMPLE_LIGHT" },
 };
 
 	/**

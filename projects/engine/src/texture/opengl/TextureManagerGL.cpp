@@ -6,6 +6,8 @@
 
 using namespace std;
 
+unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
+
 TextureManagerGL::TextureManagerGL() : TextureManager()
 {
 	textures = map<string, GLuint>();
@@ -70,4 +72,9 @@ GLuint TextureManagerGL::getImage(const string& file)
 void TextureManagerGL::loadImages(const std::string& imageFolder)
 {
 	//TODO!
+}
+
+TextureManagerGL* TextureManagerGL::get()
+{
+	return instance.get();
 }

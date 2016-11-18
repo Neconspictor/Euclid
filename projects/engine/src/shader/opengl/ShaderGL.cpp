@@ -24,6 +24,13 @@ ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderF
 	}
 }
 
+ShaderGL::ShaderGL(ShaderGL&& other) :
+	logClient(other.logClient)
+{
+	programID = other.programID;
+	other.programID = GL_FALSE;
+}
+
 ShaderGL::ShaderGL(const ShaderGL& other) : 
 	logClient(other.logClient)
 {

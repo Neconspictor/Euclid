@@ -3,18 +3,33 @@
 #include <texture/TextureManager.hpp>
 #include <map>
 #include <GL/glew.h>
+#include <memory>
 
+/**
+ * A texture manager for an opengl renderer.
+ */
 class TextureManagerGL : public TextureManager
 {
 public:
-	TextureManagerGL();
+
 	virtual ~TextureManagerGL() override;
 
-	GLuint getImage(const std::string& file);
+	virtual GLuint getImage(const std::string& file);
 
-	void loadImages(const std::string& imageFolder) override;
+	virtual void loadImages(const std::string& imageFolder) override;
+
+	/**
+	 * Provides access the texture manager singleton.
+	 */
+	static TextureManagerGL* get();
 
 protected:
 	std::map<std::string, GLuint> textures;
+
+private:
+	// this class is a singleton, thus private constructor
+	TextureManagerGL(); 
+
+	static std::unique_ptr<TextureManagerGL> instance;
 };
 #endif

@@ -28,8 +28,6 @@ namespace platform
 	{
 	public:
 
-		LoggingClient() = delete;
-
 		/**
 		* Constructs a new logging client that will send logging messages to the specified logging server.
 		*/

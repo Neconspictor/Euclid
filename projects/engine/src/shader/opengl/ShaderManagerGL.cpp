@@ -9,6 +9,8 @@
 using namespace std;
 using namespace platform;
 
+unique_ptr<ShaderManagerGL> ShaderManagerGL::instance = make_unique<ShaderManagerGL>(ShaderManagerGL());
+
 ShaderManagerGL::ShaderManagerGL() : 
 	logClient(getLogServer())
 {
@@ -27,7 +29,8 @@ Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 		return createShader(shaderEnum);
 	}
 
-	return it->second.get();
+	//return it->second.get();
+	return nullptr;
 }
 
 void ShaderManagerGL::loadShaders()
@@ -37,6 +40,11 @@ void ShaderManagerGL::loadShaders()
 	createShader(SimpleLight);
 }
 
+ShaderManagerGL* ShaderManagerGL::get()
+{
+	return instance.get();
+}
+
 Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 {
 	unique_ptr<ShaderGL> shaderPtr;
@@ -44,7 +52,7 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	{
 	case Lamp: {
 		shaderPtr = make_unique<LampShaderGL>("vs_light.gls", "fs_light.glsl");
-			break;
+		break;
 	}
 	case Playground: {
 		shaderPtr = make_unique<PlaygroundShaderGL>("vertex.gls", "fragment.glsl");
@@ -61,8 +69,8 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 		throw ShaderInitException(ss.str());
 	}
 	}
-
+	
 	Shader* result = shaderPtr.get();
-	shaderMap.insert(make_pair(shaderEnum, move(shaderPtr)));
+	shaderMap[shaderEnum] = move(shaderPtr);
 	return result;
 }

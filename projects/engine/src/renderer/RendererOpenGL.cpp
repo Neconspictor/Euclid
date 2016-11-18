@@ -2,12 +2,10 @@
 #include <GL/glew.h>
 #include <GL/GLU.h>
 #include <shader/opengl/ShaderManagerGL.hpp>
+#include <texture/opengl/TextureManagerGL.hpp>
 
 using namespace std;
 using namespace platform;
-
-TextureManagerGL textureManager;
-ShaderManagerGL shaderManager;
 
 RendererOpenGL::RendererOpenGL() : Renderer3D()
 {
@@ -53,17 +51,12 @@ void RendererOpenGL::endScene()
 
 ShaderManager* RendererOpenGL::getShaderManager()
 {
-	return &shaderManager;
+	return ShaderManagerGL::get();
 }
 
 TextureManager* RendererOpenGL::getTextureManager()
 {
-	return &textureManager;
-}
-
-TextureManagerGL* RendererOpenGL::getTextureManagerGL()
-{
-	return &textureManager;
+	return TextureManagerGL::get();
 }
 
 RendererType RendererOpenGL::getType() const

@@ -16,6 +16,7 @@ public:
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
 	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	ShaderGL(ShaderGL&& other);
 	ShaderGL(const ShaderGL& other);
 	virtual ~ShaderGL() override;
 
