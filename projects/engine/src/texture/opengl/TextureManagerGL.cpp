@@ -1,6 +1,5 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <SOIL2/SOIL2.h>
-#include <iostream>
 #include <util/Globals.hpp>
 #include <algorithm>
 #include <platform/logging/GlobalLoggingServer.hpp>

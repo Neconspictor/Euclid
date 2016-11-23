@@ -20,10 +20,15 @@ namespace platform
 		return result;
 	}
 
-	LoggingClient& LoggingClient::operator=(const LoggingClient& other)
+	/*LoggingClient& LoggingClient::operator=(const LoggingClient& other)
 	{
-		return LoggingClient(other);
-	}
+		if (this != &other) {
+			LoggingClient tmp(other);
+			this->swap(tmp);
+		}
+
+		return *this;
+	}*/
 
 	void LoggingClient::flush(const LogMessage& message) const
 	{
@@ -56,9 +61,9 @@ namespace platform
 	}
 
 	LoggingClient::LoggingClient(LoggingClient&& other) :
-		prefix(other.prefix), server(other.server), endpoints(other.endpoints)
+		prefix(other.prefix), endpoints(other.endpoints), server(other.server)
 	{
-		other.endpoints.clear();
+		//other.endpoints.clear();
 	}
 
 	LoggingClient::~LoggingClient()
@@ -93,5 +98,12 @@ namespace platform
 	void LoggingClient::setPrefix(const string& prefix)
 	{
 		this->prefix = string(prefix);
+	}
+
+	void LoggingClient::swap(LoggingClient& other)
+	{
+		this->endpoints.swap(other.endpoints);
+		this->prefix.swap(other.prefix);
+		this->server.swap(other.server);
 	}
 }

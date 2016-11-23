@@ -3,6 +3,8 @@
 #include <shader/PlaygroundShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 
+class Model;
+
 class PlaygroundShaderGL : public ShaderGL, public PlaygroundShader
 {
 public:

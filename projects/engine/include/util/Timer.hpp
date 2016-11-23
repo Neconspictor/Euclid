@@ -20,7 +20,7 @@ public:
 	 * E.g. if the last call of this function happend 1/2 second ago, this function
 	 * will return 0.5 .
 	 */
-	long double update()
+	float update()
 	{
 		using namespace std::chrono;
 		auto currentFrameTime = timer.now();
@@ -29,7 +29,7 @@ public:
 			lastUpdateTime = currentFrameTime;
 		}
 
-		auto diff = duration_cast<duration<long double>>(currentFrameTime - lastUpdateTime);
+		auto diff = duration_cast<duration<float>>(currentFrameTime - lastUpdateTime);
 		lastUpdateDiff = diff.count();
 		lastUpdateTime = currentFrameTime;
 		return lastUpdateDiff;
@@ -38,7 +38,7 @@ public:
 	/**
 	 * Provides the time difference calculated by the last function call of Timer::update().
 	 */
-	long double getLastUpdateTimeDifference() const
+	float getLastUpdateTimeDifference() const
 	{
 		return lastUpdateDiff;
 	}
@@ -46,7 +46,7 @@ public:
 private:
 	std::chrono::high_resolution_clock timer;
 	std::chrono::time_point<std::chrono::steady_clock> lastUpdateTime;
-	long double lastUpdateDiff;
+	float lastUpdateDiff;
 };
 
 #endif

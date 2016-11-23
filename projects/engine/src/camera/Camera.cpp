@@ -5,7 +5,7 @@
 using namespace glm;
 using namespace platform;
 
-Camera::Camera() : logClient(getLogServer())
+Camera::Camera() : logClient(getLogServer(), true, true)
 {
 	yaw = pitch = 0;
 	fov = 45.0f;
@@ -47,7 +47,7 @@ const vec3& Camera::getLookDirection() const
 	return look;
 }
 
-const vec3 const& Camera::getUpDirection() const
+const vec3& Camera::getUpDirection() const
 {
 	return up;
 }
@@ -83,7 +83,7 @@ void Camera::update(float mouseXFrameOffset, float mouseYFrameOffset)
 
 	vec3 front;
 	front.x = sin(radians(yaw)) * cos(radians(pitch));
-	front.y = sin(radians(pitch));
+	front.y = sin(radians(-pitch));
 	front.z = -cos(radians(yaw)) * cos(radians(pitch));
 	front = normalize(front);
 	setLookDirection(front);

@@ -49,7 +49,7 @@ namespace platform
 
 		LogMessage __cdecl operator()(LogLevel level, const std::string& file, const std::string& function, int line) const;
 
-		LoggingClient& operator=(const LoggingClient&);
+		//LoggingClient& operator=(const LoggingClient&);
 
 
 		/** 
@@ -86,11 +86,13 @@ namespace platform
 		*/
 		void setPrefix(const std::string& prefix);
 
+		void swap(LoggingClient& other);
+
 	private:
 		std::string prefix;
 
 		std::vector<LogEndpoint> endpoints;
-		const std::weak_ptr<LoggingServer> server;
+		std::weak_ptr<LoggingServer> server;
 	};
 }
 

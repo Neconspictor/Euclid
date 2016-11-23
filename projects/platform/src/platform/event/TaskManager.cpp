@@ -25,6 +25,7 @@
 
 #include <platform/event/TaskManager.hpp>
 #include <Brofiler.h>
+#include <iostream>
 
 using namespace std;
 
@@ -42,6 +43,12 @@ TaskManager::TaskManager(unsigned int numThreads)
 }
 
 TaskManager::~TaskManager() {
+	
+	// If an exception is thrown during TaskManager::run()
+	// mRunning is still true, i.d. the backgroud tasks
+	// will run in an endless loop. So we set it manually 
+	// to false before joining the background threads!
+	mRunning = false;
 	for (auto&& itr : mThreads)
 	{
 		itr->join();

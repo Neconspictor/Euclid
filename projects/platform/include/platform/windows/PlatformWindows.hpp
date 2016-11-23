@@ -20,24 +20,33 @@ public:
 
 	PlatformWindows();
 
-	void setVSync(const Renderer& renderer, bool value) override;
+	/**
+	* creates a new OpenGL context for a given device context.
+	*/
+	HGLRC createOpenGLContext(HDC& hdc);
 
 	std::unique_ptr<Window> createWindow(Window::WindowStruct const& desc) override;
 
 	/**
-	 * Sets the OpenGL pixel format for a given device context.
-	 */
-	static void setOpenGLPixelFormat(HDC& hdc);
-	
-	/**
-	* creates a new OpenGL context for a given device context.
-	*/
-	static HGLRC createOpenGLContext(HDC& hdc);
-
-	/**
 	* Destroys a given OpenGL context.
 	*/
-	static void destroyOpenGLContext(HGLRC hglrc);
+	void destroyOpenGLContext(HGLRC hglrc);
+
+	/**
+	 * Provides the active platform object as a PlatformWindows object.
+	 * NOTE: If the active platform object isn't of type PlatformWindows,
+	 * an UnexpectedPLatformException is thrown.
+	 */
+	static PlatformWindows* getActivePlatform();
+	
+	std::string GetLastErrorAsString();
+	/**
+	* Sets the OpenGL pixel format for a given device context.
+	*/
+	void setOpenGLPixelFormat(HDC& hdc);
+
+	void setVSync(const Renderer& renderer, bool value) override;
+
 protected:
 	void setVSyncOpenGL(bool value);
 

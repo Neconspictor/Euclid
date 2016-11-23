@@ -1,5 +1,4 @@
 #include <platform/windows/input/SDL/SDLInputDevice.hpp>
-#include <iostream>
 
 using namespace std;
 using namespace platform;
@@ -83,7 +82,9 @@ bool SDLInputDevice::isDown(Button button)
 
 	int code = mapButton(button);
 	if (code < 0) return false;
-	return pressedMouseButtons[code];
+
+	InputItemState state = pressedMouseButtons[code];
+	return (state == Down) || (state == Pressed);
 }
 
 bool SDLInputDevice::isPressed(Key key)
@@ -160,8 +161,11 @@ void SDLInputDevice::pollEvents()
 				break;
 			}
 			case SDL_MOUSEMOTION: {
-				frameMouseXOffset = event.motion.xrel;
-				frameMouseYOffset = event.motion.yrel;
+				// only if the absolut mouse position hasn't changed
+				// a relative motion makes sense!
+				frameMouseXOffset = event.motion.x - mouseXabsolut;
+				frameMouseYOffset = event.motion.y - mouseYabsolut;
+
 				mouseXabsolut = event.motion.x;
 				mouseYabsolut = event.motion.y;
 				break;

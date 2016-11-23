@@ -1,14 +1,17 @@
-#include <platform/windows/PlatformWindows.hpp>
+﻿#include <platform/windows/PlatformWindows.hpp>
 #include <platform/windows/window/WindowWin32.hpp>
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <platform/exception/UnexpectedPlatformException.hpp>
+#include <platform/exception/OpenglException.hpp>
 
 using namespace std;
 
 PlatformWindows::PlatformWindows() : logClient(platform::getLogServer())
 {
+	logClient.setPrefix("[PlatformWindows]");
 }
 
 void PlatformWindows::setVSync(const Renderer& renderer, bool value)
@@ -97,31 +100,74 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 			"OpenGL Rendering Context Error", MB_OK);
 	}
 
-	int attribs[] =
-	{
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
-		WGL_CONTEXT_FLAGS_ARB, 0,
-		0
-	};
+	int desiredOpenGLVersion[2];
+	desiredOpenGLVersion[0] = 4;
+	desiredOpenGLVersion[1] = 5;
 
-	if (wglewIsSupported("WGL_ARB_create_context") == 1)
+	int numVersions = 0;
+	glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS, &numVersions);
+
+	for (int i = 0; i < numVersions; ++i)
 	{
-		hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
-		destroyOpenGLContext(tempContext);
-		wglMakeCurrent(hdc, hglrc);
-	} else {	
-		//It's not possible to make a GL 3.x context. Use the old style context (GL 2.1 and before)
-		hglrc = tempContext;
+		const GLubyte* version = glGetStringi(GL_SHADING_LANGUAGE_VERSION, i);
+		if (version)
+		{
+			LOG(logClient, platform::Debug) << version;
+		}
+		else 
+			LOG(logClient, platform::Debug) << "is not supported: " << i;
 	}
 
-	//Checking GL version
-	const GLubyte *GLVersionString = glGetString(GL_VERSION);
+	LOG(logClient, platform::Debug) << "Expected OpenGL version: " << desiredOpenGLVersion[0] << "." << desiredOpenGLVersion[1];
 
-	//Or better yet, use the GL3 way to get the version number
+	int attribs[] =
+	{
+		WGL_CONTEXT_MAJOR_VERSION_ARB, desiredOpenGLVersion[0],
+		WGL_CONTEXT_MINOR_VERSION_ARB, desiredOpenGLVersion[1],
+		WGL_CONTEXT_LAYER_PLANE_ARB, 0, // default value 
+		WGL_CONTEXT_FLAGS_ARB, 0, // default value
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, // only core profile - no deprecated functionality
+		0, // end of parameters
+	};
+
+
+	//Check OpenGL version retrieved
 	int OpenGLVersion[2];
 	glGetIntegerv(GL_MAJOR_VERSION, &OpenGLVersion[0]);
 	glGetIntegerv(GL_MINOR_VERSION, &OpenGLVersion[1]);
+
+	// Couldn't retrieve an opengl context
+	if (desiredOpenGLVersion[0] != OpenGLVersion[0] 
+		|| desiredOpenGLVersion[1] != OpenGLVersion[1])
+	{
+		stringstream ss; ss << "PlatformWindows::createOpenGLContext(HDC& hdc): This OpenGL version isn't supported: " << desiredOpenGLVersion[0]
+			<< "." << desiredOpenGLVersion[1];
+		throw OpenglException(ss.str());
+	}
+
+	LOG(logClient, platform::Debug) << "Used OpenGL version: " << OpenGLVersion[0] << "." << OpenGLVersion[1];
+	LOG(logClient, platform::Debug) << "OpenGL version old: " << glGetString(GL_VERSION);
+
+	if (!wglewIsSupported("WGL_ARB_create_context"))
+	{
+		throw OpenglException("PlatformWindows::createOpenGLContext(HDC& hdc): WGL_ARB_create_context extension isn't supported!");
+	}
+
+
+	hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
+	if (!hglrc)
+	{
+		LOG(logClient, platform::Error) << GetLastErrorAsString();
+		throw OpenglException("PlatformWindows::createOpenGLContext(HDC& hdc): OpenGL Context couldn't be created!");
+	}
+	destroyOpenGLContext(tempContext);
+	wglMakeCurrent(hdc, hglrc);
+
+	GLint error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		throw OpenglException("PlatformWindows::createOpenGLContext(HDC& hdc): Error occured during init!");
+	}
 
 	return hglrc;
 }
@@ -132,22 +178,55 @@ void PlatformWindows::destroyOpenGLContext(HGLRC hglrc)
 	wglDeleteContext(hglrc);
 }
 
+PlatformWindows* PlatformWindows::getActivePlatform()
+{
+	PlatformWindows* platform = dynamic_cast<PlatformWindows*> (Platform::getActivePlatform().get());
+	if (!platform)
+	{
+		throw UnexpectedPlatformException("PlatformWindows::getActivePlatform(): Expected platform type: PlatformWindows");
+	}
+
+	return platform;
+}
+
+
+
+//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+string PlatformWindows::GetLastErrorAsString()
+{
+	//Get the error message, if any.
+	DWORD errorMessageID = GetLastError();
+	if (errorMessageID == 0)
+		return string(); //No error message has been recorded
+
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+	std::string message(messageBuffer, size);
+
+	//Free the buffer.
+	LocalFree(messageBuffer);
+
+	return message;
+}
+
+
+
 void PlatformWindows::setVSyncOpenGL(bool value)
 {
+	/*GLint n, i;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+	for (i = 0; i < n; i++) {
+		cout << glGetStringi(GL_EXTENSIONS, i) << endl;
+	}*/
+
 	typedef BOOL(APIENTRY *PFNWGLSWAPINTERVALFARPROC)(int);
 	PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
 
-	const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-	if (strstr(extensions, "WGL_EXT_swap_control") == 0)
-	{
-		cerr << "WGL_EXT_swap_control extension not supported on your computer" << endl;
-		return; // Error: WGL_EXT_swap_control extension not supported on your computer.\n");	
-	}
-	else
-	{
-		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress("wglSwapIntervalEXT");
 
-		if (wglSwapIntervalEXT)
-			wglSwapIntervalEXT(value);
-	}
+	if (!wglSwapIntervalEXT)
+		throw OpenglException("PlatformWindows::setVSyncOpenGL(bool value): WGL_EXT_swap_control extension not supported.");
+	wglSwapIntervalEXT(value);
 }

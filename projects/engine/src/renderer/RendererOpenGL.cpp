@@ -3,6 +3,8 @@
 #include <GL/GLU.h>
 #include <shader/opengl/ShaderManagerGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
+#include <mesh/opengl/MeshManagerGL.hpp>
+#include <platform/exception/OpenglException.hpp>
 
 using namespace std;
 using namespace platform;
@@ -16,37 +18,76 @@ RendererOpenGL::~RendererOpenGL()
 {
 }
 
+// An array of 3 vectors which represents 3 vertices
+static const GLfloat g_vertex_buffer_data[] = {
+	-1.0f, -1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	0.0f,  1.0f, 0.0f,
+};
+GLuint vertexbuffer;
+GLuint vertexArrayObjID;
+
 void RendererOpenGL::init()
 {
 	LOG(logClient, Info) << "Initializing...";
 	glViewport(xPos, yPos, width, height);
 	int aspectratio = width / height;
-	glMatrixMode(GL_PROJECTION);
 
-	glLoadIdentity();
-	
-	gluPerspective(45.0f, aspectratio, 0.2f, 255.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-
-	glLoadIdentity();
-
-
-	glClearColor(1.0f, 1.0f, 0.0f, 1.0f); // White Background
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // White Background
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	glEnable(GL_COLOR_MATERIAL);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	glGenVertexArrays(1, &vertexArrayObjID);
+	glBindVertexArray(vertexArrayObjID);
+	// This will identify our vertex buffer
+	// Generate 1 buffer, put the resulting identifier in vertexbuffer
+	glGenBuffers(1, &vertexbuffer);
+	// The following commands will talk about our 'vertexbuffer' buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	// Give our vertices to OpenGL.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+		);
+	glEnableVertexAttribArray(0);
+
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
+
 }
 
 void RendererOpenGL::beginScene()
 {
-	glClearColor(0.3f, 0.3f, 0.3f, 1.0f); // Dark greyish Background
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.7f, 0.7f, 1.0f, 1.0f); // Dark greyish Background
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
+
+
 
 void RendererOpenGL::endScene()
 {
+	// 1rst attribute buffer : vertices
+	//glEnableVertexAttribArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+	// Draw the triangle !
+	//glBindVertexArray(vertexArrayObjID); // First VAO
+	//glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+	//glBindVertexArray(0);
+	//glDisableVertexAttribArray(0);
+
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
+
+MeshManager* RendererOpenGL::getMeshManager()
+{
+	return MeshManagerGL::get();
 }
 
 ShaderManager* RendererOpenGL::getShaderManager()
@@ -70,4 +111,15 @@ void RendererOpenGL::present()
 
 void RendererOpenGL::release()
 {
+}
+
+void RendererOpenGL::checkGLErrors(string errorPrefix)
+{
+	// check if any gl related errors occured
+	GLint error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << gluErrorString(error);
+		throw OpenglException(ss.str());
+	}
 }

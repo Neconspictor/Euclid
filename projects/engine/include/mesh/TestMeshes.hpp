@@ -1,53 +1,51 @@
 #ifndef TEST_MESHES_HPP
 #define TEST_MESHES_HPP
 
-#include <GL/glew.h>
-
 namespace TestMeshes {
 
-    static const GLfloat triangleVertices[] = {
+    static const float triangleVertices[] = {
         -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
         0.0f,  0.5f, 0.0f
     };
 
-    static const GLfloat coloredTriangleVertices[] = {
+    static const float coloredTriangleVertices[] = {
         // Positions			// Colors
         -0.5f, -0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
         0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
         0.0f,  0.5f, 0.0f,		0.0f, 0.0f, 1.0f
     };
 
-    static const GLuint triangleIndices[] = {  // Note that we start from 0!
+    static const unsigned int triangleIndices[] = {  // Note that we start from 0!
         0, 1, 2,   // First Triangle
     };
 
-    static const GLfloat triangle1Vertices[] = {
+    static const float triangle1Vertices[] = {
         0.5f,  0.5f, 0.0f,  // Top Right
         0.5f, -0.5f, 0.0f,  // Bottom Right,
         -0.5f,  0.5f, 0.0f   // Top Left 
     };
 
-    static const GLfloat triangle2Vertices[] = {
+    static const float triangle2Vertices[] = {
         0.5f, -0.5f, 0.0f,  // Bottom Right
         -0.5f, -0.5f, 0.0f,  // Bottom Left
         -0.5f,  0.5f, 0.0f   // Top Left 
     };
 
-    static const GLfloat rectangleVertices[] = {
+    static const float rectangleVertices[] = {
         // position			// color			// texture coords
         0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,	// Top Right
         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Bottom Left
         -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 1.0f  // Top Left 
     };
-    static const GLuint rectangleIndices[] = {  // Note that we start from 0!
+    static const unsigned int rectangleIndices[] = {  // Note that we start from 0!
         0, 1, 3,   // First Triangle
         1, 2, 3    // Second Triangle
     };
 
 
-    static const GLfloat cubeVertices [] = {
+    static const float cubeVertices [] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -91,6 +89,8 @@ namespace TestMeshes {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+	static const std::string CUBE_NAME = "TESTMESHES::CUBE";
+	static const std::string CUBE_SIMPLE_LIT_NAME = "TESTMESHES::CUBE_SIMPLE_LIT";
 }
 
 #endif TEST_MESHES_HPP

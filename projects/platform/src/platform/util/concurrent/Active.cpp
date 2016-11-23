@@ -39,8 +39,8 @@ namespace platform
 		void Active::terminate()
 		{
 			if (messageQueue.closed()) return;
-			while (!messageQueue.empty())
-				messageQueue.pull();
+			//while (!messageQueue.empty())
+			//	messageQueue.pull();
 			send([this] { isDone = true; });
 			workingThread.join();
 			messageQueue.close();

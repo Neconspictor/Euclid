@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
+#include <model/Model.hpp>
+#include <mesh/opengl/MeshGL.hpp>
 
 using namespace glm;
 
@@ -17,14 +19,16 @@ PlaygroundShaderGL::~PlaygroundShaderGL()
 
 void PlaygroundShaderGL::draw(Model const& model, mat4 const& transform)
 {
+	MeshGL* mesh = getFromModel(model);
 	use();
-	glBindVertexArray(model.getVertexArrayObject());
+	glBindVertexArray(mesh->getVertexArrayObject());
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, model.getVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
 	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 bool PlaygroundShaderGL::loadingFailed()

@@ -23,6 +23,8 @@ public:
 	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, 
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
+	void init();
+
 	virtual void run() override;
 
 private:
@@ -32,16 +34,16 @@ private:
 	platform::LoggingClient logClient;
 	Timer timer;
 	FPSCounter counter;
-	long double runtime;
+	float runtime;
 	std::string originalTitle;
 	Camera camera;
 	float mixValue;
 
-	void doUserMovement(Input* input, double deltaTime);
+	void doUserMovement(Input* input, float deltaTime);
 
 	void handleInputEvents();
 
-	void updateWindowTitle(long double frameTime, long double fps);
+	void updateWindowTitle(float frameTime, float fps);
 
 	void onWindowsFocus(Window* window, bool receivedFocus) const;
 };

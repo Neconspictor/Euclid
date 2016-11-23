@@ -97,8 +97,11 @@ void Engine::init()
 	}
 	catch (const EnumFormatException& e)
 	{
-		//log error and proceed
-		LOG(logClient, Error) << "Couldn't get log level from " << systemLogLevelStr << endl
+
+		//log error and set default log level
+		LOG(logClient, Error) << e.what();
+
+		LOG(logClient, Warning) << "Couldn't get log level from " << systemLogLevelStr << endl
 			<< "Log level is set now to 'Warning'" << endl;
 
 		systemLogLevel = Warning;

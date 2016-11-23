@@ -1,54 +1,25 @@
 #include <model/Model.hpp>
-#include <iostream>
 
+using namespace std;
 using namespace glm;
 
-Model::Model(GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount) :
-	vao(vertexArrayObject), vbo(vertexBufferObject), vertexCount(vertexCount)
+Model::Model(string meshName, mat4 mat)
 {
+	this->meshName = move(meshName);
+	trafo = move(mat);
 }
 
-Model::~Model()
+string const& Model::getMeshName() const
 {
-	std::cout << "~Model() called!" << std::endl;
+	return meshName;
 }
 
-GLuint Model::getVertexArrayObject() const
+mat4 const& Model::getTrafo() const
 {
-	return vao;
+	return trafo;
 }
 
-GLuint Model::getVertexBufferObject() const
+void Model::setTrafo(mat4 mat)
 {
-	return vbo;
-}
-
-mat4 const& Model::getModelMatrix() const
-{
-	return modelMatrix;
-}
-
-unsigned Model::getVertexCount() const
-{
-	return vertexCount;
-}
-
-void Model::setModelMatrix(mat4&& matrix)
-{
-	modelMatrix = matrix;
-}
-
-void Model::setModelMatrix(mat4 const& matrix)
-{
-	modelMatrix = mat4(matrix);
-}
-
-void Model::setVertexArrayObject(GLuint vao)
-{
-	this->vao = vao;
-}
-
-void Model::setVertexBufferObject(GLuint vbo)
-{
-	this->vbo = vbo;
+	trafo = move(mat);
 }

@@ -2,6 +2,7 @@
 #define ENGINE_SHADER_OPENGL_LAMPSHADER_HPP
 #include <shader/LampShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
+#include <model/Model.hpp>
 
 class LampShaderGL : public ShaderGL, public LampShader
 {

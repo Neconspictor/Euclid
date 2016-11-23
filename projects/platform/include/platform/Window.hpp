@@ -130,6 +130,14 @@ public:
 	virtual void resize(int newWidth, int newHeight) = 0;
 
 	/**
+	 * Sets the cursor to a specified position (xPos, yPos)
+	 * inside this window. Thereby the position (0,0) is the upper
+	 * left corner and (window-width, window-height) is the lower
+	 * right corner.
+	 */
+	virtual void setCursorPosition(int xPos, int yPos) = 0;
+
+	/**
 	 * Sets this window to fullscreen mode.
 	 * As monitor resolution are used the width, height and colorbit depth, this window currently has.
 	 */

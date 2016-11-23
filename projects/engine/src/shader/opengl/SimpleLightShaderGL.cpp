@@ -1,5 +1,7 @@
 #include <shader/opengl/SimpleLightShaderGL.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <mesh/opengl/MeshGL.hpp>
+#include <exception/MeshNotFoundException.hpp>
 
 SimpleLightShaderGL::SimpleLightShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile)
 	: ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), objectColor(1, 1, 1)
@@ -12,13 +14,14 @@ SimpleLightShaderGL::~SimpleLightShaderGL()
 
 void SimpleLightShaderGL::draw(Model const& model, glm::mat4 const& transform)
 {
+	MeshGL* mesh = getFromModel(model);
 	use();
-	glBindVertexArray(model.getVertexArrayObject());
+	glBindVertexArray(mesh->getVertexArrayObject());
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, model.getVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
 	glBindVertexArray(0);
 }
 

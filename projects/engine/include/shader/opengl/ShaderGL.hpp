@@ -5,6 +5,9 @@
 #include <string>
 #include <platform/logging/LoggingClient.hpp>
 
+class MeshGL;
+class Model;
+
 /**
  * Represents a shader program for an OpenGL renderer.
  */
@@ -31,6 +34,8 @@ public:
 protected:
 	GLuint programID;
 	platform::LoggingClient logClient;
+
+	static MeshGL* getFromModel(Model const& model);
 };
 
 #endif

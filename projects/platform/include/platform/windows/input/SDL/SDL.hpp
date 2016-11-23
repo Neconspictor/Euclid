@@ -11,8 +11,9 @@ public:
 
 	/**
 	 * Creates a new sdl context and initializes it with given flags.
+	 * NOTE: A SDLInitError is thrown if the SDL object couldn't be initialized successfully.
 	 */
-	explicit SDL(Uint32 flags = 0) throw(SDLInitError): window(nullptr)
+	explicit SDL(Uint32 flags = 0) : window(nullptr)
 	{
 		if (SDL_Init(flags) != 0)
 			throw SDLInitError();

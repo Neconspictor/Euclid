@@ -7,6 +7,9 @@
 #include <util/Globals.hpp>
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <model/Model.hpp>
+#include <mesh/opengl/MeshGL.hpp>
+#include <mesh/opengl/MeshManagerGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -42,6 +45,14 @@ void ShaderGL::use()
 	glUseProgram(this->programID);
 }
 
+MeshGL* ShaderGL::getFromModel(Model const& model)
+{
+	MeshManagerGL* manager = MeshManagerGL::get();
+	const string& meshName = model.getMeshName();
+	Mesh* mesh = manager->getMesh(meshName);
+	return static_cast<MeshGL*>(mesh);
+}
+
 GLuint ShaderGL::getProgramID()
 {
 	return programID;
@@ -63,9 +74,10 @@ ShaderGL::~ShaderGL()
 
 void ShaderGL::draw(Model const& model, glm::mat4 const& transform)
 {
+	MeshGL* mesh = getFromModel(model);
 	use();
-	glBindVertexArray(model.getVertexArrayObject());
-	glDrawArrays(GL_TRIANGLES, 0, model.getVertexCount());
+	glBindVertexArray(mesh->getVertexArrayObject());
+	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
 	glBindVertexArray(0);
 }
 
@@ -162,5 +174,6 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 		LOG(logClient, Error) << &shaderErrorMessage[0];
 	}
 
-	return result;
+	if (result) return true;
+	return false;
 };

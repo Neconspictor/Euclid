@@ -43,7 +43,7 @@ Input::ScrollConnection Input::addScrollCallback(const ScrollCallback& callback)
 
 void Input::onWindowsFocus(Window* window, int focused)
 {
-	instance->m_windowHasFocus = focused;
+	instance->m_windowHasFocus = !!focused;
 
 	if (instance->m_windowHasFocus)
 	{
@@ -77,6 +77,12 @@ MouseOffset Input::getFrameMouseOffset()
 void Input::removeScrollConnection(const ScrollConnection& connection)
 {
 	scrollContainer.removeCallback(connection);
+}
+
+void Input::setMousePosition(int xPos, int yPos)
+{
+	mouseXabsolut = xPos;
+	mouseYabsolut = yPos;
 }
 
 bool Input::windowHasFocus()

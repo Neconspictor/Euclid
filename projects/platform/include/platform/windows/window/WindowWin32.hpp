@@ -36,6 +36,8 @@ public:
 
 	void resize(int newWidth, int newHeight) override;
 
+	void setCursorPosition(int xPos, int yPos) override;
+
 	void setFullscreen() override;
 
 	void setTitle(const std::string& newTitle) override;

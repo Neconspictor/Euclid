@@ -18,6 +18,8 @@ set(
     
     #platform/exception
     include/platform/exception/EnumFormatException.hpp;
+    include/platform/exception/OpenglException.hpp;
+    include/platform/exception/UnexpectedPlatformException.hpp;
     
     
     #platform/logging

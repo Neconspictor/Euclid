@@ -1,9 +1,9 @@
-#include <EngineTester.hpp>
 #include <system/Engine.hpp>
 #include <system/Video.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <renderer/RendererOpenGL.hpp>
 #include <MainLoopTask.hpp>
+#include <Brofiler.h>
 
 using namespace std;
 using namespace platform;
@@ -24,19 +24,23 @@ int main(int argc, char** argv)
 		engine->setConfigFileName("config.ini");
 
 		LOG(logger, Info) << "Starting Engine...";
+		
 		engine->init();
 
-		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
-			video->getWindow().get(), renderer.get());
+		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(MainLoopTask(engine.get(),
+			video->getWindow().get(), renderer.get()));
+		mainLoop->init();
 		engine->run(mainLoop);
 		LOG(logger, Info) << "Done.";
-	} catch(const exception& e)
+	} catch (const exception& e)
 	{
-		LOG(logger, platform::Fault) << "Main.cpp, line " << __LINE__ <<": Exception occurred: " << e.what();
+		LOG(logger, platform::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
 	} catch(...)
 	{
-		LOG(logger, platform::Fault) << "Main.cpp, line " << __LINE__ << ": Unknown Exception occurred.";
+		LOG(logger, platform::Fault) << "Unknown Exception occurred.";
 	}
+
+	getLogServer()->terminate();
 
 	return EXIT_SUCCESS;
 }

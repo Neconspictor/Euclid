@@ -4,6 +4,7 @@
 #include <texture/TextureManager.hpp>
 #include <shader/ShaderManager.hpp>
 #include <platform/Renderer.hpp>
+#include <mesh/MeshManager.hpp>
 
 /**
  * A 3D renderer is a renderer specific for 3D content. 
@@ -29,6 +30,11 @@ public:
 	* this renderer is able to handle.
 	*/
 	virtual TextureManager* getTextureManager() = 0;
+
+	/** 
+	* Provides access to a mesh manager, that creates and stores 3d meshes.
+	 */
+	virtual MeshManager* getMeshManager() = 0;
 };
 
 #endif

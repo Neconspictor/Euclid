@@ -14,11 +14,11 @@ public:
 	};
 	virtual ~FPSCounter(){};
 
-	long double update(long double timeDiff)
+	float update(float timeDiff)
 	{
 		runtime += timeDiff;
 		++counter;
-		long double currentFPS = counter / runtime;
+		float currentFPS = counter / runtime;
 		if (!isValid(currentFPS))
 		{
 			currentFPS = 0;
@@ -34,13 +34,13 @@ public:
 	}
 
 protected:
-	static bool isValid(long double value)
+	static bool isValid(float value)
 	{
 		return !isnan(value) && value != HUGE_VALL && value != -HUGE_VALL;
 	}
 
 private:
-	long double runtime;
+	float runtime;
 	int counter;
 };
 

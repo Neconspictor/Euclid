@@ -28,6 +28,7 @@
 #define PLATFORM_EVENT_TASK_HPP
 
 #include <memory>
+#include <exception>
 
 class TaskManager;
 

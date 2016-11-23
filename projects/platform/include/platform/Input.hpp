@@ -10,10 +10,10 @@ class Window;
  */
 struct MouseOffset
 {
-	float xOffset;
-	float yOffset;
+	int xOffset;
+	int yOffset;
 
-	MouseOffset(float x, float y)
+	MouseOffset(int x, int y)
 	{
 		xOffset = x;
 		yOffset = y;
@@ -123,9 +123,21 @@ public:
 	virtual Key getAnyPressedKey() = 0;
 
 	/**
+	* Returns the amount of scrolling the user did since the last frame.
+	* If the result is positive, the user scrolled up, negative values means
+	* down scrolling and 0 means no scolling.
+	*/
+	virtual float getFrameScrollOffset();
+
+	/**
 	*  Provides information about how much the cursor moved since the last frame.
 	*/
 	virtual MouseOffset getFrameMouseOffset();
+
+	/**
+	 * Deprectaed function. Don't use it! TODO: remove function!
+	 */
+	//void updateOnFrame(GLFWwindow* window, double frameTime);
 
 	/**
 	* Checks if a given input button is currently hold down.
@@ -170,27 +182,26 @@ public:
 	virtual bool isReleased(Key key) = 0;
 
 	/**
-	 * An input device can be a listener for focus change events triggered
-	 * by a window.
-	 */
+	* An input device can be a listener for focus change events triggered
+	* by a window.
+	*/
 	static void onWindowsFocus(Window* window, int focused);
-	
+
 	/**
 	* Updates the input class instance, if the user scrolls on a specific window.
 	*/
 	static void onScroll(Window* window, double xoffset, double yoffset);
 
 	/**
-	 * Deprectaed function. Don't use it! TODO: remove function!
-	 */
-	//void updateOnFrame(GLFWwindow* window, double frameTime);
-
+	* Removes a previously established scrolling connection. The callback of the connection
+	* won't be notified anymore if scrolling events occurs.
+	*/
+	void removeScrollConnection(const ScrollConnection& connection);
 
 	/**
-	 * Removes a previously established scrolling connection. The callback of the connection
-	 * won't be notified anymore if scrolling events occurs.
+	 * Sets the absolut mouse position in the coordination system of the current active window. 
 	 */
-	void removeScrollConnection(const ScrollConnection& connection);
+	virtual void setMousePosition(int xPos, int yPos);
 
 	/**
 	*  Checks, if a window, this input class is listening on, is currently on focus or inactive.
@@ -198,13 +209,6 @@ public:
 	* this function will always return 'false'.
 	*/
 	virtual bool windowHasFocus();
-
-	/**
-	 * Returns the amount of scrolling the user did since the last frame.
-	 * If the result is positive, the user scrolled up, negative values means
-	 * down scrolling and 0 means no scolling.
-	 */
-	virtual float getFrameScrollOffset();
 
 protected:
 
@@ -224,8 +228,8 @@ protected:
 	 */
 	static Input* instance;
 
-	float frameMouseXOffset, frameMouseYOffset;
-	float mouseXabsolut, mouseYabsolut;
+	int frameMouseXOffset, frameMouseYOffset;
+	int mouseXabsolut, mouseYabsolut;
 	float frameScrollOffset;
 	bool m_windowHasFocus;
 	bool firstMouseInput;

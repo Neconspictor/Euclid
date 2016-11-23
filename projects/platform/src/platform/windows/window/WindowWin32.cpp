@@ -1,6 +1,7 @@
 #include <platform/windows/window/WindowWin32.hpp>
 #include <platform/windows/PlatformWindows.hpp>
 #include <Brofiler.h>
+#include <platform/exception/UnexpectedPlatformException.hpp>
 
 using namespace std;
 using namespace platform;
@@ -46,7 +47,10 @@ void WindowWin32::embedOpenGLRenderer(shared_ptr<Renderer>& renderer)
 {
 	LOG(logClient, Debug)  << " Embed openGL renderer...";
 	if (!openglContext)
-		openglContext = PlatformWindows::createOpenGLContext(hdc);
+	{
+		PlatformWindows* platform = PlatformWindows::getActivePlatform();
+		openglContext = platform->createOpenGLContext(hdc);
+	}
 	renderer->setViewPort(0, 0, width, height);
 	this->renderer = renderer;
 }
@@ -57,7 +61,14 @@ WindowWin32::~WindowWin32()
 	
 	if (openglContext)
 	{
-		PlatformWindows::destroyOpenGLContext(openglContext);
+		try
+		{
+			PlatformWindows* platform = PlatformWindows::getActivePlatform();
+			platform->destroyOpenGLContext(openglContext);
+		} catch (const UnexpectedPlatformException& e)
+		{
+			LOG(logClient, Error) << "Couldn't destroy opengl context, since platform object isn't of type PlatformWindows!";
+		}
 		openglContext = nullptr;
 	}
 
@@ -148,7 +159,6 @@ void WindowWin32::setTitle(const string& newTitle)
 void WindowWin32::setWindowed()
 {
 	fullscreen = false;
-	DEVMODE fullscreenSettings;
 	bool isChangeSuccessful;
 
 	SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LEFT);
@@ -170,6 +180,18 @@ void WindowWin32::resize(int newWidth, int newHeight)
 	width = newWidth;
 	height = newHeight;
 	update();
+}
+
+void WindowWin32::setCursorPosition(int xPos, int yPos)
+{
+	POINT pos;
+	pos.x = xPos;
+	pos.y = yPos;
+
+	// map local window coordinates to screen coordinates
+	ClientToScreen(hwnd, &pos);
+	SetCursorPos(pos.x, pos.y);
+	sdlInputDevice->setMousePosition(xPos, yPos);
 }
 
 bool WindowWin32::isOpen()

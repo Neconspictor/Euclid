@@ -16,6 +16,8 @@ public:
 	
 	void endScene() override;
 
+	MeshManager* getMeshManager() override;
+
 	ShaderManager* getShaderManager() override;
 	
 	TextureManager* getTextureManager() override;
@@ -25,6 +27,16 @@ public:
 	void present() override;
 	
 	void release() override;
+
+protected:
+	/**
+	 * A function for checking any opengl related errors.
+	 * Mainly intended for debug purposes
+	 * NOTE: Throws an OpenglException if any opengl related error occured
+	 * since the last call of glGetError()
+	 * @param errorPrefix: a prefix that will be put in front of the OpenglException.
+	 */
+	void checkGLErrors(std::string errorPrefix);
 };
 
 #endif

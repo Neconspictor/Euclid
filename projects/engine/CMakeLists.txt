@@ -6,6 +6,7 @@ set(
     include/camera/Camera.hpp
     
     #exception
+    include/exception/MeshNotFoundException.hpp
     include/exception/ShaderInitException.hpp
     include/exception/ShaderNotFoundException.hpp
     
@@ -13,12 +14,15 @@ set(
     include/listener/ScrollListener.hpp
     
     #mesh
+    include/mesh/Mesh.hpp
+    include/mesh/MeshManager.hpp
     include/mesh/TestMeshes.hpp
+    #mesh/opengl
+    include/mesh/MeshGL.hpp
+    include/mesh/MeshManagerGL.hpp
     
     #model
-    include/model/BasicModel.hpp
     include/model/Model.hpp
-    include/model/ModelFactory.hpp
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
@@ -61,12 +65,14 @@ set(
     #listener
     
     #mesh
+    src/mesh/Mesh.cpp
+    #mesh/opengl
+    src/mesh/opengl/MeshGL.cpp
+    src/mesh/opengl/MeshManagerGL.cpp
     #src/mesh/TestMeshes.cpp
     
     #model
-    src/model/BasicModel.cpp
     src/model/Model.cpp
-    src/model/ModelFactory.cpp
     
     #renderer
     src/renderer/RendererOpenGL.cpp
