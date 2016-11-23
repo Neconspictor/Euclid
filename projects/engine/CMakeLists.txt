@@ -18,8 +18,8 @@ set(
     include/mesh/MeshManager.hpp
     include/mesh/TestMeshes.hpp
     #mesh/opengl
-    include/mesh/MeshGL.hpp
-    include/mesh/MeshManagerGL.hpp
+    include/mesh/opengl/MeshGL.hpp
+    include/mesh/opengl/MeshManagerGL.hpp
     
     #model
     include/model/Model.hpp
