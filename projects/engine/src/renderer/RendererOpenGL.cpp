@@ -31,7 +31,6 @@ void RendererOpenGL::init()
 {
 	LOG(logClient, Info) << "Initializing...";
 	glViewport(xPos, yPos, width, height);
-	int aspectratio = width / height;
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // White Background
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
@@ -73,14 +72,14 @@ void RendererOpenGL::beginScene()
 void RendererOpenGL::endScene()
 {
 	// 1rst attribute buffer : vertices
-	//glEnableVertexAttribArray(0);
-	//glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	/*glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 
 	// Draw the triangle !
-	//glBindVertexArray(vertexArrayObjID); // First VAO
-	//glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-	//glBindVertexArray(0);
-	//glDisableVertexAttribArray(0);
+	glBindVertexArray(vertexArrayObjID); // First VAO
+	glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+	glBindVertexArray(0);
+	glDisableVertexAttribArray(0);*/
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -113,7 +112,7 @@ void RendererOpenGL::release()
 {
 }
 
-void RendererOpenGL::checkGLErrors(string errorPrefix)
+void RendererOpenGL::checkGLErrors(string errorPrefix) const
 {
 	// check if any gl related errors occured
 	GLint error = glGetError();

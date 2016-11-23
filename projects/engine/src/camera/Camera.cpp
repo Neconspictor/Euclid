@@ -67,11 +67,11 @@ void Camera::setUpDirection(const vec3& up)
 	this->up = up;
 }
 
-void Camera::update(float mouseXFrameOffset, float mouseYFrameOffset)
+void Camera::update(int mouseXFrameOffset, int mouseYFrameOffset)
 {
 	float sensitivity = 0.05f;
-	mouseXFrameOffset *= sensitivity;
-	mouseYFrameOffset *= sensitivity;
+	mouseXFrameOffset = static_cast<int>(mouseXFrameOffset * sensitivity);
+	mouseYFrameOffset = static_cast<int>(mouseYFrameOffset * sensitivity);
 
 	yaw += mouseXFrameOffset;
 	pitch += mouseYFrameOffset;

@@ -36,7 +36,7 @@ protected:
 	 * since the last call of glGetError()
 	 * @param errorPrefix: a prefix that will be put in front of the OpenglException.
 	 */
-	void checkGLErrors(std::string errorPrefix);
+	void checkGLErrors(std::string errorPrefix) const;
 };
 
 #endif

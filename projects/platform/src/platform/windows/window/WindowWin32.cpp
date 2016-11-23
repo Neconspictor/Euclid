@@ -67,6 +67,7 @@ WindowWin32::~WindowWin32()
 			platform->destroyOpenGLContext(openglContext);
 		} catch (const UnexpectedPlatformException& e)
 		{
+			LOG(logClient, Error) << e.what();
 			LOG(logClient, Error) << "Couldn't destroy opengl context, since platform object isn't of type PlatformWindows!";
 		}
 		openglContext = nullptr;

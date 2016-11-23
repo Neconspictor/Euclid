@@ -19,7 +19,7 @@ public:
 	void setLookDirection(const glm::vec3& direction);
 	void setUpDirection(const glm::vec3& up);
 
-	void update(float mouseXFrameOffset, float mouseYFrameOffset);
+	void update(int mouseXFrameOffset, int mouseYFrameOffset);
 
 	float getYaw() const;
 	float getPitch() const;
