@@ -10,6 +10,8 @@
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
 #include <camera/Camera.hpp>
+#include <camera/FPCamera.hpp>
+#include <camera/FPQuaternionCamera.hpp>
 
 
 class MainLoopTask : public Task
@@ -36,7 +38,7 @@ private:
 	FPSCounter counter;
 	float runtime;
 	std::string originalTitle;
-	Camera camera;
+	FPQuaternionCamera camera;
 	float mixValue;
 
 	void doUserMovement(Input* input, float deltaTime);

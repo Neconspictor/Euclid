@@ -1,5 +1,4 @@
 #include <camera/Camera.hpp>
-#include <glm/glm.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace glm;
@@ -7,7 +6,6 @@ using namespace platform;
 
 Camera::Camera() : logClient(getLogServer(), true, true)
 {
-	yaw = pitch = 0;
 	fov = 45.0f;
 	logClient.setPrefix("[Camera]");
 }
@@ -18,18 +16,15 @@ Camera::Camera(vec3 position, vec3 look, vec3 up) :  fov(0), logClient(getLogSer
 	this->look = look;
 	this->up = up;
 
-	yaw = pitch = 0;
 	logClient.setPrefix("[Camera]");
 }
 
 Camera::Camera(const Camera& other) :  logClient(getLogServer())
 {
-	this->position = other.position;
-	this->look = other.look;
-	this->up = other.up;
-	this->yaw = other.yaw;
-	this->pitch = other.pitch;
-	this->fov = other.fov;
+	position = other.position;
+	look = other.look;
+	up = other.up;
+	fov = other.fov;
 	logClient.setPrefix("[Camera]");
 }
 
@@ -69,34 +64,6 @@ void Camera::setUpDirection(const vec3& up)
 
 void Camera::update(int mouseXFrameOffset, int mouseYFrameOffset)
 {
-	float sensitivity = 0.05f;
-	mouseXFrameOffset = static_cast<int>(mouseXFrameOffset * sensitivity);
-	mouseYFrameOffset = static_cast<int>(mouseYFrameOffset * sensitivity);
-
-	yaw += mouseXFrameOffset;
-	pitch += mouseYFrameOffset;
-
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-
-	vec3 front;
-	front.x = sin(radians(yaw)) * cos(radians(pitch));
-	front.y = sin(radians(-pitch));
-	front.z = -cos(radians(yaw)) * cos(radians(pitch));
-	front = normalize(front);
-	setLookDirection(front);
-}
-
-float Camera::getYaw() const
-{
-	return yaw;
-}
-
-float Camera::getPitch() const
-{
-	return pitch;
 }
 
 float Camera::getFOV() const

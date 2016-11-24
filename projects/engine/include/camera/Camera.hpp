@@ -11,31 +11,28 @@ public:
 	Camera(const Camera& other);
 	virtual ~Camera();
 
-	const glm::vec3& getPosition() const;
-	const glm::vec3& getLookDirection() const;
-	const glm::vec3& getUpDirection() const;
+	virtual const glm::vec3& getPosition() const;
+	virtual const glm::vec3& getLookDirection() const;
+	virtual const glm::vec3& getUpDirection() const;
 	
-	void setPosition(const glm::vec3& position);
-	void setLookDirection(const glm::vec3& direction);
-	void setUpDirection(const glm::vec3& up);
+	virtual void setPosition(const glm::vec3& position);
+	virtual void setLookDirection(const glm::vec3& direction);
+	virtual void setUpDirection(const glm::vec3& up);
 
-	void update(int mouseXFrameOffset, int mouseYFrameOffset);
+	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset);
 
-	float getYaw() const;
-	float getPitch() const;
-	float getFOV() const;
+	virtual float getFOV() const;
 
-	void onScroll(float yOffset);
+	virtual void onScroll(float yOffset);
 
 
 protected:
-private:
 	glm::vec3 position;
 	glm::vec3 look;
 	glm::vec3 up;
-	float yaw, pitch;
 	float fov;
 	platform::LoggingClient logClient;
+private:
 };
 
 #endif

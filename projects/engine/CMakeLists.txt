@@ -4,6 +4,8 @@ set(
     ###header files###
     #camera
     include/camera/Camera.hpp
+    include/camera/FPCamera.hpp
+    include/camera/FPQuaternionCamera.hpp
     
     #exception
     include/exception/MeshNotFoundException.hpp
@@ -60,7 +62,9 @@ set(
     
     ###source files###
     #camera
-    src/camera/Camera.cpp    
+    src/camera/Camera.cpp
+    src/camera/FPCamera.cpp
+    src/camera/FPQuaternionCamera.cpp
     
     #listener
     
