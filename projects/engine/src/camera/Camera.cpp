@@ -4,28 +4,24 @@
 using namespace glm;
 using namespace platform;
 
-Camera::Camera() : logClient(getLogServer(), true, true)
+Camera::Camera() : logClient(getLogServer(), true, true), fov(45.0f), position(0,0,0), up(0,1,0), look(0,0,-1)
 {
-	fov = 45.0f;
 	logClient.setPrefix("[Camera]");
 }
 
-Camera::Camera(vec3 position, vec3 look, vec3 up) :  fov(0), logClient(getLogServer())
+Camera::Camera(vec3 position, vec3 look, vec3 up) :  Camera()
 {
 	this->position = position;
 	this->look = look;
 	this->up = up;
-
-	logClient.setPrefix("[Camera]");
 }
 
-Camera::Camera(const Camera& other) :  logClient(getLogServer())
+Camera::Camera(const Camera& other) :  Camera()
 {
 	position = other.position;
 	look = other.look;
 	up = other.up;
 	fov = other.fov;
-	logClient.setPrefix("[Camera]");
 }
 
 Camera::~Camera()
