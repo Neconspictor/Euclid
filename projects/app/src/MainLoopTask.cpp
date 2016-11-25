@@ -39,6 +39,8 @@ void MainLoopTask::init()
 	playground->setTexture2("png.png");
 }
 
+static float frameTimeElapsed = 0;
+
 void MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
@@ -47,11 +49,16 @@ void MainLoopTask::run()
 	using namespace platform;
 		
 	float frameTime = timer.update();
-	float fps = counter.update(frameTime);
+	frameTimeElapsed += frameTime;
 
-	updateWindowTitle(frameTime, fps);
+	//if (frameTimeElapsed < (1/2.0f))
+	//{
+		//return;
+	//}
+	float fps = counter.update(frameTimeElapsed);
+	updateWindowTitle(frameTimeElapsed, fps);
+	frameTimeElapsed = 0.0f;
 
-	//LOG(logClient, Debug) << vertex.getData()[0];
 
 	if (!window->isOpen())
 	{
@@ -73,7 +80,7 @@ void MainLoopTask::run()
 	shader->setTexture2("png.png");
 	Model model(TestMeshes::CUBE_NAME);
 
-	mat4 view = lookAt(camera.getPosition(), camera.getPosition() + camera.getLookDirection(), camera.getUpDirection());
+	mat4 view = lookAt(camera.getPosition(), vec3(0,0,0), vec3(0,1,0));
 	mat4 projection = perspective(radians(camera.getFOV()), (float)800 / (float)600, 0.1f, 100.0f);
 	//shader->setLightColor(vec3(1, 1, 1));
 	//shader->setObjectColor(vec3(1.0f, 0.5f, 0.31f));
@@ -171,7 +178,7 @@ void MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	runtime += frameTime;
 	if (runtime > 1)
 	{
-		std::stringstream ss; ss << originalTitle << " : FPS= " << (int)fps;
+		std::stringstream ss; ss << originalTitle << " : FPS= " << fps;
 		window->setTitle(ss.str());
 		runtime -= 1;
 	}

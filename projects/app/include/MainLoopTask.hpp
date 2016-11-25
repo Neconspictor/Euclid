@@ -1,6 +1,5 @@
 #ifndef APP_MAIN_LOOP_TASK_HPP
 #define APP_MAIN_LOOP_TASK_HPP
-#include <chrono>
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/Input.hpp>
 #include <platform/event/Task.hpp>
@@ -12,6 +11,7 @@
 #include <camera/Camera.hpp>
 #include <camera/FPCamera.hpp>
 #include <camera/FPQuaternionCamera.hpp>
+#include <camera/TrackballCamera.hpp>
 
 
 class MainLoopTask : public Task
@@ -38,7 +38,7 @@ private:
 	FPSCounter counter;
 	float runtime;
 	std::string originalTitle;
-	FPQuaternionCamera camera;
+	TrackballCamera camera;
 	float mixValue;
 
 	void doUserMovement(Input* input, float deltaTime);
