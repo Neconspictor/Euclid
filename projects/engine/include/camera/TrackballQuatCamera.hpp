@@ -24,10 +24,13 @@ public:
 
 	virtual void calcView() override;
 
+	virtual glm::mat4 getArcBallTransformation();
+
 	float getRadius() const;
 	const glm::quat& getOrientation() const;
 	const glm::vec3& getTrackPosition() const;
 
+	glm::quat multiply(glm::quat q1, glm::quat q2);
 
 	virtual void setHalfScreenWidth(float width);
 
@@ -55,16 +58,18 @@ protected:
 	float prevMouseX, prevMouseY;
 	int halfScreenWidth, halfScreenHeight;
 	glm::quat orientation, prevOrientation;
+	glm::vec3 rotatedPos;
 
 	/**
 	 * Checks if two provided vectors are nearly (ignoring rounding errors) identical.
 	 */
 	bool equal(const glm::vec3& v1, const glm::vec3& v2, float epsilon);
 
+	glm::quat createRotationQuat(glm::vec3 axis, float angle);
 	/**
-	 * Provides a rotation quaternion that represents a rotation from 
-	 * vector 'from' to vector 'to'.
-	 */
+		 * Provides a rotation quaternion that represents a rotation from 
+		 * vector 'from' to vector 'to'.
+		 */
 	glm::quat getRotation(const glm::vec3& from, const glm::vec3& to);
 
 	glm::vec3 getUnitVector(float x, float y);

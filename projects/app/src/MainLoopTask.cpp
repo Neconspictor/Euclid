@@ -87,7 +87,8 @@ void MainLoopTask::run()
 	shader->setTextureMixValue(mixValue);
 	mat4 translation; 
 	//translation = translate(translation, vec3(3.0f, 0.0f, 0.0f));
-	mat4 trafo = projection * view * translation;
+
+	mat4 trafo = projection * view * translation;//translation * view * projection;//
 	model.setTrafo(trafo);
 
 	shader->draw(model, trafo);

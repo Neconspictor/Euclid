@@ -11,10 +11,11 @@ using namespace glm;
 TrackballQuatCamera::TrackballQuatCamera(Window* window) : Camera(window), 
 	prevMouseX(0), prevMouseY(0), halfScreenWidth(0), halfScreenHeight(0)
 {
-	radius = 2;
+	radius = 1;
 	up = {0,1,0};
 	orientation = quat(1,0,0,0);
 	prevOrientation = quat(1, 0, 0, 0);
+	rotatedPos = { 0,0,3*radius};
 	fov = 45;
 	Renderer::Viewport viewport = window->getViewport();
 	prevMouseX = viewport.width / 2;
@@ -42,10 +43,18 @@ TrackballQuatCamera::~TrackballQuatCamera()
 
 void TrackballQuatCamera::calcView()
 {
-	view = mat4_cast(orientation);
-	view = transpose(view);
-	view = translate(view, {0,0, -radius});
+	Camera::calcView();
+	view =  view * getArcBallTransformation();
+}
 
+mat4 TrackballQuatCamera::getArcBallTransformation()
+{
+	mat4 result  = mat4_cast(orientation);
+	//view = transpose(view);
+	//result = transpose(result);
+	//position = orientation * vec3{ 0,0, -3.0f*radius };
+	//result = translate(result, position);
+	return result;
 }
 
 float TrackballQuatCamera::getRadius() const
@@ -61,6 +70,18 @@ const quat& TrackballQuatCamera::getOrientation() const
 const vec3& TrackballQuatCamera::getTrackPosition() const
 {
 	return trackPosition;
+}
+
+quat TrackballQuatCamera::multiply(quat q1, quat q2)
+{
+	vec3 v1(q1.x, q1.y, q1.z);
+	vec3 v2(q2.x, q2.y, q2.z);
+
+	vec3 crossP = cross(v1, v2);                   // v x v'
+	float dotP = dot(v1, v2);                         // v . v'
+	vec3 v3 = crossP + (q1.w * v2) + (q2.w * v1);   // v x v' + sv' + s'v
+
+	return quat(q1.w * q2.w - dotP, v3.x, v3.y, v3.z);
 }
 
 void TrackballQuatCamera::setHalfScreenWidth(float width)
@@ -92,6 +113,7 @@ void TrackballQuatCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
 {
 	Renderer::Viewport viewport = window->getViewport();
 	updateOnResize(viewport.width, viewport.height);
+
 	if (window->getInputDevice()->isPressed(Input::LeftMouseButton))
 	{
 		prevMouseX = static_cast<float>(mouseXFrameOffset);
@@ -106,16 +128,11 @@ void TrackballQuatCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
 		return;
 	}
 
-	vec3 previousSphereVec = getUnitVector(prevMouseX, prevMouseY);
 	vec3 currentSphereVec = getUnitVector(static_cast<float>(mouseXFrameOffset), static_cast<float>(mouseYFrameOffset));
-	LOG(logClient, platform::Debug) << "previousSphereVec: " << toString(previousSphereVec);
-	LOG(logClient, platform::Debug) << "previousSphereVec: " << toString(currentSphereVec);
+	vec3 previousSphereVec = getUnitVector(prevMouseX, prevMouseY);
+
 	quat rotation = getRotation(previousSphereVec, currentSphereVec);
-	rotation = normalize(rotation);
-	LOG(logClient, platform::Debug) << "rotation: " << toString(rotation) << endl;
-	orientation = rotation * prevOrientation;
-	LOG(logClient, platform::Debug) << "orientation: " << toString(orientation) << endl;
-	LOG(logClient, platform::Debug) << "length: " << length(orientation) << endl;
+	orientation = multiply(rotation, prevOrientation);
 }
 
 void TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
@@ -130,19 +147,26 @@ bool TrackballQuatCamera::equal(const vec3& v1, const vec3& v2, float epsilon)
 	return eps.x && eps.y && eps.z;
 }
 
+quat TrackballQuatCamera::createRotationQuat(vec3 axis, float angle)
+{
+	axis = normalize(axis);                  // convert to unit vector
+	float sine = sinf(angle);       // angle is radian
+	float w = cosf(angle);
+	float x = axis.x * sine;
+	float y = axis.y * sine;
+	float z = axis.z * sine;
+	return quat(w, x, y, z);
+}
 
 quat TrackballQuatCamera::getRotation( const vec3& from, const vec3& to)
 {
-	/*vec3 v = cross(from, to);
-	float angle = acosf(dot(from, to));
-	return quat(v.x, v.y, v.z, angle*0.5f);*/
 	static const float EPSILON = 0.001f;
 	static const float HALF_PI = 1.570796f;
 
 	// if two vectors are equal return the vector with 0 rotation
 	if (equal(from, to, EPSILON))
 	{
-		return quat(1, 0, 0, 0);
+		return createRotationQuat(from, 0);
 	}
 
 	// if two vectors are opposite return a perpendicular vector with 180 angle
@@ -155,7 +179,7 @@ quat TrackballQuatCamera::getRotation( const vec3& from, const vec3& to)
 			axis = { 0, 1, 0 };
 		else                                        // if z ~= 0
 			axis = { 0, 0, 1 };
-		return quat(axis.x, axis.y, axis.z, HALF_PI);
+		return createRotationQuat(axis, HALF_PI);
 	}
 
 
@@ -164,7 +188,8 @@ quat TrackballQuatCamera::getRotation( const vec3& from, const vec3& to)
 
 	vec3 axis = cross(copyFrom, copyTo);           // compute rotation axis
 	float angle = acosf(dot(copyFrom, copyTo));    // rotation angle
-	return quat(axis.x, axis.y, axis.z, angle*0.5f);   // return half angle for quaternion*/
+
+	return createRotationQuat(axis, 0.5f*angle);   // return half angle for quaternion*/
 }
 
 vec3 TrackballQuatCamera::getUnitVector(float x, float y)
@@ -180,8 +205,8 @@ vec3 TrackballQuatCamera::getVector(float x, float y)
 		return vec3(0, 0, 0);
 
 	// compute mouse position from the centre of screen (-half ~ +half)
-	float halfScreenX = x - halfScreenWidth;
-	float halfScreenY = halfScreenHeight - y;    //bottom values are higher than top values -> revers order
+	float halfScreenX = (x - halfScreenWidth)/ 400.0f;
+	float halfScreenY = (halfScreenHeight - y)/ 400.0f;    //bottom values are higher than top values -> revers order
 
 	return getVectorWithArc(halfScreenX, halfScreenY); // default mode
 }
@@ -194,12 +219,9 @@ vec3 TrackballQuatCamera::getVectorWithArc(float x, float y)
 	float x2 = radius * sinf(a);    // x rotated by "a" on x-z plane
 
 	vec3 vec;
-	//vec.x = x2 * cosf(b);
-	//vec.y = x2 * sinf(b);
-	//vec.z = radius * cosf(a);
-	vec.x = x2 * sinf(b);
-	vec.y = radius * cosf(a);
-	vec.z = x2 * cosf(b);
+	vec.x = x2 * cosf(b);
+	vec.y = x2 * sinf(b);
+	vec.z = radius * cosf(a);
 	return vec;
 }
 
