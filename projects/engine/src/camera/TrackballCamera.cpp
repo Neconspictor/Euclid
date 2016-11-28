@@ -7,12 +7,12 @@
 using namespace std;
 using namespace glm;
 
-TrackballCamera::TrackballCamera() : Camera(), coords({ 0,0,100 }), trackPosition(0,0,0)
+TrackballCamera::TrackballCamera(Window* window) : Camera(window), coords({ 0,0,100 }), trackPosition(0,0,0)
 {
 	updateCartesianCoordinates();
 }
 
-TrackballCamera::TrackballCamera(vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(), 
+TrackballCamera::TrackballCamera(Window* window, vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(window),
 coords({ polarAngle, azimuthAngle, radius }), trackPosition(trackPosition)
 {
 	updateCartesianCoordinates();
@@ -90,6 +90,11 @@ void TrackballCamera::setRadius(float radius)
 {
 	if (radius < 0) throw runtime_error("TrackballCamera::setRadius(float radius): radius is supposed to be greater/equal zero!");
 	coords.radius = radius;
+}
+
+void TrackballCamera::setTrackPosition(vec3 trackPosition)
+{
+	this->trackPosition = move(trackPosition);
 }
 
 void TrackballCamera::setUpDirection(const vec3& up)

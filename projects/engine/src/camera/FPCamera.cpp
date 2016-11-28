@@ -4,12 +4,12 @@
 using namespace std;
 using namespace glm;
 
-FPCamera::FPCamera() : Camera(), yaw(0), pitch(0)
+FPCamera::FPCamera(Window* window) : Camera(window), yaw(0), pitch(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : Camera(position, look, up), 
+FPCamera::FPCamera(Window* window, vec3 position, vec3 look, vec3 up) : Camera(window, position, look, up),
 	yaw(0), pitch(0)
 {
 	logClient.setPrefix("[FPCamera]");

@@ -9,6 +9,11 @@ Renderer::Renderer() :
 	logClient.setPrefix("[Renderer]");
 }
 
+Renderer::Viewport Renderer::getViewport() const
+{
+	return { xPos, yPos, width, height };
+}
+
 void Renderer::setViewPort(int x, int y, int width, int height)
 {
 	xPos = x;

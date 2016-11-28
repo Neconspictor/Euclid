@@ -1,6 +1,6 @@
 #ifndef SDL_INPUT_DEVICE_HPP
 #define SDL_INPUT_DEVICE_HPP
-#include "Windows.h"
+#include <Windows.h>
 #include <platform/Input.hpp>
 #include "SDL.hpp"
 #include <vector>

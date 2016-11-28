@@ -5,8 +5,8 @@
 class FPQuaternionCamera : public Camera
 {
 public:
-	FPQuaternionCamera();
-	FPQuaternionCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
+	FPQuaternionCamera(Window* window);
+	FPQuaternionCamera(Window* window, glm::vec3 position, glm::vec3 look, glm::vec3 up);
 	FPQuaternionCamera(const FPQuaternionCamera& other);
 	virtual ~FPQuaternionCamera();
 

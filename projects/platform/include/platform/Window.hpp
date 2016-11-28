@@ -5,7 +5,7 @@
 #include <platform/Input.hpp>
 #include <functional>
 #include <platform/util/CallbackContainer.hpp>
-#include "logging/LoggingClient.hpp"
+#include <platform/logging/LoggingClient.hpp>
 
 class WindowFocusListener;
 
@@ -98,6 +98,8 @@ public:
 	 * Provides the title of thi window.
 	 */
 	const std::string& getTitle() const;
+
+	Renderer::Viewport getViewport() const;
 
 	/**
 	* Checks, if this window is on the foreground, i.e. it is able to receive input events.

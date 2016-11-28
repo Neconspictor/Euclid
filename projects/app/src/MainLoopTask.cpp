@@ -3,14 +3,13 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <Brofiler.h>
 #include <glm/glm.hpp>
-#include <shader/SimpleLightShader.hpp>
 #include <mesh/TestMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
 
 using namespace glm;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(platform::getLogServer()), runtime(0), camera()
+	Task(flags), logClient(platform::getLogServer()), runtime(0), camera(window)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -80,7 +79,8 @@ void MainLoopTask::run()
 	shader->setTexture2("png.png");
 	Model model(TestMeshes::CUBE_NAME);
 
-	mat4 view = lookAt(camera.getPosition(), vec3(0,0,0), vec3(0,1,0));
+	camera.calcView();
+	mat4 view = camera.getView();
 	mat4 projection = perspective(radians(camera.getFOV()), (float)800 / (float)600, 0.1f, 100.0f);
 	//shader->setLightColor(vec3(1, 1, 1));
 	//shader->setObjectColor(vec3(1.0f, 0.5f, 0.31f));
@@ -126,9 +126,9 @@ void MainLoopTask::doUserMovement(Input* input, float deltaTime)
 	if (window->hasFocus())
 	{
 		MouseOffset offset = input->getFrameMouseOffset();
-		camera.update(offset.xOffset, offset.yOffset);
+		camera.update(offset.xAbsolute, offset.yAbsolute);
 		
-		window->setCursorPosition(400, 300);
+		//window->setCursorPosition(400, 300);
 	}
 }
 

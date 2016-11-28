@@ -5,8 +5,8 @@
 class FPCamera : public Camera
 {
 public:
-	FPCamera();
-	FPCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
+	FPCamera(Window* window);
+	FPCamera(Window* window, glm::vec3 position, glm::vec3 look, glm::vec3 up);
 	FPCamera(const FPCamera& other);
 	virtual ~FPCamera();
 

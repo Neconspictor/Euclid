@@ -6,12 +6,13 @@
 using namespace std;
 using namespace glm;
 
-FPQuaternionCamera::FPQuaternionCamera() : Camera(), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera(Window* window) : Camera(window), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPQuaternionCamera::FPQuaternionCamera(vec3 position, vec3 look, vec3 up) : Camera(position, look, up), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera(Window* window, vec3 position, vec3 look, vec3 up) : 
+	Camera(window, position, look, up), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }

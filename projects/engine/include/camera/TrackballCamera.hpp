@@ -13,8 +13,8 @@ public:
 		float radius;
 	};
 
-	TrackballCamera();
-	TrackballCamera(glm::vec3 trackPosition, float polarAngle, float azimuthAngle, float radius);
+	TrackballCamera(Window* window);
+	TrackballCamera(Window* window, glm::vec3 trackPosition, float polarAngle, float azimuthAngle, float radius);
 	TrackballCamera(const TrackballCamera& other);
 	virtual ~TrackballCamera();
 
@@ -62,8 +62,6 @@ public:
 	virtual void setUpDirection(const glm::vec3& up) override;
 
 	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset) override;
-
-
 
 protected:
 	SphericalCoord coords;

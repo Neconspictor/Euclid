@@ -10,14 +10,10 @@ class Window;
  */
 struct MouseOffset
 {
+	int xAbsolute;
+	int yAbsolute;
 	int xOffset;
 	int yOffset;
-
-	MouseOffset(int x, int y)
-	{
-		xOffset = x;
-		yOffset = y;
-	};
 };
 
 /**

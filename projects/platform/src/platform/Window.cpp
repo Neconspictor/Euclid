@@ -30,6 +30,13 @@ const std::string& Window::getTitle() const
 	return title;
 }
 
+Renderer::Viewport Window::getViewport() const
+{
+	if (!renderer.get()) return {0,0,0,0};
+	return renderer->getViewport();
+}
+
+
 Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCallback& callback)
 {
 	return windowFocusChanged.addCallback(callback);

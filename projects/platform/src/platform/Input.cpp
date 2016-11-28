@@ -1,5 +1,6 @@
 #include <platform/Input.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <platform/Platform.hpp>
 
 using namespace platform;
 
@@ -71,7 +72,7 @@ void Input::onScroll(Window* window, double xoffset, double yoffset)
 
 MouseOffset Input::getFrameMouseOffset()
 {
-	return MouseOffset(frameMouseXOffset, frameMouseYOffset);
+	return{ mouseXabsolut, mouseYabsolut, frameMouseXOffset, frameMouseYOffset };
 }
 
 void Input::removeScrollConnection(const ScrollConnection& connection)

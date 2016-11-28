@@ -27,7 +27,7 @@ inline std::ostream& operator<< (std::ostream & os, RendererType type)
 	case DIRECTX: return os << "DirectX";
 		// omit default case to trigger compiler warning for missing cases
 	};
-	return os << static_cast<std::uint16_t>(type);
+	return os << static_cast<uint16_t>(type);
 }
 
 /**
@@ -40,6 +40,14 @@ class Renderer
 {
 
 public:
+
+	struct Viewport
+	{
+		int x;
+		int y;
+		int width;
+		int height;
+	};
 
 	Renderer();
 
@@ -68,6 +76,11 @@ public:
 	 * Provides the type of renderer class, this renderer belongs to.
 	 */
 	virtual RendererType getType() const = 0;
+
+	/**
+	* Provides the viewport this renderer is rendering to.
+	*/
+	Viewport getViewport() const;
 
 	/**
 	* Displays the calculdated scene on the screen. This function has to be called after

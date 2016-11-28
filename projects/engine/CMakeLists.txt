@@ -7,6 +7,7 @@ set(
     include/camera/FPCamera.hpp
     include/camera/FPQuaternionCamera.hpp
     include/camera/TrackballCamera.hpp
+    include/camera/TrackballQuatCamera.hpp
     
     #exception
     include/exception/MeshNotFoundException.hpp
@@ -67,6 +68,7 @@ set(
     src/camera/FPCamera.cpp
     src/camera/FPQuaternionCamera.cpp
     src/camera/TrackballCamera.cpp
+    src/camera/TrackballQuatCamera.cpp
     
     #listener
     

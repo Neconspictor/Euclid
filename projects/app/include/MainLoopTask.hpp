@@ -8,10 +8,7 @@
 #include <platform/Window.hpp>
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
-#include <camera/Camera.hpp>
-#include <camera/FPCamera.hpp>
-#include <camera/FPQuaternionCamera.hpp>
-#include <camera/TrackballCamera.hpp>
+#include <camera/TrackballQuatCamera.hpp>
 
 
 class MainLoopTask : public Task
@@ -38,7 +35,7 @@ private:
 	FPSCounter counter;
 	float runtime;
 	std::string originalTitle;
-	TrackballCamera camera;
+	TrackballQuatCamera camera;
 	float mixValue;
 
 	void doUserMovement(Input* input, float deltaTime);

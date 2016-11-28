@@ -15,7 +15,6 @@
  */
 class PlatformWindows : public Platform
 {
-
 public:
 
 	PlatformWindows();
@@ -52,6 +51,7 @@ protected:
 
 private:
 	platform::LoggingClient logClient;
+	std::shared_ptr<Input> input;
 };
 
 #endif
