@@ -1,6 +1,5 @@
 #include <platform/windows/window/WindowWin32.hpp>
 #include <platform/windows/PlatformWindows.hpp>
-#include <Brofiler.h>
 #include <platform/exception/UnexpectedPlatformException.hpp>
 
 using namespace std;
@@ -51,7 +50,6 @@ void WindowWin32::embedOpenGLRenderer(shared_ptr<Renderer>& renderer)
 		PlatformWindows* platform = PlatformWindows::getActivePlatform();
 		openglContext = platform->createOpenGLContext(hdc);
 	}
-	renderer->setViewPort(0, 0, width, height);
 	this->renderer = renderer;
 }
 
@@ -178,9 +176,11 @@ void WindowWin32::setWindowed()
 
 void WindowWin32::resize(int newWidth, int newHeight)
 {
+	LOG(logClient, Debug) << "resize(int,int): " << newWidth <<", " << newHeight;
 	width = newWidth;
 	height = newHeight;
-	update();
+	informResizeListeners(width, height);
+	//update();
 }
 
 void WindowWin32::setCursorPosition(int xPos, int yPos)
@@ -319,17 +319,22 @@ LRESULT WindowWin32::dispatchInputEvents(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 		target->close();
 		break;
 	}
-
+	case WM_KILLFOCUS: {
+		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
+		target->m_hasFocus = false;
+		target->informWindowFocusListeners(false);
+		break;
+	}
 	case WM_SETFOCUS: {
 		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
 		target->m_hasFocus = true;
 		target->informWindowFocusListeners(true);
 		break;
 	}
-	case WM_KILLFOCUS: {
+	case WM_SIZE: {
 		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
-		target->m_hasFocus = false;
-		target->informWindowFocusListeners(false);
+		LOG(target->logClient, platform::Debug) << "WM_SIZE event received!";
+		target->resize(LOWORD(lParam), HIWORD(lParam));
 		break;
 	}
 	}

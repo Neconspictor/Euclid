@@ -49,6 +49,8 @@ void Video::init()
 	if (renderer)
 	{
 		window->embedRenderer(renderer);
+		renderer->setViewPort(0, 0, width, height);
+		renderer->init();
 		Platform::getActivePlatform()->setVSync(*renderer.get(), vSync);
 	}
 
@@ -61,6 +63,9 @@ void Video::useRenderer(shared_ptr<Renderer> renderer)
 	if (window)
 	{
 		window->embedRenderer(renderer);
+		//window->activate();
+		renderer->setViewPort(0, 0, width, height);
+		renderer->init();
 		Platform::getActivePlatform()->setVSync(*renderer.get(), vSync);
 	}
 }

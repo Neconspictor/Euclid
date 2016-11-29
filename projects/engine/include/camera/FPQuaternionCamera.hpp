@@ -5,14 +5,14 @@
 class FPQuaternionCamera : public Camera
 {
 public:
-	FPQuaternionCamera(Window* window);
-	FPQuaternionCamera(Window* window, glm::vec3 position, glm::vec3 look, glm::vec3 up);
+	FPQuaternionCamera();
+	FPQuaternionCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
 	FPQuaternionCamera(const FPQuaternionCamera& other);
 	virtual ~FPQuaternionCamera();
 
 	void rotateCamera(float Angle, float x, float y, float z);
 
-	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset) override;
+	virtual void update(Input* input) override;
 
 protected:
 	float currentRotationX;

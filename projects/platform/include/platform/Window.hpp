@@ -20,12 +20,17 @@ class Window
 private:
 
 	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
+	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
 	WindowFocusChanged windowFocusChanged;
+	WindowResizeContainer windowResizeContainer;
 
 public:
 
 	using WindowFocusCallback = WindowFocusChanged::Callback;
 	using WindowFocusConnection = WindowFocusChanged::SharedItem;
+
+	using ResizeCallback = WindowResizeContainer::Callback;
+	using ResizeConnection = WindowResizeContainer::SharedItem;
 
 	virtual ~Window(){}
 
@@ -70,6 +75,12 @@ public:
 	* as it is active.
 	*/
 	virtual void activate() = 0;
+
+	/**
+	* Adds a callback to windows resize events. Every time, when this windows is resized, 
+	* the callback will be called.
+	*/
+	ResizeConnection addResizeCallback(const ResizeCallback& callback);
 
 	/**
 	* Adds a callback to windows focus events. Every time, when this windows receives or
@@ -122,7 +133,12 @@ public:
 	virtual void pollEvents() = 0;
 
 	/**
-	* Removes a giveen window focus callback.
+	* Removes a given window resize callback.
+	*/
+	void removeResizeCallback(const ResizeConnection& connection);
+
+	/**
+	* Removes a given window focus callback.
 	*/
 	void removeWindowFocusCallback(const WindowFocusConnection& connection);
 
@@ -239,6 +255,10 @@ protected:
 	 * Informs windows focus listeners that this window lost or gained focus.
 	 */
 	void informWindowFocusListeners(bool receivedFocus);
-};
 
+	/**
+	* Informs windows resize listeners that the size of this window has changed.
+	*/
+	void informResizeListeners(int width, int height);
+};
 #endif

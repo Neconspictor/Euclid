@@ -20,5 +20,4 @@ void Renderer::setViewPort(int x, int y, int width, int height)
 	yPos = y;
 	this->width = width;
 	this->height = height;
-	init();
 }

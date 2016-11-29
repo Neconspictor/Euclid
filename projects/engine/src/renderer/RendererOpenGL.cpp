@@ -112,6 +112,12 @@ void RendererOpenGL::release()
 {
 }
 
+void RendererOpenGL::setViewPort(int x, int y, int width, int height)
+{
+	Renderer::setViewPort(x, y, width, height);
+	glViewport(xPos, yPos, width, height);
+}
+
 void RendererOpenGL::checkGLErrors(string errorPrefix) const
 {
 	// check if any gl related errors occured

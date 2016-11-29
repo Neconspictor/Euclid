@@ -7,12 +7,12 @@
 using namespace std;
 using namespace glm;
 
-TrackballCamera::TrackballCamera(Window* window) : Camera(window), coords({ 0,0,100 }), trackPosition(0,0,0)
+TrackballCamera::TrackballCamera() : Camera(), coords({ 0,0,100 }), trackPosition(0,0,0)
 {
 	updateCartesianCoordinates();
 }
 
-TrackballCamera::TrackballCamera(Window* window, vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(window),
+TrackballCamera::TrackballCamera(vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(),
 coords({ polarAngle, azimuthAngle, radius }), trackPosition(trackPosition)
 {
 	updateCartesianCoordinates();
@@ -102,13 +102,15 @@ void TrackballCamera::setUpDirection(const vec3& up)
 	//Do nothing!
 }
 
-void TrackballCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
+void TrackballCamera::update(Input* input)
 {
+	MouseOffset data = input->getFrameMouseOffset();
+	
 	// early exit
-	if (mouseXFrameOffset == 0 && mouseYFrameOffset == 0) return;
-	float sensitivity = 0.005;
-	float rotationPolar = static_cast<float>(mouseYFrameOffset) * sensitivity;
-	float rotationAzimuth = static_cast<float>(mouseXFrameOffset) * sensitivity;
+	if (data.xOffset == 0 && data.yOffset == 0) return;
+	float sensitivity = 0.005f;
+	float rotationPolar = data.yOffset * sensitivity;
+	float rotationAzimuth = data.xOffset * sensitivity;
 
 	LOG(logClient, platform::Debug) << "coords before: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
 	rotate(rotationPolar, rotationAzimuth);
@@ -197,7 +199,7 @@ vec3 TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 l
 void TrackballCamera::updateAzimuth(float* sourceAngle, float newValue) const
 {
 	*sourceAngle = newValue;
-	*sourceAngle = fmod(*sourceAngle, 2*M_PI);
+	*sourceAngle = fmod(*sourceAngle, static_cast<float>(2*M_PI));
 
 	if (std::isnan(*sourceAngle))
 	{
@@ -212,12 +214,12 @@ void TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
 
 	if (*sourceAngle > M_PI - 0.01)
 	{
-		*sourceAngle = M_PI - 0.01;
+		*sourceAngle = static_cast<float>(M_PI - 0.01);
 	}
 
-	if (*sourceAngle <= 0.01)
+	if (*sourceAngle <= 0.01f)
 	{
-		*sourceAngle = 0.01;
+		*sourceAngle = 0.01f;
 	}
 
 	if (std::isnan(*sourceAngle))

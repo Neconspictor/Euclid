@@ -9,7 +9,7 @@
 using namespace glm;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(platform::getLogServer()), runtime(0), camera(window)
+	Task(flags), logClient(platform::getLogServer()), runtime(0), camera({0.0f, 0.0f, 0}, 3, {0,0,-1})
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -27,9 +27,17 @@ void MainLoopTask::init()
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
-	camera.setPosition(vec3(0.0f, 0.0f, 3.0f));
-	camera.setLookDirection(vec3(0.0f, 0.0f, -1.0f));
-	camera.setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+	//camera.setPosition(vec3(0.0f, 0.0f, 3.0f));
+	//camera.setLookDirection(vec3(0.0f, 0.0f, -1.0f));
+	//camera.setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+	Renderer::Viewport viewport = window->getViewport();
+	camera.updateOnResize(viewport.width, viewport.height);
+
+	auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, &camera, std::placeholders::_1, std::placeholders::_2);
+	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, std::placeholders::_1, std::placeholders::_2);
+
+	window->addResizeCallback(cameraResizeCallback);
+	window->addResizeCallback(rendererResizeCallback);
 
 	renderer->getShaderManager()->loadShaders();
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
@@ -68,6 +76,8 @@ void MainLoopTask::run()
 	window->activate();
 	handleInputEvents();
 
+	Renderer::Viewport viewport = window->getViewport();
+
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
 	renderer->beginScene();
@@ -81,14 +91,15 @@ void MainLoopTask::run()
 
 	camera.calcView();
 	mat4 view = camera.getView();
-	mat4 projection = perspective(radians(camera.getFOV()), (float)800 / (float)600, 0.1f, 100.0f);
+	mat4 projection = perspective(radians(camera.getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
+	vec3 position = vec3(0.0f, 0.0f, 0.0f);
 	//shader->setLightColor(vec3(1, 1, 1));
 	//shader->setObjectColor(vec3(1.0f, 0.5f, 0.31f));
 	shader->setTextureMixValue(mixValue);
 	mat4 translation; 
-	//translation = translate(translation, vec3(3.0f, 0.0f, 0.0f));
+	translation = translate(translation, position);
 
-	mat4 trafo = projection * view * translation;//translation * view * projection;//
+	mat4 trafo = projection * view * translation;
 	model.setTrafo(trafo);
 
 	shader->draw(model, trafo);
@@ -127,7 +138,7 @@ void MainLoopTask::doUserMovement(Input* input, float deltaTime)
 	if (window->hasFocus())
 	{
 		MouseOffset offset = input->getFrameMouseOffset();
-		camera.update(offset.xAbsolute, offset.yAbsolute);
+		camera.update(input);
 		
 		//window->setCursorPosition(400, 300);
 	}

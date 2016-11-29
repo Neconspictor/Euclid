@@ -9,8 +9,8 @@
 class Camera
 {
 public:
-	Camera(Window* window);
-	Camera(Window* window, glm::vec3 position, glm::vec3 look, glm::vec3 up);
+	Camera();
+	Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
 	Camera(const Camera& other);
 	virtual ~Camera();
 
@@ -20,13 +20,11 @@ public:
 	
 	virtual const glm::mat4& getView();
 
-	virtual void setActiveWindow(Window* window);
-
 	virtual void setPosition(const glm::vec3& position);
 	virtual void setLookDirection(const glm::vec3& direction);
 	virtual void setUpDirection(const glm::vec3& up);
 
-	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset);
+	virtual void update(Input* input);
 
 	virtual void calcView();
 
@@ -42,7 +40,6 @@ protected:
 	glm::mat4 view;
 	float fov;
 	platform::LoggingClient logClient;
-	Window* window;
 private:
 };
 

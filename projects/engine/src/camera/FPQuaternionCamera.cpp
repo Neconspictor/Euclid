@@ -6,13 +6,13 @@
 using namespace std;
 using namespace glm;
 
-FPQuaternionCamera::FPQuaternionCamera(Window* window) : Camera(window), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera() : Camera(), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPQuaternionCamera::FPQuaternionCamera(Window* window, vec3 position, vec3 look, vec3 up) : 
-	Camera(window, position, look, up), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera(vec3 position, vec3 look, vec3 up) : 
+	Camera(position, look, up), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
@@ -49,13 +49,12 @@ void FPQuaternionCamera::rotateCamera(float Angle, float x, float y, float z)
 	look = normalize(look);
 }
 
-void FPQuaternionCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
+void FPQuaternionCamera::update(Input* input)
 {
-	float sensitivity = 0.002;
-	float rotateXAxis = static_cast<float>(mouseYFrameOffset);
-	float rotateYAxis = static_cast<float>(mouseXFrameOffset);
-	rotateXAxis *= sensitivity;
-	rotateYAxis *= -sensitivity;
+	float sensitivity = 0.002f;
+	MouseOffset data = input->getFrameMouseOffset();
+	float rotateXAxis = data.yOffset * sensitivity;
+	float rotateYAxis = data.xOffset * -sensitivity;
 	currentRotationX += rotateXAxis;
 
 	// We don't want to rotate up more than one radian, so we cap it.

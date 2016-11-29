@@ -4,12 +4,12 @@
 using namespace std;
 using namespace glm;
 
-FPCamera::FPCamera(Window* window) : Camera(window), yaw(0), pitch(0)
+FPCamera::FPCamera() : yaw(0), pitch(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPCamera::FPCamera(Window* window, vec3 position, vec3 look, vec3 up) : Camera(window, position, look, up),
+FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : Camera(position, look, up),
 	yaw(0), pitch(0)
 {
 	logClient.setPrefix("[FPCamera]");
@@ -26,14 +26,12 @@ FPCamera::~FPCamera()
 {
 }
 
-void FPCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
+void FPCamera::update(Input* input)
 {
 	float sensitivity = 0.05f;
-	mouseXFrameOffset = static_cast<int>(mouseXFrameOffset * sensitivity);
-	mouseYFrameOffset = static_cast<int>(mouseYFrameOffset * sensitivity);
-
-	yaw += mouseXFrameOffset;
-	pitch += mouseYFrameOffset;
+	MouseOffset data = input->getFrameMouseOffset();
+	yaw += data.xOffset * sensitivity;
+	pitch += data.yOffset * sensitivity;
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;

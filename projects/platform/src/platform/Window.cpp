@@ -37,9 +37,19 @@ Renderer::Viewport Window::getViewport() const
 }
 
 
+Window::ResizeConnection Window::addResizeCallback(const ResizeCallback& callback)
+{
+	return windowResizeContainer.addCallback(callback);
+}
+
 Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCallback& callback)
 {
 	return windowFocusChanged.addCallback(callback);
+}
+
+void Window::removeResizeCallback(const ResizeConnection& connection)
+{
+	windowResizeContainer.removeCallback(connection);
 }
 
 void Window::removeWindowFocusCallback(const WindowFocusConnection& connection)
@@ -54,5 +64,14 @@ void Window::informWindowFocusListeners(bool receivedFocus)
 	{
 		WindowFocusChanged::Callback callback = sharedItem.get()->getCallback();
 		callback(this, receivedFocus);
+	}
+}
+
+void Window::informResizeListeners(int width, int height)
+{
+	for (ResizeConnection connection : windowResizeContainer.getCallbacks())
+	{
+		ResizeCallback callback = connection.get()->getCallback();
+		callback(width, height);
 	}
 }

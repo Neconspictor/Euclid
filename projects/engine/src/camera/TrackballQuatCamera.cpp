@@ -8,30 +8,23 @@
 using namespace std;
 using namespace glm;
 
-TrackballQuatCamera::TrackballQuatCamera(Window* window) : Camera(window), 
-	prevMouseX(0), prevMouseY(0), halfScreenWidth(0), halfScreenHeight(0)
+TrackballQuatCamera::TrackballQuatCamera() : Camera()
 {
+	init();
 	radius = 1;
-	up = {0,1,0};
-	orientation = quat(1,0,0,0);
-	prevOrientation = quat(1, 0, 0, 0);
-	rotatedPos = { 0,0,3*radius};
-	fov = 45;
-	Renderer::Viewport viewport = window->getViewport();
-	prevMouseX = viewport.width / 2;
-	prevMouseY = viewport.height / 2;
+	up = { 0,1,0 };
 }
 
-TrackballQuatCamera::TrackballQuatCamera(Window* window, vec3 trackPosition, float radius, vec3 up) :
-	TrackballQuatCamera(window)
+TrackballQuatCamera::TrackballQuatCamera(vec3 trackPosition, float radius, vec3 look, vec3 up)
 {
+	position = trackPosition - radius*look;
+	Camera(position, look, up);
+	init();
 	this->trackPosition = trackPosition;
 	this->radius = radius;
-	orientation = quat(1, 0, 0, 0);
-	this->up = up;
 }
 
-TrackballQuatCamera::TrackballQuatCamera(const TrackballQuatCamera& other) : Camera(other.window), radius(other.radius),
+TrackballQuatCamera::TrackballQuatCamera(const TrackballQuatCamera& other) : Camera(other), radius(other.radius),
 	trackPosition(other.trackPosition), prevMouseX(other.prevMouseX), prevMouseY(other.prevMouseY), 
 	halfScreenWidth(other.halfScreenWidth), halfScreenHeight(other.halfScreenHeight), orientation(other.orientation)
 {
@@ -43,8 +36,14 @@ TrackballQuatCamera::~TrackballQuatCamera()
 
 void TrackballQuatCamera::calcView()
 {
-	Camera::calcView();
-	view =  view * getArcBallTransformation();
+	view = lookAt(position, trackPosition, up);
+	look = normalize(position - trackPosition);
+	mat4 trackTargetTrans;
+	mat4 trackTargetTransInverse;
+	trackTargetTrans = translate(trackTargetTrans, -trackPosition);
+	trackTargetTransInverse = translate(trackTargetTransInverse, trackPosition);
+	view = view * trackTargetTransInverse * mat4_cast(orientation) * trackTargetTrans;
+	//view =  view * getArcBallTransformation();
 }
 
 mat4 TrackballQuatCamera::getArcBallTransformation()
@@ -84,12 +83,12 @@ quat TrackballQuatCamera::multiply(quat q1, quat q2)
 	return quat(q1.w * q2.w - dotP, v3.x, v3.y, v3.z);
 }
 
-void TrackballQuatCamera::setHalfScreenWidth(float width)
+void TrackballQuatCamera::setHalfScreenWidth(int width)
 {
 	halfScreenWidth = width;
 }
 
-void TrackballQuatCamera::setHalfScreenHeight(float height)
+void TrackballQuatCamera::setHalfScreenHeight(int height)
 {
 	halfScreenHeight = height;
 }
@@ -109,26 +108,26 @@ void TrackballQuatCamera::setUpDirection(const vec3& up)
 	this->up = up;
 }
 
-void TrackballQuatCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
+void TrackballQuatCamera::update(Input* input)
 {
-	Renderer::Viewport viewport = window->getViewport();
-	updateOnResize(viewport.width, viewport.height);
-
-	if (window->getInputDevice()->isPressed(Input::LeftMouseButton))
+	MouseOffset data = input->getFrameMouseOffset();
+	float xPos = static_cast<float>(data.xAbsolute);
+	float yPos = static_cast<float>(data.yAbsolute);
+	if (input->isPressed(Input::LeftMouseButton))
 	{
-		prevMouseX = static_cast<float>(mouseXFrameOffset);
-		prevMouseY = static_cast<float>(mouseYFrameOffset);
+		prevMouseX = xPos;
+		prevMouseY = yPos;
 		prevOrientation = orientation;
 		return;
 	}
 
 
-	if (!window->getInputDevice()->isDown(Input::LeftMouseButton))
+	if (!input->isDown(Input::LeftMouseButton))
 	{
 		return;
 	}
 
-	vec3 currentSphereVec = getUnitVector(static_cast<float>(mouseXFrameOffset), static_cast<float>(mouseYFrameOffset));
+	vec3 currentSphereVec = getUnitVector(xPos, yPos);
 	vec3 previousSphereVec = getUnitVector(prevMouseX, prevMouseY);
 
 	quat rotation = getRotation(previousSphereVec, currentSphereVec);
@@ -137,6 +136,7 @@ void TrackballQuatCamera::update(int mouseXFrameOffset, int mouseYFrameOffset)
 
 void TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
 {
+	LOG(logClient, platform::Debug) << "updateOnResize(int, int): called!";
 	halfScreenWidth = screenWidth / 2;
 	halfScreenHeight = screenHeight / 2;
 }
@@ -205,8 +205,8 @@ vec3 TrackballQuatCamera::getVector(float x, float y)
 		return vec3(0, 0, 0);
 
 	// compute mouse position from the centre of screen (-half ~ +half)
-	float halfScreenX = (x - halfScreenWidth)/ 400.0f;
-	float halfScreenY = (halfScreenHeight - y)/ 400.0f;    //bottom values are higher than top values -> revers order
+	float halfScreenX = (x - halfScreenWidth)/ (float)halfScreenWidth;
+	float halfScreenY = (halfScreenHeight - y)/ (float)halfScreenHeight;    //bottom values are higher than top values -> revers order
 
 	return getVectorWithArc(halfScreenX, halfScreenY); // default mode
 }
@@ -214,15 +214,26 @@ vec3 TrackballQuatCamera::getVector(float x, float y)
 vec3 TrackballQuatCamera::getVectorWithArc(float x, float y)
 {
 	float arc = sqrtf(x*x + y*y);   // legnth between cursor and screen center
-	float a = arc / radius;         // arc = r * a
+	float a = arc;// / radius;         // arc = r * a
 	float b = atan2f(y, x);         // angle on x-y plane
-	float x2 = radius * sinf(a);    // x rotated by "a" on x-z plane
+	float x2 = /*radius **/ sinf(a);    // x rotated by "a" on x-z plane
 
 	vec3 vec;
 	vec.x = x2 * cosf(b);
 	vec.y = x2 * sinf(b);
-	vec.z = radius * cosf(a);
+	vec.z = /*radius **/ cosf(a);
 	return vec;
+}
+
+void TrackballQuatCamera::init()
+{
+	prevMouseX = 0; 
+	prevMouseY = 0; 
+	halfScreenWidth = 0; 
+	halfScreenHeight = 0;
+	orientation = quat(1, 0, 0, 0);
+	prevOrientation = quat(1, 0, 0, 0);
+	fov = 45;
 }
 
 string TrackballQuatCamera::toString(const vec3& vec) const

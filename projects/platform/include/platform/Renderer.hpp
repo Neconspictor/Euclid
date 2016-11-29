@@ -96,7 +96,7 @@ public:
 	/**
 	 * Sets the viewport size and position.
 	 */
-	void setViewPort(int x, int y, int width, int height);
+	virtual void setViewPort(int x, int y, int width, int height);
 
 protected:
 	platform::LoggingClient logClient;

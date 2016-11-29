@@ -9,6 +9,9 @@
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
 #include <camera/TrackballQuatCamera.hpp>
+#include <camera/FPQuaternionCamera.hpp>
+#include <camera/FPCamera.hpp>
+#include <camera/TrackballCamera.hpp>
 
 
 class MainLoopTask : public Task

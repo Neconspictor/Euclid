@@ -5,27 +5,24 @@
 using namespace glm;
 using namespace platform;
 
-Camera::Camera(Window* window) : position(0,0,0), look(0,0,-1), up(0,1,0), fov(45.0f), logClient(getLogServer(), true, true),
-	window(window)
+Camera::Camera() : position(0,0,0), look(0,0,-1), up(0,1,0), fov(45.0f), logClient(getLogServer(), true, true)
 {
 	logClient.setPrefix("[Camera]");
-	if (!window) throw std::runtime_error("Camera::Camera(Window*): window isn't set!");
 }
 
-Camera::Camera(Window* window, vec3 position, vec3 look, vec3 up) :  Camera(window)
+Camera::Camera(vec3 position, vec3 look, vec3 up) :  Camera()
 {
 	this->position = position;
 	this->look = look;
 	this->up = up;
 }
 
-Camera::Camera(const Camera& other) :  Camera(other.window)
+Camera::Camera(const Camera& other) :  Camera()
 {
 	position = other.position;
 	look = other.look;
 	up = other.up;
 	fov = other.fov;
-	if (!window) throw std::runtime_error("Camera::Camera(const Camera&): window isn't set!");
 }
 
 Camera::~Camera()
@@ -52,12 +49,6 @@ const mat4& Camera::getView()
 	return view;
 }
 
-void Camera::setActiveWindow(Window* window)
-{
-	if (!window) throw std::runtime_error("Camera::setActiveWindow(Window*): window is null!");
-	this->window = window;
-}
-
 void Camera::setPosition(const vec3& position)
 {
 	this->position = position;
@@ -73,7 +64,7 @@ void Camera::setUpDirection(const vec3& up)
 	this->up = up;
 }
 
-void Camera::update(int mouseXFrameOffset, int mouseYFrameOffset)
+void Camera::update(Input* input)
 {
 }
 

@@ -1,6 +1,6 @@
 #ifndef WINDOW_WIN32_HPP
 #define WINDOW_WIN32_HPP
-#include "platform/Window.hpp"
+#include <platform/Window.hpp>
 #include <Windows.h>
 #include <string>
 #include <map>

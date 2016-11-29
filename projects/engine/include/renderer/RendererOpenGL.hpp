@@ -28,6 +28,8 @@ public:
 	
 	void release() override;
 
+	void setViewPort(int x, int y, int width, int height) override;
+
 protected:
 	/**
 	 * A function for checking any opengl related errors.

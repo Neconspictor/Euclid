@@ -16,8 +16,9 @@ public:
 		float radius;
 	};
 
-	TrackballQuatCamera(Window* window);
-	TrackballQuatCamera(Window* window, glm::vec3 trackPosition, float radius, glm::vec3 up);
+	TrackballQuatCamera();
+	TrackballQuatCamera(glm::vec3 trackPosition, float radius, 
+		glm::vec3 look = {0,0,-1}, glm::vec3 up = {0,1,0});
 	TrackballQuatCamera(const TrackballQuatCamera& other);
 	virtual ~TrackballQuatCamera();
 
@@ -32,9 +33,9 @@ public:
 
 	glm::quat multiply(glm::quat q1, glm::quat q2);
 
-	virtual void setHalfScreenWidth(float width);
+	virtual void setHalfScreenWidth(int width);
 
-	virtual void setHalfScreenHeight(float height);
+	virtual void setHalfScreenHeight(int height);
 
 	void setRadius(float radius);
 
@@ -46,7 +47,7 @@ public:
 	*/
 	virtual void setUpDirection(const glm::vec3& up) override;
 
-	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset) override;
+	virtual void update(Input* input) override;
 
 	virtual void updateOnResize(int screenWidth, int screenHeight);
 
@@ -58,7 +59,6 @@ protected:
 	float prevMouseX, prevMouseY;
 	int halfScreenWidth, halfScreenHeight;
 	glm::quat orientation, prevOrientation;
-	glm::vec3 rotatedPos;
 
 	/**
 	 * Checks if two provided vectors are nearly (ignoring rounding errors) identical.
@@ -88,6 +88,8 @@ protected:
 	 * from screen center (0,0) to the cursor position
 	 */
 	glm::vec3 getVectorWithArc(float x, float y);
+
+	void init();
 
 	std::string toString(const glm::vec3& vec) const;
 	std::string toString(const glm::quat& quaternion) const;

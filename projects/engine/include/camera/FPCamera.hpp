@@ -5,12 +5,12 @@
 class FPCamera : public Camera
 {
 public:
-	FPCamera(Window* window);
-	FPCamera(Window* window, glm::vec3 position, glm::vec3 look, glm::vec3 up);
+	FPCamera();
+	FPCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
 	FPCamera(const FPCamera& other);
 	virtual ~FPCamera();
 
-	virtual void update(int mouseXFrameOffset, int mouseYFrameOffset) override;
+	virtual void update(Input* input) override;
 
 	float getYaw() const;
 	float getPitch() const;
