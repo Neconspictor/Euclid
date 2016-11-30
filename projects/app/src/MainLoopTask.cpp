@@ -13,7 +13,7 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(platform::getLogServer()), runtime(0)
+	Task(flags), logClient(platform::getLogServer()), runtime(0), isRunning(true)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -68,10 +68,6 @@ void MainLoopTask::run()
 	float frameTime = timer.update();
 	frameTimeElapsed += frameTime;
 
-	//if (frameTimeElapsed < (1/2.0f))
-	//{
-		//return;
-	//}
 	float fps = counter.update(frameTimeElapsed);
 	updateWindowTitle(frameTimeElapsed, fps);
 	frameTimeElapsed = 0.0f;
@@ -83,8 +79,21 @@ void MainLoopTask::run()
 		return;
 	}
 
+	// Poll input events before checking if the app is running, otherwise 
+	// the window is likely to hang or crash (at least on windows platform)
+	window->pollEvents();
+	
+	// pause app if it is not active (e.g. window isn't focused)
+	if (!isRunning)
+	{
+		this_thread::sleep_for(milliseconds(500));
+		return;
+	}
+
+
 	window->activate();
 	handleInputEvents();
+
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
 
 	Renderer::Viewport viewport = window->getViewport();
@@ -139,7 +148,6 @@ void MainLoopTask::handleInputEvents()
 {
 	using namespace platform;
 	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
-	window->pollEvents();
 	Input* input = window->getInputDevice();
 
 
@@ -185,10 +193,19 @@ void MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	}
 }
 
-void MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus) const
+void MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus)
 {
 	if (receivedFocus)
-	LOG(logClient, platform::Debug) << "received focus!";
-	else
-	LOG(logClient, platform::Debug) << "lost focus!";
+	{
+		LOG(logClient, platform::Debug) << "received focus!";
+		isRunning = true;
+	} else
+	{
+		LOG(logClient, platform::Debug) << "lost focus!";
+		isRunning = false;
+		if (window->isInFullscreenMode())
+		{
+			window->minimize();
+		}
+	}
 }

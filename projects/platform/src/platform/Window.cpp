@@ -36,6 +36,10 @@ Renderer::Viewport Window::getViewport() const
 	return renderer->getViewport();
 }
 
+bool Window::isInFullscreenMode()
+{
+	return fullscreen;
+}
 
 Window::ResizeConnection Window::addResizeCallback(const ResizeCallback& callback)
 {

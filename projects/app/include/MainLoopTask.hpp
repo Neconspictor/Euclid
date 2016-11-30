@@ -37,6 +37,7 @@ private:
 	std::string originalTitle;
 	std::shared_ptr<Camera> camera;
 	float mixValue;
+	bool isRunning;
 
 	void updateCamera(Input* input, float deltaTime);
 
@@ -44,7 +45,7 @@ private:
 
 	void updateWindowTitle(float frameTime, float fps);
 
-	void onWindowsFocus(Window* window, bool receivedFocus) const;
+	void onWindowsFocus(Window* window, bool receivedFocus);
 };
 
 #endif

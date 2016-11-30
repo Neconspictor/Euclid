@@ -123,6 +123,11 @@ public:
 	virtual bool isOpen() = 0;
 
 	/**
+	 * Checks if this window is in fullscreen mode.
+	 */
+	virtual bool isInFullscreenMode();
+
+	/**
 	 * Minimizes this window 
 	 */
 	virtual void minimize() = 0;
