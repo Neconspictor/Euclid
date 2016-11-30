@@ -36,8 +36,9 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 	// E.g. SDL has problems to do resizing a window that was previously in fullscreen mode
 	// and was set later to windowed mode!
 	if (fullscreen) setFullscreen();
+	else update();
 
-	update();
+	SetForegroundWindow(hwnd);
 	LOG(logClient, Debug) << "WindowWin32 successfully created!";
 
 }
@@ -134,9 +135,11 @@ void WindowWin32::setFullscreen()
 		DM_BITSPERPEL |
 		DM_DISPLAYFREQUENCY;
 
-	SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
-	SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-	SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, width, height, SWP_SHOWWINDOW);
+	//SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
+	//SetWindowLongPtr(hwnd, GWL_EXSTYLE,
+	//	WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | WS_EX_APPWINDOW | WS_EX_TOPMOST);
+	//SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+	//SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_NOSIZE | WS_EX_TOPMOST | WS_EX_APPWINDOW);
 	isChangeSuccessful = ChangeDisplaySettings(&fullscreenSettings, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
 	if (isChangeSuccessful)
 	{
@@ -363,7 +366,10 @@ void WindowWin32::update() const
 			GetWindowRect(hDesktop, &screen);
 			int widthNew = abs(screen.right - screen.left);
 			int heightNew = abs(screen.bottom - screen.top);
-			SetWindowPos(hwnd, HWND_TOPMOST, screen.left, screen.top, widthNew, heightNew, SWP_SHOWWINDOW);
+			SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
+			SetWindowLongPtr(hwnd, GWL_STYLE,
+				WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
+			SetWindowPos(hwnd, HWND_TOPMOST, screen.left, screen.top, widthNew, heightNew, SWP_NOMOVE | SWP_NOSIZE);
 			ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 		} else
 		{

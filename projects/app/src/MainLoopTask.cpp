@@ -62,9 +62,8 @@ static float frameTimeElapsed = 0;
 void MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
-	using namespace std;
+
 	using namespace chrono;
-	using namespace platform;
 		
 	float frameTime = timer.update();
 	frameTimeElapsed += frameTime;

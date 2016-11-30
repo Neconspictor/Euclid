@@ -61,8 +61,8 @@ namespace platform
 		}
 
 		void operator()(const string& prefix, const LogMessage::Meta& meta, const string& message) {
-			int buildPathSize = sizeof(NEC_BUILD_PATH) -1;
-			auto file = meta.mFile.substr(buildPathSize, meta.mFile.size());
+			//int buildPathSize = sizeof(NEC_BUILD_PATH) -1;
+			//auto file = meta.mFile.substr(buildPathSize, meta.mFile.size());
 			ofstream logFile(filename, ios::app);
 			if (!logFile.good()) {
 				string message = "Failed to open file sink: ";
@@ -75,11 +75,11 @@ namespace platform
 				<< meta.level
 				<< " : "
 				<< message
-				<< " ("
+				//<< " ("
 				//<< util::relativePathToBuildDirectory(file)
-				<< file
-				<< ":"
-				<< meta.mLine
+				//<< file
+				//<< ":"
+				//<< meta.mLine
 				<< endl;
 		}
 
