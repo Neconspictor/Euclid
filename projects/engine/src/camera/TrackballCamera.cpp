@@ -102,7 +102,7 @@ void TrackballCamera::setUpDirection(const vec3& up)
 	//Do nothing!
 }
 
-void TrackballCamera::update(Input* input)
+void TrackballCamera::update(Input* input, float frameTime)
 {
 	MouseOffset data = input->getFrameMouseOffset();
 	

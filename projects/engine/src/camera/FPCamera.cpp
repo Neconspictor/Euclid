@@ -4,21 +4,22 @@
 using namespace std;
 using namespace glm;
 
-FPCamera::FPCamera() : yaw(0), pitch(0)
+FPCamera::FPCamera() : FPCameraBase(), yaw(0), pitch(0), cameraSpeed(5.0f)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : Camera(position, look, up),
-	yaw(0), pitch(0)
+FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : FPCameraBase(position, look, up),
+	yaw(0), pitch(0), cameraSpeed(5.0f)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPCamera::FPCamera(const FPCamera& other) : Camera(other)
+FPCamera::FPCamera(const FPCamera& other) : FPCameraBase(other)
 {
 	yaw = other.yaw;
 	pitch = other.pitch;
+	cameraSpeed = other.cameraSpeed;
 	logClient.setPrefix("[FPCamera]");
 }
 
@@ -26,7 +27,7 @@ FPCamera::~FPCamera()
 {
 }
 
-void FPCamera::update(Input* input)
+void FPCamera::update(Input* input, float frameTime)
 {
 	float sensitivity = 0.05f;
 	MouseOffset data = input->getFrameMouseOffset();
@@ -44,6 +45,8 @@ void FPCamera::update(Input* input)
 	front.z = -cos(radians(yaw)) * cos(radians(pitch));
 	front = normalize(front);
 	setLookDirection(front);
+
+	doUserMovement(input, frameTime);
 }
 
 float FPCamera::getYaw() const

@@ -47,7 +47,7 @@ public:
 	*/
 	virtual void setUpDirection(const glm::vec3& up) override;
 
-	virtual void update(Input* input) override;
+	virtual void update(Input* input, float frameTime) override;
 
 	virtual void updateOnResize(int screenWidth, int screenHeight);
 

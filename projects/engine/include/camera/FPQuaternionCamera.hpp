@@ -1,8 +1,8 @@
 #ifndef CAMERA_FPQUATERNION_CAMERA_HPP
 #define CAMERA_FPQUATERNION_CAMERA_HPP
-#include <camera/Camera.hpp>
+#include <camera/FPCameraBase.hpp>
 
-class FPQuaternionCamera : public Camera
+class FPQuaternionCamera : public FPCameraBase
 {
 public:
 	FPQuaternionCamera();
@@ -12,7 +12,7 @@ public:
 
 	void rotateCamera(float Angle, float x, float y, float z);
 
-	virtual void update(Input* input) override;
+	virtual void update(Input* input, float frameTime) override;
 
 protected:
 	float currentRotationX;

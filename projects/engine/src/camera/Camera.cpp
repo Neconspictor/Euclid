@@ -64,7 +64,7 @@ void Camera::setUpDirection(const vec3& up)
 	this->up = up;
 }
 
-void Camera::update(Input* input)
+void Camera::update(Input* input, float frameTime)
 {
 }
 
@@ -81,7 +81,6 @@ float Camera::getFOV() const
 void Camera::onScroll(float yOffset)
 {
 	// zoom
-	LOG(logClient, Debug) << "scrollYFrameOffset: " << yOffset;
 	if (fov >= 1.0f && fov <= 45.0f)
 		fov -= yOffset;
 	if (fov <= 1.0f)

@@ -6,18 +6,18 @@
 using namespace std;
 using namespace glm;
 
-FPQuaternionCamera::FPQuaternionCamera() : Camera(), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera() : FPCameraBase(), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
 FPQuaternionCamera::FPQuaternionCamera(vec3 position, vec3 look, vec3 up) : 
-	Camera(position, look, up), currentRotationX(0)
+	FPCameraBase(position, look, up), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
 
-FPQuaternionCamera::FPQuaternionCamera(const FPQuaternionCamera& other) : Camera(other), currentRotationX(0)
+FPQuaternionCamera::FPQuaternionCamera(const FPQuaternionCamera& other) : FPCameraBase(other), currentRotationX(0)
 {
 	logClient.setPrefix("[FPCamera]");
 }
@@ -49,7 +49,7 @@ void FPQuaternionCamera::rotateCamera(float Angle, float x, float y, float z)
 	look = normalize(look);
 }
 
-void FPQuaternionCamera::update(Input* input)
+void FPQuaternionCamera::update(Input* input, float frameTime)
 {
 	float sensitivity = 0.002f;
 	MouseOffset data = input->getFrameMouseOffset();
@@ -80,4 +80,6 @@ void FPQuaternionCamera::update(Input* input)
 	rotateCamera(rotateXAxis, axis.x, axis.y, axis.z);
 	// Rotate around the x axis
 	rotateCamera(rotateYAxis, up.x, up.y, up.z);
+
+	doUserMovement(input, frameTime);
 }

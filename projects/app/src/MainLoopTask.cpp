@@ -5,11 +5,14 @@
 #include <glm/glm.hpp>
 #include <mesh/TestMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <camera/TrackballQuatCamera.hpp>
+#include <camera/FPQuaternionCamera.hpp>
 
 using namespace glm;
+using namespace std;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(platform::getLogServer()), runtime(0), camera({0.0f, 0.0f, 0}, 3, {0,0,-1})
+	Task(flags), logClient(platform::getLogServer()), runtime(0)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -18,12 +21,16 @@ MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr rende
 	logClient.setPrefix("[MainLoop]");
 
 	mixValue = 0.2f;
+
+	camera = make_shared<TrackballQuatCamera>(TrackballQuatCamera());
 }
 
 void MainLoopTask::init()
 {
-	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, std::placeholders::_1, std::placeholders::_2);
-	auto scrollCallback = bind(&Camera::onScroll, &camera, std::placeholders::_1);
+	using namespace placeholders;
+
+	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
+	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1);
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
@@ -31,12 +38,15 @@ void MainLoopTask::init()
 	//camera.setLookDirection(vec3(0.0f, 0.0f, -1.0f));
 	//camera.setUpDirection(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
-	camera.updateOnResize(viewport.width, viewport.height);
 
-	auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, &camera, std::placeholders::_1, std::placeholders::_2);
-	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, std::placeholders::_1, std::placeholders::_2);
+	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
+	{
+		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
+		casted->updateOnResize(viewport.width, viewport.height);
+		window->addResizeCallback(cameraResizeCallback);
+	}
+	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 
-	window->addResizeCallback(cameraResizeCallback);
 	window->addResizeCallback(rendererResizeCallback);
 
 	renderer->getShaderManager()->loadShaders();
@@ -75,6 +85,7 @@ void MainLoopTask::run()
 
 	window->activate();
 	handleInputEvents();
+	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
 
 	Renderer::Viewport viewport = window->getViewport();
 
@@ -89,9 +100,9 @@ void MainLoopTask::run()
 	shader->setTexture2("png.png");
 	Model model(TestMeshes::CUBE_NAME);
 
-	camera.calcView();
-	mat4 view = camera.getView();
-	mat4 projection = perspective(radians(camera.getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
+	camera->calcView();
+	mat4 view = camera->getView();
+	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
 	vec3 position = vec3(0.0f, 0.0f, 0.0f);
 	//shader->setLightColor(vec3(1, 1, 1));
 	//shader->setObjectColor(vec3(1.0f, 0.5f, 0.31f));
@@ -110,37 +121,17 @@ void MainLoopTask::run()
 	window->swapBuffers();
 }
 
-void MainLoopTask::doUserMovement(Input* input, float deltaTime)
+void MainLoopTask::updateCamera(Input* input, float deltaTime)
 {
-	// camera movements
-	float cameraSpeed = 5.0f * deltaTime;
-	vec3 cameraPos = camera.getPosition();
-	vec3 cameraLook = camera.getLookDirection();
-	vec3 cameraUp = camera.getUpDirection();
-	vec3 cameraRight = normalize(cross(cameraLook, cameraUp));
-
-	if (input->isDown(Input::KeyW))
-		cameraPos += cameraSpeed * cameraLook;
-
-	if (input->isDown(Input::KeyS))
-		cameraPos -= cameraSpeed * cameraLook;
-
-	if (input->isDown(Input::KeyD))
-		cameraPos += cameraSpeed * cameraRight;
-
-	if (input->isDown(Input::KeyA))
-		cameraPos -= cameraSpeed * cameraRight;
-
-	camera.setPosition(cameraPos);
-	camera.setLookDirection(cameraLook);
-	camera.setUpDirection(cameraUp);
-
 	if (window->hasFocus())
 	{
-		MouseOffset offset = input->getFrameMouseOffset();
-		camera.update(input);
+		camera->update(input, deltaTime);
 		
-		//window->setCursorPosition(400, 300);
+		if (dynamic_cast<FPCameraBase*>(camera.get()))
+		{
+			Renderer::Viewport viewport = window->getViewport();
+			window->setCursorPosition(viewport.width / 2, viewport.height / 2);
+		}
 	}
 }
 
@@ -181,8 +172,6 @@ void MainLoopTask::handleInputEvents()
 		mixValue = round(mixValue * 10) / 10;
 		LOG(logClient, Debug) << "MixValue: " << mixValue;
 	}
-
-	doUserMovement(input, timer.getLastUpdateTimeDifference());
 }
 
 void MainLoopTask::updateWindowTitle(float frameTime, float fps)

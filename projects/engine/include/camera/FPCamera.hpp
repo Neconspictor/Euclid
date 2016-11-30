@@ -1,8 +1,8 @@
 #ifndef CAMERA_FPCAMERA_HPP
 #define CAMERA_FPCAMERA_HPP
-#include <camera/Camera.hpp>
+#include <camera/FPCameraBase.hpp>
 
-class FPCamera : public Camera
+class FPCamera : public FPCameraBase
 {
 public:
 	FPCamera();
@@ -10,13 +10,14 @@ public:
 	FPCamera(const FPCamera& other);
 	virtual ~FPCamera();
 
-	virtual void update(Input* input) override;
+	virtual void update(Input* input, float frameTime) override;
 
 	float getYaw() const;
 	float getPitch() const;
 
 protected:
 	float yaw, pitch;
+	float cameraSpeed;
 };
 
 #endif

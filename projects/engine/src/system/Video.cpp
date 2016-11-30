@@ -49,6 +49,9 @@ void Video::init()
 	if (renderer)
 	{
 		window->embedRenderer(renderer);
+		Renderer::Viewport viewPort = window->getViewport();
+		//width = viewPort.width;
+		//height = viewPort.height;
 		renderer->setViewPort(0, 0, width, height);
 		renderer->init();
 		Platform::getActivePlatform()->setVSync(*renderer.get(), vSync);

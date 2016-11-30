@@ -8,11 +8,15 @@
 using namespace std;
 using namespace glm;
 
-TrackballQuatCamera::TrackballQuatCamera() : Camera()
+TrackballQuatCamera::TrackballQuatCamera()
 {
-	init();
-	radius = 1;
+	trackPosition = { 0.0f, 0.0f, 0 };
+	radius = 3; 
+	look = { 0, 0, -1 };
 	up = { 0,1,0 };
+	position = trackPosition - radius * look;
+	Camera(position, look, up);
+	init();
 }
 
 TrackballQuatCamera::TrackballQuatCamera(vec3 trackPosition, float radius, vec3 look, vec3 up)
@@ -108,7 +112,7 @@ void TrackballQuatCamera::setUpDirection(const vec3& up)
 	this->up = up;
 }
 
-void TrackballQuatCamera::update(Input* input)
+void TrackballQuatCamera::update(Input* input, float frameTime)
 {
 	MouseOffset data = input->getFrameMouseOffset();
 	float xPos = static_cast<float>(data.xAbsolute);
@@ -136,7 +140,6 @@ void TrackballQuatCamera::update(Input* input)
 
 void TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
 {
-	LOG(logClient, platform::Debug) << "updateOnResize(int, int): called!";
 	halfScreenWidth = screenWidth / 2;
 	halfScreenHeight = screenHeight / 2;
 }

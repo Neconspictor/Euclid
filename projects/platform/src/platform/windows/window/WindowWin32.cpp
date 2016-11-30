@@ -176,7 +176,6 @@ void WindowWin32::setWindowed()
 
 void WindowWin32::resize(int newWidth, int newHeight)
 {
-	LOG(logClient, Debug) << "resize(int,int): " << newWidth <<", " << newHeight;
 	width = newWidth;
 	height = newHeight;
 	informResizeListeners(width, height);
@@ -316,25 +315,34 @@ LRESULT WindowWin32::dispatchInputEvents(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 	case WM_CLOSE:
 	{
 		Window* target = getWindowByHWND(hwnd);
-		target->close();
+		if (target)
+		{
+			target->close();
+		}
 		break;
 	}
 	case WM_KILLFOCUS: {
 		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
-		target->m_hasFocus = false;
-		target->informWindowFocusListeners(false);
+		if (target)
+		{
+			target->m_hasFocus = false;
+			target->informWindowFocusListeners(false);
+		}
 		break;
 	}
 	case WM_SETFOCUS: {
 		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
-		target->m_hasFocus = true;
-		target->informWindowFocusListeners(true);
+		if (target)
+		{
+			target->m_hasFocus = true;
+			target->informWindowFocusListeners(true);
+		}
 		break;
 	}
 	case WM_SIZE: {
 		WindowWin32* target = (WindowWin32*)getWindowByHWND(hwnd);
-		LOG(target->logClient, platform::Debug) << "WM_SIZE event received!";
-		target->resize(LOWORD(lParam), HIWORD(lParam));
+		if (target)
+			target->resize(LOWORD(lParam), HIWORD(lParam));
 		break;
 	}
 	}

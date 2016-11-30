@@ -24,7 +24,7 @@ public:
 	virtual void setLookDirection(const glm::vec3& direction);
 	virtual void setUpDirection(const glm::vec3& up);
 
-	virtual void update(Input* input);
+	virtual void update(Input* input, float frameTime);
 
 	virtual void calcView();
 

@@ -5,6 +5,7 @@ set(
     #camera
     include/camera/Camera.hpp
     include/camera/FPCamera.hpp
+    include/camera/FPCameraBase.hpp
     include/camera/FPQuaternionCamera.hpp
     include/camera/TrackballCamera.hpp
     include/camera/TrackballQuatCamera.hpp
@@ -66,6 +67,7 @@ set(
     #camera
     src/camera/Camera.cpp
     src/camera/FPCamera.cpp
+    src/camera/FPCameraBase.cpp
     src/camera/FPQuaternionCamera.cpp
     src/camera/TrackballCamera.cpp
     src/camera/TrackballQuatCamera.cpp
