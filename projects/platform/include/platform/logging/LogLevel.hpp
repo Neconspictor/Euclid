@@ -27,6 +27,7 @@
 
 #ifndef PLATFORM_LOG_LEVEL_HPP
 #define PLATFORM_LOG_LEVEL_HPP
+#pragma optimize( "", on )
 #include <ostream>
 #include <platform/util/StringUtils.hpp>
 

@@ -14,6 +14,9 @@ namespace platform
 		auto msg = message.buffer.str();
 		auto&& prefixCpy = client.getPrefix();
 
+		/*for (auto&& endpoint : endpoints)
+			endpoint.log(prefixCpy, meta, msg);*/
+
 		active->send([=] {
 			for (auto&& endpoint : endpoints)
 				endpoint.log(prefixCpy, meta, msg);

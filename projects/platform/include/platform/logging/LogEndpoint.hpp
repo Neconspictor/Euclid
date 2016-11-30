@@ -27,6 +27,8 @@
 
 #ifndef LOG_ENDPOINT_HPP
 #define LOG_ENDPOINT_HPP
+#pragma optimize( "", on )
+
 #include <platform/logging/LogMessage.hpp>
 #include <memory>
 

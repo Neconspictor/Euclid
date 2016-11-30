@@ -27,6 +27,7 @@
 
 #ifndef LOG_ENDPOINT_INL
 #define LOG_ENDPOINT_INL
+#pragma optimize( "", on )
 
 namespace platform
 {

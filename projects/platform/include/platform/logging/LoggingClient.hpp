@@ -1,5 +1,7 @@
 #ifndef PLATFORM_LOGGING_LOGGING_CLIENT_HPP
 #define PLATFORM_LOGGING_LOGGING_CLIENT_HPP
+#pragma optimize( "", on )
+
 #include <string>
 #include <vector>
 #include <boost/current_function.hpp>

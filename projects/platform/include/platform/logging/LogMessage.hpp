@@ -27,6 +27,7 @@
 
 #ifndef LOG_LEVEL_HPP
 #define LOG_LEVEL_HPP
+#pragma optimize( "", on )
 
 #include <platform/logging/LogLevel.hpp>
 #include <sstream>

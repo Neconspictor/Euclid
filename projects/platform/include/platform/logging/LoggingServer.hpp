@@ -1,10 +1,12 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
+#pragma optimize( "", on )
+
 #include <platform/util/Util.hpp>
 #include <platform/logging/LogMessage.hpp>
 #include <platform/util/concurrent/Active.hpp>
 #include <atomic>
-#include "LogEndpoint.hpp"
+#include <platform/logging/LogEndpoint.hpp>
 
 namespace platform
 {

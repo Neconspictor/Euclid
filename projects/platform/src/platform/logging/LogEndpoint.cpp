@@ -1,5 +1,4 @@
 #include <platform/logging/LogEndpoint.hpp>
-#include <platform/util/Util.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -62,8 +61,8 @@ namespace platform
 		}
 
 		void operator()(const string& prefix, const LogMessage::Meta& meta, const string& message) {
-			string file = meta.mFile;
-			file = util::makeAbsolute(file);
+			int buildPathSize = sizeof(NEC_BUILD_PATH) -1;
+			auto file = meta.mFile.substr(buildPathSize, meta.mFile.size());
 			ofstream logFile(filename, ios::app);
 			if (!logFile.good()) {
 				string message = "Failed to open file sink: ";
@@ -77,7 +76,8 @@ namespace platform
 				<< " : "
 				<< message
 				<< " ("
-				<< util::relativePathToBuildDirectory(file)
+				//<< util::relativePathToBuildDirectory(file)
+				<< file
 				<< ":"
 				<< meta.mLine
 				<< endl;

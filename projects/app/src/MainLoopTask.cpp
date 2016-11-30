@@ -10,6 +10,7 @@
 
 using namespace glm;
 using namespace std;
+using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(platform::getLogServer()), runtime(0)
