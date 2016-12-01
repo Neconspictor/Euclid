@@ -113,6 +113,8 @@ MeshManagerGL* MeshManagerGL::get()
 void MeshManagerGL::loadMeshes()
 {
 	//TODO
+	getTexturedCube();
+	getPositionCube();
 }
 
 MeshManagerGL::MeshManagerGL()

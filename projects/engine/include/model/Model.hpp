@@ -2,6 +2,7 @@
 #define ENGINE_MODEL_MODEL_HPP
 #include <mesh/Mesh.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 /**
  * A model is an object in a 3d space, thus it consists of a mesh representing the shape
@@ -11,8 +12,14 @@
 class Model
 {
 public:
-	explicit Model(std::string meshName, glm::mat4 = glm::mat4());
+	explicit Model(std::string meshName);
 	virtual ~Model(){}
+
+	/**
+	 * Calculates the transformatino matrix of this model
+	 * based on its position, scale and rotation.
+	 */
+	void calcTrafo();
 
 	/** 
 	 * Provides the name of the 3d mesh this model uses.
@@ -25,10 +32,31 @@ public:
 	 */
 	 glm::mat4 const& getTrafo() const;
 
+	 /**
+	  * Sets the rotation measured in euler angles int XYZ order.
+	  */
+	 void setEulerXYZ(glm::vec3 rotation);
+
+	 /**
+	  * Sets the position of this model.
+	  */
+	 void setPosition(glm::vec3 position);
+
+	 /**
+	  * Sets the scale of this model.
+	  */
+	 void setScale(glm::vec3 scale);
+
+	 /**
+	  * Sets the transformation matrix of this model.
+	  */
 	 void setTrafo(glm::mat4 mat);
 
 protected:
-	glm::mat4 trafo;
 	std::string meshName;
+	glm::quat orientation;
+	glm::vec3 position;
+	glm::vec3 scale;
+	glm::mat4 trafo;
 };
 #endif

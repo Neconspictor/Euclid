@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.inl>
 #include <camera/TrackballQuatCamera.hpp>
 #include <camera/FPQuaternionCamera.hpp>
+#include <shader/SimpleLightShader.hpp>
+#include <shader/LampShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -102,27 +104,44 @@ void MainLoopTask::run()
 
 	renderer->beginScene();
 
-	PlaygroundShader* shader = dynamic_cast<PlaygroundShader*>
+	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
-	renderer->getMeshManager()->getTexturedCube();
-	shader->setTexture1("jpg.jpg");
-	shader->setTexture2("png.png");
+	SimpleLightShader* simpleLightShader = dynamic_cast<SimpleLightShader*>
+		(renderer->getShaderManager()->getShader(SimpleLight));
+
+	LampShader* lampShader = dynamic_cast<LampShader*>
+		(renderer->getShaderManager()->getShader(Lamp));
+
+	renderer->getMeshManager()->loadMeshes();
+
+	simpleLightShader->setLightColor({1.0f, 1.0f, 1.0f});
+	simpleLightShader->setObjectColor({1.0f, 0.5f, 0.31f});
 	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
+	Model simpleLitModel(TestMeshes::CUBE_POSITION_NAME);
+	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
+
+	model.setPosition({ 0.0f, 0.0f, 0.0f });
+	model.calcTrafo();
+
+	simpleLitModel.setPosition({ 1.1f, 0.0f, 0.0f });
+	simpleLitModel.calcTrafo();
+
+	lampModel.setPosition({ 1.1f, 1.0f, 0.0f });
+	lampModel.setScale({0.5f, 0.5f, 0.5f});
+	//lampModel.setEulerXYZ({ 0.0f, 0.0f, radians(45.0f) });
+	lampModel.calcTrafo();
 
 	camera->calcView();
 	mat4 view = camera->getView();
 	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
-	vec3 position = vec3(0.0f, 0.0f, 0.0f);
-	//shader->setLightColor(vec3(1, 1, 1));
-	//shader->setObjectColor(vec3(1.0f, 0.5f, 0.31f));
-	shader->setTextureMixValue(mixValue);
-	mat4 translation; 
-	translation = translate(translation, position);
+	mat4 viewProj = projection * view;
 
-	mat4 trafo = projection * view * translation;
-	model.setTrafo(trafo);
+	playgroundShader->setTextureMixValue(mixValue);
+	playgroundShader->draw(model, viewProj * model.getTrafo());
 
-	shader->draw(model, trafo);
+	simpleLightShader->draw(simpleLitModel, viewProj * simpleLitModel.getTrafo());
+	
+	lampShader->draw(lampModel, viewProj * lampModel.getTrafo());
 
 	renderer->endScene();
 	renderer->present();
