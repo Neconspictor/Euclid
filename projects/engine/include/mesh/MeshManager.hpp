@@ -16,12 +16,12 @@ public:
 	virtual ~MeshManager(){}
 
 	/**
-	 * Provides read access to a cube that has a vertex format that can be used with a SimpleLightShader.
+	 * Provides read access to a cube that has only position data.
 	 */
-	virtual Mesh* getSimpleLitCube() = 0;
+	virtual Mesh* getPositionCube() = 0;
 
 	/**
-	 * Provides a model that has a vertex format that allows to bind a 2D texture to it. 
+	 * Provides a model that has a vertex format that contains position and uv coordinates.
 	 */
 	virtual Mesh* getTexturedCube() = 0;
 

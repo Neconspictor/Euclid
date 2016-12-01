@@ -11,7 +11,7 @@ class MeshManagerGL : public MeshManager
 public:
 	~MeshManagerGL() override;
 	Mesh* getMesh(const std::string& meshName) override;
-	Mesh* getSimpleLitCube() override;
+	Mesh* getPositionCube() override;
 	Mesh* getTexturedCube() override;
 
 	static MeshManagerGL* get();

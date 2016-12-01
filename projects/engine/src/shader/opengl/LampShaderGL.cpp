@@ -6,7 +6,7 @@
 
 using namespace std;
 
-LampShaderGL::LampShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
+LampShaderGL::LampShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
 	LampShader(), ShaderGL(vertexShaderFile, fragmentShaderFile)
 {
 }

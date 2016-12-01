@@ -50,16 +50,16 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	switch(shaderEnum)
 	{
 	case Lamp: {
-		shaderPtr = make_shared<LampShaderGL>("vs_light.glsl", "fs_light.glsl");
+		shaderPtr = make_shared<LampShaderGL>("lamp_vs.glsl", "lamp_fs.glsl");
 		break;
 	}
 	case Playground: {
-		shaderPtr = make_shared<PlaygroundShaderGL>("vertex.glsl", "fragment.glsl");
+		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl");
 		break;
 	}
 	case SimpleLight: {
 		shaderPtr = make_shared<SimpleLightShaderGL>
-			("vs_simpleLightColor.glsl", "fs_simpleLightColor.glsl");
+			("simpleLight_vs.glsl", "simpleLight_fs.glsl");
 		break;
 	}
 	default: {

@@ -1,7 +1,6 @@
 #include <shader/opengl/SimpleLightShaderGL.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
-#include <exception/MeshNotFoundException.hpp>
 
 SimpleLightShaderGL::SimpleLightShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile)
 	: ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), objectColor(1, 1, 1)

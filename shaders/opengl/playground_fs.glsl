@@ -1,7 +1,6 @@
 #version 330 core
 
 // input data
-in vec4 colorFragment;
 in vec2 texCoordFrag;
 
 // Ouput data

@@ -107,7 +107,7 @@ void MainLoopTask::run()
 	renderer->getMeshManager()->getTexturedCube();
 	shader->setTexture1("jpg.jpg");
 	shader->setTexture2("png.png");
-	Model model(TestMeshes::CUBE_NAME);
+	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
 
 	camera->calcView();
 	mat4 view = camera->getView();

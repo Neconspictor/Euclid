@@ -1,5 +1,4 @@
 #include <platform/FileSystem.hpp>
-#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <platform/logging/LoggingClient.hpp>
@@ -28,11 +27,11 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	catch (ifstream::failure e)
 	{
 		LoggingClient logClient(getLogServer());
-		logClient.setPrefix("[filesystem::loadFileIntoString()]");
+		logClient.setPrefix("[FileSystem::loadFileIntoString()]");
 
 		if (shaderStreamFile.fail())
 		{
-			LOG(logClient, Error) << "Couldn't opened file: "
+			LOG(logClient, Error) << "Couldn't open file: "
 				<< filePath;
 		}
 
