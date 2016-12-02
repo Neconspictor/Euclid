@@ -36,6 +36,7 @@ set(
     #shader
     include/shader/LampShader.hpp
     include/shader/PhongShader.hpp
+    include/shader/PhongTextureShader.hpp
     include/shader/PlaygroundShader.hpp
     include/shader/Shader.hpp
     include/shader/ShaderEnum.hpp

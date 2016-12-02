@@ -68,8 +68,18 @@ void MainLoopTask::run()
 	BROFILER_FRAME("MainLoopTask");
 
 	using namespace chrono;
-		
+	
 	float frameTime = timer.update();
+	int millis = static_cast<int> (1.0f /(frameTime * 1000.0f));
+
+	// manual 60 fps cap -> only temporary!
+	int minimumMillis = 16;
+	LOG(logClient, Debug) << millis;
+	if (millis < minimumMillis)
+	{
+		this_thread::sleep_for(milliseconds(minimumMillis - millis));
+		frameTime += timer.update();
+	}
 	frameTimeElapsed += frameTime;
 
 	float fps = counter.update(frameTimeElapsed);
@@ -163,7 +173,7 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 		if (dynamic_cast<FPCameraBase*>(camera.get()))
 		{
 			Renderer::Viewport viewport = window->getViewport();
-			window->setCursorPosition(viewport.width / 2.0f, viewport.height / 2.0f);
+			window->setCursorPosition(viewport.width / 2, viewport.height / 2);
 		}
 	}
 }
