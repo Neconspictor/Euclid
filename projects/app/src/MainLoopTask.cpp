@@ -10,13 +10,14 @@
 #include <shader/SimpleLightShader.hpp>
 #include <shader/LampShader.hpp>
 #include <shader/PhongShader.hpp>
+#include <camera/FPCamera.hpp>
 
 using namespace glm;
 using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(platform::getLogServer()), runtime(0), isRunning(true)
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -26,7 +27,7 @@ MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr rende
 
 	mixValue = 0.2f;
 
-	camera = make_shared<TrackballQuatCamera>(TrackballQuatCamera());
+	camera = make_shared<FPCamera>(FPCamera());
 }
 
 void MainLoopTask::init()
@@ -38,9 +39,9 @@ void MainLoopTask::init()
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
-	//camera.setPosition(vec3(0.0f, 0.0f, 3.0f));
-	//camera.setLookDirection(vec3(0.0f, 0.0f, -1.0f));
-	//camera.setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+	camera->setPosition(vec3(0.0f, 0.0f, 3.0f));
+	camera->setLookDirection(vec3(0.0f, 0.0f, -1.0f));
+	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
@@ -139,12 +140,13 @@ void MainLoopTask::run()
 	mat4 viewProj = projection * view;
 
 	playgroundShader->setTextureMixValue(mixValue);
-	playgroundShader->draw(model, viewProj * model.getTrafo());
+	playgroundShader->draw(model, projection, view);
 
-	phongShader->setLightPosition({ 1.2f, 1.0f, 2.0f});
-	phongShader->draw(phongModel, viewProj * phongModel.getTrafo());
+	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
+	phongShader->setLightPosition(lightPosition);
+	phongShader->draw(phongModel, projection, view);
 	
-	lampShader->draw(lampModel, viewProj * lampModel.getTrafo());
+	lampShader->draw(lampModel, projection, view);
 
 	renderer->endScene();
 	renderer->present();
@@ -156,12 +158,12 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 {
 	if (window->hasFocus())
 	{
-		camera->update(input, deltaTime);
+		camera.get()->update(input, deltaTime);
 		
 		if (dynamic_cast<FPCameraBase*>(camera.get()))
 		{
 			Renderer::Viewport viewport = window->getViewport();
-			window->setCursorPosition(viewport.width / 2, viewport.height / 2);
+			window->setCursorPosition(viewport.width / 2.0f, viewport.height / 2.0f);
 		}
 	}
 }
