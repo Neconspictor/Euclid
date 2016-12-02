@@ -24,7 +24,7 @@ public:
 	virtual ~ShaderGL() override;
 
 	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
-	void draw(Model const& model, glm::mat4 const& transform) override;
+	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 	GLuint getProgramID();
 	bool loadingFailed() override;
 	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);

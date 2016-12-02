@@ -72,7 +72,12 @@ void Input::onScroll(Window* window, double xoffset, double yoffset)
 
 MouseOffset Input::getFrameMouseOffset()
 {
-	return{ mouseXabsolut, mouseYabsolut, frameMouseXOffset, frameMouseYOffset };
+	MouseOffset offset;
+	offset.xAbsolute = mouseXabsolut;
+	offset.yAbsolute = mouseYabsolut;
+	offset.xOffset = frameMouseXOffset;
+	offset.yOffset = frameMouseYOffset;
+	return offset;
 }
 
 void Input::removeScrollConnection(const ScrollConnection& connection)

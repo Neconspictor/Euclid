@@ -14,7 +14,7 @@ public:
 	*/
 	PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	virtual ~PlaygroundShaderGL();
-	void draw(Model const& model, glm::mat4 const& transform) override;
+	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 	bool loadingFailed() override;
 	void release() override;
 	void setTexture1(const std::string& textureName) override;

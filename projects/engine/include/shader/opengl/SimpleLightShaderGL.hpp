@@ -14,7 +14,7 @@ public:
 	
 	virtual ~SimpleLightShaderGL();
 	
-	void draw(Model const& model, glm::mat4 const& transform) override;
+	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 
 	const glm::vec3& getLightColor() const override;
 

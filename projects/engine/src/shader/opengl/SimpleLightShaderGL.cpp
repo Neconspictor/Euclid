@@ -14,13 +14,13 @@ SimpleLightShaderGL::~SimpleLightShaderGL()
 {
 }
 
-void SimpleLightShaderGL::draw(Model const& model, mat4 const& transform)
+void SimpleLightShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
 {
 	MeshGL* mesh = getFromModel(model);
 	use();
 	glBindVertexArray(mesh->getVertexArrayObject());
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model.getTrafo()));
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());

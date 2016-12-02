@@ -15,7 +15,7 @@ public:
 	
 	~LampShaderGL() override;
 	
-	void draw(Model const& model, glm::mat4 const& transform) override;
+	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 
 	bool loadingFailed() override;
 

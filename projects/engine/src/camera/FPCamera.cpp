@@ -31,8 +31,10 @@ void FPCamera::update(Input* input, float frameTime)
 {
 	float sensitivity = 0.05f;
 	MouseOffset data = input->getFrameMouseOffset();
-	yaw += data.xOffset * sensitivity;
-	pitch += data.yOffset * sensitivity;
+	float yawAddition = static_cast<float>(data.xOffset) * sensitivity;
+	float pitchAddition = static_cast<float>(data.yOffset) * sensitivity;
+	yaw += yawAddition;
+	pitch += pitchAddition;
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;
@@ -45,7 +47,6 @@ void FPCamera::update(Input* input, float frameTime)
 	front.z = -cos(radians(yaw)) * cos(radians(pitch));
 	front = normalize(front);
 	setLookDirection(front);
-
 	doUserMovement(input, frameTime);
 }
 

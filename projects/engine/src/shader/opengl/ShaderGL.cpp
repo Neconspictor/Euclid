@@ -14,6 +14,7 @@
 using namespace std;
 using namespace platform;
 using namespace ::util;
+using namespace glm;
 
 
 ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
@@ -72,7 +73,7 @@ ShaderGL::~ShaderGL()
 {
 }
 
-void ShaderGL::draw(Model const& model, glm::mat4 const& transform)
+void ShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
 {
 	MeshGL* mesh = getFromModel(model);
 	use();

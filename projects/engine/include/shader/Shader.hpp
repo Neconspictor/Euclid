@@ -11,7 +11,7 @@ public:
 	
 	virtual ~Shader(){}
 
-	virtual void draw(Model const& model, glm::mat4 const& transform) = 0;
+	virtual void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) = 0;
 
 	virtual bool loadingFailed() = 0;
 	

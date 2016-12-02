@@ -2,7 +2,7 @@
 
 using namespace glm;
 
-FPCameraBase::FPCameraBase() : Camera(), cameraSpeed(5.0f)
+FPCameraBase::FPCameraBase() : Camera({0,0,0}, {0,0,-1}, {0,1,0}), cameraSpeed(5.0f)
 {
 }
 
@@ -24,7 +24,7 @@ void FPCameraBase::doUserMovement(Input* input, float frameTime)
 {
 	// camera movements
 	float moveAmount = cameraSpeed * frameTime;
-	glm::vec3 cameraRight = normalize(cross(look, up));
+	vec3 cameraRight = normalize(cross(look, up));
 
 	if (input->isDown(Input::KeyW))
 		position += moveAmount * look;
