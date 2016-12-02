@@ -9,6 +9,7 @@
 #include <camera/FPQuaternionCamera.hpp>
 #include <shader/SimpleLightShader.hpp>
 #include <shader/LampShader.hpp>
+#include <shader/PhongShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -106,25 +107,26 @@ void MainLoopTask::run()
 
 	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
-	SimpleLightShader* simpleLightShader = dynamic_cast<SimpleLightShader*>
-		(renderer->getShaderManager()->getShader(SimpleLight));
+	PhongShader* phongShader = dynamic_cast<PhongShader*>
+		(renderer->getShaderManager()->getShader(Phong));
 
 	LampShader* lampShader = dynamic_cast<LampShader*>
 		(renderer->getShaderManager()->getShader(Lamp));
 
 	renderer->getMeshManager()->loadMeshes();
 
-	simpleLightShader->setLightColor({1.0f, 1.0f, 1.0f});
-	simpleLightShader->setObjectColor({1.0f, 0.5f, 0.31f});
+	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
+	phongShader->setObjectColor({1.0f, 0.5f, 0.31f});
 	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
-	Model simpleLitModel(TestMeshes::CUBE_POSITION_NAME);
+	Model phongModel(TestMeshes::CUBE_POSITION_NORMAL_NAME);
 	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
 
 	model.setPosition({ 0.0f, 0.0f, 0.0f });
 	model.calcTrafo();
 
-	simpleLitModel.setPosition({ 1.1f, 0.0f, 0.0f });
-	simpleLitModel.calcTrafo();
+	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
+	phongModel.calcTrafo();
+	phongShader->setLightPosition(vec3 { 1.1f, 1.0f, 0.0f});
 
 	lampModel.setPosition({ 1.1f, 1.0f, 0.0f });
 	lampModel.setScale({0.5f, 0.5f, 0.5f});
@@ -139,7 +141,8 @@ void MainLoopTask::run()
 	playgroundShader->setTextureMixValue(mixValue);
 	playgroundShader->draw(model, viewProj * model.getTrafo());
 
-	simpleLightShader->draw(simpleLitModel, viewProj * simpleLitModel.getTrafo());
+	phongShader->setLightPosition({ 1.2f, 1.0f, 2.0f});
+	phongShader->draw(phongModel, viewProj * phongModel.getTrafo());
 	
 	lampShader->draw(lampModel, viewProj * lampModel.getTrafo());
 
@@ -206,7 +209,7 @@ void MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	runtime += frameTime;
 	if (runtime > 1)
 	{
-		std::stringstream ss; ss << originalTitle << " : FPS= " << fps;
+		stringstream ss; ss << originalTitle << " : FPS= " << fps;
 		window->setTitle(ss.str());
 		runtime -= 1;
 	}

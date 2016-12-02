@@ -21,6 +21,11 @@ public:
 	virtual Mesh* getPositionCube() = 0;
 
 	/**
+	* Provides read access to a cube that has position and vertex normal data.
+	*/
+	virtual Mesh* getPositionNormalCube() = 0;
+
+	/**
 	 * Provides a model that has a vertex format that contains position and uv coordinates.
 	 */
 	virtual Mesh* getTexturedCube() = 0;

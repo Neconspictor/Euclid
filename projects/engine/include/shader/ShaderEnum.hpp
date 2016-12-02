@@ -8,6 +8,7 @@
 enum ShaderEnum
 {
 	Lamp = 0,
+	Phong,
 	Playground,
 	SimpleLight
 };
@@ -17,6 +18,7 @@ enum ShaderEnum
 */
 const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	{Lamp, "LAMP" },
+	{Phong, "PHONG"},
 	{Playground, "PLAYGROUND" },
 	{SimpleLight, "SIMPLE_LIGHT" },
 };

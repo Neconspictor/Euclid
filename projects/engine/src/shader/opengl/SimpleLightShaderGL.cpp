@@ -2,7 +2,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 
-SimpleLightShaderGL::SimpleLightShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile)
+using namespace std;
+using namespace glm;
+
+SimpleLightShaderGL::SimpleLightShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
 	: ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), objectColor(1, 1, 1)
 {
 }
@@ -11,7 +14,7 @@ SimpleLightShaderGL::~SimpleLightShaderGL()
 {
 }
 
-void SimpleLightShaderGL::draw(Model const& model, glm::mat4 const& transform)
+void SimpleLightShaderGL::draw(Model const& model, mat4 const& transform)
 {
 	MeshGL* mesh = getFromModel(model);
 	use();
@@ -24,12 +27,12 @@ void SimpleLightShaderGL::draw(Model const& model, glm::mat4 const& transform)
 	glBindVertexArray(0);
 }
 
-glm::vec3 SimpleLightShaderGL::getLightColor()
+const vec3& SimpleLightShaderGL::getLightColor() const
 {
 	return lightColor;
 }
 
-glm::vec3 SimpleLightShaderGL::getObjectColor()
+const vec3& SimpleLightShaderGL::getObjectColor() const
 {
 	return objectColor;
 }
@@ -44,14 +47,14 @@ void SimpleLightShaderGL::release()
 	ShaderGL::release();
 }
 
-void SimpleLightShaderGL::setLightColor(glm::vec3 color)
+void SimpleLightShaderGL::setLightColor(vec3 color)
 {
-	lightColor = color;
+	lightColor = move(color);
 }
 
-void SimpleLightShaderGL::setObjectColor(glm::vec3 color)
+void SimpleLightShaderGL::setObjectColor(vec3 color)
 {
-	objectColor = color;
+	objectColor = move(color);
 }
 
 void SimpleLightShaderGL::use()

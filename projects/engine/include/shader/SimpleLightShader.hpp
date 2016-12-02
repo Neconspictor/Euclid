@@ -8,8 +8,8 @@ public:
 	SimpleLightShader() {}
 	virtual ~SimpleLightShader(){};
 
-	virtual glm::vec3 getLightColor() = 0;
-	virtual glm::vec3 getObjectColor() = 0;
+	virtual const glm::vec3& getLightColor() const = 0;
+	virtual const glm::vec3& getObjectColor() const = 0;
 
 	virtual void setLightColor(glm::vec3 color) = 0;
 	virtual void setObjectColor(glm::vec3 color) = 0;

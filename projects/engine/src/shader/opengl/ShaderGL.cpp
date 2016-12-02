@@ -97,23 +97,36 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	// Read the Vertex Shader code from the file
 	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
 	{
-		throw ShaderInitException("Shader::loadShaders(): Couldn't initialize vertex shader!");
+		stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't initialize vertex shader!" << endl;
+		ss << "vertex file: " << vertexFilePath;
+
+		throw ShaderInitException(ss.str());
 	}
 
 	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
 		LOG(logClient, Error) << "Couldn't initialize fragment shader!";
-		throw ShaderInitException("Shader::loadShaders(): Couldn't initialize fragment shader!");
+		stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
+		ss << "fragment file: " << fragmentFilePath;
+		throw ShaderInitException(ss.str());
 	}
 
 	if (!compileShader(vertexShaderCode.c_str(), vertexShaderID))
 	{
-		throw ShaderInitException("Shader::loadShaders(): Couldn't compile vertex shader!");
+		stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << endl;
+		ss << "vertex file: " << vertexFilePath;
+		throw ShaderInitException(ss.str());
 	}
 
 	if (!compileShader(fragmentShaderCode.c_str(), fragmentShaderID))
 	{
-		throw ShaderInitException("Shader::loadShaders(): Couldn't compile fragment shader!");
+		stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << endl;
+		ss << "fragment file: " << fragmentFilePath;
+		throw ShaderInitException(ss.str());
 	}
 
 	// link the program
