@@ -14,6 +14,12 @@ public:
 
 	virtual ~PhongMaterial();
 
+	const glm::vec3& getAmbient() const;
+	const glm::vec3& getDiffuse() const;
+	const glm::vec3& getSpecular() const;
+	float getSpecularPower() const;
+
+
 protected:
 	glm::vec3 ambientColor;
 	glm::vec3 diffuseColor;

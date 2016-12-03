@@ -37,3 +37,23 @@ PhongMaterial& PhongMaterial::operator=(PhongMaterial&& other)
 }
 
 PhongMaterial::~PhongMaterial() {}
+
+const vec3& PhongMaterial::getAmbient() const
+{
+	return ambientColor;
+}
+
+const vec3& PhongMaterial::getDiffuse() const
+{
+	return diffuseColor;
+}
+
+const vec3& PhongMaterial::getSpecular() const
+{
+	return specularColor;
+}
+
+float PhongMaterial::getSpecularPower() const
+{
+	return specularPower;
+}

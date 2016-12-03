@@ -13,6 +13,11 @@ class Model
 {
 public:
 	explicit Model(std::string meshName);
+	Model(const Model& other);
+	Model(Model&& other);
+	Model& operator=(const Model& other);
+	Model& operator=(Model&& other);
+
 	virtual ~Model(){}
 
 	/**

@@ -31,6 +31,7 @@ set(
     
     #model
     include/model/Model.hpp
+    include/model/PhongModel.hpp
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
@@ -92,6 +93,7 @@ set(
     
     #model
     src/model/Model.cpp
+    src/model/PhongModel.cpp
     
     #renderer
     src/renderer/RendererOpenGL.cpp
