@@ -26,6 +26,9 @@ set(
     include/mesh/opengl/MeshGL.hpp
     include/mesh/opengl/MeshManagerGL.hpp
     
+    #material
+    include/material/PhongMaterial.hpp
+    
     #model
     include/model/Model.hpp
     
@@ -83,6 +86,9 @@ set(
     src/mesh/opengl/MeshGL.cpp
     src/mesh/opengl/MeshManagerGL.cpp
     #src/mesh/TestMeshes.cpp
+    
+    #material
+    src/material/PhongMaterial.cpp
     
     #model
     src/model/Model.cpp

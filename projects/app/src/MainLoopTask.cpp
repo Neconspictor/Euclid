@@ -58,7 +58,7 @@ void MainLoopTask::init()
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
 	playground->setTexture1("jpg.jpg");
-	playground->setTexture2("png.png");
+	playground->setTexture2("container.png");
 }
 
 static float frameTimeElapsed = 0;
@@ -74,7 +74,6 @@ void MainLoopTask::run()
 
 	// manual 60 fps cap -> only temporary!
 	int minimumMillis = 16;
-	LOG(logClient, Debug) << millis;
 	if (millis < minimumMillis)
 	{
 		this_thread::sleep_for(milliseconds(minimumMillis - millis));
