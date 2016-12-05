@@ -3,7 +3,7 @@
 struct Material {
     vec3 ambient;
     sampler2D diffuseMap;
-    vec3 specular;
+    sampler2D specularMap;
     float shininess;
 };
 
@@ -29,6 +29,9 @@ void main()
     // sample the diffuse color for the current fragment
     vec3 diffuseColor = vec3(texture(material.diffuseMap, texCoordsFS));
     
+    // sample the specular color for the current fragment
+    vec3 specularColor = vec3(texture(material.specularMap, texCoordsFS));
+    
     
     vec3 ambient = diffuseColor * light.ambient;
     
@@ -48,7 +51,7 @@ void main()
     
     float shininess = pow(max(dot(viewDirection, reflectDirection), 0.0f), material.shininess);
     
-    vec3 specular =  (shininess * material.specular) * light.specular;
+    vec3 specular =  (shininess * specularColor) * light.specular;
     
     vec3 result = clamp(ambient + diffuse + specular, 0.0, 1.0);
     color = vec4(result, 1.0f);
