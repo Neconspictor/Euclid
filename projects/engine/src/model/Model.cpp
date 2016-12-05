@@ -12,6 +12,38 @@ Model::Model(string meshName)
 	orientation = { 1,0,0,0 };
 }
 
+Model::Model(const Model& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
+scale(other.scale), trafo(other.trafo)
+{}
+
+Model::Model(Model&& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
+scale(other.scale), trafo(other.trafo)
+{}
+
+Model& Model::operator=(const Model& other)
+{
+	meshName = other.meshName;
+	orientation = other.orientation;
+	position = other.position;
+	scale = other.scale;
+	trafo = other.trafo;
+	return *this;
+}
+
+Model& Model::operator=(Model&& other)
+{
+	meshName = move(other.meshName);
+	orientation = move(other.orientation);
+	position = move(other.position);
+	scale = move(other.scale);
+	trafo = move(other.trafo);
+	return *this;
+}
+
+Model::~Model()
+{
+}
+
 void Model::calcTrafo()
 {
 	trafo = mat4();

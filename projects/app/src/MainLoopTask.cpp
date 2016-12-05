@@ -11,6 +11,9 @@
 #include <shader/LampShader.hpp>
 #include <shader/PhongShader.hpp>
 #include <camera/FPCamera.hpp>
+#include <model/PhongModel.hpp>
+#include <model/PhongTexModel.hpp>
+#include <shader/PhongTextureShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -73,7 +76,7 @@ void MainLoopTask::run()
 	int millis = static_cast<int> (1.0f /(frameTime * 1000.0f));
 
 	// manual 60 fps cap -> only temporary!
-	int minimumMillis = 16;
+	int minimumMillis = 14;
 	if (millis < minimumMillis)
 	{
 		this_thread::sleep_for(milliseconds(minimumMillis - millis));
@@ -117,8 +120,8 @@ void MainLoopTask::run()
 
 	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
-	PhongShader* phongShader = dynamic_cast<PhongShader*>
-		(renderer->getShaderManager()->getShader(Phong));
+	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
+		(renderer->getShaderManager()->getShader(PhongTex));
 
 	LampShader* lampShader = dynamic_cast<LampShader*>
 		(renderer->getShaderManager()->getShader(Lamp));
@@ -126,9 +129,10 @@ void MainLoopTask::run()
 	renderer->getMeshManager()->loadMeshes();
 
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
-	phongShader->setObjectColor({1.0f, 0.5f, 0.31f});
 	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
-	Model phongModel(TestMeshes::CUBE_POSITION_NORMAL_NAME);
+	vec3 objectColor(1.0f, 0.5f, 0.31f);
+	PhongTexMaterial material(0.1f*objectColor, "container.png", {1,1,1}, 32);
+	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
 	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
 
 	model.setPosition({ 0.0f, 0.0f, 0.0f });
@@ -137,6 +141,7 @@ void MainLoopTask::run()
 	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
 	phongModel.calcTrafo();
 	phongShader->setLightPosition(vec3 { 1.1f, 1.0f, 0.0f});
+	phongShader->setMaterial(phongModel.getMaterial());
 
 	lampModel.setPosition({ 1.1f, 1.0f, 0.0f });
 	lampModel.setScale({0.5f, 0.5f, 0.5f});
@@ -153,6 +158,7 @@ void MainLoopTask::run()
 
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
 	phongShader->setLightPosition(lightPosition);
+	phongShader->setViewPosition(camera->getPosition());
 	phongShader->draw(phongModel, projection, view);
 	
 	lampShader->draw(lampModel, projection, view);

@@ -1,18 +1,18 @@
-#ifndef ENGINE_SHADER_OPENGL_PHONG_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_PHONG_SHADERGL_HPP
+#ifndef ENGINE_SHADER_OPENGL_PHONG_TEX_SHADERGL_HPP
+#define ENGINE_SHADER_OPENGL_PHONG_TEX_SHADERGL_HPP
 #include <shader/opengl/ShaderGL.hpp>
-#include <shader/PhongShader.hpp>
+#include <shader/PhongTextureShader.hpp>
 
-class PhongShaderGL : public ShaderGL, public PhongShader
+class PhongTexShaderGL : public ShaderGL, public PhongTextureShader
 {
 public:
 	/**
 	* Creates a new phong shader program.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	PhongShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	PhongTexShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 
-	virtual ~PhongShaderGL();
+	virtual ~PhongTexShaderGL();
 
 	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 
@@ -28,13 +28,16 @@ public:
 
 	void setLightPosition(glm::vec3 position) override;
 
-	void setMaterial(const PhongMaterial& material) override;
+	void setMaterial(const PhongTexMaterial& material) override;
 
 	void use() override;
+
+	void setViewPosition(glm::vec3 position) override;
 
 private:
 	glm::vec3 lightColor;
 	glm::vec3 lightPosition;
-	const PhongMaterial* material;
+	glm::vec3 viewPosition;
+	const PhongTexMaterial* material;
 };
 #endif

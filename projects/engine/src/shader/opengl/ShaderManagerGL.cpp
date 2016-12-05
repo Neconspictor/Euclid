@@ -6,6 +6,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <exception/ShaderInitException.hpp>
 #include <shader/opengl/PhongShaderGL.hpp>
+#include <shader/opengl/PhongTexShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -37,6 +38,7 @@ void ShaderManagerGL::loadShaders()
 {
 	createShader(Lamp);
 	createShader(Phong);
+	createShader(PhongTex);
 	createShader(Playground);
 	createShader(SimpleLight);
 }
@@ -57,6 +59,10 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	}
 	case Phong: {
 		shaderPtr = make_shared<PhongShaderGL>("phong_vs.glsl", "phong_fs.glsl");
+		break;
+	}
+	case PhongTex: {
+		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_vs.glsl", "phong_tex_fs.glsl");
 		break;
 	}
 	case Playground: {

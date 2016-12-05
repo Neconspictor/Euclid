@@ -13,6 +13,8 @@ public:
 	PhongModel& operator=(PhongModel&& other);
 	virtual ~PhongModel();
 
+	const PhongMaterial& getMaterial();
+
 protected:
 	PhongMaterial material;
 };

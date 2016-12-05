@@ -7,7 +7,8 @@ using namespace glm;
 using namespace std;
 
 PhongShaderGL::PhongShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile): 
-	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1,0,0), objectColor(1, 1, 1)
+	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1,0,0), 
+	material(nullptr)
 {
 }
 
@@ -54,10 +55,15 @@ void PhongShaderGL::draw(Model const& model, mat4 const& projection, mat4 const&
 	GLint matSpecularLoc = glGetUniformLocation(getProgramID(), "material.specular");
 	GLint matShineLoc = glGetUniformLocation(getProgramID(), "material.shininess");
 
-	glUniform3f(matAmbientLoc, lightColor.x, lightColor.y, lightColor.z);
-	glUniform3f(matDiffuseLoc, objectColor.x, objectColor.y, objectColor.z);
-	glUniform3f(matSpecularLoc, 0.5f, 0.5f, 0.5f);
-	glUniform1f(matShineLoc, 32.0f);
+
+	const vec3& ambient = material->getAmbient();
+	const vec3& diffuse = material->getDiffuse();
+	const vec3& specular = material->getSpecular();
+
+	glUniform3f(matAmbientLoc, ambient.r, ambient.g, ambient.b);
+	glUniform3f(matDiffuseLoc, diffuse.r, diffuse.g, diffuse.b);
+	glUniform3f(matSpecularLoc, specular.r, specular.g, specular.b);
+	glUniform1f(matShineLoc, material->getSpecularPower());
 
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -73,11 +79,6 @@ const vec3& PhongShaderGL::getLightColor() const
 const vec3& PhongShaderGL::getLightPosition() const
 {
 	return lightPosition;
-}
-
-const vec3& PhongShaderGL::getObjectColor() const
-{
-	return objectColor;
 }
 
 bool PhongShaderGL::loadingFailed()
@@ -100,9 +101,9 @@ void PhongShaderGL::setLightPosition(vec3 position)
 	lightPosition = move(position);
 }
 
-void PhongShaderGL::setObjectColor(vec3 color)
+void PhongShaderGL::setMaterial(const PhongMaterial& material)
 {
-	objectColor = move(color);
+	this->material = &material;
 }
 
 void PhongShaderGL::use()

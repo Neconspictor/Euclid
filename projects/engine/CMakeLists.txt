@@ -28,10 +28,12 @@ set(
     
     #material
     include/material/PhongMaterial.hpp
+    include/material/PhongTexMaterial.hpp
     
     #model
     include/model/Model.hpp
     include/model/PhongModel.hpp
+    include/model/PhongTexModel.hpp
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
@@ -49,6 +51,7 @@ set(
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/PhongShaderGL.hpp
+    include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/PlaygroundShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
@@ -90,10 +93,12 @@ set(
     
     #material
     src/material/PhongMaterial.cpp
+    src/material/PhongTexMaterial.cpp
     
     #model
     src/model/Model.cpp
     src/model/PhongModel.cpp
+    src/model/PhongTexModel.cpp
     
     #renderer
     src/renderer/RendererOpenGL.cpp
@@ -103,6 +108,7 @@ set(
     #shader/opengl
     src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/PhongShaderGL.cpp
+    src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/PlaygroundShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp

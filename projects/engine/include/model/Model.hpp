@@ -18,7 +18,7 @@ public:
 	Model& operator=(const Model& other);
 	Model& operator=(Model&& other);
 
-	virtual ~Model(){}
+	virtual ~Model();
 
 	/**
 	 * Calculates the transformatino matrix of this model

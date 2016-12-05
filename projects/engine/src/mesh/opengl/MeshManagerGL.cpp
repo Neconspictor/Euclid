@@ -94,6 +94,49 @@ Mesh* MeshManagerGL::getPositionNormalCube()
 	return mesh.get();
 }
 
+Mesh* MeshManagerGL::getPositionNormalTexCube()
+{
+	auto it = meshes.find(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	if (it != meshes.end())
+	{
+		return it->second.get();
+	}
+
+	GLuint VAO, VBO;
+	glCreateVertexArrays(1, &VAO);
+	glCreateBuffers(1, &VBO);
+
+	// 1. Bind Vertex Array Object
+	glBindVertexArray(VAO);
+	// 2. Copy our vertices array in a buffer for OpenGL to use
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	unsigned int vertexCount = sizeof(TestMeshes::cubePositionNormalTexVertices) / sizeof(GLfloat);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(TestMeshes::cubePositionNormalTexVertices), TestMeshes::cubePositionNormalTexVertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, TestMeshes::CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// vertex normals
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, TestMeshes::CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE * sizeof(GLfloat),
+		(GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+
+	// vertex normals
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, TestMeshes::CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE * sizeof(GLfloat),
+		(GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	shared_ptr<MeshGL> mesh = make_shared<MeshGL>(VAO, VBO, vertexCount);
+
+	meshes[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = mesh;
+	return mesh.get();
+}
+
 Mesh* MeshManagerGL::getTexturedCube()
 {
 
@@ -153,6 +196,7 @@ void MeshManagerGL::loadMeshes()
 	getTexturedCube();
 	getPositionCube();
 	getPositionNormalCube();
+	getPositionNormalTexCube();
 }
 
 MeshManagerGL::MeshManagerGL()
