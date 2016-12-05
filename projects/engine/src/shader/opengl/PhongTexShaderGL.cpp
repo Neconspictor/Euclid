@@ -56,22 +56,26 @@ void PhongTexShaderGL::draw(Model const& model, mat4 const& projection, mat4 con
 
 	// set model material data
 	GLint matAmbientLoc = glGetUniformLocation(programID, "material.ambient");
-	GLint matSpecularLoc = glGetUniformLocation(programID, "material.specular");
 	GLint matShineLoc = glGetUniformLocation(programID, "material.shininess");
 
 	const vec3& ambient = material->getAmbient();
 	const string& diffuseMapStr = material->getDiffuseMap();
+	const string& specularMapStr = material->getSpecularMap();
 	GLuint diffuseMap = TextureManagerGL::get()->getImage(diffuseMapStr);
-	vec3 specular = material->getSpecular();
+	GLuint specularMap = TextureManagerGL::get()->getImage(specularMapStr);
 
 	glUniform3f(matAmbientLoc, ambient.x, ambient.y, ambient.z);
-	glUniform3f(matSpecularLoc, specular.x, specular.y, specular.z);
-	glUniform1f(matShineLoc, material->getSpecularPower());
+	glUniform1f(matShineLoc, material->getShininess());
 
 	// Bind diffuse map
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseMap);
 	glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
+
+	// Bind specular map
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, specularMap);
+	glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 1);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());

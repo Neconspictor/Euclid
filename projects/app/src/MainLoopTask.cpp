@@ -131,7 +131,7 @@ void MainLoopTask::run()
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
 	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
-	PhongTexMaterial material(0.1f*objectColor, "container.png", {1,1,1}, 32);
+	PhongTexMaterial material(0.1f*objectColor, "container.png", "container_s.png", 32);
 	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
 	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
 

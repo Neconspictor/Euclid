@@ -3,32 +3,32 @@
 using namespace glm;
 using namespace std;
 
-PhongTexMaterial::PhongTexMaterial(vec3 ambient, string diffuseMap, vec3 specular, float specularPower)
+PhongTexMaterial::PhongTexMaterial(vec3 ambient, string diffuseMap, string specularMap, float shininess)
 {
 	this->ambientColor = ambient;
 	this->diffuseMap = diffuseMap;
-	this->specularColor = specular;
-	this->specularPower = specularPower;
+	this->specularMap = specularMap;
+	this->shininess = shininess;
 }
 
 PhongTexMaterial::PhongTexMaterial(const PhongTexMaterial& other) : ambientColor(other.ambientColor),
-diffuseMap(other.diffuseMap), specularColor(other.specularColor), specularPower(other.specularPower)
+diffuseMap(other.diffuseMap), specularMap(other.specularMap), shininess(other.shininess)
 {}
 
 PhongTexMaterial::PhongTexMaterial(PhongTexMaterial&& other)
 {
-	ambientColor = other.ambientColor;
-	diffuseMap = other.diffuseMap;
-	specularColor = other.specularColor;
-	specularPower = other.specularPower;
+	ambientColor = move(other.ambientColor);
+	diffuseMap = move(other.diffuseMap);
+	specularMap = move(other.specularMap);
+	shininess = move(other.shininess);
 }
 
 PhongTexMaterial& PhongTexMaterial::operator=(const PhongTexMaterial& other)
 {
 	ambientColor = other.ambientColor;
 	diffuseMap = other.diffuseMap;
-	specularColor = other.specularColor;
-	specularPower = other.specularPower;
+	specularMap = other.specularMap;
+	shininess = other.shininess;
 	return *this;
 }
 
@@ -36,8 +36,8 @@ PhongTexMaterial& PhongTexMaterial::operator=(PhongTexMaterial&& other)
 {
 	ambientColor = move(other.ambientColor);
 	diffuseMap = move(other.diffuseMap);
-	specularColor = move(other.specularColor);
-	specularPower = move(other.specularPower);
+	specularMap = move(other.specularMap);
+	shininess = move(other.shininess);
 	return *this;
 }
 
@@ -55,12 +55,12 @@ const string& PhongTexMaterial::getDiffuseMap() const
 	return diffuseMap;
 }
 
-const vec3& PhongTexMaterial::getSpecular() const
+float PhongTexMaterial::getShininess() const
 {
-	return specularColor;
+	return shininess;
 }
 
-float PhongTexMaterial::getSpecularPower() const
+const string& PhongTexMaterial::getSpecularMap() const
 {
-	return specularPower;
+	return specularMap;
 }
