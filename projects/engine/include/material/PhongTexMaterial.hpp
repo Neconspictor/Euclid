@@ -7,7 +7,7 @@
 class PhongTexMaterial
 {
 public:
-	PhongTexMaterial(glm::vec3 ambient, std::string diffuseMap, std::string specularMap, float shininess);
+	PhongTexMaterial(std::string diffuseMap, std::string emissionMap, std::string specularMap, float shininess);
 	PhongTexMaterial(const PhongTexMaterial& other);
 	PhongTexMaterial(PhongTexMaterial&& other);
 	PhongTexMaterial& operator=(const PhongTexMaterial& other);
@@ -15,14 +15,14 @@ public:
 
 	virtual ~PhongTexMaterial();
 
-	const glm::vec3& getAmbient() const;
 	const std::string& getDiffuseMap() const;
+	const std::string& getEmissionMap() const;
 	float getShininess() const;
 	const std::string& getSpecularMap() const;
 
 protected:
-	glm::vec3 ambientColor;
 	std::string diffuseMap;
+	std::string emissionMap;
 	std::string specularMap;
 	float shininess;
 };

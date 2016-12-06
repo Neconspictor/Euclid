@@ -62,7 +62,7 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 		break;
 	}
 	case PhongTex: {
-		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_vs.glsl", "phong_tex_fs.glsl");
+		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_mult_lights_vs.glsl", "phong_tex_mult_lights_fs.glsl");
 		break;
 	}
 	case Playground: {

@@ -1,9 +1,9 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
     sampler2D diffuseMap;
     sampler2D specularMap;
+    sampler2D emissionMap;
     float shininess;
 };
 
@@ -32,6 +32,9 @@ void main()
     // sample the specular color for the current fragment
     vec3 specularColor = vec3(texture(material.specularMap, texCoordsFS));
     
+    // sample the emmission color for the current fragment
+    vec3 emissionColor = vec3(texture(material.emissionMap, texCoordsFS));
+    
     
     vec3 ambient = diffuseColor * light.ambient;
     
@@ -51,8 +54,10 @@ void main()
     
     float shininess = pow(max(dot(viewDirection, reflectDirection), 0.0f), material.shininess);
     
+    //vec3 invertedSpecularColor = vec3(1.0f) - specularColor;
+    
     vec3 specular =  (shininess * specularColor) * light.specular;
     
-    vec3 result = clamp(ambient + diffuse + specular, 0.0, 1.0);
+    vec3 result = clamp(ambient + diffuse + specular + emissionColor, 0.0, 1.0);
     color = vec4(result, 1.0f);
 }

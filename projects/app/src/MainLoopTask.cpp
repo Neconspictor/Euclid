@@ -131,7 +131,7 @@ void MainLoopTask::run()
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
 	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
-	PhongTexMaterial material(0.1f*objectColor, "container.png", "container_s.png", 32);
+	PhongTexMaterial material("container.png", "matrix.jpg", "container_s.png", 32);
 	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
 	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
 
@@ -159,6 +159,16 @@ void MainLoopTask::run()
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
 	phongShader->setLightPosition(lightPosition);
 	phongShader->setViewPosition(camera->getPosition());
+	phongShader->setSpotLightDiection(camera->getLookDirection());
+
+	// Positions of the point lights
+	vec3 pointLightPositions[] = {
+		vec3(0.7f,  0.2f,  2.0f),
+		vec3(2.3f, -3.3f, -4.0f),
+		vec3(-4.0f,  2.0f, -12.0f),
+		vec3(0.0f,  0.0f, -3.0f)
+	};
+	phongShader->setPointLightPositions(pointLightPositions);
 	phongShader->draw(phongModel, projection, view);
 	
 	lampShader->draw(lampModel, projection, view);
