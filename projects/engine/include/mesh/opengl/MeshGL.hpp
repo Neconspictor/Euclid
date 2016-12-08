@@ -7,11 +7,8 @@
 class MeshGL : public Mesh
 {
 public:
-	MeshGL(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices, 
-		GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount);
+	MeshGL(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 	virtual ~MeshGL();
-
-	unsigned int getVertexCount() const;
 
 	GLuint getVertexArrayObject() const;
 	GLuint getVertexBufferObject() const;
@@ -20,8 +17,7 @@ public:
 	void setVertexBufferObject(GLuint vbo);
 
 protected:
-	GLuint vao, vbo;
-	unsigned int vertexCount;
+	GLuint vao, vbo, ebo;
 };
 
 #endif

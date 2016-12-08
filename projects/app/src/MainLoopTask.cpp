@@ -131,11 +131,11 @@ void MainLoopTask::run()
 	modelManager->loadModels();
 
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
-	Vob model(TestMeshes::CUBE_POSITION_UV_NAME);
+	Vob model(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
 	PhongTexMaterial material("container.png", "matrix.jpg", "container_s.png", 32);
 	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
-	Vob lampModel(TestMeshes::CUBE_POSITION_NAME);
+	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 
 	model.setPosition({ 0.0f, 0.0f, 0.0f });
 	model.calcTrafo();

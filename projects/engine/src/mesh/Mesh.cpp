@@ -2,43 +2,34 @@
 
 using namespace std;
 
-Mesh::Mesh(vector<float> vertices, size_t vertexSliceSize, vector<size_t> indices)
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 {
 	this->vertexData = move(vertices);
 	this->indexData = move(indices);
-	this->vertexSlice = vertexSliceSize;
 }
 
 Mesh::Mesh(const Mesh& other)
 {
 	this->vertexData = other.vertexData;
 	this->indexData = other.indexData;
-	this->vertexSlice = other.vertexSlice;
-	this->material = other.material;
 }
 
 Mesh::Mesh(Mesh&& other) : vertexData(other.vertexData),
 	indexData(other.indexData)
 {
-	this->vertexSlice = other.vertexSlice;
-	this->material = move(material);
 }
 
 Mesh& Mesh::operator=(const Mesh& o)
 {
 	this->indexData = o.indexData;
-	this->material = o.material;
 	this->vertexData = o.vertexData;
-	this->vertexSlice = o.vertexSlice;
 	return *this;
 }
 
 Mesh& Mesh::operator=(Mesh&& o)
 {
 	this->indexData = move(o.indexData);
-	this->material = move(o.material);
 	this->vertexData = move(o.vertexData);
-	this->vertexSlice = move(o.vertexSlice);
 	return *this;
 }
 
@@ -46,34 +37,32 @@ Mesh::~Mesh()
 {
 }
 
-const vector<size_t>& Mesh::getIndices() const
+const vector<unsigned int>& Mesh::getIndices() const
 {
 	return indexData;
 }
 
-const Material& Mesh::getMaterial() const
+const vector<Mesh::Vertex>& Mesh::getVertexData() const
 {
-	return material;
+	return vertexData;
 }
 
-const float* Mesh::getVertexData() const
+void Mesh::setVertexData(const vector<Vertex>& vertices)
 {
-	return vertexData.data();
+	this->vertexData = vertices;
 }
 
-size_t Mesh::getVertexSlice() const
+void Mesh::setVertexData(vector<Vertex>&& vertices)
 {
-	return vertexSlice;
+	vertexData = move(vertices);
 }
 
-void Mesh::setMaterial(Material material)
+void Mesh::setIndexData(const vector<unsigned>& indices)
 {
-	this->material = move(material);
+	indexData = indices;
 }
 
-void Mesh::setContent(vector<float> vertices, size_t vertexSliceSize, vector<size_t> indices)
+void Mesh::setIndexData(vector<unsigned>&& indices)
 {
-	this->vertexData = move(vertices);
-	this->indexData = move(indices);
-	this->vertexSlice = vertexSliceSize;
+	indexData = move(indices);
 }

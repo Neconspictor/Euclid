@@ -23,13 +23,13 @@ void LampShaderGL::draw(Mesh const& meshOriginal)
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
 	use();
-	glBindVertexArray(mesh.getVertexArrayObject());
 
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	mat4 transform = projection * view * model;
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
-	glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount());
+	glBindVertexArray(mesh.getVertexArrayObject());
+	glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 

@@ -12,10 +12,7 @@ class ModelManagerGL : public ModelManager
 public:
 	~ModelManagerGL() override;
 	Model* getModel(const std::string& meshName) override;
-	Model* getPositionCube() override;
-	Model* getPositionNormalCube() override;
 	Model* getPositionNormalTexCube() override;
-	Model* getTexturedCube() override;
 
 	static ModelManagerGL* get();
 

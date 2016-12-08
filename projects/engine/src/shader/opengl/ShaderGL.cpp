@@ -8,7 +8,6 @@
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <model/Vob.hpp>
-#include <mesh/opengl/MeshGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -45,12 +44,12 @@ void ShaderGL::use()
 	glUseProgram(this->programID);
 }
 
-GLuint ShaderGL::getProgramID()
+GLuint ShaderGL::getProgramID() const
 {
 	return programID;
 }
 
-bool ShaderGL::loadingFailed()
+bool ShaderGL::loadingFailed() const
 {
 	return this->programID == GL_FALSE;
 }
@@ -69,7 +68,7 @@ void ShaderGL::draw(const Vob& vob) const
 {
 }
 
-GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile)
+GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile) const
 {
 	// Create the shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -148,7 +147,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 }
 
 
-bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID)
+bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID) const
 {
 	int result = 0;
 	GLint logInfoLength;
@@ -164,7 +163,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
 	glCompileShader(shaderResourceID);
 
-	//check compilation
+	// check compilation
 	glGetShaderiv(shaderResourceID, GL_COMPILE_STATUS, &result);
 	glGetShaderiv(shaderResourceID, GL_INFO_LOG_LENGTH, &logInfoLength);
 

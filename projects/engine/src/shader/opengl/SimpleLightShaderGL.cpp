@@ -21,12 +21,12 @@ void SimpleLightShaderGL::draw(Mesh const& meshOriginal)
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
 	use();
-	glBindVertexArray(mesh.getVertexArrayObject());
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount());
+	glBindVertexArray(mesh.getVertexArrayObject());
+	glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 

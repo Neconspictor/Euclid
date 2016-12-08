@@ -1,6 +1,5 @@
 #ifndef ENGINE_SHADER_OPENGL_SHADERGL_HPP
 #define ENGINE_SHADER_OPENGL_SHADERGL_HPP
-#include <shader/Shader.hpp>
 #include <GL/glew.h>
 #include <string>
 #include <platform/logging/LoggingClient.hpp>
@@ -25,12 +24,12 @@ public:
 
 	virtual void draw(const Vob& vob) const;
 
-	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
-	GLuint getProgramID();
-	bool loadingFailed();
-	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
-	void release();
-	void use();
+	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID) const;
+	GLuint getProgramID() const;
+	virtual bool loadingFailed() const;
+	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile) const;
+	virtual void release();
+	virtual void use();
 
 protected:
 	GLuint programID;

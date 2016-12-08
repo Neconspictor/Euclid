@@ -15,25 +15,10 @@ public:
 	ModelManager(){};
 	virtual ~ModelManager(){}
 
-	/**
-	 * Provides read access to a cube that has only position data.
-	 */
-	virtual Model* getPositionCube() = 0;
-
-	/**
-	* Provides read access to a cube that has position and vertex normal data.
-	*/
-	virtual Model* getPositionNormalCube() = 0;
-
 	/*
 	 * Provides read acces to a cube that has position, normal and texture coordinates.
 	 */
 	virtual Model* getPositionNormalTexCube() = 0;
-
-	/**
-	 * Provides a model that has a vertex format that contains position and uv coordinates.
-	 */
-	virtual Model* getTexturedCube() = 0;
 
 	/**
 	 * Provides access to a mesh by its name.

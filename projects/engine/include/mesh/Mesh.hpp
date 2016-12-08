@@ -2,6 +2,7 @@
 #define ENGINE_MESH_MESH_HPP
 #include <vector>
 #include <material/Material.hpp>
+#include <glm/glm.hpp>
 
 /**
  * Represents a 3d mesh consisting of vertices and a list of indices describing 
@@ -14,7 +15,14 @@
 class Mesh
 {
 public:
-	explicit Mesh(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices);
+
+	struct Vertex {
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 texCoords;
+	};
+
+	explicit Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 	Mesh(const Mesh& other);
 	Mesh(Mesh&& other);
 	Mesh& operator=(const Mesh& o);
@@ -25,35 +33,22 @@ public:
 	/**
 	 * Provides the index list of this mesh.
 	 */
-	const std::vector<size_t>& getIndices() const;
-
-	/**
-	 * Provides the material of this mesh.
-	 */
-	const Material& getMaterial() const;
+	const std::vector<unsigned int>& getIndices() const;
 
 	/**
 	 * Provides access to the vertex data of this mesh.
 	 */
-	const float* getVertexData() const;
+	const std::vector<Vertex>& getVertexData() const;
 
-	/**
-	 * Provides the vertex slice of this mesh.
-	 */
-	size_t getVertexSlice() const;
+	void setVertexData(const std::vector<Vertex>& vertices);
+	void setVertexData(std::vector<Vertex>&& vertices);
 
-	/**
-	 * Sets the mesh data of this mesh.
-	 */
-	void setContent(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices);
-
-	void setMaterial(Material material);
+	void setIndexData(const std::vector<unsigned int>& indices);
+	void setIndexData(std::vector<unsigned int>&& indices);
 
 protected:
-	std::vector<float> vertexData;
-	size_t vertexSlice;
-	std::vector<size_t> indexData;
-	Material material;
+	std::vector<Vertex> vertexData;
+	std::vector<unsigned int> indexData;
 };
 
 #endif
