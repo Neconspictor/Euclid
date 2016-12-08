@@ -5,19 +5,17 @@ using namespace std;
 ModelGL::ModelGL(vector<MeshGL> meshes) : Model({})
 {
 	this->glMeshes = meshes;
-	this->meshes = vector<Mesh*>();
-	for (auto mesh : glMeshes)
-	{
-		this->meshes.push_back(static_cast<Mesh*>(&mesh));
-	}
+	updateMeshPointers();
 }
 
 ModelGL::ModelGL(const ModelGL& o) : Model(o), glMeshes(o.glMeshes)
 {
+	updateMeshPointers();
 }
 
 ModelGL::ModelGL(ModelGL&& o) : Model(o), glMeshes(o.glMeshes)
 {
+	updateMeshPointers();
 }
 
 ModelGL& ModelGL::operator=(const ModelGL& o)
@@ -25,10 +23,7 @@ ModelGL& ModelGL::operator=(const ModelGL& o)
 	if (this == &o) return *this;
 	meshes = vector<Mesh*>();
 	glMeshes = o.glMeshes;
-	for (auto mesh : glMeshes)
-	{
-		meshes.push_back(static_cast<Mesh*>(&mesh));
-	}
+	updateMeshPointers();
 
 	return *this;
 }
@@ -40,16 +35,15 @@ ModelGL& ModelGL::operator=(ModelGL&& o)
 	glMeshes = move(o.glMeshes);
 	o.meshes.clear();
 	o.glMeshes.clear();
+	updateMeshPointers();
 	return *this;
 }
 
-vector<Mesh*> ModelGL::getMeshes() const
+void ModelGL::updateMeshPointers()
 {
-	vector<Mesh*> result;
+	this->meshes.clear();
 	for (int i = 0; i < glMeshes.size(); ++i)
 	{
-		result.push_back((Mesh*)(&glMeshes[i]));
+		this->meshes.push_back((Mesh*)(&glMeshes[i]));
 	}
-
-	return result;
 }

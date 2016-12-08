@@ -1,4 +1,4 @@
-#include <mesh/opengl/MeshManagerGL.hpp>
+#include <model/opengl/ModelManagerGL.hpp>
 #include <GL/glew.h>
 #include <mesh/TestMeshes.hpp>
 #include <mesh/opengl/MeshGL.hpp>
@@ -60,7 +60,7 @@ Model* ModelManagerGL::getPositionCube()
 
 	MeshGL mesh = MeshGL(move(vertices), TestMeshes::CUBE_POSITION_VERTEX_SLICE, vector<size_t>(),
 		VAO, VBO, vertexCount);
-	shared_ptr<ModelGL> model = make_shared<ModelGL>(ModelGL(vector<MeshGL>{ mesh }));
+	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>{ mesh });
 	models[TestMeshes::CUBE_POSITION_NAME] = model;
 	
 	return model.get();

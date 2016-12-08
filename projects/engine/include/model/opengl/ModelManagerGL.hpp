@@ -1,9 +1,9 @@
 #ifndef ENGINE_MODEL_OPENGL_MODELMANAGERGL_HPP
 #define ENGINE_MODEL_OPENGL_MODELMANAGERGL_HPP
-#include <mesh/MeshManager.hpp>
 #include <memory>
 #include <unordered_map>
 #include <model/opengl/ModelGL.hpp>
+#include <model/ModelManager.hpp>
 
 class MeshGL;
 

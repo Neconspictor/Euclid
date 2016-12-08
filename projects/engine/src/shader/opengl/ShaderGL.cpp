@@ -9,7 +9,6 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <model/Vob.hpp>
 #include <mesh/opengl/MeshGL.hpp>
-#include <mesh/opengl/MeshManagerGL.hpp>
 
 using namespace std;
 using namespace platform;

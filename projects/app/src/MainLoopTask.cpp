@@ -126,7 +126,7 @@ void MainLoopTask::run()
 	LampShader* lampShader = dynamic_cast<LampShader*>
 		(renderer->getShaderManager()->getShader(Lamp));
 
-	ModelManager* modelManager = renderer->getMeshManager();
+	ModelManager* modelManager = renderer->getModelManager();
 
 	modelManager->loadModels();
 
@@ -156,7 +156,7 @@ void MainLoopTask::run()
 	mat4 viewProj = projection * view;
 
 	playgroundShader->setTextureMixValue(mixValue);
-	Shader::TransformData data = {&projection, &view, (mat4*)&model.getTrafo()};
+	Shader::TransformData data = {&projection, &view, &model.getTrafo()};
 	playgroundShader->setTransformData(data);
 	Mesh* mesh = modelManager->getModel(model.getMeshName())->getMeshes().at(0);
 	playgroundShader->draw(*mesh);
@@ -174,11 +174,11 @@ void MainLoopTask::run()
 		vec3(0.0f,  0.0f, -3.0f)
 	};
 	phongShader->setPointLightPositions(pointLightPositions);
-	data = { &projection, &view, (mat4*)&phongModel.getTrafo() };
+	data.model = &phongModel.getTrafo();
 	phongShader->setTransformData(data);
 	phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
 	
-	data = { &projection, &view, (mat4*)&lampModel.getTrafo() };
+	data.model = &lampModel.getTrafo();
 	lampShader->setTransformData(data);
 	lampShader->draw(*modelManager->getModel(lampModel.getMeshName())->getMeshes()[0]);
 

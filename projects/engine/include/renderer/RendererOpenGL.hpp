@@ -16,7 +16,7 @@ public:
 	
 	void endScene() override;
 
-	ModelManager* getMeshManager() override;
+	ModelManager* getModelManager() override;
 
 	ShaderManager* getShaderManager() override;
 	

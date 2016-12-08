@@ -20,11 +20,9 @@ set(
     
     #mesh
     include/mesh/Mesh.hpp
-    include/mesh/MeshManager.hpp
     include/mesh/TestMeshes.hpp
     #mesh/opengl
     include/mesh/opengl/MeshGL.hpp
-    include/mesh/opengl/MeshManagerGL.hpp
     
     #material
     include/material/Material.hpp
@@ -33,11 +31,13 @@ set(
     
     #model
     include/model/Model.hpp
+    include/model/ModelManager.hpp
     include/model/PhongModel.hpp
     include/model/PhongTexModel.hpp
     include/model/Vob.hpp
     #model/opengl
     include/model/opengl/ModelGL.hpp
+    include/model/opengl/ModelManagerGL.hpp
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
@@ -92,7 +92,6 @@ set(
     src/mesh/Mesh.cpp
     #mesh/opengl
     src/mesh/opengl/MeshGL.cpp
-    src/mesh/opengl/MeshManagerGL.cpp
     #src/mesh/TestMeshes.cpp
     
     #material
@@ -106,6 +105,7 @@ set(
     src/model/Vob.cpp
     #model/opengl
     src/model/opengl/ModelGL.cpp
+    src/model/opengl/ModelManagerGL.cpp
     
     #renderer
     src/renderer/RendererOpenGL.cpp

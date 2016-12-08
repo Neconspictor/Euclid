@@ -13,10 +13,10 @@ public:
 	ModelGL& operator=(const ModelGL& o);
 	ModelGL& operator=(ModelGL&& o);
 
-	virtual std::vector<Mesh*> getMeshes() const;
-
 protected:
 	std::vector<MeshGL> glMeshes;
+
+	void updateMeshPointers();
 };
 
 #endif

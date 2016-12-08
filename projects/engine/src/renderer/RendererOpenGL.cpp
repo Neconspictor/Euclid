@@ -3,8 +3,8 @@
 #include <GL/GLU.h>
 #include <shader/opengl/ShaderManagerGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
-#include <mesh/opengl/MeshManagerGL.hpp>
 #include <platform/exception/OpenglException.hpp>
+#include <model/opengl/ModelManagerGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -84,7 +84,7 @@ void RendererOpenGL::endScene()
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-ModelManager* RendererOpenGL::getMeshManager()
+ModelManager* RendererOpenGL::getModelManager()
 {
 	return ModelManagerGL::get();
 }

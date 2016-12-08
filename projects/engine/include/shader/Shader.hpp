@@ -10,9 +10,9 @@ public:
 
 	struct TransformData
 	{
-		glm::mat4* projection; 
-		glm::mat4* view;
-		glm::mat4* model;
+		glm::mat4 const* projection; 
+		glm::mat4 const* view;
+		glm::mat4 const* model;
 	};
 
 	Shader(){};
