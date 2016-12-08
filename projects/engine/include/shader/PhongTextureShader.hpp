@@ -1,7 +1,6 @@
 #ifndef ENGINE_SHADER_PHONG_TEXTURE_SHADER_HPP
 #define ENGINE_SHADER_PHONG_TEXTURE_SHADER_HPP
 #include <shader/shader.hpp>
-#include <material/PhongTexMaterial.hpp>
 
 class PhongTextureShader : public Shader
 {
@@ -14,7 +13,6 @@ public:
 
 	virtual void setLightColor(glm::vec3 color) = 0;
 	virtual void setLightPosition(glm::vec3 position) = 0;
-	virtual void setMaterial(const PhongTexMaterial& material) = 0;
 
 	// NOTE: positions is assumed to be an array with 4 elements!
 	virtual void setPointLightPositions(glm::vec3* positions) = 0;

@@ -1,8 +1,8 @@
 #ifndef ENGINE_MESH_MESH_HPP
 #define ENGINE_MESH_MESH_HPP
 #include <vector>
-#include <material/Material.hpp>
 #include <glm/glm.hpp>
+#include <material/Material.hpp>
 
 /**
  * Represents a 3d mesh consisting of vertices and a list of indices describing 
@@ -33,22 +33,26 @@ public:
 	/**
 	 * Provides the index list of this mesh.
 	 */
-	const std::vector<unsigned int>& getIndices() const;
+	virtual const std::vector<unsigned int>& getIndices() const;
+
+	virtual Material* getMaterial();
+	virtual const Material& getMaterial() const;
 
 	/**
 	 * Provides access to the vertex data of this mesh.
 	 */
-	const std::vector<Vertex>& getVertexData() const;
+	virtual const std::vector<Vertex>& getVertexData() const;
 
-	void setVertexData(const std::vector<Vertex>& vertices);
-	void setVertexData(std::vector<Vertex>&& vertices);
+	virtual void setVertexData(const std::vector<Vertex>& vertices);
+	virtual void setVertexData(std::vector<Vertex>&& vertices);
 
-	void setIndexData(const std::vector<unsigned int>& indices);
-	void setIndexData(std::vector<unsigned int>&& indices);
+	virtual void setIndexData(const std::vector<unsigned int>& indices);
+	virtual void setIndexData(std::vector<unsigned int>&& indices);
 
 protected:
 	std::vector<Vertex> vertexData;
 	std::vector<unsigned int> indexData;
+	Material material;
 };
 
 #endif

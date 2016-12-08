@@ -28,8 +28,6 @@ public:
 
 	void setLightPosition(glm::vec3 position) override;
 
-	void setMaterial(const PhongTexMaterial& material) override;
-
 	void setPointLightPositions(glm::vec3* positions) override;
 
 	void setSpotLightDiection(glm::vec3 direction) override;
@@ -47,6 +45,5 @@ private:
 	glm::vec3 viewPosition;
 	glm::vec3 spotLightDirection;
 	glm::vec3 pointLightPositions[4];
-	const PhongTexMaterial* material;
 };
 #endif

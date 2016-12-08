@@ -12,7 +12,6 @@
 #include <shader/PhongShader.hpp>
 #include <camera/FPCamera.hpp>
 #include <model/PhongModel.hpp>
-#include <model/PhongTexModel.hpp>
 #include <shader/PhongTextureShader.hpp>
 
 using namespace glm;
@@ -133,8 +132,8 @@ void MainLoopTask::run()
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
 	Vob model(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
-	PhongTexMaterial material("container.png", "matrix.jpg", "container_s.png", 32);
-	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
+	//Material material("container.png", "matrix.jpg", "container_s.png", 32);
+	Vob phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 
 	model.setPosition({ 0.0f, 0.0f, 0.0f });
@@ -143,7 +142,6 @@ void MainLoopTask::run()
 	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
 	phongModel.calcTrafo();
 	phongShader->setLightPosition(vec3 { 1.1f, 1.0f, 0.0f});
-	phongShader->setMaterial(phongModel.getMaterial());
 
 	lampModel.setPosition({ 1.1f, 1.0f, 0.0f });
 	lampModel.setScale({0.5f, 0.5f, 0.5f});

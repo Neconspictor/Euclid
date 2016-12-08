@@ -27,13 +27,11 @@ set(
     #material
     include/material/Material.hpp
     include/material/PhongMaterial.hpp
-    include/material/PhongTexMaterial.hpp
     
     #model
     include/model/Model.hpp
     include/model/ModelManager.hpp
     include/model/PhongModel.hpp
-    include/model/PhongTexModel.hpp
     include/model/Vob.hpp
     #model/opengl
     include/model/opengl/ModelGL.hpp
@@ -95,13 +93,12 @@ set(
     #src/mesh/TestMeshes.cpp
     
     #material
+    src/material/Material.cpp
     src/material/PhongMaterial.cpp
-    src/material/PhongTexMaterial.cpp
     
     #model
     src/model/Model.cpp
     src/model/PhongModel.cpp
-    src/model/PhongTexModel.cpp
     src/model/Vob.cpp
     #model/opengl
     src/model/opengl/ModelGL.cpp

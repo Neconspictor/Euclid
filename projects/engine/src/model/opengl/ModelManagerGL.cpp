@@ -59,6 +59,12 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 	}
 
 	MeshGL mesh = MeshGL(move(vertices), move(indices));
+	Material& material = *mesh.getMaterial();
+	material.setDiffuseMap("container.png");
+	material.setEmissionMap("matrix.jpg");
+	material.setSpecularMap("container_s.png");
+	material.setShininess(32);
+
 	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));
 	models[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = model;
 

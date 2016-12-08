@@ -71,7 +71,8 @@ void PhongShaderGL::draw(Mesh const& meshOriginal)
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(mesh.getVertexArrayObject());
-	glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT, 0);
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
+	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
