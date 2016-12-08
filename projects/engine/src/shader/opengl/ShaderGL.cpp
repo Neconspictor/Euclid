@@ -7,7 +7,7 @@
 #include <util/Globals.hpp>
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <model/Model.hpp>
+#include <model/Vob.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 #include <mesh/opengl/MeshManagerGL.hpp>
 
@@ -46,14 +46,6 @@ void ShaderGL::use()
 	glUseProgram(this->programID);
 }
 
-MeshGL* ShaderGL::getFromModel(Model const& model)
-{
-	MeshManagerGL* manager = MeshManagerGL::get();
-	const string& meshName = model.getMeshName();
-	Mesh* mesh = manager->getMesh(meshName);
-	return static_cast<MeshGL*>(mesh);
-}
-
 GLuint ShaderGL::getProgramID()
 {
 	return programID;
@@ -69,17 +61,13 @@ void ShaderGL::release()
 	glDeleteProgram(programID);
 }
 
+
 ShaderGL::~ShaderGL()
 {
 }
 
-void ShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
+void ShaderGL::draw(const Vob& vob) const
 {
-	MeshGL* mesh = getFromModel(model);
-	use();
-	glBindVertexArray(mesh->getVertexArrayObject());
-	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
-	glBindVertexArray(0);
 }
 
 GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile)

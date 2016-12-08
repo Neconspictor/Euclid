@@ -1,42 +1,31 @@
 #include <model/Model.hpp>
-#include <glm/gtc/matrix_transform.inl>
 
 using namespace std;
-using namespace glm;
 
-Model::Model(string meshName)
+Model::Model(vector<Mesh*> meshes)
 {
-	this->meshName = move(meshName);
-	position = { 0,0,0 };
-	scale = { 1,1,1 };
-	orientation = { 1,0,0,0 };
+	this->meshes = move(meshes);
 }
 
-Model::Model(const Model& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
-scale(other.scale), trafo(other.trafo)
-{}
-
-Model::Model(Model&& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
-scale(other.scale), trafo(other.trafo)
-{}
-
-Model& Model::operator=(const Model& other)
+Model::Model(const Model& o) : meshes(o.meshes)
 {
-	meshName = other.meshName;
-	orientation = other.orientation;
-	position = other.position;
-	scale = other.scale;
-	trafo = other.trafo;
+}
+
+Model::Model(Model&& o) : meshes(o.meshes)
+{
+}
+
+Model& Model::operator=(const Model& o)
+{
+	if (this == &o) return *this;
+	meshes = o.meshes;
 	return *this;
 }
 
-Model& Model::operator=(Model&& other)
+Model& Model::operator=(Model&& o)
 {
-	meshName = move(other.meshName);
-	orientation = move(other.orientation);
-	position = move(other.position);
-	scale = move(other.scale);
-	trafo = move(other.trafo);
+	if (this == &o) return *this;
+	meshes = move(o.meshes);
 	return *this;
 }
 
@@ -44,41 +33,15 @@ Model::~Model()
 {
 }
 
-void Model::calcTrafo()
+void Model::draw(Shader* shader)
 {
-	trafo = mat4();
-	mat4 rotation = mat4_cast(orientation);
-	mat4 scaleMat = glm::scale(trafo, scale);
-	mat4 transMat = translate(trafo, position);
-	trafo = transMat * rotation * scaleMat;
+	for (auto mesh : meshes)
+	{
+		//shader->draw(mesh);
+	}
 }
 
-string const& Model::getMeshName() const
+vector<Mesh*> Model::getMeshes() const
 {
-	return meshName;
-}
-
-mat4 const& Model::getTrafo() const
-{
-	return trafo;
-}
-
-void Model::setEulerXYZ(vec3 rotation)
-{
-	orientation = quat(move(rotation));
-}
-
-void Model::setPosition(vec3 position)
-{
-	this->position = move(position);
-}
-
-void Model::setScale(vec3 scale)
-{
-	this->scale = move(scale);
-}
-
-void Model::setTrafo(mat4 mat)
-{
-	trafo = move(mat);
+	return meshes;
 }

@@ -1,6 +1,7 @@
 #ifndef ENGINE_MESH_MESH_HPP
 #define ENGINE_MESH_MESH_HPP
 #include <vector>
+#include <material/Material.hpp>
 
 /**
  * Represents a 3d mesh consisting of vertices and a list of indices describing 
@@ -13,10 +14,11 @@
 class Mesh
 {
 public:
-	Mesh();
 	explicit Mesh(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices);
 	Mesh(const Mesh& other);
 	Mesh(Mesh&& other);
+	Mesh& operator=(const Mesh& o);
+	Mesh& operator=(Mesh&& o);
 
 	virtual ~Mesh();
 
@@ -24,6 +26,11 @@ public:
 	 * Provides the index list of this mesh.
 	 */
 	const std::vector<size_t>& getIndices() const;
+
+	/**
+	 * Provides the material of this mesh.
+	 */
+	const Material& getMaterial() const;
 
 	/**
 	 * Provides access to the vertex data of this mesh.
@@ -40,10 +47,13 @@ public:
 	 */
 	void setContent(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices);
 
+	void setMaterial(Material material);
+
 protected:
 	std::vector<float> vertexData;
 	size_t vertexSlice;
 	std::vector<size_t> indexData;
+	Material material;
 };
 
 #endif

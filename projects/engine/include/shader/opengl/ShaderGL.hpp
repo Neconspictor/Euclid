@@ -6,12 +6,12 @@
 #include <platform/logging/LoggingClient.hpp>
 
 class MeshGL;
-class Model;
+class Vob;
 
 /**
  * Represents a shader program for an OpenGL renderer.
  */
-class ShaderGL : public Shader
+class ShaderGL
 {
 public:
 	/**
@@ -21,21 +21,20 @@ public:
 	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	ShaderGL(ShaderGL&& other);
 	ShaderGL(const ShaderGL& other);
-	virtual ~ShaderGL() override;
+	virtual ~ShaderGL();
+
+	virtual void draw(const Vob& vob) const;
 
 	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
-	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
 	GLuint getProgramID();
-	bool loadingFailed() override;
+	bool loadingFailed();
 	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile);
-	void release() override;
-	void use() override;
+	void release();
+	void use();
 
 protected:
 	GLuint programID;
 	platform::LoggingClient logClient;
-
-	static MeshGL* getFromModel(Model const& model);
 };
 
 #endif

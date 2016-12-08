@@ -2,7 +2,7 @@
 #define ENGINE_SHADER_OPENGL_LAMPSHADER_HPP
 #include <shader/LampShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
-#include <model/Model.hpp>
+#include <model/Vob.hpp>
 
 class LampShaderGL : public ShaderGL, public LampShader
 {
@@ -15,7 +15,7 @@ public:
 	
 	~LampShaderGL() override;
 	
-	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
+	void draw(Mesh const& mesh) override;
 
 	bool loadingFailed() override;
 

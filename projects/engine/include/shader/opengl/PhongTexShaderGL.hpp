@@ -14,7 +14,7 @@ public:
 
 	virtual ~PhongTexShaderGL();
 
-	void draw(Model const& model, glm::mat4 const& projection, glm::mat4 const& view) override;
+	void draw(Mesh const& mesh) override;
 
 	const glm::vec3& getLightColor() const override;
 

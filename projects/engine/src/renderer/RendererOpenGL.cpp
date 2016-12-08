@@ -84,9 +84,9 @@ void RendererOpenGL::endScene()
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-MeshManager* RendererOpenGL::getMeshManager()
+ModelManager* RendererOpenGL::getMeshManager()
 {
-	return MeshManagerGL::get();
+	return ModelManagerGL::get();
 }
 
 ShaderManager* RendererOpenGL::getShaderManager()

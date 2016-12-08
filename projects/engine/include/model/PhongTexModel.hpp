@@ -1,9 +1,9 @@
 #ifndef ENGINE_MODEL_PHONG_TEX__MODEL_HPP
 #define ENGINE_MODEL_PHONG_TEX_MODEL_HPP
-#include <model/Model.hpp>
+#include <model/Vob.hpp>
 #include <material/PhongTexMaterial.hpp>
 
-class PhongTexModel : public Model
+class PhongTexModel : public Vob
 {
 public:
 	explicit PhongTexModel(const std::string& meshName, PhongTexMaterial material);

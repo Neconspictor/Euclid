@@ -27,6 +27,7 @@ set(
     include/mesh/opengl/MeshManagerGL.hpp
     
     #material
+    include/material/Material.hpp
     include/material/PhongMaterial.hpp
     include/material/PhongTexMaterial.hpp
     
@@ -34,6 +35,9 @@ set(
     include/model/Model.hpp
     include/model/PhongModel.hpp
     include/model/PhongTexModel.hpp
+    include/model/Vob.hpp
+    #model/opengl
+    include/model/opengl/ModelGL.hpp
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
@@ -99,6 +103,9 @@ set(
     src/model/Model.cpp
     src/model/PhongModel.cpp
     src/model/PhongTexModel.cpp
+    src/model/Vob.cpp
+    #model/opengl
+    src/model/opengl/ModelGL.cpp
     
     #renderer
     src/renderer/RendererOpenGL.cpp
@@ -140,6 +147,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -153,6 +161,7 @@ include/
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
 
 
@@ -171,6 +180,10 @@ find_library(SDL2main_lib_release NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/
 #boost libraries
 find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 find_library(libboost_program_options_debug NAMES libboost_program_options-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+
+#assimp library
+find_library(assimp_release NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Release)
+find_library(assimp_debug NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Debug)
 
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(engine PUBLIC opengl32)
@@ -191,3 +204,7 @@ target_link_libraries(engine PUBLIC platform)
 #boost libraries
 target_link_libraries(engine PUBLIC debug ${libboost_program_options_debug})
 target_link_libraries(engine PUBLIC optimized ${libboost_program_options_release})
+
+#assimp library
+target_link_libraries(engine PUBLIC debug ${assimp_debug})
+target_link_libraries(engine PUBLIC optimized ${assimp_release})

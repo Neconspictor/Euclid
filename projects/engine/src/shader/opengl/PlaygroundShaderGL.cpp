@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
-#include <model/Model.hpp>
+#include <model/Vob.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 
 using namespace glm;
@@ -17,16 +17,19 @@ PlaygroundShaderGL::~PlaygroundShaderGL()
 }
 
 
-void PlaygroundShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
+void PlaygroundShaderGL::draw(Mesh const& meshOriginal)
 {
-	MeshGL* mesh = getFromModel(model);
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
 	use();
-	glBindVertexArray(mesh->getVertexArrayObject());
+	glBindVertexArray(mesh.getVertexArrayObject());
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model.getTrafo()));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount());
 	glBindVertexArray(0);
 	glUseProgram(0);
 }

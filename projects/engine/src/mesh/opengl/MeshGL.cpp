@@ -2,20 +2,22 @@
 
 using namespace std;
 
-MeshGL::MeshGL(GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount) :
+MeshGL::MeshGL(vector<float> vertices, size_t vertexSliceSize, vector<size_t> indices,
+	GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount) : Mesh(vertices, vertexSliceSize, indices),
 	vao(vertexArrayObject), vbo(vertexBufferObject), vertexCount(vertexCount)
 {
 }
 
 MeshGL::~MeshGL()
 {
-	GLuint vertexArrayObject = this->getVertexArrayObject();
+	// TODO should not be needed
+	/*GLuint vertexArrayObject = this->getVertexArrayObject();
 	this->setVertexArrayObject(GL_FALSE);
 	glDeleteVertexArrays(1, &vertexArrayObject);
 
 	GLuint vertexBufferObject = this->getVertexBufferObject();
 	this->setVertexBufferObject(GL_FALSE);
-	glDeleteBuffers(1, &vertexBufferObject);
+	glDeleteBuffers(1, &vertexBufferObject);*/
 }
 
 GLuint MeshGL::getVertexArrayObject() const

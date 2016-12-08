@@ -21,7 +21,7 @@ public:
 	static ShaderManagerGL* get();
 
 private:
-	std::map<ShaderEnum, std::shared_ptr<ShaderGL>> shaderMap;
+	std::map<ShaderEnum, std::shared_ptr<Shader>> shaderMap;
 	platform::LoggingClient logClient;
 
 	// this class is a singleton, thus private constructor

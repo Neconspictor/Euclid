@@ -34,7 +34,7 @@ public:
 	/** 
 	* Provides access to a mesh manager, that creates and stores 3d meshes.
 	 */
-	virtual MeshManager* getMeshManager() = 0;
+	virtual ModelManager* getMeshManager() = 0;
 };
 
 #endif

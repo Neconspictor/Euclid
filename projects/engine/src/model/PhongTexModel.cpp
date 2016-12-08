@@ -2,14 +2,14 @@
 
 using namespace std;
 
-PhongTexModel::PhongTexModel(const string& meshName, PhongTexMaterial material) : Model(meshName), material(material)
+PhongTexModel::PhongTexModel(const string& meshName, PhongTexMaterial material) : Vob(meshName), material(material)
 {
 }
 
-PhongTexModel::PhongTexModel(const PhongTexModel& other) : Model(other), material(other.material)
+PhongTexModel::PhongTexModel(const PhongTexModel& other) : Vob(other), material(other.material)
 {}
 
-PhongTexModel::PhongTexModel(PhongTexModel&& other) : Model(other), material(other.material)
+PhongTexModel::PhongTexModel(PhongTexModel&& other) : Vob(other), material(other.material)
 {}
 
 PhongTexModel& PhongTexModel::operator=(const PhongTexModel& other)

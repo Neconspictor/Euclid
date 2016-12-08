@@ -1,5 +1,5 @@
-#ifndef ENGINE_MODEL_OPENGL_MODELGL_HPP
-#define ENGINE_MODEL_OPENGL_MODELGL_HPP
+#ifndef ENGINE_MODEL_OPENGL_MESHGL_HPP
+#define ENGINE_MODEL_OPENGL_MESHGL_HPP
 
 #include <GL/glew.h>
 #include <mesh/Mesh.hpp>
@@ -7,7 +7,8 @@
 class MeshGL : public Mesh
 {
 public:
-	MeshGL(GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount);
+	MeshGL(std::vector<float> vertices, size_t vertexSliceSize, std::vector<size_t> indices, 
+		GLuint vertexArrayObject, GLuint vertexBufferObject, unsigned int vertexCount);
 	virtual ~MeshGL();
 
 	unsigned int getVertexCount() const;

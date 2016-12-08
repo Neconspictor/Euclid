@@ -3,29 +3,29 @@
 #include <mesh/MeshManager.hpp>
 #include <memory>
 #include <unordered_map>
+#include <model/opengl/ModelGL.hpp>
 
 class MeshGL;
 
-class MeshManagerGL : public MeshManager
+class ModelManagerGL : public ModelManager
 {
 public:
-	~MeshManagerGL() override;
-	Mesh* getMesh(const std::string& meshName) override;
-	Mesh* getPositionCube() override;
-	Mesh* getPositionNormalCube() override;
-	Mesh* getPositionNormalTexCube() override;
-	Mesh* getTexturedCube() override;
+	~ModelManagerGL() override;
+	Model* getModel(const std::string& meshName) override;
+	Model* getPositionCube() override;
+	Model* getPositionNormalCube() override;
+	Model* getPositionNormalTexCube() override;
+	Model* getTexturedCube() override;
 
-	static MeshManagerGL* get();
+	static ModelManagerGL* get();
 
-	void loadMeshes() override;
+	void loadModels() override;
 
 private:
-	MeshManagerGL();
-	static void meshRelease(MeshGL* mesh);
+	ModelManagerGL();
 	
-	static std::unique_ptr<MeshManagerGL> instance;
+	static std::unique_ptr<ModelManagerGL> instance;
 
-	std::unordered_map<std::string, std::shared_ptr<MeshGL>> meshes;
+	std::unordered_map<std::string, std::shared_ptr<ModelGL>> models;
 };
 #endif

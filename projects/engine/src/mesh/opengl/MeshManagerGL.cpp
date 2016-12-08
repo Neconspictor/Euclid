@@ -4,32 +4,33 @@
 #include <mesh/opengl/MeshGL.hpp>
 #include <exception/MeshNotFoundException.hpp>
 #include <sstream>
+#include <model/opengl/ModelGL.hpp>
 
 using namespace std;
 
-unique_ptr<MeshManagerGL> MeshManagerGL::instance = make_unique<MeshManagerGL>(MeshManagerGL());
+unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>(ModelManagerGL());
 
-MeshManagerGL::~MeshManagerGL()
+ModelManagerGL::~ModelManagerGL()
 {
 }
 
-Mesh* MeshManagerGL::getMesh(const string& meshName)
+Model* ModelManagerGL::getModel(const string& modelName)
 {
-	auto it = meshes.find(meshName);
-	if (it == meshes.end())
+	auto it = models.find(modelName);
+	if (it == models.end())
 	{
 		stringstream ss;
-		ss << "MeshManagerGL::getMesh(const std::string&): Mesh not found: " << meshName;
+		ss << "MeshManagerGL::getModel(const std::string&): Model not found: " << modelName;
 		throw MeshNotFoundException(ss.str());
 	}
 
-	return it->second.get();
+	return dynamic_cast<Model*>(it->second.get());
 }
 
-Mesh* MeshManagerGL::getPositionCube()
+Model* ModelManagerGL::getPositionCube()
 {
-	auto it = meshes.find(TestMeshes::CUBE_POSITION_NAME);
-	if (it != meshes.end())
+	auto it = models.find(TestMeshes::CUBE_POSITION_NAME);
+	if (it != models.end())
 	{
 		return it->second.get();
 	}
@@ -51,16 +52,24 @@ Mesh* MeshManagerGL::getPositionCube()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	shared_ptr<MeshGL> mesh = make_shared<MeshGL>(VAO, VBO, vertexCount);
-	//shared_ptr<MeshGL> mesh = shared_ptr<MeshGL>(new MeshGL(VAO, VBO, vertexCount), meshRelease);
-	meshes[TestMeshes::CUBE_POSITION_NAME] = mesh;
-	return mesh.get();
+	vector<float> vertices;
+	for (int i = 0; i < sizeof(TestMeshes::cubePositionVertices) / sizeof(float); ++i)
+	{
+		vertices.push_back(TestMeshes::cubePositionVertices[i]);
+	}
+
+	MeshGL mesh = MeshGL(move(vertices), TestMeshes::CUBE_POSITION_VERTEX_SLICE, vector<size_t>(),
+		VAO, VBO, vertexCount);
+	shared_ptr<ModelGL> model = make_shared<ModelGL>(ModelGL(vector<MeshGL>{ mesh }));
+	models[TestMeshes::CUBE_POSITION_NAME] = model;
+	
+	return model.get();
 }
 
-Mesh* MeshManagerGL::getPositionNormalCube()
+Model* ModelManagerGL::getPositionNormalCube()
 {
-	auto it = meshes.find(TestMeshes::CUBE_POSITION_NORMAL_NAME);
-	if (it != meshes.end())
+	auto it = models.find(TestMeshes::CUBE_POSITION_NORMAL_NAME);
+	if (it != models.end())
 	{
 		return it->second.get();
 	}
@@ -88,16 +97,24 @@ Mesh* MeshManagerGL::getPositionNormalCube()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	shared_ptr<MeshGL> mesh = make_shared<MeshGL>(VAO, VBO, vertexCount);
+	vector<float> vertices;
+	for (int i = 0; i < sizeof(TestMeshes::cubePositionNormalVertices) / sizeof(float); ++i)
+	{
+		vertices.push_back(TestMeshes::cubePositionNormalVertices[i]);
+	}
 
-	meshes[TestMeshes::CUBE_POSITION_NORMAL_NAME] = mesh;
-	return mesh.get();
+	MeshGL mesh = MeshGL(move(vertices), TestMeshes::CUBE_POSITION_NORMAL_VERTEX_SLICE, vector<size_t>(),
+		VAO, VBO, vertexCount);
+	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));
+	models[TestMeshes::CUBE_POSITION_NORMAL_NAME] = model;
+
+	return model.get();
 }
 
-Mesh* MeshManagerGL::getPositionNormalTexCube()
+Model* ModelManagerGL::getPositionNormalTexCube()
 {
-	auto it = meshes.find(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	if (it != meshes.end())
+	auto it = models.find(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	if (it != models.end())
 	{
 		return it->second.get();
 	}
@@ -131,17 +148,25 @@ Mesh* MeshManagerGL::getPositionNormalTexCube()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	shared_ptr<MeshGL> mesh = make_shared<MeshGL>(VAO, VBO, vertexCount);
+	vector<float> vertices;
+	for (int i = 0; i < sizeof(TestMeshes::cubePositionNormalTexVertices) / sizeof(float); ++i)
+	{
+		vertices.push_back(TestMeshes::cubePositionNormalTexVertices[i]);
+	}
 
-	meshes[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = mesh;
-	return mesh.get();
+	MeshGL mesh = MeshGL(move(vertices), TestMeshes::CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE, vector<size_t>(),
+		VAO, VBO, vertexCount);
+	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));
+	models[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = model;
+
+	return model.get();
 }
 
-Mesh* MeshManagerGL::getTexturedCube()
+Model* ModelManagerGL::getTexturedCube()
 {
 
-	auto it = meshes.find(TestMeshes::CUBE_POSITION_UV_NAME);
-	if (it != meshes.end())
+	auto it = models.find(TestMeshes::CUBE_POSITION_UV_NAME);
+	if (it != models.end())
 	{
 		return it->second.get();
 	}
@@ -180,17 +205,27 @@ Mesh* MeshManagerGL::getTexturedCube()
 	//5. Unbind the VAO
 	glBindVertexArray(0);
 
-	shared_ptr<MeshGL> mesh = make_shared<MeshGL>(VAO, VBO, vertexCount);
-	meshes[TestMeshes::CUBE_POSITION_UV_NAME] = mesh;
-	return mesh.get();
+	vector<float> vertices;
+	for (int i = 0; i < sizeof(TestMeshes::cubePositionUVVertices) / sizeof(float); ++i)
+	{
+		vertices.push_back(TestMeshes::cubePositionUVVertices[i]);
+	}
+
+	MeshGL mesh = MeshGL(move(vertices), TestMeshes::CUBE_POSITION_UV_VERTEX_SLICE,
+		vector<size_t>(),
+		VAO, VBO, vertexCount);
+	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));
+	models[TestMeshes::CUBE_POSITION_UV_NAME] = model;
+
+	return model.get();
 }
 
-MeshManagerGL* MeshManagerGL::get()
+ModelManagerGL* ModelManagerGL::get()
 {
 	return instance.get();
 }
 
-void MeshManagerGL::loadMeshes()
+void ModelManagerGL::loadModels()
 {
 	//TODO
 	getTexturedCube();
@@ -199,17 +234,6 @@ void MeshManagerGL::loadMeshes()
 	getPositionNormalTexCube();
 }
 
-MeshManagerGL::MeshManagerGL()
+ModelManagerGL::ModelManagerGL()
 {
-}
-
-void MeshManagerGL::meshRelease(MeshGL* mesh)
-{
-	GLuint vertexArrayObject = mesh->getVertexArrayObject();
-	mesh->setVertexArrayObject(GL_FALSE);
-	glDeleteVertexArrays(1, &vertexArrayObject);
-
-	GLuint vertexBufferObject = mesh->getVertexBufferObject();
-	mesh->setVertexBufferObject(GL_FALSE);
-	glDeleteBuffers(1, &vertexBufferObject);
 }

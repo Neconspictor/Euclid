@@ -50,7 +50,7 @@ ShaderManagerGL* ShaderManagerGL::get()
 
 Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 {
-	shared_ptr<ShaderGL> shaderPtr;
+	shared_ptr<Shader> shaderPtr;
 	switch(shaderEnum)
 	{
 	case Lamp: {

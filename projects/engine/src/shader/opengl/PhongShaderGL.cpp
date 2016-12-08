@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
+#include <platform/exception/OpenglException.hpp>
 
 using namespace glm;
 using namespace std;
@@ -16,23 +17,26 @@ PhongShaderGL::~PhongShaderGL()
 {
 }
 
-void PhongShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
+void PhongShaderGL::draw(Mesh const& meshOriginal)
 {
-	MeshGL* mesh = getFromModel(model);
+	MeshGL const& mesh = static_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
 	use();
-	glBindVertexArray(mesh->getVertexArrayObject());
+	glBindVertexArray(mesh.getVertexArrayObject());
 
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model.getTrafo()));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
 	GLuint modelLoc = glGetUniformLocation(getProgramID(), "modelView");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(view * model.getTrafo()));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(view * model));
 
 	// specular color is calculated in view space; so multiply normal matrix
 	// and light position by the view matrix.
 
 	GLint normalMatrixLoc = glGetUniformLocation(getProgramID(), "normalMatrix");
-	mat4 normalMatrix = transpose(inverse(view * model.getTrafo()));
+	mat4 normalMatrix = transpose(inverse(view * model));
 	glUniformMatrix4fv(normalMatrixLoc, 1, GL_FALSE, value_ptr(normalMatrix));
 
 	GLint lightPositionLoc = glGetUniformLocation(getProgramID(), "light.position");
@@ -67,7 +71,7 @@ void PhongShaderGL::draw(Model const& model, mat4 const& projection, mat4 const&
 
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount());
 	glBindVertexArray(0);
 }
 

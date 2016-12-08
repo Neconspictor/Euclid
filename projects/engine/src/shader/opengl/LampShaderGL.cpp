@@ -1,7 +1,7 @@
 #include <shader/opengl/LampShaderGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <model/Model.hpp>
+#include <model/Vob.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 
 using namespace std;
@@ -16,17 +16,20 @@ LampShaderGL::~LampShaderGL()
 {
 }
 
-void LampShaderGL::draw(Model const& model, mat4 const& projection, mat4 const& view)
+void LampShaderGL::draw(Mesh const& meshOriginal)
 {
-	MeshGL* mesh = getFromModel(model);
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
 	use();
-	glBindVertexArray(mesh->getVertexArrayObject());
+	glBindVertexArray(mesh.getVertexArrayObject());
 
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	mat4 transform = projection * view * model.getTrafo();
+	mat4 transform = projection * view * model;
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
-	glDrawArrays(GL_TRIANGLES, 0, mesh->getVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, mesh.getVertexCount());
 	glBindVertexArray(0);
 }
 

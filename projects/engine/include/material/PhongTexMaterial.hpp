@@ -1,7 +1,5 @@
 #ifndef ENGINE_MATERIAL_PHONG_TEX_MATERIAL
 #define ENGINE_MATERIAL_PHONG_TEX_MATERIAL
-
-#include <glm/glm.hpp>
 #include <string>
 
 class PhongTexMaterial

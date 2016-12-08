@@ -1,6 +1,5 @@
 #include <material/PhongTexMaterial.hpp>
 
-using namespace glm;
 using namespace std;
 
 PhongTexMaterial::PhongTexMaterial(string diffuseMap, string emissionMap, string specularMap, float shininess)

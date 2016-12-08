@@ -126,14 +126,16 @@ void MainLoopTask::run()
 	LampShader* lampShader = dynamic_cast<LampShader*>
 		(renderer->getShaderManager()->getShader(Lamp));
 
-	renderer->getMeshManager()->loadMeshes();
+	ModelManager* modelManager = renderer->getMeshManager();
+
+	modelManager->loadModels();
 
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
-	Model model(TestMeshes::CUBE_POSITION_UV_NAME);
+	Vob model(TestMeshes::CUBE_POSITION_UV_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
 	PhongTexMaterial material("container.png", "matrix.jpg", "container_s.png", 32);
 	PhongTexModel phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME, material);
-	Model lampModel(TestMeshes::CUBE_POSITION_NAME);
+	Vob lampModel(TestMeshes::CUBE_POSITION_NAME);
 
 	model.setPosition({ 0.0f, 0.0f, 0.0f });
 	model.calcTrafo();
@@ -154,7 +156,10 @@ void MainLoopTask::run()
 	mat4 viewProj = projection * view;
 
 	playgroundShader->setTextureMixValue(mixValue);
-	playgroundShader->draw(model, projection, view);
+	Shader::TransformData data = {&projection, &view, (mat4*)&model.getTrafo()};
+	playgroundShader->setTransformData(data);
+	Mesh* mesh = modelManager->getModel(model.getMeshName())->getMeshes().at(0);
+	playgroundShader->draw(*mesh);
 
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
 	phongShader->setLightPosition(lightPosition);
@@ -169,9 +174,13 @@ void MainLoopTask::run()
 		vec3(0.0f,  0.0f, -3.0f)
 	};
 	phongShader->setPointLightPositions(pointLightPositions);
-	phongShader->draw(phongModel, projection, view);
+	data = { &projection, &view, (mat4*)&phongModel.getTrafo() };
+	phongShader->setTransformData(data);
+	phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
 	
-	lampShader->draw(lampModel, projection, view);
+	data = { &projection, &view, (mat4*)&lampModel.getTrafo() };
+	lampShader->setTransformData(data);
+	lampShader->draw(*modelManager->getModel(lampModel.getMeshName())->getMeshes()[0]);
 
 	renderer->endScene();
 	renderer->present();
