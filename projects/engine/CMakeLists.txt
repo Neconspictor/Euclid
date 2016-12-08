@@ -34,6 +34,7 @@ set(
     include/model/PhongModel.hpp
     include/model/Vob.hpp
     #model/opengl
+    include/model/opengl/AssimpModelLoader.hpp
     include/model/opengl/ModelGL.hpp
     include/model/opengl/ModelManagerGL.hpp
     
@@ -101,6 +102,7 @@ set(
     src/model/PhongModel.cpp
     src/model/Vob.cpp
     #model/opengl
+    src/model/opengl/AssimpModelLoader.cpp
     src/model/opengl/ModelGL.cpp
     src/model/opengl/ModelManagerGL.cpp
     

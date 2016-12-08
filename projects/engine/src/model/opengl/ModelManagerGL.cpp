@@ -5,6 +5,7 @@
 #include <exception/MeshNotFoundException.hpp>
 #include <sstream>
 #include <model/opengl/ModelGL.hpp>
+#include <model/opengl/AssimpModelLoader.hpp>
 
 using namespace std;
 
@@ -19,9 +20,12 @@ Model* ModelManagerGL::getModel(const string& modelName)
 	auto it = models.find(modelName);
 	if (it == models.end())
 	{
-		stringstream ss;
-		ss << "MeshManagerGL::getModel(const std::string&): Model not found: " << modelName;
-		throw MeshNotFoundException(ss.str());
+		//stringstream ss;
+		//ss << "MeshManagerGL::getModel(const std::string&): Model not found: " << modelName;
+		//throw MeshNotFoundException(ss.str());
+		shared_ptr<ModelGL> model = make_shared<ModelGL>(assimpLoader.loadModel(modelName));
+		models[modelName] = model;
+		return model.get();
 	}
 
 	return dynamic_cast<Model*>(it->second.get());
@@ -80,6 +84,7 @@ void ModelManagerGL::loadModels()
 {
 	//TODO
 	getPositionNormalTexCube();
+	//AssimpModelLoader::loadModel("");
 }
 
 ModelManagerGL::ModelManagerGL()

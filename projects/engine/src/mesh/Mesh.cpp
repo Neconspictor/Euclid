@@ -79,3 +79,8 @@ void Mesh::setIndexData(vector<unsigned>&& indices)
 {
 	indexData = move(indices);
 }
+
+void Mesh::setMaterial(Material material)
+{
+	this->material = move(material);
+}

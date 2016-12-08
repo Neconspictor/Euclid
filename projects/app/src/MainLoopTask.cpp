@@ -19,7 +19,7 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true)
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit.obj")
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -174,7 +174,13 @@ void MainLoopTask::run()
 	phongShader->setPointLightPositions(pointLightPositions);
 	data.model = &phongModel.getTrafo();
 	phongShader->setTransformData(data);
-	phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
+	vector<Mesh*> meshes = modelManager->getModel(nanosuitModel.getMeshName())->getMeshes();
+	for (int i = 0; i < meshes.size(); ++i)
+	{
+		phongShader->draw(*meshes[i]);
+	}
+	
+	//phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
 	
 	data.model = &lampModel.getTrafo();
 	lampShader->setTransformData(data);

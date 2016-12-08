@@ -15,7 +15,6 @@ public:
 
 	void setVertexArrayObject(GLuint vao);
 	void setVertexBufferObject(GLuint vbo);
-
 protected:
 	GLuint vao, vbo, ebo;
 };

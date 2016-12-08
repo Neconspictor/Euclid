@@ -43,11 +43,13 @@ public:
 	 */
 	virtual const std::vector<Vertex>& getVertexData() const;
 
-	virtual void setVertexData(const std::vector<Vertex>& vertices);
-	virtual void setVertexData(std::vector<Vertex>&& vertices);
-
 	virtual void setIndexData(const std::vector<unsigned int>& indices);
 	virtual void setIndexData(std::vector<unsigned int>&& indices);
+
+	virtual void setMaterial(Material material);
+
+	virtual void setVertexData(const std::vector<Vertex>& vertices);
+	virtual void setVertexData(std::vector<Vertex>&& vertices);
 
 protected:
 	std::vector<Vertex> vertexData;

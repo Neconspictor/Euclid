@@ -38,41 +38,27 @@ GLuint TextureManagerGL::getImage(const string& file)
 	if (texture == GL_FALSE)
 	{
 		LOG(logClient, Error) << "Couldn't load image file: " << file << endl;
-		return GL_FALSE;
+		stringstream ss;
+		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
+		throw runtime_error(ss.str());
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
 										   // Set our texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);    // Note that we set our container wrapping method to GL_CLAMP_TO_EDGE
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);    // Note that we set our container wrapping method to GL_CLAMP_TO_EDGE
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 																	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	//glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	textures.insert(pair<string, GLuint>(file, texture));
-
-	/*int width, height;
-	unsigned char* image = SOIL_load_image(file.c_str(), &width, &height, nullptr, SOIL_LOAD_RGBA);
-	if (image == nullptr)
-	{
-	std::cout << "Error: TextureManager::loadImage: Couldn't load image: " << file << std::endl;
-	return GL_FALSE;
-	}
-
-	GLuint texture = GL_FALSE;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0);*/
 	return texture;
 }
 
-void TextureManagerGL::loadImages(const std::string& imageFolder)
+void TextureManagerGL::loadImages(const string& imageFolder)
 {
 	//TODO!
 }

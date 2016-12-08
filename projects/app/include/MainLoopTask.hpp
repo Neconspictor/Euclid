@@ -9,6 +9,7 @@
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
 #include <camera/Camera.hpp>
+#include <model/Vob.hpp>
 
 
 class MainLoopTask : public Task
@@ -38,6 +39,7 @@ private:
 	std::shared_ptr<Camera> camera;
 	float mixValue;
 	bool isRunning;
+	Vob nanosuitModel;
 
 	void updateCamera(Input* input, float deltaTime);
 

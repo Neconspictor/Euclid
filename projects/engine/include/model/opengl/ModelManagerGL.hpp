@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <model/opengl/ModelGL.hpp>
 #include <model/ModelManager.hpp>
+#include "AssimpModelLoader.hpp"
 
 class MeshGL;
 
@@ -24,5 +25,6 @@ private:
 	static std::unique_ptr<ModelManagerGL> instance;
 
 	std::unordered_map<std::string, std::shared_ptr<ModelGL>> models;
+	AssimpModelLoader assimpLoader;
 };
 #endif

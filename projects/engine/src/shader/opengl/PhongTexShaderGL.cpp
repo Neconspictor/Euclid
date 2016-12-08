@@ -64,9 +64,17 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 	const string& diffuseMapStr = material.getDiffuseMap();
 	const string& specularMapStr = material.getSpecularMap();
 	const string& emissionMapStr = material.getEmissionMap();
-	GLuint diffuseMap = TextureManagerGL::get()->getImage(diffuseMapStr);
-	GLuint specularMap = TextureManagerGL::get()->getImage(specularMapStr);
-	GLuint emissionMap = TextureManagerGL::get()->getImage(emissionMapStr);
+
+	GLuint diffuseMap = 0;
+	GLuint specularMap = 0;
+	GLuint emissionMap = 0;
+
+	if (diffuseMapStr.compare("") != 0)
+		diffuseMap = TextureManagerGL::get()->getImage(diffuseMapStr);
+	if (specularMapStr.compare("") != 0)
+		specularMap = TextureManagerGL::get()->getImage(specularMapStr);
+	if (emissionMapStr.compare("") != 0)
+		emissionMap = TextureManagerGL::get()->getImage(emissionMapStr);
 
 	//glUniform3f(matAmbientLoc, ambient.x, ambient.y, ambient.z);
 	glUniform1f(matShineLoc, material.getShininess());
