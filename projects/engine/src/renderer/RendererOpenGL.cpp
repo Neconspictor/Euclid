@@ -5,6 +5,7 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <platform/exception/OpenglException.hpp>
 #include <model/opengl/ModelManagerGL.hpp>
+#include <drawing/opengl/ModelDrawerGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -34,26 +35,16 @@ void RendererOpenGL::init()
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // White Background
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 
-	glGenVertexArrays(1, &vertexArrayObjID);
-	glBindVertexArray(vertexArrayObjID);
-	// This will identify our vertex buffer
-	// Generate 1 buffer, put the resulting identifier in vertexbuffer
-	glGenBuffers(1, &vertexbuffer);
-	// The following commands will talk about our 'vertexbuffer' buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	// Give our vertices to OpenGL.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		(void*)0            // array buffer offset
-		);
-	glEnableVertexAttribArray(0);
+	// stencil buffering is enabled when needed!
+	//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
@@ -62,7 +53,8 @@ void RendererOpenGL::init()
 void RendererOpenGL::beginScene()
 {
 	glClearColor(0.7f, 0.7f, 1.0f, 1.0f); // Dark greyish Background
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glStencilMask(0x00);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -71,17 +63,12 @@ void RendererOpenGL::beginScene()
 
 void RendererOpenGL::endScene()
 {
-	// 1rst attribute buffer : vertices
-	/*glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
 
-	// Draw the triangle !
-	glBindVertexArray(vertexArrayObjID); // First VAO
-	glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);*/
-
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+ModelDrawer* RendererOpenGL::getModelDrawer()
+{
+	return ModelDrawerGL::get();
 }
 
 ModelManager* RendererOpenGL::getModelManager()

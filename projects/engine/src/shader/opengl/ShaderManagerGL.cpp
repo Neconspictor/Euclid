@@ -7,6 +7,7 @@
 #include <exception/ShaderInitException.hpp>
 #include <shader/opengl/PhongShaderGL.hpp>
 #include <shader/opengl/PhongTexShaderGL.hpp>
+#include <shader/opengl/SimpleColorShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -40,6 +41,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(Phong);
 	createShader(PhongTex);
 	createShader(Playground);
+	createShader(SimpleColor);
 	createShader(SimpleLight);
 }
 
@@ -67,6 +69,11 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	}
 	case Playground: {
 		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl");
+		break;
+	}
+	case SimpleColor: {
+		shaderPtr = make_shared<SimpleColorShaderGL>
+			("simpleColor_vs.glsl", "simpleColor_fs.glsl");
 		break;
 	}
 	case SimpleLight: {

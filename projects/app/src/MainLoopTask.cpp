@@ -19,7 +19,7 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("gun.obj")
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit-test.obj")
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -127,17 +127,19 @@ void MainLoopTask::run()
 
 	ModelManager* modelManager = renderer->getModelManager();
 
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+
 	modelManager->loadModels();
 
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
-	Vob model(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	Vob cube(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	vec3 objectColor(1.0f, 0.5f, 0.31f);
 	//Material material("container.png", "matrix.jpg", "container_s.png", 32);
 	Vob phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 
-	model.setPosition({ 0.0f, 0.0f, 0.0f });
-	model.calcTrafo();
+	cube.setPosition({ 0.0f, 0.0f, 0.0f });
+	cube.calcTrafo();
 
 	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
 	phongModel.calcTrafo();
@@ -154,10 +156,12 @@ void MainLoopTask::run()
 	mat4 viewProj = projection * view;
 
 	playgroundShader->setTextureMixValue(mixValue);
-	Shader::TransformData data = {&projection, &view, &model.getTrafo()};
-	playgroundShader->setTransformData(data);
-	Mesh* mesh = modelManager->getModel(model.getMeshName())->getMeshes().at(0);
-	playgroundShader->draw(*mesh);
+	Shader::TransformData data = {&projection, &view, &cube.getTrafo()};
+	//playgroundShader->setTransformData(data);
+	//Mesh* mesh = modelManager->getModel(model.getMeshName())->getMeshes().at(0);
+	//playgroundShader->draw(*mesh);
+	Model* model = modelManager->getModel(cube.getMeshName());
+	modelDrawer->draw(*model, playgroundShader, data);
 
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
 	phongShader->setLightPosition(lightPosition);
@@ -173,18 +177,22 @@ void MainLoopTask::run()
 	};
 	phongShader->setPointLightPositions(pointLightPositions);
 	data.model = &phongModel.getTrafo();
-	phongShader->setTransformData(data);
-	vector<Mesh*> meshes = modelManager->getModel(nanosuitModel.getMeshName())->getMeshes();
-	for (int i = 0; i < meshes.size(); ++i)
-	{
-		phongShader->draw(*meshes[i]);
-	}
+	//phongShader->setTransformData(data);
+	//vector<Mesh*> meshes = modelManager->getModel(nanosuitModel.getMeshName())->getMeshes();
+	//for (int i = 0; i < meshes.size(); ++i)
+	//{
+	//	phongShader->draw(*meshes[i]);
+	//}
+	model = modelManager->getModel(nanosuitModel.getMeshName());
+	modelDrawer->drawOutlined(*model, phongShader, data, vec3(1.0f, 1.0f, 0.0f));
 	
 	//phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
 	
 	data.model = &lampModel.getTrafo();
-	lampShader->setTransformData(data);
-	lampShader->draw(*modelManager->getModel(lampModel.getMeshName())->getMeshes()[0]);
+	//lampShader->setTransformData(data);
+	//lampShader->draw(*modelManager->getModel(lampModel.getMeshName())->getMeshes()[0]);
+	model = modelManager->getModel(lampModel.getMeshName());
+	modelDrawer->draw(*model, lampShader, data);
 
 	renderer->endScene();
 	renderer->present();

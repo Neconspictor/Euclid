@@ -16,6 +16,8 @@ public:
 	
 	void endScene() override;
 
+	ModelDrawer* getModelDrawer() override;
+
 	ModelManager* getModelManager() override;
 
 	ShaderManager* getShaderManager() override;

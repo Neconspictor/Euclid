@@ -11,6 +11,7 @@ enum ShaderEnum
 	Phong,
 	PhongTex,
 	Playground,
+	SimpleColor,
 	SimpleLight
 };
 
@@ -22,6 +23,7 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	{Phong, "PHONG"},
 	{ PhongTex, "PHONG_TEX" },
 	{Playground, "PLAYGROUND" },
+	{ SimpleColor, "SIMPLE_COLOR" },
 	{SimpleLight, "SIMPLE_LIGHT" },
 };
 

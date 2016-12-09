@@ -10,6 +10,11 @@ set(
     include/camera/TrackballCamera.hpp
     include/camera/TrackballQuatCamera.hpp
     
+    #drawing
+    include/drawing/ModelDrawer.hpp
+    #drawing/opengl
+    include/drawing/opengl/ModelDrawerGL.hpp
+    
     #exception
     include/exception/MeshNotFoundException.hpp
     include/exception/ShaderInitException.hpp
@@ -40,6 +45,7 @@ set(
     
     #renderer
     include/renderer/AbstractRendererFactory.hpp
+    include/renderer/Renderer3D.hpp
     include/renderer/RendererOpenGL.hpp
     
     #shader
@@ -50,6 +56,7 @@ set(
     include/shader/Shader.hpp
     include/shader/ShaderEnum.hpp
     include/shader/ShaderManager.hpp
+    include/shader/SimpleColorShader.hpp
     include/shader/SimpleLightShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
@@ -58,6 +65,7 @@ set(
     include/shader/opengl/PlaygroundShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
+    include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleLightShaderGL.hpp
     
     #system
@@ -84,6 +92,10 @@ set(
     src/camera/FPQuaternionCamera.cpp
     src/camera/TrackballCamera.cpp
     src/camera/TrackballQuatCamera.cpp
+    
+    #drawing
+    #drawing/opengl
+    src/drawing/opengl/ModelDrawerGL.cpp
     
     #listener
     
@@ -118,6 +130,7 @@ set(
     src/shader/opengl/PlaygroundShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp
+    src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
     
     #system

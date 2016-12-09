@@ -16,6 +16,10 @@ WindowWin32::WindowWin32(WindowStruct const& desc):Window(desc), hwnd(nullptr)
 	HINSTANCE appInstance = GetModuleHandle(nullptr);
 	hwnd = createWindow(appInstance, title);
 	hdc = GetDC(hwnd);
+
+	//PIXELFORMATDESCRIPTOR pfd;
+	//BOOL bResult = SetPixelFormat(hdc, 9, &pfd);
+
 	openglContext = nullptr;
 	if (!hwnd)
 	{

@@ -70,7 +70,34 @@ void PlatformWindows::setOpenGLPixelFormat(HDC& hdc)
 
 HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 {
+
+	// TODO initialize opengl, query pixel format, destroy window, create window again and set 
+	// finally the wished pixel format!
+	/*
+	string test = wglGetExtensionsStringARB(hdc);
+
+	cout << "test: " << test << endl;
+
+	const int attribList[] =
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		0,        //End
+	};
+
+	int pixelFormat;
+	UINT numFormats;
+
+	wglChoosePixelFormatARB(hdc, attribList, NULL, 1, &pixelFormat, &numFormats);*/
+
+
 	HGLRC hglrc = nullptr;
+
 	PIXELFORMATDESCRIPTOR pfd;
 	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
 	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -78,16 +105,23 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 	pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
 	pfd.iPixelType = PFD_TYPE_RGBA;
 	pfd.cColorBits = 32;
-	pfd.cDepthBits = 32;
+	pfd.cDepthBits = 24;
+	pfd.cStencilBits = 8;
 	pfd.iLayerType = PFD_MAIN_PLANE;
 
 	int nPixelFormat = ChoosePixelFormat(hdc, &pfd);
 
-	if (nPixelFormat == 0) return false;
+	if (nPixelFormat == 0) {
+		throw runtime_error("Found no valid pixel format!");
+	}
 
 	BOOL bResult = SetPixelFormat(hdc, nPixelFormat, &pfd);
 
-	if (!bResult) return false;
+	if (!bResult) {
+		string error = GetLastErrorAsString();
+		cout << "Error: " << error;
+		throw runtime_error("Pixel format couldn't be set!");
+	}
 
 	HGLRC tempContext = wglCreateContext(hdc);
 	wglMakeCurrent(hdc, tempContext);
@@ -99,6 +133,7 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 		MessageBox(nullptr, "GLEW is not initialized!",
 			"OpenGL Rendering Context Error", MB_OK);
 	}
+
 
 	int desiredOpenGLVersion[2];
 	desiredOpenGLVersion[0] = 4;

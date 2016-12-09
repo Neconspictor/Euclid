@@ -1,9 +1,6 @@
 #include <model/opengl/ModelManagerGL.hpp>
-#include <GL/glew.h>
 #include <mesh/TestMeshes.hpp>
 #include <mesh/opengl/MeshGL.hpp>
-#include <exception/MeshNotFoundException.hpp>
-#include <sstream>
 #include <model/opengl/ModelGL.hpp>
 #include <model/opengl/AssimpModelLoader.hpp>
 

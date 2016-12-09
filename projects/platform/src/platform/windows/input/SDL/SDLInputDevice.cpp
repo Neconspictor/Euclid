@@ -11,25 +11,17 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height) :
 	try
 	{
 		sdl = new SDL(SDL_INIT_EVERYTHING);
-		//SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, );
-		SDL_Window* pSampleWin = SDL_CreateWindow("", 0, 0, 1, 1, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
-
-		char sBuf[32];
-		sprintf_s<32>(sBuf, "%p", pSampleWin);
-
-		SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, sBuf);
 
 		sdl->setWindow(SDL_CreateWindowFrom(window));
-		SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, nullptr);
+		SDL_Window* pSampleWin = sdl->getWindow();
+		char sBuf[32];
+		sprintf_s<32>(sBuf, "%p", pSampleWin);
+		SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT, sBuf);
 
-		SDL_GLContext glcontext = SDL_GL_CreateContext(sdl->getWindow());
-		if (glcontext == NULL) LOG(logClient, Error) << "SDL_GLContext is null!";
 		if (sdl->getWindow())
 		{
 			LOG(logClient, Debug) << "SDLInputDevice(): window isn't null!";
 		}
-
-		SDL_DestroyWindow(pSampleWin);
 
 		SDL_PumpEvents();
 
