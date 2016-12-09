@@ -78,7 +78,7 @@ void main()
     }
     
     // phase 3: spot lighting
-    result += calcSpotLight(spotLight, normal, fragmentPosition, viewDirection);
+    //result += calcSpotLight(spotLight, normal, fragmentPosition, viewDirection);
     
     result = clamp(result, 0.0, 1.0);
     

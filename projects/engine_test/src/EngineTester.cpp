@@ -13,7 +13,6 @@
 #include <platform/Input.hpp>
 #include <model/Model.hpp>
 #include <memory>
-#include <model/ModelFactory.hpp>
 #include <shader/SimpleLightShader.hpp>
 #include <shader/LampShader.hpp>
 #include <shader/PlaygroundShader.hpp>

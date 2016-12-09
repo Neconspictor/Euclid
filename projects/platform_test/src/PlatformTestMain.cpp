@@ -13,7 +13,6 @@ int main()
 	LoggingClient logClient(getLogServer());
 	logClient.add(makeConsoleEndpoint());
 	logClient.add(makeFileEndpoint("./log.log"));
-	logClient.setLogLevel(Debug);
 
 	testLogging();
 	testTaskManagement();

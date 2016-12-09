@@ -19,7 +19,7 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit.obj")
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("gun.obj")
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -59,7 +59,7 @@ void MainLoopTask::init()
 	renderer->getShaderManager()->loadShaders();
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
-	playground->setTexture1("jpg.jpg");
+	playground->setTexture1("gun_d.png");
 	playground->setTexture2("container.png");
 }
 

@@ -18,7 +18,7 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 {
 	string filePath = util::globals::MESHES_PATH +  path;
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -118,6 +118,8 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		if (specularMaps.size())
 			material.setSpecularMap(specularMaps[0]);
 	}
+
+	material.setShininess(32);
 
 	MeshGL result(move(vertices), move(indices));
 	result.setMaterial(move(material));
