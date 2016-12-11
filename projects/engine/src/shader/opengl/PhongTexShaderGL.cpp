@@ -61,41 +61,38 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 
 	//const vec3& ambient = material->getAmbient();
 	const Material& material = mesh.getMaterial();
-	const string& diffuseMapStr = material.getDiffuseMap();
-	const string& specularMapStr = material.getSpecularMap();
-	const string& emissionMapStr = material.getEmissionMap();
 
-	GLuint diffuseMap = 0;
-	GLuint specularMap = 0;
-	GLuint emissionMap = 0;
-
-	if (diffuseMapStr.compare("") != 0)
-		diffuseMap = TextureManagerGL::get()->getImage(diffuseMapStr);
-	if (specularMapStr.compare("") != 0)
-		specularMap = TextureManagerGL::get()->getImage(specularMapStr);
-	if (emissionMapStr.compare("") != 0)
-		emissionMap = TextureManagerGL::get()->getImage(emissionMapStr);
+	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
+	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
+	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
 
 	//glUniform3f(matAmbientLoc, ambient.x, ambient.y, ambient.z);
 	glUniform1f(matShineLoc, material.getShininess());
 
 	// Bind diffuse map
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseMap);
-	glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
+	if (diffuseMap)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap->getTexture());
+		glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
+	}
 
 	// Bind specular map
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, specularMap);
-	glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 1);
-
+	if (specularMap)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 1);
+	}
 
 	// Bind emission map
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, emissionMap);
-	glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 2);
+	if (emissionMap)
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, emissionMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 2);
+	}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
@@ -110,11 +107,6 @@ const vec3& PhongTexShaderGL::getLightColor() const
 const vec3& PhongTexShaderGL::getLightPosition() const
 {
 	return lightPosition;
-}
-
-bool PhongTexShaderGL::loadingFailed()
-{
-	return ShaderGL::loadingFailed();
 }
 
 void PhongTexShaderGL::release()
@@ -155,47 +147,47 @@ void PhongTexShaderGL::initLights()
 	// == ==========================
 	// Directional light
 	glUniform3f(glGetUniformLocation(programID, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
-	glUniform3f(glGetUniformLocation(programID, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
-	glUniform3f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f);
-	glUniform3f(glGetUniformLocation(programID, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.specular"), 0.5f, 0.5f, 0.5f, 1.0f);
 	// Point light 1
 	glUniform3f(glGetUniformLocation(programID, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[0].diffuse"), 0.8f, 0.8f, 0.8f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[0].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[0].constant"), 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[0].linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[0].quadratic"), 0.032f);
 	// Point light 2
 	glUniform3f(glGetUniformLocation(programID, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[1].diffuse"), 0.8f, 0.8f, 0.8f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[1].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[1].constant"), 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[1].linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[1].quadratic"), 0.032f);
 	// Point light 3
 	glUniform3f(glGetUniformLocation(programID, "pointLights[2].position"), pointLightPositions[2].x, pointLightPositions[2].y, pointLightPositions[2].z);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[2].ambient"), 0.05f, 0.05f, 0.05f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[2].diffuse"), 0.8f, 0.8f, 0.8f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[2].specular"), 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[2].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[2].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[2].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[2].constant"), 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[2].linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[2].quadratic"), 0.032f);
 	// Point light 4
 	glUniform3f(glGetUniformLocation(programID, "pointLights[3].position"), pointLightPositions[3].x, pointLightPositions[3].y, pointLightPositions[3].z);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[3].ambient"), 0.05f, 0.05f, 0.05f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[3].diffuse"), 0.8f, 0.8f, 0.8f);
-	glUniform3f(glGetUniformLocation(programID, "pointLights[3].specular"), 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[3].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[3].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "pointLights[3].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[3].constant"), 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[3].linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(programID, "pointLights[3].quadratic"), 0.032f);
 	// SpotLight
 	glUniform3f(glGetUniformLocation(programID, "spotLight.position"), viewPosition.x, viewPosition.y, viewPosition.z);
 	glUniform3f(glGetUniformLocation(programID, "spotLight.direction"), spotLightDirection.x, spotLightDirection.y, spotLightDirection.z);
-	glUniform3f(glGetUniformLocation(programID, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
-	glUniform3f(glGetUniformLocation(programID, "spotLight.diffuse"), 1.0f, 1.0f, 1.0f);
-	glUniform3f(glGetUniformLocation(programID, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "spotLight.ambient"), 0.0f, 0.0f, 0.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "spotLight.diffuse"), 1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "spotLight.specular"), 1.0f, 1.0f, 1.0f, 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "spotLight.constant"), 1.0f);
 	glUniform1f(glGetUniformLocation(programID, "spotLight.linear"), 0.09f);
 	glUniform1f(glGetUniformLocation(programID, "spotLight.quadratic"), 0.032f);

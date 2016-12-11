@@ -2,6 +2,7 @@
 #define ENGINE_SHADER_OPENGL_PLAYGROUND_SHADERGL_HPP
 #include <shader/PlaygroundShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
+#include <texture/opengl/TextureGL.hpp>
 
 class Vob;
 
@@ -15,7 +16,6 @@ public:
 	PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
 	virtual ~PlaygroundShaderGL();
 	void draw(Mesh const& mesh) override;
-	bool loadingFailed() override;
 	void release() override;
 	void setTexture1(const std::string& textureName) override;
 	void setTexture2(const std::string& textureName) override;
@@ -26,7 +26,8 @@ protected:
 	float mixValue;
 
 private:
-	GLuint texture, texture2;
+	TextureGL* texture;
+	TextureGL* texture2;
 };
 
 #endif

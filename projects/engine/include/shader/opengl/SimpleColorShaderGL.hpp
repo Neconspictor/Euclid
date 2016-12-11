@@ -16,18 +16,16 @@ public:
 
 	void draw(Mesh const& mesh) override;
 
-	const glm::vec3& getObjectColor() const override;
-
-	bool loadingFailed() override;
+	const glm::vec4& getObjectColor() const override;
 
 	void release() override;
 
-	void setObjectColor(glm::vec3 color) override;
+	void setObjectColor(glm::vec4 color) override;
 
 	void use() override;
 
 private:
-	glm::vec3 objectColor;
+	glm::vec4 objectColor;
 };
 
 #endif

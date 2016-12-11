@@ -12,7 +12,9 @@ enum ShaderEnum
 	PhongTex,
 	Playground,
 	SimpleColor,
-	SimpleLight
+	SimpleExtrude,
+	SimpleLight,
+	Screen
 };
 
 /**
@@ -21,10 +23,12 @@ enum ShaderEnum
 const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	{Lamp, "LAMP" },
 	{Phong, "PHONG"},
-	{ PhongTex, "PHONG_TEX" },
+	{PhongTex, "PHONG_TEX" },
 	{Playground, "PLAYGROUND" },
-	{ SimpleColor, "SIMPLE_COLOR" },
+	{SimpleColor, "SIMPLE_COLOR" },
+	{SimpleExtrude, "SIMPLE_EXTRUDE" },
 	{SimpleLight, "SIMPLE_LIGHT" },
+	{Screen, "SCREEN"}
 };
 
 	/**
@@ -43,5 +47,5 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	/**
 	* Puts a string representation of a shader enum to an output stream.
 	*/
-	std::ostream& operator<<(std::ostream& os, const ShaderEnum& shader);
+	std::ostream& operator<<(std::ostream& os, ShaderEnum shader);
 #endif

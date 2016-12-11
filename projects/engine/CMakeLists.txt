@@ -53,30 +53,43 @@ set(
     include/shader/PhongShader.hpp
     include/shader/PhongTextureShader.hpp
     include/shader/PlaygroundShader.hpp
+    include/shader/ScreenShader.hpp
     include/shader/Shader.hpp
     include/shader/ShaderEnum.hpp
     include/shader/ShaderManager.hpp
     include/shader/SimpleColorShader.hpp
+    include/shader/SimpleExtrudeShader.hpp
     include/shader/SimpleLightShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/PhongShaderGL.hpp
     include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/PlaygroundShaderGL.hpp
+    include/shader/opengl/ScreenShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
     include/shader/opengl/SimpleColorShaderGL.hpp
+    include/shader/opengl/SimpleExtrudeShaderGL.hpp
     include/shader/opengl/SimpleLightShaderGL.hpp
+ 
     
+    #sprite
+    include/sprite/Sprite.hpp
+    #sprite/opengl
+    include/sprite/opengl/SpriteGL.hpp
+ 
     #system
     include/system/Configuration.hpp
     include/system/Engine.hpp
     include/system/Video.hpp
     include/system/System.hpp
+ 
     
     #texture
+    include/texture/Texture.hpp
     include/texture/TextureManager.hpp
     #texture/opengl
+    include/texture/opengl/TextureGL.hpp
     include/texture/opengl/TextureManagerGL.hpp
     
     #util
@@ -128,10 +141,17 @@ set(
     src/shader/opengl/PhongShaderGL.cpp
     src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/PlaygroundShaderGL.cpp
+    src/shader/opengl/ScreenShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp
     src/shader/opengl/SimpleColorShaderGL.cpp
+    src/shader/opengl/SimpleExtrudeShaderGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
+    
+    #sprite
+    src/sprite/Sprite.cpp
+    #sprite/opengl
+    src/sprite/opengl/SpriteGL.cpp
     
     #system
     src/system/Configuration.cpp
@@ -141,6 +161,7 @@ set(
     
     #texture
     #texture/opengl
+    src/texture/opengl/TextureGL.cpp
     src/texture/opengl/TextureManagerGL.cpp
     
     #util

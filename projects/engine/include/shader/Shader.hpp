@@ -20,8 +20,6 @@ public:
 	virtual ~Shader(){}
 
 	virtual void draw(Mesh const& mesh) = 0;
-
-	virtual bool loadingFailed() = 0;
 	
 	virtual void release() = 0;
 

@@ -34,11 +34,6 @@ void LampShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
-bool LampShaderGL::loadingFailed()
-{
-	return ShaderGL::loadingFailed();
-}
-
 void LampShaderGL::release()
 {
 	ShaderGL::release();

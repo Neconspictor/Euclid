@@ -1,12 +1,13 @@
 #include <material/Material.hpp>
+#include <type_traits>
 
 using namespace std;
 
-Material::Material() : diffuseMap(""), emissionMap(""), specularMap(""), shininess(0)
+Material::Material() : diffuseMap(nullptr), emissionMap(nullptr), specularMap(nullptr), shininess(0)
 {
 }
 
-Material::Material(string diffuseMap, string emissionMap, string specularMap, float shininess)
+Material::Material(Texture* diffuseMap, Texture* emissionMap, Texture* specularMap, float shininess)
 {
 	this->diffuseMap = diffuseMap;
 	this->emissionMap = emissionMap;
@@ -49,12 +50,12 @@ Material::~Material()
 {
 }
 
-const string& Material::getDiffuseMap() const
+Texture* Material::getDiffuseMap() const
 {
 	return diffuseMap;
 }
 
-const string& Material::getEmissionMap() const
+Texture* Material::getEmissionMap() const
 {
 	return emissionMap;
 }
@@ -64,24 +65,24 @@ float Material::getShininess() const
 	return shininess;
 }
 
-const string& Material::getSpecularMap() const
+Texture* Material::getSpecularMap() const
 {
 	return specularMap;
 }
 
-void Material::setDiffuseMap(string diffuse)
+void Material::setDiffuseMap(Texture* diffuse)
 {
-	diffuseMap = move(diffuse);
+	diffuseMap = diffuse;
 }
 
-void Material::setEmissionMap(string emission)
+void Material::setEmissionMap(Texture* emission)
 {
-	emissionMap = move(emission);
+	emissionMap = emission;
 }
 
-void Material::setSpecularMap(std::string specular)
+void Material::setSpecularMap(Texture* specular)
 {
-	specularMap = move(specular);
+	specularMap = specular;
 }
 
 void Material::setShininess(float shininess)

@@ -3,6 +3,7 @@
 #include <mesh/opengl/MeshGL.hpp>
 #include <model/opengl/ModelGL.hpp>
 #include <model/opengl/AssimpModelLoader.hpp>
+#include <texture/opengl/TextureManagerGL.hpp>
 
 using namespace std;
 
@@ -12,14 +13,61 @@ ModelManagerGL::~ModelManagerGL()
 {
 }
 
+ModelGL ModelManagerGL::createScreenSpriteModel()
+{
+	// create a Quad mesh that fills up the enter screen; screen space range from [-1, 1] in x,y and z axis;
+	// as we want a  2D model, the z axis is ignored/set to 0.0f
+	// normal vectors aren't needed, too -> set to 0.0f as well.
+	vector<Mesh::Vertex> vertices;
+	Mesh::Vertex vertex;
+	
+	// left upper corner 
+	vertex.position = { -1.0f,  1.0f, 0.0f};
+	vertex.normal = { 0.0f, 0.0f, 0.0f };
+	vertex.texCoords = {0.0f, 1.0f};
+	vertices.push_back(vertex);
+
+	// left bottom corner
+	vertex.position = { -1.0f,  -1.0f, 0.0f };
+	vertex.normal = { 0.0f, 0.0f, 0.0f };
+	vertex.texCoords = { 0.0f, 0.0f };
+	vertices.push_back(vertex);
+
+	// right bottom corner
+	vertex.position = { 1.0f,  -1.0f, 0.0f };
+	vertex.normal = { 0.0f, 0.0f, 0.0f };
+	vertex.texCoords = { 1.0f, 0.0f };
+	vertices.push_back(vertex);
+
+	// right upper corner
+	vertex.position = { 1.0f,  1.0f, 0.0f };
+	vertex.normal = { 0.0f, 0.0f, 0.0f };
+	vertex.texCoords = { 1.0f, 1.0f };
+	vertices.push_back(vertex);
+
+	// create index buffer in counter clock winding order
+	vector<unsigned int> indices;
+
+	// first triangle
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(3);
+
+	// second triangle
+	indices.push_back(1);
+	indices.push_back(2);
+	indices.push_back(3);
+
+	MeshGL mesh = MeshGL(move(vertices), move(indices));
+	ModelGL model(vector<MeshGL>{mesh});
+	return model;
+}
+
 Model* ModelManagerGL::getModel(const string& modelName)
 {
 	auto it = models.find(modelName);
 	if (it == models.end())
 	{
-		//stringstream ss;
-		//ss << "MeshManagerGL::getModel(const std::string&): Model not found: " << modelName;
-		//throw MeshNotFoundException(ss.str());
 		shared_ptr<ModelGL> model = make_shared<ModelGL>(assimpLoader.loadModel(modelName));
 		models[modelName] = model;
 		return model.get();
@@ -61,9 +109,10 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 
 	MeshGL mesh = MeshGL(move(vertices), move(indices));
 	Material& material = *mesh.getMaterial();
-	material.setDiffuseMap("container.png");
-	material.setEmissionMap("matrix.jpg");
-	material.setSpecularMap("container_s.png");
+	TextureManagerGL* textureManager = TextureManagerGL::get();
+	material.setDiffuseMap(textureManager->getImage("container.png"));
+	material.setEmissionMap(textureManager->getImage("matrix.jpg"));
+	material.setSpecularMap(textureManager->getImage("container_s.png"));
 	material.setShininess(32);
 
 	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));

@@ -56,6 +56,7 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	vector<Mesh::Vertex> vertices;
 	vector<unsigned int> indices;
 	Material material;
+	TextureManagerGL* manager = TextureManagerGL::get();
 
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)
 	{
@@ -110,13 +111,19 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		// but we only use the first one
 		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
 		if (diffuseMaps.size())
-			material.setDiffuseMap(diffuseMaps[0]);
+		{
+			material.setDiffuseMap(manager->getImage(diffuseMaps[0]));
+		}
 		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
 		if (emissionMaps.size())
-			material.setEmissionMap(emissionMaps[0]);
+		{
+			material.setEmissionMap(manager->getImage(emissionMaps[0]));
+		}
 		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
 		if (specularMaps.size())
-			material.setSpecularMap(specularMaps[0]);
+		{
+			material.setSpecularMap(manager->getImage(specularMaps[0]));
+		}
 	}
 
 	material.setShininess(32);

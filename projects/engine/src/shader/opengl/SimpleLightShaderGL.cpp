@@ -6,7 +6,7 @@ using namespace std;
 using namespace glm;
 
 SimpleLightShaderGL::SimpleLightShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
-	: ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), objectColor(1, 1, 1)
+	: ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), objectColor(1, 1, 1, 1)
 {
 }
 
@@ -24,7 +24,6 @@ void SimpleLightShaderGL::draw(Mesh const& meshOriginal)
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
@@ -36,14 +35,9 @@ const vec3& SimpleLightShaderGL::getLightColor() const
 	return lightColor;
 }
 
-const vec3& SimpleLightShaderGL::getObjectColor() const
+const vec4& SimpleLightShaderGL::getObjectColor() const
 {
 	return objectColor;
-}
-
-bool SimpleLightShaderGL::loadingFailed()
-{
-	return ShaderGL::loadingFailed();
 }
 
 void SimpleLightShaderGL::release()
@@ -56,7 +50,7 @@ void SimpleLightShaderGL::setLightColor(vec3 color)
 	lightColor = move(color);
 }
 
-void SimpleLightShaderGL::setObjectColor(vec3 color)
+void SimpleLightShaderGL::setObjectColor(vec4 color)
 {
 	objectColor = move(color);
 }

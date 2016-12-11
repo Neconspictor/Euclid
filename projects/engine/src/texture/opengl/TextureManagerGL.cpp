@@ -1,7 +1,6 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <SOIL2/SOIL2.h>
 #include <util/Globals.hpp>
-#include <algorithm>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
 using namespace std;
@@ -11,31 +10,38 @@ unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureMan
 
 TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
 {
-	textures = map<string, GLuint>();
+	textureLookupTable = map<string, TextureGL*>();
 	logClient.setPrefix("[TextureManagerGL]");
 }
 
 TextureManagerGL::~TextureManagerGL()
 {
-	for_each(textures.begin(), textures.end(), [](pair<string, GLuint> elem) {
-		glDeleteTextures(1, &elem.second);
-	});
+	for (auto& texture : textures)
+	{
+		GLuint id = texture.getTexture();
+		glDeleteTextures(1, &id);
+	}
 }
 
-GLuint TextureManagerGL::getImage(const string& file)
+TextureGL* TextureManagerGL::getImageGL(const string& file)
 {
-	auto it = textures.find(file);
+	return static_cast<TextureGL*>(getImage(file));
+}
+
+Texture* TextureManagerGL::getImage(const string& file)
+{
+	auto it = textureLookupTable.find(file);
 
 	// Don't create duplicate textures!
-	if (it != textures.end())
+	if (it != textureLookupTable.end())
 	{
 		return it->second;
 	}
 
 	string path = ::util::globals::TEXTURE_PATH + file;
 
-	GLuint texture = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
-	if (texture == GL_FALSE)
+	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
+	if (textureID == GL_FALSE)
 	{
 		LOG(logClient, Error) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
@@ -43,7 +49,7 @@ GLuint TextureManagerGL::getImage(const string& file)
 		throw runtime_error(ss.str());
 	}
 
-	glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
+	glBindTexture(GL_TEXTURE_2D, textureID); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
 										   // Set our texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -54,8 +60,10 @@ GLuint TextureManagerGL::getImage(const string& file)
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	textures.insert(pair<string, GLuint>(file, texture));
-	return texture;
+	textures.push_back(TextureGL(textureID));
+	TextureGL* pointer = &textures.back();
+	textureLookupTable.insert(pair<string, TextureGL*>(file, pointer));
+	return pointer;
 }
 
 void TextureManagerGL::loadImages(const string& imageFolder)

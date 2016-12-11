@@ -3,7 +3,7 @@
 using namespace glm;
 using namespace std;
 
-PhongMaterial::PhongMaterial(vec3 ambient, vec3 diffuse, vec3 specular, float specularPower) :
+PhongMaterial::PhongMaterial(vec4 ambient, vec4 diffuse, vec4 specular, float specularPower) :
 	ambientColor(ambient), diffuseColor(diffuse), specularColor(specular), specularPower(specularPower)
 {}
 
@@ -38,17 +38,17 @@ PhongMaterial& PhongMaterial::operator=(PhongMaterial&& other)
 
 PhongMaterial::~PhongMaterial() {}
 
-const vec3& PhongMaterial::getAmbient() const
+const vec4& PhongMaterial::getAmbient() const
 {
 	return ambientColor;
 }
 
-const vec3& PhongMaterial::getDiffuse() const
+const vec4& PhongMaterial::getDiffuse() const
 {
 	return diffuseColor;
 }
 
-const vec3& PhongMaterial::getSpecular() const
+const vec4& PhongMaterial::getSpecular() const
 {
 	return specularColor;
 }

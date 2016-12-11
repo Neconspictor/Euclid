@@ -12,9 +12,9 @@ class ModelManagerGL : public ModelManager
 {
 public:
 	~ModelManagerGL() override;
+	static ModelGL createScreenSpriteModel();
 	Model* getModel(const std::string& meshName) override;
 	Model* getPositionNormalTexCube() override;
-
 	static ModelManagerGL* get();
 
 	void loadModels() override;

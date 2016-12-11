@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
-#include <platform/exception/OpenglException.hpp>
 
 using namespace glm;
 using namespace std;
@@ -59,17 +58,15 @@ void PhongShaderGL::draw(Mesh const& meshOriginal)
 	GLint matShineLoc = glGetUniformLocation(getProgramID(), "material.shininess");
 
 
-	const vec3& ambient = material->getAmbient();
-	const vec3& diffuse = material->getDiffuse();
-	const vec3& specular = material->getSpecular();
+	const vec4& ambient = material->getAmbient();
+	const vec4& diffuse = material->getDiffuse();
+	const vec4& specular = material->getSpecular();
 
-	glUniform3f(matAmbientLoc, ambient.r, ambient.g, ambient.b);
-	glUniform3f(matDiffuseLoc, diffuse.r, diffuse.g, diffuse.b);
-	glUniform3f(matSpecularLoc, specular.r, specular.g, specular.b);
+	glUniform4f(matAmbientLoc, ambient.r, ambient.g, ambient.b, ambient.a);
+	glUniform4f(matDiffuseLoc, diffuse.r, diffuse.g, diffuse.b, diffuse.a);
+	glUniform4f(matSpecularLoc, specular.r, specular.g, specular.b, specular.a);
 	glUniform1f(matShineLoc, material->getSpecularPower());
 
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
@@ -84,11 +81,6 @@ const vec3& PhongShaderGL::getLightColor() const
 const vec3& PhongShaderGL::getLightPosition() const
 {
 	return lightPosition;
-}
-
-bool PhongShaderGL::loadingFailed()
-{
-	return ShaderGL::loadingFailed();
 }
 
 void PhongShaderGL::release()

@@ -8,6 +8,8 @@
 #include <shader/opengl/PhongShaderGL.hpp>
 #include <shader/opengl/PhongTexShaderGL.hpp>
 #include <shader/opengl/SimpleColorShaderGL.hpp>
+#include <shader/opengl/SimpleExtrudeShaderGL.hpp>
+#include <shader/opengl/ScreenShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -76,9 +78,19 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 			("simpleColor_vs.glsl", "simpleColor_fs.glsl");
 		break;
 	}
+	case SimpleExtrude: {
+		shaderPtr = make_shared<SimpleExtrudeShaderGL>
+			("simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
+		break;
+	}
 	case SimpleLight: {
 		shaderPtr = make_shared<SimpleLightShaderGL>
 			("simpleLight_vs.glsl", "simpleLight_fs.glsl");
+		break;
+	}
+	case Screen: {
+		shaderPtr = make_shared<ScreenShaderGL>
+			("screen_vs.glsl", "screen_fs.glsl");
 		break;
 	}
 	default: {

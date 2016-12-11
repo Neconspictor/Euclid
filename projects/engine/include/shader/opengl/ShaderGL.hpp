@@ -22,11 +22,8 @@ public:
 	ShaderGL(const ShaderGL& other);
 	virtual ~ShaderGL();
 
-	virtual void draw(const Vob& vob) const;
-
 	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID) const;
 	GLuint getProgramID() const;
-	virtual bool loadingFailed() const;
 	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile) const;
 	virtual void release();
 	virtual void use();

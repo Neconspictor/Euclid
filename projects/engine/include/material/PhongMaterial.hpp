@@ -6,7 +6,7 @@
 class PhongMaterial
 {
 public:
-	PhongMaterial(glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float specularPower);
+	PhongMaterial(glm::vec4 ambient, glm::vec4 diffuse, glm::vec4 specular, float specularPower);
 	PhongMaterial(const PhongMaterial& other);
 	PhongMaterial(PhongMaterial&& other);
 	PhongMaterial& operator=(const PhongMaterial& other);
@@ -14,16 +14,16 @@ public:
 
 	virtual ~PhongMaterial();
 
-	const glm::vec3& getAmbient() const;
-	const glm::vec3& getDiffuse() const;
-	const glm::vec3& getSpecular() const;
+	const glm::vec4& getAmbient() const;
+	const glm::vec4& getDiffuse() const;
+	const glm::vec4& getSpecular() const;
 	float getSpecularPower() const;
 
 
 protected:
-	glm::vec3 ambientColor;
-	glm::vec3 diffuseColor;
-	glm::vec3 specularColor;
+	glm::vec4 ambientColor;
+	glm::vec4 diffuseColor;
+	glm::vec4 specularColor;
 	float specularPower; // influences the shininess of the specular color
 };
 

@@ -5,11 +5,11 @@
 class SimpleColorShader : public Shader
 {
 public:
-	SimpleColorShader() {}
+	SimpleColorShader() : Shader() {}
 	virtual ~SimpleColorShader() {};
 
-	virtual const glm::vec3& getObjectColor() const = 0;
+	virtual const glm::vec4& getObjectColor() const = 0;
 
-	virtual void setObjectColor(glm::vec3 color) = 0;
+	virtual void setObjectColor(glm::vec4 color) = 0;
 };
 #endif

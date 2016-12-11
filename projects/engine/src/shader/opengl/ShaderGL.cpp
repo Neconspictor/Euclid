@@ -49,11 +49,6 @@ GLuint ShaderGL::getProgramID() const
 	return programID;
 }
 
-bool ShaderGL::loadingFailed() const
-{
-	return this->programID == GL_FALSE;
-}
-
 void ShaderGL::release()
 {
 	glDeleteProgram(programID);
@@ -61,10 +56,6 @@ void ShaderGL::release()
 
 
 ShaderGL::~ShaderGL()
-{
-}
-
-void ShaderGL::draw(const Vob& vob) const
 {
 }
 

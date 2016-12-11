@@ -10,7 +10,9 @@ public:
 
 	void draw(const Model& model, Shader* shader, Shader::TransformData data) override;
 	
-	void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec3 borderColor) override;
+	void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) override;
+
+	void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) override;
 
 	static ModelDrawerGL* get();
 

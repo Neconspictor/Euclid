@@ -61,6 +61,8 @@ void MainLoopTask::init()
 		(renderer->getShaderManager()->getShader(Playground));
 	playground->setTexture1("gun_d.png");
 	playground->setTexture2("container.png");
+
+	renderer->getModelManager()->loadModels();
 }
 
 static float frameTimeElapsed = 0;
@@ -115,7 +117,8 @@ void MainLoopTask::run()
 
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
-	renderer->beginScene();
+	renderer->useOffscreenBuffer();
+	//renderer->useScreenBuffer();
 
 	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
@@ -129,14 +132,21 @@ void MainLoopTask::run()
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
-	modelManager->loadModels();
+	Model* model = nullptr;
+
+	// Positions of the point lights
+	vec3 pointLightPositions[] = {
+		vec3(0.7f,  0.2f,  2.0f),
+		vec3(2.3f, -3.3f, -4.0f),
+		vec3(-4.0f,  2.0f, -12.0f),
+		vec3(0.0f,  0.0f, -3.0f)
+	};
 
 	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
 	Vob cube(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	vec3 objectColor(1.0f, 0.5f, 0.31f);
-	//Material material("container.png", "matrix.jpg", "container_s.png", 32);
 	Vob phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	Vob gunVob("gun.obj");
 
 	cube.setPosition({ 0.0f, 0.0f, 0.0f });
 	cube.calcTrafo();
@@ -155,47 +165,39 @@ void MainLoopTask::run()
 	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
 	mat4 viewProj = projection * view;
 
-	playgroundShader->setTextureMixValue(mixValue);
-	Shader::TransformData data = {&projection, &view, &cube.getTrafo()};
-	//playgroundShader->setTransformData(data);
-	//Mesh* mesh = modelManager->getModel(model.getMeshName())->getMeshes().at(0);
-	//playgroundShader->draw(*mesh);
-	Model* model = modelManager->getModel(cube.getMeshName());
-	modelDrawer->draw(*model, playgroundShader, data);
-
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
-	phongShader->setLightPosition(lightPosition);
-	phongShader->setViewPosition(camera->getPosition());
-	phongShader->setSpotLightDiection(camera->getLookDirection());
+	Shader::TransformData data = { &projection, &view, nullptr };	
 
-	// Positions of the point lights
-	vec3 pointLightPositions[] = {
-		vec3(0.7f,  0.2f,  2.0f),
-		vec3(2.3f, -3.3f, -4.0f),
-		vec3(-4.0f,  2.0f, -12.0f),
-		vec3(0.0f,  0.0f, -3.0f)
-	};
-	phongShader->setPointLightPositions(pointLightPositions);
-	data.model = &phongModel.getTrafo();
-	//phongShader->setTransformData(data);
-	//vector<Mesh*> meshes = modelManager->getModel(nanosuitModel.getMeshName())->getMeshes();
-	//for (int i = 0; i < meshes.size(); ++i)
-	//{
-	//	phongShader->draw(*meshes[i]);
-	//}
-	model = modelManager->getModel(nanosuitModel.getMeshName());
-	modelDrawer->drawOutlined(*model, phongShader, data, vec3(1.0f, 1.0f, 0.0f));
-	
-	//phongShader->draw(*modelManager->getModel(phongModel.getMeshName())->getMeshes()[0]);
+	playgroundShader->setTextureMixValue(mixValue);
+	data.model = &cube.getTrafo();
+	model = modelManager->getModel(cube.getMeshName());
+	modelDrawer->draw(*model, playgroundShader, data);
 	
 	data.model = &lampModel.getTrafo();
-	//lampShader->setTransformData(data);
-	//lampShader->draw(*modelManager->getModel(lampModel.getMeshName())->getMeshes()[0]);
 	model = modelManager->getModel(lampModel.getMeshName());
 	modelDrawer->draw(*model, lampShader, data);
 
+	phongShader->setLightPosition(lightPosition);
+	phongShader->setViewPosition(camera->getPosition());
+	phongShader->setSpotLightDiection(camera->getLookDirection());
+	phongShader->setPointLightPositions(pointLightPositions);
+	data.model = &phongModel.getTrafo();
+	model = modelManager->getModel(nanosuitModel.getMeshName());
+	// the nanosiut uses color information in the alpha channel -> deactivate alpha blending
+	renderer->enableAlphaBlending(false);
+	modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
+	renderer->enableAlphaBlending(true);
+	//modelDrawer->draw(*model, phongShader, data);
+
+	data.model = &gunVob.getTrafo();
+	model = modelManager->getModel(gunVob.getMeshName());
+	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
+	modelDrawer->draw(*model, phongShader, data);
+
 	renderer->endScene();
-	renderer->present();
+	renderer->useScreenBuffer();
+	renderer->drawOffscreenBuffer();
+	//renderer->present();
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 	window->swapBuffers();
 }

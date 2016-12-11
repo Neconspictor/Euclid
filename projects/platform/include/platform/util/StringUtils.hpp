@@ -100,6 +100,21 @@ namespace platform {
 			ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert string to enum: " << str;
 			throw EnumFormatException(ss.str());
 		}
+
+		template<class E, size_t S>
+		std::string enumToString(E e, const EnumString<E>(&converter)[S])
+		{
+			for (int i = 0; i < S; ++i)
+			{
+				if (converter[i].enumValue == e)
+					return converter[i].strValue;
+			}
+
+			std::stringstream ss;
+			ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert enum to string: Enum class: " << typeid(E).name()
+				<< ", enum value: " << e;
+			throw EnumFormatException(ss.str());
+		}
 	}
 }
 #endif

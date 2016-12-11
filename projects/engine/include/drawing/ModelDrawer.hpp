@@ -21,7 +21,9 @@ public:
 	 * Draws the specified model onto the screen and outlines
 	 * it with a border.
 	 */
-	virtual void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec3 borderColor) = 0;
+	virtual void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) = 0;
+
+	virtual void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) = 0;
 };
 
 #endif

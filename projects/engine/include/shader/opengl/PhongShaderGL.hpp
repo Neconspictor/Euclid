@@ -20,8 +20,6 @@ public:
 
 	const glm::vec3& getLightPosition() const override;
 
-	bool loadingFailed() override;
-
 	void release() override;
 
 	void setLightColor(glm::vec3 color) override;

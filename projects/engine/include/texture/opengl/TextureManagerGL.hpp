@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <memory>
 #include <platform/logging/LoggingClient.hpp>
+#include <texture/opengl/TextureGL.hpp>
 
 /**
  * A texture manager for an opengl renderer.
@@ -15,7 +16,9 @@ public:
 
 	virtual ~TextureManagerGL() override;
 
-	virtual GLuint getImage(const std::string& file);
+	TextureGL* getImageGL(const std::string& file);
+
+	virtual Texture* getImage(const std::string& file) override;
 
 	virtual void loadImages(const std::string& imageFolder) override;
 
@@ -25,7 +28,8 @@ public:
 	static TextureManagerGL* get();
 
 protected:
-	std::map<std::string, GLuint> textures;
+	std::list<TextureGL> textures;
+	std::map<std::string, TextureGL*> textureLookupTable;
 	platform::LoggingClient logClient;
 private:
 	// this class is a singleton, thus private constructor

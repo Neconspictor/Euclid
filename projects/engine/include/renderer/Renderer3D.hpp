@@ -20,6 +20,9 @@
 class Renderer3D : public Renderer
 {
 public:
+
+	virtual void enableAlphaBlending(bool enable) = 0;
+
 	/**
 	 * Provides access to a shader manager that creates and stores shaders
 	 * compatible to this renderer
@@ -41,6 +44,23 @@ public:
 	* Provides access to a mesh manager, that creates and stores 3d meshes.
 	 */
 	virtual ModelManager* getModelManager() = 0;
+
+	/**
+	 * All draw calls are performed on a offscreen texture.
+	 * The output of all draw calls won't be visible after swapping the window's screen buffer
+	 */
+	virtual void useOffscreenBuffer() = 0;
+
+	/**
+	 * Draws directly to the screen buffer -> 
+	 */
+	virtual void useScreenBuffer() = 0;
+
+	/**
+	 * Draws the content of the offscreen frame screen buffer to screen
+	 * using a ScreenShader 
+	 */
+	virtual void drawOffscreenBuffer() = 0;
 };
 
 #endif
