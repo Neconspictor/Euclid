@@ -13,34 +13,46 @@ ModelManagerGL::~ModelManagerGL()
 {
 }
 
-ModelGL ModelManagerGL::createScreenSpriteModel()
+ModelGL ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight)
 {
 	// create a Quad mesh that fills up the enter screen; screen space range from [-1, 1] in x,y and z axis;
 	// as we want a  2D model, the z axis is ignored/set to 0.0f
 	// normal vectors aren't needed, too -> set to 0.0f as well.
 	vector<Mesh::Vertex> vertices;
 	Mesh::Vertex vertex;
+
+	// height values grow from top to bottom (screen space: 1.0f to -1.0f)
+	heightWeight = - 2 * heightWeight;
+
+	// width goes from left to right; screen space: -1.0f to 1.0f
+	widthWeight = 2 * widthWeight;
+
+	// xPos goes from left to right; screen space: -1.0f to 1.0f
+	xPos = 2 * xPos - 1.0f;
+
+	// yPos goes from top to bottom; screen space: 1.0f to -1.0f
+	yPos = -2 * yPos + 1.0f;
 	
 	// left upper corner 
-	vertex.position = { -1.0f,  1.0f, 0.0f};
+	vertex.position = { xPos,  yPos, 0.0f};
 	vertex.normal = { 0.0f, 0.0f, 0.0f };
 	vertex.texCoords = {0.0f, 1.0f};
 	vertices.push_back(vertex);
 
 	// left bottom corner
-	vertex.position = { -1.0f,  -1.0f, 0.0f };
+	vertex.position = { xPos,  yPos + heightWeight, 0.0f };
 	vertex.normal = { 0.0f, 0.0f, 0.0f };
 	vertex.texCoords = { 0.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right bottom corner
-	vertex.position = { 1.0f,  -1.0f, 0.0f };
+	vertex.position = { xPos + widthWeight,  yPos + heightWeight, 0.0f };
 	vertex.normal = { 0.0f, 0.0f, 0.0f };
 	vertex.texCoords = { 1.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right upper corner
-	vertex.position = { 1.0f,  1.0f, 0.0f };
+	vertex.position = { xPos + widthWeight,  yPos, 0.0f };
 	vertex.normal = { 0.0f, 0.0f, 0.0f };
 	vertex.texCoords = { 1.0f, 1.0f };
 	vertices.push_back(vertex);

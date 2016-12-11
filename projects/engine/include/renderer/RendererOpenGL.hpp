@@ -36,6 +36,8 @@ public:
 	
 	void release() override;
 
+	void setBackgroundColor(glm::vec3 color) override;
+
 	void setViewPort(int x, int y, int width, int height) override;
 
 	void useOffscreenBuffer() override;
@@ -58,6 +60,7 @@ protected:
 	GLuint texColorBuffer;
 
 	ModelGL screenSprite;
+	glm::vec3 backgroundColor;
 };
 
 #endif

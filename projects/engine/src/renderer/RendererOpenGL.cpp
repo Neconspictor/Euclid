@@ -11,7 +11,8 @@
 using namespace std;
 using namespace platform;
 
-RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreenFrameBuffer(0), texColorBuffer(0), screenSprite({})
+RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreenFrameBuffer(0), texColorBuffer(0), screenSprite({}),
+	backgroundColor(0.0f, 0.0f, 0.0f)
 {
 	logClient.setPrefix("[RendererOpenGL]");
 }
@@ -34,7 +35,7 @@ void RendererOpenGL::init()
 	LOG(logClient, Info) << "Initializing...";
 	glViewport(xPos, yPos, width, height);
 
-	screenSprite =  ModelManagerGL::createScreenSpriteModel();
+	screenSprite =  ModelManagerGL::createSpriteModel(0.35f,0.0f, 0.3f, 0.3f);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 	createFrameRenderTargetBuffer(width, height);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
@@ -63,7 +64,7 @@ void RendererOpenGL::init()
 
 void RendererOpenGL::beginScene()
 {
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Dark greyish Background
+	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f); // Dark greyish Background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glStencilMask(0x00);
 
@@ -135,6 +136,11 @@ void RendererOpenGL::release()
 {
 }
 
+void RendererOpenGL::setBackgroundColor(glm::vec3 color)
+{
+	backgroundColor = move(color);
+}
+
 void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
 	Renderer::setViewPort(x, y, width, height);
@@ -144,13 +150,11 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 void RendererOpenGL::useOffscreenBuffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, offscreenFrameBuffer);
-	beginScene();
 }
 
 void RendererOpenGL::useScreenBuffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	beginScene();
 }
 
 void RendererOpenGL::checkGLErrors(string errorPrefix) const
@@ -176,6 +180,11 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// clamp is important so that no pixel artifacts occur on the border!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 

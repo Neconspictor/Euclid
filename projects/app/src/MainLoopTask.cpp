@@ -113,13 +113,39 @@ void MainLoopTask::run()
 
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
 
-	Renderer::Viewport viewport = window->getViewport();
-
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
-	renderer->useOffscreenBuffer();
-	//renderer->useScreenBuffer();
+	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
+	//renderer->useOffscreenBuffer();
+	renderer->useScreenBuffer();
+	renderer->beginScene();
 
+	drawScene();
+
+	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
+	//renderer->useScreenBuffer();
+	renderer->useOffscreenBuffer();
+	renderer->beginScene();
+
+	// backup camera look direction
+	vec3 cameraLook = camera->getLookDirection();
+
+	// draw the scene from rear view now
+	camera->setLookDirection(-cameraLook);
+	drawScene();
+
+	// restore camera look direction
+	camera->setLookDirection(cameraLook);
+
+	renderer->useScreenBuffer();
+	renderer->drawOffscreenBuffer();
+	//renderer->present();
+	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
+	window->swapBuffers();
+}
+
+void MainLoopTask::drawScene()
+{
 	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
@@ -132,6 +158,8 @@ void MainLoopTask::run()
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
+	Renderer::Viewport viewport = window->getViewport();
+
 	Model* model = nullptr;
 
 	// Positions of the point lights
@@ -142,7 +170,7 @@ void MainLoopTask::run()
 		vec3(0.0f,  0.0f, -3.0f)
 	};
 
-	phongShader->setLightColor({1.0f, 1.0f, 1.0f});
+	phongShader->setLightColor({ 1.0f, 1.0f, 1.0f });
 	Vob cube(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
@@ -153,26 +181,26 @@ void MainLoopTask::run()
 
 	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
 	phongModel.calcTrafo();
-	phongShader->setLightPosition(vec3 { 1.1f, 1.0f, 0.0f});
+	phongShader->setLightPosition(vec3{ 1.1f, 1.0f, 0.0f });
 
 	lampModel.setPosition({ 1.1f, 1.0f, 0.0f });
-	lampModel.setScale({0.5f, 0.5f, 0.5f});
+	lampModel.setScale({ 0.5f, 0.5f, 0.5f });
 	//lampModel.setEulerXYZ({ 0.0f, 0.0f, radians(45.0f) });
 	lampModel.calcTrafo();
 
 	camera->calcView();
 	mat4 view = camera->getView();
-	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float) viewport.height, 0.1f, 100.0f);
+	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
 	mat4 viewProj = projection * view;
 
-	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f};
-	Shader::TransformData data = { &projection, &view, nullptr };	
+	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f };
+	Shader::TransformData data = { &projection, &view, nullptr };
 
 	playgroundShader->setTextureMixValue(mixValue);
 	data.model = &cube.getTrafo();
 	model = modelManager->getModel(cube.getMeshName());
 	modelDrawer->draw(*model, playgroundShader, data);
-	
+
 	data.model = &lampModel.getTrafo();
 	model = modelManager->getModel(lampModel.getMeshName());
 	modelDrawer->draw(*model, lampShader, data);
@@ -195,11 +223,6 @@ void MainLoopTask::run()
 	modelDrawer->draw(*model, phongShader, data);
 
 	renderer->endScene();
-	renderer->useScreenBuffer();
-	renderer->drawOffscreenBuffer();
-	//renderer->present();
-	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
-	window->swapBuffers();
 }
 
 void MainLoopTask::updateCamera(Input* input, float deltaTime)

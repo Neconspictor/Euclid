@@ -45,6 +45,8 @@ public:
 	 */
 	virtual ModelManager* getModelManager() = 0;
 
+	virtual void setBackgroundColor(glm::vec3 color) = 0;
+
 	/**
 	 * All draw calls are performed on a offscreen texture.
 	 * The output of all draw calls won't be visible after swapping the window's screen buffer

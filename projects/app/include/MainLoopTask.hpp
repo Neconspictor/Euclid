@@ -41,6 +41,8 @@ private:
 	bool isRunning;
 	Vob nanosuitModel;
 
+	void drawScene();
+
 	void updateCamera(Input* input, float deltaTime);
 
 	void handleInputEvents();
