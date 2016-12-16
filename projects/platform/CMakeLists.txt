@@ -31,6 +31,16 @@ set(
     include/platform/logging/LogLevel.hpp
     include/platform/logging/LogMessage.hpp
     
+    #platform/memory
+    include/platform/memory/Allocator.hpp
+    include/platform/memory/FreeListAllocator.hpp
+    include/platform/memory/LinearAllocator.hpp
+    include/platform/memory/MemoryManager.hpp
+    include/platform/memory/ObjectPool.hpp
+    include/platform/memory/PoolAllocator.hpp
+    include/platform/memory/ProxyAllocator.hpp
+    include/platform/memory/StackAllocator.hpp
+    
     
     #platform/windows/
     include/platform/windows/PlatformWindows.hpp
@@ -44,6 +54,7 @@ set(
     
     #platform/util
     include/platform/util/CallbackContainer.hpp
+    include/platform/util/PointerUtils.hpp
     include/platform/util/Signal.hpp
     include/platform/util/StringUtils.hpp
     include/platform/util/TimeUtils.hpp
@@ -72,6 +83,14 @@ set(
     src/platform/logging/LoggingClient.cpp
     src/platform/logging/LogLevel.cpp
     src/platform/logging/LogMessage.cpp
+    
+    #platform/memory
+    src/platform/memory/FreeListAllocator.cpp
+    src/platform/memory/LinearAllocator.cpp
+    src/platform/memory/MemoryManager.cpp
+    src/platform/memory/PoolAllocator.cpp
+    src/platform/memory/ProxyAllocator.cpp
+    src/platform/memory/StackAllocator.cpp
     
     #platform/windows
     src/platform/windows/PlatformWindows.cpp
