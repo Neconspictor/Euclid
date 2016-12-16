@@ -1,5 +1,4 @@
-#ifndef PLATFORM_UTIL_STRING_UTILS_HPP
-#define PLATFORM_UTIL_STRING_UTILS_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -117,4 +116,3 @@ namespace platform {
 		}
 	}
 }
-#endif

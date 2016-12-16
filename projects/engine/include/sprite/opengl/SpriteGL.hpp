@@ -1,5 +1,4 @@
-#ifndef ENGINE_SPRITE_OPENGL_SPRITEGL_HPP
-#define ENGINE_SPRITE_OPENGL_SPRITEGL_HPP
+#pragma once
 #include <sprite/Sprite.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
@@ -17,4 +16,3 @@ public:
 private:
 	TextureGL* texture;
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_SIMPLE_EXTRUDE_SHADER_HPP
-#define ENGINE_SHADER_SIMPLE_EXTRUDE_SHADER_HPP
+#pragma once
 #include <shader/SimpleColorShader.hpp>
 
 
@@ -20,4 +19,3 @@ public:
 	 */
 	virtual void setExtrudeValue(float extrudeValue) = 0;
 };
-#endif

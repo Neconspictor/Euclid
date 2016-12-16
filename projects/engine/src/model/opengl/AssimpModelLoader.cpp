@@ -4,6 +4,7 @@
 #include <util/Globals.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
+#include <util/Timer.hpp>
 
 
 using namespace std;
@@ -16,8 +17,13 @@ AssimpModelLoader::AssimpModelLoader() : logClient(platform::getLogServer())
 
 ModelGL AssimpModelLoader::loadModel(const string& path) const
 {
+	Timer timer;
+	timer.update();
+
 	string filePath = util::globals::MESHES_PATH +  path;
 	Assimp::Importer importer;
+
+	// read the mesh file and triangulate it since processNode expects a triangulated mesh
 	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -29,8 +35,9 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 	}
 
 	vector<MeshGL> meshes;
-
 	processNode(scene->mRootNode, scene, &meshes);
+
+	LOG(logClient, platform::Debug) << "Time needed for mesh loading: " << timer.update();
 
 	return ModelGL(move(meshes));
 }
@@ -53,52 +60,56 @@ void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<M
 
 MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 {
-	vector<Mesh::Vertex> vertices;
-	vector<unsigned int> indices;
+	// Vertex and index count can be large -> store temp objects on heap
+	auto vertices = make_unique<vector<Mesh::Vertex>>();
+	auto indices = make_unique<vector<unsigned int>>();
+
+	// We set the size of the vectors initially to avoid unnecessary reallocations.
+	// It is assumed that the mesh is triangulated, so each face has exactly three indices.
+	//vertices->reserve(mesh->mNumVertices);
+	//indices->reserve(mesh->mNumFaces * 3);
+
 	Material material;
 	TextureManagerGL* manager = TextureManagerGL::get();
 
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)
 	{
+
 		Mesh::Vertex vertex;
-		vec3 temp;
 		// position
-		temp.x = mesh->mVertices[i].x;
-		temp.y = mesh->mVertices[i].y;
-		temp.z = mesh->mVertices[i].z;
-		vertex.position = temp;
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
 
 		// normal
-		temp.x = mesh->mNormals[i].x;
-		temp.y = mesh->mNormals[i].y;
-		temp.z = mesh->mNormals[i].z;
-		vertex.normal = temp;
+		vertex.normal.x = mesh->mNormals[i].x;
+		vertex.normal.y = mesh->mNormals[i].y;
+		vertex.normal.z = mesh->mNormals[i].z;
 
 		// uv
 		if (!mesh->mTextureCoords[0]) { // does the mesh contain no uv data?
 			vertex.texCoords = {0.0f,0.0f};
 		} else {
-			vec2 uv;
 			// A vertex can contain up to 8 different texture coordinates. 
 			// We thus make the assumption that we won't 
-			// use models where a vertex can have multiple texture coordinates 
+			// use models (currently!) where a vertex can have multiple texture coordinates 
 			// so we always take the first set (0).
-			uv.x = mesh->mTextureCoords[0][i].x;
-			uv.y = mesh->mTextureCoords[0][i].y;
-			vertex.texCoords = uv;
+			vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
+			vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
 		}
 
-		vertices.push_back(vertex);
+		// don't make a copy
+		vertices->push_back(move(vertex));
 	}
 
 	// now walk through all mesh's faces to retrieve index data. 
-	// As we have triangulated the mesh, all faces are triangles.
+	// As the mesh is triangulated, all faces are triangles.
 	for (GLuint i = 0; i < mesh->mNumFaces; ++i)
 	{
 		aiFace face = mesh->mFaces[i];
 		for (GLuint j = 0; j < face.mNumIndices; ++j)
 		{
-			indices.push_back(face.mIndices[j]);
+			indices->push_back(move(face.mIndices[j]));
 		}
 	}
 
@@ -108,7 +119,7 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 
 		// a material can have more than one diffuse/specular/normal map,
-		// but we only use the first one
+		// but we only use the first one by now
 		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
 		if (diffuseMaps.size())
 		{
@@ -128,8 +139,9 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 
 	material.setShininess(32);
 
-	MeshGL result(move(vertices), move(indices));
+	MeshGL result  = MeshGL(vertices->data(), mesh->mNumVertices, indices->data(), mesh->mNumFaces * 3);
 	result.setMaterial(move(material));
+
 	return result;
 }
 

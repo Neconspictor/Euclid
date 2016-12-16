@@ -68,7 +68,7 @@ void PhongShaderGL::draw(Mesh const& meshOriginal)
 	glUniform1f(matShineLoc, material->getSpecularPower());
 
 	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

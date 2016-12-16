@@ -24,8 +24,7 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef PLATFORM_EVENT_TASK_HPP
-#define PLATFORM_EVENT_TASK_HPP
+#pragma once
 
 #include <memory>
 #include <exception>
@@ -153,5 +152,3 @@ private:
 	
 	unsigned int mTaskFlags;
 };
-
-#endif PLATFORM_TASK_HPP

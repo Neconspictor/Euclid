@@ -13,7 +13,13 @@ ModelManagerGL::~ModelManagerGL()
 {
 }
 
-ModelGL ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight)
+Model* ModelManagerGL::createSkyBox()
+{
+	//TODO
+	return nullptr;
+}
+
+Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight)
 {
 	// create a Quad mesh that fills up the enter screen; screen space range from [-1, 1] in x,y and z axis;
 	// as we want a  2D model, the z axis is ignored/set to 0.0f
@@ -70,31 +76,31 @@ ModelGL ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWei
 	indices.push_back(2);
 	indices.push_back(3);
 
-	MeshGL mesh = MeshGL(move(vertices), move(indices));
-	ModelGL model(vector<MeshGL>{mesh});
-	return model;
+	MeshGL mesh = MeshGL(vertices.data(), vertices.size(), indices.data(), indices.size());
+	models.push_back(ModelGL (vector<MeshGL>{mesh}));
+	return &models.back();
 }
 
 Model* ModelManagerGL::getModel(const string& modelName)
 {
-	auto it = models.find(modelName);
-	if (it == models.end())
+	auto it = modelTable.find(modelName);
+	if (it == modelTable.end())
 	{
-		shared_ptr<ModelGL> model = make_shared<ModelGL>(assimpLoader.loadModel(modelName));
-		models[modelName] = model;
-		return model.get();
+		models.push_back(assimpLoader.loadModel(modelName));
+		modelTable[modelName] = &models.back();
+		return &models.back();
 	}
 
-	return dynamic_cast<Model*>(it->second.get());
+	return dynamic_cast<Model*>(it->second);
 }
 
 
 Model* ModelManagerGL::getPositionNormalTexCube()
 {
-	auto it = models.find(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	if (it != models.end())
+	auto it = modelTable.find(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	if (it != modelTable.end())
 	{
-		return it->second.get();
+		return it->second;
 	}
 
 	vector<Mesh::Vertex> vertices;
@@ -119,7 +125,7 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 		indices.push_back(TestMeshes::cubePositionNormalTexIndices[i]);
 	}
 
-	MeshGL mesh = MeshGL(move(vertices), move(indices));
+	MeshGL mesh = MeshGL(vertices.data(), vertices.size(), indices.data(), indices.size());
 	Material& material = *mesh.getMaterial();
 	TextureManagerGL* textureManager = TextureManagerGL::get();
 	material.setDiffuseMap(textureManager->getImage("container.png"));
@@ -127,10 +133,10 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 	material.setSpecularMap(textureManager->getImage("container_s.png"));
 	material.setShininess(32);
 
-	shared_ptr<ModelGL> model = make_shared<ModelGL>(vector<MeshGL>({ mesh }));
-	models[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = model;
+	models.push_back(ModelGL(vector<MeshGL>({ mesh })));
+	modelTable[TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = &models.back();
 
-	return model.get();
+	return &models.back();
 }
 
 ModelManagerGL* ModelManagerGL::get()

@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_PHONG_TEX_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_PHONG_TEX_SHADERGL_HPP
+#pragma once
 #include <shader/opengl/ShaderGL.hpp>
 #include <shader/PhongTextureShader.hpp>
 
@@ -44,4 +43,3 @@ private:
 	glm::vec3 spotLightDirection;
 	glm::vec3 pointLightPositions[4];
 };
-#endif

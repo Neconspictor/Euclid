@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_PLAYGROUND_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_PLAYGROUND_SHADERGL_HPP
+#pragma once
 #include <shader/PlaygroundShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
@@ -29,5 +28,3 @@ private:
 	TextureGL* texture;
 	TextureGL* texture2;
 };
-
-#endif

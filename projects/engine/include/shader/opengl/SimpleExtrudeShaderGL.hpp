@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_SIMPLE_EXTRUDE_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_SIMPLE_EXTRUDE_SHADERGL_HPP
+#pragma once
 #include <shader/opengl/ShaderGL.hpp>
 #include <shader/SimpleExtrudeShader.hpp>
 
@@ -30,5 +29,3 @@ private:
 	glm::vec4 objectColor;
 	float extrudeValue;
 };
-
-#endif

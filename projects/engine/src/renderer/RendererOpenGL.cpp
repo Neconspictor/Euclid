@@ -11,7 +11,7 @@
 using namespace std;
 using namespace platform;
 
-RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreenFrameBuffer(0), texColorBuffer(0), screenSprite({}),
+RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreenFrameBuffer(0), texColorBuffer(0), screenSprite(nullptr),
 	backgroundColor(0.0f, 0.0f, 0.0f)
 {
 	logClient.setPrefix("[RendererOpenGL]");
@@ -35,7 +35,8 @@ void RendererOpenGL::init()
 	LOG(logClient, Info) << "Initializing...";
 	glViewport(xPos, yPos, width, height);
 
-	screenSprite =  ModelManagerGL::createSpriteModel(0.35f,0.0f, 0.3f, 0.3f);
+	screenSprite = static_cast<ModelGL*>(
+						ModelManagerGL::get()->createSpriteModel(0.35f,0.0f, 0.3f, 0.3f));
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 	createFrameRenderTargetBuffer(width, height);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
@@ -81,7 +82,7 @@ void RendererOpenGL::drawOffscreenBuffer()
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
 	shaderGL->setOffscreenBuffer(texColorBuffer);
-	for (Mesh* mesh : screenSprite.getMeshes())
+	for (Mesh* mesh : screenSprite->getMeshes())
 	{
 		shaderGL->draw(*mesh);
 	}

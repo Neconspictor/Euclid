@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_SHADER_HPP
-#define ENGINE_SHADER_SHADER_HPP
+#pragma once
 
 #include <mesh/Mesh.hpp>
 #include <glm/glm.hpp>
@@ -33,5 +32,3 @@ public:
 protected:
 	TransformData data;
 };
-
-#endif

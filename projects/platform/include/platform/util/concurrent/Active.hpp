@@ -1,5 +1,4 @@
-#ifndef ACTIVE_HPP
-#define ACTIVE_HPP
+#pragma once
 /******************************************************************************************
 *
 * Modified code version from http://www.grandmaster.nu/blog/?page_id=158
@@ -84,6 +83,3 @@ namespace platform
 		};
 	}
 }
-
-
-#endif

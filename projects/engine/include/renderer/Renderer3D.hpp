@@ -1,5 +1,4 @@
-#ifndef RENDERER_RENDERER3D_HPP
-#define RENDERER_RENDERER3D_HPP
+#pragma once
 
 #include <texture/TextureManager.hpp>
 #include <shader/ShaderManager.hpp>
@@ -64,5 +63,3 @@ public:
 	 */
 	virtual void drawOffscreenBuffer() = 0;
 };
-
-#endif

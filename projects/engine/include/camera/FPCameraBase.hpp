@@ -1,5 +1,4 @@
-#ifndef CAMERA_FPCAMERABASE_HPP
-#define CAMERA_FPCAMERABASE_HPP
+#pragma once
 #include <camera/Camera.hpp>
 
 class FPCameraBase : public Camera
@@ -14,5 +13,3 @@ public:
 protected:
 	float cameraSpeed;
 };
-
-#endif

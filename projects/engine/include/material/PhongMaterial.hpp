@@ -1,5 +1,4 @@
-#ifndef ENGINE_MATERIAL_PHONG_MATERIAL
-#define ENGINE_MATERIAL_PHONG_MATERIAL
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -26,5 +25,3 @@ protected:
 	glm::vec4 specularColor;
 	float specularPower; // influences the shininess of the specular color
 };
-
-#endif

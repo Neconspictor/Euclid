@@ -1,5 +1,4 @@
-#ifndef MODEL_FACTORY
-#define MODEL_FACTORY
+#pragma once
 
 #include <model/Model.hpp>
 
@@ -15,6 +14,9 @@ public:
 	ModelManager(){};
 	virtual ~ModelManager(){}
 
+	virtual Model* createSkyBox() = 0;
+
+	virtual Model* createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight) = 0;
 	/*
 	 * Provides read acces to a cube that has position, normal and texture coordinates.
 	 */
@@ -31,4 +33,3 @@ public:
 	 */
 	virtual void loadModels() = 0;
 };
-#endif

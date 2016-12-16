@@ -24,8 +24,7 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef EVENT_CHANNEL_HPP
-#define EVENT_CHANNEL_HPP
+#pragma once
 
 #include <platform/event/EventHandlerQueue.hpp>
 #include <unordered_map>
@@ -97,5 +96,3 @@ private:
 	*/
 	std::unordered_map<std::type_index, boost::any> queueMap;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef NEC_ENGINE_SYSTEM_HPP
-#define NEC_ENGINE_SYSTEM_HPP
+#pragma once
 #include <platform/event/Task.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -81,5 +80,3 @@ protected:
 	boost::program_options::options_description settings;
 
 };
-
-#endif

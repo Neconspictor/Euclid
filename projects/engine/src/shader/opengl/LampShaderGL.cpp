@@ -29,7 +29,7 @@ void LampShaderGL::draw(Mesh const& meshOriginal)
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
 	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndices().size());
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

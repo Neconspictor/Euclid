@@ -1,5 +1,4 @@
-#ifndef ENGINE_VOB_VOB_HPP
-#define ENGINE_VOB_VOB_HPP
+#pragma once
 #include <mesh/Mesh.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -64,4 +63,4 @@ protected:
 	glm::vec3 scale;
 	glm::mat4 trafo;
 };
-#endif
+#pragma once

@@ -1,5 +1,4 @@
-#ifndef INPUT_HPP
-#define INPUT_HPP
+#pragma once
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/util/CallbackContainer.hpp>
 
@@ -240,5 +239,3 @@ protected:
 	 */
 	void informScrollListeners(float scrollDiff);
 };
-
-#endif

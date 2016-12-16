@@ -1,5 +1,4 @@
-#ifndef FILE_SYSTEM_HPP
-#define FILE_SYSTEM_HPP
+#pragma once
 #include <string>
 
 namespace filesystem
@@ -14,5 +13,3 @@ namespace filesystem
 	 bool loadFileIntoString(const std::string& filePath, std::string* destination);
 
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_SCREEN_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_SCREEN_SHADERGL_HPP
+#pragma once
 #include <shader/ScreenShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 
@@ -24,5 +23,3 @@ public:
 protected:
 	GLuint frameBuffer;
 };
-
-#endif

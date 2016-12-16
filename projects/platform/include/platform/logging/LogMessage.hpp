@@ -25,8 +25,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LOG_LEVEL_HPP
-#define LOG_LEVEL_HPP
+#pragma once
 #pragma optimize( "", on )
 
 #include <platform/logging/LogLevel.hpp>
@@ -105,5 +104,3 @@ namespace platform
 		return *this;
 	}
 }
-
-#endif

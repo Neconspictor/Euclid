@@ -1,5 +1,4 @@
-#ifndef PLATFORM_GLOBAL_EVENT_CHANNEL_HPP
-#define PLATFORM_GLOBAL_EVENT_CHANNEL_HPP
+#pragma once
 
 #include <platform/event/EventHandlerQueue.hpp>
 #include <platform/event/EventChannel.hpp>
@@ -49,5 +48,3 @@ private:
 		return queue;
 	}
 };
-
-#endif

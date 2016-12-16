@@ -10,7 +10,6 @@ project (NecEngine)
 
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(platform)
-add_subdirectory(platform_test)
 add_subdirectory(engine)
 add_subdirectory(engine_test)
 add_subdirectory(app)

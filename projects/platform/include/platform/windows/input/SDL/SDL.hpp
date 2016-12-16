@@ -1,5 +1,4 @@
-#ifndef SDL_HPP
-#define SDL_HPP
+#pragma once
 #include <SDL/SDL.h>
 #include <platform/windows/input/SDL/SDLInitException.hpp>
 
@@ -47,4 +46,3 @@ public:
 protected:
 	SDL_Window* window;
 };
-#endif

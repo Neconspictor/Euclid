@@ -1,5 +1,4 @@
-#ifndef PLAYGROUND_SHADER_HPP
-#define PLAYGROUND_SHADER_HPP
+#pragma once
 #include <shader/Shader.hpp>
 #include <string>
 
@@ -15,4 +14,3 @@ public:
 	
 	virtual void setTextureMixValue(float mixValue) = 0;
 };
-#endif

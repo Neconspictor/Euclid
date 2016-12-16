@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_LAMPSHADER_HPP
-#define ENGINE_SHADER_OPENGL_LAMPSHADER_HPP
+#pragma once
 #include <shader/LampShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 
@@ -20,4 +19,3 @@ public:
 
 	void use() override;
 };
-#endif

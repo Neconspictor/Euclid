@@ -1,5 +1,4 @@
-#ifndef LAMP_SHADER_HPP
-#define LAMP_SHADER_HPP
+#pragma once
 
 #include <shader/Shader.hpp>
 
@@ -9,5 +8,3 @@ public:
 	LampShader() : Shader() {}
 	virtual ~LampShader() {};
 };
-
-#endif

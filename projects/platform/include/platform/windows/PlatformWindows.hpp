@@ -1,5 +1,4 @@
-#ifndef PLATFORM_WINDOWS_HPP
-#define PLATFORM_WINDOWS_HPP
+#pragma once
 #include <Windows.h>
 #include <platform/Platform.hpp>
 
@@ -53,5 +52,3 @@ private:
 	platform::LoggingClient logClient;
 	std::shared_ptr<Input> input;
 };
-
-#endif

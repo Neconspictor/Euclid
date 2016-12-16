@@ -1,6 +1,4 @@
-#ifndef ENGINE_MODEL_MODEL_HPP
-#define ENGINE_MODEL_MODEL_HPP
-
+#pragma once
 #include <vector>
 #include <mesh/mesh.hpp>
 #include <shader/Shader.hpp>
@@ -23,4 +21,3 @@ public:
 protected:
 	std::vector<Mesh*> meshes;
 };
-#endif

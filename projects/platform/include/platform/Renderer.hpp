@@ -1,5 +1,4 @@
-#ifndef RENDERER_HPP
-#define RENDERER_HPP
+#pragma once
 #include <platform/logging/LoggingClient.hpp>
 #include <ostream>
 
@@ -105,4 +104,3 @@ protected:
 	int xPos;
 	int yPos;
 };
-#endif

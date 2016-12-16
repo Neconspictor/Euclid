@@ -1,5 +1,4 @@
-#ifndef ENGINE_UTIL_GLOBAL_PATHS
-#define ENGINE_UTIL_GLOBAL_PATHS
+#pragma once
 #include <string>
 
 namespace util {
@@ -26,4 +25,3 @@ namespace util {
 		static const std::string TEXTURE_PATH = "./_work/data/textures/";
 	}
 }
-#endif

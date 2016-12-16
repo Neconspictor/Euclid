@@ -1,5 +1,4 @@
-#ifndef ENGINE_SPRITE_SPRITE_HPP
-#define ENGINE_SPRITE_SPRITE_HPP
+#pragma once
 #include <glm/detail/type_vec2.hpp>
 #include <model/Model.hpp>
 #include <texture/Texture.hpp>
@@ -32,5 +31,3 @@ protected:
 	glm::vec2 screenPosition;
 	Texture* texture;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SDL_INPUT_DEVICE_HPP
-#define SDL_INPUT_DEVICE_HPP
+#pragma once
 #include <Windows.h>
 #include <platform/Input.hpp>
 #include "SDL.hpp"
@@ -43,4 +42,3 @@ private:
 	int mapKey(Key key);
 	int mapButton(Button button);
 };
-#endif

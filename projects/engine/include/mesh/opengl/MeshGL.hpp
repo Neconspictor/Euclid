@@ -1,5 +1,4 @@
-#ifndef ENGINE_MODEL_OPENGL_MESHGL_HPP
-#define ENGINE_MODEL_OPENGL_MESHGL_HPP
+#pragma once
 
 #include <GL/glew.h>
 #include <mesh/Mesh.hpp>
@@ -7,7 +6,7 @@
 class MeshGL : public Mesh
 {
 public:
-	MeshGL(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+	MeshGL(const Vertex* vertices, unsigned int vertexCount, const unsigned int* indices, unsigned int indexCount);
 	virtual ~MeshGL();
 
 	GLuint getVertexArrayObject() const;
@@ -18,5 +17,3 @@ public:
 protected:
 	GLuint vao, vbo, ebo;
 };
-
-#endif

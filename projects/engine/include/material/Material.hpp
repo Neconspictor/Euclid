@@ -1,5 +1,4 @@
-#ifndef ENGINE_MATERIAL_MATERIAL_HPP
-#define ENGINE_MATERIAL_MATERIAL_HPP
+#pragma once
 #include <texture/Texture.hpp>
 
 class Material
@@ -30,5 +29,3 @@ protected:
 	Texture* specularMap;
 	float shininess;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_SHADERGL_HPP
+#pragma once
 #include <GL/glew.h>
 #include <string>
 #include <platform/logging/LoggingClient.hpp>
@@ -32,5 +31,3 @@ protected:
 	GLuint programID;
 	platform::LoggingClient logClient;
 };
-
-#endif

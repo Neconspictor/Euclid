@@ -1,5 +1,4 @@
-#ifndef ENGINE_EXCEPTION_MESH_NOT_FOUND_EXCEPTION_HPP
-#define ENGINE_EXCEPTION_MESH_NOT_FOUND_EXCEPTION_HPP
+#pragma once
 #include <stdexcept>
 
 /**
@@ -19,5 +18,3 @@ public:
 	{
 	}
 };
-
-#endif

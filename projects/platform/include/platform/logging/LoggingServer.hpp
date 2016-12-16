@@ -1,5 +1,4 @@
-#ifndef LOGGER_HPP
-#define LOGGER_HPP
+#pragma once
 #pragma optimize( "", on )
 
 #include <platform/util/Util.hpp>
@@ -77,5 +76,3 @@ namespace platform
 		LogEndpoint consoleEndpoint;
 	};
 }
-
-#endif LOGGER_HPP

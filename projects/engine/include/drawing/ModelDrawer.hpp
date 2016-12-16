@@ -1,5 +1,4 @@
-#ifndef ENGINE_DRAWING_MODEL_DRAWER_HPP
-#define ENGINE_DRAWING_MODEL_DRAWER_HPP
+#pragma once
 
 #include <glm/glm.hpp>
 #include <shader/Shader.hpp>
@@ -25,5 +24,3 @@ public:
 
 	virtual void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) = 0;
 };
-
-#endif

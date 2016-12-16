@@ -1,5 +1,4 @@
-#ifndef ENGINE_MESH_MESH_HPP
-#define ENGINE_MESH_MESH_HPP
+#pragma once
 #include <vector>
 #include <glm/glm.hpp>
 #include <material/Material.hpp>
@@ -22,7 +21,7 @@ public:
 		glm::vec2 texCoords;
 	};
 
-	explicit Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+	explicit Mesh(unsigned int indexSize);
 	Mesh(const Mesh& other);
 	Mesh(Mesh&& other);
 	Mesh& operator=(const Mesh& o);
@@ -30,31 +29,13 @@ public:
 
 	virtual ~Mesh();
 
-	/**
-	 * Provides the index list of this mesh.
-	 */
-	virtual const std::vector<unsigned int>& getIndices() const;
+	unsigned int getIndexSize() const;
+	
+	Material* getMaterial();
+	const Material& getMaterial() const;
 
-	virtual Material* getMaterial();
-	virtual const Material& getMaterial() const;
-
-	/**
-	 * Provides access to the vertex data of this mesh.
-	 */
-	virtual const std::vector<Vertex>& getVertexData() const;
-
-	virtual void setIndexData(const std::vector<unsigned int>& indices);
-	virtual void setIndexData(std::vector<unsigned int>&& indices);
-
-	virtual void setMaterial(Material material);
-
-	virtual void setVertexData(const std::vector<Vertex>& vertices);
-	virtual void setVertexData(std::vector<Vertex>&& vertices);
-
+	void setMaterial(Material material);
 protected:
-	std::vector<Vertex> vertexData;
-	std::vector<unsigned int> indexData;
 	Material material;
+	unsigned int indexSize;
 };
-
-#endif

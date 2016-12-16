@@ -1,5 +1,4 @@
-#ifndef SIMPLE_COLOR_SHADER_HPP
-#define SIMPLE_COLOR_SHADER_HPP
+#pragma once
 #include <shader/shader.hpp>
 
 class SimpleColorShader : public Shader
@@ -12,4 +11,3 @@ public:
 
 	virtual void setObjectColor(glm::vec4 color) = 0;
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_SHADER_MANAGER_HPP
-#define ENGINE_SHADER_SHADER_MANAGER_HPP
+#pragma once
 #include <shader/Shader.hpp>
 #include <shader/ShaderEnum.hpp>
 
@@ -25,5 +24,3 @@ public:
 	 */
 	virtual void loadShaders() = 0;
 };
-
-#endif

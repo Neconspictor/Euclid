@@ -1,5 +1,4 @@
-#ifndef ENGINE_MODEL_OPENGL_MODELGL_HPP
-#define ENGINE_MODEL_OPENGL_MODELGL_HPP
+#pragma once
 #include <model/Model.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 #include <vector>
@@ -18,5 +17,3 @@ protected:
 
 	void updateMeshPointers();
 };
-
-#endif

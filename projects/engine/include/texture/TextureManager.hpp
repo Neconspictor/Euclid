@@ -1,7 +1,7 @@
-#ifndef TEXTURE_MANAGER_HPP
-#define TEXTURE_MANAGER_HPP
+#pragma once
 #include <string>
 #include <texture/Texture.hpp>
+#include "CubeMap.hpp"
 
 class TextureManager
 {
@@ -11,6 +11,10 @@ public:
 
 	virtual ~TextureManager(){}
 
+	virtual CubeMap* createCubeMap(const std::string& right, const std::string& left, 
+		const std::string& top, const std::string& bottom, 
+		const std::string& back, const std::string& front) = 0;
+
 	virtual Texture* getImage(const std::string& file) = 0;
 
 	/**
@@ -18,5 +22,3 @@ public:
 	 */
 	virtual void loadImages(const std::string& imageFolder) = 0;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef PLATFORM_EXCEPTION_UNEXPECTED_PLATFORM_EXCEPTION_HPP
-#define PLATFORM_EXCEPTION_UNEXPECTED_PLATFORM_EXCEPTION_HPP
+#pragma once
 #include <stdexcept>
 
 /**
@@ -18,5 +17,3 @@ public:
 	{
 	}
 };
-
-#endif

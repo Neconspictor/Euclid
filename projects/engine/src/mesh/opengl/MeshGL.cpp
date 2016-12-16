@@ -2,7 +2,8 @@
 
 using namespace std;
 
-MeshGL::MeshGL(vector<Vertex> vertices, vector<unsigned int> indices) : Mesh(vertices, indices)
+MeshGL::MeshGL(const Vertex* vertices, unsigned int vertexCount, const unsigned int* indices, unsigned int indexCount) :
+	Mesh(indexCount)
 {
 	glCreateVertexArrays(1, &vao);
 	glCreateBuffers(1, &vbo);
@@ -12,10 +13,10 @@ MeshGL::MeshGL(vector<Vertex> vertices, vector<unsigned int> indices) : Mesh(ver
 	glBindVertexArray(vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), &vertexData[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 	// 3. copy our indixes in a buffer, too.
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData.size() * sizeof(unsigned int), &indexData[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
 	// vertex position

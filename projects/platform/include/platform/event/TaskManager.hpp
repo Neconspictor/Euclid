@@ -24,8 +24,7 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef PLATFORM_EVENT_TASK_MANAGER_HPP
-#define PLATFORM_EVENT_TASK_MANAGER_HPP
+#pragma once
 
 #include <platform/util/concurrent/ConcurrentQueue.hpp>
 #include <platform/event/Task.hpp>
@@ -138,5 +137,3 @@ private:
 	Condition mCondition;
 	size_t mNumTasksToWaitFor;
 };
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef WINDOW_HPP
-#define WINDOW_HPP
-
+#pragma once
 #include <platform/Renderer.hpp>
 #include <platform/Input.hpp>
 #include <functional>
@@ -266,4 +264,3 @@ protected:
 	*/
 	void informResizeListeners(int width, int height);
 };
-#endif

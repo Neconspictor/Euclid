@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_SHADER_ENUM_HPP
-#define ENGINE_SHADER_SHADER_ENUM_HPP
+#pragma once
 #include <platform/util/StringUtils.hpp>
 
 /**
@@ -48,4 +47,3 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	* Puts a string representation of a shader enum to an output stream.
 	*/
 	std::ostream& operator<<(std::ostream& os, ShaderEnum shader);
-#endif

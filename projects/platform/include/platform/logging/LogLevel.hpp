@@ -25,8 +25,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef PLATFORM_LOG_LEVEL_HPP
-#define PLATFORM_LOG_LEVEL_HPP
+#pragma once
 #pragma optimize( "", on )
 #include <ostream>
 #include <platform/util/StringUtils.hpp>
@@ -95,5 +94,3 @@ namespace platform{
  * into an output stream. The output stream has to support std::string
  */
 std::ostream& operator << (std::ostream& os, const platform::LogLevel& level);
-
-#endif

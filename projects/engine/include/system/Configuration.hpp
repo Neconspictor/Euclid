@@ -1,5 +1,4 @@
-#ifndef NEC_ENGINE_SYSTEM_CONFIGURATION_HPP
-#define NEC_ENGINE_SYSTEM_CONFIGURATION_HPP
+#pragma once
 
 #include <system/System.hpp>
 #include <boost/program_options.hpp>
@@ -69,5 +68,3 @@ private:
 	Options options;
 	Variables variables;
 };
-
-#endif

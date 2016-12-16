@@ -1,5 +1,4 @@
-#ifndef PLATFORM_LOGGING_LOGGING_CLIENT_HPP
-#define PLATFORM_LOGGING_LOGGING_CLIENT_HPP
+#pragma once
 #pragma optimize( "", on )
 
 #include <string>
@@ -97,5 +96,3 @@ namespace platform
 		std::weak_ptr<LoggingServer> server;
 	};
 }
-
-#endif

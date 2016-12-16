@@ -25,8 +25,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LOG_ENDPOINT_INL
-#define LOG_ENDPOINT_INL
+#pragma once
 #pragma optimize( "", on )
 
 namespace platform
@@ -65,4 +64,3 @@ namespace platform
 		mImpl(prefix, meta, message);
 	}
 }
-#endif

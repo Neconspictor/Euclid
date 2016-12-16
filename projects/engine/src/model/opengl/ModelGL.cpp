@@ -5,6 +5,10 @@ using namespace std;
 ModelGL::ModelGL(vector<MeshGL> meshes) : Model({})
 {
 	this->glMeshes = meshes;
+	/*for (auto mesh : glMeshes)
+	{
+		meshes.push_back(mesh);
+	}*/
 	updateMeshPointers();
 }
 
@@ -23,6 +27,7 @@ ModelGL& ModelGL::operator=(const ModelGL& o)
 	if (this == &o) return *this;
 	meshes = vector<Mesh*>();
 	glMeshes = o.glMeshes;
+	meshes = o.meshes;
 	updateMeshPointers();
 
 	return *this;

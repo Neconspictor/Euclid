@@ -1,5 +1,4 @@
-#ifndef ENGINE_DRAWING_OPENGL_MODEL_DRAWER_HPP
-#define ENGINE_DRAWING_OPENGL_MODEL_DRAWER_HPP
+#pragma once
 #include <drawing/ModelDrawer.hpp>
 #include <memory>
 
@@ -22,5 +21,3 @@ protected:
 private:
 	static std::unique_ptr<ModelDrawerGL> ModelDrawerGL::instance;
 };
-
-#endif

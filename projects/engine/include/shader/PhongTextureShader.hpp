@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_PHONG_TEXTURE_SHADER_HPP
-#define ENGINE_SHADER_PHONG_TEXTURE_SHADER_HPP
+#pragma once
 #include <shader/shader.hpp>
 
 class PhongTextureShader : public Shader
@@ -19,4 +18,3 @@ public:
 	virtual void setSpotLightDiection(glm::vec3 direction) = 0;
 	virtual void setViewPosition(glm::vec3 position) = 0;
 };
-#endif

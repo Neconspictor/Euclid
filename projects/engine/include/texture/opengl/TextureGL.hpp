@@ -1,5 +1,4 @@
-#ifndef ENGINE_TEXTURE_OPENGL_TEXTUREGL_HPP
-#define ENGINE_TEXTURE_OPENGL_TEXTUREGL_HPP
+#pragma once
 #include <texture/Texture.hpp>
 #include <GL/glew.h>
 
@@ -21,4 +20,3 @@ public:
 private:
 	GLuint textureID;
 };
-#endif

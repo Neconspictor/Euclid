@@ -19,7 +19,8 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit-test.obj")
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit-test.obj"), 
+	sky(nullptr)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -63,6 +64,10 @@ void MainLoopTask::init()
 	playground->setTexture2("container.png");
 
 	renderer->getModelManager()->loadModels();
+
+	sky = renderer->getTextureManager()->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg", 
+		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
+		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg");
 }
 
 static float frameTimeElapsed = 0;
@@ -219,7 +224,7 @@ void MainLoopTask::drawScene()
 
 	data.model = &gunVob.getTrafo();
 	model = modelManager->getModel(gunVob.getMeshName());
-	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
+	modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
 	modelDrawer->draw(*model, phongShader, data);
 
 	renderer->endScene();

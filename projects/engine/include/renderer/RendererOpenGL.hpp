@@ -1,5 +1,4 @@
-#ifndef RENDERER_OPENGL_HPP
-#define RENDERER_OPENGL_HPP
+#pragma once
 #include <renderer/Renderer3D.hpp>
 #include <GL/glew.h>
 #include <model/opengl/ModelGL.hpp>
@@ -59,8 +58,6 @@ protected:
 	GLuint offscreenFrameBuffer;
 	GLuint texColorBuffer;
 
-	ModelGL screenSprite;
+	ModelGL* screenSprite;
 	glm::vec3 backgroundColor;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_UTIL_TIMER
-#define ENGINE_UTIL_TIMER
+#pragma once
 #include <chrono>
 
 /**
@@ -48,5 +47,3 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> lastUpdateTime;
 	float lastUpdateDiff;
 };
-
-#endif

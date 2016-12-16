@@ -1,5 +1,4 @@
-#ifndef NEC_ENGINE_SYSTEM_ENGINE_HPP
-#define NEC_ENGINE_SYSTEM_ENGINE_HPP
+#pragma once
 
 #include <system/System.hpp>
 #include <platform/event/TaskManager.hpp>
@@ -48,5 +47,3 @@ private:
 	std::string systemLogLevelStr;
 	platform::LogLevel systemLogLevel;
 };
-
-#endif

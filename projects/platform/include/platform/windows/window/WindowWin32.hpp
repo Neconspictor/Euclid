@@ -1,5 +1,4 @@
-#ifndef WINDOW_WIN32_HPP
-#define WINDOW_WIN32_HPP
+#pragma once
 #include <platform/Window.hpp>
 #include <Windows.h>
 #include <string>
@@ -64,5 +63,3 @@ private:
 	static LRESULT CALLBACK dispatchInputEvents(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void update() const;
 };
-
-#endif

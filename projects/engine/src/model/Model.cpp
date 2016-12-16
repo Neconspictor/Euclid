@@ -35,10 +35,6 @@ Model::~Model()
 
 void Model::draw(Shader* shader)
 {
-	for (auto mesh : meshes)
-	{
-		//shader->draw(mesh);
-	}
 }
 
 vector<Mesh*> Model::getMeshes() const

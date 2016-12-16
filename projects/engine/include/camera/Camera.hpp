@@ -1,5 +1,4 @@
-#ifndef CAMERA_HPP
-#define CAMERA_HPP
+#pragma once
 #include <platform/Window.hpp>
 #include <glm/detail/type_vec3.hpp>
 #include <platform/logging/LoggingClient.hpp>
@@ -42,5 +41,3 @@ protected:
 	platform::LoggingClient logClient;
 private:
 };
-
-#endif

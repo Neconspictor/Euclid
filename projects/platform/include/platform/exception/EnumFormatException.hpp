@@ -1,5 +1,4 @@
-#ifndef PLATFORM_EXCEPTION_ENUM_FORMAT_EXCEPTION
-#define PLATFORM_EXCEPTION_ENUM_FORMAT_EXCEPTION
+#pragma once
 #include <stdexcept>
 
 /**
@@ -18,5 +17,3 @@ public:
 	{
 	}
 };
-
-#endif

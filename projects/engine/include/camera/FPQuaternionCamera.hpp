@@ -1,5 +1,4 @@
-#ifndef CAMERA_FPQUATERNION_CAMERA_HPP
-#define CAMERA_FPQUATERNION_CAMERA_HPP
+#pragma once
 #include <camera/FPCameraBase.hpp>
 
 class FPQuaternionCamera : public FPCameraBase
@@ -17,5 +16,3 @@ public:
 protected:
 	float currentRotationX;
 };
-
-#endif

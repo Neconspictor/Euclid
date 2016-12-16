@@ -1,5 +1,4 @@
-#ifndef APP_MAIN_LOOP_TASK_HPP
-#define APP_MAIN_LOOP_TASK_HPP
+#pragma once
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/Input.hpp>
 #include <platform/event/Task.hpp>
@@ -40,6 +39,7 @@ private:
 	float mixValue;
 	bool isRunning;
 	Vob nanosuitModel;
+	CubeMap* sky;
 
 	void drawScene();
 
@@ -51,5 +51,3 @@ private:
 
 	void onWindowsFocus(Window* window, bool receivedFocus);
 };
-
-#endif

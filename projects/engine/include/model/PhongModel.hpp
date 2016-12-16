@@ -1,5 +1,4 @@
-#ifndef ENGINE_MODEL_PHONG_MODEL_HPP
-#define ENGINE_MODEL_PHONG_MODEL_HPP
+#pragma once
 #include <model/Vob.hpp>
 #include <material/PhongMaterial.hpp>
 
@@ -18,5 +17,3 @@ public:
 protected:
 	PhongMaterial material;
 };
-
-#endif

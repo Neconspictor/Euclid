@@ -24,8 +24,7 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef EVENT_HANDLER_HPP
-#define EVENT_HANDLER_HPP
+#pragma once
 
 template <class> class EventHandlerQueue;
 
@@ -42,5 +41,3 @@ private:
 
 	virtual void handle(const tEvent& object) = 0;
 };
-
-#endif

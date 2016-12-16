@@ -1,5 +1,4 @@
-#ifndef CAMERA_FPCAMERA_HPP
-#define CAMERA_FPCAMERA_HPP
+#pragma once
 #include <camera/FPCameraBase.hpp>
 
 class FPCamera : public FPCameraBase
@@ -19,5 +18,3 @@ protected:
 	float yaw, pitch;
 	float cameraSpeed;
 };
-
-#endif

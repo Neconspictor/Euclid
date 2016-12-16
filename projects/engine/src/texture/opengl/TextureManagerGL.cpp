@@ -21,6 +21,54 @@ TextureManagerGL::~TextureManagerGL()
 		GLuint id = texture.getTexture();
 		glDeleteTextures(1, &id);
 	}
+
+	for (auto& map : cubeMaps)
+	{
+		GLuint id = map.getCubeMap();
+		glDeleteTextures(1, &id);
+	}
+}
+
+CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
+	const string& bottom, const string& back, const string& front)
+{
+	string rightCStr = ::util::globals::TEXTURE_PATH + right;
+	string leftCStr = ::util::globals::TEXTURE_PATH + left;
+	string topCStr = ::util::globals::TEXTURE_PATH + top;
+	string bottomCStr = ::util::globals::TEXTURE_PATH + bottom;
+	string backCStr = ::util::globals::TEXTURE_PATH + back;
+	string frontCStr = ::util::globals::TEXTURE_PATH + front;
+
+	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
+		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
+		SOIL_LOAD_RGB, 0, SOIL_FLAG_INVERT_Y);
+
+	if (cubeMap == GL_FALSE)
+	{
+		LOG(logClient, Fault) << "Couldn't load cubeMap!" << endl <<
+			"	right: " << rightCStr << endl <<
+			"	left: " << leftCStr << endl <<
+			"	top: " << topCStr << endl <<
+			"	bottom: " << bottomCStr << endl <<
+			"	back: " << backCStr << endl <<
+			"	front: " << frontCStr;
+
+		stringstream ss;
+		ss << "TextureManagerGL::createCubeMap(): CubeMap couldn't successfully be loaded!";
+		throw runtime_error(ss.str());
+	}
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	cubeMaps.push_back(CubeMapGL(cubeMap));
+
+	return &cubeMaps.back();
 }
 
 TextureGL* TextureManagerGL::getImageGL(const string& file)
@@ -43,7 +91,7 @@ Texture* TextureManagerGL::getImage(const string& file)
 	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
 	if (textureID == GL_FALSE)
 	{
-		LOG(logClient, Error) << "Couldn't load image file: " << file << endl;
+		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
 		throw runtime_error(ss.str());

@@ -1,6 +1,4 @@
-#ifndef ENGINE_UTIL_FPS_COUNTER_HPP
-#define ENGINE_UTIL_FPS_COUNTER_HPP
-
+#pragma once
 /**
  * A facility for counting frames per seconds. 
  */
@@ -43,5 +41,3 @@ private:
 	float runtime;
 	int counter;
 };
-
-#endif

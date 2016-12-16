@@ -1,5 +1,4 @@
-#ifndef CALLBACK_CONTAINER_HPP
-#define CALLBACK_CONTAINER_HPP
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -83,5 +82,3 @@ public:
 		return result;
 	}
 };
-
-#endif

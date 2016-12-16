@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_PHONG_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_PHONG_SHADERGL_HPP
+#pragma once
 #include <shader/opengl/ShaderGL.hpp>
 #include <shader/PhongShader.hpp>
 
@@ -35,4 +34,3 @@ private:
 	glm::vec3 lightPosition;
 	const PhongMaterial* material;
 };
-#endif

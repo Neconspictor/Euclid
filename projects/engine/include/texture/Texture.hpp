@@ -1,5 +1,4 @@
-#ifndef ENGINE_TEXTURE_TEXTURE_HPP
-#define ENGINE_TEXTURE_TEXTURE_HPP
+#pragma once
 
 class Texture
 {
@@ -7,4 +6,3 @@ public:
 	Texture() {}
 	virtual ~Texture() {}
 };
-#endif

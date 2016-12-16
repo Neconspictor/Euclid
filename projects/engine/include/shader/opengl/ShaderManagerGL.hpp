@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_SHADER_MANAGERGL_HPP
-#define ENGINE_SHADER_OPENGL_SHADER_MANAGERGL_HPP
+#pragma once
 #include <shader/ShaderManager.hpp>
 #include <map>
 #include <memory>
@@ -37,4 +36,3 @@ private:
 
 	static std::unique_ptr<ShaderManagerGL> instance;
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef PLATFORM_HPP
-#define PLATFORM_HPP
+#pragma once
 
 #include <platform/Window.hpp>
 
@@ -33,5 +32,3 @@ private:
 	static std::shared_ptr<Platform> singleton;
 
 };
-
-#endif

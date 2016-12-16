@@ -1,5 +1,4 @@
-#ifndef CAMERA_TRACKBALL_CAMERA_HPP
-#define CAMERA_TRACKBALL_CAMERA_HPP
+#pragma once
 #include <camera/Camera.hpp>
 
 class TrackballCamera : public Camera
@@ -89,5 +88,3 @@ protected:
 	void updateCartesianCoordinates();
 	void updateSphericalCoords();
 };
-
-#endif

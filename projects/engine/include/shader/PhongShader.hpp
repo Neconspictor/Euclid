@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_PHONG_SHADER_HPP
-#define ENGINE_SHADER_PHONG_SHADER_HPP
+#pragma once
 #include <shader/shader.hpp>
 #include <material/PhongMaterial.hpp>
 
@@ -16,4 +15,3 @@ public:
 	virtual void setLightColor(glm::vec3 color) = 0;
 	virtual void setLightPosition(glm::vec3 position) = 0;
 };
-#endif

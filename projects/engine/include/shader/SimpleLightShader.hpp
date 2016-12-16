@@ -1,5 +1,4 @@
-#ifndef SIMPLE_LIGHT_SHADER_HPP
-#define SIMPLE_LIGHT_SHADER_HPP
+#pragma once
 #include <shader/shader.hpp>
 
 class SimpleLightShader : public Shader
@@ -14,4 +13,3 @@ public:
 	virtual void setLightColor(glm::vec3 color) = 0;
 	virtual void setObjectColor(glm::vec4 color) = 0;
 };
-#endif

@@ -24,8 +24,7 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef EVENT_HANDLER_QUEUE_HPP
-#define EVENT_HANDLER_QUEUE_HPP
+#pragma once
 
 #include <platform/event/EventBridge.hpp>
 #include <list>
@@ -103,5 +102,3 @@ private: //the entire class is private, so no unauthored class may use it
 		mHandlerList.remove_if(pts);
 	}
 };
-
-#endif

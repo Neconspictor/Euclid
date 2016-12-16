@@ -1,5 +1,4 @@
-#ifndef NEC_ENGINE_VIDEO_HPP
-#define NEC_ENGINE_VIDEO_HPP
+#pragma once
 #include <system/System.hpp>
 #include <platform/Window.hpp>
 
@@ -29,5 +28,3 @@ private:
 	std::shared_ptr<Renderer> renderer;
 
 };
-
-#endif

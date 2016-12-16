@@ -1,5 +1,4 @@
-#ifndef SDL_INIT_EXCEPTION_HPP
-#define SDL_INIT_EXCEPTION_HPP
+#pragma once
 
 #include <exception>
 #include <string>
@@ -35,5 +34,3 @@ inline SDLInitError::~SDLInitError() throw() {}
 inline const char* SDLInitError::what() const throw() {
 	return msg.c_str();
 }
-
-#endif

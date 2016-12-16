@@ -1,5 +1,4 @@
-#ifndef ENGINE_SHADER_OPENGL_SIMPLE_LIGHT_SHADERGL_HPP
-#define ENGINE_SHADER_OPENGL_SIMPLE_LIGHT_SHADERGL_HPP
+#pragma once
 #include <shader/SimpleLightShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 
@@ -32,5 +31,3 @@ private:
 	glm::vec3 lightColor;
 	glm::vec4 objectColor;
 };
-
-#endif

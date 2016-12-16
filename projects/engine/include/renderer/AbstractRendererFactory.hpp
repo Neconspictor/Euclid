@@ -1,5 +1,4 @@
-#ifndef ABSTRACT_RENDERER_FACTORY
-#define ABSTRACT_RENDERER_FACTORY
+#pragma once
 
 #include <platform/Renderer.hpp>
 #include "platform/Platform.hpp"
@@ -17,5 +16,3 @@ public:
 	 */
 	virtual Renderer* createRenderer(Platform const& platform, int handle) = 0;
 };
-
-#endif

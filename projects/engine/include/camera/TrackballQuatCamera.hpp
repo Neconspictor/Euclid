@@ -1,5 +1,4 @@
-#ifndef CAMERA_TRACKBALL_QUAT_CAMERA_HPP
-#define CAMERA_TRACKBALL_QUAT_CAMERA_HPP
+#pragma once
 #include <camera/Camera.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -94,5 +93,3 @@ protected:
 	std::string toString(const glm::vec3& vec) const;
 	std::string toString(const glm::quat& quaternion) const;
 };
-
-#endif

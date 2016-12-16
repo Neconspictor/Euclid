@@ -5,8 +5,7 @@
 *
 *****************************************************************/
 
-#ifndef SIGNAL_HPP
-#define SIGNAL_HPP
+#pragma once
 
 #include <functional>
 #include <algorithm>
@@ -294,5 +293,3 @@ public:
 		return *this;
 	}
 };
-
-#endif

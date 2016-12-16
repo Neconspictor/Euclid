@@ -25,8 +25,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LOG_ENDPOINT_HPP
-#define LOG_ENDPOINT_HPP
+#pragma once
 #pragma optimize( "", on )
 
 #include <platform/logging/LogMessage.hpp>
@@ -136,4 +135,3 @@ namespace platform
 }
 
 #include <platform/logging/LogEndpoint.inl>
-#endif

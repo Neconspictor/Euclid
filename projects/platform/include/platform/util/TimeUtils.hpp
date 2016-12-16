@@ -1,5 +1,4 @@
-#ifndef PLATFORM_UTIL_TIME_UTILS_HPP
-#define PLATFORM_UTIL_TIME_UTILS_HPP
+#pragma once
 #include <string>
 #include <ctime>
 #include <iomanip>
@@ -24,6 +23,3 @@ namespace platform {
 		}
 	}
 }
-
-
-#endif
