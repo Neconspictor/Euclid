@@ -15,7 +15,9 @@
 class LinearAllocator : public Allocator
 {
 public:
+	LinearAllocator();
 	LinearAllocator(size_t size, void* start);
+	LinearAllocator& operator=(LinearAllocator&& other);
 	~LinearAllocator();
 
 

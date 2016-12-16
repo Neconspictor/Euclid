@@ -6,7 +6,7 @@
 #include <platform/util/PointerUtils.hpp>
 #include <platform/memory/PoolAllocator.hpp>
 #include <platform/memory/ObjectPool.hpp>
-
+#include <gtest/gtest.h>
 
 using namespace std;
 
@@ -14,6 +14,12 @@ struct T
 {
 	int data[2];
 };
+
+
+TEST(test, test1)
+{
+	
+}
 
 int main(int argc, char** argv)
 {
@@ -45,20 +51,6 @@ int main(int argc, char** argv)
 	cout << "used memory by allocators: " << usedMemory << endl;
 
 	int length = 4;
-	T* array = (T*)linear.alloc(sizeof(T) * length, 4);
-
-	for (int i = 0; i < length; ++i)
-	{
-		array[i].data[0] = i;
-		array[i].data[1] = i*2;
-	}
-
-	for (int i = 0; i < length; ++i)
-	{
-		cout << "array[" << i << "] = (" << array[i].data[0] << ", " << array[i].data[1] << ")" << endl;
-	}
-
-	cout << "linear allocated bytes: " << linear.getUsedMemory() << endl;
 
 	T* stackElem = (T*)stack.alloc(sizeof(T), 4);
 
@@ -135,5 +127,8 @@ int main(int argc, char** argv)
 	// free the memory
 	linear.clear();
 	free(memory);
-	return EXIT_SUCCESS;
+
+	testing::InitGoogleTest(&argc, argv);
+
+	return RUN_ALL_TESTS();
 }

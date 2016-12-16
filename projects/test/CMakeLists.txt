@@ -4,6 +4,9 @@ set(
     ###header files###
     ###source files###
     src/TestMain.cpp
+    
+    #platform/memory
+    src/platform/memory/LinearAllocatorTest.cpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -15,7 +18,12 @@ assign_source_group(${TEST_SOURCES})
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/gtest/include
 )
+
+# static linked libraries
+find_library(GTEST_debug NAMES GTEST HINTS ${CMAKE_SOURCE_DIR}/libs/gtest/x64/Debug)
+find_library(GTEST_release NAMES GTEST HINTS ${CMAKE_SOURCE_DIR}/libs/gtest/x64/Release)
 
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
@@ -24,6 +32,9 @@ add_executable (Test ${TEST_SOURCES})
 
 #choose the right libraries by absolute paths!
 target_link_libraries(Test PUBLIC engine)
+
+target_link_libraries(Test PUBLIC debug ${GTEST_debug})
+target_link_libraries(Test PUBLIC optimized ${GTEST_release})
 
 #if debug then ${DEBUG_EXE_PATH} elseif release then ${RELEASE_EXE_PATH}
 #$<$<CONFIG:debug>:${DEBUG_EXE_PATH}>$<$<CONFIG:release>:${RELEASE_EXE_PATH}>

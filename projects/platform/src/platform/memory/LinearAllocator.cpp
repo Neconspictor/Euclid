@@ -1,10 +1,26 @@
 #include <platform/memory/LinearAllocator.hpp>
 #include <iostream>
 
+LinearAllocator::LinearAllocator() : Allocator(0, nullptr), currentPos(nullptr)
+{
+}
+
 LinearAllocator::LinearAllocator(size_t size, void* start)
 	: Allocator(size, start), currentPos(start)
 {
 	assert(size > 0);
+}
+
+LinearAllocator& LinearAllocator::operator=(LinearAllocator&& other)
+{
+	if (this == &other) return *this;
+
+	this->Allocator::operator=((Allocator&&)std::move(other));
+	currentPos = other.currentPos;
+
+	other.currentPos = nullptr;
+
+	return *this;
 }
 
 LinearAllocator::~LinearAllocator()

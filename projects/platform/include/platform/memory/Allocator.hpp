@@ -25,6 +25,21 @@ public:
 		numAllocations = 0;
 	}
 
+	Allocator& operator=(Allocator&& other) {
+		if (this == &other) return *this;
+		start = other.start;
+		size = other.size;
+		usedMemory = other.usedMemory;
+		numAllocations = other.numAllocations;
+
+		other.start = nullptr;
+		other.size = 0;
+		other.usedMemory = 0;
+		other.numAllocations = 0;
+
+		return *this;
+	}
+
 	/**
 	 * NOTE: numAllocations and usedMemory have to be zero.
 	 */
