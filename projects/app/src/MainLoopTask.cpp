@@ -238,12 +238,12 @@ void MainLoopTask::drawScene()
 	renderer->enableAlphaBlending(false);
 	modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
 	renderer->enableAlphaBlending(true);
-	modelDrawer->draw(*model, phongShader, data);
+	//modelDrawer->draw(*model, phongShader, data);
 
 	data.model = &gunVob.getTrafo();
 	model = modelManager->getModel(gunVob.getMeshName());
 	modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
-	modelDrawer->draw(*model, phongShader, data);
+	//modelDrawer->draw(*model, phongShader, data);
 
 	// draw sky as last object
 	renderer->enableBackfaceDrawing(true);

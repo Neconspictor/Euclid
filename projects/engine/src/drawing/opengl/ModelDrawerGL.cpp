@@ -56,7 +56,8 @@ void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::Tra
 	// only update stencil buffer, if depth and stencil test succeeded
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0x00);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
+
 
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
@@ -66,9 +67,10 @@ void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::Tra
 	simpleExtrude->setObjectColor(borderColor);
 	simpleExtrude->setExtrudeValue(0.05f);
 	// use 3 pixel as outline border
+	glDepthFunc(GL_ALWAYS);
 	draw(model, simpleExtrude, data);
-	glEnable(GL_DEPTH_TEST);
-
+	//glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	// clear stencil buffer state
 	glStencilMask(0xFF);
