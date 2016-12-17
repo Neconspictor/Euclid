@@ -195,14 +195,14 @@ void MainLoopTask::drawScene()
 
 	// draw sky
 	renderer->enableDepthWriting(false);
-	renderer->enableBackfaceDrawing(true);
+	//renderer->enableBackfaceDrawing(true);
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 	data.model = &identity;
 	data.view = &skyBoxView;
 	modelDrawer->draw(*skyBox, skyBoxShader, data);
 	renderer->enableDepthWriting(true);
-	renderer->enableBackfaceDrawing(false);
+	//renderer->enableBackfaceDrawing(false);
 	data.view = &view;
 
 

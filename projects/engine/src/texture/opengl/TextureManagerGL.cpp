@@ -41,7 +41,7 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 
 	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
-		SOIL_LOAD_RGB, 0, SOIL_FLAG_INVERT_Y);
+		SOIL_LOAD_RGB, 0, 0);
 
 	if (cubeMap == GL_FALSE)
 	{
