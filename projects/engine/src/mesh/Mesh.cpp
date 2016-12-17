@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Mesh::Mesh(unsigned int indexSize) : indexSize(indexSize)
+Mesh::Mesh() : indexSize(0)
 {
 }
 
@@ -42,6 +42,11 @@ Material* Mesh::getMaterial()
 const Material& Mesh::getMaterial() const
 {
 	return material;
+}
+
+void Mesh::setIndexSize(uint32_t indexSize)
+{
+	this->indexSize = indexSize;
 }
 
 void Mesh::setMaterial(Material material)

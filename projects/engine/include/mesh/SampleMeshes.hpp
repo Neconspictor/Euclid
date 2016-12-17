@@ -1,7 +1,7 @@
 #pragma once
 
-namespace TestMeshes {
-	static const std::string RECTANGLE_NAME = "TESTMESHES::RECTANGLE";
+namespace SampleMeshes {
+	static const std::string RECTANGLE_NAME = "SAMPLE_MESHES::RECTANGLE";
 	static unsigned int RECTANGLE_VERTEX_SLICE = 8;
     static const float rectangleVertices[] = {
         // position			// color			// texture coords
@@ -16,7 +16,7 @@ namespace TestMeshes {
     };
 
 
-	static const std::string CUBE_POSITION_NORMAL_TEX_NAME = "TESTMESHES::CUBE_POSITION_NORMAL_TEX";
+	static const std::string CUBE_POSITION_NORMAL_TEX_NAME = "SAMPLE_MESHES::CUBE_POSITION_NORMAL_TEX";
 	static unsigned int CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE = 8;
 	static const float cubePositionNormalTexVertices[] = {
 		// Positions           // Normals           // Texture Coords
@@ -69,50 +69,32 @@ namespace TestMeshes {
 	};
 
 
-	static const std::string SKY_BOX_NAME = "TESTMESHES::SKY_BOX";
-	static unsigned int SKY_BOX_VERTEX_SLICE = 8;
-	static const float skyboxVertices[] = {
-		// Positions        // Normals			// UVs
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
+	static const std::string SKY_BOX_NAME = "SAMPLE_MESHES::SKY_BOX";
+	static unsigned int SKY_BOX_VERTEX_SLICE = 3;
+	static const float skyBoxVertices[] = {
+		// Positions
+		 1.0, -1.0, -1.0,
+		 1.0, -1.0,  1.0,
+	    -1.0, -1.0,  1.0,
+		-1.0, -1.0, -1.0,
+		 1.0,  1.0,  -1.0,
+		 1.0,  1.0,   1.0,
+		-1.0,  1.0,   1.0,
+		-1.0,  1.0,  -1.0
+	};
 
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-
-		-1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f
+	static const uint32_t skyBoxIndices[] = {
+		1, 3, 0,
+		7, 5, 4,
+		4, 1, 0,
+		5, 2, 1,
+		2, 7, 3,
+		0, 7, 4,
+		1, 2, 3,
+		7, 6, 5,
+		4, 5, 1,
+		5, 6, 2,
+		2, 6, 7,
+		0, 3, 7
 	};
 }

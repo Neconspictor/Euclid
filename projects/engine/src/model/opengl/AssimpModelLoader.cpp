@@ -5,6 +5,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <util/Timer.hpp>
+#include <mesh/opengl/MeshFactoryGL.hpp>
 
 
 using namespace std;
@@ -61,7 +62,7 @@ void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<M
 MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 {
 	// Vertex and index count can be large -> store temp objects on heap
-	auto vertices = make_unique<vector<Mesh::Vertex>>();
+	auto vertices = make_unique<vector<Vertex>>();
 	auto indices = make_unique<vector<unsigned int>>();
 
 	// We set the size of the vectors initially to avoid unnecessary reallocations.
@@ -75,7 +76,7 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)
 	{
 
-		Mesh::Vertex vertex;
+		Vertex vertex;
 		// position
 		vertex.position.x = mesh->mVertices[i].x;
 		vertex.position.y = mesh->mVertices[i].y;
@@ -139,7 +140,8 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 
 	material.setShininess(32);
 
-	MeshGL result  = MeshGL(vertices->data(), mesh->mNumVertices, indices->data(), mesh->mNumFaces * 3);
+	MeshGL result  = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices, 
+											indices->data(), mesh->mNumFaces * 3);
 	result.setMaterial(move(material));
 
 	return result;

@@ -22,6 +22,15 @@ public:
 
 	virtual void enableAlphaBlending(bool enable) = 0;
 
+	virtual void enableBackfaceDrawing(bool enable) = 0;
+	
+	/**
+	 * Enables / Disables depth mask writing. 
+	 * models drawn with disabled depth mask will always overwrite
+	 * the existing fragments/pixels.
+	 */
+	virtual void enableDepthWriting(bool enable) = 0;
+
 	/**
 	 * Provides access to a shader manager that creates and stores shaders
 	 * compatible to this renderer

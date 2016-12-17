@@ -16,7 +16,11 @@ public:
 	void drawOffscreenBuffer() override;
 
 	void enableAlphaBlending(bool enable) override;
+
+	void enableBackfaceDrawing(bool enable) override;
 	
+	void enableDepthWriting(bool enable) override;
+
 	void endScene() override;
 
 	ModelDrawer* getModelDrawer() override;

@@ -52,8 +52,7 @@ void RendererOpenGL::init()
 	glFrontFace(GL_CCW);
 
 	// only draw front faces
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	enableBackfaceDrawing(false);
 
 	// enable alpha blending
 	glEnable(GL_BLEND);
@@ -97,6 +96,29 @@ void RendererOpenGL::enableAlphaBlending(bool enable)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void RendererOpenGL::enableBackfaceDrawing(bool enable)
+{
+	if (enable)
+	{
+		glDisable(GL_CULL_FACE);
+	} else
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	}
+}
+
+void RendererOpenGL::enableDepthWriting(bool enable)
+{
+	if (enable)
+	{
+		glDepthMask(GL_TRUE);
+	} else
+	{
+		glDepthMask(GL_FALSE);
+	}
 }
 
 void RendererOpenGL::endScene()

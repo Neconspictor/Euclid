@@ -10,6 +10,7 @@
 #include <shader/opengl/SimpleColorShaderGL.hpp>
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
 #include <shader/opengl/ScreenShaderGL.hpp>
+#include <shader/opengl/SkyBoxShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -44,7 +45,10 @@ void ShaderManagerGL::loadShaders()
 	createShader(PhongTex);
 	createShader(Playground);
 	createShader(SimpleColor);
+	createShader(SimpleExtrude);
 	createShader(SimpleLight);
+	createShader(Screen);
+	createShader(SkyBox);
 }
 
 ShaderManagerGL* ShaderManagerGL::get()
@@ -91,6 +95,11 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	case Screen: {
 		shaderPtr = make_shared<ScreenShaderGL>
 			("screen_vs.glsl", "screen_fs.glsl");
+		break;
+	}
+	case SkyBox: {
+		shaderPtr = make_shared<SkyBoxShaderGL>
+			("skybox_vs.glsl", "skybox_fs.glsl");
 		break;
 	}
 	default: {

@@ -1,7 +1,7 @@
 #pragma once
-#include <mesh/Mesh.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <string>
 
 /**
  * A model is an object in a 3d space, thus it consists of a mesh representing the shape

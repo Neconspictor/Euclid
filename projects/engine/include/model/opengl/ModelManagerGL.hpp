@@ -10,6 +10,8 @@ class MeshGL;
 class ModelManagerGL : public ModelManager
 {
 public:
+	
+	
 	~ModelManagerGL() override;
 
 	virtual Model* createSkyBox() override;

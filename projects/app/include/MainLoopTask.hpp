@@ -40,6 +40,7 @@ private:
 	bool isRunning;
 	Vob nanosuitModel;
 	CubeMap* sky;
+	Model* skyBox;
 
 	void drawScene();
 

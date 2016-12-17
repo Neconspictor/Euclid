@@ -3,7 +3,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <Brofiler.h>
 #include <glm/glm.hpp>
-#include <mesh/TestMeshes.hpp>
+#include <mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <camera/TrackballQuatCamera.hpp>
 #include <camera/FPQuaternionCamera.hpp>
@@ -13,6 +13,7 @@
 #include <camera/FPCamera.hpp>
 #include <model/PhongModel.hpp>
 #include <shader/PhongTextureShader.hpp>
+#include <shader/SkyBoxShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -20,7 +21,7 @@ using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit-test.obj"), 
-	sky(nullptr)
+	sky(nullptr), skyBox(nullptr)
 {
 	this->window = window;
 	this->renderer = renderer;
@@ -68,6 +69,13 @@ void MainLoopTask::init()
 	sky = renderer->getTextureManager()->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg", 
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg");
+
+	skyBox = renderer->getModelManager()->createSkyBox();
+
+	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
+		(renderer->getShaderManager()->getShader(SkyBox));
+
+	skyBoxShader->setSkyTexture(sky);
 }
 
 static float frameTimeElapsed = 0;
@@ -151,6 +159,8 @@ void MainLoopTask::run()
 
 void MainLoopTask::drawScene()
 {
+	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
+		(renderer->getShaderManager()->getShader(SkyBox));
 	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
 		(renderer->getShaderManager()->getShader(Playground));
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
@@ -175,10 +185,31 @@ void MainLoopTask::drawScene()
 		vec3(0.0f,  0.0f, -3.0f)
 	};
 
+	camera->calcView();
+	mat4 view = camera->getView();
+	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
+	mat4 viewProj = projection * view;
+
+	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f };
+	Shader::TransformData data = { &projection, &view, nullptr };
+
+	// draw sky
+	renderer->enableDepthWriting(false);
+	renderer->enableBackfaceDrawing(true);
+	mat4 identity;
+	mat4 skyBoxView = mat4(mat3(view));
+	data.model = &identity;
+	data.view = &skyBoxView;
+	modelDrawer->draw(*skyBox, skyBoxShader, data);
+	renderer->enableDepthWriting(true);
+	renderer->enableBackfaceDrawing(false);
+	data.view = &view;
+
+
 	phongShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	Vob cube(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	Vob phongModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	Vob lampModel(TestMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	Vob cube(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	Vob phongModel(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	Vob lampModel(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	Vob gunVob("gun.obj");
 
 	cube.setPosition({ 0.0f, 0.0f, 0.0f });
@@ -192,14 +223,6 @@ void MainLoopTask::drawScene()
 	lampModel.setScale({ 0.5f, 0.5f, 0.5f });
 	//lampModel.setEulerXYZ({ 0.0f, 0.0f, radians(45.0f) });
 	lampModel.calcTrafo();
-
-	camera->calcView();
-	mat4 view = camera->getView();
-	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
-	mat4 viewProj = projection * view;
-
-	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f };
-	Shader::TransformData data = { &projection, &view, nullptr };
 
 	playgroundShader->setTextureMixValue(mixValue);
 	data.model = &cube.getTrafo();

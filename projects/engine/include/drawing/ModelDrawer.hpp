@@ -23,4 +23,5 @@ public:
 	virtual void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) = 0;
 
 	virtual void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) = 0;
+
 };

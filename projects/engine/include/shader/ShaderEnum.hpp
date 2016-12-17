@@ -13,7 +13,8 @@ enum ShaderEnum
 	SimpleColor,
 	SimpleExtrude,
 	SimpleLight,
-	Screen
+	Screen,
+	SkyBox,
 };
 
 /**
@@ -27,7 +28,8 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	{SimpleColor, "SIMPLE_COLOR" },
 	{SimpleExtrude, "SIMPLE_EXTRUDE" },
 	{SimpleLight, "SIMPLE_LIGHT" },
-	{Screen, "SCREEN"}
+	{Screen, "SCREEN"},
+	{SkyBox, "SKY_BOX"}
 };
 
 	/**

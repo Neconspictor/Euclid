@@ -6,7 +6,7 @@ using namespace std;
 using namespace glm;
 
 ScreenShaderGL::ScreenShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
-	ScreenShader(), ShaderGL(vertexShaderFile, fragmentShaderFile)
+	ScreenShader(), ShaderGL(vertexShaderFile, fragmentShaderFile), frameBuffer(GL_FALSE)
 {
 }
 

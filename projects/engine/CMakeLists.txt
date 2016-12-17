@@ -25,9 +25,10 @@ set(
     
     #mesh
     include/mesh/Mesh.hpp
-    include/mesh/TestMeshes.hpp
+    include/mesh/SampleMeshes.hpp
     #mesh/opengl
     include/mesh/opengl/MeshGL.hpp
+    include/mesh/opengl/MeshFactoryGL.hpp
     
     #material
     include/material/Material.hpp
@@ -60,6 +61,7 @@ set(
     include/shader/SimpleColorShader.hpp
     include/shader/SimpleExtrudeShader.hpp
     include/shader/SimpleLightShader.hpp
+    include/shader/SkyBoxShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/PhongShaderGL.hpp
@@ -71,6 +73,7 @@ set(
     include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleExtrudeShaderGL.hpp
     include/shader/opengl/SimpleLightShaderGL.hpp
+    include/shader/opengl/SkyBoxShaderGL.hpp
  
     
     #sprite
@@ -118,7 +121,7 @@ set(
     src/mesh/Mesh.cpp
     #mesh/opengl
     src/mesh/opengl/MeshGL.cpp
-    #src/mesh/TestMeshes.cpp
+    src/mesh/opengl/MeshFactoryGL.cpp
     
     #material
     src/material/Material.cpp
@@ -149,6 +152,7 @@ set(
     src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleExtrudeShaderGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
+    src/shader/opengl/SkyBoxShaderGL.cpp
     
     #sprite
     src/sprite/Sprite.cpp

@@ -1,7 +1,25 @@
 #pragma once
-#include <vector>
 #include <glm/glm.hpp>
 #include <material/Material.hpp>
+
+
+struct VertexPositionNormalTex {
+	glm::vec3 position;
+	glm::vec3 normal;
+	glm::vec2 texCoords;
+};
+
+struct VertexPosition
+{
+	glm::vec3 position;
+};
+
+struct VertexPositionTex
+{
+	glm::vec3 position;
+	glm::vec2 texCoords;
+};
+
 
 /**
  * Represents a 3d mesh consisting of vertices and a list of indices describing 
@@ -15,13 +33,7 @@ class Mesh
 {
 public:
 
-	struct Vertex {
-		glm::vec3 position;
-		glm::vec3 normal;
-		glm::vec2 texCoords;
-	};
-
-	explicit Mesh(unsigned int indexSize);
+	explicit Mesh();
 	Mesh(const Mesh& other);
 	Mesh(Mesh&& other);
 	Mesh& operator=(const Mesh& o);
@@ -34,8 +46,9 @@ public:
 	Material* getMaterial();
 	const Material& getMaterial() const;
 
+	void setIndexSize(uint32_t indexSize);
 	void setMaterial(Material material);
 protected:
 	Material material;
-	unsigned int indexSize;
+	uint32_t indexSize;
 };

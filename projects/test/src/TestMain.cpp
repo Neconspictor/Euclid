@@ -15,12 +15,6 @@ struct T
 	int data[2];
 };
 
-
-TEST(test, test1)
-{
-	
-}
-
 int main(int argc, char** argv)
 {
 

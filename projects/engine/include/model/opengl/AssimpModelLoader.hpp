@@ -6,6 +6,9 @@
 class AssimpModelLoader
 {
 public:
+
+	using Vertex = MeshGL::Vertex;
+
 	AssimpModelLoader();
 	ModelGL loadModel(const std::string& path) const;
 
