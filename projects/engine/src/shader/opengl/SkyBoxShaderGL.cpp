@@ -15,6 +15,7 @@ SkyBoxShaderGL::~SkyBoxShaderGL()
 
 void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 {
+	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
@@ -22,17 +23,20 @@ void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 	use();
 
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	mat4 transform = projection * view * model;
+	mat4 transform = projection * view;
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture->getCubeMap());
+	glUniform1i(glGetUniformLocation(getProgramID(), "skybox"), 0);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
 
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindVertexArray(0);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 }
 
 void SkyBoxShaderGL::release()

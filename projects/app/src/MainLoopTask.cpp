@@ -189,21 +189,16 @@ void MainLoopTask::drawScene()
 	mat4 view = camera->getView();
 	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
 	mat4 viewProj = projection * view;
+	mat4 identity;
+	mat4 skyBoxView = mat4(mat3(view));
 
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f };
 	Shader::TransformData data = { &projection, &view, nullptr };
 
-	// draw sky
-	renderer->enableDepthWriting(false);
+	//renderer->enableDepthWriting(false);
 	//renderer->enableBackfaceDrawing(true);
-	mat4 identity;
-	mat4 skyBoxView = mat4(mat3(view));
-	data.model = &identity;
-	data.view = &skyBoxView;
-	modelDrawer->draw(*skyBox, skyBoxShader, data);
-	renderer->enableDepthWriting(true);
+	//renderer->enableDepthWriting(true);
 	//renderer->enableBackfaceDrawing(false);
-	data.view = &view;
 
 
 	phongShader->setLightColor({ 1.0f, 1.0f, 1.0f });
@@ -243,13 +238,19 @@ void MainLoopTask::drawScene()
 	renderer->enableAlphaBlending(false);
 	modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
 	renderer->enableAlphaBlending(true);
-	//modelDrawer->draw(*model, phongShader, data);
+	modelDrawer->draw(*model, phongShader, data);
 
 	data.model = &gunVob.getTrafo();
 	model = modelManager->getModel(gunVob.getMeshName());
 	modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
 	modelDrawer->draw(*model, phongShader, data);
 
+	// draw sky as last object
+	renderer->enableBackfaceDrawing(true);
+	data.model = &identity;
+	data.view = &skyBoxView;
+	modelDrawer->draw(*skyBox, skyBoxShader, data);
+	renderer->enableBackfaceDrawing(false);
 	renderer->endScene();
 }
 
