@@ -9,9 +9,9 @@ struct Material {
 
 struct Light {
     vec3 position;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
 };
 
 in vec3 fragmentPosition;
@@ -27,22 +27,22 @@ uniform vec3 viewPos;
 void main()
 {
     // sample the diffuse color for the current fragment
-    vec3 diffuseColor = vec3(texture(material.diffuseMap, texCoordsFS));
+    vec4 diffuseColor = texture(material.diffuseMap, texCoordsFS);
     
     // sample the specular color for the current fragment
-    vec3 specularColor = vec3(texture(material.specularMap, texCoordsFS));
+    vec4 specularColor = texture(material.specularMap, texCoordsFS);
     
     // sample the emmission color for the current fragment
-    vec3 emissionColor = vec3(texture(material.emissionMap, texCoordsFS));
+    vec4 emissionColor = texture(material.emissionMap, texCoordsFS);
     
     
-    vec3 ambient = diffuseColor * light.ambient;
+    vec4 ambient = diffuseColor * light.ambient;
     
     vec3 normal = normalize(normalVS);
     vec3 lightDirection = normalize(light.position - fragmentPosition);
     
     float diffuseAngle = max(dot(normal, lightDirection), 0.0f);
-    vec3 diffuse = (diffuseAngle * diffuseColor) * light.diffuse;
+    vec4 diffuse = (diffuseAngle * diffuseColor) * light.diffuse;
         
     // camera position is at (0,0,0) in view space, view direction is cameraPosition - fragmentPosition
     // results in -fragmentPosition
@@ -54,10 +54,7 @@ void main()
     
     float shininess = pow(max(dot(viewDirection, reflectDirection), 0.0f), material.shininess);
     
-    //vec3 invertedSpecularColor = vec3(1.0f) - specularColor;
+    vec4 specular =  (shininess * specularColor) * light.specular;
     
-    vec3 specular =  (shininess * specularColor) * light.specular;
-    
-    vec3 result = clamp(ambient + diffuse + specular + emissionColor, 0.0, 1.0);
-    color = vec4(result, 1.0f);
+    color = clamp(ambient + diffuse + specular + emissionColor, 0.0, 1.0);
 }

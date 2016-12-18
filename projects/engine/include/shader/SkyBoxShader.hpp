@@ -1,5 +1,5 @@
-#ifndef ENGINE_SHADER_SKYBOX_SHADER_HPP
-#define ENGINE_SHADER_SKYBOX_SHADER_HPP
+#pragma once
+
 #include <shader/Shader.hpp>
 #include <texture/CubeMap.hpp>
 
@@ -10,5 +10,3 @@ public:
 
 	virtual void setSkyTexture(CubeMap* sky) = 0;
 };
-
-#endif

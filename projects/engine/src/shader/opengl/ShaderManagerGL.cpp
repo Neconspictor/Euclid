@@ -11,6 +11,7 @@
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
 #include <shader/opengl/ScreenShaderGL.hpp>
 #include <shader/opengl/SkyBoxShaderGL.hpp>
+#include <shader/opengl/SimpleReflectionShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -47,6 +48,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(SimpleColor);
 	createShader(SimpleExtrude);
 	createShader(SimpleLight);
+	createShader(SimpleReflection);
 	createShader(Screen);
 	createShader(SkyBox);
 }
@@ -90,6 +92,11 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	case SimpleLight: {
 		shaderPtr = make_shared<SimpleLightShaderGL>
 			("simpleLight_vs.glsl", "simpleLight_fs.glsl");
+		break;
+	}
+	case SimpleReflection: {
+		shaderPtr = make_shared<SimpleReflectionShaderGL>
+			("simpleReflection_vs.glsl", "simpleReflection_fs.glsl");
 		break;
 	}
 	case Screen: {

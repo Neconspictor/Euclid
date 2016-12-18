@@ -14,6 +14,7 @@
 #include <model/PhongModel.hpp>
 #include <shader/PhongTextureShader.hpp>
 #include <shader/SkyBoxShader.hpp>
+#include <shader/SimpleReflectionShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -75,7 +76,11 @@ void MainLoopTask::init()
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(renderer->getShaderManager()->getShader(SkyBox));
 
+	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
+		(renderer->getShaderManager()->getShader(SimpleReflection));
+
 	skyBoxShader->setSkyTexture(sky);
+	reflectionShader->setReflectionTexture(sky);
 }
 
 static float frameTimeElapsed = 0;
@@ -169,6 +174,9 @@ void MainLoopTask::drawScene()
 	LampShader* lampShader = dynamic_cast<LampShader*>
 		(renderer->getShaderManager()->getShader(Lamp));
 
+	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
+		(renderer->getShaderManager()->getShader(SimpleReflection));
+
 	ModelManager* modelManager = renderer->getModelManager();
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
@@ -194,6 +202,8 @@ void MainLoopTask::drawScene()
 
 	vec3 lightPosition = vec3{ 1.2f, 1.0f, 2.0f };
 	Shader::TransformData data = { &projection, &view, nullptr };
+
+	reflectionShader->setCameraPosition(camera->getPosition());
 
 	//renderer->enableDepthWriting(false);
 	//renderer->enableBackfaceDrawing(true);
@@ -236,13 +246,14 @@ void MainLoopTask::drawScene()
 	model = modelManager->getModel(nanosuitModel.getMeshName());
 	// the nanosiut uses color information in the alpha channel -> deactivate alpha blending
 	renderer->enableAlphaBlending(false);
-	modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
+	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
 	renderer->enableAlphaBlending(true);
-	//modelDrawer->draw(*model, phongShader, data);
+	modelDrawer->draw(*model, reflectionShader, data);
 
 	data.model = &gunVob.getTrafo();
 	model = modelManager->getModel(gunVob.getMeshName());
-	modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
+	modelDrawer->draw(*model, reflectionShader, data);
+	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
 	//modelDrawer->draw(*model, phongShader, data);
 
 	// draw sky as last object

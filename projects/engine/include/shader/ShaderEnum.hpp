@@ -13,6 +13,7 @@ enum ShaderEnum
 	SimpleColor,
 	SimpleExtrude,
 	SimpleLight,
+	SimpleReflection,
 	Screen,
 	SkyBox,
 };
@@ -21,13 +22,14 @@ enum ShaderEnum
 * Maps shader enumerations to a string representation.
 */
 const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
-	{Lamp, "LAMP" },
+	{Lamp, "LAMP"},
 	{Phong, "PHONG"},
-	{PhongTex, "PHONG_TEX" },
-	{Playground, "PLAYGROUND" },
-	{SimpleColor, "SIMPLE_COLOR" },
-	{SimpleExtrude, "SIMPLE_EXTRUDE" },
-	{SimpleLight, "SIMPLE_LIGHT" },
+	{PhongTex, "PHONG_TEX"},
+	{Playground, "PLAYGROUND"},
+	{SimpleColor, "SIMPLE_COLOR"},
+	{SimpleExtrude, "SIMPLE_EXTRUDE"},
+	{SimpleLight, "SIMPLE_LIGHT"},
+	{SimpleReflection, "SIMPLE_REFLECTION"},
 	{Screen, "SCREEN"},
 	{SkyBox, "SKY_BOX"}
 };

@@ -61,6 +61,7 @@ set(
     include/shader/SimpleColorShader.hpp
     include/shader/SimpleExtrudeShader.hpp
     include/shader/SimpleLightShader.hpp
+    include/shader/SimpleReflectionShader.hpp
     include/shader/SkyBoxShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
@@ -73,6 +74,7 @@ set(
     include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleExtrudeShaderGL.hpp
     include/shader/opengl/SimpleLightShaderGL.hpp
+    include/shader/opengl/SimpleReflectionShaderGL.hpp
     include/shader/opengl/SkyBoxShaderGL.hpp
  
     
@@ -152,6 +154,7 @@ set(
     src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleExtrudeShaderGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
+    src/shader/opengl/SimpleReflectionShaderGL.cpp
     src/shader/opengl/SkyBoxShaderGL.cpp
     
     #sprite
