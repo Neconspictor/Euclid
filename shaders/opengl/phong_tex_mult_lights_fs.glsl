@@ -2,8 +2,9 @@
 
 struct Material {
     sampler2D diffuseMap;
-    sampler2D specularMap;
     sampler2D emissionMap;
+    sampler2D reflectionMap;
+    sampler2D specularMap;
     float shininess;
 };
 
@@ -48,12 +49,14 @@ struct SpotLight {
 #define NR_POINT_LIGHTS 4
 
 in vec3 fragmentPosition;
+in vec3 reflectPosition;
 in vec3 normalVS;
 in vec2 texCoordsFS;
 
 out vec4 color;
 
 uniform Material material;
+uniform samplerCube skybox;
 uniform vec3 viewPos;
 
 uniform DirLight dirLight;
@@ -79,6 +82,16 @@ void main()
     
     // phase 3: spot lighting
     //result += calcSpotLight(spotLight, normal, fragmentPosition, viewDirection);
+    
+    // Reflection
+    vec3 I = normalize(reflectPosition - viewPos);
+    vec3 R = reflect(I, normal);
+    float reflect_intensity = texture(material.reflectionMap, texCoordsFS).r;
+    vec4 reflect_color = vec4(0,0,0,1);
+    if(reflect_intensity > 0.1) // Only sample reflections when above a certain treshold
+        reflect_color = texture(skybox, R) * reflect_intensity;
+           
+    result += reflect_color;    
     
     result = clamp(result, 0.0, 1.0);
     

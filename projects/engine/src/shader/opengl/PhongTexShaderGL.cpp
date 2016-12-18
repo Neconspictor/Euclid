@@ -9,7 +9,8 @@ using namespace glm;
 using namespace std;
 
 PhongTexShaderGL::PhongTexShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1, 0, 0), viewPosition(0,0,0)
+	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1, 0, 0), viewPosition(0,0,0), 
+	skybox(nullptr)
 {
 }
 
@@ -63,6 +64,7 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 	const Material& material = mesh.getMaterial();
 
 	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
+	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
 	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
 	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
 
@@ -77,21 +79,33 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 		glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
 	}
 
-	// Bind specular map
-	if (specularMap)
-	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap->getTexture());
-		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 1);
-	}
-
 	// Bind emission map
 	if (emissionMap)
 	{
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, emissionMap->getTexture());
-		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 2);
+		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 1);
 	}
+
+	// Bind reflection map
+	if (reflectionMap)
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, reflectionMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.reflectionMap"), 2);
+	}
+
+	// Bind specular map
+	if (specularMap)
+	{
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, specularMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 3);
+	}
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getCubeMap());
+	glUniform1i(glGetUniformLocation(programID, "skybox"), 4);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
@@ -130,6 +144,11 @@ void PhongTexShaderGL::setPointLightPositions(vec3* positions)
 	{
 		pointLightPositions[i] = positions[i];
 	}
+}
+
+void PhongTexShaderGL::setSkyBox(CubeMap* sky)
+{
+	this->skybox = static_cast<CubeMapGL*>(sky);
 }
 
 void PhongTexShaderGL::setSpotLightDiection(vec3 direction)

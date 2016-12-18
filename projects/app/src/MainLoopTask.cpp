@@ -21,7 +21,7 @@ using namespace std;
 using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit-test.obj"), 
+	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
 	sky(nullptr), skyBox(nullptr)
 {
 	this->window = window;
@@ -79,8 +79,12 @@ void MainLoopTask::init()
 	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
 		(renderer->getShaderManager()->getShader(SimpleReflection));
 
+	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
+		(renderer->getShaderManager()->getShader(PhongTex));
+
 	skyBoxShader->setSkyTexture(sky);
 	reflectionShader->setReflectionTexture(sky);
+	phongShader->setSkyBox(sky);
 }
 
 static float frameTimeElapsed = 0;
@@ -246,15 +250,15 @@ void MainLoopTask::drawScene()
 	model = modelManager->getModel(nanosuitModel.getMeshName());
 	// the nanosiut uses color information in the alpha channel -> deactivate alpha blending
 	renderer->enableAlphaBlending(false);
-	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
+	modelDrawer->drawOutlined(*model, phongShader, data, vec4(1.0f, 0.5f, 0.1f, 0.3f));
 	renderer->enableAlphaBlending(true);
-	modelDrawer->draw(*model, reflectionShader, data);
+	//modelDrawer->draw(*model, reflectionShader, data);
 
 	data.model = &gunVob.getTrafo();
 	model = modelManager->getModel(gunVob.getMeshName());
-	modelDrawer->draw(*model, reflectionShader, data);
+	//modelDrawer->draw(*model, reflectionShader, data);
 	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
-	//modelDrawer->draw(*model, phongShader, data);
+	modelDrawer->draw(*model, phongShader, data);
 
 	// draw sky as last object
 	renderer->enableBackfaceDrawing(true);

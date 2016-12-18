@@ -136,6 +136,12 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		{
 			material.setSpecularMap(manager->getImage(specularMaps[0]));
 		}
+
+		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
+		if (reflectionMaps.size())
+		{
+			material.setReflectionMap(manager->getImage(reflectionMaps[0]));
+		}
 	}
 
 	material.setShininess(32);

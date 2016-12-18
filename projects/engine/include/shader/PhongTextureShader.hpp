@@ -1,6 +1,8 @@
 #pragma once
 #include <shader/shader.hpp>
 
+class CubeMap;
+
 class PhongTextureShader : public Shader
 {
 public:
@@ -15,6 +17,7 @@ public:
 
 	// NOTE: positions is assumed to be an array with 4 elements!
 	virtual void setPointLightPositions(glm::vec3* positions) = 0;
+	virtual void setSkyBox(CubeMap* sky) = 0;
 	virtual void setSpotLightDiection(glm::vec3 direction) = 0;
 	virtual void setViewPosition(glm::vec3 position) = 0;
 };
