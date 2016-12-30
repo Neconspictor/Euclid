@@ -46,11 +46,6 @@ set(
     #platform/window_system/glfw/
     include/platform/window_system/glfw/WindowGLFW.hpp
     include/platform/window_system/glfw/WindowSystemGLFW.hpp
-    #platform/window_system/sdl/
-    include/platform/window_system/sdl/InputDeviceSDL.hpp
-    include/platform/window_system/sdl/SDLInitException.hpp
-    include/platform/window_system/sdl/WindowSDL.hpp
-    include/platform/window_system/sdl/WindowSystemSDL.hpp
     
     #platform/windows/
     include/platform/windows/PlatformWindows.hpp
@@ -99,10 +94,6 @@ set(
     #platform/window_system/glfw/
     src/platform/window_system/glfw/WindowGLFW.cpp
     src/platform/window_system/glfw/WindowSystemGLFW.cpp
-    #platform/window_system/sdl/
-    src/platform/window_system/sdl/InputDeviceSDL.cpp
-    src/platform/window_system/sdl/WindowSDL.cpp
-    src/platform/window_system/sdl/WindowSystemSDL.cpp
     
     #platform/windows
     src/platform/windows/PlatformWindows.cpp
@@ -125,9 +116,7 @@ assign_source_group(${PLATFORM_SOURCES})
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    #${CMAKE_SOURCE_DIR}/libs/glew/include
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
     ${CMAKE_SOURCE_DIR}/libs/glfw/include
     ${CMAKE_SOURCE_DIR}/libs/glad/include
@@ -152,14 +141,6 @@ target_include_directories (platform PUBLIC
 #link_directories(.)
 
 #choose the right libraries by absolute paths!
-find_library(libglew32_lib NAMES libglew32 HINTS ${CMAKE_SOURCE_DIR}/libs/glew/x64/Release)
-
-
-find_library(SDL2_lib_debug NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
-find_library(SDL2_lib_release NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
-find_library(SDL2main_lib_debug NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
-find_library(SDL2main_lib_release NAMES SDL2main HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release)
-
 find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)
 
 # boost libraries libs\boost_1_62_0\x64\Debug
@@ -190,13 +171,8 @@ find_library(glfw3_debug NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Deb
 
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(platform PUBLIC opengl32)
-target_link_libraries(platform PUBLIC ${libglew32_lib})
 target_link_libraries(platform PUBLIC glu32)
 
-target_link_libraries(platform PUBLIC debug ${SDL2_lib_debug})
-target_link_libraries(platform PUBLIC optimized ${SDL2_lib_release})
-target_link_libraries(platform PUBLIC debug ${SDL2main_lib_debug})
-target_link_libraries(platform PUBLIC optimized ${SDL2main_lib_release})
 
 #boost libraries
 target_link_libraries(platform PUBLIC debug ${libboost_chrono_debug})

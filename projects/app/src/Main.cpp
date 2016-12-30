@@ -4,7 +4,6 @@
 #include <renderer/RendererOpenGL.hpp>
 #include <MainLoopTask.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
-#include <platform/window_system/sdl/WindowSystemSDL.hpp>
 #include <boost/locale.hpp>
 #include <thread>
 
