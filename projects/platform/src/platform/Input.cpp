@@ -10,7 +10,8 @@ Input::Input() :
 	logClient(getLogServer())
 {
 	frameMouseXOffset = frameMouseYOffset = 0;
-	frameScrollOffset = 0;
+	frameScrollOffsetX = 0;
+	frameScrollOffsetY = 0;
 	mouseXabsolut = 0;
 	mouseYabsolut = 0;
 	firstMouseInput = true;
@@ -19,12 +20,12 @@ Input::Input() :
 	logClient.setPrefix("[Input]");
 }
 
-void Input::informScrollListeners(float scrollDiff)
+void Input::informScrollListeners(double scrollX, double scrollY)
 {
-	for (ScrollConnection connection : scrollContainer.getCallbacks())
+	for (ScrollConnection& connection : scrollContainer.getCallbacks())
 	{
 		ScrollCallback callback = connection.get()->getCallback();
-		callback(scrollDiff);
+		callback(scrollX, scrollY);
 	}
 }
 
@@ -96,9 +97,16 @@ bool Input::windowHasFocus()
 	return m_windowHasFocus;
 }
 
-float Input::getFrameScrollOffset()
+
+double Input::getFrameScrollOffsetX()
 {
-	return frameScrollOffset;
+	return frameScrollOffsetX;
+}
+
+
+double Input::getFrameScrollOffsetY()
+{
+	return frameScrollOffsetY;
 }
 
 /*void Input::addScrollListener(ScrollListener& listener)

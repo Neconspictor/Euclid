@@ -4,14 +4,13 @@
 #include <platform/exception/OpenglException.hpp>
 #include <model/opengl/ModelManagerGL.hpp>
 #include <drawing/opengl/ModelDrawerGL.hpp>
-#include <GL/glew.h>
-#include <GL/GLU.h>
 #include <shader/opengl/ScreenShaderGL.hpp>
+#include <gl/GLU.h>
 
 using namespace std;
 using namespace platform;
 
-RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreenFrameBuffer(0), texColorBuffer(0), screenSprite(nullptr),
+RendererOpenGL::RendererOpenGL() : Renderer3D(), offscreen({GL_FALSE,GL_FALSE,GL_FALSE }), screenSprite(nullptr),
 	backgroundColor(0.0f, 0.0f, 0.0f)
 {
 	logClient.setPrefix("[RendererOpenGL]");
@@ -81,7 +80,7 @@ void RendererOpenGL::drawOffscreenBuffer()
 	//glLineWidth(3);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
-	shaderGL->setOffscreenBuffer(texColorBuffer);
+	shaderGL->setOffscreenBuffer(offscreen.texColorBuffer);
 	for (Mesh* mesh : screenSprite->getMeshes())
 	{
 		shaderGL->draw(*mesh);
@@ -169,11 +168,16 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
 	Renderer::setViewPort(x, y, width, height);
 	glViewport(xPos, yPos, width, height);
+	LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
+
+	if (offscreen.frameBuffer == GL_FALSE) return;
+	// update offscreen buffer texture
+	createFrameRenderTargetBuffer(width, height);
 }
 
 void RendererOpenGL::useOffscreenBuffer()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, offscreenFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, offscreen.frameBuffer);
 }
 
 void RendererOpenGL::useScreenBuffer()
@@ -187,6 +191,7 @@ void RendererOpenGL::checkGLErrors(string errorPrefix) const
 	GLint error = glGetError();
 	if (error != GL_NO_ERROR)
 	{
+
 		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << gluErrorString(error);
 		throw OpenglException(ss.str());
 	}
@@ -194,13 +199,24 @@ void RendererOpenGL::checkGLErrors(string errorPrefix) const
 
 void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 {
-	glGenFramebuffers(1, &offscreenFrameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, offscreenFrameBuffer);
+	// created a screen buffer once before? -> release it
+	if (offscreen.frameBuffer != GL_FALSE)
+	{
+		glDeleteFramebuffers(1, &offscreen.frameBuffer);
+		offscreen.frameBuffer = GL_FALSE;
+		glDeleteTextures(1, &offscreen.texColorBuffer);
+		offscreen.texColorBuffer = GL_FALSE;
+		glDeleteRenderbuffers(1, &offscreen.renderBuffer);
+		offscreen.renderBuffer = GL_FALSE;
+	}
+
+	glGenFramebuffers(1, &offscreen.frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, offscreen.frameBuffer);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	// Generate texture
-	glGenTextures(1, &texColorBuffer);
-	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	glGenTextures(1, &offscreen.texColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, offscreen.texColorBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -213,18 +229,17 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreen.texColorBuffer, 0);
 
 	//create a render buffer for depth and stencil testing
-	GLuint rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glGenRenderbuffers(1, &offscreen.renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, offscreen.renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	// attach render buffer to the frame buffer
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, offscreen.renderBuffer);
 
 	// finally check if all went successfully
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

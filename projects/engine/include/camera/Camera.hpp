@@ -27,9 +27,9 @@ public:
 
 	virtual void calcView();
 
-	virtual float getFOV() const;
+	virtual double getFOV() const;
 
-	virtual void onScroll(float yOffset);
+	virtual void onScroll(double xOffset, double yOffset);
 
 
 protected:
@@ -37,7 +37,7 @@ protected:
 	glm::vec3 look;
 	glm::vec3 up;
 	glm::mat4 view;
-	float fov;
+	double fov;
 	platform::LoggingClient logClient;
 private:
 };

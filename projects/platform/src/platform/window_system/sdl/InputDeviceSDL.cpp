@@ -1,17 +1,15 @@
-#include <platform/windows/input/SDL/SDLInputDevice.hpp>
+#include <platform/window_system/SDL/InputDeviceSDL.hpp>
 
 using namespace std;
 using namespace platform;
 
-SDLInputDevice::SDLInputDevice(HWND window, int width, int height) : 
+InputDeviceSDL::InputDeviceSDL() :
 	Input()
 {
-	logClient.setPrefix("[SDLInputDevice]");
-	init = false;
+	logClient.setPrefix("[InputDeviceSDL]");
+	/*
 	try
 	{
-		sdl = new SDL(SDL_INIT_EVERYTHING);
-
 		sdl->setWindow(SDL_CreateWindowFrom(window));
 		SDL_Window* pSampleWin = sdl->getWindow();
 		char sBuf[32];
@@ -34,6 +32,7 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height) :
 			<< err.what();
 		sdl = nullptr;
 	}
+	*/
 
 	for (int i = 0; i < SDL_NUM_SCANCODES; ++i)
 	{
@@ -45,19 +44,15 @@ SDLInputDevice::SDLInputDevice(HWND window, int width, int height) :
 		pressedMouseButtons[i] = Up;
 	}
 
-	anyPressedKey = InvalidKey;
+	anyPressedKey = KEY_UNKNOWN;
 	anyPressedMouseButton = InvalidButton;
 }
 
-SDLInputDevice::~SDLInputDevice()
+InputDeviceSDL::~InputDeviceSDL()
 {
-	if (sdl) delete sdl;
-	sdl = nullptr;
-
-	LOG(logClient, Debug) << "SDL is shut down!" << endl;
 }
 
-bool SDLInputDevice::isDown(Key key)
+bool InputDeviceSDL::isDown(Key key)
 {
 	const Uint8* keys = SDL_GetKeyboardState(nullptr);
 	int scancode = mapKey(key);
@@ -67,11 +62,8 @@ bool SDLInputDevice::isDown(Key key)
 	return false;
 }
 
-bool SDLInputDevice::isDown(Button button)
+bool InputDeviceSDL::isDown(Button button)
 {
-	if (button == ScrollWheelDown) return frameScrollOffset < 0;
-	if (button == ScrollWheelUp) return frameScrollOffset > 0;
-
 	int code = mapButton(button);
 	if (code < 0) return false;
 
@@ -79,58 +71,55 @@ bool SDLInputDevice::isDown(Button button)
 	return (state == Down) || (state == Pressed);
 }
 
-bool SDLInputDevice::isPressed(Key key)
+bool InputDeviceSDL::isPressed(Key key)
 {
 	int scancode = mapKey(key);
 	return pressedKeys[scancode] == Pressed;
 }
 
-bool SDLInputDevice::isPressed(Button button)
+bool InputDeviceSDL::isPressed(Button button)
 {
 	int scancode = mapButton(button);
 	return pressedMouseButtons[scancode] == Pressed;
 }
 
-bool SDLInputDevice::isReleased(Key key)
+bool InputDeviceSDL::isReleased(Key key)
 {
 	int scancode = mapKey(key);
 	return pressedKeys[scancode] == Released;
 }
 
-bool SDLInputDevice::isReleased(Button button)
+bool InputDeviceSDL::isReleased(Button button)
 {
 	int scancode = mapButton(button);
 	return pressedMouseButtons[scancode] == Released;
 }
 
-Input::Key SDLInputDevice::getAnyPressedKey()
+Input::Key InputDeviceSDL::getAnyPressedKey()
 {
 	return anyPressedKey;
 }
 
-Input::Button SDLInputDevice::getAnyPressedButton()
+Input::Button InputDeviceSDL::getAnyPressedButton()
 {
 	return anyPressedMouseButton;
 }
 
-bool SDLInputDevice::isInit() const
+void InputDeviceSDL::handleEvents()
 {
-	return init;
-}
-
-void SDLInputDevice::pollEvents()
-{
-	SDL_PumpEvents();
-	SDL_Event event;
 	vector<int> currentStateChanges,
 		currentMouseStateChanges;
-	frameScrollOffset = 0;
+	frameScrollOffsetX = 0;
+	frameScrollOffsetY = 0;
 	frameMouseXOffset = frameMouseYOffset = 0;
-	anyPressedKey = InvalidKey;
+	anyPressedKey = KEY_UNKNOWN;
 	anyPressedMouseButton = InvalidButton;
 
-	while (SDL_PollEvent(&event))
+	while(eventQueue.size() > 0)
 	{
+		SDL_Event event = eventQueue.back();
+		eventQueue.pop_back();
+
 		switch (event.type) {
 			case SDL_KEYDOWN: {
 				InputItemState current = pressedKeys[event.key.keysym.scancode];
@@ -149,7 +138,8 @@ void SDLInputDevice::pollEvents()
 				break;
 			}
 			case SDL_MOUSEWHEEL: {
-				frameScrollOffset += event.wheel.y;
+				frameScrollOffsetX += event.wheel.x;
+				frameScrollOffsetY += event.wheel.y;
 				break;
 			}
 			case SDL_MOUSEMOTION: {
@@ -161,18 +151,18 @@ void SDLInputDevice::pollEvents()
 				mouseXabsolut = event.motion.x;
 				mouseYabsolut = event.motion.y;
 				break;
-					 
+
 			}
 			case SDL_MOUSEBUTTONUP: {
 				pressedMouseButtons[event.button.button - 1] = Released;
-				currentMouseStateChanges.push_back(event.button.button -1);
-				tempMouseStates.push_back(event.button.button -1);
+				currentMouseStateChanges.push_back(event.button.button - 1);
+				tempMouseStates.push_back(event.button.button - 1);
 				break;
 			}
 			case SDL_MOUSEBUTTONDOWN: {
 				pressedMouseButtons[event.button.button - 1] = Pressed;
-				currentMouseStateChanges.push_back(event.button.button -1);
-				tempMouseStates.push_back(event.button.button -1);
+				currentMouseStateChanges.push_back(event.button.button - 1);
+				tempMouseStates.push_back(event.button.button - 1);
 				break;
 			}
 		}
@@ -235,42 +225,35 @@ void SDLInputDevice::pollEvents()
 		}
 	}
 
-	if (frameScrollOffset)
+	if (frameScrollOffsetY || frameScrollOffsetX)
 	{
-		informScrollListeners(frameScrollOffset);
+		informScrollListeners(frameScrollOffsetX, frameScrollOffsetY);
 	}
 }
 
-int SDLInputDevice::mapKey(Key key)
+void InputDeviceSDL::pollEvents()
 {
-	switch(key)
-	{
-	case KeyW:return SDL_SCANCODE_W;
-	case KeyA: return SDL_SCANCODE_A;
-	case KeyS: return SDL_SCANCODE_S;
-	case KeyD: return SDL_SCANCODE_D;
-	case KeyEscape: return SDL_SCANCODE_ESCAPE;
-	case KeyUp: return SDL_SCANCODE_UP;
-	case KeyDown: return SDL_SCANCODE_DOWN;
-	case KeyEnter: return SDL_SCANCODE_KP_ENTER;
-	case KeyReturn: return SDL_SCANCODE_RETURN;
-	case KeyKpAdd: return SDL_SCANCODE_KP_PLUS;
-	default: break;
-	}
-	
-	// invalid/unknown key
-	return SDL_SCANCODE_UNKNOWN;
 }
 
-int SDLInputDevice::mapButton(Button button)
+void InputDeviceSDL::push(SDL_Event event)
+{
+	eventQueue.push_back(move(event));
+}
+
+int InputDeviceSDL::mapKey(Key key)
+{
+	// the key enum table is inherited from the SDL scancode table.
+	// So we have an identity mapping!
+	return static_cast<int>(key);
+}
+
+int InputDeviceSDL::mapButton(Button button)
 {
 	switch(button)
 	{
 	case LeftMouseButton: return SDL_BUTTON_LEFT - 1;
 	case RightMouseButton: return SDL_BUTTON_RIGHT - 1;
 	case MiddleMouseButton: return SDL_BUTTON_MIDDLE - 1;
-	case ScrollWheelUp: break;
-	case ScrollWheelDown: break;
 	case InvalidButton: break;
 	default: break;
 	}

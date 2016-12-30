@@ -1,6 +1,6 @@
 #pragma once
 #include <renderer/Renderer3D.hpp>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <model/opengl/ModelGL.hpp>
 
 
@@ -48,6 +48,14 @@ public:
 	void useScreenBuffer() override;
 
 protected:
+
+	struct ScreenBuffer
+	{
+		GLuint frameBuffer;
+		GLuint texColorBuffer;
+		GLuint renderBuffer;
+	};
+
 	/**
 	 * A function for checking any opengl related errors.
 	 * Mainly intended for debug purposes
@@ -59,8 +67,7 @@ protected:
 
 	void createFrameRenderTargetBuffer(int width, int height);
 
-	GLuint offscreenFrameBuffer;
-	GLuint texColorBuffer;
+	ScreenBuffer offscreen;
 
 	ModelGL* screenSprite;
 	glm::vec3 backgroundColor;

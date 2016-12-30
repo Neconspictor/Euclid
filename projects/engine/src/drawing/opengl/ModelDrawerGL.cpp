@@ -1,7 +1,7 @@
 #include <drawing/opengl/ModelDrawerGL.hpp>
 #include <shader/Shader.hpp>
 #include <model/Model.hpp>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <glm/gtc/matrix_transform.inl>
 #include <shader/SimpleColorShader.hpp>
 #include <shader/ShaderManager.hpp>

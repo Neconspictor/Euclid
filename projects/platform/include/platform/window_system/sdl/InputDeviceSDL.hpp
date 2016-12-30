@@ -1,19 +1,18 @@
 #pragma once
-#include <Windows.h>
 #include <platform/Input.hpp>
-#include "SDL.hpp"
 #include <vector>
+#include <SDL/SDL.h>
 
 /**
  * An input device for a SDL context.
  */
-class SDLInputDevice : public Input
+class InputDeviceSDL : public Input
 {
 public:
 
-	SDLInputDevice(HWND windows, int width, int height);
+	InputDeviceSDL();
 
-	virtual ~SDLInputDevice();
+	virtual ~InputDeviceSDL();
 
 	bool isDown(Key key) override;
 	bool isDown(Button button) override;
@@ -24,20 +23,23 @@ public:
 	Key getAnyPressedKey() override;
 	Button getAnyPressedButton() override;
 
-	bool isInit() const;
+	void handleEvents();
 
 	void pollEvents();
+
+	void push(SDL_Event event);
 
 private:
 
 	static const int MOUSE_BUTTON_SIZE = 5;
-	SDL* sdl;
+
+	std::vector<SDL_Event> eventQueue;
+
 	InputItemState pressedKeys[SDL_NUM_SCANCODES];
 	InputItemState pressedMouseButtons[MOUSE_BUTTON_SIZE];
 	std::vector<int> tempStates, tempMouseStates;
 	Key anyPressedKey;
 	Button anyPressedMouseButton;
-	bool init;
 
 	int mapKey(Key key);
 	int mapButton(Button button);

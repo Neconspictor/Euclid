@@ -42,15 +42,18 @@ set(
     include/platform/memory/StackAllocator.hpp
     
     
+    #platform/window_system/
+    #platform/window_system/glfw/
+    include/platform/window_system/glfw/WindowGLFW.hpp
+    include/platform/window_system/glfw/WindowSystemGLFW.hpp
+    #platform/window_system/sdl/
+    include/platform/window_system/sdl/InputDeviceSDL.hpp
+    include/platform/window_system/sdl/SDLInitException.hpp
+    include/platform/window_system/sdl/WindowSDL.hpp
+    include/platform/window_system/sdl/WindowSystemSDL.hpp
+    
     #platform/windows/
     include/platform/windows/PlatformWindows.hpp
-    #platform/windows/input
-    #platform/windows/input/SDL
-    include/platform/windows/input/SDL/SDL.hpp
-    include/platform/windows/input/SDL/SDLInitException.hpp
-    include/platform/windows/input/SDL/SDLInputDevice.hpp
-    #platform/windows/window
-    include/platform/windows/window/WindowWin32.hpp
     
     #platform/util
     include/platform/util/CallbackContainer.hpp
@@ -92,18 +95,25 @@ set(
     src/platform/memory/ProxyAllocator.cpp
     src/platform/memory/StackAllocator.cpp
     
+    #platform/window_system/
+    #platform/window_system/glfw/
+    src/platform/window_system/glfw/WindowGLFW.cpp
+    src/platform/window_system/glfw/WindowSystemGLFW.cpp
+    #platform/window_system/sdl/
+    src/platform/window_system/sdl/InputDeviceSDL.cpp
+    src/platform/window_system/sdl/WindowSDL.cpp
+    src/platform/window_system/sdl/WindowSystemSDL.cpp
+    
     #platform/windows
     src/platform/windows/PlatformWindows.cpp
-    #platform/windows/input
-    #platform/windows/input/SDL
-    src/platform/windows/input/SDL/SDLInputDevice.cpp
-    #platform/windows/window
-    src/platform/windows/window/WindowWin32.cpp
     
     #platform/util
     src/platform/util/StringUtils.cpp
     #platform/util/concurrent
     src/platform/util/concurrent/Active.cpp
+    
+    #external resources
+     ${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
 )
 
 # Create named folders for the sources within the .vcproj
@@ -115,10 +125,14 @@ assign_source_group(${PLATFORM_SOURCES})
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/glew/include 
+    #${CMAKE_SOURCE_DIR}/libs/glew/include
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/glfw/include
+    ${CMAKE_SOURCE_DIR}/libs/glad/include
+    ${CMAKE_SOURCE_DIR}/libs/utf8-cpp/source
+    #${CMAKE_SOURCE_DIR}/libs/nana/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -128,6 +142,9 @@ add_library (platform ${PLATFORM_SOURCES})
 target_include_directories (platform PUBLIC 
     include
     ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
+    ${CMAKE_SOURCE_DIR}/libs/glad/include
+    ${CMAKE_SOURCE_DIR}/libs/glfw/include
+    #${CMAKE_SOURCE_DIR}/libs/nana/include
 )
 
 
@@ -158,6 +175,19 @@ find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS 
 find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
 
+find_library(boost_locale_release NAMES boost_locale-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(boost_locale_debug NAMES boost_locale-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+
+
+#glfw
+find_library(glfw3_release NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Release)
+find_library(glfw3_debug NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Debug)
+
+#nana
+#find_library(nana_debug NAMES nana_v140_Debug_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
+#find_library(nana_release NAMES nana_v140_Release_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
+
+
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(platform PUBLIC opengl32)
 target_link_libraries(platform PUBLIC ${libglew32_lib})
@@ -181,4 +211,16 @@ target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
 target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
 target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
 
+target_link_libraries(platform PUBLIC debug ${boost_locale_debug})
+target_link_libraries(platform PUBLIC optimized ${boost_locale_release})
+
+# Brofiler
 target_link_libraries(platform PUBLIC  ${brofiler_lib})
+
+#GLFW
+target_link_libraries(platform PUBLIC debug ${glfw3_release})
+target_link_libraries(platform PUBLIC optimized ${glfw3_release})
+
+#nana
+#target_link_libraries(platform PUBLIC debug ${nana_debug})
+#target_link_libraries(platform PUBLIC optimized ${nana_release})

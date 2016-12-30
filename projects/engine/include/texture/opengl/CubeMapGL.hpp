@@ -1,7 +1,7 @@
 #ifndef ENGINE_TEXTURE_OPENGL_CUBEMAPGL_HPP
 #define ENGINE_TEXTURE_OPENGL_CUBEMAPGL_HPP
 #include <texture/CubeMap.hpp>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 
 class CubeMapGL : public CubeMap

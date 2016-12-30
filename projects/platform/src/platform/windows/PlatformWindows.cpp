@@ -1,7 +1,5 @@
 ﻿#include <platform/windows/PlatformWindows.hpp>
-#include <platform/windows/window/WindowWin32.hpp>
-#include <GL/glew.h>
-#include <GL/wglew.h>
+#include <glad/glad.h>
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <platform/exception/UnexpectedPlatformException.hpp>
@@ -30,10 +28,6 @@ void PlatformWindows::setVSync(const Renderer& renderer, bool value)
 	}
 }
 
-unique_ptr<Window> PlatformWindows::createWindow(Window::WindowStruct const& desc)
-{
-	return make_unique<WindowWin32>(desc);
-}
 
 void PlatformWindows::setOpenGLPixelFormat(HDC& hdc)
 {
@@ -71,6 +65,8 @@ void PlatformWindows::setOpenGLPixelFormat(HDC& hdc)
 HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 {
 
+	return nullptr;
+
 	// TODO initialize opengl, query pixel format, destroy window, create window again and set 
 	// finally the wished pixel format!
 	/*
@@ -96,7 +92,7 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 	wglChoosePixelFormatARB(hdc, attribList, NULL, 1, &pixelFormat, &numFormats);*/
 
 
-	HGLRC hglrc = nullptr;
+/*	HGLRC hglrc = nullptr;
 
 	PIXELFORMATDESCRIPTOR pfd;
 	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -204,7 +200,7 @@ HGLRC PlatformWindows::createOpenGLContext(HDC& hdc)
 		throw OpenglException("PlatformWindows::createOpenGLContext(HDC& hdc): Error occured during init!");
 	}
 
-	return hglrc;
+	return hglrc;*/
 }
 
 void PlatformWindows::destroyOpenGLContext(HGLRC hglrc)

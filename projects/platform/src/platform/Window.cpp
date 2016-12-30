@@ -1,7 +1,7 @@
 #include <platform/Window.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
-Window::Window(WindowStruct const& description): renderer(nullptr),
+Window::Window(WindowStruct const& description, Renderer& renderer): renderer(&renderer),
 logClient(platform::getLogServer())
 {
 	width = description.width;
@@ -25,6 +25,26 @@ void Window::setTitle(const std::string& newTitle)
 	title = newTitle;
 }
 
+int Window::getHeight() const
+{
+	return height;
+}
+
+int Window::getPosX() const
+{
+	return posX;
+}
+
+int Window::getPosY() const
+{
+	return posY;
+}
+
+int Window::getWidth() const
+{
+	return width;
+}
+
 const std::string& Window::getTitle() const
 {
 	return title;
@@ -32,7 +52,6 @@ const std::string& Window::getTitle() const
 
 Renderer::Viewport Window::getViewport() const
 {
-	if (!renderer.get()) return {0,0,0,0};
 	return renderer->getViewport();
 }
 

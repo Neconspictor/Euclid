@@ -44,13 +44,13 @@ set (EASY_HOOK_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/EasyHook64.dll)
 set (PROFILER_CORE_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/ProfilerCore64.dll)
 set (BROFILER ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/Brofiler.exe)
 
-add_custom_command(TARGET App POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "$<$<CONFIG:debug>:${SDL_DEBUG_DLL}>$<$<CONFIG:release>:${SDL_RELEASE_DLL}>" "$<TARGET_FILE_DIR:App>/SDL2.dll"
-    COMMAND ${CMAKE_COMMAND} -E copy "${EASY_HOOK_DLL}" "$<TARGET_FILE_DIR:App>/EasyHook64.dll"
-    COMMAND ${CMAKE_COMMAND} -E copy "${PROFILER_CORE_DLL}" "$<TARGET_FILE_DIR:App>/ProfilerCore64.dll"
-    COMMAND ${CMAKE_COMMAND} -E copy "${BROFILER}" "$<TARGET_FILE_DIR:App>/Brofiler.exe"
+#add_custom_command(TARGET App POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy "$<$<CONFIG:debug>:${SDL_DEBUG_DLL}>$<$<CONFIG:release>:${SDL_RELEASE_DLL}>" "$<TARGET_FILE_DIR:App>/SDL2.dll"
+#    COMMAND ${CMAKE_COMMAND} -E copy "${EASY_HOOK_DLL}" "$<TARGET_FILE_DIR:App>/EasyHook64.dll"
+#    COMMAND ${CMAKE_COMMAND} -E copy "${PROFILER_CORE_DLL}" "$<TARGET_FILE_DIR:App>/ProfilerCore64.dll"
+#    COMMAND ${CMAKE_COMMAND} -E copy "${BROFILER}" "$<TARGET_FILE_DIR:App>/Brofiler.exe"
     #COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Release/SDL2.dll" "$<TARGET_FILE_DIR:Engine>/SDL2.dll"
-)
+#)
 
 # Adds logic to INSTALL.vcproj to copy app.exe to destination directory
 install (TARGETS App

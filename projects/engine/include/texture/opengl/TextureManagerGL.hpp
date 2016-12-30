@@ -1,7 +1,7 @@
 #pragma once
 #include <texture/TextureManager.hpp>
 #include <map>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <memory>
 #include <platform/logging/LoggingClient.hpp>
 #include <texture/opengl/TextureGL.hpp>

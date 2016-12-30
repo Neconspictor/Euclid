@@ -12,6 +12,9 @@ class WindowFocusListener;
  * A renderer can be associated to several windows, but for each draw call only one window 
  * can be active. A window provides therefore an interface for deciding whether the current window
  * is active for draw calls or not.
+ *
+ * NOTE: A Window depends on certain platforms on a rendering context. The context has to be created/bound
+ * on window construction -> renderer is needed for constructing a window.
  */
 class Window
 {
@@ -66,7 +69,7 @@ public:
 	/**
 	 * Creates a new window based on a description object.
 	 */
-	Window(WindowStruct const& description);
+	Window(WindowStruct const& description, Renderer& renderer);
 
 	/**
 	* Activates this window. All drawing calls of an registered renderer are going to this window as long
@@ -87,21 +90,20 @@ public:
 	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
 
 	/**
-	* Closes this window and releases any allocated memory.
+	* Closes this window.
 	*/
 	virtual void close() = 0;
-
-	/**
-	 * Embeds the specified renderer. 
-	 * All draw calls of the renderer will be presented on this window.
-	 */
-	virtual void embedRenderer(std::shared_ptr<Renderer>& renderer) = 0;
 
 	/**
 	* Provides access to the underlying input device.
 	* With that device input actions can be queried from the user.
 	*/
 	virtual Input* getInputDevice() = 0;
+
+	int getHeight() const;
+	int getPosX() const;
+	int getPosY() const;
+	int getWidth() const;
 
 	/**
 	 * Provides the title of thi window.
@@ -129,11 +131,6 @@ public:
 	 * Minimizes this window 
 	 */
 	virtual void minimize() = 0;
-
-	/**
-	* Polls and process events for this window.
-	*/
-	virtual void pollEvents() = 0;
 
 	/**
 	* Removes a given window resize callback.
@@ -237,7 +234,7 @@ protected:
 	/**
 	* The renderer that is associated with this window (if any renderer is associated at all).
 	*/
-	std::shared_ptr<Renderer> renderer;
+	Renderer* renderer;
 
 	/**
 	* Is this window currently focused for input events?

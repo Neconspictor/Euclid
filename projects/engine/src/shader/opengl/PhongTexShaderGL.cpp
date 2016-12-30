@@ -3,7 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 using namespace glm;
 using namespace std;

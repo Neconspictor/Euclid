@@ -2,12 +2,14 @@
 #include <system/Configuration.hpp>
 #include <string>
 #include <platform/Window.hpp>
+#include <platform/WindowSystem.hpp>
 #include <platform/Platform.hpp>
 
 using namespace std;
 
-Video::Video() :
-	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), vSync(false)
+Video::Video(WindowSystem* system) :
+	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), vSync(false),
+	windowSystem(system), window(nullptr), renderer(nullptr)
 {
 	//we dont't need a frame updater
 	updater.reset();
@@ -31,6 +33,12 @@ void Video::handle(const CollectOptions& config)
 
 void Video::init()
 {
+
+	if (!renderer)
+	{
+		throw runtime_error("Video::init(): No renderer was set!");
+	}
+
 	System::init();
 
 	Window::WindowStruct desc;
@@ -42,37 +50,28 @@ void Video::init()
 	desc.posY = 0;
 	desc.width = width;
 	desc.height = height;
-	desc.visible = false;
+	desc.visible = true;
+	desc.vSync = vSync;
 
-	window = Platform::getActivePlatform()->createWindow(desc);
-
-	if (renderer)
-	{
-		window->embedRenderer(renderer);
-		Renderer::Viewport viewPort = window->getViewport();
-		//width = viewPort.width;
-		//height = viewPort.height;
-		renderer->setViewPort(0, 0, width, height);
-		renderer->init();
-		Platform::getActivePlatform()->setVSync(*renderer.get(), vSync);
-	}
-
-	window->setVisible(true);
+	//window = Platform::getActivePlatform()->createWindow(desc, *renderer);
+	window = windowSystem->createWindow(desc, *renderer);
+	window->activate();
+	renderer->setViewPort(0, 0, width, height);
+	renderer->init();
+	//Platform::getActivePlatform()->setVSync(*renderer, vSync);
 }
 
-void Video::useRenderer(shared_ptr<Renderer> renderer)
+void Video::useRenderer(Renderer* renderer)
 {
 	this->renderer = renderer;
-	if (window)
-	{
-		window->embedRenderer(renderer);
-		renderer->setViewPort(0, 0, width, height);
-		renderer->init();
-		Platform::getActivePlatform()->setVSync(*renderer.get(), vSync);
-	}
 }
 
-shared_ptr<Window> Video::getWindow()
+WindowSystem* Video::getWindowSystem() const
+{
+	return windowSystem;
+}
+
+Window* Video::getWindow() const
 {
 	return window;
 }

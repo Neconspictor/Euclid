@@ -73,12 +73,12 @@ void Camera::calcView()
 	view = lookAt(position, position + look, up);
 }
 
-float Camera::getFOV() const
+double Camera::getFOV() const
 {
 	return fov;
 }
 
-void Camera::onScroll(float yOffset)
+void Camera::onScroll(double xOffset, double yOffset)
 {
 	// zoom
 	if (fov >= 1.0f && fov <= 45.0f)

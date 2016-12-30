@@ -1,4 +1,5 @@
 #include <mesh/opengl/MeshFactoryGL.hpp>
+#include <glad/glad.h>
 
 MeshGL MeshFactoryGL::create(const VertexPositionNormalTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 {
@@ -7,9 +8,9 @@ MeshGL MeshFactoryGL::create(const VertexPositionNormalTex* vertices, uint32_t v
 	MeshGL out;
 	out.indexSize = indexCount;
 
-	glCreateVertexArrays(1, &out.vao);
-	glCreateBuffers(1, &out.vbo);
-	glCreateBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out.vao);
+	glGenBuffers(1, &out.vbo);
+	glGenBuffers(1, &out.ebo);
 
 	// 1. bind Vertex Array Object
 	glBindVertexArray(out.vao);
@@ -47,9 +48,9 @@ MeshGL MeshFactoryGL::createPosition(const VertexPosition* vertices, uint32_t ve
 	MeshGL out;
 	out.indexSize = indexCount;
 
-	glCreateVertexArrays(1, &out.vao);
-	glCreateBuffers(1, &out.vbo);
-	glCreateBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out.vao);
+	glGenBuffers(1, &out.vbo);
+	glGenBuffers(1, &out.ebo);
 
 	// 1. bind Vertex Array Object
 	glBindVertexArray(out.vao);
@@ -79,9 +80,9 @@ MeshGL MeshFactoryGL::createPositionUV(const VertexPositionTex* vertices, uint32
 	MeshGL out;
 	out.indexSize = indexCount;
 
-	glCreateVertexArrays(1, &out.vao);
-	glCreateBuffers(1, &out.vbo);
-	glCreateBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out.vao);
+	glGenBuffers(1, &out.vbo);
+	glGenBuffers(1, &out.ebo);
 
 	// 1. bind Vertex Array Object
 	glBindVertexArray(out.vao);

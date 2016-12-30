@@ -3,10 +3,10 @@
 #include <platform/Platform.hpp>
 
 //if MVSC is used, Visual Leak Detector is used for debugging
-#include <Brofiler.h>
-#ifdef VDL_USED
+//#include <Brofiler.h>
+//#ifdef VDL_USED
 #include <vld.h>
-#endif
+//#endif
 #include <platform/logging/LoggingClient.hpp>
 
 /**
@@ -22,8 +22,6 @@ public:
 	* creates a new OpenGL context for a given device context.
 	*/
 	HGLRC createOpenGLContext(HDC& hdc);
-
-	std::unique_ptr<Window> createWindow(Window::WindowStruct const& desc) override;
 
 	/**
 	* Destroys a given OpenGL context.

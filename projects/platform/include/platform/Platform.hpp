@@ -15,12 +15,6 @@ class Platform
 public:
 	virtual ~Platform(){}
 
-
-	/**
-	 * Creates a new platform independent window.
-	 */
-	virtual std::unique_ptr<Window> createWindow(Window::WindowStruct const& desc) = 0;
-
 	virtual void setVSync(const Renderer& renderer, bool value) = 0;
 
 	/**

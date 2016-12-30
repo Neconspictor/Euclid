@@ -186,7 +186,7 @@ assign_source_group(${ENGINE_SOURCES})
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/glew/include 
+    #${CMAKE_SOURCE_DIR}/libs/glew/include 
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
@@ -200,7 +200,7 @@ add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
 include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/glew/include 
+    #${CMAKE_SOURCE_DIR}/libs/glew/include 
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
@@ -212,7 +212,7 @@ include/
 #link_directories(.)
 
 #choose the right libraries by absolute paths!
-find_library(libglew32_lib NAMES libglew32 HINTS ${CMAKE_SOURCE_DIR}/libs/glew/x64/Release)
+#find_library(libglew32_lib NAMES libglew32 HINTS ${CMAKE_SOURCE_DIR}/libs/glew/x64/Release)
 find_library(soil2_lib NAMES soil2 HINTS ${CMAKE_SOURCE_DIR}/libs/soil2/x64/Release)
 
 find_library(SDL2_lib_debug NAMES SDL2 HINTS ${CMAKE_SOURCE_DIR}/libs/SDL2.0.5/x64/Debug)
@@ -228,9 +228,10 @@ find_library(libboost_program_options_debug NAMES libboost_program_options-vc140
 find_library(assimp_release NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Release)
 find_library(assimp_debug NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Debug)
 
+
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(engine PUBLIC opengl32)
-target_link_libraries(engine PUBLIC ${libglew32_lib})
+#target_link_libraries(engine PUBLIC ${libglew32_lib})
 target_link_libraries(engine PUBLIC ${soil2_lib})
 target_link_libraries(engine PUBLIC glu32)
 

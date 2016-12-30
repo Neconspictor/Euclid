@@ -11,6 +11,7 @@ class Platform;
  */
 enum RendererType : char
 {
+	INVALID,   // use this to specify that no renderer will be used 
 	OPENGL,
 	DIRECTX
 };
@@ -95,7 +96,7 @@ public:
 	/**
 	 * Sets the viewport size and position.
 	 */
-	virtual void setViewPort(int x, int y, int width, int height);
+	virtual void setViewPort(int x, int y, int width, int height) = 0;
 
 protected:
 	platform::LoggingClient logClient;

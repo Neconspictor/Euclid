@@ -9,6 +9,7 @@
 #include <util/FPSCounter.hpp>
 #include <camera/Camera.hpp>
 #include <model/Vob.hpp>
+#include <platform/WindowSystem.hpp>
 
 
 class MainLoopTask : public Task
@@ -16,10 +17,11 @@ class MainLoopTask : public Task
 public:
 
 	using EnginePtr = Engine*;
+	using WindowSystemPtr = WindowSystem*;
 	using WindowPtr = Window*;
 	using RendererPtr = Renderer3D*;
 
-	MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, 
+	MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
 	void init();
@@ -27,6 +29,7 @@ public:
 	virtual void run() override;
 
 private:
+	WindowSystemPtr windowSystem;
 	WindowPtr window;
 	RendererPtr renderer;
 	EnginePtr engine;

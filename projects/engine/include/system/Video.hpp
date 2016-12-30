@@ -2,19 +2,23 @@
 #include <system/System.hpp>
 #include <platform/Window.hpp>
 
+class WindowSystem;
+
 class Video : public System
 {
 public:
-	Video();
+	Video(WindowSystem* system);
 
 	virtual ~Video();
 	void handle(const CollectOptions& config) override;
 
 	virtual void init() override;
 
-	void useRenderer(std::shared_ptr<Renderer> renderer);
+	void useRenderer(Renderer* renderer);
 
-	std::shared_ptr<Window> getWindow();
+	WindowSystem* getWindowSystem() const;
+
+	Window* getWindow() const;
 
 private:
 	std::string windowTitle;
@@ -24,7 +28,8 @@ private:
 	unsigned int colorBitDepth;
 	unsigned int refreshRate;
 	bool vSync;
-	std:: shared_ptr<Window> window;
-	std::shared_ptr<Renderer> renderer;
+	WindowSystem* windowSystem;
+	Window* window;
+	Renderer* renderer;
 
 };

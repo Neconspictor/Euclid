@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include <GL/glew.h>
 #include <shader/opengl/ShaderGL.hpp>
 #include <platform/FileSystem.hpp>
 #include <util/Globals.hpp>

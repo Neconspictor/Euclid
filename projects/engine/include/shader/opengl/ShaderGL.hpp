@@ -1,7 +1,7 @@
 #pragma once
-#include <GL/glew.h>
 #include <string>
 #include <platform/logging/LoggingClient.hpp>
+#include <glad/glad.h>
 
 class MeshGL;
 class Vob;

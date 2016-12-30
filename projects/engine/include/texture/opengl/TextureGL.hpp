@@ -1,6 +1,6 @@
 #pragma once
 #include <texture/Texture.hpp>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 class TextureGL : public Texture
 {

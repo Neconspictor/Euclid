@@ -20,11 +20,12 @@ using namespace glm;
 using namespace std;
 using namespace platform;
 
-MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, RendererPtr renderer, unsigned int flags):
+MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
 	sky(nullptr), skyBox(nullptr)
 {
 	this->window = window;
+	this->windowSystem = windowSystem;
 	this->renderer = renderer;
 	this->engine = engine;
 	originalTitle = window->getTitle();
@@ -39,8 +40,12 @@ void MainLoopTask::init()
 {
 	using namespace placeholders;
 
+	ShaderManager* shaderManager = renderer->getShaderManager();
+	ModelManager* modelManager = renderer->getModelManager();
+	TextureManager* textureManager = renderer->getTextureManager();
+
 	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
-	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1);
+	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
@@ -59,28 +64,28 @@ void MainLoopTask::init()
 
 	window->addResizeCallback(rendererResizeCallback);
 
-	renderer->getShaderManager()->loadShaders();
+	shaderManager->loadShaders();
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
-		(renderer->getShaderManager()->getShader(Playground));
+		(shaderManager->getShader(Playground));
 	playground->setTexture1("gun_d.png");
 	playground->setTexture2("container.png");
 
-	renderer->getModelManager()->loadModels();
+	modelManager->loadModels();
 
-	sky = renderer->getTextureManager()->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg", 
+	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg");
 
-	skyBox = renderer->getModelManager()->createSkyBox();
+	skyBox = modelManager->createSkyBox();
 
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(renderer->getShaderManager()->getShader(SkyBox));
+		(shaderManager->getShader(SkyBox));
 
 	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
-		(renderer->getShaderManager()->getShader(SimpleReflection));
+		(shaderManager->getShader(SimpleReflection));
 
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(PhongTex));
+		(shaderManager->getShader(PhongTex));
 
 	skyBoxShader->setSkyTexture(sky);
 	reflectionShader->setReflectionTexture(sky);
@@ -120,7 +125,7 @@ void MainLoopTask::run()
 
 	// Poll input events before checking if the app is running, otherwise 
 	// the window is likely to hang or crash (at least on windows platform)
-	window->pollEvents();
+	windowSystem->pollEvents();
 	
 	// pause app if it is not active (e.g. window isn't focused)
 	if (!isRunning)
@@ -199,7 +204,7 @@ void MainLoopTask::drawScene()
 
 	camera->calcView();
 	mat4 view = camera->getView();
-	mat4 projection = perspective(radians(camera->getFOV()), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
+	mat4 projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
 	mat4 viewProj = projection * view;
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
@@ -290,17 +295,17 @@ void MainLoopTask::handleInputEvents()
 	Input* input = window->getInputDevice();
 
 
-	if (input->isPressed(Input::KeyEscape))
+	if (input->isPressed(Input::KEY_ESCAPE))
 	{
 		window->close();
 	}
 
-	if (input->isPressed(Input::KeyEnter) || input->isPressed(Input::KeyReturn))
+	if (input->isPressed(Input::KEY_KP_ENTER) || input->isPressed(Input::KEY_RETURN))
 	{
 		window->minimize();
 	}
 
-	if (input->isPressed(Input::KeyUp))
+	if (input->isPressed(Input::KEY_UP))
 	{
 		mixValue += 0.1f;
 		if (mixValue >= 1.0f)
@@ -310,7 +315,7 @@ void MainLoopTask::handleInputEvents()
 		LOG(logClient, Debug) << "MixValue: " << mixValue;
 	}
 
-	if (input->isPressed(Input::KeyDown))
+	if (input->isPressed(Input::KEY_DOWN))
 	{
 		mixValue -= 0.1f;
 		if (mixValue <= 0.0f)
