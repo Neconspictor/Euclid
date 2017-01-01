@@ -6,6 +6,7 @@ set(
     include/platform/Input.hpp
     include/platform/Platform.hpp
     include/platform/Renderer.hpp
+    include/platform/SystemUI.hpp
     include/platform/Window.hpp
     
     #platform/event
@@ -50,6 +51,9 @@ set(
     #platform/windows/
     include/platform/windows/PlatformWindows.hpp
     
+    #platform/ui
+    include/platform/ui/NanoGUI.hpp
+    
     #platform/util
     include/platform/util/CallbackContainer.hpp
     include/platform/util/PointerUtils.hpp
@@ -68,6 +72,7 @@ set(
     src/platform/Input.cpp
 	src/platform/Platform.cpp
     src/platform/Renderer.cpp
+    src/platform/SystemUI.cpp
     src/platform/Window.cpp
     
     #platform/event
@@ -98,13 +103,17 @@ set(
     #platform/windows
     src/platform/windows/PlatformWindows.cpp
     
+    #platform/ui
+    src/platform/ui/NanoGUI.cpp
+    
     #platform/util
     src/platform/util/StringUtils.cpp
     #platform/util/concurrent
     src/platform/util/concurrent/Active.cpp
     
     #external resources
-     ${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
+     #${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
+     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/src/glad.c
 )
 
 # Create named folders for the sources within the .vcproj
@@ -119,8 +128,12 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
     ${CMAKE_SOURCE_DIR}/libs/glfw/include
-    ${CMAKE_SOURCE_DIR}/libs/glad/include
+    #${CMAKE_SOURCE_DIR}/libs/glad/include
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include
     ${CMAKE_SOURCE_DIR}/libs/utf8-cpp/source
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/include
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
     #${CMAKE_SOURCE_DIR}/libs/nana/include
 )
 
@@ -131,8 +144,12 @@ add_library (platform ${PLATFORM_SOURCES})
 target_include_directories (platform PUBLIC 
     include
     ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
-    ${CMAKE_SOURCE_DIR}/libs/glad/include
+    #${CMAKE_SOURCE_DIR}/libs/glad/include
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include
     ${CMAKE_SOURCE_DIR}/libs/glfw/include
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/include
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
+    ${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
     #${CMAKE_SOURCE_DIR}/libs/nana/include
 )
 
@@ -164,6 +181,11 @@ find_library(boost_locale_debug NAMES boost_locale-vc140-mt-gd-1_62 HINTS ${CMAK
 find_library(glfw3_release NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Release)
 find_library(glfw3_debug NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Debug)
 
+#nanogui
+find_library(nanogui_release NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Release)
+find_library(nanogui_debug NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Debug)
+
+
 #nana
 #find_library(nana_debug NAMES nana_v140_Debug_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
 #find_library(nana_release NAMES nana_v140_Release_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
@@ -194,8 +216,12 @@ target_link_libraries(platform PUBLIC optimized ${boost_locale_release})
 target_link_libraries(platform PUBLIC  ${brofiler_lib})
 
 #GLFW
-target_link_libraries(platform PUBLIC debug ${glfw3_release})
-target_link_libraries(platform PUBLIC optimized ${glfw3_release})
+#target_link_libraries(platform PUBLIC debug ${glfw3_release})
+#target_link_libraries(platform PUBLIC optimized ${glfw3_release})
+
+#nanogui
+target_link_libraries(platform PUBLIC debug ${nanogui_debug})
+target_link_libraries(platform PUBLIC optimized ${nanogui_release})
 
 #nana
 #target_link_libraries(platform PUBLIC debug ${nana_debug})

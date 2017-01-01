@@ -15,6 +15,7 @@
 #include <shader/PhongTextureShader.hpp>
 #include <shader/SkyBoxShader.hpp>
 #include <shader/SimpleReflectionShader.hpp>
+#include <platform/SystemUI.hpp>
 
 using namespace glm;
 using namespace std;
@@ -92,6 +93,11 @@ void MainLoopTask::init()
 	phongShader->setSkyBox(sky);
 }
 
+void MainLoopTask::setUI(SystemUI* ui)
+{
+	this->ui = ui;
+}
+
 static float frameTimeElapsed = 0;
 
 void MainLoopTask::run()
@@ -167,7 +173,11 @@ void MainLoopTask::run()
 	renderer->useScreenBuffer();
 	renderer->drawOffscreenBuffer();
 	//renderer->present();
+
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
+
+	ui->frameUpdate();
+
 	window->swapBuffers();
 }
 
@@ -283,7 +293,7 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 		if (dynamic_cast<FPCameraBase*>(camera.get()))
 		{
 			Renderer::Viewport viewport = window->getViewport();
-			window->setCursorPosition(viewport.width / 2, viewport.height / 2);
+			//window->setCursorPosition(viewport.width / 2, viewport.height / 2);
 		}
 	}
 }
@@ -300,10 +310,10 @@ void MainLoopTask::handleInputEvents()
 		window->close();
 	}
 
-	if (input->isPressed(Input::KEY_KP_ENTER) || input->isPressed(Input::KEY_RETURN))
+	/*if (input->isPressed(Input::KEY_KP_ENTER) || input->isPressed(Input::KEY_RETURN))
 	{
 		window->minimize();
-	}
+	}*/
 
 	if (input->isPressed(Input::KEY_UP))
 	{

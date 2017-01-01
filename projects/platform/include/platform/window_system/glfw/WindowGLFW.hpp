@@ -44,6 +44,14 @@ protected:
 class WindowGLFW : public Window
 {
 public:
+
+	using CharModsCallback = void(GLFWwindow*, unsigned int, int);
+	using FocusCallback = void(GLFWwindow* window, int hasFocus);
+	using KeyCallback = void(GLFWwindow*, int, int, int, int);
+	using MouseCallback = void(GLFWwindow* window, int button, int state, int mods);
+	using ScrollCallback = void(GLFWwindow*, double xOffset, double yOffset);
+	using SizeCallback = void(GLFWwindow* window, int width, int height);
+
 	WindowGLFW(WindowStruct const& description, Renderer& renderer);
 	virtual ~WindowGLFW();
 
@@ -60,12 +68,20 @@ public:
 	bool isOpen() override;
 	void minimize() override;
 
+	void onCharMods(unsigned int codepoint, int mods);
+	void onKey(int key, int scancode, int action, int mods);
+	void onMouse(int button, int state, int mods);
+
 	void registerCallbacks();
 
 	/**
 	* Releases any allocated memory
 	*/
 	void release();
+
+	void registerCharModsCallback(std::function<CharModsCallback> callback);
+	void registerKeyCallback(std::function<KeyCallback> callback);
+	void registerMouseCallback(std::function<MouseCallback> callback);
 
 	void removeCallbacks();
 
@@ -93,6 +109,12 @@ protected:
 	InputGLFW inputDevice;
 	bool m_hasFocus;
 
+	std::list<std::function<CharModsCallback>> charModsCallbacks;
+	std::list<std::function<KeyCallback>> keyCallbacks;
+	std::list<std::function<MouseCallback>> mouseCallbacks;
+
 	void createNoAPIWindow();
 	void createOpenGLWindow();
+
+
 };

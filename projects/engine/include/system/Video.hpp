@@ -2,6 +2,7 @@
 #include <system/System.hpp>
 #include <platform/Window.hpp>
 
+class SystemUI;
 class WindowSystem;
 
 class Video : public System
@@ -15,6 +16,8 @@ public:
 	virtual void init() override;
 
 	void useRenderer(Renderer* renderer);
+
+	void useUISystem(SystemUI* ui);
 
 	WindowSystem* getWindowSystem() const;
 
@@ -31,5 +34,6 @@ private:
 	WindowSystem* windowSystem;
 	Window* window;
 	Renderer* renderer;
+	SystemUI* ui;
 
 };

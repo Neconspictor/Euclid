@@ -5,7 +5,7 @@
 #include <model/opengl/ModelManagerGL.hpp>
 #include <drawing/opengl/ModelDrawerGL.hpp>
 #include <shader/opengl/ScreenShaderGL.hpp>
-#include <gl/GLU.h>
+//#include <glad/glad.h>
 
 using namespace std;
 using namespace platform;
@@ -63,6 +63,23 @@ void RendererOpenGL::init()
 
 void RendererOpenGL::beginScene()
 {
+	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
+	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
+
+						  // stencil buffering is enabled when needed!
+						  //glEnable(GL_STENCIL_TEST); // Enable stencil buffering
+
+						  // we want counter clock wise winding order
+	glFrontFace(GL_CCW);
+
+	// only draw front faces
+	enableBackfaceDrawing(false);
+
+	// enable alpha blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
 	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f); // Dark greyish Background
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -192,8 +209,8 @@ void RendererOpenGL::checkGLErrors(string errorPrefix) const
 	if (error != GL_NO_ERROR)
 	{
 
-		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << gluErrorString(error);
-		throw OpenglException(ss.str());
+		//stringstream ss; ss << move(errorPrefix) << ": Error occured: " << gluErrorString(error);
+		throw OpenglException("");
 	}
 }
 
@@ -222,8 +239,8 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);

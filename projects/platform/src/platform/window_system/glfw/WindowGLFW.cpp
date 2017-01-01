@@ -78,6 +78,30 @@ void WindowGLFW::minimize()
 	glfwIconifyWindow(window);
 }
 
+void WindowGLFW::onCharMods(unsigned codepoint, int mods)
+{
+	for (auto& c : charModsCallbacks)
+	{
+		c(this->window, codepoint, mods);
+	}
+}
+
+void WindowGLFW::onKey(int key, int scancode, int action, int mods)
+{
+	for (auto& c : keyCallbacks)
+	{
+		c(this->window, key, scancode, action, mods);
+	}
+}
+
+void WindowGLFW::onMouse(int button, int state, int mods)
+{
+	for (auto& c : mouseCallbacks)
+	{
+		c(this->window, button, state, mods);
+	}
+}
+
 void WindowGLFW::registerCallbacks()
 {
 	using namespace placeholders;
@@ -103,6 +127,21 @@ void WindowGLFW::release()
 {
 	glfwDestroyWindow(window);
 	window = nullptr;
+}
+
+void WindowGLFW::registerCharModsCallback(function<CharModsCallback> callback)
+{
+	charModsCallbacks.push_back(callback);
+}
+
+void WindowGLFW::registerKeyCallback(function<KeyCallback> callback)
+{
+	keyCallbacks.push_back(callback);
+}
+
+void WindowGLFW::registerMouseCallback(std::function<MouseCallback> callback)
+{
+	mouseCallbacks.push_back(callback);
 }
 
 void WindowGLFW::removeCallbacks()
@@ -228,6 +267,9 @@ void WindowGLFW::swapBuffers()
 {
 	//glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	glViewport(0, 0, 800, 600);
+	glBindSampler(0, 0);
 	glfwSwapBuffers(window);
 }
 
@@ -247,7 +289,7 @@ void WindowGLFW::createNoAPIWindow()
 void WindowGLFW::createOpenGLWindow()
 {
 	//TODO
-	glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
+	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -260,10 +302,27 @@ void WindowGLFW::createOpenGLWindow()
 
 
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_STENCIL_BITS, 8);*/
+
+	glfwSetTime(0);
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_SAMPLES, 0);
+	glfwWindowHint(GLFW_RED_BITS, 8);
+	glfwWindowHint(GLFW_GREEN_BITS, 8);
+	glfwWindowHint(GLFW_BLUE_BITS, 8);
+	glfwWindowHint(GLFW_ALPHA_BITS, 8);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 	//glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
 
 	window = glfwCreateWindow(this->width, this->height, this->title.c_str(), nullptr, nullptr);
 
@@ -273,26 +332,36 @@ void WindowGLFW::createOpenGLWindow()
 	}
 
 	int top, left, bottom, right;
-	glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
+	//glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
 
-	glfwSetWindowPos(window, this->posX + left, this->posY + top);
+	//glfwSetWindowPos(window, this->posX + left, this->posY + top);
 
 	glfwMakeContextCurrent(window);
-	gladLoadGLLoader(GLADloadproc(glfwGetProcAddress));
+	//gladLoadGLLoader(GLADloadproc(glfwGetProcAddress));
+
+#if defined(NANOGUI_GLAD)
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		throw std::runtime_error("Could not initialize GLAD!");
+	glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
+#endif
 
 	// Load all OpenGL functions using the glfw loader function
 	// If you use SDL you can use: https://wiki.libsdl.org/SDL_GL_GetProcAddress
-	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
 		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
 	}
+	/*if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
+	}*/
 
-	if (!vSync)
+	/*if (!vSync)
 	{
 		glfwSwapInterval(0);
 	} else
 	{
 		glfwSwapInterval(1);
-	}
+	}*/
 
 	// Alternative use the builtin loader, e.g. if no other loader function is available
 	/*
@@ -308,6 +377,9 @@ void WindowGLFW::createOpenGLWindow()
 
 	/*if (GLAD_GL_EXT_framebuffer_multisample) {
 	}*/
+
+	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 
@@ -383,6 +455,7 @@ bool InputGLFW::isReleased(Key key)
 
 void InputGLFW::charModsCallback(GLFWwindow* window, unsigned codepoint, int mods)
 {
+	this->window->onCharMods(codepoint, mods);
 }
 
 void InputGLFW::focusCallback(GLFWwindow* window, int hasFocus)
@@ -401,6 +474,7 @@ void InputGLFW::focusCallback(GLFWwindow* window, int hasFocus)
 
 void InputGLFW::mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
+	this->window->onMouse(button, action, mods);
 }
 
 void InputGLFW::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
@@ -409,7 +483,11 @@ void InputGLFW::scrollCallback(GLFWwindow* window, double xOffset, double yOffse
 	frameScrollOffsetY = yOffset;
 
 	if (frameScrollOffsetX || frameScrollOffsetY)
+	{
 		informScrollListeners(xOffset, yOffset);
+	}
+
+
 }
 
 void InputGLFW::sizeCallback(GLFWwindow* window, int width, int height)
@@ -447,6 +525,7 @@ void InputGLFW::setMousePosition(int xPos, int yPos)
 
 void InputGLFW::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	this->window->onKey(key, scancode, action, mods);
 }
 
 void InputGLFW::setWindow(WindowGLFW* window)

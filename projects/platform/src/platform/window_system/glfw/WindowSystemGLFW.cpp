@@ -65,6 +65,17 @@ void WindowSystemGLFW::charModsInputHandler(GLFWwindow* window, unsigned int cod
 		ss << c;
 	}
 
+	auto& callbacks = instance.charModsCallbacks;
+	auto it = callbacks.find(window);
+	if (it == callbacks.end())
+	{
+		stringstream ss;
+		ss << "WindowSystemGLFW::charModsInputHandler(): GLFWwindow pointer not registered: " << window;
+		throw runtime_error(ss.str());
+	}
+
+	it->second(window, codepoint, mods);
+
 	//LOG(instance.logClient, platform::Debug) << u8"utf8 byte size, ällo: " << utf8Result.size() << ", character: " << ss.str();
 }
 

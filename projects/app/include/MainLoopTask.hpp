@@ -12,6 +12,8 @@
 #include <platform/WindowSystem.hpp>
 
 
+class SystemUI;
+
 class MainLoopTask : public Task
 {
 public:
@@ -25,6 +27,8 @@ public:
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
 	void init();
+
+	void setUI(SystemUI* ui);
 
 	virtual void run() override;
 
@@ -44,6 +48,7 @@ private:
 	Vob nanosuitModel;
 	CubeMap* sky;
 	Model* skyBox;
+	SystemUI* ui;
 
 	void drawScene();
 

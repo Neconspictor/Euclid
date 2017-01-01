@@ -6,6 +6,7 @@
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 #include <boost/locale.hpp>
 #include <thread>
+#include <platform/SystemUI.hpp>
 
 //#include <Brofiler.h>
 
@@ -149,12 +150,15 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	SystemUI* ui = SystemUI::get(windowSystem);
+
 	try {
 		shared_ptr<Video> video = make_shared<Video>(Video(windowSystem));
 		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>(RendererOpenGL());
 		shared_ptr<Engine> engine  = make_shared<Engine>(Engine());
 
 		video->useRenderer(renderer.get());
+		video->useUISystem(ui);
 		engine->add(video);
 		engine->setConfigFileName("config.ini");
 
@@ -164,7 +168,10 @@ int main(int argc, char** argv)
 
 		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(MainLoopTask(engine.get(),
 			video->getWindow(), video->getWindowSystem(), renderer.get()));
+		
+		mainLoop->setUI(ui);
 		mainLoop->init();
+
 		engine->run(mainLoop);
 		LOG(logger, Info) << "Done.";
 	} catch (const exception& e)
@@ -175,6 +182,7 @@ int main(int argc, char** argv)
 		LOG(logger, platform::Fault) << "Unknown Exception occurred.";
 	}
 
+	SystemUI::shutdown();
 	windowSystem->terminate();
 	getLogServer()->terminate();
 

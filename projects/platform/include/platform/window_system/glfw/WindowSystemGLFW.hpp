@@ -4,16 +4,17 @@
 #include <unordered_set>
 #include <platform/window_system/glfw/WindowGLFW.hpp>
 
+
 class WindowSystemGLFW : public WindowSystem
 {
 public:
-	using CharModsCallback = void(GLFWwindow*, unsigned int, int);
-	using FocusCallback = void(GLFWwindow* window, int hasFocus);
-	using KeyCallback = void(GLFWwindow*, int, int, int, int);
-	using MouseCallback = void(GLFWwindow* window, int button, int state, int mods);
-	using ScrollCallback = void(GLFWwindow*, double xOffset, double yOffset);
-	using SizeCallback = void(GLFWwindow* window, int width, int height);
 
+	using CharModsCallback = WindowGLFW::CharModsCallback;
+	using FocusCallback = WindowGLFW::FocusCallback;
+	using KeyCallback = WindowGLFW::KeyCallback;
+	using MouseCallback = WindowGLFW::MouseCallback;
+	using ScrollCallback = WindowGLFW::ScrollCallback;
+	using SizeCallback = WindowGLFW::SizeCallback;
 
 	Window* createWindow(Window::WindowStruct& desc, Renderer& renderer) override;
 

@@ -22,6 +22,7 @@ private:
 
 	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
 	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
+
 	WindowFocusChanged windowFocusChanged;
 	WindowResizeContainer windowResizeContainer;
 

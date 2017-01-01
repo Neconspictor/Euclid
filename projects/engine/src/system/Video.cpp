@@ -3,13 +3,14 @@
 #include <string>
 #include <platform/Window.hpp>
 #include <platform/WindowSystem.hpp>
+#include <platform/SystemUI.hpp>
 #include <platform/Platform.hpp>
 
 using namespace std;
 
 Video::Video(WindowSystem* system) :
 	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), vSync(false),
-	windowSystem(system), window(nullptr), renderer(nullptr)
+	windowSystem(system), window(nullptr), renderer(nullptr), ui(nullptr)
 {
 	//we dont't need a frame updater
 	updater.reset();
@@ -56,6 +57,12 @@ void Video::init()
 	//window = Platform::getActivePlatform()->createWindow(desc, *renderer);
 	window = windowSystem->createWindow(desc, *renderer);
 	window->activate();
+
+	if (ui)
+	{
+		ui->init(window);
+	}
+
 	renderer->setViewPort(0, 0, width, height);
 	renderer->init();
 	//Platform::getActivePlatform()->setVSync(*renderer, vSync);
@@ -64,6 +71,11 @@ void Video::init()
 void Video::useRenderer(Renderer* renderer)
 {
 	this->renderer = renderer;
+}
+
+void Video::useUISystem(SystemUI* ui)
+{
+	this->ui = ui;
 }
 
 WindowSystem* Video::getWindowSystem() const
