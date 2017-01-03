@@ -64,7 +64,9 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	// Vertex and index count can be large -> store temp objects on heap
 	auto vertices = make_unique<vector<Vertex>>();
 	auto indices = make_unique<vector<unsigned int>>();
-
+	//auto texCoords = make_unique<vector<vec2>>();
+	//auto positions = make_unique<vector<vec3>>();
+	//auto normals = make_unique<vector<vec3>>();
 	// We set the size of the vectors initially to avoid unnecessary reallocations.
 	// It is assumed that the mesh is triangulated, so each face has exactly three indices.
 	//vertices->reserve(mesh->mNumVertices);
@@ -87,9 +89,11 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		vertex.normal.y = mesh->mNormals[i].y;
 		vertex.normal.z = mesh->mNormals[i].z;
 
+
 		// uv
 		if (!mesh->mTextureCoords[0]) { // does the mesh contain no uv data?
 			vertex.texCoords = {0.0f,0.0f};
+			//texCoords->push_back({0.0f, 0.0f});
 		} else {
 			// A vertex can contain up to 8 different texture coordinates. 
 			// We thus make the assumption that we won't 
@@ -97,6 +101,10 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 			// so we always take the first set (0).
 			vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
 			vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
+			//auto x = mesh->mTextureCoords[0][i].x;
+			//auto y = mesh->mTextureCoords[0][i].y;
+			//texCoords->push_back({ x , y});
+
 		}
 
 		// don't make a copy
@@ -148,6 +156,27 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 
 	MeshGL result  = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices, 
 											indices->data(), mesh->mNumFaces * 3);
+	
+	
+	
+	/*MeshFactoryGL::SimpleArray<vec3> positionsArray;
+	positionsArray.content = (vec3*) mesh->mVertices;
+	positionsArray.size = mesh->mNumVertices;
+
+	MeshFactoryGL::SimpleArray<vec3> normalsArray;
+	normalsArray.content = (vec3*)mesh->mNormals;
+	normalsArray.size = mesh->mNumVertices;
+
+	MeshFactoryGL::SimpleArray<vec2> texCoordsArray;
+	texCoordsArray.content = texCoords->data();
+	texCoordsArray.size = texCoords->size();
+
+	MeshFactoryGL::SimpleArray<unsigned int> indexArray;
+	indexArray.content = indices->data();
+	indexArray.size = indices->size();*/
+
+	//MeshGL result = MeshFactoryGL::create(positionsArray, normalsArray, texCoordsArray, indexArray);
+
 	result.setMaterial(move(material));
 
 	return result;

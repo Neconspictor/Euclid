@@ -62,9 +62,9 @@ void PhongShaderGL::draw(Mesh const& meshOriginal)
 	const vec4& diffuse = material->getDiffuse();
 	const vec4& specular = material->getSpecular();
 
-	glUniform4f(matAmbientLoc, ambient.r, ambient.g, ambient.b, ambient.a);
-	glUniform4f(matDiffuseLoc, diffuse.r, diffuse.g, diffuse.b, diffuse.a);
-	glUniform4f(matSpecularLoc, specular.r, specular.g, specular.b, specular.a);
+	glUniform3f(matAmbientLoc, ambient.r, ambient.g, ambient.b);
+	glUniform3f(matDiffuseLoc, diffuse.r, diffuse.g, diffuse.b);
+	glUniform3f(matSpecularLoc, specular.r, specular.g, specular.b);
 	glUniform1f(matShineLoc, material->getSpecularPower());
 
 	glBindVertexArray(mesh.getVertexArrayObject());

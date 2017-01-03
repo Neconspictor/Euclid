@@ -16,6 +16,9 @@ public:
 	 */
 	virtual void draw( const Model& model, Shader* shader, Shader::TransformData data) = 0;
 
+	virtual void drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, 
+		unsigned int amount) = 0;
+
 	/**
 	 * Draws the specified model onto the screen and outlines
 	 * it with a border.

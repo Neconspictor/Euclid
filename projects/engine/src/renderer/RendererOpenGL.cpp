@@ -5,7 +5,8 @@
 #include <model/opengl/ModelManagerGL.hpp>
 #include <drawing/opengl/ModelDrawerGL.hpp>
 #include <shader/opengl/ScreenShaderGL.hpp>
-//#include <glad/glad.h>
+#include <glad/glad.h>
+#include <GL/gl.h>
 
 using namespace std;
 using namespace platform;
@@ -205,11 +206,21 @@ void RendererOpenGL::useScreenBuffer()
 void RendererOpenGL::checkGLErrors(string errorPrefix) const
 {
 	// check if any gl related errors occured
-	GLint error = glGetError();
-	if (error != GL_NO_ERROR)
+	GLint errorCode = glGetError();
+	if (errorCode != GL_NO_ERROR)
 	{
+		string error;
+		switch (errorCode)
+		{
+		case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+		case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+		case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+		case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+		default:							   error = "Unknown error code: " + to_string(errorCode);
+		}
 
-		//stringstream ss; ss << move(errorPrefix) << ": Error occured: " << gluErrorString(error);
+		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << error;
 		throw OpenglException("");
 	}
 }

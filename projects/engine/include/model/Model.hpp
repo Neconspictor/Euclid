@@ -17,7 +17,7 @@ public:
 	void draw(Shader* shader);
 
 	virtual std::vector<Mesh*> getMeshes() const;
-
+	
 protected:
 	std::vector<Mesh*> meshes;
 };

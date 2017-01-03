@@ -32,3 +32,13 @@ public:
 protected:
 	TransformData data;
 };
+
+class ShaderInstanced
+{
+public:
+	ShaderInstanced() {};
+
+	virtual ~ShaderInstanced() {}
+
+	virtual void drawInstanced(Mesh const& mesh, unsigned int amount) = 0;
+};

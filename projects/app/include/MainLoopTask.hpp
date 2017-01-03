@@ -22,6 +22,7 @@ public:
 	using WindowSystemPtr = WindowSystem*;
 	using WindowPtr = Window*;
 	using RendererPtr = Renderer3D*;
+	typedef unsigned int uint;
 
 	MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,
 		unsigned int flags = SINGLETHREADED_REPEATING);
@@ -49,6 +50,11 @@ private:
 	CubeMap* sky;
 	Model* skyBox;
 	SystemUI* ui;
+
+	glm::mat4* asteriodTrafos;
+	uint asteriodSize;
+
+	void drawAsteriods(glm::mat4* asteriodTrafos, uint asteriodSize);
 
 	void drawScene();
 

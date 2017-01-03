@@ -14,10 +14,10 @@ using namespace ::util;
 using namespace glm;
 
 
-ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
+ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
 	: logClient(getLogServer())
 {
-	programID = loadShaders(vertexShaderFile, fragmentShaderFile);
+	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 
 	if (programID == GL_FALSE)
 	{
@@ -58,18 +58,27 @@ ShaderGL::~ShaderGL()
 {
 }
 
-GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile) const
+GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile, 
+	const string& geometryShaderFile) const
 {
 	// Create the shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-	string vertexShaderCode, fragmentShaderCode;
+	GLuint geometryShaderID = GL_FALSE;
+	string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
 	GLint result = GL_FALSE;
 	int infoLogLength;
 	GLuint programID;
 
 	string vertexFilePath = globals::SHADER_PATH_OPENGL + vertexFile;
 	string fragmentFilePath = globals::SHADER_PATH_OPENGL + fragmentFile;
+	string geometryFilePath; 
+	bool useGeomtryShader = geometryShaderFile.compare("") != 0;
+	if (useGeomtryShader)
+	{
+		geometryFilePath = globals::SHADER_PATH_OPENGL + geometryShaderFile;
+		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
+	}
 
 	// Read the Vertex Shader code from the file
 	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
@@ -90,6 +99,18 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 		throw ShaderInitException(ss.str());
 	}
 
+	if (useGeomtryShader)
+	{
+		if (!filesystem::loadFileIntoString(geometryFilePath, &geometryShaderCode))
+		{
+			LOG(logClient, Error) << "Couldn't initialize geometry shader!";
+			stringstream ss;
+			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << endl;
+			ss << "geometry shader file: " << geometryFilePath;
+			throw ShaderInitException(ss.str());
+		}
+	}
+
 	if (!compileShader(vertexShaderCode.c_str(), vertexShaderID))
 	{
 		stringstream ss;
@@ -106,10 +127,24 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 		throw ShaderInitException(ss.str());
 	}
 
+	if (useGeomtryShader)
+	{
+		if (!compileShader(geometryShaderCode.c_str(), geometryShaderID))
+		{
+			stringstream ss;
+			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << endl;
+			ss << "geometry file: " << geometryFilePath;
+			throw ShaderInitException(ss.str());
+		}
+	}
+
 	// link the program
 	programID = glCreateProgram();
 	glAttachShader(programID, vertexShaderID);
 	glAttachShader(programID, fragmentShaderID);
+	if (useGeomtryShader) 
+		glAttachShader(programID, geometryShaderID);
+
 	glLinkProgram(programID);
 
 	// Check the program
@@ -129,6 +164,11 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	// release not needed memory
 	glDetachShader(programID, vertexShaderID);
 	glDetachShader(programID, fragmentShaderID);
+	if (useGeomtryShader)
+	{
+		glDetachShader(programID, geometryShaderID);
+		glDeleteShader(geometryShaderID);
+	}
 
 	glDeleteShader(vertexShaderID);
 	glDeleteShader(fragmentShaderID);

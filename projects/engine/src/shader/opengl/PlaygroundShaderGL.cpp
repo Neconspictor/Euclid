@@ -6,8 +6,9 @@
 
 using namespace glm;
 
-PlaygroundShaderGL::PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), PlaygroundShader(), mixValue(0), texture(nullptr), texture2(nullptr)
+PlaygroundShaderGL::PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
+	const std::string& geometryShaderFile) :
+	ShaderGL(vertexShaderFile, fragmentShaderFile, geometryShaderFile), PlaygroundShader(), mixValue(0), texture(nullptr), texture2(nullptr)
 {
 }
 
@@ -63,4 +64,5 @@ void PlaygroundShaderGL::use()
 	glBindTexture(GL_TEXTURE_2D, texture2->getTexture());
 	glUniform1i(glGetUniformLocation(getProgramID(), "diffuseMultiply"), 1);
 	glUniform1f(glGetUniformLocation(getProgramID(), "mixValue"), mixValue);
+	glUniform1f(glGetUniformLocation(getProgramID(), "time"), mixValue);
 }

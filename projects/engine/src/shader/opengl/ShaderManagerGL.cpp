@@ -12,6 +12,7 @@
 #include <shader/opengl/ScreenShaderGL.hpp>
 #include <shader/opengl/SkyBoxShaderGL.hpp>
 #include <shader/opengl/SimpleReflectionShaderGL.hpp>
+#include <shader/opengl/NormalsShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -42,6 +43,7 @@ Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 void ShaderManagerGL::loadShaders()
 {
 	createShader(Lamp);
+	createShader(Normals);
 	createShader(Phong);
 	createShader(PhongTex);
 	createShader(Playground);
@@ -67,16 +69,21 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 		shaderPtr = make_shared<LampShaderGL>("lamp_vs.glsl", "lamp_fs.glsl");
 		break;
 	}
+	case Normals: {
+		shaderPtr = make_shared<NormalsShaderGL>("normals_vs.glsl", "normals_fs.glsl", "normals_gs.glsl");
+		break;
+	}
 	case Phong: {
 		shaderPtr = make_shared<PhongShaderGL>("phong_vs.glsl", "phong_fs.glsl");
 		break;
 	}
 	case PhongTex: {
-		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_mult_lights_vs.glsl", "phong_tex_mult_lights_fs.glsl");
+		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_mult_lights_vs.glsl", "phong_tex_mult_lights_fs.glsl", 
+			"phong_tex_mult_lights_vs_Instanced.glsl");
 		break;
 	}
 	case Playground: {
-		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl");
+		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl", "playground_gs.glsl");
 		break;
 	}
 	case SimpleColor: {

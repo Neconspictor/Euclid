@@ -10,8 +10,6 @@ class MeshGL;
 class ModelManagerGL : public ModelManager
 {
 public:
-	
-	
 	~ModelManagerGL() override;
 
 	virtual Model* createSkyBox() override;
@@ -24,12 +22,14 @@ public:
 	 * \param heightWeight : specifies the height of the model as a percentage of the active viewport height. 
 	 */
 	Model* createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight) override;
-	
+
 	Model* getModel(const std::string& meshName) override;
 	Model* getPositionNormalTexCube() override;
 	static ModelManagerGL* get();
 
 	void loadModels() override;
+
+	void useInstances(Model* model, glm::mat4* modelMatrices, unsigned int amount) override;
 
 private:
 	ModelManagerGL();

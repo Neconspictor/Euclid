@@ -32,6 +32,17 @@ void ModelDrawerGL::draw(const Model& model, Shader* shader, Shader::TransformDa
 	}
 }
 
+void ModelDrawerGL::drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, unsigned amount)
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	shader->setTransformData(data);
+	ShaderInstanced* shaderInstanced = dynamic_cast<ShaderInstanced*>(shader);
+	for (Mesh* mesh : model.getMeshes())
+	{
+		shaderInstanced->drawInstanced(*mesh, amount);
+	}
+}
+
 void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, vec4 borderColor)
 {
 	glEnable(GL_STENCIL_TEST);

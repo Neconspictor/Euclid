@@ -55,7 +55,13 @@ void Vob::calcTrafo()
 
 string const& Vob::getMeshName() const
 {
+	
 	return meshName;
+}
+
+vec3 Vob::getPosition() const
+{
+	return position;
 }
 
 mat4 const& Vob::getTrafo() const

@@ -194,10 +194,22 @@ void WindowGLFW::setFullscreen()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
+
 	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), glfwGetPrimaryMonitor(), window);
 
 	glfwDestroyWindow(window);
 	window = newWindow;
+
+	if (!vSync)
+	{
+		glfwSwapInterval(0);
+	}
+	else
+	{
+		glfwSwapInterval(1);
+	}
 
 	registerCallbacks();
 	glfwMakeContextCurrent(window);
@@ -246,10 +258,22 @@ void WindowGLFW::setWindowed()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
+
 	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, window);
 	
 	glfwDestroyWindow(window);
 	window = newWindow;
+
+	if (!vSync)
+	{
+		glfwSwapInterval(0);
+	}
+	else
+	{
+		glfwSwapInterval(1);
+	}
 
 	registerCallbacks();
 
@@ -320,6 +344,9 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
+
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 	//glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -355,13 +382,13 @@ void WindowGLFW::createOpenGLWindow()
 		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
 	}*/
 
-	/*if (!vSync)
+	if (!vSync)
 	{
 		glfwSwapInterval(0);
 	} else
 	{
 		glfwSwapInterval(1);
-	}*/
+	}
 
 	// Alternative use the builtin loader, e.g. if no other loader function is available
 	/*

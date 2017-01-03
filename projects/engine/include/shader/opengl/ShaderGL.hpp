@@ -16,14 +16,16 @@ public:
 	* Creates a new shader program from a given vertex shader and fragment shader file.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
+		const std::string& geometryShaderFile = "");
 	ShaderGL(ShaderGL&& other);
 	ShaderGL(const ShaderGL& other);
 	virtual ~ShaderGL();
 
 	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID) const;
 	GLuint getProgramID() const;
-	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile) const;
+	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
+		const std::string& geometryShaderFile) const;
 	virtual void release();
 	virtual void use();
 

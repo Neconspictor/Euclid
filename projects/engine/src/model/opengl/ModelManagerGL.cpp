@@ -7,6 +7,7 @@
 #include <mesh/opengl/MeshFactoryGL.hpp>
 
 using namespace std;
+using namespace glm;
 
 unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>(ModelManagerGL());
 
@@ -95,7 +96,8 @@ Model* ModelManagerGL::getModel(const string& modelName)
 	if (it == modelTable.end())
 	{
 		models.push_back(assimpLoader.loadModel(modelName));
-		modelTable[modelName] = &models.back();
+		ModelGL* result = &models.back();
+		modelTable[modelName] = result;
 		return &models.back();
 	}
 
@@ -160,6 +162,12 @@ void ModelManagerGL::loadModels()
 	//TODO
 	getPositionNormalTexCube();
 	//AssimpModelLoader::loadModel("");
+}
+
+void ModelManagerGL::useInstances(Model* source, mat4* modelMatrices, unsigned amount)
+{
+	ModelGL* model = static_cast<ModelGL*>(source);
+	model->createInstanced(amount, modelMatrices);
 }
 
 ModelManagerGL::ModelManagerGL()

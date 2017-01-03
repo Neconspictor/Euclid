@@ -30,6 +30,9 @@ public:
 	 */
 	 std::string const& getMeshName() const;
 
+
+	 glm::vec3 getPosition() const;
+
 	/**
 	 * Provides read/write access to the transformation matrix
 	 * of this model.

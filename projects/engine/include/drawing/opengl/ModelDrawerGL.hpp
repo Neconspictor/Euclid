@@ -9,6 +9,8 @@ public:
 
 	void draw(const Model& model, Shader* shader, Shader::TransformData data) override;
 	
+	void drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, unsigned amount) override;
+
 	void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) override;
 
 	void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) override;

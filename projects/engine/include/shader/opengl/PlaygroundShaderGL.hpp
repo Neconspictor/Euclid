@@ -12,7 +12,8 @@ public:
 	* Creates a new playground shader program.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	PlaygroundShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile, 
+		const std::string& geometryShaderFile = "");
 	virtual ~PlaygroundShaderGL();
 	void draw(Mesh const& mesh) override;
 	void release() override;

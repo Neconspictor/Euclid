@@ -8,14 +8,37 @@
 using namespace glm;
 using namespace std;
 
-PhongTexShaderGL::PhongTexShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
+PhongTexShaderGL::PhongTexShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, 
+	const string& vertexShaderFileInstanced) :
 	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1, 0, 0), viewPosition(0,0,0), 
 	skybox(nullptr)
 {
+	instancedShaderProgram = loadShaders(vertexShaderFileInstanced, fragmentShaderFile, "");
 }
 
 PhongTexShaderGL::~PhongTexShaderGL()
 {
+}
+
+void PhongTexShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned int amount)
+{
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+
+	glUseProgram(instancedShaderProgram);
+	initForDrawing(meshOriginal, instancedShaderProgram);
+
+	GLuint projectionLoc = glGetUniformLocation(instancedShaderProgram, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
+
+	GLuint viewLoc = glGetUniformLocation(instancedShaderProgram, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
+
+	glBindVertexArray(mesh.getVertexArrayObject());
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
+	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
+	glBindVertexArray(0);
 }
 
 void PhongTexShaderGL::draw(Mesh const& meshOriginal)
@@ -24,88 +47,19 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
-	use();
 
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
+	glUseProgram(this->programID);
+	initForDrawing(meshOriginal, programID);
+
+	GLuint transformLoc = glGetUniformLocation(programID, "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
-	GLuint modelLoc = glGetUniformLocation(getProgramID(), "modelView");
+	GLuint modelLoc = glGetUniformLocation(programID, "modelView");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
 
-	// specular color is calculated in view space; so multiply normal matrix
-	// and light position by the view matrix.
-
-	GLint normalMatrixLoc = glGetUniformLocation(getProgramID(), "normalMatrix");
+	GLint normalMatrixLoc = glGetUniformLocation(programID, "normalMatrix");
 	mat4 normalMatrix = transpose(inverse(model));
 	glUniformMatrix4fv(normalMatrixLoc, 1, GL_FALSE, value_ptr(normalMatrix));
-
-	//GLint lightPositionLoc = glGetUniformLocation(getProgramID(), "light.position");
-	GLint viewPosLoc = glGetUniformLocation(getProgramID(), "viewPos");
-
-	//vec3 lightPositionViewSpace = vec4(lightPosition, 1.0f); // adding 1.0f as the fourth element is important (do not use 0.0f)!
-	//glUniform3f(lightPositionLoc, lightPositionViewSpace.x, lightPositionViewSpace.y, lightPositionViewSpace.z);
-
-	// set light data
-	//GLint lightAmbientLoc = glGetUniformLocation(getProgramID(), "light.ambient");
-	//GLint lightDiffuseLoc = glGetUniformLocation(getProgramID(), "light.diffuse");
-	//GLint lightSpecularLoc = glGetUniformLocation(getProgramID(), "light.specular");
-
-	//glUniform3f(lightAmbientLoc, 0.1*lightColor.x, 0.1*lightColor.y, 0.1*lightColor.z);
-	//glUniform3f(lightDiffuseLoc, lightColor.x, lightColor.y, lightColor.z);
-	//glUniform3f(lightSpecularLoc, lightColor.x, lightColor.y, lightColor.z);
-
-	glUniform3f(viewPosLoc, viewPosition.x, viewPosition.y, viewPosition.z);
-
-	// set model material data
-	//GLint matAmbientLoc = glGetUniformLocation(programID, "material.ambient");
-	GLint matShineLoc = glGetUniformLocation(programID, "material.shininess");
-
-	//const vec3& ambient = material->getAmbient();
-	const Material& material = mesh.getMaterial();
-
-	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
-	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
-	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
-	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
-
-	//glUniform3f(matAmbientLoc, ambient.x, ambient.y, ambient.z);
-	glUniform1f(matShineLoc, material.getShininess());
-
-	// Bind diffuse map
-	if (diffuseMap)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap->getTexture());
-		glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
-	}
-
-	// Bind emission map
-	if (emissionMap)
-	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, emissionMap->getTexture());
-		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 1);
-	}
-
-	// Bind reflection map
-	if (reflectionMap)
-	{
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, reflectionMap->getTexture());
-		glUniform1i(glGetUniformLocation(programID, "material.reflectionMap"), 2);
-	}
-
-	// Bind specular map
-	if (specularMap)
-	{
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, specularMap->getTexture());
-		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 3);
-	}
-
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getCubeMap());
-	glUniform1i(glGetUniformLocation(programID, "skybox"), 4);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
@@ -156,7 +110,7 @@ void PhongTexShaderGL::setSpotLightDiection(vec3 direction)
 	spotLightDirection = move(direction);
 }
 
-void PhongTexShaderGL::initLights()
+void PhongTexShaderGL::initLights(GLuint programID)
 {
 	// == ==========================
 	// Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index 
@@ -165,10 +119,10 @@ void PhongTexShaderGL::initLights()
 	// by using 'Uniform buffer objects', but that is something we discuss in the 'Advanced GLSL' tutorial.
 	// == ==========================
 	// Directional light
-	glUniform3f(glGetUniformLocation(programID, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
-	glUniform4f(glGetUniformLocation(programID, "dirLight.ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "dirLight.specular"), 0.5f, 0.5f, 0.5f, 1.0f);
+	glUniform3f(glGetUniformLocation(programID, "dirLight.direction"), lightPosition.x, lightPosition.y, lightPosition.z);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.ambient"), 0.2f, 0.2f, 0.2f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f, 1.0f);
+	glUniform4f(glGetUniformLocation(programID, "dirLight.specular"), 0.3f, 0.3f, 0.3f, 1.0f);
 	// Point light 1
 	glUniform3f(glGetUniformLocation(programID, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
 	glUniform4f(glGetUniformLocation(programID, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
@@ -216,8 +170,93 @@ void PhongTexShaderGL::initLights()
 
 void PhongTexShaderGL::use()
 {
-	glUseProgram(this->programID);
-	initLights();
+}
+
+void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID)
+{
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& model = *data.model;
+
+	initLights(programID);
+
+	GLint viewPosLoc = glGetUniformLocation(programID, "viewPos");
+	glUniform3f(viewPosLoc, viewPosition.x, viewPosition.y, viewPosition.z);
+
+	// set model material data
+	//GLint matAmbientLoc = glGetUniformLocation(programID, "material.ambient");
+	GLint matShineLoc = glGetUniformLocation(programID, "material.shininess");
+
+	//const vec3& ambient = material->getAmbient();
+	const Material& material = mesh.getMaterial();
+
+	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
+	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
+	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
+	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
+
+	//glUniform3f(matAmbientLoc, ambient.x, ambient.y, ambient.z);
+	glUniform1f(matShineLoc, material.getShininess());
+
+	// Bind diffuse map
+	if (diffuseMap)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap->getTexture());
+		glUniform1i(glGetUniformLocation(getProgramID(), "material.diffuseMap"), 0);
+	}
+	else {
+		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(glGetUniformLocation(programID, "material.diffuseMap"), 3);
+	}
+
+	// Bind emission map
+	if (emissionMap)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, emissionMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 1);
+	}
+	else {
+		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 3);
+	}
+
+	// Bind reflection map
+	if (reflectionMap)
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, reflectionMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.reflectionMap"), 2);
+	}
+	else
+	{
+		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(glGetUniformLocation(programID, "material.reflectionMap"), 2);
+	}
+
+	// Bind specular map
+	if (specularMap)
+	{
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, specularMap->getTexture());
+		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 3);
+	}
+	else {
+		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(glGetUniformLocation(programID, "material.specularMap"), 3);
+	}
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getCubeMap());
+	glUniform1i(glGetUniformLocation(programID, "skybox"), 4);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)

@@ -32,4 +32,6 @@ public:
 	 * loads all meshes
 	 */
 	virtual void loadModels() = 0;
+
+	virtual void useInstances(Model* model, glm::mat4* modelMatrices, unsigned int amount) = 0;
 };

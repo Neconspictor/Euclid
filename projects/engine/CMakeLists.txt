@@ -51,6 +51,7 @@ set(
     
     #shader
     include/shader/LampShader.hpp
+    include/shader/NormalsShader.hpp
     include/shader/PhongShader.hpp
     include/shader/PhongTextureShader.hpp
     include/shader/PlaygroundShader.hpp
@@ -65,6 +66,7 @@ set(
     include/shader/SkyBoxShader.hpp
     #shader/opengl
     include/shader/opengl/LampShaderGL.hpp
+    include/shader/opengl/NormalsShaderGL.hpp
     include/shader/opengl/PhongShaderGL.hpp
     include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/PlaygroundShaderGL.hpp
@@ -145,6 +147,7 @@ set(
     src/shader/ShaderEnum.cpp
     #shader/opengl
     src/shader/opengl/LampShaderGL.cpp
+    src/shader/opengl/NormalsShaderGL.cpp
     src/shader/opengl/PhongShaderGL.cpp
     src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/PlaygroundShaderGL.cpp
