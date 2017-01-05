@@ -41,6 +41,8 @@ public:
 
 	void setBackgroundColor(glm::vec3 color) override;
 
+	void setMSAASamples(unsigned samples) override;
+
 	void setViewPort(int x, int y, int width, int height) override;
 
 	void useOffscreenBuffer() override;
@@ -49,10 +51,10 @@ public:
 
 protected:
 
-	struct ScreenBuffer
+	struct RenderTargetGL : RenderTarget
 	{
 		GLuint frameBuffer;
-		GLuint texColorBuffer;
+		GLuint textureBuffer;
 		GLuint renderBuffer;
 	};
 
@@ -65,10 +67,19 @@ protected:
 	 */
 	void checkGLErrors(std::string errorPrefix) const;
 
+	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
+
 	void createFrameRenderTargetBuffer(int width, int height);
+	void createSingleSampledScreenBuffer(RenderTargetGL* screenBuffer) const;
+	void createMultiSampledScreenBuffer(RenderTargetGL* screenBuffer, unsigned int samples) const;
 
-	ScreenBuffer offscreen;
+	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
+		GLuint depthStencilType = GL_DEPTH_COMPONENT);
 
-	ModelGL* screenSprite;
+	RenderTargetGL singleSampledScreenBuffer;
+	RenderTargetGL multiSampledScreenBuffer;
+
+	std::unique_ptr<ModelGL> screenSprite;
 	glm::vec3 backgroundColor;
+	unsigned int msaaSamples;
 };

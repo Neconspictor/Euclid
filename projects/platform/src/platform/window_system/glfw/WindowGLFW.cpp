@@ -189,12 +189,12 @@ void WindowGLFW::setFullscreen()
 	glfwWindowHint(GLFW_GREEN_BITS, 8);
 	glfwWindowHint(GLFW_BLUE_BITS, 8);
 	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-
+	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), glfwGetPrimaryMonitor(), window);
@@ -258,7 +258,7 @@ void WindowGLFW::setWindowed()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, window);
@@ -328,14 +328,11 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);*/
 
-	glfwSetTime(0);
-
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glfwWindowHint(GLFW_SAMPLES, 0);
 	glfwWindowHint(GLFW_RED_BITS, 8);
 	glfwWindowHint(GLFW_GREEN_BITS, 8);
 	glfwWindowHint(GLFW_BLUE_BITS, 8);
@@ -344,7 +341,7 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);

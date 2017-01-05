@@ -20,6 +20,8 @@ class Renderer3D : public Renderer
 {
 public:
 
+	struct RenderTarget {};
+
 	virtual void enableAlphaBlending(bool enable) = 0;
 
 	virtual void enableBackfaceDrawing(bool enable) = 0;
@@ -54,6 +56,11 @@ public:
 	virtual ModelManager* getModelManager() = 0;
 
 	virtual void setBackgroundColor(glm::vec3 color) = 0;
+
+	/**
+	 * Sets the number of samples used for msaa
+	 */
+	virtual void setMSAASamples(unsigned int samples) = 0;
 
 	/**
 	 * All draw calls are performed on a offscreen texture.

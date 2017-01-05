@@ -154,7 +154,7 @@ int main(int argc, char** argv)
 
 	try {
 		shared_ptr<Video> video = make_shared<Video>(Video(windowSystem));
-		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>(RendererOpenGL());
+		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>();
 		shared_ptr<Engine> engine  = make_shared<Engine>(Engine());
 
 		video->useRenderer(renderer.get());

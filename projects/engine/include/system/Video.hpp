@@ -1,6 +1,7 @@
 #pragma once
 #include <system/System.hpp>
 #include <platform/Window.hpp>
+#include <renderer/Renderer3D.hpp>
 
 class SystemUI;
 class WindowSystem;
@@ -15,7 +16,7 @@ public:
 
 	virtual void init() override;
 
-	void useRenderer(Renderer* renderer);
+	void useRenderer(Renderer3D* renderer);
 
 	void useUISystem(SystemUI* ui);
 
@@ -31,9 +32,10 @@ private:
 	unsigned int colorBitDepth;
 	unsigned int refreshRate;
 	bool vSync;
+	unsigned int msaaSamples;
 	WindowSystem* windowSystem;
 	Window* window;
-	Renderer* renderer;
+	Renderer3D* renderer;
 	SystemUI* ui;
 
 };

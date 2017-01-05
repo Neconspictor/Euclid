@@ -94,7 +94,7 @@ void MainLoopTask::init()
 	phongShader->setSkyBox(sky);
 
 
-	asteriodSize = 1000;
+	asteriodSize = 100;
 	asteriodTrafos = new mat4[asteriodSize];
 
 	srand(chrono::system_clock::now().time_since_epoch().count()); // initialize random seed	
@@ -182,16 +182,16 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
-	//renderer->useOffscreenBuffer();
-	renderer->useScreenBuffer();
+	renderer->useOffscreenBuffer();
+	//renderer->useScreenBuffer();
 	renderer->beginScene();
 
 	//drawScene();
 	drawAsteriods(asteriodTrafos, asteriodSize);
 
 	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
-	//renderer->useScreenBuffer();
-	renderer->useOffscreenBuffer();
+	renderer->useScreenBuffer();
+	//renderer->useOffscreenBuffer();
 	renderer->beginScene();
 
 	// backup camera look direction
@@ -204,8 +204,8 @@ void MainLoopTask::run()
 	// restore camera look direction
 	camera->setLookDirection(cameraLook);
 
-	renderer->useScreenBuffer();
-	//renderer->drawOffscreenBuffer();
+	//renderer->useScreenBuffer();
+	renderer->drawOffscreenBuffer();
 	//renderer->present();
 
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);

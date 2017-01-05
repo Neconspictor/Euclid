@@ -9,8 +9,8 @@
 using namespace std;
 
 Video::Video(WindowSystem* system) :
-	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), vSync(false),
-	windowSystem(system), window(nullptr), renderer(nullptr), ui(nullptr)
+	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), 
+	vSync(false), msaaSamples(0), windowSystem(system), window(nullptr), renderer(nullptr), ui(nullptr)
 {
 	//we dont't need a frame updater
 	updater.reset();
@@ -30,6 +30,7 @@ void Video::handle(const CollectOptions& config)
 	config.config->addOption(getName(), "ColorBitDepth", &colorBitDepth, unsigned int(32));
 	config.config->addOption(getName(), "RefreshRate", &refreshRate, unsigned int(60));
 	config.config->addOption(getName(), "VSync", &vSync, false);
+	config.config->addOption(getName(), "MSAASamples", &msaaSamples, unsigned int(0));
 }
 
 void Video::init()
@@ -64,11 +65,12 @@ void Video::init()
 	}
 
 	renderer->setViewPort(0, 0, width, height);
+	renderer->setMSAASamples(msaaSamples);
 	renderer->init();
 	//Platform::getActivePlatform()->setVSync(*renderer, vSync);
 }
 
-void Video::useRenderer(Renderer* renderer)
+void Video::useRenderer(Renderer3D* renderer)
 {
 	this->renderer = renderer;
 }

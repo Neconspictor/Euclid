@@ -86,8 +86,8 @@ Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeig
 
 	MeshGL mesh = MeshFactoryGL::createPositionUV(vertices.data(), vertices.size(), 
 										indices.data(), indices.size());
-	models.push_back(ModelGL (vector<MeshGL>{mesh}));
-	return &models.back();
+	//models.push_back(ModelGL (vector<MeshGL>{mesh}));
+	return new ModelGL(vector<MeshGL>{mesh});
 }
 
 Model* ModelManagerGL::getModel(const string& modelName)
