@@ -3,15 +3,34 @@
 #include <glad/glad.h>
 #include <model/opengl/ModelGL.hpp>
 
+class SMAA_GL;
+
 
 class RendererOpenGL : public Renderer3D
 {
 public:
+
+	struct RenderTargetGL : RenderTarget
+	{
+		GLuint frameBuffer;
+		GLuint textureBuffer;
+		GLuint renderBuffer;
+	};
+
 	RendererOpenGL();
 	
 	virtual ~RendererOpenGL();
 	
 	void beginScene() override;
+
+	GLint getCurrentRenderTarget() const;
+
+	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
+
+	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
+		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
+
+	void destroyRenderTarget(RenderTargetGL* renderTarget) const;
 
 	void drawOffscreenBuffer() override;
 
@@ -28,6 +47,8 @@ public:
 	ModelManager* getModelManager() override;
 
 	ShaderManager* getShaderManager() override;
+
+	virtual SMAA* getSMAA() override;
 	
 	TextureManager* getTextureManager() override;
 	
@@ -51,13 +72,6 @@ public:
 
 protected:
 
-	struct RenderTargetGL : RenderTarget
-	{
-		GLuint frameBuffer;
-		GLuint textureBuffer;
-		GLuint renderBuffer;
-	};
-
 	/**
 	 * A function for checking any opengl related errors.
 	 * Mainly intended for debug purposes
@@ -70,11 +84,6 @@ protected:
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 
 	void createFrameRenderTargetBuffer(int width, int height);
-	void createSingleSampledScreenBuffer(RenderTargetGL* screenBuffer) const;
-	void createMultiSampledScreenBuffer(RenderTargetGL* screenBuffer, unsigned int samples) const;
-
-	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
-		GLuint depthStencilType = GL_DEPTH_COMPONENT);
 
 	RenderTargetGL singleSampledScreenBuffer;
 	RenderTargetGL multiSampledScreenBuffer;
@@ -82,4 +91,6 @@ protected:
 	std::unique_ptr<ModelGL> screenSprite;
 	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;
+
+	SMAA_GL* smaa;
 };

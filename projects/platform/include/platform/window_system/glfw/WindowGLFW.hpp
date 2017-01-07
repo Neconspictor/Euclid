@@ -14,6 +14,8 @@ public:
 
 	explicit InputGLFW(const InputGLFW& other);
 
+	virtual ~InputGLFW();
+
 	Button getAnyPressedButton() override;
 	Key getAnyPressedKey() override;
 	bool isDown(Button button) override;
@@ -38,6 +40,8 @@ public:
 
 protected:
 	WindowGLFW* window;
+	Key anyPressedKey;
+	Button anyPressedButton;
 	platform::LoggingClient logClient;
 };
 
@@ -104,7 +108,6 @@ public:
 protected:
 
 	friend class WindowSystemGLFW;
-
 	GLFWwindow* window;
 	InputGLFW inputDevice;
 	bool m_hasFocus;
@@ -112,9 +115,6 @@ protected:
 	std::list<std::function<CharModsCallback>> charModsCallbacks;
 	std::list<std::function<KeyCallback>> keyCallbacks;
 	std::list<std::function<MouseCallback>> mouseCallbacks;
-
 	void createNoAPIWindow();
 	void createOpenGLWindow();
-
-
 };

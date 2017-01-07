@@ -2,6 +2,12 @@ set(
     ENGINE_SOURCES 
     
     ###header files###
+    
+    #antialiasing
+    include/antialiasing/SMAA.hpp
+    #antialiasing/opengl
+    include/antialiasing/opengl/SMAA_GL.hpp
+    
     #camera
     include/camera/Camera.hpp
     include/camera/FPCamera.hpp
@@ -107,6 +113,11 @@ set(
     include/util/Timer.hpp
     
     ###source files###
+    
+    #antialiasing
+    #antialiasing/opengl
+    src/antialiasing/opengl/SMAA_GL.cpp
+    
     #camera
     src/camera/Camera.cpp
     src/camera/FPCamera.cpp

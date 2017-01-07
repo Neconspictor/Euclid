@@ -18,7 +18,6 @@ WindowGLFW::WindowGLFW(WindowStruct const& desc, Renderer& renderer) :
 
 WindowGLFW::~WindowGLFW()
 {
-	cout << "called WindowGLFW::~WindowGLFW()" << endl;
 }
 
 void WindowGLFW::activate()
@@ -108,12 +107,12 @@ void WindowGLFW::registerCallbacks()
 
 	inputDevice.setWindow(this);
 
-	auto charModsCallback = bind(&InputGLFW::charModsCallback, inputDevice, _1, _2, _3);
-	auto focusCallback = bind(&InputGLFW::focusCallback, inputDevice, _1, _2);
-	auto keyCallback = bind(&InputGLFW::keyCallback, inputDevice, _1, _2, _3, _4, _5);
-	auto mouseCallback = bind(&InputGLFW::mouseCallback, inputDevice, _1, _2, _3, _4);
-	auto scrollCallback = bind(&InputGLFW::scrollCallback, inputDevice, _1, _2, _3);
-	auto sizeCallback = bind(&InputGLFW::sizeCallback, inputDevice, _1, _2, _3);
+	auto charModsCallback = bind(&InputGLFW::charModsCallback, &inputDevice, _1, _2, _3);
+	auto focusCallback = bind(&InputGLFW::focusCallback, &inputDevice, _1, _2);
+	auto keyCallback = bind(&InputGLFW::keyCallback, &inputDevice, _1, _2, _3, _4, _5);
+	auto mouseCallback = bind(&InputGLFW::mouseCallback, &inputDevice, _1, _2, _3, _4);
+	auto scrollCallback = bind(&InputGLFW::scrollCallback, &inputDevice, _1, _2, _3);
+	auto sizeCallback = bind(&InputGLFW::sizeCallback, &inputDevice, _1, _2, _3);
 
 	WindowSystemGLFW::get()->registerCharModsCallback(this, charModsCallback);
 	WindowSystemGLFW::get()->registerFocusCallback(this, focusCallback);
@@ -139,7 +138,7 @@ void WindowGLFW::registerKeyCallback(function<KeyCallback> callback)
 	keyCallbacks.push_back(callback);
 }
 
-void WindowGLFW::registerMouseCallback(std::function<MouseCallback> callback)
+void WindowGLFW::registerMouseCallback(function<MouseCallback> callback)
 {
 	mouseCallbacks.push_back(callback);
 }
@@ -407,25 +406,29 @@ void WindowGLFW::createOpenGLWindow()
 }
 
 
-InputGLFW::InputGLFW(WindowGLFW* window) : window(window), logClient(getLogServer())
+InputGLFW::InputGLFW(WindowGLFW* window) : window(window), 
+anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), logClient(getLogServer())
 {
 	logClient.setPrefix("InputGLFW");
 }
 
-InputGLFW::InputGLFW(const InputGLFW& other) : window(other.window), logClient(other.logClient)
+InputGLFW::InputGLFW(const InputGLFW& other) : window(other.window), logClient(other.logClient),
+	anyPressedKey(other.anyPressedKey), anyPressedButton(other.anyPressedButton)
+{
+}
+
+InputGLFW::~InputGLFW()
 {
 }
 
 Input::Button InputGLFW::getAnyPressedButton()
 {
-	//TODO
-	return InvalidButton;
+	return anyPressedButton;
 }
 
 Input::Key InputGLFW::getAnyPressedKey()
 {
-	//TODO
-	return KEY_UNKNOWN;
+	return anyPressedKey;
 }
 
 bool InputGLFW::isDown(Button button)
@@ -499,6 +502,7 @@ void InputGLFW::focusCallback(GLFWwindow* window, int hasFocus)
 void InputGLFW::mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	this->window->onMouse(button, action, mods);
+	anyPressedButton = WindowSystemGLFW::get()->toButton(button);
 }
 
 void InputGLFW::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
@@ -510,8 +514,6 @@ void InputGLFW::scrollCallback(GLFWwindow* window, double xOffset, double yOffse
 	{
 		informScrollListeners(xOffset, yOffset);
 	}
-
-
 }
 
 void InputGLFW::sizeCallback(GLFWwindow* window, int width, int height)
@@ -530,6 +532,16 @@ void InputGLFW::frameUpdate()
 
 	frameMouseXOffset = mouseXabsolut - mouseXOld;
 	frameMouseYOffset = mouseYabsolut - mouseYOld;
+
+	if (!isDown(anyPressedKey))
+	{
+		anyPressedKey = KEY_UNKNOWN;
+	}
+
+	if (!isDown(anyPressedButton))
+	{
+		anyPressedButton = InvalidButton;
+	}
 }
 
 void InputGLFW::resetForFrame()
@@ -550,6 +562,7 @@ void InputGLFW::setMousePosition(int xPos, int yPos)
 void InputGLFW::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	this->window->onKey(key, scancode, action, mods);
+	anyPressedKey = WindowSystemGLFW::get()->toKey(key);
 }
 
 void InputGLFW::setWindow(WindowGLFW* window)

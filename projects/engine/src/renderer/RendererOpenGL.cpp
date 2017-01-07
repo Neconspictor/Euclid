@@ -1,4 +1,4 @@
-﻿#include <renderer/RendererOpenGL.hpp>
+﻿#include <renderer/opengl/RendererOpenGL.hpp>
 #include <shader/opengl/ShaderManagerGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <platform/exception/OpenglException.hpp>
@@ -7,20 +7,29 @@
 #include <shader/opengl/ScreenShaderGL.hpp>
 #include <glad/glad.h>
 #include <GL/gl.h>
+#include <antialiasing/opengl/SMAA_GL.hpp>
 
 using namespace std;
 using namespace platform;
+using namespace glm;
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
-screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), msaaSamples(1)
+screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), msaaSamples(1), smaa(nullptr)
 {	
 	logClient.setPrefix("[RendererOpenGL]");
 
 	clearRenderTarget(&singleSampledScreenBuffer, false);
 	clearRenderTarget(&multiSampledScreenBuffer, false);
+
+	RendererOpenGL* renderer = this;
+
+	smaa = new SMAA_GL(renderer);
 }
 
-RendererOpenGL::~RendererOpenGL() {}
+RendererOpenGL::~RendererOpenGL()
+{
+	delete smaa;
+}
 
 // An array of 3 vectors which represents 3 vertices
 static const GLfloat g_vertex_buffer_data[] = {
@@ -61,6 +70,8 @@ void RendererOpenGL::init()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	smaa->init();
+
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 }
@@ -88,12 +99,37 @@ void RendererOpenGL::beginScene()
 	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f); // Dark greyish Background
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	clearFrameBuffer(getCurrentRenderTarget(), { backgroundColor.r, backgroundColor.g, backgroundColor.b, 1 }, 1.0f, 0);
+
 	glStencilMask(0x00);
 
 	//glDisable(GL_MULTISAMPLE);
 	glEnable(GL_MULTISAMPLE);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
+
+GLint RendererOpenGL::getCurrentRenderTarget() const
+{
+	GLint drawFboId = 0;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	return drawFboId;
+}
+
+void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float depthValue, int stencilValue)
+{
+	// backup current bound drawing frame buffer
+	GLint drawFboId = getCurrentRenderTarget();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClearDepth(depthValue);
+	glClearStencil(stencilValue);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	
+	// restore frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
 }
 
 void RendererOpenGL::drawOffscreenBuffer()
@@ -166,6 +202,11 @@ ShaderManager* RendererOpenGL::getShaderManager()
 	return ShaderManagerGL::get();
 }
 
+SMAA* RendererOpenGL::getSMAA()
+{
+	return smaa;
+}
+
 TextureManager* RendererOpenGL::getTextureManager()
 {
 	return TextureManagerGL::get();
@@ -216,11 +257,12 @@ void RendererOpenGL::useOffscreenBuffer()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
-	int color = 0;
-	float depth = 1.0f;
-	int stencil = 0;
-	glClearBufferiv(GL_COLOR, 0, &color);
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+	//int color = 0;
+	//float depth = 1.0f;
+	//int stencil = 0;
+	//glClearBufferiv(GL_COLOR, 0, &color);
+	//glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+	clearFrameBuffer(singleSampledScreenBuffer.frameBuffer, { 0, 0, 0, 1 }, 1.0f, 0);
 }
 
 void RendererOpenGL::useScreenBuffer()
@@ -231,15 +273,17 @@ void RendererOpenGL::useScreenBuffer()
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
 
 	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+	//clearFrameBuffer(singleSampledScreenBuffer.frameBuffer, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 
 	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	int color = 0;
-	float depth = 1.0f;
-	int stencil = 0;
-	glClearBufferiv(GL_COLOR, 0, &color);
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+	//int color = 0;
+	//float depth = 1.0f;
+	//int stencil = 0;
+	//glClearBufferiv(GL_COLOR, 0, &color);
+	//glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 }
 
 void RendererOpenGL::checkGLErrors(string errorPrefix) const
@@ -293,7 +337,7 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 }
 
 RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int width, int height, 
-	GLuint samples, GLuint depthStencilType)
+	GLuint samples, GLuint depthStencilType) const
 {
 	assert(samples >= 1);
 
@@ -362,4 +406,15 @@ RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureC
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	return result;
+}
+
+void RendererOpenGL::destroyRenderTarget(RenderTargetGL* renderTarget) const
+{
+	glDeleteFramebuffers(1, &renderTarget->frameBuffer);
+	glDeleteTextures(1, &renderTarget->textureBuffer);
+	glDeleteRenderbuffers(1, &renderTarget->renderBuffer);
+
+	renderTarget->frameBuffer = GL_FALSE;
+	renderTarget->textureBuffer = GL_FALSE;
+	renderTarget->renderBuffer = GL_FALSE;
 }

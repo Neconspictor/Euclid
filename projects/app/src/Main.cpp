@@ -1,7 +1,7 @@
 #include <system/Engine.hpp>
 #include <system/Video.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <renderer/RendererOpenGL.hpp>
+#include <renderer/opengl/RendererOpenGL.hpp>
 #include <MainLoopTask.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 #include <boost/locale.hpp>

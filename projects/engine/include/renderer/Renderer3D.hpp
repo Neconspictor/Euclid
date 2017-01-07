@@ -5,6 +5,10 @@
 #include <platform/Renderer.hpp>
 #include <model/ModelManager.hpp>
 #include <drawing/ModelDrawer.hpp>
+#include <antialiasing/SMAA.hpp>
+
+
+struct RenderTarget {};
 
 /**
  * A 3D renderer is a renderer specific for 3D content. 
@@ -19,8 +23,6 @@
 class Renderer3D : public Renderer
 {
 public:
-
-	struct RenderTarget {};
 
 	virtual void enableAlphaBlending(bool enable) = 0;
 
@@ -54,6 +56,8 @@ public:
 	* Provides access to a mesh manager, that creates and stores 3d meshes.
 	 */
 	virtual ModelManager* getModelManager() = 0;
+
+	virtual SMAA* getSMAA() = 0;
 
 	virtual void setBackgroundColor(glm::vec3 color) = 0;
 

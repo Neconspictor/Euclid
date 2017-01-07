@@ -191,6 +191,8 @@ void MainLoopTask::run()
 
 	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
 	renderer->useScreenBuffer();
+	renderer->getSMAA()->reset();
+
 	//renderer->useOffscreenBuffer();
 	renderer->beginScene();
 
@@ -215,7 +217,7 @@ void MainLoopTask::run()
 	window->swapBuffers();
 }
 
-void MainLoopTask::drawAsteriods(glm::mat4* asteriodTrafos, uint asteriodSize)
+void MainLoopTask::drawAsteriods(mat4* asteriodTrafos, uint asteriodSize)
 {
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(renderer->getShaderManager()->getShader(SkyBox));
