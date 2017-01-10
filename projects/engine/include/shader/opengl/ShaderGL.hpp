@@ -29,6 +29,8 @@ public:
 	virtual void release();
 	virtual void use();
 
+	static void initShaderFileSystem();
+
 protected:
 	GLuint programID;
 	platform::LoggingClient logClient;

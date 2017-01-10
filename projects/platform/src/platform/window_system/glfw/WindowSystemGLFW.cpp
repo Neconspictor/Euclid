@@ -1,5 +1,6 @@
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <utf8.h>
 

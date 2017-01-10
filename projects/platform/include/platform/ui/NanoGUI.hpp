@@ -1,6 +1,6 @@
 #pragma once
 #include <platform/SystemUI.hpp>
-#include <nanogui/screen.h>
+//#include <nanogui/screen.h>
 
 
 class WindowSystemGLFW;
@@ -20,5 +20,5 @@ public:
 protected:
 	WindowSystemGLFW* windowSystem;
 	WindowGLFW* window;
-	static nanogui::Screen* screen;
+	//static nanogui::Screen* screen;
 };

@@ -191,7 +191,7 @@ void MainLoopTask::run()
 
 	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
 	renderer->useScreenBuffer();
-	renderer->getSMAA()->reset();
+	//renderer->getSMAA()->reset();
 
 	//renderer->useOffscreenBuffer();
 	renderer->beginScene();

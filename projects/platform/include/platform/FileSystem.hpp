@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace filesystem
 {
@@ -12,4 +13,5 @@ namespace filesystem
 	 */
 	 bool loadFileIntoString(const std::string& filePath, std::string* destination);
 
+	 std::vector<std::string> getFilesFromFolder(const std::string& folderPath, bool skipSubFolders = true);
 };

@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 #include <GL/gl.h>
 #include <antialiasing/opengl/SMAA_GL.hpp>
+#include <fstream>
 
 using namespace std;
 using namespace platform;
@@ -43,6 +44,7 @@ GLuint vertexArrayObjID;
 void RendererOpenGL::init()
 {
 	LOG(logClient, Info) << "Initializing...";
+
 	glViewport(xPos, yPos, width, height);
 
 	ModelGL* screenSpritePtr = static_cast<ModelGL*>
@@ -70,10 +72,15 @@ void RendererOpenGL::init()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	smaa->init();
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
+
+	ShaderGL::initShaderFileSystem();
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
+	smaa->init();
+
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 void RendererOpenGL::beginScene()
@@ -82,10 +89,10 @@ void RendererOpenGL::beginScene()
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 
-						  // stencil buffering is enabled when needed!
-						  //glEnable(GL_STENCIL_TEST); // Enable stencil buffering
+	// stencil buffering is enabled when needed!
+	//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
 
-						  // we want counter clock wise winding order
+	// we want counter clock wise winding order
 	glFrontFace(GL_CCW);
 
 	// only draw front faces
@@ -286,7 +293,7 @@ void RendererOpenGL::useScreenBuffer()
 	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 }
 
-void RendererOpenGL::checkGLErrors(string errorPrefix) const
+void RendererOpenGL::checkGLErrors(string errorPrefix)
 {
 	// check if any gl related errors occured
 	GLint errorCode = glGetError();
@@ -350,11 +357,14 @@ RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureC
 		// Generate texture
 		glGenTextures(1, &result.textureBuffer);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, result.textureBuffer);
+		
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureChannel, width, height, GL_TRUE);
+		
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-
+		
 		// attach texture to currently bound frame buffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, result.textureBuffer, 0);
+
 
 		//create a render buffer for depth and stencil testing
 		glGenRenderbuffers(1, &result.renderBuffer);

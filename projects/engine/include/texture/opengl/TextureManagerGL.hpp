@@ -19,9 +19,15 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front) override;
 
+	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
+
 	TextureGL* getImageGL(const std::string& file);
 
 	virtual Texture* getImage(const std::string& file) override;
+
+	std::string getImagePath() override;
+
+	std::string getFullFilePath(const std::string& localFilePath);
 
 	virtual void loadImages(const std::string& imageFolder) override;
 

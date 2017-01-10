@@ -11,10 +11,8 @@ void main()
 { 
     // normal drawing
     // color = texture(screenTexture, texCoordsFS);
-     
     // inverse color
-    color = vec4(vec3( 1.0 - texture(screenTexture, texCoordsFS)), 1.0f);
-    return;
+    //color = vec4(vec3( 1.0 - texture(screenTexture, texCoordsFS)), 1.0f);
     
     // average grayscale
     //color = texture(screenTexture, texCoordsFS);
@@ -47,11 +45,11 @@ void main()
     );*/
     
     // blur kernel
-    float kernel[9] = float[](
+    /*float kernel[9] = float[](
         1.0 / 16, 2.0 / 16, 1.0 / 16,
         2.0 / 16, 4.0 / 16, 2.0 / 16,
         1.0 / 16, 2.0 / 16, 1.0 / 16  
-    );
+    );*/
     
     // edge detection
     /*float kernel[9] = float[] (
@@ -60,6 +58,12 @@ void main()
         1,  1,  1
     );*/
     
+    // normal drawing
+    float kernel[9] = float[] (
+        0,  0,  0,
+        0, 1,  0,
+        0,  0,  0
+    );
     vec3 sampleTex[9];
     for(int i = 0; i < 9; ++i) {
         sampleTex[i] = vec3(texture(screenTexture, texCoordsFS.st + offsets[i]));

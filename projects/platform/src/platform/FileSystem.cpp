@@ -3,6 +3,7 @@
 #include <fstream>
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace platform;
@@ -48,4 +49,39 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	shaderStreamFile.close();
 
 	return loadingWasSuccessful;
+}
+
+vector<string> filesystem::getFilesFromFolder(const string& folderPath, bool skipSubFolders)
+{
+	using namespace boost::filesystem;
+	path folder(folderPath);
+	
+	if (!is_directory(folder) || !exists(folder))
+	{
+		return vector<string>();
+	}
+
+	vector<string> result;
+
+	vector<string> subPaths;
+
+	for (directory_iterator it(folder); it != directory_iterator(); ++it)
+	{
+		path path = it->path();
+		if (!skipSubFolders && is_directory(path))
+		{
+			subPaths.push_back(path.generic_string());
+		} else
+		{
+			result.push_back(path.generic_string());
+		}
+	}
+
+	for (auto& path : subPaths)
+	{
+		vector<string> subResult = getFilesFromFolder(path, false);
+		result.insert(result.begin(), subResult.begin(), subResult.end());
+	}
+
+	return result;
 }

@@ -70,16 +70,17 @@ public:
 
 	void useScreenBuffer() override;
 
-protected:
 
 	/**
-	 * A function for checking any opengl related errors.
-	 * Mainly intended for debug purposes
-	 * NOTE: Throws an OpenglException if any opengl related error occured
-	 * since the last call of glGetError()
-	 * @param errorPrefix: a prefix that will be put in front of the OpenglException.
-	 */
-	void checkGLErrors(std::string errorPrefix) const;
+	* A function for checking any opengl related errors.
+	* Mainly intended for debug purposes
+	* NOTE: Throws an OpenglException if any opengl related error occured
+	* since the last call of glGetError()
+	* @param errorPrefix: a prefix that will be put in front of the OpenglException.
+	*/
+	static void checkGLErrors(std::string errorPrefix);
+
+protected:
 
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 

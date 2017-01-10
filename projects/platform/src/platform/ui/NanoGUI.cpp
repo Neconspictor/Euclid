@@ -4,27 +4,28 @@
 #include <platform/window_system/glfw/WindowGLFW.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 
-#if defined(NANOGUI_GLAD)
+/*#if defined(NANOGUI_GLAD)
 #if defined(NANOGUI_SHARED) && !defined(GLAD_GLAPI_EXPORT)
 #define GLAD_GLAPI_EXPORT
 #endif
+*/
 
 #include <glad/glad.h>
-#else
+/*#else
 #if defined(__APPLE__)
 #define GLFW_INCLUDE_GLCOREARB
 #else
 #define GL_GLEXT_PROTOTYPES
 #endif
-#endif
+#endif*/
 
 #include <glfw/glfw3.h>
 
-#include <nanogui/nanogui.h>
+//#include <nanogui/nanogui.h>
 
 #include <iostream>
 
-nanogui::Screen* NanoGUI::screen = nullptr;
+//nanogui::Screen* NanoGUI::screen = nullptr;
 
 double testDouble = 0.3;
 std::string strval = "A string";
@@ -42,7 +43,7 @@ NanoGUI::~NanoGUI()
 
 void NanoGUI::init(Window* windowSource)
 {
-	window = static_cast<WindowGLFW*>(windowSource);
+	/*window = static_cast<WindowGLFW*>(windowSource);
 	std::cout << "NanoGUI initialized!" << std::endl;
 
 	GLFWwindow* source = window->getSource();
@@ -111,10 +112,11 @@ void NanoGUI::init(Window* windowSource)
 	window->addResizeCallback([](int width, int height) {
 		screen->resizeCallbackEvent(width, height);
 	});
+
+	*/
 }
 
 void NanoGUI::frameUpdate()
 {
-	//screen->drawContents();
-	screen->drawWidgets();
+	//screen->drawWidgets();
 }

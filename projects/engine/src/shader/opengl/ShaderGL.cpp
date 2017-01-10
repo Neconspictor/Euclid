@@ -7,6 +7,9 @@
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <model/Vob.hpp>
+#include <renderer/opengl/RendererOpenGL.hpp>
+#include <fstream>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace platform;
@@ -41,6 +44,34 @@ ShaderGL::ShaderGL(const ShaderGL& other) :
 void ShaderGL::use()
 {
 	glUseProgram(this->programID);
+}
+
+void ShaderGL::initShaderFileSystem()
+{
+	using namespace boost::filesystem;
+
+	if (!exists(globals::SHADER_PATH_OPENGL))
+	{
+		stringstream ss;
+		path path(globals::SHADER_PATH_OPENGL);
+		ss << "ShaderGL::initShaderFileSystem(): opengl shader folder doesn't exists: " 
+			<< absolute(path).generic_string();
+		throw runtime_error(ss.str());
+	}
+
+	vector<string> shaderFiles = filesystem::getFilesFromFolder(globals::SHADER_PATH_OPENGL, false);
+
+	for (auto& file : shaderFiles)
+	{
+		::ifstream ifs(file);
+
+		string content((istreambuf_iterator<char>(ifs)),
+			(istreambuf_iterator<char>()));
+		
+		// OpenGL expects relative paths starting with a '/' 
+		string glFilePath = "/" + file;
+		glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str());
+	}
 }
 
 GLuint ShaderGL::getProgramID() const
@@ -190,8 +221,16 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 
 	// compile...
 	const char* rawCode = shaderContent.c_str();
+	const GLchar* const test  = "/shaders/opengl";
 	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
-	glCompileShader(shaderResourceID);
+
+	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
+
+	glCompileShaderIncludeARB(shaderResourceID, 1, &test, nullptr);
+
+	RendererOpenGL::checkGLErrors("ShaderGL.cpp2");
+
+	//glCompileShader(shaderResourceID);
 
 	// check compilation
 	glGetShaderiv(shaderResourceID, GL_COMPILE_STATUS, &result);

@@ -181,8 +181,8 @@ void WindowGLFW::setFullscreen()
 	removeCallbacks();
 
 	glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
 	glfwWindowHint(GLFW_RED_BITS, 8);
 	glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -245,8 +245,8 @@ void WindowGLFW::setWindowed()
 	removeCallbacks();
 
 	glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
 	glfwWindowHint(GLFW_RED_BITS, 8);
 	glfwWindowHint(GLFW_GREEN_BITS, 8);
@@ -327,8 +327,8 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);*/
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -362,15 +362,17 @@ void WindowGLFW::createOpenGLWindow()
 	glfwMakeContextCurrent(window);
 	//gladLoadGLLoader(GLADloadproc(glfwGetProcAddress));
 
-#if defined(NANOGUI_GLAD)
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		throw std::runtime_error("Could not initialize GLAD!");
-	glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
-#endif
+//#if defined(NANOGUI_GLAD)
+	//if (!gladLoadGL())
+	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		//throw std::runtime_error("Could not initialize GLAD!");
+	//glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
+//#endif
 
 	// Load all OpenGL functions using the glfw loader function
 	// If you use SDL you can use: https://wiki.libsdl.org/SDL_GL_GetProcAddress
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	//if (!gladLoadGL())
 	{
 		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
 	}

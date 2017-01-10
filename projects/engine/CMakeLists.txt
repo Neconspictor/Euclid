@@ -53,7 +53,8 @@ set(
     #renderer
     include/renderer/AbstractRendererFactory.hpp
     include/renderer/Renderer3D.hpp
-    include/renderer/RendererOpenGL.hpp
+    #renderer/opengl
+    include/renderer/opengl/RendererOpenGL.hpp
     
     #shader
     include/shader/LampShader.hpp
@@ -152,7 +153,8 @@ set(
     src/model/opengl/ModelManagerGL.cpp
     
     #renderer
-    src/renderer/RendererOpenGL.cpp
+    #renderer/opengl
+    src/renderer/opengl/RendererOpenGL.cpp
     
     #shader
     src/shader/ShaderEnum.cpp
@@ -189,6 +191,9 @@ set(
     src/texture/opengl/TextureManagerGL.cpp
     
     #util
+    
+    
+    #${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
 )
 
 # Create named folders for the sources within the .vcproj
@@ -239,10 +244,10 @@ target_link_libraries(engine PUBLIC opengl32)
 target_link_libraries(engine PUBLIC ${soil2_lib})
 target_link_libraries(engine PUBLIC glu32)
 
-target_link_libraries(engine PUBLIC debug ${SDL2_lib_debug})
-target_link_libraries(engine PUBLIC optimized ${SDL2_lib_release})
-target_link_libraries(engine PUBLIC debug ${SDL2main_lib_debug})
-target_link_libraries(engine PUBLIC optimized ${SDL2main_lib_release})
+#target_link_libraries(engine PUBLIC debug ${SDL2_lib_debug})
+#target_link_libraries(engine PUBLIC optimized ${SDL2_lib_release})
+#target_link_libraries(engine PUBLIC debug ${SDL2main_lib_debug})
+#target_link_libraries(engine PUBLIC optimized ${SDL2main_lib_release})
 
 target_link_libraries(engine PUBLIC platform)   
 

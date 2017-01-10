@@ -1,5 +1,6 @@
 #pragma once
 #include <renderer/opengl/RendererOpenGL.hpp>
+#include <texture/opengl/TextureGL.hpp>
 
 
 class SMAA_GL : public SMAA
@@ -20,4 +21,7 @@ private:
 	RendererOpenGL* renderer;
 	RendererOpenGL::RenderTargetGL edgesTex;
 	RendererOpenGL::RenderTargetGL blendTex;
+
+	TextureGL* areaTex;
+	TextureGL* searchTex;
 };

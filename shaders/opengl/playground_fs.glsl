@@ -1,7 +1,8 @@
 #version 330 core
 
-// input data
-in vec2 texCoordFrag;
+in GS_OUT {
+    vec2 tex;
+} fs_in;
 
 // Ouput data
 out vec4 color;
@@ -13,5 +14,5 @@ uniform sampler2D diffuseMultiply;
 
 
 void main() {
-	color = mix(texture(diffuse, texCoordFrag), texture(diffuseMultiply, texCoordFrag), mixValue);
+	color = mix(texture(diffuse, fs_in.tex), texture(diffuseMultiply, fs_in.tex), mixValue);
 }

@@ -17,6 +17,8 @@ public:
 
 	virtual Texture* getImage(const std::string& file) = 0;
 
+	virtual std::string getImagePath() = 0;
+
 	/**
 	 * Loads all images from a specified image folder and all its sub folders.
 	 */

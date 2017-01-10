@@ -41,7 +41,7 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 
 	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
-		SOIL_LOAD_RGB, 0, 0);
+		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO);
 
 	if (cubeMap == GL_FALSE)
 	{
@@ -59,8 +59,8 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	}
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -69,6 +69,14 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	cubeMaps.push_back(CubeMapGL(cubeMap));
 
 	return &cubeMaps.back();
+}
+
+TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID)
+{
+	textures.push_back(TextureGL(textureID));
+	TextureGL* pointer = &textures.back();
+	textureLookupTable.insert(pair<string, TextureGL*>(localPathFileName, pointer));
+	return pointer;
 }
 
 TextureGL* TextureManagerGL::getImageGL(const string& file)
@@ -108,10 +116,17 @@ Texture* TextureManagerGL::getImage(const string& file)
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	textures.push_back(TextureGL(textureID));
-	TextureGL* pointer = &textures.back();
-	textureLookupTable.insert(pair<string, TextureGL*>(file, pointer));
-	return pointer;
+	return createTextureGL(file, textureID);
+}
+
+string TextureManagerGL::getImagePath()
+{
+	return ::util::globals::TEXTURE_PATH;
+}
+
+string TextureManagerGL::getFullFilePath(const string& localFilePath)
+{
+	return ::util::globals::TEXTURE_PATH + localFilePath;
 }
 
 void TextureManagerGL::loadImages(const string& imageFolder)
