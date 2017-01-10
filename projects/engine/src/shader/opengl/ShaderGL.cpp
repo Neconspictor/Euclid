@@ -16,6 +16,8 @@ using namespace platform;
 using namespace ::util;
 using namespace glm;
 
+LoggingClient staticLogClient(getLogServer());
+
 
 ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
 	: logClient(getLogServer())
@@ -59,6 +61,8 @@ void ShaderGL::initShaderFileSystem()
 		throw runtime_error(ss.str());
 	}
 
+	LOG(staticLogClient, Debug) << "Test log!";
+
 	vector<string> shaderFiles = filesystem::getFilesFromFolder(globals::SHADER_PATH_OPENGL, false);
 
 	for (auto& file : shaderFiles)
@@ -90,7 +94,7 @@ ShaderGL::~ShaderGL()
 }
 
 GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile, 
-	const string& geometryShaderFile) const
+	const string& geometryShaderFile)
 {
 	// Create the shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -123,7 +127,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 
 	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
-		LOG(logClient, Error) << "Couldn't initialize fragment shader!";
+		LOG(staticLogClient, Error) << "Couldn't initialize fragment shader!";
 		stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
 		ss << "fragment file: " << fragmentFilePath;
@@ -134,7 +138,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	{
 		if (!filesystem::loadFileIntoString(geometryFilePath, &geometryShaderCode))
 		{
-			LOG(logClient, Error) << "Couldn't initialize geometry shader!";
+			LOG(staticLogClient, Error) << "Couldn't initialize geometry shader!";
 			stringstream ss;
 			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << endl;
 			ss << "geometry shader file: " << geometryFilePath;
@@ -187,7 +191,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 		if (infoLogLength > 0) {
 			vector<char> ProgramErrorMessage(infoLogLength + 1);
 			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
-			LOG(logClient, Error) << &ProgramErrorMessage[0];
+			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
 		}
 		throw ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!");
 	}
@@ -208,14 +212,14 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 }
 
 
-bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID) const
+bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID)
 {
 	int result = 0;
 	GLint logInfoLength;
 
 	if (!shaderContent.size())
 	{
-		LOG(logClient, Error) << "shaderContent is suppossed to be no null-string!";
+		LOG(staticLogClient, Error) << "shaderContent is suppossed to be no null-string!";
 		return GL_FALSE;
 	}
 
@@ -240,7 +244,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 	{
 		vector<char> shaderErrorMessage(logInfoLength + 1);
 		glGetShaderInfoLog(shaderResourceID, logInfoLength, nullptr, &shaderErrorMessage[0]);
-		LOG(logClient, Error) << &shaderErrorMessage[0];
+		LOG(staticLogClient, Error) << &shaderErrorMessage[0];
 	}
 
 	if (result) return true;

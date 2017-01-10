@@ -2,6 +2,7 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <gli/gli.hpp>
 #include <SOIL2/SOIL2.h>
+#include <shader/opengl/ShaderGL.hpp>
 
 
 using namespace std;
@@ -108,6 +109,8 @@ void SMAA_GL::init()
 			Target, static_cast<GLint>(Level), 0, 0, Extent.x, Extent.y,
 			Format.Internal, static_cast<GLsizei>(Texture.size(Level)), Texture.data(0, 0, Level));
 	}*/
+
+	//GLuint testProgram = ShaderGL::loadShaders("playground_vs.glsl", "playground_fs.glsl");
 }
 
 void SMAA_GL::reset()

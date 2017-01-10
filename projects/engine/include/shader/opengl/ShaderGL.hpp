@@ -22,10 +22,10 @@ public:
 	ShaderGL(const ShaderGL& other);
 	virtual ~ShaderGL();
 
-	bool compileShader(const std::string& shaderContent, GLuint shaderResourceID) const;
+	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
 	GLuint getProgramID() const;
-	GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
-		const std::string& geometryShaderFile) const;
+	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
+		const std::string& geometryShaderFile = "");
 	virtual void release();
 	virtual void use();
 
