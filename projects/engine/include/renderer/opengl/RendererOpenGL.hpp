@@ -48,6 +48,8 @@ public:
 
 	ShaderManager* getShaderManager() override;
 
+	RenderTarget* getScreenBuffer() override;
+
 	virtual SMAA* getSMAA() override;
 	
 	TextureManager* getTextureManager() override;

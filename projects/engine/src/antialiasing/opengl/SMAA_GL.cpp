@@ -3,6 +3,7 @@
 #include <gli/gli.hpp>
 #include <SOIL2/SOIL2.h>
 #include <shader/opengl/ShaderGL.hpp>
+#include <renderer/opengl/RendererOpenGL.hpp>
 
 
 using namespace std;
@@ -17,8 +18,10 @@ SMAA_GL::~SMAA_GL()
 	renderer->destroyRenderTarget(&blendTex);
 }
 
-void SMAA_GL::antialiase(RenderTarget* renderTarget)
+void SMAA_GL::antialias(RenderTarget* renderTarget)
 {
+	RendererOpenGL::RenderTargetGL* glTarget = static_cast<RendererOpenGL::RenderTargetGL*>(renderTarget);
+	assert(glTarget != nullptr);
 }
 
 void SMAA_GL::init()

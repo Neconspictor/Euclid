@@ -105,6 +105,7 @@ set(
     include/texture/TextureManager.hpp
     #texture/opengl
     include/texture/opengl/CubeMapGL.hpp
+    include/texture/opengl/ImageLoaderGL.hpp
     include/texture/opengl/TextureGL.hpp
     include/texture/opengl/TextureManagerGL.hpp
     
@@ -187,6 +188,7 @@ set(
     #texture
     #texture/opengl
     src/texture/opengl/CubeMapGL.cpp
+    src/texture/opengl/ImageLoaderGL.cpp
     src/texture/opengl/TextureGL.cpp
     src/texture/opengl/TextureManagerGL.cpp
     

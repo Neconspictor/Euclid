@@ -9,6 +9,7 @@
 #include <GL/gl.h>
 #include <antialiasing/opengl/SMAA_GL.hpp>
 #include <fstream>
+#include <texture/opengl/ImageLoaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -79,6 +80,14 @@ void RendererOpenGL::init()
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	smaa->init();
+
+	ImageLoaderGL imageLoader;
+	GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
+	if (image.pixels)
+	{
+		delete[] image.pixels;
+		image.pixels = nullptr;
+	}
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -207,6 +216,11 @@ ModelManager* RendererOpenGL::getModelManager()
 ShaderManager* RendererOpenGL::getShaderManager()
 {
 	return ShaderManagerGL::get();
+}
+
+RenderTarget* RendererOpenGL::getScreenBuffer()
+{
+	return &singleSampledScreenBuffer;
 }
 
 SMAA* RendererOpenGL::getSMAA()

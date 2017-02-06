@@ -57,6 +57,8 @@ public:
 	 */
 	virtual ModelManager* getModelManager() = 0;
 
+	virtual RenderTarget* getScreenBuffer() = 0;
+
 	virtual SMAA* getSMAA() = 0;
 
 	virtual void setBackgroundColor(glm::vec3 color) = 0;

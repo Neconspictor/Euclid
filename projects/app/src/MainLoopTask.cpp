@@ -191,7 +191,6 @@ void MainLoopTask::run()
 
 	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
 	renderer->useScreenBuffer();
-	//renderer->getSMAA()->reset();
 
 	//renderer->useOffscreenBuffer();
 	renderer->beginScene();
@@ -213,6 +212,10 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 
 	//ui->frameUpdate();
+	//Before presenting the scene, antialise it!
+	SMAA* smaa = renderer->getSMAA();
+	smaa->reset();
+	smaa->antialias(renderer->getScreenBuffer());
 
 	window->swapBuffers();
 }

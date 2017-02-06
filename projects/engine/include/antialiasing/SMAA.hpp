@@ -10,7 +10,7 @@ public:
 
 	virtual ~SMAA() {}
 
-	virtual void antialiase(RenderTarget* renderTarget) = 0;
+	virtual void antialias(RenderTarget* renderTarget) = 0;
 
 	virtual void init() = 0;
 

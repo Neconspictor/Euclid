@@ -13,5 +13,16 @@ namespace filesystem
 	 */
 	 bool loadFileIntoString(const std::string& filePath, std::string* destination);
 
+	 /**
+	 * Provides the content of a specified file. 
+	 * The memory will be allocated with new[] and therefore has
+	 * to be deleted by the caller (using delete[]).
+	 * NOTE: If the file couldn't be read, a nullptr will be returned. In this case, no memory
+	 * has to be freed.
+	 */
+	 char* getBytesFromFile(const std::string& filePath);
+
+	 std::streampos getFileSize(const std::string& filePath);
+
 	 std::vector<std::string> getFilesFromFolder(const std::string& folderPath, bool skipSubFolders = true);
 };

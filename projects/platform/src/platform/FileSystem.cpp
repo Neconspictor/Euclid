@@ -51,6 +51,101 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	return loadingWasSuccessful;
 }
 
+char* filesystem::getBytesFromFile(const string& filePath)
+{
+	ifstream file;
+	MemoryWrapper content(nullptr);
+	streampos fileSize = 0;
+	LoggingClient logClient(getLogServer());
+	logClient.setPrefix("[FileSystem::getBytesFromFile()]");
+
+	// ensure ifstream can throw exceptions!
+	file.exceptions(ifstream::failbit | ifstream::badbit);
+
+	try
+	{
+		file.open(filePath, ios::binary);
+		filebuf* buffer = file.rdbuf();
+		
+		//get file size
+		fileSize  = buffer->pubseekoff(0, file.end, file.in);
+		buffer->pubseekpos(0, file.in);
+
+		// allocate memory to contain file data
+		char* memory = new char[fileSize];
+		content.setContent(memory);
+
+		//copy data to content buffer
+		buffer->sgetn(*content, fileSize);
+	}
+	catch (ifstream::failure e)
+	{
+		if (file.fail())
+		{
+			LOG(logClient, Error) << "Couldn't open file: " << filePath;
+		}
+
+		if (file.bad())
+		{
+			LOG(logClient, Error) << "Couldn't read file properly.";
+		}
+	} 
+	catch (bad_alloc e)
+	{
+		LOG(logClient, Error) << "Couldn't allocate memory of size: " << to_string(fileSize);
+	}
+
+	//clear exceptions as close shouldn't throw any exceptions!
+	file.exceptions(0);
+	file.close();
+
+	char* result = *content;
+	content.setContent(nullptr);
+
+	return result;
+}
+
+streampos filesystem::getFileSize(const string& filePath)
+{
+	ifstream file;
+	streampos size = 0;
+
+	// ensure ifstream can throw exceptions!
+	file.exceptions(ifstream::failbit | ifstream::badbit);
+
+	try
+	{
+		file.open(filePath, ios::binary);
+		filebuf* buffer = file.rdbuf();
+
+		//get file size
+		size = buffer->pubseekoff(0, file.end, file.in);
+		buffer->pubseekpos(0, file.in);
+	}
+	catch (ifstream::failure e)
+	{
+		LoggingClient logClient(getLogServer());
+		logClient.setPrefix("[FileSystem::loadFileIntoString()]");
+
+		if (file.fail())
+		{
+			LOG(logClient, Error) << "Couldn't open file: "
+				<< filePath;
+		}
+
+		if (file.bad())
+		{
+			LOG(logClient, Error) << "Couldn't read file properly.";
+		}
+	}
+
+	//clear exceptions as close shouldn't throw any exceptions!
+	file.exceptions(0);
+	file.close();
+
+	return size;
+}
+
 vector<string> filesystem::getFilesFromFolder(const string& folderPath, bool skipSubFolders)
 {
 	using namespace boost::filesystem;

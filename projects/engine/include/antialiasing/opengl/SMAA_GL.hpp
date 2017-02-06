@@ -9,7 +9,7 @@ public:
 	explicit SMAA_GL(RendererOpenGL* renderer);
 	virtual ~SMAA_GL();
 
-	virtual void antialiase(RenderTarget* renderTarget) override;
+	virtual void antialias(RenderTarget* renderTarget) override;
 
 	virtual void init() override;
 
@@ -24,4 +24,8 @@ private:
 
 	TextureGL* areaTex;
 	TextureGL* searchTex;
+
+	GLuint edgeDetectionPass;
+	GLuint blendingWeightCalculationPass;
+	GLuint neighborhoodBlendingPass;
 };
