@@ -30,7 +30,7 @@ TextureManagerGL::~TextureManagerGL()
 }
 
 CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
-	const string& bottom, const string& back, const string& front)
+	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
 	string rightCStr = ::util::globals::TEXTURE_PATH + right;
 	string leftCStr = ::util::globals::TEXTURE_PATH + left;
@@ -41,7 +41,7 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 
 	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
-		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO);
+		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
 
 	if (cubeMap == GL_FALSE)
 	{
@@ -84,7 +84,7 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 	return static_cast<TextureGL*>(getImage(file));
 }
 
-Texture* TextureManagerGL::getImage(const string& file)
+Texture* TextureManagerGL::getImage(const string& file, bool useSRGBOnCreation)
 {
 	auto it = textureLookupTable.find(file);
 
@@ -96,7 +96,17 @@ Texture* TextureManagerGL::getImage(const string& file)
 
 	string path = ::util::globals::TEXTURE_PATH + file;
 
-	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
+	int width, height, channels;
+	//unsigned char* image = SOIL_load_image(path.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+
+
+
+	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, 
+		(useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
+	//glGenTextures(1, &textureID);
+	//glBindTexture(GL_TEXTURE_2D, textureID);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	//glGenerateMipmap(GL_TEXTURE_2D);
 	if (textureID == GL_FALSE)
 	{
 		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
@@ -105,16 +115,16 @@ Texture* TextureManagerGL::getImage(const string& file)
 		throw runtime_error(ss.str());
 	}
 
-	glBindTexture(GL_TEXTURE_2D, textureID); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
-										   // Set our texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 																	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glGenerateMipmap(GL_TEXTURE_2D);
+	//glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//SOIL_free_image_data(image);
 
 	return createTextureGL(file, textureID);
 }

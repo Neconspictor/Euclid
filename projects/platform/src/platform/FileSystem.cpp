@@ -51,11 +51,11 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	return loadingWasSuccessful;
 }
 
-char* filesystem::getBytesFromFile(const string& filePath)
+char* filesystem::getBytesFromFile(const string& filePath, streampos* fileSize)
 {
 	ifstream file;
 	MemoryWrapper content(nullptr);
-	streampos fileSize = 0;
+	*fileSize = 0;
 	LoggingClient logClient(getLogServer());
 	logClient.setPrefix("[FileSystem::getBytesFromFile()]");
 
@@ -68,15 +68,17 @@ char* filesystem::getBytesFromFile(const string& filePath)
 		filebuf* buffer = file.rdbuf();
 		
 		//get file size
-		fileSize  = buffer->pubseekoff(0, file.end, file.in);
+		*fileSize = file.tellg();
+		file.seekg(0, ios::end);
+		*fileSize = file.tellg() - *fileSize;
 		buffer->pubseekpos(0, file.in);
 
 		// allocate memory to contain file data
-		char* memory = new char[fileSize];
+		char* memory = new char[*fileSize];
 		content.setContent(memory);
 
 		//copy data to content buffer
-		buffer->sgetn(*content, fileSize);
+		buffer->sgetn(*content, *fileSize);
 	}
 	catch (ifstream::failure e)
 	{
@@ -92,7 +94,7 @@ char* filesystem::getBytesFromFile(const string& filePath)
 	} 
 	catch (bad_alloc e)
 	{
-		LOG(logClient, Error) << "Couldn't allocate memory of size: " << to_string(fileSize);
+		LOG(logClient, Error) << "Couldn't allocate memory of size: " << to_string(*fileSize);
 	}
 
 	//clear exceptions as close shouldn't throw any exceptions!

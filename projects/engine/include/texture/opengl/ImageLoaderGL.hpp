@@ -21,4 +21,6 @@ public:
 
 private:
 	platform::LoggingClient logClient;
+
+	GenericImageGL loadDDSFile(char* imageData, std::streampos fileSize);
 };

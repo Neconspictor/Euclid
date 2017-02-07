@@ -17,13 +17,13 @@ public:
 
 	CubeMap* createCubeMap(const std::string& right, const std::string& left,
 		const std::string& top, const std::string& bottom,
-		const std::string& back, const std::string& front) override;
+		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) override;
 
 	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
 
 	TextureGL* getImageGL(const std::string& file);
 
-	virtual Texture* getImage(const std::string& file) override;
+	virtual Texture* getImage(const std::string& file, bool useSRGBOnCreation = false) override;
 
 	std::string getImagePath() override;
 

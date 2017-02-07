@@ -132,23 +132,23 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
 		if (diffuseMaps.size())
 		{
-			material.setDiffuseMap(manager->getImage(diffuseMaps[0]));
+			material.setDiffuseMap(manager->getImage(diffuseMaps[0], true));
 		}
 		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
 		if (emissionMaps.size())
 		{
-			material.setEmissionMap(manager->getImage(emissionMaps[0]));
+			material.setEmissionMap(manager->getImage(emissionMaps[0], true));
 		}
 		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
 		if (specularMaps.size())
 		{
-			material.setSpecularMap(manager->getImage(specularMaps[0]));
+			material.setSpecularMap(manager->getImage(specularMaps[0], false));
 		}
 
 		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
 		if (reflectionMaps.size())
 		{
-			material.setReflectionMap(manager->getImage(reflectionMaps[0]));
+			material.setReflectionMap(manager->getImage(reflectionMaps[0], false));
 		}
 	}
 
@@ -192,7 +192,8 @@ vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
 
 		// load image into memory
 		// Note: assimp textures are local paths!
-		TextureManagerGL::get()->getImage(texture.C_Str());
+		bool useSRGB = (type != aiTextureType_SPECULAR) && (type != aiTextureType_AMBIENT);
+		TextureManagerGL::get()->getImage(texture.C_Str(), useSRGB);
 		textures.push_back(texture.C_Str());
 	}
 

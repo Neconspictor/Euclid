@@ -152,6 +152,7 @@ target_include_directories (platform PUBLIC
     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
     ${CMAKE_SOURCE_DIR}/libs/gli/include
+    ${CMAKE_SOURCE_DIR}/libs/DDS/include
     #${CMAKE_SOURCE_DIR}/libs/nana/include
 )
 

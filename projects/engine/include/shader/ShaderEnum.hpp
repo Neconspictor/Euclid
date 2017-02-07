@@ -6,7 +6,8 @@
 */
 enum ShaderEnum
 {
-	Lamp = 0,
+	BlinnPhongTex = 0,
+	Lamp,
 	Normals,
 	Phong,
 	PhongTex,
@@ -23,6 +24,7 @@ enum ShaderEnum
 * Maps shader enumerations to a string representation.
 */
 const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
+	{BlinnPhongTex, "BLINN_PHONG_TEX" },
 	{Lamp, "LAMP"},
 	{Normals, "NORMALS" },
 	{Phong, "PHONG"},

@@ -76,7 +76,7 @@ void MainLoopTask::init()
 
 	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
-		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg");
+		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 
 	skyBox = modelManager->createSkyBox();
 
@@ -87,7 +87,7 @@ void MainLoopTask::init()
 		(shaderManager->getShader(SimpleReflection));
 
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(shaderManager->getShader(PhongTex));
+		(shaderManager->getShader(BlinnPhongTex));
 
 	skyBoxShader->setSkyTexture(sky);
 	reflectionShader->setReflectionTexture(sky);
@@ -225,7 +225,7 @@ void MainLoopTask::drawAsteriods(mat4* asteriodTrafos, uint asteriodSize)
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(renderer->getShaderManager()->getShader(SkyBox));
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(PhongTex));
+		(renderer->getShaderManager()->getShader(BlinnPhongTex));
 
 	ModelManager* modelManager = renderer->getModelManager();
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();

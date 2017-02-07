@@ -73,5 +73,9 @@ void main()
     for(int i = 0; i < 9; ++i)
         col += sampleTex[i] * kernel[i];
     
+    
+    // apply gamma correction
+    float gamma = 2.2f;
+    col.rgb = pow(col.rgb, vec3(1.0 / gamma));
     color = vec4(col, 1.0);
 }

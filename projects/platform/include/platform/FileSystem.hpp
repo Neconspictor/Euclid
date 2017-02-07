@@ -20,7 +20,7 @@ namespace filesystem
 	 * NOTE: If the file couldn't be read, a nullptr will be returned. In this case, no memory
 	 * has to be freed.
 	 */
-	 char* getBytesFromFile(const std::string& filePath);
+	 char* getBytesFromFile(const std::string& filePath, std::streampos* fileSize);
 
 	 std::streampos getFileSize(const std::string& filePath);
 

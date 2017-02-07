@@ -13,9 +13,9 @@ public:
 
 	virtual CubeMap* createCubeMap(const std::string& right, const std::string& left, 
 		const std::string& top, const std::string& bottom, 
-		const std::string& back, const std::string& front) = 0;
+		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) = 0;
 
-	virtual Texture* getImage(const std::string& file) = 0;
+	virtual Texture* getImage(const std::string& file, bool useSRGBOnCreation = false) = 0;
 
 	virtual std::string getImagePath() = 0;
 

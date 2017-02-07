@@ -65,6 +65,11 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	shared_ptr<Shader> shaderPtr;
 	switch(shaderEnum)
 	{
+	case BlinnPhongTex: {
+		shaderPtr = make_shared<PhongTexShaderGL>("blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
+			"blinn_phong_tex_mult_lights_vs_Instanced.glsl");
+		break;
+	}
 	case Lamp: {
 		shaderPtr = make_shared<LampShaderGL>("lamp_vs.glsl", "lamp_fs.glsl");
 		break;
