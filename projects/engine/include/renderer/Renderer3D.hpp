@@ -24,6 +24,8 @@ class Renderer3D : public Renderer
 {
 public:
 
+	virtual DepthMap* createDepthMap(int width, int height) = 0;
+
 	virtual void enableAlphaBlending(bool enable) = 0;
 
 	virtual void enableBackfaceDrawing(bool enable) = 0;
@@ -67,6 +69,12 @@ public:
 	 * Sets the number of samples used for msaa
 	 */
 	virtual void setMSAASamples(unsigned int samples) = 0;
+
+	/** 
+	 * All draw calls are performed on a depth map texture.
+	 * As a result only depth (z-value) information are written.
+	 */
+	virtual void useDepthMap(DepthMap* depthMap) = 0;
 
 	/**
 	 * All draw calls are performed on a offscreen texture.

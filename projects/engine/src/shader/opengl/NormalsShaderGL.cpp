@@ -42,6 +42,10 @@ void NormalsShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void NormalsShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 const vec4& NormalsShaderGL::getNormalColor() const
 {
 	return color;

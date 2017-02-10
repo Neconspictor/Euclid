@@ -17,6 +17,7 @@
 #include <shader/SkyBoxShader.hpp>
 #include <shader/SimpleReflectionShader.hpp>
 #include <platform/SystemUI.hpp>
+#include <scene/SceneNode.hpp>
 
 using namespace glm;
 using namespace std;
@@ -24,7 +25,7 @@ using namespace platform;
 
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
-	sky(nullptr), skyBox(nullptr)
+	sky(nullptr), skyBox(ModelManager::SKYBOX_MODEL_NAME), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -38,63 +39,23 @@ MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr w
 	camera = make_shared<FPCamera>(FPCamera());
 }
 
-void MainLoopTask::init()
+SceneNode* MainLoopTask::createAsteriodField()
 {
-	using namespace placeholders;
-
-	ShaderManager* shaderManager = renderer->getShaderManager();
 	ModelManager* modelManager = renderer->getModelManager();
-	TextureManager* textureManager = renderer->getTextureManager();
 
-	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
-	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
-	this->window->addWindowFocusCallback(focusCallback);
-	this->window->getInputDevice()->addScrollCallback(scrollCallback);
+	nodes.push_back(SceneNode());
+	SceneNode* root = &nodes.back();
+	
+	nodes.push_back(SceneNode());
+	SceneNode* planetNode = &nodes.back();
+	root->addChild(planetNode);
 
-	camera->setPosition(vec3(0.0f, 0.0f, 3.0f));
-	camera->setLookDirection(vec3(0.0f, 0.0f, -1.0f));
-	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
-	Renderer::Viewport viewport = window->getViewport();
+	vobs.push_back(Vob("planet/planet.obj"));
+	planetNode->setVob(&vobs.back());
+	planetNode->getVob()->setPosition({ 0.0f, 0.0f, 0.0f });
+	planetNode->setDrawingType(DrawingTypes::SOLID);
 
-	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
-	{
-		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
-		casted->updateOnResize(viewport.width, viewport.height);
-		window->addResizeCallback(cameraResizeCallback);
-	}
-	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
-
-	window->addResizeCallback(rendererResizeCallback);
-
-	shaderManager->loadShaders();
-	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
-		(shaderManager->getShader(Playground));
-	playground->setTexture1("gun_d.png");
-	playground->setTexture2("container.png");
-
-	modelManager->loadModels();
-
-	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
-		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
-		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-
-	skyBox = modelManager->createSkyBox();
-
-	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(shaderManager->getShader(SkyBox));
-
-	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
-		(shaderManager->getShader(SimpleReflection));
-
-	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(shaderManager->getShader(BlinnPhongTex));
-
-	skyBoxShader->setSkyTexture(sky);
-	reflectionShader->setReflectionTexture(sky);
-	phongShader->setSkyBox(sky);
-
-
-	asteriodSize = 100;
+	asteriodSize = 1000;
 	asteriodTrafos = new mat4[asteriodSize];
 
 	srand(chrono::system_clock::now().time_since_epoch().count()); // initialize random seed	
@@ -124,6 +85,119 @@ void MainLoopTask::init()
 
 	Model* instanced = modelManager->getModel("rock/rock.obj");
 	modelManager->useInstances(instanced, asteriodTrafos, asteriodSize);
+
+	nodes.push_back(SceneNode());
+	SceneNode* asteriodNode = &nodes.back();
+	root->addChild(asteriodNode);
+	vobs.push_back(Vob("rock/rock.obj"));
+	asteriodNode->setVob(&vobs.back());
+	asteriodNode->setDrawingType(DrawingTypes::INSTANCED);
+	asteriodNode->setInstanceCount(asteriodSize);
+
+	return root;
+}
+
+SceneNode* MainLoopTask::createShadowScene()
+{
+	nodes.push_back(SceneNode());
+	SceneNode* root = &nodes.back();
+
+	nodes.push_back(SceneNode());
+	SceneNode* ground = &nodes.back();
+	root->addChild(ground);
+
+	nodes.push_back(SceneNode());
+	SceneNode* cube1 = &nodes.back();
+	root->addChild(cube1);
+
+	vobs.push_back(Vob("misc/textured_plane.obj"));
+	ground->setVob(&vobs.back());
+	vobs.push_back(Vob("misc/textured_cube.obj"));
+	cube1->setVob(&vobs.back());
+
+	ground->getVob()->setPosition({ 10, 0, 0 });
+	cube1->getVob()->setPosition({ 0.0f, 2.0f, 0.0f });
+	return root;
+}
+
+void MainLoopTask::init()
+{
+	using namespace placeholders;
+
+	ShaderManager* shaderManager = renderer->getShaderManager();
+	ModelManager* modelManager = renderer->getModelManager();
+	TextureManager* textureManager = renderer->getTextureManager();
+
+	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
+	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
+	this->window->addWindowFocusCallback(focusCallback);
+	this->window->getInputDevice()->addScrollCallback(scrollCallback);
+
+	camera->setPosition(vec3(0.0f, 3.0f, 3.0f));
+	camera->setLookDirection(vec3(0.0f, 0.0f, -1.0f));
+	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+	Renderer::Viewport viewport = window->getViewport();
+
+	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
+	{
+		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
+		casted->updateOnResize(viewport.width, viewport.height);
+		window->addResizeCallback(cameraResizeCallback);
+	}
+	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
+
+	window->addResizeCallback(rendererResizeCallback);
+
+	shaderManager->loadShaders();
+	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
+		(shaderManager->getShader(Playground));
+	playground->setTexture1("gun_d.png");
+	playground->setTexture2("container.png");
+
+	modelManager->loadModels();
+
+	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
+		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
+		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
+
+	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
+		(shaderManager->getShader(SkyBox));
+
+	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
+		(shaderManager->getShader(SimpleReflection));
+
+	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
+		(shaderManager->getShader(BlinnPhongTex));
+
+	skyBoxShader->setSkyTexture(sky);
+	reflectionShader->setReflectionTexture(sky);
+	phongShader->setSkyBox(sky);
+
+
+	// Positions of the point lights
+	/*pointLightPositions[0] = vec3(7.0f, 2.0f, 20.0f);
+	pointLightPositions[1] = vec3(23.f, -33.0f, -40.0f);
+	pointLightPositions[2] = vec3(-40.0f, 20.0f, -120.0f);
+	pointLightPositions[3] = vec3(0.0f, 0.0f, -30.0f);*/
+
+	pointLightPositions[0] = vec3(0.0f, 200.0f, 0.0f);
+	pointLightPositions[1] = pointLightPositions[0];
+	pointLightPositions[2] = pointLightPositions[0];
+	pointLightPositions[3] = pointLightPositions[0];
+
+	// init shaders
+	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
+		(renderer->getShaderManager()->getShader(BlinnPhongTex));
+
+	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
+	phongTexShader->setLightPosition({ 1, 1, 0 });
+	phongTexShader->setPointLightPositions(pointLightPositions);
+
+	directionalLightCamera.setPosition({10,10,0});
+	directionalLightCamera.setLookDirection({1,1,0});
+
+	// init scene
+	scene = createShadowScene();
 }
 
 void MainLoopTask::setUI(SystemUI* ui)
@@ -186,8 +260,7 @@ void MainLoopTask::run()
 	//renderer->useScreenBuffer();
 	renderer->beginScene();
 
-	//drawScene();
-	drawAsteriods(asteriodTrafos, asteriodSize);
+	drawScene();
 
 	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
 	renderer->useScreenBuffer();
@@ -220,27 +293,16 @@ void MainLoopTask::run()
 	window->swapBuffers();
 }
 
-void MainLoopTask::drawAsteriods(mat4* asteriodTrafos, uint asteriodSize)
+void MainLoopTask::drawScene()
 {
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(renderer->getShaderManager()->getShader(SkyBox));
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
 		(renderer->getShaderManager()->getShader(BlinnPhongTex));
 
-	ModelManager* modelManager = renderer->getModelManager();
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	Renderer::Viewport viewport = window->getViewport();
-
-	// Positions of the point lights
-	vec3 pointLightPositions[] = {
-		vec3(7.0f,  2.0f,  20.0f),
-		vec3(23.f, -33.0f, -40.0f),
-		vec3(-40.0f,  20.0f, -120.0f),
-		vec3(0.0f,  0.0f, -30.0f)
-	};
-
-	Model* model = nullptr;
 
 	camera->calcView();
 	mat4 view = camera->getView();
@@ -249,165 +311,17 @@ void MainLoopTask::drawAsteriods(mat4* asteriodTrafos, uint asteriodSize)
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 
-	Shader::TransformData data = { &projection, &view, nullptr };
 
-	Vob planet("planet/planet.obj");
-	Vob rock("rock/rock.obj");
-	planet.setPosition({ 0.0f, 0.0f, 0.0f });
-	planet.calcTrafo();
-
-	phongTexShader->setLightPosition(vec3{ 1.1f, 1.0f, 0.0f });
-
-
-	phongTexShader->setLightPosition({ 0,1,-3 });
-	phongTexShader->setViewPosition(camera->getPosition());
-	phongTexShader->setSpotLightDiection(camera->getLookDirection());
-	phongTexShader->setPointLightPositions(pointLightPositions);
-	data.model = &planet.getTrafo();
-	model = modelManager->getModel(planet.getMeshName());
-	modelDrawer->draw(*model, phongTexShader, data);
-
-
-
-	//rock.setTrafo(asteriodTrafos[i]);
-	rock.calcTrafo();
-	data.model = &rock.getTrafo();
-	model = modelManager->getModel(rock.getMeshName());
-	modelDrawer->drawInstanced(*model, phongTexShader, data, asteriodSize);
-	renderer->endScene();
-
-	// draw sky as last object
-	renderer->enableBackfaceDrawing(true);
-	data.model = &identity;
-	data.view = &skyBoxView;
-	modelDrawer->draw(*skyBox, skyBoxShader, data);
-	renderer->enableBackfaceDrawing(false);
-	renderer->endScene();
-}
-
-void MainLoopTask::drawScene()
-{
-	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(renderer->getShaderManager()->getShader(SkyBox));
-	PlaygroundShader* playgroundShader = dynamic_cast<PlaygroundShader*>
-		(renderer->getShaderManager()->getShader(Playground));
-	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(PhongTex));
-
-	PhongShader* phongShader = dynamic_cast<PhongShader*>
-		(renderer->getShaderManager()->getShader(Phong));
-
-	LampShader* lampShader = dynamic_cast<LampShader*>
-		(renderer->getShaderManager()->getShader(Lamp));
-
-	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
-		(renderer->getShaderManager()->getShader(SimpleReflection));
-
-	NormalsShader* normalsShader = dynamic_cast<NormalsShader*>
-		(renderer->getShaderManager()->getShader(Normals));
-
-	ModelManager* modelManager = renderer->getModelManager();
-
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	Renderer::Viewport viewport = window->getViewport();
-
-	Model* model = nullptr;
-
-	// Positions of the point lights
-	vec3 pointLightPositions[] = {
-		vec3(7.0f,  2.0f,  20.0f),
-		vec3(23.f, -33.0f, -40.0f),
-		vec3(-40.0f,  20.0f, -120.0f),
-		vec3(0.0f,  0.0f, -30.0f)
-	};
-
-	camera->calcView();
-	mat4 view = camera->getView();
-	mat4 projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 100.0f);
-	mat4 viewProj = projection * view;
-	mat4 identity;
-	mat4 skyBoxView = mat4(mat3(view));
-
-	vec3 lightPosition = vec3{ 12.0f, 10.0f, 20.0f };
-	Shader::TransformData data = { &projection, &view, nullptr };
-
-	reflectionShader->setCameraPosition(camera->getPosition());
-
-	//renderer->enableDepthWriting(false);
-	//renderer->enableBackfaceDrawing(true);
-	//renderer->enableDepthWriting(true);
-	//renderer->enableBackfaceDrawing(false);
-
-
-	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	Vob cube(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	Vob phongModel(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	Vob lampModel(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
-	Vob gunVob("gun.obj");
-
-	cube.setPosition({ 0.0f, 0.0f, 0.0f });
-	cube.calcTrafo();
-
-	phongModel.setPosition({ 1.1f, 0.0f, 0.0f });
-	phongModel.calcTrafo();
-	phongTexShader->setLightPosition(vec3{ 1.1f, 1.0f, 0.0f });
-
-	lampModel.setPosition(lightPosition);
-	lampModel.setScale({ 0.5f, 0.5f, 0.5f });
-	//lampModel.setEulerXYZ({ 0.0f, 0.0f, radians(45.0f) });
-	lampModel.calcTrafo();
-
-	playgroundShader->setTextureMixValue(mixValue);
-	data.model = &cube.getTrafo();
-	//model = modelManager->getModel(cube.getMeshName());
-	model = modelManager->getModel(gunVob.getMeshName());
-	renderer->enableBackfaceDrawing(true);
-	//modelDrawer->draw(*model, playgroundShader, data);
-	renderer->enableBackfaceDrawing(false);
-
-	data.model = &lampModel.getTrafo();
-	model = modelManager->getModel(lampModel.getMeshName());
-	renderer->enableBackfaceDrawing(true);
-	//modelDrawer->draw(*model, lampShader, data);
-	renderer->enableBackfaceDrawing(false);
-
-	phongTexShader->setLightPosition({0,1,-3});
-	phongTexShader->setViewPosition(camera->getPosition());
-	phongTexShader->setSpotLightDiection(camera->getLookDirection());
-	phongTexShader->setPointLightPositions(pointLightPositions);
-	data.model = &phongModel.getTrafo();
-	model = modelManager->getModel("rock/rock.obj");
-	//model = modelManager->getModel(nanosuitModel.getMeshName());
-
-
-	phongShader->setLightColor({ 1,1,1 });
-	phongShader->setLightPosition({10,10,10});
-	phongShader->setMaterial(PhongMaterial({0,0,0,1}, {1,0,0,1}, {1,1,1,1}, 32));
-
-	// the nanosiut uses color information in the alpha channel -> deactivate alpha blending
-	renderer->enableAlphaBlending(false);
-	modelDrawer->draw(*model, phongTexShader, data);
-	renderer->enableAlphaBlending(true);
-	//modelDrawer->draw(*model, reflectionShader, data);
-
-	data.model = &gunVob.getTrafo();
-	model = modelManager->getModel(gunVob.getMeshName());
-	//modelDrawer->draw(*model, reflectionShader, data);
-	//modelDrawer->drawOutlined(*model, phongShader, data, vec4(0.7f, 0.0f, 0.0f, 1.0f));
-	//modelDrawer->draw(*model, phongTexShader, data);
-
-	normalsShader->setNormalColor({1,1,0,1});
-	data.model = &gunVob.getTrafo();
-	model = modelManager->getModel(gunVob.getMeshName());
-	//modelDrawer->draw(*model, normalsShader, data);
+	scene->update(frameTimeElapsed);
+	scene->draw(renderer, modelDrawer, projection, view);
 
 
 	// draw sky as last object
 	renderer->enableBackfaceDrawing(true);
+	Shader::TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
-	modelDrawer->draw(*skyBox, skyBoxShader, data);
+	modelDrawer->draw(&skyBox, skyBoxShader, data);
 	renderer->enableBackfaceDrawing(false);
 	renderer->endScene();
 }

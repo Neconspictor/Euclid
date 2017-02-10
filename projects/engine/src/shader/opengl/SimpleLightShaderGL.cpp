@@ -30,6 +30,10 @@ void SimpleLightShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void SimpleLightShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 const vec3& SimpleLightShaderGL::getLightColor() const
 {
 	return lightColor;

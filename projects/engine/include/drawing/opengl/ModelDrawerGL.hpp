@@ -7,13 +7,13 @@ class ModelDrawerGL : public ModelDrawer
 public:
 	virtual ~ModelDrawerGL();
 
-	void draw(const Model& model, Shader* shader, Shader::TransformData data) override;
+	void draw(Vob* vob, Shader* shader, const Shader::TransformData& data) override;
 	
-	void drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, unsigned amount) override;
+	void drawInstanced(Vob* vob, Shader* shader, const Shader::TransformData& data, unsigned amount) override;
 
-	void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) override;
+	void drawOutlined(Vob* vob, Shader* shader, const Shader::TransformData& data, glm::vec4 borderColor) override;
 
-	void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) override;
+	void drawWired(Vob* vob, Shader* shader, const Shader::TransformData& data, int lineStrength) override;
 
 	static ModelDrawerGL* get();
 

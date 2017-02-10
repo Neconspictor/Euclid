@@ -5,7 +5,9 @@
 using namespace glm;
 using namespace platform;
 
-Camera::Camera() : position(0,0,0), look(0,0,-1), up(0,1,0), fov(45.0f), logClient(getLogServer(), true, true)
+Camera::Camera() : farPlaneDistance(10.0f), fov(45.0f), hDimension(10.0f), look(0,0,-1), 
+nearPlaneDistance(1.0f), logClient(getLogServer(), true, true), position(0,0,0), revalidate(true), 
+up(0,1,0), vDimension(10.0f)
 {
 	logClient.setPrefix("[Camera]");
 }
@@ -39,9 +41,19 @@ const vec3& Camera::getLookDirection() const
 	return look;
 }
 
+float Camera::getNearPlaneDistance() const
+{
+	return nearPlaneDistance;
+}
+
 const vec3& Camera::getUpDirection() const
 {
 	return up;
+}
+
+float Camera::getVDimension() const
+{
+	return vDimension;
 }
 
 const mat4& Camera::getView()
@@ -59,13 +71,50 @@ void Camera::setLookDirection(const vec3& direction)
 	this->look = direction;
 }
 
+void Camera::setNearPlaneDistance(float nearPlaneDistance)
+{
+	this->nearPlaneDistance = nearPlaneDistance;
+	revalidate = true;
+}
+
 void Camera::setUpDirection(const vec3& up)
 {
 	this->up = up;
 }
 
+void Camera::setVDimension(float dimension)
+{
+	vDimension = dimension;
+	revalidate = true;
+}
+
+void Camera::update()
+{
+	// only update if changes have occurred
+	if (revalidate)
+	{
+		orthoProjection = ortho(-hDimension * 0.5f, hDimension * 0.5f, -vDimension * 0.5f, 
+			vDimension * 0.5f, nearPlaneDistance, farPlaneDistance);
+		perspProjection = perspective(radians(fov),
+			hDimension / vDimension, nearPlaneDistance, farPlaneDistance);
+		revalidate = false;
+	}
+}
+
 void Camera::update(Input* input, float frameTime)
 {
+}
+
+const mat4& Camera::getOrthogonalProjection()
+{
+	update();
+	return orthoProjection;
+}
+
+const mat4& Camera::getPerspectiveProjection()
+{
+	update();
+	return perspProjection;
 }
 
 void Camera::calcView()
@@ -73,9 +122,19 @@ void Camera::calcView()
 	view = lookAt(position, position + look, up);
 }
 
-double Camera::getFOV() const
+float Camera::getFarPlaneDistance() const
+{
+	return farPlaneDistance;
+}
+
+float Camera::getFOV() const
 {
 	return fov;
+}
+
+float Camera::getHDimension() const
+{
+	return hDimension;
 }
 
 void Camera::onScroll(double xOffset, double yOffset)
@@ -87,4 +146,22 @@ void Camera::onScroll(double xOffset, double yOffset)
 		fov = 1.0f;
 	if (fov >= 45.0f)
 		fov = 45.0f;
+}
+
+void Camera::setFarPlaneDistance(float farPlaneDistance)
+{
+	this->farPlaneDistance = farPlaneDistance;
+	revalidate = true;
+}
+
+void Camera::setFOV(float fov)
+{
+	this->fov = fov;
+	revalidate = true;
+}
+
+void Camera::setHDimension(float dimension)
+{
+	hDimension = dimension;
+	revalidate = true;
 }

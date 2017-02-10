@@ -34,6 +34,10 @@ void PlaygroundShaderGL::draw(Mesh const& meshOriginal)
 	glUseProgram(0);
 }
 
+void PlaygroundShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 void PlaygroundShaderGL::release()
 {
 	ShaderGL::release();

@@ -13,7 +13,7 @@ public:
 	virtual ~ShaderManagerGL() override;
 	virtual Shader* getShader(ShaderEnum shader) override;
 	virtual void loadShaders() override;
-
+	virtual void validateShader(Shader* shader) override;
 	/**
 	* Provides access the shader manager singleton.
 	*/

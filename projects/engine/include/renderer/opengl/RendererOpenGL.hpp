@@ -23,9 +23,9 @@ public:
 	
 	void beginScene() override;
 
-	GLint getCurrentRenderTarget() const;
-
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
+
+	DepthMap* createDepthMap(int width, int height) override;
 
 	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
 		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
@@ -41,6 +41,8 @@ public:
 	void enableDepthWriting(bool enable) override;
 
 	void endScene() override;
+
+	GLint getCurrentRenderTarget() const;
 
 	ModelDrawer* getModelDrawer() override;
 
@@ -64,9 +66,11 @@ public:
 
 	void setBackgroundColor(glm::vec3 color) override;
 
-	void setMSAASamples(unsigned samples) override;
+	void setMSAASamples(unsigned int samples) override;
 
 	void setViewPort(int x, int y, int width, int height) override;
+
+	void useDepthMap(DepthMap* depthMap) override;
 
 	void useOffscreenBuffer() override;
 
@@ -92,6 +96,7 @@ protected:
 	RenderTargetGL multiSampledScreenBuffer;
 
 	std::unique_ptr<ModelGL> screenSprite;
+	std::list<DepthMap> depthMaps;
 	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;
 

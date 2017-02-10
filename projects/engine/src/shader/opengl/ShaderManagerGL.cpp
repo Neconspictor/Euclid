@@ -55,6 +55,14 @@ void ShaderManagerGL::loadShaders()
 	createShader(SkyBox);
 }
 
+void ShaderManagerGL::validateShader(Shader* shader)
+{
+	if (!dynamic_cast<ShaderGL*>(shader))
+	{
+		throw runtime_error("ShaderManagerGL::validateShader(Shader*): Shader isn't a valid OpenGL shader!");
+	}
+}
+
 ShaderManagerGL* ShaderManagerGL::get()
 {
 	return instance.get();

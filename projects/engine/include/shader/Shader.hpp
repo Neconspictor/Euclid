@@ -20,6 +20,8 @@ public:
 
 	virtual void draw(Mesh const& mesh) = 0;
 	
+	virtual void drawInstanced(Mesh const& mesh, unsigned int amount) = 0;
+
 	virtual void release() = 0;
 
 	virtual void setTransformData(TransformData data)
@@ -31,14 +33,4 @@ public:
 
 protected:
 	TransformData data;
-};
-
-class ShaderInstanced
-{
-public:
-	ShaderInstanced() {};
-
-	virtual ~ShaderInstanced() {}
-
-	virtual void drawInstanced(Mesh const& mesh, unsigned int amount) = 0;
 };

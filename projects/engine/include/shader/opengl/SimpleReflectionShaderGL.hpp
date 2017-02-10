@@ -16,6 +16,8 @@ public:
 
 	void draw(Mesh const& mesh) override;
 
+	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+
 	void release() override;
 
 	void setCameraPosition(glm::vec3 position) override;

@@ -16,6 +16,8 @@ public:
 	virtual ~NormalsShaderGL();
 
 	void draw(Mesh const& mesh) override;
+
+	void drawInstanced(Mesh const& mesh, unsigned amount) override;
 	
 	const glm::vec4& getNormalColor() const override;
 	

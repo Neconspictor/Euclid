@@ -31,6 +31,10 @@ void SimpleExtrudeShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void SimpleExtrudeShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 const vec4& SimpleExtrudeShaderGL::getObjectColor() const
 {
 	return objectColor;

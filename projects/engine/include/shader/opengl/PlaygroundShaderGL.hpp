@@ -16,6 +16,7 @@ public:
 		const std::string& geometryShaderFile = "");
 	virtual ~PlaygroundShaderGL();
 	void draw(Mesh const& mesh) override;
+	void drawInstanced(Mesh const& mesh, unsigned amount) override;
 	void release() override;
 	void setTexture1(const std::string& textureName) override;
 	void setTexture2(const std::string& textureName) override;

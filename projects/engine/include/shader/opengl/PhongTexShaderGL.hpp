@@ -3,7 +3,7 @@
 #include <shader/PhongTextureShader.hpp>
 #include <texture/opengl/CubeMapGL.hpp>
 
-class PhongTexShaderGL : public ShaderGL, public ShaderInstanced, public PhongTextureShader
+class PhongTexShaderGL : public ShaderGL, public PhongTextureShader
 {
 public:
 	/**
@@ -33,7 +33,7 @@ public:
 
 	void setSkyBox(CubeMap* sky) override;
 
-	void setSpotLightDiection(glm::vec3 direction) override;
+	void setSpotLightDirection(glm::vec3 direction) override;
 
 	void setViewPosition(glm::vec3 position) override;
 

@@ -84,12 +84,12 @@ void PhongTexShaderGL::release()
 
 void PhongTexShaderGL::setLightColor(vec3 color)
 {
-	lightColor = move(color);
+	lightColor = color;
 }
 
 void PhongTexShaderGL::setLightPosition(vec3 position)
 {
-	lightPosition = move(position);
+	lightPosition = position;
 }
 
 void PhongTexShaderGL::setPointLightPositions(vec3* positions)
@@ -105,7 +105,7 @@ void PhongTexShaderGL::setSkyBox(CubeMap* sky)
 	this->skybox = static_cast<CubeMapGL*>(sky);
 }
 
-void PhongTexShaderGL::setSpotLightDiection(vec3 direction)
+void PhongTexShaderGL::setSpotLightDirection(vec3 direction)
 {
 	spotLightDirection = move(direction);
 }

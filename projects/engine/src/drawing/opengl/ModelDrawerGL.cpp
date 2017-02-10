@@ -1,6 +1,7 @@
 #include <drawing/opengl/ModelDrawerGL.hpp>
 #include <shader/Shader.hpp>
 #include <model/Model.hpp>
+#include <model/Vob.hpp>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.inl>
 #include <shader/SimpleColorShader.hpp>
@@ -8,6 +9,7 @@
 #include <shader/opengl/ShaderManagerGL.hpp>
 #include <shader/SimpleExtrudeShader.hpp>
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
+#include <model/opengl/ModelManagerGL.hpp>
 
 using namespace glm;
 using namespace std;
@@ -22,29 +24,36 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(const Model& model, Shader* shader, Shader::TransformData data)
+void ModelDrawerGL::draw(Vob* vob, Shader* shader, const Shader::TransformData& data)
 {
+	ShaderManagerGL::get()->validateShader(shader);
+	vob->calcTrafo();
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
-	for (Mesh* mesh : model.getMeshes())
+	for (Mesh* mesh : model->getMeshes())
 	{
 		shader->draw(*mesh);
 	}
 }
 
-void ModelDrawerGL::drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, unsigned amount)
+void ModelDrawerGL::drawInstanced(Vob* vob, Shader* shader, const Shader::TransformData& data, unsigned amount)
 {
+	ShaderManagerGL::get()->validateShader(shader);
+	vob->calcTrafo();
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
-	ShaderInstanced* shaderInstanced = dynamic_cast<ShaderInstanced*>(shader);
-	for (Mesh* mesh : model.getMeshes())
+	for (Mesh* mesh : model->getMeshes())
 	{
-		shaderInstanced->drawInstanced(*mesh, amount);
+		shader->drawInstanced(*mesh, amount);
 	}
 }
 
-void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, vec4 borderColor)
+void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::TransformData& data, vec4 borderColor)
 {
+	ShaderManagerGL::get()->validateShader(shader);
 	glEnable(GL_STENCIL_TEST);
 
 	// always set 1 to the stencil buffer, regardless of the current stencil value
@@ -60,7 +69,7 @@ void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::Tra
 
 
 	//glPolygonMode(GL_FRONT, GL_FILL);
-	draw(model, shader, data);
+	draw(vob, shader, data);
 
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 
@@ -79,7 +88,7 @@ void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::Tra
 	simpleExtrude->setExtrudeValue(0.05f);
 	// use 3 pixel as outline border
 	glDepthFunc(GL_ALWAYS);
-	draw(model, simpleExtrude, data);
+	draw(vob, simpleExtrude, data);
 	//glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -92,12 +101,16 @@ void ModelDrawerGL::drawOutlined(const Model& model, Shader* shader, Shader::Tra
 	glStencilMask(0x00);
 }
 
-void ModelDrawerGL::drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength)
+void ModelDrawerGL::drawWired(Vob* vob, Shader* shader, const Shader::TransformData& data, int lineStrength)
 {
+	ShaderManagerGL::get()->validateShader(shader);
+	vob->calcTrafo();
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
+
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	shader->setTransformData(data);
-	for (Mesh* mesh : model.getMeshes())
+	for (Mesh* mesh : model->getMeshes())
 	{
 		shader->draw(*mesh);
 	}

@@ -6,6 +6,15 @@
 class Vob;
 class Model;
 
+enum class DrawingTypes
+{
+	SOLID = 0, 
+	INSTANCED,
+	OUTLINED,
+	WIRED,
+};
+
+
 class ModelDrawer
 {
 public:
@@ -14,17 +23,17 @@ public:
 	/**
 	 * Draws the specified model with a given shader onto the screen.
 	 */
-	virtual void draw( const Model& model, Shader* shader, Shader::TransformData data) = 0;
+	virtual void draw(Vob* vob, Shader* shader, const Shader::TransformData& data) = 0;
 
-	virtual void drawInstanced(const Model& model, Shader* shader, Shader::TransformData data, 
+	virtual void drawInstanced(Vob* vob, Shader* shader, const Shader::TransformData& data,
 		unsigned int amount) = 0;
 
 	/**
 	 * Draws the specified model onto the screen and outlines
 	 * it with a border.
 	 */
-	virtual void drawOutlined(const Model& model, Shader* shader, Shader::TransformData data, glm::vec4 borderColor) = 0;
+	virtual void drawOutlined(Vob* vob, Shader* shader, const Shader::TransformData& data, glm::vec4 borderColor) = 0;
 
-	virtual void drawWired(const Model& model, Shader* shader, Shader::TransformData data, int lineStrength) = 0;
+	virtual void drawWired(Vob* vob, Shader* shader, const Shader::TransformData& data, int lineStrength) = 0;
 
 };

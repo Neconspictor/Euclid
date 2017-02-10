@@ -10,7 +10,7 @@
 #include <camera/Camera.hpp>
 #include <model/Vob.hpp>
 #include <platform/WindowSystem.hpp>
-
+#include <scene/SceneNode.hpp>
 
 class SystemUI;
 
@@ -27,6 +27,8 @@ public:
 	MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
+	SceneNode* createAsteriodField();
+	SceneNode* createShadowScene();
 	void init();
 
 	void setUI(SystemUI* ui);
@@ -44,17 +46,20 @@ private:
 	float runtime;
 	std::string originalTitle;
 	std::shared_ptr<Camera> camera;
+	Camera directionalLightCamera;
 	float mixValue;
 	bool isRunning;
 	Vob nanosuitModel;
 	CubeMap* sky;
-	Model* skyBox;
+	Vob skyBox;
+	std::list<SceneNode> nodes;
+	std::list<Vob> vobs;
+	glm::vec3 pointLightPositions[4];
+	SceneNode* scene;
 	SystemUI* ui;
 
 	glm::mat4* asteriodTrafos;
 	uint asteriodSize;
-
-	void drawAsteriods(glm::mat4* asteriodTrafos, uint asteriodSize);
 
 	void drawScene();
 

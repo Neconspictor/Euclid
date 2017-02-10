@@ -85,6 +85,12 @@ set(
     include/shader/opengl/SimpleLightShaderGL.hpp
     include/shader/opengl/SimpleReflectionShaderGL.hpp
     include/shader/opengl/SkyBoxShaderGL.hpp
+    
+    #scene
+    include/scene/SceneNode.hpp
+    
+    #shadowing
+    include/shadowing/ShadowMapper.hpp
  
     
     #sprite
@@ -146,6 +152,7 @@ set(
     
     #model
     src/model/Model.cpp
+    src/model/ModelManager.cpp
     src/model/PhongModel.cpp
     src/model/Vob.cpp
     #model/opengl
@@ -173,6 +180,9 @@ set(
     src/shader/opengl/SimpleLightShaderGL.cpp
     src/shader/opengl/SimpleReflectionShaderGL.cpp
     src/shader/opengl/SkyBoxShaderGL.cpp
+    
+    #scene
+    src/scene/SceneNode.cpp
     
     #sprite
     src/sprite/Sprite.cpp

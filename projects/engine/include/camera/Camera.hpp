@@ -13,31 +13,64 @@ public:
 	Camera(const Camera& other);
 	virtual ~Camera();
 
-	virtual const glm::vec3& getPosition() const;
+	virtual void calcView();
+
+	float getFarPlaneDistance() const;
+	
+	virtual float getFOV() const;
+	
+	float getHDimension() const;
+	
 	virtual const glm::vec3& getLookDirection() const;
+	
+	float getNearPlaneDistance() const;
+	
+	const glm::mat4& Camera::getOrthogonalProjection();
+	
+	const glm::mat4& Camera::getPerspectiveProjection();
+	
+	virtual const glm::vec3& getPosition() const;
+	
 	virtual const glm::vec3& getUpDirection() const;
+	
+	float getVDimension() const;
 	
 	virtual const glm::mat4& getView();
 
-	virtual void setPosition(const glm::vec3& position);
+	virtual void onScroll(double xOffset, double yOffset);
+
+	void setFarPlaneDistance(float farPlaneDistance);
+
+	void setFOV(float fov);
+
+	void setHDimension(float dimension);
+
 	virtual void setLookDirection(const glm::vec3& direction);
+	
+	void setNearPlaneDistance(float nearPlaneDistance);
+	
+	virtual void setPosition(const glm::vec3& position);
+	
 	virtual void setUpDirection(const glm::vec3& up);
 
 	virtual void update(Input* input, float frameTime);
-
-	virtual void calcView();
-
-	virtual double getFOV() const;
-
-	virtual void onScroll(double xOffset, double yOffset);
-
+	
+	void setVDimension(float dimension);
 
 protected:
-	glm::vec3 position;
+	float farPlaneDistance;
+	float fov;
+	float hDimension;
 	glm::vec3 look;
-	glm::vec3 up;
-	glm::mat4 view;
-	double fov;
+	float nearPlaneDistance;
 	platform::LoggingClient logClient;
-private:
+	glm::mat4 orthoProjection;
+	glm::vec3 position;
+	glm::mat4 perspProjection;
+	bool revalidate;
+	glm::vec3 up;
+	float vDimension;
+	glm::mat4 view;
+
+	virtual void update();
 };

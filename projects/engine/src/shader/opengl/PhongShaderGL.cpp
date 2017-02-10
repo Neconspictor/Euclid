@@ -73,6 +73,10 @@ void PhongShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void PhongShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 const vec3& PhongShaderGL::getLightColor() const
 {
 	return lightColor;

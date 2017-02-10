@@ -34,6 +34,10 @@ void LampShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void LampShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 void LampShaderGL::release()
 {
 	ShaderGL::release();

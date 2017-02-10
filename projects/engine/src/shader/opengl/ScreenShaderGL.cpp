@@ -29,6 +29,10 @@ void ScreenShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void ScreenShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 void ScreenShaderGL::release()
 {
 	ShaderGL::release();

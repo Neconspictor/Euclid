@@ -23,4 +23,10 @@ public:
 	 * NOTE: A ShaderInitException is thrown if one shaders couldn't be created.
 	 */
 	virtual void loadShaders() = 0;
+
+	/**
+	* Checks, if the specified shader is an implementation of the underlying render engine
+	* NOTE: A runtime error is thrown if the validation fails!
+	*/
+	virtual void validateShader(Shader* shader) = 0;
 };

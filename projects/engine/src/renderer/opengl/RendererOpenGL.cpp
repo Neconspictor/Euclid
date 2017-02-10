@@ -94,7 +94,7 @@ void RendererOpenGL::init()
 
 void RendererOpenGL::beginScene()
 {
-	glViewport(xPos, yPos, width, height);
+	//glViewport(xPos, yPos, width, height);
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 
@@ -146,6 +146,12 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	
 	// restore frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
+}
+
+DepthMap* RendererOpenGL::createDepthMap(int width, int height)
+{
+	depthMaps.push_back(DepthMapGL(width, height));
+	return &depthMaps.back();
 }
 
 void RendererOpenGL::drawOffscreenBuffer()
@@ -244,6 +250,7 @@ void RendererOpenGL::present()
 
 void RendererOpenGL::release()
 {
+	depthMaps.clear();
 }
 
 void RendererOpenGL::setBackgroundColor(glm::vec3 color)
@@ -274,9 +281,23 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	createFrameRenderTargetBuffer(width, height);
 }
 
+void RendererOpenGL::useDepthMap(DepthMap* depthMap)
+{
+	DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
+	assert(map != nullptr);
+
+	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
+
+	//glClear(GL_DEPTH_BUFFER_BIT); // -> is done in beginScene()
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0); // has to be done later - necessary step or can it be left out at all? 
+	// glBindTexture(GL_TEXTURE_2D, map->getTexture()) // has to be done by client at a later step
+}
+
 void RendererOpenGL::useOffscreenBuffer()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
+	glViewport(xPos, yPos, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
 	//int color = 0;
 	//float depth = 1.0f;
@@ -290,6 +311,7 @@ void RendererOpenGL::useScreenBuffer()
 {
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
+	glViewport(xPos, yPos, width, height);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
 

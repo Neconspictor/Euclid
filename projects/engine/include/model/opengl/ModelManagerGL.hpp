@@ -12,7 +12,7 @@ class ModelManagerGL : public ModelManager
 public:
 	~ModelManagerGL() override;
 
-	virtual Model* createSkyBox() override;
+	virtual Model* getSkyBox() override;
 	
 	/*
 	 * \param xPos : The x position of the sprite model measured in screen space.

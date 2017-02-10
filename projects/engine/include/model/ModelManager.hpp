@@ -11,10 +11,13 @@
 class ModelManager
 {
 public:
+
+	static const char* SKYBOX_MODEL_NAME;
+
 	ModelManager(){};
 	virtual ~ModelManager(){}
 
-	virtual Model* createSkyBox() = 0;
+	virtual Model* getSkyBox() = 0;
 
 	virtual Model* createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight) = 0;
 	/*

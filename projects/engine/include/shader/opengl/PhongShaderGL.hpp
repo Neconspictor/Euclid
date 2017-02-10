@@ -15,6 +15,8 @@ public:
 
 	void draw(Mesh const& mesh) override;
 
+	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+
 	const glm::vec3& getLightColor() const override;
 
 	const glm::vec3& getLightPosition() const override;

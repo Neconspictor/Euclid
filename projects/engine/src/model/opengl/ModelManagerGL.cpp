@@ -15,17 +15,25 @@ ModelManagerGL::~ModelManagerGL()
 {
 }
 
-Model* ModelManagerGL::createSkyBox()
+Model* ModelManagerGL::getSkyBox()
 {
 	using Vertex = VertexPosition;
 
-	size_t vertexCount = sizeof(SampleMeshes::skyBoxVertices);
-	size_t indexCount = sizeof(SampleMeshes::skyBoxIndices);
+	auto it = modelTable.find(SKYBOX_MODEL_NAME);
+	if (it == modelTable.end())
+	{
+		size_t vertexCount = sizeof(SampleMeshes::skyBoxVertices);
+		size_t indexCount = sizeof(SampleMeshes::skyBoxIndices);
 
-	MeshGL mesh = MeshFactoryGL::createPosition((const Vertex*)SampleMeshes::skyBoxVertices, vertexCount,
-		SampleMeshes::skyBoxIndices, indexCount);
-	models.push_back(ModelGL(vector<MeshGL>{mesh}));
-	return &models.back();
+		MeshGL mesh = MeshFactoryGL::createPosition((const Vertex*)SampleMeshes::skyBoxVertices, vertexCount,
+			SampleMeshes::skyBoxIndices, indexCount);
+		models.push_back(ModelGL(vector<MeshGL>{mesh}));
+		ModelGL* result = &models.back();
+		modelTable[SKYBOX_MODEL_NAME] = result;
+		return &models.back();
+	}
+
+	return dynamic_cast<Model*>(it->second);
 }
 
 Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight)
@@ -92,6 +100,11 @@ Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeig
 
 Model* ModelManagerGL::getModel(const string& modelName)
 {
+	if (modelName.compare(SKYBOX_MODEL_NAME) == 0)
+	{
+		return getSkyBox();
+	}
+
 	auto it = modelTable.find(modelName);
 	if (it == modelTable.end())
 	{

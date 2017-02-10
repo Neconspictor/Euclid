@@ -39,6 +39,10 @@ void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 }
 
+void SkyBoxShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 void SkyBoxShaderGL::release()
 {
 	ShaderGL::release();

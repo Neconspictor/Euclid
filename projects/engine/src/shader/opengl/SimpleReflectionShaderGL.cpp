@@ -46,6 +46,10 @@ void SimpleReflectionShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
+void SimpleReflectionShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+{
+}
+
 void SimpleReflectionShaderGL::release()
 {
 	ShaderGL::release();
