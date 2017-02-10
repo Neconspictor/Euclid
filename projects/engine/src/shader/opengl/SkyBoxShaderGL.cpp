@@ -15,6 +15,7 @@ SkyBoxShaderGL::~SkyBoxShaderGL()
 
 void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 {
+	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	mat4 const& projection = *data.projection;
@@ -37,6 +38,7 @@ void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
+	glDepthMask(GL_TRUE);
 }
 
 void SkyBoxShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)

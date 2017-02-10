@@ -42,7 +42,11 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
 		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
-
+    
+	/*GLuint cubeMap = SOIL_load_OGL_cubemap(frontCStr.c_str(), backCStr.c_str(), topCStr.c_str(),
+		bottomCStr.c_str(), rightCStr.c_str(), leftCStr.c_str(),
+		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
+	*/
 	if (cubeMap == GL_FALSE)
 	{
 		LOG(logClient, Fault) << "Couldn't load cubeMap!" << endl <<
@@ -59,12 +63,12 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	}
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	cubeMaps.push_back(CubeMapGL(cubeMap));
 

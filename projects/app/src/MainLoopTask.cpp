@@ -137,6 +137,16 @@ void MainLoopTask::init()
 	camera->setLookDirection(vec3(0.0f, 0.0f, -1.0f));
 	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
+	camera->setHDimension(viewport.width);
+	camera->setVDimension(viewport.height);
+	camera->setNearPlaneDistance(0.1f);
+	camera->setFarPlaneDistance(150.0f);
+
+	window->addResizeCallback([&](int width, int height)
+	{
+		camera->setHDimension(width);
+		camera->setVDimension(height);
+	});
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
 	{
@@ -156,10 +166,21 @@ void MainLoopTask::init()
 
 	modelManager->loadModels();
 
-	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
+	/*sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-
+    */
+	/*sky = textureManager->createCubeMap("skyboxes/sea/sea_rt.jpg", "skyboxes/sea/sea_lf.jpg",
+		"skyboxes/sea/sea_up.jpg", "skyboxes/sea/sea_dn.jpg",
+		"skyboxes/sea/sea_bk.jpg", "skyboxes/sea/sea_ft.jpg", true);
+		*/
+	/*sky = textureManager->createCubeMap("skyboxes/Imcity/lmcity_rt.png", "skyboxes/Imcity/lmcity_lf.png",
+		"skyboxes/Imcity/lmcity_up.png", "skyboxes/Imcity/lmcity_dn.png",
+		"skyboxes/Imcity/lmcity_bk.png", "skyboxes/Imcity/lmcity_ft.png", true);
+*/
+	sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
+		"skyboxes/test/test_top.jpg", "skyboxes/test/test_bottom.jpg",
+		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getShader(SkyBox));
 
@@ -306,24 +327,25 @@ void MainLoopTask::drawScene()
 
 	camera->calcView();
 	mat4 view = camera->getView();
-	mat4 projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 150.0f);
+	//const mat4& projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 150.0f);
+	const mat4& projection = camera->getPerspectiveProjection();
+	//const mat4& projection = camera->getOrthogonalProjection();
 	mat4 viewProj = projection * view;
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 
 
-	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view);
-
-
 	// draw sky as last object
-	renderer->enableBackfaceDrawing(true);
+	//renderer->enableBackfaceDrawing(true);
 	Shader::TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
 	modelDrawer->draw(&skyBox, skyBoxShader, data);
-	renderer->enableBackfaceDrawing(false);
+	//renderer->enableBackfaceDrawing(false);
 	renderer->endScene();
+
+	scene->update(frameTimeElapsed);
+	scene->draw(renderer, modelDrawer, projection, view);
 }
 
 void MainLoopTask::updateCamera(Input* input, float deltaTime)

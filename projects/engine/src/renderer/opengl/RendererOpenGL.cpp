@@ -123,6 +123,8 @@ void RendererOpenGL::beginScene()
 	//glDisable(GL_MULTISAMPLE);
 	glEnable(GL_MULTISAMPLE);
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 

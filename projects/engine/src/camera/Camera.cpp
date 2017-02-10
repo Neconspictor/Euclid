@@ -93,8 +93,10 @@ void Camera::update()
 	// only update if changes have occurred
 	if (revalidate)
 	{
-		orthoProjection = ortho(-hDimension * 0.5f, hDimension * 0.5f, -vDimension * 0.5f, 
-			vDimension * 0.5f, nearPlaneDistance, farPlaneDistance);
+		//orthoProjection = ortho(-hDimension * 0.5f, hDimension * 0.5f, -vDimension * 0.5f, 
+		//	vDimension * 0.5f, nearPlaneDistance, farPlaneDistance);
+		orthoProjection = ortho(-fov, fov, -fov,
+			fov, nearPlaneDistance, farPlaneDistance);
 		perspProjection = perspective(radians(fov),
 			hDimension / vDimension, nearPlaneDistance, farPlaneDistance);
 		revalidate = false;
@@ -146,6 +148,8 @@ void Camera::onScroll(double xOffset, double yOffset)
 		fov = 1.0f;
 	if (fov >= 45.0f)
 		fov = 45.0f;
+
+	revalidate = true;
 }
 
 void Camera::setFarPlaneDistance(float farPlaneDistance)
