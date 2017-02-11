@@ -134,7 +134,7 @@ void MainLoopTask::init()
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
 	camera->setPosition(vec3(0.0f, 3.0f, 3.0f));
-	camera->setLookDirection(vec3(0.0f, 0.0f, -1.0f));
+	camera->setLookDirection(vec3(1.0f, 0.0f, 0.0f));
 	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
 	camera->setHDimension(viewport.width);
@@ -170,14 +170,6 @@ void MainLoopTask::init()
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
     */
-	/*sky = textureManager->createCubeMap("skyboxes/sea/sea_rt.jpg", "skyboxes/sea/sea_lf.jpg",
-		"skyboxes/sea/sea_up.jpg", "skyboxes/sea/sea_dn.jpg",
-		"skyboxes/sea/sea_bk.jpg", "skyboxes/sea/sea_ft.jpg", true);
-		*/
-	/*sky = textureManager->createCubeMap("skyboxes/Imcity/lmcity_rt.png", "skyboxes/Imcity/lmcity_lf.png",
-		"skyboxes/Imcity/lmcity_up.png", "skyboxes/Imcity/lmcity_dn.png",
-		"skyboxes/Imcity/lmcity_bk.png", "skyboxes/Imcity/lmcity_ft.png", true);
-*/
 	sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
 		"skyboxes/test/test_top.jpg", "skyboxes/test/test_bottom.jpg",
 		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
@@ -326,7 +318,7 @@ void MainLoopTask::drawScene()
 	Renderer::Viewport viewport = window->getViewport();
 
 	camera->calcView();
-	mat4 view = camera->getView();
+	const mat4& view = camera->getView();
 	//const mat4& projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 150.0f);
 	const mat4& projection = camera->getPerspectiveProjection();
 	//const mat4& projection = camera->getOrthogonalProjection();
@@ -341,6 +333,7 @@ void MainLoopTask::drawScene()
 	data.model = &identity;
 	data.view = &skyBoxView;
 	modelDrawer->draw(&skyBox, skyBoxShader, data);
+	//modelDrawer->draw(&skyBox, phongTexShader, data);
 	//renderer->enableBackfaceDrawing(false);
 	renderer->endScene();
 

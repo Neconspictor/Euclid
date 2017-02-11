@@ -9,6 +9,9 @@ public:
 	FPCamera(const FPCamera& other);
 	virtual ~FPCamera();
 
+
+	float limit(float source, float min, float max);
+	virtual void setLookDirection(const glm::vec3& direction) override;
 	virtual void update(Input* input, float frameTime) override;
 
 	float getYaw() const;

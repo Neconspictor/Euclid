@@ -27,6 +27,28 @@ FPCamera::~FPCamera()
 {
 }
 
+float FPCamera::limit(float source, float minValue, float maxValue)
+{
+	if (source > maxValue)
+		source = maxValue;
+	if (source < minValue)
+		source = minValue;
+	return source;
+}
+
+void FPCamera::setLookDirection(const vec3& direction)
+{
+	// it is assumed that look is a normalized vector -> important for arcsinus!
+	Camera::setLookDirection(direction);
+
+	yaw = degrees(atan2(look.x, -look.z));
+
+	// look.y = sin(radians(-pitch));
+	// <-> -degrees(asin(look.y)) = pitch
+	pitch = degrees(asin(-look.y));
+	pitch = limit(pitch, -89.0f, 89.0f);
+}
+
 void FPCamera::update(Input* input, float frameTime)
 {
 	float sensitivity = 0.05f;
@@ -36,18 +58,19 @@ void FPCamera::update(Input* input, float frameTime)
 	yaw += yawAddition;
 	pitch += pitchAddition;
 
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	pitch = limit(pitch, -89.0f, 89.0f);
 
 	vec3 front;
 	front.x = sin(radians(yaw)) * cos(radians(pitch));
 	front.y = sin(radians(-pitch));
 	front.z = -cos(radians(yaw)) * cos(radians(pitch));
 	front = normalize(front);
+	//look = normalize(front);
 	setLookDirection(front);
+	//Camera::setLookDirection(direction);
 	doUserMovement(input, frameTime);
+
+	cout << "yaw = " << yaw << ", pitch= " << pitch << endl;
 }
 
 float FPCamera::getYaw() const

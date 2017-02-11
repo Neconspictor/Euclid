@@ -68,7 +68,13 @@ void Camera::setPosition(const vec3& position)
 
 void Camera::setLookDirection(const vec3& direction)
 {
-	this->look = direction;
+	this->look = normalize(direction);
+	if (std::isnan(look.x) ||
+		std::isnan(look.y) || 
+		std::isnan(look.z))
+	{
+		throw std::runtime_error("Camera::setLookDirection: look direction isn't a valid direction!");
+	}
 }
 
 void Camera::setNearPlaneDistance(float nearPlaneDistance)
@@ -96,7 +102,8 @@ void Camera::update()
 		//orthoProjection = ortho(-hDimension * 0.5f, hDimension * 0.5f, -vDimension * 0.5f, 
 		//	vDimension * 0.5f, nearPlaneDistance, farPlaneDistance);
 		orthoProjection = ortho(-fov, fov, -fov,
-			fov, nearPlaneDistance, farPlaneDistance);
+			/* -farPlaneDistance is no bug but intended! */
+			fov, -farPlaneDistance, farPlaneDistance);
 		perspProjection = perspective(radians(fov),
 			hDimension / vDimension, nearPlaneDistance, farPlaneDistance);
 		revalidate = false;
@@ -121,7 +128,10 @@ const mat4& Camera::getPerspectiveProjection()
 
 void Camera::calcView()
 {
-	view = lookAt(position, position + look, up);
+	view = lookAt(
+		position, 
+		position + look, // where does the camera looking at?
+		up);
 }
 
 float Camera::getFarPlaneDistance() const
