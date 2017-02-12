@@ -118,6 +118,46 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 	return static_cast<TextureGL*>(getImage(file));
 }
 
+Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
+{
+	auto it = textureLookupTable.find(file);
+
+	// Don't create duplicate textures!
+	if (it != textureLookupTable.end())
+	{
+		return it->second;
+	}
+
+	string path = ::util::globals::TEXTURE_PATH + file;
+
+	GLuint textureID = SOIL_load_OGL_HDR_texture(path.c_str(), SOIL_HDR_RGBE, 0, 0,
+		SOIL_FLAG_POWER_OF_TWO | (data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) /*| SOIL_FLAG_INVERT_Y*/);
+
+	if (textureID == GL_FALSE)
+	{
+		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
+		stringstream ss;
+		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
+		throw runtime_error(ss.str());
+	}
+
+	GLint minFilter = mapFilter(data.minFilter);
+	GLint magFilter = mapFilter(data.magFilter);
+	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	if (data.generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return createTextureGL(file, textureID);
+}
+
 Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);

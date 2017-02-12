@@ -177,7 +177,8 @@ void MainLoopTask::init()
 		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
     */
 	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
-
+	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { true, true, Bilinear, Bilinear, ClampToEdge });
+	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getShader(SkyBox));
 

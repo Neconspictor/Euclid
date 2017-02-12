@@ -41,7 +41,9 @@ public:
 		const std::string& top, const std::string& bottom, 
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) = 0;
 
+	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) = 0;
 	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Linear, Bilinear, Repeat}) = 0;
+
 
 	virtual std::string getImagePath() = 0;
 
