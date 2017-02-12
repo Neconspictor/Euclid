@@ -42,6 +42,7 @@ Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 
 void ShaderManagerGL::loadShaders()
 {
+	createShader(BlinnPhongTex);
 	createShader(Lamp);
 	createShader(Normals);
 	createShader(Phong);
@@ -53,6 +54,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(SimpleReflection);
 	createShader(Screen);
 	createShader(SkyBox);
+	createShader(SkyBoxPanorama);
 }
 
 void ShaderManagerGL::validateShader(Shader* shader)
@@ -129,11 +131,17 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 			("skybox_vs.glsl", "skybox_fs.glsl");
 		break;
 	}
+	case SkyBoxPanorama: {
+		shaderPtr = make_shared<PanoramaSkyBoxShaderGL>
+			("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+		break;
+	}
 	default: {
 		stringstream ss;
 		ss << BOOST_CURRENT_FUNCTION << " : couldn't create shader for: " << shaderEnum;
 		throw ShaderInitException(ss.str());
 	}
+
 	}
 	
 	Shader* result = shaderPtr.get();

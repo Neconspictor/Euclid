@@ -51,6 +51,7 @@ private:
 	bool isRunning;
 	Vob nanosuitModel;
 	CubeMap* sky;
+	Texture* panoramaSky;
 	Vob skyBox;
 	std::list<SceneNode> nodes;
 	std::list<Vob> vobs;

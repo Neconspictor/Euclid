@@ -22,10 +22,11 @@
 using namespace glm;
 using namespace std;
 using namespace platform;
-
+//misc/sphere.obj
+//ModelManager::SKYBOX_MODEL_NAME
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
-	sky(nullptr), skyBox(ModelManager::SKYBOX_MODEL_NAME), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
+	sky(nullptr), panoramaSky(nullptr), skyBox("misc/sphere.obj"), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -173,8 +174,14 @@ void MainLoopTask::init()
 	sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
 		"skyboxes/test/test_top.jpg", "skyboxes/test/test_bottom.jpg",
 		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
+
+	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", true);
+
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getShader(SkyBox));
+
+	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
+		(shaderManager->getShader(SkyBoxPanorama));
 
 	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
 		(shaderManager->getShader(SimpleReflection));
@@ -183,6 +190,7 @@ void MainLoopTask::init()
 		(shaderManager->getShader(BlinnPhongTex));
 
 	skyBoxShader->setSkyTexture(sky);
+	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 	reflectionShader->setReflectionTexture(sky);
 	phongShader->setSkyBox(sky);
 
@@ -310,6 +318,8 @@ void MainLoopTask::drawScene()
 {
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(renderer->getShaderManager()->getShader(SkyBox));
+	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
+		(renderer->getShaderManager()->getShader(SkyBoxPanorama));
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
 		(renderer->getShaderManager()->getShader(BlinnPhongTex));
 
@@ -332,7 +342,8 @@ void MainLoopTask::drawScene()
 	Shader::TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
-	modelDrawer->draw(&skyBox, skyBoxShader, data);
+	//modelDrawer->draw(&skyBox, skyBoxShader, data);
+	modelDrawer->draw(&skyBox, panoramaSkyBoxShader, data);
 	//modelDrawer->draw(&skyBox, phongTexShader, data);
 	//renderer->enableBackfaceDrawing(false);
 	renderer->endScene();
