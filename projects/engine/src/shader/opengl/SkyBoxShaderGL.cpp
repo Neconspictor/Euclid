@@ -23,9 +23,15 @@ void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
 	mat4 const& model = *data.model;
 	use();
 
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	mat4 transform = projection * view;
+	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
+
+	GLuint projectionLoc = glGetUniformLocation(getProgramID(), "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
+
+	GLuint viewLoc = glGetUniformLocation(getProgramID(), "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture->getCubeMap());
@@ -83,6 +89,12 @@ void PanoramaSkyBoxShaderGL::draw(Mesh const& meshOriginal)
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	mat4 transform = projection * view;
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
+
+	GLuint projectionLoc = glGetUniformLocation(getProgramID(), "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
+
+	GLuint viewLoc = glGetUniformLocation(getProgramID(), "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, skyTexture->getTexture());

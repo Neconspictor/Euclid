@@ -23,7 +23,7 @@ public:
 
 	TextureGL* getImageGL(const std::string& file);
 
-	virtual Texture* getImage(const std::string& file, bool useSRGBOnCreation = false) override;
+	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) override;
 
 	std::string getImagePath() override;
 
@@ -41,6 +41,10 @@ protected:
 	std::list<CubeMapGL> cubeMaps;
 	std::map<std::string, TextureGL*> textureLookupTable;
 	platform::LoggingClient logClient;
+
+	static GLint mapFilter(TextureFilter filter);
+	static GLint mapUVTechnique(TextureUVTechnique technique);
+
 private:
 	// this class is a singleton, thus private constructor
 	TextureManagerGL(); 

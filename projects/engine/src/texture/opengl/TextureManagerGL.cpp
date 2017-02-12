@@ -8,6 +8,40 @@ using namespace platform;
 
 unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
 
+GLint TextureManagerGL::mapFilter(TextureFilter filter)
+{
+	switch(filter)
+	{
+	case NearestNeighbor:
+		return GL_NEAREST;
+	case Bilinear:
+		return GL_LINEAR;
+	case Near_Near:
+		return GL_NEAREST_MIPMAP_NEAREST;
+	case Near_Linear:
+		return GL_NEAREST_MIPMAP_LINEAR;
+	case Linear_Near:
+		return GL_LINEAR_MIPMAP_NEAREST;
+	case Linear_Linear:
+		return GL_LINEAR_MIPMAP_LINEAR;
+	default:
+		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
+	}
+}
+
+GLint TextureManagerGL::mapUVTechnique(TextureUVTechnique technique)
+{
+	switch (technique)
+	{
+	case ClampToEdge:
+		return GL_CLAMP_TO_EDGE;
+	case Repeat:
+		return GL_REPEAT;
+	default:
+		throw runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique));
+	}
+}
+
 TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
 {
 	textureLookupTable = map<string, TextureGL*>();
@@ -43,10 +77,6 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
 		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
     
-	/*GLuint cubeMap = SOIL_load_OGL_cubemap(frontCStr.c_str(), backCStr.c_str(), topCStr.c_str(),
-		bottomCStr.c_str(), rightCStr.c_str(), leftCStr.c_str(),
-		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
-	*/
 	if (cubeMap == GL_FALSE)
 	{
 		LOG(logClient, Fault) << "Couldn't load cubeMap!" << endl <<
@@ -63,12 +93,12 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	}
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	cubeMaps.push_back(CubeMapGL(cubeMap));
 
@@ -88,7 +118,7 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 	return static_cast<TextureGL*>(getImage(file));
 }
 
-Texture* TextureManagerGL::getImage(const string& file, bool useSRGBOnCreation)
+Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);
 
@@ -106,11 +136,8 @@ Texture* TextureManagerGL::getImage(const string& file, bool useSRGBOnCreation)
 
 
 	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, 
-		(useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_INVERT_Y | SOIL_FLAG_GL_MIPMAPS);
-	//glGenTextures(1, &textureID);
-	//glBindTexture(GL_TEXTURE_2D, textureID);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	//glGenerateMipmap(GL_TEXTURE_2D);
+		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) /*| SOIL_FLAG_INVERT_Y*/);
+
 	if (textureID == GL_FALSE)
 	{
 		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
@@ -118,24 +145,20 @@ Texture* TextureManagerGL::getImage(const string& file, bool useSRGBOnCreation)
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
 		throw runtime_error(ss.str());
 	}
+	
+	GLint minFilter = mapFilter(data.minFilter);
+	GLint magFilter = mapFilter(data.magFilter);
+	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	
+	if (data.generateMipMaps)
+	    glGenerateMipmap(GL_TEXTURE_2D);
 
-																	// Set texture filtering
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
-	//glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	//SOIL_free_image_data(image);
 
 	return createTextureGL(file, textureID);
 }

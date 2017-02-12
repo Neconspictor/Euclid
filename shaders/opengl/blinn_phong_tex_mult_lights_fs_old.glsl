@@ -76,9 +76,9 @@ void main()
     vec4 result = calcDirLight(dirLight, normal, viewDirection);
     
     // phase 2: point lights
-    for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
-        result += calcPointLight(pointLights[i], normal, fragmentPosition, viewDirection);
-    }
+    //for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
+    //    result += calcPointLight(pointLights[i], normal, fragmentPosition, viewDirection);
+    //}
     
     // phase 3: spot lighting
     //result += calcSpotLight(spotLight, normal, fragmentPosition, viewDirection);
@@ -100,7 +100,8 @@ void main()
 
 // Calculates the color when using a directional light source
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
-    vec3 lightDir = normalize(light.direction);
+    //vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    vec3 lightDir = normalize(light.direction - fragmentPosition);
     vec4 diffuseColor = texture(material.diffuseMap, texCoordsFS);
     vec4 specularColor = texture(material.specularMap, texCoordsFS);
     // diffuse shading
@@ -110,11 +111,11 @@ vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     float shininess = pow(max(dot(viewDir, halfwayDir), 0.0), material.shininess * 2.0f);
     // combine results
-    vec4 ambient = light.ambient * diffuseColor;
+    vec4 ambient = light.ambient * diffuseColor * 0.1;
     vec4 diffuse = light.diffuse * diffuseAngle * diffuseColor;
     vec4 specular = light.specular * shininess * specularColor;
     return (ambient + diffuse + specular);
-		//return diffuse;
+    //return diffuse;
 }
 
 // Calculates the color when using a point light source

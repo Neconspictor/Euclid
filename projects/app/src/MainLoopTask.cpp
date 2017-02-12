@@ -24,9 +24,10 @@ using namespace std;
 using namespace platform;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
+//misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
-	sky(nullptr), panoramaSky(nullptr), skyBox("misc/sphere.obj"), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
+	sky(nullptr), panoramaSky(nullptr), skyBox("misc/SkyBoxPlane.obj"), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -167,15 +168,15 @@ void MainLoopTask::init()
 
 	modelManager->loadModels();
 
-	/*sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
+	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-    */
-	sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
+    
+	/*sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
 		"skyboxes/test/test_top.jpg", "skyboxes/test/test_bottom.jpg",
 		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
-
-	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", true);
+    */
+	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
 
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getShader(SkyBox));

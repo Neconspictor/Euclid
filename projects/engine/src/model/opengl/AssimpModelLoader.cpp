@@ -126,29 +126,37 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+		TextureData data;
+		data.useSRGB = true;
+		data.generateMipMaps = true;
+		data.uvTechnique = Repeat;
+		data.minFilter = Linear_Linear;
+		data.magFilter = Bilinear;
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
 		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
 		if (diffuseMaps.size())
 		{
-			material.setDiffuseMap(manager->getImage(diffuseMaps[0], true));
+			material.setDiffuseMap(manager->getImage(diffuseMaps[0], data));
 		}
 		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
 		if (emissionMaps.size())
 		{
-			material.setEmissionMap(manager->getImage(emissionMaps[0], true));
+			material.setEmissionMap(manager->getImage(emissionMaps[0], data));
 		}
 		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
 		if (specularMaps.size())
 		{
-			material.setSpecularMap(manager->getImage(specularMaps[0], false));
+			data.useSRGB = false;
+			material.setSpecularMap(manager->getImage(specularMaps[0], data));
 		}
 
 		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
 		if (reflectionMaps.size())
 		{
-			material.setReflectionMap(manager->getImage(reflectionMaps[0], false));
+			data.useSRGB = false;
+			material.setReflectionMap(manager->getImage(reflectionMaps[0], data));
 		}
 	}
 
@@ -193,7 +201,14 @@ vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextur
 		// load image into memory
 		// Note: assimp textures are local paths!
 		bool useSRGB = (type != aiTextureType_SPECULAR) && (type != aiTextureType_AMBIENT);
-		TextureManagerGL::get()->getImage(texture.C_Str(), useSRGB);
+		TextureData data;
+		data.useSRGB = useSRGB;
+		data.generateMipMaps = true;
+		data.uvTechnique = Repeat;
+		data.minFilter = Linear_Linear;
+		data.magFilter = Bilinear;
+
+		TextureManagerGL::get()->getImage(texture.C_Str(), data);
 		textures.push_back(texture.C_Str());
 	}
 
