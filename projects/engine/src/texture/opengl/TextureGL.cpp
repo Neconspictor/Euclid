@@ -67,10 +67,46 @@ DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+DepthMapGL::DepthMapGL(const DepthMapGL& other) : DepthMap(other),
+	textureID(other.textureID), frameBuffer(other.frameBuffer)
+{
+}
+
+DepthMapGL::DepthMapGL(DepthMapGL&& other) : DepthMap(other),
+    textureID(other.textureID), frameBuffer(other.frameBuffer)
+{
+	other.textureID = GL_FALSE;
+	other.frameBuffer = GL_FALSE;
+}
+
+DepthMapGL& DepthMapGL::operator=(const DepthMapGL& other)
+{
+	if (this == &other)
+		return *this;
+	// call base asignment operator
+	DepthMap::operator =(other);
+
+	textureID = other.textureID;
+	frameBuffer = other.frameBuffer;
+	return *this;
+}
+
+DepthMapGL& DepthMapGL::operator=(DepthMapGL&& other)
+{
+	if (this == &other)
+		return *this;
+	// call base asignment operator
+	DepthMap::operator =(other);
+
+	textureID = move(other.textureID);
+	frameBuffer = move(other.frameBuffer);
+	other.textureID = GL_FALSE;
+	other.frameBuffer = GL_FALSE;
+	return *this;
+}
+
 DepthMapGL::~DepthMapGL()
 {
-	glDeleteTextures(1, &textureID);
-	glDeleteFramebuffers(1, &frameBuffer);
 }
 
 GLuint DepthMapGL::getFramebuffer() const
@@ -81,4 +117,12 @@ GLuint DepthMapGL::getFramebuffer() const
 GLuint DepthMapGL::getTexture() const
 {
 	return textureID;
+}
+
+void DepthMapGL::release()
+{
+	glDeleteTextures(1, &textureID);
+	glDeleteFramebuffers(1, &frameBuffer);
+	textureID = GL_FALSE;
+	frameBuffer = GL_FALSE;
 }

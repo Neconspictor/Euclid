@@ -40,7 +40,7 @@ public:
 	 * Setting the look direction manually makes no sense for a Trackball camera,
 	 * So this function does nothing!
 	 */
-	virtual void setLookDirection(const glm::vec3& direction) override;
+	virtual void setLook(glm::vec3 direction) override;
 
 	void setPolarAngle(float polar);
 
@@ -48,7 +48,7 @@ public:
 	 * Updates the position of the camera. The camera will still look on the track
 	 * position after this function call.
 	 */
-	virtual void setPosition(const glm::vec3& position) override;
+	virtual void setPosition(glm::vec3 position) override;
 
 	void setRadius(float radius);
 
@@ -58,7 +58,7 @@ public:
 	 * A trackball camera assumes the positive y axis as the up direction.
 	 * Therefore this function override does nothing change on this camera.
 	 */
-	virtual void setUpDirection(const glm::vec3& up) override;
+	virtual void setUp(glm::vec3 up) override;
 
 	virtual void update(Input* input, float frameTime) override;
 

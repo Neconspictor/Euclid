@@ -27,7 +27,7 @@ public:
 
 	void setLightColor(glm::vec3 color) override;
 
-	void setLightPosition(glm::vec3 position) override;
+	void setLightDirection(glm::vec3 direction) override;
 
 	void setPointLightPositions(glm::vec3* positions) override;
 
@@ -47,7 +47,7 @@ private:
 	void initLights(GLuint programID);
 
 	glm::vec3 lightColor;
-	glm::vec3 lightPosition;
+	glm::vec3 dirLightDirection;
 	glm::vec3 viewPosition;
 	glm::vec3 spotLightDirection;
 	glm::vec3 pointLightPositions[4];

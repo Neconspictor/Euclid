@@ -11,7 +11,7 @@ public:
 
 
 	float limit(float source, float min, float max);
-	virtual void setLookDirection(const glm::vec3& direction) override;
+	virtual void setLook(glm::vec3 direction) override;
 	virtual void update(Input* input, float frameTime) override;
 
 	float getYaw() const;

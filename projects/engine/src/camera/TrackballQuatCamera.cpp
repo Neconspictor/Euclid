@@ -40,7 +40,7 @@ TrackballQuatCamera::~TrackballQuatCamera()
 
 void TrackballQuatCamera::calcView()
 {
-	view = lookAt(position, trackPosition, up);
+	view = glm::lookAt(position, trackPosition, up);
 	look = normalize(position - trackPosition);
 	mat4 trackTargetTrans;
 	mat4 trackTargetTransInverse;
@@ -105,11 +105,6 @@ void TrackballQuatCamera::setRadius(float radius)
 void TrackballQuatCamera::setTrackPosition(vec3 trackPosition)
 {
 	this->trackPosition = trackPosition;
-}
-
-void TrackballQuatCamera::setUpDirection(const vec3& up)
-{
-	this->up = up;
 }
 
 void TrackballQuatCamera::update(Input* input, float frameTime)

@@ -44,7 +44,7 @@ public:
 	* A trackball camera assumes the positive y axis as the up direction.
 	* Therefore this function override does nothing change on this camera.
 	*/
-	virtual void setUpDirection(const glm::vec3& up) override;
+	//virtual void setUp(glm::vec3 up) override;
 
 	virtual void update(Input* input, float frameTime) override;
 

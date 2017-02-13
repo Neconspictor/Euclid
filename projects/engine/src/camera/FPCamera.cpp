@@ -36,10 +36,10 @@ float FPCamera::limit(float source, float minValue, float maxValue)
 	return source;
 }
 
-void FPCamera::setLookDirection(const vec3& direction)
+void FPCamera::setLook(vec3 direction)
 {
 	// it is assumed that look is a normalized vector -> important for arcsinus!
-	Camera::setLookDirection(direction);
+	Camera::setLook(direction);
 
 	yaw = degrees(atan2(look.x, -look.z));
 
@@ -66,11 +66,9 @@ void FPCamera::update(Input* input, float frameTime)
 	front.z = -cos(radians(yaw)) * cos(radians(pitch));
 	front = normalize(front);
 	//look = normalize(front);
-	setLookDirection(front);
+	setLook(front);
 	//Camera::setLookDirection(direction);
 	doUserMovement(input, frameTime);
-
-	cout << "yaw = " << yaw << ", pitch= " << pitch << endl;
 }
 
 float FPCamera::getYaw() const

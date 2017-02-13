@@ -10,7 +10,7 @@ using namespace std;
 
 PhongTexShaderGL::PhongTexShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, 
 	const string& vertexShaderFileInstanced) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), lightPosition(1, 0, 0), viewPosition(0,0,0), 
+	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), dirLightDirection(1, 0, 0), viewPosition(0,0,0), 
 	skybox(nullptr)
 {
 	instancedShaderProgram = loadShaders(vertexShaderFileInstanced, fragmentShaderFile, "");
@@ -74,7 +74,7 @@ const vec3& PhongTexShaderGL::getLightColor() const
 
 const vec3& PhongTexShaderGL::getLightPosition() const
 {
-	return lightPosition;
+	return dirLightDirection;
 }
 
 void PhongTexShaderGL::release()
@@ -87,9 +87,9 @@ void PhongTexShaderGL::setLightColor(vec3 color)
 	lightColor = color;
 }
 
-void PhongTexShaderGL::setLightPosition(vec3 position)
+void PhongTexShaderGL::setLightDirection(vec3 direction)
 {
-	lightPosition = position;
+	dirLightDirection = direction;
 }
 
 void PhongTexShaderGL::setPointLightPositions(vec3* positions)
@@ -119,7 +119,7 @@ void PhongTexShaderGL::initLights(GLuint programID)
 	// by using 'Uniform buffer objects', but that is something we discuss in the 'Advanced GLSL' tutorial.
 	// == ==========================
 	// Directional light
-	glUniform3f(glGetUniformLocation(programID, "dirLight.direction"), lightPosition.x, lightPosition.y, lightPosition.z);
+	glUniform3f(glGetUniformLocation(programID, "dirLight.direction"), dirLightDirection.x, dirLightDirection.y, dirLightDirection.z);
 	glUniform4f(glGetUniformLocation(programID, "dirLight.ambient"), 0.2f, 0.2f, 0.2f, 1.0f);
 	glUniform4f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f, 1.0f);
 	glUniform4f(glGetUniformLocation(programID, "dirLight.specular"), 0.3f, 0.3f, 0.3f, 1.0f);

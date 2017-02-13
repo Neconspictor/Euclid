@@ -67,7 +67,7 @@ void TrackballCamera::setAzimuthAngle(float azimuth)
 	updateCartesianCoordinates();
 }
 
-void TrackballCamera::setLookDirection(const vec3& direction)
+void TrackballCamera::setLook(vec3 direction)
 {
 	//Do nothing!
 }
@@ -78,12 +78,13 @@ void TrackballCamera::setPolarAngle(float polar)
 	updateCartesianCoordinates();
 }
 
-void TrackballCamera::setPosition(const vec3& position)
+void TrackballCamera::setPosition(vec3 position)
 {
 	this->position = position;
 	updateSphericalCoords();
 	// update look direction
 	look = trackPosition - position;
+	revalidate = true;
 }
 
 void TrackballCamera::setRadius(float radius)
@@ -97,7 +98,7 @@ void TrackballCamera::setTrackPosition(vec3 trackPosition)
 	this->trackPosition = move(trackPosition);
 }
 
-void TrackballCamera::setUpDirection(const vec3& up)
+void TrackballCamera::setUp(vec3 up)
 {
 	//Do nothing!
 }

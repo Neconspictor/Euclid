@@ -13,6 +13,7 @@
 #include <shader/opengl/SkyBoxShaderGL.hpp>
 #include <shader/opengl/SimpleReflectionShaderGL.hpp>
 #include <shader/opengl/NormalsShaderGL.hpp>
+#include <shader/opengl/ShadowShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -48,6 +49,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(Phong);
 	createShader(PhongTex);
 	createShader(Playground);
+	createShader(Shadow);
 	createShader(SimpleColor);
 	createShader(SimpleExtrude);
 	createShader(SimpleLight);
@@ -99,6 +101,11 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 	}
 	case Playground: {
 		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl", "playground_gs.glsl");
+		break;
+	}
+	case Shadow: {
+		shaderPtr = make_shared<ShadowShaderGL>
+			("shadow_vs.glsl", "shadow_fs.glsl");
 		break;
 	}
 	case SimpleColor: {

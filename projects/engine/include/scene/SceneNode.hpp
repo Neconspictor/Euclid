@@ -23,7 +23,11 @@ public:
 	std::vector<SceneNode*>::const_iterator getChildsEnd() const;
 
 	virtual void update(float frameTime);
-	virtual void draw(Renderer3D* renderer, ModelDrawer* drawer, const glm::mat4& projection, const glm::mat4& view);
+	/**
+	 * Draws this scene node and all its children using a specific shader.
+	 */
+	virtual void draw(Renderer3D* renderer, ModelDrawer* drawer, const glm::mat4& projection, 
+		const glm::mat4& view, Shader* forcedShader = nullptr);
 
 	Vob* getVob() const;
 	void setVob(Vob* vob);

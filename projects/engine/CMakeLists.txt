@@ -26,6 +26,9 @@ set(
     include/exception/ShaderInitException.hpp
     include/exception/ShaderNotFoundException.hpp
     
+		#light
+		include/light/Light.hpp
+		
     #listener
     include/listener/ScrollListener.hpp
     
@@ -66,6 +69,7 @@ set(
     include/shader/Shader.hpp
     include/shader/ShaderEnum.hpp
     include/shader/ShaderManager.hpp
+		include/shader/ShadowShader.hpp
     include/shader/SimpleColorShader.hpp
     include/shader/SimpleExtrudeShader.hpp
     include/shader/SimpleLightShader.hpp
@@ -79,6 +83,7 @@ set(
     include/shader/opengl/PlaygroundShaderGL.hpp
     include/shader/opengl/ScreenShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
+		include/shader/opengl/ShadowShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
     include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleExtrudeShaderGL.hpp
@@ -118,6 +123,7 @@ set(
     #util
     include/util/FPSCounter.hpp
     include/util/Globals.hpp
+		include/util/Projectional.hpp
     include/util/Timer.hpp
     
     ###source files###
@@ -138,6 +144,9 @@ set(
     #drawing/opengl
     src/drawing/opengl/ModelDrawerGL.cpp
     
+		#light
+		src/light/Light.cpp
+		
     #listener
     
     #mesh
@@ -159,7 +168,7 @@ set(
     src/model/opengl/AssimpModelLoader.cpp
     src/model/opengl/ModelGL.cpp
     src/model/opengl/ModelManagerGL.cpp
-    
+		
     #renderer
     #renderer/opengl
     src/renderer/opengl/RendererOpenGL.cpp
@@ -175,6 +184,7 @@ set(
     src/shader/opengl/ScreenShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp
+		src/shader/opengl/ShadowShaderGL.cpp
     src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleExtrudeShaderGL.cpp
     src/shader/opengl/SimpleLightShaderGL.cpp
@@ -203,7 +213,7 @@ set(
     src/texture/opengl/TextureManagerGL.cpp
     
     #util
-    
+    src/util/Projectional.cpp
     
     #${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
 )

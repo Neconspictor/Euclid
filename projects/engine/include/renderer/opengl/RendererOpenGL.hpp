@@ -2,6 +2,7 @@
 #include <renderer/Renderer3D.hpp>
 #include <glad/glad.h>
 #include <model/opengl/ModelGL.hpp>
+#include <texture/opengl/TextureGL.hpp>
 
 class SMAA_GL;
 
@@ -96,7 +97,7 @@ protected:
 	RenderTargetGL multiSampledScreenBuffer;
 
 	std::unique_ptr<ModelGL> screenSprite;
-	std::list<DepthMap> depthMaps;
+	std::list<DepthMapGL> depthMaps;
 	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;
 

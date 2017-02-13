@@ -152,7 +152,7 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 
 DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 {
-	depthMaps.push_back(DepthMapGL(width, height));
+	depthMaps.push_back(move(DepthMapGL(width, height)));
 	return &depthMaps.back();
 }
 
@@ -285,7 +285,7 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 
 void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 {
-	DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
+	DepthMapGL* map = static_cast<DepthMapGL*>(depthMap);
 	assert(map != nullptr);
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());

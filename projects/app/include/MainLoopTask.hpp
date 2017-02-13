@@ -11,6 +11,7 @@
 #include <model/Vob.hpp>
 #include <platform/WindowSystem.hpp>
 #include <scene/SceneNode.hpp>
+#include <light/Light.hpp>
 
 class SystemUI;
 
@@ -36,33 +37,37 @@ public:
 	virtual void run() override;
 
 private:
-	WindowSystemPtr windowSystem;
-	WindowPtr window;
-	RendererPtr renderer;
-	EnginePtr engine;
-	platform::LoggingClient logClient;
-	Timer timer;
-	FPSCounter counter;
-	float runtime;
-	std::string originalTitle;
-	std::shared_ptr<Camera> camera;
-	Camera directionalLightCamera;
-	float mixValue;
-	bool isRunning;
-	Vob nanosuitModel;
-	CubeMap* sky;
-	Texture* panoramaSky;
-	Vob skyBox;
-	std::list<SceneNode> nodes;
-	std::list<Vob> vobs;
-	glm::vec3 pointLightPositions[4];
-	SceneNode* scene;
-	SystemUI* ui;
-
-	glm::mat4* asteriodTrafos;
 	uint asteriodSize;
+	glm::mat4* asteriodTrafos;
+	std::shared_ptr<Camera> camera;
+	FPSCounter counter;
+	EnginePtr engine;
+	DirectionalLight globalLight;
+	bool isRunning;
+	platform::LoggingClient logClient;
+	float mixValue;
+	Vob nanosuitModel;
+	std::list<SceneNode> nodes;
+	std::string originalTitle;
+	Texture* panoramaSky;
+	glm::vec3 pointLightPositions[4];
+	RendererPtr renderer;
+	float runtime;
+	SceneNode* scene;
+	DepthMap* shadowMap;
+	CubeMap* sky;
+	Vob skyBox;
+	Timer timer;
+	SystemUI* ui;
+	std::list<Vob> vobs;
+	WindowPtr window;
+	WindowSystemPtr windowSystem;
 
-	void drawScene();
+	void drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader = nullptr);
+
+	void drawScene(Projectional* projectional, ProjectionMode mode, ShaderEnum shaderType);
+
+	void drawSky(Projectional* projectional, ProjectionMode mode);
 
 	void updateCamera(Input* input, float deltaTime);
 

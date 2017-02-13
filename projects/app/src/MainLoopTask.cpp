@@ -26,8 +26,9 @@ using namespace platform;
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
-	Task(flags), logClient(getLogServer()), runtime(0), isRunning(true), nanosuitModel("nanosuit_reflection/nanosuit.obj"), 
-	sky(nullptr), panoramaSky(nullptr), skyBox("misc/SkyBoxPlane.obj"), scene(nullptr), ui(nullptr), asteriodTrafos(nullptr), asteriodSize(0)
+	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
+	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), runtime(0), scene(nullptr), 
+	shadowMap(nullptr), sky(nullptr), skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -136,18 +137,19 @@ void MainLoopTask::init()
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
 	camera->setPosition(vec3(0.0f, 3.0f, 3.0f));
-	camera->setLookDirection(vec3(1.0f, 0.0f, 0.0f));
-	camera->setUpDirection(vec3(0.0f, 1.0f, 0.0f));
+	camera->setLook(vec3(1.0f, 0.0f, 0.0f));
+	camera->setUp(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
-	camera->setHDimension(viewport.width);
-	camera->setVDimension(viewport.height);
-	camera->setNearPlaneDistance(0.1f);
-	camera->setFarPlaneDistance(150.0f);
+	camera->setAspectRatio((float)viewport.width / (float)viewport.height);
+
+	Frustum frustum = camera->getFrustum();
+	frustum.nearPlane = 0.1f;
+	frustum.farPlane = 150.0f;
+	camera->setFrustum(move(frustum));
 
 	window->addResizeCallback([&](int width, int height)
 	{
-		camera->setHDimension(width);
-		camera->setVDimension(height);
+		camera->setAspectRatio((float)width / (float)height);
 	});
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
@@ -191,6 +193,8 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(BlinnPhongTex));
 
+	shadowMap = renderer->createDepthMap(1024, 1024);
+
 	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 	reflectionShader->setReflectionTexture(sky);
@@ -208,16 +212,17 @@ void MainLoopTask::init()
 	pointLightPositions[2] = pointLightPositions[0];
 	pointLightPositions[3] = pointLightPositions[0];
 
+	globalLight.setPosition({ -20.0f , 80.0f, -10.0f });
+	globalLight.lookAt({0,0,0});
+	//globalLight.setLook({ 1,1,0 });
+
 	// init shaders
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
 		(renderer->getShaderManager()->getShader(BlinnPhongTex));
 
 	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	phongTexShader->setLightPosition({ 1, 1, 0 });
+	phongTexShader->setLightDirection(globalLight.getLook());
 	phongTexShader->setPointLightPositions(pointLightPositions);
-
-	directionalLightCamera.setPosition({10,10,0});
-	directionalLightCamera.setLookDirection({1,1,0});
 
 	// init scene
 	scene = createShadowScene();
@@ -279,31 +284,22 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
+
+	// render shadows to a depth map
+	renderer->useDepthMap(shadowMap);
+	renderer->beginScene();
+	drawScene(camera.get(), ProjectionMode::Perspective, Shadow);
+
+	// now render scene to a offscreen buffer
 	renderer->useOffscreenBuffer();
-	//renderer->useScreenBuffer();
 	renderer->beginScene();
+	drawSky(camera.get(), ProjectionMode::Perspective);
+	drawScene(camera.get(), ProjectionMode::Perspective);
 
-	drawScene();
-
-	//renderer->setBackgroundColor({ 0.0f, 0.0f, 0.0f });
+	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenBuffer();
-
-	//renderer->useOffscreenBuffer();
 	renderer->beginScene();
-
-	// backup camera look direction
-	vec3 cameraLook = camera->getLookDirection();
-
-	// draw the scene from rear view now
-	camera->setLookDirection(-cameraLook);
-	//drawScene();
-
-	// restore camera look direction
-	camera->setLookDirection(cameraLook);
-
-	//renderer->useScreenBuffer();
 	renderer->drawOffscreenBuffer();
-	//renderer->present();
 
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 
@@ -316,42 +312,42 @@ void MainLoopTask::run()
 	window->swapBuffers();
 }
 
-void MainLoopTask::drawScene()
+void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader)
 {
-	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(renderer->getShaderManager()->getShader(SkyBox));
-	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(renderer->getShaderManager()->getShader(SkyBoxPanorama));
-	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(BlinnPhongTex));
-
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
-	Renderer::Viewport viewport = window->getViewport();
+	const mat4& view = projectional->getView();
+	const mat4& projection = projectional->getProjection(mode);
+	//const mat4& projection = camera->getOrthoProjection();
 
-	camera->calcView();
-	const mat4& view = camera->getView();
-	//const mat4& projection = perspective(radians(static_cast<float>(camera->getFOV())), (float)viewport.width / (float)viewport.height, 0.1f, 150.0f);
-	const mat4& projection = camera->getPerspectiveProjection();
-	//const mat4& projection = camera->getOrthogonalProjection();
-	mat4 viewProj = projection * view;
+	scene->update(frameTimeElapsed);
+	scene->draw(renderer, modelDrawer, projection, view, shader);
+	renderer->endScene();
+}
+
+void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, ShaderEnum shaderType)
+{
+	Shader* shader = renderer->getShaderManager()->getShader(shaderType);
+	drawScene(projectional, mode, shader);
+}
+
+void MainLoopTask::drawSky(Projectional* projectional, ProjectionMode mode)
+{
+	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
+		(renderer->getShaderManager()->getShader(SkyBoxPanorama));
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+
+	const mat4& view = projectional->getView();
+	const mat4& projection = projectional->getProjection(mode);
+	//const mat4& projection = camera->getOrthoProjection();
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 
-
-	// draw sky as last object
-	//renderer->enableBackfaceDrawing(true);
 	Shader::TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
 	//modelDrawer->draw(&skyBox, skyBoxShader, data);
 	modelDrawer->draw(&skyBox, panoramaSkyBoxShader, data);
-	//modelDrawer->draw(&skyBox, phongTexShader, data);
-	//renderer->enableBackfaceDrawing(false);
-	renderer->endScene();
-
-	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view);
 }
 
 void MainLoopTask::updateCamera(Input* input, float deltaTime)

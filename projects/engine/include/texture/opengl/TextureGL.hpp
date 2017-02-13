@@ -25,16 +25,18 @@ class DepthMapGL : public DepthMap
 {
 public:
 	explicit DepthMapGL(int width, int height);
-	DepthMapGL(const DepthMapGL& other) = delete;
-	DepthMapGL(DepthMapGL&& other) = delete;
+	DepthMapGL(const DepthMapGL& other);
+	DepthMapGL(DepthMapGL&& other);
 
-	DepthMapGL& operator=(const DepthMapGL& other) = delete;
-	DepthMapGL& operator=(DepthMapGL&& other) = delete;
+	DepthMapGL& operator=(const DepthMapGL& other);
+	DepthMapGL& operator=(DepthMapGL&& other);
 
 	virtual ~DepthMapGL();
 
 	GLuint getFramebuffer() const;
 	GLuint getTexture() const;
+
+	void release();
 
 private:
 	GLuint textureID;
