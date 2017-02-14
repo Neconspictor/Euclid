@@ -8,8 +8,6 @@
 #include <antialiasing/SMAA.hpp>
 
 
-struct RenderTarget {};
-
 /**
  * A 3D renderer is a renderer specific for 3D content. 
  * A 3D renderer renders so called models (visual content)

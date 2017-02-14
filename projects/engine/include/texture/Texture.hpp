@@ -7,6 +7,13 @@ public:
 	virtual ~Texture() {}
 };
 
+class RenderTarget
+{
+public:
+	virtual ~RenderTarget() {};
+	virtual Texture* getTexture() = 0;
+};
+
 class DepthMap
 {
 public:
@@ -26,6 +33,8 @@ public:
 	{
 		return height;
 	}
+
+	virtual Texture* getTexture() = 0;
 
 protected:
 	int width, height;

@@ -165,7 +165,7 @@ void RendererOpenGL::drawOffscreenBuffer()
 	//glLineWidth(3);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
-	shaderGL->setOffscreenBuffer(singleSampledScreenBuffer.textureBuffer);
+	shaderGL->setOffscreenBuffer(singleSampledScreenBuffer.getTextureGL());
 	for (Mesh* mesh : screenSprite->getMeshes())
 	{
 		shaderGL->draw(*mesh);
@@ -278,7 +278,7 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	glViewport(xPos, yPos, width, height);
 	LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
-	if (singleSampledScreenBuffer.frameBuffer == GL_FALSE) return;
+	if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
 	// update offscreen buffer texture
 	createFrameRenderTargetBuffer(width, height);
 }
@@ -300,13 +300,13 @@ void RendererOpenGL::useOffscreenBuffer()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
 	glViewport(xPos, yPos, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, multiSampledScreenBuffer.getFrameBuffer());
 	//int color = 0;
 	//float depth = 1.0f;
 	//int stencil = 0;
 	//glClearBufferiv(GL_COLOR, 0, &color);
 	//glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
-	clearFrameBuffer(singleSampledScreenBuffer.frameBuffer, { 0, 0, 0, 1 }, 1.0f, 0);
+	clearFrameBuffer(singleSampledScreenBuffer.getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
 }
 
 void RendererOpenGL::useScreenBuffer()
@@ -314,8 +314,8 @@ void RendererOpenGL::useScreenBuffer()
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
 	glViewport(xPos, yPos, width, height);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, multiSampledScreenBuffer.getFrameBuffer());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.getFrameBuffer());
 
 	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 	//clearFrameBuffer(singleSampledScreenBuffer.frameBuffer, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
@@ -355,17 +355,16 @@ void RendererOpenGL::checkGLErrors(string errorPrefix)
 
 void RendererOpenGL::clearRenderTarget(RenderTargetGL* renderTarget, bool releasedAllocatedMemory)
 {
-
 	if (releasedAllocatedMemory && renderTarget->frameBuffer != GL_FALSE)
 	{
 		glDeleteFramebuffers(1, &renderTarget->frameBuffer);
-		glDeleteTextures(1, &renderTarget->textureBuffer);
-		glDeleteRenderbuffers(1, &renderTarget->renderBuffer);
+		glDeleteTextures(1, &renderTarget->renderBuffer);
+		glDeleteRenderbuffers(1, &renderTarget->textureBuffer.textureID);
 	}
 
 	renderTarget->frameBuffer = GL_FALSE;
-	renderTarget->textureBuffer = GL_FALSE;
 	renderTarget->renderBuffer = GL_FALSE;
+	renderTarget->textureBuffer.setTexture(GL_FALSE);
 }
 
 void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
@@ -381,27 +380,29 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int width, int height, 
+RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int width, int height, 
 	GLuint samples, GLuint depthStencilType) const
 {
 	assert(samples >= 1);
 
 	RenderTargetGL result;
+	GLuint textureID = GL_FALSE;
 	glGenFramebuffers(1, &result.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
 	if (samples > 1)
 	{
 		// Generate texture
-		glGenTextures(1, &result.textureBuffer);
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, result.textureBuffer);
+		glGenTextures(1, &result.textureBuffer.textureID);
+		textureID = result.textureBuffer.textureID;
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
 		
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureChannel, width, height, GL_TRUE);
 		
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 		
 		// attach texture to currently bound frame buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, result.textureBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
 
 
 		//create a render buffer for depth and stencil testing
@@ -412,9 +413,10 @@ RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureC
 	} else
 	{
 		// Generate texture
-		glGenTextures(1, &result.textureBuffer);
-		glBindTexture(GL_TEXTURE_2D, result.textureBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, textureChannel, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glGenTextures(1, &result.textureBuffer.textureID);
+		textureID = result.textureBuffer.textureID;
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, textureChannel, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -426,7 +428,7 @@ RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureC
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// attach texture to currently bound frame buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, result.textureBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
 
 		//create a render buffer for depth and stencil testing
 		glGenRenderbuffers(1, &result.renderBuffer);
@@ -458,11 +460,10 @@ RendererOpenGL::RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureC
 
 void RendererOpenGL::destroyRenderTarget(RenderTargetGL* renderTarget) const
 {
+	renderTarget->textureBuffer.release();
 	glDeleteFramebuffers(1, &renderTarget->frameBuffer);
-	glDeleteTextures(1, &renderTarget->textureBuffer);
 	glDeleteRenderbuffers(1, &renderTarget->renderBuffer);
 
 	renderTarget->frameBuffer = GL_FALSE;
-	renderTarget->textureBuffer = GL_FALSE;
 	renderTarget->renderBuffer = GL_FALSE;
 }

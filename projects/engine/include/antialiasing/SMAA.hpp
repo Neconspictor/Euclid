@@ -1,6 +1,6 @@
 #pragma once
 
-struct RenderTarget;
+class RenderTarget;
 
 class SMAA
 {

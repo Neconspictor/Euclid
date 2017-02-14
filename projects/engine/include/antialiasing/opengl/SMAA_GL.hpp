@@ -19,8 +19,8 @@ public:
 
 private:
 	RendererOpenGL* renderer;
-	RendererOpenGL::RenderTargetGL edgesTex;
-	RendererOpenGL::RenderTargetGL blendTex;
+	RenderTargetGL edgesTex;
+	RenderTargetGL blendTex;
 
 	TextureGL* areaTex;
 	TextureGL* searchTex;

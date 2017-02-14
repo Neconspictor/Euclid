@@ -2,13 +2,13 @@
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <gli/gli.hpp>
 #include <SOIL2/SOIL2.h>
-#include <shader/opengl/ShaderGL.hpp>
 #include <renderer/opengl/RendererOpenGL.hpp>
 
 
 using namespace std;
 
-SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : SMAA(), renderer(renderer), areaTex(nullptr), searchTex(nullptr)
+SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : SMAA(), renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
+edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), neighborhoodBlendingPass(GL_FALSE)
 {
 }
 
@@ -20,7 +20,7 @@ SMAA_GL::~SMAA_GL()
 
 void SMAA_GL::antialias(RenderTarget* renderTarget)
 {
-	RendererOpenGL::RenderTargetGL* glTarget = static_cast<RendererOpenGL::RenderTargetGL*>(renderTarget);
+	RenderTargetGL* glTarget = static_cast<RenderTargetGL*>(renderTarget);
 	assert(glTarget != nullptr);
 }
 
@@ -118,8 +118,8 @@ void SMAA_GL::init()
 
 void SMAA_GL::reset()
 {
-	renderer->clearFrameBuffer(blendTex.frameBuffer, { 0,0,0,1 }, 1.0f, 0);
-	renderer->clearFrameBuffer(edgesTex.frameBuffer, { 0,0,0,1 }, 1.0f, 0);
+	renderer->clearFrameBuffer(blendTex.getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
+	renderer->clearFrameBuffer(edgesTex.getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
 }
 
 void SMAA_GL::updateBuffers()

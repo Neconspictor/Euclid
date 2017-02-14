@@ -11,13 +11,6 @@ class RendererOpenGL : public Renderer3D
 {
 public:
 
-	struct RenderTargetGL : RenderTarget
-	{
-		GLuint frameBuffer;
-		GLuint textureBuffer;
-		GLuint renderBuffer;
-	};
-
 	RendererOpenGL();
 	
 	virtual ~RendererOpenGL();
