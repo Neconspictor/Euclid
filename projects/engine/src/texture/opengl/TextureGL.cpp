@@ -1,5 +1,6 @@
 #include <texture/opengl/TextureGL.hpp>
 #include <memory>
+#include <cassert>
 
 using namespace std;
 
@@ -63,6 +64,112 @@ RenderTargetGL::~RenderTargetGL()
 {
 }
 
+void RenderTargetGL::copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim)
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+		destDim.xPos, destDim.yPos, destDim.width, destDim.height,
+		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+		GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int width, int height, 
+	GLuint samples, GLuint depthStencilType)
+{
+	assert(samples > 1);
+
+	RenderTargetGL result;
+	glGenFramebuffers(1, &result.frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
+
+	// Generate texture
+	glGenTextures(1, &result.textureBuffer.textureID);
+	const GLuint& textureID = result.textureBuffer.textureID;
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureChannel, width, height, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+	// attach texture to currently bound frame buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
+
+	//create a render buffer for depth and stencil testing
+	glGenRenderbuffers(1, &result.renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, depthStencilType, width, height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach render buffer to the frame buffer
+	if (depthStencilType == GL_DEPTH_COMPONENT)
+	{
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+	}
+	else
+	{
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+	}
+
+	// finally check if all went successfully
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
+	}
+
+	return result;
+}
+
+RenderTargetGL RenderTargetGL::createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType)
+{
+	RenderTargetGL result;
+	glGenFramebuffers(1, &result.frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
+
+	// Generate texture
+	glGenTextures(1, &result.textureBuffer.textureID);
+	const GLuint& textureID = result.textureBuffer.textureID;
+
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, textureChannel, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// clamp is important so that no pixel artifacts occur on the border!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach texture to currently bound frame buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+	//create a render buffer for depth and stencil testing
+	glGenRenderbuffers(1, &result.renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, depthStencilType, width, height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach render buffer to the frame buffer
+	if (depthStencilType == GL_DEPTH_COMPONENT)
+	{
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+	}
+	else
+	{
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+	}
+
+	// finally check if all went successfully
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
+	}
+
+	return result;
+}
+
 GLuint RenderTargetGL::getFrameBuffer()
 {
 	return frameBuffer;
@@ -81,6 +188,16 @@ GLuint RenderTargetGL::getTextureGL()
 Texture* RenderTargetGL::getTexture()
 {
 	return &textureBuffer;
+}
+
+void RenderTargetGL::release()
+{
+	textureBuffer.release();
+	glDeleteFramebuffers(1, &frameBuffer);
+	glDeleteRenderbuffers(1, &renderBuffer);
+
+	frameBuffer = GL_FALSE;
+	renderBuffer = GL_FALSE;
 }
 
 void RenderTargetGL::setFrameBuffer(GLuint newValue)

@@ -1,8 +1,11 @@
 #pragma once
 #include <texture/Texture.hpp>
 #include <glad/glad.h>
+#include <platform/util/Util.hpp>
 
+class RenderTargetGL;
 class RendererOpenGL;
+
 
 class TextureGL : public Texture
 {
@@ -24,6 +27,7 @@ public:
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	friend RenderTargetGL;
 	GLuint textureID;
 };
 
@@ -33,10 +37,19 @@ public:
 	explicit RenderTargetGL();
 	virtual ~RenderTargetGL();
 
+	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
+
+	static RenderTargetGL createMultisampled(GLint textureChannel, int width, int height,
+		GLuint samples, GLuint depthStencilType);
+
+	static RenderTargetGL createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType);
+
 	GLuint getFrameBuffer();
 	GLuint getRenderBuffer();
 	GLuint getTextureGL();
 	Texture* getTexture() override;
+
+	void release();
 
 	void setFrameBuffer(GLuint newValue);
 	void setRenderBuffer(GLuint newValue);

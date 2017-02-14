@@ -27,8 +27,9 @@ using namespace platform;
 //misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
-	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), runtime(0), scene(nullptr), 
-	shadowMap(nullptr), sky(nullptr), skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
+	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
+	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), sky(nullptr), 
+	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -147,10 +148,6 @@ void MainLoopTask::init()
 	frustum.farPlane = 150.0f;
 	camera->setFrustum(move(frustum));
 
-	window->addResizeCallback([&](int width, int height)
-	{
-		camera->setAspectRatio((float)width / (float)height);
-	});
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
 	{
@@ -158,9 +155,14 @@ void MainLoopTask::init()
 		casted->updateOnResize(viewport.width, viewport.height);
 		window->addResizeCallback(cameraResizeCallback);
 	}
-	auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
+	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
+	//window->addResizeCallback(rendererResizeCallback);
 
-	window->addResizeCallback(rendererResizeCallback);
+	window->addResizeCallback([&](int width, int height)
+	{
+		camera->setAspectRatio((float)width / (float)height);
+		renderer->setViewPort(0, 0, width, height);
+	});
 
 	shaderManager->loadShaders();
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
@@ -195,6 +197,9 @@ void MainLoopTask::init()
 
 	shadowMap = renderer->createDepthMap(1024, 1024);
 
+	renderTargetMultisampled = renderer->createRenderTarget(4);
+	renderTargetSingleSampled = renderer->createRenderTarget();
+
 	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 	reflectionShader->setReflectionTexture(sky);
@@ -223,6 +228,9 @@ void MainLoopTask::init()
 	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
 	phongTexShader->setLightDirection(globalLight.getLook());
 	phongTexShader->setPointLightPositions(pointLightPositions);
+
+	Model* spriteModel = modelManager->createSpriteModel(0, 0, 1, 1);
+	screenSprite.reset(spriteModel);
 
 	// init scene
 	scene = createShadowScene();
@@ -291,25 +299,28 @@ void MainLoopTask::run()
 	drawScene(camera.get(), ProjectionMode::Perspective, Shadow);
 
 	// now render scene to a offscreen buffer
-	renderer->useOffscreenBuffer();
+	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
 	drawSky(camera.get(), ProjectionMode::Perspective);
 	drawScene(camera.get(), ProjectionMode::Perspective);
 
-	// finally render the offscreen buffer to a quad and do post processing stuff
-	renderer->useScreenBuffer();
-	renderer->beginScene();
-	renderer->drawOffscreenBuffer();
 
-	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
+	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 
 	//ui->frameUpdate();
 	//Before presenting the scene, antialise it!
 	SMAA* smaa = renderer->getSMAA();
 	smaa->reset();
-	smaa->antialias(renderer->getScreenBuffer());
+	smaa->antialias(renderTargetSingleSampled); // TODO use render target
+
+	// finally render the offscreen buffer to a quad and do post processing stuff
+	renderer->useScreenTarget();
+	renderer->beginScene();
+	renderer->drawOffscreenBuffer();
 
 	window->swapBuffers();
+
+	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
 void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader)

@@ -20,8 +20,8 @@ screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), msaaSamples(1), smaa(n
 {	
 	logClient.setPrefix("[RendererOpenGL]");
 
-	clearRenderTarget(&singleSampledScreenBuffer, false);
-	clearRenderTarget(&multiSampledScreenBuffer, false);
+	//clearRenderTarget(&singleSampledScreenBuffer, false);
+	//clearRenderTarget(&multiSampledScreenBuffer, false);
 
 	RendererOpenGL* renderer = this;
 
@@ -47,10 +47,6 @@ void RendererOpenGL::init()
 	LOG(logClient, Info) << "Initializing...";
 
 	glViewport(xPos, yPos, width, height);
-
-	ModelGL* screenSpritePtr = static_cast<ModelGL*>
-		(ModelManagerGL::get()->createSpriteModel(0.0f, 0.0f, 1.0f, 1.0f));
-	screenSprite.reset(screenSpritePtr);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 	createFrameRenderTargetBuffer(width, height);
@@ -128,6 +124,16 @@ void RendererOpenGL::beginScene()
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
+void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
+{
+	RenderTargetGL* srcGL = dynamic_cast<RenderTargetGL*>(src);
+	RenderTargetGL* destGL = dynamic_cast<RenderTargetGL*>(dest);
+	assert(srcGL && destGL, " RendererOpenGL::blitRenderTargets(RenderTarget*, RenderTarget*): Couldn't cast src and dest to RenderTargetGL objects!");
+	//copy the content from the source buffer to the destination buffered
+	Dimension dim = {xPos, yPos, width, height};
+	srcGL->copyFrom(destGL, dim, dim);
+}
+
 GLint RendererOpenGL::getCurrentRenderTarget() const
 {
 	GLint drawFboId = 0;
@@ -156,7 +162,14 @@ DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 	return &depthMaps.back();
 }
 
-void RendererOpenGL::drawOffscreenBuffer()
+RenderTarget* RendererOpenGL::createRenderTarget(int samples)
+{
+	RenderTargetGL target = createRenderTarget(GL_RGBA, width, height, samples, GL_DEPTH_STENCIL);
+	renderTargets.push_back(move(target));
+	return &renderTargets.back();
+}
+
+/*void RendererOpenGL::drawOffscreenBuffer()
 {
 	ScreenShaderGL* shaderGL = static_cast<ScreenShaderGL*>(
 									ShaderManagerGL::get()->getShader(Screen));
@@ -170,7 +183,7 @@ void RendererOpenGL::drawOffscreenBuffer()
 	{
 		shaderGL->draw(*mesh);
 	}
-}
+}*/
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
 {
@@ -226,11 +239,6 @@ ShaderManager* RendererOpenGL::getShaderManager()
 	return ShaderManagerGL::get();
 }
 
-RenderTarget* RendererOpenGL::getScreenBuffer()
-{
-	return &singleSampledScreenBuffer;
-}
-
 SMAA* RendererOpenGL::getSMAA()
 {
 	return smaa;
@@ -278,7 +286,7 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	glViewport(xPos, yPos, width, height);
 	LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
-	if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
+	//if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
 	// update offscreen buffer texture
 	createFrameRenderTargetBuffer(width, height);
 }
@@ -296,38 +304,21 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	// glBindTexture(GL_TEXTURE_2D, map->getTexture()) // has to be done by client at a later step
 }
 
-void RendererOpenGL::useOffscreenBuffer()
+void RendererOpenGL::useRenderTarget(RenderTarget* target)
 {
-	//glBindFramebuffer(GL_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
+	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
+	assert(targetGL != nullptr, "RendererOpenGL::useRenderTarget(RenderTarget*): Couldn't cast to RenderTargetGL!");
 	glViewport(xPos, yPos, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, multiSampledScreenBuffer.getFrameBuffer());
-	//int color = 0;
-	//float depth = 1.0f;
-	//int stencil = 0;
-	//glClearBufferiv(GL_COLOR, 0, &color);
-	//glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
-	clearFrameBuffer(singleSampledScreenBuffer.getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
+	clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
 }
 
-void RendererOpenGL::useScreenBuffer()
+void RendererOpenGL::useScreenTarget()
 {
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, multiSampledScreenBuffer.frameBuffer);
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.frameBuffer);
-	glViewport(xPos, yPos, width, height);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, multiSampledScreenBuffer.getFrameBuffer());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, singleSampledScreenBuffer.getFrameBuffer());
-
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-	//clearFrameBuffer(singleSampledScreenBuffer.frameBuffer, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
-
-	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//int color = 0;
-	//float depth = 1.0f;
-	//int stencil = 0;
-	//glClearBufferiv(GL_COLOR, 0, &color);
-	//glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+	
+	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
+	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 }
 
@@ -370,12 +361,12 @@ void RendererOpenGL::clearRenderTarget(RenderTargetGL* renderTarget, bool releas
 void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 {
 	// created a screen buffer once before? -> release it
-	clearRenderTarget(&singleSampledScreenBuffer);
-	clearRenderTarget(&multiSampledScreenBuffer);
+	//clearRenderTarget(&singleSampledScreenBuffer);
+	//clearRenderTarget(&multiSampledScreenBuffer);
 
 	//createSingleSampledScreenBuffer(&singleSampledScreenBuffer);
-	singleSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-	multiSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, msaaSamples, GL_DEPTH_STENCIL);
+	//singleSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+	//multiSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, msaaSamples, GL_DEPTH_STENCIL);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -386,70 +377,13 @@ RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int widt
 	assert(samples >= 1);
 
 	RenderTargetGL result;
-	GLuint textureID = GL_FALSE;
-	glGenFramebuffers(1, &result.frameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
 	if (samples > 1)
 	{
-		// Generate texture
-		glGenTextures(1, &result.textureBuffer.textureID);
-		textureID = result.textureBuffer.textureID;
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
-		
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureChannel, width, height, GL_TRUE);
-		
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-		
-		// attach texture to currently bound frame buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
-
-
-		//create a render buffer for depth and stencil testing
-		glGenRenderbuffers(1, &result.renderBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, depthStencilType, width, height);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		result = RenderTargetGL::createMultisampled(textureChannel, width, height, samples, depthStencilType);
 	} else
 	{
-		// Generate texture
-		glGenTextures(1, &result.textureBuffer.textureID);
-		textureID = result.textureBuffer.textureID;
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, textureChannel, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		// clamp is important so that no pixel artifacts occur on the border!
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		// attach texture to currently bound frame buffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
-
-		//create a render buffer for depth and stencil testing
-		glGenRenderbuffers(1, &result.renderBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, depthStencilType, width, height);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	}
-
-	// attach render buffer to the frame buffer
-	if (depthStencilType == GL_DEPTH_COMPONENT)
-	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
-	} else
-	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
-	}
-
-	// finally check if all went successfully
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
+		result = RenderTargetGL::createSingleSampled(textureChannel, width, height, depthStencilType);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -458,12 +392,18 @@ RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int widt
 	return result;
 }
 
-void RendererOpenGL::destroyRenderTarget(RenderTargetGL* renderTarget) const
+void RendererOpenGL::destroyRenderTarget(RenderTarget* target)
 {
-	renderTarget->textureBuffer.release();
-	glDeleteFramebuffers(1, &renderTarget->frameBuffer);
-	glDeleteRenderbuffers(1, &renderTarget->renderBuffer);
+	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
+	assert(targetGL != nullptr, "RendererOpenGL::destroyRenderTarget(RenderTarget*): Cast to RenderTargetGL failed!");
 
-	renderTarget->frameBuffer = GL_FALSE;
-	renderTarget->renderBuffer = GL_FALSE;
+	for (auto it = renderTargets.begin(); it != renderTargets.end(); ++it)
+	{
+		if (&(*it) == targetGL)
+		{
+			targetGL->release();
+			renderTargets.erase(it);
+			break;
+		}
+	}
 }

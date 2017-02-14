@@ -22,7 +22,13 @@ class Renderer3D : public Renderer
 {
 public:
 
+	virtual void blitRenderTargets(RenderTarget* src ,RenderTarget* dest) = 0;
+
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
+
+	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
+
+	virtual void destroyRenderTarget(RenderTarget* target) = 0;
 
 	virtual void enableAlphaBlending(bool enable) = 0;
 
@@ -57,8 +63,6 @@ public:
 	 */
 	virtual ModelManager* getModelManager() = 0;
 
-	virtual RenderTarget* getScreenBuffer() = 0;
-
 	virtual SMAA* getSMAA() = 0;
 
 	virtual void setBackgroundColor(glm::vec3 color) = 0;
@@ -78,16 +82,10 @@ public:
 	 * All draw calls are performed on a offscreen texture.
 	 * The output of all draw calls won't be visible after swapping the window's screen buffer
 	 */
-	virtual void useOffscreenBuffer() = 0;
+	virtual void useRenderTarget(RenderTarget* target) = 0;
 
 	/**
 	 * Draws directly to the screen buffer -> 
 	 */
-	virtual void useScreenBuffer() = 0;
-
-	/**
-	 * Draws the content of the offscreen frame screen buffer to screen
-	 * using a ScreenShader 
-	 */
-	virtual void drawOffscreenBuffer() = 0;
+	virtual void useScreenTarget() = 0;
 };

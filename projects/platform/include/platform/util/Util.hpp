@@ -4,6 +4,13 @@
 #include <platform/util/PointerUtils.hpp>
 #include <platform/util/TimeUtils.hpp>
 
+struct Dimension
+{
+	int xPos;
+	int yPos;
+	int width;
+	int height;
+};
 
 class MemoryWrapper
 {

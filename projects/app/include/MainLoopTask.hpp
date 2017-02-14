@@ -52,6 +52,8 @@ private:
 	Texture* panoramaSky;
 	glm::vec3 pointLightPositions[4];
 	RendererPtr renderer;
+	RenderTarget* renderTargetMultisampled;
+	RenderTarget* renderTargetSingleSampled;
 	float runtime;
 	SceneNode* scene;
 	DepthMap* shadowMap;

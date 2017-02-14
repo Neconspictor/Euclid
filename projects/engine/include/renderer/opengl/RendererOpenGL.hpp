@@ -10,23 +10,24 @@ class SMAA_GL;
 class RendererOpenGL : public Renderer3D
 {
 public:
-
 	RendererOpenGL();
 	
 	virtual ~RendererOpenGL();
 	
 	void beginScene() override;
 
+	void blitRenderTargets(RenderTarget* src, RenderTarget* dest) override;
+
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
 	DepthMap* createDepthMap(int width, int height) override;
 
+	RenderTarget* createRenderTarget(int samples) override;
+
 	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
 		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
 
-	void destroyRenderTarget(RenderTargetGL* renderTarget) const;
-
-	void drawOffscreenBuffer() override;
+	void destroyRenderTarget(RenderTarget* target) override;
 
 	void enableAlphaBlending(bool enable) override;
 
@@ -43,8 +44,6 @@ public:
 	ModelManager* getModelManager() override;
 
 	ShaderManager* getShaderManager() override;
-
-	RenderTarget* getScreenBuffer() override;
 
 	virtual SMAA* getSMAA() override;
 	
@@ -66,9 +65,9 @@ public:
 
 	void useDepthMap(DepthMap* depthMap) override;
 
-	void useOffscreenBuffer() override;
+	void useRenderTarget(RenderTarget* target) override;
 
-	void useScreenBuffer() override;
+	void useScreenTarget() override;
 
 
 	/**
@@ -86,11 +85,12 @@ protected:
 
 	void createFrameRenderTargetBuffer(int width, int height);
 
-	RenderTargetGL singleSampledScreenBuffer;
-	RenderTargetGL multiSampledScreenBuffer;
+	//RenderTargetGL singleSampledScreenBuffer;
+	//RenderTargetGL multiSampledScreenBuffer;
 
 	std::unique_ptr<ModelGL> screenSprite;
 	std::list<DepthMapGL> depthMaps;
+	std::list<RenderTargetGL> renderTargets;
 	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;
 
