@@ -1,11 +1,16 @@
 #pragma once
 #include <drawing/ModelDrawer.hpp>
-#include <memory>
+
+class RendererOpenGL;
 
 class ModelDrawerGL : public ModelDrawer
 {
 public:
+	explicit ModelDrawerGL(RendererOpenGL* renderer);
+
 	virtual ~ModelDrawerGL();
+
+	void draw(Sprite* sprite) override;
 
 	void draw(Vob* vob, Shader* shader, const Shader::TransformData& data) override;
 	
@@ -15,11 +20,6 @@ public:
 
 	void drawWired(Vob* vob, Shader* shader, const Shader::TransformData& data, int lineStrength) override;
 
-	static ModelDrawerGL* get();
-
-protected:
-	ModelDrawerGL();
-
 private:
-	static std::unique_ptr<ModelDrawerGL> ModelDrawerGL::instance;
+	RendererOpenGL* renderer;
 };

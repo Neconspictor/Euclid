@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <shader/Shader.hpp>
 
+class Sprite;
 class Vob;
 class Model;
 
@@ -19,6 +20,11 @@ class ModelDrawer
 {
 public:
 	virtual ~ModelDrawer(){}
+
+	/**
+	 * Draws a sprite onto the screen
+	 */
+	virtual void draw(Sprite* sprite) = 0;
 
 	/**
 	 * Draws the specified model with a given shader onto the screen.

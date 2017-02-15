@@ -3,7 +3,8 @@
 using namespace std;
 using namespace glm;
 
-Sprite::Sprite(int width, int height, vec2 position) : width(width), height(height), screenPosition(position)
+Sprite::Sprite() : relativeHeight(1.0f), 
+    relativeWidth(1.0f), screenPosition({0,0}), texture(nullptr)
 {
 }
 
@@ -11,9 +12,9 @@ Sprite::~Sprite()
 {
 }
 
-int Sprite::getHeight() const
+float Sprite::getHeight() const
 {
-	return height;
+	return relativeHeight;
 }
 
 vec2 Sprite::getPosition() const
@@ -21,14 +22,24 @@ vec2 Sprite::getPosition() const
 	return screenPosition;
 }
 
-int Sprite::getWidth() const
+const vec3& Sprite::getRotation() const
 {
-	return width;
+	return rotation;
 }
 
-void Sprite::setHeight(int height)
+Texture* Sprite::getTexture() const
 {
-	this->height = height;
+	return texture;
+}
+
+float Sprite::getWidth() const
+{
+	return relativeWidth;
+}
+
+void Sprite::setHeight(float height)
+{
+	this->relativeHeight = height;
 }
 
 void Sprite::setPosition(vec2 position)
@@ -36,9 +47,24 @@ void Sprite::setPosition(vec2 position)
 	screenPosition = move(position);
 }
 
-void Sprite::setWidth(int width)
+void Sprite::setXRotation(float value)
 {
-	this->width = width;
+	this->rotation.x = value;
+}
+
+void Sprite::setYRotation(float value)
+{
+	rotation.y = value;
+}
+
+void Sprite::setZRotation(float value)
+{
+	rotation.z = value;
+}
+
+void Sprite::setWidth(float width)
+{
+	this->relativeWidth = width;
 }
 
 void Sprite::setTexture(Texture* texture)

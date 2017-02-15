@@ -1,6 +1,7 @@
 #include <shader/opengl/ScreenShaderGL.hpp>
 #include <glm/glm.hpp>
 #include <mesh/opengl/MeshGL.hpp>
+#include <glm/gtc/type_ptr.inl>
 
 using namespace std;
 using namespace glm;
@@ -17,7 +18,15 @@ ScreenShaderGL::~ScreenShaderGL()
 void ScreenShaderGL::draw(Mesh const& meshOriginal)
 {
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+	
 	use();
+	
+	use();
+	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, frameBuffer);

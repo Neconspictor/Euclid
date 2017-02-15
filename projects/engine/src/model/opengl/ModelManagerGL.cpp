@@ -11,6 +11,10 @@ using namespace glm;
 
 unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>(ModelManagerGL());
 
+ModelManagerGL::ModelManagerGL()
+{
+}
+
 ModelManagerGL::~ModelManagerGL()
 {
 }
@@ -36,46 +40,39 @@ Model* ModelManagerGL::getSkyBox()
 	return dynamic_cast<Model*>(it->second);
 }
 
-Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight)
+Model* ModelManagerGL::getSprite()
 {
-
 	using Vertex = VertexPositionTex;
 
+	auto it = modelTable.find(SPRITE_MODEL_NAME);
+	if (it != modelTable.end())
+	{
+		return dynamic_cast<Model*>(it->second);
+	}
+
 	// create a Quad mesh that fills up the enter screen; screen space range from [-1, 1] in x,y and z axis;
-	// as we want a  2D model, the z axis is ignored/set to 0.0f
+	// as we want a  2D model, the z axis is ignored/set to 1.0f
 	// normal vectors aren't needed, too -> set to 0.0f as well.
 	vector<Vertex> vertices;
 	Vertex vertex;
-
-	// height values grow from top to bottom (screen space: 1.0f to -1.0f)
-	heightWeight = - 2 * heightWeight;
-
-	// width goes from left to right; screen space: -1.0f to 1.0f
-	widthWeight = 2 * widthWeight;
-
-	// xPos goes from left to right; screen space: -1.0f to 1.0f
-	xPos = 2 * xPos - 1.0f;
-
-	// yPos goes from top to bottom; screen space: 1.0f to -1.0f
-	yPos = -2 * yPos + 1.0f;
 	
 	// left upper corner 
-	vertex.position = { xPos,  yPos, 0.0f};
+	vertex.position = { 0.0f,  0.0f, 1.0f};
 	vertex.texCoords = {0.0f, 1.0f};
 	vertices.push_back(vertex);
 
 	// left bottom corner
-	vertex.position = { xPos,  yPos + heightWeight, 0.0f };
+	vertex.position = { 0.0f,  1.0, 1.0f };
 	vertex.texCoords = { 0.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right bottom corner
-	vertex.position = { xPos + widthWeight,  yPos + heightWeight, 0.0f };
+	vertex.position = { 1.0f,  1.0f, 1.0f };
 	vertex.texCoords = { 1.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right upper corner
-	vertex.position = { xPos + widthWeight,  yPos, 0.0f };
+	vertex.position = { 1.0f,  0.0f, 1.0f };
 	vertex.texCoords = { 1.0f, 1.0f };
 	vertices.push_back(vertex);
 
@@ -94,27 +91,36 @@ Model* ModelManagerGL::createSpriteModel(float xPos, float yPos, float widthWeig
 
 	MeshGL mesh = MeshFactoryGL::createPositionUV(vertices.data(), vertices.size(), 
 										indices.data(), indices.size());
-	//models.push_back(ModelGL (vector<MeshGL>{mesh}));
-	return new ModelGL(vector<MeshGL>{mesh});
+
+	models.push_back(ModelGL(vector<MeshGL>{mesh}));
+	ModelGL* result = &models.back();
+	modelTable[SPRITE_MODEL_NAME] = result;
+	return &models.back();
 }
 
 Model* ModelManagerGL::getModel(const string& modelName)
 {
-	if (modelName.compare(SKYBOX_MODEL_NAME) == 0)
+	auto it = modelTable.find(modelName);
+	if (it != modelTable.end())
+	{
+		return dynamic_cast<Model*>(it->second);
+	}
+
+	if (modelName.compare(SPRITE_MODEL_NAME) == 0)
+	{
+		return getSprite();
+	}
+
+	if(modelName.compare(SKYBOX_MODEL_NAME) == 0)
 	{
 		return getSkyBox();
 	}
 
-	auto it = modelTable.find(modelName);
-	if (it == modelTable.end())
-	{
-		models.push_back(assimpLoader.loadModel(modelName));
-		ModelGL* result = &models.back();
-		modelTable[modelName] = result;
-		return &models.back();
-	}
-
-	return dynamic_cast<Model*>(it->second);
+	// else case: assume the model name is a 3d model that can be load from file.
+	models.push_back(assimpLoader.loadModel(modelName));
+	ModelGL* result = &models.back();
+	modelTable[modelName] = result;
+	return &models.back();
 }
 
 
@@ -177,12 +183,8 @@ void ModelManagerGL::loadModels()
 	//AssimpModelLoader::loadModel("");
 }
 
-void ModelManagerGL::useInstances(Model* source, mat4* modelMatrices, unsigned amount)
+void ModelManagerGL::useInstances(Model* source, mat4* modelMatrices, unsigned int amount)
 {
 	ModelGL* model = static_cast<ModelGL*>(source);
 	model->createInstanced(amount, modelMatrices);
-}
-
-ModelManagerGL::ModelManagerGL()
-{
 }

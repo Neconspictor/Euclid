@@ -12,6 +12,7 @@
 #include <platform/WindowSystem.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
+#include <sprite/Sprite.hpp>
 
 class SystemUI;
 
@@ -56,6 +57,7 @@ private:
 	RenderTarget* renderTargetSingleSampled;
 	float runtime;
 	SceneNode* scene;
+	Sprite screenSprite;
 	DepthMap* shadowMap;
 	CubeMap* sky;
 	Vob skyBox;

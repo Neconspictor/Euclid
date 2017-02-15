@@ -162,6 +162,10 @@ void MainLoopTask::init()
 	{
 		camera->setAspectRatio((float)width / (float)height);
 		renderer->setViewPort(0, 0, width, height);
+		renderer->destroyRenderTarget(renderTargetMultisampled);
+		renderer->destroyRenderTarget(renderTargetSingleSampled);
+		renderTargetMultisampled = renderer->createRenderTarget(4);
+		renderTargetSingleSampled = renderer->createRenderTarget(1);
 	});
 
 	shaderManager->loadShaders();
@@ -229,8 +233,25 @@ void MainLoopTask::init()
 	phongTexShader->setLightDirection(globalLight.getLook());
 	phongTexShader->setPointLightPositions(pointLightPositions);
 
-	Model* spriteModel = modelManager->createSpriteModel(0, 0, 1, 1);
-	screenSprite.reset(spriteModel);
+	vec2 dim = {0.8, 0.8};
+	vec2 pos = {0, 0};
+
+	// center
+	pos.x = 0.5f * (1.0f - dim.x);
+	pos.y = 0.5f * (1.0f - dim.y);
+
+	// align to bottom corner
+	//pos.x = 1.0f - dim.x;
+	//pos.y = 1.0f - dim.y;
+
+	//align to top right corner
+	//pos.x = 1.0f - dim.x;
+	//pos.y = 0;
+
+	screenSprite.setPosition(pos);
+	screenSprite.setWidth(dim.x);
+	screenSprite.setHeight(dim.y);
+	//screenSprite.setZRotation(radians(45.0f));
 
 	// init scene
 	scene = createShadowScene();
@@ -246,6 +267,8 @@ static float frameTimeElapsed = 0;
 void MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	Shader* screenShader = renderer->getShaderManager()->getShader(Screen);
 
 	using namespace chrono;
 	
@@ -311,12 +334,14 @@ void MainLoopTask::run()
 	//Before presenting the scene, antialise it!
 	SMAA* smaa = renderer->getSMAA();
 	smaa->reset();
-	smaa->antialias(renderTargetSingleSampled); // TODO use render target
+	//smaa->antialias(renderTargetSingleSampled); // TODO use render target
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
 	renderer->beginScene();
-	renderer->drawOffscreenBuffer();
+	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	modelDrawer->draw(&screenSprite);
+	renderer->endScene();
 
 	window->swapBuffers();
 

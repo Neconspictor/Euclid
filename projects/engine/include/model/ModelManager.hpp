@@ -13,13 +13,14 @@ class ModelManager
 public:
 
 	static const char* SKYBOX_MODEL_NAME;
+	static const char* SPRITE_MODEL_NAME;
 
 	ModelManager(){};
 	virtual ~ModelManager(){}
 
 	virtual Model* getSkyBox() = 0;
 
-	virtual Model* createSpriteModel(float xPos, float yPos, float widthWeight, float heightWeight) = 0;
+	virtual Model* getSprite() = 0;
 	/*
 	 * Provides read acces to a cube that has position, normal and texture coordinates.
 	 */

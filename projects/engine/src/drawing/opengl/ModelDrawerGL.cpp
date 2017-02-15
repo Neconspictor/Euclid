@@ -10,18 +10,66 @@
 #include <shader/SimpleExtrudeShader.hpp>
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
 #include <model/opengl/ModelManagerGL.hpp>
+#include <renderer/opengl/RendererOpenGL.hpp>
+#include <sprite/Sprite.hpp>
+#include <shader/ScreenShader.hpp>
+#include <shader/opengl/ScreenShaderGL.hpp>
 
 using namespace glm;
 using namespace std;
 
-unique_ptr<ModelDrawerGL> ModelDrawerGL::instance = make_unique<ModelDrawerGL>(ModelDrawerGL());
-
-ModelDrawerGL::ModelDrawerGL()
+ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
 {
+	assert(renderer != nullptr, "ModelDrawerGL::ModelDrawerGL(RendererOpenGL*): Renderer has to be != null!");
 }
 
 ModelDrawerGL::~ModelDrawerGL()
 {
+}
+
+void ModelDrawerGL::draw(Sprite* sprite)
+{
+	ScreenShaderGL* shader = static_cast<ScreenShaderGL*>(
+		ShaderManagerGL::get()->getShader(Screen));
+	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME);
+	TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
+
+	assert(texture, "ModelDrawerGL::draw(Sprite*): Texture of sprite isn't a TextureGL object!");
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	mat4 projection = ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+	mat4 view = mat4(); // just use identity matrix
+	mat4 model = mat4();
+	vec2 spriteOrigin(0.5f * sprite->getWidth(), 0.5f * sprite->getHeight());
+	vec3 rotation = sprite->getRotation();
+	vec3 translation = vec3(sprite->getPosition(), 0.0f);
+	vec3 scaling = vec3(sprite->getWidth(), sprite->getHeight(), 1.0f);
+
+	// Matrix application order is scale->rotate->translate
+	// But as multiplication is resolved from right to left the order is reversed
+	// to translate->rotate->scale
+
+	// first translation
+	model = translate(model, translation);
+
+	// rotate around origin
+	model = translate(model, vec3(spriteOrigin, 0.0f));
+	model = rotate(model, rotation.z, vec3(0,0,1)); // rotate around z-axis
+	model = rotate(model, rotation.y, vec3(0,1,0)); // rotate around y-axis
+	model = rotate(model, rotation.x, vec3(1,0,0)); // rotate around x-axis
+	model = translate(model, vec3(-spriteOrigin, 0.0f));
+	
+
+	// finally scale
+	model = scale(model, scaling);
+
+	Shader::TransformData data = {&projection, &view, &model};
+	shader->setTransformData(data);
+	shader->setOffscreenBuffer(texture->getTexture());
+	for (Mesh* mesh : spriteModel->getMeshes())
+	{
+		shader->draw(*mesh);
+	}
 }
 
 void ModelDrawerGL::draw(Vob* vob, Shader* shader, const Shader::TransformData& data)
@@ -114,9 +162,4 @@ void ModelDrawerGL::drawWired(Vob* vob, Shader* shader, const Shader::TransformD
 	{
 		shader->draw(*mesh);
 	}
-}
-
-ModelDrawerGL* ModelDrawerGL::get()
-{
-	return instance.get();
 }

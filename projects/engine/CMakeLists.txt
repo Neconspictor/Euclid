@@ -100,8 +100,6 @@ set(
     
     #sprite
     include/sprite/Sprite.hpp
-    #sprite/opengl
-    include/sprite/opengl/SpriteGL.hpp
  
     #system
     include/system/Configuration.hpp
@@ -196,8 +194,6 @@ set(
     
     #sprite
     src/sprite/Sprite.cpp
-    #sprite/opengl
-    src/sprite/opengl/SpriteGL.cpp
     
     #system
     src/system/Configuration.cpp

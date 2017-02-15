@@ -16,7 +16,8 @@ using namespace platform;
 using namespace glm;
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
-screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), msaaSamples(1), smaa(nullptr)
+  screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
+  msaaSamples(1), smaa(nullptr)
 {	
 	logClient.setPrefix("[RendererOpenGL]");
 
@@ -131,7 +132,7 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 	assert(srcGL && destGL, " RendererOpenGL::blitRenderTargets(RenderTarget*, RenderTarget*): Couldn't cast src and dest to RenderTargetGL objects!");
 	//copy the content from the source buffer to the destination buffered
 	Dimension dim = {xPos, yPos, width, height};
-	srcGL->copyFrom(destGL, dim, dim);
+	destGL->copyFrom(srcGL, dim, dim);
 }
 
 GLint RendererOpenGL::getCurrentRenderTarget() const
@@ -168,22 +169,6 @@ RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 	renderTargets.push_back(move(target));
 	return &renderTargets.back();
 }
-
-/*void RendererOpenGL::drawOffscreenBuffer()
-{
-	ScreenShaderGL* shaderGL = static_cast<ScreenShaderGL*>(
-									ShaderManagerGL::get()->getShader(Screen));
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	//glLineWidth(3);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
-	shaderGL->setOffscreenBuffer(singleSampledScreenBuffer.getTextureGL());
-	for (Mesh* mesh : screenSprite->getMeshes())
-	{
-		shaderGL->draw(*mesh);
-	}
-}*/
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
 {
@@ -226,7 +211,7 @@ void RendererOpenGL::endScene()
 
 ModelDrawer* RendererOpenGL::getModelDrawer()
 {
-	return ModelDrawerGL::get();
+	return &modelDrawer;
 }
 
 ModelManager* RendererOpenGL::getModelManager()

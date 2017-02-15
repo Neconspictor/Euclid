@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <model/opengl/ModelGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
+#include <drawing/opengl/ModelDrawerGL.hpp>
 
 class SMAA_GL;
 
@@ -85,11 +86,9 @@ protected:
 
 	void createFrameRenderTargetBuffer(int width, int height);
 
-	//RenderTargetGL singleSampledScreenBuffer;
-	//RenderTargetGL multiSampledScreenBuffer;
-
 	std::unique_ptr<ModelGL> screenSprite;
 	std::list<DepthMapGL> depthMaps;
+	ModelDrawerGL modelDrawer;
 	std::list<RenderTargetGL> renderTargets;
 	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;

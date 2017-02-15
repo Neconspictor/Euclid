@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/detail/type_vec2.hpp>
-#include <model/Model.hpp>
 #include <texture/Texture.hpp>
+#include <glm/detail/type_vec3.hpp>
 
 /**
  * A sprite is a 2D image texture that is drawn onto the screen.
@@ -10,24 +10,27 @@
 class Sprite
 {
 public:
-	Sprite(int width, int height, glm::vec2 position);
+	Sprite();
 	virtual ~Sprite();
 
-	int getHeight() const;
+	float getHeight() const;
 	glm::vec2 getPosition() const;
-	int getWidth() const;
+	const glm::vec3& getRotation() const;
+	Texture* getTexture() const;
+	float getWidth() const;
 
-	void setHeight(int height);
+	void setHeight(float height);
 	void setPosition(glm::vec2 position);
-	void setWidth(int width);
-
-	virtual void draw() = 0;
-
+	void setXRotation(float value);
+	void setYRotation(float value);
+	void setZRotation(float value);
 	void setTexture(Texture* texture);
+	void setWidth(float width);
 
 protected:
-	int width;
-	int height;
+	float relativeHeight;
+	float relativeWidth;
+	glm::vec3 rotation;
 	glm::vec2 screenPosition;
 	Texture* texture;
 };
