@@ -14,6 +14,7 @@
 #include <shader/opengl/SimpleReflectionShaderGL.hpp>
 #include <shader/opengl/NormalsShaderGL.hpp>
 #include <shader/opengl/ShadowShaderGL.hpp>
+#include <shader/opengl/DepthMapShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -29,7 +30,7 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
-Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
+Shader* ShaderManagerGL::getShader(Shaders shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
@@ -43,20 +44,22 @@ Shader* ShaderManagerGL::getShader(ShaderEnum shaderEnum)
 
 void ShaderManagerGL::loadShaders()
 {
-	createShader(BlinnPhongTex);
-	createShader(Lamp);
-	createShader(Normals);
-	createShader(Phong);
-	createShader(PhongTex);
-	createShader(Playground);
-	createShader(Shadow);
-	createShader(SimpleColor);
-	createShader(SimpleExtrude);
-	createShader(SimpleLight);
-	createShader(SimpleReflection);
-	createShader(Screen);
-	createShader(SkyBox);
-	createShader(SkyBoxPanorama);
+	using s = Shaders;
+	createShader(s::BlinnPhongTex);
+	createShader(s::DepthMap);
+	createShader(s::Lamp);
+	createShader(s::Normals);
+	createShader(s::Phong);
+	createShader(s::PhongTex);
+	createShader(s::Playground);
+	createShader(s::Shadow);
+	createShader(s::SimpleColor);
+	createShader(s::SimpleExtrude);
+	createShader(s::SimpleLight);
+	createShader(s::SimpleReflection);
+	createShader(s::Screen);
+	createShader(s::SkyBox);
+	createShader(s::SkyBoxPanorama);
 }
 
 void ShaderManagerGL::validateShader(Shader* shader)
@@ -72,73 +75,78 @@ ShaderManagerGL* ShaderManagerGL::get()
 	return instance.get();
 }
 
-Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
+Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 {
+	using s = Shaders;
 	shared_ptr<Shader> shaderPtr;
 	switch(shaderEnum)
 	{
-	case BlinnPhongTex: {
+	case s::BlinnPhongTex: {
 		shaderPtr = make_shared<PhongTexShaderGL>("blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
 			"blinn_phong_tex_mult_lights_vs_Instanced.glsl");
 		break;
 	}
-	case Lamp: {
+	case s::DepthMap: {
+		shaderPtr = make_shared<DepthMapShaderGL>("depth_map_vs.glsl", "depth_map_fs.glsl");
+		break;
+	}
+	case s::Lamp: {
 		shaderPtr = make_shared<LampShaderGL>("lamp_vs.glsl", "lamp_fs.glsl");
 		break;
 	}
-	case Normals: {
+	case s::Normals: {
 		shaderPtr = make_shared<NormalsShaderGL>("normals_vs.glsl", "normals_fs.glsl", "normals_gs.glsl");
 		break;
 	}
-	case Phong: {
+	case s::Phong: {
 		shaderPtr = make_shared<PhongShaderGL>("phong_vs.glsl", "phong_fs.glsl");
 		break;
 	}
-	case PhongTex: {
+	case s::PhongTex: {
 		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_mult_lights_vs.glsl", "phong_tex_mult_lights_fs.glsl", 
 			"phong_tex_mult_lights_vs_Instanced.glsl");
 		break;
 	}
-	case Playground: {
+	case s::Playground: {
 		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl", "playground_gs.glsl");
 		break;
 	}
-	case Shadow: {
+	case s::Shadow: {
 		shaderPtr = make_shared<ShadowShaderGL>
 			("shadow_vs.glsl", "shadow_fs.glsl");
 		break;
 	}
-	case SimpleColor: {
+	case s::SimpleColor: {
 		shaderPtr = make_shared<SimpleColorShaderGL>
 			("simpleColor_vs.glsl", "simpleColor_fs.glsl");
 		break;
 	}
-	case SimpleExtrude: {
+	case s::SimpleExtrude: {
 		shaderPtr = make_shared<SimpleExtrudeShaderGL>
 			("simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
 		break;
 	}
-	case SimpleLight: {
+	case s::SimpleLight: {
 		shaderPtr = make_shared<SimpleLightShaderGL>
 			("simpleLight_vs.glsl", "simpleLight_fs.glsl");
 		break;
 	}
-	case SimpleReflection: {
+	case s::SimpleReflection: {
 		shaderPtr = make_shared<SimpleReflectionShaderGL>
 			("simpleReflection_vs.glsl", "simpleReflection_fs.glsl");
 		break;
 	}
-	case Screen: {
+	case s::Screen: {
 		shaderPtr = make_shared<ScreenShaderGL>
 			("screen_vs.glsl", "screen_fs.glsl");
 		break;
 	}
-	case SkyBox: {
+	case s::SkyBox: {
 		shaderPtr = make_shared<SkyBoxShaderGL>
 			("skybox_vs.glsl", "skybox_fs.glsl");
 		break;
 	}
-	case SkyBoxPanorama: {
+	case s::SkyBoxPanorama: {
 		shaderPtr = make_shared<PanoramaSkyBoxShaderGL>
 			("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
 		break;
@@ -148,7 +156,6 @@ Shader* ShaderManagerGL::createShader(ShaderEnum shaderEnum)
 		ss << BOOST_CURRENT_FUNCTION << " : couldn't create shader for: " << shaderEnum;
 		throw ShaderInitException(ss.str());
 	}
-
 	}
 	
 	Shader* result = shaderPtr.get();

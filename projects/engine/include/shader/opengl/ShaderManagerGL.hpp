@@ -11,7 +11,7 @@ class ShaderManagerGL : public ShaderManager
 {
 public:
 	virtual ~ShaderManagerGL() override;
-	virtual Shader* getShader(ShaderEnum shader) override;
+	virtual Shader* getShader(Shaders shader) override;
 	virtual void loadShaders() override;
 	virtual void validateShader(Shader* shader) override;
 	/**
@@ -20,7 +20,7 @@ public:
 	static ShaderManagerGL* get();
 
 private:
-	std::map<ShaderEnum, std::shared_ptr<Shader>> shaderMap;
+	std::map<Shaders, std::shared_ptr<Shader>> shaderMap;
 	platform::LoggingClient logClient;
 
 	// this class is a singleton, thus private constructor
@@ -32,7 +32,7 @@ private:
 	 *
 	 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
 	 */
-	Shader* createShader(ShaderEnum shaderEnum);
+	Shader* createShader(Shaders shaderEnum);
 
 	static std::unique_ptr<ShaderManagerGL> instance;
 };

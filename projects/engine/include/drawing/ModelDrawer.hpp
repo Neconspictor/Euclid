@@ -24,7 +24,7 @@ public:
 	/**
 	 * Draws a sprite onto the screen
 	 */
-	virtual void draw(Sprite* sprite) = 0;
+	virtual void draw(Sprite* sprite, Shader* shader) = 0;
 
 	/**
 	 * Draws the specified model with a given shader onto the screen.

@@ -4,9 +4,10 @@
 /**
 * Enumerates all shaders that can be used for shading models.
 */
-enum ShaderEnum
+enum class Shaders
 {
 	BlinnPhongTex = 0,
+	DepthMap,
 	Lamp,
 	Normals,
 	Phong,
@@ -25,21 +26,22 @@ enum ShaderEnum
 /**
 * Maps shader enumerations to a string representation.
 */
-const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
-	{BlinnPhongTex, "BLINN_PHONG_TEX" },
-	{Lamp, "LAMP"},
-	{Normals, "NORMALS" },
-	{Phong, "PHONG"},
-	{PhongTex, "PHONG_TEX"},
-	{Playground, "PLAYGROUND"},
-	{Shadow, "SHADOW" },
-	{SimpleColor, "SIMPLE_COLOR"},
-	{SimpleExtrude, "SIMPLE_EXTRUDE"},
-	{SimpleLight, "SIMPLE_LIGHT"},
-	{SimpleReflection, "SIMPLE_REFLECTION"},
-	{Screen, "SCREEN"},
-	{SkyBox, "SKY_BOX"},
-	{SkyBoxPanorama, "SKY_BOX_PANORAMA" }
+const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
+	{Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
+	{Shaders::DepthMap, "DEPTH_MAP"},
+	{Shaders::Lamp, "LAMP"},
+	{Shaders::Normals, "NORMALS" },
+	{Shaders::Phong, "PHONG"},
+	{Shaders::PhongTex, "PHONG_TEX"},
+	{Shaders::Playground, "PLAYGROUND"},
+	{Shaders::Shadow, "SHADOW" },
+	{Shaders::SimpleColor, "SIMPLE_COLOR"},
+	{Shaders::SimpleExtrude, "SIMPLE_EXTRUDE"},
+	{Shaders::SimpleLight, "SIMPLE_LIGHT"},
+	{Shaders::SimpleReflection, "SIMPLE_REFLECTION"},
+	{Shaders::Screen, "SCREEN"},
+	{Shaders::SkyBox, "SKY_BOX"},
+	{Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" }
 };
 
 	/**
@@ -50,7 +52,7 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	* ATTENTION: If the string couldn't be mapped, a EnumFormatException
 	* will be thrown.
 	*/
-	static ShaderEnum stringToShaderEnum(const std::string& str)
+	static Shaders stringToShaderEnum(const std::string& str)
 	{
 		return stringToEnum(str, shaderEnumConversion);
 	}
@@ -58,4 +60,4 @@ const static platform::util::EnumString<ShaderEnum> shaderEnumConversion[] = {
 	/**
 	* Puts a string representation of a shader enum to an output stream.
 	*/
-	std::ostream& operator<<(std::ostream& os, ShaderEnum shader);
+	std::ostream& operator<<(std::ostream& os, Shaders shader);

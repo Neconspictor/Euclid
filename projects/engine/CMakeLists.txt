@@ -60,6 +60,7 @@ set(
     include/renderer/opengl/RendererOpenGL.hpp
     
     #shader
+		include/shader/DepthMapShader.hpp
     include/shader/LampShader.hpp
     include/shader/NormalsShader.hpp
     include/shader/PhongShader.hpp
@@ -76,6 +77,7 @@ set(
     include/shader/SimpleReflectionShader.hpp
     include/shader/SkyBoxShader.hpp
     #shader/opengl
+		include/shader/opengl/DepthMapShaderGL.hpp
     include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/NormalsShaderGL.hpp
     include/shader/opengl/PhongShaderGL.hpp
@@ -174,6 +176,7 @@ set(
     #shader
     src/shader/ShaderEnum.cpp
     #shader/opengl
+		src/shader/opengl/DepthMapShader.cpp
     src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/NormalsShaderGL.cpp
     src/shader/opengl/PhongShaderGL.cpp

@@ -16,7 +16,7 @@ public:
 	 * NOTE: A ShaderInitException can be thrown if the specified has to be created but 
 	 * an error occured during initialization.
 	 */
-	virtual Shader* getShader(ShaderEnum shader) = 0;
+	virtual Shader* getShader(Shaders shader) = 0;
 
 	/**
 	 * Loads all shaders.

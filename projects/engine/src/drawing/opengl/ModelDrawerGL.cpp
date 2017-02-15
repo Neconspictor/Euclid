@@ -12,8 +12,6 @@
 #include <model/opengl/ModelManagerGL.hpp>
 #include <renderer/opengl/RendererOpenGL.hpp>
 #include <sprite/Sprite.hpp>
-#include <shader/ScreenShader.hpp>
-#include <shader/opengl/ScreenShaderGL.hpp>
 
 using namespace glm;
 using namespace std;
@@ -27,10 +25,8 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite* sprite)
+void ModelDrawerGL::draw(Sprite* sprite, Shader* shader)
 {
-	ScreenShaderGL* shader = static_cast<ScreenShaderGL*>(
-		ShaderManagerGL::get()->getShader(Screen));
 	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME);
 	TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
@@ -65,7 +61,7 @@ void ModelDrawerGL::draw(Sprite* sprite)
 
 	Shader::TransformData data = {&projection, &view, &model};
 	shader->setTransformData(data);
-	shader->setOffscreenBuffer(texture->getTexture());
+	//shader->setOffscreenBuffer(texture->getTexture());
 	for (Mesh* mesh : spriteModel->getMeshes())
 	{
 		shader->draw(*mesh);
@@ -130,7 +126,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::Transfo
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
 	SimpleExtrudeShader* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
-										(ShaderManagerGL::get()->getShader(SimpleExtrude));
+										(ShaderManagerGL::get()->getShader(Shaders::SimpleExtrude));
 	
 	simpleExtrude->setObjectColor(borderColor);
 	simpleExtrude->setExtrudeValue(0.05f);

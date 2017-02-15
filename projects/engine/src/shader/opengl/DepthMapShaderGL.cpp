@@ -1,34 +1,33 @@
-#include <shader/opengl/ScreenShaderGL.hpp>
+#include <shader/opengl/DepthMapShaderGL.hpp>
 #include <glm/glm.hpp>
 #include <mesh/opengl/MeshGL.hpp>
-#include <glm/gtc/type_ptr.inl>
+#include <glm/gtc/type_ptr.hpp>
 
-using namespace std;
 using namespace glm;
 
-ScreenShaderGL::ScreenShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
-	ScreenShader(), ShaderGL(vertexShaderFile, fragmentShaderFile), texture(nullptr)
+DepthMapShaderGL::DepthMapShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
+	ShaderGL(vertexShaderFile, fragmentShaderFile), DepthMapShader(), texture(nullptr)
 {
 }
 
-ScreenShaderGL::~ScreenShaderGL()
+DepthMapShaderGL::~DepthMapShaderGL()
 {
 }
 
-void ScreenShaderGL::draw(Mesh const& meshOriginal)
+void DepthMapShaderGL::draw(Mesh const& meshOriginal)
 {
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
-	
+
 	use();
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture->getTexture());
-	glUniform1i(glGetUniformLocation(getProgramID(), "screenTexture"), 0);
+	glUniform1i(glGetUniformLocation(getProgramID(), "depthMap"), 0);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
@@ -36,22 +35,22 @@ void ScreenShaderGL::draw(Mesh const& meshOriginal)
 	glBindVertexArray(0);
 }
 
-void ScreenShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+void DepthMapShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
 {
 }
 
-void ScreenShaderGL::release()
+void DepthMapShaderGL::release()
 {
 	ShaderGL::release();
 }
 
-void ScreenShaderGL::use()
+void DepthMapShaderGL::use()
 {
 	ShaderGL::use();
 }
 
-void ScreenShaderGL::useTexture(Texture* texture)
+void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
-	assert(this->texture, "ScreenShaderGL::useTexture(Texture*): Couldn't convert to TextureGL!");
+	assert(this->texture, "DepthMapShaderGL::useDepthMapTexture(Texture* texture): Couldn't convert to TextureGL object!");
 }

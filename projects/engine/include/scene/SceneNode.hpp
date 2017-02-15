@@ -33,7 +33,7 @@ public:
 	void setVob(Vob* vob);
 
 	void setDrawingType(DrawingTypes type);
-	void setShader(ShaderEnum type);
+	void setShader(Shaders type);
 
 	const glm::mat4& getWorldTrafo() const;
 	const glm::mat4& getLocalTrafo() const;
@@ -45,6 +45,6 @@ protected:
 	glm::mat4 localTrafo;
 	std::vector<SceneNode*> childs;
 	DrawingTypes drawingType;
-	ShaderEnum shaderType;
+	Shaders shaderType;
 	int instanceCount;
 };

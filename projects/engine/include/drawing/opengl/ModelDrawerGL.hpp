@@ -10,7 +10,7 @@ public:
 
 	virtual ~ModelDrawerGL();
 
-	void draw(Sprite* sprite) override;
+	void draw(Sprite* sprite, Shader* shader) override;
 
 	void draw(Vob* vob, Shader* shader, const Shader::TransformData& data) override;
 	

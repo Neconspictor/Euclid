@@ -69,7 +69,7 @@ private:
 
 	void drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader = nullptr);
 
-	void drawScene(Projectional* projectional, ProjectionMode mode, ShaderEnum shaderType);
+	void drawScene(Projectional* projectional, ProjectionMode mode, Shaders shaderType);
 
 	void drawSky(Projectional* projectional, ProjectionMode mode);
 

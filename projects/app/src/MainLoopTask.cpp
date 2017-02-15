@@ -18,6 +18,8 @@
 #include <shader/SimpleReflectionShader.hpp>
 #include <platform/SystemUI.hpp>
 #include <scene/SceneNode.hpp>
+#include <shader/DepthMapShader.hpp>
+#include <shader/ScreenShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -170,7 +172,7 @@ void MainLoopTask::init()
 
 	shaderManager->loadShaders();
 	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
-		(shaderManager->getShader(Playground));
+		(shaderManager->getShader(Shaders::Playground));
 	playground->setTexture1("gun_d.png");
 	playground->setTexture2("container.png");
 
@@ -188,16 +190,16 @@ void MainLoopTask::init()
 	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { true, true, Bilinear, Bilinear, ClampToEdge });
 	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(shaderManager->getShader(SkyBox));
+		(shaderManager->getShader(Shaders::SkyBox));
 
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(shaderManager->getShader(SkyBoxPanorama));
+		(shaderManager->getShader(Shaders::SkyBoxPanorama));
 
 	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
-		(shaderManager->getShader(SimpleReflection));
+		(shaderManager->getShader(Shaders::SimpleReflection));
 
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(shaderManager->getShader(BlinnPhongTex));
+		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
 	shadowMap = renderer->createDepthMap(1024, 1024);
 
@@ -227,7 +229,7 @@ void MainLoopTask::init()
 
 	// init shaders
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(BlinnPhongTex));
+		(renderer->getShaderManager()->getShader(Shaders::BlinnPhongTex));
 
 	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
 	phongTexShader->setLightDirection(globalLight.getLook());
@@ -268,7 +270,10 @@ void MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	Shader* screenShader = renderer->getShaderManager()->getShader(Screen);
+	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
+		renderer->getShaderManager()->getShader(Shaders::Screen));
+	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
+		renderer->getShaderManager()->getShader(Shaders::DepthMap));
 
 	using namespace chrono;
 	
@@ -319,7 +324,7 @@ void MainLoopTask::run()
 	// render shadows to a depth map
 	renderer->useDepthMap(shadowMap);
 	renderer->beginScene();
-	drawScene(camera.get(), ProjectionMode::Perspective, Shadow);
+	drawScene(&globalLight, ProjectionMode::Orthographic, Shaders::Shadow);
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
@@ -340,7 +345,9 @@ void MainLoopTask::run()
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
-	modelDrawer->draw(&screenSprite);
+	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
+	screenShader->useTexture(screenSprite.getTexture());
+	modelDrawer->draw(&screenSprite, depthMapShader);
 	renderer->endScene();
 
 	window->swapBuffers();
@@ -361,7 +368,7 @@ void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Sh
 	renderer->endScene();
 }
 
-void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, ShaderEnum shaderType)
+void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Shaders shaderType)
 {
 	Shader* shader = renderer->getShaderManager()->getShader(shaderType);
 	drawScene(projectional, mode, shader);
@@ -370,7 +377,7 @@ void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Sh
 void MainLoopTask::drawSky(Projectional* projectional, ProjectionMode mode)
 {
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(renderer->getShaderManager()->getShader(SkyBoxPanorama));
+		(renderer->getShaderManager()->getShader(Shaders::SkyBoxPanorama));
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	const mat4& view = projectional->getView();

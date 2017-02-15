@@ -1,6 +1,6 @@
 #include <scene/SceneNode.hpp>
 
-SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), shaderType(BlinnPhongTex), instanceCount(0)
+SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), shaderType(Shaders::BlinnPhongTex), instanceCount(0)
 {
 }
 
@@ -145,7 +145,7 @@ void SceneNode::setDrawingType(DrawingTypes type)
 	drawingType = type;
 }
 
-void SceneNode::setShader(ShaderEnum type)
+void SceneNode::setShader(Shaders type)
 {
 	shaderType = type;
 }
