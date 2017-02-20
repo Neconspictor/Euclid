@@ -66,6 +66,8 @@ public:
 
 	void setViewPort(int x, int y, int width, int height) override;
 
+	void useCubeDepthMap(CubeDepthMap* cubeDepthMap) override;
+
 	void useDepthMap(DepthMap* depthMap) override;
 
 	void useRenderTarget(RenderTarget* target) override;

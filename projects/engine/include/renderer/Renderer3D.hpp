@@ -79,6 +79,8 @@ public:
 	 */
 	virtual void setMSAASamples(unsigned int samples) = 0;
 
+	virtual void useCubeDepthMap(CubeDepthMap* cubeDepthMap) = 0;
+
 	/** 
 	 * All draw calls are performed on a depth map texture.
 	 * As a result only depth (z-value) information are written.

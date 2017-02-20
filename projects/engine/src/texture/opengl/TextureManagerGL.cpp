@@ -170,11 +170,6 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 
 	string path = ::util::globals::TEXTURE_PATH + file;
 
-	int width, height, channels;
-	//unsigned char* image = SOIL_load_image(path.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-
-
-
 	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, 
 		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) /*| SOIL_FLAG_INVERT_Y*/);
 

@@ -53,6 +53,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::PhongTex);
 	createShader(s::Playground);
 	createShader(s::Shadow);
+	createShader(s::ShadowPoint);
 	createShader(s::SimpleColor);
 	createShader(s::SimpleExtrude);
 	createShader(s::SimpleLight);
@@ -114,6 +115,11 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::Shadow: {
 		shaderPtr = make_shared<ShadowShaderGL>
 			("shadow_vs.glsl", "shadow_fs.glsl");
+		break;
+	}
+	case s::ShadowPoint: {
+		shaderPtr = make_shared<PointShadowShaderGL>
+			("shadow_point_vs.glsl", "shadow_point_fs.glsl", "shadow_point_gs.glsl");
 		break;
 	}
 	case s::SimpleColor: {

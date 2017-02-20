@@ -16,3 +16,19 @@ public:
 protected:
 	glm::vec3 color;
 };
+
+class PointLight : public Projectional
+{
+public:
+	PointLight();
+	virtual ~PointLight();
+
+	const glm::mat4* getMatrices() const;
+
+	float getRange() const;
+
+protected:
+	glm::mat4 shadowMatrices[6];
+
+	void update() override;
+};

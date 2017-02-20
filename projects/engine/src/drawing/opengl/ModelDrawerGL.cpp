@@ -18,7 +18,7 @@ using namespace std;
 
 ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
 {
-	assert(renderer != nullptr, "ModelDrawerGL::ModelDrawerGL(RendererOpenGL*): Renderer has to be != null!");
+	assert(renderer != nullptr);
 }
 
 ModelDrawerGL::~ModelDrawerGL()
@@ -30,7 +30,7 @@ void ModelDrawerGL::draw(Sprite* sprite, Shader* shader)
 	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME);
 	TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
-	assert(texture, "ModelDrawerGL::draw(Sprite*): Texture of sprite isn't a TextureGL object!");
+	assert(texture);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	mat4 projection = ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);

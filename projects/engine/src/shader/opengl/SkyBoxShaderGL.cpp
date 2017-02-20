@@ -123,7 +123,7 @@ void PanoramaSkyBoxShaderGL::release()
 void PanoramaSkyBoxShaderGL::setSkyTexture(Texture* tex)
 {
 	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
-	assert(texGL != nullptr, "PanoramaSkyBoxShaderGL::setSkyTexture(Texture*): Texture isn't a TextureGL object!");
+	assert(texGL != nullptr);
 	skyTexture = texGL;
 }
 

@@ -9,6 +9,7 @@ class RendererOpenGL;
 class CubeMapGL : public CubeMap
 {
 public:
+	explicit CubeMapGL();
 	CubeMapGL(GLuint cubeMap);
 	CubeMapGL(const CubeMapGL& other);
 	CubeMapGL(CubeMapGL&& other);
@@ -79,6 +80,30 @@ protected:
 	GLuint frameBuffer;
 	TextureGL textureBuffer;
 	GLuint renderBuffer;
+};
+
+class CubeDepthMapGL : public CubeDepthMap
+{
+public:
+	explicit CubeDepthMapGL(int width, int height);
+	CubeDepthMapGL(const CubeDepthMapGL& other);
+	CubeDepthMapGL(CubeDepthMapGL&& other);
+
+	CubeDepthMapGL& operator=(const CubeDepthMapGL& other);
+	CubeDepthMapGL& operator=(CubeDepthMapGL&& other);
+
+	virtual ~CubeDepthMapGL();
+
+	GLuint getCubeMap() const;
+	CubeMap* getCubeMap() override;
+	GLuint getFramebuffer() const;
+
+	void release();
+
+private:
+	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	CubeMapGL cubeMap;
+	GLuint frameBuffer;
 };
 
 class DepthMapGL : public DepthMap

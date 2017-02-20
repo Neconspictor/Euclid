@@ -4,6 +4,10 @@
 
 using namespace std;
 
+CubeMapGL::CubeMapGL() : cubeMap(GL_FALSE)
+{
+}
+
 CubeMapGL::CubeMapGL(GLuint cubeMap) : cubeMap(cubeMap)
 {
 }
@@ -255,6 +259,88 @@ void RenderTargetGL::setRenderBuffer(GLuint newValue)
 void RenderTargetGL::setTextureBuffer(GLuint newValue)
 {
 	textureBuffer.setTexture(newValue);
+}
+
+CubeDepthMapGL::CubeDepthMapGL(int width, int height) : CubeDepthMap(width, height), 
+frameBuffer(GL_FALSE)
+{
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glGenFramebuffers(1, &frameBuffer);
+	cubeMap.setCubeMap(texture);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+	for (int i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+			width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
+
+	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : CubeDepthMap(other), cubeMap(other.cubeMap),
+frameBuffer(other.frameBuffer)
+{
+}
+
+CubeDepthMapGL::CubeDepthMapGL(CubeDepthMapGL&& other) : CubeDepthMap(other), cubeMap(other.cubeMap),
+frameBuffer(other.frameBuffer)
+{
+	other.frameBuffer = GL_FALSE;
+}
+
+CubeDepthMapGL& CubeDepthMapGL::operator=(const CubeDepthMapGL& other)
+{
+	if (this == &other) return *this;
+	CubeDepthMap::operator=(other);
+	this->frameBuffer = other.frameBuffer;
+	this->cubeMap = other.cubeMap;
+	return *this;
+}
+
+CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
+{
+	if (this == &other) return *this;
+	CubeDepthMap::operator=(other);
+	this->frameBuffer = other.frameBuffer;
+	this->cubeMap = other.cubeMap;
+	other.frameBuffer = GL_FALSE;
+	return *this;
+}
+
+CubeDepthMapGL::~CubeDepthMapGL()
+{
+}
+
+GLuint CubeDepthMapGL::getCubeMap() const
+{
+	return cubeMap.getCubeMap();
+}
+
+CubeMap* CubeDepthMapGL::getCubeMap()
+{
+	return &cubeMap;
+}
+
+GLuint CubeDepthMapGL::getFramebuffer() const
+{
+	return frameBuffer;
+}
+
+void CubeDepthMapGL::release()
+{
 }
 
 DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)

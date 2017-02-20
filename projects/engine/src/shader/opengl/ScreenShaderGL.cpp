@@ -53,5 +53,5 @@ void ScreenShaderGL::use()
 void ScreenShaderGL::useTexture(Texture* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
-	assert(this->texture, "ScreenShaderGL::useTexture(Texture*): Couldn't convert to TextureGL!");
+	assert(this->texture);
 }

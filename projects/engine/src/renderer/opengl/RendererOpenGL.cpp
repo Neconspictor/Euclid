@@ -131,7 +131,7 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 {
 	RenderTargetGL* srcGL = dynamic_cast<RenderTargetGL*>(src);
 	RenderTargetGL* destGL = dynamic_cast<RenderTargetGL*>(dest);
-	assert(srcGL && destGL, " RendererOpenGL::blitRenderTargets(RenderTarget*, RenderTarget*): Couldn't cast src and dest to RenderTargetGL objects!");
+	assert(srcGL && destGL);
 	//copy the content from the source buffer to the destination buffered
 	Dimension dim = {xPos, yPos, width, height};
 	destGL->copyFrom(srcGL, dim, dim);
@@ -279,11 +279,21 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	createFrameRenderTargetBuffer(width, height);
 }
 
+void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
+{
+	CubeDepthMapGL* map = dynamic_cast<CubeDepthMapGL*>(cubeDepthMap);
+	assert(map != nullptr);
+	//CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
+
+	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glClear(GL_DEPTH_BUFFER_BIT);
+}
+
 void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 {
-	DepthMapGL* map = static_cast<DepthMapGL*>(depthMap);
-	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
+	DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
 	assert(map != nullptr);
+	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
@@ -291,15 +301,13 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glClear(GL_DEPTH_BUFFER_BIT); // -> is done in beginScene()
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0); // has to be done later - necessary step or can it be left out at all? 
-	// glBindTexture(GL_TEXTURE_2D, map->getTexture()) // has to be done by client at a later step
+	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void RendererOpenGL::useRenderTarget(RenderTarget* target)
 {
 	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
-	assert(targetGL != nullptr, "RendererOpenGL::useRenderTarget(RenderTarget*): Couldn't cast to RenderTargetGL!");
+	assert(targetGL != nullptr);
 	glViewport(xPos, yPos, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
