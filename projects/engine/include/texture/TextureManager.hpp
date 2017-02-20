@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <texture/Texture.hpp>
-#include "CubeMap.hpp"
 
 enum TextureFilter
 {

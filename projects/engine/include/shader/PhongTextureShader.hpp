@@ -16,8 +16,10 @@ public:
 	virtual void setLightDirection(glm::vec3 direction) = 0;
 
 	// NOTE: positions is assumed to be an array with 4 elements!
+	virtual void setLightSpaceMatrix(glm::mat4 mat) = 0;
 	virtual void setPointLightPositions(glm::vec3* positions) = 0;
 	virtual void setSkyBox(CubeMap* sky) = 0;
+	virtual void setShadowMap(Texture* texture) = 0;
 	virtual void setSpotLightDirection(glm::vec3 direction) = 0;
 	virtual void setViewPosition(glm::vec3 position) = 0;
 };

@@ -6,6 +6,25 @@
 class RenderTargetGL;
 class RendererOpenGL;
 
+class CubeMapGL : public CubeMap
+{
+public:
+	CubeMapGL(GLuint cubeMap);
+	CubeMapGL(const CubeMapGL& other);
+	CubeMapGL(CubeMapGL&& other);
+	CubeMapGL& operator=(const CubeMapGL& other);
+	CubeMapGL& operator=(CubeMapGL&& other);
+
+	virtual ~CubeMapGL();
+
+	GLuint getCubeMap() const;
+
+	void setCubeMap(GLuint id);
+
+private:
+	GLuint cubeMap;
+};
+
 
 class TextureGL : public Texture
 {

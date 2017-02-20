@@ -53,7 +53,7 @@ void RendererOpenGL::init()
 	createFrameRenderTargetBuffer(width, height);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // White Background
+	glClearColor(0.1f, 0.1f, 0.1f, 0.1f); // White Background
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 
@@ -102,7 +102,7 @@ void RendererOpenGL::beginScene()
 	glFrontFace(GL_CCW);
 
 	// only draw front faces
-	enableBackfaceDrawing(false);
+	//enableBackfaceDrawing(false);
 
 	// enable alpha blending
 	glEnable(GL_BLEND);
@@ -113,7 +113,7 @@ void RendererOpenGL::beginScene()
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	clearFrameBuffer(getCurrentRenderTarget(), { backgroundColor.r, backgroundColor.g, backgroundColor.b, 1 }, 1.0f, 0);
+	//clearFrameBuffer(getCurrentRenderTarget(), { backgroundColor.r, backgroundColor.g, backgroundColor.b, 1 }, 1.0f, 0);
 
 	glStencilMask(0x00);
 
@@ -121,6 +121,8 @@ void RendererOpenGL::beginScene()
 	glEnable(GL_MULTISAMPLE);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	enableDepthWriting(true);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -206,6 +208,7 @@ void RendererOpenGL::enableDepthWriting(bool enable)
 
 void RendererOpenGL::endScene()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
     checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
@@ -279,12 +282,16 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 {
 	DepthMapGL* map = static_cast<DepthMapGL*>(depthMap);
+	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 	assert(map != nullptr);
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
-	//glClear(GL_DEPTH_BUFFER_BIT); // -> is done in beginScene()
+	glClear(GL_DEPTH_BUFFER_BIT); // -> is done in beginScene()
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0); // has to be done later - necessary step or can it be left out at all? 
 	// glBindTexture(GL_TEXTURE_2D, map->getTexture()) // has to be done by client at a later step
 }
@@ -295,7 +302,7 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 	assert(targetGL != nullptr, "RendererOpenGL::useRenderTarget(RenderTarget*): Couldn't cast to RenderTargetGL!");
 	glViewport(xPos, yPos, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
-	clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
+	//clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
 }
 
 void RendererOpenGL::useScreenTarget()
@@ -375,6 +382,19 @@ RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int widt
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	return result;
+}
+
+void RendererOpenGL::cullFaces(CullingMode mode)
+{
+	if (mode == CullingMode::Front)
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+	} else
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	}
 }
 
 void RendererOpenGL::destroyRenderTarget(RenderTarget* target)

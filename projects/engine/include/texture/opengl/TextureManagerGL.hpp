@@ -5,7 +5,6 @@
 #include <memory>
 #include <platform/logging/LoggingClient.hpp>
 #include <texture/opengl/TextureGL.hpp>
-#include <texture/opengl/CubeMapGL.hpp>
 
 /**
  * A texture manager for an opengl renderer.

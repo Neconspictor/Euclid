@@ -20,6 +20,7 @@
 #include <scene/SceneNode.hpp>
 #include <shader/DepthMapShader.hpp>
 #include <shader/ScreenShader.hpp>
+#include <shader/ShadowShader.hpp>
 
 using namespace glm;
 using namespace std;
@@ -122,7 +123,7 @@ SceneNode* MainLoopTask::createShadowScene()
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });
-	cube1->getVob()->setPosition({ 0.0f, 2.0f, 0.0f });
+	cube1->getVob()->setPosition({ 0.0f, 1.8f, 0.0f });
 	return root;
 }
 
@@ -201,7 +202,7 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(1024, 1024);
+	shadowMap = renderer->createDepthMap(2048, 2048);
 
 	renderTargetMultisampled = renderer->createRenderTarget(4);
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -223,8 +224,11 @@ void MainLoopTask::init()
 	pointLightPositions[2] = pointLightPositions[0];
 	pointLightPositions[3] = pointLightPositions[0];
 
-	globalLight.setPosition({ -20.0f , 80.0f, -10.0f });
+	vec3 position = {-2.0f, 5.0f, 3.0f};
+	position = 5.0f * normalize(position);
+	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
+	globalLight.setFrustum({-30.0f, 30.0f, -30.0f, 30.0f, -150.0f, 150.0f});
 	//globalLight.setLook({ 1,1,0 });
 
 	// init shaders
@@ -235,7 +239,7 @@ void MainLoopTask::init()
 	phongTexShader->setLightDirection(globalLight.getLook());
 	phongTexShader->setPointLightPositions(pointLightPositions);
 
-	vec2 dim = {0.8, 0.8};
+	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
 
 	// center
@@ -257,6 +261,7 @@ void MainLoopTask::init()
 
 	// init scene
 	scene = createShadowScene();
+	//scene = createAsteriodField();
 }
 
 void MainLoopTask::setUI(SystemUI* ui)
@@ -274,6 +279,10 @@ void MainLoopTask::run()
 		renderer->getShaderManager()->getShader(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
 		renderer->getShaderManager()->getShader(Shaders::DepthMap));
+	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
+		(renderer->getShaderManager()->getShader(Shaders::BlinnPhongTex));
+	ShadowShader* shadowShader = dynamic_cast<ShadowShader*>
+		(renderer->getShaderManager()->getShader(Shaders::Shadow));
 
 	using namespace chrono;
 	
@@ -323,12 +332,19 @@ void MainLoopTask::run()
 
 	// render shadows to a depth map
 	renderer->useDepthMap(shadowMap);
-	renderer->beginScene();
+	//renderer->beginScene();
+
+	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
+	//phongShader->setLightSpaceMatrix(globalLight.getProjection(Perspective) * globalLight.getView());
+	//renderer->cullFaces(CullingMode::Front);
+	renderer->cullFaces(CullingMode::Back);
 	drawScene(&globalLight, ProjectionMode::Orthographic, Shaders::Shadow);
+	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
+	phongShader->setShadowMap(shadowMap->getTexture());
 	drawSky(camera.get(), ProjectionMode::Perspective);
 	drawScene(camera.get(), ProjectionMode::Perspective);
 
@@ -339,7 +355,7 @@ void MainLoopTask::run()
 	//Before presenting the scene, antialise it!
 	SMAA* smaa = renderer->getSMAA();
 	smaa->reset();
-	//smaa->antialias(renderTargetSingleSampled); // TODO use render target
+	smaa->antialias(renderTargetSingleSampled); // TODO use render target
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
@@ -347,7 +363,7 @@ void MainLoopTask::run()
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
-	modelDrawer->draw(&screenSprite, depthMapShader);
+	modelDrawer->draw(&screenSprite, screenShader);
 	renderer->endScene();
 
 	window->swapBuffers();

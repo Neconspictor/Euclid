@@ -1,6 +1,5 @@
 #pragma once
 #include <shader/Shader.hpp>
-#include <texture/CubeMap.hpp>
 
 class SimpleReflectionShader : public Shader
 {

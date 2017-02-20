@@ -1,7 +1,6 @@
 #pragma once
 #include <shader/SkyBoxShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
-#include <texture/opengl/CubeMapGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
 class SkyBoxShaderGL : public ShaderGL, public SkyBoxShader

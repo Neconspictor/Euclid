@@ -1,7 +1,7 @@
 #pragma once
 
 #include <shader/Shader.hpp>
-#include <texture/CubeMap.hpp>
+#include <texture/Texture.hpp>
 
 class SkyBoxShader : public Shader
 {

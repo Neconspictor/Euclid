@@ -87,7 +87,9 @@ const mat4& Projectional::getView()
 
 void Projectional::lookAt(vec3 location)
 {
-	setLook(location - position);
+	//setLook(location - position);
+	look = location - position;
+	revalidate = true;
 }
 
 void Projectional::setAspectRatio(float ratio)

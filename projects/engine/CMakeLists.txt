@@ -111,11 +111,9 @@ set(
  
     
     #texture
-    include/texture/CubeMap.hpp
     include/texture/Texture.hpp
     include/texture/TextureManager.hpp
     #texture/opengl
-    include/texture/opengl/CubeMapGL.hpp
     include/texture/opengl/ImageLoaderGL.hpp
     include/texture/opengl/TextureGL.hpp
     include/texture/opengl/TextureManagerGL.hpp
@@ -176,7 +174,7 @@ set(
     #shader
     src/shader/ShaderEnum.cpp
     #shader/opengl
-		src/shader/opengl/DepthMapShader.cpp
+		src/shader/opengl/DepthMapShaderGL.cpp
     src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/NormalsShaderGL.cpp
     src/shader/opengl/PhongShaderGL.cpp
@@ -206,7 +204,6 @@ set(
     
     #texture
     #texture/opengl
-    src/texture/opengl/CubeMapGL.cpp
     src/texture/opengl/ImageLoaderGL.cpp
     src/texture/opengl/TextureGL.cpp
     src/texture/opengl/TextureManagerGL.cpp

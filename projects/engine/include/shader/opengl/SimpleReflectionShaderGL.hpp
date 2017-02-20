@@ -1,6 +1,6 @@
 #pragma once
 #include <shader/opengl/ShaderGL.hpp>
-#include <texture/opengl/CubeMapGL.hpp>
+#include <texture/opengl/TextureGL.hpp>
 #include <shader/SimpleReflectionShader.hpp>
 
 class SimpleReflectionShaderGL : public ShaderGL, public SimpleReflectionShader

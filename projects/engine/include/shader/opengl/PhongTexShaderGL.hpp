@@ -1,7 +1,7 @@
 #pragma once
 #include <shader/opengl/ShaderGL.hpp>
 #include <shader/PhongTextureShader.hpp>
-#include <texture/opengl/CubeMapGL.hpp>
+#include <texture/opengl/TextureGL.hpp>
 
 class PhongTexShaderGL : public ShaderGL, public PhongTextureShader
 {
@@ -29,7 +29,11 @@ public:
 
 	void setLightDirection(glm::vec3 direction) override;
 
+	void setLightSpaceMatrix(glm::mat4 mat) override;
+
 	void setPointLightPositions(glm::vec3* positions) override;
+
+	void setShadowMap(Texture* texture) override;
 
 	void setSkyBox(CubeMap* sky) override;
 
@@ -46,12 +50,13 @@ private:
 
 	void initLights(GLuint programID);
 
-	glm::vec3 lightColor;
 	glm::vec3 dirLightDirection;
-	glm::vec3 viewPosition;
-	glm::vec3 spotLightDirection;
-	glm::vec3 pointLightPositions[4];
-
-	CubeMapGL* skybox;
 	GLuint instancedShaderProgram;
+	glm::vec3 lightColor;
+	glm::mat4 lightSpaceMatrix;
+	glm::vec3 pointLightPositions[4];
+	glm::vec3 spotLightDirection;
+	TextureGL* shadowMap;
+	CubeMapGL* skybox;
+	glm::vec3 viewPosition;
 };

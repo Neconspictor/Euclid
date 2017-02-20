@@ -28,6 +28,8 @@ public:
 	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
 		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
 
+	void cullFaces(CullingMode mode) override;
+
 	void destroyRenderTarget(RenderTarget* target) override;
 
 	void enableAlphaBlending(bool enable) override;

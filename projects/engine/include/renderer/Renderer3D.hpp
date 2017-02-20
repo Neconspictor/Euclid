@@ -7,6 +7,11 @@
 #include <drawing/ModelDrawer.hpp>
 #include <antialiasing/SMAA.hpp>
 
+enum class CullingMode
+{
+	Front, Back
+};
+
 
 /**
  * A 3D renderer is a renderer specific for 3D content. 
@@ -27,6 +32,8 @@ public:
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
+
+	virtual void cullFaces(CullingMode mode = CullingMode::Back) = 0;
 
 	virtual void destroyRenderTarget(RenderTarget* target) = 0;
 

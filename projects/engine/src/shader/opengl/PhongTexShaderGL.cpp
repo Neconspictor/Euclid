@@ -10,7 +10,8 @@ using namespace std;
 
 PhongTexShaderGL::PhongTexShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, 
 	const string& vertexShaderFileInstanced) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), dirLightDirection(1, 0, 0), viewPosition(0,0,0), 
+	ShaderGL(vertexShaderFile, fragmentShaderFile), lightColor(1, 1, 1), 
+	shadowMap(nullptr), dirLightDirection(1, 0, 0), viewPosition(0,0,0), 
 	skybox(nullptr)
 {
 	instancedShaderProgram = loadShaders(vertexShaderFileInstanced, fragmentShaderFile, "");
@@ -35,6 +36,9 @@ void PhongTexShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned int amou
 	GLuint viewLoc = glGetUniformLocation(instancedShaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
 
+	GLuint lightSpaceMatrixLoc = glGetUniformLocation(instancedShaderProgram, "lightSpaceMatrix");
+	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(lightSpaceMatrix));
+
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
@@ -54,12 +58,18 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 	GLuint transformLoc = glGetUniformLocation(programID, "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
 
-	GLuint modelLoc = glGetUniformLocation(programID, "modelView");
+	GLuint modelViewLoc = glGetUniformLocation(programID, "modelView");
+	glUniformMatrix4fv(modelViewLoc, 1, GL_FALSE, value_ptr(view * model));
+
+	GLuint modelLoc = glGetUniformLocation(programID, "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
 
 	GLint normalMatrixLoc = glGetUniformLocation(programID, "normalMatrix");
 	mat4 normalMatrix = transpose(inverse(model));
 	glUniformMatrix4fv(normalMatrixLoc, 1, GL_FALSE, value_ptr(normalMatrix));
+
+	GLuint lightSpaceMatrixLoc = glGetUniformLocation(programID, "lightSpaceMatrix");
+	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(lightSpaceMatrix));
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
@@ -92,12 +102,23 @@ void PhongTexShaderGL::setLightDirection(vec3 direction)
 	dirLightDirection = direction;
 }
 
+void PhongTexShaderGL::setLightSpaceMatrix(glm::mat4 mat)
+{
+	lightSpaceMatrix = move(mat);
+}
+
 void PhongTexShaderGL::setPointLightPositions(vec3* positions)
 {
 	for (int i = 0; i < 4; ++i)
 	{
 		pointLightPositions[i] = positions[i];
 	}
+}
+
+void PhongTexShaderGL::setShadowMap(Texture* texture)
+{
+	shadowMap = dynamic_cast<TextureGL*>(texture);
+	assert(shadowMap != nullptr);
 }
 
 void PhongTexShaderGL::setSkyBox(CubeMap* sky)
@@ -208,7 +229,7 @@ void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID
 		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glUniform1i(glGetUniformLocation(programID, "material.diffuseMap"), 3);
+		glUniform1i(glGetUniformLocation(programID, "material.diffuseMap"), 0);
 	}
 
 	// Bind emission map
@@ -222,7 +243,7 @@ void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID
 		GLuint textureID = TextureManagerGL::get()->getImageGL("black.png")->getTexture();
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 3);
+		glUniform1i(glGetUniformLocation(programID, "material.emissionMap"), 1);
 	}
 
 	// Bind reflection map
@@ -255,8 +276,12 @@ void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID
 	}
 
 	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, shadowMap->getTexture());
+	glUniform1i(glGetUniformLocation(programID, "material.shadowMap"), 4);
+
+	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getCubeMap());
-	glUniform1i(glGetUniformLocation(programID, "skybox"), 4);
+	glUniform1i(glGetUniformLocation(programID, "skybox"), 5);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)

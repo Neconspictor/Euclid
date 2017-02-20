@@ -4,6 +4,48 @@
 
 using namespace std;
 
+CubeMapGL::CubeMapGL(GLuint cubeMap) : cubeMap(cubeMap)
+{
+}
+
+CubeMapGL::CubeMapGL(const CubeMapGL& other)
+{
+	cubeMap = other.cubeMap;
+}
+
+CubeMapGL::CubeMapGL(CubeMapGL&& other)
+{
+	cubeMap = move(other.cubeMap);
+}
+
+CubeMapGL& CubeMapGL::operator=(const CubeMapGL& other)
+{
+	if (this == &other) return *this;
+	cubeMap = other.cubeMap;
+	return *this;
+}
+
+CubeMapGL& CubeMapGL::operator=(CubeMapGL&& other)
+{
+	if (this == &other) return *this;
+	cubeMap = move(other.cubeMap);
+	return *this;
+}
+
+CubeMapGL::~CubeMapGL()
+{
+}
+
+GLuint CubeMapGL::getCubeMap() const
+{
+	return cubeMap;
+}
+
+void CubeMapGL::setCubeMap(GLuint id)
+{
+	cubeMap = id;
+}
+
 TextureGL::TextureGL(): textureID(GL_FALSE)
 {
 }
@@ -223,12 +265,14 @@ DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
 	texture.setTexture(textureID);
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureID, 0);

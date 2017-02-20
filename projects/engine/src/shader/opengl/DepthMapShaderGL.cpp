@@ -23,7 +23,7 @@ void DepthMapShaderGL::draw(Mesh const& meshOriginal)
 
 	use();
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture->getTexture());

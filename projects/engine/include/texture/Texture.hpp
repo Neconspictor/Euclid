@@ -7,6 +7,13 @@ public:
 	virtual ~Texture() {}
 };
 
+class CubeMap
+{
+public:
+	CubeMap() {}
+	virtual ~CubeMap() {}
+};
+
 class RenderTarget
 {
 public:

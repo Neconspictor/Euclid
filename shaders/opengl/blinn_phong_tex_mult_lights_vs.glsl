@@ -7,18 +7,23 @@ uniform mat4 transform;
 uniform mat4 model;
 uniform mat4 modelView;
 uniform mat4 normalMatrix;
+uniform mat4 lightSpaceMatrix;
 
-out vec3 fragmentPosition;
-out vec3 normalVS;
-out vec2 texCoordsFS;
-out vec3 reflectPosition;
+out VS_OUT {
+	vec3 fragPos;
+	vec3 normal;
+	vec2 texCoords;
+	vec3 reflectPosition;
+	vec4 fragPosLightSpace;
+} vs_out;
 
 void main()
 {
     gl_Position = transform * vec4(position, 1.0f);
-    normalVS = mat3(normalMatrix) * normal;
+    vs_out.normal = mat3(normalMatrix) * normal;
     //fragmentPosition = vec3(modelView * vec4(position, 1.0f));
-    fragmentPosition = vec3(model * vec4(position, 1.0f));
-    reflectPosition = vec3(model * vec4(position, 1.0f));
-    texCoordsFS = texCoords;
+    vs_out.fragPos = vec3(model * vec4(position, 1.0f));
+    vs_out.reflectPosition = vec3(model * vec4(position, 1.0f));
+    vs_out.texCoords = texCoords;
+		vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(vs_out.fragPos, 1.0);
 } 
