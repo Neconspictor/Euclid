@@ -2,6 +2,7 @@
 #include <cmath>
 #include <camera/TrackballCamera.hpp>
 #include <glm/glm.hpp>
+#include <math.h>
 
 
 using namespace std;

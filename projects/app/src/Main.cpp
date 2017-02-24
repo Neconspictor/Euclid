@@ -140,6 +140,8 @@ int main(int argc, char** argv)
 		windowSystem->terminate();*/
 
 
+	glm::mat4 test;
+	test[0][3] = 1;
 
 	LoggingClient logger(getLogServer());
 	WindowSystem* windowSystem = WindowSystemGLFW::get();

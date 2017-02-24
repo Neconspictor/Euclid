@@ -24,8 +24,14 @@ public:
 
 	void useCubeDepthMap(CubeMap* map) override;
 
+	void setLightPos(glm::vec3 pos) override;
+
+	void setRange(float range) override;
+
 private:
 	CubeMapGL* cubeMap;
+	glm::vec3 lightPos;
+	float range;
 };
 
 class DepthMapShaderGL : public ShaderGL, public DepthMapShader

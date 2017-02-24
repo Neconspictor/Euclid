@@ -46,6 +46,7 @@ void ShaderManagerGL::loadShaders()
 {
 	using s = Shaders;
 	createShader(s::BlinnPhongTex);
+	createShader(s::CubeDepthMap);
 	createShader(s::DepthMap);
 	createShader(s::Lamp);
 	createShader(s::Normals);
@@ -85,6 +86,10 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::BlinnPhongTex: {
 		shaderPtr = make_shared<PhongTexShaderGL>("blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
 			"blinn_phong_tex_mult_lights_vs_Instanced.glsl");
+		break;
+	}
+	case s::CubeDepthMap: {
+		shaderPtr = make_shared<CubeDepthMapShaderGL>("depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
 		break;
 	}
 	case s::DepthMap: {

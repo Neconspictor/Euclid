@@ -2,7 +2,8 @@ set(
     ENGINE_SOURCES 
     
     ###header files###
-    
+    include/pch_engine.hpp
+		
     #antialiasing
     include/antialiasing/SMAA.hpp
     #antialiasing/opengl
@@ -218,6 +219,8 @@ set(
 # Empty name lists them directly under the .vcproj
 #source_group("" FILES ${ENGINE_SOURCES})
 assign_source_group(${ENGINE_SOURCES})
+
+enable_precompiled_headers(include/pch_engine.hpp ENGINE_SOURCES)
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (

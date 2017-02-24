@@ -4,9 +4,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
+using namespace std;
 
-CubeDepthMapShaderGL::CubeDepthMapShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), cubeMap(nullptr)
+CubeDepthMapShaderGL::CubeDepthMapShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
+	ShaderGL(vertexShaderFile, fragmentShaderFile), cubeMap(nullptr), range(0)
 {
 }
 
@@ -23,11 +24,20 @@ void CubeDepthMapShaderGL::draw(Mesh const& meshOriginal)
 
 	use();
 	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
+
+	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
+
+	GLuint lightPosLoc = glGetUniformLocation(getProgramID(), "lightPos");
+	glUniform3fv(lightPosLoc, 1, value_ptr(lightPos));
+
+	GLuint rangeLoc = glGetUniformLocation(getProgramID(), "range");
+	glUniform1f(rangeLoc, range);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->getCubeMap());
-	glUniform1i(glGetUniformLocation(programID, "cubeMap"), 0);
+	glUniform1i(glGetUniformLocation(programID, "cubeDepthMap"), 0);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
@@ -55,7 +65,17 @@ void CubeDepthMapShaderGL::useCubeDepthMap(CubeMap* map)
 	assert(this->cubeMap != nullptr);
 }
 
-DepthMapShaderGL::DepthMapShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
+void CubeDepthMapShaderGL::setLightPos(vec3 pos)
+{
+	lightPos = move(pos);
+}
+
+void CubeDepthMapShaderGL::setRange(float range)
+{
+	this->range = range;
+}
+
+DepthMapShaderGL::DepthMapShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
 	ShaderGL(vertexShaderFile, fragmentShaderFile), DepthMapShader(), texture(nullptr)
 {
 }

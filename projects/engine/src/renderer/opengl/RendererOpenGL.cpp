@@ -137,6 +137,12 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 	destGL->copyFrom(srcGL, dim, dim);
 }
 
+CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
+{
+	cubeDepthMaps.push_back(move(CubeDepthMapGL(width, height)));
+	return &cubeDepthMaps.back();
+}
+
 GLint RendererOpenGL::getCurrentRenderTarget() const
 {
 	GLint drawFboId = 0;
@@ -283,9 +289,15 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 {
 	CubeDepthMapGL* map = dynamic_cast<CubeDepthMapGL*>(cubeDepthMap);
 	assert(map != nullptr);
-	//CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
+	CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glClearDepth(1.0);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -408,7 +420,7 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 void RendererOpenGL::destroyRenderTarget(RenderTarget* target)
 {
 	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
-	assert(targetGL != nullptr, "RendererOpenGL::destroyRenderTarget(RenderTarget*): Cast to RenderTargetGL failed!");
+	assert(targetGL != nullptr);
 
 	for (auto it = renderTargets.begin(); it != renderTargets.end(); ++it)
 	{

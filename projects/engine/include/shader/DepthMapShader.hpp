@@ -8,6 +8,10 @@ public:
 	virtual ~CubeDepthMapShader() {};
 
 	virtual void useCubeDepthMap(CubeMap* map) = 0;
+
+	virtual void setLightPos(glm::vec3 pos) = 0;
+
+	virtual void setRange(float range) = 0;
 };
 
 class DepthMapShader : public Shader

@@ -1,5 +1,7 @@
 set(
     PLATFORM_SOURCES 
+		
+		include/pch_platform.hpp
     
     #platform
     include/platform/FileSystem.hpp
@@ -110,16 +112,19 @@ set(
     src/platform/util/StringUtils.cpp
     #platform/util/concurrent
     src/platform/util/concurrent/Active.cpp
-    
-    #external resources
-    ${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
-     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/src/glad.c
+)
+
+set (
+		PLATFORM_EXTERNAL_SOURCES
+		${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
 )
 
 # Create named folders for the sources within the .vcproj
 # Empty name lists them directly under the .vcproj
 #source_group("" FILES ${PLATFORM_SOURCES})
-assign_source_group(${PLATFORM_SOURCES})
+assign_source_group(${PLATFORM_SOURCES} ${PLATFORM_EXTERNAL_SOURCES})
+
+enable_precompiled_headers(include/pch_platform.hpp PLATFORM_SOURCES)
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
@@ -141,7 +146,7 @@ include_directories (
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
-add_library (platform ${PLATFORM_SOURCES})
+add_library (platform ${PLATFORM_SOURCES} ${PLATFORM_EXTERNAL_SOURCES})
 target_include_directories (platform PUBLIC 
     include
     ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2

@@ -23,8 +23,6 @@ void PointShadowShaderGL::draw(Mesh const& meshOriginal)
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
 	use();
-	GLuint lightSpaceMatrixLoc = glGetUniformLocation(getProgramID(), "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(projection * view));
 
 	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));

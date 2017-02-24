@@ -71,6 +71,19 @@ void PhongTexShaderGL::draw(Mesh const& meshOriginal)
 	GLuint lightSpaceMatrixLoc = glGetUniformLocation(programID, "lightSpaceMatrix");
 	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(lightSpaceMatrix));
 
+	mat4 biasMatrix(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+		);
+
+	GLuint biasMatrixLoc = glGetUniformLocation(programID, "biasMatrix");
+	glUniformMatrix4fv(biasMatrixLoc, 1, GL_FALSE, value_ptr(biasMatrix));
+
+	GLuint pointLightRangeLoc = glGetUniformLocation(programID, "range");
+	glUniform1f(pointLightRangeLoc, pointLightRange);
+
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
@@ -115,6 +128,17 @@ void PhongTexShaderGL::setPointLightPositions(vec3* positions)
 	}
 }
 
+void PhongTexShaderGL::setPointLightRange(float range)
+{
+	this->pointLightRange = range;
+}
+
+void PhongTexShaderGL::setPointLightShadowMap(CubeDepthMap* map)
+{
+	pointLightShadowMap = dynamic_cast<CubeDepthMapGL*>(map);
+	assert(pointLightShadowMap);
+}
+
 void PhongTexShaderGL::setShadowMap(Texture* texture)
 {
 	shadowMap = dynamic_cast<TextureGL*>(texture);
@@ -144,38 +168,19 @@ void PhongTexShaderGL::initLights(GLuint programID)
 	glUniform4f(glGetUniformLocation(programID, "dirLight.ambient"), 0.2f, 0.2f, 0.2f, 1.0f);
 	glUniform4f(glGetUniformLocation(programID, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f, 1.0f);
 	glUniform4f(glGetUniformLocation(programID, "dirLight.specular"), 0.3f, 0.3f, 0.3f, 1.0f);
-	// Point light 1
-	glUniform3f(glGetUniformLocation(programID, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[0].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[0].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[0].linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[0].quadratic"), 0.032f);
-	// Point light 2
-	glUniform3f(glGetUniformLocation(programID, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[1].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[1].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[1].linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[1].quadratic"), 0.032f);
-	// Point light 3
-	glUniform3f(glGetUniformLocation(programID, "pointLights[2].position"), pointLightPositions[2].x, pointLightPositions[2].y, pointLightPositions[2].z);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[2].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[2].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[2].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[2].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[2].linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[2].quadratic"), 0.032f);
-	// Point light 4
-	glUniform3f(glGetUniformLocation(programID, "pointLights[3].position"), pointLightPositions[3].x, pointLightPositions[3].y, pointLightPositions[3].z);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[3].ambient"), 0.05f, 0.05f, 0.05f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[3].diffuse"), 0.8f, 0.8f, 0.8f, 1.0f);
-	glUniform4f(glGetUniformLocation(programID, "pointLights[3].specular"), 1.0f, 1.0f, 1.0f, 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[3].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[3].linear"), 0.09f);
-	glUniform1f(glGetUniformLocation(programID, "pointLights[3].quadratic"), 0.032f);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		string pointLightStr = "pointLights[" + to_string(i) + "]";
+		GLuint loc = glGetUniformLocation(programID, (pointLightStr + ".position").c_str());
+		glUniform3f(loc, pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
+		glUniform4f(glGetUniformLocation(programID, (pointLightStr + ".ambient").c_str()), 0.05f, 0.05f, 0.05f, 1.0f);
+		glUniform4f(glGetUniformLocation(programID, (pointLightStr + ".diffuse").c_str()), 0.8f, 0.8f, 0.8f, 1.0f);
+		glUniform4f(glGetUniformLocation(programID, (pointLightStr + ".specular").c_str()), 1.0f, 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(programID, (pointLightStr + ".constant").c_str()), 1.0f);
+		glUniform1f(glGetUniformLocation(programID, (pointLightStr + ".linear").c_str()), 0.09f);
+		glUniform1f(glGetUniformLocation(programID, (pointLightStr + ".quadratic").c_str()), 0.032f);
+	}
 	// SpotLight
 	glUniform3f(glGetUniformLocation(programID, "spotLight.position"), viewPosition.x, viewPosition.y, viewPosition.z);
 	glUniform3f(glGetUniformLocation(programID, "spotLight.direction"), spotLightDirection.x, spotLightDirection.y, spotLightDirection.z);
@@ -282,6 +287,10 @@ void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getCubeMap());
 	glUniform1i(glGetUniformLocation(programID, "skybox"), 5);
+
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMap->getCubeMapTexture());
+	glUniform1i(glGetUniformLocation(programID, "cubeDepthMap"), 6);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)

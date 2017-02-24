@@ -51,7 +51,9 @@ private:
 	std::list<SceneNode> nodes;
 	std::string originalTitle;
 	Texture* panoramaSky;
+	PointLight pointLight;
 	glm::vec3 pointLightPositions[4];
+	CubeDepthMap* pointShadowMap;
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;
 	RenderTarget* renderTargetSingleSampled;
@@ -67,11 +69,11 @@ private:
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
 
-	void drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader = nullptr);
+	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shader* shader = nullptr);
 
-	void drawScene(Projectional* projectional, ProjectionMode mode, Shaders shaderType);
+	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType);
 
-	void drawSky(Projectional* projectional, ProjectionMode mode);
+	void drawSky(const glm::mat4& projection, const glm::mat4& view);
 
 	void updateCamera(Input* input, float deltaTime);
 

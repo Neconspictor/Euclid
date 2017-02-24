@@ -13,6 +13,20 @@ struct Frustum
 	float farPlane;
 };
 
+struct FrustumPlane
+{
+	glm::vec3 leftBottom;
+	glm::vec3 leftTop;
+	glm::vec3 rightBottom;
+	glm::vec3 rightTop;
+};
+
+struct FrustumCube
+{
+	FrustumPlane m_near;
+	FrustumPlane m_far;
+};
+
 enum ProjectionMode
 {
 	Orthographic,
@@ -39,6 +53,8 @@ public:
 	const glm::vec3& getLook() const;
 	float getFOV() const;
 	const Frustum& getFrustum() const;
+	FrustumCube getFrustumCube();
+	FrustumPlane getFrustumPlane(float zValue) const;
 	const glm::mat4& getOrthoProjection();
 	const glm::mat4& getPerspProjection();
 	const glm::mat4& getProjection(ProjectionMode mode);
@@ -79,5 +95,6 @@ protected:
 	glm::vec3 up;
 	glm::mat4 view;
 
+	void calcFrustum();
 	virtual void update();
 };

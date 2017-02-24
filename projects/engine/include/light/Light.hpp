@@ -23,9 +23,11 @@ public:
 	PointLight();
 	virtual ~PointLight();
 
-	const glm::mat4* getMatrices() const;
+	glm::mat4* getMatrices();
 
 	float getRange() const;
+
+	void setRange(float range);
 
 protected:
 	glm::mat4 shadowMatrices[6];

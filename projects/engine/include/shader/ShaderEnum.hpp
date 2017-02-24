@@ -7,6 +7,7 @@
 enum class Shaders
 {
 	BlinnPhongTex = 0,
+	CubeDepthMap,
 	DepthMap,
 	Lamp,
 	Normals,
@@ -28,22 +29,23 @@ enum class Shaders
 * Maps shader enumerations to a string representation.
 */
 const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
-	{Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
+	{Shaders::BlinnPhongTex, "BLINN_PHONG_TEX"},
+	{Shaders::CubeDepthMap, "CUBE_DEPTH_MAP"},
 	{Shaders::DepthMap, "DEPTH_MAP"},
 	{Shaders::Lamp, "LAMP"},
-	{Shaders::Normals, "NORMALS" },
+	{Shaders::Normals, "NORMALS"},
 	{Shaders::Phong, "PHONG"},
 	{Shaders::PhongTex, "PHONG_TEX"},
 	{Shaders::Playground, "PLAYGROUND"},
-	{Shaders::Shadow, "SHADOW" },
-	{ Shaders::ShadowPoint, "SHADOW_POINT" },
+	{Shaders::Shadow, "SHADOW"},
+	{Shaders::ShadowPoint, "SHADOW_POINT"},
 	{Shaders::SimpleColor, "SIMPLE_COLOR"},
 	{Shaders::SimpleExtrude, "SIMPLE_EXTRUDE"},
 	{Shaders::SimpleLight, "SIMPLE_LIGHT"},
 	{Shaders::SimpleReflection, "SIMPLE_REFLECTION"},
 	{Shaders::Screen, "SCREEN"},
 	{Shaders::SkyBox, "SKY_BOX"},
-	{Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" }
+	{Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA"}
 };
 
 	/**

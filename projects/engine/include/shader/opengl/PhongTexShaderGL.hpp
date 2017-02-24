@@ -33,6 +33,10 @@ public:
 
 	void setPointLightPositions(glm::vec3* positions) override;
 
+	void setPointLightRange(float range) override;
+
+	void setPointLightShadowMap(CubeDepthMap* map) override;
+
 	void setShadowMap(Texture* texture) override;
 
 	void setSkyBox(CubeMap* sky) override;
@@ -55,6 +59,8 @@ private:
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;
 	glm::vec3 pointLightPositions[4];
+	float pointLightRange;
+	CubeDepthMapGL* pointLightShadowMap;
 	glm::vec3 spotLightDirection;
 	TextureGL* shadowMap;
 	CubeMapGL* skybox;

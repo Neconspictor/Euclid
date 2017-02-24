@@ -25,6 +25,7 @@ void FPCameraBase::doUserMovement(Input* input, float frameTime)
 	// camera movements
 	float moveAmount = cameraSpeed * frameTime;
 	vec3 cameraRight = normalize(cross(look, up));
+	vec3 cameraUp = normalize(cross(cameraRight, look));
 
 	if (input->isDown(Input::KEY_W))
 		position += moveAmount * look;
@@ -37,4 +38,10 @@ void FPCameraBase::doUserMovement(Input* input, float frameTime)
 
 	if (input->isDown(Input::KEY_A))
 		position -= moveAmount * cameraRight;
+
+	if (input->isDown(Input::KEY_Z))
+		position += moveAmount * cameraUp;
+
+	if (input->isDown(Input::KEY_X))
+		position -= moveAmount * cameraUp;
 }

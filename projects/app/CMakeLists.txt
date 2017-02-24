@@ -3,6 +3,7 @@ set(
     
     ###header files###
     include/MainLoopTask.hpp
+		include/pch_app.hpp
     ###source files###
     src/Main.cpp
     src/MainLoopTask.cpp
@@ -18,6 +19,8 @@ include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
 )
+
+enable_precompiled_headers(include/pch_app.hpp APP_SOURCES)
 
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)

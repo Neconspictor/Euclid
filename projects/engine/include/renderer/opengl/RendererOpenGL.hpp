@@ -19,6 +19,8 @@ public:
 
 	void blitRenderTargets(RenderTarget* src, RenderTarget* dest) override;
 
+	CubeDepthMap* createCubeDepthMap(int width, int height) override;
+
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
 	DepthMap* createDepthMap(int width, int height) override;
@@ -90,12 +92,12 @@ protected:
 
 	void createFrameRenderTargetBuffer(int width, int height);
 
-	std::unique_ptr<ModelGL> screenSprite;
+	glm::vec3 backgroundColor;
+	std::list<CubeDepthMapGL> cubeDepthMaps;
 	std::list<DepthMapGL> depthMaps;
 	ModelDrawerGL modelDrawer;
-	std::list<RenderTargetGL> renderTargets;
-	glm::vec3 backgroundColor;
 	unsigned int msaaSamples;
-
+	std::list<RenderTargetGL> renderTargets;
+	std::unique_ptr<ModelGL> screenSprite;
 	SMAA_GL* smaa;
 };

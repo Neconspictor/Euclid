@@ -123,7 +123,7 @@ SceneNode* MainLoopTask::createShadowScene()
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });
-	cube1->getVob()->setPosition({ 0.0f, 1.8f, 0.0f });
+	cube1->getVob()->setPosition({ 0.0f, 1.5f, 0.0f });
 	return root;
 }
 
@@ -202,7 +202,8 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(2048, 2048);
+	shadowMap = renderer->createDepthMap(1024, 1024);
+	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
 
 	renderTargetMultisampled = renderer->createRenderTarget(4);
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -219,17 +220,24 @@ void MainLoopTask::init()
 	pointLightPositions[2] = vec3(-40.0f, 20.0f, -120.0f);
 	pointLightPositions[3] = vec3(0.0f, 0.0f, -30.0f);*/
 
-	pointLightPositions[0] = vec3(0.0f, 200.0f, 0.0f);
-	pointLightPositions[1] = pointLightPositions[0];
-	pointLightPositions[2] = pointLightPositions[0];
-	pointLightPositions[3] = pointLightPositions[0];
+	vec3 farAway = vec3(0.0f, -1000.0f, 0.0f);
+
+	pointLightPositions[0] = vec3(-3.0f, 2.0f, 0.0f);
+	pointLightPositions[1] = farAway;
+	pointLightPositions[2] = farAway;
+	pointLightPositions[3] = farAway;
 
 	vec3 position = {-2.0f, 5.0f, 3.0f};
-	position = 5.0f * normalize(position);
+	position = 10.0f * normalize(position);
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
-	globalLight.setFrustum({-30.0f, 30.0f, -30.0f, 30.0f, -150.0f, 150.0f});
+	globalLight.setFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
 	//globalLight.setLook({ 1,1,0 });
+
+	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
+	pointLight.setRange(10.0f);
+	pointLight.setAspectRatio((float)pointShadowMap->getWidth() / (float)pointShadowMap->getHeight());
+
 
 	// init shaders
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
@@ -283,7 +291,10 @@ void MainLoopTask::run()
 		(renderer->getShaderManager()->getShader(Shaders::BlinnPhongTex));
 	ShadowShader* shadowShader = dynamic_cast<ShadowShader*>
 		(renderer->getShaderManager()->getShader(Shaders::Shadow));
-
+	PointShadowShader* pointShadowShader = dynamic_cast<PointShadowShader*>
+		(renderer->getShaderManager()->getShader(Shaders::ShadowPoint));
+	CubeDepthMapShader* cubeDepthMapShader = dynamic_cast<CubeDepthMapShader*>
+		(renderer->getShaderManager()->getShader(Shaders::CubeDepthMap));
 	using namespace chrono;
 	
 	float frameTime = timer.update();
@@ -333,20 +344,36 @@ void MainLoopTask::run()
 	// render shadows to a depth map
 	renderer->useDepthMap(shadowMap);
 	//renderer->beginScene();
+	
+	Frustum cameraFrustum = camera->getFrustum();
+	//cameraFrustum.
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//phongShader->setLightSpaceMatrix(globalLight.getProjection(Perspective) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Front);
 	renderer->cullFaces(CullingMode::Back);
-	drawScene(&globalLight, ProjectionMode::Orthographic, Shaders::Shadow);
+	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
+
+	renderer->useCubeDepthMap(pointShadowMap);
+	pointShadowShader->setLightPosition(pointLight.getPosition());
+	pointShadowShader->setRange(pointLight.getRange());
+	pointShadowShader->setShadowMatrices(pointLight.getMatrices());
+	drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
-	drawSky(camera.get(), ProjectionMode::Perspective);
-	drawScene(camera.get(), ProjectionMode::Perspective);
+	phongShader->setPointLightShadowMap(pointShadowMap);
+	phongShader->setPointLightRange(pointLight.getRange());
+	cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
+	cubeDepthMapShader->setLightPos(pointLight.getPosition());
+	cubeDepthMapShader->setRange(pointLight.getRange());
+
+	drawSky(camera->getPerspProjection(), camera->getView());
+	drawScene(camera->getPerspProjection(), camera->getView());
+	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
 
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
@@ -371,34 +398,26 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
-void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Shader* shader)
+void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shader* shader)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	const mat4& view = projectional->getView();
-	const mat4& projection = projectional->getProjection(mode);
-	//const mat4& projection = camera->getOrthoProjection();
-
 	scene->update(frameTimeElapsed);
 	scene->draw(renderer, modelDrawer, projection, view, shader);
 	renderer->endScene();
 }
 
-void MainLoopTask::drawScene(Projectional* projectional, ProjectionMode mode, Shaders shaderType)
+void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
 {
 	Shader* shader = renderer->getShaderManager()->getShader(shaderType);
-	drawScene(projectional, mode, shader);
+	drawScene(projection, view, shader);
 }
 
-void MainLoopTask::drawSky(Projectional* projectional, ProjectionMode mode)
+void MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 {
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(renderer->getShaderManager()->getShader(Shaders::SkyBoxPanorama));
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
-	const mat4& view = projectional->getView();
-	const mat4& projection = projectional->getProjection(mode);
-	//const mat4& projection = camera->getOrthoProjection();
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 

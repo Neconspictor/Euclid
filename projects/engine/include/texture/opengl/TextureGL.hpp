@@ -94,7 +94,7 @@ public:
 
 	virtual ~CubeDepthMapGL();
 
-	GLuint getCubeMap() const;
+	GLuint getCubeMapTexture() const;
 	CubeMap* getCubeMap() override;
 	GLuint getFramebuffer() const;
 

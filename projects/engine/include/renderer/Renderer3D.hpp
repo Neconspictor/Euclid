@@ -29,6 +29,8 @@ public:
 
 	virtual void blitRenderTargets(RenderTarget* src ,RenderTarget* dest) = 0;
 
+	virtual CubeDepthMap* createCubeDepthMap(int width, int height) = 0;
+
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
