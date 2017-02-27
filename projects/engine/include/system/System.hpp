@@ -1,6 +1,5 @@
 #pragma once
 #include <platform/event/Task.hpp>
-#include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LoggingClient.hpp>
