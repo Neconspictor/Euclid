@@ -21,7 +21,7 @@ struct FrustumPlane
 	glm::vec3 rightTop;
 };
 
-struct FrustumCube
+struct FrustumCuboid
 {
 	FrustumPlane m_near;
 	FrustumPlane m_far;
@@ -52,9 +52,9 @@ public:
 	float getAspectRatio() const;
 	const glm::vec3& getLook() const;
 	float getFOV() const;
-	const Frustum& getFrustum() const;
-	FrustumCube getFrustumCube();
-	FrustumPlane getFrustumPlane(float zValue) const;
+	const Frustum& getFrustum(ProjectionMode mode) const;
+	FrustumCuboid getFrustumCuboid(ProjectionMode mode);
+	FrustumPlane getFrustumPlane(ProjectionMode mode, float zValue);
 	const glm::mat4& getOrthoProjection();
 	const glm::mat4& getPerspProjection();
 	const glm::mat4& getProjection(ProjectionMode mode);
@@ -71,7 +71,7 @@ public:
 
 	void setFOV(float fov);
 
-	void setFrustum(Frustum frustum);
+	void setOrthoFrustum(Frustum frustum);
 
 	/**
 	* NOTE: Has to be a vector that isn't a null vector. So it's length has to be > 0
@@ -85,16 +85,17 @@ public:
 protected:
 	float aspectRatio;
 	float fov;
-	Frustum frustum;
 	platform::LoggingClient logClient;
 	glm::vec3 look;
+	Frustum orthoFrustum;
 	glm::mat4 orthographic;
 	glm::vec3 position;
 	glm::mat4 perspective;
+	Frustum perspFrustum;
 	bool revalidate;
 	glm::vec3 up;
 	glm::mat4 view;
 
-	void calcFrustum();
+	void calcFrustums();
 	virtual void update();
 };

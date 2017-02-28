@@ -8,7 +8,7 @@ using namespace glm;
 
 Projectional::Projectional(float aspectRatio, float fov, Frustum frustum,
 	vec3 look, vec3 position, vec3 up) : aspectRatio(aspectRatio), fov(fov),
-	frustum(frustum), logClient(platform::getLogServer()), look(look), position(position), 
+	logClient(platform::getLogServer()), look(look), orthoFrustum(frustum), position(position), 
 	revalidate(true), up(up)
 {
 	logClient.setPrefix("[Projectional]");
@@ -42,38 +42,54 @@ float Projectional::getFOV() const
 	return fov;
 }
 
-const Frustum& Projectional::getFrustum() const
+const Frustum& Projectional::getFrustum(ProjectionMode mode) const
 {
-	return frustum;
+	if (mode == Orthographic)
+		 return orthoFrustum;
+	else
+		return perspFrustum;
 }
 
-FrustumCube Projectional::getFrustumCube()
+FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode)
 {
-	update();
-	FrustumCube cube;
-	cube.m_near = getFrustumPlane(frustum.nearPlane);
-	cube.m_far = getFrustumPlane(frustum.farPlane);
+	FrustumCuboid cube;
+	const Frustum* frustum;
+	if (mode == Orthographic)
+		frustum = &orthoFrustum;
+	else
+		frustum = &perspFrustum;
+
+	cube.m_near = getFrustumPlane(mode, frustum->nearPlane);
+	cube.m_far = getFrustumPlane(mode, frustum->farPlane);
 
 	return move(cube);
 }
 
-FrustumPlane Projectional::getFrustumPlane(float zValue) const
+FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 {
+	update();
 	FrustumPlane result;
 	vec3& lBot = result.leftBottom;
 	vec3& lTop = result.leftBottom;
 	vec3& rBot = result.rightBottom;
 	vec3& rTop = result.rightTop;
 
-	lBot.x = frustum.left;
-	lTop.x = frustum.left;
-	rBot.x = frustum.right;
-	rTop.x = frustum.right;
+	const Frustum* frustum;
+	if (mode == Orthographic)
+		frustum = &orthoFrustum;
+	else
+		frustum = &perspFrustum;
 
-	lBot.y = frustum.bottom;
-	rBot.y = frustum.bottom;
-	lTop.y = frustum.top;
-	rTop.y = frustum.top;
+
+	lBot.x = frustum->left;
+	lTop.x = frustum->left;
+	rBot.x = frustum->right;
+	rTop.x = frustum->right;
+
+	lBot.y = frustum->bottom;
+	rBot.y = frustum->bottom;
+	lTop.y = frustum->top;
+	rTop.y = frustum->top;
 
 	lBot.z = zValue;
 	lTop.z = zValue;
@@ -142,9 +158,9 @@ void Projectional::setFOV(float fov)
 	revalidate = true;
 }
 
-void Projectional::setFrustum(Frustum frustum)
+void Projectional::setOrthoFrustum(Frustum frustum)
 {
-	this->frustum = move(frustum);
+	orthoFrustum = move(frustum);
 	revalidate = true;
 }
 
@@ -175,17 +191,17 @@ void Projectional::setUp(vec3 up)
 	revalidate = true;
 }
 
-void Projectional::calcFrustum()
+void Projectional::calcFrustums()
 {
 	// calculate near plane 
 	float x = tan(radians(fov / 2.0f)) * aspectRatio;
 	float y = tan(radians(fov / 2.0f)) * 1.0f / aspectRatio;
 
 
-	frustum.left = -x;
-	frustum.right = x;
-	frustum.bottom = -y;
-	frustum.top = y;
+	perspFrustum.left = -x;
+	perspFrustum.right = x;
+	perspFrustum.bottom = -y;
+	perspFrustum.top = y;
 }
 
 void Projectional::update()
@@ -193,12 +209,12 @@ void Projectional::update()
 	// only update if changes have occurred
 	if (revalidate)
 	{
-		//calcFrustum();
-		float fovRad = radians(fov);
-		orthographic = ortho(fovRad * frustum.left, fovRad * frustum.right, fovRad * frustum.bottom,
-			fovRad * frustum.top, frustum.nearPlane, frustum.farPlane);
+		calcFrustums();
+		orthographic = ortho(orthoFrustum.left, orthoFrustum.right, 
+			orthoFrustum.bottom, orthoFrustum.top, 
+			orthoFrustum.nearPlane, orthoFrustum.farPlane);
 		perspective = glm::perspective(radians(fov),
-			aspectRatio, frustum.nearPlane, frustum.farPlane);
+			aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
 		calcView();
 		revalidate = false;
 	}

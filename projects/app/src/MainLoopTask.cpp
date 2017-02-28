@@ -149,7 +149,7 @@ void MainLoopTask::init()
 	Frustum frustum = camera->getFrustum();
 	frustum.nearPlane = 0.1f;
 	frustum.farPlane = 150.0f;
-	camera->setFrustum(move(frustum));
+	camera->setOrthoFrustum(move(frustum));
 
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
@@ -231,7 +231,7 @@ void MainLoopTask::init()
 	position = 10.0f * normalize(position);
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
-	globalLight.setFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
+	globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
 	//globalLight.setLook({ 1,1,0 });
 
 	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
