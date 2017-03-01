@@ -39,6 +39,8 @@ public:
 
 	explicit Projectional(float aspectRatio = 16.0f/9.0f, 
 		float fov = 45.0f, 
+		float perspNear = 0.1f,
+		float perspFar = 150.0f,
 		Frustum frustum = {-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 150.0f},
 		//Frustum frustum = Frustum(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 150.0f),
 		glm::vec3 look = { 0,0,-1 },
@@ -52,7 +54,7 @@ public:
 	float getAspectRatio() const;
 	const glm::vec3& getLook() const;
 	float getFOV() const;
-	const Frustum& getFrustum(ProjectionMode mode) const;
+	const Frustum& getFrustum(ProjectionMode mode);
 	FrustumCuboid getFrustumCuboid(ProjectionMode mode);
 	FrustumPlane getFrustumPlane(ProjectionMode mode, float zValue);
 	const glm::mat4& getOrthoProjection();
@@ -96,6 +98,6 @@ protected:
 	glm::vec3 up;
 	glm::mat4 view;
 
-	void calcFrustums();
+	void calcPerspFrustum();
 	virtual void update();
 };

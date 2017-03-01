@@ -27,8 +27,8 @@ PointLight::PointLight() : Projectional()
 {
 	fov = 90.0f;
 	aspectRatio = 1.0f;
-	frustum.nearPlane = 0.1f;
-	frustum.farPlane = 1.0f;
+	perspFrustum.nearPlane = 0.1f;
+	perspFrustum.farPlane = 1.0f;
 	logClient.setPrefix("[PointLight]");
 }
 
@@ -44,12 +44,12 @@ mat4* PointLight::getMatrices()
 
 float PointLight::getRange() const
 {
-	return frustum.farPlane;
+	return perspFrustum.farPlane;
 }
 
 void PointLight::setRange(float range)
 {
-	frustum.farPlane = range;
+	perspFrustum.farPlane = range;
 	revalidate = true;
 }
 
@@ -57,7 +57,7 @@ void PointLight::update()
 {
 	if (revalidate)
 	{
-		mat4 shadowProj = glm::perspective(radians(90.0f), aspectRatio, frustum.nearPlane, frustum.farPlane);
+		mat4 shadowProj = glm::perspective(radians(90.0f), aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
 		// right plane
 		shadowMatrices[0] = shadowProj * glm::lookAt(position, position + vec3(1.0, 0.0, 0.0),
 			vec3(0.0, -1.0, 0.0));

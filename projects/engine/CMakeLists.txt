@@ -122,6 +122,7 @@ set(
     #util
     include/util/FPSCounter.hpp
     include/util/Globals.hpp
+		include/util/Math.hpp
 		include/util/Projectional.hpp
     include/util/Timer.hpp
     

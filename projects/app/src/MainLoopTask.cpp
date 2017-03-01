@@ -21,6 +21,7 @@
 #include <shader/DepthMapShader.hpp>
 #include <shader/ScreenShader.hpp>
 #include <shader/ShadowShader.hpp>
+#include <util/Math.hpp>
 
 using namespace glm;
 using namespace std;
@@ -30,7 +31,7 @@ using namespace platform;
 //misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
-	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
+	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), sky(nullptr), 
 	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
 {
@@ -146,10 +147,14 @@ void MainLoopTask::init()
 	Renderer::Viewport viewport = window->getViewport();
 	camera->setAspectRatio((float)viewport.width / (float)viewport.height);
 
-	Frustum frustum = camera->getFrustum();
+	Frustum frustum = camera->getFrustum(Perspective);
+	frustum.left = -10.0f;
+	frustum.right = 10.0f;
+	frustum.bottom = -10.0f;
+	frustum.top = 10.0f;
 	frustum.nearPlane = 0.1f;
 	frustum.farPlane = 150.0f;
-	camera->setOrthoFrustum(move(frustum));
+	camera->setOrthoFrustum(frustum);
 
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
@@ -345,7 +350,11 @@ void MainLoopTask::run()
 	renderer->useDepthMap(shadowMap);
 	//renderer->beginScene();
 	
-	Frustum cameraFrustum = camera->getFrustum();
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Orthographic);
+	const mat4& cameraView = camera->getView();
+	mat4 inverseCameraView = inverse(cameraView);
+	
+	cameraCuboid = globalLight.getView() * cameraCuboid;
 	//cameraFrustum.
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
