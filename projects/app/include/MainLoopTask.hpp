@@ -61,6 +61,7 @@ private:
 	SceneNode* scene;
 	Sprite screenSprite;
 	DepthMap* shadowMap;
+	bool showDepthMap;
 	CubeMap* sky;
 	Vob skyBox;
 	Timer timer;

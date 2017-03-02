@@ -32,7 +32,7 @@ using namespace platform;
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
 	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
-	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), sky(nullptr), 
+	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
 	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
 {
 	this->window = window;
@@ -207,7 +207,7 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(1024, 1024);
+	shadowMap = renderer->createDepthMap(4096, 4096);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
 
 	renderTargetMultisampled = renderer->createRenderTarget(4);
@@ -233,7 +233,7 @@ void MainLoopTask::init()
 	pointLightPositions[3] = farAway;
 
 	vec3 position = {-2.0f, 5.0f, 3.0f};
-	position = 10.0f * normalize(position);
+	position = 100.0f * normalize(position);
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
 	globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
@@ -351,12 +351,38 @@ void MainLoopTask::run()
 	//renderer->beginScene();
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective);
-	const mat4& cameraView = camera->getView();
-	mat4 inverseCameraView = inverse(cameraView);
-	
-	FrustumCuboid cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboid;
+	const dmat4& cameraView = camera->getView();
+	dmat4 inverseCameraView = inverse(cameraView);
+
+	FrustumCuboid cameraCuboidWorld = globalLight.getView() * (mat4)inverseCameraView * cameraCuboid;
+	vec3 test = normalize(camera->getView() * vec4(camera->getLook(), 0));
+	dvec3 test2 = normalize(inverseCameraView * dvec4( 0.0,0.0,-1.0, 0.0 ));
+	//test2 -= camera->getPosition();
+	float testLength = length(test2);
+	vec3 test3 = vec3(cameraView[2]) + camera->getPosition();
+	vec3 test4 = cameraView * vec4(test3, 1);
+	vec3 look = camera->getLook();
+	vec3 cameraPos = camera->getPosition();
+	vec3 cameraLook = { 0,0, -1};
+	vec3 cameraRight = { 1,0,0 };
+	vec3 cameraUp = { 0,1,0 };
+	float factor = 10.0f;
+	float factorWidth = 15.0f;
+
+	/*cameraCuboidWorld.m_near.leftBottom = cameraPos - factorWidth*cameraRight - factor*cameraUp;
+	cameraCuboidWorld.m_near.leftTop = cameraPos - factorWidth*cameraRight + factor*cameraUp;
+	cameraCuboidWorld.m_near.rightBottom = cameraPos + factorWidth*cameraRight - factor*cameraUp;
+	cameraCuboidWorld.m_near.rightTop = cameraPos - factorWidth*cameraRight + factor*cameraUp;
+	cameraCuboidWorld.m_far.leftBottom = cameraPos - factorWidth*cameraRight - factor*cameraUp + factor * cameraLook;
+	cameraCuboidWorld.m_far.leftTop = cameraPos - factorWidth*cameraRight + factor*cameraUp + factor * cameraLook;
+	cameraCuboidWorld.m_far.rightBottom = cameraPos + factorWidth*cameraRight - factor*cameraUp + factor * cameraLook;
+	cameraCuboidWorld.m_far.rightTop = cameraPos - factorWidth*cameraRight + factor*cameraUp + factor * cameraLook;
+
+	cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboidWorld;*/
+
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
-	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, -ccBB.min.z, -ccBB.max.z };
+
+	Frustum shadowFrustum = {ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, -3 + ccBB.min.z, 3 + ccBB.max.z};
 	globalLight.setOrthoFrustum(shadowFrustum);
 	//cameraFrustum.
 
@@ -402,7 +428,13 @@ void MainLoopTask::run()
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
-	modelDrawer->draw(&screenSprite, depthMapShader);
+	if (showDepthMap)
+	{
+		modelDrawer->draw(&screenSprite, depthMapShader);
+	} else
+	{
+		modelDrawer->draw(&screenSprite, screenShader);
+	}
 	renderer->endScene();
 
 	window->swapBuffers();
@@ -489,6 +521,11 @@ void MainLoopTask::handleInputEvents()
 
 		mixValue = round(mixValue * 10) / 10;
 		LOG(logClient, Debug) << "MixValue: " << mixValue;
+	}
+
+	if (input->isPressed(Input::KEY_Y))
+	{
+		showDepthMap = !showDepthMap;
 	}
 }
 

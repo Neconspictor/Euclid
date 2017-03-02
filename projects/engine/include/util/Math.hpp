@@ -23,6 +23,11 @@ inline AABB& fromCuboid(const FrustumCuboid& frustum)
 	values.push_back(frustum.m_far.rightTop);
 	values.push_back(frustum.m_far.rightBottom);
 
+	for (auto& value : values)
+	{
+		value.z *= -1;
+	}
+
 
 	static auto getFromCompare = [](const std::vector< glm::vec3>& vecs, int index, float* currentMin, 
 		bool(*compare)(float, float) ) {
@@ -34,15 +39,19 @@ inline AABB& fromCuboid(const FrustumCuboid& frustum)
 	float x, y, z;
 	static auto minCompare = [](float a, float b)->bool { return a < b; };
 	static auto maxCompare = [](float a, float b)->bool { return a > b; };
+	static auto absMinCompare = [](float a, float b)->bool { return std::abs(a) < std::abs(b); };
+	static auto absMaxCompare = [](float a, float b)->bool { return std::abs(a) > std::abs(b); };
 	
 	getFromCompare(values, 0, &x, minCompare);
 	getFromCompare(values, 1, &y, minCompare);
-	getFromCompare(values, 2, &z, maxCompare);
+	getFromCompare(values, 2, &z, minCompare);
 	bb.min = {x,y,z};
 	getFromCompare(values, 0, &x, maxCompare);
 	getFromCompare(values, 1, &y, maxCompare);
-	getFromCompare(values, 2, &z, minCompare);
+	getFromCompare(values, 2, &z, maxCompare);
+
 	bb.max = { x,y,z };
+
 	
 	return bb;
 }

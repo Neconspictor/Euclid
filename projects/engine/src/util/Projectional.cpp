@@ -57,13 +57,8 @@ const Frustum& Projectional::getFrustum(ProjectionMode mode)
 FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode)
 {
 	FrustumCuboid cube;
-#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
 	cube.m_near = getFrustumPlane(mode, 0);
-#else
-	cube.m_near = getFrustumPlane(mode, -1.0f);
-#endif
-
-	cube.m_far = getFrustumPlane(mode, 1.0f);
+	cube.m_far = getFrustumPlane(mode, 0.01f);
 
 	return move(cube);
 }
@@ -72,42 +67,37 @@ FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 {
 	update();
 	FrustumPlane result;
-	/*vec3& lBot = result.leftBottom;
-	vec3& lTop = result.leftTop;
-	vec3& rBot = result.rightBottom;
-	vec3& rTop = result.rightTop;
+	float l, r, t, b, n, f, z;
 
-	const Frustum* frustum;
-	if (mode == Orthographic)
-		frustum = &orthoFrustum;
-	else
-		frustum = &perspFrustum;
+	switch (mode)
+	{
+	case Orthographic: {
+		l = orthoFrustum.left;
+		r = orthoFrustum.right;
+		t = orthoFrustum.top;
+		b = orthoFrustum.bottom;
+		n = orthoFrustum.nearPlane;
+		f = orthoFrustum.farPlane;
+		z = zValue*(f - n) + n;
+		break;
+	}
+	case Perspective: {
+		n = perspFrustum.nearPlane;
+		f = perspFrustum.farPlane;
+		z = -zValue*(f - n) + n;
+		l = perspFrustum.left * z;
+		r = perspFrustum.right * z;
+		t = perspFrustum.top * z;
+		b = perspFrustum.bottom * z;
+		break;
+	}
+	default: throw runtime_error("Projectional::getFrustumPlane(): Unknown projection mode: " + to_string(mode));
+	}
 
-	lBot.x = frustum->left;
-	lTop.x = frustum->left;
-	rBot.x = frustum->right;
-	rTop.x = frustum->right;
-
-	lBot.y = frustum->bottom;
-	rBot.y = frustum->bottom;
-	lTop.y = frustum->top;
-	rTop.y = frustum->top;
-
-	lBot.z = zValue;
-	lTop.z = zValue;
-	rBot.z = zValue;
-	rTop.z = zValue;*/
-
-	mat4 inverse;
-	if (mode == Orthographic)
-		inverse = glm::inverse(orthographic);
-	else
-		inverse = glm::inverse(perspective);
-
-	result.leftBottom = NDCToCameraSpace(vec3(-1, -1, zValue), inverse);
-	result.leftTop = NDCToCameraSpace(vec3(-1, 1, zValue), inverse);
-	result.rightBottom = NDCToCameraSpace(vec3(1, -1, zValue), inverse);
-	result.rightTop = NDCToCameraSpace(vec3(1, 1, zValue), inverse);
+	result.leftBottom = {l,b,z};
+	result.leftTop = {l,t,z};
+	result.rightBottom = {r,b,z};
+	result.rightTop = {r,t,z};
 
 	return move(result);
 }
@@ -153,7 +143,7 @@ const mat4& Projectional::getView()
 void Projectional::lookAt(vec3 location)
 {
 	//setLook(location - position);
-	look = location - position;
+	look = normalize(location - position);
 	revalidate = true;
 }
 
@@ -208,8 +198,8 @@ void Projectional::setUp(vec3 up)
 void Projectional::calcPerspFrustum()
 {
 	// calculate near plane 
-	float x = tan(radians(fov / 2.0f)) * aspectRatio;
-	float y = tan(radians(fov / 2.0f)) * 1.0f / aspectRatio;
+	float x = tan(radians(fov * aspectRatio / 2.0f));
+	float y = tan(radians(fov / 2.0f));
 
 
 	perspFrustum.left = -x;
