@@ -141,8 +141,8 @@ void MainLoopTask::init()
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
 
-	camera->setPosition(vec3(0.0f, 3.0f, 3.0f));
-	camera->setLook(vec3(1.0f, 0.0f, 0.0f));
+	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
+	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
 	camera->setUp(vec3(0.0f, 1.0f, 0.0f));
 	Renderer::Viewport viewport = window->getViewport();
 	camera->setAspectRatio((float)viewport.width / (float)viewport.height);
@@ -350,11 +350,14 @@ void MainLoopTask::run()
 	renderer->useDepthMap(shadowMap);
 	//renderer->beginScene();
 	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Orthographic);
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective);
 	const mat4& cameraView = camera->getView();
 	mat4 inverseCameraView = inverse(cameraView);
 	
-	cameraCuboid = globalLight.getView() * cameraCuboid;
+	FrustumCuboid cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboid;
+	AABB ccBB = fromCuboid(cameraCuboidWorld);
+	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, -ccBB.min.z, -ccBB.max.z };
+	globalLight.setOrthoFrustum(shadowFrustum);
 	//cameraFrustum.
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
@@ -399,7 +402,7 @@ void MainLoopTask::run()
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
-	modelDrawer->draw(&screenSprite, screenShader);
+	modelDrawer->draw(&screenSprite, depthMapShader);
 	renderer->endScene();
 
 	window->swapBuffers();

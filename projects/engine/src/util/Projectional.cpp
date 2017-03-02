@@ -57,8 +57,13 @@ const Frustum& Projectional::getFrustum(ProjectionMode mode)
 FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode)
 {
 	FrustumCuboid cube;
-	cube.m_near = getFrustumPlane(mode, -1);
-	cube.m_far = getFrustumPlane(mode, 1);
+#ifdef USE_CLIP_SPACE_ZERO_TO_ONE
+	cube.m_near = getFrustumPlane(mode, 0);
+#else
+	cube.m_near = getFrustumPlane(mode, -1.0f);
+#endif
+
+	cube.m_far = getFrustumPlane(mode, 1.0f);
 
 	return move(cube);
 }
@@ -99,10 +104,10 @@ FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 	else
 		inverse = glm::inverse(perspective);
 
-	result.leftBottom = clippingSpaceToCameraSpace(vec3(-1, -1, zValue), inverse);
-	result.leftTop = clippingSpaceToCameraSpace(vec3(-1, 1, zValue), inverse);
-	result.rightBottom = clippingSpaceToCameraSpace(vec3(1, -1, zValue), inverse);
-	result.rightTop = clippingSpaceToCameraSpace(vec3(1, 1, zValue), inverse);
+	result.leftBottom = NDCToCameraSpace(vec3(-1, -1, zValue), inverse);
+	result.leftTop = NDCToCameraSpace(vec3(-1, 1, zValue), inverse);
+	result.rightBottom = NDCToCameraSpace(vec3(1, -1, zValue), inverse);
+	result.rightTop = NDCToCameraSpace(vec3(1, 1, zValue), inverse);
 
 	return move(result);
 }
@@ -218,7 +223,6 @@ void Projectional::update()
 	// only update if changes have occurred
 	if (revalidate)
 	{
-		orthographic = mat4();
 		orthographic = ortho(orthoFrustum.left, orthoFrustum.right, 
 			orthoFrustum.bottom, orthoFrustum.top, 
 			orthoFrustum.nearPlane, orthoFrustum.farPlane);
