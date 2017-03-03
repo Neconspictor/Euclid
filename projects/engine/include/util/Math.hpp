@@ -56,6 +56,12 @@ inline AABB& fromCuboid(const FrustumCuboid& frustum)
 	return bb;
 }
 
+template<typename T>
+inline bool isInRange(T value, T rangeBegin, T rangeEnd)
+{
+	return value >= rangeBegin && value <= rangeEnd;
+}
+
 inline glm::vec3& NDCToCameraSpace(const glm::vec3& source, const glm::mat4& inverseProjection)
 {
 	glm::vec4 unprojected = inverseProjection * glm::vec4(source, 1);

@@ -2,6 +2,8 @@ TODO:
 
 - vld and Brofiler are incompatible and cannot be run both on the same time.
   ->Maybe find alternative solutions
+- Support for left handiness
+- Support for [0,1] range for the z ccordinate in clip space 
 
 
 unimportant:

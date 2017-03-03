@@ -54,11 +54,14 @@ const Frustum& Projectional::getFrustum(ProjectionMode mode)
 		return perspFrustum;
 }
 
-FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode)
+FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode, float zStart, float zEnd)
 {
+	assert(isInRange(zStart, 0.0f, 1.0f));
+	assert(isInRange(zEnd, 0.0f, 1.0f));
+	
 	FrustumCuboid cube;
-	cube.m_near = getFrustumPlane(mode, 0);
-	cube.m_far = getFrustumPlane(mode, 0.01f);
+	cube.m_near = getFrustumPlane(mode, zStart);
+	cube.m_far = getFrustumPlane(mode, zEnd);
 
 	return move(cube);
 }
@@ -68,6 +71,10 @@ FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 	update();
 	FrustumPlane result;
 	float l, r, t, b, n, f, z;
+
+   #ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
+	zValue *= -1; // the z-axis is inverted on right handed systems
+   #endif
 
 	switch (mode)
 	{
@@ -84,7 +91,7 @@ FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 	case Perspective: {
 		n = perspFrustum.nearPlane;
 		f = perspFrustum.farPlane;
-		z = -zValue*(f - n) + n;
+		z = zValue*(f - n) + n;
 		l = perspFrustum.left * z;
 		r = perspFrustum.right * z;
 		t = perspFrustum.top * z;

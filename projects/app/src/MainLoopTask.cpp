@@ -207,7 +207,7 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(4096, 4096);
+	shadowMap = renderer->createDepthMap(1024, 1024);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
 
 	renderTargetMultisampled = renderer->createRenderTarget(4);
@@ -350,36 +350,11 @@ void MainLoopTask::run()
 	renderer->useDepthMap(shadowMap);
 	//renderer->beginScene();
 	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective);
-	const dmat4& cameraView = camera->getView();
-	dmat4 inverseCameraView = inverse(cameraView);
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.3f);
+	const mat4& cameraView = camera->getView();
+	mat4 inverseCameraView = inverse(cameraView);
 
-	FrustumCuboid cameraCuboidWorld = globalLight.getView() * (mat4)inverseCameraView * cameraCuboid;
-	vec3 test = normalize(camera->getView() * vec4(camera->getLook(), 0));
-	dvec3 test2 = normalize(inverseCameraView * dvec4( 0.0,0.0,-1.0, 0.0 ));
-	//test2 -= camera->getPosition();
-	float testLength = length(test2);
-	vec3 test3 = vec3(cameraView[2]) + camera->getPosition();
-	vec3 test4 = cameraView * vec4(test3, 1);
-	vec3 look = camera->getLook();
-	vec3 cameraPos = camera->getPosition();
-	vec3 cameraLook = { 0,0, -1};
-	vec3 cameraRight = { 1,0,0 };
-	vec3 cameraUp = { 0,1,0 };
-	float factor = 10.0f;
-	float factorWidth = 15.0f;
-
-	/*cameraCuboidWorld.m_near.leftBottom = cameraPos - factorWidth*cameraRight - factor*cameraUp;
-	cameraCuboidWorld.m_near.leftTop = cameraPos - factorWidth*cameraRight + factor*cameraUp;
-	cameraCuboidWorld.m_near.rightBottom = cameraPos + factorWidth*cameraRight - factor*cameraUp;
-	cameraCuboidWorld.m_near.rightTop = cameraPos - factorWidth*cameraRight + factor*cameraUp;
-	cameraCuboidWorld.m_far.leftBottom = cameraPos - factorWidth*cameraRight - factor*cameraUp + factor * cameraLook;
-	cameraCuboidWorld.m_far.leftTop = cameraPos - factorWidth*cameraRight + factor*cameraUp + factor * cameraLook;
-	cameraCuboidWorld.m_far.rightBottom = cameraPos + factorWidth*cameraRight - factor*cameraUp + factor * cameraLook;
-	cameraCuboidWorld.m_far.rightTop = cameraPos - factorWidth*cameraRight + factor*cameraUp + factor * cameraLook;
-
-	cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboidWorld;*/
-
+	FrustumCuboid cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboid;
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
 
 	Frustum shadowFrustum = {ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, -3 + ccBB.min.z, 3 + ccBB.max.z};

@@ -55,7 +55,7 @@ public:
 	const glm::vec3& getLook() const;
 	float getFOV() const;
 	const Frustum& getFrustum(ProjectionMode mode);
-	FrustumCuboid getFrustumCuboid(ProjectionMode mode);
+	FrustumCuboid getFrustumCuboid(ProjectionMode mode, float zStart =  0.0f, float zEnd = 1.0f);
 	FrustumPlane getFrustumPlane(ProjectionMode mode, float zValue);
 	const glm::mat4& getOrthoProjection();
 	const glm::mat4& getPerspProjection();
