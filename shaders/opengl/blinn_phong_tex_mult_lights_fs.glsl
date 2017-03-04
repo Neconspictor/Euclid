@@ -67,11 +67,18 @@ uniform DirLight dirLight;
 uniform PointLight pointLights [NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 
+//for point light shadows
+uniform samplerCube cubeDepthMap;
+uniform float range;
+
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec4 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
-//vec4 shadowCalculation(vec4 fragPosLightSpace);
+float pointShadowCalculation(PointLight light);
+float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
+float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
+float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
 
 void main()
 {    
@@ -80,16 +87,16 @@ void main()
     
     // phase 1: directional lighting
     vec4 result = calcDirLight(dirLight, normal, viewDirection);
-    
+		
     // phase 2: point lights
-    //for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
-    //    result += calcPointLight(pointLights[i], normal, fs_in.fragPos, viewDirection);
-    //}
+    for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
+        //result += calcPointLight(pointLights[i], normal, fs_in.fragPos, viewDirection);
+    }
     
     // phase 3: spot lighting
     //result += calcSpotLight(spotLight, normal, fs_in.fragPos, viewDirection);
     
-    // Reflection
+    // phase 4: Reflection
     vec3 I = normalize(fs_in.reflectPosition - viewPos);
     vec3 R = reflect(I, normal);
     float reflect_intensity = texture(material.reflectionMap, fs_in.texCoords).r;
@@ -98,6 +105,29 @@ void main()
         reflect_color = texture(skybox, R) * reflect_intensity;
            
     result += reflect_color;    
+		
+		
+		//directional shadow calculation
+		float shadow = shadowCalculation(normalize(-dirLight.direction), normal, fs_in.fragPosLightSpace);
+
+		//spot light shadows
+		for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
+		  //shadow *= pointShadowCalculation(pointLights[i]);
+		}
+		
+		
+		
+		result *= 1 - shadow;
+		
+		// phase 5: ambient lighting
+		vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
+		result += dirLight.ambient * diffuseColor;
+		
+		if (shadow > 0.0f) {
+		  //result = vec4(shadow, shadow, shadow, 1);
+		}
+		
+		
 		result.w = 1.0f;
     result = clamp(result, 0.0, 1.0);
     
@@ -117,22 +147,10 @@ vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     float shininess = pow(max(dot(viewDir, halfwayDir), 0.0), material.shininess * 2.0f);
     // combine results
-    vec4 ambient = light.ambient * diffuseColor;
     vec4 diffuse = light.diffuse * diffuseAngle * diffuseColor;
     vec4 specular = light.specular * shininess * specularColor;
 		
-		//return shadowCalculation(fs_in.fragPosLightSpace);
-		float shadow = shadowCalculation(lightDir, normal, fs_in.fragPosLightSpace);     
-    //vec4 lighting = /*ambient +*/ (1.0 - shadow) * (diffuse + specular);
-		vec4 lighting = ambient + (1.0 - shadow) * (diffuse + specular);
-    return lighting;
-		//return diffuse + specular;
-		//return (shadow) * vec4(1,1,1,1);
-		//return (1.0 - shadow) * (diffuse + specular);
-		//return ambient;
-		//return lighting;
-		//return (ambient + diffuse + specular);
-		//return diffuse;
+		return diffuse + specular;
 }
 
 // Calculates the color when using a point light source
@@ -153,18 +171,15 @@ vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
                         light.quadratic * distance * distance);
       
     // combine results
-    vec4 ambient = light.ambient * diffuseColor;
     vec4 diffuse = light.diffuse * diffuseAngle * diffuseColor;
     vec4 specular = light.specular * shininess * specularColor;
-    return attenuation * (ambient + diffuse + specular);
+    return attenuation * (diffuse + specular);
 }
 
 // Calculates the color when using a spot light source
 vec4 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
     vec4 specularColor = texture(material.specularMap, fs_in.texCoords);    
-    // Ambient
-    vec4 ambient = light.ambient * diffuseColor;
     
     // Diffuse 
     vec3 norm = normalize(normal);        
@@ -187,39 +202,139 @@ vec4 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     
     // Attenuation
     float distance    = length(light.position - fragPos);
-    float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
-    ambient  *= attenuation; 
+    float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     diffuse  *= attenuation;
     specular *= attenuation;   
             
-    return (ambient + diffuse + specular);  
+    return (diffuse + specular);  
 }
 
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 {
-    // perform perspective divide
+    /*// perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // Transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // Get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // Check whether current frag pos is in shadow
-		float bias = max(0.000001*(1.0 - dot(normal, lightDir)) ,0.000001);
-		float shadow = 0.0;
-		vec2 texelSize = 1.0 / textureSize(material.shadowMap, 0);
-		for (int x = -1; x <= 1; ++x) {
-			for (int y = -1; y <= 1; ++y) {
-			  // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-				float closestDepth = texture(material.shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
-			  shadow += currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-			}
-		}
-		shadow /= 9.0;
+		float bias = max(0.001*(1.0 - dot(normal, lightDir)) ,0.001);
 		
-		//float closestDepth = texture(material.shadowMap, projCoords.xy).r;
-	  //shadow += currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+		float shadow = 0.0;		
+		float closestDepth = texture(material.shadowMap, projCoords.xy).r;
+	  shadow += currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 		
 		if (currentDepth > 1.0)
-				shadow = 0.0;		
+				shadow = 0.0;
+    return shadow;*/
+		
+		
+		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;// / fragPosLightSpace.w ;
+		//shadowCoordinateWdivide = shadowCoordinateWdivide * 0.5 + 0.5;
+		
+		// Used to lower moiré pattern and self-shadowing
+		//shadowCoordinateWdivide.z += 0.0005;
+		
+		float currentDepth = shadowCoordinateWdivide.z;
+		float bias = max(0.0005*(1.0 - dot(normal, lightDir)) ,0.0005);		
+	
+		float shadow = 0.0;
+		
+	  vec2 texelSize = 1.0 / textureSize(material.shadowMap, 0);
+	  /*for(float x = -1.5; x <= 1.5; ++x)
+	  {
+      for(float y = -1.5; y <= 1.5; ++y)
+      {
+        float closestDepth = texture(material.shadowMap, shadowCoordinateWdivide.xy + vec2(x, y) * texelSize).r; 
+        shadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;        
+				//shadow += texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+      }    
+	  }
+	  shadow /= 16.0;*/
+		shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+		//shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
+		//shadow = texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);	
+	 	//if (fragPosLightSpace.w > 0.0)
+		float closestDepth = texture2D(material.shadowMap, shadowCoordinateWdivide.xy).r;
+	 	//shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0 ;		
     return shadow;
-} 
+		
+}
+
+
+
+float pointShadowCalculation(PointLight light)
+{
+    // Get vector between fragment position and light position
+    vec3 fragToLight = fs_in.fragPos.xyz - light.position;
+    float closestDepth = texture(cubeDepthMap, fragToLight).r;
+		float closestDepthRanged = closestDepth * range;
+    // Now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // Now test for shadows
+    float bias = 0.05;
+		currentDepth -= bias;
+    float shadow = currentDepth > closestDepthRanged ? 1.0 : 0.0;
+
+    return shadow;
+		
+		
+	/*vec3 fragToLight = fs_in.fragPos.xyz - light.position;
+	float currentDepth = length(fragToLight);
+	
+	float shadow = 0.0;
+	float bias = 0.3; 
+	float samples = 4.0;
+	float offset = 0.01;
+	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+	{
+		for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+		{
+				for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+				{
+						float closestDepth = texture(cubeDepthMap, fragToLight + vec3(x, y, z)).r; 
+						closestDepth *= range;   // Undo mapping [0;1]
+						if(currentDepth - bias > closestDepth)
+								shadow += 1.0;
+				}
+		}
+	}
+	shadow /= (samples * samples * samples);
+	return shadow;*/
+}  
+
+float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){
+    float depth = texture2D(depths, uv).r;
+		if (depth >= 1.0)
+				return 0.0f;
+    return step(depth + bias, compare);
+}
+
+float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
+    vec2 texelSize = vec2(1.0)/size;
+    vec2 f = fract(uv*size+0.5);
+    vec2 centroidUV = floor(uv*size+0.5)/size;
+
+    float lb = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 0.0), compare, bias);
+    float lt = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 1.0), compare, bias);
+    float rb = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 0.0), compare, bias);
+    float rt = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 1.0), compare, bias);
+    float a = mix(lb, lt, f.y);
+    float b = mix(rb, rt, f.y);
+    float c = mix(a, b, f.x);
+    return c;
+}
+
+float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
+    float result = 0.0;
+		float xSamples = 0.5;
+		float ySamples = 0.5;
+		float sampleCount = (2*xSamples+1) * (2*ySamples+1);
+    for(float x=-xSamples; x<=xSamples; x++){
+        for(float y=-ySamples; y<=ySamples; y++){
+            vec2 off = vec2(x,y)/size;
+            result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
+        }
+    }
+    return result / sampleCount;
+}

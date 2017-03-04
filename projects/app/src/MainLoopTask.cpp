@@ -172,7 +172,7 @@ void MainLoopTask::init()
 		renderer->setViewPort(0, 0, width, height);
 		renderer->destroyRenderTarget(renderTargetMultisampled);
 		renderer->destroyRenderTarget(renderTargetSingleSampled);
-		renderTargetMultisampled = renderer->createRenderTarget(4);
+		renderTargetMultisampled = renderer->createRenderTarget(1);
 		renderTargetSingleSampled = renderer->createRenderTarget(1);
 	});
 
@@ -207,10 +207,10 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(1024, 1024);
+	shadowMap = renderer->createDepthMap(4096, 4096);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
 
-	renderTargetMultisampled = renderer->createRenderTarget(4);
+	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	skyBoxShader->setSkyTexture(sky);
@@ -350,14 +350,48 @@ void MainLoopTask::run()
 	renderer->useDepthMap(shadowMap);
 	//renderer->beginScene();
 	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.3f);
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
 	const mat4& cameraView = camera->getView();
 	mat4 inverseCameraView = inverse(cameraView);
 
 	FrustumCuboid cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboid;
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
+	ccBB.min.z -= 3;
+	ccBB.max.z += 3;
 
-	Frustum shadowFrustum = {ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, -3 + ccBB.min.z, 3 + ccBB.max.z};
+	// Snap shadow frustum to texel bounds for avoiding edge shimmering
+	float size = shadowMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
+	vec3 normalizedMapSize = vec3(1.0f / shadowMap->getWidth(), 1.0f / shadowMap->getHeight(), 1.0f);
+	vec3 worldUnitsPerTexel = ccBB.max - ccBB.min;
+	worldUnitsPerTexel *= normalizedMapSize;
+	
+	// We snap the camera to 1 pixel increments so that moving the camera does not cause the shadows
+	// to jitter. This is a matter of integer dividing by the world space size of a texel
+	ccBB.min.x /= worldUnitsPerTexel.x;
+	ccBB.min.y /= worldUnitsPerTexel.y;
+	//ccBB.min.z /= worldUnitsPerTexel.x;
+	ccBB.min.x = floor(ccBB.min.x);
+	ccBB.min.y = floor(ccBB.min.y);
+	//ccBB.min.z = ceil(ccBB.min.z);
+	ccBB.min.x *= worldUnitsPerTexel.x;
+	ccBB.min.y *= worldUnitsPerTexel.y;
+	//ccBB.min.z *= worldUnitsPerTexel.x;
+
+	ccBB.max.x /= worldUnitsPerTexel.x;
+	ccBB.max.y /= worldUnitsPerTexel.y;
+	//ccBB.max.z /= worldUnitsPerTexel.x;
+	ccBB.max.x = floor(ccBB.max.x);
+	ccBB.max.y = floor(ccBB.max.y);
+	//ccBB.max.z = ceil(ccBB.max.z);
+	ccBB.max.x *= worldUnitsPerTexel.x;
+	ccBB.max.y *= worldUnitsPerTexel.y;
+	//ccBB.max.z *= worldUnitsPerTexel.x;
+
+	/*
+	ccBB.min.z = 0.0f;
+	ccBB.max.z = 100.0f;
+	*/
+	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
 	globalLight.setOrthoFrustum(shadowFrustum);
 	//cameraFrustum.
 

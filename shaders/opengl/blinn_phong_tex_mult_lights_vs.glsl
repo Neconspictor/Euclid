@@ -8,6 +8,7 @@ uniform mat4 model;
 uniform mat4 modelView;
 uniform mat4 normalMatrix;
 uniform mat4 lightSpaceMatrix;
+uniform mat4 biasMatrix;
 
 out VS_OUT {
 	vec3 fragPos;
@@ -25,5 +26,5 @@ void main()
     vs_out.fragPos = vec3(model * vec4(position, 1.0f));
     vs_out.reflectPosition = vec3(model * vec4(position, 1.0f));
     vs_out.texCoords = texCoords;
-		vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(vs_out.fragPos, 1.0);
+		vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * vec4(vs_out.fragPos, 1.0);
 } 
