@@ -33,7 +33,7 @@ MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr w
 	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
 	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
+	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr), vsMap(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -209,6 +209,7 @@ void MainLoopTask::init()
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
+	vsMap = renderer->createVarianceShadowMap(1024, 1024);
 
 	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -348,6 +349,7 @@ void MainLoopTask::run()
 
 	// render shadows to a depth map
 	renderer->useDepthMap(shadowMap);
+	//renderer->useVarianceShadowMap(vsMap);
 	//renderer->beginScene();
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
@@ -414,6 +416,7 @@ void MainLoopTask::run()
 	phongShader->setShadowMap(shadowMap->getTexture());
 	phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
+	phongShader->setVarianceShadowMap(vsMap->getTexture());
 	cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
 	cubeDepthMapShader->setLightPos(pointLight.getPosition());
 	cubeDepthMapShader->setRange(pointLight.getRange());

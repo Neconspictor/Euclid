@@ -35,6 +35,8 @@ public:
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 
+	virtual VarianceShadowMap* createVarianceShadowMap(int width, int height) = 0;
+	
 	virtual void cullFaces(CullingMode mode = CullingMode::Back) = 0;
 
 	virtual void destroyRenderTarget(RenderTarget* target) = 0;
@@ -99,4 +101,10 @@ public:
 	 * Draws directly to the screen buffer -> 
 	 */
 	virtual void useScreenTarget() = 0;
+
+	/**
+	* All draw calls are performed on a variance shadow map texture.
+	* Only the depth value and it's square are written (no color information).
+	*/
+	virtual void useVarianceShadowMap(VarianceShadowMap* map) = 0;
 };

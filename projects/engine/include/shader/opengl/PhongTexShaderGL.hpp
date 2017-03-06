@@ -43,6 +43,8 @@ public:
 
 	void setSpotLightDirection(glm::vec3 direction) override;
 
+	void setVarianceShadowMap(Texture* texture) override;
+
 	void setViewPosition(glm::vec3 position) override;
 
 	void use() override;
@@ -65,4 +67,5 @@ private:
 	TextureGL* shadowMap;
 	CubeMapGL* skybox;
 	glm::vec3 viewPosition;
+	TextureGL* vsMap;
 };

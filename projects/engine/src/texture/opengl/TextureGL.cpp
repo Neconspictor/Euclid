@@ -354,7 +354,7 @@ DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
 	glGenFramebuffers(1, &frameBuffer);
 	glGenTextures(1, &textureID);
 	texture.setTexture(textureID);
-
+	//GL_RG32F
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -445,4 +445,88 @@ void DepthMapGL::release()
 	texture.release();
 	glDeleteFramebuffers(1, &frameBuffer);
 	frameBuffer = GL_FALSE;
+}
+
+VarianceShadowMapGL::VarianceShadowMapGL(int width, int height): VarianceShadowMap(width, height)
+{
+	GLuint textureID = GL_FALSE;
+	glGenFramebuffers(1, &frameBuffer);
+	glGenTextures(1, &textureID);
+	texture.setTexture(textureID);
+	//GL_RG32F
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureID, 0);
+
+	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+VarianceShadowMapGL::VarianceShadowMapGL(const VarianceShadowMapGL& other) : VarianceShadowMap(other),
+texture(other.texture), frameBuffer(other.frameBuffer)
+{
+}
+
+VarianceShadowMapGL::VarianceShadowMapGL(VarianceShadowMapGL&& other) : VarianceShadowMap(other),
+texture(other.texture), frameBuffer(other.frameBuffer)
+{
+	other.frameBuffer = GL_FALSE;
+}
+
+VarianceShadowMapGL& VarianceShadowMapGL::operator=(const VarianceShadowMapGL& other)
+{
+	if (this == &other)
+		return *this;
+	// call base asignment operator
+	VarianceShadowMap::operator =(other);
+
+	texture = move(other.texture);
+	frameBuffer = other.frameBuffer;
+	return *this;
+}
+
+VarianceShadowMapGL& VarianceShadowMapGL::operator=(VarianceShadowMapGL&& other)
+{
+	if (this == &other)
+		return *this;
+	// call base asignment operator
+	VarianceShadowMap::operator =(other);
+	texture = move(other.texture);
+	frameBuffer = move(other.frameBuffer);
+	other.frameBuffer = GL_FALSE;
+	return *this;
+}
+
+VarianceShadowMapGL::~VarianceShadowMapGL()
+{
+	texture.release();
+	glDeleteFramebuffers(1, &frameBuffer);
+	frameBuffer = GL_FALSE;
+}
+
+GLuint VarianceShadowMapGL::getFramebuffer() const
+{
+	return frameBuffer;
+}
+
+GLuint VarianceShadowMapGL::getTexture() const
+{
+	return texture.getTexture();
+}
+
+Texture* VarianceShadowMapGL::getTexture()
+{
+	return &texture;
 }

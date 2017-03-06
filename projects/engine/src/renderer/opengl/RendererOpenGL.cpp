@@ -255,6 +255,7 @@ void RendererOpenGL::present()
 void RendererOpenGL::release()
 {
 	depthMaps.clear();
+	vsMaps.clear();
 }
 
 void RendererOpenGL::setBackgroundColor(glm::vec3 color)
@@ -334,6 +335,21 @@ void RendererOpenGL::useScreenTarget()
 	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 }
 
+void RendererOpenGL::useVarianceShadowMap(VarianceShadowMap* source)
+{
+	VarianceShadowMapGL* map = dynamic_cast<VarianceShadowMapGL*>(source);
+	assert(map != nullptr);
+	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
+
+	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+}
+
 void RendererOpenGL::checkGLErrors(string errorPrefix)
 {
 	// check if any gl related errors occured
@@ -402,6 +418,12 @@ RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int widt
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	return result;
+}
+
+VarianceShadowMap* RendererOpenGL::createVarianceShadowMap(int width, int height)
+{
+	vsMaps.push_back(move(VarianceShadowMapGL(width, height)));
+	return &vsMaps.back();
 }
 
 void RendererOpenGL::cullFaces(CullingMode mode)

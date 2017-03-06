@@ -66,6 +66,7 @@ private:
 	Vob skyBox;
 	Timer timer;
 	SystemUI* ui;
+	VarianceShadowMap* vsMap;
 	std::list<Vob> vobs;
 	WindowPtr window;
 	WindowSystemPtr windowSystem;

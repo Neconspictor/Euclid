@@ -155,6 +155,12 @@ void PhongTexShaderGL::setSpotLightDirection(vec3 direction)
 	spotLightDirection = move(direction);
 }
 
+void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
+{ 
+	vsMap = dynamic_cast<TextureGL*>(texture);
+	assert(vsMap != nullptr);
+}
+
 void PhongTexShaderGL::initLights(GLuint programID)
 {
 	// == ==========================
@@ -291,6 +297,10 @@ void PhongTexShaderGL::initForDrawing(Mesh const& meshOriginal, GLuint programID
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, pointLightShadowMap->getCubeMapTexture());
 	glUniform1i(glGetUniformLocation(programID, "cubeDepthMap"), 6);
+
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, vsMap->getTexture());
+	glUniform1i(glGetUniformLocation(programID, "material.vsMap"), 7);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)

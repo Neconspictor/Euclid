@@ -22,7 +22,8 @@ enum class Shaders
 	SimpleReflection,
 	Screen,
 	SkyBox,
-	SkyBoxPanorama
+	SkyBoxPanorama,
+	VarianceShadow
 };
 
 /**
@@ -45,7 +46,8 @@ const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 	{Shaders::SimpleReflection, "SIMPLE_REFLECTION"},
 	{Shaders::Screen, "SCREEN"},
 	{Shaders::SkyBox, "SKY_BOX"},
-	{Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA"}
+	{Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA"},
+	{Shaders::VarianceShadow, "VARIANCE_SHADOW"}
 };
 
 	/**

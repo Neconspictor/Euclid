@@ -18,3 +18,10 @@ public:
 	ShadowShader() : Shader() {}
 	virtual ~ShadowShader() {};
 };
+
+class VarianceShadowShader : public Shader
+{
+public:
+	VarianceShadowShader() : Shader() {}
+	virtual ~VarianceShadowShader() {};
+};

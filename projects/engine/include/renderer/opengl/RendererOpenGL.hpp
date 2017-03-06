@@ -30,6 +30,8 @@ public:
 	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
 		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
 
+	VarianceShadowMap* createVarianceShadowMap(int width, int height) override;
+
 	void cullFaces(CullingMode mode) override;
 
 	void destroyRenderTarget(RenderTarget* target) override;
@@ -76,6 +78,7 @@ public:
 
 	void useScreenTarget() override;
 
+	void useVarianceShadowMap(VarianceShadowMap* map) override;
 
 	/**
 	* A function for checking any opengl related errors.
@@ -100,4 +103,5 @@ protected:
 	std::list<RenderTargetGL> renderTargets;
 	std::unique_ptr<ModelGL> screenSprite;
 	SMAA_GL* smaa;
+	std::list<VarianceShadowMapGL> vsMaps;
 };

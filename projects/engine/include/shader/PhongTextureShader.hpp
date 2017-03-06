@@ -23,5 +23,6 @@ public:
 	virtual void setSkyBox(CubeMap* sky) = 0;
 	virtual void setShadowMap(Texture* texture) = 0;
 	virtual void setSpotLightDirection(glm::vec3 direction) = 0;
+	virtual void setVarianceShadowMap(Texture* texture) = 0;
 	virtual void setViewPosition(glm::vec3 position) = 0;
 };

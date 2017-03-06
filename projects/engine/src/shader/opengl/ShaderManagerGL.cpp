@@ -62,6 +62,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::Screen);
 	createShader(s::SkyBox);
 	createShader(s::SkyBoxPanorama);
+	createShader(s::VarianceShadow);
 }
 
 void ShaderManagerGL::validateShader(Shader* shader)
@@ -160,6 +161,11 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::SkyBoxPanorama: {
 		shaderPtr = make_shared<PanoramaSkyBoxShaderGL>
 			("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+		break;
+	}
+	case s::VarianceShadow: {
+		shaderPtr = make_shared<VarianceShadowShaderGL>
+			("variance_shadow_vs.glsl", "variance_shadow_fs.glsl");
 		break;
 	}
 	default: {

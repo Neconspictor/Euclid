@@ -129,3 +129,27 @@ private:
 	TextureGL texture;
 	GLuint frameBuffer;
 };
+
+class VarianceShadowMapGL : public VarianceShadowMap
+{
+public:
+	explicit VarianceShadowMapGL(int width, int height);
+	VarianceShadowMapGL(const VarianceShadowMapGL& other);
+	VarianceShadowMapGL(VarianceShadowMapGL&& other);
+
+	VarianceShadowMapGL& operator=(const VarianceShadowMapGL& other);
+	VarianceShadowMapGL& operator=(VarianceShadowMapGL&& other);
+
+	virtual ~VarianceShadowMapGL();
+
+	GLuint getFramebuffer() const;
+	GLuint getTexture() const;
+	Texture* getTexture() override;
+
+	void release();
+
+private:
+	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	TextureGL texture;
+	GLuint frameBuffer;
+};
