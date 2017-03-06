@@ -1,17 +1,12 @@
 #include <shader/opengl/ShaderManagerGL.hpp>
-#include <shader/opengl/PlaygroundShaderGL.hpp>
-#include <shader/opengl/LampShaderGL.hpp>
-#include <shader/opengl/SimpleLightShaderGL.hpp>
 #include <sstream>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <exception/ShaderInitException.hpp>
-#include <shader/opengl/PhongShaderGL.hpp>
 #include <shader/opengl/PhongTexShaderGL.hpp>
 #include <shader/opengl/SimpleColorShaderGL.hpp>
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
 #include <shader/opengl/ScreenShaderGL.hpp>
 #include <shader/opengl/SkyBoxShaderGL.hpp>
-#include <shader/opengl/SimpleReflectionShaderGL.hpp>
 #include <shader/opengl/NormalsShaderGL.hpp>
 #include <shader/opengl/ShadowShaderGL.hpp>
 #include <shader/opengl/DepthMapShaderGL.hpp>
@@ -48,17 +43,11 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::BlinnPhongTex);
 	createShader(s::CubeDepthMap);
 	createShader(s::DepthMap);
-	createShader(s::Lamp);
 	createShader(s::Normals);
-	createShader(s::Phong);
-	createShader(s::PhongTex);
-	createShader(s::Playground);
 	createShader(s::Shadow);
 	createShader(s::ShadowPoint);
 	createShader(s::SimpleColor);
 	createShader(s::SimpleExtrude);
-	createShader(s::SimpleLight);
-	createShader(s::SimpleReflection);
 	createShader(s::Screen);
 	createShader(s::SkyBox);
 	createShader(s::SkyBoxPanorama);
@@ -97,25 +86,8 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 		shaderPtr = make_shared<DepthMapShaderGL>("depth_map_vs.glsl", "depth_map_fs.glsl");
 		break;
 	}
-	case s::Lamp: {
-		shaderPtr = make_shared<LampShaderGL>("lamp_vs.glsl", "lamp_fs.glsl");
-		break;
-	}
 	case s::Normals: {
 		shaderPtr = make_shared<NormalsShaderGL>("normals_vs.glsl", "normals_fs.glsl", "normals_gs.glsl");
-		break;
-	}
-	case s::Phong: {
-		shaderPtr = make_shared<PhongShaderGL>("phong_vs.glsl", "phong_fs.glsl");
-		break;
-	}
-	case s::PhongTex: {
-		shaderPtr = make_shared<PhongTexShaderGL>("phong_tex_mult_lights_vs.glsl", "phong_tex_mult_lights_fs.glsl", 
-			"phong_tex_mult_lights_vs_Instanced.glsl");
-		break;
-	}
-	case s::Playground: {
-		shaderPtr = make_shared<PlaygroundShaderGL>("playground_vs.glsl", "playground_fs.glsl", "playground_gs.glsl");
 		break;
 	}
 	case s::Shadow: {
@@ -136,16 +108,6 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::SimpleExtrude: {
 		shaderPtr = make_shared<SimpleExtrudeShaderGL>
 			("simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
-		break;
-	}
-	case s::SimpleLight: {
-		shaderPtr = make_shared<SimpleLightShaderGL>
-			("simpleLight_vs.glsl", "simpleLight_fs.glsl");
-		break;
-	}
-	case s::SimpleReflection: {
-		shaderPtr = make_shared<SimpleReflectionShaderGL>
-			("simpleReflection_vs.glsl", "simpleReflection_fs.glsl");
 		break;
 	}
 	case s::Screen: {

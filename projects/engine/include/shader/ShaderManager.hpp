@@ -1,6 +1,5 @@
 #pragma once
 #include <shader/Shader.hpp>
-#include <shader/ShaderEnum.hpp>
 
 /**
  * An interface for creating, receiving and storing renderer independent shaders

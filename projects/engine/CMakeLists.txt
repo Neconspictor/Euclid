@@ -62,36 +62,25 @@ set(
     
     #shader
 		include/shader/DepthMapShader.hpp
-    include/shader/LampShader.hpp
     include/shader/NormalsShader.hpp
-    include/shader/PhongShader.hpp
-    include/shader/PhongTextureShader.hpp
-    include/shader/PlaygroundShader.hpp
+		include/shader/PhongTextureShader.hpp
     include/shader/ScreenShader.hpp
     include/shader/Shader.hpp
-    include/shader/ShaderEnum.hpp
     include/shader/ShaderManager.hpp
 		include/shader/ShadowShader.hpp
     include/shader/SimpleColorShader.hpp
     include/shader/SimpleExtrudeShader.hpp
-    include/shader/SimpleLightShader.hpp
-    include/shader/SimpleReflectionShader.hpp
     include/shader/SkyBoxShader.hpp
     #shader/opengl
 		include/shader/opengl/DepthMapShaderGL.hpp
-    include/shader/opengl/LampShaderGL.hpp
     include/shader/opengl/NormalsShaderGL.hpp
-    include/shader/opengl/PhongShaderGL.hpp
-    include/shader/opengl/PhongTexShaderGL.hpp
-    include/shader/opengl/PlaygroundShaderGL.hpp
+		include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/ScreenShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
 		include/shader/opengl/ShadowShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
     include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleExtrudeShaderGL.hpp
-    include/shader/opengl/SimpleLightShaderGL.hpp
-    include/shader/opengl/SimpleReflectionShaderGL.hpp
     include/shader/opengl/SkyBoxShaderGL.hpp
     
     #scene
@@ -174,22 +163,17 @@ set(
     src/renderer/opengl/RendererOpenGL.cpp
     
     #shader
-    src/shader/ShaderEnum.cpp
+    src/shader/Shader.cpp
     #shader/opengl
 		src/shader/opengl/DepthMapShaderGL.cpp
-    src/shader/opengl/LampShaderGL.cpp
     src/shader/opengl/NormalsShaderGL.cpp
-    src/shader/opengl/PhongShaderGL.cpp
-    src/shader/opengl/PhongTexShaderGL.cpp
-    src/shader/opengl/PlaygroundShaderGL.cpp
+		src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/ScreenShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp
 		src/shader/opengl/ShadowShaderGL.cpp
     src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleExtrudeShaderGL.cpp
-    src/shader/opengl/SimpleLightShaderGL.cpp
-    src/shader/opengl/SimpleReflectionShaderGL.cpp
     src/shader/opengl/SkyBoxShaderGL.cpp
     
     #scene

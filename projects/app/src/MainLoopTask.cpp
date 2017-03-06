@@ -1,5 +1,4 @@
 #include <MainLoopTask.hpp>
-#include <shader/PlaygroundShader.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <Brofiler.h>
 #include <glm/glm.hpp>
@@ -7,15 +6,11 @@
 #include <glm/gtc/matrix_transform.inl>
 #include <camera/TrackballQuatCamera.hpp>
 #include <camera/FPQuaternionCamera.hpp>
-#include <shader/SimpleLightShader.hpp>
-#include <shader/LampShader.hpp>
 #include <shader/NormalsShader.hpp>
-#include <shader/PhongShader.hpp>
 #include <camera/FPCamera.hpp>
 #include <model/PhongModel.hpp>
 #include <shader/PhongTextureShader.hpp>
 #include <shader/SkyBoxShader.hpp>
-#include <shader/SimpleReflectionShader.hpp>
 #include <platform/SystemUI.hpp>
 #include <scene/SceneNode.hpp>
 #include <shader/DepthMapShader.hpp>
@@ -177,10 +172,6 @@ void MainLoopTask::init()
 	});
 
 	shaderManager->loadShaders();
-	PlaygroundShader* playground = dynamic_cast<PlaygroundShader*>
-		(shaderManager->getShader(Shaders::Playground));
-	playground->setTexture1("gun_d.png");
-	playground->setTexture2("container.png");
 
 	modelManager->loadModels();
 
@@ -201,9 +192,6 @@ void MainLoopTask::init()
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(shaderManager->getShader(Shaders::SkyBoxPanorama));
 
-	SimpleReflectionShader* reflectionShader = dynamic_cast<SimpleReflectionShader*>
-		(shaderManager->getShader(Shaders::SimpleReflection));
-
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getShader(Shaders::BlinnPhongTex));
 
@@ -216,7 +204,6 @@ void MainLoopTask::init()
 
 	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
-	reflectionShader->setReflectionTexture(sky);
 	phongShader->setSkyBox(sky);
 
 
