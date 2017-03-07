@@ -1,123 +1,90 @@
 #include <shader/opengl/DepthMapShaderGL.hpp>
 #include <glm/glm.hpp>
-#include <mesh/opengl/MeshGL.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
 using namespace std;
 
-CubeDepthMapShaderGL::CubeDepthMapShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), cubeMap(nullptr), range(0)
+CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
+	CubeDepthMapShader(), cubeMap(nullptr), range(0)
 {
+	ShaderAttributeGL attribute = { ShaderAttributeType::MAT4X4, nullptr, "transform" };
+	attributes.push_back(attribute);
+	attribute = { ShaderAttributeType::MAT4X4, nullptr, "model" };
+	attributes.push_back(attribute);
+	attribute = { ShaderAttributeType::VEC3, &lightPos, "lightPos", true };
+	attributes.push_back(attribute);
+	attribute = { ShaderAttributeType::FLOAT, &range, "range", true };
+	attributes.push_back(attribute);
+	attribute = { ShaderAttributeType::CubeMap, nullptr, "cubeDepthMap" };
+	attributes.push_back(attribute);
 }
 
-CubeDepthMapShaderGL::~CubeDepthMapShaderGL()
+const ShaderAttribute* CubeDepthMapShaderGL::getAttributeList() const
 {
+	if (attributes.size() == 0) return nullptr;
+	return attributes.data();
 }
 
-void CubeDepthMapShaderGL::draw(Mesh const& meshOriginal)
+int CubeDepthMapShaderGL::getNumberOfAttributes() const
 {
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	use();
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
-
-	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
-
-	GLuint lightPosLoc = glGetUniformLocation(getProgramID(), "lightPos");
-	glUniform3fv(lightPosLoc, 1, value_ptr(lightPos));
-
-	GLuint rangeLoc = glGetUniformLocation(getProgramID(), "range");
-	glUniform1f(rangeLoc, range);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->getCubeMap());
-	glUniform1i(glGetUniformLocation(programID, "cubeDepthMap"), 0);
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	return attributes.size();
 }
 
-void CubeDepthMapShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
-{
-}
-
-void CubeDepthMapShaderGL::release()
-{
-	ShaderGL::release();
-}
-
-void CubeDepthMapShaderGL::use()
-{
-	ShaderGL::use();
-}
+CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
 
 void CubeDepthMapShaderGL::useCubeDepthMap(CubeMap* map)
 {
 	this->cubeMap = dynamic_cast<CubeMapGL*>(map);
 	assert(this->cubeMap != nullptr);
+	auto attr = ShaderAttributeGL::search(attributes, "cubeDepthMap");
+	attr->setData(cubeMap);
+	attr->activate(true);
 }
 
 void CubeDepthMapShaderGL::setLightPos(vec3 pos)
 {
 	lightPos = move(pos);
+	auto attr = ShaderAttributeGL::search(attributes, "lightPos");
+	attr->setData(&lightPos);
+	attr->activate(true);
 }
 
 void CubeDepthMapShaderGL::setRange(float range)
 {
 	this->range = range;
+	auto attr = ShaderAttributeGL::search(attributes, "range");
+	attr->setData(&range);
+	attr->activate(true);
 }
 
-DepthMapShaderGL::DepthMapShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), DepthMapShader(), texture(nullptr)
+void CubeDepthMapShaderGL::update(const TransformData& data)
 {
-}
-
-DepthMapShaderGL::~DepthMapShaderGL()
-{
-}
-
-void DepthMapShaderGL::draw(Mesh const& meshOriginal)
-{
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
 
-	use();
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view));
+	transform = projection * view * model;
+	this->model = model;
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture->getTexture());
-	glUniform1i(glGetUniformLocation(getProgramID(), "depthMap"), 0);
+	auto attr = ShaderAttributeGL::search(attributes, "transform");
+	attr->setData(&transform);
+	attr->activate(true);
 
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	attr = ShaderAttributeGL::search(attributes, "model");
+	attr->setData(&this->model);
+	attr->activate(true);
 }
 
-void DepthMapShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+DepthMapShaderGL::DepthMapShaderGL() :
+	DepthMapShader(), texture(nullptr)
 {
+	ShaderAttributeGL attribute = { ShaderAttributeType::MAT4X4, nullptr, "transform" };
+	attributes.push_back(attribute);
+	attribute = { ShaderAttributeType::TEXTURE2D, nullptr, "depthMap" };
+	attributes.push_back(attribute);
 }
 
-void DepthMapShaderGL::release()
-{
-	ShaderGL::release();
-}
-
-void DepthMapShaderGL::use()
-{
-	ShaderGL::use();
-}
+DepthMapShaderGL::~DepthMapShaderGL(){}
 
 void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 {

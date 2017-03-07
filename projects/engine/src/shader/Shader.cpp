@@ -1,15 +1,13 @@
 #include <shader/Shader.hpp>
 #include <platform/util/StringUtils.hpp>
 
-ShaderAttribute::ShaderAttribute() : data(nullptr), type(ShaderAttributeType::MAT4X4)
-{}
+using namespace std;
 
-ShaderAttribute::ShaderAttribute(ShaderAttributeType type, const void* data) : 
-	data(data), type(type)
-{}
+ShaderAttribute::~ShaderAttribute() {}
 
-ShaderAttribute::~ShaderAttribute()
+void ShaderAttribute::activate(bool active)
 {
+	m_isActive = active;
 }
 
 const void* ShaderAttribute::getData() const
@@ -22,31 +20,37 @@ ShaderAttributeType ShaderAttribute::getType() const
 	return type;
 }
 
-void ShaderAttribute::setData(ShaderAttributeType type, const void* data)
+bool ShaderAttribute::isActive() const
 {
-	this->data = data;
-	this->type = type;
+	return m_isActive;
 }
 
-ShaderConfig::ShaderConfig()
+ShaderAttribute::ShaderAttribute() : data(nullptr), m_isActive(true), type(ShaderAttributeType::MAT4X4)
+{}
+
+ShaderConfig::ShaderConfig(){}
+
+ShaderConfig::~ShaderConfig(){}
+
+Shader::Shader() {}
+
+Shader::~Shader() {}
+
+void Shader::afterDrawing() {}
+
+void Shader::beforeDrawing() {}
+
+void Shader::setTransformData(TransformData data)
 {
+	this->data = move(data);
 }
 
-ShaderConfig::~ShaderConfig()
+Shaders stringToShaderEnum(const string& str)
 {
+	return stringToEnum(str, shaderEnumConversion);
 }
 
-void ShaderConfig::addAttribute(const ShaderAttribute& attribute)
-{
-	attributes.push_back(attribute);
-}
-
-const ShaderConfig::AttributeList* ShaderConfig::getAttributeList() const
-{
-	return &attributes;
-}
-
-std::ostream& operator<<(std::ostream& os, Shaders shader)
+ostream& operator<<(ostream& os, Shaders shader)
 {
 	os << enumToString(shader, shaderEnumConversion);
 	return os;

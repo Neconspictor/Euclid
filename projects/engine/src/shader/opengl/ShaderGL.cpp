@@ -10,6 +10,7 @@
 #include <renderer/opengl/RendererOpenGL.hpp>
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using namespace platform;
@@ -19,9 +20,64 @@ using namespace glm;
 LoggingClient staticLogClient(getLogServer());
 
 
-ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
-	: logClient(getLogServer())
+ShaderAttributeGL::ShaderAttributeGL()
 {
+	data = nullptr;
+	type = ShaderAttributeType::MAT4X4;
+	uniformName = "";
+	m_isActive = false;
+}
+
+ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, void* data, string uniformName, bool active)
+{
+	this->type = type;
+	this->data = data;
+	this->uniformName = uniformName;
+	m_isActive = active;
+}
+
+ShaderAttributeGL::~ShaderAttributeGL()
+{
+}
+
+const string& ShaderAttributeGL::getName() const
+{
+	return uniformName;
+}
+
+void ShaderAttributeGL::setData(void* data)
+{
+	this->data = data;
+}
+
+void ShaderAttributeGL::setName(string name)
+{
+	uniformName = name;
+}
+
+void ShaderAttributeGL::setType(ShaderAttributeType type)
+{
+	this->type = type;
+}
+
+ShaderAttributeGL* ShaderAttributeGL::search(const ShaderVec& vec, string uniformName)
+{
+	for (auto& attribute : vec)
+	{
+		if (attribute.getName().compare(uniformName) == 0)
+			return const_cast<ShaderAttributeGL*>(&attribute);
+	}
+	return nullptr;
+}
+
+ShaderGL::ShaderGL(ShaderConfig* config, const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
+	: config(config), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
+{
+	// Do assertions
+	assert(this->config != nullptr);
+	auto converted = dynamic_cast<const ShaderAttributeGL*>(this->config->getAttributeList());
+	assert(converted != nullptr);
+
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 
 	if (programID == GL_FALSE)
@@ -30,18 +86,20 @@ ShaderGL::ShaderGL(const string& vertexShaderFile, const string& fragmentShaderF
 	}
 }
 
-ShaderGL::ShaderGL(ShaderGL&& other) :
-	logClient(other.logClient)
+ShaderGL::ShaderGL(ShaderGL&& other) : config(other.config),
+    programID(other.programID), instancedProgramID(other.instancedProgramID),
+	logClient(other.logClient), textureCounter(other.textureCounter)
 {
-	programID = other.programID;
 	other.programID = GL_FALSE;
+	other.instancedProgramID = GL_FALSE;
+	other.textureCounter = GL_FALSE;
+	other.config = nullptr;
 }
 
-ShaderGL::ShaderGL(const ShaderGL& other) : 
-	logClient(other.logClient)
-{
-	programID = other.programID;
-}
+ShaderGL::ShaderGL(const ShaderGL& other) : config(other.config),
+    programID(other.programID), instancedProgramID(other.instancedProgramID), 
+	logClient(other.logClient), textureCounter(other.textureCounter)
+{}
 
 void ShaderGL::use()
 {
@@ -86,8 +144,8 @@ GLuint ShaderGL::getProgramID() const
 void ShaderGL::release()
 {
 	glDeleteProgram(programID);
+	glDeleteProgram(instancedProgramID);
 }
-
 
 ShaderGL::~ShaderGL()
 {
@@ -228,11 +286,9 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 	const GLchar* const test  = "/shaders/opengl";
 	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
 
-	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
-
 	glCompileShaderIncludeARB(shaderResourceID, 1, &test, nullptr);
 
-	RendererOpenGL::checkGLErrors("ShaderGL.cpp2");
+	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
 
 	//glCompileShader(shaderResourceID);
 
@@ -249,4 +305,123 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 
 	if (result) return true;
 	return false;
+}
+
+void ShaderGL::draw(Mesh const& meshOriginal)
+{
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	textureCounter = 0;
+
+	beforeDrawing();
+
+	glUseProgram(programID);
+
+	//bind uniforms from shader config
+	assert(config != nullptr);
+
+	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
+	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
+	{
+		setAttribute(programID, attributes[i]);
+	}
+
+	glBindVertexArray(mesh.getVertexArrayObject());
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
+	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+
+	afterDrawing();
+}
+
+void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
+{
+	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+	textureCounter = 0;
+	beforeDrawing();
+
+	glUseProgram(instancedProgramID);
+
+	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
+	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
+	{
+		setAttribute(instancedProgramID, attributes[i]);
+	}
+
+	glBindVertexArray(mesh.getVertexArrayObject());
+	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
+	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
+	glBindVertexArray(0);
+
+	afterDrawing();
 };
+
+void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
+{
+	auto name = attribute.getName();
+
+	auto loc = glGetUniformLocation(program, name.c_str());
+
+	if (loc == -1)
+	{
+		throw runtime_error("ShaderGL::setAttribute(): " + name + " doesn't correspond to"
+			+ "an active uniform variable!");
+	}
+
+	switch(attribute.getType())
+	{
+	case ShaderAttributeType::CubeMap: {
+		assert(textureCounter < 32); // OpenGL allows up to 32 textures
+		glActiveTexture(textureCounter + GL_TEXTURE0);
+		// TODO CubeMaps and CubeDepthMaps should be considered as well!
+		const CubeMapGL* texture = reinterpret_cast<const CubeMapGL*>(attribute.getData());
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getCubeMap());
+		glUniform1i(loc, textureCounter);
+		// the next texture to bind gets the next slot
+		++textureCounter;
+		break;
+	}
+	case ShaderAttributeType::FLOAT: {
+		glUniform1f(loc, *reinterpret_cast<const float*>(attribute.getData()));
+		break;
+	}
+	case ShaderAttributeType::INT: {
+		glUniform1i(loc, *reinterpret_cast<const int*>(attribute.getData()));
+		break;
+	}
+	case ShaderAttributeType::MAT4X4: {
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat4*>(attribute.getData())));
+		break;
+	}
+	case ShaderAttributeType::TEXTURE2D: {
+		assert(textureCounter < 32); // OpenGL allows up to 32 textures
+		glActiveTexture(textureCounter + GL_TEXTURE0);
+		const TextureGL* texture = reinterpret_cast<const TextureGL*>(attribute.getData());
+		glBindTexture(GL_TEXTURE_2D, texture->getTexture());
+		glUniform1i(loc, textureCounter);
+		// the next texture to bind gets the next slot
+		++textureCounter;
+		break;
+	}
+	case ShaderAttributeType::VEC2: {
+		const vec2* vec = reinterpret_cast<const vec2*>(attribute.getData());
+		glUniform2f(loc, vec->x, vec->y);
+		break;
+	}
+	case ShaderAttributeType::VEC3: {
+		const vec3* vec = reinterpret_cast<const vec3*>(attribute.getData());
+		glUniform3f(loc, vec->x, vec->y, vec->z);
+		break;
+	}
+	case ShaderAttributeType::VEC4: {
+		const vec4* vec = reinterpret_cast<const vec4*>(attribute.getData());
+		glUniform4f(loc, vec->x, vec->y, vec->z, vec->w);
+		break;
+	}
+	default:
+		// TODO
+		throw runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
+	}
+}

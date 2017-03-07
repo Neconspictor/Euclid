@@ -3,58 +3,45 @@
 #include <shader/DepthMapShader.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
-class CubeDepthMapShaderGL : public ShaderGL, public CubeDepthMapShader
+class CubeDepthMapShaderGL : public CubeDepthMapShader
 {
 public:
-	/**
-	* Creates a new depth map shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	CubeDepthMapShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	CubeDepthMapShaderGL();
 
 	virtual ~CubeDepthMapShaderGL();
 
-	void draw(Mesh const& mesh) override;
+	const ShaderAttribute* getAttributeList() const override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
-
-	void release() override;
-
-	void use() override;
-
+	int getNumberOfAttributes() const override;
+	
 	void useCubeDepthMap(CubeMap* map) override;
 
 	void setLightPos(glm::vec3 pos) override;
 
 	void setRange(float range) override;
 
+	void update(const TransformData& data) override;
+
 private:
+	std::vector<ShaderAttributeGL> attributes;
 	CubeMapGL* cubeMap;
 	glm::vec3 lightPos;
+	glm::mat4 model;
 	float range;
+	glm::mat4 transform;
 };
 
-class DepthMapShaderGL : public ShaderGL, public DepthMapShader
+class DepthMapShaderGL : public DepthMapShader
 {
 public:
-	/**
-	* Creates a new depth map shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	DepthMapShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+
+	DepthMapShaderGL();
 
 	virtual ~DepthMapShaderGL();
-
-	void draw(Mesh const& mesh) override;
-
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
-
-	void release() override;
-
-	void use() override;
 
 	void useDepthMapTexture(Texture* texture) override;
 
 private:
+	std::vector<ShaderAttributeGL> attributes;
 	TextureGL* texture;
 };

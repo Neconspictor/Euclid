@@ -3,7 +3,7 @@
 #include <shader/Shader.hpp>
 #include <texture/Texture.hpp>
 
-class SkyBoxShader : public Shader
+class SkyBoxShader : public ShaderConfig
 {
 public:
 	virtual ~SkyBoxShader() {}
@@ -11,7 +11,7 @@ public:
 	virtual void setSkyTexture(CubeMap* sky) = 0;
 };
 
-class PanoramaSkyBoxShader : public Shader
+class PanoramaSkyBoxShader : public ShaderConfig
 {
 public:
 	virtual ~PanoramaSkyBoxShader() {}

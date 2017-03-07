@@ -1,7 +1,7 @@
 #pragma once
 #include <shader/shader.hpp>
 
-class ScreenShader : public Shader
+class ScreenShader : public ShaderConfig
 {
 public:
 	ScreenShader() {}

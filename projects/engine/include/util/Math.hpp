@@ -7,10 +7,10 @@ struct AABB
 	glm::vec3 max;
 };
 
-FrustumCuboid& operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix);
-glm::vec3& perspectiveDivide(const glm::vec3& source, float w);
+FrustumCuboid operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix);
+glm::vec3 perspectiveDivide(const glm::vec3& source, float w);
 
-inline AABB& fromCuboid(const FrustumCuboid& frustum)
+inline AABB fromCuboid(const FrustumCuboid& frustum)
 {
 	AABB bb;
 	std::vector<glm::vec3> values;
@@ -53,7 +53,7 @@ inline AABB& fromCuboid(const FrustumCuboid& frustum)
 	bb.max = { x,y,z };
 
 	
-	return bb;
+	return std::move(bb);
 }
 
 template<typename T>
@@ -62,13 +62,13 @@ inline bool isInRange(T value, T rangeBegin, T rangeEnd)
 	return value >= rangeBegin && value <= rangeEnd;
 }
 
-inline glm::vec3& NDCToCameraSpace(const glm::vec3& source, const glm::mat4& inverseProjection)
+inline glm::vec3 NDCToCameraSpace(const glm::vec3& source, const glm::mat4& inverseProjection)
 {
 	glm::vec4 unprojected = inverseProjection * glm::vec4(source, 1);
-	return perspectiveDivide(glm::vec3(unprojected), unprojected.w);
+	return std::move(perspectiveDivide(glm::vec3(unprojected), unprojected.w));
 }
 
-inline FrustumCuboid& operator*(const glm::mat4& matrix, const FrustumCuboid& frustum) {
+inline FrustumCuboid operator*(const glm::mat4& matrix, const FrustumCuboid& frustum) {
 	FrustumCuboid result;
 	FrustumPlane& nearDest = result.m_near;
 	FrustumPlane& farDest = result.m_far;
@@ -85,15 +85,15 @@ inline FrustumCuboid& operator*(const glm::mat4& matrix, const FrustumCuboid& fr
 	farDest.rightBottom = matrix * glm::vec4(farSource.rightBottom, 1);
 	farDest.rightTop = matrix * glm::vec4(farSource.rightTop, 1);
 
-	return result;
+	return std::move(result);
 }
 
-inline FrustumCuboid& operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix) {
+inline FrustumCuboid operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix) {
 	return matrix * frustum;
 }
 
-inline glm::vec3& perspectiveDivide(const glm::vec3& source, float w)
+inline glm::vec3 perspectiveDivide(const glm::vec3& source, float w)
 {
 	glm::vec3 result = source / w;
-	return result;
+	return std::move(result);
 }

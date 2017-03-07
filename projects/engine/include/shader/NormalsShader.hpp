@@ -4,7 +4,7 @@
 /**
  * Draws normals of a mesh in a certain color
  */
-class NormalsShader : public Shader
+class NormalsShader : public ShaderConfig
 {
 public:
 	NormalsShader() {}

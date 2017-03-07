@@ -1,10 +1,10 @@
 #pragma once
 #include <shader/shader.hpp>
 
-class PointShadowShader : public Shader
+class PointShadowShader : public ShaderConfig
 {
 public:
-	PointShadowShader() : Shader() {}
+	PointShadowShader() : ShaderConfig() {}
 	virtual ~PointShadowShader() {};
 
 	virtual void setLightPosition(glm::vec3 pos) = 0;
@@ -12,16 +12,16 @@ public:
 	virtual void setShadowMatrices(glm::mat4 matrices[6]) = 0;
 };
 
-class ShadowShader : public Shader
+class ShadowShader : public ShaderConfig
 {
 public:
-	ShadowShader() : Shader() {}
+	ShadowShader() : ShaderConfig() {}
 	virtual ~ShadowShader() {};
 };
 
-class VarianceShadowShader : public Shader
+class VarianceShadowShader : public ShaderConfig
 {
 public:
-	VarianceShadowShader() : Shader() {}
+	VarianceShadowShader() : ShaderConfig() {}
 	virtual ~VarianceShadowShader() {};
 };

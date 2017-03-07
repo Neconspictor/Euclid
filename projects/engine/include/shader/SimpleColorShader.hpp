@@ -1,10 +1,10 @@
 #pragma once
 #include <shader/shader.hpp>
 
-class SimpleColorShader : public Shader
+class SimpleColorShader : public ShaderConfig
 {
 public:
-	SimpleColorShader() : Shader() {}
+	SimpleColorShader() : ShaderConfig() {}
 	virtual ~SimpleColorShader() {};
 
 	virtual const glm::vec4& getObjectColor() const = 0;

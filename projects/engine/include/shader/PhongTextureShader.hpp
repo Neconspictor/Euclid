@@ -3,7 +3,7 @@
 
 class CubeMap;
 
-class PhongTextureShader : public Shader
+class PhongTextureShader : public ShaderConfig
 {
 public:
 	PhongTextureShader() {}

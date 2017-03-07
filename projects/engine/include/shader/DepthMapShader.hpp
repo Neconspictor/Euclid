@@ -1,10 +1,10 @@
 #pragma once
 #include <shader/shader.hpp>
 
-class CubeDepthMapShader : public Shader
+class CubeDepthMapShader : public ShaderConfig
 {
 public:
-	CubeDepthMapShader() : Shader() {}
+	CubeDepthMapShader() : ShaderConfig() {}
 	virtual ~CubeDepthMapShader() {};
 
 	virtual void useCubeDepthMap(CubeMap* map) = 0;
@@ -14,10 +14,10 @@ public:
 	virtual void setRange(float range) = 0;
 };
 
-class DepthMapShader : public Shader
+class DepthMapShader : public ShaderConfig
 {
 public:
-	DepthMapShader() : Shader() {}
+	DepthMapShader() : ShaderConfig() {}
 	virtual ~DepthMapShader() {};
 
 	virtual void useDepthMapTexture(Texture* texture) = 0;

@@ -2,8 +2,9 @@
 
 #include <mesh/Mesh.hpp>
 #include <glm/glm.hpp>
-#include <list>
 #include <platform/util/StringUtils.hpp>
+
+struct TransformData;
 
 /**
 * Enumerates all shaders that can be used for shading models.
@@ -50,10 +51,7 @@ const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 * ATTENTION: If the string couldn't be mapped, a EnumFormatException
 * will be thrown.
 */
-static Shaders stringToShaderEnum(const std::string& str)
-{
-	return stringToEnum(str, shaderEnumConversion);
-}
+static Shaders stringToShaderEnum(const std::string& str);
 
 /**
 * Puts a string representation of a shader enum to an output stream.
@@ -62,79 +60,78 @@ std::ostream& operator<<(std::ostream& os, Shaders shader);
 
 enum class ShaderAttributeType
 {
+	CubeMap,
 	FLOAT,
 	INT,
 	MAT4X4,
 	TEXTURE2D,
 	VEC2,
-	VEC3
+	VEC3,
+	VEC4
 };
 
 class ShaderAttribute
 {
 public:
-	ShaderAttribute();
-	ShaderAttribute(ShaderAttributeType type, const void* data);
 	virtual ~ShaderAttribute();
+
+	void activate(bool active);
 
 	const void* getData() const;
 	ShaderAttributeType getType() const;
 
-	void setData(ShaderAttributeType type, const void* data);
+	bool isActive() const;
 
 protected:
 	const void* data;
+	bool m_isActive;
 	ShaderAttributeType type;
+
+	ShaderAttribute(); // This class is not intended to be instanced, except by derived classes
 };
+
 
 class ShaderConfig
 {
 public:
-	using AttributeList = std::list<ShaderAttribute>;
-
 	ShaderConfig();
 	virtual ~ShaderConfig();
 
-	void addAttribute(const ShaderAttribute& attribute);
+	virtual const ShaderAttribute* getAttributeList() const = 0;
+	virtual int getNumberOfAttributes() const = 0;
 
-	const AttributeList* getAttributeList() const;
-
-protected:
-	std::list<ShaderAttribute> attributes;
+	virtual void update(const TransformData& data) = 0;
 };
 
 class Shader
 {
 public:
 
-	struct TransformData
-	{
-		glm::mat4 const* projection; 
-		glm::mat4 const* view;
-		glm::mat4 const* model;
-	};
-
-	Shader(): config(nullptr){};
+	Shader();
 	
-	virtual ~Shader(){}
+	virtual ~Shader();
+
+	virtual void afterDrawing();
+
+	virtual void beforeDrawing();
 
 	virtual void draw(Mesh const& mesh) = 0;
 	
 	virtual void drawInstanced(Mesh const& mesh, unsigned int amount) = 0;
 
+	virtual const ShaderConfig* getConfig() const = 0;
+
 	virtual void release() = 0;
 
-	void setConfig(const ShaderConfig* config)
-	{
-		this->config = config;
-	}
-
-	void setTransformData(TransformData data)
-	{
-		this->data = std::move(data);
-	}
+	void setTransformData(TransformData data);
 
 protected:
-	const ShaderConfig* config;
 	TransformData data;
+};
+
+struct TransformData
+{
+	glm::mat4 const* projection;
+	glm::mat4 const* view;
+	glm::mat4 const* model;
 };
