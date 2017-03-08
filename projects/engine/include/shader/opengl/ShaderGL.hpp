@@ -3,7 +3,7 @@
 #include <platform/logging/LoggingClient.hpp>
 #include <glad/glad.h>
 #include <shader/Shader.hpp>
-#include <string>
+#include <unordered_map>
 
 class MeshGL;
 class Vob;
@@ -21,11 +21,24 @@ public:
 	void setName(std::string name);
 	void setType(ShaderAttributeType type);
 
-	using ShaderVec = std::vector<ShaderAttributeGL>;
-	static ShaderAttributeGL* search(const ShaderVec& vec, std::string uniformName);
-
 protected:
 	std::string uniformName;
+};
+
+class ShaderAttributeCollection
+{
+public:
+	ShaderAttributeCollection();
+	virtual ~ShaderAttributeCollection();
+
+	ShaderAttributeGL* create(ShaderAttributeType type, void* data, std::string uniformName, bool active = false);
+	ShaderAttributeGL* get(const std::string& uniformName);
+	const ShaderAttributeGL* getList() const;
+	void setData(const std::string& uniformName, void* data, bool activate = true);
+	int size() const;
+protected:
+	std::vector<ShaderAttributeGL> vec;
+	std::unordered_map<std::string, int>  lookup;
 };
 
 /**

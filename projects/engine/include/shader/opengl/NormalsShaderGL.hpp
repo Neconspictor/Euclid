@@ -2,7 +2,7 @@
 #include <shader/NormalsShader.hpp>
 #include <shader/opengl/ShaderGL.hpp>
 
-class NormalsShaderGL : public NormalsShader, ShaderGL
+class NormalsShaderGL : public NormalsShader
 {
 public:
 
@@ -10,23 +10,23 @@ public:
 	* Creates a new normals shader program.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	NormalsShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile, 
-		const std::string& geometryShaderFile);
+	NormalsShaderGL();
 
 	virtual ~NormalsShaderGL();
-
-	void draw(Mesh const& mesh) override;
-
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
 	
+	const ShaderAttribute* getAttributeList() const override;
+
 	const glm::vec4& getNormalColor() const override;
-	
-	void release() override;
+
+	int getNumberOfAttributes() const override;
 
 	void setNormalColor(glm::vec4 color) override;
 
-	void use() override;
+	void update(const TransformData& data) override;
 
 protected:
+	ShaderAttributeCollection attributes;
 	glm::vec4 color;
+	glm::mat4 transform;
+	glm::mat3 normalMatrix;
 };

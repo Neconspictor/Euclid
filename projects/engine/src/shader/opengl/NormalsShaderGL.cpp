@@ -1,49 +1,21 @@
 #include <shader/opengl/NormalsShaderGL.hpp>
-#include <mesh/opengl/MeshGL.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using namespace glm;
 
-NormalsShaderGL::NormalsShaderGL(const string& vertexShaderFile, 
-	const string& fragmentShaderFile, const string& geometryShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile, geometryShaderFile), color(0,0,0,1)
+NormalsShaderGL::NormalsShaderGL() : color(0,0,0,1)
 {
+	using type = ShaderAttributeType;
+	attributes.create(type::MAT4, &transform, "transform");
+	attributes.create(type::MAT3, &normalMatrix, "normalMatrix");
+	attributes.create(type::VEC4, &color, "color");
 }
 
-NormalsShaderGL::~NormalsShaderGL()
+NormalsShaderGL::~NormalsShaderGL() {}
+
+const ShaderAttribute* NormalsShaderGL::getAttributeList() const
 {
-}
-
-void NormalsShaderGL::draw(Mesh const& meshOriginal)
-{
-	MeshGL const& mesh = static_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	use();
-
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(projection * view * model));
-
-	GLint normalMatrixLoc = glGetUniformLocation(getProgramID(), "normalMatrix");
-	mat3 normalMatrix = transpose(inverse(view * model));
-	glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, value_ptr(normalMatrix));
-
-	GLint projectionLoc = glGetUniformLocation(getProgramID(), "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
-
-	GLint colorLoc = glGetUniformLocation(getProgramID(), "color");
-	glUniform4f(colorLoc, color.r, color.g, color.b, color.a);
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
-}
-
-void NormalsShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
-{
+	return attributes.getList();
 }
 
 const vec4& NormalsShaderGL::getNormalColor() const
@@ -51,17 +23,34 @@ const vec4& NormalsShaderGL::getNormalColor() const
 	return color;
 }
 
-void NormalsShaderGL::release()
+int NormalsShaderGL::getNumberOfAttributes() const
 {
-	ShaderGL::release();
+	return attributes.size();
 }
 
 void NormalsShaderGL::setNormalColor(vec4 color)
 {
 	this->color = move(color);
+
+	static string colorName = "color";
+	attributes.setData(colorName, &this->color);
 }
 
-void NormalsShaderGL::use()
+void NormalsShaderGL::update(const TransformData& data)
 {
-	ShaderGL::use();
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	transform = projection * view * model;
+	normalMatrix = transpose(inverse(view * model));
+
+	// static allocation for faster access
+	static string transformName = "transform";
+	static string normalMatrixName = "normalMatrix";
+	static string projectionName = "projection";
+
+	attributes.setData(transformName, &transform);
+	attributes.setData(normalMatrixName, &normalMatrix);
+	attributes.setData(projectionName, (void*)data.projection);
 }

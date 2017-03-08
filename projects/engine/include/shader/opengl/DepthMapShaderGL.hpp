@@ -23,7 +23,7 @@ public:
 	void update(const TransformData& data) override;
 
 private:
-	std::vector<ShaderAttributeGL> attributes;
+	ShaderAttributeCollection attributes;
 	CubeMapGL* cubeMap;
 	glm::vec3 lightPos;
 	glm::mat4 model;
@@ -42,6 +42,6 @@ public:
 	void useDepthMapTexture(Texture* texture) override;
 
 private:
-	std::vector<ShaderAttributeGL> attributes;
+	ShaderAttributeCollection attributes;
 	TextureGL* texture;
 };

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string>
 #include <vector>
 #include <shader/opengl/ShaderGL.hpp>
@@ -6,7 +5,6 @@
 #include <util/Globals.hpp>
 #include <exception/ShaderInitException.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <model/Vob.hpp>
 #include <renderer/opengl/RendererOpenGL.hpp>
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -23,7 +21,7 @@ LoggingClient staticLogClient(getLogServer());
 ShaderAttributeGL::ShaderAttributeGL()
 {
 	data = nullptr;
-	type = ShaderAttributeType::MAT4X4;
+	type = ShaderAttributeType::MAT4;
 	uniformName = "";
 	m_isActive = false;
 }
@@ -60,14 +58,40 @@ void ShaderAttributeGL::setType(ShaderAttributeType type)
 	this->type = type;
 }
 
-ShaderAttributeGL* ShaderAttributeGL::search(const ShaderVec& vec, string uniformName)
+ShaderAttributeCollection::ShaderAttributeCollection(){}
+
+ShaderAttributeCollection::~ShaderAttributeCollection(){}
+
+ShaderAttributeGL* ShaderAttributeCollection::create(ShaderAttributeType type, void* data, string uniformName, bool active)
 {
-	for (auto& attribute : vec)
-	{
-		if (attribute.getName().compare(uniformName) == 0)
-			return const_cast<ShaderAttributeGL*>(&attribute);
-	}
-	return nullptr;
+	vec.push_back({type, data, move(uniformName), active});
+	ShaderAttributeGL* result = &vec.back();
+	lookup.insert({ result->getName(), vec.size() - 1 });
+	return result;
+}
+
+ShaderAttributeGL* ShaderAttributeCollection::get(const string& uniformName)
+{
+	auto it = lookup.find(uniformName);
+	if (it == lookup.end()) return nullptr;
+	return &vec[it->second];
+}
+
+const ShaderAttributeGL* ShaderAttributeCollection::getList() const
+{
+	return vec.data();
+}
+
+void ShaderAttributeCollection::setData(const string& uniformName, void* data, bool activate)
+{
+	auto attr = get(uniformName);
+	attr->setData(data);
+	attr->activate(true);
+}
+
+int ShaderAttributeCollection::size() const
+{
+	return vec.size();
 }
 
 ShaderGL::ShaderGL(ShaderConfig* config, const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
@@ -336,9 +360,6 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 {
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
 	textureCounter = 0;
 	beforeDrawing();
 
@@ -370,9 +391,11 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 			+ "an active uniform variable!");
 	}
 
+	using t = ShaderAttributeType;
+
 	switch(attribute.getType())
 	{
-	case ShaderAttributeType::CubeMap: {
+	case t::CubeMap: {
 		assert(textureCounter < 32); // OpenGL allows up to 32 textures
 		glActiveTexture(textureCounter + GL_TEXTURE0);
 		// TODO CubeMaps and CubeDepthMaps should be considered as well!
@@ -383,19 +406,23 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		++textureCounter;
 		break;
 	}
-	case ShaderAttributeType::FLOAT: {
+	case t::FLOAT: {
 		glUniform1f(loc, *reinterpret_cast<const float*>(attribute.getData()));
 		break;
 	}
-	case ShaderAttributeType::INT: {
+	case t::INT: {
 		glUniform1i(loc, *reinterpret_cast<const int*>(attribute.getData()));
 		break;
 	}
-	case ShaderAttributeType::MAT4X4: {
+	case t::MAT3: {
+		glUniformMatrix3fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat3*>(attribute.getData())));
+		break;
+	}
+	case t::MAT4: {
 		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat4*>(attribute.getData())));
 		break;
 	}
-	case ShaderAttributeType::TEXTURE2D: {
+	case t::TEXTURE2D: {
 		assert(textureCounter < 32); // OpenGL allows up to 32 textures
 		glActiveTexture(textureCounter + GL_TEXTURE0);
 		const TextureGL* texture = reinterpret_cast<const TextureGL*>(attribute.getData());
@@ -405,17 +432,17 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		++textureCounter;
 		break;
 	}
-	case ShaderAttributeType::VEC2: {
+	case t::VEC2: {
 		const vec2* vec = reinterpret_cast<const vec2*>(attribute.getData());
 		glUniform2f(loc, vec->x, vec->y);
 		break;
 	}
-	case ShaderAttributeType::VEC3: {
+	case t::VEC3: {
 		const vec3* vec = reinterpret_cast<const vec3*>(attribute.getData());
 		glUniform3f(loc, vec->x, vec->y, vec->z);
 		break;
 	}
-	case ShaderAttributeType::VEC4: {
+	case t::VEC4: {
 		const vec4* vec = reinterpret_cast<const vec4*>(attribute.getData());
 		glUniform4f(loc, vec->x, vec->y, vec->z, vec->w);
 		break;

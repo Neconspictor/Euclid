@@ -7,22 +7,17 @@ using namespace std;
 CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
 	CubeDepthMapShader(), cubeMap(nullptr), range(0)
 {
-	ShaderAttributeGL attribute = { ShaderAttributeType::MAT4X4, nullptr, "transform" };
-	attributes.push_back(attribute);
-	attribute = { ShaderAttributeType::MAT4X4, nullptr, "model" };
-	attributes.push_back(attribute);
-	attribute = { ShaderAttributeType::VEC3, &lightPos, "lightPos", true };
-	attributes.push_back(attribute);
-	attribute = { ShaderAttributeType::FLOAT, &range, "range", true };
-	attributes.push_back(attribute);
-	attribute = { ShaderAttributeType::CubeMap, nullptr, "cubeDepthMap" };
-	attributes.push_back(attribute);
+	using types = ShaderAttributeType;
+	attributes.create(types::MAT4, nullptr, "transform");
+	attributes.create(types::MAT4, nullptr, "model");
+	attributes.create(types::VEC3, &lightPos, "lightPos", true);
+	attributes.create(types::FLOAT, &range, "range", true);
+	attributes.create(types::CubeMap, nullptr, "cubeDepthMap");
 }
 
 const ShaderAttribute* CubeDepthMapShaderGL::getAttributeList() const
 {
-	if (attributes.size() == 0) return nullptr;
-	return attributes.data();
+	return attributes.getList();
 }
 
 int CubeDepthMapShaderGL::getNumberOfAttributes() const
@@ -36,25 +31,28 @@ void CubeDepthMapShaderGL::useCubeDepthMap(CubeMap* map)
 {
 	this->cubeMap = dynamic_cast<CubeMapGL*>(map);
 	assert(this->cubeMap != nullptr);
-	auto attr = ShaderAttributeGL::search(attributes, "cubeDepthMap");
-	attr->setData(cubeMap);
-	attr->activate(true);
+
+	// static allocation for faster access
+	static string cubeDepthMapName = "cubeDepthMap";
+	attributes.setData(cubeDepthMapName, cubeMap);
 }
 
 void CubeDepthMapShaderGL::setLightPos(vec3 pos)
 {
 	lightPos = move(pos);
-	auto attr = ShaderAttributeGL::search(attributes, "lightPos");
-	attr->setData(&lightPos);
-	attr->activate(true);
+
+	// static allocation for faster access
+	static string lightPosName = "lightPos";
+	attributes.setData(lightPosName, &lightPos);
 }
 
 void CubeDepthMapShaderGL::setRange(float range)
 {
 	this->range = range;
-	auto attr = ShaderAttributeGL::search(attributes, "range");
-	attr->setData(&range);
-	attr->activate(true);
+
+	// static allocation for faster access
+	static string rangeName = "range";
+	attributes.setData(rangeName, &this->range);
 }
 
 void CubeDepthMapShaderGL::update(const TransformData& data)
@@ -66,22 +64,19 @@ void CubeDepthMapShaderGL::update(const TransformData& data)
 	transform = projection * view * model;
 	this->model = model;
 
-	auto attr = ShaderAttributeGL::search(attributes, "transform");
-	attr->setData(&transform);
-	attr->activate(true);
+	// static allocation for faster access
+	static string transformName = "transform";
+	static string modelName = "model";
 
-	attr = ShaderAttributeGL::search(attributes, "model");
-	attr->setData(&this->model);
-	attr->activate(true);
+	attributes.setData(transformName, &transform);
+	attributes.setData(modelName, &this->model);
 }
 
 DepthMapShaderGL::DepthMapShaderGL() :
 	DepthMapShader(), texture(nullptr)
 {
-	ShaderAttributeGL attribute = { ShaderAttributeType::MAT4X4, nullptr, "transform" };
-	attributes.push_back(attribute);
-	attribute = { ShaderAttributeType::TEXTURE2D, nullptr, "depthMap" };
-	attributes.push_back(attribute);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "transform");
+	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "depthMap");
 }
 
 DepthMapShaderGL::~DepthMapShaderGL(){}
@@ -90,4 +85,7 @@ void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
 	assert(this->texture != nullptr);
+
+	static string depthMapName = "depthMap";
+	attributes.setData(depthMapName, &this->texture);
 }
