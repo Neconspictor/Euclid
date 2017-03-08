@@ -25,14 +25,10 @@ bool ShaderAttribute::isActive() const
 	return m_isActive;
 }
 
-ShaderAttribute::ShaderAttribute() : data(nullptr), m_isActive(true), type(ShaderAttributeType::MAT4X4)
+ShaderAttribute::ShaderAttribute() : data(nullptr), m_isActive(true), type(ShaderAttributeType::MAT4)
 {}
 
-ShaderConfig::ShaderConfig(){}
-
 ShaderConfig::~ShaderConfig(){}
-
-Shader::Shader() {}
 
 Shader::~Shader() {}
 

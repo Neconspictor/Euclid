@@ -6,7 +6,6 @@ class CubeMap;
 class PhongTextureShader : public ShaderConfig
 {
 public:
-	PhongTextureShader() {}
 	virtual ~PhongTextureShader() {};
 
 	virtual const glm::vec3& getLightColor() const = 0;

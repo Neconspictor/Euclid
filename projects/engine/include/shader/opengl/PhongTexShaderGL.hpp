@@ -3,69 +3,43 @@
 #include <shader/PhongTextureShader.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
-class PhongTexShaderGL : public ShaderGL, public PhongTextureShader
+class PhongTexShaderGL : public PhongTextureShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new phong shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	PhongTexShaderGL(const std::string& vertexShaderFile, 
-		const std::string& fragmentShaderFile, const std::string& vertexShaderFileInstanced);
+	PhongTexShaderGL();
 
 	virtual ~PhongTexShaderGL();
-
-	void drawInstanced(Mesh const& mesh, unsigned int amount) override;
-
-	void draw(Mesh const& mesh) override;
-
-	const glm::vec3& getLightColor() const override;
-
-	const glm::vec3& getLightPosition() const override;
-
-	void release() override;
-
-	void setLightColor(glm::vec3 color) override;
-
-	void setLightDirection(glm::vec3 direction) override;
-
-	void setLightSpaceMatrix(glm::mat4 mat) override;
-
-	void setPointLightPositions(glm::vec3* positions) override;
-
-	void setPointLightRange(float range) override;
-
-	void setPointLightShadowMap(CubeDepthMap* map) override;
-
-	void setShadowMap(Texture* texture) override;
-
-	void setSkyBox(CubeMap* sky) override;
-
-	void setSpotLightDirection(glm::vec3 direction) override;
-
-	void setVarianceShadowMap(Texture* texture) override;
-
-	void setViewPosition(glm::vec3 position) override;
-
-	void use() override;
-
-protected:
-	void initForDrawing(Mesh const& meshOriginal, GLuint programID);
+	virtual const glm::vec3& getLightColor() const override;
+	virtual const glm::vec3& getLightPosition() const override;
+	virtual void setLightColor(glm::vec3 color) override;
+	virtual void setLightDirection(glm::vec3 direction) override;
+	virtual void setLightSpaceMatrix(glm::mat4 mat) override;
+	virtual void setPointLightPositions(glm::vec3* positions) override;
+	virtual void setPointLightRange(float range) override;
+	virtual void setPointLightShadowMap(CubeDepthMap* map) override;
+	virtual void setShadowMap(Texture* texture) override;
+	virtual void setSkyBox(CubeMap* sky) override;
+	virtual void setSpotLightDirection(glm::vec3 direction) override;
+	virtual void setVarianceShadowMap(Texture* texture) override;
+	virtual void setViewPosition(glm::vec3 position) override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 
-	void initLights(GLuint programID);
-
+	ShaderAttributeCollection attributes;
 	glm::vec3 dirLightDirection;
 	GLuint instancedShaderProgram;
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;
+	glm::mat4 modelView;
+	glm::mat3 normalMatrix;
 	glm::vec3 pointLightPositions[4];
 	float pointLightRange;
 	CubeDepthMapGL* pointLightShadowMap;
 	glm::vec3 spotLightDirection;
 	TextureGL* shadowMap;
 	CubeMapGL* skybox;
+	glm::mat4 transform;
 	glm::vec3 viewPosition;
 	TextureGL* vsMap;
 };

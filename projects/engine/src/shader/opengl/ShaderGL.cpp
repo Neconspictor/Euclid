@@ -94,13 +94,25 @@ int ShaderAttributeCollection::size() const
 	return vec.size();
 }
 
-ShaderGL::ShaderGL(ShaderConfig* config, const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
+ShaderConfigGL::ShaderConfigGL(){}
+
+ShaderConfigGL::~ShaderConfigGL(){}
+
+const ShaderAttribute* ShaderConfigGL::getAttributeList() const
+{
+	return attributes.getList();
+}
+
+int ShaderConfigGL::getNumberOfAttributes() const
+{
+	return attributes.size();
+}
+
+ShaderGL::ShaderGL(ShaderConfigGL* config, const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
 	: config(config), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
 {
 	// Do assertions
 	assert(this->config != nullptr);
-	auto converted = dynamic_cast<const ShaderAttributeGL*>(this->config->getAttributeList());
-	assert(converted != nullptr);
 
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 
@@ -343,6 +355,8 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 	//bind uniforms from shader config
 	assert(config != nullptr);
 
+	reinterpret_cast<ShaderConfigGL*>(config)->update(mesh, data);
+
 	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
 	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
 	{
@@ -364,6 +378,8 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 	beforeDrawing();
 
 	glUseProgram(instancedProgramID);
+
+	reinterpret_cast<ShaderConfigGL*>(config)->update(mesh, data);
 
 	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
 	for (int i = 0; i < config->getNumberOfAttributes(); ++i)

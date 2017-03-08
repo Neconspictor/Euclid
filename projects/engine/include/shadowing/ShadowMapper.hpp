@@ -4,9 +4,7 @@ class ShadowMap
 {
 	ShadowMap(int width, int height)
 		: width(width),
-		  height(height)
-	{
-	}
+		  height(height){}
 
 	virtual ~ShadowMap(){}
 
@@ -29,9 +27,6 @@ class Scene;
 class ShadowMapper
 {
 public:
-
-	ShadowMapper() {}
-
 	virtual ~ShadowMapper() {}
 
 	/**

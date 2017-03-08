@@ -9,7 +9,6 @@
 class SimpleExtrudeShader : public SimpleColorShader
 {
 public:
-	SimpleExtrudeShader() : SimpleColorShader() {}
 	virtual ~SimpleExtrudeShader() {};
 
 	/**

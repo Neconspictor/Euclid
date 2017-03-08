@@ -4,7 +4,6 @@
 class PointShadowShader : public ShaderConfig
 {
 public:
-	PointShadowShader() : ShaderConfig() {}
 	virtual ~PointShadowShader() {};
 
 	virtual void setLightPosition(glm::vec3 pos) = 0;
@@ -15,13 +14,11 @@ public:
 class ShadowShader : public ShaderConfig
 {
 public:
-	ShadowShader() : ShaderConfig() {}
 	virtual ~ShadowShader() {};
 };
 
 class VarianceShadowShader : public ShaderConfig
 {
 public:
-	VarianceShadowShader() : ShaderConfig() {}
 	virtual ~VarianceShadowShader() {};
 };

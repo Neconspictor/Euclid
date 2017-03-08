@@ -41,6 +41,21 @@ protected:
 	std::unordered_map<std::string, int>  lookup;
 };
 
+class ShaderConfigGL : public ShaderConfig
+{
+public:
+	ShaderConfigGL();
+	virtual ~ShaderConfigGL();
+
+	virtual const ShaderAttribute* getAttributeList() const;
+
+	virtual int getNumberOfAttributes() const;
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) = 0;
+protected:
+	ShaderAttributeCollection attributes;
+};
+
 /**
  * Represents a shader program for an OpenGL renderer.
  */
@@ -51,7 +66,7 @@ public:
 	* Creates a new shader program from a given vertex shader and fragment shader file.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	ShaderGL(ShaderConfig* config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
+	ShaderGL(ShaderConfigGL* config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
 		const std::string& geometryShaderFile = "");
 	ShaderGL(ShaderGL&& other);
 	ShaderGL(const ShaderGL& other);
@@ -75,7 +90,7 @@ public:
 	static void initShaderFileSystem();
 
 protected:
-	ShaderConfig* config;
+	ShaderConfigGL* config;
 	GLuint programID;
 	GLuint instancedProgramID;
 	platform::LoggingClient logClient;

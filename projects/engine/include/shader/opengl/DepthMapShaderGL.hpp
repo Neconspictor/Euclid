@@ -3,16 +3,12 @@
 #include <shader/DepthMapShader.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
-class CubeDepthMapShaderGL : public CubeDepthMapShader
+class CubeDepthMapShaderGL : public CubeDepthMapShader, public ShaderConfigGL
 {
 public:
 	CubeDepthMapShaderGL();
 
 	virtual ~CubeDepthMapShaderGL();
-
-	const ShaderAttribute* getAttributeList() const override;
-
-	int getNumberOfAttributes() const override;
 	
 	void useCubeDepthMap(CubeMap* map) override;
 
@@ -20,10 +16,9 @@ public:
 
 	void setRange(float range) override;
 
-	void update(const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
-	ShaderAttributeCollection attributes;
 	CubeMapGL* cubeMap;
 	glm::vec3 lightPos;
 	glm::mat4 model;
@@ -31,17 +26,18 @@ private:
 	glm::mat4 transform;
 };
 
-class DepthMapShaderGL : public DepthMapShader
+class DepthMapShaderGL : public DepthMapShader, public ShaderConfigGL
 {
 public:
-
 	DepthMapShaderGL();
 
 	virtual ~DepthMapShaderGL();
 
+	void update(const MeshGL& mesh, const TransformData& data) override;
+
 	void useDepthMapTexture(Texture* texture) override;
 
 private:
-	ShaderAttributeCollection attributes;
 	TextureGL* texture;
+	glm::mat4 transform;
 };

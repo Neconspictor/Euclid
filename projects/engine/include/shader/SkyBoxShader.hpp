@@ -7,7 +7,6 @@ class SkyBoxShader : public ShaderConfig
 {
 public:
 	virtual ~SkyBoxShader() {}
-
 	virtual void setSkyTexture(CubeMap* sky) = 0;
 };
 

@@ -13,19 +13,9 @@ NormalsShaderGL::NormalsShaderGL() : color(0,0,0,1)
 
 NormalsShaderGL::~NormalsShaderGL() {}
 
-const ShaderAttribute* NormalsShaderGL::getAttributeList() const
-{
-	return attributes.getList();
-}
-
 const vec4& NormalsShaderGL::getNormalColor() const
 {
 	return color;
-}
-
-int NormalsShaderGL::getNumberOfAttributes() const
-{
-	return attributes.size();
 }
 
 void NormalsShaderGL::setNormalColor(vec4 color)
@@ -36,7 +26,7 @@ void NormalsShaderGL::setNormalColor(vec4 color)
 	attributes.setData(colorName, &this->color);
 }
 
-void NormalsShaderGL::update(const TransformData& data)
+void NormalsShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;

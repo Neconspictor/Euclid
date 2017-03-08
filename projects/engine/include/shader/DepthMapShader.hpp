@@ -4,7 +4,6 @@
 class CubeDepthMapShader : public ShaderConfig
 {
 public:
-	CubeDepthMapShader() : ShaderConfig() {}
 	virtual ~CubeDepthMapShader() {};
 
 	virtual void useCubeDepthMap(CubeMap* map) = 0;
@@ -17,7 +16,6 @@ public:
 class DepthMapShader : public ShaderConfig
 {
 public:
-	DepthMapShader() : ShaderConfig() {}
 	virtual ~DepthMapShader() {};
 
 	virtual void useDepthMapTexture(Texture* texture) = 0;

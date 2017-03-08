@@ -4,7 +4,12 @@
 #include <glm/glm.hpp>
 #include <platform/util/StringUtils.hpp>
 
-struct TransformData;
+struct TransformData
+{
+	glm::mat4 const* projection;
+	glm::mat4 const* view;
+	glm::mat4 const* model;
+};
 
 /**
 * Enumerates all shaders that can be used for shading models.
@@ -95,21 +100,12 @@ protected:
 class ShaderConfig
 {
 public:
-	ShaderConfig();
 	virtual ~ShaderConfig();
-
-	virtual const ShaderAttribute* getAttributeList() const = 0;
-	virtual int getNumberOfAttributes() const = 0;
-
-	virtual void update(const TransformData& data) = 0;
 };
 
 class Shader
 {
-public:
-
-	Shader();
-	
+public:	
 	virtual ~Shader();
 
 	virtual void afterDrawing();
@@ -128,11 +124,4 @@ public:
 
 protected:
 	TransformData data;
-};
-
-struct TransformData
-{
-	glm::mat4 const* projection;
-	glm::mat4 const* view;
-	glm::mat4 const* model;
 };

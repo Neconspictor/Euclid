@@ -7,7 +7,6 @@
 class NormalsShader : public ShaderConfig
 {
 public:
-	NormalsShader() {}
 	virtual ~NormalsShader() {};
 
 	virtual const glm::vec4& getNormalColor() const = 0;

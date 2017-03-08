@@ -8,21 +8,11 @@ CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
 	CubeDepthMapShader(), cubeMap(nullptr), range(0)
 {
 	using types = ShaderAttributeType;
-	attributes.create(types::MAT4, nullptr, "transform");
-	attributes.create(types::MAT4, nullptr, "model");
+	attributes.create(types::MAT4, &transform, "transform");
+	attributes.create(types::MAT4, &model, "model");
 	attributes.create(types::VEC3, &lightPos, "lightPos", true);
 	attributes.create(types::FLOAT, &range, "range", true);
-	attributes.create(types::CubeMap, nullptr, "cubeDepthMap");
-}
-
-const ShaderAttribute* CubeDepthMapShaderGL::getAttributeList() const
-{
-	return attributes.getList();
-}
-
-int CubeDepthMapShaderGL::getNumberOfAttributes() const
-{
-	return attributes.size();
+	attributes.create(types::CubeMap, cubeMap, "cubeDepthMap");
 }
 
 CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
@@ -55,7 +45,7 @@ void CubeDepthMapShaderGL::setRange(float range)
 	attributes.setData(rangeName, &this->range);
 }
 
-void CubeDepthMapShaderGL::update(const TransformData& data)
+void CubeDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
@@ -75,11 +65,19 @@ void CubeDepthMapShaderGL::update(const TransformData& data)
 DepthMapShaderGL::DepthMapShaderGL() :
 	DepthMapShader(), texture(nullptr)
 {
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "transform");
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "depthMap");
+	attributes.create(ShaderAttributeType::MAT4, &transform, "transform");
+	attributes.create(ShaderAttributeType::TEXTURE2D, texture, "depthMap");
 }
 
 DepthMapShaderGL::~DepthMapShaderGL(){}
+
+void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
+{
+	transform = (*data.projection) * (*data.view) * (*data.model);
+
+	static string transformName = "transform";
+	attributes.setData(transformName, &transform);
+}
 
 void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 {
