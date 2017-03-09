@@ -26,7 +26,7 @@ ShaderAttributeGL::ShaderAttributeGL()
 	m_isActive = false;
 }
 
-ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, void* data, string uniformName, bool active)
+ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data, string uniformName, bool active)
 {
 	this->type = type;
 	this->data = data;
@@ -34,16 +34,14 @@ ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, void* data, strin
 	m_isActive = active;
 }
 
-ShaderAttributeGL::~ShaderAttributeGL()
-{
-}
+ShaderAttributeGL::~ShaderAttributeGL(){}
 
 const string& ShaderAttributeGL::getName() const
 {
 	return uniformName;
 }
 
-void ShaderAttributeGL::setData(void* data)
+void ShaderAttributeGL::setData(const void* data)
 {
 	this->data = data;
 }
@@ -62,7 +60,7 @@ ShaderAttributeCollection::ShaderAttributeCollection(){}
 
 ShaderAttributeCollection::~ShaderAttributeCollection(){}
 
-ShaderAttributeGL* ShaderAttributeCollection::create(ShaderAttributeType type, void* data, string uniformName, bool active)
+ShaderAttributeGL* ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, string uniformName, bool active)
 {
 	vec.push_back({type, data, move(uniformName), active});
 	ShaderAttributeGL* result = &vec.back();
@@ -82,10 +80,14 @@ const ShaderAttributeGL* ShaderAttributeCollection::getList() const
 	return vec.data();
 }
 
-void ShaderAttributeCollection::setData(const string& uniformName, void* data, bool activate)
+void ShaderAttributeCollection::setData(const string& uniformName, const void* data, const void* defaultValue, bool activate)
 {
 	auto attr = get(uniformName);
-	attr->setData(data);
+	if (data == nullptr) {
+		attr->setData(defaultValue);
+	} else {
+		attr->setData(data);
+	}
 	attr->activate(true);
 }
 
@@ -137,10 +139,7 @@ ShaderGL::ShaderGL(const ShaderGL& other) : config(other.config),
 	logClient(other.logClient), textureCounter(other.textureCounter)
 {}
 
-void ShaderGL::use()
-{
-	glUseProgram(this->programID);
-}
+ShaderGL::~ShaderGL() {}
 
 void ShaderGL::initShaderFileSystem()
 {
@@ -183,8 +182,9 @@ void ShaderGL::release()
 	glDeleteProgram(instancedProgramID);
 }
 
-ShaderGL::~ShaderGL()
+void ShaderGL::use()
 {
+	glUseProgram(this->programID);
 }
 
 GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile, 

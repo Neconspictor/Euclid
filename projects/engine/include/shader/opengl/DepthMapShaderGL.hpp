@@ -21,7 +21,6 @@ public:
 private:
 	CubeMapGL* cubeMap;
 	glm::vec3 lightPos;
-	glm::mat4 model;
 	float range;
 	glm::mat4 transform;
 };

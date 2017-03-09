@@ -19,6 +19,8 @@ public:
 	Texture* getEmissionMap() const;
 	Texture* getReflectionMap() const;
 	float getShininess() const;
+	const float& getShininessRef() const;
+
 	Texture* getSpecularMap() const;
 
 	void setDiffuseMap(Texture* diffuse);

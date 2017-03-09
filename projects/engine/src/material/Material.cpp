@@ -105,3 +105,8 @@ void Material::setShininess(float shininess)
 {
 	this->shininess = shininess;
 }
+
+const float& Material::getShininessRef() const
+{
+	return shininess;
+}

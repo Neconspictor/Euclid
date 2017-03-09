@@ -3,25 +3,17 @@
 #include <shader/opengl/ShaderGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
-class ScreenShaderGL : public ScreenShader, ShaderGL
+class ScreenShaderGL : public ScreenShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new screen shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	ScreenShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	ScreenShaderGL();
 
 	virtual ~ScreenShaderGL();
 
-	void draw(Mesh const& mesh) override;
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
-	void release() override;
-
-	void use() override;
-
-	void useTexture(Texture* texture) override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	virtual void useTexture(Texture* texture) override;
 
 protected:
 	TextureGL* texture;
+	glm::mat4 transform;
 };

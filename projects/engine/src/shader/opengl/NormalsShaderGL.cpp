@@ -6,9 +6,10 @@ using namespace glm;
 NormalsShaderGL::NormalsShaderGL() : color(0,0,0,1)
 {
 	using type = ShaderAttributeType;
-	attributes.create(type::MAT4, &transform, "transform");
-	attributes.create(type::MAT3, &normalMatrix, "normalMatrix");
-	attributes.create(type::VEC4, &color, "color");
+	attributes.create(type::MAT4, nullptr, "projection");
+	attributes.create(type::MAT4, &transform, "transform", true);
+	attributes.create(type::MAT3, &normalMatrix, "normalMatrix", true);
+	attributes.create(type::VEC4, &color, "color", true);
 }
 
 NormalsShaderGL::~NormalsShaderGL() {}
@@ -23,7 +24,6 @@ void NormalsShaderGL::setNormalColor(vec4 color)
 	this->color = move(color);
 
 	static string colorName = "color";
-	attributes.setData(colorName, &this->color);
 }
 
 void NormalsShaderGL::update(const MeshGL& mesh, const TransformData& data)
@@ -36,11 +36,7 @@ void NormalsShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	normalMatrix = transpose(inverse(view * model));
 
 	// static allocation for faster access
-	static string transformName = "transform";
-	static string normalMatrixName = "normalMatrix";
 	static string projectionName = "projection";
 
-	attributes.setData(transformName, &transform);
-	attributes.setData(normalMatrixName, &normalMatrix);
-	attributes.setData(projectionName, (void*)data.projection);
+	attributes.setData(projectionName, data.projection);
 }

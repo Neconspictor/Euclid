@@ -12,12 +12,12 @@ class ShaderAttributeGL : public ShaderAttribute
 {
 public:
 	ShaderAttributeGL();
-	ShaderAttributeGL(ShaderAttributeType type, void* data, std::string uniformName, bool active = false);
+	ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
 	virtual ~ShaderAttributeGL() override;
 
 	const std::string& getName() const;
 
-	void setData(void* data);
+	void setData(const void* data);
 	void setName(std::string name);
 	void setType(ShaderAttributeType type);
 
@@ -31,10 +31,11 @@ public:
 	ShaderAttributeCollection();
 	virtual ~ShaderAttributeCollection();
 
-	ShaderAttributeGL* create(ShaderAttributeType type, void* data, std::string uniformName, bool active = false);
+	ShaderAttributeGL* create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
 	ShaderAttributeGL* get(const std::string& uniformName);
 	const ShaderAttributeGL* getList() const;
-	void setData(const std::string& uniformName, void* data, bool activate = true);
+	void setData(const std::string& uniformName, const void* data, const void* defaultValue = nullptr, bool activate = true);
+
 	int size() const;
 protected:
 	std::vector<ShaderAttributeGL> vec;
@@ -83,7 +84,7 @@ public:
 	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
 		const std::string& geometryShaderFile = "");
 	
-	virtual void release();
+	virtual void release() override;
 	
 	virtual void use();
 

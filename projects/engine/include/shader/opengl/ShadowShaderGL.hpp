@@ -2,7 +2,7 @@
 #include <shader/opengl/ShaderGL.hpp>
 #include <shader/ShadowShader.hpp>
 
-class PointShadowShaderGL : public ShaderGL, public PointShadowShader
+class PointShadowShaderGL : public PointShadowShader, public ShaderConfigGL
 {
 public:
 	/**

@@ -8,11 +8,11 @@ CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
 	CubeDepthMapShader(), cubeMap(nullptr), range(0)
 {
 	using types = ShaderAttributeType;
-	attributes.create(types::MAT4, &transform, "transform");
-	attributes.create(types::MAT4, &model, "model");
+	attributes.create(types::MAT4, &transform, "transform", true);
+	attributes.create(types::MAT4, nullptr, "model");
 	attributes.create(types::VEC3, &lightPos, "lightPos", true);
 	attributes.create(types::FLOAT, &range, "range", true);
-	attributes.create(types::CubeMap, cubeMap, "cubeDepthMap");
+	attributes.create(types::CubeMap, nullptr, "cubeDepthMap");
 }
 
 CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
@@ -33,7 +33,6 @@ void CubeDepthMapShaderGL::setLightPos(vec3 pos)
 
 	// static allocation for faster access
 	static string lightPosName = "lightPos";
-	attributes.setData(lightPosName, &lightPos);
 }
 
 void CubeDepthMapShaderGL::setRange(float range)
@@ -42,7 +41,6 @@ void CubeDepthMapShaderGL::setRange(float range)
 
 	// static allocation for faster access
 	static string rangeName = "range";
-	attributes.setData(rangeName, &this->range);
 }
 
 void CubeDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
@@ -52,21 +50,17 @@ void CubeDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	mat4 const& model = *data.model;
 
 	transform = projection * view * model;
-	this->model = model;
 
 	// static allocation for faster access
-	static string transformName = "transform";
 	static string modelName = "model";
-
-	attributes.setData(transformName, &transform);
-	attributes.setData(modelName, &this->model);
+	attributes.setData(modelName, &model);
 }
 
 DepthMapShaderGL::DepthMapShaderGL() :
 	DepthMapShader(), texture(nullptr)
 {
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform");
-	attributes.create(ShaderAttributeType::TEXTURE2D, texture, "depthMap");
+	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "depthMap");
 }
 
 DepthMapShaderGL::~DepthMapShaderGL(){}
@@ -74,9 +68,6 @@ DepthMapShaderGL::~DepthMapShaderGL(){}
 void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
 	transform = (*data.projection) * (*data.view) * (*data.model);
-
-	static string transformName = "transform";
-	attributes.setData(transformName, &transform);
 }
 
 void DepthMapShaderGL::useDepthMapTexture(Texture* texture)

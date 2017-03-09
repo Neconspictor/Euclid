@@ -6,6 +6,34 @@
 class PhongTexShaderGL : public PhongTextureShader, public ShaderConfigGL
 {
 public:
+
+	struct DirLight
+	{
+		glm::vec3 direction;
+		glm::vec4 ambient;
+		glm::vec4 diffuse;
+		glm::vec4 specular;
+	};
+
+	struct PointLight
+	{
+		glm::vec3 position;
+		glm::vec4 ambient;
+		glm::vec4 diffuse;
+		glm::vec4 specular;
+		float constant;
+		float linear;
+		float quadratic;
+		float range;
+	};
+
+	struct SpotLight : PointLight
+	{
+		glm::vec3 direction;
+		float cutOff;
+		float outerCutOff;
+	};
+
 	PhongTexShaderGL();
 
 	virtual ~PhongTexShaderGL();
@@ -27,18 +55,17 @@ public:
 private:
 
 	ShaderAttributeCollection attributes;
-	glm::vec3 dirLightDirection;
-	GLuint instancedShaderProgram;
+	DirLight dirLight;
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;
 	glm::mat4 modelView;
 	glm::mat3 normalMatrix;
-	glm::vec3 pointLightPositions[4];
+	PointLight pointLights[4];
 	float pointLightRange;
 	CubeDepthMapGL* pointLightShadowMap;
-	glm::vec3 spotLightDirection;
 	TextureGL* shadowMap;
 	CubeMapGL* skybox;
+	SpotLight spotLight;
 	glm::mat4 transform;
 	glm::vec3 viewPosition;
 	TextureGL* vsMap;
