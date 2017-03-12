@@ -10,11 +10,15 @@ public:
 
 	const glm::vec3& getColor() const;
 
+	const glm::vec3& getDirection() const;
 
 	void setColor(glm::vec3 color);
 
+	void setDirection(glm::vec3 dir);
+
 protected:
 	glm::vec3 color;
+	glm::vec3 direction;
 };
 
 class PointLight : public Projectional

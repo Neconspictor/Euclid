@@ -1,123 +1,67 @@
 #include <shader/opengl/SkyBoxShaderGL.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 
 using namespace glm;
 
-SkyBoxShaderGL::SkyBoxShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) : 
-	ShaderGL(vertexShaderFile, fragmentShaderFile), SkyBoxShader(), skyTexture(nullptr)
+SkyBoxShaderGL::SkyBoxShaderGL() : SkyBoxShader(), ShaderConfigGL(), skyTexture(nullptr)
 {
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
+	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "skybox");
 }
 
-SkyBoxShaderGL::~SkyBoxShaderGL()
+SkyBoxShaderGL::~SkyBoxShaderGL(){}
+
+void SkyBoxShaderGL::afterDrawing()
 {
-}
-
-void SkyBoxShaderGL::draw(Mesh const& meshOriginal)
-{
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	use();
-
-	mat4 transform = projection * view;
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
-
-	GLuint projectionLoc = glGetUniformLocation(getProgramID(), "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
-
-	GLuint viewLoc = glGetUniformLocation(getProgramID(), "view");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture->getCubeMap());
-	glUniform1i(glGetUniformLocation(getProgramID(), "skybox"), 0);
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
-
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
 }
 
-void SkyBoxShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+void SkyBoxShaderGL::beforeDrawing()
 {
-}
-
-void SkyBoxShaderGL::release()
-{
-	ShaderGL::release();
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
 void SkyBoxShaderGL::setSkyTexture(CubeMap* sky)
 {
 	skyTexture = static_cast<CubeMapGL*>(sky);
+	attributes.setData("skybox", skyTexture);
 }
 
-void SkyBoxShaderGL::use()
+void SkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
-	ShaderGL::use();
-}
-
-PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) :
-	ShaderGL(vertexShaderFile, fragmentShaderFile), PanoramaSkyBoxShader(), skyTexture(nullptr)
-{
-
-}
-
-PanoramaSkyBoxShaderGL::~PanoramaSkyBoxShaderGL()
-{
-}
-
-void PanoramaSkyBoxShaderGL::draw(Mesh const& meshOriginal)
-{
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
-	use();
+	transform = projection * view * model;
+	attributes.setData("projection", &projection);
+	attributes.setData("view", &view);
+}
 
-	GLuint transformLoc = glGetUniformLocation(getProgramID(), "transform");
-	mat4 transform = projection * view;
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, value_ptr(transform));
+PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL() : PanoramaSkyBoxShader(), ShaderConfigGL(), 
+skyTexture(nullptr)
+{
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
+	//attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "panorama");
+}
 
-	GLuint projectionLoc = glGetUniformLocation(getProgramID(), "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(projection));
+PanoramaSkyBoxShaderGL::~PanoramaSkyBoxShaderGL(){}
 
-	GLuint viewLoc = glGetUniformLocation(getProgramID(), "view");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, skyTexture->getTexture());
-	glUniform1i(glGetUniformLocation(getProgramID(), "panorama"), 0);
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, 0);
-
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+void PanoramaSkyBoxShaderGL::afterDrawing()
+{
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
 }
 
-void PanoramaSkyBoxShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+void PanoramaSkyBoxShaderGL::beforeDrawing()
 {
-}
-
-void PanoramaSkyBoxShaderGL::release()
-{
-	ShaderGL::release();
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
 void PanoramaSkyBoxShaderGL::setSkyTexture(Texture* tex)
@@ -125,9 +69,15 @@ void PanoramaSkyBoxShaderGL::setSkyTexture(Texture* tex)
 	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
 	assert(texGL != nullptr);
 	skyTexture = texGL;
+	attributes.setData("panorama", skyTexture);
 }
 
-void PanoramaSkyBoxShaderGL::use()
+void PanoramaSkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
-	ShaderGL::use();
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+	//transform = projection * view * model;
+	attributes.setData("projection", &projection);
+	attributes.setData("view", &view);
 }

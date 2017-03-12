@@ -53,8 +53,6 @@ public:
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
-
-	ShaderAttributeCollection attributes;
 	DirLight dirLight;
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;

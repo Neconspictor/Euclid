@@ -18,9 +18,19 @@ const vec3& DirectionalLight::getColor() const
 	return color;
 }
 
+const glm::vec3& DirectionalLight::getDirection() const
+{
+	return direction;
+}
+
 void DirectionalLight::setColor(vec3 color)
 {
 	this->color = move(color);
+}
+
+void DirectionalLight::setDirection(vec3 dir)
+{
+	direction = move(dir);
 }
 
 PointLight::PointLight() : Projectional()

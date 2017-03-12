@@ -6,26 +6,6 @@
 class RenderTargetGL;
 class RendererOpenGL;
 
-class CubeMapGL : public CubeMap
-{
-public:
-	explicit CubeMapGL();
-	CubeMapGL(GLuint cubeMap);
-	CubeMapGL(const CubeMapGL& other);
-	CubeMapGL(CubeMapGL&& other);
-	CubeMapGL& operator=(const CubeMapGL& other);
-	CubeMapGL& operator=(CubeMapGL&& other);
-
-	virtual ~CubeMapGL();
-
-	GLuint getCubeMap() const;
-
-	void setCubeMap(GLuint id);
-
-private:
-	GLuint cubeMap;
-};
-
 
 class TextureGL : public Texture
 {
@@ -41,7 +21,7 @@ public:
 
 	GLuint getTexture() const;
 
-	void release();
+	virtual void release();
 
 	void setTexture(GLuint id);
 
@@ -49,6 +29,23 @@ protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend RenderTargetGL;
 	GLuint textureID;
+};
+
+class CubeMapGL : public CubeMap, public TextureGL
+{
+public:
+	explicit CubeMapGL();
+	CubeMapGL(GLuint cubeMap);
+	CubeMapGL(const CubeMapGL& other);
+	CubeMapGL(CubeMapGL&& other);
+	CubeMapGL& operator=(const CubeMapGL& other);
+	CubeMapGL& operator=(CubeMapGL&& other);
+
+	virtual ~CubeMapGL();
+
+	GLuint getCubeMap() const;
+
+	void setCubeMap(GLuint id);
 };
 
 class RenderTargetGL : public RenderTarget
@@ -82,7 +79,7 @@ protected:
 	GLuint renderBuffer;
 };
 
-class CubeDepthMapGL : public CubeDepthMap
+class CubeDepthMapGL : public CubeDepthMap, public TextureGL
 {
 public:
 	explicit CubeDepthMapGL(int width, int height);

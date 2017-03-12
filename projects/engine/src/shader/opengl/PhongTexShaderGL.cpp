@@ -12,9 +12,10 @@ viewPosition(0,0,0), vsMap(nullptr)
 {
 	using types = ShaderAttributeType;
 
-	attributes.create(types::MAT4, nullptr, "projection");
-	attributes.create(types::MAT4, nullptr, "view");
+	//attributes.create(types::MAT4, nullptr, "projection");
+	//attributes.create(types::MAT4, nullptr, "view");
 	attributes.create(types::MAT4, &transform, "transform", true);
+	attributes.create(types::MAT4, nullptr, "model");
 	attributes.create(types::MAT4, &modelView, "modelView", true);
 	attributes.create(types::MAT4, &normalMatrix, "normalMatrix", true);
 
@@ -32,12 +33,14 @@ viewPosition(0,0,0), vsMap(nullptr)
 	dirLight.ambient = { 0.2f, 0.2f, 0.2f, 1.0f };
 	dirLight.diffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
 	dirLight.specular = { 0.3f, 0.3f, 0.3f, 1.0f };
+	dirLight.direction = { 0,1,0 };
 
+	attributes.create(types::VEC3, &dirLight.direction, "dirLight.direction", true);
 	attributes.create(types::VEC4, &dirLight.ambient, "dirLight.ambient", true);
 	attributes.create(types::VEC4, &dirLight.diffuse, "dirLight.diffuse", true);
 	attributes.create(types::VEC4, &dirLight.specular, "dirLight.specular", true);
 
-	attributes.create(types::FLOAT, &pointLightRange, "range", true);
+	//attributes.create(types::FLOAT, &pointLightRange, "range", true);
 	for (int i = 0; i < 4; ++i)
 	{
 		pointLights[i].ambient = { 0.05f, 0.05f, 0.05f, 1.0f };
@@ -46,7 +49,7 @@ viewPosition(0,0,0), vsMap(nullptr)
 		pointLights[i].constant = 1.0f;
 		pointLights[i].linear = 0.09f;
 		pointLights[i].quadratic = 0.032f;
-		static string pointLightStr = "pointLights[" + to_string(i) + "]";
+		string pointLightStr = "pointLights[" + to_string(i) + "]";
 
 		attributes.create(types::VEC3, &pointLights[i].position, pointLightStr + ".position", true);
 		attributes.create(types::VEC4, &pointLights[i].ambient, pointLightStr + ".ambient", true);
@@ -88,8 +91,8 @@ viewPosition(0,0,0), vsMap(nullptr)
 	attributes.create(types::TEXTURE2D, nullptr, "material.shadowMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.vsMap");
 
-	attributes.create(types::CubeMap, nullptr, "cubeDepthMap");
-	attributes.create(types::CubeMap, nullptr, "skybox");
+	attributes.create(types::CUBE_MAP, nullptr, "cubeDepthMap");
+	attributes.create(types::CUBE_MAP, nullptr, "skybox");
 }
 
 PhongTexShaderGL::~PhongTexShaderGL() {}
@@ -136,7 +139,7 @@ void PhongTexShaderGL::setPointLightShadowMap(CubeDepthMap* map)
 {
 	pointLightShadowMap = dynamic_cast<CubeDepthMapGL*>(map);
 	assert(pointLightShadowMap);
-	attributes.setData("cubeDepthMap", pointLightShadowMap);
+	attributes.setData("cubeDepthMap", dynamic_cast<TextureGL*>(pointLightShadowMap));
 }
 
 void PhongTexShaderGL::setShadowMap(Texture* texture)
@@ -149,8 +152,8 @@ void PhongTexShaderGL::setShadowMap(Texture* texture)
 
 void PhongTexShaderGL::setSkyBox(CubeMap* sky)
 {
-	this->skybox = static_cast<CubeMapGL*>(sky);
-	attributes.setData("skybox", skybox);
+	this->skybox = dynamic_cast<CubeMapGL*>(sky);
+	attributes.setData("skybox", dynamic_cast<TextureGL*>(skybox));
 }
 
 void PhongTexShaderGL::setSpotLightDirection(vec3 direction)
@@ -163,7 +166,7 @@ void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
 	vsMap = dynamic_cast<TextureGL*>(texture);
 	assert(vsMap != nullptr);
 	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
-	attributes.setData("material.vsMap", vsMap, black);
+	//attributes.setData("material.vsMap", vsMap, black);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)
@@ -182,8 +185,8 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	modelView = view * model;
 	normalMatrix = transpose(inverse(model));
 	
-	attributes.setData("projection", data.projection);
-	attributes.setData("view", data.view);
+	//attributes.setData("projection", data.projection);
+	attributes.setData("model", data.model);
 	//attributes.setData("transform", &transform);
 	//attributes.setData("modelView", &modelView);
 	//attributes.setData("normalMatrix", &normalMatrix);

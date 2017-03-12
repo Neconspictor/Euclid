@@ -26,6 +26,32 @@ ShaderAttributeGL::ShaderAttributeGL()
 	m_isActive = false;
 }
 
+ShaderAttributeGL::ShaderAttributeGL(const ShaderAttributeGL& o) : ShaderAttribute(o), 
+	uniformName(o.uniformName)
+{
+}
+
+ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeGL&& o) : ShaderAttribute(o), 
+uniformName(o.uniformName)
+{
+}
+
+ShaderAttributeGL& ShaderAttributeGL::operator=(const ShaderAttributeGL& o)
+{
+	if (this == &o) return *this;
+	ShaderAttribute::operator=(o);
+	uniformName = o.uniformName;
+	return *this;
+}
+
+ShaderAttributeGL&& ShaderAttributeGL::operator=(ShaderAttributeGL&& o)
+{
+	if (this == &o) return move(*this);
+	ShaderAttribute::operator=(move(o));
+	uniformName = move(o.uniformName);
+	return move(*this);
+}
+
 ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data, string uniformName, bool active)
 {
 	this->type = type;
@@ -58,6 +84,35 @@ void ShaderAttributeGL::setType(ShaderAttributeType type)
 
 ShaderAttributeCollection::ShaderAttributeCollection(){}
 
+ShaderAttributeCollection::ShaderAttributeCollection(const ShaderAttributeCollection& o) :
+	vec(o.vec), lookup(o.lookup)
+{}
+
+ShaderAttributeCollection::ShaderAttributeCollection(ShaderAttributeCollection&& o) : 
+	vec(o.vec), lookup(o.lookup)
+{
+	o.vec.clear();
+	o.lookup.clear();
+}
+
+ShaderAttributeCollection& ShaderAttributeCollection::operator=(const ShaderAttributeCollection& o)
+{
+	if (this == &o)
+		return *this;
+	vec = o.vec;
+	lookup = o.lookup;
+	return *this;
+}
+
+ShaderAttributeCollection&& ShaderAttributeCollection::operator=(ShaderAttributeCollection&& o)
+{
+	if (this == &o)
+		return move(*this);
+	vec = move(o.vec);
+	lookup = move(o.lookup);
+	return move(*this);
+}
+
 ShaderAttributeCollection::~ShaderAttributeCollection(){}
 
 ShaderAttributeGL* ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, string uniformName, bool active)
@@ -88,7 +143,7 @@ void ShaderAttributeCollection::setData(const string& uniformName, const void* d
 	} else {
 		attr->setData(data);
 	}
-	attr->activate(true);
+	attr->activate(activate);
 }
 
 int ShaderAttributeCollection::size() const
@@ -100,6 +155,10 @@ ShaderConfigGL::ShaderConfigGL(){}
 
 ShaderConfigGL::~ShaderConfigGL(){}
 
+void ShaderConfigGL::afterDrawing(){}
+
+void ShaderConfigGL::beforeDrawing(){}
+
 const ShaderAttribute* ShaderConfigGL::getAttributeList() const
 {
 	return attributes.getList();
@@ -110,17 +169,26 @@ int ShaderConfigGL::getNumberOfAttributes() const
 	return attributes.size();
 }
 
-ShaderGL::ShaderGL(ShaderConfigGL* config, const string& vertexShaderFile, const string& fragmentShaderFile, const string& geometryShaderFile)
+ShaderGL::ShaderGL(ShaderConfigGL* config, const string& vertexShaderFile, const string& fragmentShaderFile, 
+	const string& geometryShaderFile, const string& instancedVertexShaderFile)
 	: config(config), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
 {
 	// Do assertions
 	assert(this->config != nullptr);
 
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
-
 	if (programID == GL_FALSE)
 	{
 		throw ShaderInitException("ShaderGL::ShaderGL: couldn't load shader");
+	}
+
+	if (instancedVertexShaderFile.compare("") != 0)
+	{
+		instancedProgramID = loadShaders(instancedVertexShaderFile, fragmentShaderFile, geometryShaderFile);
+		if (instancedProgramID == GL_FALSE)
+		{
+			throw ShaderInitException("ShaderGL::ShaderGL: couldn't load instanced shader");
+		}
 	}
 }
 
@@ -348,12 +416,12 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
 
-	beforeDrawing();
-
-	glUseProgram(programID);
-
 	//bind uniforms from shader config
 	assert(config != nullptr);
+
+	config->beforeDrawing();
+
+	glUseProgram(programID);
 
 	reinterpret_cast<ShaderConfigGL*>(config)->update(mesh, data);
 
@@ -368,14 +436,18 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 
-	afterDrawing();
+	config->afterDrawing();
 }
 
 void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 {
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
-	beforeDrawing();
+	
+	//bind uniforms from shader config
+	assert(config != nullptr);
+	
+	config->beforeDrawing();
 
 	glUseProgram(instancedProgramID);
 
@@ -392,31 +464,39 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
 	glBindVertexArray(0);
 
-	afterDrawing();
+	config->afterDrawing();
+}
+
+ShaderConfig* ShaderGL::getConfig() const
+{
+	return config;
 };
 
 void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 {
+	if (!attribute.isActive()) return;
 	auto name = attribute.getName();
 
 	auto loc = glGetUniformLocation(program, name.c_str());
 
 	if (loc == -1)
 	{
-		throw runtime_error("ShaderGL::setAttribute(): " + name + " doesn't correspond to"
-			+ "an active uniform variable!");
+		//throw runtime_error("ShaderGL::setAttribute(): " + name + " doesn't correspond to "
+		//	+ " an active uniform variable!");
 	}
 
 	using t = ShaderAttributeType;
 
 	switch(attribute.getType())
 	{
-	case t::CubeMap: {
+	case t::CUBE_MAP: {
 		assert(textureCounter < 32); // OpenGL allows up to 32 textures
 		glActiveTexture(textureCounter + GL_TEXTURE0);
 		// TODO CubeMaps and CubeDepthMaps should be considered as well!
-		const CubeMapGL* texture = reinterpret_cast<const CubeMapGL*>(attribute.getData());
-		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getCubeMap());
+		GLuint textureID;
+
+		const TextureGL* texture = reinterpret_cast<const TextureGL*>(attribute.getData());
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getTexture());
 		glUniform1i(loc, textureCounter);
 		// the next texture to bind gets the next slot
 		++textureCounter;
@@ -466,5 +546,10 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 	default:
 		// TODO
 		throw runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
+	}
+
+	if  (RendererOpenGL::checkGLErrorSilently())
+	{
+		int test = 3;
 	}
 }

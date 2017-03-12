@@ -25,6 +25,11 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
+ShaderConfig* ShaderManagerGL::getConfig(Shaders shader)
+{
+	return getShader(shader)->getConfig();
+}
+
 Shader* ShaderManagerGL::getShader(Shaders shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
@@ -74,60 +79,76 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	switch(shaderEnum)
 	{
 	case s::BlinnPhongTex: {
-		shaderPtr = make_shared<PhongTexShaderGL>("blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
-			"blinn_phong_tex_mult_lights_vs_Instanced.glsl");
+		configs.push_back(make_shared<PhongTexShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
+			"", "blinn_phong_tex_mult_lights_vs_Instanced.glsl");
 		break;
 	}
 	case s::CubeDepthMap: {
-		shaderPtr = make_shared<CubeDepthMapShaderGL>("depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
+		configs.push_back(make_shared<CubeDepthMapShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(),
+			"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
 		break;
 	}
 	case s::DepthMap: {
-		shaderPtr = make_shared<DepthMapShaderGL>("depth_map_vs.glsl", "depth_map_fs.glsl");
+		configs.push_back(make_shared<DepthMapShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "depth_map_vs.glsl", 
+			"depth_map_fs.glsl");
 		break;
 	}
 	case s::Normals: {
-		shaderPtr = make_shared<NormalsShaderGL>("normals_vs.glsl", "normals_fs.glsl", "normals_gs.glsl");
+		configs.push_back(make_shared<NormalsShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "normals_vs.glsl", 
+			"normals_fs.glsl", "normals_gs.glsl");
 		break;
 	}
 	case s::Shadow: {
-		shaderPtr = make_shared<ShadowShaderGL>
-			("shadow_vs.glsl", "shadow_fs.glsl");
+		configs.push_back(make_shared<ShadowShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "shadow_vs.glsl", "shadow_fs.glsl");
 		break;
 	}
 	case s::ShadowPoint: {
-		shaderPtr = make_shared<PointShadowShaderGL>
-			("shadow_point_vs.glsl", "shadow_point_fs.glsl", "shadow_point_gs.glsl");
+		configs.push_back(make_shared<PointShadowShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "shadow_point_vs.glsl", "shadow_point_fs.glsl", 
+				"shadow_point_gs.glsl");
 		break;
 	}
 	case s::SimpleColor: {
-		shaderPtr = make_shared<SimpleColorShaderGL>
-			("simpleColor_vs.glsl", "simpleColor_fs.glsl");
+		configs.push_back(make_shared<SimpleColorShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "simpleColor_vs.glsl", "simpleColor_fs.glsl");
 		break;
 	}
 	case s::SimpleExtrude: {
-		shaderPtr = make_shared<SimpleExtrudeShaderGL>
-			("simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
+		configs.push_back(make_shared<SimpleExtrudeShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
 		break;
 	}
 	case s::Screen: {
-		shaderPtr = make_shared<ScreenShaderGL>
-			("screen_vs.glsl", "screen_fs.glsl");
+		configs.push_back(make_shared<ScreenShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "screen_vs.glsl", "screen_fs.glsl");
 		break;
 	}
 	case s::SkyBox: {
-		shaderPtr = make_shared<SkyBoxShaderGL>
-			("skybox_vs.glsl", "skybox_fs.glsl");
+		configs.push_back(make_shared<SkyBoxShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "skybox_vs.glsl", "skybox_fs.glsl");
 		break;
 	}
 	case s::SkyBoxPanorama: {
-		shaderPtr = make_shared<PanoramaSkyBoxShaderGL>
-			("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+		configs.push_back(make_shared<PanoramaSkyBoxShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
 		break;
 	}
 	case s::VarianceShadow: {
-		shaderPtr = make_shared<VarianceShadowShaderGL>
-			("variance_shadow_vs.glsl", "variance_shadow_fs.glsl");
+		configs.push_back(make_shared<VarianceShadowShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "variance_shadow_vs.glsl", "variance_shadow_fs.glsl");
 		break;
 	}
 	default: {

@@ -10,7 +10,7 @@ ScreenShaderGL::ScreenShaderGL() :
 	ScreenShader(), ShaderConfigGL(), texture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "screenTexture");
+	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "screenTexture");
 }
 
 ScreenShaderGL::~ScreenShaderGL(){}

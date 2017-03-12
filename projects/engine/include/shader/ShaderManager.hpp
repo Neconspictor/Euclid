@@ -17,6 +17,8 @@ public:
 	 */
 	virtual Shader* getShader(Shaders shader) = 0;
 
+	virtual ShaderConfig* getConfig(Shaders shader) = 0;
+
 	/**
 	 * Loads all shaders.
 	 * NOTE: A ShaderInitException is thrown if one shaders couldn't be created.

@@ -71,9 +71,7 @@ private:
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
 
-	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shader* shader = nullptr);
-
-	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType);
+	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType = Shaders::Unknown);
 
 	void drawSky(const glm::mat4& projection, const glm::mat4& view);
 

@@ -16,7 +16,8 @@ struct TransformData
 */
 enum class Shaders
 {
-	BlinnPhongTex = 0,
+	Unknown = 0,
+	BlinnPhongTex,
 	CubeDepthMap,
 	DepthMap,
 	Normals,
@@ -65,7 +66,7 @@ std::ostream& operator<<(std::ostream& os, Shaders shader);
 
 enum class ShaderAttributeType
 {
-	CubeMap,
+	CUBE_MAP,
 	FLOAT,
 	INT,
 	MAT3,
@@ -79,6 +80,8 @@ enum class ShaderAttributeType
 class ShaderAttribute
 {
 public:
+	ShaderAttribute();
+
 	virtual ~ShaderAttribute();
 
 	void activate(bool active);
@@ -92,14 +95,12 @@ protected:
 	const void* data;
 	bool m_isActive;
 	ShaderAttributeType type;
-
-	ShaderAttribute(); // This class is not intended to be instanced, except by derived classes
 };
 
 
 class ShaderConfig
 {
-public:
+public:	
 	virtual ~ShaderConfig();
 };
 
@@ -108,15 +109,11 @@ class Shader
 public:	
 	virtual ~Shader();
 
-	virtual void afterDrawing();
-
-	virtual void beforeDrawing();
-
 	virtual void draw(Mesh const& mesh) = 0;
 	
 	virtual void drawInstanced(Mesh const& mesh, unsigned int amount) = 0;
 
-	virtual const ShaderConfig* getConfig() const = 0;
+	virtual ShaderConfig* getConfig() const = 0;
 
 	virtual void release() = 0;
 

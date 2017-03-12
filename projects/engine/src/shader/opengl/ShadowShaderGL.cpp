@@ -1,59 +1,25 @@
 #include <shader/opengl/ShadowShaderGL.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 
 using namespace std;
 using namespace glm;
 
-PointShadowShaderGL::PointShadowShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile,
-	const string& geometryShaderFile) : ShaderGL(vertexShaderFile, fragmentShaderFile,
-	geometryShaderFile), PointShadowShader(), matrices(nullptr), range(0)
+PointShadowShaderGL::PointShadowShaderGL() : PointShadowShader(), ShaderConfigGL(),
+matrices(nullptr), range(0)
 {
-}
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
 
-PointShadowShaderGL::~PointShadowShaderGL()
-{
-}
-
-void PointShadowShaderGL::draw(Mesh const& meshOriginal)
-{
-	assert(matrices != nullptr);
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	use();
-
-	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
-
-	for (GLuint i = 0; i < 6; ++i)
+	for (int i = 0; i < 6; ++i)
 	{
 		string matrixDesc = "shadowMatrices[" + to_string(i) + "]";
-		GLuint loc = glGetUniformLocation(getProgramID(), matrixDesc.c_str());
-		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(matrices[i]));
+		attributes.create(ShaderAttributeType::MAT4, nullptr, matrixDesc);
 	}
 
-	GLuint rangeLoc = glGetUniformLocation(getProgramID(), "range");
-	glUniform1f(rangeLoc, range);
-	
-	GLuint lightPosLoc = glGetUniformLocation(getProgramID(), "lightPos");
-	glUniform3fv(lightPosLoc, 1, value_ptr(lightPos));
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
+	attributes.create(ShaderAttributeType::FLOAT, &range, "range", true);
+	attributes.create(ShaderAttributeType::VEC3, &lightPos, "lightPos", true);
 }
 
-void PointShadowShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
-{
-}
-
-void PointShadowShaderGL::release()
-{
-	ShaderGL::release();
-}
+PointShadowShaderGL::~PointShadowShaderGL(){}
 
 void PointShadowShaderGL::setLightPosition(vec3 pos)
 {
@@ -68,93 +34,42 @@ void PointShadowShaderGL::setRange(float range)
 void PointShadowShaderGL::setShadowMatrices(mat4 matrices[6])
 {
 	this->matrices = matrices;
+	for (int i = 0; i < 6; ++i)
+	{
+		string matrixDesc = "shadowMatrices[" + to_string(i) + "]";
+		attributes.setData(matrixDesc, &this->matrices[i]);
+	}
 }
 
-void PointShadowShaderGL::use()
+void PointShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
-	ShaderGL::use();
+	attributes.setData("model", data.model);
 }
 
-ShadowShaderGL::ShadowShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
-	: ShaderGL(vertexShaderFile, fragmentShaderFile)
+ShadowShaderGL::ShadowShaderGL() : ShadowShader(), ShaderConfigGL()
 {
+	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
 }
 
-ShadowShaderGL::~ShadowShaderGL()
+ShadowShaderGL::~ShadowShaderGL(){}
+
+void ShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
+	lightSpaceMatrix = (*data.projection) * (*data.view);
+	attributes.setData("model", data.model);
 }
 
-void ShadowShaderGL::draw(Mesh const& meshOriginal)
+VarianceShadowShaderGL::VarianceShadowShaderGL() : VarianceShadowShader(), ShaderConfigGL()
 {
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	use();
-	GLuint lightSpaceMatrixLoc = glGetUniformLocation(getProgramID(), "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(projection * view));
-
-	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
+	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
 }
 
-void ShadowShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
+VarianceShadowShaderGL::~VarianceShadowShaderGL() {}
+
+void VarianceShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
-}
-
-void ShadowShaderGL::release()
-{
-	ShaderGL::release();
-}
-
-void ShadowShaderGL::use()
-{
-	glUseProgram(this->programID);
-}
-
-VarianceShadowShaderGL::VarianceShadowShaderGL(const string& vertexShaderFile, const string& fragmentShaderFile)
-	: ShaderGL(vertexShaderFile, fragmentShaderFile), VarianceShadowShader()
-{
-}
-
-VarianceShadowShaderGL::~VarianceShadowShaderGL()
-{
-}
-
-void VarianceShadowShaderGL::draw(Mesh const& meshOriginal)
-{
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	use();
-	GLuint lightSpaceMatrixLoc = glGetUniformLocation(getProgramID(), "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLoc, 1, GL_FALSE, value_ptr(projection * view));
-
-	GLuint modelLoc = glGetUniformLocation(getProgramID(), "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
-
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
-}
-
-void VarianceShadowShaderGL::drawInstanced(Mesh const& mesh, unsigned amount)
-{
-}
-
-void VarianceShadowShaderGL::release()
-{
-	ShaderGL::release();
-}
-
-void VarianceShadowShaderGL::use()
-{
-	glUseProgram(this->programID);
+	lightSpaceMatrix = (*data.projection) * (*data.view);
+	attributes.setData("model", data.model);
 }

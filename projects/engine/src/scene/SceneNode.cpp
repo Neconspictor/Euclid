@@ -107,26 +107,26 @@ void SceneNode::update(float frameTime)
 }
 
 void SceneNode::draw(Renderer3D* renderer, ModelDrawer* drawer, const glm::mat4& projection, 
-	const glm::mat4& view, Shader* forcedShader)
+	const glm::mat4& view, Shaders forcedShader)
 {
 	for (auto it = childs.begin(); it != childs.end(); ++it)
 		(*it)->draw(renderer, drawer, projection, view, forcedShader);
 
 	if (!vob) return;
 
-	Shader* shader = renderer->getShaderManager()->getShader(shaderType);
-	if (forcedShader)
-		shader = forcedShader;
+	Shaders type = shaderType;
+	if (forcedShader != Shaders::Unknown)
+		type = forcedShader;
 
 	vob->calcTrafo();
-	Shader::TransformData data = { &projection, &view, &vob->getTrafo() };
+	TransformData data = { &projection, &view, &vob->getTrafo() };
 	if (drawingType == DrawingTypes::SOLID)
 	{
-		drawer->draw(vob, shader, data);
+		drawer->draw(vob, type, data);
 	}
 	else if (drawingType == DrawingTypes::INSTANCED)
 	{
-		drawer->drawInstanced(vob, shader, data, instanceCount);
+		drawer->drawInstanced(vob, type, data, instanceCount);
 	}
 }
 

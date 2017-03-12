@@ -28,13 +28,10 @@ bool ShaderAttribute::isActive() const
 ShaderAttribute::ShaderAttribute() : data(nullptr), m_isActive(true), type(ShaderAttributeType::MAT4)
 {}
 
+
 ShaderConfig::~ShaderConfig(){}
 
 Shader::~Shader() {}
-
-void Shader::afterDrawing() {}
-
-void Shader::beforeDrawing() {}
 
 void Shader::setTransformData(TransformData data)
 {

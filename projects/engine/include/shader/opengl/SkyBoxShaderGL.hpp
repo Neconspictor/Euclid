@@ -3,52 +3,42 @@
 #include <shader/opengl/ShaderGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
 
-class SkyBoxShaderGL : public ShaderGL, public SkyBoxShader
+class SkyBoxShaderGL : public SkyBoxShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new skybox shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	SkyBoxShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	SkyBoxShaderGL();
 
-	~SkyBoxShaderGL() override;
+	virtual ~SkyBoxShaderGL() override;
 
-	void draw(Mesh const& mesh) override;
+	void afterDrawing() override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+	void beforeDrawing() override;
 
-	void release() override;
+	virtual void setSkyTexture(CubeMap* sky) override;
 
-	void setSkyTexture(CubeMap* sky) override;
-
-	void use() override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	CubeMapGL* skyTexture;
+	glm::mat4 transform;
 };
 
-class PanoramaSkyBoxShaderGL : public ShaderGL, public PanoramaSkyBoxShader
+class PanoramaSkyBoxShaderGL : public PanoramaSkyBoxShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new panorama skybox shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	PanoramaSkyBoxShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	PanoramaSkyBoxShaderGL();
 
 	~PanoramaSkyBoxShaderGL() override;
 
-	void draw(Mesh const& mesh) override;
+	void afterDrawing() override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+	void beforeDrawing() override;
 
-	void release() override;
+	virtual void setSkyTexture(Texture* tex) override;
 
-	void setSkyTexture(Texture* tex) override;
-
-	void use() override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	TextureGL* skyTexture;
+	glm::mat4 transform;
 };

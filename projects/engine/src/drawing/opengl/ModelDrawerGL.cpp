@@ -5,10 +5,8 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.inl>
 #include <shader/SimpleColorShader.hpp>
-#include <shader/ShaderManager.hpp>
 #include <shader/opengl/ShaderManagerGL.hpp>
 #include <shader/SimpleExtrudeShader.hpp>
-#include <shader/opengl/SimpleExtrudeShaderGL.hpp>
 #include <model/opengl/ModelManagerGL.hpp>
 #include <renderer/opengl/RendererOpenGL.hpp>
 #include <sprite/Sprite.hpp>
@@ -25,7 +23,7 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite* sprite, Shader* shader)
+void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 {
 	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME);
 	TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -59,7 +57,8 @@ void ModelDrawerGL::draw(Sprite* sprite, Shader* shader)
 	// finally scale
 	model = scale(model, scaling);
 
-	Shader::TransformData data = {&projection, &view, &model};
+	TransformData data = {&projection, &view, &model};
+	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	shader->setTransformData(data);
 	//shader->setOffscreenBuffer(texture->getTexture());
 	for (Mesh* mesh : spriteModel->getMeshes())
@@ -68,9 +67,9 @@ void ModelDrawerGL::draw(Sprite* sprite, Shader* shader)
 	}
 }
 
-void ModelDrawerGL::draw(Vob* vob, Shader* shader, const Shader::TransformData& data)
+void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data)
 {
-	ShaderManagerGL::get()->validateShader(shader);
+	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
 	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -81,9 +80,9 @@ void ModelDrawerGL::draw(Vob* vob, Shader* shader, const Shader::TransformData& 
 	}
 }
 
-void ModelDrawerGL::drawInstanced(Vob* vob, Shader* shader, const Shader::TransformData& data, unsigned amount)
+void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
 {
-	ShaderManagerGL::get()->validateShader(shader);
+	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
 	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
 
@@ -95,9 +94,8 @@ void ModelDrawerGL::drawInstanced(Vob* vob, Shader* shader, const Shader::Transf
 	}
 }
 
-void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::TransformData& data, vec4 borderColor)
+void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformData& data, vec4 borderColor)
 {
-	ShaderManagerGL::get()->validateShader(shader);
 	glEnable(GL_STENCIL_TEST);
 
 	// always set 1 to the stencil buffer, regardless of the current stencil value
@@ -113,7 +111,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::Transfo
 
 
 	//glPolygonMode(GL_FRONT, GL_FILL);
-	draw(vob, shader, data);
+	draw(vob, shaderType, data);
 
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 
@@ -125,14 +123,14 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::Transfo
 
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
-	SimpleExtrudeShader* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
-										(ShaderManagerGL::get()->getShader(Shaders::SimpleExtrude));
+	SimpleExtrudeShader* simpleExtrude = static_cast<SimpleExtrudeShader*>
+										(ShaderManagerGL::get()->getConfig(Shaders::SimpleExtrude));
 	
 	simpleExtrude->setObjectColor(borderColor);
 	simpleExtrude->setExtrudeValue(0.05f);
 	// use 3 pixel as outline border
 	glDepthFunc(GL_ALWAYS);
-	draw(vob, simpleExtrude, data);
+	draw(vob, Shaders::SimpleExtrude, data);
 	//glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -145,9 +143,9 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shader* shader, const Shader::Transfo
 	glStencilMask(0x00);
 }
 
-void ModelDrawerGL::drawWired(Vob* vob, Shader* shader, const Shader::TransformData& data, int lineStrength)
+void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData& data, int lineStrength)
 {
-	ShaderManagerGL::get()->validateShader(shader);
+	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
 	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
 

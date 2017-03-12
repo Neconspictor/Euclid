@@ -4,35 +4,28 @@
 
 using namespace std;
 
-CubeMapGL::CubeMapGL() : cubeMap(GL_FALSE)
-{
-}
+CubeMapGL::CubeMapGL() : TextureGL() {}
 
-CubeMapGL::CubeMapGL(GLuint cubeMap) : cubeMap(cubeMap)
-{
-}
+CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap)
+{}
 
-CubeMapGL::CubeMapGL(const CubeMapGL& other)
-{
-	cubeMap = other.cubeMap;
-}
+CubeMapGL::CubeMapGL(const CubeMapGL& other) : TextureGL(other)
+{}
 
-CubeMapGL::CubeMapGL(CubeMapGL&& other)
-{
-	cubeMap = move(other.cubeMap);
-}
+CubeMapGL::CubeMapGL(CubeMapGL&& other) : TextureGL(other)
+{}
 
 CubeMapGL& CubeMapGL::operator=(const CubeMapGL& other)
 {
 	if (this == &other) return *this;
-	cubeMap = other.cubeMap;
+	TextureGL::operator=(other);
 	return *this;
 }
 
 CubeMapGL& CubeMapGL::operator=(CubeMapGL&& other)
 {
 	if (this == &other) return *this;
-	cubeMap = move(other.cubeMap);
+	TextureGL::operator=(other);
 	return *this;
 }
 
@@ -42,12 +35,12 @@ CubeMapGL::~CubeMapGL()
 
 GLuint CubeMapGL::getCubeMap() const
 {
-	return cubeMap;
+	return textureID;
 }
 
 void CubeMapGL::setCubeMap(GLuint id)
 {
-	cubeMap = id;
+	textureID = id;
 }
 
 TextureGL::TextureGL(): textureID(GL_FALSE)
@@ -268,6 +261,7 @@ frameBuffer(GL_FALSE)
 	glGenTextures(1, &texture);
 	glGenFramebuffers(1, &frameBuffer);
 	cubeMap.setCubeMap(texture);
+	textureID = texture;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
@@ -295,12 +289,12 @@ frameBuffer(GL_FALSE)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : CubeDepthMap(other), cubeMap(other.cubeMap),
+CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : TextureGL(other), CubeDepthMap(other), cubeMap(other.cubeMap),
 frameBuffer(other.frameBuffer)
 {
 }
 
-CubeDepthMapGL::CubeDepthMapGL(CubeDepthMapGL&& other) : CubeDepthMap(other), cubeMap(other.cubeMap),
+CubeDepthMapGL::CubeDepthMapGL(CubeDepthMapGL&& other) : TextureGL(other), CubeDepthMap(other), cubeMap(other.cubeMap),
 frameBuffer(other.frameBuffer)
 {
 	other.frameBuffer = GL_FALSE;
@@ -310,6 +304,7 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(const CubeDepthMapGL& other)
 {
 	if (this == &other) return *this;
 	CubeDepthMap::operator=(other);
+	TextureGL::operator=(other);
 	this->frameBuffer = other.frameBuffer;
 	this->cubeMap = other.cubeMap;
 	return *this;
@@ -319,6 +314,7 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
 {
 	if (this == &other) return *this;
 	CubeDepthMap::operator=(other);
+	TextureGL::operator=(other);
 	this->frameBuffer = other.frameBuffer;
 	this->cubeMap = other.cubeMap;
 	other.frameBuffer = GL_FALSE;
@@ -326,8 +322,7 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
 }
 
 CubeDepthMapGL::~CubeDepthMapGL()
-{
-}
+{}
 
 GLuint CubeDepthMapGL::getCubeMapTexture() const
 {

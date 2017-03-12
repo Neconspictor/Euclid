@@ -5,70 +5,45 @@
 class PointShadowShaderGL : public PointShadowShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new shadow shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	PointShadowShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
-		const std::string& geometryShaderFile);
+	PointShadowShaderGL();
 
 	virtual ~PointShadowShaderGL();
 
-	void draw(Mesh const& mesh) override;
+	virtual void setLightPosition(glm::vec3 pos) override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+	virtual void setRange(float range) override;
 
-	void release() override;
+	virtual void setShadowMatrices(glm::mat4 matrices[6]) override;
 
-	void setLightPosition(glm::vec3 pos) override;
-
-	void setRange(float range) override;
-
-	void setShadowMatrices(glm::mat4 matrices[6]) override;
-
-	void use() override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 	glm::vec3 lightPos;
 	glm::mat4* matrices;
 	float range;
 };
 
-class ShadowShaderGL : public ShaderGL, public ShadowShader
+class ShadowShaderGL : public ShadowShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new shadow shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	ShadowShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	ShadowShaderGL();
 
 	virtual ~ShadowShaderGL();
 
-	void draw(Mesh const& mesh) override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
-
-	void release() override;
-
-	void use() override;
+protected:
+	glm::mat4 lightSpaceMatrix;
 };
 
-class VarianceShadowShaderGL : public ShaderGL, public VarianceShadowShader
+class VarianceShadowShaderGL : public VarianceShadowShader, public ShaderConfigGL
 {
 public:
-	/**
-	* Creates a new shadow shader program.
-	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
-	*/
-	VarianceShadowShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	VarianceShadowShaderGL();
 
 	virtual ~VarianceShadowShaderGL();
 
-	void draw(Mesh const& mesh) override;
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
-
-	void release() override;
-
-	void use() override;
+protected:
+	glm::mat4 lightSpaceMatrix;
 };

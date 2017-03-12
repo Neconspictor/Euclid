@@ -12,7 +12,7 @@ CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
 	attributes.create(types::MAT4, nullptr, "model");
 	attributes.create(types::VEC3, &lightPos, "lightPos", true);
 	attributes.create(types::FLOAT, &range, "range", true);
-	attributes.create(types::CubeMap, nullptr, "cubeDepthMap");
+	attributes.create(types::CUBE_MAP, nullptr, "cubeDepthMap");
 }
 
 CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}

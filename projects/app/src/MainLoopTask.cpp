@@ -167,7 +167,7 @@ void MainLoopTask::init()
 		renderer->setViewPort(0, 0, width, height);
 		renderer->destroyRenderTarget(renderTargetMultisampled);
 		renderer->destroyRenderTarget(renderTargetSingleSampled);
-		renderTargetMultisampled = renderer->createRenderTarget(1);
+		renderTargetMultisampled = renderer->createRenderTarget(4);
 		renderTargetSingleSampled = renderer->createRenderTarget(1);
 	});
 
@@ -187,13 +187,13 @@ void MainLoopTask::init()
 	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { true, true, Bilinear, Bilinear, ClampToEdge });
 	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(shaderManager->getShader(Shaders::SkyBox));
+		(shaderManager->getConfig(Shaders::SkyBox));
 
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(shaderManager->getShader(Shaders::SkyBoxPanorama));
+		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
 
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(shaderManager->getShader(Shaders::BlinnPhongTex));
+		(shaderManager->getConfig(Shaders::BlinnPhongTex));
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
@@ -220,12 +220,11 @@ void MainLoopTask::init()
 	pointLightPositions[2] = farAway;
 	pointLightPositions[3] = farAway;
 
-	vec3 position = {-2.0f, 5.0f, 3.0f};
-	position = 100.0f * normalize(position);
+	vec3 position = vec3(0.0f, 0.0f, 0.0f);
 	globalLight.setPosition(position);
-	globalLight.lookAt({0,0,0});
+	//globalLight.lookAt({0,0,0});
 	globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
-	//globalLight.setLook({ 1,1,0 });
+	globalLight.setLook(normalize(vec3( 0,1,0 )));
 
 	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
 	pointLight.setRange(10.0f);
@@ -234,7 +233,7 @@ void MainLoopTask::init()
 
 	// init shaders
 	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(Shaders::BlinnPhongTex));
+		(renderer->getShaderManager()->getConfig(Shaders::BlinnPhongTex));
 
 	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
 	phongTexShader->setLightDirection(globalLight.getLook());
@@ -277,17 +276,17 @@ void MainLoopTask::run()
 	BROFILER_FRAME("MainLoopTask");
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
-		renderer->getShaderManager()->getShader(Shaders::Screen));
+		renderer->getShaderManager()->getConfig(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
-		renderer->getShaderManager()->getShader(Shaders::DepthMap));
+		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getShader(Shaders::BlinnPhongTex));
+		(renderer->getShaderManager()->getConfig(Shaders::BlinnPhongTex));
 	ShadowShader* shadowShader = dynamic_cast<ShadowShader*>
-		(renderer->getShaderManager()->getShader(Shaders::Shadow));
+		(renderer->getShaderManager()->getConfig(Shaders::Shadow));
 	PointShadowShader* pointShadowShader = dynamic_cast<PointShadowShader*>
-		(renderer->getShaderManager()->getShader(Shaders::ShadowPoint));
+		(renderer->getShaderManager()->getConfig(Shaders::ShadowPoint));
 	CubeDepthMapShader* cubeDepthMapShader = dynamic_cast<CubeDepthMapShader*>
-		(renderer->getShaderManager()->getShader(Shaders::CubeDepthMap));
+		(renderer->getShaderManager()->getConfig(Shaders::CubeDepthMap));
 	using namespace chrono;
 	
 	float frameTime = timer.update();
@@ -397,6 +396,7 @@ void MainLoopTask::run()
 	pointShadowShader->setShadowMatrices(pointLight.getMatrices());
 	drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
 
+
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
@@ -412,7 +412,6 @@ void MainLoopTask::run()
 	drawScene(camera->getPerspProjection(), camera->getView());
 	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
-
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 
 	//ui->frameUpdate();
@@ -420,6 +419,8 @@ void MainLoopTask::run()
 	SMAA* smaa = renderer->getSMAA();
 	smaa->reset();
 	smaa->antialias(renderTargetSingleSampled); // TODO use render target
+
+	renderer->endScene();
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
@@ -429,10 +430,10 @@ void MainLoopTask::run()
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)
 	{
-		modelDrawer->draw(&screenSprite, depthMapShader);
+		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 	} else
 	{
-		modelDrawer->draw(&screenSprite, screenShader);
+		modelDrawer->draw(&screenSprite, Shaders::Screen);
 	}
 	renderer->endScene();
 
@@ -441,34 +442,28 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
-void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shader* shader)
+void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view, shader);
+	scene->draw(renderer, modelDrawer, projection, view, shaderType);
 	renderer->endScene();
-}
-
-void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
-{
-	Shader* shader = renderer->getShaderManager()->getShader(shaderType);
-	drawScene(projection, view, shader);
 }
 
 void MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 {
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(renderer->getShaderManager()->getShader(Shaders::SkyBoxPanorama));
+		(renderer->getShaderManager()->getConfig(Shaders::SkyBoxPanorama));
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 
-	Shader::TransformData data = { &projection, &view, nullptr };
+	TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
 	//modelDrawer->draw(&skyBox, skyBoxShader, data);
-	modelDrawer->draw(&skyBox, panoramaSkyBoxShader, data);
+	modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
 }
 
 void MainLoopTask::updateCamera(Input* input, float deltaTime)

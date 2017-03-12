@@ -4,6 +4,7 @@
 class SimpleColorShader : public ShaderConfig
 {
 public:
+	SimpleColorShader() {}
 	virtual ~SimpleColorShader() {};
 
 	virtual const glm::vec4& getObjectColor() const = 0;

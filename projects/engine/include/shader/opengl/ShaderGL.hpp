@@ -12,6 +12,12 @@ class ShaderAttributeGL : public ShaderAttribute
 {
 public:
 	ShaderAttributeGL();
+	ShaderAttributeGL(const ShaderAttributeGL& o);
+	ShaderAttributeGL(ShaderAttributeGL&& o);
+	ShaderAttributeGL& operator=(const ShaderAttributeGL& o);
+	ShaderAttributeGL&& operator=(ShaderAttributeGL&& o);
+	
+
 	ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
 	virtual ~ShaderAttributeGL() override;
 
@@ -29,6 +35,10 @@ class ShaderAttributeCollection
 {
 public:
 	ShaderAttributeCollection();
+	ShaderAttributeCollection(const ShaderAttributeCollection& o);
+	ShaderAttributeCollection(ShaderAttributeCollection&& o);
+	ShaderAttributeCollection& operator=(const ShaderAttributeCollection& o);
+	ShaderAttributeCollection&& operator=(ShaderAttributeCollection&& o);
 	virtual ~ShaderAttributeCollection();
 
 	ShaderAttributeGL* create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
@@ -47,6 +57,10 @@ class ShaderConfigGL : public ShaderConfig
 public:
 	ShaderConfigGL();
 	virtual ~ShaderConfigGL();
+
+	virtual void afterDrawing();
+
+	virtual void beforeDrawing();
 
 	virtual const ShaderAttribute* getAttributeList() const;
 
@@ -68,9 +82,10 @@ public:
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
 	ShaderGL(ShaderConfigGL* config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
-		const std::string& geometryShaderFile = "");
+		const std::string& geometryShaderFile = "", const std::string& instancedVertexShaderFile = "");
 	ShaderGL(ShaderGL&& other);
 	ShaderGL(const ShaderGL& other);
+
 	virtual ~ShaderGL();
 
 	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
@@ -78,6 +93,8 @@ public:
 	void draw(Mesh const& mesh) override;
 
 	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+
+	virtual ShaderConfig* getConfig() const override;
 
 	GLuint getProgramID() const;
 	

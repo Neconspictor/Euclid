@@ -27,7 +27,7 @@ public:
 	 * Draws this scene node and all its children using a specific shader.
 	 */
 	virtual void draw(Renderer3D* renderer, ModelDrawer* drawer, const glm::mat4& projection, 
-		const glm::mat4& view, Shader* forcedShader = nullptr);
+		const glm::mat4& view, Shaders forcedShader = Shaders::Unknown);
 
 	Vob* getVob() const;
 	void setVob(Vob* vob);

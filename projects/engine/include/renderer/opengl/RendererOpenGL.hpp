@@ -89,6 +89,8 @@ public:
 	*/
 	static void checkGLErrors(std::string errorPrefix);
 
+	static bool checkGLErrorSilently();
+
 protected:
 
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);

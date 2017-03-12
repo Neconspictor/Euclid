@@ -11,6 +11,7 @@ class ShaderManagerGL : public ShaderManager
 {
 public:
 	virtual ~ShaderManagerGL() override;
+	virtual ShaderConfig* getConfig(Shaders shader) override;
 	virtual Shader* getShader(Shaders shader) override;
 	virtual void loadShaders() override;
 	virtual void validateShader(Shader* shader) override;
@@ -21,6 +22,7 @@ public:
 
 private:
 	std::map<Shaders, std::shared_ptr<Shader>> shaderMap;
+	std::list<std::shared_ptr<ShaderConfigGL>> configs;
 	platform::LoggingClient logClient;
 
 	// this class is a singleton, thus private constructor
