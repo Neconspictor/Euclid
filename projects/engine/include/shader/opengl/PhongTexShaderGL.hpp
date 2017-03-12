@@ -53,11 +53,12 @@ public:
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
+	glm::mat4 biasMatrix;
 	DirLight dirLight;
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;
 	glm::mat4 modelView;
-	glm::mat3 normalMatrix;
+	glm::mat4 normalMatrix;
 	PointLight pointLights[4];
 	float pointLightRange;
 	CubeDepthMapGL* pointLightShadowMap;

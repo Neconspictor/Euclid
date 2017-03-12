@@ -21,7 +21,7 @@ out VS_OUT {
 void main()
 {
     gl_Position = transform * vec4(position, 1.0f);
-    vs_out.normal = mat3(normalMatrix) * normal;
+    vs_out.normal = normalize(mat3(normalMatrix) * normal);
     //fragmentPosition = vec3(modelView * vec4(position, 1.0f));
     vs_out.fragPos = vec3(model * vec4(position, 1.0f));
     vs_out.reflectPosition = vec3(model * vec4(position, 1.0f));

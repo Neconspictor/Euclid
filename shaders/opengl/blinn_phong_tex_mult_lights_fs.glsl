@@ -129,7 +129,7 @@ void main()
 		
 		
 		result.w = 1.0f;
-    result = clamp(result, 0.0, 1.0);
+    //result = clamp(result, 0.0, 1.0);
     
     color = result;
 }
@@ -236,7 +236,7 @@ float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 		//shadowCoordinateWdivide.z += 0.0005;
 		
 		float currentDepth = shadowCoordinateWdivide.z;
-		float bias = max(0.0005*(1.0 - dot(normal, lightDir)) ,0.0005);		
+		float bias = max(0.0005*(1.0 - dot(normal, -lightDir)) ,0.0005);		
 	
 		float shadow = 0.0;
 		

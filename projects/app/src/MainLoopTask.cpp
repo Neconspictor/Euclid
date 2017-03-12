@@ -220,11 +220,11 @@ void MainLoopTask::init()
 	pointLightPositions[2] = farAway;
 	pointLightPositions[3] = farAway;
 
-	vec3 position = vec3(0.0f, 0.0f, 0.0f);
+	vec3 position = vec3(10.0f, 10.0f, 10.0f);
 	globalLight.setPosition(position);
 	//globalLight.lookAt({0,0,0});
-	globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
-	globalLight.setLook(normalize(vec3( 0,1,0 )));
+	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
+	globalLight.setLook(normalize(vec3( 0.01f, 1.0f,0.1f )));
 
 	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
 	pointLight.setRange(10.0f);
@@ -342,14 +342,15 @@ void MainLoopTask::run()
 	const mat4& cameraView = camera->getView();
 	mat4 inverseCameraView = inverse(cameraView);
 
-	FrustumCuboid cameraCuboidWorld = globalLight.getView() * inverseCameraView * cameraCuboid;
+	mat4 test = globalLight.getView();
+	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
 	ccBB.min.z -= 3;
 	ccBB.max.z += 3;
 
 	// Snap shadow frustum to texel bounds for avoiding edge shimmering
 	float size = shadowMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
-	vec3 normalizedMapSize = vec3(1.0f / shadowMap->getWidth(), 1.0f / shadowMap->getHeight(), 1.0f);
+	vec3 normalizedMapSize = vec3(1.0f / (float)shadowMap->getWidth(), 1.0f / (float)shadowMap->getHeight(), 1.0f);
 	vec3 worldUnitsPerTexel = ccBB.max - ccBB.min;
 	worldUnitsPerTexel *= normalizedMapSize;
 	

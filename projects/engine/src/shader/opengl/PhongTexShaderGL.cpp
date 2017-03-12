@@ -19,7 +19,7 @@ viewPosition(0,0,0), vsMap(nullptr)
 	attributes.create(types::MAT4, &modelView, "modelView", true);
 	attributes.create(types::MAT4, &normalMatrix, "normalMatrix", true);
 
-	static mat4 biasMatrix(
+	biasMatrix = mat4(
 		0.5, 0.0, 0.0, 0.0,
 		0.0, 0.5, 0.0, 0.0,
 		0.0, 0.0, 0.5, 0.0,
@@ -187,9 +187,9 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	
 	//attributes.setData("projection", data.projection);
 	attributes.setData("model", data.model);
-	//attributes.setData("transform", &transform);
-	//attributes.setData("modelView", &modelView);
-	//attributes.setData("normalMatrix", &normalMatrix);
+	attributes.setData("transform", &transform);
+	attributes.setData("modelView", &modelView);
+	attributes.setData("normalMatrix", &normalMatrix);
 
 	const Material& material = mesh.getMaterial();
 	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
