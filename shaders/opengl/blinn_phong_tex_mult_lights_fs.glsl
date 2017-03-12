@@ -108,7 +108,7 @@ void main()
 		
 		
 		//directional shadow calculation
-		float shadow = shadowCalculation(normalize(-dirLight.direction), normal, fs_in.fragPosLightSpace);
+		float shadow = shadowCalculation(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
 
 		//spot light shadows
 		for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
@@ -137,7 +137,7 @@ void main()
 // Calculates the color when using a directional light source
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
 		// we need the direction from the fragment to the light source, so we use the negative light direction!
-    vec3 lightDir = normalize(-light.direction);
+    vec3 lightDir = normalize(light.direction);
     vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
     vec4 specularColor = texture(material.specularMap, fs_in.texCoords);
     // diffuse shading
