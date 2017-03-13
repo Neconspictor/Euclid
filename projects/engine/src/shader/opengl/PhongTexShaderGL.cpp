@@ -114,7 +114,7 @@ void PhongTexShaderGL::setLightColor(vec3 color)
 
 void PhongTexShaderGL::setLightDirection(vec3 direction)
 {
-	dirLight.direction = move(-direction);
+	dirLight.direction = move(direction);
 }
 
 void PhongTexShaderGL::setLightSpaceMatrix(mat4 mat)
@@ -147,7 +147,7 @@ void PhongTexShaderGL::setShadowMap(Texture* texture)
 	shadowMap = dynamic_cast<TextureGL*>(texture);
 	assert(shadowMap != nullptr);
 	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
-	attributes.setData("material.shadowMap", shadowMap);
+	attributes.setData("material.shadowMap", shadowMap, black);
 }
 
 void PhongTexShaderGL::setSkyBox(CubeMap* sky)
@@ -166,7 +166,7 @@ void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
 	vsMap = dynamic_cast<TextureGL*>(texture);
 	assert(vsMap != nullptr);
 	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
-	//attributes.setData("material.vsMap", vsMap, black);
+	attributes.setData("material.vsMap", vsMap, black);
 }
 
 void PhongTexShaderGL::setViewPosition(vec3 position)

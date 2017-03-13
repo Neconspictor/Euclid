@@ -20,3 +20,11 @@ public:
 
 	virtual void useDepthMapTexture(Texture* texture) = 0;
 };
+
+class VarianceDepthMapShader : public ShaderConfig
+{
+public:
+	virtual ~VarianceDepthMapShader() {};
+
+	virtual void useVDepthMapTexture(Texture* texture) = 0;
+};

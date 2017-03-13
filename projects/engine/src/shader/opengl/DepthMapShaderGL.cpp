@@ -78,3 +78,26 @@ void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 	static string depthMapName = "depthMap";
 	attributes.setData(depthMapName, this->texture);
 }
+
+VarianceDepthMapShaderGL::VarianceDepthMapShaderGL() : VarianceDepthMapShader(), texture(nullptr)
+{
+	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "vDepthMap");
+}
+
+VarianceDepthMapShaderGL::~VarianceDepthMapShaderGL()
+{}
+
+void VarianceDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
+{
+	transform = *data.projection * (*data.view) * (*data.model);
+}
+
+void VarianceDepthMapShaderGL::useVDepthMapTexture(Texture* texture)
+{
+	this->texture = dynamic_cast<TextureGL*>(texture);
+	assert(this->texture != nullptr);
+
+	static string depthMapName = "vDepthMap";
+	attributes.setData(depthMapName, this->texture);
+}

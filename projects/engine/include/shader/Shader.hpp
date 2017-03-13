@@ -28,6 +28,7 @@ enum class Shaders
 	Screen,
 	SkyBox,
 	SkyBoxPanorama,
+	VarianceDepthMap,
 	VarianceShadow
 };
 
@@ -46,6 +47,7 @@ const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 	{ Shaders::Screen, "SCREEN" },
 	{ Shaders::SkyBox, "SKY_BOX" },
 	{ Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
+	{ Shaders::VarianceShadow, "VARIANCE_DEPTH_MAP" },
 	{ Shaders::VarianceShadow, "VARIANCE_SHADOW" }
 };
 

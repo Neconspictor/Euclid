@@ -56,6 +56,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::Screen);
 	createShader(s::SkyBox);
 	createShader(s::SkyBoxPanorama);
+	createShader(s::VarianceDepthMap);
 	createShader(s::VarianceShadow);
 }
 
@@ -143,6 +144,12 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 		configs.push_back(make_shared<PanoramaSkyBoxShaderGL>());
 		shaderPtr = make_shared<ShaderGL>
 			(configs.back().get(), "panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+		break;
+	}
+	case s::VarianceDepthMap: {
+		configs.push_back(make_shared<VarianceDepthMapShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
 		break;
 	}
 	case s::VarianceShadow: {

@@ -40,3 +40,19 @@ private:
 	TextureGL* texture;
 	glm::mat4 transform;
 };
+
+class VarianceDepthMapShaderGL : public VarianceDepthMapShader, public ShaderConfigGL
+{
+public:
+	VarianceDepthMapShaderGL();
+
+	virtual ~VarianceDepthMapShaderGL();
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+
+	virtual void useVDepthMapTexture(Texture* texture) override;
+
+private:
+	TextureGL* texture;
+	glm::mat4 transform;
+};
