@@ -220,11 +220,12 @@ void MainLoopTask::init()
 	pointLightPositions[2] = farAway;
 	pointLightPositions[3] = farAway;
 
-	vec3 position = vec3(10.0f, 10.0f, 10.0f);
+	vec3 position = { -2.0f, 5.0f, 3.0f };
+	position = 100.0f * normalize(position);
 	globalLight.setPosition(position);
-	//globalLight.lookAt({0,0,0});
+	globalLight.lookAt({0,0,0});
 	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
-	globalLight.setLook(normalize(vec3( 0.01f, 1.0f,0.1f )));
+	//globalLight.setLook(normalize(vec3( 0.01f, 1.0f,0.1f )));
 
 	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
 	pointLight.setRange(10.0f);
@@ -387,7 +388,7 @@ void MainLoopTask::run()
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//phongShader->setLightSpaceMatrix(globalLight.getProjection(Perspective) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Front);
-	renderer->cullFaces(CullingMode::Back);
+	//renderer->cullFaces(CullingMode::Back);
 	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
@@ -421,12 +422,13 @@ void MainLoopTask::run()
 	smaa->reset();
 	smaa->antialias(renderTargetSingleSampled); // TODO use render target
 
-	renderer->endScene();
+	//renderer->endScene();
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	Texture* testT = shadowMap->getTexture();
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)

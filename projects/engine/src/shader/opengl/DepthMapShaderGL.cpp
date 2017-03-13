@@ -76,5 +76,5 @@ void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 	assert(this->texture != nullptr);
 
 	static string depthMapName = "depthMap";
-	attributes.setData(depthMapName, &this->texture);
+	attributes.setData(depthMapName, this->texture);
 }
