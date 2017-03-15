@@ -67,8 +67,8 @@ void RendererOpenGL::init()
 	enableBackfaceDrawing(false);
 
 	// enable alpha blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND); // TODO
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
@@ -105,8 +105,8 @@ void RendererOpenGL::beginScene()
 	//enableBackfaceDrawing(false);
 
 	// enable alpha blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND); // TODO
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
 	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f); // Dark greyish Background
@@ -343,11 +343,7 @@ void RendererOpenGL::useVarianceShadowMap(VarianceShadowMap* source)
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void RendererOpenGL::checkGLErrors(string errorPrefix)

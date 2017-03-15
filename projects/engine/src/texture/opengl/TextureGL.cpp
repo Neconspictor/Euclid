@@ -450,22 +450,25 @@ VarianceShadowMapGL::VarianceShadowMapGL(int width, int height): VarianceShadowM
 	texture.setTexture(textureID);
 	//GL_RG32F
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureID, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureID, 0);
+	// Set the list of draw buffers.
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
 
-	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
+								   // Always check that our framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -504,12 +507,7 @@ VarianceShadowMapGL& VarianceShadowMapGL::operator=(VarianceShadowMapGL&& other)
 	return *this;
 }
 
-VarianceShadowMapGL::~VarianceShadowMapGL()
-{
-	texture.release();
-	glDeleteFramebuffers(1, &frameBuffer);
-	frameBuffer = GL_FALSE;
-}
+VarianceShadowMapGL::~VarianceShadowMapGL(){}
 
 GLuint VarianceShadowMapGL::getFramebuffer() const
 {
@@ -524,4 +522,11 @@ GLuint VarianceShadowMapGL::getTexture() const
 Texture* VarianceShadowMapGL::getTexture()
 {
 	return &texture;
+}
+
+void VarianceShadowMapGL::release()
+{
+	texture.release();
+	glDeleteFramebuffers(1, &frameBuffer);
+	frameBuffer = GL_FALSE;
 }

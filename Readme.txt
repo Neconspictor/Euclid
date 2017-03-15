@@ -4,6 +4,8 @@ TODO:
   ->Maybe find alternative solutions
 - Support for left handiness
 - Support for [0,1] range for the z ccordinate in clip space 
+- Alpha Blending disturbes texture targets with less than 4 components (so no alpha channel is addressable)
+  -> create a 'smart' solution
 
 
 unimportant:

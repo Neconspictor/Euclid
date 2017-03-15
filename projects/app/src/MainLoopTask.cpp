@@ -195,9 +195,9 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getConfig(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(4096, 4096);
+	shadowMap = renderer->createDepthMap(1024, 1024);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
-	vsMap = renderer->createVarianceShadowMap(1024, 1024);
+	vsMap = renderer->createVarianceShadowMap(4096, 4096);
 
 	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -288,6 +288,8 @@ void MainLoopTask::run()
 		(renderer->getShaderManager()->getConfig(Shaders::ShadowPoint));
 	CubeDepthMapShader* cubeDepthMapShader = dynamic_cast<CubeDepthMapShader*>
 		(renderer->getShaderManager()->getConfig(Shaders::CubeDepthMap));
+	VarianceDepthMapShader* varianceDMShader = dynamic_cast<VarianceDepthMapShader*>
+		(renderer->getShaderManager()->getConfig(Shaders::VarianceDepthMap));
 	using namespace chrono;
 	
 	float frameTime = timer.update();
@@ -335,8 +337,8 @@ void MainLoopTask::run()
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
-	renderer->useDepthMap(shadowMap);
-	//renderer->useVarianceShadowMap(vsMap);
+	//renderer->useDepthMap(shadowMap);
+	renderer->useVarianceShadowMap(vsMap);
 	//renderer->beginScene();
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
@@ -350,8 +352,8 @@ void MainLoopTask::run()
 	ccBB.max.z += 3;
 
 	// Snap shadow frustum to texel bounds for avoiding edge shimmering
-	float size = shadowMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
-	vec3 normalizedMapSize = vec3(1.0f / (float)shadowMap->getWidth(), 1.0f / (float)shadowMap->getHeight(), 1.0f);
+	float size = vsMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
+	vec3 normalizedMapSize = vec3(1.0f / (float)vsMap->getWidth(), 1.0f / (float)vsMap->getHeight(), 1.0f);
 	vec3 worldUnitsPerTexel = ccBB.max - ccBB.min;
 	worldUnitsPerTexel *= normalizedMapSize;
 	
@@ -389,26 +391,27 @@ void MainLoopTask::run()
 	//phongShader->setLightSpaceMatrix(globalLight.getProjection(Perspective) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Front);
 	//renderer->cullFaces(CullingMode::Back);
-	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
+	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
+	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
-	renderer->useCubeDepthMap(pointShadowMap);
-	pointShadowShader->setLightPosition(pointLight.getPosition());
-	pointShadowShader->setRange(pointLight.getRange());
-	pointShadowShader->setShadowMatrices(pointLight.getMatrices());
-	drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
+	//renderer->useCubeDepthMap(pointShadowMap);
+	//pointShadowShader->setLightPosition(pointLight.getPosition());
+	//pointShadowShader->setRange(pointLight.getRange());
+	//pointShadowShader->setShadowMatrices(pointLight.getMatrices());
+	//drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
 
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
-	phongShader->setPointLightShadowMap(pointShadowMap);
+	//phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
 	phongShader->setVarianceShadowMap(vsMap->getTexture());
-	cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
-	cubeDepthMapShader->setLightPos(pointLight.getPosition());
-	cubeDepthMapShader->setRange(pointLight.getRange());
+	//cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
+	//cubeDepthMapShader->setLightPos(pointLight.getPosition());
+	//cubeDepthMapShader->setRange(pointLight.getRange());
 
 	drawSky(camera->getPerspProjection(), camera->getView());
 	drawScene(camera->getPerspProjection(), camera->getView());
@@ -423,19 +426,22 @@ void MainLoopTask::run()
 	smaa->antialias(renderTargetSingleSampled); // TODO use render target
 
 	//renderer->endScene();
-
+	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
-	Texture* testT = shadowMap->getTexture();
+	Texture* testT = vsMap->getTexture();
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
+	varianceDMShader->useVDepthMapTexture(vsMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)
 	{
-		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
 	} else
 	{
+		//modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
 	}
 	renderer->endScene();
