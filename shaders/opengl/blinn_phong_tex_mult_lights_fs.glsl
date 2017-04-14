@@ -7,6 +7,7 @@ struct Material {
     sampler2D reflectionMap;
     sampler2D specularMap;
 		sampler2D shadowMap;
+		sampler2D vsMap;
     float shininess;
 };
 
@@ -75,10 +76,12 @@ vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec4 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
+float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
 float pointShadowCalculation(PointLight light);
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
 float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
 float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
+float chebyshevUpperBound( float distance, vec2 uv);
 
 void main()
 {    
@@ -108,8 +111,9 @@ void main()
 		
 		
 		//directional shadow calculation
-		float shadow = shadowCalculation(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
-
+		//float shadow = shadowCalculation(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
+		float shadow = shadowCalculationVariance(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
+		
 		//spot light shadows
 		for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
 		  //shadow *= pointShadowCalculation(pointLights[i]);
@@ -209,58 +213,44 @@ vec4 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     return (diffuse + specular);  
 }
 
+float chebyshevUpperBound( float distance, vec2 uv)
+	{
+		// We retrive the two moments previously stored (depth and depth*depth)
+		vec2 moments = texture2D(material.vsMap, uv).rg;
+		
+		// Surface is fully lit. as the current fragment is before the light occluder
+		if (distance <= moments.x)
+			return 1.0 ;
+	
+		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
+		// How likely this pixel is to be lit (p_max)
+		float variance = moments.y - (moments.x*moments.x);
+		variance = max(variance,0.00002);
+	
+		float d = distance - moments.x;
+		float p_max = variance / (variance + d*d);
+	
+		return p_max;
+	}
+
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
-{
-    /*// perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // Transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    // Get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // Check whether current frag pos is in shadow
-		float bias = max(0.001*(1.0 - dot(normal, lightDir)) ,0.001);
-		
-		float shadow = 0.0;		
-		float closestDepth = texture(material.shadowMap, projCoords.xy).r;
-	  shadow += currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-		
-		if (currentDepth > 1.0)
-				shadow = 0.0;
-    return shadow;*/
-		
-		
-		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;// / fragPosLightSpace.w ;
-		//shadowCoordinateWdivide = shadowCoordinateWdivide * 0.5 + 0.5;
-		
-		// Used to lower moiré pattern and self-shadowing
-		//shadowCoordinateWdivide.z += 0.0005;
+{		
+		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;
 		
 		float currentDepth = shadowCoordinateWdivide.z;
 		float bias = max(0.0005*(1.0 - dot(normal, -lightDir)) ,0.0005);		
 	
-		float shadow = 0.0;
-		
-	  vec2 texelSize = 1.0 / textureSize(material.shadowMap, 0);
-	  /*for(float x = -1.5; x <= 1.5; ++x)
-	  {
-      for(float y = -1.5; y <= 1.5; ++y)
-      {
-        float closestDepth = texture(material.shadowMap, shadowCoordinateWdivide.xy + vec2(x, y) * texelSize).r; 
-        shadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;        
-				//shadow += texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
-      }    
-	  }
-	  shadow /= 16.0;*/
-		shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+		float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
 		//shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
 		//shadow = texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);	
-	 	//if (fragPosLightSpace.w > 0.0)
-		float closestDepth = texture2D(material.shadowMap, shadowCoordinateWdivide.xy).r;
-	 	//shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0 ;		
-    return shadow;
-		
+    return shadow;	
 }
 
+float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace) {
+		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;
+		
+		return chebyshevUpperBound(fragPosLightSpace.z, shadowCoordinateWdivide.xy);
+}
 
 
 float pointShadowCalculation(PointLight light)

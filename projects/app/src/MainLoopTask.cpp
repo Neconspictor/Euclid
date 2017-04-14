@@ -197,7 +197,7 @@ void MainLoopTask::init()
 
 	shadowMap = renderer->createDepthMap(1024, 1024);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
-	vsMap = renderer->createVarianceShadowMap(4096, 4096);
+	vsMap = renderer->createVarianceShadowMap(1024, 1024);
 
 	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -339,7 +339,7 @@ void MainLoopTask::run()
 	// render shadows to a depth map
 	//renderer->useDepthMap(shadowMap);
 	renderer->useVarianceShadowMap(vsMap);
-	//renderer->beginScene();
+	renderer->enableAlphaBlending(false);
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
 	const mat4& cameraView = camera->getView();
@@ -361,35 +361,23 @@ void MainLoopTask::run()
 	// to jitter. This is a matter of integer dividing by the world space size of a texel
 	ccBB.min.x /= worldUnitsPerTexel.x;
 	ccBB.min.y /= worldUnitsPerTexel.y;
-	//ccBB.min.z /= worldUnitsPerTexel.x;
 	ccBB.min.x = floor(ccBB.min.x);
 	ccBB.min.y = floor(ccBB.min.y);
-	//ccBB.min.z = ceil(ccBB.min.z);
 	ccBB.min.x *= worldUnitsPerTexel.x;
 	ccBB.min.y *= worldUnitsPerTexel.y;
-	//ccBB.min.z *= worldUnitsPerTexel.x;
 
 	ccBB.max.x /= worldUnitsPerTexel.x;
 	ccBB.max.y /= worldUnitsPerTexel.y;
-	//ccBB.max.z /= worldUnitsPerTexel.x;
 	ccBB.max.x = floor(ccBB.max.x);
 	ccBB.max.y = floor(ccBB.max.y);
-	//ccBB.max.z = ceil(ccBB.max.z);
 	ccBB.max.x *= worldUnitsPerTexel.x;
 	ccBB.max.y *= worldUnitsPerTexel.y;
-	//ccBB.max.z *= worldUnitsPerTexel.x;
 
-	/*
-	ccBB.min.z = 0.0f;
-	ccBB.max.z = 100.0f;
-	*/
+
 	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
 	globalLight.setOrthoFrustum(shadowFrustum);
-	//cameraFrustum.
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
-	//phongShader->setLightSpaceMatrix(globalLight.getProjection(Perspective) * globalLight.getView());
-	//renderer->cullFaces(CullingMode::Front);
 	//renderer->cullFaces(CullingMode::Back);
 	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
 	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
@@ -404,11 +392,12 @@ void MainLoopTask::run()
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
+	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
+	phongShader->setVarianceShadowMap(vsMap->getTexture());
 	//phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
-	phongShader->setVarianceShadowMap(vsMap->getTexture());
 	//cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
 	//cubeDepthMapShader->setLightPos(pointLight.getPosition());
 	//cubeDepthMapShader->setRange(pointLight.getRange());
@@ -431,7 +420,6 @@ void MainLoopTask::run()
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
-	Texture* testT = vsMap->getTexture();
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 	varianceDMShader->useVDepthMapTexture(vsMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
