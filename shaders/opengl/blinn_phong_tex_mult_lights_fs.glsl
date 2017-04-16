@@ -141,7 +141,7 @@ void main()
 // Calculates the color when using a directional light source
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
 		// we need the direction from the fragment to the light source, so we use the negative light direction!
-    vec3 lightDir = normalize(light.direction);
+    vec3 lightDir = normalize(-light.direction);
     vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
     vec4 specularColor = texture(material.specularMap, fs_in.texCoords);
     // diffuse shading
@@ -247,9 +247,10 @@ float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 }
 
 float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace) {
-		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;
-		
-		return chebyshevUpperBound(fragPosLightSpace.z, shadowCoordinateWdivide.xy);
+		if (fragPosLightSpace.z >= 1.0)
+				return 0.0;
+	
+		return 1 - chebyshevUpperBound(fragPosLightSpace.z, fragPosLightSpace.xy);
 }
 
 
