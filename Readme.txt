@@ -1,5 +1,8 @@
 TODO:
 
+IMPORTANT: ARB_SHADING_LANGUAGE_INCLUDE extension is only supported by NVIDIA GPUs. 
+We need a modul for parsing #include directives!
+
 - vld and Brofiler are incompatible and cannot be run both on the same time.
   ->Maybe find alternative solutions
 - Support for left handiness
