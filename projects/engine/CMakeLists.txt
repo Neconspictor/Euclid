@@ -54,6 +54,11 @@ set(
     include/model/opengl/ModelGL.hpp
     include/model/opengl/ModelManagerGL.hpp
     
+	#post_processing/blur
+	include/post_processing/blur/GaussianBlur.hpp
+	#post_processing/blur/opengl
+	include/post_processing/blur/opengl/GaussianBlurGL.hpp
+	
     #renderer
     include/renderer/AbstractRendererFactory.hpp
     include/renderer/Renderer3D.hpp
@@ -157,7 +162,12 @@ set(
     src/model/opengl/AssimpModelLoader.cpp
     src/model/opengl/ModelGL.cpp
     src/model/opengl/ModelManagerGL.cpp
-		
+	
+	#post_processing/blur
+	src/post_processing/blur/GaussianBlur.cpp
+	#post_processing/blur/opengl
+	src/post_processing/blur/opengl/GaussianBlurGL.cpp
+	
     #renderer
     #renderer/opengl
     src/renderer/opengl/RendererOpenGL.cpp
