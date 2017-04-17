@@ -1,10 +1,10 @@
 #version 330 core
-#extension GL_ARB_shading_language_include : require
+//#extension GL_ARB_shading_language_include : require
 
-#define SMAA_RT_METRICS float4(1.0 / 1280.0, 1.0 / 720.0, 1280.0, 720.0)
-#define SMAA_GLSL_3
-#define SMAA_PRESET_HIGH
-#include "SMAA/SMAA.hlsl"
+//#define SMAA_RT_METRICS float4(1.0 / 1280.0, 1.0 / 720.0, 1280.0, 720.0)
+//#define SMAA_GLSL_3
+//#define SMAA_PRESET_HIGH
+//#include "SMAA/SMAA.hlsl"
 
 
 in GS_OUT {

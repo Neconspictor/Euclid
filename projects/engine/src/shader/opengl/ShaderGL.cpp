@@ -235,7 +235,8 @@ void ShaderGL::initShaderFileSystem()
 		
 		// OpenGL expects relative paths starting with a '/' 
 		string glFilePath = "/" + file;
-		glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str());
+		//glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str()); // TODO ARB_shading_language is only supported
+		// on NVIDIA GPUs => find a GPU independent solution; For now, includes are deactivated in all shaders
 	}
 }
 
@@ -390,7 +391,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 	const GLchar* const test  = "/shaders/opengl";
 	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
 
-	glCompileShaderIncludeARB(shaderResourceID, 1, &test, nullptr);
+	glCompileShader(shaderResourceID);
 
 	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
 

@@ -76,15 +76,15 @@ void RendererOpenGL::init()
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	smaa->init();
+	//smaa->init();
 
-	ImageLoaderGL imageLoader;
+	/*ImageLoaderGL imageLoader;
 	GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
 	if (image.pixels)
 	{
 		delete[] image.pixels;
 		image.pixels = nullptr;
-	}
+	}*/
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
