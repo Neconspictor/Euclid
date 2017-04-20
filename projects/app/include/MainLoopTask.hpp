@@ -13,6 +13,7 @@
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
 #include <sprite/Sprite.hpp>
+#include <post_processing/blur/GaussianBlur.hpp>
 
 class SystemUI;
 
@@ -40,6 +41,7 @@ public:
 private:
 	uint asteriodSize;
 	glm::mat4* asteriodTrafos;
+	GaussianBlur* blurEffect;
 	std::shared_ptr<Camera> camera;
 	FPSCounter counter;
 	EnginePtr engine;
@@ -66,7 +68,8 @@ private:
 	Vob skyBox;
 	Timer timer;
 	SystemUI* ui;
-	VarianceShadowMap* vsMap;
+	RenderTarget* vsMap;
+	RenderTarget* vsMapCache;
 	std::list<Vob> vobs;
 	WindowPtr window;
 	WindowSystemPtr windowSystem;

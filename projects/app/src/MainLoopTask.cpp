@@ -25,10 +25,10 @@ using namespace platform;
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
-	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), isRunning(true), logClient(getLogServer()), 
+	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), blurEffect(nullptr), isRunning(true), logClient(getLogServer()),
 	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr), vsMap(nullptr)
+	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr), vsMap(nullptr), vsMapCache(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -198,8 +198,9 @@ void MainLoopTask::init()
 	shadowMap = renderer->createDepthMap(1024, 1024);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
 	vsMap = renderer->createVarianceShadowMap(1024, 1024);
+	vsMapCache = renderer->createVarianceShadowMap(1024, 1024);
 
-	renderTargetMultisampled = renderer->createRenderTarget();
+	renderTargetMultisampled = renderer->createRenderTarget(4);
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	skyBoxShader->setSkyTexture(sky);
@@ -263,6 +264,8 @@ void MainLoopTask::init()
 	// init scene
 	scene = createShadowScene();
 	//scene = createAsteriodField();
+
+	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 }
 
 void MainLoopTask::setUI(SystemUI* ui)
@@ -337,9 +340,10 @@ void MainLoopTask::run()
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
-	//renderer->useDepthMap(shadowMap);
-	renderer->useVarianceShadowMap(vsMap);
+	renderer->useDepthMap(shadowMap);
+	//renderer->useVarianceShadowMap(vsMap);
 	renderer->enableAlphaBlending(false);
+
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
 	const mat4& cameraView = camera->getView();
@@ -379,8 +383,8 @@ void MainLoopTask::run()
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Back);
-	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
-	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
+	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
+	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
 	//renderer->useCubeDepthMap(pointShadowMap);
@@ -388,6 +392,9 @@ void MainLoopTask::run()
 	//pointShadowShader->setRange(pointLight.getRange());
 	//pointShadowShader->setShadowMatrices(pointLight.getMatrices());
 	//drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
+
+	// blur the shadow map to smooth out the edges
+	//for (int i = 0; i < 5; ++i) blurEffect->blur(vsMap, vsMapCache);
 
 
 	// now render scene to a offscreen buffer
@@ -406,8 +413,10 @@ void MainLoopTask::run()
 	drawScene(camera->getPerspProjection(), camera->getView());
 	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
-	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 
+	//blurEffect->blur(renderTargetMultisampled);
+
+	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	//ui->frameUpdate();
 	//Before presenting the scene, antialise it!
 	SMAA* smaa = renderer->getSMAA();

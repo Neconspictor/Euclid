@@ -10,10 +10,28 @@
 #include <antialiasing/opengl/SMAA_GL.hpp>
 #include <fstream>
 #include <texture/opengl/ImageLoaderGL.hpp>
+#include<post_processing/blur/opengl/GaussianBlurGL.hpp>
 
 using namespace std;
 using namespace platform;
 using namespace glm;
+
+
+EffectLibraryGL::EffectLibraryGL(RendererOpenGL * renderer) : EffectLibrary(), renderer(renderer)
+{
+	gaussianBlur = make_unique<GaussianBlurGL>(renderer);
+	gaussianBlur->init();
+}
+
+GaussianBlur* EffectLibraryGL::getGaussianBlur()
+{
+	return gaussianBlur.get();
+}
+
+void EffectLibraryGL::release()
+{
+	gaussianBlur->release();
+}
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
   screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
@@ -76,7 +94,9 @@ void RendererOpenGL::init()
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	//smaa->init();
+	smaa->init();
+
+	effectLibrary = make_unique<EffectLibraryGL>(this);
 
 	/*ImageLoaderGL imageLoader;
 	GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
@@ -173,7 +193,14 @@ DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 
 RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 {
-	RenderTargetGL target = createRenderTarget(GL_RGBA, width, height, samples, GL_DEPTH_STENCIL);
+	RenderTargetGL target = createRenderTargetGL_intern(GL_RGBA, width, height, samples, GL_DEPTH_STENCIL);
+	renderTargets.push_back(move(target));
+	return &renderTargets.back();
+}
+
+RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint textureChannel, int width, int height, GLuint samples, GLuint depthStencilType)
+{
+	RenderTargetGL target = createRenderTargetGL_intern(textureChannel, width, height, samples, depthStencilType);
 	renderTargets.push_back(move(target));
 	return &renderTargets.back();
 }
@@ -254,8 +281,9 @@ void RendererOpenGL::present()
 
 void RendererOpenGL::release()
 {
+	effectLibrary->release();
+	renderTargets.clear();
 	depthMaps.clear();
-	vsMaps.clear();
 }
 
 void RendererOpenGL::setBackgroundColor(glm::vec3 color)
@@ -284,6 +312,9 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	//if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
 	// update offscreen buffer texture
 	createFrameRenderTargetBuffer(width, height);
+
+	if (effectLibrary)
+		effectLibrary->getGaussianBlur()->init();
 }
 
 void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
@@ -335,14 +366,14 @@ void RendererOpenGL::useScreenTarget()
 	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 }
 
-void RendererOpenGL::useVarianceShadowMap(VarianceShadowMap* source)
+void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
 {
-	VarianceShadowMapGL* map = dynamic_cast<VarianceShadowMapGL*>(source);
+	RenderTargetGL* map = dynamic_cast<RenderTargetGL*>(source);
 	assert(map != nullptr);
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
-	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
+	glBindFramebuffer(GL_FRAMEBUFFER, map->getFrameBuffer());
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -418,17 +449,18 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int width, int height, 
+RenderTargetGL RendererOpenGL::createRenderTargetGL_intern(GLint textureChannel, int width, int height,
 	GLuint samples, GLuint depthStencilType) const
 {
 	assert(samples >= 1);
 
-	RenderTargetGL result;
+	RenderTargetGL result(width, height);
 
 	if (samples > 1)
 	{
 		result = RenderTargetGL::createMultisampled(textureChannel, width, height, samples, depthStencilType);
-	} else
+	}
+	else
 	{
 		result = RenderTargetGL::createSingleSampled(textureChannel, width, height, depthStencilType);
 	}
@@ -439,10 +471,16 @@ RenderTargetGL RendererOpenGL::createRenderTarget(GLint textureChannel, int widt
 	return result;
 }
 
-VarianceShadowMap* RendererOpenGL::createVarianceShadowMap(int width, int height)
+EffectLibrary* RendererOpenGL::getEffectLibrary()
 {
-	vsMaps.push_back(move(VarianceShadowMapGL(width, height)));
-	return &vsMaps.back();
+	return effectLibrary.get();
+}
+
+RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)
+{
+	RenderTargetGL target = RenderTargetGL::createVSM(width, height);
+	renderTargets.push_back(move(target));
+	return &renderTargets.back();
 }
 
 void RendererOpenGL::cullFaces(CullingMode mode)

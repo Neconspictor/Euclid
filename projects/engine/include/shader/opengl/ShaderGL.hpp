@@ -34,6 +34,10 @@ protected:
 class ShaderAttributeCollection
 {
 public:
+
+	using ShaderAttributeKey = int;
+	using ShaderAttributeGLIterator = std::vector<ShaderAttributeGL>::iterator;
+
 	ShaderAttributeCollection();
 	ShaderAttributeCollection(const ShaderAttributeCollection& o);
 	ShaderAttributeCollection(ShaderAttributeCollection&& o);
@@ -41,8 +45,9 @@ public:
 	ShaderAttributeCollection&& operator=(ShaderAttributeCollection&& o);
 	virtual ~ShaderAttributeCollection();
 
-	ShaderAttributeGL* create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
+	ShaderAttributeKey create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
 	ShaderAttributeGL* get(const std::string& uniformName);
+	ShaderAttributeGL* get(ShaderAttributeKey key);
 	const ShaderAttributeGL* getList() const;
 	void setData(const std::string& uniformName, const void* data, const void* defaultValue = nullptr, bool activate = true);
 

@@ -1,6 +1,10 @@
 #pragma once
 
 #include <post_processing/blur/GaussianBlur.hpp>
+#include <sprite/Sprite.hpp>
+
+class RendererOpenGL;
+class RenderTargetGL;
 
 class GaussianBlurGL : public GaussianBlur {
 
@@ -9,11 +13,13 @@ public:
 
 	virtual ~GaussianBlurGL();
 
-	void blur(RenderTarget* target);
+	virtual void blur(RenderTarget* target, RenderTarget* cache) override;
 
 	void init();
 
+	void release();
+
 protected:
 	RendererOpenGL* renderer;
-	RenderTargetGL tempTarget;
+	Sprite sprite;
 };

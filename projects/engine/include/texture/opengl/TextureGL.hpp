@@ -51,7 +51,7 @@ public:
 class RenderTargetGL : public RenderTarget
 {
 public:
-	explicit RenderTargetGL();
+	explicit RenderTargetGL(int width, int height);
 	virtual ~RenderTargetGL();
 
 	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
@@ -60,6 +60,8 @@ public:
 		GLuint samples, GLuint depthStencilType);
 
 	static RenderTargetGL createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType);
+
+	static RenderTargetGL createVSM(int width, int height);
 
 	GLuint getFrameBuffer();
 	GLuint getRenderBuffer();
@@ -114,30 +116,6 @@ public:
 	DepthMapGL& operator=(DepthMapGL&& other);
 
 	virtual ~DepthMapGL();
-
-	GLuint getFramebuffer() const;
-	GLuint getTexture() const;
-	Texture* getTexture() override;
-
-	void release();
-
-private:
-	friend RendererOpenGL; // allow the OpenGL renderer easier access
-	TextureGL texture;
-	GLuint frameBuffer;
-};
-
-class VarianceShadowMapGL : public VarianceShadowMap
-{
-public:
-	explicit VarianceShadowMapGL(int width, int height);
-	VarianceShadowMapGL(const VarianceShadowMapGL& other);
-	VarianceShadowMapGL(VarianceShadowMapGL&& other);
-
-	VarianceShadowMapGL& operator=(const VarianceShadowMapGL& other);
-	VarianceShadowMapGL& operator=(VarianceShadowMapGL&& other);
-
-	virtual ~VarianceShadowMapGL();
 
 	GLuint getFramebuffer() const;
 	GLuint getTexture() const;

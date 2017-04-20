@@ -15,10 +15,10 @@ void main(void)
     FragmentColor = texture2D( image, vec2(gl_FragCoord)/windowWidth ) * weight[0];
     for (int i=1; i<5; i++) {
         FragmentColor +=
-            texture2D( image, ( vec2(gl_FragCoord)+vec2(0.0, offset[i]) )/windowWidth )
+            texture2D( image, ( vec2(gl_FragCoord)+vec2(offset[i], 0.0) )/windowWidth )
                 * weight[i];
         FragmentColor +=
-            texture2D( image, ( vec2(gl_FragCoord)-vec2(0.0, offset[i]) )/windowWidth )
+            texture2D( image, ( vec2(gl_FragCoord)-vec2(offset[i], 0.0) )/windowWidth )
                 * weight[i];
     }
 }

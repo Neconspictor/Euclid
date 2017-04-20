@@ -19,8 +19,8 @@ public:
 
 private:
 	RendererOpenGL* renderer;
-	RenderTargetGL edgesTex;
-	RenderTargetGL blendTex;
+	RenderTargetGL* edgesTex;
+	RenderTargetGL* blendTex;
 
 	TextureGL* areaTex;
 	TextureGL* searchTex;
@@ -28,4 +28,6 @@ private:
 	GLuint edgeDetectionPass;
 	GLuint blendingWeightCalculationPass;
 	GLuint neighborhoodBlendingPass;
+
+	bool initialized;
 };

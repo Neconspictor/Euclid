@@ -19,8 +19,29 @@ public:
 class RenderTarget
 {
 public:
+
+	explicit RenderTarget(int width, int height)
+	{
+		this->width = width;
+		this->height = height;
+	};
+
 	virtual ~RenderTarget() {};
+	
+	int getHeight() const
+	{
+		return height;
+	}
+	
 	virtual Texture* getTexture() = 0;
+
+	int getWidth() const
+	{
+		return width;
+	}
+
+protected:
+	int width, height;
 };
 
 class CubeDepthMap
@@ -60,34 +81,6 @@ public:
 	};
 
 	virtual ~DepthMap() {}
-
-	int getWidth() const
-	{
-		return width;
-	}
-
-	int getHeight() const
-	{
-		return height;
-	}
-
-	virtual Texture* getTexture() = 0;
-
-protected:
-	int width, height;
-};
-
-
-class VarianceShadowMap
-{
-public:
-	explicit VarianceShadowMap(int width, int height)
-	{
-		this->width = width;
-		this->height = height;
-	};
-
-	virtual ~VarianceShadowMap() {}
 
 	int getWidth() const
 	{

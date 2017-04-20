@@ -8,14 +8,20 @@
 using namespace std;
 
 SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : SMAA(), renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
-edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), neighborhoodBlendingPass(GL_FALSE)
+edgesTex(nullptr), blendTex(nullptr), edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), 
+neighborhoodBlendingPass(GL_FALSE), initialized(false)
 {
 }
 
 SMAA_GL::~SMAA_GL()
 {
-	renderer->destroyRenderTarget(&edgesTex);
-	renderer->destroyRenderTarget(&blendTex);
+	if (edgesTex)
+		renderer->destroyRenderTarget(edgesTex);
+	edgesTex = nullptr;
+
+	if (blendTex)
+		renderer->destroyRenderTarget(blendTex);
+	blendTex = nullptr;
 }
 
 void SMAA_GL::antialias(RenderTarget* renderTarget)
@@ -30,15 +36,17 @@ void SMAA_GL::init()
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 
-	edgesTex = renderer->createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-	blendTex = renderer->createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-
+	if (!edgesTex)
+		edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+	if (!blendTex)
+		blendTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
 
 	string areaTexfileName = TextureManagerGL::get()->getFullFilePath("_intern/smaa/AreaTexDX10.dds");
 	string searchTexfileName = TextureManagerGL::get()->getFullFilePath("_intern/smaa/SearchTex.dds"); //SearchTex
 
-	
+
 	GLuint textureID = SOIL_load_OGL_texture(areaTexfileName.c_str(), SOIL_LOAD_AUTO, 0, SOIL_FLAG_INVERT_Y);
+
 	if (textureID == GL_FALSE)
 	{
 		stringstream ss;
@@ -46,10 +54,13 @@ void SMAA_GL::init()
 		throw runtime_error(ss.str());
 	}
 
+	if (areaTex)
+		TextureManagerGL::get()->releaseTexture(areaTex);
+
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -57,7 +68,11 @@ void SMAA_GL::init()
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	renderer->checkGLErrors(BOOST_CURRENT_FUNCTION);
+
 	areaTex = TextureManagerGL::get()->createTextureGL("_intern/smaa/AreaTexDX10.dds", textureID);
+
+	renderer->checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	/*textureID = SOIL_load_OGL_texture(searchTexfileName.c_str(), SOIL_LOAD_AUTO, 0, SOIL_FLAG_INVERT_Y);
 	if (textureID == GL_FALSE)
@@ -66,6 +81,9 @@ void SMAA_GL::init()
 		ss << "SMAA_GL::init(): Couldn't load search texture: " << searchTexfileName;
 		throw runtime_error(ss.str());
 	}*/
+
+	if (searchTex)
+		TextureManagerGL::get()->releaseTexture(searchTex);
 
 	gli::texture Texture = gli::load(searchTexfileName.c_str());
 	if (Texture.empty())
@@ -84,8 +102,8 @@ void SMAA_GL::init()
 	glGenTextures(1, &textureID);
 	glBindTexture(Target, textureID);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -114,23 +132,29 @@ void SMAA_GL::init()
 	}*/
 
 	//GLuint testProgram = ShaderGL::loadShaders("playground_vs.glsl", "playground_fs.glsl");
+
+	initialized = true;
 }
 
 void SMAA_GL::reset()
 {
-	renderer->clearFrameBuffer(blendTex.getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
-	renderer->clearFrameBuffer(edgesTex.getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
+	if (!initialized) return;
+	renderer->clearFrameBuffer(blendTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
+	renderer->clearFrameBuffer(edgesTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
 }
 
 void SMAA_GL::updateBuffers()
 {
-	renderer->destroyRenderTarget(&edgesTex);
-	renderer->destroyRenderTarget(&blendTex);
+	if (!initialized) return;
+	if (edgesTex)
+		renderer->destroyRenderTarget(edgesTex);
+	if (blendTex)
+		renderer->destroyRenderTarget(blendTex);
 
 	Renderer3D::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 
-	edgesTex = renderer->createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-	edgesTex = renderer->createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
 }

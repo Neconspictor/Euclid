@@ -4,8 +4,25 @@
 #include <model/opengl/ModelGL.hpp>
 #include <texture/opengl/TextureGL.hpp>
 #include <drawing/opengl/ModelDrawerGL.hpp>
+#include <post_processing/blur/opengl/GaussianBlurGL.hpp>
 
 class SMAA_GL;
+class RendererOpenGL;
+
+class EffectLibraryGL : public EffectLibrary {
+public:
+
+	EffectLibraryGL(RendererOpenGL* renderer);
+
+	// Inherited via EffectLibrary
+	virtual GaussianBlur* getGaussianBlur() override;
+
+	void release();
+
+protected:
+	std::unique_ptr<GaussianBlurGL> gaussianBlur;
+	RendererOpenGL* renderer;
+};
 
 
 class RendererOpenGL : public Renderer3D
@@ -27,10 +44,10 @@ public:
 
 	RenderTarget* createRenderTarget(int samples) override;
 
-	RenderTargetGL createRenderTarget(GLint textureChannel, int width, int height, GLuint samples = 1,
-		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
+	RenderTargetGL* createRenderTargetGL(GLint textureChannel, int width, int height, GLuint samples = 1,
+		GLuint depthStencilType = GL_DEPTH_COMPONENT);
 
-	VarianceShadowMap* createVarianceShadowMap(int width, int height) override;
+	RenderTarget* createVarianceShadowMap(int width, int height) override;
 
 	void cullFaces(CullingMode mode) override;
 
@@ -45,6 +62,9 @@ public:
 	void endScene() override;
 
 	GLint getCurrentRenderTarget() const;
+
+	// Inherited via Renderer3D
+	virtual EffectLibrary* getEffectLibrary() override;
 
 	ModelDrawer* getModelDrawer() override;
 
@@ -78,7 +98,7 @@ public:
 
 	void useScreenTarget() override;
 
-	void useVarianceShadowMap(VarianceShadowMap* map) override;
+	void useVarianceShadowMap(RenderTarget* map) override;
 
 	/**
 	* A function for checking any opengl related errors.
@@ -97,13 +117,16 @@ protected:
 
 	void createFrameRenderTargetBuffer(int width, int height);
 
+	RenderTargetGL createRenderTargetGL_intern(GLint textureChannel, int width, int height, GLuint samples = 1,
+		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
+
 	glm::vec3 backgroundColor;
 	std::list<CubeDepthMapGL> cubeDepthMaps;
 	std::list<DepthMapGL> depthMaps;
+	std::unique_ptr<EffectLibraryGL> effectLibrary;
 	ModelDrawerGL modelDrawer;
 	unsigned int msaaSamples;
 	std::list<RenderTargetGL> renderTargets;
 	std::unique_ptr<ModelGL> screenSprite;
 	SMAA_GL* smaa;
-	std::list<VarianceShadowMapGL> vsMaps;
 };

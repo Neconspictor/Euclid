@@ -66,28 +66,32 @@ set(
     include/renderer/opengl/RendererOpenGL.hpp
     
     #shader
-		include/shader/DepthMapShader.hpp
+	include/shader/DepthMapShader.hpp
     include/shader/NormalsShader.hpp
-		include/shader/PhongTextureShader.hpp
+	include/shader/PhongTextureShader.hpp
     include/shader/ScreenShader.hpp
     include/shader/Shader.hpp
     include/shader/ShaderManager.hpp
-		include/shader/ShadowShader.hpp
+	include/shader/ShadowShader.hpp
     include/shader/SimpleColorShader.hpp
     include/shader/SimpleExtrudeShader.hpp
     include/shader/SkyBoxShader.hpp
     #shader/opengl
-		include/shader/opengl/DepthMapShaderGL.hpp
+	include/shader/opengl/DepthMapShaderGL.hpp
     include/shader/opengl/NormalsShaderGL.hpp
-		include/shader/opengl/PhongTexShaderGL.hpp
+	include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/ScreenShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
-		include/shader/opengl/ShadowShaderGL.hpp
+	include/shader/opengl/ShadowShaderGL.hpp
     include/shader/opengl/ShaderManagerGL.hpp
     include/shader/opengl/SimpleColorShaderGL.hpp
     include/shader/opengl/SimpleExtrudeShaderGL.hpp
     include/shader/opengl/SkyBoxShaderGL.hpp
-    
+	#shader/opengl/post_processing/blur
+    include/shader/opengl/post_processing/blur/GaussianBlurShaderGL.hpp
+	#shader/post_processing/blur
+	include/shader/post_processing/blur/GaussianBlurShader.hpp
+	
     #scene
     include/scene/SceneNode.hpp
     
@@ -175,16 +179,18 @@ set(
     #shader
     src/shader/Shader.cpp
     #shader/opengl
-		src/shader/opengl/DepthMapShaderGL.cpp
+	src/shader/opengl/DepthMapShaderGL.cpp
     src/shader/opengl/NormalsShaderGL.cpp
-		src/shader/opengl/PhongTexShaderGL.cpp
+	src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/ScreenShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp
     src/shader/opengl/ShaderManagerGL.cpp
-		src/shader/opengl/ShadowShaderGL.cpp
+	src/shader/opengl/ShadowShaderGL.cpp
     src/shader/opengl/SimpleColorShaderGL.cpp
     src/shader/opengl/SimpleExtrudeShaderGL.cpp
     src/shader/opengl/SkyBoxShaderGL.cpp
+	#shader/opengl/post_processing/blur
+    src/shader/opengl/post_processing/blur/GaussianBlurShaderGL.cpp
     
     #scene
     src/scene/SceneNode.cpp

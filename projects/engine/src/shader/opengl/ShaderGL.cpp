@@ -115,12 +115,13 @@ ShaderAttributeCollection&& ShaderAttributeCollection::operator=(ShaderAttribute
 
 ShaderAttributeCollection::~ShaderAttributeCollection(){}
 
-ShaderAttributeGL* ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, string uniformName, bool active)
+ShaderAttributeCollection::ShaderAttributeKey ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, string uniformName, bool active)
 {
 	vec.push_back({type, data, move(uniformName), active});
-	ShaderAttributeGL* result = &vec.back();
+	auto result = &vec.back();
 	lookup.insert({ result->getName(), vec.size() - 1 });
-	return result;
+	auto val = vec.size() - 1;
+	return val;
 }
 
 ShaderAttributeGL* ShaderAttributeCollection::get(const string& uniformName)
@@ -128,6 +129,11 @@ ShaderAttributeGL* ShaderAttributeCollection::get(const string& uniformName)
 	auto it = lookup.find(uniformName);
 	if (it == lookup.end()) return nullptr;
 	return &vec[it->second];
+}
+
+ShaderAttributeGL* ShaderAttributeCollection::get(ShaderAttributeKey key)
+{
+	return &vec[key];
 }
 
 const ShaderAttributeGL* ShaderAttributeCollection::getList() const
@@ -486,6 +492,9 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		//	+ " an active uniform variable!");
 	}
 
+	const void* data = attribute.getData();
+	assert(data != nullptr);
+
 	using t = ShaderAttributeType;
 
 	switch(attribute.getType())
@@ -496,7 +505,7 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		// TODO CubeMaps and CubeDepthMaps should be considered as well!
 		GLuint textureID;
 
-		const TextureGL* texture = reinterpret_cast<const TextureGL*>(attribute.getData());
+		const TextureGL* texture = reinterpret_cast<const TextureGL*>(data);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getTexture());
 		glUniform1i(loc, textureCounter);
 		// the next texture to bind gets the next slot
@@ -504,25 +513,25 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		break;
 	}
 	case t::FLOAT: {
-		glUniform1f(loc, *reinterpret_cast<const float*>(attribute.getData()));
+		glUniform1f(loc, *reinterpret_cast<const float*>(data));
 		break;
 	}
 	case t::INT: {
-		glUniform1i(loc, *reinterpret_cast<const int*>(attribute.getData()));
+		glUniform1i(loc, *reinterpret_cast<const int*>(data));
 		break;
 	}
 	case t::MAT3: {
-		glUniformMatrix3fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat3*>(attribute.getData())));
+		glUniformMatrix3fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat3*>(data)));
 		break;
 	}
 	case t::MAT4: {
-		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat4*>(attribute.getData())));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(*reinterpret_cast<const mat4*>(data)));
 		break;
 	}
 	case t::TEXTURE2D: {
 		assert(textureCounter < 32); // OpenGL allows up to 32 textures
 		glActiveTexture(textureCounter + GL_TEXTURE0);
-		const TextureGL* texture = reinterpret_cast<const TextureGL*>(attribute.getData());
+		const TextureGL* texture = reinterpret_cast<const TextureGL*>(data);
 		glBindTexture(GL_TEXTURE_2D, texture->getTexture());
 		glUniform1i(loc, textureCounter);
 		// the next texture to bind gets the next slot
@@ -530,17 +539,17 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		break;
 	}
 	case t::VEC2: {
-		const vec2* vec = reinterpret_cast<const vec2*>(attribute.getData());
+		const vec2* vec = reinterpret_cast<const vec2*>(data);
 		glUniform2f(loc, vec->x, vec->y);
 		break;
 	}
 	case t::VEC3: {
-		const vec3* vec = reinterpret_cast<const vec3*>(attribute.getData());
+		const vec3* vec = reinterpret_cast<const vec3*>(data);
 		glUniform3f(loc, vec->x, vec->y, vec->z);
 		break;
 	}
 	case t::VEC4: {
-		const vec4* vec = reinterpret_cast<const vec4*>(attribute.getData());
+		const vec4* vec = reinterpret_cast<const vec4*>(data);
 		glUniform4f(loc, vec->x, vec->y, vec->z, vec->w);
 		break;
 	}

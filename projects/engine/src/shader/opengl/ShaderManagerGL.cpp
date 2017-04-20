@@ -10,6 +10,7 @@
 #include <shader/opengl/NormalsShaderGL.hpp>
 #include <shader/opengl/ShadowShaderGL.hpp>
 #include <shader/opengl/DepthMapShaderGL.hpp>
+#include <shader/opengl/post_processing/blur/GaussianBlurShaderGL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -48,6 +49,8 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::BlinnPhongTex);
 	createShader(s::CubeDepthMap);
 	createShader(s::DepthMap);
+	createShader(s::GaussianBlurHorizontal);
+	createShader(s::GaussianBlurVertical);
 	createShader(s::Normals);
 	createShader(s::Shadow);
 	createShader(s::ShadowPoint);
@@ -95,6 +98,18 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 		configs.push_back(make_shared<DepthMapShaderGL>());
 		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "depth_map_vs.glsl", 
 			"depth_map_fs.glsl");
+		break;
+	}
+	case s::GaussianBlurHorizontal: {
+		configs.push_back(make_shared<GaussianBlurHorizontalShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "post_processing/blur/gaussian_blur_vs.glsl",
+			"post_processing/blur/gaussian_blur_horizontal_fs.glsl");
+		break;
+	}
+	case s::GaussianBlurVertical: {
+		configs.push_back(make_shared<GaussianBlurVerticalShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "post_processing/blur/gaussian_blur_vs.glsl",
+			"post_processing/blur/gaussian_blur_vertical_fs.glsl");
 		break;
 	}
 	case s::Normals: {

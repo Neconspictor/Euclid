@@ -48,6 +48,21 @@ TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer(
 	logClient.setPrefix("[TextureManagerGL]");
 }
 
+void TextureManagerGL::releaseTexture(Texture * tex)
+{
+	TextureGL* gl = dynamic_cast<TextureGL*>(tex);
+	if (!gl) return;
+
+	for (auto it = textures.begin(); it != textures.end(); ++it) {
+		if (&(*it) == tex) {
+			GLuint id = it->getTexture();
+			glDeleteTextures(1, &id);
+			textures.erase(it);
+			break; // we're done
+		}
+	}
+}
+
 TextureManagerGL::~TextureManagerGL()
 {
 	for (auto& texture : textures)

@@ -6,10 +6,16 @@
 #include <model/ModelManager.hpp>
 #include <drawing/ModelDrawer.hpp>
 #include <antialiasing/SMAA.hpp>
+#include <post_processing/blur/GaussianBlur.hpp>
 
 enum class CullingMode
 {
 	Front, Back
+};
+
+class EffectLibrary {
+public:
+	virtual GaussianBlur* getGaussianBlur() = 0;
 };
 
 
@@ -35,7 +41,7 @@ public:
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 
-	virtual VarianceShadowMap* createVarianceShadowMap(int width, int height) = 0;
+	virtual RenderTarget* createVarianceShadowMap(int width, int height) = 0;
 	
 	virtual void cullFaces(CullingMode mode = CullingMode::Back) = 0;
 
@@ -51,6 +57,8 @@ public:
 	 * the existing fragments/pixels.
 	 */
 	virtual void enableDepthWriting(bool enable) = 0;
+
+	virtual EffectLibrary* getEffectLibrary() = 0;
 
 	/**
 	 * Provides access to a shader manager that creates and stores shaders
@@ -106,5 +114,5 @@ public:
 	* All draw calls are performed on a variance shadow map texture.
 	* Only the depth value and it's square are written (no color information).
 	*/
-	virtual void useVarianceShadowMap(VarianceShadowMap* map) = 0;
+	virtual void useVarianceShadowMap(RenderTarget* map) = 0;
 };

@@ -1,6 +1,7 @@
 #include <texture/opengl/TextureGL.hpp>
 #include <memory>
 #include <cassert>
+#include <renderer/opengl/RendererOpenGL.hpp>
 
 using namespace std;
 
@@ -95,7 +96,7 @@ void TextureGL::setTexture(GLuint id)
 	textureID = id;
 }
 
-RenderTargetGL::RenderTargetGL() : frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
+RenderTargetGL::RenderTargetGL(int width, int height) : RenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
 {
 }
 
@@ -105,13 +106,19 @@ RenderTargetGL::~RenderTargetGL()
 
 void RenderTargetGL::copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim)
 {
+	GLint readFBId = 0;
+	GLint drawFboId = 0;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
 		destDim.xPos, destDim.yPos, destDim.width, destDim.height,
 		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
 		GL_NEAREST);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 }
 
 RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int width, int height, 
@@ -119,7 +126,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 {
 	assert(samples > 1);
 
-	RenderTargetGL result;
+	RenderTargetGL result(width, height);
 	glGenFramebuffers(1, &result.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
@@ -161,7 +168,10 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 
 RenderTargetGL RenderTargetGL::createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType)
 {
-	RenderTargetGL result;
+	RenderTargetGL result(width, height);
+	result.width = width;
+	result.height = height;
+
 	glGenFramebuffers(1, &result.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
@@ -205,6 +215,62 @@ RenderTargetGL RenderTargetGL::createSingleSampled(GLint textureChannel, int wid
 	{
 		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
 	}
+
+	return result;
+}
+
+RenderTargetGL RenderTargetGL::createVSM(int width, int height)
+{
+	RenderTargetGL result(width, height);
+	GLuint* frameBuffer = &result.frameBuffer;
+	GLuint* textureID = &result.textureBuffer.textureID;
+	TextureGL& texture = result.textureBuffer;
+	glGenFramebuffers(1, frameBuffer);
+	glGenTextures(1, textureID);
+
+
+	//GL_RG32F
+	glBindTexture(GL_TEXTURE_2D, *textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLfloat borderColor[] = { 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, *frameBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureID, 0);
+
+
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
+	//glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 1, GL_RG32F, width, height, GL_TRUE);
+
+	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
+
+
+
+	// Set the list of draw buffers.
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+
+								   //create a render buffer for depth and stencil testing
+	glGenRenderbuffers(1, &result.renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach render buffer to the frame buffer
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+								   // Always check that our framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!");
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	return result;
 }
@@ -436,95 +502,6 @@ Texture* DepthMapGL::getTexture()
 }
 
 void DepthMapGL::release()
-{
-	texture.release();
-	glDeleteFramebuffers(1, &frameBuffer);
-	frameBuffer = GL_FALSE;
-}
-
-VarianceShadowMapGL::VarianceShadowMapGL(int width, int height): VarianceShadowMap(width, height)
-{
-	GLuint textureID = GL_FALSE;
-	glGenFramebuffers(1, &frameBuffer);
-	glGenTextures(1, &textureID);
-	texture.setTexture(textureID);
-	//GL_RG32F
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	GLfloat borderColor[] = { 1.0f, 1.0f};
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	//glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureID, 0);
-	// Set the list of draw buffers.
-	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
-
-								   // Always check that our framebuffer is ok
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-VarianceShadowMapGL::VarianceShadowMapGL(const VarianceShadowMapGL& other) : VarianceShadowMap(other),
-texture(other.texture), frameBuffer(other.frameBuffer)
-{
-}
-
-VarianceShadowMapGL::VarianceShadowMapGL(VarianceShadowMapGL&& other) : VarianceShadowMap(other),
-texture(other.texture), frameBuffer(other.frameBuffer)
-{
-	other.frameBuffer = GL_FALSE;
-}
-
-VarianceShadowMapGL& VarianceShadowMapGL::operator=(const VarianceShadowMapGL& other)
-{
-	if (this == &other)
-		return *this;
-	// call base asignment operator
-	VarianceShadowMap::operator =(other);
-
-	texture = move(other.texture);
-	frameBuffer = other.frameBuffer;
-	return *this;
-}
-
-VarianceShadowMapGL& VarianceShadowMapGL::operator=(VarianceShadowMapGL&& other)
-{
-	if (this == &other)
-		return *this;
-	// call base asignment operator
-	VarianceShadowMap::operator =(other);
-	texture = move(other.texture);
-	frameBuffer = move(other.frameBuffer);
-	other.frameBuffer = GL_FALSE;
-	return *this;
-}
-
-VarianceShadowMapGL::~VarianceShadowMapGL(){}
-
-GLuint VarianceShadowMapGL::getFramebuffer() const
-{
-	return frameBuffer;
-}
-
-GLuint VarianceShadowMapGL::getTexture() const
-{
-	return texture.getTexture();
-}
-
-Texture* VarianceShadowMapGL::getTexture()
-{
-	return &texture;
-}
-
-void VarianceShadowMapGL::release()
 {
 	texture.release();
 	glDeleteFramebuffers(1, &frameBuffer);

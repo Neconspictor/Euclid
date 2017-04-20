@@ -36,6 +36,9 @@ public:
 	 */
 	static TextureManagerGL* get();
 
+	// Inherited via TextureManager
+	virtual void releaseTexture(Texture * tex) override;
+
 protected:
 	std::list<TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;

@@ -50,4 +50,6 @@ public:
 	 * Loads all images from a specified image folder and all its sub folders.
 	 */
 	virtual void loadImages(const std::string& imageFolder) = 0;
+
+	virtual void releaseTexture(Texture* tex) = 0;
 };
