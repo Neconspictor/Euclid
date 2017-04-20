@@ -12,13 +12,18 @@ out vec4 FragmentColor;
 
 void main(void)
 {
-    FragmentColor = texture2D( image, vec2(gl_FragCoord)/windowHeight ) * weight[0];
+	vec2 size = textureSize(image, 0);
+	float height = size.y;
+	float width = size.x;
+	
+	vec2 coord = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
+	
+    FragmentColor = texture2D( image, coord) * weight[0];
     for (int i=1; i<5; i++) {
+		vec2 currOffset = vec2(0.0, offset[i])/height;
         FragmentColor +=
-            texture2D( image, ( vec2(gl_FragCoord)+vec2(0.0, offset[i]) )/windowHeight )
-                * weight[i];
+            texture2D( image, coord + currOffset) * weight[i];
         FragmentColor +=
-            texture2D( image, ( vec2(gl_FragCoord)-vec2(0.0, offset[i]) )/windowHeight )
-                * weight[i];
+            texture2D( image, coord - currOffset) * weight[i];
     }
 }
