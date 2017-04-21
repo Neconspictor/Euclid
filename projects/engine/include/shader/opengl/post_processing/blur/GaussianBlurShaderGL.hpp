@@ -19,9 +19,14 @@ public:
 protected:
 	TextureGL* image;
 	ShaderAttributeCollection::ShaderAttributeKey imageAttribute;
+	float height;
+	ShaderAttributeCollection::ShaderAttributeKey heightAttribute;
 	glm::mat4 transform;
 	float width;
 	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
+
+	// Inherited via GaussianBlurHorizontalShader
+	virtual void setImageHeight(float height) override;
 };
 
 class GaussianBlurVerticalShaderGL : public GaussianBlurVerticalShader, public ShaderConfigGL
@@ -44,4 +49,9 @@ protected:
 	ShaderAttributeCollection::ShaderAttributeKey heightAttribute;
 	bool horizontal;
 	glm::mat4 transform;
+	float width;
+	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
+
+	// Inherited via GaussianBlurVerticalShader
+	virtual void setImageWidth(float width) override;
 };

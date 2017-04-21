@@ -153,7 +153,10 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 	RenderTargetGL* destGL = dynamic_cast<RenderTargetGL*>(dest);
 	assert(srcGL && destGL);
 	//copy the content from the source buffer to the destination buffered
-	Dimension dim = {xPos, yPos, width, height};
+	if (srcGL->width > destGL->width || srcGL->height > destGL->height) {
+		LOG(logClient, Warning) << "dest dimension are smaller than the dimension of src!";
+	}
+	Dimension dim = {0, 0, srcGL->width, srcGL->height};
 	destGL->copyFrom(srcGL, dim, dim);
 }
 
@@ -352,7 +355,7 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 {
 	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
 	assert(targetGL != nullptr);
-	glViewport(xPos, yPos, width, height);
+	glViewport(0, 0, targetGL->width, targetGL->height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
 }

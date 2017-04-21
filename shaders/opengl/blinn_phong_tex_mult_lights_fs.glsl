@@ -111,8 +111,8 @@ void main()
 		
 		
 		//directional shadow calculation
-		float shadow = shadowCalculation(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
-		//float shadow = shadowCalculationVariance(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
+		//float shadow = shadowCalculation(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
+		float shadow = shadowCalculationVariance(normalize(dirLight.direction), normal, fs_in.fragPosLightSpace);
 		
 		//spot light shadows
 		for (int i = 0; i < NR_POINT_LIGHTS; ++i) {
@@ -224,8 +224,9 @@ float chebyshevUpperBound( float distance, vec2 uv)
 	
 		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
 		// How likely this pixel is to be lit (p_max)
+		//moments.y = moments.x*moments.x;
 		float variance = moments.y - (moments.x*moments.x);
-		variance = max(variance,0.00000004);
+		variance = max(variance,0.0000003);
 	
 		float d = distance - moments.x;
 		float p_max = variance / (variance + d*d);

@@ -200,7 +200,7 @@ void MainLoopTask::init()
 	vsMap = renderer->createVarianceShadowMap(1024, 1024);
 	vsMapCache = renderer->createVarianceShadowMap(1024, 1024);
 
-	renderTargetMultisampled = renderer->createRenderTarget(4);
+	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	skyBoxShader->setSkyTexture(sky);
@@ -340,12 +340,12 @@ void MainLoopTask::run()
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
-	renderer->useDepthMap(shadowMap);
-	//renderer->useVarianceShadowMap(vsMap);
+	//renderer->useDepthMap(shadowMap);
+	renderer->useVarianceShadowMap(vsMap);
 	renderer->enableAlphaBlending(false);
 
 	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.03f);
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
 	const mat4& cameraView = camera->getView();
 	mat4 inverseCameraView = inverse(cameraView);
 
@@ -383,8 +383,8 @@ void MainLoopTask::run()
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Back);
-	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
-	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
+	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
+	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
 	//renderer->useCubeDepthMap(pointShadowMap);
@@ -394,14 +394,14 @@ void MainLoopTask::run()
 	//drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
 
 	// blur the shadow map to smooth out the edges
-	//for (int i = 0; i < 5; ++i) blurEffect->blur(vsMap, vsMapCache);
-
+	//for (int i = 0; i < 1; ++i) blurEffect->blur(vsMap, vsMapCache);
+	blurEffect->blur(vsMap, vsMapCache);
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
-	phongShader->setShadowMap(shadowMap->getTexture());
+	phongShader->setShadowMap(vsMap->getTexture());
 	phongShader->setVarianceShadowMap(vsMap->getTexture());
 	//phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
