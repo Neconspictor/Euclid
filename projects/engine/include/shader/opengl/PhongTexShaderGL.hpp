@@ -58,7 +58,7 @@ private:
 	glm::vec3 lightColor;
 	glm::mat4 lightSpaceMatrix;
 	glm::mat4 modelView;
-	glm::mat4 normalMatrix;
+	glm::mat3 normalMatrix;
 	PointLight pointLights[4];
 	float pointLightRange;
 	CubeDepthMapGL* pointLightShadowMap;

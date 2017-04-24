@@ -245,6 +245,7 @@ void RendererOpenGL::enableDepthWriting(bool enable)
 void RendererOpenGL::endScene()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_POLYGON_OFFSET_FILL);
     checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
@@ -347,6 +348,9 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+
+	//glEnable(GL_POLYGON_OFFSET_FILL);
+	//glPolygonOffset(20.5f, 10.0f);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 }

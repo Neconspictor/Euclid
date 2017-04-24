@@ -25,7 +25,7 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate);
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -75,6 +75,8 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	Material material;
 	TextureManagerGL* manager = TextureManagerGL::get();
 
+	bool tangentData = mesh->mTangents != nullptr;
+
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)
 	{
 
@@ -88,6 +90,19 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		vertex.normal.x = mesh->mNormals[i].x;
 		vertex.normal.y = mesh->mNormals[i].y;
 		vertex.normal.z = mesh->mNormals[i].z;
+
+		// tangent
+		if (tangentData) {
+			vertex.tangent.x = mesh->mTangents[i].x;
+			vertex.tangent.y = mesh->mTangents[i].y;
+			vertex.tangent.z = mesh->mTangents[i].z;
+		}
+		else {
+			// default tangent 
+			vertex.tangent.x = 0;
+			vertex.tangent.y = 0;
+			vertex.tangent.z = 1;
+		}
 
 
 		// uv
@@ -157,6 +172,13 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		{
 			data.useSRGB = false;
 			material.setReflectionMap(manager->getImage(reflectionMaps[0], data));
+		}
+
+		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT);
+		if (normalMaps.size())
+		{
+			data.useSRGB = false;
+			material.setNormalMap(manager->getImage(normalMaps[0], data));
 		}
 	}
 

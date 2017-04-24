@@ -146,7 +146,6 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 		vertex.normal = { *(source), *(source + 1), *(source + 2) };
 		source += 3;
 		vertex.texCoords = { *(source), *(source + 1) };
-		vertices.push_back(vertex);
 	}
 
 	vector<unsigned int> indices;

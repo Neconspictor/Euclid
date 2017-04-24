@@ -1,6 +1,14 @@
 TODO:
 
-IMPORTANT: ARB_SHADING_LANGUAGE_INCLUDE extension is only supported by NVIDIA GPUs. 
+IMPORTANT: 
+
+- shadow edge flickering
+- some light angle produce unstable shadows (similar to flickering)
+- culling front faces for rendering the shadow maps produces errors -> check if shadow maps
+are correctly implemented!
+- Read HDR Tutorial (is needed for PBR)
+
+- ARB_SHADING_LANGUAGE_INCLUDE extension is only supported by NVIDIA GPUs. 
 We need a modul for parsing #include directives!
 
 - vld and Brofiler are incompatible and cannot be run both on the same time.

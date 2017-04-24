@@ -115,7 +115,8 @@ SceneNode* MainLoopTask::createShadowScene()
 
 	vobs.push_back(Vob("misc/textured_plane.obj"));
 	ground->setVob(&vobs.back());
-	vobs.push_back(Vob("misc/textured_cube.obj"));
+	//vobs.push_back(Vob("misc/textured_cube.obj"));
+	vobs.push_back(Vob("normal_map_test/normal_map_test.obj"));
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });
@@ -195,10 +196,10 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getConfig(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(1024, 1024);
+	shadowMap = renderer->createDepthMap(8192, 8192);
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
-	vsMap = renderer->createVarianceShadowMap(1024, 1024);
-	vsMapCache = renderer->createVarianceShadowMap(1024, 1024);
+	vsMap = renderer->createVarianceShadowMap(512, 512);
+	vsMapCache = renderer->createVarianceShadowMap(512, 512);
 
 	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -221,7 +222,7 @@ void MainLoopTask::init()
 	pointLightPositions[2] = farAway;
 	pointLightPositions[3] = farAway;
 
-	vec3 position = { -2.0f, 5.0f, 3.0f };
+	vec3 position = {0.0f, 0.0f, 1.0f };
 	position = 100.0f * normalize(position);
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
@@ -383,8 +384,11 @@ void MainLoopTask::run()
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Back);
+	renderer->cullFaces(CullingMode::Front);
 	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
 	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
+	renderer->cullFaces(CullingMode::Back);
+	renderer->endScene();
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
 	//renderer->useCubeDepthMap(pointShadowMap);
@@ -395,16 +399,17 @@ void MainLoopTask::run()
 
 	// blur the shadow map to smooth out the edges
 	//for (int i = 0; i < 1; ++i) blurEffect->blur(vsMap, vsMapCache);
-	blurEffect->blur(vsMap, vsMapCache);
+	//blurEffect->blur(vsMap, vsMapCache);
 
 	// now render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
-	phongShader->setShadowMap(vsMap->getTexture());
+	phongShader->setShadowMap(shadowMap->getTexture());
 	phongShader->setVarianceShadowMap(vsMap->getTexture());
 	//phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
+	phongShader->setViewPosition(camera->getPosition());
 	//cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
 	//cubeDepthMapShader->setLightPos(pointLight.getPosition());
 	//cubeDepthMapShader->setRange(pointLight.getRange());
@@ -414,7 +419,6 @@ void MainLoopTask::run()
 	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
 
-	//blurEffect->blur(renderTargetMultisampled);
 
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	//ui->frameUpdate();

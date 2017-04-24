@@ -3,12 +3,12 @@
 
 using namespace std;
 
-Material::Material() : diffuseMap(nullptr), emissionMap(nullptr), reflectionMap(nullptr), 
+Material::Material() : diffuseMap(nullptr), emissionMap(nullptr), normalMap(nullptr), reflectionMap(nullptr), 
 					   specularMap(nullptr), shininess(0)
 {
 }
 
-Material::Material(Texture* diffuseMap, Texture* emissionMap, Texture* reflectionMap, Texture* specularMap, float shininess)
+Material::Material(Texture* diffuseMap, Texture* emissionMap, Texture* normalMap, Texture* reflectionMap, Texture* specularMap, float shininess)
 {
 	this->diffuseMap = diffuseMap;
 	this->emissionMap = emissionMap;
@@ -19,7 +19,7 @@ Material::Material(Texture* diffuseMap, Texture* emissionMap, Texture* reflectio
 
 Material::Material(const Material& other) :
 diffuseMap(other.diffuseMap), emissionMap(other.emissionMap), 
-reflectionMap(other.reflectionMap), specularMap(other.specularMap), 
+normalMap(other.normalMap), reflectionMap(other.reflectionMap), specularMap(other.specularMap),
 shininess(other.shininess)
 {}
 
@@ -27,6 +27,7 @@ Material::Material(Material&& other)
 {
 	diffuseMap = move(other.diffuseMap);
 	emissionMap = move(other.emissionMap);
+	normalMap = move(other.normalMap);
 	reflectionMap = move(other.reflectionMap);
 	specularMap = move(other.specularMap);
 	shininess = move(other.shininess);
@@ -36,6 +37,7 @@ Material& Material::operator=(const Material& other)
 {
 	diffuseMap = other.diffuseMap;
 	emissionMap = other.emissionMap;
+	normalMap = other.normalMap;
 	reflectionMap = other.reflectionMap;
 	specularMap = other.specularMap;
 	shininess = other.shininess;
@@ -46,6 +48,7 @@ Material& Material::operator=(Material&& other)
 {
 	diffuseMap = move(other.diffuseMap);
 	emissionMap = move(other.emissionMap);
+	normalMap = move(other.normalMap);
 	reflectionMap = move(other.reflectionMap);
 	specularMap = move(other.specularMap);
 	shininess = move(other.shininess);
@@ -64,6 +67,11 @@ Texture* Material::getDiffuseMap() const
 Texture* Material::getEmissionMap() const
 {
 	return emissionMap;
+}
+
+Texture * Material::getNormalMap() const
+{
+	return normalMap;
 }
 
 Texture* Material::getReflectionMap() const
@@ -89,6 +97,11 @@ void Material::setDiffuseMap(Texture* diffuse)
 void Material::setEmissionMap(Texture* emission)
 {
 	emissionMap = emission;
+}
+
+void Material::setNormalMap(Texture * normal)
+{
+	normalMap = normal;
 }
 
 void Material::setReflectionMap(Texture* reflection)

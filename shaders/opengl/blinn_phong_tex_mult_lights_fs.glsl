@@ -4,10 +4,11 @@
 struct Material {
     sampler2D diffuseMap;
     sampler2D emissionMap;
-    sampler2D reflectionMap;
+    sampler2D normalMap;
+	sampler2D reflectionMap;
     sampler2D specularMap;
-		sampler2D shadowMap;
-		sampler2D vsMap;
+	sampler2D shadowMap;
+	sampler2D vsMap;
     float shininess;
 };
 
@@ -50,11 +51,12 @@ struct SpotLight {
 };
 
 in VS_OUT {
-  vec3 fragPos;
-	vec3 normal;
+	vec3 fragPos;
 	vec2 texCoords;
-  vec3 reflectPosition;
+	vec3 normal;
+	vec3 reflectPosition;
 	vec4 fragPosLightSpace;
+	mat3 TBN;
 } fs_in;
 
 
@@ -85,9 +87,17 @@ float chebyshevUpperBound( float distance, vec2 uv);
 
 void main()
 {    
-    vec3 normal = normalize(fs_in.normal);
+    //vec3 normal = normalize(fs_in.normal);
+	
+	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb;  
+	normal = normalize(normal * 2.0 - 1.0); 
+	//normal = vec3(0,0,1);
+	normal =  normalize(fs_in.TBN * normal);
+	vec3 defaultNormal = normalize(fs_in.TBN * fs_in.normal);
+	defaultNormal = fs_in.normal;
+	
     vec3 viewDirection = normalize(viewPos - fs_in.fragPos);
-    
+	
     // phase 1: directional lighting
     vec4 result = calcDirLight(dirLight, normal, viewDirection);
 		
@@ -107,7 +117,7 @@ void main()
     if(reflect_intensity > 0.1) // Only sample reflections when above a certain treshold
         reflect_color = texture(skybox, R) * reflect_intensity;
            
-    result += reflect_color;    
+    //result += reflect_color;    
 		
 		
 		//directional shadow calculation
@@ -120,12 +130,11 @@ void main()
 		}
 		
 		
-		
 		result *= 1 - shadow;
 		
 		// phase 5: ambient lighting
 		vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
-		result += dirLight.ambient * diffuseColor;
+		result += /*dirLight.ambient **/ 0.1 *  diffuseColor;
 		
 		if (shadow > 0.0f) {
 		  //result = vec4(shadow, shadow, shadow, 1);
@@ -142,19 +151,22 @@ void main()
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
 		// we need the direction from the fragment to the light source, so we use the negative light direction!
     vec3 lightDir = normalize(-light.direction);
-    vec4 diffuseColor = texture(material.diffuseMap, fs_in.texCoords);
-    vec4 specularColor = texture(material.specularMap, fs_in.texCoords);
-    // diffuse shading
-    float diffuseAngle = max(dot(normal, lightDir), 0.0);
+    vec4 diffuseColor = vec4(texture(material.diffuseMap, fs_in.texCoords).rgb, 1.0);
+    vec4 specularColor = vec4(texture(material.specularMap, fs_in.texCoords).rgb, 1.0);
+    specularColor = vec4(0.1, 0.1, 0.1, 1);
+	// diffuse shading
+    float diffuseAngle = max(dot(lightDir, normal), 0.0);
     // specular shading
-    //vec3 reflectDir = reflect(-lightDir, normal);
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    float shininess = pow(max(dot(viewDir, halfwayDir), 0.0), material.shininess * 2.0f);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    vec3 halfwayDir = normalize((lightDir + viewDir) * normal);  
+    //float shininess = diffuseAngle * pow(max(dot(viewDir, halfwayDir), 0.0), material.shininess * 2.0f);
+	float shininess = 0.3 * pow(max(dot(viewDir, halfwayDir), 0.0), 4);
+	//float shininess = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     // combine results
     vec4 diffuse = light.diffuse * diffuseAngle * diffuseColor;
-    vec4 specular = light.specular * shininess * specularColor;
-		
-		return diffuse + specular;
+	
+    vec4 specular = vec4(vec3(/*light.specular */ shininess * 10 *  specularColor), 1.0);		
+	return diffuse + specular;
 }
 
 // Calculates the color when using a point light source
@@ -226,7 +238,7 @@ float chebyshevUpperBound( float distance, vec2 uv)
 		// How likely this pixel is to be lit (p_max)
 		//moments.y = moments.x*moments.x;
 		float variance = moments.y - (moments.x*moments.x);
-		variance = max(variance,0.0000003);
+		//variance = max(variance,0.000000003);
 	
 		float d = distance - moments.x;
 		float p_max = variance / (variance + d*d);

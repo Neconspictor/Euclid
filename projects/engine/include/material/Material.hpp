@@ -5,7 +5,7 @@ class Material
 {
 public:
 	Material();
-	Material(Texture* diffuseMap, Texture* emissionMap, Texture* reflectionMap, 
+	Material(Texture* diffuseMap, Texture* emissionMap, Texture* normalMap, Texture* reflectionMap,
 		Texture* specularMap, float shininess);
 	
 	Material(const Material& other);
@@ -17,6 +17,7 @@ public:
 
 	Texture* getDiffuseMap() const;
 	Texture* getEmissionMap() const;
+	Texture* getNormalMap() const;
 	Texture* getReflectionMap() const;
 	float getShininess() const;
 	const float& getShininessRef() const;
@@ -25,6 +26,7 @@ public:
 
 	void setDiffuseMap(Texture* diffuse);
 	void setEmissionMap(Texture* emission);
+	void setNormalMap(Texture* normal);
 	void setReflectionMap(Texture* reflection);
 	void setSpecularMap(Texture* specular);
 	void setShininess(float shininess);
@@ -32,6 +34,7 @@ public:
 protected:
 	Texture* diffuseMap;
 	Texture* emissionMap;
+	Texture* normalMap;
 	Texture* reflectionMap;
 	Texture* specularMap;
 	float shininess;

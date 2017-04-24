@@ -8,7 +8,7 @@ class MeshFactoryGL;
 class MeshGL : public Mesh
 {
 public:
-	using Vertex = VertexPositionNormalTex;
+	using Vertex = VertexPositionNormalTexTangent;
 
 	MeshGL();
 	virtual ~MeshGL();

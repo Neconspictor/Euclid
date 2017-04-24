@@ -17,7 +17,7 @@ viewPosition(0,0,0), vsMap(nullptr)
 	attributes.create(types::MAT4, &transform, "transform", true);
 	attributes.create(types::MAT4, nullptr, "model");
 	attributes.create(types::MAT4, &modelView, "modelView", true);
-	attributes.create(types::MAT4, &normalMatrix, "normalMatrix", true);
+	attributes.create(types::MAT3, &normalMatrix, "normalMatrix", true);
 
 	biasMatrix = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -86,6 +86,7 @@ viewPosition(0,0,0), vsMap(nullptr)
 	attributes.create(types::FLOAT, nullptr, "material.shininess");
 	attributes.create(types::TEXTURE2D, nullptr, "material.diffuseMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.emissionMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.reflectionMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.specularMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.shadowMap");
@@ -146,7 +147,7 @@ void PhongTexShaderGL::setShadowMap(Texture* texture)
 {
 	shadowMap = dynamic_cast<TextureGL*>(texture);
 	assert(shadowMap != nullptr);
-	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
+	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
 	attributes.setData("material.shadowMap", shadowMap, black);
 }
 
@@ -165,7 +166,7 @@ void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
 { 
 	vsMap = dynamic_cast<TextureGL*>(texture);
 	assert(vsMap != nullptr);
-	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
+	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
 	attributes.setData("material.vsMap", vsMap, black);
 }
 
@@ -183,7 +184,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 
 	transform = projection * view * model;
 	modelView = view * model;
-	normalMatrix = transpose(inverse(model));
+	normalMatrix = transpose(inverse(mat3(model)));
 	
 	//attributes.setData("projection", data.projection);
 	attributes.setData("model", data.model);
@@ -196,11 +197,15 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
 	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
 	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
-	TextureGL* black = TextureManagerGL::get()->getImageGL("black.png");
+	TextureGL* normalMap = static_cast<TextureGL*>(material.getNormalMap());
+	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
+	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.png", { false, true, Linear_Linear, Bilinear, Repeat }); //brickwall_normal
+	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
 
 	attributes.setData("material.shininess", &material.getShininessRef());
 	attributes.setData("material.diffuseMap", diffuseMap, black);
 	attributes.setData("material.emissionMap", emissionMap, black);
 	attributes.setData("material.reflectionMap", reflectionMap, black);
 	attributes.setData("material.specularMap", specularMap, black);
+	attributes.setData("material.normalMap", normalMap, default_normal);
 }
