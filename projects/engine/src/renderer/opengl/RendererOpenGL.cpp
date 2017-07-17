@@ -196,7 +196,7 @@ DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 
 RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 {
-	RenderTargetGL target = createRenderTargetGL_intern(GL_RGBA, width, height, samples, GL_DEPTH_STENCIL);
+	RenderTargetGL target = createRenderTargetGL_intern(GL_RGBA32F, width, height, samples, GL_DEPTH_STENCIL); //GL_RGBA
 	renderTargets.push_back(move(target));
 	return &renderTargets.back();
 }
@@ -496,8 +496,13 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 	{
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+
+		// TODO this is needed for rendering shadow maps => put it on a more suitable place
+		glEnable(GL_POLYGON_OFFSET_FILL); 
+		glPolygonOffset(-3.5f, 1.0f);
 	} else
 	{
+		glDisable(GL_POLYGON_OFFSET_FILL);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}

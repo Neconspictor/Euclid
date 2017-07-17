@@ -120,7 +120,7 @@ SceneNode* MainLoopTask::createShadowScene()
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });
-	cube1->getVob()->setPosition({ 0.0f, 1.5f, 0.0f });
+	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
 	return root;
 }
 
@@ -222,8 +222,8 @@ void MainLoopTask::init()
 	pointLightPositions[2] = farAway;
 	pointLightPositions[3] = farAway;
 
-	vec3 position = {0.0f, 0.0f, 1.0f };
-	position = 100.0f * normalize(position);
+	vec3 position = {1.0f, 1.0f, 1.0f };
+	position = 30.0f * normalize(position);
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
 	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
@@ -341,8 +341,8 @@ void MainLoopTask::run()
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
-	//renderer->useDepthMap(shadowMap);
-	renderer->useVarianceShadowMap(vsMap);
+	renderer->useDepthMap(shadowMap);
+	//renderer->useVarianceShadowMap(vsMap);
 	renderer->enableAlphaBlending(false);
 
 	
@@ -380,13 +380,14 @@ void MainLoopTask::run()
 
 
 	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
+	shadowFrustum = {-10.0f, 30.0f, -10.0f, 10.0f, -10.0f, 40.0f};
 	globalLight.setOrthoFrustum(shadowFrustum);
 
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	//renderer->cullFaces(CullingMode::Back);
 	renderer->cullFaces(CullingMode::Front);
-	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
-	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
+	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
+	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	renderer->cullFaces(CullingMode::Back);
 	renderer->endScene();
 	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
@@ -438,8 +439,8 @@ void MainLoopTask::run()
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)
 	{
-		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
+		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		//modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
 	} else
 	{
 		//modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);

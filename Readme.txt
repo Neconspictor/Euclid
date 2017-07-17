@@ -2,8 +2,12 @@ TODO:
 
 IMPORTANT: 
 
+- put the following to a more suitable place in RendererOpenGL::cullFaces:
+		glEnable(GL_POLYGON_OFFSET_FILL); 
+		glPolygonOffset(-3.5f, 1.0f);
+this is needed for rendering shadow maps and sholdn't be there in general!
+
 - shadow edge flickering
-- some light angle produce unstable shadows (similar to flickering)
 - culling front faces for rendering the shadow maps produces errors -> check if shadow maps
 are correctly implemented!
 - Read HDR Tutorial (is needed for PBR)
