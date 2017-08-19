@@ -11,12 +11,15 @@ uniform mat3 normalMatrix;
 uniform mat4 lightSpaceMatrix;
 uniform mat4 biasMatrix;
 
+uniform vec3 viewPos;
+
 out VS_OUT {
 	vec3 fragPos;
 	vec2 texCoords;
-	vec3 normal;
-	vec3 reflectPosition;
-	vec4 fragPosLightSpace;
+	vec4 fragPosLightSpace; // needed for shadow calculation
+	vec3 TangentLightPos;
+    vec3 TangentViewPos;
+	vec3 TangentFragPos;
 	mat3 TBN;
 } vs_out;
 
@@ -25,15 +28,27 @@ void main()
     gl_Position = transform * vec4(position, 1.0f);
 	vs_out.fragPos = vec3(model * vec4(position, 1.0f));
 	vs_out.texCoords = texCoords;
-    vs_out.normal = normalize(mat3(normalMatrix) * normal);
+	
+    //vs_out.normal = normalize(mat3(normalMatrix) * normal);
+	//vs_out.normal = normal;
     //fragmentPosition = vec3(modelView * vec4(position, 1.0f));
-    vs_out.reflectPosition = vec3(model * vec4(position, 1.0f));
 	vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * vec4(vs_out.fragPos, 1.0);
 	
 	
-	vec3 T = normalize(normalMatrix * normalize(tangent));
-	vec3 N = normalize(vs_out.normal);
+	vec3 T = normalize(normalMatrix * tangent);	// original normalMatrix
+	vec3 N = normalize(normalMatrix * normal); // original normalMatrix
 	T = normalize(T - dot(T, N) * N);
-	vec3 B = normalize(cross(T, N));
-	vs_out.TBN = mat3(T, B, N);
+	vec3 B = cross(T, N);
+	
+	// TBN must form a right handed coord system.
+    // Some models have symetric UVs. Check and fix.
+    if (dot(cross(N, T), B) < 0.0)
+                T = T * -1.0;
+	
+	mat3 TBN = mat3(T, B, N);
+	
+	vs_out.TangentLightPos = TBN * vec3(100.0, 100.0, 100.0);
+    vs_out.TangentViewPos  = TBN * viewPos;
+	vs_out.TangentFragPos = TBN * vs_out.fragPos;
+	vs_out.TBN = TBN;
 } 

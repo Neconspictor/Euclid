@@ -184,7 +184,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 
 	transform = projection * view * model;
 	modelView = view * model;
-	normalMatrix = transpose(inverse(mat3(model)));
+	normalMatrix = transpose(inverse(mat3(modelView)));
 	
 	//attributes.setData("projection", data.projection);
 	attributes.setData("model", data.model);
