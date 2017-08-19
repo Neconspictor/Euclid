@@ -16,6 +16,7 @@ viewPosition(0,0,0), vsMap(nullptr)
 	//attributes.create(types::MAT4, nullptr, "view");
 	attributes.create(types::MAT4, &transform, "transform", true);
 	attributes.create(types::MAT4, nullptr, "model");
+	attributes.create(types::MAT4, nullptr, "view");
 	attributes.create(types::MAT4, &modelView, "modelView", true);
 	attributes.create(types::MAT3, &normalMatrix, "normalMatrix", true);
 
@@ -41,47 +42,6 @@ viewPosition(0,0,0), vsMap(nullptr)
 	attributes.create(types::VEC4, &dirLight.specular, "dirLight.specular", true);
 
 	//attributes.create(types::FLOAT, &pointLightRange, "range", true);
-	for (int i = 0; i < 4; ++i)
-	{
-		pointLights[i].ambient = { 0.05f, 0.05f, 0.05f, 1.0f };
-		pointLights[i].diffuse = { 0.05f, 0.05f, 0.05f, 1.0f };
-		pointLights[i].specular = { 0.05f, 0.05f, 0.05f, 1.0f };
-		pointLights[i].constant = 1.0f;
-		pointLights[i].linear = 0.09f;
-		pointLights[i].quadratic = 0.032f;
-		string pointLightStr = "pointLights[" + to_string(i) + "]";
-
-		attributes.create(types::VEC3, &pointLights[i].position, pointLightStr + ".position", true);
-		attributes.create(types::VEC4, &pointLights[i].ambient, pointLightStr + ".ambient", true);
-		attributes.create(types::VEC4, &pointLights[i].diffuse, pointLightStr + ".diffuse", true);
-		attributes.create(types::VEC4, &pointLights[i].specular, pointLightStr + ".specular", true);
-		attributes.create(types::FLOAT, &pointLights[i].constant, pointLightStr + ".constant", true);
-		attributes.create(types::FLOAT, &pointLights[i].linear, pointLightStr + ".linear", true);
-		attributes.create(types::FLOAT, &pointLights[i].quadratic, pointLightStr + ".quadratic", true);
-	}
-	// SpotLight
-	spotLight.position = viewPosition;
-	spotLight.direction = { 0,0,1 };
-	spotLight.ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
-	spotLight.diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-	spotLight.specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-	spotLight.constant = 1.0f;
-	spotLight.linear = 0.09f;
-	spotLight.quadratic = 0.032f;
-	spotLight.cutOff = cos(radians(12.5f));
-	spotLight.outerCutOff = cos(radians(15.0f));
-
-	attributes.create(types::VEC3, &spotLight.position, "spotLight.position", true);
-	attributes.create(types::VEC3, &spotLight.direction, "spotLight.direction", true);
-	attributes.create(types::VEC4, &spotLight.ambient, "spotLight.ambient", true);
-	attributes.create(types::VEC4, &spotLight.diffuse, "spotLight.diffuse", true);
-	attributes.create(types::VEC4, &spotLight.specular, "spotLight.specular", true);
-
-	attributes.create(types::FLOAT, &spotLight.constant, "spotLight.constant", true);
-	attributes.create(types::FLOAT, &spotLight.linear, "spotLight.linear", true);
-	attributes.create(types::FLOAT, &spotLight.quadratic, "spotLight.quadratic", true);
-	attributes.create(types::FLOAT, &spotLight.cutOff, "spotLight.cutOff", true);
-	attributes.create(types::FLOAT, &spotLight.outerCutOff, "spotLight.outerCutOff", true);
 
 	attributes.create(types::FLOAT, nullptr, "material.shininess");
 	attributes.create(types::TEXTURE2D, nullptr, "material.diffuseMap");
@@ -188,6 +148,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	
 	//attributes.setData("projection", data.projection);
 	attributes.setData("model", data.model);
+	attributes.setData("view", data.view);
 	attributes.setData("transform", &transform);
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
