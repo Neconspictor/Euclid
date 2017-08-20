@@ -13,6 +13,6 @@ float linearizeDepth(float depth)
 
 void main()
 {             
-     fragmentdepth = linearizeDepth(gl_FragCoord.z);
-	 //fragmentdepth = gl_FragCoord.z;
+     //fragmentdepth = linearizeDepth(gl_FragCoord.z);
+	 fragmentdepth = gl_FragCoord.z;
 }  

@@ -60,15 +60,17 @@ void main()
     //vec3 normal = normalize(fs_in.normal);
 	
 	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb; 
-	vec3 normalLighting = vec3(mat3(model) * normal);
-	normalLighting = normalize(fs_in.TBN * normalLighting); // normalize(fs_in.TBN * normalLighting); //
-	vec3 normalShadows = normal;
+	//normal = vec3(0,0,1);
+
+	vec3 normalLighting = normalize(vec3(normal));
+	//normalLighting = normalize(fs_in.TBN * normalLighting); // normalize(fs_in.TBN * normalLighting); //
+	vec3 normalShadows = normalize(normal);
 	
     // phase 1: directional lighting
     vec3 result = phongModel(normalLighting);
 		
 	//directional shadow calculation
-	float shadow = shadowCalculation(normalize(fs_in.viewLightDir), normalShadows, fs_in.fragPosLightSpace);
+	float shadow = shadowCalculation(normalize(fs_in.tangentLightDir), normalShadows, fs_in.fragPosLightSpace);
 	//result *= (1 - shadow);
 	
 	FragColor = vec4(result, 1.0);
@@ -80,14 +82,16 @@ vec3 phongModel(vec3 normal) {
 	
 	vec3 lightDir = fs_in.tangentLightDir;
     vec3 r = reflect( -lightDir, normal );
-    vec3 ambient = 0.0 * diffuseColor;
+    vec3 ambient = 0.1 * diffuseColor;
     float sDotN = max( dot(lightDir, normal), 0.0 );
     vec3 diffuse = diffuseColor * sDotN;
     vec3 spec = vec3(0.0);
     if( sDotN > 0.0 ) {
-		vec3 viewDir = normalize(fs_in.TBN * (viewPos - fs_in.fragPos));
-		float shininess = pow( max( dot(r, viewDir), 0.0 ), 32.0 );
-        spec = vec3(0.3) * shininess;	
+		vec3 viewDir = normalize(fs_in.tangentViewDir);
+		vec3 halfwayDir = normalize(lightDir + viewDir); 
+		//float shininess = pow( max( dot(normal, halfwayDir), 0.0 ), 32.0 );
+		float shininess = pow( max( dot(r, viewDir), 0.0 ), 16.0 );
+        spec = vec3(0.2) * shininess;	
 	}
 	
     return ambient + diffuse + spec;
@@ -111,7 +115,7 @@ vec4 calcDirLight(vec3 normal, vec3 viewDir) {
 	viewDir = normalize(fs_in.TBN * viewDir);
     vec3 reflectDir = reflect(lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
-    float shininess = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    float shininess = pow(max(dot(normal, halfwayDir), 0.0), 256.0);
 
 	vec4 specular = specularColor * shininess;
 	return diffuse + specular;

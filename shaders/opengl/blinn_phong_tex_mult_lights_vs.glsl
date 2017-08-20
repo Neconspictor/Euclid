@@ -49,9 +49,12 @@ void main()
 	
 	mat3 modelView3D = mat3(transpose(inverse(model)));
 	
-	vec3 N = normalize(modelView3D * normal); // original normalMatrix
-	vec3 T = normalize(modelView3D * tangent);	// original normalMatrix
-	//T = normalize(T - dot(T, N) * N);
+	vec3 normalTest = vec3(0,1,0);
+	vec3 tangentTest = vec3(1,0,0);
+	
+	vec3 N = normalize(vec3(modelView3D * normal)); // original normalMatrix
+	vec3 T = normalize(vec3(modelView3D * tangent));	// original normalMatrix
+	T = normalize(T - dot(T, N) * N);
 	vec3 B = normalize(cross(N, T));
 	
 	//mat3 TBN = mat3(T, B, N);
@@ -63,10 +66,17 @@ void main()
 	
 	vs_out.TangentFragPos = TBN * vs_out.fragPos;
 	vs_out.TBN = TBN;
+
 	
-	vs_out.viewLightDir = -dirLight.direction;
+	vec3 pos = vec3(model *  vec4(position, 1));
+	vec3 lightPosition = vec3(vec4(1,1,1, 1));
+	vec3 origin = vec3(vec4(0,0,0,1));
+	vec3 lightDir = normalize((lightPosition - origin));
+	lightDir = vec3(vec4(1,1,1,1)) - origin;
+	
+	vs_out.viewLightDir = vec3(vec4(dirLight.direction, 1));
+	vs_out.viewLightDir = lightDir;
 	
 	vs_out.tangentLightDir = normalize(TBN * vs_out.viewLightDir);
-	vec3 pos = vec3(model * vec4(position, 1));
-	vs_out.tangentViewDir = normalize(TBN * (viewPos-pos));
+	vs_out.tangentViewDir = normalize(TBN * (viewPos - pos));
 } 

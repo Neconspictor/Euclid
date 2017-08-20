@@ -25,7 +25,7 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -77,6 +77,10 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 
 	bool tangentData = mesh->mTangents != nullptr;
 
+	if (!tangentData) {
+		std::exception("No tangent data available!");
+	}
+
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)
 	{
 
@@ -96,12 +100,6 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 			vertex.tangent.x = mesh->mTangents[i].x;
 			vertex.tangent.y = mesh->mTangents[i].y;
 			vertex.tangent.z = mesh->mTangents[i].z;
-		}
-		else {
-			// default tangent 
-			vertex.tangent.x = 0;
-			vertex.tangent.y = 0;
-			vertex.tangent.z = 1;
 		}
 
 

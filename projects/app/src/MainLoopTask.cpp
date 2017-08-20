@@ -223,7 +223,7 @@ void MainLoopTask::init()
 	pointLightPositions[3] = farAway;
 
 	vec3 position = {1.0f, 1.0f, 1.0f };
-	position = 30.0f * normalize(position);
+	position = 20.0f * position;
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
 	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
