@@ -8,7 +8,7 @@ using namespace platform;
 
 unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
 
-GLint TextureManagerGL::mapFilter(TextureFilter filter)
+GLint TextureManagerGL::mapFilter(TextureFilter filter, bool useMipMaps)
 {
 	switch(filter)
 	{
@@ -17,13 +17,17 @@ GLint TextureManagerGL::mapFilter(TextureFilter filter)
 	case Bilinear:
 		return GL_LINEAR;
 	case Near_Near:
-		return GL_NEAREST_MIPMAP_NEAREST;
+		if (useMipMaps) return GL_NEAREST_MIPMAP_NEAREST;
+		return GL_NEAREST;
 	case Near_Linear:
-		return GL_NEAREST_MIPMAP_LINEAR;
+		if (useMipMaps) return GL_NEAREST_MIPMAP_LINEAR;
+		return GL_NEAREST;
 	case Linear_Near:
-		return GL_LINEAR_MIPMAP_NEAREST;
+		if (useMipMaps) return GL_LINEAR_MIPMAP_NEAREST;
+		return GL_LINEAR;
 	case Linear_Linear:
-		return GL_LINEAR_MIPMAP_LINEAR;
+		if (useMipMaps) return GL_LINEAR_MIPMAP_LINEAR;
+		return GL_LINEAR;
 	default:
 		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
 	}
@@ -156,8 +160,8 @@ Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 		throw runtime_error(ss.str());
 	}
 
-	GLint minFilter = mapFilter(data.minFilter);
-	GLint magFilter = mapFilter(data.magFilter);
+	GLint minFilter = mapFilter(data.minFilter, data.generateMipMaps);
+	GLint magFilter = mapFilter(data.magFilter, data.generateMipMaps);
 	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
@@ -185,8 +189,14 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 
 	string path = ::util::globals::TEXTURE_PATH + file;
 
-	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_RGBA, 0, 
-		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) /*| SOIL_FLAG_INVERT_Y*/);//SOIL_FLAG_SRGB_COLOR_SPACE
+	int colorspace = SOIL_LOAD_RGBA;
+
+	if (data.colorspace == RGB) {
+		colorspace = SOIL_LOAD_RGB;
+	}
+
+	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), colorspace, 0,
+		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_TEXTURE_REPEATS /*| SOIL_FLAG_INVERT_Y*/);//SOIL_FLAG_SRGB_COLOR_SPACE
 
 	if (textureID == GL_FALSE)
 	{
@@ -196,8 +206,8 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 		throw runtime_error(ss.str());
 	}
 	
-	GLint minFilter = mapFilter(data.minFilter);
-	GLint magFilter = mapFilter(data.magFilter);
+	GLint minFilter = mapFilter(data.minFilter, data.generateMipMaps);
+	GLint magFilter = mapFilter(data.magFilter, data.generateMipMaps);
 	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);

@@ -45,7 +45,7 @@ protected:
 	std::map<std::string, TextureGL*> textureLookupTable;
 	platform::LoggingClient logClient;
 
-	static GLint mapFilter(TextureFilter filter);
+	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
 	static GLint mapUVTechnique(TextureUVTechnique technique);
 
 private:

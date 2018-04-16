@@ -84,8 +84,7 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	{
 	case s::BlinnPhongTex: {
 		configs.push_back(make_shared<PhongTexShaderGL>());
-		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl",
-			"", "blinn_phong_tex_mult_lights_vs_Instanced.glsl");
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl");
 		break;
 	}
 	case s::CubeDepthMap: {

@@ -26,12 +26,9 @@ in VS_OUT {
 	vec4 fragPosLightSpace; // needed for shadow calculation
 	vec3 TangentFragPos;
 	mat3 TBN;
-	vec3 T;
-	vec3 B;
-	vec3 N;
 	vec3 tangentLightDir;
 	vec3 tangentViewDir;
-	vec3 normal;
+	vec3 viewLightDir;
 } fs_in;
 
 
@@ -44,14 +41,10 @@ uniform samplerCube skybox;
 uniform vec3 viewPos;
 
 uniform mat4 model;
-uniform mat4 modelView;
 
 //for point light shadows
 uniform samplerCube cubeDepthMap;
 uniform float range;
-
-
-uniform mat3 normalMatrix;
 
 vec3 phongModel(vec3 normal);
 vec4 calcDirLight(vec3 normal, vec3 viewDir);
@@ -64,21 +57,17 @@ float chebyshevUpperBound( float distance, vec2 uv);
 
 void main()
 {    	
-	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb;
-	//normal = vec3(128 / 255.0, 128 / 255.0, 255 / 255.0);
-	normal = normalize(2.0*normal - 1.0);
-	//normal = fs_in.normal;
+	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb; 
 
-	vec3 normalLighting = normalize(normal);
+	vec3 normalLighting = normalize(vec3(normal));
 	vec3 normalShadows = normalize(normal);
 	
     // phase 1: directional lighting
-	//normalLighting = normalize(vec3(0,0,1));
     vec3 result = phongModel(normalLighting);
 		
 	//directional shadow calculation
-	float shadow = shadowCalculation(normalize(fs_in.tangentLightDir), normalLighting, fs_in.fragPosLightSpace);
-	//result *= (shadow);
+	float shadow = shadowCalculation(normalize(fs_in.tangentLightDir), normalShadows, fs_in.fragPosLightSpace);
+	result *= (1 - shadow);
 	
 	FragColor = vec4(result, 1.0);
 
@@ -92,46 +81,47 @@ void main()
 
 vec3 phongModel(vec3 normal) {
 	vec3 diffuseColor = texture(material.diffuseMap, fs_in.texCoords).rgb;
-	//normal = vec3(0,0,1);
     vec3 specularColor = texture(material.specularMap, fs_in.texCoords).rgb;
 	
-	
-	mat3 model3D = mat3(model);
-	
-	vec3 N = normalize((model3D * fs_in.N).xyz); // original normalMatrix
-	vec3 T = normalize(model3D * fs_in.T);	// original normalMatrix
-	
-	float dotTN = dot(N, T);
-	
-	if (dotTN < 0.0) {
-		//T = -1.0 * T;
-	};
-	
-	T = normalize(T - (dot(N, T) * N));
-	
-	vec3 B = normalize(cross(N, T));
-
-	
-	
-	//mat3 TBN = transpose(mat3(T, B, N));
-	mat3 TBN = mat3(T, B, N);
-	//mat3 TBN = fs_in.TBN;
-	
-	vec3 lightDir =  normalize(TBN * fs_in.tangentLightDir);
-   // vec3 r = reflect(normal, lightDir);
+	vec3 lightDir = fs_in.tangentLightDir;
+    vec3 r = reflect( -lightDir, normal );
     vec3 ambient = 0.1 * diffuseColor;
-    float sDotN = max(dot(normal, lightDir), 0.0 );
+    float sDotN = max( dot(lightDir, normal), 0.0 );
     vec3 diffuse = diffuseColor * sDotN;
     vec3 spec = vec3(0.0);
     if( sDotN > 0.0 ) {
-		vec3 viewDir = normalize(TBN * fs_in.tangentViewDir);
+		vec3 viewDir = normalize(fs_in.tangentViewDir);
 		vec3 halfwayDir = normalize(lightDir + viewDir); 
-		float shininess = pow( max( dot(normal, halfwayDir), 0.0 ), 8.0 );
-		//float shininess = pow( max( dot(r, viewDir), 0.0 ), 16.0 );
+		//float shininess = pow( max( dot(normal, halfwayDir), 0.0 ), 32.0 );
+		float shininess = pow( max( dot(r, viewDir), 0.0 ), 16.0 );
         spec = vec3(0.2) * shininess;	
 	}
 	
-    return /*ambient +*/ diffuse + spec;
+    return ambient + diffuse + spec;
+}
+
+// Calculates the color when using a directional light source
+vec4 calcDirLight(vec3 normal, vec3 viewDir) {
+		// we need the direction from the fragment to the light source, so we use the negative light direction!
+    vec3 lightDir = fs_in.tangentLightDir;
+    vec4 diffuseColor = vec4(texture(material.diffuseMap, fs_in.texCoords).rgb, 1.0);
+    vec4 specularColor = vec4(texture(material.specularMap, fs_in.texCoords).rgb, 1.0);
+    specularColor = vec4(1.0, 1.0, 1.0, 1);
+	
+	
+	// diffuse
+    //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+    float diffuseAngle = max(dot(-lightDir, normal), 0.0);
+    vec4 diffuse = diffuseAngle * diffuseColor;
+    // specular
+    //viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
+	viewDir = normalize(fs_in.TBN * viewDir);
+    vec3 reflectDir = reflect(lightDir, normal);
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    float shininess = pow(max(dot(normal, halfwayDir), 0.0), 256.0);
+
+	vec4 specular = specularColor * shininess;
+	return diffuse + specular;
 }
 
 
@@ -158,24 +148,19 @@ float chebyshevUpperBound( float distance, vec2 uv)
 
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 {		
-		vec3 shadowCoordinateWdivide  = (fragPosLightSpace.xyz / fragPosLightSpace.w) * 0.5 + vec3(0.5) ;
+		vec3 shadowCoordinateWdivide  = fragPosLightSpace.xyz;
 		
 		float currentDepth = shadowCoordinateWdivide.z;
-		float angle = dot(lightDir, normal);
+		float angle = dot(normal, -lightDir);
 		angle = tan(acos(angle));
 		float bias = max(0.000005 * angle ,0.0000005);		
-		bias = 0.003;
+		bias = 0.001;
 		//bias = 0.8;
 	
-		//float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
-		
-		vec4 test = vec4(shadowCoordinateWdivide.xy, shadowCoordinateWdivide.z-bias, 1);
-		
-		//float shadow = textureProj(material.shadowMap, test, 0);
-		float shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
-		//float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+		float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+		shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
 		//shadow = texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
-    return 1 - shadow;	
+    return shadow;	
 }
 
 float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace) {
@@ -184,6 +169,7 @@ float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpa
 	
 		return 1 - chebyshevUpperBound(fragPosLightSpace.z, fragPosLightSpace.xy);
 }
+
 
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){
     float depth = texture2D(depths, uv).r;
@@ -209,14 +195,14 @@ float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, f
 
 float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
     float result = 0.0;
-		float xSamples = 2;
-		float ySamples = 2;
-		float sampleCount = (4*xSamples + 1) * (4*ySamples + 1);
-    for(float x=-xSamples; x<=xSamples; x += 0.5){
-        for(float y=-ySamples; y<=ySamples; y += 0.5){
+		float xSamples = 0.5;
+		float ySamples = 0.5;
+		float sampleCount = (2*xSamples+1) * (2*ySamples+1);
+    for(float x=-xSamples; x<=xSamples; x++){
+        for(float y=-ySamples; y<=ySamples; y++){
             vec2 off = vec2(x,y)/size;
             result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
         }
     }
-    return result / (sampleCount);
+    return result / sampleCount;
 }

@@ -15,8 +15,8 @@ viewPosition(0,0,0), vsMap(nullptr)
 	//attributes.create(types::MAT4, nullptr, "projection");
 	//attributes.create(types::MAT4, nullptr, "view");
 	attributes.create(types::MAT4, &transform, "transform", true);
-	attributes.create(types::MAT4, nullptr, "model");
-	attributes.create(types::MAT4, nullptr, "view");
+	attributes.create(types::MAT4, &modelMatrix, "model", true);
+	attributes.create(types::MAT4, nullptr, "view", true);
 	attributes.create(types::MAT4, &modelView, "modelView", true);
 	attributes.create(types::MAT3, &normalMatrix, "normalMatrix", true);
 
@@ -28,6 +28,8 @@ viewPosition(0,0,0), vsMap(nullptr)
 		);
 	attributes.create(types::MAT4, &biasMatrix, "biasMatrix", true);
 	attributes.create(types::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
+	attributes.create(types::MAT4, &lightProjMatrix, "lightProjMatrix", true);
+	attributes.create(types::MAT4, &lightViewMatrix, "lightViewMatrix", true);
 
 	attributes.create(types::VEC3, &viewPosition, "viewPos", true);
 
@@ -78,9 +80,19 @@ void PhongTexShaderGL::setLightDirection(vec3 direction)
 	dirLight.direction = move(direction);
 }
 
+void PhongTexShaderGL::setLightProjMatrix(mat4 mat)
+{
+	lightProjMatrix = move(mat);
+}
+
 void PhongTexShaderGL::setLightSpaceMatrix(mat4 mat)
 {
 	lightSpaceMatrix = move(mat);
+}
+
+void PhongTexShaderGL::setLightViewMatrix(glm::mat4 mat)
+{
+	lightViewMatrix = move(mat);
 }
 
 void PhongTexShaderGL::setPointLightPositions(vec3* positions)
@@ -142,12 +154,14 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
 
+	modelMatrix = model;
+
 	transform = projection * view * model;
 	modelView = view * model;
 	normalMatrix = transpose(inverse(mat3(modelView)));
 	
 	//attributes.setData("projection", data.projection);
-	attributes.setData("model", data.model);
+	attributes.setData("model", &modelMatrix, nullptr, true);
 	attributes.setData("view", data.view);
 	attributes.setData("transform", &transform);
 	attributes.setData("modelView", &modelView);
@@ -160,7 +174,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
 	TextureGL* normalMap = static_cast<TextureGL*>(material.getNormalMap());
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
-	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.png", { false, true, Linear_Linear, Bilinear, Repeat }); //brickwall_normal
+	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.jpg", { false, false, Near_Near, NearestNeighbor, Repeat, RGB }); //brickwall_normal
 	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
 
 	attributes.setData("material.shininess", &material.getShininessRef());

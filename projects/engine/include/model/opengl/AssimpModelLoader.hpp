@@ -3,6 +3,8 @@
 #include <assimp/scene.h>
 #include <platform/logging/LoggingClient.hpp>
 
+struct TextureData;
+
 class AssimpModelLoader
 {
 public:
@@ -19,7 +21,8 @@ private:
 	 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 	 */
 	MeshGL processMesh(aiMesh* mesh, const aiScene* scene) const;
-	static std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type);
+
+	static std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data);
 
 	platform::LoggingClient logClient;
 };

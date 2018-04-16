@@ -11,13 +11,27 @@ struct DirLight {
     vec4 specular;
 };
 
+struct Material {
+    sampler2D diffuseMap;
+    sampler2D emissionMap;
+    sampler2D normalMap;
+	sampler2D reflectionMap;
+    sampler2D specularMap;
+	sampler2D shadowMap;
+	sampler2D vsMap;
+    float shininess;
+};
+
 uniform DirLight dirLight;
+uniform Material material;
 
 uniform mat4 transform;
 uniform mat4 model;
 uniform mat4 modelView;
 uniform mat3 normalMatrix;
 uniform mat4 lightSpaceMatrix;
+uniform mat4 lightProjMatrix;
+uniform mat4 lightViewMatrix;
 uniform mat4 biasMatrix;
 uniform mat4 view;
 
@@ -29,54 +43,104 @@ out VS_OUT {
 	vec4 fragPosLightSpace; // needed for shadow calculation
 	vec3 TangentFragPos;
 	mat3 TBN;
+	vec3 T;
+	vec3 B;
+	vec3 N;
 	vec3 tangentLightDir;
 	vec3 tangentViewDir;
-	vec3 viewLightDir;
+	vec3 normal;
 } vs_out;
 
 void main()
 {
+
+	vec3 normalNormalized = normalize(normal);
+	vec3 tangentNormalized = normalize(tangent);
+
+	
     gl_Position = transform * vec4(position, 1.0f);
 	vs_out.fragPos = vec3(model * vec4(position, 1.0f));
 	vs_out.texCoords = texCoords;
 	
-    //vs_out.normal = normalize(normalMatrix * normal);
-	//vs_out.normal = normal;
-    //fragmentPosition = vec3(modelView * vec4(position, 1.0f));
+
 	vec4 fragPosWorld = model * vec4(position, 1.0f);
-	vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragPosWorld;
+	//vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragPosWorld;
+	vs_out.fragPosLightSpace = lightSpaceMatrix * fragPosWorld;
+	
+	mat3 modelView3D = mat3(model);
+	//mat3 modelView3D = mat3(model);
+	modelView3D = normalMatrix;
+	//modelView3D = transpose(inverse(mat3(model)));
 	
 	
-	mat3 modelView3D = mat3(transpose(inverse(model)));
+	vs_out.normal = normalize(modelView3D * normalNormalized);
 	
-	vec3 normalTest = vec3(0,1,0);
-	vec3 tangentTest = vec3(1,0,0);
+	vec3 N = normalize((modelView3D * normalNormalized).xyz); // original normalMatrix
+	vec3 T = normalize((modelView3D * tangentNormalized).xyz);	// original normalMatrix
 	
-	vec3 N = normalize(vec3(modelView3D * normal)); // original normalMatrix
-	vec3 T = normalize(vec3(modelView3D * tangent));	// original normalMatrix
-	T = normalize(T - dot(T, N) * N);
+	float dotTN = dot(N, T);
+	
+	if (dotTN < 0.0) {
+		//T = -1.0 * T;
+	};
+	
+	T = normalize(T - (dot(N, T) * N));
+	
 	vec3 B = normalize(cross(N, T));
 	
-	//mat3 TBN = mat3(T, B, N);
-	mat3 TBN = mat3(
-	T.x, B.x, N.x,
-	T.y, B.y, N.y,
-	T.z, B.z, N.z ) ;
+	vs_out.T = tangentNormalized;
+	vs_out.B = B;
+	vs_out.N = normalNormalized;
 	
 	
-	vs_out.TangentFragPos = TBN * vs_out.fragPos;
+	mat3 TBN = transpose(mat3(T, B, N));
 	vs_out.TBN = TBN;
 
+	vs_out.TangentFragPos = TBN * vs_out.fragPos;
+	
 	
 	vec3 pos = vec3(model *  vec4(position, 1));
-	vec3 lightPosition = vec3(vec4(1,1,1, 1));
-	vec3 origin = vec3(vec4(0,0,0,1));
-	vec3 lightDir = normalize((lightPosition - origin));
-	lightDir = vec3(vec4(1,1,1,1)) - origin;
 	
-	vs_out.viewLightDir = vec3(vec4(dirLight.direction, 1));
-	vs_out.viewLightDir = lightDir;
 	
-	vs_out.tangentLightDir = normalize(TBN * vs_out.viewLightDir);
-	vs_out.tangentViewDir = normalize(TBN * (viewPos - pos));
+	vec3 viewLightDir = normalize(-dirLight.direction);	
+	vs_out.tangentLightDir = normalize(viewLightDir.xyz);
+	
+	vec3 viewDir = normalize(viewPos - pos);
+	vs_out.tangentViewDir = normalize(viewDir);
+	//vs_out.tangentViewDir = normalize((vec4(viewDir,0)).xyz);
+	
+	
+	//normal offset shadow stuff
+	
+	//scale normal offset by shadow depth
+	vec4 positionLightView = lightViewMatrix * model * vec4(position, 1);
+	float shadowFOVFactor = max(lightProjMatrix[0].x, lightProjMatrix[1].y);
+	vec2 size = textureSize(material.shadowMap, 0);
+	float shadowMapTexelSize = 1 / min(size.x, size.y);
+	shadowMapTexelSize *= abs(positionLightView.z) * shadowFOVFactor;
+	
+	vec4 positionLightSpace;
+	vec3 toLight = vs_out.tangentLightDir;
+	float cosLightAngle = dot(toLight, normalNormalized);
+	
+	bool bNormalOffsetScale = true;
+	float normalOffsetScale = bNormalOffsetScale ? clamp(1 - cosLightAngle, 0, 1) : 1.0;
+	float shadowNormalOffset = 5.0;
+	normalOffsetScale *= shadowNormalOffset * shadowMapTexelSize;
+	vec4 shadowOffset = vec4(normalNormalized.xyz * normalOffsetScale, 0);
+	
+	bool bOnlyUVNormalOffset = true;
+	
+	if (bOnlyUVNormalOffset) {
+		positionLightSpace = lightSpaceMatrix * vec4(pos, 1);
+		
+		vec4 shadowPositionWorldUVOnly = vec4(pos, 1) + shadowOffset;
+		vec4 UVOffsetPositionLightSpace = lightSpaceMatrix * shadowPositionWorldUVOnly;
+		
+		positionLightSpace.xy = UVOffsetPositionLightSpace.xy;
+		
+	} else {
+		vec4 shadowPositionWorld = vec4(pos, 1) + shadowOffset;
+		positionLightSpace =  lightSpaceMatrix * shadowPositionWorld;
+	}
 } 

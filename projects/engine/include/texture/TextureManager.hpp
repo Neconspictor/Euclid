@@ -18,6 +18,11 @@ enum TextureUVTechnique
 	Repeat,
 };
 
+enum ColorSpace {
+	RGB,
+	RGBA
+};
+
 
 struct TextureData
 {
@@ -26,6 +31,7 @@ struct TextureData
 	TextureFilter minFilter;  // minification filter
 	TextureFilter magFilter;  // magnification filter
 	TextureUVTechnique uvTechnique;
+	ColorSpace colorspace;
 };
 
 class TextureManager

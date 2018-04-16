@@ -149,7 +149,7 @@ void MainLoopTask::init()
 	frustum.bottom = -10.0f;
 	frustum.top = 10.0f;
 	frustum.nearPlane = 0.1f;
-	frustum.farPlane = 150.0f;
+	frustum.farPlane = 10.0f;
 	camera->setOrthoFrustum(frustum);
 
 
@@ -196,10 +196,13 @@ void MainLoopTask::init()
 	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
 		(shaderManager->getConfig(Shaders::BlinnPhongTex));
 
-	shadowMap = renderer->createDepthMap(8192, 8192);
+	shadowMap = renderer->createDepthMap(512, 512);
+
 	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
-	vsMap = renderer->createVarianceShadowMap(512, 512);
-	vsMapCache = renderer->createVarianceShadowMap(512, 512);
+	//vsMap = renderer->createVarianceShadowMap(512, 512);
+	//vsMapCache = renderer->createVarianceShadowMap(512, 512);
+	vsMap = nullptr;
+	vsMapCache = nullptr;
 
 	renderTargetMultisampled = renderer->createRenderTarget();
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -223,7 +226,7 @@ void MainLoopTask::init()
 	pointLightPositions[3] = farAway;
 
 	vec3 position = {1.0f, 1.0f, 1.0f };
-	position = 20.0f * position;
+	position = 5.0f * position;
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
 	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
@@ -353,11 +356,11 @@ void MainLoopTask::run()
 	mat4 test = globalLight.getView();
 	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
-	ccBB.min.z -= 3;
-	ccBB.max.z += 3;
+	//ccBB.min.z -= 3;
+	//ccBB.max.z += 3;
 
 	// Snap shadow frustum to texel bounds for avoiding edge shimmering
-	float size = vsMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
+	/*float size = vsMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
 	vec3 normalizedMapSize = vec3(1.0f / (float)vsMap->getWidth(), 1.0f / (float)vsMap->getHeight(), 1.0f);
 	vec3 worldUnitsPerTexel = ccBB.max - ccBB.min;
 	worldUnitsPerTexel *= normalizedMapSize;
@@ -376,16 +379,18 @@ void MainLoopTask::run()
 	ccBB.max.x = floor(ccBB.max.x);
 	ccBB.max.y = floor(ccBB.max.y);
 	ccBB.max.x *= worldUnitsPerTexel.x;
-	ccBB.max.y *= worldUnitsPerTexel.y;
+	ccBB.max.y *= worldUnitsPerTexel.y;*/
 
 
 	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
-	shadowFrustum = {-10.0f, 30.0f, -10.0f, 10.0f, -10.0f, 40.0f};
+	shadowFrustum = {-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 10.0f};
 	globalLight.setOrthoFrustum(shadowFrustum);
 
+	phongShader->setLightProjMatrix(globalLight.getView());
 	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
-	//renderer->cullFaces(CullingMode::Back);
-	renderer->cullFaces(CullingMode::Front);
+	phongShader->setLightViewMatrix(globalLight.getView());
+	renderer->cullFaces(CullingMode::Back);
+	//renderer->cullFaces(CullingMode::Front);
 	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
 	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	renderer->cullFaces(CullingMode::Back);
@@ -407,7 +412,7 @@ void MainLoopTask::run()
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
-	phongShader->setVarianceShadowMap(vsMap->getTexture());
+	//phongShader->setVarianceShadowMap(vsMap->getTexture());
 	//phongShader->setPointLightShadowMap(pointShadowMap);
 	phongShader->setPointLightRange(pointLight.getRange());
 	phongShader->setViewPosition(camera->getPosition());
@@ -424,9 +429,9 @@ void MainLoopTask::run()
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	//ui->frameUpdate();
 	//Before presenting the scene, antialise it!
-	SMAA* smaa = renderer->getSMAA();
-	smaa->reset();
-	smaa->antialias(renderTargetSingleSampled); // TODO use render target
+	//SMAA* smaa = renderer->getSMAA();
+	//smaa->reset();
+	//smaa->antialias(renderTargetSingleSampled); // TODO use render target
 
 	//renderer->endScene();
 	
@@ -435,7 +440,7 @@ void MainLoopTask::run()
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
-	varianceDMShader->useVDepthMapTexture(vsMap->getTexture());
+	//varianceDMShader->useVDepthMapTexture(vsMap->getTexture());
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)
 	{

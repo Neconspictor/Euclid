@@ -25,7 +25,10 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate 
+		|aiProcess_FlipUVs
+		| aiProcess_GenNormals 
+		| aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -145,37 +148,44 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		data.uvTechnique = Repeat;
 		data.minFilter = Linear_Linear;
 		data.magFilter = Bilinear;
+		data.colorspace = RGBA;
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
-		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
+		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE, data);
 		if (diffuseMaps.size())
 		{
 			material.setDiffuseMap(manager->getImage(diffuseMaps[0], data));
 		}
-		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
+		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE, data);
 		if (emissionMaps.size())
 		{
 			material.setEmissionMap(manager->getImage(emissionMaps[0], data));
 		}
-		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
+
+		data.useSRGB = false;
+		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
 		if (specularMaps.size())
 		{
-			data.useSRGB = false;
 			material.setSpecularMap(manager->getImage(specularMaps[0], data));
 		}
 
-		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
+		data.useSRGB = false;
+		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
 		if (reflectionMaps.size())
 		{
-			data.useSRGB = false;
 			material.setReflectionMap(manager->getImage(reflectionMaps[0], data));
 		}
 
-		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT);
+		data.useSRGB = false;
+		//data.generateMipMaps = false;
+		//data.magFilter = NearestNeighbor;
+		//data.minFilter = Near_Near;
+		data.colorspace = RGB;
+		data.uvTechnique = Repeat;
+		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{
-			data.useSRGB = false;
 			material.setNormalMap(manager->getImage(normalMaps[0], data));
 		}
 	}
@@ -210,23 +220,13 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	return result;
 }
 
-vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
+vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data)
 {
 	vector<string> textures;
 	for (GLuint i = 0; i < mat->GetTextureCount(type); ++i)
 	{
 		aiString texture;
 		mat->GetTexture(type, i, &texture);
-
-		// load image into memory
-		// Note: assimp textures are local paths!
-		bool useSRGB = (type != aiTextureType_SPECULAR) && (type != aiTextureType_AMBIENT);
-		TextureData data;
-		data.useSRGB = useSRGB;
-		data.generateMipMaps = true;
-		data.uvTechnique = Repeat;
-		data.minFilter = Linear_Linear;
-		data.magFilter = Bilinear;
 
 		TextureManagerGL::get()->getImage(texture.C_Str(), data);
 		textures.push_back(texture.C_Str());
