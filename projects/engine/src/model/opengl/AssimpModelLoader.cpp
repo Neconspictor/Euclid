@@ -178,10 +178,10 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		}
 
 		data.useSRGB = false;
-		//data.generateMipMaps = false;
-		//data.magFilter = NearestNeighbor;
-		//data.minFilter = Near_Near;
-		data.colorspace = RGB;
+		data.generateMipMaps = true;
+		data.magFilter = Bilinear;
+		data.minFilter = Linear_Linear;
+		data.colorspace = RGBA;
 		data.uvTechnique = Repeat;
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())

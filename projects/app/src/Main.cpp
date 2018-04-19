@@ -2,6 +2,7 @@
 #include <system/Video.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <renderer/opengl/RendererOpenGL.hpp>
+#include <PBR_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 #include <boost/locale.hpp>
@@ -168,7 +169,7 @@ int main(int argc, char** argv)
 		
 		engine->init();
 
-		shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(MainLoopTask(engine.get(),
+		shared_ptr<PBR_MainLoopTask> mainLoop = make_shared<PBR_MainLoopTask>(PBR_MainLoopTask(engine.get(),
 			video->getWindow(), video->getWindowSystem(), renderer.get()));
 		
 		mainLoop->setUI(ui);

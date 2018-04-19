@@ -8,7 +8,7 @@
 class SceneNode
 {
 public:
-	explicit SceneNode();
+	explicit SceneNode(Shaders shaderType);
 
 	SceneNode(const SceneNode& copy);
 	SceneNode(SceneNode&& copy);

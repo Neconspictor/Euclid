@@ -3,12 +3,9 @@
 
 struct Material {
     sampler2D diffuseMap;
-    sampler2D emissionMap;
     sampler2D normalMap;
-	sampler2D reflectionMap;
     sampler2D specularMap;
 	sampler2D shadowMap;
-	sampler2D vsMap;
     float shininess;
 };
 
@@ -45,11 +42,6 @@ uniform vec3 viewPos;
 
 uniform mat4 model;
 uniform mat4 modelView;
-
-//for point light shadows
-uniform samplerCube cubeDepthMap;
-uniform float range;
-
 
 uniform mat3 normalMatrix;
 
@@ -206,27 +198,6 @@ vec3 phongModel(vec3 normal, mat3 TBN) {
     return ambient + diffuse + spec;
 }
 
-
-float chebyshevUpperBound( float distance, vec2 uv)
-	{
-		// We retrive the two moments previously stored (depth and depth*depth)
-		vec2 moments = texture2D(material.vsMap, uv).rg;
-		
-		// Surface is fully lit. as the current fragment is before the light occluder
-		if (distance <= moments.x)
-			return 1.0 ;
-	
-		// The fragment is either in shadow or penumbra. We now use chebyshev's upperBound to check
-		// How likely this pixel is to be lit (p_max)
-		//moments.y = moments.x*moments.x;
-		float variance = moments.y - (moments.x*moments.x);
-		//variance = max(variance,0.000000003);
-	
-		float d = distance - moments.x;
-		float p_max = variance / (variance + d*d);
-	
-		return p_max;
-	}
 
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 {		

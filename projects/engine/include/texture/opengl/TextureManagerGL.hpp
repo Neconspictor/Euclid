@@ -22,7 +22,10 @@ public:
 
 	TextureGL* getImageGL(const std::string& file);
 
-	Texture* getHDRImage(const std::string& file, TextureData data) override;
+	virtual Texture* getDefaultBlackTexture() override;
+	virtual Texture* getDefaultNormalTexture() override;
+
+	virtual Texture* getHDRImage(const std::string& file, TextureData data) override;
 	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) override;
 
 	std::string getImagePath() override;

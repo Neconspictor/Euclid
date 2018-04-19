@@ -1,4 +1,4 @@
-#include <MainLoopTask.hpp>
+#include <PBR_MainLoopTask.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <Brofiler.h>
 #include <glm/glm.hpp>
@@ -8,8 +8,7 @@
 #include <camera/FPQuaternionCamera.hpp>
 #include <shader/NormalsShader.hpp>
 #include <camera/FPCamera.hpp>
-#include <model/PhongModel.hpp>
-#include <shader/PhongTextureShader.hpp>
+#include <shader/PBRShader.hpp>
 #include <shader/SkyBoxShader.hpp>
 #include <platform/SystemUI.hpp>
 #include <scene/SceneNode.hpp>
@@ -24,11 +23,10 @@ using namespace platform;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
-	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), blurEffect(nullptr), isRunning(true), logClient(getLogServer()),
-	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
+PBR_MainLoopTask::PBR_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
+	Task(flags), blurEffect(nullptr), isRunning(true), logClient(getLogServer()), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr), vsMap(nullptr), vsMapCache(nullptr)
+	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -42,74 +40,16 @@ MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr w
 	camera = make_shared<FPCamera>(FPCamera());
 }
 
-SceneNode* MainLoopTask::createAsteriodField()
+SceneNode* PBR_MainLoopTask::createShadowScene()
 {
-	ModelManager* modelManager = renderer->getModelManager();
-
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
-	SceneNode* root = &nodes.back();
-	
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
-	SceneNode* planetNode = &nodes.back();
-	root->addChild(planetNode);
-
-	vobs.push_back(Vob("planet/planet.obj"));
-	planetNode->setVob(&vobs.back());
-	planetNode->getVob()->setPosition({ 0.0f, 0.0f, 0.0f });
-	planetNode->setDrawingType(DrawingTypes::SOLID);
-
-	asteriodSize = 1000;
-	asteriodTrafos = new mat4[asteriodSize];
-
-	srand(chrono::system_clock::now().time_since_epoch().count()); // initialize random seed	
-	float radius = 50.0;
-	float offset = 2.5f;
-	for (uint i = 0; i < asteriodSize; i++)
-	{
-		mat4 model;
-		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
-		float angle = (float)i / (float)asteriodSize * 360.0f;
-		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		float x = sin(angle) * radius + displacement;
-		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		float y = displacement * 0.4f; // y value has smaller displacement
-		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		float z = cos(angle) * radius + displacement;
-		model = translate(model, vec3(x, y, z));
-		// 2. Scale: Scale between 0.05 and 0.25f
-		float scale = (rand() % 20) / 100.0f + 0.05;
-		model = glm::scale(model, vec3(scale));
-		// 3. Rotation: add random rotation around a (semi)randomly picked rotation axis vector
-		float rotAngle = (rand() % 360);
-		model = glm::rotate(model, rotAngle, vec3(0.4f, 0.6f, 0.8f));
-		// 4. Now add to list of matrices
-		asteriodTrafos[i] = model;
-	}
-
-	Model* instanced = modelManager->getModel("rock/rock.obj");
-	modelManager->useInstances(instanced, asteriodTrafos, asteriodSize);
-
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
-	SceneNode* asteriodNode = &nodes.back();
-	root->addChild(asteriodNode);
-	vobs.push_back(Vob("rock/rock.obj"));
-	asteriodNode->setVob(&vobs.back());
-	asteriodNode->setDrawingType(DrawingTypes::INSTANCED);
-	asteriodNode->setInstanceCount(asteriodSize);
-
-	return root;
-}
-
-SceneNode* MainLoopTask::createShadowScene()
-{
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode(Shaders::Pbr));
 	SceneNode* root = &nodes.back();
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode(Shaders::Pbr));
 	SceneNode* ground = &nodes.back();
 	root->addChild(ground);
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode(Shaders::Pbr));
 	SceneNode* cube1 = &nodes.back();
 	root->addChild(cube1);
 
@@ -124,7 +64,7 @@ SceneNode* MainLoopTask::createShadowScene()
 	return root;
 }
 
-void MainLoopTask::init()
+void PBR_MainLoopTask::init()
 {
 	using namespace placeholders;
 
@@ -132,7 +72,7 @@ void MainLoopTask::init()
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
 
-	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
+	auto focusCallback = bind(&PBR_MainLoopTask::onWindowsFocus, this, _1, _2);
 	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
 	this->window->addWindowFocusCallback(focusCallback);
 	this->window->getInputDevice()->addScrollCallback(scrollCallback);
@@ -180,10 +120,7 @@ void MainLoopTask::init()
 		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
     
-	/*sky = textureManager->createCubeMap("skyboxes/test/test_right.jpg", "skyboxes/test/test_left.jpg",
-		"skyboxes/test/test_top.jpg", "skyboxes/test/test_bottom.jpg",
-		"skyboxes/test/test_front.jpg", "skyboxes/test/test_back.jpg", true);
-    */
+
 	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
 	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { true, true, Bilinear, Bilinear, ClampToEdge });
 	
@@ -193,16 +130,10 @@ void MainLoopTask::init()
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
 
-	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(shaderManager->getConfig(Shaders::BlinnPhongTex));
+	PBRShader* phongShader = dynamic_cast<PBRShader*>
+		(shaderManager->getConfig(Shaders::Pbr));
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
-
-	pointShadowMap = renderer->createCubeDepthMap(1024, 1024);
-	//vsMap = renderer->createVarianceShadowMap(512, 512);
-	//vsMapCache = renderer->createVarianceShadowMap(512, 512);
-	vsMap = nullptr;
-	vsMapCache = nullptr;
 
 	renderTargetMultisampled = renderer->createRenderTarget(8);
 	renderTargetSingleSampled = renderer->createRenderTarget();
@@ -212,38 +143,18 @@ void MainLoopTask::init()
 	phongShader->setSkyBox(sky);
 
 
-	// Positions of the point lights
-	/*pointLightPositions[0] = vec3(7.0f, 2.0f, 20.0f);
-	pointLightPositions[1] = vec3(23.f, -33.0f, -40.0f);
-	pointLightPositions[2] = vec3(-40.0f, 20.0f, -120.0f);
-	pointLightPositions[3] = vec3(0.0f, 0.0f, -30.0f);*/
-
-	vec3 farAway = vec3(0.0f, -1000.0f, 0.0f);
-
-	pointLightPositions[0] = vec3(-3.0f, 2.0f, 0.0f);
-	pointLightPositions[1] = farAway;
-	pointLightPositions[2] = farAway;
-	pointLightPositions[3] = farAway;
-
 	vec3 position = {1.0f, 1.0f, 1.0f };
 	position = 5.0f * position;
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
-	//globalLight.setOrthoFrustum({-11.5f, 32.8f, -15.0f, 25.0f, 2.0f, 40.0f});
-	//globalLight.setLook(normalize(vec3( 0.01f, 1.0f,0.1f )));
-
-	pointLight.setPosition({ -3.0, 2.0f, 0.0 });
-	pointLight.setRange(10.0f);
-	pointLight.setAspectRatio((float)pointShadowMap->getWidth() / (float)pointShadowMap->getHeight());
 
 
 	// init shaders
-	PhongTextureShader* phongTexShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::BlinnPhongTex));
+	PBRShader* phongTexShader = dynamic_cast<PBRShader*>
+		(renderer->getShaderManager()->getConfig(Shaders::Pbr));
 
 	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
 	phongTexShader->setLightDirection(globalLight.getLook());
-	phongTexShader->setPointLightPositions(pointLightPositions);
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
@@ -272,14 +183,14 @@ void MainLoopTask::init()
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 }
 
-void MainLoopTask::setUI(SystemUI* ui)
+void PBR_MainLoopTask::setUI(SystemUI* ui)
 {
 	this->ui = ui;
 }
 
 static float frameTimeElapsed = 0;
 
-void MainLoopTask::run()
+void PBR_MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
@@ -287,16 +198,8 @@ void MainLoopTask::run()
 		renderer->getShaderManager()->getConfig(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
-	PhongTextureShader* phongShader = dynamic_cast<PhongTextureShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::BlinnPhongTex));
-	ShadowShader* shadowShader = dynamic_cast<ShadowShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::Shadow));
-	PointShadowShader* pointShadowShader = dynamic_cast<PointShadowShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::ShadowPoint));
-	CubeDepthMapShader* cubeDepthMapShader = dynamic_cast<CubeDepthMapShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::CubeDepthMap));
-	VarianceDepthMapShader* varianceDMShader = dynamic_cast<VarianceDepthMapShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::VarianceDepthMap));
+	PBRShader* phongShader = dynamic_cast<PBRShader*>
+		(renderer->getShaderManager()->getConfig(Shaders::Pbr));
 	using namespace chrono;
 	
 	float frameTime = timer.update();
@@ -396,13 +299,7 @@ void MainLoopTask::run()
 	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
 	renderer->cullFaces(CullingMode::Back);
 	renderer->endScene();
-	//drawScene(&globalLight, ProjectionMode::Perspective, Shaders::Shadow);
 
-	//renderer->useCubeDepthMap(pointShadowMap);
-	//pointShadowShader->setLightPosition(pointLight.getPosition());
-	//pointShadowShader->setRange(pointLight.getRange());
-	//pointShadowShader->setShadowMatrices(pointLight.getMatrices());
-	//drawScene(pointLight.getPerspProjection(), pointLight.getView(), Shaders::ShadowPoint);
 
 	// blur the shadow map to smooth out the edges
 	//for (int i = 0; i < 1; ++i) blurEffect->blur(vsMap, vsMapCache);
@@ -413,43 +310,28 @@ void MainLoopTask::run()
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
-	//phongShader->setVarianceShadowMap(vsMap->getTexture());
-	//phongShader->setPointLightShadowMap(pointShadowMap);
-	phongShader->setPointLightRange(pointLight.getRange());
+
 	phongShader->setViewPosition(camera->getPosition());
-	//cubeDepthMapShader->useCubeDepthMap(pointShadowMap->getCubeMap());
-	//cubeDepthMapShader->setLightPos(pointLight.getPosition());
-	//cubeDepthMapShader->setRange(pointLight.getRange());
 
 	drawSky(camera->getPerspProjection(), camera->getView());
 	drawScene(camera->getPerspProjection(), camera->getView());
-	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
 
 
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
-	//ui->frameUpdate();
-	//Before presenting the scene, antialise it!
-	//SMAA* smaa = renderer->getSMAA();
-	//smaa->reset();
-	//smaa->antialias(renderTargetSingleSampled); // TODO use render target
-
-	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
-	//varianceDMShader->useVDepthMapTexture(vsMap->getTexture());
+
 	screenShader->useTexture(screenSprite.getTexture());
 	if (showDepthMap)
 	{
 		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		//modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
 	} else
 	{
-		//modelDrawer->draw(&screenSprite, Shaders::VarianceDepthMap);
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
 	}
 	renderer->endScene();
@@ -459,7 +341,7 @@ void MainLoopTask::run()
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
-void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
+void PBR_MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	scene->update(frameTimeElapsed);
@@ -467,7 +349,7 @@ void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders s
 	renderer->endScene();
 }
 
-void MainLoopTask::drawSky(const mat4& projection, const mat4& view)
+void PBR_MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 {
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(renderer->getShaderManager()->getConfig(Shaders::SkyBoxPanorama));
@@ -483,7 +365,7 @@ void MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 	modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
 }
 
-void MainLoopTask::updateCamera(Input* input, float deltaTime)
+void PBR_MainLoopTask::updateCamera(Input* input, float deltaTime)
 {
 	if (window->hasFocus())
 	{
@@ -497,7 +379,7 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 	}
 }
 
-void MainLoopTask::handleInputEvents()
+void PBR_MainLoopTask::handleInputEvents()
 {
 	using namespace platform;
 	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
@@ -540,7 +422,7 @@ void MainLoopTask::handleInputEvents()
 	}
 }
 
-void MainLoopTask::updateWindowTitle(float frameTime, float fps)
+void PBR_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 {
 	runtime += frameTime;
 	if (runtime > 1)
@@ -551,7 +433,7 @@ void MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	}
 }
 
-void MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus)
+void PBR_MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus)
 {
 	if (receivedFocus)
 	{

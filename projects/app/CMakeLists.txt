@@ -2,9 +2,11 @@ set(
     APP_SOURCES 
     
     ###header files###
+    include/PBR_MainLoopTask.hpp
     include/MainLoopTask.hpp
-		include/pch_app.hpp
+    include/pch_app.hpp
     ###source files###
+    src/PBR_MainLoopTask.cpp
     src/Main.cpp
     src/MainLoopTask.cpp
 )

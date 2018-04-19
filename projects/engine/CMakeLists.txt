@@ -68,6 +68,7 @@ set(
     #shader
 	include/shader/DepthMapShader.hpp
     include/shader/NormalsShader.hpp
+    include/shader/PBRShader.hpp	
 	include/shader/PhongTextureShader.hpp
     include/shader/ScreenShader.hpp
     include/shader/Shader.hpp
@@ -79,6 +80,7 @@ set(
     #shader/opengl
 	include/shader/opengl/DepthMapShaderGL.hpp
     include/shader/opengl/NormalsShaderGL.hpp
+    include/shader/opengl/PBRShaderGL.hpp
 	include/shader/opengl/PhongTexShaderGL.hpp
     include/shader/opengl/ScreenShaderGL.hpp
     include/shader/opengl/ShaderGL.hpp
@@ -181,6 +183,7 @@ set(
     #shader/opengl
 	src/shader/opengl/DepthMapShaderGL.cpp
     src/shader/opengl/NormalsShaderGL.cpp
+    src/shader/opengl/PBRShaderGL.cpp
 	src/shader/opengl/PhongTexShaderGL.cpp
     src/shader/opengl/ScreenShaderGL.cpp
     src/shader/opengl/ShaderGL.cpp

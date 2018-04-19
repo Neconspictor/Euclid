@@ -137,6 +137,16 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 	return static_cast<TextureGL*>(getImage(file));
 }
 
+Texture * TextureManagerGL::getDefaultBlackTexture()
+{
+	return getImageGL("_intern/black.png");
+}
+
+Texture * TextureManagerGL::getDefaultNormalTexture()
+{
+	return getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB });
+}
+
 Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);

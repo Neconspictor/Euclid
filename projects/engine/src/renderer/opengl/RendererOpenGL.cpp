@@ -498,8 +498,8 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 		glCullFace(GL_FRONT);
 
 		// TODO this is needed for rendering shadow maps => put it on a more suitable place
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.0f, 0.0f);
+		//glEnable(GL_POLYGON_OFFSET_FILL);
+		//glPolygonOffset(-2.0f, 0.0f);
 	} else
 	{
 		glDisable(GL_POLYGON_OFFSET_FILL);

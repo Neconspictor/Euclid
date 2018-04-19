@@ -1,4 +1,4 @@
-#include <shader/opengl/PhongTexShaderGL.hpp>
+#include <shader/opengl/PBRShaderGL.hpp>
 #include <glm/glm.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
@@ -6,9 +6,7 @@
 using namespace glm;
 using namespace std;
 
-PhongTexShaderGL::PhongTexShaderGL() : lightColor(1, 1, 1), 
-pointLightRange(0), pointLightShadowMap(nullptr), shadowMap(nullptr), skybox(nullptr), 
-viewPosition(0,0,0), vsMap(nullptr)
+PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nullptr), viewPosition(0,0,0)
 {
 	using types = ShaderAttributeType;
 
@@ -25,7 +23,8 @@ viewPosition(0,0,0), vsMap(nullptr)
 		0.0, 0.5, 0.0, 0.0,
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
-		);
+	);
+
 	attributes.create(types::MAT4, &biasMatrix, "biasMatrix", true);
 	attributes.create(types::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
 	attributes.create(types::MAT4, &lightProjMatrix, "lightProjMatrix", true);
@@ -47,108 +46,74 @@ viewPosition(0,0,0), vsMap(nullptr)
 
 	attributes.create(types::FLOAT, nullptr, "material.shininess");
 	attributes.create(types::TEXTURE2D, nullptr, "material.diffuseMap");
-	attributes.create(types::TEXTURE2D, nullptr, "material.emissionMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap");
-	attributes.create(types::TEXTURE2D, nullptr, "material.reflectionMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.specularMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.shadowMap");
-	attributes.create(types::TEXTURE2D, nullptr, "material.vsMap");
 
-	attributes.create(types::CUBE_MAP, nullptr, "cubeDepthMap");
 	attributes.create(types::CUBE_MAP, nullptr, "skybox");
 }
 
-PhongTexShaderGL::~PhongTexShaderGL() {}
+PBRShaderGL::~PBRShaderGL() {}
 
-const vec3& PhongTexShaderGL::getLightColor() const
+const vec3& PBRShaderGL::getLightColor() const
 {
 	return lightColor;
 }
 
-const vec3& PhongTexShaderGL::getLightPosition() const
+const vec3& PBRShaderGL::getLightPosition() const
 {
 	return dirLight.direction;
 }
 
-void PhongTexShaderGL::setLightColor(vec3 color)
+void PBRShaderGL::setLightColor(vec3 color)
 {
 	lightColor = color;
 }
 
-void PhongTexShaderGL::setLightDirection(vec3 direction)
+void PBRShaderGL::setLightDirection(vec3 direction)
 {
 	dirLight.direction = move(direction);
 }
 
-void PhongTexShaderGL::setLightProjMatrix(mat4 mat)
+void PBRShaderGL::setLightProjMatrix(mat4 mat)
 {
 	lightProjMatrix = move(mat);
 }
 
-void PhongTexShaderGL::setLightSpaceMatrix(mat4 mat)
+void PBRShaderGL::setLightSpaceMatrix(mat4 mat)
 {
 	lightSpaceMatrix = move(mat);
 }
 
-void PhongTexShaderGL::setLightViewMatrix(glm::mat4 mat)
+void PBRShaderGL::setLightViewMatrix(glm::mat4 mat)
 {
 	lightViewMatrix = move(mat);
 }
 
-void PhongTexShaderGL::setPointLightPositions(vec3* positions)
-{
-	for (int i = 0; i < 4; ++i)
-	{
-		pointLights[i].position = positions[i];
-	}
-}
 
-void PhongTexShaderGL::setPointLightRange(float range)
-{
-	this->pointLightRange = range;
-}
 
-void PhongTexShaderGL::setPointLightShadowMap(CubeDepthMap* map)
-{
-	pointLightShadowMap = dynamic_cast<CubeDepthMapGL*>(map);
-	assert(pointLightShadowMap);
-	attributes.setData("cubeDepthMap", dynamic_cast<TextureGL*>(pointLightShadowMap));
-}
-
-void PhongTexShaderGL::setShadowMap(Texture* texture)
+void PBRShaderGL::setShadowMap(Texture* texture)
 {
 	shadowMap = dynamic_cast<TextureGL*>(texture);
 	assert(shadowMap != nullptr);
-	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
+	Texture* black = TextureManagerGL::get()->getDefaultBlackTexture();
 	attributes.setData("material.shadowMap", shadowMap, black);
 }
 
-void PhongTexShaderGL::setSkyBox(CubeMap* sky)
+void PBRShaderGL::setSkyBox(CubeMap* sky)
 {
 	this->skybox = dynamic_cast<CubeMapGL*>(sky);
 	attributes.setData("skybox", dynamic_cast<TextureGL*>(skybox));
 }
 
-void PhongTexShaderGL::setSpotLightDirection(vec3 direction)
-{
-	spotLight.direction = move(direction);
-}
-
-void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
-{ 
-	vsMap = dynamic_cast<TextureGL*>(texture);
-	assert(vsMap != nullptr);
-	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
-	attributes.setData("material.vsMap", vsMap, black);
-}
-
-void PhongTexShaderGL::setViewPosition(vec3 position)
+void PBRShaderGL::setViewPosition(vec3 position)
 {
 	viewPosition = move(position);
-	spotLight.position = viewPosition;
 }
 
-void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
+
+
+void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
@@ -168,19 +133,17 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("normalMatrix", &normalMatrix);
 
 	const Material& material = mesh.getMaterial();
+
 	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
-	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
 	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
-	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
 	TextureGL* normalMap = static_cast<TextureGL*>(material.getNormalMap());
-	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
-	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB }); //brickwall_normal
-	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
+
+	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
+	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
 
 	attributes.setData("material.shininess", &material.getShininessRef());
 	attributes.setData("material.diffuseMap", diffuseMap, black);
-	attributes.setData("material.emissionMap", emissionMap, black);
-	attributes.setData("material.reflectionMap", reflectionMap, black);
 	attributes.setData("material.specularMap", specularMap, black);
 	attributes.setData("material.normalMap", normalMap, default_normal);
 }
+

@@ -1,6 +1,6 @@
 #include <scene/SceneNode.hpp>
 
-SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), shaderType(Shaders::BlinnPhongTex), instanceCount(0)
+SceneNode::SceneNode(Shaders shaderType): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), shaderType(shaderType), instanceCount(0)
 {
 }
 

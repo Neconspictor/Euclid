@@ -2,6 +2,7 @@
 #include <sstream>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <exception/ShaderInitException.hpp>
+#include <shader/opengl/PBRShaderGL.hpp>
 #include <shader/opengl/PhongTexShaderGL.hpp>
 #include <shader/opengl/SimpleColorShaderGL.hpp>
 #include <shader/opengl/SimpleExtrudeShaderGL.hpp>
@@ -47,6 +48,7 @@ void ShaderManagerGL::loadShaders()
 {
 	using s = Shaders;
 	createShader(s::BlinnPhongTex);
+	createShader(s::Pbr);
 	createShader(s::CubeDepthMap);
 	createShader(s::DepthMap);
 	createShader(s::GaussianBlurHorizontal);
@@ -85,6 +87,11 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::BlinnPhongTex: {
 		configs.push_back(make_shared<PhongTexShaderGL>());
 		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl");
+		break;
+	}
+	case s::Pbr: {
+		configs.push_back(make_shared<PBRShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr_vs.glsl", "pbr_fs.glsl");
 		break;
 	}
 	case s::CubeDepthMap: {

@@ -13,12 +13,9 @@ struct DirLight {
 
 struct Material {
     sampler2D diffuseMap;
-    sampler2D emissionMap;
     sampler2D normalMap;
-	sampler2D reflectionMap;
-    sampler2D specularMap;
+	sampler2D specularMap;
 	sampler2D shadowMap;
-	sampler2D vsMap;
     float shininess;
 };
 
