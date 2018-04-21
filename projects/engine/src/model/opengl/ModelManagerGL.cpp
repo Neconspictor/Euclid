@@ -3,6 +3,7 @@
 #include <mesh/opengl/MeshGL.hpp>
 #include <model/opengl/ModelGL.hpp>
 #include <model/opengl/AssimpModelLoader.hpp>
+#include <material/BlinnPhongMaterialLoader.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <mesh/opengl/MeshFactoryGL.hpp>
 
@@ -14,6 +15,7 @@ unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL
 
 ModelManagerGL::ModelManagerGL()
 {
+	materialLoader = make_unique<BlinnPhongMaterialLoader>(TextureManagerGL::get());
 }
 
 ModelManagerGL::~ModelManagerGL()
@@ -131,7 +133,7 @@ Model* ModelManagerGL::getModel(const string& modelName)
 	}
 
 	// else case: assume the model name is a 3d model that can be load from file.
-	models.push_back(move(assimpLoader.loadModel(modelName)));
+	models.push_back(move(assimpLoader.loadModel(modelName, *materialLoader)));
 	ModelGL* result = models.back().get();
 	modelTable[modelName] = result;
 	return result;

@@ -41,8 +41,10 @@ set(
     include/mesh/opengl/MeshFactoryGL.hpp
     
     #material
-    include/material/Material.hpp
+    include/material/AbstractMaterialLoader.hpp
+	include/material/BlinnPhongMaterialLoader.hpp
     include/material/BlinnPhongMaterial.hpp
+    include/material/Material.hpp
     
     #model
     include/model/Model.hpp
@@ -155,6 +157,8 @@ set(
     src/mesh/opengl/MeshFactoryGL.cpp
     
     #material
+	src/material/AbstractMaterialLoader.cpp
+	src/material/BlinnPhongMaterialLoader.cpp
     src/material/BlinnPhongMaterial.cpp
     
     #model

@@ -46,4 +46,5 @@ private:
 	std::vector<std::unique_ptr<ModelGL>> models;
 	std::unordered_map<std::string, ModelGL*> modelTable;
 	AssimpModelLoader assimpLoader;
+	std::unique_ptr<AbstractMaterialLoader> materialLoader;
 };

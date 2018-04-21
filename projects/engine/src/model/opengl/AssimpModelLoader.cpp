@@ -16,7 +16,7 @@ AssimpModelLoader::AssimpModelLoader() : logClient(platform::getLogServer())
 	logClient.setPrefix("AssimpModelLoader");
 }
 
-unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path) const
+unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const AbstractMaterialLoader& materialLoader) const
 {
 	Timer timer;
 	timer.update();
@@ -39,30 +39,30 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path) const
 	}
 
 	vector<unique_ptr<MeshGL>> meshes;
-	processNode(scene->mRootNode, scene, &meshes);
+	processNode(scene->mRootNode, scene, &meshes, materialLoader);
 
 	LOG(logClient, platform::Debug) << "Time needed for mesh loading: " << timer.update();
 
 	return make_unique<ModelGL>(move(meshes));
 }
 
-void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<unique_ptr<MeshGL>>* meshes) const
+void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<unique_ptr<MeshGL>>* meshes, const AbstractMaterialLoader& materialLoader) const
 {
 	// process all the node's meshes (if any)
 	for (GLuint i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes->push_back(move(processMesh(mesh, scene)));
+		meshes->push_back(move(processMesh(mesh, scene, materialLoader)));
 	}
 
 	// then do the same for each of its children
 	for (GLuint i = 0; i < node->mNumChildren; ++i)
 	{
-		processNode(node->mChildren[i], scene, meshes);
+		processNode(node->mChildren[i], scene, meshes, materialLoader);
 	}
 }
 
-unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
+unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene, const AbstractMaterialLoader& materialLoader) const
 {
 	// Vertex and index count can be large -> store temp objects on heap
 	auto vertices = make_unique<vector<Vertex>>();
@@ -74,9 +74,6 @@ unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* s
 	// It is assumed that the mesh is triangulated, so each face has exactly three indices.
 	//vertices->reserve(mesh->mNumVertices);
 	//indices->reserve(mesh->mNumFaces * 3);
-
-	unique_ptr<BlinnPhongMaterial> material = make_unique<BlinnPhongMaterial>();
-	TextureManagerGL* manager = TextureManagerGL::get();
 
 	bool tangentData = mesh->mTangents != nullptr;
 
@@ -138,59 +135,8 @@ unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* s
 		}
 	}
 
-	// process material (if any available)
-	if (mesh->mMaterialIndex >= 0)
-	{
-		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-		TextureData data;
-		data.useSRGB = true;
-		data.generateMipMaps = true;
-		data.uvTechnique = Repeat;
-		data.minFilter = Linear_Linear;
-		data.magFilter = Bilinear;
-		data.colorspace = RGBA;
 
-		// a material can have more than one diffuse/specular/normal map,
-		// but we only use the first one by now
-		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE, data);
-		if (diffuseMaps.size())
-		{
-			material->setDiffuseMap(manager->getImage(diffuseMaps[0], data));
-		}
-		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE, data);
-		if (emissionMaps.size())
-		{
-			material->setEmissionMap(manager->getImage(emissionMaps[0], data));
-		}
-
-		data.useSRGB = false;
-		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
-		if (specularMaps.size())
-		{
-			material->setSpecularMap(manager->getImage(specularMaps[0], data));
-		}
-
-		data.useSRGB = false;
-		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
-		if (reflectionMaps.size())
-		{
-			material->setReflectionMap(manager->getImage(reflectionMaps[0], data));
-		}
-
-		data.useSRGB = false;
-		data.generateMipMaps = true;
-		data.magFilter = Bilinear;
-		data.minFilter = Linear_Linear;
-		data.colorspace = RGBA;
-		data.uvTechnique = Repeat;
-		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
-		if (normalMaps.size())
-		{
-			material->setNormalMap(manager->getImage(normalMaps[0], data));
-		}
-	}
-
-	material->setShininess(32);
+	unique_ptr<Material> material = materialLoader.loadShadingMaterial(mesh, scene);
 
 	unique_ptr<MeshGL> result  = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices, 
 											indices->data(), mesh->mNumFaces * 3);
@@ -198,19 +144,4 @@ unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* s
 	result->setMaterial(move(material));
 
 	return move(result);
-}
-
-vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data)
-{
-	vector<string> textures;
-	for (GLuint i = 0; i < mat->GetTextureCount(type); ++i)
-	{
-		aiString texture;
-		mat->GetTexture(type, i, &texture);
-
-		TextureManagerGL::get()->getImage(texture.C_Str(), data);
-		textures.push_back(texture.C_Str());
-	}
-
-	return textures;
 }
