@@ -30,7 +30,7 @@ public:
 	 * Provides access to a mesh by its name.
 	 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 	 */
-	virtual Model* getModel(const std::string&  meshName) = 0;
+	virtual Model* getModel(const std::string&  meshName, Shaders materialShader) = 0;
 
 	/**
 	 * loads all meshes

@@ -25,7 +25,7 @@ ModelDrawerGL::~ModelDrawerGL()
 
 void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 {
-	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME);
+	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	assert(texture);
@@ -71,7 +71,7 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
@@ -84,7 +84,7 @@ void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformD
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
@@ -147,7 +147,7 @@ void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData&
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
+	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

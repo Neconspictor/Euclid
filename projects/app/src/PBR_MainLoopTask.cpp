@@ -26,7 +26,7 @@ using namespace platform;
 PBR_MainLoopTask::PBR_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), blurEffect(nullptr), isRunning(true), logClient(getLogServer()), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr)
+	skyBox("misc/SkyBoxPlane.obj", Shaders::BlinnPhongTex), ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -42,21 +42,21 @@ PBR_MainLoopTask::PBR_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSys
 
 SceneNode* PBR_MainLoopTask::createShadowScene()
 {
-	nodes.push_back(SceneNode(Shaders::Pbr));
+	nodes.push_back(SceneNode());
 	SceneNode* root = &nodes.back();
 
-	nodes.push_back(SceneNode(Shaders::Pbr));
+	nodes.push_back(SceneNode());
 	SceneNode* ground = &nodes.back();
 	root->addChild(ground);
 
-	nodes.push_back(SceneNode(Shaders::Pbr));
+	nodes.push_back(SceneNode());
 	SceneNode* cube1 = &nodes.back();
 	root->addChild(cube1);
 
-	vobs.push_back(Vob("misc/textured_plane.obj"));
+	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::BlinnPhongTex));
 	ground->setVob(&vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
-	vobs.push_back(Vob("normal_map_test/normal_map_test.obj"));
+	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::BlinnPhongTex));
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });

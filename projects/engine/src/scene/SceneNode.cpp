@@ -1,19 +1,19 @@
 #include <scene/SceneNode.hpp>
 
-SceneNode::SceneNode(Shaders shaderType): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), shaderType(shaderType), instanceCount(0)
+SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), instanceCount(0)
 {
 }
 
 SceneNode::SceneNode(const SceneNode& copy) : 
 	parent(copy.parent), vob(copy.vob), worldTrafo(copy.worldTrafo), localTrafo(copy.localTrafo),
-	childs(copy.childs), drawingType(copy.drawingType), shaderType(copy.shaderType), instanceCount(copy.instanceCount)
+	childs(copy.childs), drawingType(copy.drawingType), instanceCount(copy.instanceCount)
 {
 
 }
 
 SceneNode::SceneNode(SceneNode&& copy) :
 	parent(copy.parent), vob(copy.vob), worldTrafo(copy.worldTrafo), localTrafo(copy.localTrafo),
-	childs(copy.childs), drawingType(copy.drawingType), shaderType(copy.shaderType), instanceCount(copy.instanceCount)
+	childs(copy.childs), drawingType(copy.drawingType), instanceCount(copy.instanceCount)
 {
 	copy.parent = nullptr;
 	copy.vob = nullptr;
@@ -29,7 +29,6 @@ SceneNode& SceneNode::operator=(const SceneNode& copy)
 	localTrafo = copy.localTrafo;
 	childs = copy.childs;
 	drawingType = copy.drawingType;
-	shaderType = copy.shaderType;
 	instanceCount = copy.instanceCount;
 	return *this;
 }
@@ -43,7 +42,6 @@ SceneNode&& SceneNode::operator=(SceneNode&& copy)
 	localTrafo = std::move(copy.localTrafo);
 	childs = move(copy.childs);
 	drawingType = copy.drawingType;
-	shaderType = copy.shaderType;
 	instanceCount = copy.instanceCount;
 
 	copy.parent = nullptr;
@@ -114,7 +112,7 @@ void SceneNode::draw(Renderer3D* renderer, ModelDrawer* drawer, const glm::mat4&
 
 	if (!vob) return;
 
-	Shaders type = shaderType;
+	Shaders type = vob->getMaterialShaderType();
 	if (forcedShader != Shaders::Unknown)
 		type = forcedShader;
 
@@ -143,11 +141,6 @@ void SceneNode::setVob(Vob* vob)
 void SceneNode::setDrawingType(DrawingTypes type)
 {
 	drawingType = type;
-}
-
-void SceneNode::setShader(Shaders type)
-{
-	shaderType = type;
 }
 
 const glm::mat4& SceneNode::getWorldTrafo() const

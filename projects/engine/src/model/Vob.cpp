@@ -4,25 +4,35 @@
 using namespace std;
 using namespace glm;
 
-Vob::Vob(string meshName)
+Vob::Vob(string meshName, Shaders materialShaderType)
 {
 	this->meshName = move(meshName);
+	this->materialShaderType = materialShaderType;
 	position = { 0,0,0 };
 	scale = { 1,1,1 };
 	orientation = { 1,0,0,0 };
 }
 
-Vob::Vob(const Vob& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
-scale(other.scale), trafo(other.trafo)
+Vob::Vob(const Vob& other) : meshName(other.meshName), 
+materialShaderType(other.materialShaderType),
+orientation(other.orientation), 
+position(other.position),
+scale(other.scale), 
+trafo(other.trafo)
 {}
 
-Vob::Vob(Vob&& other) : meshName(other.meshName), orientation(other.orientation), position(other.position),
-scale(other.scale), trafo(other.trafo)
+Vob::Vob(Vob&& other) : meshName(other.meshName), 
+materialShaderType(other.materialShaderType),
+orientation(other.orientation), 
+position(other.position),
+scale(other.scale), 
+trafo(other.trafo)
 {}
 
 Vob& Vob::operator=(const Vob& other)
 {
 	meshName = other.meshName;
+	materialShaderType = other.materialShaderType;
 	orientation = other.orientation;
 	position = other.position;
 	scale = other.scale;
@@ -33,6 +43,7 @@ Vob& Vob::operator=(const Vob& other)
 Vob& Vob::operator=(Vob&& other)
 {
 	meshName = move(other.meshName);
+	materialShaderType = other.materialShaderType;
 	orientation = move(other.orientation);
 	position = move(other.position);
 	scale = move(other.scale);
@@ -55,8 +66,12 @@ void Vob::calcTrafo()
 
 string const& Vob::getMeshName() const
 {
-	
 	return meshName;
+}
+
+Shaders Vob::getMaterialShaderType() const
+{
+	return materialShaderType;
 }
 
 vec3 Vob::getPosition() const

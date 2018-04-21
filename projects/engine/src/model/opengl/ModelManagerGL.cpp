@@ -6,6 +6,8 @@
 #include <material/BlinnPhongMaterialLoader.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <mesh/opengl/MeshFactoryGL.hpp>
+#include <sstream>
+#include <string>
 
 using namespace std;
 using namespace glm;
@@ -13,9 +15,10 @@ using namespace glm;
 
 unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>();
 
-ModelManagerGL::ModelManagerGL()
+ModelManagerGL::ModelManagerGL() : 
+	pbrMaterialLoader(TextureManagerGL::get()),
+	blinnPhongMaterialLoader(TextureManagerGL::get())
 {
-	materialLoader = make_unique<BlinnPhongMaterialLoader>(TextureManagerGL::get());
 }
 
 ModelManagerGL::~ModelManagerGL()
@@ -114,7 +117,7 @@ Model* ModelManagerGL::getSprite()
 	return result;
 }
 
-Model* ModelManagerGL::getModel(const string& modelName)
+Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 {
 	auto it = modelTable.find(modelName);
 	if (it != modelTable.end())
@@ -133,7 +136,24 @@ Model* ModelManagerGL::getModel(const string& modelName)
 	}
 
 	// else case: assume the model name is a 3d model that can be load from file.
-	models.push_back(move(assimpLoader.loadModel(modelName, *materialLoader)));
+
+	AbstractMaterialLoader* materialLoader = nullptr;
+	if (materialShader == Shaders::BlinnPhongTex) {
+		materialLoader = &blinnPhongMaterialLoader;
+	}
+	else if (materialShader == Shaders::Pbr) {
+		materialLoader = &pbrMaterialLoader;
+	}
+	else {
+		std::stringstream msg;
+		msg << "No suitable material loader found for shader type: " << materialShader << std::endl;
+
+		throw std::runtime_error(msg.str());
+	}
+
+
+
+	models.push_back(move(assimpLoader.loadModel(modelName, blinnPhongMaterialLoader)));
 	ModelGL* result = models.back().get();
 	modelTable[modelName] = result;
 	return result;

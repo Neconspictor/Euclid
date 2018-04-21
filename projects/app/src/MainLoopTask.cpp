@@ -25,9 +25,9 @@ using namespace platform;
 //misc/SkyBoxPlane.obj
 MainLoopTask::MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), asteriodSize(0), asteriodTrafos(nullptr), blurEffect(nullptr), isRunning(true), logClient(getLogServer()),
-	nanosuitModel("nanosuit_reflection/nanosuit.obj"), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
+	nanosuitModel("nanosuit_reflection/nanosuit.obj", Shaders::BlinnPhongTex), panoramaSky(nullptr), pointShadowMap(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj"), ui(nullptr), vsMap(nullptr), vsMapCache(nullptr)
+	skyBox("misc/SkyBoxPlane.obj", Shaders::BlinnPhongTex), ui(nullptr), vsMap(nullptr), vsMapCache(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -45,14 +45,14 @@ SceneNode* MainLoopTask::createAsteriodField()
 {
 	ModelManager* modelManager = renderer->getModelManager();
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* root = &nodes.back();
 	
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* planetNode = &nodes.back();
 	root->addChild(planetNode);
 
-	vobs.push_back(Vob("planet/planet.obj"));
+	vobs.push_back(Vob("planet/planet.obj", Shaders::BlinnPhongTex));
 	planetNode->setVob(&vobs.back());
 	planetNode->getVob()->setPosition({ 0.0f, 0.0f, 0.0f });
 	planetNode->setDrawingType(DrawingTypes::SOLID);
@@ -85,13 +85,13 @@ SceneNode* MainLoopTask::createAsteriodField()
 		asteriodTrafos[i] = model;
 	}
 
-	Model* instanced = modelManager->getModel("rock/rock.obj");
+	Model* instanced = modelManager->getModel("rock/rock.obj", Shaders::BlinnPhongTex);
 	modelManager->useInstances(instanced, asteriodTrafos, asteriodSize);
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* asteriodNode = &nodes.back();
 	root->addChild(asteriodNode);
-	vobs.push_back(Vob("rock/rock.obj"));
+	vobs.push_back(Vob("rock/rock.obj", Shaders::BlinnPhongTex));
 	asteriodNode->setVob(&vobs.back());
 	asteriodNode->setDrawingType(DrawingTypes::INSTANCED);
 	asteriodNode->setInstanceCount(asteriodSize);
@@ -101,21 +101,21 @@ SceneNode* MainLoopTask::createAsteriodField()
 
 SceneNode* MainLoopTask::createShadowScene()
 {
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* root = &nodes.back();
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* ground = &nodes.back();
 	root->addChild(ground);
 
-	nodes.push_back(SceneNode(Shaders::BlinnPhongTex));
+	nodes.push_back(SceneNode());
 	SceneNode* cube1 = &nodes.back();
 	root->addChild(cube1);
 
-	vobs.push_back(Vob("misc/textured_plane.obj"));
+	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::BlinnPhongTex));
 	ground->setVob(&vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
-	vobs.push_back(Vob("normal_map_test/normal_map_test.obj"));
+	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::BlinnPhongTex));
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });

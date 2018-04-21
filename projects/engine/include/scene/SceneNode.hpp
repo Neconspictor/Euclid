@@ -8,7 +8,7 @@
 class SceneNode
 {
 public:
-	explicit SceneNode(Shaders shaderType);
+	explicit SceneNode();
 
 	SceneNode(const SceneNode& copy);
 	SceneNode(SceneNode&& copy);
@@ -33,7 +33,6 @@ public:
 	void setVob(Vob* vob);
 
 	void setDrawingType(DrawingTypes type);
-	void setShader(Shaders type);
 
 	const glm::mat4& getWorldTrafo() const;
 	const glm::mat4& getLocalTrafo() const;
@@ -45,6 +44,5 @@ protected:
 	glm::mat4 localTrafo;
 	std::vector<SceneNode*> childs;
 	DrawingTypes drawingType;
-	Shaders shaderType;
 	int instanceCount;
 };

@@ -42,9 +42,11 @@ set(
     
     #material
     include/material/AbstractMaterialLoader.hpp
-	include/material/BlinnPhongMaterialLoader.hpp
     include/material/BlinnPhongMaterial.hpp
+	include/material/BlinnPhongMaterialLoader.hpp
     include/material/Material.hpp
+	include/material/PbrMaterial.hpp
+	include/material/PbrMaterialLoader.hpp
     
     #model
     include/model/Model.hpp
@@ -160,6 +162,8 @@ set(
 	src/material/AbstractMaterialLoader.cpp
 	src/material/BlinnPhongMaterialLoader.cpp
     src/material/BlinnPhongMaterial.cpp
+	src/material/PbrMaterial.cpp
+	src/material/PbrMaterialLoader.cpp
     
     #model
     src/model/Model.cpp

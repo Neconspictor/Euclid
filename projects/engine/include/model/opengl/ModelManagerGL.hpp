@@ -4,6 +4,8 @@
 #include <model/opengl/ModelGL.hpp>
 #include <model/ModelManager.hpp>
 #include <model/opengl/AssimpModelLoader.hpp>
+#include <material/PbrMaterialLoader.hpp>
+#include <material/BlinnPhongMaterialLoader.hpp>
 #include <memory>
 
 class MeshGL;
@@ -20,7 +22,7 @@ public:
 
 	virtual Model* getSkyBox() override;
 
-	Model* getModel(const std::string& meshName) override;
+	Model* getModel(const std::string& meshName, Shaders materialShader) override;
 	Model* getPositionNormalTexCube() override;
 
 	/*
@@ -46,5 +48,6 @@ private:
 	std::vector<std::unique_ptr<ModelGL>> models;
 	std::unordered_map<std::string, ModelGL*> modelTable;
 	AssimpModelLoader assimpLoader;
-	std::unique_ptr<AbstractMaterialLoader> materialLoader;
+	PbrMaterialLoader pbrMaterialLoader;
+	BlinnPhongMaterialLoader blinnPhongMaterialLoader;
 };

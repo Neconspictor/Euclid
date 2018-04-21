@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
+#include <shader/Shader.hpp>
 
 /**
  * A model is an object in a 3d space, thus it consists of a mesh representing the shape
@@ -11,7 +12,7 @@
 class Vob
 {
 public:
-	explicit Vob(std::string meshName);
+	explicit Vob(std::string meshName, Shaders materialShaderType);
 	Vob(const Vob& other);
 	Vob(Vob&& other);
 	Vob& operator=(const Vob& other);
@@ -24,6 +25,12 @@ public:
 	 * based on its position, scale and rotation.
 	 */
 	void calcTrafo();
+
+	/**
+	* Provides the shader type of the mesh of this vob.
+	*/
+	Shaders getMaterialShaderType() const;
+
 
 	/** 
 	 * Provides the name of the 3d mesh this model uses.
@@ -61,6 +68,7 @@ public:
 
 protected:
 	std::string meshName;
+	Shaders materialShaderType;
 	glm::quat orientation;
 	glm::vec3 position;
 	glm::vec3 scale;
