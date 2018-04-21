@@ -8,7 +8,6 @@
 #include <camera/FPQuaternionCamera.hpp>
 #include <shader/NormalsShader.hpp>
 #include <camera/FPCamera.hpp>
-#include <model/PhongModel.hpp>
 #include <shader/PhongTextureShader.hpp>
 #include <shader/SkyBoxShader.hpp>
 #include <platform/SystemUI.hpp>

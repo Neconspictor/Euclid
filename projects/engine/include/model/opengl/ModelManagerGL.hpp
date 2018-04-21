@@ -1,16 +1,20 @@
 #pragma once
-#include <memory>
+#include <vector>
 #include <unordered_map>
 #include <model/opengl/ModelGL.hpp>
 #include <model/ModelManager.hpp>
 #include <model/opengl/AssimpModelLoader.hpp>
+#include <memory>
 
 class MeshGL;
 
 class ModelManagerGL : public ModelManager
 {
 public:
-	~ModelManagerGL() override;
+
+	ModelManagerGL();
+
+	virtual ~ModelManagerGL() override;
 
 	static ModelManagerGL* get();
 
@@ -33,10 +37,13 @@ public:
 	virtual void useInstances(Model* model, glm::mat4* modelMatrices, unsigned int amount) override;
 
 private:
-	ModelManagerGL();
+
+	ModelManagerGL(const ModelManagerGL&) = delete;
+	ModelManagerGL& operator=(const ModelManagerGL&) = delete;
+
 	
 	static std::unique_ptr<ModelManagerGL> instance;
-	std::list<ModelGL> models;
+	std::vector<std::unique_ptr<ModelGL>> models;
 	std::unordered_map<std::string, ModelGL*> modelTable;
 	AssimpModelLoader assimpLoader;
 };

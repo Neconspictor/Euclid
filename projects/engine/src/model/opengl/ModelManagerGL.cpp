@@ -9,7 +9,8 @@
 using namespace std;
 using namespace glm;
 
-unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>(ModelManagerGL());
+
+unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>();
 
 ModelManagerGL::ModelManagerGL()
 {
@@ -29,12 +30,18 @@ Model* ModelManagerGL::getSkyBox()
 		size_t vertexCount = sizeof(SampleMeshes::skyBoxVertices);
 		size_t indexCount = sizeof(SampleMeshes::skyBoxIndices);
 
-		MeshGL mesh = MeshFactoryGL::createPosition((const Vertex*)SampleMeshes::skyBoxVertices, vertexCount,
+		unique_ptr<MeshGL> mesh = MeshFactoryGL::createPosition((const Vertex*)SampleMeshes::skyBoxVertices, vertexCount,
 			SampleMeshes::skyBoxIndices, indexCount);
-		models.push_back(ModelGL(vector<MeshGL>{mesh}));
-		ModelGL* result = &models.back();
+		
+		vector<unique_ptr<MeshGL>> meshes;
+		meshes.push_back(move(mesh));
+
+		auto model = make_unique<ModelGL>(move(meshes));
+
+		models.push_back(move(model));
+		ModelGL* result = models.back().get();
 		modelTable[SKYBOX_MODEL_NAME] = result;
-		return &models.back();
+		return result;
 	}
 
 	return dynamic_cast<Model*>(it->second);
@@ -89,13 +96,20 @@ Model* ModelManagerGL::getSprite()
 	indices.push_back(2);
 	indices.push_back(3);
 
-	MeshGL mesh = MeshFactoryGL::createPositionUV(vertices.data(), vertices.size(), 
+	unique_ptr<MeshGL> mesh = MeshFactoryGL::createPositionUV(vertices.data(), vertices.size(), 
 										indices.data(), indices.size());
 
-	models.push_back(ModelGL(vector<MeshGL>{mesh}));
-	ModelGL* result = &models.back();
+
+	vector<unique_ptr<MeshGL>> meshes;
+	meshes.push_back(move(mesh));
+
+	auto model = make_unique<ModelGL>(move(meshes));
+
+	models.push_back(move(model));
+
+	ModelGL* result = models.back().get();
 	modelTable[SPRITE_MODEL_NAME] = result;
-	return &models.back();
+	return result;
 }
 
 Model* ModelManagerGL::getModel(const string& modelName)
@@ -117,10 +131,10 @@ Model* ModelManagerGL::getModel(const string& modelName)
 	}
 
 	// else case: assume the model name is a 3d model that can be load from file.
-	models.push_back(assimpLoader.loadModel(modelName));
-	ModelGL* result = &models.back();
+	models.push_back(move(assimpLoader.loadModel(modelName)));
+	ModelGL* result = models.back().get();
 	modelTable[modelName] = result;
-	return &models.back();
+	return result;
 }
 
 
@@ -155,19 +169,31 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 		indices.push_back(SampleMeshes::cubePositionNormalTexIndices[i]);
 	}
 
-	MeshGL mesh = MeshFactoryGL::create(vertices.data(), vertices.size(), 
+	unique_ptr<MeshGL> mesh = MeshFactoryGL::create(vertices.data(), vertices.size(),
 										indices.data(), indices.size());
-	Material& material = *mesh.getMaterial();
-	TextureManagerGL* textureManager = TextureManagerGL::get();
-	material.setDiffuseMap(textureManager->getImage("container.png"));
-	material.setEmissionMap(textureManager->getImage("matrix.jpg"));
-	material.setSpecularMap(textureManager->getImage("container_s.png"));
-	material.setShininess(32);
 
-	models.push_back(ModelGL(vector<MeshGL>({ mesh })));
-	modelTable[SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = &models.back();
 
-	return &models.back();
+	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh->getMaterial().get());
+
+	if (material) {
+		TextureManagerGL* textureManager = TextureManagerGL::get();
+		material->setDiffuseMap(textureManager->getImage("container.png"));
+		material->setEmissionMap(textureManager->getImage("matrix.jpg"));
+		material->setSpecularMap(textureManager->getImage("container_s.png"));
+		material->setShininess(32);
+	}
+
+	vector<unique_ptr<MeshGL>> meshes;
+	meshes.push_back(move(mesh));
+
+	auto model = make_unique<ModelGL>(move(meshes));
+
+	models.push_back(move(model));
+
+	ModelGL* result = models.back().get();
+	modelTable[SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = result;
+
+	return result;
 }
 
 ModelManagerGL* ModelManagerGL::get()
@@ -179,6 +205,8 @@ void ModelManagerGL::loadModels()
 {
 	//TODO
 	getPositionNormalTexCube();
+	
+	
 	//AssimpModelLoader::loadModel("");
 }
 

@@ -12,15 +12,15 @@ public:
 	using Vertex = MeshGL::Vertex;
 
 	AssimpModelLoader();
-	ModelGL loadModel(const std::string& path) const;
+	std::unique_ptr<ModelGL> loadModel(const std::string& path) const;
 
 private:
-	void processNode(aiNode* node, const aiScene* scene, std::vector<MeshGL>* resultMeshes) const;
+	void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes) const;
 
 	/**
 	 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 	 */
-	MeshGL processMesh(aiMesh* mesh, const aiScene* scene) const;
+	std::unique_ptr<MeshGL> processMesh(aiMesh* mesh, const aiScene* scene) const;
 
 	static std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data);
 

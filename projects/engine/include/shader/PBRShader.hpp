@@ -23,5 +23,5 @@ public:
 	virtual void setSkyBox(CubeMap* sky) = 0;
 	virtual void setShadowMap(Texture* texture) = 0;
 
-	virtual void setViewPosition(glm::vec3 position) = 0;
+	virtual void setCameraPosition(glm::vec3 position) = 0;
 };

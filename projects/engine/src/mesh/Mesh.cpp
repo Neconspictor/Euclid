@@ -6,21 +6,9 @@ Mesh::Mesh() : indexSize(0)
 {
 }
 
-Mesh::Mesh(const Mesh& other)
+Mesh::Mesh(Mesh&& other) : indexSize(other.indexSize)
 {
-	this->material = other.material;
-	this->indexSize = other.indexSize;
-}
-
-Mesh::Mesh(Mesh&& other) : material(other.material), indexSize(other.indexSize)
-{
-}
-
-Mesh& Mesh::operator=(const Mesh& o)
-{
-	this->material = o.material;
-	indexSize = o.indexSize;
-	return *this;
+	material = move(other.material);
 }
 
 Mesh& Mesh::operator=(Mesh&& o)
@@ -34,14 +22,9 @@ Mesh::~Mesh()
 {
 }
 
-Material* Mesh::getMaterial()
+reference_wrapper<Material> Mesh::getMaterial() const
 {
-	return &material;
-}
-
-const Material& Mesh::getMaterial() const
-{
-	return material;
+	return std::ref(*material);
 }
 
 void Mesh::setIndexSize(uint32_t indexSize)
@@ -49,7 +32,7 @@ void Mesh::setIndexSize(uint32_t indexSize)
 	this->indexSize = indexSize;
 }
 
-void Mesh::setMaterial(Material material)
+void Mesh::setMaterial(std::unique_ptr<Material> material)
 {
 	this->material = move(material);
 }

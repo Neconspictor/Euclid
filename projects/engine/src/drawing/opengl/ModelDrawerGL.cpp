@@ -61,9 +61,9 @@ void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	shader->setTransformData(data);
 	//shader->setOffscreenBuffer(texture->getTexture());
-	for (Mesh* mesh : spriteModel->getMeshes())
+	for (auto& mesh : spriteModel->getMeshes())
 	{
-		shader->draw(*mesh);
+		shader->draw(mesh);
 	}
 }
 
@@ -74,9 +74,9 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
-	for (Mesh* mesh : model->getMeshes())
+	for (auto& mesh : model->getMeshes())
 	{
-		shader->draw(*mesh);
+		shader->draw(mesh);
 	}
 }
 
@@ -88,9 +88,9 @@ void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformD
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
-	for (Mesh* mesh : model->getMeshes())
+	for (auto& mesh : model->getMeshes())
 	{
-		shader->drawInstanced(*mesh, amount);
+		shader->drawInstanced(mesh, amount);
 	}
 }
 
@@ -152,8 +152,8 @@ void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData&
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	shader->setTransformData(data);
-	for (Mesh* mesh : model->getMeshes())
+	for (auto& mesh : model->getMeshes())
 	{
-		shader->draw(*mesh);
+		shader->draw(mesh);
 	}
 }

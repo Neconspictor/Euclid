@@ -167,17 +167,17 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
 
-	const Material& material = mesh.getMaterial();
-	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
-	TextureGL* reflectionMap = static_cast<TextureGL*>(material.getReflectionMap());
-	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
-	TextureGL* emissionMap = static_cast<TextureGL*>(material.getEmissionMap());
-	TextureGL* normalMap = static_cast<TextureGL*>(material.getNormalMap());
+	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh.getMaterial().get());
+	TextureGL* diffuseMap = static_cast<TextureGL*>(material->getDiffuseMap());
+	TextureGL* reflectionMap = static_cast<TextureGL*>(material->getReflectionMap());
+	TextureGL* specularMap = static_cast<TextureGL*>(material->getSpecularMap());
+	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
+	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
 	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB }); //brickwall_normal
 	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
 
-	attributes.setData("material.shininess", &material.getShininessRef());
+	attributes.setData("material.shininess", &material->getShininessRef());
 	attributes.setData("material.diffuseMap", diffuseMap, black);
 	attributes.setData("material.emissionMap", emissionMap, black);
 	attributes.setData("material.reflectionMap", reflectionMap, black);

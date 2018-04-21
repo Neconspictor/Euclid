@@ -10,9 +10,7 @@ public:
 	struct DirLight
 	{
 		glm::vec3 direction;
-		glm::vec4 ambient;
-		glm::vec4 diffuse;
-		glm::vec4 specular;
+		glm::vec3 color;
 	};
 
 	PBRShaderGL();
@@ -29,7 +27,7 @@ public:
 	virtual void setShadowMap(Texture* texture) override;
 	virtual void setSkyBox(CubeMap* sky) override;
 
-	virtual void setViewPosition(glm::vec3 position) override;
+	virtual void setCameraPosition(glm::vec3 position) override;
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
@@ -47,5 +45,5 @@ private:
 	CubeMapGL* skybox;
 
 	glm::mat4 transform;
-	glm::vec3 viewPosition;
+	glm::vec3 cameraPos;
 };

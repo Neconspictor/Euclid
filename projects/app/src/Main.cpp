@@ -171,6 +171,9 @@ int main(int argc, char** argv)
 
 		shared_ptr<PBR_MainLoopTask> mainLoop = make_shared<PBR_MainLoopTask>(PBR_MainLoopTask(engine.get(),
 			video->getWindow(), video->getWindowSystem(), renderer.get()));
+
+		//shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(MainLoopTask(engine.get(),
+		//		video->getWindow(), video->getWindowSystem(), renderer.get()));
 		
 		mainLoop->setUI(ui);
 		mainLoop->init();

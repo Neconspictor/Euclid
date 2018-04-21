@@ -16,7 +16,7 @@ AssimpModelLoader::AssimpModelLoader() : logClient(platform::getLogServer())
 	logClient.setPrefix("AssimpModelLoader");
 }
 
-ModelGL AssimpModelLoader::loadModel(const string& path) const
+unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path) const
 {
 	Timer timer;
 	timer.update();
@@ -38,21 +38,21 @@ ModelGL AssimpModelLoader::loadModel(const string& path) const
 		throw runtime_error(ss.str());
 	}
 
-	vector<MeshGL> meshes;
+	vector<unique_ptr<MeshGL>> meshes;
 	processNode(scene->mRootNode, scene, &meshes);
 
 	LOG(logClient, platform::Debug) << "Time needed for mesh loading: " << timer.update();
 
-	return ModelGL(move(meshes));
+	return make_unique<ModelGL>(move(meshes));
 }
 
-void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<MeshGL>* meshes) const
+void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<unique_ptr<MeshGL>>* meshes) const
 {
 	// process all the node's meshes (if any)
 	for (GLuint i = 0; i < node->mNumMeshes; ++i)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes->push_back(processMesh(mesh, scene));
+		meshes->push_back(move(processMesh(mesh, scene)));
 	}
 
 	// then do the same for each of its children
@@ -62,7 +62,7 @@ void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<M
 	}
 }
 
-MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
+unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 {
 	// Vertex and index count can be large -> store temp objects on heap
 	auto vertices = make_unique<vector<Vertex>>();
@@ -75,7 +75,7 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 	//vertices->reserve(mesh->mNumVertices);
 	//indices->reserve(mesh->mNumFaces * 3);
 
-	Material material;
+	unique_ptr<BlinnPhongMaterial> material = make_unique<BlinnPhongMaterial>();
 	TextureManagerGL* manager = TextureManagerGL::get();
 
 	bool tangentData = mesh->mTangents != nullptr;
@@ -155,26 +155,26 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		vector<string> diffuseMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE, data);
 		if (diffuseMaps.size())
 		{
-			material.setDiffuseMap(manager->getImage(diffuseMaps[0], data));
+			material->setDiffuseMap(manager->getImage(diffuseMaps[0], data));
 		}
 		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE, data);
 		if (emissionMaps.size())
 		{
-			material.setEmissionMap(manager->getImage(emissionMaps[0], data));
+			material->setEmissionMap(manager->getImage(emissionMaps[0], data));
 		}
 
 		data.useSRGB = false;
 		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
 		if (specularMaps.size())
 		{
-			material.setSpecularMap(manager->getImage(specularMaps[0], data));
+			material->setSpecularMap(manager->getImage(specularMaps[0], data));
 		}
 
 		data.useSRGB = false;
 		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
 		if (reflectionMaps.size())
 		{
-			material.setReflectionMap(manager->getImage(reflectionMaps[0], data));
+			material->setReflectionMap(manager->getImage(reflectionMaps[0], data));
 		}
 
 		data.useSRGB = false;
@@ -186,38 +186,18 @@ MeshGL AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene) const
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{
-			material.setNormalMap(manager->getImage(normalMaps[0], data));
+			material->setNormalMap(manager->getImage(normalMaps[0], data));
 		}
 	}
 
-	material.setShininess(32);
+	material->setShininess(32);
 
-	MeshGL result  = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices, 
+	unique_ptr<MeshGL> result  = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices, 
 											indices->data(), mesh->mNumFaces * 3);
-	
-	
-	
-	/*MeshFactoryGL::SimpleArray<vec3> positionsArray;
-	positionsArray.content = (vec3*) mesh->mVertices;
-	positionsArray.size = mesh->mNumVertices;
 
-	MeshFactoryGL::SimpleArray<vec3> normalsArray;
-	normalsArray.content = (vec3*)mesh->mNormals;
-	normalsArray.size = mesh->mNumVertices;
+	result->setMaterial(move(material));
 
-	MeshFactoryGL::SimpleArray<vec2> texCoordsArray;
-	texCoordsArray.content = texCoords->data();
-	texCoordsArray.size = texCoords->size();
-
-	MeshFactoryGL::SimpleArray<unsigned int> indexArray;
-	indexArray.content = indices->data();
-	indexArray.size = indices->size();*/
-
-	//MeshGL result = MeshFactoryGL::create(positionsArray, normalsArray, texCoordsArray, indexArray);
-
-	result.setMaterial(move(material));
-
-	return result;
+	return move(result);
 }
 
 vector<string> AssimpModelLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data)

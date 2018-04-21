@@ -6,7 +6,7 @@
 using namespace glm;
 using namespace std;
 
-PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nullptr), viewPosition(0,0,0)
+PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nullptr), cameraPos(0,0,0)
 {
 	using types = ShaderAttributeType;
 
@@ -30,24 +30,22 @@ PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nul
 	attributes.create(types::MAT4, &lightProjMatrix, "lightProjMatrix", true);
 	attributes.create(types::MAT4, &lightViewMatrix, "lightViewMatrix", true);
 
-	attributes.create(types::VEC3, &viewPosition, "viewPos", true);
+	attributes.create(types::VEC3, &cameraPos, "cameraPos", true);
 
-	dirLight.ambient = { 0.2f, 0.2f, 0.2f, 1.0f };
-	dirLight.diffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	dirLight.specular = { 0.3f, 0.3f, 0.3f, 1.0f };
+
+	dirLight.color = { 0.5f, 0.5f, 0.5f};
 	dirLight.direction = { 0,1,0 };
 
 	attributes.create(types::VEC3, &dirLight.direction, "dirLight.direction", true);
-	attributes.create(types::VEC4, &dirLight.ambient, "dirLight.ambient", true);
-	attributes.create(types::VEC4, &dirLight.diffuse, "dirLight.diffuse", true);
-	attributes.create(types::VEC4, &dirLight.specular, "dirLight.specular", true);
+	attributes.create(types::VEC4, &dirLight.color, "dirLight.color", true);
 
 	//attributes.create(types::FLOAT, &pointLightRange, "range", true);
 
-	attributes.create(types::FLOAT, nullptr, "material.shininess");
-	attributes.create(types::TEXTURE2D, nullptr, "material.diffuseMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.albedoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.aoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.metallicMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap");
-	attributes.create(types::TEXTURE2D, nullptr, "material.specularMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.shadowMap");
 
 	attributes.create(types::CUBE_MAP, nullptr, "skybox");
@@ -106,9 +104,9 @@ void PBRShaderGL::setSkyBox(CubeMap* sky)
 	attributes.setData("skybox", dynamic_cast<TextureGL*>(skybox));
 }
 
-void PBRShaderGL::setViewPosition(vec3 position)
+void PBRShaderGL::setCameraPosition(vec3 position)
 {
-	viewPosition = move(position);
+	cameraPos = move(position);
 }
 
 
@@ -132,16 +130,16 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
 
-	const Material& material = mesh.getMaterial();
+	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh.getMaterial().get());
 
-	TextureGL* diffuseMap = static_cast<TextureGL*>(material.getDiffuseMap());
-	TextureGL* specularMap = static_cast<TextureGL*>(material.getSpecularMap());
-	TextureGL* normalMap = static_cast<TextureGL*>(material.getNormalMap());
+	TextureGL* diffuseMap = static_cast<TextureGL*>(material->getDiffuseMap());
+	TextureGL* specularMap = static_cast<TextureGL*>(material->getSpecularMap());
+	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 
 	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
 	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
 
-	attributes.setData("material.shininess", &material.getShininessRef());
+	attributes.setData("material.shininess", &material->getShininessRef());
 	attributes.setData("material.diffuseMap", diffuseMap, black);
 	attributes.setData("material.specularMap", specularMap, black);
 	attributes.setData("material.normalMap", normalMap, default_normal);

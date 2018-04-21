@@ -2,30 +2,20 @@
 
 using namespace std;
 
-Model::Model(vector<Mesh*> meshes)
+Model::Model(vector<std::reference_wrapper<Mesh>> meshReferences)
 {
-	this->meshes = move(meshes);
+	this->meshReferences = meshReferences;
 }
 
-Model::Model(const Model& o) : meshes(o.meshes)
-{
-}
 
-Model::Model(Model&& o) : meshes(o.meshes)
+Model::Model(Model&& o) : meshReferences(move(o.meshReferences))
 {
-}
-
-Model& Model::operator=(const Model& o)
-{
-	if (this == &o) return *this;
-	meshes = o.meshes;
-	return *this;
 }
 
 Model& Model::operator=(Model&& o)
 {
 	if (this == &o) return *this;
-	meshes = move(o.meshes);
+	meshReferences = move(o.meshReferences);
 	return *this;
 }
 
@@ -37,7 +27,7 @@ void Model::draw(Shader* shader)
 {
 }
 
-vector<Mesh*> Model::getMeshes() const
+const vector<std::reference_wrapper<Mesh>>& Model::getMeshes() const
 {
-	return meshes;
+	return meshReferences;
 }

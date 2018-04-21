@@ -1,24 +1,26 @@
 #include <mesh/opengl/MeshFactoryGL.hpp>
 #include <glad/glad.h>
 
-MeshGL MeshFactoryGL::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+using namespace std;
+
+unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 {
 	using Vertex = VertexPositionNormalTexTangent;
 
-	MeshGL out;
-	out.indexSize = indexCount;
+	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
+	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out.vao);
-	glGenBuffers(1, &out.vbo);
-	glGenBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out->vao);
+	glGenBuffers(1, &out->vbo);
+	glGenBuffers(1, &out->ebo);
 
 	// 1. bind Vertex Array Object
-	glBindVertexArray(out.vao);
+	glBindVertexArray(out->vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, out.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, out->vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 	// 3. copy our indixes in a buffer, too.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out->ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
@@ -43,27 +45,27 @@ MeshGL MeshFactoryGL::create(const VertexPositionNormalTexTangent* vertices, uin
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	return out;
+	return move(out);
 }
 
-MeshGL MeshFactoryGL::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
+unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
 {
 	using Vertex = VertexPositionNormalTex;
 
-	MeshGL out;
-	out.indexSize = indexCount;
+	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
+	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out.vao);
-	glGenBuffers(1, &out.vbo);
-	glGenBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out->vao);
+	glGenBuffers(1, &out->vbo);
+	glGenBuffers(1, &out->ebo);
 
 	// 1. bind Vertex Array Object
-	glBindVertexArray(out.vao);
+	glBindVertexArray(out->vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, out.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, out->vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 	// 3. copy our indixes in a buffer, too.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out->ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
@@ -84,14 +86,13 @@ MeshGL MeshFactoryGL::create(const VertexPositionNormalTex * vertices, uint32_t 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	return out;
+	return move(out);
 }
 
-MeshGL MeshFactoryGL::create(SimpleArray<glm::vec3> positions, SimpleArray<glm::vec3> normals, SimpleArray<glm::vec2> texCoords, SimpleArray<unsigned int> indices)
+unique_ptr<MeshGL> MeshFactoryGL::create(SimpleArray<glm::vec3> positions, SimpleArray<glm::vec3> normals, SimpleArray<glm::vec2> texCoords, SimpleArray<unsigned int> indices)
 {
-	MeshGL out;
-	out.indexSize = indices.size;
-
+	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
+	out->indexSize = indices.size;
 
 	size_t posElemSize = sizeof(positions.content[0]);
 	size_t normalElemSize = sizeof(normals.content[0]);
@@ -102,14 +103,14 @@ MeshGL MeshFactoryGL::create(SimpleArray<glm::vec3> positions, SimpleArray<glm::
 	size_t texCoordsByteSize = sizeof(texCoords.content[0]) * texCoords.size;
 	size_t indicesByteSize = sizeof(indices.content[0]) * indices.size;
 
- 	glGenVertexArrays(1, &out.vao);
-	glGenBuffers(1, &out.vbo);
-	glGenBuffers(1, &out.ebo);
+ 	glGenVertexArrays(1, &out->vao);
+	glGenBuffers(1, &out->vbo);
+	glGenBuffers(1, &out->ebo);
 
 	// 1. bind Vertex Array Object
-	glBindVertexArray(out.vao);
+	glBindVertexArray(out->vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, out.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, out->vbo);
 	glBufferData(GL_ARRAY_BUFFER, positionsByteSize + normalsByteSize + texCoordsByteSize, 
 		NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, positionsByteSize, positions.content);
@@ -118,7 +119,7 @@ MeshGL MeshFactoryGL::create(SimpleArray<glm::vec3> positions, SimpleArray<glm::
 		texCoordsByteSize, texCoords.content);
 
 	// 3. copy our indixes in a buffer, too.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out->ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesByteSize, indices.content, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
@@ -142,27 +143,27 @@ MeshGL MeshFactoryGL::create(SimpleArray<glm::vec3> positions, SimpleArray<glm::
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	return out;
+	return move(out);
 }
 
-MeshGL MeshFactoryGL::createPosition(const VertexPosition* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+unique_ptr<MeshGL> MeshFactoryGL::createPosition(const VertexPosition* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 {
 	using Vertex = VertexPosition;
 
-	MeshGL out;
-	out.indexSize = indexCount;
+	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
+	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out.vao);
-	glGenBuffers(1, &out.vbo);
-	glGenBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out->vao);
+	glGenBuffers(1, &out->vbo);
+	glGenBuffers(1, &out->ebo);
 
 	// 1. bind Vertex Array Object
-	glBindVertexArray(out.vao);
+	glBindVertexArray(out->vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, out.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, out->vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 	// 3. copy our indixes in a buffer, too.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out->ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
@@ -174,27 +175,27 @@ MeshGL MeshFactoryGL::createPosition(const VertexPosition* vertices, uint32_t ve
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	return out;
+	return move(out);
 }
 
-MeshGL MeshFactoryGL::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 {
 	using Vertex = VertexPositionTex;
 
-	MeshGL out;
-	out.indexSize = indexCount;
+	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
+	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out.vao);
-	glGenBuffers(1, &out.vbo);
-	glGenBuffers(1, &out.ebo);
+	glGenVertexArrays(1, &out->vao);
+	glGenBuffers(1, &out->vbo);
+	glGenBuffers(1, &out->ebo);
 
 	// 1. bind Vertex Array Object
-	glBindVertexArray(out.vao);
+	glBindVertexArray(out->vao);
 	// 2. copy our vertices array in a buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, out.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, out->vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 	// 3. copy our indixes in a buffer, too.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out->ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	// vertex attribute pointers
@@ -210,5 +211,5 @@ MeshGL MeshFactoryGL::createPositionUV(const VertexPositionTex* vertices, uint32
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	return out;
+	return move(out);
 }

@@ -3,46 +3,27 @@
 using namespace std;
 using namespace glm;
 
-ModelGL::ModelGL(vector<MeshGL> meshes) : Model({})
+ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes) : Model(move(createReferences(meshes)))
 {
-	this->glMeshes = meshes;
-	/*for (auto mesh : glMeshes)
-	{
-		meshes.push_back(mesh);
-	}*/
-	updateMeshPointers();
+	this->meshes = move(meshes);
 }
 
-ModelGL::ModelGL(const ModelGL& o) : Model(o), glMeshes(o.glMeshes)
+ModelGL::ModelGL(ModelGL&& o) : Model(move(o))
 {
-	updateMeshPointers();
-}
-
-ModelGL::ModelGL(ModelGL&& o) : Model(o), glMeshes(o.glMeshes)
-{
-	updateMeshPointers();
-}
-
-ModelGL& ModelGL::operator=(const ModelGL& o)
-{
-	if (this == &o) return *this;
-	meshes = vector<Mesh*>();
-	glMeshes = o.glMeshes;
-	meshes = o.meshes;
-	updateMeshPointers();
-
-	return *this;
+	this->meshes = move(o.meshes);
+	o.meshes.clear();
 }
 
 ModelGL& ModelGL::operator=(ModelGL&& o)
 {
 	if (this == &o) return *this;
-	meshes = move(o.meshes);
-	glMeshes = move(o.glMeshes);
+	this->meshes = move(o.meshes);
 	o.meshes.clear();
-	o.glMeshes.clear();
-	updateMeshPointers();
 	return *this;
+}
+
+ModelGL::~ModelGL()
+{
 }
 
 void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
@@ -52,9 +33,10 @@ void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 	glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
 	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
-	for (GLuint i = 0; i < glMeshes.size(); i++)
+	for (GLuint i = 0; i < meshes.size(); i++)
 	{
-		GLuint VAO = glMeshes[i].getVertexArrayObject();
+		MeshGL& mesh = *meshes[i];
+		GLuint VAO = mesh.getVertexArrayObject();
 		glBindVertexArray(VAO);
 
 		// Vertex Attributes
@@ -83,11 +65,6 @@ void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 	}
 }
 
-const vector<MeshGL>& ModelGL::getGlMeshes()
-{
-	return glMeshes;
-}
-
 bool ModelGL::instancedUsed()const
 {
 	return instanced;
@@ -98,11 +75,11 @@ void ModelGL::setInstanced(bool value)
 	instanced = value;
 }
 
-void ModelGL::updateMeshPointers()
+std::vector<std::reference_wrapper<Mesh>> ModelGL::createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes)
 {
-	this->meshes.clear();
-	for (int i = 0; i < glMeshes.size(); ++i)
-	{
-		this->meshes.push_back((Mesh*)(&glMeshes[i]));
+	std::vector<std::reference_wrapper<Mesh>> result;
+	for (auto&& elem : meshes) {
+		result.push_back(*elem.get());
 	}
+	return result;
 }

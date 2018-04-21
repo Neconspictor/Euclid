@@ -42,12 +42,11 @@ set(
     
     #material
     include/material/Material.hpp
-    include/material/PhongMaterial.hpp
+    include/material/BlinnPhongMaterial.hpp
     
     #model
     include/model/Model.hpp
     include/model/ModelManager.hpp
-    include/model/PhongModel.hpp
     include/model/Vob.hpp
     #model/opengl
     include/model/opengl/AssimpModelLoader.hpp
@@ -156,13 +155,11 @@ set(
     src/mesh/opengl/MeshFactoryGL.cpp
     
     #material
-    src/material/Material.cpp
-    src/material/PhongMaterial.cpp
+    src/material/BlinnPhongMaterial.cpp
     
     #model
     src/model/Model.cpp
     src/model/ModelManager.cpp
-    src/model/PhongModel.cpp
     src/model/Vob.cpp
     #model/opengl
     src/model/opengl/AssimpModelLoader.cpp

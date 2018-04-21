@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <material/Material.hpp>
-
+#include <material/BlinnPhongMaterial.hpp>
+#include <memory>
 
 struct VertexPositionNormalTexTangent {
 	glm::vec3 position;
@@ -41,21 +41,18 @@ class Mesh
 public:
 
 	explicit Mesh();
-	Mesh(const Mesh& other);
 	Mesh(Mesh&& other);
-	Mesh& operator=(const Mesh& o);
 	Mesh& operator=(Mesh&& o);
 
 	virtual ~Mesh();
 
 	unsigned int getIndexSize() const;
-	
-	Material* getMaterial();
-	const Material& getMaterial() const;
+
+	std::reference_wrapper<Material> getMaterial() const;
 
 	void setIndexSize(uint32_t indexSize);
-	void setMaterial(Material material);
+	void setMaterial(std::unique_ptr<Material> material);
 protected:
-	Material material;
+	std::unique_ptr<Material> material;
 	uint32_t indexSize;
 };

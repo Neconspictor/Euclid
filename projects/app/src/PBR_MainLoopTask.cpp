@@ -130,7 +130,7 @@ void PBR_MainLoopTask::init()
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
 
-	PBRShader* phongShader = dynamic_cast<PBRShader*>
+	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getConfig(Shaders::Pbr));
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
@@ -140,7 +140,7 @@ void PBR_MainLoopTask::init()
 
 	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
-	phongShader->setSkyBox(sky);
+	pbrShader->setSkyBox(sky);
 
 
 	vec3 position = {1.0f, 1.0f, 1.0f };
@@ -150,11 +150,8 @@ void PBR_MainLoopTask::init()
 
 
 	// init shaders
-	PBRShader* phongTexShader = dynamic_cast<PBRShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::Pbr));
-
-	phongTexShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	phongTexShader->setLightDirection(globalLight.getLook());
+	pbrShader->setLightColor({ 1.0f, 1.0f, 1.0f });
+	pbrShader->setLightDirection(globalLight.getLook());
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
@@ -198,7 +195,7 @@ void PBR_MainLoopTask::run()
 		renderer->getShaderManager()->getConfig(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
-	PBRShader* phongShader = dynamic_cast<PBRShader*>
+	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(renderer->getShaderManager()->getConfig(Shaders::Pbr));
 	using namespace chrono;
 	
@@ -289,9 +286,9 @@ void PBR_MainLoopTask::run()
 	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
 	globalLight.setOrthoFrustum(shadowFrustum);
 
-	phongShader->setLightProjMatrix(globalLight.getProjection(Orthographic));
-	phongShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
-	phongShader->setLightViewMatrix(globalLight.getView());
+	pbrShader->setLightProjMatrix(globalLight.getProjection(Orthographic));
+	pbrShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
+	pbrShader->setLightViewMatrix(globalLight.getView());
 	
 	renderer->cullFaces(CullingMode::Back);
 	//renderer->cullFaces(CullingMode::Front);
@@ -309,9 +306,9 @@ void PBR_MainLoopTask::run()
 	renderer->useRenderTarget(renderTargetMultisampled);
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
-	phongShader->setShadowMap(shadowMap->getTexture());
+	pbrShader->setShadowMap(shadowMap->getTexture());
 
-	phongShader->setViewPosition(camera->getPosition());
+	pbrShader->setCameraPosition(camera->getPosition());
 
 	drawSky(camera->getPerspProjection(), camera->getView());
 	drawScene(camera->getPerspProjection(), camera->getView());
