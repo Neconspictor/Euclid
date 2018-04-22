@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <mesh/opengl/MeshGL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
+#include <material/PbrMaterial.hpp>
 
 using namespace glm;
 using namespace std;
@@ -47,6 +48,11 @@ PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nul
 	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap");
 	attributes.create(types::TEXTURE2D, nullptr, "material.shadowMap");
+
+	attributes.create(types::CUBE_MAP, nullptr, "irradianceMap");
+	attributes.create(types::CUBE_MAP, nullptr, "prefilterMap");
+	attributes.create(types::TEXTURE2D, nullptr, "brdfLUT");
+
 
 	attributes.create(types::CUBE_MAP, nullptr, "skybox");
 }
@@ -130,18 +136,28 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
 
-	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh.getMaterial().get());
+	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
 
-	TextureGL* diffuseMap = static_cast<TextureGL*>(material->getDiffuseMap());
-	TextureGL* specularMap = static_cast<TextureGL*>(material->getSpecularMap());
+	TextureGL* albedoMap = static_cast<TextureGL*>(material->getAlbedoMap());
+	TextureGL* aoMap = static_cast<TextureGL*>(material->getAoMap());
+	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
+	TextureGL* metallicMap = static_cast<TextureGL*>(material->getMetallicMap());
 	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
+	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
 
 	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
+	TextureGL* white = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultWhiteTexture());
 	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
 
-	attributes.setData("material.shininess", &material->getShininessRef());
-	attributes.setData("material.diffuseMap", diffuseMap, black);
-	attributes.setData("material.specularMap", specularMap, black);
+	attributes.setData("material.albedoMap", albedoMap, black);
+	attributes.setData("material.aoMap", aoMap, white);
+	//attributes.setData("material.emissionMap", emissionMap, black);
+	attributes.setData("material.metallicMap", metallicMap, black);
 	attributes.setData("material.normalMap", normalMap, default_normal);
+	attributes.setData("material.roughnessMap", roughnessMap, black);
+
+	attributes.setData("brdfLUT", nullptr, white);
+	attributes.setData("irradianceMap", dynamic_cast<TextureGL*>(skybox));
+	attributes.setData("prefilterMap", dynamic_cast<TextureGL*>(skybox));
 }
 

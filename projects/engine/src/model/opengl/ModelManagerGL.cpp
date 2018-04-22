@@ -153,7 +153,7 @@ Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 
 
 
-	models.push_back(move(assimpLoader.loadModel(modelName, blinnPhongMaterialLoader)));
+	models.push_back(move(assimpLoader.loadModel(modelName, *materialLoader)));
 	ModelGL* result = models.back().get();
 	modelTable[modelName] = result;
 	return result;

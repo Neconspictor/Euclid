@@ -48,6 +48,7 @@ public:
 
 	virtual Texture* getDefaultBlackTexture() = 0;
 	virtual Texture* getDefaultNormalTexture() = 0;
+	virtual Texture* getDefaultWhiteTexture() = 0;
 
 	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) = 0;
 	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Linear, Bilinear, Repeat}) = 0;

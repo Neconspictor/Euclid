@@ -53,10 +53,10 @@ SceneNode* PBR_MainLoopTask::createShadowScene()
 	SceneNode* cube1 = &nodes.back();
 	root->addChild(cube1);
 
-	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::BlinnPhongTex));
+	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
 	ground->setVob(&vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
-	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::BlinnPhongTex));
+	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
 	cube1->setVob(&vobs.back());
 
 	ground->getVob()->setPosition({ 10, 0, 0 });

@@ -147,6 +147,11 @@ Texture * TextureManagerGL::getDefaultNormalTexture()
 	return getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB });
 }
 
+Texture * TextureManagerGL::getDefaultWhiteTexture()
+{
+	return getImage("_intern/white.png", { false, false, Linear_Linear, Bilinear, Repeat, RGB });
+}
+
 Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);
