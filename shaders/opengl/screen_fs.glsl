@@ -78,7 +78,9 @@ void main()
     
     
     // apply gamma correction
-    //float gamma = 2.2f;
-    //col.rgb = pow(col.rgb, vec3(1.0 / gamma));
-    color = texture(screenTexture, texCoordsFS);
+    float gamma = 2.2f;
+	vec3 col = texture(screenTexture, texCoordsFS).rgb;
+    col = pow(col.rgb, vec3(1.0 / gamma));
+    color = vec4(col, 1);
+	//color = texture(screenTexture, texCoordsFS);
 }
