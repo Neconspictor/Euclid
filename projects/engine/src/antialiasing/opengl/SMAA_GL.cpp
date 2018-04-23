@@ -37,9 +37,9 @@ void SMAA_GL::init()
 	int& height = viewPort.height;
 
 	if (!edgesTex)
-		edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+		edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, GL_DEPTH_STENCIL);
 	if (!blendTex)
-		blendTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+		blendTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, GL_DEPTH_STENCIL);
 
 	string areaTexfileName = TextureManagerGL::get()->getFullFilePath("_intern/smaa/AreaTexDX10.dds");
 	string searchTexfileName = TextureManagerGL::get()->getFullFilePath("_intern/smaa/SearchTex.dds"); //SearchTex
@@ -155,6 +155,6 @@ void SMAA_GL::updateBuffers()
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 
-	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
+	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 1, GL_DEPTH_STENCIL);
+	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 1, GL_DEPTH_STENCIL);
 }

@@ -166,7 +166,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 	return result;
 }
 
-RenderTargetGL RenderTargetGL::createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType)
+RenderTargetGL RenderTargetGL::createSingleSampled(GLint internalFormat, int width, int height, GLint format,  GLint dataType, GLuint depthStencilType)
 {
 	RenderTargetGL result(width, height);
 	result.width = width;
@@ -181,7 +181,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(GLint textureChannel, int wid
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	//GL_UNSIGNED_BYTE
-	glTexImage2D(GL_TEXTURE_2D, 0, textureChannel, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, nullptr);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

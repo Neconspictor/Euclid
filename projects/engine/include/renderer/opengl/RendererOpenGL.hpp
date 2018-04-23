@@ -44,7 +44,7 @@ public:
 
 	RenderTarget* createRenderTarget(int samples) override;
 
-	RenderTargetGL* createRenderTargetGL(GLint textureChannel, int width, int height, GLuint samples = 1,
+	RenderTargetGL* createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType = GL_FLOAT, GLuint samples = 1,
 		GLuint depthStencilType = GL_DEPTH_COMPONENT);
 
 	RenderTarget* createVarianceShadowMap(int width, int height) override;
@@ -116,9 +116,6 @@ protected:
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 
 	void createFrameRenderTargetBuffer(int width, int height);
-
-	RenderTargetGL createRenderTargetGL_intern(GLint textureChannel, int width, int height, GLuint samples = 1,
-		GLuint depthStencilType = GL_DEPTH_COMPONENT) const;
 
 	glm::vec3 backgroundColor;
 	std::list<CubeDepthMapGL> cubeDepthMaps;

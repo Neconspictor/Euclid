@@ -207,16 +207,7 @@ DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 
 RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 {
-	RenderTargetGL target = createRenderTargetGL_intern(GL_RGBA32F, width, height, samples, GL_DEPTH_STENCIL); //GL_RGBA
-	renderTargets.push_back(move(target));
-	return &renderTargets.back();
-}
-
-RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint textureChannel, int width, int height, GLuint samples, GLuint depthStencilType)
-{
-	RenderTargetGL target = createRenderTargetGL_intern(textureChannel, width, height, samples, depthStencilType);
-	renderTargets.push_back(move(target));
-	return &renderTargets.back();
+	return createRenderTargetGL(GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, samples, GL_DEPTH_STENCIL); //GL_RGBA
 }
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -474,8 +465,8 @@ void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-RenderTargetGL RendererOpenGL::createRenderTargetGL_intern(GLint textureChannel, int width, int height,
-	GLuint samples, GLuint depthStencilType) const
+RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType,
+	GLuint samples, GLuint depthStencilType)
 {
 	assert(samples >= 1);
 
@@ -483,17 +474,18 @@ RenderTargetGL RendererOpenGL::createRenderTargetGL_intern(GLint textureChannel,
 
 	if (samples > 1)
 	{
-		result = RenderTargetGL::createMultisampled(textureChannel, width, height, samples, depthStencilType);
+		result = RenderTargetGL::createMultisampled(internalFormat, width, height, samples, depthStencilType);
 	}
 	else
 	{
-		result = RenderTargetGL::createSingleSampled(textureChannel, width, height, depthStencilType);
+		result = RenderTargetGL::createSingleSampled(internalFormat, width, height, format, dataType, depthStencilType);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	return result;
+	renderTargets.push_back(move(result));
+	return &renderTargets.back();
 }
 
 EffectLibrary* RendererOpenGL::getEffectLibrary()

@@ -59,7 +59,7 @@ public:
 	static RenderTargetGL createMultisampled(GLint textureChannel, int width, int height,
 		GLuint samples, GLuint depthStencilType);
 
-	static RenderTargetGL createSingleSampled(GLint textureChannel, int width, int height, GLuint depthStencilType);
+	static RenderTargetGL createSingleSampled(GLint internalFormat, int width, int height, GLint format, GLint dataType, GLuint depthStencilType);
 
 	static RenderTargetGL createVSM(int width, int height);
 
