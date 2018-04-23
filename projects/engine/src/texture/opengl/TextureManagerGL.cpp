@@ -86,6 +86,12 @@ TextureManagerGL::~TextureManagerGL()
 	}
 }
 
+CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
+{
+	cubeMaps.push_back(move(cubemap));
+	return &cubeMaps.back();
+}
+
 CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
 	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
@@ -290,6 +296,10 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	float aniso = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	
 	if (data.generateMipMaps)
 	    glGenerateMipmap(GL_TEXTURE_2D);

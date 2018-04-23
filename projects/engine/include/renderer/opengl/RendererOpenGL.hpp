@@ -44,8 +44,8 @@ public:
 
 	RenderTarget* createRenderTarget(int samples) override;
 
-	RenderTargetGL* createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType = GL_FLOAT, GLuint samples = 1,
-		GLuint depthStencilType = GL_DEPTH_COMPONENT);
+	RenderTargetGL* createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType, GLuint samples,
+		GLuint depthStencilType);
 
 	RenderTarget* createVarianceShadowMap(int width, int height) override;
 
@@ -83,6 +83,8 @@ public:
 	void present() override;
 	
 	void release() override;
+
+	CubeMap* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
 
 	void setBackgroundColor(glm::vec3 color) override;
 

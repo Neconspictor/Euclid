@@ -11,6 +11,10 @@
 #include <fstream>
 #include <texture/opengl/ImageLoaderGL.hpp>
 #include<post_processing/blur/opengl/GaussianBlurGL.hpp>
+#include <shader/SkyBoxShader.hpp>
+#include <model/Vob.hpp>
+#include <drawing/ModelDrawer.hpp>
+#include <glm/gtc/matrix_transform.inl>
 
 using namespace std;
 using namespace platform;
@@ -450,6 +454,102 @@ void RendererOpenGL::clearRenderTarget(RenderTargetGL* renderTarget, bool releas
 	renderTarget->frameBuffer = GL_FALSE;
 	renderTarget->renderBuffer = GL_FALSE;
 	renderTarget->textureBuffer.setTexture(GL_FALSE);
+}
+
+CubeMap* RendererOpenGL::renderCubeMap(int width, int height, Texture* equirectangularMap)
+{
+	EquirectangularSkyBoxShader* shader = dynamic_cast<EquirectangularSkyBoxShader*>(getShaderManager()->getConfig(Shaders::SkyBoxEquirectangular));
+	shader->setSkyTexture(equirectangularMap);
+	Vob skyBox ("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex);
+
+	// generate framebuffer and renderbuffer with a depth component
+	unsigned int captureFBO, captureRBO;
+	glGenFramebuffers(1, &captureFBO);
+	glGenRenderbuffers(1, &captureRBO);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+
+	// Generate texture
+	unsigned int textureBuffer;
+	glGenTextures(1, &textureBuffer);
+
+	glBindTexture(GL_TEXTURE_2D, textureBuffer);
+	//GL_UNSIGNED_BYTE
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// clamp is important so that no pixel artifacts occur on the border!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach texture to currently bound frame buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureBuffer, 0);
+
+
+
+
+	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+	//pre-allocate the six faces of the cubemap
+	unsigned int envCubemap;
+	glGenTextures(1, &envCubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+	for (int i = 0; i < 6; ++i) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	TransformData data;
+	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+	data.projection = &projection;
+	mat4 model = glm::mat4();
+	data.model = &model;
+
+	//view matrices;
+	mat4 views[] = {
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f,  0.0f,  0.0f), vec3(0.0f, -1.0f,  0.0f)), //right; sign of up vector is not important
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(-1.0f,  0.0f,  0.0f), vec3(0.0f, -1.0f,  0.0f)), //left
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  1.0f,  0.0f), vec3(0.0f,  0.0f,  1.0f)), //top
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f,  0.0f), vec3(0.0f,  0.0f, -1.0f)), //bottom
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  0.0f,  1.0f), vec3(0.0f, -1.0f,  0.0f)), //back
+		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  0.0f, -1.0f), vec3(0.0f, -1.0f,  0.0f)) //front
+	};
+
+
+	//set the viewport to the dimensoion of the cubemap
+	glViewport(0,0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+	for (int i = 0; i < 6; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//render into the texture
+		data.view = &views[i];
+		modelDrawer.draw(&skyBox, Shaders::SkyBoxEquirectangular, data);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// create, register and return the cubemap
+	CubeMapGL result(envCubemap);
+	
+	return TextureManagerGL::get()->addCubeMap(move(result));
 }
 
 void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)

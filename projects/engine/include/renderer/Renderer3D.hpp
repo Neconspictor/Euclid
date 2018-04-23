@@ -84,6 +84,11 @@ public:
 
 	virtual SMAA* getSMAA() = 0;
 
+	/**
+	 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
+	 */
+	virtual CubeMap* renderCubeMap(int width, int height, Texture* equirectangularMap) = 0;
+
 	virtual void setBackgroundColor(glm::vec3 color) = 0;
 
 	/**

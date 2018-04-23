@@ -119,7 +119,7 @@ void PBR_MainLoopTask::init()
 		renderer->setViewPort(0, 0, width, height);
 		renderer->destroyRenderTarget(renderTargetMultisampled);
 		renderer->destroyRenderTarget(renderTargetSingleSampled);
-		renderTargetMultisampled = renderer->createRenderTarget(4);
+		renderTargetMultisampled = renderer->createRenderTarget(1);
 		renderTargetSingleSampled = renderer->createRenderTarget(1);
 	});
 
@@ -201,6 +201,10 @@ void PBR_MainLoopTask::init()
 	//scene = createAsteriodField();
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
+
+	CubeMap* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
+	skyBoxShader->setSkyTexture(testCubeMap);
+	pbrShader->setSkyBox(testCubeMap);
 }
 
 void PBR_MainLoopTask::setUI(SystemUI* ui)
@@ -381,9 +385,9 @@ void PBR_MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 	TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
-	//modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBox, data);
+	modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBox, data);
 	//modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
-	modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBoxEquirectangular, data);
+	//modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBoxEquirectangular, data);
 }
 
 void PBR_MainLoopTask::updateCamera(Input* input, float deltaTime)
