@@ -6,17 +6,17 @@ layout (location = 3) in vec3 tangent;
 
 struct DirLight {
     vec3 direction;
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec3 color;
 };
 
 struct Material {
-    sampler2D diffuseMap;
-    sampler2D normalMap;
+    sampler2D albedoMap;
+	sampler2D aoMap;
+	sampler2D metallicMap;
+	sampler2D normalMap;
 	sampler2D specularMap;
+	sampler2D roughnessMap;
 	sampler2D shadowMap;
-    float shininess;
 };
 
 uniform DirLight dirLight;
@@ -32,7 +32,7 @@ uniform mat4 lightViewMatrix;
 uniform mat4 biasMatrix;
 uniform mat4 view;
 
-uniform vec3 viewPos;
+uniform vec3 cameraPos;
 
 out VS_OUT {
 	vec3 fragPos;
@@ -100,7 +100,7 @@ void main()
 	vec3 viewLightDir = normalize(-dirLight.direction);	
 	vs_out.tangentLightDir = normalize(TBN * viewLightDir);
 	
-	vec3 viewDir = normalize(viewPos - pos);
+	vec3 viewDir = normalize(cameraPos - pos);
 	vs_out.tangentViewDir = normalize(TBN * viewDir);
 	//vs_out.tangentViewDir = normalize((vec4(viewDir,0)).xyz);
 	

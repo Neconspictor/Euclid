@@ -19,10 +19,13 @@ Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc, Renderer& ren
 
 	pointer->init();
 
-	if (desc.fullscreen) 
+	if (desc.fullscreen)
 		pointer->setFullscreen();
-	else 
-		pointer->registerCallbacks();
+	//else
+		//pointer->setWindowed();
+
+	
+	pointer->registerCallbacks();
 
 	return pointer;
 }
@@ -37,14 +40,10 @@ void WindowSystemGLFW::focusInputHandler(GLFWwindow* window, int hasFocus)
 {
 	auto& callbacks = instance.focusCallbacks;
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::focusInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, hasFocus);
 	}
-
-	it->second(window, hasFocus);
 }
 
 WindowSystemGLFW* WindowSystemGLFW::get()
@@ -68,14 +67,10 @@ void WindowSystemGLFW::charModsInputHandler(GLFWwindow* window, unsigned int cod
 
 	auto& callbacks = instance.charModsCallbacks;
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::charModsInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, codepoint, mods);
 	}
-
-	it->second(window, codepoint, mods);
 
 	//LOG(instance.logClient, platform::Debug) << u8"utf8 byte size, ällo: " << utf8Result.size() << ", character: " << ss.str();
 }
@@ -344,14 +339,10 @@ void WindowSystemGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode
 	}
 
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::keyInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, key, scancode, action, mods);
 	}
-
-	it->second(window, key, scancode, action, mods);
 }
 
 void WindowSystemGLFW::mouseInputHandler(GLFWwindow* window, int button, int action, int mods)
@@ -387,14 +378,20 @@ void WindowSystemGLFW::mouseInputHandler(GLFWwindow* window, int button, int act
 	}
 
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::mouseInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, button, action, mods);
 	}
+}
 
-	it->second(window, button, action, mods);
+void WindowSystemGLFW::refreshWindowHandler(GLFWwindow * window)
+{
+	auto& callbacks = instance.refreshCallbacks;
+	auto it = callbacks.find(window);
+	if (it != callbacks.end())
+	{
+		it->second(window);
+	}
 }
 
 void WindowSystemGLFW::scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset)
@@ -402,14 +399,10 @@ void WindowSystemGLFW::scrollInputHandler(GLFWwindow* window, double xOffset, do
 	auto& callbacks = instance.scrollCallbacks;
 
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::scrollInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, xOffset, yOffset);
 	}
-
-	it->second(window, xOffset, yOffset);
 }
 
 void WindowSystemGLFW::sizeInputHandler(GLFWwindow* window, int width, int height)
@@ -417,14 +410,10 @@ void WindowSystemGLFW::sizeInputHandler(GLFWwindow* window, int width, int heigh
 	auto& callbacks = instance.sizeCallbacks;
 
 	auto it = callbacks.find(window);
-	if (it == callbacks.end())
+	if (it != callbacks.end())
 	{
-		stringstream ss;
-		ss << "WindowSystemGLFW::sizeInputHandler(): GLFWwindow pointer not registered: " << window;
-		throw runtime_error(ss.str());
+		it->second(window, width, height);
 	}
-
-	it->second(window, width, height);
 }
 
 void WindowSystemGLFW::initInputButtonMap()
@@ -461,6 +450,12 @@ void WindowSystemGLFW::registerMouseCallback(WindowGLFW* window, std::function<M
 {
 	mouseCallbacks.insert(make_pair(window->getSource(), move(callback)));
 	glfwSetMouseButtonCallback(window->getSource(), mouseInputHandler);
+}
+
+void WindowSystemGLFW::registerRefreshCallback(WindowGLFW * window, std::function<RefreshCallback> callback)
+{
+	refreshCallbacks.insert(make_pair(window->getSource(), move(callback)));
+	glfwSetWindowRefreshCallback(window->getSource(), refreshWindowHandler);
 }
 
 void WindowSystemGLFW::registerScrollCallback(WindowGLFW* window, function<ScrollCallback> callback)
@@ -508,6 +503,13 @@ void WindowSystemGLFW::removeScrollCallback(WindowGLFW* window)
 	auto it = scrollCallbacks.find(window->getSource());
 	if (it != scrollCallbacks.end())
 		scrollCallbacks.erase(it);
+}
+
+void WindowSystemGLFW::removeRefreshCallback(WindowGLFW * window)
+{
+	auto it = refreshCallbacks.find(window->getSource());
+	if (it != refreshCallbacks.end())
+		refreshCallbacks.erase(it);
 }
 
 void WindowSystemGLFW::removeSizeCallback(WindowGLFW* window)

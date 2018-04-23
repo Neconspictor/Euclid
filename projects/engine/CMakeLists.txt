@@ -121,6 +121,8 @@ set(
     include/texture/opengl/ImageLoaderGL.hpp
     include/texture/opengl/TextureGL.hpp
     include/texture/opengl/TextureManagerGL.hpp
+	#texture/stb
+	include/texture/stb/stb_image.h
     
     #util
     include/util/FPSCounter.hpp

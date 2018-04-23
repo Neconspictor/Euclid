@@ -3,6 +3,10 @@
 #include <util/Globals.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
+//use stb_image -- TODO: replace SOIL completely with this library
+//#define STB_IMAGE_IMPLEMENTATION
+#include <texture/stb/stb_image.h>
+
 using namespace std;
 using namespace platform;
 

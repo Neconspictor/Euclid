@@ -58,12 +58,13 @@ void main()
         1,  1,  1
     );*/
     
-    // normal drawing
+    /*// normal drawing
     float kernel[9] = float[] (
         0,  0,  0,
         0, 1,  0,
         0,  0,  0
     );
+	
     vec3 sampleTex[9];
     for(int i = 0; i < 9; ++i) {
         sampleTex[i] = vec3(texture(screenTexture, texCoordsFS.st + offsets[i]));
@@ -72,10 +73,12 @@ void main()
     vec3 col = vec3(0.0);
     for(int i = 0; i < 9; ++i)
         col += sampleTex[i] * kernel[i];
+		
+	*/	
     
     
     // apply gamma correction
-    float gamma = 2.2f;
-    col.rgb = pow(col.rgb, vec3(1.0 / gamma));
-    color = vec4(col, 1.0);
+    //float gamma = 2.2f;
+    //col.rgb = pow(col.rgb, vec3(1.0 / gamma));
+    color = texture(screenTexture, texCoordsFS);
 }

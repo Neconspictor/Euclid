@@ -111,6 +111,7 @@ void WindowGLFW::registerCallbacks()
 	auto focusCallback = bind(&InputGLFW::focusCallback, &inputDevice, _1, _2);
 	auto keyCallback = bind(&InputGLFW::keyCallback, &inputDevice, _1, _2, _3, _4, _5);
 	auto mouseCallback = bind(&InputGLFW::mouseCallback, &inputDevice, _1, _2, _3, _4);
+	auto refreshCallback = bind(&InputGLFW::refreshWindowCallback, &inputDevice, _1);
 	auto scrollCallback = bind(&InputGLFW::scrollCallback, &inputDevice, _1, _2, _3);
 	auto sizeCallback = bind(&InputGLFW::sizeCallback, &inputDevice, _1, _2, _3);
 
@@ -118,6 +119,7 @@ void WindowGLFW::registerCallbacks()
 	WindowSystemGLFW::get()->registerFocusCallback(this, focusCallback);
 	WindowSystemGLFW::get()->registerKeyCallback(this, keyCallback);
 	WindowSystemGLFW::get()->registerMouseCallback(this, mouseCallback);
+	WindowSystemGLFW::get()->registerRefreshCallback(this, refreshCallback);
 	WindowSystemGLFW::get()->registerScrollCallback(this, scrollCallback);
 	WindowSystemGLFW::get()->registerSizeCallback(this, sizeCallback);
 }
@@ -143,6 +145,11 @@ void WindowGLFW::registerMouseCallback(function<MouseCallback> callback)
 	mouseCallbacks.push_back(callback);
 }
 
+void WindowGLFW::registerRefreshCallback(std::function<RefreshCallback> callback)
+{
+	refreshCallbacks.push_back(callback);
+}
+
 void WindowGLFW::removeCallbacks()
 {
 	using namespace placeholders;
@@ -153,6 +160,7 @@ void WindowGLFW::removeCallbacks()
 	system->removeFocusCallbackCallback(this);
 	system->removeKeyCallback(this);
 	system->removeMouseCallback(this);
+	system->removeRefreshCallback(this);
 	system->removeScrollCallback(this);
 	system->removeSizeCallback(this);
 }
@@ -178,40 +186,7 @@ void WindowGLFW::setFocus(bool focus)
 
 void WindowGLFW::setFullscreen()
 {
-	removeCallbacks();
-
-	glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
-	glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
-
-	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), glfwGetPrimaryMonitor(), window);
-
-	glfwDestroyWindow(window);
-	window = newWindow;
-
-	if (!vSync)
-	{
-		glfwSwapInterval(0);
-	}
-	else
-	{
-		glfwSwapInterval(1);
-	}
-
-	registerCallbacks();
-	glfwMakeContextCurrent(window);
+	glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), this->posX, this->posY, this->width, this->height, this->refreshRate);
 	fullscreen = true;
 }
 
@@ -241,59 +216,73 @@ void WindowGLFW::setVisible(bool visible)
 }
 
 void WindowGLFW::setWindowed()
-{
-	removeCallbacks();
-
-	glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-
-	glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-
-
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
-
-	GLFWwindow* newWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, window);
+{	
+	glfwSetWindowMonitor(window, nullptr, this->posX, this->posY, this->width, this->height, this->refreshRate);
 	
-	glfwDestroyWindow(window);
-	window = newWindow;
-
-	if (!vSync)
-	{
-		glfwSwapInterval(0);
-	}
-	else
-	{
-		glfwSwapInterval(1);
-	}
-
-	registerCallbacks();
-
-	glfwMakeContextCurrent(window);
-
 	int top, left, bottom, right;
 	glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
-
 	glfwSetWindowPos(window, this->posX + left, this->posY + top);
 
 	fullscreen = false;
+
+	refreshWindowWithoutCallbacks();
+
+	//now inform listeners
+	//setSize(width, height);
+	//informResizeListeners(width, height);
 }
 
 void WindowGLFW::swapBuffers()
 {
-	//glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	glViewport(0, 0, 800, 600);
-	glBindSampler(0, 0);
+	//glViewport(0, 0, 800, 600);
+	//glBindSampler(0, 0);
 	glfwSwapBuffers(window);
+}
+
+void WindowGLFW::refreshWindowWithoutCallbacks()
+{
+
+	// assure that o callbacks get called!
+	removeCallbacks();
+	//WindowSystemGLFW* system = WindowSystemGLFW::get();
+	//system->removeSizeCallback(this);
+
+	//register a dummy callback that does nothing
+	//system->registerRefreshCallback(this, [](GLFWwindow*){}); 
+
+	// change the size of the window temporarily in order to trigger the operating system to repaint the window
+	// To avoid issues we don't propagate this temporary change
+	int widthBackup = width;
+
+	glfwSetWindowSize(window, 0, height);
+
+	int top, left, bottom, right;
+	glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
+
+	int newWidth = right - left;
+
+	// nothing has changed
+	if (newWidth == widthBackup) {
+		glfwSetWindowSize(window, newWidth+1, height);
+	}
+
+	// hack!!! so that opengl recognises that it should update 
+	// TODO: Do not use opengl commands in the window class!
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	glfwSwapBuffers(window);
+
+	//now restore the original window size
+	glfwSetWindowSize(window, widthBackup, height);
+
+	// restore the callbacks
+	registerCallbacks();
 }
 
 void WindowGLFW::createNoAPIWindow()
@@ -312,20 +301,7 @@ void WindowGLFW::createNoAPIWindow()
 void WindowGLFW::createOpenGLWindow()
 {
 	//TODO
-	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_REFRESH_RATE, 59);
-
-	glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-
-
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);*/
+	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);*/
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -340,7 +316,9 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-	//glfwWindowHint(GLFW_SAMPLES, 4);
+
+	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_SAMPLES, 8);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
@@ -403,7 +381,8 @@ void WindowGLFW::createOpenGLWindow()
 	/*if (GLAD_GL_EXT_framebuffer_multisample) {
 	}*/
 
-	glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
+	glViewport(0,0, width, height);
+	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -505,6 +484,14 @@ void InputGLFW::mouseCallback(GLFWwindow* window, int button, int action, int mo
 {
 	this->window->onMouse(button, action, mods);
 	anyPressedButton = WindowSystemGLFW::get()->toButton(button);
+}
+
+void InputGLFW::refreshWindowCallback(GLFWwindow * window)
+{
+	// Only inform listeners, if window is owned by this->window 
+	if (this->window->window == window) {
+		this->window->informRefreshListeners();
+	}
 }
 
 void InputGLFW::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)

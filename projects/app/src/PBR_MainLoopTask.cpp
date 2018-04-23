@@ -104,12 +104,31 @@ void PBR_MainLoopTask::init()
 
 	window->addResizeCallback([&](int width, int height)
 	{
+		LOG(logClient, Debug) << "addResizeCallback : width: " << width << ", height: " << height;
+
+		if (!window->hasFocus()) {
+			LOG(logClient, Debug) << "addResizeCallback : no focus!";
+		}
+
+		if (width == 0 || height == 0) {
+			LOG(logClient, Warning) << "addResizeCallback : width or height is 0!";
+			return;
+		}
+
 		camera->setAspectRatio((float)width / (float)height);
 		renderer->setViewPort(0, 0, width, height);
 		renderer->destroyRenderTarget(renderTargetMultisampled);
 		renderer->destroyRenderTarget(renderTargetSingleSampled);
 		renderTargetMultisampled = renderer->createRenderTarget(4);
 		renderTargetSingleSampled = renderer->createRenderTarget(1);
+	});
+
+	window->addRefreshCallback([&]() {
+		LOG(logClient, Warning) << "addRefreshCallback : called!";
+		if (!window->hasFocus()) {
+			LOG(logClient, Warning) << "addRefreshCallback : no focus!";
+			return;
+		}
 	});
 
 	shaderManager->loadShaders();
@@ -236,11 +255,13 @@ void PBR_MainLoopTask::run()
 
 	window->activate();
 	handleInputEvents();
+	window->activate();
 
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
 
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
+	renderer->beginScene();
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
@@ -416,6 +437,21 @@ void PBR_MainLoopTask::handleInputEvents()
 	if (input->isPressed(Input::KEY_Y))
 	{
 		showDepthMap = !showDepthMap;
+	}
+
+
+	// Context refresh Does not work right now!
+	if (input->isPressed(Input::KEY_B)) {
+		if (window->isInFullscreenMode()) {
+			window->setWindowed();
+			//renderer->endScene();
+		}
+		else {
+			window->setFullscreen();
+			//renderer->endScene();
+		}
+
+		LOG(logClient, Debug) << "toggle";
 	}
 }
 

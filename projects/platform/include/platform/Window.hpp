@@ -21,15 +21,20 @@ class Window
 private:
 
 	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
+	using WindowRefreshContainer = CallbackContainer<void()>;
 	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
 
 	WindowFocusChanged windowFocusChanged;
+	WindowRefreshContainer windowRefreshContainer;
 	WindowResizeContainer windowResizeContainer;
 
 public:
 
 	using WindowFocusCallback = WindowFocusChanged::Callback;
 	using WindowFocusConnection = WindowFocusChanged::SharedItem;
+
+	using WindowRefreshCallback = WindowRefreshContainer::Callback;
+	using WindowRefreshConnection = WindowRefreshContainer::SharedItem;
 
 	using ResizeCallback = WindowResizeContainer::Callback;
 	using ResizeConnection = WindowResizeContainer::SharedItem;
@@ -85,6 +90,11 @@ public:
 	ResizeConnection addResizeCallback(const ResizeCallback& callback);
 
 	/**
+	* Adds a callback that is called when the window content should be refreshed (e.g. GUI)
+	*/
+	WindowRefreshConnection addRefreshCallback(const WindowRefreshCallback& callback);
+
+	/**
 	* Adds a callback to windows focus events. Every time, when this windows receives or
 	* looses focus, the callback will be called.
 	*/
@@ -137,6 +147,11 @@ public:
 	* Removes a given window resize callback.
 	*/
 	void removeResizeCallback(const ResizeConnection& connection);
+
+	/**
+	* Removes a given window refresh callback.
+	*/
+	void removeRefreshCallback(const WindowRefreshConnection& connection);
 
 	/**
 	* Removes a given window focus callback.
@@ -261,4 +276,9 @@ protected:
 	* Informs windows resize listeners that the size of this window has changed.
 	*/
 	void informResizeListeners(int width, int height);
+
+	/**
+	* Informs windows refresh listeners that the window should be refreshed
+	*/
+	void informRefreshListeners();
 };

@@ -13,6 +13,7 @@ public:
 	using FocusCallback = WindowGLFW::FocusCallback;
 	using KeyCallback = WindowGLFW::KeyCallback;
 	using MouseCallback = WindowGLFW::MouseCallback;
+	using RefreshCallback = WindowGLFW::RefreshCallback;
 	using ScrollCallback = WindowGLFW::ScrollCallback;
 	using SizeCallback = WindowGLFW::SizeCallback;
 
@@ -44,6 +45,8 @@ public:
 
 	void registerMouseCallback(WindowGLFW* window, std::function<MouseCallback> callback);
 
+	void registerRefreshCallback(WindowGLFW* window, std::function<RefreshCallback> callback);
+
 	void registerScrollCallback(WindowGLFW* window, std::function<ScrollCallback> callback);
 
 	void registerSizeCallback(WindowGLFW* window, std::function<SizeCallback> callback);
@@ -54,6 +57,7 @@ public:
 	void removeKeyCallback(WindowGLFW* window);
 	void removeMouseCallback(WindowGLFW* window);
 	void removeScrollCallback(WindowGLFW* window);
+	void removeRefreshCallback(WindowGLFW* window);
 	void removeSizeCallback(WindowGLFW* window);
 
 
@@ -70,6 +74,8 @@ protected:
 	static void keyInputHandler(GLFWwindow*, int, int, int, int);
 
 	static void mouseInputHandler(GLFWwindow* window, int button, int state, int mods);
+
+	static void refreshWindowHandler(GLFWwindow* window);
 
 	static void scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset);
 
@@ -94,6 +100,7 @@ private:
 	std::unordered_map<GLFWwindow*, std::function<FocusCallback>> focusCallbacks;
 	std::unordered_map<GLFWwindow*, std::function<KeyCallback>> keyCallbacks;
 	std::unordered_map<GLFWwindow*, std::function<MouseCallback>> mouseCallbacks;
+	std::unordered_map<GLFWwindow*, std::function<RefreshCallback>> refreshCallbacks;
 	std::unordered_map<GLFWwindow*, std::function<ScrollCallback>> scrollCallbacks;
 	std::unordered_map<GLFWwindow*, std::function<SizeCallback>> sizeCallbacks;
 

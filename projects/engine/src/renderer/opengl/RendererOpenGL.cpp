@@ -65,13 +65,16 @@ void RendererOpenGL::init()
 {
 	LOG(logClient, Info) << "Initializing...";
 
-	glViewport(xPos, yPos, width, height);
+	glViewport(0, 0, width, height);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 	createFrameRenderTargetBuffer(width, height);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 0.1f); // White Background
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 
@@ -129,7 +132,10 @@ void RendererOpenGL::beginScene()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f); // Dark greyish Background
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -180,6 +186,11 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glClearColor(color.r, color.g, color.b, color.a);
+
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
 	glClearDepth(depthValue);
 	glClearStencil(stencilValue);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -310,7 +321,10 @@ void RendererOpenGL::setMSAASamples(unsigned int samples)
 void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
 	Renderer::setViewPort(x, y, width, height);
-	glViewport(xPos, yPos, width, height);
+
+	glViewport(0, 0, width, height);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
@@ -327,7 +341,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	assert(map != nullptr);
 	CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
 
-	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glViewport(0, 0, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
 	glDrawBuffer(GL_NONE);
@@ -343,7 +357,7 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	assert(map != nullptr);
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
-	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glViewport(0, 0, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
 	glDrawBuffer(GL_NONE);
@@ -362,6 +376,8 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 	glViewport(0, 0, targetGL->width, targetGL->height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
+
+	glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useScreenTarget()
@@ -370,7 +386,9 @@ void RendererOpenGL::useScreenTarget()
 	
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
 	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-	clearFrameBuffer(0, { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
+	clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
@@ -379,7 +397,7 @@ void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
 	assert(map != nullptr);
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
-	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glViewport(0, 0, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFrameBuffer());
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

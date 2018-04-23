@@ -65,6 +65,11 @@ Window::ResizeConnection Window::addResizeCallback(const ResizeCallback& callbac
 	return windowResizeContainer.addCallback(callback);
 }
 
+Window::WindowRefreshConnection Window::addRefreshCallback(const WindowRefreshCallback & callback)
+{
+	return windowRefreshContainer.addCallback(callback);
+}
+
 Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCallback& callback)
 {
 	return windowFocusChanged.addCallback(callback);
@@ -73,6 +78,11 @@ Window::WindowFocusConnection Window::addWindowFocusCallback(const WindowFocusCa
 void Window::removeResizeCallback(const ResizeConnection& connection)
 {
 	windowResizeContainer.removeCallback(connection);
+}
+
+void Window::removeRefreshCallback(const WindowRefreshConnection & connection)
+{
+	windowRefreshContainer.removeCallback(connection);
 }
 
 void Window::removeWindowFocusCallback(const WindowFocusConnection& connection)
@@ -96,5 +106,14 @@ void Window::informResizeListeners(int width, int height)
 	{
 		ResizeCallback callback = connection.get()->getCallback();
 		callback(width, height);
+	}
+}
+
+void Window::informRefreshListeners()
+{
+	for (WindowRefreshConnection connection : windowRefreshContainer.getCallbacks())
+	{
+		WindowRefreshCallback callback = connection.get()->getCallback();
+		callback();
 	}
 }
