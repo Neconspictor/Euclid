@@ -27,6 +27,7 @@ public:
 	virtual Texture* getDefaultWhiteTexture() override;
 
 	virtual Texture* getHDRImage(const std::string& file, TextureData data) override;
+	virtual Texture* getHDRImage2(const std::string& file, TextureData data);
 	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) override;
 
 	std::string getImagePath() override;

@@ -61,6 +61,7 @@ private:
 	bool showDepthMap;
 	CubeMap* sky;
 	Vob skyBox;
+	Vob equirectangularSkyBox;
 	Timer timer;
 	SystemUI* ui;
 

@@ -26,7 +26,7 @@ using namespace platform;
 PBR_MainLoopTask::PBR_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), blurEffect(nullptr), isRunning(true), logClient(getLogServer()), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
 	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj", Shaders::BlinnPhongTex), ui(nullptr)
+	skyBox("misc/SkyBoxPlane.obj", Shaders::BlinnPhongTex), equirectangularSkyBox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex), ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -141,13 +141,16 @@ void PBR_MainLoopTask::init()
     
 
 	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
-	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { true, true, Bilinear, Bilinear, ClampToEdge });
+	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Bilinear, Bilinear, ClampToEdge });
 	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBox));
 
 	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
+
+	EquirectangularSkyBoxShader* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShader*>
+		(shaderManager->getConfig(Shaders::SkyBoxEquirectangular));
 
 	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getConfig(Shaders::Pbr));
@@ -159,6 +162,7 @@ void PBR_MainLoopTask::init()
 
 	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
+	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
 	pbrShader->setSkyBox(sky);
 
 
@@ -369,8 +373,6 @@ void PBR_MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shade
 
 void PBR_MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 {
-	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::SkyBoxPanorama));
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	mat4 identity;
@@ -379,8 +381,9 @@ void PBR_MainLoopTask::drawSky(const mat4& projection, const mat4& view)
 	TransformData data = { &projection, &view, nullptr };
 	data.model = &identity;
 	data.view = &skyBoxView;
-	//modelDrawer->draw(&skyBox, skyBoxShader, data);
-	modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
+	//modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBox, data);
+	//modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
+	modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBoxEquirectangular, data);
 }
 
 void PBR_MainLoopTask::updateCamera(Input* input, float deltaTime)

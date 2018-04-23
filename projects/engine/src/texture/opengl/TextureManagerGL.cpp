@@ -98,7 +98,7 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 
 	GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
 		bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
-		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO | (useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
+		SOIL_LOAD_RGB, 0, SOIL_FLAG_POWER_OF_TWO |(useSRGBOnCreation ? SOIL_FLAG_SRGB_COLOR_SPACE : 0));
     
 	if (cubeMap == GL_FALSE)
 	{
@@ -156,8 +156,65 @@ Texture * TextureManagerGL::getDefaultWhiteTexture()
 	return getImage("_intern/white.png", { false, false, Linear_Linear, Bilinear, Repeat, RGB });
 }
 
+
+
+Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
+{
+	auto it = textureLookupTable.find(file);
+
+	// Don't create duplicate textures!
+	if (it != textureLookupTable.end())
+	{
+		return it->second;
+	}
+
+	string path = ::util::globals::TEXTURE_PATH + file;
+
+
+	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
+	int width, height, nrComponents;
+	float *rawData = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+	unsigned int hdrTexture;
+	if (!rawData) {
+		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
+		stringstream ss;
+		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
+		throw runtime_error(ss.str());
+	}
+
+
+
+	glGenTextures(1, &hdrTexture);
+	glBindTexture(GL_TEXTURE_2D, hdrTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, rawData);
+
+	GLint minFilter = mapFilter(data.minFilter, data.generateMipMaps);
+	GLint magFilter = mapFilter(data.magFilter, data.generateMipMaps);
+	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//if (data.generateMipMaps)
+	//	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(rawData);
+
+	return createTextureGL(file, hdrTexture);
+}
+
+
+
+
 Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 {
+
+	return getHDRImage2(file, data);
+
 	auto it = textureLookupTable.find(file);
 
 	// Don't create duplicate textures!
@@ -215,7 +272,7 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	}
 
 	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), colorspace, 0,
-		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_TEXTURE_REPEATS /*| SOIL_FLAG_INVERT_Y*/);//SOIL_FLAG_SRGB_COLOR_SPACE
+		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_INVERT_Y);//SOIL_FLAG_SRGB_COLOR_SPACE
 
 	if (textureID == GL_FALSE)
 	{

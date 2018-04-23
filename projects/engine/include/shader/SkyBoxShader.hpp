@@ -18,3 +18,12 @@ public:
 	virtual ~PanoramaSkyBoxShader() {}
 	virtual void setSkyTexture(Texture* tex) = 0;
 };
+
+
+class EquirectangularSkyBoxShader : public ShaderConfig
+{
+public:
+	EquirectangularSkyBoxShader() {};
+	virtual ~EquirectangularSkyBoxShader() {}
+	virtual void setSkyTexture(Texture* tex) = 0;
+};

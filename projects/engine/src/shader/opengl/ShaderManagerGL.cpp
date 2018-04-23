@@ -60,6 +60,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::SimpleExtrude);
 	createShader(s::Screen);
 	createShader(s::SkyBox);
+	createShader(s::SkyBoxEquirectangular);
 	createShader(s::SkyBoxPanorama);
 	createShader(s::VarianceDepthMap);
 	createShader(s::VarianceShadow);
@@ -159,6 +160,12 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 		configs.push_back(make_shared<SkyBoxShaderGL>());
 		shaderPtr = make_shared<ShaderGL>
 			(configs.back().get(), "skybox_vs.glsl", "skybox_fs.glsl");
+		break;
+	}
+	case s::SkyBoxEquirectangular: {
+		configs.push_back(make_shared<EquirectangularSkyBoxShaderGL>());
+		shaderPtr = make_shared<ShaderGL>
+			(configs.back().get(), "skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
 		break;
 	}
 	case s::SkyBoxPanorama: {

@@ -30,6 +30,7 @@ enum class Shaders
 	SimpleExtrude,
 	Screen,
 	SkyBox,
+	SkyBoxEquirectangular,
 	SkyBoxPanorama,
 	VarianceDepthMap,
 	VarianceShadow
@@ -52,6 +53,7 @@ const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 	{ Shaders::SimpleExtrude, "SIMPLE_EXTRUDE" },
 	{ Shaders::Screen, "SCREEN" },
 	{ Shaders::SkyBox, "SKY_BOX" },
+	{ Shaders::SkyBoxEquirectangular, "SKY_BOX_EQUIRECTANGULAR" },
 	{ Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
 	{ Shaders::VarianceShadow, "VARIANCE_DEPTH_MAP" },
 	{ Shaders::VarianceShadow, "VARIANCE_SHADOW" }

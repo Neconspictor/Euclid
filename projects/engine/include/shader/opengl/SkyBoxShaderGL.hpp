@@ -42,3 +42,23 @@ private:
 	TextureGL* skyTexture;
 	glm::mat4 transform;
 };
+
+class EquirectangularSkyBoxShaderGL : public EquirectangularSkyBoxShader, public ShaderConfigGL
+{
+public:
+	EquirectangularSkyBoxShaderGL();
+
+	~EquirectangularSkyBoxShaderGL() override;
+
+	void afterDrawing() override;
+
+	void beforeDrawing() override;
+
+	virtual void setSkyTexture(Texture* tex) override;
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+
+private:
+	TextureGL* skyTexture;
+	glm::mat4 transform;
+};

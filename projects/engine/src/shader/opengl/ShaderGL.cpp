@@ -502,11 +502,10 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 	case t::CUBE_MAP: {
 		assert(textureCounter < 32); // OpenGL allows up to 32 textures
 		glActiveTexture(textureCounter + GL_TEXTURE0);
-		// TODO CubeMaps and CubeDepthMaps should be considered as well!
-		GLuint textureID;
+		// TODO CubeDepthMaps should be considered as well!
 
-		const TextureGL* texture = reinterpret_cast<const TextureGL*>(data);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getTexture());
+		const CubeMapGL* texture = reinterpret_cast<const CubeMapGL*>(data);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture->getCubeMap());
 		glUniform1i(loc, textureCounter);
 		// the next texture to bind gets the next slot
 		++textureCounter;

@@ -107,7 +107,7 @@ void PBRShaderGL::setShadowMap(Texture* texture)
 void PBRShaderGL::setSkyBox(CubeMap* sky)
 {
 	this->skybox = dynamic_cast<CubeMapGL*>(sky);
-	attributes.setData("skybox", dynamic_cast<TextureGL*>(skybox));
+	attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
 }
 
 void PBRShaderGL::setCameraPosition(vec3 position)
@@ -157,7 +157,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
 	attributes.setData("brdfLUT", nullptr, white);
-	attributes.setData("irradianceMap", dynamic_cast<TextureGL*>(skybox));
-	attributes.setData("prefilterMap", dynamic_cast<TextureGL*>(skybox));
+	attributes.setData("irradianceMap", dynamic_cast<CubeMapGL*>(skybox));
+	attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
 }
 

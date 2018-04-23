@@ -388,7 +388,7 @@ void RendererOpenGL::useScreenTarget()
 	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 	clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
 
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
