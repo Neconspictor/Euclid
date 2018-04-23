@@ -29,6 +29,7 @@ in VS_OUT {
 	vec3 T;
 	vec3 B;
 	vec3 N;
+	vec3 lightDir;
 	vec3 tangentLightDir;
 	vec3 tangentViewDir;
 	vec3 normal;
@@ -129,10 +130,38 @@ float chebyshevUpperBound( float distance, vec2 uv);
 float PCSS (sampler2D shadowMap, vec3 coords, float bias);
 float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadiusUV, float bias);
 
+
+// ----------------------------------------------------------------------------
+// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
+// Don't worry if you don't get what's going on; you generally want to do normal 
+// mapping the usual way for performance anways; I do plan make a note of this 
+// technique somewhere later in the normal mapping tutorial.
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(material.normalMap, fs_in.texCoords).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(fs_in.fragPos);
+    vec3 Q2  = dFdy(fs_in.fragPos);
+    vec2 st1 = dFdx(fs_in.texCoords);
+    vec2 st2 = dFdy(fs_in.texCoords);
+
+    vec3 N   = normalize(fs_in.normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = normalize(cross(N, T));
+	//vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
+
+
 void main()
 {    	
 	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb;
 	normal = normalize(2.0*normal - 1.0);
+	
+	normal = getNormalFromMap();
 	
     // phase 1: directional lighting
     vec3 result = pbrModel(normal);
@@ -169,7 +198,7 @@ vec3 pbrModel(vec3 normal) {
 	//albedo = vec3(1,0,0);
 	
     float metallic = texture(material.metallicMap, fs_in.texCoords).r;
-	metallic = 1;
+	metallic = 1.0;
     float roughness = texture(material.roughnessMap, fs_in.texCoords).r;
 	roughness = 0.0f;
     float ao = texture(material.aoMap, fs_in.texCoords).r;
@@ -177,9 +206,13 @@ vec3 pbrModel(vec3 normal) {
 	ao = 1;
        
     // input lighting data
+	//mat3 inverseTBN = inverse(fs_in.TBN);
     vec3 N = normal;
-    vec3 V = normalize(fs_in.tangentViewDir); //normalize(camPos - WorldPos);
-    vec3 R = reflect(-V, N); 
+	N = normalize(N);
+	
+    //vec3 V = normalize(inverseTBN * fs_in.tangentViewDir); //normalize(camPos - WorldPos);
+	vec3 V = normalize(cameraPos - fs_in.fragPos);
+    vec3 R = reflect(-V, N);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -189,16 +222,16 @@ vec3 pbrModel(vec3 normal) {
     // reflectance equation
     vec3 Lo = pbrDirectLight(V, N, roughness, F0, metallic, albedo);
 	
-	vec3 ambient = pbrAmbientLight(V, N, roughness, F0, metallic, albedo, R, ao);
+	vec3 ambient = pbrAmbientLight(V, N, roughness, F0, metallic, albedo, R.rgb, ao);
     
-    vec3 color = ambient + Lo;
+    vec3 color = Lo + ambient;
 	
 	return color;
 }
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
 	// calculate per-light radiance
-	vec3 L =  normalize(fs_in.tangentLightDir); //normalize(-dirLight.direction);
+	vec3 L =  normalize(fs_in.lightDir); //normalize(-dirLight.direction);
 	vec3 H = normalize(V + L);
 	
 	// directional lights have no distance and thus also no attenuation
@@ -248,7 +281,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 

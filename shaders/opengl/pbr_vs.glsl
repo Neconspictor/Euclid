@@ -43,6 +43,7 @@ out VS_OUT {
 	vec3 T;
 	vec3 B;
 	vec3 N;
+	vec3 lightDir;
 	vec3 tangentLightDir;
 	vec3 tangentViewDir;
 	vec3 normal;
@@ -97,12 +98,12 @@ void main()
 	vec3 pos = vec3(model *  vec4(position, 1));
 	
 	
-	vec3 viewLightDir = normalize(-dirLight.direction);	
-	vs_out.tangentLightDir = normalize(TBN * viewLightDir);
+	vec3 lightDir = normalize(-dirLight.direction);	
+	vs_out.tangentLightDir = normalize(TBN * lightDir);
+	vs_out.lightDir = lightDir;
 	
 	vec3 viewDir = normalize(cameraPos - pos);
 	vs_out.tangentViewDir = normalize(TBN * viewDir);
-	//vs_out.tangentViewDir = normalize((vec4(viewDir,0)).xyz);
 	
 	
 	//normal offset shadow stuff
@@ -116,7 +117,7 @@ void main()
 	//shadowMapTexelSize *= abs(positionLightView.z) * shadowFOVFactor;
 	
 	vec4 positionLightSpace;
-	vec3 toLight = viewLightDir;
+	vec3 toLight = lightDir;
 	float cosLightAngle = dot(toLight, normalNormalized);
 	
 	bool bNormalOffsetScale = true;
