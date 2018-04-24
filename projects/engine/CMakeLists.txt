@@ -215,6 +215,7 @@ set(
     src/system/Video.cpp
     
     #texture
+    src/texture/Texture.cpp
     #texture/opengl
     src/texture/opengl/ImageLoaderGL.cpp
     src/texture/opengl/TextureGL.cpp

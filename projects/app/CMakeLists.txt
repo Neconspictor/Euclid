@@ -2,6 +2,7 @@ set(
     APP_SOURCES 
     
     ###header files###
+    include/PBR.hpp
     include/PBR_MainLoopTask.hpp
     include/MainLoopTask.hpp
     include/pch_app.hpp
@@ -9,6 +10,7 @@ set(
     src/PBR_MainLoopTask.cpp
     src/Main.cpp
     src/MainLoopTask.cpp
+    src/PBR.cpp
 )
 
 # Create named folders for the sources within the .vcproj

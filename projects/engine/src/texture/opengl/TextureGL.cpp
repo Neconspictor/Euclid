@@ -34,6 +34,26 @@ CubeMapGL::~CubeMapGL()
 {
 }
 
+GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
+{
+	switch (side) {
+	case POSITIVE_X:
+		return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+	case NEGATIVE_X:
+		return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+	case POSITIVE_Y:
+		return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+	case NEGATIVE_Y:
+		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+	case POSITIVE_Z:
+		return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+	case NEGATIVE_Z:
+		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+	default:
+		throw std::runtime_error("No mapping defined for " + side);
+	}
+}
+
 GLuint CubeMapGL::getCubeMap() const
 {
 	return textureID;
@@ -95,6 +115,76 @@ void TextureGL::setTexture(GLuint id)
 {
 	textureID = id;
 }
+
+CubeRenderTargetGL::CubeRenderTargetGL(int width, int height) : CubeRenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
+{
+}
+
+CubeRenderTargetGL::~CubeRenderTargetGL()
+{
+}
+
+GLuint CubeRenderTargetGL::getFrameBuffer()
+{
+	return frameBuffer;
+}
+
+GLuint CubeRenderTargetGL::getRenderBuffer()
+{
+	return renderBuffer;
+}
+
+GLuint CubeRenderTargetGL::getCubeMapGL()
+{
+	return cubeMapResult.getCubeMap();
+}
+
+CubeMap * CubeRenderTargetGL::getCubeMap()
+{
+	return &cubeMapResult;
+}
+
+GLuint CubeRenderTargetGL::getRendertargetTexture()
+{
+	return renderTargetTexture;
+}
+
+void CubeRenderTargetGL::release()
+{
+	cubeMapResult.release();
+	glDeleteFramebuffers(1, &frameBuffer);
+	glDeleteRenderbuffers(1, &renderBuffer);
+	glDeleteTextures(1, &renderTargetTexture);
+
+	frameBuffer = GL_FALSE;
+	renderBuffer = GL_FALSE;
+	renderTargetTexture = GL_FALSE;
+
+	cubeMapResult.release();
+}
+
+void CubeRenderTargetGL::setFrameBuffer(GLuint newValue)
+{
+	frameBuffer = newValue;
+}
+
+void CubeRenderTargetGL::setRenderBuffer(GLuint newValue)
+{
+	renderBuffer = newValue;
+}
+
+void CubeRenderTargetGL::setCubeMapResult(GLuint newValue)
+{
+	cubeMapResult = newValue;
+}
+
+void CubeRenderTargetGL::setRenderTargetTexture(GLuint newValue)
+{
+	renderTargetTexture = newValue;
+}
+
+
+
 
 RenderTargetGL::RenderTargetGL(int width, int height) : RenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
 {
@@ -163,6 +253,8 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
 	}
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	return result;
 }
 
@@ -216,6 +308,8 @@ RenderTargetGL RenderTargetGL::createSingleSampled(GLint internalFormat, int wid
 	{
 		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return result;
 }

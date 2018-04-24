@@ -14,6 +14,7 @@
 #include <light/Light.hpp>
 #include <sprite/Sprite.hpp>
 #include <post_processing/blur/GaussianBlur.hpp>
+#include <PBR.hpp>
 
 class SystemUI;
 
@@ -51,6 +52,8 @@ private:
 	std::string originalTitle;
 	Texture* panoramaSky;
 
+	PBR pbr;
+
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;
 	RenderTarget* renderTargetSingleSampled;
@@ -59,9 +62,6 @@ private:
 	Sprite screenSprite;
 	DepthMap* shadowMap;
 	bool showDepthMap;
-	CubeMap* sky;
-	Vob skyBox;
-	Vob equirectangularSkyBox;
 	Timer timer;
 	SystemUI* ui;
 
@@ -70,8 +70,6 @@ private:
 	WindowSystemPtr windowSystem;
 
 	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType = Shaders::Unknown);
-
-	void drawSky(const glm::mat4& projection, const glm::mat4& view);
 
 	void updateCamera(Input* input, float deltaTime);
 

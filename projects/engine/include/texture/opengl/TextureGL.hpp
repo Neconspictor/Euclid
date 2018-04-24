@@ -43,9 +43,41 @@ public:
 
 	virtual ~CubeMapGL();
 
+	/**
+	 * Maps a cube map side to a corresponding opengl view axis 
+	 */
+	static GLuint mapCubeSideToSystemAxis(Side side);
+
 	GLuint getCubeMap() const;
 
 	void setCubeMap(GLuint id);
+};
+
+class CubeRenderTargetGL : public CubeRenderTarget
+{
+public:
+	explicit CubeRenderTargetGL(int width, int height);
+	virtual ~CubeRenderTargetGL();
+
+	GLuint getFrameBuffer();
+	GLuint getRenderBuffer();
+	GLuint getCubeMapGL();
+	CubeMap* getCubeMap() override;
+	GLuint getRendertargetTexture();
+
+	void release();
+
+	void setFrameBuffer(GLuint newValue);
+	void setRenderBuffer(GLuint newValue);
+	void setCubeMapResult(GLuint newValue);
+	void setRenderTargetTexture(GLuint newValue);
+
+protected:
+	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	GLuint frameBuffer;
+	GLuint renderBuffer;
+	GLuint renderTargetTexture;
+	CubeMapGL cubeMapResult;
 };
 
 class RenderTargetGL : public RenderTarget

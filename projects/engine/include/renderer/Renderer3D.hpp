@@ -39,11 +39,15 @@ public:
 
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height) = 0;
+
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 
 	virtual RenderTarget* createVarianceShadowMap(int width, int height) = 0;
 	
 	virtual void cullFaces(CullingMode mode = CullingMode::Back) = 0;
+
+	virtual void destroyCubeRenderTarget(CubeRenderTarget* target) = 0;
 
 	virtual void destroyRenderTarget(RenderTarget* target) = 0;
 
@@ -87,7 +91,7 @@ public:
 	/**
 	 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
 	 */
-	virtual CubeMap* renderCubeMap(int width, int height, Texture* equirectangularMap) = 0;
+	virtual CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) = 0;
 
 	virtual void setBackgroundColor(glm::vec3 color) = 0;
 
@@ -103,6 +107,8 @@ public:
 	 * As a result only depth (z-value) information are written.
 	 */
 	virtual void useDepthMap(DepthMap* depthMap) = 0;
+
+	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side) = 0;
 
 	/**
 	 * All draw calls are performed on a offscreen texture.

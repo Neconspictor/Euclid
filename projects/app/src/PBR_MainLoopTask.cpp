@@ -25,8 +25,7 @@ using namespace platform;
 //misc/SkyBoxPlane.obj
 PBR_MainLoopTask::PBR_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
 	Task(flags), blurEffect(nullptr), isRunning(true), logClient(getLogServer()), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
-	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false), sky(nullptr), 
-	skyBox("misc/SkyBoxPlane.obj", Shaders::BlinnPhongTex), equirectangularSkyBox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex), ui(nullptr)
+	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false),  ui(nullptr)
 {
 	this->window = window;
 	this->windowSystem = windowSystem;
@@ -116,6 +115,11 @@ void PBR_MainLoopTask::init()
 		}
 
 		camera->setAspectRatio((float)width / (float)height);
+
+		//update render target dimension
+		//the render target dimensions are dependent from the viewport size
+		// so first update the viewport and than recreate the render targets
+		// TODO, simplify this process -> render targets should be indepedent from vieport dimension?
 		renderer->setViewPort(0, 0, width, height);
 		renderer->destroyRenderTarget(renderTargetMultisampled);
 		renderer->destroyRenderTarget(renderTargetSingleSampled);
@@ -134,11 +138,6 @@ void PBR_MainLoopTask::init()
 	shaderManager->loadShaders();
 
 	modelManager->loadModels();
-
-	sky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
-		"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
-		"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-    
 
 	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
 	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Bilinear, Bilinear, ClampToEdge });
@@ -160,10 +159,8 @@ void PBR_MainLoopTask::init()
 	renderTargetMultisampled = renderer->createRenderTarget(8);
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
-	skyBoxShader->setSkyTexture(sky);
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
-	pbrShader->setSkyBox(sky);
 
 
 	vec3 position = {1.0f, 1.0f, 1.0f };
@@ -202,9 +199,13 @@ void PBR_MainLoopTask::init()
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
-	CubeMap* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
-	skyBoxShader->setSkyTexture(testCubeMap);
-	pbrShader->setSkyBox(testCubeMap);
+	pbr.init(renderer, panoramaSky);
+
+	CubeMap* background = pbr.getBackground();
+
+	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
+	skyBoxShader->setSkyTexture(background);
+	pbrShader->setSkyBox(background);
 }
 
 void PBR_MainLoopTask::setUI(SystemUI* ui)
@@ -269,14 +270,11 @@ void PBR_MainLoopTask::run()
 
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
+	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
+	renderer->useScreenTarget();
 	renderer->beginScene();
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
-
-	// render shadows to a depth map
-	renderer->useDepthMap(shadowMap);
-	//renderer->useVarianceShadowMap(vsMap);
-	renderer->enableAlphaBlending(false);
-
+	renderer->endScene();
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
 	const mat4& cameraView = camera->getView();
@@ -285,65 +283,61 @@ void PBR_MainLoopTask::run()
 	mat4 test = globalLight.getView();
 	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
 	AABB ccBB = fromCuboid(cameraCuboidWorld);
-	//ccBB.min.z -= 3;
-	//ccBB.max.z += 3;
-
-	// Snap shadow frustum to texel bounds for avoiding edge shimmering
-	/*float size = vsMap->getWidth();//shadowMap->getWidth() * shadowMap->getHeight();
-	vec3 normalizedMapSize = vec3(1.0f / (float)vsMap->getWidth(), 1.0f / (float)vsMap->getHeight(), 1.0f);
-	vec3 worldUnitsPerTexel = ccBB.max - ccBB.min;
-	worldUnitsPerTexel *= normalizedMapSize;
-	
-	// We snap the camera to 1 pixel increments so that moving the camera does not cause the shadows
-	// to jitter. This is a matter of integer dividing by the world space size of a texel
-	ccBB.min.x /= worldUnitsPerTexel.x;
-	ccBB.min.y /= worldUnitsPerTexel.y;
-	ccBB.min.x = floor(ccBB.min.x);
-	ccBB.min.y = floor(ccBB.min.y);
-	ccBB.min.x *= worldUnitsPerTexel.x;
-	ccBB.min.y *= worldUnitsPerTexel.y;
-
-	ccBB.max.x /= worldUnitsPerTexel.x;
-	ccBB.max.y /= worldUnitsPerTexel.y;
-	ccBB.max.x = floor(ccBB.max.x);
-	ccBB.max.y = floor(ccBB.max.y);
-	ccBB.max.x *= worldUnitsPerTexel.x;
-	ccBB.max.y *= worldUnitsPerTexel.y;*/
-
 
 	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
 	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
 	globalLight.setOrthoFrustum(shadowFrustum);
 
+	const mat4& lightProj = globalLight.getProjection(Orthographic);
+	const mat4& lightView = globalLight.getView();
+
 	pbrShader->setLightProjMatrix(globalLight.getProjection(Orthographic));
 	pbrShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
 	pbrShader->setLightViewMatrix(globalLight.getView());
-	
+
+
+	// render scene to the shadow depth map
+	renderer->beginScene();
+	renderer->useDepthMap(shadowMap);
+	renderer->enableAlphaBlending(false);
 	renderer->cullFaces(CullingMode::Back);
-	//renderer->cullFaces(CullingMode::Front);
-	drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::Shadow);
-	//drawScene(globalLight.getOrthoProjection(), globalLight.getView(), Shaders::VarianceShadow);
+
+	pbr.drawSceneToShadowMap(scene,
+		frameTimeElapsed,
+		shadowMap,
+		globalLight,
+		lightView,
+		lightProj);
+
 	renderer->cullFaces(CullingMode::Back);
 	renderer->endScene();
 
-
-	// blur the shadow map to smooth out the edges
-	//for (int i = 0; i < 1; ++i) blurEffect->blur(vsMap, vsMapCache);
-	//blurEffect->blur(vsMap, vsMapCache);
-
-	// now render scene to a offscreen buffer
+	// render scene to a offscreen buffer
 	renderer->useRenderTarget(renderTargetMultisampled);
-	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
-	pbrShader->setShadowMap(shadowMap->getTexture());
+	renderer->enableAlphaBlending(true);
 
+	pbrShader->setShadowMap(shadowMap->getTexture());
 	pbrShader->setCameraPosition(camera->getPosition());
 
-	drawSky(camera->getPerspProjection(), camera->getView());
-	drawScene(camera->getPerspProjection(), camera->getView());
+	pbr.drawSky(renderTargetMultisampled, camera->getPerspProjection(), camera->getView());
+
+	pbr.drawScene(scene,
+		renderTargetMultisampled,
+		camera->getPosition(),
+		frameTimeElapsed,
+		shadowMap->getTexture(),
+		globalLight,
+		lightView,
+		lightProj,
+		camera->getView(),
+		camera->getPerspProjection());
 
 
+	renderer->endScene();
 
+
+	// copy rendered scene to the single sampled render target
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
@@ -373,21 +367,6 @@ void PBR_MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shade
 	scene->update(frameTimeElapsed);
 	scene->draw(renderer, modelDrawer, projection, view, shaderType);
 	renderer->endScene();
-}
-
-void PBR_MainLoopTask::drawSky(const mat4& projection, const mat4& view)
-{
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	mat4 identity;
-	mat4 skyBoxView = mat4(mat3(view));
-
-	TransformData data = { &projection, &view, nullptr };
-	data.model = &identity;
-	data.view = &skyBoxView;
-	modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBox, data);
-	//modelDrawer->draw(&skyBox, Shaders::SkyBoxPanorama, data);
-	//modelDrawer->draw(&equirectangularSkyBox, Shaders::SkyBoxEquirectangular, data);
 }
 
 void PBR_MainLoopTask::updateCamera(Input* input, float deltaTime)

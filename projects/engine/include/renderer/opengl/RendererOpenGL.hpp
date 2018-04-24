@@ -38,6 +38,8 @@ public:
 
 	CubeDepthMap* createCubeDepthMap(int width, int height) override;
 
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height) override;
+
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
 	DepthMap* createDepthMap(int width, int height) override;
@@ -50,6 +52,8 @@ public:
 	RenderTarget* createVarianceShadowMap(int width, int height) override;
 
 	void cullFaces(CullingMode mode) override;
+
+	virtual void destroyCubeRenderTarget(CubeRenderTarget* target) override;
 
 	void destroyRenderTarget(RenderTarget* target) override;
 
@@ -84,7 +88,7 @@ public:
 	
 	void release() override;
 
-	CubeMap* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
+	CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
 
 	void setBackgroundColor(glm::vec3 color) override;
 
@@ -95,6 +99,8 @@ public:
 	void useCubeDepthMap(CubeDepthMap* cubeDepthMap) override;
 
 	void useDepthMap(DepthMap* depthMap) override;
+
+	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side) override;
 
 	void useRenderTarget(RenderTarget* target) override;
 
@@ -117,15 +123,13 @@ protected:
 
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 
-	void createFrameRenderTargetBuffer(int width, int height);
-
 	glm::vec3 backgroundColor;
 	std::list<CubeDepthMapGL> cubeDepthMaps;
 	std::list<DepthMapGL> depthMaps;
 	std::unique_ptr<EffectLibraryGL> effectLibrary;
 	ModelDrawerGL modelDrawer;
 	unsigned int msaaSamples;
+	std::list<CubeRenderTargetGL> cubeRenderTargets;
 	std::list<RenderTargetGL> renderTargets;
-	std::unique_ptr<ModelGL> screenSprite;
 	SMAA_GL* smaa;
 };

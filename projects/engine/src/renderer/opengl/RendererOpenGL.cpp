@@ -38,7 +38,7 @@ void EffectLibraryGL::release()
 }
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
-  screenSprite(nullptr), backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
+  backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
   msaaSamples(1), smaa(nullptr)
 {	
 	logClient.setPrefix("[RendererOpenGL]");
@@ -54,6 +54,7 @@ RendererOpenGL::RendererOpenGL() : Renderer3D(),
 RendererOpenGL::~RendererOpenGL()
 {
 	delete smaa;
+	release();
 }
 
 // An array of 3 vectors which represents 3 vertices
@@ -71,8 +72,6 @@ void RendererOpenGL::init()
 
 	glViewport(0, 0, width, height);
 
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
-	createFrameRenderTargetBuffer(width, height);
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	glViewport(0, 0, width, height);
@@ -174,6 +173,60 @@ CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 {
 	cubeDepthMaps.push_back(move(CubeDepthMapGL(width, height)));
 	return &cubeDepthMaps.back();
+}
+
+CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height)
+{
+	CubeRenderTargetGL result(width, height);
+
+	// generate framebuffer and renderbuffer with a depth component
+	glGenFramebuffers(1, &result.frameBuffer);
+	glGenRenderbuffers(1, &result.renderBuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
+
+
+	// Generate texture
+	glGenTextures(1, &result.renderTargetTexture);
+
+	glBindTexture(GL_TEXTURE_2D, result.renderTargetTexture);
+	//GL_UNSIGNED_BYTE
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// clamp is important so that no pixel artifacts occur on the border!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach texture to currently bound frame buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, result.renderTargetTexture, 0);
+
+
+	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+	//pre-allocate the six faces of the cubemap
+	glGenTextures(1, &result.cubeMapResult.textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, result.cubeMapResult.textureID);
+	for (int i = 0; i < 6; ++i) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	cubeRenderTargets.push_back(move(result));
+	return &cubeRenderTargets.back();
 }
 
 GLint RendererOpenGL::getCurrentRenderTarget() const
@@ -292,8 +345,30 @@ void RendererOpenGL::present()
 void RendererOpenGL::release()
 {
 	effectLibrary->release();
-	renderTargets.clear();
-	depthMaps.clear();
+
+	for (auto it = cubeRenderTargets.begin(); it != cubeRenderTargets.end(); ) {
+		CubeRenderTargetGL& target = *it;
+		target.release();
+		it = cubeRenderTargets.erase(it);
+	}
+
+	for (auto it = renderTargets.begin(); it != renderTargets.end();) {
+		RenderTargetGL& target = *it;
+		target.release();
+		it = renderTargets.erase(it);
+	}
+
+	for (auto it = depthMaps.begin(); it != depthMaps.end();) {
+		DepthMapGL& target = *it;
+		target.release();
+		it = depthMaps.erase(it);
+	}
+
+	for (auto it = depthMaps.begin(); it != depthMaps.end();) {
+		DepthMapGL& target = *it;
+		target.release();
+		it = depthMaps.erase(it);
+	}
 }
 
 void RendererOpenGL::setBackgroundColor(glm::vec3 color)
@@ -315,19 +390,16 @@ void RendererOpenGL::setMSAASamples(unsigned int samples)
 
 void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
-	Renderer::setViewPort(x, y, width, height);
+	Renderer3D::setViewPort(x, y, width, height);
+
+	this->width = width;
+	this->height = height;
 
 	glViewport(0, 0, width, height);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
+	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
-	//if (singleSampledScreenBuffer.getFrameBuffer() == GL_FALSE) return;
-	// update offscreen buffer texture
-	createFrameRenderTargetBuffer(width, height);
-
-	if (effectLibrary)
-		effectLibrary->getGaussianBlur()->init();
+	//if (effectLibrary)
+	//	effectLibrary->getGaussianBlur()->init();
 }
 
 void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
@@ -362,6 +434,27 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	glPolygonOffset(0.0f, 0.0f);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side)
+{
+	CubeRenderTargetGL* targetGL = dynamic_cast<CubeRenderTargetGL*>(target);
+	assert(targetGL != nullptr);
+
+
+	CubeMap* cubeMap = target->getCubeMap();
+	CubeMapGL* cubeMapGL = dynamic_cast<CubeMapGL*>(cubeMap);
+
+	GLuint AXIS_SIDE = CubeMapGL::mapCubeSideToSystemAxis(side);
+
+	int width = target->getWidth();
+	int height = target->getHeight();
+	GLuint cubeMapTexture = cubeMapGL->getCubeMap();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void RendererOpenGL::useRenderTarget(RenderTarget* target)
@@ -456,62 +549,12 @@ void RendererOpenGL::clearRenderTarget(RenderTargetGL* renderTarget, bool releas
 	renderTarget->textureBuffer.setTexture(GL_FALSE);
 }
 
-CubeMap* RendererOpenGL::renderCubeMap(int width, int height, Texture* equirectangularMap)
+CubeRenderTarget* RendererOpenGL::renderCubeMap(int width, int height, Texture* equirectangularMap)
 {
 	EquirectangularSkyBoxShader* shader = dynamic_cast<EquirectangularSkyBoxShader*>(getShaderManager()->getConfig(Shaders::SkyBoxEquirectangular));
 	shader->setSkyTexture(equirectangularMap);
 	Vob skyBox ("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex);
-
-	// generate framebuffer and renderbuffer with a depth component
-	unsigned int captureFBO, captureRBO;
-	glGenFramebuffers(1, &captureFBO);
-	glGenRenderbuffers(1, &captureRBO);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-
-
-	// Generate texture
-	unsigned int textureBuffer;
-	glGenTextures(1, &textureBuffer);
-
-	glBindTexture(GL_TEXTURE_2D, textureBuffer);
-	//GL_UNSIGNED_BYTE
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureBuffer, 0);
-
-
-
-
-	glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-
-	//pre-allocate the six faces of the cubemap
-	unsigned int envCubemap;
-	glGenTextures(1, &envCubemap);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-	for (int i = 0; i < 6; ++i) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	CubeRenderTargetGL*  result = dynamic_cast<CubeRenderTargetGL*>(createCubeRenderTarget(width, height));
 
 
 	TransformData data;
@@ -521,22 +564,22 @@ CubeMap* RendererOpenGL::renderCubeMap(int width, int height, Texture* equirecta
 	data.model = &model;
 
 	//view matrices;
-	mat4 views[] = {
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f,  0.0f,  0.0f), vec3(0.0f, -1.0f,  0.0f)), //right; sign of up vector is not important
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(-1.0f,  0.0f,  0.0f), vec3(0.0f, -1.0f,  0.0f)), //left
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  1.0f,  0.0f), vec3(0.0f,  0.0f,  1.0f)), //top
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f,  0.0f), vec3(0.0f,  0.0f, -1.0f)), //bottom
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  0.0f,  1.0f), vec3(0.0f, -1.0f,  0.0f)), //back
-		lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,  0.0f, -1.0f), vec3(0.0f, -1.0f,  0.0f)) //front
+	const mat4 views[] = {
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 	};
 
 
 	//set the viewport to the dimensoion of the cubemap
 	glViewport(0,0, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
 
 	for (int i = 0; i < 6; ++i) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, result->getCubeMapGL(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//render into the texture
@@ -546,23 +589,8 @@ CubeMap* RendererOpenGL::renderCubeMap(int width, int height, Texture* equirecta
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// create, register and return the cubemap
-	CubeMapGL result(envCubemap);
-	
-	return TextureManagerGL::get()->addCubeMap(move(result));
-}
-
-void RendererOpenGL::createFrameRenderTargetBuffer(int width, int height)
-{
-	// created a screen buffer once before? -> release it
-	//clearRenderTarget(&singleSampledScreenBuffer);
-	//clearRenderTarget(&multiSampledScreenBuffer);
-
-	//createSingleSampledScreenBuffer(&singleSampledScreenBuffer);
-	//singleSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
-	//multiSampledScreenBuffer = createRenderTarget(GL_RGBA8, width, height, msaaSamples, GL_DEPTH_STENCIL);
-
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//register and return the cubemap
+	return result;
 }
 
 RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType,
@@ -615,6 +643,22 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 		glDisable(GL_POLYGON_OFFSET_FILL);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+	}
+}
+
+void RendererOpenGL::destroyCubeRenderTarget(CubeRenderTarget * target)
+{
+	CubeRenderTargetGL* targetGL = dynamic_cast<CubeRenderTargetGL*>(target);
+	assert(targetGL != nullptr);
+
+	for (auto it = cubeRenderTargets.begin(); it != cubeRenderTargets.end(); ++it)
+	{
+		if (&(*it) == targetGL)
+		{
+			targetGL->release();
+			cubeRenderTargets.erase(it);
+			break;
+		}
 	}
 }
 
