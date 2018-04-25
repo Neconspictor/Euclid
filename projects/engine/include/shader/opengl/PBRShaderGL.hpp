@@ -47,3 +47,18 @@ private:
 	glm::mat4 transform;
 	glm::vec3 cameraPos;
 };
+
+class PBR_ConvolutionShaderGL : public PBR_ConvolutionShader, public ShaderConfigGL
+{
+public:
+	PBR_ConvolutionShaderGL();
+
+	virtual ~PBR_ConvolutionShaderGL();
+
+	virtual void setEnvironmentMap(CubeMap* cubeMap) override;
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+
+private:
+	CubeMapGL* cubeMap;
+};

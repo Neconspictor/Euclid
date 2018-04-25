@@ -63,6 +63,8 @@ public:
 
 	virtual CubeMap* getCubeMap() = 0;
 
+	virtual CubeMap* createCopy() = 0;
+
 	int getWidth() const
 	{
 		return width;

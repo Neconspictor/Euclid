@@ -161,3 +161,29 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
 }
 
+PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()
+{
+	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "environmentMap");
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection", true);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "view", true);
+}
+
+PBR_ConvolutionShaderGL::~PBR_ConvolutionShaderGL()
+{
+}
+
+void PBR_ConvolutionShaderGL::setEnvironmentMap(CubeMap * cubeMap)
+{
+	this->cubeMap = dynamic_cast<CubeMapGL*>(cubeMap);
+	attributes.setData("environmentMap", dynamic_cast<CubeMapGL*>(cubeMap));
+}
+
+void PBR_ConvolutionShaderGL::update(const MeshGL & mesh, const TransformData & data)
+{
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	attributes.setData("projection", &projection);
+	attributes.setData("view", &view);
+}

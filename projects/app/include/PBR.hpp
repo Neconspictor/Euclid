@@ -38,19 +38,23 @@ public:
 	  const glm::mat4& projection, 
 	  const glm::mat4& view);
 
-  CubeMap* getBackground();
+
+  CubeMap* getConvolutedEnvironmentMap();
+
+  CubeMap* getEnvironmentMap();
 
 
 private:
 
-	CubeRenderTarget* renderBackgroundToCube(Texture* background);
-
-	CubeRenderTarget* backgroundRenderTarget;
-
-	PBRShader* shader;
+	CubeMap* renderBackgroundToCube(Texture* background);
+	CubeMap* convolute(CubeMap* source);
 
 
+
+	CubeMap* convolutedEnvironmentMap;
+	CubeMap* environmentMap;
 	Renderer3D* renderer;
+	PBRShader* shader;
 	Vob skybox;
 };
 

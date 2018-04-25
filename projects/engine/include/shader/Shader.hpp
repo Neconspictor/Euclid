@@ -19,6 +19,7 @@ enum class Shaders
 	Unknown = 0,
 	BlinnPhongTex,
 	Pbr,
+	Pbr_Convolution,
 	CubeDepthMap,
 	DepthMap,
 	GaussianBlurHorizontal,
@@ -42,6 +43,7 @@ enum class Shaders
 const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 	{ Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
 	{ Shaders::Pbr, "PBR" },
+	{ Shaders::Pbr_Convolution, "PBR_CONVOLUTION" },
 	{ Shaders::CubeDepthMap, "CUBE_DEPTH_MAP" },
 	{ Shaders::DepthMap, "DEPTH_MAP" },
 	{ Shaders::GaussianBlurHorizontal, "GAUSSIAN_BLUR_HORIZONTAL" },

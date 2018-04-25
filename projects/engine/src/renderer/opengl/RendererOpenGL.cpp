@@ -179,52 +179,6 @@ CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height)
 {
 	CubeRenderTargetGL result(width, height);
 
-	// generate framebuffer and renderbuffer with a depth component
-	glGenFramebuffers(1, &result.frameBuffer);
-	glGenRenderbuffers(1, &result.renderBuffer);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
-
-
-	// Generate texture
-	glGenTextures(1, &result.renderTargetTexture);
-
-	glBindTexture(GL_TEXTURE_2D, result.renderTargetTexture);
-	//GL_UNSIGNED_BYTE
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, result.renderTargetTexture, 0);
-
-
-	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-
-	//pre-allocate the six faces of the cubemap
-	glGenTextures(1, &result.cubeMapResult.textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, result.cubeMapResult.textureID);
-	for (int i = 0; i < 6; ++i) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
-	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 	cubeRenderTargets.push_back(move(result));
 	return &cubeRenderTargets.back();
 }

@@ -25,3 +25,11 @@ public:
 
 	virtual void setCameraPosition(glm::vec3 position) = 0;
 };
+
+class PBR_ConvolutionShader : public ShaderConfig
+{
+public:
+	virtual ~PBR_ConvolutionShader() {};
+
+	virtual void setEnvironmentMap(CubeMap* cubeMap) = 0;
+};

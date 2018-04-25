@@ -60,5 +60,4 @@ public:
 
 private:
 	TextureGL* skyTexture;
-	glm::mat4 transform;
 };

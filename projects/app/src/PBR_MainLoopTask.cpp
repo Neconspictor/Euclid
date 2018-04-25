@@ -201,7 +201,7 @@ void PBR_MainLoopTask::init()
 
 	pbr.init(renderer, panoramaSky);
 
-	CubeMap* background = pbr.getBackground();
+	CubeMap* background = pbr.getEnvironmentMap();
 
 	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
 	skyBoxShader->setSkyTexture(background);

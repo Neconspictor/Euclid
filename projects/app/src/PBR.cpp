@@ -4,7 +4,7 @@
 
 using namespace glm;
 
-PBR::PBR() : backgroundRenderTarget(nullptr), shader(nullptr), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
+PBR::PBR() : environmentMap(nullptr), shader(nullptr), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
 }
 
 PBR::~PBR(){
@@ -13,8 +13,12 @@ PBR::~PBR(){
 
 void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 {
+
 	this->renderer = renderer;
-	this->backgroundRenderTarget = renderBackgroundToCube(backgroundHDR);
+	environmentMap = renderBackgroundToCube(backgroundHDR);
+	convolutedEnvironmentMap = convolute(environmentMap);
+	//environmentMap = convolutedEnvironmentMap;
+
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
 
@@ -70,7 +74,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
-	shader->setSkyBox(backgroundRenderTarget->getCubeMap());
+	shader->setSkyBox(environmentMap);
 
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
@@ -79,21 +83,27 @@ void PBR::drawScene(SceneNode * scene,
 	scene->draw(renderer, modelDrawer, projection, view);
 }
 
-CubeMap* PBR::getBackground()
+CubeMap * PBR::getConvolutedEnvironmentMap()
 {
-	return backgroundRenderTarget->getCubeMap();
+	return convolutedEnvironmentMap;
 }
 
-CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
+CubeMap* PBR::getEnvironmentMap()
 {
+	return environmentMap;
+}
+
+CubeMap * PBR::renderBackgroundToCube(Texture * background)
+{
+
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(512, 512);
+
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	EquirectangularSkyBoxShader* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBoxEquirectangular));
 
 	equirectangularSkyBoxShader->setSkyTexture(background);
-
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048);
 
 	TransformData data;
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -121,5 +131,47 @@ CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
 		modelDrawer->draw(&skybox, Shaders::SkyBoxEquirectangular, data);
 	}
 
-	return cubeRenderTarget;
+	CubeMap* result = cubeRenderTarget->createCopy();
+	renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return result;
+}
+
+CubeMap * PBR::convolute(CubeMap * source)
+{
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
+
+	ShaderManager* shaderManager = renderer->getShaderManager();
+
+	PBR_ConvolutionShader* convolutionShader = dynamic_cast<PBR_ConvolutionShader*>
+		(shaderManager->getConfig(Shaders::Pbr_Convolution));
+
+	convolutionShader->setEnvironmentMap(source);
+
+	TransformData data;
+	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+	data.projection = &projection;
+	mat4 model = glm::mat4();
+	data.model = &model;
+
+
+	//view matrices;
+	const mat4 views[] = {
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+	};
+
+	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+
+	for (int side = CubeMap::POSITIVE_X; side < 6; ++side) {
+		data.view = &views[side];
+		renderer->useCubeRenderTarget(cubeRenderTarget, (CubeMap::Side)side);
+		modelDrawer->draw(&skybox, Shaders::Pbr_Convolution, data);
+	}
+
+	return cubeRenderTarget->createCopy();
 }

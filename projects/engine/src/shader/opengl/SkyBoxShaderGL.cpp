@@ -121,7 +121,7 @@ void EquirectangularSkyBoxShaderGL::update(const MeshGL & mesh, const TransformD
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
-	transform = projection * view * model;
+
 	attributes.setData("projection", &projection);
 	attributes.setData("view", &view);
 }

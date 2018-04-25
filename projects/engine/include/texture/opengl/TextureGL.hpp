@@ -5,6 +5,7 @@
 
 class RenderTargetGL;
 class RendererOpenGL;
+class CubeRenderTargetGL;
 
 
 class TextureGL : public Texture
@@ -28,6 +29,7 @@ public:
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend RenderTargetGL;
+	friend CubeRenderTargetGL;
 	GLuint textureID;
 };
 
@@ -51,6 +53,8 @@ public:
 	GLuint getCubeMap() const;
 
 	void setCubeMap(GLuint id);
+
+	friend CubeRenderTargetGL;
 };
 
 class CubeRenderTargetGL : public CubeRenderTarget
@@ -58,6 +62,8 @@ class CubeRenderTargetGL : public CubeRenderTarget
 public:
 	explicit CubeRenderTargetGL(int width, int height);
 	virtual ~CubeRenderTargetGL();
+
+	virtual CubeMap* createCopy() override;
 
 	GLuint getFrameBuffer();
 	GLuint getRenderBuffer();
@@ -74,6 +80,7 @@ public:
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	friend CubeRenderTargetGL;
 	GLuint frameBuffer;
 	GLuint renderBuffer;
 	GLuint renderTargetTexture;
@@ -108,6 +115,7 @@ public:
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
+	friend CubeRenderTargetGL;
 	GLuint frameBuffer;
 	TextureGL textureBuffer;
 	GLuint renderBuffer;

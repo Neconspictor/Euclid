@@ -2,6 +2,7 @@
 #include <memory>
 #include <cassert>
 #include <renderer/opengl/RendererOpenGL.hpp>
+#include <texture/opengl/TextureManagerGL.hpp>
 
 using namespace std;
 
@@ -118,10 +119,85 @@ void TextureGL::setTexture(GLuint id)
 
 CubeRenderTargetGL::CubeRenderTargetGL(int width, int height) : CubeRenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
 {
+	// generate framebuffer and renderbuffer with a depth component
+	glGenFramebuffers(1, &frameBuffer);
+	glGenRenderbuffers(1, &renderBuffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+	//pre-allocate the six faces of the cubemap
+	glGenTextures(1, &cubeMapResult.textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapResult.textureID);
+	for (int i = 0; i < 6; ++i) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
 {
+}
+
+CubeMap * CubeRenderTargetGL::createCopy()
+{
+
+	//first create a new cube render target that we use to blit the content
+	CubeRenderTargetGL copy(width, height);
+
+	for (int i = 0; i < 6; ++i) {
+
+		//attach the cubemap side of this render target
+		glBindFramebuffer(GL_FRAMEBUFFER,  frameBuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubeMapResult.textureID, 0);
+
+		//attach the cubemap side of the copy render target
+		glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, copy.cubeMapResult.textureID, 0);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// now we can blit the content to the copy
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, copy.frameBuffer);
+		glBlitFramebuffer(0, 0, width, height,
+			0, 0, copy.width, copy.height,
+			GL_COLOR_BUFFER_BIT,
+			GL_NEAREST);
+	}
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	//extract cubemap texture from the copy and delete copy
+	unsigned int cache = copy.cubeMapResult.textureID;
+	glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer);
+	for (int i = 0; i < 6; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0); // unbound the cubemap side
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// reset the texture id of the cubemap of the copy, so that it won't be released!
+	copy.cubeMapResult.textureID = GL_FALSE;
+
+	copy.release();
+
+	//register the cubeMap to the texture manager and return the result
+	CubeMapGL result(cache);
+	return TextureManagerGL::get()->addCubeMap(move(result));
 }
 
 GLuint CubeRenderTargetGL::getFrameBuffer()
