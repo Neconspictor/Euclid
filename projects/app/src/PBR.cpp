@@ -16,8 +16,7 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 
 	this->renderer = renderer;
 	environmentMap = renderBackgroundToCube(backgroundHDR);
-	convolutedEnvironmentMap = convolute(environmentMap);
-	//environmentMap = convolutedEnvironmentMap;
+	//convolutedEnvironmentMap = convolute(environmentMap);
 
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
@@ -25,6 +24,11 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 void PBR::drawSky(RenderTarget* renderTarget, const mat4& projection, const mat4& view)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	ShaderManager* shaderManager = renderer->getShaderManager();
+
+	SkyBoxShader* skyboxShader = dynamic_cast<SkyBoxShader*>
+		(shaderManager->getConfig(Shaders::SkyBox));
+	skyboxShader->setSkyTexture(environmentMap);
 
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
@@ -68,12 +72,13 @@ void PBR::drawScene(SceneNode * scene,
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 
 	shader->setCameraPosition(cameraPosition);
-	shader->setShadowMap(shadowMap);
+	shader->setIrradianceMap(environmentMap);
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
+	shader->setShadowMap(shadowMap);
 	shader->setSkyBox(environmentMap);
 
 
@@ -96,7 +101,7 @@ CubeMap* PBR::getEnvironmentMap()
 CubeMap * PBR::renderBackgroundToCube(Texture * background)
 {
 
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(512, 512);
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 

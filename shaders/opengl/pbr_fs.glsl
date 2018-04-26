@@ -146,9 +146,12 @@ vec3 getNormalFromMap()
     vec2 st2 = dFdy(fs_in.texCoords);
 
     vec3 N   = normalize(fs_in.normal);
+	mat4 model4D = (model);
+	N= normalize((model4D * vec4(N, 0)).rgb);
+	
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = normalize(cross(N, T));
-	//vec3 B  = -normalize(cross(N, T));
+    //vec3 B  = normalize(cross(N, T));
+	vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
@@ -162,16 +165,26 @@ void main()
 	normal = normalize(2.0*normal - 1.0);
 	
 	normal = getNormalFromMap();
+	//normal.y *= -1;
+	//normal = fs_in.normal;
 	
     // phase 1: directional lighting
     vec3 result = pbrModel(normal);
+	
+	vec3 N   = normalize(fs_in.normal);	
+	mat4 model4D = (model);
+	N= normalize((model4D * vec4(N, 0)).rgb);
 		
 	//directional shadow calculation
-	float shadow = shadowCalculation(normalize(fs_in.tangentLightDir), normal, fs_in.fragPosLightSpace);
+	float shadow = shadowCalculation(normalize(fs_in.lightDir), normal, fs_in.fragPosLightSpace);
 	
 	vec3 albedoColor = texture(material.albedoMap, fs_in.texCoords).rgb;
 	
-	//result *= (shadow);
+	if (shadow < 0.2) {
+		shadow = 0.2;
+	}	
+	
+	result *= (shadow);
 	
 	vec3 ambient = 0.1 * albedoColor;
 	
@@ -198,9 +211,9 @@ vec3 pbrModel(vec3 normal) {
 	//albedo = vec3(1,0,0);
 	
     float metallic = texture(material.metallicMap, fs_in.texCoords).r;
-	metallic = 1.0;
+	metallic = 0.0;
     float roughness = texture(material.roughnessMap, fs_in.texCoords).r;
-	roughness = 0.0f;
+	roughness = 1.0f;
     float ao = texture(material.aoMap, fs_in.texCoords).r;
 	
 	ao = 1;

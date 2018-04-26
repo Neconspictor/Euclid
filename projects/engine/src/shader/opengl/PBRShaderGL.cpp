@@ -54,7 +54,7 @@ PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nul
 	attributes.create(types::TEXTURE2D, nullptr, "brdfLUT");
 
 
-	attributes.create(types::CUBE_MAP, nullptr, "skybox");
+	//attributes.create(types::CUBE_MAP, nullptr, "skybox");
 }
 
 PBRShaderGL::~PBRShaderGL() {}
@@ -67,6 +67,13 @@ const vec3& PBRShaderGL::getLightColor() const
 const vec3& PBRShaderGL::getLightPosition() const
 {
 	return dirLight.direction;
+}
+
+void PBRShaderGL::setIrradianceMap(CubeMap * irradianceMap)
+{
+	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
+	attributes.setData("irradianceMap", this->irradianceMap);
+	attributes.setData("prefilterMap", this->irradianceMap);
 }
 
 void PBRShaderGL::setLightColor(vec3 color)
@@ -107,7 +114,7 @@ void PBRShaderGL::setShadowMap(Texture* texture)
 void PBRShaderGL::setSkyBox(CubeMap* sky)
 {
 	this->skybox = dynamic_cast<CubeMapGL*>(sky);
-	attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
+	//attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
 }
 
 void PBRShaderGL::setCameraPosition(vec3 position)
@@ -156,9 +163,9 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("material.normalMap", normalMap, default_normal);
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
-	attributes.setData("brdfLUT", nullptr, white);
-	attributes.setData("irradianceMap", dynamic_cast<CubeMapGL*>(skybox));
+	attributes.setData("brdfLUT", white, white);
 	attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
+	//attributes.setData("irradianceMap", dynamic_cast<CubeMapGL*>(skybox));
 }
 
 PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()

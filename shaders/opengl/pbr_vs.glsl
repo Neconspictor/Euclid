@@ -67,8 +67,11 @@ void main()
 	
 	
 	
-	mat3 model3D = mat3(transpose(inverse(model)));
-	vs_out.normal = normalize(model3D * normalNormalized);	
+	mat4 model4D = (inverse(modelView));
+	vs_out.normal = normalize((model4D * vec4(normalNormalized, 1)).rgb);
+	vs_out.normal = normalNormalized;
+
+	mat3 model3D = mat3(model4D);
 	
 	vec3 N = normalize((model3D * normalNormalized).xyz); // original normalMatrix
 	vec3 T = normalize(model3D * tangentNormalized);	// original normalMatrix

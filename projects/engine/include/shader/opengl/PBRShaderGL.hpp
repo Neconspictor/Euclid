@@ -18,6 +18,9 @@ public:
 	virtual ~PBRShaderGL();
 	virtual const glm::vec3& getLightColor() const override;
 	virtual const glm::vec3& getLightPosition() const override;
+
+	virtual void setIrradianceMap(CubeMap* irradianceMap) override;
+
 	virtual void setLightColor(glm::vec3 color) override;
 	virtual void setLightDirection(glm::vec3 direction) override;
 	virtual void setLightProjMatrix(glm::mat4 mat) override;
@@ -33,6 +36,9 @@ public:
 private:
 	glm::mat4 biasMatrix;
 	DirLight dirLight;
+
+	CubeMapGL* irradianceMap;
+
 	glm::vec3 lightColor;
 	glm::mat4 lightProjMatrix;
 	glm::mat4 lightSpaceMatrix;

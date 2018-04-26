@@ -20,6 +20,8 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) override;
 
+	CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data);
+
 	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
 
 	TextureGL* getImageGL(const std::string& file);
@@ -30,7 +32,7 @@ public:
 
 	virtual Texture* getHDRImage(const std::string& file, TextureData data) override;
 	virtual Texture* getHDRImage2(const std::string& file, TextureData data);
-	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) override;
+	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA }) override;
 
 	std::string getImagePath() override;
 

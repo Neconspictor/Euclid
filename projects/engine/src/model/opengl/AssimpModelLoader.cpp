@@ -27,7 +27,7 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
 	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate 
 		|aiProcess_FlipUVs
-		| aiProcess_GenNormals 
+		//| aiProcess_GenSmoothNormals 
 		| aiProcess_CalcTangentSpace);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -100,6 +100,10 @@ unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* s
 			vertex.tangent.x = mesh->mTangents[i].x;
 			vertex.tangent.y = mesh->mTangents[i].y;
 			vertex.tangent.z = mesh->mTangents[i].z;
+
+			vertex.bitangent.x = mesh->mBitangents[i].x;
+			vertex.bitangent.y = mesh->mBitangents[i].y;
+			vertex.bitangent.z = mesh->mBitangents[i].z;
 		}
 
 

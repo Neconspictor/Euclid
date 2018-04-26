@@ -139,8 +139,9 @@ void PBR_MainLoopTask::init()
 
 	modelManager->loadModels();
 
-	panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", {true, true, Bilinear, Bilinear, ClampToEdge});
-	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Bilinear, Bilinear, ClampToEdge });
+	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Linear, Linear, ClampToEdge });
+	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
+	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
 	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBox));
@@ -154,9 +155,9 @@ void PBR_MainLoopTask::init()
 	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getConfig(Shaders::Pbr));
 
-	shadowMap = renderer->createDepthMap(4096, 4096);
+	shadowMap = renderer->createDepthMap(2048, 2048);
 
-	renderTargetMultisampled = renderer->createRenderTarget(8);
+	renderTargetMultisampled = renderer->createRenderTarget(1);
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);

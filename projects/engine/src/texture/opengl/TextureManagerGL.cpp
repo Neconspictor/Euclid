@@ -18,20 +18,18 @@ GLint TextureManagerGL::mapFilter(TextureFilter filter, bool useMipMaps)
 	{
 	case NearestNeighbor:
 		return GL_NEAREST;
+	case Linear:
+		return GL_NEAREST;
 	case Bilinear:
 		return GL_LINEAR;
-	case Near_Near:
-		if (useMipMaps) return GL_NEAREST_MIPMAP_NEAREST;
-		return GL_NEAREST;
-	case Near_Linear:
-		if (useMipMaps) return GL_NEAREST_MIPMAP_LINEAR;
-		return GL_NEAREST;
-	case Linear_Near:
-		if (useMipMaps) return GL_LINEAR_MIPMAP_NEAREST;
-		return GL_LINEAR;
-	case Linear_Linear:
-		if (useMipMaps) return GL_LINEAR_MIPMAP_LINEAR;
-		return GL_LINEAR;
+	case Near_Mipmap_Near:
+		return GL_NEAREST_MIPMAP_NEAREST;
+	case Near_Mipmap_Linear:
+		return GL_NEAREST_MIPMAP_LINEAR;
+	case Linear_Mipmap_Near:
+		return GL_LINEAR_MIPMAP_NEAREST;
+	case Linear_Mipmap_Linear:
+		 return GL_LINEAR_MIPMAP_LINEAR;
 	default:
 		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
 	}
@@ -154,12 +152,13 @@ Texture * TextureManagerGL::getDefaultBlackTexture()
 
 Texture * TextureManagerGL::getDefaultNormalTexture()
 {
-	return getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB });
+	//normal maps shouldn't use mipmaps (important for shading!)
+	return getImage("_intern/default_normal.png", { false, false, NearestNeighbor, NearestNeighbor, Repeat, RGB });
 }
 
 Texture * TextureManagerGL::getDefaultWhiteTexture()
 {
-	return getImage("_intern/white.png", { false, false, Linear_Linear, Bilinear, Repeat, RGB });
+	return getImage("_intern/white.png", { true, false, Linear, Linear, Repeat, RGB });
 }
 
 
@@ -203,8 +202,8 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	//if (data.generateMipMaps)
-	//	glGenerateMipmap(GL_TEXTURE_2D);
+	if (data.generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -277,7 +276,7 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 		colorspace = SOIL_LOAD_RGB;
 	}
 
-	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), colorspace, 0,
+	GLuint textureID = SOIL_load_OGL_texture(path.c_str(), SOIL_LOAD_AUTO, 0,
 		(data.useSRGB ? SOIL_FLAG_SRGB_COLOR_SPACE : 0) | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_INVERT_Y);//SOIL_FLAG_SRGB_COLOR_SPACE
 
 	if (textureID == GL_FALSE)
@@ -298,8 +297,8 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
 	float aniso = 0.0f;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 	
 	if (data.generateMipMaps)
 	    glGenerateMipmap(GL_TEXTURE_2D);

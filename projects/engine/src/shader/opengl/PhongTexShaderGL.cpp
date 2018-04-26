@@ -174,7 +174,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
 	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
-	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.jpg", { false, true, Linear_Linear, Bilinear, Repeat, RGB }); //brickwall_normal
+	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB }); //brickwall_normal
 	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
 
 	attributes.setData("material.shininess", &material->getShininessRef());

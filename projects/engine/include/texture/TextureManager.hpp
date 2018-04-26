@@ -5,11 +5,12 @@
 enum TextureFilter
 {
 	NearestNeighbor, 
+	Linear,
 	Bilinear, 
-	Near_Near,     // trilinear filtering with double nearest neighbor filtering
-	Near_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
-	Linear_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
-	Linear_Linear, // trilinear filtering from bilinear to bilinear filtering
+	Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
+	Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
+	Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
+	Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
 };
 
 enum TextureUVTechnique
@@ -50,8 +51,8 @@ public:
 	virtual Texture* getDefaultNormalTexture() = 0;
 	virtual Texture* getDefaultWhiteTexture() = 0;
 
-	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Linear, Bilinear, Repeat }) = 0;
-	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Linear, Bilinear, Repeat}) = 0;
+	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat }) = 0;
+	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Mipmap_Linear, Linear, Repeat}) = 0;
 
 
 	virtual std::string getImagePath() = 0;

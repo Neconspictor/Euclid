@@ -30,8 +30,8 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		data.useSRGB = true;
 		data.generateMipMaps = true;
 		data.uvTechnique = Repeat;
-		data.minFilter = Linear_Linear;
-		data.magFilter = Bilinear;
+		data.minFilter = Linear_Mipmap_Linear;
+		data.magFilter = Linear;
 		data.colorspace = RGBA;
 
 		// a material can have more than one diffuse/specular/normal map,
@@ -69,15 +69,19 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		}
 
 		data.useSRGB = false;
-		data.generateMipMaps = true;
-		data.magFilter = Bilinear;
-		data.minFilter = Linear_Linear;
+
+		//normal maps shouldn't use mipmaps (important for shading!)
+		data.generateMipMaps = false;
+		// Linear_Mipmap_Linear is also important!
+		data.magFilter = Linear;
+		data.minFilter = Linear;
 		data.colorspace = RGB;
 		data.uvTechnique = Repeat;
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{
 			material->setNormalMap(textureManager->getImage(normalMaps[0], data));
+			//material->setNormalMap(textureManager->getDefaultNormalTexture());
 		}
 	}
 
