@@ -21,6 +21,7 @@ struct DirLight {
 
 in VS_OUT {
 	vec3 fragPos;
+	vec3 fragPosModelSpace;
 	vec2 texCoords;
 	vec4 fragPosLightSpace; // needed for shadow calculation
 	vec3 lightDir;
@@ -50,6 +51,8 @@ uniform sampler2D brdfLUT;
 
 
 uniform vec3 cameraPos;
+
+uniform mat4 view;
 
 
 
@@ -132,7 +135,7 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
 // technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = texture(material.normalMap, fs_in.texCoords).xyz * 2.0 - 1.0;
+    /*vec3 tangentNormal = texture(material.normalMap, fs_in.texCoords).xyz * 2.0 - 1.0;
 	//tangentNormal = (tangentNormal *2.0) - 1.0;
 	//tangentNormal = normalize(vec3(0,0, 1));
 	
@@ -151,7 +154,60 @@ vec3 getNormalFromMap()
 
     mat3 TBN = mat3(T, B, N);
 
-    return normalize(inverse(TBN) * tangentNormal);
+    return normalize(inverse(TBN) * tangentNormal);*/
+	
+	float factor = 255/128.0f;
+	
+	vec3 tangentNormal = (texture(material.normalMap, fs_in.texCoords).xyz * factor) - 1.0;
+
+    vec3 Q1  = dFdx(fs_in.fragPos);
+    vec3 Q2  = dFdy(fs_in.fragPos);
+    vec2 st1 = dFdx(fs_in.texCoords);
+    vec2 st2 = dFdy(fs_in.texCoords);
+
+    vec3 N   = normalize((model * vec4(fs_in.normal, 0.0)).rgb);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+	//return vec3(0,0,-1);
+	//return fs_in.normalWorld;
+    return normalize(TBN * tangentNormal);
+}
+
+
+vec3 reflectanceEyeSpace() {
+	
+	// normals are direction vectors and thus now translation should influence it!
+	vec3 normal = vec3(transpose(inverse(modelView)) * vec4(fs_in.normal, 0.0));
+	
+	// fragment position is a position and thus should be translated!
+	vec3 fragPosViewSpace = vec3(modelView * vec4(fs_in.fragPosModelSpace, 1.0));
+	vec3 incident = normalize(fragPosViewSpace);
+	vec3 reflected = reflect(incident, normal);
+	
+	// cubemap texture fetche needs vector in world space
+	reflected = vec3(inverse(view) * vec4(reflected, 0.0));
+	return texture(prefilterMap, reflected).rgb;
+}
+
+vec3 reflectanceWorldSpace() {
+	
+	// normals are direction vectors and thus now translation should influence it!
+	vec3 normal = vec3(transpose(inverse(model)) * vec4(fs_in.normal, 0.0));
+	
+	normal = getNormalFromMap();
+	
+	//get incident in world space
+	vec3 cameraPosition = vec3(inverse(view) * vec4(0,0,0, 1));
+	cameraPosition = cameraPos;
+	vec3 fragPosWorldSpace = vec3(model * vec4(fs_in.fragPosModelSpace, 1.0));	
+	fragPosWorldSpace = fs_in.fragPos;
+	vec3 incident = normalize(fragPosWorldSpace - cameraPosition);
+	
+	//reflected vector can directly be used for cubemap texture fetching
+	vec3 reflected = reflect(incident, normal);	
+	return texture(prefilterMap, reflected).rgb;
 }
 
 
@@ -159,7 +215,6 @@ vec3 getNormalFromMap()
 void main()
 {    		
 	vec3 normal = getNormalFromMap();
-	//normal = fs_in.normalWorld;
 	
     // phase 1: directional lighting
     vec3 result = pbrModel(normal);
@@ -172,18 +227,24 @@ void main()
 	
 	if (shadow < 0.2) {
 		shadow = 0.2;
-	}	
-	
+	}
+
 	//result *= (shadow);
 	
-	vec3 ambient = 0.1 * albedoColor;
-	
-	if (result.r < ambient.r) {
-		//result = ambient;
-	};
-
-	
 	//FragColor = vec4(normal, 1.0);
+	
+	
+	
+	/*vec3 incident = normalize(fs_in.fragPos);
+    vec3 reflected = reflect(incident, normal);
+	
+	reflected = vec3(inverse(view) * vec4(reflected, 0.0));
+	
+	result = texture(prefilterMap, reflected).rgb;*/
+	
+	//result = reflectanceWorldSpace();
+	
+	result = reflectanceEyeSpace();
 	
 	FragColor = vec4(result, 1.0);
 
@@ -218,7 +279,6 @@ vec3 pbrModel(vec3 normal) {
 	
     //vec3 V = normalize(inverseTBN * fs_in.tangentViewDir); //normalize(camPos - WorldPos);
 	vec3 V = normalize(cameraPos - fs_in.fragPos);
-	//V= normalize((model4D * vec4(V, 0)).rgb); 
     vec3 R = reflect(-V, N);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
@@ -297,14 +357,16 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     const float MAX_REFLECTION_LOD = 4.0;
 	
 	
-    //vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
-	vec3 prefilteredColor = texture(prefilterMap, R,  0).rgb;
+	vec3 R2 = R;
+	R2.y *= -1;
+	
+    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	//vec3 prefilteredColor = texture(prefilterMap, R,  0).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-	return prefilteredColor;
-    //return (kD * diffuse + ambientLightSpecular) * ao;
+    return (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 

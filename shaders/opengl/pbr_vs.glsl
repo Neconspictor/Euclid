@@ -36,6 +36,7 @@ uniform vec3 cameraPos;
 
 out VS_OUT {
 	vec3 fragPos;
+	vec3 fragPosModelSpace;
 	vec2 texCoords;
 	vec4 fragPosLightSpace; // needed for shadow calculation
 	vec3 lightDir;
@@ -59,6 +60,8 @@ void main()
 	vs_out.fragPos = vec3(model * vec4(position, 1.0f));
 	vs_out.texCoords = texCoords;
 	
+	vs_out.fragPosModelSpace = position;
+	
 
 	vec4 fragPosWorld = model * vec4(position, 1.0f);
 	//vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragPosWorld;
@@ -69,7 +72,7 @@ void main()
 	mat3 model3D = mat3(transpose(inverse(model)));
 	vs_out.normalMatrix = mat3(model);
 	//vs_out.normal = normalize((model4D * vec4(normalNormalized, 0)).rgb);
-	vs_out.normal = normalNormalized;
+	vs_out.normal = normal;
 	vs_out.tangent = tangentNormalized;
 	vs_out.bitangent = bitangentNormalized;
 	
@@ -79,7 +82,7 @@ void main()
 	
 	vs_out.TBN = mat3(T,B,N);
 	
-	vs_out.normalWorld = vec3(model3D * normalNormalized);
+	vs_out.normalWorld = vec3(modelView * vec4(normal, 0));
 	
 	vec3 lightDir = normalize(-dirLight.direction);	
 	vs_out.lightDir = lightDir;
