@@ -117,6 +117,8 @@ void RendererOpenGL::init()
 
 void RendererOpenGL::beginScene()
 {
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	//glViewport(xPos, yPos, width, height);
 	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do

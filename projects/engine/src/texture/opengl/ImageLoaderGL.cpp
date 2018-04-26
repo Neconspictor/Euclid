@@ -81,6 +81,11 @@ GenericImageGL ImageLoaderGL::loadDDSFile(char* imageData, streampos fileSize)
 	content.components = (ddsd.ddspf.dwFourCC == DXT1) ? 3 : 4;
 	content.numMipmaps = ddsd.dwMipMapCount;
 
+	/*
+
+	TODO !!!
+
+
 	switch(ddsd.ddspf.dwFourCC)
 	{
 	case DXT1:
@@ -95,6 +100,6 @@ GenericImageGL ImageLoaderGL::loadDDSFile(char* imageData, streampos fileSize)
 	default:
 		delete[] content.pixels;
 		memset(&content, 0, sizeof(content));
-	}
+	}*/
 	return content;
 }

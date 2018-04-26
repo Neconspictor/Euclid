@@ -138,14 +138,17 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height) : CubeRenderTarget
 	for (int i = 0; i < 6; ++i) {
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 	}
+
+	glActiveTexture(GL_TEXTURE0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
@@ -157,6 +160,12 @@ CubeMap * CubeRenderTargetGL::createCopy()
 
 	//first create a new cube render target that we use to blit the content
 	CubeRenderTargetGL copy(width, height);
+
+	GLint readFBId = 0;
+	GLint drawFboId = 0;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+
 
 	for (int i = 0; i < 6; ++i) {
 
@@ -170,19 +179,19 @@ CubeMap * CubeRenderTargetGL::createCopy()
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
 			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, copy.cubeMapResult.textureID, 0);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// now we can blit the content to the copy
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, copy.frameBuffer);
 		glBlitFramebuffer(0, 0, width, height,
 			0, 0, copy.width, copy.height,
-			GL_COLOR_BUFFER_BIT,
+			GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
 			GL_NEAREST);
 	}
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 
 	//extract cubemap texture from the copy and delete copy
 	unsigned int cache = copy.cubeMapResult.textureID;

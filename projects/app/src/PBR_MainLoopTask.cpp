@@ -63,6 +63,22 @@ SceneNode* PBR_MainLoopTask::createShadowScene()
 	return root;
 }
 
+SceneNode * PBR_MainLoopTask::createCubeReflectionScene()
+{
+	nodes.push_back(SceneNode());
+	SceneNode* root = &nodes.back();
+
+	nodes.push_back(SceneNode());
+	SceneNode* cube1 = &nodes.back();
+	root->addChild(cube1);
+
+	vobs.push_back(Vob("misc/untextured_cube.obj", Shaders::Pbr));
+	cube1->setVob(&vobs.back());
+
+	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
+	return root;
+}
+
 void PBR_MainLoopTask::init()
 {
 	using namespace placeholders;
@@ -139,9 +155,13 @@ void PBR_MainLoopTask::init()
 
 	modelManager->loadModels();
 
-	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Linear, Linear, ClampToEdge });
+	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, false, Linear_Mipmap_Linear, Linear_Mipmap_Linear, ClampToEdge });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
+	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear_Mipmap_Linear, Bilinear, ClampToEdge });
+
+	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
+	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
+	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 	
 	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBox));
@@ -196,6 +216,7 @@ void PBR_MainLoopTask::init()
 
 	// init scene
 	scene = createShadowScene();
+	//scene = createCubeReflectionScene();
 	//scene = createAsteriodField();
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();

@@ -32,6 +32,9 @@ public:
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
 	SceneNode* createShadowScene();
+
+	SceneNode* createCubeReflectionScene();
+
 	void init();
 
 	void setUI(SystemUI* ui);

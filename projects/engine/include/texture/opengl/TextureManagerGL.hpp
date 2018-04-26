@@ -56,6 +56,7 @@ protected:
 
 	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
 	static GLint mapUVTechnique(TextureUVTechnique technique);
+	static GLuint getInternalFormat(GLuint format, bool isFloatData);
 
 private:
 	// this class is a singleton, thus private constructor

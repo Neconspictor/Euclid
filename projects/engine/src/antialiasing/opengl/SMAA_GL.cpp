@@ -1,7 +1,6 @@
 #include <antialiasing/opengl/SMAA_GL.hpp>
 #include <texture/opengl/TextureManagerGL.hpp>
 #include <gli/gli.hpp>
-#include <SOIL2/SOIL2.h>
 #include <renderer/opengl/RendererOpenGL.hpp>
 
 
@@ -15,13 +14,13 @@ neighborhoodBlendingPass(GL_FALSE), initialized(false)
 
 SMAA_GL::~SMAA_GL()
 {
-	if (edgesTex)
+	/*if (edgesTex)
 		renderer->destroyRenderTarget(edgesTex);
 	edgesTex = nullptr;
 
 	if (blendTex)
 		renderer->destroyRenderTarget(blendTex);
-	blendTex = nullptr;
+	blendTex = nullptr;*/
 }
 
 void SMAA_GL::antialias(RenderTarget* renderTarget)
@@ -32,7 +31,7 @@ void SMAA_GL::antialias(RenderTarget* renderTarget)
 
 void SMAA_GL::init()
 {
-	Renderer3D::Viewport viewPort = renderer->getViewport();
+	/*Renderer3D::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 
@@ -80,7 +79,7 @@ void SMAA_GL::init()
 		stringstream ss;
 		ss << "SMAA_GL::init(): Couldn't load search texture: " << searchTexfileName;
 		throw runtime_error(ss.str());
-	}*/
+	}
 
 	if (searchTex)
 		TextureManagerGL::get()->releaseTexture(searchTex);
@@ -139,14 +138,14 @@ void SMAA_GL::init()
 void SMAA_GL::reset()
 {
 	if (!initialized) return;
-	renderer->clearFrameBuffer(blendTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
-	renderer->clearFrameBuffer(edgesTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
+	//renderer->clearFrameBuffer(blendTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
+	//renderer->clearFrameBuffer(edgesTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
 }
 
 void SMAA_GL::updateBuffers()
 {
 	if (!initialized) return;
-	if (edgesTex)
+	/*if (edgesTex)
 		renderer->destroyRenderTarget(edgesTex);
 	if (blendTex)
 		renderer->destroyRenderTarget(blendTex);
@@ -156,5 +155,5 @@ void SMAA_GL::updateBuffers()
 	int& height = viewPort.height;
 
 	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 1, GL_DEPTH_STENCIL);
-	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 1, GL_DEPTH_STENCIL);
+	edgesTex = renderer->createRenderTargetGL(GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 1, GL_DEPTH_STENCIL);*/
 }

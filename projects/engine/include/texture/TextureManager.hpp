@@ -33,6 +33,7 @@ struct TextureData
 	TextureFilter magFilter;  // magnification filter
 	TextureUVTechnique uvTechnique;
 	ColorSpace colorspace;
+	bool isFloatData; //specifies whether the data should be interpreted as float data
 };
 
 class TextureManager
@@ -51,8 +52,8 @@ public:
 	virtual Texture* getDefaultNormalTexture() = 0;
 	virtual Texture* getDefaultWhiteTexture() = 0;
 
-	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat }) = 0;
-	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Mipmap_Linear, Linear, Repeat}) = 0;
+	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false}) = 0;
+	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false }) = 0;
 
 
 	virtual std::string getImagePath() = 0;

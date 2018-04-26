@@ -238,7 +238,7 @@ enable_precompiled_headers(include/pch_engine.hpp ENGINE_SOURCES)
 include_directories (
     include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include  
-    ${CMAKE_SOURCE_DIR}/libs/soil2/include
+    #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
     ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
@@ -250,7 +250,7 @@ add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
 include/ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/soil2/include
+    #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
     ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
@@ -261,7 +261,7 @@ include/
 
 #choose the right libraries by absolute paths!
 #find_library(libglew32_lib NAMES libglew32 HINTS ${CMAKE_SOURCE_DIR}/libs/glew/x64/Release)
-find_library(soil2_lib NAMES soil2 HINTS ${CMAKE_SOURCE_DIR}/libs/soil2/x64/Release)
+#find_library(soil2_lib NAMES soil2 HINTS ${CMAKE_SOURCE_DIR}/libs/soil2/x64/Release)
 
 #boost libraries
 find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
@@ -274,7 +274,7 @@ find_library(assimp_debug NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/a
 
 # Properties->Linker->Input->Additional Dependencies
 target_link_libraries(engine PUBLIC opengl32)
-target_link_libraries(engine PUBLIC ${soil2_lib})
+#target_link_libraries(engine PUBLIC ${soil2_lib})
 target_link_libraries(engine PUBLIC glu32)
 
 #target_link_libraries(engine PUBLIC debug ${SDL2_lib_debug})

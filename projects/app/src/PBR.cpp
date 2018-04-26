@@ -16,7 +16,10 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 
 	this->renderer = renderer;
 	environmentMap = renderBackgroundToCube(backgroundHDR);
-	//convolutedEnvironmentMap = convolute(environmentMap);
+	//environmentMap = backgroundHDR;
+	convolutedEnvironmentMap = environmentMap;
+	//convolutedEnvironmentMap = convolute(environmentMap); TODO
+	//environmentMap = convolutedEnvironmentMap;
 
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
@@ -136,9 +139,9 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 		modelDrawer->draw(&skybox, Shaders::SkyBoxEquirectangular, data);
 	}
 
-	CubeMap* result = cubeRenderTarget->createCopy();
-	renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return result;
+	//CubeMap* result = cubeRenderTarget->createCopy(); TODO
+	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return cubeRenderTarget->getCubeMap();
 }
 
 CubeMap * PBR::convolute(CubeMap * source)
