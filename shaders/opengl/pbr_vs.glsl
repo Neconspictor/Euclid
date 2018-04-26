@@ -3,6 +3,7 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
+layout (location = 4) in vec3 bitangent;
 
 struct DirLight {
     vec3 direction;
@@ -14,7 +15,6 @@ struct Material {
 	sampler2D aoMap;
 	sampler2D metallicMap;
 	sampler2D normalMap;
-	sampler2D specularMap;
 	sampler2D roughnessMap;
 	sampler2D shadowMap;
 };
@@ -25,7 +25,7 @@ uniform Material material;
 uniform mat4 transform;
 uniform mat4 model;
 uniform mat4 modelView;
-uniform mat3 normalMatrix;
+
 uniform mat4 lightSpaceMatrix;
 uniform mat4 lightProjMatrix;
 uniform mat4 lightViewMatrix;
@@ -38,15 +38,13 @@ out VS_OUT {
 	vec3 fragPos;
 	vec2 texCoords;
 	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 TangentFragPos;
-	mat3 TBN;
-	vec3 T;
-	vec3 B;
-	vec3 N;
 	vec3 lightDir;
-	vec3 tangentLightDir;
-	vec3 tangentViewDir;
 	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	mat3 normalMatrix;
+	mat3 TBN;
+	vec3 normalWorld;
 } vs_out;
 
 void main()
@@ -54,6 +52,7 @@ void main()
 
 	vec3 normalNormalized = normalize(normal);
 	vec3 tangentNormalized = normalize(tangent);
+	vec3 bitangentNormalized = normalize(bitangent);
 
 	
     gl_Position = transform * vec4(position, 1.0f);
@@ -67,11 +66,25 @@ void main()
 	
 	
 	
-	mat4 model4D = (inverse(modelView));
-	vs_out.normal = normalize((model4D * vec4(normalNormalized, 1)).rgb);
+	mat3 model3D = mat3(transpose(inverse(model)));
+	vs_out.normalMatrix = mat3(model);
+	//vs_out.normal = normalize((model4D * vec4(normalNormalized, 0)).rgb);
 	vs_out.normal = normalNormalized;
+	vs_out.tangent = tangentNormalized;
+	vs_out.bitangent = bitangentNormalized;
+	
+	vec3 N = model3D * normal;
+	vec3 T = model3D * tangent;
+	vec3 B = model3D * bitangent;
+	
+	vs_out.TBN = mat3(T,B,N);
+	
+	vs_out.normalWorld = vec3(model3D * normalNormalized);
+	
+	vec3 lightDir = normalize(-dirLight.direction);	
+	vs_out.lightDir = lightDir;
 
-	mat3 model3D = mat3(model4D);
+	/*mat3 model3D = mat3(model4D);
 	
 	vec3 N = normalize((model3D * normalNormalized).xyz); // original normalMatrix
 	vec3 T = normalize(model3D * tangentNormalized);	// original normalMatrix
@@ -146,5 +159,5 @@ void main()
 		positionLightSpace =  lightSpaceMatrix * shadowPositionWorld;
 	}
 	
-	vs_out.fragPosLightSpace = positionLightSpace;
+	vs_out.fragPosLightSpace = positionLightSpace;*/
 } 

@@ -8,7 +8,6 @@ struct Material {
 	sampler2D aoMap;
 	sampler2D metallicMap;
 	sampler2D normalMap;
-	sampler2D specularMap;
 	sampler2D roughnessMap;
 	sampler2D shadowMap;
 };
@@ -24,15 +23,13 @@ in VS_OUT {
 	vec3 fragPos;
 	vec2 texCoords;
 	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 TangentFragPos;
-	mat3 TBN;
-	vec3 T;
-	vec3 B;
-	vec3 N;
 	vec3 lightDir;
-	vec3 tangentLightDir;
-	vec3 tangentViewDir;
 	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	flat mat3 normalMatrix;
+	mat3 TBN;
+	vec3 normalWorld;
 } fs_in;
 
 
@@ -41,12 +38,9 @@ out vec4 FragColor;
 uniform DirLight dirLight;
 
 uniform Material material;
-uniform samplerCube skybox;
 
 uniform mat4 model;
 uniform mat4 modelView;
-
-uniform mat3 normalMatrix;
 
 
 // IBL
@@ -139,41 +133,37 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
 vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(material.normalMap, fs_in.texCoords).xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(fs_in.fragPos);
-    vec3 Q2  = dFdy(fs_in.fragPos);
-    vec2 st1 = dFdx(fs_in.texCoords);
-    vec2 st2 = dFdy(fs_in.texCoords);
-
-    vec3 N   = normalize(fs_in.normal);
-	mat4 model4D = (model);
-	N= normalize((model4D * vec4(N, 0)).rgb);
+	//tangentNormal = (tangentNormal *2.0) - 1.0;
+	//tangentNormal = normalize(vec3(0,0, 1));
 	
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    //vec3 B  = normalize(cross(N, T));
-	vec3 B  = -normalize(cross(N, T));
+	//tangentNormal = vec3(0,0,1);
+	
+	mat3 Nmatrix = fs_in.normalMatrix;
+
+	vec3 N   = normalize(fs_in.normal);
+	mat3 model3D = transpose(inverse(mat3(model)));
+	N= normalize(model3D * N);
+	
+    //vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+	vec3 T  = normalize(model3D * fs_in.tangent);
+	
+	vec3 B = normalize(model3D * fs_in.bitangent);
+
     mat3 TBN = mat3(T, B, N);
 
-    return normalize(TBN * tangentNormal);
+    return normalize(inverse(TBN) * tangentNormal);
 }
 
 
 
 void main()
-{    	
-	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb;
-	normal = normalize(2.0*normal - 1.0);
-	
-	normal = getNormalFromMap();
-	//normal.y *= -1;
-	//normal = fs_in.normal;
+{    		
+	vec3 normal = getNormalFromMap();
+	//normal = fs_in.normalWorld;
 	
     // phase 1: directional lighting
     vec3 result = pbrModel(normal);
-	
-	vec3 N   = normalize(fs_in.normal);	
-	mat4 model4D = (model);
-	N= normalize((model4D * vec4(N, 0)).rgb);
+
 		
 	//directional shadow calculation
 	float shadow = shadowCalculation(normalize(fs_in.lightDir), normal, fs_in.fragPosLightSpace);
@@ -184,13 +174,16 @@ void main()
 		shadow = 0.2;
 	}	
 	
-	result *= (shadow);
+	//result *= (shadow);
 	
 	vec3 ambient = 0.1 * albedoColor;
 	
 	if (result.r < ambient.r) {
 		//result = ambient;
 	};
+
+	
+	//FragColor = vec4(normal, 1.0);
 	
 	FragColor = vec4(result, 1.0);
 
@@ -213,7 +206,7 @@ vec3 pbrModel(vec3 normal) {
     float metallic = texture(material.metallicMap, fs_in.texCoords).r;
 	metallic = 0.0;
     float roughness = texture(material.roughnessMap, fs_in.texCoords).r;
-	roughness = 1.0f;
+	roughness = 0.0f;
     float ao = texture(material.aoMap, fs_in.texCoords).r;
 	
 	ao = 1;
@@ -225,6 +218,7 @@ vec3 pbrModel(vec3 normal) {
 	
     //vec3 V = normalize(inverseTBN * fs_in.tangentViewDir); //normalize(camPos - WorldPos);
 	vec3 V = normalize(cameraPos - fs_in.fragPos);
+	//V= normalize((model4D * vec4(V, 0)).rgb); 
     vec3 R = reflect(-V, N);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
@@ -263,6 +257,13 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
 	vec3 specular = nominator / denominator;
 	
+	/*float sDotN = max(dot(L, N), 0.0 );
+    if( sDotN > 0.0 ) { 
+		float shininess = pow( max( dot(N, H), 0.0 ), 4.0 ); 	
+		//float shininess = pow( max( dot(r, viewDir), 0.0 ), 16.0 );
+        specular = 5 * specular * shininess;	
+	}*/
+	
 	 // kS is equal to Fresnel
 	vec3 kS = F;
 	// for energy conservation, the diffuse and specular light can't
@@ -294,11 +295,16 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+	
+	
+    //vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+	vec3 prefilteredColor = texture(prefilterMap, R,  0).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return (kD * diffuse + ambientLightSpecular) * ao;
+	return prefilteredColor;
+    //return (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 
