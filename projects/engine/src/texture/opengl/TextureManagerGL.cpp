@@ -13,6 +13,12 @@ using namespace platform;
 
 unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
 
+GLuint TextureManagerGL::rgba_float_resolutions[] = { GL_RGBA8, GL_RGBA16F, GL_RGBA32F};
+GLuint TextureManagerGL:: rgb_float_resolutions[] = { GL_RGB8, GL_RGB16F, GL_RGB32F };
+GLuint TextureManagerGL:: rg_float_resolutions[] = { GL_RG8, GL_RG16F, GL_RG32F };
+
+
+
 GLint TextureManagerGL::mapFilter(TextureFilter filter, bool useMipMaps)
 {
 	switch(filter)
@@ -53,21 +59,76 @@ GLint TextureManagerGL::mapUVTechnique(TextureUVTechnique technique)
 	}
 }
 
-GLuint TextureManagerGL::getInternalFormat(GLuint format, bool isFloatData)
+GLuint TextureManagerGL::getFormat(ColorSpace colorspace)
 {
-	if (!isFloatData) return format;
+	switch (colorspace) {
+	case RGBA:
+		return GL_RGBA;
+	case RGB:
+		return GL_RGB;
+	case RG:
+		return GL_RG;
+	default: {
+		throw runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace);
+	}
+	}
+}
+
+GLuint TextureManagerGL::getFormat(int numberComponents)
+{
+	switch (numberComponents) {
+		case 4: return GL_RGBA;
+		case 3: return GL_RGB;
+		case 2: return GL_RG;
+		default: {
+			throw runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents);
+		}
+	}
+}
+
+GLuint TextureManagerGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution)
+{
+	if (!isFloatData) {
+
+		if (!useSRGB) {
+			return format;
+		}
+
+		if (resolution != BITS_8) {
+			throw runtime_error("TextureManagerGL::getInternalFormat(): SRGB only supported for BITS_8, not for " + resolution);
+		}
+
+
+		switch (format) {
+			case GL_RGBA:
+				return GL_SRGB_ALPHA;
+			case GL_RGB:
+				return GL_SRGB;
+			default: {
+				throw runtime_error("TextureManagerGL::getInternalFormat(): Not supported format for SRGB: " + format);
+			}
+		}
+	}
 
 	switch (format) {
 	case GL_RGBA:
-		return GL_RGBA16;
+		return rgba_float_resolutions[resolution];
 	case GL_RGB:
-		return GL_RGB16;
+		return rgb_float_resolutions[resolution];
 	case GL_RG:
-		return GL_RG16;
+		return rg_float_resolutions[resolution];
 	default: {
 		throw runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format);
 	}
 	}
+}
+
+GLuint TextureManagerGL::getType(bool isFloatData)
+{
+	if (isFloatData) {
+		return GL_FLOAT;
+	}
+	return GL_UNSIGNED_BYTE;
 }
 
 TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
@@ -162,6 +223,43 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	return nullptr;
 }
 
+CubeMap * TextureManagerGL::createCubeMap(int sideWidth, int sideHeight, TextureData data)
+{
+	unsigned int cubeMap;
+	glGenTextures(1, &cubeMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+
+	GLuint format = getFormat(data.colorspace);
+	GLuint internalFormat = getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+
+	GLuint type = getType(data.isFloatData);
+
+
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, sideWidth, sideHeight, 0, format, type, nullptr);
+	}
+
+	GLint minFilter = mapFilter(data.minFilter, data.generateMipMaps);
+	GLint magFilter = mapFilter(data.magFilter, data.generateMipMaps);
+	GLint uvTechnique = mapUVTechnique(data.uvTechnique);
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	if (data.generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+
+	cubeMaps.push_back(CubeMapGL(cubeMap));
+	return &cubeMaps.back();
+}
+
 TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID)
 {
 	textures.push_back(TextureGL(textureID));
@@ -183,12 +281,12 @@ Texture * TextureManagerGL::getDefaultBlackTexture()
 Texture * TextureManagerGL::getDefaultNormalTexture()
 {
 	//normal maps shouldn't use mipmaps (important for shading!)
-	return getImage("_intern/default_normal.png", { false, true, Linear, Linear, Repeat, RGB });
+	return getImage("_intern/default_normal.png", { false, true, Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 Texture * TextureManagerGL::getDefaultWhiteTexture()
 {
-	return getImage("_intern/white.png", { true, false, Linear, Linear, Repeat, RGB });
+	return getImage("_intern/white.png", { true, false, Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 
@@ -217,19 +315,8 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 		throw runtime_error(ss.str());
 	}
 
-	GLuint format = GL_RGBA;
-	GLuint internalFormat = GL_RGBA32F;
-
-	if (nrComponents == 3) {
-		format = GL_RGB;
-		internalFormat = GL_RGB32F;
-	}
-	else if (nrComponents == 2) {
-		format = GL_RG;
-		internalFormat = GL_RG32F;
-	}
-
-
+	GLuint format = getFormat(nrComponents);
+	GLuint internalFormat = getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
 
 	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &hdrTexture);
@@ -244,8 +331,6 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -297,16 +382,9 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	}
 
 
-	GLuint format = GL_RGBA;
+	GLuint format = getFormat(nrComponents);
 
-	if (nrComponents == 3) {
-		format = GL_RGB;
-	}
-	else if (nrComponents == 2) {
-		format = GL_RG;
-	}
-
-	GLuint internalFormat = getInternalFormat(format, data.isFloatData);
+	GLuint internalFormat = getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
 
 
 
@@ -330,9 +408,6 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
 	if (data.generateMipMaps)

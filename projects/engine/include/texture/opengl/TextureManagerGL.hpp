@@ -20,7 +20,7 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) override;
 
-	CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data);
+	CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data) override;
 
 	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
 
@@ -32,7 +32,7 @@ public:
 
 	virtual Texture* getHDRImage(const std::string& file, TextureData data) override;
 	virtual Texture* getHDRImage2(const std::string& file, TextureData data);
-	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA }) override;
+	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, BITS_8}) override;
 
 	std::string getImagePath() override;
 
@@ -56,7 +56,14 @@ protected:
 
 	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
 	static GLint mapUVTechnique(TextureUVTechnique technique);
-	static GLuint getInternalFormat(GLuint format, bool isFloatData);
+	static GLuint getFormat(ColorSpace colorspace);
+	static GLuint getFormat(int numberComponents);
+	static GLuint getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution);
+	static GLuint getType(bool isFloatData);
+
+	static GLuint rgba_float_resolutions[3];
+	static GLuint rgb_float_resolutions[3];
+	static GLuint rg_float_resolutions[3];
 
 private:
 	// this class is a singleton, thus private constructor

@@ -21,7 +21,14 @@ enum TextureUVTechnique
 
 enum ColorSpace {
 	RGB,
-	RGBA
+	RGBA,
+	RG,
+};
+
+enum Resolution {
+	BITS_8,
+	BITS_16,
+	BITS_32,
 };
 
 
@@ -34,6 +41,7 @@ struct TextureData
 	TextureUVTechnique uvTechnique;
 	ColorSpace colorspace;
 	bool isFloatData; //specifies whether the data should be interpreted as float data
+	Resolution resolution;
 };
 
 class TextureManager
@@ -48,12 +56,14 @@ public:
 		const std::string& top, const std::string& bottom, 
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) = 0;
 
+	virtual CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data) = 0;
+
 	virtual Texture* getDefaultBlackTexture() = 0;
 	virtual Texture* getDefaultNormalTexture() = 0;
 	virtual Texture* getDefaultWhiteTexture() = 0;
 
-	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false}) = 0;
-	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false }) = 0;
+	virtual Texture* getHDRImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false, BITS_8}) = 0;
+	virtual Texture* getImage(const std::string& file, TextureData data = {true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, false, BITS_8 }) = 0;
 
 
 	virtual std::string getImagePath() = 0;

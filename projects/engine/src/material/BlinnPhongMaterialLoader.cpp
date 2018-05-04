@@ -34,6 +34,7 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 		data.magFilter = Linear;
 		data.colorspace = RGBA;
 		data.isFloatData = false;
+		data.resolution = BITS_8;
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
@@ -69,7 +70,8 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 		data.minFilter = Linear_Mipmap_Linear;
 		data.colorspace = RGBA;
 		data.uvTechnique = Repeat;
-		data.isFloatData = true;
+		data.isFloatData = false;
+		data.resolution = BITS_8;
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{

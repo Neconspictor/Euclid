@@ -20,6 +20,9 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 	convolutedEnvironmentMap = convolute(environmentMap); //TODO
 	//environmentMap = convolutedEnvironmentMap;
 
+	TextureData data = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_16 };
+	CubeMap* prefilteredMap = renderer->getTextureManager()->createCubeMap(128, 128, data);
+
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
 

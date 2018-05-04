@@ -34,6 +34,7 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		data.magFilter = Linear;
 		data.colorspace = RGBA;
 		data.isFloatData = false;
+		data.resolution = BITS_8;
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
@@ -79,6 +80,7 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		data.colorspace = RGB;
 		data.uvTechnique = Repeat;
 		data.isFloatData = false;
+		data.resolution = BITS_8;
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{
