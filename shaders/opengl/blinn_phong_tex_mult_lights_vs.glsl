@@ -38,89 +38,72 @@ uniform mat4 view;
 uniform vec3 viewPos;
 
 out VS_OUT {
-	vec3 fragPos;
-	vec2 texCoords;
-	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 TangentFragPos;
-	mat3 TBN;
-	vec3 T;
-	vec3 B;
-	vec3 N;
-	vec3 tangentLightDir;
-	vec3 tangentViewDir;
-	vec3 normal;
+	vec3 fragment_position_world;
+	vec2 tex_coords;
+	vec4 fragment_position_lightspace; // needed for shadow calculation
+	vec3 view_direction_tangent; // the view direction in tangent space
+	vec3 light_direction_tangent; // the light direction in tangent space
 } vs_out;
 
 void main()
-{
-
-	vec3 normalNormalized = normalize(normal);
-	vec3 tangentNormalized = normalize(tangent);
-
-	
+{	
     gl_Position = transform * vec4(position, 1.0f);
-	vs_out.fragPos = vec3(model * vec4(position, 1.0f));
-	vs_out.texCoords = texCoords;
+	vs_out.fragment_position_world = vec3(model * vec4(position, 1.0f));
+	vs_out.tex_coords = texCoords;
 	
 
-	vec4 fragPosWorld = model * vec4(position, 1.0f);
-	//vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragPosWorld;
-	vs_out.fragPosLightSpace = lightSpaceMatrix * fragPosWorld;
+	vec4 fragment_position_world = vec4(vs_out.fragment_position_world , 1.0f);
+	//vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragment_position_world;
+	vs_out.fragment_position_lightspace = lightSpaceMatrix * fragment_position_world;
 	
 	
+	mat3 normal_matrix = mat3(transpose(inverse(model)));
 	
-	mat3 model3D = mat3(transpose(inverse(model)));
-	vs_out.normal = normalize(model3D * normalNormalized);	
+	vec3 world_normal = normalize(normal_matrix * normal);
+	vec3 world_tangent = normalize(vec3(model * vec4(tangent, 0.0))); // only normal is allowed to be multiplied by normal_matrix!
 	
-	vec3 N = normalize((model3D * normalNormalized).xyz); // original normalMatrix
-	vec3 T = normalize(model3D * tangentNormalized);	// original normalMatrix
-	
-	float dotTN = dot(N, T);
+	float dotTN = dot(world_normal, world_tangent);
 	
 	if (dotTN < 0.0) {
-		//T = -1.0 * T;
+		world_tangent = -1.0 * world_tangent;
 	};
 	
-	T = normalize(T - (dot(N, T) * N));
+	world_tangent = normalize(world_tangent - (dot(world_normal, world_tangent) * world_normal));
 	
-	vec3 B = normalize(cross(N, T));
+	vec3 world_bitangent = normalize(cross(world_normal, world_tangent));
 
-	mat3 TBN = transpose(mat3(T, B, N));
-	
-	
-	
-	vs_out.T = tangentNormalized;
-	vs_out.B = B;
-	vs_out.N = normalNormalized;
-	vs_out.TBN = TBN;
+	// create TBN matrix
+	// for TBN we can ignore translations (this is only valid for direction vectors and not for positions!!!)
+	mat3 TBN_world_directions = mat3(world_tangent, world_bitangent, world_normal);
 
-	vs_out.TangentFragPos = TBN * vs_out.fragPos;
+
+	// create inverse TBN matrix to have a matrix that transforms from eye to tangent space
+	mat3 TBN_world_inverse = inverse(TBN_world_directions);
+
+	//convert all needed vectors to tangent space
+	// Note: TBN is mat3 since it doesn't have any translation; it is save to use it for positions, too.
 	
+	// viewPos is camera_position_world
+	vec3 view_direction_world = viewPos - fragment_position_world.rgb;
+	vec3 light_direction_world = normalize(-dirLight.direction);	
+
+	vs_out.view_direction_tangent = TBN_world_inverse * view_direction_world;
+	vs_out.light_direction_tangent = TBN_world_inverse * light_direction_world;
 	
-	vec3 pos = vec3(model *  vec4(position, 1));
-	
-	
-	vec3 viewLightDir = normalize(-dirLight.direction);	
-	vs_out.tangentLightDir = normalize(TBN * viewLightDir);
-	
-	vec3 viewDir = normalize(viewPos - pos);
-	vs_out.tangentViewDir = normalize(TBN * viewDir);
-	//vs_out.tangentViewDir = normalize((vec4(viewDir,0)).xyz);
 	
 	
 	//normal offset shadow stuff
 	
 	//scale normal offset by shadow depth
-	vec4 positionLightView = lightSpaceMatrix * fragPosWorld;
+	vec4 positionLightView = lightSpaceMatrix * fragment_position_world;
 	float shadowFOVFactor = max(lightProjMatrix[0].x, lightProjMatrix[1].y);
 	vec2 size = textureSize(material.shadowMap, 0);
 	float shadowMapTexelSize = 1 / max(size.x, size.y);
 	
-	//shadowMapTexelSize *= abs(positionLightView.z) * shadowFOVFactor;
+	shadowMapTexelSize *= abs(positionLightView.z) * shadowFOVFactor;
 	
 	vec4 positionLightSpace;
-	vec3 toLight = viewLightDir;
-	float cosLightAngle = dot(toLight, normalNormalized);
+	float cosLightAngle = dot(light_direction_world, world_normal);
 	
 	bool bNormalOffsetScale = true;
 	float normalOffsetScale = bNormalOffsetScale ? clamp(1 - cosLightAngle, 0, 1) : 1.0;
@@ -128,22 +111,22 @@ void main()
 	
 	
 	normalOffsetScale *= shadowNormalOffset * shadowMapTexelSize;
-	vec4 shadowOffset = vec4(normalNormalized.xyz * normalOffsetScale, 0);
+	vec4 shadowOffset = vec4(world_normal * normalOffsetScale, 0);
 	
 	bool bOnlyUVNormalOffset = true;
 	
 	if (bOnlyUVNormalOffset) {
-		positionLightSpace = lightSpaceMatrix * fragPosWorld;
+		positionLightSpace = lightSpaceMatrix * fragment_position_world;
 		
-		vec4 shadowPositionWorldUVOnly = fragPosWorld + shadowOffset;
+		vec4 shadowPositionWorldUVOnly = fragment_position_world + shadowOffset;
 		vec4 UVOffsetPositionLightSpace = lightSpaceMatrix * shadowPositionWorldUVOnly;
 		
 		positionLightSpace.xy = UVOffsetPositionLightSpace.xy;
 		
 	} else {
-		vec4 shadowPositionWorld = fragPosWorld + shadowOffset;
+		vec4 shadowPositionWorld = fragment_position_world + shadowOffset;
 		positionLightSpace =  lightSpaceMatrix * shadowPositionWorld;
 	}
 	
-	vs_out.fragPosLightSpace = positionLightSpace;
+	vs_out.fragment_position_lightspace = positionLightSpace;
 } 

@@ -75,10 +75,10 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		data.generateMipMaps = true;
 		// Linear_Mipmap_Linear is also important!
 		data.magFilter = Linear;
-		data.minFilter = Linear;
-		data.colorspace = RGBA;
+		data.minFilter = Linear_Mipmap_Linear;
+		data.colorspace = RGB;
 		data.uvTechnique = Repeat;
-		data.isFloatData = true;
+		data.isFloatData = false;
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{

@@ -19,18 +19,14 @@ struct DirLight {
 };
 
 
-in VS_OUT {
-	vec3 fragPos;
-	vec3 fragPosModelSpace;
-	vec2 texCoords;
-	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 lightDir;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	flat mat3 normalMatrix;
-	mat3 TBN;
-	vec3 normalWorld;
+in VS_OUT {	
+	vec3 fragment_position_world;
+	vec2 tex_coords;
+	vec4 fragment_position_lightspace; // needed for shadow calculation
+	mat3 TBN_world_directions; // used to transform the reflection vector from tangent to world space. 
+						  //  This matrix mustn't be used with positions!!!
+	vec3 view_direction_tangent; // the view direction in tangent space
+	vec3 light_direction_tangent; // the light direction in tangent space	
 } fs_in;
 
 
@@ -117,8 +113,8 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 
-float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
-float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
+float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
+float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
 float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
 float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
@@ -133,37 +129,16 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
 // Don't worry if you don't get what's going on; you generally want to do normal 
 // mapping the usual way for performance anways; I do plan make a note of this 
 // technique somewhere later in the normal mapping tutorial.
-vec3 getNormalFromMap()
+/*vec3 getNormalFromMap()
 {
-    /*vec3 tangentNormal = texture(material.normalMap, fs_in.texCoords).xyz * 2.0 - 1.0;
-	//tangentNormal = (tangentNormal *2.0) - 1.0;
-	//tangentNormal = normalize(vec3(0,0, 1));
-	
-	//tangentNormal = vec3(0,0,1);
-	
-	mat3 Nmatrix = fs_in.normalMatrix;
-
-	vec3 N   = normalize(fs_in.normal);
-	mat3 model3D = transpose(inverse(mat3(model)));
-	N= normalize(model3D * N);
-	
-    //vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-	vec3 T  = normalize(model3D * fs_in.tangent);
-	
-	vec3 B = normalize(model3D * fs_in.bitangent);
-
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(inverse(TBN) * tangentNormal);*/
-	
 	float factor = 255/128.0f;
 	
-	vec3 tangentNormal = (texture(material.normalMap, fs_in.texCoords).xyz * factor) - 1.0;
+	vec3 tangentNormal = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
 
-    vec3 Q1  = dFdx(fs_in.fragPos);
-    vec3 Q2  = dFdy(fs_in.fragPos);
-    vec2 st1 = dFdx(fs_in.texCoords);
-    vec2 st2 = dFdy(fs_in.texCoords);
+    vec3 Q1  = dFdx(fs_in.fragment_position_world);
+    vec3 Q2  = dFdy(fs_in.fragment_position_world);
+    vec2 st1 = dFdx(fs_in.tex_coords);
+    vec2 st2 = dFdy(fs_in.tex_coords);
 
     vec3 N   = normalize((model * vec4(fs_in.normal, 0.0)).rgb);
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
@@ -173,9 +148,9 @@ vec3 getNormalFromMap()
 	//return vec3(0,0,-1);
 	//return fs_in.normalWorld;
     return normalize(TBN * tangentNormal);
-}
+}*/
 
-
+/*
 vec3 reflectanceEyeSpace() {
 	
 	// normals are direction vectors and thus now translation should influence it!
@@ -202,34 +177,41 @@ vec3 reflectanceWorldSpace() {
 	vec3 cameraPosition = vec3(inverse(view) * vec4(0,0,0, 1));
 	cameraPosition = cameraPos;
 	vec3 fragPosWorldSpace = vec3(model * vec4(fs_in.fragPosModelSpace, 1.0));	
-	fragPosWorldSpace = fs_in.fragPos;
+	fragPosWorldSpace = fs_in.fragment_position_world;
 	vec3 incident = normalize(fragPosWorldSpace - cameraPosition);
 	
 	//reflected vector can directly be used for cubemap texture fetching
 	vec3 reflected = reflect(incident, normal);	
 	return texture(prefilterMap, reflected).rgb;
 }
-
+*/
 
 
 void main()
 {    		
-	vec3 normal = getNormalFromMap();
+	//vec3 normal = getNormalFromMap();
+	float factor = 255/128.0f;
+	
+	vec3 normal = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
+	
+	normal = normalize(normal);
+	//normal = vec3(0,0,1);
+	
 	
     // phase 1: directional lighting
     vec3 result = pbrModel(normal);
 
 		
 	//directional shadow calculation
-	float shadow = shadowCalculation(normalize(fs_in.lightDir), normal, fs_in.fragPosLightSpace);
+	float shadow = shadowCalculation(normalize(fs_in.light_direction_tangent), normal, fs_in.fragment_position_lightspace);
 	
-	vec3 albedoColor = texture(material.albedoMap, fs_in.texCoords).rgb;
+	vec3 albedoColor = texture(material.albedoMap, fs_in.tex_coords).rgb;
 	
 	if (shadow < 0.2) {
 		shadow = 0.2;
 	}
 
-	//result *= (shadow);
+	result *= (shadow);
 	
 	//FragColor = vec4(normal, 1.0);
 	
@@ -244,7 +226,12 @@ void main()
 	
 	//result = reflectanceWorldSpace();
 	
-	result = reflectanceEyeSpace();
+	//result = reflectanceEyeSpace();
+	
+	//result = albedoColor;
+	
+	
+	
 	
 	FragColor = vec4(result, 1.0);
 
@@ -259,27 +246,35 @@ void main()
 vec3 pbrModel(vec3 normal) {
 	
 	// material properties
-    //vec3 albedo = pow(texture(material.albedoMap, fs_in.texCoords).rgb, vec3(2.2));
-	vec3 albedo = texture(material.albedoMap, fs_in.texCoords).rgb;
+    //vec3 albedo = pow(texture(material.albedoMap, fs_in.tex_coords).rgb, vec3(2.2));
+	vec3 albedo = texture(material.albedoMap, fs_in.tex_coords).rgb;
 	
 	//albedo = vec3(1,0,0);
 	
-    float metallic = texture(material.metallicMap, fs_in.texCoords).r;
-	metallic = 0.0;
-    float roughness = texture(material.roughnessMap, fs_in.texCoords).r;
+    float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
+	metallic = 1.0;
+    float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	roughness = 0.0f;
-    float ao = texture(material.aoMap, fs_in.texCoords).r;
+    float ao = texture(material.aoMap, fs_in.tex_coords).r;
 	
 	ao = 1;
        
     // input lighting data
-	//mat3 inverseTBN = inverse(fs_in.TBN);
     vec3 N = normal;
 	N = normalize(N);
 	
     //vec3 V = normalize(inverseTBN * fs_in.tangentViewDir); //normalize(camPos - WorldPos);
-	vec3 V = normalize(cameraPos - fs_in.fragPos);
+	vec3 V = normalize(fs_in.view_direction_tangent);
+	
+	//mat3 inverseTBN = inverse(fs_in.TBN_world_directions);
+	//V = cameraPos - fs_in.fragment_position_world;
+	//V = normalize(inverseTBN * V);
+	
     vec3 R = reflect(-V, N);
+	
+	// R is in tangent space, but we need it to be in world space
+	R = fs_in.TBN_world_directions * R;
+	
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -289,16 +284,18 @@ vec3 pbrModel(vec3 normal) {
     // reflectance equation
     vec3 Lo = pbrDirectLight(V, N, roughness, F0, metallic, albedo);
 	
-	vec3 ambient = pbrAmbientLight(V, N, roughness, F0, metallic, albedo, R.rgb, ao);
+	vec3 ambient = pbrAmbientLight(V, N, roughness, F0, metallic, albedo, R, ao);
     
-    vec3 color = Lo + ambient;
+    vec3 color = /*Lo + */ambient;
 	
 	return color;
 }
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
 	// calculate per-light radiance
-	vec3 L =  normalize(fs_in.lightDir); //normalize(-dirLight.direction);
+	vec3 L =  normalize(fs_in.light_direction_tangent);
+	
+	
 	vec3 H = normalize(V + L);
 	
 	// directional lights have no distance and thus also no attenuation
@@ -356,17 +353,14 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
 	
-	
-	vec3 R2 = R;
-	R2.y *= -1;
-	
     vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
 	//vec3 prefilteredColor = texture(prefilterMap, R,  0).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-	//brdf = vec2(1,1);
+	brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
+	ambientLightSpecular = prefilteredColor;
 
-    return (kD * diffuse + ambientLightSpecular) * ao;
+    return (/*kD * diffuse + */ambientLightSpecular) * ao;
 }
 
 
@@ -418,11 +412,11 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 // ----------------------------------------------------------------------------
 
 
-float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
+float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace)
 {		
-		vec3 shadowCoordinateWdivide  = (fragPosLightSpace.xyz / fragPosLightSpace.w) * 0.5 + vec3(0.5) ;
-		//vec3 shadowCoordinateWdivide = fragPosLightSpace.xyz * 0.5 + vec3(0.5) ;
-		//shadowCoordinateWdivide = fragPosLightSpace.xyz;
+		vec3 shadowCoordinateWdivide  = (fragment_position_lightspace.xyz / fragment_position_lightspace.w) * 0.5 + vec3(0.5) ;
+		//vec3 shadowCoordinateWdivide = fragment_position_lightspace.xyz * 0.5 + vec3(0.5) ;
+		//shadowCoordinateWdivide = fragment_position_lightspace.xyz;
 		
 		float currentDepth = shadowCoordinateWdivide.z;
 		float angle = dot(lightDir, normal);
@@ -452,7 +446,8 @@ float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
 	
 		
 
-		bias = 4.0f * texelSize.x;
+		bias = 9.0f * max(texelSize.x,texelSize.y);
+		//bias = 0.0005;
 		shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
 		//shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
 		//shadow = PCSS(material.shadowMap, shadowCoordinateWdivide, bias);
@@ -466,11 +461,11 @@ float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace)
     return 1 - shadow;	
 }
 
-float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace) {
-		if (fragPosLightSpace.z >= 1.0)
+float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace) {
+		if (fragment_position_lightspace.z >= 1.0)
 				return 0.0;
 	
-		return 1 - chebyshevUpperBound(fragPosLightSpace.z, fragPosLightSpace.xy);
+		return 1 - chebyshevUpperBound(fragment_position_lightspace.z, fragment_position_lightspace.xy);
 }
 
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){

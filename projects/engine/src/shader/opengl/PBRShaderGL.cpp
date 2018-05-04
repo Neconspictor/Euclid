@@ -164,7 +164,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
 	attributes.setData("brdfLUT", white, white);
-	attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
+	//attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
 	//attributes.setData("irradianceMap", dynamic_cast<CubeMapGL*>(skybox));
 }
 

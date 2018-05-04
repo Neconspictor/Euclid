@@ -35,100 +35,65 @@ uniform mat4 view;
 uniform vec3 cameraPos;
 
 out VS_OUT {
-	vec3 fragPos;
-	vec3 fragPosModelSpace;
-	vec2 texCoords;
-	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 lightDir;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	mat3 normalMatrix;
-	mat3 TBN;
-	vec3 normalWorld;
+	vec3 fragment_position_world;
+	vec2 tex_coords;
+	vec4 fragment_position_lightspace; // needed for shadow calculation
+	mat3 TBN_world_directions; // used to transform the reflection vector from tangent to world space. 
+						  //  This matrix mustn't be used with positions!!!
+	vec3 view_direction_tangent; // the view direction in tangent space
+	vec3 light_direction_tangent; // the light direction in tangent space	
 } vs_out;
 
 void main()
 {
 
-	vec3 normalNormalized = normalize(normal);
-	vec3 tangentNormalized = normalize(tangent);
-	vec3 bitangentNormalized = normalize(bitangent);
-
-	
     gl_Position = transform * vec4(position, 1.0f);
-	vs_out.fragPos = vec3(model * vec4(position, 1.0f));
-	vs_out.texCoords = texCoords;
-	
-	vs_out.fragPosModelSpace = position;
-	
+	vs_out.fragment_position_world = vec3(model * vec4(position, 1.0f));
+	vs_out.tex_coords = texCoords;
 
 	vec4 fragPosWorld = model * vec4(position, 1.0f);
 	//vs_out.fragPosLightSpace = biasMatrix * lightSpaceMatrix * fragPosWorld;
-	vs_out.fragPosLightSpace = lightSpaceMatrix * fragPosWorld;
+	vs_out.fragment_position_lightspace = lightSpaceMatrix * fragPosWorld;
 	
 	
+	mat3 normal_matrix = mat3(transpose(inverse(model)));
+	vec3 world_normal = normalize(normal_matrix * normal);
+	//vec3 world_tangent = normalize(vec3(model * vec4(tangent, 0.0))); // only normal is allowed to be multiplied by normal_matrix!
+	vec3 world_tangent = normalize(normal_matrix * tangent); // only normal is allowed to be multiplied by normal_matrix!
 	
-	mat3 model3D = mat3(transpose(inverse(model)));
-	vs_out.normalMatrix = mat3(model);
-	//vs_out.normal = normalize((model4D * vec4(normalNormalized, 0)).rgb);
-	vs_out.normal = normal;
-	vs_out.tangent = tangentNormalized;
-	vs_out.bitangent = bitangentNormalized;
-	
-	vec3 N = model3D * normal;
-	vec3 T = model3D * tangent;
-	vec3 B = model3D * bitangent;
-	
-	vs_out.TBN = mat3(T,B,N);
-	
-	vs_out.normalWorld = vec3(modelView * vec4(normal, 0));
-	
-	vec3 lightDir = normalize(-dirLight.direction);	
-	vs_out.lightDir = lightDir;
-
-	/*mat3 model3D = mat3(model4D);
-	
-	vec3 N = normalize((model3D * normalNormalized).xyz); // original normalMatrix
-	vec3 T = normalize(model3D * tangentNormalized);	// original normalMatrix
-	
-	float dotTN = dot(N, T);
+	float dotTN = dot(world_normal, world_tangent);
 	
 	if (dotTN < 0.0) {
-		//T = -1.0 * T;
+		//world_tangent = -1.0 * world_tangent;
 	};
 	
-	T = normalize(T - (dot(N, T) * N));
+	world_tangent = normalize(world_tangent - (dot(world_normal, world_tangent) * world_normal));
 	
-	vec3 B = normalize(cross(N, T));
+	//vec3 world_bitangent = normalize(cross(world_normal, world_tangent));
+	vec3 world_bitangent = normalize(normal_matrix * bitangent);
 
-	mat3 TBN = transpose(mat3(T, B, N));
-	
-	
-	
-	vs_out.T = tangentNormalized;
-	vs_out.B = B;
-	vs_out.N = normalNormalized;
-	vs_out.TBN = TBN;
+	vs_out.TBN_world_directions = mat3(world_tangent, world_bitangent, world_normal);
 
-	vs_out.TangentFragPos = TBN * vs_out.fragPos;
+	// create inverse TBN matrix to have a matrix that transforms from eye to tangent space
+	mat3 TBN_eye_inverse = inverse(vs_out.TBN_world_directions);
+
+	//convert all needed vectors to tangent space
+	// Note: TBN is mat3 since it doesn't have any translation; it is save to use it for positions, too.
+	vec3 view_direction_world = cameraPos - vs_out.fragment_position_world;
+	vec3 light_direction_world = normalize(-dirLight.direction);	
+
+	vs_out.view_direction_tangent = TBN_eye_inverse * view_direction_world;
+	vs_out.light_direction_tangent = TBN_eye_inverse * light_direction_world;
 	
 	
-	vec3 pos = vec3(model *  vec4(position, 1));
 	
-	
-	vec3 lightDir = normalize(-dirLight.direction);	
-	vs_out.tangentLightDir = normalize(TBN * lightDir);
-	vs_out.lightDir = lightDir;
-	
-	vec3 viewDir = normalize(cameraPos - pos);
-	vs_out.tangentViewDir = normalize(TBN * viewDir);
 	
 	
 	//normal offset shadow stuff
 	
 	//scale normal offset by shadow depth
-	vec4 positionLightView = lightSpaceMatrix * fragPosWorld;
+	vec4 fragment_position_world = vec4(vs_out.fragment_position_world, 1.0);
+	vec4 positionLightView = lightSpaceMatrix * fragment_position_world;
 	float shadowFOVFactor = max(lightProjMatrix[0].x, lightProjMatrix[1].y);
 	vec2 size = textureSize(material.shadowMap, 0);
 	float shadowMapTexelSize = 1 / max(size.x, size.y);
@@ -136,31 +101,30 @@ void main()
 	//shadowMapTexelSize *= abs(positionLightView.z) * shadowFOVFactor;
 	
 	vec4 positionLightSpace;
-	vec3 toLight = lightDir;
-	float cosLightAngle = dot(toLight, normalNormalized);
+	float cosLightAngle = dot(light_direction_world, world_normal);
 	
 	bool bNormalOffsetScale = true;
 	float normalOffsetScale = bNormalOffsetScale ? clamp(1 - cosLightAngle, 0, 1) : 1.0;
-	float shadowNormalOffset = 2;
+	float shadowNormalOffset = 10;
 	
 	
 	normalOffsetScale *= shadowNormalOffset * shadowMapTexelSize;
-	vec4 shadowOffset = vec4(normalNormalized.xyz * normalOffsetScale, 0);
+	vec4 shadowOffset = vec4(world_normal * normalOffsetScale, 0);
 	
 	bool bOnlyUVNormalOffset = true;
 	
 	if (bOnlyUVNormalOffset) {
-		positionLightSpace = lightSpaceMatrix * fragPosWorld;
+		positionLightSpace = lightSpaceMatrix * fragment_position_world;
 		
-		vec4 shadowPositionWorldUVOnly = fragPosWorld + shadowOffset;
+		vec4 shadowPositionWorldUVOnly = fragment_position_world + shadowOffset;
 		vec4 UVOffsetPositionLightSpace = lightSpaceMatrix * shadowPositionWorldUVOnly;
 		
 		positionLightSpace.xy = UVOffsetPositionLightSpace.xy;
 		
 	} else {
-		vec4 shadowPositionWorld = fragPosWorld + shadowOffset;
+		vec4 shadowPositionWorld = fragment_position_world + shadowOffset;
 		positionLightSpace =  lightSpaceMatrix * shadowPositionWorld;
 	}
 	
-	vs_out.fragPosLightSpace = positionLightSpace;*/
+	vs_out.fragment_position_lightspace = positionLightSpace;
 } 

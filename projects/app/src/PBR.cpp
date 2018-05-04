@@ -17,8 +17,7 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 	this->renderer = renderer;
 	environmentMap = renderBackgroundToCube(backgroundHDR);
 	//environmentMap = backgroundHDR;
-	convolutedEnvironmentMap = environmentMap;
-	//convolutedEnvironmentMap = convolute(environmentMap); TODO
+	convolutedEnvironmentMap = convolute(environmentMap); //TODO
 	//environmentMap = convolutedEnvironmentMap;
 
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
@@ -75,7 +74,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 
 	shader->setCameraPosition(cameraPosition);
-	shader->setIrradianceMap(environmentMap);
+	shader->setIrradianceMap(convolutedEnvironmentMap);
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
@@ -139,9 +138,9 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 		modelDrawer->draw(&skybox, Shaders::SkyBoxEquirectangular, data);
 	}
 
-	//CubeMap* result = cubeRenderTarget->createCopy(); TODO
-	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return cubeRenderTarget->getCubeMap();
+	CubeMap* result = cubeRenderTarget->createCopy(); 
+	renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return result;
 }
 
 CubeMap * PBR::convolute(CubeMap * source)
@@ -181,5 +180,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 		modelDrawer->draw(&skybox, Shaders::Pbr_Convolution, data);
 	}
 
-	return cubeRenderTarget->createCopy();
+	CubeMap* result = cubeRenderTarget->createCopy();
+	renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return result;
 }

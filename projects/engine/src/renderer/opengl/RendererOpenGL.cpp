@@ -112,6 +112,9 @@ void RendererOpenGL::init()
 		image.pixels = nullptr;
 	}*/
 
+
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 

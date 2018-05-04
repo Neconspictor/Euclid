@@ -21,17 +21,11 @@ struct DirLight {
 
 
 in VS_OUT {
-	vec3 fragPos;
-	vec2 texCoords;
-	vec4 fragPosLightSpace; // needed for shadow calculation
-	vec3 TangentFragPos;
-	mat3 TBN;
-	vec3 T;
-	vec3 B;
-	vec3 N;
-	vec3 tangentLightDir;
-	vec3 tangentViewDir;
-	vec3 normal;
+	vec3 fragment_position_world;
+	vec2 tex_coords;
+	vec4 fragment_position_lightspace; // needed for shadow calculation
+	vec3 view_direction_tangent; // the view direction in tangent space
+	vec3 light_direction_tangent; // the light direction in tangent space
 } fs_in;
 
 
@@ -106,7 +100,7 @@ struct BlockerResult {
 
 
 
-vec3 phongModel(vec3 normal, mat3 TBN);
+vec3 phongModel(vec3 normal);
 vec4 calcDirLight(vec3 normal, vec3 viewDir);
 float shadowCalculation(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
 float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragPosLightSpace);
@@ -120,55 +114,30 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
 
 void main()
 {    	
-	vec3 normal = texture(material.normalMap, fs_in.texCoords).rgb;
+	vec3 normal = texture(material.normalMap, fs_in.tex_coords).rgb;
 	//normal = vec3(128 / 255.0, 128 / 255.0, 255 / 255.0);
 	normal = normalize(2.0*normal - 1.0);
 
 	//normal = vec3(0,0,1);
 	vec3 normalLighting = normalize(normal);
-	vec3 normalShadows = normalize(normal);
-	
-	
-	/*mat3 model3D = mat3(model);
-	
-	vec3 N = normalize((model3D * fs_in.N).xyz); // original normalMatrix
-	vec3 T = normalize(model3D * fs_in.T);	// original normalMatrix
-	
-	float dotTN = dot(N, T);
-	
-	if (dotTN < 0.0) {
-		//T = -1.0 * T;
-	};
-	
-	T = normalize(T - (dot(N, T) * N));
-	
-	vec3 B = normalize(cross(N, T));
-
-	
-	
-	//mat3 TBN = transpose(mat3(T, B, N));
-	mat3 TBN = mat3(T, B, N);*/
-	
-	
-	mat3 TBN = fs_in.TBN;
 	
 	
     // phase 1: directional lighting
 	//normalLighting = normalize(vec3(0,0,1));
-    vec3 result = phongModel(normalLighting, TBN);
+    vec3 result = phongModel(normalLighting);
 		
 	//directional shadow calculation
-	float shadow = shadowCalculation(normalize(fs_in.tangentLightDir), normalLighting, fs_in.fragPosLightSpace);
+	float shadow = shadowCalculation(normalize(fs_in.light_direction_tangent), normalLighting, fs_in.fragment_position_lightspace);
 	
-	vec3 diffuseColor = texture(material.diffuseMap, fs_in.texCoords).rgb;
+	vec3 diffuseColor = texture(material.diffuseMap, fs_in.tex_coords).rgb;
 	
 	result *= (shadow);
 	
-	vec3 ambient = 0.1 * diffuseColor;
+	//vec3 ambient = 0.1 * diffuseColor;
 	
-	if (result.r < ambient.r) {
-		result = ambient;
-	};
+	//if (result.r < ambient.r) {
+		//result = ambient;
+	//};
 	
 	FragColor = vec4(result, 1.0);
 
@@ -180,23 +149,20 @@ void main()
     //FragColor = vec4(mapped, 1.0);
 }
 
-vec3 phongModel(vec3 normal, mat3 TBN) {
-	vec3 diffuseColor = texture(material.diffuseMap, fs_in.texCoords).rgb;
+vec3 phongModel(vec3 normal) {
+	vec3 diffuseColor = texture(material.diffuseMap, fs_in.tex_coords).rgb;
 	//normal = vec3(0,0,1);
-    vec3 specularColor = texture(material.specularMap, fs_in.texCoords).rgb;
+    vec3 specularColor = texture(material.specularMap, fs_in.tex_coords).rgb;
 	
 	
-
-	//mat3 TBN = fs_in.TBN;
-	
-	vec3 lightDir =  normalize(fs_in.tangentLightDir);
+	vec3 lightDir =  normalize(fs_in.light_direction_tangent);
    // vec3 r = reflect(normal, lightDir);
     vec3 ambient = 0.1 * diffuseColor;
     float sDotN = max(dot(lightDir, normal), 0.0 );
     vec3 diffuse = diffuseColor * sDotN;
     vec3 spec = vec3(0.0);
     if( sDotN > 0.0 ) {
-		vec3 viewDir = normalize(fs_in.tangentViewDir);
+		vec3 viewDir = normalize(fs_in.view_direction_tangent);
 		vec3 halfwayDir = normalize(lightDir + viewDir); 
 		float shininess = pow( max( dot(normal, halfwayDir), 0.0 ), 8.0 );
 		//float shininess = pow( max( dot(r, viewDir), 0.0 ), 16.0 );
