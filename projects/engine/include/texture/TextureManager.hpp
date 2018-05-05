@@ -56,8 +56,6 @@ public:
 		const std::string& top, const std::string& bottom, 
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) = 0;
 
-	virtual CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data) = 0;
-
 	virtual Texture* getDefaultBlackTexture() = 0;
 	virtual Texture* getDefaultNormalTexture() = 0;
 	virtual Texture* getDefaultWhiteTexture() = 0;

@@ -73,7 +73,6 @@ void PBRShaderGL::setIrradianceMap(CubeMap * irradianceMap)
 {
 	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
 	attributes.setData("irradianceMap", this->irradianceMap);
-	attributes.setData("prefilterMap", this->irradianceMap);
 }
 
 void PBRShaderGL::setLightColor(vec3 color)
@@ -99,6 +98,11 @@ void PBRShaderGL::setLightSpaceMatrix(mat4 mat)
 void PBRShaderGL::setLightViewMatrix(glm::mat4 mat)
 {
 	lightViewMatrix = move(mat);
+}
+
+void PBRShaderGL::setPrefilterMap(CubeMap* prefilterMap) {
+	this->prefilterMap = dynamic_cast<CubeMapGL*>(prefilterMap);
+	attributes.setData("prefilterMap", this->prefilterMap);
 }
 
 
@@ -164,8 +168,6 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
 	attributes.setData("brdfLUT", white, white);
-	//attributes.setData("prefilterMap", dynamic_cast<CubeMapGL*>(skybox));
-	//attributes.setData("irradianceMap", dynamic_cast<CubeMapGL*>(skybox));
 }
 
 PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()
@@ -186,6 +188,39 @@ void PBR_ConvolutionShaderGL::setEnvironmentMap(CubeMap * cubeMap)
 }
 
 void PBR_ConvolutionShaderGL::update(const MeshGL & mesh, const TransformData & data)
+{
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	attributes.setData("projection", &projection);
+	attributes.setData("view", &view);
+}
+
+PBR_PrefilterShaderGL::PBR_PrefilterShaderGL() : roughness(0.0)
+{
+	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "environmentMap");
+	attributes.create(ShaderAttributeType::FLOAT, &this->roughness, "roughness", true);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection", true);
+	attributes.create(ShaderAttributeType::MAT4, nullptr, "view", true);
+}
+
+PBR_PrefilterShaderGL::~PBR_PrefilterShaderGL()
+{
+}
+
+void PBR_PrefilterShaderGL::setMapToPrefilter(CubeMap * cubeMap)
+{
+	this->cubeMap = dynamic_cast<CubeMapGL*>(cubeMap);
+	attributes.setData("environmentMap", dynamic_cast<CubeMapGL*>(cubeMap));
+}
+
+void PBR_PrefilterShaderGL::setRoughness(float roughness)
+{
+	this->roughness = roughness;
+}
+
+void PBR_PrefilterShaderGL::update(const MeshGL & mesh, const TransformData & data)
 {
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;

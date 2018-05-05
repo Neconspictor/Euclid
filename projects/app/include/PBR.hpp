@@ -48,10 +48,12 @@ private:
 
 	CubeMap* renderBackgroundToCube(Texture* background);
 	CubeMap* convolute(CubeMap* source);
+	CubeRenderTarget* prefilter(CubeMap* source);
 
 
 
 	CubeMap* convolutedEnvironmentMap;
+	CubeRenderTarget* prefilterRenderTarget;
 	CubeMap* environmentMap;
 	Renderer3D* renderer;
 	PBRShader* shader;

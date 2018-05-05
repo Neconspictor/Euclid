@@ -252,12 +252,12 @@ vec3 pbrModel(vec3 normal) {
 	//albedo = vec3(1,0,0);
 	
     float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
-	metallic = 1.0;
+	metallic = 0.0;
     float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	roughness = 0.0f;
     float ao = texture(material.aoMap, fs_in.tex_coords).r;
 	
-	ao = 1;
+	ao = 1.0;
        
     // input lighting data
     vec3 N = normal;
@@ -286,7 +286,7 @@ vec3 pbrModel(vec3 normal) {
 	
 	vec3 ambient = pbrAmbientLight(V, N, roughness, F0, metallic, albedo, R, ao);
     
-    vec3 color = /*Lo + */ambient;
+    vec3 color = Lo + ambient;
 	
 	return color;
 }
@@ -354,13 +354,11 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     const float MAX_REFLECTION_LOD = 4.0;
 	
     vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-	//vec3 prefilteredColor = texture(prefilterMap, R,  0).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-	brdf = vec2(1,1);
+	brdf = vec2(1.0, 0.0);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
-	ambientLightSpecular = prefilteredColor;
 
-    return (/*kD * diffuse + */ambientLightSpecular) * ao;
+    return (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 

@@ -18,10 +18,10 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 	environmentMap = renderBackgroundToCube(backgroundHDR);
 	//environmentMap = backgroundHDR;
 	convolutedEnvironmentMap = convolute(environmentMap); //TODO
-	//environmentMap = convolutedEnvironmentMap;
 
-	TextureData data = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_16 };
-	CubeMap* prefilteredMap = renderer->getTextureManager()->createCubeMap(128, 128, data);
+	prefilterRenderTarget = prefilter(environmentMap);
+
+	//environmentMap = convolutedEnvironmentMap;
 
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
@@ -33,7 +33,9 @@ void PBR::drawSky(RenderTarget* renderTarget, const mat4& projection, const mat4
 
 	SkyBoxShader* skyboxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBox));
+
 	skyboxShader->setSkyTexture(environmentMap);
+	//skyboxShader->setSkyTexture(prefilteredEnvironmentMap);
 
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
@@ -78,6 +80,7 @@ void PBR::drawScene(SceneNode * scene,
 
 	shader->setCameraPosition(cameraPosition);
 	shader->setIrradianceMap(convolutedEnvironmentMap);
+	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
@@ -186,4 +189,68 @@ CubeMap * PBR::convolute(CubeMap * source)
 	CubeMap* result = cubeRenderTarget->createCopy();
 	renderer->destroyCubeRenderTarget(cubeRenderTarget);
 	return result;
+}
+
+CubeRenderTarget* PBR::prefilter(CubeMap * source)
+{
+	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, false, BITS_16 };
+
+	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(256, 256, std::move(textureData));
+
+	ShaderManager* shaderManager = renderer->getShaderManager();
+
+	PBR_PrefilterShader* prefilterShader = dynamic_cast<PBR_PrefilterShader*>
+		(shaderManager->getConfig(Shaders::Pbr_Prefilter));
+
+	prefilterShader->setMapToPrefilter(source);
+
+	TransformData data;
+	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+	data.projection = &projection;
+	mat4 model = glm::mat4();
+	data.model = &model;
+
+
+	//view matrices;
+	const mat4 views[] = {
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+	};
+
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+
+	unsigned int maxMipLevels = 5;
+
+	for (unsigned int mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
+
+		// update the roughness value for the current mipmap level
+		float roughness = (float)mipLevel / (float)(maxMipLevels - 1);
+		prefilterShader->setRoughness(roughness);
+
+		//resize render target according to mip level size
+		prefilterRenderTarget->resizeForMipMap(mipLevel);
+
+		// update the viewport size
+		unsigned int width = prefilterRenderTarget->getWidthMipLevel(mipLevel);
+		unsigned int height = prefilterRenderTarget->getHeightMipLevel(mipLevel);
+		renderer->setViewPort(0, 0, width, height);
+
+		// render to the cubemap at the specified mip level
+		for (int side = CubeMap::POSITIVE_X; side < 6; ++side) {
+			data.view = &views[side];
+			renderer->useCubeRenderTarget(prefilterRenderTarget, (CubeMap::Side)side, mipLevel);
+			modelDrawer->draw(&skybox, Shaders::Pbr_Prefilter, data);
+		}
+
+	}
+
+	//CubeMap* result = prefilterRenderTarget->createCopy();
+	//renderer->destroyCubeRenderTarget(prefilterRenderTarget);
+
+	//TODO extract the cubemap from the render target (if possible?)
+	return prefilterRenderTarget;
 }

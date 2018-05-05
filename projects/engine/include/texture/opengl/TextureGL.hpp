@@ -2,6 +2,7 @@
 #include <texture/Texture.hpp>
 #include <glad/glad.h>
 #include <platform/util/Util.hpp>
+#include <texture/TextureManager.hpp>
 
 class RenderTargetGL;
 class RendererOpenGL;
@@ -25,6 +26,19 @@ public:
 	virtual void release();
 
 	void setTexture(GLuint id);
+
+
+	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
+	static GLint mapUVTechnique(TextureUVTechnique technique);
+	static GLuint getFormat(ColorSpace colorspace);
+	static GLuint getFormat(int numberComponents);
+	static GLuint getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution);
+	static GLuint getType(bool isFloatData);
+
+	static GLuint rgba_float_resolutions[3];
+	static GLuint rgb_float_resolutions[3];
+	static GLuint rg_float_resolutions[3];
+
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
@@ -60,7 +74,7 @@ public:
 class CubeRenderTargetGL : public CubeRenderTarget
 {
 public:
-	explicit CubeRenderTargetGL(int width, int height);
+	explicit CubeRenderTargetGL(int width, int height, TextureData data);
 	virtual ~CubeRenderTargetGL();
 
 	virtual CubeMap* createCopy() override;
@@ -72,6 +86,8 @@ public:
 	GLuint getRendertargetTexture();
 
 	void release();
+
+	void resizeForMipMap(unsigned int mipMapLevel) override;
 
 	void setFrameBuffer(GLuint newValue);
 	void setRenderBuffer(GLuint newValue);
@@ -85,6 +101,7 @@ protected:
 	GLuint renderBuffer;
 	GLuint renderTargetTexture;
 	CubeMapGL cubeMapResult;
+	TextureData data;
 };
 
 class RenderTargetGL : public RenderTarget

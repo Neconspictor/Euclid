@@ -180,9 +180,9 @@ CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 	return &cubeDepthMaps.back();
 }
 
-CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height)
+CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height, TextureData data)
 {
-	CubeRenderTargetGL result(width, height);
+	CubeRenderTargetGL result(width, height, data);
 
 	cubeRenderTargets.push_back(move(result));
 	return &cubeRenderTargets.back();
@@ -395,7 +395,7 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side)
+void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side, unsigned int mipLevel)
 {
 	CubeRenderTargetGL* targetGL = dynamic_cast<CubeRenderTargetGL*>(target);
 	assert(targetGL != nullptr);
@@ -412,7 +412,7 @@ void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Sid
 
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -513,7 +513,11 @@ CubeRenderTarget* RendererOpenGL::renderCubeMap(int width, int height, Texture* 
 	EquirectangularSkyBoxShader* shader = dynamic_cast<EquirectangularSkyBoxShader*>(getShaderManager()->getConfig(Shaders::SkyBoxEquirectangular));
 	shader->setSkyTexture(equirectangularMap);
 	Vob skyBox ("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex);
-	CubeRenderTargetGL*  result = dynamic_cast<CubeRenderTargetGL*>(createCubeRenderTarget(width, height));
+
+	TextureData textureData = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32};
+
+
+	CubeRenderTargetGL*  result = dynamic_cast<CubeRenderTargetGL*>(createCubeRenderTarget(width, height, std::move(textureData)));
 
 
 	TransformData data;

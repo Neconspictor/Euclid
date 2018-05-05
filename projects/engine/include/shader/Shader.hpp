@@ -20,6 +20,7 @@ enum class Shaders
 	BlinnPhongTex,
 	Pbr,
 	Pbr_Convolution,
+	Pbr_Prefilter,
 	CubeDepthMap,
 	DepthMap,
 	GaussianBlurHorizontal,

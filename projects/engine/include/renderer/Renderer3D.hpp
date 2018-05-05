@@ -39,7 +39,7 @@ public:
 
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height) = 0;
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, TextureData data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 
@@ -108,7 +108,7 @@ public:
 	 */
 	virtual void useDepthMap(DepthMap* depthMap) = 0;
 
-	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side) = 0;
+	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0) = 0;
 
 	/**
 	 * All draw calls are performed on a offscreen texture.

@@ -50,6 +50,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::BlinnPhongTex);
 	createShader(s::Pbr);
 	createShader(s::Pbr_Convolution);
+	createShader(s::Pbr_Prefilter);
 	createShader(s::CubeDepthMap);
 	createShader(s::DepthMap);
 	createShader(s::GaussianBlurHorizontal);
@@ -99,6 +100,11 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	case s::Pbr_Convolution: {
 		configs.push_back(make_shared<PBR_ConvolutionShaderGL>());
 		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
+		break;
+	}
+	case s::Pbr_Prefilter: {
+		configs.push_back(make_shared<PBR_PrefilterShaderGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
 		break;
 	}
 	case s::CubeDepthMap: {

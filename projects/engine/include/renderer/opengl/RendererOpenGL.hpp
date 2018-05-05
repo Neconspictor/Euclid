@@ -38,7 +38,7 @@ public:
 
 	CubeDepthMap* createCubeDepthMap(int width, int height) override;
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height) override;
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, TextureData data) override;
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
@@ -100,7 +100,7 @@ public:
 
 	void useDepthMap(DepthMap* depthMap) override;
 
-	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side) override;
+	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel) override;
 
 	void useRenderTarget(RenderTarget* target) override;
 

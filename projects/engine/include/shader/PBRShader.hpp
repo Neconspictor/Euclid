@@ -21,6 +21,8 @@ public:
 	virtual void setLightSpaceMatrix(glm::mat4 mat) = 0;
 	virtual void setLightViewMatrix(glm::mat4 mat) = 0;
 
+	virtual void setPrefilterMap(CubeMap* prefilterMap) = 0;
+
 
 	virtual void setSkyBox(CubeMap* sky) = 0;
 	virtual void setShadowMap(Texture* texture) = 0;
@@ -34,4 +36,14 @@ public:
 	virtual ~PBR_ConvolutionShader() {};
 
 	virtual void setEnvironmentMap(CubeMap* cubeMap) = 0;
+};
+
+class PBR_PrefilterShader : public ShaderConfig
+{
+public:
+	virtual ~PBR_PrefilterShader() {};
+
+	virtual void setMapToPrefilter(CubeMap* cubeMap) = 0;
+
+	virtual void setRoughness(float roughness) = 0;
 };

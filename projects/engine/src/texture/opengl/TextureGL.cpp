@@ -6,6 +6,10 @@
 
 using namespace std;
 
+GLuint TextureGL::rgba_float_resolutions[] = { GL_RGBA8, GL_RGBA16F, GL_RGBA32F };
+GLuint TextureGL::rgb_float_resolutions[] = { GL_RGB8, GL_RGB16F, GL_RGB32F };
+GLuint TextureGL::rg_float_resolutions[] = { GL_RG8, GL_RG16F, GL_RG32F };
+
 CubeMapGL::CubeMapGL() : TextureGL() {}
 
 CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap)
@@ -117,7 +121,124 @@ void TextureGL::setTexture(GLuint id)
 	textureID = id;
 }
 
-CubeRenderTargetGL::CubeRenderTargetGL(int width, int height) : CubeRenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
+GLint TextureGL::mapFilter(TextureFilter filter, bool useMipMaps)
+{
+	switch (filter)
+	{
+	case NearestNeighbor:
+		return GL_NEAREST;
+	case Linear:
+		return GL_LINEAR;
+	case Bilinear:
+		return GL_LINEAR;
+	case Near_Mipmap_Near:
+		if (!useMipMaps) return GL_NEAREST;
+		return GL_NEAREST_MIPMAP_NEAREST;
+	case Near_Mipmap_Linear:
+		if (!useMipMaps) return GL_NEAREST;
+		return GL_NEAREST_MIPMAP_LINEAR;
+	case Linear_Mipmap_Near:
+		if (!useMipMaps) return GL_LINEAR;
+		return GL_LINEAR_MIPMAP_NEAREST;
+	case Linear_Mipmap_Linear:
+		if (!useMipMaps) return GL_LINEAR;
+		return GL_LINEAR_MIPMAP_LINEAR;
+	default:
+		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
+	}
+}
+
+GLint TextureGL::mapUVTechnique(TextureUVTechnique technique)
+{
+	switch (technique)
+	{
+	case ClampToEdge:
+		return GL_CLAMP_TO_EDGE;
+	case Repeat:
+		return GL_REPEAT;
+	default:
+		throw runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique));
+	}
+}
+
+GLuint TextureGL::getFormat(ColorSpace colorspace)
+{
+	switch (colorspace) {
+	case RGBA:
+		return GL_RGBA;
+	case RGB:
+		return GL_RGB;
+	case RG:
+		return GL_RG;
+	default: {
+		throw runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace);
+	}
+	}
+}
+
+GLuint TextureGL::getFormat(int numberComponents)
+{
+	switch (numberComponents) {
+	case 4: return GL_RGBA;
+	case 3: return GL_RGB;
+	case 2: return GL_RG;
+	default: {
+		throw runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents);
+	}
+	}
+}
+
+GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution)
+{
+	if (!isFloatData) {
+
+		if (!useSRGB) {
+			return format;
+		}
+
+		if (resolution != BITS_8) {
+			throw runtime_error("TextureManagerGL::getInternalFormat(): SRGB only supported for BITS_8, not for " + resolution);
+		}
+
+
+		switch (format) {
+		case GL_RGBA:
+			return GL_SRGB_ALPHA;
+		case GL_RGB:
+			return GL_SRGB;
+		default: {
+			throw runtime_error("TextureManagerGL::getInternalFormat(): Not supported format for SRGB: " + format);
+		}
+		}
+	}
+
+	switch (format) {
+	case GL_RGBA:
+		return rgba_float_resolutions[resolution];
+	case GL_RGB:
+		return rgb_float_resolutions[resolution];
+	case GL_RG:
+		return rg_float_resolutions[resolution];
+	default: {
+		throw runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format);
+	}
+	}
+}
+
+GLuint TextureGL::getType(bool isFloatData)
+{
+	if (isFloatData) {
+		return GL_FLOAT;
+	}
+	return GL_UNSIGNED_BYTE;
+}
+
+
+
+
+
+CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : CubeRenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE),
+data(data)
 {
 	// generate framebuffer and renderbuffer with a depth component
 	glGenFramebuffers(1, &frameBuffer);
@@ -131,23 +252,34 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height) : CubeRenderTarget
 
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+	GLuint format = TextureGL::getFormat(data.colorspace);
+	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+
+	GLuint type = TextureGL::getType(data.isFloatData);
+
+	GLuint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
+	GLuint minFilter = TextureGL::mapFilter(data.minFilter, data.generateMipMaps);
+	GLuint magFilter = TextureGL::mapFilter(data.magFilter, data.generateMipMaps);
+
 
 	//pre-allocate the six faces of the cubemap
 	glGenTextures(1, &cubeMapResult.textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapResult.textureID);
 	for (int i = 0; i < 6; ++i) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, type, nullptr);
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter);
 
-	//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	if (data.generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
@@ -159,7 +291,7 @@ CubeMap * CubeRenderTargetGL::createCopy()
 {
 
 	//first create a new cube render target that we use to blit the content
-	CubeRenderTargetGL copy(width, height);
+	CubeRenderTargetGL copy(width, height, data);
 
 	GLint readFBId = 0;
 	GLint drawFboId = 0;
@@ -249,6 +381,23 @@ void CubeRenderTargetGL::release()
 	renderTargetTexture = GL_FALSE;
 
 	cubeMapResult.release();
+}
+
+void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
+
+	if (!data.generateMipMaps) {
+		throw runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube rener target!");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+
+	unsigned int mipWidth = width * std::pow(0.5, mipMapLevel);
+	unsigned int mipHeight = height * std::pow(0.5, mipMapLevel);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void CubeRenderTargetGL::setFrameBuffer(GLuint newValue)

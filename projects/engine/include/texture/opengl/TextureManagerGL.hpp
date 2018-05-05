@@ -20,8 +20,6 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) override;
 
-	CubeMap* createCubeMap(int sideWidth, int sideHeight, TextureData data) override;
-
 	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
 
 	TextureGL* getImageGL(const std::string& file);
@@ -54,16 +52,6 @@ protected:
 	std::map<std::string, TextureGL*> textureLookupTable;
 	platform::LoggingClient logClient;
 
-	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
-	static GLint mapUVTechnique(TextureUVTechnique technique);
-	static GLuint getFormat(ColorSpace colorspace);
-	static GLuint getFormat(int numberComponents);
-	static GLuint getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution);
-	static GLuint getType(bool isFloatData);
-
-	static GLuint rgba_float_resolutions[3];
-	static GLuint rgb_float_resolutions[3];
-	static GLuint rg_float_resolutions[3];
 
 private:
 	// this class is a singleton, thus private constructor

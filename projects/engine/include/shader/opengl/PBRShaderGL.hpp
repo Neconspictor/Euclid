@@ -27,6 +27,8 @@ public:
 	virtual void setLightSpaceMatrix(glm::mat4 mat) override;
 	virtual void setLightViewMatrix(glm::mat4 mat) override;
 
+	virtual void setPrefilterMap(CubeMap* prefilterMap) override;
+
 	virtual void setShadowMap(Texture* texture) override;
 	virtual void setSkyBox(CubeMap* sky) override;
 
@@ -38,6 +40,7 @@ private:
 	DirLight dirLight;
 
 	CubeMapGL* irradianceMap;
+	CubeMapGL* prefilterMap;
 
 	glm::vec3 lightColor;
 	glm::mat4 lightProjMatrix;
@@ -67,4 +70,22 @@ public:
 
 private:
 	CubeMapGL* cubeMap;
+};
+
+class PBR_PrefilterShaderGL : public PBR_PrefilterShader, public ShaderConfigGL
+{
+public:
+	PBR_PrefilterShaderGL();
+
+	virtual ~PBR_PrefilterShaderGL();
+
+	virtual void setMapToPrefilter(CubeMap* cubeMap) override;
+
+	virtual void setRoughness(float roughness) override;
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+
+private:
+	CubeMapGL* cubeMap;
+	float roughness;
 };

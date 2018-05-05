@@ -56,18 +56,28 @@ public:
 
 	virtual ~CubeRenderTarget() {};
 
-	int getHeight() const
+	inline int getHeight() const
 	{
 		return height;
 	}
 
 	virtual CubeMap* getCubeMap() = 0;
 
+	inline int getHeightMipLevel(unsigned int mipMapLevel) const {
+		return height * std::pow(0.5, mipMapLevel);
+	}
+
 	virtual CubeMap* createCopy() = 0;
 
-	int getWidth() const
+	virtual void resizeForMipMap(unsigned int mipMapLevel) = 0;
+
+	inline int getWidth() const
 	{
 		return width;
+	}
+
+	inline int getWidthMipLevel(unsigned int mipMapLevel) const {
+		return height * std::pow(0.5, mipMapLevel);
 	}
 
 protected:
