@@ -16,12 +16,8 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 
 	this->renderer = renderer;
 	environmentMap = renderBackgroundToCube(backgroundHDR);
-	//environmentMap = backgroundHDR;
-	convolutedEnvironmentMap = convolute(environmentMap); //TODO
-
-	prefilterRenderTarget = prefilter(environmentMap);
-
-	//environmentMap = convolutedEnvironmentMap;
+	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
+	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
 
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
@@ -34,8 +30,8 @@ void PBR::drawSky(RenderTarget* renderTarget, const mat4& projection, const mat4
 	SkyBoxShader* skyboxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getConfig(Shaders::SkyBox));
 
-	skyboxShader->setSkyTexture(environmentMap);
-	//skyboxShader->setSkyTexture(prefilteredEnvironmentMap);
+	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
+	skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
 
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
@@ -79,7 +75,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 
 	shader->setCameraPosition(cameraPosition);
-	shader->setIrradianceMap(convolutedEnvironmentMap);
+	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
 	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
@@ -87,7 +83,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
 	shader->setShadowMap(shadowMap);
-	shader->setSkyBox(environmentMap);
+	shader->setSkyBox(environmentMap->getCubeMap());
 
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
@@ -98,18 +94,19 @@ void PBR::drawScene(SceneNode * scene,
 
 CubeMap * PBR::getConvolutedEnvironmentMap()
 {
-	return convolutedEnvironmentMap;
+	return convolutedEnvironmentMap->getCubeMap();
 }
 
 CubeMap* PBR::getEnvironmentMap()
 {
-	return environmentMap;
+	return environmentMap->getCubeMap();
 }
 
-CubeMap * PBR::renderBackgroundToCube(Texture * background)
+CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
 {
+	TextureData textureData = {false, false, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32};
 
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048);
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048, std::move(textureData));
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -144,12 +141,15 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 		modelDrawer->draw(&skybox, Shaders::SkyBoxEquirectangular, data);
 	}
 
-	CubeMap* result = cubeRenderTarget->createCopy(); 
-	renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return result;
+	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
+	cubeRenderTarget->getCubeMap()->generateMipMaps();
+
+	//CubeMap* result = cubeRenderTarget->createCopy(); 
+	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return cubeRenderTarget;
 }
 
-CubeMap * PBR::convolute(CubeMap * source)
+CubeRenderTarget * PBR::convolute(CubeMap * source)
 {
 	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
 
@@ -186,16 +186,16 @@ CubeMap * PBR::convolute(CubeMap * source)
 		modelDrawer->draw(&skybox, Shaders::Pbr_Convolution, data);
 	}
 
-	CubeMap* result = cubeRenderTarget->createCopy();
-	renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return result;
+	//CubeMap* result = cubeRenderTarget->createCopy();
+	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	return cubeRenderTarget;
 }
 
 CubeRenderTarget* PBR::prefilter(CubeMap * source)
 {
-	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, false, BITS_16 };
+	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 };
 
-	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(256, 256, std::move(textureData));
+	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(128, 128, std::move(textureData));
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 

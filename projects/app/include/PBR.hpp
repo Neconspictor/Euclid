@@ -46,15 +46,15 @@ public:
 
 private:
 
-	CubeMap* renderBackgroundToCube(Texture* background);
-	CubeMap* convolute(CubeMap* source);
+	CubeRenderTarget* renderBackgroundToCube(Texture* background);
+	CubeRenderTarget* convolute(CubeMap* source);
 	CubeRenderTarget* prefilter(CubeMap* source);
 
 
 
-	CubeMap* convolutedEnvironmentMap;
+	CubeRenderTarget* convolutedEnvironmentMap;
 	CubeRenderTarget* prefilterRenderTarget;
-	CubeMap* environmentMap;
+	CubeRenderTarget* environmentMap;
 	Renderer3D* renderer;
 	PBRShader* shader;
 	Vob skybox;

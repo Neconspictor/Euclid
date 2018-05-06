@@ -157,7 +157,7 @@ void PBR_MainLoopTask::init()
 
 	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",

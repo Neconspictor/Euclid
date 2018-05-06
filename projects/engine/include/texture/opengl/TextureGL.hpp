@@ -64,6 +64,9 @@ public:
 	 */
 	static GLuint mapCubeSideToSystemAxis(Side side);
 
+
+	void generateMipMaps() override;
+
 	GLuint getCubeMap() const;
 
 	void setCubeMap(GLuint id);

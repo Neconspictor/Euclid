@@ -35,6 +35,11 @@ public:
 	CubeMap() {}
 	virtual ~CubeMap() {}
 
+	/**
+	 *  Generates mipmaps for the current content of this cubemap.
+	 */
+	virtual void generateMipMaps() = 0;
+
 protected:
 	static glm::mat4 rightSide;
 	static glm::mat4 leftSide;

@@ -59,6 +59,14 @@ GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
 	}
 }
 
+void CubeMapGL::generateMipMaps()
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+
 GLuint CubeMapGL::getCubeMap() const
 {
 	return textureID;
@@ -132,16 +140,16 @@ GLint TextureGL::mapFilter(TextureFilter filter, bool useMipMaps)
 	case Bilinear:
 		return GL_LINEAR;
 	case Near_Mipmap_Near:
-		if (!useMipMaps) return GL_NEAREST;
+		//if (!useMipMaps) return GL_NEAREST;
 		return GL_NEAREST_MIPMAP_NEAREST;
 	case Near_Mipmap_Linear:
-		if (!useMipMaps) return GL_NEAREST;
+		//if (!useMipMaps) return GL_NEAREST;
 		return GL_NEAREST_MIPMAP_LINEAR;
 	case Linear_Mipmap_Near:
-		if (!useMipMaps) return GL_LINEAR;
+		//if (!useMipMaps) return GL_LINEAR;
 		return GL_LINEAR_MIPMAP_NEAREST;
 	case Linear_Mipmap_Linear:
-		if (!useMipMaps) return GL_LINEAR;
+		//if (!useMipMaps) return GL_LINEAR;
 		return GL_LINEAR_MIPMAP_LINEAR;
 	default:
 		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
