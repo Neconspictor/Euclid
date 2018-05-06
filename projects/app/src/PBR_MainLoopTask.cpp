@@ -369,6 +369,7 @@ void PBR_MainLoopTask::run()
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 
 	screenShader->useTexture(screenSprite.getTexture());
+	screenShader->useTexture(pbr.getBrdfLookupTexture());
 	if (showDepthMap)
 	{
 		modelDrawer->draw(&screenSprite, Shaders::DepthMap);

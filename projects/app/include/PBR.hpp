@@ -7,6 +7,7 @@
 #include<shader/PBRShader.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
+#include <sprite/Sprite.hpp>
 
 class PBR {
 
@@ -43,20 +44,30 @@ public:
 
   CubeMap* getEnvironmentMap();
 
+  CubeMap* getPrefilteredEnvironmentMap();
+
+  Texture* getBrdfLookupTexture();
+
 
 private:
 
 	CubeRenderTarget* renderBackgroundToCube(Texture* background);
 	CubeRenderTarget* convolute(CubeMap* source);
 	CubeRenderTarget* prefilter(CubeMap* source);
+	RenderTarget* createBRDFlookupTexture();
 
 
 
 	CubeRenderTarget* convolutedEnvironmentMap;
 	CubeRenderTarget* prefilterRenderTarget;
 	CubeRenderTarget* environmentMap;
+	RenderTarget* brdfLookupTexture;
+
+
 	Renderer3D* renderer;
 	PBRShader* shader;
+
+	Sprite brdfSprite;
 	Vob skybox;
 };
 

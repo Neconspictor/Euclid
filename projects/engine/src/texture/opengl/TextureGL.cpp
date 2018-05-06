@@ -456,12 +456,15 @@ void RenderTargetGL::copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 }
 
-RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int width, int height, 
+RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
 	GLuint samples, GLuint depthStencilType)
 {
 	assert(samples > 1);
 
 	RenderTargetGL result(width, height);
+	GLuint format = TextureGL::getFormat(data.colorspace);
+	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+
 	glGenFramebuffers(1, &result.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
@@ -470,7 +473,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 	const GLuint& textureID = result.textureBuffer.textureID;
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, textureChannel, width, height, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	// attach texture to currently bound frame buffer
@@ -503,11 +506,15 @@ RenderTargetGL RenderTargetGL::createMultisampled(GLint textureChannel, int widt
 	return result;
 }
 
-RenderTargetGL RenderTargetGL::createSingleSampled(GLint internalFormat, int width, int height, GLint format,  GLint dataType, GLuint depthStencilType)
+RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
 {
 	RenderTargetGL result(width, height);
 	result.width = width;
 	result.height = height;
+
+	GLuint format = TextureGL::getFormat(data.colorspace);
+	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+	GLuint type = TextureGL::getType(data.isFloatData);
 
 	glGenFramebuffers(1, &result.frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
@@ -517,8 +524,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(GLint internalFormat, int wid
 	const GLuint& textureID = result.textureBuffer.textureID;
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	//GL_UNSIGNED_BYTE
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -551,7 +557,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(GLint internalFormat, int wid
 	// finally check if all went successfully
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
+		throw runtime_error("RenderTargetGL::createSingleSampled(): Couldn't successfully init framebuffer!");
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

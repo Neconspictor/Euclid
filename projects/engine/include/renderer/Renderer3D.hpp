@@ -39,7 +39,9 @@ public:
 
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, TextureData data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}) = 0;
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}) = 0;
+
+	virtual RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }, int samples = 1) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 

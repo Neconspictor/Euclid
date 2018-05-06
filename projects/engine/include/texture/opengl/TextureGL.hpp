@@ -115,10 +115,10 @@ public:
 
 	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
 
-	static RenderTargetGL createMultisampled(GLint textureChannel, int width, int height,
+	static RenderTargetGL createMultisampled(int width, int height, const TextureData& data,
 		GLuint samples, GLuint depthStencilType);
 
-	static RenderTargetGL createSingleSampled(GLint internalFormat, int width, int height, GLint format, GLint dataType, GLuint depthStencilType);
+	static RenderTargetGL createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType);
 
 	static RenderTargetGL createVSM(int width, int height);
 

@@ -89,3 +89,16 @@ private:
 	CubeMapGL* cubeMap;
 	float roughness;
 };
+
+class PBR_BrdfPrecomputeShaderGL : public PBR_BrdfPrecomputeShader, public ShaderConfigGL
+{
+public:
+	PBR_BrdfPrecomputeShaderGL();
+
+	virtual ~PBR_BrdfPrecomputeShaderGL();
+
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+
+private:
+	glm::mat4 transform;
+};

@@ -229,3 +229,21 @@ void PBR_PrefilterShaderGL::update(const MeshGL & mesh, const TransformData & da
 	attributes.setData("projection", &projection);
 	attributes.setData("view", &view);
 }
+
+PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL() : transform(mat4())
+{
+	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+}
+
+PBR_BrdfPrecomputeShaderGL::~PBR_BrdfPrecomputeShaderGL()
+{
+}
+
+void PBR_BrdfPrecomputeShaderGL::update(const MeshGL & mesh, const TransformData & data)
+{
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	transform = projection * view * model;
+}

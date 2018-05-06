@@ -38,7 +38,9 @@ public:
 
 	CubeDepthMap* createCubeDepthMap(int width, int height) override;
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, TextureData data) override;
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data) override;
+
+	RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data, int samples) override;
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
@@ -46,7 +48,7 @@ public:
 
 	RenderTarget* createRenderTarget(int samples) override;
 
-	RenderTargetGL* createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType, GLuint samples,
+	RenderTargetGL* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
 		GLuint depthStencilType);
 
 	RenderTarget* createVarianceShadowMap(int width, int height) override;

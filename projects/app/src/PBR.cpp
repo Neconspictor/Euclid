@@ -19,6 +19,26 @@ void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
 	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
 	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
 
+
+	// setup sprite for brdf integration lookup texture
+	vec2 dim = { 1.0, 1.0 };
+	vec2 pos = { 0, 0 };
+
+	// center
+	pos.x = 0.5f * (1.0f - dim.x);
+	pos.y = 0.5f * (1.0f - dim.y);
+
+	brdfSprite.setPosition(pos);
+	brdfSprite.setWidth(dim.x);
+	brdfSprite.setHeight(dim.y);
+
+	// we don't need a texture
+	// we use the sprite only as a polygon model
+	brdfSprite.setTexture(nullptr);
+
+	brdfLookupTexture = createBRDFlookupTexture();
+
+
 	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }
 
@@ -102,11 +122,21 @@ CubeMap* PBR::getEnvironmentMap()
 	return environmentMap->getCubeMap();
 }
 
+CubeMap * PBR::getPrefilteredEnvironmentMap()
+{
+	return prefilterRenderTarget->getCubeMap();
+}
+
+Texture * PBR::getBrdfLookupTexture()
+{
+	return brdfLookupTexture->getTexture();
+}
+
 CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
 {
 	TextureData textureData = {false, false, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32};
 
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048, std::move(textureData));
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048, textureData);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -195,7 +225,7 @@ CubeRenderTarget* PBR::prefilter(CubeMap * source)
 {
 	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 };
 
-	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(128, 128, std::move(textureData));
+	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(128, 128, textureData);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -253,4 +283,24 @@ CubeRenderTarget* PBR::prefilter(CubeMap * source)
 
 	//TODO extract the cubemap from the render target (if possible?)
 	return prefilterRenderTarget;
+}
+
+RenderTarget * PBR::createBRDFlookupTexture()
+{
+	TextureData data = { false, false, Linear, Linear, ClampToEdge, RGBA, true, BITS_32 };
+	RenderTarget* target = renderer->createRenderTarget();
+
+	ShaderManager* shaderManager = renderer->getShaderManager();
+
+	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = dynamic_cast<PBR_BrdfPrecomputeShader*>
+		(shaderManager->getConfig(Shaders::Pbr_BrdfPrecompute));
+
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+
+	//renderer->beginScene();
+	renderer->useRenderTarget(target);
+	modelDrawer->draw(&brdfSprite, Shaders::Pbr_BrdfPrecompute);
+	//renderer->endScene();
+
+	return target;
 }

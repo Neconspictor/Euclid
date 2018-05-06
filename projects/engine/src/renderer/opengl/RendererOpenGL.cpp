@@ -177,7 +177,7 @@ CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 	return &cubeDepthMaps.back();
 }
 
-CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height, TextureData data)
+CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height, const TextureData& data)
 {
 	CubeRenderTargetGL result(width, height, data);
 
@@ -190,6 +190,11 @@ GLint RendererOpenGL::getCurrentRenderTarget() const
 	GLint drawFboId = 0;
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 	return drawFboId;
+}
+
+RenderTarget* RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
+
+	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
 }
 
 void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float depthValue, int stencilValue)
@@ -220,7 +225,17 @@ DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 
 RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 {
-	return createRenderTargetGL(GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, samples, GL_DEPTH_STENCIL); //GL_RGBA
+	TextureData data;
+	data.useSRGB = false;
+	data.generateMipMaps = false;
+	data.minFilter = Linear;
+	data.magFilter = Linear;
+	data.colorspace = RGBA;
+	data.resolution = BITS_32;
+	data.uvTechnique = ClampToEdge;
+	data.isFloatData = true;
+	
+	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
 }
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -553,7 +568,7 @@ CubeRenderTarget* RendererOpenGL::renderCubeMap(int width, int height, Texture* 
 	return result;
 }
 
-RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint internalFormat, int width, int height, GLint format, GLint dataType,
+RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, const TextureData& data,
 	GLuint samples, GLuint depthStencilType)
 {
 	assert(samples >= 1);
@@ -562,11 +577,11 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(GLint internalFormat, int w
 
 	if (samples > 1)
 	{
-		result = RenderTargetGL::createMultisampled(internalFormat, width, height, samples, depthStencilType);
+		result = RenderTargetGL::createMultisampled(width, height, data, samples, depthStencilType);
 	}
 	else
 	{
-		result = RenderTargetGL::createSingleSampled(internalFormat, width, height, format, dataType, depthStencilType);
+		result = RenderTargetGL::createSingleSampled(width, height, data, depthStencilType);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

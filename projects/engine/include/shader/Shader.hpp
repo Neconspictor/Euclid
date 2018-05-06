@@ -21,6 +21,7 @@ enum class Shaders
 	Pbr,
 	Pbr_Convolution,
 	Pbr_Prefilter,
+	Pbr_BrdfPrecompute,
 	CubeDepthMap,
 	DepthMap,
 	GaussianBlurHorizontal,

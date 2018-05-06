@@ -47,3 +47,9 @@ public:
 
 	virtual void setRoughness(float roughness) = 0;
 };
+
+class PBR_BrdfPrecomputeShader : public ShaderConfig
+{
+public:
+	virtual ~PBR_BrdfPrecomputeShader() {};
+};
