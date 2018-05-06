@@ -19,6 +19,8 @@ public:
 	virtual const glm::vec3& getLightColor() const override;
 	virtual const glm::vec3& getLightPosition() const override;
 
+	virtual void setBrdfLookupTexture(Texture* brdfLUT) override;
+
 	virtual void setIrradianceMap(CubeMap* irradianceMap) override;
 
 	virtual void setLightColor(glm::vec3 color) override;
@@ -37,6 +39,7 @@ public:
 
 private:
 	glm::mat4 biasMatrix;
+	Texture* brdfLUT;
 	DirLight dirLight;
 
 	CubeMapGL* irradianceMap;

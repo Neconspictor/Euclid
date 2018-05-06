@@ -69,6 +69,12 @@ const vec3& PBRShaderGL::getLightPosition() const
 	return dirLight.direction;
 }
 
+void PBRShaderGL::setBrdfLookupTexture(Texture * brdfLUT)
+{
+	this->brdfLUT = dynamic_cast<TextureGL*>(brdfLUT);
+	attributes.setData("brdfLUT", this->brdfLUT);
+}
+
 void PBRShaderGL::setIrradianceMap(CubeMap * irradianceMap)
 {
 	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
@@ -167,7 +173,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("material.normalMap", normalMap, default_normal);
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
-	attributes.setData("brdfLUT", white, white);
+	//attributes.setData("brdfLUT", white, white);
 }
 
 PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()
@@ -232,6 +238,9 @@ void PBR_PrefilterShaderGL::update(const MeshGL & mesh, const TransformData & da
 
 PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL() : transform(mat4())
 {
+	//attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	attributes.create(ShaderAttributeType::FLOAT, nullptr, "test");
+
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
 }
 
@@ -246,4 +255,9 @@ void PBR_BrdfPrecomputeShaderGL::update(const MeshGL & mesh, const TransformData
 	mat4 const& model = *data.model;
 
 	transform = projection * view * model;
+
+	float test = 6.6;
+
+	//attributes.setData("transform", &transform);
+	attributes.setData("test", &test);
 }

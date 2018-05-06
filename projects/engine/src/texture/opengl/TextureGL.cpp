@@ -523,8 +523,11 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	glGenTextures(1, &result.textureBuffer.textureID);
 	const GLuint& textureID = result.textureBuffer.textureID;
 
+
+	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
+	//glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -533,16 +536,23 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 
 	//create a render buffer for depth and stencil testing
 	glGenRenderbuffers(1, &result.renderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+
+	// GL_DEPTH_COMPONENT24 depthStencilType
 	glRenderbufferStorage(GL_RENDERBUFFER, depthStencilType, width, height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach texture to currently bound frame buffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+	// Set the list of draw buffers.
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
 
 	// attach render buffer to the frame buffer
 	if (depthStencilType == GL_DEPTH_COMPONENT)

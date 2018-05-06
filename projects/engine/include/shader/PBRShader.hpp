@@ -11,6 +11,8 @@ public:
 	virtual const glm::vec3& getLightColor() const = 0;
 	virtual const glm::vec3& getLightPosition() const = 0;
 
+	virtual void setBrdfLookupTexture(Texture* brdfLUT) = 0;
+
 	virtual void setIrradianceMap(CubeMap* irradianceMap) = 0;
 
 

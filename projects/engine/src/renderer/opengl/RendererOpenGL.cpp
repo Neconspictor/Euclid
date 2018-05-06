@@ -139,14 +139,14 @@ void RendererOpenGL::beginScene()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	glViewport(0, 0, width, height);
+	glViewport(xPos, yPos, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	//clearFrameBuffer(getCurrentRenderTarget(), { backgroundColor.r, backgroundColor.g, backgroundColor.b, 1 }, 1.0f, 0);
+	//clearFrameBuffer(getCurrentRenderTarget(), { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 
 	glStencilMask(0x00);
 
@@ -205,7 +205,7 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glClearColor(color.r, color.g, color.b, color.a);
 
-	glViewport(0, 0, width, height);
+	glViewport(xPos, yPos, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -366,7 +366,7 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	this->width = width;
 	this->height = height;
 
-	glViewport(0, 0, width, height);
+	glViewport(xPos, yPos, width, height);
 	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (effectLibrary)
@@ -379,7 +379,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	assert(map != nullptr);
 	CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
 
-	glViewport(0, 0, map->getWidth(), map->getHeight());
+	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
 	glDrawBuffer(GL_NONE);
@@ -395,7 +395,7 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	assert(map != nullptr);
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
-	glViewport(0, 0, map->getWidth(), map->getHeight());
+	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
 	glDrawBuffer(GL_NONE);
@@ -432,9 +432,19 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 {
 	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
 	assert(targetGL != nullptr);
-	glViewport(0, 0, targetGL->width, targetGL->height);
+	int width = targetGL->width;
+	int height = targetGL->height;
+	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
-	//clearFrameBuffer(targetGL->getFrameBuffer(), { 0, 0, 0, 1 }, 1.0f, 0);
+	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetGL->getFrameBuffer());
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, targetGL->getFrameBuffer());
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetGL->getTextureGL(), 0);
+
+	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
+	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+	//clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//clearFrameBuffer(targetGL->getFrameBuffer(), { 1, 0, 0, 1 }, 1.0f, 0);
 
 	glDisable(GL_FRAMEBUFFER_SRGB);
 }

@@ -83,6 +83,8 @@ void PBR_MainLoopTask::init()
 {
 	using namespace placeholders;
 
+	window->activate();
+
 	ShaderManager* shaderManager = renderer->getShaderManager();
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
@@ -155,9 +157,11 @@ void PBR_MainLoopTask::init()
 
 	modelManager->loadModels();
 
-	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	window->activate();
+
+	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
@@ -366,13 +370,18 @@ void PBR_MainLoopTask::run()
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 
 	screenShader->useTexture(screenSprite.getTexture());
-	screenShader->useTexture(pbr.getBrdfLookupTexture());
 	if (showDepthMap)
 	{
-		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		int width = window->getWidth();
+		int height = window->getHeight();
+		renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
+		screenShader->useTexture(pbr.getBrdfLookupTexture());
+		modelDrawer->draw(&screenSprite, Shaders::Screen);
+		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);

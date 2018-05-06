@@ -1,9 +1,10 @@
 #version 330 core
-out vec4 FragColor;
 
-in VS_OUT {
-	vec2 texCoords;
-} fs_in;
+in vec2 texCoordsFS;
+out vec2 FragColor;
+
+uniform float test;
+
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -111,6 +112,6 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 // ----------------------------------------------------------------------------
 void main() 
 {
-    vec2 integratedBRDF = IntegrateBRDF(fs_in.texCoords.x, fs_in.texCoords.y);
-    FragColor = vec4(1,1, 0, 1);
+    vec2 integratedBRDF = IntegrateBRDF(texCoordsFS.x, texCoordsFS.y);
+    FragColor = integratedBRDF;
 }

@@ -254,14 +254,13 @@ vec3 pbrModel(vec3 normal) {
     float metallic = texture(material.metallicMap, fs_in.tex_coords).r;
 	metallic = 0.0;
     float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
-	roughness = 0.0f;
+	roughness = 0.7f;
     float ao = texture(material.aoMap, fs_in.tex_coords).r;
 	
 	ao = 1.0;
        
     // input lighting data
     vec3 N = normal;
-	N = normalize(N);
 	
     //vec3 V = normalize(inverseTBN * fs_in.tangentViewDir); //normalize(camPos - WorldPos);
 	vec3 V = normalize(fs_in.view_direction_tangent);
@@ -302,7 +301,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	//float distance = length(lightPosition - fragPos);
 	//float attenuation = 1.0 / (distance * distance);
 	
-	vec3 radiance = vec3(1,1,1) * 1.0f;//dirLight.color; /** attenuation*/
+	vec3 radiance = vec3(1,1,1) * 10.0f;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
@@ -355,7 +354,8 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
 	
     vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-	brdf = vec2(1.0, 0.0);
+	//brdf = vec2(1.0, 0.0);
+	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
     return (kD * diffuse + ambientLightSpecular) * ao;

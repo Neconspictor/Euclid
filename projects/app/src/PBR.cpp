@@ -97,6 +97,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setCameraPosition(cameraPosition);
 	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
 	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	shader->setBrdfLookupTexture(brdfLookupTexture->getTexture());
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
@@ -287,8 +288,13 @@ CubeRenderTarget* PBR::prefilter(CubeMap * source)
 
 RenderTarget * PBR::createBRDFlookupTexture()
 {
-	TextureData data = { false, false, Linear, Linear, ClampToEdge, RGBA, true, BITS_32 };
-	RenderTarget* target = renderer->createRenderTarget();
+	TextureData data = { false, false, Linear, Linear, ClampToEdge, RG, true, BITS_32 };
+	RenderTarget* target = renderer->create2DRenderTarget(512, 512, data);
+
+
+	ModelManager* modelManager = renderer->getModelManager();
+
+	Model* spriteModel = modelManager->getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -299,7 +305,22 @@ RenderTarget * PBR::createBRDFlookupTexture()
 
 	//renderer->beginScene();
 	renderer->useRenderTarget(target);
-	modelDrawer->draw(&brdfSprite, Shaders::Pbr_BrdfPrecompute);
+	//renderer->beginScene();
+
+	Sprite sprite;
+	// setup sprite for brdf integration lookup texture
+	vec2 dim = { 1.0, 1.0 };
+	vec2 pos = { 0, 0 };
+
+	// center
+	pos.x = 0.5f * (1.0f - dim.x);
+	pos.y = 0.5f * (1.0f - dim.y);
+
+	sprite.setPosition(pos);
+	sprite.setWidth(dim.x);
+	sprite.setHeight(dim.y);
+
+	modelDrawer->draw(&sprite, Shaders::Pbr_BrdfPrecompute);
 	//renderer->endScene();
 
 	return target;
