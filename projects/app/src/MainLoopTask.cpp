@@ -139,8 +139,7 @@ void MainLoopTask::init()
 	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
 	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
 	camera->setUp(vec3(0.0f, 1.0f, 0.0f));
-	Renderer::Viewport viewport = window->getViewport();
-	camera->setAspectRatio((float)viewport.width / (float)viewport.height);
+	camera->setAspectRatio((float)window->getWidth() / (float)window->getHeight());
 
 	Frustum frustum = camera->getFrustum(Perspective);
 	frustum.left = -10.0f;
@@ -155,7 +154,7 @@ void MainLoopTask::init()
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
 	{
 		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
-		casted->updateOnResize(viewport.width, viewport.height);
+		casted->updateOnResize(window->getWidth(), window->getHeight());
 		window->addResizeCallback(cameraResizeCallback);
 	}
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
@@ -490,8 +489,7 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 		
 		if (dynamic_cast<FPCameraBase*>(camera.get()))
 		{
-			Renderer::Viewport viewport = window->getViewport();
-			window->setCursorPosition(viewport.width / 2, viewport.height / 2);
+			window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
 		}
 	}
 }

@@ -8,13 +8,21 @@ using namespace std;
 
 WindowSystemGLFW WindowSystemGLFW::instance;
 
+std::unordered_map<int, Input::Button> WindowSystemGLFW::glfwToButtonMap;
+std::unordered_map<Input::Button, int> WindowSystemGLFW::buttonToGlfwMap;
+
+// mapping glfw key <-> input key
+std::unordered_map<int, Input::Key> WindowSystemGLFW::glfwToKeyMap;
+std::unordered_map<Input::Key, int> WindowSystemGLFW::keyToGlfwMap;
+
+
 WindowSystemGLFW::WindowSystemGLFW() : m_isInitialized(false), logClient(platform::getLogServer())
 {
 }
 
-Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc, Renderer& renderer)
+Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc)
 {
-	windows.push_back(move(WindowGLFW (desc, renderer)));
+	windows.push_back(move(WindowGLFW (desc)));
 	WindowGLFW* pointer = &windows.back();
 
 	pointer->init();
@@ -30,49 +38,26 @@ Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc, Renderer& ren
 	return pointer;
 }
 
+Renderer* WindowSystemGLFW::getRenderer() {
+
+	//TODO
+	return nullptr;
+}
+
+Input* WindowSystemGLFW::getInput() {
+	//TODO
+	return nullptr;
+}
+
 void WindowSystemGLFW::errorCallback(int error, const char* description)
 {
 	LOG(instance.logClient, platform::Error) << "Error code: " << error
 		<< ", error description: " << description;
 }
 
-void WindowSystemGLFW::focusInputHandler(GLFWwindow* window, int hasFocus)
-{
-	auto& callbacks = instance.focusCallbacks;
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, hasFocus);
-	}
-}
-
 WindowSystemGLFW* WindowSystemGLFW::get()
 {
 	return &instance;
-}
-
-void WindowSystemGLFW::charModsInputHandler(GLFWwindow* window, unsigned int codepoint, int mods)
-{
-	//LOG(instance.logClient, platform::Debug) << "codepoint: " << codepoint;
-
-	vector<unsigned char> utf8Result;
-
-	utf8::utf32to8(&codepoint, &codepoint + 1, back_inserter(utf8Result));
-
-	stringstream ss;
-	for (char c : utf8Result)
-	{
-		ss << c;
-	}
-
-	auto& callbacks = instance.charModsCallbacks;
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, codepoint, mods);
-	}
-
-	//LOG(instance.logClient, platform::Debug) << u8"utf8 byte size, ällo: " << utf8Result.size() << ", character: " << ss.str();
 }
 
 bool WindowSystemGLFW::init()
@@ -88,36 +73,6 @@ bool WindowSystemGLFW::init()
 	initInputButtonMap();
 	initInputKeyMap();
 	return true;
-}
-
-bool WindowSystemGLFW::isButtonDown(int glfwButton)
-{
-	return downButtons.find(glfwButton) != downButtons.end();
-}
-
-bool WindowSystemGLFW::isButtonPressed(int glfwButton)
-{
-	return pressedButtons.find(glfwButton) != pressedButtons.end();
-}
-
-bool WindowSystemGLFW::isButtonReleased(int glfwButton)
-{
-	return releasedButtons.find(glfwButton) != releasedButtons.end();
-}
-
-bool WindowSystemGLFW::isKeyDown(int glfwKey)
-{
-	return downKeys.find(glfwKey) != downKeys.end();
-}
-
-bool WindowSystemGLFW::isKeyPressed(int glfwKey)
-{
-	return pressedKeys.find(glfwKey) != pressedKeys.end();
-}
-
-bool WindowSystemGLFW::isKeyReleased(int glfwKey)
-{
-	return releasedKeys.find(glfwKey) != releasedKeys.end();
 }
 
 int WindowSystemGLFW::toGLFWbutton(Input::Button button)
@@ -150,12 +105,6 @@ Input::Key WindowSystemGLFW::toKey(int glfwKey)
 
 void WindowSystemGLFW::pollEvents()
 {
-	// clear state of keys  and mouse buttons before polling, as callbacks are called during polling!
-	releasedKeys.clear();
-	pressedKeys.clear();
-	releasedButtons.clear();
-	pressedButtons.clear();
-
 	for (auto& window : windows)
 	{
 		window.inputDevice.resetForFrame();
@@ -305,117 +254,6 @@ void WindowSystemGLFW::initInputKeyMap()
 	}
 }
 
-
-void WindowSystemGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	auto& pressedKeys = instance.pressedKeys;
-	auto& releasedKeys = instance.releasedKeys;
-	auto& callbacks = instance.keyCallbacks;
-
-	if (action == GLFW_PRESS)
-	{
-		if (pressedKeys.find(key) == pressedKeys.end())
-		{
-			pressedKeys.insert(key);
-		}
-
-		if (releasedKeys.find(key) != releasedKeys.end())
-		{
-			releasedKeys.erase(releasedKeys.find(key));
-		}
-	}
-
-	if (action == GLFW_RELEASE)
-	{
-		if (releasedKeys.find(key) == releasedKeys.end())
-		{
-			releasedKeys.insert(key);
-		}
-
-		if (pressedKeys.find(key) != pressedKeys.end())
-		{
-			pressedKeys.erase(pressedKeys.find(key));
-		}
-	}
-
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, key, scancode, action, mods);
-	}
-}
-
-void WindowSystemGLFW::mouseInputHandler(GLFWwindow* window, int button, int action, int mods)
-{
-	auto& callbacks = instance.mouseCallbacks;
-	auto& pressedButtons = instance.pressedButtons;
-	auto& releasedButtons = instance.releasedButtons;
-
-	if (action == GLFW_PRESS)
-	{
-		if (pressedButtons.find(button) == pressedButtons.end())
-		{
-			pressedButtons.insert(button);
-		}
-
-		if (releasedButtons.find(button) != releasedButtons.end())
-		{
-			releasedButtons.erase(releasedButtons.find(button));
-		}
-	}
-
-	if (action == GLFW_RELEASE)
-	{
-		if (releasedButtons.find(button) == releasedButtons.end())
-		{
-			releasedButtons.insert(button);
-		}
-
-		if (pressedButtons.find(button) != pressedButtons.end())
-		{
-			pressedButtons.erase(pressedButtons.find(button));
-		}
-	}
-
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, button, action, mods);
-	}
-}
-
-void WindowSystemGLFW::refreshWindowHandler(GLFWwindow * window)
-{
-	auto& callbacks = instance.refreshCallbacks;
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window);
-	}
-}
-
-void WindowSystemGLFW::scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset)
-{
-	auto& callbacks = instance.scrollCallbacks;
-
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, xOffset, yOffset);
-	}
-}
-
-void WindowSystemGLFW::sizeInputHandler(GLFWwindow* window, int width, int height)
-{
-	auto& callbacks = instance.sizeCallbacks;
-
-	auto it = callbacks.find(window);
-	if (it != callbacks.end())
-	{
-		it->second(window, width, height);
-	}
-}
-
 void WindowSystemGLFW::initInputButtonMap()
 {
 	glfwToButtonMap.insert(make_pair(GLFW_MOUSE_BUTTON_LEFT, Input::LeftMouseButton));
@@ -426,97 +264,6 @@ void WindowSystemGLFW::initInputButtonMap()
 	{
 		buttonToGlfwMap.insert(make_pair(it->second, it->first));
 	}
-}
-
-void WindowSystemGLFW::registerCharModsCallback(WindowGLFW* window, std::function<CharModsCallback> callback)
-{
-	charModsCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetCharModsCallback(window->getSource(), charModsInputHandler);
-}
-
-void WindowSystemGLFW::registerFocusCallback(WindowGLFW* window, std::function<FocusCallback> callback)
-{
-	focusCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetWindowFocusCallback(window->getSource(), focusInputHandler);
-}
-
-void WindowSystemGLFW::registerKeyCallback(WindowGLFW* window, function<KeyCallback> callback)
-{
-	keyCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetKeyCallback(window->getSource(), keyInputHandler);
-}
-
-void WindowSystemGLFW::registerMouseCallback(WindowGLFW* window, std::function<MouseCallback> callback)
-{
-	mouseCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetMouseButtonCallback(window->getSource(), mouseInputHandler);
-}
-
-void WindowSystemGLFW::registerRefreshCallback(WindowGLFW * window, std::function<RefreshCallback> callback)
-{
-	refreshCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetWindowRefreshCallback(window->getSource(), refreshWindowHandler);
-}
-
-void WindowSystemGLFW::registerScrollCallback(WindowGLFW* window, function<ScrollCallback> callback)
-{
-	scrollCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetScrollCallback(window->getSource(), scrollInputHandler);
-}
-
-void WindowSystemGLFW::registerSizeCallback(WindowGLFW* window, std::function<SizeCallback> callback)
-{
-	sizeCallbacks.insert(make_pair(window->getSource(), move(callback)));
-	glfwSetWindowSizeCallback(window->getSource(), sizeInputHandler);
-}
-
-void WindowSystemGLFW::removeCharModsCallback(WindowGLFW* window)
-{
-	auto it = charModsCallbacks.find(window->getSource());
-	if (it != charModsCallbacks.end())
-		charModsCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeFocusCallbackCallback(WindowGLFW* window)
-{
-	auto it = focusCallbacks.find(window->getSource());
-	if (it != focusCallbacks.end())
-		focusCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeKeyCallback(WindowGLFW* window)
-{
-	auto it = keyCallbacks.find(window->getSource());
-	if (it != keyCallbacks.end())
-		keyCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeMouseCallback(WindowGLFW* window)
-{
-	auto it = mouseCallbacks.find(window->getSource());
-	if (it != mouseCallbacks.end())
-		mouseCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeScrollCallback(WindowGLFW* window)
-{
-	auto it = scrollCallbacks.find(window->getSource());
-	if (it != scrollCallbacks.end())
-		scrollCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeRefreshCallback(WindowGLFW * window)
-{
-	auto it = refreshCallbacks.find(window->getSource());
-	if (it != refreshCallbacks.end())
-		refreshCallbacks.erase(it);
-}
-
-void WindowSystemGLFW::removeSizeCallback(WindowGLFW* window)
-{
-	auto it = sizeCallbacks.find(window->getSource());
-	if (it != sizeCallbacks.end())
-		sizeCallbacks.erase(it);
 }
 
 void WindowSystemGLFW::terminate()

@@ -1,12 +1,12 @@
 #pragma once
 
 class Window;
-class WindowSystem;
+class PlatformProvider;
 
 class SystemUI
 {
 public:
-	static SystemUI* get(WindowSystem* windowSystem);
+	static SystemUI* get(PlatformProvider* windowSystem);
 
 	static void shutdown();
 

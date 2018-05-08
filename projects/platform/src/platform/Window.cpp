@@ -1,7 +1,7 @@
 #include <platform/Window.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
-Window::Window(WindowStruct const& description, Renderer& renderer): renderer(&renderer),
+Window::Window(WindowStruct const& description):
 logClient(platform::getLogServer())
 {
 	width = description.width;
@@ -48,11 +48,6 @@ int Window::getWidth() const
 const std::string& Window::getTitle() const
 {
 	return title;
-}
-
-Renderer::Viewport Window::getViewport() const
-{
-	return renderer->getViewport();
 }
 
 bool Window::isInFullscreenMode()

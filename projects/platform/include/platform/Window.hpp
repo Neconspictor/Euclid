@@ -75,7 +75,7 @@ public:
 	/**
 	 * Creates a new window based on a description object.
 	 */
-	Window(WindowStruct const& description, Renderer& renderer);
+	Window(WindowStruct const& description);
 
 	/**
 	* Activates this window. All drawing calls of an registered renderer are going to this window as long
@@ -120,8 +120,6 @@ public:
 	 * Provides the title of thi window.
 	 */
 	const std::string& getTitle() const;
-
-	Renderer::Viewport getViewport() const;
 
 	/**
 	* Checks, if this window is on the foreground, i.e. it is able to receive input events.
@@ -246,11 +244,6 @@ protected:
 	* The title of the window.
 	*/
 	std::string title;
-
-	/**
-	* The renderer that is associated with this window (if any renderer is associated at all).
-	*/
-	Renderer* renderer;
 
 	/**
 	* Is this window currently focused for input events?

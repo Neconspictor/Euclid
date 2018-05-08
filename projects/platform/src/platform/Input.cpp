@@ -1,6 +1,5 @@
 #include <platform/Input.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <platform/Platform.hpp>
 
 using namespace platform;
 

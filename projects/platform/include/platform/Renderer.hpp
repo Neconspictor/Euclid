@@ -2,8 +2,6 @@
 #include <platform/logging/LoggingClient.hpp>
 #include <ostream>
 
-class Platform;
-
 /**
  * A description for the renderer class which category of renderer it belongs to.
  * Typically the renderer type refers to the underlying 3D rendering library, the 

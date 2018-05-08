@@ -25,13 +25,8 @@ public:
 	bool isReleased(Button button) override;
 	bool isReleased(Key key) override;
 
-	void charModsCallback(GLFWwindow* window, unsigned int codepoint, int mods);
-	void focusCallback(GLFWwindow* window, int hasFocus);
-	void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	void mouseCallback(GLFWwindow* window, int button, int action, int mods);
-	void refreshWindowCallback(GLFWwindow* window);
-	void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
-	void sizeCallback(GLFWwindow* window, int width, int height);
+
+	void scrollCallback(double xOffset, double yOffset);
 
 	void frameUpdate();
 	void resetForFrame();
@@ -44,6 +39,7 @@ protected:
 	Key anyPressedKey;
 	Button anyPressedButton;
 	platform::LoggingClient logClient;
+
 };
 
 class WindowGLFW : public Window
@@ -59,7 +55,7 @@ public:
 	using SizeCallback = void(GLFWwindow* window, int width, int height);
 
 
-	WindowGLFW(WindowStruct const& description, Renderer& renderer);
+	WindowGLFW(WindowStruct const& description);
 	virtual ~WindowGLFW();
 
 	void activate() override;
@@ -77,7 +73,7 @@ public:
 
 	void onCharMods(unsigned int codepoint, int mods);
 	void onKey(int key, int scancode, int action, int mods);
-	void onMouse(int button, int state, int mods);
+	void onMouse(int button, int action, int mods);
 
 	void registerCallbacks();
 
@@ -109,8 +105,33 @@ public:
 	void setVisible(bool visible) override;
 	void setWindowed() override;
 	void swapBuffers() override;
-protected:
 
+	static void charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods);
+
+	static void focusInputHandler(GLFWwindow* window, int hasFocus);
+
+	static void keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+	static void mouseInputHandler(GLFWwindow * window, int button, int action, int mods);
+
+	static void refreshWindowHandler(GLFWwindow* window);
+
+	static void scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset);
+
+	static void sizeInputHandler(GLFWwindow* window, int width, int height);
+
+
+
+	bool isKeyDown(int glfwKey);
+	bool isKeyPressed(int glfwKey);
+	bool isKeyReleased(int glfwKey);
+
+	bool isButtonDown(int glfwButton);
+	bool isButtonPressed(int glfwButton);
+	bool isButtonReleased(int glfwButton);
+
+
+protected:
 	void refreshWindowWithoutCallbacks();
 
 	friend class WindowSystemGLFW;
@@ -124,6 +145,28 @@ protected:
 	std::list<std::function<KeyCallback>> keyCallbacks;
 	std::list<std::function<MouseCallback>> mouseCallbacks;
 	std::list<std::function<RefreshCallback>> refreshCallbacks;
-	void createNoAPIWindow();
+
+
+	// callbacks
+	//std::list<std::function<FocusCallback>> focusCallbacks;
+	std::list<std::function<ScrollCallback>> scrollCallbacks;
+	std::list<std::function<SizeCallback>> sizeCallbacks;
+	
+	// key states
+	std::unordered_set<int> downKeys;
+	std::unordered_set<int> pressedKeys;
+	std::unordered_set<int> releasedKeys;
+
+	// mouse button states
+	std::unordered_set<int> downButtons;
+	std::unordered_set<int> pressedButtons;
+	std::unordered_set<int> releasedButtons;
+
+	bool disableCallbacks;
+	
+	
 	void createOpenGLWindow();
+
+
+
 };

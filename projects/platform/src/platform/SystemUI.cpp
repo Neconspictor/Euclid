@@ -4,7 +4,7 @@
 
 SystemUI* SystemUI::instance = nullptr;
 
-SystemUI* SystemUI::get(WindowSystem* windowSystem)
+SystemUI* SystemUI::get(PlatformProvider* windowSystem)
 {
 	if (dynamic_cast<WindowSystemGLFW*>(windowSystem) && !instance)
 	{

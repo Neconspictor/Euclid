@@ -17,8 +17,6 @@ public:
 
 protected:
 
-	static std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data);
-
 	void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes, const AbstractMaterialLoader& materialLoader) const;
 
 	/**

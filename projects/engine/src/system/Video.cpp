@@ -2,13 +2,12 @@
 #include <system/Configuration.hpp>
 #include <string>
 #include <platform/Window.hpp>
-#include <platform/WindowSystem.hpp>
+#include <platform/PlatformProvider.hpp>
 #include <platform/SystemUI.hpp>
-#include <platform/Platform.hpp>
 
 using namespace std;
 
-Video::Video(WindowSystem* system) :
+Video::Video(PlatformProvider* system) :
 	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), 
 	vSync(false), msaaSamples(0), windowSystem(system), window(nullptr), renderer(nullptr), ui(nullptr)
 {
@@ -55,8 +54,7 @@ void Video::init()
 	desc.visible = true;
 	desc.vSync = vSync;
 
-	//window = Platform::getActivePlatform()->createWindow(desc, *renderer);
-	window = windowSystem->createWindow(desc, *renderer);
+	window = windowSystem->createWindow(desc);
 	window->activate();
 
 	if (ui)
@@ -67,7 +65,6 @@ void Video::init()
 	renderer->setViewPort(0, 0, width, height);
 	renderer->setMSAASamples(msaaSamples);
 	renderer->init();
-	//Platform::getActivePlatform()->setVSync(*renderer, vSync);
 }
 
 void Video::useRenderer(Renderer3D* renderer)
@@ -80,7 +77,7 @@ void Video::useUISystem(SystemUI* ui)
 	this->ui = ui;
 }
 
-WindowSystem* Video::getWindowSystem() const
+PlatformProvider* Video::getWindowSystem() const
 {
 	return windowSystem;
 }

@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 		desc.visible = true;
 
 		
-		WindowSystem* windowSystem = WindowSystemGLFW::get();
+		PlatformProvider* windowSystem = WindowSystemGLFW::get();
 		windowSystem->init();
 		Window* window = windowSystem->createWindow(desc, renderer);
 		//WindowGLFW* glfwWindow = (WindowGLFW*)window;
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	test[0][3] = 1;
 
 	LoggingClient logger(getLogServer());
-	WindowSystem* windowSystem = WindowSystemGLFW::get();
+	PlatformProvider* windowSystem = WindowSystemGLFW::get();
 	if (!windowSystem->init())
 	{
 		LOG(logger, platform::Fault) << "Couldn't initialize window system! Aborting...";

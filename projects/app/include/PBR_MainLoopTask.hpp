@@ -9,7 +9,7 @@
 #include <util/FPSCounter.hpp>
 #include <camera/Camera.hpp>
 #include <model/Vob.hpp>
-#include <platform/WindowSystem.hpp>
+#include <platform/PlatformProvider.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
 #include <sprite/Sprite.hpp>
@@ -23,7 +23,7 @@ class PBR_MainLoopTask : public Task
 public:
 
 	using EnginePtr = Engine*;
-	using WindowSystemPtr = WindowSystem*;
+	using WindowSystemPtr = PlatformProvider*;
 	using WindowPtr = Window*;
 	using RendererPtr = Renderer3D*;
 	typedef unsigned int uint;
