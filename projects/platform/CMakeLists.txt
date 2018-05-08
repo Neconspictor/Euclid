@@ -1,12 +1,12 @@
 set(
     PLATFORM_SOURCES 
 		
-		include/pch_platform.hpp
+    include/pch_platform.hpp
     
     #platform
     include/platform/FileSystem.hpp
     include/platform/Input.hpp
-    include/platform/Platform.hpp
+    include/platform/PlatformProvider.hpp
     include/platform/Renderer.hpp
     include/platform/SystemUI.hpp
     include/platform/Window.hpp
@@ -50,9 +50,6 @@ set(
     include/platform/window_system/glfw/WindowGLFW.hpp
     include/platform/window_system/glfw/WindowSystemGLFW.hpp
     
-    #platform/windows/
-    include/platform/windows/PlatformWindows.hpp
-    
     #platform/ui
     include/platform/ui/NanoGUI.hpp
     
@@ -72,7 +69,6 @@ set(
     ###source files###
     src/platform/FileSystem.cpp
     src/platform/Input.cpp
-	src/platform/Platform.cpp
     src/platform/Renderer.cpp
     src/platform/SystemUI.cpp
     src/platform/Window.cpp
@@ -101,9 +97,6 @@ set(
     #platform/window_system/glfw/
     src/platform/window_system/glfw/WindowGLFW.cpp
     src/platform/window_system/glfw/WindowSystemGLFW.cpp
-    
-    #platform/windows
-    src/platform/windows/PlatformWindows.cpp
     
     #platform/ui
     src/platform/ui/NanoGUI.cpp
