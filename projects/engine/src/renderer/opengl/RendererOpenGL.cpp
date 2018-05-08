@@ -34,7 +34,8 @@ GaussianBlur* EffectLibraryGL::getGaussianBlur()
 
 void EffectLibraryGL::release()
 {
-	gaussianBlur->release();
+	if (gaussianBlur.get() != nullptr)
+		gaussianBlur->release();
 }
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
@@ -315,7 +316,8 @@ void RendererOpenGL::present()
 
 void RendererOpenGL::release()
 {
-	effectLibrary->release();
+	if (effectLibrary.get() != nullptr)
+		effectLibrary->release();
 
 	for (auto it = cubeRenderTargets.begin(); it != cubeRenderTargets.end(); ) {
 		CubeRenderTargetGL& target = *it;
