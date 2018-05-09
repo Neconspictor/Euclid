@@ -534,17 +534,6 @@ enum Key
 	virtual bool isReleased(Key key) = 0;
 
 	/**
-	* An input device can be a listener for focus change events triggered
-	* by a window.
-	*/
-	static void onWindowsFocus(Window* window, int focused);
-
-	/**
-	* Updates the input class instance, if the user scrolls on a specific window.
-	*/
-	static void onScroll(Window* window, double xoffset, double yoffset);
-
-	/**
 	* Removes a previously established scrolling connection. The callback of the connection
 	* won't be notified anymore if scrolling events occurs.
 	*/
@@ -570,10 +559,11 @@ protected:
 	*/
 	Input();
 
-	/**
-	 * Copy constructor
-	 */
-	Input(const Input& other);
+	Input(const Input&) = delete;
+	Input(Input&&) = delete;
+
+	Input& operator=(const Input&) = delete;
+	Input& operator=(Input&&) = delete;
 
 	/**
 	 * The input class is a singleton. Therefore it needs one single instance.
