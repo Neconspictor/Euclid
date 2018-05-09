@@ -47,6 +47,7 @@ set(
     
     #platform/window_system/
     #platform/window_system/glfw/
+    include/platform/window_system/glfw/InputGLFW.hpp
     include/platform/window_system/glfw/WindowGLFW.hpp
     include/platform/window_system/glfw/WindowSystemGLFW.hpp
     
@@ -95,6 +96,7 @@ set(
     
     #platform/window_system/
     #platform/window_system/glfw/
+    src/platform/window_system/glfw/InputGLFW.cpp
     src/platform/window_system/glfw/WindowGLFW.cpp
     src/platform/window_system/glfw/WindowSystemGLFW.cpp
     

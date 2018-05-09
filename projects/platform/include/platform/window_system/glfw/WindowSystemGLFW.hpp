@@ -21,23 +21,12 @@ public:
 
 	virtual void pollEvents() override;
 
-	static Input::Button toButton(int glfwButton);
-	static int toGLFWbutton(Input::Button button);
-	static int toGLFWkey(Input::Key);
-	static Input::Key toKey(int glfwKey);
-
 	virtual void terminate() override;
-
-
 
 	static void errorCallback(int error, const char* description);
 
 
 protected:
-	void initInputButtonMap();
-	static void initInputKeyMap();
-
-
 	bool m_isInitialized;
 	platform::LoggingClient logClient;
 
@@ -47,12 +36,4 @@ private:
 	static WindowSystemGLFW instance;
 
 	std::list<WindowGLFW> windows;
-
-	// mapping glfw button <-> input button
-	static std::unordered_map<int, Input::Button> glfwToButtonMap;
-	static std::unordered_map<Input::Button, int> buttonToGlfwMap;
-
-	// mapping glfw key <-> input key
-	static std::unordered_map<int, Input::Key> glfwToKeyMap;
-	static std::unordered_map<Input::Key, int> keyToGlfwMap;
 };

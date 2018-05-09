@@ -1,46 +1,11 @@
 #pragma once
 
 #include <platform/Window.hpp>
+#include <platform/window_system/glfw/InputGLFW.hpp>
 
 
 struct GLFWwindow;
-class WindowGLFW;
-
-class InputGLFW : public Input
-{
-public:
-
-	explicit InputGLFW(WindowGLFW* window);
-
-	explicit InputGLFW(const InputGLFW& other);
-
-	virtual ~InputGLFW();
-
-	Button getAnyPressedButton() override;
-	Key getAnyPressedKey() override;
-	bool isDown(Button button) override;
-	bool isDown(Key key) override;
-	bool isPressed(Button button) override;
-	bool isPressed(Key key) override;
-	bool isReleased(Button button) override;
-	bool isReleased(Key key) override;
-
-
-	void scrollCallback(double xOffset, double yOffset);
-
-	void frameUpdate();
-	void resetForFrame();
-
-	virtual void setMousePosition(int xPos, int yPos) override;
-	void setWindow(WindowGLFW* window);
-
-protected:
-	WindowGLFW* window;
-	Key anyPressedKey;
-	Button anyPressedButton;
-	platform::LoggingClient logClient;
-
-};
+class InputGLFW;
 
 class WindowGLFW : public Window
 {
@@ -59,6 +24,10 @@ public:
 	virtual ~WindowGLFW();
 
 	void activate() override;
+
+	inline bool areCallbacksActive() const;
+
+
 	void close() override;
 	Input* getInputDevice() override;
 
@@ -75,7 +44,7 @@ public:
 	void onKey(int key, int scancode, int action, int mods);
 	void onMouse(int button, int action, int mods);
 
-	void registerCallbacks();
+	void enableCallbacks();
 
 	/**
 	* Releases any allocated memory
@@ -87,7 +56,7 @@ public:
 	void registerMouseCallback(std::function<MouseCallback> callback);
 	void registerRefreshCallback(std::function<RefreshCallback> callback);
 
-	void removeCallbacks();
+	void disableCallbacks();
 
 	void resize(int newWidth, int newHeight) override;
 	void setCursorPosition(int xPos, int yPos) override;
@@ -162,7 +131,7 @@ protected:
 	std::unordered_set<int> pressedButtons;
 	std::unordered_set<int> releasedButtons;
 
-	bool disableCallbacks;
+	bool _disableCallbacks;
 	
 	
 	void createOpenGLWindow();

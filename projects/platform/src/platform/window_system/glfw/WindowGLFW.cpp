@@ -1,6 +1,7 @@
 // glad has to be included before glfw
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <platform/window_system/glfw/InputGLFW.hpp>
 #include <platform/window_system/glfw/WindowGLFW.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
@@ -12,7 +13,7 @@ using namespace platform;
 
 
 WindowGLFW::WindowGLFW(WindowStruct const& desc) :
-	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true), disableCallbacks(false)
+	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true), _disableCallbacks(false)
 {
 }
 
@@ -23,6 +24,11 @@ WindowGLFW::~WindowGLFW()
 void WindowGLFW::activate()
 {
 	glfwMakeContextCurrent(window);
+}
+
+inline bool WindowGLFW::areCallbacksActive() const
+{
+	return !_disableCallbacks;
 }
 
 void WindowGLFW::close()
@@ -144,13 +150,13 @@ void WindowGLFW::onMouse(int button, int action, int mods)
 	}
 }
 
-void WindowGLFW::registerCallbacks()
+void WindowGLFW::enableCallbacks()
 {
 	using namespace placeholders;
 
 	inputDevice.setWindow(this);
 
-	glfwSetCharModsCallback(window, &charModsInputHandler);
+	glfwSetCharModsCallback(window, charModsInputHandler);
 
 	glfwSetWindowFocusCallback(window, focusInputHandler);
 
@@ -166,7 +172,7 @@ void WindowGLFW::registerCallbacks()
 
 	glfwSetWindowUserPointer(window, this);
 
-	disableCallbacks = false;
+	_disableCallbacks = false;
 }
 
 void WindowGLFW::release()
@@ -195,9 +201,9 @@ void WindowGLFW::registerRefreshCallback(std::function<RefreshCallback> callback
 	refreshCallbacks.push_back(callback);
 }
 
-void WindowGLFW::removeCallbacks()
+void WindowGLFW::disableCallbacks()
 {
-	disableCallbacks = true;
+	_disableCallbacks = true;
 }
 
 void WindowGLFW::resize(int newWidth, int newHeight)
@@ -296,7 +302,7 @@ void WindowGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoin
 
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 
 	windowGLFW->onCharMods(codepoint, mods);
 }
@@ -305,7 +311,7 @@ void WindowGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
 {
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 	
 	bool focus = hasFocus == GLFW_TRUE ? true : false;
 	windowGLFW->setFocus(focus);
@@ -316,7 +322,7 @@ void WindowGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int 
 
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 	
 	windowGLFW->onKey(key, scancode, action, mods);
 }
@@ -325,7 +331,7 @@ void WindowGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, 
 {
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 
 	windowGLFW->onMouse(button, action, mods);
 }
@@ -334,7 +340,7 @@ void WindowGLFW::refreshWindowHandler(GLFWwindow * window)
 {
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr ||  windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 
 	windowGLFW->informRefreshListeners();
 }
@@ -344,7 +350,7 @@ void WindowGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double 
 	//TODO refactor
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 
 	InputGLFW* inputGLFW = static_cast<InputGLFW*>(windowGLFW->getInputDevice());
 	inputGLFW->scrollCallback(xOffset, yOffset);
@@ -354,7 +360,7 @@ void WindowGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
 {
 	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
 
-	if (windowGLFW == nullptr || windowGLFW->disableCallbacks) return;
+	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
 
 	windowGLFW->setSize(width, height);
 }
@@ -395,7 +401,7 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 {
 
 	// assure that o callbacks get called!
-	removeCallbacks();
+	disableCallbacks();
 	//WindowSystemGLFW* system = WindowSystemGLFW::get();
 	//system->removeSizeCallback(this);
 
@@ -433,7 +439,7 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 	glfwSetWindowSize(window, widthBackup, height);
 
 	// restore the callbacks
-	registerCallbacks();
+	enableCallbacks();
 }
 
 void WindowGLFW::createOpenGLWindow()
@@ -522,133 +528,4 @@ void WindowGLFW::createOpenGLWindow()
 	glViewport(0,0, width, height);
 	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-}
-
-
-InputGLFW::InputGLFW(WindowGLFW* window) : window(window), 
-anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), logClient(getLogServer())
-{
-	logClient.setPrefix("InputGLFW");
-}
-
-InputGLFW::InputGLFW(const InputGLFW& other) : window(other.window), logClient(other.logClient),
-	anyPressedKey(other.anyPressedKey), anyPressedButton(other.anyPressedButton)
-{
-}
-
-InputGLFW::~InputGLFW()
-{
-}
-
-Input::Button InputGLFW::getAnyPressedButton()
-{
-	return anyPressedButton;
-}
-
-Input::Key InputGLFW::getAnyPressedKey()
-{
-	return anyPressedKey;
-}
-
-bool InputGLFW::isDown(Button button)
-{
-	int glfwButton = WindowSystemGLFW::toGLFWbutton(button);
-	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
-	return glfwGetMouseButton(window->getSource(), glfwButton) != GLFW_RELEASE;
-}
-
-bool InputGLFW::isDown(Key key)
-{
-	int glfwKey = WindowSystemGLFW::toGLFWkey(key);
-	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
-	return glfwGetKey(window->getSource(), glfwKey) != GLFW_RELEASE;
-}
-
-bool InputGLFW::isPressed(Button button)
-{
-	int glfwButton = WindowSystemGLFW::toGLFWbutton(button);
-	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
-	return window->isButtonPressed(button);
-}
-
-bool InputGLFW::isPressed(Key key)
-{
-	int glfwKey = WindowSystemGLFW::toGLFWkey(key);
-	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
-	return window->isKeyPressed(glfwKey);
-}
-
-bool InputGLFW::isReleased(Button button)
-{
-	int glfwButton = WindowSystemGLFW::toGLFWbutton(button);
-	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
-	return window->isButtonReleased(button);
-}
-
-bool InputGLFW::isReleased(Key key)
-{
-	int glfwKey = WindowSystemGLFW::toGLFWkey(key);
-	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
-	return window->isKeyReleased(glfwKey);
-}
-
-void InputGLFW::scrollCallback(double xOffset, double yOffset)
-{
-	frameScrollOffsetX = xOffset;
-	frameScrollOffsetY = yOffset;
-
-	if (frameScrollOffsetX || frameScrollOffsetY)
-	{
-		informScrollListeners(xOffset, yOffset);
-	}
-}
-
-void InputGLFW::frameUpdate()
-{
-	double mouseX, mouseY;
-	glfwGetCursorPos(window->getSource(), &mouseX, &mouseY);
-	int mouseXOld = mouseXabsolut;
-	int mouseYOld = mouseYabsolut;
-	mouseXabsolut = static_cast<int>(mouseX);
-	mouseYabsolut = static_cast<int>(mouseY);
-
-	frameMouseXOffset = mouseXabsolut - mouseXOld;
-	frameMouseYOffset = mouseYabsolut - mouseYOld;
-
-	if (!isDown(anyPressedKey))
-	{
-		anyPressedKey = KEY_UNKNOWN;
-	}
-
-	if (!isDown(anyPressedButton))
-	{
-		anyPressedButton = InvalidButton;
-	}
-}
-
-void InputGLFW::resetForFrame()
-{
-	// clear state of keys  and mouse buttons before polling, as callbacks are called during polling!
-	// TODO move releasedKeys/pressedKeys to this class
-	window->releasedKeys.clear();
-	window->pressedKeys.clear();
-	window->releasedButtons.clear();
-	window->pressedButtons.clear();
-
-	frameScrollOffsetX = 0;
-	frameScrollOffsetY = 0;
-}
-
-void InputGLFW::setMousePosition(int xPos, int yPos)
-{
-	glfwSetCursorPos(window->getSource(), static_cast<double>(xPos), static_cast<double>(yPos));
-	mouseXabsolut = xPos;
-	mouseYabsolut = yPos;
-	frameMouseXOffset = 0;
-	frameMouseYOffset = 0;
-}
-
-void InputGLFW::setWindow(WindowGLFW* window)
-{
-	this->window = window;
 }
