@@ -16,7 +16,7 @@ struct MouseOffset
 };
 
 /**
- * The Input class is respsonsible for recording user key and button inputs and provides methods
+ * The Input class is respsonsible for recording user key and button inputs on a specific window. Additionally t provides methods
  * for querying its current state. The input class is designed as a polling system and should be updated
  * each frame.
  */
@@ -27,6 +27,20 @@ public:
 	using ScrollContainer = CallbackContainer<void(double scrollX, double scrollY)>;
 	using ScrollCallback = ScrollContainer::Callback;
 	using ScrollConnection = ScrollContainer::SharedItem;
+
+	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
+	using WindowRefreshContainer = CallbackContainer<void()>;
+	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
+
+	using WindowFocusCallback = WindowFocusChanged::Callback;
+	using WindowFocusConnection = WindowFocusChanged::SharedItem;
+
+	using WindowRefreshCallback = WindowRefreshContainer::Callback;
+	using WindowRefreshConnection = WindowRefreshContainer::SharedItem;
+
+	using ResizeCallback = WindowResizeContainer::Callback;
+	using ResizeConnection = WindowResizeContainer::SharedItem;
+
 
 	/**
 	* Amount of valid buttons (without InvalidButton!!!)
@@ -449,6 +463,8 @@ enum Key
 		Released
 	};
 
+	Input();
+
 	virtual ~Input();
 
 	/**
@@ -456,6 +472,26 @@ enum Key
 	* the added callback will be called.
 	*/
 	ScrollConnection addScrollCallback(const ScrollCallback& callback);	
+
+
+	/**
+	* Adds a callback to windows resize events. Every time, when the window of this Input is resized,
+	* the callback will be called.
+	*/
+	ResizeConnection addResizeCallback(const ResizeCallback& callback);
+
+	/**
+	* Adds a callback that is called whenthe window of this Input content should be refreshed (e.g. GUI)
+	*/
+	WindowRefreshConnection addRefreshCallback(const WindowRefreshCallback& callback);
+
+	/**
+	* Adds a callback to windows focus events. Every time, when the window of this Input receives or
+	* looses focus, the callback will be called.
+	*/
+	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
+
+
 
 	/**
 	* Provides any button that was currently pressed.
@@ -485,6 +521,30 @@ enum Key
 	*  Provides information about how much the cursor moved since the last frame.
 	*/
 	virtual MouseOffset getFrameMouseOffset();
+
+	virtual Window* getWindow() = 0;
+
+	/**
+	* Calls all regsitered scrolling callbacks.
+	* This function is intended to be called when the user scrolls.
+	*/
+	void informScrollListeners(double scrollX, double scrollY);
+
+	/**
+	* Informs windows refresh listeners that the window of this Input should be refreshed
+	*/
+	void informRefreshListeners();
+
+	/**
+	* Informs windows resize listeners that the size of the window of this Input has changed.
+	*/
+	void informResizeListeners(int width, int height);
+
+	/**
+	* Informs windows focus listeners that the window of this Input lost or gained focus.
+	*/
+	void informWindowFocusListeners(bool receivedFocus);
+
 
 	/**
 	 * Deprectaed function. Don't use it! TODO: remove function!
@@ -540,6 +600,22 @@ enum Key
 	void removeScrollConnection(const ScrollConnection& connection);
 
 	/**
+	* Removes a given window resize callback.
+	*/
+	void removeResizeCallback(const ResizeConnection& connection);
+
+	/**
+	* Removes a given window refresh callback.
+	*/
+	void removeRefreshCallback(const WindowRefreshConnection& connection);
+
+	/**
+	* Removes a given window focus callback.
+	*/
+	void removeWindowFocusCallback(const WindowFocusConnection& connection);
+
+
+	/**
 	 * Sets the absolut mouse position in the coordination system of the current active window. 
 	 */
 	virtual void setMousePosition(int xPos, int yPos);
@@ -553,23 +629,6 @@ enum Key
 
 protected:
 
-	/**
-	* Assigns default values to its member variables.
-	* Is protected as Input is an abstract class.
-	*/
-	Input();
-
-	Input(const Input&) = delete;
-	Input(Input&&) = delete;
-
-	Input& operator=(const Input&) = delete;
-	Input& operator=(Input&&) = delete;
-
-	/**
-	 * The input class is a singleton. Therefore it needs one single instance.
-	 */
-	static Input* instance;
-
 	int frameMouseXOffset, frameMouseYOffset;
 	int mouseXabsolut, mouseYabsolut;
 	double frameScrollOffsetX, frameScrollOffsetY;
@@ -580,9 +639,7 @@ protected:
 
 	ScrollContainer scrollContainer;
 
-	/**
-	 * Calls all regsitered scrolling callbacks.
-	 * This function is intended to be called when the user scrolls.
-	 */
-	void informScrollListeners(double scrollX, double scrollY);
+	WindowFocusChanged windowFocusChanged;
+	WindowRefreshContainer windowRefreshContainer;
+	WindowResizeContainer windowResizeContainer;
 };

@@ -130,11 +130,12 @@ void MainLoopTask::init()
 	ShaderManager* shaderManager = renderer->getShaderManager();
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
+	Input* input = window->getInputDevice();
 
 	auto focusCallback = bind(&MainLoopTask::onWindowsFocus, this, _1, _2);
 	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
-	this->window->addWindowFocusCallback(focusCallback);
-	this->window->getInputDevice()->addScrollCallback(scrollCallback);
+	input->addWindowFocusCallback(focusCallback);
+	input->addScrollCallback(scrollCallback);
 
 	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
 	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
@@ -155,12 +156,12 @@ void MainLoopTask::init()
 	{
 		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
 		casted->updateOnResize(window->getWidth(), window->getHeight());
-		window->addResizeCallback(cameraResizeCallback);
+		input->addResizeCallback(cameraResizeCallback);
 	}
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
-	//window->addResizeCallback(rendererResizeCallback);
+	//input->addResizeCallback(rendererResizeCallback);
 
-	window->addResizeCallback([&](int width, int height)
+	input->addResizeCallback([&](int width, int height)
 	{
 		camera->setAspectRatio((float)width / (float)height);
 		renderer->setViewPort(0, 0, width, height);

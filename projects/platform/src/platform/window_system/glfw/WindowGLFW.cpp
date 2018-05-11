@@ -13,8 +13,29 @@ using namespace platform;
 
 
 WindowGLFW::WindowGLFW(WindowStruct const& desc) :
-	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true), _disableCallbacks(false)
+	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true)
 {
+}
+
+WindowGLFW::WindowGLFW(WindowGLFW && o) : Window(move(o)), inputDevice(move(o.inputDevice))
+{
+	window = o.window;
+	inputDevice.setWindow(this);
+	m_hasFocus = o.m_hasFocus;
+
+	//o.window = nullptr;
+}
+
+WindowGLFW & WindowGLFW::operator=(WindowGLFW && o)
+{
+	if (this == &o) return *this;
+	inputDevice = move(o.inputDevice);
+	window = o.window;
+	m_hasFocus = o.m_hasFocus;
+
+	o.window = nullptr;
+
+	return *this;
 }
 
 WindowGLFW::~WindowGLFW()
@@ -24,11 +45,6 @@ WindowGLFW::~WindowGLFW()
 void WindowGLFW::activate()
 {
 	glfwMakeContextCurrent(window);
-}
-
-inline bool WindowGLFW::areCallbacksActive() const
-{
-	return !_disableCallbacks;
 }
 
 void WindowGLFW::close()
@@ -72,138 +88,10 @@ void WindowGLFW::minimize()
 	glfwIconifyWindow(window);
 }
 
-void WindowGLFW::onCharMods(unsigned int codepoint, int mods)
-{
-	for (auto& c : charModsCallbacks)
-	{
-		c(this->window, codepoint, mods);
-	}
-}
-
-void WindowGLFW::onKey(int key, int scancode, int action, int mods)
-{
-	if (action == GLFW_PRESS)
-	{
-		if (pressedKeys.find(key) == pressedKeys.end())
-		{
-			pressedKeys.insert(key);
-		}
-
-		if (releasedKeys.find(key) != releasedKeys.end())
-		{
-			releasedKeys.erase(releasedKeys.find(key));
-		}
-	}
-
-	if (action == GLFW_RELEASE)
-	{
-		if (releasedKeys.find(key) == releasedKeys.end())
-		{
-			releasedKeys.insert(key);
-		}
-
-		if (pressedKeys.find(key) != pressedKeys.end())
-		{
-			pressedKeys.erase(pressedKeys.find(key));
-		}
-	}
-
-
-	for (auto& c : keyCallbacks)
-	{
-		c(this->window, key, scancode, action, mods);
-	}
-}
-
-void WindowGLFW::onMouse(int button, int action, int mods)
-{
-
-	if (action == GLFW_PRESS)
-	{
-		if (pressedButtons.find(button) == pressedButtons.end())
-		{
-			pressedButtons.insert(button);
-		}
-
-		if (releasedButtons.find(button) != releasedButtons.end())
-		{
-			releasedButtons.erase(releasedButtons.find(button));
-		}
-	}
-
-	if (action == GLFW_RELEASE)
-	{
-		if (releasedButtons.find(button) == releasedButtons.end())
-		{
-			releasedButtons.insert(button);
-		}
-
-		if (pressedButtons.find(button) != pressedButtons.end())
-		{
-			pressedButtons.erase(pressedButtons.find(button));
-		}
-	}
-
-	for (auto& c : mouseCallbacks)
-	{
-		c(this->window, button, action, mods);
-	}
-}
-
-void WindowGLFW::enableCallbacks()
-{
-	using namespace placeholders;
-
-	inputDevice.setWindow(this);
-
-	glfwSetCharModsCallback(window, charModsInputHandler);
-
-	glfwSetWindowFocusCallback(window, focusInputHandler);
-
-	glfwSetKeyCallback(window, keyInputHandler);
-
-	glfwSetMouseButtonCallback(window, mouseInputHandler);
-
-	glfwSetWindowRefreshCallback(window, refreshWindowHandler);
-
-	glfwSetWindowSizeCallback(window, sizeInputHandler);
-
-	glfwSetScrollCallback(window, scrollInputHandler);
-
-	glfwSetWindowUserPointer(window, this);
-
-	_disableCallbacks = false;
-}
-
 void WindowGLFW::release()
 {
 	glfwDestroyWindow(window);
 	window = nullptr;
-}
-
-void WindowGLFW::registerCharModsCallback(function<CharModsCallback> callback)
-{
-	charModsCallbacks.push_back(callback);
-}
-
-void WindowGLFW::registerKeyCallback(function<KeyCallback> callback)
-{
-	keyCallbacks.push_back(callback);
-}
-
-void WindowGLFW::registerMouseCallback(function<MouseCallback> callback)
-{
-	mouseCallbacks.push_back(callback);
-}
-
-void WindowGLFW::registerRefreshCallback(std::function<RefreshCallback> callback)
-{
-	refreshCallbacks.push_back(callback);
-}
-
-void WindowGLFW::disableCallbacks()
-{
-	_disableCallbacks = true;
 }
 
 void WindowGLFW::resize(int newWidth, int newHeight)
@@ -211,7 +99,7 @@ void WindowGLFW::resize(int newWidth, int newHeight)
 	width = newWidth;
 	height = newHeight;
 	glfwSetWindowSize(window, width, height);
-	informResizeListeners(width, height);
+	inputDevice.informResizeListeners(width, height);
 }
 
 void WindowGLFW::setCursorPosition(int xPos, int yPos)
@@ -228,7 +116,7 @@ void WindowGLFW::setFocus(bool focus)
 	}
 
 	m_hasFocus = focus;
-	informWindowFocusListeners(focus);
+	inputDevice.informWindowFocusListeners(focus);
 }
 
 void WindowGLFW::setFullscreen()
@@ -241,7 +129,7 @@ void WindowGLFW::setSize(int width, int height)
 {
 	this->width = width;
 	this->height = height;
-	informResizeListeners(width, height);
+	inputDevice.informResizeListeners(width, height);
 }
 
 void WindowGLFW::setTitle(const string& newTitle)
@@ -286,122 +174,12 @@ void WindowGLFW::swapBuffers()
 	glfwSwapBuffers(window);
 }
 
-void WindowGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods)
-{
-	/*vector<unsigned char> utf8Result;
-
-	utf8::utf32to8(&codepoint, &codepoint + 1, back_inserter(utf8Result));
-
-	stringstream ss;
-	for (char c : utf8Result)
-	{
-		ss << c;
-	}
-
-	cout << " WindowGLFW::charModsInputHandler(): " << ss.str() << endl;*/
-
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-
-	windowGLFW->onCharMods(codepoint, mods);
-}
-
-void WindowGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
-{
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-	
-	bool focus = hasFocus == GLFW_TRUE ? true : false;
-	windowGLFW->setFocus(focus);
-}
-
-void WindowGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-	
-	windowGLFW->onKey(key, scancode, action, mods);
-}
-
-void WindowGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, int mods)
-{
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-
-	windowGLFW->onMouse(button, action, mods);
-}
-
-void WindowGLFW::refreshWindowHandler(GLFWwindow * window)
-{
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-
-	windowGLFW->informRefreshListeners();
-}
-
-void WindowGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double yOffset)
-{
-	//TODO refactor
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-
-	InputGLFW* inputGLFW = static_cast<InputGLFW*>(windowGLFW->getInputDevice());
-	inputGLFW->scrollCallback(xOffset, yOffset);
-}
-
-void WindowGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
-{
-	WindowGLFW* windowGLFW = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
-
-	if (windowGLFW == nullptr || !windowGLFW->areCallbacksActive()) return;
-
-	windowGLFW->setSize(width, height);
-}
-
-
-bool WindowGLFW::isKeyDown(int glfwKey)
-{
-	return downKeys.find(glfwKey) != downKeys.end();
-}
-
-bool WindowGLFW::isKeyPressed(int glfwKey)
-{
-	return pressedKeys.find(glfwKey) != pressedKeys.end();
-}
-
-bool WindowGLFW::isKeyReleased(int glfwKey)
-{
-	return releasedKeys.find(glfwKey) != releasedKeys.end();
-}
-
-bool WindowGLFW::isButtonDown(int glfwButton)
-{
-	return downButtons.find(glfwButton) != downButtons.end();
-}
-
-bool WindowGLFW::isButtonPressed(int glfwButton)
-{
-	return pressedButtons.find(glfwButton) != pressedButtons.end();
-}
-
-bool WindowGLFW::isButtonReleased(int glfwButton)
-{
-	return releasedButtons.find(glfwButton) != releasedButtons.end();
-}
-
 
 void WindowGLFW::refreshWindowWithoutCallbacks()
 {
 
 	// assure that o callbacks get called!
-	disableCallbacks();
+	inputDevice.disableCallbacks();
 	//WindowSystemGLFW* system = WindowSystemGLFW::get();
 	//system->removeSizeCallback(this);
 
@@ -439,7 +217,7 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 	glfwSetWindowSize(window, widthBackup, height);
 
 	// restore the callbacks
-	enableCallbacks();
+	inputDevice.enableCallbacks();
 }
 
 void WindowGLFW::createOpenGLWindow()

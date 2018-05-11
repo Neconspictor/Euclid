@@ -15,18 +15,22 @@ WindowSystemGLFW::WindowSystemGLFW() : m_isInitialized(false), logClient(platfor
 
 Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc)
 {
-	windows.push_back(move(WindowGLFW (desc)));
+
+	WindowGLFW window(desc);
+	window.init();
+
+	windows.push_back(move(window));
 	WindowGLFW* pointer = &windows.back();
 
-	pointer->init();
+	//pointer->init();
 
 	if (desc.fullscreen)
 		pointer->setFullscreen();
 	//else
 		//pointer->setWindowed();
 
-	
-	pointer->enableCallbacks();
+	InputGLFW* input = dynamic_cast<InputGLFW*>(pointer->getInputDevice());
+	input->enableCallbacks();
 
 	return pointer;
 }

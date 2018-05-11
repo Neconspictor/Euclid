@@ -18,28 +18,7 @@ class WindowFocusListener;
  */
 class Window
 {
-private:
-
-	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
-	using WindowRefreshContainer = CallbackContainer<void()>;
-	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
-
-	WindowFocusChanged windowFocusChanged;
-	WindowRefreshContainer windowRefreshContainer;
-	WindowResizeContainer windowResizeContainer;
-
 public:
-
-	using WindowFocusCallback = WindowFocusChanged::Callback;
-	using WindowFocusConnection = WindowFocusChanged::SharedItem;
-
-	using WindowRefreshCallback = WindowRefreshContainer::Callback;
-	using WindowRefreshConnection = WindowRefreshContainer::SharedItem;
-
-	using ResizeCallback = WindowResizeContainer::Callback;
-	using ResizeConnection = WindowResizeContainer::SharedItem;
-
-	virtual ~Window(){}
 
 	/**
 	 * Holds configuration properties used to customize a window.
@@ -77,28 +56,13 @@ public:
 	 */
 	Window(WindowStruct const& description);
 
+	virtual ~Window() {}
+
 	/**
 	* Activates this window. All drawing calls of an registered renderer are going to this window as long
 	* as it is active.
 	*/
 	virtual void activate() = 0;
-
-	/**
-	* Adds a callback to windows resize events. Every time, when this windows is resized, 
-	* the callback will be called.
-	*/
-	ResizeConnection addResizeCallback(const ResizeCallback& callback);
-
-	/**
-	* Adds a callback that is called when the window content should be refreshed (e.g. GUI)
-	*/
-	WindowRefreshConnection addRefreshCallback(const WindowRefreshCallback& callback);
-
-	/**
-	* Adds a callback to windows focus events. Every time, when this windows receives or
-	* looses focus, the callback will be called.
-	*/
-	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
 
 	/**
 	* Closes this window.
@@ -140,21 +104,6 @@ public:
 	 * Minimizes this window 
 	 */
 	virtual void minimize() = 0;
-
-	/**
-	* Removes a given window resize callback.
-	*/
-	void removeResizeCallback(const ResizeConnection& connection);
-
-	/**
-	* Removes a given window refresh callback.
-	*/
-	void removeRefreshCallback(const WindowRefreshConnection& connection);
-
-	/**
-	* Removes a given window focus callback.
-	*/
-	void removeWindowFocusCallback(const WindowFocusConnection& connection);
 
 	/**
 	* Updates the width and height of this window.
@@ -259,19 +208,4 @@ protected:
 	 * a logging client for logging internals.
 	 */
 	platform::LoggingClient logClient;
-
-	/**
-	 * Informs windows focus listeners that this window lost or gained focus.
-	 */
-	void informWindowFocusListeners(bool receivedFocus);
-
-	/**
-	* Informs windows resize listeners that the size of this window has changed.
-	*/
-	void informResizeListeners(int width, int height);
-
-	/**
-	* Informs windows refresh listeners that the window should be refreshed
-	*/
-	void informRefreshListeners();
 };
