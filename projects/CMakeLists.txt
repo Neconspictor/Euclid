@@ -47,5 +47,6 @@ project (NecEngine)
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(platform)
 add_subdirectory(engine)
+add_subdirectory(engine_opengl)
 #add_subdirectory(test)
 add_subdirectory(app)

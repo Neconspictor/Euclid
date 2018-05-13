@@ -1,7 +1,7 @@
 #include <system/Engine.hpp>
 #include <system/Video.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <renderer/opengl/RendererOpenGL.hpp>
+#include <renderer/RendererOpenGL.hpp>
 #include <PBR_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
 #include <platform/window_system/glfw/WindowSystemGLFW.hpp>
