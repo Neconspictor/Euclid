@@ -2,99 +2,73 @@ set(
     ENGINE_OPENGL_SOURCES 
     
     ###header files###
-    include/pch_engine_opengl.hpp
+    pch_engine_opengl.hpp
 		
     #antialiasing
-    include/antialiasing/SMAA_GL.hpp
+    antialiasing/SMAA_GL.hpp
+	antialiasing/SMAA_GL.cpp
     
     #drawing
-    include/drawing/ModelDrawerGL.hpp
+    drawing/ModelDrawerGL.hpp
+	drawing/ModelDrawerGL.cpp
     
     #mesh
-    include/mesh/MeshGL.hpp
-    include/mesh/MeshFactoryGL.hpp
-    
-    
+    mesh/MeshGL.hpp
+	mesh/MeshGL.cpp
+    mesh/MeshFactoryGL.hpp
+	mesh/MeshFactoryGL.cpp
+	
     #model
-    include/model/AssimpModelLoader.hpp
-    include/model/ModelGL.hpp
-    include/model/ModelManagerGL.hpp
+    model/AssimpModelLoader.hpp
+	model/AssimpModelLoader.cpp
+    model/ModelGL.hpp
+	model/ModelGL.cpp
+    model/ModelManagerGL.hpp
+	model/ModelManagerGL.cpp
     
 	#post_processing/blur
-	include/post_processing/blur/GaussianBlurGL.hpp
+	post_processing/blur/GaussianBlurGL.hpp
+	post_processing/blur/GaussianBlurGL.cpp
 	
     #renderer
-    include/renderer/RendererOpenGL.hpp
+    renderer/RendererOpenGL.hpp
+	renderer/RendererOpenGL.cpp
     
     #shader
-	include/shader/DepthMapShaderGL.hpp
-    include/shader/NormalsShaderGL.hpp
-    include/shader/PBRShaderGL.hpp
-	include/shader/PhongTexShaderGL.hpp
-    include/shader/ScreenShaderGL.hpp
-    include/shader/ShaderGL.hpp
-	include/shader/ShadowShaderGL.hpp
-    include/shader/ShaderManagerGL.hpp
-    include/shader/SimpleColorShaderGL.hpp
-    include/shader/SimpleExtrudeShaderGL.hpp
-    include/shader/SkyBoxShaderGL.hpp
+	shader/DepthMapShaderGL.hpp
+	shader/DepthMapShaderGL.cpp
+    shader/NormalsShaderGL.hpp
+	shader/NormalsShaderGL.cpp
+    shader/PBRShaderGL.hpp
+	shader/PBRShaderGL.cpp
+	shader/PhongTexShaderGL.hpp
+	shader/PhongTexShaderGL.cpp
+    shader/ScreenShaderGL.hpp
+	shader/ScreenShaderGL.cpp
+    shader/ShaderGL.hpp
+	shader/ShaderGL.cpp
+	shader/ShadowShaderGL.hpp
+	shader/ShadowShaderGL.cpp
+    shader/ShaderManagerGL.hpp
+	shader/ShaderManagerGL.cpp
+    shader/SimpleColorShaderGL.hpp
+	shader/SimpleColorShaderGL.cpp
+    shader/SimpleExtrudeShaderGL.hpp
+	shader/SimpleExtrudeShaderGL.cpp
+    shader/SkyBoxShaderGL.hpp
+	shader/SkyBoxShaderGL.cpp
 	#shader/post_processing/blur
-    include/shader/post_processing/blur/GaussianBlurShaderGL.hpp
+    shader/post_processing/blur/GaussianBlurShaderGL.hpp
+	shader/post_processing/blur/GaussianBlurShaderGL.cpp
  
     
     #texture
-    include/texture/ImageLoaderGL.hpp
-    include/texture/TextureGL.hpp
-    include/texture/TextureManagerGL.hpp
-    
-    ###source files###
-    
-    #antialiasing
-    src/antialiasing/SMAA_GL.cpp
-
-    
-    #drawing
-    src/drawing/ModelDrawerGL.cpp
-
-    
-    #mesh
-    src/mesh/MeshGL.cpp
-    src/mesh/MeshFactoryGL.cpp
-    
-    
-    #model
-    src/model/AssimpModelLoader.cpp
-    src/model/ModelGL.cpp
-    src/model/ModelManagerGL.cpp
-	
-	#post_processing/blur
-	src/post_processing/blur/GaussianBlurGL.cpp
-	
-    #renderer
-    src/renderer/RendererOpenGL.cpp
-    
-    #shader
-	src/shader/DepthMapShaderGL.cpp
-    src/shader/NormalsShaderGL.cpp
-    src/shader/PBRShaderGL.cpp
-	src/shader/PhongTexShaderGL.cpp
-    src/shader/ScreenShaderGL.cpp
-    src/shader/ShaderGL.cpp
-    src/shader/ShaderManagerGL.cpp
-	src/shader/ShadowShaderGL.cpp
-    src/shader/SimpleColorShaderGL.cpp
-    src/shader/SimpleExtrudeShaderGL.cpp
-    src/shader/SkyBoxShaderGL.cpp
-	#shader/post_processing/blur
-    src/shader/post_processing/blur/GaussianBlurShaderGL.cpp
-	
-    
-    #texture
-    src/texture/ImageLoaderGL.cpp
-    src/texture/TextureGL.cpp
-    src/texture/TextureManagerGL.cpp
-    
-    #${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
+    texture/ImageLoaderGL.hpp
+	texture/ImageLoaderGL.cpp
+    texture/TextureGL.hpp
+    texture/TextureGL.cpp
+	texture/TextureManagerGL.hpp
+	texture/TextureManagerGL.cpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -102,11 +76,11 @@ set(
 #source_group("" FILES ${ENGINE_SOURCES})
 assign_source_group(${ENGINE_OPENGL_SOURCES})
 
-enable_precompiled_headers(include/pch_engine_opengl.hpp ENGINE_OPENGL_SOURCES)
+enable_precompiled_headers(pch_engine_opengl.hpp ENGINE_OPENGL_SOURCES)
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
-    include/ 
+    ./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include  
     #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
@@ -118,20 +92,11 @@ include_directories (
 # Adds sources to the Solution Explorer
 add_library (engine_opengl ${ENGINE_OPENGL_SOURCES})
 target_include_directories (engine_opengl PUBLIC 
-include/ 
+	./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
     ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
-
-
-#set additional library directories
-#link_directories(.)
-
-#choose the right libraries by absolute paths!
-#find_library(libglew32_lib NAMES libglew32 HINTS ${CMAKE_SOURCE_DIR}/libs/glew/x64/Release)
-#find_library(soil2_lib NAMES soil2 HINTS ${CMAKE_SOURCE_DIR}/libs/soil2/x64/Release)
 
 #boost libraries
 find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)

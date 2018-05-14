@@ -1,112 +1,95 @@
 set(
     PLATFORM_SOURCES 
 		
-    include/pch_platform.hpp
+    pch_platform.hpp
     
     #platform
-    include/platform/FileSystem.hpp
-    include/platform/Input.hpp
-    include/platform/PlatformProvider.hpp
-    include/platform/Renderer.hpp
-    include/platform/SystemUI.hpp
-    include/platform/Window.hpp
+    platform/FileSystem.hpp
+	platform/FileSystem.cpp
+    platform/Input.hpp
+	platform/Input.cpp
+    platform/PlatformProvider.hpp
+    platform/Renderer.hpp
+	platform/Renderer.cpp
+    platform/SystemUI.hpp
+	platform/SystemUI.cpp
+    platform/Window.hpp
+	platform/Window.cpp
     
     #platform/event
-    include/platform/event/EventChannel.hpp
-    include/platform/event/EventHandler.hpp
-    include/platform/event/EventHandlerQueue.hpp
-    include/platform/event/GlobalEventChannel.hpp
-    include/platform/event/Task.hpp
-    include/platform/event/TaskManager.hpp
+    platform/event/EventChannel.hpp
+    platform/event/EventHandler.hpp
+    platform/event/EventHandlerQueue.hpp
+    platform/event/GlobalEventChannel.hpp
+    platform/event/Task.hpp
+	platform/event/Task.cpp
+    platform/event/TaskManager.hpp
+	platform/event/TaskManager.cpp
     
     #platform/exception
-    include/platform/exception/EnumFormatException.hpp;
-    include/platform/exception/OpenglException.hpp;
-    include/platform/exception/UnexpectedPlatformException.hpp;
+    platform/exception/EnumFormatException.hpp;
+    platform/exception/OpenglException.hpp;
+    platform/exception/UnexpectedPlatformException.hpp;
     
     
     #platform/logging
-    include/platform/logging/GlobalLoggingServer.hpp
-    include/platform/logging/LogEndpoint.hpp
-    include/platform/logging/LogEndpoint.inl
-    include/platform/logging/LoggingServer.hpp
-    include/platform/logging/LoggingClient.hpp
-    include/platform/logging/LogLevel.hpp
-    include/platform/logging/LogMessage.hpp
+    platform/logging/GlobalLoggingServer.hpp
+	platform/logging/GlobalLoggingServer.cpp
+    platform/logging/LogEndpoint.hpp
+    platform/logging/LogEndpoint.inl
+	platform/logging/LogEndpoint.cpp
+    platform/logging/LoggingServer.hpp
+	platform/logging/LoggingServer.cpp
+    platform/logging/LoggingClient.hpp
+	platform/logging/LoggingClient.cpp
+    platform/logging/LogLevel.hpp
+	platform/logging/LogLevel.cpp
+    platform/logging/LogMessage.hpp
+	platform/logging/LogMessage.cpp
     
     #platform/memory
-    include/platform/memory/Allocator.hpp
-    include/platform/memory/FreeListAllocator.hpp
-    include/platform/memory/LinearAllocator.hpp
-    include/platform/memory/MemoryManager.hpp
-    include/platform/memory/ObjectPool.hpp
-    include/platform/memory/PoolAllocator.hpp
-    include/platform/memory/ProxyAllocator.hpp
-    include/platform/memory/StackAllocator.hpp
+    platform/memory/Allocator.hpp
+    platform/memory/FreeListAllocator.hpp
+	platform/memory/FreeListAllocator.cpp
+    platform/memory/LinearAllocator.hpp
+	platform/memory/LinearAllocator.cpp
+    platform/memory/MemoryManager.hpp
+	platform/memory/MemoryManager.cpp
+    platform/memory/ObjectPool.hpp
+    platform/memory/PoolAllocator.hpp
+	platform/memory/PoolAllocator.cpp
+    platform/memory/ProxyAllocator.hpp
+	platform/memory/ProxyAllocator.cpp
+    platform/memory/StackAllocator.hpp
+	platform/memory/StackAllocator.cpp
     
     
     #platform/window_system/
     #platform/window_system/glfw/
-    include/platform/window_system/glfw/InputGLFW.hpp
-    include/platform/window_system/glfw/WindowGLFW.hpp
-    include/platform/window_system/glfw/WindowSystemGLFW.hpp
+    platform/window_system/glfw/InputGLFW.hpp
+	platform/window_system/glfw/InputGLFW.cpp
+    platform/window_system/glfw/WindowGLFW.hpp
+	platform/window_system/glfw/WindowGLFW.cpp
+    platform/window_system/glfw/WindowSystemGLFW.hpp
+	platform/window_system/glfw/WindowSystemGLFW.cpp
     
     #platform/ui
-    include/platform/ui/NanoGUI.hpp
+    platform/ui/NanoGUI.hpp
+	platform/ui/NanoGUI.cpp
     
     #platform/util
-    include/platform/util/CallbackContainer.hpp
-    include/platform/util/PointerUtils.hpp
-    include/platform/util/Signal.hpp
-    include/platform/util/StringUtils.hpp
-    include/platform/util/TimeUtils.hpp
-    include/platform/util/Util.hpp
+    platform/util/CallbackContainer.hpp
+    platform/util/PointerUtils.hpp
+    platform/util/Signal.hpp
+    platform/util/StringUtils.hpp
+	platform/util/StringUtils.cpp
+    platform/util/TimeUtils.hpp
+    platform/util/Util.hpp
     
     
     #platform/util/concurrent
-    include/platform/util/concurrent/Active.hpp
-    
-    
-    ###source files###
-    src/platform/FileSystem.cpp
-    src/platform/Input.cpp
-    src/platform/Renderer.cpp
-    src/platform/SystemUI.cpp
-    src/platform/Window.cpp
-    
-    #platform/event
-    src/platform/event/Task.cpp
-    src/platform/event/TaskManager.cpp
-    
-    #platform/logging
-    src/platform/logging/GlobalLoggingServer.cpp
-    src/platform/logging/LogEndpoint.cpp
-    src/platform/logging/LoggingServer.cpp
-    src/platform/logging/LoggingClient.cpp
-    src/platform/logging/LogLevel.cpp
-    src/platform/logging/LogMessage.cpp
-    
-    #platform/memory
-    src/platform/memory/FreeListAllocator.cpp
-    src/platform/memory/LinearAllocator.cpp
-    src/platform/memory/MemoryManager.cpp
-    src/platform/memory/PoolAllocator.cpp
-    src/platform/memory/ProxyAllocator.cpp
-    src/platform/memory/StackAllocator.cpp
-    
-    #platform/window_system/
-    #platform/window_system/glfw/
-    src/platform/window_system/glfw/InputGLFW.cpp
-    src/platform/window_system/glfw/WindowGLFW.cpp
-    src/platform/window_system/glfw/WindowSystemGLFW.cpp
-    
-    #platform/ui
-    src/platform/ui/NanoGUI.cpp
-    
-    #platform/util
-    src/platform/util/StringUtils.cpp
-    #platform/util/concurrent
-    src/platform/util/concurrent/Active.cpp
+    platform/util/concurrent/Active.hpp
+	platform/util/concurrent/Active.cpp
 )
 
 set (
@@ -119,11 +102,11 @@ set (
 #source_group("" FILES ${PLATFORM_SOURCES})
 assign_source_group(${PLATFORM_SOURCES} ${PLATFORM_EXTERNAL_SOURCES})
 
-enable_precompiled_headers(include/pch_platform.hpp PLATFORM_SOURCES)
+enable_precompiled_headers(pch_platform.hpp PLATFORM_SOURCES)
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
-    include/ 
+    ./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
@@ -143,7 +126,7 @@ include_directories (
 # Adds sources to the Solution Explorer
 add_library (platform ${PLATFORM_SOURCES} ${PLATFORM_EXTERNAL_SOURCES})
 target_include_directories (platform PUBLIC 
-    include
+    ./
     ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
     ${CMAKE_SOURCE_DIR}/libs/glad/include
     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include

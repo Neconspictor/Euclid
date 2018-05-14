@@ -1,16 +1,14 @@
 set(
     APP_SOURCES 
     
-    ###header files###
-    include/PBR.hpp
-    include/PBR_MainLoopTask.hpp
-    include/MainLoopTask.hpp
-    include/pch_app.hpp
-    ###source files###
-    src/PBR_MainLoopTask.cpp
-    src/Main.cpp
-    src/MainLoopTask.cpp
-    src/PBR.cpp
+	Main.cpp
+    PBR_MainLoopTask.hpp
+	PBR_MainLoopTask.cpp
+	PBR_Deferred_MainLoopTask.hpp
+	PBR_Deferred_MainLoopTask.cpp
+    MainLoopTask.hpp
+	MainLoopTask.cpp
+    pch_app.hpp  
 )
 
 # Create named folders for the sources within the .vcproj
@@ -20,11 +18,11 @@ assign_source_group(${APP_SOURCES})
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
-    include/ 
+    ./ 
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
 )
 
-enable_precompiled_headers(include/pch_app.hpp APP_SOURCES)
+enable_precompiled_headers(pch_app.hpp APP_SOURCES)
 
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)

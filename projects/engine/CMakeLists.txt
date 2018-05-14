@@ -2,162 +2,138 @@ set(
     ENGINE_SOURCES 
     
     ###header files###
-    include/pch_engine.hpp
+    pch_engine.hpp
 		
     #antialiasing
-    include/antialiasing/SMAA.hpp
+    antialiasing/SMAA.hpp
     
     #camera
-    include/camera/Camera.hpp
-    include/camera/FPCamera.hpp
-    include/camera/FPCameraBase.hpp
-    include/camera/FPQuaternionCamera.hpp
-    include/camera/TrackballCamera.hpp
-    include/camera/TrackballQuatCamera.hpp
+    camera/Camera.hpp
+	camera/Camera.cpp
+    camera/FPCamera.hpp
+	camera/FPCamera.cpp
+    camera/FPCameraBase.hpp
+	camera/FPCameraBase.cpp
+    camera/FPQuaternionCamera.hpp
+	camera/FPQuaternionCamera.cpp
+    camera/TrackballCamera.hpp
+	camera/TrackballCamera.cpp
+    camera/TrackballQuatCamera.hpp
+	camera/TrackballQuatCamera.cpp
     
     #drawing
-    include/drawing/ModelDrawer.hpp
+    drawing/ModelDrawer.hpp
     
     #exception
-    include/exception/MeshNotFoundException.hpp
-    include/exception/ShaderInitException.hpp
-    include/exception/ShaderNotFoundException.hpp
+    exception/MeshNotFoundException.hpp
+    exception/ShaderInitException.hpp
+    exception/ShaderNotFoundException.hpp
     
 	#light
-	include/light/Light.hpp
+	light/Light.hpp
+	light/Light.cpp
 		
     #listener
-    include/listener/ScrollListener.hpp
+    listener/ScrollListener.hpp
     
     #mesh
-    include/mesh/Mesh.hpp
-    include/mesh/SampleMeshes.hpp
+    mesh/Mesh.hpp
+	mesh/Mesh.cpp
+    mesh/SampleMeshes.hpp
     
     #material
-    include/material/AbstractMaterialLoader.hpp
-    include/material/BlinnPhongMaterial.hpp
-	include/material/BlinnPhongMaterialLoader.hpp
-    include/material/Material.hpp
-	include/material/PbrMaterial.hpp
-	include/material/PbrMaterialLoader.hpp
-    
-    #model
-    include/model/Model.hpp
-    include/model/ModelManager.hpp
-    include/model/Vob.hpp
-    
-	#post_processing/blur
-	include/post_processing/blur/GaussianBlur.hpp
-	
-    #renderer
-    include/renderer/AbstractRendererFactory.hpp
-    include/renderer/Renderer3D.hpp
-    
-    #shader
-	include/shader/DepthMapShader.hpp
-    include/shader/NormalsShader.hpp
-    include/shader/PBRShader.hpp	
-	include/shader/PhongTextureShader.hpp
-    include/shader/ScreenShader.hpp
-    include/shader/Shader.hpp
-    include/shader/ShaderManager.hpp
-	include/shader/ShadowShader.hpp
-    include/shader/SimpleColorShader.hpp
-    include/shader/SimpleExtrudeShader.hpp
-    include/shader/SkyBoxShader.hpp
-	#shader/post_processing/blur
-	include/shader/post_processing/blur/GaussianBlurShader.hpp
-	
-    #scene
-    include/scene/SceneNode.hpp
-    
-    #shadowing
-    include/shadowing/ShadowMapper.hpp
- 
-    
-    #sprite
-    include/sprite/Sprite.hpp
- 
-    #system
-    include/system/Configuration.hpp
-    include/system/Engine.hpp
-    include/system/Video.hpp
-    include/system/System.hpp
- 
-    
-    #texture
-    include/texture/Texture.hpp
-    include/texture/TextureManager.hpp
-	#texture/stb
-	include/texture/stb/stb_image.h
-    
-    #util
-    include/util/FPSCounter.hpp
-    include/util/Globals.hpp
-	include/util/Math.hpp
-	include/util/Projectional.hpp
-    include/util/Timer.hpp
-    
-    ###source files###
-    
-    #antialiasing
-    
-    #camera
-    src/camera/Camera.cpp
-    src/camera/FPCamera.cpp
-    src/camera/FPCameraBase.cpp
-    src/camera/FPQuaternionCamera.cpp
-    src/camera/TrackballCamera.cpp
-    src/camera/TrackballQuatCamera.cpp
-    
-    #drawing
+    material/AbstractMaterialLoader.hpp
+	material/AbstractMaterialLoader.cpp
+    material/BlinnPhongMaterial.hpp
+	material/BlinnPhongMaterial.cpp
+	material/BlinnPhongMaterialLoader.hpp
+	material/BlinnPhongMaterialLoader.cpp
+    material/Material.hpp
+	material/PbrMaterial.hpp
+	material/PbrMaterial.cpp
+	material/PbrMaterialLoader.hpp
+	material/PbrMaterialLoader.cpp
 
     
-	#light
-	src/light/Light.cpp
-		
-    #listener
-    
-    #mesh
-    src/mesh/Mesh.cpp
-    
-    #material
-	src/material/AbstractMaterialLoader.cpp
-	src/material/BlinnPhongMaterialLoader.cpp
-    src/material/BlinnPhongMaterial.cpp
-	src/material/PbrMaterial.cpp
-	src/material/PbrMaterialLoader.cpp
-    
     #model
-    src/model/Model.cpp
-    src/model/ModelManager.cpp
-    src/model/Vob.cpp
-	
+    model/Model.hpp
+	model/Model.cpp
+    model/ModelManager.hpp
+	model/ModelManager.cpp
+    model/Vob.hpp
+	model/Vob.cpp
+
+    
 	#post_processing/blur
-	src/post_processing/blur/GaussianBlur.cpp
+	post_processing/blur/GaussianBlur.hpp
+	post_processing/blur/GaussianBlur.cpp
 	
     #renderer
+    renderer/AbstractRendererFactory.hpp
+    renderer/Renderer3D.hpp
     
     #shader
-    src/shader/Shader.cpp
-    
+	shader/DepthMapShader.hpp
+    shader/NormalsShader.hpp
+    shader/PBRShader.hpp	
+	shader/PhongTextureShader.hpp
+    shader/ScreenShader.hpp
+    shader/Shader.hpp
+	shader/Shader.cpp
+    shader/ShaderManager.hpp
+	shader/ShadowShader.hpp
+    shader/SimpleColorShader.hpp
+    shader/SimpleExtrudeShader.hpp
+    shader/SkyBoxShader.hpp
+	#shader/post_processing/blur
+	shader/post_processing/blur/GaussianBlurShader.hpp
+	
+	#shading_model
+	shading_model/PBR.hpp
+	shading_model/PBR.cpp
+	shading_model/PBR_Deferred.hpp
+	shading_model/PBR_Deferred.cpp
+	#shading_model/ShadingModelFactory.hpp
+	#shading_model/ShadingModelFactory.cpp
+	
+	
     #scene
-    src/scene/SceneNode.cpp
+    scene/SceneNode.hpp
+	scene/SceneNode.cpp
+    
+    #shadowing
+    shadowing/ShadowMapper.hpp
+ 
     
     #sprite
-    src/sprite/Sprite.cpp
-    
+    sprite/Sprite.hpp
+	sprite/Sprite.cpp
+ 
     #system
-    src/system/Configuration.cpp
-    src/system/Engine.cpp
-    src/system/System.cpp
-    src/system/Video.cpp
+    system/Configuration.hpp
+	system/Configuration.cpp
+    system/Engine.hpp
+	system/Engine.cpp
+    system/System.hpp
+	system/System.cpp
+	system/Video.hpp
+	system/Video.cpp
+ 
     
     #texture
-    src/texture/Texture.cpp
+    texture/Texture.hpp
+	texture/Texture.cpp
+    texture/TextureManager.hpp
+	#texture/stb
+	texture/stb/stb_image.h
     
     #util
-    src/util/Projectional.cpp
+    util/FPSCounter.hpp
+    util/Globals.hpp
+	util/Math.hpp
+	util/Projectional.hpp
+	util/Projectional.cpp
+    util/Timer.hpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -165,11 +141,11 @@ set(
 #source_group("" FILES ${ENGINE_SOURCES})
 assign_source_group(${ENGINE_SOURCES})
 
-enable_precompiled_headers(include/pch_engine.hpp ENGINE_SOURCES)
+enable_precompiled_headers(pch_engine.hpp ENGINE_SOURCES)
 
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
-    include/ 
+	./
     ${CMAKE_SOURCE_DIR}/libs/glm/include  
     #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
@@ -181,7 +157,7 @@ include_directories (
 # Adds sources to the Solution Explorer
 add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
-include/ 
+	./
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
     #${CMAKE_SOURCE_DIR}/libs/soil2/include
     ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
