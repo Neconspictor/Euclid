@@ -1,4 +1,5 @@
 #include <scene/SceneNode.hpp>
+#include <renderer/Renderer3D.hpp>
 
 SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), instanceCount(0)
 {

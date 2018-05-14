@@ -74,6 +74,13 @@ public:
 	friend CubeRenderTargetGL;
 };
 
+class BaseRenderTargetGl : public BaseRenderTarget {
+public:
+	explicit BaseRenderTargetGl(int width, int height);
+
+	virtual BaseRenderTarget* getImpl() override;
+};
+
 class CubeRenderTargetGL : public CubeRenderTarget
 {
 public:
@@ -187,4 +194,37 @@ private:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	TextureGL texture;
 	GLuint frameBuffer;
+};
+
+class PBR_GBufferGL : public PBR_GBuffer {
+public:
+	explicit PBR_GBufferGL(int width, 
+		int height,
+		TextureGL albedo, 
+		TextureGL ao, 
+		TextureGL normal,
+		TextureGL metal, 
+		TextureGL position, 
+		TextureGL roughness);
+
+	virtual Texture* getAlbedo() override;
+
+	virtual Texture* getAO() override;
+
+	virtual Texture* getNormal() override;
+
+	virtual Texture* getMetal() override;
+
+	virtual Texture* getPosition() override;
+
+	virtual Texture* getRoughness() override;
+
+
+protected:
+	TextureGL albedo;
+	TextureGL ao;
+	TextureGL normal;
+	TextureGL metal;
+	TextureGL position;
+	TextureGL roughness;
 };

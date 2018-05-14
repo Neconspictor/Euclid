@@ -3,7 +3,8 @@
 #include <model/Vob.hpp>
 #include <drawing/ModelDrawer.hpp>
 #include <shader/Shader.hpp>
-#include <renderer/Renderer3D.hpp>
+
+class Renderer3D;
 
 class SceneNode
 {

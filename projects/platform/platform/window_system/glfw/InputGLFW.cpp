@@ -391,6 +391,23 @@ void InputGLFW::enableCallbacks()
 	_disableCallbacks = false;
 }
 
+void InputGLFW::removeCallbacks()
+{
+	glfwSetCharModsCallback(window->getSource(), nullptr);
+
+	glfwSetWindowFocusCallback(window->getSource(), nullptr);
+
+	glfwSetKeyCallback(window->getSource(), nullptr);
+
+	glfwSetMouseButtonCallback(window->getSource(), nullptr);
+
+	glfwSetWindowRefreshCallback(window->getSource(), nullptr);
+
+	glfwSetWindowSizeCallback(window->getSource(), nullptr);
+
+	glfwSetScrollCallback(window->getSource(), nullptr);
+}
+
 void InputGLFW::frameUpdate()
 {
 	double mouseX, mouseY;

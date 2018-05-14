@@ -1,48 +1,21 @@
 #include <shading_model/PBR.hpp>
 #include <shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <renderer/Renderer3D.hpp>
 
 using namespace glm;
 
-PBR::PBR() : environmentMap(nullptr), shader(nullptr), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
+PBR::PBR(Renderer3D* renderer, Texture* backgroundHDR) :
+	environmentMap(nullptr), shader(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
+
+	init(backgroundHDR);
 }
 
 PBR::~PBR(){
 
 }
 
-void PBR::init(Renderer3D * renderer, Texture* backgroundHDR)
-{
-
-	this->renderer = renderer;
-	environmentMap = renderBackgroundToCube(backgroundHDR);
-	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
-	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
-
-
-	// setup sprite for brdf integration lookup texture
-	vec2 dim = { 1.0, 1.0 };
-	vec2 pos = { 0, 0 };
-
-	// center
-	pos.x = 0.5f * (1.0f - dim.x);
-	pos.y = 0.5f * (1.0f - dim.y);
-
-	brdfSprite.setPosition(pos);
-	brdfSprite.setWidth(dim.x);
-	brdfSprite.setHeight(dim.y);
-
-	// we don't need a texture
-	// we use the sprite only as a polygon model
-	brdfSprite.setTexture(nullptr);
-
-	brdfLookupTexture = createBRDFlookupTexture();
-
-
-	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
-}
-
-void PBR::drawSky(RenderTarget* renderTarget, const mat4& projection, const mat4& view)
+void PBR::drawSky(const mat4& projection, const mat4& view)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	ShaderManager* shaderManager = renderer->getShaderManager();
@@ -79,7 +52,6 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 }
 
 void PBR::drawScene(SceneNode * scene,
-	RenderTarget* renderTarget,
 	const vec3& cameraPosition, 
 	float frameTimeElapsed,
 	Texture* shadowMap,
@@ -324,4 +296,33 @@ RenderTarget * PBR::createBRDFlookupTexture()
 	//renderer->endScene();
 
 	return target;
+}
+
+void PBR::init(Texture* backgroundHDR)
+{
+	environmentMap = renderBackgroundToCube(backgroundHDR);
+	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
+	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
+
+
+	// setup sprite for brdf integration lookup texture
+	vec2 dim = { 1.0, 1.0 };
+	vec2 pos = { 0, 0 };
+
+	// center
+	pos.x = 0.5f * (1.0f - dim.x);
+	pos.y = 0.5f * (1.0f - dim.y);
+
+	brdfSprite.setPosition(pos);
+	brdfSprite.setWidth(dim.x);
+	brdfSprite.setHeight(dim.y);
+
+	// we don't need a texture
+	// we use the sprite only as a polygon model
+	brdfSprite.setTexture(nullptr);
+
+	brdfLookupTexture = createBRDFlookupTexture();
+
+
+	shader = dynamic_cast<PBRShader*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
 }

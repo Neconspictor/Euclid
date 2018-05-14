@@ -49,6 +49,8 @@ void WindowGLFW::activate()
 
 void WindowGLFW::close()
 {
+	inputDevice.disableCallbacks();
+	inputDevice.removeCallbacks();
 	glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 

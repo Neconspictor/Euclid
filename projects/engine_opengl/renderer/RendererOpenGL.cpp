@@ -47,14 +47,12 @@ RendererOpenGL::RendererOpenGL() : Renderer3D(),
 	//clearRenderTarget(&singleSampledScreenBuffer, false);
 	//clearRenderTarget(&multiSampledScreenBuffer, false);
 
-	RendererOpenGL* renderer = this;
-
-	smaa = new SMAA_GL(renderer);
+	smaa = make_unique<SMAA_GL>(this);
+	shadingModelFactory = make_unique<ShadingModelFactoryGL>(this);
 }
 
 RendererOpenGL::~RendererOpenGL()
 {
-	delete smaa;
 	release();
 }
 
@@ -174,7 +172,7 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 
 CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 {
-	cubeDepthMaps.push_back(move(CubeDepthMapGL(width, height)));
+	cubeDepthMaps.emplace_back(CubeDepthMapGL(width, height));
 	return &cubeDepthMaps.back();
 }
 
@@ -295,9 +293,14 @@ ShaderManager* RendererOpenGL::getShaderManager()
 	return ShaderManagerGL::get();
 }
 
+ShadingModelFactory& RendererOpenGL::getShadingModelFactory()
+{
+	return *shadingModelFactory.get();
+}
+
 SMAA* RendererOpenGL::getSMAA()
 {
-	return smaa;
+	return smaa.get();
 }
 
 TextureManager* RendererOpenGL::getTextureManager()

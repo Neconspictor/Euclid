@@ -39,6 +39,11 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr
 	camera = make_shared<FPCamera>(FPCamera());
 }
 
+PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
+{
+	int i = 0;
+}
+
 SceneNode* PBR_Deferred_MainLoopTask::createShadowScene()
 {
 	nodes.push_back(SceneNode());
@@ -225,9 +230,10 @@ void PBR_Deferred_MainLoopTask::init()
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
-	pbr_deferred.init(renderer, panoramaSky);
+	pbr_deferred = renderer->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
+	//pbr_deferred.init(renderer, panoramaSky);
 
-	CubeMap* background = pbr_deferred.getEnvironmentMap();
+	CubeMap* background = pbr_deferred->getEnvironmentMap();
 
 	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
 	skyBoxShader->setSkyTexture(background);
@@ -328,7 +334,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->enableAlphaBlending(false);
 	renderer->cullFaces(CullingMode::Back);
 
-	pbr_deferred.drawSceneToShadowMap(scene,
+	pbr_deferred->drawSceneToShadowMap(scene,
 		frameTimeElapsed,
 		shadowMap,
 		globalLight,
@@ -346,10 +352,9 @@ void PBR_Deferred_MainLoopTask::run()
 	pbrShader->setShadowMap(shadowMap->getTexture());
 	pbrShader->setCameraPosition(camera->getPosition());
 
-	pbr_deferred.drawSky(renderTargetMultisampled, camera->getPerspProjection(), camera->getView());
+	pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
-	pbr_deferred.drawScene(scene,
-		renderTargetMultisampled,
+	pbr_deferred->drawScene(scene,
 		camera->getPosition(),
 		frameTimeElapsed,
 		shadowMap->getTexture(),
@@ -379,7 +384,7 @@ void PBR_Deferred_MainLoopTask::run()
 		int width = window->getWidth();
 		int height = window->getHeight();
 		renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		screenShader->useTexture(pbr_deferred.getBrdfLookupTexture());
+		screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 	} else

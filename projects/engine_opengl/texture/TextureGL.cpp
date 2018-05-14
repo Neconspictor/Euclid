@@ -867,3 +867,60 @@ void DepthMapGL::release()
 	glDeleteFramebuffers(1, &frameBuffer);
 	frameBuffer = GL_FALSE;
 }
+
+PBR_GBufferGL::PBR_GBufferGL(int width, 
+	int height, 
+	TextureGL albedo, 
+	TextureGL ao, 
+	TextureGL normal, 
+	TextureGL metal, 
+	TextureGL position, 
+	TextureGL roughness) : 
+	PBR_GBuffer(width, height),
+	albedo(albedo),
+	ao(ao),
+	normal(normal),
+	metal(metal),
+	position(position),
+	roughness(roughness)
+{
+}
+
+Texture * PBR_GBufferGL::getAlbedo()
+{
+	return &albedo;
+}
+
+Texture * PBR_GBufferGL::getAO()
+{
+	return &ao;
+}
+
+Texture * PBR_GBufferGL::getNormal()
+{
+	return &normal;
+}
+
+Texture * PBR_GBufferGL::getMetal()
+{
+	return &metal;
+}
+
+Texture * PBR_GBufferGL::getPosition()
+{
+	return &position;
+}
+
+Texture * PBR_GBufferGL::getRoughness()
+{
+	return &roughness;
+}
+
+BaseRenderTargetGl::BaseRenderTargetGl(int width, int height) : BaseRenderTarget(width, height)
+{
+}
+
+BaseRenderTarget * BaseRenderTargetGl::getImpl()
+{
+	return this;
+}

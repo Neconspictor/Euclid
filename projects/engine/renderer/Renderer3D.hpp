@@ -7,6 +7,7 @@
 #include <drawing/ModelDrawer.hpp>
 #include <antialiasing/SMAA.hpp>
 #include <post_processing/blur/GaussianBlur.hpp>
+#include <shading_model/ShadingModelFactory.hpp>
 
 enum class CullingMode
 {
@@ -66,7 +67,7 @@ public:
 
 	virtual EffectLibrary* getEffectLibrary() = 0;
 
-	//virtual ShadingModelFactory* getShadingModelFactory = 0;
+	virtual ShadingModelFactory& getShadingModelFactory() = 0;
 
 	/**
 	 * Provides access to a shader manager that creates and stores shaders

@@ -78,6 +78,7 @@ public:
 
 	void disableCallbacks();
 	void enableCallbacks();
+	void removeCallbacks();
 
 	void frameUpdate();
 

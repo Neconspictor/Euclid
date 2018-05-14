@@ -225,9 +225,10 @@ void PBR_MainLoopTask::init()
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
-	pbr.init(renderer, panoramaSky);
+	pbr = renderer->getShadingModelFactory().create_PBR_Model(panoramaSky);
+	//pbr.init(renderer, panoramaSky);
 
-	CubeMap* background = pbr.getEnvironmentMap();
+	CubeMap* background = pbr->getEnvironmentMap();
 
 	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
 	skyBoxShader->setSkyTexture(background);
@@ -328,7 +329,7 @@ void PBR_MainLoopTask::run()
 	renderer->enableAlphaBlending(false);
 	renderer->cullFaces(CullingMode::Back);
 
-	pbr.drawSceneToShadowMap(scene,
+	pbr->drawSceneToShadowMap(scene,
 		frameTimeElapsed,
 		shadowMap,
 		globalLight,
@@ -346,10 +347,9 @@ void PBR_MainLoopTask::run()
 	pbrShader->setShadowMap(shadowMap->getTexture());
 	pbrShader->setCameraPosition(camera->getPosition());
 
-	pbr.drawSky(renderTargetMultisampled, camera->getPerspProjection(), camera->getView());
+	pbr->drawSky(camera->getPerspProjection(), camera->getView());
 
-	pbr.drawScene(scene,
-		renderTargetMultisampled,
+	pbr->drawScene(scene,
 		camera->getPosition(),
 		frameTimeElapsed,
 		shadowMap->getTexture(),
@@ -379,7 +379,7 @@ void PBR_MainLoopTask::run()
 		int width = window->getWidth();
 		int height = window->getHeight();
 		renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		screenShader->useTexture(pbr.getBrdfLookupTexture());
+		screenShader->useTexture(pbr->getBrdfLookupTexture());
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 	} else

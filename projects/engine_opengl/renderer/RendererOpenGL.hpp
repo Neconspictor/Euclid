@@ -5,6 +5,7 @@
 #include <texture/TextureGL.hpp>
 #include <drawing/ModelDrawerGL.hpp>
 #include <post_processing/blur/GaussianBlurGL.hpp>
+#include <shading_model/ShadingModelFactoryGL.hpp>
 
 class SMAA_GL;
 class RendererOpenGL;
@@ -78,6 +79,8 @@ public:
 
 	ShaderManager* getShaderManager() override;
 
+	ShadingModelFactory& getShadingModelFactory() override;
+
 	virtual SMAA* getSMAA() override;
 	
 	TextureManager* getTextureManager() override;
@@ -129,9 +132,10 @@ protected:
 	std::list<CubeDepthMapGL> cubeDepthMaps;
 	std::list<DepthMapGL> depthMaps;
 	std::unique_ptr<EffectLibraryGL> effectLibrary;
+	std::unique_ptr<ShadingModelFactoryGL> shadingModelFactory;
 	ModelDrawerGL modelDrawer;
 	unsigned int msaaSamples;
 	std::list<CubeRenderTargetGL> cubeRenderTargets;
 	std::list<RenderTargetGL> renderTargets;
-	SMAA_GL* smaa;
+	std::unique_ptr<SMAA_GL> smaa;
 };

@@ -60,6 +60,13 @@ set(
 	#shader/post_processing/blur
     shader/post_processing/blur/GaussianBlurShaderGL.hpp
 	shader/post_processing/blur/GaussianBlurShaderGL.cpp
+	
+	#shading_model
+	shading_model/PBR_DeferredGL.hpp
+	shading_model/PBR_DeferredGL.cpp
+	shading_model/ShadingModelFactoryGL.cpp
+	shading_model/ShadingModelFactoryGL.hpp
+	shading_model/ShadingModelFactoryGL.cpp
  
     
     #texture

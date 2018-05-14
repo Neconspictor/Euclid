@@ -49,98 +49,76 @@ protected:
 	static glm::mat4 backSide;
 };
 
-class CubeRenderTarget
+class BaseRenderTarget
 {
 public:
-
-	explicit CubeRenderTarget(int width, int height)
+	explicit BaseRenderTarget(int width, int height)
 	{
 		this->width = width;
 		this->height = height;
 	};
 
-	virtual ~CubeRenderTarget() {};
+	virtual ~BaseRenderTarget() {};
 
-	inline int getHeight() const
+	int getHeight() const
 	{
 		return height;
 	}
 
+	int getWidth() const
+	{
+		return width;
+	}
+
+	virtual BaseRenderTarget* getImpl() = 0;
+
+protected:
+	int width, height;
+};
+
+class CubeRenderTarget : public BaseRenderTarget
+{
+public:
+
+	explicit CubeRenderTarget(int width, int height) : BaseRenderTarget(width, height){};
+
+	virtual ~CubeRenderTarget() {};
+
 	virtual CubeMap* getCubeMap() = 0;
 
 	inline int getHeightMipLevel(unsigned int mipMapLevel) const {
-		return height * std::pow(0.5, mipMapLevel);
+		return (int)(height * std::pow(0.5, mipMapLevel));
 	}
 
 	virtual CubeMap* createCopy() = 0;
 
 	virtual void resizeForMipMap(unsigned int mipMapLevel) = 0;
 
-	inline int getWidth() const
-	{
-		return width;
-	}
-
 	inline int getWidthMipLevel(unsigned int mipMapLevel) const {
-		return height * std::pow(0.5, mipMapLevel);
+		return (int)(height * std::pow(0.5, mipMapLevel));
 	}
-
-protected:
-	int width, height;
 };
 
-class RenderTarget
+class RenderTarget : public BaseRenderTarget
 {
 public:
 
-	explicit RenderTarget(int width, int height)
-	{
-		this->width = width;
-		this->height = height;
-	};
+	explicit RenderTarget(int width, int height) : BaseRenderTarget(width, height) {};
 
 	virtual ~RenderTarget() {};
-	
-	int getHeight() const
-	{
-		return height;
-	}
-	
+
 	virtual Texture* getTexture() = 0;
-
-	int getWidth() const
-	{
-		return width;
-	}
-
-protected:
-	int width, height;
 };
 
-class CubeDepthMap
+class CubeDepthMap : public BaseRenderTarget
 {
 public:
-	explicit CubeDepthMap(int width, int height)
-	{
-		this->width = width;
-		this->height = height;
-	};
+	explicit CubeDepthMap(int width, int height) : BaseRenderTarget(width, height) {};
 	virtual ~CubeDepthMap() {}
-
-	int getWidth() const
-	{
-		return width;
-	}
-
-	int getHeight() const
-	{
-		return height;
-	}
 
 	virtual CubeMap* getCubeMap() = 0;
 
 protected:
-	int width, height;
 	glm::mat4 matrices[6];
 };
 
@@ -169,4 +147,16 @@ public:
 
 protected:
 	int width, height;
+};
+
+class PBR_GBuffer : public BaseRenderTarget  {
+public:
+	explicit PBR_GBuffer(int width, int height) : BaseRenderTarget(width, height) {}
+
+	virtual Texture* getAlbedo() = 0;
+	virtual Texture* getAO() = 0;
+	virtual Texture* getNormal() = 0;
+	virtual Texture* getMetal() = 0;
+	virtual Texture* getPosition() = 0;
+	virtual Texture* getRoughness() = 0;
 };

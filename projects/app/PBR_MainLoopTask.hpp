@@ -55,7 +55,7 @@ private:
 	std::string originalTitle;
 	Texture* panoramaSky;
 
-	PBR pbr;
+	std::unique_ptr<PBR> pbr;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;

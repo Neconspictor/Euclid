@@ -9,7 +9,10 @@ namespace platform
 	LogMessage LoggingClient::operator()(LogLevel level, const string& file, const string& function, int line) const
 	{
 		// performs return value optimization. No copy will be created
-		if (!server.lock()->isActive(level)) return LogMessage();
+		auto instance = server.lock();
+		if (!instance) return LogMessage();
+
+		if (!instance->isActive(level)) return LogMessage();
 		LogMessage result(level, file,
 			//util::stringFromRegex(function, "(.* .* )(.*\\(.*)", 1), 
 			function,

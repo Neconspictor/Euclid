@@ -87,8 +87,6 @@ public:
 	virtual void setCameraPosition(glm::vec3 position) override;
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
-	virtual RenderTarget* createMultipleRenderTarget(int width, int height) override;
-
 private:
 	PBRShaderGL base;
 };

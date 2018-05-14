@@ -31,6 +31,8 @@ public:
 	PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
+	virtual ~PBR_Deferred_MainLoopTask();
+
 	SceneNode* createShadowScene();
 
 	SceneNode* createCubeReflectionScene();
@@ -55,7 +57,7 @@ private:
 	std::string originalTitle;
 	Texture* panoramaSky;
 
-	PBR_Deferred pbr_deferred;
+	std::unique_ptr<PBR_Deferred> pbr_deferred;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;

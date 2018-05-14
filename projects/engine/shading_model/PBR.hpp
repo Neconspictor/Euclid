@@ -2,20 +2,20 @@
 #define PBR_HPP
 
 #include <texture/Texture.hpp>
-#include <renderer/Renderer3D.hpp>
 #include <model/Vob.hpp>
 #include<shader/PBRShader.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
 #include <sprite/Sprite.hpp>
+#include<memory>
+
+class Renderer3D;
 
 class PBR {
 
 public:
-  PBR();
+  PBR(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR();
-
-  virtual void init(Renderer3D* renderer, Texture* backgroundHDR);
 
   virtual void drawSceneToShadowMap(SceneNode * scene, 
 	  float frameTimeElapsed,
@@ -25,7 +25,6 @@ public:
 	  const glm::mat4& lightProjMatrix);
 
   virtual void drawScene(SceneNode * scene,
-	  RenderTarget* renderTarget,
 	  const glm::vec3& cameraPosition,
 	  float frameTimeElapsed,
 	  Texture* shadowMap,
@@ -35,8 +34,7 @@ public:
 	  const glm::mat4& view,
 	  const glm::mat4& projection);
 
-  virtual void drawSky(RenderTarget* renderTarget,
-	  const glm::mat4& projection, 
+  virtual void drawSky(const glm::mat4& projection, 
 	  const glm::mat4& view);
 
 
@@ -50,6 +48,8 @@ public:
 
 
 protected:
+
+	virtual void init(Texture* backgroundHDR);
 
 	CubeRenderTarget* renderBackgroundToCube(Texture* background);
 	CubeRenderTarget* convolute(CubeMap* source);

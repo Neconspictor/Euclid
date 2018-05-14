@@ -93,8 +93,8 @@ set(
 	shading_model/PBR.cpp
 	shading_model/PBR_Deferred.hpp
 	shading_model/PBR_Deferred.cpp
-	#shading_model/ShadingModelFactory.hpp
-	#shading_model/ShadingModelFactory.cpp
+	shading_model/ShadingModelFactory.hpp
+	shading_model/ShadingModelFactory.cpp
 	
 	
     #scene

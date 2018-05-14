@@ -36,8 +36,6 @@ class PBRShader_Deferred : public PBRShader {
 public:
 	PBRShader_Deferred() : PBRShader() {}
 	virtual ~PBRShader_Deferred() {};
-
-	virtual RenderTarget* createMultipleRenderTarget(int width, int height) = 0;
 };
 
 class PBR_ConvolutionShader : public ShaderConfig

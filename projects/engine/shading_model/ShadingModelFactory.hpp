@@ -1,72 +1,21 @@
 #ifndef SHADING_MODEL_FACTORY_HPP
 #define SHADING_MODEL_FACTORY_HPP
 
-#include <texture/Texture.hpp>
-#include <renderer/Renderer3D.hpp>
-#include <model/Vob.hpp>
-#include<shader/PBRShader.hpp>
-#include <scene/SceneNode.hpp>
-#include <light/Light.hpp>
-#include <sprite/Sprite.hpp>
+#include <shading_model/PBR.hpp>
+#include <shading_model/PBR_Deferred.hpp>
+#include<memory>
 
 class ShadingModelFactory {
 
 public:
-  PBR();
-  virtual ~PBR();
+	ShadingModelFactory(Renderer3D* renderer);
+	virtual ~ShadingModelFactory() {};
 
-  virtual void init(Renderer3D* renderer, Texture* backgroundHDR);
-
-  virtual void drawSceneToShadowMap(SceneNode * scene, 
-	  float frameTimeElapsed,
-	  DepthMap* shadowMap,
-	  const DirectionalLight& light,
-	  const glm::mat4& lightViewMatrix,
-	  const glm::mat4& lightProjMatrix);
-
-  virtual void drawScene(SceneNode * scene,
-	  RenderTarget* renderTarget,
-	  const glm::vec3& cameraPosition,
-	  float frameTimeElapsed,
-	  Texture* shadowMap,
-	  const DirectionalLight& light,
-	  const glm::mat4& lightViewMatrix,
-	  const glm::mat4& lightProjMatrix,
-	  const glm::mat4& view,
-	  const glm::mat4& projection);
-
-  virtual void drawSky(RenderTarget* renderTarget,
-	  const glm::mat4& projection, 
-	  const glm::mat4& view);
-
-
-  virtual CubeMap* getConvolutedEnvironmentMap();
-
-  virtual CubeMap* getEnvironmentMap();
-
-  virtual CubeMap* getPrefilteredEnvironmentMap();
-
-  virtual Texture* getBrdfLookupTexture();
-
+	virtual std::unique_ptr<PBR> create_PBR_Model(Texture* backgroundHDR);
+	virtual std::unique_ptr<PBR_Deferred> create_PBR_Deferred_Model(Texture* backgroundHDR) = 0;
 
 protected:
-
-	CubeRenderTarget* renderBackgroundToCube(Texture* background);
-	CubeRenderTarget* convolute(CubeMap* source);
-	CubeRenderTarget* prefilter(CubeMap* source);
-	RenderTarget* createBRDFlookupTexture();
-
-	CubeRenderTarget* convolutedEnvironmentMap;
-	CubeRenderTarget* prefilterRenderTarget;
-	CubeRenderTarget* environmentMap;
-	RenderTarget* brdfLookupTexture;
-
-
 	Renderer3D* renderer;
-	PBRShader* shader;
-
-	Sprite brdfSprite;
-	Vob skybox;
 };
 
 #endif
