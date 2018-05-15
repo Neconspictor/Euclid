@@ -7,6 +7,7 @@
 class RenderTargetGL;
 class RendererOpenGL;
 class CubeRenderTargetGL;
+class BaseRenderTargetGL;
 
 
 class TextureGL : public Texture
@@ -14,10 +15,12 @@ class TextureGL : public Texture
 public:
 	explicit TextureGL();
 	TextureGL(GLuint texture);
-	TextureGL(const TextureGL& other);
-	TextureGL(TextureGL&& other);
-	TextureGL& operator=(const TextureGL& other);
-	TextureGL& operator=(TextureGL&& other);
+	TextureGL(TextureGL&& o);
+	TextureGL& operator=(TextureGL&& o);
+
+
+	TextureGL(const TextureGL&) = delete;
+	TextureGL& operator=(const TextureGL&) = delete;
 
 	virtual ~TextureGL();
 
@@ -44,6 +47,7 @@ protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend RenderTargetGL;
 	friend CubeRenderTargetGL;
+	friend BaseRenderTargetGL;
 	GLuint textureID;
 };
 
@@ -52,10 +56,11 @@ class CubeMapGL : public CubeMap, public TextureGL
 public:
 	explicit CubeMapGL();
 	CubeMapGL(GLuint cubeMap);
-	CubeMapGL(const CubeMapGL& other);
-	CubeMapGL(CubeMapGL&& other);
-	CubeMapGL& operator=(const CubeMapGL& other);
-	CubeMapGL& operator=(CubeMapGL&& other);
+	CubeMapGL(CubeMapGL&& o) = default;
+	CubeMapGL& operator=(CubeMapGL&& o) = default;
+
+	CubeMapGL(const CubeMapGL& other) = delete;
+	CubeMapGL& operator=(const CubeMapGL& other) = delete;
 
 	virtual ~CubeMapGL();
 
@@ -74,22 +79,40 @@ public:
 	friend CubeRenderTargetGL;
 };
 
-class BaseRenderTargetGl : public BaseRenderTarget {
+class BaseRenderTargetGl : public virtual BaseRenderTarget {
 public:
-	explicit BaseRenderTargetGl(int width, int height);
+	explicit BaseRenderTargetGl(int width, int height, GLuint frameBuffer);
+	BaseRenderTargetGl(BaseRenderTargetGl&& o);
+	BaseRenderTargetGl& operator=(BaseRenderTargetGl&& o);
 
-	virtual BaseRenderTarget* getImpl() override;
+	BaseRenderTargetGl(const BaseRenderTargetGl& other) = delete;
+	BaseRenderTargetGl& operator=(const BaseRenderTargetGl& other) = delete;
+
+	virtual GLuint getFrameBuffer();
+	virtual void setFrameBuffer(GLuint newValue);
+
+protected:
+	GLuint frameBuffer;
 };
 
-class CubeRenderTargetGL : public CubeRenderTarget
+class CubeRenderTargetGL : public CubeRenderTarget, public BaseRenderTargetGl
 {
 public:
 	explicit CubeRenderTargetGL(int width, int height, TextureData data);
+	
+	CubeRenderTargetGL(CubeRenderTargetGL&&) = default;
+	CubeRenderTargetGL& operator=(CubeRenderTargetGL&&) = default;
+
+
+	CubeRenderTargetGL(const CubeRenderTargetGL&) = delete;
+	CubeRenderTargetGL& operator=(const CubeRenderTargetGL&) = delete;
+	
 	virtual ~CubeRenderTargetGL();
+
+
 
 	virtual CubeMap* createCopy() override;
 
-	GLuint getFrameBuffer();
 	GLuint getRenderBuffer();
 	GLuint getCubeMapGL();
 	CubeMap* getCubeMap() override;
@@ -99,7 +122,6 @@ public:
 
 	void resizeForMipMap(unsigned int mipMapLevel) override;
 
-	void setFrameBuffer(GLuint newValue);
 	void setRenderBuffer(GLuint newValue);
 	void setCubeMapResult(GLuint newValue);
 	void setRenderTargetTexture(GLuint newValue);
@@ -107,17 +129,25 @@ public:
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend CubeRenderTargetGL;
-	GLuint frameBuffer;
 	GLuint renderBuffer;
 	GLuint renderTargetTexture;
 	CubeMapGL cubeMapResult;
 	TextureData data;
 };
 
-class RenderTargetGL : public RenderTarget
+class RenderTargetGL : public RenderTarget, public BaseRenderTargetGl
 {
 public:
 	explicit RenderTargetGL(int width, int height);
+
+	RenderTargetGL(RenderTargetGL&& other) = default;
+	RenderTargetGL& operator=(RenderTargetGL&& other) = default;
+
+
+	RenderTargetGL(const RenderTargetGL& other) = delete;
+	RenderTargetGL& operator=(const RenderTargetGL& other) = delete;
+
+
 	virtual ~RenderTargetGL();
 
 	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
@@ -129,34 +159,32 @@ public:
 
 	static RenderTargetGL createVSM(int width, int height);
 
-	GLuint getFrameBuffer();
 	GLuint getRenderBuffer();
 	GLuint getTextureGL();
 	Texture* getTexture() override;
 
 	void release();
 
-	void setFrameBuffer(GLuint newValue);
 	void setRenderBuffer(GLuint newValue);
 	void setTextureBuffer(GLuint newValue);
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend CubeRenderTargetGL;
-	GLuint frameBuffer;
 	TextureGL textureBuffer;
 	GLuint renderBuffer;
 };
 
-class CubeDepthMapGL : public CubeDepthMap, public TextureGL
+class CubeDepthMapGL : public CubeDepthMap, public BaseRenderTargetGl, public TextureGL
 {
 public:
 	explicit CubeDepthMapGL(int width, int height);
-	CubeDepthMapGL(const CubeDepthMapGL& other);
-	CubeDepthMapGL(CubeDepthMapGL&& other);
+	
+	CubeDepthMapGL(CubeDepthMapGL&& other) = default;
+	CubeDepthMapGL& operator=(CubeDepthMapGL&& other) =default;
 
-	CubeDepthMapGL& operator=(const CubeDepthMapGL& other);
-	CubeDepthMapGL& operator=(CubeDepthMapGL&& other);
+	CubeDepthMapGL(const CubeDepthMapGL& other) = delete;
+	CubeDepthMapGL& operator=(const CubeDepthMapGL& other) = delete;
 
 	virtual ~CubeDepthMapGL();
 
@@ -169,18 +197,20 @@ public:
 private:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	CubeMapGL cubeMap;
-	GLuint frameBuffer;
 };
 
 class DepthMapGL : public DepthMap
 {
 public:
 	explicit DepthMapGL(int width, int height);
-	DepthMapGL(const DepthMapGL& other);
-	DepthMapGL(DepthMapGL&& other);
+	
+	DepthMapGL(DepthMapGL&& other) = default;
+	DepthMapGL& operator=(DepthMapGL&& other) = default;
 
-	DepthMapGL& operator=(const DepthMapGL& other);
-	DepthMapGL& operator=(DepthMapGL&& other);
+
+	DepthMapGL(const DepthMapGL& other) = delete;
+	DepthMapGL& operator=(const DepthMapGL& other) = delete;
+	
 
 	virtual ~DepthMapGL();
 
@@ -196,35 +226,31 @@ private:
 	GLuint frameBuffer;
 };
 
-class PBR_GBufferGL : public PBR_GBuffer {
+class PBR_GBufferGL : public PBR_GBuffer, public BaseRenderTargetGl {
 public:
-	explicit PBR_GBufferGL(int width, 
-		int height,
-		TextureGL albedo, 
-		TextureGL ao, 
-		TextureGL normal,
-		TextureGL metal, 
-		TextureGL position, 
-		TextureGL roughness);
+	explicit PBR_GBufferGL(int width, int height);
+	PBR_GBufferGL(PBR_GBufferGL&& o) = default;
+	PBR_GBufferGL& operator=(PBR_GBufferGL&& o) = default;
+
+
+	PBR_GBufferGL(const PBR_GBufferGL&) = delete;
+	PBR_GBufferGL& operator=(const PBR_GBufferGL&) = delete;
+
+	virtual ~PBR_GBufferGL();
 
 	virtual Texture* getAlbedo() override;
-
 	virtual Texture* getAO() override;
-
-	virtual Texture* getNormal() override;
-
 	virtual Texture* getMetal() override;
-
+	virtual Texture* getNormal() override;
 	virtual Texture* getPosition() override;
-
 	virtual Texture* getRoughness() override;
 
 
 protected:
 	TextureGL albedo;
 	TextureGL ao;
-	TextureGL normal;
 	TextureGL metal;
+	TextureGL normal;
 	TextureGL position;
 	TextureGL roughness;
 };

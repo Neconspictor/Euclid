@@ -2,6 +2,8 @@
 #define PBR_DEFERRED_GL_HPP
 
 #include <shading_model/PBR_Deferred.hpp>
+#include <list>
+#include <texture/TextureGL.hpp>
 
 class PBR_DeferredGL : public PBR_Deferred {
 
@@ -9,9 +11,10 @@ public:
 	PBR_DeferredGL(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR_DeferredGL();
 
-  virtual RenderTarget* createMultipleRenderTarget(int width, int height) override;
+  virtual PBR_GBuffer* createMultipleRenderTarget(int width, int height) override;
 
 protected:
+	std::list<PBR_GBufferGL> renderTargets;
 };
 
 #endif

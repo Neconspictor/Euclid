@@ -4,7 +4,11 @@
 #include <glad/glad.h>
 #include <memory>
 #include <platform/logging/LoggingClient.hpp>
-#include <texture/TextureGL.hpp>
+#include <list>
+
+
+class TextureGL;
+class CubeMapGL;
 
 /**
  * A texture manager for an opengl renderer.
@@ -12,6 +16,15 @@
 class TextureManagerGL : public TextureManager
 {
 public:
+
+	TextureManagerGL();
+	TextureManagerGL(TextureManagerGL&&) = default;
+	TextureManagerGL& operator=(TextureManagerGL&&) = default;
+	
+	TextureManagerGL(const TextureManagerGL&) = delete;
+	TextureManagerGL& operator=(const TextureManagerGL&) = delete;
+	
+
 	virtual ~TextureManagerGL() override;
 
 	CubeMapGL* addCubeMap(CubeMapGL cubemap);
@@ -54,8 +67,6 @@ protected:
 
 
 private:
-	// this class is a singleton, thus private constructor
-	TextureManagerGL(); 
 
-	static std::unique_ptr<TextureManagerGL> instance;
+	static TextureManagerGL instance;
 };

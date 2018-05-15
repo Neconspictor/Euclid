@@ -295,7 +295,7 @@ void InputGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
 
 	bool focus = hasFocus == GLFW_TRUE ? true : false;
 
-	assert(input->window != nullptr, "window of input is null! Fix the bug!");
+	assert(input->window != nullptr);
 
 	input->window->setFocus(focus);
 }
@@ -339,7 +339,7 @@ void InputGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
 
-	assert(input->window != nullptr, "window of input is null! Fix the bug!");
+	assert(input->window != nullptr);
 
 	input->window->setSize(width, height);
 }

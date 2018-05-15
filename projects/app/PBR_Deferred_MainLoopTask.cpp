@@ -32,7 +32,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr
 	this->renderer = renderer;
 	this->engine = engine;
 	originalTitle = window->getTitle();
-	logClient.setPrefix("[MainLoop]");
+	logClient.setPrefix("[PBR_Deferred_MainLoopTask]");
 
 	mixValue = 0.2f;
 
@@ -90,6 +90,9 @@ void PBR_Deferred_MainLoopTask::init()
 
 	window->activate();
 
+	int windowWidth = window->getWidth();
+	int windowHeight = window->getHeight();
+
 	ShaderManager* shaderManager = renderer->getShaderManager();
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
@@ -103,7 +106,7 @@ void PBR_Deferred_MainLoopTask::init()
 	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
 	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
 	camera->setUp(vec3(0.0f, 1.0f, 0.0f));
-	camera->setAspectRatio((float)window->getWidth() / (float)window->getHeight());
+	camera->setAspectRatio((float)windowWidth / (float)windowHeight);
 
 	Frustum frustum = camera->getFrustum(Perspective);
 	frustum.left = -10.0f;
@@ -238,6 +241,8 @@ void PBR_Deferred_MainLoopTask::init()
 	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
+
+	PBR_GBuffer*  pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
 }
 
 void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)

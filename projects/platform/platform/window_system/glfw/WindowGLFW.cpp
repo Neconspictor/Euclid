@@ -256,7 +256,6 @@ void WindowGLFW::createOpenGLWindow()
 		throw runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!");
 	}
 
-	int top, left, bottom, right;
 	//glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
 
 	//glfwSetWindowPos(window, this->posX + left, this->posY + top);

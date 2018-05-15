@@ -9,7 +9,7 @@ public:
 	PBR_Deferred(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR_Deferred();
 
-  virtual RenderTarget* createMultipleRenderTarget(int width, int height) = 0;
+  virtual PBR_GBuffer* createMultipleRenderTarget(int width, int height) = 0;
 };
 
 #endif

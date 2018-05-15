@@ -27,7 +27,7 @@ size_t MemoryManager::freeSpace() const
 void* MemoryManager::getMemory(size_t byteCount)
 {
 	assert(!mShutdown);
-	void* result = platform::util::add(memory, mSize);
+	void* result = platform::util::add(memory, (int)mSize);
 	mSize += byteCount;
 	return result;
 }

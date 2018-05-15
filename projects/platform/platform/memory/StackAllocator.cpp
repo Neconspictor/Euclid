@@ -33,7 +33,7 @@ void* StackAllocator::alloc(size_t size, uint64_t alignment)
 	if (usedMemory + adjustment + size > this->size)
 		return nullptr;
 
-	void* aligned_address = platform::util::add(currentPos, adjustment);
+	void* aligned_address = platform::util::add(currentPos, (int)adjustment);
 
 	//Add Allocation Header
 	AllocationHeader* header = (AllocationHeader*)(platform::util::subtract(aligned_address, sizeof(AllocationHeader)));
@@ -46,7 +46,7 @@ void* StackAllocator::alloc(size_t size, uint64_t alignment)
 	prevPosition = aligned_address;
 #endif
 
-	currentPos = platform::util::add(aligned_address, size);
+	currentPos = platform::util::add(aligned_address, (int)size);
 
 	usedMemory += size + adjustment;
 	++numAllocations;
@@ -63,7 +63,7 @@ void StackAllocator::dealloc(void* p)
 
 	usedMemory -= (size_t)currentPos - (size_t)p + header->adjustment;
 
-	currentPos = platform::util::subtract(p, header->adjustment);
+	currentPos = platform::util::subtract(p, (int)header->adjustment);
 
 #if _DEBUG
 	prevPosition = header->prev_address;

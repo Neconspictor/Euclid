@@ -12,10 +12,10 @@ GLuint TextureGL::rg_float_resolutions[] = { GL_RG8, GL_RG16F, GL_RG32F };
 
 CubeMapGL::CubeMapGL() : TextureGL() {}
 
-CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap)
-{}
+CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
 
-CubeMapGL::CubeMapGL(const CubeMapGL& other) : TextureGL(other)
+
+/*CubeMapGL::CubeMapGL(const CubeMapGL& other) : TextureGL(other)
 {}
 
 CubeMapGL::CubeMapGL(CubeMapGL&& other) : TextureGL(other)
@@ -33,7 +33,7 @@ CubeMapGL& CubeMapGL::operator=(CubeMapGL&& other)
 	if (this == &other) return *this;
 	TextureGL::operator=(other);
 	return *this;
-}
+}*/
 
 CubeMapGL::~CubeMapGL()
 {
@@ -85,7 +85,19 @@ TextureGL::TextureGL(GLuint texture) : Texture(), textureID(texture)
 {
 }
 
-TextureGL::TextureGL(const TextureGL& other)
+TextureGL::TextureGL(TextureGL && o) : textureID(GL_FALSE)
+{
+	*this = std::move(o);
+}
+
+TextureGL & TextureGL::operator=(TextureGL && o)
+{
+	if (this == &o) return *this;
+	swap(textureID, o.textureID);
+	return *this;
+}
+
+/*TextureGL::TextureGL(const TextureGL& other)
 {
 	textureID = other.textureID;
 }
@@ -95,7 +107,7 @@ TextureGL::TextureGL(TextureGL&& other)
 	textureID = move(other.textureID);
 }
 
-TextureGL& TextureGL::operator=(const TextureGL& other)
+/*TextureGL& TextureGL::operator=(const TextureGL& other)
 {
 	if (this == &other) return *this;
 	this->textureID = other.textureID;
@@ -107,7 +119,7 @@ TextureGL& TextureGL::operator=(TextureGL&& other)
 	if (this == &other) return *this;
 	this->textureID = move(other.textureID);
 	return *this;
-}
+}*/
 
 TextureGL::~TextureGL()
 {
@@ -242,11 +254,46 @@ GLuint TextureGL::getType(bool isFloatData)
 }
 
 
+BaseRenderTargetGl::BaseRenderTargetGl(int width, int height, GLuint frameBuffer)
+	: BaseRenderTarget(width, height), frameBuffer(frameBuffer)
+{
+}
+
+BaseRenderTargetGl::BaseRenderTargetGl(BaseRenderTargetGl && o) : 
+	BaseRenderTarget(move(o)),
+	frameBuffer(GL_FALSE)
+{
+	*this = move(o);
+}
+
+BaseRenderTargetGl & BaseRenderTargetGl::operator=(BaseRenderTargetGl && o)
+{
+	if (this == &o) return *this;
+	BaseRenderTarget::operator=(move(o)); // call base class move ao
+	swap(frameBuffer, o.frameBuffer);
+	return *this;
+}
+
+GLuint BaseRenderTargetGl::getFrameBuffer()
+{
+	return frameBuffer;
+}
+
+void BaseRenderTargetGl::setFrameBuffer(GLuint newValue)
+{
+	frameBuffer = newValue;
+}
 
 
 
-CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : CubeRenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE),
-data(data)
+
+
+CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height, GL_FALSE),
+	CubeRenderTarget(width, height), 
+	renderBuffer(GL_FALSE),
+	data(data)
 {
 	// generate framebuffer and renderbuffer with a depth component
 	glGenFramebuffers(1, &frameBuffer);
@@ -352,11 +399,6 @@ CubeMap * CubeRenderTargetGL::createCopy()
 	return TextureManagerGL::get()->addCubeMap(move(result));
 }
 
-GLuint CubeRenderTargetGL::getFrameBuffer()
-{
-	return frameBuffer;
-}
-
 GLuint CubeRenderTargetGL::getRenderBuffer()
 {
 	return renderBuffer;
@@ -400,17 +442,12 @@ void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 
-	unsigned int mipWidth = width * std::pow(0.5, mipMapLevel);
-	unsigned int mipHeight = height * std::pow(0.5, mipMapLevel);
+	unsigned int mipWidth = (unsigned int)(width * std::pow(0.5, mipMapLevel));
+	unsigned int mipHeight = (unsigned int)(height * std::pow(0.5, mipMapLevel));
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void CubeRenderTargetGL::setFrameBuffer(GLuint newValue)
-{
-	frameBuffer = newValue;
 }
 
 void CubeRenderTargetGL::setRenderBuffer(GLuint newValue)
@@ -431,7 +468,11 @@ void CubeRenderTargetGL::setRenderTargetTexture(GLuint newValue)
 
 
 
-RenderTargetGL::RenderTargetGL(int width, int height) : RenderTarget(width, height), frameBuffer(GL_FALSE), renderBuffer(GL_FALSE)
+RenderTargetGL::RenderTargetGL(int width, int height) : 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height, GL_FALSE),
+	RenderTarget(width, height),
+	renderBuffer(GL_FALSE)
 {
 }
 
@@ -503,7 +544,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	return result;
+	return move(result);
 }
 
 RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
@@ -572,7 +613,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	return result;
+	return move(result);
 }
 
 RenderTargetGL RenderTargetGL::createVSM(int width, int height)
@@ -628,12 +669,7 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	return result;
-}
-
-GLuint RenderTargetGL::getFrameBuffer()
-{
-	return frameBuffer;
+	return move(result);
 }
 
 GLuint RenderTargetGL::getRenderBuffer()
@@ -661,11 +697,6 @@ void RenderTargetGL::release()
 	renderBuffer = GL_FALSE;
 }
 
-void RenderTargetGL::setFrameBuffer(GLuint newValue)
-{
-	frameBuffer = newValue;
-}
-
 void RenderTargetGL::setRenderBuffer(GLuint newValue)
 {
 	renderBuffer = newValue;
@@ -676,8 +707,10 @@ void RenderTargetGL::setTextureBuffer(GLuint newValue)
 	textureBuffer.setTexture(newValue);
 }
 
-CubeDepthMapGL::CubeDepthMapGL(int width, int height) : CubeDepthMap(width, height), 
-frameBuffer(GL_FALSE)
+CubeDepthMapGL::CubeDepthMapGL(int width, int height) : 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height, GL_FALSE),
+	CubeDepthMap(width, height)
 {
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -711,13 +744,23 @@ frameBuffer(GL_FALSE)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : TextureGL(other), CubeDepthMap(other), cubeMap(other.cubeMap),
-frameBuffer(other.frameBuffer)
+/*CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height),
+	TextureGL(other), 
+	CubeDepthMap(other), 
+	cubeMap(other.cubeMap),
+	frameBuffer(other.frameBuffer)
 {
 }
 
-CubeDepthMapGL::CubeDepthMapGL(CubeDepthMapGL&& other) : TextureGL(other), CubeDepthMap(other), cubeMap(other.cubeMap),
-frameBuffer(other.frameBuffer)
+CubeDepthMapGL::CubeDepthMapGL(CubeDepthMapGL&& other) : 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height),
+	TextureGL(other), 
+	CubeDepthMap(other), 
+	cubeMap(other.cubeMap),
+	frameBuffer(other.frameBuffer)
 {
 	other.frameBuffer = GL_FALSE;
 }
@@ -741,7 +784,7 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
 	this->cubeMap = other.cubeMap;
 	other.frameBuffer = GL_FALSE;
 	return *this;
-}
+}*/
 
 CubeDepthMapGL::~CubeDepthMapGL()
 {}
@@ -807,7 +850,7 @@ DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-DepthMapGL::DepthMapGL(const DepthMapGL& other) : DepthMap(other),
+/*DepthMapGL::DepthMapGL(const DepthMapGL& other) : DepthMap(other),
 	texture(other.texture), frameBuffer(other.frameBuffer)
 {
 }
@@ -840,7 +883,7 @@ DepthMapGL& DepthMapGL::operator=(DepthMapGL&& other)
 	frameBuffer = move(other.frameBuffer);
 	other.frameBuffer = GL_FALSE;
 	return *this;
-}
+}*/
 
 DepthMapGL::~DepthMapGL()
 {
@@ -868,21 +911,108 @@ void DepthMapGL::release()
 	frameBuffer = GL_FALSE;
 }
 
-PBR_GBufferGL::PBR_GBufferGL(int width, 
-	int height, 
-	TextureGL albedo, 
-	TextureGL ao, 
-	TextureGL normal, 
-	TextureGL metal, 
-	TextureGL position, 
-	TextureGL roughness) : 
+PBR_GBufferGL::PBR_GBufferGL(int width, int height) 
+	: 
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGl(width, height, GL_FALSE),
 	PBR_GBuffer(width, height),
-	albedo(albedo),
-	ao(ao),
-	normal(normal),
-	metal(metal),
-	position(position),
-	roughness(roughness)
+	albedo(GL_FALSE),
+	ao(GL_FALSE),
+	normal(GL_FALSE),
+	metal(GL_FALSE),
+	position(GL_FALSE),
+	roughness(GL_FALSE)
+{
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	//unsigned int gPosition, gNormal, gAlbedo;
+	unsigned int tempTexture;
+
+	// albedo
+	glGenTextures(1, &tempTexture);
+	albedo.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempTexture, 0);
+
+	// ao
+	glGenTextures(1, &tempTexture);
+	ao.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tempTexture, 0);
+
+	// normal
+	glGenTextures(1, &tempTexture);
+	normal.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
+
+	// metal
+	glGenTextures(1, &tempTexture);
+	metal.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);
+
+	// position
+	glGenTextures(1, &tempTexture);
+	position.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tempTexture, 0);
+
+	// roughness
+	glGenTextures(1, &tempTexture);
+	roughness.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, tempTexture, 0);
+
+
+	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+	unsigned int attachments[6] = { GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT1, 
+		GL_COLOR_ATTACHMENT2, 
+		GL_COLOR_ATTACHMENT3, 
+		GL_COLOR_ATTACHMENT4, 
+		GL_COLOR_ATTACHMENT5 };
+
+	glDrawBuffers(6, attachments);
+
+	// create and attach depth buffer (renderbuffer)
+	unsigned int rboDepth;
+	glGenRenderbuffers(1, &rboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+	// finally check if framebuffer is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!");
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+PBR_GBufferGL::~PBR_GBufferGL()
 {
 }
 
@@ -914,13 +1044,4 @@ Texture * PBR_GBufferGL::getPosition()
 Texture * PBR_GBufferGL::getRoughness()
 {
 	return &roughness;
-}
-
-BaseRenderTargetGl::BaseRenderTargetGl(int width, int height) : BaseRenderTarget(width, height)
-{
-}
-
-BaseRenderTarget * BaseRenderTargetGl::getImpl()
-{
-	return this;
 }

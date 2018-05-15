@@ -11,8 +11,8 @@
 using namespace std;
 using namespace platform;
 
-unique_ptr<TextureManagerGL> TextureManagerGL::instance = make_unique<TextureManagerGL>(TextureManagerGL());
 
+TextureManagerGL TextureManagerGL::instance;
 
 TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
 {
@@ -25,7 +25,7 @@ void TextureManagerGL::releaseTexture(Texture * tex)
 	TextureGL* gl = dynamic_cast<TextureGL*>(tex);
 	if (!gl) return;
 
-	for (auto it = textures.begin(); it != textures.end(); ++it) {
+	for (auto&& it = textures.begin(); it != textures.end(); ++it) {
 		if (&(*it) == tex) {
 			GLuint id = it->getTexture();
 			glDeleteTextures(1, &id);
@@ -52,7 +52,7 @@ TextureManagerGL::~TextureManagerGL()
 
 CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
 {
-	cubeMaps.push_back(move(cubemap));
+	cubeMaps.emplace_back(move(cubemap));
 	return &cubeMaps.back();
 }
 
@@ -108,7 +108,7 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 
 TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID)
 {
-	textures.push_back(TextureGL(textureID));
+	textures.emplace_back(move(TextureGL(textureID)));
 	TextureGL* pointer = &textures.back();
 	textureLookupTable.insert(pair<string, TextureGL*>(localPathFileName, pointer));
 	return pointer;
@@ -291,5 +291,5 @@ void TextureManagerGL::loadImages(const string& imageFolder)
 
 TextureManagerGL* TextureManagerGL::get()
 {
-	return instance.get();
+	return &instance;
 }

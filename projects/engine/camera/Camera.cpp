@@ -34,7 +34,7 @@ void Camera::onScroll(double xOffset, double yOffset)
 {
 	// zoom
 	if (fov >= 1.0f && fov <= 45.0f)
-		fov -= yOffset;
+		fov -= (float)yOffset;
 	if (fov <= 1.0f)
 		fov = 1.0f;
 	if (fov >= 45.0f)

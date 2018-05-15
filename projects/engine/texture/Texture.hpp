@@ -60,23 +60,21 @@ public:
 
 	virtual ~BaseRenderTarget() {};
 
-	int getHeight() const
+	virtual int getHeight() const
 	{
 		return height;
 	}
 
-	int getWidth() const
+	virtual int getWidth() const
 	{
 		return width;
 	}
-
-	virtual BaseRenderTarget* getImpl() = 0;
 
 protected:
 	int width, height;
 };
 
-class CubeRenderTarget : public BaseRenderTarget
+class CubeRenderTarget : public virtual BaseRenderTarget
 {
 public:
 
@@ -99,7 +97,7 @@ public:
 	}
 };
 
-class RenderTarget : public BaseRenderTarget
+class RenderTarget : public virtual BaseRenderTarget
 {
 public:
 
@@ -110,7 +108,7 @@ public:
 	virtual Texture* getTexture() = 0;
 };
 
-class CubeDepthMap : public BaseRenderTarget
+class CubeDepthMap : public virtual BaseRenderTarget
 {
 public:
 	explicit CubeDepthMap(int width, int height) : BaseRenderTarget(width, height) {};
@@ -149,7 +147,7 @@ protected:
 	int width, height;
 };
 
-class PBR_GBuffer : public BaseRenderTarget  {
+class PBR_GBuffer : public virtual BaseRenderTarget  {
 public:
 	explicit PBR_GBuffer(int width, int height) : BaseRenderTarget(width, height) {}
 

@@ -32,11 +32,11 @@ Model* ModelManagerGL::getSkyBox()
 	auto it = modelTable.find(SKYBOX_MODEL_NAME);
 	if (it == modelTable.end())
 	{
-		size_t vertexCount = sizeof(SampleMeshes::skyBoxVertices);
-		size_t indexCount = sizeof(SampleMeshes::skyBoxIndices);
+		int vertexCount = (int)sizeof(SampleMeshes::skyBoxVertices);
+		int indexCount = (int)sizeof(SampleMeshes::skyBoxIndices);
 
 		unique_ptr<MeshGL> mesh = MeshFactoryGL::createPosition((const Vertex*)SampleMeshes::skyBoxVertices, vertexCount,
-			SampleMeshes::skyBoxIndices, indexCount);
+			SampleMeshes::skyBoxIndices, (int)indexCount);
 		
 		vector<unique_ptr<MeshGL>> meshes;
 		meshes.push_back(move(mesh));
@@ -101,8 +101,8 @@ Model* ModelManagerGL::getSprite()
 	indices.push_back(2);
 	indices.push_back(3);
 
-	unique_ptr<MeshGL> mesh = MeshFactoryGL::createPositionUV(vertices.data(), vertices.size(), 
-										indices.data(), indices.size());
+	unique_ptr<MeshGL> mesh = MeshFactoryGL::createPositionUV(vertices.data(), (int)vertices.size(), 
+										indices.data(), (int)indices.size());
 
 
 	vector<unique_ptr<MeshGL>> meshes;
@@ -191,8 +191,8 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 		indices.push_back(SampleMeshes::cubePositionNormalTexIndices[i]);
 	}
 
-	unique_ptr<MeshGL> mesh = MeshFactoryGL::create(vertices.data(), vertices.size(),
-										indices.data(), indices.size());
+	unique_ptr<MeshGL> mesh = MeshFactoryGL::create(vertices.data(), (int)vertices.size(),
+										indices.data(), (int)indices.size());
 
 
 	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh->getMaterial().get());

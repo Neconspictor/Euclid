@@ -53,7 +53,7 @@ void* FreeListAllocator::alloc(size_t size, uint64_t alignment)
 		else
 		{
 			//Else create a new FreeBlock containing remaining memory
-			FreeBlock* next_block = (FreeBlock*)(platform::util::add(free_block, total_size));
+			FreeBlock* next_block = (FreeBlock*)(platform::util::add(free_block, (int)total_size));
 			next_block->size = free_block->size - total_size;
 			next_block->next = free_block->next;
 

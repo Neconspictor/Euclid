@@ -36,8 +36,8 @@ void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
 	// horizontal pass
 	sprite.setTexture(glTarget->getTexture());
 	horizontalShader->setTexture(sprite.getTexture());
-	horizontalShader->setImageHeight(glTarget->getHeight());
-	horizontalShader->setImageWidth(glTarget->getWidth());
+	horizontalShader->setImageHeight((float)glTarget->getHeight());
+	horizontalShader->setImageWidth((float)glTarget->getWidth());
 	modelDrawer->draw(&sprite, Shaders::GaussianBlurHorizontal);
 	renderer->blitRenderTargets(cache, glTarget);
 
@@ -46,8 +46,8 @@ void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
 	renderer->beginScene();
 	sprite.setTexture(glTarget->getTexture());
 	verticalShader->setTexture(sprite.getTexture());
-	verticalShader->setImageHeight(glTarget->getHeight());
-	verticalShader->setImageWidth(glTarget->getWidth());
+	verticalShader->setImageHeight((float)glTarget->getHeight());
+	verticalShader->setImageWidth((float)glTarget->getWidth());
 	modelDrawer->draw(&sprite, Shaders::GaussianBlurVertical);
 	renderer->blitRenderTargets(cache, glTarget);
 }

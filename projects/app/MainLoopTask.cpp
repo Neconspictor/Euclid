@@ -60,7 +60,7 @@ SceneNode* MainLoopTask::createAsteriodField()
 	asteriodSize = 1000;
 	asteriodTrafos = new mat4[asteriodSize];
 
-	srand(chrono::system_clock::now().time_since_epoch().count()); // initialize random seed	
+	srand((unsigned int)chrono::system_clock::now().time_since_epoch().count()); // initialize random seed	
 	float radius = 50.0;
 	float offset = 2.5f;
 	for (uint i = 0; i < asteriodSize; i++)
@@ -76,10 +76,10 @@ SceneNode* MainLoopTask::createAsteriodField()
 		float z = cos(angle) * radius + displacement;
 		model = translate(model, vec3(x, y, z));
 		// 2. Scale: Scale between 0.05 and 0.25f
-		float scale = (rand() % 20) / 100.0f + 0.05;
+		float scale = (float)(rand() % 20) / 100.0f + 0.05f;
 		model = glm::scale(model, vec3(scale));
 		// 3. Rotation: add random rotation around a (semi)randomly picked rotation axis vector
-		float rotAngle = (rand() % 360);
+		float rotAngle = (float)(rand() % 360);
 		model = glm::rotate(model, rotAngle, vec3(0.4f, 0.6f, 0.8f));
 		// 4. Now add to list of matrices
 		asteriodTrafos[i] = model;

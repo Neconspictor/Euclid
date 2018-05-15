@@ -334,7 +334,7 @@ void PBR_BrdfPrecomputeShaderGL::update(const MeshGL & mesh, const TransformData
 
 	transform = projection * view * model;
 
-	float test = 6.6;
+	float test = 6.6f;
 
 	//attributes.setData("transform", &transform);
 	attributes.setData("test", &test);

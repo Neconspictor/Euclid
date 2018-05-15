@@ -9,7 +9,7 @@ PoolAllocator::PoolAllocator(size_t objectSize, uint64_t objectAlignment, size_t
 	//Calculate adjustment needed to keep object correctly aligned
 	uint64_t adjustment = alloc::alignForwardAdjustment(mem, objectAlignment);
 
-	freeList = (void**)platform::util::add(mem, adjustment);
+	freeList = (void**)platform::util::add(mem, (int)adjustment);
 
 	size_t numObjects = (size - adjustment) / objectSize;
 
@@ -18,7 +18,7 @@ PoolAllocator::PoolAllocator(size_t objectSize, uint64_t objectAlignment, size_t
 	//Initialize free blocks list
 	for (size_t i = 0; i < numObjects - 1; i++)
 	{
-		*p = platform::util::add(p, objectSize);
+		*p = platform::util::add(p, (int)objectSize);
 		p = (void**)*p;
 	}
 

@@ -119,8 +119,8 @@ ShaderAttributeCollection::ShaderAttributeKey ShaderAttributeCollection::create(
 {
 	vec.push_back({type, data, move(uniformName), active});
 	auto result = &vec.back();
-	lookup.insert({ result->getName(), vec.size() - 1 });
-	auto val = vec.size() - 1;
+	lookup.insert({ result->getName(), (int)vec.size() - 1 });
+	int val = (int)vec.size() - 1;
 	return val;
 }
 
@@ -154,7 +154,7 @@ void ShaderAttributeCollection::setData(const string& uniformName, const void* d
 
 int ShaderAttributeCollection::size() const
 {
-	return vec.size();
+	return (int)vec.size();
 }
 
 ShaderConfigGL::ShaderConfigGL(){}

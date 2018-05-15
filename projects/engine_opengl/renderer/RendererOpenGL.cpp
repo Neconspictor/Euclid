@@ -172,7 +172,7 @@ void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
 
 CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 {
-	cubeDepthMaps.emplace_back(CubeDepthMapGL(width, height));
+	cubeDepthMaps.emplace_back(move(CubeDepthMapGL(width, height)));
 	return &cubeDepthMaps.back();
 }
 
