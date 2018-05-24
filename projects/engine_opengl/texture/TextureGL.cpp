@@ -254,19 +254,19 @@ GLuint TextureGL::getType(bool isFloatData)
 }
 
 
-BaseRenderTargetGl::BaseRenderTargetGl(int width, int height, GLuint frameBuffer)
+BaseRenderTargetGL::BaseRenderTargetGL(int width, int height, GLuint frameBuffer)
 	: BaseRenderTarget(width, height), frameBuffer(frameBuffer)
 {
 }
 
-BaseRenderTargetGl::BaseRenderTargetGl(BaseRenderTargetGl && o) : 
+BaseRenderTargetGL::BaseRenderTargetGL(BaseRenderTargetGL && o) :
 	BaseRenderTarget(move(o)),
 	frameBuffer(GL_FALSE)
 {
 	*this = move(o);
 }
 
-BaseRenderTargetGl & BaseRenderTargetGl::operator=(BaseRenderTargetGl && o)
+BaseRenderTargetGL & BaseRenderTargetGL::operator=(BaseRenderTargetGL && o)
 {
 	if (this == &o) return *this;
 	BaseRenderTarget::operator=(move(o)); // call base class move ao
@@ -274,12 +274,12 @@ BaseRenderTargetGl & BaseRenderTargetGl::operator=(BaseRenderTargetGl && o)
 	return *this;
 }
 
-GLuint BaseRenderTargetGl::getFrameBuffer()
+GLuint BaseRenderTargetGL::getFrameBuffer()
 {
 	return frameBuffer;
 }
 
-void BaseRenderTargetGl::setFrameBuffer(GLuint newValue)
+void BaseRenderTargetGL::setFrameBuffer(GLuint newValue)
 {
 	frameBuffer = newValue;
 }
@@ -290,7 +290,7 @@ void BaseRenderTargetGl::setFrameBuffer(GLuint newValue)
 
 CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : 
 	BaseRenderTarget(width, height),
-	BaseRenderTargetGl(width, height, GL_FALSE),
+	BaseRenderTargetGL(width, height, GL_FALSE),
 	CubeRenderTarget(width, height), 
 	renderBuffer(GL_FALSE),
 	data(data)
@@ -470,7 +470,7 @@ void CubeRenderTargetGL::setRenderTargetTexture(GLuint newValue)
 
 RenderTargetGL::RenderTargetGL(int width, int height) : 
 	BaseRenderTarget(width, height),
-	BaseRenderTargetGl(width, height, GL_FALSE),
+	BaseRenderTargetGL(width, height, GL_FALSE),
 	RenderTarget(width, height),
 	renderBuffer(GL_FALSE)
 {
@@ -709,7 +709,7 @@ void RenderTargetGL::setTextureBuffer(GLuint newValue)
 
 CubeDepthMapGL::CubeDepthMapGL(int width, int height) : 
 	BaseRenderTarget(width, height),
-	BaseRenderTargetGl(width, height, GL_FALSE),
+	BaseRenderTargetGL(width, height, GL_FALSE),
 	CubeDepthMap(width, height)
 {
 	GLuint texture;
@@ -914,7 +914,7 @@ void DepthMapGL::release()
 PBR_GBufferGL::PBR_GBufferGL(int width, int height) 
 	: 
 	BaseRenderTarget(width, height),
-	BaseRenderTargetGl(width, height, GL_FALSE),
+	BaseRenderTargetGL(width, height, GL_FALSE),
 	PBR_GBuffer(width, height),
 	albedo(GL_FALSE),
 	ao(GL_FALSE),
@@ -933,7 +933,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	albedo.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempTexture, 0);
@@ -943,27 +943,27 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	ao.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tempTexture, 0);
-
-	// normal
-	glGenTextures(1, &tempTexture);
-	normal.setTexture(tempTexture);
-
-	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
 
 	// metal
 	glGenTextures(1, &tempTexture);
 	metal.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
+
+	// normal
+	glGenTextures(1, &tempTexture);
+	normal.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);
@@ -973,31 +973,42 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	position.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tempTexture, 0);
+
+	// position light
+	glGenTextures(1, &tempTexture);
+	positionLight.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, tempTexture, 0);
 
 	// roughness
 	glGenTextures(1, &tempTexture);
 	roughness.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, tempTexture, 0);
 
 
 	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-	unsigned int attachments[6] = { GL_COLOR_ATTACHMENT0, 
+	unsigned int attachments[7] = { GL_COLOR_ATTACHMENT0, 
 		GL_COLOR_ATTACHMENT1, 
 		GL_COLOR_ATTACHMENT2, 
 		GL_COLOR_ATTACHMENT3, 
 		GL_COLOR_ATTACHMENT4, 
-		GL_COLOR_ATTACHMENT5 };
+		GL_COLOR_ATTACHMENT5,
+		GL_COLOR_ATTACHMENT6 };
 
-	glDrawBuffers(6, attachments);
+	glDrawBuffers(7, attachments);
 
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;

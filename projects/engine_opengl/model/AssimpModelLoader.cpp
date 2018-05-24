@@ -25,10 +25,13 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate 
-		|aiProcess_FlipUVs
+	const aiScene* scene = importer.ReadFile(filePath, 
+		aiProcess_Triangulate 
+		//| aiProcess_FlipUVs
 		| aiProcess_GenSmoothNormals 
-		| aiProcess_CalcTangentSpace);
+		| aiProcess_CalcTangentSpace
+		| aiProcessPreset_TargetRealtime_MaxQuality);
+
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{

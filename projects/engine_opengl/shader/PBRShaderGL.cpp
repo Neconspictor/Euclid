@@ -16,6 +16,7 @@ PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nul
 	attributes.create(types::MAT4, &transform, "transform", true);
 	attributes.create(types::MAT4, &modelMatrix, "model", true);
 	attributes.create(types::MAT4, nullptr, "view", true);
+	attributes.create(types::MAT4, nullptr, "inverseViewMatrix", true);
 	attributes.create(types::MAT4, &modelView, "modelView", true);
 	attributes.create(types::MAT3, &normalMatrix, "normalMatrix", true);
 
@@ -27,7 +28,7 @@ PBRShaderGL::PBRShaderGL() : lightColor(1, 1, 1), shadowMap(nullptr), skybox(nul
 	);
 
 	attributes.create(types::MAT4, &biasMatrix, "biasMatrix", true);
-	attributes.create(types::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
+	attributes.create(types::MAT4, &lightSpaceMatrix, "eyeToLightSpaceMatrix", true);
 	attributes.create(types::MAT4, &lightProjMatrix, "lightProjMatrix", true);
 	attributes.create(types::MAT4, &lightViewMatrix, "lightViewMatrix", true);
 
@@ -142,6 +143,8 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 
 	modelMatrix = model;
 
+	inverseView = inverse(view);
+
 	transform = projection * view * model;
 	modelView = view * model;
 	normalMatrix = transpose(inverse(mat3(modelView)));
@@ -149,6 +152,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	//attributes.setData("projection", data.projection);
 	attributes.setData("model", &modelMatrix, nullptr, true);
 	attributes.setData("view", data.view);
+	attributes.setData("inverseViewMatrix", &inverseView);
 	attributes.setData("transform", &transform);
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
@@ -176,83 +180,202 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	//attributes.setData("brdfLUT", white, white);
 }
 
-PBRShader_DeferredGL::PBRShader_DeferredGL()
+PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Deferred_Lighting(), ShaderConfigGL()
+{
+	using types = ShaderAttributeType;
+
+	attributes.create(types::MAT4, &transform, "transform", true);
+	attributes.create(types::MAT4, &eyeToLight, "eyeToLight", true);
+	attributes.create(types::MAT4, &worldToLight, "worldToLight", true);
+	attributes.create(types::MAT4, &inverseViewFromGPass, "inverseViewMatrix_GPass", true);
+	attributes.create(types::MAT4, &myView, "viewGPass", true);
+
+	dirWorldToLight.color = { 0.5f, 0.5f, 0.5f };
+	dirWorldToLight.direction = { 0,1,0 };
+
+	attributes.create(types::VEC3, nullptr, "dirLight.directionEye");
+	attributes.create(types::VEC4, nullptr, "dirLight.color");
+
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.aoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.albedoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.metallicMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.normalEyeMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.positionEyeMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.roughnessMap");
+
+	attributes.create(types::TEXTURE2D, nullptr, "shadowMap");
+
+	attributes.create(types::CUBE_MAP, nullptr, "irradianceMap");
+	attributes.create(types::CUBE_MAP, nullptr, "prefilterMap");
+	attributes.create(types::TEXTURE2D, nullptr, "brdfLUT");
+
+	biasMatrix = mat4(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+		);
+}
+
+PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
 {
 }
 
-PBRShader_DeferredGL::~PBRShader_DeferredGL()
+void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(Texture * brdfLUT)
+{
+	this->brdfLUT = dynamic_cast<TextureGL*>(brdfLUT);
+	attributes.setData("brdfLUT", this->brdfLUT);
+}
+
+void PBRShader_Deferred_LightingGL::setGBuffer(PBR_GBuffer * gBuffer)
+{
+	this->gBuffer = gBuffer;
+}
+
+void PBRShader_Deferred_LightingGL::setInverseViewFromGPass(glm::mat4 inverseView)
+{
+	this->inverseViewFromGPass = move(inverseView);
+	attributes.setData("inverseViewMatrix_GPass", &this->inverseViewFromGPass);
+}
+
+void PBRShader_Deferred_LightingGL::setIrradianceMap(CubeMap * irradianceMap)
+{
+	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
+	attributes.setData("irradianceMap", this->irradianceMap);
+}
+
+void PBRShader_Deferred_LightingGL::setLightColor(glm::vec3 color)
+{
+	this->dirWorldToLight.color = move(color);
+}
+
+void PBRShader_Deferred_LightingGL::setLightDirection(glm::vec3 direction)
+{
+	this->dirWorldToLight.direction = move(direction);
+}
+
+
+void PBRShader_Deferred_LightingGL::setPrefilterMap(CubeMap * prefilterMap)
+{
+	this->prefilterMap = dynamic_cast<CubeMapGL*>(prefilterMap);
+	attributes.setData("prefilterMap", this->prefilterMap);
+}
+
+void PBRShader_Deferred_LightingGL::setShadowMap(Texture * texture)
+{
+	shadowMap = dynamic_cast<TextureGL*>(texture);
+	assert(shadowMap != nullptr);
+	Texture* black = TextureManagerGL::get()->getDefaultBlackTexture();
+	attributes.setData("shadowMap", shadowMap);
+}
+
+void PBRShader_Deferred_LightingGL::setSkyBox(CubeMap * sky)
+{
+	this->skybox = dynamic_cast<CubeMapGL*>(sky);
+	//attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
+}
+
+void PBRShader_Deferred_LightingGL::setWorldToLightSpaceMatrix(glm::mat4 worldToLight)
+{
+	this->worldToLight = move(worldToLight);
+}
+
+
+void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformData & data)
+{
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	transform = projection * view * model;
+	eyeToLight = worldToLight * inverseViewFromGPass;
+	myView = inverse(inverseViewFromGPass);
+
+	dirEyeToLight.color = dirWorldToLight.color;
+	dirEyeToLight.direction = vec3(myView * vec4(dirWorldToLight.direction, 0));
+
+
+	
+	//myView = mat4();
+	attributes.setData("viewGPass", &myView);
+	attributes.setData("inverseViewMatrix_GPass", &inverseViewFromGPass);
+	attributes.setData("transform", &transform);
+	attributes.setData("eyeToLight", &eyeToLight);
+	attributes.setData("worldToLight", &worldToLight);
+
+	attributes.setData("shadowMap", shadowMap);
+
+	attributes.setData("gBuffer.aoMap", gBuffer->getAO());
+	attributes.setData("gBuffer.albedoMap", gBuffer->getAlbedo());
+	attributes.setData("gBuffer.metallicMap", gBuffer->getMetal());
+	attributes.setData("gBuffer.normalEyeMap", gBuffer->getNormal());
+	attributes.setData("gBuffer.positionEyeMap", gBuffer->getPosition());
+	attributes.setData("gBuffer.roughnessMap", gBuffer->getRoughness());
+
+	attributes.setData("dirLight.color", &dirEyeToLight.color);
+	attributes.setData("dirLight.directionEye", &dirEyeToLight.direction);
+
+	attributes.setData("irradianceMap", irradianceMap);
+	attributes.setData("prefilterMap", prefilterMap);
+	attributes.setData("brdfLUT", brdfLUT);
+}
+
+
+PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : PBRShader_Deferred_Geometry(), ShaderConfigGL()
+{
+	using types = ShaderAttributeType;
+
+	attributes.create(types::MAT4, &transform, "transform", true);
+	attributes.create(types::MAT4, &modelView, "modelView", true);
+	attributes.create(types::MAT3, &modelView_normalMatrix, "modelView_normalMatrix", true);
+
+	attributes.create(types::TEXTURE2D, nullptr, "material.albedoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.aoMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.metallicMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap");
+	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap");
+}
+
+PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
 {
 }
 
-const glm::vec3 & PBRShader_DeferredGL::getLightColor() const
+void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformData & data)
 {
-	return base.getLightColor();
+	mat4 const& projection = *data.projection;
+	mat4 const& view = *data.view;
+	mat4 const& model = *data.model;
+
+	transform = projection * view * model;
+	modelView = view * model;
+	modelView_normalMatrix = mat3(transpose(inverse(modelView)));
+
+	//attributes.setData("projection", data.projection);
+	attributes.setData("transform", &transform);
+	attributes.setData("modelView", &modelView);
+	attributes.setData("modelView_normalMatrix", &modelView_normalMatrix);
+
+	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
+
+	TextureGL* albedoMap = static_cast<TextureGL*>(material->getAlbedoMap());
+	TextureGL* aoMap = static_cast<TextureGL*>(material->getAoMap());
+	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
+	TextureGL* metallicMap = static_cast<TextureGL*>(material->getMetallicMap());
+	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
+	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
+
+	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
+	TextureGL* white = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultWhiteTexture());
+	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
+
+	attributes.setData("material.albedoMap", albedoMap, black);
+	attributes.setData("material.aoMap", aoMap, white);
+	//attributes.setData("material.emissionMap", emissionMap, black);
+	attributes.setData("material.metallicMap", metallicMap, black);
+	attributes.setData("material.normalMap", normalMap, default_normal);
+	attributes.setData("material.roughnessMap", roughnessMap, black);
 }
 
-const glm::vec3 & PBRShader_DeferredGL::getLightPosition() const
-{
-	return base.getLightPosition();
-}
-
-void PBRShader_DeferredGL::setBrdfLookupTexture(Texture * brdfLUT)
-{
-	base.setBrdfLookupTexture(brdfLUT);
-}
-
-void PBRShader_DeferredGL::setIrradianceMap(CubeMap * irradianceMap)
-{
-	base.setIrradianceMap(irradianceMap);
-}
-
-void PBRShader_DeferredGL::setLightColor(glm::vec3 color)
-{
-	base.setLightColor(move(color));
-}
-
-void PBRShader_DeferredGL::setLightDirection(glm::vec3 direction)
-{
-	base.setLightDirection(move(direction));
-}
-
-void PBRShader_DeferredGL::setLightProjMatrix(glm::mat4 mat)
-{
-	base.setLightProjMatrix(move(mat));
-}
-
-void PBRShader_DeferredGL::setLightSpaceMatrix(glm::mat4 mat)
-{
-	base.setLightSpaceMatrix(move(mat));
-}
-
-void PBRShader_DeferredGL::setLightViewMatrix(glm::mat4 mat)
-{
-	base.setLightViewMatrix(move(mat));
-}
-
-void PBRShader_DeferredGL::setPrefilterMap(CubeMap * prefilterMap)
-{
-	base.setPrefilterMap(prefilterMap);
-}
-
-void PBRShader_DeferredGL::setShadowMap(Texture * texture)
-{
-	base.setShadowMap(texture);
-}
-
-void PBRShader_DeferredGL::setSkyBox(CubeMap * sky)
-{
-	base.setSkyBox(sky);
-}
-
-void PBRShader_DeferredGL::setCameraPosition(glm::vec3 position)
-{
-	base.setCameraPosition(move(position));
-}
-
-void PBRShader_DeferredGL::update(const MeshGL & mesh, const TransformData & data)
-{
-	base.update(mesh, data);
-}
 
 PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()
 {

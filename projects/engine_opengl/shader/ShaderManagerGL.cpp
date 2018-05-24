@@ -49,6 +49,8 @@ void ShaderManagerGL::loadShaders()
 	using s = Shaders;
 	createShader(s::BlinnPhongTex);
 	createShader(s::Pbr);
+	createShader(s::Pbr_Deferred_Geometry);
+	createShader(s::Pbr_Deferred_Lighting);
 	createShader(s::Pbr_Convolution);
 	createShader(s::Pbr_Prefilter);
 	createShader(s::Pbr_BrdfPrecompute);
@@ -95,7 +97,17 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	}
 	case s::Pbr: {
 		configs.push_back(make_shared<PBRShaderGL>());
-		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr_vs.glsl", "pbr_fs.glsl");
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
+		break;
+	}
+	case s::Pbr_Deferred_Geometry: {
+		configs.push_back(make_shared<PBRShader_Deferred_GeometryGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
+		break;
+	}
+	case s::Pbr_Deferred_Lighting: {
+		configs.push_back(make_shared<PBRShader_Deferred_LightingGL>());
+		shaderPtr = make_shared<ShaderGL>(configs.back().get(), "pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 		break;
 	}
 	case s::Pbr_Convolution: {

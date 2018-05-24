@@ -32,10 +32,33 @@ public:
 	virtual void setCameraPosition(glm::vec3 position) = 0;
 };
 
-class PBRShader_Deferred : public PBRShader {
+class PBRShader_Deferred_Geometry : public ShaderConfig {
 public:
-	PBRShader_Deferred() : PBRShader() {}
-	virtual ~PBRShader_Deferred() {};
+	virtual ~PBRShader_Deferred_Geometry() {};
+};
+
+class PBRShader_Deferred_Lighting : public ShaderConfig {
+public:
+
+	virtual void setBrdfLookupTexture(Texture* brdfLUT) = 0;
+
+	virtual void setGBuffer(PBR_GBuffer* gBuffer) = 0;
+
+	virtual void setInverseViewFromGPass(glm::mat4 inverseView) = 0;
+
+	virtual void setIrradianceMap(CubeMap* irradianceMap) = 0;
+
+
+	virtual void setLightColor(glm::vec3 color) = 0;
+	virtual void setLightDirection(glm::vec3 direction) = 0;
+
+	virtual void setPrefilterMap(CubeMap* prefilterMap) = 0;
+
+
+	virtual void setSkyBox(CubeMap* sky) = 0;
+	virtual void setShadowMap(Texture* texture) = 0;
+
+	virtual void setWorldToLightSpaceMatrix(glm::mat4 worldToLight) = 0;
 };
 
 class PBR_ConvolutionShader : public ShaderConfig

@@ -19,6 +19,8 @@ enum class Shaders
 	Unknown = 0,
 	BlinnPhongTex,
 	Pbr,
+	Pbr_Deferred_Geometry,
+	Pbr_Deferred_Lighting,
 	Pbr_Convolution,
 	Pbr_Prefilter,
 	Pbr_BrdfPrecompute,
@@ -45,6 +47,8 @@ enum class Shaders
 const static platform::util::EnumString<Shaders> shaderEnumConversion[] = {
 	{ Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
 	{ Shaders::Pbr, "PBR" },
+	{ Shaders::Pbr_Deferred_Geometry, "PBR_DEFERRED_GEOMETRY" },
+	{ Shaders::Pbr_Deferred_Lighting, "PBR_DEFERRED_LIGHTING" },
 	{ Shaders::Pbr_Convolution, "PBR_CONVOLUTION" },
 	{ Shaders::Pbr_Prefilter, "PBR_PREFILTER" },
 	{ Shaders::Pbr_BrdfPrecompute, "PBR_BRDF_PRECOMPUTE" },

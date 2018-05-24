@@ -109,6 +109,8 @@ public:
 
 	void useRenderTarget(RenderTarget* target) override;
 
+	void useBaseRenderTarget(BaseRenderTarget* target) override;
+
 	void useScreenTarget() override;
 
 	void useVarianceShadowMap(RenderTarget* map) override;

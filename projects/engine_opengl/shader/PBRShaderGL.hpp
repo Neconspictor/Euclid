@@ -58,37 +58,76 @@ private:
 
 	glm::mat4 transform;
 	glm::vec3 cameraPos;
+
+	glm::mat4 inverseView;
 };
 
-class PBRShader_DeferredGL : public PBRShader_Deferred, public ShaderConfigGL {
+class PBRShader_Deferred_GeometryGL : public PBRShader_Deferred_Geometry, public ShaderConfigGL {
 public:
-	PBRShader_DeferredGL();
+	PBRShader_Deferred_GeometryGL();
+	virtual ~PBRShader_Deferred_GeometryGL();
 
-	virtual ~PBRShader_DeferredGL();
+	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
-	virtual const glm::vec3& getLightColor() const override;
-	virtual const glm::vec3& getLightPosition() const override;
+private:
+	glm::mat4 transform;
+	glm::mat4 modelView;
+	glm::mat3 modelView_normalMatrix;
+};
+
+class PBRShader_Deferred_LightingGL : public PBRShader_Deferred_Lighting, public ShaderConfigGL {
+public:
+
+	struct DirLight
+	{
+		glm::vec3 direction;
+		glm::vec3 color;
+	};
+
+	PBRShader_Deferred_LightingGL();
+	virtual ~PBRShader_Deferred_LightingGL();
 
 	virtual void setBrdfLookupTexture(Texture* brdfLUT) override;
+
+	virtual void setGBuffer(PBR_GBuffer* gBuffer);
+
+	virtual void setInverseViewFromGPass(glm::mat4 inverseView) override;
 
 	virtual void setIrradianceMap(CubeMap* irradianceMap) override;
 
 	virtual void setLightColor(glm::vec3 color) override;
 	virtual void setLightDirection(glm::vec3 direction) override;
-	virtual void setLightProjMatrix(glm::mat4 mat) override;
-	virtual void setLightSpaceMatrix(glm::mat4 mat) override;
-	virtual void setLightViewMatrix(glm::mat4 mat) override;
 
 	virtual void setPrefilterMap(CubeMap* prefilterMap) override;
 
 	virtual void setShadowMap(Texture* texture) override;
 	virtual void setSkyBox(CubeMap* sky) override;
 
-	virtual void setCameraPosition(glm::vec3 position) override;
+	virtual void setWorldToLightSpaceMatrix(glm::mat4 worldToLight) override;
+
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
-	PBRShaderGL base;
+	PBR_GBuffer* gBuffer;
+	glm::mat4 transform;
+	glm::mat4 myView;
+	glm::mat4 inverseViewFromGPass;
+
+	Texture* brdfLUT;
+	DirLight dirWorldToLight;
+	DirLight dirEyeToLight;
+
+	CubeMapGL* irradianceMap;
+	CubeMapGL* prefilterMap;
+
+	glm::mat4 eyeToLight;
+	glm::mat4 worldToLight;
+
+	TextureGL* shadowMap;
+	CubeMapGL* skybox;
+
+	glm::mat4 biasMatrix;
+
 };
 
 class PBR_ConvolutionShaderGL : public PBR_ConvolutionShader, public ShaderConfigGL

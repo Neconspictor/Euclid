@@ -20,6 +20,9 @@
 using namespace glm;
 using namespace std;
 using namespace platform;
+
+int ssaaSamples = 1;
+
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
@@ -57,14 +60,24 @@ SceneNode* PBR_Deferred_MainLoopTask::createShadowScene()
 	SceneNode* cube1 = &nodes.back();
 	root->addChild(cube1);
 
+	nodes.push_back(SceneNode());
+	SceneNode* sphere = &nodes.back();
+	root->addChild(sphere);
+
 	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
 	ground->setVob(&vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
 	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
 	cube1->setVob(&vobs.back());
 
+	vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
+	sphere->setVob(&vobs.back());
+
 	ground->getVob()->setPosition({ 10, 0, 0 });
 	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
+
+	sphere->getVob()->setPosition({3.0f, 3.8f, -1.0f});
+
 	return root;
 }
 
@@ -189,7 +202,7 @@ void PBR_Deferred_MainLoopTask::init()
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
 
-	renderTargetMultisampled = renderer->createRenderTarget(8);
+	renderTargetMultisampled = renderer->createRenderTarget(1);
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -242,7 +255,7 @@ void PBR_Deferred_MainLoopTask::init()
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 
-	PBR_GBuffer*  pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
+	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
 }
 
 void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)
@@ -260,8 +273,6 @@ void PBR_Deferred_MainLoopTask::run()
 		renderer->getShaderManager()->getConfig(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
-	PBRShader* pbrShader = dynamic_cast<PBRShader*>
-		(renderer->getShaderManager()->getConfig(Shaders::Pbr));
 	using namespace chrono;
 	
 	float frameTime = timer.update();
@@ -328,10 +339,6 @@ void PBR_Deferred_MainLoopTask::run()
 	const mat4& lightProj = globalLight.getProjection(Orthographic);
 	const mat4& lightView = globalLight.getView();
 
-	pbrShader->setLightProjMatrix(globalLight.getProjection(Orthographic));
-	pbrShader->setLightSpaceMatrix(globalLight.getProjection(Orthographic) * globalLight.getView());
-	pbrShader->setLightViewMatrix(globalLight.getView());
-
 
 	// render scene to the shadow depth map
 	renderer->beginScene();
@@ -349,17 +356,31 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->cullFaces(CullingMode::Back);
 	renderer->endScene();
 
-	// render scene to a offscreen buffer
-	renderer->useRenderTarget(renderTargetMultisampled);
+	renderer->useBaseRenderTarget(pbr_mrt);
+	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
-	renderer->enableAlphaBlending(true);
+		pbr_deferred->drawGeometryScene(scene,
+		frameTimeElapsed,
+		camera->getView(),
+		camera->getPerspProjection());
+	renderer->endScene();
 
-	pbrShader->setShadowMap(shadowMap->getTexture());
-	pbrShader->setCameraPosition(camera->getPosition());
+	// render scene to a offscreen buffer
+	renderer->useBaseRenderTarget(renderTargetMultisampled);
+	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
+	renderer->beginScene();
+		renderer->enableAlphaBlending(true);
+		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
-	pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+		pbr_deferred->drawLighting(scene, 
+			frameTimeElapsed, 
+			pbr_mrt, 
+			shadowMap->getTexture(), 
+			globalLight, 
+			camera->getView(), 
+			lightProj * lightView);
 
-	pbr_deferred->drawScene(scene,
+	/*pbr_deferred->drawScene(scene,
 		camera->getPosition(),
 		frameTimeElapsed,
 		shadowMap->getTexture(),
@@ -367,20 +388,24 @@ void PBR_Deferred_MainLoopTask::run()
 		lightView,
 		lightProj,
 		camera->getView(),
-		camera->getPerspProjection());
+		camera->getPerspProjection());*/
+	
 
 
 	renderer->endScene();
 
 
 	// copy rendered scene to the single sampled render target
-	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
+	//renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
+	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
 	renderer->useScreenTarget();
 	renderer->beginScene();
-	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	screenSprite.setTexture(renderTargetMultisampled->getTexture());
 	
+	//screenSprite.setTexture(pbr_mrt->getAlbedo());
+
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 
 	screenShader->useTexture(screenSprite.getTexture());
@@ -388,10 +413,11 @@ void PBR_Deferred_MainLoopTask::run()
 	{
 		int width = window->getWidth();
 		int height = window->getHeight();
-		renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
-		modelDrawer->draw(&screenSprite, Shaders::Screen);
-		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
+		//screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
+		//modelDrawer->draw(&screenSprite, Shaders::Screen);
+		screenSprite.setTexture(shadowMap->getTexture());
+		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);

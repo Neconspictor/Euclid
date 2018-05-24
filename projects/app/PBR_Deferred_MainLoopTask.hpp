@@ -58,6 +58,7 @@ private:
 	Texture* panoramaSky;
 
 	std::unique_ptr<PBR_Deferred> pbr_deferred;
+	PBR_GBuffer*  pbr_mrt;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;

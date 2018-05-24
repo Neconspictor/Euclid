@@ -233,8 +233,10 @@ RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 	data.resolution = BITS_32;
 	data.uvTechnique = ClampToEdge;
 	data.isFloatData = true;
+
+	int ssaaSamples = 1;
 	
-	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
+	return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
 }
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -454,8 +456,24 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 	glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
+void RendererOpenGL::useBaseRenderTarget(BaseRenderTarget * target)
+{
+	BaseRenderTargetGL* targetGL = dynamic_cast<BaseRenderTargetGL*>(target);
+	assert(targetGL != nullptr);
+	int width = targetGL->getWidth();
+	int height = targetGL->getHeight();
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
+
+	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
+	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glDisable(GL_FRAMEBUFFER_SRGB);
+}
+
 void RendererOpenGL::useScreenTarget()
 {
+	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 

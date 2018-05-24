@@ -122,6 +122,12 @@ public:
 	virtual void useRenderTarget(RenderTarget* target) = 0;
 
 	/**
+	* All draw calls are performed on a offscreen texture.
+	* The output of all draw calls won't be visible after swapping the window's screen buffer
+	*/
+	virtual void useBaseRenderTarget(BaseRenderTarget* target) = 0;
+
+	/**
 	 * Draws directly to the screen buffer -> 
 	 */
 	virtual void useScreenTarget() = 0;

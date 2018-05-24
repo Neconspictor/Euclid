@@ -144,6 +144,9 @@ const ShaderAttributeGL* ShaderAttributeCollection::getList() const
 void ShaderAttributeCollection::setData(const string& uniformName, const void* data, const void* defaultValue, bool activate)
 {
 	auto attr = get(uniformName);
+
+	assert(attr != nullptr);
+
 	if (data == nullptr) {
 		attr->setData(defaultValue);
 	} else {

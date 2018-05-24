@@ -79,14 +79,14 @@ public:
 	friend CubeRenderTargetGL;
 };
 
-class BaseRenderTargetGl : public virtual BaseRenderTarget {
+class BaseRenderTargetGL : public virtual BaseRenderTarget {
 public:
-	explicit BaseRenderTargetGl(int width, int height, GLuint frameBuffer);
-	BaseRenderTargetGl(BaseRenderTargetGl&& o);
-	BaseRenderTargetGl& operator=(BaseRenderTargetGl&& o);
+	explicit BaseRenderTargetGL(int width, int height, GLuint frameBuffer);
+	BaseRenderTargetGL(BaseRenderTargetGL&& o);
+	BaseRenderTargetGL& operator=(BaseRenderTargetGL&& o);
 
-	BaseRenderTargetGl(const BaseRenderTargetGl& other) = delete;
-	BaseRenderTargetGl& operator=(const BaseRenderTargetGl& other) = delete;
+	BaseRenderTargetGL(const BaseRenderTargetGL& other) = delete;
+	BaseRenderTargetGL& operator=(const BaseRenderTargetGL& other) = delete;
 
 	virtual GLuint getFrameBuffer();
 	virtual void setFrameBuffer(GLuint newValue);
@@ -95,7 +95,7 @@ protected:
 	GLuint frameBuffer;
 };
 
-class CubeRenderTargetGL : public CubeRenderTarget, public BaseRenderTargetGl
+class CubeRenderTargetGL : public CubeRenderTarget, public BaseRenderTargetGL
 {
 public:
 	explicit CubeRenderTargetGL(int width, int height, TextureData data);
@@ -135,7 +135,7 @@ protected:
 	TextureData data;
 };
 
-class RenderTargetGL : public RenderTarget, public BaseRenderTargetGl
+class RenderTargetGL : public RenderTarget, public BaseRenderTargetGL
 {
 public:
 	explicit RenderTargetGL(int width, int height);
@@ -175,7 +175,7 @@ protected:
 	GLuint renderBuffer;
 };
 
-class CubeDepthMapGL : public CubeDepthMap, public BaseRenderTargetGl, public TextureGL
+class CubeDepthMapGL : public CubeDepthMap, public BaseRenderTargetGL, public TextureGL
 {
 public:
 	explicit CubeDepthMapGL(int width, int height);
@@ -226,7 +226,7 @@ private:
 	GLuint frameBuffer;
 };
 
-class PBR_GBufferGL : public PBR_GBuffer, public BaseRenderTargetGl {
+class PBR_GBufferGL : public PBR_GBuffer, public BaseRenderTargetGL {
 public:
 	explicit PBR_GBufferGL(int width, int height);
 	PBR_GBufferGL(PBR_GBufferGL&& o) = default;
@@ -252,5 +252,6 @@ protected:
 	TextureGL metal;
 	TextureGL normal;
 	TextureGL position;
+	TextureGL positionLight;
 	TextureGL roughness;
 };
