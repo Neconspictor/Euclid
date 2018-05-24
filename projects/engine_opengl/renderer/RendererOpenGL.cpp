@@ -409,7 +409,7 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	glReadBuffer(GL_NONE);
 
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(0.0f, 0.0f);
+	//glPolygonOffset(1.0f, 15000.0f);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
@@ -645,10 +645,10 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 
 		// TODO this is needed for rendering shadow maps => put it on a more suitable place
 		//glEnable(GL_POLYGON_OFFSET_FILL);
-		//glPolygonOffset(-2.0f, 0.0f);
+		//glPolygonOffset(-1.0f, -1.0f);
 	} else
 	{
-		glDisable(GL_POLYGON_OFFSET_FILL);
+		//glDisable(GL_POLYGON_OFFSET_FILL);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}

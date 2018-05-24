@@ -186,7 +186,6 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Defer
 
 	attributes.create(types::MAT4, &transform, "transform", true);
 	attributes.create(types::MAT4, &eyeToLight, "eyeToLight", true);
-	attributes.create(types::MAT4, &worldToLight, "worldToLight", true);
 	attributes.create(types::MAT4, &inverseViewFromGPass, "inverseViewMatrix_GPass", true);
 	attributes.create(types::MAT4, &myView, "viewGPass", true);
 
@@ -301,7 +300,6 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("inverseViewMatrix_GPass", &inverseViewFromGPass);
 	attributes.setData("transform", &transform);
 	attributes.setData("eyeToLight", &eyeToLight);
-	attributes.setData("worldToLight", &worldToLight);
 
 	attributes.setData("shadowMap", shadowMap);
 

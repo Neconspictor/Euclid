@@ -252,6 +252,5 @@ protected:
 	TextureGL metal;
 	TextureGL normal;
 	TextureGL position;
-	TextureGL positionLight;
 	TextureGL roughness;
 };

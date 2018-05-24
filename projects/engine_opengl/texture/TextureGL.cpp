@@ -933,7 +933,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	albedo.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempTexture, 0);
@@ -943,7 +943,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	ao.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tempTexture, 0);
@@ -953,7 +953,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	metal.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
@@ -963,7 +963,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	normal.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);
@@ -973,42 +973,31 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	position.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tempTexture, 0);
-
-	// position light
-	glGenTextures(1, &tempTexture);
-	positionLight.setTexture(tempTexture);
-
-	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, tempTexture, 0);
 
 	// roughness
 	glGenTextures(1, &tempTexture);
 	roughness.setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, tempTexture, 0);
 
 
 	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-	unsigned int attachments[7] = { GL_COLOR_ATTACHMENT0, 
+	unsigned int attachments[6] = { GL_COLOR_ATTACHMENT0, 
 		GL_COLOR_ATTACHMENT1, 
 		GL_COLOR_ATTACHMENT2, 
 		GL_COLOR_ATTACHMENT3, 
 		GL_COLOR_ATTACHMENT4, 
-		GL_COLOR_ATTACHMENT5,
-		GL_COLOR_ATTACHMENT6 };
+		GL_COLOR_ATTACHMENT5 };
 
-	glDrawBuffers(7, attachments);
+	glDrawBuffers(6, attachments);
 
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;
