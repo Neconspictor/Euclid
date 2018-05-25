@@ -155,7 +155,10 @@ void main()
 
 	result *= (shadow);
 	
-	FragColor = vec4(result, 1.0);
+	float alpha = length(normalEye);
+	alpha = clamp(alpha, 0, 1);
+	
+	FragColor = vec4(result, alpha);
 }
 
 vec3 pbrModel(float ao,

@@ -370,6 +370,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
 		renderer->enableAlphaBlending(true);
+		
 		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 		pbr_deferred->drawLighting(scene, 
@@ -379,6 +380,8 @@ void PBR_Deferred_MainLoopTask::run()
 			globalLight, 
 			camera->getView(), 
 			lightProj * lightView);
+
+		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 	/*pbr_deferred->drawScene(scene,
 		camera->getPosition(),
