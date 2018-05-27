@@ -63,7 +63,10 @@ set(
     model/Vob.hpp
 	model/Vob.cpp
 
-    
+	
+    #post_processing
+	post_processing/SSAO.hpp
+	post_processing/SSAO.cpp
 	#post_processing/blur
 	post_processing/blur/GaussianBlur.hpp
 	post_processing/blur/GaussianBlur.cpp
