@@ -256,6 +256,10 @@ void PBR_Deferred_MainLoopTask::init()
 	pbrShader->setSkyBox(background);
 
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
+
+
+	ssao_deferred = renderer->createDeferredSSAO();
+
 }
 
 void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)

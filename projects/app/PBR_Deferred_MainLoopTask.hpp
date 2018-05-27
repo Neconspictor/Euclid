@@ -15,6 +15,7 @@
 #include <sprite/Sprite.hpp>
 #include <post_processing/blur/GaussianBlur.hpp>
 #include <shading_model/PBR_Deferred.hpp>
+#include <post_processing/SSAO.hpp>
 
 class SystemUI;
 
@@ -59,6 +60,8 @@ private:
 
 	std::unique_ptr<PBR_Deferred> pbr_deferred;
 	PBR_GBuffer*  pbr_mrt;
+
+	std::unique_ptr<SSAO_Deferred> ssao_deferred;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetMultisampled;

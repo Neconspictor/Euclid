@@ -52,6 +52,8 @@ public:
 	RenderTargetGL* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
 		GLuint depthStencilType);
 
+	std::unique_ptr<SSAO_Deferred> createDeferredSSAO() override;
+
 	RenderTarget* createVarianceShadowMap(int width, int height) override;
 
 	void cullFaces(CullingMode mode) override;

@@ -26,6 +26,9 @@ set(
     model/ModelManagerGL.hpp
 	model/ModelManagerGL.cpp
     
+	#post_processing
+	post_processing/SSAO_GL.hpp
+	post_processing/SSAO_GL.cpp
 	#post_processing/blur
 	post_processing/blur/GaussianBlurGL.hpp
 	post_processing/blur/GaussianBlurGL.cpp

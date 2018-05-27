@@ -15,6 +15,7 @@
 #include <model/Vob.hpp>
 #include <drawing/ModelDrawer.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <post_processing/SSAO_GL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -622,6 +623,11 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 
 	renderTargets.push_back(move(result));
 	return &renderTargets.back();
+}
+
+std::unique_ptr<SSAO_Deferred> RendererOpenGL::createDeferredSSAO()
+{
+	return std::make_unique<SSAO_DeferredGL>(width, height);
 }
 
 EffectLibrary* RendererOpenGL::getEffectLibrary()
