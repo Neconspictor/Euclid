@@ -62,29 +62,29 @@ Model* ModelManagerGL::getSprite()
 		return dynamic_cast<Model*>(it->second);
 	}
 
-	// create a Quad mesh that fills up the enter screen; screen space range from [-1, 1] in x,y and z axis;
+	// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
 	// as we want a  2D model, the z axis is ignored/set to 1.0f
 	// normal vectors aren't needed, too -> set to 0.0f as well.
 	vector<Vertex> vertices;
 	Vertex vertex;
 	
 	// left upper corner 
-	vertex.position = { 0.0f,  0.0f, 1.0f};
+	vertex.position = { 0.0f,  0.0f, 0.0f};
 	vertex.texCoords = {0.0f, 1.0f};
 	vertices.push_back(vertex);
 
 	// left bottom corner
-	vertex.position = { 0.0f,  1.0, 1.0f };
+	vertex.position = { 0.0f,  1.0, 0.0f };
 	vertex.texCoords = { 0.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right bottom corner
-	vertex.position = { 1.0f,  1.0f, 1.0f };
+	vertex.position = { 1.0f,  1.0f, 0.0f };
 	vertex.texCoords = { 1.0f, 0.0f };
 	vertices.push_back(vertex);
 
 	// right upper corner
-	vertex.position = { 1.0f,  0.0f, 1.0f };
+	vertex.position = { 1.0f,  0.0f, 0.0f };
 	vertex.texCoords = { 1.0f, 1.0f };
 	vertices.push_back(vertex);
 
