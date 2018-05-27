@@ -82,7 +82,7 @@ void PBR::drawScene(SceneNode * scene,
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view);
+	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr);
 }
 
 CubeMap * PBR::getConvolutedEnvironmentMap()
@@ -135,6 +135,7 @@ CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
 		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 	};
 
+	
 	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
@@ -300,9 +301,14 @@ RenderTarget * PBR::createBRDFlookupTexture()
 
 void PBR::init(Texture* backgroundHDR)
 {
+
+	Renderer::Viewport backup = renderer->getViewport();
+
 	environmentMap = renderBackgroundToCube(backgroundHDR);
 	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
 	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
+
+	renderer->setViewPort(backup.x, backup.y, backup.width, backup.height);
 
 
 	// setup sprite for brdf integration lookup texture
