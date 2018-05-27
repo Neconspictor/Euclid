@@ -62,7 +62,7 @@ public:
 	CubeMapGL(const CubeMapGL& other) = delete;
 	CubeMapGL& operator=(const CubeMapGL& other) = delete;
 
-	virtual ~CubeMapGL();
+	virtual ~CubeMapGL() = default;
 
 	/**
 	 * Maps a cube map side to a corresponding opengl view axis 
@@ -82,6 +82,8 @@ public:
 class BaseRenderTargetGL : public virtual BaseRenderTarget {
 public:
 	explicit BaseRenderTargetGL(int width, int height, GLuint frameBuffer);
+	virtual ~BaseRenderTargetGL();
+
 	BaseRenderTargetGL(BaseRenderTargetGL&& o);
 	BaseRenderTargetGL& operator=(BaseRenderTargetGL&& o);
 
@@ -90,6 +92,9 @@ public:
 
 	virtual GLuint getFrameBuffer();
 	virtual void setFrameBuffer(GLuint newValue);
+
+private:
+	void swap(BaseRenderTargetGL& o);
 
 protected:
 	GLuint frameBuffer;
@@ -107,7 +112,7 @@ public:
 	CubeRenderTargetGL(const CubeRenderTargetGL&) = delete;
 	CubeRenderTargetGL& operator=(const CubeRenderTargetGL&) = delete;
 	
-	virtual ~CubeRenderTargetGL();
+	virtual ~CubeRenderTargetGL() = default;
 
 
 
@@ -148,7 +153,7 @@ public:
 	RenderTargetGL& operator=(const RenderTargetGL& other) = delete;
 
 
-	virtual ~RenderTargetGL();
+	virtual ~RenderTargetGL() = default;
 
 	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
 
@@ -186,7 +191,7 @@ public:
 	CubeDepthMapGL(const CubeDepthMapGL& other) = delete;
 	CubeDepthMapGL& operator=(const CubeDepthMapGL& other) = delete;
 
-	virtual ~CubeDepthMapGL();
+	virtual ~CubeDepthMapGL() = default;
 
 	GLuint getCubeMapTexture() const;
 	CubeMap* getCubeMap() override;
@@ -212,7 +217,7 @@ public:
 	DepthMapGL& operator=(const DepthMapGL& other) = delete;
 	
 
-	virtual ~DepthMapGL();
+	virtual ~DepthMapGL() = default;
 
 	GLuint getFramebuffer() const;
 	GLuint getTexture() const;
@@ -236,7 +241,7 @@ public:
 	PBR_GBufferGL(const PBR_GBufferGL&) = delete;
 	PBR_GBufferGL& operator=(const PBR_GBufferGL&) = delete;
 
-	virtual ~PBR_GBufferGL();
+	virtual ~PBR_GBufferGL() = default;
 
 	virtual Texture* getAlbedo() override;
 	virtual Texture* getAO() override;

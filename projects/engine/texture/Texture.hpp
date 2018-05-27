@@ -6,7 +6,7 @@ class Texture
 {
 public:
 	Texture() {}
-	virtual ~Texture() {}
+	virtual ~Texture() = default;
 };
 
 class CubeMap
@@ -33,7 +33,7 @@ public:
 	static const glm::mat4& getViewLookAtMatrixRH(Side side);
 
 	CubeMap() {}
-	virtual ~CubeMap() {}
+	virtual ~CubeMap() = default;
 
 	/**
 	 *  Generates mipmaps for the current content of this cubemap.
@@ -58,7 +58,8 @@ public:
 		this->height = height;
 	};
 
-	virtual ~BaseRenderTarget() {};
+	virtual ~BaseRenderTarget() = default;
+
 
 	virtual int getHeight() const
 	{
@@ -80,7 +81,7 @@ public:
 
 	explicit CubeRenderTarget(int width, int height) : BaseRenderTarget(width, height){};
 
-	virtual ~CubeRenderTarget() {};
+	virtual ~CubeRenderTarget() = default;
 
 	virtual CubeMap* getCubeMap() = 0;
 
@@ -103,7 +104,7 @@ public:
 
 	explicit RenderTarget(int width, int height) : BaseRenderTarget(width, height) {};
 
-	virtual ~RenderTarget() {};
+	virtual ~RenderTarget() = default;
 
 	virtual Texture* getTexture() = 0;
 };
@@ -112,7 +113,7 @@ class CubeDepthMap : public virtual BaseRenderTarget
 {
 public:
 	explicit CubeDepthMap(int width, int height) : BaseRenderTarget(width, height) {};
-	virtual ~CubeDepthMap() {}
+	virtual ~CubeDepthMap() = default;
 
 	virtual CubeMap* getCubeMap() = 0;
 
@@ -129,7 +130,7 @@ public:
 		this->height = height;
 	};
 
-	virtual ~DepthMap() {}
+	virtual ~DepthMap() = default;
 
 	int getWidth() const
 	{
@@ -150,6 +151,8 @@ protected:
 class PBR_GBuffer : public virtual BaseRenderTarget  {
 public:
 	explicit PBR_GBuffer(int width, int height) : BaseRenderTarget(width, height) {}
+
+	virtual ~PBR_GBuffer() = default;
 
 	virtual Texture* getAlbedo() = 0;
 	virtual Texture* getAO() = 0;

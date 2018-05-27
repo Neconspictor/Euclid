@@ -35,10 +35,6 @@ CubeMapGL& CubeMapGL::operator=(CubeMapGL&& other)
 	return *this;
 }*/
 
-CubeMapGL::~CubeMapGL()
-{
-}
-
 GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
 {
 	switch (side) {
@@ -123,6 +119,7 @@ TextureGL& TextureGL::operator=(TextureGL&& other)
 
 TextureGL::~TextureGL()
 {
+	release();
 }
 
 GLuint TextureGL::getTexture() const
@@ -132,8 +129,10 @@ GLuint TextureGL::getTexture() const
 
 void TextureGL::release()
 {
-	glDeleteTextures(1, &textureID);
-	textureID = GL_FALSE;
+	if (textureID != GL_FALSE) {
+		glDeleteTextures(1, &textureID);
+		textureID = GL_FALSE;
+	}
 }
 
 void TextureGL::setTexture(GLuint id)
@@ -259,18 +258,26 @@ BaseRenderTargetGL::BaseRenderTargetGL(int width, int height, GLuint frameBuffer
 {
 }
 
+BaseRenderTargetGL::~BaseRenderTargetGL()
+{
+	if (frameBuffer != GL_FALSE) {
+		glDeleteFramebuffers(1, &frameBuffer);
+		frameBuffer = GL_FALSE;
+	}
+}
+
 BaseRenderTargetGL::BaseRenderTargetGL(BaseRenderTargetGL && o) :
 	BaseRenderTarget(move(o)),
 	frameBuffer(GL_FALSE)
 {
-	*this = move(o);
+	swap(o);
 }
 
 BaseRenderTargetGL & BaseRenderTargetGL::operator=(BaseRenderTargetGL && o)
 {
 	if (this == &o) return *this;
 	BaseRenderTarget::operator=(move(o)); // call base class move ao
-	swap(frameBuffer, o.frameBuffer);
+	swap(o);
 	return *this;
 }
 
@@ -282,6 +289,11 @@ GLuint BaseRenderTargetGL::getFrameBuffer()
 void BaseRenderTargetGL::setFrameBuffer(GLuint newValue)
 {
 	frameBuffer = newValue;
+}
+
+void BaseRenderTargetGL::swap(BaseRenderTargetGL & o)
+{
+	std::swap(frameBuffer, o.frameBuffer);
 }
 
 
@@ -336,10 +348,6 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-}
-
-CubeRenderTargetGL::~CubeRenderTargetGL()
-{
 }
 
 CubeMap * CubeRenderTargetGL::createCopy()
@@ -473,10 +481,6 @@ RenderTargetGL::RenderTargetGL(int width, int height) :
 	BaseRenderTargetGL(width, height, GL_FALSE),
 	RenderTarget(width, height),
 	renderBuffer(GL_FALSE)
-{
-}
-
-RenderTargetGL::~RenderTargetGL()
 {
 }
 
@@ -786,9 +790,6 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
 	return *this;
 }*/
 
-CubeDepthMapGL::~CubeDepthMapGL()
-{}
-
 GLuint CubeDepthMapGL::getCubeMapTexture() const
 {
 	return cubeMap.getCubeMap();
@@ -884,10 +885,6 @@ DepthMapGL& DepthMapGL::operator=(DepthMapGL&& other)
 	other.frameBuffer = GL_FALSE;
 	return *this;
 }*/
-
-DepthMapGL::~DepthMapGL()
-{
-}
 
 GLuint DepthMapGL::getFramebuffer() const
 {
@@ -1010,10 +1007,6 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-PBR_GBufferGL::~PBR_GBufferGL()
-{
 }
 
 Texture * PBR_GBufferGL::getAlbedo()
