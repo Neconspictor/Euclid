@@ -86,10 +86,14 @@ public:
 	* Creates a new shader program from a given vertex shader and fragment shader file.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	ShaderGL(ShaderConfigGL* config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
-		const std::string& geometryShaderFile = "", const std::string& instancedVertexShaderFile = "");
+	ShaderGL(std::unique_ptr<ShaderConfigGL> config, 
+		const std::string& vertexShaderFile, 
+		const std::string& fragmentShaderFile,
+		const std::string& geometryShaderFile = "", 
+		const std::string& instancedVertexShaderFile = "");
+
 	ShaderGL(ShaderGL&& other);
-	ShaderGL(const ShaderGL& other);
+	ShaderGL(const ShaderGL& other) = delete;
 
 	virtual ~ShaderGL();
 
@@ -113,7 +117,7 @@ public:
 	static void initShaderFileSystem();
 
 protected:
-	ShaderConfigGL* config;
+	std::unique_ptr<ShaderConfigGL> config;
 	GLuint programID;
 	GLuint instancedProgramID;
 	platform::LoggingClient logClient;

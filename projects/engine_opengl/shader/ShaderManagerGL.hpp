@@ -22,7 +22,6 @@ public:
 
 private:
 	std::map<Shaders, std::shared_ptr<Shader>> shaderMap;
-	std::list<std::shared_ptr<ShaderConfigGL>> configs;
 	platform::LoggingClient logClient;
 
 	// this class is a singleton, thus private constructor

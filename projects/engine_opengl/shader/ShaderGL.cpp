@@ -178,9 +178,9 @@ int ShaderConfigGL::getNumberOfAttributes() const
 	return attributes.size();
 }
 
-ShaderGL::ShaderGL(ShaderConfigGL* config, const string& vertexShaderFile, const string& fragmentShaderFile, 
+ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const string& vertexShaderFile, const string& fragmentShaderFile, 
 	const string& geometryShaderFile, const string& instancedVertexShaderFile)
-	: config(config), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
+	: config(move(config)), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
 {
 	// Do assertions
 	assert(this->config != nullptr);
@@ -201,20 +201,15 @@ ShaderGL::ShaderGL(ShaderConfigGL* config, const string& vertexShaderFile, const
 	}
 }
 
-ShaderGL::ShaderGL(ShaderGL&& other) : config(other.config),
+ShaderGL::ShaderGL(ShaderGL&& other) : config(move(other.config)),
     programID(other.programID), instancedProgramID(other.instancedProgramID),
-	logClient(other.logClient), textureCounter(other.textureCounter)
+	logClient(move(other.logClient)), textureCounter(other.textureCounter)
 {
 	other.programID = GL_FALSE;
 	other.instancedProgramID = GL_FALSE;
 	other.textureCounter = GL_FALSE;
 	other.config = nullptr;
 }
-
-ShaderGL::ShaderGL(const ShaderGL& other) : config(other.config),
-    programID(other.programID), instancedProgramID(other.instancedProgramID), 
-	logClient(other.logClient), textureCounter(other.textureCounter)
-{}
 
 ShaderGL::~ShaderGL() {}
 
@@ -433,7 +428,7 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 
 	glUseProgram(programID);
 
-	reinterpret_cast<ShaderConfigGL*>(config)->update(mesh, data);
+	config->update(mesh, data);
 
 	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
 	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
@@ -461,7 +456,7 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 
 	glUseProgram(instancedProgramID);
 
-	reinterpret_cast<ShaderConfigGL*>(config)->update(mesh, data);
+	config->update(mesh, data);
 
 	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
 	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
@@ -479,7 +474,7 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 
 ShaderConfig* ShaderGL::getConfig() const
 {
-	return config;
+	return config.get();
 };
 
 void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
