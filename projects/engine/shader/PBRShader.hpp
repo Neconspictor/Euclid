@@ -57,6 +57,7 @@ public:
 
 	virtual void setSkyBox(CubeMap* sky) = 0;
 	virtual void setShadowMap(Texture* texture) = 0;
+	virtual void setSSAOMap(Texture* texture) = 0;
 
 	virtual void setWorldToLightSpaceMatrix(glm::mat4 worldToLight) = 0;
 };

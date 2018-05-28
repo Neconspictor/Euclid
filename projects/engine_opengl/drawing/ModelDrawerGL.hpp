@@ -2,6 +2,7 @@
 #include <drawing/ModelDrawer.hpp>
 
 class RendererOpenGL;
+class ShaderGL;
 
 class ModelDrawerGL : public ModelDrawer
 {
@@ -11,6 +12,8 @@ public:
 	virtual ~ModelDrawerGL();
 
 	void draw(Sprite* sprite, Shaders shaderType) override;
+
+	virtual void draw(Sprite* sprite, Shader& shader) override;
 
 	void draw(Vob* vob, Shaders shaderType, const TransformData& data) override;
 	

@@ -28,6 +28,7 @@ uniform DirLight dirLight;
 
 uniform GBuffer gBuffer;
 uniform sampler2D shadowMap;
+uniform sampler2D ssaoMap;
 
 uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
 uniform mat4 eyeToLight;
@@ -122,11 +123,13 @@ void main()
 	ao = 1;
 	vec3 albedo = texture(gBuffer.albedoMap, fs_in.tex_coords).rgb;
 	float metallic = texture(gBuffer.metallicMap, fs_in.tex_coords).r;
-	metallic = 0;
+	metallic = 0.3;
 	vec3 normalEye = texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb;
 	vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
 	float roughness = texture(gBuffer.roughnessMap, fs_in.tex_coords).r;
-	roughness = 0.5;
+	roughness = 0.3;
+	
+	float ambientOcclusion = texture(ssaoMap, fs_in.tex_coords).r;
 	
 	// calculate per-light radiance
 	vec3 lightEye =  normalize(-dirLight.directionEye);
@@ -154,6 +157,10 @@ void main()
 	shadow = clamp(shadow, 0.2, 1);
 
 	result *= (shadow);
+	//result = vec3(1,1,1);
+	
+	result *= pow(ambientOcclusion, 2.2);
+
 	
 	float alpha = length(normalEye);
 	alpha = clamp(alpha, 0, 1);

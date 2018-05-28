@@ -23,8 +23,9 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
+void ModelDrawerGL::draw(Sprite * sprite, Shader& shader)
 {
+	ShaderGL& glShader = dynamic_cast<ShaderGL&>(shader);
 	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
@@ -48,23 +49,28 @@ void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 
 	// rotate around origin
 	model = translate(model, vec3(spriteOrigin, 0.0f));
-	model = rotate(model, rotation.z, vec3(0,0,1)); // rotate around z-axis
-	model = rotate(model, rotation.y, vec3(0,1,0)); // rotate around y-axis
-	model = rotate(model, rotation.x, vec3(1,0,0)); // rotate around x-axis
+	model = rotate(model, rotation.z, vec3(0, 0, 1)); // rotate around z-axis
+	model = rotate(model, rotation.y, vec3(0, 1, 0)); // rotate around y-axis
+	model = rotate(model, rotation.x, vec3(1, 0, 0)); // rotate around x-axis
 	model = translate(model, vec3(-spriteOrigin, 0.0f));
-	
+
 
 	// finally scale
 	model = scale(model, scaling);
 
-	TransformData data = {&projection, &view, &model};
-	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
-	shader->setTransformData(data);
+	TransformData data = { &projection, &view, &model };
+	glShader.setTransformData(data);
 	//shader->setOffscreenBuffer(texture->getTexture());
 	for (auto& mesh : spriteModel->getMeshes())
 	{
-		shader->draw(mesh);
+		glShader.draw(mesh);
 	}
+}
+
+void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
+{
+	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
+	draw(sprite, *shader);
 }
 
 void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data)

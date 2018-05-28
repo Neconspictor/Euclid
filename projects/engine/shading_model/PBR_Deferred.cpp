@@ -37,6 +37,7 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 	float frameTimeElapsed, 
 	PBR_GBuffer * gBuffer, 
 	Texture * shadowMap, 
+	Texture* ssaoMap,
 	const DirectionalLight & light, 
 	const glm::mat4 & viewFromGPass, 
 	const glm::mat4 & worldToLight)
@@ -52,6 +53,7 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 	shader->setLightDirection(light.getLook());
 	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setShadowMap(shadowMap);
+	shader->setSSAOMap(ssaoMap);
 	shader->setSkyBox(environmentMap->getCubeMap());
 	shader->setWorldToLightSpaceMatrix(worldToLight);
 

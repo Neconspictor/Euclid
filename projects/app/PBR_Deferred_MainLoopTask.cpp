@@ -44,7 +44,6 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
 {
-	int i = 0;
 }
 
 SceneNode* PBR_Deferred_MainLoopTask::createShadowScene()
@@ -369,6 +368,9 @@ void PBR_Deferred_MainLoopTask::run()
 		camera->getPerspProjection());
 	renderer->endScene();
 
+	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	ssao_deferred->blur();
+
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetMultisampled);
 	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
@@ -381,6 +383,7 @@ void PBR_Deferred_MainLoopTask::run()
 			frameTimeElapsed, 
 			pbr_mrt, 
 			shadowMap->getTexture(), 
+			ssao_deferred->getBlurredResult(),
 			globalLight, 
 			camera->getView(), 
 			lightProj * lightView);
@@ -410,6 +413,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	screenSprite.setTexture(renderTargetMultisampled->getTexture());
+	//screenSprite.setTexture(ssao_deferred->getAO_Result());
 	
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 
@@ -428,6 +432,7 @@ void PBR_Deferred_MainLoopTask::run()
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
+		//ssao_deferred->displayAOTexture();
 	}
 	renderer->endScene();
 

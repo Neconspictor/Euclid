@@ -18,7 +18,7 @@ SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
 	noiseTileWidth(noiseTileWidth)
 {
 	// create random kernel samples
-	for (int i = 0; i < kernelSize; ++i) {
+	for (unsigned int i = 0; i < kernelSize; ++i) {
 		vec3 vec;
 		vec.x = randomFloat(-1, 1);
 		vec.y = randomFloat(-1, 1);
@@ -27,17 +27,17 @@ SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
 		if (vec.length() != 0)
 			normalize(vec);
 
-		vec *= randomFloat(0, 1);
+		//vec *= randomFloat(0, 1);
 
 		float scale = i / (float)kernelSize;
-		scale = lerp(0.1, 1.0, scale * scale);
-		vec *= scale;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		//vec *= scale;
 
 		ssaoKernel.emplace_back(move(vec));
 	}
 
 	//create noise texture (random rotation vectors in tangent space)
-	for (int i = 0; i < noiseTileWidth * noiseTileWidth; ++i) {
+	for (unsigned int i = 0; i < noiseTileWidth * noiseTileWidth; ++i) {
 		vec3 vec;
 		vec.x = randomFloat(-1, 1);
 		vec.y = randomFloat(-1, 1);
@@ -46,11 +46,6 @@ SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
 		noiseTextureValues.emplace_back(move(vec));
 	}
 }
-
-void SSAO_Deferred::drawAO(SceneNode * scene, PBR_GBuffer * gBuffer)
-{
-}
-
 
 float SSAO_Deferred::randomFloat(float a, float b) {
 	uniform_real_distribution<float> dist(a, b);

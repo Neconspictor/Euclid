@@ -19,6 +19,7 @@ public:
 	   float frameTimeElapsed,
 	   PBR_GBuffer* gBuffer,
 	   Texture* shadowMap,
+	   Texture* ssaoMap,
 	   const DirectionalLight& light,
 	   const glm::mat4& viewFromGPass,
 	   const glm::mat4& worldToLight);

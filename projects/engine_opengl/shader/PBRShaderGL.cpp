@@ -203,6 +203,7 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Defer
 	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.roughnessMap");
 
 	attributes.create(types::TEXTURE2D, nullptr, "shadowMap");
+	attributes.create(types::TEXTURE2D, nullptr, "ssaoMap");
 
 	attributes.create(types::CUBE_MAP, nullptr, "irradianceMap");
 	attributes.create(types::CUBE_MAP, nullptr, "prefilterMap");
@@ -268,6 +269,14 @@ void PBRShader_Deferred_LightingGL::setShadowMap(Texture * texture)
 	attributes.setData("shadowMap", shadowMap);
 }
 
+void PBRShader_Deferred_LightingGL::setSSAOMap(Texture * texture)
+{
+	ssaoMap = dynamic_cast<TextureGL*>(texture);
+	assert(ssaoMap != nullptr);
+	Texture* white = TextureManagerGL::get()->getDefaultWhiteTexture();
+	attributes.setData("ssaoMap", ssaoMap);
+}
+
 void PBRShader_Deferred_LightingGL::setSkyBox(CubeMap * sky)
 {
 	this->skybox = dynamic_cast<CubeMapGL*>(sky);
@@ -302,6 +311,7 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("eyeToLight", &eyeToLight);
 
 	attributes.setData("shadowMap", shadowMap);
+	attributes.setData("ssaoMap", ssaoMap);
 
 	attributes.setData("gBuffer.aoMap", gBuffer->getAO());
 	attributes.setData("gBuffer.albedoMap", gBuffer->getAlbedo());

@@ -145,7 +145,12 @@ void ShaderAttributeCollection::setData(const string& uniformName, const void* d
 {
 	auto attr = get(uniformName);
 
-	assert(attr != nullptr);
+	//assert(attr != nullptr);
+	if (attr == nullptr) {
+		std::stringstream ss;
+		ss << "Couldn't match uniform name >> " << uniformName << " << with a registered atrribute name.";
+		throw std::runtime_error(ss.str());
+	}
 
 	if (data == nullptr) {
 		attr->setData(defaultValue);

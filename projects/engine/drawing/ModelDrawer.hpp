@@ -24,6 +24,7 @@ public:
 	/**
 	 * Draws a sprite onto the screen
 	 */
+	virtual void draw(Sprite* sprite, Shader& shader) = 0;
 	virtual void draw(Sprite* sprite, Shaders shaderType) = 0;
 
 	/**

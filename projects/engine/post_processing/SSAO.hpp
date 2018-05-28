@@ -19,11 +19,14 @@ public:
 
 	virtual ~SSAO_Deferred() = default;
 
-	virtual void drawAO(SceneNode * scene, PBR_GBuffer* gBuffer);
-
-	virtual Texture* getSSAO() = 0;
+	virtual Texture* getAO_Result() = 0;
+	virtual Texture* getBlurredResult() = 0;
 	virtual Texture* getNoiseTexture() = 0;
 	virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
+
+	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) = 0;
+	virtual void blur() = 0;
+	virtual void displayAOTexture() = 0;
 
 
 protected:

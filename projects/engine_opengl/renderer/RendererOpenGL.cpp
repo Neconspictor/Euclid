@@ -627,7 +627,7 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 
 std::unique_ptr<SSAO_Deferred> RendererOpenGL::createDeferredSSAO()
 {
-	return std::make_unique<SSAO_DeferredGL>(width, height);
+	return std::make_unique<SSAO_DeferredGL>(width, height, &modelDrawer);
 }
 
 EffectLibrary* RendererOpenGL::getEffectLibrary()
