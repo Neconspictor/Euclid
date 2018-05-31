@@ -1,14 +1,17 @@
 #pragma once
 #include <platform/Input.hpp>
 #include <platform/Window.hpp>
+#include <platform/gui/ImGUI.hpp>
 
-class PlatformProvider
+class SubSystemProvider
 {
 public:
 
-	virtual ~PlatformProvider() {}
+	virtual ~SubSystemProvider() {}
 	
 	virtual Window* createWindow(Window::WindowStruct& desc) = 0;
+
+	virtual ImGUI_Impl* createGUI(Window* window) = 0;
 
 	virtual Renderer* getRenderer() = 0;
 

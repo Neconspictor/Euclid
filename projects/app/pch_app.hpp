@@ -18,7 +18,6 @@
 #include <unordered_map>
 
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 

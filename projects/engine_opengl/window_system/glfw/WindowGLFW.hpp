@@ -1,7 +1,7 @@
 #pragma once
 
 #include <platform/Window.hpp>
-#include <platform/window_system/glfw/InputGLFW.hpp>
+#include <window_system/glfw/InputGLFW.hpp>
 
 
 struct GLFWwindow;
@@ -61,7 +61,7 @@ public:
 protected:
 	void refreshWindowWithoutCallbacks();
 
-	friend class WindowSystemGLFW;
+	friend class SubSystemProviderGLFW;
 	friend class InputGLFW;
 
 	GLFWwindow* window;

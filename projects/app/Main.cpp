@@ -5,10 +5,9 @@
 #include <PBR_MainLoopTask.hpp>
 #include <PBR_Deferred_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
-#include <platform/window_system/glfw/WindowSystemGLFW.hpp>
+#include <window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <boost/locale.hpp>
 #include <thread>
-#include <platform/SystemUI.hpp>
 
 //#include <Brofiler.h>
 
@@ -25,7 +24,7 @@ int main(int argc, char** argv)
 	test[0][3] = 1;
 
 	LoggingClient logger(getLogServer());
-	PlatformProvider* windowSystem = WindowSystemGLFW::get();
+	SubSystemProvider* windowSystem = SubSystemProviderGLFW::get();
 	if (!windowSystem->init())
 	{
 		LOG(logger, platform::Fault) << "Couldn't initialize window system! Aborting...";
@@ -33,7 +32,7 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	SystemUI* ui = SystemUI::get(windowSystem);
+	//SystemUI* ui = SystemUI::get(windowSystem);
 
 	try {
 		shared_ptr<Video> video = make_shared<Video>(windowSystem);
@@ -41,7 +40,7 @@ int main(int argc, char** argv)
 		shared_ptr<Engine> engine  = make_shared<Engine>();
 
 		video->useRenderer(renderer.get());
-		video->useUISystem(ui);
+		//video->useUISystem(ui);
 		engine->add(video);
 		engine->setConfigFileName("config.ini");
 
@@ -55,7 +54,7 @@ int main(int argc, char** argv)
 		//shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
 		//		video->getWindow(), video->getWindowSystem(), renderer.get());
 		
-		mainLoop->setUI(ui);
+		//mainLoop->setUI(ui);
 		mainLoop->init();
 
 		engine->run(mainLoop);
@@ -68,7 +67,7 @@ int main(int argc, char** argv)
 		LOG(logger, platform::Fault) << "Unknown Exception occurred.";
 	}
 
-	SystemUI::shutdown();
+	//SystemUI::shutdown();
 	windowSystem->terminate();
 	getLogServer()->terminate();
 

@@ -24,7 +24,7 @@ class PBR_Deferred_MainLoopTask : public Task
 public:
 
 	using EnginePtr = Engine*;
-	using WindowSystemPtr = PlatformProvider*;
+	using WindowSystemPtr = SubSystemProvider*;
 	using WindowPtr = Window*;
 	using RendererPtr = Renderer3D*;
 	typedef unsigned int uint;

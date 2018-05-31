@@ -14,7 +14,7 @@ AbstractMaterialLoader::~AbstractMaterialLoader()
 vector<string> AbstractMaterialLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data) const
 {
 	vector<string> textures;
-	for (GLuint i = 0; i < mat->GetTextureCount(type); ++i)
+	for (unsigned int i = 0; i < mat->GetTextureCount(type); ++i)
 	{
 		aiString texture;
 		mat->GetTexture(type, i, &texture);

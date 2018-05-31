@@ -10,7 +10,6 @@
 #include <camera/FPCamera.hpp>
 #include <shader/PhongTextureShader.hpp>
 #include <shader/SkyBoxShader.hpp>
-#include <platform/SystemUI.hpp>
 #include <scene/SceneNode.hpp>
 #include <shader/DepthMapShader.hpp>
 #include <shader/ScreenShader.hpp>

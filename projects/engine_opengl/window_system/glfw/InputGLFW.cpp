@@ -1,9 +1,9 @@
 // glad has to be included before glfw
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <platform/window_system/glfw/InputGLFW.hpp>
-#include <platform/window_system/glfw/WindowGLFW.hpp>
-#include <platform/window_system/glfw/WindowSystemGLFW.hpp>
+#include <window_system/glfw/InputGLFW.hpp>
+#include <window_system/glfw/WindowGLFW.hpp>
+#include <window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <functional>
 

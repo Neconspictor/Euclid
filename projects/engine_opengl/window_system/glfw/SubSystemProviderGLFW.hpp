@@ -2,20 +2,22 @@
 #include <platform/PlatformProvider.hpp>
 #include <unordered_map>
 #include <unordered_set>
-#include <platform/window_system/glfw/WindowGLFW.hpp>
+#include <window_system/glfw/WindowGLFW.hpp>
 
 
-class WindowSystemGLFW : public PlatformProvider
+class SubSystemProviderGLFW : public SubSystemProvider
 {
 public:
 
 	Window* createWindow(Window::WindowStruct& desc) override;
 
+	virtual ImGUI_Impl* createGUI(Window* window) override;
+
 	Renderer* getRenderer() override;
 
 	Input* getInput() override;
 
-	static WindowSystemGLFW* get();
+	static SubSystemProviderGLFW* get();
 
 	virtual bool init() override;
 
@@ -31,9 +33,9 @@ protected:
 	platform::LoggingClient logClient;
 
 private:
-	WindowSystemGLFW();
+	SubSystemProviderGLFW();
 
-	static WindowSystemGLFW instance;
+	static SubSystemProviderGLFW instance;
 
 	std::list<WindowGLFW> windows;
 };

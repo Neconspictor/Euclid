@@ -1,19 +1,19 @@
-#include <platform/window_system/glfw/WindowSystemGLFW.hpp>
+#include <window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <utf8.h>
+//#include <utf8.h>
 
 using namespace std;
 
-WindowSystemGLFW WindowSystemGLFW::instance;
+SubSystemProviderGLFW SubSystemProviderGLFW::instance;
 
 
-WindowSystemGLFW::WindowSystemGLFW() : m_isInitialized(false), logClient(platform::getLogServer())
+SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), logClient(platform::getLogServer())
 {
 }
 
-Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc)
+Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 {
 
 	WindowGLFW window(desc);
@@ -35,29 +35,34 @@ Window* WindowSystemGLFW::createWindow(Window::WindowStruct& desc)
 	return pointer;
 }
 
-Renderer* WindowSystemGLFW::getRenderer() {
+ImGUI_Impl * SubSystemProviderGLFW::createGUI(Window * window)
+{
+	return nullptr;
+}
+
+Renderer* SubSystemProviderGLFW::getRenderer() {
 
 	//TODO
 	return nullptr;
 }
 
-Input* WindowSystemGLFW::getInput() {
+Input* SubSystemProviderGLFW::getInput() {
 	//TODO
 	return nullptr;
 }
 
-void WindowSystemGLFW::errorCallback(int error, const char* description)
+void SubSystemProviderGLFW::errorCallback(int error, const char* description)
 {
 	LOG(instance.logClient, platform::Error) << "Error code: " << error
 		<< ", error description: " << description;
 }
 
-WindowSystemGLFW* WindowSystemGLFW::get()
+SubSystemProviderGLFW* SubSystemProviderGLFW::get()
 {
 	return &instance;
 }
 
-bool WindowSystemGLFW::init()
+bool SubSystemProviderGLFW::init()
 {
 	if (m_isInitialized) return true;
 
@@ -69,7 +74,7 @@ bool WindowSystemGLFW::init()
 	return true;
 }
 
-void WindowSystemGLFW::pollEvents()
+void SubSystemProviderGLFW::pollEvents()
 {
 	for (auto& window : windows)
 	{
@@ -85,7 +90,7 @@ void WindowSystemGLFW::pollEvents()
 	}
 }
 
-void WindowSystemGLFW::terminate()
+void SubSystemProviderGLFW::terminate()
 {
 	if (!m_isInitialized) return;
 	

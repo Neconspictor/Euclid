@@ -4,12 +4,12 @@
 #include <renderer/Renderer3D.hpp>
 
 class SystemUI;
-class PlatformProvider;
+class SubSystemProvider;
 
 class Video : public System
 {
 public:
-	Video(PlatformProvider* system);
+	Video(SubSystemProvider* system);
 
 	virtual ~Video();
 	void handle(const CollectOptions& config) override;
@@ -18,9 +18,7 @@ public:
 
 	void useRenderer(Renderer3D* renderer);
 
-	void useUISystem(SystemUI* ui);
-
-	PlatformProvider* getWindowSystem() const;
+	SubSystemProvider* getWindowSystem() const;
 
 	Window* getWindow() const;
 
@@ -33,9 +31,7 @@ private:
 	unsigned int refreshRate;
 	bool vSync;
 	unsigned int msaaSamples;
-	PlatformProvider* windowSystem;
+	SubSystemProvider* windowSystem;
 	Window* window;
 	Renderer3D* renderer;
-	SystemUI* ui;
-
 };

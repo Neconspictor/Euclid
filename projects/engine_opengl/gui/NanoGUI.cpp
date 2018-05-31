@@ -1,8 +1,8 @@
 
 
-#include <platform/ui/NanoGUI.hpp>
-#include <platform/window_system/glfw/WindowGLFW.hpp>
-#include <platform/window_system/glfw/WindowSystemGLFW.hpp>
+#include <gui/NanoGUI.hpp>
+#include <window_system/glfw/WindowGLFW.hpp>
+#include <window_system/glfw/SubSystemProviderGLFW.hpp>
 
 /*#if defined(NANOGUI_GLAD)
 #if defined(NANOGUI_SHARED) && !defined(GLAD_GLAPI_EXPORT)
@@ -31,7 +31,7 @@ double testDouble = 0.3;
 std::string strval = "A string";
 
 
-NanoGUI::NanoGUI(WindowSystemGLFW* windowSystem) : windowSystem(windowSystem), window(nullptr)
+NanoGUI::NanoGUI(SubSystemProviderGLFW* windowSystem) : windowSystem(windowSystem), window(nullptr)
 {
 	std::cout << "created NanoGUI" << std::endl;
 }
