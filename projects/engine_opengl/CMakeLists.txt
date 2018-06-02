@@ -13,6 +13,8 @@ set(
 	drawing/ModelDrawerGL.cpp
 	
 	#gui
+	gui/ImGUI_GL.hpp
+	gui/ImGUI_GL.cpp
 	gui/NanoGUI.hpp
 	gui/NanoGUI.cpp
     

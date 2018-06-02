@@ -2,6 +2,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <gui/ImGUI_GL.hpp>
 //#include <utf8.h>
 
 using namespace std;
@@ -37,7 +38,9 @@ Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 
 ImGUI_Impl * SubSystemProviderGLFW::createGUI(Window * window)
 {
-	return nullptr;
+	WindowGLFW& windowGLFW = dynamic_cast<WindowGLFW&>(*window);
+	
+	return new ImGUI_GL(windowGLFW);
 }
 
 Renderer* SubSystemProviderGLFW::getRenderer() {
