@@ -32,10 +32,6 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	//SystemUI* ui = SystemUI::get(windowSystem);
-
-	ImGUI_Impl* imGUI = nullptr;
-
 	try {
 		shared_ptr<Video> video = make_shared<Video>(windowSystem);
 		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>();
@@ -50,10 +46,10 @@ int main(int argc, char** argv)
 		
 		engine->init();
 
-		imGUI = windowSystem->createGUI(video->getWindow());
+		std::unique_ptr<ImGUI_Impl> imGUI = windowSystem->createGUI(video->getWindow());
 
 		shared_ptr<PBR_Deferred_MainLoopTask> mainLoop = make_shared<PBR_Deferred_MainLoopTask>(engine.get(),
-			video->getWindow(), video->getWindowSystem(), renderer.get());
+			video->getWindow(), video->getWindowSystem(), renderer.get(), imGUI.get());
 
 		//shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
 		//		video->getWindow(), video->getWindowSystem(), renderer.get());
@@ -70,9 +66,6 @@ int main(int argc, char** argv)
 	{
 		LOG(logger, platform::Fault) << "Unknown Exception occurred.";
 	}
-
-	//SystemUI::shutdown();
-	if (imGUI) delete imGUI;
 
 	windowSystem->terminate();
 	getLogServer()->terminate();

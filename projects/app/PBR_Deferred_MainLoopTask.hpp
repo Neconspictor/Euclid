@@ -16,6 +16,7 @@
 #include <post_processing/blur/GaussianBlur.hpp>
 #include <shading_model/PBR_Deferred.hpp>
 #include <post_processing/SSAO.hpp>
+#include <platform/gui/ImGUI.hpp>
 
 class SystemUI;
 
@@ -27,9 +28,14 @@ public:
 	using WindowSystemPtr = SubSystemProvider*;
 	using WindowPtr = Window*;
 	using RendererPtr = Renderer3D*;
+	using GuiPtr = ImGUI_Impl*;
 	typedef unsigned int uint;
 
-	PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,
+	PBR_Deferred_MainLoopTask(EnginePtr engine, 
+								WindowPtr window, 
+								WindowSystemPtr windowSystem, 
+								RendererPtr renderer,
+								GuiPtr gui,
 		unsigned int flags = SINGLETHREADED_REPEATING);
 
 	virtual ~PBR_Deferred_MainLoopTask();
@@ -51,6 +57,7 @@ private:
 	FPSCounter counter;
 	EnginePtr engine;
 	DirectionalLight globalLight;
+	GuiPtr gui;
 	bool isRunning;
 	platform::LoggingClient logClient;
 	float mixValue;
@@ -59,12 +66,11 @@ private:
 	Texture* panoramaSky;
 
 	std::unique_ptr<PBR_Deferred> pbr_deferred;
-	PBR_GBuffer*  pbr_mrt;
+	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 
 	std::unique_ptr<SSAO_Deferred> ssao_deferred;
 
 	RendererPtr renderer;
-	RenderTarget* renderTargetMultisampled;
 	RenderTarget* renderTargetSingleSampled;
 	float runtime;
 	SceneNode* scene;

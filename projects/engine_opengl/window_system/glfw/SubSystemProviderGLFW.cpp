@@ -36,11 +36,10 @@ Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 	return pointer;
 }
 
-ImGUI_Impl * SubSystemProviderGLFW::createGUI(Window * window)
+std::unique_ptr<ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
 {
 	WindowGLFW& windowGLFW = dynamic_cast<WindowGLFW&>(*window);
-	
-	return new ImGUI_GL(windowGLFW);
+	return make_unique<ImGUI_GL>(windowGLFW);
 }
 
 Renderer* SubSystemProviderGLFW::getRenderer() {

@@ -8,7 +8,7 @@ class PBR_Deferred : public PBR {
 public:
 	PBR_Deferred(Renderer3D* renderer, Texture* backgroundHDR);
 
-   virtual PBR_GBuffer* createMultipleRenderTarget(int width, int height) = 0;
+   virtual std::unique_ptr<PBR_GBuffer>createMultipleRenderTarget(int width, int height) = 0;
 
    virtual void drawGeometryScene(SceneNode * scene,
 	  float frameTimeElapsed,

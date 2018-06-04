@@ -11,7 +11,7 @@ public:
 
 	Window* createWindow(Window::WindowStruct& desc) override;
 
-	virtual ImGUI_Impl* createGUI(Window* window) override;
+	virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
 
 	Renderer* getRenderer() override;
 

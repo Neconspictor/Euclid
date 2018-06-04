@@ -11,10 +11,7 @@ public:
 	PBR_DeferredGL(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR_DeferredGL();
 
-  virtual PBR_GBuffer* createMultipleRenderTarget(int width, int height) override;
-
-protected:
-	std::list<PBR_GBufferGL> renderTargets;
+  virtual std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height) override;
 };
 
 #endif

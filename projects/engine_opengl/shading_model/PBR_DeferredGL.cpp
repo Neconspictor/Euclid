@@ -16,8 +16,7 @@ PBR_DeferredGL::~PBR_DeferredGL()
 {
 }
 
-PBR_GBuffer* PBR_DeferredGL::createMultipleRenderTarget(int width, int height)
+std::unique_ptr<PBR_GBuffer> PBR_DeferredGL::createMultipleRenderTarget(int width, int height)
 {
-	renderTargets.emplace_back(move(PBR_GBufferGL(width, height)));
-	return &renderTargets.back();
+	return make_unique<PBR_GBufferGL>(width, height);
 }

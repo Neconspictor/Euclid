@@ -11,7 +11,7 @@ public:
 	
 	virtual Window* createWindow(Window::WindowStruct& desc) = 0;
 
-	virtual ImGUI_Impl* createGUI(Window* window) = 0;
+	virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) = 0;
 
 	virtual Renderer* getRenderer() = 0;
 

@@ -25,14 +25,29 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer, unsigned int flags):
-	Task(flags), blurEffect(nullptr), isRunning(true), logClient(getLogServer()), panoramaSky(nullptr), renderTargetMultisampled(nullptr), 
-	renderTargetSingleSampled(nullptr), runtime(0), scene(nullptr), shadowMap(nullptr), showDepthMap(false),  ui(nullptr)
+PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
+														WindowPtr window,
+														WindowSystemPtr windowSystem,
+														RendererPtr renderer,
+														GuiPtr gui,
+														unsigned int flags) :
+	Task(flags),
+	blurEffect(nullptr),
+	engine(engine),
+	gui(gui),
+	isRunning(true), 
+	logClient(getLogServer()), 
+	panoramaSky(nullptr), 
+	renderTargetSingleSampled(nullptr), 
+	runtime(0), 
+	renderer(renderer),
+	scene(nullptr), 
+	shadowMap(nullptr), 
+	showDepthMap(false),  
+	ui(nullptr),
+	window(window),
+	windowSystem(windowSystem)
 {
-	this->window = window;
-	this->windowSystem = windowSystem;
-	this->renderer = renderer;
-	this->engine = engine;
 	originalTitle = window->getTitle();
 	logClient.setPrefix("[PBR_Deferred_MainLoopTask]");
 
@@ -138,39 +153,6 @@ void PBR_Deferred_MainLoopTask::init()
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
 
-	input->addResizeCallback([&](int width, int height)
-	{
-		LOG(logClient, Debug) << "addResizeCallback : width: " << width << ", height: " << height;
-
-		if (!window->hasFocus()) {
-			LOG(logClient, Debug) << "addResizeCallback : no focus!";
-		}
-
-		if (width == 0 || height == 0) {
-			LOG(logClient, Warning) << "addResizeCallback : width or height is 0!";
-			return;
-		}
-
-		camera->setAspectRatio((float)width / (float)height);
-
-		//update render target dimension
-		//the render target dimensions are dependent from the viewport size
-		// so first update the viewport and than recreate the render targets
-		// TODO, simplify this process -> render targets should be indepedent from vieport dimension?
-		renderer->setViewPort(0, 0, width, height);
-		renderer->destroyRenderTarget(renderTargetMultisampled);
-		renderer->destroyRenderTarget(renderTargetSingleSampled);
-		renderTargetMultisampled = renderer->createRenderTarget(1);
-		renderTargetSingleSampled = renderer->createRenderTarget(1);
-	});
-
-	input->addRefreshCallback([&]() {
-		LOG(logClient, Warning) << "addRefreshCallback : called!";
-		if (!window->hasFocus()) {
-			LOG(logClient, Warning) << "addRefreshCallback : no focus!";
-			return;
-		}
-	});
 
 	shaderManager->loadShaders();
 
@@ -199,8 +181,6 @@ void PBR_Deferred_MainLoopTask::init()
 		(shaderManager->getConfig(Shaders::Pbr));
 
 	shadowMap = renderer->createDepthMap(4096, 4096);
-
-	renderTargetMultisampled = renderer->createRenderTarget(1);
 	renderTargetSingleSampled = renderer->createRenderTarget();
 
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -244,19 +224,54 @@ void PBR_Deferred_MainLoopTask::init()
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
+	
+
+	
+
+
 	pbr_deferred = renderer->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
-	//pbr_deferred.init(renderer, panoramaSky);
+	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
+
+	ssao_deferred = renderer->createDeferredSSAO();
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
-
-	//CubeRenderTarget* testCubeMap = renderer->renderCubeMap(2048, 2048, panoramaSky);
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 
-	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
 
+	input->addResizeCallback([&](int width, int height)
+	{
+		LOG(logClient, Debug) << "addResizeCallback : width: " << width << ", height: " << height;
 
-	ssao_deferred = renderer->createDeferredSSAO();
+		if (!window->hasFocus()) {
+			LOG(logClient, Debug) << "addResizeCallback : no focus!";
+		}
+
+		if (width == 0 || height == 0) {
+			LOG(logClient, Warning) << "addResizeCallback : width or height is 0!";
+			return;
+		}
+
+		camera->setAspectRatio((float)width / (float)height);
+
+		//update render target dimension
+		//the render target dimensions are dependent from the viewport size
+		// so first update the viewport and than recreate the render targets
+		// TODO, simplify this process -> render targets should be indepedent from viewport dimension?
+		renderer->setViewPort(0, 0, width, height);
+		renderer->destroyRenderTarget(renderTargetSingleSampled);
+		renderTargetSingleSampled = renderer->createRenderTarget();
+		pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
+		ssao_deferred->onSizeChange(width, height);
+	});
+
+	input->addRefreshCallback([&]() {
+		LOG(logClient, Warning) << "addRefreshCallback : called!";
+		if (!window->hasFocus()) {
+			LOG(logClient, Warning) << "addRefreshCallback : no focus!";
+			return;
+		}
+	});
 
 }
 
@@ -314,6 +329,7 @@ void PBR_Deferred_MainLoopTask::run()
 
 	window->activate();
 	handleInputEvents();
+
 	window->activate();
 
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
@@ -358,7 +374,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->cullFaces(CullingMode::Back);
 	renderer->endScene();
 
-	renderer->useBaseRenderTarget(pbr_mrt);
+	renderer->useBaseRenderTarget(pbr_mrt.get());
 	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
 		pbr_deferred->drawGeometryScene(scene,
@@ -371,7 +387,7 @@ void PBR_Deferred_MainLoopTask::run()
 	ssao_deferred->blur();
 
 	// render scene to a offscreen buffer
-	renderer->useBaseRenderTarget(renderTargetMultisampled);
+	renderer->useBaseRenderTarget(renderTargetSingleSampled);
 	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
 		renderer->enableAlphaBlending(true);
@@ -380,7 +396,7 @@ void PBR_Deferred_MainLoopTask::run()
 
 		pbr_deferred->drawLighting(scene, 
 			frameTimeElapsed, 
-			pbr_mrt, 
+			pbr_mrt.get(), 
 			shadowMap->getTexture(), 
 			ssao_deferred->getBlurredResult(),
 			globalLight, 
@@ -402,16 +418,12 @@ void PBR_Deferred_MainLoopTask::run()
 
 
 	renderer->endScene();
-
-
-	// copy rendered scene to the single sampled render target
-	//renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
 	renderer->useScreenTarget();
 	renderer->beginScene();
-	screenSprite.setTexture(renderTargetMultisampled->getTexture());
+	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	//screenSprite.setTexture(ssao_deferred->getAO_Result());
 	
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
@@ -435,6 +447,35 @@ void PBR_Deferred_MainLoopTask::run()
 	}
 	renderer->endScene();
 
+	// render GUI
+	gui->newFrame();
+
+	// 1. Show a simple window.
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
+	{
+		static float f = 0.0f;
+		static int counter = 0;
+		ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
+		//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+		//ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
+		//ImGui::Checkbox("Another Window", &show_another_window);
+
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+
+
+	ImGui::Render();
+	gui->renderDrawData(ImGui::GetDrawData());
+
+	// present rendered frame
 	window->swapBuffers();
 
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
