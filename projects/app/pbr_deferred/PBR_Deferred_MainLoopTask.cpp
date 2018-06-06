@@ -1,4 +1,4 @@
-#include <PBR_Deferred_MainLoopTask.hpp>
+#include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <Brofiler.h>
 #include <glm/glm.hpp>
@@ -26,25 +26,26 @@ int ssaaSamples = 1;
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
 PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
-														WindowPtr window,
-														WindowSystemPtr windowSystem,
-														RendererPtr renderer,
-														GuiPtr gui,
-														unsigned int flags) :
+	WindowPtr window,
+	WindowSystemPtr windowSystem,
+	RendererPtr renderer,
+	GuiPtr gui,
+	unsigned int flags) :
 	Task(flags),
 	blurEffect(nullptr),
 	engine(engine),
 	gui(gui),
-	isRunning(true), 
-	logClient(getLogServer()), 
-	panoramaSky(nullptr), 
-	renderTargetSingleSampled(nullptr), 
-	runtime(0), 
+	isRunning(true),
+	logClient(getLogServer()),
+	panoramaSky(nullptr),
+	renderTargetSingleSampled(nullptr),
+	runtime(0),
 	renderer(renderer),
-	scene(nullptr), 
-	shadowMap(nullptr), 
-	showDepthMap(false),  
+	scene(nullptr),
+	shadowMap(nullptr),
+	showDepthMap(false),
 	ui(nullptr),
+	uiModeStateMachine(nullptr),
 	window(window),
 	windowSystem(windowSystem)
 {
@@ -54,6 +55,8 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 	mixValue = 0.2f;
 
 	camera = make_shared<FPCamera>(FPCamera());
+
+	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this));
 }
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
@@ -328,11 +331,11 @@ void PBR_Deferred_MainLoopTask::run()
 
 
 	window->activate();
-	handleInputEvents();
+	//handleInputEvents();
+	uiModeStateMachine.frameUpdate();
 
-	window->activate();
-
-	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
+	//window->activate();
+	//updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
 
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
@@ -576,6 +579,11 @@ void PBR_Deferred_MainLoopTask::onWindowsFocus(Window* window, bool receivedFocu
 	if (receivedFocus)
 	{
 		LOG(logClient, platform::Debug) << "received focus!";
+		//if (dynamic_cast<FPCameraBase*>(camera.get()))
+		//{
+		//	window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
+		//}
+		//window->getInputDevice()->resetMouseMovement();
 		isRunning = true;
 	} else
 	{
@@ -585,5 +593,89 @@ void PBR_Deferred_MainLoopTask::onWindowsFocus(Window* window, bool receivedFocu
 		{
 			window->minimize();
 		}
+	}
+}
+
+
+GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTask)
+{
+	mainTask.window->showCursor(false);
+}
+
+void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
+{
+	std::cout << "GUI_Mode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
+	Input* input = mainTask->window->getInputDevice();
+
+	// Switch to camera mode?
+	if (input->isPressed(Input::KEY_C)) {
+		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask));
+	}
+}
+
+CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTask)
+{
+	mainTask.window->showCursor(true);
+}
+
+void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
+{
+	std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
+	Input* input = mainTask->window->getInputDevice();
+	float frameTime = mainTask->timer.getLastUpdateTimeDifference();
+
+	// handle input events
+	handleInputEvents(input, mainTask->window);
+
+	// update camera
+	updateCamera(input, frameTime);
+
+	// Switch to gui mode?
+	if (input->isPressed(Input::KEY_C)) {
+		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask));
+	}
+}
+
+void CameraMode::updateCamera(Input * input, float deltaTime)
+{
+	Camera* camera = mainTask->camera.get();
+	Window* window = mainTask->window;
+
+	camera->update(input, deltaTime);
+
+	//if (dynamic_cast<FPCameraBase*>(camera))
+	//{
+		window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
+	//}
+}
+
+void CameraMode::handleInputEvents(Input* input, Window* window)
+{
+	using namespace platform;
+	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
+
+	if (input->isPressed(Input::KEY_ESCAPE))
+	{
+		window->close();
+	}
+
+	if (input->isPressed(Input::KEY_Y))
+	{
+		mainTask->showDepthMap = !mainTask->showDepthMap;
+	}
+
+
+	// Context refresh Does not work right now!
+	if (input->isPressed(Input::KEY_B)) {
+		if (window->isInFullscreenMode()) {
+			window->setWindowed();
+			//renderer->endScene();
+		}
+		else {
+			window->setFullscreen();
+			//renderer->endScene();
+		}
+
+		LOG(mainTask->logClient, Debug) << "toggle";
 	}
 }

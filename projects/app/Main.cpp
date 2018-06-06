@@ -3,7 +3,7 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <renderer/RendererOpenGL.hpp>
 #include <PBR_MainLoopTask.hpp>
-#include <PBR_Deferred_MainLoopTask.hpp>
+#include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
 #include <window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <boost/locale.hpp>

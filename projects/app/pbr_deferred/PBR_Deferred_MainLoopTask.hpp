@@ -17,8 +17,11 @@
 #include <shading_model/PBR_Deferred.hpp>
 #include <post_processing/SSAO.hpp>
 #include <platform/gui/ImGUI.hpp>
+#include <ui_mode/UI_ModeStateMachine.hpp>
 
 class SystemUI;
+class GUI_Mode;
+class CameraMode;
 
 class PBR_Deferred_MainLoopTask : public Task
 {
@@ -52,6 +55,10 @@ public:
 
 private:
 
+	// Allow the UI mode classes accessing private members
+	friend GUI_Mode;
+	friend CameraMode;
+
 	GaussianBlur* blurEffect;
 	std::shared_ptr<Camera> camera;
 	FPSCounter counter;
@@ -81,6 +88,9 @@ private:
 	SystemUI* ui;
 
 	std::list<Vob> vobs;
+
+	UI_ModeStateMachine uiModeStateMachine;
+
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
 
@@ -94,3 +104,28 @@ private:
 
 	void onWindowsFocus(Window* window, bool receivedFocus);
 };
+
+class GUI_Mode : public UI_Mode {
+public:
+	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask);
+	virtual ~GUI_Mode() = default;
+	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
+
+private:
+	PBR_Deferred_MainLoopTask* mainTask;
+};
+
+class CameraMode : public UI_Mode {
+public:
+	CameraMode(PBR_Deferred_MainLoopTask& mainTask);
+	virtual ~CameraMode() = default;
+	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
+
+private:
+	void updateCamera(Input* input, float deltaTime);
+	void handleInputEvents(Input* input, Window* window);
+
+private:
+	PBR_Deferred_MainLoopTask* mainTask;
+};
+

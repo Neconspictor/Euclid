@@ -143,6 +143,11 @@ public:
 	virtual void setWindowed() = 0;
 
 	/**
+	 * Specifies , whether the cursor should be displayed in this window 
+	 */
+	virtual void showCursor(bool show) = 0;
+
+	/**
 	 * Swaps the buffers of the graphics card, the content of this Window is send to.
 	 */
 	virtual void swapBuffers() = 0;

@@ -602,10 +602,7 @@ void InputGLFW::resetForFrame()
 void InputGLFW::setMousePosition(int xPos, int yPos)
 {
 	glfwSetCursorPos(window->getSource(), static_cast<double>(xPos), static_cast<double>(yPos));
-	mouseXabsolut = xPos;
-	mouseYabsolut = yPos;
-	frameMouseXOffset = 0;
-	frameMouseYOffset = 0;
+	Input::setMousePosition(xPos, yPos);
 }
 
 void InputGLFW::setWindow(WindowGLFW* window)

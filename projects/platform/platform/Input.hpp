@@ -614,6 +614,11 @@ enum Key
 	*/
 	void removeWindowFocusCallback(const WindowFocusConnection& connection);
 
+	/**
+	 * Resets the mouse movement offset of the current frame.
+	 */
+	virtual void resetMouseMovement();
+
 
 	/**
 	 * Sets the absolut mouse position in the coordination system of the current active window. 

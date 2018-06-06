@@ -120,9 +120,16 @@ void Input::removeWindowFocusCallback(const WindowFocusConnection& connection)
 	windowFocusChanged.removeCallback(connection);
 }
 
+void Input::resetMouseMovement()
+{
+	frameMouseXOffset = 0;
+	frameMouseYOffset = 0;
+}
 
 void Input::setMousePosition(int xPos, int yPos)
 {
+	frameMouseXOffset += xPos - mouseXabsolut;
+	frameMouseYOffset += yPos - mouseYabsolut;
 	mouseXabsolut = xPos;
 	mouseYabsolut = yPos;
 }

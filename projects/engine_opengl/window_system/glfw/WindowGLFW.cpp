@@ -169,6 +169,15 @@ void WindowGLFW::setWindowed()
 	//informResizeListeners(width, height);
 }
 
+void WindowGLFW::showCursor(bool show)
+{
+	if (show) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	} else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+}
+
 void WindowGLFW::swapBuffers()
 {
 	//glViewport(0, 0, 800, 600);

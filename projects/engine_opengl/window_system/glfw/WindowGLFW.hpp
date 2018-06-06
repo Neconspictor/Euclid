@@ -55,6 +55,7 @@ public:
 
 	void setVisible(bool visible) override;
 	void setWindowed() override;
+	void showCursor(bool show) override;
 	void swapBuffers() override;
 
 
