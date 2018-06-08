@@ -1,11 +1,9 @@
 #version 400 core
 
 layout(location = 0) out vec3 albedo;
-layout(location = 1) out float ao;
-layout(location = 2) out float metallic;
-layout(location = 3) out vec3 normalEye;
-layout(location = 4) out vec3 positionEye;
-layout(location = 5) out float roughness;
+layout(location = 1) out vec3 aoMetallRoughness;
+layout(location = 2) out vec3 normalEye;
+layout(location = 3) out vec3 positionEye;
 
 const float PI = 3.14159265359;
 
@@ -36,11 +34,10 @@ void main()
 	// albedo color
 	albedo = texture(material.albedoMap, fs_in.tex_coords).rgb;
 	
-	// ambient occlusion
-	ao = texture(material.aoMap, fs_in.tex_coords).r;
-	
-	// metallic
-	metallic = texture(material.metallicMap, fs_in.tex_coords).r;
+	// ambient occlusion, metallic, roughness
+	aoMetallRoughness.r = texture(material.aoMap, fs_in.tex_coords).r;
+	aoMetallRoughness.g = texture(material.metallicMap, fs_in.tex_coords).r;
+	aoMetallRoughness.b = texture(material.roughnessMap, fs_in.tex_coords).r;
 	
 	//normal
 	float factor = 255/128.0f;	// is better than 2.0f for precision reasons!
@@ -51,7 +48,4 @@ void main()
 	
 	// position
 	positionEye = fs_in.fragment_position_eye.xyz;
-
-	// roughness
-	roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 }

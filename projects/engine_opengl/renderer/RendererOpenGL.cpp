@@ -151,7 +151,7 @@ void RendererOpenGL::beginScene()
 	glStencilMask(0x00);
 
 	//glDisable(GL_MULTISAMPLE);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 
 	enableDepthWriting(true);
 

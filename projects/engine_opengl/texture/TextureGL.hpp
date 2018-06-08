@@ -244,18 +244,14 @@ public:
 	virtual ~PBR_GBufferGL() = default;
 
 	virtual Texture* getAlbedo() override;
-	virtual Texture* getAO() override;
-	virtual Texture* getMetal() override;
+	virtual Texture* getAoMetalRoughness() override;
 	virtual Texture* getNormal() override;
 	virtual Texture* getPosition() override;
-	virtual Texture* getRoughness() override;
 
 
 protected:
 	TextureGL albedo;
-	TextureGL ao;
-	TextureGL metal;
+	TextureGL aoMetalRoughness;
 	TextureGL normal;
 	TextureGL position;
-	TextureGL roughness;
 };

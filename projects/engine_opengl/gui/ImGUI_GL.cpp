@@ -331,21 +331,21 @@ void ImGUI_GL::init()
 	InputGLFW& input = dynamic_cast<InputGLFW&>(*window->getInputDevice());
 
 	input.registerMouseCallback([&](GLFWwindow* window, int button, int action, int mods) {
-		std::cout << "mouse button callback: button: " << button << ", action: " << action << ", mods: " << mods  << std::endl;
+		//std::cout << "mouse button callback: button: " << button << ", action: " << action << ", mods: " << mods  << std::endl;
 
 		if (action == GLFW_PRESS && button >= 0 && button < 3)
 			this->g_MouseJustPressed[button] = true;
 	});
 
 	input.addScrollCallback([](double scrollX, double scrollY) {
-		std::cout << "scroll callback: scrollX: " << scrollX << ", scrollY: " << scrollY << std::endl;
+		//std::cout << "scroll callback: scrollX: " << scrollX << ", scrollY: " << scrollY << std::endl;
 		ImGuiIO& io = ImGui::GetIO();
 		io.MouseWheelH += (float)scrollX;
 		io.MouseWheel += (float)scrollY;
 	});
 
 	input.registerCharModsCallback([](GLFWwindow* window, unsigned int codepoint, int mods) {
-		std::cout << "char mods callback: codepoint: " << codepoint << ", mods: " << mods << std::endl;
+		//std::cout << "char mods callback: codepoint: " << codepoint << ", mods: " << mods << std::endl;
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (codepoint > 0 && codepoint < 0x10000)
@@ -354,7 +354,7 @@ void ImGUI_GL::init()
 
 	//void(GLFWwindow*, int, int, int, int);
 	input.registerKeyCallback([](GLFWwindow* window, int key, int scancode, int action, int mods) {
-		std::cout << "key callback: key=" << key << ", scancode: " << scancode << ", action= " << action << ", mods= " << mods << std::endl;
+		//std::cout << "key callback: key=" << key << ", scancode: " << scancode << ", action= " << action << ", mods= " << mods << std::endl;
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (action == GLFW_PRESS)

@@ -604,7 +604,7 @@ GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTask)
 
 void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
-	std::cout << "GUI_Mode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
+	//std::cout << "GUI_Mode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
 	Input* input = mainTask->window->getInputDevice();
 
 	// Switch to camera mode?
@@ -620,7 +620,7 @@ CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTas
 
 void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
-	std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
+	//std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
 	Input* input = mainTask->window->getInputDevice();
 	float frameTime = mainTask->timer.getLastUpdateTimeDifference();
 

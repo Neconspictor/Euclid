@@ -6,11 +6,9 @@ const float PI = 3.14159265359;
 
 struct GBuffer {
     sampler2D albedoMap;
-	sampler2D aoMap;
-	sampler2D metallicMap;
+	sampler2D aoMetalRoughnessMap;
 	sampler2D normalEyeMap;
 	sampler2D positionEyeMap;
-	sampler2D roughnessMap;
 };
 
 
@@ -92,7 +90,9 @@ vec3 pbrModel(float ao,
 		float roughness,
 		vec3 viewDir,
 		vec3 lightDir,
-		vec3 reflectionDir);
+		vec3 reflectionDir,
+		float shadow,
+		float ssaoAmbientOcclusion);
 
 
 vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float metallic, vec3 albedo);
@@ -119,17 +119,27 @@ float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadi
 
 void main()
 {   
-	float ao = texture(gBuffer.aoMap, fs_in.tex_coords).r;
-	ao = 1;
 	vec3 albedo = texture(gBuffer.albedoMap, fs_in.tex_coords).rgb;
-	float metallic = texture(gBuffer.metallicMap, fs_in.tex_coords).r;
-	metallic = 0.3;
-	vec3 normalEye = texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb;
+	
+	vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
+	float ao = aoMetalRoughness.r;
+	ao = 1;
+	float metallic = aoMetalRoughness.g;
+	metallic = 0.0;
+	float roughness = aoMetalRoughness.b;
+	roughness = 1.0;
+	
+	vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
+	float alpha = length(normalEye);
+	if (alpha < 0.9) {
+		discard;
+	};
+	
+	
 	vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
-	float roughness = texture(gBuffer.roughnessMap, fs_in.tex_coords).r;
-	roughness = 0.3;
 	
 	float ambientOcclusion = texture(ssaoMap, fs_in.tex_coords).r;
+	ambientOcclusion = clamp(pow(ambientOcclusion, 2.2), 0, 1);
 	
 	// calculate per-light radiance
 	vec3 lightEye =  normalize(-dirLight.directionEye);
@@ -141,6 +151,11 @@ void main()
 	vec3 reflectionDir = reflect(-viewEye, normalEye);
 	reflectionDir = vec3(inverseViewMatrix_GPass * vec4(reflectionDir, 0.0f)); // reflectionDir needs to be in world space
 	
+	//directional shadow calculation
+	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
+	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
+	
+	
     vec3 result = pbrModel(ao, 
 		albedo, 
 		metallic, 
@@ -148,24 +163,14 @@ void main()
 		roughness, 
 		viewEye, 
 		lightEye, 
-		reflectionDir);
-		
-	//directional shadow calculation
-	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
-	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
-	
-	shadow = clamp(shadow, 0.2, 1);
-
-	result *= (shadow);
-	//result = vec3(1,1,1);
-	
-	result *= pow(ambientOcclusion, 2.2);
+		reflectionDir,
+		shadow,
+		ambientOcclusion);
 
 	
-	float alpha = length(normalEye);
-	alpha = clamp(alpha, 0, 1);
+	//alpha = clamp(alpha, 0, 1);
 	
-	FragColor = vec4(result, alpha);
+	FragColor = vec4(result, 1);
 }
 
 vec3 pbrModel(float ao,
@@ -175,7 +180,9 @@ vec3 pbrModel(float ao,
 		float roughness,
 		vec3 viewDir,
 		vec3 lightDir,
-		vec3 reflectionDir) {
+		vec3 reflectionDir,
+		float shadow,
+		float ssaoAmbientOcclusion) {
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -185,7 +192,13 @@ vec3 pbrModel(float ao,
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewDir, normal, lightDir, roughness, F0, metallic, albedo);
 	vec3 ambient = pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
-    vec3 color = Lo + ambient;
+	
+	float ambientShadow = clamp(shadow, 0.5, 1.0);
+	
+    vec3 color = ambient * ssaoAmbientOcclusion * ambientShadow;
+	
+	// shadows affecting only direct light contribution
+	color += Lo * shadow;
 	
 	return color;
 }

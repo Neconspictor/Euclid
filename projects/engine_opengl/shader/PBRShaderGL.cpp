@@ -195,12 +195,10 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Defer
 	attributes.create(types::VEC3, nullptr, "dirLight.directionEye");
 	attributes.create(types::VEC4, nullptr, "dirLight.color");
 
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.aoMap");
 	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.albedoMap");
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.metallicMap");
+	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.aoMetalRoughnessMap");
 	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.normalEyeMap");
 	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.positionEyeMap");
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.roughnessMap");
 
 	attributes.create(types::TEXTURE2D, nullptr, "shadowMap");
 	attributes.create(types::TEXTURE2D, nullptr, "ssaoMap");
@@ -313,12 +311,10 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("shadowMap", shadowMap);
 	attributes.setData("ssaoMap", ssaoMap);
 
-	attributes.setData("gBuffer.aoMap", gBuffer->getAO());
 	attributes.setData("gBuffer.albedoMap", gBuffer->getAlbedo());
-	attributes.setData("gBuffer.metallicMap", gBuffer->getMetal());
+	attributes.setData("gBuffer.aoMetalRoughnessMap", gBuffer->getAoMetalRoughness());
 	attributes.setData("gBuffer.normalEyeMap", gBuffer->getNormal());
 	attributes.setData("gBuffer.positionEyeMap", gBuffer->getPosition());
-	attributes.setData("gBuffer.roughnessMap", gBuffer->getRoughness());
 
 	attributes.setData("dirLight.color", &dirEyeToLight.color);
 	attributes.setData("dirLight.directionEye", &dirEyeToLight.direction);

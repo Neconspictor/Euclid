@@ -155,9 +155,7 @@ public:
 	virtual ~PBR_GBuffer() = default;
 
 	virtual Texture* getAlbedo() = 0;
-	virtual Texture* getAO() = 0;
+	virtual Texture* getAoMetalRoughness() = 0;
 	virtual Texture* getNormal() = 0;
-	virtual Texture* getMetal() = 0;
 	virtual Texture* getPosition() = 0;
-	virtual Texture* getRoughness() = 0;
 };
