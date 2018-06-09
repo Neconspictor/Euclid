@@ -424,8 +424,9 @@ void MainLoopTask::run()
 	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
 
-
-	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
+	using r = Renderer3D::RenderComponent;
+	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
+	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled, blitRegion, r::Color | r::Depth | r::Stencil);
 	//ui->frameUpdate();
 	//Before presenting the scene, antialise it!
 	//SMAA* smaa = renderer->getSMAA();

@@ -30,6 +30,7 @@ void PBR_Deferred::drawGeometryScene(SceneNode * scene,
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
 	scene->update(frameTimeElapsed);
+
 	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr_Deferred_Geometry);
 }
 

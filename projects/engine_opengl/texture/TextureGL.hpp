@@ -90,6 +90,8 @@ public:
 	BaseRenderTargetGL(const BaseRenderTargetGL& other) = delete;
 	BaseRenderTargetGL& operator=(const BaseRenderTargetGL& other) = delete;
 
+	void copyFrom(BaseRenderTargetGL* dest, const Dimension& sourceDim, int components);
+
 	virtual GLuint getFrameBuffer();
 	virtual void setFrameBuffer(GLuint newValue);
 
@@ -154,8 +156,6 @@ public:
 
 
 	virtual ~RenderTargetGL() = default;
-
-	void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim);
 
 	static RenderTargetGL createMultisampled(int width, int height, const TextureData& data,
 		GLuint samples, GLuint depthStencilType);

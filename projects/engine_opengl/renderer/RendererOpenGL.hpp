@@ -35,7 +35,7 @@ public:
 	
 	void beginScene() override;
 
-	void blitRenderTargets(RenderTarget* src, RenderTarget* dest) override;
+	void blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents) override;
 
 	CubeDepthMap* createCubeDepthMap(int width, int height) override;
 
@@ -71,6 +71,8 @@ public:
 	void endScene() override;
 
 	GLint getCurrentRenderTarget() const;
+
+	virtual BaseRenderTarget* getDefaultRenderTarget() override;
 
 	// Inherited via Renderer3D
 	virtual EffectLibrary* getEffectLibrary() override;
@@ -142,4 +144,5 @@ protected:
 	std::list<CubeRenderTargetGL> cubeRenderTargets;
 	std::list<RenderTargetGL> renderTargets;
 	std::unique_ptr<SMAA_GL> smaa;
+	BaseRenderTargetGL defaultRenderTarget;
 };

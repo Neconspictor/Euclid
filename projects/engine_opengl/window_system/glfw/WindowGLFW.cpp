@@ -219,6 +219,7 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -244,14 +245,14 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_RED_BITS, 32);
 	glfwWindowHint(GLFW_GREEN_BITS, 32);
 	glfwWindowHint(GLFW_BLUE_BITS, 32);
-	glfwWindowHint(GLFW_ALPHA_BITS, 32);
-	glfwWindowHint(GLFW_STENCIL_BITS, 32);
+	glfwWindowHint(GLFW_ALPHA_BITS, 8);
+	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 
 	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, 16);
+	glfwWindowHint(GLFW_SAMPLES, 1);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
@@ -314,6 +315,7 @@ void WindowGLFW::createOpenGLWindow()
 	}*/
 
 	glViewport(0,0, width, height);
+	glScissor(0, 0, width, height);
 	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 }

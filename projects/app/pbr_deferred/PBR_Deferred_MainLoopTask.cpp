@@ -165,7 +165,7 @@ void PBR_Deferred_MainLoopTask::init()
 
 	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
@@ -343,7 +343,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->useScreenTarget();
 	renderer->beginScene();
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
-	renderer->endScene();
+	//renderer->endScene();
 	
 	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
 	const mat4& cameraView = camera->getView();
@@ -364,8 +364,8 @@ void PBR_Deferred_MainLoopTask::run()
 	// render scene to the shadow depth map
 	renderer->beginScene();
 	renderer->useDepthMap(shadowMap);
-	renderer->enableAlphaBlending(false);
-	renderer->cullFaces(CullingMode::Back);
+	//renderer->enableAlphaBlending(false);
+	//renderer->cullFaces(CullingMode::Back);
 
 	pbr_deferred->drawSceneToShadowMap(scene,
 		frameTimeElapsed,
@@ -374,8 +374,8 @@ void PBR_Deferred_MainLoopTask::run()
 		lightView,
 		lightProj);
 
-	renderer->cullFaces(CullingMode::Back);
-	renderer->endScene();
+	//renderer->cullFaces(CullingMode::Back);
+	//renderer->endScene();
 
 	renderer->useBaseRenderTarget(pbr_mrt.get());
 	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
@@ -384,18 +384,25 @@ void PBR_Deferred_MainLoopTask::run()
 		frameTimeElapsed,
 		camera->getView(),
 		camera->getPerspProjection());
-	renderer->endScene();
+	//renderer->endScene();
 
 	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
 	ssao_deferred->blur();
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
-	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
-		renderer->enableAlphaBlending(true);
-		
-		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
+
+	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
+	renderer->blitRenderTargets(pbr_mrt.get(),
+		renderTargetSingleSampled,
+		blitRegion,
+		Renderer3D::RenderComponent::Stencil);
+
+	pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+
+		//renderer->enableAlphaBlending(true);
 
 		pbr_deferred->drawLighting(scene, 
 			frameTimeElapsed, 
@@ -405,6 +412,9 @@ void PBR_Deferred_MainLoopTask::run()
 			globalLight, 
 			camera->getView(), 
 			lightProj * lightView);
+
+
+		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
@@ -420,7 +430,7 @@ void PBR_Deferred_MainLoopTask::run()
 	
 
 
-	renderer->endScene();
+	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
@@ -448,7 +458,7 @@ void PBR_Deferred_MainLoopTask::run()
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//ssao_deferred->displayAOTexture();
 	}
-	renderer->endScene();
+	//renderer->endScene();
 
 	// render GUI
 	gui->newFrame();
@@ -458,6 +468,9 @@ void PBR_Deferred_MainLoopTask::run()
 	{
 		static float f = 0.0f;
 		static int counter = 0;
+		static bool show_app_simple_overlay = false;
+		ImGui::Begin("", NULL, ImGuiWindowFlags_NoTitleBar);
+		//ImGuiWindowFlags_NoTitleBar
 		ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
 		//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -471,6 +484,50 @@ void PBR_Deferred_MainLoopTask::run()
 		ImGui::Text("counter = %d", counter);
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::Button("Test")) {
+					std::cout << "Pressed button!" << std::endl;
+					window->close();
+				}
+				if (ImGui::MenuItem("Exit", "Esc")) 
+				{
+					window->close();
+				}
+				
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Edit"))
+			{
+				if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+				if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+				ImGui::Separator();
+				if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+				if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+				if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+
+			if (ImGui::TreeNode("Tabbing"))
+			{
+				ImGui::Text("Use TAB/SHIFT+TAB to cycle through keyboard editable fields.");
+				static char buf[32] = "dummy";
+				ImGui::InputText("1", buf, IM_ARRAYSIZE(buf));
+				ImGui::InputText("2", buf, IM_ARRAYSIZE(buf));
+				ImGui::PushAllowKeyboardFocus(false);
+				ImGui::InputText("4 (tab skip)", buf, IM_ARRAYSIZE(buf));
+				//ImGui::SameLine(); ShowHelperMarker("Use ImGui::PushAllowKeyboardFocus(bool)\nto disable tabbing through certain widgets.");
+				ImGui::PopAllowKeyboardFocus();
+				ImGui::InputText("5", buf, IM_ARRAYSIZE(buf));
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::End();
 	}
 
 

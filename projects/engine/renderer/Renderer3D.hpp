@@ -35,7 +35,13 @@ class Renderer3D : public Renderer
 {
 public:
 
-	virtual void blitRenderTargets(RenderTarget* src ,RenderTarget* dest) = 0;
+	enum RenderComponent {
+		Color,
+		Depth,
+		Stencil
+	};
+
+	virtual void blitRenderTargets(BaseRenderTarget* src , BaseRenderTarget* dest, const Dimension& dim, int renderComponents) = 0;
 
 	virtual CubeDepthMap* createCubeDepthMap(int width, int height) = 0;
 
@@ -67,6 +73,8 @@ public:
 	 * the existing fragments/pixels.
 	 */
 	virtual void enableDepthWriting(bool enable) = 0;
+
+	virtual BaseRenderTarget* getDefaultRenderTarget() = 0;
 
 	virtual EffectLibrary* getEffectLibrary() = 0;
 

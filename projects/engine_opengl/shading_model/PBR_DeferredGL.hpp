@@ -11,6 +11,23 @@ public:
 	PBR_DeferredGL(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR_DeferredGL();
 
+  virtual void drawGeometryScene(SceneNode * scene,
+	  float frameTimeElapsed,
+	  const glm::mat4& view,
+	  const glm::mat4& projection);
+
+  virtual void drawLighting(SceneNode * scene,
+	  float frameTimeElapsed,
+	  PBR_GBuffer* gBuffer,
+	  Texture* shadowMap,
+	  Texture* ssaoMap,
+	  const DirectionalLight& light,
+	  const glm::mat4& viewFromGPass,
+	  const glm::mat4& worldToLight);
+
+  virtual void drawSky(const glm::mat4& projection,
+	  const glm::mat4& view);
+
   virtual std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height) override;
 };
 

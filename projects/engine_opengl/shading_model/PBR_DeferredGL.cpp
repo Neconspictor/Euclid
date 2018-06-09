@@ -16,6 +16,37 @@ PBR_DeferredGL::~PBR_DeferredGL()
 {
 }
 
+void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, float frameTimeElapsed, const glm::mat4 & view, const glm::mat4 & projection)
+{
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+	PBR_Deferred::drawGeometryScene(scene, frameTimeElapsed, view, projection);
+	glDisable(GL_STENCIL_TEST);
+}
+
+void PBR_DeferredGL::drawLighting(SceneNode * scene, float frameTimeElapsed, PBR_GBuffer * gBuffer, Texture * shadowMap, Texture * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight)
+{
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	PBR_Deferred::drawLighting(scene, frameTimeElapsed, gBuffer, shadowMap, ssaoMap, light, viewFromGPass, worldToLight);
+	glDisable(GL_STENCIL_TEST);
+
+	//PBR_Deferred::drawLighting(scene, frameTimeElapsed, gBuffer, shadowMap, ssaoMap, light, viewFromGPass, worldToLight);
+}
+
+void PBR_DeferredGL::drawSky(const glm::mat4 & projection, const glm::mat4 & view)
+{
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_STENCIL_TEST);
+	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	//glStencilMask(0x00);
+	PBR::drawSky(projection, view);
+	//glDisable(GL_STENCIL_TEST);
+}
+
 std::unique_ptr<PBR_GBuffer> PBR_DeferredGL::createMultipleRenderTarget(int width, int height)
 {
 	return make_unique<PBR_GBufferGL>(width, height);

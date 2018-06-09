@@ -363,7 +363,9 @@ void PBR_MainLoopTask::run()
 
 
 	// copy rendered scene to the single sampled render target
-	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled);
+	using r = Renderer3D::RenderComponent;
+	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
+	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled, blitRegion, r::Color | r::Depth | r::Stencil);
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	renderer->useScreenTarget();

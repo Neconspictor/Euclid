@@ -41,7 +41,7 @@ void EffectLibraryGL::release()
 
 RendererOpenGL::RendererOpenGL() : Renderer3D(), 
   backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
-  msaaSamples(1), smaa(nullptr)
+  msaaSamples(1), smaa(nullptr), defaultRenderTarget(0,0, 0)
 {	
 	logClient.setPrefix("[RendererOpenGL]");
 
@@ -69,12 +69,12 @@ GLuint vertexArrayObjID;
 void RendererOpenGL::init()
 {
 	LOG(logClient, Info) << "Initializing...";
-
-	glViewport(0, 0, width, height);
-
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
+	glEnable(GL_SCISSOR_TEST);
 	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
+	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -89,6 +89,8 @@ void RendererOpenGL::init()
 
 	// only draw front faces
 	enableBackfaceDrawing(false);
+	
+	enableDepthWriting(true);
 
 	// enable alpha blending
 	//glEnable(GL_BLEND); // TODO
@@ -113,62 +115,59 @@ void RendererOpenGL::init()
 	}*/
 
 
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	// we want counter clock wise winding order
+	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
+	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
+	glFrontFace(GL_CCW);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_STENCIL_TEST);
+	cullFaces(CullingMode::Back);
+
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearDepth(1.0f);
+	glClearStencil(0.0f);
+	glStencilMask(0xFF);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 void RendererOpenGL::beginScene()
 {
-	//glViewport(xPos, yPos, width, height);
-	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-
-	// stencil buffering is enabled when needed!
-	//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
-
-	// we want counter clock wise winding order
-	glFrontFace(GL_CCW);
-
-	// only draw front faces
-	//enableBackfaceDrawing(false);
-
 	// enable alpha blending
 	//glEnable(GL_BLEND); // TODO
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	glViewport(xPos, yPos, width, height);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-
-	glClearDepth(1.0f);
+	//glViewport(xPos, yPos, width, height);
+	//glScissor(xPos, yPos, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	//clearFrameBuffer(getCurrentRenderTarget(), { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 
-	glStencilMask(0x00);
+	//glStencilMask(0x00);
 
-	//glDisable(GL_MULTISAMPLE);
-	//glEnable(GL_MULTISAMPLE);
-
-	enableDepthWriting(true);
-
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
-void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest)
+void RendererOpenGL::blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents)
 {
-	RenderTargetGL* srcGL = dynamic_cast<RenderTargetGL*>(src);
-	RenderTargetGL* destGL = dynamic_cast<RenderTargetGL*>(dest);
+	BaseRenderTargetGL* srcGL = dynamic_cast<BaseRenderTargetGL*>(src);
+	BaseRenderTargetGL* destGL = dynamic_cast<BaseRenderTargetGL*>(dest);
 	assert(srcGL && destGL);
 	//copy the content from the source buffer to the destination buffered
-	if (srcGL->width > destGL->width || srcGL->height > destGL->height) {
-		LOG(logClient, Warning) << "dest dimension are smaller than the dimension of src!";
-	}
-	Dimension dim = {0, 0, srcGL->width, srcGL->height};
-	destGL->copyFrom(srcGL, dim, dim);
+	//if (srcGL->width > destGL->width || srcGL->height > destGL->height) {
+	//	LOG(logClient, Warning) << "dest dimension are smaller than the dimension of src!";
+	//}
+
+	int componentsGL = 0;
+	//if (renderComponents & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
+	//if (renderComponents & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
+	if (renderComponents & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
+
+	destGL->copyFrom(srcGL, dim, GL_STENCIL_BUFFER_BIT);
 }
 
 CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
@@ -192,6 +191,11 @@ GLint RendererOpenGL::getCurrentRenderTarget() const
 	return drawFboId;
 }
 
+BaseRenderTarget * RendererOpenGL::getDefaultRenderTarget()
+{
+	return &defaultRenderTarget;
+}
+
 RenderTarget* RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
 	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
@@ -203,9 +207,10 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	GLint drawFboId = getCurrentRenderTarget();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glClearColor(color.r, color.g, color.b, color.a);
+	//glClearColor(color.r, color.g, color.b, color.a);
 
 	glViewport(xPos, yPos, width, height);
+	glScissor(xPos, yPos, width, height);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -230,7 +235,7 @@ RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 	data.generateMipMaps = false;
 	data.minFilter = Linear;
 	data.magFilter = Linear;
-	data.colorspace = RGBA;
+	data.colorspace = RGB;
 	data.resolution = BITS_32;
 	data.uvTechnique = ClampToEdge;
 	data.isFloatData = true;
@@ -259,7 +264,7 @@ void RendererOpenGL::enableBackfaceDrawing(bool enable)
 	} else
 	{
 		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		//glCullFace(GL_BACK);
 	}
 }
 
@@ -277,8 +282,8 @@ void RendererOpenGL::enableDepthWriting(bool enable)
 void RendererOpenGL::endScene()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_POLYGON_OFFSET_FILL);
-    checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//glDisable(GL_POLYGON_OFFSET_FILL);
+    //checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 ModelDrawer* RendererOpenGL::getModelDrawer()
@@ -375,6 +380,8 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	this->height = height;
 
 	glViewport(xPos, yPos, width, height);
+	glScissor(xPos, yPos, width, height);
+	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
 	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (effectLibrary)
@@ -388,6 +395,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glScissor(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
 	glDrawBuffer(GL_NONE);
@@ -404,12 +412,13 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
 	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
+	glScissor(xPos, yPos, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glEnable(GL_POLYGON_OFFSET_FILL);
+	//glEnable(GL_POLYGON_OFFSET_FILL);
 	//glPolygonOffset(1.0f, 15000.0f);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -443,18 +452,19 @@ void RendererOpenGL::useRenderTarget(RenderTarget* target)
 	int width = targetGL->width;
 	int height = targetGL->height;
 	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//glBindFramebuffer(GL_READ_FRAMEBUFFER, targetGL->getFrameBuffer());
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetGL->getTextureGL(), 0);
 
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
 	//clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	//clearFrameBuffer(targetGL->getFrameBuffer(), { 1, 0, 0, 1 }, 1.0f, 0);
 
-	glDisable(GL_FRAMEBUFFER_SRGB);
+	//glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useBaseRenderTarget(BaseRenderTarget * target)
@@ -464,22 +474,24 @@ void RendererOpenGL::useBaseRenderTarget(BaseRenderTarget * target)
 	int width = targetGL->getWidth();
 	int height = targetGL->getHeight();
 	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+	glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glDisable(GL_FRAMEBUFFER_SRGB);
+	//glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useScreenTarget()
 {
 	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-	clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
+	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+	//clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
 
 	//glEnable(GL_FRAMEBUFFER_SRGB);
 }
@@ -491,6 +503,7 @@ void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
 	glViewport(0, 0, map->getWidth(), map->getHeight());
+	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFrameBuffer());
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -585,6 +598,7 @@ CubeRenderTarget* RendererOpenGL::renderCubeMap(int width, int height, Texture* 
 
 	//set the viewport to the dimensoion of the cubemap
 	glViewport(0,0, width, height);
+	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
 
 	for (int i = 0; i < 6; ++i) {
@@ -646,7 +660,6 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 {
 	if (mode == CullingMode::Front)
 	{
-		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 
 		// TODO this is needed for rendering shadow maps => put it on a more suitable place
@@ -655,7 +668,6 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 	} else
 	{
 		//glDisable(GL_POLYGON_OFFSET_FILL);
-		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
 }

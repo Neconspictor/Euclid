@@ -244,6 +244,7 @@ void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const g
 	aoShader.setProhectionGPass(projectionGPass);
 
 	glViewport(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
+	glScissor(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, aoRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *aoPass);
@@ -255,6 +256,7 @@ void SSAO_DeferredGL::blur()
 	SSAO_Tiled_Blur_ShaderGL& tiledBlurShader = dynamic_cast<SSAO_Tiled_Blur_ShaderGL&>(*tiledBlurPass->getConfig());
 	tiledBlurShader.setAOTexture(aoRenderTarget.getTexture());
 	glViewport(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
+	glScissor(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, tiledBlurRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *tiledBlurPass);

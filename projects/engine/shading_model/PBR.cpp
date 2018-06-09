@@ -24,7 +24,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 		(shaderManager->getConfig(Shaders::SkyBox));
 
 	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
-	skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
+	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
 
 	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));

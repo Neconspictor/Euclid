@@ -281,6 +281,23 @@ BaseRenderTargetGL & BaseRenderTargetGL::operator=(BaseRenderTargetGL && o)
 	return *this;
 }
 
+void BaseRenderTargetGL::copyFrom(BaseRenderTargetGL* dest, const Dimension& sourceDim, int components)
+{
+	GLint readFBId = 0;
+	GLint drawFboId = 0;
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+		sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+		components,
+		GL_NEAREST);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+}
+
 GLuint BaseRenderTargetGL::getFrameBuffer()
 {
 	return frameBuffer;
@@ -482,23 +499,6 @@ RenderTargetGL::RenderTargetGL(int width, int height) :
 	RenderTarget(width, height),
 	renderBuffer(GL_FALSE)
 {
-}
-
-void RenderTargetGL::copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, const Dimension& destDim)
-{
-	GLint readFBId = 0;
-	GLint drawFboId = 0;
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
-	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
-	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
-		destDim.xPos, destDim.yPos, destDim.width, destDim.height,
-		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-		GL_NEAREST);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 }
 
 RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
