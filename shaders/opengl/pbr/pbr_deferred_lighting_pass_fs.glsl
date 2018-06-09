@@ -127,7 +127,7 @@ void main()
 	float metallic = aoMetalRoughness.g;
 	metallic = 0.0;
 	float roughness = aoMetalRoughness.b;
-	roughness = 1.0;
+	roughness = 0.0;
 	
 	vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
 	float alpha = length(normalEye);

@@ -165,7 +165,7 @@ void PBR_Deferred_MainLoopTask::init()
 
 	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
@@ -391,8 +391,9 @@ void PBR_Deferred_MainLoopTask::run()
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
+	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	renderer->beginScene();
-	renderer->setViewPort(0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
+	
 
 	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
 	renderer->blitRenderTargets(pbr_mrt.get(),
@@ -400,7 +401,7 @@ void PBR_Deferred_MainLoopTask::run()
 		blitRegion,
 		Renderer3D::RenderComponent::Stencil);
 
-	pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+	//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 		//renderer->enableAlphaBlending(true);
 
@@ -413,20 +414,7 @@ void PBR_Deferred_MainLoopTask::run()
 			camera->getView(), 
 			lightProj * lightView);
 
-
-		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-
-		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-
-	/*pbr_deferred->drawScene(scene,
-		camera->getPosition(),
-		frameTimeElapsed,
-		shadowMap->getTexture(),
-		globalLight,
-		lightView,
-		lightProj,
-		camera->getView(),
-		camera->getPerspProjection());*/
+		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 	
 
 
