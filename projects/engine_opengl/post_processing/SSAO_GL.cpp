@@ -246,9 +246,9 @@ void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const g
 	glViewport(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glScissor(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, aoRenderTarget.getFrameBuffer());
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *aoPass);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SSAO_DeferredGL::blur()
@@ -258,9 +258,9 @@ void SSAO_DeferredGL::blur()
 	glViewport(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glScissor(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, tiledBlurRenderTarget.getFrameBuffer());
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *tiledBlurPass);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SSAO_DeferredGL::displayAOTexture()

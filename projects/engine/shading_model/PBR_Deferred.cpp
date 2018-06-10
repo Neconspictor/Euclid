@@ -19,8 +19,7 @@ PBR_Deferred::PBR_Deferred(Renderer3D* renderer, Texture* backgroundHDR) : PBR(r
 	screenSprite.setHeight(dim.y);
 }
 
-void PBR_Deferred::drawGeometryScene(SceneNode * scene, 
-	float frameTimeElapsed, 
+void PBR_Deferred::drawGeometryScene(SceneNode * scene,
 	const glm::mat4 & view, 
 	const glm::mat4 & projection)
 {
@@ -28,14 +27,10 @@ void PBR_Deferred::drawGeometryScene(SceneNode * scene,
 		renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Geometry));
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	scene->update(frameTimeElapsed);
-
 	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr_Deferred_Geometry);
 }
 
-void PBR_Deferred::drawLighting(SceneNode * scene, 
-	float frameTimeElapsed, 
+void PBR_Deferred::drawLighting(SceneNode * scene,
 	PBR_GBuffer * gBuffer, 
 	Texture * shadowMap, 
 	Texture* ssaoMap,
@@ -60,7 +55,5 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	scene->update(frameTimeElapsed);
 	modelDrawer->draw(&screenSprite, Shaders::Pbr_Deferred_Lighting);
 }

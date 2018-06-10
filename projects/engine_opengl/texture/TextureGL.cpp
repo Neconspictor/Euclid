@@ -809,7 +809,10 @@ void CubeDepthMapGL::release()
 {
 }
 
-DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
+DepthMapGL::DepthMapGL(int width, int height) :
+	BaseRenderTarget(width, height),
+	BaseRenderTargetGL(width, height, GL_FALSE),
+	DepthMap(width, height)
 {
 	GLuint textureID = GL_FALSE;
 	glGenFramebuffers(1, &frameBuffer);
@@ -850,41 +853,6 @@ DepthMapGL::DepthMapGL(int width, int height) : DepthMap(width, height)
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
-
-/*DepthMapGL::DepthMapGL(const DepthMapGL& other) : DepthMap(other),
-	texture(other.texture), frameBuffer(other.frameBuffer)
-{
-}
-
-DepthMapGL::DepthMapGL(DepthMapGL&& other) : DepthMap(other),
-    texture(other.texture), frameBuffer(other.frameBuffer)
-{
-	other.frameBuffer = GL_FALSE;
-}
-
-DepthMapGL& DepthMapGL::operator=(const DepthMapGL& other)
-{
-	if (this == &other)
-		return *this;
-	// call base asignment operator
-	DepthMap::operator =(other);
-
-	texture = move(other.texture);
-	frameBuffer = other.frameBuffer;
-	return *this;
-}
-
-DepthMapGL& DepthMapGL::operator=(DepthMapGL&& other)
-{
-	if (this == &other)
-		return *this;
-	// call base asignment operator
-	DepthMap::operator =(other);
-	texture = move(other.texture);
-	frameBuffer = move(other.frameBuffer);
-	other.frameBuffer = GL_FALSE;
-	return *this;
-}*/
 
 GLuint DepthMapGL::getFramebuffer() const
 {

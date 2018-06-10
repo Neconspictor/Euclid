@@ -8,6 +8,8 @@ class UI_Mode {
 public:
 	virtual ~UI_Mode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) = 0;
+	virtual void init() = 0;
+	virtual void drawGUI() = 0;
 };
 
 #endif

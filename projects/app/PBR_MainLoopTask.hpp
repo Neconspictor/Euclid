@@ -72,8 +72,6 @@ private:
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
 
-	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType = Shaders::Unknown);
-
 	void updateCamera(Input* input, float deltaTime);
 
 	void handleInputEvents();

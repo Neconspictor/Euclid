@@ -121,31 +121,13 @@ protected:
 	glm::mat4 matrices[6];
 };
 
-class DepthMap
+class DepthMap : public virtual BaseRenderTarget
 {
 public:
-	explicit DepthMap(int width, int height)
-	{
-		this->width = width;
-		this->height = height;
-	};
+	explicit DepthMap(int width, int height) : BaseRenderTarget(width, height) {};
 
 	virtual ~DepthMap() = default;
-
-	int getWidth() const
-	{
-		return width;
-	}
-
-	int getHeight() const
-	{
-		return height;
-	}
-
 	virtual Texture* getTexture() = 0;
-
-protected:
-	int width, height;
 };
 
 class PBR_GBuffer : public virtual BaseRenderTarget  {

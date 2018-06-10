@@ -143,6 +143,7 @@ void RendererOpenGL::beginScene()
 
 	//glViewport(xPos, yPos, width, height);
 	//glScissor(xPos, yPos, width, height);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	//clearFrameBuffer(getCurrentRenderTarget(), { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
@@ -162,12 +163,16 @@ void RendererOpenGL::blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* 
 	//	LOG(logClient, Warning) << "dest dimension are smaller than the dimension of src!";
 	//}
 
-	int componentsGL = 0;
-	//if (renderComponents & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
-	//if (renderComponents & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
-	if (renderComponents & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
+	int componentsGL = getRenderComponentsGL(renderComponents);
+	destGL->copyFrom(srcGL, dim, componentsGL);
+}
 
-	destGL->copyFrom(srcGL, dim, GL_STENCIL_BUFFER_BIT);
+void RendererOpenGL::clearRenderTarget(BaseRenderTarget * renderTarget, int renderComponents)
+{
+	BaseRenderTargetGL& renderTargetGL = dynamic_cast<BaseRenderTargetGL&>(*renderTarget);
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTargetGL.getFrameBuffer());
+	int renderComponentsComponentsGL = getRenderComponentsGL(renderComponents);
+	glClear(renderComponentsComponentsGL);
 }
 
 CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
@@ -296,6 +301,16 @@ ModelManager* RendererOpenGL::getModelManager()
 	return ModelManagerGL::get();
 }
 
+int RendererOpenGL::getRenderComponentsGL(int renderComponents)
+{
+	int componentsGL = 0;
+	if (renderComponents & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
+	if (renderComponents & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
+	if (renderComponents & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
+
+	return componentsGL;
+}
+
 ShaderManager* RendererOpenGL::getShaderManager()
 {
 	return ShaderManagerGL::get();
@@ -405,7 +420,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void RendererOpenGL::useDepthMap(DepthMap* depthMap)
+/*void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 {
 	DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
 	assert(map != nullptr);
@@ -421,8 +436,8 @@ void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	//glEnable(GL_POLYGON_OFFSET_FILL);
 	//glPolygonOffset(1.0f, 15000.0f);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-}
+	//glClear(GL_DEPTH_BUFFER_BIT);
+}*/
 
 void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side, unsigned int mipLevel)
 {
@@ -442,29 +457,7 @@ void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Sid
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void RendererOpenGL::useRenderTarget(RenderTarget* target)
-{
-	RenderTargetGL* targetGL = dynamic_cast<RenderTargetGL*>(target);
-	assert(targetGL != nullptr);
-	int width = targetGL->width;
-	int height = targetGL->height;
-	glViewport(0, 0, width, height);
-	glScissor(0, 0, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetGL->getFrameBuffer());
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, targetGL->getFrameBuffer());
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetGL->getTextureGL(), 0);
-
-	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-	//clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	//clearFrameBuffer(targetGL->getFrameBuffer(), { 1, 0, 0, 1 }, 1.0f, 0);
-
-	//glDisable(GL_FRAMEBUFFER_SRGB);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void RendererOpenGL::useBaseRenderTarget(BaseRenderTarget * target)
@@ -478,22 +471,15 @@ void RendererOpenGL::useBaseRenderTarget(BaseRenderTarget * target)
 	glBindFramebuffer(GL_FRAMEBUFFER, targetGL->getFrameBuffer());
 
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	//glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RendererOpenGL::useScreenTarget()
 {
-	glViewport(0, 0, width, height);
-	glScissor(0, 0, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-	//clearFrameBuffer(0, { 0.0, 0.0, 0.0, 1.0 }, 1.0f, 0);
-
-	//glEnable(GL_FRAMEBUFFER_SRGB);
+	useBaseRenderTarget(&defaultRenderTarget);
 }
 
 void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)

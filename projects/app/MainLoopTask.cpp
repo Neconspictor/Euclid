@@ -342,7 +342,7 @@ void MainLoopTask::run()
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
 	// render shadows to a depth map
-	renderer->useDepthMap(shadowMap);
+	renderer->useBaseRenderTarget(shadowMap);
 	//renderer->useVarianceShadowMap(vsMap);
 	renderer->enableAlphaBlending(false);
 
@@ -407,7 +407,7 @@ void MainLoopTask::run()
 	//blurEffect->blur(vsMap, vsMapCache);
 
 	// now render scene to a offscreen buffer
-	renderer->useRenderTarget(renderTargetMultisampled);
+	renderer->useBaseRenderTarget(renderTargetMultisampled);
 	renderer->enableAlphaBlending(true);
 	renderer->beginScene();
 	phongShader->setShadowMap(shadowMap->getTexture());
@@ -424,7 +424,7 @@ void MainLoopTask::run()
 	//drawScene(camera.get(), ProjectionMode::Perspective, Shaders::CubeDepthMap);
 
 
-	using r = Renderer3D::RenderComponent;
+	using r = RenderComponent;
 	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled, blitRegion, r::Color | r::Depth | r::Stencil);
 	//ui->frameUpdate();

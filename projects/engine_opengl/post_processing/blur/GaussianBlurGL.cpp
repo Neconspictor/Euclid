@@ -29,7 +29,7 @@ void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
 
 	//TODO do a blur pass
 
-	renderer->useRenderTarget(cache);
+	renderer->useBaseRenderTarget(cache);
 	renderer->beginScene();
 
 
@@ -40,12 +40,12 @@ void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
 	horizontalShader->setImageWidth((float)glTarget->getWidth());
 	modelDrawer->draw(&sprite, Shaders::GaussianBlurHorizontal);
 
-	using r = Renderer3D::RenderComponent;
+	using r = RenderComponent;
 	Dimension blitRegion = { 0,0, glTarget->getWidth(), glTarget->getHeight() };
 	renderer->blitRenderTargets(cache, glTarget, blitRegion, r::Color | r::Depth | r::Stencil);
 
 	// vertical pass
-	renderer->useRenderTarget(cache);
+	renderer->useBaseRenderTarget(cache);
 	renderer->beginScene();
 	sprite.setTexture(glTarget->getTexture());
 	verticalShader->setTexture(sprite.getTexture());

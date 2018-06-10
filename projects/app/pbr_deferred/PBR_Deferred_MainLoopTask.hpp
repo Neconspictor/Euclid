@@ -22,6 +22,7 @@
 class SystemUI;
 class GUI_Mode;
 class CameraMode;
+class BaseGUI_Mode;
 
 class PBR_Deferred_MainLoopTask : public Task
 {
@@ -44,20 +45,19 @@ public:
 	virtual ~PBR_Deferred_MainLoopTask();
 
 	SceneNode* createShadowScene();
-
 	SceneNode* createCubeReflectionScene();
-
+	Camera* getCamera();
+	bool getShowDepthMap() const;
+	Timer* getTimer();
+	Window* getWindow();
 	void init();
-
-	void setUI(SystemUI* ui);
-
 	virtual void run() override;
+	void setShowDepthMap(bool showDepthMap);
+	void setUI(SystemUI* ui);
 
 private:
 
 	// Allow the UI mode classes accessing private members
-	friend GUI_Mode;
-	friend CameraMode;
 
 	GaussianBlur* blurEffect;
 	std::shared_ptr<Camera> camera;
@@ -96,36 +96,45 @@ private:
 
 	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType = Shaders::Unknown);
 
-	void updateCamera(Input* input, float deltaTime);
-
-	void handleInputEvents();
-
 	void updateWindowTitle(float frameTime, float fps);
 
-	void onWindowsFocus(Window* window, bool receivedFocus);
+	void setupCallbacks();
+
+	void onWindowsFocus(Window * window, bool receivedFocus);
 };
 
-class GUI_Mode : public UI_Mode {
+class BaseGUI_Mode : public UI_Mode {
 public:
-	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask);
+	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
+	virtual ~BaseGUI_Mode() = default;
+
+	virtual void drawGUI() override;
+	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
+	virtual void init() override;
+
+protected:
+	void handleExitEvent();
+
+protected:
+	PBR_Deferred_MainLoopTask* mainTask;
+	ImGUI_Impl* guiRenderer;
+	platform::LoggingClient logClient;
+};
+
+class GUI_Mode : public BaseGUI_Mode {
+public:
+	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
 	virtual ~GUI_Mode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
-
-private:
-	PBR_Deferred_MainLoopTask* mainTask;
 };
 
-class CameraMode : public UI_Mode {
+class CameraMode : public BaseGUI_Mode {
 public:
-	CameraMode(PBR_Deferred_MainLoopTask& mainTask);
+	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
 	virtual ~CameraMode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 
 private:
 	void updateCamera(Input* input, float deltaTime);
-	void handleInputEvents(Input* input, Window* window);
-
-private:
-	PBR_Deferred_MainLoopTask* mainTask;
 };
 

@@ -37,7 +37,6 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 }
 
 void PBR::drawSceneToShadowMap(SceneNode * scene, 
-	float frameTimeElapsed, 
 	DepthMap* shadowMap, 
 	const DirectionalLight & light, 
 	const mat4 & lightViewMatrix, 
@@ -45,7 +44,6 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 {
 	const mat4& lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	scene->update(frameTimeElapsed);
 
 	// render shadows to a depth map
 	scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, Shaders::Shadow);
@@ -53,7 +51,6 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 
 void PBR::drawScene(SceneNode * scene,
 	const vec3& cameraPosition, 
-	float frameTimeElapsed,
 	Texture* shadowMap,
 	const DirectionalLight& light, 
 	const mat4& lightViewMatrix, 
@@ -80,8 +77,6 @@ void PBR::drawScene(SceneNode * scene,
 
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-
-	scene->update(frameTimeElapsed);
 	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr);
 }
 
@@ -276,8 +271,8 @@ RenderTarget * PBR::createBRDFlookupTexture()
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 
-	//renderer->beginScene();
-	renderer->useRenderTarget(target);
+	renderer->useBaseRenderTarget(target);
+	renderer->beginScene();
 	//renderer->beginScene();
 
 	Sprite sprite;

@@ -12,12 +12,10 @@ public:
   virtual ~PBR_DeferredGL();
 
   virtual void drawGeometryScene(SceneNode * scene,
-	  float frameTimeElapsed,
 	  const glm::mat4& view,
 	  const glm::mat4& projection);
 
   virtual void drawLighting(SceneNode * scene,
-	  float frameTimeElapsed,
 	  PBR_GBuffer* gBuffer,
 	  Texture* shadowMap,
 	  Texture* ssaoMap,

@@ -17,8 +17,7 @@ public:
   PBR(Renderer3D* renderer, Texture* backgroundHDR);
   virtual ~PBR();
 
-  virtual void drawSceneToShadowMap(SceneNode * scene, 
-	  float frameTimeElapsed,
+  virtual void drawSceneToShadowMap(SceneNode * scene,
 	  DepthMap* shadowMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& lightViewMatrix,
@@ -26,7 +25,6 @@ public:
 
   virtual void drawScene(SceneNode * scene,
 	  const glm::vec3& cameraPosition,
-	  float frameTimeElapsed,
 	  Texture* shadowMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& lightViewMatrix,

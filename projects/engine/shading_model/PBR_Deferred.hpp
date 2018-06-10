@@ -11,12 +11,10 @@ public:
    virtual std::unique_ptr<PBR_GBuffer>createMultipleRenderTarget(int width, int height) = 0;
 
    virtual void drawGeometryScene(SceneNode * scene,
-	  float frameTimeElapsed,
 	  const glm::mat4& view,
 	  const glm::mat4& projection);
 
    virtual void drawLighting(SceneNode * scene,
-	   float frameTimeElapsed,
 	   PBR_GBuffer* gBuffer,
 	   Texture* shadowMap,
 	   Texture* ssaoMap,

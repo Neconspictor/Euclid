@@ -204,7 +204,7 @@ private:
 	CubeMapGL cubeMap;
 };
 
-class DepthMapGL : public DepthMap
+class DepthMapGL : public DepthMap, public BaseRenderTargetGL
 {
 public:
 	explicit DepthMapGL(int width, int height);
@@ -228,7 +228,6 @@ public:
 private:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	TextureGL texture;
-	GLuint frameBuffer;
 };
 
 class PBR_GBufferGL : public PBR_GBuffer, public BaseRenderTargetGL {

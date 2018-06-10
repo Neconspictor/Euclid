@@ -239,8 +239,6 @@ void PBR_MainLoopTask::setUI(SystemUI* ui)
 	this->ui = ui;
 }
 
-static float frameTimeElapsed = 0;
-
 void PBR_MainLoopTask::run()
 {
 	BROFILER_FRAME("MainLoopTask");
@@ -263,11 +261,9 @@ void PBR_MainLoopTask::run()
 		//this_thread::sleep_for(milliseconds(minimumMillis - millis));
 		//frameTime += timer.update();
 	}
-	frameTimeElapsed += frameTime;
 
-	float fps = counter.update(frameTimeElapsed);
-	updateWindowTitle(frameTimeElapsed, fps);
-	frameTimeElapsed = 0.0f;
+	float fps = counter.update(frameTime);
+	updateWindowTitle(frameTime, fps);
 
 
 	if (!window->isOpen())
@@ -288,11 +284,15 @@ void PBR_MainLoopTask::run()
 	}
 
 
+
+
 	window->activate();
 	handleInputEvents();
-	window->activate();
 
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
+
+	scene->update(frameTime);
+
 
 	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
@@ -324,12 +324,11 @@ void PBR_MainLoopTask::run()
 
 	// render scene to the shadow depth map
 	renderer->beginScene();
-	renderer->useDepthMap(shadowMap);
+	renderer->useBaseRenderTarget(shadowMap);
 	renderer->enableAlphaBlending(false);
 	renderer->cullFaces(CullingMode::Back);
 
 	pbr->drawSceneToShadowMap(scene,
-		frameTimeElapsed,
 		shadowMap,
 		globalLight,
 		lightView,
@@ -339,7 +338,7 @@ void PBR_MainLoopTask::run()
 	renderer->endScene();
 
 	// render scene to a offscreen buffer
-	renderer->useRenderTarget(renderTargetMultisampled);
+	renderer->useBaseRenderTarget(renderTargetMultisampled);
 	renderer->beginScene();
 	renderer->enableAlphaBlending(true);
 
@@ -350,7 +349,6 @@ void PBR_MainLoopTask::run()
 
 	pbr->drawScene(scene,
 		camera->getPosition(),
-		frameTimeElapsed,
 		shadowMap->getTexture(),
 		globalLight,
 		lightView,
@@ -363,7 +361,7 @@ void PBR_MainLoopTask::run()
 
 
 	// copy rendered scene to the single sampled render target
-	using r = Renderer3D::RenderComponent;
+	using r = RenderComponent;
 	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
 	renderer->blitRenderTargets(renderTargetMultisampled, renderTargetSingleSampled, blitRegion, r::Color | r::Depth | r::Stencil);
 	
@@ -392,14 +390,6 @@ void PBR_MainLoopTask::run()
 	window->swapBuffers();
 
 	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
-}
-
-void PBR_MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
-{
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view, shaderType);
-	renderer->endScene();
 }
 
 void PBR_MainLoopTask::updateCamera(Input* input, float deltaTime)

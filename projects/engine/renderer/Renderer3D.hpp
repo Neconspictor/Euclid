@@ -15,6 +15,12 @@ enum class CullingMode
 	Front, Back
 };
 
+enum RenderComponent {
+	Color = 1 << 0,
+	Depth = 1 << 1,
+	Stencil = 1 << 2
+};
+
 class EffectLibrary {
 public:
 	virtual GaussianBlur* getGaussianBlur() = 0;
@@ -35,13 +41,9 @@ class Renderer3D : public Renderer
 {
 public:
 
-	enum RenderComponent {
-		Color,
-		Depth,
-		Stencil
-	};
-
 	virtual void blitRenderTargets(BaseRenderTarget* src , BaseRenderTarget* dest, const Dimension& dim, int renderComponents) = 0;
+
+	virtual void clearRenderTarget(BaseRenderTarget* renderTarget, int renderComponents) = 0;
 
 	virtual CubeDepthMap* createCubeDepthMap(int width, int height) = 0;
 
@@ -118,19 +120,7 @@ public:
 
 	virtual void useCubeDepthMap(CubeDepthMap* cubeDepthMap) = 0;
 
-	/** 
-	 * All draw calls are performed on a depth map texture.
-	 * As a result only depth (z-value) information are written.
-	 */
-	virtual void useDepthMap(DepthMap* depthMap) = 0;
-
 	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0) = 0;
-
-	/**
-	 * All draw calls are performed on a offscreen texture.
-	 * The output of all draw calls won't be visible after swapping the window's screen buffer
-	 */
-	virtual void useRenderTarget(RenderTarget* target) = 0;
 
 	/**
 	* All draw calls are performed on a offscreen texture.

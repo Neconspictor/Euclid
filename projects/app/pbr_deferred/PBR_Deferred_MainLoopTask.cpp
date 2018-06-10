@@ -56,7 +56,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 
 	camera = make_shared<FPCamera>(FPCamera());
 
-	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this));
+	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui));
 }
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
@@ -113,6 +113,26 @@ SceneNode * PBR_Deferred_MainLoopTask::createCubeReflectionScene()
 	return root;
 }
 
+Camera * PBR_Deferred_MainLoopTask::getCamera()
+{
+	return camera.get();
+}
+
+bool PBR_Deferred_MainLoopTask::getShowDepthMap() const
+{
+	return showDepthMap;
+}
+
+Timer * PBR_Deferred_MainLoopTask::getTimer()
+{
+	return &timer;
+}
+
+Window * PBR_Deferred_MainLoopTask::getWindow()
+{
+	return window;
+}
+
 void PBR_Deferred_MainLoopTask::init()
 {
 	using namespace placeholders;
@@ -126,11 +146,6 @@ void PBR_Deferred_MainLoopTask::init()
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
 	Input* input = window->getInputDevice();
-
-	auto focusCallback = bind(&PBR_Deferred_MainLoopTask::onWindowsFocus, this, _1, _2);
-	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
-	input->addWindowFocusCallback(focusCallback);
-	input->addScrollCallback(scrollCallback);
 
 	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
 	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
@@ -227,11 +242,6 @@ void PBR_Deferred_MainLoopTask::init()
 
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
-	
-
-	
-
-
 	pbr_deferred = renderer->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
 
@@ -241,6 +251,231 @@ void PBR_Deferred_MainLoopTask::init()
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 
+	uiModeStateMachine.init();
+
+	setupCallbacks();
+}
+
+
+void PBR_Deferred_MainLoopTask::onWindowsFocus(Window * window, bool receivedFocus)
+{
+	if (receivedFocus)
+	{
+		LOG(logClient, platform::Debug) << "received focus!";
+		isRunning = true;
+	}
+	else
+	{
+		LOG(logClient, platform::Debug) << "lost focus!";
+		isRunning = false;
+		if (window->isInFullscreenMode())
+		{
+			window->minimize();
+		}
+	}
+}
+
+
+
+void PBR_Deferred_MainLoopTask::run()
+{
+	BROFILER_FRAME("MainLoopTask");
+	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
+		renderer->getShaderManager()->getConfig(Shaders::Screen));
+	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
+		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
+	using namespace chrono;
+	
+	float frameTime = timer.update();
+	int millis = static_cast<int> (1.0f /(frameTime * 1000.0f));
+
+	// manual 60 fps cap -> only temporary!
+	int minimumMillis = 16;
+	if (millis < minimumMillis)
+	{
+		//this_thread::sleep_for(milliseconds(minimumMillis - millis));
+		//frameTime += timer.update();
+	}
+
+	float fps = counter.update(frameTime);
+	updateWindowTitle(frameTime, fps);
+
+
+	if (!window->isOpen())
+	{
+		engine->stop();
+		return;
+	}
+
+	// Poll input events before checking if the app is running, otherwise 
+	// the window is likely to hang or crash (at least on windows platform)
+	windowSystem->pollEvents();
+	
+	// pause app if it is not active (e.g. window isn't focused)
+	if (!isRunning)
+	{
+		this_thread::sleep_for(milliseconds(500));
+		return;
+	}
+
+
+	window->activate();
+	//handleInputEvents();
+	uiModeStateMachine.frameUpdate();
+
+	// update the scene
+	scene->update(frameTime);
+
+
+
+	//window->activate();
+	//updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
+
+	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
+
+	//renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
+	//renderer->useScreenTarget();
+	//renderer->beginScene();
+	//renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
+	//renderer->endScene();
+	
+	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
+	const mat4& cameraView = camera->getView();
+	mat4 inverseCameraView = inverse(cameraView);
+
+	mat4 test = globalLight.getView();
+	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
+	AABB ccBB = fromCuboid(cameraCuboidWorld);
+
+	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
+	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
+	globalLight.setOrthoFrustum(shadowFrustum);
+
+	const mat4& lightProj = globalLight.getProjection(Orthographic);
+	const mat4& lightView = globalLight.getView();
+
+
+	// render scene to the shadow depth map
+	renderer->useBaseRenderTarget(shadowMap);
+	//renderer->beginScene();
+	renderer->clearRenderTarget(shadowMap, RenderComponent::Depth);
+	//renderer->enableAlphaBlending(false);
+	//renderer->cullFaces(CullingMode::Back);
+
+	pbr_deferred->drawSceneToShadowMap(scene,
+		shadowMap,
+		globalLight,
+		lightView,
+		lightProj);
+
+	//renderer->cullFaces(CullingMode::Back);
+	//renderer->endScene();
+
+	renderer->useBaseRenderTarget(pbr_mrt.get());
+	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
+	//renderer->beginScene();
+	renderer->clearRenderTarget(pbr_mrt.get(), RenderComponent::Depth | RenderComponent::Stencil);
+		pbr_deferred->drawGeometryScene(scene,
+			camera->getView(),
+			camera->getPerspProjection());
+	//renderer->endScene();
+
+	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	ssao_deferred->blur();
+
+	// render scene to a offscreen buffer
+	renderer->useBaseRenderTarget(renderTargetSingleSampled);
+	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
+	renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Depth | RenderComponent::Stencil);
+	//renderer->beginScene();
+	
+
+	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
+	renderer->blitRenderTargets(pbr_mrt.get(),
+		renderTargetSingleSampled,
+		blitRegion,
+		RenderComponent::Stencil);
+
+	//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+
+		//renderer->enableAlphaBlending(true);
+
+		pbr_deferred->drawLighting(scene, 
+			pbr_mrt.get(), 
+			shadowMap->getTexture(), 
+			ssao_deferred->getBlurredResult(),
+			globalLight, 
+			camera->getView(), 
+			lightProj * lightView);
+
+		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+	
+
+
+	//renderer->endScene();
+	
+	// finally render the offscreen buffer to a quad and do post processing stuff
+	BaseRenderTarget* screenRenderTarget = renderer->getDefaultRenderTarget();
+
+	renderer->useBaseRenderTarget(screenRenderTarget);
+	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
+	//renderer->beginScene();
+	renderer->clearRenderTarget(renderer->getDefaultRenderTarget(), RenderComponent::Depth | RenderComponent::Stencil);
+	
+	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	//screenSprite.setTexture(ssao_deferred->getAO_Result());
+	
+	//screenSprite.setTexture(pbr_mrt->getAlbedo());
+
+	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
+
+	screenShader->useTexture(screenSprite.getTexture());
+	if (showDepthMap)
+	{
+		int width = window->getWidth();
+		int height = window->getHeight();
+		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
+		//screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
+		//modelDrawer->draw(&screenSprite, Shaders::Screen);
+		screenSprite.setTexture(shadowMap->getTexture());
+		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+	} else
+	{
+		modelDrawer->draw(&screenSprite, Shaders::Screen);
+		//ssao_deferred->displayAOTexture();
+	}
+	//renderer->endScene();
+
+	uiModeStateMachine.drawGUI();
+
+	// present rendered frame
+	window->swapBuffers();
+
+	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
+}
+
+void PBR_Deferred_MainLoopTask::setShowDepthMap(bool showDepthMap)
+{
+	this->showDepthMap = showDepthMap;
+}
+
+void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)
+{
+	this->ui = ui;
+}
+
+
+void PBR_Deferred_MainLoopTask::setupCallbacks()
+{
+	using namespace placeholders;
+
+	Input* input = window->getInputDevice();
+
+	auto focusCallback = bind(&PBR_Deferred_MainLoopTask::onWindowsFocus, this, _1, _2);
+	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
+	input->addWindowFocusCallback(focusCallback);
+	input->addScrollCallback(scrollCallback);
 
 	input->addResizeCallback([&](int width, int height)
 	{
@@ -275,181 +510,33 @@ void PBR_Deferred_MainLoopTask::init()
 			return;
 		}
 	});
-
 }
 
-void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)
+void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 {
-	this->ui = ui;
+	runtime += frameTime;
+	if (runtime > 1)
+	{
+		stringstream ss; ss << originalTitle << " : FPS= " << fps;
+		window->setTitle(ss.str());
+		runtime -= 1;
+	}
 }
 
-static float frameTimeElapsed = 0;
-
-void PBR_Deferred_MainLoopTask::run()
+BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) :
+	mainTask(&mainTask),
+	guiRenderer(&guiRenderer),
+	logClient(getLogServer())
 {
-	BROFILER_FRAME("MainLoopTask");
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
-		renderer->getShaderManager()->getConfig(Shaders::Screen));
-	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
-		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
-	using namespace chrono;
-	
-	float frameTime = timer.update();
-	int millis = static_cast<int> (1.0f /(frameTime * 1000.0f));
+	logClient.setPrefix("[BaseGUI_Mode]");
+}
 
-	// manual 60 fps cap -> only temporary!
-	int minimumMillis = 16;
-	if (millis < minimumMillis)
-	{
-		//this_thread::sleep_for(milliseconds(minimumMillis - millis));
-		//frameTime += timer.update();
-	}
-	frameTimeElapsed += frameTime;
-
-	float fps = counter.update(frameTimeElapsed);
-	updateWindowTitle(frameTimeElapsed, fps);
-	frameTimeElapsed = 0.0f;
-
-
-	if (!window->isOpen())
-	{
-		engine->stop();
-		return;
-	}
-
-	// Poll input events before checking if the app is running, otherwise 
-	// the window is likely to hang or crash (at least on windows platform)
-	windowSystem->pollEvents();
-	
-	// pause app if it is not active (e.g. window isn't focused)
-	if (!isRunning)
-	{
-		this_thread::sleep_for(milliseconds(500));
-		return;
-	}
-
-
-	window->activate();
-	//handleInputEvents();
-	uiModeStateMachine.frameUpdate();
-
-	//window->activate();
-	//updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
-
-	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
-
-	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
-	renderer->useScreenTarget();
-	renderer->beginScene();
-	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
-	//renderer->endScene();
-	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
-	const mat4& cameraView = camera->getView();
-	mat4 inverseCameraView = inverse(cameraView);
-
-	mat4 test = globalLight.getView();
-	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
-	AABB ccBB = fromCuboid(cameraCuboidWorld);
-
-	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
-	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
-	globalLight.setOrthoFrustum(shadowFrustum);
-
-	const mat4& lightProj = globalLight.getProjection(Orthographic);
-	const mat4& lightView = globalLight.getView();
-
-
-	// render scene to the shadow depth map
-	renderer->beginScene();
-	renderer->useDepthMap(shadowMap);
-	//renderer->enableAlphaBlending(false);
-	//renderer->cullFaces(CullingMode::Back);
-
-	pbr_deferred->drawSceneToShadowMap(scene,
-		frameTimeElapsed,
-		shadowMap,
-		globalLight,
-		lightView,
-		lightProj);
-
-	//renderer->cullFaces(CullingMode::Back);
-	//renderer->endScene();
-
-	renderer->useBaseRenderTarget(pbr_mrt.get());
-	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
-	renderer->beginScene();
-		pbr_deferred->drawGeometryScene(scene,
-		frameTimeElapsed,
-		camera->getView(),
-		camera->getPerspProjection());
-	//renderer->endScene();
-
-	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
-	ssao_deferred->blur();
-
-	// render scene to a offscreen buffer
-	renderer->useBaseRenderTarget(renderTargetSingleSampled);
-	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
-	renderer->beginScene();
-	
-
-	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
-	renderer->blitRenderTargets(pbr_mrt.get(),
-		renderTargetSingleSampled,
-		blitRegion,
-		Renderer3D::RenderComponent::Stencil);
-
-	//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-
-		//renderer->enableAlphaBlending(true);
-
-		pbr_deferred->drawLighting(scene, 
-			frameTimeElapsed, 
-			pbr_mrt.get(), 
-			shadowMap->getTexture(), 
-			ssao_deferred->getBlurredResult(),
-			globalLight, 
-			camera->getView(), 
-			lightProj * lightView);
-
-		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-	
-
-
-	//renderer->endScene();
-	
-	// finally render the offscreen buffer to a quad and do post processing stuff
-	renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
-	renderer->useScreenTarget();
-	renderer->beginScene();
-	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
-	//screenSprite.setTexture(ssao_deferred->getAO_Result());
-	
-	//screenSprite.setTexture(pbr_mrt->getAlbedo());
-
-	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
-
-	screenShader->useTexture(screenSprite.getTexture());
-	if (showDepthMap)
-	{
-		int width = window->getWidth();
-		int height = window->getHeight();
-		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		//screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
-		//modelDrawer->draw(&screenSprite, Shaders::Screen);
-		screenSprite.setTexture(shadowMap->getTexture());
-		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-	} else
-	{
-		modelDrawer->draw(&screenSprite, Shaders::Screen);
-		//ssao_deferred->displayAOTexture();
-	}
-	//renderer->endScene();
+void BaseGUI_Mode::drawGUI()
+{
+	Window* window = mainTask->getWindow();
 
 	// render GUI
-	gui->newFrame();
+	guiRenderer->newFrame();
 
 	// 1. Show a simple window.
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
@@ -461,10 +548,10 @@ void PBR_Deferred_MainLoopTask::run()
 		//ImGuiWindowFlags_NoTitleBar
 		ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
-		//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+																//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-		//ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
-		//ImGui::Checkbox("Another Window", &show_another_window);
+																//ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
+																//ImGui::Checkbox("Another Window", &show_another_window);
 
 		if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
 			counter++;
@@ -477,15 +564,11 @@ void PBR_Deferred_MainLoopTask::run()
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::Button("Test")) {
-					std::cout << "Pressed button!" << std::endl;
-					window->close();
-				}
-				if (ImGui::MenuItem("Exit", "Esc")) 
+				if (ImGui::MenuItem("Exit", "Esc"))
 				{
-					window->close();
+					handleExitEvent();
 				}
-				
+
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Edit"))
@@ -521,75 +604,25 @@ void PBR_Deferred_MainLoopTask::run()
 
 
 	ImGui::Render();
-	gui->renderDrawData(ImGui::GetDrawData());
-
-	// present rendered frame
-	window->swapBuffers();
-
-	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
+	guiRenderer->renderDrawData(ImGui::GetDrawData());
 }
 
-void PBR_Deferred_MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
-{
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	scene->update(frameTimeElapsed);
-	scene->draw(renderer, modelDrawer, projection, view, shaderType);
-	renderer->endScene();
-}
-
-void PBR_Deferred_MainLoopTask::updateCamera(Input* input, float deltaTime)
-{
-	if (window->hasFocus())
-	{
-		camera.get()->update(input, deltaTime);
-		
-		if (dynamic_cast<FPCameraBase*>(camera.get()))
-		{
-			window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
-		}
-	}
-}
-
-void PBR_Deferred_MainLoopTask::handleInputEvents()
+void BaseGUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
 	using namespace platform;
 	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
-	Input* input = window->getInputDevice();
 
+	Input* input = mainTask->getWindow()->getInputDevice();
+	Window* window = mainTask->getWindow();
 
 	if (input->isPressed(Input::KEY_ESCAPE))
 	{
-		window->close();
-	}
-
-	/*if (input->isPressed(Input::KEY_KP_ENTER) || input->isPressed(Input::KEY_RETURN))
-	{
-		window->minimize();
-	}*/
-
-	if (input->isPressed(Input::KEY_UP))
-	{
-		mixValue += 0.1f;
-		if (mixValue >= 1.0f)
-			mixValue = 1.0f;
-
-		mixValue = round(mixValue * 10) / 10;
-		LOG(logClient, Debug) << "MixValue: " << mixValue;
-	}
-
-	if (input->isPressed(Input::KEY_DOWN))
-	{
-		mixValue -= 0.1f;
-		if (mixValue <= 0.0f)
-			mixValue = 0.0f;
-
-		mixValue = round(mixValue * 10) / 10;
-		LOG(logClient, Debug) << "MixValue: " << mixValue;
+		handleExitEvent();
 	}
 
 	if (input->isPressed(Input::KEY_Y))
 	{
-		showDepthMap = !showDepthMap;
+		mainTask->setShowDepthMap(!mainTask->getShowDepthMap());
 	}
 
 
@@ -597,130 +630,71 @@ void PBR_Deferred_MainLoopTask::handleInputEvents()
 	if (input->isPressed(Input::KEY_B)) {
 		if (window->isInFullscreenMode()) {
 			window->setWindowed();
-			//renderer->endScene();
 		}
 		else {
 			window->setFullscreen();
-			//renderer->endScene();
 		}
 
 		LOG(logClient, Debug) << "toggle";
 	}
 }
 
-void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
+void BaseGUI_Mode::init()
 {
-	runtime += frameTime;
-	if (runtime > 1)
-	{
-		stringstream ss; ss << originalTitle << " : FPS= " << fps;
-		window->setTitle(ss.str());
-		runtime -= 1;
-	}
 }
 
-void PBR_Deferred_MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus)
+void BaseGUI_Mode::handleExitEvent()
 {
-	if (receivedFocus)
-	{
-		LOG(logClient, platform::Debug) << "received focus!";
-		//if (dynamic_cast<FPCameraBase*>(camera.get()))
-		//{
-		//	window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
-		//}
-		//window->getInputDevice()->resetMouseMovement();
-		isRunning = true;
-	} else
-	{
-		LOG(logClient, platform::Debug) << "lost focus!";
-		isRunning = false;
-		if (window->isInFullscreenMode())
-		{
-			window->minimize();
-		}
-	}
+	mainTask->getWindow()->close();
 }
 
 
-GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTask)
+GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) : BaseGUI_Mode(mainTask, guiRenderer)
 {
-	mainTask.window->showCursor(false);
+	logClient.setPrefix("[GUI_Mode]");
+	mainTask.getWindow()->showCursor(false);
 }
 
 void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
+	BaseGUI_Mode::frameUpdate(stateMachine);
 	//std::cout << "GUI_Mode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
-	Input* input = mainTask->window->getInputDevice();
+	Input* input = mainTask->getWindow()->getInputDevice();
 
 	// Switch to camera mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask));
+		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer));
 	}
 }
 
-CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask) : mainTask(&mainTask)
+CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) : BaseGUI_Mode(mainTask, guiRenderer)
 {
-	mainTask.window->showCursor(true);
+	logClient.setPrefix("[CameraMode]");
+	mainTask.getWindow()->showCursor(true);
 }
 
 void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
-	//std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
-	Input* input = mainTask->window->getInputDevice();
-	float frameTime = mainTask->timer.getLastUpdateTimeDifference();
+	BaseGUI_Mode::frameUpdate(stateMachine);
 
-	// handle input events
-	handleInputEvents(input, mainTask->window);
+	//std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
+	Input* input = mainTask->getWindow()->getInputDevice();
+	float frameTime = mainTask->getTimer()->getLastUpdateTimeDifference();
 
 	// update camera
 	updateCamera(input, frameTime);
 
 	// Switch to gui mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask));
+		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer));
 	}
 }
 
 void CameraMode::updateCamera(Input * input, float deltaTime)
 {
-	Camera* camera = mainTask->camera.get();
-	Window* window = mainTask->window;
+	Camera* camera = mainTask->getCamera();
+	Window* window = mainTask->getWindow();
 
 	camera->update(input, deltaTime);
-
-	//if (dynamic_cast<FPCameraBase*>(camera))
-	//{
-		window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
-	//}
-}
-
-void CameraMode::handleInputEvents(Input* input, Window* window)
-{
-	using namespace platform;
-	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
-
-	if (input->isPressed(Input::KEY_ESCAPE))
-	{
-		window->close();
-	}
-
-	if (input->isPressed(Input::KEY_Y))
-	{
-		mainTask->showDepthMap = !mainTask->showDepthMap;
-	}
-
-
-	// Context refresh Does not work right now!
-	if (input->isPressed(Input::KEY_B)) {
-		if (window->isInFullscreenMode()) {
-			window->setWindowed();
-			//renderer->endScene();
-		}
-		else {
-			window->setFullscreen();
-			//renderer->endScene();
-		}
-
-		LOG(mainTask->logClient, Debug) << "toggle";
-	}
+	window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
 }

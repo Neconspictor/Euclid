@@ -33,91 +33,91 @@ public:
 	
 	virtual ~RendererOpenGL();
 	
-	void beginScene() override;
+	virtual void beginScene() override;
 
-	void blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents) override;
+	virtual void blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents) override;
 
-	CubeDepthMap* createCubeDepthMap(int width, int height) override;
+	virtual void clearRenderTarget(BaseRenderTarget* renderTarget, int renderComponents) override;
+
+	virtual CubeDepthMap* createCubeDepthMap(int width, int height) override;
 
 	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data) override;
 
-	RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data, int samples) override;
+	virtual RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data, int samples) override;
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
-	DepthMap* createDepthMap(int width, int height) override;
+	virtual DepthMap* createDepthMap(int width, int height) override;
 
-	RenderTarget* createRenderTarget(int samples) override;
+	virtual RenderTarget* createRenderTarget(int samples) override;
 
 	RenderTargetGL* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
 		GLuint depthStencilType);
 
-	std::unique_ptr<SSAO_Deferred> createDeferredSSAO() override;
+	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() override;
 
-	RenderTarget* createVarianceShadowMap(int width, int height) override;
+	virtual RenderTarget* createVarianceShadowMap(int width, int height) override;
 
-	void cullFaces(CullingMode mode) override;
+	virtual void cullFaces(CullingMode mode) override;
 
 	virtual void destroyCubeRenderTarget(CubeRenderTarget* target) override;
 
-	void destroyRenderTarget(RenderTarget* target) override;
+	virtual void destroyRenderTarget(RenderTarget* target) override;
 
-	void enableAlphaBlending(bool enable) override;
+	virtual void enableAlphaBlending(bool enable) override;
 
-	void enableBackfaceDrawing(bool enable) override;
+	virtual void enableBackfaceDrawing(bool enable) override;
 	
-	void enableDepthWriting(bool enable) override;
+	virtual void enableDepthWriting(bool enable) override;
 
-	void endScene() override;
+	virtual void endScene() override;
 
-	GLint getCurrentRenderTarget() const;
+	virtual GLint getCurrentRenderTarget() const;
 
 	virtual BaseRenderTarget* getDefaultRenderTarget() override;
 
 	// Inherited via Renderer3D
 	virtual EffectLibrary* getEffectLibrary() override;
 
-	ModelDrawer* getModelDrawer() override;
+	virtual ModelDrawer* getModelDrawer() override;
 
-	ModelManager* getModelManager() override;
+	virtual ModelManager* getModelManager() override;
 
-	ShaderManager* getShaderManager() override;
+	static int getRenderComponentsGL(int renderComponents);
 
-	ShadingModelFactory& getShadingModelFactory() override;
+	virtual ShaderManager* getShaderManager() override;
+
+	virtual ShadingModelFactory& getShadingModelFactory() override;
 
 	virtual SMAA* getSMAA() override;
 	
-	TextureManager* getTextureManager() override;
+	virtual TextureManager* getTextureManager() override;
 	
-	RendererType getType() const override;
+	virtual RendererType getType() const override;
 	
-	void init() override;
+	virtual void init() override;
 
-	void present() override;
+	virtual void present() override;
 	
-	void release() override;
+	virtual void release() override;
 
-	CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
+	virtual CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
 
-	void setBackgroundColor(glm::vec3 color) override;
+	virtual void setBackgroundColor(glm::vec3 color) override;
 
-	void setMSAASamples(unsigned int samples) override;
+	virtual void setMSAASamples(unsigned int samples) override;
 
-	void setViewPort(int x, int y, int width, int height) override;
+	virtual void setViewPort(int x, int y, int width, int height) override;
 
-	void useCubeDepthMap(CubeDepthMap* cubeDepthMap) override;
-
-	void useDepthMap(DepthMap* depthMap) override;
+	virtual void useCubeDepthMap(CubeDepthMap* cubeDepthMap) override;
 
 	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel) override;
 
-	void useRenderTarget(RenderTarget* target) override;
+	virtual void useBaseRenderTarget(BaseRenderTarget* target) override;
 
-	void useBaseRenderTarget(BaseRenderTarget* target) override;
+	virtual void useScreenTarget() override;
 
-	void useScreenTarget() override;
-
-	void useVarianceShadowMap(RenderTarget* map) override;
+	virtual void useVarianceShadowMap(RenderTarget* map) override;
 
 	/**
 	* A function for checking any opengl related errors.
