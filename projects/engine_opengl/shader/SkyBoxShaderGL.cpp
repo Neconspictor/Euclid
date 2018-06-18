@@ -13,13 +13,13 @@ SkyBoxShaderGL::SkyBoxShaderGL() : SkyBoxShader(), ShaderConfigGL(), skyTexture(
 
 SkyBoxShaderGL::~SkyBoxShaderGL(){}
 
-void SkyBoxShaderGL::afterDrawing()
+void SkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
 }
 
-void SkyBoxShaderGL::beforeDrawing()
+void SkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
@@ -53,13 +53,13 @@ skyTexture(nullptr)
 
 PanoramaSkyBoxShaderGL::~PanoramaSkyBoxShaderGL(){}
 
-void PanoramaSkyBoxShaderGL::afterDrawing()
+void PanoramaSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
 }
 
-void PanoramaSkyBoxShaderGL::beforeDrawing()
+void PanoramaSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
@@ -96,13 +96,13 @@ EquirectangularSkyBoxShaderGL::~EquirectangularSkyBoxShaderGL()
 {
 }
 
-void EquirectangularSkyBoxShaderGL::afterDrawing()
+void EquirectangularSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
 }
 
-void EquirectangularSkyBoxShaderGL::beforeDrawing()
+void EquirectangularSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do

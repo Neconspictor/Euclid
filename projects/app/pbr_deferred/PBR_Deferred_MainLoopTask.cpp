@@ -243,9 +243,10 @@ void PBR_Deferred_MainLoopTask::init()
 	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
 
 	pbr_deferred = renderer->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
-	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth, windowHeight);
+	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	ssao_deferred = renderer->createDeferredSSAO();
+	hbao_deferred = renderer->createDeferredHBAO();
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -375,7 +376,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->useBaseRenderTarget(pbr_mrt.get());
 	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
 	//renderer->beginScene();
-	renderer->clearRenderTarget(pbr_mrt.get(), RenderComponent::Depth | RenderComponent::Stencil);
+	renderer->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		pbr_deferred->drawGeometryScene(scene,
 			camera->getView(),
 			camera->getPerspProjection());
@@ -383,6 +384,10 @@ void PBR_Deferred_MainLoopTask::run()
 
 	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
 	ssao_deferred->blur();
+	//hbao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	//hbao_deferred->blur();
+
+	Texture* aoTexture = ssao_deferred->getBlurredResult();
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
@@ -391,7 +396,7 @@ void PBR_Deferred_MainLoopTask::run()
 	//renderer->beginScene();
 	
 
-	Dimension blitRegion = { 0,0, window->getWidth(), window->getHeight() };
+	Dimension blitRegion = { 0,0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples };
 	renderer->blitRenderTargets(pbr_mrt.get(),
 		renderTargetSingleSampled,
 		blitRegion,
@@ -404,7 +409,7 @@ void PBR_Deferred_MainLoopTask::run()
 		pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
 			shadowMap->getTexture(), 
-			ssao_deferred->getBlurredResult(),
+			aoTexture,
 			globalLight, 
 			camera->getView(), 
 			lightProj * lightView);
@@ -424,6 +429,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->clearRenderTarget(renderer->getDefaultRenderTarget(), RenderComponent::Depth | RenderComponent::Stencil);
 	
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 	//screenSprite.setTexture(ssao_deferred->getAO_Result());
 	
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
@@ -436,10 +442,11 @@ void PBR_Deferred_MainLoopTask::run()
 		int width = window->getWidth();
 		int height = window->getHeight();
 		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		//screenShader->useTexture(pbr_deferred->getBrdfLookupTexture());
+		//screenShader->useTexture(ssaoTexture);
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
-		screenSprite.setTexture(shadowMap->getTexture());
-		modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		//screenSprite.setTexture(shadowMap->getTexture());
+		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		ssao_deferred->displayAOTexture();
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
@@ -501,6 +508,7 @@ void PBR_Deferred_MainLoopTask::setupCallbacks()
 		renderTargetSingleSampled = renderer->createRenderTarget();
 		pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 		ssao_deferred->onSizeChange(width, height);
+		hbao_deferred->onSizeChange(width, height);
 	});
 
 	input->addRefreshCallback([&]() {

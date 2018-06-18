@@ -1,5 +1,6 @@
 #include <shader/DepthMapShaderGL.hpp>
 #include <glm/glm.hpp>
+#include <mesh/MeshGL.hpp>
 
 using namespace glm;
 using namespace std;
@@ -64,6 +65,26 @@ DepthMapShaderGL::DepthMapShaderGL() :
 }
 
 DepthMapShaderGL::~DepthMapShaderGL(){}
+
+void DepthMapShaderGL::beforeDrawing(const MeshGL& mesh)
+{
+	/*glBindVertexArray(mesh.getVertexArrayObject());
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(3);
+		glDisableVertexAttribArray(4);
+	glBindVertexArray(0);*/
+}
+
+void DepthMapShaderGL::afterDrawing(const MeshGL& mesh)
+{
+	glBindVertexArray(mesh.getVertexArrayObject());
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(3);
+		glEnableVertexAttribArray(4);
+	glBindVertexArray(0);
+}
 
 void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {

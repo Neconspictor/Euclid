@@ -169,9 +169,9 @@ ShaderConfigGL::ShaderConfigGL(){}
 
 ShaderConfigGL::~ShaderConfigGL(){}
 
-void ShaderConfigGL::afterDrawing(){}
+void ShaderConfigGL::afterDrawing(const MeshGL& mesh){}
 
-void ShaderConfigGL::beforeDrawing(){}
+void ShaderConfigGL::beforeDrawing(const MeshGL& mesh){}
 
 const ShaderAttribute* ShaderConfigGL::getAttributeList() const
 {
@@ -187,9 +187,6 @@ ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const string& vertexS
 	const string& geometryShaderFile, const string& instancedVertexShaderFile)
 	: config(move(config)), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
 {
-	// Do assertions
-	assert(this->config != nullptr);
-
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
 	{
@@ -204,6 +201,19 @@ ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const string& vertexS
 			throw ShaderInitException("ShaderGL::ShaderGL: couldn't load instanced shader");
 		}
 	}
+}
+
+ShaderGL::ShaderGL(const std::string & vertexShaderFile, 
+	const std::string & fragmentShaderFile, 
+	const std::string & geometryShaderFile, 
+	const std::string & instancedVertexShaderFile) 
+	: 
+	ShaderGL(nullptr, 
+		vertexShaderFile, 
+		fragmentShaderFile, 
+		geometryShaderFile, 
+		instancedVertexShaderFile)
+{
 }
 
 ShaderGL::ShaderGL(ShaderGL&& other) : config(move(other.config)),
@@ -426,27 +436,14 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
 
-	//bind uniforms from shader config
-	assert(config != nullptr);
-
-	config->beforeDrawing();
-
-	glUseProgram(programID);
-
-	config->update(mesh, data);
-
-	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
-	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
-	{
-		setAttribute(programID, attributes[i]);
-	}
+	beforeDrawing(mesh);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 
-	config->afterDrawing();
+	afterDrawing(mesh);
 }
 
 void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
@@ -454,33 +451,43 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
 	
-	//bind uniforms from shader config
-	assert(config != nullptr);
-	
-	config->beforeDrawing();
-
-	glUseProgram(instancedProgramID);
-
-	config->update(mesh, data);
-
-	auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
-	for (int i = 0; i < config->getNumberOfAttributes(); ++i)
-	{
-		setAttribute(instancedProgramID, attributes[i]);
-	}
+	beforeDrawing(mesh);
 
 	glBindVertexArray(mesh.getVertexArrayObject());
 	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
 	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
 	glBindVertexArray(0);
 
-	config->afterDrawing();
+	afterDrawing(mesh);
 }
 
 ShaderConfig* ShaderGL::getConfig() const
 {
 	return config.get();
 };
+
+void ShaderGL::afterDrawing(const MeshGL& mesh)
+{
+	if (config != nullptr)
+		config->afterDrawing(mesh);
+}
+
+void ShaderGL::beforeDrawing(const MeshGL& mesh)
+{
+	if (config != nullptr) {
+		config->beforeDrawing(mesh);
+
+		glUseProgram(programID);
+
+		config->update(mesh, data);
+
+		auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
+		for (int i = 0; i < config->getNumberOfAttributes(); ++i)
+		{
+			setAttribute(programID, attributes[i]);
+		}
+	}
+}
 
 void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 {
@@ -560,8 +567,5 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		throw runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
 	}
 
-	if  (RendererOpenGL::checkGLErrorSilently())
-	{
-		int test = 3;
-	}
+	RendererOpenGL::checkGLErrorSilently();
 }

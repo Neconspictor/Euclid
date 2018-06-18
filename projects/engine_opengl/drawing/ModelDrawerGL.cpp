@@ -78,7 +78,14 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
 	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
+	static bool called = false;
+	//if (!called) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//	called = true;
+	//}
+	
+	
 	shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{

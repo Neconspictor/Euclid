@@ -65,6 +65,8 @@ set(
 
 	
     #post_processing
+	post_processing/HBAO.hpp
+	post_processing/HBAO.cpp
 	post_processing/SSAO.hpp
 	post_processing/SSAO.cpp
 	#post_processing/blur

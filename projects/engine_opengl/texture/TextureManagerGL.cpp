@@ -177,6 +177,7 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -248,16 +249,14 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 	GLint magFilter = TextureGL::mapFilter(data.magFilter, data.generateMipMaps);
 	GLint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
 
+	if (data.generateMipMaps)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-	if (data.generateMipMaps)
-		glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

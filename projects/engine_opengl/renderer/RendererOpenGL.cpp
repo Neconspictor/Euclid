@@ -16,6 +16,7 @@
 #include <drawing/ModelDrawer.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <post_processing/SSAO_GL.hpp>
+#include <post_processing/HBAO_GL.hpp>
 
 using namespace std;
 using namespace platform;
@@ -628,6 +629,11 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 std::unique_ptr<SSAO_Deferred> RendererOpenGL::createDeferredSSAO()
 {
 	return std::make_unique<SSAO_DeferredGL>(width, height, &modelDrawer);
+}
+
+std::unique_ptr<hbao::HBAO_Deferred> RendererOpenGL::createDeferredHBAO()
+{
+	return std::make_unique<hbao::HBAO_DeferredGL>(width, height, &modelDrawer);
 }
 
 EffectLibrary* RendererOpenGL::getEffectLibrary()

@@ -127,19 +127,18 @@ void main()
 	float metallic = aoMetalRoughness.g;
 	metallic = 0.0;
 	float roughness = aoMetalRoughness.b;
-	roughness = 0.0;
+	roughness = 0.9;
 	
 	vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
-	float alpha = length(normalEye);
+	/*float alpha = length(normalEye);
 	if (alpha < 0.9) {
 		discard;
-	};
+	};*/
 	
 	
 	vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
 	
 	float ambientOcclusion = texture(ssaoMap, fs_in.tex_coords).r;
-	ambientOcclusion = clamp(pow(ambientOcclusion, 2.2), 0, 1);
 	
 	// calculate per-light radiance
 	vec3 lightEye =  normalize(-dirLight.directionEye);
@@ -154,6 +153,8 @@ void main()
 	//directional shadow calculation
 	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
 	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
+	
+	//shadow = 1;
 	
 	
     vec3 result = pbrModel(ao, 
@@ -193,12 +194,19 @@ vec3 pbrModel(float ao,
     vec3 Lo = pbrDirectLight(viewDir, normal, lightDir, roughness, F0, metallic, albedo);
 	vec3 ambient = pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
 	
-	float ambientShadow = clamp(shadow, 0.5, 1.0);
+	float ambientShadow = clamp(shadow, 1.0, 1.0);
 	
-    vec3 color = ambient * ssaoAmbientOcclusion * ambientShadow;
+	//float ssaoFactor = max(max(ambient.r, ambient.g), ambient.b);
+	//ssaoFactor = clamp (1 / ssaoFactor, 0, 1);
+	
+    vec3 color = ambient * ambientShadow; // ssaoAmbientOcclusion;
 	
 	// shadows affecting only direct light contribution
 	color += Lo * shadow;
+	
+	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);
+	
+	color *= ssaoAmbientOcclusion;
 	
 	return color;
 }

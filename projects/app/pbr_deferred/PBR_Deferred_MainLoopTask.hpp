@@ -16,6 +16,7 @@
 #include <post_processing/blur/GaussianBlur.hpp>
 #include <shading_model/PBR_Deferred.hpp>
 #include <post_processing/SSAO.hpp>
+#include <post_processing/HBAO.hpp>
 #include <platform/gui/ImGUI.hpp>
 #include <ui_mode/UI_ModeStateMachine.hpp>
 
@@ -76,6 +77,7 @@ private:
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 
 	std::unique_ptr<SSAO_Deferred> ssao_deferred;
+	std::unique_ptr<hbao::HBAO_Deferred> hbao_deferred;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetSingleSampled;

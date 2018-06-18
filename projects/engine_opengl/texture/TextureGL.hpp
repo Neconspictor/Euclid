@@ -254,3 +254,18 @@ protected:
 	TextureGL normal;
 	TextureGL position;
 };
+
+class OneTextureRenderTarget : public BaseRenderTargetGL {
+public:
+	OneTextureRenderTarget(GLuint frameBuffer,
+		TextureGL texture,
+		unsigned int width,
+		unsigned int height);
+
+	virtual ~OneTextureRenderTarget() = default;
+
+	TextureGL* getTexture();
+
+private:
+	TextureGL m_texture;
+};

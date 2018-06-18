@@ -29,6 +29,11 @@ public:
 
 	virtual ~ShadowShaderGL();
 
+	virtual void beforeDrawing(const MeshGL& mesh) override;
+
+	virtual void afterDrawing(const MeshGL& mesh) override;
+
+
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
 protected:

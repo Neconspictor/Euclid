@@ -33,6 +33,8 @@ set(
 	model/ModelManagerGL.cpp
     
 	#post_processing
+	post_processing/HBAO_GL.hpp
+	post_processing/HBAO_GL.cpp
 	post_processing/SSAO_GL.hpp
 	post_processing/SSAO_GL.cpp
 	#post_processing/blur

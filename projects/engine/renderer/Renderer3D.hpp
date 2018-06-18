@@ -9,6 +9,7 @@
 #include <post_processing/blur/GaussianBlur.hpp>
 #include <shading_model/ShadingModelFactory.hpp>
 #include <post_processing/SSAO.hpp>
+#include <post_processing/HBAO.hpp>
 
 enum class CullingMode
 {
@@ -56,6 +57,8 @@ public:
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
 
 	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() = 0;
+
+	virtual std::unique_ptr<hbao::HBAO_Deferred> createDeferredHBAO() = 0;
 
 	virtual RenderTarget* createVarianceShadowMap(int width, int height) = 0;
 	

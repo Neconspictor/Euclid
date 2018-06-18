@@ -238,9 +238,14 @@ void WindowGLFW::createOpenGLWindow()
 	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);*/
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+	
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	
 
 	glfwWindowHint(GLFW_RED_BITS, 32);
 	glfwWindowHint(GLFW_GREEN_BITS, 32);
@@ -251,8 +256,8 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 
-	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, 1);
+	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);

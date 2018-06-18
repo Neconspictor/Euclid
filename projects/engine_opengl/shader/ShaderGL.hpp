@@ -63,9 +63,9 @@ public:
 	ShaderConfigGL();
 	virtual ~ShaderConfigGL();
 
-	virtual void afterDrawing();
+	virtual void afterDrawing(const MeshGL& mesh);
 
-	virtual void beforeDrawing();
+	virtual void beforeDrawing(const MeshGL& mesh);
 
 	virtual const ShaderAttribute* getAttributeList() const;
 
@@ -90,6 +90,14 @@ public:
 		const std::string& vertexShaderFile, 
 		const std::string& fragmentShaderFile,
 		const std::string& geometryShaderFile = "", 
+		const std::string& instancedVertexShaderFile = "");
+
+	/**
+	 * Creates a new shader with now shader configuration object
+	 */
+	ShaderGL(const std::string& vertexShaderFile,
+		const std::string& fragmentShaderFile,
+		const std::string& geometryShaderFile = "",
 		const std::string& instancedVertexShaderFile = "");
 
 	ShaderGL(ShaderGL&& other);
@@ -123,5 +131,8 @@ protected:
 	platform::LoggingClient logClient;
 	GLint textureCounter;
 
-	void setAttribute(GLuint program, const ShaderAttributeGL& attribute);
+	virtual void afterDrawing(const MeshGL& mesh);
+	virtual void beforeDrawing(const MeshGL& mesh);
+
+	virtual void setAttribute(GLuint program, const ShaderAttributeGL& attribute);
 };

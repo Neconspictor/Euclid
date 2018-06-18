@@ -11,7 +11,7 @@ uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 64;
-float radius = 0.25;
+float radius = 0.05;
 float bias = 0.025;
 
 
@@ -29,10 +29,10 @@ void main()
     vec3 fragPos = texture(gPosition, TexCoords).xyz;
     vec3 normal = normalize(texture(gNormal, TexCoords).rgb);
 	
-	//float nLength = length(normal);
-	//if (nLength < 0.9) {
-	//	discard;
-	//}
+	/*float nLength = length(normal);
+	if (nLength < 0.9) {
+		discard;
+	}*/
 	
     vec3 randomVec = normalize(texture(texNoise, TexCoords * noiseScale).xyz);
     // create TBN change-of-basis matrix: from tangent-space to view-space
@@ -61,29 +61,15 @@ void main()
         float sampleDepth = texture(gPosition, offset.xy).z; // get depth value of kernel sample
         
         // range check & accumulate
-        //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
 		//float rangeCheck = 1.0;
-		//occlusion += (sampleDepth >= sample.z + bias ? 1.0 : 0.0) * 1;  
-
-		
-		float delta =  sampleDepth - (sample.z + bias);
-		float rangeCheck = smoothstep(0.0, 1.0, radius / abs(delta));
-		
-		// If scene fragment is before (smaller in z) sample point, increase occlusion.
-		if(delta > 0.0001) {
-			occlusion += 1.0 * rangeCheck;
-		};
-	  
+	   occlusion += (sampleDepth >= sample.z + bias ? 1.0 : 0.0) * rangeCheck;           
     }
+    occlusion = 1.0 - (occlusion / kernelSize);
 	
-	occlusion /= kernelSize;
-	//occlusion = clamp(2.0 * occlusion, 0, 1);
-    occlusion = 1.0 - (occlusion);
-	//occlusion = clamp(pow(occlusion, 2.2), 0, 1);
-	if (occlusion < 0.99) {
-		occlusion = clamp(pow(occlusion, 2.2), 0, 1);
+	if (occlusion < 0.9) {
+		occlusion = 0.0;
 	}
-	//occlusion = clamp(2.0 * occlusion, 0, 1);
 	//occlusion = clamp(pow(occlusion, 2.2 * 2), 0, 1);
 	
     FragColor = occlusion;

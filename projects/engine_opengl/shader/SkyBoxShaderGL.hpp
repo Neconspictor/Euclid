@@ -10,9 +10,9 @@ public:
 
 	virtual ~SkyBoxShaderGL() override;
 
-	void afterDrawing() override;
+	void afterDrawing(const MeshGL& mesh) override;
 
-	void beforeDrawing() override;
+	void beforeDrawing(const MeshGL& mesh) override;
 
 	virtual void setSkyTexture(CubeMap* sky) override;
 
@@ -30,9 +30,9 @@ public:
 
 	~PanoramaSkyBoxShaderGL() override;
 
-	void afterDrawing() override;
+	void afterDrawing(const MeshGL& mesh) override;
 
-	void beforeDrawing() override;
+	void beforeDrawing(const MeshGL& mesh) override;
 
 	virtual void setSkyTexture(Texture* tex) override;
 
@@ -50,9 +50,9 @@ public:
 
 	~EquirectangularSkyBoxShaderGL() override;
 
-	void afterDrawing() override;
+	void afterDrawing(const MeshGL& mesh) override;
 
-	void beforeDrawing() override;
+	void beforeDrawing(const MeshGL& mesh) override;
 
 	virtual void setSkyTexture(Texture* tex) override;
 

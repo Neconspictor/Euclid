@@ -32,6 +32,10 @@ public:
 
 	virtual ~DepthMapShaderGL();
 
+	virtual void beforeDrawing(const MeshGL& mesh) override;
+
+	virtual void afterDrawing(const MeshGL& mesh) override;
+
 	void update(const MeshGL& mesh, const TransformData& data) override;
 
 	void useDepthMapTexture(Texture* texture) override;

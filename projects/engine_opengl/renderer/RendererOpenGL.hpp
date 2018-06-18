@@ -56,6 +56,8 @@ public:
 
 	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() override;
 
+	virtual std::unique_ptr<hbao::HBAO_Deferred> createDeferredHBAO() override;
+
 	virtual RenderTarget* createVarianceShadowMap(int width, int height) override;
 
 	virtual void cullFaces(CullingMode mode) override;

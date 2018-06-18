@@ -1,6 +1,5 @@
 #include <texture/TextureGL.hpp>
 #include <shader/ShaderGL.hpp>
-#include <post_processing/SSAO_GL.hpp>
 #include <texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <post_processing/SSAO_GL.hpp>
