@@ -39,11 +39,11 @@ namespace hbao {
 		virtual void draw(const Mesh& mesh) override;
 		void draw();
 		void setInputTexture(TextureGL* input);
-		void setProjection(Projection projection);
+		void setProjection(const Projection* projection);
 
 	private:
 		TextureGL* m_input;
-		Projection m_projection;
+		const Projection* m_projection;
 	};
 
 	class DisplayTex : public ShaderGL {
@@ -92,14 +92,15 @@ namespace hbao {
 
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) override;
 
-		virtual void renderAO(Texture* depth, Projection projection) override;
-		virtual void blur() override;
+		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) override;
 
 		virtual void displayAOTexture() override;
 
 	protected:
 
+		void drawLinearDepth(TextureGL* depthTexture, const Projection & projection);
 		void initRenderTargets(unsigned int width, unsigned int height);
+		void prepareHbaoData(const Projection& projection, int width, int height);
 
 	protected:
 		std::unique_ptr<hbao::BilateralBlur> m_bilateralBlur;
@@ -119,6 +120,9 @@ namespace hbao {
 		TextureGL m_hbao_random;
 		TextureGL m_hbao_randomview;
 		GLuint m_hbao_ubo;
+
+		HBAOData   m_hbaoDataSource;
+		GLuint m_defaultVAO;
 	};
 }
 

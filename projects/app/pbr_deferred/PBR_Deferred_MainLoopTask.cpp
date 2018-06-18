@@ -382,12 +382,21 @@ void PBR_Deferred_MainLoopTask::run()
 			camera->getPerspProjection());
 	//renderer->endScene();
 
-	ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
-	ssao_deferred->blur();
-	//hbao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
-	//hbao_deferred->blur();
+	//ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	//ssao_deferred->blur();
 
-	Texture* aoTexture = ssao_deferred->getBlurredResult();
+	hbao::Projection projection;
+	Frustum frustum = camera->getFrustum(Perspective);
+	projection.fov = camera->getFOV();
+	projection.farplane = frustum.farPlane;
+	projection.matrix = camera->getPerspProjection();
+	projection.nearplane = frustum.nearPlane;
+	projection.orthoheight = 0;
+	projection.perspective = true;
+
+	hbao_deferred->renderAO(pbr_mrt->getPosition(),  projection, true);
+
+	Texture* aoTexture = hbao_deferred->getBlurredResult();
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
@@ -446,7 +455,7 @@ void PBR_Deferred_MainLoopTask::run()
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//screenSprite.setTexture(shadowMap->getTexture());
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		ssao_deferred->displayAOTexture();
+		hbao_deferred->displayAOTexture();
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);

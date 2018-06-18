@@ -91,8 +91,7 @@ namespace hbao {
 		virtual Texture* getBlurredResult() = 0;
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
-		virtual void renderAO(Texture* depth, Projection projection) = 0;
-		virtual void blur() = 0;
+		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
 		virtual void displayAOTexture() = 0;
 
 

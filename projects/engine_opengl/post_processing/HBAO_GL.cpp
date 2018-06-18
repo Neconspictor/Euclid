@@ -5,11 +5,15 @@
 #include <post_processing/HBAO_GL.hpp>
 #include <vector>
 #include <drawing/ModelDrawerGL.hpp>
+#include <algorithm>
 
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES 1
 #endif
 #include <math.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 using namespace std; 
 using namespace glm;
@@ -77,15 +81,18 @@ HBAO_DeferredGL::HBAO_DeferredGL(unsigned int windowWidth,
 	glNamedBufferStorage(m_hbao_ubo, sizeof(HBAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
 
 
-	initRenderTargets(windowWidth, windowHeight);
-
 	m_aoDisplay = make_unique<hbao::DisplayTex>();
 	m_bilateralBlur = make_unique<hbao::BilateralBlur>();
 	m_depthLinearizer = make_unique<hbao::DepthLinearizer>();
 	m_hbaoShader = make_unique<hbao::HBAO_Shader>();
 
+
+	initRenderTargets(windowWidth, windowHeight);
+
 	m_bilateralBlur->setSharpness(40.0f);
 	m_hbaoShader->setRamdomView(&m_hbao_randomview);
+
+	glGenVertexArrays(1, &m_defaultVAO);
 }
 
 HBAO_DeferredGL::~HBAO_DeferredGL()
@@ -111,36 +118,124 @@ void HBAO_DeferredGL::onSizeChange(unsigned int newWidth, unsigned int newHeight
 	this->windowWidth = newWidth;
 	this->windowHeight = newHeight;
 
-	// TODO render targets
+	initRenderTargets(windowWidth, windowHeight);
 }
 
-void HBAO_DeferredGL::renderAO(Texture * gPositions, Projection projection)
+void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
 {
+	TextureGL& depthTextureGL = dynamic_cast<TextureGL&>(*depthTexture);
+	unsigned int width = m_aoResultRT->getWidth();
+	unsigned int height = m_aoResultRT->getHeight();
+
+	prepareHbaoData(projection, width, height);
+
+
+	glBindVertexArray(m_defaultVAO);
 	glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 	glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
+	
+		drawLinearDepth(&depthTextureGL, projection);
+	
+		// draw hbao to hbao render target
 	glBindFramebuffer(GL_FRAMEBUFFER, m_aoResultRT->getFrameBuffer());
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		m_hbaoShader->draw();
-		//modelDrawer->draw(&screenSprite, *aoPass);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-void HBAO_DeferredGL::blur()
-{
-	glViewport(0, 0, m_aoBlurredResultRT->getWidth(), m_aoBlurredResultRT->getHeight());
-	glScissor(0, 0, m_aoBlurredResultRT->getWidth(), m_aoBlurredResultRT->getHeight());
-	glBindFramebuffer(GL_FRAMEBUFFER, m_aoBlurredResultRT->getFrameBuffer());
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		m_hbaoShader->setHbaoData(move(m_hbaoDataSource));
+		m_hbaoShader->setLinearDepth(m_depthLinearRT->getTexture());
+		m_hbaoShader->setRamdomView(&m_hbao_randomview);
+		m_hbaoShader->draw();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (blur) {
+		// clear color/depth/stencil for all involved render targets
+		glBindFramebuffer(GL_FRAMEBUFFER, m_aoBlurredResultRT->getFrameBuffer());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_tempRT->getFrameBuffer());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// setup bilaterial blur and draw
+		m_bilateralBlur->setLinearDepth(m_depthLinearRT->getTexture());
+		m_bilateralBlur->setSourceTexture(m_aoResultRT->getTexture(), width, height);
 		m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
-		//modelDrawer->draw(&screenSprite, *tiledBlurPass);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	glBindVertexArray(0);
 }
 
 void HBAO_DeferredGL::displayAOTexture()
 {
 	//modelDrawer->draw(&screenSprite, *aoDisplay);
+	glBindVertexArray(m_defaultVAO);
+	m_aoDisplay->setInputTexture(m_aoBlurredResultRT->getTexture());
+	m_aoDisplay->draw();
+	glBindVertexArray(0);
 }
 
+
+void hbao::HBAO_DeferredGL::prepareHbaoData(const Projection & projection, int width, int height)
+{
+	// projection
+	const float* P = glm::value_ptr(projection.matrix);
+
+	glm::vec4 projInfoPerspective = {
+		2.0f / (P[4 * 0 + 0]),       // (x) * (R - L)/N
+		2.0f / (P[4 * 1 + 1]),       // (y) * (T - B)/N
+		-(1.0f - P[4 * 2 + 0]) / P[4 * 0 + 0], // L/N
+		-(1.0f + P[4 * 2 + 1]) / P[4 * 1 + 1], // B/N
+	};
+
+	glm::vec4 projInfoOrtho = {
+		2.0f / (P[4 * 0 + 0]),      // ((x) * R - L)
+		2.0f / (P[4 * 1 + 1]),      // ((y) * T - B)
+		-(1.0f + P[4 * 3 + 0]) / P[4 * 0 + 0], // L
+		-(1.0f - P[4 * 3 + 1]) / P[4 * 1 + 1], // B
+	};
+
+	int useOrtho = projection.perspective ? 0 : 1;
+	m_hbaoDataSource.projOrtho = useOrtho;
+	m_hbaoDataSource.projInfo = useOrtho ? projInfoOrtho : projInfoPerspective;
+
+	float projScale;
+	if (useOrtho) {
+		projScale = float(height) / (projInfoOrtho[1]);
+	}
+	else {
+		projScale = float(height) / (tanf(projection.fov * 0.5f) * 2.0f);
+	}
+
+	// radius
+	float meters2viewspace = 1.0f;
+	float radius = 2.0f;
+	float intensity = 1.5f;
+	float bias = 0.1f;
+
+	float R = radius * meters2viewspace;
+	m_hbaoDataSource.R2 = R * R;
+	m_hbaoDataSource.NegInvR2 = -1.0f / m_hbaoDataSource.R2;
+	m_hbaoDataSource.RadiusToScreen = R * 0.5f * projScale;
+
+	// ao
+	m_hbaoDataSource.PowExponent = std::max(intensity, 0.0f);
+	m_hbaoDataSource.NDotVBias = std::min(std::max(0.0f, bias), 1.0f);
+	m_hbaoDataSource.AOMultiplier = 1.0f / (1.0f - m_hbaoDataSource.NDotVBias);
+
+	// resolution
+	int quarterWidth = ((width + 3) / 4);
+	int quarterHeight = ((height + 3) / 4);
+
+	m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / float(quarterWidth), 1.0f / float(quarterHeight));
+	m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
+}
+
+void hbao::HBAO_DeferredGL::drawLinearDepth(TextureGL* depthTexture, const Projection & projection)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, m_depthLinearRT->getFrameBuffer());
+	m_depthLinearizer->setProjection(&projection);
+	m_depthLinearizer->setInputTexture(depthTexture);
+	m_depthLinearizer->draw();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 void hbao::HBAO_DeferredGL::initRenderTargets(unsigned int width, unsigned int height)
 {
@@ -302,9 +397,9 @@ void hbao::BilateralBlur::draw(BaseRenderTargetGL * temp, BaseRenderTargetGL* re
 
 hbao::DepthLinearizer::DepthLinearizer() : 
 	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl"),
-	m_input(nullptr) 
+	m_input(nullptr),
+	m_projection(nullptr)
 {
-	memset(&m_projection, 0, sizeof(Projection));
 }
 
 void hbao::DepthLinearizer::draw(const Mesh & mesh)
@@ -315,10 +410,10 @@ void hbao::DepthLinearizer::draw(const Mesh & mesh)
 void hbao::DepthLinearizer::draw()
 {
 	glUseProgram(programID);
-	glUniform4f(0, m_projection.nearplane * m_projection.farplane,
-		m_projection.nearplane - m_projection.farplane,
-		m_projection.farplane,
-		m_projection.perspective ? 1.0f : 0.0f);
+	glUniform4f(0, m_projection->nearplane * m_projection->farplane,
+		m_projection->nearplane - m_projection->farplane,
+		m_projection->farplane,
+		m_projection->perspective ? 1.0f : 0.0f);
 
 	glBindTextureUnit(0, m_input->getTexture());
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -330,9 +425,9 @@ void hbao::DepthLinearizer::setInputTexture(TextureGL * input)
 	m_input = input;
 }
 
-void hbao::DepthLinearizer::setProjection(Projection projection)
+void hbao::DepthLinearizer::setProjection(const Projection* projection)
 {
-	m_projection = move(projection);
+	m_projection = projection;
 }
 
 hbao::DisplayTex::DisplayTex() : 
