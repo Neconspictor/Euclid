@@ -8,7 +8,8 @@ in vec2 texCoord;
 
 void main()
 {
-  out_Color = texture(inputTexture, texCoord);
+  float depth = texture(inputTexture, texCoord).r;
+  out_Color = vec4(depth,depth,depth,1);
 }
 
 /*-----------------------------------------------------------------------

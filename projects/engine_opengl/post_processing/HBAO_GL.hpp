@@ -20,7 +20,7 @@ namespace hbao {
 		void setSourceTexture(TextureGL* source, unsigned int textureWidth, unsigned int textureHeight);
 
 		virtual void draw(const Mesh& mesh) override;
-		void draw(BaseRenderTargetGL* temp, BaseRenderTargetGL* result);
+		void draw(OneTextureRenderTarget* temp, BaseRenderTargetGL* result);
 
 	private:
 		TextureGL* m_linearDepth;
@@ -69,6 +69,7 @@ namespace hbao {
 		virtual void draw(const Mesh& mesh) override;
 		void draw();
 		void setHbaoData(HBAOData hbao);
+		void setHbaoUBO(GLuint hbao_ubo);
 		void setLinearDepth(TextureGL* linearDepth);
 		void setRamdomView(TextureGL* randomView);
 
@@ -95,6 +96,7 @@ namespace hbao {
 		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) override;
 
 		virtual void displayAOTexture() override;
+		virtual void displayTexture(Texture* texture) override;
 
 	protected:
 

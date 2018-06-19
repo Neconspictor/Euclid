@@ -252,6 +252,32 @@ GLuint TextureGL::getType(bool isFloatData)
 	return GL_UNSIGNED_BYTE;
 }
 
+RenderBufferGL::RenderBufferGL() : TextureGL()
+{
+}
+
+RenderBufferGL::RenderBufferGL(GLuint texture) : TextureGL(texture)
+{
+}
+
+RenderBufferGL::RenderBufferGL(RenderBufferGL && o) : TextureGL(move(o))
+{
+}
+
+RenderBufferGL & RenderBufferGL::operator=(RenderBufferGL && o)
+{
+	TextureGL::operator=(move(o));
+	return *this;
+}
+
+void RenderBufferGL::release()
+{
+	if (textureID != GL_FALSE) {
+		glDeleteRenderbuffers(1, &textureID);
+		textureID = GL_FALSE;
+	}
+}
+
 
 BaseRenderTargetGL::BaseRenderTargetGL(int width, int height, GLuint frameBuffer)
 	: BaseRenderTarget(width, height), frameBuffer(frameBuffer)
@@ -948,16 +974,34 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glDrawBuffers(4, attachments);
 
 	// create and attach depth buffer (renderbuffer)
-	unsigned int rboDepth;
+	/*unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
+	depth.setTexture(rboDepth);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);*/
+
+	// depth/stencil
+	glGenTextures(1, &tempTexture);
+	depth.setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, tempTexture, 0);
 
 	// finally check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 }
 
 Texture * PBR_GBufferGL::getAlbedo()
@@ -978,6 +1022,11 @@ Texture * PBR_GBufferGL::getNormal()
 Texture * PBR_GBufferGL::getPosition()
 {
 	return &position;
+}
+
+Texture * PBR_GBufferGL::getDepth()
+{
+	return &depth;
 }
 
 

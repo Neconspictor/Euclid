@@ -153,6 +153,7 @@ void main()
 	//directional shadow calculation
 	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
 	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
+
 	
 	//shadow = 1;
 	
@@ -203,6 +204,8 @@ vec3 pbrModel(float ao,
 	
 	// shadows affecting only direct light contribution
 	color += Lo * shadow;
+	//color += Lo;
+	//color *= shadow;
 	
 	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);
 	
@@ -373,7 +376,7 @@ float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fr
 	bias = 9* minBias;
 	
 	shadow = PCF(shadowMap, textureSize(shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias, penumbraSize);
-	//shadow = texture2DCompare(shadowMap, shadowCoordinateWdivide.xy, currentDepth, 0);
+	//shadow = texture2DCompare(shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
 	//shadow = PCSS(material.shadowMap, shadowCoordinateWdivide, bias);
 	//shadow = PCF_Filter(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, 0.005f, bias);
 	

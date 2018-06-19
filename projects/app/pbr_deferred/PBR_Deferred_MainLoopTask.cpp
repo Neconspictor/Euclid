@@ -387,21 +387,21 @@ void PBR_Deferred_MainLoopTask::run()
 
 	hbao::Projection projection;
 	Frustum frustum = camera->getFrustum(Perspective);
-	projection.fov = camera->getFOV();
+	projection.fov = radians(camera->getFOV());
 	projection.farplane = frustum.farPlane;
 	projection.matrix = camera->getPerspProjection();
 	projection.nearplane = frustum.nearPlane;
 	projection.orthoheight = 0;
 	projection.perspective = true;
 
-	hbao_deferred->renderAO(pbr_mrt->getPosition(),  projection, true);
+	hbao_deferred->renderAO(pbr_mrt->getDepth(),  projection, true);
 
 	Texture* aoTexture = hbao_deferred->getBlurredResult();
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
 	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
-	renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Depth | RenderComponent::Stencil);
+	renderer->clearRenderTarget(renderTargetSingleSampled,  RenderComponent::Depth | RenderComponent::Stencil);
 	//renderer->beginScene();
 	
 
@@ -409,7 +409,7 @@ void PBR_Deferred_MainLoopTask::run()
 	renderer->blitRenderTargets(pbr_mrt.get(),
 		renderTargetSingleSampled,
 		blitRegion,
-		RenderComponent::Stencil);
+		RenderComponent::Depth | RenderComponent::Stencil);
 
 	//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
@@ -423,7 +423,7 @@ void PBR_Deferred_MainLoopTask::run()
 			camera->getView(), 
 			lightProj * lightView);
 
-		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 	
 
 
@@ -454,8 +454,11 @@ void PBR_Deferred_MainLoopTask::run()
 		//screenShader->useTexture(ssaoTexture);
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//screenSprite.setTexture(shadowMap->getTexture());
+		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
+		//screenShader->useTexture(pbr_mrt->getDepth());
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 		hbao_deferred->displayAOTexture();
+		//hbao_deferred->displayTexture(pbr_mrt->getDepth());
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);

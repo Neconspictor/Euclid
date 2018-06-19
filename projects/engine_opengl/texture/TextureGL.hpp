@@ -51,6 +51,21 @@ protected:
 	GLuint textureID;
 };
 
+class RenderBufferGL : public TextureGL {
+public:
+	RenderBufferGL();
+	virtual ~RenderBufferGL() = default;
+	RenderBufferGL(GLuint texture);
+
+	RenderBufferGL(RenderBufferGL&& o);
+	RenderBufferGL& operator=(RenderBufferGL&& o);
+
+	RenderBufferGL(const RenderBufferGL&) = delete;
+	RenderBufferGL& operator=(const RenderBufferGL&) = delete;
+
+	virtual void release() override;
+};
+
 class CubeMapGL : public CubeMap, public TextureGL
 {
 public:
@@ -246,6 +261,7 @@ public:
 	virtual Texture* getAoMetalRoughness() override;
 	virtual Texture* getNormal() override;
 	virtual Texture* getPosition() override;
+	virtual Texture* getDepth() override;
 
 
 protected:
@@ -253,6 +269,7 @@ protected:
 	TextureGL aoMetalRoughness;
 	TextureGL normal;
 	TextureGL position;
+	RenderBufferGL depth;
 };
 
 class OneTextureRenderTarget : public BaseRenderTargetGL {

@@ -93,6 +93,7 @@ namespace hbao {
 
 		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
 		virtual void displayAOTexture() = 0;
+		virtual void displayTexture(Texture* texture) = 0;
 
 
 	protected:

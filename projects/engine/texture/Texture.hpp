@@ -140,4 +140,5 @@ public:
 	virtual Texture* getAoMetalRoughness() = 0;
 	virtual Texture* getNormal() = 0;
 	virtual Texture* getPosition() = 0;
+	virtual Texture* getDepth() = 0;
 };

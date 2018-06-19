@@ -91,6 +91,7 @@ HBAO_DeferredGL::HBAO_DeferredGL(unsigned int windowWidth,
 
 	m_bilateralBlur->setSharpness(40.0f);
 	m_hbaoShader->setRamdomView(&m_hbao_randomview);
+	m_hbaoShader->setHbaoUBO(m_hbao_ubo);
 
 	glGenVertexArrays(1, &m_defaultVAO);
 }
@@ -160,6 +161,7 @@ void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& project
 		m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 	}
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 }
 
@@ -168,6 +170,15 @@ void HBAO_DeferredGL::displayAOTexture()
 	//modelDrawer->draw(&screenSprite, *aoDisplay);
 	glBindVertexArray(m_defaultVAO);
 	m_aoDisplay->setInputTexture(m_aoBlurredResultRT->getTexture());
+	m_aoDisplay->draw();
+	glBindVertexArray(0);
+}
+
+void hbao::HBAO_DeferredGL::displayTexture(Texture * texture)
+{
+	TextureGL& textureGL = dynamic_cast<TextureGL&>(*texture);
+	glBindVertexArray(m_defaultVAO);
+	m_aoDisplay->setInputTexture(&textureGL);
 	m_aoDisplay->draw();
 	glBindVertexArray(0);
 }
@@ -372,7 +383,7 @@ void hbao::BilateralBlur::draw(const Mesh & mesh)
 	throw std::runtime_error("hbao::BilateralBlur::draw(): Function is not supported!");
 }
 
-void hbao::BilateralBlur::draw(BaseRenderTargetGL * temp, BaseRenderTargetGL* result)
+void hbao::BilateralBlur::draw(OneTextureRenderTarget * temp, BaseRenderTargetGL* result)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, temp->getFrameBuffer());
 	glUseProgram(programID);
@@ -388,7 +399,7 @@ void hbao::BilateralBlur::draw(BaseRenderTargetGL * temp, BaseRenderTargetGL* re
 
 	// blur vertically
 	glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
-	glBindTextureUnit(0, temp->getFrameBuffer());
+	glBindTextureUnit(0, temp->getTexture()->getTexture());
 	glUniform2f(1, 0, 1.0f / float(m_textureHeight));
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -483,6 +494,11 @@ void hbao::HBAO_Shader::draw()
 void hbao::HBAO_Shader::setHbaoData(HBAOData hbao)
 {
 	m_hbao_data = move(hbao);
+}
+
+void hbao::HBAO_Shader::setHbaoUBO(GLuint hbao_ubo)
+{
+	m_hbao_ubo = hbao_ubo;
 }
 
 void hbao::HBAO_Shader::setLinearDepth(TextureGL * linearDepth)
