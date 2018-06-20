@@ -58,7 +58,7 @@ public:
 
 	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() = 0;
 
-	virtual std::unique_ptr<hbao::HBAO_Deferred> createDeferredHBAO() = 0;
+	virtual std::unique_ptr<hbao::HBAO> createHBAO() = 0;
 
 	virtual RenderTarget* createVarianceShadowMap(int width, int height) = 0;
 	

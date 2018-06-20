@@ -80,13 +80,13 @@ namespace hbao {
 		TextureGL* m_linearDepth;
 	};
 
-	class HBAO_DeferredGL : public HBAO_Deferred {
+	class HBAO_GL : public HBAO {
 	public:
 
-		HBAO_DeferredGL(unsigned int windowWidth,
+		HBAO_GL(unsigned int windowWidth,
 			unsigned int windowHeight, ModelDrawerGL* modelDrawer);
 
-		virtual ~HBAO_DeferredGL();
+		virtual ~HBAO_GL();
 
 		virtual Texture* getAO_Result() override;
 		virtual Texture* getBlurredResult() override;
@@ -124,7 +124,7 @@ namespace hbao {
 		GLuint m_hbao_ubo;
 
 		HBAOData   m_hbaoDataSource;
-		GLuint m_defaultVAO;
+		GLuint m_fullscreenTriangleVAO;
 	};
 }
 

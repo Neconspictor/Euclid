@@ -1,4 +1,4 @@
-#include <ui_mode/UI_ModeStateMachine.hpp>
+#include <gui/UI_ModeStateMachine.hpp>
 
 UI_ModeStateMachine::UI_ModeStateMachine(std::unique_ptr<UI_Mode> mode) : m_uiMode(move(mode))
 {
@@ -27,4 +27,9 @@ void UI_ModeStateMachine::init()
 void UI_ModeStateMachine::setUIMode(std::unique_ptr<UI_Mode> mode)
 {
 	m_uiMode = std::move(mode);
+}
+
+void UI_ModeStateMachine::addView(std::unique_ptr<View> view)
+{
+	m_uiMode->addView(move(view));
 }

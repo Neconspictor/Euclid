@@ -245,6 +245,7 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_FALSE);
 	
 
 	glfwWindowHint(GLFW_RED_BITS, 32);
@@ -252,7 +253,7 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_BLUE_BITS, 32);
 	glfwWindowHint(GLFW_ALPHA_BITS, 8);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_DEPTH_BITS, 64);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 

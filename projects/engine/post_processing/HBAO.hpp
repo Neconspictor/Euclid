@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <sprite/Sprite.hpp>
+#include <gui/View.hpp>
 
 class RenderTarget;
 class PBR_GBuffer;
@@ -37,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace hbao {
 
 #define UBO_SCENE     0
-#define AO_RANDOMTEX_SIZE 4
+	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
 	struct Projection {
 		float nearplane;
@@ -79,13 +80,17 @@ namespace hbao {
 		glm::vec4    jitters[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
 	};
 
-	class HBAO_Deferred {
+	/**
+	 * An Horizont based ambient occlusion (HBAO) implementation for deferred rendering.
+	 * This implementation doesn't support MSAA for performance reasons.
+	 */
+	class HBAO {
 	public:
 
-		HBAO_Deferred(unsigned int windowWidth,
+		HBAO(unsigned int windowWidth,
 			unsigned int windowHeight);
 
-		virtual ~HBAO_Deferred() = default;
+		virtual ~HBAO() = default;
 
 		virtual Texture* getAO_Result() = 0;
 		virtual Texture* getBlurredResult() = 0;
@@ -95,12 +100,16 @@ namespace hbao {
 		virtual void displayAOTexture() = 0;
 		virtual void displayTexture(Texture* texture) = 0;
 
+		float getBlurSharpness() const;
+		void setBlurSharpness(float sharpness);
+
 
 	protected:
 		float randomFloat(float a, float b);
 		float lerp(float a, float b, float f);
 
 	protected:
+		float m_blur_sharpness;
 		unsigned int windowWidth;
 		unsigned int windowHeight;
 
@@ -108,7 +117,20 @@ namespace hbao {
 
 		static const int  HBAO_RANDOM_SIZE = AO_RANDOMTEX_SIZE;
 		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE*HBAO_RANDOM_SIZE;
-		static const int  MAX_SAMPLES = 8;
+		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
+	};
+
+	class HBAO_ConfigurationView : public View {
+	public:
+		HBAO_ConfigurationView(HBAO* hbao);
+		virtual ~HBAO_ConfigurationView() = default;
+
+		virtual void drawGUI() override;
+
+	private:
+		HBAO* m_hbao;
+		float m_blur_sharpness;
+
 	};
 }
 

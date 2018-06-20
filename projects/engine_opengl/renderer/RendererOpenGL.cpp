@@ -129,7 +129,7 @@ void RendererOpenGL::init()
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClearDepth(1.0f);
-	glClearStencil(0.0f);
+	glClearStencil(0);
 	glStencilMask(0xFF);
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
@@ -248,7 +248,8 @@ RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 
 	int ssaaSamples = 1;
 	
-	return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
+	//return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
+	return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH32F_STENCIL8); //GL_RGBA
 }
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -631,9 +632,9 @@ std::unique_ptr<SSAO_Deferred> RendererOpenGL::createDeferredSSAO()
 	return std::make_unique<SSAO_DeferredGL>(width, height, &modelDrawer);
 }
 
-std::unique_ptr<hbao::HBAO_Deferred> RendererOpenGL::createDeferredHBAO()
+std::unique_ptr<hbao::HBAO> RendererOpenGL::createHBAO()
 {
-	return std::make_unique<hbao::HBAO_DeferredGL>(width, height, &modelDrawer);
+	return std::make_unique<hbao::HBAO_GL>(width, height, &modelDrawer);
 }
 
 EffectLibrary* RendererOpenGL::getEffectLibrary()

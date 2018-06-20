@@ -28,6 +28,12 @@ set(
     exception/MeshNotFoundException.hpp
     exception/ShaderInitException.hpp
     exception/ShaderNotFoundException.hpp
+	
+	#gui
+	gui/UI_Mode.hpp
+	gui/UI_ModeStateMachine.hpp
+	gui/UI_ModeStateMachine.cpp
+	gui/View.hpp
     
 	#light
 	light/Light.hpp

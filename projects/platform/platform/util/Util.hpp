@@ -3,6 +3,7 @@
 #include <platform/util/StringUtils.hpp>
 #include <platform/util/PointerUtils.hpp>
 #include <platform/util/TimeUtils.hpp>
+#include <platform/util/MathUtils.hpp>
 
 struct Dimension
 {

@@ -56,7 +56,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 
 	camera = make_shared<FPCamera>(FPCamera());
 
-	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui));
+	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, vector<std::unique_ptr<View>>()));
 }
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
@@ -246,7 +246,8 @@ void PBR_Deferred_MainLoopTask::init()
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	ssao_deferred = renderer->createDeferredSSAO();
-	hbao_deferred = renderer->createDeferredHBAO();
+	hbao = renderer->createHBAO();
+	uiModeStateMachine.addView(std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get()));
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -394,14 +395,15 @@ void PBR_Deferred_MainLoopTask::run()
 	projection.orthoheight = 0;
 	projection.perspective = true;
 
-	hbao_deferred->renderAO(pbr_mrt->getDepth(),  projection, true);
+	hbao->renderAO(pbr_mrt->getDepth(),  projection, true);
 
-	Texture* aoTexture = hbao_deferred->getBlurredResult();
+	Texture* aoTexture = hbao->getBlurredResult();
 
 	// render scene to a offscreen buffer
 	renderer->useBaseRenderTarget(renderTargetSingleSampled);
 	renderer->setViewPort(0, 0, window->getWidth() * ssaaSamples, window->getHeight() * ssaaSamples);
-	renderer->clearRenderTarget(renderTargetSingleSampled,  RenderComponent::Depth | RenderComponent::Stencil);
+	renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	//renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Stencil);
 	//renderer->beginScene();
 	
 
@@ -423,7 +425,7 @@ void PBR_Deferred_MainLoopTask::run()
 			camera->getView(), 
 			lightProj * lightView);
 
-		//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 	
 
 
@@ -457,8 +459,8 @@ void PBR_Deferred_MainLoopTask::run()
 		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		//screenShader->useTexture(pbr_mrt->getDepth());
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		hbao_deferred->displayAOTexture();
-		//hbao_deferred->displayTexture(pbr_mrt->getDepth());
+		hbao->displayAOTexture();
+		//hbao->displayTexture(pbr_mrt->getDepth());
 	} else
 	{
 		modelDrawer->draw(&screenSprite, Shaders::Screen);
@@ -520,7 +522,7 @@ void PBR_Deferred_MainLoopTask::setupCallbacks()
 		renderTargetSingleSampled = renderer->createRenderTarget();
 		pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 		ssao_deferred->onSizeChange(width, height);
-		hbao_deferred->onSizeChange(width, height);
+		hbao->onSizeChange(width, height);
 	});
 
 	input->addRefreshCallback([&]() {
@@ -543,7 +545,8 @@ void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	}
 }
 
-BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) :
+BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) :
+	UI_Mode(move(views)),
 	mainTask(&mainTask),
 	guiRenderer(&guiRenderer),
 	logClient(getLogServer())
@@ -618,6 +621,8 @@ void BaseGUI_Mode::drawGUI()
 			}
 		}
 
+		UI_Mode::drawGUI();
+
 		ImGui::End();
 	}
 
@@ -669,7 +674,8 @@ void BaseGUI_Mode::handleExitEvent()
 }
 
 
-GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) : BaseGUI_Mode(mainTask, guiRenderer)
+GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) : 
+	BaseGUI_Mode(mainTask, guiRenderer, move(views))
 {
 	logClient.setPrefix("[GUI_Mode]");
 	mainTask.getWindow()->showCursor(false);
@@ -683,11 +689,12 @@ void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 
 	// Switch to camera mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer));
+		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer, move(m_views)));
 	}
 }
 
-CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer) : BaseGUI_Mode(mainTask, guiRenderer)
+CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) :
+	BaseGUI_Mode(mainTask, guiRenderer, move(views))
 {
 	logClient.setPrefix("[CameraMode]");
 	mainTask.getWindow()->showCursor(true);
@@ -706,7 +713,7 @@ void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
 
 	// Switch to gui mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer));
+		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer, move(m_views)));
 	}
 }
 

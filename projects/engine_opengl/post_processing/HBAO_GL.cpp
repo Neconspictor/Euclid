@@ -6,45 +6,41 @@
 #include <vector>
 #include <drawing/ModelDrawerGL.hpp>
 #include <algorithm>
-
-#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES 1
-#endif
-#include <math.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <platform/util/MathUtils.hpp>
 
 
 using namespace std; 
 using namespace glm;
 using namespace hbao;
 
-HBAO_DeferredGL::HBAO_DeferredGL(unsigned int windowWidth,
+HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	unsigned int windowHeight, ModelDrawerGL* modelDrawer)
 	:
-	HBAO_Deferred(windowWidth, windowHeight),
+	HBAO(windowWidth, windowHeight),
 	m_modelDrawer(modelDrawer),
 	m_depthLinearRT(nullptr),
 	m_aoResultRT(nullptr),
 	m_aoBlurredResultRT(nullptr),
-	m_tempRT(nullptr)
+	m_tempRT(nullptr),
+	m_fullscreenTriangleVAO(GL_FALSE)
 
 {
 
-	float numDir = 8; // keep in sync to glsl
+	signed short hbaoRandomShort[HBAO_RANDOM_ELEMENTS * 4];
 
-	static const int randomSize = 4;
-	static const int randomElementsCount = randomSize * randomSize;
-
-	signed short hbaoRandomShort[randomElementsCount * 4];
-
-	for (int i = 0; i < randomElementsCount; i++)
+	for (int i = 0; i < HBAO_RANDOM_ELEMENTS; i++)
 	{
 		float Rand1 = randomFloat(0, 1);
 		float Rand2 = randomFloat(0, 1);
 
 		// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
-		float Angle = 2.f * M_PI * Rand1 / numDir;
+		static float pi = static_cast<float>(platform::util::PI);
+		static float radiantFraction = 2.0f * pi / (float)HBAO_NUM_DIRECTIONS;
+
+		float Angle = Rand1 * radiantFraction;
 		float x = cosf(Angle);
 		float y = sinf(Angle);
 		float z = Rand2;
@@ -62,8 +58,8 @@ HBAO_DeferredGL::HBAO_DeferredGL(unsigned int windowWidth,
 	glGenTextures(1, &temp);
 	m_hbao_random.setTexture(temp);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, temp);
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, randomSize, randomSize, 1);
-	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, randomSize, randomSize, 1, GL_RGBA, GL_SHORT, hbaoRandomShort);
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1);
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, GL_RGBA, GL_SHORT, hbaoRandomShort);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -89,32 +85,38 @@ HBAO_DeferredGL::HBAO_DeferredGL(unsigned int windowWidth,
 
 	initRenderTargets(windowWidth, windowHeight);
 
-	m_bilateralBlur->setSharpness(40.0f);
+	// initialize static shader attributes
 	m_hbaoShader->setRamdomView(&m_hbao_randomview);
 	m_hbaoShader->setHbaoUBO(m_hbao_ubo);
 
-	glGenVertexArrays(1, &m_defaultVAO);
+	// create a vao for rendering fullscreen triangles directly with glDrawArrays
+	glGenVertexArrays(1, &m_fullscreenTriangleVAO);
 }
 
-HBAO_DeferredGL::~HBAO_DeferredGL()
+HBAO_GL::~HBAO_GL()
 {
 	if (m_hbao_ubo != GL_FALSE) {
 		glDeleteBuffers(1, &m_hbao_ubo);
 		m_hbao_ubo = GL_FALSE;
 	}
+
+	if (m_fullscreenTriangleVAO != GL_FALSE) {
+		glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
+		m_fullscreenTriangleVAO = GL_FALSE;
+	}
 }
 
-Texture * HBAO_DeferredGL::getAO_Result()
+Texture * HBAO_GL::getAO_Result()
 {
 	return m_aoResultRT->getTexture();
 }
 
-Texture * HBAO_DeferredGL::getBlurredResult()
+Texture * HBAO_GL::getBlurredResult()
 {
 	return m_aoBlurredResultRT->getTexture();
 }
 
-void HBAO_DeferredGL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
+void HBAO_GL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 {
 	this->windowWidth = newWidth;
 	this->windowHeight = newHeight;
@@ -122,7 +124,7 @@ void HBAO_DeferredGL::onSizeChange(unsigned int newWidth, unsigned int newHeight
 	initRenderTargets(windowWidth, windowHeight);
 }
 
-void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
+void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
 {
 	TextureGL& depthTextureGL = dynamic_cast<TextureGL&>(*depthTexture);
 	unsigned int width = m_aoResultRT->getWidth();
@@ -131,7 +133,7 @@ void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& project
 	prepareHbaoData(projection, width, height);
 
 
-	glBindVertexArray(m_defaultVAO);
+	glBindVertexArray(m_fullscreenTriangleVAO);
 	glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 	glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 	
@@ -158,6 +160,7 @@ void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& project
 		// setup bilaterial blur and draw
 		m_bilateralBlur->setLinearDepth(m_depthLinearRT->getTexture());
 		m_bilateralBlur->setSourceTexture(m_aoResultRT->getTexture(), width, height);
+		m_bilateralBlur->setSharpness(m_blur_sharpness);
 		m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 	}
 
@@ -165,26 +168,26 @@ void HBAO_DeferredGL::renderAO(Texture * depthTexture, const Projection& project
 	glBindVertexArray(0);
 }
 
-void HBAO_DeferredGL::displayAOTexture()
+void HBAO_GL::displayAOTexture()
 {
 	//modelDrawer->draw(&screenSprite, *aoDisplay);
-	glBindVertexArray(m_defaultVAO);
+	glBindVertexArray(m_fullscreenTriangleVAO);
 	m_aoDisplay->setInputTexture(m_aoBlurredResultRT->getTexture());
 	m_aoDisplay->draw();
 	glBindVertexArray(0);
 }
 
-void hbao::HBAO_DeferredGL::displayTexture(Texture * texture)
+void hbao::HBAO_GL::displayTexture(Texture * texture)
 {
 	TextureGL& textureGL = dynamic_cast<TextureGL&>(*texture);
-	glBindVertexArray(m_defaultVAO);
+	glBindVertexArray(m_fullscreenTriangleVAO);
 	m_aoDisplay->setInputTexture(&textureGL);
 	m_aoDisplay->draw();
 	glBindVertexArray(0);
 }
 
 
-void hbao::HBAO_DeferredGL::prepareHbaoData(const Projection & projection, int width, int height)
+void hbao::HBAO_GL::prepareHbaoData(const Projection & projection, int width, int height)
 {
 	// projection
 	const float* P = glm::value_ptr(projection.matrix);
@@ -239,7 +242,7 @@ void hbao::HBAO_DeferredGL::prepareHbaoData(const Projection & projection, int w
 	m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
 }
 
-void hbao::HBAO_DeferredGL::drawLinearDepth(TextureGL* depthTexture, const Projection & projection)
+void hbao::HBAO_GL::drawLinearDepth(TextureGL* depthTexture, const Projection & projection)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_depthLinearRT->getFrameBuffer());
 	m_depthLinearizer->setProjection(&projection);
@@ -248,7 +251,7 @@ void hbao::HBAO_DeferredGL::drawLinearDepth(TextureGL* depthTexture, const Proje
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void hbao::HBAO_DeferredGL::initRenderTargets(unsigned int width, unsigned int height)
+void hbao::HBAO_GL::initRenderTargets(unsigned int width, unsigned int height)
 {
 	//at first release gpu memory before acquiring new memory
 	m_depthLinearRT = nullptr;

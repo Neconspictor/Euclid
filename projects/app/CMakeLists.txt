@@ -11,11 +11,6 @@ set(
 	#pbr_deferred
 	pbr_deferred/PBR_Deferred_MainLoopTask.hpp
 	pbr_deferred/PBR_Deferred_MainLoopTask.cpp
-	
-	#ui_mode
-	ui_mode/UI_Mode.hpp
-	ui_mode/UI_ModeStateMachine.hpp
-	ui_mode/UI_ModeStateMachine.cpp
 )
 
 # Create named folders for the sources within the .vcproj

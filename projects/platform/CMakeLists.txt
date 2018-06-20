@@ -78,6 +78,7 @@ set(
     
     #platform/util
     platform/util/CallbackContainer.hpp
+	platform/util/MathUtils.hpp
     platform/util/PointerUtils.hpp
     platform/util/Signal.hpp
     platform/util/StringUtils.hpp

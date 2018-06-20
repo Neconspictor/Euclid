@@ -18,7 +18,7 @@
 #include <post_processing/SSAO.hpp>
 #include <post_processing/HBAO.hpp>
 #include <platform/gui/ImGUI.hpp>
-#include <ui_mode/UI_ModeStateMachine.hpp>
+#include <gui/UI_ModeStateMachine.hpp>
 
 class SystemUI;
 class GUI_Mode;
@@ -77,7 +77,7 @@ private:
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 
 	std::unique_ptr<SSAO_Deferred> ssao_deferred;
-	std::unique_ptr<hbao::HBAO_Deferred> hbao_deferred;
+	std::unique_ptr<hbao::HBAO> hbao;
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetSingleSampled;
@@ -107,7 +107,7 @@ private:
 
 class BaseGUI_Mode : public UI_Mode {
 public:
-	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
+	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
 	virtual ~BaseGUI_Mode() = default;
 
 	virtual void drawGUI() override;
@@ -125,14 +125,14 @@ protected:
 
 class GUI_Mode : public BaseGUI_Mode {
 public:
-	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
+	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
 	virtual ~GUI_Mode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 };
 
 class CameraMode : public BaseGUI_Mode {
 public:
-	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer);
+	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
 	virtual ~CameraMode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 

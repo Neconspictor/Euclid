@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ui_mode/UI_Mode.hpp>
+#include <gui/UI_Mode.hpp>
+#include <gui/View.hpp>
 #include <memory>
 
 class UI_ModeStateMachine {
@@ -17,6 +18,8 @@ public:
 	void init();
 
 	void setUIMode(std::unique_ptr<UI_Mode> mode);
+
+	void addView(std::unique_ptr<View> view);
 
 private:
 	std::unique_ptr<UI_Mode> m_uiMode;
