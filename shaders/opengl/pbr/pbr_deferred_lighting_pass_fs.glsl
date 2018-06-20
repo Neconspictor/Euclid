@@ -203,9 +203,9 @@ vec3 pbrModel(float ao,
     vec3 color = ambient * ambientShadow; // ssaoAmbientOcclusion;
 	
 	// shadows affecting only direct light contribution
-	color += Lo * shadow;
-	//color += Lo;
-	//color *= shadow;
+	//color += Lo * shadow;
+	color += Lo;
+	color *= shadow;
 	
 	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);
 	
@@ -367,7 +367,7 @@ float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fr
 	
 
 	//bias = 9.0f * max(texelSize.x,texelSize.y);
-	float minBias = min(texelSize.x,texelSize.y);
+	float minBias = max(texelSize.x,texelSize.y);
 	float penumbraSize = diff / (minBias);
 	penumbraSize = clamp(penumbraSize, 0, 1);
 	//penumbraSize = max(penumbraSize, 0.0f);

@@ -30,6 +30,8 @@ set(
     exception/ShaderNotFoundException.hpp
 	
 	#gui
+	gui/Menu.cpp
+	gui/Menu.hpp
 	gui/UI_Mode.hpp
 	gui/UI_ModeStateMachine.hpp
 	gui/UI_ModeStateMachine.cpp

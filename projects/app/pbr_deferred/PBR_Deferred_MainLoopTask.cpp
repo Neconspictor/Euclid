@@ -15,6 +15,7 @@
 #include <shader/ScreenShader.hpp>
 #include <shader/ShadowShader.hpp>
 #include <util/Math.hpp>
+#include <gui/Menu.hpp>
 
 using namespace glm;
 using namespace std;
@@ -583,50 +584,48 @@ void BaseGUI_Mode::drawGUI()
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		if (ImGui::BeginMainMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Exit", "Esc"))
-				{
-					handleExitEvent();
-				}
-
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Edit"))
-			{
-				if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-				if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-				ImGui::Separator();
-				if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-				if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-				if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-				ImGui::EndMenu();
-			}
-			ImGui::EndMainMenuBar();
-
-			if (ImGui::TreeNode("Tabbing"))
-			{
-				ImGui::Text("Use TAB/SHIFT+TAB to cycle through keyboard editable fields.");
-				static char buf[32] = "dummy";
-				ImGui::InputText("1", buf, IM_ARRAYSIZE(buf));
-				ImGui::InputText("2", buf, IM_ARRAYSIZE(buf));
-				ImGui::PushAllowKeyboardFocus(false);
-				ImGui::InputText("4 (tab skip)", buf, IM_ARRAYSIZE(buf));
-				//ImGui::SameLine(); ShowHelperMarker("Use ImGui::PushAllowKeyboardFocus(bool)\nto disable tabbing through certain widgets.");
-				ImGui::PopAllowKeyboardFocus();
-				ImGui::InputText("5", buf, IM_ARRAYSIZE(buf));
-				ImGui::TreePop();
-			}
-		}
-
-		UI_Mode::drawGUI();
-
 		ImGui::End();
 	}
 
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("Exit", "Esc"))
+			{
+				handleExitEvent();
+			}
 
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Edit"))
+		{
+			if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+			if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+			ImGui::Separator();
+			if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+			if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+			if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+
+		if (ImGui::TreeNode("Tabbing"))
+		{
+			ImGui::Text("Use TAB/SHIFT+TAB to cycle through keyboard editable fields.");
+			static char buf[32] = "dummy";
+			ImGui::InputText("1", buf, IM_ARRAYSIZE(buf));
+			ImGui::InputText("2", buf, IM_ARRAYSIZE(buf));
+			ImGui::PushAllowKeyboardFocus(false);
+			ImGui::InputText("4 (tab skip)", buf, IM_ARRAYSIZE(buf));
+			//ImGui::SameLine(); ShowHelperMarker("Use ImGui::PushAllowKeyboardFocus(bool)\nto disable tabbing through certain widgets.");
+			ImGui::PopAllowKeyboardFocus();
+			ImGui::InputText("5", buf, IM_ARRAYSIZE(buf));
+			ImGui::TreePop();
+		}
+	}
+
+	UI_Mode::drawGUI();
 
 	ImGui::Render();
 	guiRenderer->renderDrawData(ImGui::GetDrawData());

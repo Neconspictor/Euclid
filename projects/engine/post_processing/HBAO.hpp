@@ -4,6 +4,7 @@
 #include <vector>
 #include <sprite/Sprite.hpp>
 #include <gui/View.hpp>
+#include <gui/Menu.hpp>
 
 class RenderTarget;
 class PBR_GBuffer;
@@ -130,6 +131,8 @@ namespace hbao {
 	private:
 		HBAO* m_hbao;
 		float m_blur_sharpness;
+		bool showConfigMenu;
+		MenuBar menuBar;
 
 	};
 }
