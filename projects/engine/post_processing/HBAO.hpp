@@ -1,7 +1,6 @@
 #ifndef HBAO_HPP
 #define HBAO_HPP
 
-#include <vector>
 #include <sprite/Sprite.hpp>
 #include <gui/View.hpp>
 #include <gui/Menu.hpp>
@@ -91,8 +90,6 @@ namespace hbao {
 		HBAO(unsigned int windowWidth,
 			unsigned int windowHeight);
 
-		virtual ~HBAO() = default;
-
 		virtual Texture* getAO_Result() = 0;
 		virtual Texture* getBlurredResult() = 0;
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
@@ -106,8 +103,8 @@ namespace hbao {
 
 
 	protected:
-		float randomFloat(float a, float b);
-		float lerp(float a, float b, float f);
+		static float randomFloat(float a, float b);
+		static float lerp(float a, float b, float f);
 
 	protected:
 		float m_blur_sharpness;
@@ -124,7 +121,6 @@ namespace hbao {
 	class HBAO_ConfigurationView : public View {
 	public:
 		HBAO_ConfigurationView(HBAO* hbao);
-		virtual ~HBAO_ConfigurationView() = default;
 
 		virtual void drawGUI() override;
 

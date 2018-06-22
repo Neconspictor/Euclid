@@ -4,67 +4,38 @@
 #include <gui/View.hpp>
 #include <string>
 #include <vector>
-#include <platform/gui/ImGUI.hpp>
+//#include <optional>
 
 using MenuItem = std::function<void()>;
 
 class Menu {
 
 public:
-	Menu(const char* name) : m_name(name) {};
-	virtual ~Menu() = default;
+	explicit Menu(const char* name);
 
-	void addMenuItem(MenuItem menuItem) {
-		m_menuItems.push_back(menuItem);
-	}
+	void addMenuItem(MenuItem menuItem);
 
-	const std::vector<MenuItem>& getMenuItems() const {
-		return m_menuItems;
-	}
+	void addSubMenu(Menu subMenu);
 
-	const std::string& getName() const {
-		return m_name;
-	}
+	const std::vector<MenuItem>& getMenuItems() const;
+
+	const std::string& getName() const;
 
 protected:
 	std::vector<MenuItem> m_menuItems;
 	std::string m_name;
+	//std::optional<Menu> m_subMenu;
 };
 
 class MenuBar : public View {
 public:
-	virtual ~MenuBar() = default;
+	virtual void addMenuItem(MenuItem item, const char* menuName);
 
-	virtual void addMenuItem(MenuItem item, const char* menuName) {
-		Menu& menu = getMenu(menuName);
-		menu.addMenuItem(item);
-	}
-	virtual void drawGUI() override {
-		if (ImGui::BeginMainMenuBar())
-		{
-			for (auto& menu : m_menus) {
-				if (ImGui::BeginMenu(menu.getName().c_str()))
-				{
-					for (auto& item : menu.getMenuItems()) {
-						item();
-					}
-					ImGui::EndMenu();
-				}
-			}
-			ImGui::EndMainMenuBar();
-		}
-	}
+	virtual void drawGUI() override;
 
 protected:
-	virtual Menu& getMenu(const char* name) {
-		for (auto& menu : m_menus) {
-			if (menu.getName().compare(name) == 0)
-				return menu;
-		}
 
-		m_menus.emplace_back(Menu(name));
-		return m_menus.back();
-	}
+	virtual Menu& getMenu(const char* name);
 protected:
 	std::vector<Menu> m_menus;
 };

@@ -1,6 +1,5 @@
 #include <post_processing/HBAO.hpp>
 #include <random>
-#include <texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <platform/gui/ImGUI.hpp>
 
@@ -11,9 +10,9 @@ using namespace glm;
 hbao::HBAO::HBAO(unsigned int windowWidth,
 	unsigned int windowHeight) 
 	:
+	m_blur_sharpness(40.0f),
 	windowWidth(windowWidth),
-	windowHeight(windowHeight),
-	m_blur_sharpness(40.0f)
+	windowHeight(windowHeight)
 {
 }
 
@@ -27,8 +26,9 @@ void hbao::HBAO::setBlurSharpness(float sharpness)
 	m_blur_sharpness = sharpness;
 }
 
-float hbao::HBAO::randomFloat(float a, float b) {
-	uniform_real_distribution<float> dist(a, b);
+float hbao::HBAO::randomFloat(float a, float b)
+{
+	const uniform_real_distribution<float> dist(a, b);
 	random_device device;
 	default_random_engine gen(device());
 	return dist(gen);
@@ -40,7 +40,8 @@ float hbao::HBAO::lerp(float a, float b, float f) {
 
 class Test {
 public:
-	void operator()() {
+	void operator()() const
+	{
 		if (ImGui::MenuItem("operator()")) {
 			std::cout << "called Test()" << std::endl;
 		}
