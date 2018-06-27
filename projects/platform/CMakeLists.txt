@@ -109,7 +109,7 @@ include_directories (
     ./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
     ${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
     #${CMAKE_SOURCE_DIR}/libs/glfw/include
     #${CMAKE_SOURCE_DIR}/libs/glad/include
     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include
@@ -147,23 +147,23 @@ target_include_directories (platform PUBLIC
 find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)
 
 # boost libraries libs\boost_1_62_0\x64\Debug
-find_library(libboost_chrono_release NAMES libboost_chrono-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_chrono_debug NAMES libboost_chrono-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_chrono_release NAMES libboost_chrono-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_chrono_debug NAMES libboost_chrono-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
-find_library(libboost_date_time_release NAMES libboost_date_time-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_date_time_debug NAMES libboost_date_time-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_date_time_release NAMES libboost_date_time-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_date_time_debug NAMES libboost_date_time-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
-find_library(libboost_system_release NAMES libboost_system-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_system_debug NAMES libboost_system-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_system_release NAMES libboost_system-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_system_debug NAMES libboost_system-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
-find_library(libboost_thread_release NAMES libboost_thread-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_thread_debug NAMES libboost_thread-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_thread_release NAMES libboost_thread-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_thread_debug NAMES libboost_thread-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
-find_library(boost_locale_release NAMES boost_locale-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(boost_locale_debug NAMES boost_locale-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_locale_release NAMES libboost_locale-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_locale_debug NAMES libboost_locale-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
-find_library(libboost_filesystem_release NAMES libboost_filesystem-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_filesystem_debug NAMES libboost_filesystem-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
+find_library(libboost_filesystem_release NAMES libboost_filesystem-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+find_library(libboost_filesystem_debug NAMES libboost_filesystem-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
 
 
 
@@ -199,8 +199,8 @@ target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
 target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
 target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
 
-target_link_libraries(platform PUBLIC debug ${boost_locale_debug})
-target_link_libraries(platform PUBLIC optimized ${boost_locale_release})
+target_link_libraries(platform PUBLIC debug ${libboost_locale_debug})
+target_link_libraries(platform PUBLIC optimized ${libboost_locale_release})
 
 target_link_libraries(platform PUBLIC debug ${libboost_filesystem_debug})
 target_link_libraries(platform PUBLIC optimized ${libboost_filesystem_release})

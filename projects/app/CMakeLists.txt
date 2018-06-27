@@ -21,7 +21,7 @@ assign_source_group(${APP_SOURCES})
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
     ./ 
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
 )
 
 enable_precompiled_headers(pch_app.hpp APP_SOURCES)

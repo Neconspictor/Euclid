@@ -116,7 +116,7 @@ include_directories (
     ./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include  
     #${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
     ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 	${CMAKE_SOURCE_DIR}/libs/glfw/include
     ${CMAKE_SOURCE_DIR}/libs/glad/include
@@ -129,7 +129,7 @@ add_library (engine_opengl ${ENGINE_OPENGL_SOURCES} ${ENGINE_OPENGL_EXTERNAL_SOU
 target_include_directories (engine_opengl PUBLIC 
 	./ 
     ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/include
+    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
     ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 	${CMAKE_SOURCE_DIR}/libs/glad/include
 	${CMAKE_SOURCE_DIR}/libs/glfw/include
@@ -138,13 +138,6 @@ target_include_directories (engine_opengl PUBLIC
     #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
 )
 
-#boost libraries
-find_library(libboost_program_options_release NAMES libboost_program_options-vc140-mt-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-find_library(libboost_program_options_debug NAMES libboost_program_options-vc140-mt-gd-1_62 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_62_0/x64)
-
-#assimp library
-find_library(assimp_release NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Release)
-find_library(assimp_debug NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Debug)
 
 #glfw
 find_library(glfw3_release NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Release)
@@ -163,13 +156,6 @@ target_link_libraries(engine_opengl PUBLIC glu32)
 
 target_link_libraries(engine_opengl PUBLIC engine)
 
-#boost libraries
-target_link_libraries(engine_opengl PUBLIC debug ${libboost_program_options_debug})
-target_link_libraries(engine_opengl PUBLIC optimized ${libboost_program_options_release})
-
-#assimp library
-target_link_libraries(engine_opengl PUBLIC debug ${assimp_debug})
-target_link_libraries(engine_opengl PUBLIC optimized ${assimp_release})
 
 #GLFW
 target_link_libraries(engine_opengl PUBLIC debug ${glfw3_release})

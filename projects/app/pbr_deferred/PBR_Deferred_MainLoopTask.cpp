@@ -165,7 +165,7 @@ void PBR_Deferred_MainLoopTask::init()
 
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
 	{
-		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, _1, _2);
+		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, placeholders::_1, placeholders::_2);
 		casted->updateOnResize(window->getWidth(), window->getHeight());
 		input->addResizeCallback(cameraResizeCallback);
 	}
@@ -494,8 +494,8 @@ void PBR_Deferred_MainLoopTask::setupCallbacks()
 
 	Input* input = window->getInputDevice();
 
-	auto focusCallback = bind(&PBR_Deferred_MainLoopTask::onWindowsFocus, this, _1, _2);
-	auto scrollCallback = bind(&Camera::onScroll, camera.get(), _1, _2);
+	auto focusCallback = bind(&PBR_Deferred_MainLoopTask::onWindowsFocus, this, placeholders::_1, placeholders::_2);
+	auto scrollCallback = bind(&Camera::onScroll, camera.get(), placeholders::_1, placeholders::_2);
 	input->addWindowFocusCallback(focusCallback);
 	input->addScrollCallback(scrollCallback);
 
