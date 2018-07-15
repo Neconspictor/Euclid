@@ -19,10 +19,11 @@ set(
 assign_source_group(${APP_SOURCES})
 
 # Properties->C/C++->General->Additional Include Directories
-include_directories (
-    ./ 
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-)
+#include_directories (
+#    ./ 
+#)
+
+target_include_directories(App ./)
 
 enable_precompiled_headers(pch_app.hpp APP_SOURCES)
 
@@ -35,15 +36,15 @@ add_executable (App ${APP_SOURCES})
 target_link_libraries(App PUBLIC engine_opengl)
 
 
-set (EASY_HOOK_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/EasyHook64.dll)
-set (PROFILER_CORE_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/ProfilerCore64.dll)
-set (BROFILER ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/Brofiler.exe)
+#set (EASY_HOOK_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/EasyHook64.dll)
+#set (PROFILER_CORE_DLL ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/ProfilerCore64.dll)
+#set (BROFILER ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2/Brofiler.exe)
 
 # Adds logic to INSTALL.vcproj to copy app.exe to destination directory
-install (TARGETS App
-		 RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+#install (TARGETS App
+#		 RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/bin)
          
 
-install (FILES "${EASY_HOOK_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
-install (FILES "${PROFILER_CORE_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
-install (FILES "${BROFILER}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+#install (FILES "${EASY_HOOK_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+#install (FILES "${PROFILER_CORE_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+#install (FILES "${BROFILER}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)

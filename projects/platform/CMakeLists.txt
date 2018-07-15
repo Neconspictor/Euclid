@@ -107,18 +107,9 @@ enable_precompiled_headers(pch_platform.hpp PLATFORM_SOURCES)
 # Properties->C/C++->General->Additional Include Directories
 include_directories (
     ./ 
-    ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-    #${CMAKE_SOURCE_DIR}/libs/glfw/include
-    #${CMAKE_SOURCE_DIR}/libs/glad/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include
-    ${CMAKE_SOURCE_DIR}/libs/utf8-cpp/source
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
-    ${CMAKE_SOURCE_DIR}/libs/gli/include
-    #${CMAKE_SOURCE_DIR}/libs/nana/include
+#    ${CMAKE_SOURCE_DIR}/libs/soil2/include
+#    ${CMAKE_SOURCE_DIR}/libs/utf8-cpp/source
+#    ${CMAKE_SOURCE_DIR}/libs/gli/include
 )
 
 # Set Properties->General->Configuration Type to Application(.exe)
@@ -127,87 +118,45 @@ include_directories (
 add_library (platform ${PLATFORM_SOURCES})
 target_include_directories (platform PUBLIC 
     ./
-    ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
-    #${CMAKE_SOURCE_DIR}/libs/glad/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/glad/include
-    #${CMAKE_SOURCE_DIR}/libs/glfw/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
-    ${CMAKE_SOURCE_DIR}/libs/gli/include
-    ${CMAKE_SOURCE_DIR}/libs/DDS/include
-    #${CMAKE_SOURCE_DIR}/libs/nana/include
+#    #${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
+#    ${CMAKE_SOURCE_DIR}/libs/gli/include
+#    ${CMAKE_SOURCE_DIR}/libs/DDS/include
 )
 
 
 #set additional library directories
-#link_directories(.)
+link_directories(.)
 
 #choose the right libraries by absolute paths!
-find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)
-
-# boost libraries libs\boost_1_62_0\x64\Debug
-find_library(libboost_chrono_release NAMES libboost_chrono-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_chrono_debug NAMES libboost_chrono-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-find_library(libboost_date_time_release NAMES libboost_date_time-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_date_time_debug NAMES libboost_date_time-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-find_library(libboost_system_release NAMES libboost_system-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_system_debug NAMES libboost_system-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-find_library(libboost_thread_release NAMES libboost_thread-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_thread_debug NAMES libboost_thread-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-find_library(libboost_locale_release NAMES libboost_locale-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_locale_debug NAMES libboost_locale-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-find_library(libboost_filesystem_release NAMES libboost_filesystem-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_filesystem_debug NAMES libboost_filesystem-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-
-
-
-#glfw
-#find_library(glfw3_release NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Release)
-#find_library(glfw3_debug NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Debug)
-
-#nanogui
-#find_library(nanogui_release NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Release)
-#find_library(nanogui_debug NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Debug)
-
-
-#nana
-#find_library(nana_debug NAMES nana_v140_Debug_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
-#find_library(nana_release NAMES nana_v140_Release_x64 HINTS ${CMAKE_SOURCE_DIR}/libs/nana/lib/x64)
-
-
-# Properties->Linker->Input->Additional Dependencies
-#target_link_libraries(platform PUBLIC opengl32)
-#target_link_libraries(platform PUBLIC glu32)
-
-
-#boost libraries
-target_link_libraries(platform PUBLIC debug ${libboost_chrono_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_chrono_release})
-
-target_link_libraries(platform PUBLIC debug ${libboost_date_time_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_date_time_release})
-
-target_link_libraries(platform PUBLIC debug ${libboost_system_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_system_release})
-
-target_link_libraries(platform PUBLIC debug ${libboost_thread_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_thread_release})
-
-target_link_libraries(platform PUBLIC debug ${libboost_locale_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_locale_release})
-
-target_link_libraries(platform PUBLIC debug ${libboost_filesystem_debug})
-target_link_libraries(platform PUBLIC optimized ${libboost_filesystem_release})
+#find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)
 
 # Brofiler
-target_link_libraries(platform PUBLIC  ${brofiler_lib})
+#target_link_libraries(platform PUBLIC  ${brofiler_lib})
 
-#nana
-#target_link_libraries(platform PUBLIC debug ${nana_debug})
-#target_link_libraries(platform PUBLIC optimized ${nana_release})
+
+find_package(Boost 1.67 EXACT REQUIRED COMPONENTS atomic chrono date_time filesystem locale program_options system thread)
+find_package(GLAD REQUIRED)
+find_package(GLM REQUIRED)
+find_package(IMGUI REQUIRED)
+find_package(STB REQUIRED)
+
+target_link_libraries(platform
+
+        PUBLIC
+
+        GLM
+        
+		Boost::atomic
+        Boost::boost
+        Boost::chrono
+        Boost::date_time
+        Boost::filesystem
+        Boost::locale
+        Boost::program_options
+        Boost::system
+        Boost::thread
+		
+		IMGUI
+		
+		STB
+)

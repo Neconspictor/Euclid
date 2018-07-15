@@ -99,28 +99,13 @@ set(
 	window_system/glfw/SubSystemProviderGLFW.cpp
 )
 
-set (
-		ENGINE_OPENGL_EXTERNAL_SOURCES
-		${CMAKE_SOURCE_DIR}/libs/glad/src/glad.c
-)
-
 # Create named folders for the sources within the .vcproj
 # Empty name lists them directly under the .vcproj
 #source_group("" FILES ${ENGINE_SOURCES})
-assign_source_group(${ENGINE_OPENGL_SOURCES} ${ENGINE_OPENGL_EXTERNAL_SOURCES})
+assign_source_group(${ENGINE_OPENGL_SOURCES})
 
 enable_precompiled_headers(pch_engine_opengl.hpp ENGINE_OPENGL_SOURCES)
 
-# Properties->C/C++->General->Additional Include Directories
-include_directories (
-    ./ 
-    ${CMAKE_SOURCE_DIR}/libs/glm/include  
-    #${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
-	${CMAKE_SOURCE_DIR}/libs/glfw/include
-    ${CMAKE_SOURCE_DIR}/libs/glad/include
-)
 
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
@@ -128,39 +113,34 @@ include_directories (
 add_library (engine_opengl ${ENGINE_OPENGL_SOURCES} ${ENGINE_OPENGL_EXTERNAL_SOURCES})
 target_include_directories (engine_opengl PUBLIC 
 	./ 
-    ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
-	${CMAKE_SOURCE_DIR}/libs/glad/include
-	${CMAKE_SOURCE_DIR}/libs/glfw/include
-	#${CMAKE_SOURCE_DIR}/libs/nanogui/include
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/eigen
-    #${CMAKE_SOURCE_DIR}/libs/nanogui/ext/nanovg/src
 )
 
-
-#glfw
-find_library(glfw3_release NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Release)
-find_library(glfw3_debug NAMES glfw3 HINTS ${CMAKE_SOURCE_DIR}/libs/glfw/x64/Debug)
-
 #nanogui
-find_library(nanogui_release NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Release)
-find_library(nanogui_debug NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Debug)
-
-
-
-# Properties->Linker->Input->Additional Dependencies
-target_link_libraries(engine_opengl PUBLIC opengl32)
-target_link_libraries(engine_opengl PUBLIC glu32)
-
-
-target_link_libraries(engine_opengl PUBLIC engine)
-
-
-#GLFW
-target_link_libraries(engine_opengl PUBLIC debug ${glfw3_release})
-target_link_libraries(engine_opengl PUBLIC optimized ${glfw3_release})
+#find_library(nanogui_release NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Release)
+#find_library(nanogui_debug NAMES nanogui HINTS ${CMAKE_SOURCE_DIR}/libs/nanogui/x64/Debug)
 
 #nanogui
 #target_link_libraries(platform PUBLIC debug ${nanogui_debug})
 #target_link_libraries(platform PUBLIC optimized ${nanogui_release})
+
+target_link_libraries(engine_opengl PUBLIC engine)
+
+find_package(ASSIMP REQUIRED)
+find_package(Boost 1.67 EXACT REQUIRED)
+find_package(GLAD REQUIRED)
+find_package(GLFW 3.2.1 EXACT REQUIRED)
+find_package(GLM REQUIRED)
+find_package(Opengl REQUIRED)
+
+target_link_libraries(engine
+
+        PUBLIC
+
+        ASSIMP
+		Boost::boost
+		GLAD
+		GLFW
+        GLM
+		
+		${OPENGL_LIBRARIES}
+)

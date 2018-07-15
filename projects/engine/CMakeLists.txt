@@ -156,43 +156,27 @@ assign_source_group(${ENGINE_SOURCES})
 
 enable_precompiled_headers(pch_engine.hpp ENGINE_SOURCES)
 
-# Properties->C/C++->General->Additional Include Directories
-include_directories (
-	./
-    ${CMAKE_SOURCE_DIR}/libs/glm/include  
-    #${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
-)
-
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
 add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
 	./
-    ${CMAKE_SOURCE_DIR}/libs/glm/include 
-    #${CMAKE_SOURCE_DIR}/libs/soil2/include
-    ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
-    ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
+    #${CMAKE_SOURCE_DIR}/libs/glm/include 
+    #${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
+    #${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
 )
 
+find_package(ASSIMP REQUIRED)
+find_package(Boost 1.67 EXACT REQUIRED COMPONENTS program_options)
+find_package(GLM REQUIRED)
 
-#boost libraries
-find_library(libboost_program_options_release NAMES libboost_program_options-vc141-mt-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
-find_library(libboost_program_options_debug NAMES libboost_program_options-vc141-mt-gd-x64-1_67 HINTS ${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/x64)
+target_link_libraries(engine
 
-#assimp library
-find_library(assimp_release NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Release)
-find_library(assimp_debug NAMES assimp-vc140-mt HINTS ${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/x64/Debug)
+        PUBLIC
 
-
-target_link_libraries(engine PUBLIC platform)   
-
-#boost libraries
-target_link_libraries(engine PUBLIC debug ${libboost_program_options_debug})
-target_link_libraries(engine PUBLIC optimized ${libboost_program_options_release})
-
-#assimp library
-target_link_libraries(engine PUBLIC debug ${assimp_debug})
-target_link_libraries(engine PUBLIC optimized ${assimp_release})
+        ASSIMP
+        GLM
+		Boost::boost
+        Boost::program_options
+)
