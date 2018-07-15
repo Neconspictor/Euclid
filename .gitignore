@@ -1,8 +1,12 @@
 /build/
 /libs-local/
+/lib/
 /literature/
 /_work/
 /bin/
 /extern/
 /tools/
 /bindata.zip
+
+
+*.pyc
