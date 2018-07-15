@@ -1,6 +1,5 @@
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <Brofiler.h>
 #include <glm/glm.hpp>
 #include <mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
@@ -282,7 +281,6 @@ void PBR_Deferred_MainLoopTask::onWindowsFocus(Window * window, bool receivedFoc
 
 void PBR_Deferred_MainLoopTask::run()
 {
-	BROFILER_FRAME("MainLoopTask");
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::Screen));
@@ -334,8 +332,6 @@ void PBR_Deferred_MainLoopTask::run()
 
 	//window->activate();
 	//updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
-
-	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
 	//renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
 	//renderer->useScreenTarget();
@@ -474,7 +470,6 @@ void PBR_Deferred_MainLoopTask::run()
 	// present rendered frame
 	window->swapBuffers();
 
-	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
 void PBR_Deferred_MainLoopTask::setShowDepthMap(bool showDepthMap)
@@ -634,7 +629,6 @@ void BaseGUI_Mode::drawGUI()
 void BaseGUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
 	using namespace platform;
-	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
 
 	Input* input = mainTask->getWindow()->getInputDevice();
 	Window* window = mainTask->getWindow();

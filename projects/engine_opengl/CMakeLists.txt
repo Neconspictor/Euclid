@@ -132,7 +132,7 @@ find_package(GLFW 3.2.1 EXACT REQUIRED)
 find_package(GLM REQUIRED)
 find_package(Opengl REQUIRED)
 
-target_link_libraries(engine
+target_link_libraries(engine_opengl
 
         PUBLIC
 

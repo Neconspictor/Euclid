@@ -1,6 +1,6 @@
 #include <antialiasing/SMAA_GL.hpp>
 #include <texture/TextureManagerGL.hpp>
-#include <gli/gli.hpp>
+//#include <gli/gli.hpp>
 #include <renderer/RendererOpenGL.hpp>
 
 

@@ -1,9 +1,9 @@
 # - Try to find GLFW
 
-IF (GLFW_FOUND)
+IF (TARGET GLFW)
     message("GLFW library is already imported")
     return()
-ENDIF(GLFW_FOUND)
+ENDIF(TARGET GLFW)
 
 FIND_PATH(GLFW_INCLUDE_DIR
         NAMES   GLFW/glfw3.h

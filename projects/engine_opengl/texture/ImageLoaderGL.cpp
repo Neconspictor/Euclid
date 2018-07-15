@@ -2,8 +2,9 @@
 #include <platform/FileSystem.hpp>
 #include <platform/util/Util.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <DDS.h>
+//#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include "platform/logging/LoggingClient.hpp"
 
 
 using namespace boost::interprocess;
@@ -19,7 +20,7 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 	GenericImageGL imageData;
 	memset(&imageData, 0, sizeof(imageData));
 	streampos fileSize;
-	char* bytes = filesystem::getBytesFromFile(fileName, &fileSize);
+	char* bytes = ::filesystem::getBytesFromFile(fileName, &fileSize);
 	if (!bytes)
 	{
 		throw runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't load image: " + fileName);
@@ -52,7 +53,8 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 
 GenericImageGL ImageLoaderGL::loadDDSFile(char* imageData, streampos fileSize)
 {
-	DirectX::DDS_HEADER ddsd;
+	return GenericImageGL();
+	/*DirectX::DDS_HEADER ddsd;
 	char filecode[4];
 	GenericImageGL content;
 	memset(&content, 0, sizeof(GenericImageGL));
@@ -101,5 +103,5 @@ GenericImageGL ImageLoaderGL::loadDDSFile(char* imageData, streampos fileSize)
 		delete[] content.pixels;
 		memset(&content, 0, sizeof(content));
 	}*/
-	return content;
+	//return content;
 }

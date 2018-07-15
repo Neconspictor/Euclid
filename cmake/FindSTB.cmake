@@ -1,9 +1,9 @@
 # - Try to find stb
 
-IF (STB_LIBRARY_FOUND)
+IF (TARGET STB)
     message("STB library is already imported")
     return()
-ENDIF(STB_LIBRARY_FOUND)
+ENDIF(TARGET STB)
 
 FIND_PATH(STB_INCLUDE_DIR
         NAMES stb/stb_image.h

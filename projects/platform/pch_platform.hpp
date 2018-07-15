@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <assert.h>
 #include <atomic>
-#include <Brofiler.h>
 #include <cassert>
 #include <chrono>
 #include <exception>
@@ -38,7 +37,7 @@
 #include <boost/thread/sync_queue.hpp>
 #include <boost/thread/concurrent_queues/detail/sync_deque_base.hpp>
 
-#include <utf8.h>
+//#include <utf8.h>
 
 // platform specific includes
 

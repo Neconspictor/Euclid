@@ -130,7 +130,7 @@ else()
 endif()
 
 # set base library folder
-SET(NEX_BASE_LIBRARY_FOLDER ${CMAKE_SOURCE_DIR}/libs)
+SET(NEX_BASE_LIBRARY_FOLDER ${CMAKE_SOURCE_DIR}/lib)
 
 # The canonical library paths for each library is <platform>/<compiler-name>/<address-model>
 if (NEX_SPECIAL_PLATFORM)

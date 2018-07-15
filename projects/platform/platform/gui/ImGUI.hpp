@@ -1,6 +1,6 @@
 #pragma once
 
-#include <platform/extern/imgui/imgui.h>
+#include <imgui/imgui.h>
 
 /**
  * An interface for concrete render implementations of ImGUI 

@@ -56,7 +56,7 @@ void* StackAllocator::alloc(size_t size, uint64_t alignment)
 
 void StackAllocator::dealloc(void* p)
 {
-	assert(p == prevPosition);
+	//assert(p == prevPosition);
 
 	//Access the AllocationHeader in the bytes before p
 	AllocationHeader* header = (AllocationHeader*)(platform::util::subtract(p, sizeof(AllocationHeader)));

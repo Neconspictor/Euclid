@@ -5,27 +5,26 @@
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <boost/filesystem.hpp>
 
-using namespace std;
 using namespace platform;
 
-bool filesystem::loadFileIntoString(const string& filePath, string* destination)
+bool filesystem::loadFileIntoString(const std::string& filePath, std::string* destination)
 {
-	ifstream shaderStreamFile;
+	std::ifstream shaderStreamFile;
 	bool loadingWasSuccessful = true;
 
 	// ensure ifstream can throw exceptions!
-	shaderStreamFile.exceptions(ifstream::failbit | ifstream::badbit);
+	shaderStreamFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 	try
 	{
 		shaderStreamFile.open(filePath);
-		stringstream shaderStream;
+		std::stringstream shaderStream;
 
 		// read file content to stream
 		shaderStream << shaderStreamFile.rdbuf();
 		*destination = shaderStream.str();
 	}
-	catch (ifstream::failure e)
+	catch (std::ifstream::failure e)
 	{
 		LoggingClient logClient(getLogServer());
 		logClient.setPrefix("[FileSystem::loadFileIntoString()]");
@@ -51,25 +50,25 @@ bool filesystem::loadFileIntoString(const string& filePath, string* destination)
 	return loadingWasSuccessful;
 }
 
-char* filesystem::getBytesFromFile(const string& filePath, streampos* fileSize)
+char* filesystem::getBytesFromFile(const std::string& filePath, std::streampos* fileSize)
 {
-	ifstream file;
+	std::ifstream file;
 	MemoryWrapper content(nullptr);
 	*fileSize = 0;
 	LoggingClient logClient(getLogServer());
 	logClient.setPrefix("[FileSystem::getBytesFromFile()]");
 
 	// ensure ifstream can throw exceptions!
-	file.exceptions(ifstream::failbit | ifstream::badbit);
+	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 	try
 	{
-		file.open(filePath, ios::binary);
-		filebuf* buffer = file.rdbuf();
+		file.open(filePath, std::ios::binary);
+		std::filebuf* buffer = file.rdbuf();
 		
 		//get file size
 		*fileSize = file.tellg();
-		file.seekg(0, ios::end);
+		file.seekg(0, std::ios::end);
 		*fileSize = file.tellg() - *fileSize;
 		buffer->pubseekpos(0, file.in);
 
@@ -80,7 +79,7 @@ char* filesystem::getBytesFromFile(const string& filePath, streampos* fileSize)
 		//copy data to content buffer
 		buffer->sgetn(*content, *fileSize);
 	}
-	catch (ifstream::failure e)
+	catch (std::ifstream::failure e)
 	{
 		if (file.fail())
 		{
@@ -92,7 +91,7 @@ char* filesystem::getBytesFromFile(const string& filePath, streampos* fileSize)
 			LOG(logClient, Error) << "Couldn't read file properly.";
 		}
 	} 
-	catch (bad_alloc e)
+	catch (std::bad_alloc e)
 	{
 		LOG(logClient, Error) << "Couldn't allocate memory of size: " << to_string(*fileSize);
 	}
@@ -107,24 +106,24 @@ char* filesystem::getBytesFromFile(const string& filePath, streampos* fileSize)
 	return result;
 }
 
-streampos filesystem::getFileSize(const string& filePath)
+std::streampos  filesystem::getFileSize(const std::string& filePath)
 {
-	ifstream file;
-	streampos size = 0;
+	std::ifstream file;
+	std::streampos size = 0;
 
 	// ensure ifstream can throw exceptions!
-	file.exceptions(ifstream::failbit | ifstream::badbit);
+	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 	try
 	{
-		file.open(filePath, ios::binary);
-		filebuf* buffer = file.rdbuf();
+		file.open(filePath, std::ios::binary);
+		std::filebuf* buffer = file.rdbuf();
 
 		//get file size
 		size = buffer->pubseekoff(0, file.end, file.in);
 		buffer->pubseekpos(0, file.in);
 	}
-	catch (ifstream::failure e)
+	catch (std::ifstream::failure e)
 	{
 		LoggingClient logClient(getLogServer());
 		logClient.setPrefix("[FileSystem::loadFileIntoString()]");
@@ -148,19 +147,19 @@ streampos filesystem::getFileSize(const string& filePath)
 	return size;
 }
 
-vector<string> filesystem::getFilesFromFolder(const string& folderPath, bool skipSubFolders)
+std::vector<std::string> filesystem::getFilesFromFolder(const std::string& folderPath, bool skipSubFolders)
 {
 	using namespace boost::filesystem;
 	path folder(folderPath);
 	
 	if (!is_directory(folder) || !exists(folder))
 	{
-		return vector<string>();
+		return std::vector<std::string>();
 	}
 
-	vector<string> result;
+	std::vector<std::string> result;
 
-	vector<string> subPaths;
+	std::vector<std::string> subPaths;
 
 	for (directory_iterator it(folder); it != directory_iterator(); ++it)
 	{
@@ -176,7 +175,7 @@ vector<string> filesystem::getFilesFromFolder(const string& folderPath, bool ski
 
 	for (auto& path : subPaths)
 	{
-		vector<string> subResult = getFilesFromFolder(path, false);
+		std::vector<std::string> subResult = getFilesFromFolder(path, false);
 		result.insert(result.begin(), subResult.begin(), subResult.end());
 	}
 

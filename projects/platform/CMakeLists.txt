@@ -23,18 +23,6 @@ set(
 	platform/event/Task.cpp
     platform/event/TaskManager.hpp
 	platform/event/TaskManager.cpp
-	
-	#platform/extern
-	#platform/extern/imgui
-	platform/extern/imgui/imconfig.h
-	platform/extern/imgui/imgui.cpp
-	platform/extern/imgui/imgui.h
-	platform/extern/imgui/imgui_demo.cpp
-	platform/extern/imgui/imgui_draw.cpp
-	platform/extern/imgui/imgui_internal.h
-	platform/extern/imgui/stb_rect_pack.h
-	platform/extern/imgui/stb_textedit.h
-	platform/extern/imgui/stb_truetype.h
     
     #platform/exception
     platform/exception/EnumFormatException.hpp
@@ -104,18 +92,11 @@ assign_source_group(${PLATFORM_SOURCES})
 
 enable_precompiled_headers(pch_platform.hpp PLATFORM_SOURCES)
 
-# Properties->C/C++->General->Additional Include Directories
-include_directories (
-    ./ 
-#    ${CMAKE_SOURCE_DIR}/libs/soil2/include
-#    ${CMAKE_SOURCE_DIR}/libs/utf8-cpp/source
-#    ${CMAKE_SOURCE_DIR}/libs/gli/include
-)
-
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
 add_library (platform ${PLATFORM_SOURCES})
+
 target_include_directories (platform PUBLIC 
     ./
 #    #${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2
@@ -125,7 +106,7 @@ target_include_directories (platform PUBLIC
 
 
 #set additional library directories
-link_directories(.)
+#link_directories(.)
 
 #choose the right libraries by absolute paths!
 #find_library(brofiler_lib NAMES ProfilerCore64 HINTS ${CMAKE_SOURCE_DIR}/tools/Brofiler-1.1.2)

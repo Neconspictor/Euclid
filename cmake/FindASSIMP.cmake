@@ -3,10 +3,10 @@
 #
 # ASSIMP_FOUND - system has Assimp
 
-IF (${ASSIMP_FOUND})
-  message("Assimp library is already imported")
+IF (TARGET ASSIMP)
+  message(STATUS "Assimp library is already imported")
   return()
-ENDIF(${ASSIMP_FOUND})
+ENDIF(TARGET ASSIMP)
 
 FIND_PATH( ASSIMP_INCLUDE_DIR
         NAMES assimp/mesh.h

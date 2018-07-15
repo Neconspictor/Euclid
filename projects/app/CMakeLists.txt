@@ -23,14 +23,14 @@ assign_source_group(${APP_SOURCES})
 #    ./ 
 #)
 
-target_include_directories(App ./)
-
 enable_precompiled_headers(pch_app.hpp APP_SOURCES)
 
 # Set Properties->General->Configuration Type to Application(.exe)
 # Creates app.exe with the listed sources (main.cxx)
 # Adds sources to the Solution Explorer
 add_executable (App ${APP_SOURCES})
+
+target_include_directories(App PUBLIC ./)
 
 #choose the right libraries by absolute paths!
 target_link_libraries(App PUBLIC engine_opengl)

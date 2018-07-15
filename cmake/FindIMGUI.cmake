@@ -1,9 +1,9 @@
 # - Try to find ImGUI
 
-IF (IMGUI_FOUND)
+IF (TARGET IMGUI)
     message("IMGUI library is already imported")
     return()
-ENDIF(IMGUI_FOUND)
+ENDIF(TARGET IMGUI)
 
 
 FIND_PATH(IMGUI_ROOT_DIR
@@ -26,15 +26,15 @@ IF(IMGUI_FOUND)
     ENDIF(NOT IMGUI_FIND_QUIETLY)
 
     set(IMGUI_SOURCES
-            "libs/imgui-lib/imgui/imconfig.h"
-            "libs/imgui-lib/imgui/imgui.h"
-            "libs/imgui-lib/imgui/imgui_internal.h"
-            "libs/imgui-lib/imgui/stb_rect_pack.h"
-            "libs/imgui-lib/imgui/stb_textedit.h"
-            "libs/imgui-lib/imgui/stb_truetype.h"
-            "libs/imgui-lib/imgui/imgui.cpp"
-            "libs/imgui-lib/imgui/imgui_demo.cpp"
-            "libs/imgui-lib/imgui/imgui_draw.cpp"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imconfig.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imgui.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imgui_internal.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/stb_rect_pack.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/stb_textedit.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/stb_truetype.h"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imgui.cpp"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imgui_demo.cpp"
+            "${NEX_BASE_LIBRARY_FOLDER}/imgui-lib/imgui/imgui_draw.cpp"
     )
 
     # create the library target
@@ -44,7 +44,7 @@ IF(IMGUI_FOUND)
     # This is very important as Visual Studio doesn't compile the source files otherwise!
     #set_source_files_properties(lib/glad/src/glad.c PROPERTIES LANGUAGE CXX)
 
-    target_include_directories(IMGUI PUBLIC libs/imgui-lib)
+    target_include_directories(IMGUI PUBLIC ${NEX_BASE_LIBRARY_FOLDER}/imgui-lib)
     set_target_properties(IMGUI PROPERTIES FOLDER lib)
 
 ELSE(IMGUI_FOUND)

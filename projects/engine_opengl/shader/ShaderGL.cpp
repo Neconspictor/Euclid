@@ -9,8 +9,8 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "platform/logging/LoggingClient.hpp"
 
-using namespace std;
 using namespace platform;
 using namespace ::util;
 using namespace glm;
@@ -46,13 +46,13 @@ ShaderAttributeGL& ShaderAttributeGL::operator=(const ShaderAttributeGL& o)
 
 ShaderAttributeGL&& ShaderAttributeGL::operator=(ShaderAttributeGL&& o)
 {
-	if (this == &o) return move(*this);
-	ShaderAttribute::operator=(move(o));
+	if (this == &o) return std::move(*this);
+	ShaderAttribute::operator=(std::move(o));
 	uniformName = move(o.uniformName);
-	return move(*this);
+	return std::move(*this);
 }
 
-ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data, string uniformName, bool active)
+ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active)
 {
 	this->type = type;
 	this->data = data;
@@ -62,7 +62,7 @@ ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data,
 
 ShaderAttributeGL::~ShaderAttributeGL(){}
 
-const string& ShaderAttributeGL::getName() const
+const std::string& ShaderAttributeGL::getName() const
 {
 	return uniformName;
 }
@@ -72,7 +72,7 @@ void ShaderAttributeGL::setData(const void* data)
 	this->data = data;
 }
 
-void ShaderAttributeGL::setName(string name)
+void ShaderAttributeGL::setName(std::string name)
 {
 	uniformName = name;
 }
@@ -107,24 +107,24 @@ ShaderAttributeCollection& ShaderAttributeCollection::operator=(const ShaderAttr
 ShaderAttributeCollection&& ShaderAttributeCollection::operator=(ShaderAttributeCollection&& o)
 {
 	if (this == &o)
-		return move(*this);
+		return std::move(*this);
 	vec = move(o.vec);
 	lookup = move(o.lookup);
-	return move(*this);
+	return std::move(*this);
 }
 
 ShaderAttributeCollection::~ShaderAttributeCollection(){}
 
-ShaderAttributeCollection::ShaderAttributeKey ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, string uniformName, bool active)
+ShaderAttributeCollection::ShaderAttributeKey ShaderAttributeCollection::create(ShaderAttributeType type, const void* data, std::string uniformName, bool active)
 {
-	vec.push_back({type, data, move(uniformName), active});
+	vec.push_back({type, data, std::move(uniformName), active});
 	auto result = &vec.back();
 	lookup.insert({ result->getName(), (int)vec.size() - 1 });
 	int val = (int)vec.size() - 1;
 	return val;
 }
 
-ShaderAttributeGL* ShaderAttributeCollection::get(const string& uniformName)
+ShaderAttributeGL* ShaderAttributeCollection::get(const std::string& uniformName)
 {
 	auto it = lookup.find(uniformName);
 	if (it == lookup.end()) return nullptr;
@@ -141,7 +141,7 @@ const ShaderAttributeGL* ShaderAttributeCollection::getList() const
 	return vec.data();
 }
 
-void ShaderAttributeCollection::setData(const string& uniformName, const void* data, const void* defaultValue, bool activate)
+void ShaderAttributeCollection::setData(const std::string& uniformName, const void* data, const void* defaultValue, bool activate)
 {
 	auto attr = get(uniformName);
 
@@ -183,9 +183,9 @@ int ShaderConfigGL::getNumberOfAttributes() const
 	return attributes.size();
 }
 
-ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const string& vertexShaderFile, const string& fragmentShaderFile, 
-	const string& geometryShaderFile, const string& instancedVertexShaderFile)
-	: config(move(config)), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
+ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
+	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile)
+	: config(std::move(config)), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
@@ -218,7 +218,7 @@ ShaderGL::ShaderGL(const std::string & vertexShaderFile,
 
 ShaderGL::ShaderGL(ShaderGL&& other) : config(move(other.config)),
     programID(other.programID), instancedProgramID(other.instancedProgramID),
-	logClient(move(other.logClient)), textureCounter(other.textureCounter)
+	logClient(std::move(other.logClient)), textureCounter(other.textureCounter)
 {
 	other.programID = GL_FALSE;
 	other.instancedProgramID = GL_FALSE;
@@ -234,26 +234,26 @@ void ShaderGL::initShaderFileSystem()
 
 	if (!exists(globals::SHADER_PATH_OPENGL))
 	{
-		stringstream ss;
+		std::stringstream ss;
 		path path(globals::SHADER_PATH_OPENGL);
 		ss << "ShaderGL::initShaderFileSystem(): opengl shader folder doesn't exists: " 
 			<< absolute(path).generic_string();
-		throw runtime_error(ss.str());
+		throw std::runtime_error(ss.str());
 	}
 
 	LOG(staticLogClient, Debug) << "Test log!";
 
-	vector<string> shaderFiles = filesystem::getFilesFromFolder(globals::SHADER_PATH_OPENGL, false);
+	std::vector<std::string> shaderFiles = filesystem::getFilesFromFolder(globals::SHADER_PATH_OPENGL, false);
 
 	for (auto& file : shaderFiles)
 	{
-		::ifstream ifs(file);
+		std::ifstream ifs(file);
 
-		string content((istreambuf_iterator<char>(ifs)),
-			(istreambuf_iterator<char>()));
+		std::string content((std::istreambuf_iterator<char>(ifs)),
+			(std::istreambuf_iterator<char>()));
 		
 		// OpenGL expects relative paths starting with a '/' 
-		string glFilePath = "/" + file;
+		std::string glFilePath = "/" + file;
 		//glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str()); // TODO ARB_shading_language is only supported
 		// on NVIDIA GPUs => find a GPU independent solution; For now, includes are deactivated in all shaders
 	}
@@ -275,21 +275,21 @@ void ShaderGL::use()
 	glUseProgram(this->programID);
 }
 
-GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFile, 
-	const string& geometryShaderFile)
+GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
+	const std::string& geometryShaderFile)
 {
 	// Create the shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint geometryShaderID = GL_FALSE;
-	string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
+	std::string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
 	GLint result = GL_FALSE;
 	int infoLogLength;
 	GLuint programID;
 
-	string vertexFilePath = globals::SHADER_PATH_OPENGL + vertexFile;
-	string fragmentFilePath = globals::SHADER_PATH_OPENGL + fragmentFile;
-	string geometryFilePath; 
+	std::string vertexFilePath = globals::SHADER_PATH_OPENGL + vertexFile;
+	std::string fragmentFilePath = globals::SHADER_PATH_OPENGL + fragmentFile;
+	std::string geometryFilePath;
 	bool useGeomtryShader = geometryShaderFile.compare("") != 0;
 	if (useGeomtryShader)
 	{
@@ -298,31 +298,31 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	}
 
 	// Read the Vertex Shader code from the file
-	if (!filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
+	if (!::filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
 	{
-		stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't initialize vertex shader!" << endl;
+		std::stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't initialize vertex shader!" << std::endl;
 		ss << "vertex file: " << vertexFilePath;
 
 		throw ShaderInitException(ss.str());
 	}
 
-	if (!filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
+	if (!::filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
 	{
 		LOG(staticLogClient, Error) << "Couldn't initialize fragment shader!";
-		stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << endl;
+		std::stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << std::endl;
 		ss << "fragment file: " << fragmentFilePath;
 		throw ShaderInitException(ss.str());
 	}
 
 	if (useGeomtryShader)
 	{
-		if (!filesystem::loadFileIntoString(geometryFilePath, &geometryShaderCode))
+		if (!::filesystem::loadFileIntoString(geometryFilePath, &geometryShaderCode))
 		{
 			LOG(staticLogClient, Error) << "Couldn't initialize geometry shader!";
-			stringstream ss;
-			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << endl;
+			std::stringstream ss;
+			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << std::endl;
 			ss << "geometry shader file: " << geometryFilePath;
 			throw ShaderInitException(ss.str());
 		}
@@ -330,16 +330,16 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 
 	if (!compileShader(vertexShaderCode.c_str(), vertexShaderID))
 	{
-		stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << endl;
+		std::stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << std::endl;
 		ss << "vertex file: " << vertexFilePath;
 		throw ShaderInitException(ss.str());
 	}
 
 	if (!compileShader(fragmentShaderCode.c_str(), fragmentShaderID))
 	{
-		stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << endl;
+		std::stringstream ss;
+		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << std::endl;
 		ss << "fragment file: " << fragmentFilePath;
 		throw ShaderInitException(ss.str());
 	}
@@ -348,8 +348,8 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	{
 		if (!compileShader(geometryShaderCode.c_str(), geometryShaderID))
 		{
-			stringstream ss;
-			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << endl;
+			std::stringstream ss;
+			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << std::endl;
 			ss << "geometry file: " << geometryFilePath;
 			throw ShaderInitException(ss.str());
 		}
@@ -371,7 +371,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 	if (result == GL_FALSE)
 	{
 		if (infoLogLength > 0) {
-			vector<char> ProgramErrorMessage(infoLogLength + 1);
+			std::vector<char> ProgramErrorMessage(infoLogLength + 1);
 			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
 			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
 		}
@@ -394,7 +394,7 @@ GLuint ShaderGL::loadShaders(const string& vertexFile, const string& fragmentFil
 }
 
 
-bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceID)
+bool ShaderGL::compileShader(const std::string& shaderContent, GLuint shaderResourceID)
 {
 	int result = 0;
 	GLint logInfoLength;
@@ -422,7 +422,7 @@ bool ShaderGL::compileShader(const string& shaderContent, GLuint shaderResourceI
 
 	if (logInfoLength > 0)
 	{
-		vector<char> shaderErrorMessage(logInfoLength + 1);
+		std::vector<char> shaderErrorMessage(logInfoLength + 1);
 		glGetShaderInfoLog(shaderResourceID, logInfoLength, nullptr, &shaderErrorMessage[0]);
 		LOG(staticLogClient, Error) << &shaderErrorMessage[0];
 	}
@@ -564,7 +564,7 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 	}
 	default:
 		// TODO
-		throw runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
+		throw std::runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
 	}
 
 	RendererOpenGL::checkGLErrorSilently();

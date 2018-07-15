@@ -1,6 +1,5 @@
 #include <MainLoopTask.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
-#include <Brofiler.h>
 #include <glm/glm.hpp>
 #include <mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
@@ -279,7 +278,6 @@ static float frameTimeElapsed = 0;
 
 void MainLoopTask::run()
 {
-	BROFILER_FRAME("MainLoopTask");
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::Screen));
@@ -336,8 +334,6 @@ void MainLoopTask::run()
 	handleInputEvents();
 
 	updateCamera(window->getInputDevice(), timer.getLastUpdateTimeDifference());
-
-	BROFILER_CATEGORY("After input handling / Before rendering", Profiler::Color::AntiqueWhite);
 
 	renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
 
@@ -454,8 +450,6 @@ void MainLoopTask::run()
 	renderer->endScene();
 
 	window->swapBuffers();
-
-	BROFILER_CATEGORY("After rendering / before buffer swapping", Profiler::Color::Aqua);
 }
 
 void MainLoopTask::drawScene(const mat4& projection, const mat4& view, Shaders shaderType)
@@ -498,7 +492,6 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 void MainLoopTask::handleInputEvents()
 {
 	using namespace platform;
-	BROFILER_CATEGORY("Before input handling", Profiler::Color::AliceBlue);
 	Input* input = window->getInputDevice();
 
 

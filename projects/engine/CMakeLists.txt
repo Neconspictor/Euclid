@@ -137,8 +137,6 @@ set(
     texture/Texture.hpp
 	texture/Texture.cpp
     texture/TextureManager.hpp
-	#texture/stb
-	texture/stb/stb_image.h
     
     #util
     util/FPSCounter.hpp
@@ -170,6 +168,7 @@ target_include_directories (engine PUBLIC
 find_package(ASSIMP REQUIRED)
 find_package(Boost 1.67 EXACT REQUIRED COMPONENTS program_options)
 find_package(GLM REQUIRED)
+find_package(STB REQUIRED)
 
 target_link_libraries(engine
 
@@ -179,4 +178,8 @@ target_link_libraries(engine
         GLM
 		Boost::boost
         Boost::program_options
+		
+		STB
+		
+		platform
 )

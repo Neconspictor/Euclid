@@ -1,9 +1,9 @@
 # - Try to find glad
 
-IF (GLAD_FOUND)
-    message("Glad library is already imported")
+IF (TARGET GLAD)
+    message(STATUS "Glad library is already imported")
     return()
-ENDIF(GLAD_FOUND)
+ENDIF(TARGET GLAD)
 
 
 FIND_PATH(GLAD_INCLUDE_DIR
@@ -34,13 +34,13 @@ IF(GLAD_FOUND)
 
     # create the library target
     add_library(GLAD STATIC
-            "libs/glad/include/glad/glad.h"
-            "libs/glad/include/KHR/khrplatform.h"
-            "libs/glad/src/glad.c"
+            ${NEX_BASE_LIBRARY_FOLDER}/glad/include/glad/glad.h
+            ${NEX_BASE_LIBRARY_FOLDER}/glad/include/KHR/khrplatform.h
+            ${NEX_BASE_LIBRARY_FOLDER}/glad/src/glad.c
             )
 
     # This is very important as Visual Studio doesn't compile the source files otherwise!
-    set_source_files_properties(libs/glad/src/glad.c PROPERTIES LANGUAGE CXX)
+    set_source_files_properties(${NEX_BASE_LIBRARY_FOLDER}/glad/src/glad.c PROPERTIES LANGUAGE CXX)
 
     target_include_directories(GLAD PUBLIC ${NEX_BASE_LIBRARY_FOLDER}/glad/include)
     set_target_properties(GLAD PROPERTIES FOLDER lib)

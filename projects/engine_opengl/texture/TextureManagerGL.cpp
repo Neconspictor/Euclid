@@ -4,7 +4,7 @@
 
 //use stb_image -- TODO: replace SOIL completely with this library
 #define STB_IMAGE_IMPLEMENTATION
-#include <texture/stb/stb_image.h>
+#include <stb/stb_image.h>
 
 #include <renderer/RendererOpenGL.hpp>
 

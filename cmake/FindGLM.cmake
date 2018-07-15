@@ -1,9 +1,9 @@
 # - Try to find glm
 
-IF (GLM_FOUND)
-    message("GLM library is already imported")
+IF (TARGET GLM)
+    message(STATUS "GLM library is already imported")
     return()
-ENDIF(GLM_FOUND)
+ENDIF(TARGET GLM)
 
 FIND_PATH(GLM_INCLUDE_DIR
         NAMES glm/glm.hpp
@@ -12,9 +12,9 @@ FIND_PATH(GLM_INCLUDE_DIR
         )
 
 if (GLM_INCLUDE_DIR)
-    SET(GLM_FOUND TRUE)
+    SET(GLM_FOUND "TRUE")
 else()
-    SET(GLM_FOUND FALSE)
+    SET(GLM_FOUND "FALSE")
 endif(GLM_INCLUDE_DIR)
 
 IF(GLM_FOUND)
