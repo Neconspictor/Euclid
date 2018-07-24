@@ -9,7 +9,7 @@
 /libs-local/
 /lib/
 
-!*/lib/assimp-4.1.0/LICENSE
+!lib/assimp-4.1.0/LICENSE.txt
 
 /literature/
 /tools/
