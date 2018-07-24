@@ -8,6 +8,7 @@
 #include <window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <boost/locale.hpp>
 #include <thread>
+#include <glm/glm.hpp>
 
 
 //#include <Brofiler.h>

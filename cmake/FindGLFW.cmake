@@ -14,16 +14,16 @@ FIND_PATH(GLFW_INCLUDE_DIR
 
 get_library_path("glfw-3.2.1" GLFW_LIB_PATH)
 
-FIND_LIBRARY( GLFW_LIBRARY_DEBUG glfw3
+FIND_LIBRARY( GLFW_LIBRARY_DEBUG glfw3d
         DOC "The debug version of the static glfw 3.2.1 library. On Windows this is a *.lib file, on Linux, Unix and
         Mac OS a *.a  file."
-        ${GLFW_LIB_PATH}/debug
+        ${GLFW_LIB_PATH}
         )
 
 FIND_LIBRARY( GLFW_LIBRARY_RELEASE glfw3
         DOC "The release version of the static glfw 3.2.1 library. On Windows this is a *.lib file, on Linux, Unix and
         Mac OS a *.a  file."
-        ${GLFW_LIB_PATH}/release
+        ${GLFW_LIB_PATH}
         )
 
 if (GLFW_INCLUDE_DIR AND GLFW_LIBRARY_DEBUG AND GLFW_LIBRARY_RELEASE)

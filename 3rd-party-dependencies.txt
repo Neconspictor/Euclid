@@ -81,3 +81,54 @@ By clicking the download button, the requested packages get downloaded and extra
 #																CHAPTER 3
 #
 ###############################################################################################################################################
+
+If there is no suitable precompiled package for your configuration of compiler, platform and architecture offered by the dependency-downloader
+it is necessary to compile the libraries by oneself. 
+There are several things to consider:
+
+1. Get a copy of the right version of each library. 
+
+2. The libraries Glad, GLM, ImGUI and STB needn't to be (pre-)compiled. Assimp, Boost and GLFW are the only libraries to compile.
+
+3. The libararies have specific naming conventions, so that they can be found by cmake. It can be necessary to change the Cmake files of NeX
+to adapt the project to your new configuration. In general the convention for search directories is: lib/'target-library'/'platform-target'/'compiler-name-and-version'/'architecture'. 
+Example:
+library= boost 1.67.0
+platform= Windows -> 'platform-target' = Win32
+compiler name = msvc
+compiler version = 141
+architecture = x86
+
+search path for libaries (debug and release versions): lib/boost-1.67.0/win32/msvc-141/x86
+
+For the compilers gcc and msvc 'compiler-name-and-version' should be recognised automatically.
+Architecture (x86 or x64) is also automatically detected.
+
+4. Debug libraries should have a 'd' postfix. E.g. the debug version of the assimp-4.1.0 libary should be named assimp-4.1.0d
+You can use a different postfix, but than it might be necessary to adapt the Find*.cmake files in the 'cmake' subfolder.
+
+
+5. Build instructions for Assimp 4.1.0:
+Assimp is a cmake project. To configure the assimp library add the following cmake options before generating build files:
+-DASSIMP_BUILD_ZLIB
+-DBUILD_SHARED_LIBS
+-DLIBRARY_SUFFIX="-4.1.0" // ASSIMP_LIBRARY_SUFFIX doesn't work as expected
+-DCMAKE_DEBUG_POSTFIX="d"
+
+6. Build instructions for Boost 1.67.0:
+Follow the build instructions of the official boost build guide. When used the default naming conventions, the cmake project of NeX should be able 
+to find the appropriate libraries. Ensure that the libraries are put into the right folder (see point 5).
+The following libraries are needed: 
+	- atomic
+	- chrono
+	- date-time
+	- filesystem
+	- locale
+	- program-options
+	- random // this library is not needed on all platforms; it is necessary on mingw
+	- system
+	- thread
+
+7. Build instructions for GLFW 3.2.1:
+GLFW is a cmake project. To configure the assimp library add the following cmake options before generating build files:
+-DCMAKE_DEBUG_POSTFIX="d"
