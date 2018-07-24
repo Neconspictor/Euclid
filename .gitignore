@@ -1,18 +1,22 @@
-/.idea/
-/_work/
-/bin/
-/build/
-/build-x86/
-/cmake-build-debug/
-/cmake-build-release/
+.idea/*
+_work/*
+bin/*
+build/*
+build-x86/*
+cmake-build-debug/*
+cmake-build-release/*
 
-/libs-local/
-/lib/
+libs-local/*
+lib/*
 
-!lib/assimp-4.1.0/LICENSE.txt
+# for every subfolder for that some files should be included
+# we have to include the foler, exclude the content of this folder except the files we want to include
+!lib/assimp-4.1.0/
+lib/assimp-4.1.0/*
+!lib/assimp-4.1.0/LICENSE
 
-/literature/
-/tools/
+literature/*
+tools/*
 
 
 *.pyc
