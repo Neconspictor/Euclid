@@ -81,7 +81,7 @@ unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* s
 	bool tangentData = mesh->mTangents != nullptr;
 
 	if (!tangentData) {
-		std::exception("No tangent data available!");
+		std::runtime_error("No tangent data available!");
 	}
 
 	for (GLuint i = 0; i < mesh->mNumVertices; ++i)

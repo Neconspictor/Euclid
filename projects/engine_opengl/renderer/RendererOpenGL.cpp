@@ -14,7 +14,7 @@
 #include <shader/SkyBoxShader.hpp>
 #include <model/Vob.hpp>
 #include <drawing/ModelDrawer.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <post_processing/SSAO_GL.hpp>
 #include <post_processing/HBAO_GL.hpp>
 

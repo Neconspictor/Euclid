@@ -54,7 +54,7 @@ protected:
 class RenderBufferGL : public TextureGL {
 public:
 	RenderBufferGL();
-	virtual ~RenderBufferGL() = default;
+	virtual ~RenderBufferGL();
 	RenderBufferGL(GLuint texture);
 
 	RenderBufferGL(RenderBufferGL&& o);
@@ -129,7 +129,7 @@ public:
 	CubeRenderTargetGL(const CubeRenderTargetGL&) = delete;
 	CubeRenderTargetGL& operator=(const CubeRenderTargetGL&) = delete;
 	
-	virtual ~CubeRenderTargetGL() = default;
+	virtual ~CubeRenderTargetGL();
 
 
 
@@ -150,7 +150,7 @@ public:
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
-	friend CubeRenderTargetGL;
+	//friend CubeRenderTargetGL;
 	GLuint renderBuffer;
 	GLuint renderTargetTexture;
 	CubeMapGL cubeMapResult;
@@ -170,7 +170,7 @@ public:
 	RenderTargetGL& operator=(const RenderTargetGL& other) = delete;
 
 
-	virtual ~RenderTargetGL() = default;
+	virtual ~RenderTargetGL();
 
 	static RenderTargetGL createMultisampled(int width, int height, const TextureData& data,
 		GLuint samples, GLuint depthStencilType);
@@ -206,7 +206,7 @@ public:
 	CubeDepthMapGL(const CubeDepthMapGL& other) = delete;
 	CubeDepthMapGL& operator=(const CubeDepthMapGL& other) = delete;
 
-	virtual ~CubeDepthMapGL() = default;
+	virtual ~CubeDepthMapGL();
 
 	GLuint getCubeMapTexture() const;
 	CubeMap* getCubeMap() override;
@@ -232,7 +232,7 @@ public:
 	DepthMapGL& operator=(const DepthMapGL& other) = delete;
 	
 
-	virtual ~DepthMapGL() = default;
+	virtual ~DepthMapGL();
 
 	GLuint getFramebuffer() const;
 	GLuint getTexture() const;
@@ -255,7 +255,7 @@ public:
 	PBR_GBufferGL(const PBR_GBufferGL&) = delete;
 	PBR_GBufferGL& operator=(const PBR_GBufferGL&) = delete;
 
-	virtual ~PBR_GBufferGL() = default;
+	virtual ~PBR_GBufferGL() {}
 
 	virtual Texture* getAlbedo() override;
 	virtual Texture* getAoMetalRoughness() override;
@@ -279,7 +279,7 @@ public:
 		unsigned int width,
 		unsigned int height);
 
-	virtual ~OneTextureRenderTarget() = default;
+	virtual ~OneTextureRenderTarget();
 
 	TextureGL* getTexture();
 

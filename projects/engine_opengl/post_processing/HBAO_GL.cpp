@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <platform/util/MathUtils.hpp>
+#include <iostream>
 
 
 using namespace std; 
@@ -34,7 +35,9 @@ HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	for (int i = 0; i < HBAO_RANDOM_ELEMENTS; i++)
 	{
 		float Rand1 = randomFloat(0, 1);
+		std::cout << "Rand1 = " << Rand1 << std::endl;
 		float Rand2 = randomFloat(0, 1);
+        std::cout << "Rand2 = " << Rand2 << std::endl;
 
 		// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
 		static float pi = static_cast<float>(platform::util::PI);
@@ -397,13 +400,13 @@ void hbao::BilateralBlur::draw(OneTextureRenderTarget * temp, BaseRenderTargetGL
 	glUniform1f(0, m_sharpness);
 
 	// blur horizontal
-	glUniform2f(1, 1.0f / float(m_textureWidth), 0);
+	glUniform2f(1, 1.0f / (float)m_textureWidth, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	// blur vertically
 	glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
 	glBindTextureUnit(0, temp->getTexture()->getTexture());
-	glUniform2f(1, 0, 1.0f / float(m_textureHeight));
+	glUniform2f(1, 0, 1.0f / (float)m_textureHeight);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glUseProgram(0);

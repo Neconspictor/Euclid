@@ -1,10 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 
 # Maps to a solution file (OGL_Playground.sln). The solution will 
 # have all targets (exe, lib, dll) as projects (.vcproj)
 project (NecEngine CXX)
 set(CMAKE_CXX_STANDARD 17)
+
 
 # Turn on the ability to create folders to organize projects (.vcproj)
 # It creates "CMakePredefinedTargets" folder by default and adds CMake

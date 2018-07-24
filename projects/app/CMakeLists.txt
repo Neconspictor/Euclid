@@ -48,3 +48,5 @@ target_link_libraries(App PUBLIC engine_opengl)
 #install (FILES "${EASY_HOOK_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
 #install (FILES "${PROFILER_CORE_DLL}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
 #install (FILES "${BROFILER}" DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+
+add_postbuild_for_assimp_lib_for_target(App)

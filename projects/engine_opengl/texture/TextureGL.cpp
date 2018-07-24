@@ -256,6 +256,10 @@ RenderBufferGL::RenderBufferGL() : TextureGL()
 {
 }
 
+RenderBufferGL::~RenderBufferGL()
+{
+}
+
 RenderBufferGL::RenderBufferGL(GLuint texture) : TextureGL(texture)
 {
 }
@@ -393,6 +397,10 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
+CubeRenderTargetGL::~CubeRenderTargetGL()
+{
+}
+
 CubeMap * CubeRenderTargetGL::createCopy()
 {
 
@@ -521,6 +529,10 @@ RenderTargetGL::RenderTargetGL(int width, int height) :
 	BaseRenderTargetGL(width, height, GL_FALSE),
 	RenderTarget(width, height),
 	renderBuffer(GL_FALSE)
+{
+}
+
+RenderTargetGL::~RenderTargetGL()
 {
 }
 
@@ -813,6 +825,10 @@ CubeDepthMapGL& CubeDepthMapGL::operator=(CubeDepthMapGL&& other)
 	return *this;
 }*/
 
+CubeDepthMapGL::~CubeDepthMapGL()
+{
+}
+
 GLuint CubeDepthMapGL::getCubeMapTexture() const
 {
 	return cubeMap.getCubeMap();
@@ -875,6 +891,10 @@ DepthMapGL::DepthMapGL(int width, int height) :
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
+
+DepthMapGL::~DepthMapGL()
+{
 }
 
 GLuint DepthMapGL::getFramebuffer() const
@@ -1037,6 +1057,10 @@ OneTextureRenderTarget::OneTextureRenderTarget(GLuint frameBuffer,
 	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, frameBuffer),
 	m_texture(move(texture))
+{
+}
+
+OneTextureRenderTarget::~OneTextureRenderTarget()
 {
 }
 

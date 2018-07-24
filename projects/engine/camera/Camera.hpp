@@ -1,6 +1,6 @@
 #pragma once
 #include <platform/Window.hpp>
-#include <glm/detail/type_vec3.hpp>
+#include <glm/glm.hpp>
 #include <util/Projectional.hpp>
 
 

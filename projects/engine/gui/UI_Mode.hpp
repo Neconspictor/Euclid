@@ -4,6 +4,9 @@
 class UI_ModeStateMachine;
 
 #include <gui/View.hpp>
+#include <utility>
+#include <memory>
+#include <vector>
 
 class UI_Mode {
 

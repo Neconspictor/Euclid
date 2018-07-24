@@ -116,6 +116,7 @@ target_include_directories (platform PUBLIC
 
 
 find_package(Boost 1.67 EXACT REQUIRED COMPONENTS atomic chrono date_time filesystem locale program_options system thread)
+
 find_package(GLAD REQUIRED)
 find_package(GLM REQUIRED)
 find_package(IMGUI REQUIRED)
@@ -141,3 +142,15 @@ target_link_libraries(platform
 		
 		STB
 )
+
+# Add boost random package to MinGW as it has no real std::random_device support! 
+if(MINGW)
+	find_package(Boost 1.67 EXACT REQUIRED COMPONENTS random)
+
+	target_link_libraries(platform
+
+        PUBLIC
+
+		Boost::random
+)
+endif()

@@ -1,12 +1,18 @@
-/build/
-/libs-local/
-/lib/
-/literature/
+/.idea/
 /_work/
 /bin/
-/extern/
+/build/
+/build-x86/
+/cmake-build-debug/
+/cmake-build-release/
+
+/libs-local/
+/lib/
+
+!*/lib/assimp-4.1.0/LICENSE
+
+/literature/
 /tools/
-/bindata.zip
 
 
 *.pyc

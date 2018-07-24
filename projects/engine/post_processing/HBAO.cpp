@@ -1,7 +1,15 @@
 #include <post_processing/HBAO.hpp>
-#include <random>
 #include <glm/glm.hpp>
 #include <platform/gui/ImGUI.hpp>
+#include <iostream>
+#include <chrono>
+#include <random>
+#include <boost/random.hpp>
+
+// GCC under MINGW has no support for a real random device!
+#if defined(__MINGW32__)  && defined(__GNUC__)
+#include <boost/random/random_device.hpp>
+#endif
 
 using namespace std; 
 using namespace glm;
@@ -28,10 +36,21 @@ void hbao::HBAO::setBlurSharpness(float sharpness)
 
 float hbao::HBAO::randomFloat(float a, float b)
 {
-	const uniform_real_distribution<float> dist(a, b);
-	random_device device;
-	default_random_engine gen(device());
-	return dist(gen);
+// GCC under MINGW has no support for a real random device!
+#if defined(__MINGW32__)  && defined(__GNUC__)
+    //typedef boost::mt19937 gen_type;
+    //long unsigned int seed = std::chrono::steady_clock::now().time_since_epoch().count();
+    boost::random::random_device seeder;
+    boost::random::mt19937 rng(seeder());
+    boost::random::uniform_real_distribution<double> gen(a, b);
+    return gen(rng);
+#else
+    uniform_real_distribution<double> dist(a, b);
+    random_device device;
+    mt19937 gen(device());
+    return dist(gen);
+
+#endif
 }
 
 float hbao::HBAO::lerp(float a, float b, float f) {

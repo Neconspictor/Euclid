@@ -44,7 +44,7 @@ bool filesystem::loadFileIntoString(const std::string& filePath, std::string* de
 	}
 
 	//clear exceptions as close shouldn't throw any exceptions!
-	shaderStreamFile.exceptions(0);
+	shaderStreamFile.exceptions((std::ios_base::iostate)0);
 	shaderStreamFile.close();
 
 	return loadingWasSuccessful;
@@ -93,11 +93,11 @@ char* filesystem::getBytesFromFile(const std::string& filePath, std::streampos* 
 	} 
 	catch (std::bad_alloc e)
 	{
-		LOG(logClient, Error) << "Couldn't allocate memory of size: " << to_string(*fileSize);
+		LOG(logClient, Error) << "Couldn't allocate memory of size: " << std::to_string(*fileSize);
 	}
 
 	//clear exceptions as close shouldn't throw any exceptions!
-	file.exceptions(0);
+	file.exceptions((std::ios_base::iostate)0);
 	file.close();
 
 	char* result = *content;
@@ -141,7 +141,7 @@ std::streampos  filesystem::getFileSize(const std::string& filePath)
 	}
 
 	//clear exceptions as close shouldn't throw any exceptions!
-	file.exceptions(0);
+	file.exceptions((std::ios_base::iostate)0);
 	file.close();
 
 	return size;

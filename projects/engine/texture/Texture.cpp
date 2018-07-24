@@ -1,6 +1,7 @@
 #include <texture/Texture.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <exception>
+#include <stdexcept>
 
 using namespace std;
 using namespace glm;

@@ -6,6 +6,7 @@
 #include <drawing/ModelDrawerGL.hpp>
 #include <post_processing/blur/GaussianBlurGL.hpp>
 #include <shading_model/ShadingModelFactoryGL.hpp>
+#include <list>
 
 class SMAA_GL;
 class RendererOpenGL;

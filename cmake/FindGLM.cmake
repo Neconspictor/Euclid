@@ -27,7 +27,11 @@ IF(GLM_FOUND)
     # create the library target
     add_library(GLM INTERFACE IMPORTED GLOBAL)
     set_target_properties(GLM PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${GLM_INCLUDE_DIR}")
-	target_compile_definitions(GLM INTERFACE "GLM_FORCE_CTOR_INIT")
+    #if (MSVC)
+    target_compile_definitions(GLM INTERFACE GLM_FORCE_CTOR_INIT)
+    #target_compile_definitions(GLM INTERFACE GLM_HAS_CXX11_STL)
+
+    #endif()
 
 ELSE(GLM_FOUND)
     IF(Glm_FIND_REQUIRED)  # GLM_FIND_REQUIRED gets set by cmake if the REQUIRED option was set in find_package

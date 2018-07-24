@@ -3,6 +3,17 @@
 #
 # ASSIMP_FOUND - system has Assimp
 
+function(add_postbuild_for_assimp_lib_for_target DESTINY_TARGET)
+
+	add_custom_command(TARGET ${DESTINY_TARGET} POST_BUILD        # Adds a post-build event to MyTest
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+			$<TARGET_FILE:ASSIMP>      # <--this is in-file
+			$<TARGET_FILE_DIR:${DESTINY_TARGET}>)                 # <--this is out-file path
+
+
+endfunction(add_postbuild_for_assimp_lib_for_target)
+
+
 IF (TARGET ASSIMP)
   message(STATUS "Assimp library is already imported")
   return()
@@ -18,41 +29,43 @@ FIND_PATH( ASSIMP_INCLUDE_DIR
 get_library_path("assimp-4.1.0" ASSIMP_LIB_PATH)
 
 # This library file is only needed on Windows
-FIND_LIBRARY( ASSIMP_IMPORTED_LIB_DEBUG assimp
+FIND_LIBRARY( ASSIMP_IMPORTED_LIB_DEBUG assimp-4.1.0d
         DOC "The debug version of the imported library ( a *.lib file) for assimp. This option is only necessary on Windows."
         ${ASSIMP_LIB_PATH}/debug
         )
 
-FIND_LIBRARY( ASSIMP_IMPORTED_LIB_RELEASE assimp
+FIND_LIBRARY( ASSIMP_IMPORTED_LIB_RELEASE assimp-4.1.0
         DOC "The release version of the imported library ( a *.lib file) for assimp. This option is only necessary on Windows."
         ${ASSIMP_LIB_PATH}/release
         )
 
-if (MINGW OR CYGWIN)
-  FIND_FILE( ASSIMP_LIBRARY_DEBUG libassimp.dll
+if (MINGW)
+  FIND_FILE( ASSIMP_LIBRARY_DEBUG libassimp-4.1.0d.dll
           DOC "The debug version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}/debug
           )
 
-  FIND_FILE( ASSIMP_LIBRARY_RELEASE libassimp.dll
+  FIND_FILE( ASSIMP_LIBRARY_RELEASE libassimp-4.1.0.dll
           DOC "The release version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}/release
           )
 
 elseif(MSVC)
-  FIND_FILE( ASSIMP_LIBRARY_DEBUG assimp.dll
+  FIND_FILE( ASSIMP_LIBRARY_DEBUG assimp-4.1.0d.dll
           DOC "The debug version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}/debug
           )
 
-  FIND_FILE( ASSIMP_LIBRARY_RELEASE assimp.dll
+  FIND_FILE( ASSIMP_LIBRARY_RELEASE assimp-4.1.0.dll
           DOC "The release version of the shared assimp library. On Windows this is a *.dll file, on linux a *.so, and
         on Mac OS a *.so or *.dylib file."
           HINTS ${ASSIMP_LIB_PATH}/release
           )
+else()
+  MESSAGE(FATAL_ERROR "Platform is not supported currently for the assimp 4.1.0 library!")
 endif()
 
 

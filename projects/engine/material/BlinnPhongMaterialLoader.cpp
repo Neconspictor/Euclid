@@ -1,5 +1,3 @@
-#pragma once
-
 #include <material/BlinnPhongMaterialLoader.hpp>
 #include <material/BlinnPhongMaterial.hpp>
 #include <util/Globals.hpp>

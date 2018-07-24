@@ -3,7 +3,7 @@
 #include <model/Model.hpp>
 #include <model/Vob.hpp>
 #include <glad/glad.h>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <shader/SimpleColorShader.hpp>
 #include <shader/ShaderManagerGL.hpp>
 #include <shader/SimpleExtrudeShader.hpp>

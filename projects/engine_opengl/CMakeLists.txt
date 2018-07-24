@@ -1,3 +1,22 @@
+function(get_assimp_lib_for_current_config destiny_var)
+    if (WIN32)
+		IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+			SET(${destiny_var} ${ASSIMP_LIBRARY_DEBUG})
+		ELSE()
+			SET(${destiny_var} ${ASSIMP_LIBRARY_RELEASE})
+		ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)	
+	else()
+		IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+			SET(${destiny_var} ${ASSIMP_IMPORTED_LIB_DEBUG})
+		ELSE()
+			SET(${destiny_var} ${ASSIMP_IMPORTED_LIB_DEBUG})
+		ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    endif()
+	
+	message("destiny_var = ${${destiny_var}}")
+endfunction(get_assimp_lib_for_current_config)
+
+
 set(
     ENGINE_OPENGL_SOURCES 
     
@@ -143,4 +162,4 @@ target_link_libraries(engine_opengl
         GLM
 		
 		${OPENGL_LIBRARIES}
-)
+)		

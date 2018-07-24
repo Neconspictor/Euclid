@@ -1,5 +1,3 @@
-#pragma once
-
 #include <material/PbrMaterialLoader.hpp>
 #include <material/PbrMaterial.hpp>
 #include <util/Globals.hpp>

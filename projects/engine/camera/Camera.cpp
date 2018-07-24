@@ -1,20 +1,21 @@
 #include <camera/Camera.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.inl>
 
-using namespace std;
-using namespace glm;
-using namespace platform;
+//using namespace std;
+//using namespace glm;
+//using namespace platform;
 
 Camera::Camera() : Projectional()
 {
 	logClient.setPrefix("[Camera]");
 }
 
-Camera::Camera(vec3 position, vec3 look, vec3 up) : Camera()
+Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()
 {
-	this->position = move(position);
-	this->look = move(look);
-	this->up = move(up);
+	this->position = std::move(position);
+	this->look = std::move(look);
+	this->up = std::move(up);
 }
 
 Camera::Camera(const Camera& other) :  Projectional(other)

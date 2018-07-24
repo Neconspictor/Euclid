@@ -1,5 +1,5 @@
 #include <util/Projectional.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
 #include <platform/logging/GlobalLoggingServer.hpp>
 #include <util/Math.hpp>

@@ -9,6 +9,7 @@
 #include <boost/locale.hpp>
 #include <thread>
 
+
 //#include <Brofiler.h>
 
 using namespace std;
@@ -19,9 +20,9 @@ using namespace platform;
 int main(int argc, char** argv)
 {
 	//BROFILER_THREAD("Main");
-
 	glm::mat4 test;
 	test[0][3] = 1;
+	std::cout << "Start application : " << test[0][3] << std::endl;
 
 	LoggingClient logger(getLogServer());
 	SubSystemProvider* windowSystem = SubSystemProviderGLFW::get();

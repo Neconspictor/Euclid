@@ -1,6 +1,8 @@
 #pragma once
 
 #include <platform/Window.hpp>
+#include <unordered_set>
+#include <list>
 
 
 struct GLFWwindow;

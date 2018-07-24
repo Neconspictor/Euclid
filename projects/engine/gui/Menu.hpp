@@ -4,6 +4,7 @@
 #include <gui/View.hpp>
 #include <string>
 #include <vector>
+#include <functional>
 //#include <optional>
 
 using MenuItem = std::function<void()>;

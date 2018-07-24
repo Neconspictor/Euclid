@@ -44,6 +44,6 @@ public:
 
 private:
 	std::chrono::high_resolution_clock timer;
-	std::chrono::time_point<std::chrono::steady_clock> lastUpdateTime;
+	std::chrono::high_resolution_clock::time_point lastUpdateTime;
 	float lastUpdateDiff;
 };

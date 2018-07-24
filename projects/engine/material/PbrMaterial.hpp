@@ -1,5 +1,4 @@
-#ifndef PBR_MATERIAL_HPP
-#define PBR_MATERIAL_HPP
+#pragma once
 
 
 #include <material/Material.hpp>
@@ -45,5 +44,3 @@ protected:
 	Texture* normalMap;
 	Texture* roughnessMap;
 };
-
-#endif PBR_MATERIAL_HPP

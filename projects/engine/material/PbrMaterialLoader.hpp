@@ -1,5 +1,4 @@
-#ifndef PBR_MATERIAL_LOADER_HPP
-#define PBR_MATERIAL_LOADER_HPP
+#pragma once
 
 #include <material/AbstractMaterialLoader.hpp>
 #include <platform/logging/LoggingClient.hpp>
@@ -20,5 +19,3 @@ private:
 	platform::LoggingClient logClient;
 
 };
-
-#endif PBR_MATERIAL_LOADER_HPP

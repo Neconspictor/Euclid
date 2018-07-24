@@ -1,5 +1,4 @@
-#ifndef BLINN_PHONG_MATERIAL_HPP
-#define BLINN_PHONG_MATERIAL_HPP
+#pragma once
 
 
 #include <material/Material.hpp>
@@ -43,5 +42,3 @@ protected:
 	Texture* specularMap;
 	float shininess;
 };
-
-#endif BLINN_PHONG_MATERIAL_HPP

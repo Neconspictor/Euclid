@@ -7,7 +7,7 @@ Menu::Menu(const char* name): m_name(name)
 
 void Menu::addMenuItem(MenuItem menuItem)
 {
-	m_menuItems.emplace_back(move(menuItem));
+	m_menuItems.emplace_back(std::move(menuItem));
 }
 
 void Menu::addSubMenu(Menu subMenu)
@@ -28,7 +28,7 @@ const std::string& Menu::getName() const
 void MenuBar::addMenuItem(MenuItem item, const char* menuName)
 {
 	auto& menu = getMenu(menuName);
-	menu.addMenuItem(move(item));
+	menu.addMenuItem(std::move(item));
 }
 
 void MenuBar::drawGUI()

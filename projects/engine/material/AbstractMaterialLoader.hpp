@@ -1,6 +1,4 @@
-#ifndef ABSTRACT_MATERIAL_LOADER_HPP
-#define ABSTRACT_MATERIAL_LOADER_HPP
-
+#pragma once
 
 #include <material/Material.hpp>
 #include <texture/TextureManager.hpp>
@@ -23,5 +21,3 @@ protected:
 
 	TextureManager* textureManager;
 };
-
-#endif ABSTRACT_MATERIAL_LOADER_HPP

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 /**
  * A memory manager allocates on construction a contiguous memory block. Clients can request
  * a contiguous memory block of any size (up to the size the manager allocated initially).

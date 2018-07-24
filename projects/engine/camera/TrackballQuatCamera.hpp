@@ -1,6 +1,7 @@
 #pragma once
 #include <camera/Camera.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <glm/glm.hpp>
+#include<glm/gtc/quaternion.hpp>
 
 class Input;
 

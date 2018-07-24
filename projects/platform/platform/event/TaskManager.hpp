@@ -33,6 +33,7 @@
 #include <thread>
 #include <mutex>
 #include <platform/event/GlobalEventChannel.hpp>
+#include <condition_variable>
 
 
 /**

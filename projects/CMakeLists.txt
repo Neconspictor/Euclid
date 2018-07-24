@@ -27,7 +27,7 @@ endif (USE_LEFT_HANDED_COORDINATE_SYSTEM)
 ADD_DEFINITIONS(-DNEC_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
+#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
 
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(platform)

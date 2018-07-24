@@ -1,0 +1,37 @@
+###############################################################################################################################################
+#					This document is intended to inform (developers) about the used 3rd party dependencies for building NeX
+###############################################################################################################################################
+
+
+
+The content of this document is structured at follows:
+
+#######	Chapter 1  - Lists the used 3rd party dependencies and specifies which licence each dependency uses
+
+#######	Chapter 2 - Instructs the user in fetching the dependencies with the dependency-downloader utility that ships with NeX.
+
+#######	Chapter 3 - Gives important details for users that want to build the dependencies from source.
+
+
+###############################################################################################################################################
+#
+#																CHAPTER 1
+#
+###############################################################################################################################################
+
+Assimp 4.1.0 : This classic library is used for importing 3D meshes and animations in several document formats. The version of the used assimp 
+				library is currently 4.1.0. Assimp is released as Open Source under the terms of a 3-clause BSD license. Its full license can be 
+				found at the subfolder 'lib/assimp-4.1.0'.
+
+###############################################################################################################################################
+#
+#																CHAPTER 2
+#
+###############################################################################################################################################
+
+
+###############################################################################################################################################
+#
+#																CHAPTER 3
+#
+###############################################################################################################################################

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 #include <material/BlinnPhongMaterial.hpp>
 #include <memory>

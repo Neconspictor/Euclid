@@ -1,8 +1,12 @@
+#include <glm/glm.hpp>
+#include <glm/common.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <light/Light.hpp>
-#include <glm/gtc/matrix_transform.inl>
+
+//#include <glm/gtc/matrix_transform.inl>
 
 using namespace std;
-using namespace glm;
+//using namespace glm;
 
 DirectionalLight::DirectionalLight() : Projectional(), color(1,1,1)
 {
@@ -13,7 +17,7 @@ DirectionalLight::~DirectionalLight()
 {
 }
 
-const vec3& DirectionalLight::getColor() const
+const glm::vec3& DirectionalLight::getColor() const
 {
 	return color;
 }
@@ -23,12 +27,12 @@ const glm::vec3& DirectionalLight::getDirection() const
 	return direction;
 }
 
-void DirectionalLight::setColor(vec3 color)
+void DirectionalLight::setColor(glm::vec3 color)
 {
 	this->color = move(color);
 }
 
-void DirectionalLight::setDirection(vec3 dir)
+void DirectionalLight::setDirection(glm::vec3 dir)
 {
 	direction = move(dir);
 }
@@ -46,7 +50,7 @@ PointLight::~PointLight()
 {
 }
 
-mat4* PointLight::getMatrices()
+glm::mat4* PointLight::getMatrices()
 {
 	update();
 	return shadowMatrices;
@@ -67,25 +71,29 @@ void PointLight::update()
 {
 	if (revalidate)
 	{
-		mat4 shadowProj = glm::perspective(radians(90.0f), aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
+		glm::vec3 test2 = position;
+		glm::vec3 test = glm::vec3(1.0, 0.0, 0.0);
+		test2 + test;
+
+		glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
 		// right plane
-		shadowMatrices[0] = shadowProj * glm::lookAt(position, position + vec3(1.0, 0.0, 0.0),
-			vec3(0.0, -1.0, 0.0));
+		shadowMatrices[0] = shadowProj * glm::lookAt(position, position + glm::vec3(1.0, 0.0, 0.0),
+													 glm::vec3(0.0, -1.0, 0.0));
 		// left plane
-		shadowMatrices[1] = shadowProj * glm::lookAt(position, position + vec3(-1.0, 0.0, 0.0),
-			vec3(0.0, -1.0, 0.0));
+		shadowMatrices[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0),
+													 glm::vec3(0.0, -1.0, 0.0));
 		// top plane
-		shadowMatrices[2] = shadowProj * glm::lookAt(position, position + vec3(0.0, 1.0, 0.0),
-			vec3(0.0, 0.0, 1.0));
+		shadowMatrices[2] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 1.0, 0.0),
+													 glm::vec3(0.0, 0.0, 1.0));
 		// bottom plane
-		shadowMatrices[3] = shadowProj * glm::lookAt(position, position + vec3(0.0, -1.0, 0.0),
-			vec3(0.0, 0.0, -1.0));
+		shadowMatrices[3] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, -1.0, 0.0),
+													 glm::vec3(0.0, 0.0, -1.0));
 		// front plane
-		shadowMatrices[4] = shadowProj * glm::lookAt(position, position + vec3(0.0, 0.0, 1.0),
-			vec3(0.0, -1.0, 0.0));
+		shadowMatrices[4] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 0.0, 1.0),
+													 glm::vec3(0.0, -1.0, 0.0));
 		// back plane
-		shadowMatrices[5] = shadowProj * glm::lookAt(position, position + vec3(0.0, 0.0, -1.0),
-			vec3(0.0, -1.0, 0.0));
+		shadowMatrices[5] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 0.0, -1.0),
+													 glm::vec3(0.0, -1.0, 0.0));
 	}
 	Projectional::update();
 }

@@ -23,12 +23,12 @@ void Video::handle(const CollectOptions& config)
 {
 	config.config->addOption(getName(), "Title", &windowTitle, string(""));
 	config.config->addOption(getName(), "Fullscreen", &fullscreen, false);
-	config.config->addOption(getName(), "WindowWidth", &width, unsigned int(800));
-	config.config->addOption(getName(), "WindowHeight", &height, unsigned int(600));
-	config.config->addOption(getName(), "ColorBitDepth", &colorBitDepth, unsigned int(32));
-	config.config->addOption(getName(), "RefreshRate", &refreshRate, unsigned int(60));
+	config.config->addOption<unsigned int>(getName(), "WindowWidth", &width, 800);
+	config.config->addOption<unsigned int>(getName(), "WindowHeight", &height, 600);
+	config.config->addOption<unsigned int>(getName(), "ColorBitDepth", &colorBitDepth, 32);
+	config.config->addOption<unsigned int>(getName(), "RefreshRate", &refreshRate, 60);
 	config.config->addOption(getName(), "VSync", &vSync, false);
-	config.config->addOption(getName(), "MSAASamples", &msaaSamples, unsigned int(0));
+	config.config->addOption<unsigned int>(getName(), "MSAASamples", &msaaSamples, 0);
 }
 
 void Video::init()

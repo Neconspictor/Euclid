@@ -1,6 +1,6 @@
 #include <shading_model/PBR.hpp>
 #include <shader/SkyBoxShader.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <renderer/Renderer3D.hpp>
 
 using namespace glm;

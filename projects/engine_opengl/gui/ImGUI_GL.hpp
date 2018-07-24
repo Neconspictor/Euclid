@@ -2,6 +2,7 @@
 #include <platform/gui/ImGUI.hpp>
 #include <string>
 #include <platform/logging/LoggingClient.hpp>
+#include <glad/glad.h>
 
 class WindowGLFW;
 struct GLFWcursor;

@@ -27,7 +27,11 @@ static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
 static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
 static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;*/
 
-ImGUI_GL::ImGUI_GL(WindowGLFW& window, std::string glsl_version) : window(&window), glsl_version(move(glsl_version)), g_Time(0.0), g_FontTexture(NULL),
+ImGUI_GL::ImGUI_GL(WindowGLFW& window, std::string glsl_version) :
+		window(&window),
+		glsl_version(move(glsl_version)),
+		g_Time(0.0),
+		g_FontTexture(GL_FALSE),
 g_ShaderHandle(0), g_VertHandle(0), g_FragHandle(0),
 g_AttribLocationTex(0), g_AttribLocationProjMtx(0),
 g_AttribLocationPosition(0), g_AttribLocationUV(0), g_AttribLocationColor(0),
