@@ -7,7 +7,7 @@ ENDIF(TARGET GLM)
 
 FIND_PATH(GLM_INCLUDE_DIR
         NAMES glm/glm.hpp
-        HINTS ${NEX_BASE_LIBRARY_FOLDER}/glm
+        HINTS ${NEX_BASE_LIBRARY_FOLDER}/glm-0.9.9.0
         DOC "The header include directory for the glm library"
         )
 

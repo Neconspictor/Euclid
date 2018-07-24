@@ -27,11 +27,11 @@ include(cmake/general.cmake)
 
 # set the default boost library search folder only if the user didn't specified it explicitly
 if (NOT BOOST_LIBRARYDIR)
-    get_library_path("boost-1_67_0" BOOST_LIBRARYDIR )
+    get_library_path("boost-1.67.0" BOOST_LIBRARYDIR )
 endif()
 
 if (NOT BOOST_INCLUDEDIR)
-    SET(BOOST_INCLUDEDIR "${NEX_BASE_LIBRARY_FOLDER}/boost-1_67_0")
+    SET(BOOST_INCLUDEDIR "${NEX_BASE_LIBRARY_FOLDER}/boost-1.67.0")
 endif()
 set(Boost_USE_STATIC_LIBS TRUE)
 

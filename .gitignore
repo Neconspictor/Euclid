@@ -9,14 +9,35 @@ cmake-build-release/*
 libs-local/*
 lib/*
 
+literature/*
+tools/*
+
+
+*.pyc
+
+
 # for every subfolder for that some files should be included
 # we have to include the foler, exclude the content of this folder except the files we want to include
 !lib/assimp-4.1.0/
 lib/assimp-4.1.0/*
 !lib/assimp-4.1.0/LICENSE
 
-literature/*
-tools/*
+!lib/boost-1.67.0/
+lib/boost-1.67.0/*
+!lib/boost-1.67.0/LICENSE
 
+!lib/glfw-3.2.1/
+lib/glfw-3.2.1/*
+!lib/glfw-3.2.1/COPYING.txt
 
-*.pyc
+!lib/glm-0.9.9.0/
+lib/glm-0.9.9.0/*
+!lib/glm-0.9.9.0/COPYING.txt
+
+!lib/imgui/
+lib/imgui/*
+!lib/imgui/LICENSE.txt
+
+!lib/stb/
+lib/stb/*
+!lib/stb/LICENSE.txt

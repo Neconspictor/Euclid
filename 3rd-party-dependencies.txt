@@ -1,0 +1,83 @@
+###############################################################################################################################################
+#					This document is intended to inform (developers) about the used 3rd party dependencies of NeX
+###############################################################################################################################################
+
+
+
+The content of this document is structured at follows:
+
+#######	Chapter 1  - Lists the used 3rd party dependencies and specifies which licence each dependency uses
+
+#######	Chapter 2 - Instructs the user in fetching the dependencies with the dependency-downloader utility that ships with NeX.
+
+#######	Chapter 3 - Gives important details for users that want to build the dependencies from source.
+
+
+###############################################################################################################################################
+#
+#																CHAPTER 1
+#
+###############################################################################################################################################
+
+Assimp 4.1.0 : 	This classic library is used for importing 3D meshes and animations in several document formats. The version of the used assimp 
+				library is currently 4.1.0. Assimp is released as Open Source under the terms of a 3-clause BSD license. Its full license can be 
+				found at 'lib/assimp-4.1.0/LICENSE'.
+				
+Boost 1.67.0: 	Boost is used as a general purpose library. NeX uses currently the version 1.67.0 . Boost has an own developed license, the 
+				so-called 'Boost Software License'. A full copy of this license can be found at 'lib/boost-1.67.0/LICENSE'	
+
+Glad:			Glad is used as a GL loader (Github project: https://github.com/Dav1dde/glad). The used version of NeX was created by the glad 
+				web service of dav1d at http://glad.dav1d.de/ . The generator itself specified no license.
+			
+GLFW 3.2.1:		GLFW is used as a platform agnostic window and OpenGL context creation library. NeX currently uses version 3.2.1 . It has a custom
+				license that can be found at 'lib/glfw-3.2.1/COPYING.txt'
+				
+GLM 0.9.9.0:	GLM is used as a math library for computer graphics. NeX uses currently version 0.9.9.0. GLM is licensed under 
+				'The Happy Bunny License' and the MIT License. The full license can be found at 'lib/glm-0.9.9.0/COPYING.txt'	
+
+ImGUI:			ImGUI is used in NeX as a immediate GUI framework. The library uses a MIT License that can be found at 'lib/imgui/LICENSE.txt'.
+
+STB:			STB is used for loading varias image formats. The library gives the user the choice to choose from a MIT and a Public Domain license.
+				I chose to use the Public Domain license (but MIT would be ok, too). If you have legal issues with the Public Domain license be free 
+				to use the MIT license. The license can be found at 'lib/stb/LICENSE.txt'
+			
+###############################################################################################################################################
+#
+#																CHAPTER 2
+#
+###############################################################################################################################################
+
+In this chapter instructions to get precompiled and prepackaged 3rd party libraries. To assist the user, a tool was developed - the so-called
+dependency-downloader. This tool is written in python and needs Python 3 (python 3.7 was used in development). The tool can be started by executing 
+the file main.py at the subfolder 'dependency-downloader'.
+
+Requirements: 	Python 3
+				pip
+				tqdm
+				requests
+				urllib3
+
+The packages tqdm, requests and urllib3 can be installed by executing the script 'dependency-downloader/install-python-deps.sh'	which install the 
+required packages using pip.	
+
+The dependency-downloader is a downloader that downloads the required libraries for NeX. When you have started the tool, a GUI window appears that 
+let you choose a library directory. That directory should point to the subfolder 'lib'. 
+
+Furthermore, there are several options:
+		
+		- The first option is named 'Common headers and sources' and contains the libraries, that are either header only or have to be compiled from 
+		source (e.g. the glad library). Furthermore, that package contains the include directories of the other libraries. This option is greyed out 
+		since it is mandatory. 
+		
+		- The other options contain precompiled libraries for specific compilers, platforms and architectures that have been tested and will compile.
+		
+		
+By clicking the download button, the requested packages get downloaded and extracted into the specified lib folder.		
+		
+				
+
+###############################################################################################################################################
+#
+#																CHAPTER 3
+#
+###############################################################################################################################################
