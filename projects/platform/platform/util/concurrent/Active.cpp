@@ -24,7 +24,7 @@ namespace platform
 		}
 
 		unique_ptr<Active> Active::create() {
-			unique_ptr<Active> result(new Active); // this constructor is private, so make_unique would require some hassle to get to work
+			unique_ptr<Active> result = std::make_unique<Active>(); // this constructor is private, so make_unique would require some hassle to get to work
 
 			result->workingThread = thread(&Active::run, result.get());
 

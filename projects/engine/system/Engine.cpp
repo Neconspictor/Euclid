@@ -107,7 +107,7 @@ void Engine::init()
 		systemLogLevel = Warning;
 		systemLogLevelStr = "Warning";
 	}
-	getLogServer().get()->setMinLogLevel(systemLogLevel);
+	getLogServer()->setMinLogLevel(systemLogLevel);
 	config.write(configFileName);
 
 	initSystems();

@@ -1,5 +1,4 @@
-#ifndef HBAO_HPP
-#define HBAO_HPP
+#pragma once
 
 #include <sprite/Sprite.hpp>
 #include <gui/View.hpp>
@@ -90,6 +89,8 @@ namespace hbao {
 		HBAO(unsigned int windowWidth,
 			unsigned int windowHeight);
 
+		virtual ~HBAO() = default;
+
 		virtual Texture* getAO_Result() = 0;
 		virtual Texture* getBlurredResult() = 0;
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
@@ -114,23 +115,21 @@ namespace hbao {
 		Sprite screenSprite;
 
 		static const int  HBAO_RANDOM_SIZE = AO_RANDOMTEX_SIZE;
-		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE*HBAO_RANDOM_SIZE;
+		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
 		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
 	};
 
-	class HBAO_ConfigurationView : public View {
+	class HBAO_ConfigurationView : public nex::engine::gui::View {
 	public:
-		HBAO_ConfigurationView(HBAO* hbao);
+		HBAO_ConfigurationView(HBAO* hbao, nex::engine::gui::Menu* configurationMenu);
 
-		virtual void drawGUI() override;
+	protected:
+		void drawSelf() override;
 
 	private:
-		HBAO* m_hbao;
+		HBAO * m_hbao;
 		float m_blur_sharpness;
-		bool showConfigMenu;
-		MenuBar menuBar;
-
+		bool m_showConfigMenu;
 	};
-}
 
-#endif //HBAO_HPP
+}

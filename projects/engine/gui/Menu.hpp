@@ -5,40 +5,72 @@
 #include <string>
 #include <vector>
 #include <functional>
-//#include <optional>
 
-using MenuItem = std::function<void()>;
 
-class Menu {
+namespace nex::engine::gui
+{
 
-public:
-	explicit Menu(const char* name);
+	class Menu;
+	class MenuItem;
 
-	void addMenuItem(MenuItem menuItem);
+	using MenuPtr = std::unique_ptr<Menu>;
+	using MenuItemPtr = std::unique_ptr<MenuItem>;
+	using Callback = std::function<void(MenuItem* menuItem)>;
 
-	void addSubMenu(Menu subMenu);
+	class MenuItem : public View
+	{
+	public:
 
-	const std::vector<MenuItem>& getMenuItems() const;
+		explicit MenuItem(Callback callback);
 
-	const std::string& getName() const;
+		virtual ~MenuItem() = default;
 
-protected:
-	std::vector<MenuItem> m_menuItems;
-	std::string m_name;
-	//std::optional<Menu> m_subMenu;
-};
+		virtual void drawGUIWithParent(Menu* parent);
 
-class MenuBar : public View {
-public:
-	virtual void addMenuItem(MenuItem item, const char* menuName);
+	protected:
 
-	virtual void drawGUI() override;
+		void drawSelf() override;
 
-protected:
+		Callback m_callback;
+	};
 
-	virtual Menu& getMenu(const char* name);
-protected:
-	std::vector<Menu> m_menus;
-};
+	class Menu : public View {
+
+	public:
+		explicit Menu(const char* name);
+
+		virtual ~Menu() = default;
+
+		void addMenuItem(MenuItemPtr menuItem);
+
+		const std::vector<MenuItemPtr>& getMenuItems() const;
+
+		const std::string& getName() const;
+
+		/**
+		* Checks whether the menu is currently selected (on the current frame).
+		*/
+		bool isSelected() const;
+
+	protected:
+
+		void drawSelf() override;
+
+		std::vector<MenuItemPtr> m_menuItems;
+		std::string m_name;
+		bool m_isSelected;
+	};
+
+	class MainMenuBar : public View {
+	public:
+		void addMenu(MenuPtr menu);
+
+	protected:
+
+		void drawSelf() override;
+
+		std::vector<MenuPtr> m_menus;
+	};
+}
 
 #endif

@@ -12,7 +12,7 @@ namespace hbao {
 	class BilateralBlur : public ShaderGL {
 	public:
 
-		BilateralBlur();
+		explicit BilateralBlur();
 		virtual ~BilateralBlur() = default;
 
 		void setLinearDepth(TextureGL* linearDepth);
@@ -113,7 +113,7 @@ namespace hbao {
 		std::unique_ptr<OneTextureRenderTarget> m_depthLinearRT;
 		std::unique_ptr<OneTextureRenderTarget> m_aoResultRT;
 		std::unique_ptr<OneTextureRenderTarget> m_tempRT;
-		std::unique_ptr<OneTextureRenderTarget> m_aoBlurredResultRT;
+		std::unique_ptr<OneTextureRenderTarget> m_aoBlurredResultRT = nullptr;
 		
 
 
@@ -121,7 +121,7 @@ namespace hbao {
 
 		TextureGL m_hbao_random;
 		TextureGL m_hbao_randomview;
-		GLuint m_hbao_ubo;
+		GLuint m_hbao_ubo{};
 
 		HBAOData   m_hbaoDataSource;
 		GLuint m_fullscreenTriangleVAO;

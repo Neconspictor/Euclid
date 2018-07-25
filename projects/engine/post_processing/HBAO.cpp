@@ -67,41 +67,28 @@ public:
 	}
 };
 
-hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao) : m_hbao(hbao), showConfigMenu(false)
+hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, nex::engine::gui::Menu* confifMenu) : m_hbao(hbao), m_showConfigMenu(false)
 {
+
+	using namespace nex::engine::gui;
+
 	m_blur_sharpness = m_hbao->getBlurSharpness();
 
-	menuBar.addMenuItem([]() {
-		if (ImGui::MenuItem("Lambda")) {
-			std::cout << "called lambda function!" << std::endl;
-		}
-	}, "Settings");
-	menuBar.addMenuItem(Test(), "Settings");
+	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
+	{
+		if (ImGui::Checkbox("HBAO", &m_showConfigMenu)){}
+
+	});
+
+	confifMenu->addMenuItem(std::move(menuItem));
 }
 
-void hbao::HBAO_ConfigurationView::drawGUI()
+void hbao::HBAO_ConfigurationView::drawSelf()
 {
 	// update hbao model
 	m_hbao->setBlurSharpness(m_blur_sharpness);
 
-
-	menuBar.drawGUI();
-
-
-	if (ImGui::BeginMainMenuBar())
-	{
-		if (ImGui::BeginMenu("Edit"))
-		{
-			if (ImGui::Checkbox("HBAO", &showConfigMenu)) {}
-			//if (ImGui::MenuItem("HBAO", "")) {
-			//	showConfigMenu = !showConfigMenu;
-			//}
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-	}
-
-	if (showConfigMenu) {
+	if (m_showConfigMenu) {
 		ImGui::Begin("", NULL, ImGuiWindowFlags_NoTitleBar);
 		// render configuration properties
 		ImGui::Text("HBAO configuration");

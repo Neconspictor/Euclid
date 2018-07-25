@@ -9,7 +9,7 @@ namespace platform
 	LogMessage LoggingClient::operator()(LogLevel level, const string& file, const string& function, int line) const
 	{
 		// performs return value optimization. No copy will be created
-		auto instance = server.lock();
+		auto instance = server;
 		if (!instance) return LogMessage();
 
 		if (!instance->isActive(level)) return LogMessage();
@@ -35,24 +35,25 @@ namespace platform
 
 	void LoggingClient::flush(const LogMessage& message) const
 	{
-		if (!server.lock()->isActive(message.meta.level)) return;
+		if (!server->isActive(message.meta.level)) return;
 
 		// just forward the message to the logging server. Non blocking!
-		server.lock()->send(*this, message);
+		server->send(*this, message);
 	}
 
-	LoggingClient::LoggingClient(const weak_ptr<LoggingServer>& server, bool useConsoleEndpoint,
-		bool useFileEndpoint) :
-		prefix(""), server(server)
+	LoggingClient::LoggingClient(LoggingServer* server, bool useConsoleEndpoint,
+		bool useFileEndpoint)
 	{
+		prefix = "";
+		this->server = server;
 		if (useConsoleEndpoint)
 		{
-			add(server.lock()->getConsoleEndpoint());
+			add(server->getConsoleEndpoint());
 		}
 
 		if (useFileEndpoint)
 		{
-			add(server.lock()->getFileEndpoint());
+			add(server->getFileEndpoint());
 		}
 	}
 
@@ -64,9 +65,10 @@ namespace platform
 	}
 
 	LoggingClient::LoggingClient(LoggingClient&& other) :
-		prefix(other.prefix), endpoints(other.endpoints), server(other.server)
+		prefix(std::move(other.prefix)), endpoints(std::move(other.endpoints)), server(other.server)
 	{
 		//other.endpoints.clear();
+		other.server = nullptr;
 	}
 
 	LoggingClient::~LoggingClient()
@@ -100,13 +102,15 @@ namespace platform
 
 	void LoggingClient::setPrefix(const string& prefix)
 	{
-		this->prefix = string(prefix);
+		this->prefix = prefix;
 	}
 
 	void LoggingClient::swap(LoggingClient& other)
 	{
 		this->endpoints.swap(other.endpoints);
-		this->prefix.swap(other.prefix);
-		this->server.swap(other.server);
+		this->prefix = std::move(other.prefix);
+
+		this->server =  other.server;
+		other.server = nullptr;
 	}
 }

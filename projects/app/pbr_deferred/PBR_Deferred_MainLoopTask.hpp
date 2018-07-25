@@ -107,10 +107,9 @@ private:
 
 class BaseGUI_Mode : public UI_Mode {
 public:
-	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
+	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view);
 	virtual ~BaseGUI_Mode() = default;
 
-	virtual void drawGUI() override;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 	virtual void init() override;
 
@@ -125,14 +124,14 @@ protected:
 
 class GUI_Mode : public BaseGUI_Mode {
 public:
-	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
+	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view);
 	virtual ~GUI_Mode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 };
 
 class CameraMode : public BaseGUI_Mode {
 public:
-	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views);
+	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view);
 	virtual ~CameraMode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
 

@@ -81,7 +81,7 @@ namespace platform
 		 */
 		struct Wrapper {
 			virtual ~Wrapper() {}
-			virtual Wrapper* clone() const = 0;
+			virtual std::unique_ptr<Wrapper> clone() const = 0;
 			//virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) = 0;
 
 			/**
@@ -106,7 +106,7 @@ namespace platform
 			/**
 			 * Creates a deep copy of this wrapper object.
 			 */
-			virtual Wrapper* clone() const override;
+			std::unique_ptr<Wrapper> clone() const override;
 
 			//virtual void operator()(const std::string& prefix, const LogMessage::Meta& meta, const std::string& message) override;
 

@@ -4,11 +4,6 @@ UI_ModeStateMachine::UI_ModeStateMachine(std::unique_ptr<UI_Mode> mode) : m_uiMo
 {
 }
 
-void UI_ModeStateMachine::drawGUI()
-{
-	m_uiMode->drawGUI();
-}
-
 void UI_ModeStateMachine::frameUpdate()
 {
 	m_uiMode->frameUpdate(*this);
@@ -27,9 +22,4 @@ void UI_ModeStateMachine::init()
 void UI_ModeStateMachine::setUIMode(std::unique_ptr<UI_Mode> mode)
 {
 	m_uiMode = std::move(mode);
-}
-
-void UI_ModeStateMachine::addView(std::unique_ptr<View> view)
-{
-	m_uiMode->addView(move(view));
 }

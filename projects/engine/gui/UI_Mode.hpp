@@ -7,27 +7,39 @@ class UI_ModeStateMachine;
 #include <utility>
 #include <memory>
 #include <vector>
+#include <platform/gui/ImGUI.hpp>
 
 class UI_Mode {
 
 public:
+	using View = nex::engine::gui::View;
+	using ViewPtr = nex::engine::gui::View*;
+	using ManagedViewPtr = std::unique_ptr<View>;
 
-	UI_Mode(std::vector<std::unique_ptr<View>> views) : m_views(std::move(views)){}
+	UI_Mode(ManagedViewPtr view) : m_view(std::move(view)){}
 	virtual ~UI_Mode() = default;
 	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) = 0;
 	virtual void init() = 0;
 
-	virtual void drawGUI() {
-		for (auto& view : m_views)
-			view->drawGUI();
-	};
+	ViewPtr getView()const
+	{
+		return m_view.get();
+	}
 
-	virtual void addView(std::unique_ptr<View> view) {
-		m_views.emplace_back(move(view));
+	virtual void render(ImGUI_Impl& guiRenderer)
+	{
+		guiRenderer.newFrame();
+		m_view->drawGUI();
+		ImGui::Render();
+		guiRenderer.renderDrawData(ImGui::GetDrawData());
+	}
+
+	void setView(std::unique_ptr<nex::engine::gui::View> view) {
+		m_view = std::move(view);
 	};
 
 protected:
-	std::vector<std::unique_ptr<View>> m_views;
+	std::unique_ptr<nex::engine::gui::View> m_view;
 };
 
 #endif

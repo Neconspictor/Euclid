@@ -43,9 +43,9 @@ namespace platform
 	}
 
 	template <typename T>
-	LogEndpoint::Wrapper* LogEndpoint::WrapperImpl<T>::clone() const
+	std::unique_ptr<LogEndpoint::Wrapper> LogEndpoint::WrapperImpl<T>::clone() const
 	{
-		return new WrapperImpl<T>(mImpl);
+		return std::make_unique<WrapperImpl<T>>(mImpl);
 	}
 
 	/*template <typename T>

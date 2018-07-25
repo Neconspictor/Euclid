@@ -4,9 +4,14 @@ using namespace std;
 
 namespace platform
 {
-	shared_ptr<LoggingServer> getLogServer()
+	LoggingServer* getLogServer()
 	{
-		static shared_ptr<LoggingServer> logServer = std::make_shared<LoggingServer>();
-		return logServer;
+		static LoggingServer logServer;
+		return &logServer;
+	}
+
+	void shutdownLogServer()
+	{
+		getLogServer()->terminate();
 	}
 }

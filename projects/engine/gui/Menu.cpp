@@ -1,63 +1,74 @@
 #include <gui/Menu.hpp>
 #include <platform/gui/ImGUI.hpp>
 
-Menu::Menu(const char* name): m_name(name)
+namespace nex::engine::gui
 {
-}
-
-void Menu::addMenuItem(MenuItem menuItem)
-{
-	m_menuItems.emplace_back(std::move(menuItem));
-}
-
-void Menu::addSubMenu(Menu subMenu)
-{
-	//m_subMenu = std::move(subMenu);
-}
-
-const std::vector<MenuItem>& Menu::getMenuItems() const
-{
-	return m_menuItems;
-}
-
-const std::string& Menu::getName() const
-{
-	return m_name;
-}
-
-void MenuBar::addMenuItem(MenuItem item, const char* menuName)
-{
-	auto& menu = getMenu(menuName);
-	menu.addMenuItem(std::move(item));
-}
-
-void MenuBar::drawGUI()
-{
-	if (ImGui::BeginMainMenuBar())
+	MenuItem::MenuItem(Callback callback) : m_callback(std::move(callback))
 	{
-		for (auto& menu : m_menus)
+	}
+
+	void MenuItem::drawSelf()
+	{
+		m_callback(this);
+	}
+
+	void MenuItem::drawGUIWithParent(Menu* parent)
+	{
+		drawGUI();
+	}
+
+	Menu::Menu(const char* name) : View(), m_name(name), m_isSelected(false)
+	{
+	}
+
+	void Menu::addMenuItem(MenuItemPtr menuItem)
+	{
+		m_menuItems.emplace_back(std::move(menuItem));
+	}
+
+	void Menu::drawSelf()
+	{
+		m_isSelected = ImGui::BeginMenu(m_name.c_str());
+		if (m_isSelected)
 		{
-			if (ImGui::BeginMenu(menu.getName().c_str()))
+			for (auto& item : m_menuItems)
 			{
-				for (auto& item : menu.getMenuItems())
-				{
-					item();
-				}
-				ImGui::EndMenu();
+				item->drawGUIWithParent(this);
 			}
+			ImGui::EndMenu();
 		}
-		ImGui::EndMainMenuBar();
 	}
-}
 
-Menu& MenuBar::getMenu(const char* name)
-{
-	for (auto& menu : m_menus)
+	const std::vector<MenuItemPtr>& Menu::getMenuItems() const
 	{
-		if (menu.getName() == name)
-			return menu;
+		return m_menuItems;
 	}
 
-	m_menus.emplace_back(Menu(name));
-	return m_menus.back();
+	const std::string& Menu::getName() const
+	{
+		return m_name;
+	}
+
+	bool Menu::isSelected() const
+	{
+		return m_isSelected;
+	}
+
+	void MainMenuBar::drawSelf()
+	{
+		if (ImGui::BeginMainMenuBar())
+		{
+			for (auto& menu : m_menus)
+			{
+				menu->drawGUI();
+			}
+			ImGui::EndMainMenuBar();
+		}
+	}
+
+	void MainMenuBar::addMenu(MenuPtr menu)
+	{
+		m_menus.emplace_back(std::move(menu));
+	}
+
 }

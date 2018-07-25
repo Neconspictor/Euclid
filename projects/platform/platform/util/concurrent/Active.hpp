@@ -26,7 +26,7 @@ namespace platform
 		typedef std::function<void()> Callback;
 
 		class Active {
-		private:
+		public:
 			Active(); //only allow creation via the factory method
 
 		public:

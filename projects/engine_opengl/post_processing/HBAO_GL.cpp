@@ -21,11 +21,10 @@ HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	unsigned int windowHeight, ModelDrawerGL* modelDrawer)
 	:
 	HBAO(windowWidth, windowHeight),
-	m_modelDrawer(modelDrawer),
 	m_depthLinearRT(nullptr),
 	m_aoResultRT(nullptr),
-	m_aoBlurredResultRT(nullptr),
 	m_tempRT(nullptr),
+	m_modelDrawer(modelDrawer),
 	m_fullscreenTriangleVAO(GL_FALSE)
 
 {
@@ -35,9 +34,7 @@ HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	for (int i = 0; i < HBAO_RANDOM_ELEMENTS; i++)
 	{
 		float Rand1 = randomFloat(0, 1);
-		std::cout << "Rand1 = " << Rand1 << std::endl;
 		float Rand2 = randomFloat(0, 1);
-        std::cout << "Rand2 = " << Rand2 << std::endl;
 
 		// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
 		static float pi = static_cast<float>(platform::util::PI);
@@ -80,10 +77,10 @@ HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	glNamedBufferStorage(m_hbao_ubo, sizeof(HBAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
 
 
-	m_aoDisplay = make_unique<hbao::DisplayTex>();
-	m_bilateralBlur = make_unique<hbao::BilateralBlur>();
-	m_depthLinearizer = make_unique<hbao::DepthLinearizer>();
-	m_hbaoShader = make_unique<hbao::HBAO_Shader>();
+	m_aoDisplay = std::make_unique<hbao::DisplayTex>();
+	m_bilateralBlur = std::make_unique<hbao::BilateralBlur>();
+	m_depthLinearizer = std::make_unique<hbao::DepthLinearizer>();
+	m_hbaoShader = std::make_unique<hbao::HBAO_Shader>();
 
 
 	initRenderTargets(windowWidth, windowHeight);
@@ -360,11 +357,12 @@ void hbao::HBAO_GL::initRenderTargets(unsigned int width, unsigned int height)
 hbao::BilateralBlur::BilateralBlur() :
 	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl"),
 	m_linearDepth(nullptr),
-	m_source(nullptr),
 	m_sharpness(0),
+	m_textureWidth(0),
 	m_textureHeight(0),
-	m_textureWidth(0)
+	m_source(nullptr)
 {
+
 }
 
 void hbao::BilateralBlur::setLinearDepth(TextureGL * linearDepth)

@@ -1,7 +1,7 @@
 message(STATUS "Detected MSVC")
 
 # debug optimization configuration
-#set(CMAKE_CXX_FLAGS_DEBUG "-g")
+#set(CMAKE_CXX_FLAGS_DEBUG "/DEBUG:FULL")
 
 #release optimization configuration
 set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ot /Oy")

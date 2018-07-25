@@ -7,8 +7,6 @@
 
 using namespace std;
 
-SubSystemProviderGLFW SubSystemProviderGLFW::instance;
-
 
 SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), logClient(platform::getLogServer())
 {
@@ -55,12 +53,13 @@ Input* SubSystemProviderGLFW::getInput() {
 
 void SubSystemProviderGLFW::errorCallback(int error, const char* description)
 {
-	LOG(instance.logClient, platform::Error) << "Error code: " << error
+	LOG(get()->logClient, platform::Error) << "Error code: " << error
 		<< ", error description: " << description;
 }
 
 SubSystemProviderGLFW* SubSystemProviderGLFW::get()
 {
+	static SubSystemProviderGLFW instance;
 	return &instance;
 }
 

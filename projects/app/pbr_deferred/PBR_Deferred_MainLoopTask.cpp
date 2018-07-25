@@ -15,6 +15,7 @@
 #include <shader/ShadowShader.hpp>
 #include <util/Math.hpp>
 #include <gui/Menu.hpp>
+#include "gui/SceneGUI.hpp"
 
 using namespace glm;
 using namespace std;
@@ -56,7 +57,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 
 	camera = make_shared<FPCamera>(FPCamera());
 
-	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, vector<std::unique_ptr<View>>()));
+	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, std::unique_ptr<nex::engine::gui::View>()));
 }
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
@@ -247,7 +248,16 @@ void PBR_Deferred_MainLoopTask::init()
 
 	ssao_deferred = renderer->createDeferredSSAO();
 	hbao = renderer->createHBAO();
-	uiModeStateMachine.addView(std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get()));
+
+
+	using namespace nex::engine::gui;
+
+	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>();
+	std::unique_ptr<View> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(), root->getOptionMenu());
+
+	root->addChild(move(hbaoView));
+
+	uiModeStateMachine.getUIMode()->setView(move(root));
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -465,7 +475,7 @@ void PBR_Deferred_MainLoopTask::run()
 	}
 	//renderer->endScene();
 
-	uiModeStateMachine.drawGUI();
+	uiModeStateMachine.getUIMode()->render(*gui);
 
 	// present rendered frame
 	window->swapBuffers();
@@ -518,7 +528,7 @@ void PBR_Deferred_MainLoopTask::setupCallbacks()
 		renderTargetSingleSampled = renderer->createRenderTarget();
 		pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 		ssao_deferred->onSizeChange(width, height);
-		hbao->onSizeChange(width, height);
+		//hbao->onSizeChange(width, height);
 	});
 
 	input->addRefreshCallback([&]() {
@@ -541,15 +551,15 @@ void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	}
 }
 
-BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) :
-	UI_Mode(move(views)),
+BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) :
+	UI_Mode(move(view)),
 	mainTask(&mainTask),
 	guiRenderer(&guiRenderer),
 	logClient(getLogServer())
 {
 	logClient.setPrefix("[BaseGUI_Mode]");
 }
-
+/*
 void BaseGUI_Mode::drawGUI()
 {
 	Window* window = mainTask->getWindow();
@@ -620,11 +630,12 @@ void BaseGUI_Mode::drawGUI()
 		}
 	}
 
-	UI_Mode::drawGUI();
+	//UI_Mode::drawGUI();
 
 	ImGui::Render();
 	guiRenderer->renderDrawData(ImGui::GetDrawData());
 }
+*/
 
 void BaseGUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 {
@@ -667,8 +678,8 @@ void BaseGUI_Mode::handleExitEvent()
 }
 
 
-GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) : 
-	BaseGUI_Mode(mainTask, guiRenderer, move(views))
+GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) : 
+	BaseGUI_Mode(mainTask, guiRenderer, move(view))
 {
 	logClient.setPrefix("[GUI_Mode]");
 	mainTask.getWindow()->showCursor(false);
@@ -682,12 +693,12 @@ void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 
 	// Switch to camera mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer, move(m_views)));
+		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer, move(m_view)));
 	}
 }
 
-CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::vector<std::unique_ptr<View>> views) :
-	BaseGUI_Mode(mainTask, guiRenderer, move(views))
+CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) :
+	BaseGUI_Mode(mainTask, guiRenderer, move(view))
 {
 	logClient.setPrefix("[CameraMode]");
 	mainTask.getWindow()->showCursor(true);
@@ -706,7 +717,7 @@ void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
 
 	// Switch to gui mode?
 	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer, move(m_views)));
+		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer, move(m_view)));
 	}
 }
 

@@ -8,6 +8,7 @@
 #include <platform/logging/LogEndpoint.hpp>
 #include <platform/logging/LoggingServer.hpp>
 #include <platform/logging/LogLevel.hpp>
+#include <boost/current_function.hpp>
 
 /**
  * Macro for logging into a logging client. The user specifies the logging client and the wished log level.
@@ -32,7 +33,7 @@ namespace platform
 		/**
 		* Constructs a new logging client that will send logging messages to the specified logging server.
 		*/
-		LoggingClient(const std::weak_ptr<LoggingServer>& logger, bool useConsoleEndpoint = true, 
+		LoggingClient(LoggingServer* logger, bool useConsoleEndpoint = true, 
 			bool useFileEndpoint = true);
 
 		/**
@@ -93,6 +94,6 @@ namespace platform
 		std::string prefix;
 
 		std::vector<LogEndpoint> endpoints;
-		std::weak_ptr<LoggingServer> server;
+		LoggingServer* server;
 	};
 }

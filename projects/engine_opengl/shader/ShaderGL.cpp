@@ -193,7 +193,7 @@ ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const std::string& ve
 		throw ShaderInitException("ShaderGL::ShaderGL: couldn't load shader");
 	}
 
-	if (instancedVertexShaderFile.compare("") != 0)
+	if (instancedVertexShaderFile != "")
 	{
 		instancedProgramID = loadShaders(instancedVertexShaderFile, fragmentShaderFile, geometryShaderFile);
 		if (instancedProgramID == GL_FALSE)

@@ -35,7 +35,5 @@ protected:
 private:
 	SubSystemProviderGLFW();
 
-	static SubSystemProviderGLFW instance;
-
 	std::list<WindowGLFW> windows;
 };

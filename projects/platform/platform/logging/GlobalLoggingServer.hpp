@@ -5,5 +5,7 @@
 
 namespace platform
 {
-	std::shared_ptr<LoggingServer> getLogServer();
+	LoggingServer* getLogServer();
+
+	void shutdownLogServer();
 }
