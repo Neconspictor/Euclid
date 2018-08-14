@@ -16,6 +16,7 @@
 #include <util/Math.hpp>
 #include <gui/Menu.hpp>
 #include "gui/SceneGUI.hpp"
+#include "gui/AppStyle.hpp"
 
 using namespace glm;
 using namespace std;
@@ -58,6 +59,8 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 	camera = make_shared<FPCamera>(FPCamera());
 
 	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, std::unique_ptr<nex::engine::gui::View>()));
+
+	style = make_unique<App::AppStyle>();
 }
 
 PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
@@ -253,7 +256,11 @@ void PBR_Deferred_MainLoopTask::init()
 	using namespace nex::engine::gui;
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>();
-	std::unique_ptr<View> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(), root->getOptionMenu());
+	std::unique_ptr<View> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(), 
+		root->getOptionMenu(), 
+		root->getMainMenuBar());
+
+	hbaoView->useStyleClass(make_shared<App::ConfigurationStyle>());
 
 	root->addChild(move(hbaoView));
 
@@ -264,6 +271,8 @@ void PBR_Deferred_MainLoopTask::init()
 	pbrShader->setSkyBox(background);
 
 	uiModeStateMachine.init();
+
+	style->apply();
 
 	setupCallbacks();
 }

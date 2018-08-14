@@ -19,6 +19,7 @@
 #include <post_processing/HBAO.hpp>
 #include <platform/gui/ImGUI.hpp>
 #include <gui/UI_ModeStateMachine.hpp>
+#include "gui/Style.hpp"
 
 class SystemUI;
 class GUI_Mode;
@@ -66,6 +67,7 @@ private:
 	EnginePtr engine;
 	DirectionalLight globalLight;
 	GuiPtr gui;
+	std::unique_ptr<nex::engine::gui::Style> style;
 	bool isRunning;
 	platform::LoggingClient logClient;
 	float mixValue;

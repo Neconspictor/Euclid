@@ -26,6 +26,11 @@ namespace nex::engine::gui
 		m_menuBar.addMenu(std::move(optionMenu));
 	}
 
+	MainMenuBar* SceneGUI::getMainMenuBar()
+	{
+		return &m_menuBar;
+	}
+
 	Menu* SceneGUI::getFileMenu() const
 	{
 		return m_fileMenu;

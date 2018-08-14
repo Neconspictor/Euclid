@@ -21,6 +21,8 @@ namespace nex::engine::gui
 
 		Menu* getOptionMenu() const;
 
+		MainMenuBar* getMainMenuBar();
+
 	protected:
 
 		void drawSelf() override;

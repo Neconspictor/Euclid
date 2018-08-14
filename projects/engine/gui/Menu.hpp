@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include "imgui/imgui.h"
 
 
 namespace nex::engine::gui
@@ -16,6 +17,12 @@ namespace nex::engine::gui
 	using MenuPtr = std::unique_ptr<Menu>;
 	using MenuItemPtr = std::unique_ptr<MenuItem>;
 	using Callback = std::function<void(MenuItem* menuItem)>;
+
+	class GuiNotRenderedException : public std::runtime_error
+	{
+	public:
+		GuiNotRenderedException(const char* msg) : std::runtime_error(msg) {}
+	};
 
 	class MenuItem : public View
 	{
@@ -64,6 +71,20 @@ namespace nex::engine::gui
 	class MainMenuBar : public View {
 	public:
 		void addMenu(MenuPtr menu);
+
+		/**
+		 * Provides the current position of the rendered main menu bar.
+		 * This function can only be called if the main menu bar was rendered at least one time.
+		 * @throws GuiNotRenderedException: If the main menu bar wasn't rendered at least one time.
+		 */
+		ImVec2 getPosition() const;
+
+		/**
+		* Provides the current size of the rendered main menu bar.
+		* This function can only be called if the main menu bar was rendered at least one time.
+		* @throws GuiNotRenderedException: If the main menu bar wasn't rendered at least one time.
+		*/
+		ImVec2 getSize() const;
 
 	protected:
 

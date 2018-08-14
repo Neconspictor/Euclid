@@ -8,6 +8,10 @@ set(
 	MainLoopTask.cpp
     pch_app.hpp
 	
+	#gui
+	gui/AppStyle.cpp
+	gui/AppStyle.hpp
+	
 	#pbr_deferred
 	pbr_deferred/PBR_Deferred_MainLoopTask.hpp
 	pbr_deferred/PBR_Deferred_MainLoopTask.cpp

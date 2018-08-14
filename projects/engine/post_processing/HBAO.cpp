@@ -5,12 +5,14 @@
 #include <chrono>
 #include <random>
 #include <boost/random.hpp>
+#include <imgui/imgui_internal.h>
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
 #include <boost/random/random_device.hpp>
 #endif
 
+struct ImGuiNextWindowData;
 using namespace std; 
 using namespace glm;
 
@@ -67,7 +69,9 @@ public:
 	}
 };
 
-hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, nex::engine::gui::Menu* confifMenu) : m_hbao(hbao), m_showConfigMenu(false)
+hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, 
+	nex::engine::gui::Menu* configMenu,
+	nex::engine::gui::MainMenuBar* mainMenuBar) : m_hbao(hbao), m_showConfigMenu(false), mainMenuBar(mainMenuBar)
 {
 
 	using namespace nex::engine::gui;
@@ -80,7 +84,7 @@ hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, nex::engine::g
 
 	});
 
-	confifMenu->addMenuItem(std::move(menuItem));
+	configMenu->addMenuItem(std::move(menuItem));
 }
 
 void hbao::HBAO_ConfigurationView::drawSelf()
@@ -89,10 +93,24 @@ void hbao::HBAO_ConfigurationView::drawSelf()
 	m_hbao->setBlurSharpness(m_blur_sharpness);
 
 	if (m_showConfigMenu) {
-		ImGui::Begin("", NULL, ImGuiWindowFlags_NoTitleBar);
+
+		float mainbarHeight = mainMenuBar->getSize().y;
+		ImVec2 mainbarPos = mainMenuBar->getPosition();
+
+		ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
+		ImGui::Begin("", &test, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize); //ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
+		ImGuiContext&  context = *ImGui::GetCurrentContext();
+		ImGuiNextWindowData windowData = context.NextWindowData;
+		
 		// render configuration properties
 		ImGui::Text("HBAO configuration");
 		ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
+
+		ImGui::Dummy(ImVec2(100, 200));
+
+		ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+			ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World", 0, 0.0f, 0);
+
 		ImGui::End();
 	}
 }
