@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gui/View.hpp>
+#include <gui/Drawable.hpp>
 #include <gui/Menu.hpp>
 #include <string>
 #include <vector>
@@ -9,7 +9,7 @@
 
 namespace nex::engine::gui
 {
-	class SceneGUI : public View
+	class SceneGUI : public Drawable
 	{
 	public:
 

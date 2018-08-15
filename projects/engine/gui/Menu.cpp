@@ -1,6 +1,6 @@
 #include <gui/Menu.hpp>
 #include <platform/gui/ImGUI.hpp>
-#include "imgui/imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 namespace nex::engine::gui
 {
@@ -18,8 +18,9 @@ namespace nex::engine::gui
 		drawGUI();
 	}
 
-	Menu::Menu(const char* name) : View(), m_name(name), m_isSelected(false)
+	Menu::Menu(const char* name) : Drawable(), m_name(name), m_isSelected(false)
 	{
+		m_name += "###" + m_id;
 	}
 
 	void Menu::addMenuItem(MenuItemPtr menuItem)

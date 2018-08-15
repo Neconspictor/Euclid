@@ -1,5 +1,6 @@
 #include <gui/SceneGUI.hpp>
 #include <imgui/imgui.h>
+#include <iostream>
 
 namespace nex::engine::gui
 {
@@ -14,13 +15,13 @@ namespace nex::engine::gui
 			}
 		});
 
+		fileMenu->addMenuItem(std::move(exitMenuItem));
+
 
 		std::unique_ptr<Menu> optionMenu = std::make_unique<Menu>("Options");
 		
 		m_fileMenu = fileMenu.get();
 		m_optionMenu = optionMenu.get();
-
-		m_fileMenu->addMenuItem(std::move(exitMenuItem));
 
 		m_menuBar.addMenu(std::move(fileMenu));
 		m_menuBar.addMenu(std::move(optionMenu));

@@ -38,7 +38,9 @@ set(
 	gui/UI_Mode.hpp
 	gui/UI_ModeStateMachine.hpp
 	gui/UI_ModeStateMachine.cpp
-	gui/View.hpp
+	gui/Util.cpp
+	gui/Util.hpp
+	gui/Drawable.hpp
     
 	#light
 	light/Light.hpp

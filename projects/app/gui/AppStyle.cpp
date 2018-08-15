@@ -11,20 +11,20 @@ void App::AppStyle::apply()
 	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.0f, 0.00f, 0.0f, 1.0f);
 }
 
-void App::ConfigurationStyle::pushStyleChanges()
+void App::ConfigurationStyle::pushStyleChangesSelf()
 {
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 }
 
-void App::ConfigurationStyle::popStyleChanges()
+void App::ConfigurationStyle::popStyleChangesSelf()
 {
 	ImGui::PopStyleVar(1);
 	ImGui::PopStyleColor(2);
 }
 
-void App::ConfigurationStyle2::pushStyleChanges()
+void App::ConfigurationStyle2::pushStyleChangesSelf()
 {
 	ImVec4(1.0f, 0.0f, 0.0f, 0.5f);
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 0.5f));
@@ -32,7 +32,7 @@ void App::ConfigurationStyle2::pushStyleChanges()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 }
 
-void App::ConfigurationStyle2::popStyleChanges()
+void App::ConfigurationStyle2::popStyleChangesSelf()
 {
 	ImGui::PopStyleVar(1);
 	ImGui::PopStyleColor(2);

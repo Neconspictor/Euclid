@@ -13,6 +13,9 @@ namespace nex::engine::gui
 	class StyleClass
 	{
 	public:
+
+		using StyleClassPtr = std::shared_ptr<StyleClass>;
+
 		virtual ~StyleClass() = default;
 
 		/**
@@ -21,7 +24,12 @@ namespace nex::engine::gui
 		 * An entity that wishes to use this style class has to call this function
 		 * before it draws itself.
 		 */
-		virtual void pushStyleChanges() = 0;
+		virtual void pushStyleChanges()
+		{
+			pushStyleChangesSelf();
+			for (auto& child : m_childs)
+				child->pushStyleChanges();
+		};
 
 		/**
 		* Pops ImGUI style changes for this style class. This function has to be called
@@ -30,6 +38,18 @@ namespace nex::engine::gui
 		* An entity that wishes to use this style class has to call this function
 		* after it has drawn itself.
 		*/
-		virtual void popStyleChanges() = 0;
+		virtual void popStyleChanges()
+		{
+			popStyleChangesSelf();
+			for (auto& child : m_childs)
+				child->popStyleChangesSelf();
+		}
+
+	protected:
+
+		virtual void pushStyleChangesSelf() = 0;
+		virtual void popStyleChangesSelf() = 0;
+
+		std::vector<StyleClassPtr> m_childs;
 	};
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gui/UI_Mode.hpp>
-#include <gui/View.hpp>
+#include <gui/Drawable.hpp>
 #include <memory>
 
 class UI_ModeStateMachine {

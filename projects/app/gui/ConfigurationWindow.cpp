@@ -1,9 +1,19 @@
 #include <gui/ConfigurationWindow.hpp>
 #include <imgui/imgui.h>
 
-App::ConfigurationWindow::ConfigurationWindow(std::string name, nex::engine::gui::MainMenuBar* mainMenuBar) : 
-m_name(std::move(name)), m_mainMenuBar(mainMenuBar)
+App::ConfigurationWindow::ConfigurationWindow(std::string name, nex::engine::gui::MainMenuBar* mainMenuBar) :
+Window(std::move(name), false),  m_mainMenuBar(mainMenuBar)
 {
+	m_imGuiFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize; //ImGuiWindowFlags_NoTitleBar
+	//ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
+}
+
+void App::ConfigurationWindow::drawGUI()
+{
+	if (hasVisibleChild())
+	{
+		Window::drawGUI();
+	}
 }
 
 bool App::ConfigurationWindow::hasVisibleChild() const
@@ -19,21 +29,9 @@ bool App::ConfigurationWindow::hasVisibleChild() const
 
 void App::ConfigurationWindow::drawSelf()
 {
-	// Only draw this window if it at least has one visible child 
-	if (!hasVisibleChild()) return;
-
-
-	float mainbarHeight = m_mainMenuBar->getSize().y;
-	ImVec2 mainbarPos = m_mainMenuBar->getPosition();
+	const float mainbarHeight = m_mainMenuBar->getSize().y;
+	const ImVec2 mainbarPos = m_mainMenuBar->getPosition();
 
 	ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
-	ImGui::Begin(m_name.c_str(), nullptr, 
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize); //ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
-}
-
-void App::ConfigurationWindow::drawSelfAfterChildren()
-{
-	// Only draw this window if it at least has one visible child 
-	if (!hasVisibleChild()) return;
-	ImGui::End();
+	ImGui::Begin(m_name.c_str(), &m_isVisible, m_imGuiFlags);
 }

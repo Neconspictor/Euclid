@@ -6,6 +6,7 @@
 #include <random>
 #include <boost/random.hpp>
 #include <imgui/imgui_internal.h>
+#include "gui/Util.hpp"
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
@@ -70,7 +71,7 @@ public:
 };
 
 hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, 
-	nex::engine::gui::Menu* configMenu, std::string menuTitle) : m_hbao(hbao), m_menuTitle(menuTitle)
+	nex::engine::gui::Menu* configMenu, Drawable* parent, std::string menuTitle) : m_hbao(hbao), m_menuTitle(menuTitle), m_parent(parent)
 {
 
 	using namespace nex::engine::gui;
@@ -81,7 +82,12 @@ hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao,
 
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 	{
-		if (ImGui::Checkbox(m_menuTitle.c_str(), &m_isVisible)){}
+		std::string label = m_menuTitle + "###" + m_id;
+		if (ImGui::Checkbox(label.c_str(), &m_isVisible))
+		{
+			if (m_parent != nullptr)
+				m_parent->setVisible(true);
+		}
 
 	});
 
@@ -98,17 +104,16 @@ void hbao::HBAO_ConfigurationView::drawSelf()
 		ImGuiNextWindowData windowData = context.NextWindowData;
 		
 		// render configuration properties
-		std::stringstream ss;
-		ss << m_menuTitle.c_str() << " configuration sss";
-		ImGui::PushID(ss.str().c_str());
-		ImGui::Text(ss.str().c_str());
+		ImGui::PushID(m_id.c_str());
+		ImGui::LabelText("", m_menuTitle.c_str());
 		ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
 		ImGui::SliderFloat("blur sharpness##1", &m_test, 0.0f, 1000.0f);
 
-		ImGui::Dummy(ImVec2(100, 200));
-
-		ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
-			ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World", 0, 0.0f, 0);
+		//ImGui::Dummy(ImVec2(100, 200));
+		ImGui::Dummy(ImVec2(0, 20));
+		nex::engine::gui::Separator(2.0f);
+		//ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+		//	ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World##HelloWorld!", 0, 0.0f, 0);
 
 		ImGui::PopID();
 	}

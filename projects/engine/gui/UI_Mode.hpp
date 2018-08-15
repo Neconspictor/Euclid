@@ -3,7 +3,7 @@
 
 class UI_ModeStateMachine;
 
-#include <gui/View.hpp>
+#include <gui/Drawable.hpp>
 #include <utility>
 #include <memory>
 #include <vector>
@@ -12,8 +12,8 @@ class UI_ModeStateMachine;
 class UI_Mode {
 
 public:
-	using View = nex::engine::gui::View;
-	using ViewPtr = nex::engine::gui::View*;
+	using View = nex::engine::gui::Drawable;
+	using ViewPtr = nex::engine::gui::Drawable*;
 	using ManagedViewPtr = std::unique_ptr<View>;
 
 	UI_Mode(ManagedViewPtr view) : m_view(std::move(view)){}
@@ -34,12 +34,12 @@ public:
 		guiRenderer.renderDrawData(ImGui::GetDrawData());
 	}
 
-	void setView(std::unique_ptr<nex::engine::gui::View> view) {
+	void setView(std::unique_ptr<nex::engine::gui::Drawable> view) {
 		m_view = std::move(view);
 	};
 
 protected:
-	std::unique_ptr<nex::engine::gui::View> m_view;
+	std::unique_ptr<nex::engine::gui::Drawable> m_view;
 };
 
 #endif

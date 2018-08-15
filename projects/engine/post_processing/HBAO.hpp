@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sprite/Sprite.hpp>
-#include <gui/View.hpp>
+#include <gui/Drawable.hpp>
 #include <gui/Menu.hpp>
 
 class RenderTarget;
@@ -119,10 +119,11 @@ namespace hbao {
 		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
 	};
 
-	class HBAO_ConfigurationView : public nex::engine::gui::View {
+	class HBAO_ConfigurationView : public nex::engine::gui::Drawable {
 	public:
-		HBAO_ConfigurationView(HBAO* hbao, 
-			nex::engine::gui::Menu* configurationMenu,
+		HBAO_ConfigurationView(HBAO* hbao,
+		    nex::engine::gui::Menu* configurationMenu,
+			Drawable* parent,
 			std::string menuTitle);
 
 	protected:
@@ -130,6 +131,7 @@ namespace hbao {
 
 	private:
 		HBAO * m_hbao;
+		Drawable* m_parent;
 		float m_blur_sharpness;
 		float m_test;
 		std::string m_menuTitle;

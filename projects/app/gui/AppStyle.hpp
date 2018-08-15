@@ -12,15 +12,15 @@ namespace App
 
 	class ConfigurationStyle : public nex::engine::gui::StyleClass
 	{
-	public:
-		void pushStyleChanges() override;
-		void popStyleChanges() override;
+	protected:
+		void pushStyleChangesSelf() override;
+		void popStyleChangesSelf() override;
 	};
 
 	class ConfigurationStyle2 : public nex::engine::gui::StyleClass
 	{
-	public:
-		void pushStyleChanges() override;
-		void popStyleChanges() override;
+	protected:
+		void pushStyleChangesSelf() override;
+		void popStyleChangesSelf() override;
 	};
 }

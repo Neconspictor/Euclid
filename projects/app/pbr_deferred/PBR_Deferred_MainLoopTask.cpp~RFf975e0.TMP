@@ -59,7 +59,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 
 	camera = make_shared<FPCamera>(FPCamera());
 
-	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, std::unique_ptr<nex::engine::gui::Drawable>()));
+	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, std::unique_ptr<nex::engine::gui::View>()));
 
 	style = make_unique<App::AppStyle>();
 }
@@ -257,17 +257,19 @@ void PBR_Deferred_MainLoopTask::init()
 	using namespace nex::engine::gui;
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>();
-	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
-	
-	for (int i = 0; i < 5; ++i)
-	{
-		std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
-			root->getOptionMenu(), configurationWindow.get(), "HBAO");
-		//hbaoView->setVisible(true);
-		configurationWindow->addChild(move(hbaoView));
-	}
+	std::unique_ptr<View> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
+	std::unique_ptr<View> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(), 
+		root->getOptionMenu(), "HBAO###1");
+	std::unique_ptr<View> hbaoView2 = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
+		root->getOptionMenu(), "HBAO###2");
 
-	configurationWindow->useStyleClass(make_shared<App::ConfigurationStyle2>());
+	std::unique_ptr<View> hbaoView3 = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
+		root->getOptionMenu(), "HBAO###3");
+
+	configurationWindow->useStyleClass(make_shared<App::ConfigurationStyle>());
+	configurationWindow->addChild(move(hbaoView));
+	configurationWindow->addChild(move(hbaoView2));
+	configurationWindow->addChild(move(hbaoView3));
 	root->addChild(move(configurationWindow));
 
 	uiModeStateMachine.getUIMode()->setView(move(root));
@@ -566,7 +568,7 @@ void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 	}
 }
 
-BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) :
+BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) :
 	UI_Mode(move(view)),
 	mainTask(&mainTask),
 	guiRenderer(&guiRenderer),
@@ -693,7 +695,7 @@ void BaseGUI_Mode::handleExitEvent()
 }
 
 
-GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) : 
+GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) : 
 	BaseGUI_Mode(mainTask, guiRenderer, move(view))
 {
 	logClient.setPrefix("[GUI_Mode]");
@@ -712,7 +714,7 @@ void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
 	}
 }
 
-CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) :
+CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::View> view) :
 	BaseGUI_Mode(mainTask, guiRenderer, move(view))
 {
 	logClient.setPrefix("[CameraMode]");

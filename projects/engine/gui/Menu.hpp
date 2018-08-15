@@ -1,11 +1,11 @@
 #ifndef MENU_HPP
 #define MENU_HPP
 
-#include <gui/View.hpp>
+#include <gui/Drawable.hpp>
 #include <string>
 #include <vector>
 #include <functional>
-#include "imgui/imgui.h"
+#include <imgui/imgui.h>
 
 
 namespace nex::engine::gui
@@ -24,7 +24,7 @@ namespace nex::engine::gui
 		GuiNotRenderedException(const char* msg) : std::runtime_error(msg) {}
 	};
 
-	class MenuItem : public View
+	class MenuItem : public Drawable
 	{
 	public:
 
@@ -41,7 +41,7 @@ namespace nex::engine::gui
 		Callback m_callback;
 	};
 
-	class Menu : public View {
+	class Menu : public Drawable {
 
 	public:
 		explicit Menu(const char* name);
@@ -68,7 +68,7 @@ namespace nex::engine::gui
 		bool m_isSelected;
 	};
 
-	class MainMenuBar : public View {
+	class MainMenuBar : public Drawable {
 	public:
 		void addMenu(MenuPtr menu);
 
