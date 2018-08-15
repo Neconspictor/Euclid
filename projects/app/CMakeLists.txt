@@ -11,6 +11,8 @@ set(
 	#gui
 	gui/AppStyle.cpp
 	gui/AppStyle.hpp
+	gui/ConfigurationWindow.cpp
+	gui/ConfigurationWindow.hpp
 	
 	#pbr_deferred
 	pbr_deferred/PBR_Deferred_MainLoopTask.hpp

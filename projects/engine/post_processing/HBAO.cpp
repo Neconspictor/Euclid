@@ -70,17 +70,18 @@ public:
 };
 
 hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, 
-	nex::engine::gui::Menu* configMenu,
-	nex::engine::gui::MainMenuBar* mainMenuBar) : m_hbao(hbao), m_showConfigMenu(false), mainMenuBar(mainMenuBar)
+	nex::engine::gui::Menu* configMenu, std::string menuTitle) : m_hbao(hbao), m_menuTitle(menuTitle)
 {
 
 	using namespace nex::engine::gui;
 
 	m_blur_sharpness = m_hbao->getBlurSharpness();
+	m_isVisible = false;
+
 
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 	{
-		if (ImGui::Checkbox("HBAO", &m_showConfigMenu)){}
+		if (ImGui::Checkbox(m_menuTitle.c_str(), &m_isVisible)){}
 
 	});
 
@@ -92,25 +93,23 @@ void hbao::HBAO_ConfigurationView::drawSelf()
 	// update hbao model
 	m_hbao->setBlurSharpness(m_blur_sharpness);
 
-	if (m_showConfigMenu) {
-
-		float mainbarHeight = mainMenuBar->getSize().y;
-		ImVec2 mainbarPos = mainMenuBar->getPosition();
-
-		ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
-		ImGui::Begin("", &test, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize); //ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
+	if (m_isVisible) {
 		ImGuiContext&  context = *ImGui::GetCurrentContext();
 		ImGuiNextWindowData windowData = context.NextWindowData;
 		
 		// render configuration properties
-		ImGui::Text("HBAO configuration");
+		std::stringstream ss;
+		ss << m_menuTitle.c_str() << " configuration sss";
+		ImGui::PushID(ss.str().c_str());
+		ImGui::Text(ss.str().c_str());
 		ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
+		ImGui::SliderFloat("blur sharpness##1", &m_test, 0.0f, 1000.0f);
 
 		ImGui::Dummy(ImVec2(100, 200));
 
 		ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
 			ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World", 0, 0.0f, 0);
 
-		ImGui::End();
+		ImGui::PopID();
 	}
 }

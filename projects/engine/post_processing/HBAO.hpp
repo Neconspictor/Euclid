@@ -122,8 +122,8 @@ namespace hbao {
 	class HBAO_ConfigurationView : public nex::engine::gui::View {
 	public:
 		HBAO_ConfigurationView(HBAO* hbao, 
-			nex::engine::gui::Menu* configurationMenu, 
-			nex::engine::gui::MainMenuBar* mainMenuBar);
+			nex::engine::gui::Menu* configurationMenu,
+			std::string menuTitle);
 
 	protected:
 		void drawSelf() override;
@@ -131,9 +131,7 @@ namespace hbao {
 	private:
 		HBAO * m_hbao;
 		float m_blur_sharpness;
-		bool m_showConfigMenu;
-		bool test;
-		nex::engine::gui::MainMenuBar* mainMenuBar;
+		float m_test;
+		std::string m_menuTitle;
 	};
-
 }

@@ -17,6 +17,7 @@
 #include <gui/Menu.hpp>
 #include "gui/SceneGUI.hpp"
 #include "gui/AppStyle.hpp"
+#include "gui/ConfigurationWindow.hpp"
 
 using namespace glm;
 using namespace std;
@@ -256,13 +257,20 @@ void PBR_Deferred_MainLoopTask::init()
 	using namespace nex::engine::gui;
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>();
+	std::unique_ptr<View> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
 	std::unique_ptr<View> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(), 
-		root->getOptionMenu(), 
-		root->getMainMenuBar());
+		root->getOptionMenu(), "HBAO##1");
+	std::unique_ptr<View> hbaoView2 = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
+		root->getOptionMenu(), "HBAO##2");
 
-	hbaoView->useStyleClass(make_shared<App::ConfigurationStyle>());
+	std::unique_ptr<View> hbaoView3 = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
+		root->getOptionMenu(), "HBAO##3");
 
-	root->addChild(move(hbaoView));
+	configurationWindow->useStyleClass(make_shared<App::ConfigurationStyle>());
+	configurationWindow->addChild(move(hbaoView));
+	configurationWindow->addChild(move(hbaoView2));
+	configurationWindow->addChild(move(hbaoView3));
+	root->addChild(move(configurationWindow));
 
 	uiModeStateMachine.getUIMode()->setView(move(root));
 
