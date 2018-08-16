@@ -2,9 +2,7 @@
 
 #include <gui/Drawable.hpp>
 #include <gui/Menu.hpp>
-#include <string>
-#include <vector>
-#include <functional>
+#include <gui/ControllerStateMachine.hpp>
 
 
 namespace nex::engine::gui
@@ -13,7 +11,7 @@ namespace nex::engine::gui
 	{
 	public:
 
-		SceneGUI();
+		SceneGUI(ControllerStateMachine* controllerSM);
 
 		virtual ~SceneGUI() = default;
 
@@ -30,5 +28,6 @@ namespace nex::engine::gui
 		MainMenuBar m_menuBar;
 		Menu* m_optionMenu;
 		Menu* m_fileMenu;
+		ControllerStateMachine* m_controllerSM;
 	};
 }

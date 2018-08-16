@@ -18,13 +18,10 @@
 #include <post_processing/SSAO.hpp>
 #include <post_processing/HBAO.hpp>
 #include <platform/gui/ImGUI.hpp>
-#include <gui/UI_ModeStateMachine.hpp>
+#include <gui/ControllerStateMachine.hpp>
 #include "gui/Style.hpp"
 
 class SystemUI;
-class GUI_Mode;
-class CameraMode;
-class BaseGUI_Mode;
 
 class PBR_Deferred_MainLoopTask : public Task
 {
@@ -53,7 +50,7 @@ public:
 	Timer* getTimer();
 	Window* getWindow();
 	void init();
-	virtual void run() override;
+	void run() override;
 	void setShowDepthMap(bool showDepthMap);
 	void setUI(SystemUI* ui);
 
@@ -93,7 +90,7 @@ private:
 
 	std::list<Vob> vobs;
 
-	UI_ModeStateMachine uiModeStateMachine;
+	ControllerStateMachine uiModeStateMachine;
 
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
@@ -106,38 +103,3 @@ private:
 
 	void onWindowsFocus(Window * window, bool receivedFocus);
 };
-
-class BaseGUI_Mode : public UI_Mode {
-public:
-	BaseGUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view);
-	virtual ~BaseGUI_Mode() = default;
-
-	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
-	virtual void init() override;
-
-protected:
-	void handleExitEvent();
-
-protected:
-	PBR_Deferred_MainLoopTask* mainTask;
-	ImGUI_Impl* guiRenderer;
-	platform::LoggingClient logClient;
-};
-
-class GUI_Mode : public BaseGUI_Mode {
-public:
-	GUI_Mode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view);
-	virtual ~GUI_Mode() = default;
-	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
-};
-
-class CameraMode : public BaseGUI_Mode {
-public:
-	CameraMode(PBR_Deferred_MainLoopTask& mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view);
-	virtual ~CameraMode() = default;
-	virtual void frameUpdate(UI_ModeStateMachine& stateMachine) override;
-
-private:
-	void updateCamera(Input* input, float deltaTime);
-};
-

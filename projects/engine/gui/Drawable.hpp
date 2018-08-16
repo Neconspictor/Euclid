@@ -3,9 +3,6 @@
 #include <gui/Style.hpp>
 #include <imgui/imgui.h>
 
-
-class UI_ModeStateMachine;
-
 namespace nex::engine::gui
 {
 

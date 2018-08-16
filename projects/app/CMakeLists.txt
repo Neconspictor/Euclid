@@ -13,6 +13,10 @@ set(
 	gui/AppStyle.hpp
 	gui/ConfigurationWindow.cpp
 	gui/ConfigurationWindow.hpp
+	gui/SceneGUI.cpp
+	gui/SceneGUI.hpp
+	gui/Controller.cpp
+	gui/Controller.hpp
 	
 	#pbr_deferred
 	pbr_deferred/PBR_Deferred_MainLoopTask.hpp

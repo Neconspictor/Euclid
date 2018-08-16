@@ -4,14 +4,18 @@
 
 namespace nex::engine::gui
 {
-	SceneGUI::SceneGUI() : m_optionMenu(nullptr)
+	SceneGUI::SceneGUI(ControllerStateMachine* controllerSM) : m_optionMenu(nullptr), m_controllerSM(controllerSM)
 	{
 		std::unique_ptr<Menu> fileMenu = std::make_unique<Menu>("File");
-		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([](MenuItem* menuItem)
+		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 		{
 			if (ImGui::MenuItem("Exit", "Esc"))
 			{
 				//handleExitEvent();
+				App::BaseController* controller = dynamic_cast<App::BaseController*>(m_controllerSM->getCurrentController());
+
+				if (controller != nullptr)
+					controller->handleExitEvent();
 			}
 		});
 

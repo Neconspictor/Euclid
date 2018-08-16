@@ -30,17 +30,15 @@ set(
     exception/ShaderNotFoundException.hpp
 	
 	#gui
+	gui/Controller.hpp
+	gui/ControllerStateMachine.hpp
+	gui/ControllerStateMachine.cpp
+	gui/Drawable.hpp
 	gui/Menu.cpp
 	gui/Menu.hpp
-	gui/SceneGUI.cpp
-	gui/SceneGUI.hpp
 	gui/Style.hpp
-	gui/UI_Mode.hpp
-	gui/UI_ModeStateMachine.hpp
-	gui/UI_ModeStateMachine.cpp
 	gui/Util.cpp
 	gui/Util.hpp
-	gui/Drawable.hpp
     
 	#light
 	light/Light.hpp

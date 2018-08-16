@@ -15,9 +15,10 @@
 #include <shader/ShadowShader.hpp>
 #include <util/Math.hpp>
 #include <gui/Menu.hpp>
-#include "gui/SceneGUI.hpp"
-#include "gui/AppStyle.hpp"
-#include "gui/ConfigurationWindow.hpp"
+#include <gui/SceneGUI.hpp>
+#include <gui/AppStyle.hpp>
+#include <gui/ConfigurationWindow.hpp>
+#include <gui/Controller.hpp>
 
 using namespace glm;
 using namespace std;
@@ -59,7 +60,7 @@ PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
 
 	camera = make_shared<FPCamera>(FPCamera());
 
-	uiModeStateMachine.setUIMode(std::make_unique<GUI_Mode>(*this, *gui, std::unique_ptr<nex::engine::gui::Drawable>()));
+	uiModeStateMachine.setCurrentController(std::make_unique<App::EditMode>(*this, *gui, std::unique_ptr<nex::engine::gui::Drawable>()));
 
 	style = make_unique<App::AppStyle>();
 }
@@ -256,7 +257,7 @@ void PBR_Deferred_MainLoopTask::init()
 
 	using namespace nex::engine::gui;
 
-	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>();
+	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(&uiModeStateMachine);
 	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
 	
 	for (int i = 0; i < 5; ++i)
@@ -270,7 +271,7 @@ void PBR_Deferred_MainLoopTask::init()
 	configurationWindow->useStyleClass(make_shared<App::ConfigurationStyle2>());
 	root->addChild(move(configurationWindow));
 
-	uiModeStateMachine.getUIMode()->setView(move(root));
+	uiModeStateMachine.getCurrentController()->setDrawable(move(root));
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -490,7 +491,7 @@ void PBR_Deferred_MainLoopTask::run()
 	}
 	//renderer->endScene();
 
-	uiModeStateMachine.getUIMode()->render(*gui);
+	uiModeStateMachine.getCurrentController()->render(*gui);
 
 	// present rendered frame
 	window->swapBuffers();
@@ -564,183 +565,4 @@ void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
 		window->setTitle(ss.str());
 		runtime -= 1;
 	}
-}
-
-BaseGUI_Mode::BaseGUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) :
-	UI_Mode(move(view)),
-	mainTask(&mainTask),
-	guiRenderer(&guiRenderer),
-	logClient(getLogServer())
-{
-	logClient.setPrefix("[BaseGUI_Mode]");
-}
-/*
-void BaseGUI_Mode::drawGUI()
-{
-	Window* window = mainTask->getWindow();
-
-	// render GUI
-	guiRenderer->newFrame();
-
-	// 1. Show a simple window.
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
-	{
-		static float f = 0.0f;
-		static int counter = 0;
-		static bool show_app_simple_overlay = false;
-		ImGui::Begin("", NULL, ImGuiWindowFlags_NoTitleBar);
-		//ImGuiWindowFlags_NoTitleBar
-		ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
-																//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-																//ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
-																//ImGui::Checkbox("Another Window", &show_another_window);
-
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-		ImGui::End();
-	}
-
-	if (ImGui::BeginMainMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("Exit", "Esc"))
-			{
-				handleExitEvent();
-			}
-
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Edit"))
-		{
-			if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-			if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-			ImGui::Separator();
-			if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-			if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-			if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-
-		if (ImGui::TreeNode("Tabbing"))
-		{
-			ImGui::Text("Use TAB/SHIFT+TAB to cycle through keyboard editable fields.");
-			static char buf[32] = "dummy";
-			ImGui::InputText("1", buf, IM_ARRAYSIZE(buf));
-			ImGui::InputText("2", buf, IM_ARRAYSIZE(buf));
-			ImGui::PushAllowKeyboardFocus(false);
-			ImGui::InputText("4 (tab skip)", buf, IM_ARRAYSIZE(buf));
-			//ImGui::SameLine(); ShowHelperMarker("Use ImGui::PushAllowKeyboardFocus(bool)\nto disable tabbing through certain widgets.");
-			ImGui::PopAllowKeyboardFocus();
-			ImGui::InputText("5", buf, IM_ARRAYSIZE(buf));
-			ImGui::TreePop();
-		}
-	}
-
-	//UI_Mode::drawGUI();
-
-	ImGui::Render();
-	guiRenderer->renderDrawData(ImGui::GetDrawData());
-}
-*/
-
-void BaseGUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
-{
-	using namespace platform;
-
-	Input* input = mainTask->getWindow()->getInputDevice();
-	Window* window = mainTask->getWindow();
-
-	if (input->isPressed(Input::KEY_ESCAPE))
-	{
-		handleExitEvent();
-	}
-
-	if (input->isPressed(Input::KEY_Y))
-	{
-		mainTask->setShowDepthMap(!mainTask->getShowDepthMap());
-	}
-
-
-	// Context refresh Does not work right now!
-	if (input->isPressed(Input::KEY_B)) {
-		if (window->isInFullscreenMode()) {
-			window->setWindowed();
-		}
-		else {
-			window->setFullscreen();
-		}
-
-		LOG(logClient, Debug) << "toggle";
-	}
-}
-
-void BaseGUI_Mode::init()
-{
-}
-
-void BaseGUI_Mode::handleExitEvent()
-{
-	mainTask->getWindow()->close();
-}
-
-
-GUI_Mode::GUI_Mode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) : 
-	BaseGUI_Mode(mainTask, guiRenderer, move(view))
-{
-	logClient.setPrefix("[GUI_Mode]");
-	mainTask.getWindow()->showCursor(false);
-}
-
-void GUI_Mode::frameUpdate(UI_ModeStateMachine & stateMachine)
-{
-	BaseGUI_Mode::frameUpdate(stateMachine);
-	//std::cout << "GUI_Mode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
-	Input* input = mainTask->getWindow()->getInputDevice();
-
-	// Switch to camera mode?
-	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<CameraMode>(*mainTask, *guiRenderer, move(m_view)));
-	}
-}
-
-CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> view) :
-	BaseGUI_Mode(mainTask, guiRenderer, move(view))
-{
-	logClient.setPrefix("[CameraMode]");
-	mainTask.getWindow()->showCursor(true);
-}
-
-void CameraMode::frameUpdate(UI_ModeStateMachine & stateMachine)
-{
-	BaseGUI_Mode::frameUpdate(stateMachine);
-
-	//std::cout << "CameraMode::frameUpdate(UI_ModeStateMachine &) called!" << std::endl;
-	Input* input = mainTask->getWindow()->getInputDevice();
-	float frameTime = mainTask->getTimer()->getLastUpdateTimeDifference();
-
-	// update camera
-	updateCamera(input, frameTime);
-
-	// Switch to gui mode?
-	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setUIMode(std::make_unique<GUI_Mode>(*mainTask, *guiRenderer, move(m_view)));
-	}
-}
-
-void CameraMode::updateCamera(Input * input, float deltaTime)
-{
-	Camera* camera = mainTask->getCamera();
-	Window* window = mainTask->getWindow();
-
-	camera->update(input, deltaTime);
-	window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
 }
