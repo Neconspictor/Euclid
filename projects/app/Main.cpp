@@ -124,20 +124,19 @@ int main(int argc, char** argv)
 
 		while(window->isOpen())
 		{
+			// Poll input events before checking if the app is running, otherwise 
+			// the window is likely to hang or crash (at least on windows platform)
+			windowSystem->pollEvents();
+
+			float frameTime = timer.update();
+			float fps = counter.update(frameTime);
+			updateWindowTitle(window, baseTitle.c_str(), frameTime, fps);
+
 			if (mainLoop->isRunning())
 			{
-				float frameTime = timer.update();
 				controllerSM.frameUpdate(frameTime);
 
-				// Poll input events before checking if the app is running, otherwise 
-				// the window is likely to hang or crash (at least on windows platform)
-				windowSystem->pollEvents();
-
 				window->activate();
-
-				float fps = counter.update(frameTime);
-				updateWindowTitle(window, baseTitle.c_str(), frameTime, fps);
-
 
 				mainLoop->run(camera.get(), frameTime);
 
