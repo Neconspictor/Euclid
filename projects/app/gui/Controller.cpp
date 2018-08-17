@@ -4,10 +4,12 @@
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 
 
-App::BaseController::BaseController(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
+App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_MainLoopTask* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
 	Controller(move(drawable)),
-	mainTask(&mainTask),
-	guiRenderer(&guiRenderer),
+	m_window(window),
+	m_input(input),
+	guiRenderer(guiRenderer),
+	m_mainTask(mainTask),
 	logClient(platform::getLogServer())
 {
 	logClient.setPrefix("[BaseController]");
@@ -91,31 +93,28 @@ guiRenderer->renderDrawData(ImGui::GetDrawData());
 }
 */
 
-void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine)
+void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
 	using namespace platform;
 
-	Input* input = mainTask->getWindow()->getInputDevice();
-	Window* window = mainTask->getWindow();
-
-	if (input->isPressed(Input::KEY_ESCAPE))
+	if (m_input->isPressed(Input::KEY_ESCAPE))
 	{
 		handleExitEvent();
 	}
 
-	if (input->isPressed(Input::KEY_Y))
+	if (m_input->isPressed(Input::KEY_Y))
 	{
-		mainTask->setShowDepthMap(!mainTask->getShowDepthMap());
+		m_mainTask->setShowDepthMap(!m_mainTask->getShowDepthMap());
 	}
 
 
 	// Context refresh Does not work right now!
-	if (input->isPressed(Input::KEY_B)) {
-		if (window->isInFullscreenMode()) {
-			window->setWindowed();
+	if (m_input->isPressed(Input::KEY_B)) {
+		if (m_window->isInFullscreenMode()) {
+			m_window->setWindowed();
 		}
 		else {
-			window->setFullscreen();
+			m_window->setFullscreen();
 		}
 
 		LOG(logClient, Debug) << "toggle";
@@ -128,58 +127,62 @@ void App::BaseController::init()
 
 void App::BaseController::handleExitEvent()
 {
-	mainTask->getWindow()->close();
+	m_window->close();
 }
 
 
-App::EditMode::EditMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
-	BaseController(mainTask, guiRenderer, move(drawable))
+App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_MainLoopTask* mainTask,
+	Camera* camera,
+	ImGUI_Impl* guiRenderer, 
+	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
+	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
+	m_camera(camera)
 {
 	logClient.setPrefix("[EditMode]");
-	mainTask.getWindow()->showCursor(false);
+	m_window->showCursor(false);
 }
 
-void App::EditMode::frameUpdate(ControllerStateMachine & stateMachine)
+void App::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
-	BaseController::frameUpdate(stateMachine);
+	BaseController::frameUpdate(stateMachine, frameTime);
 	//std::cout << "EditMode::frameUpdate(ControllerStateMachine &) called!" << std::endl;
-	Input* input = mainTask->getWindow()->getInputDevice();
 
 	// Switch to camera mode?
-	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setCurrentController(std::make_unique<CameraMode>(*mainTask, *guiRenderer, move(m_drawable)));
+	if (m_input->isPressed(Input::KEY_C)) {
+		stateMachine.setCurrentController(std::make_unique<CameraMode>(m_window, m_input, m_mainTask, m_camera, guiRenderer, move(m_drawable)));
 	}
 }
 
-App::CameraMode::CameraMode(PBR_Deferred_MainLoopTask & mainTask, ImGUI_Impl& guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
-	BaseController(mainTask, guiRenderer, move(drawable))
+App::CameraMode::CameraMode(Window* window, 
+	Input* input, 
+	PBR_Deferred_MainLoopTask* mainTask, 
+	Camera* camera, ImGUI_Impl* guiRenderer, 
+	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
+	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
+m_window(window), m_camera(camera)
 {
 	logClient.setPrefix("[CameraMode]");
-	mainTask.getWindow()->showCursor(true);
+	m_window->showCursor(true);
 }
 
-void App::CameraMode::frameUpdate(ControllerStateMachine & stateMachine)
+void App::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
-	BaseController::frameUpdate(stateMachine);
+	BaseController::frameUpdate(stateMachine, frameTime);
 
 	//std::cout << "CameraMode::frameUpdate(ControllerStateMachine &) called!" << std::endl;
-	Input* input = mainTask->getWindow()->getInputDevice();
-	float frameTime = mainTask->getTimer()->getLastUpdateTimeDifference();
+	//float frameTime = mainTask->getTimer()->getLastUpdateTimeDifference();
 
 	// update camera
-	updateCamera(input, frameTime);
+	updateCamera(m_input, frameTime);
 
 	// Switch to gui mode?
-	if (input->isPressed(Input::KEY_C)) {
-		stateMachine.setCurrentController(std::make_unique<EditMode>(*mainTask, *guiRenderer, move(m_drawable)));
+	if (m_input->isPressed(Input::KEY_C)) {
+		stateMachine.setCurrentController(std::make_unique<EditMode>(m_window, m_input, m_mainTask, m_camera, guiRenderer, move(m_drawable)));
 	}
 }
 
 void App::CameraMode::updateCamera(Input * input, float deltaTime)
 {
-	Camera* camera = mainTask->getCamera();
-	Window* window = mainTask->getWindow();
-
-	camera->update(input, deltaTime);
-	window->setCursorPosition(window->getWidth() / 2, window->getHeight() / 2);
+	m_camera->update(input, deltaTime);
+	m_window->setCursorPosition(m_window->getWidth() / 2, m_window->getHeight() / 2);
 }

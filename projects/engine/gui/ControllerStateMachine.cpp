@@ -4,9 +4,9 @@ ControllerStateMachine::ControllerStateMachine(ControllerPtr controller) : m_con
 {
 }
 
-void ControllerStateMachine::frameUpdate()
+void ControllerStateMachine::frameUpdate(float frameTime)
 {
-	m_controller->frameUpdate(*this);
+	m_controller->frameUpdate(*this, frameTime);
 }
 
 Controller * ControllerStateMachine::getCurrentController()

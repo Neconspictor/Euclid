@@ -4,9 +4,7 @@
 #include <mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <camera/TrackballQuatCamera.hpp>
-#include <camera/FPQuaternionCamera.hpp>
 #include <shader/NormalsShader.hpp>
-#include <camera/FPCamera.hpp>
 #include <shader/PBRShader.hpp>
 #include <shader/SkyBoxShader.hpp>
 #include <scene/SceneNode.hpp>
@@ -14,11 +12,6 @@
 #include <shader/ScreenShader.hpp>
 #include <shader/ShadowShader.hpp>
 #include <util/Math.hpp>
-#include <gui/Menu.hpp>
-#include <gui/SceneGUI.hpp>
-#include <gui/AppStyle.hpp>
-#include <gui/ConfigurationWindow.hpp>
-#include <gui/Controller.hpp>
 
 using namespace glm;
 using namespace std;
@@ -29,44 +22,27 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(EnginePtr engine,
-	WindowPtr window,
+PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(WindowPtr window,
 	WindowSystemPtr windowSystem,
 	RendererPtr renderer,
-	GuiPtr gui,
-	unsigned int flags) :
-	Task(flags),
+	GuiPtr gui) :
 	blurEffect(nullptr),
-	engine(engine),
 	gui(gui),
-	isRunning(true),
+	m_isRunning(true),
 	logClient(getLogServer()),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
-	runtime(0),
 	renderer(renderer),
 	scene(nullptr),
 	shadowMap(nullptr),
 	showDepthMap(false),
 	ui(nullptr),
-	uiModeStateMachine(nullptr),
 	window(window),
 	windowSystem(windowSystem)
 {
-	originalTitle = window->getTitle();
 	logClient.setPrefix("[PBR_Deferred_MainLoopTask]");
 
 	mixValue = 0.2f;
-
-	camera = make_shared<FPCamera>(FPCamera());
-
-	uiModeStateMachine.setCurrentController(std::make_unique<App::EditMode>(*this, *gui, std::unique_ptr<nex::engine::gui::Drawable>()));
-
-	style = make_unique<App::AppStyle>();
-}
-
-PBR_Deferred_MainLoopTask::~PBR_Deferred_MainLoopTask()
-{
 }
 
 SceneNode* PBR_Deferred_MainLoopTask::createShadowScene()
@@ -119,19 +95,9 @@ SceneNode * PBR_Deferred_MainLoopTask::createCubeReflectionScene()
 	return root;
 }
 
-Camera * PBR_Deferred_MainLoopTask::getCamera()
-{
-	return camera.get();
-}
-
 bool PBR_Deferred_MainLoopTask::getShowDepthMap() const
 {
 	return showDepthMap;
-}
-
-Timer * PBR_Deferred_MainLoopTask::getTimer()
-{
-	return &timer;
 }
 
 Window * PBR_Deferred_MainLoopTask::getWindow()
@@ -151,29 +117,7 @@ void PBR_Deferred_MainLoopTask::init()
 	ShaderManager* shaderManager = renderer->getShaderManager();
 	ModelManager* modelManager = renderer->getModelManager();
 	TextureManager* textureManager = renderer->getTextureManager();
-	Input* input = window->getInputDevice();
 
-	camera->setPosition(vec3(0.0f, 3.0f, 2.0f));
-	camera->setLook(vec3(0.0f, 0.0f, -1.0f));
-	camera->setUp(vec3(0.0f, 1.0f, 0.0f));
-	camera->setAspectRatio((float)windowWidth / (float)windowHeight);
-
-	Frustum frustum = camera->getFrustum(Perspective);
-	frustum.left = -10.0f;
-	frustum.right = 10.0f;
-	frustum.bottom = -10.0f;
-	frustum.top = 10.0f;
-	frustum.nearPlane = 0.1f;
-	frustum.farPlane = 10.0f;
-	camera->setOrthoFrustum(frustum);
-
-
-	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
-	{
-		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, placeholders::_1, placeholders::_2);
-		casted->updateOnResize(window->getWidth(), window->getHeight());
-		input->addResizeCallback(cameraResizeCallback);
-	}
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
 
@@ -254,58 +198,14 @@ void PBR_Deferred_MainLoopTask::init()
 	ssao_deferred = renderer->createDeferredSSAO();
 	hbao = renderer->createHBAO();
 
-
-	using namespace nex::engine::gui;
-
-	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(&uiModeStateMachine);
-	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
-	
-	for (int i = 0; i < 5; ++i)
-	{
-		std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(hbao.get(),
-			root->getOptionMenu(), configurationWindow.get(), "HBAO");
-		//hbaoView->setVisible(true);
-		configurationWindow->addChild(move(hbaoView));
-	}
-
-	configurationWindow->useStyleClass(make_shared<App::ConfigurationStyle2>());
-	root->addChild(move(configurationWindow));
-
-	uiModeStateMachine.getCurrentController()->setDrawable(move(root));
-
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
-
-	uiModeStateMachine.init();
-
-	style->apply();
-
-	setupCallbacks();
-}
-
-
-void PBR_Deferred_MainLoopTask::onWindowsFocus(Window * window, bool receivedFocus)
-{
-	if (receivedFocus)
-	{
-		LOG(logClient, platform::Debug) << "received focus!";
-		isRunning = true;
-	}
-	else
-	{
-		LOG(logClient, platform::Debug) << "lost focus!";
-		isRunning = false;
-		if (window->isInFullscreenMode())
-		{
-			window->minimize();
-		}
-	}
 }
 
 
 
-void PBR_Deferred_MainLoopTask::run()
+void PBR_Deferred_MainLoopTask::run(Camera* camera, float frameTime)
 {
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
@@ -313,43 +213,7 @@ void PBR_Deferred_MainLoopTask::run()
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
 		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
 	using namespace chrono;
-	
-	float frameTime = timer.update();
-	int millis = static_cast<int> (1.0f /(frameTime * 1000.0f));
-
-	// manual 60 fps cap -> only temporary!
-	int minimumMillis = 16;
-	if (millis < minimumMillis)
-	{
-		//this_thread::sleep_for(milliseconds(minimumMillis - millis));
-		//frameTime += timer.update();
-	}
-
-	float fps = counter.update(frameTime);
-	updateWindowTitle(frameTime, fps);
-
-
-	if (!window->isOpen())
-	{
-		engine->stop();
-		return;
-	}
-
-	// Poll input events before checking if the app is running, otherwise 
-	// the window is likely to hang or crash (at least on windows platform)
-	windowSystem->pollEvents();
-	
-	// pause app if it is not active (e.g. window isn't focused)
-	if (!isRunning)
-	{
-		this_thread::sleep_for(milliseconds(500));
-		return;
-	}
-
-
-	window->activate();
 	//handleInputEvents();
-	uiModeStateMachine.frameUpdate();
 
 	// update the scene
 	scene->update(frameTime);
@@ -490,12 +354,6 @@ void PBR_Deferred_MainLoopTask::run()
 		//ssao_deferred->displayAOTexture();
 	}
 	//renderer->endScene();
-
-	uiModeStateMachine.getCurrentController()->render(*gui);
-
-	// present rendered frame
-	window->swapBuffers();
-
 }
 
 void PBR_Deferred_MainLoopTask::setShowDepthMap(bool showDepthMap)
@@ -508,61 +366,30 @@ void PBR_Deferred_MainLoopTask::setUI(SystemUI* ui)
 	this->ui = ui;
 }
 
-
-void PBR_Deferred_MainLoopTask::setupCallbacks()
+void PBR_Deferred_MainLoopTask::setRunning(bool isRunning)
 {
-	using namespace placeholders;
-
-	Input* input = window->getInputDevice();
-
-	auto focusCallback = bind(&PBR_Deferred_MainLoopTask::onWindowsFocus, this, placeholders::_1, placeholders::_2);
-	auto scrollCallback = bind(&Camera::onScroll, camera.get(), placeholders::_1, placeholders::_2);
-	input->addWindowFocusCallback(focusCallback);
-	input->addScrollCallback(scrollCallback);
-
-	input->addResizeCallback([&](int width, int height)
-	{
-		LOG(logClient, Debug) << "addResizeCallback : width: " << width << ", height: " << height;
-
-		if (!window->hasFocus()) {
-			LOG(logClient, Debug) << "addResizeCallback : no focus!";
-		}
-
-		if (width == 0 || height == 0) {
-			LOG(logClient, Warning) << "addResizeCallback : width or height is 0!";
-			return;
-		}
-
-		camera->setAspectRatio((float)width / (float)height);
-
-		//update render target dimension
-		//the render target dimensions are dependent from the viewport size
-		// so first update the viewport and than recreate the render targets
-		// TODO, simplify this process -> render targets should be indepedent from viewport dimension?
-		renderer->setViewPort(0, 0, width, height);
-		renderer->destroyRenderTarget(renderTargetSingleSampled);
-		renderTargetSingleSampled = renderer->createRenderTarget();
-		pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
-		ssao_deferred->onSizeChange(width, height);
-		//hbao->onSizeChange(width, height);
-	});
-
-	input->addRefreshCallback([&]() {
-		LOG(logClient, Warning) << "addRefreshCallback : called!";
-		if (!window->hasFocus()) {
-			LOG(logClient, Warning) << "addRefreshCallback : no focus!";
-			return;
-		}
-	});
+	m_isRunning = isRunning;
 }
 
-void PBR_Deferred_MainLoopTask::updateWindowTitle(float frameTime, float fps)
+bool PBR_Deferred_MainLoopTask::isRunning() const
 {
-	runtime += frameTime;
-	if (runtime > 1)
-	{
-		stringstream ss; ss << originalTitle << " : FPS= " << fps;
-		window->setTitle(ss.str());
-		runtime -= 1;
-	}
+	return m_isRunning;
+}
+
+void PBR_Deferred_MainLoopTask::updateRenderTargets(int width, int height)
+{
+	//update render target dimension
+	//the render target dimensions are dependent from the viewport size
+	// so first update the viewport and than recreate the render targets
+	renderer->setViewPort(0, 0, width, height);
+	renderer->destroyRenderTarget(renderTargetSingleSampled);
+	renderTargetSingleSampled = renderer->createRenderTarget();
+	pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
+	//ssao_deferred->onSizeChange(width, height);
+	hbao->onSizeChange(width, height);
+}
+
+hbao::HBAO* PBR_Deferred_MainLoopTask::getHBAO()
+{
+	return hbao.get();
 }

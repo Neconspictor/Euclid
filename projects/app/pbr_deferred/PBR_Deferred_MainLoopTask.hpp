@@ -23,7 +23,7 @@
 
 class SystemUI;
 
-class PBR_Deferred_MainLoopTask : public Task
+class PBR_Deferred_MainLoopTask
 {
 public:
 
@@ -34,42 +34,35 @@ public:
 	using GuiPtr = ImGUI_Impl*;
 	typedef unsigned int uint;
 
-	PBR_Deferred_MainLoopTask(EnginePtr engine, 
-								WindowPtr window, 
+	PBR_Deferred_MainLoopTask(WindowPtr window, 
 								WindowSystemPtr windowSystem, 
 								RendererPtr renderer,
-								GuiPtr gui,
-		unsigned int flags = SINGLETHREADED_REPEATING);
-
-	virtual ~PBR_Deferred_MainLoopTask();
+								GuiPtr gui);
 
 	SceneNode* createShadowScene();
 	SceneNode* createCubeReflectionScene();
-	Camera* getCamera();
 	bool getShowDepthMap() const;
-	Timer* getTimer();
 	Window* getWindow();
 	void init();
-	void run() override;
+	void run(Camera* camera, float frameTime);
 	void setShowDepthMap(bool showDepthMap);
 	void setUI(SystemUI* ui);
+	void setRunning(bool isRunning);
+	bool isRunning() const;
+	void updateRenderTargets(int width, int height);
+	hbao::HBAO* getHBAO();
 
 private:
 
 	// Allow the UI mode classes accessing private members
 
 	GaussianBlur* blurEffect;
-	std::shared_ptr<Camera> camera;
-	FPSCounter counter;
-	EnginePtr engine;
 	DirectionalLight globalLight;
 	GuiPtr gui;
-	std::unique_ptr<nex::engine::gui::Style> style;
-	bool isRunning;
+	bool m_isRunning;
 	platform::LoggingClient logClient;
 	float mixValue;
 	std::list<SceneNode> nodes;
-	std::string originalTitle;
 	Texture* panoramaSky;
 
 	std::unique_ptr<PBR_Deferred> pbr_deferred;
@@ -80,26 +73,14 @@ private:
 
 	RendererPtr renderer;
 	RenderTarget* renderTargetSingleSampled;
-	float runtime;
 	SceneNode* scene;
 	Sprite screenSprite;
 	DepthMap* shadowMap;
 	bool showDepthMap;
-	Timer timer;
 	SystemUI* ui;
 
 	std::list<Vob> vobs;
 
-	ControllerStateMachine uiModeStateMachine;
-
 	WindowPtr window;
 	WindowSystemPtr windowSystem;
-
-	void drawScene(const glm::mat4& projection, const glm::mat4& view, Shaders shaderType = Shaders::Unknown);
-
-	void updateWindowTitle(float frameTime, float fps);
-
-	void setupCallbacks();
-
-	void onWindowsFocus(Window * window, bool receivedFocus);
 };

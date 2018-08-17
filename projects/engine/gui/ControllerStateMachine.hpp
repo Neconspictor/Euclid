@@ -12,7 +12,7 @@ public:
 	ControllerStateMachine(ControllerPtr controller);
 	virtual ~ControllerStateMachine() = default;
 
-	void frameUpdate();
+	void frameUpdate(float frameTime);
 	
 	Controller* getCurrentController();
 

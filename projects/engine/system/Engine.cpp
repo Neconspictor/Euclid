@@ -26,9 +26,10 @@ Engine::~Engine()
 
 void Engine::run(const TaskManager::TaskPtr& mainLoop)
 {
-	taskManager.add(mainLoop);
-	taskManager.start();
-	shutdownSystems();
+
+	//taskManager.add(mainLoop);
+	//taskManager.start();
+	//shutdownSystems();
 }
 
 void Engine::setConfigFileName(const string & fileName)
@@ -39,6 +40,7 @@ void Engine::setConfigFileName(const string & fileName)
 void Engine::stop()
 {
 	eventChannel.broadcast(TaskManager::StopEvent());
+	shutdownSystems();
 }
 
 void Engine::add(SystemPtr system)
@@ -48,8 +50,8 @@ void Engine::add(SystemPtr system)
 		LOG(logClient, platform::Warning) << "System already added: " << system->getName();
 		return;
 	}
-	if (system->updater.get() != nullptr)
-		taskManager.add(system->updater);
+	//if (system->updater.get() != nullptr)
+	//	taskManager.add(system->updater);
 
 	systemMap.insert(make_pair(system->getName(), system));
 	eventChannel.add<CollectOptions>(*system.get());

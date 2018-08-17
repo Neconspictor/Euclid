@@ -17,20 +17,12 @@ public:
 
 	Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)){}
 	virtual ~Controller() = default;
-	virtual void frameUpdate(ControllerStateMachine& stateMachine) = 0;
+	virtual void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) = 0;
 	virtual void init() = 0;
 
-	DrawablePtr getView()const
+	DrawablePtr getDrawable()const
 	{
 		return m_drawable.get();
-	}
-
-	virtual void render(ImGUI_Impl& guiRenderer)
-	{
-		guiRenderer.newFrame();
-		m_drawable->drawGUI();
-		ImGui::Render();
-		guiRenderer.renderDrawData(ImGui::GetDrawData());
 	}
 
 	void setDrawable(std::unique_ptr<nex::engine::gui::Drawable> drawable) {

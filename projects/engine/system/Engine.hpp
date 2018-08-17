@@ -27,17 +27,20 @@ public:
 	
 	void init();
 
+	// @deprecated
 	void run(const TaskManager::TaskPtr& mainLoop);
 
 	void setConfigFileName(const std::string& fileName);
 
+	
 	void stop();
 
 private:
-	void initSystems();
-	void shutdownSystems();
 
-	TaskManager taskManager;
+	void shutdownSystems();
+	void initSystems();
+
+	//TaskManager taskManager;
 	//std::weak_ptr<EventChannel> eventChannel;
 	GlobalEventChannel eventChannel;
 	SystemMap systemMap;
