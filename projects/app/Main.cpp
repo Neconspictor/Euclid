@@ -20,20 +20,24 @@
 
 using namespace std;
 
-platform::LoggingClient* globalLogClient = nullptr;
-
-void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* task, Renderer3D* renderer);
+void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* task, Renderer3D* renderer, platform::LoggingClient& logClient);
 void setupGUI(ControllerStateMachine* controllerSM, PBR_Deferred_MainLoopTask* task);
+void setupCamera(Camera* camera, Window* window, Input* input);
 void updateWindowTitle(Window* window, const char* baseTitle, float frameTime, float fps);
+void readConfig(shared_ptr<Video> video, Renderer3D* renderer, Engine* engine);
+void run(SubSystemProvider* windowSystem, Window* window, PBR_Deferred_MainLoopTask* task, ControllerStateMachine* controllerSM, ImGUI_Impl* gui,
+	Camera* camera, const char* baseTitle, Timer& timer, FPSCounter& counter, SceneNode* scene);
 
-float runtime = 0;
+SceneNode* createScene();
+
+std::list<SceneNode> nodes;
+std::list<Vob> vobs;
 
 int main(int argc, char** argv)
 {
 	//BROFILER_THREAD("Main");
 
 	platform::LoggingClient logger(platform::getLogServer());
-	globalLogClient = &logger;
 
 	SubSystemProvider* windowSystem = SubSystemProviderGLFW::get();
 	if (!windowSystem->init())
@@ -46,112 +50,32 @@ int main(int argc, char** argv)
 	try {
 		shared_ptr<Video> video = make_shared<Video>(windowSystem);
 		shared_ptr<Renderer3D> renderer = make_shared<RendererOpenGL>();
-		shared_ptr<Engine> engine  = make_shared<Engine>();
-
-		video->useRenderer(renderer.get());
-		//video->useUISystem(ui);
-		engine->add(video);
-		engine->setConfigFileName("config.ini");
+		shared_ptr<Engine> engine = make_shared<Engine>();
 
 		LOG(logger, platform::Info) << "Starting Engine...";
-		
-		engine->init();
-
-		std::unique_ptr<ImGUI_Impl> imGUI = windowSystem->createGUI(video->getWindow());
-
-		shared_ptr<PBR_Deferred_MainLoopTask> mainLoop = make_shared<PBR_Deferred_MainLoopTask>(video->getWindow(), video->getWindowSystem(), renderer.get(), imGUI.get());
-
-		//shared_ptr<MainLoopTask> mainLoop = make_shared<MainLoopTask>(engine.get(),
-		//		video->getWindow(), video->getWindowSystem(), renderer.get());
-		
-		//mainLoop->setUI(ui);
-		mainLoop->init();
-
-
-		Window* window = video->getWindow();
-		Input* input = window->getInputDevice();
-		std::shared_ptr<Camera> camera = make_shared<FPCamera>(FPCamera());
-
-		if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera.get()))
-		{
-			auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, placeholders::_1, placeholders::_2);
-			casted->updateOnResize(window->getWidth(), window->getHeight());
-			input->addResizeCallback(cameraResizeCallback);
-		}
-
-		window->activate();
-		int windowWidth = window->getWidth();
-		int windowHeight = window->getHeight();
-
-		camera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
-		camera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
-		camera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-		camera->setAspectRatio((float)windowWidth / (float)windowHeight);
-
-		Frustum frustum = camera->getFrustum(Perspective);
-		frustum.left = -10.0f;
-		frustum.right = 10.0f;
-		frustum.bottom = -10.0f;
-		frustum.top = 10.0f;
-		frustum.nearPlane = 0.1f;
-		frustum.farPlane = 10.0f;
-		camera->setOrthoFrustum(frustum);
-
-		setupCallbacks(window, camera.get(), mainLoop.get(), renderer.get());
-
-
-
-
-
-		ControllerStateMachine controllerSM(nullptr);
-
-		controllerSM.setCurrentController(std::make_unique<App::EditMode>(window,
-			input, 
-			mainLoop.get(), 
-			camera.get(), 
-			imGUI.get(), 
-			std::unique_ptr<nex::engine::gui::Drawable>()));
-
-		controllerSM.init();
-
-		setupGUI(&controllerSM, mainLoop.get());
-
+		readConfig(video, renderer.get(), engine.get());
 
 		Timer timer;
 		FPSCounter counter;
-
+		Window* window = video->getWindow();
+		Input* input = window->getInputDevice();
+		std::shared_ptr<Camera> camera = make_shared<FPCamera>(FPCamera());
 		std::string baseTitle = window->getTitle();
 
-		while(window->isOpen())
-		{
-			// Poll input events before checking if the app is running, otherwise 
-			// the window is likely to hang or crash (at least on windows platform)
-			windowSystem->pollEvents();
+		std::unique_ptr<ImGUI_Impl> imGUI = windowSystem->createGUI(video->getWindow());
+		shared_ptr<PBR_Deferred_MainLoopTask> mainLoop = make_shared<PBR_Deferred_MainLoopTask>(renderer.get());
+		ControllerStateMachine controllerSM(std::make_unique<App::EditMode>(window, input, mainLoop.get(), camera.get(), imGUI.get(), std::unique_ptr<nex::engine::gui::Drawable>()));
 
-			float frameTime = timer.update();
-			float fps = counter.update(frameTime);
-			updateWindowTitle(window, baseTitle.c_str(), frameTime, fps);
+		window->activate();
+		mainLoop->init(window->getWidth(), window->getHeight());
+		controllerSM.init();
+		setupCamera(camera.get(), window, input);
+		setupCallbacks(window, camera.get(), mainLoop.get(), renderer.get(), logger);
+		setupGUI(&controllerSM, mainLoop.get());
 
-			if (mainLoop->isRunning())
-			{
-				controllerSM.frameUpdate(frameTime);
+		SceneNode* scene = createScene();
 
-				window->activate();
-
-				mainLoop->run(camera.get(), frameTime);
-
-				imGUI->newFrame();
-				controllerSM.getCurrentController()->getDrawable()->drawGUI();
-				ImGui::Render();
-				imGUI->renderDrawData(ImGui::GetDrawData());
-
-				// present rendered frame
-				window->swapBuffers();
-			} else
-			{
-				this_thread::sleep_for(chrono::milliseconds(500));
-			}
-		}
+		run(windowSystem, window, mainLoop.get(), &controllerSM, imGUI.get(), camera.get(), baseTitle.c_str(), timer, counter, scene);
 
 		engine->stop();
 
@@ -170,8 +94,87 @@ int main(int argc, char** argv)
 	return EXIT_SUCCESS;
 }
 
+void readConfig(shared_ptr<Video> video, Renderer3D* renderer, Engine* engine)
+{
+	video->useRenderer(renderer);
+	//video->useUISystem(ui);
+	engine->add(video);
+	engine->setConfigFileName("config.ini");
+	engine->init();
+}
 
-void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* task, Renderer3D* renderer)
+
+void run(SubSystemProvider* windowSystem, Window* window, PBR_Deferred_MainLoopTask* task, ControllerStateMachine* controllerSM, ImGUI_Impl* gui,
+	Camera* camera, const char* baseTitle, Timer& timer, FPSCounter& counter, SceneNode* scene)
+{
+	window->activate();
+
+	while (window->isOpen())
+	{
+		// Poll input events before checking if the app is running, otherwise 
+		// the window is likely to hang or crash (at least on windows platform)
+		windowSystem->pollEvents();
+
+		float frameTime = timer.update();
+		float fps = counter.update(frameTime);
+		updateWindowTitle(window, baseTitle, frameTime, fps);
+
+		if (task->isRunning())
+		{
+			controllerSM->frameUpdate(frameTime);
+			task->run(scene, camera, frameTime, window->getWidth(), window->getHeight());
+
+			gui->newFrame();
+			controllerSM->getCurrentController()->getDrawable()->drawGUI();
+			ImGui::Render();
+			gui->renderDrawData(ImGui::GetDrawData());
+
+			// present rendered frame
+			window->swapBuffers();
+		}
+		else
+		{
+			this_thread::sleep_for(chrono::milliseconds(500));
+		}
+	}
+}
+
+SceneNode* createScene()
+{
+	nodes.push_back(SceneNode());
+	SceneNode* root = &nodes.back();
+
+	nodes.push_back(SceneNode());
+	SceneNode* ground = &nodes.back();
+	root->addChild(ground);
+
+	nodes.push_back(SceneNode());
+	SceneNode* cube1 = &nodes.back();
+	root->addChild(cube1);
+
+	nodes.push_back(SceneNode());
+	SceneNode* sphere = &nodes.back();
+	root->addChild(sphere);
+
+	vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
+	ground->setVob(&vobs.back());
+	//vobs.push_back(Vob("misc/textured_cube.obj"));
+	vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
+	cube1->setVob(&vobs.back());
+
+	vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
+	sphere->setVob(&vobs.back());
+
+	ground->getVob()->setPosition({ 10, 0, 0 });
+	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
+
+	sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
+
+	return root;
+}
+
+
+void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* task, Renderer3D* renderer, platform::LoggingClient& logClient)
 {
 	using namespace placeholders;
 
@@ -182,8 +185,6 @@ void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* t
 	
 	input->addWindowFocusCallback([=](Window* window_s, bool receivedFocus)
 	{
-		platform::LoggingClient& logClient = *globalLogClient;
-
 		task->setRunning(receivedFocus);
 		if (receivedFocus)
 		{
@@ -204,8 +205,6 @@ void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* t
 
 	input->addResizeCallback([=](int width, int height)
 	{
-		platform::LoggingClient& logClient = *globalLogClient;
-
 		LOG(logClient, platform::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
 
 		if (!window->hasFocus()) {
@@ -223,13 +222,39 @@ void setupCallbacks(Window* window, Camera* camera, PBR_Deferred_MainLoopTask* t
 	});
 
 	input->addRefreshCallback([=]() {
-		platform::LoggingClient& logClient = *globalLogClient;
-
 		LOG(logClient, platform::Warning) << "addRefreshCallback : called!";
 		if (!window->hasFocus()) {
 			LOG(logClient, platform::Warning) << "addRefreshCallback : no focus!";
 		}
 	});
+}
+
+void setupCamera(Camera* camera, Window* window, Input* input)
+{
+
+	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(camera))
+	{
+		auto cameraResizeCallback = bind(&TrackballQuatCamera::updateOnResize, casted, placeholders::_1, placeholders::_2);
+		casted->updateOnResize(window->getWidth(), window->getHeight());
+		input->addResizeCallback(cameraResizeCallback);
+	}
+
+	int windowWidth = window->getWidth();
+	int windowHeight = window->getHeight();
+
+	camera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
+	camera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
+	camera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
+	camera->setAspectRatio((float)windowWidth / (float)windowHeight);
+
+	Frustum frustum = camera->getFrustum(Perspective);
+	frustum.left = -10.0f;
+	frustum.right = 10.0f;
+	frustum.bottom = -10.0f;
+	frustum.top = 10.0f;
+	frustum.nearPlane = 0.1f;
+	frustum.farPlane = 10.0f;
+	camera->setOrthoFrustum(frustum);
 }
 
 
@@ -259,11 +284,25 @@ void setupGUI(ControllerStateMachine* controllerSM, PBR_Deferred_MainLoopTask* t
 
 void updateWindowTitle(Window* window, const char* baseTitle, float frameTime, float fps)
 {
+	static float runtime = 0;
+
 	runtime += frameTime;
+
+	// Update title every second
 	if (runtime > 1)
 	{
-		stringstream ss; ss << baseTitle << " : FPS= " << fps;
+		stringstream ss;
+		/*ss.precision(2);
+		ss << fixed << fps;
+		std::string temp = ss.str();
+		ss.str("");
+
+		ss << baseTitle << " : FPS = " << std::setw(6) << std::setfill(' ') << temp << " : frame time (ms) = " << frameTime * 1000;
+		window->setTitle(ss.str());*/
+
+		ss << baseTitle << " : FPS = " << fps;
 		window->setTitle(ss.str());
-		runtime -= 1;
+
+		runtime = 0;
 	}
 }
