@@ -59,7 +59,7 @@ private: //the entire class is private, so no unauthored class may use it
 	 */
 	template <class tHandler>
 	void add(tHandler& handler) {
-		mHandlerList.push_back(EventHandlerPtr(new EventBridge<tEvent, tHandler>(handler)));
+		mHandlerList.push_back(std::make_shared<EventBridge<tEvent, tHandler>>(handler));
 	}
 
 	/**

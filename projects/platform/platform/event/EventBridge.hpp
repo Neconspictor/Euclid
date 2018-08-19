@@ -32,12 +32,14 @@ template <class> class EventHandlerQueue;
 
 template <typename tEventType, class tHandler>
 class EventBridge : public EventHandler<tEventType> {
+public:
+
+	EventBridge(tHandler& handler);
+
 private:
 	friend class EventHandlerQueue<tEventType>;
 
 	tHandler& mHandler;
-
-	EventBridge(tHandler& handler);
 
 	void handle(tEventType& type) override;
 
