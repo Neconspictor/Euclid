@@ -10,25 +10,22 @@ Video::Video(SubSystemProvider* system) :
 	System("Video"), fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), 
 	vSync(false), msaaSamples(0), windowSystem(system), window(nullptr), renderer(nullptr)
 {
-	//we dont't need a frame updater
-	updater.reset();
-	assert(updater.get() == nullptr);
 }
 
 Video::~Video()
 {
 }
 
-void Video::handle(const CollectOptions& config)
+void Video::handle(Configuration& config)
 {
-	config.config->addOption(getName(), "Title", &windowTitle, string(""));
-	config.config->addOption(getName(), "Fullscreen", &fullscreen, false);
-	config.config->addOption<unsigned int>(getName(), "WindowWidth", &width, 800);
-	config.config->addOption<unsigned int>(getName(), "WindowHeight", &height, 600);
-	config.config->addOption<unsigned int>(getName(), "ColorBitDepth", &colorBitDepth, 32);
-	config.config->addOption<unsigned int>(getName(), "RefreshRate", &refreshRate, 60);
-	config.config->addOption(getName(), "VSync", &vSync, false);
-	config.config->addOption<unsigned int>(getName(), "MSAASamples", &msaaSamples, 0);
+	config.addOption(getName(), "Title", &windowTitle, string(""));
+	config.addOption(getName(), "Fullscreen", &fullscreen, false);
+	config.addOption<unsigned int>(getName(), "WindowWidth", &width, 800);
+	config.addOption<unsigned int>(getName(), "WindowHeight", &height, 600);
+	config.addOption<unsigned int>(getName(), "ColorBitDepth", &colorBitDepth, 32);
+	config.addOption<unsigned int>(getName(), "RefreshRate", &refreshRate, 60);
+	config.addOption(getName(), "VSync", &vSync, false);
+	config.addOption<unsigned int>(getName(), "MSAASamples", &msaaSamples, 0);
 }
 
 void Video::init()

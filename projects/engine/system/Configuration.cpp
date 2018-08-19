@@ -2,13 +2,17 @@
 #include <fstream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include "platform/logging/GlobalLoggingServer.hpp"
 
 using namespace std;
 using namespace platform;
 using namespace boost::program_options;
 
-Configuration::Configuration() : 
-	System("Configuration") {}
+Configuration::Configuration() : logClient(getLogServer())
+{
+	stringstream ss; ss << "[" << "Configuration" << "]";
+	logClient.setPrefix(ss.str());
+}
 
 
 Configuration::~Configuration() {}

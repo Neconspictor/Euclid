@@ -54,7 +54,7 @@ void Engine::add(SystemPtr system)
 	//	taskManager.add(system->updater);
 
 	systemMap.insert(make_pair(system->getName(), system));
-	eventChannel.add<CollectOptions>(*system.get());
+	eventChannel.add<Configuration&>(*system.get());
 }
 
 Engine::SystemPtr Engine::get(const string& name) const
@@ -77,10 +77,9 @@ LogLevel Engine::getLogLevel()
 
 void Engine::init()
 {
-	config.init();
 	logClient.setPrefix("[Engine]");
 
-	eventChannel.broadcast(CollectOptions(&config));
+	eventChannel.broadcast(config);
 
 
 	LOG(logClient, Info) << "Loading configuration file...";

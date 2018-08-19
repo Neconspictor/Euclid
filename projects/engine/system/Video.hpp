@@ -12,7 +12,7 @@ public:
 	Video(SubSystemProvider* system);
 
 	virtual ~Video();
-	void handle(const CollectOptions& config) override;
+	void handle(Configuration& config) override;
 
 	virtual void init() override;
 

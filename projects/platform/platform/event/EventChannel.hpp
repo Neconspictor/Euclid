@@ -59,7 +59,7 @@ public:
 	* This function does nothing, if the event handler wasn't added before.
 	*/
 	template <typename tEvent, class tHandler>
-	void remove(const tHandler& handler) {
+	void remove(tHandler& handler) {
 		EventHandlerQueue<tEvent>& queue = getQueue<tEvent>();
 		queue.remove(handler);
 	}
@@ -69,7 +69,7 @@ public:
 	* are listening for events of type tEvent will be handling this event.
 	*/
 	template <typename tEvent>
-	void broadcast(const tEvent& object) {
+	void broadcast(tEvent object) {
 		EventHandlerQueue<tEvent>& queue = getQueue<tEvent>();
 		queue.broadcast(object);
 	}

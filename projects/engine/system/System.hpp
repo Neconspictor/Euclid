@@ -5,40 +5,11 @@
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/event/GlobalEventChannel.hpp>
 
-
-class Engine;
 class Configuration;
-class CollectOptions;
 
 class System
 {
 public:
-
-	/*struct SystemInitEvent
-	{
-		SystemInitEvent(System* system) : system(system){}
-		System* system;
-	};
-
-	struct SystemShutdownEvent
-	{
-		SystemShutdownEvent(System* system) : system(system) {}
-		System* system;
-	};*/
-
-	struct SystemUpdater : Task
-	{
-		SystemUpdater(System* s, unsigned int flags = SINGLETHREADED_REPEATING) :
-			Task(flags), system(s)
-		{}
-
-		virtual void run() override
-		{
-			system->update();
-		}
-
-		System* system;
-	};
 
 	System(const std::string& name);
 
@@ -58,7 +29,7 @@ public:
 
 	virtual void init();
 
-	virtual void handle(const CollectOptions& config) = 0;
+	virtual void handle(Configuration& config) = 0;
 
 	virtual void shutdown();
 
@@ -69,13 +40,15 @@ public:
 
 protected:
 
-	void enableUpdater(unsigned int taskFlags = Task::SINGLETHREADED_REPEATING);
+	using Options = boost::program_options::options_description;
 
-	friend class Engine;
+	//void enableUpdater(unsigned int taskFlags = Task::SINGLETHREADED_REPEATING);
+
+	//friend class Engine;
 	GlobalEventChannel channel;
-	std::shared_ptr<SystemUpdater> updater;
+	//std::shared_ptr<SystemUpdater> updater;
 	platform::LoggingClient logClient;
 	std::string name;
-	boost::program_options::options_description settings;
+	Options settings;
 
 };

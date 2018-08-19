@@ -39,10 +39,10 @@ private:
 
 	EventBridge(tHandler& handler);
 
-	void handle(const tEventType& type) override;
+	void handle(tEventType& type) override;
 
 public:
-	bool operator == (const tHandler& handler) const;
+	bool operator == (tHandler& handler) const;
 };
 
 //Implementation
@@ -53,12 +53,12 @@ EventBridge<T, U>::EventBridge(U& handler) :
 }
 
 template <typename T, class U>
-void EventBridge<T, U>::handle(const T& object) {
+void EventBridge<T, U>::handle(T& object) {
 	mHandler.handle(object);
 }
 
 template <typename T, class U>
-bool EventBridge<T, U>::operator == (const U& handler) const {
+bool EventBridge<T, U>::operator == (U& handler) const {
 	return ((&mHandler) == (&handler));
 }
 

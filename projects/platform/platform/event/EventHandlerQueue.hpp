@@ -65,7 +65,7 @@ private: //the entire class is private, so no unauthored class may use it
 	/**
 	 * Broadcasts an event to all registered event handlers.
 	 */
-	void broadcast(const tEvent& object) {
+	void broadcast(tEvent& object) {
 		ConstHandlerIterator next;
 		for (ConstHandlerIterator it = mHandlerList.begin(); it != mHandlerList.end(); ) {
 

@@ -25,14 +25,14 @@ public:
 	/*! @copydoc EventChannel::remove(const tHandler& handler)
 	*/
 	template <typename tEvent, class tHandler>
-	void remove(const tHandler& handler) {
+	void remove(tHandler& handler) {
 		getHandlerQueue<tEvent>().remove(handler);
 	}
 
 	/*! @copydoc EventChannel::broadcast(const tEvent& object)
 	*/
 	template <typename tEvent>
-	void broadcast(const tEvent& object) {
+	void broadcast(tEvent object) {
 		getHandlerQueue<tEvent>().broadcast(object);
 	}
 

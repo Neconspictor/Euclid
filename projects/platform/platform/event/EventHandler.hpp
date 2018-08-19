@@ -39,5 +39,5 @@ public:
 private:
 	friend class EventHandlerQueue<tEvent>;
 
-	virtual void handle(const tEvent& object) = 0;
+	virtual void handle(tEvent& object) = 0;
 };

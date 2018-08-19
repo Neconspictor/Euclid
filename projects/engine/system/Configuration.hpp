@@ -3,25 +3,10 @@
 #include <system/System.hpp>
 #include <boost/program_options.hpp>
 #include <string>
-#include <typeinfo>
 
-class Configuration;
-
-class CollectOptions {
-public:
-	CollectOptions(Configuration* config)
-	{
-		this->config = config;
-	}
-
-	Configuration* config;
-};
-
-class Configuration : public System
+class Configuration
 {
 public:
-
-	void handle(const CollectOptions& config) override {};
 
 	using Options = boost::program_options::options_description;
 	using Variables = boost::program_options::variables_map;
@@ -67,4 +52,5 @@ public:
 private:
 	Options options;
 	Variables variables;
+	platform::LoggingClient logClient;
 };

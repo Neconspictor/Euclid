@@ -1,7 +1,4 @@
 #include <system/System.hpp>
-#include <fstream>
-#include <platform/logging/LoggingServer.hpp>
-#include <platform/logging/LogEndpoint.hpp>
 #include <platform/logging/GlobalLoggingServer.hpp>
 
 
@@ -39,7 +36,7 @@ const string& System::getName() const
 	return name;
 }
 
-void System::enableUpdater(unsigned taskFlags)
+/*void System::enableUpdater(unsigned taskFlags)
 {
 	updater.reset(new SystemUpdater(this, taskFlags));
-}
+}*/

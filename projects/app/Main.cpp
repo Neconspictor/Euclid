@@ -62,6 +62,7 @@ Main::Main() : m_logClient(platform::getLogServer())
 	m_renderer = make_unique<RendererOpenGL>();
 	m_engine = make_unique<Engine>();
 	m_video = std::make_shared<Video>(m_windowSystem);
+	m_video->useRenderer(m_renderer.get());
 
 	LOG(m_logClient, platform::Info) << "Starting Engine...";
 	readConfig();
