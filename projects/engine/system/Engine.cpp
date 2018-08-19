@@ -79,7 +79,7 @@ void Engine::init()
 {
 	logClient.setPrefix("[Engine]");
 
-	eventChannel.broadcast(config);
+	eventChannel.broadcast<Configuration&>(config);
 
 
 	LOG(logClient, Info) << "Loading configuration file...";

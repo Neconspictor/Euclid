@@ -45,7 +45,7 @@ protected:
 	//void enableUpdater(unsigned int taskFlags = Task::SINGLETHREADED_REPEATING);
 
 	//friend class Engine;
-	GlobalEventChannel channel;
+	//GlobalEventChannel channel;
 	//std::shared_ptr<SystemUpdater> updater;
 	platform::LoggingClient logClient;
 	std::string name;
