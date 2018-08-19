@@ -2,6 +2,7 @@ set(
     APP_SOURCES 
     
 	Main.cpp
+	Main.hpp
     PBR_MainLoopTask.hpp
 	PBR_MainLoopTask.cpp
     MainLoopTask.hpp
