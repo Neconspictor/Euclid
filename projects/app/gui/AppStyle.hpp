@@ -1,5 +1,5 @@
 #pragma once
-#include <gui/Style.hpp>
+#include <nex/gui/Style.hpp>
 
 namespace App
 {

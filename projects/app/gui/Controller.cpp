@@ -1,6 +1,6 @@
-#include <platform/Window.hpp>
+#include <nex/Window.hpp>
 #include <gui/Controller.hpp>
-#include <platform/logging/GlobalLoggingServer.hpp>
+#include <nex/logging/GlobalLoggingServer.hpp>
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 
 
@@ -10,7 +10,7 @@ App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_M
 	m_input(input),
 	guiRenderer(guiRenderer),
 	m_mainTask(mainTask),
-	logClient(platform::getLogServer())
+	logClient(nex::getLogServer())
 {
 	logClient.setPrefix("[BaseController]");
 }
@@ -95,7 +95,7 @@ guiRenderer->renderDrawData(ImGui::GetDrawData());
 
 void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
-	using namespace platform;
+	using namespace nex;
 
 	if (m_input->isPressed(Input::KEY_ESCAPE))
 	{

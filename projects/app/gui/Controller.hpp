@@ -1,9 +1,9 @@
 #pragma once
 
-#include <platform/gui/ImGUI.hpp>
-#include <platform/logging/LoggingClient.hpp>
-#include "../../engine/gui/Controller.hpp"
-#include <camera/Camera.hpp>
+#include <nex/gui/ImGUI.hpp>
+#include <nex/logging/LoggingClient.hpp>
+#include <nex/gui/Controller.hpp>
+#include <nex/camera/Camera.hpp>
 
 
 class Input;
@@ -26,7 +26,7 @@ namespace App
 		Input* m_input;
 		ImGUI_Impl* guiRenderer;
 		PBR_Deferred_MainLoopTask* m_mainTask;
-		platform::LoggingClient logClient;
+		nex::LoggingClient logClient;
 	};
 
 	class EditMode : public BaseController {

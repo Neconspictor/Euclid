@@ -1,11 +1,13 @@
 #pragma once
-#include <system/Engine.hpp>
-#include <renderer/RendererOpenGL.hpp>
+#include <nex/system/Engine.hpp>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <PBR_MainLoopTask.hpp>
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
 #include <gui/SceneGUI.hpp>
-#include "system/Video.hpp"
+#include <nex/system/Video.hpp>
+#include <nex/util/Timer.hpp>
+#include <nex/util/FPSCounter.hpp>
 
 class Main
 {
@@ -24,7 +26,7 @@ protected:
 	void setupCamera();
 	void updateWindowTitle(float frameTime, float fps);
 private:
-	platform::LoggingClient m_logClient;
+	nex::LoggingClient m_logClient;
 	std::unique_ptr<RenderBackend> m_renderer;
 	std::unique_ptr<PBR_Deferred_MainLoopTask> m_task;
 	std::unique_ptr<ControllerStateMachine> m_controllerSM;

@@ -1,16 +1,16 @@
 #pragma once
-#include <platform/logging/LoggingClient.hpp>
-#include <platform/event/Task.hpp>
-#include <renderer/RenderBackend.hpp>
-#include <camera/Camera.hpp>
-#include <scene/SceneNode.hpp>
-#include <light/Light.hpp>
-#include <sprite/Sprite.hpp>
-#include <post_processing/blur/GaussianBlur.hpp>
-#include <shading_model/PBR_Deferred.hpp>
-#include <post_processing/SSAO.hpp>
-#include <post_processing/HBAO.hpp>
-#include <gui/ControllerStateMachine.hpp>
+#include <nex/logging/LoggingClient.hpp>
+#include <nex/event/Task.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <nex/camera/Camera.hpp>
+#include <nex/scene/SceneNode.hpp>
+#include <nex/light/Light.hpp>
+#include <nex/sprite/Sprite.hpp>
+#include <nex/post_processing/blur/GaussianBlur.hpp>
+#include <nex/shading_model/PBR_Deferred.hpp>
+#include <nex/post_processing/SSAO.hpp>
+#include <nex/post_processing/HBAO.hpp>
+#include <nex/gui/ControllerStateMachine.hpp>
 
 class PBR_Deferred_MainLoopTask
 {
@@ -36,7 +36,7 @@ private:
 	GaussianBlur* blurEffect;
 	DirectionalLight globalLight;
 	bool m_isRunning;
-	platform::LoggingClient logClient;
+	nex::LoggingClient logClient;
 	float mixValue;
 	Texture* panoramaSky;
 

@@ -1,21 +1,21 @@
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
-#include <platform/logging/GlobalLoggingServer.hpp>
+#include <nex/logging/GlobalLoggingServer.hpp>
 #include <glm/glm.hpp>
-#include <mesh/SampleMeshes.hpp>
+#include <nex/mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <camera/TrackballQuatCamera.hpp>
-#include <shader/NormalsShader.hpp>
-#include <shader/PBRShader.hpp>
-#include <shader/SkyBoxShader.hpp>
-#include <scene/SceneNode.hpp>
-#include <shader/DepthMapShader.hpp>
-#include <shader/ScreenShader.hpp>
-#include <shader/ShadowShader.hpp>
-#include <util/Math.hpp>
+#include <nex/camera/TrackballQuatCamera.hpp>
+#include <nex/shader/NormalsShader.hpp>
+#include <nex/shader/PBRShader.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/scene/SceneNode.hpp>
+#include <nex/shader/DepthMapShader.hpp>
+#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/ShadowShader.hpp>
+#include <nex/util/Math.hpp>
 
 using namespace glm;
 using namespace std;
-using namespace platform;
+using namespace nex;
 
 int ssaaSamples = 1;
 

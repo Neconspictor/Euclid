@@ -1,6 +1,7 @@
 #include <gui/SceneGUI.hpp>
 #include <imgui/imgui.h>
 #include <iostream>
+#include <gui/Controller.hpp>
 
 namespace nex::engine::gui
 {

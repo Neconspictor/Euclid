@@ -1,20 +1,21 @@
 #include <Main.hpp>
-#include <system/Engine.hpp>
-#include <system/Video.hpp>
-#include <platform/logging/GlobalLoggingServer.hpp>
-#include <renderer/RendererOpenGL.hpp>
+#include <nex/system/Engine.hpp>
+#include <nex/system/Video.hpp>
+#include <nex/logging/GlobalLoggingServer.hpp>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <PBR_MainLoopTask.hpp>
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
 #include <MainLoopTask.hpp>
-#include <window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <boost/locale.hpp>
 #include <thread>
 #include <glm/glm.hpp>
-#include <camera/TrackballQuatCamera.hpp>
-#include <camera/FPCamera.hpp>
+#include <nex/camera/TrackballQuatCamera.hpp>
+#include <nex/camera/FPCamera.hpp>
 #include <gui/AppStyle.hpp>
 #include <gui/ConfigurationWindow.hpp>
 #include <gui/SceneGUI.hpp>
+#include <gui/Controller.hpp>
 
 
 //#include <Brofiler.h>
@@ -24,28 +25,28 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	platform::LoggingClient logger(platform::getLogServer());
+	nex::LoggingClient logger(nex::getLogServer());
 
 	try {
 		
 		Main mainClass;
 		mainClass.run();
-		LOG(logger, platform::Info) << "Done.";
+		LOG(logger, nex::Info) << "Done.";
 
 	} catch (const exception& e)
 	{
-		LOG(logger, platform::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
+		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
 	} catch(...)
 	{
-		LOG(logger, platform::Fault) << "Unknown Exception occurred.";
+		LOG(logger, nex::Fault) << "Unknown Exception occurred.";
 	}
 
-	platform::shutdownLogServer();
+	nex::shutdownLogServer();
 
 	return EXIT_SUCCESS;
 }
 
-Main::Main() : m_logClient(platform::getLogServer())
+Main::Main() : m_logClient(nex::getLogServer())
 {
 	using namespace std;
 
@@ -55,7 +56,7 @@ Main::Main() : m_logClient(platform::getLogServer())
 	if (!m_windowSystem->init())
 	{
 		//LOG(m_logClient, platform::Fault) << "Couldn't initialize window system!";
-		platform::getLogServer()->terminate();
+		nex::getLogServer()->terminate();
 		throw std::runtime_error("Couldn't initialize window system!");
 	}
 
@@ -64,7 +65,7 @@ Main::Main() : m_logClient(platform::getLogServer())
 	m_video = std::make_shared<Video>(m_windowSystem);
 	m_video->useRenderer(m_renderer.get());
 
-	LOG(m_logClient, platform::Info) << "Starting Engine...";
+	LOG(m_logClient, nex::Info) << "Starting Engine...";
 	readConfig();
 
 	m_window = m_video->getWindow();
@@ -190,12 +191,12 @@ void Main::setupCallbacks()
 		m_task->setRunning(receivedFocus);
 		if (receivedFocus)
 		{
-			LOG(m_logClient, platform::Debug) << "received focus!";
+			LOG(m_logClient, nex::Debug) << "received focus!";
 			//isRunning = true;
 		}
 		else
 		{
-			LOG(m_logClient, platform::Debug) << "lost focus!";
+			LOG(m_logClient, nex::Debug) << "lost focus!";
 			//isRunning = false;
 			if (window_s->isInFullscreenMode())
 			{
@@ -207,14 +208,14 @@ void Main::setupCallbacks()
 
 	input->addResizeCallback([=](int width, int height)
 	{
-		LOG(m_logClient, platform::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
+		LOG(m_logClient, nex::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
 
 		if (!m_window->hasFocus()) {
-			LOG(m_logClient, platform::Debug) << "addResizeCallback : no focus!";
+			LOG(m_logClient, nex::Debug) << "addResizeCallback : no focus!";
 		}
 
 		if (width == 0 || height == 0) {
-			LOG(m_logClient, platform::Warning) << "addResizeCallback : width or height is 0!";
+			LOG(m_logClient, nex::Warning) << "addResizeCallback : width or height is 0!";
 			return;
 		}
 
@@ -224,9 +225,9 @@ void Main::setupCallbacks()
 	});
 
 	input->addRefreshCallback([=]() {
-		LOG(m_logClient, platform::Warning) << "addRefreshCallback : called!";
+		LOG(m_logClient, nex::Warning) << "addRefreshCallback : called!";
 		if (!m_window->hasFocus()) {
-			LOG(m_logClient, platform::Warning) << "addRefreshCallback : no focus!";
+			LOG(m_logClient, nex::Warning) << "addRefreshCallback : no focus!";
 		}
 	});
 }

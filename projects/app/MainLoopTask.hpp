@@ -1,19 +1,19 @@
 #pragma once
-#include <platform/logging/LoggingClient.hpp>
-#include <platform/Input.hpp>
-#include <platform/event/Task.hpp>
-#include <system/Engine.hpp>
-#include <renderer/RenderBackend.hpp>
-#include <platform/Window.hpp>
-#include <util/Timer.hpp>
-#include <util/FPSCounter.hpp>
-#include <camera/Camera.hpp>
-#include <model/Vob.hpp>
-#include <platform/SubSystemProvider.hpp>
-#include <scene/SceneNode.hpp>
-#include <light/Light.hpp>
-#include <sprite/Sprite.hpp>
-#include <post_processing/blur/GaussianBlur.hpp>
+#include <nex/logging/LoggingClient.hpp>
+#include <nex/Input.hpp>
+#include <nex/event/Task.hpp>
+#include <nex/system/Engine.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <nex/Window.hpp>
+#include <nex/util/Timer.hpp>
+#include <nex/util/FPSCounter.hpp>
+#include <nex/camera/Camera.hpp>
+#include <nex/model/Vob.hpp>
+#include <nex/SubSystemProvider.hpp>
+#include <nex/scene/SceneNode.hpp>
+#include <nex/light/Light.hpp>
+#include <nex/sprite/Sprite.hpp>
+#include <nex/post_processing/blur/GaussianBlur.hpp>
 
 class SystemUI;
 
@@ -47,7 +47,7 @@ private:
 	EnginePtr engine;
 	DirectionalLight globalLight;
 	bool isRunning;
-	platform::LoggingClient logClient;
+	nex::LoggingClient logClient;
 	float mixValue;
 	Vob nanosuitModel;
 	std::list<SceneNode> nodes;

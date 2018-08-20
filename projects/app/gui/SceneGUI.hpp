@@ -1,8 +1,8 @@
 #pragma once
 
-#include <gui/Drawable.hpp>
-#include <gui/Menu.hpp>
-#include <gui/ControllerStateMachine.hpp>
+#include <nex/gui/Drawable.hpp>
+#include <nex/gui/Menu.hpp>
+#include <nex/gui/ControllerStateMachine.hpp>
 
 
 namespace nex::engine::gui

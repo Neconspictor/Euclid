@@ -1,23 +1,23 @@
 #include <MainLoopTask.hpp>
-#include <platform/logging/GlobalLoggingServer.hpp>
+#include <nex/logging/GlobalLoggingServer.hpp>
 #include <glm/glm.hpp>
-#include <mesh/SampleMeshes.hpp>
+#include <nex/mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <camera/TrackballQuatCamera.hpp>
-#include <camera/FPQuaternionCamera.hpp>
-#include <shader/NormalsShader.hpp>
-#include <camera/FPCamera.hpp>
-#include <shader/PhongTextureShader.hpp>
-#include <shader/SkyBoxShader.hpp>
-#include <scene/SceneNode.hpp>
-#include <shader/DepthMapShader.hpp>
-#include <shader/ScreenShader.hpp>
-#include <shader/ShadowShader.hpp>
-#include <util/Math.hpp>
+#include <nex/camera/TrackballQuatCamera.hpp>
+#include <nex/camera/FPQuaternionCamera.hpp>
+#include <nex/shader/NormalsShader.hpp>
+#include <nex/camera/FPCamera.hpp>
+#include <nex/shader/PhongTextureShader.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/scene/SceneNode.hpp>
+#include <nex/shader/DepthMapShader.hpp>
+#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/ShadowShader.hpp>
+#include <nex/util/Math.hpp>
 
 using namespace glm;
 using namespace std;
-using namespace platform;
+using namespace nex;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
@@ -491,7 +491,7 @@ void MainLoopTask::updateCamera(Input* input, float deltaTime)
 
 void MainLoopTask::handleInputEvents()
 {
-	using namespace platform;
+	using namespace nex;
 	Input* input = window->getInputDevice();
 
 
@@ -546,11 +546,11 @@ void MainLoopTask::onWindowsFocus(Window* window, bool receivedFocus)
 {
 	if (receivedFocus)
 	{
-		LOG(logClient, platform::Debug) << "received focus!";
+		LOG(logClient, nex::Debug) << "received focus!";
 		isRunning = true;
 	} else
 	{
-		LOG(logClient, platform::Debug) << "lost focus!";
+		LOG(logClient, nex::Debug) << "lost focus!";
 		isRunning = false;
 		if (window->isInFullscreenMode())
 		{
