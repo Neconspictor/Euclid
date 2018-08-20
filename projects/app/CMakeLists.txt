@@ -3,10 +3,6 @@ set(
     
 	Main.cpp
 	Main.hpp
-    PBR_MainLoopTask.hpp
-	PBR_MainLoopTask.cpp
-    MainLoopTask.hpp
-	MainLoopTask.cpp
     pch_app.hpp
 	
 	#gui

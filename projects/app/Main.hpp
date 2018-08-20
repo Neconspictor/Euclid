@@ -1,9 +1,7 @@
 #pragma once
 #include <nex/system/Engine.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <PBR_MainLoopTask.hpp>
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
-#include <MainLoopTask.hpp>
 #include <gui/SceneGUI.hpp>
 #include <nex/system/Video.hpp>
 #include <nex/util/Timer.hpp>

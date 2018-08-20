@@ -3,9 +3,7 @@
 #include <nex/system/Video.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <PBR_MainLoopTask.hpp>
 #include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
-#include <MainLoopTask.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <boost/locale.hpp>
 #include <thread>
