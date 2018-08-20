@@ -40,7 +40,7 @@ std::unique_ptr<ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
 	return make_unique<ImGUI_GL>(windowGLFW);
 }
 
-Renderer* SubSystemProviderGLFW::getRenderer() {
+RenderBackend* SubSystemProviderGLFW::getRenderBackend() {
 
 	//TODO
 	return nullptr;

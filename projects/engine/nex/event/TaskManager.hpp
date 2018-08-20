@@ -38,7 +38,7 @@
 
 /**
  * A task manager is responsible for managing the live time of a task.
- * With a task manager the user can also decide to run a task on a frame
+ * With a task manager the user can also decide to render a task on a frame
  * base, singlethreaded or multithreaded. Furthermore the task manager
  * restarts a task if it is repeating.
  *

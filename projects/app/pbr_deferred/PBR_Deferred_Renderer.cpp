@@ -1,4 +1,4 @@
-#include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
+#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <glm/glm.hpp>
 #include <nex/mesh/SampleMeshes.hpp>
@@ -22,33 +22,33 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(RenderBackendPtr renderer) :
+PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
+	Renderer(std::move(backend)),
 	blurEffect(nullptr),
-	m_isRunning(true),
 	logClient(getLogServer()),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
-	renderer(renderer),
 	shadowMap(nullptr),
 	showDepthMap(false)
 {
-	logClient.setPrefix("[PBR_Deferred_MainLoopTask]");
+	logClient.setPrefix("[PBR_Deferred_Renderer]");
 
 	mixValue = 0.2f;
 }
 
-bool PBR_Deferred_MainLoopTask::getShowDepthMap() const
+
+bool PBR_Deferred_Renderer::getShowDepthMap() const
 {
 	return showDepthMap;
 }
 
-void PBR_Deferred_MainLoopTask::init(int windowWidth, int windowHeight)
+void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
-	ShaderManager* shaderManager = renderer->getShaderManager();
-	ModelManager* modelManager = renderer->getModelManager();
-	TextureManager* textureManager = renderer->getTextureManager();
+	ShaderManager* shaderManager = m_renderBackend->getShaderManager();
+	ModelManager* modelManager = m_renderBackend->getModelManager();
+	TextureManager* textureManager = m_renderBackend->getTextureManager();
 
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
@@ -78,8 +78,8 @@ void PBR_Deferred_MainLoopTask::init(int windowWidth, int windowHeight)
 	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getConfig(Shaders::Pbr));
 
-	shadowMap = renderer->createDepthMap(4096, 4096);
-	renderTargetSingleSampled = renderer->createRenderTarget();
+	shadowMap = m_renderBackend->createDepthMap(4096, 4096);
+	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
@@ -115,13 +115,13 @@ void PBR_Deferred_MainLoopTask::init(int windowWidth, int windowHeight)
 	screenSprite.setHeight(dim.y);
 	//screenSprite.setZRotation(radians(45.0f));
 
-	blurEffect = renderer->getEffectLibrary()->getGaussianBlur();
+	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	pbr_deferred = renderer->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
+	pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
-	ssao_deferred = renderer->createDeferredSSAO();
-	hbao = renderer->createHBAO();
+	ssao_deferred = m_renderBackend->createDeferredSSAO();
+	hbao = m_renderBackend->createHBAO();
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -130,13 +130,13 @@ void PBR_Deferred_MainLoopTask::init(int windowWidth, int windowHeight)
 
 
 
-void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
+void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	ModelDrawer* modelDrawer = m_renderBackend->getModelDrawer();
 	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
-		renderer->getShaderManager()->getConfig(Shaders::Screen));
+		m_renderBackend->getShaderManager()->getConfig(Shaders::Screen));
 	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
-		renderer->getShaderManager()->getConfig(Shaders::DepthMap));
+		m_renderBackend->getShaderManager()->getConfig(Shaders::DepthMap));
 	using namespace chrono;
 
 	// update the scene
@@ -164,9 +164,9 @@ void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float fram
 
 
 	// render scene to the shadow depth map
-	renderer->useBaseRenderTarget(shadowMap);
+	m_renderBackend->useBaseRenderTarget(shadowMap);
 	//renderer->beginScene();
-	renderer->clearRenderTarget(shadowMap, RenderComponent::Depth);
+	m_renderBackend->clearRenderTarget(shadowMap, RenderComponent::Depth);
 	//renderer->enableAlphaBlending(false);
 	//renderer->cullFaces(CullingMode::Back);
 
@@ -179,10 +179,10 @@ void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float fram
 	//renderer->cullFaces(CullingMode::Back);
 	//renderer->endScene();
 
-	renderer->useBaseRenderTarget(pbr_mrt.get());
-	renderer->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	m_renderBackend->useBaseRenderTarget(pbr_mrt.get());
+	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
-	renderer->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	m_renderBackend->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		pbr_deferred->drawGeometryScene(scene,
 			camera->getView(),
 			camera->getPerspProjection());
@@ -205,15 +205,15 @@ void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float fram
 	Texture* aoTexture = hbao->getBlurredResult();
 
 	// render scene to a offscreen buffer
-	renderer->useBaseRenderTarget(renderTargetSingleSampled);
-	renderer->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
+	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	//renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Stencil);
 	//renderer->beginScene();
 	
 
 	Dimension blitRegion = { 0,0, windowWidth * ssaaSamples, windowHeight * ssaaSamples };
-	renderer->blitRenderTargets(pbr_mrt.get(),
+	m_renderBackend->blitRenderTargets(pbr_mrt.get(),
 		renderTargetSingleSampled,
 		blitRegion,
 		RenderComponent::Depth | RenderComponent::Stencil);
@@ -237,12 +237,12 @@ void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float fram
 	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	BaseRenderTarget* screenRenderTarget = renderer->getDefaultRenderTarget();
+	BaseRenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	renderer->useBaseRenderTarget(screenRenderTarget);
-	renderer->setViewPort(0, 0, windowWidth, windowHeight);
+	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
+	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	//renderer->beginScene();
-	renderer->clearRenderTarget(renderer->getDefaultRenderTarget(), RenderComponent::Depth | RenderComponent::Stencil);
+	m_renderBackend->clearRenderTarget(m_renderBackend->getDefaultRenderTarget(), RenderComponent::Depth | RenderComponent::Stencil);
 	
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
@@ -272,35 +272,25 @@ void PBR_Deferred_MainLoopTask::run(SceneNode* scene, Camera* camera, float fram
 	//renderer->endScene();
 }
 
-void PBR_Deferred_MainLoopTask::setShowDepthMap(bool showDepthMap)
+void PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
 {
 	this->showDepthMap = showDepthMap;
 }
 
-void PBR_Deferred_MainLoopTask::setRunning(bool isRunning)
-{
-	m_isRunning = isRunning;
-}
-
-bool PBR_Deferred_MainLoopTask::isRunning() const
-{
-	return m_isRunning;
-}
-
-void PBR_Deferred_MainLoopTask::updateRenderTargets(int width, int height)
+void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 {
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
-	renderer->setViewPort(0, 0, width, height);
-	renderer->destroyRenderTarget(renderTargetSingleSampled);
-	renderTargetSingleSampled = renderer->createRenderTarget();
+	m_renderBackend->setViewPort(0, 0, width, height);
+	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
+	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 	//ssao_deferred->onSizeChange(width, height);
 	hbao->onSizeChange(width, height);
 }
 
-hbao::HBAO* PBR_Deferred_MainLoopTask::getHBAO()
+hbao::HBAO* PBR_Deferred_Renderer::getHBAO()
 {
 	return hbao.get();
 }

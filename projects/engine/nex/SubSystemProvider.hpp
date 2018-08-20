@@ -13,7 +13,7 @@ public:
 
 	virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) = 0;
 
-	virtual Renderer* getRenderer() = 0;
+	virtual RenderBackend* getRenderBackend() = 0;
 
 	virtual Input* getInput() = 0;
 

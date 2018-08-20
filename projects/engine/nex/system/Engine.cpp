@@ -7,63 +7,55 @@ using namespace std;
 using namespace nex;
 
 Engine::Engine() :
-	logClient(getLogServer()), config(), systemLogLevel(Debug)
+	m_logClient(getLogServer()), m_systemLogLevel(Debug)
 {
-	configFileName = "config.ini";
-	config.addOption("Logging", "logLevel", &systemLogLevelStr, string(""));
+	m_configFileName = "config.ini";
+	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, string(""));
 }
 
-Engine::Engine(const Engine& other): logClient(other.logClient), 
-	systemLogLevel(other.systemLogLevel),
-	configFileName(other.configFileName)
+Engine::Engine(const Engine& other): m_logClient(other.m_logClient),
+	m_systemLogLevel(other.m_systemLogLevel),
+	m_configFileName(other.m_configFileName)
 {
-	config.addOption("Logging", "logLevel", &systemLogLevelStr, string(""));
+	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, string(""));
 }
 
 Engine::~Engine()
 {
 }
 
-void Engine::run(const TaskManager::TaskPtr& mainLoop)
-{
-
-	//taskManager.add(mainLoop);
-	//taskManager.start();
-	//shutdownSystems();
-}
-
 void Engine::setConfigFileName(const string & fileName)
 {
-	configFileName = fileName;
+	m_configFileName = fileName;
 }
 
 void Engine::stop()
 {
-	eventChannel.broadcast(TaskManager::StopEvent());
+	m_eventChannel.broadcast(TaskManager::StopEvent());
 	shutdownSystems();
 }
 
 void Engine::add(SystemPtr system)
 {
-	if (systemMap.find(system->getName()) != systemMap.end())
+	if (m_systemMap.find(system->getName()) != m_systemMap.end())
 	{
-		LOG(logClient, Warning) << "System already added: " << system->getName();
+		LOG(m_logClient, Warning) << "System already added: " << system->getName();
 		return;
 	}
 	//if (system->updater.get() != nullptr)
 	//	taskManager.add(system->updater);
 
-	systemMap.insert(make_pair(system->getName(), system));
-	eventChannel.add<Configuration&>(*system.get());
+	m_systemMap.insert(make_pair(system->getName(), system));
+	m_eventChannel.add<Configuration&>(*system.get());
 }
 
 Engine::SystemPtr Engine::get(const string& name) const
 {
-	auto it = systemMap.find(name);
+	auto it = m_systemMap.find(name);
 
-	if (it == systemMap.end())
+	if (it == m_systemMap.end())
 	{
-		LOG(logClient, Warning) << "Cannot find System" << name;
+		LOG(m_logClient, Warning) << "Cannot find System" << name;
 		return nullptr;
 	}
 
@@ -72,64 +64,64 @@ Engine::SystemPtr Engine::get(const string& name) const
 
 LogLevel Engine::getLogLevel()
 {
-	return systemLogLevel;
+	return m_systemLogLevel;
 }
 
 void Engine::init()
 {
-	logClient.setPrefix("[Engine]");
+	m_logClient.setPrefix("[Engine]");
 
-	eventChannel.broadcast<Configuration&>(config);
+	m_eventChannel.broadcast<Configuration&>(m_config);
 
 
-	LOG(logClient, Info) << "Loading configuration file...";
-	if (!config.load(configFileName))
+	LOG(m_logClient, Info) << "Loading configuration file...";
+	if (!m_config.load(m_configFileName))
 	{
-		LOG(logClient, Warning) << "Configuration file couldn't be read. Default values are used.";
+		LOG(m_logClient, Warning) << "Configuration file couldn't be read. Default values are used.";
 	}
 	else
 	{
-		LOG(logClient, Info) << "Configuration file loaded.";
+		LOG(m_logClient, Info) << "Configuration file loaded.";
 	}
 
 	try
 	{
-		systemLogLevel = stringToLogLevel(systemLogLevelStr);
+		m_systemLogLevel = stringToLogLevel(m_systemLogLevelStr);
 	}
 	catch (const EnumFormatException& e)
 	{
 
 		//log error and set default log level
-		LOG(logClient, Error) << e.what();
+		LOG(m_logClient, Error) << e.what();
 
-		LOG(logClient, Warning) << "Couldn't get log level from " << systemLogLevelStr << endl
+		LOG(m_logClient, Warning) << "Couldn't get log level from " << m_systemLogLevelStr << endl
 			<< "Log level is set now to 'Warning'" << endl;
 
-		systemLogLevel = Warning;
-		systemLogLevelStr = "Warning";
+		m_systemLogLevel = Warning;
+		m_systemLogLevelStr = "Warning";
 	}
-	getLogServer()->setMinLogLevel(systemLogLevel);
-	config.write(configFileName);
+	getLogServer()->setMinLogLevel(m_systemLogLevel);
+	m_config.write(m_configFileName);
 
 	initSystems();
 }
 
 void Engine::initSystems()
 {
-	for (auto it : systemMap)
+	for (auto it : m_systemMap)
 	{
 		SystemPtr system = it.second;
-		LOG(logClient, Info) << "Initializing " << system->getName();
+		LOG(m_logClient, Info) << "Initializing " << system->getName();
 		system->init();
 	}
 }
 
 void Engine::shutdownSystems()
 {
-	for (auto it : systemMap)
+	for (auto it : m_systemMap)
 	{
 		SystemPtr system = it.second;
-		LOG(logClient, Info) << "Shutting down" << system->getName();
+		LOG(m_logClient, Info) << "Shutting down" << system->getName();
 		system->shutdown();
 	}
 }

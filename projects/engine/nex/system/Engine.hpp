@@ -14,7 +14,6 @@ public:
 	using SystemMap = std::map<std::string, SystemPtr>;
 
 	Engine();
-
 	Engine(const Engine&);
 
 	virtual ~Engine();
@@ -25,10 +24,9 @@ public:
 
 	nex::LogLevel getLogLevel();
 	
-	void init();
+	virtual void init();
 
-	// @deprecated
-	void run(const TaskManager::TaskPtr& mainLoop);
+	virtual void run() = 0;
 
 	void setConfigFileName(const std::string& fileName);
 
@@ -42,11 +40,11 @@ private:
 
 	//TaskManager taskManager;
 	//std::weak_ptr<EventChannel> eventChannel;
-	GlobalEventChannel eventChannel;
-	SystemMap systemMap;
-	nex::LoggingClient logClient;
-	Configuration config;
-	std::string configFileName;
-	std::string systemLogLevelStr;
-	nex::LogLevel systemLogLevel;
+	GlobalEventChannel m_eventChannel;
+	SystemMap m_systemMap;
+	nex::LoggingClient m_logClient;
+	Configuration m_config;
+	std::string m_configFileName;
+	std::string m_systemLogLevelStr;
+	nex::LogLevel m_systemLogLevel;
 };

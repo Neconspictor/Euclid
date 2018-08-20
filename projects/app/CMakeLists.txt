@@ -2,7 +2,8 @@ set(
     APP_SOURCES 
     
 	Main.cpp
-	Main.hpp
+	NeXEngine.cpp
+	NeXEngine.hpp
     pch_app.hpp
 	
 	#gui
@@ -16,8 +17,8 @@ set(
 	gui/Controller.hpp
 	
 	#pbr_deferred
-	pbr_deferred/PBR_Deferred_MainLoopTask.hpp
-	pbr_deferred/PBR_Deferred_MainLoopTask.cpp
+	pbr_deferred/PBR_Deferred_Renderer.hpp
+	pbr_deferred/PBR_Deferred_Renderer.cpp
 )
 
 # Create named folders for the sources within the .vcproj

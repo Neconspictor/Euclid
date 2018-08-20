@@ -1,10 +1,10 @@
 #include <nex/Window.hpp>
 #include <gui/Controller.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
-#include <pbr_deferred/PBR_Deferred_MainLoopTask.hpp>
+#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 
 
-App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_MainLoopTask* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
+App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
 	Controller(move(drawable)),
 	m_window(window),
 	m_input(input),
@@ -131,7 +131,7 @@ void App::BaseController::handleExitEvent()
 }
 
 
-App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_MainLoopTask* mainTask,
+App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_Renderer* mainTask,
 	Camera* camera,
 	ImGUI_Impl* guiRenderer, 
 	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
@@ -155,7 +155,7 @@ void App::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float fra
 
 App::CameraMode::CameraMode(Window* window, 
 	Input* input, 
-	PBR_Deferred_MainLoopTask* mainTask, 
+	PBR_Deferred_Renderer* mainTask, 
 	Camera* camera, ImGUI_Impl* guiRenderer, 
 	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
 	BaseController(window, input, mainTask, guiRenderer, move(drawable)),

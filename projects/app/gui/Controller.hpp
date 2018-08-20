@@ -7,13 +7,13 @@
 
 
 class Input;
-class PBR_Deferred_MainLoopTask;
+class PBR_Deferred_Renderer;
 
 namespace App
 {
 	class BaseController : public Controller {
 	public:
-		BaseController(Window* window, Input* input, PBR_Deferred_MainLoopTask* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable);
+		BaseController(Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable);
 		virtual ~BaseController() = default;
 
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
@@ -25,7 +25,7 @@ namespace App
 		Window * m_window;
 		Input* m_input;
 		ImGUI_Impl* guiRenderer;
-		PBR_Deferred_MainLoopTask* m_mainTask;
+		PBR_Deferred_Renderer* m_mainTask;
 		nex::LoggingClient logClient;
 	};
 
@@ -33,7 +33,7 @@ namespace App
 	public:
 		EditMode(Window* window, 
 			Input* input, 
-			PBR_Deferred_MainLoopTask* mainTask, 
+			PBR_Deferred_Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
 			std::unique_ptr<nex::engine::gui::Drawable> drawable);
@@ -48,7 +48,7 @@ namespace App
 	public:
 		CameraMode(Window* window, 
 			Input* input, 
-			PBR_Deferred_MainLoopTask* mainTask, 
+			PBR_Deferred_Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
 			std::unique_ptr<nex::engine::gui::Drawable> drawable);

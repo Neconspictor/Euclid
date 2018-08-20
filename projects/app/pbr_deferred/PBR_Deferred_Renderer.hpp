@@ -11,21 +11,19 @@
 #include <nex/post_processing/SSAO.hpp>
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
+#include <nex/renderer/Renderer.hpp>
 
-class PBR_Deferred_MainLoopTask
+class PBR_Deferred_Renderer : public Renderer
 {
 public:
-	using RenderBackendPtr = RenderBackend*;
 	typedef unsigned int uint;
 
-	PBR_Deferred_MainLoopTask(RenderBackendPtr renderer);
+	PBR_Deferred_Renderer(Backend renderer);
 
 	bool getShowDepthMap() const;
 	void init(int windowWidth, int windowHeight);
-	void run(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+	void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
 	void setShowDepthMap(bool showDepthMap);
-	void setRunning(bool isRunning);
-	bool isRunning() const;
 	void updateRenderTargets(int width, int height);
 	hbao::HBAO* getHBAO();
 
@@ -35,7 +33,6 @@ private:
 
 	GaussianBlur* blurEffect;
 	DirectionalLight globalLight;
-	bool m_isRunning;
 	nex::LoggingClient logClient;
 	float mixValue;
 	Texture* panoramaSky;
@@ -46,7 +43,6 @@ private:
 	std::unique_ptr<SSAO_Deferred> ssao_deferred;
 	std::unique_ptr<hbao::HBAO> hbao;
 
-	RenderBackendPtr renderer;
 	RenderTarget* renderTargetSingleSampled;
 	Sprite screenSprite;
 	DepthMap* shadowMap;

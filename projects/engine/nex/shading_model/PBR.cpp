@@ -297,7 +297,7 @@ RenderTarget * PBR::createBRDFlookupTexture()
 void PBR::init(Texture* backgroundHDR)
 {
 
-	Renderer::Viewport backup = renderer->getViewport();
+	Viewport backup = renderer->getViewport();
 
 	environmentMap = renderBackgroundToCube(backgroundHDR);
 	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());

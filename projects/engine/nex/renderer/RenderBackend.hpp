@@ -2,7 +2,6 @@
 
 #include <nex/texture/TextureManager.hpp>
 #include <nex/shader/ShaderManager.hpp>
-#include <nex/Renderer.hpp>
 #include <nex/model/ModelManager.hpp>
 #include <nex/drawing/ModelDrawer.hpp>
 #include <nex/antialiasing/SMAA.hpp>
@@ -10,6 +9,8 @@
 #include <nex/shading_model/ShadingModelFactory.hpp>
 #include <nex/post_processing/SSAO.hpp>
 #include <nex/post_processing/HBAO.hpp>
+#include <nex/logging/LoggingClient.hpp>
+#include <ostream>
 
 enum class CullingMode
 {
@@ -22,11 +23,52 @@ enum RenderComponent {
 	Stencil = 1 << 2
 };
 
+/**
+* A description for the renderer class which category of renderer it belongs to.
+* Typically the renderer type refers to the underlying 3D rendering library, the
+* renderer uses for rendering.
+*/
+enum RendererType : char
+{
+	INVALID,   // use this to specify that no renderer will be used 
+	OPENGL,
+	DIRECTX
+};
+
+struct Viewport
+{
+	int x;
+	int y;
+	int width;
+	int height;
+};
+
+/**
+* Adds a string representation of the renderer type to an output stream.
+*/
+inline std::ostream& operator<< (std::ostream & os, RendererType type)
+{
+	switch (type)
+	{
+	case OPENGL: return os << "OpenGL";
+	case DIRECTX: return os << "DirectX";
+		// omit default case to trigger compiler warning for missing cases
+	};
+	return os << static_cast<uint16_t>(type);
+}
+
 class EffectLibrary {
 public:
 	virtual GaussianBlur* getGaussianBlur() = 0;
 };
 
+
+/**
+* A renderer is responsible for visualizing triangle data onto a screen. Commonly, a renderer uses one of the common
+* 3D rendering packages like OpenGL and DirectX. The purpose of this abstract class, is to provide library independent
+* access to 3D Rendering. So all library specific tasks are capsulated in a common interface and applications can use
+* 3D rendering without using specific 3D libraries.
+*/
 
 /**
  * A 3D renderer is a renderer specific for 3D content. 
@@ -38,9 +80,19 @@ public:
  * for creating and storing shaders and textures via specialised
  * manager objects.
  */
-class RenderBackend : public Renderer
+class RenderBackend
 {
 public:
+
+	RenderBackend();
+	virtual ~RenderBackend() = default;
+
+	/**
+	* Clears the current scene and begins a new one. A scene is the combination of
+	* all, that should be rendered.
+	* This function should be called before any rendering is done.
+	*/
+	virtual void beginScene() = 0;
 
 	virtual void blitRenderTargets(BaseRenderTarget* src , BaseRenderTarget* dest, const Dimension& dim, int renderComponents) = 0;
 
@@ -79,6 +131,11 @@ public:
 	 */
 	virtual void enableDepthWriting(bool enable) = 0;
 
+	/**
+	* Finishes the current active scene and sends the resulting data to the GPU.
+	*/
+	virtual void endScene() = 0;
+
 	virtual BaseRenderTarget* getDefaultRenderTarget() = 0;
 
 	virtual EffectLibrary* getEffectLibrary() = 0;
@@ -110,6 +167,32 @@ public:
 	virtual SMAA* getSMAA() = 0;
 
 	/**
+	* Provides the type of renderer class, this renderer belongs to.
+	*/
+	virtual RendererType getType() const = 0;
+
+	/**
+	* Provides the viewport this renderer is rendering to.
+	*/
+	Viewport getViewport() const;
+
+	/**
+	* Initializes this renderer. After this function call, the renderer is ready to use.
+	*/
+	virtual void init() = 0;
+
+	/**
+	* Displays the calculdated scene on the screen. This function has to be called after
+	* virtual void Renderer::endSene().
+	*/
+	virtual void present() = 0;
+
+	/**
+	* Shuts down this renderer and releases all allocated memory.
+	*/
+	virtual void release() = 0;
+
+	/**
 	 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
 	 */
 	virtual CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) = 0;
@@ -120,6 +203,11 @@ public:
 	 * Sets the number of samples used for msaa
 	 */
 	virtual void setMSAASamples(unsigned int samples) = 0;
+	
+	/**
+	* Sets the viewport size and position.
+	*/
+	virtual void setViewPort(int x, int y, int width, int height) = 0;
 
 	virtual void useCubeDepthMap(CubeDepthMap* cubeDepthMap) = 0;
 
@@ -141,4 +229,11 @@ public:
 	* Only the depth value and it's square are written (no color information).
 	*/
 	virtual void useVarianceShadowMap(RenderTarget* map) = 0;
+
+protected:
+	nex::LoggingClient logClient;
+	int width;
+	int height;
+	int xPos;
+	int yPos;
 };

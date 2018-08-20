@@ -10,8 +10,6 @@ set(
 	nex/FileSystem.cpp
     nex/Input.hpp
 	nex/Input.cpp
-    nex/Renderer.hpp
-	nex/Renderer.cpp
 	nex/SubSystemProvider.hpp
     nex/Window.hpp
 	nex/Window.cpp
@@ -148,7 +146,10 @@ set(
 	nex/post_processing/blur/GaussianBlur.cpp
 	
     #nex/renderer
+	nex/renderer/RenderBackend.cpp
     nex/renderer/RenderBackend.hpp
+	nex/renderer/Renderer.cpp
+	nex/renderer/Renderer.hpp
     
     #nex/shader
 	nex/shader/DepthMapShader.hpp

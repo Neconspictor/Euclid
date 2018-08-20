@@ -43,9 +43,9 @@ TaskManager::TaskManager(unsigned int numThreads)
 
 TaskManager::~TaskManager() {
 	
-	// If an exception is thrown during TaskManager::run()
+	// If an exception is thrown during TaskManager::render()
 	// mRunning is still true, i.d. the backgroud tasks
-	// will run in an endless loop. So we set it manually 
+	// will render in an endless loop. So we set it manually 
 	// to false before joining the background threads!
 	mRunning = false;
 	for (auto&& itr : mThreads)
@@ -153,7 +153,7 @@ void TaskManager::worker() {
             std::this_thread::yield();
 		}
 		else {
-			// nothing is ready to run, sleep for 1.667 milliseconds (1/10th of a frame @ 60 FPS)
+			// nothing is ready to render, sleep for 1.667 milliseconds (1/10th of a frame @ 60 FPS)
             std::this_thread::sleep_for(std::chrono::microseconds(1667));
 		}
 	}

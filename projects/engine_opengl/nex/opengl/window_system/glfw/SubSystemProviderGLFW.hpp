@@ -13,7 +13,7 @@ public:
 
 	virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
 
-	Renderer* getRenderer() override;
+	RenderBackend* getRenderBackend() override;
 
 	Input* getInput() override;
 
