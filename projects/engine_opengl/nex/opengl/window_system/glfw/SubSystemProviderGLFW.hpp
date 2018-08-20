@@ -21,6 +21,8 @@ public:
 
 	virtual bool init() override;
 
+	bool isTerminated() const override;
+
 	virtual void pollEvents() override;
 
 	virtual void terminate() override;

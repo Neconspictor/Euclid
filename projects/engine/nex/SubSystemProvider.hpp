@@ -19,6 +19,8 @@ public:
 
 	virtual bool init() = 0;
 
+	virtual bool isTerminated() const = 0;
+
 	/**
 	* Polls and process events for all windows created by this system.
 	*/

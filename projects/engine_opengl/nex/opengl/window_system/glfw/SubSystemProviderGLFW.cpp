@@ -67,12 +67,19 @@ bool SubSystemProviderGLFW::init()
 {
 	if (m_isInitialized) return true;
 
+
+	glfwSetErrorCallback(errorCallback);
+
 	m_isInitialized = (glfwInit() == GLFW_TRUE) ? true : false;
 
 	if (!m_isInitialized) return false;
 
-	glfwSetErrorCallback(errorCallback);
 	return true;
+}
+
+bool SubSystemProviderGLFW::isTerminated() const
+{
+	return !m_isInitialized;
 }
 
 void SubSystemProviderGLFW::pollEvents()
@@ -100,7 +107,8 @@ void SubSystemProviderGLFW::terminate()
 		window.close();
 		window.release();
 	}
-	
+
+	glfwInit();
 	glfwTerminate();
 	m_isInitialized = false;
 }

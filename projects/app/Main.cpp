@@ -1,5 +1,18 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <NeXEngine.hpp>
-#include "nex/logging/GlobalLoggingServer.hpp"
+#include <nex/logging/GlobalLoggingServer.hpp>
+
+
+#ifdef WIN32
+	#include <vld.h>
+#endif
+
+
+void error_callback(int error, const char* description)
+{
+	fprintf(stderr, "Error: %s\n", description);
+}
 
 
 int main(int argc, char** argv)

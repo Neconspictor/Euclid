@@ -3,8 +3,10 @@
 #include <nex/opengl/gui/ImGUI_GL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <nex/logging/GlobalLoggingServer.hpp>
+#include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
 
 #ifdef _WIN32
 #undef APIENTRY
@@ -52,8 +54,12 @@ logClient(getLogServer())
 ImGUI_GL::~ImGUI_GL()
 {
 	// Destroy GLFW mouse cursors
-	for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
-		glfwDestroyCursor(g_MouseCursors[cursor_n]);
+	if (!SubSystemProviderGLFW::get()->isTerminated())
+	{
+		for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+			glfwDestroyCursor(g_MouseCursors[cursor_n]);
+	}
+	
 	memset(g_MouseCursors, 0, sizeof(g_MouseCursors));
 
 	//ImGui_ImplGlfwGL3_InvalidateDeviceObjects  // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
