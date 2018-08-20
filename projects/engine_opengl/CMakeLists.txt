@@ -23,99 +23,99 @@ set(
     ###header files###
     pch_engine_opengl.hpp
 		
-    #antialiasing
-    antialiasing/SMAA_GL.hpp
-	antialiasing/SMAA_GL.cpp
+    #nex/opengl/antialiasing
+    nex/opengl/antialiasing/SMAA_GL.hpp
+	nex/opengl/antialiasing/SMAA_GL.cpp
     
-    #drawing
-    drawing/ModelDrawerGL.hpp
-	drawing/ModelDrawerGL.cpp
+    #nex/opengl/drawing
+    nex/opengl/drawing/ModelDrawerGL.hpp
+	nex/opengl/drawing/ModelDrawerGL.cpp
 	
-	#gui
-	gui/ImGUI_GL.hpp
-	gui/ImGUI_GL.cpp
-	gui/NanoGUI.hpp
-	gui/NanoGUI.cpp
+	#nex/opengl/gui
+	nex/opengl/gui/ImGUI_GL.hpp
+	nex/opengl/gui/ImGUI_GL.cpp
+	nex/opengl/gui/NanoGUI.hpp
+	nex/opengl/gui/NanoGUI.cpp
     
-    #mesh
-    mesh/MeshGL.hpp
-	mesh/MeshGL.cpp
-    mesh/MeshFactoryGL.hpp
-	mesh/MeshFactoryGL.cpp
+    #nex/opengl/mesh
+    nex/opengl/mesh/MeshGL.hpp
+	nex/opengl/mesh/MeshGL.cpp
+    nex/opengl/mesh/MeshFactoryGL.hpp
+	nex/opengl/mesh/MeshFactoryGL.cpp
 	
-    #model
-    model/AssimpModelLoader.hpp
-	model/AssimpModelLoader.cpp
-    model/ModelGL.hpp
-	model/ModelGL.cpp
-    model/ModelManagerGL.hpp
-	model/ModelManagerGL.cpp
+    #nex/opengl/model
+    nex/opengl/model/AssimpModelLoader.hpp
+	nex/opengl/model/AssimpModelLoader.cpp
+    nex/opengl/model/ModelGL.hpp
+	nex/opengl/model/ModelGL.cpp
+    nex/opengl/model/ModelManagerGL.hpp
+	nex/opengl/model/ModelManagerGL.cpp
     
-	#post_processing
-	post_processing/HBAO_GL.hpp
-	post_processing/HBAO_GL.cpp
-	post_processing/SSAO_GL.hpp
-	post_processing/SSAO_GL.cpp
-	#post_processing/blur
-	post_processing/blur/GaussianBlurGL.hpp
-	post_processing/blur/GaussianBlurGL.cpp
+	#nex/opengl/post_processing
+	nex/opengl/post_processing/HBAO_GL.hpp
+	nex/opengl/post_processing/HBAO_GL.cpp
+	nex/opengl/post_processing/SSAO_GL.hpp
+	nex/opengl/post_processing/SSAO_GL.cpp
+	#nex/opengl/post_processing/blur
+	nex/opengl/post_processing/blur/GaussianBlurGL.hpp
+	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
 	
-    #renderer
-    renderer/RendererOpenGL.hpp
-	renderer/RendererOpenGL.cpp
+    #nex/opengl/renderer
+    nex/opengl/renderer/RendererOpenGL.hpp
+	nex/opengl/renderer/RendererOpenGL.cpp
     
-    #shader
-	shader/DepthMapShaderGL.hpp
-	shader/DepthMapShaderGL.cpp
-    shader/NormalsShaderGL.hpp
-	shader/NormalsShaderGL.cpp
-    shader/PBRShaderGL.hpp
-	shader/PBRShaderGL.cpp
-	shader/PhongTexShaderGL.hpp
-	shader/PhongTexShaderGL.cpp
-    shader/ScreenShaderGL.hpp
-	shader/ScreenShaderGL.cpp
-    shader/ShaderGL.hpp
-	shader/ShaderGL.cpp
-	shader/ShadowShaderGL.hpp
-	shader/ShadowShaderGL.cpp
-    shader/ShaderManagerGL.hpp
-	shader/ShaderManagerGL.cpp
-    shader/SimpleColorShaderGL.hpp
-	shader/SimpleColorShaderGL.cpp
-    shader/SimpleExtrudeShaderGL.hpp
-	shader/SimpleExtrudeShaderGL.cpp
-    shader/SkyBoxShaderGL.hpp
-	shader/SkyBoxShaderGL.cpp
-	#shader/post_processing/blur
-    shader/post_processing/blur/GaussianBlurShaderGL.hpp
-	shader/post_processing/blur/GaussianBlurShaderGL.cpp
+    #nex/opengl/shader
+	nex/opengl/shader/DepthMapShaderGL.hpp
+	nex/opengl/shader/DepthMapShaderGL.cpp
+    nex/opengl/shader/NormalsShaderGL.hpp
+	nex/opengl/shader/NormalsShaderGL.cpp
+    nex/opengl/shader/PBRShaderGL.hpp
+	nex/opengl/shader/PBRShaderGL.cpp
+	nex/opengl/shader/PhongTexShaderGL.hpp
+	nex/opengl/shader/PhongTexShaderGL.cpp
+    nex/opengl/shader/ScreenShaderGL.hpp
+	nex/opengl/shader/ScreenShaderGL.cpp
+    nex/opengl/shader/ShaderGL.hpp
+	nex/opengl/shader/ShaderGL.cpp
+	nex/opengl/shader/ShadowShaderGL.hpp
+	nex/opengl/shader/ShadowShaderGL.cpp
+    nex/opengl/shader/ShaderManagerGL.hpp
+	nex/opengl/shader/ShaderManagerGL.cpp
+    nex/opengl/shader/SimpleColorShaderGL.hpp
+	nex/opengl/shader/SimpleColorShaderGL.cpp
+    nex/opengl/shader/SimpleExtrudeShaderGL.hpp
+	nex/opengl/shader/SimpleExtrudeShaderGL.cpp
+    nex/opengl/shader/SkyBoxShaderGL.hpp
+	nex/opengl/shader/SkyBoxShaderGL.cpp
+	#nex/opengl/shader/post_processing/blur
+    nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp
+	nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.cpp
 	
-	#shading_model
-	shading_model/PBR_DeferredGL.hpp
-	shading_model/PBR_DeferredGL.cpp
-	shading_model/ShadingModelFactoryGL.cpp
-	shading_model/ShadingModelFactoryGL.hpp
-	shading_model/ShadingModelFactoryGL.cpp
+	#nex/opengl/shading_model
+	nex/opengl/shading_model/PBR_DeferredGL.hpp
+	nex/opengl/shading_model/PBR_DeferredGL.cpp
+	nex/opengl/shading_model/ShadingModelFactoryGL.cpp
+	nex/opengl/shading_model/ShadingModelFactoryGL.hpp
+	nex/opengl/shading_model/ShadingModelFactoryGL.cpp
  
     
-    #texture
-    texture/ImageLoaderGL.hpp
-	texture/ImageLoaderGL.cpp
-    texture/TextureGL.hpp
-    texture/TextureGL.cpp
-	texture/TextureManagerGL.hpp
-	texture/TextureManagerGL.cpp
+    #nex/opengl/texture
+    nex/opengl/texture/ImageLoaderGL.hpp
+	nex/opengl/texture/ImageLoaderGL.cpp
+    nex/opengl/texture/TextureGL.hpp
+    nex/opengl/texture/TextureGL.cpp
+	nex/opengl/texture/TextureManagerGL.hpp
+	nex/opengl/texture/TextureManagerGL.cpp
 	
 	
-	#window_system/
-    #window_system/glfw/
-    window_system/glfw/InputGLFW.hpp
-	window_system/glfw/InputGLFW.cpp
-    window_system/glfw/WindowGLFW.hpp
-	window_system/glfw/WindowGLFW.cpp
-    window_system/glfw/SubSystemProviderGLFW.hpp
-	window_system/glfw/SubSystemProviderGLFW.cpp
+	#nex/opengl/window_system/
+    #nex/opengl/window_system/glfw/
+    nex/opengl/window_system/glfw/InputGLFW.hpp
+	nex/opengl/window_system/glfw/InputGLFW.cpp
+    nex/opengl/window_system/glfw/WindowGLFW.hpp
+	nex/opengl/window_system/glfw/WindowGLFW.cpp
+    nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp
+	nex/opengl/window_system/glfw/SubSystemProviderGLFW.cpp
 )
 
 # Create named folders for the sources within the .vcproj
