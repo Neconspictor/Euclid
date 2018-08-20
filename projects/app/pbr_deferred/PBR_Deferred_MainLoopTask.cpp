@@ -22,7 +22,7 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(RendererPtr renderer) :
+PBR_Deferred_MainLoopTask::PBR_Deferred_MainLoopTask(RenderBackendPtr renderer) :
 	blurEffect(nullptr),
 	m_isRunning(true),
 	logClient(getLogServer()),

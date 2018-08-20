@@ -3,151 +3,226 @@ set(
     
     ###header files###
     pch_engine.hpp
-		
-    #antialiasing
-    antialiasing/SMAA.hpp
-    
-    #camera
-    camera/Camera.hpp
-	camera/Camera.cpp
-    camera/FPCamera.hpp
-	camera/FPCamera.cpp
-    camera/FPCameraBase.hpp
-	camera/FPCameraBase.cpp
-    camera/FPQuaternionCamera.hpp
-	camera/FPQuaternionCamera.cpp
-    camera/TrackballCamera.hpp
-	camera/TrackballCamera.cpp
-    camera/TrackballQuatCamera.hpp
-	camera/TrackballQuatCamera.cpp
-    
-    #drawing
-    drawing/ModelDrawer.hpp
-    
-    #exception
-    exception/MeshNotFoundException.hpp
-    exception/ShaderInitException.hpp
-    exception/ShaderNotFoundException.hpp
 	
-	#gui
-	gui/Controller.hpp
-	gui/ControllerStateMachine.hpp
-	gui/ControllerStateMachine.cpp
-	gui/Drawable.hpp
-	gui/Menu.cpp
-	gui/Menu.hpp
-	gui/Style.hpp
-	gui/Util.cpp
-	gui/Util.hpp
+	
+	#nex
+    nex/FileSystem.hpp
+	nex/FileSystem.cpp
+    nex/Input.hpp
+	nex/Input.cpp
+    nex/Renderer.hpp
+	nex/Renderer.cpp
+	nex/SubSystemProvider.hpp
+    nex/Window.hpp
+	nex/Window.cpp
     
-	#light
-	light/Light.hpp
-	light/Light.cpp
+    #nex/event
+    nex/event/EventChannel.hpp
+    nex/event/EventHandler.hpp
+    nex/event/EventHandlerQueue.hpp
+    nex/event/GlobalEventChannel.hpp
+    nex/event/Task.hpp
+	nex/event/Task.cpp
+    nex/event/TaskManager.hpp
+	nex/event/TaskManager.cpp
+    
+    #nex/exception
+    nex/exception/EnumFormatException.hpp
+    nex/exception/OpenglException.hpp
+    nex/exception/UnexpectedPlatformException.hpp
+	
+	#nex/gui
+	nex/gui/ImGUI.hpp
+    
+    
+    #nex/logging
+    nex/logging/GlobalLoggingServer.hpp
+	nex/logging/GlobalLoggingServer.cpp
+    nex/logging/LogEndpoint.hpp
+    nex/logging/LogEndpoint.inl
+	nex/logging/LogEndpoint.cpp
+    nex/logging/LoggingServer.hpp
+	nex/logging/LoggingServer.cpp
+    nex/logging/LoggingClient.hpp
+	nex/logging/LoggingClient.cpp
+    nex/logging/LogLevel.hpp
+	nex/logging/LogLevel.cpp
+    nex/logging/LogMessage.hpp
+	nex/logging/LogMessage.cpp
 		
-    #listener
-    listener/ScrollListener.hpp
+    #nex/antialiasing
+    nex/antialiasing/SMAA.hpp
     
-    #mesh
-    mesh/Mesh.hpp
-	mesh/Mesh.cpp
-    mesh/SampleMeshes.hpp
+    #nex/camera
+    nex/camera/Camera.hpp
+	nex/camera/Camera.cpp
+    nex/camera/FPCamera.hpp
+	nex/camera/FPCamera.cpp
+    nex/camera/FPCameraBase.hpp
+	nex/camera/FPCameraBase.cpp
+    nex/camera/FPQuaternionCamera.hpp
+	nex/camera/FPQuaternionCamera.cpp
+    nex/camera/TrackballCamera.hpp
+	nex/camera/TrackballCamera.cpp
+    nex/camera/TrackballQuatCamera.hpp
+	nex/camera/TrackballQuatCamera.cpp
     
-    #material
-    material/AbstractMaterialLoader.hpp
-	material/AbstractMaterialLoader.cpp
-    material/BlinnPhongMaterial.hpp
-	material/BlinnPhongMaterial.cpp
-	material/BlinnPhongMaterialLoader.hpp
-	material/BlinnPhongMaterialLoader.cpp
-    material/Material.hpp
-	material/PbrMaterial.hpp
-	material/PbrMaterial.cpp
-	material/PbrMaterialLoader.hpp
-	material/PbrMaterialLoader.cpp
+    #nex/drawing
+    nex/drawing/ModelDrawer.hpp
+    
+    #nex/exception
+    nex/exception/MeshNotFoundException.hpp
+    nex/exception/ShaderInitException.hpp
+    nex/exception/ShaderNotFoundException.hpp
+	
+	#nex/gui
+	nex/gui/Controller.hpp
+	nex/gui/ControllerStateMachine.hpp
+	nex/gui/ControllerStateMachine.cpp
+	nex/gui/Drawable.hpp
+	nex/gui/Menu.cpp
+	nex/gui/Menu.hpp
+	nex/gui/Style.hpp
+	nex/gui/Util.cpp
+	nex/gui/Util.hpp
+    
+	#nex/light
+	nex/light/Light.hpp
+	nex/light/Light.cpp
+		
+    #nex/listener
+    nex/listener/ScrollListener.hpp
+	
+	#nex/memory
+    nex/memory/Allocator.hpp
+    nex/memory/FreeListAllocator.hpp
+	nex/memory/FreeListAllocator.cpp
+    nex/memory/LinearAllocator.hpp
+	nex/memory/LinearAllocator.cpp
+    nex/memory/MemoryManager.hpp
+	nex/memory/MemoryManager.cpp
+    nex/memory/ObjectPool.hpp
+    nex/memory/PoolAllocator.hpp
+	nex/memory/PoolAllocator.cpp
+    nex/memory/ProxyAllocator.hpp
+	nex/memory/ProxyAllocator.cpp
+    nex/memory/StackAllocator.hpp
+	nex/memory/StackAllocator.cpp
+    
+    #nex/mesh
+    nex/mesh/Mesh.hpp
+	nex/mesh/Mesh.cpp
+    nex/mesh/SampleMeshes.hpp
+    
+    #nex/material
+    nex/material/AbstractMaterialLoader.hpp
+	nex/material/AbstractMaterialLoader.cpp
+    nex/material/BlinnPhongMaterial.hpp
+	nex/material/BlinnPhongMaterial.cpp
+	nex/material/BlinnPhongMaterialLoader.hpp
+	nex/material/BlinnPhongMaterialLoader.cpp
+    nex/material/Material.hpp
+	nex/material/PbrMaterial.hpp
+	nex/material/PbrMaterial.cpp
+	nex/material/PbrMaterialLoader.hpp
+	nex/material/PbrMaterialLoader.cpp
 
     
-    #model
-    model/Model.hpp
-	model/Model.cpp
-    model/ModelManager.hpp
-	model/ModelManager.cpp
-    model/Vob.hpp
-	model/Vob.cpp
+    #nex/model
+    nex/model/Model.hpp
+	nex/model/Model.cpp
+    nex/model/ModelManager.hpp
+	nex/model/ModelManager.cpp
+    nex/model/Vob.hpp
+	nex/model/Vob.cpp
 
 	
-    #post_processing
-	post_processing/HBAO.hpp
-	post_processing/HBAO.cpp
-	post_processing/SSAO.hpp
-	post_processing/SSAO.cpp
-	#post_processing/blur
-	post_processing/blur/GaussianBlur.hpp
-	post_processing/blur/GaussianBlur.cpp
+    #nex/post_processing
+	nex/post_processing/HBAO.hpp
+	nex/post_processing/HBAO.cpp
+	nex/post_processing/SSAO.hpp
+	nex/post_processing/SSAO.cpp
 	
-    #renderer
-    renderer/AbstractRendererFactory.hpp
-    renderer/Renderer3D.hpp
+	#nex/post_processing/blur
+	nex/post_processing/blur/GaussianBlur.hpp
+	nex/post_processing/blur/GaussianBlur.cpp
+	
+    #nex/renderer
+    nex/renderer/RenderBackend.hpp
     
-    #shader
-	shader/DepthMapShader.hpp
-    shader/NormalsShader.hpp
-    shader/PBRShader.hpp	
-	shader/PhongTextureShader.hpp
-    shader/ScreenShader.hpp
-    shader/Shader.hpp
-	shader/Shader.cpp
-    shader/ShaderManager.hpp
-	shader/ShadowShader.hpp
-    shader/SimpleColorShader.hpp
-    shader/SimpleExtrudeShader.hpp
-    shader/SkyBoxShader.hpp
-	#shader/post_processing/blur
-	shader/post_processing/blur/GaussianBlurShader.hpp
+    #nex/shader
+	nex/shader/DepthMapShader.hpp
+    nex/shader/NormalsShader.hpp
+    nex/shader/PBRShader.hpp	
+	nex/shader/PhongTextureShader.hpp
+    nex/shader/ScreenShader.hpp
+    nex/shader/Shader.hpp
+	nex/shader/Shader.cpp
+    nex/shader/ShaderManager.hpp
+	nex/shader/ShadowShader.hpp
+    nex/shader/SimpleColorShader.hpp
+    nex/shader/SimpleExtrudeShader.hpp
+    nex/shader/SkyBoxShader.hpp
+	#nex/shader/post_processing/blur
+	nex/shader/post_processing/blur/GaussianBlurShader.hpp
 	
-	#shading_model
-	shading_model/PBR.hpp
-	shading_model/PBR.cpp
-	shading_model/PBR_Deferred.hpp
-	shading_model/PBR_Deferred.cpp
-	shading_model/ShadingModelFactory.hpp
-	shading_model/ShadingModelFactory.cpp
+	#nex/shading_model
+	nex/shading_model/PBR.hpp
+	nex/shading_model/PBR.cpp
+	nex/shading_model/PBR_Deferred.hpp
+	nex/shading_model/PBR_Deferred.cpp
+	nex/shading_model/ShadingModelFactory.hpp
+	nex/shading_model/ShadingModelFactory.cpp
 	
 	
-    #scene
-    scene/SceneNode.hpp
-	scene/SceneNode.cpp
+    #nex/scene
+    nex/scene/SceneNode.hpp
+	nex/scene/SceneNode.cpp
     
-    #shadowing
-    shadowing/ShadowMapper.hpp
+    #nex/shadowing
+    nex/shadowing/ShadowMapper.hpp
  
     
-    #sprite
-    sprite/Sprite.hpp
-	sprite/Sprite.cpp
+    #nex/sprite
+    nex/sprite/Sprite.hpp
+	nex/sprite/Sprite.cpp
  
-    #system
-    system/Configuration.hpp
-	system/Configuration.cpp
-    system/Engine.hpp
-	system/Engine.cpp
-    system/System.hpp
-	system/System.cpp
-	system/Video.hpp
-	system/Video.cpp
+    #nex/system
+    nex/system/Configuration.hpp
+	nex/system/Configuration.cpp
+    nex/system/Engine.hpp
+	nex/system/Engine.cpp
+    nex/system/System.hpp
+	nex/system/System.cpp
+	nex/system/Video.hpp
+	nex/system/Video.cpp
  
     
-    #texture
-    texture/Texture.hpp
-	texture/Texture.cpp
-    texture/TextureManager.hpp
+    #nex/texture
+    nex/texture/Texture.hpp
+	nex/texture/Texture.cpp
+	nex/texture/TextureManager.hpp
+	
+	#nex/util
+    nex/util/CallbackContainer.hpp
+	nex/util/FPSCounter.hpp
+	nex/util/Globals.hpp
+	nex/util/Math.hpp
+	nex/util/MathUtils.hpp
+    nex/util/PointerUtils.hpp
+	nex/util/Projectional.hpp
+	nex/util/Projectional.cpp
+    nex/util/Signal.hpp
+    nex/util/StringUtils.hpp
+	nex/util/StringUtils.cpp
+	nex/util/Timer.hpp
+    nex/util/TimeUtils.hpp
+    nex/util/Util.hpp
+
     
-    #util
-    util/FPSCounter.hpp
-    util/Globals.hpp
-	util/Math.hpp
-	util/Projectional.hpp
-	util/Projectional.cpp
-    util/Timer.hpp
+    #nex/util/concurrent
+    nex/util/concurrent/Active.hpp
+	nex/util/concurrent/Active.cpp
 )
 
 # Create named folders for the sources within the .vcproj
@@ -169,8 +244,11 @@ target_include_directories (engine PUBLIC
 )
 
 find_package(ASSIMP REQUIRED)
-find_package(Boost 1.67 EXACT REQUIRED COMPONENTS program_options)
+#find_package(Boost 1.67 EXACT REQUIRED COMPONENTS program_options)
+find_package(Boost 1.67 EXACT REQUIRED COMPONENTS atomic chrono date_time filesystem locale program_options system thread)
+find_package(GLAD REQUIRED)
 find_package(GLM REQUIRED)
+find_package(IMGUI REQUIRED)
 find_package(STB REQUIRED)
 
 target_link_libraries(engine
@@ -178,11 +256,28 @@ target_link_libraries(engine
         PUBLIC
 
         ASSIMP
-        GLM
-		Boost::boost
+		Boost::atomic
+        Boost::boost
+        Boost::chrono
+        Boost::date_time
+        Boost::filesystem
+        Boost::locale
         Boost::program_options
-		
+        Boost::system
+        Boost::thread
+		GLM
+		IMGUI
 		STB
-		
-		platform
 )
+
+# Add boost random package to MinGW as it has no real std::random_device support! 
+if(MINGW)
+	find_package(Boost 1.67 EXACT REQUIRED COMPONENTS random)
+
+	target_link_libraries(engine
+
+        PUBLIC
+
+		Boost::random
+)
+endif()

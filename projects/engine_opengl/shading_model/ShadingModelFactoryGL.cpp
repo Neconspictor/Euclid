@@ -4,7 +4,7 @@
 using namespace std;
 
 
-ShadingModelFactoryGL::ShadingModelFactoryGL(Renderer3D* renderer) : ShadingModelFactory(renderer)
+ShadingModelFactoryGL::ShadingModelFactoryGL(RenderBackend* renderer) : ShadingModelFactory(renderer)
 {
 }
 

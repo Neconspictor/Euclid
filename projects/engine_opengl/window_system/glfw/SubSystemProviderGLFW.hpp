@@ -1,5 +1,5 @@
 #include <platform/logging/LoggingClient.hpp>
-#include <platform/PlatformProvider.hpp>
+#include <platform/SubSystemProvider.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <window_system/glfw/WindowGLFW.hpp>

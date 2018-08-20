@@ -1,7 +1,7 @@
 #pragma once
 #include <platform/logging/LoggingClient.hpp>
 #include <platform/event/Task.hpp>
-#include <renderer/Renderer3D.hpp>
+#include <renderer/RenderBackend.hpp>
 #include <camera/Camera.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
@@ -15,10 +15,10 @@
 class PBR_Deferred_MainLoopTask
 {
 public:
-	using RendererPtr = Renderer3D*;
+	using RenderBackendPtr = RenderBackend*;
 	typedef unsigned int uint;
 
-	PBR_Deferred_MainLoopTask(RendererPtr renderer);
+	PBR_Deferred_MainLoopTask(RenderBackendPtr renderer);
 
 	bool getShowDepthMap() const;
 	void init(int windowWidth, int windowHeight);
@@ -46,7 +46,7 @@ private:
 	std::unique_ptr<SSAO_Deferred> ssao_deferred;
 	std::unique_ptr<hbao::HBAO> hbao;
 
-	RendererPtr renderer;
+	RenderBackendPtr renderer;
 	RenderTarget* renderTargetSingleSampled;
 	Sprite screenSprite;
 	DepthMap* shadowMap;

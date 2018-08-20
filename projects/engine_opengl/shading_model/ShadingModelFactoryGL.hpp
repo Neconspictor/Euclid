@@ -6,7 +6,7 @@
 class ShadingModelFactoryGL : public ShadingModelFactory {
 
 public:
-	ShadingModelFactoryGL(Renderer3D* renderer);
+	ShadingModelFactoryGL(RenderBackend* renderer);
 	virtual ~ShadingModelFactoryGL() {
 		int i = 0;
 	};

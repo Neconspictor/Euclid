@@ -7,7 +7,7 @@ using namespace glm;
 
 using namespace std;
 
-PBR_DeferredGL::PBR_DeferredGL(Renderer3D* renderer, Texture* backgroundHDR) :
+PBR_DeferredGL::PBR_DeferredGL(RenderBackend* renderer, Texture* backgroundHDR) :
 	PBR_Deferred(renderer, backgroundHDR)
 {
 }

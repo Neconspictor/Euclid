@@ -1,9 +1,9 @@
 #pragma once
-#include <texture/TextureManager.hpp>
+#include <nex/texture/TextureManager.hpp>
 #include <map>
 #include <glad/glad.h>
 #include <memory>
-#include <platform/logging/LoggingClient.hpp>
+#include <nex/logging/LoggingClient.hpp>
 #include <list>
 
 

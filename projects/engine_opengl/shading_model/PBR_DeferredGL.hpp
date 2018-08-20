@@ -8,7 +8,7 @@
 class PBR_DeferredGL : public PBR_Deferred {
 
 public:
-	PBR_DeferredGL(Renderer3D* renderer, Texture* backgroundHDR);
+	PBR_DeferredGL(RenderBackend* renderer, Texture* backgroundHDR);
   virtual ~PBR_DeferredGL();
 
   virtual void drawGeometryScene(SceneNode * scene,

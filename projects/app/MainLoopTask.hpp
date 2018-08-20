@@ -3,13 +3,13 @@
 #include <platform/Input.hpp>
 #include <platform/event/Task.hpp>
 #include <system/Engine.hpp>
-#include <renderer/Renderer3D.hpp>
+#include <renderer/RenderBackend.hpp>
 #include <platform/Window.hpp>
 #include <util/Timer.hpp>
 #include <util/FPSCounter.hpp>
 #include <camera/Camera.hpp>
 #include <model/Vob.hpp>
-#include <platform/PlatformProvider.hpp>
+#include <platform/SubSystemProvider.hpp>
 #include <scene/SceneNode.hpp>
 #include <light/Light.hpp>
 #include <sprite/Sprite.hpp>
@@ -24,7 +24,7 @@ public:
 	using EnginePtr = Engine*;
 	using WindowSystemPtr = SubSystemProvider*;
 	using WindowPtr = Window*;
-	using RendererPtr = Renderer3D*;
+	using RendererPtr = RenderBackend*;
 	typedef unsigned int uint;
 
 	MainLoopTask(EnginePtr engine, WindowPtr window, WindowSystemPtr windowSystem, RendererPtr renderer,

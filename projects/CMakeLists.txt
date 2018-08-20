@@ -30,7 +30,6 @@ ADD_DEFINITIONS(-DNEC_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 #SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
 
 # Sub-directories where more CMakeLists.txt exist
-add_subdirectory(platform)
 add_subdirectory(engine)
 add_subdirectory(engine_opengl)
 #add_subdirectory(test)

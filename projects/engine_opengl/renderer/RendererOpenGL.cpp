@@ -40,7 +40,7 @@ void EffectLibraryGL::release()
 		gaussianBlur->release();
 }
 
-RendererOpenGL::RendererOpenGL() : Renderer3D(), 
+RendererOpenGL::RendererOpenGL() : RenderBackend(), 
   backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
   msaaSamples(1), smaa(nullptr), defaultRenderTarget(0,0, 0)
 {	
@@ -391,7 +391,7 @@ void RendererOpenGL::setMSAASamples(unsigned int samples)
 
 void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
-	Renderer3D::setViewPort(x, y, width, height);
+	RenderBackend::setViewPort(x, y, width, height);
 
 	this->width = width;
 	this->height = height;

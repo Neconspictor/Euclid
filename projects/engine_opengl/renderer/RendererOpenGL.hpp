@@ -1,5 +1,5 @@
 #pragma once
-#include <renderer/Renderer3D.hpp>
+#include <renderer/RenderBackend.hpp>
 #include <glad/glad.h>
 #include <model/ModelGL.hpp>
 #include <texture/TextureGL.hpp>
@@ -27,7 +27,7 @@ protected:
 };
 
 
-class RendererOpenGL : public Renderer3D
+class RendererOpenGL : public RenderBackend
 {
 public:
 	RendererOpenGL();
@@ -79,7 +79,7 @@ public:
 
 	virtual BaseRenderTarget* getDefaultRenderTarget() override;
 
-	// Inherited via Renderer3D
+	// Inherited via RenderBackend
 	virtual EffectLibrary* getEffectLibrary() override;
 
 	virtual ModelDrawer* getModelDrawer() override;

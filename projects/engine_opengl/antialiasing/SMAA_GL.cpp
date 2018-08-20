@@ -31,7 +31,7 @@ void SMAA_GL::antialias(RenderTarget* renderTarget)
 
 void SMAA_GL::init()
 {
-	/*Renderer3D::Viewport viewPort = renderer->getViewport();
+	/*RenderBackend::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 
@@ -150,7 +150,7 @@ void SMAA_GL::updateBuffers()
 	if (blendTex)
 		renderer->destroyRenderTarget(blendTex);
 
-	Renderer3D::Viewport viewPort = renderer->getViewport();
+	RenderBackend::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 

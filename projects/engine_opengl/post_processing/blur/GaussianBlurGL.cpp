@@ -62,7 +62,7 @@ void GaussianBlurGL::init()
 	/*if (tempTarget)
 		renderer->destroyRenderTarget(tempTarget);
 
-	Renderer3D::Viewport viewPort = renderer->getViewport();
+	RenderBackend::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
 	int& height = viewPort.height;
 	tempTarget = renderer->createRenderTargetGL(GL_RGBA8, width, height, 1, GL_DEPTH_STENCIL);
