@@ -81,6 +81,8 @@ set(
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
 	nex/gui/Style.hpp
+	nex/gui/imgui_tabs.cpp
+	nex/gui/imgui_tabs.h
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
     

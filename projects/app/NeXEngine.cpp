@@ -5,7 +5,6 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <thread>
 #include <glm/glm.hpp>
 #include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/camera/FPCamera.hpp>
@@ -221,17 +220,17 @@ void NeXEngine::setupGUI()
 	style.apply();
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(m_controllerSM.get());
-	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>("Graphics Configuration Window", root->getMainMenuBar());
+	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
 	for (int i = 0; i < 5; ++i)
 	{
 		std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO(),
-			root->getOptionMenu(), configurationWindow.get(), "HBAO");
+			configurationWindow.get());
 		//hbaoView->setVisible(true);
 		configurationWindow->addChild(move(hbaoView));
 	}
 
-	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle2>());
+	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
 	m_controllerSM->getCurrentController()->setDrawable(move(root));

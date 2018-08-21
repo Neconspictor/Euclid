@@ -13,7 +13,11 @@ void App::AppStyle::apply()
 
 void App::ConfigurationStyle::pushStyleChangesSelf()
 {
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+	float const alpha = 1.0f;
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, alpha));
+	ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.0f, 0.0f, 0.0f, alpha));
+	ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.0f, 0.0f, 0.0f, alpha));
+	ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.0f, 0.0f, 0.0f, alpha));
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 }
@@ -21,7 +25,7 @@ void App::ConfigurationStyle::pushStyleChangesSelf()
 void App::ConfigurationStyle::popStyleChangesSelf()
 {
 	ImGui::PopStyleVar(1);
-	ImGui::PopStyleColor(2);
+	ImGui::PopStyleColor(5);
 }
 
 void App::ConfigurationStyle2::pushStyleChangesSelf()

@@ -8,8 +8,9 @@ namespace App
 	{
 	private:
 		nex::engine::gui::MainMenuBar* m_mainMenuBar;
+		std::string m_menuTitle;
 	public:
-		ConfigurationWindow(std::string name, nex::engine::gui::MainMenuBar* mainMenuBar);
+		ConfigurationWindow(nex::engine::gui::MainMenuBar* mainMenuBar, nex::engine::gui::Menu* configurationMenu);
 
 		void drawGUI() override;
 

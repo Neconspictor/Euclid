@@ -70,28 +70,10 @@ public:
 	}
 };
 
-hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, 
-	nex::engine::gui::Menu* configMenu, Drawable* parent, std::string menuTitle) : m_hbao(hbao), m_menuTitle(menuTitle), m_parent(parent)
+hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, Drawable* parent) : m_hbao(hbao), m_parent(parent)
 {
-
-	using namespace nex::engine::gui;
-
 	m_blur_sharpness = m_hbao->getBlurSharpness();
-	m_isVisible = false;
-
-
-	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
-	{
-		std::string label = m_menuTitle + "###" + m_id;
-		if (ImGui::Checkbox(label.c_str(), &m_isVisible))
-		{
-			if (m_parent != nullptr)
-				m_parent->setVisible(true);
-		}
-
-	});
-
-	configMenu->addMenuItem(std::move(menuItem));
+	m_isVisible = true;
 }
 
 void hbao::HBAO_ConfigurationView::drawSelf()
@@ -99,22 +81,20 @@ void hbao::HBAO_ConfigurationView::drawSelf()
 	// update hbao model
 	m_hbao->setBlurSharpness(m_blur_sharpness);
 
-	if (m_isVisible) {
-		ImGuiContext&  context = *ImGui::GetCurrentContext();
-		ImGuiNextWindowData windowData = context.NextWindowData;
-		
-		// render configuration properties
-		ImGui::PushID(m_id.c_str());
-		ImGui::LabelText("", m_menuTitle.c_str());
-		ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
-		ImGui::SliderFloat("blur sharpness##1", &m_test, 0.0f, 1000.0f);
+	ImGuiContext&  context = *ImGui::GetCurrentContext();
+	ImGuiNextWindowData windowData = context.NextWindowData;
+	
+	// render configuration properties
+	ImGui::PushID(m_id.c_str());
+	ImGui::LabelText("", "HBAO:");
+	ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
+	ImGui::SliderFloat("blur sharpness##1", &m_test, 0.0f, 1000.0f);
 
-		//ImGui::Dummy(ImVec2(100, 200));
-		ImGui::Dummy(ImVec2(0, 20));
-		nex::engine::gui::Separator(2.0f);
-		//ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
-		//	ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World##HelloWorld!", 0, 0.0f, 0);
+	//ImGui::Dummy(ImVec2(100, 200));
+	ImGui::Dummy(ImVec2(0, 20));
+	nex::engine::gui::Separator(2.0f);
+	//ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+	//	ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World##HelloWorld!", 0, 0.0f, 0);
 
-		ImGui::PopID();
-	}
+	ImGui::PopID();
 }

@@ -122,10 +122,7 @@ namespace hbao {
 
 	class HBAO_ConfigurationView : public nex::engine::gui::Drawable {
 	public:
-		HBAO_ConfigurationView(HBAO* hbao,
-		    nex::engine::gui::Menu* configurationMenu,
-			Drawable* parent,
-			std::string menuTitle);
+		HBAO_ConfigurationView(HBAO* hbao, Drawable* parent);
 
 	protected:
 		void drawSelf() override;
@@ -135,6 +132,5 @@ namespace hbao {
 		Drawable* m_parent;
 		float m_blur_sharpness;
 		float m_test;
-		std::string m_menuTitle;
 	};
 }
