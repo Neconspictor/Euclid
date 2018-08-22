@@ -102,5 +102,19 @@ void Window_ConfigurationView::drawSelf()
 		}
 	}
 
+	char buffer[256];
+
+	std::string title = m_window->getTitle();
+
+	title._Copy_s(buffer, 256, title.size());
+
+	if (ImGui::InputText("Title", buffer, sizeof(buffer)))
+	{
+		if (m_window->getTitle() != buffer)
+		{
+			m_window->setTitle(buffer);
+		}
+	}
+
 	ImGui::PopID();
 }
