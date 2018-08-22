@@ -22,6 +22,10 @@ hbao::HBAO::HBAO(unsigned int windowWidth,
 	unsigned int windowHeight) 
 	:
 	m_blur_sharpness(40.0f),
+	m_meters2viewspace(1.0f),
+	m_radius(2.0f),
+	m_intensity(1.5f),
+	m_bias(0.1f),
 	windowWidth(windowWidth),
 	windowHeight(windowHeight)
 {
@@ -70,25 +74,21 @@ public:
 	}
 };
 
-hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao, Drawable* parent) : m_hbao(hbao), m_parent(parent)
+hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao) : m_hbao(hbao)
 {
-	m_blur_sharpness = m_hbao->getBlurSharpness();
 	m_isVisible = true;
 }
 
 void hbao::HBAO_ConfigurationView::drawSelf()
-{
-	// update hbao model
-	m_hbao->setBlurSharpness(m_blur_sharpness);
-
-	ImGuiContext&  context = *ImGui::GetCurrentContext();
-	ImGuiNextWindowData windowData = context.NextWindowData;
-	
+{	
 	// render configuration properties
 	ImGui::PushID(m_id.c_str());
 	ImGui::LabelText("", "HBAO:");
-	ImGui::SliderFloat("blur sharpness", &m_blur_sharpness, 0.0f, 1000.0f);
-	ImGui::SliderFloat("blur sharpness##1", &m_test, 0.0f, 1000.0f);
+	ImGui::SliderFloat("bias", &m_hbao->m_bias, 0.0f, 5.0f);
+	ImGui::SliderFloat("blur sharpness", &m_hbao->m_blur_sharpness, 0.0f, 1000.0f);
+	ImGui::SliderFloat("intensity", &m_hbao->m_intensity, 0.0f, 10.0f);
+	ImGui::SliderFloat("meters to viewspace unit transformation", &m_hbao->m_meters2viewspace, 0.0f, 10.0f);
+	ImGui::SliderFloat("radius", &m_hbao->m_radius, 0.0f, 10.0f);
 
 	//ImGui::Dummy(ImVec2(100, 200));
 	ImGui::Dummy(ImVec2(0, 20));

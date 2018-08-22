@@ -1,6 +1,8 @@
 #pragma once
 #include <nex/camera/FPCameraBase.hpp>
 
+class FPCamera_ConfigurationView;
+
 class FPCamera : public FPCameraBase
 {
 public:
@@ -18,6 +20,21 @@ public:
 	float getPitch() const;
 
 protected:
+
+	friend FPCamera_ConfigurationView;
+
+	void recalculateLookVector();
+
 	float yaw, pitch;
-	float cameraSpeed;
+};
+
+class FPCamera_ConfigurationView : public nex::engine::gui::Drawable {
+public:
+	FPCamera_ConfigurationView(FPCamera* camera);
+
+protected:
+	void drawSelf() override;
+
+private:
+	FPCamera * m_camera;
 };

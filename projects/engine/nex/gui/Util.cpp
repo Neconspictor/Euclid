@@ -105,4 +105,17 @@ namespace nex::engine::gui
 			window->DC.ColumnsSet->LineMinY = window->DC.CursorPos.y;
 		}
 	}
+
+	void Vector3D(glm::vec3* vec, const char* label)
+	{
+		std::stringstream ss;
+		ss << label << ":";
+		ImGui::LabelText("", ss.str().c_str());
+
+		ImGui::PushID(label);
+		ImGui::DragFloat("###X", &vec->x);
+		ImGui::DragFloat("###Y", &vec->y);
+		ImGui::DragFloat("###Z", &vec->z);
+		ImGui::PopID();
+	}
 }

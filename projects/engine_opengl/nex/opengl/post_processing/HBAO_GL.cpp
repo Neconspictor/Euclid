@@ -218,20 +218,14 @@ void hbao::HBAO_GL::prepareHbaoData(const Projection & projection, int width, in
 		projScale = float(height) / (tanf(projection.fov * 0.5f) * 2.0f);
 	}
 
-	// radius
-	float meters2viewspace = 1.0f;
-	float radius = 2.0f;
-	float intensity = 1.5f;
-	float bias = 0.1f;
-
-	float R = radius * meters2viewspace;
+	float R = m_radius * m_meters2viewspace;
 	m_hbaoDataSource.R2 = R * R;
 	m_hbaoDataSource.NegInvR2 = -1.0f / m_hbaoDataSource.R2;
 	m_hbaoDataSource.RadiusToScreen = R * 0.5f * projScale;
 
 	// ao
-	m_hbaoDataSource.PowExponent = std::max(intensity, 0.0f);
-	m_hbaoDataSource.NDotVBias = std::min(std::max(0.0f, bias), 1.0f);
+	m_hbaoDataSource.PowExponent = std::max(m_intensity, 0.0f);
+	m_hbaoDataSource.NDotVBias = std::min(std::max(0.0f, m_bias), 1.0f);
 	m_hbaoDataSource.AOMultiplier = 1.0f / (1.0f - m_hbaoDataSource.NDotVBias);
 
 	// resolution

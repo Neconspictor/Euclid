@@ -36,5 +36,5 @@ public:
 protected:
 	glm::mat4 shadowMatrices[6];
 
-	void update() override;
+	void update(bool alwaysUpdate = false) override;
 };

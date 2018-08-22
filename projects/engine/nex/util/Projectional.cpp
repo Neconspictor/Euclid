@@ -47,7 +47,7 @@ float Projectional::getFOV() const
 
 const Frustum& Projectional::getFrustum(ProjectionMode mode)
 {
-	update();
+	//update();
 	if (mode == Orthographic)
 		 return orthoFrustum;
 	else
@@ -68,7 +68,7 @@ FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode, float zStart, 
 
 FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 {
-	update();
+	//update();
 	FrustumPlane result;
 	float l, r, t, b, n, f, z;
 
@@ -215,10 +215,10 @@ void Projectional::calcPerspFrustum()
 	perspFrustum.top = y;
 }
 
-void Projectional::update()
+void Projectional::update(bool updateAlways)
 {
 	// only update if changes have occurred
-	if (revalidate)
+	if (revalidate || updateAlways)
 	{
 		orthographic = ortho(orthoFrustum.left, orthoFrustum.right, 
 			orthoFrustum.bottom, orthoFrustum.top, 

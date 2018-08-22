@@ -84,6 +84,8 @@ public:
 
 	virtual void setUp(glm::vec3 up);
 
+	virtual void update(bool updateAlways = false);
+
 protected:
 	float aspectRatio;
 	float fov;
@@ -99,5 +101,4 @@ protected:
 	glm::mat4 view;
 
 	void calcPerspFrustum();
-	virtual void update();
 };

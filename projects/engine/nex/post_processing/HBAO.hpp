@@ -36,8 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -----------------------------------------------------------------------*/
 
 namespace hbao {
-
 #define UBO_SCENE     0
+
+	class HBAO_ConfigurationView;
+
 	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
 	struct Projection {
@@ -81,7 +83,7 @@ namespace hbao {
 	};
 
 	/**
-	 * An Horizont based ambient occlusion (HBAO) implementation for deferred rendering.
+	 * An Horizon based ambient occlusion (HBAO) implementation for deferred rendering.
 	 * This implementation doesn't support MSAA for performance reasons.
 	 */
 	class HBAO {
@@ -109,7 +111,15 @@ namespace hbao {
 		static float lerp(float a, float b, float f);
 
 	protected:
+
+		friend HBAO_ConfigurationView;
+
 		float m_blur_sharpness;
+		float m_meters2viewspace;
+		float m_radius;
+		float m_intensity;
+		float m_bias;
+
 		unsigned int windowWidth;
 		unsigned int windowHeight;
 
@@ -122,7 +132,7 @@ namespace hbao {
 
 	class HBAO_ConfigurationView : public nex::engine::gui::Drawable {
 	public:
-		HBAO_ConfigurationView(HBAO* hbao, Drawable* parent);
+		HBAO_ConfigurationView(HBAO* hbao);
 
 	protected:
 		void drawSelf() override;
@@ -130,7 +140,6 @@ namespace hbao {
 	private:
 		HBAO * m_hbao;
 		Drawable* m_parent;
-		float m_blur_sharpness;
 		float m_test;
 	};
 }

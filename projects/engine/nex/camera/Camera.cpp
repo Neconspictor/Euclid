@@ -28,11 +28,8 @@ Camera::~Camera()
 
 void Camera::update(Input* input, float frameTime)
 {
-}
-
-
-void Camera::onScroll(double xOffset, double yOffset)
-{
+	double yOffset = input->getFrameScrollOffsetY();
+	
 	// zoom
 	if (fov >= 1.0f && fov <= 45.0f)
 		fov -= (float)yOffset;
@@ -41,5 +38,5 @@ void Camera::onScroll(double xOffset, double yOffset)
 	if (fov >= 45.0f)
 		fov = 45.0f;
 
-	revalidate = true;
+	//revalidate = true;
 }

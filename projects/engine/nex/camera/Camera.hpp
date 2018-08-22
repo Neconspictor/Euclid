@@ -12,7 +12,7 @@ public:
 	Camera(const Camera& other);
 	virtual ~Camera();
 
-	virtual void onScroll(double xOffset, double yOffset);
+	//virtual void onScroll(double xOffset, double yOffset);
 
 	virtual void update(Input* input, float frameTime);
 };

@@ -101,6 +101,7 @@ void NeXEngine::run()
 		if (isRunning())
 		{
 			m_controllerSM->frameUpdate(frameTime);
+			m_camera->Projectional::update(true);
 			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
 
 			m_gui->newFrame();
@@ -164,7 +165,7 @@ void NeXEngine::setupCallbacks()
 	Input* input = m_window->getInputDevice();
 
 	//auto focusCallback = bind(&PBR_Deferred_Renderer::onWindowsFocus, this, placeholders::_1, placeholders::_2);
-	auto scrollCallback = std::bind(&Camera::onScroll, m_camera.get(), std::placeholders::_1, std::placeholders::_2);
+	//auto scrollCallback = std::bind(&Camera::onScroll, m_camera.get(), std::placeholders::_1, std::placeholders::_2);
 
 	input->addWindowFocusCallback([=](Window* window_s, bool receivedFocus)
 	{
@@ -184,7 +185,7 @@ void NeXEngine::setupCallbacks()
 			}
 		}
 	});
-	input->addScrollCallback(scrollCallback);
+	//input->addScrollCallback(scrollCallback);
 
 	input->addResizeCallback([=](int width, int height)
 	{
@@ -223,11 +224,14 @@ void NeXEngine::setupGUI()
 	std::unique_ptr<App::ConfigurationWindow> configurationWindow = std::make_unique<App::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
 	Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
+	Tab* cameraTab = configurationWindow->getCameraTab();
 
 
-	std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO(),
-		configurationWindow.get());
+	auto hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO());
 	graphicsTechniques->addChild(move(hbaoView));
+
+	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
+	cameraTab->addChild(move(cameraView));
 
 	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

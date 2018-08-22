@@ -67,9 +67,9 @@ void PointLight::setRange(float range)
 	revalidate = true;
 }
 
-void PointLight::update()
+void PointLight::update(bool alwaysUpdate)
 {
-	if (revalidate)
+	if (revalidate || alwaysUpdate)
 	{
 		glm::vec3 test2 = position;
 		glm::vec3 test = glm::vec3(1.0, 0.0, 0.0);
