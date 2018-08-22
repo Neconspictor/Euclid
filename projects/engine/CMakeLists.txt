@@ -77,6 +77,7 @@ set(
 	nex/gui/Controller.hpp
 	nex/gui/ControllerStateMachine.hpp
 	nex/gui/ControllerStateMachine.cpp
+	nex/gui/Drawable.cpp
 	nex/gui/Drawable.hpp
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp

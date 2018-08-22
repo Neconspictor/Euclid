@@ -6,10 +6,11 @@
 using namespace nex::engine::gui;
 
 App::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Menu* configurationMenu) :
-Window("Graphics and Video Settings", false),  m_mainMenuBar(mainMenuBar), m_menuTitle("Graphics and Video Settings")
+	Window("Graphics and Video Settings", false), m_mainMenuBar(mainMenuBar),
+	m_menuTitle("Graphics and Video Settings"), m_tabBar(nullptr)
 {
 	m_imGuiFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize
-	| ImGuiWindowFlags_NoCollapse;
+		| ImGuiWindowFlags_NoCollapse;
 	//ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
 
 	m_isVisible = false;
@@ -17,16 +18,48 @@ Window("Graphics and Video Settings", false),  m_mainMenuBar(mainMenuBar), m_men
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 	{
 		std::string label = m_menuTitle + "###" + m_id;
-		if (ImGui::Checkbox(label.c_str(), &m_isVisible)){}
-
+		if (ImGui::Checkbox(label.c_str(), &m_isVisible))
+		{
+		}
 	});
 
 	configurationMenu->addMenuItem(std::move(menuItem));
+
+	auto tabBar = std::make_unique<TabBar>("###tabBar");
+
+	m_tabBar = tabBar.get();
+
+	m_childs.emplace_back(std::move(tabBar));
+
+	m_tabBar->newTab(GRAPHICS_TECHNIQUES);
+	m_tabBar->newTab(GENERAL);
+	m_tabBar->newTab(VIDEO);
+	m_tabBar->newTab(CAMERA);
 }
 
 void App::ConfigurationWindow::drawGUI()
 {
 		Window::drawGUI();
+}
+
+Tab* App::ConfigurationWindow::getGeneralTab()
+{
+	return m_tabBar->getTab(GENERAL);
+}
+
+Tab* App::ConfigurationWindow::getGraphicsTechniquesTab()
+{
+	return m_tabBar->getTab(GRAPHICS_TECHNIQUES);
+}
+
+Tab* App::ConfigurationWindow::getCameraTab()
+{
+	return m_tabBar->getTab(CAMERA);
+}
+
+Tab* App::ConfigurationWindow::getVideoTab()
+{
+	return m_tabBar->getTab(VIDEO);
 }
 
 bool App::ConfigurationWindow::hasVisibleChild() const
@@ -48,7 +81,7 @@ void App::ConfigurationWindow::drawSelf()
 	ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
 	ImGui::Begin(m_name.c_str(), &m_isVisible, m_imGuiFlags);
 
-	//ImGui::BeginChild("child", ImVec2(-1, 100), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ResizeFromAnySide);
+	/*//ImGui::BeginChild("child", ImVec2(-1, 100), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ResizeFromAnySide);
 	ImGui::BeginGroup();
 	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.15f, 0.15f, 1.0));
 	ImGui::BeginTabBar("Settings#left_tabs_bar");
@@ -78,18 +111,18 @@ void App::ConfigurationWindow::drawSelf()
 		ImGui::Text("Tab 4");
 	}
 	
-	ImGui::EndTabBar();
+	ImGui::EndTabBar();*/
 
-	ImGui::Dummy(ImVec2(0, 20));
-	nex::engine::gui::Separator(2.0f);
+	//ImGui::Dummy(ImVec2(0, 20));
+	//nex::engine::gui::Separator(2.0f);
 
 	//ImGui::PopStyleColor();
-	ImGui::EndGroup();
+	//ImGui::EndGroup();
 	//ImGui::EndChild();
 
 	//ImGui::Dummy(ImVec2(0, 100));
 
 	//ImGui::Dummy(ImVec2(0, 100));
 
-	ImGui::Text("After tab area");
+	//ImGui::Text("After tab area");
 }

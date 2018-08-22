@@ -1,3 +1,5 @@
+#pragma once
+
 #include <imgui/imgui.h>
 
 typedef int ImGuiTabBarFlags;

@@ -1,9 +1,7 @@
 #pragma once
 
 #include <nex/gui/Style.hpp>
-#include <imgui/imgui.h>
 #include <memory>
-#include <sstream>
 #include <vector>
 
 namespace nex::engine::gui
@@ -19,61 +17,24 @@ namespace nex::engine::gui
 
 		using StyleClassPtr = std::shared_ptr<StyleClass>;
 
-		Drawable() : m_isVisible(true)
-		{
-			std::stringstream ss;
-			ss << std::hex << reinterpret_cast<long long>(this);
-			m_id = ss.str();
-		}
+		Drawable();
 
 		virtual ~Drawable() = default;
 
 		/**
 		 * Draws the Gui of this Drawable and all of its children.
 		 */
-		virtual void drawGUI()
-		{
-			// Do not draw gui if this view is invisible!
-			if (!m_isVisible) return;
+		virtual void drawGUI();
 
-			// Apply style class changes
-			if (m_style) m_style->pushStyleChanges();
+		void addChild(std::unique_ptr<Drawable> child);
 
-			drawSelf();
-			for (auto& child : m_childs)
-			{
-				if (child->isVisible())
-					child->drawGUI();
-			}
+		void useStyleClass(StyleClassPtr styleClass);
 
-			// Revert style class changes
-			if (m_style) m_style->popStyleChanges();
-		}
+		void setVisible(bool visible);
 
-		void addChild(std::unique_ptr<Drawable> child)
-		{
-			m_childs.emplace_back(std::move(child));
-		}
+		virtual bool isVisible() const;
 
-		void useStyleClass(StyleClassPtr styleClass)
-		{
-			m_style = std::move(styleClass);
-		}
-
-		void setVisible(bool visible)
-		{
-			m_isVisible = visible;
-		}
-
-		virtual bool isVisible() const
-		{
-			return m_isVisible;
-		}
-
-		virtual const char* getID() const
-		{
-			return m_id.c_str();
-		}
+		virtual const char* getID() const;
 
 	protected:
 
@@ -97,52 +58,79 @@ namespace nex::engine::gui
 	class Window : public Drawable
 	{
 	public:
-		Window(std::string name, bool useCloseCross) : Drawable(), 
-			m_imGuiFlags(0), m_name(std::move(name)), m_useCloseCross(useCloseCross)
-		{
-			m_name += "###" + m_id;
-		}
-		Window(std::string name, bool useCloseCross, int imGuiFlags) : Drawable(), 
-			m_imGuiFlags(imGuiFlags), m_name(std::move(name)), m_useCloseCross(useCloseCross)
-		{
-			m_name += "###" + m_id;
-		}
+		Window(std::string name, bool useCloseCross);
+
+		Window(std::string name, bool useCloseCross, int imGuiFlags);
 
 		virtual ~Window() = default;
 
-		void drawGUI() override
-		{
-			// Do not draw gui if this view is invisible!
-			if (!m_isVisible) return;
-
-			// Apply style class changes
-			if (m_style) m_style->pushStyleChanges();
-
-			drawSelf();
-			for (auto& child : m_childs)
-			{
-				if (child->isVisible())
-					child->drawGUI();
-			}
-			ImGui::End();
-
-			// Revert style class changes
-			if (m_style) m_style->popStyleChanges();
-		}
+		void drawGUI() override;
 
 	protected:
 
-		void drawSelf() override
-		{
-			if (m_useCloseCross)
-				ImGui::Begin(m_name.c_str(), &m_isVisible, m_imGuiFlags);
-			else 
-				ImGui::Begin(m_name.c_str(), nullptr, m_imGuiFlags);
-		}
+		void drawSelf() override;
 
 		int m_imGuiFlags;
 		std::string m_name;
 		bool m_useCloseCross;
+	};
+
+	class TabBar;
+
+	class Tab : public Drawable
+	{
+
+	protected:
+
+		//friend TabBar;
+		friend std::unique_ptr<Tab> std::make_unique<Tab>(std::string&&);
+
+		/**
+		* Note: A Tab has to be child of a Tab container.
+		* For this the constructor of this class is protected and only
+		* subclasses and the Tab container class can access it.
+		*/
+		Tab(std::string name);
+
+	public:
+
+		virtual ~Tab() = default;
+
+		void drawGUI() override;
+
+		const std::string& getName() const
+		{
+			return m_name;
+		}
+
+	protected:
+
+		// not needed
+		void drawSelf() override;
+
+		std::string m_name;
+	};
+
+	class TabBar : public Drawable
+	{
+	public:
+
+		TabBar(std::string name);
+
+		virtual ~TabBar() = default;
+
+
+		Tab* newTab(std::string tabName);
+
+		Tab* getTab(const char* tabName);
+
+		void drawGUI() override;
+
+	protected:
+
+		void drawSelf() override;
+
+		std::string m_name;
 	};
 
 	class Container : public Drawable
@@ -151,8 +139,6 @@ namespace nex::engine::gui
 		virtual ~Container() = default;
 
 	protected:
-		void drawSelf() override
-		{
-		}
+		void drawSelf() override;
 	};
 }

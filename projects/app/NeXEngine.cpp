@@ -220,15 +220,14 @@ void NeXEngine::setupGUI()
 	style.apply();
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(m_controllerSM.get());
-	std::unique_ptr<Drawable> configurationWindow = std::make_unique<App::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
+	std::unique_ptr<App::ConfigurationWindow> configurationWindow = std::make_unique<App::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
-	for (int i = 0; i < 5; ++i)
-	{
-		std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO(),
-			configurationWindow.get());
-		//hbaoView->setVisible(true);
-		configurationWindow->addChild(move(hbaoView));
-	}
+	Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
+
+
+	std::unique_ptr<hbao::HBAO_ConfigurationView> hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO(),
+		configurationWindow.get());
+	graphicsTechniques->addChild(move(hbaoView));
 
 	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
