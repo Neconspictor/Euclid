@@ -225,6 +225,7 @@ void NeXEngine::setupGUI()
 
 	Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
 	Tab* cameraTab = configurationWindow->getCameraTab();
+	Tab* videoTab = configurationWindow->getVideoTab();
 
 
 	auto hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO());
@@ -232,6 +233,10 @@ void NeXEngine::setupGUI()
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));
+
+
+	auto windowView = std::make_unique<Window_ConfigurationView>(m_window);
+	videoTab->addChild(move(windowView));
 
 	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

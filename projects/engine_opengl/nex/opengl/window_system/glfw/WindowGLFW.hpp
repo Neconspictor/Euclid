@@ -54,6 +54,7 @@ public:
 	virtual void setTitle(const std::string& newTitle) override;
 
 	void setVisible(bool visible) override;
+	void setVsync(bool vsync) override;
 	void setWindowed() override;
 	void showCursor(bool show) override;
 	void swapBuffers() override;

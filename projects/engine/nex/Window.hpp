@@ -85,6 +85,8 @@ public:
 	 */
 	const std::string& getTitle() const;
 
+	virtual bool getVsync() const;
+
 	/**
 	* Checks, if this window is on the foreground, i.e. it is able to receive input events.
 	*/
@@ -134,6 +136,8 @@ public:
 	* Shows or hides a window.
 	*/
 	virtual void setVisible(bool visible) = 0;
+
+	virtual void setVsync(bool vsync);
 
 	/**
 	 * Sets the mode of this window to windowed. If this window was previously in windowed mode, the monitor
@@ -213,4 +217,16 @@ protected:
 	 * a logging client for logging internals.
 	 */
 	nex::LoggingClient logClient;
+};
+
+
+class Window_ConfigurationView : public nex::engine::gui::Drawable {
+public:
+	Window_ConfigurationView(Window* window);
+
+protected:
+	void drawSelf() override;
+
+private:
+	Window * m_window;
 };

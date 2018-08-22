@@ -152,6 +152,20 @@ void WindowGLFW::setVisible(bool visible)
 		glfwHideWindow(window);
 }
 
+void WindowGLFW::setVsync(bool vsync)
+{
+	Window::setVsync(vsync);
+
+	if (!vSync)
+	{
+		glfwSwapInterval(0);
+	}
+	else
+	{
+		glfwSwapInterval(1);
+	}
+}
+
 void WindowGLFW::setWindowed()
 {	
 	glfwSetWindowMonitor(window, nullptr, this->posX, this->posY, this->width, this->height, this->refreshRate);
