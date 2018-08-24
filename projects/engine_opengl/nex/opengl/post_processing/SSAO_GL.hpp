@@ -49,7 +49,7 @@ public:
 	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) override;
 	virtual void blur() override;
 
-	virtual void displayAOTexture() override;
+	virtual void displayAOTexture(Texture* aoTexture) override;
 
 protected:
 	static SSAO_RendertargetGL createSSAO_FBO(unsigned int width, unsigned int height);

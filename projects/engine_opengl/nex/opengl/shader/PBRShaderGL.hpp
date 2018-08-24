@@ -106,7 +106,7 @@ public:
 	virtual void setPrefilterMap(CubeMap* prefilterMap) override;
 
 	virtual void setShadowMap(Texture* texture) override;
-	virtual void setSSAOMap(Texture* texture) override;
+	virtual void setAOMap(Texture* texture) override;
 	virtual void setSkyBox(CubeMap* sky) override;
 
 	virtual void setWorldToLightSpaceMatrix(glm::mat4 worldToLight) override;

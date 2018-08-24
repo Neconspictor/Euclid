@@ -52,7 +52,7 @@ public:
 			attributes.setData("samples[" + std::to_string(i) + "]", &ptr[i]);
 	}
 
-	void setProhectionGPass(glm::mat4 matrix) {
+	void setProjectionGPass(glm::mat4 matrix) {
 		projection_GPass = move(matrix);
 	}
 
@@ -240,7 +240,7 @@ void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const g
 
 	aoShader.setGNormalTexture(&gNormalsGL);
 	aoShader.setGPositionTexture(&gPositionsGL);
-	aoShader.setProhectionGPass(projectionGPass);
+	aoShader.setProjectionGPass(projectionGPass);
 
 	glViewport(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glScissor(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
@@ -262,11 +262,12 @@ void SSAO_DeferredGL::blur()
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SSAO_DeferredGL::displayAOTexture()
+void SSAO_DeferredGL::displayAOTexture(Texture* aoTexture)
 {
 	SSAO_AO_Display_ShaderGL& aoDisplayShader = dynamic_cast<SSAO_AO_Display_ShaderGL&>(*aoDisplay->getConfig());
-	aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
-
+	//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
+	TextureGL* aoTextureGL = (TextureGL*)aoTexture;
+	aoDisplayShader.setScreenTexture(aoTextureGL);
 	modelDrawer->draw(&screenSprite, *aoDisplay);
 }
 

@@ -145,6 +145,8 @@ set(
 
 	
     #nex/post_processing
+	nex/post_processing/AmbientOcclusion.cpp
+	nex/post_processing/AmbientOcclusion.hpp
 	nex/post_processing/HBAO.hpp
 	nex/post_processing/HBAO.cpp
 	nex/post_processing/SSAO.hpp

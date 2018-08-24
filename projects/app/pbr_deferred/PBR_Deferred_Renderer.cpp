@@ -121,8 +121,8 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
-	ssao_deferred = m_renderBackend->createDeferredSSAO();
-	hbao = m_renderBackend->createHBAO();
+	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
+	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
 
 	CubeMap* background = pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
@@ -252,7 +252,12 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		//screenShader->useTexture(pbr_mrt->getDepth());
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		hbao->displayAOTexture(aoTexture);
+		if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
+			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
+		} else
+		{
+			m_aoSelector.getSSAO()->displayAOTexture(aoTexture);
+		}
 		//hbao->displayTexture(pbr_mrt->getDepth());
 	} else
 	{
@@ -277,12 +282,24 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 	//ssao_deferred->onSizeChange(width, height);
-	hbao->onSizeChange(width, height);
+	
+	if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
+	{
+		m_aoSelector.getHBAO()->onSizeChange(width, height);
+	} else
+	{
+		m_aoSelector.getSSAO()->onSizeChange(width, height);
+	}
 }
 
 hbao::HBAO* PBR_Deferred_Renderer::getHBAO()
 {
-	return hbao.get();
+	return m_aoSelector.getHBAO();
+}
+
+AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
+{
+	return &m_aoSelector;
 }
 
 void PBR_Deferred_Renderer::useAmbientOcclusion(bool useAO)
@@ -297,7 +314,11 @@ bool PBR_Deferred_Renderer::getUseAmbientOcclusion() const
 
 Texture* PBR_Deferred_Renderer::renderAO(Camera* camera)
 {
-	if (m_useAmbientOcclusion)
+	if (!m_aoSelector.isAmbientOcclusionActive())
+		// Return a default white texture (means no ambient occlusion)
+		return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
+
+	if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
 	{
 		hbao::Projection projection;
 		Frustum frustum = camera->getFrustum(Perspective);
@@ -308,13 +329,15 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera)
 		projection.orthoheight = 0;
 		projection.perspective = true;
 
-		hbao->renderAO(pbr_mrt->getDepth(), projection, true);
+		m_aoSelector.getHBAO()->renderAO(pbr_mrt->getDepth(), projection, true);
 
-		return hbao->getBlurredResult();
+		return m_aoSelector.getHBAO()->getBlurredResult();
 	}
 
-	// Return a default white texture (means no ambient occlusion)
-	return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
+	// use SSAO
+
+	SSAO_Deferred* ssao = m_aoSelector.getSSAO();
+	return ssao->getBlurredResult();
 }
 
 PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)
@@ -326,11 +349,30 @@ void PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 	// render configuration properties
 	ImGui::PushID(m_id.c_str());
 
-	bool useAmbientOcclusion = m_renderer->getUseAmbientOcclusion();
+	AmbientOcclusionSelector* aoSelector = m_renderer->getAOSelector();
+	bool useAmbientOcclusion = aoSelector->isAmbientOcclusionActive();
 
 	if (ImGui::Checkbox("Ambient occlusion", &useAmbientOcclusion))
 	{
-		m_renderer->useAmbientOcclusion(useAmbientOcclusion);
+		aoSelector->setUseAmbientOcclusion(useAmbientOcclusion);
+	}
+
+	if (useAmbientOcclusion)
+	{
+		std::stringstream ss;
+		ss << AmbientOcclusionSelector::HBAO;
+		std::string hbaoText = ss.str();
+
+		ss.str("");
+		ss << AmbientOcclusionSelector::SSAO;
+		std::string ssaoText = ss.str();
+
+		const char* items[] = { hbaoText.c_str(), ssaoText.c_str() };
+		static AmbientOcclusionSelector::AOTechnique selectedTechnique = AmbientOcclusionSelector::HBAO;
+		if (ImGui::Combo("AO technique", (int*)&selectedTechnique, items, IM_ARRAYSIZE(items)))
+		{
+			std::cout << selectedTechnique << " is selected!" << std::endl;
+		}
 	}
 
 	ImGui::PopID();

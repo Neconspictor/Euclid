@@ -26,7 +26,7 @@ public:
 
 	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) = 0;
 	virtual void blur() = 0;
-	virtual void displayAOTexture() = 0;
+	virtual void displayAOTexture(Texture* aoTexture) = 0;
 
 
 protected:

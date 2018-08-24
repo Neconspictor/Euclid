@@ -49,7 +49,7 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 	shader->setLightDirection(light.getLook());
 	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setShadowMap(shadowMap);
-	shader->setSSAOMap(ssaoMap);
+	shader->setAOMap(ssaoMap);
 	shader->setSkyBox(environmentMap->getCubeMap());
 	shader->setWorldToLightSpaceMatrix(worldToLight);
 

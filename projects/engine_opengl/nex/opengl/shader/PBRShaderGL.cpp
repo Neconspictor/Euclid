@@ -268,7 +268,7 @@ void PBRShader_Deferred_LightingGL::setShadowMap(Texture * texture)
 	attributes.setData("shadowMap", shadowMap);
 }
 
-void PBRShader_Deferred_LightingGL::setSSAOMap(Texture * texture)
+void PBRShader_Deferred_LightingGL::setAOMap(Texture * texture)
 {
 	ssaoMap = dynamic_cast<TextureGL*>(texture);
 	assert(ssaoMap != nullptr);

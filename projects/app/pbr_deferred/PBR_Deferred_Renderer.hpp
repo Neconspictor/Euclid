@@ -12,6 +12,7 @@
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/renderer/Renderer.hpp>
+#include "nex/post_processing/AmbientOcclusion.hpp"
 
 class PBR_Deferred_Renderer : public Renderer
 {
@@ -26,6 +27,7 @@ public:
 	void setShowDepthMap(bool showDepthMap);
 	void updateRenderTargets(int width, int height);
 	hbao::HBAO* getHBAO();
+	AmbientOcclusionSelector* getAOSelector();
 	void useAmbientOcclusion(bool useAO);
 	bool getUseAmbientOcclusion() const;
 
@@ -44,8 +46,7 @@ private:
 	std::unique_ptr<PBR_Deferred> pbr_deferred;
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 
-	std::unique_ptr<SSAO_Deferred> ssao_deferred;
-	std::unique_ptr<hbao::HBAO> hbao;
+	AmbientOcclusionSelector m_aoSelector;
 
 	RenderTarget* renderTargetSingleSampled;
 	Sprite screenSprite;
