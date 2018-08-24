@@ -95,8 +95,7 @@ namespace hbao {
 
 		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) override;
 
-		virtual void displayAOTexture() override;
-		virtual void displayTexture(Texture* texture) override;
+		virtual void displayAOTexture(Texture* texture) override;
 
 	protected:
 

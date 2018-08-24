@@ -175,7 +175,7 @@ Texture * TextureManagerGL::getDefaultNormalTexture()
 
 Texture * TextureManagerGL::getDefaultWhiteTexture()
 {
-	return getImage("_intern/white.png", { true, false, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/white.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 

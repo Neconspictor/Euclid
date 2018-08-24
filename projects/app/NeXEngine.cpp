@@ -243,6 +243,9 @@ void NeXEngine::setupGUI()
 	auto textureManagerView = std::make_unique<TextureManager_Configuration>(m_renderBackend->getTextureManager());
 	generalTab->addChild(move(textureManagerView));
 
+	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(m_renderer.get());
+	generalTab->addChild(move(pbr_deferred_rendererView));
+
 	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 

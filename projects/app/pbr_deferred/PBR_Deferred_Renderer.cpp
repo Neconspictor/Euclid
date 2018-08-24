@@ -29,7 +29,8 @@ PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
 	shadowMap(nullptr),
-	showDepthMap(false)
+	showDepthMap(false),
+	m_useAmbientOcclusion(true)
 {
 	logClient.setPrefix("[PBR_Deferred_Renderer]");
 
@@ -191,18 +192,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
 	//ssao_deferred->blur();
 
-	hbao::Projection projection;
-	Frustum frustum = camera->getFrustum(Perspective);
-	projection.fov = radians(camera->getFOV());
-	projection.farplane = frustum.farPlane;
-	projection.matrix = camera->getPerspProjection();
-	projection.nearplane = frustum.nearPlane;
-	projection.orthoheight = 0;
-	projection.perspective = true;
-
-	hbao->renderAO(pbr_mrt->getDepth(),  projection, true);
-
-	Texture* aoTexture = hbao->getBlurredResult();
+	Texture* aoTexture = renderAO(camera);
 
 	// render scene to a offscreen buffer
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
@@ -262,7 +252,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		//screenShader->useTexture(pbr_mrt->getDepth());
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
-		hbao->displayAOTexture();
+		hbao->displayAOTexture(aoTexture);
 		//hbao->displayTexture(pbr_mrt->getDepth());
 	} else
 	{
@@ -293,4 +283,55 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 hbao::HBAO* PBR_Deferred_Renderer::getHBAO()
 {
 	return hbao.get();
+}
+
+void PBR_Deferred_Renderer::useAmbientOcclusion(bool useAO)
+{
+	m_useAmbientOcclusion = useAO;
+}
+
+bool PBR_Deferred_Renderer::getUseAmbientOcclusion() const
+{
+	return m_useAmbientOcclusion;
+}
+
+Texture* PBR_Deferred_Renderer::renderAO(Camera* camera)
+{
+	if (m_useAmbientOcclusion)
+	{
+		hbao::Projection projection;
+		Frustum frustum = camera->getFrustum(Perspective);
+		projection.fov = radians(camera->getFOV());
+		projection.farplane = frustum.farPlane;
+		projection.matrix = camera->getPerspProjection();
+		projection.nearplane = frustum.nearPlane;
+		projection.orthoheight = 0;
+		projection.perspective = true;
+
+		hbao->renderAO(pbr_mrt->getDepth(), projection, true);
+
+		return hbao->getBlurredResult();
+	}
+
+	// Return a default white texture (means no ambient occlusion)
+	return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
+}
+
+PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)
+{
+}
+
+void PBR_Deferred_Renderer_ConfigurationView::drawSelf()
+{
+	// render configuration properties
+	ImGui::PushID(m_id.c_str());
+
+	bool useAmbientOcclusion = m_renderer->getUseAmbientOcclusion();
+
+	if (ImGui::Checkbox("Ambient occlusion", &useAmbientOcclusion))
+	{
+		m_renderer->useAmbientOcclusion(useAmbientOcclusion);
+	}
+
+	ImGui::PopID();
 }

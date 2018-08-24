@@ -99,8 +99,7 @@ namespace hbao {
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
 		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
-		virtual void displayAOTexture() = 0;
-		virtual void displayTexture(Texture* texture) = 0;
+		virtual void displayAOTexture(Texture* texture) = 0;
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);

@@ -123,11 +123,12 @@ const mat4& Projectional::getPerspProjection()
 
 const mat4& Projectional::getProjection(ProjectionMode mode)
 {
-	switch(mode)
+	switch (mode)
 	{
 	case ProjectionMode::Orthographic: return getOrthoProjection();
 	case ProjectionMode::Perspective: return getPerspProjection();
-	default: throw_with_trace(runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode)));
+	default:
+		throw_with_trace(runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode)));
 	}
 }
 

@@ -168,17 +168,9 @@ void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, boo
 	glBindVertexArray(0);
 }
 
-void HBAO_GL::displayAOTexture()
+void HBAO_GL::displayAOTexture(Texture* texture)
 {
 	//modelDrawer->draw(&screenSprite, *aoDisplay);
-	glBindVertexArray(m_fullscreenTriangleVAO);
-	m_aoDisplay->setInputTexture(m_aoBlurredResultRT->getTexture());
-	m_aoDisplay->draw();
-	glBindVertexArray(0);
-}
-
-void hbao::HBAO_GL::displayTexture(Texture * texture)
-{
 	TextureGL& textureGL = dynamic_cast<TextureGL&>(*texture);
 	glBindVertexArray(m_fullscreenTriangleVAO);
 	m_aoDisplay->setInputTexture(&textureGL);

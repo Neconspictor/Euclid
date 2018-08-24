@@ -272,7 +272,6 @@ void PBRShader_Deferred_LightingGL::setSSAOMap(Texture * texture)
 {
 	ssaoMap = dynamic_cast<TextureGL*>(texture);
 	assert(ssaoMap != nullptr);
-	Texture* white = TextureManagerGL::get()->getDefaultWhiteTexture();
 	attributes.setData("ssaoMap", ssaoMap);
 }
 

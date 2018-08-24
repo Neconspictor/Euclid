@@ -6,6 +6,7 @@
 #include <boost/current_function.hpp>
 #include <sstream>
 #include <nex/exception/EnumFormatException.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex::util {
 	/**
