@@ -286,7 +286,7 @@ SSAO_RendertargetGL SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw std::runtime_error("SSAO Framebuffer not complete!");
+		throw_with_trace(std::runtime_error("SSAO Framebuffer not complete!"));
 
 	return SSAO_RendertargetGL(width, height, ssaoFBO, ssaoColorBuffer);
 }

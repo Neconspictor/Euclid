@@ -132,6 +132,8 @@ void RendererOpenGL::init()
 	glClearStencil(0);
 	glStencilMask(0xFF);
 
+	TextureManagerGL::get()->init();
+
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
@@ -514,7 +516,7 @@ void RendererOpenGL::checkGLErrors(string errorPrefix)
 		}
 
 		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << error;
-		throw OpenglException(ss.str());
+		throw_with_trace(OpenglException(ss.str()));
 	}
 }
 

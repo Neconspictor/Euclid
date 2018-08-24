@@ -65,7 +65,7 @@ bool Configuration::write(const string& fileName)
 		else {
 			stringstream ss;
 			ss << BOOST_CURRENT_FUNCTION << " couldn't convert value for program option: " << desc << endl;
-			throw runtime_error(ss.str());
+			throw_with_trace(runtime_error(ss.str()));
 		}
 
 	}

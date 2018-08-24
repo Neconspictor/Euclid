@@ -136,6 +136,12 @@ set(
 	nex/model/ModelManager.cpp
     nex/model/Vob.hpp
 	nex/model/Vob.cpp
+	
+	#nex/platform/windows
+	nex/platform/windows/CrashHandlerWin32.hpp
+	nex/platform/windows/StackWalker.cpp
+	nex/platform/windows/StackWalker.h
+	nex/platform/windows/WindowsPlatform.hpp
 
 	
     #nex/post_processing
@@ -203,12 +209,16 @@ set(
  
     
     #nex/texture
+	nex/texture/Sampler.cpp
+	nex/texture/Sampler.hpp
     nex/texture/Texture.hpp
 	nex/texture/Texture.cpp
+	nex/texture/TextureManager.cpp
 	nex/texture/TextureManager.hpp
 	
 	#nex/util
     nex/util/CallbackContainer.hpp
+	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
 	nex/util/Globals.hpp
 	nex/util/Math.hpp

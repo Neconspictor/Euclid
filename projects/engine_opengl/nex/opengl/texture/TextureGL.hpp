@@ -2,7 +2,6 @@
 #include <nex/texture/Texture.hpp>
 #include <glad/glad.h>
 #include <nex/util/Util.hpp>
-#include <nex/texture/TextureManager.hpp>
 
 class RenderTargetGL;
 class RendererOpenGL;
@@ -31,7 +30,7 @@ public:
 	void setTexture(GLuint id);
 
 
-	static GLint mapFilter(TextureFilter filter, bool useMipMaps);
+	static GLint mapFilter(TextureFilter filter);
 	static GLint mapUVTechnique(TextureUVTechnique technique);
 	static GLuint getFormat(ColorSpace colorspace);
 	static GLuint getFormat(int numberComponents);

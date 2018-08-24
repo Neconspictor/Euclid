@@ -75,7 +75,7 @@ void ShaderManagerGL::validateShader(Shader* shader)
 {
 	if (!dynamic_cast<ShaderGL*>(shader))
 	{
-		throw runtime_error("ShaderManagerGL::validateShader(Shader*): Shader isn't a valid OpenGL shader!");
+		throw_with_trace(runtime_error("ShaderManagerGL::validateShader(Shader*): Shader isn't a valid OpenGL shader!"));
 	}
 }
 
@@ -199,7 +199,7 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	default: {
 		stringstream ss;
 		ss << BOOST_CURRENT_FUNCTION << " : couldn't create shader for: " << shaderEnum;
-		throw ShaderInitException(ss.str());
+		throw_with_trace(ShaderInitException(ss.str()));
 	}
 	}
 	

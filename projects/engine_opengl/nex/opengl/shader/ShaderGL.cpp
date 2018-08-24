@@ -148,7 +148,7 @@ void ShaderAttributeCollection::setData(const std::string& uniformName, const vo
 	if (attr == nullptr) {
 		std::stringstream ss;
 		ss << "Couldn't match uniform name >> " << uniformName << " << with a registered atrribute name.";
-		throw std::runtime_error(ss.str());
+		throw_with_trace(std::runtime_error(ss.str()));
 	}
 
 	if (data == nullptr) {
@@ -189,7 +189,7 @@ ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const std::string& ve
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
 	{
-		throw ShaderInitException("ShaderGL::ShaderGL: couldn't load shader");
+		throw_with_trace(ShaderInitException("ShaderGL::ShaderGL: couldn't load shader"));
 	}
 
 	if (instancedVertexShaderFile != "")
@@ -197,7 +197,7 @@ ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const std::string& ve
 		instancedProgramID = loadShaders(instancedVertexShaderFile, fragmentShaderFile, geometryShaderFile);
 		if (instancedProgramID == GL_FALSE)
 		{
-			throw ShaderInitException("ShaderGL::ShaderGL: couldn't load instanced shader");
+			throw_with_trace(ShaderInitException("ShaderGL::ShaderGL: couldn't load instanced shader"));
 		}
 	}
 }
@@ -237,7 +237,7 @@ void ShaderGL::initShaderFileSystem()
 		path path(globals::SHADER_PATH_OPENGL);
 		ss << "ShaderGL::initShaderFileSystem(): opengl shader folder doesn't exists: " 
 			<< absolute(path).generic_string();
-		throw std::runtime_error(ss.str());
+		throw_with_trace(std::runtime_error(ss.str()));
 	}
 
 	LOG(staticLogClient, Debug) << "Test log!";
@@ -303,7 +303,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		ss << "Shader::loadShaders(): Couldn't initialize vertex shader!" << std::endl;
 		ss << "vertex file: " << vertexFilePath;
 
-		throw ShaderInitException(ss.str());
+		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
 	if (!::filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
@@ -312,7 +312,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << std::endl;
 		ss << "fragment file: " << fragmentFilePath;
-		throw ShaderInitException(ss.str());
+		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
 	if (useGeomtryShader)
@@ -323,7 +323,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 			std::stringstream ss;
 			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << std::endl;
 			ss << "geometry shader file: " << geometryFilePath;
-			throw ShaderInitException(ss.str());
+			throw_with_trace(ShaderInitException(ss.str()));
 		}
 	}
 
@@ -332,7 +332,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << std::endl;
 		ss << "vertex file: " << vertexFilePath;
-		throw ShaderInitException(ss.str());
+		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
 	if (!compileShader(fragmentShaderCode.c_str(), fragmentShaderID))
@@ -340,7 +340,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << std::endl;
 		ss << "fragment file: " << fragmentFilePath;
-		throw ShaderInitException(ss.str());
+		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
 	if (useGeomtryShader)
@@ -350,7 +350,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 			std::stringstream ss;
 			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << std::endl;
 			ss << "geometry file: " << geometryFilePath;
-			throw ShaderInitException(ss.str());
+			throw_with_trace(ShaderInitException(ss.str()));
 		}
 	}
 
@@ -374,7 +374,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
 			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
 		}
-		throw ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!");
+		throw_with_trace(ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!"));
 	}
 
 	// release not needed memory
@@ -563,7 +563,7 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 	}
 	default:
 		// TODO
-		throw std::runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: ");
+		throw_with_trace(std::runtime_error("ShaderGL::setAttribute(): Unknown ShaderAttributeType: "));
 	}
 
 	RendererOpenGL::checkGLErrorSilently();

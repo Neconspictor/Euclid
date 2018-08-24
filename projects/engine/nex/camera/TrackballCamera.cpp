@@ -91,7 +91,7 @@ void TrackballCamera::setPosition(vec3 position)
 
 void TrackballCamera::setRadius(float radius)
 {
-	if (radius < 0) throw runtime_error("TrackballCamera::setRadius(float radius): radius is supposed to be greater/equal zero!");
+	if (radius < 0) throw_with_trace(runtime_error("TrackballCamera::setRadius(float radius): radius is supposed to be greater/equal zero!"));
 	coords.radius = radius;
 }
 

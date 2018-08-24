@@ -1,6 +1,7 @@
 #include <nex/gui/Menu.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <imgui/imgui_internal.h>
+#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex::engine::gui
 {
@@ -71,14 +72,14 @@ namespace nex::engine::gui
 	ImVec2 MainMenuBar::getPosition() const
 	{
 		ImGuiWindow* window = ImGui::FindWindowByName("##MainMenuBar");
-		if (window == nullptr) throw GuiNotRenderedException("Main menu bar has to be rendered once before calling MainMenuBar::getPosition()");
+		if (window == nullptr) throw_with_trace(GuiNotRenderedException("Main menu bar has to be rendered once before calling MainMenuBar::getPosition()"));
 		return window->Pos;
 	}
 
 	ImVec2 MainMenuBar::getSize() const
 	{
 		ImGuiWindow* window = ImGui::FindWindowByName("##MainMenuBar");
-		if (window == nullptr) throw GuiNotRenderedException("Main menu bar has to be rendered once before calling MainMenuBar::getSize()");
+		if (window == nullptr) throw_with_trace(GuiNotRenderedException("Main menu bar has to be rendered once before calling MainMenuBar::getSize()"));
 		return window->Size;
 	}
 

@@ -1,26 +1,53 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <NeXEngine.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
-
+#include <csignal>
+#include <boost/stacktrace.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #ifdef WIN32
-	#include <vld.h>
+#include <nex/platform/windows/WindowsPlatform.hpp>
 #endif
 
 
-void error_callback(int error, const char* description)
+static const char* CRASH_REPORT_FILENAME = "./crashReport.dump";
+
+void signal_handler(int signum) {
+	::signal(signum, SIG_DFL);
+	boost::stacktrace::safe_dump_to(CRASH_REPORT_FILENAME);
+	std::cout << "Called my_signal_handler" << std::endl;
+	::raise(SIGABRT);
+}
+
+void logLastCrashReport(nex::LoggingClient& logger)
 {
-	fprintf(stderr, "Error: %s\n", description);
+	if (boost::filesystem::exists(CRASH_REPORT_FILENAME)) {
+		// there is a backtrace
+		std::ifstream ifs(CRASH_REPORT_FILENAME);
+
+		boost::stacktrace::stacktrace st = boost::stacktrace::stacktrace::from_dump(ifs);
+		LOG(logger, nex::Fault) << "Previous run crashed:\n" << st;
+
+		// cleaning up
+		ifs.close();
+		boost::filesystem::remove(CRASH_REPORT_FILENAME);
+	}
 }
 
 
 int main(int argc, char** argv)
 {
+#ifdef WIN32
+	initWin32CrashHandler();
+#else
+	::signal(SIGSEGV, signal_handler);
+	::signal(SIGABRT, signal_handler);
+#endif
+
 	nex::LoggingClient logger(nex::getLogServer());
 
+	logLastCrashReport(logger);
+
 	try {
-		
 		NeXEngine neXEngine;
 		neXEngine.init();
 		neXEngine.run();
@@ -29,6 +56,11 @@ int main(int argc, char** argv)
 	} catch (const std::exception& e)
 	{
 		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
+		//LOG(logger, nex::Fault) << "Stack trace: " << boost::stacktrace::stacktrace();
+		const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+		if (st) {
+			LOG(logger, nex::Fault) << "Stack trace: " << *st;
+		}
 	} catch(...)
 	{
 		LOG(logger, nex::Fault) << "Unknown Exception occurred.";

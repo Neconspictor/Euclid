@@ -96,7 +96,7 @@ namespace nex::util {
 
 		std::stringstream ss;
 		ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert string to enum: " << str;
-		throw EnumFormatException(ss.str());
+		throw_with_trace(EnumFormatException(ss.str()));
 	}
 
 	template<class E, size_t S>
@@ -111,6 +111,6 @@ namespace nex::util {
 		std::stringstream ss;
 		ss << BOOST_CURRENT_FUNCTION << " : Couldn't convert enum to string: Enum class: " << typeid(E).name()
 			<< ", enum value: " << e;
-		throw EnumFormatException(ss.str());
+		throw_with_trace(EnumFormatException(ss.str()));
 	}
 }

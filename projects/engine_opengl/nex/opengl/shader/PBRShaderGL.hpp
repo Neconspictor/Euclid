@@ -2,6 +2,7 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/shader/PBRShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
+#include "nex/opengl/texture/SamplerGL.hpp"
 
 class PBRShaderGL : public PBRShader, public ShaderConfigGL
 {
@@ -69,10 +70,14 @@ public:
 
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
+	void beforeDrawing(const MeshGL& mesh) override;
+	void afterDrawing(const MeshGL& mesh) override;
+
 private:
 	glm::mat4 transform;
 	glm::mat4 modelView;
 	glm::mat3 modelView_normalMatrix;
+	//SamplerGL m_sampler;
 };
 
 class PBRShader_Deferred_LightingGL : public PBRShader_Deferred_Lighting, public ShaderConfigGL {

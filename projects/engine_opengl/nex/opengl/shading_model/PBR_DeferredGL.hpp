@@ -4,6 +4,8 @@
 #include <nex/shading_model/PBR_Deferred.hpp>
 #include <list>
 #include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <nex/opengl/texture/SamplerGL.hpp>
 
 class PBR_DeferredGL : public PBR_Deferred {
 

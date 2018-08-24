@@ -29,14 +29,11 @@ PbrMaterial::PbrMaterial(Texture * albedoMap,
 {
 }
 
-PbrMaterial::PbrMaterial(const PbrMaterial & other) : Material()
+PbrMaterial::PbrMaterial(const PbrMaterial & other) : Material(), 
+albedoMap(other.albedoMap), aoMap(other.aoMap),
+emissionMap(other.emissionMap), metallicMap(other.metallicMap), 
+normalMap(other.normalMap),roughnessMap(other.roughnessMap)
 {
-	this->albedoMap = albedoMap;
-	this->aoMap = aoMap;
-	this->emissionMap = emissionMap;
-	this->metallicMap = metallicMap;
-	this->normalMap = normalMap;
-	this->roughnessMap = roughnessMap;
 }
 
 PbrMaterial & PbrMaterial::operator=(const PbrMaterial & other)
@@ -50,10 +47,6 @@ PbrMaterial & PbrMaterial::operator=(const PbrMaterial & other)
 		this->roughnessMap = other.roughnessMap;
 	}
 	return *this;
-}
-
-PbrMaterial::~PbrMaterial()
-{
 }
 
 Texture * PbrMaterial::getAlbedoMap() const

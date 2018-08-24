@@ -2,6 +2,51 @@
 
 #include <glm/glm.hpp>
 
+
+class Sampler;
+
+enum TextureFilter
+{
+	NearestNeighbor,
+	Linear,
+	Bilinear,
+	Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
+	Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
+	Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
+	Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
+};
+
+enum TextureUVTechnique
+{
+	ClampToEdge,
+	Repeat,
+};
+
+enum ColorSpace {
+	RGB,
+	RGBA,
+	RG,
+};
+
+enum Resolution {
+	BITS_8,
+	BITS_16,
+	BITS_32,
+};
+
+
+struct TextureData
+{
+	bool useSRGB;
+	bool generateMipMaps;
+	TextureFilter minFilter;  // minification filter
+	TextureFilter magFilter;  // magnification filter
+	TextureUVTechnique uvTechnique;
+	ColorSpace colorspace;
+	bool isFloatData; //specifies whether the data should be interpreted as float data
+	Resolution resolution;
+};
+
 class Texture
 {
 public:

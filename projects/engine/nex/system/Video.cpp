@@ -33,7 +33,7 @@ void Video::init()
 
 	if (!renderer)
 	{
-		throw runtime_error("Video::init(): No renderer was set!");
+		throw_with_trace(runtime_error("Video::init(): No renderer was set!"));
 	}
 
 	System::init();

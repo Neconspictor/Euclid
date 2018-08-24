@@ -51,7 +51,7 @@ GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
 	case NEGATIVE_Z:
 		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	default:
-		throw std::runtime_error("No mapping defined for " + side);
+		throw_with_trace(std::runtime_error("No mapping defined for " + side));
 	}
 }
 
@@ -93,30 +93,6 @@ TextureGL & TextureGL::operator=(TextureGL && o)
 	return *this;
 }
 
-/*TextureGL::TextureGL(const TextureGL& other)
-{
-	textureID = other.textureID;
-}
-
-TextureGL::TextureGL(TextureGL&& other)
-{
-	textureID = move(other.textureID);
-}
-
-/*TextureGL& TextureGL::operator=(const TextureGL& other)
-{
-	if (this == &other) return *this;
-	this->textureID = other.textureID;
-	return *this;
-}
-
-TextureGL& TextureGL::operator=(TextureGL&& other)
-{
-	if (this == &other) return *this;
-	this->textureID = move(other.textureID);
-	return *this;
-}*/
-
 TextureGL::~TextureGL()
 {
 	release();
@@ -140,7 +116,7 @@ void TextureGL::setTexture(GLuint id)
 	textureID = id;
 }
 
-GLint TextureGL::mapFilter(TextureFilter filter, bool useMipMaps)
+GLint TextureGL::mapFilter(TextureFilter filter)
 {
 	switch (filter)
 	{
@@ -163,7 +139,7 @@ GLint TextureGL::mapFilter(TextureFilter filter, bool useMipMaps)
 		//if (!useMipMaps) return GL_LINEAR;
 		return GL_LINEAR_MIPMAP_LINEAR;
 	default:
-		throw runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter));
+		throw_with_trace(runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter)));
 	}
 }
 
@@ -176,7 +152,7 @@ GLint TextureGL::mapUVTechnique(TextureUVTechnique technique)
 	case Repeat:
 		return GL_REPEAT;
 	default:
-		throw runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique));
+		throw_with_trace(runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique)));
 	}
 }
 
@@ -190,7 +166,7 @@ GLuint TextureGL::getFormat(ColorSpace colorspace)
 	case RG:
 		return GL_RG;
 	default: {
-		throw runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace);
+		throw_with_trace(runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace));
 	}
 	}
 }
@@ -202,7 +178,7 @@ GLuint TextureGL::getFormat(int numberComponents)
 	case 3: return GL_RGB;
 	case 2: return GL_RG;
 	default: {
-		throw runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents);
+		throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
 	}
 	}
 }
@@ -216,7 +192,7 @@ GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatDat
 		}
 
 		if (resolution != BITS_8) {
-			throw runtime_error("TextureManagerGL::getInternalFormat(): SRGB only supported for BITS_8, not for " + resolution);
+			throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): SRGB only supported for BITS_8, not for " + resolution));
 		}
 
 
@@ -226,7 +202,7 @@ GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatDat
 		case GL_RGB:
 			return GL_SRGB;
 		default: {
-			throw runtime_error("TextureManagerGL::getInternalFormat(): Not supported format for SRGB: " + format);
+			throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): Not supported format for SRGB: " + format));
 		}
 		}
 	}
@@ -239,7 +215,7 @@ GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatDat
 	case GL_RG:
 		return rg_float_resolutions[resolution];
 	default: {
-		throw runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format);
+		throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format));
 	}
 	}
 }
@@ -372,8 +348,8 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	GLuint type = TextureGL::getType(data.isFloatData);
 
 	GLuint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
-	GLuint minFilter = TextureGL::mapFilter(data.minFilter, data.generateMipMaps);
-	GLuint magFilter = TextureGL::mapFilter(data.magFilter, data.generateMipMaps);
+	GLuint minFilter = TextureGL::mapFilter(data.minFilter);
+	GLuint magFilter = TextureGL::mapFilter(data.magFilter);
 
 
 	//pre-allocate the six faces of the cubemap
@@ -495,7 +471,7 @@ void CubeRenderTargetGL::release()
 void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 
 	if (!data.generateMipMaps) {
-		throw runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube rener target!");
+		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube rener target!"));
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -578,7 +554,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 	// finally check if all went successfully
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		throw runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!");
+		throw_with_trace(runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!"));
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -647,7 +623,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	// finally check if all went successfully
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		throw runtime_error("RenderTargetGL::createSingleSampled(): Couldn't successfully init framebuffer!");
+		throw_with_trace(runtime_error("RenderTargetGL::createSingleSampled(): Couldn't successfully init framebuffer!"));
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -703,7 +679,7 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
 								   // Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!");
+		throw_with_trace(runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!"));
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
@@ -774,7 +750,7 @@ CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_COMPONENT, GL_RENDERBUFFER, texture);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw runtime_error("CubeDepthMapGL::CubeDepthMapGL(int, int): Framebuffer not complete!");
+		throw_with_trace(runtime_error("CubeDepthMapGL::CubeDepthMapGL(int, int): Framebuffer not complete!"));
 
 	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
 	glDrawBuffer(GL_NONE);
@@ -1019,7 +995,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// finally check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!");
+		throw_with_trace(std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!"));
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 }
@@ -1048,7 +1024,6 @@ Texture * PBR_GBufferGL::getDepth()
 {
 	return &depth;
 }
-
 
 OneTextureRenderTarget::OneTextureRenderTarget(GLuint frameBuffer,
 	TextureGL texture,

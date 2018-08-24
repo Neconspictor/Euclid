@@ -171,7 +171,6 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
 
 	attributes.setData("material.albedoMap", albedoMap, black);
-
 	attributes.setData("material.aoMap", aoMap, white);
 	//attributes.setData("material.emissionMap", emissionMap, black);
 	attributes.setData("material.metallicMap", metallicMap, black);
@@ -340,28 +339,18 @@ PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : PBRShader_Defer
 	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap"); //Texture3
 	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap"); //Texture4
 
-	//GLuint sampler;
-	//glGenSamplers(1, &sampler);
-	/*glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
+	GLuint sampler;
+	glGenSamplers(1, &sampler);
 	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_LOD_BIAS, 0);*/
+	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 
-	/*glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);*/
+	m_sampler.setID(sampler);
 
-	//float anisotropy = renderer->getTextureManager()->getAnisotropicFiltering();
 
-	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
-
-	//m_sampler.setID(sampler);
 }
 
 PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
@@ -370,16 +359,6 @@ PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
 
 void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformData & data)
 {
-
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
-
-	//float value = 0.0f;
-	//glGetSamplerParameterfv(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, &value);
-
-	//std::cout << "GL_TEXTURE_MAX_ANISOTROPY = " << value << std::endl;
-
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
 	mat4 const& model = *data.model;
@@ -414,33 +393,25 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
 	//glBindSampler(albedoMap->getTexture(), m_sampler.getID());
-	/*for (int i = 0; i < 32; ++i)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, albedoMap->getTexture());
-		//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
-		glBindSampler(i, m_sampler.getID());
-		//float value = 16.0f;
-		//glSamplerParameterfv(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, &value);
-		//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
-		
-	}*/
 }
 
 void PBRShader_Deferred_GeometryGL::beforeDrawing(const MeshGL& mesh)
 {
+
+	glBindSampler(0, m_sampler.getID());
+	glBindSampler(1, m_sampler.getID());
+	glBindSampler(2, m_sampler.getID());
+	glBindSampler(3, m_sampler.getID());
+	glBindSampler(4, m_sampler.getID());
 }
 
 void PBRShader_Deferred_GeometryGL::afterDrawing(const MeshGL& mesh)
 {
-	/*for (int i = 0; i < 32; ++i)
-	{
-		glBindSampler(i, GL_FALSE);
-	}*/
-	/*glBindSampler(1, GL_FALSE);
+	glBindSampler(0, GL_FALSE);
+	glBindSampler(1, GL_FALSE);
 	glBindSampler(2, GL_FALSE);
 	glBindSampler(3, GL_FALSE);
-	glBindSampler(4, GL_FALSE);*/
+	glBindSampler(4, GL_FALSE);
 }
 
 

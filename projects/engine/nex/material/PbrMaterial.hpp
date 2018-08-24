@@ -19,7 +19,7 @@ public:
 
 	PbrMaterial& operator=(const PbrMaterial& other);
 
-	virtual ~PbrMaterial();
+	virtual ~PbrMaterial() = default;
 
 	Texture* getAlbedoMap() const;
 	Texture* getAoMap() const;

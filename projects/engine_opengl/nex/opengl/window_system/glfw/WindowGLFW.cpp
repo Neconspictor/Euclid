@@ -73,7 +73,7 @@ void WindowGLFW::init()
 {
 	if (!SubSystemProviderGLFW::get()->init())
 	{
-		throw runtime_error("WindowGLFW: Error: Couldn't initialize GLFWSystem!");
+		throw_with_trace(runtime_error("WindowGLFW: Error: Couldn't initialize GLFWSystem!"));
 	}
 
 	createOpenGLWindow();
@@ -252,7 +252,7 @@ void WindowGLFW::createOpenGLWindow()
 	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);*/
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 	
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -262,12 +262,12 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_FALSE);
 	
 
-	glfwWindowHint(GLFW_RED_BITS, 32);
-	glfwWindowHint(GLFW_GREEN_BITS, 32);
-	glfwWindowHint(GLFW_BLUE_BITS, 32);
+	glfwWindowHint(GLFW_RED_BITS, 8);
+	glfwWindowHint(GLFW_GREEN_BITS, 8);
+	glfwWindowHint(GLFW_BLUE_BITS, 8);
 	glfwWindowHint(GLFW_ALPHA_BITS, 8);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 64);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 
@@ -283,7 +283,7 @@ void WindowGLFW::createOpenGLWindow()
 
 	if (!window)
 	{
-		throw runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!");
+		throw_with_trace(runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!"));
 	}
 
 	//glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
@@ -305,11 +305,8 @@ void WindowGLFW::createOpenGLWindow()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	//if (!gladLoadGL())
 	{
-		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
+		throw_with_trace(runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context"));
 	}
-	/*if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-		throw runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context");
-	}*/
 
 	if (!vSync)
 	{

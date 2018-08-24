@@ -1,4 +1,5 @@
 #include <nex/util/StringUtils.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 #include <regex>
 #include <iostream>
 #include <sstream>
@@ -84,7 +85,7 @@ namespace nex::util {
 			stringstream ss;
 			ss << "util::relativePathToBuildDirectory() : " << NEC_BUILD_PATH <<
 				" is no parent directory of " << source << endl;
-			throw runtime_error(ss.str());
+			throw_with_trace(runtime_error(ss.str()));
 		}
 
 		string buildStr = NEC_BUILD_PATH;

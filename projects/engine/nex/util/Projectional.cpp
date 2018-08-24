@@ -98,7 +98,7 @@ FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
 		b = perspFrustum.bottom * z;
 		break;
 	}
-	default: throw runtime_error("Projectional::getFrustumPlane(): Unknown projection mode: " + to_string(mode));
+	default: throw_with_trace(runtime_error("Projectional::getFrustumPlane(): Unknown projection mode: " + to_string(mode)));
 	}
 
 	result.leftBottom = {l,b,z};
@@ -127,7 +127,7 @@ const mat4& Projectional::getProjection(ProjectionMode mode)
 	{
 	case ProjectionMode::Orthographic: return getOrthoProjection();
 	case ProjectionMode::Perspective: return getPerspProjection();
-	default: throw runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode));
+	default: throw_with_trace(runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode)));
 	}
 }
 
@@ -157,7 +157,7 @@ void Projectional::lookAt(vec3 location)
 void Projectional::setAspectRatio(float ratio)
 {
 	if (ratio <= 0)
-		throw runtime_error("Projectional::setAspectRatio(float): aspect ratio has to be greater 0!");
+		throw_with_trace(runtime_error("Projectional::setAspectRatio(float): aspect ratio has to be greater 0!"));
 	this->aspectRatio = ratio;
 	revalidate = true;
 }
@@ -182,7 +182,7 @@ void Projectional::setLook(vec3 look)
 		isnan(look.y) ||
 		isnan(look.z))
 	{
-		throw runtime_error("Projectional::setDirection(glm::vec3): specified a non valid direction vector!");
+		throw_with_trace(runtime_error("Projectional::setDirection(glm::vec3): specified a non valid direction vector!"));
 	}
 
 	// no we can savely change the object state!

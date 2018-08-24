@@ -340,8 +340,8 @@ PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : PBRShader_Defer
 	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap"); //Texture3
 	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap"); //Texture4
 
-	//GLuint sampler;
-	//glGenSamplers(1, &sampler);
+	GLuint sampler;
+	glGenSamplers(1, &sampler);
 	/*glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -353,15 +353,15 @@ PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : PBRShader_Defer
 	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glSamplerParameteri(sampler, GL_TEXTURE_LOD_BIAS, 0);*/
 
-	/*glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);*/
+	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
 
 	//float anisotropy = renderer->getTextureManager()->getAnisotropicFiltering();
 
 	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 
-	//m_sampler.setID(sampler);
+	m_sampler.setID(sampler);
 }
 
 PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
@@ -371,14 +371,9 @@ PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
 void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformData & data)
 {
 
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
-
-	//float value = 0.0f;
-	//glGetSamplerParameterfv(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, &value);
-
-	//std::cout << "GL_TEXTURE_MAX_ANISOTROPY = " << value << std::endl;
+	glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
 
 	mat4 const& projection = *data.projection;
 	mat4 const& view = *data.view;
@@ -414,17 +409,14 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("material.roughnessMap", roughnessMap, black);
 
 	//glBindSampler(albedoMap->getTexture(), m_sampler.getID());
-	/*for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < 64; ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, albedoMap->getTexture());
-		//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
+		//glActiveTexture(GL_TEXTURE0 + i);
+		//glBindTexture(GL_TEXTURE_2D, albedoMap->getTexture());
 		glBindSampler(i, m_sampler.getID());
-		//float value = 16.0f;
-		//glSamplerParameterfv(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, &value);
-		//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
-		
-	}*/
+	}
+
+	glBindSampler(albedoMap->getTexture(), m_sampler.getID());
 }
 
 void PBRShader_Deferred_GeometryGL::beforeDrawing(const MeshGL& mesh)
@@ -433,10 +425,10 @@ void PBRShader_Deferred_GeometryGL::beforeDrawing(const MeshGL& mesh)
 
 void PBRShader_Deferred_GeometryGL::afterDrawing(const MeshGL& mesh)
 {
-	/*for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < 64; ++i)
 	{
 		glBindSampler(i, GL_FALSE);
-	}*/
+	}
 	/*glBindSampler(1, GL_FALSE);
 	glBindSampler(2, GL_FALSE);
 	glBindSampler(3, GL_FALSE);

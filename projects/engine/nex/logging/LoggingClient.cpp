@@ -95,7 +95,7 @@ namespace nex
 		auto it = find(endpoints.begin(), endpoints.end(), endpoint);
 
 		if (it == endpoints.end())
-			throw runtime_error("Tried to remove a logging endpoint that was not added yet");
+			throw_with_trace(runtime_error("Tried to remove a logging endpoint that was not added yet"));
 
 		endpoints.erase(it);
 	}

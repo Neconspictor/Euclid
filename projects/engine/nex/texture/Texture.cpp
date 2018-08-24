@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <exception>
 #include <stdexcept>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace glm;
@@ -30,6 +31,6 @@ const mat4& CubeMap::getViewLookAtMatrixRH(Side side)
 	case POSITIVE_Z:
 		return backSide;
 	default:
-		throw std::runtime_error("No mapping defined for " + side);
+		throw_with_trace(std::runtime_error("No mapping defined for " + side));
 	}
 }

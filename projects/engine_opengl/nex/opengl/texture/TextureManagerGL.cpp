@@ -14,10 +14,12 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer())
+TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer()), m_anisotropy(0.0f)
 {
 	textureLookupTable = map<string, TextureGL*>();
 	logClient.setPrefix("[TextureManagerGL]");
+
+	//TextureManagerGL::setAnisotropicFiltering(m_anisotropy);
 }
 
 void TextureManagerGL::releaseTexture(Texture * tex)
@@ -35,6 +37,42 @@ void TextureManagerGL::releaseTexture(Texture * tex)
 	}
 }
 
+void TextureManagerGL::setAnisotropicFiltering(float value)
+{
+	m_anisotropy = value;
+
+	GLfloat maxAnisotropy = getMaxAnisotropicFiltering();
+
+	m_anisotropy = std::min(m_anisotropy, maxAnisotropy);
+
+	for (auto sampler : m_anisotropySamplers)
+	{
+		glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+		glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY, m_anisotropy);
+		glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+		glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+}
+
+float TextureManagerGL::getAnisotropicFiltering() const
+{
+	return m_anisotropy;
+}
+
+void TextureManagerGL::registerAnistropySampler(SamplerGL* sampler)
+{
+	m_anisotropySamplers.push_back(sampler);
+}
+
+float TextureManagerGL::getMaxAnisotropicFiltering() const
+{
+	GLfloat maxAnisotropy;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+	return maxAnisotropy;
+}
+
 TextureManagerGL::~TextureManagerGL()
 {
 	for (auto& texture : textures)
@@ -48,6 +86,11 @@ TextureManagerGL::~TextureManagerGL()
 		GLuint id = map.getCubeMap();
 		glDeleteTextures(1, &id);
 	}
+}
+
+void TextureManagerGL::init()
+{
+	setAnisotropicFiltering(16.0f);
 }
 
 CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
@@ -121,18 +164,18 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 
 Texture * TextureManagerGL::getDefaultBlackTexture()
 {
-	return getImageGL("_intern/black.png");
+	return getImage("_intern/black.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 Texture * TextureManagerGL::getDefaultNormalTexture()
 {
 	//normal maps shouldn't use mipmaps (important for shading!)
-	return getImage("_intern/default_normal.png", { false, true, Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 Texture * TextureManagerGL::getDefaultWhiteTexture()
 {
-	return getImage("_intern/white.png", { true, false, Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/white.png", { true, false, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 
@@ -158,7 +201,7 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
-		throw runtime_error(ss.str());
+		throw_with_trace(runtime_error(ss.str()));
 	}
 
 	GLuint format = TextureGL::getFormat(nrComponents);
@@ -169,15 +212,15 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, rawData);
 
-	GLint minFilter = TextureGL::mapFilter(data.minFilter, data.generateMipMaps);
-	GLint magFilter = TextureGL::mapFilter(data.magFilter, data.generateMipMaps);
+	GLint minFilter = TextureGL::mapFilter(data.minFilter);
+	GLint magFilter = TextureGL::mapFilter(data.magFilter);
 	GLint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -225,7 +268,7 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
-		throw runtime_error(ss.str());
+		throw_with_trace(runtime_error(ss.str()));
 	}
 
 
@@ -245,8 +288,8 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
 	}
 
-	GLint minFilter = TextureGL::mapFilter(data.minFilter, data.generateMipMaps);
-	GLint magFilter = TextureGL::mapFilter(data.magFilter, data.generateMipMaps);
+	GLint minFilter = TextureGL::mapFilter(data.minFilter);
+	GLint magFilter = TextureGL::mapFilter(data.magFilter);
 	GLint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
 
 	if (data.generateMipMaps)
@@ -254,9 +297,10 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

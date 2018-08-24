@@ -22,13 +22,13 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 	char* bytes = nex::filesystem::getBytesFromFile(fileName, &fileSize);
 	if (!bytes)
 	{
-		throw runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't load image: " + fileName);
+		throw_with_trace(runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't load image: " + fileName));
 	}
 
 	// get file extension
 	vector<string> tokens = util::tokenize(fileName, "\\."); // '.' has to be escaped in regex patterns!
 	if (tokens.size() <= 1)
-		throw runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't detect a valid file extension: " + fileName);
+		throw_with_trace(runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't detect a valid file extension: " + fileName));
 
 	string extension = tokens.back();
 

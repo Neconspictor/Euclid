@@ -76,13 +76,6 @@ void Window_ConfigurationView::drawSelf()
 
 	// render configuration properties
 	ImGui::PushID(m_id.c_str());
-	/*ImGui::DragFloat("yaw", &m_camera->yaw, 1.0f, -180.0f, 180.0f);
-	ImGui::DragFloat("pitch", &m_camera->pitch, 1.0f, -89.0f, 89.0f);
-	ImGui::DragFloat("fov", &m_camera->fov, 1.0f, 0.0f, 90.0f);
-	ImGui::DragFloat("aspect ratio", &m_camera->aspectRatio, 0.1f, 0.1f, 90.0f);
-	ImGui::DragFloat("near plane", &m_camera->perspFrustum.nearPlane, 0.01f, 0.01f, 10.0f);
-	ImGui::DragFloat("far plane", &m_camera->perspFrustum.farPlane, 1.0f, 1.0f, 10000.0f);
-	ImGui::DragFloat("speed", &m_camera->cameraSpeed, 0.2f, 0.0f, 100.0f);*/
 
 	if (ImGui::Checkbox("Vertical Synchronization", &vsync))
 	{
@@ -102,7 +95,7 @@ void Window_ConfigurationView::drawSelf()
 		}
 	}
 
-	char buffer[256];
+	/*char buffer[256];
 
 	std::string title = m_window->getTitle();
 
@@ -114,7 +107,7 @@ void Window_ConfigurationView::drawSelf()
 		{
 			m_window->setTitle(buffer);
 		}
-	}
+	}*/
 
 	ImGui::PopID();
 }

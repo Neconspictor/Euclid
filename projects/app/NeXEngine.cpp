@@ -42,7 +42,7 @@ void NeXEngine::init()
 	{
 		//LOG(m_logClient, platform::Fault) << "Couldn't initialize window system!";
 		nex::getLogServer()->terminate();
-		throw std::runtime_error("Couldn't initialize window system!");
+		throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
 	}
 
 	m_renderBackend = std::make_unique<RendererOpenGL>();
@@ -108,7 +108,7 @@ void NeXEngine::run()
 			m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
 			ImGui::Render();
 			m_gui->renderDrawData(ImGui::GetDrawData());
-
+			
 			// present rendered frame
 			m_window->swapBuffers();
 		}
@@ -135,27 +135,28 @@ SceneNode* NeXEngine::createScene()
 	SceneNode* ground = &m_nodes.back();
 	root->addChild(ground);
 
-	m_nodes.push_back(SceneNode());
-	SceneNode* cube1 = &m_nodes.back();
-	root->addChild(cube1);
+	//m_nodes.push_back(SceneNode());
+	//SceneNode* cube1 = &m_nodes.back();
+	//root->addChild(cube1);
 
-	m_nodes.push_back(SceneNode());
-	SceneNode* sphere = &m_nodes.back();
-	root->addChild(sphere);
+	//m_nodes.push_back(SceneNode());
+	//SceneNode* sphere = &m_nodes.back();
+	//root->addChild(sphere);
 
-	m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
+	//m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
+	m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
 	ground->setVob(&m_vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
-	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
-	cube1->setVob(&m_vobs.back());
+	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
+	//cube1->setVob(&m_vobs.back());
 
-	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
-	sphere->setVob(&m_vobs.back());
+	//m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
+	//sphere->setVob(&m_vobs.back());
 
-	ground->getVob()->setPosition({ 10, 0, 0 });
-	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
+	//ground->getVob()->setPosition({ 10, 0, 0 });
+	//cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
 
-	sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
+	//sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
 
 	return root;
 }
@@ -226,6 +227,7 @@ void NeXEngine::setupGUI()
 	Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
 	Tab* cameraTab = configurationWindow->getCameraTab();
 	Tab* videoTab = configurationWindow->getVideoTab();
+	Tab* generalTab = configurationWindow->getGeneralTab();
 
 
 	auto hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO());
@@ -237,6 +239,9 @@ void NeXEngine::setupGUI()
 
 	auto windowView = std::make_unique<Window_ConfigurationView>(m_window);
 	videoTab->addChild(move(windowView));
+
+	auto textureManagerView = std::make_unique<TextureManager_Configuration>(m_renderBackend->getTextureManager());
+	generalTab->addChild(move(textureManagerView));
 
 	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

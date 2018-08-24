@@ -102,6 +102,8 @@ set(
     #nex/opengl/texture
     nex/opengl/texture/ImageLoaderGL.hpp
 	nex/opengl/texture/ImageLoaderGL.cpp
+	nex/opengl/texture/SamplerGL.hpp
+    nex/opengl/texture/SamplerGL.cpp
     nex/opengl/texture/TextureGL.hpp
     nex/opengl/texture/TextureGL.cpp
 	nex/opengl/texture/TextureManagerGL.hpp

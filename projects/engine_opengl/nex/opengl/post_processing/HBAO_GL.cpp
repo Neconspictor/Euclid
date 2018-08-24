@@ -378,7 +378,7 @@ void hbao::BilateralBlur::setSourceTexture(TextureGL * source, unsigned int text
 
 void hbao::BilateralBlur::draw(const Mesh & mesh)
 {
-	throw std::runtime_error("hbao::BilateralBlur::draw(): Function is not supported!");
+	throw_with_trace(std::runtime_error("hbao::BilateralBlur::draw(): Function is not supported!"));
 }
 
 void hbao::BilateralBlur::draw(OneTextureRenderTarget * temp, BaseRenderTargetGL* result)
@@ -413,7 +413,7 @@ hbao::DepthLinearizer::DepthLinearizer() :
 
 void hbao::DepthLinearizer::draw(const Mesh & mesh)
 {
-	throw std::runtime_error("hbao::DepthLinearizer::draw(): Function is not supported!");
+	throw_with_trace(std::runtime_error("hbao::DepthLinearizer::draw(): Function is not supported!"));
 }
 
 void hbao::DepthLinearizer::draw()
@@ -447,7 +447,7 @@ hbao::DisplayTex::DisplayTex() :
 
 void hbao::DisplayTex::draw(const Mesh & mesh)
 {
-	throw std::runtime_error("hbao::DisplayTex::draw(): Function is not supported!");
+	throw_with_trace(std::runtime_error("hbao::DisplayTex::draw(): Function is not supported!"));
 }
 
 void hbao::DisplayTex::draw()
@@ -474,7 +474,7 @@ hbao::HBAO_Shader::HBAO_Shader() :
 
 void hbao::HBAO_Shader::draw(const Mesh & mesh)
 {
-	throw std::runtime_error("hbao::HBAO_Shader::draw(): Function is not supported!");
+	throw_with_trace(std::runtime_error("hbao::HBAO_Shader::draw(): Function is not supported!"));
 }
 
 void hbao::HBAO_Shader::draw()

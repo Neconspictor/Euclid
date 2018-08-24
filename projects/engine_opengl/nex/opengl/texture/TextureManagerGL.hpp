@@ -5,6 +5,7 @@
 #include <memory>
 #include <nex/logging/LoggingClient.hpp>
 #include <list>
+#include <nex/opengl/texture/SamplerGL.hpp>
 
 
 class TextureGL;
@@ -26,6 +27,8 @@ public:
 	
 
 	virtual ~TextureManagerGL() override;
+
+	void init();
 
 	CubeMapGL* addCubeMap(CubeMapGL cubemap);
 
@@ -59,11 +62,19 @@ public:
 	// Inherited via TextureManager
 	virtual void releaseTexture(Texture * tex) override;
 
+	void setAnisotropicFiltering(float value) override;
+	float getAnisotropicFiltering() const override;
+
+	void registerAnistropySampler(SamplerGL* sampler);
+
+	float getMaxAnisotropicFiltering() const override;
 protected:
 	std::list<TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;
 	std::map<std::string, TextureGL*> textureLookupTable;
 	nex::LoggingClient logClient;
+	float m_anisotropy;
+	std::list<SamplerGL*> m_anisotropySamplers;
 
 
 private:

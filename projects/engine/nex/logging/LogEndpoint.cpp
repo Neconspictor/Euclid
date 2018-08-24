@@ -1,6 +1,7 @@
 #include <nex/logging/LogEndpoint.hpp>
 #include <iostream>
 #include <fstream>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 
@@ -54,7 +55,7 @@ namespace nex
 			if (!file.good()) {
 				string message = "Failed to open file sink: ";
 				message.append(filename);
-				throw runtime_error(message);
+				throw_with_trace(runtime_error(message));
 			}
 
 			this->filename = filename;
@@ -67,7 +68,7 @@ namespace nex
 			if (!logFile.good()) {
 				string message = "Failed to open file sink: ";
 				message.append(filename);
-				throw runtime_error(message);
+				throw_with_trace(runtime_error(message));
 			}
 			logFile
 				<< prefix

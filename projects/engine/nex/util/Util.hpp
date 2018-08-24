@@ -4,6 +4,7 @@
 #include <nex/util/PointerUtils.hpp>
 #include <nex/util/TimeUtils.hpp>
 #include <nex/util/MathUtils.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 struct Dimension
 {

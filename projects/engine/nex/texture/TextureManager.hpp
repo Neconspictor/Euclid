@@ -1,48 +1,8 @@
 #pragma once
 #include <string>
 #include <nex/texture/Texture.hpp>
-
-enum TextureFilter
-{
-	NearestNeighbor, 
-	Linear,
-	Bilinear, 
-	Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
-	Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
-	Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
-	Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
-};
-
-enum TextureUVTechnique
-{
-	ClampToEdge,
-	Repeat,
-};
-
-enum ColorSpace {
-	RGB,
-	RGBA,
-	RG,
-};
-
-enum Resolution {
-	BITS_8,
-	BITS_16,
-	BITS_32,
-};
-
-
-struct TextureData
-{
-	bool useSRGB;
-	bool generateMipMaps;
-	TextureFilter minFilter;  // minification filter
-	TextureFilter magFilter;  // magnification filter
-	TextureUVTechnique uvTechnique;
-	ColorSpace colorspace;
-	bool isFloatData; //specifies whether the data should be interpreted as float data
-	Resolution resolution;
-};
+#include "Sampler.hpp"
+#include "nex/gui/Drawable.hpp"
 
 class TextureManager
 {
@@ -72,4 +32,22 @@ public:
 	virtual void loadImages(const std::string& imageFolder) = 0;
 
 	virtual void releaseTexture(Texture* tex) = 0;
+
+
+	virtual void setAnisotropicFiltering(float value) = 0;
+
+	virtual float getAnisotropicFiltering() const = 0;
+
+	virtual float getMaxAnisotropicFiltering() const = 0;
+};
+
+class TextureManager_Configuration : public nex::engine::gui::Drawable
+{
+public:
+	TextureManager_Configuration(TextureManager* textureManager);
+
+protected:
+	void drawSelf() override;
+
+	TextureManager* m_textureManager;
 };

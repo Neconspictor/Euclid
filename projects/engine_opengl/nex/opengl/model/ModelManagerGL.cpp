@@ -148,7 +148,7 @@ Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 		std::stringstream msg;
 		msg << "No suitable material loader found for shader type: " << materialShader << std::endl;
 
-		throw std::runtime_error(msg.str());
+		throw_with_trace(std::runtime_error(msg.str()));
 	}
 
 

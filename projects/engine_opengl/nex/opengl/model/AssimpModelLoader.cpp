@@ -38,7 +38,7 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 		LOG(logClient, nex::Error) << "AssimpModelLoader::loadModel(string): " << importer.GetErrorString();
 		stringstream ss; 
 		ss << "AssimpModelLoader::loadModel(string): Couldn't load mesh: " << path;
-		throw runtime_error(ss.str());
+		throw_with_trace(runtime_error(ss.str()));
 	}
 
 	vector<unique_ptr<MeshGL>> meshes;
