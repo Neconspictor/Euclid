@@ -291,7 +291,7 @@ void InputGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint
 void InputGLFW::closeWindowCallbackHandler(GLFWwindow* window)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
-	if (input == nullptr) return;
+	if (input == nullptr || !input->areCallbacksActive()) return;
 	input->informWindowCloseListeners();
 }
 
@@ -403,7 +403,7 @@ void InputGLFW::removeCallbacks()
 {
 	glfwSetCharModsCallback(window->getSource(), nullptr);
 
-	//glfwSetWindowCloseCallback(window->getSource(), nullptr);
+	glfwSetWindowCloseCallback(window->getSource(), nullptr);
 
 	glfwSetWindowFocusCallback(window->getSource(), nullptr);
 

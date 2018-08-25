@@ -24,6 +24,9 @@ public:
 
 
 	void close() override;
+
+	void* getNativeWindow() override;
+
 	Input* getInputDevice() override;
 
 	GLFWwindow* getSource() const;
@@ -39,6 +42,8 @@ public:
 	* Releases any allocated memory
 	*/
 	void release();
+
+	void reopen() override;
 
 	void resize(int newWidth, int newHeight) override;
 	void setCursorPosition(int xPos, int yPos) override;

@@ -12,6 +12,7 @@
 #include <gui/ConfigurationWindow.hpp>
 #include <gui/SceneGUI.hpp>
 #include <gui/Controller.hpp>
+#include <boxer/boxer.h>
 
 NeXEngine::NeXEngine() :
 	Engine(),
@@ -76,6 +77,16 @@ void NeXEngine::init()
 	setupGUI();
 
 	m_scene = createScene();
+
+	m_input->addWindowCloseCallback([](Window* window)
+	{
+		void* nativeWindow = window->getNativeWindow();
+		boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit NeX", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
+		if (selection == boxer::Selection::Cancel)
+		{
+			window->reopen();
+		}
+	});
 }
 
 bool NeXEngine::isRunning() const

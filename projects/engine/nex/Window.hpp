@@ -81,6 +81,12 @@ public:
 	int getWidth() const;
 
 	/**
+	 * Provides access to the underlying native window.
+	 * Null will be returned if the window implementation doesn't support native window access.
+	 */
+	virtual void* getNativeWindow() { return nullptr; }
+
+	/**
 	 * Provides the title of thi window.
 	 */
 	const std::string& getTitle() const;
@@ -106,6 +112,11 @@ public:
 	 * Minimizes this window 
 	 */
 	virtual void minimize() = 0;
+
+	/**
+	 * If the window is closed but this function opens the window again.
+	 */
+	virtual void reopen() = 0;
 
 	/**
 	* Updates the width and height of this window.

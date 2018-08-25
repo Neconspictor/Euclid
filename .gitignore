@@ -26,6 +26,10 @@ lib/assimp-4.1.0/*
 lib/boost-1.67.0/*
 !lib/boost-1.67.0/LICENSE
 
+# Boxer is included in the repo!!!
+!lib/boxer/
+!lib/boxer/*
+
 !lib/glfw-3.2.1/
 lib/glfw-3.2.1/*
 !lib/glfw-3.2.1/COPYING.txt

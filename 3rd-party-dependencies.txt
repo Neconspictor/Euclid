@@ -25,6 +25,9 @@ Assimp 4.1.0 : 	This classic library is used for importing 3D meshes and animati
 				
 Boost 1.67.0: 	Boost is used as a general purpose library. NeX uses currently the version 1.67.0 . Boost has an own developed license, the 
 				so-called 'Boost Software License'. A full copy of this license can be found at 'lib/boost-1.67.0/LICENSE'	
+				
+Boxer:			A library for platform independent popup dialog creation. This library is included in NeX' repository as it is modified to meet
+				NeX' needs. Boxer is MIT licensed. A full copy of the license can be found at 'lib/boxer/LICENSE'
 
 Glad:			Glad is used as a GL loader (Github project: https://github.com/Dav1dde/glad). The used version of NeX was created by the glad 
 				web service of dav1d at http://glad.dav1d.de/ . The generator itself specified no license.

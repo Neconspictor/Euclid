@@ -7,6 +7,11 @@
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <functional>
 
+#ifdef WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32 1
+#include <GLFW/glfw3native.h>
+#endif
+
 
 using namespace std;
 using namespace nex;
@@ -49,10 +54,27 @@ void WindowGLFW::activate()
 
 void WindowGLFW::close()
 {
-	inputDevice.disableCallbacks();
-	inputDevice.removeCallbacks();
+	if (!isOpen()) return;
+	
 	glfwSetWindowShouldClose(window, GLFW_TRUE);
 	inputDevice.informWindowCloseListeners();
+
+	if (!isOpen())
+	{
+		inputDevice.disableCallbacks();
+		//inputDevice.removeCallbacks();
+	}
+
+}
+
+void* WindowGLFW::getNativeWindow()
+{
+#ifdef WIN32
+	return glfwGetWin32Window(window);
+#endif
+
+	// just return default value
+	return Window::getNativeWindow();
 }
 
 Input* WindowGLFW::getInputDevice()
@@ -93,8 +115,18 @@ void WindowGLFW::minimize()
 
 void WindowGLFW::release()
 {
+	inputDevice.removeCallbacks();
 	glfwDestroyWindow(window);
 	window = nullptr;
+}
+
+void WindowGLFW::reopen()
+{
+	if (window != nullptr && !isOpen())
+	{
+		glfwSetWindowShouldClose(window, GLFW_FALSE);
+		inputDevice.enableCallbacks();
+	}
 }
 
 void WindowGLFW::resize(int newWidth, int newHeight)
