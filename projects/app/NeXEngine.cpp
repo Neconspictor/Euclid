@@ -244,6 +244,9 @@ void NeXEngine::setupGUI()
 	auto hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO());
 	graphicsTechniques->addChild(move(hbaoView));
 
+	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
+	graphicsTechniques->addChild(move(ssaoView));
+
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));
 

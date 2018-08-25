@@ -1,13 +1,22 @@
-#ifndef SSAO_HPP
-#define SSAO_HPP
+#pragma once
 
 #include <vector>
 #include <nex/sprite/Sprite.hpp>
+#include "nex/gui/Drawable.hpp"
 
 class RenderTarget;
 class PBR_GBuffer;
 class SceneNode;
 class Texture;
+
+struct SSAOData {
+	float   bias;
+	float   intensity;
+	float   radius;
+	float   _pad0;
+
+	glm::vec3 samples[32];
+};
 
 class SSAO_Deferred {
 public:
@@ -28,6 +37,10 @@ public:
 	virtual void blur() = 0;
 	virtual void displayAOTexture(Texture* aoTexture) = 0;
 
+	virtual void setBias(float bias);
+	virtual void setItensity(float itensity);
+	virtual void setRadius(float radius);
+
 
 protected:
 	float randomFloat(float a, float b);
@@ -42,6 +55,17 @@ protected:
 	std::vector<glm::vec3> noiseTextureValues;
 
 	Sprite screenSprite;
+
+	SSAOData   m_shaderData;
 };
 
-#endif //SSAO_HPP
+class SSAO_ConfigurationView : public nex::engine::gui::Drawable {
+public:
+	SSAO_ConfigurationView(SSAO_Deferred* ssao);
+
+protected:
+	void drawSelf() override;
+
+private:
+	SSAO_Deferred * m_ssao;
+};

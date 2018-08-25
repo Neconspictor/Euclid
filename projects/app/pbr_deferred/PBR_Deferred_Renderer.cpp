@@ -280,14 +280,17 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
 	//ssao_deferred->onSizeChange(width, height);
-	
-	if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
+
+	m_aoSelector.getHBAO()->onSizeChange(width, height);
+	m_aoSelector.getSSAO()->onSizeChange(width, height);
+
+	/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
 	{
 		m_aoSelector.getHBAO()->onSizeChange(width, height);
 	} else
 	{
 		m_aoSelector.getSSAO()->onSizeChange(width, height);
-	}
+	}*/
 }
 
 hbao::HBAO* PBR_Deferred_Renderer::getHBAO()

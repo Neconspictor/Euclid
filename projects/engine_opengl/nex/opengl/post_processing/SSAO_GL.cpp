@@ -9,65 +9,121 @@
 using namespace std; 
 using namespace glm;
 
+/*class HBAO_Shader : public ShaderGL {
+public:
 
-class SSAO_AO_ShaderGL : public ShaderConfigGL
+	HBAO_Shader();
+	virtual ~HBAO_Shader() = default;
+
+	virtual void draw(const Mesh& mesh) override;
+	void draw();
+	void setHbaoData(HBAOData hbao);
+	void setHbaoUBO(GLuint hbao_ubo);
+	void setLinearDepth(TextureGL* linearDepth);
+	void setRamdomView(TextureGL* randomView);
+
+private:
+	HBAOData m_hbao_data;
+	TextureGL* m_hbao_randomview;
+	GLuint m_hbao_ubo;
+	TextureGL* m_linearDepth;
+};*/
+
+
+class SSAO_AO_ShaderGL : public ShaderGL
 {
 public:
 
-	SSAO_AO_ShaderGL(unsigned int kernelSampleSize) : kernelSampleSize(kernelSampleSize) 
+	SSAO_AO_ShaderGL(unsigned int kernelSampleSize) : 
+	ShaderGL("post_processing/ssao/fullscreenquad.vert.glsl",
+		"post_processing/ssao/ssao_deferred_ao_fs.glsl"),
+	kernelSampleSize(kernelSampleSize)
 	{
 		using types = ShaderAttributeType;
 
-		attributes.create(types::MAT4, &transform, "transform", true);
-		attributes.create(types::MAT4, &projection_GPass, "projection_GPass", true);
-		attributes.create(types::TEXTURE2D, nullptr, "gNormal");
-		attributes.create(types::TEXTURE2D, nullptr, "gPosition");
-		attributes.create(types::TEXTURE2D, nullptr, "texNoise");
+		//attributes.create(types::MAT4, &transform, "transform", true);
+		//attributes.create(types::MAT4, &projection_GPass, "projection_GPass", true);
+		//attributes.create(types::TEXTURE2D, nullptr, "gNormal");
+		//attributes.create(types::TEXTURE2D, nullptr, "gPosition");
+		//attributes.create(types::TEXTURE2D, nullptr, "texNoise");
 
-		for (unsigned int i = 0; i < kernelSampleSize; ++i) {
+		/*for (unsigned int i = 0; i < kernelSampleSize; ++i) {
 			attributes.create(types::VEC3, nullptr, "samples[" + std::to_string(i) + "]");
-		}
+		}*/
+
+		glCreateBuffers(1, &m_ssaoUBO);
+		glNamedBufferStorage(m_ssaoUBO, sizeof(SSAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
 	}
 
 
 	virtual ~SSAO_AO_ShaderGL() = default;
 
+
+	void draw()
+	{
+		glUseProgram(programID);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
+		glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
+
+		glBindTextureUnit(0, m_gNormal->getTexture());
+		glBindTextureUnit(1, m_gPosition->getTexture());
+		glBindTextureUnit(2, m_texNoise->getTexture());
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUseProgram(0);
+	}
+
 	void setGNoiseTexture(TextureGL* texture) {
-		attributes.setData("texNoise", texture);
+		m_texNoise = texture;
 	}
 
 	void setGNormalTexture(TextureGL* texture) {
-		attributes.setData("gNormal", texture);
+		m_gNormal = texture;
 	}
 
 	void setGPositionTexture(TextureGL* texture) {
-		attributes.setData("gPosition", texture);
+		m_gPosition = texture;
 	}
 
 	void setKernelSamples(const vector<vec3>& vec) {
 		assert(kernelSampleSize == vec.size());
 
-		const vec3* ptr = vec.data();
+		m_samples = &vec;
+
+		/*const vec3* ptr = vec.data();
 		for (unsigned int i = 0; i < vec.size(); ++i)
-			attributes.setData("samples[" + std::to_string(i) + "]", &ptr[i]);
+			attributes.setData("samples[" + std::to_string(i) + "]", &ptr[i]);*/
 	}
 
 	void setProjectionGPass(glm::mat4 matrix) {
 		projection_GPass = move(matrix);
 	}
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) {
+	void setSSAOData(SSAOData* data)
+	{
+		m_ssaoData = data;
+	}
+
+	/*virtual void update(const MeshGL& mesh, const TransformData& data) {
 		mat4 const& projection = *data.projection;
 		mat4 const& view = *data.view;
 		mat4 const& model = *data.model;
 
 		transform = projection * view * model;
 		attributes.setData("transform", &transform);
-	}
+	}*/
+
+
+
 private:
 	glm::mat4 transform;
 	glm::mat4 projection_GPass;
 	unsigned int kernelSampleSize;
+	SSAOData* m_ssaoData;
+	GLuint m_ssaoUBO;
+	TextureGL* m_texNoise;
+	TextureGL* m_gPosition;
+	TextureGL* m_gNormal;
+	const std::vector<vec3>* m_samples;
 };
 
 class SSAO_Tiled_Blur_ShaderGL : public ShaderConfigGL
@@ -170,7 +226,7 @@ void SSAO_RendertargetGL::swap(SSAO_RendertargetGL & o)
 SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 	unsigned int windowHeight, ModelDrawerGL* modelDrawer)
 	:
-	SSAO_Deferred(windowWidth, windowHeight, 64, 4),
+	SSAO_Deferred(windowWidth, windowHeight, 32, 4),
 	aoRenderTarget(windowWidth, windowHeight, GL_FALSE, GL_FALSE),
 	tiledBlurRenderTarget(windowWidth, windowHeight, GL_FALSE, GL_FALSE),
 	modelDrawer(modelDrawer)
@@ -191,9 +247,7 @@ SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 	aoRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 	tiledBlurRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 
-	aoPass = make_unique <ShaderGL>(make_unique<SSAO_AO_ShaderGL>(64), 
-		"post_processing/ssao/ssao_deferred_ao_vs.glsl", 
-		"post_processing/ssao/ssao_deferred_ao_fs.glsl");
+	aoPass = make_unique <SSAO_AO_ShaderGL>(32);
 
 	tiledBlurPass = make_unique <ShaderGL>(make_unique<SSAO_Tiled_Blur_ShaderGL>(), 
 		"post_processing/ssao/ssao_tiled_blur_vs.glsl", 
@@ -247,6 +301,12 @@ void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const g
 	glBindFramebuffer(GL_FRAMEBUFFER, aoRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *aoPass);
+
+		aoShader.setSSAOData(&m_shaderData);
+		aoShader.draw();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
