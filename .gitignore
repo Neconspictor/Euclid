@@ -34,14 +34,14 @@ lib/boost-1.67.0/*
 lib/glfw-3.2.1/*
 !lib/glfw-3.2.1/COPYING.txt
 
+# GLM is included in the repo!!!
 !lib/glm-0.9.9.0/
-lib/glm-0.9.9.0/*
-!lib/glm-0.9.9.0/COPYING.txt
+!lib/glm-0.9.9.0/*
 
+# ImGUI is included in the repo!!!
 !lib/imgui/
-lib/imgui/*
-!lib/imgui/LICENSE.txt
+!lib/imgui/*
 
+# STB is included in the repo!!!
 !lib/stb/
-lib/stb/*
-!lib/stb/LICENSE.txt
+!lib/stb/*
