@@ -65,6 +65,8 @@ public:
 	virtual ~InputGLFW();
 
 	static void charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods);
+	static void closeWindowCallbackHandler(GLFWwindow*);
+
 	static void focusInputHandler(GLFWwindow* window, int hasFocus);
 	static void keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void mouseInputHandler(GLFWwindow * window, int button, int action, int mods);

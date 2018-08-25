@@ -29,12 +29,13 @@ PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
 	shadowMap(nullptr),
-	showDepthMap(false),
-	m_useAmbientOcclusion(true)
+	showDepthMap(false)
 {
 	logClient.setPrefix("[PBR_Deferred_Renderer]");
 
 	mixValue = 0.2f;
+
+	m_aoSelector.setUseAmbientOcclusion(true);
 }
 
 
@@ -189,10 +190,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			camera->getPerspProjection());
 	//renderer->endScene();
 
-	//ssao_deferred->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
-	//ssao_deferred->blur();
-
-	Texture* aoTexture = renderAO(camera);
+	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
@@ -302,17 +300,7 @@ AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
 	return &m_aoSelector;
 }
 
-void PBR_Deferred_Renderer::useAmbientOcclusion(bool useAO)
-{
-	m_useAmbientOcclusion = useAO;
-}
-
-bool PBR_Deferred_Renderer::getUseAmbientOcclusion() const
-{
-	return m_useAmbientOcclusion;
-}
-
-Texture* PBR_Deferred_Renderer::renderAO(Camera* camera)
+Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
 {
 	if (!m_aoSelector.isAmbientOcclusionActive())
 		// Return a default white texture (means no ambient occlusion)
@@ -337,6 +325,8 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera)
 	// use SSAO
 
 	SSAO_Deferred* ssao = m_aoSelector.getSSAO();
+	ssao->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	ssao->blur();
 	return ssao->getBlurredResult();
 }
 
@@ -369,9 +359,12 @@ void PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 
 		const char* items[] = { hbaoText.c_str(), ssaoText.c_str() };
 		static AmbientOcclusionSelector::AOTechnique selectedTechnique = AmbientOcclusionSelector::HBAO;
+
+		ImGui::SameLine(0, 70);
 		if (ImGui::Combo("AO technique", (int*)&selectedTechnique, items, IM_ARRAYSIZE(items)))
 		{
 			std::cout << selectedTechnique << " is selected!" << std::endl;
+			aoSelector->setAOTechniqueToUse(selectedTechnique);
 		}
 	}
 

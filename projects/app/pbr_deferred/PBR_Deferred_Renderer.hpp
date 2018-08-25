@@ -28,12 +28,10 @@ public:
 	void updateRenderTargets(int width, int height);
 	hbao::HBAO* getHBAO();
 	AmbientOcclusionSelector* getAOSelector();
-	void useAmbientOcclusion(bool useAO);
-	bool getUseAmbientOcclusion() const;
 
 private:
 
-	inline Texture * renderAO(Camera* camera);
+	inline Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
 
 	// Allow the UI mode classes accessing private members
 
@@ -52,7 +50,6 @@ private:
 	Sprite screenSprite;
 	DepthMap* shadowMap;
 	bool showDepthMap;
-	bool m_useAmbientOcclusion;
 };
 
 class PBR_Deferred_Renderer_ConfigurationView : public nex::engine::gui::Drawable

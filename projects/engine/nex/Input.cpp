@@ -26,6 +26,11 @@ Input::WindowRefreshConnection Input::addRefreshCallback(const WindowRefreshCall
 	return windowRefreshContainer.addCallback(callback);
 }
 
+CallbackContainer<void(Window*)>::Callback Input::addWindowCloseCallback(const WindowClose::CallbackFunc& callback)
+{
+	return m_windowCloseCallbacks.addCallback(callback);
+}
+
 Input::ResizeConnection Input::addResizeCallback(const ResizeCallback& callback)
 {
 	return windowResizeContainer.addCallback(callback);
@@ -67,7 +72,7 @@ void Input::informScrollListeners(double scrollX, double scrollY)
 {
 	for (const ScrollConnection& connection : scrollContainer.getCallbacks())
 	{
-		ScrollCallback callback = connection.get()->getCallback();
+		ScrollCallback callback = connection.get()->getCallbackFunc();
 		callback(scrollX, scrollY);
 	}
 }
@@ -76,7 +81,7 @@ void Input::informRefreshListeners()
 {
 	for (WindowRefreshConnection connection : windowRefreshContainer.getCallbacks())
 	{
-		WindowRefreshCallback callback = connection.get()->getCallback();
+		WindowRefreshCallback callback = connection.get()->getCallbackFunc();
 		callback();
 	}
 }
@@ -85,7 +90,7 @@ void Input::informResizeListeners(int width, int height)
 {
 	for (ResizeConnection connection : windowResizeContainer.getCallbacks())
 	{
-		ResizeCallback callback = connection.get()->getCallback();
+		ResizeCallback callback = connection.get()->getCallbackFunc();
 		callback(width, height);
 	}
 }
@@ -94,8 +99,16 @@ void Input::informWindowFocusListeners(bool receivedFocus)
 {
 	for (WindowFocusConnection sharedItem : windowFocusChanged.getCallbacks())
 	{
-		WindowFocusCallback callback = sharedItem.get()->getCallback();
+		WindowFocusCallback callback = sharedItem.get()->getCallbackFunc();
 		callback(getWindow(), receivedFocus);
+	}
+}
+
+void Input::informWindowCloseListeners()
+{
+	for (WindowClose::Callback callback : m_windowCloseCallbacks.getCallbacks())
+	{
+		callback->getCallbackFunc()(getWindow());
 	}
 }
 
@@ -108,6 +121,11 @@ void Input::removeScrollConnection(const ScrollConnection& connection)
 void Input::removeRefreshCallback(const WindowRefreshConnection & connection)
 {
 	windowRefreshContainer.removeCallback(connection);
+}
+
+void Input::removeWindowCloseCallback(const WindowClose::Callback& callback)
+{
+	m_windowCloseCallbacks.removeCallback(callback);
 }
 
 void Input::removeResizeCallback(const ResizeConnection& connection)

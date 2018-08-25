@@ -25,21 +25,26 @@ class Input
 public:
 
 	using ScrollContainer = CallbackContainer<void(double scrollX, double scrollY)>;
-	using ScrollCallback = ScrollContainer::Callback;
-	using ScrollConnection = ScrollContainer::SharedItem;
+	using ScrollCallback = ScrollContainer::CallbackFunc;
+	using ScrollConnection = ScrollContainer::Callback;
+
+	using WindowClose = CallbackContainer<void(Window*)>;
 
 	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
 	using WindowRefreshContainer = CallbackContainer<void()>;
 	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
 
-	using WindowFocusCallback = WindowFocusChanged::Callback;
-	using WindowFocusConnection = WindowFocusChanged::SharedItem;
+	using WindowCloseCallback = WindowClose::CallbackFunc;
+	using WindowCloseConnection = WindowClose::Callback;
 
-	using WindowRefreshCallback = WindowRefreshContainer::Callback;
-	using WindowRefreshConnection = WindowRefreshContainer::SharedItem;
+	using WindowFocusCallback = WindowFocusChanged::CallbackFunc;
+	using WindowFocusConnection = WindowFocusChanged::Callback;
 
-	using ResizeCallback = WindowResizeContainer::Callback;
-	using ResizeConnection = WindowResizeContainer::SharedItem;
+	using WindowRefreshCallback = WindowRefreshContainer::CallbackFunc;
+	using WindowRefreshConnection = WindowRefreshContainer::Callback;
+
+	using ResizeCallback = WindowResizeContainer::CallbackFunc;
+	using ResizeConnection = WindowResizeContainer::Callback;
 
 
 	/**
@@ -481,9 +486,15 @@ enum Key
 	ResizeConnection addResizeCallback(const ResizeCallback& callback);
 
 	/**
-	* Adds a callback that is called whenthe window of this Input content should be refreshed (e.g. GUI)
+	* Adds a callback that is called when the window of this Input content should be refreshed (e.g. GUI)
 	*/
 	WindowRefreshConnection addRefreshCallback(const WindowRefreshCallback& callback);
+
+	/**
+	 * Adds a callback that is called when the user clicks on the close widget of a window (if the window has one)
+	 * or the function Window::close() is called.
+	 */
+	WindowClose::Callback addWindowCloseCallback(const WindowClose::CallbackFunc& callback);
 
 	/**
 	* Adds a callback to windows focus events. Every time, when the window of this Input receives or
@@ -545,11 +556,10 @@ enum Key
 	*/
 	void informWindowFocusListeners(bool receivedFocus);
 
-
 	/**
-	 * Deprectaed function. Don't use it! TODO: remove function!
-	 */
-	//void updateOnFrame(GLFWwindow* window, double frameTime);
+	* Informs windows close listeners that the window of this Input is closing
+	*/
+	void informWindowCloseListeners();
 
 	/**
 	* Checks if a given input button is currently hold down.
@@ -610,6 +620,11 @@ enum Key
 	void removeRefreshCallback(const WindowRefreshConnection& connection);
 
 	/**
+	 * Removes a given window close callback.
+	 */
+	void removeWindowCloseCallback(const WindowClose::Callback& callback);
+
+	/**
 	* Removes a given window focus callback.
 	*/
 	void removeWindowFocusCallback(const WindowFocusConnection& connection);
@@ -644,6 +659,7 @@ protected:
 
 	ScrollContainer scrollContainer;
 
+	WindowClose m_windowCloseCallbacks;
 	WindowFocusChanged windowFocusChanged;
 	WindowRefreshContainer windowRefreshContainer;
 	WindowResizeContainer windowResizeContainer;

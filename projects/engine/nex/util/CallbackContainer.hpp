@@ -18,7 +18,7 @@ public:
 
 	explicit CallbackItem(const Callback& callback) : callback(callback){}
 
-	const Callback& getCallback()
+	const Callback& getCallbackFunc()
 	{
 		return callback;
 	}
@@ -33,11 +33,11 @@ template <class CallbackType>
 class CallbackContainer
 {
 public:
-	using SharedItem = std::shared_ptr<CallbackItem<CallbackType>>;
-	using Item = CallbackItem<CallbackType>;
-	using Callback = std::function<CallbackType>;
+	using Callback = std::shared_ptr<CallbackItem<CallbackType>>;
+	using ContainerItem = CallbackItem<CallbackType>;
+	using CallbackFunc = std::function<CallbackType>;
 private:
-	std::vector<SharedItem> callbacks;
+	std::vector<Callback> callbacks;
 public:
 
 	/**
@@ -50,10 +50,10 @@ public:
 	/**
 	 * Adds a callback to this container.
 	 */
-	SharedItem addCallback(const Callback& callback)
+	Callback addCallback(const CallbackFunc& callback)
 	{
-		SharedItem sharedItem =
-			std::make_shared<Item>(Item(callback));
+		Callback sharedItem =
+			std::make_shared<ContainerItem>(ContainerItem(callback));
 		callbacks.push_back(sharedItem);
 		return sharedItem;
 	}
@@ -61,9 +61,9 @@ public:
 	/**
 	* Removes a callback from this container.
 	*/
-	void removeCallback(const SharedItem& item)
+	void removeCallback(const Callback& item)
 	{
-		auto it = std::remove_if(callbacks.begin(), callbacks.end(), [&] (const SharedItem& current) ->bool
+		auto it = std::remove_if(callbacks.begin(), callbacks.end(), [&] (const Callback& current) ->bool
 		{
 			if (current.get() == item.get()) return true;
 			return false;
@@ -74,7 +74,7 @@ public:
 	/**
 	* Provides immutable access to the stored callbacks.
 	*/
-	const std::vector<SharedItem>& getCallbacks()
+	const std::vector<Callback>& getCallbacks()
 	{
 		return callbacks;
 	}
