@@ -1,4 +1,3 @@
-#pragma once
 #include <nex/util/Globals.hpp>
 #include <nex/system/Configuration.hpp>
 

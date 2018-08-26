@@ -2,6 +2,7 @@
 #include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/gui/Util.hpp>
 
 using namespace glm;
 
@@ -56,4 +57,18 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();
 	modelDrawer->draw(&screenSprite, Shaders::Pbr_Deferred_Lighting);
+}
+
+PBR_Deferred_ConfigurationView::PBR_Deferred_ConfigurationView(PBR_Deferred* pbr) : m_pbr(pbr)
+{
+}
+
+void PBR_Deferred_ConfigurationView::drawSelf()
+{
+	ImGui::PushID(m_id.c_str());
+	//m_pbr
+
+	ImGui::Dummy(ImVec2(0, 20));
+	nex::engine::gui::Separator(2.0f);
+	ImGui::PopID();
 }

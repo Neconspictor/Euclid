@@ -1,7 +1,6 @@
-#ifndef PBR_DEFERRED_HPP
-#define PBR_DEFERRED_HPP
-
+#pragma once
 #include <nex/shading_model/PBR.hpp>
+#include "nex/gui/Drawable.hpp"
 
 class PBR_Deferred : public PBR {
 
@@ -26,4 +25,13 @@ private:
 	Sprite screenSprite;
 };
 
-#endif
+class PBR_Deferred_ConfigurationView : public nex::engine::gui::Drawable {
+public:
+	PBR_Deferred_ConfigurationView(PBR_Deferred* pbr);
+
+protected:
+	void drawSelf() override;
+
+private:
+	PBR_Deferred * m_pbr;
+};
