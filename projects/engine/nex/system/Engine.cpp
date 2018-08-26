@@ -2,6 +2,7 @@
 #include <nex/logging/LoggingClient.hpp>
 #include <nex/exception/EnumFormatException.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
+#include "nex/util/Globals.hpp"
 
 using namespace std;
 using namespace nex;
@@ -11,6 +12,7 @@ Engine::Engine() :
 {
 	m_configFileName = "config.ini";
 	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, string(""));
+	m_config.addOption("General", "rootDirectory", &m_systemLogLevelStr, string("./"));
 }
 
 Engine::Engine(const Engine& other): m_logClient(other.m_logClient),
@@ -18,6 +20,7 @@ Engine::Engine(const Engine& other): m_logClient(other.m_logClient),
 	m_configFileName(other.m_configFileName)
 {
 	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, string(""));
+	m_config.addOption("General", "rootDirectory", &m_systemLogLevelStr, string("./"));
 }
 
 Engine::~Engine()
@@ -102,6 +105,12 @@ void Engine::init()
 	}
 	getLogServer()->setMinLogLevel(m_systemLogLevel);
 	m_config.write(m_configFileName);
+
+	Configuration::setGlobalConfiguration(&m_config);
+
+	::util::Globals::initGlobals();
+
+	LOG(m_logClient, Info) << "root Directory = " << ::util::Globals::getRootDirectory();
 
 	initSystems();
 }

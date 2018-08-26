@@ -102,12 +102,14 @@ CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
 CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
 	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
-	string rightCStr = ::util::globals::TEXTURE_PATH + right;
-	string leftCStr = ::util::globals::TEXTURE_PATH + left;
-	string topCStr = ::util::globals::TEXTURE_PATH + top;
-	string bottomCStr = ::util::globals::TEXTURE_PATH + bottom;
-	string backCStr = ::util::globals::TEXTURE_PATH + back;
-	string frontCStr = ::util::globals::TEXTURE_PATH + front;
+	string texturePath = ::util::Globals::getTexturePath();
+
+	string rightCStr = texturePath + right;
+	string leftCStr = texturePath + left;
+	string topCStr = texturePath + top;
+	string bottomCStr = texturePath + bottom;
+	string backCStr = texturePath + back;
+	string frontCStr = texturePath + front;
 
 	/*
 	  TODO: implement is with stb_image! 
@@ -190,7 +192,7 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 		return it->second;
 	}
 
-	string path = ::util::globals::TEXTURE_PATH + file;
+	string path = ::util::Globals::getTexturePath() + file;
 
 
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
@@ -256,7 +258,7 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 		return it->second;
 	}
 
-	string path = ::util::globals::TEXTURE_PATH + file;
+	string path = ::util::Globals::getTexturePath() + file;
 
 
 
@@ -319,12 +321,12 @@ Texture* TextureManagerGL::getImage(const string& file, TextureData data)
 
 string TextureManagerGL::getImagePath()
 {
-	return ::util::globals::TEXTURE_PATH;
+	return ::util::Globals::getTexturePath();
 }
 
 string TextureManagerGL::getFullFilePath(const string& localFilePath)
 {
-	return ::util::globals::TEXTURE_PATH + localFilePath;
+	return ::util::Globals::getTexturePath() + localFilePath;
 }
 
 void TextureManagerGL::loadImages(const string& imageFolder)

@@ -231,10 +231,10 @@ void ShaderGL::initShaderFileSystem()
 {
 	using namespace boost::filesystem;
 
-	if (!exists(globals::SHADER_PATH_OPENGL))
+	if (!exists(Globals::getOpenGLShaderPath()))
 	{
 		std::stringstream ss;
-		path path(globals::SHADER_PATH_OPENGL);
+		path path(Globals::getOpenGLShaderPath());
 		ss << "ShaderGL::initShaderFileSystem(): opengl shader folder doesn't exists: " 
 			<< absolute(path).generic_string();
 		throw_with_trace(std::runtime_error(ss.str()));
@@ -242,7 +242,7 @@ void ShaderGL::initShaderFileSystem()
 
 	LOG(staticLogClient, Debug) << "Test log!";
 
-	std::vector<std::string> shaderFiles = filesystem::getFilesFromFolder(globals::SHADER_PATH_OPENGL, false);
+	std::vector<std::string> shaderFiles = filesystem::getFilesFromFolder(Globals::getOpenGLShaderPath(), false);
 
 	for (auto& file : shaderFiles)
 	{
@@ -286,13 +286,13 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 	int infoLogLength;
 	GLuint programID;
 
-	std::string vertexFilePath = globals::SHADER_PATH_OPENGL + vertexFile;
-	std::string fragmentFilePath = globals::SHADER_PATH_OPENGL + fragmentFile;
+	std::string vertexFilePath = Globals::getOpenGLShaderPath() + vertexFile;
+	std::string fragmentFilePath = Globals::getOpenGLShaderPath() + fragmentFile;
 	std::string geometryFilePath;
 	bool useGeomtryShader = geometryShaderFile.compare("") != 0;
 	if (useGeomtryShader)
 	{
-		geometryFilePath = globals::SHADER_PATH_OPENGL + geometryShaderFile;
+		geometryFilePath = Globals::getOpenGLShaderPath() + geometryShaderFile;
 		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
 	}
 
@@ -406,7 +406,6 @@ bool ShaderGL::compileShader(const std::string& shaderContent, GLuint shaderReso
 
 	// compile...
 	const char* rawCode = shaderContent.c_str();
-	const GLchar* const test  = "/shaders/opengl";
 	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
 
 	glCompileShader(shaderResourceID);

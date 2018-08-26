@@ -8,6 +8,8 @@ using namespace std;
 using namespace nex;
 using namespace boost::program_options;
 
+Configuration* Configuration::globalConfig = nullptr;
+
 Configuration::Configuration() : logClient(getLogServer())
 {
 	stringstream ss; ss << "[" << "Configuration" << "]";
@@ -16,6 +18,16 @@ Configuration::Configuration() : logClient(getLogServer())
 
 
 Configuration::~Configuration() {}
+
+Configuration* Configuration::getGlobalConfiguration()
+{
+	return globalConfig;
+}
+
+void Configuration::setGlobalConfiguration(Configuration* config)
+{
+	globalConfig = config;
+}
 
 bool Configuration::load(const string& fileName)
 {

@@ -21,7 +21,7 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 	Timer timer;
 	timer.update();
 
-	string filePath = util::globals::MESHES_PATH +  path;
+	string filePath = util::Globals::getMeshesPath() +  path;
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh

@@ -15,6 +15,9 @@ public:
 
 	virtual ~Configuration();
 
+	static Configuration* getGlobalConfiguration();
+	static void setGlobalConfiguration(Configuration* config);
+
 	bool load(const std::string& file);
 
 	bool write(const std::string& file);
@@ -30,11 +33,11 @@ public:
 	{
 		if (!isSet(settingName))
 		{
-			LOG(logClient, platform::Warning) << "Failed to find variable: " << settingName;
+			LOG(logClient, nex::Warning) << "Failed to find variable: " << settingName;
 			return T();
 		}
 
-		return variables[name.c_str()].as<T>();
+		return variables[settingName.c_str()].as<T>();
 	}
 
 
@@ -53,4 +56,6 @@ private:
 	Options options;
 	Variables variables;
 	nex::LoggingClient logClient;
+
+	static Configuration* globalConfig;
 };
