@@ -32,21 +32,21 @@ namespace util {
 		/**
 		* Path to textures
 		*/
-		static inline const std::string MESHES_PATH = "_work/data/meshes/";
+		static inline const char* MESHES_PATH = "_work/data/meshes/";
 
 		/**
 		* Global shader path
 		*/
-		static inline const std::string SHADER_PATH = "shaders/";
+		static inline const char* SHADER_PATH = "shaders/";
 
 		/**
 		* Path to opengl shaders
 		*/
-		static inline const std::string SHADER_PATH_OPENGL = SHADER_PATH + "opengl/";
+		static inline const char* SHADER_PATH_OPENGL = "shaders/opengl/";
 
 		/**
 		* Path to textures
 		*/
-		static inline const std::string TEXTURE_PATH = "_work/data/textures/";
+		static inline const char* TEXTURE_PATH = "_work/data/textures/";
 	};
 }
