@@ -9,13 +9,17 @@ class PBR_GBuffer;
 class SceneNode;
 class Texture;
 
+const int SSAO_SAMPLING_SIZE = 32;
+
 struct SSAOData {
 	float   bias;
 	float   intensity;
 	float   radius;
 	float   _pad0;
 
-	glm::vec3 samples[32];
+	glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
+
+	glm::mat4 projection_GPass;
 };
 
 class SSAO_Deferred {
@@ -23,7 +27,6 @@ public:
 
 	SSAO_Deferred(unsigned int windowWidth,
 		unsigned int windowHeight,
-		unsigned int kernelSize, 
 		unsigned int noiseTileWidth);
 
 	virtual ~SSAO_Deferred() = default;
@@ -49,9 +52,8 @@ protected:
 protected:
 	unsigned int windowWidth;
 	unsigned int windowHeight;
-	unsigned int kernelSize;
 	unsigned int noiseTileWidth;
-	std::vector<glm::vec3> ssaoKernel;
+	std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
 	std::vector<glm::vec3> noiseTextureValues;
 
 	Sprite screenSprite;

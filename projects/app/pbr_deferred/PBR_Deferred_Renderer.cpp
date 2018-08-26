@@ -36,6 +36,7 @@ PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
 	mixValue = 0.2f;
 
 	m_aoSelector.setUseAmbientOcclusion(true);
+	m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
 }
 
 
@@ -331,6 +332,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Tex
 	ssao->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
 	ssao->blur();
 	return ssao->getBlurredResult();
+	//return ssao->getAO_Result();
 }
 
 PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)
@@ -361,7 +363,7 @@ void PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		std::string ssaoText = ss.str();
 
 		const char* items[] = { hbaoText.c_str(), ssaoText.c_str() };
-		static AmbientOcclusionSelector::AOTechnique selectedTechnique = AmbientOcclusionSelector::HBAO;
+		AmbientOcclusionSelector::AOTechnique selectedTechnique = aoSelector->getActiveAOTechnique();
 
 		ImGui::SameLine(0, 70);
 		if (ImGui::Combo("AO technique", (int*)&selectedTechnique, items, IM_ARRAYSIZE(items)))

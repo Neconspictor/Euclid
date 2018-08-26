@@ -1,6 +1,5 @@
 #include <nex/post_processing/SSAO.hpp>
 #include <random>
-#include <nex/texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <imgui/imgui.h>
 #include <nex/gui/Util.hpp>
@@ -10,17 +9,15 @@ using namespace glm;
 
 
 SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
-	unsigned int windowHeight, 
-	unsigned int kernelSize, 
+	unsigned int windowHeight,
 	unsigned int noiseTileWidth) 
 	:
 	windowWidth(windowWidth),
 	windowHeight(windowHeight),
-	kernelSize(kernelSize), 
 	noiseTileWidth(noiseTileWidth)
 {
 	// create random kernel samples
-	for (unsigned int i = 0; i < kernelSize; ++i) {
+	for (unsigned int i = 0; i < SSAO_SAMPLING_SIZE; ++i) {
 		vec3 vec;
 		vec.x = randomFloat(-1, 1);
 		vec.y = randomFloat(-1, 1);
@@ -31,11 +28,11 @@ SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
 
 		//vec *= randomFloat(0, 1);
 
-		float scale = i / (float)kernelSize;
+		float scale = i / (float)SSAO_SAMPLING_SIZE;
 		scale = lerp(0.1f, 1.0f, scale * scale);
 		//vec *= scale;
 
-		ssaoKernel.emplace_back(move(vec));
+		ssaoKernel[i] = move(vec);
 	}
 
 	//create noise texture (random rotation vectors in tangent space)
