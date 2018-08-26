@@ -50,6 +50,11 @@ SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
 	m_shaderData.radius = 0.25f;
 }
 
+SSAOData* SSAO_Deferred::getSSAOData()
+{
+	return &m_shaderData;
+}
+
 void SSAO_Deferred::setBias(float bias)
 {
 	m_shaderData.bias = bias;
@@ -85,9 +90,12 @@ void SSAO_ConfigurationView::drawSelf()
 	// render configuration properties
 	ImGui::PushID(m_id.c_str());
 	ImGui::LabelText("", "SSAO:");
-	/*ImGui::SliderFloat("bias", &m_hbao->m_bias, 0.0f, 5.0f);
-	ImGui::SliderFloat("intensity", &m_hbao->m_intensity, 0.0f, 10.0f);
-	ImGui::SliderFloat("radius", &m_hbao->m_radius, 0.0f, 10.0f);*/
+
+	SSAOData* data = m_ssao->getSSAOData();
+
+	ImGui::SliderFloat("bias", &data->bias, 0.0f, 5.0f);
+	ImGui::SliderFloat("intensity", &data->intensity, 0.0f, 10.0f);
+	ImGui::SliderFloat("radius", &data->radius, 0.0f, 10.0f);
 
 	ImGui::Dummy(ImVec2(0, 20));
 	nex::engine::gui::Separator(2.0f);

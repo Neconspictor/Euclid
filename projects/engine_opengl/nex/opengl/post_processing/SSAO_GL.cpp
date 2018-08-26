@@ -77,7 +77,9 @@ public:
 		glUseProgram(programID);
 		glBindVertexArray(m_fullscreenTriangleVAO);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
-		glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
+		glNamedBufferSubData(m_ssaoUBO, 0, 
+			4*4 + 4*4*4, // we update only the first 4 floats + the matrix  <projection_GPass>
+			m_ssaoData);
 
 		glBindTextureUnit(0, m_gNormal->getTexture());
 		glBindTextureUnit(1, m_gPosition->getTexture());
@@ -117,6 +119,14 @@ public:
 	void setSSAOData(SSAOData* data)
 	{
 		m_ssaoData = data;
+
+		glUseProgram(programID);
+		glBindVertexArray(m_fullscreenTriangleVAO);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
+		glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
 	}
 
 	/*virtual void update(const MeshGL& mesh, const TransformData& data) {
@@ -283,6 +293,8 @@ SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 	{
 		m_shaderData.samples[i] = vec4(ssaoKernel[i], 0);
 	}
+
+	configAO->setSSAOData(&m_shaderData);
 }
 
 Texture * SSAO_DeferredGL::getAO_Result()
@@ -319,20 +331,13 @@ void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const g
 
 	m_shaderData.projection_GPass = projectionGPass;
 
-	//aoShader.setProjectionGPass(projectionGPass);
-
 	glViewport(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glScissor(0, 0, aoRenderTarget.getWidth(), aoRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, aoRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		//modelDrawer->draw(&screenSprite, *aoPass);
-
-		aoShader.setSSAOData(&m_shaderData);
 		aoShader.drawCustom();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SSAO_DeferredGL::blur()
@@ -344,7 +349,7 @@ void SSAO_DeferredGL::blur()
 	glBindFramebuffer(GL_FRAMEBUFFER, tiledBlurRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		modelDrawer->draw(&screenSprite, *tiledBlurPass);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SSAO_DeferredGL::displayAOTexture(Texture* aoTexture)

@@ -17,9 +17,9 @@ struct SSAOData {
 	float   radius;
 	float   _pad0;
 
-	glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
-
 	glm::mat4 projection_GPass;
+
+	glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
 };
 
 class SSAO_Deferred {
@@ -39,6 +39,8 @@ public:
 	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) = 0;
 	virtual void blur() = 0;
 	virtual void displayAOTexture(Texture* aoTexture) = 0;
+
+	SSAOData* getSSAOData();
 
 	virtual void setBias(float bias);
 	virtual void setItensity(float itensity);

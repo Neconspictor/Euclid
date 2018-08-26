@@ -36,7 +36,7 @@ PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
 	mixValue = 0.2f;
 
 	m_aoSelector.setUseAmbientOcclusion(true);
-	m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
+	//m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
 }
 
 
