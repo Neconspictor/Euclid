@@ -67,7 +67,7 @@ void PBR_Deferred_ConfigurationView::drawSelf()
 {
 	ImGui::PushID(m_id.c_str());
 	//m_pbr
-
+	ImGui::LabelText("", "PBR:");
 	ImGui::Dummy(ImVec2(0, 20));
 	nex::engine::gui::Separator(2.0f);
 	ImGui::PopID();

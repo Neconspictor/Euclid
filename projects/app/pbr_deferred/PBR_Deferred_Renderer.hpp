@@ -29,6 +29,9 @@ public:
 	hbao::HBAO* getHBAO();
 	AmbientOcclusionSelector* getAOSelector();
 
+	PBR_Deferred* getPBR();
+
+
 private:
 
 	inline Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
@@ -41,7 +44,7 @@ private:
 	float mixValue;
 	Texture* panoramaSky;
 
-	std::unique_ptr<PBR_Deferred> pbr_deferred;
+	std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 
 	AmbientOcclusionSelector m_aoSelector;

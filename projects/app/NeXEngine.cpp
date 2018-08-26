@@ -247,6 +247,9 @@ void NeXEngine::setupGUI()
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
 	graphicsTechniques->addChild(move(ssaoView));
 
+	auto pbrDeferredView = std::make_unique<PBR_Deferred_ConfigurationView>(m_renderer->getPBR());
+	graphicsTechniques->addChild(move(pbrDeferredView));
+
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));
 

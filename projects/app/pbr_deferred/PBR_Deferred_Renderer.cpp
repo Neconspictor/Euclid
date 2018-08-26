@@ -120,13 +120,13 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
-	pbr_mrt = pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
+	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
 	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
 
-	CubeMap* background = pbr_deferred->getEnvironmentMap();
+	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 }
@@ -173,7 +173,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->enableAlphaBlending(false);
 	//renderer->cullFaces(CullingMode::Back);
 
-	pbr_deferred->drawSceneToShadowMap(scene,
+	m_pbr_deferred->drawSceneToShadowMap(scene,
 		shadowMap,
 		globalLight,
 		lightView,
@@ -186,7 +186,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
 	m_renderBackend->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-		pbr_deferred->drawGeometryScene(scene,
+		m_pbr_deferred->drawGeometryScene(scene,
 			camera->getView(),
 			camera->getPerspProjection());
 	//renderer->endScene();
@@ -207,11 +207,11 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		blitRegion,
 		RenderComponent::Depth | RenderComponent::Stencil);
 
-	//pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+	//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 		//renderer->enableAlphaBlending(true);
 
-		pbr_deferred->drawLighting(scene, 
+		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
 			shadowMap->getTexture(), 
 			aoTexture,
@@ -219,7 +219,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			camera->getView(), 
 			lightProj * lightView);
 
-		pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+		m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 	
 
 
@@ -279,7 +279,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	m_renderBackend->setViewPort(0, 0, width, height);
 	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
-	pbr_mrt = pbr_deferred->createMultipleRenderTarget(width, height);
+	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
 	//ssao_deferred->onSizeChange(width, height);
 
 	m_aoSelector.getHBAO()->onSizeChange(width, height);
@@ -302,6 +302,11 @@ hbao::HBAO* PBR_Deferred_Renderer::getHBAO()
 AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
 {
 	return &m_aoSelector;
+}
+
+PBR_Deferred* PBR_Deferred_Renderer::getPBR()
+{
+	return m_pbr_deferred.get();
 }
 
 Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
