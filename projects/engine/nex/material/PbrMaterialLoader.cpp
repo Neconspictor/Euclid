@@ -40,18 +40,27 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		if (albedoMaps.size())
 		{
 			material->setAlbedoMap(textureManager->getImage(albedoMaps[0], data));
+		} else
+		{
+			material->setAlbedoMap(textureManager->getDefaultWhiteTexture()); // assume white material
 		}
 
 		vector<string> aoMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
 		if (aoMaps.size())
 		{
-			material->setAlbedoMap(textureManager->getImage(aoMaps[0], data));
+			material->setAoMap(textureManager->getImage(aoMaps[0], data));
+		} else
+		{
+			material->setAoMap(textureManager->getDefaultWhiteTexture()); // no ao
 		}
 
 		vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE, data);
 		if (emissionMaps.size())
 		{
 			material->setEmissionMap(textureManager->getImage(emissionMaps[0], data));
+		} else
+		{
+			material->setEmissionMap(textureManager->getDefaultBlackTexture()); // no emission
 		}
 
 		data.useSRGB = false;
@@ -59,6 +68,9 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		if (metallicMaps.size())
 		{
 			material->setMetallicMap(textureManager->getImage(metallicMaps[0], data));
+		} else
+		{
+			material->setMetallicMap(textureManager->getDefaultBlackTexture()); // we assume a non metallic material
 		}
 
 		data.useSRGB = false;
@@ -66,6 +78,9 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		if (roughnessMaps.size())
 		{
 			material->setRoughnessMap(textureManager->getImage(roughnessMaps[0], data));
+		} else
+		{
+			material->setRoughnessMap(textureManager->getDefaultWhiteTexture()); // we assume a full rough material
 		}
 
 		data.useSRGB = false;
@@ -85,6 +100,10 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 			Texture* texture = textureManager->getImage(normalMaps[0], data);
 			material->setNormalMap(texture);
 			//material->setNormalMap(textureManager->getDefaultNormalTexture());
+		} else
+		{
+			Texture* texture = textureManager->getDefaultNormalTexture();
+			material->setNormalMap(texture);
 		}
 	}
 

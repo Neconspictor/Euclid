@@ -155,7 +155,8 @@ SceneNode* NeXEngine::createScene()
 	//root->addChild(sphere);
 
 	//m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
-	m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
+	//m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
+	m_vobs.push_back(Vob("cerberus/cerberus.obj", Shaders::Pbr));
 	ground->setVob(&m_vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
 	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));

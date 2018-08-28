@@ -61,9 +61,12 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	modelManager->loadModels();
 
-	panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+
+	//HDR_Free_City_Night_Lights_Ref
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
@@ -95,7 +98,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 	// init shaders
-	pbrShader->setLightColor({ 1.0f, 1.0f, 1.0f });
+	pbrShader->setLightColor({ 0.0f, 0.0f, 0.0f });
 	pbrShader->setLightDirection(globalLight.getLook());
 
 	vec2 dim = {1.0, 1.0};

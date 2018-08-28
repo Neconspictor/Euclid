@@ -166,17 +166,14 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
 
-	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
-	TextureGL* white = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultWhiteTexture());
-	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
 
-	attributes.setData("material.albedoMap", albedoMap, black);
+	attributes.setData("material.albedoMap", albedoMap);
 
-	attributes.setData("material.aoMap", aoMap, white);
+	attributes.setData("material.aoMap", aoMap);
 	//attributes.setData("material.emissionMap", emissionMap, black);
-	attributes.setData("material.metallicMap", metallicMap, black);
-	attributes.setData("material.normalMap", normalMap, default_normal);
-	attributes.setData("material.roughnessMap", roughnessMap, black);
+	attributes.setData("material.metallicMap", metallicMap);
+	attributes.setData("material.normalMap", normalMap);
+	attributes.setData("material.roughnessMap", roughnessMap);
 
 	//attributes.setData("brdfLUT", white, white);
 }
@@ -264,7 +261,6 @@ void PBRShader_Deferred_LightingGL::setShadowMap(Texture * texture)
 {
 	shadowMap = dynamic_cast<TextureGL*>(texture);
 	assert(shadowMap != nullptr);
-	Texture* black = TextureManagerGL::get()->getDefaultBlackTexture();
 	attributes.setData("shadowMap", shadowMap);
 }
 
@@ -401,16 +397,12 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
 
-	TextureGL* black = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultBlackTexture());
-	TextureGL* white = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultWhiteTexture());
-	TextureGL* default_normal = static_cast<TextureGL*>(TextureManagerGL::get()->getDefaultNormalTexture()); //brickwall_normal
-
-	attributes.setData("material.albedoMap", albedoMap, black); 
-	attributes.setData("material.aoMap", aoMap, white);
+	attributes.setData("material.albedoMap", albedoMap); 
+	attributes.setData("material.aoMap", aoMap);
 	//attributes.setData("material.emissionMap", emissionMap, black);
-	attributes.setData("material.metallicMap", metallicMap, black);
-	attributes.setData("material.normalMap", normalMap, default_normal);
-	attributes.setData("material.roughnessMap", roughnessMap, black);
+	attributes.setData("material.metallicMap", metallicMap);
+	attributes.setData("material.normalMap", normalMap);
+	attributes.setData("material.roughnessMap", roughnessMap);
 
 	//glBindSampler(albedoMap->getTexture(), m_sampler.getID());
 	/*for (int i = 0; i < 32; ++i)

@@ -123,11 +123,8 @@ void main()
 	
 	vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
 	float ao = aoMetalRoughness.r;
-	ao = 1;
 	float metallic = aoMetalRoughness.g;
-	metallic = 0.0;
 	float roughness = aoMetalRoughness.b;
-	roughness = 0.9;
 	
 	vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
 	/*float alpha = length(normalEye);
@@ -155,7 +152,7 @@ void main()
 	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 
 	
-	//shadow = 1;
+	shadow = 1;
 	
 	
     vec3 result = pbrModel(ao, 
@@ -200,7 +197,7 @@ vec3 pbrModel(float ao,
 	//float ssaoFactor = max(max(ambient.r, ambient.g), ambient.b);
 	//ssaoFactor = clamp (1 / ssaoFactor, 0, 1);
 	
-    vec3 color = ambient * ambientShadow; // ssaoAmbientOcclusion;
+    vec3 color = ambient; //* ambientShadow; // ssaoAmbientOcclusion;
 	
 	// shadows affecting only direct light contribution
 	//color += Lo * shadow;
@@ -276,7 +273,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
 	
-    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb * 1.0f;
+    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);

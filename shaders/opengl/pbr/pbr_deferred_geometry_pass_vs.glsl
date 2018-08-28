@@ -27,20 +27,20 @@ void main()
 	vs_out.fragment_position_eye = modelView * vec4(position, 1.0f);
 	vs_out.tex_coords = texCoords;
 	
-	mat3 normalMatrix = transpose(inverse(mat3(modelView)));
+	mat3 normalMatrix = mat3(inverse(transpose(modelView)));
 	
 	vec3 normal_eye = normalize(normalMatrix * normal);
 	vec3 tangent_eye = normalize(normalMatrix * tangent);
-	
-	float dotTN = dot(normal_eye, tangent_eye);
-	
-	if (dotTN < 0.0) {
-		//world_tangent = -1.0 * world_tangent;
-	};
-	
 	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
 	vec3 bitangent_eye = normalize(normalMatrix * bitangent);
+	
+	float dotTN = dot(normal_eye, tangent_eye);
+	
+	// TBN must form a right handed coord system.
+    // Some models have symetric UVs. Check and fix.
+    if (dot(cross(normal_eye, tangent_eye), bitangent_eye) < 0.0)
+        tangent_eye = tangent_eye * -1.0;
 
 	vs_out.TBN_eye_directions = mat3(tangent_eye, bitangent_eye, normal_eye);
 }

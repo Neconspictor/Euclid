@@ -42,7 +42,12 @@ void main()
 	//normal
 	float factor = 255/128.0f;	// is better than 2.0f for precision reasons!
 	vec3 N = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
-	normalEye = normalize(fs_in.TBN_eye_directions * N);
+	//N = vec3(0,0,1);
+	
+	//mat3 tbnTangentToEye = inverse(fs_in.TBN_eye_directions);
+	mat3 tbnTangentToEye = fs_in.TBN_eye_directions;
+	
+	normalEye = normalize(tbnTangentToEye * N);
 	//normalEye = texture(material.normalMap, fs_in.tex_coords).xyz;
 	//normalEye = normalEye*0.5 + 0.5;
 	

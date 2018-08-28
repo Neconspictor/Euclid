@@ -150,7 +150,7 @@ CubeRenderTarget * PBR::renderBackgroundToCube(Texture * background)
 
 CubeRenderTarget * PBR::convolute(CubeMap * source)
 {
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
+	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(64, 64);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -194,7 +194,7 @@ CubeRenderTarget* PBR::prefilter(CubeMap * source)
 {
 	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 };
 
-	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(128, 128, textureData);
+	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(512, 512, textureData);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 
@@ -257,7 +257,7 @@ CubeRenderTarget* PBR::prefilter(CubeMap * source)
 RenderTarget * PBR::createBRDFlookupTexture()
 {
 	TextureData data = { false, false, Linear, Linear, ClampToEdge, RG, true, BITS_32 };
-	RenderTarget* target = renderer->create2DRenderTarget(512, 512, data);
+	RenderTarget* target = renderer->create2DRenderTarget(1024, 1024, data);
 
 
 	ModelManager* modelManager = renderer->getModelManager();
