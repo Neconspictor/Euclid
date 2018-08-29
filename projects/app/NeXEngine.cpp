@@ -78,6 +78,8 @@ void NeXEngine::init()
 
 	m_scene = createScene();
 
+	m_scene->init(m_renderBackend->getModelManager());
+
 	m_input->addWindowCloseCallback([](Window* window)
 	{
 		void* nativeWindow = window->getNativeWindow();
@@ -111,6 +113,7 @@ void NeXEngine::run()
 
 		if (isRunning())
 		{
+			m_scene->update(frameTime);
 			m_controllerSM->frameUpdate(frameTime);
 			m_camera->Projectional::update(true);
 			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
@@ -144,7 +147,30 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
+	m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
+	ground->setVob(&m_vobs.back());
+	ground->getVob()->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
+
+	m_nodes.push_back(SceneNode());
+	SceneNode* cerberus = &m_nodes.back();
+	m_vobs.push_back(Vob("cerberus/cerberus.obj", Shaders::Pbr));
+	cerberus->setVob(&m_vobs.back());
+	root->addChild(cerberus);
+
+	m_nodes.push_back(SceneNode());
+	SceneNode* cube1 = &m_nodes.back();
+	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
+	cube1->setVob(&m_vobs.back());
+	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
+	root->addChild(cube1);
+
+	m_nodes.push_back(SceneNode());
+	SceneNode* sphere = &m_nodes.back();
+	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
+	sphere->setVob(&m_vobs.back());
+	sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
+	root->addChild(sphere);
 
 	//m_nodes.push_back(SceneNode());
 	//SceneNode* cube1 = &m_nodes.back();
@@ -154,10 +180,7 @@ SceneNode* NeXEngine::createScene()
 	//SceneNode* sphere = &m_nodes.back();
 	//root->addChild(sphere);
 
-	//m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
 	//m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
-	m_vobs.push_back(Vob("cerberus/cerberus.obj", Shaders::Pbr));
-	ground->setVob(&m_vobs.back());
 	//vobs.push_back(Vob("misc/textured_cube.obj"));
 	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
 	//cube1->setVob(&m_vobs.back());

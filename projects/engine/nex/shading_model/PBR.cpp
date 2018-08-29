@@ -8,6 +8,8 @@ using namespace glm;
 PBR::PBR(RenderBackend* renderer, Texture* backgroundHDR) :
 	environmentMap(nullptr), shader(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
 
+	skybox.init(renderer->getModelManager());
+
 	init(backgroundHDR);
 }
 
@@ -262,7 +264,7 @@ RenderTarget * PBR::createBRDFlookupTexture()
 
 	ModelManager* modelManager = renderer->getModelManager();
 
-	Model* spriteModel = modelManager->getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	Model* spriteModel = modelManager->getSprite();// getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 
 	ShaderManager* shaderManager = renderer->getShaderManager();
 

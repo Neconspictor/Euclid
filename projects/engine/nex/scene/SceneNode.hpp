@@ -20,8 +20,10 @@ public:
 
 	void addChild(SceneNode* child);
 	void removeChild(SceneNode* child);
-	std::vector<SceneNode*>::const_iterator getChildsBegin() const;
-	std::vector<SceneNode*>::const_iterator getChildsEnd() const;
+	std::vector<SceneNode*>::iterator getChildsBegin();
+	std::vector<SceneNode*>::iterator getChildsEnd();
+
+	void init(ModelManager* modelManager);
 
 	virtual void update(float frameTime);
 	/**
@@ -29,6 +31,8 @@ public:
 	 */
 	virtual void draw(RenderBackend* renderer, ModelDrawer* drawer, const glm::mat4& projection, 
 		const glm::mat4& view, Shaders forcedShader = Shaders::Unknown);
+
+	//virtual void draw(ModelDrawer* drawer);
 
 	Vob* getVob() const;
 	void setVob(Vob* vob);

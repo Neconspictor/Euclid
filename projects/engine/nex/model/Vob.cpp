@@ -69,6 +69,11 @@ string const& Vob::getMeshName() const
 	return meshName;
 }
 
+Model* Vob::getModel()
+{
+	return m_model;
+}
+
 Shaders Vob::getMaterialShaderType() const
 {
 	return materialShaderType;
@@ -79,9 +84,14 @@ vec3 Vob::getPosition() const
 	return position;
 }
 
-mat4 const& Vob::getTrafo() const
+mat4& Vob::getTrafo()
 {
 	return trafo;
+}
+
+void Vob::init(ModelManager* modelManager)
+{
+	m_model = modelManager->getModel(meshName, materialShaderType);
 }
 
 void Vob::setEulerXYZ(vec3 rotation)

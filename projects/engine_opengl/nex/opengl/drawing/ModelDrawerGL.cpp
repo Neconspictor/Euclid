@@ -26,7 +26,7 @@ ModelDrawerGL::~ModelDrawerGL()
 void ModelDrawerGL::draw(Sprite * sprite, Shader& shader)
 {
 	ShaderGL& glShader = dynamic_cast<ShaderGL&>(shader);
-	Model* spriteModel = ModelManagerGL::get()->getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	Model* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
@@ -76,12 +76,12 @@ void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data)
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
-	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	//vob->calcTrafo();
+	Model* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 	
 	static bool called = false;
 	//if (!called) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//	called = true;
 	//}
 	
@@ -93,11 +93,19 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	}
 }
 
+void ModelDrawerGL::draw(Model* model, Shader* shader)
+{
+	for (auto& mesh : model->getMeshes())
+	{
+		shader->draw(mesh);
+	}
+}
+
 void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
-	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	//vob->calcTrafo();
+	Model* model = vob->getModel();//ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
@@ -160,7 +168,7 @@ void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData&
 {
 	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
-	Model* model = ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	Model* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

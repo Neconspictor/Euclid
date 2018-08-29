@@ -114,4 +114,25 @@ namespace nex::util {
 			<< ", enum value: " << e;
 		throw_with_trace(EnumFormatException(ss.str()));
 	}
+
+
+#define SID(str) = customSimpleHash(str)
+
+	inline unsigned int customSimpleHash(const std::string &str)
+	{
+		unsigned int hash = 0;
+
+		for (auto& it : str) {
+			// NOTE: be sure to use prime numbers
+			hash = 37 * hash + 17 * static_cast<char>(it);
+		}
+
+		return hash;
+	}
+	
+	inline unsigned int customSimpleHash(const char* cStr)
+	{
+		std::string str(cStr);
+		return customSimpleHash(str);
+	}
 }

@@ -16,6 +16,8 @@ public:
 	virtual void draw(Sprite* sprite, Shader& shader) override;
 
 	void draw(Vob* vob, Shaders shaderType, const TransformData& data) override;
+
+	void draw(Model* vob, Shader* shader);
 	
 	void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount) override;
 

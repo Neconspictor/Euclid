@@ -3,6 +3,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <nex/shader/Shader.hpp>
+#include <nex/model/Model.hpp>
+#include <nex/model/ModelManager.hpp>
 
 /**
  * A model is an object in a 3d space, thus it consists of a mesh representing the shape
@@ -37,6 +39,8 @@ public:
 	 */
 	 std::string const& getMeshName() const;
 
+	 Model* getModel();
+
 
 	 glm::vec3 getPosition() const;
 
@@ -44,7 +48,10 @@ public:
 	 * Provides read/write access to the transformation matrix
 	 * of this model.
 	 */
-	 glm::mat4 const& getTrafo() const;
+	 glm::mat4& getTrafo();
+
+
+	void init(ModelManager* modelManager);
 
 	 /**
 	  * Sets the rotation measured in euler angles int XYZ order.
@@ -68,6 +75,7 @@ public:
 
 protected:
 	std::string meshName;
+	Model* m_model;
 	Shaders materialShaderType;
 	glm::quat orientation;
 	glm::vec3 position;

@@ -1,4 +1,4 @@
 #include <nex/model/ModelManager.hpp>
 
-const char* ModelManager::SKYBOX_MODEL_NAME = "_INTERN_MODELS__SKYBOX";
-const char* ModelManager::SPRITE_MODEL_NAME = "_INTERN_MODELS__SPRITE";
+const unsigned int ModelManager::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
+const unsigned int ModelManager::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");

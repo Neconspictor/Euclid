@@ -17,7 +17,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
-#include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 
 using namespace std;
 using namespace nex;

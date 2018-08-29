@@ -48,6 +48,8 @@ public:
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
+	std::unique_ptr<CascadedShadow> createCascadedShadow(unsigned int width, unsigned int height) override;
+
 	virtual DepthMap* createDepthMap(int width, int height) override;
 
 	virtual RenderTarget* createRenderTarget(int samples) override;
@@ -137,6 +139,7 @@ protected:
 
 	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 
+protected:
 	glm::vec3 backgroundColor;
 	std::list<CubeDepthMapGL> cubeDepthMaps;
 	std::list<DepthMapGL> depthMaps;

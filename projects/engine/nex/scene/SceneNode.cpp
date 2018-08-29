@@ -39,8 +39,8 @@ SceneNode&& SceneNode::operator=(SceneNode&& copy)
 	if (this == &copy) return std::move(*this);
 	parent = copy.parent;
 	vob = copy.vob;
-	worldTrafo = std::move(copy.worldTrafo);
-	localTrafo = std::move(copy.localTrafo);
+	worldTrafo = copy.worldTrafo;
+	localTrafo = copy.localTrafo;
 	childs = move(copy.childs);
 	drawingType = copy.drawingType;
 	instanceCount = copy.instanceCount;
@@ -76,14 +76,24 @@ void SceneNode::removeChild(SceneNode* child)
 	}
 }
 
-std::vector<SceneNode*>::const_iterator SceneNode::getChildsBegin() const
+std::vector<SceneNode*>::iterator SceneNode::getChildsBegin()
 {
 	return childs.begin();
 }
 
-std::vector<SceneNode*>::const_iterator SceneNode::getChildsEnd() const
+std::vector<SceneNode*>::iterator SceneNode::getChildsEnd()
 {
 	return childs.end();
+}
+
+void SceneNode::init(ModelManager* modelManager)
+{
+	for (auto it = childs.begin(); it != childs.end(); ++it)
+		(*it)->init(modelManager);
+
+	if (!vob) return;
+
+	vob->init(modelManager);
 }
 
 void SceneNode::update(float frameTime)
@@ -117,7 +127,7 @@ void SceneNode::draw(RenderBackend* renderer, ModelDrawer* drawer, const glm::ma
 	if (forcedShader != Shaders::Unknown)
 		type = forcedShader;
 
-	vob->calcTrafo();
+	//vob->calcTrafo();
 	TransformData data = { &projection, &view, &vob->getTrafo() };
 	if (drawingType == DrawingTypes::SOLID)
 	{

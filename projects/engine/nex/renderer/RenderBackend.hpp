@@ -11,6 +11,7 @@
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/logging/LoggingClient.hpp>
 #include <ostream>
+#include <nex/shadowing/CascadedShadow.hpp>
 
 enum class CullingMode
 {
@@ -107,6 +108,8 @@ public:
 	virtual RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }, int samples = 1) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;
+
+	virtual std::unique_ptr<CascadedShadow> createCascadedShadow(unsigned int width, unsigned int height) = 0;
 
 	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() = 0;
 

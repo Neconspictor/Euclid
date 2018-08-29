@@ -12,7 +12,8 @@
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/renderer/Renderer.hpp>
-#include "nex/post_processing/AmbientOcclusion.hpp"
+#include <nex/post_processing/AmbientOcclusion.hpp>
+#include <nex/shadowing/CascadedShadow.hpp>
 
 class PBR_Deferred_Renderer : public Renderer
 {
@@ -36,6 +37,8 @@ private:
 
 	inline Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
 
+	void drawSceneToCascade(SceneNode* scene);
+
 	// Allow the UI mode classes accessing private members
 
 	GaussianBlur* blurEffect;
@@ -46,6 +49,7 @@ private:
 
 	std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
+	std::unique_ptr<CascadedShadow> m_cascadedSshadow;
 
 	AmbientOcclusionSelector m_aoSelector;
 

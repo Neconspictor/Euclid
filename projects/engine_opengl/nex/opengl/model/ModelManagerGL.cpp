@@ -8,6 +8,8 @@
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
 #include <sstream>
 #include <string>
+#include <nex/util/StringUtils.hpp>
+#include "nex/shader/SimpleColorShader.hpp"
 
 using namespace std;
 using namespace glm;
@@ -19,6 +21,7 @@ ModelManagerGL::ModelManagerGL() :
 	pbrMaterialLoader(TextureManagerGL::get()),
 	blinnPhongMaterialLoader(TextureManagerGL::get())
 {
+	CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 }
 
 ModelManagerGL::~ModelManagerGL()
@@ -29,7 +32,9 @@ Model* ModelManagerGL::getSkyBox()
 {
 	using Vertex = VertexPosition;
 
-	auto it = modelTable.find(SKYBOX_MODEL_NAME);
+	using namespace nex::util;
+
+	auto it = modelTable.find(SKYBOX_MODEL_HASH);
 	if (it == modelTable.end())
 	{
 		int vertexCount = (int)sizeof(SampleMeshes::skyBoxVertices);
@@ -45,18 +50,18 @@ Model* ModelManagerGL::getSkyBox()
 
 		models.push_back(move(model));
 		ModelGL* result = models.back().get();
-		modelTable[SKYBOX_MODEL_NAME] = result;
+		modelTable[SKYBOX_MODEL_HASH] = result;
 		return result;
 	}
 
-	return dynamic_cast<Model*>(it->second);
+	return it->second;
 }
 
 Model* ModelManagerGL::getSprite()
 {
 	using Vertex = VertexPositionTex;
 
-	auto it = modelTable.find(SPRITE_MODEL_NAME);
+	auto it = modelTable.find(SPRITE_MODEL_HASH);
 	if (it != modelTable.end())
 	{
 		return dynamic_cast<Model*>(it->second);
@@ -113,24 +118,27 @@ Model* ModelManagerGL::getSprite()
 	models.push_back(move(model));
 
 	ModelGL* result = models.back().get();
-	modelTable[SPRITE_MODEL_NAME] = result;
+	modelTable[SPRITE_MODEL_HASH] = result;
 	return result;
 }
 
 Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 {
-	auto it = modelTable.find(modelName);
+
+	auto hash = nex::util::customSimpleHash(modelName);
+
+	auto it = modelTable.find(hash);
 	if (it != modelTable.end())
 	{
-		return dynamic_cast<Model*>(it->second);
+		return it->second;
 	}
 
-	if (modelName.compare(SPRITE_MODEL_NAME) == 0)
+	if (hash == SPRITE_MODEL_HASH)
 	{
 		return getSprite();
 	}
 
-	if(modelName.compare(SKYBOX_MODEL_NAME) == 0)
+	if(hash == SKYBOX_MODEL_HASH)
 	{
 		return getSkyBox();
 	}
@@ -155,7 +163,7 @@ Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 
 	models.push_back(move(assimpLoader.loadModel(modelName, *materialLoader)));
 	ModelGL* result = models.back().get();
-	modelTable[modelName] = result;
+	modelTable[hash] = result;
 	return result;
 }
 
@@ -164,7 +172,7 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 {
 	using Vertex = VertexPositionNormalTex;
 
-	auto it = modelTable.find(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
+	auto it = modelTable.find(CUBE_POSITION_NORMAL_TEX_HASH);
 	if (it != modelTable.end())
 	{
 		return it->second;
@@ -213,7 +221,7 @@ Model* ModelManagerGL::getPositionNormalTexCube()
 	models.push_back(move(model));
 
 	ModelGL* result = models.back().get();
-	modelTable[SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME] = result;
+	modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
 
 	return result;
 }

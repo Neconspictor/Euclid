@@ -132,8 +132,27 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
+
+	m_cascadedSshadow = m_renderBackend->createCascadedShadow(4096, 4096);
 }
 
+void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
+{
+	Vob* vob = scene->getVob();
+	if (vob)
+	{
+		auto& meshes = vob->getModel()->getMeshes();
+		for (auto& mesh : meshes)
+		{
+			m_cascadedSshadow->render(&mesh.get(), &vob->getTrafo());
+		}
+	}
+
+	for (auto child = scene->getChildsBegin(); child != scene->getChildsEnd(); ++child)
+	{
+		drawSceneToCascade(*child);
+	}
+}
 
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
@@ -145,29 +164,31 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		m_renderBackend->getShaderManager()->getConfig(Shaders::DepthMap));
 	using namespace chrono;
 
-	// update the scene
-
-	//renderer->setViewPort(0, 0, window->getWidth(), window->getHeight());
-	//renderer->useScreenTarget();
-	//renderer->beginScene();
-	//renderer->setBackgroundColor({0.5f, 0.5f, 0.5f});
-	//renderer->endScene();
 	
-	FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
+	//FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
 	const mat4& cameraView = camera->getView();
 	mat4 inverseCameraView = inverse(cameraView);
 
-	mat4 test = globalLight.getView();
-	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
-	AABB ccBB = fromCuboid(cameraCuboidWorld);
+	//mat4 test = globalLight.getView();
+	//FrustumCuboid cameraCuboidWorld = test * inverseCameraView * cameraCuboid;
+	//AABB ccBB = fromCuboid(cameraCuboidWorld);
 
-	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
-	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
-	globalLight.setOrthoFrustum(shadowFrustum);
+	//Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
+	//shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 10.0f};
+	//globalLight.setOrthoFrustum(shadowFrustum);
 
 	const mat4& lightProj = globalLight.getProjection(Orthographic);
 	const mat4& lightView = globalLight.getView();
 
+
+	m_cascadedSshadow->frameUpdate(camera);
+	for (int i = 0; i < CascadedShadow::NUM_CASCADES; ++i)
+	{
+		m_cascadedSshadow->begin(i);
+		drawSceneToCascade(scene);
+
+		m_cascadedSshadow->end();
+	}
 
 	// render scene to the shadow depth map
 	m_renderBackend->useBaseRenderTarget(shadowMap);
@@ -176,14 +197,17 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->enableAlphaBlending(false);
 	//renderer->cullFaces(CullingMode::Back);
 
-	m_pbr_deferred->drawSceneToShadowMap(scene,
+	/*m_pbr_deferred->drawSceneToShadowMap(scene,
 		shadowMap,
 		globalLight,
 		lightView,
-		lightProj);
+		lightProj);*/
 
 	//renderer->cullFaces(CullingMode::Back);
 	//renderer->endScene();
+
+	// update and render into cascades
+	
 
 	m_renderBackend->useBaseRenderTarget(pbr_mrt.get());
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
@@ -267,6 +291,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//ssao_deferred->displayAOTexture();
 	}
 	//renderer->endScene();
+
+
+	
 }
 
 void PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)

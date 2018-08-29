@@ -12,8 +12,8 @@ class ModelManager
 {
 public:
 
-	static const char* SKYBOX_MODEL_NAME;
-	static const char* SPRITE_MODEL_NAME;
+	static const unsigned int SKYBOX_MODEL_HASH;
+	static const  unsigned int SPRITE_MODEL_HASH;
 
 	ModelManager(){};
 	virtual ~ModelManager(){}

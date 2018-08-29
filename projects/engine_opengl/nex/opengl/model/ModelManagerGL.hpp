@@ -46,8 +46,10 @@ private:
 	
 	static std::unique_ptr<ModelManagerGL> instance;
 	std::vector<std::unique_ptr<ModelGL>> models;
-	std::unordered_map<std::string, ModelGL*> modelTable;
+	std::unordered_map<unsigned int, ModelGL*> modelTable;
 	AssimpModelLoader assimpLoader;
 	PbrMaterialLoader pbrMaterialLoader;
 	BlinnPhongMaterialLoader blinnPhongMaterialLoader;
+
+	unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 };

@@ -192,6 +192,8 @@ set(
 	nex/scene/SceneNode.cpp
     
     #nex/shadowing
+	nex/shadowing/CascadedShadow.cpp
+	nex/shadowing/CascadedShadow.hpp
     nex/shadowing/ShadowMapper.hpp
  
     
