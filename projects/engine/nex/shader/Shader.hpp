@@ -92,6 +92,7 @@ enum class ShaderAttributeType
 	MAT3,
 	MAT4,
 	TEXTURE2D,
+	TEXTURE2D_ARRAY,
 	VEC2,
 	VEC3,
 	VEC4
@@ -136,6 +137,8 @@ public:
 	virtual ShaderConfig* getConfig() const = 0;
 
 	virtual void release() = 0;
+
+	virtual void use() = 0;
 
 	void setTransformData(TransformData data);
 

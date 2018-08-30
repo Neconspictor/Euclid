@@ -120,7 +120,7 @@ public:
 	
 	virtual void release() override;
 	
-	virtual void use();
+	void use() override;
 
 	static void initShaderFileSystem();
 

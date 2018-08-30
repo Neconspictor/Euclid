@@ -23,7 +23,9 @@ public:
 	  Texture* ssaoMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& viewFromGPass,
-	  const glm::mat4& worldToLight);
+	  const glm::mat4& worldToLight,
+	  CascadedShadow::CascadeData* cascadeData,
+	  Texture* cascadedDepthMap);
 
   virtual void drawSky(const glm::mat4& projection,
 	  const glm::mat4& view);

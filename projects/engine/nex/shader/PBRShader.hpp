@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/shader/shader.hpp>
+#include <nex/shadowing/CascadedShadow.hpp>
 
 class CubeMap;
 
@@ -60,6 +61,9 @@ public:
 	virtual void setAOMap(Texture* texture) = 0;
 
 	virtual void setWorldToLightSpaceMatrix(glm::mat4 worldToLight) = 0;
+
+	virtual void setCascadedData(CascadedShadow::CascadeData* cascadedData) = 0;
+	virtual void setCascadedDepthMap(Texture* cascadedDepthMap) = 0;
 };
 
 class PBR_ConvolutionShader : public ShaderConfig

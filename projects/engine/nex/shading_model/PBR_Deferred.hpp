@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/shading_model/PBR.hpp>
 #include "nex/gui/Drawable.hpp"
+#include <nex/shadowing/CascadedShadow.hpp>
 
 class PBR_Deferred : public PBR {
 
@@ -19,7 +20,9 @@ public:
 	   Texture* ssaoMap,
 	   const DirectionalLight& light,
 	   const glm::mat4& viewFromGPass,
-	   const glm::mat4& worldToLight);
+	   const glm::mat4& worldToLight,
+	   CascadedShadow::CascadeData* cascadeData,
+	   Texture* cascadedDepthMap);
 
 private:
 	Sprite screenSprite;

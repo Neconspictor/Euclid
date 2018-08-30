@@ -81,7 +81,7 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	
 	static bool called = false;
 	//if (!called) {
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//	called = true;
 	//}
 	

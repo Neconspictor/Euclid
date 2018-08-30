@@ -2,7 +2,8 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/shader/PBRShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include "nex/opengl/texture/SamplerGL.hpp"
+#include <nex/opengl/texture/SamplerGL.hpp>
+#include <nex/shadowing/CascadedShadow.hpp>
 
 class PBRShaderGL : public PBRShader, public ShaderConfigGL
 {
@@ -113,6 +114,9 @@ public:
 
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
+	void setCascadedDepthMap(Texture* cascadedDepthMap) override;
+	void setCascadedData(CascadedShadow::CascadeData* cascadedData) override;
+
 private:
 	PBR_GBuffer* gBuffer;
 	glm::mat4 transform;
@@ -134,6 +138,10 @@ private:
 	CubeMapGL* skybox;
 
 	glm::mat4 biasMatrix;
+
+	// Cascaded shadow mapping
+	TextureGL* cascadedDepthMap;
+	GLuint cascadeBufferUBO;
 
 };
 

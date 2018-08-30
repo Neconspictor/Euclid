@@ -211,6 +211,8 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Defer
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
 		);
+
+	attributes.create(types::TEXTURE2D_ARRAY, nullptr, "cascadedDepthMap");
 }
 
 PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
@@ -318,6 +320,19 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("irradianceMap", irradianceMap);
 	attributes.setData("prefilterMap", prefilterMap);
 	attributes.setData("brdfLUT", brdfLUT);
+
+	attributes.setData("cascadedDepthMap", this->cascadedDepthMap);
+}
+
+void PBRShader_Deferred_LightingGL::setCascadedDepthMap(Texture* cascadedDepthMap)
+{
+	this->cascadedDepthMap = (TextureGL*)cascadedDepthMap;
+}
+
+void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadow::CascadeData* cascadedData)
+{
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
+	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadow::CascadeData), cascadedData);
 }
 
 

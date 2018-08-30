@@ -16,8 +16,6 @@ CascadedShadowGL::~CascadedShadowGL()
 	if (mCascadedShadowFBO != GL_FALSE)
 		glDeleteBuffers(1, &mCascadedShadowFBO);
 	mCascadedShadowFBO = GL_FALSE;
-
-	releaseTextureArray();
 }
 
 void CascadedShadowGL::begin(int cascadeIndex)
@@ -27,14 +25,14 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
 	glViewport(0, 0, mCascadeWidth, mCascadeHeight);
 
-	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mCascadedTextureArray, 0, cascadeIndex);
+	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mDepthTextureArray.getTexture(), 0, cascadeIndex);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEPTH_CLAMP);
 	glCullFace(GL_FRONT);
 
-	glm::mat4 lightViewProjection = mLightOrthoMatrix * mLightViewMatrix;
+	glm::mat4 lightViewProjection = mLightProjMatrix * mLightViewMatrix;
 
 	// update lightViewProjectionMatrix uniform
 	static const GLuint LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
@@ -48,6 +46,11 @@ void CascadedShadowGL::end()
 	//glDisable(GL_DEPTH_TEST);
 	glDisable(GL_DEPTH_CLAMP);
 	glCullFace(GL_BACK);
+}
+
+Texture* CascadedShadowGL::getDepthTextureArray()
+{
+	return &mDepthTextureArray;
 }
 
 void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
@@ -71,23 +74,17 @@ void CascadedShadowGL::render(Mesh* mesh, glm::mat4* modelMatrix)
 	glBindVertexArray(0);
 }
 
-void CascadedShadowGL::releaseTextureArray()
-{
-	if (mCascadedTextureArray != GL_FALSE)
-		glDeleteTextures(1, &mCascadedTextureArray);
-	mCascadedTextureArray = GL_FALSE;
-}
-
 void CascadedShadowGL::updateTextureArray()
 {
-	releaseTextureArray();
+	mDepthTextureArray.release();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
 
-	glGenTextures(1, &mCascadedTextureArray);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mCascadedTextureArray);
+	GLuint temp = GL_FALSE;
+	glGenTextures(1, &temp);
+	mDepthTextureArray.setTexture(temp);
 
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mCascadedTextureArray);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mDepthTextureArray.getTexture());
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, mCascadeWidth, mCascadeHeight, NUM_CASCADES, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -96,9 +93,13 @@ void CascadedShadowGL::updateTextureArray()
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mCascadedTextureArray, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureArray.getTexture(), 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+
+
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
 	// restore default FBO
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }

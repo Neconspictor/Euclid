@@ -2,6 +2,7 @@
 
 class Mesh;
 class Camera;
+class Texture;
 
 /**
  * Abstract class for Cascaded shadow implementations.
@@ -16,6 +17,12 @@ public:
 	 */
 	static const int NUM_CASCADES = 4;
 
+	struct CascadeData {
+		glm::mat4 inverseViewMatrix;
+		glm::mat4 lightViewProjectionMatrices[NUM_CASCADES];
+		glm::vec4 cascadedSplits[NUM_CASCADES];
+	};
+
 	CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight);
 
 	virtual ~CascadedShadow() = default;
@@ -23,7 +30,9 @@ public:
 	/**
 	 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 	 */
-	void frameUpdate(Camera* camera);
+	void frameUpdate(Camera* camera, const glm::mat4& lightViewMatrix, const glm::mat4& lightProjMatrix);
+
+	const glm::mat4& getLightProjectionMatrix() const;
 
 	/**
 	 * Allows rendering to the i-th cascade.
@@ -37,6 +46,10 @@ public:
 	 */
 	virtual void end() = 0;
 
+	CascadeData* getCascadeData();
+
+	virtual Texture* getDepthTextureArray() = 0;
+
 	/**
 	 * Resizes the cascades
 	 */
@@ -49,14 +62,11 @@ public:
 
 protected:
 	glm::mat4 mLightViewMatrix;
-	glm::mat4 mLightOrthoMatrix;
-	glm::mat4 mCascadedMatrices[NUM_CASCADES];
+	glm::mat4 mLightProjMatrix;
 
 	unsigned int mCascadeWidth;
 	unsigned int mCascadeHeight;
 
 	float mShadowMapSize;
-
-	//Stores each partitions farbound for lookup in the shader
-	float mCascadeSplitArray[NUM_CASCADES];
+	CascadeData mCascadeData;
 };

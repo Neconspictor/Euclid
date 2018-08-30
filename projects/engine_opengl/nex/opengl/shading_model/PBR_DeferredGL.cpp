@@ -83,13 +83,16 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 	glDisable(GL_STENCIL_TEST);
 }
 
-void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Texture * shadowMap, Texture * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight)
+void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, 
+	Texture * shadowMap, Texture * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
+	CascadedShadow::CascadeData* cascadeData,
+	Texture* cascadedDepthMap)
 {
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_EQUAL, 1, 1);
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	//glStencilMask(0x00);
-	PBR_Deferred::drawLighting(scene, gBuffer, shadowMap, ssaoMap, light, viewFromGPass, worldToLight);
+	PBR_Deferred::drawLighting(scene, gBuffer, shadowMap, ssaoMap, light, viewFromGPass, worldToLight, cascadeData, cascadedDepthMap);
 	//glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
 

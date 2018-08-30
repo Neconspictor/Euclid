@@ -37,22 +37,29 @@ void PBR_Deferred::drawLighting(SceneNode * scene,
 	Texture* ssaoMap,
 	const DirectionalLight & light, 
 	const glm::mat4 & viewFromGPass, 
-	const glm::mat4 & worldToLight)
+	const glm::mat4 & worldToLight,
+	CascadedShadow::CascadeData* cascadeData,
+	Texture* cascadedDepthMap)
 {
 
-	PBRShader_Deferred_Lighting* shader = dynamic_cast<PBRShader_Deferred_Lighting*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
+	Shader* shader = renderer->getShaderManager()->getShader(Shaders::Pbr_Deferred_Lighting);
+	shader->use();
 
-	shader->setBrdfLookupTexture(brdfLookupTexture->getTexture());
-	shader->setGBuffer(gBuffer);
-	shader->setInverseViewFromGPass(inverse(viewFromGPass));
-	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
-	shader->setLightColor(light.getColor());
-	shader->setLightDirection(light.getLook());
-	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
-	shader->setShadowMap(shadowMap);
-	shader->setAOMap(ssaoMap);
-	shader->setSkyBox(environmentMap->getCubeMap());
-	shader->setWorldToLightSpaceMatrix(worldToLight);
+	PBRShader_Deferred_Lighting* config = dynamic_cast<PBRShader_Deferred_Lighting*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
+
+	config->setBrdfLookupTexture(brdfLookupTexture->getTexture());
+	config->setGBuffer(gBuffer);
+	config->setInverseViewFromGPass(inverse(viewFromGPass));
+	config->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
+	config->setLightColor(light.getColor());
+	config->setLightDirection(light.getLook());
+	config->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	config->setShadowMap(shadowMap);
+	config->setAOMap(ssaoMap);
+	config->setSkyBox(environmentMap->getCubeMap());
+	config->setWorldToLightSpaceMatrix(worldToLight);
+	config->setCascadedData(cascadeData);
+	config->setCascadedDepthMap(cascadedDepthMap);
 
 
 	ModelDrawer* modelDrawer = renderer->getModelDrawer();

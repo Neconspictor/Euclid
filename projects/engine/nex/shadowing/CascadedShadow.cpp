@@ -6,13 +6,16 @@
 CascadedShadow::CascadedShadow(unsigned cascadeWidth, unsigned cascadeHeight) : 
 mCascadeWidth(cascadeWidth),
 mCascadeHeight(cascadeHeight),
-mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight)),
-mCascadeSplitArray{0}
+mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight))
 {
 }
 
-void CascadedShadow::frameUpdate(Camera* camera)
+void CascadedShadow::frameUpdate(Camera* camera, const glm::mat4& lightViewMatrix, const glm::mat4& lightProjMatrix)
 {
+
+	mLightViewMatrix = lightViewMatrix;
+	mLightProjMatrix = lightProjMatrix;
+
 	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
 
 	//Start off by calculating the split distances
@@ -100,17 +103,8 @@ void CascadedShadow::frameUpdate(Camera* camera)
 		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
 		glm::vec3 minExtents = -maxExtents;
 
-		//Position the viewmatrix looking down the center of the frustum with an arbitrary lighht direction
-		glm::vec3 lightDirection = frustumCenter - glm::normalize(glm::vec3(-0.1f, -0.5f, 0.0f)) * -minExtents.z;
-		mLightViewMatrix = glm::mat4(1.0f);
-		mLightViewMatrix = glm::lookAt(lightDirection, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		glm::vec3 cascadeExtents = maxExtents - minExtents;
-
-		mLightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
-
 		// The rounding matrix that ensures that shadow edges do not shimmer
-		glm::mat4 shadowMatrix = mLightOrthoMatrix * mLightViewMatrix;
+		glm::mat4 shadowMatrix = mLightProjMatrix * mLightViewMatrix;
 		glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		shadowOrigin = shadowMatrix * shadowOrigin;
 		shadowOrigin = shadowOrigin * mShadowMapSize / 2.0f; // Todo: Why multiply by  mShadowMapSize / 2.0f ?
@@ -121,16 +115,26 @@ void CascadedShadow::frameUpdate(Camera* camera)
 		roundOffset.z = 0.0f;
 		roundOffset.w = 0.0f;
 
-		glm::mat4 shadowProj = mLightOrthoMatrix;
+		glm::mat4 shadowProj = mLightProjMatrix;
 		shadowProj[3] += roundOffset; // adjust translation in (x,y) plane
-		mLightOrthoMatrix = shadowProj;
+		mLightProjMatrix = shadowProj;
 
 		//Store the split distances and the relevant matrices
 		const float clipDist = clipRange;
-		mCascadeSplitArray[cascadeIterator] = (nearClip + splitDistance * clipDist) * -1.0f;
-
-		mCascadedMatrices[cascadeIterator] = mLightOrthoMatrix * mLightViewMatrix;
+		mCascadeData.cascadedSplits[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
+		mCascadeData.inverseViewMatrix = inverse(camera->getView());
 	}
+}
+
+const glm::mat4& CascadedShadow::getLightProjectionMatrix() const
+{
+	return mLightProjMatrix;
+}
+
+CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
+{
+	return &mCascadeData;
 }
 
 void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)

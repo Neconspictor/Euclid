@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/shadowing/CascadedShadow.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
 
 class Camera;
 
@@ -26,17 +27,18 @@ public:
 	 */
 	void end() override;
 
+	Texture* getDepthTextureArray() override;
+
 	void resize(unsigned int cascadeWidth, unsigned int cascadeHeight) override;
 
 	void render(Mesh* mesh, glm::mat4* modelMatrix) override;
 
-protected:
 
-	void releaseTextureArray();
+protected:
 
 	void updateTextureArray();
 protected:
 	ShaderGL mDepthPass;
 	GLuint mCascadedShadowFBO = GL_FALSE;
-	GLuint mCascadedTextureArray = GL_FALSE;
+	TextureGL mDepthTextureArray;
 };

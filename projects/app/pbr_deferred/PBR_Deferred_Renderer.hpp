@@ -49,7 +49,7 @@ private:
 
 	std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 	std::unique_ptr<PBR_GBuffer>  pbr_mrt;
-	std::unique_ptr<CascadedShadow> m_cascadedSshadow;
+	std::unique_ptr<CascadedShadow> m_cascadedShadow;
 
 	AmbientOcclusionSelector m_aoSelector;
 

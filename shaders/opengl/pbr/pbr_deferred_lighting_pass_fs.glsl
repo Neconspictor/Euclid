@@ -1,4 +1,7 @@
-#version 400
+#version 430
+#extension GL_EXT_texture_array : enable
+
+#define NUM_CASCADES 4
 
 out vec4 FragColor;
 
@@ -15,6 +18,13 @@ struct GBuffer {
 struct DirLight {
     vec3 directionEye;
     vec3 color;
+};
+
+struct CascadeData {
+	//mat4 viewMatrix;
+	mat4 inverseViewMatrix;
+	mat4 lightViewProjectionMatrices[NUM_CASCADES];
+	vec4 cascadedSplits[NUM_CASCADES];
 };
 
 
@@ -37,6 +47,14 @@ uniform mat4 viewGPass;
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
+
+
+// Cascaded shadow mapping
+layout(std140,binding=0) uniform CascadeBuffer {
+	CascadeData cascadeData;
+};
+
+uniform sampler2DArrayShadow cascadedDepthMap;
 
 
 
@@ -104,6 +122,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 
+float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition);
 float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
 float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
@@ -149,10 +168,11 @@ void main()
 	
 	//directional shadow calculation
 	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
-	float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
-
+	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
+	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
+	float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	
-	shadow = 1;
+	//shadow = 1;
 	
 	
     vec3 result = pbrModel(ao, 
@@ -332,6 +352,55 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 // ----------------------------------------------------------------------------
 
 
+
+
+float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
+{
+	float positiveViewSpaceZ = depthViewSpace;
+	uint cascadeIdx = 0;
+
+	// Figure out which cascade to sample from
+	for(uint i = 0; i < NUM_CASCADES - 1; ++i)
+	{
+		if(positiveViewSpaceZ < cascadeData.cascadedSplits[i].x)
+		{	
+			cascadeIdx = i + 1;
+		}
+	}
+	float angleBias = 0.006f;
+
+	mat4 lightViewProjectionMatrix = cascadeData.lightViewProjectionMatrices[cascadeIdx];
+
+	vec4 fragmentModelViewPosition = vec4(viewPosition,1.0f);
+
+	vec4 fragmentModelPosition = cascadeData.inverseViewMatrix * fragmentModelViewPosition;
+
+	vec4 fragmentShadowPosition = lightViewProjectionMatrix * fragmentModelPosition;
+
+	vec3 projCoords = fragmentShadowPosition.xyz /= fragmentShadowPosition.w;
+
+	//Remap the -1 to 1 NDC to the range of 0 to 1
+	projCoords = projCoords * 0.5f + 0.5f;
+
+	// Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+	projCoords.z = cascadeIdx;   
+
+	float bias = max(angleBias * (1.0 - dot(normal, lightDirection)), 0.0008);
+
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+
+	float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth - bias )).r; 
+	shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
+
+	return shadow; 
+}
+
+
+
+
 float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace)
 {		
 	vec3 shadowCoordinateWdivide = fragment_position_lightspace.xyz / fragment_position_lightspace.w;
@@ -370,7 +439,7 @@ float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fr
 	//penumbraSize = max(penumbraSize, 0.0f);
 	//penumbraSize =  min(penumbraSize, 1);
 	penumbraSize = 1;
-	bias = 9* minBias;
+	bias = 2 * minBias;
 	
 	shadow = PCF(shadowMap, textureSize(shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias, penumbraSize);
 	//shadow = texture2DCompare(shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);

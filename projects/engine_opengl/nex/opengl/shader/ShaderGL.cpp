@@ -545,6 +545,16 @@ void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
 		++textureCounter;
 		break;
 	}
+	case t::TEXTURE2D_ARRAY: {
+		assert(textureCounter < 32); // OpenGL allows up to 32 textures
+		glActiveTexture(textureCounter + GL_TEXTURE0);
+		const TextureGL* texture = reinterpret_cast<const TextureGL*>(data);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture->getTexture());
+		glUniform1i(loc, textureCounter);
+		// the next texture to bind gets the next slot
+		++textureCounter;
+		break;
+	}
 	case t::VEC2: {
 		const vec2* vec = reinterpret_cast<const vec2*>(data);
 		glUniform2f(loc, vec->x, vec->y);
