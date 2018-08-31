@@ -103,6 +103,8 @@ public:
 	virtual void init() override;
 
 	virtual void present() override;
+
+	void resize(int width, int height) override;
 	
 	virtual void release() override;
 

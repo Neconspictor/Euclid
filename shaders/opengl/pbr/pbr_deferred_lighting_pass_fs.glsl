@@ -170,8 +170,8 @@ void main()
 	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
 	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
+	//float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	
 	//shadow = 1;
 	
 	
@@ -213,6 +213,8 @@ vec3 pbrModel(float ao,
 	vec3 ambient = pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
 	
 	float ambientShadow = clamp(shadow, 1.0, 1.0);
+	
+	shadow = clamp(shadow, 0.2, 1);
 	
 	//float ssaoFactor = max(max(ambient.r, ambient.g), ambient.b);
 	//ssaoFactor = clamp (1 / ssaoFactor, 0, 1);
@@ -356,6 +358,15 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 
 float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
 {
+	
+	float sDotN = dot(lightDirection, normal);
+	
+	// assure that fragments with a normal facing away from the light source 
+	// are always in shadow (reduces unwanted unshadowing).
+	if (sDotN < 0) {
+		return 0;
+	}
+	
 	float positiveViewSpaceZ = depthViewSpace;
 	uint cascadeIdx = 0;
 
@@ -388,14 +399,41 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	projCoords.z = cascadeIdx;   
 
 	float bias = max(angleBias * (1.0 - dot(normal, lightDirection)), 0.0008);
+	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
+	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+	float minBias = max(texelSize.x,texelSize.y);
+	//bias *=  9; //* minBias;
 
 	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
+	
+	float xSamples = 2;
+	float ySamples = 2;
+	float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
+	
+	float depth = shadow2DArray(cascadedDepthMap, vec4(projCoords.xy, projCoords.z, currentDepth)).r;
+	float diff =  abs(currentDepth - depth);
+	float penumbraSize = diff / (minBias);
+	penumbraSize = clamp(penumbraSize, 0, 1);
+	vec2 size = textureSize(cascadedDepthMap, 0).xy;
+	
+		
+    for(float x=-xSamples; x<=xSamples; x += 1){
+        for(float y=-ySamples; y<=ySamples; y += 1){
+            vec2 off = vec2(x,y)/size * penumbraSize;
+			//off = vec2(0,0);
+			//result += texture2DCompare(depths, uv, compare, bias);
+            //result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
+			vec2 uv = projCoords.xy + off;
+			float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias )).r; 
+			shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
+        }
+    }
+    return shadow / (sampleCount);
 
-	float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth - bias )).r; 
-	shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
-
-	return shadow; 
+	//float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth + bias )).r; 
+	//shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
+	//return shadow; 
 }
 
 

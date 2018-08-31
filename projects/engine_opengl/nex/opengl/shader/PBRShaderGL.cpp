@@ -213,10 +213,14 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Defer
 		);
 
 	attributes.create(types::TEXTURE2D_ARRAY, nullptr, "cascadedDepthMap");
+
+	glCreateBuffers(1, &cascadeBufferUBO);
+	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadow::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
 }
 
 PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
 {
+	glDeleteBuffers(1, &cascadeBufferUBO);
 }
 
 void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(Texture * brdfLUT)

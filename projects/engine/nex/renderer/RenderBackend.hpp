@@ -190,6 +190,8 @@ public:
 	*/
 	virtual void present() = 0;
 
+	virtual void resize(int width, int height) = 0;
+
 	/**
 	* Shuts down this renderer and releases all allocated memory.
 	*/

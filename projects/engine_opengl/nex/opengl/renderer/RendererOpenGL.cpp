@@ -350,6 +350,13 @@ void RendererOpenGL::present()
 {
 }
 
+void RendererOpenGL::resize(int width, int height)
+{
+	this->width = width;
+	this->height = height;
+	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
+}
+
 void RendererOpenGL::release()
 {
 	if (effectLibrary.get() != nullptr)
@@ -406,7 +413,6 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 
 	glViewport(xPos, yPos, width, height);
 	glScissor(xPos, yPos, width, height);
-	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
 	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (effectLibrary)

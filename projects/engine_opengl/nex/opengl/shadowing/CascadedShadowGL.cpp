@@ -23,16 +23,17 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	mDepthPass.use();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
-	glViewport(0, 0, mCascadeWidth, mCascadeHeight);
+	glScissor(0, 0, mCascadeWidth, mCascadeWidth);
+	glViewport(0, 0, mCascadeWidth, mCascadeWidth);
 
 	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mDepthTextureArray.getTexture(), 0, cascadeIndex);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEPTH_CLAMP);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 
-	glm::mat4 lightViewProjection = mLightProjMatrix * mLightViewMatrix;
+	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
 	// update lightViewProjectionMatrix uniform
 	static const GLuint LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;

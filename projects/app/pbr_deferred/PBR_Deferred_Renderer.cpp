@@ -134,7 +134,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 
-	m_cascadedShadow = m_renderBackend->createCascadedShadow(4096, 4096);
+	m_cascadedShadow = m_renderBackend->createCascadedShadow(2048, 2048);
 }
 
 void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
@@ -179,12 +179,11 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	globalLight.setOrthoFrustum(shadowFrustum);
 
 	const mat4& lightView = globalLight.getView();
-	//const mat4& lightProj = globalLight.getProjection(Orthographic);
+	const mat4& lightProj = globalLight.getProjection(Orthographic);
 
-	m_cascadedShadow->frameUpdate(camera, lightView,
-		globalLight.getProjection(Orthographic));
+	m_cascadedShadow->frameUpdate(camera, globalLight.getLook());
 
-	const mat4& lightProj = m_cascadedShadow->getLightProjectionMatrix();
+	//m_renderBackend->setViewPort(0, 0, 4096, 4096);
 
 	for (int i = 0; i < CascadedShadow::NUM_CASCADES; ++i)
 	{
@@ -195,18 +194,26 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	}
 
 	// render scene to the shadow depth map
-	m_renderBackend->useBaseRenderTarget(shadowMap);
+	//m_renderBackend->useBaseRenderTarget(shadowMap);
+	
+	
+	
 	//m_renderBackend->setViewPort(0, 0,2048, 2048);
 	//m_renderBackend->beginScene();
-	m_renderBackend->clearRenderTarget(shadowMap, RenderComponent::Depth);
+	
+	
+	//m_renderBackend->clearRenderTarget(shadowMap, RenderComponent::Depth);
+	
+	
+	
 	//m_renderBackend->enableAlphaBlending(false);
 	//m_renderBackend->cullFaces(CullingMode::Back);
 
-	m_pbr_deferred->drawSceneToShadowMap(scene,
+	/*m_pbr_deferred->drawSceneToShadowMap(scene,
 		shadowMap,
 		globalLight,
 		lightView,
-		lightProj);
+		lightProj);*/
 
 	//renderer->cullFaces(CullingMode::Back);
 	//renderer->endScene();
@@ -317,7 +324,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
-	m_renderBackend->setViewPort(0, 0, width, height);
+	m_renderBackend->resize(width, height);
 	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);

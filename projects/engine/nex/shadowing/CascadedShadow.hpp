@@ -30,7 +30,7 @@ public:
 	/**
 	 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 	 */
-	void frameUpdate(Camera* camera, const glm::mat4& lightViewMatrix, const glm::mat4& lightProjMatrix);
+	void frameUpdate(Camera* camera, const glm::vec3& lightDirection);
 
 	const glm::mat4& getLightProjectionMatrix() const;
 

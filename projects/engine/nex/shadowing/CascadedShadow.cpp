@@ -10,12 +10,8 @@ mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight))
 {
 }
 
-void CascadedShadow::frameUpdate(Camera* camera, const glm::mat4& lightViewMatrix, const glm::mat4& lightProjMatrix)
+void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
 {
-
-	mLightViewMatrix = lightViewMatrix;
-	mLightProjMatrix = lightProjMatrix;
-
 	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
 
 	//Start off by calculating the split distances
@@ -96,12 +92,22 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::mat4& lightViewMatri
 		for (unsigned int i = 0; i < 8; ++i)
 		{
 			float distance = glm::length(frustumCornersWS[i] - frustumCenter);
-			//radius = glm::max(radius, distance); // TODO
+			radius = std::max<float>(radius, distance);
 		}
 		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
 
 		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
 		glm::vec3 minExtents = -maxExtents;
+
+
+		//Position the viewmatrix looking down the center of the frustum with an arbitrary lighht direction
+		glm::vec3 direction = frustumCenter - normalize(lightDirection) * -minExtents.z;
+		mLightViewMatrix = glm::mat4(1.0f);
+		mLightViewMatrix = glm::lookAt(direction, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glm::vec3 cascadeExtents = maxExtents - minExtents;
+
+		mLightProjMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
 
 		// The rounding matrix that ensures that shadow edges do not shimmer
 		glm::mat4 shadowMatrix = mLightProjMatrix * mLightViewMatrix;
