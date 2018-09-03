@@ -176,6 +176,20 @@ void Projectional::setOrthoFrustum(Frustum frustum)
 	revalidate = true;
 }
 
+void Projectional::setNearPlane(float nearPlane)
+{
+	orthoFrustum.nearPlane = nearPlane;
+	perspFrustum.nearPlane = nearPlane;
+	revalidate = true;
+}
+
+void Projectional::setFarPlane(float farPlane)
+{
+	orthoFrustum.farPlane = farPlane;
+	perspFrustum.farPlane = farPlane;
+	revalidate = true;
+}
+
 void Projectional::setLook(vec3 look)
 {
 	look = normalize(look);

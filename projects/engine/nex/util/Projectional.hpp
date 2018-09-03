@@ -40,7 +40,7 @@ public:
 	explicit Projectional(float aspectRatio = 16.0f/9.0f, 
 		float fov = 45.0f, 
 		float perspNear = 0.1f,
-		float perspFar = 30.0f,
+		float perspFar = 100.0f,
 		Frustum frustum = {-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 30.0f},
 		//Frustum frustum = Frustum(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 150.0f),
 		glm::vec3 look = { 0,0,-1 },
@@ -74,6 +74,10 @@ public:
 	void setFOV(float fov);
 
 	void setOrthoFrustum(Frustum frustum);
+
+	virtual void setNearPlane(float nearPlane);
+
+	virtual void setFarPlane(float farPlane);
 
 	/**
 	* NOTE: Has to be a vector that isn't a null vector. So it's length has to be > 0

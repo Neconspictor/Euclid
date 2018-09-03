@@ -30,7 +30,7 @@ void CascadedShadowGL::begin(int cascadeIndex)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_DEPTH_CLAMP);
+	glEnable(GL_DEPTH_CLAMP); // We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
 	glCullFace(GL_BACK);
 
 	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
@@ -91,8 +91,9 @@ void CascadedShadowGL::updateTextureArray()
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE); //GL_COMPARE_REF_TO_TEXTURE
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	//glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureArray.getTexture(), 0);
 	glDrawBuffer(GL_NONE);
