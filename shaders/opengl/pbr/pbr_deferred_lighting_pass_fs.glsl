@@ -125,7 +125,9 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition);
 float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
 float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
+float texture2DArrayCompare(sampler2DArray depths, vec3 uv, float compare, float bias);
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
+float texture2DArrayShadowLerp(sampler2DArrayShadow depths, vec2 size, vec2 uv, float projectedZ, float compare, float bias);
 float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
 float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias, float penumbraSize);
 float chebyshevUpperBound( float distance, vec2 uv);
@@ -402,19 +404,22 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	//bias *=  9; //* minBias;
+	bias =  9 * minBias;
 
 	float shadow = 0.0;
 	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	
-	float xSamples = 2;
-	float ySamples = 2;
+	float xSamples = 3;
+	float ySamples = 3;
 	float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
 	
-	float depth = shadow2DArray(cascadedDepthMap, vec4(projCoords.xy, projCoords.z, currentDepth)).r;
+	/*float depth = texture2DArray(cascadedDepthMap, vec3(projCoords.xy, projCoords.z)).r;
 	float diff =  abs(currentDepth - depth);
 	float penumbraSize = diff / (minBias);
 	penumbraSize = clamp(penumbraSize, 0, 1);
+	penumbraSize = (NUM_CASCADES - projCoords.z) / NUM_CASCADES;
+	penumbraSize = NUM_CASCADES * projCoords.z;*/
+	float penumbraSize = 1.0;
 	vec2 size = textureSize(cascadedDepthMap, 0).xy;
 	
 		
@@ -425,7 +430,10 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 			//result += texture2DCompare(depths, uv, compare, bias);
             //result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
 			vec2 uv = projCoords.xy + off;
+			float compare = currentDepth - bias;
+			//float pcfDepth =  texture2DArrayShadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias);
 			float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias )).r; 
+			//shadow += pcfDepth;
 			shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
         }
     }
@@ -499,11 +507,33 @@ float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_positi
 		return 1 - chebyshevUpperBound(fragment_position_lightspace.z, fragment_position_lightspace.xy);
 }
 
+float texture2DArrayCompare(sampler2DArray depths, vec3 uv, float compare, float bias){
+    float depth = texture2DArray(depths, uv).r;
+		if (depth >= 1.0)
+			return 0.0f;
+    return step(depth + bias, compare);
+}
+
 float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){
     float depth = texture2D(depths, uv).r;
 		if (depth >= 1.0)
-				return 0.0f;
+			return 0.0f;
     return step(depth + bias, compare);
+}
+
+float texture2DArrayShadowLerp(sampler2DArrayShadow depths, vec2 size, vec2 uv, float projectedZ, float compare, float bias){
+    vec2 texelSize = vec2(1.0)/size;
+    vec2 f = fract(uv*size+0.5);
+    vec2 centroidUV = (uv*size+0.5)/size;
+
+    float lb = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(0.0, 0.0), projectedZ, compare - bias)).r;
+	float lt = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(0.0, 1.0), projectedZ, compare - bias)).r;
+	float rb = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(1.0, 0.0), projectedZ, compare - bias)).r;
+	float rt = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(1.0, 1.0), projectedZ, compare - bias)).r;
+	float a = mix(lb, lt, f.y);
+	float b = mix(rb, rt, f.y);
+    float c = mix(a, b, f.x);
+    return c;
 }
 
 float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
