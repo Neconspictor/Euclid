@@ -15,6 +15,9 @@ tools/*
 
 *.pyc
 
+# shader debug files
+*.unfolded
+
 
 # for every subfolder for that some files should be included
 # we have to include the foler, exclude the content of this folder except the files we want to include

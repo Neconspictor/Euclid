@@ -143,16 +143,17 @@ namespace nex::util {
 
 			if (currentState == CommentState::LINE_COMMENT && !tracker.isCommentState(lastState))
 			{
-				it = source.erase(it - 1);
+				it = source.erase(it - 1); // erases the first slash
+				it = source.erase(it); // erases the second slash
 				erased = true;
 			}
 			else if (currentState == CommentState::MULTI_LINE_COMMENT && !tracker.isCommentState(lastState))
 			{
-				it = source.erase(it - 1);
+				it = source.erase(it - 1); // erases the slash
+				it = source.erase(it); // erases the asterix
 				erased = true;
 			}
-
-			if ((tracker.isCommentState(currentState) || tracker.isCommentState(lastState)) && *it != '\n')
+			else if ((tracker.isCommentState(currentState) || tracker.isCommentState(lastState)) && *it != '\n')
 			{
 				it = source.erase(it);
 				erased = true;
@@ -194,9 +195,10 @@ namespace nex::util {
 
 			if (isSlash)
 				mState = CommentState::LINE_COMMENT;
-
-			if (isAsterix)
+			else if (isAsterix)
 				mState = CommentState::MULTI_LINE_COMMENT;
+			else
+				mState = CommentState::NO_COMMENT;
 
 			break;
 		case CommentState::LINE_COMMENT:
@@ -217,7 +219,7 @@ namespace nex::util {
 			{
 				mState = CommentState::NO_COMMENT;
 			}
-			else
+			else if (!isAsterix)
 			{
 				mState = CommentState::MULTI_LINE_COMMENT;
 			}

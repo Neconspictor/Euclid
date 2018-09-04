@@ -299,34 +299,39 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
 	}
 
-	// Read the Vertex Shader code from the file
-	if (!::filesystem::loadFileIntoString(vertexFilePath, &vertexShaderCode))
+	// Read the Vertex Shader code from file
+	try
 	{
-		std::stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't initialize vertex shader!" << std::endl;
-		ss << "vertex file: " << vertexFilePath;
-
-		throw_with_trace(ShaderInitException(ss.str()));
+		vertexShaderCode = loadShaderComponent(vertexFilePath);
+	} catch(const ShaderInitException e)
+	{
+		LOG(staticLogClient, Error) << e.what();
+		throw_with_trace(ShaderInitException("Couldn't initialize vertex shader: " + vertexFilePath));
 	}
 
-	if (!::filesystem::loadFileIntoString(fragmentFilePath, &fragmentShaderCode))
+	// Read the Fragment Shader code from file
+	try
 	{
-		LOG(staticLogClient, Error) << "Couldn't initialize fragment shader!";
-		std::stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't initialize fragment shader!" << std::endl;
-		ss << "fragment file: " << fragmentFilePath;
-		throw_with_trace(ShaderInitException(ss.str()));
+		fragmentShaderCode = loadShaderComponent(fragmentFilePath);
 	}
+	catch (const ShaderInitException e)
+	{
+		LOG(staticLogClient, Error) << e.what();
+		throw_with_trace(ShaderInitException("Couldn't initialize fragment shader: " + fragmentFilePath));
+	}
+
 
 	if (useGeomtryShader)
 	{
-		if (!::filesystem::loadFileIntoString(geometryFilePath, &geometryShaderCode))
+		// Read the geometry Shader code from file
+		try
 		{
-			LOG(staticLogClient, Error) << "Couldn't initialize geometry shader!";
-			std::stringstream ss;
-			ss << "Shader::loadShaders(): Couldn't initialize geometry shader!" << std::endl;
-			ss << "geometry shader file: " << geometryFilePath;
-			throw_with_trace(ShaderInitException(ss.str()));
+			geometryShaderCode = loadShaderComponent(geometryFilePath);
+		}
+		catch (const ShaderInitException e)
+		{
+			LOG(staticLogClient, Error) << e.what();
+			throw_with_trace(ShaderInitException("Couldn't initialize geometry shader: " + geometryFilePath));
 		}
 	}
 
