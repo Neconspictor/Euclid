@@ -7,7 +7,7 @@
 using namespace std;
 
 namespace nex::util {
-	string backSlasheshToForwards(const string& source)
+	string backSlashesToForwards(const string& source)
 	{
 		regex pattern("\\\\");
 		return regex_replace(source, pattern, "/");
@@ -29,8 +29,8 @@ namespace nex::util {
 	{
 		//TODO specification isn't implmeneted yet!
 		// Unify source and split
-		string result = backSlasheshToForwards(source);
-		string splitCpy = backSlasheshToForwards(split);
+		string result = backSlashesToForwards(source);
+		string splitCpy = backSlashesToForwards(split);
 		regex pattern(splitCpy);
 		return regex_replace(result, pattern, "");
 	}
@@ -96,6 +96,72 @@ namespace nex::util {
 		return splitPath(sourceCpy, buildStr);
 	}
 
+	std::string removeComments_copy(const std::string& source)
+	{
+		CommentStateTracker tracker;
+		std::string result;
+
+		for (char c : source)
+		{
+			CommentState lastState = tracker.getCurrentState();
+			tracker.update(c);
+			CommentState currentState = tracker.getCurrentState();
+
+			if (currentState == CommentState::LINE_COMMENT && !tracker.isCommentState(lastState))
+			{
+				result.pop_back();
+			}
+			else if (currentState == CommentState::MULTI_LINE_COMMENT && !tracker.isCommentState(lastState))
+			{
+				result.pop_back();
+			}
+
+			if ((!tracker.isCommentActive()
+				&& !(tracker.isCommentState(lastState)
+					&& !tracker.isCommentState(currentState)))
+				|| c == '\n')
+			{
+				result.push_back(c);
+			}
+		}
+		return result;
+	}
+
+	void removeComments(std::string& source)
+	{
+		CommentStateTracker tracker;
+
+		std::vector<std::string::iterator> toErase;
+
+		for (auto it = source.begin(); it != source.end(); )
+		{
+			CommentState lastState = tracker.getCurrentState();
+			tracker.update(*it);
+			CommentState currentState = tracker.getCurrentState();
+
+			bool erased = false;
+
+			if (currentState == CommentState::LINE_COMMENT && !tracker.isCommentState(lastState))
+			{
+				it = source.erase(it - 1);
+				erased = true;
+			}
+			else if (currentState == CommentState::MULTI_LINE_COMMENT && !tracker.isCommentState(lastState))
+			{
+				it = source.erase(it - 1);
+				erased = true;
+			}
+
+			if ((tracker.isCommentState(currentState) || tracker.isCommentState(lastState)) && *it != '\n')
+			{
+				it = source.erase(it);
+				erased = true;
+			}
+
+			if (!erased)++it;
+		}
+	}
+
 	string stringFromRegex(const string& source, const string& pattern, int splitIndex)
 	{
 		regex reg(pattern);
@@ -104,5 +170,158 @@ namespace nex::util {
 			return "";
 		}
 		return match[splitIndex + 1];
+	}
+
+	CommentStateTracker::CommentStateTracker(CommentState initialState): mState(initialState)
+	{
+	}
+
+	void CommentStateTracker::update(char c)
+	{
+		bool isSlash = c == '/';
+		bool isNewLine = c == '\n';
+		bool isAsterix = c == '*';
+
+		switch (mState)
+		{
+		case CommentState::NO_COMMENT:
+			if (isSlash)
+				mState = CommentState::NO_COMMENT_FIRST_SLASH;
+			break;
+		case CommentState::NO_COMMENT_FIRST_SLASH:
+			if (isNewLine)
+				mState = CommentState::NO_COMMENT;
+
+			if (isSlash)
+				mState = CommentState::LINE_COMMENT;
+
+			if (isAsterix)
+				mState = CommentState::MULTI_LINE_COMMENT;
+
+			break;
+		case CommentState::LINE_COMMENT:
+			if (isNewLine)
+				mState = CommentState::NO_COMMENT;
+
+
+			break;
+		case CommentState::MULTI_LINE_COMMENT:
+			if (isAsterix)
+				mState = CommentState::MULTI_LINE_COMMENT_ASTERIX;
+
+			break;
+		case CommentState::MULTI_LINE_COMMENT_ASTERIX:
+
+			// We continue multi line state if the current character is not a slash
+			if (isSlash)
+			{
+				mState = CommentState::NO_COMMENT;
+			}
+			else
+			{
+				mState = CommentState::MULTI_LINE_COMMENT;
+			}
+
+			break;
+		default: throw std::runtime_error("Not registered CommentState: " + to_underlying(mState));
+		}
+	}
+
+	CommentState CommentStateTracker::getCurrentState() const
+	{
+		return mState;
+	}
+
+	bool CommentStateTracker::isCommentActive() const
+	{
+		return mState != CommentState::NO_COMMENT
+			&& mState != CommentState::NO_COMMENT_FIRST_SLASH;
+	}
+
+	bool CommentStateTracker::isCommentState(CommentState state) const
+	{
+		return state == CommentState::LINE_COMMENT
+			|| state == CommentState::MULTI_LINE_COMMENT
+			|| state == CommentState::MULTI_LINE_COMMENT_ASTERIX;
+	}
+
+	StringMatcher::StringMatcher(const char* text, std::string::iterator end): mText(text), mEnd(end)
+	{
+		assert(mText != nullptr);
+	}
+
+	std::string::iterator StringMatcher::getFirstAfterMatch() const
+	{
+		if (matched())
+			return mAfterMatch;
+		return mEnd;
+	}
+
+	void StringMatcher::update(const std::string::iterator next)
+	{
+		if (matched()) return;
+
+		char c = *next;
+
+		if (c == mText[mIndex])
+		{
+			mAfterMatch = next;
+			if (next != mEnd)
+				++mAfterMatch;
+			++mIndex;
+		}
+	}
+
+	bool StringMatcher::matched() const
+	{
+		return mText[mIndex] == '\0';
+	}
+
+	void StringMatcher::reset()
+	{
+		mIndex = 0;
+		mAfterMatch = mEnd;
+	}
+
+	void Trim::ltrim(std::string& s)
+	{
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch)
+		{
+			return !std::isspace(ch);
+		}));
+	}
+
+	void Trim::rtrim(std::string& s)
+	{
+		s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch)
+		{
+			return !std::isspace(ch);
+		}).base(), s.end());
+	}
+
+	void Trim::trim(std::string& s)
+	{
+		ltrim(s);
+		rtrim(s);
+	}
+
+	std::string Trim::ltrim_copy(std::string s)
+	{
+		ltrim(s);
+		return s;
+	}
+
+	std::string Trim::rtrim_copy(std::string s)
+	{
+		rtrim(s);
+		return s;
+	}
+
+	std::string Trim::trim_copy(std::string s)
+	{
+		ltrim(s);
+		rtrim(s);
+
+		return s;
 	}
 }

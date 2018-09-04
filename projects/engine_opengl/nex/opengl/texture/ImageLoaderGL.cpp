@@ -1,9 +1,10 @@
 #include <nex/opengl/texture/ImageLoaderGL.hpp>
 #include <nex/FileSystem.hpp>
-#include <nex/util/Util.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <nex/util/ExceptionHandling.hpp>
+#include <nex/util/StringUtils.hpp>
 
 
 using namespace boost::interprocess;

@@ -3,6 +3,7 @@
 #include <string>
 #include <nex/Window.hpp>
 #include <nex/SubSystemProvider.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 

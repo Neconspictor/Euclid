@@ -3,6 +3,8 @@
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/gui/Util.hpp>
+#include <nex/shader/ShaderManager.hpp>
+#include <imgui/imgui.h>
 
 using namespace glm;
 

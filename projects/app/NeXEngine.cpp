@@ -13,6 +13,8 @@
 #include <gui/SceneGUI.hpp>
 #include <gui/Controller.hpp>
 #include <boxer/boxer.h>
+#include <nex/util/ExceptionHandling.hpp>
+#include <nex/texture/TextureManager.hpp>
 
 NeXEngine::NeXEngine() :
 	Engine(),

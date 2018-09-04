@@ -7,6 +7,7 @@
 #include <stb/stb_image.h>
 
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace nex;

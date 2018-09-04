@@ -2,7 +2,6 @@
 
 #include <nex/sprite/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/gui/Menu.hpp>
 #include <glm/glm.hpp>
 
 class RenderTarget;

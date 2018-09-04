@@ -1,6 +1,7 @@
 #include <nex/logging/LoggingClient.hpp>
 #include <nex/logging/LoggingServer.hpp>
 #include <nex/logging/LogEndpoint.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 

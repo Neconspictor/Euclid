@@ -6,13 +6,21 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
 #include <codecvt>
+#include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <list>
 #include <iomanip>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <ostream>
 #include <queue>
+#include <sstream>
 #include <stdio.h>
+#include <string>
 #include <tchar.h>
 #include <thread>
 #include <unordered_map>
@@ -28,5 +36,7 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/thread/sync_queue.hpp>
 
-
-// TODO: reference additional headers your program requires here
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES 1
+#endif
+#include <math.h>

@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <boost/current_function.hpp>
 #include <sstream>
 #include <nex/exception/EnumFormatException.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -12,7 +11,7 @@ namespace nex::util {
 	/**
 	 * Converts back slashes in a string to forward slashes.
 	 */
-	std::string backSlasheshToForwards(const std::string& source);
+	std::string backSlashesToForwards(const std::string& source);
 	
 	/**
 	 * Makes a relative path to an absolute path, but only if the provided string
@@ -54,6 +53,17 @@ namespace nex::util {
 	 * If one of these conditions isn't fulfilled, an empty string will be returned.
 	 */
 	std::string relativePathToBuildDirectory(const std::string& source);
+
+	/**
+	 * Removes one-line and multi-line comments from a string.
+	 * Produces a copy.
+	 */
+	std::string removeComments_copy(const std::string& source);
+
+	/**
+	* Removes one-line and multi-line comments from a string.
+	*/
+	void removeComments(std::string& source);
 
 	/**
 	 * Splits a given string 'source' by a regex pattern 'pattern'. The splitting creates a list of
@@ -114,6 +124,80 @@ namespace nex::util {
 			<< ", enum value: " << e;
 		throw_with_trace(EnumFormatException(ss.str()));
 	}
+
+
+	template <typename E>
+	static constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept {
+		return static_cast<typename std::underlying_type<E>::type>(e);
+	}
+
+	enum class CommentState
+	{
+		NO_COMMENT, // We are currently in no comment
+		NO_COMMENT_FIRST_SLASH, // There is no comment currently, but the current character is a slash (could be the begin of a comment)
+		LINE_COMMENT, // We are in a line comment
+		MULTI_LINE_COMMENT, // We are in a multi line comment
+		MULTI_LINE_COMMENT_ASTERIX // We are in a multi line comment and the current character is an asterix
+	};
+
+
+	class CommentStateTracker
+	{
+	public:
+
+		CommentStateTracker(CommentState initialState = CommentState::NO_COMMENT);
+
+		void update(char c);
+		CommentState getCurrentState() const;
+		bool isCommentActive() const;
+		bool isCommentState(CommentState state) const;
+
+	private:
+
+		/**
+		* Holds the current state of Comment
+		*/
+		CommentState mState;
+	};
+
+	class StringMatcher
+	{
+	public:
+		StringMatcher(const char* text, std::string::iterator end);
+
+		std::string::iterator getFirstAfterMatch() const;
+		void update(const std::string::iterator next);
+		bool matched() const;
+		void reset();
+
+	private:
+		const char* mText;
+		unsigned int mIndex = 0;
+		std::string::iterator mAfterMatch;
+		std::string::iterator mEnd;
+	};
+
+	class Trim
+	{
+	public:
+		// trim from start (in place)
+		static void ltrim(std::string& s);
+
+		// trim from end (in place)
+		static void rtrim(std::string& s);
+
+		// trim from both ends (in place)
+		static void trim(std::string& s);
+
+		// trim from start (copying)
+		static std::string ltrim_copy(std::string s);
+
+		// trim from end (copying)
+		static std::string rtrim_copy(std::string s);
+
+		// trim from both ends (in place)
+		static std::string trim_copy(std::string s);
+	};
 
 
 #define SID(str) = customSimpleHash(str)

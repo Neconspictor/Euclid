@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <nex/sprite/Sprite.hpp>
-#include "nex/gui/Drawable.hpp"
+#include <nex/gui/Drawable.hpp>
 
 class RenderTarget;
 class PBR_GBuffer;

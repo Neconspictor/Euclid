@@ -1,6 +1,5 @@
 #include <nex/material/BlinnPhongMaterialLoader.hpp>
 #include <nex/material/BlinnPhongMaterial.hpp>
-#include <nex/util/Globals.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <string>
 

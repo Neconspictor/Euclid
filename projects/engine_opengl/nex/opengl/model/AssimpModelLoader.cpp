@@ -6,6 +6,7 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 
 using namespace std;

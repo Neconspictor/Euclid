@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/util/Math.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace glm;

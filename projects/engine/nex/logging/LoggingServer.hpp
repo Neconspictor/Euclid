@@ -1,7 +1,6 @@
 #pragma once
 #pragma optimize( "", on )
 
-#include <nex/util/Util.hpp>
 #include <nex/logging/LogMessage.hpp>
 #include <nex/util/concurrent/Active.hpp>
 #include <atomic>

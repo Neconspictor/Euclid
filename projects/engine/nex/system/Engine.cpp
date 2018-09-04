@@ -2,7 +2,7 @@
 #include <nex/logging/LoggingClient.hpp>
 #include <nex/exception/EnumFormatException.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
-#include "nex/util/Globals.hpp"
+#include <nex/util/Globals.hpp>
 
 using namespace std;
 using namespace nex;

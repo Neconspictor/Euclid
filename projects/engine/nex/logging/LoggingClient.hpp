@@ -3,12 +3,10 @@
 
 #include <string>
 #include <vector>
-#include <boost/current_function.hpp>
 #include <nex/logging/LogMessage.hpp>
 #include <nex/logging/LogEndpoint.hpp>
 #include <nex/logging/LoggingServer.hpp>
 #include <nex/logging/LogLevel.hpp>
-#include <boost/current_function.hpp>
 
 /**
  * Macro for logging into a logging client. The user specifies the logging client and the wished log level.

@@ -1,5 +1,4 @@
 #include <glm/glm.hpp>
-#include <glm/common.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/light/Light.hpp>
 

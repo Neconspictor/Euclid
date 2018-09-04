@@ -2,6 +2,7 @@
 #include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/shader/ShaderManager.hpp>
 
 using namespace glm;
 

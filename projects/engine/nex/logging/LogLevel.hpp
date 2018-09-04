@@ -27,8 +27,6 @@
 
 #pragma once
 #pragma optimize( "", on )
-#include <ostream>
-#include <nex/util/StringUtils.hpp>
 
 namespace nex {
 
@@ -65,17 +63,6 @@ namespace nex {
 	};
 
 	/**
-	 * Maps log levels to a string representation.
-	 */
-	const static util::EnumString<LogLevel> converter[] = {
-		{ Debug, "DEBUG" },
-		{ Info, "INFO" },
-		{ Warning, "WARNING" },
-		{ Error, "ERROR" },
-		{ Fault, "FAULT" },
-	};
-
-	/**
 	 * Maps a string to log level enumeration. 
 	 * @param str: The string to be mapped.
 	 * @return: The mapped log level
@@ -83,10 +70,7 @@ namespace nex {
 	 * ATTENTION: If the string can't be mapped to a log level,
 	 * a EnumFormatException is thrown!
 	 */
-	static LogLevel stringToLogLevel(const std::string& str)
-	{
-		return stringToEnum(str, converter);
-	}
+	LogLevel stringToLogLevel(const std::string& str);
 }
 
 /**

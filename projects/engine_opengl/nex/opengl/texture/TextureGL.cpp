@@ -3,6 +3,7 @@
 #include <cassert>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 

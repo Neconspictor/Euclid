@@ -1,17 +1,25 @@
 #pragma once
 
-#include <nex/texture/TextureManager.hpp>
-#include <nex/shader/ShaderManager.hpp>
-#include <nex/model/ModelManager.hpp>
-#include <nex/drawing/ModelDrawer.hpp>
-#include <nex/antialiasing/SMAA.hpp>
-#include <nex/post_processing/blur/GaussianBlur.hpp>
-#include <nex/shading_model/ShadingModelFactory.hpp>
-#include <nex/post_processing/SSAO.hpp>
-#include <nex/post_processing/HBAO.hpp>
 #include <nex/logging/LoggingClient.hpp>
 #include <ostream>
-#include <nex/shadowing/CascadedShadow.hpp>
+#include <nex/texture/Texture.hpp>
+
+class CascadedShadow;
+struct Dimension;
+class GaussianBlur;
+class ModelDrawer;
+class ModelManager;
+class RenderTarget;
+class ShaderManager;
+class ShadingModelFactory;
+class SMAA;
+class SSAO_Deferred;
+class TextureManager;
+
+namespace hbao
+{
+	class HBAO;
+}
 
 enum class CullingMode
 {
@@ -103,8 +111,10 @@ public:
 
 	virtual DepthMap* createDepthMap(int width, int height) = 0;
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}) = 0;
+	//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
+	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }) = 0;
 
+	//{ false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }
 	virtual RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }, int samples = 1) = 0;
 
 	virtual RenderTarget* createRenderTarget(int samples = 1) = 0;

@@ -8,7 +8,6 @@
 #include <glad/glad.h>
 #include <GL/gl.h>
 #include <nex/opengl/antialiasing/SMAA_GL.hpp>
-#include <fstream>
 #include <nex/opengl/texture/ImageLoaderGL.hpp>
 #include<nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
@@ -18,6 +17,7 @@
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace nex;

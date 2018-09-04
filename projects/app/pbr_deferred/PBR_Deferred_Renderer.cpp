@@ -1,7 +1,6 @@
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <glm/glm.hpp>
-#include <nex/mesh/SampleMeshes.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/shader/NormalsShader.hpp>
@@ -10,8 +9,10 @@
 #include <nex/scene/SceneNode.hpp>
 #include <nex/shader/DepthMapShader.hpp>
 #include <nex/shader/ScreenShader.hpp>
-#include <nex/shader/ShadowShader.hpp>
 #include <nex/util/Math.hpp>
+#include <nex/shader/ShaderManager.hpp>
+#include <nex/texture/TextureManager.hpp>
+#include <nex/shading_model/ShadingModelFactory.hpp>
 
 using namespace glm;
 using namespace std;

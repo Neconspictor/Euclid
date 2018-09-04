@@ -1,5 +1,6 @@
 #include <nex/Window.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
+#include <imgui/imgui.h>
 
 Window::Window(WindowStruct const& description):
 logClient(nex::getLogServer())

@@ -1,6 +1,5 @@
 #include <nex/material/PbrMaterialLoader.hpp>
 #include <nex/material/PbrMaterial.hpp>
-#include <nex/util/Globals.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <string>
 

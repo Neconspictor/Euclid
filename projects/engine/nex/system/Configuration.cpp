@@ -3,6 +3,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace nex;

@@ -13,6 +13,18 @@ namespace nex::filesystem
 	 */
 	 bool loadFileIntoString(const std::string& filePath, std::string* destination);
 
+
+	/**
+	 * @param path The file to open
+	 * @param lines the lines to write into to the file.
+	 * @param openMode The mode used to open the file
+	 * 
+	 * @throws std::ofstream::failure If an IO error occurs
+	 */
+	 void writeToFile(const std::string& path, const std::vector<std::string>& lines, 
+					std::ostream::_Openmode openMode = std::ostream::trunc);
+
+
 	 /**
 	 * Provides the content of a specified file. 
 	 * The memory will be allocated with new[] and therefore has

@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <nex/shader/Shader.hpp>
 #include <unordered_map>
+#include <nex/exception/ShaderInitException.hpp>
 
 class MeshGL;
 class Vob;
@@ -105,7 +106,7 @@ public:
 
 	virtual ~ShaderGL();
 
-	static bool compileShader(const std::string& shaderContent, GLuint shaderResourceID);
+	static bool compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID);
 
 	void draw(Mesh const& mesh) override;
 
@@ -130,6 +131,40 @@ protected:
 	GLuint instancedProgramID;
 	nex::LoggingClient logClient;
 	GLint textureCounter;
+
+	/**
+	* Extracts an #include statements from a line.
+	* If the line contains no #include directive, false will be returned.
+	*/
+	static bool extractIncludeStatement(const std::string& line, std::string* result);
+
+	/**
+	 *@param shaderFile The shader file which is expected to be a valid glsl shader file
+	 *@param writeUnfoldedResult Should the unfolded shader content (resolved include statements) be written to an *.unfolded file?
+	 *@param defines - An optional list of preprocessor define directives
+	 *
+	 * @return The loaded (and unfolded) shader content
+	 *
+	 * @throws ShaderInitException - if the shader couldn't be loaded
+	 */
+	static std::string loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult = true, std::vector<std::string> defines = {});
+
+	/**
+	* Preprocess a glsl shader.
+	* A list of given defines will be added to the shader and #include statements in the shader will be replaced by
+	* the content of the respective include file.
+	*
+	* The Output is a vector of trimmed and comment-free lines
+	*
+	* @throws ShaderInitException - if one of the include files couldn't be loaded
+	*/
+	static std::vector<std::string> preprocess(std::string& shaderContent, const std::vector<std::string>& defines);
+
+	/**
+	 * @param shaderSourceFile The source file for that an unfolded version should be written for.
+	 * @throws ShaderInitException - if an IO error occurs
+	 */
+	static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines);
 
 	virtual void afterDrawing(const MeshGL& mesh);
 	virtual void beforeDrawing(const MeshGL& mesh);

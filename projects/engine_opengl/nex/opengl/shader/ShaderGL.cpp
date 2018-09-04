@@ -9,6 +9,9 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <nex/util/ExceptionHandling.hpp>
+#include <nex/util/StringUtils.hpp>
+#include <regex>
 
 using namespace nex;
 using namespace ::util;
@@ -327,7 +330,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		}
 	}
 
-	if (!compileShader(vertexShaderCode.c_str(), vertexShaderID))
+	if (!compileShaderComponent(vertexShaderCode.c_str(), vertexShaderID))
 	{
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << std::endl;
@@ -335,7 +338,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
-	if (!compileShader(fragmentShaderCode.c_str(), fragmentShaderID))
+	if (!compileShaderComponent(fragmentShaderCode.c_str(), fragmentShaderID))
 	{
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << std::endl;
@@ -345,7 +348,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 
 	if (useGeomtryShader)
 	{
-		if (!compileShader(geometryShaderCode.c_str(), geometryShaderID))
+		if (!compileShaderComponent(geometryShaderCode.c_str(), geometryShaderID))
 		{
 			std::stringstream ss;
 			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << std::endl;
@@ -393,7 +396,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 }
 
 
-bool ShaderGL::compileShader(const std::string& shaderContent, GLuint shaderResourceID)
+bool ShaderGL::compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID)
 {
 	int result = 0;
 	GLint logInfoLength;
@@ -411,8 +414,6 @@ bool ShaderGL::compileShader(const std::string& shaderContent, GLuint shaderReso
 	glCompileShader(shaderResourceID);
 
 	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
-
-	//glCompileShader(shaderResourceID);
 
 	// check compilation
 	glGetShaderiv(shaderResourceID, GL_COMPILE_STATUS, &result);
@@ -463,6 +464,131 @@ ShaderConfig* ShaderGL::getConfig() const
 {
 	return config.get();
 };
+
+bool ShaderGL::extractIncludeStatement(const std::string& line, std::string* result)
+{
+	std::regex pattern1("#include.*<.*>.*");
+	std::regex pattern2("#include.*\\\".*\\\".*");
+
+	char separatorToken1;
+	char separatorToken2;
+
+	if (std::regex_match(line.begin(), line.end(), pattern1))
+	{
+		separatorToken1 = '<';
+		separatorToken2 = '>';
+	}
+	else if (std::regex_match(line.begin(), line.end(), pattern2))
+	{
+		separatorToken1 = separatorToken2 = '\"';
+	}
+	else
+	{
+		return false;
+	}
+
+	auto pos = line.find_first_of(separatorToken1);
+	auto start = line.begin() + pos + 1;
+	auto end = start;
+	for (; *end != separatorToken2; ++end) {}
+
+	*result = std::string(start, end);
+	nex::util::Trim::trim(*result);
+
+	return true;
+}
+
+std::string ShaderGL::loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult, std::vector<std::string> defines)
+{
+	std::string content;
+	if (!nex::filesystem::loadFileIntoString(shaderFile, &content))
+	{
+		std::stringstream ss;
+		ss << "Shader::loadShaderComponent(): Couldn't load shader file" << std::endl;
+		ss << "Shader file: " << shaderFile;
+
+		throw_with_trace(ShaderInitException(ss.str()));
+	}
+
+	// preprocess throws ShaderInitException if it cannot preprocess the content
+	std::vector<std::string> lines = preprocess(std::move(content), defines);
+
+	if (writeUnfoldedResult)
+		writeUnfoldedShaderContentToFile(shaderFile, lines);
+
+
+	// Build result string
+	std::stringstream ss;
+	for (auto& line : lines)
+		ss << line << std::endl;
+	
+	return ss.str();
+}
+
+std::vector<std::string> ShaderGL::preprocess(std::string& shaderContent, const std::vector<std::string>& defines)
+{
+	using namespace nex::util;
+	using namespace std;
+
+	removeComments(shaderContent);
+	auto lines = tokenize(shaderContent, "\n");
+
+	auto eraseIt = remove_if(lines.begin(), lines.end(), [&](string& line)
+	{
+		Trim::trim(line);
+		return line.empty();
+	});
+
+	lines.erase(eraseIt, lines.end());
+
+	// We removed comments, trimmed the lines and removed empty lines
+	// Thus the first line in a valid glsl shader file defines the glsl version
+	// So we add the defines just after the first line
+
+	if (lines.size() >= 1)
+	{
+		for (int i = 0; i < defines.size(); ++i)
+		{
+			lines.insert(lines.begin() + 1 + i, defines[i]);
+		}
+	}
+
+	for (auto nextIt = lines.begin(); nextIt != lines.end(); )
+	{
+		std::string includeFile;
+
+		auto currentIt = nextIt;
+		++nextIt;
+
+		if (extractIncludeStatement(*currentIt, &includeFile))
+		{
+			std::string content;
+			if (!::filesystem::loadFileIntoString(includeFile, &content))
+			{
+				std::stringstream ss;
+				ss << "Shader::preprocess(): Couldn't load include file!" << std::endl;
+				ss << "Include file: " << includeFile;
+
+				throw_with_trace(ShaderInitException(ss.str()));
+			}
+			std::vector<std::string> includeLines = preprocess(content, {});
+
+			auto insertionSize = includeLines.size();
+			currentIt = lines.insert(currentIt, includeLines.begin(), includeLines.end());
+			currentIt += insertionSize;
+
+			// remove the current line and let it point to the next line
+			nextIt = lines.erase(currentIt);
+		}
+	}
+
+	return lines;
+}
+
+void ShaderGL::writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines)
+{
+	nex::filesystem::writeToFile(shaderSourceFile + ".unfolded", lines, std::ostream::trunc);
+}
 
 void ShaderGL::afterDrawing(const MeshGL& mesh)
 {

@@ -2,10 +2,7 @@
 #include <glm/glm.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <iostream>
-#include <chrono>
 #include <random>
-#include <boost/random.hpp>
-#include <imgui/imgui_internal.h>
 #include <nex/gui/Util.hpp>
 
 // GCC under MINGW has no support for a real random device!

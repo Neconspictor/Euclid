@@ -3,6 +3,7 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include <nex/shader/ShaderManager.hpp>
 
 GaussianBlurGL::GaussianBlurGL(RendererOpenGL* renderer) : GaussianBlur(), renderer(renderer)
 {

@@ -5,7 +5,7 @@
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
-#include <functional>
+#include <nex/util/ExceptionHandling.hpp>
 
 #ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32 1

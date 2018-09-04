@@ -1,9 +1,7 @@
 #pragma once
-#include <nex/renderer/RenderBackend.hpp>
 #include <nex/Input.hpp>
-#include <functional>
-#include <nex/util/CallbackContainer.hpp>
 #include <nex/logging/LoggingClient.hpp>
+#include <nex/gui/Drawable.hpp>
 
 class WindowFocusListener;
 

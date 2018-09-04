@@ -4,7 +4,7 @@
 #include <nex/event/TaskManager.hpp>
 #include <memory>
 #include <map>
-#include "Configuration.hpp"
+#include <nex/system/Configuration.hpp>
 
 
 class Engine

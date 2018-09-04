@@ -1,7 +1,10 @@
 #pragma once
-#include <nex/Input.hpp>
+
+class ImGUI_Impl;
+class Input;
+class RenderBackend;
+
 #include <nex/Window.hpp>
-#include <nex/gui/ImGUI.hpp>
 
 class SubSystemProvider
 {

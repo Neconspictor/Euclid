@@ -1,6 +1,7 @@
 #include <nex/camera/FPCamera.hpp>
 #include <glm/glm.hpp>
-#include "nex/gui/Util.hpp"
+#include <nex/gui/Util.hpp>
+#include <imgui/imgui.h>
 
 using namespace std;
 using namespace glm;

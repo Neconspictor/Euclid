@@ -227,7 +227,6 @@ set(
 	nex/util/Globals.cpp
 	nex/util/Globals.hpp
 	nex/util/Math.hpp
-	nex/util/MathUtils.hpp
     nex/util/PointerUtils.hpp
 	nex/util/Projectional.hpp
 	nex/util/Projectional.cpp
@@ -236,7 +235,6 @@ set(
 	nex/util/StringUtils.cpp
 	nex/util/Timer.hpp
     nex/util/TimeUtils.hpp
-    nex/util/Util.hpp
 
     
     #nex/util/concurrent

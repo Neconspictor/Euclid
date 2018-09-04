@@ -5,6 +5,7 @@
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <vector>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std; 
 using namespace glm;

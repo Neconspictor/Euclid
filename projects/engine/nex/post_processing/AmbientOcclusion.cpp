@@ -1,5 +1,5 @@
 #include <nex/post_processing/AmbientOcclusion.hpp>
-#include "../../../engine_opengl/nex/opengl/drawing/ModelDrawerGL.hpp"
+#include <nex/util/ExceptionHandling.hpp>
 
 AmbientOcclusionSelector::AmbientOcclusionSelector(): m_usedAOTechnique(HBAO), m_hbao(nullptr), m_ssao(nullptr)
 {

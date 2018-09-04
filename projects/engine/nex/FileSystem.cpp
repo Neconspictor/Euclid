@@ -4,12 +4,42 @@
 #include <nex/logging/LoggingClient.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <boost/filesystem.hpp>
-#include <nex/util/Util.hpp>
 
 
 
 namespace nex::filesystem
 {
+
+	class MemoryWrapper
+	{
+	public:
+		explicit MemoryWrapper(char* value)
+			: _value(value)
+		{ }
+
+		char* operator *()
+		{
+			return _value;
+		}
+
+		void setContent(char* content)
+		{
+			_value = content;
+		}
+
+		virtual ~MemoryWrapper()
+		{
+			if (_value)
+			{
+				delete[] _value;
+				_value = nullptr;
+			}
+		}
+	private:
+		char* _value;
+	};
+
+
 	bool loadFileIntoString(const std::string& filePath, std::string* destination)
 	{
 		std::ifstream shaderStreamFile;
@@ -51,6 +81,18 @@ namespace nex::filesystem
 		shaderStreamFile.close();
 
 		return loadingWasSuccessful;
+	}
+
+	void writeToFile(const std::string& path, const std::vector<std::string>& lines, std::ostream::_Openmode openMode)
+	{
+		std::ofstream out;
+		out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+		out.open(path, openMode);
+
+		for (auto& line : lines)
+		{
+			out << line << std::endl;
+		}
 	}
 
 	char* getBytesFromFile(const std::string& filePath, std::streampos* fileSize)

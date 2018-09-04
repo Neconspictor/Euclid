@@ -1,10 +1,28 @@
 #pragma once
 #include <nex/util/Projectional.hpp>
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES 1
+#endif
+#include <math.h>
+
+
+namespace nex::util {
+	constexpr double PI = 3.14159265358979323846;
+}
+
 struct AABB
 {
 	glm::vec3 min;
 	glm::vec3 max;
+};
+
+struct Dimension
+{
+	int xPos;
+	int yPos;
+	int width;
+	int height;
 };
 
 FrustumCuboid operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix);

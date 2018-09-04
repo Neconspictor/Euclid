@@ -3,14 +3,13 @@
 #include <nex/texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
-#include <vector>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <nex/util/MathUtils.hpp>
-#include <iostream>
+#include <nex/util/Math.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 
 using namespace std; 

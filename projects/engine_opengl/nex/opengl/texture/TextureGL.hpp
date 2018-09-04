@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/texture/Texture.hpp>
 #include <glad/glad.h>
-#include <nex/util/Util.hpp>
+#include <nex/util/Math.hpp>
 
 class RenderTargetGL;
 class RendererOpenGL;

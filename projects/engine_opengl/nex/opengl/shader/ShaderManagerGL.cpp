@@ -12,6 +12,7 @@
 #include <nex/opengl/shader/ShadowShaderGL.hpp>
 #include <nex/opengl/shader/DepthMapShaderGL.hpp>
 #include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace nex;

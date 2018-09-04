@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include <nex/texture/Texture.hpp>
-#include "Sampler.hpp"
-#include "nex/gui/Drawable.hpp"
+#include <nex/texture/Sampler.hpp>
+#include <nex/gui/Drawable.hpp>
 
 class TextureManager
 {

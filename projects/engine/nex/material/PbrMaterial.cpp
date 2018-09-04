@@ -1,5 +1,4 @@
 #include <nex/material/PbrMaterial.hpp>
-#include <type_traits>
 
 using namespace std;
 
