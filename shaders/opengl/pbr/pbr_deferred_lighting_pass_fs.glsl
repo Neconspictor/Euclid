@@ -193,6 +193,8 @@ void main()
 	//alpha = clamp(alpha, 0, 1);
 	
 	FragColor = vec4(result, 1);
+	//vec2 windowSize = gl_FragCoord.xy / textureSize(gBuffer.positionEyeMap, 0).xy;
+	//FragColor = vec4(windowSize, 1, 1);
 }
 
 vec3 pbrModel(float ao,

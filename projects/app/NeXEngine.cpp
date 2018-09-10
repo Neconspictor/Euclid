@@ -242,13 +242,6 @@ void NeXEngine::setupCallbacks()
 
 		m_renderer->updateRenderTargets(width, height);
 	});
-
-	input->addRefreshCallback([=]() {
-		LOG(m_logClient, nex::Warning) << "addRefreshCallback : called!";
-		if (!m_window->hasFocus()) {
-			LOG(m_logClient, nex::Warning) << "addRefreshCallback : no focus!";
-		}
-	});
 }
 
 void NeXEngine::setupGUI()

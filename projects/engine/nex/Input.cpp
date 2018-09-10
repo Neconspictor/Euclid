@@ -21,27 +21,22 @@ Input::~Input()
 {
 }
 
-Input::WindowRefreshConnection Input::addRefreshCallback(const WindowRefreshCallback & callback)
-{
-	return windowRefreshContainer.addCallback(callback);
-}
-
-CallbackContainer<void(Window*)>::Callback Input::addWindowCloseCallback(const WindowClose::CallbackFunc& callback)
+Input::WindowCloseCallbacks::Handle Input::addWindowCloseCallback(const WindowCloseCallbacks::Callback& callback)
 {
 	return m_windowCloseCallbacks.addCallback(callback);
 }
 
-Input::ResizeConnection Input::addResizeCallback(const ResizeCallback& callback)
+Input::WindowResizeCallbacks::Handle Input::addResizeCallback(const WindowResizeCallbacks::Callback& callback)
 {
 	return windowResizeContainer.addCallback(callback);
 }
 
-Input::ScrollConnection Input::addScrollCallback(const ScrollCallback& callback)
+Input::ScrollCallbacks::Handle Input::addScrollCallback(const ScrollCallbacks::Callback& callback)
 {
 	return scrollContainer.addCallback(callback);
 }
 
-Input::WindowFocusConnection Input::addWindowFocusCallback(const WindowFocusCallback& callback)
+Input::WindowFocusCallbacks::Handle Input::addWindowFocusCallback(const WindowFocusCallbacks::Callback& callback)
 {
 	return windowFocusChanged.addCallback(callback);
 }
@@ -68,74 +63,61 @@ double Input::getFrameScrollOffsetY()
 	return frameScrollOffsetY;
 }
 
-void Input::informScrollListeners(double scrollX, double scrollY)
+void Input::informScrollListeners(float scrollX, float scrollY)
 {
-	for (const ScrollConnection& connection : scrollContainer.getCallbacks())
+	for (const auto& handle : scrollContainer.getCallbacks())
 	{
-		ScrollCallback callback = connection.get()->getCallbackFunc();
+		const auto& callback = *handle;
 		callback(scrollX, scrollY);
-	}
-}
-
-void Input::informRefreshListeners()
-{
-	for (WindowRefreshConnection connection : windowRefreshContainer.getCallbacks())
-	{
-		WindowRefreshCallback callback = connection.get()->getCallbackFunc();
-		callback();
 	}
 }
 
 void Input::informResizeListeners(int width, int height)
 {
-	for (ResizeConnection connection : windowResizeContainer.getCallbacks())
+	for (const auto& handle : windowResizeContainer.getCallbacks())
 	{
-		ResizeCallback callback = connection.get()->getCallbackFunc();
+		const auto& callback = *handle;
 		callback(width, height);
 	}
 }
 
 void Input::informWindowFocusListeners(bool receivedFocus)
 {
-	for (WindowFocusConnection sharedItem : windowFocusChanged.getCallbacks())
+	for (const auto& handle : windowFocusChanged.getCallbacks())
 	{
-		WindowFocusCallback callback = sharedItem.get()->getCallbackFunc();
+		const auto& callback = *handle;
 		callback(getWindow(), receivedFocus);
 	}
 }
 
 void Input::informWindowCloseListeners()
 {
-	for (WindowClose::Callback callback : m_windowCloseCallbacks.getCallbacks())
+	for (const auto& handle : m_windowCloseCallbacks.getCallbacks())
 	{
-		callback->getCallbackFunc()(getWindow());
+		const auto callback = *handle;
+		callback(getWindow());
 	}
 }
 
 
-void Input::removeScrollConnection(const ScrollConnection& connection)
+void Input::removeScrollConnection(const ScrollCallbacks::Handle& handle)
 {
-	scrollContainer.removeCallback(connection);
+	scrollContainer.removeCallback(handle);
 }
 
-void Input::removeRefreshCallback(const WindowRefreshConnection & connection)
+void Input::removeWindowCloseCallback(const WindowCloseCallbacks::Handle& handle)
 {
-	windowRefreshContainer.removeCallback(connection);
+	m_windowCloseCallbacks.removeCallback(handle);
 }
 
-void Input::removeWindowCloseCallback(const WindowClose::Callback& callback)
+void Input::removeResizeCallback(const WindowResizeCallbacks::Handle& handle)
 {
-	m_windowCloseCallbacks.removeCallback(callback);
+	windowResizeContainer.removeCallback(handle);
 }
 
-void Input::removeResizeCallback(const ResizeConnection& connection)
+void Input::removeWindowFocusCallback(const WindowFocusCallbacks::Handle& handle)
 {
-	windowResizeContainer.removeCallback(connection);
-}
-
-void Input::removeWindowFocusCallback(const WindowFocusConnection& connection)
-{
-	windowFocusChanged.removeCallback(connection);
+	windowFocusChanged.removeCallback(handle);
 }
 
 void Input::resetMouseMovement()

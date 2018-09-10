@@ -70,7 +70,6 @@ public:
 	static void focusInputHandler(GLFWwindow* window, int hasFocus);
 	static void keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void mouseInputHandler(GLFWwindow * window, int button, int action, int mods);
-	static void refreshWindowHandler(GLFWwindow* window);
 	static void scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset);
 	static void sizeInputHandler(GLFWwindow* window, int width, int height);
 
@@ -107,7 +106,6 @@ public:
 	void registerCharModsCallback(std::function<CharModsCallback> callback);
 	void registerKeyCallback(std::function<KeyCallback> callback);
 	void registerMouseCallback(std::function<MouseCallback> callback);
-	//void registerRefreshCallback(std::function<RefreshCallback> callback);
 
 	void resetForFrame();
 
@@ -137,13 +135,4 @@ protected:
 	std::list<std::function<CharModsCallback>> charModsCallbacks;
 	std::list<std::function<KeyCallback>> keyCallbacks;
 	std::list<std::function<MouseCallback>> mouseCallbacks;
-	
-	// TODO refresh callbacks are already defined in Input
-	//std::list<std::function<RefreshCallback>> refreshCallbacks;
-
-
-	// callbacks
-	//std::list<std::function<FocusCallback>> focusCallbacks;
-	//std::list<std::function<ScrollCallback>> scrollCallbacks;
-	//std::list<std::function<SizeCallback>> sizeCallbacks;
 };

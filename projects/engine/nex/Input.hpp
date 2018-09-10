@@ -16,7 +16,7 @@ struct MouseOffset
 };
 
 /**
- * The Input class is respsonsible for recording user key and button inputs on a specific window. Additionally t provides methods
+ * The Input class is respsonsible for recording user key and button inputs on a specific window. Additionally it provides methods
  * for querying its current state. The input class is designed as a polling system and should be updated
  * each frame.
  */
@@ -24,27 +24,10 @@ class Input
 {
 public:
 
-	using ScrollContainer = CallbackContainer<void(double scrollX, double scrollY)>;
-	using ScrollCallback = ScrollContainer::CallbackFunc;
-	using ScrollConnection = ScrollContainer::Callback;
-
-	using WindowClose = CallbackContainer<void(Window*)>;
-
-	using WindowFocusChanged = CallbackContainer<void(Window*, bool)>;
-	using WindowRefreshContainer = CallbackContainer<void()>;
-	using WindowResizeContainer = CallbackContainer<void(int width, int height)>;
-
-	using WindowCloseCallback = WindowClose::CallbackFunc;
-	using WindowCloseConnection = WindowClose::Callback;
-
-	using WindowFocusCallback = WindowFocusChanged::CallbackFunc;
-	using WindowFocusConnection = WindowFocusChanged::Callback;
-
-	using WindowRefreshCallback = WindowRefreshContainer::CallbackFunc;
-	using WindowRefreshConnection = WindowRefreshContainer::Callback;
-
-	using ResizeCallback = WindowResizeContainer::CallbackFunc;
-	using ResizeConnection = WindowResizeContainer::Callback;
+	using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
+	using WindowCloseCallbacks = CallbackCollection<void(Window*)>;
+	using WindowFocusCallbacks = CallbackCollection<void(Window*, bool)>;
+	using WindowResizeCallbacks = CallbackCollection<void(int width, int height)>;
 
 
 	/**
@@ -476,31 +459,26 @@ enum Key
 	* Adds a callback to scrolling events. Every time, when the user scrolls,
 	* the added callback will be called.
 	*/
-	ScrollConnection addScrollCallback(const ScrollCallback& callback);	
+	ScrollCallbacks::Handle addScrollCallback(const ScrollCallbacks::Callback& callback);
 
 
 	/**
 	* Adds a callback to windows resize events. Every time, when the window of this Input is resized,
 	* the callback will be called.
 	*/
-	ResizeConnection addResizeCallback(const ResizeCallback& callback);
+	WindowResizeCallbacks::Handle addResizeCallback(const WindowResizeCallbacks::Callback& callback);
 
 	/**
-	* Adds a callback that is called when the window of this Input content should be refreshed (e.g. GUI)
+	* Adds a callback that is called when the user clicks on the close widget of a window (if the window has one)
+	* or the function Window::close() is called.
 	*/
-	WindowRefreshConnection addRefreshCallback(const WindowRefreshCallback& callback);
-
-	/**
-	 * Adds a callback that is called when the user clicks on the close widget of a window (if the window has one)
-	 * or the function Window::close() is called.
-	 */
-	WindowClose::Callback addWindowCloseCallback(const WindowClose::CallbackFunc& callback);
+	WindowCloseCallbacks::Handle addWindowCloseCallback(const WindowCloseCallbacks::Callback& callback);
 
 	/**
 	* Adds a callback to windows focus events. Every time, when the window of this Input receives or
 	* looses focus, the callback will be called.
 	*/
-	WindowFocusConnection addWindowFocusCallback(const WindowFocusCallback& callback);
+	WindowFocusCallbacks::Handle addWindowFocusCallback(const WindowFocusCallbacks::Callback& callback);
 
 
 
@@ -539,12 +517,7 @@ enum Key
 	* Calls all regsitered scrolling callbacks.
 	* This function is intended to be called when the user scrolls.
 	*/
-	void informScrollListeners(double scrollX, double scrollY);
-
-	/**
-	* Informs windows refresh listeners that the window of this Input should be refreshed
-	*/
-	void informRefreshListeners();
+	void informScrollListeners(float scrollX, float scrollY);
 
 	/**
 	* Informs windows resize listeners that the size of the window of this Input has changed.
@@ -607,27 +580,22 @@ enum Key
 	* Removes a previously established scrolling connection. The callback of the connection
 	* won't be notified anymore if scrolling events occurs.
 	*/
-	void removeScrollConnection(const ScrollConnection& connection);
+	void removeScrollConnection(const ScrollCallbacks::Handle& handle);
 
 	/**
 	* Removes a given window resize callback.
 	*/
-	void removeResizeCallback(const ResizeConnection& connection);
+	void removeResizeCallback(const WindowResizeCallbacks::Handle& handle);
 
 	/**
-	* Removes a given window refresh callback.
+	* Removes a given window close callback.
 	*/
-	void removeRefreshCallback(const WindowRefreshConnection& connection);
-
-	/**
-	 * Removes a given window close callback.
-	 */
-	void removeWindowCloseCallback(const WindowClose::Callback& callback);
+	void removeWindowCloseCallback(const WindowCloseCallbacks::Handle& handle);
 
 	/**
 	* Removes a given window focus callback.
 	*/
-	void removeWindowFocusCallback(const WindowFocusConnection& connection);
+	void removeWindowFocusCallback(const WindowFocusCallbacks::Handle& handle);
 
 	/**
 	 * Resets the mouse movement offset of the current frame.
@@ -651,16 +619,15 @@ protected:
 
 	int frameMouseXOffset, frameMouseYOffset;
 	int mouseXabsolut, mouseYabsolut;
-	double frameScrollOffsetX, frameScrollOffsetY;
+	float frameScrollOffsetX, frameScrollOffsetY;
 	bool m_windowHasFocus;
 	bool firstMouseInput;
 
 	nex::LoggingClient logClient;
 
-	ScrollContainer scrollContainer;
+	ScrollCallbacks scrollContainer;
 
-	WindowClose m_windowCloseCallbacks;
-	WindowFocusChanged windowFocusChanged;
-	WindowRefreshContainer windowRefreshContainer;
-	WindowResizeContainer windowResizeContainer;
+	WindowCloseCallbacks m_windowCloseCallbacks;
+	WindowFocusCallbacks windowFocusChanged;
+	WindowResizeCallbacks windowResizeContainer;
 };

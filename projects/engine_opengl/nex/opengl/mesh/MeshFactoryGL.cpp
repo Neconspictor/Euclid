@@ -45,9 +45,9 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTexTangent* v
 	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<GLvoid*>(offsetof(Vertex, bitangent)));
 
 	// clear opengl states
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	return move(out);
 }
@@ -86,9 +86,9 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertice
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<GLvoid*>(offsetof(Vertex, texCoords)));
 
 	// clear opengl states
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	return move(out);
 }
@@ -143,9 +143,9 @@ unique_ptr<MeshGL> MeshFactoryGL::create(SimpleArray<glm::vec3> positions, Simpl
 		reinterpret_cast<GLvoid*>(positionsByteSize + normalsByteSize));
 
 	// clear opengl states
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	return move(out);
 }
@@ -176,8 +176,8 @@ unique_ptr<MeshGL> MeshFactoryGL::createPosition(const VertexPosition* vertices,
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), static_cast<GLvoid*>(0));
 
 	// clear opengl states
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return move(out);
 }
@@ -212,8 +212,8 @@ unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vert
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<GLvoid*>(offsetof(Vertex, texCoords)));
 
 	// clear opengl states
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return move(out);
 }

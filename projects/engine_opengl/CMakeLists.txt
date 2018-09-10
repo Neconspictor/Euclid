@@ -165,6 +165,6 @@ target_link_libraries(engine_opengl
 		GLAD
 		GLFW
         GLM
-		
+
 		${OPENGL_LIBRARIES}
 )		

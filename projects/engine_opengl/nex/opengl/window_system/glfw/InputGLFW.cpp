@@ -324,14 +324,6 @@ void InputGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, i
 	input->onMouse(button, action, mods);
 }
 
-void InputGLFW::refreshWindowHandler(GLFWwindow * window)
-{
-	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
-	if (input == nullptr || !input->areCallbacksActive()) return;
-
-	input->informRefreshListeners();
-}
-
 void InputGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double yOffset)
 {
 	//TODO refactor
@@ -387,8 +379,6 @@ void InputGLFW::enableCallbacks()
 	glfwSetKeyCallback(window->getSource(), keyInputHandler);
 
 	glfwSetMouseButtonCallback(window->getSource(), mouseInputHandler);
-
-	glfwSetWindowRefreshCallback(window->getSource(), refreshWindowHandler);
 
 	glfwSetWindowSizeCallback(window->getSource(), sizeInputHandler);
 
@@ -590,11 +580,6 @@ void InputGLFW::registerMouseCallback(function<MouseCallback> callback)
 {
 	mouseCallbacks.push_back(callback);
 }
-
-/*void InputGLFW::registerRefreshCallback(std::function<RefreshCallback> callback)
-{
-	refreshCallbacks.push_back(callback);
-}*/
 
 void InputGLFW::resetForFrame()
 {
