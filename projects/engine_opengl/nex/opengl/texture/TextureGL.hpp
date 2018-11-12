@@ -1,5 +1,4 @@
 #pragma once
-#include <nex/texture/Texture.hpp>
 #include <glad/glad.h>
 #include <nex/util/Math.hpp>
 
@@ -8,8 +7,50 @@ class RendererOpenGL;
 class CubeRenderTargetGL;
 class BaseRenderTargetGL;
 
+enum TextureFilter
+{
+	NearestNeighbor,
+	Linear,
+	Bilinear,
+	Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
+	Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
+	Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
+	Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
+};
 
-class TextureGL : public Texture
+enum TextureUVTechnique
+{
+	ClampToEdge,
+	Repeat,
+};
+
+enum ColorSpace {
+	RGB,
+	RGBA,
+	RG,
+};
+
+enum Resolution {
+	BITS_8,
+	BITS_16,
+	BITS_32,
+};
+
+
+struct TextureData
+{
+	bool useSRGB;
+	bool generateMipMaps;
+	TextureFilter minFilter;  // minification filter
+	TextureFilter magFilter;  // magnification filter
+	TextureUVTechnique uvTechnique;
+	ColorSpace colorspace;
+	bool isFloatData; //specifies whether the data should be interpreted as float data
+	Resolution resolution;
+};
+
+
+class TextureGL
 {
 public:
 	explicit TextureGL();
@@ -62,12 +103,27 @@ public:
 	RenderBufferGL(const RenderBufferGL&) = delete;
 	RenderBufferGL& operator=(const RenderBufferGL&) = delete;
 
-	virtual void release() override;
+	void release() override;
 };
 
-class CubeMapGL : public CubeMap, public TextureGL
+
+class CubeMapGL : public TextureGL
 {
 public:
+
+	/**
+	 * Specifies the sides of a cubemap in relation to a coordinate system.
+	 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
+	 */
+	enum Side {
+		POSITIVE_X,
+		NEGATIVE_X,
+		POSITIVE_Y,
+		NEGATIVE_Y,
+		POSITIVE_Z,
+		NEGATIVE_Z
+	};
+
 	explicit CubeMapGL();
 	CubeMapGL(GLuint cubeMap);
 	CubeMapGL(CubeMapGL&& o) = default;
@@ -83,17 +139,33 @@ public:
 	 */
 	static GLuint mapCubeSideToSystemAxis(Side side);
 
-
-	void generateMipMaps() override;
+	/**
+	 *  Generates mipmaps for the current content of this cubemap.
+	 */
+	void generateMipMaps();
 
 	GLuint getCubeMap() const;
+
+	/**
+	 * Provides a 'look at' view matrix for a specific cubemap side
+	 * The returned view matrix is for right handed coordinate systems
+	 */
+	static const glm::mat4& getViewLookAtMatrixRH(Side side);
 
 	void setCubeMap(GLuint id);
 
 	friend CubeRenderTargetGL;
+
+protected:
+	static glm::mat4 rightSide;
+	static glm::mat4 leftSide;
+	static glm::mat4 topSide;
+	static glm::mat4 bottomSide;
+	static glm::mat4 frontSide;
+	static glm::mat4 backSide;
 };
 
-class BaseRenderTargetGL : public virtual BaseRenderTarget {
+class BaseRenderTargetGL {
 public:
 	explicit BaseRenderTargetGL(int width, int height, GLuint frameBuffer);
 	virtual ~BaseRenderTargetGL();
@@ -109,14 +181,26 @@ public:
 	virtual GLuint getFrameBuffer();
 	virtual void setFrameBuffer(GLuint newValue);
 
+	int getHeight() const
+	{
+		return height;
+	}
+
+	int getWidth() const
+	{
+		return width;
+	}
+
 private:
 	void swap(BaseRenderTargetGL& o);
 
 protected:
+	int width, height;
 	GLuint frameBuffer;
 };
 
-class CubeRenderTargetGL : public CubeRenderTarget, public BaseRenderTargetGL
+
+class CubeRenderTargetGL : public BaseRenderTargetGL
 {
 public:
 	explicit CubeRenderTargetGL(int width, int height, TextureData data);
@@ -132,16 +216,24 @@ public:
 
 
 
-	virtual CubeMap* createCopy() override;
+	CubeMapGL* createCopy();
 
 	GLuint getRenderBuffer();
 	GLuint getCubeMapGL();
-	CubeMap* getCubeMap() override;
+	CubeMapGL* getCubeMap();
 	GLuint getRendertargetTexture();
+
+	inline int getHeightMipLevel(unsigned int mipMapLevel) const {
+		return (int)(height * std::pow(0.5, mipMapLevel));
+	}
+
+	inline int getWidthMipLevel(unsigned int mipMapLevel) const {
+		return (int)(height * std::pow(0.5, mipMapLevel));
+	}
 
 	void release();
 
-	void resizeForMipMap(unsigned int mipMapLevel) override;
+	void resizeForMipMap(unsigned int mipMapLevel);
 
 	void setRenderBuffer(GLuint newValue);
 	void setCubeMapResult(GLuint newValue);
@@ -156,14 +248,14 @@ protected:
 	TextureData data;
 };
 
-class RenderTargetGL : public RenderTarget, public BaseRenderTargetGL
+
+class RenderTargetGL : public BaseRenderTargetGL
 {
 public:
 	explicit RenderTargetGL(int width, int height);
 
 	RenderTargetGL(RenderTargetGL&& other) = default;
 	RenderTargetGL& operator=(RenderTargetGL&& other) = default;
-
 
 	RenderTargetGL(const RenderTargetGL& other) = delete;
 	RenderTargetGL& operator=(const RenderTargetGL& other) = delete;
@@ -180,7 +272,7 @@ public:
 
 	GLuint getRenderBuffer();
 	GLuint getTextureGL();
-	Texture* getTexture() override;
+	TextureGL* getTexture();
 
 	void release();
 
@@ -194,7 +286,8 @@ protected:
 	GLuint renderBuffer;
 };
 
-class CubeDepthMapGL : public CubeDepthMap, public BaseRenderTargetGL, public TextureGL
+
+class CubeDepthMapGL : public BaseRenderTargetGL, public TextureGL
 {
 public:
 	explicit CubeDepthMapGL(int width, int height);
@@ -208,17 +301,19 @@ public:
 	virtual ~CubeDepthMapGL();
 
 	GLuint getCubeMapTexture() const;
-	CubeMap* getCubeMap() override;
+	CubeMapGL* getCubeMap();
 	GLuint getFramebuffer() const;
 
-	void release();
+	void release() override;
 
 private:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	CubeMapGL cubeMap;
+	glm::mat4 matrices[6];
 };
 
-class DepthMapGL : public DepthMap, public BaseRenderTargetGL
+
+class DepthMapGL : public BaseRenderTargetGL
 {
 public:
 	explicit DepthMapGL(int width, int height);
@@ -235,7 +330,7 @@ public:
 
 	GLuint getFramebuffer() const;
 	GLuint getTexture() const;
-	Texture* getTexture() override;
+	TextureGL* getTexture();
 
 	void release();
 
@@ -244,7 +339,7 @@ private:
 	TextureGL texture;
 };
 
-class PBR_GBufferGL : public PBR_GBuffer, public BaseRenderTargetGL {
+class PBR_GBufferGL : public BaseRenderTargetGL {
 public:
 	explicit PBR_GBufferGL(int width, int height);
 	PBR_GBufferGL(PBR_GBufferGL&& o) = default;
@@ -256,11 +351,11 @@ public:
 
 	virtual ~PBR_GBufferGL() {}
 
-	virtual Texture* getAlbedo() override;
-	virtual Texture* getAoMetalRoughness() override;
-	virtual Texture* getNormal() override;
-	virtual Texture* getPosition() override;
-	virtual Texture* getDepth() override;
+	TextureGL* getAlbedo();
+	TextureGL* getAoMetalRoughness();
+	TextureGL* getNormal();
+	TextureGL* getPosition();
+	TextureGL* getDepth();
 
 
 protected:

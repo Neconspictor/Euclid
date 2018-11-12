@@ -244,7 +244,7 @@ public:
 
 	void useCubeDepthMap(CubeDepthMapGL* cubeDepthMap);
 
-	void useCubeRenderTarget(CubeRenderTargetGL* target, CubeMap::Side side, unsigned int mipLevel = 0);
+	void useCubeRenderTarget(CubeRenderTargetGL* target, CubeMapGL::Side side, unsigned int mipLevel = 0);
 
 	/**
 	* All draw calls are performed on a offscreen texture.

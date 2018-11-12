@@ -4,37 +4,48 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <glm/gtc/matrix_transform.inl>
 
 using namespace std;
+using namespace glm;
+
+mat4 CubeMapGL::rightSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f));
+mat4 CubeMapGL::leftSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f));
+mat4 CubeMapGL::topSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
+mat4 CubeMapGL::bottomSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f));
+mat4 CubeMapGL::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, -1.0f, 0.0f));
+mat4 CubeMapGL::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
+
 
 GLuint TextureGL::rgba_float_resolutions[] = { GL_RGBA8, GL_RGBA16F, GL_RGBA32F };
 GLuint TextureGL::rgb_float_resolutions[] = { GL_RGB8, GL_RGB16F, GL_RGB32F };
 GLuint TextureGL::rg_float_resolutions[] = { GL_RG8, GL_RG16F, GL_RG32F };
 
+
+
+const mat4& CubeMapGL::getViewLookAtMatrixRH(Side side)
+{
+	switch (side) {
+	case POSITIVE_X:
+		return rightSide;
+	case NEGATIVE_X:
+		return leftSide;
+	case POSITIVE_Y:
+		return topSide;
+	case NEGATIVE_Y:
+		return bottomSide;
+	case NEGATIVE_Z:
+		return frontSide;
+	case POSITIVE_Z:
+		return backSide;
+	default:
+		throw_with_trace(std::runtime_error("No mapping defined for " + side));
+	}
+}
+
 CubeMapGL::CubeMapGL() : TextureGL() {}
 
 CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
-
-
-/*CubeMapGL::CubeMapGL(const CubeMapGL& other) : TextureGL(other)
-{}
-
-CubeMapGL::CubeMapGL(CubeMapGL&& other) : TextureGL(other)
-{}
-
-CubeMapGL& CubeMapGL::operator=(const CubeMapGL& other)
-{
-	if (this == &other) return *this;
-	TextureGL::operator=(other);
-	return *this;
-}
-
-CubeMapGL& CubeMapGL::operator=(CubeMapGL&& other)
-{
-	if (this == &other) return *this;
-	TextureGL::operator=(other);
-	return *this;
-}*/
 
 GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
 {
@@ -78,7 +89,7 @@ TextureGL::TextureGL(): textureID(GL_FALSE)
 {
 }
 
-TextureGL::TextureGL(GLuint texture) : Texture(), textureID(texture)
+TextureGL::TextureGL(GLuint texture) : textureID(texture)
 {
 }
 
@@ -261,7 +272,7 @@ void RenderBufferGL::release()
 
 
 BaseRenderTargetGL::BaseRenderTargetGL(int width, int height, GLuint frameBuffer)
-	: BaseRenderTarget(width, height), frameBuffer(frameBuffer)
+	: width(width), height(height), frameBuffer(frameBuffer)
 {
 }
 
@@ -274,7 +285,6 @@ BaseRenderTargetGL::~BaseRenderTargetGL()
 }
 
 BaseRenderTargetGL::BaseRenderTargetGL(BaseRenderTargetGL && o) :
-	BaseRenderTarget(move(o)),
 	frameBuffer(GL_FALSE)
 {
 	swap(o);
@@ -283,7 +293,6 @@ BaseRenderTargetGL::BaseRenderTargetGL(BaseRenderTargetGL && o) :
 BaseRenderTargetGL & BaseRenderTargetGL::operator=(BaseRenderTargetGL && o)
 {
 	if (this == &o) return *this;
-	BaseRenderTarget::operator=(move(o)); // call base class move ao
 	swap(o);
 	return *this;
 }
@@ -325,9 +334,7 @@ void BaseRenderTargetGL::swap(BaseRenderTargetGL & o)
 
 
 CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : 
-	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, GL_FALSE),
-	CubeRenderTarget(width, height), 
 	renderBuffer(GL_FALSE),
 	data(data)
 {
@@ -378,7 +385,7 @@ CubeRenderTargetGL::~CubeRenderTargetGL()
 {
 }
 
-CubeMap * CubeRenderTargetGL::createCopy()
+CubeMapGL * CubeRenderTargetGL::createCopy()
 {
 
 	//first create a new cube render target that we use to blit the content
@@ -445,7 +452,7 @@ GLuint CubeRenderTargetGL::getCubeMapGL()
 	return cubeMapResult.getCubeMap();
 }
 
-CubeMap * CubeRenderTargetGL::getCubeMap()
+CubeMapGL * CubeRenderTargetGL::getCubeMap()
 {
 	return &cubeMapResult;
 }
@@ -502,9 +509,7 @@ void CubeRenderTargetGL::setRenderTargetTexture(GLuint newValue)
 }
 
 RenderTargetGL::RenderTargetGL(int width, int height) : 
-	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, GL_FALSE),
-	RenderTarget(width, height),
 	renderBuffer(GL_FALSE)
 {
 }
@@ -698,7 +703,7 @@ GLuint RenderTargetGL::getTextureGL()
 	return textureBuffer.getTexture();
 }
 
-Texture* RenderTargetGL::getTexture()
+TextureGL* RenderTargetGL::getTexture()
 {
 	return &textureBuffer;
 }
@@ -724,9 +729,7 @@ void RenderTargetGL::setTextureBuffer(GLuint newValue)
 }
 
 CubeDepthMapGL::CubeDepthMapGL(int width, int height) : 
-	BaseRenderTarget(width, height),
-	BaseRenderTargetGL(width, height, GL_FALSE),
-	CubeDepthMap(width, height)
+	BaseRenderTargetGL(width, height, GL_FALSE)
 {
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -811,7 +814,7 @@ GLuint CubeDepthMapGL::getCubeMapTexture() const
 	return cubeMap.getCubeMap();
 }
 
-CubeMap* CubeDepthMapGL::getCubeMap()
+CubeMapGL* CubeDepthMapGL::getCubeMap()
 {
 	return &cubeMap;
 }
@@ -826,9 +829,7 @@ void CubeDepthMapGL::release()
 }
 
 DepthMapGL::DepthMapGL(int width, int height) :
-	BaseRenderTarget(width, height),
-	BaseRenderTargetGL(width, height, GL_FALSE),
-	DepthMap(width, height)
+	BaseRenderTargetGL(width, height, GL_FALSE)
 {
 	GLuint textureID = GL_FALSE;
 	glGenFramebuffers(1, &frameBuffer);
@@ -884,7 +885,7 @@ GLuint DepthMapGL::getTexture() const
 	return texture.getTexture();
 }
 
-Texture* DepthMapGL::getTexture()
+TextureGL* DepthMapGL::getTexture()
 {
 	return &texture;
 }
@@ -898,9 +899,7 @@ void DepthMapGL::release()
 
 PBR_GBufferGL::PBR_GBufferGL(int width, int height) 
 	: 
-	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, GL_FALSE),
-	PBR_GBuffer(width, height),
 	albedo(GL_FALSE),
 	aoMetalRoughness(GL_FALSE),
 	normal(GL_FALSE),
@@ -1001,27 +1000,27 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	
 }
 
-Texture * PBR_GBufferGL::getAlbedo()
+TextureGL * PBR_GBufferGL::getAlbedo()
 {
 	return &albedo;
 }
 
-Texture * PBR_GBufferGL::getAoMetalRoughness()
+TextureGL * PBR_GBufferGL::getAoMetalRoughness()
 {
 	return &aoMetalRoughness;
 }
 
-Texture * PBR_GBufferGL::getNormal()
+TextureGL * PBR_GBufferGL::getNormal()
 {
 	return &normal;
 }
 
-Texture * PBR_GBufferGL::getPosition()
+TextureGL * PBR_GBufferGL::getPosition()
 {
 	return &position;
 }
 
-Texture * PBR_GBufferGL::getDepth()
+TextureGL * PBR_GBufferGL::getDepth()
 {
 	return &depth;
 }
@@ -1030,7 +1029,6 @@ OneTextureRenderTarget::OneTextureRenderTarget(GLuint frameBuffer,
 	TextureGL texture,
 	unsigned int width,
 	unsigned int height) :
-	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, frameBuffer),
 	m_texture(move(texture))
 {

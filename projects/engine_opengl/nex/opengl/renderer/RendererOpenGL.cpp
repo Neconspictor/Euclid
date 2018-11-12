@@ -452,7 +452,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMapGL* cubeDepthMap)
 	//glClear(GL_DEPTH_BUFFER_BIT);
 }*/
 
-void RendererOpenGL::useCubeRenderTarget(CubeRenderTargetGL * target, CubeMap::Side side, unsigned int mipLevel)
+void RendererOpenGL::useCubeRenderTarget(CubeRenderTargetGL * target, CubeMapGL::Side side, unsigned int mipLevel)
 {
 	CubeMapGL* cubeMap = target->getCubeMap();
 
@@ -576,12 +576,12 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_X), //right; sign of up vector is not important
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_X), //left
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Y), //top
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Y), //bottom
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Z), //back
+		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Z) //front
 	};
 
 

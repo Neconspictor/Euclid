@@ -219,10 +219,6 @@ set(
  
     
     #nex/texture
-	nex/texture/Sampler.cpp
-	nex/texture/Sampler.hpp
-    nex/texture/Texture.hpp
-	nex/texture/Texture.cpp
 	nex/texture/TextureManager.cpp
 	nex/texture/TextureManager.hpp
 	
