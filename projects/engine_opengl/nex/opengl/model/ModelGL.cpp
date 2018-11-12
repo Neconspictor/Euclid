@@ -29,8 +29,8 @@ ModelGL::~ModelGL()
 void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 {
 	// Vertex Buffer Object
-	glGenBuffers(1, &matrixBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
+	glGenBuffers(1, &vertexAttributeBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
 	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
 	for (GLuint i = 0; i < meshes.size(); i++)
@@ -42,16 +42,16 @@ void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 		// Vertex Attributes
 		size_t vec4Size = sizeof(vec4);
 		glEnableVertexAttribArray(3);
-		glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
 		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)0);
 		glEnableVertexAttribArray(4);
-		glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
 		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(vec4Size));
 		glEnableVertexAttribArray(5);
-		glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
 		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(2 * vec4Size));
 		glEnableVertexAttribArray(6);
-		glBindBuffer(GL_ARRAY_BUFFER, matrixBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
 		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(3 * vec4Size));
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

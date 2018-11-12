@@ -69,7 +69,7 @@ namespace nex
 		const LogEndpoint& getConsoleEndpoint();
 
 	private:
-		std::unique_ptr<nex::util::Active> active;
+		//std::unique_ptr<nex::util::Active> active;
 		std::atomic<LogLevel> minLogLevel;
 		LogEndpoint fileEndpoint;
 		LogEndpoint consoleEndpoint;

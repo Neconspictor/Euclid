@@ -65,6 +65,14 @@ set(
     nex/camera/TrackballQuatCamera.hpp
 	nex/camera/TrackballQuatCamera.cpp
     
+    #nex/common
+    nex/common/BinaryReader.h
+    nex/common/BinaryReader.cpp
+    nex/common/Callback.hpp
+    nex/common/debug_break.h
+    nex/common/Log.hpp
+    nex/common/Log.cpp
+    
     #nex/drawing
     nex/drawing/ModelDrawer.hpp
     
@@ -177,6 +185,22 @@ set(
     nex/shader/SkyBoxShader.hpp
 	#nex/shader/post_processing/blur
 	nex/shader/post_processing/blur/GaussianBlurShader.hpp
+    
+    #nex/shader_generator
+    nex/shader_generator/CommentStateTracker.cpp
+    nex/shader_generator/CommentStateTracker.hpp
+    nex/shader_generator/FileSystem.cpp
+    nex/shader_generator/FileSystem.hpp
+    nex/shader_generator/ShaderGenerator.cpp
+    nex/shader_generator/ShaderGenerator.hpp
+    nex/shader_generator/SourceFileConsumer.cpp
+    nex/shader_generator/SourceFileConsumer.hpp
+    nex/shader_generator/SourceReader.cpp
+    nex/shader_generator/SourceReader.hpp
+    nex/shader_generator/StateTracker.cpp
+    nex/shader_generator/StateTracker.hpp
+    nex/shader_generator/StringStateTracker.cpp
+    nex/shader_generator/StringStateTracker.hpp
 	
 	#nex/shading_model
 	nex/shading_model/PBR.hpp

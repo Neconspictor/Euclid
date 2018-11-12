@@ -133,7 +133,7 @@ public:
 	* since the last call of glGetError()
 	* @param errorPrefix: a prefix that will be put in front of the OpenglException.
 	*/
-	static void checkGLErrors(std::string errorPrefix);
+	static void checkGLErrors(const std::string& errorPrefix);
 
 	static bool checkGLErrorSilently();
 

@@ -510,7 +510,7 @@ void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void RendererOpenGL::checkGLErrors(string errorPrefix)
+void RendererOpenGL::checkGLErrors(const string& errorPrefix)
 {
 	// check if any gl related errors occured
 	GLint errorCode = glGetError();
@@ -527,7 +527,7 @@ void RendererOpenGL::checkGLErrors(string errorPrefix)
 		default:							   error = "Unknown error code: " + to_string(errorCode);
 		}
 
-		stringstream ss; ss << move(errorPrefix) << ": Error occured: " << error;
+		stringstream ss; ss << errorPrefix << ": Error occured: " << error;
 		throw_with_trace(OpenglException(ss.str()));
 	}
 }

@@ -24,7 +24,7 @@ public:
 protected:
 	std::vector<std::unique_ptr<MeshGL>> meshes;
 	bool instanced;
-	GLuint matrixBuffer;
+	GLuint vertexAttributeBuffer;
 
 private:
 	static std::vector<std::reference_wrapper<Mesh>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);

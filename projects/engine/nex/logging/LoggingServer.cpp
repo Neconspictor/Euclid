@@ -9,18 +9,18 @@ namespace nex
 {
 	void LoggingServer::send(const LoggingClient& client, const LogMessage& message) const {
 		if (!isActive(message.meta.level)) return;
-		auto&& endpoints = client.getEndpoints();
-		auto&& meta = message.meta;
+		auto& endpoints = client.getEndpoints();
+		auto& meta = message.meta;
 		auto msg = message.buffer.str();
-		auto&& prefixCpy = client.getPrefix();
+		auto& prefixCpy = client.getPrefix();
 
-		/*for (auto&& endpoint : endpoints)
-			endpoint.log(prefixCpy, meta, msg);*/
+		for (auto& endpoint : endpoints)
+			endpoint.log(prefixCpy, meta, msg);
 
-		active->send([=] {
+		/*active->send([=] {
 			for (auto&& endpoint : endpoints)
 				endpoint.log(prefixCpy, meta, msg);
-		});
+		});*/
 	}
 
 	void LoggingServer::setMinLogLevel(LogLevel level)
@@ -32,13 +32,13 @@ namespace nex
 		fileEndpoint(makeFileEndpoint("log.log")),
 		consoleEndpoint(makeConsoleEndpoint())
 	{
-		active = util::Active::create();
+		//active = util::Active::create();
 		minLogLevel = Debug;
 	}
 
 	void LoggingServer::terminate() const
 	{
-		active->terminate();
+		//active->terminate();
 	}
 
 	const LogEndpoint & LoggingServer::getFileEndpoint()
