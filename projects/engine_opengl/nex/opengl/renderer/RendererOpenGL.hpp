@@ -11,13 +11,13 @@
 class SMAA_GL;
 class RendererOpenGL;
 
-class EffectLibraryGL : public EffectLibrary {
+class EffectLibraryGL {
 public:
 
 	EffectLibraryGL(RendererOpenGL* renderer);
 
 	// Inherited via EffectLibrary
-	virtual GaussianBlur* getGaussianBlur() override;
+	 GaussianBlurGL* getGaussianBlur();
 
 	void release();
 
@@ -27,104 +27,110 @@ protected:
 };
 
 
-class RendererOpenGL : public RenderBackend
+class RendererOpenGL
 {
 public:
 	RendererOpenGL();
 	
 	virtual ~RendererOpenGL();
 	
-	virtual void beginScene() override;
+	void beginScene();
 
-	virtual void blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents) override;
+	void blitRenderTargets(BaseRenderTarget* src, BaseRenderTarget* dest, const Dimension& dim, int renderComponents);
 
-	virtual void clearRenderTarget(BaseRenderTarget* renderTarget, int renderComponents) override;
+	void clearRenderTarget(BaseRenderTarget* renderTarget, int renderComponents);
 
-	virtual CubeDepthMap* createCubeDepthMap(int width, int height) override;
+	CubeDepthMap* createCubeDepthMap(int width, int height);
 
-	virtual CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data) override;
+	//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
+	CubeRenderTarget* createCubeRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
-	virtual RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data, int samples) override;
+	RenderTarget* create2DRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }, int samples = 1);
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 
-	std::unique_ptr<CascadedShadow> createCascadedShadow(unsigned int width, unsigned int height) override;
+	std::unique_ptr<CascadedShadow> createCascadedShadow(unsigned int width, unsigned int height);
 
-	virtual DepthMap* createDepthMap(int width, int height) override;
+	DepthMap* createDepthMap(int width, int height);
 
-	virtual RenderTarget* createRenderTarget(int samples) override;
+	RenderTarget* createRenderTarget(int samples);
 
 	RenderTargetGL* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
 		GLuint depthStencilType);
 
-	virtual std::unique_ptr<SSAO_Deferred> createDeferredSSAO() override;
+	std::unique_ptr<SSAO_Deferred> createDeferredSSAO();
 
-	virtual std::unique_ptr<hbao::HBAO> createHBAO() override;
+	std::unique_ptr<hbao::HBAO> createHBAO();
 
-	virtual RenderTarget* createVarianceShadowMap(int width, int height) override;
+	RenderTarget* createVarianceShadowMap(int width, int height);
 
-	virtual void cullFaces(CullingMode mode) override;
+	void cullFaces(CullingMode mode);
 
-	virtual void destroyCubeRenderTarget(CubeRenderTarget* target) override;
+	void destroyCubeRenderTarget(CubeRenderTarget* target);
 
-	virtual void destroyRenderTarget(RenderTarget* target) override;
+	void destroyRenderTarget(RenderTarget* target);
 
-	virtual void enableAlphaBlending(bool enable) override;
+	void enableAlphaBlending(bool enable);
 
-	virtual void enableBackfaceDrawing(bool enable) override;
+	void enableBackfaceDrawing(bool enable);
 	
-	virtual void enableDepthWriting(bool enable) override;
+	void enableDepthWriting(bool enable);
 
-	virtual void endScene() override;
+	void endScene();
 
-	virtual GLint getCurrentRenderTarget() const;
+	GLint getCurrentRenderTarget() const;
 
-	virtual BaseRenderTarget* getDefaultRenderTarget() override;
+	BaseRenderTarget* getDefaultRenderTarget();
 
 	// Inherited via RenderBackend
-	virtual EffectLibrary* getEffectLibrary() override;
+	EffectLibraryGL* getEffectLibrary();
 
-	virtual ModelDrawer* getModelDrawer() override;
+	ModelDrawer* getModelDrawer();
 
-	virtual ModelManager* getModelManager() override;
+	ModelManager* getModelManager();
 
 	static int getRenderComponentsGL(int renderComponents);
 
-	virtual ShaderManager* getShaderManager() override;
+	ShaderManager* getShaderManager();
 
-	virtual ShadingModelFactory& getShadingModelFactory() override;
+	ShadingModelFactoryGL& getShadingModelFactory();
 
-	virtual SMAA* getSMAA() override;
+	SMAA* getSMAA();
 	
-	virtual TextureManager* getTextureManager() override;
+	TextureManager* getTextureManager();
 	
-	virtual RendererType getType() const override;
+	RendererType getType() const;
+
+	/**
+	* Provides the viewport this renderer is rendering to.
+	*/
+	const Viewport& getViewport() const;
 	
-	virtual void init() override;
+	void init();
 
-	virtual void present() override;
+	void present();
 
-	void resize(int width, int height) override;
+	void resize(int width, int height);
 	
-	virtual void release() override;
+	void release();
 
-	virtual CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap) override;
+	CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap);
 
-	virtual void setBackgroundColor(glm::vec3 color) override;
+	void setBackgroundColor(glm::vec3 color);
 
-	virtual void setMSAASamples(unsigned int samples) override;
+	void setMSAASamples(unsigned int samples);
 
-	virtual void setViewPort(int x, int y, int width, int height) override;
+	void setViewPort(int x, int y, int width, int height);
 
-	virtual void useCubeDepthMap(CubeDepthMap* cubeDepthMap) override;
+	void useCubeDepthMap(CubeDepthMap* cubeDepthMap);
 
-	virtual void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel) override;
+	void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0);
 
-	virtual void useBaseRenderTarget(BaseRenderTarget* target) override;
+	void useBaseRenderTarget(BaseRenderTarget* target);
 
-	virtual void useScreenTarget() override;
+	void useScreenTarget();
 
-	virtual void useVarianceShadowMap(RenderTarget* map) override;
+	void useVarianceShadowMap(RenderTarget* map);
 
 	/**
 	* A function for checking any opengl related errors.
@@ -153,4 +159,8 @@ protected:
 	std::list<RenderTargetGL> renderTargets;
 	std::unique_ptr<SMAA_GL> smaa;
 	BaseRenderTargetGL defaultRenderTarget;
+
+protected:
+	nex::LoggingClient logClient;
+	Viewport mViewport;
 };

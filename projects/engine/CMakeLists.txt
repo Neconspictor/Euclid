@@ -202,18 +202,6 @@ set(
     nex/shader_generator/StringStateTracker.cpp
     nex/shader_generator/StringStateTracker.hpp
 	
-	#nex/shading_model
-	nex/shading_model/PBR.hpp
-	nex/shading_model/PBR.cpp
-	nex/shading_model/PBR_Deferred.hpp
-	nex/shading_model/PBR_Deferred.cpp
-	nex/shading_model/ShadingModelFactory.hpp
-	nex/shading_model/ShadingModelFactory.cpp
-	
-	
-    #nex/scene
-    nex/scene/SceneNode.hpp
-	nex/scene/SceneNode.cpp
     
     #nex/shadowing
 	nex/shadowing/CascadedShadow.cpp

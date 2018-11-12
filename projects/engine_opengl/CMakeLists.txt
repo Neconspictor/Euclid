@@ -64,6 +64,10 @@ set(
     nex/opengl/renderer/RendererOpenGL.hpp
 	nex/opengl/renderer/RendererOpenGL.cpp
     
+    #nex/opengl/scene
+    nex/opengl/scene/SceneNode.cpp
+    nex/opengl/scene/SceneNode.hpp
+    
     #nex/opengl/shader
 	nex/opengl/shader/DepthMapShaderGL.hpp
 	nex/opengl/shader/DepthMapShaderGL.cpp
@@ -92,6 +96,8 @@ set(
 	nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.cpp
 	
 	#nex/opengl/shading_model
+    nex/opengl/shading_model/PBR.cpp
+    nex/opengl/shading_model/PBR.hpp
 	nex/opengl/shading_model/PBR_DeferredGL.hpp
 	nex/opengl/shading_model/PBR_DeferredGL.cpp
 	nex/opengl/shading_model/ShadingModelFactoryGL.cpp

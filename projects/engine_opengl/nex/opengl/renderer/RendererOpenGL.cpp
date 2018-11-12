@@ -18,19 +18,20 @@
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include "nex/logging/GlobalLoggingServer.hpp"
 
 using namespace std;
 using namespace nex;
 using namespace glm;
 
 
-EffectLibraryGL::EffectLibraryGL(RendererOpenGL * renderer) : EffectLibrary(), renderer(renderer)
+EffectLibraryGL::EffectLibraryGL(RendererOpenGL * renderer) : renderer(renderer)
 {
 	gaussianBlur = make_unique<GaussianBlurGL>(renderer);
 	gaussianBlur->init();
 }
 
-GaussianBlur* EffectLibraryGL::getGaussianBlur()
+GaussianBlurGL* EffectLibraryGL::getGaussianBlur()
 {
 	return gaussianBlur.get();
 }
@@ -41,7 +42,7 @@ void EffectLibraryGL::release()
 		gaussianBlur->release();
 }
 
-RendererOpenGL::RendererOpenGL() : RenderBackend(), 
+RendererOpenGL::RendererOpenGL() : logClient(nex::getLogServer()), mViewport(),
   backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
   msaaSamples(1), smaa(nullptr), defaultRenderTarget(0,0, 0)
 {	
@@ -79,9 +80,9 @@ void RendererOpenGL::init()
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	glEnable(GL_SCISSOR_TEST);
-	glViewport(0, 0, width, height);
-	glScissor(0, 0, width, height);
-	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
+	glViewport(0, 0, mViewport.width, mViewport.height);
+	glScissor(0, 0, mViewport.width, mViewport.height);
+	defaultRenderTarget = BaseRenderTargetGL(mViewport.width, mViewport.height, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -194,7 +195,7 @@ CubeRenderTarget * RendererOpenGL::createCubeRenderTarget(int width, int height,
 {
 	CubeRenderTargetGL result(width, height, data);
 
-	cubeRenderTargets.push_back(move(result));
+	cubeRenderTargets.emplace_back(move(result));
 	return &cubeRenderTargets.back();
 }
 
@@ -223,8 +224,8 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	//glClearColor(color.r, color.g, color.b, color.a);
 
-	glViewport(xPos, yPos, width, height);
-	glScissor(xPos, yPos, width, height);
+	glViewport(mViewport.x, mViewport.y, mViewport.width, mViewport.height);
+	glScissor(mViewport.x, mViewport.y, mViewport.width, mViewport.height);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -238,7 +239,7 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 
 DepthMap* RendererOpenGL::createDepthMap(int width, int height)
 {
-	depthMaps.push_back(move(DepthMapGL(width, height)));
+	depthMaps.emplace_back(move(DepthMapGL(width, height)));
 	return &depthMaps.back();
 }
 
@@ -257,7 +258,7 @@ RenderTarget* RendererOpenGL::createRenderTarget(int samples)
 	int ssaaSamples = 1;
 	
 	//return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
-	return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH32F_STENCIL8); //GL_RGBA
+	return createRenderTargetGL(mViewport.width * ssaaSamples, mViewport.height * ssaaSamples, data, samples, GL_DEPTH32F_STENCIL8); //GL_RGBA
 }
 
 void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -326,7 +327,7 @@ ShaderManager* RendererOpenGL::getShaderManager()
 	return ShaderManagerGL::get();
 }
 
-ShadingModelFactory& RendererOpenGL::getShadingModelFactory()
+ShadingModelFactoryGL& RendererOpenGL::getShadingModelFactory()
 {
 	return *shadingModelFactory.get();
 }
@@ -346,14 +347,19 @@ RendererType RendererOpenGL::getType() const
 	return OPENGL;
 }
 
+const Viewport& RendererOpenGL::getViewport() const
+{
+	return mViewport;
+}
+
 void RendererOpenGL::present()
 {
 }
 
 void RendererOpenGL::resize(int width, int height)
 {
-	this->width = width;
-	this->height = height;
+	mViewport.width = width;
+	mViewport.height = height;
 	defaultRenderTarget = BaseRenderTargetGL(width, height, 0);
 }
 
@@ -406,13 +412,13 @@ void RendererOpenGL::setMSAASamples(unsigned int samples)
 
 void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 {
-	RenderBackend::setViewPort(x, y, width, height);
+	mViewport.x = x;
+	mViewport.y = y;
+	mViewport.width = width;
+	mViewport.height = height;
 
-	this->width = width;
-	this->height = height;
-
-	glViewport(xPos, yPos, width, height);
-	glScissor(xPos, yPos, width, height);
+	glViewport(x, y, width, height);
+	glScissor(x, y, width, height);
 	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (effectLibrary)
@@ -425,8 +431,8 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	assert(map != nullptr);
 	CubeMapGL* cubeMap = dynamic_cast<CubeMapGL*>(map->getCubeMap());
 
-	glViewport(xPos, yPos, map->getWidth(), map->getHeight());
-	glScissor(xPos, yPos, map->getWidth(), map->getHeight());
+	glViewport(mViewport.x, mViewport.y, map->getWidth(), map->getHeight());
+	glScissor(mViewport.x, mViewport.y, map->getWidth(), map->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
 	glDrawBuffer(GL_NONE);
@@ -505,7 +511,7 @@ void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
 	TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
 
 	glViewport(0, 0, map->getWidth(), map->getHeight());
-	glScissor(0, 0, width, height);
+	glScissor(0, 0, mViewport.width, mViewport.height);
 	glBindFramebuffer(GL_FRAMEBUFFER, map->getFrameBuffer());
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -643,15 +649,15 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 
 std::unique_ptr<SSAO_Deferred> RendererOpenGL::createDeferredSSAO()
 {
-	return std::make_unique<SSAO_DeferredGL>(width, height, &modelDrawer);
+	return std::make_unique<SSAO_DeferredGL>(mViewport.width, mViewport.height, &modelDrawer);
 }
 
 std::unique_ptr<hbao::HBAO> RendererOpenGL::createHBAO()
 {
-	return std::make_unique<hbao::HBAO_GL>(width, height, &modelDrawer);
+	return std::make_unique<hbao::HBAO_GL>(mViewport.width, mViewport.height, &modelDrawer);
 }
 
-EffectLibrary* RendererOpenGL::getEffectLibrary()
+EffectLibraryGL* RendererOpenGL::getEffectLibrary()
 {
 	return effectLibrary.get();
 }

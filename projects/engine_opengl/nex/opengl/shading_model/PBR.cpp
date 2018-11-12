@@ -1,12 +1,13 @@
-#include <nex/shading_model/PBR.hpp>
+#include <nex/opengl/shading_model/PBR.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/shader/ShaderManager.hpp>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 
 using namespace glm;
 
-PBR::PBR(RenderBackend* renderer, Texture* backgroundHDR) :
+PBR::PBR(RendererOpenGL* renderer, Texture* backgroundHDR) :
 	environmentMap(nullptr), shader(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
 
 	skybox.init(renderer->getModelManager());

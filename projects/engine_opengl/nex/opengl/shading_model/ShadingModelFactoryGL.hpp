@@ -1,17 +1,19 @@
 #ifndef SHADING_MODEL_FACTORY_GL_HPP
 #define SHADING_MODEL_FACTORY_GL_HPP
 
-#include <nex/shading_model/ShadingModelFactory.hpp>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include "PBR_DeferredGL.hpp"
 
-class ShadingModelFactoryGL : public ShadingModelFactory {
+class ShadingModelFactoryGL {
 
 public:
-	ShadingModelFactoryGL(RenderBackend* renderer);
-	virtual ~ShadingModelFactoryGL() {
-		int i = 0;
-	};
+	ShadingModelFactoryGL(RendererOpenGL* renderer);
+	virtual ~ShadingModelFactoryGL() = default;
 
-	virtual std::unique_ptr<PBR_Deferred> create_PBR_Deferred_Model(Texture* backgroundHDR) override;
+	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(Texture* backgroundHDR);
+
+private:
+	RendererOpenGL* renderer;
 };
 
 #endif

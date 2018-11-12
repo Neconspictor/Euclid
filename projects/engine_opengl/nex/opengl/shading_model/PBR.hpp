@@ -4,17 +4,17 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/model/Vob.hpp>
 #include <nex/shader/PBRShader.hpp>
-#include <nex/scene/SceneNode.hpp>
+#include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/sprite/Sprite.hpp>
 #include<memory>
 
-class RenderBackend;
+class RendererOpenGL;
 
 class PBR {
 
 public:
-  PBR(RenderBackend* renderer, Texture* backgroundHDR);
+  PBR(RendererOpenGL* renderer, Texture* backgroundHDR);
   virtual ~PBR();
 
   virtual void drawSceneToShadowMap(SceneNode * scene,
@@ -60,7 +60,7 @@ protected:
 	RenderTarget* brdfLookupTexture;
 
 
-	RenderBackend* renderer;
+	RendererOpenGL* renderer;
 	PBRShader* shader;
 
 	Sprite brdfSprite;
