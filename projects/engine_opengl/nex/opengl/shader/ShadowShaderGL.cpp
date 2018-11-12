@@ -4,7 +4,7 @@
 using namespace std;
 using namespace glm;
 
-PointShadowShaderGL::PointShadowShaderGL() : PointShadowShader(), ShaderConfigGL(),
+PointShadowShaderGL::PointShadowShaderGL() : ShaderConfigGL(),
 matrices(nullptr), range(0)
 {
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
@@ -46,7 +46,7 @@ void PointShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("model", data.model);
 }
 
-ShadowShaderGL::ShadowShaderGL() : ShadowShader(), ShaderConfigGL()
+ShadowShaderGL::ShadowShaderGL() : ShaderConfigGL()
 {
 	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
@@ -85,7 +85,7 @@ void ShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("model", data.model);
 }
 
-VarianceShadowShaderGL::VarianceShadowShaderGL() : VarianceShadowShader(), ShaderConfigGL()
+VarianceShadowShaderGL::VarianceShadowShaderGL() : ShaderConfigGL()
 {
 	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");

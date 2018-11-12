@@ -2,25 +2,97 @@
 #include <string>
 #include <nex/logging/LoggingClient.hpp>
 #include <glad/glad.h>
-#include <nex/shader/Shader.hpp>
 #include <unordered_map>
 #include <nex/exception/ShaderInitException.hpp>
 
 class MeshGL;
 class Vob;
 
-class ShaderAttributeGL : public ShaderAttribute
+struct TransformData
+{
+	glm::mat4 const* projection;
+	glm::mat4 const* view;
+	glm::mat4 const* model;
+};
+
+/**
+* Enumerates all shaders that can be used for shading models.
+*/
+enum class Shaders
+{
+	Unknown = 0,
+	BlinnPhongTex,
+	Pbr,
+	Pbr_Deferred_Geometry,
+	Pbr_Deferred_Lighting,
+	Pbr_Convolution,
+	Pbr_Prefilter,
+	Pbr_BrdfPrecompute,
+	CubeDepthMap,
+	DepthMap,
+	GaussianBlurHorizontal,
+	GaussianBlurVertical,
+	Normals,
+	Shadow,
+	ShadowPoint,
+	SimpleColor,
+	SimpleExtrude,
+	Screen,
+	SkyBox,
+	SkyBoxEquirectangular,
+	SkyBoxPanorama,
+	VarianceDepthMap,
+	VarianceShadow
+};
+
+/**
+* Maps a string to a shader enum.
+* @param str: The string to be mapped
+* @return: The mapped shader enum.
+*
+* ATTENTION: If the string couldn't be mapped, a EnumFormatException
+* will be thrown.
+*/
+static Shaders stringToShaderEnum(const std::string& str);
+
+/**
+* Puts a string representation of a shader enum to an output stream.
+*/
+std::ostream& operator<<(std::ostream& os, Shaders shader);
+
+enum class ShaderAttributeType
+{
+	CUBE_MAP,
+	FLOAT,
+	INT,
+	MAT3,
+	MAT4,
+	TEXTURE2D,
+	TEXTURE2D_ARRAY,
+	VEC2,
+	VEC3,
+	VEC4
+};
+
+
+class ShaderAttributeGL
 {
 public:
 	ShaderAttributeGL();
-	ShaderAttributeGL(const ShaderAttributeGL& o);
-	ShaderAttributeGL(ShaderAttributeGL&& o);
-	ShaderAttributeGL& operator=(const ShaderAttributeGL& o);
-	ShaderAttributeGL&& operator=(ShaderAttributeGL&& o);
-	
-
 	ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
-	virtual ~ShaderAttributeGL() override;
+
+	ShaderAttributeGL(const ShaderAttributeGL& o);
+	ShaderAttributeGL& operator=(const ShaderAttributeGL& o);
+
+	virtual ~ShaderAttributeGL();
+
+	void activate(bool active);
+
+	const void* getData() const;
+	ShaderAttributeType getType() const;
+
+	bool isActive() const;
+
 
 	const std::string& getName() const;
 
@@ -30,6 +102,9 @@ public:
 
 protected:
 	std::string uniformName;
+	const void* data;
+	bool m_isActive;
+	ShaderAttributeType type;
 };
 
 class ShaderAttributeCollection
@@ -41,9 +116,8 @@ public:
 
 	ShaderAttributeCollection();
 	ShaderAttributeCollection(const ShaderAttributeCollection& o);
-	ShaderAttributeCollection(ShaderAttributeCollection&& o);
 	ShaderAttributeCollection& operator=(const ShaderAttributeCollection& o);
-	ShaderAttributeCollection&& operator=(ShaderAttributeCollection&& o);
+
 	virtual ~ShaderAttributeCollection();
 
 	ShaderAttributeKey create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
@@ -58,7 +132,7 @@ protected:
 	std::unordered_map<std::string, int>  lookup;
 };
 
-class ShaderConfigGL : public ShaderConfig
+class ShaderConfigGL
 {
 public:
 	ShaderConfigGL();
@@ -68,7 +142,7 @@ public:
 
 	virtual void beforeDrawing(const MeshGL& mesh);
 
-	virtual const ShaderAttribute* getAttributeList() const;
+	virtual const ShaderAttributeGL* getAttributeList() const;
 
 	virtual int getNumberOfAttributes() const;
 
@@ -77,10 +151,12 @@ protected:
 	ShaderAttributeCollection attributes;
 };
 
+
+
 /**
  * Represents a shader program for an OpenGL renderer.
  */
-class ShaderGL : public Shader
+class ShaderGL
 {
 public:
 	/**
@@ -108,20 +184,22 @@ public:
 
 	static bool compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID);
 
-	void draw(Mesh const& mesh) override;
+	virtual void draw(MeshGL const& mesh);
 
-	void drawInstanced(Mesh const& mesh, unsigned amount) override;
+	virtual void drawInstanced(MeshGL const& mesh, unsigned amount);
 
-	virtual ShaderConfig* getConfig() const override;
+	ShaderConfigGL* getConfig() const;
+
+	void setTransformData(TransformData data);
 
 	GLuint getProgramID() const;
 	
 	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
 		const std::string& geometryShaderFile = "");
 	
-	virtual void release() override;
+	virtual void release();
 	
-	void use() override;
+	virtual void use();
 
 	static void initShaderFileSystem();
 
@@ -131,6 +209,8 @@ protected:
 	GLuint instancedProgramID;
 	nex::LoggingClient logClient;
 	GLint textureCounter;
+
+	TransformData data;
 
 	/**
 	* Extracts an #include statements from a line.

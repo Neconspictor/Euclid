@@ -108,24 +108,26 @@ void PhongTexShaderGL::setPointLightRange(float range)
 	this->pointLightRange = range;
 }
 
-void PhongTexShaderGL::setPointLightShadowMap(CubeDepthMap* map)
+void PhongTexShaderGL::setPointLightShadowMap(CubeDepthMapGL* map)
 {
-	pointLightShadowMap = dynamic_cast<CubeDepthMapGL*>(map);
+	pointLightShadowMap = map;
 	assert(pointLightShadowMap);
+	//TODO VALIDATE
 	attributes.setData("cubeDepthMap", dynamic_cast<TextureGL*>(pointLightShadowMap));
 }
 
-void PhongTexShaderGL::setShadowMap(Texture* texture)
+void PhongTexShaderGL::setShadowMap(TextureGL* texture)
 {
-	shadowMap = dynamic_cast<TextureGL*>(texture);
+	shadowMap = texture;
 	assert(shadowMap != nullptr);
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
 	attributes.setData("material.shadowMap", shadowMap, black);
 }
 
-void PhongTexShaderGL::setSkyBox(CubeMap* sky)
+void PhongTexShaderGL::setSkyBox(CubeMapGL* sky)
 {
-	this->skybox = dynamic_cast<CubeMapGL*>(sky);
+	this->skybox = sky;
+	//TODO VALIDATE
 	attributes.setData("skybox", dynamic_cast<TextureGL*>(skybox));
 }
 
@@ -134,9 +136,9 @@ void PhongTexShaderGL::setSpotLightDirection(vec3 direction)
 	spotLight.direction = move(direction);
 }
 
-void PhongTexShaderGL::setVarianceShadowMap(Texture* texture)
+void PhongTexShaderGL::setVarianceShadowMap(TextureGL* texture)
 { 
-	vsMap = dynamic_cast<TextureGL*>(texture);
+	vsMap = texture;
 	assert(vsMap != nullptr);
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
 	attributes.setData("material.vsMap", vsMap, black);
@@ -174,7 +176,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
 	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
 	TextureGL* black = TextureManagerGL::get()->getImageGL("_intern/black.png");
-	Texture* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB }); //brickwall_normal
+	TextureGL* default_normal = TextureManagerGL::get()->getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB }); //brickwall_normal
 	//TextureGL* default_normal = TextureManagerGL::get()->getImageGL("stones/brickwall_normal.jpg"); //brickwall_normal
 
 	attributes.setData("material.shininess", &material->getShininessRef());

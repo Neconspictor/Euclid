@@ -28,12 +28,12 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
-ShaderConfig* ShaderManagerGL::getConfig(Shaders shader)
+ShaderConfigGL* ShaderManagerGL::getConfig(Shaders shader)
 {
 	return getShader(shader)->getConfig();
 }
 
-Shader* ShaderManagerGL::getShader(Shaders shaderEnum)
+ShaderGL* ShaderManagerGL::getShader(Shaders shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
@@ -72,7 +72,7 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::VarianceShadow);
 }
 
-void ShaderManagerGL::validateShader(Shader* shader)
+void ShaderManagerGL::validateShader(ShaderGL* shader)
 {
 	if (!dynamic_cast<ShaderGL*>(shader))
 	{
@@ -85,10 +85,10 @@ ShaderManagerGL* ShaderManagerGL::get()
 	return instance.get();
 }
 
-Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
+ShaderGL* ShaderManagerGL::createShader(Shaders shaderEnum)
 {
 	using s = Shaders;
-	shared_ptr<Shader> shaderPtr;
+	shared_ptr<ShaderGL> shaderPtr;
 	switch(shaderEnum)
 	{
 	case s::BlinnPhongTex: {
@@ -204,7 +204,7 @@ Shader* ShaderManagerGL::createShader(Shaders shaderEnum)
 	}
 	}
 	
-	Shader* result = shaderPtr.get();
+	ShaderGL* result = shaderPtr.get();
 	assert(result != nullptr);
 	shaderMap[shaderEnum] = shaderPtr;
 	return result;

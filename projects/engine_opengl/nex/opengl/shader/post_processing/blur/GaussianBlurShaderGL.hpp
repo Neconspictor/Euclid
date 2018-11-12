@@ -1,20 +1,19 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class GaussianBlurHorizontalShaderGL : public GaussianBlurHorizontalShader, public ShaderConfigGL
+class GaussianBlurHorizontalShaderGL :  public ShaderConfigGL
 {
 public:
 	GaussianBlurHorizontalShaderGL();
 
 	virtual ~GaussianBlurHorizontalShaderGL();
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
-	// Inherited via GaussianBlurShader
-	virtual void setTexture(Texture * tex) override;
-	virtual void setImageWidth(float width) override;
+	void setTexture(TextureGL * tex);
+	void setImageWidth(float width);
+	void setImageHeight(float height);
 
 protected:
 	TextureGL* image;
@@ -24,23 +23,20 @@ protected:
 	glm::mat4 transform;
 	float width;
 	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
-
-	// Inherited via GaussianBlurHorizontalShader
-	virtual void setImageHeight(float height) override;
 };
 
-class GaussianBlurVerticalShaderGL : public GaussianBlurVerticalShader, public ShaderConfigGL
+class GaussianBlurVerticalShaderGL : public ShaderConfigGL
 {
 public:
 	GaussianBlurVerticalShaderGL();
 
 	virtual ~GaussianBlurVerticalShaderGL();
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
-	// Inherited via GaussianBlurShader
-	virtual void setTexture(Texture * tex) override;
-	virtual void setImageHeight(float height) override;
+	void setTexture(TextureGL * tex);
+	void setImageHeight(float height);
+	void setImageWidth(float width);
 
 protected:
 	TextureGL* image;
@@ -51,7 +47,4 @@ protected:
 	glm::mat4 transform;
 	float width;
 	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
-
-	// Inherited via GaussianBlurVerticalShader
-	virtual void setImageWidth(float width) override;
 };

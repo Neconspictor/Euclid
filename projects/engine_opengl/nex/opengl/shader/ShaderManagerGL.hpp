@@ -1,5 +1,4 @@
 #pragma once
-#include <nex/shader/ShaderManager.hpp>
 #include <map>
 #include <memory>
 #include <nex/opengl/shader/ShaderGL.hpp>
@@ -7,21 +6,42 @@
 /**
  * An opengl implementation of a shader manager
  */
-class ShaderManagerGL : public ShaderManager
+ /**
+  * An interface for creating, receiving and storing renderer independent shaders
+  */
+class ShaderManagerGL
 {
 public:
-	virtual ~ShaderManagerGL() override;
-	virtual ShaderConfig* getConfig(Shaders shader) override;
-	virtual Shader* getShader(Shaders shader) override;
-	virtual void loadShaders() override;
-	virtual void validateShader(Shader* shader) override;
+	virtual ~ShaderManagerGL();
+	
+	
+	ShaderConfigGL* getConfig(Shaders shader);
+
+	/**
+	 * Provides a singleton of a shader by its shader enumeration.
+	 * NOTE: A ShaderInitException can be thrown if the specified has to be created but
+	 * an error occured during initialization.
+	 */
+	ShaderGL* getShader(Shaders shader);
+
+	/**
+	 * Loads all shaders.
+	 * NOTE: A ShaderInitException is thrown if one shaders couldn't be created.
+	 */
+	void loadShaders();
+
+	/**
+	* Checks, if the specified shader is an implementation of the underlying render engine
+	* NOTE: A runtime error is thrown if the validation fails!
+	*/
+	void validateShader(ShaderGL* shader);
 	/**
 	* Provides access the shader manager singleton.
 	*/
 	static ShaderManagerGL* get();
 
 private:
-	std::map<Shaders, std::shared_ptr<Shader>> shaderMap;
+	std::map<Shaders, std::shared_ptr<ShaderGL>> shaderMap;
 	nex::LoggingClient logClient;
 
 	// this class is a singleton, thus private constructor
@@ -33,7 +53,7 @@ private:
 	 *
 	 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
 	 */
-	Shader* createShader(Shaders shaderEnum);
+	ShaderGL* createShader(Shaders shaderEnum);
 
 	static std::unique_ptr<ShaderManagerGL> instance;
 };

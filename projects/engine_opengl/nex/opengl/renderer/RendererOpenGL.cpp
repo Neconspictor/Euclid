@@ -10,7 +10,6 @@
 #include <nex/opengl/antialiasing/SMAA_GL.hpp>
 #include <nex/opengl/texture/ImageLoaderGL.hpp>
 #include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/model/Vob.hpp>
 #include <nex/drawing/ModelDrawer.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,7 +18,7 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
-#include "nex/opengl/shader/SkyBoxShaderGL.hpp"
+#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
 
 using namespace std;
 using namespace nex;

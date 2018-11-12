@@ -9,7 +9,6 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <imgui/imgui.h>
-#include <nex/gui/Util.hpp>
 
 using namespace std;
 using namespace nex;

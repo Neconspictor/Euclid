@@ -159,26 +159,6 @@ set(
 	nex/post_processing/HBAO.cpp
 	nex/post_processing/SSAO.hpp
 	nex/post_processing/SSAO.cpp
-	
-	#nex/post_processing/blur
-	nex/post_processing/blur/GaussianBlur.hpp
-	nex/post_processing/blur/GaussianBlur.cpp
-    
-    #nex/shader
-	nex/shader/DepthMapShader.hpp
-    nex/shader/NormalsShader.hpp
-    nex/shader/PBRShader.hpp	
-	nex/shader/PhongTextureShader.hpp
-    nex/shader/ScreenShader.hpp
-    nex/shader/Shader.hpp
-	nex/shader/Shader.cpp
-    nex/shader/ShaderManager.hpp
-	nex/shader/ShadowShader.hpp
-    nex/shader/SimpleColorShader.hpp
-    nex/shader/SimpleExtrudeShader.hpp
-    nex/shader/SkyBoxShader.hpp
-	#nex/shader/post_processing/blur
-	nex/shader/post_processing/blur/GaussianBlurShader.hpp
     
     #nex/shader_generator
     nex/shader_generator/CommentStateTracker.cpp

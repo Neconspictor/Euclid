@@ -1,17 +1,16 @@
 #pragma once
-#include <nex/shader/NormalsShader.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
 
-class NormalsShaderGL : public NormalsShader, public ShaderConfigGL
+class NormalsShaderGL : public ShaderConfigGL
 {
 public:
 	NormalsShaderGL();
 
 	virtual ~NormalsShaderGL();
 
-	const glm::vec4& getNormalColor() const override;
+	const glm::vec4& getNormalColor() const;
 
-	void setNormalColor(glm::vec4 color) override;
+	void setNormalColor(glm::vec4 color);
 
 	void update(const MeshGL& mesh, const TransformData& data) override;
 

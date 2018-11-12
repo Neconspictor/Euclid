@@ -3,7 +3,7 @@
 
 using namespace glm;
 
-SkyBoxShaderGL::SkyBoxShaderGL() : SkyBoxShader(), ShaderConfigGL(), skyTexture(nullptr)
+SkyBoxShaderGL::SkyBoxShaderGL() : ShaderConfigGL(), skyTexture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
@@ -25,7 +25,7 @@ void SkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
-void SkyBoxShaderGL::setSkyTexture(CubeMap* sky)
+void SkyBoxShaderGL::setSkyTexture(CubeMapGL* sky)
 {
 	skyTexture = dynamic_cast<CubeMapGL*>(sky);
 	assert(skyTexture != nullptr);
@@ -42,7 +42,7 @@ void SkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("view", &view);
 }
 
-PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL() : PanoramaSkyBoxShader(), ShaderConfigGL(), 
+PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL() : ShaderConfigGL(), 
 skyTexture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
@@ -65,7 +65,7 @@ void PanoramaSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
-void PanoramaSkyBoxShaderGL::setSkyTexture(Texture* tex)
+void PanoramaSkyBoxShaderGL::setSkyTexture(TextureGL* tex)
 {
 	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
 	assert(texGL != nullptr);
@@ -83,7 +83,7 @@ void PanoramaSkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& dat
 	attributes.setData("view", &view);
 }
 
-EquirectangularSkyBoxShaderGL::EquirectangularSkyBoxShaderGL() : EquirectangularSkyBoxShader(), ShaderConfigGL(),
+EquirectangularSkyBoxShaderGL::EquirectangularSkyBoxShaderGL() : ShaderConfigGL(),
 skyTexture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
@@ -108,7 +108,7 @@ void EquirectangularSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
-void EquirectangularSkyBoxShaderGL::setSkyTexture(Texture * tex)
+void EquirectangularSkyBoxShaderGL::setSkyTexture(TextureGL * tex)
 {
 	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
 	assert(texGL != nullptr);

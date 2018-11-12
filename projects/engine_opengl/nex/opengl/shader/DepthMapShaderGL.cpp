@@ -6,7 +6,7 @@ using namespace glm;
 using namespace std;
 
 CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
-	CubeDepthMapShader(), cubeMap(nullptr), range(0)
+	cubeMap(nullptr), range(0)
 {
 	using types = ShaderAttributeType;
 	attributes.create(types::MAT4, &transform, "transform", true);
@@ -18,7 +18,7 @@ CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
 
 CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
 
-void CubeDepthMapShaderGL::useCubeDepthMap(CubeMap* map)
+void CubeDepthMapShaderGL::useCubeDepthMap(CubeMapGL* map)
 {
 	this->cubeMap = dynamic_cast<CubeMapGL*>(map);
 	assert(this->cubeMap != nullptr);
@@ -57,8 +57,7 @@ void CubeDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData(modelName, &model);
 }
 
-DepthMapShaderGL::DepthMapShaderGL() :
-	DepthMapShader(), texture(nullptr)
+DepthMapShaderGL::DepthMapShaderGL() : texture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
 	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "depthMap");
@@ -91,7 +90,7 @@ void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	transform = (*data.projection) * (*data.view) * (*data.model);
 }
 
-void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
+void DepthMapShaderGL::useDepthMapTexture(TextureGL* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
 	assert(this->texture != nullptr);
@@ -100,7 +99,7 @@ void DepthMapShaderGL::useDepthMapTexture(Texture* texture)
 	attributes.setData(depthMapName, this->texture);
 }
 
-VarianceDepthMapShaderGL::VarianceDepthMapShaderGL() : VarianceDepthMapShader(), texture(nullptr)
+VarianceDepthMapShaderGL::VarianceDepthMapShaderGL() : texture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
 	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "vDepthMap");
@@ -114,7 +113,7 @@ void VarianceDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& d
 	transform = *data.projection * (*data.view) * (*data.model);
 }
 
-void VarianceDepthMapShaderGL::useVDepthMapTexture(Texture* texture)
+void VarianceDepthMapShaderGL::useVDepthMapTexture(TextureGL* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
 	assert(this->texture != nullptr);

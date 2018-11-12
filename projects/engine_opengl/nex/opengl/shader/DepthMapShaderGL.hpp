@@ -1,20 +1,19 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/shader/DepthMapShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class CubeDepthMapShaderGL : public CubeDepthMapShader, public ShaderConfigGL
+class CubeDepthMapShaderGL : public ShaderConfigGL
 {
 public:
 	CubeDepthMapShaderGL();
 
 	virtual ~CubeDepthMapShaderGL();
 	
-	void useCubeDepthMap(CubeMap* map) override;
+	void useCubeDepthMap(CubeMapGL* map);
 
-	void setLightPos(glm::vec3 pos) override;
+	void setLightPos(glm::vec3 pos);
 
-	void setRange(float range) override;
+	void setRange(float range);
 
 	void update(const MeshGL& mesh, const TransformData& data) override;
 
@@ -25,36 +24,36 @@ private:
 	glm::mat4 transform;
 };
 
-class DepthMapShaderGL : public DepthMapShader, public ShaderConfigGL
+class DepthMapShaderGL : public ShaderConfigGL
 {
 public:
 	DepthMapShaderGL();
 
 	virtual ~DepthMapShaderGL();
 
-	virtual void beforeDrawing(const MeshGL& mesh) override;
+	void beforeDrawing(const MeshGL& mesh) override;
 
-	virtual void afterDrawing(const MeshGL& mesh) override;
+	void afterDrawing(const MeshGL& mesh) override;
 
 	void update(const MeshGL& mesh, const TransformData& data) override;
 
-	void useDepthMapTexture(Texture* texture) override;
+	void useDepthMapTexture(TextureGL* texture);
 
 private:
 	TextureGL* texture;
 	glm::mat4 transform;
 };
 
-class VarianceDepthMapShaderGL : public VarianceDepthMapShader, public ShaderConfigGL
+class VarianceDepthMapShaderGL : public ShaderConfigGL
 {
 public:
 	VarianceDepthMapShaderGL();
 
 	virtual ~VarianceDepthMapShaderGL();
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
-	virtual void useVDepthMapTexture(Texture* texture) override;
+	void useVDepthMapTexture(TextureGL* texture);
 
 private:
 	TextureGL* texture;

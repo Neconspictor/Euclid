@@ -2,11 +2,11 @@
 
 using namespace glm;
 
-GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL() : GaussianBlurHorizontalShader(), ShaderConfigGL(), image(nullptr), height(1024), width(800)
+GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL() : ShaderConfigGL(), image(nullptr), height(1024), width(800)
 {
 	imageAttribute = attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "image");
 	widthAttribute = attributes.create(ShaderAttributeType::FLOAT, &width, "windowWidth", true);
-	widthAttribute = attributes.create(ShaderAttributeType::FLOAT, &height, "windowHeight", true);
+	heightAttribute = attributes.create(ShaderAttributeType::FLOAT, &height, "windowHeight", true);
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
 }
 
@@ -16,7 +16,7 @@ GaussianBlurHorizontalShaderGL::~GaussianBlurHorizontalShaderGL()
 }
 
 
-void GaussianBlurHorizontalShaderGL::setTexture(Texture * tex)
+void GaussianBlurHorizontalShaderGL::setTexture(TextureGL * tex)
 {
 	image = dynamic_cast<TextureGL*>(tex);
 	assert(image != nullptr);
@@ -43,7 +43,7 @@ void GaussianBlurHorizontalShaderGL::update(const MeshGL & mesh, const Transform
 	transform = projection * view * model;
 }
 
-GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL() : GaussianBlurVerticalShader(), ShaderConfigGL(), image(nullptr), height(1024), width(1024)
+GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL() : ShaderConfigGL(), image(nullptr), height(1024), width(1024)
 {
 	imageAttribute = attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "image");
 	heightAttribute = attributes.create(ShaderAttributeType::FLOAT, &height, "windowHeight", true);
@@ -57,7 +57,7 @@ GaussianBlurVerticalShaderGL::~GaussianBlurVerticalShaderGL()
 }
 
 
-void GaussianBlurVerticalShaderGL::setTexture(Texture * tex)
+void GaussianBlurVerticalShaderGL::setTexture(TextureGL * tex)
 {
 	image = dynamic_cast<TextureGL*>(tex);
 	assert(image != nullptr);

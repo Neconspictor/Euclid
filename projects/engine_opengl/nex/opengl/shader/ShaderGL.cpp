@@ -19,6 +19,66 @@ using namespace glm;
 
 LoggingClient staticLogClient(getLogServer());
 
+/**
+* Maps shader enumerations to a string representation.
+*/
+const static nex::util::EnumString<Shaders> shaderEnumConversion[] = {
+	{ Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
+{ Shaders::Pbr, "PBR" },
+{ Shaders::Pbr_Deferred_Geometry, "PBR_DEFERRED_GEOMETRY" },
+{ Shaders::Pbr_Deferred_Lighting, "PBR_DEFERRED_LIGHTING" },
+{ Shaders::Pbr_Convolution, "PBR_CONVOLUTION" },
+{ Shaders::Pbr_Prefilter, "PBR_PREFILTER" },
+{ Shaders::Pbr_BrdfPrecompute, "PBR_BRDF_PRECOMPUTE" },
+{ Shaders::CubeDepthMap, "CUBE_DEPTH_MAP" },
+{ Shaders::DepthMap, "DEPTH_MAP" },
+{ Shaders::GaussianBlurHorizontal, "GAUSSIAN_BLUR_HORIZONTAL" },
+{ Shaders::GaussianBlurVertical, "GAUSSIAN_BLUR_VERTICAL" },
+{ Shaders::Normals, "NORMALS" },
+{ Shaders::Shadow, "SHADOW" },
+{ Shaders::ShadowPoint, "SHADOW_POINT" },
+{ Shaders::SimpleColor, "SIMPLE_COLOR" },
+{ Shaders::SimpleExtrude, "SIMPLE_EXTRUDE" },
+{ Shaders::Screen, "SCREEN" },
+{ Shaders::SkyBox, "SKY_BOX" },
+{ Shaders::SkyBoxEquirectangular, "SKY_BOX_EQUIRECTANGULAR" },
+{ Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
+{ Shaders::VarianceShadow, "VARIANCE_DEPTH_MAP" },
+{ Shaders::VarianceShadow, "VARIANCE_SHADOW" }
+};
+
+
+void ShaderAttributeGL::activate(bool active)
+{
+	m_isActive = active;
+}
+
+const void* ShaderAttributeGL::getData() const
+{
+	return data;
+}
+
+ShaderAttributeType ShaderAttributeGL::getType() const
+{
+	return type;
+}
+
+bool ShaderAttributeGL::isActive() const
+{
+	return m_isActive;
+}
+
+Shaders stringToShaderEnum(const std::string& str)
+{
+	return stringToEnum(str, shaderEnumConversion);
+}
+
+std::ostream& operator<<(std::ostream& os, Shaders shader)
+{
+	os << enumToString(shader, shaderEnumConversion);
+	return os;
+}
+
 
 ShaderAttributeGL::ShaderAttributeGL()
 {
@@ -28,30 +88,19 @@ ShaderAttributeGL::ShaderAttributeGL()
 	m_isActive = false;
 }
 
-ShaderAttributeGL::ShaderAttributeGL(const ShaderAttributeGL& o) : ShaderAttribute(o), 
+ShaderAttributeGL::ShaderAttributeGL(const ShaderAttributeGL& o) : data(o.data), m_isActive(o.m_isActive), type(o.type),
 	uniformName(o.uniformName)
-{
-}
-
-ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeGL&& o) : ShaderAttribute(o), 
-uniformName(o.uniformName)
 {
 }
 
 ShaderAttributeGL& ShaderAttributeGL::operator=(const ShaderAttributeGL& o)
 {
 	if (this == &o) return *this;
-	ShaderAttribute::operator=(o);
 	uniformName = o.uniformName;
+	data = o.data;
+	m_isActive = o.m_isActive;
+	type = o.type;
 	return *this;
-}
-
-ShaderAttributeGL&& ShaderAttributeGL::operator=(ShaderAttributeGL&& o)
-{
-	if (this == &o) return std::move(*this);
-	ShaderAttribute::operator=(std::move(o));
-	uniformName = move(o.uniformName);
-	return std::move(*this);
 }
 
 ShaderAttributeGL::ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active)
@@ -90,12 +139,6 @@ ShaderAttributeCollection::ShaderAttributeCollection(const ShaderAttributeCollec
 	vec(o.vec), lookup(o.lookup)
 {}
 
-ShaderAttributeCollection::ShaderAttributeCollection(ShaderAttributeCollection&& o) : 
-	vec(o.vec), lookup(o.lookup)
-{
-	o.vec.clear();
-	o.lookup.clear();
-}
 
 ShaderAttributeCollection& ShaderAttributeCollection::operator=(const ShaderAttributeCollection& o)
 {
@@ -104,15 +147,6 @@ ShaderAttributeCollection& ShaderAttributeCollection::operator=(const ShaderAttr
 	vec = o.vec;
 	lookup = o.lookup;
 	return *this;
-}
-
-ShaderAttributeCollection&& ShaderAttributeCollection::operator=(ShaderAttributeCollection&& o)
-{
-	if (this == &o)
-		return std::move(*this);
-	vec = move(o.vec);
-	lookup = move(o.lookup);
-	return std::move(*this);
 }
 
 ShaderAttributeCollection::~ShaderAttributeCollection(){}
@@ -175,7 +209,7 @@ void ShaderConfigGL::afterDrawing(const MeshGL& mesh){}
 
 void ShaderConfigGL::beforeDrawing(const MeshGL& mesh){}
 
-const ShaderAttribute* ShaderConfigGL::getAttributeList() const
+const ShaderAttributeGL* ShaderConfigGL::getAttributeList() const
 {
 	return attributes.getList();
 }
@@ -259,6 +293,11 @@ void ShaderGL::initShaderFileSystem()
 		//glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str()); // TODO ARB_shading_language is only supported
 		// on NVIDIA GPUs => find a GPU independent solution; For now, includes are deactivated in all shaders
 	}
+}
+
+void ShaderGL::setTransformData(TransformData data)
+{
+	data = std::move(data);
 }
 
 GLuint ShaderGL::getProgramID() const
@@ -435,9 +474,8 @@ bool ShaderGL::compileShaderComponent(const std::string& shaderContent, GLuint s
 	return false;
 }
 
-void ShaderGL::draw(Mesh const& meshOriginal)
+void ShaderGL::draw(MeshGL const& mesh)
 {
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
 
 	beforeDrawing(mesh);
@@ -450,9 +488,8 @@ void ShaderGL::draw(Mesh const& meshOriginal)
 	afterDrawing(mesh);
 }
 
-void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
+void ShaderGL::drawInstanced(MeshGL const& mesh, unsigned amount)
 {
-	MeshGL const& mesh = dynamic_cast<MeshGL const&>(meshOriginal);
 	textureCounter = 0;
 	
 	beforeDrawing(mesh);
@@ -465,7 +502,7 @@ void ShaderGL::drawInstanced(Mesh const& meshOriginal, unsigned amount)
 	afterDrawing(mesh);
 }
 
-ShaderConfig* ShaderGL::getConfig() const
+ShaderConfigGL* ShaderGL::getConfig() const
 {
 	return config.get();
 };

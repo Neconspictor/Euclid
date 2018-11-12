@@ -7,7 +7,7 @@ using namespace std;
 using namespace glm;
 
 ScreenShaderGL::ScreenShaderGL() :
-	ScreenShader(), ShaderConfigGL(), texture(nullptr)
+	ShaderConfigGL(), texture(nullptr)
 {
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
 	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "screenTexture");
@@ -24,7 +24,7 @@ void ScreenShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	transform = projection * view * model;
 }
 
-void ScreenShaderGL::useTexture(Texture* texture)
+void ScreenShaderGL::useTexture(TextureGL* texture)
 {
 	this->texture = dynamic_cast<TextureGL*>(texture);
 	assert(this->texture);

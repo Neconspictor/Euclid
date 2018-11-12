@@ -1,53 +1,52 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/shader/ShadowShader.hpp>
 
-class PointShadowShaderGL : public PointShadowShader, public ShaderConfigGL
+class PointShadowShaderGL : public ShaderConfigGL
 {
 public:
 	PointShadowShaderGL();
 
 	virtual ~PointShadowShaderGL();
 
-	virtual void setLightPosition(glm::vec3 pos) override;
+	void setLightPosition(glm::vec3 pos);
 
-	virtual void setRange(float range) override;
+	void setRange(float range);
 
-	virtual void setShadowMatrices(glm::mat4 matrices[6]) override;
+	void setShadowMatrices(glm::mat4 matrices[6]);
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 	glm::vec3 lightPos;
 	glm::mat4* matrices;
 	float range;
 };
 
-class ShadowShaderGL : public ShadowShader, public ShaderConfigGL
+class ShadowShaderGL : public ShaderConfigGL
 {
 public:
 	ShadowShaderGL();
 
 	virtual ~ShadowShaderGL();
 
-	virtual void beforeDrawing(const MeshGL& mesh) override;
+	void beforeDrawing(const MeshGL& mesh) override;
 
-	virtual void afterDrawing(const MeshGL& mesh) override;
+	void afterDrawing(const MeshGL& mesh) override;
 
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 protected:
 	glm::mat4 lightSpaceMatrix;
 };
 
-class VarianceShadowShaderGL : public VarianceShadowShader, public ShaderConfigGL
+class VarianceShadowShaderGL : public ShaderConfigGL
 {
 public:
 	VarianceShadowShaderGL();
 
 	virtual ~VarianceShadowShaderGL();
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 protected:
 	glm::mat4 lightSpaceMatrix;

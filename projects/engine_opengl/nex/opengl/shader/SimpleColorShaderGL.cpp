@@ -4,7 +4,7 @@
 using namespace std;
 using namespace glm;
 
-SimpleColorShaderGL::SimpleColorShaderGL() : SimpleColorShader(), ShaderConfigGL(), 
+SimpleColorShaderGL::SimpleColorShaderGL() : ShaderConfigGL(), 
 objectColor(1, 1, 1, 1)
 {
 	attributes.create(ShaderAttributeType::VEC4, &objectColor, "objectColor", true);

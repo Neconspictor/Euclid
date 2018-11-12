@@ -70,15 +70,15 @@ const vec3& PBRShaderGL::getLightPosition() const
 	return dirLight.direction;
 }
 
-void PBRShaderGL::setBrdfLookupTexture(Texture * brdfLUT)
+void PBRShaderGL::setBrdfLookupTexture(TextureGL * brdfLUT)
 {
-	this->brdfLUT = dynamic_cast<TextureGL*>(brdfLUT);
+	this->brdfLUT = brdfLUT;
 	attributes.setData("brdfLUT", this->brdfLUT);
 }
 
-void PBRShaderGL::setIrradianceMap(CubeMap * irradianceMap)
+void PBRShaderGL::setIrradianceMap(CubeMapGL * irradianceMap)
 {
-	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
+	this->irradianceMap = irradianceMap;
 	attributes.setData("irradianceMap", this->irradianceMap);
 }
 
@@ -107,25 +107,26 @@ void PBRShaderGL::setLightViewMatrix(glm::mat4 mat)
 	lightViewMatrix = move(mat);
 }
 
-void PBRShaderGL::setPrefilterMap(CubeMap* prefilterMap) {
-	this->prefilterMap = dynamic_cast<CubeMapGL*>(prefilterMap);
+void PBRShaderGL::setPrefilterMap(CubeMapGL* prefilterMap) {
+	this->prefilterMap = prefilterMap;
 	attributes.setData("prefilterMap", this->prefilterMap);
 }
 
 
 
-void PBRShaderGL::setShadowMap(Texture* texture)
+void PBRShaderGL::setShadowMap(TextureGL* texture)
 {
-	shadowMap = dynamic_cast<TextureGL*>(texture);
+	shadowMap = texture;
 	assert(shadowMap != nullptr);
-	Texture* black = TextureManagerGL::get()->getDefaultBlackTexture();
+	TextureGL* black = TextureManagerGL::get()->getDefaultBlackTexture();
 	attributes.setData("material.shadowMap", shadowMap, black);
 }
 
-void PBRShaderGL::setSkyBox(CubeMap* sky)
+void PBRShaderGL::setSkyBox(CubeMapGL* sky)
 {
-	this->skybox = dynamic_cast<CubeMapGL*>(sky);
+	this->skybox = sky;
 	//attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
+	//TODO IMPORTANT
 }
 
 void PBRShaderGL::setCameraPosition(vec3 position)
@@ -159,12 +160,12 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 
 	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
 
-	TextureGL* albedoMap = static_cast<TextureGL*>(material->getAlbedoMap());
-	TextureGL* aoMap = static_cast<TextureGL*>(material->getAoMap());
-	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
-	TextureGL* metallicMap = static_cast<TextureGL*>(material->getMetallicMap());
-	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
-	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
+	TextureGL* albedoMap = material->getAlbedoMap();
+	TextureGL* aoMap = material->getAoMap();
+	TextureGL* emissionMap = material->getEmissionMap();
+	TextureGL* metallicMap = material->getMetallicMap();
+	TextureGL* normalMap = material->getNormalMap();
+	TextureGL* roughnessMap = material->getRoughnessMap();
 
 
 	attributes.setData("material.albedoMap", albedoMap);
@@ -178,7 +179,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	//attributes.setData("brdfLUT", white, white);
 }
 
-PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : PBRShader_Deferred_Lighting(), ShaderConfigGL()
+PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : ShaderConfigGL()
 {
 	using types = ShaderAttributeType;
 
@@ -223,13 +224,13 @@ PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
 	glDeleteBuffers(1, &cascadeBufferUBO);
 }
 
-void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(Texture * brdfLUT)
+void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(TextureGL * brdfLUT)
 {
-	this->brdfLUT = dynamic_cast<TextureGL*>(brdfLUT);
+	this->brdfLUT = brdfLUT;
 	attributes.setData("brdfLUT", this->brdfLUT);
 }
 
-void PBRShader_Deferred_LightingGL::setGBuffer(PBR_GBuffer * gBuffer)
+void PBRShader_Deferred_LightingGL::setGBuffer(PBR_GBufferGL * gBuffer)
 {
 	this->gBuffer = gBuffer;
 }
@@ -240,9 +241,9 @@ void PBRShader_Deferred_LightingGL::setInverseViewFromGPass(glm::mat4 inverseVie
 	attributes.setData("inverseViewMatrix_GPass", &this->inverseViewFromGPass);
 }
 
-void PBRShader_Deferred_LightingGL::setIrradianceMap(CubeMap * irradianceMap)
+void PBRShader_Deferred_LightingGL::setIrradianceMap(CubeMapGL * irradianceMap)
 {
-	this->irradianceMap = dynamic_cast<CubeMapGL*>(irradianceMap);
+	this->irradianceMap = irradianceMap;
 	attributes.setData("irradianceMap", this->irradianceMap);
 }
 
@@ -257,30 +258,31 @@ void PBRShader_Deferred_LightingGL::setLightDirection(glm::vec3 direction)
 }
 
 
-void PBRShader_Deferred_LightingGL::setPrefilterMap(CubeMap * prefilterMap)
+void PBRShader_Deferred_LightingGL::setPrefilterMap(CubeMapGL * prefilterMap)
 {
-	this->prefilterMap = dynamic_cast<CubeMapGL*>(prefilterMap);
+	this->prefilterMap = prefilterMap;
 	attributes.setData("prefilterMap", this->prefilterMap);
 }
 
-void PBRShader_Deferred_LightingGL::setShadowMap(Texture * texture)
+void PBRShader_Deferred_LightingGL::setShadowMap(TextureGL * texture)
 {
-	shadowMap = dynamic_cast<TextureGL*>(texture);
+	shadowMap = texture;
 	assert(shadowMap != nullptr);
 	attributes.setData("shadowMap", shadowMap);
 }
 
-void PBRShader_Deferred_LightingGL::setAOMap(Texture * texture)
+void PBRShader_Deferred_LightingGL::setAOMap(TextureGL * texture)
 {
-	ssaoMap = dynamic_cast<TextureGL*>(texture);
+	ssaoMap = texture;
 	assert(ssaoMap != nullptr);
 	attributes.setData("ssaoMap", ssaoMap);
 }
 
-void PBRShader_Deferred_LightingGL::setSkyBox(CubeMap * sky)
+void PBRShader_Deferred_LightingGL::setSkyBox(CubeMapGL * sky)
 {
-	this->skybox = dynamic_cast<CubeMapGL*>(sky);
+	this->skybox = sky;
 	//attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
+	//TODO IMPORTANT
 }
 
 void PBRShader_Deferred_LightingGL::setWorldToLightSpaceMatrix(glm::mat4 worldToLight)
@@ -328,9 +330,9 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("cascadedDepthMap", this->cascadedDepthMap);
 }
 
-void PBRShader_Deferred_LightingGL::setCascadedDepthMap(Texture* cascadedDepthMap)
+void PBRShader_Deferred_LightingGL::setCascadedDepthMap(TextureGL* cascadedDepthMap)
 {
-	this->cascadedDepthMap = (TextureGL*)cascadedDepthMap;
+	this->cascadedDepthMap = cascadedDepthMap;
 }
 
 void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadow::CascadeData* cascadedData)
@@ -340,7 +342,7 @@ void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadow::CascadeData*
 }
 
 
-PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : PBRShader_Deferred_Geometry(), ShaderConfigGL()
+PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : ShaderConfigGL()
 {
 	using types = ShaderAttributeType;
 
@@ -409,12 +411,12 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 
 	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
 
-	TextureGL* albedoMap = static_cast<TextureGL*>(material->getAlbedoMap());
-	TextureGL* aoMap = static_cast<TextureGL*>(material->getAoMap());
-	TextureGL* emissionMap = static_cast<TextureGL*>(material->getEmissionMap());
-	TextureGL* metallicMap = static_cast<TextureGL*>(material->getMetallicMap());
-	TextureGL* normalMap = static_cast<TextureGL*>(material->getNormalMap());
-	TextureGL* roughnessMap = static_cast<TextureGL*>(material->getRoughnessMap());
+	TextureGL* albedoMap = material->getAlbedoMap();
+	TextureGL* aoMap = material->getAoMap();
+	TextureGL* emissionMap = material->getEmissionMap();
+	TextureGL* metallicMap = material->getMetallicMap();
+	TextureGL* normalMap = material->getNormalMap();
+	TextureGL* roughnessMap = material->getRoughnessMap();
 
 	attributes.setData("material.albedoMap", albedoMap); 
 	attributes.setData("material.aoMap", aoMap);
@@ -454,7 +456,7 @@ void PBRShader_Deferred_GeometryGL::afterDrawing(const MeshGL& mesh)
 }
 
 
-PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL(), PBR_ConvolutionShader()
+PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL()
 {
 	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "environmentMap");
 	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection", true);
@@ -465,10 +467,10 @@ PBR_ConvolutionShaderGL::~PBR_ConvolutionShaderGL()
 {
 }
 
-void PBR_ConvolutionShaderGL::setEnvironmentMap(CubeMap * cubeMap)
+void PBR_ConvolutionShaderGL::setEnvironmentMap(CubeMapGL * cubeMap)
 {
-	this->cubeMap = dynamic_cast<CubeMapGL*>(cubeMap);
-	attributes.setData("environmentMap", dynamic_cast<CubeMapGL*>(cubeMap));
+	this->cubeMap = cubeMap;
+	attributes.setData("environmentMap", cubeMap);
 }
 
 void PBR_ConvolutionShaderGL::update(const MeshGL & mesh, const TransformData & data)
@@ -493,10 +495,10 @@ PBR_PrefilterShaderGL::~PBR_PrefilterShaderGL()
 {
 }
 
-void PBR_PrefilterShaderGL::setMapToPrefilter(CubeMap * cubeMap)
+void PBR_PrefilterShaderGL::setMapToPrefilter(CubeMapGL * cubeMap)
 {
-	this->cubeMap = dynamic_cast<CubeMapGL*>(cubeMap);
-	attributes.setData("environmentMap", dynamic_cast<CubeMapGL*>(cubeMap));
+	this->cubeMap = cubeMap;
+	attributes.setData("environmentMap", cubeMap);
 }
 
 void PBR_PrefilterShaderGL::setRoughness(float roughness)

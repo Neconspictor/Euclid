@@ -1,9 +1,8 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/shader/PhongTextureShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class PhongTexShaderGL : public PhongTextureShader, public ShaderConfigGL
+class PhongTexShaderGL : public ShaderConfigGL
 {
 public:
 
@@ -37,22 +36,22 @@ public:
 	PhongTexShaderGL();
 
 	virtual ~PhongTexShaderGL();
-	virtual const glm::vec3& getLightColor() const override;
-	virtual const glm::vec3& getLightPosition() const override;
-	virtual void setLightColor(glm::vec3 color) override;
-	virtual void setLightDirection(glm::vec3 direction) override;
-	virtual void setLightProjMatrix(glm::mat4 mat) override;
-	virtual void setLightSpaceMatrix(glm::mat4 mat) override;
-	virtual void setLightViewMatrix(glm::mat4 mat) override;
-	virtual void setPointLightPositions(glm::vec3* positions) override;
-	virtual void setPointLightRange(float range) override;
-	virtual void setPointLightShadowMap(CubeDepthMap* map) override;
-	virtual void setShadowMap(Texture* texture) override;
-	virtual void setSkyBox(CubeMap* sky) override;
-	virtual void setSpotLightDirection(glm::vec3 direction) override;
-	virtual void setVarianceShadowMap(Texture* texture) override;
-	virtual void setViewPosition(glm::vec3 position) override;
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	const glm::vec3& getLightColor() const;
+	const glm::vec3& getLightPosition() const;
+	void setLightColor(glm::vec3 color);
+	void setLightDirection(glm::vec3 direction);
+	void setLightProjMatrix(glm::mat4 mat);
+	void setLightSpaceMatrix(glm::mat4 mat);
+	void setLightViewMatrix(glm::mat4 mat);
+	void setPointLightPositions(glm::vec3* positions);
+	void setPointLightRange(float range);
+	void setPointLightShadowMap(CubeDepthMapGL* map);
+	void setShadowMap(TextureGL* texture);
+	void setSkyBox(CubeMapGL* sky);
+	void setSpotLightDirection(glm::vec3 direction);
+	void setVarianceShadowMap(TextureGL* texture);
+	void setViewPosition(glm::vec3 position);
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	glm::mat4 biasMatrix;

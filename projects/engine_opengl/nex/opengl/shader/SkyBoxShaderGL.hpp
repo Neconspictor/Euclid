@@ -1,40 +1,39 @@
 #pragma once
-#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class SkyBoxShaderGL : public SkyBoxShader, public ShaderConfigGL
+class SkyBoxShaderGL : public ShaderConfigGL
 {
 public:
 	SkyBoxShaderGL();
 
-	virtual ~SkyBoxShaderGL() override;
+	virtual ~SkyBoxShaderGL();
 
 	void afterDrawing(const MeshGL& mesh) override;
 
 	void beforeDrawing(const MeshGL& mesh) override;
 
-	virtual void setSkyTexture(CubeMap* sky) override;
+	void setSkyTexture(CubeMapGL* sky);
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	CubeMapGL* skyTexture;
 	glm::mat4 transform;
 };
 
-class PanoramaSkyBoxShaderGL : public PanoramaSkyBoxShader, public ShaderConfigGL
+class PanoramaSkyBoxShaderGL : public ShaderConfigGL
 {
 public:
 	PanoramaSkyBoxShaderGL();
 
-	~PanoramaSkyBoxShaderGL() override;
+	virtual ~PanoramaSkyBoxShaderGL();
 
 	void afterDrawing(const MeshGL& mesh) override;
 
 	void beforeDrawing(const MeshGL& mesh) override;
 
-	virtual void setSkyTexture(Texture* tex) override;
+	void setSkyTexture(TextureGL* tex);
 
 	virtual void update(const MeshGL& mesh, const TransformData& data) override;
 
@@ -43,20 +42,20 @@ private:
 	glm::mat4 transform;
 };
 
-class EquirectangularSkyBoxShaderGL : public EquirectangularSkyBoxShader, public ShaderConfigGL
+class EquirectangularSkyBoxShaderGL : public ShaderConfigGL
 {
 public:
 	EquirectangularSkyBoxShaderGL();
 
-	~EquirectangularSkyBoxShaderGL() override;
+	virtual ~EquirectangularSkyBoxShaderGL();
 
 	void afterDrawing(const MeshGL& mesh) override;
 
 	void beforeDrawing(const MeshGL& mesh) override;
 
-	virtual void setSkyTexture(Texture* tex) override;
+	void setSkyTexture(TextureGL* tex);
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	TextureGL* skyTexture;

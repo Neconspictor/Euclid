@@ -4,7 +4,7 @@
 using namespace std;
 using namespace glm;
 
-SimpleExtrudeShaderGL::SimpleExtrudeShaderGL() : SimpleExtrudeShader(), ShaderConfigGL(), 
+SimpleExtrudeShaderGL::SimpleExtrudeShaderGL() : ShaderConfigGL(), 
 objectColor(1, 1, 1, 1), extrudeValue(0)
 {
 	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);

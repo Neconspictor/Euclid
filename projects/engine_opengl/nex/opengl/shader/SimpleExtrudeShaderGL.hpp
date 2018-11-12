@@ -1,21 +1,29 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/shader/SimpleExtrudeShader.hpp>
 
-class SimpleExtrudeShaderGL : public SimpleExtrudeShader, public ShaderConfigGL
+/**
+ * This shader draws a scaled up version of a mesh in a simple color.
+ * The scaling is performed on the mesh vertex normals.
+ */
+class SimpleExtrudeShaderGL : public ShaderConfigGL
 {
 public:
 	SimpleExtrudeShaderGL();
 
 	virtual ~SimpleExtrudeShaderGL();
 
-	virtual const glm::vec4& getObjectColor() const override;
+	const glm::vec4& getObjectColor() const;
 
-	virtual void setExtrudeValue(float extrudeValue) override;
+	/**
+	 * Sets the extrude value for scaling the mesh vertices on their normals.
+	 * A extrude value of 0 means no extrusion, 1.0f means means an extrusion
+	 * of one in screen space corrdinates along the vertex normal.
+	 */
+	void setExtrudeValue(float extrudeValue);
 
-	virtual void setObjectColor(glm::vec4 color) override;
+	void setObjectColor(glm::vec4 color);
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void update(const MeshGL& mesh, const TransformData& data) override;
 
 private:
 	glm::vec4 objectColor;
