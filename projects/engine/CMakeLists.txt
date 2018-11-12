@@ -216,11 +216,6 @@ set(
 	nex/system/System.cpp
 	nex/system/Video.hpp
 	nex/system/Video.cpp
- 
-    
-    #nex/texture
-	nex/texture/TextureManager.cpp
-	nex/texture/TextureManager.hpp
 	
 	#nex/util
     nex/util/CallbackContainer.hpp

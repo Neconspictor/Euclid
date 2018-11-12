@@ -8,6 +8,8 @@
 
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <imgui/imgui.h>
+#include <nex/gui/Util.hpp>
 
 using namespace std;
 using namespace nex;
@@ -15,7 +17,7 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer()), m_anisotropy(0.0f)
+TextureManagerGL::TextureManagerGL() : logClient(getLogServer()), m_anisotropy(0.0f)
 {
 	textureLookupTable = map<string, TextureGL*>();
 	logClient.setPrefix("[TextureManagerGL]");
@@ -23,11 +25,8 @@ TextureManagerGL::TextureManagerGL() : TextureManager(), logClient(getLogServer(
 	//TextureManagerGL::setAnisotropicFiltering(m_anisotropy);
 }
 
-void TextureManagerGL::releaseTexture(Texture * tex)
+void TextureManagerGL::releaseTexture(TextureGL * tex)
 {
-	TextureGL* gl = dynamic_cast<TextureGL*>(tex);
-	if (!gl) return;
-
 	for (auto&& it = textures.begin(); it != textures.end(); ++it) {
 		if (&(*it) == tex) {
 			GLuint id = it->getTexture();
@@ -100,7 +99,7 @@ CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
 	return &cubeMaps.back();
 }
 
-CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
+CubeMapGL* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
 	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
 	string texturePath = ::util::Globals::getTexturePath();
@@ -165,25 +164,25 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 	return static_cast<TextureGL*>(getImage(file));
 }
 
-Texture * TextureManagerGL::getDefaultBlackTexture()
+TextureGL * TextureManagerGL::getDefaultBlackTexture()
 {
 	return getImage("_intern/black.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
-Texture * TextureManagerGL::getDefaultNormalTexture()
+TextureGL * TextureManagerGL::getDefaultNormalTexture()
 {
 	//normal maps shouldn't use mipmaps (important for shading!)
 	return getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
-Texture * TextureManagerGL::getDefaultWhiteTexture()
+TextureGL * TextureManagerGL::getDefaultWhiteTexture()
 {
 	return getImage("_intern/white.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
 }
 
 
 
-Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
+TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);
 
@@ -238,12 +237,12 @@ Texture* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 
 
 
-Texture* TextureManagerGL::getHDRImage(const string& file, TextureData data)
+TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 {
 	return getHDRImage2(file, data);
 }
 
-Texture* TextureManagerGL::getImage(const string& file, TextureData data)
+TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 {
 
 
@@ -338,4 +337,29 @@ void TextureManagerGL::loadImages(const string& imageFolder)
 TextureManagerGL* TextureManagerGL::get()
 {
 	return &instance;
+}
+
+
+
+
+TextureManager_Configuration::TextureManager_Configuration(TextureManagerGL* textureManager) : m_textureManager(textureManager)
+{
+}
+
+void TextureManager_Configuration::drawSelf()
+{
+
+	float anisotropyMax = m_textureManager->getMaxAnisotropicFiltering();
+	float anisotropy = m_textureManager->getAnisotropicFiltering();
+
+	//float anisotropyBackup = anisotropy;
+
+	// render configuration properties
+	ImGui::PushID(m_id.c_str());
+	if (ImGui::InputFloat("Anisotropic Filtering (read-only)", &anisotropy, 1.0f, 1.0f, "%.3f", ImGuiInputTextFlags_ReadOnly))
+	{
+	}
+	ImGui::PopID();
+
+	//throw_with_trace(std::runtime_error("Hello exception!"));
 }

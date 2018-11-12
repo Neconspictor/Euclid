@@ -1,11 +1,10 @@
 #pragma once
-#include <nex/texture/TextureManager.hpp>
 #include <map>
 #include <glad/glad.h>
-#include <memory>
 #include <nex/logging/LoggingClient.hpp>
 #include <list>
 #include <nex/opengl/texture/SamplerGL.hpp>
+#include "nex/gui/Drawable.hpp"
 
 
 class TextureGL;
@@ -14,7 +13,7 @@ class CubeMapGL;
 /**
  * A texture manager for an opengl renderer.
  */
-class TextureManagerGL : public TextureManager
+class TextureManagerGL
 {
 public:
 
@@ -26,48 +25,47 @@ public:
 	TextureManagerGL& operator=(const TextureManagerGL&) = delete;
 	
 
-	virtual ~TextureManagerGL() override;
+	virtual ~TextureManagerGL();
 
 	void init();
 
 	CubeMapGL* addCubeMap(CubeMapGL cubemap);
 
-	CubeMap* createCubeMap(const std::string& right, const std::string& left,
+	CubeMapGL* createCubeMap(const std::string& right, const std::string& left,
 		const std::string& top, const std::string& bottom,
-		const std::string& back, const std::string& front, bool useSRGBOnCreation = false) override;
+		const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
 
 	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
 
 	TextureGL* getImageGL(const std::string& file);
 
-	virtual Texture* getDefaultBlackTexture() override;
-	virtual Texture* getDefaultNormalTexture() override;
-	virtual Texture* getDefaultWhiteTexture() override;
+	TextureGL* getDefaultBlackTexture();
+	TextureGL* getDefaultNormalTexture();
+	TextureGL* getDefaultWhiteTexture();
 
-	virtual Texture* getHDRImage(const std::string& file, TextureData data) override;
-	virtual Texture* getHDRImage2(const std::string& file, TextureData data);
-	virtual Texture* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, BITS_8}) override;
+	TextureGL* getHDRImage(const std::string& file, TextureData data);
+	TextureGL* getHDRImage2(const std::string& file, TextureData data);
+	TextureGL* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, BITS_8});
 
-	std::string getImagePath() override;
+	std::string getImagePath();
 
 	std::string getFullFilePath(const std::string& localFilePath);
 
-	virtual void loadImages(const std::string& imageFolder) override;
+	void loadImages(const std::string& imageFolder);
 
 	/**
 	 * Provides access the texture manager singleton.
 	 */
 	static TextureManagerGL* get();
 
-	// Inherited via TextureManager
-	virtual void releaseTexture(Texture * tex) override;
+	void releaseTexture(TextureGL * tex);
 
-	void setAnisotropicFiltering(float value) override;
-	float getAnisotropicFiltering() const override;
+	void setAnisotropicFiltering(float value);
+	float getAnisotropicFiltering() const;
 
 	void registerAnistropySampler(SamplerGL* sampler);
 
-	float getMaxAnisotropicFiltering() const override;
+	float getMaxAnisotropicFiltering() const;
 protected:
 	std::list<TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;
@@ -76,8 +74,18 @@ protected:
 	float m_anisotropy;
 	std::list<SamplerGL*> m_anisotropySamplers;
 
-
 private:
 
 	static TextureManagerGL instance;
+};
+
+class TextureManager_Configuration : public nex::engine::gui::Drawable
+{
+public:
+	TextureManager_Configuration(TextureManagerGL* textureManager);
+
+protected:
+	void drawSelf() override;
+
+	TextureManagerGL* m_textureManager;
 };
