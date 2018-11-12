@@ -61,6 +61,8 @@ set(
 	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
 	
     #nex/opengl/renderer
+    nex/opengl/renderer/Renderer.hpp
+    nex/opengl/renderer/Renderer.cpp
     nex/opengl/renderer/RendererOpenGL.hpp
 	nex/opengl/renderer/RendererOpenGL.cpp
     

@@ -163,12 +163,6 @@ set(
 	#nex/post_processing/blur
 	nex/post_processing/blur/GaussianBlur.hpp
 	nex/post_processing/blur/GaussianBlur.cpp
-	
-    #nex/renderer
-	nex/renderer/RenderBackend.cpp
-    nex/renderer/RenderBackend.hpp
-	nex/renderer/Renderer.cpp
-	nex/renderer/Renderer.hpp
     
     #nex/shader
 	nex/shader/DepthMapShader.hpp
