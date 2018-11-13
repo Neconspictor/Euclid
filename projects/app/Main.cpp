@@ -4,7 +4,7 @@
 #include <boost/stacktrace.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/exception/get_error_info.hpp>
-#include "nex/util/ExceptionHandling.hpp"
+#include <nex/util/ExceptionHandling.hpp>
 
 #ifdef WIN32
 #include <nex/platform/windows/WindowsPlatform.hpp>

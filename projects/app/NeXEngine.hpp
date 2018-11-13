@@ -30,7 +30,7 @@ protected:
 	void updateWindowTitle(float frameTime, float fps);
 private:
 	nex::LoggingClient m_logClient;
-	std::unique_ptr<RenderBackend> m_renderBackend;
+	std::unique_ptr<RendererOpenGL> m_renderBackend;
 	std::unique_ptr<PBR_Deferred_Renderer> m_renderer;
 	std::unique_ptr<ControllerStateMachine> m_controllerSM;
 	std::unique_ptr<Camera> m_camera;

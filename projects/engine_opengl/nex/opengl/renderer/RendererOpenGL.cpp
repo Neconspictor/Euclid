@@ -10,8 +10,8 @@
 #include <nex/opengl/antialiasing/SMAA_GL.hpp>
 #include <nex/opengl/texture/ImageLoaderGL.hpp>
 #include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
-#include <nex/model/Vob.hpp>
-#include <nex/drawing/ModelDrawer.hpp>
+#include <nex/opengl/model/Vob.hpp>
+#include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>

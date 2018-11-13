@@ -3,16 +3,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/shader/NormalsShader.hpp>
-#include <nex/shader/PBRShader.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
-#include <nex/scene/SceneNode.hpp>
-#include <nex/shader/DepthMapShader.hpp>
-#include <nex/shader/ScreenShader.hpp>
+#include <nex/opengl/shader/NormalsShaderGL.hpp>
+#include <nex/opengl/shader/PBRShaderGL.hpp>
+#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
+#include <nex/opengl/scene/SceneNode.hpp>
+#include <nex/opengl/shader/DepthMapShaderGL.hpp>
+#include <nex/opengl/shader/ScreenShaderGL.hpp>
 #include <nex/util/Math.hpp>
-#include <nex/shader/ShaderManager.hpp>
-#include <nex/texture/TextureManager.hpp>
-#include <nex/shading_model/ShadingModelFactory.hpp>
+#include <nex/opengl/shader/ShaderManagerGL.hpp>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 
 using namespace glm;
 using namespace std;
@@ -23,8 +23,8 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_Renderer::PBR_Deferred_Renderer(Backend backend) :
-	Renderer(std::move(backend)),
+PBR_Deferred_Renderer::PBR_Deferred_Renderer(RendererOpenGL* backend) :
+	Renderer(backend),
 	blurEffect(nullptr),
 	logClient(getLogServer()),
 	panoramaSky(nullptr),
@@ -50,9 +50,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
-	ShaderManager* shaderManager = m_renderBackend->getShaderManager();
-	ModelManager* modelManager = m_renderBackend->getModelManager();
-	TextureManager* textureManager = m_renderBackend->getTextureManager();
+	ShaderManagerGL* shaderManager = m_renderBackend->getShaderManager();
+	ModelManagerGL* modelManager = m_renderBackend->getModelManager();
+	TextureManagerGL* textureManager = m_renderBackend->getTextureManager();
 
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
@@ -73,16 +73,16 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 	
-	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
+	SkyBoxShaderGL* skyBoxShader = dynamic_cast<SkyBoxShaderGL*>
 		(shaderManager->getConfig(Shaders::SkyBox));
 
-	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
+	PanoramaSkyBoxShaderGL* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShaderGL*>
 		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
 
-	EquirectangularSkyBoxShader* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShader*>
+	EquirectangularSkyBoxShaderGL* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShaderGL*>
 		(shaderManager->getConfig(Shaders::SkyBoxEquirectangular));
 
-	PBRShader* pbrShader = dynamic_cast<PBRShader*>
+	PBRShaderGL* pbrShader = dynamic_cast<PBRShaderGL*>
 		(shaderManager->getConfig(Shaders::Pbr));
 
 	shadowMap = m_renderBackend->createDepthMap(2048, 2048);
@@ -131,7 +131,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
 	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
 
-	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
+	CubeMapGL* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
 	pbrShader->setSkyBox(background);
 

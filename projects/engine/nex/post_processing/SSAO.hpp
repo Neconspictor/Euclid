@@ -4,10 +4,8 @@
 #include <nex/sprite/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
 
-class RenderTarget;
-class PBR_GBuffer;
+class TextureGL;
 class SceneNode;
-class Texture;
 
 const int SSAO_SAMPLING_SIZE = 32;
 
@@ -31,14 +29,14 @@ public:
 
 	virtual ~SSAO_Deferred() = default;
 
-	virtual Texture* getAO_Result() = 0;
-	virtual Texture* getBlurredResult() = 0;
-	virtual Texture* getNoiseTexture() = 0;
+	virtual TextureGL* getAO_Result() = 0;
+	virtual TextureGL* getBlurredResult() = 0;
+	virtual TextureGL* getNoiseTexture() = 0;
 	virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
-	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) = 0;
+	virtual void renderAO(TextureGL* gPositions, TextureGL* gNormals, const glm::mat4& projectionGPass) = 0;
 	virtual void blur() = 0;
-	virtual void displayAOTexture(Texture* aoTexture) = 0;
+	virtual void displayAOTexture(TextureGL* aoTexture) = 0;
 
 	SSAOData* getSSAOData();
 

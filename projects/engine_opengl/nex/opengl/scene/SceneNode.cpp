@@ -1,5 +1,4 @@
 #include <nex/opengl/scene/SceneNode.hpp>
-#include <nex/renderer/RenderBackend.hpp>
 
 SceneNode::SceneNode(): parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), instanceCount(0)
 {
@@ -86,7 +85,7 @@ std::vector<SceneNode*>::iterator SceneNode::getChildsEnd()
 	return childs.end();
 }
 
-void SceneNode::init(ModelManager* modelManager)
+void SceneNode::init(ModelManagerGL* modelManager)
 {
 	for (auto it = childs.begin(); it != childs.end(); ++it)
 		(*it)->init(modelManager);
@@ -115,7 +114,7 @@ void SceneNode::update(float frameTime)
 		(*it)->update(frameTime);
 }
 
-void SceneNode::draw(RendererOpenGL* renderer, ModelDrawer* drawer, const glm::mat4& projection, 
+void SceneNode::draw(RendererOpenGL* renderer, ModelDrawerGL* drawer, const glm::mat4& projection, 
 	const glm::mat4& view, Shaders forcedShader)
 {
 	for (auto it = childs.begin(); it != childs.end(); ++it)

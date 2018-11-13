@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
-#include <nex/model/Vob.hpp>
-#include <nex/drawing/ModelDrawer.hpp>
-#include <nex/shader/Shader.hpp>
+#include <nex/opengl/model/Vob.hpp>
+#include <nex/opengl/drawing/ModelDrawerGL.hpp>
+#include <nex/opengl/shader/ShaderGL.hpp>
 
 class RendererOpenGL;
 
@@ -23,13 +23,13 @@ public:
 	std::vector<SceneNode*>::iterator getChildsBegin();
 	std::vector<SceneNode*>::iterator getChildsEnd();
 
-	void init(ModelManager* modelManager);
+	void init(ModelManagerGL* modelManager);
 
 	void update(float frameTime);
 	/**
 	 * Draws this scene node and all its children using a specific shader.
 	 */
-	void draw(RendererOpenGL* renderer, ModelDrawer* drawer, const glm::mat4& projection,
+	void draw(RendererOpenGL* renderer, ModelDrawerGL* drawer, const glm::mat4& projection,
 		const glm::mat4& view, Shaders forcedShader = Shaders::Unknown);
 
 	//virtual void draw(ModelDrawer* drawer);

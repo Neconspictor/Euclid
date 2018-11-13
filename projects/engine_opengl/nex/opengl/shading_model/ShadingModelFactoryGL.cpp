@@ -8,7 +8,7 @@ ShadingModelFactoryGL::ShadingModelFactoryGL(RendererOpenGL* renderer) : rendere
 {
 }
 
-std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(Texture* backgroundHDR)
+std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(TextureGL* backgroundHDR)
 {
 	return make_unique<PBR_DeferredGL>(renderer, backgroundHDR);
 }

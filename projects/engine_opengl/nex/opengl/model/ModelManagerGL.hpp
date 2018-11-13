@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include <nex/opengl/model/ModelGL.hpp>
 #include <nex/opengl/model/AssimpModelLoader.hpp>
-#include <nex/material/PbrMaterialLoader.hpp>
-#include <nex/material/BlinnPhongMaterialLoader.hpp>
+#include <nex/opengl/material/PbrMaterialLoader.hpp>
+#include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <memory>
 
 enum class Shaders;

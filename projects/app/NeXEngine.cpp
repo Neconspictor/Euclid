@@ -14,7 +14,7 @@
 #include <gui/Controller.hpp>
 #include <boxer/boxer.h>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/texture/TextureManager.hpp>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
 
 NeXEngine::NeXEngine() :
 	Engine(),
@@ -267,7 +267,7 @@ void NeXEngine::setupGUI()
 	graphicsTechniques->addChild(move(ssaoView));
 
 	auto pbrDeferredView = std::make_unique<PBR_Deferred_ConfigurationView>(m_renderer->getPBR());
-	graphicsTechniques->addChild(move(pbrDeferredView));
+	graphicsTechniques->addChild(std::move(pbrDeferredView));
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));

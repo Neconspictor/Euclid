@@ -1,8 +1,8 @@
 #pragma once
 
-class Mesh;
+class MeshGL;
+class TexturGL;
 class Camera;
-class Texture;
 
 /**
  * Abstract class for Cascaded shadow implementations.
@@ -48,7 +48,7 @@ public:
 
 	CascadeData* getCascadeData();
 
-	virtual Texture* getDepthTextureArray() = 0;
+	virtual TextureGL* getDepthTextureArray() = 0;
 
 	/**
 	 * Resizes the cascades
@@ -58,7 +58,7 @@ public:
 	/**
 	 * Renders a mesh with a given model matrix to the active cascade
 	 */
-	virtual void render(Mesh* mesh, glm::mat4* modelMatrix) = 0;
+	virtual void render(MeshGL* mesh, glm::mat4* modelMatrix) = 0;
 
 protected:
 	glm::mat4 mLightViewMatrix;

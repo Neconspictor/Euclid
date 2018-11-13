@@ -10,7 +10,7 @@ public:
 	ShadingModelFactoryGL(RendererOpenGL* renderer);
 	virtual ~ShadingModelFactoryGL() = default;
 
-	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(Texture* backgroundHDR);
+	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(TextureGL* backgroundHDR);
 
 private:
 	RendererOpenGL* renderer;

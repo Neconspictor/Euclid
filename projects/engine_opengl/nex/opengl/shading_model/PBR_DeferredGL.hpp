@@ -3,16 +3,16 @@
 
 #include <list>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/renderer/RenderBackend.hpp>
 #include <nex/opengl/texture/SamplerGL.hpp>
 #include "nex/gui/Drawable.hpp"
 #include <nex/opengl/shading_model/PBR.hpp>
+#include "nex/shadowing/CascadedShadow.hpp"
 
 
 class PBR_DeferredGL : public PBR {
 
 public:
-	PBR_DeferredGL(RendererOpenGL* renderer, Texture* backgroundHDR);
+	PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHDR);
   virtual ~PBR_DeferredGL();
 
   void drawGeometryScene(SceneNode * scene,
@@ -20,19 +20,19 @@ public:
 	  const glm::mat4& projection);
 
   void drawLighting(SceneNode * scene,
-	  PBR_GBuffer* gBuffer,
-	  Texture* shadowMap,
-	  Texture* ssaoMap,
+	  PBR_GBufferGL* gBuffer,
+	  TextureGL* shadowMap,
+	  TextureGL* ssaoMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& viewFromGPass,
 	  const glm::mat4& worldToLight,
 	  CascadedShadow::CascadeData* cascadeData,
-	  Texture* cascadedDepthMap);
+	  TextureGL* cascadedDepthMap);
 
   void drawSky(const glm::mat4& projection,
 	  const glm::mat4& view);
 
-  std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
+  std::unique_ptr<PBR_GBufferGL> createMultipleRenderTarget(int width, int height);
 
 private:
 	Sprite screenSprite;

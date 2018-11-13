@@ -128,7 +128,7 @@ public:
 
 	DepthMapGL* createDepthMap(int width, int height);
 
-	RenderTargetGL* createRenderTarget(int samples);
+	RenderTargetGL* createRenderTarget(int samples = 1);
 
 	RenderTargetGL* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
 		GLuint depthStencilType);

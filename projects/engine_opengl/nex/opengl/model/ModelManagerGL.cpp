@@ -3,15 +3,15 @@
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <nex/opengl/model/ModelGL.hpp>
 #include <nex/opengl/model/AssimpModelLoader.hpp>
-#include <nex/material/BlinnPhongMaterialLoader.hpp>
+#include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
 #include <sstream>
 #include <string>
 #include <nex/util/StringUtils.hpp>
-#include "nex/opengl/shader/SimpleColorShaderGL.hpp"
+#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
 #include <nex/util/StringUtils.hpp>
-#include "nex/material/BlinnPhongMaterial.hpp"
+#include <nex/opengl/material/BlinnPhongMaterial.hpp>
 
 using namespace std;
 using namespace glm;

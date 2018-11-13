@@ -69,7 +69,7 @@ string const& Vob::getMeshName() const
 	return meshName;
 }
 
-Model* Vob::getModel()
+ModelGL* Vob::getModel()
 {
 	return m_model;
 }
@@ -89,7 +89,7 @@ mat4& Vob::getTrafo()
 	return trafo;
 }
 
-void Vob::init(ModelManager* modelManager)
+void Vob::init(ModelManagerGL* modelManager)
 {
 	m_model = modelManager->getModel(meshName, materialShaderType);
 }

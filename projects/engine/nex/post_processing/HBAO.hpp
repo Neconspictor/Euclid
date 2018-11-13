@@ -4,10 +4,8 @@
 #include <nex/gui/Drawable.hpp>
 #include <glm/glm.hpp>
 
-class RenderTarget;
-class PBR_GBuffer;
 class SceneNode;
-class Texture;
+class TextureGL;
 
 /*-----------------------------------------------------------------------
 Copyright (c) 2014, NVIDIA. All rights reserved.
@@ -93,12 +91,12 @@ namespace hbao {
 
 		virtual ~HBAO() = default;
 
-		virtual Texture* getAO_Result() = 0;
-		virtual Texture* getBlurredResult() = 0;
+		virtual TextureGL* getAO_Result() = 0;
+		virtual TextureGL* getBlurredResult() = 0;
 		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
-		virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
-		virtual void displayAOTexture(Texture* texture) = 0;
+		virtual void renderAO(TextureGL* depth, const Projection& projection, bool blur) = 0;
+		virtual void displayAOTexture(TextureGL* texture) = 0;
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);

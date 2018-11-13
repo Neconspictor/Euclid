@@ -5,10 +5,8 @@
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/post_processing/SSAO.hpp>
 
-class RenderTarget;
-class PBR_GBuffer;
 class SceneNode;
-class Texture;
+class TextureGL;
 
 class AmbientOcclusion_Deferred {
 public:
@@ -18,13 +16,13 @@ public:
 
 	virtual ~AmbientOcclusion_Deferred() = default;
 
-	virtual Texture* getAO_Result() = 0;
-	virtual Texture* getBlurredResult() = 0;
+	virtual TextureGL* getAO_Result() = 0;
+	virtual TextureGL* getBlurredResult() = 0;
 	virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
 	//virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
 	virtual void blur() = 0;
-	virtual void displayAOTexture(Texture* aoTexture) = 0;
+	virtual void displayAOTexture(TextureGL* aoTexture) = 0;
 	
 protected:
 	unsigned int m_windowWidth;

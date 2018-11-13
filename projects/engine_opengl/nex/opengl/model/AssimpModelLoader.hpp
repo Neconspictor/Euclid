@@ -2,7 +2,7 @@
 #include <nex/opengl/model/ModelGL.hpp>
 #include <assimp/scene.h>
 #include <nex/logging/LoggingClient.hpp>
-#include <nex/material/AbstractMaterialLoader.hpp>
+#include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
 struct TextureData;
 

@@ -1,21 +1,20 @@
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/renderer/RenderBackend.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/gui/Util.hpp>
-#include <nex/shader/ShaderManager.hpp>
+#include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <imgui/imgui.h>
+#include "nex/opengl/shader/PBRShaderGL.hpp"
 
 using namespace glm;
 
 using namespace std;
 
-PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, Texture* backgroundHDR) :
+PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHDR) :
 	PBR(renderer, backgroundHDR)
 {
 
@@ -73,10 +72,10 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 		//glBindSampler(i, m_sampler.getID());
 	}
 
-	PBRShader_Deferred_Geometry* shader = dynamic_cast<PBRShader_Deferred_Geometry*> (
+	PBRShader_Deferred_GeometryGL* shader = dynamic_cast<PBRShader_Deferred_GeometryGL*> (
 		renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Geometry));
 
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr_Deferred_Geometry);
 
 	for (int i = 0; i < 7; ++i)
@@ -102,20 +101,20 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 	glDisable(GL_STENCIL_TEST);
 }
 
-void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, 
-	Texture * shadowMap, Texture * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
+void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
+	TextureGL * shadowMap, TextureGL * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
 	CascadedShadow::CascadeData* cascadeData,
-	Texture* cascadedDepthMap)
+	TextureGL* cascadedDepthMap)
 {
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_EQUAL, 1, 1);
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	//glStencilMask(0x00);
 
-	Shader* shader = renderer->getShaderManager()->getShader(Shaders::Pbr_Deferred_Lighting);
+	ShaderGL* shader = renderer->getShaderManager()->getShader(Shaders::Pbr_Deferred_Lighting);
 	shader->use();
 
-	PBRShader_Deferred_Lighting* config = dynamic_cast<PBRShader_Deferred_Lighting*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
+	PBRShader_Deferred_LightingGL* config = dynamic_cast<PBRShader_Deferred_LightingGL*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
 
 	config->setBrdfLookupTexture(brdfLookupTexture->getTexture());
 	config->setGBuffer(gBuffer);
@@ -132,7 +131,7 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
 	config->setCascadedDepthMap(cascadedDepthMap);
 
 
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
+	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 	modelDrawer->draw(&screenSprite, Shaders::Pbr_Deferred_Lighting);
 
 	//glStencilMask(0xff);
@@ -153,7 +152,7 @@ void PBR_DeferredGL::drawSky(const glm::mat4 & projection, const glm::mat4 & vie
 	glDisable(GL_STENCIL_TEST);
 }
 
-std::unique_ptr<PBR_GBuffer> PBR_DeferredGL::createMultipleRenderTarget(int width, int height)
+std::unique_ptr<PBR_GBufferGL> PBR_DeferredGL::createMultipleRenderTarget(int width, int height)
 {
 	return make_unique<PBR_GBufferGL>(width, height);
 }
