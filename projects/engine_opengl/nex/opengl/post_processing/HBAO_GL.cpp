@@ -9,7 +9,6 @@
 
 #include <nex/util/Math.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <iostream>
 #include <random>

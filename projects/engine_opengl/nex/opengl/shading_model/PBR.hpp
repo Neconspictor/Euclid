@@ -6,7 +6,7 @@
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 
 class RendererOpenGL;
 
@@ -16,13 +16,13 @@ public:
   PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR);
   virtual ~PBR();
 
-  void drawSceneToShadowMap(SceneNode * scene,
+  virtual void drawSceneToShadowMap(SceneNode * scene,
 	  DepthMapGL* shadowMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& lightViewMatrix,
 	  const glm::mat4& lightProjMatrix);
 
-  void drawScene(SceneNode * scene,
+  virtual void drawScene(SceneNode * scene,
 	  const glm::vec3& cameraPosition,
 	  TextureGL* shadowMap,
 	  const DirectionalLight& light,

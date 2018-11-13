@@ -6,7 +6,7 @@
 #include <nex/opengl/texture/SamplerGL.hpp>
 #include "nex/gui/Drawable.hpp"
 #include <nex/opengl/shading_model/PBR.hpp>
-#include "nex/shadowing/CascadedShadow.hpp"
+#include "nex/opengl/shadowing/CascadedShadowGL.hpp"
 
 
 class PBR_DeferredGL : public PBR {
@@ -26,7 +26,7 @@ public:
 	  const DirectionalLight& light,
 	  const glm::mat4& viewFromGPass,
 	  const glm::mat4& worldToLight,
-	  CascadedShadow::CascadeData* cascadeData,
+	  CascadedShadowGL::CascadeData* cascadeData,
 	  TextureGL* cascadedDepthMap);
 
   void drawSky(const glm::mat4& projection,

@@ -1,14 +1,15 @@
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
-#include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
-#include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/gui/Util.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
+#include <nex/opengl/shader/PBRShaderGL.hpp>
+
 #include <imgui/imgui.h>
-#include "nex/opengl/shader/PBRShaderGL.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
 
@@ -101,7 +102,7 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 
 void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	TextureGL * shadowMap, TextureGL * ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
-	CascadedShadow::CascadeData* cascadeData,
+	CascadedShadowGL::CascadeData* cascadeData,
 	TextureGL* cascadedDepthMap)
 {
 	glEnable(GL_STENCIL_TEST);

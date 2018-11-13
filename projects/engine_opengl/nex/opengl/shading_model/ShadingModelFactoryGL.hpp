@@ -1,8 +1,10 @@
 #ifndef SHADING_MODEL_FACTORY_GL_HPP
 #define SHADING_MODEL_FACTORY_GL_HPP
 
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include "PBR_DeferredGL.hpp"
+#include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
+#include <memory>
+
+class RendererOpenGL;
 
 class ShadingModelFactoryGL {
 

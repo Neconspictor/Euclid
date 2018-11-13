@@ -1,9 +1,10 @@
-#include <nex/system/Video.hpp>
+#include <nex/opengl/system/Video.hpp>
 #include <nex/system/Configuration.hpp>
 #include <string>
 #include <nex/Window.hpp>
 #include <nex/SubSystemProvider.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 
 using namespace std;
 
@@ -59,7 +60,7 @@ void Video::init()
 	renderer->init();
 }
 
-void Video::useRenderer(RenderBackend* renderer)
+void Video::useRenderer(RendererOpenGL* renderer)
 {
 	this->renderer = renderer;
 }

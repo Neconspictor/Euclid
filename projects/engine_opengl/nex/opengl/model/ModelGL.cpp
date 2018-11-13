@@ -9,7 +9,7 @@ ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes)
 	this->meshReferences = move(createReferences(meshes));
 }
 
-ModelGL::ModelGL(ModelGL&& o) noexcept : meshes(o.meshes), 
+ModelGL::ModelGL(ModelGL&& o) : meshes(move(o.meshes)), 
 meshReferences(move(o.meshReferences)), 
 instanced(o.instanced), 
 vertexAttributeBuffer(o.vertexAttributeBuffer)
@@ -21,7 +21,7 @@ vertexAttributeBuffer(o.vertexAttributeBuffer)
 
 }
 
-ModelGL& ModelGL::operator=(ModelGL&& o) noexcept
+ModelGL& ModelGL::operator=(ModelGL&& o)
 {
 	if (this == &o) return *this;
 	this->meshes = move(o.meshes);

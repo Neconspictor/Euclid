@@ -1,8 +1,8 @@
 #pragma once
 #include <nex/system/System.hpp>
 #include <nex/Window.hpp>
-#include <nex/renderer/RenderBackend.hpp>
 
+class RendererOpenGL;
 class SystemUI;
 class SubSystemProvider;
 
@@ -14,9 +14,9 @@ public:
 	virtual ~Video();
 	void handle(Configuration& config) override;
 
-	virtual void init() override;
+	void init() override;
 
-	void useRenderer(RenderBackend* renderer);
+	void useRenderer(RendererOpenGL* renderer);
 
 	SubSystemProvider* getWindowSystem() const;
 
@@ -33,5 +33,5 @@ private:
 	unsigned int msaaSamples;
 	SubSystemProvider* windowSystem;
 	Window* window;
-	RenderBackend* renderer;
+	RendererOpenGL* renderer;
 };

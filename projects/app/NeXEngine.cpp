@@ -1,6 +1,5 @@
 #include <NeXEngine.hpp>
 #include <nex/system/Engine.hpp>
-#include <nex/system/Video.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>

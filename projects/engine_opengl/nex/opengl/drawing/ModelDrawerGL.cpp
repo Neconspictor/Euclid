@@ -1,11 +1,11 @@
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
-#include <nex/model/Vob.hpp>
+#include <nex/opengl/model/Vob.hpp>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 #include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
 
 using namespace glm;

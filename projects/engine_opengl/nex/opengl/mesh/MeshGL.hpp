@@ -47,8 +47,8 @@ public:
 	using Vertex = VertexPositionNormalTexTangent;
 
 	MeshGL();
-	MeshGL(MeshGL&& other) noexcept;
-	MeshGL& operator=(MeshGL&& o) noexcept;
+	MeshGL(MeshGL&& other);
+	MeshGL& operator=(MeshGL&& o);
 
 	MeshGL(const MeshGL& o) = delete;
 	MeshGL& operator=(const MeshGL& o) = delete;

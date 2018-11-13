@@ -3,7 +3,7 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <gui/SceneGUI.hpp>
-#include <nex/system/Video.hpp>
+#include <nex/opengl/system/Video.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 

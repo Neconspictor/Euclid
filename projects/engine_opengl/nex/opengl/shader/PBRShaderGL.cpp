@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
-#include <nex/material/PbrMaterial.hpp>
+#include <nex/opengl/material/PbrMaterial.hpp>
 
 using namespace glm;
 using namespace std;
@@ -216,7 +216,7 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : ShaderConfigGL(
 	attributes.create(types::TEXTURE2D_ARRAY, nullptr, "cascadedDepthMap");
 
 	glCreateBuffers(1, &cascadeBufferUBO);
-	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadow::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
+	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
 }
 
 PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
@@ -335,10 +335,10 @@ void PBRShader_Deferred_LightingGL::setCascadedDepthMap(TextureGL* cascadedDepth
 	this->cascadedDepthMap = cascadedDepthMap;
 }
 
-void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadow::CascadeData* cascadedData)
+void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadowGL::CascadeData* cascadedData)
 {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
-	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadow::CascadeData), cascadedData);
+	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 }
 
 

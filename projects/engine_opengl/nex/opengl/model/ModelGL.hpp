@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <vector>
+#include <memory>
 
 
 class ShaderGL;
@@ -11,8 +12,8 @@ public:
 	
 	ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes);
 	
-	ModelGL(ModelGL&& o) noexcept;
-	ModelGL& operator=(ModelGL&& o) noexcept;
+	ModelGL(ModelGL&& o);
+	ModelGL& operator=(ModelGL&& o);
 
 	ModelGL(const ModelGL&) = delete;
 	ModelGL& operator=(const ModelGL& o) = delete;

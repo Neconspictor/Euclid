@@ -343,7 +343,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	}*/
 }
 
-hbao::HBAO* PBR_Deferred_Renderer::getHBAO()
+hbao::HBAO_GL* PBR_Deferred_Renderer::getHBAO()
 {
 	return m_aoSelector.getHBAO();
 }
@@ -382,7 +382,7 @@ TextureGL* PBR_Deferred_Renderer::renderAO(Camera* camera, TextureGL* gPosition,
 
 	// use SSAO
 
-	SSAO_Deferred* ssao = m_aoSelector.getSSAO();
+	SSAO_DeferredGL* ssao = m_aoSelector.getSSAO();
 	ssao->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
 	ssao->blur();
 	return ssao->getBlurredResult();

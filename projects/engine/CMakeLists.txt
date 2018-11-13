@@ -137,8 +137,6 @@ set(
 	nex/system/Engine.cpp
     nex/system/System.hpp
 	nex/system/System.cpp
-	nex/system/Video.hpp
-	nex/system/Video.cpp
 	
 	#nex/util
     nex/util/CallbackContainer.hpp

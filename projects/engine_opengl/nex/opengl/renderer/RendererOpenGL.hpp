@@ -11,6 +11,7 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
+#include <memory>
 
 
 enum class CullingMode

@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/shadowing/CascadedShadow.hpp>
+#include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 
 class PBRShaderGL : public ShaderConfigGL
 {
@@ -113,7 +113,7 @@ public:
 	void update(const MeshGL& mesh, const TransformData& data);
 
 	void setCascadedDepthMap(TextureGL* cascadedDepthMap);
-	void setCascadedData(CascadedShadow::CascadeData* cascadedData);
+	void setCascadedData(CascadedShadowGL::CascadeData* cascadedData);
 
 private:
 	PBR_GBufferGL* gBuffer;

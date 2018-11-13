@@ -3,11 +3,11 @@
 
 #include <nex/opengl/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
+#include <nex/opengl/shader/ShaderGL.hpp>
 #include <glm/glm.hpp>
 
 class TextureGL;
 class BaseRenderTargetGL;
-class ShaderGL;
 class ModelDrawerGL;
 
 /*-----------------------------------------------------------------------

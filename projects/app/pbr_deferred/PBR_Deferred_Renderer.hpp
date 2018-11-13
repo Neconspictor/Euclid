@@ -6,11 +6,9 @@
 #include <nex/light/Light.hpp>
 #include <nex/opengl/texture/Sprite.hpp>
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
-#include <nex/post_processing/SSAO.hpp>
-#include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
-#include <nex/post_processing/AmbientOcclusion.hpp>
 #include <nex/opengl/renderer/Renderer.hpp>
+#include "nex/opengl/post_processing/AmbientOcclusion.hpp"
 
 class PBR_Deferred_Renderer : public Renderer
 {
@@ -24,7 +22,7 @@ public:
 	void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
 	void setShowDepthMap(bool showDepthMap);
 	void updateRenderTargets(int width, int height);
-	hbao::HBAO* getHBAO();
+	hbao::HBAO_GL* getHBAO();
 	AmbientOcclusionSelector* getAOSelector();
 
 	PBR_DeferredGL* getPBR();
