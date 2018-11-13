@@ -1,6 +1,5 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
@@ -10,6 +9,16 @@
 
 #include <nex/util/Math.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/post_processing/HBAO.hpp>
+#include <nex/gui/ImGUI.hpp>
+#include <iostream>
+#include <random>
+#include <nex/gui/Util.hpp>
+
+// GCC under MINGW has no support for a real random device!
+#if defined(__MINGW32__)  && defined(__GNUC__)
+#include <boost/random/random_device.hpp>
+#endif
 
 
 using namespace std; 
@@ -19,7 +28,13 @@ using namespace hbao;
 HBAO_GL::HBAO_GL(unsigned int windowWidth,
 	unsigned int windowHeight, ModelDrawerGL* modelDrawer)
 	:
-	HBAO(windowWidth, windowHeight),
+	m_blur_sharpness(40.0f),
+	m_meters2viewspace(1.0f),
+	m_radius(2.0f),
+	m_intensity(1.5f),
+	m_bias(0.1f),
+	windowWidth(windowWidth),
+	windowHeight(windowHeight),
 	m_depthLinearRT(nullptr),
 	m_aoResultRT(nullptr),
 	m_tempRT(nullptr),
@@ -105,12 +120,12 @@ HBAO_GL::~HBAO_GL()
 	}
 }
 
-Texture * HBAO_GL::getAO_Result()
+TextureGL * HBAO_GL::getAO_Result()
 {
 	return m_aoResultRT->getTexture();
 }
 
-Texture * HBAO_GL::getBlurredResult()
+TextureGL * HBAO_GL::getBlurredResult()
 {
 	return m_aoBlurredResultRT->getTexture();
 }
@@ -123,7 +138,7 @@ void HBAO_GL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 	initRenderTargets(windowWidth, windowHeight);
 }
 
-void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
+void HBAO_GL::renderAO(TextureGL * depthTexture, const Projection& projection, bool blur)
 {
 	TextureGL& depthTextureGL = dynamic_cast<TextureGL&>(*depthTexture);
 	unsigned int width = m_aoResultRT->getWidth();
@@ -167,7 +182,7 @@ void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, boo
 	glBindVertexArray(0);
 }
 
-void HBAO_GL::displayAOTexture(Texture* texture)
+void HBAO_GL::displayAOTexture(TextureGL* texture)
 {
 	//modelDrawer->draw(&screenSprite, *aoDisplay);
 	TextureGL& textureGL = dynamic_cast<TextureGL&>(*texture);
@@ -367,7 +382,7 @@ void hbao::BilateralBlur::setSourceTexture(TextureGL * source, unsigned int text
 	m_textureWidth = textureWidth;
 }
 
-void hbao::BilateralBlur::draw(const Mesh & mesh)
+void hbao::BilateralBlur::draw(const MeshGL & mesh)
 {
 	throw_with_trace(std::runtime_error("hbao::BilateralBlur::draw(): Function is not supported!"));
 }
@@ -402,7 +417,7 @@ hbao::DepthLinearizer::DepthLinearizer() :
 {
 }
 
-void hbao::DepthLinearizer::draw(const Mesh & mesh)
+void hbao::DepthLinearizer::draw(const MeshGL & mesh)
 {
 	throw_with_trace(std::runtime_error("hbao::DepthLinearizer::draw(): Function is not supported!"));
 }
@@ -436,7 +451,7 @@ hbao::DisplayTex::DisplayTex() :
 {
 }
 
-void hbao::DisplayTex::draw(const Mesh & mesh)
+void hbao::DisplayTex::draw(const MeshGL & mesh)
 {
 	throw_with_trace(std::runtime_error("hbao::DisplayTex::draw(): Function is not supported!"));
 }
@@ -463,7 +478,7 @@ hbao::HBAO_Shader::HBAO_Shader() :
 	memset(&m_hbao_data, 0, sizeof(HBAOData));
 }
 
-void hbao::HBAO_Shader::draw(const Mesh & mesh)
+void hbao::HBAO_Shader::draw(const MeshGL & mesh)
 {
 	throw_with_trace(std::runtime_error("hbao::HBAO_Shader::draw(): Function is not supported!"));
 }
@@ -498,4 +513,73 @@ void hbao::HBAO_Shader::setLinearDepth(TextureGL * linearDepth)
 void hbao::HBAO_Shader::setRamdomView(TextureGL * randomView)
 {
 	m_hbao_randomview = randomView;
+}
+
+
+float hbao::HBAO_GL::getBlurSharpness() const
+{
+	return m_blur_sharpness;
+}
+
+void hbao::HBAO_GL::setBlurSharpness(float sharpness)
+{
+	m_blur_sharpness = sharpness;
+}
+
+float hbao::HBAO_GL::randomFloat(float a, float b)
+{
+	// GCC under MINGW has no support for a real random device!
+#if defined(__MINGW32__)  && defined(__GNUC__)
+	//typedef boost::mt19937 gen_type;
+	//long unsigned int seed = std::chrono::steady_clock::now().time_since_epoch().count();
+	boost::random::random_device seeder;
+	boost::random::mt19937 rng(seeder());
+	boost::random::uniform_real_distribution<double> gen(a, b);
+	return gen(rng);
+#else
+	uniform_real_distribution<double> dist(a, b);
+	random_device device;
+	mt19937 gen(device());
+	return dist(gen);
+
+#endif
+}
+
+float hbao::HBAO_GL::lerp(float a, float b, float f) {
+	return a + f * (b - a);
+}
+
+class Test {
+public:
+	void operator()() const
+	{
+		if (ImGui::MenuItem("operator()")) {
+			std::cout << "called Test()" << std::endl;
+		}
+	}
+};
+
+hbao::HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO_GL * hbao) : m_hbao(hbao)
+{
+	m_isVisible = true;
+}
+
+void hbao::HBAO_ConfigurationView::drawSelf()
+{
+	// render configuration properties
+	ImGui::PushID(m_id.c_str());
+	ImGui::LabelText("", "HBAO:");
+	ImGui::SliderFloat("bias", &m_hbao->m_bias, 0.0f, 5.0f);
+	ImGui::SliderFloat("blur sharpness", &m_hbao->m_blur_sharpness, 0.0f, 1000.0f);
+	ImGui::SliderFloat("intensity", &m_hbao->m_intensity, 0.0f, 10.0f);
+	ImGui::SliderFloat("meters to viewspace unit transformation", &m_hbao->m_meters2viewspace, 0.0f, 10.0f);
+	ImGui::SliderFloat("radius", &m_hbao->m_radius, 0.0f, 10.0f);
+
+	//ImGui::Dummy(ImVec2(100, 200));
+	ImGui::Dummy(ImVec2(0, 20));
+	nex::engine::gui::Separator(2.0f);
+	//ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+	//	ImVec2(100.f, 120.f), ImColor(255, 255, 0, 255), "Hello World##HelloWorld!", 0, 0.0f, 0);
+
+	ImGui::PopID();
 }

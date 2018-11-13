@@ -1,16 +1,16 @@
-#include <nex/post_processing/AmbientOcclusion.hpp>
+#include <nex/opengl/post_processing/AmbientOcclusion.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
 AmbientOcclusionSelector::AmbientOcclusionSelector(): m_usedAOTechnique(HBAO), m_hbao(nullptr), m_ssao(nullptr)
 {
 }
 
-void AmbientOcclusionSelector::setHBAO(std::unique_ptr<hbao::HBAO> hbao)
+void AmbientOcclusionSelector::setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao)
 {
 	m_hbao = move(hbao);
 }
 
-void AmbientOcclusionSelector::setSSAO(std::unique_ptr<SSAO_Deferred> ssao)
+void AmbientOcclusionSelector::setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao)
 {
 	m_ssao = move(ssao);
 }
@@ -40,12 +40,12 @@ AmbientOcclusionSelector::~AmbientOcclusionSelector()
 {
 }
 
-hbao::HBAO* AmbientOcclusionSelector::getHBAO()
+hbao::HBAO_GL* AmbientOcclusionSelector::getHBAO()
 {
 	return m_hbao.get();
 }
 
-SSAO_Deferred* AmbientOcclusionSelector::getSSAO()
+SSAO_DeferredGL* AmbientOcclusionSelector::getSSAO()
 {
 	return m_ssao.get();
 }

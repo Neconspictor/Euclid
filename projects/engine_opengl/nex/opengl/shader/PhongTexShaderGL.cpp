@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/opengl/material/BlinnPhongMaterial.hpp>
 
 using namespace glm;
 using namespace std;

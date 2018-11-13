@@ -1,11 +1,14 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/texture/Texture.hpp>
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <vector>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <random>
+#include <glm/glm.hpp>
+#include <imgui/imgui.h>
+#include <nex/gui/Util.hpp>
 
 using namespace std; 
 using namespace glm;
@@ -219,14 +222,12 @@ private:
 
 SSAO_RendertargetGL::SSAO_RendertargetGL(int width, int height, GLuint frameBuffer, GLuint ssaoColorBuffer)
 	:
-	BaseRenderTarget(width, height),
 	BaseRenderTargetGL(width, height, frameBuffer),
 	ssaoColorBuffer(ssaoColorBuffer)
 {
 }
 
 SSAO_RendertargetGL::SSAO_RendertargetGL(SSAO_RendertargetGL && o) :
-	BaseRenderTarget(move(o)),
 	BaseRenderTargetGL(move(o)),
 	ssaoColorBuffer(GL_FALSE)
 {
@@ -255,12 +256,49 @@ void SSAO_RendertargetGL::swap(SSAO_RendertargetGL & o)
 SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 	unsigned int windowHeight, ModelDrawerGL* modelDrawer)
 	:
-	SSAO_Deferred(windowWidth, windowHeight, 4),
+	windowWidth(windowWidth),
+	windowHeight(windowHeight),
+	noiseTileWidth(4),
 	aoRenderTarget(windowWidth, windowHeight, GL_FALSE, GL_FALSE),
 	tiledBlurRenderTarget(windowWidth, windowHeight, GL_FALSE, GL_FALSE),
 	modelDrawer(modelDrawer)
 
 {
+	// create random kernel samples
+	for (unsigned int i = 0; i < SSAO_SAMPLING_SIZE; ++i) {
+		vec3 vec;
+		vec.x = randomFloat(-1, 1);
+		vec.y = randomFloat(-1, 1);
+		vec.z = randomFloat(0, 1);
+
+		if (vec.length() != 0)
+			normalize(vec);
+
+		//vec *= randomFloat(0, 1);
+
+		float scale = i / (float)SSAO_SAMPLING_SIZE;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		//vec *= scale;
+
+		ssaoKernel[i] = move(vec);
+	}
+
+	//create noise texture (random rotation vectors in tangent space)
+	for (unsigned int i = 0; i < noiseTileWidth * noiseTileWidth; ++i) {
+		vec3 vec;
+		vec.x = randomFloat(-1, 1);
+		vec.y = randomFloat(-1, 1);
+		vec.z = 0.0f; // we rotate on z-axis (tangent space); thus no z-component needed
+
+		noiseTextureValues.emplace_back(move(vec));
+	}
+
+	m_shaderData.bias = 0.025f;
+	m_shaderData.intensity = 1.0f;
+	m_shaderData.radius = 0.25f;
+
+
+
 	unsigned int noiseTextureSource;
 	glGenTextures(1, &noiseTextureSource);
 	glBindTexture(GL_TEXTURE_2D, noiseTextureSource);
@@ -298,17 +336,17 @@ SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 	configAO->setSSAOData(&m_shaderData);
 }
 
-Texture * SSAO_DeferredGL::getAO_Result()
+TextureGL * SSAO_DeferredGL::getAO_Result()
 {
 	return aoRenderTarget.getTexture();
 }
 
-Texture * SSAO_DeferredGL::getBlurredResult()
+TextureGL * SSAO_DeferredGL::getBlurredResult()
 {
 	return tiledBlurRenderTarget.getTexture();
 }
 
-Texture * SSAO_DeferredGL::getNoiseTexture()
+TextureGL * SSAO_DeferredGL::getNoiseTexture()
 {
 	return &noiseTexture;
 }
@@ -321,7 +359,7 @@ void SSAO_DeferredGL::onSizeChange(unsigned int newWidth, unsigned int newHeight
 	tiledBlurRenderTarget = createSSAO_FBO(newWidth, newHeight);
 }
 
-void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const glm::mat4& projectionGPass )
+void SSAO_DeferredGL::renderAO(TextureGL * gPositions, TextureGL * gNormals, const glm::mat4& projectionGPass )
 {
 	TextureGL& gPositionsGL = dynamic_cast<TextureGL&>(*gPositions);
 	TextureGL& gNormalsGL = dynamic_cast<TextureGL&>(*gNormals);
@@ -353,7 +391,7 @@ void SSAO_DeferredGL::blur()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SSAO_DeferredGL::displayAOTexture(Texture* aoTexture)
+void SSAO_DeferredGL::displayAOTexture(TextureGL* aoTexture)
 {
 	SSAO_AO_Display_ShaderGL& aoDisplayShader = dynamic_cast<SSAO_AO_Display_ShaderGL&>(*aoDisplay->getConfig());
 	//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
@@ -381,4 +419,58 @@ SSAO_RendertargetGL SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned
 		throw_with_trace(std::runtime_error("SSAO Framebuffer not complete!"));
 
 	return SSAO_RendertargetGL(width, height, ssaoFBO, ssaoColorBuffer);
+}
+
+
+SSAOData* SSAO_DeferredGL::getSSAOData()
+{
+	return &m_shaderData;
+}
+
+void SSAO_DeferredGL::setBias(float bias)
+{
+	m_shaderData.bias = bias;
+}
+
+void SSAO_DeferredGL::setItensity(float itensity)
+{
+	m_shaderData.intensity = itensity;
+}
+
+void SSAO_DeferredGL::setRadius(float radius)
+{
+	m_shaderData.radius = radius;
+}
+
+float SSAO_DeferredGL::randomFloat(float a, float b) {
+	uniform_real_distribution<float> dist(a, b);
+	random_device device;
+	default_random_engine gen(device());
+	return dist(gen);
+}
+
+float SSAO_DeferredGL::lerp(float a, float b, float f) {
+	return a + f * (b - a);
+}
+
+SSAO_ConfigurationView::SSAO_ConfigurationView(SSAO_DeferredGL* ssao) : m_ssao(ssao)
+{
+}
+
+void SSAO_ConfigurationView::drawSelf()
+{
+	// render configuration properties
+	ImGui::PushID(m_id.c_str());
+	ImGui::LabelText("", "SSAO:");
+
+	SSAOData* data = m_ssao->getSSAOData();
+
+	ImGui::SliderFloat("bias", &data->bias, 0.0f, 5.0f);
+	ImGui::SliderFloat("intensity", &data->intensity, 0.0f, 10.0f);
+	ImGui::SliderFloat("radius", &data->radius, 0.0f, 10.0f);
+
+	ImGui::Dummy(ImVec2(0, 20));
+	nex::engine::gui::Separator(2.0f);
+
+	ImGui::PopID();
 }

@@ -69,6 +69,8 @@ set(
 	nex/opengl/model/Vob.cpp
     
 	#nex/opengl/post_processing
+    nex/opengl/post_processing/AmbientOcclusion.cpp
+	nex/opengl/post_processing/AmbientOcclusion.hpp
 	nex/opengl/post_processing/HBAO_GL.hpp
 	nex/opengl/post_processing/HBAO_GL.cpp
 	nex/opengl/post_processing/SSAO_GL.hpp
@@ -132,6 +134,8 @@ set(
 	nex/opengl/texture/ImageLoaderGL.cpp
 	nex/opengl/texture/SamplerGL.hpp
     nex/opengl/texture/SamplerGL.cpp
+    nex/opengl/texture/Sprite.hpp
+	nex/opengl/texture/Sprite.cpp
     nex/opengl/texture/TextureGL.hpp
     nex/opengl/texture/TextureGL.cpp
 	nex/opengl/texture/TextureManagerGL.hpp

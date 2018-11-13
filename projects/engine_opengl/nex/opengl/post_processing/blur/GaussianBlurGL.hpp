@@ -1,19 +1,17 @@
 #pragma once
-
-#include <nex/post_processing/blur/GaussianBlur.hpp>
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 
 class RendererOpenGL;
 class RenderTargetGL;
 
-class GaussianBlurGL : public GaussianBlur {
+class GaussianBlurGL {
 
 public:
 	GaussianBlurGL(RendererOpenGL* renderer);
 
 	virtual ~GaussianBlurGL();
 
-	virtual void blur(RenderTarget* target, RenderTarget* cache) override;
+	void blur(RenderTargetGL* target, RenderTargetGL* cache);
 
 	void init();
 

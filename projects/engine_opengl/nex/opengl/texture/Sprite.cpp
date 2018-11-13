@@ -1,4 +1,4 @@
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 
 using namespace std;
 using namespace glm;
@@ -27,7 +27,7 @@ const vec3& Sprite::getRotation() const
 	return rotation;
 }
 
-Texture* Sprite::getTexture() const
+TextureGL* Sprite::getTexture() const
 {
 	return texture;
 }
@@ -67,7 +67,7 @@ void Sprite::setWidth(float width)
 	this->relativeWidth = width;
 }
 
-void Sprite::setTexture(Texture* texture)
+void Sprite::setTexture(TextureGL* texture)
 {
 	this->texture = texture;
 }

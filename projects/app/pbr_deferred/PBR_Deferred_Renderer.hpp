@@ -4,14 +4,13 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <nex/post_processing/SSAO.hpp>
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/post_processing/AmbientOcclusion.hpp>
-#include <nex/shadowing/CascadedShadow.hpp>
-#include "nex/opengl/renderer/Renderer.hpp"
+#include <nex/opengl/renderer/Renderer.hpp>
 
 class PBR_Deferred_Renderer : public Renderer
 {
@@ -47,7 +46,7 @@ private:
 
 	std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
 	std::unique_ptr<PBR_GBufferGL>  pbr_mrt;
-	std::unique_ptr<CascadedShadow> m_cascadedShadow;
+	std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
 
 	AmbientOcclusionSelector m_aoSelector;
 

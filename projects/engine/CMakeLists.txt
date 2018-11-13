@@ -113,15 +113,6 @@ set(
 	nex/platform/windows/StackWalker.cpp
 	nex/platform/windows/StackWalker.h
 	nex/platform/windows/WindowsPlatform.hpp
-
-	
-    #nex/post_processing
-	nex/post_processing/AmbientOcclusion.cpp
-	nex/post_processing/AmbientOcclusion.hpp
-	nex/post_processing/HBAO.hpp
-	nex/post_processing/HBAO.cpp
-	nex/post_processing/SSAO.hpp
-	nex/post_processing/SSAO.cpp
     
     #nex/shader_generator
     nex/shader_generator/CommentStateTracker.cpp
@@ -138,17 +129,6 @@ set(
     nex/shader_generator/StateTracker.hpp
     nex/shader_generator/StringStateTracker.cpp
     nex/shader_generator/StringStateTracker.hpp
-	
-    
-    #nex/shadowing
-	nex/shadowing/CascadedShadow.cpp
-	nex/shadowing/CascadedShadow.hpp
-    nex/shadowing/ShadowMapper.hpp
- 
-    
-    #nex/sprite
-    nex/sprite/Sprite.hpp
-	nex/sprite/Sprite.cpp
  
     #nex/system
     nex/system/Configuration.hpp

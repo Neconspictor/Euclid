@@ -1,9 +1,9 @@
 #pragma once
 
-#include <nex/sprite/Sprite.hpp>
+#include <nex/opengl/texture/Sprite.hpp>
 #include <memory>
-#include <nex/post_processing/HBAO.hpp>
-#include <nex/post_processing/SSAO.hpp>
+#include <nex/opengl/post_processing/HBAO_GL.hpp>
+#include <nex/opengl/post_processing/SSAO_GL.hpp>
 
 class SceneNode;
 class TextureGL;
@@ -42,8 +42,8 @@ public:
 	AmbientOcclusionSelector();
 	virtual ~AmbientOcclusionSelector();
 
-	hbao::HBAO* getHBAO();
-	SSAO_Deferred* getSSAO();
+	hbao::HBAO_GL* getHBAO();
+	SSAO_DeferredGL* getSSAO();
 
 	bool isAmbientOcclusionActive() const;
 
@@ -52,13 +52,13 @@ public:
 	void setAOTechniqueToUse(AOTechnique technique);
 	void setUseAmbientOcclusion(bool useAO);
 
-	void setHBAO(std::unique_ptr<hbao::HBAO> hbao);
-	void setSSAO(std::unique_ptr<SSAO_Deferred> ssao);
+	void setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao);
+	void setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao);
 
 private:
 
-	std::unique_ptr<hbao::HBAO> m_hbao;
-	std::unique_ptr<SSAO_Deferred> m_ssao;
+	std::unique_ptr<hbao::HBAO_GL> m_hbao;
+	std::unique_ptr<SSAO_DeferredGL> m_ssao;
 	bool m_useAO = true;
 	AOTechnique m_usedAOTechnique;
 };

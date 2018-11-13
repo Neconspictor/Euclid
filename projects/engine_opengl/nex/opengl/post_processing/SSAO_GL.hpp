@@ -1,12 +1,28 @@
 #ifndef SSAO_GL_HPP
 #define SSAO_GL_HPP
 
-#include <nex/post_processing/SSAO.hpp>
+#include <vector>
+#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/gui/Drawable.hpp>
 
 class TextureGL;
 class BaseRenderTargetGL;
 class ShaderGL;
 class ModelDrawerGL;
+
+const int SSAO_SAMPLING_SIZE = 32;
+
+struct SSAOData {
+	float   bias;
+	float   intensity;
+	float   radius;
+	float   _pad0;
+
+	glm::mat4 projection_GPass;
+
+	glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
+};
+
 
 class SSAO_RendertargetGL : public BaseRenderTargetGL {
 public:
@@ -32,7 +48,7 @@ protected:
 
 
 
-class SSAO_DeferredGL : public SSAO_Deferred {
+class SSAO_DeferredGL {
 public:
 
 	SSAO_DeferredGL(unsigned int windowWidth,
@@ -40,21 +56,31 @@ public:
 
 	virtual ~SSAO_DeferredGL() = default;
 
-	virtual Texture* getAO_Result() override;
-	virtual Texture* getBlurredResult() override;
+	TextureGL* getAO_Result();
+	TextureGL* getBlurredResult();
 
-	virtual Texture* getNoiseTexture() override;
-	virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) override;
+	TextureGL* getNoiseTexture();
+	void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-	virtual void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass) override;
-	virtual void blur() override;
+	void renderAO(TextureGL* gPositions, TextureGL* gNormals, const glm::mat4& projectionGPass);
+	void blur();
 
-	virtual void displayAOTexture(Texture* aoTexture) override;
+	void displayAOTexture(TextureGL* aoTexture);
 
-protected:
+	SSAOData* getSSAOData();
+
+	void setBias(float bias);
+	void setItensity(float itensity);
+	void setRadius(float radius);
+
+
+private:
+
 	static SSAO_RendertargetGL createSSAO_FBO(unsigned int width, unsigned int height);
 
-protected:
+	float randomFloat(float a, float b);
+	float lerp(float a, float b, float f);
+
 	TextureGL noiseTexture;
 	SSAO_RendertargetGL aoRenderTarget;
 	SSAO_RendertargetGL tiledBlurRenderTarget;
@@ -62,6 +88,27 @@ protected:
 	std::unique_ptr<ShaderGL> tiledBlurPass;
 	std::unique_ptr<ShaderGL> aoDisplay;
 	ModelDrawerGL* modelDrawer;
+
+	unsigned int windowWidth;
+	unsigned int windowHeight;
+	unsigned int noiseTileWidth;
+	std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
+	std::vector<glm::vec3> noiseTextureValues;
+
+	Sprite screenSprite;
+
+	SSAOData   m_shaderData;
+};
+
+class SSAO_ConfigurationView : public nex::engine::gui::Drawable {
+public:
+	SSAO_ConfigurationView(SSAO_DeferredGL* ssao);
+
+protected:
+	void drawSelf() override;
+
+private:
+	SSAO_DeferredGL * m_ssao;
 };
 
 #endif //SSAO_GL_HPP

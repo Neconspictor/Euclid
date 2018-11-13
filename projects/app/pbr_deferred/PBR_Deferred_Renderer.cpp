@@ -186,7 +186,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	//m_renderBackend->setViewPort(0, 0, 4096, 4096);
 
-	for (int i = 0; i < CascadedShadow::NUM_CASCADES; ++i)
+	for (int i = 0; i < CascadedShadowGL::NUM_CASCADES; ++i)
 	{
 		m_cascadedShadow->begin(i);
 		drawSceneToCascade(scene);
@@ -251,7 +251,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 		//renderer->enableAlphaBlending(true);
 
-	CascadedShadow::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
+	CascadedShadowGL::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
 	TextureGL* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
 		m_pbr_deferred->drawLighting(scene, 

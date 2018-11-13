@@ -2,10 +2,10 @@
 
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
-#include <nex/shader/ShaderManager.hpp>
+#include <nex/opengl/shader/ShaderManagerGL.hpp>
+#include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
 
-GaussianBlurGL::GaussianBlurGL(RendererOpenGL* renderer) : GaussianBlur(), renderer(renderer)
+GaussianBlurGL::GaussianBlurGL(RendererOpenGL* renderer) : renderer(renderer)
 {
 	sprite.setPosition({ 0,0 });
 	sprite.setHeight(1);
@@ -16,15 +16,15 @@ GaussianBlurGL::~GaussianBlurGL()
 {
 }
 
-void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
+void GaussianBlurGL::blur(RenderTargetGL* target, RenderTargetGL* cache)
 {
 	RenderTargetGL* glTarget = dynamic_cast<RenderTargetGL*>(target);
 	assert(glTarget != nullptr);
 	GLuint texture = glTarget->getTextureGL();
-	ModelDrawer* modelDrawer = renderer->getModelDrawer();
-	GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
+	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
+	GaussianBlurHorizontalShaderGL* horizontalShader = dynamic_cast<GaussianBlurHorizontalShaderGL*>(
 		renderer->getShaderManager()->getConfig(Shaders::GaussianBlurHorizontal));
-	GaussianBlurVerticalShader* verticalShader = dynamic_cast<GaussianBlurVerticalShader*>(
+	GaussianBlurVerticalShaderGL* verticalShader = dynamic_cast<GaussianBlurVerticalShaderGL*>(
 		renderer->getShaderManager()->getConfig(Shaders::GaussianBlurVertical));
 
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/detail/type_vec2.hpp>
-#include <nex/texture/Texture.hpp>
 #include <glm/detail/type_vec3.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
 
 /**
  * A sprite is a 2D image texture that is drawn onto the screen.
@@ -16,7 +16,7 @@ public:
 	float getHeight() const;
 	glm::vec2 getPosition() const;
 	const glm::vec3& getRotation() const;
-	Texture* getTexture() const;
+	TextureGL* getTexture() const;
 	float getWidth() const;
 
 	void setHeight(float height);
@@ -24,7 +24,7 @@ public:
 	void setXRotation(float value);
 	void setYRotation(float value);
 	void setZRotation(float value);
-	void setTexture(Texture* texture);
+	void setTexture(TextureGL* texture);
 	void setWidth(float width);
 
 protected:
@@ -32,5 +32,5 @@ protected:
 	float relativeWidth;
 	glm::vec3 rotation;
 	glm::vec2 screenPosition;
-	Texture* texture;
+	TextureGL* texture;
 };

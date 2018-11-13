@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <nex/material/Material.hpp>
+#include <nex/opengl/material/Material.hpp>
 #include <memory>
 
 class MeshFactoryGL;
