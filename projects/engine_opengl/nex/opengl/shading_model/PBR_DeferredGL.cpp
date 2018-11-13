@@ -31,8 +31,6 @@ PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHD
 	screenSprite.setPosition(pos);
 	screenSprite.setWidth(dim.x);
 	screenSprite.setHeight(dim.y);
-
-
 }
 
 PBR_DeferredGL::~PBR_DeferredGL()

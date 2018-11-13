@@ -33,7 +33,7 @@ public:
 
 private:
 
-	inline Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
+	inline TextureGL * renderAO(Camera* camera, TextureGL* gPosition, TextureGL* gNormal);
 
 	void drawSceneToCascade(SceneNode* scene);
 

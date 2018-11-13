@@ -276,7 +276,7 @@ public:
 
 protected:
 
-	static void clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
+	static void __clearRenderTarget(RenderTargetGL* screenBuffer, bool releasedAllocatedMemory = true);
 
 protected:
 	glm::vec3 backgroundColor;

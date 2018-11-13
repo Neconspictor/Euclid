@@ -159,10 +159,10 @@ void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ModelDrawer* modelDrawer = m_renderBackend->getModelDrawer();
-	ScreenShader* screenShader = dynamic_cast<ScreenShader*>(
+	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
+	ScreenShaderGL* screenShader = dynamic_cast<ScreenShaderGL*>(
 		m_renderBackend->getShaderManager()->getConfig(Shaders::Screen));
-	DepthMapShader* depthMapShader = dynamic_cast<DepthMapShader*>(
+	DepthMapShaderGL* depthMapShader = dynamic_cast<DepthMapShaderGL*>(
 		m_renderBackend->getShaderManager()->getConfig(Shaders::DepthMap));
 	using namespace chrono;
 
@@ -231,7 +231,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			camera->getPerspProjection());
 	//renderer->endScene();
 
-	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
+	TextureGL* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
@@ -252,7 +252,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//renderer->enableAlphaBlending(true);
 
 	CascadedShadow::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
-	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
+	TextureGL* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
@@ -271,7 +271,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	BaseRenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	BaseRenderTargetGL* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
 	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
@@ -353,12 +353,12 @@ AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
 	return &m_aoSelector;
 }
 
-PBR_Deferred* PBR_Deferred_Renderer::getPBR()
+PBR_DeferredGL* PBR_Deferred_Renderer::getPBR()
 {
 	return m_pbr_deferred.get();
 }
 
-Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
+TextureGL* PBR_Deferred_Renderer::renderAO(Camera* camera, TextureGL* gPosition, TextureGL* gNormal)
 {
 	if (!m_aoSelector.isAmbientOcclusionActive())
 		// Return a default white texture (means no ambient occlusion)

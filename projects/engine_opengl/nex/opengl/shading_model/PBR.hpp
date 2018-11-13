@@ -1,31 +1,30 @@
 #ifndef PBR_HPP
 #define PBR_HPP
 
-#include <nex/texture/Texture.hpp>
-#include <nex/model/Vob.hpp>
-#include <nex/shader/PBRShader.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/opengl/model/Vob.hpp>
+#include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/sprite/Sprite.hpp>
-#include<memory>
 
 class RendererOpenGL;
 
 class PBR {
 
 public:
-  PBR(RendererOpenGL* renderer, Texture* backgroundHDR);
+  PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR);
   virtual ~PBR();
 
-  virtual void drawSceneToShadowMap(SceneNode * scene,
-	  DepthMap* shadowMap,
+  void drawSceneToShadowMap(SceneNode * scene,
+	  DepthMapGL* shadowMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& lightViewMatrix,
 	  const glm::mat4& lightProjMatrix);
 
-  virtual void drawScene(SceneNode * scene,
+  void drawScene(SceneNode * scene,
 	  const glm::vec3& cameraPosition,
-	  Texture* shadowMap,
+	  TextureGL* shadowMap,
 	  const DirectionalLight& light,
 	  const glm::mat4& lightViewMatrix,
 	  const glm::mat4& lightProjMatrix,
@@ -36,32 +35,32 @@ public:
 	  const glm::mat4& view);
 
 
-  virtual CubeMap* getConvolutedEnvironmentMap();
+  CubeMapGL* getConvolutedEnvironmentMap();
 
-  virtual CubeMap* getEnvironmentMap();
+  CubeMapGL* getEnvironmentMap();
 
-  virtual CubeMap* getPrefilteredEnvironmentMap();
+  CubeMapGL* getPrefilteredEnvironmentMap();
 
-  virtual Texture* getBrdfLookupTexture();
+  TextureGL* getBrdfLookupTexture();
 
 
 protected:
 
-	virtual void init(Texture* backgroundHDR);
+	void init(TextureGL* backgroundHDR);
 
-	CubeRenderTarget* renderBackgroundToCube(Texture* background);
-	CubeRenderTarget* convolute(CubeMap* source);
-	CubeRenderTarget* prefilter(CubeMap* source);
-	RenderTarget* createBRDFlookupTexture();
+	CubeRenderTargetGL* renderBackgroundToCube(TextureGL* background);
+	CubeRenderTargetGL* convolute(CubeMapGL* source);
+	CubeRenderTargetGL* prefilter(CubeMapGL* source);
+	RenderTargetGL* createBRDFlookupTexture();
 
-	CubeRenderTarget* convolutedEnvironmentMap;
-	CubeRenderTarget* prefilterRenderTarget;
-	CubeRenderTarget* environmentMap;
-	RenderTarget* brdfLookupTexture;
+	CubeRenderTargetGL* convolutedEnvironmentMap;
+	CubeRenderTargetGL* prefilterRenderTarget;
+	CubeRenderTargetGL* environmentMap;
+	RenderTargetGL* brdfLookupTexture;
 
 
 	RendererOpenGL* renderer;
-	PBRShader* shader;
+	PBRShaderGL* shader;
 
 	Sprite brdfSprite;
 	Vob skybox;

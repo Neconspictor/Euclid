@@ -48,8 +48,8 @@ RendererOpenGL::RendererOpenGL() : logClient(nex::getLogServer()), mViewport(),
 {	
 	logClient.setPrefix("[RendererOpenGL]");
 
-	//clearRenderTarget(&singleSampledScreenBuffer, false);
-	//clearRenderTarget(&multiSampledScreenBuffer, false);
+	//__clearRenderTarget(&singleSampledScreenBuffer, false);
+	//__clearRenderTarget(&multiSampledScreenBuffer, false);
 
 	smaa = make_unique<SMAA_GL>(this);
 	shadingModelFactory = make_unique<ShadingModelFactoryGL>(this);
@@ -541,7 +541,7 @@ bool RendererOpenGL::checkGLErrorSilently()
 	return false;
 }
 
-void RendererOpenGL::clearRenderTarget(RenderTargetGL* renderTarget, bool releasedAllocatedMemory)
+void RendererOpenGL::__clearRenderTarget(RenderTargetGL* renderTarget, bool releasedAllocatedMemory)
 {
 	if (releasedAllocatedMemory && renderTarget->frameBuffer != GL_FALSE)
 	{
