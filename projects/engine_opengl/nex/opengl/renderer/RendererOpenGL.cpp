@@ -617,7 +617,9 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 	}
 	else
 	{
+		checkGLErrors(BOOST_CURRENT_FUNCTION);
 		result = RenderTargetGL::createSingleSampled(width, height, data, depthStencilType);
+		checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

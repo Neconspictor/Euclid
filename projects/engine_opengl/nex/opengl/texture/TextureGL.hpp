@@ -66,8 +66,6 @@ public:
 
 	GLuint getTexture() const;
 
-	virtual void release();
-
 	void setTexture(GLuint id);
 
 
@@ -81,6 +79,8 @@ public:
 	static GLuint rgba_float_resolutions[3];
 	static GLuint rgb_float_resolutions[3];
 	static GLuint rg_float_resolutions[3];
+
+	void release();
 
 
 protected:
@@ -103,7 +103,7 @@ public:
 	RenderBufferGL(const RenderBufferGL&) = delete;
 	RenderBufferGL& operator=(const RenderBufferGL&) = delete;
 
-	void release() override;
+	void release();
 };
 
 
@@ -303,8 +303,6 @@ public:
 	GLuint getCubeMapTexture() const;
 	CubeMapGL* getCubeMap();
 	GLuint getFramebuffer() const;
-
-	void release() override;
 
 private:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access

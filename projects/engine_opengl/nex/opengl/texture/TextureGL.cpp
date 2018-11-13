@@ -93,15 +93,16 @@ TextureGL::TextureGL(GLuint texture) : textureID(texture)
 {
 }
 
-TextureGL::TextureGL(TextureGL && o) : textureID(GL_FALSE)
+TextureGL::TextureGL(TextureGL && o) : textureID(o.textureID)
 {
-	*this = std::move(o);
+	o.textureID = GL_FALSE;
 }
 
 TextureGL & TextureGL::operator=(TextureGL && o)
 {
 	if (this == &o) return *this;
-	swap(textureID, o.textureID);
+	textureID = o.textureID;
+	o.textureID = GL_FALSE;
 	return *this;
 }
 
@@ -110,17 +111,17 @@ TextureGL::~TextureGL()
 	release();
 }
 
-GLuint TextureGL::getTexture() const
-{
-	return textureID;
-}
-
 void TextureGL::release()
 {
 	if (textureID != GL_FALSE) {
 		glDeleteTextures(1, &textureID);
 		textureID = GL_FALSE;
 	}
+}
+
+GLuint TextureGL::getTexture() const
+{
+	return textureID;
 }
 
 void TextureGL::setTexture(GLuint id)
@@ -246,6 +247,7 @@ RenderBufferGL::RenderBufferGL() : TextureGL()
 
 RenderBufferGL::~RenderBufferGL()
 {
+	release();
 }
 
 RenderBufferGL::RenderBufferGL(GLuint texture) : TextureGL(texture)
@@ -326,7 +328,8 @@ void BaseRenderTargetGL::setFrameBuffer(GLuint newValue)
 
 void BaseRenderTargetGL::swap(BaseRenderTargetGL & o)
 {
-	std::swap(frameBuffer, o.frameBuffer);
+	frameBuffer = o.frameBuffer;
+	o.frameBuffer = GL_FALSE;
 }
 
 
@@ -516,6 +519,7 @@ RenderTargetGL::RenderTargetGL(int width, int height) :
 
 RenderTargetGL::~RenderTargetGL()
 {
+	release();
 }
 
 RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
@@ -710,9 +714,12 @@ TextureGL* RenderTargetGL::getTexture()
 
 void RenderTargetGL::release()
 {
-	textureBuffer.release();
-	glDeleteFramebuffers(1, &frameBuffer);
-	glDeleteRenderbuffers(1, &renderBuffer);
+	//textureBuffer.release();
+
+	if (frameBuffer != GL_FALSE)
+		glDeleteFramebuffers(1, &frameBuffer);
+	if (renderBuffer != GL_FALSE)
+		glDeleteRenderbuffers(1, &renderBuffer);
 
 	frameBuffer = GL_FALSE;
 	renderBuffer = GL_FALSE;
@@ -822,10 +829,6 @@ CubeMapGL* CubeDepthMapGL::getCubeMap()
 GLuint CubeDepthMapGL::getFramebuffer() const
 {
 	return frameBuffer;
-}
-
-void CubeDepthMapGL::release()
-{
 }
 
 DepthMapGL::DepthMapGL(int width, int height) :
