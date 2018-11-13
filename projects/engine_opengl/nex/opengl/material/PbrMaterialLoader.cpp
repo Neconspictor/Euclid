@@ -1,12 +1,12 @@
-#include <nex/material/PbrMaterialLoader.hpp>
-#include <nex/material/PbrMaterial.hpp>
+#include <nex/opengl/material/PbrMaterialLoader.hpp>
+#include <nex/opengl/material/PbrMaterial.hpp>
 #include <nex/logging/GlobalLoggingServer.hpp>
 #include <string>
 
 using namespace std;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager), logClient(nex::getLogServer())
+PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), logClient(nex::getLogServer())
 {
 	logClient.setPrefix("PbrMaterialLoader");
 }
@@ -96,12 +96,12 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{
-			Texture* texture = textureManager->getImage(normalMaps[0], data);
+			TextureGL* texture = textureManager->getImage(normalMaps[0], data);
 			material->setNormalMap(texture);
 			//material->setNormalMap(textureManager->getDefaultNormalTexture());
 		} else
 		{
-			Texture* texture = textureManager->getDefaultNormalTexture();
+			TextureGL* texture = textureManager->getDefaultNormalTexture();
 			material->setNormalMap(texture);
 		}
 	}

@@ -1,4 +1,4 @@
-#include <nex/model/Vob.hpp>
+#include <nex/opengl/model/Vob.hpp>
 #include <glm/gtc/matrix_transform.inl>
 
 using namespace std;

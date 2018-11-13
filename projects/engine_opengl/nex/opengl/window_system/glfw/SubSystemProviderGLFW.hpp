@@ -11,21 +11,17 @@ public:
 
 	Window* createWindow(Window::WindowStruct& desc) override;
 
-	virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
-
-	RenderBackend* getRenderBackend() override;
-
-	Input* getInput() override;
+	std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
 
 	static SubSystemProviderGLFW* get();
 
-	virtual bool init() override;
+	bool init() override;
 
 	bool isTerminated() const override;
 
-	virtual void pollEvents() override;
+	void pollEvents() override;
 
-	virtual void terminate() override;
+	void terminate() override;
 
 	static void errorCallback(int error, const char* description);
 

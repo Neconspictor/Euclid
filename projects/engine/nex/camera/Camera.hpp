@@ -1,5 +1,4 @@
 #pragma once
-#include <nex/Window.hpp>
 #include <glm/glm.hpp>
 #include <nex/util/Projectional.hpp>
 #include <nex/Input.hpp>

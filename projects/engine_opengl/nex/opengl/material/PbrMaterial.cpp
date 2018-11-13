@@ -1,4 +1,4 @@
-#include <nex/material/PbrMaterial.hpp>
+#include <nex/opengl/material/PbrMaterial.hpp>
 
 using namespace std;
 
@@ -12,12 +12,12 @@ roughnessMap(nullptr)
 {
 }
 
-PbrMaterial::PbrMaterial(Texture * albedoMap, 
-	Texture * aoMap, 
-	Texture * emissionMap, 
-	Texture * metallicMap, 
-	Texture * normalMap, 
-	Texture * roughnessMap) : 
+PbrMaterial::PbrMaterial(TextureGL * albedoMap,
+	TextureGL * aoMap,
+	TextureGL * emissionMap,
+	TextureGL * metallicMap,
+	TextureGL * normalMap,
+	TextureGL * roughnessMap) :
 
 	albedoMap(albedoMap),
 	aoMap(aoMap),
@@ -48,62 +48,62 @@ PbrMaterial & PbrMaterial::operator=(const PbrMaterial & other)
 	return *this;
 }
 
-Texture * PbrMaterial::getAlbedoMap() const
+TextureGL * PbrMaterial::getAlbedoMap() const
 {
 	return albedoMap;
 }
 
-Texture * PbrMaterial::getAoMap() const
+TextureGL * PbrMaterial::getAoMap() const
 {
 	return aoMap;
 }
 
-Texture * PbrMaterial::getEmissionMap() const
+TextureGL * PbrMaterial::getEmissionMap() const
 {
 	return emissionMap;
 }
 
-Texture * PbrMaterial::getMetallicMap() const
+TextureGL * PbrMaterial::getMetallicMap() const
 {
 	return metallicMap;
 }
 
-Texture * PbrMaterial::getNormalMap() const
+TextureGL * PbrMaterial::getNormalMap() const
 {
 	return normalMap;
 }
 
-Texture * PbrMaterial::getRoughnessMap() const
+TextureGL * PbrMaterial::getRoughnessMap() const
 {
 	return roughnessMap;
 }
 
-void PbrMaterial::setAlbedoMap(Texture * albedoMap)
+void PbrMaterial::setAlbedoMap(TextureGL * albedoMap)
 {
 	this->albedoMap = albedoMap;
 }
 
-void PbrMaterial::setAoMap(Texture * aoMap)
+void PbrMaterial::setAoMap(TextureGL * aoMap)
 {
 	this->aoMap = aoMap;
 }
 
-void PbrMaterial::setEmissionMap(Texture * emissionMap)
+void PbrMaterial::setEmissionMap(TextureGL * emissionMap)
 {
 	this->emissionMap = emissionMap;
 }
 
-void PbrMaterial::setMetallicMap(Texture * metallicMap)
+void PbrMaterial::setMetallicMap(TextureGL * metallicMap)
 {
 	this->metallicMap = metallicMap;
 }
 
-void PbrMaterial::setNormalMap(Texture * normalMap)
+void PbrMaterial::setNormalMap(TextureGL * normalMap)
 {
 	this->normalMap = normalMap;
 }
 
-void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
+void PbrMaterial::setRoughnessMap(TextureGL * roughnessMap)
 {
 	this->roughnessMap = roughnessMap;
 }

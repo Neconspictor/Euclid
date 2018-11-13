@@ -14,43 +14,6 @@ set(
     nex/Window.hpp
 	nex/Window.cpp
     
-    #nex/event
-    nex/event/EventChannel.hpp
-    nex/event/EventHandler.hpp
-    nex/event/EventHandlerQueue.hpp
-    nex/event/GlobalEventChannel.hpp
-    nex/event/Task.hpp
-	nex/event/Task.cpp
-    nex/event/TaskManager.hpp
-	nex/event/TaskManager.cpp
-    
-    #nex/exception
-    nex/exception/EnumFormatException.hpp
-    nex/exception/OpenglException.hpp
-    nex/exception/UnexpectedPlatformException.hpp
-	
-	#nex/gui
-	nex/gui/ImGUI.hpp
-    
-    
-    #nex/logging
-    nex/logging/GlobalLoggingServer.hpp
-	nex/logging/GlobalLoggingServer.cpp
-    nex/logging/LogEndpoint.hpp
-    nex/logging/LogEndpoint.inl
-	nex/logging/LogEndpoint.cpp
-    nex/logging/LoggingServer.hpp
-	nex/logging/LoggingServer.cpp
-    nex/logging/LoggingClient.hpp
-	nex/logging/LoggingClient.cpp
-    nex/logging/LogLevel.hpp
-	nex/logging/LogLevel.cpp
-    nex/logging/LogMessage.hpp
-	nex/logging/LogMessage.cpp
-		
-    #nex/antialiasing
-    nex/antialiasing/SMAA.hpp
-    
     #nex/camera
     nex/camera/Camera.hpp
 	nex/camera/Camera.cpp
@@ -73,13 +36,24 @@ set(
     nex/common/Log.hpp
     nex/common/Log.cpp
     
-    #nex/drawing
-    nex/drawing/ModelDrawer.hpp
-    
     #nex/exception
     nex/exception/MeshNotFoundException.hpp
     nex/exception/ShaderInitException.hpp
     nex/exception/ShaderNotFoundException.hpp
+    nex/exception/EnumFormatException.hpp
+    nex/exception/OpenglException.hpp
+    nex/exception/UnexpectedPlatformException.hpp
+    
+    #nex/event
+    nex/event/EventChannel.hpp
+    nex/event/EventHandler.hpp
+    nex/event/EventHandlerQueue.hpp
+    nex/event/GlobalEventChannel.hpp
+    nex/event/Task.hpp
+	nex/event/Task.cpp
+    nex/event/TaskManager.hpp
+	nex/event/TaskManager.cpp
+    
 	
 	#nex/gui
 	nex/gui/Controller.hpp
@@ -94,6 +68,7 @@ set(
 	nex/gui/imgui_tabs.h
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
+	nex/gui/ImGUI.hpp
     
 	#nex/light
 	nex/light/Light.hpp
@@ -101,6 +76,21 @@ set(
 		
     #nex/listener
     nex/listener/ScrollListener.hpp
+    
+    #nex/logging
+    nex/logging/GlobalLoggingServer.hpp
+	nex/logging/GlobalLoggingServer.cpp
+    nex/logging/LogEndpoint.hpp
+    nex/logging/LogEndpoint.inl
+	nex/logging/LogEndpoint.cpp
+    nex/logging/LoggingServer.hpp
+	nex/logging/LoggingServer.cpp
+    nex/logging/LoggingClient.hpp
+	nex/logging/LoggingClient.cpp
+    nex/logging/LogLevel.hpp
+	nex/logging/LogLevel.cpp
+    nex/logging/LogMessage.hpp
+	nex/logging/LogMessage.cpp
 	
 	#nex/memory
     nex/memory/Allocator.hpp
@@ -117,33 +107,6 @@ set(
 	nex/memory/ProxyAllocator.cpp
     nex/memory/StackAllocator.hpp
 	nex/memory/StackAllocator.cpp
-    
-    #nex/mesh
-    nex/mesh/Mesh.hpp
-	nex/mesh/Mesh.cpp
-    nex/mesh/SampleMeshes.hpp
-    
-    #nex/material
-    nex/material/AbstractMaterialLoader.hpp
-	nex/material/AbstractMaterialLoader.cpp
-    nex/material/BlinnPhongMaterial.hpp
-	nex/material/BlinnPhongMaterial.cpp
-	nex/material/BlinnPhongMaterialLoader.hpp
-	nex/material/BlinnPhongMaterialLoader.cpp
-    nex/material/Material.hpp
-	nex/material/PbrMaterial.hpp
-	nex/material/PbrMaterial.cpp
-	nex/material/PbrMaterialLoader.hpp
-	nex/material/PbrMaterialLoader.cpp
-
-    
-    #nex/model
-    nex/model/Model.hpp
-	nex/model/Model.cpp
-    nex/model/ModelManager.hpp
-	nex/model/ModelManager.cpp
-    nex/model/Vob.hpp
-	nex/model/Vob.cpp
 	
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp

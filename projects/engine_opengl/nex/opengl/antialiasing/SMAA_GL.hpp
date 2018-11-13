@@ -1,22 +1,21 @@
 #pragma once
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/antialiasing/SMAA.hpp>
 
 
-class SMAA_GL : public SMAA
+class SMAA_GL
 {
 public:
 	explicit SMAA_GL(RendererOpenGL* renderer);
 	virtual ~SMAA_GL();
 
-	virtual void antialias(RenderTarget* renderTarget) override;
+	void antialias(RenderTargetGL* renderTarget);
 
-	virtual void init() override;
+	void init();
 
-	void reset() override;
+	void reset();
 
-	virtual void updateBuffers() override;
+	void updateBuffers();
 
 private:
 	RendererOpenGL* renderer;

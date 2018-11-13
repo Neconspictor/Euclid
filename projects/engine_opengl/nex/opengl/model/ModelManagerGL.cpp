@@ -1,5 +1,5 @@
 #include <nex/opengl/model/ModelManagerGL.hpp>
-#include <nex/mesh/SampleMeshes.hpp>
+#include <nex/opengl/mesh/SampleMeshes.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <nex/opengl/model/ModelGL.hpp>
 #include <nex/opengl/model/AssimpModelLoader.hpp>
@@ -9,10 +9,16 @@
 #include <sstream>
 #include <string>
 #include <nex/util/StringUtils.hpp>
-#include "nex/shader/SimpleColorShader.hpp"
+#include "nex/opengl/shader/SimpleColorShaderGL.hpp"
+#include <nex/util/StringUtils.hpp>
+#include "nex/material/BlinnPhongMaterial.hpp"
 
 using namespace std;
 using namespace glm;
+
+
+const unsigned int ModelManagerGL::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
+const unsigned int ModelManagerGL::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");
 
 
 unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>();
@@ -28,7 +34,7 @@ ModelManagerGL::~ModelManagerGL()
 {
 }
 
-Model* ModelManagerGL::getSkyBox()
+ModelGL* ModelManagerGL::getSkyBox()
 {
 	using Vertex = VertexPosition;
 
@@ -57,14 +63,14 @@ Model* ModelManagerGL::getSkyBox()
 	return it->second;
 }
 
-Model* ModelManagerGL::getSprite()
+ModelGL* ModelManagerGL::getSprite()
 {
 	using Vertex = VertexPositionTex;
 
 	auto it = modelTable.find(SPRITE_MODEL_HASH);
 	if (it != modelTable.end())
 	{
-		return dynamic_cast<Model*>(it->second);
+		return dynamic_cast<ModelGL*>(it->second);
 	}
 
 	// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
@@ -122,7 +128,7 @@ Model* ModelManagerGL::getSprite()
 	return result;
 }
 
-Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
+ModelGL* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 {
 
 	auto hash = nex::util::customSimpleHash(modelName);
@@ -168,7 +174,7 @@ Model* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
 }
 
 
-Model* ModelManagerGL::getPositionNormalTexCube()
+ModelGL* ModelManagerGL::getPositionNormalTexCube()
 {
 	using Vertex = VertexPositionNormalTex;
 
@@ -240,7 +246,7 @@ void ModelManagerGL::loadModels()
 	//AssimpModelLoader::loadModel("");
 }
 
-void ModelManagerGL::useInstances(Model* source, mat4* modelMatrices, unsigned int amount)
+void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
 {
 	ModelGL* model = static_cast<ModelGL*>(source);
 	model->createInstanced(amount, modelMatrices);

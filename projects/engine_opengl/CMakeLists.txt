@@ -37,11 +37,26 @@ set(
 	nex/opengl/gui/NanoGUI.hpp
 	nex/opengl/gui/NanoGUI.cpp
     
+    #nex/opengl/material
+    nex/opengl/material/AbstractMaterialLoader.hpp
+	nex/opengl/material/AbstractMaterialLoader.cpp
+    nex/opengl/material/BlinnPhongMaterial.hpp
+	nex/opengl/material/BlinnPhongMaterial.cpp
+	nex/opengl/material/BlinnPhongMaterialLoader.hpp
+	nex/opengl/material/BlinnPhongMaterialLoader.cpp
+    nex/opengl/material/Material.hpp
+	nex/opengl/material/PbrMaterial.hpp
+	nex/opengl/material/PbrMaterial.cpp
+	nex/opengl/material/PbrMaterialLoader.hpp
+	nex/opengl/material/PbrMaterialLoader.cpp
+    
     #nex/opengl/mesh
     nex/opengl/mesh/MeshGL.hpp
 	nex/opengl/mesh/MeshGL.cpp
     nex/opengl/mesh/MeshFactoryGL.hpp
 	nex/opengl/mesh/MeshFactoryGL.cpp
+    nex/opengl/mesh/SampleMeshes.hpp
+    nex/opengl/mesh/TestMeshes.hpp
 	
     #nex/opengl/model
     nex/opengl/model/AssimpModelLoader.hpp
@@ -50,6 +65,8 @@ set(
 	nex/opengl/model/ModelGL.cpp
     nex/opengl/model/ModelManagerGL.hpp
 	nex/opengl/model/ModelManagerGL.cpp
+    nex/opengl/model/Vob.hpp
+	nex/opengl/model/Vob.cpp
     
 	#nex/opengl/post_processing
 	nex/opengl/post_processing/HBAO_GL.hpp

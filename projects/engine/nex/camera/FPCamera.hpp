@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/camera/FPCameraBase.hpp>
+#include <nex/gui/Drawable.hpp>
 
 class FPCamera_ConfigurationView;
 

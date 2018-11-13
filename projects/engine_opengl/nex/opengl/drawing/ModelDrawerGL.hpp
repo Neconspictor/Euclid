@@ -1,29 +1,46 @@
 #pragma once
-#include <nex/drawing/ModelDrawer.hpp>
+
+#include <nex/opengl/shader/ShaderGL.hpp>
 
 class RendererOpenGL;
-class ShaderGL;
+class Sprite;
+class Vob;
+class ModelGL;
 
-class ModelDrawerGL : public ModelDrawer
+enum class DrawingTypes
+{
+	SOLID = 0,
+	INSTANCED,
+	OUTLINED,
+	WIRED,
+};
+
+class ModelDrawerGL
 {
 public:
 	explicit ModelDrawerGL(RendererOpenGL* renderer);
 
 	virtual ~ModelDrawerGL();
 
-	void draw(Sprite* sprite, Shaders shaderType) override;
+	/**
+	 * Draws a sprite onto the screen
+	 */
+	void draw(Sprite* sprite, Shaders shaderType);
+	void draw(Sprite* sprite, ShaderGL& shader);
 
-	virtual void draw(Sprite* sprite, Shader& shader) override;
+	/**
+	 * Draws the specified model with a given shader onto the screen.
+	 */
+	void draw(Vob* vob, Shaders shaderType, const TransformData& data);
+	void draw(ModelGL* vob, ShaderGL* shader);
+	void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
 
-	void draw(Vob* vob, Shaders shaderType, const TransformData& data) override;
-
-	void draw(Model* vob, Shader* shader);
-	
-	void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount) override;
-
-	void drawOutlined(Vob* vob, Shaders shaderType, const TransformData& data, glm::vec4 borderColor) override;
-
-	void drawWired(Vob* vob, Shaders shaderType, const TransformData& data, int lineStrength) override;
+	/**
+	 * Draws the specified model onto the screen and outlines
+	 * it with a border.
+	 */
+	void drawOutlined(Vob* vob, Shaders shaderType, const TransformData& data, glm::vec4 borderColor);
+	void drawWired(Vob* vob, Shaders shaderType, const TransformData& data, int lineStrength);
 
 private:
 	RendererOpenGL* renderer;

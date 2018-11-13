@@ -40,17 +40,6 @@ std::unique_ptr<ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
 	return make_unique<ImGUI_GL>(windowGLFW);
 }
 
-RenderBackend* SubSystemProviderGLFW::getRenderBackend() {
-
-	//TODO
-	return nullptr;
-}
-
-Input* SubSystemProviderGLFW::getInput() {
-	//TODO
-	return nullptr;
-}
-
 void SubSystemProviderGLFW::errorCallback(int error, const char* description)
 {
 	LOG(get()->logClient, nex::Error) << "Error code: " << error

@@ -1,15 +1,12 @@
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
-#include <nex/shader/Shader.hpp>
-#include <nex/model/Model.hpp>
 #include <nex/model/Vob.hpp>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <nex/shader/SimpleColorShader.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/shader/SimpleExtrudeShader.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/sprite/Sprite.hpp>
+#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
 
 using namespace glm;
 using namespace std;
@@ -23,10 +20,10 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite * sprite, Shader& shader)
+void ModelDrawerGL::draw(Sprite * sprite, ShaderGL& shader)
 {
 	ShaderGL& glShader = dynamic_cast<ShaderGL&>(shader);
-	Model* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
@@ -69,15 +66,15 @@ void ModelDrawerGL::draw(Sprite * sprite, Shader& shader)
 
 void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
 {
-	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	draw(sprite, *shader);
 }
 
 void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data)
 {
-	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	//vob->calcTrafo();
-	Model* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 	
 	static bool called = false;
 	//if (!called) {
@@ -93,7 +90,7 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	}
 }
 
-void ModelDrawerGL::draw(Model* model, Shader* shader)
+void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
 {
 	for (auto& mesh : model->getMeshes())
 	{
@@ -103,9 +100,9 @@ void ModelDrawerGL::draw(Model* model, Shader* shader)
 
 void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
 {
-	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	//vob->calcTrafo();
-	Model* model = vob->getModel();//ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	ModelGL* model = vob->getModel();//ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	shader->setTransformData(data);
@@ -144,7 +141,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformDa
 
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
-	SimpleExtrudeShader* simpleExtrude = static_cast<SimpleExtrudeShader*>
+	SimpleExtrudeShaderGL* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
 										(ShaderManagerGL::get()->getConfig(Shaders::SimpleExtrude));
 	
 	simpleExtrude->setObjectColor(borderColor);
@@ -166,9 +163,9 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformDa
 
 void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData& data, int lineStrength)
 {
-	Shader* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
-	Model* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

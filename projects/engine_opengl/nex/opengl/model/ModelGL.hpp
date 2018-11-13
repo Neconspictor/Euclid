@@ -1,19 +1,23 @@
 #pragma once
-#include <nex/model/Model.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <vector>
 
-class ModelGL : public Model
+
+class ShaderGL;
+
+class ModelGL
 {
 public:
 	
 	ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes);
-	ModelGL(const ModelGL&) = delete;
-	ModelGL(ModelGL&& o);
+	
+	ModelGL(ModelGL&& o) noexcept;
+	ModelGL& operator=(ModelGL&& o) noexcept;
 
+	ModelGL(const ModelGL&) = delete;
 	ModelGL& operator=(const ModelGL& o) = delete;
-	ModelGL& operator=(ModelGL&& o);
-	virtual ~ModelGL() override;
+	
+	virtual ~ModelGL();
 
 	void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
 
@@ -21,11 +25,16 @@ public:
 
 	void setInstanced(bool value);
 
+	const std::vector<std::reference_wrapper<MeshGL>>& getMeshes() const;
+
+	void draw(ShaderGL* shader);
+
 protected:
+	std::vector<std::reference_wrapper<MeshGL>> meshReferences;
 	std::vector<std::unique_ptr<MeshGL>> meshes;
 	bool instanced;
 	GLuint vertexAttributeBuffer;
 
 private:
-	static std::vector<std::reference_wrapper<Mesh>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);
+	static std::vector<std::reference_wrapper<MeshGL>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);
 };

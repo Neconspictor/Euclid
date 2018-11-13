@@ -1,7 +1,7 @@
 #pragma once
 
-#include <nex/material/Material.hpp>
-#include <nex/texture/TextureManager.hpp>
+#include <nex/opengl/material/Material.hpp>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <memory>
 #include <assimp/scene.h>
 #include<vector>
@@ -9,7 +9,7 @@
 class AbstractMaterialLoader
 {
 public:
-	AbstractMaterialLoader(TextureManager* textureManager);
+	AbstractMaterialLoader(TextureManagerGL* textureManager);
 
 	virtual ~AbstractMaterialLoader();
 	
@@ -19,5 +19,5 @@ public:
 protected:
 	std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data) const;
 
-	TextureManager* textureManager;
+	TextureManagerGL* textureManager;
 };

@@ -3,18 +3,25 @@
 using namespace std;
 using namespace glm;
 
-ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes) : Model(move(createReferences(meshes)))
+ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes)
 {
 	this->meshes = move(meshes);
+	this->meshReferences = move(createReferences(meshes));
 }
 
-ModelGL::ModelGL(ModelGL&& o) : Model(move(o))
+ModelGL::ModelGL(ModelGL&& o) noexcept : meshes(o.meshes), 
+meshReferences(move(o.meshReferences)), 
+instanced(o.instanced), 
+vertexAttributeBuffer(o.vertexAttributeBuffer)
 {
-	this->meshes = move(o.meshes);
 	o.meshes.clear();
+	o.meshReferences.clear();
+
+	o.vertexAttributeBuffer = GL_FALSE;
+
 }
 
-ModelGL& ModelGL::operator=(ModelGL&& o)
+ModelGL& ModelGL::operator=(ModelGL&& o) noexcept
 {
 	if (this == &o) return *this;
 	this->meshes = move(o.meshes);
@@ -75,9 +82,18 @@ void ModelGL::setInstanced(bool value)
 	instanced = value;
 }
 
-std::vector<std::reference_wrapper<Mesh>> ModelGL::createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes)
+void ModelGL::draw(ShaderGL* shader)
 {
-	std::vector<std::reference_wrapper<Mesh>> result;
+}
+
+const vector<std::reference_wrapper<MeshGL>>& ModelGL::getMeshes() const
+{
+	return meshReferences;
+}
+
+std::vector<std::reference_wrapper<MeshGL>> ModelGL::createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes)
+{
+	std::vector<std::reference_wrapper<MeshGL>> result;
 	for (auto&& elem : meshes) {
 		result.push_back(*elem.get());
 	}

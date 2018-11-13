@@ -6,7 +6,7 @@
 
 using namespace std;
 
-SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : SMAA(), renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
+SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
 edgesTex(nullptr), blendTex(nullptr), edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), 
 neighborhoodBlendingPass(GL_FALSE), initialized(false)
 {
@@ -23,10 +23,8 @@ SMAA_GL::~SMAA_GL()
 	blendTex = nullptr;*/
 }
 
-void SMAA_GL::antialias(RenderTarget* renderTarget)
+void SMAA_GL::antialias(RenderTargetGL* renderTarget)
 {
-	RenderTargetGL* glTarget = static_cast<RenderTargetGL*>(renderTarget);
-	assert(glTarget != nullptr);
 }
 
 void SMAA_GL::init()

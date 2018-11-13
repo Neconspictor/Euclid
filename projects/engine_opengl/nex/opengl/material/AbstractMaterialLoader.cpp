@@ -1,8 +1,8 @@
-#include <nex/material/AbstractMaterialLoader.hpp>
+#include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
 using namespace std;
 
-AbstractMaterialLoader::AbstractMaterialLoader(TextureManager * textureManager)
+AbstractMaterialLoader::AbstractMaterialLoader(TextureManagerGL * textureManager)
 {
 	this->textureManager = textureManager;
 }
