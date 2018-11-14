@@ -2,33 +2,41 @@
 
 using namespace ext;
 
-std::ostream& operator<<(std::ostream& os, ext::LogType type)
+std::ostream& operator<<(std::ostream& os, ext::LogLevel type)
 {
 	switch(type)
 	{
-		case LogType::Debug:	os << "Debug";		break;
-		case LogType::Info:		os << "Info";		break;
-		case LogType::Warning:	os << "Warning";	break;
-		case LogType::Error:	os << "Error";		break;
-		case LogType::Fault:	os << "Fault";		break;
+		case LogLevel::Debug:	os << "Debug";		break;
+		case LogLevel::Info:		os << "Info";		break;
+		case LogLevel::Warning:	os << "Warning";	break;
+		case LogLevel::Error:	os << "Error";		break;
+		case LogLevel::Fault:	os << "Fault";		break;
 		default: ;
 	}
 
 	return os;
 }
 
-LogMessage::LogMessage(const Logger* logger, LogType type, const char* file, const char* function, int line) :
+LogMessage::LogMessage(const Logger* logger, LogLevel type, const char* file, const char* function, int line) :
 	mLogger(logger), mType(type)
 {
 	const char* prefix = mLogger->getPrefix();
 
 	mBuffer << "[" << mType << "]" << "[" << prefix << "]" << "(" << file << "," << function << ", line " << line << "): ";
+	meta.level = type;
+	meta.mFile = file;
+	meta.mFunction = function;
+	meta.mLine = line;
 }
 
-LogMessage::LogMessage(const Logger* logger, LogType type) : mLogger(logger), mType(type)
+LogMessage::LogMessage(const Logger* logger, LogLevel type) : mLogger(logger), mType(type)
 {
 	const char* prefix = mLogger->getPrefix();
 	mBuffer << "[" << mType << "]" << "[" << prefix << "]: ";
+	meta.level = type;
+	meta.mFile = "";
+	meta.mFunction = "";
+	meta.mLine = -1;
 }
 
 LogMessage::~LogMessage()
@@ -46,11 +54,11 @@ LogMessage& LogMessage::operator<<(std::ostream&(* F)(std::ostream&))
 	return *this;
 }
 
-Logger::Logger() : mPrefix("")
+Logger::Logger(unsigned char mask) : mPrefix(""), mLogMask(Always  | mask)
 {
 }
 
-Logger::Logger(const char* prefix) : mPrefix(prefix)
+Logger::Logger(const char* prefix, unsigned char mask) : mPrefix(prefix), mLogMask(Always | mask)
 {
 }
 
@@ -58,8 +66,12 @@ Logger::~Logger()
 {
 }
 
-void Logger::log(const char* msg) const
+void Logger::log(const char* msg, LogLevel level) const
 {
+	if (!(mLogMask & level)) {
+		return;
+	}
+
 	for (auto stream : LogSink::get()->getLogStreams())
 		*stream << msg << std::endl;
 }
@@ -78,22 +90,32 @@ const char* Logger::getPrefix() const
 	return mPrefix.c_str();
 }
 
-LogMessage Logger::operator()(const char* file, const char* function, int line, LogType type) const
+unsigned char Logger::getLogMask() const noexcept
+{
+	return mLogMask;
+}
+
+void Logger::setLogMask(unsigned char mask) noexcept
+{
+	this->mLogMask = Always | mask;
+}
+
+LogMessage Logger::operator()(const char* file, const char* function, int line, LogLevel type) const
 {
 	return log(file, function, line, type);
 }
 
-LogMessage Logger::operator()(LogType type) const
+LogMessage Logger::operator()(LogLevel type) const
 {
 	return log(type);
 }
 
-LogMessage Logger::log(const char* file, const char* function, int line, LogType type) const
+LogMessage Logger::log(const char* file, const char* function, int line, LogLevel type) const
 {
 	return LogMessage(this, type, file, function, line);
 }
 
-LogMessage Logger::log(LogType type) const
+LogMessage Logger::log(LogLevel type) const
 {
 	return LogMessage(this, type);
 }

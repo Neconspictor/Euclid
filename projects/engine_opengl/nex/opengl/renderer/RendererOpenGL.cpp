@@ -42,7 +42,7 @@ void GLClearError()
 	if (!finite)
 	{
 		static ext::Logger logger("[GLClearError]");
-		logger.log(ext::LogType::Warning) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
+		logger.log(ext::LogLevel::Warning) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
 		//LOG(logger) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
 		throw_with_trace(std::runtime_error("Detected to many GL_INVALID_OPERATION errors"));
 	}
@@ -56,7 +56,7 @@ bool GLLogCall()
 
 	while (GLenum error = glGetError())
 	{
-		logger.log(ext::LogType::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
+		logger.log(ext::LogLevel::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
 		noErrorsOccurred = false;
 	}
 
@@ -668,7 +668,7 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 	//ASSERT(GLLogCall());
 	if (!GLLogCall())
 	{
-		GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogType::Error) << "Assertion failed!"; 
+		GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogLevel::Error) << "Assertion failed!"; 
 		SET_BREAK();
 	}
 	RenderTargetGL result(width, height);

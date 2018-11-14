@@ -10,19 +10,32 @@ namespace ext
 {
 	class Logger;
 
-	enum LogType
+	enum LogLevel
 	{
-		Debug,
-		Info,
-		Warning,
-		Error,
-		Fault
+		Always = 1 << 0,
+		Debug = 1 << 1,
+		Info = 1 << 2,
+		Warning = 1 << 3,
+		Error =  1 << 4,
+		Fault = 1 << 5
 	};
 
 	struct LogMessage
 	{
-		LogMessage(const Logger* logger, LogType type, const char* file, const char* function, int line);
-		LogMessage(const Logger* logger, LogType type);
+		/**
+		 * A log message contains meta information: the log (priority) level, the file and the function and
+		 * the line the logging is taken on.
+		 */
+		struct Meta {
+			LogLevel level;
+			std::string mFile;
+			std::string mFunction;
+			int mLine;
+		};
+
+
+		LogMessage(const Logger* logger, LogLevel type, const char* file, const char* function, int line);
+		LogMessage(const Logger* logger, LogLevel type);
 		~LogMessage();
 
 		/**
@@ -36,35 +49,41 @@ namespace ext
 
 
 		std::stringstream mBuffer;
-		LogType mType;
+		LogLevel mType;
 		const Logger* mLogger;
+		Meta meta;
 	};
 
 	class Logger
 	{
 	public:
 
-		Logger();
-		explicit Logger(const char* prefix);
+		Logger(unsigned char mask = Always);
+		explicit Logger(const char* prefix, unsigned char mask = Always);
 
 		virtual ~Logger();
-		virtual void log(const char* msg) const;
+		virtual void log(const char* msg, LogLevel level = Always) const;
 
 		void setPrefix(const char* prefix);
 
 		const char* getPrefix() const;
 
-		LogMessage operator()(const char* file, const char* function, int line, LogType type = LogType::Info) const;
-		LogMessage operator()(LogType type = LogType::Info) const;
+		unsigned char getLogMask() const noexcept;
 
-		virtual LogMessage log(const char* file, const char* function, int line, LogType type = LogType::Info) const;
-		virtual LogMessage log(LogType type = LogType::Info) const;
+		void setLogMask(unsigned char mask) noexcept;
+
+		LogMessage operator()(const char* file, const char* function, int line, LogLevel type = LogLevel::Info) const;
+		LogMessage operator()(LogLevel type = LogLevel::Info) const;
+
+		virtual LogMessage log(const char* file, const char* function, int line, LogLevel type = LogLevel::Info) const;
+		virtual LogMessage log(LogLevel type = LogLevel::Info) const;
 
 	private:
 
 		friend LogMessage;
 
 		std::string mPrefix;
+		unsigned char mLogMask;
 	};
 
 	class LogSink
@@ -77,6 +96,11 @@ namespace ext
 		void registerStream(std::ostream* stream);
 		const std::vector<std::ostream*>& getLogStreams() const;
 		std::vector<std::ostream*> mStreams;
+	};
+
+	class LogManager
+	{
+		
 	};
 
 	template <typename T>
@@ -92,4 +116,4 @@ namespace ext
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, ext::LogType type);
+std::ostream& operator<<(std::ostream& os, ext::LogLevel type);

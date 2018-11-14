@@ -25,7 +25,7 @@ extern ext::Logger GLOBAL_RENDERER_LOGGER;
 
 #else
 #define SET_BREAK()	 psnip_trap()
-#define ASSERT(x) if (!x) {GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogType::Error) << "Assertion failed!"; SET_BREAK();}
+#define ASSERT(x) if (!x) {GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogLevel::Error) << "Assertion failed!"; SET_BREAK();}
 
 // A macro for validating an OpenGL function call.
 #define GLCall(x) GLClearError();\
