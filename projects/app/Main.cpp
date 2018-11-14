@@ -5,6 +5,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
 
 #ifdef WIN32
 #include <nex/platform/windows/WindowsPlatform.hpp>
@@ -46,11 +47,20 @@ int main(int argc, char** argv)
 #endif
 
 	nex::LoggingClient logger(nex::getLogServer());
+	SubSystemProviderGLFW* provider = SubSystemProviderGLFW::get();
+
 
 	logLastCrashReport(logger);
 
 	try {
-		NeXEngine neXEngine;
+		if (!provider->init())
+		{
+			//LOG(m_logClient, platform::Fault) << "Couldn't initialize window system!";
+			nex::getLogServer()->terminate();
+			throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
+		}
+
+		NeXEngine neXEngine(provider);
 		neXEngine.init();
 		neXEngine.run();
 		LOG(logger, nex::Info) << "Done.";
@@ -67,6 +77,13 @@ int main(int argc, char** argv)
 	{
 		LOG(logger, nex::Fault) << "Unknown Exception occurred.";
 	}
+
+
+
+	ModelManagerGL::get()->release();
+	TextureManagerGL::get()->release();
+
+	provider->terminate();
 
 	nex::shutdownLogServer();
 

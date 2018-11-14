@@ -33,14 +33,17 @@ MeshGL& MeshGL::operator=(MeshGL&& o)
 
 MeshGL::~MeshGL()
 {
-	GLCall(glDeleteVertexArrays(1, &vao));
+	if (vao != GL_FALSE)
+		GLCall(glDeleteVertexArrays(1, &vao));
 	vao = GL_FALSE;
 
-	GLCall(glDeleteBuffers(1, &vbo));
+	if (vbo != GL_FALSE)
+		GLCall(glDeleteBuffers(1, &vbo));
 	vbo = GL_FALSE;
 
-	//GLCall(glDeleteBuffers(1, &ebo));
-	//ebo = GL_FALSE;
+	if (ebo != GL_FALSE)
+		GLCall(glDeleteBuffers(1, &ebo));
+	ebo = GL_FALSE;
 }
 
 GLuint MeshGL::getVertexArrayObject() const

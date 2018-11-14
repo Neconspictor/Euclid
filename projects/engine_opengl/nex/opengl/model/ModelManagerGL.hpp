@@ -56,6 +56,8 @@ public:
 	 */
 	void loadModels();
 
+	void release();
+
 	void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
 
 private:

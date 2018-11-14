@@ -29,7 +29,7 @@ ext::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
 void GLClearError()
 {
 
-	unsigned int finite = 1024;
+	unsigned int finite = 4096;
 	GLuint errorCode = glGetError();
 
 	while (errorCode && finite)
@@ -41,9 +41,10 @@ void GLClearError()
 
 	if (!finite)
 	{
-		//static demo::Logger logger("[GLClearError]");
+		static ext::Logger logger("[GLClearError]");
+		logger.log(ext::LogType::Warning) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
 		//LOG(logger) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
-		throw std::runtime_error("Detected to many GL_INVALID_OPERATION errors");
+		throw_with_trace(std::runtime_error("Detected to many GL_INVALID_OPERATION errors"));
 	}
 }
 

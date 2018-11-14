@@ -15,10 +15,10 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 
-NeXEngine::NeXEngine() :
+NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	Engine(),
 	m_logClient(nex::getLogServer()), 
-	m_windowSystem(nullptr), 
+	m_windowSystem(provider),
 	m_window(nullptr), 
 	m_input(nullptr), 
 	m_scene(nullptr),
@@ -29,8 +29,6 @@ NeXEngine::NeXEngine() :
 
 NeXEngine::~NeXEngine()
 {
-	if (m_windowSystem)
-		m_windowSystem->terminate();
 	m_windowSystem = nullptr;
 }
 
@@ -38,14 +36,6 @@ void NeXEngine::init()
 {
 
 	LOG(m_logClient, nex::Info) << "Initializing Engine...";
-
-	m_windowSystem = SubSystemProviderGLFW::get();
-	if (!m_windowSystem->init())
-	{
-		//LOG(m_logClient, platform::Fault) << "Couldn't initialize window system!";
-		nex::getLogServer()->terminate();
-		throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
-	}
 
 	m_renderBackend = std::make_unique<RendererOpenGL>();
 	m_video = std::make_shared<Video>(m_windowSystem);

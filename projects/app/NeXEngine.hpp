@@ -7,11 +7,13 @@
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 
+class SubSystemProviderGLFW;
+
 class NeXEngine : public Engine
 {
 public:
 
-	NeXEngine();
+	NeXEngine(SubSystemProvider* provider);
 	virtual ~NeXEngine();
 
 	void init() override;
@@ -36,7 +38,6 @@ private:
 	std::unique_ptr<Camera> m_camera;
 	SubSystemProvider* m_windowSystem;
 	std::unique_ptr<ImGUI_Impl> m_gui;
-	std::shared_ptr<Video> m_video;
 	Window* m_window;
 	Input* m_input;
 	std::string m_baseTitle;
@@ -46,4 +47,5 @@ private:
 	std::list<Vob> m_vobs;
 	SceneNode* m_scene;
 	bool m_isRunning;
+	std::shared_ptr<Video> m_video;
 };

@@ -58,6 +58,8 @@ public:
 	 */
 	static TextureManagerGL* get();
 
+	void release();
+
 	void releaseTexture(TextureGL * tex);
 
 	void setAnisotropicFiltering(float value);

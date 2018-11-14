@@ -74,17 +74,6 @@ float TextureManagerGL::getMaxAnisotropicFiltering() const
 
 TextureManagerGL::~TextureManagerGL()
 {
-	for (auto& texture : textures)
-	{
-		GLuint id = texture.getTexture();
-		GLCall(glDeleteTextures(1, &id));
-	}
-
-	for (auto& map : cubeMaps)
-	{
-		GLuint id = map.getCubeMap();
-		GLCall(glDeleteTextures(1, &id));
-	}
 }
 
 void TextureManagerGL::init()
@@ -338,7 +327,22 @@ TextureManagerGL* TextureManagerGL::get()
 	return &instance;
 }
 
+void TextureManagerGL::release()
+{
+	for (auto& texture : textures)
+	{
+		texture.release();
+	}
 
+	textures.clear();
+
+	for (auto& map : cubeMaps)
+	{
+		map.release();
+	}
+
+	cubeMaps.clear();
+}
 
 
 TextureManager_Configuration::TextureManager_Configuration(TextureManagerGL* textureManager) : m_textureManager(textureManager)

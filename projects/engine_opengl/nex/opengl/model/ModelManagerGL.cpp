@@ -246,6 +246,12 @@ void ModelManagerGL::loadModels()
 	//AssimpModelLoader::loadModel("");
 }
 
+void ModelManagerGL::release()
+{
+	modelTable.clear();
+	models.clear();
+}
+
 void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
 {
 	ModelGL* model = static_cast<ModelGL*>(source);
