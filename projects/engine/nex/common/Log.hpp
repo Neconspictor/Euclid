@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <boost/optional/optional.hpp>
 
 
 #define LOG_EXT(Logger, type) Logger(__FILE__, __func__, __LINE__, type)
@@ -27,14 +28,14 @@ namespace ext
 		 * the line the logging is taken on.
 		 */
 		struct Meta {
-			LogLevel level;
-			std::string mFile;
-			std::string mFunction;
-			int mLine;
+			boost::optional<std::string> file;
+			boost::optional<std::string> function;
+			boost::optional<int> line;
 		};
 
 
 		LogMessage(const Logger* logger, LogLevel type, const char* file, const char* function, int line);
+		LogMessage(const Logger* logger, LogLevel type, Meta meta);
 		LogMessage(const Logger* logger, LogLevel type);
 		~LogMessage();
 
@@ -51,7 +52,12 @@ namespace ext
 		std::stringstream mBuffer;
 		LogLevel mType;
 		const Logger* mLogger;
-		Meta meta;
+
+	private:
+		static bool hasOneItemSet(Meta* meta);
+		static void unsetItem(Meta* meta, unsigned index);
+		static void formatMessageHeader(LogLevel level, const char* prefix, Meta* meta, std::stringstream* buffer);
+		static void* getOptionalByIndex(Meta* meta, unsigned int index);
 	};
 
 	class Logger
@@ -62,20 +68,20 @@ namespace ext
 		explicit Logger(const char* prefix, unsigned char mask = Always);
 
 		virtual ~Logger();
-		virtual void log(const char* msg, LogLevel level = Always) const;
-
-		void setPrefix(const char* prefix);
-
-		const char* getPrefix() const;
 
 		unsigned char getLogMask() const noexcept;
-
+		const char* getPrefix() const;
+		bool isActive(LogLevel level) const;
+		virtual void log(const char* msg, LogLevel level = Always) const;
 		void setLogMask(unsigned char mask) noexcept;
+		void setMinLogLevel(LogLevel level);
+		void setPrefix(const char* prefix);
 
 		LogMessage operator()(const char* file, const char* function, int line, LogLevel type = LogLevel::Info) const;
 		LogMessage operator()(LogLevel type = LogLevel::Info) const;
 
 		virtual LogMessage log(const char* file, const char* function, int line, LogLevel type = LogLevel::Info) const;
+		virtual LogMessage log(const char* file, LogMessage::Meta meta, LogLevel type = LogLevel::Info) const;
 		virtual LogMessage log(LogLevel type = LogLevel::Info) const;
 
 	private:
