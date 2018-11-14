@@ -4,11 +4,11 @@
 using namespace std;
 
 
-ShadingModelFactoryGL::ShadingModelFactoryGL(RendererOpenGL* renderer) : renderer(renderer)
+ShadingModelFactoryGL::ShadingModelFactoryGL()
 {
 }
 
-std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(TextureGL* backgroundHDR)
+std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(RendererOpenGL* renderer, TextureGL* backgroundHDR)
 {
 	return make_unique<PBR_DeferredGL>(renderer, backgroundHDR);
 }

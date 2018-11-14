@@ -29,7 +29,7 @@ void TextureManagerGL::releaseTexture(TextureGL * tex)
 	for (auto&& it = textures.begin(); it != textures.end(); ++it) {
 		if (&(*it) == tex) {
 			GLuint id = it->getTexture();
-			glDeleteTextures(1, &id);
+			GLCall(glDeleteTextures(1, &id));
 			textures.erase(it);
 			break; // we're done
 		}
@@ -46,10 +46,10 @@ void TextureManagerGL::setAnisotropicFiltering(float value)
 
 	for (auto sampler : m_anisotropySamplers)
 	{
-		glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+		GLCall(glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy));
 		glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY, m_anisotropy);
 		glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
-		glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+		GLCall(glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy));
 		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
@@ -68,7 +68,7 @@ void TextureManagerGL::registerAnistropySampler(SamplerGL* sampler)
 float TextureManagerGL::getMaxAnisotropicFiltering() const
 {
 	GLfloat maxAnisotropy;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+	GLCall(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy));
 	return maxAnisotropy;
 }
 
@@ -77,13 +77,13 @@ TextureManagerGL::~TextureManagerGL()
 	for (auto& texture : textures)
 	{
 		GLuint id = texture.getTexture();
-		glDeleteTextures(1, &id);
+		GLCall(glDeleteTextures(1, &id));
 	}
 
 	for (auto& map : cubeMaps)
 	{
 		GLuint id = map.getCubeMap();
-		glDeleteTextures(1, &id);
+		GLCall(glDeleteTextures(1, &id));
 	}
 }
 
@@ -208,7 +208,7 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	GLuint format = TextureGL::getFormat(nrComponents);
 	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
 
-	glActiveTexture(GL_TEXTURE0);
+	GLCall(glActiveTexture(GL_TEXTURE0));
 	glGenTextures(1, &hdrTexture);
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, rawData);
@@ -226,7 +226,7 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
 	stbi_image_free(rawData);
 
@@ -279,7 +279,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 
 
 
-	glActiveTexture(GL_TEXTURE0);
+	GLCall(glActiveTexture(GL_TEXTURE0));
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	if (data.isFloatData) {
@@ -303,7 +303,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
 	stbi_image_free(rawData);
 

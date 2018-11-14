@@ -1,5 +1,6 @@
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
 #include <glad/glad.h>
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 
 using namespace std;
 
@@ -10,7 +11,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTexTangent* v
 	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
 	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out->vao);
+	GLCall(glGenVertexArrays(1, &out->vao));
 	glGenBuffers(1, &out->vbo);
 	glGenBuffers(1, &out->ebo);
 
@@ -47,7 +48,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTexTangent* v
 	// clear opengl states
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	return move(out);
 }
@@ -59,7 +60,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertice
 	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
 	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out->vao);
+	GLCall(glGenVertexArrays(1, &out->vao));
 	glGenBuffers(1, &out->vbo);
 	glGenBuffers(1, &out->ebo);
 
@@ -88,7 +89,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertice
 	// clear opengl states
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	return move(out);
 }
@@ -107,7 +108,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(SimpleArray<glm::vec3> positions, Simpl
 	size_t texCoordsByteSize = sizeof(texCoords.content[0]) * texCoords.size;
 	size_t indicesByteSize = sizeof(indices.content[0]) * indices.size;
 
- 	glGenVertexArrays(1, &out->vao);
+	GLCall(glGenVertexArrays(1, &out->vao));
 	glGenBuffers(1, &out->vbo);
 	glGenBuffers(1, &out->ebo);
 
@@ -145,7 +146,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(SimpleArray<glm::vec3> positions, Simpl
 	// clear opengl states
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	return move(out);
 }
@@ -157,7 +158,7 @@ unique_ptr<MeshGL> MeshFactoryGL::createPosition(const VertexPosition* vertices,
 	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
 	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out->vao);
+	GLCall(glGenVertexArrays(1, &out->vao));
 	glGenBuffers(1, &out->vbo);
 	glGenBuffers(1, &out->ebo);
 
@@ -177,7 +178,7 @@ unique_ptr<MeshGL> MeshFactoryGL::createPosition(const VertexPosition* vertices,
 
 	// clear opengl states
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 	return move(out);
 }
@@ -189,7 +190,7 @@ unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vert
 	unique_ptr<MeshGL> out = std::make_unique<MeshGL>();
 	out->indexSize = indexCount;
 
-	glGenVertexArrays(1, &out->vao);
+	GLCall(glGenVertexArrays(1, &out->vao));
 	glGenBuffers(1, &out->vbo);
 	glGenBuffers(1, &out->ebo);
 
@@ -213,7 +214,7 @@ unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vert
 
 	// clear opengl states
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 	return move(out);
 }

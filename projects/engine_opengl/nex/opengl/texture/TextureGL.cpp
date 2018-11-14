@@ -114,7 +114,7 @@ TextureGL::~TextureGL()
 void TextureGL::release()
 {
 	if (textureID != GL_FALSE) {
-		glDeleteTextures(1, &textureID);
+		GLCall(glDeleteTextures(1, &textureID));
 		textureID = GL_FALSE;
 	}
 }
@@ -267,7 +267,7 @@ RenderBufferGL & RenderBufferGL::operator=(RenderBufferGL && o)
 void RenderBufferGL::release()
 {
 	if (textureID != GL_FALSE) {
-		glDeleteRenderbuffers(1, &textureID);
+		GLCall(glDeleteRenderbuffers(1, &textureID));
 		textureID = GL_FALSE;
 	}
 }
@@ -281,7 +281,7 @@ BaseRenderTargetGL::BaseRenderTargetGL(int width, int height, GLuint frameBuffer
 BaseRenderTargetGL::~BaseRenderTargetGL()
 {
 	if (frameBuffer != GL_FALSE) {
-		glDeleteFramebuffers(1, &frameBuffer);
+		GLCall(glDeleteFramebuffers(1, &frameBuffer));
 		frameBuffer = GL_FALSE;
 	}
 }
@@ -303,7 +303,7 @@ void BaseRenderTargetGL::copyFrom(BaseRenderTargetGL* dest, const Dimension& sou
 {
 	GLint readFBId = 0;
 	GLint drawFboId = 0;
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
@@ -313,7 +313,7 @@ void BaseRenderTargetGL::copyFrom(BaseRenderTargetGL* dest, const Dimension& sou
 		components,
 		GL_NEAREST);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId));
 }
 
 GLuint BaseRenderTargetGL::getFrameBuffer()
@@ -329,6 +329,8 @@ void BaseRenderTargetGL::setFrameBuffer(GLuint newValue)
 void BaseRenderTargetGL::swap(BaseRenderTargetGL & o)
 {
 	frameBuffer = o.frameBuffer;
+	width = o.width;
+	height = o.height;
 	o.frameBuffer = GL_FALSE;
 }
 
@@ -342,7 +344,7 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	data(data)
 {
 	// generate framebuffer and renderbuffer with a depth component
-	glGenFramebuffers(1, &frameBuffer);
+	GLCall(glGenFramebuffers(1, &frameBuffer));
 	glGenRenderbuffers(1, &renderBuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -381,7 +383,7 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 	
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER,0));
 }
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
@@ -396,7 +398,7 @@ CubeMapGL * CubeRenderTargetGL::createCopy()
 
 	GLint readFBId = 0;
 	GLint drawFboId = 0;
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
 
 
@@ -433,7 +435,7 @@ CubeMapGL * CubeRenderTargetGL::createCopy()
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0); // unbound the cubemap side
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	// reset the texture id of the cubemap of the copy, so that it won't be released!
 	copy.cubeMapResult.textureID = GL_FALSE;
@@ -468,9 +470,9 @@ GLuint CubeRenderTargetGL::getRendertargetTexture()
 void CubeRenderTargetGL::release()
 {
 	cubeMapResult.release();
-	glDeleteFramebuffers(1, &frameBuffer);
-	glDeleteRenderbuffers(1, &renderBuffer);
-	glDeleteTextures(1, &renderTargetTexture);
+	GLCall(glDeleteFramebuffers(1, &frameBuffer));
+	GLCall(glDeleteRenderbuffers(1, &renderBuffer));
+	GLCall(glDeleteTextures(1, &renderTargetTexture));
 
 	frameBuffer = GL_FALSE;
 	renderBuffer = GL_FALSE;
@@ -485,7 +487,7 @@ void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube rener target!"));
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
 	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 
 	unsigned int mipWidth = (unsigned int)(width * std::pow(0.5, mipMapLevel));
@@ -493,7 +495,7 @@ void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 void CubeRenderTargetGL::setRenderBuffer(GLuint newValue)
@@ -531,7 +533,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 	GLuint format = TextureGL::getFormat(data.colorspace);
 	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
 
-	glGenFramebuffers(1, &result.frameBuffer);
+	GLCall(glGenFramebuffers(1, &result.frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
 	// Generate texture
@@ -567,7 +569,7 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 		throw_with_trace(runtime_error("RendererOpenGL::createRenderTarget(): Couldn't successfully init framebuffer!"));
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	return move(result);
 }
@@ -582,7 +584,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
 	GLuint type = TextureGL::getType(data.isFloatData);
 
-	glGenFramebuffers(1, &result.frameBuffer);
+	GLCall(glGenFramebuffers(1, &result.frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
 
 	// Generate texture
@@ -636,7 +638,7 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 		throw_with_trace(runtime_error("RenderTargetGL::createSingleSampled(): Couldn't successfully init framebuffer!"));
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	return move(result);
 }
@@ -647,7 +649,7 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 	GLuint* frameBuffer = &result.frameBuffer;
 	GLuint* textureID = &result.textureBuffer.textureID;
 	TextureGL& texture = result.textureBuffer;
-	glGenFramebuffers(1, frameBuffer);
+	GLCall(glGenFramebuffers(1, frameBuffer));
 	glGenTextures(1, textureID);
 
 
@@ -690,7 +692,7 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 								   // Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw_with_trace(runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!"));
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
@@ -717,9 +719,9 @@ void RenderTargetGL::release()
 	//textureBuffer.release();
 
 	if (frameBuffer != GL_FALSE)
-		glDeleteFramebuffers(1, &frameBuffer);
+		GLCall(glDeleteFramebuffers(1, &frameBuffer));
 	if (renderBuffer != GL_FALSE)
-		glDeleteRenderbuffers(1, &renderBuffer);
+		GLCall(glDeleteRenderbuffers(1, &renderBuffer));
 
 	frameBuffer = GL_FALSE;
 	renderBuffer = GL_FALSE;
@@ -739,7 +741,7 @@ CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	BaseRenderTargetGL(width, height, GL_FALSE)
 {
 	GLuint texture;
-	glGenTextures(1, &texture);
+	GLCall(glGenTextures(1, &texture));
 	glGenFramebuffers(1, &frameBuffer);
 	cubeMap.setCubeMap(texture);
 	textureID = texture;
@@ -767,7 +769,7 @@ CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 /*CubeDepthMapGL::CubeDepthMapGL(const CubeDepthMapGL& other) : 
@@ -835,7 +837,7 @@ DepthMapGL::DepthMapGL(int width, int height) :
 	BaseRenderTargetGL(width, height, GL_FALSE)
 {
 	GLuint textureID = GL_FALSE;
-	glGenFramebuffers(1, &frameBuffer);
+	GLCall(glGenFramebuffers(1, &frameBuffer));
 	glGenTextures(1, &textureID);
 	texture.setTexture(textureID);
 	//GL_RG32F
@@ -869,7 +871,7 @@ DepthMapGL::DepthMapGL(int width, int height) :
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -895,8 +897,9 @@ TextureGL* DepthMapGL::getTexture()
 
 void DepthMapGL::release()
 {
-	texture.release();
-	glDeleteFramebuffers(1, &frameBuffer);
+	//texture.release();
+	if (frameBuffer != GL_FALSE)
+		GLCall(glDeleteFramebuffers(1, &frameBuffer));
 	frameBuffer = GL_FALSE;
 }
 
@@ -908,7 +911,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	normal(GL_FALSE),
 	position(GL_FALSE)
 {
-	glGenFramebuffers(1, &frameBuffer);
+	GLCall(glGenFramebuffers(1, &frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	//unsigned int gPosition, gNormal, gAlbedo;
 	unsigned int tempTexture;
@@ -999,7 +1002,7 @@ PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	// finally check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw_with_trace(std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!"));
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	
 }
 

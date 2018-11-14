@@ -153,11 +153,11 @@ SceneNode* NeXEngine::createScene()
 	ground->getVob()->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
-	m_nodes.push_back(SceneNode());
+	/*m_nodes.push_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
 	m_vobs.push_back(Vob("cerberus/cerberus.obj", Shaders::Pbr));
 	cerberus->setVob(&m_vobs.back());
-	root->addChild(cerberus);
+	root->addChild(cerberus);*/
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();

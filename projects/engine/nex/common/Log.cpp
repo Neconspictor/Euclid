@@ -1,6 +1,8 @@
 #include "Log.hpp"
 
-std::ostream& operator<<(std::ostream& os, LogType type)
+using namespace ext;
+
+std::ostream& operator<<(std::ostream& os, ext::LogType type)
 {
 	switch(type)
 	{
@@ -94,6 +96,11 @@ LogMessage Logger::log(const char* file, const char* function, int line, LogType
 LogMessage Logger::log(LogType type) const
 {
 	return LogMessage(this, type);
+}
+
+LogSink::LogSink()
+{
+	registerStream(&std::cout);
 }
 
 LogSink* LogSink::get()

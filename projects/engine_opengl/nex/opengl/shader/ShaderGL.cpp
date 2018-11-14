@@ -297,7 +297,7 @@ void ShaderGL::initShaderFileSystem()
 
 void ShaderGL::setTransformData(TransformData data)
 {
-	data = std::move(data);
+	this->data = std::move(data);
 }
 
 GLuint ShaderGL::getProgramID() const

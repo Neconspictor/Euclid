@@ -92,7 +92,7 @@ ShaderGL* ShaderManagerGL::createShader(Shaders shaderEnum)
 	switch(shaderEnum)
 	{
 	case s::BlinnPhongTex: {
-		std::unique_ptr<PhongTexShaderGL> config = make_unique<PhongTexShaderGL>();
+		std::unique_ptr<ShaderConfigGL> config = make_unique<PhongTexShaderGL>();
 		shaderPtr = make_shared<ShaderGL>(move(config), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl");
 		break;
 	}

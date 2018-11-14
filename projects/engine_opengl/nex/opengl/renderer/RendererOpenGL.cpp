@@ -24,6 +24,60 @@ using namespace std;
 using namespace nex;
 using namespace glm;
 
+ext::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
+
+void GLClearError()
+{
+
+	unsigned int finite = 1024;
+	GLuint errorCode = glGetError();
+
+	while (errorCode && finite)
+	{
+		if (errorCode == GL_INVALID_OPERATION)
+			--finite;
+		errorCode = glGetError();
+	};
+
+	if (!finite)
+	{
+		//static demo::Logger logger("[GLClearError]");
+		//LOG(logger) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
+		throw std::runtime_error("Detected to many GL_INVALID_OPERATION errors");
+	}
+}
+
+bool GLLogCall()
+{
+	static ext::Logger logger("OpenGL Error");
+
+	bool noErrorsOccurred = true;
+
+	while (GLenum error = glGetError())
+	{
+		logger.log(ext::LogType::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
+		noErrorsOccurred = false;
+	}
+
+	return noErrorsOccurred;
+}
+
+std::string GLErrorToString(GLuint errorCode)
+{
+	std::string error;
+	switch (errorCode)
+	{
+	case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+	case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+	case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+	case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+	case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+	default:							   error = "Unknown error code: " + std::to_string(errorCode);
+	}
+
+	return error;
+}
+
 
 EffectLibraryGL::EffectLibraryGL(RendererOpenGL * renderer) : renderer(renderer)
 {
@@ -51,8 +105,7 @@ RendererOpenGL::RendererOpenGL() : logClient(nex::getLogServer()), mViewport(),
 	//__clearRenderTarget(&singleSampledScreenBuffer, false);
 	//__clearRenderTarget(&multiSampledScreenBuffer, false);
 
-	smaa = make_unique<SMAA_GL>(this);
-	shadingModelFactory = make_unique<ShadingModelFactoryGL>(this);
+	shadingModelFactory = make_unique<ShadingModelFactoryGL>();
 }
 
 std::unique_ptr<CascadedShadowGL> RendererOpenGL::createCascadedShadow(unsigned int width, unsigned int height)
@@ -79,7 +132,7 @@ void RendererOpenGL::init()
 	LOG(logClient, Info) << "Initializing...";
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	glEnable(GL_SCISSOR_TEST);
+	GLCall(glEnable(GL_SCISSOR_TEST));
 	glViewport(0, 0, mViewport.width, mViewport.height);
 	glScissor(0, 0, mViewport.width, mViewport.height);
 	defaultRenderTarget = BaseRenderTargetGL(mViewport.width, mViewport.height, 0);
@@ -110,6 +163,8 @@ void RendererOpenGL::init()
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
+
+	smaa = make_unique<SMAA_GL>(this);
 	smaa->init();
 
 	effectLibrary = make_unique<EffectLibraryGL>(this);
@@ -137,7 +192,7 @@ void RendererOpenGL::init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClearDepth(1.0f);
 	glClearStencil(0);
-	glStencilMask(0xFF);
+	GLCall(glStencilMask(0xFF));
 
 	TextureManagerGL::get()->init();
 
@@ -154,7 +209,7 @@ void RendererOpenGL::beginScene()
 	//glViewport(xPos, yPos, width, height);
 	//glScissor(xPos, yPos, width, height);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
 	//clearFrameBuffer(getCurrentRenderTarget(), { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
 
@@ -171,9 +226,9 @@ void RendererOpenGL::blitRenderTargets(BaseRenderTargetGL* src, BaseRenderTarget
 
 void RendererOpenGL::clearRenderTarget(BaseRenderTargetGL * renderTarget, int renderComponents)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->getFrameBuffer());
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->getFrameBuffer()));
 	int renderComponentsComponentsGL = getRenderComponentsGL(renderComponents);
-	glClear(renderComponentsComponentsGL);
+	GLCall(glClear(renderComponentsComponentsGL));
 }
 
 CubeDepthMapGL* RendererOpenGL::createCubeDepthMap(int width, int height)
@@ -193,7 +248,7 @@ CubeRenderTargetGL * RendererOpenGL::createCubeRenderTarget(int width, int heigh
 GLint RendererOpenGL::getCurrentRenderTarget() const
 {
 	GLint drawFboId = 0;
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
 	return drawFboId;
 }
 
@@ -212,7 +267,7 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	// backup current bound drawing frame buffer
 	GLint drawFboId = getCurrentRenderTarget();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
 	//glClearColor(color.r, color.g, color.b, color.a);
 
 	glViewport(mViewport.x, mViewport.y, mViewport.width, mViewport.height);
@@ -225,7 +280,7 @@ void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float dept
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
 	// restore frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, drawFboId);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, drawFboId));
 }
 
 DepthMapGL* RendererOpenGL::createDepthMap(int width, int height)
@@ -255,22 +310,22 @@ RenderTargetGL* RendererOpenGL::createRenderTarget(int samples)
 void RendererOpenGL::enableAlphaBlending(bool enable)
 {
 	if (!enable) {
-		glDisable(GL_BLEND);
+		GLCall(glDisable(GL_BLEND));
 		return;
 	}
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GLCall(glEnable(GL_BLEND));
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
 
 void RendererOpenGL::enableBackfaceDrawing(bool enable)
 {
 	if (enable)
 	{
-		glDisable(GL_CULL_FACE);
+		GLCall(glDisable(GL_CULL_FACE));
 	} else
 	{
-		glEnable(GL_CULL_FACE);
+		GLCall(glEnable(GL_CULL_FACE));
 		//glCullFace(GL_BACK);
 	}
 }
@@ -279,16 +334,16 @@ void RendererOpenGL::enableDepthWriting(bool enable)
 {
 	if (enable)
 	{
-		glDepthMask(GL_TRUE);
+		GLCall(glDepthMask(GL_TRUE));
 	} else
 	{
-		glDepthMask(GL_FALSE);
+		GLCall(glDepthMask(GL_FALSE));
 	}
 }
 
 void RendererOpenGL::endScene()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	//glDisable(GL_POLYGON_OFFSET_FILL);
     //checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
@@ -408,8 +463,8 @@ void RendererOpenGL::setViewPort(int x, int y, int width, int height)
 	mViewport.width = width;
 	mViewport.height = height;
 
-	glViewport(x, y, width, height);
-	glScissor(x, y, width, height);
+	GLCall(glViewport(x, y, width, height));
+	GLCall(glScissor(x, y, width, height));
 	//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 	//if (effectLibrary)
@@ -421,7 +476,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMapGL* cubeDepthMap)
 
 	CubeMapGL* cubeMap = cubeDepthMap->getCubeMap();
 
-	glViewport(mViewport.x, mViewport.y, cubeDepthMap->getWidth(), cubeDepthMap->getHeight());
+	GLCall(glViewport(mViewport.x, mViewport.y, cubeDepthMap->getWidth(), cubeDepthMap->getHeight()));
 	glScissor(mViewport.x, mViewport.y, cubeDepthMap->getWidth(), cubeDepthMap->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, cubeDepthMap->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
@@ -429,7 +484,7 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMapGL* cubeDepthMap)
 	glReadBuffer(GL_NONE);
 
 	glClearDepth(1.0);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	GLCall(glClear(GL_DEPTH_BUFFER_BIT));
 }
 
 /*void RendererOpenGL::useDepthMap(DepthMap* depthMap)
@@ -461,10 +516,10 @@ void RendererOpenGL::useCubeRenderTarget(CubeRenderTargetGL * target, CubeMapGL:
 	int height = target->getHeight();
 	GLuint cubeMapTexture = cubeMap->getCubeMap();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, target->getFrameBuffer());
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, target->getFrameBuffer()));
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
 void RendererOpenGL::useBaseRenderTarget(BaseRenderTargetGL * target)
@@ -472,9 +527,9 @@ void RendererOpenGL::useBaseRenderTarget(BaseRenderTargetGL * target)
 
 	int width = target->getWidth();
 	int height = target->getHeight();
-	glViewport(0, 0, width, height);
+	GLCall(glViewport(0, 0, width, height));
 	glScissor(0, 0, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, target->getFrameBuffer());
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, target->getFrameBuffer()));
 
 	// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
 	//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
@@ -490,10 +545,10 @@ void RendererOpenGL::useScreenTarget()
 
 void RendererOpenGL::useVarianceShadowMap(RenderTargetGL* source)
 {
-	glViewport(0, 0, source->getWidth(), source->getHeight());
+	GLCall(glViewport(0, 0, source->getWidth(), source->getHeight()));
 	glScissor(0, 0, mViewport.width, mViewport.height);
 	glBindFramebuffer(GL_FRAMEBUFFER, source->getFrameBuffer());
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void RendererOpenGL::checkGLErrors(const string& errorPrefix)
@@ -545,9 +600,9 @@ void RendererOpenGL::__clearRenderTarget(RenderTargetGL* renderTarget, bool rele
 {
 	if (releasedAllocatedMemory && renderTarget->frameBuffer != GL_FALSE)
 	{
-		glDeleteFramebuffers(1, &renderTarget->frameBuffer);
+		GLCall(glDeleteFramebuffers(1, &renderTarget->frameBuffer));
 		glDeleteTextures(1, &renderTarget->renderBuffer);
-		glDeleteRenderbuffers(1, &renderTarget->textureBuffer.textureID);
+		GLCall(glDeleteRenderbuffers(1, &renderTarget->textureBuffer.textureID));
 	}
 
 	renderTarget->frameBuffer = GL_FALSE;
@@ -585,7 +640,7 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 
 
 	//set the viewport to the dimensoion of the cubemap
-	glViewport(0,0, width, height);
+	GLCall(glViewport(0,0, width, height));
 	glScissor(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
 
@@ -598,7 +653,7 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 		modelDrawer.draw(&skyBox, Shaders::SkyBoxEquirectangular, data);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	//register and return the cubemap
 	return result;
@@ -609,8 +664,14 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 {
 	assert(samples >= 1);
 
+	//ASSERT(GLLogCall());
+	if (!GLLogCall())
+	{
+		GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogType::Error) << "Assertion failed!"; 
+		SET_BREAK();
+	}
 	RenderTargetGL result(width, height);
-
+	ASSERT(GLLogCall());
 	if (samples > 1)
 	{
 		result = RenderTargetGL::createMultisampled(width, height, data, samples, depthStencilType);
@@ -622,7 +683,7 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 		checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	renderTargets.push_back(move(result));
@@ -655,7 +716,7 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 {
 	if (mode == CullingMode::Front)
 	{
-		glCullFace(GL_FRONT);
+		GLCall(glCullFace(GL_FRONT));
 
 		// TODO this is needed for rendering shadow maps => put it on a more suitable place
 		//glEnable(GL_POLYGON_OFFSET_FILL);
@@ -663,7 +724,7 @@ void RendererOpenGL::cullFaces(CullingMode mode)
 	} else
 	{
 		//glDisable(GL_POLYGON_OFFSET_FILL);
-		glCullFace(GL_BACK);
+		GLCall(glCullFace(GL_BACK));
 	}
 }
 

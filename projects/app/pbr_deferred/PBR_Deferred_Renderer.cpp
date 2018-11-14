@@ -67,6 +67,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 
+
+	testTexture = textureManager->getImage("container.png");
+
 	//HDR_Free_City_Night_Lights_Ref
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
@@ -125,7 +128,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(panoramaSky);
+	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(m_renderBackend, panoramaSky);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
@@ -276,7 +279,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	//renderer->beginScene();
-	m_renderBackend->clearRenderTarget(m_renderBackend->getDefaultRenderTarget(), RenderComponent::Depth | RenderComponent::Stencil);
+	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	
 	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
@@ -287,6 +290,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 
 	screenShader->useTexture(screenSprite.getTexture());
+	//screenShader->useTexture(testTexture);
 	if (showDepthMap)
 	{
 		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);

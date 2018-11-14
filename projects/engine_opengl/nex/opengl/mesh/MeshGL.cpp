@@ -1,4 +1,5 @@
 #include <nex/opengl/mesh/MeshGL.hpp>
+#include "nex/opengl/renderer/RendererOpenGL.hpp"
 
 using namespace std;
 
@@ -32,14 +33,14 @@ MeshGL& MeshGL::operator=(MeshGL&& o)
 
 MeshGL::~MeshGL()
 {
-	glDeleteVertexArrays(1, &vao);
+	GLCall(glDeleteVertexArrays(1, &vao));
 	vao = GL_FALSE;
 
-	glDeleteBuffers(1, &vbo);
+	GLCall(glDeleteBuffers(1, &vbo));
 	vbo = GL_FALSE;
 
-	glDeleteBuffers(1, &ebo);
-	ebo = GL_FALSE;
+	//GLCall(glDeleteBuffers(1, &ebo));
+	//ebo = GL_FALSE;
 }
 
 GLuint MeshGL::getVertexArrayObject() const
@@ -59,19 +60,19 @@ GLuint MeshGL::getElementBufferObject() const
 
 void MeshGL::setVertexArrayObject(GLuint vao)
 {
-	glDeleteVertexArrays(1, &this->vao);
+	//GLCall(glDeleteVertexArrays(1, &this->vao));
 	this->vao = vao;
 }
 
 void MeshGL::setVertexBufferObject(GLuint vbo)
 {
-	glDeleteBuffers(1, &this->vbo);
+	//GLCall(glDeleteBuffers(1, &this->vbo));
 	this->vbo = vbo;
 }
 
 void MeshGL::setElementBufferObject(GLuint ebo)
 {
-	glDeleteBuffers(1, &this->ebo);
+	//GLCall(glDeleteBuffers(1, &this->ebo));
 	this->ebo = ebo;
 }
 

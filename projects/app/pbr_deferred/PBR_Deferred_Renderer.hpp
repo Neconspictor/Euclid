@@ -41,6 +41,7 @@ private:
 	nex::LoggingClient logClient;
 	float mixValue;
 	TextureGL* panoramaSky;
+	TextureGL* testTexture;
 
 	std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
 	std::unique_ptr<PBR_GBufferGL>  pbr_mrt;

@@ -10,9 +10,9 @@ class Vob;
 
 struct TransformData
 {
-	glm::mat4 const* projection;
-	glm::mat4 const* view;
-	glm::mat4 const* model;
+	glm::mat4 const* projection = nullptr;
+	glm::mat4 const* view = nullptr;
+	glm::mat4 const* model = nullptr;
 };
 
 /**

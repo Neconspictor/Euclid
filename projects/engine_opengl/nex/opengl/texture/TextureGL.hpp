@@ -80,7 +80,7 @@ public:
 	static GLuint rgb_float_resolutions[3];
 	static GLuint rg_float_resolutions[3];
 
-	void release();
+	virtual void release();
 
 
 protected:
@@ -103,7 +103,7 @@ public:
 	RenderBufferGL(const RenderBufferGL&) = delete;
 	RenderBufferGL& operator=(const RenderBufferGL&) = delete;
 
-	void release();
+	void release() override;
 };
 
 

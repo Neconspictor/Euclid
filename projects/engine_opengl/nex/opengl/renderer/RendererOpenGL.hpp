@@ -12,6 +12,31 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <memory>
+#include <nex/common/debug_break.h>
+#include "nex/common/Log.hpp"
+
+extern ext::Logger GLOBAL_RENDERER_LOGGER;
+
+#if defined(NDEBUG)
+#define SET_BREAK()
+#define ASSERT(x)
+#define GLCall(x) x;
+
+
+#else
+#define SET_BREAK()	 psnip_trap()
+#define ASSERT(x) if (!x) {GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogType::Error) << "Assertion failed!"; SET_BREAK();}
+
+// A macro for validating an OpenGL function call.
+#define GLCall(x) GLClearError();\
+		x;\
+		ASSERT(GLLogCall())
+#endif
+
+void GLClearError();
+bool GLLogCall();
+
+std::string GLErrorToString(GLuint errorCode);
 
 
 enum class CullingMode

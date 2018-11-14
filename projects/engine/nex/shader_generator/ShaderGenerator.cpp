@@ -359,7 +359,7 @@ void ShaderGenerator::generate(FileDesc* root)
 
 			}
 
-			mLogger.log(Error) << ss.str();
+			mLogger.log(ext::Error) << ss.str();
 
 			throw std::runtime_error("File is included multiple times: " + p.generic_string());
 		}

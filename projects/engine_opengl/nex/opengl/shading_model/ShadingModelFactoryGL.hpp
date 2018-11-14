@@ -9,13 +9,10 @@ class RendererOpenGL;
 class ShadingModelFactoryGL {
 
 public:
-	ShadingModelFactoryGL(RendererOpenGL* renderer);
+	ShadingModelFactoryGL();
 	virtual ~ShadingModelFactoryGL() = default;
 
-	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(TextureGL* backgroundHDR);
-
-private:
-	RendererOpenGL* renderer;
+	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(RendererOpenGL* renderer, TextureGL* backgroundHDR);
 };
 
 #endif
