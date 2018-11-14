@@ -92,6 +92,22 @@ namespace ext
 		unsigned char mLogMask;
 	};
 
+	class LoggerManager
+	{
+	public:
+		static LoggerManager* get();
+
+		Logger create(const char* prefix);
+
+		void setLogMask(unsigned char mask);
+		void setMinLogLevel(LogLevel level);
+		
+
+	private:
+		LoggerManager();
+		unsigned char mLogMask;
+	};
+
 	class LogSink
 	{
 	public:

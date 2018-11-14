@@ -217,6 +217,37 @@ LogMessage Logger::log(LogLevel type) const
 	return LogMessage(this, type);
 }
 
+LoggerManager* LoggerManager::get()
+{
+	static LoggerManager instance;
+	return &instance;
+}
+
+Logger LoggerManager::create(const char* prefix)
+{
+	return Logger(prefix, mLogMask);
+}
+
+void LoggerManager::setLogMask(unsigned char mask)
+{
+	mLogMask = Always | mask;
+}
+
+void LoggerManager::setMinLogLevel(LogLevel level)
+{
+	mLogMask = Always;
+	unsigned char end = LogLevel::Fault + 1;
+
+	for (unsigned char it = Debug; it <= Fault; it = it << 1)
+	{
+		if (it >= level) mLogMask |= it;
+	}
+}
+
+LoggerManager::LoggerManager() : mLogMask(Always)
+{
+}
+
 LogSink::LogSink()
 {
 	registerStream(&std::cout);

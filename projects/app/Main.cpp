@@ -52,9 +52,9 @@ int main(int argc, char** argv)
 
 	logLastCrashReport(logger);
 
-	ext::Logger extLogger;
-	extLogger.setPrefix("extLogger");
-	extLogger.setMinLogLevel(ext::Debug);
+	ext::LoggerManager* logManager = ext::LoggerManager::get();
+	logManager->setMinLogLevel(ext::Debug);
+	ext::Logger extLogger = logManager->create("extLogger");
 	extLogger(__FILE__, __FUNCTION__, __LINE__, ext::Info) << "A cool message!";
 
 	try {
