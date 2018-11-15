@@ -1,6 +1,7 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include "nex/opengl/renderer/RendererOpenGL.hpp"
 
 CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight) :
 	mCascadeWidth(cascadeWidth),
@@ -102,8 +103,11 @@ void CascadedShadowGL::updateTextureArray()
 	//glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureArray.getTexture(), 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+
+	GLCall(glDrawBuffer(GL_NONE));
+	GLCall(glReadBuffer(GL_NONE));
+	//GLCall(glNamedFramebufferDrawBuffer(mCascadedShadowFBO, GL_NONE));
+	//GLCall(glNamedFramebufferReadBuffer(mCascadedShadowFBO, GL_NONE));
 
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
