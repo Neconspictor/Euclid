@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	nex::LoggerManager* logManager = nex::LoggerManager::get();
 	logManager->setMinLogLevel(nex::Debug);
 
-	nex::Logger logger = logManager->create("Main");
+	nex::Logger logger("Main");
 
 
 

@@ -152,11 +152,11 @@ void* LogMessage::getOptionalByIndex(Meta* meta, unsigned index)
 	}
 }
 
-Logger::Logger(unsigned char mask) : mPrefix(""), mLogMask(Always  | mask)
+Logger::Logger(unsigned char mask) : mPrefix("")
 {
 }
 
-Logger::Logger(const char* prefix, unsigned char mask) : mPrefix(prefix), mLogMask(Always | mask)
+Logger::Logger(const char* prefix, unsigned char mask) : mPrefix(prefix)
 {
 }
 
@@ -166,7 +166,7 @@ Logger::~Logger()
 
 void Logger::log(const char* msg, LogLevel level) const
 {
-	if (!(mLogMask & level)) {
+	if (!isActive(level)) {
 		return;
 	}
 
@@ -189,28 +189,7 @@ const char* Logger::getPrefix() const
 
 bool Logger::isActive(LogLevel level) const
 {
-	return mLogMask & level;
-}
-
-unsigned char Logger::getLogMask() const noexcept
-{
-	return mLogMask;
-}
-
-void Logger::setLogMask(unsigned char mask) noexcept
-{
-	this->mLogMask = Always | mask;
-}
-
-void Logger::setMinLogLevel(LogLevel level)
-{
-	mLogMask = Always;
-	unsigned char end = LogLevel::Fault + 1;
-
-	for (unsigned char it = Debug; it <= Fault; it = it << 1)
-	{
-		if (it >= level) mLogMask |= it;
-	}
+	return LoggerManager::get()->getLogMask() & level;
 }
 
 LogMessage Logger::operator()(const char* file, const char* function, int line, LogLevel type) const
@@ -244,9 +223,9 @@ LoggerManager* LoggerManager::get()
 	return &instance;
 }
 
-Logger LoggerManager::create(const char* prefix)
+unsigned char LoggerManager::getLogMask() const
 {
-	return Logger(prefix, mLogMask);
+	return mLogMask;
 }
 
 void LoggerManager::setLogMask(unsigned char mask)

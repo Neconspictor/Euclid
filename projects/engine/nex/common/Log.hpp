@@ -79,12 +79,12 @@ namespace nex
 
 		virtual ~Logger();
 
-		unsigned char getLogMask() const noexcept;
+		//unsigned char getLogMask() const noexcept;
 		const char* getPrefix() const;
 		bool isActive(LogLevel level) const;
 		virtual void log(const char* msg, LogLevel level = Always) const;
-		void setLogMask(unsigned char mask) noexcept;
-		void setMinLogLevel(LogLevel level);
+		//void setLogMask(unsigned char mask) noexcept;
+		//void setMinLogLevel(LogLevel level);
 		void setPrefix(const char* prefix);
 
 		LogMessage operator()(const char* file, const char* function, int line, LogLevel type = LogLevel::Info) const;
@@ -99,7 +99,7 @@ namespace nex
 		friend LogMessage;
 
 		std::string mPrefix;
-		unsigned char mLogMask;
+		//unsigned char mLogMask;
 	};
 
 	class LoggerManager
@@ -107,7 +107,7 @@ namespace nex
 	public:
 		static LoggerManager* get();
 
-		Logger create(const char* prefix);
+		unsigned char getLogMask() const;
 
 		void setLogMask(unsigned char mask);
 		void setMinLogLevel(LogLevel level);
