@@ -1,9 +1,8 @@
 #pragma once
 #include <nex/event/Task.hpp>
 #include <boost/program_options/options_description.hpp>
-#include <nex/logging/LoggingServer.hpp>
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/event/GlobalEventChannel.hpp>
+#include "nex/common/Log.hpp"
 
 class Configuration;
 
@@ -47,7 +46,7 @@ protected:
 	//friend class Engine;
 	//GlobalEventChannel channel;
 	//std::shared_ptr<SystemUpdater> updater;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 	std::string name;
 	Options settings;
 

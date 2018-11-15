@@ -4,7 +4,6 @@
 #include <nex/FileSystem.hpp>
 #include <nex/util/Globals.hpp>
 #include <nex/exception/ShaderInitException.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -17,7 +16,7 @@ using namespace nex;
 using namespace ::util;
 using namespace glm;
 
-LoggingClient staticLogClient(getLogServer());
+Logger staticLogClient("ShaderGL-static");
 
 /**
 * Maps shader enumerations to a string representation.
@@ -221,7 +220,7 @@ int ShaderConfigGL::getNumberOfAttributes() const
 
 ShaderGL::ShaderGL(std::unique_ptr<ShaderConfigGL> config, const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
 	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile)
-	: config(std::move(config)), instancedProgramID(0), logClient(getLogServer()), textureCounter(0)
+	: config(std::move(config)), instancedProgramID(0), m_logger("ShaderGL"), textureCounter(0)
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
@@ -254,7 +253,7 @@ ShaderGL::ShaderGL(const std::string & vertexShaderFile,
 
 ShaderGL::ShaderGL(ShaderGL&& other) : config(move(other.config)),
     programID(other.programID), instancedProgramID(other.instancedProgramID),
-	logClient(std::move(other.logClient)), textureCounter(other.textureCounter)
+	m_logger(std::move(other.m_logger)), textureCounter(other.textureCounter)
 {
 	other.programID = GL_FALSE;
 	other.instancedProgramID = GL_FALSE;

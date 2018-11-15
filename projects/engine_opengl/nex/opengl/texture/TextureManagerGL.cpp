@@ -1,6 +1,5 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/Globals.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 
 //use stb_image -- TODO: replace SOIL completely with this library
 #define STB_IMAGE_IMPLEMENTATION
@@ -16,10 +15,9 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : logClient(getLogServer()), m_anisotropy(0.0f)
+TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), m_anisotropy(0.0f)
 {
 	textureLookupTable = map<string, TextureGL*>();
-	logClient.setPrefix("[TextureManagerGL]");
 
 	//TextureManagerGL::setAnisotropicFiltering(m_anisotropy);
 }
@@ -188,7 +186,7 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	float *rawData = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
 	unsigned int hdrTexture;
 	if (!rawData) {
-		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
+		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
 		throw_with_trace(runtime_error(ss.str()));
@@ -255,7 +253,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 	unsigned char* rawData = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
 	unsigned int textureID;
 	if (!rawData) {
-		LOG(logClient, Fault) << "Couldn't load image file: " << file << endl;
+		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
 		ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
 		throw_with_trace(runtime_error(ss.str()));
@@ -300,7 +298,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 
-	LOG(logClient, Debug) << "texture to load: " << path;
+	LOG(m_logger, Debug) << "texture to load: " << path;
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 

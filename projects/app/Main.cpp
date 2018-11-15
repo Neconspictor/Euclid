@@ -1,5 +1,4 @@
 #include <NeXEngine.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <csignal>
 #include <boost/stacktrace.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -21,7 +20,7 @@ void signal_handler(int signum) {
 	::raise(SIGABRT);
 }
 
-void logLastCrashReport(nex::LoggingClient& logger)
+void logLastCrashReport(nex::Logger& logger)
 {
 	if (boost::filesystem::exists(CRASH_REPORT_FILENAME)) {
 		// there is a backtrace
@@ -46,22 +45,25 @@ int main(int argc, char** argv)
 	::signal(SIGABRT, signal_handler);
 #endif
 
-	nex::LoggingClient logger(nex::getLogServer());
 	SubSystemProviderGLFW* provider = SubSystemProviderGLFW::get();
+
+	std::ofstream logFile("extLog.txt");
+
+	nex::LogSink::get()->registerStream(&std::cout);
+	nex::LogSink::get()->registerStream(&logFile);
+
+	nex::LoggerManager* logManager = nex::LoggerManager::get();
+	logManager->setMinLogLevel(nex::Debug);
+
+	nex::Logger logger = logManager->create("Main");
+
 
 
 	logLastCrashReport(logger);
 
-	ext::LoggerManager* logManager = ext::LoggerManager::get();
-	logManager->setMinLogLevel(ext::Debug);
-	ext::Logger extLogger = logManager->create("extLogger");
-	extLogger(__FILE__, __FUNCTION__, __LINE__, ext::Info) << "A cool message!";
-
 	try {
 		if (!provider->init())
 		{
-			//LOG(m_logClient, platform::Fault) << "Couldn't initialize window system!";
-			nex::getLogServer()->terminate();
 			throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
 		}
 
@@ -89,8 +91,6 @@ int main(int argc, char** argv)
 	TextureManagerGL::get()->release();
 
 	provider->terminate();
-
-	nex::shutdownLogServer();
 
 	return EXIT_SUCCESS;
 }

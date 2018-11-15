@@ -76,21 +76,6 @@ set(
 		
     #nex/listener
     nex/listener/ScrollListener.hpp
-    
-    #nex/logging
-    nex/logging/GlobalLoggingServer.hpp
-	nex/logging/GlobalLoggingServer.cpp
-    nex/logging/LogEndpoint.hpp
-    nex/logging/LogEndpoint.inl
-	nex/logging/LogEndpoint.cpp
-    nex/logging/LoggingServer.hpp
-	nex/logging/LoggingServer.cpp
-    nex/logging/LoggingClient.hpp
-	nex/logging/LoggingClient.cpp
-    nex/logging/LogLevel.hpp
-	nex/logging/LogLevel.cpp
-    nex/logging/LogMessage.hpp
-	nex/logging/LogMessage.cpp
 	
 	#nex/memory
     nex/memory/Allocator.hpp

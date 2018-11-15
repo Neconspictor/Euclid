@@ -129,5 +129,5 @@ private:
 
 	const FileSystem* mFileSystem;
 
-	ext::Logger mLogger;
+	nex::Logger mLogger;
 };

@@ -119,7 +119,7 @@ protected:
 
 	bool _disableCallbacks;
 
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 	// key states
 	std::unordered_set<int> downKeys;

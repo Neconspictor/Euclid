@@ -1,10 +1,10 @@
 #include <nex/Input.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
+
 
 using namespace nex;
 
 Input::Input() :
-	logClient(getLogServer())
+	m_logger("Input")
 {
 	frameMouseXOffset = frameMouseYOffset = 0;
 	frameScrollOffsetX = 0;
@@ -13,8 +13,6 @@ Input::Input() :
 	mouseYabsolut = 0;
 	firstMouseInput = true;
 	m_windowHasFocus = true;
-
-	logClient.setPrefix("[Input]");
 }
 
 Input::~Input()

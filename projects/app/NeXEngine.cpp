@@ -1,6 +1,5 @@
 #include <NeXEngine.hpp>
 #include <nex/system/Engine.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
@@ -14,17 +13,17 @@
 #include <boxer/boxer.h>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/common/Log.hpp>
 
 NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	Engine(),
-	m_logClient(nex::getLogServer()), 
+	m_logger("NeX-Engine"),
 	m_windowSystem(provider),
 	m_window(nullptr), 
 	m_input(nullptr), 
 	m_scene(nullptr),
 	m_isRunning(false)
 {
-	m_logClient.setPrefix("[NeX-Engine]");
 }
 
 NeXEngine::~NeXEngine()
@@ -35,7 +34,7 @@ NeXEngine::~NeXEngine()
 void NeXEngine::init()
 {
 
-	LOG(m_logClient, nex::Info) << "Initializing Engine...";
+	LOG(m_logger, nex::Info) << "Initializing Engine...";
 
 	m_renderBackend = std::make_unique<RendererOpenGL>();
 	m_video = std::make_shared<Video>(m_windowSystem);
@@ -199,12 +198,12 @@ void NeXEngine::setupCallbacks()
 		setRunning(receivedFocus);
 		if (receivedFocus)
 		{
-			LOG(m_logClient, nex::Debug) << "received focus!";
+			LOG(m_logger, nex::Debug) << "received focus!";
 			//isRunning = true;
 		}
 		else
 		{
-			LOG(m_logClient, nex::Debug) << "lost focus!";
+			LOG(m_logger, nex::Debug) << "lost focus!";
 			//isRunning = false;
 			if (window_s->isInFullscreenMode())
 			{
@@ -216,14 +215,14 @@ void NeXEngine::setupCallbacks()
 
 	input->addResizeCallback([=](int width, int height)
 	{
-		LOG(m_logClient, nex::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
+		LOG(m_logger, nex::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
 
 		if (!m_window->hasFocus()) {
-			LOG(m_logClient, nex::Debug) << "addResizeCallback : no focus!";
+			LOG(m_logger, nex::Debug) << "addResizeCallback : no focus!";
 		}
 
 		if (width == 0 || height == 0) {
-			LOG(m_logClient, nex::Warning) << "addResizeCallback : width or height is 0!";
+			LOG(m_logger, nex::Warning) << "addResizeCallback : width or height is 0!";
 			return;
 		}
 
@@ -253,7 +252,7 @@ void NeXEngine::setupGUI()
 	graphicsTechniques->addChild(move(hbaoView));
 
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
-	graphicsTechniques->addChild(move(ssaoView));
+	graphicsTechniques->addChild(std::move(ssaoView));
 
 	auto pbrDeferredView = std::make_unique<PBR_Deferred_ConfigurationView>(m_renderer->getPBR());
 	graphicsTechniques->addChild(std::move(pbrDeferredView));

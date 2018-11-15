@@ -1,6 +1,5 @@
 #pragma once
 #include <nex/Input.hpp>
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/gui/Drawable.hpp>
 
 class WindowFocusListener;
@@ -225,7 +224,7 @@ protected:
 	/**
 	 * a logging client for logging internals.
 	 */
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 };
 
 

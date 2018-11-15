@@ -1,7 +1,6 @@
 #pragma once
 #include <nex/gui/ImGUI.hpp>
 #include <string>
-#include <nex/logging/LoggingClient.hpp>
 #include <glad/glad.h>
 
 class WindowGLFW;
@@ -50,5 +49,5 @@ protected:
 	GLint g_AttribLocationColor;
 	GLuint g_VboHandle;
 	GLuint g_ElementsHandle;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 };

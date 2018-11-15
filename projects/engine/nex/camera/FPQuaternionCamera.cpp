@@ -8,18 +8,18 @@ using namespace glm;
 
 FPQuaternionCamera::FPQuaternionCamera() : FPCameraBase(), currentRotationX(0)
 {
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPCamera");
 }
 
 FPQuaternionCamera::FPQuaternionCamera(vec3 position, vec3 look, vec3 up) : 
 	FPCameraBase(position, look, up), currentRotationX(0)
 {
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPQuaternionCamera");
 }
 
 FPQuaternionCamera::FPQuaternionCamera(const FPQuaternionCamera& other) : FPCameraBase(other), currentRotationX(0)
 {
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPQuaternionCamera");
 }
 
 FPQuaternionCamera::~FPQuaternionCamera()

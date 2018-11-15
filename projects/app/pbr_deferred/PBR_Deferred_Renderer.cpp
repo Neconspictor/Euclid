@@ -1,5 +1,4 @@
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
@@ -26,16 +25,12 @@ int ssaaSamples = 1;
 PBR_Deferred_Renderer::PBR_Deferred_Renderer(RendererOpenGL* backend) :
 	Renderer(backend),
 	blurEffect(nullptr),
-	logClient(getLogServer()),
+	m_logger("PBR_Deferred_Renderer"),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
 	shadowMap(nullptr),
 	showDepthMap(false)
 {
-	logClient.setPrefix("[PBR_Deferred_Renderer]");
-
-	mixValue = 0.2f;
-
 	m_aoSelector.setUseAmbientOcclusion(true);
 	//m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
 }

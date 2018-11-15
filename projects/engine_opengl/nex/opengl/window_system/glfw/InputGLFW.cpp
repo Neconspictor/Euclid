@@ -4,7 +4,6 @@
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <functional>
 
 
@@ -207,12 +206,11 @@ void InputMapperGLFW::initInputKeyMap()
 
 
 InputGLFW::InputGLFW(WindowGLFW* window) : Input(), window(window), 
-anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), _disableCallbacks(false), logClient(getLogServer())
+anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), _disableCallbacks(false), m_logger("InputGLFW")
 {
-	logClient.setPrefix("InputGLFW");
 }
 
-InputGLFW::InputGLFW(InputGLFW && o) : Input(move(o)), logClient(move(o.logClient))
+InputGLFW::InputGLFW(InputGLFW && o) : Input(move(o)), m_logger(move(o.m_logger))
 {
 	window = o.window;
 	anyPressedKey = o.anyPressedKey;

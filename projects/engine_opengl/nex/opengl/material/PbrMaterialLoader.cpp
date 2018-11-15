@@ -1,14 +1,12 @@
 #include <nex/opengl/material/PbrMaterialLoader.hpp>
 #include <nex/opengl/material/PbrMaterial.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <string>
 
 using namespace std;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), logClient(nex::getLogServer())
+PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), m_logger("PbrMaterialLoader")
 {
-	logClient.setPrefix("PbrMaterialLoader");
 }
 
 PbrMaterialLoader::~PbrMaterialLoader()

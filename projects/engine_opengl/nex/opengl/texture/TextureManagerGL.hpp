@@ -1,7 +1,6 @@
 #pragma once
 #include <map>
 #include <glad/glad.h>
-#include <nex/logging/LoggingClient.hpp>
 #include <list>
 #include <nex/opengl/texture/SamplerGL.hpp>
 #include "nex/gui/Drawable.hpp"
@@ -72,7 +71,7 @@ protected:
 	std::list<TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;
 	std::map<std::string, TextureGL*> textureLookupTable;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 	float m_anisotropy;
 	std::list<SamplerGL*> m_anisotropySamplers;
 

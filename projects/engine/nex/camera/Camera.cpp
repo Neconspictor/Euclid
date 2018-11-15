@@ -8,7 +8,7 @@
 
 Camera::Camera() : Projectional()
 {
-	logClient.setPrefix("[Camera]");
+	m_logger.setPrefix("Camera");
 }
 
 Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()

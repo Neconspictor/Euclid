@@ -1,4 +1,3 @@
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/SubSystemProvider.hpp>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,7 +27,7 @@ public:
 
 protected:
 	bool m_isInitialized;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 private:
 	SubSystemProviderGLFW();

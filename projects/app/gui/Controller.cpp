@@ -1,6 +1,5 @@
 #include <nex/Window.hpp>
 #include <gui/Controller.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 
 
@@ -10,9 +9,8 @@ App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_R
 	m_input(input),
 	guiRenderer(guiRenderer),
 	m_mainTask(mainTask),
-	logClient(nex::getLogServer())
+	m_logger("BaseController")
 {
-	logClient.setPrefix("[BaseController]");
 }
 
 /*
@@ -117,7 +115,7 @@ void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine, flo
 			m_window->setFullscreen();
 		}
 
-		LOG(logClient, Debug) << "toggle";
+		LOG(m_logger, Debug) << "toggle";
 	}
 }
 
@@ -138,7 +136,7 @@ App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_Renderer* mai
 	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
 	m_camera(camera)
 {
-	logClient.setPrefix("[EditMode]");
+	m_logger.setPrefix("EditMode");
 	m_window->showCursor(false);
 }
 
@@ -161,7 +159,7 @@ App::CameraMode::CameraMode(Window* window,
 	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
 m_window(window), m_camera(camera)
 {
-	logClient.setPrefix("[CameraMode]");
+	m_logger.setPrefix("CameraMode");
 	m_window->showCursor(true);
 }
 

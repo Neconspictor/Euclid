@@ -1,5 +1,4 @@
-#include <GL/glew.h>
-
+#include "glad/glad.h"
 
 static const GLfloat triangleVertices[] = {
 	-0.5f, -0.5f, 0.0f,

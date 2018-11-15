@@ -6,7 +6,6 @@
 #include <nex/camera/TrackballCamera.hpp>
 #include <glm/glm.hpp>
 #include <math.h>
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
 
@@ -119,9 +118,9 @@ void TrackballCamera::update(Input* input, float frameTime)
 	float rotationPolar = data.yOffset * sensitivity;
 	float rotationAzimuth = data.xOffset * sensitivity;
 
-	LOG(logClient, nex::Debug) << "coords before: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
+	LOG(m_logger, nex::Debug) << "coords before: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
 	rotate(rotationPolar, rotationAzimuth);
-	LOG(logClient, nex::Debug) << "coords after: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
+	LOG(m_logger, nex::Debug) << "coords after: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
 }
 
 TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 position, vec3 lookTarget) const
@@ -138,7 +137,7 @@ TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 posit
 
 	if (std::isnan(radius))
 	{
-		LOG(logClient, nex::Debug) << "Radius is nan!" << endl;
+		LOG(m_logger, nex::Debug) << "Radius is nan!" << endl;
 	}
 
 	// Spot whether the cartesian position is on the upper or lower half sphere 
@@ -158,7 +157,7 @@ TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 posit
 
 	if (std::isnan(polar))
 	{
-		LOG(logClient, nex::Debug) << "Polar is nan!" << endl;
+		LOG(m_logger, nex::Debug) << "Polar is nan!" << endl;
 	}
 
 	// z = sin(polar) * cos(azimuth) * radius
@@ -172,7 +171,7 @@ TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 posit
 	}
 	if (std::isnan(azimuth))
 	{
-		LOG(logClient, nex::Debug) << "Azimuth is nan!" << endl;
+		LOG(m_logger, nex::Debug) << "Azimuth is nan!" << endl;
 	}
 
 	if (angleIsNegative) azimuth *= -1;
@@ -197,7 +196,7 @@ vec3 TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 l
 
 	if (polar == 0 && azimuth == 0)
 	{
-		LOG(logClient, nex::Debug) << "TrackballCamera::sphericalToCartesian(): " << x << ", " << y << ", " << z << endl;
+		LOG(m_logger, nex::Debug) << "TrackballCamera::sphericalToCartesian(): " << x << ", " << y << ", " << z << endl;
 	}
 
 	return vec3(x, y, z);
@@ -210,7 +209,7 @@ void TrackballCamera::updateAzimuth(float* sourceAngle, float newValue) const
 
 	if (std::isnan(*sourceAngle))
 	{
-		LOG(logClient, nex::Error) << "TrackballCamera::updateAzimuth(): sourceAngle is nan!; newValue: " << newValue << endl;
+		LOG(m_logger, nex::Error) << "TrackballCamera::updateAzimuth(): sourceAngle is nan!; newValue: " << newValue << endl;
 		*sourceAngle = 0;
 	}
 }
@@ -231,7 +230,7 @@ void TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
 
 	if (std::isnan(*sourceAngle))
 	{
-		LOG(logClient, nex::Error) << "TrackballCamera::updatePolar(): sourceAngle is nan!; newValue: " << newValue << endl;
+		LOG(m_logger, nex::Error) << "TrackballCamera::updatePolar(): sourceAngle is nan!; newValue: " << newValue << endl;
 		*sourceAngle = 0;
 	}
 }

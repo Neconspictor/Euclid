@@ -5,9 +5,9 @@
 #include <boost/optional/optional.hpp>
 
 
-#define LOG_EXT(Logger, type) Logger(__FILE__, __func__, __LINE__, type)
+#define LOG(Logger, type) Logger(__FILE__, __func__, __LINE__, type)
 
-namespace ext
+namespace nex
 {
 	class Logger;
 
@@ -20,6 +20,16 @@ namespace ext
 		Error =  1 << 4,
 		Fault = 1 << 5
 	};
+
+	/**
+	 * Maps a string to log level enumeration.
+	 * @param str: The string to be mapped.
+	 * @return: The mapped log level
+	 *
+	 * ATTENTION: If the string can't be mapped to a log level,
+	 * a EnumFormatException is thrown!
+	 */
+	LogLevel stringToLogLevel(const std::string& str);
 
 	struct LogMessage
 	{
@@ -120,11 +130,6 @@ namespace ext
 		std::vector<std::ostream*> mStreams;
 	};
 
-	class LogManager
-	{
-		
-	};
-
 	template <typename T>
 	LogMessage& LogMessage::operator << (const T& value) {
 		mBuffer << value;
@@ -138,4 +143,4 @@ namespace ext
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, ext::LogLevel type);
+std::ostream& operator<<(std::ostream& os, nex::LogLevel type);

@@ -1,11 +1,10 @@
 #include <nex/system/System.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 
 
 using namespace std;
 using namespace nex;
 
-System::System(const string& name) : logClient(getLogServer()),
+System::System(const string& name) :
 name(name)
 {
 }
@@ -19,7 +18,7 @@ void System::init()
 	//channel.broadcast(SystemInitEvent(this));
 
 	stringstream ss; ss << "[" << name << "]";
-	logClient.setPrefix(ss.str());
+	m_logger.setPrefix(ss.str().c_str());
 }
 
 void System::shutdown()

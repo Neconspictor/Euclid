@@ -1,10 +1,8 @@
 #include <nex/FileSystem.hpp>
 #include <sstream>
 #include <fstream>
-#include <nex/logging/LoggingClient.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <boost/filesystem.hpp>
-
+#include "nex/common/Log.hpp"
 
 
 namespace nex::filesystem
@@ -59,18 +57,17 @@ namespace nex::filesystem
 		}
 		catch (std::ifstream::failure e)
 		{
-			LoggingClient logClient(getLogServer());
-			logClient.setPrefix("[FileSystem::loadFileIntoString()]");
+			nex::Logger logger("FileSystem");
 
 			if (shaderStreamFile.fail())
 			{
-				LOG(logClient, Error) << "Couldn't open file: "
+				LOG(logger, Error) << "Couldn't open file: "
 					<< filePath;
 			}
 
 			if (shaderStreamFile.bad())
 			{
-				LOG(logClient, Error) << "Couldn't read file properly.";
+				LOG(logger, Error) << "Couldn't read file properly.";
 			}
 			loadingWasSuccessful = false;
 			*destination = "";
@@ -100,8 +97,7 @@ namespace nex::filesystem
 		std::ifstream file;
 		MemoryWrapper content(nullptr);
 		*fileSize = 0;
-		LoggingClient logClient(getLogServer());
-		logClient.setPrefix("[FileSystem::getBytesFromFile()]");
+		nex::Logger logger("FileSystem");
 
 		// ensure ifstream can throw exceptions!
 		file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -128,17 +124,17 @@ namespace nex::filesystem
 		{
 			if (file.fail())
 			{
-				LOG(logClient, Error) << "Couldn't open file: " << filePath;
+				LOG(logger, Error) << "Couldn't open file: " << filePath;
 			}
 
 			if (file.bad())
 			{
-				LOG(logClient, Error) << "Couldn't read file properly.";
+				LOG(logger, Error) << "Couldn't read file properly.";
 			}
 		}
 		catch (std::bad_alloc e)
 		{
-			LOG(logClient, Error) << "Couldn't allocate memory of size: " << std::to_string(*fileSize);
+			LOG(logger, Error) << "Couldn't allocate memory of size: " << std::to_string(*fileSize);
 		}
 
 		//clear exceptions as close shouldn't throw any exceptions!
@@ -170,18 +166,17 @@ namespace nex::filesystem
 		}
 		catch (std::ifstream::failure e)
 		{
-			LoggingClient logClient(getLogServer());
-			logClient.setPrefix("[FileSystem::loadFileIntoString()]");
+			nex::Logger logger("FileSystem");
 
 			if (file.fail())
 			{
-				LOG(logClient, Error) << "Couldn't open file: "
+				LOG(logger, Error) << "Couldn't open file: "
 					<< filePath;
 			}
 
 			if (file.bad())
 			{
-				LOG(logClient, Error) << "Couldn't read file properly.";
+				LOG(logger, Error) << "Couldn't read file properly.";
 			}
 		}
 

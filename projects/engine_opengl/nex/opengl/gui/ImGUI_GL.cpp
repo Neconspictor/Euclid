@@ -5,7 +5,6 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
 
 #ifdef _WIN32
@@ -38,7 +37,7 @@ g_ShaderHandle(0), g_VertHandle(0), g_FragHandle(0),
 g_AttribLocationTex(0), g_AttribLocationProjMtx(0),
 g_AttribLocationPosition(0), g_AttribLocationUV(0), g_AttribLocationColor(0),
 g_VboHandle(0), g_ElementsHandle(0),
-logClient(getLogServer())
+m_logger("ImGUI_GL")
 {
 	window.activate();
 	IMGUI_CHECKVERSION();
@@ -437,7 +436,7 @@ bool ImGUI_GL::createDeviceObjects()
 	{
 		std::vector<char> shaderErrorMessage(logInfoLength + 1);
 		glGetShaderInfoLog(g_VertHandle, logInfoLength, nullptr, &shaderErrorMessage[0]);
-		LOG(logClient, Error) << &shaderErrorMessage[0];
+		LOG(m_logger, Error) << &shaderErrorMessage[0];
 	}
 
 	RendererOpenGL::checkGLErrors("ImGUI_GL.cpp<createDeviceObjects>000");
@@ -453,7 +452,7 @@ bool ImGUI_GL::createDeviceObjects()
 	{
 		std::vector<char> shaderErrorMessage(logInfoLength + 1);
 		glGetShaderInfoLog(g_FragHandle, logInfoLength, nullptr, &shaderErrorMessage[0]);
-		LOG(logClient, Error) << &shaderErrorMessage[0];
+		LOG(m_logger, Error) << &shaderErrorMessage[0];
 	}
 
 

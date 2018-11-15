@@ -1,5 +1,4 @@
 #pragma once
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/event/Task.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
@@ -38,8 +37,7 @@ private:
 
 	GaussianBlurGL* blurEffect;
 	DirectionalLight globalLight;
-	nex::LoggingClient logClient;
-	float mixValue;
+	nex::Logger m_logger;
 	TextureGL* panoramaSky;
 	TextureGL* testTexture;
 

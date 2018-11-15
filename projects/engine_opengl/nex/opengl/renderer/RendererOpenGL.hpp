@@ -15,7 +15,7 @@
 #include <nex/common/debug_break.h>
 #include "nex/common/Log.hpp"
 
-extern ext::Logger GLOBAL_RENDERER_LOGGER;
+extern nex::Logger GLOBAL_RENDERER_LOGGER;
 
 #if defined(NDEBUG)
 #define SET_BREAK()
@@ -25,7 +25,7 @@ extern ext::Logger GLOBAL_RENDERER_LOGGER;
 
 #else
 #define SET_BREAK()	 psnip_trap()
-#define ASSERT(x) if (!x) {GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogLevel::Error) << "Assertion failed!"; SET_BREAK();}
+#define ASSERT(x) if (!x) {LOG(GLOBAL_RENDERER_LOGGER, nex::LogLevel::Error) << "Assertion failed!"; SET_BREAK();}
 
 // A macro for validating an OpenGL function call.
 #define GLCall(x) GLClearError();\
@@ -318,6 +318,6 @@ protected:
 	BaseRenderTargetGL defaultRenderTarget;
 
 protected:
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 	Viewport mViewport;
 };

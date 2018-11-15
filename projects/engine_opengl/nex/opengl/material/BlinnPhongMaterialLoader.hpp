@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
-#include <nex/logging/LoggingClient.hpp>
 
 
 class BlinnPhongMaterialLoader : public AbstractMaterialLoader {
@@ -16,6 +15,6 @@ public:
 
 private:
 
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 };

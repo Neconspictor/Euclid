@@ -1,6 +1,5 @@
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <sstream>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/shader/PhongTexShaderGL.hpp>
@@ -20,7 +19,7 @@ using namespace nex;
 unique_ptr<ShaderManagerGL> ShaderManagerGL::instance = make_unique<ShaderManagerGL>(ShaderManagerGL());
 
 ShaderManagerGL::ShaderManagerGL() : 
-	logClient(getLogServer())
+	m_logger("ShaderManagerGL")
 {
 }
 
@@ -38,7 +37,7 @@ ShaderGL* ShaderManagerGL::getShader(Shaders shaderEnum)
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
 	{
-		LOG(logClient, Debug) << "Create singleton for shader: " << shaderEnum;
+		LOG(m_logger, Debug) << "Create singleton for shader: " << shaderEnum;
 		return createShader(shaderEnum);
 	}
 

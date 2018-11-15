@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <nex/logging/LoggingClient.hpp>
+#include "nex/common/Log.hpp"
 
 struct Frustum
 {
@@ -93,7 +93,7 @@ public:
 protected:
 	float aspectRatio;
 	float fov;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 	glm::vec3 look;
 	Frustum orthoFrustum;
 	glm::mat4 orthographic;

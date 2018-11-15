@@ -2,7 +2,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <nex/util/Globals.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
@@ -12,9 +11,8 @@
 using namespace std;
 using namespace glm;
 
-AssimpModelLoader::AssimpModelLoader() : logClient(nex::getLogServer())
+AssimpModelLoader::AssimpModelLoader() : m_logger("AssimpModelLoader")
 {
-	logClient.setPrefix("AssimpModelLoader");
 }
 
 unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const AbstractMaterialLoader& materialLoader) const
@@ -36,7 +34,7 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		LOG(logClient, nex::Error) << "AssimpModelLoader::loadModel(string): " << importer.GetErrorString();
+		LOG(m_logger, nex::Error) << "AssimpModelLoader::loadModel(string): " << importer.GetErrorString();
 		stringstream ss; 
 		ss << "AssimpModelLoader::loadModel(string): Couldn't load mesh: " << path;
 		throw_with_trace(runtime_error(ss.str()));
@@ -45,7 +43,7 @@ unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const Abstr
 	vector<unique_ptr<MeshGL>> meshes;
 	processNode(scene->mRootNode, scene, &meshes, materialLoader);
 
-	LOG(logClient, nex::Debug) << "Time needed for mesh loading: " << timer.update();
+	LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.update();
 
 	return make_unique<ModelGL>(move(meshes));
 }

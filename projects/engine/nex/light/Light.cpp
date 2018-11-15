@@ -9,7 +9,7 @@ using namespace std;
 
 DirectionalLight::DirectionalLight() : Projectional(), color(1,1,1)
 {
-	logClient.setPrefix("[DirectionalLight]");
+	m_logger.setPrefix("DirectionalLight");
 }
 
 DirectionalLight::~DirectionalLight()
@@ -42,7 +42,7 @@ PointLight::PointLight() : Projectional()
 	aspectRatio = 1.0f;
 	perspFrustum.nearPlane = 0.1f;
 	perspFrustum.farPlane = 1.0f;
-	logClient.setPrefix("[PointLight]");
+	m_logger.setPrefix("PointLight");
 }
 
 PointLight::~PointLight()

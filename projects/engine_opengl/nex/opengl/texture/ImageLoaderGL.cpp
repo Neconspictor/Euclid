@@ -1,6 +1,5 @@
 #include <nex/opengl/texture/ImageLoaderGL.hpp>
 #include <nex/FileSystem.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -12,7 +11,7 @@ using namespace boost::interprocess;
 using namespace std;
 using namespace nex;
 
-ImageLoaderGL::ImageLoaderGL() : logClient(getLogServer())
+ImageLoaderGL::ImageLoaderGL() : m_logger("ImageLoaderGL")
 {}
 
 GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
@@ -38,12 +37,12 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 
 	if (extension.compare("DDS") == 0)
 	{
-		LOG(logClient, Debug) << "image file is a dds file: " << fileName;
-		LOG(logClient, Debug) << "file size (bytes): " << fileSize;
+		LOG(m_logger, Debug) << "image file is a dds file: " << fileName;
+		LOG(m_logger, Debug) << "file size (bytes): " << fileSize;
 		imageData = loadDDSFile(bytes, fileSize);
 	} else
 	{
-		LOG(logClient, Error) << "image type couldn't be detected from: " << fileName;
+		LOG(m_logger, Error) << "image type couldn't be detected from: " << fileName;
 	}
 
 	delete[] bytes;

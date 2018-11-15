@@ -42,7 +42,7 @@ public:
 
 private:
 	std::map<Shaders, std::shared_ptr<ShaderGL>> shaderMap;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 	// this class is a singleton, thus private constructor
 	ShaderManagerGL();

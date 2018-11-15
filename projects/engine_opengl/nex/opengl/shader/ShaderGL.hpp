@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
-#include <nex/logging/LoggingClient.hpp>
 #include <glad/glad.h>
 #include <unordered_map>
 #include <nex/exception/ShaderInitException.hpp>
+#include "nex/common/Log.hpp"
 
 class MeshGL;
 class Vob;
@@ -207,7 +207,7 @@ protected:
 	std::unique_ptr<ShaderConfigGL> config;
 	GLuint programID;
 	GLuint instancedProgramID;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 	GLint textureCounter;
 
 	TransformData data;

@@ -1,9 +1,8 @@
 #include <nex/Window.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <imgui/imgui.h>
 
 Window::Window(WindowStruct const& description):
-logClient(nex::getLogServer())
+	m_logger("Window")
 {
 	width = description.width;
 	height = description.height;
@@ -17,8 +16,6 @@ logClient(nex::getLogServer())
 	m_isOpen = true;
 	m_hasFocus = false;
 	vSync = description.vSync;
-
-	logClient.setPrefix("[Window]");
 }
 
 void Window::setTitle(const std::string& newTitle)

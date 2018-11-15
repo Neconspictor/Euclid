@@ -42,7 +42,7 @@ private:
 	//std::weak_ptr<EventChannel> eventChannel;
 	GlobalEventChannel m_eventChannel;
 	SystemMap m_systemMap;
-	nex::LoggingClient m_logClient;
+	nex::Logger m_logger;
 	Configuration m_config;
 	std::string m_configFileName;
 	std::string m_systemLogLevelStr;

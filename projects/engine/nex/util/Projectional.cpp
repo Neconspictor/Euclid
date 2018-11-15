@@ -1,7 +1,6 @@
 #include <nex/util/Projectional.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/util/Math.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
@@ -10,10 +9,9 @@ using namespace glm;
 
 Projectional::Projectional(float aspectRatio, float fov, float perspNear, float perspFar, Frustum frustum,
 	vec3 look, vec3 position, vec3 up) : aspectRatio(aspectRatio), fov(fov),
-	logClient(nex::getLogServer()), look(look), orthoFrustum(frustum), position(position), 
+	m_logger("Projectional"), look(look), orthoFrustum(frustum), position(position),
 	revalidate(true), up(up)
 {
-	logClient.setPrefix("[Projectional]");
 	perspFrustum.nearPlane = perspNear;
 	perspFrustum.farPlane = perspFar;
 }

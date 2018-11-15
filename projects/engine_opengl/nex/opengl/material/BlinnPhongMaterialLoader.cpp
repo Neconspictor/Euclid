@@ -1,14 +1,12 @@
 #include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <nex/opengl/material/BlinnPhongMaterial.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <string>
 
 using namespace std;
 
 
-BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), logClient(nex::getLogServer())
+BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), m_logger("BlinnPhongMaterialLoader")
 {
-	logClient.setPrefix("BlinnPhongMaterialLoader");
 }
 
 BlinnPhongMaterialLoader::~BlinnPhongMaterialLoader()

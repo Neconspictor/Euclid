@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/gui/ImGUI.hpp>
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
 
@@ -26,7 +25,7 @@ namespace App
 		Input* m_input;
 		ImGUI_Impl* guiRenderer;
 		PBR_Deferred_Renderer* m_mainTask;
-		nex::LoggingClient logClient;
+		nex::Logger m_logger;
 	};
 
 	class EditMode : public BaseController {

@@ -3,6 +3,7 @@
 #include <nex/system/System.hpp>
 #include <boost/program_options.hpp>
 #include <string>
+#include "nex/common/Log.hpp"
 
 class Configuration
 {
@@ -33,7 +34,7 @@ public:
 	{
 		if (!isSet(settingName))
 		{
-			LOG(logClient, nex::Warning) << "Failed to find variable: " << settingName;
+			LOG(m_logger, nex::Warning) << "Failed to find variable: " << settingName;
 			return T();
 		}
 
@@ -55,7 +56,7 @@ public:
 private:
 	Options options;
 	Variables variables;
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 	static Configuration* globalConfig;
 };

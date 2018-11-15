@@ -1,7 +1,6 @@
 #pragma once
 #include <nex/opengl/model/ModelGL.hpp>
 #include <assimp/scene.h>
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
 struct TextureData;
@@ -26,5 +25,5 @@ protected:
 
 private:
 
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 };

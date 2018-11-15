@@ -4,7 +4,6 @@
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
 #ifdef WIN32
@@ -145,9 +144,9 @@ void WindowGLFW::setCursorPosition(int xPos, int yPos)
 void WindowGLFW::setFocus(bool focus)
 {
 	if (focus) {
-		LOG(logClient, nex::Debug) << "gained focus!";
+		LOG(m_logger, nex::Debug) << "gained focus!";
 	} else {
-		LOG(logClient, nex::Debug) << "lost focus!";
+		LOG(m_logger, nex::Debug) << "lost focus!";
 	}
 
 	m_hasFocus = focus;
@@ -359,7 +358,7 @@ void WindowGLFW::createOpenGLWindow()
 
 	// glad populates global constants after loading to indicate,
 	// if a certain extension/version is available.
-	LOG(logClient, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
+	LOG(m_logger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
 
 	/*if (GLAD_GL_EXT_framebuffer_multisample) {
 	}*/

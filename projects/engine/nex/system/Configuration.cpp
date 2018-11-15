@@ -2,7 +2,6 @@
 #include <fstream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
@@ -11,10 +10,8 @@ using namespace boost::program_options;
 
 Configuration* Configuration::globalConfig = nullptr;
 
-Configuration::Configuration() : logClient(getLogServer())
+Configuration::Configuration() : m_logger("Configuration")
 {
-	stringstream ss; ss << "[" << "Configuration" << "]";
-	logClient.setPrefix(ss.str());
 }
 
 
@@ -36,7 +33,7 @@ bool Configuration::load(const string& fileName)
 
 	if (!file)
 	{
-		LOG(logClient, Error) << "Couldn't open configuration file: " << fileName;
+		LOG(m_logger, Error) << "Couldn't open configuration file: " << fileName;
 	}
 
 	store(parse_config_file(file, options, true), variables);
@@ -53,26 +50,26 @@ bool Configuration::write(const string& fileName)
 	{
 
 		const string& desc = item.first.c_str();
-		LOG(logClient, Debug) << desc << endl;
+		LOG(m_logger, Debug) << desc << endl;
 		auto& value = variables[desc].value();
 		if (auto v = boost::any_cast<uint32_t>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		}
 		else if (auto v = boost::any_cast<string>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		} else if (auto v = boost::any_cast<double>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		} else if (auto v = boost::any_cast<bool>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		} else if (auto v = boost::any_cast<unsigned int>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		} else if (auto v = boost::any_cast<int>(&value)) {
-			LOG(logClient, Debug) << *v << endl;
+			LOG(m_logger, Debug) << *v << endl;
 			pt.put(desc, *v);
 		}
 		else {

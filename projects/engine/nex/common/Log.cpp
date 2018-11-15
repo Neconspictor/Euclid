@@ -1,21 +1,42 @@
 #include "Log.hpp"
+#include <nex/util/StringUtils.hpp>
 
-using namespace ext;
+using namespace nex;
 
-std::ostream& operator<<(std::ostream& os, ext::LogLevel type)
+namespace nex::util
+{
+	/**
+	* Maps log levels to a string representation.
+	*/
+	const static EnumString<LogLevel> converter[] = {
+	{ Always, "ALWAYS" },
+	{ Debug, "DEBUG" },
+	{ Info, "INFO" },
+	{ Warning, "WARNING" },
+	{ Error, "ERROR" },
+	{ Fault, "FAULT" },
+	};
+}
+
+std::ostream& operator<<(std::ostream& os, nex::LogLevel type)
 {
 	switch(type)
 	{
-		case LogLevel::Always:	os << "ALWAYS";		break;
-		case LogLevel::Debug:	os << "DEBUG";		break;
-		case LogLevel::Info:		os << "INFO";		break;
-		case LogLevel::Warning:	os << "WARNING";	break;
-		case LogLevel::Error:	os << "ERROR";		break;
-		case LogLevel::Fault:	os << "FAULT";		break;
+	case LogLevel::Always:	os << nex::util::converter[0].strValue;		break;
+		case LogLevel::Debug:	os << nex::util::converter[1].strValue;		break;
+		case LogLevel::Info:		os << nex::util::converter[2].strValue;		break;
+		case LogLevel::Warning:	os << nex::util::converter[3].strValue;	break;
+		case LogLevel::Error:	os << nex::util::converter[4].strValue;		break;
+		case LogLevel::Fault:	os << nex::util::converter[5].strValue;		break;
 		default: ;
 	}
 
 	return os;
+}
+
+LogLevel nex::stringToLogLevel(const std::string& str)
+{
+	return stringToEnum(str, util::converter);
 }
 
 LogMessage::LogMessage(const Logger* logger, LogLevel type, const char* file, const char* function, int line) :
@@ -250,7 +271,6 @@ LoggerManager::LoggerManager() : mLogMask(Always)
 
 LogSink::LogSink()
 {
-	registerStream(&std::cout);
 }
 
 LogSink* LogSink::get()

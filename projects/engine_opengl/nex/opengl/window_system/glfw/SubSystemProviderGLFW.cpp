@@ -1,5 +1,4 @@
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <nex/opengl/gui/ImGUI_GL.hpp>
@@ -8,7 +7,7 @@
 using namespace std;
 
 
-SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), logClient(nex::getLogServer())
+SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), m_logger("SubSystemProviderGLFW")
 {
 }
 
@@ -42,7 +41,7 @@ std::unique_ptr<ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
 
 void SubSystemProviderGLFW::errorCallback(int error, const char* description)
 {
-	LOG(get()->logClient, nex::Error) << "Error code: " << error
+	LOG(get()->m_logger, nex::Error) << "Error code: " << error
 		<< ", error description: " << description;
 }
 

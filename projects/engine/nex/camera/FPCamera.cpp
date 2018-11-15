@@ -8,20 +8,20 @@ using namespace glm;
 
 FPCamera::FPCamera() : FPCameraBase(), yaw(0), pitch(0)
 {
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPCamera");
 }
 
 FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : FPCameraBase(position, look, up),
 	yaw(0), pitch(0)
 {
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPCamera");
 }
 
 FPCamera::FPCamera(const FPCamera& other) : FPCameraBase(other)
 {
 	yaw = other.yaw;
 	pitch = other.pitch;
-	logClient.setPrefix("[FPCamera]");
+	m_logger.setPrefix("FPCamera");
 }
 
 FPCamera::~FPCamera()

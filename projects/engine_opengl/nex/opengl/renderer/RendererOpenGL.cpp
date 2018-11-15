@@ -17,14 +17,13 @@
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/logging/GlobalLoggingServer.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
 
 using namespace std;
 using namespace nex;
 using namespace glm;
 
-ext::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
+nex::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
 
 void GLClearError()
 {
@@ -41,8 +40,8 @@ void GLClearError()
 
 	if (!finite)
 	{
-		static ext::Logger logger("[GLClearError]");
-		logger.log(ext::LogLevel::Warning) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
+		static nex::Logger logger("[GLClearError]");
+		logger.log(nex::LogLevel::Warning) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
 		//LOG(logger) << "Detected to many GL_INVALID_OPERATION errors. Assuming that no valid OpenGL context exists.";
 		throw_with_trace(std::runtime_error("Detected to many GL_INVALID_OPERATION errors"));
 	}
@@ -50,13 +49,13 @@ void GLClearError()
 
 bool GLLogCall()
 {
-	static ext::Logger logger("OpenGL Error");
+	static nex::Logger logger("OpenGL Error");
 
 	bool noErrorsOccurred = true;
 
 	while (GLenum error = glGetError())
 	{
-		logger.log(ext::LogLevel::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
+		logger.log(nex::LogLevel::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
 		noErrorsOccurred = false;
 	}
 
@@ -97,12 +96,10 @@ void EffectLibraryGL::release()
 		gaussianBlur->release();
 }
 
-RendererOpenGL::RendererOpenGL() : logClient(nex::getLogServer()), mViewport(),
+RendererOpenGL::RendererOpenGL() : m_logger("RendererOpenGL"), mViewport(),
   backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
   msaaSamples(1), smaa(nullptr), defaultRenderTarget(0,0, 0)
 {	
-	logClient.setPrefix("[RendererOpenGL]");
-
 	//__clearRenderTarget(&singleSampledScreenBuffer, false);
 	//__clearRenderTarget(&multiSampledScreenBuffer, false);
 
@@ -130,7 +127,7 @@ GLuint vertexArrayObjID;
 
 void RendererOpenGL::init()
 {
-	LOG(logClient, Info) << "Initializing...";
+	LOG(m_logger, Info) << "Initializing...";
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	GLCall(glEnable(GL_SCISSOR_TEST));
@@ -665,23 +662,15 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 {
 	assert(samples >= 1);
 
-	//ASSERT(GLLogCall());
-	if (!GLLogCall())
-	{
-		GLOBAL_RENDERER_LOGGER.log(__FILE__, __func__, __LINE__, ext::LogLevel::Error) << "Assertion failed!"; 
-		SET_BREAK();
-	}
 	RenderTargetGL result(width, height);
-	ASSERT(GLLogCall());
+
 	if (samples > 1)
 	{
 		result = RenderTargetGL::createMultisampled(width, height, data, samples, depthStencilType);
 	}
 	else
 	{
-		checkGLErrors(BOOST_CURRENT_FUNCTION);
 		result = RenderTargetGL::createSingleSampled(width, height, data, depthStencilType);
-		checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

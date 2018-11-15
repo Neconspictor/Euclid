@@ -1,6 +1,6 @@
 #pragma once
-#include <nex/logging/LoggingClient.hpp>
 #include <nex/util/CallbackContainer.hpp>
+#include "nex/common/Log.hpp"
 
 class Window;
 
@@ -623,7 +623,7 @@ protected:
 	bool m_windowHasFocus;
 	bool firstMouseInput;
 
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 	ScrollCallbacks scrollContainer;
 

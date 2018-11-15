@@ -1,7 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <string>
-#include <nex/logging/LoggingClient.hpp>
+#include <nex/common/Log.hpp>
 
 struct GenericImageGL
 {
@@ -20,7 +20,7 @@ public:
 	GenericImageGL loadImageFromDisc(std::string fileName);
 
 private:
-	nex::LoggingClient logClient;
+	nex::Logger m_logger;
 
 	GenericImageGL loadDDSFile(char* imageData, std::streampos fileSize);
 };
