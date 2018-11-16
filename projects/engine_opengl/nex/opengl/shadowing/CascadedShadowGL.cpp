@@ -76,8 +76,12 @@ void CascadedShadowGL::render(MeshGL* mesh, glm::mat4* modelMatrix)
 	// render mesh
 	const VertexArray* vertexArray = mesh->getVertexArray();
 	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
+
 	vertexArray->bind();
+	indexBuffer->bind();
 	glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+
+	indexBuffer->unbind();
 	vertexArray->unbind();
 }
 

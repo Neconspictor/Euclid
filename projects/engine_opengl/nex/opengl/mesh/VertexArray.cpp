@@ -6,6 +6,12 @@ VertexArray::VertexArray() : mRendererID(0)
 	GLCall(glGenVertexArrays(1, &mRendererID));
 }
 
+VertexArray::VertexArray(VertexArray&& other) noexcept :
+	mRendererID(other.mRendererID)
+{
+	other.mRendererID = GL_FALSE;
+}
+
 VertexArray::~VertexArray()
 {
 	GLCall(glDeleteVertexArrays(1, &mRendererID));

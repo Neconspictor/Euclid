@@ -486,7 +486,10 @@ void ShaderGL::draw(MeshGL const& mesh)
 	const IndexBuffer* indexBuffer = mesh.getIndexBuffer();
 
 	vertexArray->bind();
+	indexBuffer->bind();
 	glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+	
+	indexBuffer->unbind();
 	vertexArray->unbind();
 
 	afterDrawing(mesh);
@@ -502,7 +505,9 @@ void ShaderGL::drawInstanced(MeshGL const& mesh, unsigned amount)
 	const IndexBuffer* indexBuffer = mesh.getIndexBuffer();
 
 	vertexArray->bind();
+	indexBuffer->bind();
 	glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr, amount);
+	vertexArray->unbind();
 	vertexArray->unbind();
 
 	afterDrawing(mesh);

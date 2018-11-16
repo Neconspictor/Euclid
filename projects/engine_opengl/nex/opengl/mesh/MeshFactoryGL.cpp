@@ -24,7 +24,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTexTangent* v
 	vertexArray.unbind();
 	indexBuffer.unbind();
 
-	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(indexBuffer));
+	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
 unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
@@ -45,7 +45,7 @@ unique_ptr<MeshGL> MeshFactoryGL::create(const VertexPositionNormalTex * vertice
 	vertexArray.unbind();
 	indexBuffer.unbind();
 
-	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(indexBuffer));
+	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
 
@@ -65,7 +65,7 @@ unique_ptr<MeshGL> MeshFactoryGL::createPosition(const VertexPosition* vertices,
 	vertexArray.unbind();
 	indexBuffer.unbind();
 
-	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(indexBuffer));
+	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
 unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
@@ -85,5 +85,5 @@ unique_ptr<MeshGL> MeshFactoryGL::createPositionUV(const VertexPositionTex* vert
 	vertexArray.unbind();
 	indexBuffer.unbind();
 
-	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(indexBuffer));
+	return std::make_unique<MeshGL>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }

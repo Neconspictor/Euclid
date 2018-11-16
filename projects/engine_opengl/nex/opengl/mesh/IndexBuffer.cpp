@@ -10,6 +10,13 @@ IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count) : mCount(
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * sizeof(GLuint), data, GL_STATIC_DRAW));
 }
 
+IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept :
+	mRendererID(other.mRendererID),
+	mCount(other.mCount)
+{
+	other.mRendererID = GL_FALSE;
+}
+
 IndexBuffer::~IndexBuffer()
 {
 	GLCall(glDeleteBuffers(1, &mRendererID));

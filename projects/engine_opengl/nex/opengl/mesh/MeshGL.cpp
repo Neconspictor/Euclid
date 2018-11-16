@@ -3,8 +3,9 @@
 
 using namespace std;
 
-MeshGL::MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, std::unique_ptr<Material> material) :
+MeshGL::MeshGL(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, std::unique_ptr<Material> material) :
 mVertexArray(std::move(vertexArray)),
+mVertexBuffer(std::move(vertexBuffer)),
 mIndexBuffer(std::move(indexBuffer)),
 mMaterial(std::move(material))
 {
@@ -12,12 +13,13 @@ mMaterial(std::move(material))
 
 MeshGL::MeshGL(MeshGL&& o) noexcept :
 	mVertexArray(std::move(o.mVertexArray)),
+	mVertexBuffer(std::move(o.mVertexBuffer)),
 	mIndexBuffer(std::move(o.mIndexBuffer)),
 	mMaterial(std::move(o.mMaterial))
 {
 }
 
-MeshGL& MeshGL::operator=(MeshGL&& o) noexcept
+/*MeshGL& MeshGL::operator=(MeshGL&& o) noexcept
 {
 	if (this == &o) return *this;
 	
@@ -26,7 +28,7 @@ MeshGL& MeshGL::operator=(MeshGL&& o) noexcept
 	mMaterial = move(o.mMaterial);
 	
 	return *this;
-}
+}*/
 
 const IndexBuffer* MeshGL::getIndexBuffer() const
 {

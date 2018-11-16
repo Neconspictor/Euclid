@@ -196,6 +196,7 @@ ModelGL* ModelManagerGL::getPositionNormalTexCube()
 		vertex.normal = { *(source), *(source + 1), *(source + 2) };
 		source += 3;
 		vertex.texCoords = { *(source), *(source + 1) };
+		vertices.emplace_back(std::move(vertex));
 	}
 
 	vector<unsigned int> indices;

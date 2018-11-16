@@ -48,9 +48,9 @@ class MeshGL
 public:
 	using Vertex = VertexPositionNormalTexTangent;
 
-	MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, std::unique_ptr<Material> material = nullptr);
+	MeshGL(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, std::unique_ptr<Material> material = nullptr);
 	MeshGL(MeshGL&& other) noexcept;
-	MeshGL& operator=(MeshGL&& o) noexcept;
+	MeshGL& operator=(MeshGL&& o) noexcept = default;
 
 	MeshGL(const MeshGL& o) = delete;
 	MeshGL& operator=(const MeshGL& o) = delete;
@@ -67,7 +67,9 @@ protected:
 	friend MeshFactoryGL; // allow factory for easier access!
 
 	VertexArray mVertexArray;
+	VertexBuffer mVertexBuffer;
 	IndexBuffer mIndexBuffer;
+
 
 	std::unique_ptr<Material> mMaterial;
 };
