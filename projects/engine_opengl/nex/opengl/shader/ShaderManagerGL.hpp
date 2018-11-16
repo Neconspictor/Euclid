@@ -13,9 +13,6 @@ class ShaderManagerGL
 {
 public:
 	virtual ~ShaderManagerGL();
-	
-	
-	ShaderConfigGL* getConfig(Shaders shader);
 
 	/**
 	 * Provides a singleton of a shader by its shader enumeration.

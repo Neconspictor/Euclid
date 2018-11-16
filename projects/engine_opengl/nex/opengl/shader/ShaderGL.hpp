@@ -5,6 +5,8 @@
 #include <nex/exception/ShaderInitException.hpp>
 #include "nex/common/Log.hpp"
 
+class CubeMapGL;
+class TextureGL;
 class MeshGL;
 class Vob;
 
@@ -75,84 +77,6 @@ enum class ShaderAttributeType
 };
 
 
-class ShaderAttributeGL
-{
-public:
-	ShaderAttributeGL();
-	ShaderAttributeGL(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
-
-	ShaderAttributeGL(const ShaderAttributeGL& o);
-	ShaderAttributeGL& operator=(const ShaderAttributeGL& o);
-
-	virtual ~ShaderAttributeGL();
-
-	void activate(bool active);
-
-	const void* getData() const;
-	ShaderAttributeType getType() const;
-
-	bool isActive() const;
-
-
-	const std::string& getName() const;
-
-	void setData(const void* data);
-	void setName(std::string name);
-	void setType(ShaderAttributeType type);
-
-protected:
-	std::string uniformName;
-	const void* data;
-	bool m_isActive;
-	ShaderAttributeType type;
-};
-
-class ShaderAttributeCollection
-{
-public:
-
-	using ShaderAttributeKey = int;
-	using ShaderAttributeGLIterator = std::vector<ShaderAttributeGL>::iterator;
-
-	ShaderAttributeCollection();
-	ShaderAttributeCollection(const ShaderAttributeCollection& o);
-	ShaderAttributeCollection& operator=(const ShaderAttributeCollection& o);
-
-	virtual ~ShaderAttributeCollection();
-
-	ShaderAttributeKey create(ShaderAttributeType type, const void* data, std::string uniformName, bool active = false);
-	ShaderAttributeGL* get(const std::string& uniformName);
-	ShaderAttributeGL* get(ShaderAttributeKey key);
-	const ShaderAttributeGL* getList() const;
-	void setData(const std::string& uniformName, const void* data, const void* defaultValue = nullptr, bool activate = true);
-
-	int size() const;
-protected:
-	std::vector<ShaderAttributeGL> vec;
-	std::unordered_map<std::string, int>  lookup;
-};
-
-class ShaderConfigGL
-{
-public:
-	ShaderConfigGL();
-	virtual ~ShaderConfigGL();
-
-	virtual void afterDrawing(const MeshGL& mesh);
-
-	virtual void beforeDrawing(const MeshGL& mesh);
-
-	virtual const ShaderAttributeGL* getAttributeList() const;
-
-	virtual int getNumberOfAttributes() const;
-
-	virtual void update(const MeshGL& mesh, const TransformData& data) = 0;
-protected:
-	ShaderAttributeCollection attributes;
-};
-
-
-
 /**
  * Represents a shader program for an OpenGL renderer.
  */
@@ -163,18 +87,10 @@ public:
 	* Creates a new shader program from a given vertex shader and fragment shader file.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	ShaderGL(std::unique_ptr<ShaderConfigGL> config, 
+	ShaderGL(
 		const std::string& vertexShaderFile, 
 		const std::string& fragmentShaderFile,
 		const std::string& geometryShaderFile = "", 
-		const std::string& instancedVertexShaderFile = "");
-
-	/**
-	 * Creates a new shader with now shader configuration object
-	 */
-	ShaderGL(const std::string& vertexShaderFile,
-		const std::string& fragmentShaderFile,
-		const std::string& geometryShaderFile = "",
 		const std::string& instancedVertexShaderFile = "");
 
 	ShaderGL(ShaderGL&& other);
@@ -184,11 +100,9 @@ public:
 
 	static bool compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID);
 
-	virtual void draw(MeshGL const& mesh);
+	void bind() const;
 
-	virtual void drawInstanced(MeshGL const& mesh, unsigned amount);
-
-	ShaderConfigGL* getConfig() const;
+	//virtual void drawInstanced(MeshGL const& mesh, unsigned amount);
 
 	void setTransformData(TransformData data);
 
@@ -198,15 +112,29 @@ public:
 		const std::string& geometryShaderFile = "");
 	
 	virtual void release();
-	
-	virtual void use();
+
+	void unbind() const;
 
 	static void initShaderFileSystem();
 
+	void setInt(GLuint uniformID, int data);
+	void setFloat(GLuint uniformID, float data);
+
+	void setVec2(GLuint uniformID, const glm::vec2& data);
+	void setVec3(GLuint uniformID, const glm::vec3& data);
+	void setVec4(GLuint uniformID, const glm::vec4& data);
+
+	void setMat3(GLuint uniformID, const glm::mat3& data);
+	void setMat4(GLuint uniformID, const glm::mat4& data);
+
+	void setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
+	void setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
+	void setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
+	void setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
+
+
 protected:
-	std::unique_ptr<ShaderConfigGL> config;
 	GLuint programID;
-	GLuint instancedProgramID;
 	nex::Logger m_logger;
 	GLint textureCounter;
 
@@ -245,9 +173,4 @@ protected:
 	 * @throws ShaderInitException - if an IO error occurs
 	 */
 	static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines);
-
-	virtual void afterDrawing(const MeshGL& mesh);
-	virtual void beforeDrawing(const MeshGL& mesh);
-
-	virtual void setAttribute(GLuint program, const ShaderAttributeGL& attribute);
 };

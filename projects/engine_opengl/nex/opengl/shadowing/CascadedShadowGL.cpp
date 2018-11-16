@@ -25,7 +25,7 @@ CascadedShadowGL::~CascadedShadowGL()
 
 void CascadedShadowGL::begin(int cascadeIndex)
 {
-	mDepthPass.use();
+	mDepthPass.bind();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
 	glScissor(0, 0, mCascadeWidth, mCascadeWidth);

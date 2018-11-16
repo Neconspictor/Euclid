@@ -134,7 +134,8 @@ void SceneNode::draw(RendererOpenGL* renderer, ModelDrawerGL* drawer, const glm:
 	}
 	else if (drawingType == DrawingTypes::INSTANCED)
 	{
-		drawer->drawInstanced(vob, type, data, instanceCount);
+		nex::Logger("SceneNode")(nex::Warning) << "Instanced Drawing type currently not supported";
+		//drawer->drawInstanced(vob, type, data, instanceCount);
 	}
 }
 

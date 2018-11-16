@@ -27,11 +27,6 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
-ShaderConfigGL* ShaderManagerGL::getConfig(Shaders shader)
-{
-	return getShader(shader)->getConfig();
-}
-
 ShaderGL* ShaderManagerGL::getShader(Shaders shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);

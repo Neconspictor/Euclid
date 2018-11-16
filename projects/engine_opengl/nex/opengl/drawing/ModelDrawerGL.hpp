@@ -33,7 +33,7 @@ public:
 	 */
 	void draw(Vob* vob, Shaders shaderType, const TransformData& data);
 	void draw(ModelGL* vob, ShaderGL* shader);
-	void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
+	//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
 
 	/**
 	 * Draws the specified model onto the screen and outlines

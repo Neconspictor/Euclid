@@ -93,7 +93,6 @@ namespace hbao {
 		void setSharpness(float sharpness);
 		void setSourceTexture(TextureGL* source, unsigned int textureWidth, unsigned int textureHeight);
 
-		void draw(const MeshGL& mesh) override;
 		void draw(OneTextureRenderTarget* temp, BaseRenderTargetGL* result);
 
 	private:
@@ -110,7 +109,6 @@ namespace hbao {
 		DepthLinearizer();
 		virtual ~DepthLinearizer() = default;
 
-		void draw(const MeshGL& mesh) override;
 		void draw();
 		void setInputTexture(TextureGL* input);
 		void setProjection(const Projection* projection);
@@ -126,7 +124,6 @@ namespace hbao {
 		DisplayTex();
 		virtual ~DisplayTex() = default;
 
-		void draw(const MeshGL& mesh) override;
 		void draw();
 		void setInputTexture(TextureGL* input);
 
@@ -140,7 +137,6 @@ namespace hbao {
 		HBAO_Shader();
 		virtual ~HBAO_Shader() = default;
 
-		void draw(const MeshGL& mesh) override;
 		void draw();
 		void setHbaoData(HBAOData hbao);
 		void setHbaoUBO(GLuint hbao_ubo);

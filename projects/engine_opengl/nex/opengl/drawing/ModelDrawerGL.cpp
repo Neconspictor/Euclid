@@ -56,11 +56,22 @@ void ModelDrawerGL::draw(Sprite * sprite, ShaderGL& shader)
 	model = scale(model, scaling);
 
 	TransformData data = { &projection, &view, &model };
+
+	glShader.bind();
 	glShader.setTransformData(data);
+
 	//shader->setOffscreenBuffer(texture->getTexture());
 	for (auto& mesh : spriteModel->getMeshes())
 	{
-		glShader.draw(mesh);
+		const VertexArray* vertexArray = mesh.get().getVertexArray();
+		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+
+		vertexArray->bind();
+		indexBuffer->bind();
+		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+
+		indexBuffer->unbind();
+		vertexArray->unbind();
 	}
 }
 
@@ -82,23 +93,41 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	//	called = true;
 	//}
 	
-	
+
+	shader->bind();
 	shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
-		shader->draw(mesh);
+		const VertexArray* vertexArray = mesh.get().getVertexArray();
+		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+
+		vertexArray->bind();
+		indexBuffer->bind();
+		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+
+		indexBuffer->unbind();
+		vertexArray->unbind();
 	}
 }
 
 void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
 {
+	shader->bind();
 	for (auto& mesh : model->getMeshes())
 	{
-		shader->draw(mesh);
+		const VertexArray* vertexArray = mesh.get().getVertexArray();
+		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+
+		vertexArray->bind();
+		indexBuffer->bind();
+		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+
+		indexBuffer->unbind();
+		vertexArray->unbind();
 	}
 }
 
-void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
+/*void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
 {
 	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	//vob->calcTrafo();
@@ -110,7 +139,7 @@ void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformD
 	{
 		shader->drawInstanced(mesh, amount);
 	}
-}
+}*/
 
 void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformData& data, vec4 borderColor)
 {
@@ -142,7 +171,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformDa
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
 	SimpleExtrudeShaderGL* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
-										(ShaderManagerGL::get()->getConfig(Shaders::SimpleExtrude));
+										(ShaderManagerGL::get()->getShader(Shaders::SimpleExtrude));
 	
 	simpleExtrude->setObjectColor(borderColor);
 	simpleExtrude->setExtrudeValue(0.05f);
@@ -169,9 +198,19 @@ void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData&
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	shader->bind();
 	shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
-		shader->draw(mesh);
+		const VertexArray* vertexArray = mesh.get().getVertexArray();
+		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+
+		vertexArray->bind();
+		indexBuffer->bind();
+		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+
+		indexBuffer->unbind();
+		vertexArray->unbind();
 	}
 }

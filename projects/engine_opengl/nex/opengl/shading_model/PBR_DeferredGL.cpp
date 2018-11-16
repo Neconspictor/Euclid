@@ -111,7 +111,7 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	//glStencilMask(0x00);
 
 	ShaderGL* shader = renderer->getShaderManager()->getShader(Shaders::Pbr_Deferred_Lighting);
-	shader->use();
+	shader->bind();
 
 	PBRShader_Deferred_LightingGL* config = dynamic_cast<PBRShader_Deferred_LightingGL*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
 

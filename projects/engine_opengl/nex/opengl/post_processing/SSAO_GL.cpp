@@ -381,7 +381,7 @@ void SSAO_DeferredGL::renderAO(TextureGL * gPositions, TextureGL * gNormals, con
 
 void SSAO_DeferredGL::blur()
 {
-	SSAO_Tiled_Blur_ShaderGL& tiledBlurShader = dynamic_cast<SSAO_Tiled_Blur_ShaderGL&>(*tiledBlurPass->getConfig());
+	SSAO_Tiled_Blur_ShaderGL& tiledBlurShader = dynamic_cast<SSAO_Tiled_Blur_ShaderGL&>(*tiledBlurPass);
 	tiledBlurShader.setAOTexture(aoRenderTarget.getTexture());
 	glViewport(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glScissor(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
@@ -393,7 +393,7 @@ void SSAO_DeferredGL::blur()
 
 void SSAO_DeferredGL::displayAOTexture(TextureGL* aoTexture)
 {
-	SSAO_AO_Display_ShaderGL& aoDisplayShader = dynamic_cast<SSAO_AO_Display_ShaderGL&>(*aoDisplay->getConfig());
+	SSAO_AO_Display_ShaderGL& aoDisplayShader = dynamic_cast<SSAO_AO_Display_ShaderGL&>(*aoDisplay);
 	//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
 	TextureGL* aoTextureGL = (TextureGL*)aoTexture;
 	aoDisplayShader.setScreenTexture(aoTextureGL);
