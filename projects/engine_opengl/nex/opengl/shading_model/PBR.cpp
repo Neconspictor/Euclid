@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include <nex/opengl/model/ModelManagerGL.hpp>
 
 using namespace glm;
 

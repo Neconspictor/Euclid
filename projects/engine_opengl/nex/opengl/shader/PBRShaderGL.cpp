@@ -158,7 +158,7 @@ void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
 
-	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
+	PbrMaterial* material = dynamic_cast<PbrMaterial*>(mesh.getMaterial());
 
 	TextureGL* albedoMap = material->getAlbedoMap();
 	TextureGL* aoMap = material->getAoMap();
@@ -409,7 +409,7 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("modelView", &modelView);
 	attributes.setData("modelView_normalMatrix", &modelView_normalMatrix);
 
-	PbrMaterial* material = dynamic_cast<PbrMaterial*>(&mesh.getMaterial().get());
+	PbrMaterial* material = dynamic_cast<PbrMaterial*>(mesh.getMaterial());
 
 	TextureGL* albedoMap = material->getAlbedoMap();
 	TextureGL* aoMap = material->getAoMap();

@@ -34,7 +34,8 @@ ModelGL::~ModelGL()
 {
 }
 
-void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
+// TODO code has to be updated for new MeshGL class
+/*void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 {
 	// Vertex Buffer Object
 	GLCall(glGenBuffers(1, &vertexAttributeBuffer));
@@ -71,7 +72,7 @@ void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
 
 		GLCall(glBindVertexArray(0));
 	}
-}
+}*/
 
 bool ModelGL::instancedUsed()const
 {

@@ -20,7 +20,7 @@ public:
 	
 	virtual ~ModelGL();
 
-	void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
+	//void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
 
 	bool instancedUsed() const;
 

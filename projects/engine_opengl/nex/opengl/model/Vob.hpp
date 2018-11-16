@@ -3,7 +3,9 @@
 #include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/opengl/model/ModelManagerGL.hpp>
+
+class ModelGL;
+class ModelManagerGL;
 
 
 /**

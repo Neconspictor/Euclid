@@ -5,6 +5,8 @@
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
+#include "nex/opengl/model/ModelManagerGL.hpp"
+
 
 #ifdef WIN32
 #include <nex/platform/windows/WindowsPlatform.hpp>

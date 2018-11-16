@@ -1,7 +1,6 @@
 #pragma once
 #include <glad/glad.h>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 #include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include <list>
@@ -10,7 +9,6 @@
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
-#include <nex/opengl/model/ModelManagerGL.hpp>
 #include <memory>
 #include <nex/common/debug_break.h>
 #include "nex/common/Log.hpp"

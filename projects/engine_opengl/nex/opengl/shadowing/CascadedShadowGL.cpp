@@ -69,17 +69,16 @@ void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 
 void CascadedShadowGL::render(MeshGL* mesh, glm::mat4* modelMatrix)
 {
-	MeshGL* meshGL = (MeshGL*)mesh;
-
 	// Update modelMatrix uniform
 	static const GLuint MODEL_MATRIX_LOCATION = 1;
 	glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 
 	// render mesh
-	glBindVertexArray(meshGL->getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(meshGL->getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
+	const VertexArray* vertexArray = mesh->getVertexArray();
+	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
+	vertexArray->bind();
+	glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+	vertexArray->unbind();
 }
 
 void CascadedShadowGL::updateTextureArray()

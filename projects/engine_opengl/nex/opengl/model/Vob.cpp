@@ -1,5 +1,6 @@
 #include <nex/opengl/model/Vob.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <nex/opengl/model/ModelManagerGL.hpp>
 
 using namespace std;
 using namespace glm;

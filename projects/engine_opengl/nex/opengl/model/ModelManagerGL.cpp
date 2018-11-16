@@ -209,7 +209,7 @@ ModelGL* ModelManagerGL::getPositionNormalTexCube()
 										indices.data(), (int)indices.size());
 
 
-	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh->getMaterial().get());
+	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(mesh->getMaterial());
 
 	if (material) {
 		TextureManagerGL* textureManager = TextureManagerGL::get();
@@ -252,8 +252,8 @@ void ModelManagerGL::release()
 	models.clear();
 }
 
-void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
+/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
 {
 	ModelGL* model = static_cast<ModelGL*>(source);
 	model->createInstanced(amount, modelMatrices);
-}
+}*/

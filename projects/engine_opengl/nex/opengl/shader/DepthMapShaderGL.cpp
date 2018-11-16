@@ -77,12 +77,12 @@ void DepthMapShaderGL::beforeDrawing(const MeshGL& mesh)
 
 void DepthMapShaderGL::afterDrawing(const MeshGL& mesh)
 {
-	glBindVertexArray(mesh.getVertexArrayObject());
+	/*glBindVertexArray(mesh.getVertexArrayObject());
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 		glEnableVertexAttribArray(3);
 		glEnableVertexAttribArray(4);
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 }
 
 void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)

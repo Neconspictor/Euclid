@@ -3,98 +3,47 @@
 
 using namespace std;
 
-MeshGL::MeshGL() : vao(GL_FALSE), vbo(GL_FALSE), ebo(GL_FALSE), indexSize(0)
+MeshGL::MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, std::unique_ptr<Material> material) :
+mVertexArray(std::move(vertexArray)),
+mIndexBuffer(std::move(indexBuffer)),
+mMaterial(std::move(material))
 {
 }
 
-MeshGL::MeshGL(MeshGL&& o) : indexSize(o.indexSize), vao(o.vao), vbo(o.vbo), ebo(o.ebo)
+MeshGL::MeshGL(MeshGL&& o) noexcept :
+	mVertexArray(std::move(o.mVertexArray)),
+	mIndexBuffer(std::move(o.mIndexBuffer)),
+	mMaterial(std::move(o.mMaterial))
 {
-	material = move(o.material);
-	o.vao = GL_FALSE;
-	o.vbo = GL_FALSE;
-	o.ebo = GL_FALSE;
 }
 
-MeshGL& MeshGL::operator=(MeshGL&& o)
+MeshGL& MeshGL::operator=(MeshGL&& o) noexcept
 {
 	if (this == &o) return *this;
 	
-	indexSize = o.indexSize; 
-	vao = o.vao; 
-	vbo = o.vbo; 
-	ebo = o.ebo;
-	material = move(o.material);
-	o.vao = GL_FALSE;
-	o.vbo = GL_FALSE;
-	o.ebo = GL_FALSE;
+	mVertexArray = move(o.mVertexArray);
+	mIndexBuffer = move(o.mIndexBuffer);
+	mMaterial = move(o.mMaterial);
 	
 	return *this;
 }
 
-MeshGL::~MeshGL()
+const IndexBuffer* MeshGL::getIndexBuffer() const
 {
-	if (vao != GL_FALSE)
-		GLCall(glDeleteVertexArrays(1, &vao));
-	vao = GL_FALSE;
-
-	if (vbo != GL_FALSE)
-		GLCall(glDeleteBuffers(1, &vbo));
-	vbo = GL_FALSE;
-
-	if (ebo != GL_FALSE)
-		GLCall(glDeleteBuffers(1, &ebo));
-	ebo = GL_FALSE;
+	return &mIndexBuffer;
 }
 
-GLuint MeshGL::getVertexArrayObject() const
+Material* MeshGL::getMaterial() const
 {
-	return vao;
+	return mMaterial.get();
 }
 
-GLuint MeshGL::getVertexBufferObject() const
+const VertexArray* MeshGL::getVertexArray() const
 {
-	return vbo;
-}
-
-GLuint MeshGL::getElementBufferObject() const
-{
-	return ebo;
-}
-
-void MeshGL::setVertexArrayObject(GLuint vao)
-{
-	//GLCall(glDeleteVertexArrays(1, &this->vao));
-	this->vao = vao;
-}
-
-void MeshGL::setVertexBufferObject(GLuint vbo)
-{
-	//GLCall(glDeleteBuffers(1, &this->vbo));
-	this->vbo = vbo;
-}
-
-void MeshGL::setElementBufferObject(GLuint ebo)
-{
-	//GLCall(glDeleteBuffers(1, &this->ebo));
-	this->ebo = ebo;
-}
-
-reference_wrapper<Material> MeshGL::getMaterial() const
-{
-	return std::ref(*material);
-}
-
-void MeshGL::setIndexSize(uint32_t indexSize)
-{
-	this->indexSize = indexSize;
+	return &mVertexArray;
 }
 
 void MeshGL::setMaterial(std::unique_ptr<Material> material)
 {
-	this->material = move(material);
-}
-
-unsigned MeshGL::getIndexSize() const
-{
-	return indexSize;
+	mMaterial = std::move(material);
 }

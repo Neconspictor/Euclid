@@ -170,7 +170,7 @@ void PhongTexShaderGL::update(const MeshGL& mesh, const TransformData& data)
 	attributes.setData("modelView", &modelView);
 	attributes.setData("normalMatrix", &normalMatrix);
 
-	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(&mesh.getMaterial().get());
+	BlinnPhongMaterial* material = dynamic_cast<BlinnPhongMaterial*>(mesh.getMaterial());
 	TextureGL* diffuseMap = static_cast<TextureGL*>(material->getDiffuseMap());
 	TextureGL* reflectionMap = static_cast<TextureGL*>(material->getReflectionMap());
 	TextureGL* specularMap = static_cast<TextureGL*>(material->getSpecularMap());

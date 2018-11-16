@@ -11,6 +11,9 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <regex>
+#include "nex/opengl/mesh/VertexArray.hpp"
+#include "nex/opengl/mesh/IndexBuffer.hpp"
+#include "nex/opengl/mesh/MeshGL.hpp"
 
 using namespace nex;
 using namespace ::util;
@@ -479,10 +482,12 @@ void ShaderGL::draw(MeshGL const& mesh)
 
 	beforeDrawing(mesh);
 
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
+	const VertexArray* vertexArray = mesh.getVertexArray();
+	const IndexBuffer* indexBuffer = mesh.getIndexBuffer();
+
+	vertexArray->bind();
+	glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+	vertexArray->unbind();
 
 	afterDrawing(mesh);
 }
@@ -493,10 +498,12 @@ void ShaderGL::drawInstanced(MeshGL const& mesh, unsigned amount)
 	
 	beforeDrawing(mesh);
 
-	glBindVertexArray(mesh.getVertexArrayObject());
-	GLsizei indexSize = static_cast<GLsizei>(mesh.getIndexSize());
-	glDrawElementsInstanced(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr, amount);
-	glBindVertexArray(0);
+	const VertexArray* vertexArray = mesh.getVertexArray();
+	const IndexBuffer* indexBuffer = mesh.getIndexBuffer();
+
+	vertexArray->bind();
+	glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr, amount);
+	vertexArray->unbind();
 
 	afterDrawing(mesh);
 }

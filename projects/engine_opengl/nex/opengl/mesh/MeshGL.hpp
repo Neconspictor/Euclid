@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <nex/opengl/material/Material.hpp>
 #include <memory>
+#include "VertexArray.hpp"
+#include "IndexBuffer.hpp"
 
 class MeshFactoryGL;
 
@@ -46,33 +48,26 @@ class MeshGL
 public:
 	using Vertex = VertexPositionNormalTexTangent;
 
-	MeshGL();
-	MeshGL(MeshGL&& other);
-	MeshGL& operator=(MeshGL&& o);
+	MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, std::unique_ptr<Material> material = nullptr);
+	MeshGL(MeshGL&& other) noexcept;
+	MeshGL& operator=(MeshGL&& o) noexcept;
 
 	MeshGL(const MeshGL& o) = delete;
 	MeshGL& operator=(const MeshGL& o) = delete;
 
-	virtual ~MeshGL();
+	virtual ~MeshGL() = default;
+	
+	const IndexBuffer* getIndexBuffer() const;
+	Material* getMaterial() const;
+	const VertexArray* getVertexArray() const;
 
-	GLuint getVertexArrayObject() const;
-	GLuint getVertexBufferObject() const;
-	GLuint getElementBufferObject() const;
-
-	void setVertexArrayObject(GLuint vao);
-	void setVertexBufferObject(GLuint vbo);
-	void setElementBufferObject(GLuint ebo);
-
-	unsigned int getIndexSize() const;
-
-	std::reference_wrapper<Material> getMaterial() const;
-
-	void setIndexSize(uint32_t indexSize);
 	void setMaterial(std::unique_ptr<Material> material);
 
 protected:
 	friend MeshFactoryGL; // allow factory for easier access!
-	GLuint vao, vbo, ebo;
-	std::unique_ptr<Material> material;
-	uint32_t indexSize;
+
+	VertexArray mVertexArray;
+	IndexBuffer mIndexBuffer;
+
+	std::unique_ptr<Material> mMaterial;
 };
