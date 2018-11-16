@@ -1,9 +1,8 @@
 #pragma once
 #include <string>
 #include <glad/glad.h>
-#include <unordered_map>
 #include <nex/exception/ShaderInitException.hpp>
-#include "nex/common/Log.hpp"
+#include <nex/common/Log.hpp>
 
 class CubeMapGL;
 class TextureGL;
@@ -102,20 +101,18 @@ public:
 
 	void bind() const;
 
-	//virtual void drawInstanced(MeshGL const& mesh, unsigned amount);
-
-	void setTransformData(TransformData data);
-
 	GLuint getProgramID() const;
-	
-	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile, 
-		const std::string& geometryShaderFile = "");
-	
-	virtual void release();
 
-	void unbind() const;
+	unsigned int getUniformLocation(const char* name);
 
 	static void initShaderFileSystem();
+
+	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
+		const std::string& geometryShaderFile = "");
+	
+	void release();
+
+	void setDebugName(const char* name);
 
 	void setInt(GLuint uniformID, int data);
 	void setFloat(GLuint uniformID, float data);
@@ -132,13 +129,12 @@ public:
 	void setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
 	void setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
 
+	void unbind() const;
+
 
 protected:
 	GLuint programID;
-	nex::Logger m_logger;
-	GLint textureCounter;
-
-	TransformData data;
+	std::string mDebugName;
 
 	/**
 	* Extracts an #include statements from a line.

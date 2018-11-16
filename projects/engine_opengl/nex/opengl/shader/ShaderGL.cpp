@@ -11,8 +11,6 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <regex>
-#include "nex/opengl/mesh/VertexArray.hpp"
-#include "nex/opengl/mesh/IndexBuffer.hpp"
 #include "nex/opengl/mesh/MeshGL.hpp"
 
 using namespace nex;
@@ -63,7 +61,6 @@ std::ostream& operator<<(std::ostream& os, Shaders shader)
 
 ShaderGL::ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
 	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile)
-	:   m_logger("ShaderGL"), textureCounter(0)
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
@@ -82,11 +79,9 @@ ShaderGL::ShaderGL(const std::string& vertexShaderFile, const std::string& fragm
 }
 
 ShaderGL::ShaderGL(ShaderGL&& other) :
-    programID(other.programID), 
-	m_logger(std::move(other.m_logger)), textureCounter(other.textureCounter)
+    programID(other.programID)
 {
 	other.programID = GL_FALSE;
-	other.textureCounter = GL_FALSE;
 }
 
 ShaderGL::~ShaderGL() {}
@@ -103,8 +98,6 @@ void ShaderGL::initShaderFileSystem()
 			<< absolute(path).generic_string();
 		throw_with_trace(std::runtime_error(ss.str()));
 	}
-
-	LOG(staticLogClient, Debug) << "Test log!";
 
 	std::vector<std::string> shaderFiles = filesystem::getFilesFromFolder(Globals::getOpenGLShaderPath(), false);
 
@@ -123,93 +116,71 @@ void ShaderGL::initShaderFileSystem()
 }
 
 
-void ShaderGL::setAttribute(GLuint program, const ShaderAttributeGL& attribute)
-{
-	if (!attribute.isActive()) return;
-	auto name = attribute.getName();
-
-	auto loc = glGetUniformLocation(program, name.c_str());
-
-	if (loc == -1)
-	{
-		//throw runtime_error("ShaderGL::setAttribute(): " + name + " doesn't correspond to "
-		//	+ " an active uniform variable!");
-	}
-
-
-	RendererOpenGL::checkGLErrorSilently();
-}
-
 void ShaderGL::setInt(GLuint uniformID, int data)
 {
-	glUniform1i(uniformID, data);
+	GLCall(glUniform1i(uniformID, data));
 }
 
 void ShaderGL::setFloat(GLuint uniformID, float data)
 {
-	glUniform1f(uniformID, data);
+	GLCall(glUniform1f(uniformID, data));
 }
 
 void ShaderGL::setVec2(GLuint uniformID, const glm::vec2& data)
 {
-	glUniform2f(uniformID, data.x, data.y);
+	GLCall(glUniform2f(uniformID, data.x, data.y));
 }
 
 void ShaderGL::setVec3(GLuint uniformID, const glm::vec3& data)
 {
-	glUniform3f(uniformID, data.x, data.y, data.z);
+	GLCall(glUniform3f(uniformID, data.x, data.y, data.z));
 }
 
 void ShaderGL::setVec4(GLuint uniformID, const glm::vec4& data)
 {
-	glUniform4f(uniformID, data.x, data.y, data.z, data.w);
+	GLCall(glUniform4f(uniformID, data.x, data.y, data.z, data.w));
 }
 
 void ShaderGL::setMat3(GLuint uniformID, const glm::mat3& data)
 {
-	glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data));
+	GLCall(glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void ShaderGL::setMat4(GLuint uniformID, const glm::mat4& data)
 {
-	glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data));
+	GLCall(glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void ShaderGL::setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
 {
 	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	glActiveTexture(textureSlot + GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, data->getTexture());
-	glUniform1i(uniformID, textureSlot);
+	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
 {
 	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	glActiveTexture(textureSlot + GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, data->getTexture());
-	glUniform1i(uniformID, textureSlot);
+	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot)
 {
 	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	glActiveTexture(textureSlot + GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, data->getTexture());
-	glUniform1i(uniformID, textureSlot);
+	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned textureSlot)
 {
 	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	glActiveTexture(textureSlot + GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, data->getTexture());
-	glUniform1i(uniformID, textureSlot);
-}
-
-void ShaderGL::setTransformData(TransformData data)
-{
-	this->data = std::move(data);
+	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 GLuint ShaderGL::getProgramID() const
@@ -217,9 +188,27 @@ GLuint ShaderGL::getProgramID() const
 	return programID;
 }
 
+unsigned ShaderGL::getUniformLocation(const char* name)
+{
+	auto loc = glGetUniformLocation(programID, name);
+
+	if (loc < 0)
+	{
+		static Logger logger("ShaderGL::getUniformLocation");
+		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
+	}
+
+	return loc;
+}
+
 void ShaderGL::release()
 {
 	glDeleteProgram(programID);
+}
+
+void ShaderGL::setDebugName(const char* name)
+{
+	mDebugName = name;
 }
 
 void ShaderGL::unbind() const
