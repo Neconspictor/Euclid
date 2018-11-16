@@ -158,9 +158,9 @@ void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
 	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
-	ScreenShaderGL* screenShader = dynamic_cast<ScreenShaderGL*>(
+	ScreenShaderGL* screenShader = (ScreenShaderGL*)(
 		m_renderBackend->getShaderManager()->getConfig(Shaders::Screen));
-	DepthMapShaderGL* depthMapShader = dynamic_cast<DepthMapShaderGL*>(
+	DepthMapShaderGL* depthMapShader = (DepthMapShaderGL*)(
 		m_renderBackend->getShaderManager()->getConfig(Shaders::DepthMap));
 	using namespace chrono;
 
@@ -192,30 +192,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		m_cascadedShadow->end();
 	}
 
-	// render scene to the shadow depth map
-	//m_renderBackend->useBaseRenderTarget(shadowMap);
-	
-	
-	
-	//m_renderBackend->setViewPort(0, 0,2048, 2048);
-	//m_renderBackend->beginScene();
-	
-	
-	//m_renderBackend->clearRenderTarget(shadowMap, RenderComponent::Depth);
-	
-	
-	
-	//m_renderBackend->enableAlphaBlending(false);
-	//m_renderBackend->cullFaces(CullingMode::Back);
-
-	/*m_pbr_deferred->drawSceneToShadowMap(scene,
-		shadowMap,
-		globalLight,
-		lightView,
-		lightProj);*/
-
-	//renderer->cullFaces(CullingMode::Back);
-	//renderer->endScene();
 
 	// update and render into cascades
 	

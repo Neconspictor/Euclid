@@ -51,13 +51,21 @@ set(
 	nex/opengl/material/PbrMaterialLoader.cpp
     
     #nex/opengl/mesh
+    nex/opengl/mesh/IndexBuffer.cpp
+    nex/opengl/mesh/IndexBuffer.hpp
     nex/opengl/mesh/MeshGL.hpp
 	nex/opengl/mesh/MeshGL.cpp
     nex/opengl/mesh/MeshFactoryGL.hpp
 	nex/opengl/mesh/MeshFactoryGL.cpp
     nex/opengl/mesh/SampleMeshes.hpp
     nex/opengl/mesh/TestMeshes.hpp
-	
+    nex/opengl/mesh/VertexArray.cpp
+    nex/opengl/mesh/VertexArray.hpp
+    nex/opengl/mesh/VertexBuffer.cpp
+    nex/opengl/mesh/VertexBuffer.hpp
+    nex/opengl/mesh/VertexLayout.hpp
+    nex/opengl/mesh/VertexLayout.inl
+    
     #nex/opengl/model
     nex/opengl/model/AssimpModelLoader.hpp
 	nex/opengl/model/AssimpModelLoader.cpp

@@ -67,9 +67,12 @@ int main(int argc, char** argv)
 			throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
 		}
 
-		NeXEngine neXEngine(provider);
-		neXEngine.init();
-		neXEngine.run();
+		{
+			NeXEngine neXEngine(provider);
+			neXEngine.init();
+			neXEngine.run();
+		}
+
 		LOG(logger, nex::Info) << "Done.";
 
 	} catch (const std::exception& e)
