@@ -8,7 +8,7 @@
 using namespace glm;
 
 PBR::PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR) :
-	environmentMap(nullptr), shader(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex){
+	environmentMap(nullptr), shader(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex){
 
 	skybox.init(renderer->getModelManager());
 
@@ -25,7 +25,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
 	SkyBoxShaderGL* skyboxShader = dynamic_cast<SkyBoxShaderGL*>
-		(shaderManager->getConfig(Shaders::SkyBox));
+		(shaderManager->getConfig(ShaderType::SkyBox));
 
 	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
 	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
@@ -37,7 +37,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	data.model = &identity;
 	data.view = &skyBoxView;
 
-	modelDrawer->draw(&skybox, Shaders::SkyBox, data);
+	modelDrawer->draw(&skybox, ShaderType::SkyBox, data);
 }
 
 void PBR::drawSceneToShadowMap(SceneNode * scene, 
@@ -50,7 +50,7 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 	// render shadows to a depth map
-	scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, Shaders::Shadow);
+	scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, ShaderType::Shadow);
 }
 
 void PBR::drawScene(SceneNode * scene,
@@ -65,7 +65,7 @@ void PBR::drawScene(SceneNode * scene,
 
 	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 
-	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
+	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getConfig(ShaderType::Pbr));
 
 	shader->setCameraPosition(cameraPosition);
 	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
@@ -81,7 +81,7 @@ void PBR::drawScene(SceneNode * scene,
 
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr);
+	scene->draw(renderer, modelDrawer, projection, view, ShaderType::Pbr);
 }
 
 CubeMapGL * PBR::getConvolutedEnvironmentMap()
@@ -113,7 +113,7 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
 	EquirectangularSkyBoxShaderGL* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShaderGL*>
-		(shaderManager->getConfig(Shaders::SkyBoxEquirectangular));
+		(shaderManager->getConfig(ShaderType::SkyBoxEquirectangular));
 
 	equirectangularSkyBoxShader->setSkyTexture(background);
 
@@ -141,7 +141,7 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 	for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
 		data.view = &views[side];
 		renderer->useCubeRenderTarget(cubeRenderTarget, (CubeMapGL::Side)side);
-		modelDrawer->draw(&skybox, Shaders::SkyBoxEquirectangular, data);
+		modelDrawer->draw(&skybox, ShaderType::SkyBoxEquirectangular, data);
 	}
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
@@ -159,7 +159,7 @@ CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
 	PBR_ConvolutionShaderGL* convolutionShader = dynamic_cast<PBR_ConvolutionShaderGL*>
-		(shaderManager->getConfig(Shaders::Pbr_Convolution));
+		(shaderManager->getConfig(ShaderType::Pbr_Convolution));
 
 	convolutionShader->setEnvironmentMap(source);
 
@@ -186,7 +186,7 @@ CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 	for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
 		data.view = &views[side];
 		renderer->useCubeRenderTarget(cubeRenderTarget, (CubeMapGL::Side)side);
-		modelDrawer->draw(&skybox, Shaders::Pbr_Convolution, data);
+		modelDrawer->draw(&skybox, ShaderType::Pbr_Convolution, data);
 	}
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
@@ -203,7 +203,7 @@ CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
 	PBR_PrefilterShaderGL* prefilterShader = dynamic_cast<PBR_PrefilterShaderGL*>
-		(shaderManager->getConfig(Shaders::Pbr_Prefilter));
+		(shaderManager->getConfig(ShaderType::Pbr_Prefilter));
 
 	prefilterShader->setMapToPrefilter(source);
 
@@ -246,7 +246,7 @@ CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 		for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
 			data.view = &views[side];
 			renderer->useCubeRenderTarget(prefilterRenderTarget, (CubeMapGL::Side)side, mipLevel);
-			modelDrawer->draw(&skybox, Shaders::Pbr_Prefilter, data);
+			modelDrawer->draw(&skybox, ShaderType::Pbr_Prefilter, data);
 		}
 
 	}
@@ -271,7 +271,7 @@ RenderTargetGL * PBR::createBRDFlookupTexture()
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
 	PBR_BrdfPrecomputeShaderGL* brdfPrecomputeShader = dynamic_cast<PBR_BrdfPrecomputeShaderGL*>
-		(shaderManager->getConfig(Shaders::Pbr_BrdfPrecompute));
+		(shaderManager->getConfig(ShaderType::Pbr_BrdfPrecompute));
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
@@ -292,7 +292,7 @@ RenderTargetGL * PBR::createBRDFlookupTexture()
 	sprite.setWidth(dim.x);
 	sprite.setHeight(dim.y);
 
-	modelDrawer->draw(&sprite, Shaders::Pbr_BrdfPrecompute);
+	modelDrawer->draw(&sprite, ShaderType::Pbr_BrdfPrecompute);
 	//renderer->endScene();
 
 	return target;
@@ -329,5 +329,5 @@ void PBR::init(TextureGL* backgroundHDR)
 	brdfLookupTexture = createBRDFlookupTexture();
 
 
-	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getConfig(Shaders::Pbr));
+	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getConfig(ShaderType::Pbr));
 }

@@ -20,9 +20,9 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite * sprite, ShaderGL& shader)
+void ModelDrawerGL::draw(Sprite * sprite, ShaderProgramGL& shader)
 {
-	ShaderGL& glShader = dynamic_cast<ShaderGL&>(shader);
+	ShaderProgramGL& glShader = dynamic_cast<ShaderProgramGL&>(shader);
 	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
@@ -75,15 +75,15 @@ void ModelDrawerGL::draw(Sprite * sprite, ShaderGL& shader)
 	}
 }
 
-void ModelDrawerGL::draw(Sprite* sprite, Shaders shaderType)
+void ModelDrawerGL::draw(Sprite* sprite, ShaderType shaderType)
 {
-	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	draw(sprite, *shader);
 }
 
-void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data)
+void ModelDrawerGL::draw(Vob* vob, ShaderType shaderType, const TransformData& data)
 {
-	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	//vob->calcTrafo();
 	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 	
@@ -110,7 +110,7 @@ void ModelDrawerGL::draw(Vob* vob, Shaders shaderType, const TransformData& data
 	}
 }
 
-void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
+void ModelDrawerGL::draw(ModelGL* model, ShaderProgramGL* shader)
 {
 	shader->bind();
 	for (auto& mesh : model->getMeshes())
@@ -141,7 +141,7 @@ void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
 	}
 }*/
 
-void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformData& data, vec4 borderColor)
+void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const TransformData& data, vec4 borderColor)
 {
 	glEnable(GL_STENCIL_TEST);
 
@@ -171,13 +171,13 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformDa
 	//draw a slightly scaled up version
 	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
 	SimpleExtrudeShaderGL* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
-										(ShaderManagerGL::get()->getShader(Shaders::SimpleExtrude));
+										(ShaderManagerGL::get()->getShader(ShaderType::SimpleExtrude));
 	
 	simpleExtrude->setObjectColor(borderColor);
 	simpleExtrude->setExtrudeValue(0.05f);
 	// use 3 pixel as outline border
 	glDepthFunc(GL_ALWAYS);
-	draw(vob, Shaders::SimpleExtrude, data);
+	draw(vob, ShaderType::SimpleExtrude, data);
 	//glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -190,9 +190,9 @@ void ModelDrawerGL::drawOutlined(Vob* vob, Shaders shaderType, const TransformDa
 	glStencilMask(0x00);
 }
 
-void ModelDrawerGL::drawWired(Vob* vob, Shaders shaderType, const TransformData& data, int lineStrength)
+void ModelDrawerGL::drawWired(Vob* vob, ShaderType shaderType, const TransformData& data, int lineStrength)
 {
-	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
+	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
 	vob->calcTrafo();
 	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 

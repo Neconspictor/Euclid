@@ -83,7 +83,7 @@ namespace hbao {
 	};
 
 
-	class BilateralBlur : public ShaderGL {
+	class BilateralBlur : public ShaderProgramGL {
 	public:
 
 		explicit BilateralBlur();
@@ -103,7 +103,7 @@ namespace hbao {
 		unsigned int m_textureWidth;
  	};
 
-	class DepthLinearizer : public ShaderGL {
+	class DepthLinearizer : public ShaderProgramGL {
 	public:
 
 		DepthLinearizer();
@@ -118,7 +118,7 @@ namespace hbao {
 		const Projection* m_projection;
 	};
 
-	class DisplayTex : public ShaderGL {
+	class DisplayTex : public ShaderProgramGL {
 	public:
 
 		DisplayTex();
@@ -131,7 +131,7 @@ namespace hbao {
 		TextureGL* m_input;
 	};
 
-	class HBAO_Shader : public ShaderGL {
+	class HBAO_Shader : public ShaderProgramGL {
 	public:
 
 		HBAO_Shader();

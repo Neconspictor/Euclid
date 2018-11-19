@@ -19,7 +19,7 @@ public:
 	 * NOTE: A ShaderInitException can be thrown if the specified has to be created but
 	 * an error occured during initialization.
 	 */
-	ShaderGL* getShader(Shaders shader);
+	ShaderGL* getShader(ShaderType shader);
 
 	/**
 	 * Loads all shaders.
@@ -31,14 +31,14 @@ public:
 	* Checks, if the specified shader is an implementation of the underlying render engine
 	* NOTE: A runtime error is thrown if the validation fails!
 	*/
-	void validateShader(ShaderGL* shader);
+	void validateShader(ShaderProgramGL* shader);
 	/**
 	* Provides access the shader manager singleton.
 	*/
 	static ShaderManagerGL* get();
 
 private:
-	std::map<Shaders, std::shared_ptr<ShaderGL>> shaderMap;
+	std::map<ShaderType, std::unique_ptr<ShaderGL>> shaderMap;
 	nex::Logger m_logger;
 
 	// this class is a singleton, thus private constructor
@@ -50,7 +50,7 @@ private:
 	 *
 	 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
 	 */
-	ShaderGL* createShader(Shaders shaderEnum);
+	ShaderGL* createShader(ShaderType shaderEnum);
 
 	static std::unique_ptr<ShaderManagerGL> instance;
 };

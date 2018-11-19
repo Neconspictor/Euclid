@@ -7,7 +7,7 @@
 #include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <memory>
 
-enum class Shaders;
+enum class ShaderType;
 class MeshGL;
 
 /**
@@ -35,7 +35,7 @@ public:
 	 * Provides access to a mesh by its name.
 	 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 	 */
-	ModelGL* getModel(const std::string& meshName, Shaders materialShader);
+	ModelGL* getModel(const std::string& meshName, ShaderType materialShader);
 
 	/*
 	 * Provides read acces to a cube that has position, normal and texture coordinates.

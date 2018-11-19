@@ -16,7 +16,7 @@ class ModelManagerGL;
 class Vob
 {
 public:
-	explicit Vob(std::string meshName, Shaders materialShaderType);
+	explicit Vob(std::string meshName, ShaderType materialShaderType);
 	Vob(const Vob& other);
 	Vob(Vob&& other);
 	Vob& operator=(const Vob& other);
@@ -33,7 +33,7 @@ public:
 	/**
 	* Provides the shader type of the mesh of this vob.
 	*/
-	Shaders getMaterialShaderType() const;
+	ShaderType getMaterialShaderType() const;
 
 
 	/** 
@@ -78,7 +78,7 @@ public:
 protected:
 	std::string meshName;
 	ModelGL* m_model;
-	Shaders materialShaderType;
+	ShaderType materialShaderType;
 	glm::quat orientation;
 	glm::vec3 position;
 	glm::vec3 scale;

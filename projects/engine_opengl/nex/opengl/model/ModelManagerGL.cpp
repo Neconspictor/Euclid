@@ -128,7 +128,7 @@ ModelGL* ModelManagerGL::getSprite()
 	return result;
 }
 
-ModelGL* ModelManagerGL::getModel(const string& modelName, Shaders materialShader)
+ModelGL* ModelManagerGL::getModel(const string& modelName, ShaderType materialShader)
 {
 
 	auto hash = nex::util::customSimpleHash(modelName);
@@ -152,10 +152,10 @@ ModelGL* ModelManagerGL::getModel(const string& modelName, Shaders materialShade
 	// else case: assume the model name is a 3d model that can be load from file.
 
 	AbstractMaterialLoader* materialLoader = nullptr;
-	if (materialShader == Shaders::BlinnPhongTex) {
+	if (materialShader == ShaderType::BlinnPhongTex) {
 		materialLoader = &blinnPhongMaterialLoader;
 	}
-	else if (materialShader == Shaders::Pbr) {
+	else if (materialShader == ShaderType::Pbr) {
 		materialLoader = &pbrMaterialLoader;
 	}
 	else {

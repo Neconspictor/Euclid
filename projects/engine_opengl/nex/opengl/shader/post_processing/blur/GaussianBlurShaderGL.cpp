@@ -2,84 +2,71 @@
 
 using namespace glm;
 
-GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL() : ShaderConfigGL(), image(nullptr), height(1024), width(800)
-{
-	imageAttribute = attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "image");
-	widthAttribute = attributes.create(ShaderAttributeType::FLOAT, &width, "windowWidth", true);
-	heightAttribute = attributes.create(ShaderAttributeType::FLOAT, &height, "windowHeight", true);
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-}
+//height(1024), width(800)
 
-GaussianBlurHorizontalShaderGL::~GaussianBlurHorizontalShaderGL()
+GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL()
 {
-	image = nullptr;
+	mProgram = new ShaderProgramGL(
+		"post_processing/blur/gaussian_blur_vs.glsl", "post_processing/blur/gaussian_blur_horizontal_fs.glsl");
+
+	image			= { mProgram->getUniformLocation("image"), UniformType::TEXTURE2D, 0};
+	transform		= { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	windowWidth		= { mProgram->getUniformLocation("windowWidth"), UniformType::FLOAT };
+	windowHeight	= { mProgram->getUniformLocation("windowHeight"), UniformType::FLOAT };
 }
 
 
 void GaussianBlurHorizontalShaderGL::setTexture(TextureGL * tex)
 {
-	image = dynamic_cast<TextureGL*>(tex);
-	assert(image != nullptr);
-	attributes.get(imageAttribute)->setData(image);
-	attributes.get(imageAttribute)->activate(true);
+	mProgram->setTexture(image.location, tex, image.textureUnit);
+}
+
+void GaussianBlurHorizontalShaderGL::setMVP(const mat4& mvp)
+{
+	mProgram->setMat4(transform.location, mvp);
 }
 
 void GaussianBlurHorizontalShaderGL::setImageWidth(float width)
 {
-	this->width = width;
+	mProgram->setInt(windowWidth.location, width);
 }
 
 void GaussianBlurHorizontalShaderGL::setImageHeight(float height)
 {
-	this->height = height;
+	mProgram->setInt(windowHeight.location, height);
 }
 
-void GaussianBlurHorizontalShaderGL::update(const MeshGL & mesh, const TransformData & data)
-{
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
 
-	transform = projection * view * model;
-}
+//height(1024), width(1024)
 
-GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL() : ShaderConfigGL(), image(nullptr), height(1024), width(1024)
+GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL()
 {
-	imageAttribute = attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "image");
-	heightAttribute = attributes.create(ShaderAttributeType::FLOAT, &height, "windowHeight", true);
-	widthAttribute = attributes.create(ShaderAttributeType::FLOAT, &width, "windowWidth", true);
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-}
+	mProgram = new ShaderProgramGL(
+		"post_processing/blur/gaussian_blur_vs.glsl", "post_processing/blur/gaussian_blur_vertical_fs.glsl");
 
-GaussianBlurVerticalShaderGL::~GaussianBlurVerticalShaderGL()
-{
-	image = nullptr;
+	image = { mProgram->getUniformLocation("image"), UniformType::TEXTURE2D, 0 };
+	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	windowWidth = { mProgram->getUniformLocation("windowWidth"), UniformType::FLOAT };
+	windowHeight = { mProgram->getUniformLocation("windowHeight"), UniformType::FLOAT };
 }
 
 
 void GaussianBlurVerticalShaderGL::setTexture(TextureGL * tex)
 {
-	image = dynamic_cast<TextureGL*>(tex);
-	assert(image != nullptr);
-	attributes.get(imageAttribute)->setData(image);
-	attributes.get(imageAttribute)->activate(true);
+	mProgram->setTexture(image.location, tex, image.textureUnit);
 }
 
-void GaussianBlurVerticalShaderGL::setImageHeight(float height)
+void GaussianBlurVerticalShaderGL::setMVP(const mat4& mvp)
 {
-	this->height = height;
+	mProgram->setMat4(transform.location, mvp);
 }
 
 void GaussianBlurVerticalShaderGL::setImageWidth(float width)
 {
-	this->width = width;
+	mProgram->setInt(windowWidth.location, width);
 }
 
-void GaussianBlurVerticalShaderGL::update(const MeshGL & mesh, const TransformData & data)
+void GaussianBlurVerticalShaderGL::setImageHeight(float height)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
+	mProgram->setInt(windowHeight.location, height);
 }

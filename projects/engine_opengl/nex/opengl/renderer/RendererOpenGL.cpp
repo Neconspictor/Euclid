@@ -157,7 +157,7 @@ void RendererOpenGL::init()
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	ShaderGL::initShaderFileSystem();
+	ShaderProgramGL::initShaderFileSystem();
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
@@ -610,9 +610,9 @@ void RendererOpenGL::__clearRenderTarget(RenderTargetGL* renderTarget, bool rele
 
 CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, TextureGL* equirectangularMap)
 {
-	EquirectangularSkyBoxShaderGL* shader = dynamic_cast<EquirectangularSkyBoxShaderGL*>(getShaderManager()->getConfig(Shaders::SkyBoxEquirectangular));
+	EquirectangularSkyBoxShaderGL* shader = dynamic_cast<EquirectangularSkyBoxShaderGL*>(getShaderManager()->getConfig(ShaderType::SkyBoxEquirectangular));
 	shader->setSkyTexture(equirectangularMap);
-	Vob skyBox ("misc/SkyBoxCube.obj", Shaders::BlinnPhongTex);
+	Vob skyBox ("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex);
 
 	TextureData textureData = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32};
 
@@ -648,7 +648,7 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 
 		//render into the texture
 		data.view = &views[i];
-		modelDrawer.draw(&skyBox, Shaders::SkyBoxEquirectangular, data);
+		modelDrawer.draw(&skyBox, ShaderType::SkyBoxEquirectangular, data);
 	}
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

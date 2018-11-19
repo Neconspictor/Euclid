@@ -27,7 +27,7 @@ ShaderManagerGL::~ShaderManagerGL()
 {
 }
 
-ShaderGL* ShaderManagerGL::getShader(Shaders shaderEnum)
+ShaderGL* ShaderManagerGL::getShader(ShaderType shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
@@ -41,8 +41,7 @@ ShaderGL* ShaderManagerGL::getShader(Shaders shaderEnum)
 
 void ShaderManagerGL::loadShaders()
 {
-	using s = Shaders;
-	createShader(s::BlinnPhongTex);
+	using s = ShaderType;
 	createShader(s::Pbr);
 	createShader(s::Pbr_Deferred_Geometry);
 	createShader(s::Pbr_Deferred_Lighting);
@@ -53,22 +52,16 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::DepthMap);
 	createShader(s::GaussianBlurHorizontal);
 	createShader(s::GaussianBlurVertical);
-	createShader(s::Normals);
 	createShader(s::Shadow);
-	createShader(s::ShadowPoint);
-	createShader(s::SimpleColor);
-	createShader(s::SimpleExtrude);
 	createShader(s::Screen);
 	createShader(s::SkyBox);
 	createShader(s::SkyBoxEquirectangular);
 	createShader(s::SkyBoxPanorama);
-	createShader(s::VarianceDepthMap);
-	createShader(s::VarianceShadow);
 }
 
-void ShaderManagerGL::validateShader(ShaderGL* shader)
+void ShaderManagerGL::validateShader(ShaderProgramGL* shader)
 {
-	if (!dynamic_cast<ShaderGL*>(shader))
+	if (!dynamic_cast<ShaderProgramGL*>(shader))
 	{
 		throw_with_trace(runtime_error("ShaderManagerGL::validateShader(Shader*): Shader isn't a valid OpenGL shader!"));
 	}
@@ -79,116 +72,78 @@ ShaderManagerGL* ShaderManagerGL::get()
 	return instance.get();
 }
 
-ShaderGL* ShaderManagerGL::createShader(Shaders shaderEnum)
+ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 {
-	using s = Shaders;
-	shared_ptr<ShaderGL> shaderPtr;
+	using s = ShaderType;
+	ShaderGL* shaderPtr = nullptr;
 	switch(shaderEnum)
 	{
-	case s::BlinnPhongTex: {
-		std::unique_ptr<ShaderConfigGL> config = make_unique<PhongTexShaderGL>();
-		shaderPtr = make_shared<ShaderGL>(move(config), "blinn_phong_tex_mult_lights_vs.glsl", "blinn_phong_tex_mult_lights_fs.glsl");
-		break;
-	}
 	case s::Pbr: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBRShaderGL>(), "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShaderGL>(), "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
 		break;
 	}
 	case s::Pbr_Deferred_Geometry: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBRShader_Deferred_GeometryGL>(), 
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShader_Deferred_GeometryGL>(), 
 			"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
 		break;
 	}
 	case s::Pbr_Deferred_Lighting: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBRShader_Deferred_LightingGL>(), "pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShader_Deferred_LightingGL>(), "pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 		break;
 	}
 	case s::Pbr_Convolution: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBR_ConvolutionShaderGL>(), "pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_ConvolutionShaderGL>(), "pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
 		break;
 	}
 	case s::Pbr_Prefilter: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBR_PrefilterShaderGL>(), "pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_PrefilterShaderGL>(), "pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
 		break;
 	}
 	case s::Pbr_BrdfPrecompute: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<PBR_BrdfPrecomputeShaderGL>(), "pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_BrdfPrecomputeShaderGL>(), "pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 		break;
 	}
 	case s::CubeDepthMap: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<CubeDepthMapShaderGL>(),
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<CubeDepthMapShaderGL>(),
 			"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
 		break;
 	}
 	case s::DepthMap: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<DepthMapShaderGL>(), "depth_map_vs.glsl",
+		shaderPtr = make_shared<ShaderProgramGL>(make_unique<DepthMapShaderGL>(), "depth_map_vs.glsl",
 			"depth_map_fs.glsl");
 		break;
 	}
 	case s::GaussianBlurHorizontal: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<GaussianBlurHorizontalShaderGL>(), "post_processing/blur/gaussian_blur_vs.glsl",
-			"post_processing/blur/gaussian_blur_horizontal_fs.glsl");
+		shaderPtr = new GaussianBlurHorizontalShaderGL();
 		break;
 	}
 	case s::GaussianBlurVertical: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<GaussianBlurVerticalShaderGL>(), "post_processing/blur/gaussian_blur_vs.glsl",
-			"post_processing/blur/gaussian_blur_vertical_fs.glsl");
-		break;
-	}
-	case s::Normals: {
-		shaderPtr = make_shared<ShaderGL>(make_unique<NormalsShaderGL>(), "normals_vs.glsl",
-			"normals_fs.glsl", "normals_gs.glsl");
+		shaderPtr = new GaussianBlurVerticalShaderGL();
 		break;
 	}
 	case s::Shadow: {
-		shaderPtr = make_shared<ShaderGL>
+		shaderPtr = make_shared<ShaderProgramGL>
 			(make_unique<ShadowShaderGL>(), "shadow_vs.glsl", "shadow_fs.glsl");
 		break;
 	}
-	case s::ShadowPoint: {
-		shaderPtr = make_shared<ShaderGL>
-			(make_unique<PointShadowShaderGL>(), "shadow_point_vs.glsl", "shadow_point_fs.glsl",
-				"shadow_point_gs.glsl");
-		break;
-	}
-	case s::SimpleColor: {
-		shaderPtr = make_shared<ShaderGL>
-			(make_unique<SimpleColorShaderGL>(), "simpleColor_vs.glsl", "simpleColor_fs.glsl");
-		break;
-	}
-	case s::SimpleExtrude: {
-		shaderPtr = make_shared<ShaderGL>
-			(make_unique<SimpleExtrudeShaderGL>(), "simpleExtrude_vs.glsl", "simpleExtrude_fs.glsl");
-		break;
-	}
 	case s::Screen: {
-		shaderPtr = make_shared<ShaderGL>
+		shaderPtr = make_shared<ShaderProgramGL>
 			(make_unique<ScreenShaderGL>(), "screen_vs.glsl", "screen_fs.glsl");
 		break;
 	}
 	case s::SkyBox: {
-		shaderPtr = make_shared<ShaderGL>
+		shaderPtr = make_shared<ShaderProgramGL>
 			(make_unique<SkyBoxShaderGL>(), "skybox_vs.glsl", "skybox_fs.glsl");
 		break;
 	}
 	case s::SkyBoxEquirectangular: {
-		shaderPtr = make_shared<ShaderGL>
+		shaderPtr = make_shared<ShaderProgramGL>
 			(make_unique<EquirectangularSkyBoxShaderGL>(), "skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
 		break;
 	}
 	case s::SkyBoxPanorama: {
-		shaderPtr = make_shared<ShaderGL>
+		shaderPtr = make_shared<ShaderProgramGL>
 			(make_unique<PanoramaSkyBoxShaderGL>(), "panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
-		break;
-	}
-	case s::VarianceDepthMap: {
-		shaderPtr = make_shared<ShaderGL>
-			(make_unique<VarianceDepthMapShaderGL>(), "variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
-		break;
-	}
-	case s::VarianceShadow: {
-		shaderPtr = make_shared<ShaderGL>
-			(make_unique<VarianceShadowShaderGL>(), "variance_shadow_vs.glsl", "variance_shadow_fs.glsl");
 		break;
 	}
 	default: {
@@ -198,8 +153,7 @@ ShaderGL* ShaderManagerGL::createShader(Shaders shaderEnum)
 	}
 	}
 	
-	ShaderGL* result = shaderPtr.get();
-	assert(result != nullptr);
-	shaderMap[shaderEnum] = shaderPtr;
-	return result;
+	assert(shaderPtr != nullptr);
+	shaderMap[shaderEnum].reset(shaderPtr);
+	return shaderPtr;
 }

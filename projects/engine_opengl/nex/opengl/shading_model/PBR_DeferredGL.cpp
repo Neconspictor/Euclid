@@ -72,10 +72,10 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 	}
 
 	PBRShader_Deferred_GeometryGL* shader = dynamic_cast<PBRShader_Deferred_GeometryGL*> (
-		renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Geometry));
+		renderer->getShaderManager()->getConfig(ShaderType::Pbr_Deferred_Geometry));
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	scene->draw(renderer, modelDrawer, projection, view, Shaders::Pbr_Deferred_Geometry);
+	scene->draw(renderer, modelDrawer, projection, view, ShaderType::Pbr_Deferred_Geometry);
 
 	for (int i = 0; i < 7; ++i)
 	{
@@ -110,10 +110,10 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	//glStencilMask(0x00);
 
-	ShaderGL* shader = renderer->getShaderManager()->getShader(Shaders::Pbr_Deferred_Lighting);
+	ShaderProgramGL* shader = renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Lighting);
 	shader->bind();
 
-	PBRShader_Deferred_LightingGL* config = dynamic_cast<PBRShader_Deferred_LightingGL*> (renderer->getShaderManager()->getConfig(Shaders::Pbr_Deferred_Lighting));
+	PBRShader_Deferred_LightingGL* config = dynamic_cast<PBRShader_Deferred_LightingGL*> (renderer->getShaderManager()->getConfig(ShaderType::Pbr_Deferred_Lighting));
 
 	config->setBrdfLookupTexture(brdfLookupTexture->getTexture());
 	config->setGBuffer(gBuffer);
@@ -131,7 +131,7 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	modelDrawer->draw(&screenSprite, Shaders::Pbr_Deferred_Lighting);
+	modelDrawer->draw(&screenSprite, ShaderType::Pbr_Deferred_Lighting);
 
 	//glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);

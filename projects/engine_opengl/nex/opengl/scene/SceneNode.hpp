@@ -30,7 +30,7 @@ public:
 	 * Draws this scene node and all its children using a specific shader.
 	 */
 	void draw(RendererOpenGL* renderer, ModelDrawerGL* drawer, const glm::mat4& projection,
-		const glm::mat4& view, Shaders forcedShader = Shaders::Unknown);
+		const glm::mat4& view, ShaderType forcedShader = ShaderType::Unknown);
 
 	//virtual void draw(ModelDrawer* drawer);
 

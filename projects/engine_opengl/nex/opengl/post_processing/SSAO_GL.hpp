@@ -7,7 +7,7 @@
 
 class TextureGL;
 class BaseRenderTargetGL;
-class ShaderGL;
+class ShaderProgramGL;
 class ModelDrawerGL;
 
 const int SSAO_SAMPLING_SIZE = 32;
@@ -84,9 +84,9 @@ private:
 	TextureGL noiseTexture;
 	SSAO_RendertargetGL aoRenderTarget;
 	SSAO_RendertargetGL tiledBlurRenderTarget;
-	std::unique_ptr<ShaderGL> aoPass;
-	std::unique_ptr<ShaderGL> tiledBlurPass;
-	std::unique_ptr<ShaderGL> aoDisplay;
+	std::unique_ptr<ShaderProgramGL> aoPass;
+	std::unique_ptr<ShaderProgramGL> tiledBlurPass;
+	std::unique_ptr<ShaderProgramGL> aoDisplay;
 	ModelDrawerGL* modelDrawer;
 
 	unsigned int windowWidth;

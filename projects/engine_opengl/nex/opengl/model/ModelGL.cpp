@@ -84,7 +84,7 @@ void ModelGL::setInstanced(bool value)
 	instanced = value;
 }
 
-void ModelGL::draw(ShaderGL* shader)
+void ModelGL::draw(ShaderProgramGL* shader)
 {
 }
 

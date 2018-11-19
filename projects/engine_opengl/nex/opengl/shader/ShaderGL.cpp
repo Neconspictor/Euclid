@@ -12,6 +12,7 @@
 #include <nex/util/StringUtils.hpp>
 #include <regex>
 #include "nex/opengl/mesh/MeshGL.hpp"
+#include "nex/util/Memory.hpp"
 
 using namespace nex;
 using namespace ::util;
@@ -22,45 +23,45 @@ Logger staticLogClient("ShaderGL-static");
 /**
 * Maps shader enumerations to a string representation.
 */
-const static nex::util::EnumString<Shaders> shaderEnumConversion[] = {
-	{ Shaders::BlinnPhongTex, "BLINN_PHONG_TEX" },
-{ Shaders::Pbr, "PBR" },
-{ Shaders::Pbr_Deferred_Geometry, "PBR_DEFERRED_GEOMETRY" },
-{ Shaders::Pbr_Deferred_Lighting, "PBR_DEFERRED_LIGHTING" },
-{ Shaders::Pbr_Convolution, "PBR_CONVOLUTION" },
-{ Shaders::Pbr_Prefilter, "PBR_PREFILTER" },
-{ Shaders::Pbr_BrdfPrecompute, "PBR_BRDF_PRECOMPUTE" },
-{ Shaders::CubeDepthMap, "CUBE_DEPTH_MAP" },
-{ Shaders::DepthMap, "DEPTH_MAP" },
-{ Shaders::GaussianBlurHorizontal, "GAUSSIAN_BLUR_HORIZONTAL" },
-{ Shaders::GaussianBlurVertical, "GAUSSIAN_BLUR_VERTICAL" },
-{ Shaders::Normals, "NORMALS" },
-{ Shaders::Shadow, "SHADOW" },
-{ Shaders::ShadowPoint, "SHADOW_POINT" },
-{ Shaders::SimpleColor, "SIMPLE_COLOR" },
-{ Shaders::SimpleExtrude, "SIMPLE_EXTRUDE" },
-{ Shaders::Screen, "SCREEN" },
-{ Shaders::SkyBox, "SKY_BOX" },
-{ Shaders::SkyBoxEquirectangular, "SKY_BOX_EQUIRECTANGULAR" },
-{ Shaders::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
-{ Shaders::VarianceShadow, "VARIANCE_DEPTH_MAP" },
-{ Shaders::VarianceShadow, "VARIANCE_SHADOW" }
+const static nex::util::EnumString<ShaderType> shaderEnumConversion[] = {
+	{ ShaderType::BlinnPhongTex, "BLINN_PHONG_TEX" },
+{ ShaderType::Pbr, "PBR" },
+{ ShaderType::Pbr_Deferred_Geometry, "PBR_DEFERRED_GEOMETRY" },
+{ ShaderType::Pbr_Deferred_Lighting, "PBR_DEFERRED_LIGHTING" },
+{ ShaderType::Pbr_Convolution, "PBR_CONVOLUTION" },
+{ ShaderType::Pbr_Prefilter, "PBR_PREFILTER" },
+{ ShaderType::Pbr_BrdfPrecompute, "PBR_BRDF_PRECOMPUTE" },
+{ ShaderType::CubeDepthMap, "CUBE_DEPTH_MAP" },
+{ ShaderType::DepthMap, "DEPTH_MAP" },
+{ ShaderType::GaussianBlurHorizontal, "GAUSSIAN_BLUR_HORIZONTAL" },
+{ ShaderType::GaussianBlurVertical, "GAUSSIAN_BLUR_VERTICAL" },
+{ ShaderType::Normals, "NORMALS" },
+{ ShaderType::Shadow, "SHADOW" },
+{ ShaderType::ShadowPoint, "SHADOW_POINT" },
+{ ShaderType::SimpleColor, "SIMPLE_COLOR" },
+{ ShaderType::SimpleExtrude, "SIMPLE_EXTRUDE" },
+{ ShaderType::Screen, "SCREEN" },
+{ ShaderType::SkyBox, "SKY_BOX" },
+{ ShaderType::SkyBoxEquirectangular, "SKY_BOX_EQUIRECTANGULAR" },
+{ ShaderType::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
+{ ShaderType::VarianceShadow, "VARIANCE_DEPTH_MAP" },
+{ ShaderType::VarianceShadow, "VARIANCE_SHADOW" }
 };
 
 
-Shaders stringToShaderEnum(const std::string& str)
+ShaderType stringToShaderEnum(const std::string& str)
 {
 	return stringToEnum(str, shaderEnumConversion);
 }
 
-std::ostream& operator<<(std::ostream& os, Shaders shader)
+std::ostream& operator<<(std::ostream& os, ShaderType shader)
 {
 	os << enumToString(shader, shaderEnumConversion);
 	return os;
 }
 
-ShaderGL::ShaderGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
-	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile)
+ShaderProgramGL::ShaderProgramGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
+	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile) : mIsBound(false)
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
@@ -78,15 +79,15 @@ ShaderGL::ShaderGL(const std::string& vertexShaderFile, const std::string& fragm
 	}*/
 }
 
-ShaderGL::ShaderGL(ShaderGL&& other) :
+ShaderProgramGL::ShaderProgramGL(ShaderProgramGL&& other) :
     programID(other.programID)
 {
 	other.programID = GL_FALSE;
 }
 
-ShaderGL::~ShaderGL() {}
+ShaderProgramGL::~ShaderProgramGL() {}
 
-void ShaderGL::initShaderFileSystem()
+void ShaderProgramGL::initShaderFileSystem()
 {
 	using namespace boost::filesystem;
 
@@ -116,79 +117,111 @@ void ShaderGL::initShaderFileSystem()
 }
 
 
-void ShaderGL::setInt(GLuint uniformID, int data)
+void ShaderProgramGL::setInt(GLuint uniformID, int data)
 {
+	assert(mIsBound);
 	GLCall(glUniform1i(uniformID, data));
 }
 
-void ShaderGL::setFloat(GLuint uniformID, float data)
+void ShaderProgramGL::setFloat(GLuint uniformID, float data)
 {
+	assert(mIsBound);
 	GLCall(glUniform1f(uniformID, data));
 }
 
-void ShaderGL::setVec2(GLuint uniformID, const glm::vec2& data)
+void ShaderProgramGL::setVec2(GLuint uniformID, const glm::vec2& data)
 {
+	assert(mIsBound);
 	GLCall(glUniform2f(uniformID, data.x, data.y));
 }
 
-void ShaderGL::setVec3(GLuint uniformID, const glm::vec3& data)
+void ShaderProgramGL::setVec3(GLuint uniformID, const glm::vec3& data)
 {
+	assert(mIsBound);
 	GLCall(glUniform3f(uniformID, data.x, data.y, data.z));
 }
 
-void ShaderGL::setVec4(GLuint uniformID, const glm::vec4& data)
+void ShaderProgramGL::setVec4(GLuint uniformID, const glm::vec4& data)
 {
+	assert(mIsBound);
 	GLCall(glUniform4f(uniformID, data.x, data.y, data.z, data.w));
 }
 
-void ShaderGL::setMat3(GLuint uniformID, const glm::mat3& data)
+void ShaderProgramGL::setMat3(GLuint uniformID, const glm::mat3& data)
 {
+	assert(mIsBound);
 	GLCall(glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
-void ShaderGL::setMat4(GLuint uniformID, const glm::mat4& data)
+void ShaderProgramGL::setMat4(GLuint uniformID, const glm::mat4& data)
 {
+	assert(mIsBound);
 	GLCall(glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
+void ShaderProgramGL::setTexture(GLuint uniformID, const TextureGL* data, unsigned textureSlot)
+{
+	assert(mIsBound);
+	assert(isValid(textureSlot));
+
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
+}
+
+
+/*
+
 void ShaderGL::setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
 {
-	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_2D, data->getTexture()));
+	assert(isValid(textureSlot));
+	
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+	
+	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	//GLCall(glBindTexture(GL_TEXTURE_2D, data->getTexture()));
 	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
 {
-	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, data->getTexture()));
+	assert(isValid(textureSlot));
+
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+	
+	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	//GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, data->getTexture()));
 	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot)
 {
-	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, data->getTexture()));
+	assert(isValid(textureSlot));
+
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+
+	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	//GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, data->getTexture()));
 	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 void ShaderGL::setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned textureSlot)
 {
-	assert(textureSlot < 32); // OpenGL allows up to 32 textures
-	GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, data->getTexture()));
+	assert(isValid(textureSlot));
+
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+	
+	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
+	//GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, data->getTexture()));
 	GLCall(glUniform1i(uniformID, textureSlot));
 }
+*/
 
-GLuint ShaderGL::getProgramID() const
+GLuint ShaderProgramGL::getProgramID() const
 {
 	return programID;
 }
 
-unsigned ShaderGL::getUniformLocation(const char* name)
+unsigned ShaderProgramGL::getUniformLocation(const char* name)
 {
 	auto loc = glGetUniformLocation(programID, name);
 
@@ -201,22 +234,23 @@ unsigned ShaderGL::getUniformLocation(const char* name)
 	return loc;
 }
 
-void ShaderGL::release()
+void ShaderProgramGL::release()
 {
 	glDeleteProgram(programID);
 }
 
-void ShaderGL::setDebugName(const char* name)
+void ShaderProgramGL::setDebugName(const char* name)
 {
 	mDebugName = name;
 }
 
-void ShaderGL::unbind() const
+void ShaderProgramGL::unbind()
 {
 	GLCall(glUseProgram(0));
+	mIsBound = false;
 }
 
-GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
+GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 	const std::string& geometryShaderFile)
 {
 	// Create the shaders
@@ -340,7 +374,7 @@ GLuint ShaderGL::loadShaders(const std::string& vertexFile, const std::string& f
 }
 
 
-bool ShaderGL::compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID)
+bool ShaderProgramGL::compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID)
 {
 	int result = 0;
 	GLint logInfoLength;
@@ -374,13 +408,14 @@ bool ShaderGL::compileShaderComponent(const std::string& shaderContent, GLuint s
 	return false;
 }
 
-void ShaderGL::bind() const
+void ShaderProgramGL::bind()
 {
 	GLCall(glUseProgram(programID));
+	mIsBound = true;
 }
 
 
-bool ShaderGL::extractIncludeStatement(const std::string& line, std::string* result)
+bool ShaderProgramGL::extractIncludeStatement(const std::string& line, std::string* result)
 {
 	std::regex pattern1("#include.*<.*>.*");
 	std::regex pattern2("#include.*\\\".*\\\".*");
@@ -413,7 +448,14 @@ bool ShaderGL::extractIncludeStatement(const std::string& line, std::string* res
 	return true;
 }
 
-std::string ShaderGL::loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult, std::vector<std::string> defines)
+bool ShaderProgramGL::isValid(unsigned textureUnit)
+{
+	int unitCount;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &unitCount);
+	return textureUnit < unitCount;
+}
+
+std::string ShaderProgramGL::loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult, std::vector<std::string> defines)
 {
 	std::string content;
 	if (!nex::filesystem::loadFileIntoString(shaderFile, &content))
@@ -440,7 +482,7 @@ std::string ShaderGL::loadShaderComponent(const std::string& shaderFile, bool wr
 	return ss.str();
 }
 
-std::vector<std::string> ShaderGL::preprocess(std::string& shaderContent, const std::vector<std::string>& defines)
+std::vector<std::string> ShaderProgramGL::preprocess(std::string& shaderContent, const std::vector<std::string>& defines)
 {
 	using namespace nex::util;
 	using namespace std;
@@ -500,7 +542,7 @@ std::vector<std::string> ShaderGL::preprocess(std::string& shaderContent, const 
 	return lines;
 }
 
-void ShaderGL::writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines)
+void ShaderProgramGL::writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines)
 {
 	nex::filesystem::writeToFile(shaderSourceFile + ".unfolded", lines, std::ostream::trunc);
 }
@@ -522,3 +564,38 @@ void ShaderGL::beforeDrawing(const MeshGL& mesh)
 		}
 }
 }*/
+
+ShaderGL::ShaderGL() : mProgram(nullptr)
+{
+}
+
+
+ShaderGL::ShaderGL(ShaderProgramGL* program) : mProgram(program)
+{
+}
+
+ShaderGL::~ShaderGL()
+{
+	delete mProgram;
+}
+
+
+void ShaderGL::bind()
+{
+	mProgram->bind();
+}
+
+ShaderProgramGL* ShaderGL::getProgram()
+{
+	return mProgram;
+}
+
+void ShaderGL::setProgram(ShaderProgramGL* program)
+{
+	mProgram = program;
+}
+
+void ShaderGL::unbind()
+{
+	mProgram->unbind();
+}

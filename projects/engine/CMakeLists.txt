@@ -130,6 +130,7 @@ set(
 	nex/util/Globals.cpp
 	nex/util/Globals.hpp
 	nex/util/Math.hpp
+    nex/util/Memory.hpp
     nex/util/PointerUtils.hpp
 	nex/util/Projectional.hpp
 	nex/util/Projectional.cpp

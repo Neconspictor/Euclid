@@ -4,7 +4,7 @@
 #include <memory>
 
 
-class ShaderGL;
+class ShaderProgramGL;
 
 class ModelGL
 {
@@ -28,7 +28,7 @@ public:
 
 	const std::vector<std::reference_wrapper<MeshGL>>& getMeshes() const;
 
-	void draw(ShaderGL* shader);
+	void draw(ShaderProgramGL* shader);
 
 protected:
 	std::vector<std::reference_wrapper<MeshGL>> meshReferences;

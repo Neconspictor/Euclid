@@ -100,12 +100,8 @@ set(
     #nex/opengl/shader
 	nex/opengl/shader/DepthMapShaderGL.hpp
 	nex/opengl/shader/DepthMapShaderGL.cpp
-    nex/opengl/shader/NormalsShaderGL.hpp
-	nex/opengl/shader/NormalsShaderGL.cpp
     nex/opengl/shader/PBRShaderGL.hpp
 	nex/opengl/shader/PBRShaderGL.cpp
-	nex/opengl/shader/PhongTexShaderGL.hpp
-	nex/opengl/shader/PhongTexShaderGL.cpp
     nex/opengl/shader/ScreenShaderGL.hpp
 	nex/opengl/shader/ScreenShaderGL.cpp
     nex/opengl/shader/ShaderGL.hpp
@@ -114,10 +110,6 @@ set(
 	nex/opengl/shader/ShadowShaderGL.cpp
     nex/opengl/shader/ShaderManagerGL.hpp
 	nex/opengl/shader/ShaderManagerGL.cpp
-    nex/opengl/shader/SimpleColorShaderGL.hpp
-	nex/opengl/shader/SimpleColorShaderGL.cpp
-    nex/opengl/shader/SimpleExtrudeShaderGL.hpp
-	nex/opengl/shader/SimpleExtrudeShaderGL.cpp
     nex/opengl/shader/SkyBoxShaderGL.hpp
 	nex/opengl/shader/SkyBoxShaderGL.cpp
 	#nex/opengl/shader/post_processing/blur

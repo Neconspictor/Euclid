@@ -64,7 +64,7 @@ protected:
 
 	void updateTextureArray();
 protected:
-	ShaderGL mDepthPass;
+	ShaderProgramGL mDepthPass;
 	GLuint mCascadedShadowFBO = GL_FALSE;
 	TextureGL mDepthTextureArray;
 

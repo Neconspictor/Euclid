@@ -34,12 +34,12 @@ private:
 };*/
 
 
-class SSAO_AO_ShaderGL : public ShaderGL
+class SSAO_AO_ShaderGL : public ShaderProgramGL
 {
 public:
 
 	SSAO_AO_ShaderGL(unsigned int kernelSampleSize) : 
-	ShaderGL("post_processing/ssao/fullscreenquad.vert.glsl",
+	ShaderProgramGL("post_processing/ssao/fullscreenquad.vert.glsl",
 		"post_processing/ssao/ssao_deferred_ao_fs.glsl"),
 	kernelSampleSize(kernelSampleSize)
 	{
@@ -316,11 +316,11 @@ SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 
 	aoPass = make_unique <SSAO_AO_ShaderGL>(32);
 
-	tiledBlurPass = make_unique <ShaderGL>(make_unique<SSAO_Tiled_Blur_ShaderGL>(), 
+	tiledBlurPass = make_unique <ShaderProgramGL>(make_unique<SSAO_Tiled_Blur_ShaderGL>(), 
 		"post_processing/ssao/ssao_tiled_blur_vs.glsl", 
 		"post_processing/ssao/ssao_tiled_blur_fs.glsl");
 
-	aoDisplay = make_unique <ShaderGL>(make_unique<SSAO_AO_Display_ShaderGL>(),
+	aoDisplay = make_unique <ShaderProgramGL>(make_unique<SSAO_AO_Display_ShaderGL>(),
 		"post_processing/ssao/ssao_ao_display_vs.glsl",
 		"post_processing/ssao/ssao_ao_display_fs.glsl");
 

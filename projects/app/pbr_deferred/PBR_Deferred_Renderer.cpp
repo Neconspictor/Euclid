@@ -73,16 +73,16 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 	
 	SkyBoxShaderGL* skyBoxShader = dynamic_cast<SkyBoxShaderGL*>
-		(shaderManager->getConfig(Shaders::SkyBox));
+		(shaderManager->getConfig(ShaderType::SkyBox));
 
 	PanoramaSkyBoxShaderGL* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShaderGL*>
-		(shaderManager->getConfig(Shaders::SkyBoxPanorama));
+		(shaderManager->getConfig(ShaderType::SkyBoxPanorama));
 
 	EquirectangularSkyBoxShaderGL* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShaderGL*>
-		(shaderManager->getConfig(Shaders::SkyBoxEquirectangular));
+		(shaderManager->getConfig(ShaderType::SkyBoxEquirectangular));
 
 	PBRShaderGL* pbrShader = dynamic_cast<PBRShaderGL*>
-		(shaderManager->getConfig(Shaders::Pbr));
+		(shaderManager->getConfig(ShaderType::Pbr));
 
 	shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
@@ -160,9 +160,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 {
 	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
 	ScreenShaderGL* screenShader = (ScreenShaderGL*)(
-		m_renderBackend->getShaderManager()->getConfig(Shaders::Screen));
+		m_renderBackend->getShaderManager()->getConfig(ShaderType::Screen));
 	DepthMapShaderGL* depthMapShader = (DepthMapShaderGL*)(
-		m_renderBackend->getShaderManager()->getConfig(Shaders::DepthMap));
+		m_renderBackend->getShaderManager()->getConfig(ShaderType::DepthMap));
 	using namespace chrono;
 
 	
@@ -271,7 +271,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//screenSprite.setTexture(shadowMap->getTexture());
 		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		screenShader->useTexture(shadowMap->getTexture());
-		modelDrawer->draw(&screenSprite, Shaders::Screen);
+		modelDrawer->draw(&screenSprite, ShaderType::Screen);
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 		/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
 			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
@@ -282,7 +282,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//hbao->displayTexture(pbr_mrt->getDepth());
 	} else
 	{
-		modelDrawer->draw(&screenSprite, Shaders::Screen);
+		modelDrawer->draw(&screenSprite, ShaderType::Screen);
 		//ssao_deferred->displayAOTexture();
 	}
 	//renderer->endScene();

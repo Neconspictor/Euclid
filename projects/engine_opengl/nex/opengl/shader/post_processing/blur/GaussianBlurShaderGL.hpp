@@ -2,49 +2,45 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class GaussianBlurHorizontalShaderGL :  public ShaderConfigGL
+class GaussianBlurHorizontalShaderGL : public ShaderGL
 {
 public:
 	GaussianBlurHorizontalShaderGL();
 
-	virtual ~GaussianBlurHorizontalShaderGL();
+	virtual ~GaussianBlurHorizontalShaderGL() = default;
 
-	void update(const MeshGL& mesh, const TransformData& data) override;
+	void setImageHeight(float height);
+	void setImageWidth(float width);
 
 	void setTexture(TextureGL * tex);
-	void setImageWidth(float width);
-	void setImageHeight(float height);
+
+	void setMVP(const glm::mat4& mvp);
+	
 
 protected:
-	TextureGL* image;
-	ShaderAttributeCollection::ShaderAttributeKey imageAttribute;
-	float height;
-	ShaderAttributeCollection::ShaderAttributeKey heightAttribute;
-	glm::mat4 transform;
-	float width;
-	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
+	UniformTex image;
+	Uniform transform;
+	Uniform windowWidth;
+	Uniform windowHeight;
 };
 
-class GaussianBlurVerticalShaderGL : public ShaderConfigGL
+class GaussianBlurVerticalShaderGL : public ShaderGL
 {
 public:
 	GaussianBlurVerticalShaderGL();
 
-	virtual ~GaussianBlurVerticalShaderGL();
+	virtual ~GaussianBlurVerticalShaderGL() = default;
 
-	void update(const MeshGL& mesh, const TransformData& data) override;
-
-	void setTexture(TextureGL * tex);
 	void setImageHeight(float height);
 	void setImageWidth(float width);
 
+	void setTexture(TextureGL * tex);
+
+	void setMVP(const glm::mat4& mvp);
+
 protected:
-	TextureGL* image;
-	ShaderAttributeCollection::ShaderAttributeKey imageAttribute;
-	float height;
-	ShaderAttributeCollection::ShaderAttributeKey heightAttribute;
-	bool horizontal;
-	glm::mat4 transform;
-	float width;
-	ShaderAttributeCollection::ShaderAttributeKey widthAttribute;
+	UniformTex image;
+	Uniform transform;
+	Uniform windowWidth;
+	Uniform windowHeight;
 };

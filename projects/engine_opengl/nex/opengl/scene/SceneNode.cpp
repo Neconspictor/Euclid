@@ -115,15 +115,15 @@ void SceneNode::update(float frameTime)
 }
 
 void SceneNode::draw(RendererOpenGL* renderer, ModelDrawerGL* drawer, const glm::mat4& projection, 
-	const glm::mat4& view, Shaders forcedShader)
+	const glm::mat4& view, ShaderType forcedShader)
 {
 	for (auto it = childs.begin(); it != childs.end(); ++it)
 		(*it)->draw(renderer, drawer, projection, view, forcedShader);
 
 	if (!vob) return;
 
-	Shaders type = vob->getMaterialShaderType();
-	if (forcedShader != Shaders::Unknown)
+	ShaderType type = vob->getMaterialShaderType();
+	if (forcedShader != ShaderType::Unknown)
 		type = forcedShader;
 
 	//vob->calcTrafo();

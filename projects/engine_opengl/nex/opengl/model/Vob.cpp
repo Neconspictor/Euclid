@@ -5,7 +5,7 @@
 using namespace std;
 using namespace glm;
 
-Vob::Vob(string meshName, Shaders materialShaderType)
+Vob::Vob(string meshName, ShaderType materialShaderType)
 {
 	this->meshName = move(meshName);
 	this->materialShaderType = materialShaderType;
@@ -75,7 +75,7 @@ ModelGL* Vob::getModel()
 	return m_model;
 }
 
-Shaders Vob::getMaterialShaderType() const
+ShaderType Vob::getMaterialShaderType() const
 {
 	return materialShaderType;
 }

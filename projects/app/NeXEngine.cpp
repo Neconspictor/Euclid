@@ -137,7 +137,7 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
-	m_vobs.push_back(Vob("misc/textured_plane.obj", Shaders::Pbr));
+	m_vobs.push_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
 	ground->setVob(&m_vobs.back());
 	ground->getVob()->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
@@ -150,14 +150,14 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
+	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
 	cube1->setVob(&m_vobs.back());
 	cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
 	root->addChild(cube1);
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* sphere = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
+	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
 	sphere->setVob(&m_vobs.back());
 	sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
 	root->addChild(sphere);

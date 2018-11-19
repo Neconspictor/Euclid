@@ -354,7 +354,7 @@ void hbao::HBAO_GL::initRenderTargets(unsigned int width, unsigned int height)
 }
 
 hbao::BilateralBlur::BilateralBlur() :
-	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl"),
+	ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl"),
 	m_linearDepth(nullptr),
 	m_sharpness(0),
 	m_textureWidth(0),
@@ -405,7 +405,7 @@ void hbao::BilateralBlur::draw(OneTextureRenderTarget * temp, BaseRenderTargetGL
 }
 
 hbao::DepthLinearizer::DepthLinearizer() : 
-	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl"),
+	ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl"),
 	m_input(nullptr),
 	m_projection(nullptr)
 {
@@ -435,7 +435,7 @@ void hbao::DepthLinearizer::setProjection(const Projection* projection)
 }
 
 hbao::DisplayTex::DisplayTex() : 
-	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl"),
+	ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl"),
 	m_input(nullptr)
 {
 }
@@ -454,7 +454,7 @@ void hbao::DisplayTex::setInputTexture(TextureGL * input)
 }
 
 hbao::HBAO_Shader::HBAO_Shader() : 
-	ShaderGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl"),
+	ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl"),
 	m_linearDepth(nullptr),
 	m_hbao_randomview(nullptr),
 	m_hbao_ubo(GL_FALSE)

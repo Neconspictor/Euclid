@@ -19,7 +19,7 @@ struct TransformData
 /**
 * Enumerates all shaders that can be used for shading models.
 */
-enum class Shaders
+enum class ShaderType
 {
 	Unknown = 0,
 	BlinnPhongTex,
@@ -54,14 +54,14 @@ enum class Shaders
 * ATTENTION: If the string couldn't be mapped, a EnumFormatException
 * will be thrown.
 */
-static Shaders stringToShaderEnum(const std::string& str);
+static ShaderType stringToShaderEnum(const std::string& str);
 
 /**
 * Puts a string representation of a shader enum to an output stream.
 */
-std::ostream& operator<<(std::ostream& os, Shaders shader);
+std::ostream& operator<<(std::ostream& os, ShaderType shader);
 
-enum class ShaderAttributeType
+enum class UniformType
 {
 	CUBE_MAP,
 	FLOAT,
@@ -75,31 +75,42 @@ enum class ShaderAttributeType
 	VEC4
 };
 
+struct Uniform
+{
+	GLuint location;
+	UniformType type;
+};
+
+struct UniformTex : public Uniform
+{
+	GLuint textureUnit;
+};
+
 
 /**
  * Represents a shader program for an OpenGL renderer.
  */
-class ShaderGL
+class ShaderProgramGL
 {
 public:
 	/**
 	* Creates a new shader program from a given vertex shader and fragment shader file.
 	* NOTE: If an error occurs while creating the shader program, a ShaderInitException will be thrown!
 	*/
-	ShaderGL(
+	ShaderProgramGL(
 		const std::string& vertexShaderFile, 
 		const std::string& fragmentShaderFile,
 		const std::string& geometryShaderFile = "", 
 		const std::string& instancedVertexShaderFile = "");
 
-	ShaderGL(ShaderGL&& other);
-	ShaderGL(const ShaderGL& other) = delete;
+	ShaderProgramGL(ShaderProgramGL&& other);
+	ShaderProgramGL(const ShaderProgramGL& other) = delete;
 
-	virtual ~ShaderGL();
+	virtual ~ShaderProgramGL();
 
 	static bool compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID);
 
-	void bind() const;
+	void bind();
 
 	GLuint getProgramID() const;
 
@@ -124,16 +135,20 @@ public:
 	void setMat3(GLuint uniformID, const glm::mat3& data);
 	void setMat4(GLuint uniformID, const glm::mat4& data);
 
-	void setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
+
+	void setTexture(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
+
+	/*void setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
 	void setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
 	void setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
-	void setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);
+	void setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot);*/
 
-	void unbind() const;
+	void unbind();
 
 
 protected:
 	GLuint programID;
+	bool mIsBound;
 	std::string mDebugName;
 
 	/**
@@ -141,6 +156,8 @@ protected:
 	* If the line contains no #include directive, false will be returned.
 	*/
 	static bool extractIncludeStatement(const std::string& line, std::string* result);
+
+	static bool isValid(unsigned textureUnit);
 
 	/**
 	 *@param shaderFile The shader file which is expected to be a valid glsl shader file
@@ -169,4 +186,26 @@ protected:
 	 * @throws ShaderInitException - if an IO error occurs
 	 */
 	static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines);
+};
+
+
+class ShaderGL
+{
+public:
+
+	ShaderGL();
+	ShaderGL(ShaderProgramGL* program);
+
+	virtual ~ShaderGL();
+
+	void bind();
+
+	ShaderProgramGL* getProgram();
+
+	void setProgram(ShaderProgramGL* program);
+
+	void unbind();
+
+protected:
+	ShaderProgramGL* mProgram;
 };
