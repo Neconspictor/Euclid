@@ -85,8 +85,8 @@ private:
 	SSAO_RendertargetGL aoRenderTarget;
 	SSAO_RendertargetGL tiledBlurRenderTarget;
 	std::unique_ptr<ShaderProgramGL> aoPass;
-	std::unique_ptr<ShaderProgramGL> tiledBlurPass;
-	std::unique_ptr<ShaderProgramGL> aoDisplay;
+	std::unique_ptr<ShaderGL> tiledBlurPass;
+	std::unique_ptr<ShaderGL> aoDisplay;
 	ModelDrawerGL* modelDrawer;
 
 	unsigned int windowWidth;

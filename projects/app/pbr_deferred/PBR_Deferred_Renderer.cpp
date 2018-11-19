@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/opengl/shader/NormalsShaderGL.hpp>
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
@@ -132,7 +131,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	CubeMapGL* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->setSkyTexture(background);
-	pbrShader->setSkyBox(background);
+	//pbrShader->setSkyBox(background);
 
 	m_cascadedShadow = m_renderBackend->createCascadedShadow(2048, 2048);
 }

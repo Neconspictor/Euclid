@@ -43,17 +43,6 @@ public:
 		"post_processing/ssao/ssao_deferred_ao_fs.glsl"),
 	kernelSampleSize(kernelSampleSize)
 	{
-		using types = ShaderAttributeType;
-
-		//attributes.create(types::MAT4, &transform, "transform", true);
-		//attributes.create(types::MAT4, &projection_GPass, "projection_GPass", true);
-		//attributes.create(types::TEXTURE2D, nullptr, "gNormal");
-		//attributes.create(types::TEXTURE2D, nullptr, "gPosition");
-		//attributes.create(types::TEXTURE2D, nullptr, "texNoise");
-
-		/*for (unsigned int i = 0; i < kernelSampleSize; ++i) {
-			attributes.create(types::VEC3, nullptr, "samples[" + std::to_string(i) + "]");
-		}*/
 
 		glCreateBuffers(1, &m_ssaoUBO);
 		glNamedBufferStorage(m_ssaoUBO, sizeof(SSAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
@@ -158,65 +147,70 @@ private:
 	GLuint m_fullscreenTriangleVAO;
 };
 
-class SSAO_Tiled_Blur_ShaderGL : public ShaderConfigGL
+class SSAO_Tiled_Blur_ShaderGL : public ShaderGL
 {
 public:
 
 	SSAO_Tiled_Blur_ShaderGL() {
-		using types = ShaderAttributeType;
 
-		attributes.create(types::MAT4, &transform, "transform", true);
-		attributes.create(types::TEXTURE2D, nullptr, "ssaoInput");
+		mProgram = new ShaderProgramGL("post_processing/ssao/ssao_tiled_blur_vs.glsl",
+			"post_processing/ssao/ssao_tiled_blur_fs.glsl");
+
+		mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+		mAoTexture = { mProgram->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
 	}
 
 	virtual ~SSAO_Tiled_Blur_ShaderGL() = default;
 
-	void setAOTexture(TextureGL* texture) {
-		attributes.setData("ssaoInput", texture);
+	void setAOTexture(const TextureGL* texture) {
+		mProgram->setTexture(mAoTexture.location, texture, mAoTexture.textureUnit);
 	}
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) {
-		mat4 const& projection = *data.projection;
-		mat4 const& view = *data.view;
-		mat4 const& model = *data.model;
-
-		transform = projection * view * model;
-		attributes.setData("transform", &transform);
+	void setMVP(const glm::mat4& mat) {
+		mProgram->setMat4(mTransform.location, mat);
 	}
 
 private:
-	glm::mat4 transform;
+	UniformTex mAoTexture;
+	Uniform mTransform;
 };
 
 
-class SSAO_AO_Display_ShaderGL : public ShaderConfigGL
+class SSAO_AO_Display_ShaderGL : public ShaderGL
 {
 public:
 
 	SSAO_AO_Display_ShaderGL() {
-		using types = ShaderAttributeType;
+		mProgram = new ShaderProgramGL("post_processing/ssao/ssao_ao_display_vs.glsl",
+			"post_processing/ssao/ssao_ao_display_fs.glsl");
 
-		attributes.create(types::MAT4, &transform, "transform", true);
-		attributes.create(types::TEXTURE2D, nullptr, "screenTexture");
+		mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+		mScreenTexture = {mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0};
 	}
 
 	virtual ~SSAO_AO_Display_ShaderGL() = default;
 
-	void setScreenTexture(TextureGL* texture) {
-		attributes.setData("screenTexture", texture);
+	void setScreenTexture(const TextureGL* texture) {
+		mProgram->setTexture(mScreenTexture.location, texture, mScreenTexture.textureUnit);
 	}
 
-	virtual void update(const MeshGL& mesh, const TransformData& data) {
+	void setMVP(const glm::mat4& mat) {
+		mProgram->setMat4(mTransform.location, mat);
+	}
+
+	//TODO
+	/*virtual void update(const MeshGL& mesh, const TransformData& data) {
 		mat4 const& projection = *data.projection;
 		mat4 const& view = *data.view;
 		mat4 const& model = *data.model;
 
 		transform = projection * view * model;
 		attributes.setData("transform", &transform);
-	}
+	}*/
 
 private:
-	glm::mat4 transform;
+	UniformTex mScreenTexture;
+	Uniform mTransform;
 };
 
 
@@ -316,13 +310,9 @@ SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
 
 	aoPass = make_unique <SSAO_AO_ShaderGL>(32);
 
-	tiledBlurPass = make_unique <ShaderProgramGL>(make_unique<SSAO_Tiled_Blur_ShaderGL>(), 
-		"post_processing/ssao/ssao_tiled_blur_vs.glsl", 
-		"post_processing/ssao/ssao_tiled_blur_fs.glsl");
+	tiledBlurPass = make_unique <SSAO_Tiled_Blur_ShaderGL>();
 
-	aoDisplay = make_unique <ShaderProgramGL>(make_unique<SSAO_AO_Display_ShaderGL>(),
-		"post_processing/ssao/ssao_ao_display_vs.glsl",
-		"post_processing/ssao/ssao_ao_display_fs.glsl");
+	aoDisplay = make_unique <SSAO_AO_Display_ShaderGL>();
 
 
 	SSAO_AO_ShaderGL*  configAO = dynamic_cast<SSAO_AO_ShaderGL*>(aoPass.get());
