@@ -4,97 +4,86 @@
 using namespace std;
 using namespace glm;
 
-PointShadowShaderGL::PointShadowShaderGL() : ShaderConfigGL(),
-matrices(nullptr), range(0)
+PointShadowShaderGL::PointShadowShaderGL()
 {
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
+	mProgram = new ShaderProgramGL("shadow_point_vs.glsl", "shadow_point_fs.glsl", "shadow_point_gs.glsl");
+
+	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
 
 	for (int i = 0; i < 6; ++i)
 	{
 		string matrixDesc = "shadowMatrices[" + to_string(i) + "]";
-		attributes.create(ShaderAttributeType::MAT4, nullptr, matrixDesc);
+		mShadowMatrices[i] = { mProgram->getUniformLocation(matrixDesc.c_str()), UniformType::MAT4};
 	}
 
-	attributes.create(ShaderAttributeType::FLOAT, &range, "range", true);
-	attributes.create(ShaderAttributeType::VEC3, &lightPos, "lightPos", true);
+	mRange = { mProgram->getUniformLocation("range"), UniformType::FLOAT };
+	mLightPos = { mProgram->getUniformLocation("lightPos"), UniformType::VEC3 };
 }
 
-PointShadowShaderGL::~PointShadowShaderGL(){}
-
-void PointShadowShaderGL::setLightPosition(vec3 pos)
+void PointShadowShaderGL::setLightPosition(const glm::vec3& pos)
 {
-	this->lightPos = move(pos);
+	mProgram->setVec3(mLightPos.location, pos);
 }
 
 void PointShadowShaderGL::setRange(float range)
 {
-	this->range = range;
+	mProgram->setFloat(mRange.location, range);
 }
 
-void PointShadowShaderGL::setShadowMatrices(mat4 matrices[6])
+void PointShadowShaderGL::setShadowMatrices(const glm::mat4* matrices)
 {
-	this->matrices = matrices;
-	for (int i = 0; i < 6; ++i)
+	for (unsigned i = 0; i < 6; ++i)
 	{
-		string matrixDesc = "shadowMatrices[" + to_string(i) + "]";
-		attributes.setData(matrixDesc, &this->matrices[i]);
+		mProgram->setMat4(mShadowMatrices[i].location, matrices[i]);
 	}
 }
 
-void PointShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void PointShadowShaderGL::setModel(const glm::mat4& mat)
 {
-	attributes.setData("model", data.model);
+	mProgram->setMat4(mModel.location, mat);
 }
 
-ShadowShaderGL::ShadowShaderGL() : ShaderConfigGL()
+ShadowShaderGL::ShadowShaderGL()
 {
-	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
+	mProgram = new ShaderProgramGL("shadow_vs.glsl", "shadow_fs.glsl");
+
+	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
+	mLightSpaceMatrix = { mProgram->getUniformLocation("lightSpaceMatrix"), UniformType::MAT4 };
 }
 
-ShadowShaderGL::~ShadowShaderGL(){}
-
-void ShadowShaderGL::beforeDrawing(const MeshGL& mesh)
+void ShadowShaderGL::setModel(const glm::mat4& mat)
 {
-	/*
-	glBindVertexArray(mesh.getVertexArrayObject());
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(3);
-		glDisableVertexAttribArray(4);
-	glBindVertexArray(0);
-
-	*/
+	mProgram->setMat4(mModel.location, mat);
 }
 
-void ShadowShaderGL::afterDrawing(const MeshGL& mesh)
+void ShadowShaderGL::setLightSpaceMatrix(const glm::mat4& mat)
 {
-	/*
-	glBindVertexArray(mesh.getVertexArrayObject());
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		glEnableVertexAttribArray(3);
-		glEnableVertexAttribArray(4);
-	glBindVertexArray(0);
-	*/
+	mProgram->setMat4(mLightSpaceMatrix.location, mat);
 }
 
+
+//TODO
+/*
 void ShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
 {
 	lightSpaceMatrix = (*data.projection) * (*data.view);
 	attributes.setData("model", data.model);
+}*/
+
+VarianceShadowShaderGL::VarianceShadowShaderGL()
+{
+	mProgram = new ShaderProgramGL("variance_shadow_vs.glsl", "variance_shadow_fs.glsl");
+
+	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
+	mLightSpaceMatrix = { mProgram->getUniformLocation("lightSpaceMatrix"), UniformType::MAT4 };
 }
 
-VarianceShadowShaderGL::VarianceShadowShaderGL() : ShaderConfigGL()
+void VarianceShadowShaderGL::setModel(const glm::mat4& mat)
 {
-	attributes.create(ShaderAttributeType::MAT4, &lightSpaceMatrix, "lightSpaceMatrix", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "model");
+	mProgram->setMat4(mModel.location, mat);
 }
 
-VarianceShadowShaderGL::~VarianceShadowShaderGL() {}
-
-void VarianceShadowShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void VarianceShadowShaderGL::setLightSpaceMatrix(const glm::mat4& mat)
 {
-	lightSpaceMatrix = (*data.projection) * (*data.view);
-	attributes.setData("model", data.model);
+	mProgram->setMat4(mLightSpaceMatrix.location, mat);
 }

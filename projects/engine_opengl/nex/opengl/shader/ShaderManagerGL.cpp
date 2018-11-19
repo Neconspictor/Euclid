@@ -115,8 +115,7 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::Shadow: {
-		shaderPtr = make_shared<ShaderProgramGL>
-			(make_unique<ShadowShaderGL>(), "shadow_vs.glsl", "shadow_fs.glsl");
+		shaderPtr = new ShadowShaderGL();
 		break;
 	}
 	case s::Screen: {
