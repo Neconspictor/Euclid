@@ -506,88 +506,71 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 */
 
 
-PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL() : ShaderConfigGL()
+PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL()
 {
-	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "environmentMap");
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "view", true);
+	mProgram = new ShaderProgramGL(
+		"pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
+
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP };
 }
 
-PBR_ConvolutionShaderGL::~PBR_ConvolutionShaderGL()
+void PBR_ConvolutionShaderGL::setProjection(const glm::mat4& mat)
 {
+	mProgram->setMat4(mProjection.location, mat);
 }
 
-void PBR_ConvolutionShaderGL::setEnvironmentMap(CubeMapGL * cubeMap)
+void PBR_ConvolutionShaderGL::setView(const glm::mat4& mat)
 {
-	this->cubeMap = cubeMap;
-	attributes.setData("environmentMap", cubeMap);
+	mProgram->setMat4(mView.location, mat);
 }
 
-void PBR_ConvolutionShaderGL::update(const MeshGL & mesh, const TransformData & data)
+void PBR_ConvolutionShaderGL::setEnvironmentMap(const CubeMapGL * cubeMap)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	attributes.setData("projection", &projection);
-	attributes.setData("view", &view);
+	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.textureUnit);
 }
 
-PBR_PrefilterShaderGL::PBR_PrefilterShaderGL() : roughness(0.0)
+PBR_PrefilterShaderGL::PBR_PrefilterShaderGL()
 {
-	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "environmentMap");
-	attributes.create(ShaderAttributeType::FLOAT, &this->roughness, "roughness", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection", true);
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "view", true);
-}
+	mProgram = new ShaderProgramGL(
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 
-PBR_PrefilterShaderGL::~PBR_PrefilterShaderGL()
-{
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP };
+	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
 }
 
 void PBR_PrefilterShaderGL::setMapToPrefilter(CubeMapGL * cubeMap)
 {
-	this->cubeMap = cubeMap;
-	attributes.setData("environmentMap", cubeMap);
+	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.textureUnit);
 }
 
 void PBR_PrefilterShaderGL::setRoughness(float roughness)
 {
-	this->roughness = roughness;
+	mProgram->setFloat(mRoughness.location, roughness);
 }
 
-void PBR_PrefilterShaderGL::update(const MeshGL & mesh, const TransformData & data)
+void PBR_PrefilterShaderGL::setProjection(const glm::mat4& mat)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	attributes.setData("projection", &projection);
-	attributes.setData("view", &view);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
-PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL() : transform(mat4())
+void PBR_PrefilterShaderGL::setView(const glm::mat4& mat)
 {
-	//attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::FLOAT, nullptr, "test");
-
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
+	mProgram->setMat4(mView.location, mat);
 }
 
-PBR_BrdfPrecomputeShaderGL::~PBR_BrdfPrecomputeShaderGL()
+PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL()
 {
+	mProgram = new ShaderProgramGL(
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-void PBR_BrdfPrecomputeShaderGL::update(const MeshGL & mesh, const TransformData & data)
+void PBR_BrdfPrecomputeShaderGL::setMVP(const glm::mat4& mat)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
-
-	float test = 6.6f;
-
-	//attributes.setData("transform", &transform);
-	attributes.setData("test", &test);
+	mProgram->setMat4(mTransform.location, mat);
 }

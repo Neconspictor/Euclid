@@ -83,19 +83,19 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::Pbr_Deferred_Lighting: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShader_Deferred_LightingGL>(), "pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+		shaderPtr = new PBRShader_Deferred_LightingGL();
 		break;
 	}
 	case s::Pbr_Convolution: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_ConvolutionShaderGL>(), "pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
+		shaderPtr = new PBR_ConvolutionShaderGL();
 		break;
 	}
 	case s::Pbr_Prefilter: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_PrefilterShaderGL>(), "pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
+		shaderPtr = new PBR_PrefilterShaderGL();
 		break;
 	}
 	case s::Pbr_BrdfPrecompute: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBR_BrdfPrecomputeShaderGL>(), "pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
+		shaderPtr = new PBR_BrdfPrecomputeShaderGL();
 		break;
 	}
 	case s::CubeDepthMap: {

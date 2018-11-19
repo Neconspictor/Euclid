@@ -195,12 +195,16 @@ class PBR_ConvolutionShaderGL : public ShaderGL
 public:
 	PBR_ConvolutionShaderGL();
 
-	virtual ~PBR_ConvolutionShaderGL();
+	virtual ~PBR_ConvolutionShaderGL() = default;
 
-	void setEnvironmentMap(CubeMapGL* cubeMap);
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
+	void setEnvironmentMap(const CubeMapGL* cubeMap);
 
 private:
-	UniformTex mCubeMap;
+	Uniform mProjection;
+	Uniform mView;
+	UniformTex mEnvironmentMap;
 };
 
 class PBR_PrefilterShaderGL : public ShaderGL
@@ -208,14 +212,19 @@ class PBR_PrefilterShaderGL : public ShaderGL
 public:
 	PBR_PrefilterShaderGL();
 
-	virtual ~PBR_PrefilterShaderGL();
+	virtual ~PBR_PrefilterShaderGL() = default;
 
 	void setMapToPrefilter(CubeMapGL* cubeMap);
 
 	void setRoughness(float roughness);
 
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
+
 private:
-	UniformTex mCubeMap;
+	Uniform mProjection;
+	Uniform mView;
+	UniformTex mEnvironmentMap;
 	Uniform mRoughness;
 };
 
@@ -224,7 +233,9 @@ class PBR_BrdfPrecomputeShaderGL : public ShaderGL
 public:
 	PBR_BrdfPrecomputeShaderGL();
 
-	virtual ~PBR_BrdfPrecomputeShaderGL();
+	virtual ~PBR_BrdfPrecomputeShaderGL() = default;
+
+	void setMVP(const glm::mat4& mat);
 
 private:
 	Uniform mTransform;
