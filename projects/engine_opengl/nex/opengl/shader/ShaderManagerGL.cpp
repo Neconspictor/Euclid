@@ -75,12 +75,11 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 	switch(shaderEnum)
 	{
 	case s::Pbr: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShaderGL>(), "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
+		shaderPtr = new PBRShaderGL();
 		break;
 	}
 	case s::Pbr_Deferred_Geometry: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<PBRShader_Deferred_GeometryGL>(), 
-			"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
+		shaderPtr = new PBRShader_Deferred_GeometryGL();
 		break;
 	}
 	case s::Pbr_Deferred_Lighting: {

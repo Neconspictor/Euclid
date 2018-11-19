@@ -216,41 +216,45 @@ void PBRShaderGL::setInverseViewMatrix(const glm::mat4& mat)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL() : ShaderConfigGL()
+PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL()
 {
-	using types = ShaderAttributeType;
+	mProgram = new ShaderProgramGL(
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 
-	attributes.create(types::MAT4, &transform, "transform", true);
-	attributes.create(types::MAT4, &eyeToLight, "eyeToLight", true);
-	attributes.create(types::MAT4, &inverseViewFromGPass, "inverseViewMatrix_GPass", true);
-	attributes.create(types::MAT4, &myView, "viewGPass", true);
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mEyeToLightTrafo = { mProgram->getUniformLocation("eyeToLight"), UniformType::MAT4 };
+	mInverseViewFromGPass = { mProgram->getUniformLocation("inverseViewMatrix_GPass"), UniformType::MAT4 };
+	mViewGPass = { mProgram->getUniformLocation("viewGPass"), UniformType::MAT4 };
 
-	dirWorldToLight.color = { 0.5f, 0.5f, 0.5f };
-	dirWorldToLight.direction = { 0,1,0 };
 
-	attributes.create(types::VEC3, nullptr, "dirLight.directionEye");
-	attributes.create(types::VEC4, nullptr, "dirLight.color");
+	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
+	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.albedoMap");
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.aoMetalRoughnessMap");
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.normalEyeMap");
-	attributes.create(types::TEXTURE2D, nullptr, "gBuffer.positionEyeMap");
+	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, 0 };
+	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, 1 };
+	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
+	mPositionEyeMap = { mProgram->getUniformLocation("gBuffer.positionEyeMap"), UniformType::TEXTURE2D, 3 };
 
-	attributes.create(types::TEXTURE2D, nullptr, "shadowMap");
-	attributes.create(types::TEXTURE2D, nullptr, "ssaoMap");
+	mShadowMap = { mProgram->getUniformLocation("shadowMap"), UniformType::TEXTURE2D, 4 };
+	mAoMap = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, 5 };
 
-	attributes.create(types::CUBE_MAP, nullptr, "irradianceMap");
-	attributes.create(types::CUBE_MAP, nullptr, "prefilterMap");
-	attributes.create(types::TEXTURE2D, nullptr, "brdfLUT");
+	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 6 };
+	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
+	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
 
-	biasMatrix = mat4(
+	mBiasMatrix = { mProgram->getUniformLocation("biasMatrix"), UniformType::MAT4 };
+	mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
 		0.0, 0.5, 0.0, 0.0,
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
-		);
+	);
+	bind();
+	mProgram->setMat4(mBiasMatrix.location, mBiasMatrixSource);
+	unbind();
 
-	attributes.create(types::TEXTURE2D_ARRAY, nullptr, "cascadedDepthMap");
+
+	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
 
 	glCreateBuffers(1, &cascadeBufferUBO);
 	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
@@ -261,73 +265,104 @@ PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
 	glDeleteBuffers(1, &cascadeBufferUBO);
 }
 
-void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(TextureGL * brdfLUT)
+void PBRShader_Deferred_LightingGL::setMVP(const glm::mat4& trafo)
 {
-	this->brdfLUT = brdfLUT;
-	attributes.setData("brdfLUT", this->brdfLUT);
+	mProgram->setMat4(mTransform.location, trafo);
 }
 
-void PBRShader_Deferred_LightingGL::setGBuffer(PBR_GBufferGL * gBuffer)
+void PBRShader_Deferred_LightingGL::setViewGPass(const glm::mat4& mat)
 {
-	this->gBuffer = gBuffer;
+	mProgram->setMat4(mViewGPass.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setInverseViewFromGPass(glm::mat4 inverseView)
+void PBRShader_Deferred_LightingGL::setInverseViewFromGPass(const glm::mat4& mat)
 {
-	this->inverseViewFromGPass = move(inverseView);
-	attributes.setData("inverseViewMatrix_GPass", &this->inverseViewFromGPass);
+	mProgram->setMat4(mInverseViewFromGPass.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setIrradianceMap(CubeMapGL * irradianceMap)
+void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(const TextureGL* brdfLUT)
 {
-	this->irradianceMap = irradianceMap;
-	attributes.setData("irradianceMap", this->irradianceMap);
+	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.textureUnit);
 }
 
-void PBRShader_Deferred_LightingGL::setLightColor(glm::vec3 color)
+void PBRShader_Deferred_LightingGL::setWorldLightDirection(const glm::vec3& direction)
 {
-	this->dirWorldToLight.color = move(color);
+	mProgram->setVec3(mWorldDirection.location, direction);
 }
 
-void PBRShader_Deferred_LightingGL::setLightDirection(glm::vec3 direction)
+void PBRShader_Deferred_LightingGL::setEyeLightDirection(const glm::vec3& direction)
 {
-	this->dirWorldToLight.direction = move(direction);
+	mProgram->setVec3(mEyeLightDirection.location, direction);
 }
 
-
-void PBRShader_Deferred_LightingGL::setPrefilterMap(CubeMapGL * prefilterMap)
+void PBRShader_Deferred_LightingGL::setLightColor(const glm::vec3& color)
 {
-	this->prefilterMap = prefilterMap;
-	attributes.setData("prefilterMap", this->prefilterMap);
+	mProgram->setVec3(mLightColor.location, color);
 }
 
-void PBRShader_Deferred_LightingGL::setShadowMap(TextureGL * texture)
+void PBRShader_Deferred_LightingGL::setIrradianceMap(const CubeMapGL* irradianceMap)
 {
-	shadowMap = texture;
-	assert(shadowMap != nullptr);
-	attributes.setData("shadowMap", shadowMap);
+	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.textureUnit);
 }
 
-void PBRShader_Deferred_LightingGL::setAOMap(TextureGL * texture)
+void PBRShader_Deferred_LightingGL::setPrefilterMap(const CubeMapGL* prefilterMap)
 {
-	ssaoMap = texture;
-	assert(ssaoMap != nullptr);
-	attributes.setData("ssaoMap", ssaoMap);
+	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.textureUnit);
 }
 
-void PBRShader_Deferred_LightingGL::setSkyBox(CubeMapGL * sky)
+void PBRShader_Deferred_LightingGL::setEyeToLightSpaceMatrix(const glm::mat4& mat)
 {
-	this->skybox = sky;
-	//attributes.setData("skybox", dynamic_cast<CubeMapGL*>(skybox));
-	//TODO IMPORTANT
+	mProgram->setMat4(mEyeToLightTrafo.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setWorldToLightSpaceMatrix(glm::mat4 worldToLight)
+void PBRShader_Deferred_LightingGL::setWorldToLightSpaceMatrix(const glm::mat4& mat)
 {
-	this->worldToLight = move(worldToLight);
+	mProgram->setMat4(mWorldToLightTrafo.location, mat);
 }
 
+void PBRShader_Deferred_LightingGL::setShadowMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.textureUnit);
+}
 
+void PBRShader_Deferred_LightingGL::setAOMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mAoMap.location, texture, mAoMap.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setSkyBox(const CubeMapGL* sky)
+{
+	mProgram->setTexture(mSkyBox.location, sky, mSkyBox.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setCascadedDepthMap(const TextureGL* cascadedDepthMap)
+{
+	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setAlbedoMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setAoMetalRoughnessMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mAoMetalRoughnessMap.location, texture, mAoMetalRoughnessMap.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setNormalEyeMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.textureUnit);
+}
+
+void PBRShader_Deferred_LightingGL::setPositionEyeMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mPositionEyeMap.location, texture, mPositionEyeMap.textureUnit);
+}
+
+//TODO
+
+/*
 void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformData & data)
 {
 	mat4 const& projection = *data.projection;
@@ -365,60 +400,64 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 	attributes.setData("brdfLUT", brdfLUT);
 
 	attributes.setData("cascadedDepthMap", this->cascadedDepthMap);
-}
+}*/
 
-void PBRShader_Deferred_LightingGL::setCascadedDepthMap(TextureGL* cascadedDepthMap)
-{
-	this->cascadedDepthMap = cascadedDepthMap;
-}
 
-void PBRShader_Deferred_LightingGL::setCascadedData(CascadedShadowGL::CascadeData* cascadedData)
+void PBRShader_Deferred_LightingGL::setCascadedData(const CascadedShadowGL::CascadeData* cascadedData)
 {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 }
 
 
-PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL() : ShaderConfigGL()
+PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL()
 {
-	using types = ShaderAttributeType;
+	mProgram = new ShaderProgramGL(
+		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
 
-	attributes.create(types::MAT4, &transform, "transform", true);
-	attributes.create(types::MAT4, &modelView, "modelView", true);
-	attributes.create(types::MAT3, &modelView_normalMatrix, "modelView_normalMatrix", true);
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
+	mModelView_normalMatrix = { mProgram->getUniformLocation("modelView_normalMatrix"), UniformType::MAT4 };
 
-	attributes.create(types::TEXTURE2D, nullptr, "material.albedoMap"); //Texture0
-	attributes.create(types::TEXTURE2D, nullptr, "material.aoMap"); //Texture1
-	attributes.create(types::TEXTURE2D, nullptr, "material.metallicMap"); //Texture2
-	attributes.create(types::TEXTURE2D, nullptr, "material.normalMap"); //Texture3
-	attributes.create(types::TEXTURE2D, nullptr, "material.roughnessMap"); //Texture4
+	mAlbedoMap = { mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0 };
+	mAmbientOcclusionMap = { mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1 };
 
-	//GLuint sampler;
-	//glGenSamplers(1, &sampler);
-	/*glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	// TODO
+	mEmissionMap = { mProgram->getUniformLocation("material.emissionMap"), UniformType::TEXTURE2D, 2 };
 
-	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_LOD_BIAS, 0);*/
-
-	/*glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);*/
-
-	//float anisotropy = renderer->getTextureManager()->getAnisotropicFiltering();
-
-	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
-
-	//m_sampler.setID(sampler);
+	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3 };
+	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4 };
+	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5 };
 }
 
-PBRShader_Deferred_GeometryGL::~PBRShader_Deferred_GeometryGL()
+void PBRShader_Deferred_GeometryGL::setAlbedoMap(const TextureGL* texture)
 {
+	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setAmbientOcclusionMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setEmissionMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setMetalMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setNormalMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setRoughnessMap(const TextureGL* texture)
+{
+	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.textureUnit);
 }
 
 //TODO
