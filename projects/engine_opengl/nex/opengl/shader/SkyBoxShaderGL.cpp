@@ -3,16 +3,38 @@
 
 using namespace glm;
 
-SkyBoxShaderGL::SkyBoxShaderGL() : ShaderConfigGL(), skyTexture(nullptr)
+SkyBoxShaderGL::SkyBoxShaderGL()
 {
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::CUBE_MAP, nullptr, "skybox");
+	mProgram = new ShaderProgramGL("skybox_vs.glsl", "skybox_fs.glsl");
+
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mSkyTexture = { mProgram->getUniformLocation("skybox"), UniformType::CUBE_MAP, 0 };
 }
 
-SkyBoxShaderGL::~SkyBoxShaderGL(){}
+void SkyBoxShaderGL::setMVP(const glm::mat4& mat)
+{
+	mProgram->setMat4(mTransform.location, mat);
+}
 
+void SkyBoxShaderGL::setProjection(const glm::mat4& mat)
+{
+	mProgram->setMat4(mProjection.location, mat);
+}
+
+void SkyBoxShaderGL::setView(const glm::mat4& mat)
+{
+	mProgram->setMat4(mView.location, mat);
+}
+
+void SkyBoxShaderGL::setSkyTexture(const CubeMapGL* texture)
+{
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
+}
+
+//TODO
+/*
 void SkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
@@ -23,36 +45,35 @@ void SkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}
+}*/
 
-void SkyBoxShaderGL::setSkyTexture(CubeMapGL* sky)
+
+PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL()
 {
-	skyTexture = dynamic_cast<CubeMapGL*>(sky);
-	assert(skyTexture != nullptr);
-	attributes.setData("skybox", skyTexture);
+	mProgram = new ShaderProgramGL("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mSkyTexture = { mProgram->getUniformLocation("panorama"), UniformType::TEXTURE2D, 0 };
 }
 
-void SkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void PanoramaSkyBoxShaderGL::setProjection(const glm::mat4& mat)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	transform = projection * view * model;
-	attributes.setData("projection", &projection);
-	attributes.setData("view", &view);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
-PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL() : ShaderConfigGL(), 
-skyTexture(nullptr)
+void PanoramaSkyBoxShaderGL::setView(const glm::mat4& mat)
 {
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
-	//attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "panorama");
+	mProgram->setMat4(mView.location, mat);
 }
 
-PanoramaSkyBoxShaderGL::~PanoramaSkyBoxShaderGL(){}
+void PanoramaSkyBoxShaderGL::setSkyTexture(const TextureGL* texture)
+{
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
+}
 
+//TODO
+/*
 void PanoramaSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
@@ -63,39 +84,35 @@ void PanoramaSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}
+}*/
 
-void PanoramaSkyBoxShaderGL::setSkyTexture(TextureGL* tex)
+
+EquirectangularSkyBoxShaderGL::EquirectangularSkyBoxShaderGL()
 {
-	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
-	assert(texGL != nullptr);
-	skyTexture = texGL;
-	attributes.setData("panorama", skyTexture);
+	mProgram = new ShaderProgramGL("skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
+
+	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
+	mSkyTexture = { mProgram->getUniformLocation("equirectangularMap"), UniformType::TEXTURE2D, 0 };
 }
 
-void PanoramaSkyBoxShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void EquirectangularSkyBoxShaderGL::setProjection(const glm::mat4& mat)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-	//transform = projection * view * model;
-	attributes.setData("projection", &projection);
-	attributes.setData("view", &view);
+	mProgram->setMat4(mProjection.location, mat);
 }
 
-EquirectangularSkyBoxShaderGL::EquirectangularSkyBoxShaderGL() : ShaderConfigGL(),
-skyTexture(nullptr)
+void EquirectangularSkyBoxShaderGL::setView(const glm::mat4& mat)
 {
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "projection");
-	attributes.create(ShaderAttributeType::MAT4, nullptr, "view");
-	//attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "equirectangularMap");
+	mProgram->setMat4(mView.location, mat);
 }
 
-EquirectangularSkyBoxShaderGL::~EquirectangularSkyBoxShaderGL()
+void EquirectangularSkyBoxShaderGL::setSkyTexture(const TextureGL * texture)
 {
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
 }
 
+//TODO
+/*
 void EquirectangularSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
@@ -106,22 +123,4 @@ void EquirectangularSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}
-
-void EquirectangularSkyBoxShaderGL::setSkyTexture(TextureGL * tex)
-{
-	TextureGL* texGL = dynamic_cast<TextureGL*>(tex);
-	assert(texGL != nullptr);
-	skyTexture = texGL;
-	attributes.setData("equirectangularMap", skyTexture);
-}
-
-void EquirectangularSkyBoxShaderGL::update(const MeshGL & mesh, const TransformData & data)
-{
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	attributes.setData("projection", &projection);
-	attributes.setData("view", &view);
-}
+}*/

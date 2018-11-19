@@ -123,18 +123,15 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::SkyBox: {
-		shaderPtr = make_shared<ShaderProgramGL>
-			(make_unique<SkyBoxShaderGL>(), "skybox_vs.glsl", "skybox_fs.glsl");
+		shaderPtr = new SkyBoxShaderGL();
 		break;
 	}
 	case s::SkyBoxEquirectangular: {
-		shaderPtr = make_shared<ShaderProgramGL>
-			(make_unique<EquirectangularSkyBoxShaderGL>(), "skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
+		shaderPtr = new EquirectangularSkyBoxShaderGL();
 		break;
 	}
 	case s::SkyBoxPanorama: {
-		shaderPtr = make_shared<ShaderProgramGL>
-			(make_unique<PanoramaSkyBoxShaderGL>(), "panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+		shaderPtr = new PanoramaSkyBoxShaderGL();
 		break;
 	}
 	default: {

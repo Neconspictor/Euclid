@@ -2,61 +2,58 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class SkyBoxShaderGL : public ShaderConfigGL
+class SkyBoxShaderGL : public ShaderGL
 {
 public:
 	SkyBoxShaderGL();
 
-	virtual ~SkyBoxShaderGL();
+	virtual ~SkyBoxShaderGL() = default;
 
-	void afterDrawing(const MeshGL& mesh) override;
+	void setMVP(const glm::mat4& mat);
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
 
-	void beforeDrawing(const MeshGL& mesh) override;
-
-	void setSkyTexture(CubeMapGL* sky);
-
-	void update(const MeshGL& mesh, const TransformData& data) override;
+	void setSkyTexture(const CubeMapGL* sky);
 
 private:
-	CubeMapGL* skyTexture;
-	glm::mat4 transform;
+
+	UniformTex mSkyTexture;
+	Uniform mTransform;
+	Uniform mProjection;
+	Uniform mView;
 };
 
-class PanoramaSkyBoxShaderGL : public ShaderConfigGL
+class PanoramaSkyBoxShaderGL : public ShaderGL
 {
 public:
 	PanoramaSkyBoxShaderGL();
 
-	virtual ~PanoramaSkyBoxShaderGL();
+	virtual ~PanoramaSkyBoxShaderGL() = default;
 
-	void afterDrawing(const MeshGL& mesh) override;
-
-	void beforeDrawing(const MeshGL& mesh) override;
-
-	void setSkyTexture(TextureGL* tex);
-
-	virtual void update(const MeshGL& mesh, const TransformData& data) override;
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
+	void setSkyTexture(const TextureGL* tex);
 
 private:
-	TextureGL* skyTexture;
-	glm::mat4 transform;
+
+	UniformTex mSkyTexture;
+	Uniform mProjection;
+	Uniform mView;
 };
 
-class EquirectangularSkyBoxShaderGL : public ShaderConfigGL
+class EquirectangularSkyBoxShaderGL : public ShaderGL
 {
 public:
 	EquirectangularSkyBoxShaderGL();
 
-	virtual ~EquirectangularSkyBoxShaderGL();
+	virtual ~EquirectangularSkyBoxShaderGL() = default;
 
-	void afterDrawing(const MeshGL& mesh) override;
-
-	void beforeDrawing(const MeshGL& mesh) override;
-
-	void setSkyTexture(TextureGL* tex);
-
-	void update(const MeshGL& mesh, const TransformData& data) override;
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
+	void setSkyTexture(const TextureGL* texture);
 
 private:
-	TextureGL* skyTexture;
+	UniformTex mSkyTexture;
+	Uniform mProjection;
+	Uniform mView;
 };
