@@ -12,7 +12,7 @@ public:
 	void setImageHeight(float height);
 	void setImageWidth(float width);
 
-	void setTexture(TextureGL * tex);
+	void setTexture(const TextureGL* tex);
 
 	void setMVP(const glm::mat4& mvp);
 	
@@ -34,7 +34,7 @@ public:
 	void setImageHeight(float height);
 	void setImageWidth(float width);
 
-	void setTexture(TextureGL * tex);
+	void setTexture(const TextureGL* tex);
 
 	void setMVP(const glm::mat4& mvp);
 

@@ -2,12 +2,8 @@
 #include <sstream>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/opengl/shader/PBRShaderGL.hpp>
-#include <nex/opengl/shader/PhongTexShaderGL.hpp>
-#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
-#include <nex/opengl/shader/SimpleExtrudeShaderGL.hpp>
 #include <nex/opengl/shader/ScreenShaderGL.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
-#include <nex/opengl/shader/NormalsShaderGL.hpp>
 #include <nex/opengl/shader/ShadowShaderGL.hpp>
 #include <nex/opengl/shader/DepthMapShaderGL.hpp>
 #include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
@@ -104,13 +100,11 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::CubeDepthMap: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<CubeDepthMapShaderGL>(),
-			"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
+		shaderPtr = new CubeDepthMapShaderGL();
 		break;
 	}
 	case s::DepthMap: {
-		shaderPtr = make_shared<ShaderProgramGL>(make_unique<DepthMapShaderGL>(), "depth_map_vs.glsl",
-			"depth_map_fs.glsl");
+		shaderPtr = new DepthMapShaderGL();
 		break;
 	}
 	case s::GaussianBlurHorizontal: {

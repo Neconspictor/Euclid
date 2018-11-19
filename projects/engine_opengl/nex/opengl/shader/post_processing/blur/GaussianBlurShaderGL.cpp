@@ -16,7 +16,7 @@ GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL()
 }
 
 
-void GaussianBlurHorizontalShaderGL::setTexture(TextureGL * tex)
+void GaussianBlurHorizontalShaderGL::setTexture(const TextureGL* tex)
 {
 	mProgram->setTexture(image.location, tex, image.textureUnit);
 }
@@ -51,7 +51,7 @@ GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL()
 }
 
 
-void GaussianBlurVerticalShaderGL::setTexture(TextureGL * tex)
+void GaussianBlurVerticalShaderGL::setTexture(const TextureGL* tex)
 {
 	mProgram->setTexture(image.location, tex, image.textureUnit);
 }

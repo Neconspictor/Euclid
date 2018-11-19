@@ -5,119 +5,80 @@
 using namespace glm;
 using namespace std;
 
-CubeDepthMapShaderGL::CubeDepthMapShaderGL() :
-	cubeMap(nullptr), range(0)
+CubeDepthMapShaderGL::CubeDepthMapShaderGL()
 {
-	using types = ShaderAttributeType;
-	attributes.create(types::MAT4, &transform, "transform", true);
-	attributes.create(types::MAT4, nullptr, "model");
-	attributes.create(types::VEC3, &lightPos, "lightPos", true);
-	attributes.create(types::FLOAT, &range, "range", true);
-	attributes.create(types::CUBE_MAP, nullptr, "cubeDepthMap");
+	mProgram = new ShaderProgramGL(
+		"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
+
+	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4};
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mLightPos = { mProgram->getUniformLocation("lightPos"), UniformType::VEC3 };
+	mRange = { mProgram->getUniformLocation("range"), UniformType::FLOAT };
+	mCubeMap = { mProgram->getUniformLocation("cubeDepthMap"), UniformType::CUBE_MAP, 0};
 }
 
 CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
 
-void CubeDepthMapShaderGL::useCubeDepthMap(CubeMapGL* map)
+void CubeDepthMapShaderGL::useCubeDepthMap(const CubeMapGL* map)
 {
-	this->cubeMap = dynamic_cast<CubeMapGL*>(map);
-	assert(this->cubeMap != nullptr);
-
-	// static allocation for faster access
-	static string cubeDepthMapName = "cubeDepthMap";
-	attributes.setData(cubeDepthMapName, cubeMap);
+	mProgram->setTexture(mCubeMap.location, map, mCubeMap.textureUnit);
 }
 
-void CubeDepthMapShaderGL::setLightPos(vec3 pos)
+void CubeDepthMapShaderGL::setLightPos(const vec3& pos)
 {
-	lightPos = move(pos);
-
-	// static allocation for faster access
-	static string lightPosName = "lightPos";
+	mProgram->setVec3(mLightPos.location, pos);
 }
 
 void CubeDepthMapShaderGL::setRange(float range)
 {
-	this->range = range;
-
-	// static allocation for faster access
-	static string rangeName = "range";
+	mProgram->setFloat(mRange.location, range);
 }
 
-void CubeDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void CubeDepthMapShaderGL::setModelMatrix(const glm::mat4& model)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
-
-	// static allocation for faster access
-	static string modelName = "model";
-	attributes.setData(modelName, &model);
+	mProgram->setMat4(mModel.location, model);
 }
 
-DepthMapShaderGL::DepthMapShaderGL() : texture(nullptr)
+void CubeDepthMapShaderGL::setMVP(const glm::mat4& trafo)
 {
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "depthMap");
+	mProgram->setMat4(mTransform.location, trafo);
 }
 
-DepthMapShaderGL::~DepthMapShaderGL(){}
-
-void DepthMapShaderGL::beforeDrawing(const MeshGL& mesh)
+DepthMapShaderGL::DepthMapShaderGL()
 {
-	/*glBindVertexArray(mesh.getVertexArrayObject());
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(3);
-		glDisableVertexAttribArray(4);
-	glBindVertexArray(0);*/
+	mProgram = new ShaderProgramGL(
+		"depth_map_vs.glsl", "depth_map_fs.glsl");
+
+	mDephTexture = { mProgram->getUniformLocation("depthMap"), UniformType::TEXTURE2D, 0};
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-void DepthMapShaderGL::afterDrawing(const MeshGL& mesh)
+void DepthMapShaderGL::useDepthMapTexture(const TextureGL* texture)
 {
-	/*glBindVertexArray(mesh.getVertexArrayObject());
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		glEnableVertexAttribArray(3);
-		glEnableVertexAttribArray(4);
-	glBindVertexArray(0);*/
+	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.textureUnit);
 }
 
-void DepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void DepthMapShaderGL::setMVP(const glm::mat4& trafo)
 {
-	transform = (*data.projection) * (*data.view) * (*data.model);
+	mProgram->setMat4(mTransform.location, trafo);
 }
 
-void DepthMapShaderGL::useDepthMapTexture(TextureGL* texture)
+VarianceDepthMapShaderGL::VarianceDepthMapShaderGL()
 {
-	this->texture = dynamic_cast<TextureGL*>(texture);
-	assert(this->texture != nullptr);
+	mProgram = new ShaderProgramGL(
+		"variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
 
-	static string depthMapName = "depthMap";
-	attributes.setData(depthMapName, this->texture);
+	mDephTexture = { mProgram->getUniformLocation("vDepthMap"), UniformType::TEXTURE2D, 0 };
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-VarianceDepthMapShaderGL::VarianceDepthMapShaderGL() : texture(nullptr)
+void VarianceDepthMapShaderGL::setMVP(const glm::mat4& trafo)
 {
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "vDepthMap");
+	mProgram->setMat4(mTransform.location, trafo);
 }
 
-VarianceDepthMapShaderGL::~VarianceDepthMapShaderGL()
-{}
 
-void VarianceDepthMapShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void VarianceDepthMapShaderGL::useVDepthMapTexture(const TextureGL* texture)
 {
-	transform = *data.projection * (*data.view) * (*data.model);
-}
-
-void VarianceDepthMapShaderGL::useVDepthMapTexture(TextureGL* texture)
-{
-	this->texture = dynamic_cast<TextureGL*>(texture);
-	assert(this->texture != nullptr);
-
-	static string depthMapName = "vDepthMap";
-	attributes.setData(depthMapName, this->texture);
+	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.textureUnit);
 }
