@@ -6,27 +6,20 @@
 using namespace std;
 using namespace glm;
 
-ScreenShaderGL::ScreenShaderGL() :
-	ShaderConfigGL(), texture(nullptr)
+ScreenShaderGL::ScreenShaderGL()
 {
-	attributes.create(ShaderAttributeType::MAT4, &transform, "transform", true);
-	attributes.create(ShaderAttributeType::TEXTURE2D, nullptr, "screenTexture");
+	mProgram = new ShaderProgramGL("screen_vs.glsl", "screen_fs.glsl");
+
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0};
 }
 
-ScreenShaderGL::~ScreenShaderGL(){}
-
-void ScreenShaderGL::update(const MeshGL& mesh, const TransformData& data)
+void ScreenShaderGL::useTexture(const TextureGL* texture)
 {
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
+	mProgram->setTexture(mTexture.location, texture, mTexture.textureUnit);
 }
 
-void ScreenShaderGL::useTexture(TextureGL* texture)
+void ScreenShaderGL::setMVP(const glm::mat4& mat)
 {
-	this->texture = dynamic_cast<TextureGL*>(texture);
-	assert(this->texture);
-	attributes.setData("screenTexture", this->texture);
+	mProgram->setMat4(mTransform.location, mat);
 }

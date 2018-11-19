@@ -513,7 +513,7 @@ PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP };
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0};
 }
 
 void PBR_ConvolutionShaderGL::setProjection(const glm::mat4& mat)
@@ -538,7 +538,7 @@ PBR_PrefilterShaderGL::PBR_PrefilterShaderGL()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP };
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0};
 	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
 }
 

@@ -120,8 +120,7 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::Screen: {
-		shaderPtr = make_shared<ShaderProgramGL>
-			(make_unique<ScreenShaderGL>(), "screen_vs.glsl", "screen_fs.glsl");
+		shaderPtr = new ScreenShaderGL();
 		break;
 	}
 	case s::SkyBox: {
