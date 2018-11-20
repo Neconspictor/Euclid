@@ -6,6 +6,7 @@ class RendererOpenGL;
 class Sprite;
 class Vob;
 class ModelGL;
+class SceneNode;
 
 enum class DrawingTypes
 {
@@ -21,6 +22,12 @@ public:
 	explicit ModelDrawerGL(RendererOpenGL* renderer);
 
 	virtual ~ModelDrawerGL();
+
+
+	/**
+	 * Draws this scene node and all its children using a specific shader.
+	 */
+	void draw(SceneNode* root);
 
 	/**
 	 * Draws a sprite onto the screen

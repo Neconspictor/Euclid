@@ -6,7 +6,9 @@
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/texture/Sprite.hpp>
-#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
+
+//TODO get it from repo history again
+//#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
 
 using namespace glm;
 using namespace std;
@@ -18,6 +20,30 @@ ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
 
 ModelDrawerGL::~ModelDrawerGL()
 {
+}
+
+void ModelDrawerGL::draw(SceneNode* root)
+{
+	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
+		draw(*it);
+
+	if (!root->vob) return;
+
+	/*ShaderType type = root->vob->getMaterialShaderType();
+	if (forcedShader != ShaderType::Unknown)
+		type = forcedShader;*/
+
+	//vob->calcTrafo();
+	if (root->drawingType == DrawingTypes::SOLID)
+	{
+		// type, data
+		draw(root->vob);
+	}
+	else if (root->drawingType == DrawingTypes::INSTANCED)
+	{
+		nex::Logger("ModelDrawerGL")(nex::Warning) << "Instanced Drawing type currently not supported";
+		//drawer->drawInstanced(vob, type, data, instanceCount);
+	}
 }
 
 void ModelDrawerGL::draw(Sprite * sprite)
