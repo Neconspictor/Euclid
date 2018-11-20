@@ -25,22 +25,24 @@ public:
 	/**
 	 * Draws a sprite onto the screen
 	 */
-	void draw(Sprite* sprite, ShaderType shaderType);
-	void draw(Sprite* sprite, ShaderProgramGL& shader);
+	void draw(Sprite* sprite);
 
 	/**
 	 * Draws the specified model with a given shader onto the screen.
 	 */
-	void draw(Vob* vob, ShaderType shaderType, const TransformData& data);
-	void draw(ModelGL* vob, ShaderProgramGL* shader);
+	void draw(Vob* vob);
+	void draw(ModelGL* vob);
+
+	//TODO implement
 	//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
 
 	/**
 	 * Draws the specified model onto the screen and outlines
-	 * it with a border.
+	 * it with a border. TODO implement
 	 */
-	void drawOutlined(Vob* vob, ShaderType shaderType, const TransformData& data, glm::vec4 borderColor);
-	void drawWired(Vob* vob, ShaderType shaderType, const TransformData& data, int lineStrength);
+	//void drawOutlined(Vob* vob, glm::vec4 borderColor);
+
+	void drawWired(Vob* vob, int lineStrength);
 
 private:
 	RendererOpenGL* renderer;

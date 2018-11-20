@@ -599,3 +599,11 @@ void ShaderGL::unbind()
 {
 	mProgram->unbind();
 }
+
+void ShaderGL::setupRenderState()
+{
+}
+
+void ShaderGL::reverseRenderState()
+{
+}

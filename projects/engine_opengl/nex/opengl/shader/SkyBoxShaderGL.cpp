@@ -33,6 +33,18 @@ void SkyBoxShaderGL::setSkyTexture(const CubeMapGL* texture)
 	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
 }
 
+void SkyBoxShaderGL::setupRenderState()
+{
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+}
+
+void SkyBoxShaderGL::reverseRenderState()
+{
+	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
+	glDepthMask(GL_TRUE);
+}
+
 //TODO
 /*
 void SkyBoxShaderGL::afterDrawing(const MeshGL& mesh)

@@ -24,20 +24,24 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
-	SkyBoxShaderGL* skyboxShader = dynamic_cast<SkyBoxShaderGL*>
-		(shaderManager->getConfig(ShaderType::SkyBox));
+	SkyBoxShaderGL* skyboxShader = reinterpret_cast<SkyBoxShaderGL*>
+		(shaderManager->getShader(ShaderType::SkyBox));
 
-	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
-	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
-
-	mat4 identity;
 	mat4 skyBoxView = mat4(mat3(view));
 
-	TransformData data = { &projection, &view, nullptr };
-	data.model = &identity;
-	data.view = &skyBoxView;
+	skyboxShader->bind();
+	skyboxShader->setupRenderState();
+	
+	skyboxShader->setView(skyBoxView);
+	skyboxShader->setProjection(projection);
+	skyboxShader->setMVP(projection * skyBoxView);
+	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
+	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
 
-	modelDrawer->draw(&skybox, ShaderType::SkyBox, data);
+	modelDrawer->draw(&skybox);
+
+	//TODO optimize out
+	skyboxShader->reverseRenderState();
 }
 
 void PBR::drawSceneToShadowMap(SceneNode * scene, 
@@ -65,7 +69,7 @@ void PBR::drawScene(SceneNode * scene,
 
 	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 
-	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getConfig(ShaderType::Pbr));
+	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getShader(ShaderType::Pbr));
 
 	shader->setCameraPosition(cameraPosition);
 	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());

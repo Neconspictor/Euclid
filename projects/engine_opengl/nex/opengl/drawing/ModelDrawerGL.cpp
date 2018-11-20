@@ -20,9 +20,8 @@ ModelDrawerGL::~ModelDrawerGL()
 {
 }
 
-void ModelDrawerGL::draw(Sprite * sprite, ShaderProgramGL& shader)
+void ModelDrawerGL::draw(Sprite * sprite)
 {
-	ShaderProgramGL& glShader = dynamic_cast<ShaderProgramGL&>(shader);
 	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
@@ -57,10 +56,10 @@ void ModelDrawerGL::draw(Sprite * sprite, ShaderProgramGL& shader)
 
 	TransformData data = { &projection, &view, &model };
 
-	glShader.bind();
-	glShader.setTransformData(data);
+	//TODO
+	//glShader.bind();
+	//glShader.setTransformData(data);
 
-	//shader->setOffscreenBuffer(texture->getTexture());
 	for (auto& mesh : spriteModel->getMeshes())
 	{
 		const VertexArray* vertexArray = mesh.get().getVertexArray();
@@ -75,44 +74,17 @@ void ModelDrawerGL::draw(Sprite * sprite, ShaderProgramGL& shader)
 	}
 }
 
-void ModelDrawerGL::draw(Sprite* sprite, ShaderType shaderType)
+void ModelDrawerGL::draw(Vob* vob)
 {
-	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
-	draw(sprite, *shader);
-}
-
-void ModelDrawerGL::draw(Vob* vob, ShaderType shaderType, const TransformData& data)
-{
-	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
-	//vob->calcTrafo();
 	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
-	
-	static bool called = false;
-	//if (!called) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//	called = true;
-	//}
-	
-
-	shader->bind();
-	shader->setTransformData(data);
-	for (auto& mesh : model->getMeshes())
-	{
-		const VertexArray* vertexArray = mesh.get().getVertexArray();
-		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
-
-		vertexArray->bind();
-		indexBuffer->bind();
-		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
-
-		indexBuffer->unbind();
-		vertexArray->unbind();
-	}
+	draw(model);
 }
 
-void ModelDrawerGL::draw(ModelGL* model, ShaderProgramGL* shader)
+void ModelDrawerGL::draw(ModelGL* model)
 {
-	shader->bind();
+	//TODO
+	//shader->bind();
+	//shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
 		const VertexArray* vertexArray = mesh.get().getVertexArray();
@@ -141,6 +113,8 @@ void ModelDrawerGL::draw(ModelGL* model, ShaderProgramGL* shader)
 	}
 }*/
 
+//TODO
+/*
 void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const TransformData& data, vec4 borderColor)
 {
 	glEnable(GL_STENCIL_TEST);
@@ -188,29 +162,16 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	
 	// make stencil buffer read-only again!
 	glStencilMask(0x00);
-}
+}*/
 
-void ModelDrawerGL::drawWired(Vob* vob, ShaderType shaderType, const TransformData& data, int lineStrength)
-{
-	ShaderProgramGL* shader = ShaderManagerGL::get()->getShader(shaderType);
-	vob->calcTrafo();
+void ModelDrawerGL::drawWired(Vob* vob, int lineStrength)
+{	
+	//TODO
+	//vob->calcTrafo();
 	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	shader->bind();
-	shader->setTransformData(data);
-	for (auto& mesh : model->getMeshes())
-	{
-		const VertexArray* vertexArray = mesh.get().getVertexArray();
-		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
-
-		vertexArray->bind();
-		indexBuffer->bind();
-		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
-
-		indexBuffer->unbind();
-		vertexArray->unbind();
-	}
+	draw(model);
 }
