@@ -46,6 +46,9 @@ public:
 
 protected:
 
+	static void vobRenderCallback(const Vob* vob, const ModelDrawerGL::RenderContext* context);
+	static void meshRenderCallback(const MeshGL* mesh, const ModelDrawerGL::RenderContext* context);
+
 	void init(TextureGL* backgroundHDR);
 
 	CubeRenderTargetGL* renderBackgroundToCube(TextureGL* background);

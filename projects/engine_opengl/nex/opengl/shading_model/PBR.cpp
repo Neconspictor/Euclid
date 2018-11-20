@@ -4,6 +4,7 @@
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
+#include "nex/opengl/material/PbrMaterial.hpp"
 
 using namespace glm;
 
@@ -57,6 +58,31 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 	scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, ShaderType::Shadow);
 }
 
+void PBR::vobRenderCallback(const Vob* vob, const ModelDrawerGL::RenderContext* context)
+{
+	const mat4& model = vob->getTrafo();
+	mat4 modelView = *context->view * model;
+	PBRShaderGL* shader = (PBRShaderGL*)context->shader;
+	shader->setModelMatrix(model);
+	shader->setModelViewMatrix(modelView);
+	shader->setMVP(*context->projection * modelView);
+	shader->setNormalMatrix(transpose(inverse(mat3(modelView))));
+}
+
+
+void PBR::meshRenderCallback(const MeshGL* mesh, const ModelDrawerGL::RenderContext* context)
+{
+	PbrMaterial* material = reinterpret_cast<PbrMaterial*>(mesh->getMaterial());
+	PBRShaderGL* shader = (PBRShaderGL*)context->shader;
+
+	shader->setAlbedoMap(material->getAlbedoMap());
+	shader->setAmbientOcclusionMap(material->getAoMap());
+	shader->setEmissionMap(material->getEmissionMap());
+	shader->setMetalMap(material->getMetallicMap());
+	shader->setNormalMap(material->getNormalMap());
+	shader->setRoughnessMap(material->getRoughnessMap());
+}
+
 void PBR::drawScene(SceneNode * scene,
 	const vec3& cameraPosition, 
 	TextureGL* shadowMap,
@@ -95,13 +121,15 @@ void PBR::drawScene(SceneNode * scene,
 
 	// TODO For each model we have to set model, modelview, normalMatrix, mvp, 
 	// and all the texture maps (albedo, ao, etc.)
-	
-	
 
-
+	ModelDrawerGL::RenderContext context;
+	context.projection = &projection;
+	context.view = &view;
+	context.shader = shader;
+	
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	scene->draw(renderer, modelDrawer, projection, view, ShaderType::Pbr);
+	modelDrawer->draw(scene, &context, vobRenderCallback, meshRenderCallback);
 }
 
 CubeMapGL * PBR::getConvolutedEnvironmentMap()

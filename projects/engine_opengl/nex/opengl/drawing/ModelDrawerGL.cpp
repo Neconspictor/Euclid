@@ -18,26 +18,25 @@ ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
 	assert(renderer != nullptr);
 }
 
-ModelDrawerGL::~ModelDrawerGL()
+void ModelDrawerGL::vobRenderCallbackTest(Vob* vob)
 {
+	SceneNode* root = nullptr;
+	ModelDrawerGL* drawer = nullptr;
+	//drawer->draw(root, vobRenderCallbackTest);
 }
 
-void ModelDrawerGL::draw(SceneNode* root)
+void ModelDrawerGL::draw(SceneNode* root, const RenderContext* context, VobRenderCallback vobRenderCallback, MeshRenderCallback meshRenderCallback)
 {
 	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
-		draw(*it);
+		draw(*it, context, vobRenderCallback, meshRenderCallback);
 
 	if (!root->vob) return;
 
-	/*ShaderType type = root->vob->getMaterialShaderType();
-	if (forcedShader != ShaderType::Unknown)
-		type = forcedShader;*/
-
-	//vob->calcTrafo();
 	if (root->drawingType == DrawingTypes::SOLID)
 	{
 		// type, data
-		draw(root->vob);
+		vobRenderCallback(root->vob, context);
+		draw(root->vob->getModel(), context, meshRenderCallback);
 	}
 	else if (root->drawingType == DrawingTypes::INSTANCED)
 	{
@@ -100,19 +99,16 @@ void ModelDrawerGL::draw(Sprite * sprite)
 	}
 }
 
-void ModelDrawerGL::draw(Vob* vob)
-{
-	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
-	draw(model);
-}
-
-void ModelDrawerGL::draw(ModelGL* model)
+void ModelDrawerGL::draw(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback)
 {
 	//TODO
 	//shader->bind();
 	//shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
+
+		meshRenderCallback(&mesh.get(), context);
+
 		const VertexArray* vertexArray = mesh.get().getVertexArray();
 		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
 
@@ -190,14 +186,13 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void ModelDrawerGL::drawWired(Vob* vob, int lineStrength)
+void ModelDrawerGL::drawWired(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();
-	ModelGL* model = vob->getModel(); //ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
 
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	draw(model);
+	draw(model, context, meshRenderCallback);
 }

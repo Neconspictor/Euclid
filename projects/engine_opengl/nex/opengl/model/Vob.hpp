@@ -50,7 +50,7 @@ public:
 	 * Provides read/write access to the transformation matrix
 	 * of this model.
 	 */
-	 glm::mat4& getTrafo();
+	 glm::mat4& getTrafo() const;
 
 
 	void init(ModelManagerGL* modelManager);

@@ -85,7 +85,7 @@ vec3 Vob::getPosition() const
 	return position;
 }
 
-mat4& Vob::getTrafo()
+mat4& Vob::getTrafo() const
 {
 	return trafo;
 }
