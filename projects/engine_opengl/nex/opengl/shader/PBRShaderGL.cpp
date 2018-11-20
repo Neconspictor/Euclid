@@ -166,6 +166,11 @@ void PBRShaderGL::setMVP(const glm::mat4& mat)
 	mProgram->setMat4(mTransform.location, mat);
 }
 
+void PBRShaderGL::setViewMatrix(const glm::mat4& mat)
+{
+	mProgram->setMat4(mView.location, mat);
+}
+
 void PBRShaderGL::setInverseViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mInverseView.location, mat);

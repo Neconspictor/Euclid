@@ -69,19 +69,35 @@ void PBR::drawScene(SceneNode * scene,
 
 	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 
-	shader = dynamic_cast<PBRShaderGL*> (renderer->getShaderManager()->getShader(ShaderType::Pbr));
+	shader = reinterpret_cast<PBRShaderGL*> (renderer->getShaderManager()->getShader(ShaderType::Pbr));
 
-	shader->setCameraPosition(cameraPosition);
-	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
-	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	shader->bind();
+
 	shader->setBrdfLookupTexture(brdfLookupTexture->getTexture());
+	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
+	
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
+
+	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setShadowMap(shadowMap);
-	shader->setSkyBox(environmentMap->getCubeMap());
+
+	//TODO validate whether this is needed
+	//shader->setSkyBox(environmentMap->getCubeMap());
+
+	shader->setCameraPosition(cameraPosition);
+
+	shader->setViewMatrix(view);
+	shader->setInverseViewMatrix(inverse(view));
+
+	// TODO For each model we have to set model, modelview, normalMatrix, mvp, 
+	// and all the texture maps (albedo, ao, etc.)
+	
+	
+
 
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();

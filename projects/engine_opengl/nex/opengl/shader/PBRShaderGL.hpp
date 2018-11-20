@@ -53,6 +53,7 @@ public:
 
 	void setMVP(const glm::mat4& mat);
 
+	void setViewMatrix(const glm::mat4& mat);
 	void setInverseViewMatrix(const glm::mat4& mat);
 
 private:
