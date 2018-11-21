@@ -23,3 +23,8 @@ void ScreenShaderGL::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
+
+void ScreenShaderGL::onTransformUpdate(const TransformData& data)
+{
+	setMVP((*data.projection)*(*data.view)*(*data.model));
+}

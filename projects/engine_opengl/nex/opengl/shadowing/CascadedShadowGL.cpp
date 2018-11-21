@@ -67,7 +67,7 @@ void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	updateTextureArray();
 }
 
-void CascadedShadowGL::render(MeshGL* mesh, glm::mat4* modelMatrix)
+void CascadedShadowGL::render(MeshGL* mesh, const glm::mat4* modelMatrix)
 {
 	// Update modelMatrix uniform
 	static const GLuint MODEL_MATRIX_LOCATION = 1;

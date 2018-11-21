@@ -48,7 +48,7 @@ public:
 	/**
 	 * Renders a mesh with a given model matrix to the active cascade
 	 */
-	void render(MeshGL* mesh, glm::mat4* modelMatrix);
+	void render(MeshGL* mesh, const glm::mat4* modelMatrix);
 
 	/**
 	 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.

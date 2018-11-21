@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/opengl/shader/ShaderGL.hpp>
 
-class ScreenShaderGL : public ShaderGL
+class ScreenShaderGL : public TransformShaderGL
 {
 public:
 	ScreenShaderGL();
@@ -12,6 +12,7 @@ public:
 
 	void setMVP(const glm::mat4& mat);
 
+	void onTransformUpdate(const TransformData& data) override;
 protected:
 	UniformTex mTexture;
 	Uniform mTransform;

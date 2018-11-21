@@ -135,7 +135,8 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
 	shader->setShadowMap(shadowMap);
 	shader->setAOMap(ssaoMap);
-	shader->setSkyBox(environmentMap->getCubeMap());
+	//TODO
+	//shader->setSkyBox(environmentMap->getCubeMap());
 	shader->setWorldToLightSpaceMatrix(worldToLight);
 	shader->setEyeToLightSpaceMatrix(worldToLight  * viewFromGPass);
 	shader->setCascadedData(cascadeData);

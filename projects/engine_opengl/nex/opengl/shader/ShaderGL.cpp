@@ -118,55 +118,73 @@ void ShaderProgramGL::initShaderFileSystem()
 }
 
 
-void ShaderProgramGL::setInt(GLuint uniformID, int data)
+void ShaderProgramGL::setInt(GLint uniformID, int data)
 {
 	assert(mIsBound);
-	GLCall(glUniform1i(uniformID, data));
+	if (uniformID < 0) return;
+	glUniform1i(uniformID, data);
 }
 
-void ShaderProgramGL::setFloat(GLuint uniformID, float data)
+void ShaderProgramGL::setFloat(GLint uniformID, float data)
 {
 	assert(mIsBound);
-	GLCall(glUniform1f(uniformID, data));
+	if (uniformID < 0) return;
+	glUniform1f(uniformID, data);
 }
 
-void ShaderProgramGL::setVec2(GLuint uniformID, const glm::vec2& data)
+void ShaderProgramGL::setVec2(GLint uniformID, const glm::vec2& data)
 {
 	assert(mIsBound);
-	GLCall(glUniform2f(uniformID, data.x, data.y));
+	if (uniformID < 0) return;
+	glUniform2f(uniformID, data.x, data.y);
 }
 
-void ShaderProgramGL::setVec3(GLuint uniformID, const glm::vec3& data)
+void ShaderProgramGL::setVec3(GLint uniformID, const glm::vec3& data)
 {
-	assert(mIsBound);
-	GLCall(glUniform3f(uniformID, data.x, data.y, data.z));
+	ASSERT(mIsBound);
+	if (uniformID < 0) return;
+
+	GLClearError();
+	glUniform3f(uniformID, data.x, data.y, data.z);
+
+	if (!GLLogCall())
+	{
+		
+		nex::Logger("ShaderProgramGL")(nex::Error) << "Something went wrong!";
+	}
 }
 
-void ShaderProgramGL::setVec4(GLuint uniformID, const glm::vec4& data)
+void ShaderProgramGL::setVec4(GLint uniformID, const glm::vec4& data)
 {
 	assert(mIsBound);
-	GLCall(glUniform4f(uniformID, data.x, data.y, data.z, data.w));
+	if (uniformID < 0) return;
+
+	glUniform4f(uniformID, data.x, data.y, data.z, data.w);
 }
 
-void ShaderProgramGL::setMat3(GLuint uniformID, const glm::mat3& data)
+void ShaderProgramGL::setMat3(GLint uniformID, const glm::mat3& data)
 {
 	assert(mIsBound);
-	GLCall(glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data)));
+	if (uniformID < 0) return;
+	glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data));
 }
 
-void ShaderProgramGL::setMat4(GLuint uniformID, const glm::mat4& data)
+void ShaderProgramGL::setMat4(GLint uniformID, const glm::mat4& data)
 {
 	assert(mIsBound);
-	GLCall(glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data)));
+	if (uniformID < 0) return;
+	glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data));
 }
 
-void ShaderProgramGL::setTexture(GLuint uniformID, const TextureGL* data, unsigned textureSlot)
+void ShaderProgramGL::setTexture(GLint uniformID, const TextureGL* data, unsigned textureSlot)
 {
-	assert(mIsBound);
-	assert(isValid(textureSlot));
+	//assert(mIsBound);
+	ASSERT(mIsBound);
+	ASSERT(isValid(textureSlot));
+	if (uniformID < 0) return;
 
-	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
-	GLCall(glUniform1i(uniformID, textureSlot));
+	glBindTextureUnit(textureSlot, data->getTexture());
+	glUniform1i(uniformID, textureSlot);
 }
 
 

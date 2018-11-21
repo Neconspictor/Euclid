@@ -26,6 +26,11 @@ void GaussianBlurHorizontalShaderGL::setMVP(const mat4& mvp)
 	mProgram->setMat4(transform.location, mvp);
 }
 
+void GaussianBlurHorizontalShaderGL::onTransformUpdate(const TransformData& data)
+{
+	setMVP((*data.projection)*(*data.view)*(*data.model));
+}
+
 void GaussianBlurHorizontalShaderGL::setImageWidth(float width)
 {
 	mProgram->setInt(windowWidth.location, width);
@@ -59,6 +64,11 @@ void GaussianBlurVerticalShaderGL::setTexture(const TextureGL* tex)
 void GaussianBlurVerticalShaderGL::setMVP(const mat4& mvp)
 {
 	mProgram->setMat4(transform.location, mvp);
+}
+
+void GaussianBlurVerticalShaderGL::onTransformUpdate(const TransformData& data)
+{
+	setMVP((*data.projection)*(*data.view)*(*data.model));
 }
 
 void GaussianBlurVerticalShaderGL::setImageWidth(float width)

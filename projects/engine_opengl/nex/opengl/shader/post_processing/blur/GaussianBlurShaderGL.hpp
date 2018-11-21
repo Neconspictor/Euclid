@@ -2,7 +2,7 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-class GaussianBlurHorizontalShaderGL : public ShaderGL
+class GaussianBlurHorizontalShaderGL : public TransformShaderGL
 {
 public:
 	GaussianBlurHorizontalShaderGL();
@@ -15,8 +15,9 @@ public:
 	void setTexture(const TextureGL* tex);
 
 	void setMVP(const glm::mat4& mvp);
-	
 
+
+	void onTransformUpdate(const TransformData& data) override;
 protected:
 	UniformTex image;
 	Uniform transform;
@@ -24,7 +25,7 @@ protected:
 	Uniform windowHeight;
 };
 
-class GaussianBlurVerticalShaderGL : public ShaderGL
+class GaussianBlurVerticalShaderGL : public TransformShaderGL
 {
 public:
 	GaussianBlurVerticalShaderGL();
@@ -38,6 +39,7 @@ public:
 
 	void setMVP(const glm::mat4& mvp);
 
+	void onTransformUpdate(const TransformData& data) override;
 protected:
 	UniformTex image;
 	Uniform transform;

@@ -147,7 +147,7 @@ private:
 	GLuint m_fullscreenTriangleVAO;
 };
 
-class SSAO_Tiled_Blur_ShaderGL : public ShaderGL
+class SSAO_Tiled_Blur_ShaderGL : public TransformShaderGL
 {
 public:
 
@@ -170,13 +170,18 @@ public:
 		mProgram->setMat4(mTransform.location, mat);
 	}
 
+	void onTransformUpdate(const TransformData& data) override
+	{
+		setMVP((*data.projection)*(*data.view)*(*data.model));
+	}
+
 private:
 	UniformTex mAoTexture;
 	Uniform mTransform;
 };
 
 
-class SSAO_AO_Display_ShaderGL : public ShaderGL
+class SSAO_AO_Display_ShaderGL : public TransformShaderGL
 {
 public:
 
@@ -196,6 +201,11 @@ public:
 
 	void setMVP(const glm::mat4& mat) {
 		mProgram->setMat4(mTransform.location, mat);
+	}
+
+	void onTransformUpdate(const TransformData& data) override
+	{
+		setMVP((*data.projection)*(*data.view)*(*data.model));
 	}
 
 	//TODO
@@ -371,23 +381,27 @@ void SSAO_DeferredGL::renderAO(TextureGL * gPositions, TextureGL * gNormals, con
 
 void SSAO_DeferredGL::blur()
 {
-	SSAO_Tiled_Blur_ShaderGL& tiledBlurShader = dynamic_cast<SSAO_Tiled_Blur_ShaderGL&>(*tiledBlurPass);
-	tiledBlurShader.setAOTexture(aoRenderTarget.getTexture());
+	SSAO_Tiled_Blur_ShaderGL* tiledBlurShader = reinterpret_cast<SSAO_Tiled_Blur_ShaderGL*>(tiledBlurPass.get());
+	tiledBlurShader->bind();
+	tiledBlurShader->setAOTexture(aoRenderTarget.getTexture());
+
 	glViewport(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glScissor(0, 0, tiledBlurRenderTarget.getWidth(), tiledBlurRenderTarget.getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, tiledBlurRenderTarget.getFrameBuffer());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		modelDrawer->draw(&screenSprite, *tiledBlurPass);
+		modelDrawer->draw(&screenSprite, tiledBlurShader);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void SSAO_DeferredGL::displayAOTexture(TextureGL* aoTexture)
 {
-	SSAO_AO_Display_ShaderGL& aoDisplayShader = dynamic_cast<SSAO_AO_Display_ShaderGL&>(*aoDisplay);
+	SSAO_AO_Display_ShaderGL* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_ShaderGL*>(aoDisplay.get());
 	//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
 	TextureGL* aoTextureGL = (TextureGL*)aoTexture;
-	aoDisplayShader.setScreenTexture(aoTextureGL);
-	modelDrawer->draw(&screenSprite, *aoDisplay);
+
+	aoDisplayShader->bind();
+	aoDisplayShader->setScreenTexture(aoTextureGL);
+	modelDrawer->draw(&screenSprite, aoDisplayShader);
 }
 
 SSAO_RendertargetGL SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned int height)

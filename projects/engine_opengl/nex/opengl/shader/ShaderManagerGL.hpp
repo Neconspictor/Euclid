@@ -38,7 +38,7 @@ public:
 	static ShaderManagerGL* get();
 
 private:
-	std::map<ShaderType, std::unique_ptr<ShaderGL>> shaderMap;
+	std::map<ShaderType, ShaderGL*> shaderMap;
 	nex::Logger m_logger;
 
 	// this class is a singleton, thus private constructor

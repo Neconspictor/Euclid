@@ -610,21 +610,16 @@ void RendererOpenGL::__clearRenderTarget(RenderTargetGL* renderTarget, bool rele
 
 CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, TextureGL* equirectangularMap)
 {
-	EquirectangularSkyBoxShaderGL* shader = dynamic_cast<EquirectangularSkyBoxShaderGL*>(getShaderManager()->getConfig(ShaderType::SkyBoxEquirectangular));
-	shader->setSkyTexture(equirectangularMap);
-	Vob skyBox ("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex);
-
-	TextureData textureData = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32};
-
-
-	CubeRenderTargetGL*  result = createCubeRenderTarget(width, height, std::move(textureData));
-
-
-	TransformData data;
+	EquirectangularSkyBoxShaderGL* shader = dynamic_cast<EquirectangularSkyBoxShaderGL*>(getShaderManager()->getShader(ShaderType::SkyBoxEquirectangular));
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
-	data.projection = &projection;
-	mat4 model = glm::mat4();
-	data.model = &model;
+
+	shader->bind();
+	shader->setSkyTexture(equirectangularMap);
+	shader->setProjection(projection);
+
+	Vob skyBox ("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex);
+	TextureData textureData = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32};
+	CubeRenderTargetGL*  result = createCubeRenderTarget(width, height, std::move(textureData));
 
 	//view matrices;
 	const mat4 views[] = {
@@ -647,8 +642,8 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//render into the texture
-		data.view = &views[i];
-		modelDrawer.draw(&skyBox, ShaderType::SkyBoxEquirectangular, data);
+		shader->setView(views[i]);
+		modelDrawer.draw(skyBox.getModel(), shader);
 	}
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

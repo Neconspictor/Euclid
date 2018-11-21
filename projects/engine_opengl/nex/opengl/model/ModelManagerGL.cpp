@@ -9,7 +9,8 @@
 #include <sstream>
 #include <string>
 #include <nex/util/StringUtils.hpp>
-#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
+//TODO
+//#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <nex/opengl/material/BlinnPhongMaterial.hpp>
 

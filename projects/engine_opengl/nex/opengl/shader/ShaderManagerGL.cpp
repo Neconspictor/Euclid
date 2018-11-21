@@ -21,6 +21,9 @@ ShaderManagerGL::ShaderManagerGL() :
 
 ShaderManagerGL::~ShaderManagerGL()
 {
+	for (auto& it : shaderMap)
+		delete it.second;
+	shaderMap.clear();
 }
 
 ShaderGL* ShaderManagerGL::getShader(ShaderType shaderEnum)
@@ -32,7 +35,7 @@ ShaderGL* ShaderManagerGL::getShader(ShaderType shaderEnum)
 		return createShader(shaderEnum);
 	}
 
-	return it->second.get();
+	return it->second;
 }
 
 void ShaderManagerGL::loadShaders()
@@ -142,6 +145,6 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 	}
 	
 	assert(shaderPtr != nullptr);
-	shaderMap[shaderEnum].reset(shaderPtr);
+	shaderMap[shaderEnum] = shaderPtr;
 	return shaderPtr;
 }

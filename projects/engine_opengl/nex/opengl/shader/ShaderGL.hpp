@@ -126,18 +126,18 @@ public:
 
 	void setDebugName(const char* name);
 
-	void setInt(GLuint uniformID, int data);
-	void setFloat(GLuint uniformID, float data);
+	void setInt(GLint uniformID, int data);
+	void setFloat(GLint uniformID, float data);
 
-	void setVec2(GLuint uniformID, const glm::vec2& data);
-	void setVec3(GLuint uniformID, const glm::vec3& data);
-	void setVec4(GLuint uniformID, const glm::vec4& data);
+	void setVec2(GLint uniformID, const glm::vec2& data);
+	void setVec3(GLint uniformID, const glm::vec3& data);
+	void setVec4(GLint uniformID, const glm::vec4& data);
 
-	void setMat3(GLuint uniformID, const glm::mat3& data);
-	void setMat4(GLuint uniformID, const glm::mat4& data);
+	void setMat3(GLint uniformID, const glm::mat3& data);
+	void setMat4(GLint uniformID, const glm::mat4& data);
 
 
-	void setTexture(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
+	void setTexture(GLint uniformID, const TextureGL* data, unsigned int textureSlot);
 
 	/*void setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
 	void setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot);
