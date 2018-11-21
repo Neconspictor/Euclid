@@ -61,6 +61,11 @@ void ShadowShaderGL::setLightSpaceMatrix(const glm::mat4& mat)
 	mProgram->setMat4(mLightSpaceMatrix.location, mat);
 }
 
+void ShadowShaderGL::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+{
+	setModel(modelMatrix);
+}
+
 
 //TODO
 /*

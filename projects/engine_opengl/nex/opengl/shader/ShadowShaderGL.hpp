@@ -32,6 +32,8 @@ public:
 	void setModel(const glm::mat4& mat);
 	void setLightSpaceMatrix(const glm::mat4& mat);
 
+	void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+
 protected:
 
 	Uniform mModel;

@@ -13,6 +13,7 @@
 #include <regex>
 #include "nex/opengl/mesh/MeshGL.hpp"
 #include "nex/util/Memory.hpp"
+#include <nex/opengl/material/Material.hpp>
 
 using namespace nex;
 using namespace ::util;
@@ -570,10 +571,6 @@ ShaderGL::ShaderGL() : mProgram(nullptr)
 }
 
 
-ShaderGL::ShaderGL(ShaderProgramGL* program) : mProgram(program)
-{
-}
-
 ShaderGL::~ShaderGL()
 {
 	delete mProgram;
@@ -598,6 +595,14 @@ void ShaderGL::setProgram(ShaderProgramGL* program)
 void ShaderGL::unbind()
 {
 	mProgram->unbind();
+}
+
+void ShaderGL::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+{
+}
+
+void ShaderGL::onMaterialUpdate(const Material* material)
+{
 }
 
 void ShaderGL::setupRenderState()

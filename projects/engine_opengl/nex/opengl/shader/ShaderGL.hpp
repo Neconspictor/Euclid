@@ -4,6 +4,7 @@
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/common/Log.hpp>
 
+class Material;
 class CubeMapGL;
 class TextureGL;
 class MeshGL;
@@ -194,7 +195,6 @@ class ShaderGL
 public:
 
 	ShaderGL();
-	ShaderGL(ShaderProgramGL* program);
 
 	virtual ~ShaderGL();
 
@@ -206,6 +206,10 @@ public:
 
 	void unbind();
 
+	virtual void onModelMatrixUpdate(const glm::mat4& modelMatrix);
+
+	virtual void onMaterialUpdate(const Material* material);
+
 	// Function that should be called before render calls
 	virtual void setupRenderState();
 
@@ -215,4 +219,13 @@ public:
 
 protected:
 	ShaderProgramGL* mProgram;
+};
+
+class TransformShaderGL : public ShaderGL
+{
+public:
+	TransformShaderGL() = default;
+	virtual ~TransformShaderGL() = default;
+
+	virtual void onTransformUpdate(const TransformData& data) = 0;
 };

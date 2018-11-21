@@ -25,18 +25,17 @@ void ModelDrawerGL::vobRenderCallbackTest(Vob* vob)
 	//drawer->draw(root, vobRenderCallbackTest);
 }
 
-void ModelDrawerGL::draw(SceneNode* root, const RenderContext* context, VobRenderCallback vobRenderCallback, MeshRenderCallback meshRenderCallback)
+void ModelDrawerGL::draw(SceneNode* root, ShaderGL* shader)
 {
 	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
-		draw(*it, context, vobRenderCallback, meshRenderCallback);
+		draw(*it, shader);
 
 	if (!root->vob) return;
 
 	if (root->drawingType == DrawingTypes::SOLID)
 	{
-		// type, data
-		vobRenderCallback(root->vob, context);
-		draw(root->vob->getModel(), context, meshRenderCallback);
+		shader->onModelMatrixUpdate(root->vob->getTrafo());
+		draw(root->vob->getModel(), shader);
 	}
 	else if (root->drawingType == DrawingTypes::INSTANCED)
 	{
@@ -45,7 +44,7 @@ void ModelDrawerGL::draw(SceneNode* root, const RenderContext* context, VobRende
 	}
 }
 
-void ModelDrawerGL::draw(Sprite * sprite)
+void ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
 {
 	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -79,11 +78,8 @@ void ModelDrawerGL::draw(Sprite * sprite)
 	// finally scale
 	model = scale(model, scaling);
 
-	TransformData data = { &projection, &view, &model };
-
-	//TODO
-	//glShader.bind();
-	//glShader.setTransformData(data);
+	const TransformData data = { &projection, &view, &model };
+	shader->onTransformUpdate(data);
 
 	for (auto& mesh : spriteModel->getMeshes())
 	{
@@ -99,15 +95,14 @@ void ModelDrawerGL::draw(Sprite * sprite)
 	}
 }
 
-void ModelDrawerGL::draw(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback)
+void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
 {
 	//TODO
 	//shader->bind();
 	//shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
-
-		meshRenderCallback(&mesh.get(), context);
+		shader->onMaterialUpdate(mesh.get().getMaterial());
 
 		const VertexArray* vertexArray = mesh.get().getVertexArray();
 		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
@@ -186,7 +181,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void ModelDrawerGL::drawWired(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback, int lineStrength)
+void ModelDrawerGL::drawWired(ModelGL* model, ShaderGL* shader, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();
@@ -194,5 +189,5 @@ void ModelDrawerGL::drawWired(ModelGL* model, const RenderContext* context, Mesh
 	glLineWidth(static_cast<float>(lineStrength));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	draw(model, context, meshRenderCallback);
+	draw(model, shader);
 }

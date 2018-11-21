@@ -131,6 +131,11 @@ void PBRShaderGL::setPrefilterMap(const CubeMapGL* prefilterMap)
 	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.textureUnit);
 }
 
+void PBRShaderGL::setProjectionMatrix(const glm::mat4& mat)
+{
+	mProjectionMatrixSource = &mat;
+}
+
 void PBRShaderGL::setShadowMap(const TextureGL* texture)
 {
 	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.textureUnit);
@@ -168,12 +173,38 @@ void PBRShaderGL::setMVP(const glm::mat4& mat)
 
 void PBRShaderGL::setViewMatrix(const glm::mat4& mat)
 {
+	mViewMatrixSource = &mat;
 	mProgram->setMat4(mView.location, mat);
 }
 
 void PBRShaderGL::setInverseViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mInverseView.location, mat);
+}
+
+void PBRShaderGL::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
+{
+	mat4 modelView = *mViewMatrixSource * modelMatrix;
+
+	setModelMatrix(modelMatrix);
+	setModelViewMatrix(modelView);
+	setMVP(*mProjectionMatrixSource * modelView);
+	setNormalMatrix(transpose(inverse(mat3(modelView))));
+}
+
+void PBRShaderGL::onMaterialUpdate(const Material* materialSource)
+{
+	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
+
+	if (material == nullptr)
+		return;
+
+	setAlbedoMap(material->getAlbedoMap());
+	setAmbientOcclusionMap(material->getAoMap());
+	setEmissionMap(material->getEmissionMap());
+	setMetalMap(material->getMetallicMap());
+	setNormalMap(material->getNormalMap());
+	setRoughnessMap(material->getRoughnessMap());
 }
 
 
@@ -578,4 +609,9 @@ PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL()
 void PBR_BrdfPrecomputeShaderGL::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
+}
+
+void PBR_BrdfPrecomputeShaderGL::onTransformUpdate(const TransformData& data)
+{
+	setMVP(*data.projection * (*data.view) * (*data.model));
 }

@@ -39,17 +39,17 @@ public:
 	/**
 	 * Draws this scene node and all its children using a specific shader.
 	 */
-	void draw(SceneNode* root, const RenderContext* context, VobRenderCallback vobRenderCallback, MeshRenderCallback meshRenderCallback);
+	void draw(SceneNode* root, ShaderGL* shader);
 
 	/**
 	 * Draws a sprite onto the screen
 	 */
-	void draw(Sprite* sprite);
+	void draw(Sprite* sprite, TransformShaderGL* shader);
 
 	/**
 	 * Draws the specified model with a given shader onto the screen.
 	 */
-	void draw(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback);
+	void draw(ModelGL* model, ShaderGL* shader);
 
 	//TODO implement
 	//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
@@ -60,7 +60,7 @@ public:
 	 */
 	//void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-	void drawWired(ModelGL* model, const RenderContext* context, MeshRenderCallback meshRenderCallback, int lineStrength);
+	void drawWired(ModelGL* model, ShaderGL* shader, int lineStrength);
 
 private:
 	RendererOpenGL* renderer;

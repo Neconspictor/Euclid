@@ -38,6 +38,8 @@ public:
 
 	void setPrefilterMap(const CubeMapGL* prefilterMap);
 
+	void setProjectionMatrix(const glm::mat4& mat);
+
 	void setShadowMap(const TextureGL* texture);
 
 	//TODO
@@ -55,6 +57,9 @@ public:
 
 	void setViewMatrix(const glm::mat4& mat);
 	void setInverseViewMatrix(const glm::mat4& mat);
+
+	void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+	void onMaterialUpdate(const Material* material) override;
 
 private:
 
@@ -89,6 +94,9 @@ private:
 
 	Uniform mView;
 	Uniform mInverseView;
+
+	glm::mat4 const* mProjectionMatrixSource;
+	glm::mat4 const* mViewMatrixSource;
 };
 
 class PBRShader_Deferred_GeometryGL : public ShaderGL {
@@ -229,7 +237,7 @@ private:
 	Uniform mRoughness;
 };
 
-class PBR_BrdfPrecomputeShaderGL : public ShaderGL
+class PBR_BrdfPrecomputeShaderGL : public TransformShaderGL
 {
 public:
 	PBR_BrdfPrecomputeShaderGL();
@@ -238,6 +246,7 @@ public:
 
 	void setMVP(const glm::mat4& mat);
 
+	void onTransformUpdate(const TransformData& data) override;
 private:
 	Uniform mTransform;
 };
