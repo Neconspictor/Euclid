@@ -128,7 +128,7 @@ GLuint vertexArrayObjID;
 void RendererOpenGL::init()
 {
 	LOG(m_logger, Info) << "Initializing...";
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	GLCall(glEnable(GL_SCISSOR_TEST));
 	glViewport(0, 0, mViewport.width, mViewport.height);
@@ -155,11 +155,11 @@ void RendererOpenGL::init()
 	//glEnable(GL_BLEND); // TODO
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	ShaderProgramGL::initShaderFileSystem();
 
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 
 	smaa = make_unique<SMAA_GL>(this);
@@ -194,7 +194,7 @@ void RendererOpenGL::init()
 
 	TextureManagerGL::get()->init();
 
-	checkGLErrors(BOOST_CURRENT_FUNCTION);
+	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 void RendererOpenGL::beginScene()
@@ -551,6 +551,7 @@ void RendererOpenGL::useVarianceShadowMap(RenderTargetGL* source)
 
 void RendererOpenGL::checkGLErrors(const string& errorPrefix)
 {
+	return;
 	// check if any gl related errors occured
 	GLint errorCode = glGetError();
 	if (errorCode != GL_NO_ERROR)

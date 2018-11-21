@@ -51,6 +51,7 @@ public:
 	std::string getFullFilePath(const std::string& localFilePath);
 
 	void loadImages(const std::string& imageFolder);
+	const SamplerGL* getDefaultImageSampler() const;
 
 	/**
 	 * Provides access the texture manager singleton.
@@ -64,8 +65,6 @@ public:
 	void setAnisotropicFiltering(float value);
 	float getAnisotropicFiltering() const;
 
-	void registerAnistropySampler(SamplerGL* sampler);
-
 	float getMaxAnisotropicFiltering() const;
 protected:
 	std::list<TextureGL> textures;
@@ -73,7 +72,7 @@ protected:
 	std::map<std::string, TextureGL*> textureLookupTable;
 	nex::Logger m_logger;
 	float m_anisotropy;
-	std::list<SamplerGL*> m_anisotropySamplers;
+	SamplerGL mDefaultImageSampler;
 
 private:
 

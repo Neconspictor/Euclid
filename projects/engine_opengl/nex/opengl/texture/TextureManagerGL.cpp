@@ -42,25 +42,12 @@ void TextureManagerGL::setAnisotropicFiltering(float value)
 
 	m_anisotropy = std::min(m_anisotropy, maxAnisotropy);
 
-	for (auto sampler : m_anisotropySamplers)
-	{
-		GLCall(glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy));
-		glSamplerParameterf(sampler->getID(), GL_TEXTURE_MAX_ANISOTROPY, m_anisotropy);
-		glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
-		GLCall(glSamplerParameterf(sampler->getID(), GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy));
-		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		//glSamplerParameteri(sampler->getID(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
+	GLCall(glSamplerParameterf(mDefaultImageSampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, m_anisotropy));
 }
 
 float TextureManagerGL::getAnisotropicFiltering() const
 {
 	return m_anisotropy;
-}
-
-void TextureManagerGL::registerAnistropySampler(SamplerGL* sampler)
-{
-	m_anisotropySamplers.push_back(sampler);
 }
 
 float TextureManagerGL::getMaxAnisotropicFiltering() const
@@ -76,6 +63,14 @@ TextureManagerGL::~TextureManagerGL()
 
 void TextureManagerGL::init()
 {
+	GLuint sampler;
+	glGenSamplers(1, &sampler);
+	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 2.0f);
+
+	mDefaultImageSampler.setID(sampler);
+
 	setAnisotropicFiltering(16.0f);
 }
 
@@ -320,6 +315,11 @@ void TextureManagerGL::loadImages(const string& imageFolder)
 	//TODO!
 }
 
+const SamplerGL* TextureManagerGL::getDefaultImageSampler() const
+{
+	return &mDefaultImageSampler;
+}
+
 TextureManagerGL* TextureManagerGL::get()
 {
 	return &instance;
@@ -357,8 +357,9 @@ void TextureManager_Configuration::drawSelf()
 
 	// render configuration properties
 	ImGui::PushID(m_id.c_str());
-	if (ImGui::InputFloat("Anisotropic Filtering (read-only)", &anisotropy, 1.0f, 1.0f, "%.3f", ImGuiInputTextFlags_ReadOnly))
+	if (ImGui::InputFloat("Anisotropic Filtering (read-only)", &anisotropy, 1.0f, 1.0f, "%.3f")) //ImGuiInputTextFlags_ReadOnly
 	{
+		m_textureManager->setAnisotropicFiltering(anisotropy);
 	}
 	ImGui::PopID();
 

@@ -32,14 +32,6 @@ PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHD
 	screenSprite.setPosition(pos);
 	screenSprite.setWidth(dim.x);
 	screenSprite.setHeight(dim.y);
-
-	GLuint sampler;
-	glGenSamplers(1, &sampler);
-	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 2.0f);
-
-	m_sampler.setID(sampler);
 }
 
 void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
@@ -70,10 +62,6 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 	glBindSampler(14, m_sampler.getID());
 	glBindSampler(15, m_sampler.getID());*/
 
-	for (int i = 0; i < 10; ++i)
-	{
-		glBindSampler(i, m_sampler.getID());
-	}
 
 	PBRShader_Deferred_GeometryGL* shader = reinterpret_cast<PBRShader_Deferred_GeometryGL*> (
 		renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Geometry));
@@ -84,9 +72,18 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 	shader->setView(view);
 	shader->setProjection(projection);
 
+
+
+	const SamplerGL* sampler = TextureManagerGL::get()->getDefaultImageSampler();
+
+	for (int i = 0; i < 6; ++i)
+	{
+		glBindSampler(i, sampler->getID());
+	}
+
 	modelDrawer->draw(scene, shader);
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 6; ++i)
 	{
 		glBindSampler(i, GL_FALSE);
 	}
