@@ -43,7 +43,6 @@ class SamplerGL
 {
 public:
 	explicit SamplerGL();
-	SamplerGL(GLuint samplerID);
 	SamplerGL(SamplerGL&& o);
 	SamplerGL& operator=(SamplerGL&& o);
 
@@ -53,9 +52,37 @@ public:
 
 	virtual ~SamplerGL();
 
+	GLfloat getAnisotropy() const;
 	GLuint getID() const;
+	static GLfloat getMaxAnisotropicFiltering();
+	GLint getMinFilter() const;
+	GLint getMagFilter() const;
+	GLuint getCompareMode() const;
+	GLuint getCompareFuntion() const;
 
-	void setID(GLuint sampler);
+	GLuint getWrapS() const;
+	GLuint getWrapT() const;
+	GLuint getWrapR() const;
+
+	glm::vec4 getBorderColor() const;
+
+	GLint getMinLOD() const;
+	GLint getMaxLOD() const;
+	GLint getLodBias() const;
+
+	void setMinFilter(TextureFilter filter);
+	void setMagFilter(TextureFilter filter);
+	void setAnisotropy(float anisotropy);
+	void setCompareMode(GLuint mode);
+	void setCompareFunction(GLuint compareFunction);
+
+	void setWrapS(TextureUVTechnique wrap);
+	void setWrapT(TextureUVTechnique wrap);
+	void setWrapR(TextureUVTechnique wrap);
+	void setBorderColor(const glm::vec4& color);
+	void setMinLOD(float lod);
+	void setMaxLOD(float lod);
+	void setLodBias(float bias);
 
 protected:
 	GLuint m_samplerID;

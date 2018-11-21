@@ -15,7 +15,7 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), m_anisotropy(0.0f)
+TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), m_anisotropy(0.0f), mDefaultImageSampler(nullptr)
 {
 	textureLookupTable = map<string, TextureGL*>();
 
@@ -34,44 +34,22 @@ void TextureManagerGL::releaseTexture(TextureGL * tex)
 	}
 }
 
-void TextureManagerGL::setAnisotropicFiltering(float value)
-{
-	m_anisotropy = value;
-
-	GLfloat maxAnisotropy = getMaxAnisotropicFiltering();
-
-	m_anisotropy = std::min(m_anisotropy, maxAnisotropy);
-
-	GLCall(glSamplerParameterf(mDefaultImageSampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, m_anisotropy));
-}
-
-float TextureManagerGL::getAnisotropicFiltering() const
-{
-	return m_anisotropy;
-}
-
-float TextureManagerGL::getMaxAnisotropicFiltering() const
-{
-	GLfloat maxAnisotropy;
-	GLCall(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy));
-	return maxAnisotropy;
-}
-
 TextureManagerGL::~TextureManagerGL()
 {
+	delete mDefaultImageSampler;
 }
 
 void TextureManagerGL::init()
 {
-	GLuint sampler;
-	glGenSamplers(1, &sampler);
-	glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 2.0f);
+	//GLuint sampler = mDefaultImageSampler.getID();
+	//glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
-	mDefaultImageSampler.setID(sampler);
-
-	setAnisotropicFiltering(16.0f);
+	mDefaultImageSampler = new SamplerGL();
+	mDefaultImageSampler->setMinFilter(Linear_Mipmap_Linear);
+	mDefaultImageSampler->setMagFilter(Linear);
+	mDefaultImageSampler->setAnisotropy(16.0f);
 }
 
 CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
@@ -315,9 +293,9 @@ void TextureManagerGL::loadImages(const string& imageFolder)
 	//TODO!
 }
 
-const SamplerGL* TextureManagerGL::getDefaultImageSampler() const
+SamplerGL* TextureManagerGL::getDefaultImageSampler()
 {
-	return &mDefaultImageSampler;
+	return mDefaultImageSampler;
 }
 
 TextureManagerGL* TextureManagerGL::get()
@@ -350,8 +328,8 @@ TextureManager_Configuration::TextureManager_Configuration(TextureManagerGL* tex
 void TextureManager_Configuration::drawSelf()
 {
 
-	float anisotropyMax = m_textureManager->getMaxAnisotropicFiltering();
-	float anisotropy = m_textureManager->getAnisotropicFiltering();
+	SamplerGL* sampler = m_textureManager->getDefaultImageSampler();
+	float anisotropy = sampler->getAnisotropy();
 
 	//float anisotropyBackup = anisotropy;
 
@@ -359,7 +337,7 @@ void TextureManager_Configuration::drawSelf()
 	ImGui::PushID(m_id.c_str());
 	if (ImGui::InputFloat("Anisotropic Filtering (read-only)", &anisotropy, 1.0f, 1.0f, "%.3f")) //ImGuiInputTextFlags_ReadOnly
 	{
-		m_textureManager->setAnisotropicFiltering(anisotropy);
+		sampler->setAnisotropy(anisotropy);
 	}
 	ImGui::PopID();
 
