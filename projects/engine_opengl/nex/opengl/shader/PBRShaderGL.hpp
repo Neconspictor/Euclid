@@ -111,6 +111,18 @@ public:
 	void setNormalMap(const TextureGL* texture);
 	void setRoughnessMap(const TextureGL* texture);
 
+
+	void setMVP(const glm::mat4& mat);
+	void setModelViewMatrix(const glm::mat4& mat);
+	void setModelView_NormalMatrix(const glm::mat4& mat);
+
+	void setProjection(const glm::mat4& mat);
+	void setView(const glm::mat4& mat);
+
+
+	void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+	void onMaterialUpdate(const Material* material) override;
+
 private:
 
 	Uniform mTransform;
@@ -123,9 +135,12 @@ private:
 	UniformTex mMetalMap;
 	UniformTex mNormalMap;
 	UniformTex mRoughnessMap;
+
+	glm::mat4 const* mProjection;
+	glm::mat4 const* mView;
 };
 
-class PBRShader_Deferred_LightingGL : public ShaderGL {
+class PBRShader_Deferred_LightingGL : public TransformShaderGL {
 public:
 
 	PBRShader_Deferred_LightingGL();
@@ -163,6 +178,7 @@ public:
 	void setPositionEyeMap(const TextureGL* texture);
 
 
+	void onTransformUpdate(const TransformData& data) override;
 
 private:
 	Uniform mTransform;

@@ -13,7 +13,7 @@ class PBR_DeferredGL : public PBR {
 
 public:
 	PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHDR);
-  virtual ~PBR_DeferredGL();
+  virtual ~PBR_DeferredGL() = default;
 
   void drawGeometryScene(SceneNode * scene,
 	  const glm::mat4& view,

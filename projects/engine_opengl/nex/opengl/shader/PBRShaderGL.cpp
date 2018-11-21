@@ -396,6 +396,11 @@ void PBRShader_Deferred_LightingGL::setPositionEyeMap(const TextureGL* texture)
 	mProgram->setTexture(mPositionEyeMap.location, texture, mPositionEyeMap.textureUnit);
 }
 
+void PBRShader_Deferred_LightingGL::onTransformUpdate(const TransformData& data)
+{
+	setMVP((*data.projection) * (*data.view) * (*data.model));
+}
+
 //TODO
 
 /*
@@ -446,24 +451,24 @@ void PBRShader_Deferred_LightingGL::setCascadedData(const CascadedShadowGL::Casc
 }
 
 
-PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL()
+PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL(): mProjection(nullptr), mView(nullptr)
 {
 	mProgram = new ShaderProgramGL(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
 
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
-	mModelView_normalMatrix = { mProgram->getUniformLocation("modelView_normalMatrix"), UniformType::MAT4 };
+	mTransform = {mProgram->getUniformLocation("transform"), UniformType::MAT4};
+	mModelView = {mProgram->getUniformLocation("modelView"), UniformType::MAT4};
+	mModelView_normalMatrix = {mProgram->getUniformLocation("modelView_normalMatrix"), UniformType::MAT4};
 
-	mAlbedoMap = { mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0 };
-	mAmbientOcclusionMap = { mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1 };
+	mAlbedoMap = {mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0};
+	mAmbientOcclusionMap = {mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1};
 
 	// TODO
-	mEmissionMap = { mProgram->getUniformLocation("material.emissionMap"), UniformType::TEXTURE2D, 2 };
+	mEmissionMap = {mProgram->getUniformLocation("material.emissionMap"), UniformType::TEXTURE2D, 2};
 
-	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3 };
-	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4 };
-	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5 };
+	mMetalMap = {mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3};
+	mNormalMap = {mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4};
+	mRoughnessMap = {mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5};
 }
 
 void PBRShader_Deferred_GeometryGL::setAlbedoMap(const TextureGL* texture)
@@ -494,6 +499,55 @@ void PBRShader_Deferred_GeometryGL::setNormalMap(const TextureGL* texture)
 void PBRShader_Deferred_GeometryGL::setRoughnessMap(const TextureGL* texture)
 {
 	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.textureUnit);
+}
+
+void PBRShader_Deferred_GeometryGL::setMVP(const glm::mat4& mat)
+{
+	mProgram->setMat4(mTransform.location, mat);
+}
+
+void PBRShader_Deferred_GeometryGL::setModelViewMatrix(const glm::mat4& mat)
+{
+	mProgram->setMat4(mModelView.location, mat);
+}
+
+void PBRShader_Deferred_GeometryGL::setModelView_NormalMatrix(const glm::mat4& mat)
+{
+	mProgram->setMat4(mModelView_normalMatrix.location, mat);
+}
+
+void PBRShader_Deferred_GeometryGL::setProjection(const glm::mat4& mat)
+{
+	mProjection = &mat;
+}
+
+void PBRShader_Deferred_GeometryGL::setView(const glm::mat4& mat)
+{
+	mView = &mat;
+}
+
+void PBRShader_Deferred_GeometryGL::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
+{
+	mat4 modelView = *mView * modelMatrix;
+
+	setModelViewMatrix(modelView);
+	setMVP(*mProjection * modelView);
+	setModelView_NormalMatrix(transpose(inverse(mat3(modelView))));
+}
+
+void PBRShader_Deferred_GeometryGL::onMaterialUpdate(const Material* materialSource)
+{
+	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
+
+	if (material == nullptr)
+		return;
+
+	setAlbedoMap(material->getAlbedoMap());
+	setAmbientOcclusionMap(material->getAoMap());
+	setEmissionMap(material->getEmissionMap());
+	setMetalMap(material->getMetallicMap());
+	setNormalMap(material->getNormalMap());
+	setRoughnessMap(material->getRoughnessMap());
 }
 
 //TODO

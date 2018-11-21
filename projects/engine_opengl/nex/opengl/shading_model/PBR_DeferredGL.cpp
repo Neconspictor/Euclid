@@ -34,10 +34,6 @@ PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, TextureGL* backgroundHD
 	screenSprite.setHeight(dim.y);
 }
 
-PBR_DeferredGL::~PBR_DeferredGL()
-{
-}
-
 void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
 {
 	glEnable(GL_STENCIL_TEST);
@@ -71,11 +67,16 @@ void PBR_DeferredGL::drawGeometryScene(SceneNode * scene, const glm::mat4 & view
 		//glBindSampler(i, m_sampler.getID());
 	}
 
-	PBRShader_Deferred_GeometryGL* shader = dynamic_cast<PBRShader_Deferred_GeometryGL*> (
-		renderer->getShaderManager()->getConfig(ShaderType::Pbr_Deferred_Geometry));
+	PBRShader_Deferred_GeometryGL* shader = reinterpret_cast<PBRShader_Deferred_GeometryGL*> (
+		renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Geometry));
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	scene->draw(renderer, modelDrawer, projection, view, ShaderType::Pbr_Deferred_Geometry);
+
+	shader->bind();
+	shader->setView(view);
+	shader->setProjection(projection);
+
+	modelDrawer->draw(scene, shader);
 
 	for (int i = 0; i < 7; ++i)
 	{
@@ -110,28 +111,39 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	//glStencilMask(0x00);
 
-	ShaderProgramGL* shader = renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Lighting);
+	PBRShader_Deferred_LightingGL* shader = reinterpret_cast<PBRShader_Deferred_LightingGL*>( 
+		renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Lighting));
+
+
 	shader->bind();
 
-	PBRShader_Deferred_LightingGL* config = dynamic_cast<PBRShader_Deferred_LightingGL*> (renderer->getShaderManager()->getConfig(ShaderType::Pbr_Deferred_Lighting));
+	shader->setAlbedoMap(gBuffer->getAlbedo());
+	shader->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
+	shader->setNormalEyeMap(gBuffer->getNormal());
+	shader->setPositionEyeMap(gBuffer->getPosition());
 
-	config->setBrdfLookupTexture(brdfLookupTexture->getTexture());
-	config->setGBuffer(gBuffer);
-	config->setInverseViewFromGPass(inverse(viewFromGPass));
-	config->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
-	config->setLightColor(light.getColor());
-	config->setLightDirection(light.getLook());
-	config->setPrefilterMap(prefilterRenderTarget->getCubeMap());
-	config->setShadowMap(shadowMap);
-	config->setAOMap(ssaoMap);
-	config->setSkyBox(environmentMap->getCubeMap());
-	config->setWorldToLightSpaceMatrix(worldToLight);
-	config->setCascadedData(cascadeData);
-	config->setCascadedDepthMap(cascadedDepthMap);
+	shader->setBrdfLookupTexture(brdfLookupTexture->getTexture());
+	//shader->setGBuffer(gBuffer);
+	shader->setViewGPass(viewFromGPass);
+	shader->setInverseViewFromGPass(inverse(viewFromGPass));
+	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
+	shader->setLightColor(light.getColor());
+	shader->setWorldLightDirection(light.getLook());
+
+	vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
+	shader->setEyeLightDirection(vec3(lightEyeDirection));
+	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	shader->setShadowMap(shadowMap);
+	shader->setAOMap(ssaoMap);
+	shader->setSkyBox(environmentMap->getCubeMap());
+	shader->setWorldToLightSpaceMatrix(worldToLight);
+	shader->setEyeToLightSpaceMatrix(worldToLight  * viewFromGPass);
+	shader->setCascadedData(cascadeData);
+	shader->setCascadedDepthMap(cascadedDepthMap);
 
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-	modelDrawer->draw(&screenSprite, ShaderType::Pbr_Deferred_Lighting);
+	modelDrawer->draw(&screenSprite, shader);
 
 	//glStencilMask(0xff);
 	glDisable(GL_STENCIL_TEST);
