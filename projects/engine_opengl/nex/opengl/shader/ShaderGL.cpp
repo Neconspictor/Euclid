@@ -144,14 +144,14 @@ void ShaderProgramGL::setVec3(GLint uniformID, const glm::vec3& data)
 	ASSERT(mIsBound);
 	if (uniformID < 0) return;
 
-	GLClearError();
+	//GLClearError();
 	glUniform3f(uniformID, data.x, data.y, data.z);
 
-	if (!GLLogCall())
+	/*if (!GLLogCall())
 	{
 		
 		nex::Logger("ShaderProgramGL")(nex::Error) << "Something went wrong!";
-	}
+	}*/
 }
 
 void ShaderProgramGL::setVec4(GLint uniformID, const glm::vec4& data)

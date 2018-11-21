@@ -657,6 +657,8 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 {
 	assert(samples >= 1);
 
+	GLClearError();
+
 	RenderTargetGL result(width, height);
 
 	if (samples > 1)

@@ -36,6 +36,7 @@ public:
 
 private:
 	Sprite screenSprite;
+	SamplerGL m_sampler;
 };
 
 class PBR_Deferred_ConfigurationView : public nex::engine::gui::Drawable {
