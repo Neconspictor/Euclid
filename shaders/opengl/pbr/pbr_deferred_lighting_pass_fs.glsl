@@ -165,9 +165,17 @@ void main()
 	//lightEye = normalize(vec3(1,1,1));
 	//vec3 lightEye = normalize((viewGPass * vec4(-dirLight.directionEye, 0)).rgb);
 	vec3 viewEye = normalize(-positionEye);
+    
+    
+    vec3 viewWorld = vec3(inverseViewMatrix_GPass * vec4(viewEye, 0.0f));
+    //viewWorld = vec3(0,0,1);
+    vec3 normalWorld = vec3(inverseViewMatrix_GPass * vec4(normalEye, 0.0f));
+    //normalWorld = vec3(0,1,0);
 	
-	vec3 reflectionDir = reflect(-viewEye, normalEye);
-	reflectionDir = vec3(inverseViewMatrix_GPass * vec4(reflectionDir, 0.0f)); // reflectionDir needs to be in world space
+    vec3 reflectionDir = reflect(-viewWorld, normalWorld);
+    //reflectionDir  = vec3(0,0,0);
+	//vec3 reflectionDir = reflect(-viewEye, normalEye);
+	//reflectionDir = vec3(inverseViewMatrix_GPass * vec4(reflectionDir, 0.0f)); // reflectionDir needs to be in world space
 	
 	//directional shadow calculation
 	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
@@ -215,7 +223,7 @@ vec3 pbrModel(float ao,
 
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewDir, normal, lightDir, roughness, F0, metallic, albedo);
-	vec3 ambient = pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
+	vec3 ambient =  pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
 	
 	float ambientShadow = clamp(shadow, 1.0, 1.0);
 	
@@ -249,7 +257,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float meta
 	//243 159 24
 	
 	//vec3 radiance = vec3(243/ 255.0f, 159 / 255.0f, 24 / 255.0f) * 1.0f;//dirLight.color; /** attenuation*/
-	vec3 radiance = vec3(1,1,1) * 1.0f;//dirLight.color; /** attenuation*/
+	vec3 radiance = dirLight.color * 1.0f;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
@@ -283,7 +291,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float meta
 	float NdotL = max(dot(N, L), 0.0);        
 
 	// add to outgoing radiance Lo
-	return ((kD * albedo / PI) + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
+	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
 vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 R, float ao) {
@@ -291,22 +299,27 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
     vec3 kS = F;
-    vec3 kD = 1.0 - kS;
+    vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 normalWorld = vec3(inverseViewMatrix_GPass * vec4(N, 0.0));
+    
+    //Important: We need world space normals! TODO: Maybe it is possible to generate 
+    // irridianceMap in such a way, that we can use view space normals, too.
+    vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
     vec3 diffuse      = irradiance * albedo;
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
 	
+    // Important: R has to be in world space, too.
     vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return (kD * diffuse + ambientLightSpecular) * ao;
+    return (kD * diffuse + ambientLightSpecular * 0.4) * ao;
 	//return prefilteredColor;
 }
 

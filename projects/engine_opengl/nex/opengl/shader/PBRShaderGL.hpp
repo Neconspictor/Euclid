@@ -187,7 +187,7 @@ private:
 
 	UniformTex mBrdfLUT;
 
-	Uniform mWorldDirection;
+	//Uniform mWorldDirection;
 	Uniform mEyeLightDirection;
 	Uniform mLightColor;
 

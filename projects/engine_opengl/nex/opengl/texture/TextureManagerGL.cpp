@@ -15,7 +15,7 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), m_anisotropy(0.0f), mDefaultImageSampler(nullptr)
+TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr)
 {
 	textureLookupTable = map<string, TextureGL*>();
 
@@ -49,6 +49,9 @@ void TextureManagerGL::init()
 	mDefaultImageSampler = new SamplerGL();
 	mDefaultImageSampler->setMinFilter(Linear_Mipmap_Linear);
 	mDefaultImageSampler->setMagFilter(Linear);
+	mDefaultImageSampler->setWrapR(Repeat);
+	mDefaultImageSampler->setWrapS(Repeat);
+	mDefaultImageSampler->setWrapT(Repeat);
 	mDefaultImageSampler->setAnisotropy(16.0f);
 }
 
@@ -181,7 +184,7 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropy);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -261,7 +264,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 16.0f);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 

@@ -98,12 +98,13 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	globalLight.setPosition(position);
 	globalLight.lookAt({0,0,0});
 	globalLight.update(true);
+	globalLight.setColor(vec3(1.0f, 1.0f, 1.0f));
 
 
 	// init shaders
 	pbrShader->bind();
-	pbrShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	pbrShader->setLightDirection(globalLight.getLook());
+	//pbrShader->setLightColor({ 1.0f, 1.0f, 1.0f });
+	//pbrShader->setLightDirection(globalLight.getLook());
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};

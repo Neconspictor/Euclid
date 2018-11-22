@@ -323,7 +323,7 @@ void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(const TextureGL* brdfLU
 
 void PBRShader_Deferred_LightingGL::setWorldLightDirection(const glm::vec3& direction)
 {
-	mProgram->setVec3(mWorldDirection.location, direction);
+	//mProgram->setVec3(mWorldDirection.location, direction);
 }
 
 void PBRShader_Deferred_LightingGL::setEyeLightDirection(const glm::vec3& direction)

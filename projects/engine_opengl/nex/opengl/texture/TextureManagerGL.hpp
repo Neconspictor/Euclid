@@ -67,7 +67,6 @@ protected:
 	std::list<CubeMapGL> cubeMaps;
 	std::map<std::string, TextureGL*> textureLookupTable;
 	nex::Logger m_logger;
-	float m_anisotropy;
 	SamplerGL* mDefaultImageSampler;
 
 private:

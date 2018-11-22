@@ -276,7 +276,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float meta
 	//243 159 24
 	
 	//vec3 radiance = vec3(243/ 255.0f, 159 / 255.0f, 24 / 255.0f) * 1.0f;//dirLight.color; /** attenuation*/
-	vec3 radiance = vec3(1,1,1) * 1.0f;//dirLight.color; /** attenuation*/
+	vec3 radiance = dirLight.color * 1.0f;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
