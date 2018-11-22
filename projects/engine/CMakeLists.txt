@@ -39,8 +39,6 @@ set(
     #nex/config
     nex/config/Configuration.hpp
 	nex/config/Configuration.cpp
-    nex/config/VideoConfig.hpp
-	nex/config/VideoConfig.cpp
     
     #nex/exception
     nex/exception/MeshNotFoundException.hpp

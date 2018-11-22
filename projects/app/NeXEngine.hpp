@@ -5,7 +5,7 @@
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 #include "nex/config/Configuration.hpp"
-#include "nex/config/VideoConfig.hpp"
+#include <VideoConfig.hpp>
 
 class SubSystemProvider;
 class SubSystemProviderGLFW;

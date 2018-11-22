@@ -5,6 +5,8 @@ set(
 	NeXEngine.cpp
 	NeXEngine.hpp
     pch_app.hpp
+    VideoConfig.hpp
+	VideoConfig.cpp
 	
 	#gui
 	gui/AppStyle.cpp
