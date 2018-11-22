@@ -1,31 +1,40 @@
 #pragma once
-#include <nex/system/Engine.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <gui/SceneGUI.hpp>
-#include <nex/opengl/system/Video.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
+#include "nex/config/Configuration.hpp"
+#include "nex/config/VideoConfig.hpp"
 
+class SubSystemProvider;
 class SubSystemProviderGLFW;
 
-class NeXEngine : public Engine
+class NeXEngine
 {
 public:
 
 	NeXEngine(SubSystemProvider* provider);
 	virtual ~NeXEngine();
 
-	void init() override;
+	nex::LogLevel getLogLevel() const;
+
+	void init();
 
 	bool isRunning() const;
 
-	void run() override;
+	void run();
+
+	void setConfigFileName(const char* fileName);
 
 	void setRunning(bool isRunning);
 
 protected:
+
 	SceneNode * createScene();
+	Window* createWindow();
+	void initRenderBackend();
+	void readConfig();
 	void setupCallbacks();
 	void setupGUI();
 	void setupCamera();
@@ -47,5 +56,10 @@ private:
 	std::list<Vob> m_vobs;
 	SceneNode* m_scene;
 	bool m_isRunning;
-	std::shared_ptr<Video> m_video;
+
+	Configuration m_config;
+	VideoConfig m_video;
+	std::string m_configFileName;
+	std::string m_systemLogLevelStr;
+	nex::LogLevel m_systemLogLevel;
 };

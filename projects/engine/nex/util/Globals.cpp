@@ -1,5 +1,5 @@
 #include <nex/util/Globals.hpp>
-#include <nex/system/Configuration.hpp>
+#include <nex/config/Configuration.hpp>
 
 namespace util {
 

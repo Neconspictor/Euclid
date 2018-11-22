@@ -129,11 +129,6 @@ set(
 	nex/opengl/shadowing/CascadedShadowGL.cpp
 	nex/opengl/shadowing/CascadedShadowGL.hpp
     
-    
-    #nex/opengl/system
-    nex/opengl/system/Video.hpp
-	nex/opengl/system/Video.cpp
-    
     #nex/opengl/texture
     nex/opengl/texture/ImageLoaderGL.hpp
 	nex/opengl/texture/ImageLoaderGL.cpp

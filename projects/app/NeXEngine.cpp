@@ -1,5 +1,4 @@
 #include <NeXEngine.hpp>
-#include <nex/system/Engine.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
@@ -14,21 +13,31 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/common/Log.hpp>
+#include "nex/exception/EnumFormatException.hpp"
+#include "nex/util/Globals.hpp"
 
 NeXEngine::NeXEngine(SubSystemProvider* provider) :
-	Engine(),
 	m_logger("NeX-Engine"),
 	m_windowSystem(provider),
 	m_window(nullptr), 
 	m_input(nullptr), 
 	m_scene(nullptr),
-	m_isRunning(false)
+	m_isRunning(false),
+	m_systemLogLevel(nex::Debug),
+	m_configFileName("config.ini")
 {
+	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, std::string(""));
+	m_config.addOption("General", "rootDirectory", &m_systemLogLevelStr, std::string("./"));
 }
 
 NeXEngine::~NeXEngine()
 {
 	m_windowSystem = nullptr;
+}
+
+nex::LogLevel NeXEngine::getLogLevel() const
+{
+	return m_systemLogLevel;
 }
 
 void NeXEngine::init()
@@ -37,18 +46,24 @@ void NeXEngine::init()
 	LOG(m_logger, nex::Info) << "Initializing Engine...";
 
 	m_renderBackend = std::make_unique<RendererOpenGL>();
-	m_video = std::make_shared<Video>(m_windowSystem);
-	m_video->useRenderer(m_renderBackend.get());
 
-	m_video->useRenderer(m_renderBackend.get());
-	add(m_video);
-	setConfigFileName("config.ini");
-	Engine::init();
 
-	m_window = m_video->getWindow();
+	m_video.handle(m_config);
+	Configuration::setGlobalConfiguration(&m_config);
+	readConfig();
+	
+	util::Globals::initGlobals();
+	LOG(m_logger, nex::Info) << "root Directory = " << ::util::Globals::getRootDirectory();
+
+
+	m_window = createWindow();
 	m_input = m_window->getInputDevice();
 	m_camera = std::make_unique<FPCamera>(FPCamera());
 	m_baseTitle = m_window->getTitle();
+
+
+	//init render backend
+	initRenderBackend();
 
 	m_gui = m_windowSystem->createGUI(m_window);
 	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());
@@ -121,8 +136,12 @@ void NeXEngine::run()
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
 	}
+}
 
-	stop();
+
+void NeXEngine::setConfigFileName(const char*  fileName)
+{
+	m_configFileName = fileName;
 }
 
 void NeXEngine::setRunning(bool isRunning)
@@ -185,6 +204,66 @@ SceneNode* NeXEngine::createScene()
 
 	return root;
 }
+
+Window* NeXEngine::createWindow()
+{
+	Window::WindowStruct desc;
+	desc.title = m_video.windowTitle;
+	desc.fullscreen = m_video.fullscreen;
+	desc.colorBitDepth = m_video.colorBitDepth;
+	desc.refreshRate = m_video.refreshRate;
+	desc.posX = 0;
+	desc.posY = 0;
+	desc.width = m_video.width;
+	desc.height = m_video.height;
+	desc.visible = true;
+	desc.vSync = m_video.vSync;
+
+	return m_windowSystem->createWindow(desc);
+}
+
+void NeXEngine::initRenderBackend()
+{
+	m_window->activate();
+	m_renderBackend->setViewPort(0, 0, m_video.width, m_video.height);
+	m_renderBackend->setMSAASamples(m_video.msaaSamples);
+	m_renderBackend->init();
+}
+
+
+void NeXEngine::readConfig()
+{
+	LOG(m_logger, nex::Info) << "Loading configuration file...";
+	if (!m_config.load(m_configFileName))
+	{
+		LOG(m_logger, nex::Warning) << "Configuration file couldn't be read. Default values are used.";
+	}
+	else
+	{
+		LOG(m_logger, nex::Info) << "Configuration file loaded.";
+	}
+
+	try
+	{
+		m_systemLogLevel = nex::stringToLogLevel(m_systemLogLevelStr);
+	}
+	catch (const EnumFormatException& e)
+	{
+
+		//log error and set default log level
+		LOG(m_logger, nex::Error) << e.what();
+
+		LOG(m_logger, nex::Warning) << "Couldn't get log level from " << m_systemLogLevelStr << std::endl
+			<< "Log level is set now to 'Warning'" << std::endl;
+
+		m_systemLogLevel = nex::Warning;
+		m_systemLogLevelStr = "Warning";
+	}
+
+	nex::LoggerManager::get()->setMinLogLevel(m_systemLogLevel);
+	m_config.write(m_configFileName);
+}
+
 
 void NeXEngine::setupCallbacks()
 {

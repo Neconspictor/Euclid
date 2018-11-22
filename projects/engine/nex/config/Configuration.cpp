@@ -1,4 +1,4 @@
-#include <nex/system/Configuration.hpp>
+#include <nex/config/Configuration.hpp>
 #include <fstream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>

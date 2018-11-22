@@ -1,6 +1,5 @@
 #pragma once
 
-#include <nex/system/System.hpp>
 #include <boost/program_options.hpp>
 #include <string>
 #include "nex/common/Log.hpp"

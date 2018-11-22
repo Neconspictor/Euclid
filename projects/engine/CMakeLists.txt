@@ -36,6 +36,12 @@ set(
     nex/common/Log.hpp
     nex/common/Log.cpp
     
+    #nex/config
+    nex/config/Configuration.hpp
+	nex/config/Configuration.cpp
+    nex/config/VideoConfig.hpp
+	nex/config/VideoConfig.cpp
+    
     #nex/exception
     nex/exception/MeshNotFoundException.hpp
     nex/exception/ShaderInitException.hpp
@@ -114,14 +120,6 @@ set(
     nex/shader_generator/StateTracker.hpp
     nex/shader_generator/StringStateTracker.cpp
     nex/shader_generator/StringStateTracker.hpp
- 
-    #nex/system
-    nex/system/Configuration.hpp
-	nex/system/Configuration.cpp
-    nex/system/Engine.hpp
-	nex/system/Engine.cpp
-    nex/system/System.hpp
-	nex/system/System.cpp
 	
 	#nex/util
     nex/util/CallbackContainer.hpp
