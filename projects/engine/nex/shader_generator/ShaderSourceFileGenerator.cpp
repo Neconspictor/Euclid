@@ -3,7 +3,7 @@
 #include <set>
 #include <queue>
 #include <cassert>
-#include "ShaderGenerator.hpp"
+#include "ShaderSourceFileGenerator.hpp"
 #include "CommentStateTracker.hpp"
 #include "SourceFileConsumer.hpp"
 #include "SourceReader.hpp"
@@ -81,12 +81,12 @@ std::ostream& operator<<(std::ostream& os, const ReverseInfo& r)
 	return os;
 }
 
-ShaderGenerator::ShaderGenerator(const FileSystem* fileSystem) : mFileSystem(fileSystem),  mLogger("ShaderGenerator")
+ShaderSourceFileGenerator::ShaderSourceFileGenerator(const FileSystem* fileSystem) : mFileSystem(fileSystem),  mLogger("ShaderGenerator")
 {
 	assert(mFileSystem != nullptr);
 }
 
-ProgramSources ShaderGenerator::extractShaderPrograms(const std::filesystem::path& filePath)
+ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath)
 {
 
 	auto path = mFileSystem->resolvePath(filePath);
@@ -159,7 +159,7 @@ ProgramSources ShaderGenerator::extractShaderPrograms(const std::filesystem::pat
 	}
 }
 
-FileDesc ShaderGenerator::generate(const std::filesystem::path& filePath)
+FileDesc ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath)
 {
 	FileDesc root; 
 	parseShaderFile(&root, mFileSystem->resolvePath(filePath));
@@ -167,13 +167,13 @@ FileDesc ShaderGenerator::generate(const std::filesystem::path& filePath)
 	return root;
 }
 
-void ShaderGenerator::generate(ProgramDesc* programDesc)
+void ShaderSourceFileGenerator::generate(ProgramDesc* programDesc)
 {
 	parseShaderSource(&programDesc->root, programDesc->root.filePath, std::move(programDesc->root.source));
 	generate(&programDesc->root);
 }
 
-unsigned int ShaderGenerator::calcResolvedPosition(const ProgramDesc& desc, int lineNumber, int column)
+unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& desc, int lineNumber, int column)
 {
 	auto& source = desc.root.resolvedSource;
 
@@ -196,7 +196,7 @@ unsigned int ShaderGenerator::calcResolvedPosition(const ProgramDesc& desc, int 
 	return resolvedPosition;
 }
 
-void ShaderGenerator::calcLineColumn(const std::vector<char>& source, unsigned int position, int* lineNumber,
+void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, unsigned int position, int* lineNumber,
 	int* column)
 {
 	int workLineNumber = 0;
@@ -219,7 +219,7 @@ void ShaderGenerator::calcLineColumn(const std::vector<char>& source, unsigned i
 	*column = workColumn;
 }
 
-ReverseInfo ShaderGenerator::reversePosition(const FileDesc* fileDesc, unsigned int resolvedPosition)
+ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc, unsigned int resolvedPosition)
 {
 	ReverseInfo result;
 	result.position = resolvedPosition;
@@ -272,7 +272,7 @@ ReverseInfo ShaderGenerator::reversePosition(const FileDesc* fileDesc, unsigned 
 	return result;
 }
 
-void ShaderGenerator::buildShader(FileDesc* fileDesc)
+void ShaderSourceFileGenerator::buildShader(FileDesc* fileDesc)
 {
 	fileDesc->resolvedSource;
 	fileDesc->resolvedSource = std::vector<char>(fileDesc->source.begin(), fileDesc->source.end());
@@ -319,7 +319,7 @@ void ShaderGenerator::buildShader(FileDesc* fileDesc)
 	fileDesc->resolvedSourceSize = fileDesc->resolvedSource.size();
 }
 
-void ShaderGenerator::generate(FileDesc* root)
+void ShaderSourceFileGenerator::generate(FileDesc* root)
 {
 	using namespace std::filesystem;
 
@@ -384,7 +384,7 @@ void ShaderGenerator::generate(FileDesc* root)
 	buildShader(root);
 }
 
-void ShaderGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath)
+void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath)
 {
 	SourceFileParser reader(filePath);
 
@@ -432,7 +432,7 @@ void ShaderGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem:
 	}
 }
 
-void ShaderGenerator::parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source)
+void ShaderSourceFileGenerator::parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source)
 {
 	fileDesc->filePath = filePath.generic_string();
 	fileDesc->source = std::move(source);

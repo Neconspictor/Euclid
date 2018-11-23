@@ -14,6 +14,7 @@
 #include "nex/opengl/mesh/MeshGL.hpp"
 #include "nex/util/Memory.hpp"
 #include <nex/opengl/material/Material.hpp>
+#include "nex/shader_generator/SourceFileConsumer.hpp"
 
 using namespace nex;
 using namespace ::util;
@@ -81,40 +82,9 @@ ShaderProgramGL::ShaderProgramGL(const std::string& vertexShaderFile, const std:
 }
 
 ShaderProgramGL::ShaderProgramGL(ShaderProgramGL&& other) :
-    programID(other.programID)
+	programID(other.programID), mIsBound(other.mIsBound), mDebugName(std::move(other.mDebugName))
 {
 	other.programID = GL_FALSE;
-}
-
-ShaderProgramGL::~ShaderProgramGL() {}
-
-void ShaderProgramGL::initShaderFileSystem()
-{
-	using namespace boost::filesystem;
-
-	if (!exists(Globals::getOpenGLShaderPath()))
-	{
-		std::stringstream ss;
-		path path(Globals::getOpenGLShaderPath());
-		ss << "ShaderGL::initShaderFileSystem(): opengl shader folder doesn't exists: " 
-			<< absolute(path).generic_string();
-		throw_with_trace(std::runtime_error(ss.str()));
-	}
-
-	std::vector<std::string> shaderFiles = filesystem::getFilesFromFolder(Globals::getOpenGLShaderPath(), false);
-
-	for (auto& file : shaderFiles)
-	{
-		std::ifstream ifs(file);
-
-		std::string content((std::istreambuf_iterator<char>(ifs)),
-			(std::istreambuf_iterator<char>()));
-		
-		// OpenGL expects relative paths starting with a '/' 
-		std::string glFilePath = "/" + file;
-		//glNamedStringARB(GL_SHADER_INCLUDE_ARB, -1, glFilePath.c_str(), -1, content.c_str()); // TODO ARB_shading_language is only supported
-		// on NVIDIA GPUs => find a GPU independent solution; For now, includes are deactivated in all shaders
-	}
 }
 
 
@@ -271,45 +241,36 @@ void ShaderProgramGL::unbind()
 
 GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 	const std::string& geometryShaderFile)
-{
-	// Create the shaders
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint geometryShaderID = GL_FALSE;
-	std::string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
-	GLint result = GL_FALSE;
-	int infoLogLength;
-	GLuint programID;
+{	
 
-	std::string vertexFilePath = Globals::getOpenGLShaderPath() + vertexFile;
-	std::string fragmentFilePath = Globals::getOpenGLShaderPath() + fragmentFile;
-	std::string geometryFilePath;
 	bool useGeomtryShader = geometryShaderFile.compare("") != 0;
-	if (useGeomtryShader)
-	{
-		geometryFilePath = Globals::getOpenGLShaderPath() + geometryShaderFile;
-		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
-	}
+
+	FileDesc vertexFileDesc;
+	FileDesc fragmentFileDesc;
+	FileDesc geometryFileDesc;
+
+	ShaderSourceFileGenerator* generator = getSourceFileGenerator();
+
 
 	// Read the Vertex Shader code from file
 	try
 	{
-		vertexShaderCode = loadShaderComponent(vertexFilePath);
-	} catch(const ShaderInitException e)
+		vertexFileDesc = generator->generate(vertexFile);
+	} catch(const ParseException& e)
 	{
 		LOG(staticLogClient, Error) << e.what();
-		throw_with_trace(ShaderInitException("Couldn't initialize vertex shader: " + vertexFilePath));
+		throw_with_trace(ShaderInitException("Couldn't initialize vertex shader: " + vertexFile));
 	}
 
 	// Read the Fragment Shader code from file
 	try
 	{
-		fragmentShaderCode = loadShaderComponent(fragmentFilePath);
+		fragmentFileDesc = generator->generate(fragmentFile);
 	}
 	catch (const ShaderInitException e)
 	{
 		LOG(staticLogClient, Error) << e.what();
-		throw_with_trace(ShaderInitException("Couldn't initialize fragment shader: " + fragmentFilePath));
+		throw_with_trace(ShaderInitException("Couldn't initialize fragment shader: " + fragmentFile));
 	}
 
 
@@ -318,20 +279,37 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 		// Read the geometry Shader code from file
 		try
 		{
-			geometryShaderCode = loadShaderComponent(geometryFilePath);
+			geometryFileDesc = generator->generate(geometryShaderFile);
 		}
 		catch (const ShaderInitException e)
 		{
 			LOG(staticLogClient, Error) << e.what();
-			throw_with_trace(ShaderInitException("Couldn't initialize geometry shader: " + geometryFilePath));
+			throw_with_trace(ShaderInitException("Couldn't initialize geometry shader: " + geometryShaderFile));
 		}
 	}
+
+
+	// Create the shaders
+	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint geometryShaderID = GL_FALSE;
+	
+	if (useGeomtryShader)
+	{
+		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
+	}
+	
+	std::string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
+	GLint result = GL_FALSE;
+	int infoLogLength;
+	GLuint programID;
+
 
 	if (!compileShaderComponent(vertexShaderCode.c_str(), vertexShaderID))
 	{
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << std::endl;
-		ss << "vertex file: " << vertexFilePath;
+		ss << "vertex file: " << vertexFileDesc.filePath;
 		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
@@ -339,7 +317,7 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 	{
 		std::stringstream ss;
 		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << std::endl;
-		ss << "fragment file: " << fragmentFilePath;
+		ss << "fragment file: " << fragmentFileDesc.filePath;
 		throw_with_trace(ShaderInitException(ss.str()));
 	}
 
@@ -349,7 +327,7 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 		{
 			std::stringstream ss;
 			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << std::endl;
-			ss << "geometry file: " << geometryFilePath;
+			ss << "geometry file: " << geometryFileDesc.filePath;
 			throw_with_trace(ShaderInitException(ss.str()));
 		}
 	}
@@ -390,6 +368,18 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 	glDeleteShader(fragmentShaderID);
 
 	return programID;
+}
+
+FileSystem * ShaderProgramGL::getShaderFileSystem()
+{
+	static FileSystem shaderFileSystem;
+	return &shaderFileSystem;
+}
+
+ShaderSourceFileGenerator* ShaderProgramGL::getSourceFileGenerator()
+{
+	static ShaderSourceFileGenerator generator(getShaderFileSystem());
+	return &generator;
 }
 
 
@@ -433,6 +423,137 @@ void ShaderProgramGL::bind()
 	mIsBound = true;
 }
 
+
+std::string ShaderProgramGL::adjustLineNumbers(char* message, const ProgramDesc& desc)
+{
+	if (message == nullptr) return "";
+
+	enum class ParseState
+	{
+		None = 0, LineNumber = 1
+	};
+
+	ParseState state = ParseState::None;
+
+	int i = 0;
+
+	std::stringstream result;
+	std::stringstream messageLine;
+	std::stringstream lineNumber;
+
+	while (message[i] != '\0')
+	{
+		char c = message[i];
+		++i;
+
+		// Ignore carriage return
+		if (c == '\r') continue;
+
+		// New line?
+		if (c == '\n')
+		{
+			//LOG(demo::Logger()) << "Finished line: " << messageLine.str();
+			result << messageLine.str() << std::endl;
+			messageLine.str("");
+			continue;
+		}
+
+		if (state == ParseState::None)
+			messageLine << c;
+
+		if (state == ParseState::None && messageLine.str() == "ERROR: 0:")
+		{
+			//LOG(demo::Logger())<< "Detected ERROR: 0: statement";
+			state = ParseState::LineNumber;
+		}
+		else if (state == ParseState::LineNumber && c != ':')
+		{
+			lineNumber << c;
+
+		}
+		else if (state == ParseState::LineNumber && c == ':')
+		{
+			//LOG(demo::Logger()) << "Read line number: " << lineNumber.str();
+
+			int lineNumberInt = atoi(lineNumber.str().c_str());
+			int column = 1;
+			unsigned int resolvedPosition = ShaderSourceFileGenerator::calcResolvedPosition(desc, lineNumberInt - 1, column - 1);
+			ReverseInfo reverseInfo = ShaderSourceFileGenerator::reversePosition(&desc.root, resolvedPosition);
+			ShaderSourceFileGenerator::calcLineColumn(reverseInfo.fileDesc->source, reverseInfo.position, &lineNumberInt, &column);
+			++lineNumberInt;
+			++column;
+
+			// Adjust the linenumber by offset if the error occurred in the root file
+			if (reverseInfo.fileDesc == &desc.root)
+			{
+				lineNumberInt += desc.parseErrorLogOffset;
+			}
+
+			messageLine.str("");
+			messageLine << "ERROR: " << reverseInfo.fileDesc->filePath << ", line " << lineNumberInt << ": ";
+
+			lineNumber.str("");
+			state = ParseState::None;
+		}
+	}
+
+	return result.str();
+}
+
+GLuint ShaderProgramGL::compileShader(unsigned type, const ProgramDesc& desc)
+{
+	static Logger logger("[Shader]");
+
+	GLuint id;
+	GLCall(id = glCreateShader(type));
+
+	const char* src = desc.root.resolvedSource.data();
+
+	GLCall(glShaderSource(id, 1, &src, nullptr));
+	GLCall(glCompileShader(id));
+
+	// TODO error handling
+
+	int result;
+	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+	if (result == GL_FALSE)
+	{
+		int length;
+		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
+		char* message = (char*)alloca(length * sizeof(char));
+		GLCall(glGetShaderInfoLog(id, length, &length, message));
+
+		std::string modifiedMessage = adjustLineNumbers(message, desc);
+
+		logger.log(Error) << modifiedMessage;
+
+		std::string shaderType = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+
+		GLCall(glDeleteShader(id));
+		throw std::runtime_error("Failed to compile " + shaderType + " shader!");
+		//return GL_FALSE;
+	}
+
+	return id;
+}
+
+GLuint ShaderProgramGL::createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader)
+{
+	GLuint program, vs, fs;
+	GLCall(program = glCreateProgram());
+	GLCall(vs = compileShader(GL_VERTEX_SHADER, vertexShader));
+	GLCall(fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader));
+
+	GLCall(glAttachShader(program, vs));
+	GLCall(glAttachShader(program, fs));
+	GLCall(glLinkProgram(program));
+	GLCall(glValidateProgram(program));
+
+	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(fs));
+
+	return program;
+}
 
 bool ShaderProgramGL::extractIncludeStatement(const std::string& line, std::string* result)
 {
@@ -565,24 +686,6 @@ void ShaderProgramGL::writeUnfoldedShaderContentToFile(const std::string& shader
 {
 	nex::filesystem::writeToFile(shaderSourceFile + ".unfolded", lines, std::ostream::trunc);
 }
-
-/*
-void ShaderGL::beforeDrawing(const MeshGL& mesh)
-{
-	if (config != nullptr) {
-		config->beforeDrawing(mesh);
-
-		glUseProgram(programID);
-
-		config->update(mesh, data);
-
-		auto attributes = reinterpret_cast<const ShaderAttributeGL*> (config->getAttributeList());
-		for (int i = 0; i < config->getNumberOfAttributes(); ++i)
-		{
-			setAttribute(programID, attributes[i]);
-		}
-}
-}*/
 
 ShaderGL::ShaderGL() : mProgram(nullptr)
 {

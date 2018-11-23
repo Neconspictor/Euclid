@@ -106,10 +106,8 @@ set(
     #nex/shader_generator
     nex/shader_generator/CommentStateTracker.cpp
     nex/shader_generator/CommentStateTracker.hpp
-    nex/shader_generator/FileSystem.cpp
-    nex/shader_generator/FileSystem.hpp
-    nex/shader_generator/ShaderGenerator.cpp
-    nex/shader_generator/ShaderGenerator.hpp
+    nex/shader_generator/ShaderSourceFileGenerator.cpp
+    nex/shader_generator/ShaderSourceFileGenerator.hpp
     nex/shader_generator/SourceFileConsumer.cpp
     nex/shader_generator/SourceFileConsumer.hpp
     nex/shader_generator/SourceReader.cpp

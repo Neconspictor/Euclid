@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/FileSystem.hpp>
+#include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 
 class Material;
 class CubeMapGL;
@@ -117,10 +119,11 @@ public:
 
 	unsigned int getUniformLocation(const char* name);
 
-	static void initShaderFileSystem();
-
 	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 		const std::string& geometryShaderFile = "");
+
+	static FileSystem* getShaderFileSystem();
+	static ShaderSourceFileGenerator* getSourceFileGenerator();
 	
 	void release();
 
@@ -151,6 +154,11 @@ protected:
 	GLuint programID;
 	bool mIsBound;
 	std::string mDebugName;
+
+
+	static std::string adjustLineNumbers(char* message, const ProgramDesc& desc);
+	static GLuint compileShader(unsigned int type, const ProgramDesc& desc);
+	static GLuint createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader);
 
 	/**
 	* Extracts an #include statements from a line.

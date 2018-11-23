@@ -157,8 +157,6 @@ void RendererOpenGL::init()
 
 	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	ShaderProgramGL::initShaderFileSystem();
-
 	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 

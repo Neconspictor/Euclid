@@ -2,9 +2,8 @@
 #include <vector>
 #include <string>
 #include <list>
-#include "StringStateTracker.hpp"
 #include <filesystem>
-#include "FileSystem.hpp"
+#include <nex/FileSystem.hpp>
 #include <nex/common/Log.hpp>
 
 
@@ -90,11 +89,11 @@ struct ProgramSources
 	std::filesystem::path sourceFile;
 };
 
-class ShaderGenerator
+class ShaderSourceFileGenerator
 {
 public:
 
-	ShaderGenerator(const FileSystem* fileSystem);
+	ShaderSourceFileGenerator(const FileSystem* fileSystem);
 
 	ProgramSources extractShaderPrograms(const std::filesystem::path& filePath);
 
