@@ -1,8 +1,17 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 
 //use stb_image -- TODO: replace SOIL completely with this library
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+#include <stb/stb_image_write.h>
+
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+
+//#define STB_DEFINE                                                     
+//#include <stb/stb.h>
+
 
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -31,6 +40,12 @@ void TextureManagerGL::releaseTexture(TextureGL * tex)
 			break; // we're done
 		}
 	}
+}
+
+void TextureManagerGL::writeHDR(const GenericImageGL& imageData, const char* filePath)
+{
+	stbi__flip_vertically_on_write = true;
+	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels);
 }
 
 TextureManagerGL::~TextureManagerGL()

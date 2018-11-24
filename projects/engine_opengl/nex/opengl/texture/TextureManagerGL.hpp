@@ -6,6 +6,7 @@
 #include "nex/gui/Drawable.hpp"
 
 
+struct GenericImageGL;
 class FileSystem;
 class TextureGL;
 class CubeMapGL;
@@ -64,6 +65,8 @@ public:
 	void release();
 
 	void releaseTexture(TextureGL * tex);
+
+	void writeHDR(const GenericImageGL& imageData, const char* filePath);
 
 protected:
 	std::list<TextureGL> textures;

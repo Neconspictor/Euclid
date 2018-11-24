@@ -5,7 +5,7 @@
 
 struct GenericImageGL
 {
-	char* pixels = nullptr;
+	void* pixels = nullptr;
 	unsigned long long bufSize = 0;
 	int width = 0;
 	int height = 0;

@@ -126,12 +126,12 @@ GenericImageGL PBR::readBrdfLookupPixelData()
 	GenericImageGL data;
 	data.width = brdfLookupTexture->getWidth();
 	data.height = brdfLookupTexture->getHeight();
-	data.components = 4; // RGB
-	data.format = GL_RGBA;
-	data.pixelSize = 4 * data.components;
+	data.components = 3; // RGB
+	data.format = GL_RGB;
+	data.pixelSize = sizeof(float) * data.components;
 
 	data.bufSize = data.width * data.height * data.pixelSize;
-	data.pixels = new char[data.bufSize];
+	data.pixels = new float[data.width * data.height * data.components];
 
 	// read the data back from the gpu
 	GLuint textureID = brdfLookupTexture->getTexture()->getTexture();
@@ -387,25 +387,10 @@ void PBR::init(TextureGL* backgroundHDR)
 
 
 	// read backs
-	/*GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
-
-
-	glm::vec4* pixels = (glm::vec4*)brdfLUTImage.pixels;
-
-	std::ofstream out("brdfLUT.txt");
-
-	for (unsigned x = 0; x < brdfLUTImage.width; ++x)
-	{
-		for (unsigned y = 0; y < brdfLUTImage.height; ++y)
-		{
-			int index = x * brdfLUTImage.width + y;
-			out << pixels[index].x << " " << pixels[index].y << " " << pixels[index].z << " " << pixels[index].w << "\n";
-		}
-	}
-
-	out.close();
+	GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
+	TextureManagerGL::get()->writeHDR(brdfLUTImage, "brdfLUT.hdr");
 
 
 	// release memory
-	delete brdfLUTImage.pixels;*/
+	delete brdfLUTImage.pixels;
 }
