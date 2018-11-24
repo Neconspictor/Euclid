@@ -1,5 +1,4 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
-#include <nex/util/Globals.hpp>
 
 //use stb_image -- TODO: replace SOIL completely with this library
 #define STB_IMAGE_IMPLEMENTATION
@@ -15,7 +14,7 @@ using namespace nex;
 
 TextureManagerGL TextureManagerGL::instance;
 
-TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr)
+TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr), mFileSystem(nullptr)
 {
 	textureLookupTable = map<string, TextureGL*>();
 
@@ -64,14 +63,13 @@ CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
 CubeMapGL* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
 	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
-	string texturePath = ::util::Globals::getTexturePath();
 
-	string rightCStr = texturePath + right;
-	string leftCStr = texturePath + left;
-	string topCStr = texturePath + top;
-	string bottomCStr = texturePath + bottom;
-	string backCStr = texturePath + back;
-	string frontCStr = texturePath + front;
+	string rightCStr = mFileSystem->resolvePath(right).generic_string();
+	string leftCStr = mFileSystem->resolvePath(left).generic_string();
+	string topCStr = mFileSystem->resolvePath(top).generic_string();
+	string bottomCStr = mFileSystem->resolvePath(bottom).generic_string();
+	string backCStr = mFileSystem->resolvePath(back).generic_string();
+	string frontCStr = mFileSystem->resolvePath(front).generic_string();
 
 	/*
 	  TODO: implement is with stb_image! 
@@ -154,7 +152,7 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 		return it->second;
 	}
 
-	string path = ::util::Globals::getTexturePath() + file;
+	string path = mFileSystem->resolvePath(file).generic_string();
 
 
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
@@ -206,8 +204,6 @@ TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 
 TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 {
-
-
 	if (data.isFloatData) {
 		return getHDRImage2(file, data);
 	}
@@ -220,13 +216,14 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 		return it->second;
 	}
 
-	string path = ::util::Globals::getTexturePath() + file;
+
+	const auto resolvedPath = mFileSystem->resolvePath(file);
 
 
 
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
 	int width, height, nrComponents;
-	unsigned char* rawData = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+	unsigned char* rawData = stbi_load(resolvedPath.generic_string().c_str(), &width, &height, &nrComponents, 0);
 	unsigned int textureID;
 	if (!rawData) {
 		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
@@ -274,21 +271,16 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 
-	LOG(m_logger, Debug) << "texture to load: " << path;
+	LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 	return createTextureGL(file, textureID);
 }
 
-string TextureManagerGL::getImagePath()
+void TextureManagerGL::init(FileSystem* textureFileSystem)
 {
-	return ::util::Globals::getTexturePath();
-}
-
-string TextureManagerGL::getFullFilePath(const string& localFilePath)
-{
-	return ::util::Globals::getTexturePath() + localFilePath;
+	mFileSystem = textureFileSystem;
 }
 
 void TextureManagerGL::loadImages(const string& imageFolder)

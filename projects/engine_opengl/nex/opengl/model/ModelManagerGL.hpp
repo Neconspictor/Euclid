@@ -51,6 +51,14 @@ public:
 	*/
 	ModelGL* getSprite();
 
+
+	/**
+	 * Initializes the model manager. 
+	 * @param meshFileSystem Used to resolve mesh file paths
+	 */
+	void init(FileSystem* meshFileSystem);
+
+
 	/**
 	 * loads all meshes
 	 */
@@ -72,6 +80,7 @@ private:
 	AssimpModelLoader assimpLoader;
 	PbrMaterialLoader pbrMaterialLoader;
 	BlinnPhongMaterialLoader blinnPhongMaterialLoader;
+	FileSystem* mFileSystem;
 
 	unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 };

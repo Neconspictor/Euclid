@@ -82,9 +82,9 @@ std::ostream& operator<<(std::ostream& os, const ReverseInfo& r)
 	return os;
 }
 
-ShaderSourceFileGenerator::ShaderSourceFileGenerator(const FileSystem* fileSystem) : mFileSystem(fileSystem),  mLogger("ShaderGenerator")
+ShaderSourceFileGenerator::ShaderSourceFileGenerator() : mFileSystem(nullptr),
+                                                                                     mLogger("ShaderGenerator")
 {
-	assert(mFileSystem != nullptr);
 }
 
 ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath)
@@ -172,6 +172,11 @@ void ShaderSourceFileGenerator::generate(ProgramDesc* programDesc)
 {
 	parseShaderSource(&programDesc->root, programDesc->root.filePath, std::move(programDesc->root.source));
 	generate(&programDesc->root);
+}
+
+void ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
+{
+	mFileSystem = fileSystem;
 }
 
 unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& desc, int lineNumber, int column)

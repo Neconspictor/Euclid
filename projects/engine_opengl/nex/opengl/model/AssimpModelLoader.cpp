@@ -1,7 +1,6 @@
 #include <nex/opengl/model/AssimpModelLoader.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include <nex/util/Globals.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/opengl/mesh/MeshFactoryGL.hpp>
@@ -15,16 +14,15 @@ AssimpModelLoader::AssimpModelLoader() : m_logger("AssimpModelLoader")
 {
 }
 
-unique_ptr<ModelGL> AssimpModelLoader::loadModel(const string& path, const AbstractMaterialLoader& materialLoader) const
+unique_ptr<ModelGL> AssimpModelLoader::loadModel(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
 {
 	Timer timer;
 	timer.update();
 
-	string filePath = util::Globals::getMeshesPath() +  path;
 	Assimp::Importer importer;
 
 	// read the mesh file and triangulate it since processNode expects a triangulated mesh
-	const aiScene* scene = importer.ReadFile(filePath, 
+	const aiScene* scene = importer.ReadFile(path.generic_string(), 
 		aiProcess_Triangulate 
 		//| aiProcess_FlipUVs
 		| aiProcess_GenSmoothNormals 

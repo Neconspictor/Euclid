@@ -1,6 +1,8 @@
 set(
     APP_SOURCES 
     
+    Globals.cpp
+	Globals.hpp
 	Main.cpp
 	NeXEngine.cpp
 	NeXEngine.hpp

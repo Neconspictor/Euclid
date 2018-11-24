@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/common/Log.hpp>
-#include <nex/FileSystem.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 
 class Material;
@@ -129,7 +128,6 @@ public:
 	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 		const std::string& geometryShaderFile = "");
 
-	static FileSystem* getShaderFileSystem();
 	static ShaderSourceFileGenerator* getSourceFileGenerator();
 	
 	void release();

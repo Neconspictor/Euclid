@@ -11,7 +11,6 @@
 #include <nex/util/StringUtils.hpp>
 //TODO
 //#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
-#include <nex/util/StringUtils.hpp>
 #include <nex/opengl/material/BlinnPhongMaterial.hpp>
 
 using namespace std;
@@ -24,9 +23,9 @@ const unsigned int ModelManagerGL::SPRITE_MODEL_HASH = nex::util::customSimpleHa
 
 unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>();
 
-ModelManagerGL::ModelManagerGL() : 
+ModelManagerGL::ModelManagerGL() :
 	pbrMaterialLoader(TextureManagerGL::get()),
-	blinnPhongMaterialLoader(TextureManagerGL::get())
+	blinnPhongMaterialLoader(TextureManagerGL::get()), mFileSystem(nullptr)
 {
 	CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(SampleMeshes::CUBE_POSITION_NORMAL_TEX_NAME);
 }
@@ -129,10 +128,14 @@ ModelGL* ModelManagerGL::getSprite()
 	return result;
 }
 
-ModelGL* ModelManagerGL::getModel(const string& modelName, ShaderType materialShader)
+void ModelManagerGL::init(FileSystem* meshFileSystem)
 {
+	mFileSystem = meshFileSystem;
+}
 
-	auto hash = nex::util::customSimpleHash(modelName);
+ModelGL* ModelManagerGL::getModel(const string& meshPath, ShaderType materialShader)
+{
+	auto hash = nex::util::customSimpleHash(meshPath);
 
 	auto it = modelTable.find(hash);
 	if (it != modelTable.end())
@@ -152,6 +155,8 @@ ModelGL* ModelManagerGL::getModel(const string& modelName, ShaderType materialSh
 
 	// else case: assume the model name is a 3d model that can be load from file.
 
+	const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+
 	AbstractMaterialLoader* materialLoader = nullptr;
 	if (materialShader == ShaderType::BlinnPhongTex) {
 		materialLoader = &blinnPhongMaterialLoader;
@@ -168,7 +173,7 @@ ModelGL* ModelManagerGL::getModel(const string& modelName, ShaderType materialSh
 
 
 
-	models.push_back(move(assimpLoader.loadModel(modelName, *materialLoader)));
+	models.push_back(move(assimpLoader.loadModel(resolvedPath, *materialLoader)));
 	ModelGL* result = models.back().get();
 	modelTable[hash] = result;
 	return result;

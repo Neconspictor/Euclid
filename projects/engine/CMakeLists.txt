@@ -121,8 +121,6 @@ set(
     nex/util/CallbackContainer.hpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
-	nex/util/Globals.cpp
-	nex/util/Globals.hpp
 	nex/util/Math.hpp
     nex/util/Memory.hpp
     nex/util/PointerUtils.hpp

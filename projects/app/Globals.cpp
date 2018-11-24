@@ -1,4 +1,4 @@
-#include <nex/util/Globals.hpp>
+#include <Globals.hpp>
 #include <nex/config/Configuration.hpp>
 
 namespace util {

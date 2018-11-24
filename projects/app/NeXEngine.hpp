@@ -62,4 +62,8 @@ private:
 	std::string m_configFileName;
 	std::string m_systemLogLevelStr;
 	nex::LogLevel m_systemLogLevel;
+
+	FileSystem mMeshFileSystem;
+	FileSystem mShaderFileSystem;
+	FileSystem mTextureFileSystem;
 };

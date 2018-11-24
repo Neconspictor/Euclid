@@ -2,7 +2,6 @@
 #include <vector>
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/FileSystem.hpp>
-#include <nex/util/Globals.hpp>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <boost/filesystem.hpp>
@@ -267,15 +266,9 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 	return shaderProgram;
 }
 
-FileSystem * ShaderProgramGL::getShaderFileSystem()
-{
-	static FileSystem shaderFileSystem;
-	return &shaderFileSystem;
-}
-
 ShaderSourceFileGenerator* ShaderProgramGL::getSourceFileGenerator()
 {
-	static ShaderSourceFileGenerator generator(getShaderFileSystem());
+	static ShaderSourceFileGenerator generator;
 	return &generator;
 }
 

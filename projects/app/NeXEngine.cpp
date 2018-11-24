@@ -14,7 +14,8 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/common/Log.hpp>
 #include "nex/exception/EnumFormatException.hpp"
-#include "nex/util/Globals.hpp"
+#include <Globals.hpp>
+#include "nex/opengl/model/ModelManagerGL.hpp"
 
 NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	m_logger("NeX-Engine"),
@@ -65,8 +66,19 @@ void NeXEngine::init()
 	//init render backend
 	initRenderBackend();
 
+	// init model manager (filesystem)
+	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
+	ModelManagerGL::get()->init(&mMeshFileSystem);
+
 	// init shader file system
-	ShaderProgramGL::getShaderFileSystem()->addIncludeDirectory(util::Globals::getOpenGLShaderPath());
+	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
+	ShaderProgramGL::getSourceFileGenerator()->init(&mShaderFileSystem);
+
+	// init texture manager (filesystem)
+	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
+	TextureManagerGL::get()->init(&mTextureFileSystem);
+
+
 
 	m_gui = m_windowSystem->createGUI(m_window);
 	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());

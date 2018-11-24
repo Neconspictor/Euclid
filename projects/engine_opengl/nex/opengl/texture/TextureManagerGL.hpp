@@ -6,6 +6,7 @@
 #include "nex/gui/Drawable.hpp"
 
 
+class FileSystem;
 class TextureGL;
 class CubeMapGL;
 
@@ -46,9 +47,11 @@ public:
 	TextureGL* getHDRImage2(const std::string& file, TextureData data);
 	TextureGL* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, BITS_8});
 
-	std::string getImagePath();
-
-	std::string getFullFilePath(const std::string& localFilePath);
+	/**
+	 * Initializes the texture manager.
+	 * @param textureFileSystem Used to resolve texture file paths
+	 */
+	void init(FileSystem* textureFileSystem);
 
 	void loadImages(const std::string& imageFolder);
 	SamplerGL* getDefaultImageSampler();
@@ -68,6 +71,7 @@ protected:
 	std::map<std::string, TextureGL*> textureLookupTable;
 	nex::Logger m_logger;
 	SamplerGL* mDefaultImageSampler;
+	FileSystem* mFileSystem;
 
 private:
 

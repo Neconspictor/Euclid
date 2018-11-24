@@ -93,13 +93,15 @@ class ShaderSourceFileGenerator
 {
 public:
 
-	ShaderSourceFileGenerator(const FileSystem* fileSystem);
+	ShaderSourceFileGenerator();
 
 	ProgramSources extractShaderPrograms(const std::filesystem::path& filePath);
 
 	FileDesc generate(const std::filesystem::path& filePath);
 
 	void generate(ProgramDesc* programDesc);
+
+	void init(const FileSystem* fileSystem);
 
 	/**
 	 * @param lineNumber: The line number (starting at 0)
@@ -109,8 +111,6 @@ public:
 	static void calcLineColumn(const std::vector<char>& source, unsigned int position, int* lineNumber, int* column);
 
 	static ReverseInfo reversePosition(const FileDesc* fileDesc, unsigned int resolvedPosition);
-
-
 
 
 private:

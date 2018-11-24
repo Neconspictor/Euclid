@@ -2,6 +2,7 @@
 #include <nex/opengl/model/ModelGL.hpp>
 #include <assimp/scene.h>
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
+#include <filesystem>
 
 struct TextureData;
 
@@ -12,7 +13,7 @@ public:
 	using Vertex = MeshGL::Vertex;
 
 	AssimpModelLoader();
-	std::unique_ptr<ModelGL> loadModel(const std::string& path, const AbstractMaterialLoader& materialLoader) const;
+	std::unique_ptr<ModelGL> loadModel(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
 
 protected:
 
