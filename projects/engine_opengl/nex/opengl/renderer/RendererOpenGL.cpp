@@ -195,6 +195,13 @@ void RendererOpenGL::init()
 	//checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
+void RendererOpenGL::newFrame()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_CULL_FACE);
+	GLCall(glCullFace(GL_BACK));
+}
+
 void RendererOpenGL::beginScene()
 {
 	// enable alpha blending

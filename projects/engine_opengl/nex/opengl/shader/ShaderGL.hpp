@@ -79,13 +79,13 @@ enum class UniformType
 
 struct Uniform
 {
-	GLuint location;
-	UniformType type;
+	GLint location  = -1;
+	UniformType type = UniformType::INT;
 };
 
 struct UniformTex : public Uniform
 {
-	GLuint textureUnit;
+	GLuint textureUnit = 0;
 };
 
 enum class ShaderTypeGL
@@ -123,7 +123,7 @@ public:
 
 	GLuint getProgramID() const;
 
-	unsigned int getUniformLocation(const char* name);
+	int getUniformLocation(const char* name);
 
 	static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 		const std::string& geometryShaderFile = "");

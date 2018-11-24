@@ -15,7 +15,7 @@ class PBR {
 
 public:
   PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR);
-  virtual ~PBR();
+  virtual ~PBR() = default;
 
   virtual void drawSceneToShadowMap(SceneNode * scene,
 	  DepthMapGL* shadowMap,

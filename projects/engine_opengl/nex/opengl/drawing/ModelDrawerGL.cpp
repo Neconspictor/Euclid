@@ -51,7 +51,6 @@ void ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
 
 	//assert(texture);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	mat4 projection = ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
 	mat4 view = mat4(); // just use identity matrix
 	mat4 model = mat4();

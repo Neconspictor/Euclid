@@ -17,7 +17,10 @@ VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept :
 
 VertexBuffer::~VertexBuffer()
 {
-	GLCall(glDeleteBuffers(1, &mRendererID));
+	if (mRendererID != GL_FALSE)
+	{
+		GLCall(glDeleteBuffers(1, &mRendererID));
+	}
 }
 
 void VertexBuffer::bind() const

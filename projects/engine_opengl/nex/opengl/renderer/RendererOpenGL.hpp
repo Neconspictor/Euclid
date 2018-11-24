@@ -238,6 +238,8 @@ public:
 	*/
 	void init();
 
+	void newFrame();
+
 	/**
 	* Displays the calculdated scene on the screen. This function has to be called after
 	* virtual void Renderer::endSene().

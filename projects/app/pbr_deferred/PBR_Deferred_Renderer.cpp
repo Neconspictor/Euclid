@@ -170,6 +170,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		m_renderBackend->getShaderManager()->getShader(ShaderType::DepthMap));
 	using namespace chrono;
 
+	m_renderBackend->newFrame();
+
 	
 	//FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
 	const mat4& cameraView = camera->getView();

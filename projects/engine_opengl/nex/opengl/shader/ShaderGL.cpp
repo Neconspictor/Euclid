@@ -102,21 +102,21 @@ void ShaderProgramGL::setInt(GLint uniformID, int data)
 {
 	assert(mIsBound);
 	if (uniformID < 0) return;
-	glUniform1i(uniformID, data);
+	GLCall(glUniform1i(uniformID, data));
 }
 
 void ShaderProgramGL::setFloat(GLint uniformID, float data)
 {
 	assert(mIsBound);
 	if (uniformID < 0) return;
-	glUniform1f(uniformID, data);
+	GLCall(glUniform1f(uniformID, data));
 }
 
 void ShaderProgramGL::setVec2(GLint uniformID, const glm::vec2& data)
 {
 	assert(mIsBound);
 	if (uniformID < 0) return;
-	glUniform2f(uniformID, data.x, data.y);
+	GLCall(glUniform2f(uniformID, data.x, data.y));
 }
 
 void ShaderProgramGL::setVec3(GLint uniformID, const glm::vec3& data)
@@ -125,7 +125,7 @@ void ShaderProgramGL::setVec3(GLint uniformID, const glm::vec3& data)
 	if (uniformID < 0) return;
 
 	//GLClearError();
-	glUniform3f(uniformID, data.x, data.y, data.z);
+	GLCall(glUniform3f(uniformID, data.x, data.y, data.z));
 
 	/*if (!GLLogCall())
 	{
@@ -139,21 +139,21 @@ void ShaderProgramGL::setVec4(GLint uniformID, const glm::vec4& data)
 	assert(mIsBound);
 	if (uniformID < 0) return;
 
-	glUniform4f(uniformID, data.x, data.y, data.z, data.w);
+	GLCall(glUniform4f(uniformID, data.x, data.y, data.z, data.w));
 }
 
 void ShaderProgramGL::setMat3(GLint uniformID, const glm::mat3& data)
 {
 	assert(mIsBound);
 	if (uniformID < 0) return;
-	glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data));
+	GLCall(glUniformMatrix3fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void ShaderProgramGL::setMat4(GLint uniformID, const glm::mat4& data)
 {
 	assert(mIsBound);
 	if (uniformID < 0) return;
-	glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data));
+	GLCall(glUniformMatrix4fv(uniformID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void ShaderProgramGL::setTexture(GLint uniformID, const TextureGL* data, unsigned textureSlot)
@@ -163,8 +163,8 @@ void ShaderProgramGL::setTexture(GLint uniformID, const TextureGL* data, unsigne
 	//ASSERT(isValid(textureSlot));
 	if (uniformID < 0) return;
 
-	glBindTextureUnit(textureSlot, data->getTexture());
-	glUniform1i(uniformID, textureSlot);
+	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
+	GLCall(glUniform1i(uniformID, textureSlot));
 }
 
 GLuint ShaderProgramGL::getProgramID() const
@@ -172,7 +172,7 @@ GLuint ShaderProgramGL::getProgramID() const
 	return programID;
 }
 
-unsigned ShaderProgramGL::getUniformLocation(const char* name)
+int ShaderProgramGL::getUniformLocation(const char* name)
 {
 	auto loc = glGetUniformLocation(programID, name);
 

@@ -19,7 +19,10 @@ IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept :
 
 IndexBuffer::~IndexBuffer()
 {
-	GLCall(glDeleteBuffers(1, &mRendererID));
+	if (mRendererID != GL_FALSE)
+	{
+		GLCall(glDeleteBuffers(1, &mRendererID));
+	}
 }
 
 void IndexBuffer::bind() const

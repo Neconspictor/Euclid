@@ -16,10 +16,6 @@ PBR::PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR) :
 	init(backgroundHDR);
 }
 
-PBR::~PBR(){
-
-}
-
 void PBR::drawSky(const mat4& projection, const mat4& view)
 {
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
@@ -162,7 +158,6 @@ GenericImageGL PBR::readTestPixelData()
 	// read the data back from the gpu
 	GLuint textureID = prefilterRenderTarget->getCubeMap()->getTexture();
 
-	GLuint fbo;
 	//glGenFramebuffers(1, &fbo);
 	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
