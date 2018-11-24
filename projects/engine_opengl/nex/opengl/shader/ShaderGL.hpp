@@ -89,6 +89,15 @@ struct UniformTex : public Uniform
 	GLuint textureUnit;
 };
 
+enum class ShaderTypeGL
+{
+	VERTEX = GL_VERTEX_SHADER,
+	FRAGMENT = GL_FRAGMENT_SHADER,
+	GEOMETRY = GL_GEOMETRY_SHADER
+};
+
+std::ostream& operator<<(std::ostream& os, ShaderTypeGL type);
+
 
 /**
  * Represents a shader program for an OpenGL renderer.
@@ -109,9 +118,7 @@ public:
 	ShaderProgramGL(ShaderProgramGL&& other);
 	ShaderProgramGL(const ShaderProgramGL& other) = delete;
 
-	virtual ~ShaderProgramGL();
-
-	static bool compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID);
+	virtual ~ShaderProgramGL() = default;
 
 	void bind();
 
@@ -151,6 +158,7 @@ public:
 
 
 protected:
+
 	GLuint programID;
 	bool mIsBound;
 	std::string mDebugName;
@@ -158,43 +166,13 @@ protected:
 
 	static std::string adjustLineNumbers(char* message, const ProgramDesc& desc);
 	static GLuint compileShader(unsigned int type, const ProgramDesc& desc);
-	static GLuint createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader);
-
-	/**
-	* Extracts an #include statements from a line.
-	* If the line contains no #include directive, false will be returned.
-	*/
-	static bool extractIncludeStatement(const std::string& line, std::string* result);
-
-	static bool isValid(unsigned textureUnit);
-
-	/**
-	 *@param shaderFile The shader file which is expected to be a valid glsl shader file
-	 *@param writeUnfoldedResult Should the unfolded shader content (resolved include statements) be written to an *.unfolded file?
-	 *@param defines - An optional list of preprocessor define directives
-	 *
-	 * @return The loaded (and unfolded) shader content
-	 *
-	 * @throws ShaderInitException - if the shader couldn't be loaded
-	 */
-	static std::string loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult = true, std::vector<std::string> defines = {});
-
-	/**
-	* Preprocess a glsl shader.
-	* A list of given defines will be added to the shader and #include statements in the shader will be replaced by
-	* the content of the respective include file.
-	*
-	* The Output is a vector of trimmed and comment-free lines
-	*
-	* @throws ShaderInitException - if one of the include files couldn't be loaded
-	*/
-	static std::vector<std::string> preprocess(std::string& shaderContent, const std::vector<std::string>& defines);
+	static GLuint createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader, const ProgramDesc* geometryShader = nullptr);
 
 	/**
 	 * @param shaderSourceFile The source file for that an unfolded version should be written for.
 	 * @throws ShaderInitException - if an IO error occurs
 	 */
-	static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines);
+	static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<char>& sourceCode);
 };
 
 

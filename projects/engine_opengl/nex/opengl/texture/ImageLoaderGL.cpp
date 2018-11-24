@@ -19,7 +19,7 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 	GenericImageGL imageData;
 	memset(&imageData, 0, sizeof(imageData));
 	streampos fileSize;
-	char* bytes = nex::filesystem::getBytesFromFile(fileName, &fileSize);
+	char* bytes = FileSystem::getBytesFromFile(fileName, &fileSize);
 	if (!bytes)
 	{
 		throw_with_trace(runtime_error("ImageLoaderGL::loadImageFromDisc(string): Couldn't load image: " + fileName));

@@ -65,6 +65,9 @@ void NeXEngine::init()
 	//init render backend
 	initRenderBackend();
 
+	// init shader file system
+	ShaderProgramGL::getShaderFileSystem()->addIncludeDirectory(util::Globals::getOpenGLShaderPath());
+
 	m_gui = m_windowSystem->createGUI(m_window);
 	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());
 	m_controllerSM = std::make_unique<ControllerStateMachine>(std::make_unique<App::EditMode>(m_window,

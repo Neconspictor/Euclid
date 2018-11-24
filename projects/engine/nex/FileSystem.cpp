@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include "nex/common/Log.hpp"
 #include "util/Memory.hpp"
+#include "util/ExceptionHandling.hpp"
 
 FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories) :
 	mIncludeDirectories(std::move(includeDirectories))
@@ -15,7 +16,7 @@ void FileSystem::addIncludeDirectory(const std::filesystem::path& path)
 	using namespace std::filesystem;
 
 	std::filesystem::path folder = path;
-	if (!exists(folder)) throw std::runtime_error("FileSystem::addIncludeDirectory: Folder doesn't exist: " + folder.generic_string());
+	if (!exists(folder)) throw_with_trace(std::runtime_error("FileSystem::addIncludeDirectory: Folder doesn't exist: " + folder.generic_string()));
 
 	mIncludeDirectories.emplace_back(std::move(folder));
 }
@@ -33,7 +34,7 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path)
 	if (path.is_absolute()) {
 
 		if (!exists(path))
-			throw std::runtime_error(errorBase + path.generic_string());
+			throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
 
 		return path;
 	}
@@ -44,7 +45,7 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path)
 		if (exists(p)) return p;
 	}
 
-	throw std::runtime_error(errorBase + path.generic_string());
+	throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
 }
 
 std::filesystem::path FileSystem::resolveRelative(const std::filesystem::path& path,
@@ -107,16 +108,13 @@ bool FileSystem::loadFileIntoString(const std::string& filePath, std::string* de
 	return loadingWasSuccessful;
 }
 
-void FileSystem::writeToFile(const std::string& path, const std::vector<std::string>& lines, std::ostream::_Openmode openMode)
+void FileSystem::writeToFile(const std::string& path, const std::vector<char>& source, std::ostream::_Openmode openMode)
 {
 	std::ofstream out;
 	out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	out.open(path, openMode);
+	out.open(path, openMode | std::ostream::binary);
 
-	for (auto& line : lines)
-	{
-		out << line << std::endl;
-	}
+	out.write(source.data(), source.size() - 1);
 }
 
 char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* fileSize)

@@ -5,14 +5,12 @@
 #include <nex/util/Globals.hpp>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <fstream>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/util/StringUtils.hpp>
 #include <regex>
 #include "nex/opengl/mesh/MeshGL.hpp"
-#include "nex/util/Memory.hpp"
 #include <nex/opengl/material/Material.hpp>
 #include "nex/shader_generator/SourceFileConsumer.hpp"
 
@@ -62,13 +60,26 @@ std::ostream& operator<<(std::ostream& os, ShaderType shader)
 	return os;
 }
 
+std::ostream& operator<<(std::ostream& os, ShaderTypeGL type)
+{
+	switch (type)
+	{
+	case ShaderTypeGL::VERTEX: os << "vertex";  break;
+	case ShaderTypeGL::FRAGMENT: os << "fragment"; break;
+	case ShaderTypeGL::GEOMETRY: os << "geometry"; break;
+	default:;
+	}
+
+	return os;
+}
+
 ShaderProgramGL::ShaderProgramGL(const std::string& vertexShaderFile, const std::string& fragmentShaderFile,
-	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile) : mIsBound(false)
+	const std::string& geometryShaderFile, const std::string& instancedVertexShaderFile) : mIsBound(false), mDebugName("ShaderProgramGL")
 {
 	programID = loadShaders(vertexShaderFile, fragmentShaderFile, geometryShaderFile);
 	if (programID == GL_FALSE)
 	{
-		throw_with_trace(ShaderInitException("ShaderGL::ShaderGL: couldn't load shader"));
+		throw_with_trace(ShaderInitException("ShaderProgramGL::ShaderProgramGL: couldn't load shader"));
 	}
 
 	/*if (instancedVertexShaderFile != "")
@@ -157,54 +168,6 @@ void ShaderProgramGL::setTexture(GLint uniformID, const TextureGL* data, unsigne
 	glUniform1i(uniformID, textureSlot);
 }
 
-
-/*
-
-void ShaderGL::setTexture2D(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
-{
-	assert(isValid(textureSlot));
-	
-	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
-	
-	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	//GLCall(glBindTexture(GL_TEXTURE_2D, data->getTexture()));
-	GLCall(glUniform1i(uniformID, textureSlot));
-}
-
-void ShaderGL::setTexture2DArray(GLuint uniformID, const TextureGL* data, unsigned int textureSlot)
-{
-	assert(isValid(textureSlot));
-
-	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
-	
-	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	//GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, data->getTexture()));
-	GLCall(glUniform1i(uniformID, textureSlot));
-}
-
-void ShaderGL::setCubeMap(GLuint uniformID, const CubeMapGL* data, unsigned int textureSlot)
-{
-	assert(isValid(textureSlot));
-
-	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
-
-	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	//GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, data->getTexture()));
-	GLCall(glUniform1i(uniformID, textureSlot));
-}
-
-void ShaderGL::setCubeMapArray(GLuint uniformID, const CubeMapGL* data, unsigned textureSlot)
-{
-	assert(isValid(textureSlot));
-
-	GLCall(glBindTextureUnit(textureSlot, data->getTexture()));
-	
-	//GLCall(glActiveTexture(textureSlot + GL_TEXTURE0));
-	//GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, data->getTexture()));
-	GLCall(glUniform1i(uniformID, textureSlot));
-}
-*/
-
 GLuint ShaderProgramGL::getProgramID() const
 {
 	return programID;
@@ -216,7 +179,7 @@ unsigned ShaderProgramGL::getUniformLocation(const char* name)
 
 	if (loc < 0)
 	{
-		static Logger logger("ShaderGL::getUniformLocation");
+		static Logger logger("ShaderProgramGL::getUniformLocation");
 		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
 	}
 
@@ -242,20 +205,20 @@ void ShaderProgramGL::unbind()
 GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
 	const std::string& geometryShaderFile)
 {	
+	bool useGeometryShader = geometryShaderFile.compare("") != 0;
 
-	bool useGeomtryShader = geometryShaderFile.compare("") != 0;
-
-	FileDesc vertexFileDesc;
-	FileDesc fragmentFileDesc;
-	FileDesc geometryFileDesc;
-
+	ProgramDesc vertexDesc;
+	ProgramDesc fragmentDesc;
+	ProgramDesc geometryDesc;
+	GLuint shaderProgram;
 	ShaderSourceFileGenerator* generator = getSourceFileGenerator();
 
 
 	// Read the Vertex Shader code from file
 	try
 	{
-		vertexFileDesc = generator->generate(vertexFile);
+		vertexDesc.root = generator->generate(vertexFile);
+		writeUnfoldedShaderContentToFile(vertexDesc.root.filePath, vertexDesc.root.resolvedSource);
 	} catch(const ParseException& e)
 	{
 		LOG(staticLogClient, Error) << e.what();
@@ -265,7 +228,8 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 	// Read the Fragment Shader code from file
 	try
 	{
-		fragmentFileDesc = generator->generate(fragmentFile);
+		fragmentDesc.root = generator->generate(fragmentFile);
+		writeUnfoldedShaderContentToFile(fragmentDesc.root.filePath, fragmentDesc.root.resolvedSource);
 	}
 	catch (const ShaderInitException e)
 	{
@@ -274,100 +238,33 @@ GLuint ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::st
 	}
 
 
-	if (useGeomtryShader)
+	if (useGeometryShader)
 	{
 		// Read the geometry Shader code from file
 		try
 		{
-			geometryFileDesc = generator->generate(geometryShaderFile);
+			geometryDesc.root = generator->generate(geometryShaderFile);
+			writeUnfoldedShaderContentToFile(geometryDesc.root.filePath, geometryDesc.root.resolvedSource);
 		}
 		catch (const ShaderInitException e)
 		{
 			LOG(staticLogClient, Error) << e.what();
 			throw_with_trace(ShaderInitException("Couldn't initialize geometry shader: " + geometryShaderFile));
 		}
-	}
 
 
-	// Create the shaders
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint geometryShaderID = GL_FALSE;
-	
-	if (useGeomtryShader)
+		shaderProgram = createShader(vertexDesc, fragmentDesc, &geometryDesc);
+
+
+	} else
 	{
-		geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
-	}
-	
-	std::string vertexShaderCode, fragmentShaderCode, geometryShaderCode;
-	GLint result = GL_FALSE;
-	int infoLogLength;
-	GLuint programID;
-
-
-	if (!compileShaderComponent(vertexShaderCode.c_str(), vertexShaderID))
-	{
-		std::stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't compile vertex shader!" << std::endl;
-		ss << "vertex file: " << vertexFileDesc.filePath;
-		throw_with_trace(ShaderInitException(ss.str()));
+		shaderProgram = createShader(vertexDesc, fragmentDesc, nullptr);
 	}
 
-	if (!compileShaderComponent(fragmentShaderCode.c_str(), fragmentShaderID))
-	{
-		std::stringstream ss;
-		ss << "Shader::loadShaders(): Couldn't compile fragment shader!" << std::endl;
-		ss << "fragment file: " << fragmentFileDesc.filePath;
-		throw_with_trace(ShaderInitException(ss.str()));
-	}
+	/*if (writeUnfoldedResult)
+		writeUnfoldedShaderContentToFile(shaderFile, lines);*/
 
-	if (useGeomtryShader)
-	{
-		if (!compileShaderComponent(geometryShaderCode.c_str(), geometryShaderID))
-		{
-			std::stringstream ss;
-			ss << "Shader::loadShaders(): Couldn't compile geometry shader!" << std::endl;
-			ss << "geometry file: " << geometryFileDesc.filePath;
-			throw_with_trace(ShaderInitException(ss.str()));
-		}
-	}
-
-	// link the program
-	programID = glCreateProgram();
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-	if (useGeomtryShader) 
-		glAttachShader(programID, geometryShaderID);
-
-	glLinkProgram(programID);
-
-	// Check the program
-	glGetProgramiv(programID, GL_LINK_STATUS, &result);
-	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-	if (result == GL_FALSE)
-	{
-		if (infoLogLength > 0) {
-			std::vector<char> ProgramErrorMessage(infoLogLength + 1);
-			glGetProgramInfoLog(programID, infoLogLength, nullptr, &ProgramErrorMessage[0]);
-			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
-		}
-		throw_with_trace(ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!"));
-	}
-
-	// release not needed memory
-	glDetachShader(programID, vertexShaderID);
-	glDetachShader(programID, fragmentShaderID);
-	if (useGeomtryShader)
-	{
-		glDetachShader(programID, geometryShaderID);
-		glDeleteShader(geometryShaderID);
-	}
-
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
-
-	return programID;
+	return shaderProgram;
 }
 
 FileSystem * ShaderProgramGL::getShaderFileSystem()
@@ -380,41 +277,6 @@ ShaderSourceFileGenerator* ShaderProgramGL::getSourceFileGenerator()
 {
 	static ShaderSourceFileGenerator generator(getShaderFileSystem());
 	return &generator;
-}
-
-
-bool ShaderProgramGL::compileShaderComponent(const std::string& shaderContent, GLuint shaderResourceID)
-{
-	int result = 0;
-	GLint logInfoLength;
-
-	if (!shaderContent.size())
-	{
-		LOG(staticLogClient, Error) << "shaderContent is suppossed to be no null-string!";
-		return GL_FALSE;
-	}
-
-	// compile...
-	const char* rawCode = shaderContent.c_str();
-	glShaderSource(shaderResourceID, 1, &rawCode, nullptr);
-
-	glCompileShader(shaderResourceID);
-
-	RendererOpenGL::checkGLErrors("ShaderGL.cpp");
-
-	// check compilation
-	glGetShaderiv(shaderResourceID, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(shaderResourceID, GL_INFO_LOG_LENGTH, &logInfoLength);
-
-	if (logInfoLength > 0)
-	{
-		std::vector<char> shaderErrorMessage(logInfoLength + 1);
-		glGetShaderInfoLog(shaderResourceID, logInfoLength, nullptr, &shaderErrorMessage[0]);
-		LOG(staticLogClient, Error) << &shaderErrorMessage[0];
-	}
-
-	if (result) return true;
-	return false;
 }
 
 void ShaderProgramGL::bind()
@@ -500,10 +362,8 @@ std::string ShaderProgramGL::adjustLineNumbers(char* message, const ProgramDesc&
 	return result.str();
 }
 
-GLuint ShaderProgramGL::compileShader(unsigned type, const ProgramDesc& desc)
+GLuint ShaderProgramGL::compileShader(unsigned int type, const ProgramDesc& desc)
 {
-	static Logger logger("[Shader]");
-
 	GLuint id;
 	GLCall(id = glCreateShader(type));
 
@@ -525,166 +385,72 @@ GLuint ShaderProgramGL::compileShader(unsigned type, const ProgramDesc& desc)
 
 		std::string modifiedMessage = adjustLineNumbers(message, desc);
 
-		logger.log(Error) << modifiedMessage;
+		LOG(staticLogClient, Error) << modifiedMessage;
 
-		std::string shaderType = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+		//GLCall(glDeleteShader(id));
 
-		GLCall(glDeleteShader(id));
-		throw std::runtime_error("Failed to compile " + shaderType + " shader!");
+		std::stringstream ss;
+		ss << "Failed to compile " << type << " shader!";
+
+		throw_with_trace(std::runtime_error(ss.str()));
 		//return GL_FALSE;
 	}
 
 	return id;
 }
 
-GLuint ShaderProgramGL::createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader)
+GLuint ShaderProgramGL::createShader(const ProgramDesc& vertexShader, const ProgramDesc& fragmentShader, const ProgramDesc* geometryShader)
 {
-	GLuint program, vs, fs;
+	GLuint program, vs, fs, gs;
+	bool useGeometryShader = geometryShader != nullptr;
+	int infoLogLength;
+	GLint result = GL_FALSE;
+
+
 	GLCall(program = glCreateProgram());
 	GLCall(vs = compileShader(GL_VERTEX_SHADER, vertexShader));
 	GLCall(fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader));
+	
+	if (useGeometryShader)
+	{
+		GLCall(gs = compileShader(GL_GEOMETRY_SHADER, *geometryShader));
+		GLCall(glAttachShader(program, gs));
+	}
 
 	GLCall(glAttachShader(program, vs));
 	GLCall(glAttachShader(program, fs));
+
 	GLCall(glLinkProgram(program));
 	GLCall(glValidateProgram(program));
+
+	// Check the program
+	glGetProgramiv(program, GL_LINK_STATUS, &result);
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	if (result == GL_FALSE)
+	{
+		if (infoLogLength > 0) {
+			std::vector<char> ProgramErrorMessage(infoLogLength + 1);
+			glGetProgramInfoLog(program, infoLogLength, nullptr, &ProgramErrorMessage[0]);
+			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
+		}
+		throw_with_trace(ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!"));
+	}
 
 	GLCall(glDeleteShader(vs));
 	GLCall(glDeleteShader(fs));
 
+	if (useGeometryShader)
+	{
+		GLCall(glDeleteShader(gs));
+	}
+
 	return program;
 }
 
-bool ShaderProgramGL::extractIncludeStatement(const std::string& line, std::string* result)
+void ShaderProgramGL::writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<char>& sourceCode)
 {
-	std::regex pattern1("#include.*<.*>.*");
-	std::regex pattern2("#include.*\\\".*\\\".*");
-
-	char separatorToken1;
-	char separatorToken2;
-
-	if (std::regex_match(line.begin(), line.end(), pattern1))
-	{
-		separatorToken1 = '<';
-		separatorToken2 = '>';
-	}
-	else if (std::regex_match(line.begin(), line.end(), pattern2))
-	{
-		separatorToken1 = separatorToken2 = '\"';
-	}
-	else
-	{
-		return false;
-	}
-
-	auto pos = line.find_first_of(separatorToken1);
-	auto start = line.begin() + pos + 1;
-	auto end = start;
-	for (; *end != separatorToken2; ++end) {}
-
-	*result = std::string(start, end);
-	nex::util::Trim::trim(*result);
-
-	return true;
-}
-
-bool ShaderProgramGL::isValid(unsigned textureUnit)
-{
-	int unitCount;
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &unitCount);
-	return textureUnit < unitCount;
-}
-
-std::string ShaderProgramGL::loadShaderComponent(const std::string& shaderFile, bool writeUnfoldedResult, std::vector<std::string> defines)
-{
-	std::string content;
-	if (!nex::filesystem::loadFileIntoString(shaderFile, &content))
-	{
-		std::stringstream ss;
-		ss << "Shader::loadShaderComponent(): Couldn't load shader file" << std::endl;
-		ss << "Shader file: " << shaderFile;
-
-		throw_with_trace(ShaderInitException(ss.str()));
-	}
-
-	// preprocess throws ShaderInitException if it cannot preprocess the content
-	std::vector<std::string> lines = preprocess(std::move(content), defines);
-
-	if (writeUnfoldedResult)
-		writeUnfoldedShaderContentToFile(shaderFile, lines);
-
-
-	// Build result string
-	std::stringstream ss;
-	for (auto& line : lines)
-		ss << line << std::endl;
-	
-	return ss.str();
-}
-
-std::vector<std::string> ShaderProgramGL::preprocess(std::string& shaderContent, const std::vector<std::string>& defines)
-{
-	using namespace nex::util;
-	using namespace std;
-
-	removeComments(shaderContent);
-	auto lines = tokenize(shaderContent, "\n");
-
-	auto eraseIt = remove_if(lines.begin(), lines.end(), [&](string& line)
-	{
-		Trim::trim(line);
-		return line.empty();
-	});
-
-	lines.erase(eraseIt, lines.end());
-
-	// We removed comments, trimmed the lines and removed empty lines
-	// Thus the first line in a valid glsl shader file defines the glsl version
-	// So we add the defines just after the first line
-
-	if (lines.size() >= 1)
-	{
-		for (int i = 0; i < defines.size(); ++i)
-		{
-			lines.insert(lines.begin() + 1 + i, defines[i]);
-		}
-	}
-
-	for (auto nextIt = lines.begin(); nextIt != lines.end(); )
-	{
-		std::string includeFile;
-
-		auto currentIt = nextIt;
-		++nextIt;
-
-		if (extractIncludeStatement(*currentIt, &includeFile))
-		{
-			std::string content;
-			if (!::filesystem::loadFileIntoString(includeFile, &content))
-			{
-				std::stringstream ss;
-				ss << "Shader::preprocess(): Couldn't load include file!" << std::endl;
-				ss << "Include file: " << includeFile;
-
-				throw_with_trace(ShaderInitException(ss.str()));
-			}
-			std::vector<std::string> includeLines = preprocess(content, {});
-
-			auto insertionSize = includeLines.size();
-			currentIt = lines.insert(currentIt, includeLines.begin(), includeLines.end());
-			currentIt += insertionSize;
-
-			// remove the current line and let it point to the next line
-			nextIt = lines.erase(currentIt);
-		}
-	}
-
-	return lines;
-}
-
-void ShaderProgramGL::writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<std::string>& lines)
-{
-	nex::filesystem::writeToFile(shaderSourceFile + ".unfolded", lines, std::ostream::trunc);
+	FileSystem::writeToFile(shaderSourceFile + ".unfolded", sourceCode, std::ostream::trunc);
 }
 
 ShaderGL::ShaderGL() : mProgram(nullptr)

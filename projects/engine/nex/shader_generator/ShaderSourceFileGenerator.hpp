@@ -79,7 +79,7 @@ std::ostream& operator<<(std::ostream& os, const ReverseInfo& r);
 struct ProgramDesc
 {
 	FileDesc root;
-	int parseErrorLogOffset;
+	int parseErrorLogOffset = 0;
 };
 
 struct ProgramSources

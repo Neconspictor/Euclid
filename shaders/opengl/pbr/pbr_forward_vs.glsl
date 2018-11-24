@@ -126,4 +126,4 @@ void main()
 	}
 	
 	//vs_out.fragment_position_lightspace = positionLightSpace;
-} 
+}

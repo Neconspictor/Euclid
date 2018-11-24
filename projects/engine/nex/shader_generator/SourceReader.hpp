@@ -27,6 +27,8 @@ public:
 	virtual ~SourceFileParser() = default;
 	void read(std::vector<char>* result);
 
+	std::streampos getFileSize(std::ifstream & file);
+
 private:
 	std::filesystem::path mFilePath;
 };

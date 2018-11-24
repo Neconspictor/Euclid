@@ -44,7 +44,7 @@ public:
 	 *
 	 * @throws std::ofstream::failure If an IO error occurs
 	 */
-	static void writeToFile(const std::string& path, const std::vector<std::string>& lines,
+	static void writeToFile(const std::string& path, const std::vector<char>& source,
 		std::ostream::_Openmode openMode = std::ostream::trunc);
 
 

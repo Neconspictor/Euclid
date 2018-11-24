@@ -1,5 +1,6 @@
 #include "CommentStateTracker.hpp"
 #include <stdexcept>
+#include "nex/util/ExceptionHandling.hpp"
 
 CommentStateTracker::CommentStateTracker(CommentState initialState) : mState(initialState)
 {
@@ -61,7 +62,7 @@ void CommentStateTracker::update(const StreamPos& streamPos)
 			mState = CommentState::NO_COMMENT;
 		break;
 
-	default: throw std::runtime_error("Not valid CommentState: " + to_underlying(mState));
+	default: throw_with_trace(std::runtime_error("Not valid CommentState: " + to_underlying(mState)));
 	}
 }
 

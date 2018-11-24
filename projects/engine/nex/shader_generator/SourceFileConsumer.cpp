@@ -1,5 +1,6 @@
 #include "SourceFileConsumer.hpp"
 #include <sstream>
+#include "nex/util/ExceptionHandling.hpp"
 
 void LineCounter::consume(const StreamDesc& desc)
 {
@@ -113,12 +114,12 @@ void IncludeCollector::consume(const StreamDesc& desc)
 			mBuffer.clear();
 		}
 		else if (!isIgnorable(c))
-			throw ParseException("Expected quotation mark after include directive.");
+			throw_with_trace(ParseException("Expected quotation mark after include directive."));
 
 		break;
 	case State::PATH:
 		if (isNewLine) {
-			throw ParseException("Unexpected end of line.");
+			throw_with_trace(ParseException("Unexpected end of line."));
 		}
 
 		if (isQuotationMarks)
@@ -145,7 +146,7 @@ void IncludeCollector::consume(const StreamDesc& desc)
 		}
 		else if (!isIgnorable(c))
 		{
-			throw ParseException("Unexpected token after include directive.");
+			throw_with_trace(ParseException("Unexpected token after include directive."));
 		}
 
 		break;

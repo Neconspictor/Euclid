@@ -8,6 +8,7 @@
 #include "SourceFileConsumer.hpp"
 #include "SourceReader.hpp"
 #include <functional>
+#include "nex/util/ExceptionHandling.hpp"
 
 std::ostream& operator<<(std::ostream& os, const Replacement& r)
 {
@@ -155,7 +156,7 @@ ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::files
 	}
 	catch (const std::ios_base::failure&)
 	{
-		throw std::runtime_error("Couldn't extract shader programs from " + path.generic_string());
+		throw_with_trace(std::runtime_error("Couldn't extract shader programs from " + path.generic_string()));
 	}
 }
 
@@ -230,7 +231,10 @@ ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc,
 
 	const FileDesc* current = fileDesc;
 
-	queue.push(current->includes.begin());
+	if (current->includes.size() > 0)
+	{
+		queue.push(current->includes.begin());
+	}
 
 	while (!queue.empty())
 	{
@@ -361,7 +365,7 @@ void ShaderSourceFileGenerator::generate(FileDesc* root)
 
 			mLogger.log(nex::Error) << ss.str();
 
-			throw std::runtime_error("File is included multiple times: " + p.generic_string());
+			throw_with_trace(std::runtime_error("File is included multiple times: " + p.generic_string()));
 		}
 	};
 
@@ -406,7 +410,7 @@ void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::f
 		std::stringstream ss;
 		ss << "Couldn't read " << filePath << std::endl;
 		ss << "Reason:  " << e.what() << std::endl;
-		throw ParseException(ss.str().c_str());
+		throw_with_trace(ParseException(ss.str().c_str()));
 	}
 
 	fileDesc->sourceSize = fileDesc->source.size();
@@ -454,7 +458,7 @@ void ShaderSourceFileGenerator::parseShaderSource(FileDesc* fileDesc, const std:
 		std::stringstream ss;
 		ss << "Couldn't parse content from " << filePath << std::endl;
 		ss << "Reason:  " << e.what() << std::endl;
-		throw ParseException(ss.str().c_str());
+		throw_with_trace(ParseException(ss.str().c_str()));
 	}
 
 	for (const auto& it : includeCollector.getIncludes())

@@ -58,18 +58,34 @@ SourceFileParser::SourceFileParser(const std::filesystem::path& filePath) : Pars
 
 void SourceFileParser::read(std::vector<char>* result)
 {
-	{
-		std::ifstream file;
-		file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		file.open(mFilePath);
-		std::copy(
-			std::istreambuf_iterator<char>(file.rdbuf()),
-			std::istreambuf_iterator<char>(),
-			std::back_inserter(*result));
-	}
+	std::ifstream file;
+	file.exceptions(std::ifstream::badbit | std::ifstream::failbit);
+	file.open(mFilePath, std::ios::binary);
+	size_t fileSize = getFileSize(file);
+	result->resize(fileSize + 1);
+	file.read(result->data(), fileSize);
+	(*result)[fileSize] = '\0';
 
-	StreamPos streamPos{ &result->front(), &result->front(), &result->back() + 1 };
+	StreamPos streamPos{ result->data(), result->data(), result->data() + fileSize};
 	parse(streamPos);
+}
+
+std::streampos SourceFileParser::getFileSize(std::ifstream& file)
+{
+	using namespace std;
+
+	streampos backup = file.tellg();
+	file.seekg(0, ios::beg);
+
+	streampos begin = file.tellg();
+
+	file.seekg(0, ios::end);
+	streampos fsize = file.tellg() - begin;
+
+	// restore state 
+	file.seekg(backup, ios_base::beg);
+
+	return fsize;
 }
 
 SourceMemoryParser::SourceMemoryParser(const std::vector<char>* source) : Parser(), mSource(source)
