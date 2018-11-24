@@ -109,10 +109,10 @@ void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
 
 		vertexArray->bind();
 		indexBuffer->bind();
-		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+		GLCall(glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr));
 
-		indexBuffer->unbind();
-		vertexArray->unbind();
+		//indexBuffer->unbind();
+		//vertexArray->unbind();
 	}
 }
 

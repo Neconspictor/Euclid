@@ -7,6 +7,7 @@
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/opengl/texture/Sprite.hpp>
+#include "nex/opengl/texture/ImageLoaderGL.hpp"
 
 class RendererOpenGL;
 
@@ -42,6 +43,10 @@ public:
   CubeMapGL* getPrefilteredEnvironmentMap();
 
   TextureGL* getBrdfLookupTexture();
+
+  GenericImageGL readBrdfLookupPixelData();
+
+  GenericImageGL readTestPixelData();
 
 
 protected:

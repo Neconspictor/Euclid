@@ -624,7 +624,7 @@ void PBR_ConvolutionShaderGL::setEnvironmentMap(const CubeMapGL * cubeMap)
 PBR_PrefilterShaderGL::PBR_PrefilterShaderGL()
 {
 	mProgram = new ShaderProgramGL(
-		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+		"pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
@@ -655,7 +655,7 @@ void PBR_PrefilterShaderGL::setView(const glm::mat4& mat)
 PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL()
 {
 	mProgram = new ShaderProgramGL(
-		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+		"pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }

@@ -160,7 +160,7 @@ void ShaderProgramGL::setTexture(GLint uniformID, const TextureGL* data, unsigne
 {
 	//assert(mIsBound);
 	ASSERT(mIsBound);
-	ASSERT(isValid(textureSlot));
+	//ASSERT(isValid(textureSlot));
 	if (uniformID < 0) return;
 
 	glBindTextureUnit(textureSlot, data->getTexture());

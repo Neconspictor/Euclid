@@ -4,6 +4,7 @@
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include "nex/opengl/shader/ShadowShaderGL.hpp"
+#include "nex/util/ExceptionHandling.hpp"
 
 using namespace glm;
 
@@ -124,6 +125,60 @@ TextureGL * PBR::getBrdfLookupTexture()
 	return brdfLookupTexture->getTexture();
 }
 
+GenericImageGL PBR::readBrdfLookupPixelData()
+{
+	GenericImageGL data;
+	data.width = brdfLookupTexture->getWidth();
+	data.height = brdfLookupTexture->getHeight();
+	data.components = 4; // RGB
+	data.format = GL_RGBA;
+	data.pixelSize = 4 * data.components;
+
+	data.bufSize = data.width * data.height * data.pixelSize;
+	data.pixels = new char[data.bufSize];
+
+	// read the data back from the gpu
+	GLuint textureID = brdfLookupTexture->getTexture()->getTexture();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, textureID));
+	GLCall(glGetTexImage(GL_TEXTURE_2D, 0, data.format, GL_FLOAT, data.pixels));
+
+	return data;
+}
+
+GenericImageGL PBR::readTestPixelData()
+{
+	GenericImageGL data;
+	data.width = prefilterRenderTarget->getWidth();
+	data.height = prefilterRenderTarget->getHeight();
+	data.components = 4; // RGB
+	data.format = GL_RGBA;
+	data.pixelSize = 4 * data.components;
+
+	data.bufSize = data.width * data.height * data.pixelSize;
+	data.pixels = new char[data.bufSize];
+
+	// read the data back from the gpu
+	GLuint textureID = prefilterRenderTarget->getCubeMap()->getTexture();
+
+	GLuint fbo;
+	//glGenFramebuffers(1, &fbo);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, textureID, 0);
+	//glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, data.format, 0, 0, data.width, data.height, 0);
+	GLCall(glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, data.format, GL_FLOAT, data.pixels));
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDeleteFramebuffers(1, &fbo);
+
+	return data;
+}
+
 CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 {
 	TextureData textureData = {false, false, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32};
@@ -171,6 +226,7 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 
 CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 {
+	// uses RGB and 32bit per component (floats)
 	CubeRenderTargetGL* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
@@ -309,8 +365,9 @@ void PBR::init(TextureGL* backgroundHDR)
 	Viewport backup = renderer->getViewport();
 
 	environmentMap = renderBackgroundToCube(backgroundHDR);
-	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
 	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
+	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
+	
 
 	renderer->setViewPort(backup.x, backup.y, backup.width, backup.height);
 
@@ -332,4 +389,28 @@ void PBR::init(TextureGL* backgroundHDR)
 	brdfSprite.setTexture(nullptr);
 
 	brdfLookupTexture = createBRDFlookupTexture();
+
+
+	// read backs
+	/*GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
+
+
+	glm::vec4* pixels = (glm::vec4*)brdfLUTImage.pixels;
+
+	std::ofstream out("brdfLUT.txt");
+
+	for (unsigned x = 0; x < brdfLUTImage.width; ++x)
+	{
+		for (unsigned y = 0; y < brdfLUTImage.height; ++y)
+		{
+			int index = x * brdfLUTImage.width + y;
+			out << pixels[index].x << " " << pixels[index].y << " " << pixels[index].z << " " << pixels[index].w << "\n";
+		}
+	}
+
+	out.close();
+
+
+	// release memory
+	delete brdfLUTImage.pixels;*/
 }

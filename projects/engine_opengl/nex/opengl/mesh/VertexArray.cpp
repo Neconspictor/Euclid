@@ -37,6 +37,8 @@ void VertexArray::addBuffer(const VertexBuffer& buffer, const VertexLayout& layo
 		offset += elem.count * LayoutElement::getSizeOfType(elem.type);
 	}
 
+	//buffer.unbind();
+
 	unbind();
 }
 

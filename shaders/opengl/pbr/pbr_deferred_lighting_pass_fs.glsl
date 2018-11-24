@@ -319,7 +319,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return (kD * diffuse + ambientLightSpecular * 0.4) * ao;
+    return (kD * diffuse + ambientLightSpecular) * ao; //ambientLightSpecular * 0.4
 	//return prefilteredColor;
 }
 

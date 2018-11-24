@@ -15,7 +15,7 @@
 
 extern nex::Logger GLOBAL_RENDERER_LOGGER;
 
-#define NDEBUG 1
+//#define NDEBUG 0
 
 #if defined(NDEBUG)
 #define SET_BREAK()

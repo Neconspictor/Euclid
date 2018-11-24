@@ -5,12 +5,14 @@
 
 struct GenericImageGL
 {
-	char* pixels;
-	unsigned long long bufSize;
-	int width, height;
-	int components; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
-	GLint format;
-	unsigned int numMipmaps;
+	char* pixels = nullptr;
+	unsigned long long bufSize = 0;
+	int width = 0;
+	int height = 0;
+	unsigned char pixelSize = 0; // The byte size of one pixel (all components combined)
+	int components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
+	GLint format = 0;
+	unsigned int numMipmaps = 0;
 };
 
 class ImageLoaderGL

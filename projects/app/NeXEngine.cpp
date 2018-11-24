@@ -178,8 +178,8 @@ SceneNode* NeXEngine::createScene()
 
 	/*m_nodes.push_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
-	m_vobs.push_back(Vob("cerberus/cerberus.obj", Shaders::Pbr));
-	cerberus->setVob(&m_vobs.back());
+	m_vobs.push_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
+	cerberus->vob(&m_vobs.back());
 	root->addChild(cerberus);*/
 
 	m_nodes.push_back(SceneNode());
@@ -205,7 +205,7 @@ SceneNode* NeXEngine::createScene()
 	//root->addChild(sphere);
 
 	//m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
-	//vobs.push_back(Vob("misc/textured_cube.obj"));
+	//m_vobs.push_back(Vob("misc/textured_cube.obj"));
 	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
 	//cube1->setVob(&m_vobs.back());
 
