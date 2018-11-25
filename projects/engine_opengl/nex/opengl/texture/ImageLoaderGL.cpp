@@ -11,6 +11,38 @@ using namespace boost::interprocess;
 using namespace std;
 using namespace nex;
 
+GenericImageGL::GenericImageGL(GenericImageGL&& o) noexcept :
+pixels(o.pixels), width(o.width), height(o.height), components(o.components),
+bufSize(o.bufSize), pixelSize(o.pixelSize), format(o.format),
+numMipmaps(o.numMipmaps)
+{
+	o.pixels = nullptr;
+}
+
+GenericImageGL& GenericImageGL::operator=(GenericImageGL&& o) noexcept
+{
+	if (this == &o) return *this;
+
+	pixels = (o.pixels);
+	width = (o.width); 
+	height = (o.height); 
+	components = (o.components);
+	bufSize = (o.bufSize); 
+	pixelSize = (o.pixelSize); 
+	format = (o.format);
+	numMipmaps = (o.numMipmaps);
+
+	o.pixels = nullptr;
+
+	return *this;
+}
+
+GenericImageGL::~GenericImageGL()
+{
+	delete pixels;
+	pixels = nullptr;
+}
+
 ImageLoaderGL::ImageLoaderGL() : m_logger("ImageLoaderGL")
 {}
 

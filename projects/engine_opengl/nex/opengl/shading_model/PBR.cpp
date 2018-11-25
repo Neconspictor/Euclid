@@ -121,7 +121,7 @@ TextureGL * PBR::getBrdfLookupTexture()
 	return brdfLookupTexture->getTexture();
 }
 
-GenericImageGL PBR::readBrdfLookupPixelData()
+GenericImageGL PBR::readBrdfLookupPixelData() const
 {
 	GenericImageGL data;
 	data.width = brdfLookupTexture->getWidth();
@@ -134,7 +134,7 @@ GenericImageGL PBR::readBrdfLookupPixelData()
 	data.pixels = new char[data.bufSize];
 
 	// read the data back from the gpu
-	GLuint textureID = brdfLookupTexture->getTexture()->getTexture();
+	const GLuint textureID = brdfLookupTexture->getTexture()->getTexture();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, textureID));
@@ -389,8 +389,4 @@ void PBR::init(TextureGL* backgroundHDR)
 	// read backs
 	GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
 	TextureManagerGL::get()->writeHDR(brdfLUTImage, "brdfLUT.hdr");
-
-
-	// release memory
-	delete brdfLUTImage.pixels;
 }

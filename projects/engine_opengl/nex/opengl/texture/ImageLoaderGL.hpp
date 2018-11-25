@@ -13,6 +13,15 @@ struct GenericImageGL
 	unsigned int components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
 	GLint format = 0;
 	unsigned int numMipmaps = 0;
+
+	GenericImageGL() = default;
+	GenericImageGL(GenericImageGL&& o) noexcept;
+	GenericImageGL& operator=(GenericImageGL&& o) noexcept;
+
+	virtual ~GenericImageGL();
+
+	GenericImageGL(const GenericImageGL&) = delete;
+	GenericImageGL& operator=(const GenericImageGL&) = delete;
 };
 
 class ImageLoaderGL
