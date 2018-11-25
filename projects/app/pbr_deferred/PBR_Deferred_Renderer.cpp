@@ -62,7 +62,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
 	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr", 
 		{ 
-			TextureFilter::Linear_Mipmap_Linear, 
+			TextureFilter::Linear,
 			TextureFilter::Linear, 
 			TextureUVTechnique::ClampToEdge, 
 			ColorSpace::RGB, 

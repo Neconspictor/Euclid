@@ -235,7 +235,7 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
 	GLuint minFilter = static_cast<GLuint>(data.minFilter);
@@ -271,7 +271,8 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
 {
-	release();
+	// Don't release memory. Is needed!
+	//release();
 }
 
 CubeMapGL * CubeRenderTargetGL::createCopy()
@@ -370,6 +371,7 @@ void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	unsigned int mipWidth = (unsigned int)(width * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(height * std::pow(0.5, mipMapLevel));
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
