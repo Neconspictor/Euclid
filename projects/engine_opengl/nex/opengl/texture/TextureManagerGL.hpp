@@ -45,8 +45,17 @@ public:
 	TextureGL* getDefaultWhiteTexture();
 
 	TextureGL* getHDRImage(const std::string& file, TextureData data);
-	TextureGL* getHDRImage2(const std::string& file, TextureData data);
-	TextureGL* getImage(const std::string& file, TextureData data = { true, true, Linear_Mipmap_Linear, Linear, Repeat, RGBA, BITS_8});
+
+	TextureGL* getImage(const std::string& file, 
+		TextureData data = {
+			TextureFilter::Linear_Mipmap_Linear, 
+			TextureFilter::Linear, 
+			TextureUVTechnique::Repeat, 
+			ColorSpace::SRGBA, 
+			PixelDataType::UBYTE, 
+			InternFormat::SRGBA8, 
+			true}
+	);
 
 	/**
 	 * Initializes the texture manager.

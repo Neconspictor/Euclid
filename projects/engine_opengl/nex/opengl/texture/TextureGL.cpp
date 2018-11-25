@@ -123,14 +123,6 @@ GLuint TextureGL::getFormat(int numberComponents)
 	return GL_FALSE;
 }
 
-GLuint TextureGL::getType(bool isFloatData)
-{
-	if (isFloatData) {
-		return GL_FLOAT;
-	}
-	return GL_UNSIGNED_BYTE;
-}
-
 RenderBufferGL::RenderBufferGL() : TextureGL()
 {
 }

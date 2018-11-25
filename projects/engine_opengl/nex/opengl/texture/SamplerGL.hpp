@@ -24,11 +24,11 @@
 struct SamplerState
 {
 	glm::vec4 borderColor = { 0,0,0,0 };
-	TextureFilter minFilter = Near_Mipmap_Linear;
-	TextureFilter magFilter = Linear;
-	TextureUVTechnique wrapS = Repeat;
-	TextureUVTechnique wrapT = Repeat;
-	TextureUVTechnique wrapR = Repeat;
+	TextureFilter minFilter = TextureFilter::Near_Mipmap_Linear;
+	TextureFilter magFilter = TextureFilter::Linear;
+	TextureUVTechnique wrapS = TextureUVTechnique::Repeat;
+	TextureUVTechnique wrapT = TextureUVTechnique::Repeat;
+	TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
 	int minLOD = -1000;
 	int maxLOD = 1000;
 	float biasLOD = 0.0f;

@@ -61,11 +61,11 @@ void TextureManagerGL::init()
 	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
 	mDefaultImageSampler = new SamplerGL();
-	mDefaultImageSampler->setMinFilter(Linear_Mipmap_Linear);
-	mDefaultImageSampler->setMagFilter(Linear);
-	mDefaultImageSampler->setWrapR(Repeat);
-	mDefaultImageSampler->setWrapS(Repeat);
-	mDefaultImageSampler->setWrapT(Repeat);
+	mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
+	mDefaultImageSampler->setMagFilter(TextureFilter::Linear);
+	mDefaultImageSampler->setWrapR(TextureUVTechnique::Repeat);
+	mDefaultImageSampler->setWrapS(TextureUVTechnique::Repeat);
+	mDefaultImageSampler->setWrapT(TextureUVTechnique::Repeat);
 	mDefaultImageSampler->setAnisotropy(16.0f);
 }
 
@@ -141,23 +141,49 @@ TextureGL* TextureManagerGL::getImageGL(const string& file)
 
 TextureGL * TextureManagerGL::getDefaultBlackTexture()
 {
-	return getImage("_intern/black.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/black.png", 
+		{
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			ColorSpace::RGB,
+			PixelDataType::UBYTE,
+			InternFormat::RGB8,
+			true
+		});
 }
 
 TextureGL * TextureManagerGL::getDefaultNormalTexture()
 {
 	//normal maps shouldn't use mipmaps (important for shading!)
-	return getImage("_intern/default_normal.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/default_normal.png", 
+		{
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			ColorSpace::RGB,
+			PixelDataType::UBYTE,
+			InternFormat::RGB8,
+			true
+		});
 }
 
 TextureGL * TextureManagerGL::getDefaultWhiteTexture()
 {
-	return getImage("_intern/white.png", { false, true, Linear_Mipmap_Linear, Linear, Repeat, RGB, BITS_8 });
+	return getImage("_intern/white.png", 
+		{
+			TextureFilter::Linear_Mipmap_Linear, 
+			TextureFilter::Linear, 
+			TextureUVTechnique::Repeat, 
+			ColorSpace::RGB, 
+			PixelDataType::UBYTE, 
+			InternFormat::RGB8, 
+			true 
+		});
 }
 
 
-
-TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
+TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 {
 	auto it = textureLookupTable.find(file);
 
@@ -182,19 +208,20 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	}
 
 	GLuint format = TextureGL::getFormat(nrComponents);
-	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
 
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	glGenTextures(1, &hdrTexture);
 	glBindTexture(GL_TEXTURE_2D, hdrTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, rawData);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, pixelDataType, rawData);
 
-	GLint minFilter = TextureGL::mapFilter(data.minFilter);
-	GLint magFilter = TextureGL::mapFilter(data.magFilter);
-	GLint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
+	GLint minFilter = static_cast<GLuint>(data.minFilter);
+	GLint magFilter = static_cast<GLuint>(data.magFilter);
+	GLint uvTechnique = static_cast<GLuint>(data.uvTechnique);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
@@ -209,18 +236,10 @@ TextureGL* TextureManagerGL::getHDRImage2(const string& file, TextureData data)
 	return createTextureGL(file, hdrTexture);
 }
 
-
-
-
-TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
-{
-	return getHDRImage2(file, data);
-}
-
 TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 {
-	if (data.isFloatData) {
-		return getHDRImage2(file, data);
+	if (data.pixelDataType == PixelDataType::FLOAT) {
+		return getHDRImage(file, data);
 	}
 
 	auto it = textureLookupTable.find(file);
@@ -249,32 +268,27 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 
 
 	GLuint format = TextureGL::getFormat(nrComponents);
+	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
 
-	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+	GLuint minFilter = static_cast<GLuint>(data.minFilter);
+	GLuint magFilter = static_cast<GLuint>(data.magFilter);
+	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
 
 
 
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	if (data.isFloatData) {
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
-	}
-	else {
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, rawData);
-	}
-
-	GLint minFilter = TextureGL::mapFilter(data.minFilter);
-	GLint magFilter = TextureGL::mapFilter(data.magFilter);
-	GLint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, pixelDataType, rawData);
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 

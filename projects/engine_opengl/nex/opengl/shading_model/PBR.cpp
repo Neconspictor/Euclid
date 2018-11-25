@@ -146,7 +146,7 @@ GenericImageGL PBR::readBrdfLookupPixelData() const
 CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 {
 	TextureData textureData = {
-		TextureFilter::Linear_Mipmap_Linear,
+		TextureFilter::Linear,
 		TextureFilter::Linear,
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RGB,
@@ -182,9 +182,9 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
-	for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
+	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, (CubeMapGL::Side)side);
+		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -226,9 +226,9 @@ CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
-	for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
+	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, (CubeMapGL::Side)side);
+		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -291,9 +291,9 @@ CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 		renderer->setViewPort(0, 0, width, height);
 
 		// render to the cubemap at the specified mip level
-		for (int side = CubeMapGL::POSITIVE_X; side < 6; ++side) {
+		for (unsigned int side = 0; side < 6; ++side) {
 			shader->setView(views[side]);
-			renderer->useCubeRenderTarget(prefilterRenderTarget, (CubeMapGL::Side)side, mipLevel);
+			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X), mipLevel);
 			modelDrawer->draw(skybox.getModel(), shader);
 		}
 	}
@@ -380,6 +380,6 @@ void PBR::init(TextureGL* backgroundHDR)
 
 
 	// read backs
-	GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
-	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
+	//GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
+	//TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
 }

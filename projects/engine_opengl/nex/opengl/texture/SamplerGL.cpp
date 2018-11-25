@@ -41,12 +41,12 @@ GLuint SamplerGL::getID() const
 
 void SamplerGL::setMinFilter(TextureFilter filter)
 {
-	glSamplerParameteri(m_samplerID, GL_TEXTURE_MIN_FILTER, TextureGL::mapFilter(filter));
+	glSamplerParameteri(m_samplerID, GL_TEXTURE_MIN_FILTER, static_cast<GLuint>(filter));
 }
 
 void SamplerGL::setMagFilter(TextureFilter filter)
 {
-	glSamplerParameteri(m_samplerID, GL_TEXTURE_MAG_FILTER, TextureGL::mapFilter(filter));
+	glSamplerParameteri(m_samplerID, GL_TEXTURE_MAG_FILTER, static_cast<GLuint>(filter));
 }
 
 GLfloat SamplerGL::getMaxAnisotropicFiltering()
@@ -153,17 +153,17 @@ void SamplerGL::setCompareFunction(GLuint compareFunction)
 
 void SamplerGL::setWrapS(TextureUVTechnique wrap)
 {
-	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_S, TextureGL::mapUVTechnique(wrap));
+	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_S, static_cast<GLuint>(wrap));
 }
 
 void SamplerGL::setWrapT(TextureUVTechnique wrap)
 {
-	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_T, TextureGL::mapUVTechnique(wrap));
+	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_T, static_cast<GLuint>(wrap));
 }
 
 void SamplerGL::setWrapR(TextureUVTechnique wrap)
 {
-	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_R, TextureGL::mapUVTechnique(wrap));
+	glSamplerParameteri(m_samplerID, GL_TEXTURE_WRAP_R, static_cast<GLuint>(wrap));
 }
 
 void SamplerGL::setBorderColor(const glm::vec4& color)

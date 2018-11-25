@@ -144,9 +144,27 @@ public:
 	CubeDepthMapGL* createCubeDepthMap(int width, int height);
 
 	//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
-	CubeRenderTargetGL* createCubeRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
+	CubeRenderTargetGL* createCubeRenderTarget(int width, int height, 
+		const TextureData& data = {
+			TextureFilter::Linear, 
+			TextureFilter::Linear, 
+			TextureUVTechnique::ClampToEdge, 
+			ColorSpace::RGB, 
+			PixelDataType::FLOAT, 
+			InternFormat::RGB32F, 
+			false});
 
-	RenderTargetGL* create2DRenderTarget(int width, int height, const TextureData& data = { false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32 }, int samples = 1);
+	RenderTargetGL* create2DRenderTarget(int width, int height, 
+		const TextureData& data = {
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB, 
+			PixelDataType::FLOAT, 
+			InternFormat::RGB32F, 
+			false
+		}, 
+		int samples = 1);
 
 	void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
 

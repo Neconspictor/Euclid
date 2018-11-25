@@ -108,7 +108,6 @@ public:
 	void setTexture(GLuint id);
 
 	static GLuint getFormat(int numberComponents);
-	static GLuint getType(bool isFloatData);
 
 	virtual void release();
 
