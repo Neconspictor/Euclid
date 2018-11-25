@@ -13,8 +13,7 @@ using namespace nex;
 
 GenericImageGL::GenericImageGL(GenericImageGL&& o) noexcept :
 pixels(o.pixels), width(o.width), height(o.height), components(o.components),
-bufSize(o.bufSize), pixelSize(o.pixelSize), format(o.format),
-numMipmaps(o.numMipmaps)
+bufSize(o.bufSize), pixelSize(o.pixelSize), format(o.format)
 {
 	o.pixels = nullptr;
 }
@@ -30,7 +29,6 @@ GenericImageGL& GenericImageGL::operator=(GenericImageGL&& o) noexcept
 	bufSize = (o.bufSize); 
 	pixelSize = (o.pixelSize); 
 	format = (o.format);
-	numMipmaps = (o.numMipmaps);
 
 	o.pixels = nullptr;
 

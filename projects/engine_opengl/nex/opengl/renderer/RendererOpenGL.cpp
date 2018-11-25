@@ -262,7 +262,7 @@ BaseRenderTargetGL * RendererOpenGL::getDefaultRenderTarget()
 
 RenderTargetGL* RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
-	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
+	return createRenderTargetGL(width, height, data, samples, GL_DEPTH_STENCIL);
 }
 
 void RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float depthValue, int stencilValue)
@@ -295,14 +295,13 @@ DepthMapGL* RendererOpenGL::createDepthMap(int width, int height)
 RenderTargetGL* RendererOpenGL::createRenderTarget(int samples)
 {
 	TextureData data;
-	data.useSRGB = false;
 	data.generateMipMaps = false;
-	data.minFilter = Linear;
-	data.magFilter = Linear;
-	data.colorspace = RGB;
-	data.resolution = BITS_32;
-	data.uvTechnique = ClampToEdge;
-	data.isFloatData = true;
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.colorspace = ColorSpace::RGB;
+	data.internalFormat = InternFormat::RGB32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	data.uvTechnique = TextureUVTechnique::ClampToEdge;
 
 	int ssaaSamples = 1;
 	
@@ -513,7 +512,7 @@ void RendererOpenGL::useCubeRenderTarget(CubeRenderTargetGL * target, CubeMapGL:
 {
 	CubeMapGL* cubeMap = target->getCubeMap();
 
-	GLuint AXIS_SIDE = CubeMapGL::mapCubeSideToSystemAxis(side);
+	GLuint AXIS_SIDE = side;
 
 	int width = target->getWidth();
 	int height = target->getHeight();
@@ -624,7 +623,16 @@ CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, Texture
 	shader->setProjection(projection);
 
 	Vob skyBox ("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex);
-	TextureData textureData = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32};
+	
+	TextureData textureData = {
+		TextureFilter::Linear, 
+		TextureFilter::Linear, 
+		TextureUVTechnique::ClampToEdge, 
+		ColorSpace::RGB,  
+		PixelDataType::FLOAT, 
+		InternFormat::RGB32F, 
+		false};
+
 	CubeRenderTargetGL*  result = createCubeRenderTarget(width, height, std::move(textureData));
 
 	//view matrices;

@@ -17,11 +17,6 @@ mat4 CubeMapGL::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0
 mat4 CubeMapGL::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
 
-GLuint TextureGL::rgba_float_resolutions[] = { GL_RGBA8, GL_RGBA16F, GL_RGBA32F };
-GLuint TextureGL::rgb_float_resolutions[] = { GL_RGB8, GL_RGB16F, GL_RGB32F };
-GLuint TextureGL::rg_float_resolutions[] = { GL_RG8, GL_RG16F, GL_RG32F };
-
-
 
 const mat4& CubeMapGL::getViewLookAtMatrixRH(Side side)
 {
@@ -49,29 +44,6 @@ const mat4& CubeMapGL::getViewLookAtMatrixRH(Side side)
 CubeMapGL::CubeMapGL() : TextureGL() {}
 
 CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
-
-GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
-{
-	switch (side) {
-	case POSITIVE_X:
-		return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-	case NEGATIVE_X:
-		return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-	case POSITIVE_Y:
-		return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-	case NEGATIVE_Y:
-		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-	case POSITIVE_Z:
-		return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-	case NEGATIVE_Z:
-		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
-	default:
-		throw_with_trace(std::runtime_error("No mapping defined for " + side));
-	}
-
-	// won't be reached
-	return GL_FALSE;
-}
 
 void CubeMapGL::generateMipMaps()
 {
@@ -135,119 +107,16 @@ void TextureGL::setTexture(GLuint id)
 	textureID = id;
 }
 
-GLint TextureGL::mapFilter(TextureFilter filter)
-{
-	switch (filter)
-	{
-	case NearestNeighbor:
-		return GL_NEAREST;
-	case Linear:
-		return GL_LINEAR;
-	case Bilinear:
-		return GL_LINEAR;
-	case Near_Mipmap_Near:
-		//if (!useMipMaps) return GL_NEAREST;
-		return GL_NEAREST_MIPMAP_NEAREST;
-	case Near_Mipmap_Linear:
-		//if (!useMipMaps) return GL_NEAREST;
-		return GL_NEAREST_MIPMAP_LINEAR;
-	case Linear_Mipmap_Near:
-		//if (!useMipMaps) return GL_LINEAR;
-		return GL_LINEAR_MIPMAP_NEAREST;
-	case Linear_Mipmap_Linear:
-		//if (!useMipMaps) return GL_LINEAR;
-		return GL_LINEAR_MIPMAP_LINEAR;
-	default:
-		throw_with_trace(runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter)));
-	}
-
-	// won't be reached
-	return GL_FALSE;
-}
-
-GLint TextureGL::mapUVTechnique(TextureUVTechnique technique)
-{
-	switch (technique)
-	{
-	case ClampToEdge:
-		return GL_CLAMP_TO_EDGE;
-	case Repeat:
-		return GL_REPEAT;
-	default:
-		throw_with_trace(runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique)));
-	}
-
-	// won't be reached
-	return GL_FALSE;
-}
-
-GLuint TextureGL::getFormat(ColorSpace colorspace)
-{
-	switch (colorspace) {
-	case RGBA:
-		return GL_RGBA;
-	case RGB:
-		return GL_RGB;
-	case RG:
-		return GL_RG;
-	default: {
-		throw_with_trace(runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace));
-	}
-	}
-
-	// won't be reached
-	return GL_FALSE;
-}
-
 GLuint TextureGL::getFormat(int numberComponents)
 {
 	switch (numberComponents) {
-	case 4: return GL_RGBA;
-	case 3: return GL_RGB;
-	case 2: return GL_RG;
-	default: {
-		throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
-	}
-	}
-
-	// won't be reached
-	return GL_FALSE;
-}
-
-GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution)
-{
-	if (!isFloatData) {
-
-		if (!useSRGB) {
-			return format;
-		}
-
-		if (resolution != BITS_8) {
-			throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): SRGB only supported for BITS_8, not for " + resolution));
-		}
-
-
-		switch (format) {
-		case GL_RGBA:
-			return GL_SRGB_ALPHA;
-		case GL_RGB:
-			return GL_SRGB;
+		case 4: return GL_RGBA;
+		case 3: return GL_RGB;
+		case 2: return GL_RG;
+		case 1: return GL_RED;
 		default: {
-			throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): Not supported format for SRGB: " + format));
+			throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
 		}
-		}
-	}
-
-	switch (format) {
-	case GL_RGBA:
-		return rgba_float_resolutions[resolution];
-	case GL_RGB:
-		return rgb_float_resolutions[resolution];
-	case GL_RG:
-		return rg_float_resolutions[resolution];
-	default: {
-		throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format));
-	}
 	}
 
 	// won't be reached
@@ -359,7 +228,7 @@ void BaseRenderTargetGL::swap(BaseRenderTargetGL & o)
 
 
 
-CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) : 
+CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) :
 	BaseRenderTargetGL(width, height, GL_FALSE),
 	renderBuffer(GL_FALSE),
 	data(data)
@@ -376,22 +245,23 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	GLuint format = TextureGL::getFormat(data.colorspace);
-	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
-
-	GLuint type = TextureGL::getType(data.isFloatData);
-
-	GLuint uvTechnique = TextureGL::mapUVTechnique(data.uvTechnique);
-	GLuint minFilter = TextureGL::mapFilter(data.minFilter);
-	GLuint magFilter = TextureGL::mapFilter(data.magFilter);
+	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
+	GLuint minFilter = static_cast<GLuint>(data.minFilter);
+	GLuint magFilter = static_cast<GLuint>(data.magFilter);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	GLuint colorspace = static_cast<GLuint>(data.colorspace);
+	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
 
 
 	//pre-allocate the six faces of the cubemap
 	glGenTextures(1, &cubeMapResult.textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapResult.textureID);
-	for (int i = 0; i < 6; ++i) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, type, nullptr);
+	for (int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, colorspace,
+			pixelDataType, nullptr);
 	}
+
 
 	glActiveTexture(GL_TEXTURE0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique);
@@ -402,13 +272,14 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 
 	if (data.generateMipMaps)
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER,0));
 }
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
 {
+	release();
 }
 
 CubeMapGL * CubeRenderTargetGL::createCopy()
@@ -483,21 +354,14 @@ CubeMapGL * CubeRenderTargetGL::getCubeMap()
 	return &cubeMapResult;
 }
 
-GLuint CubeRenderTargetGL::getRendertargetTexture()
-{
-	return renderTargetTexture;
-}
-
 void CubeRenderTargetGL::release()
 {
 	cubeMapResult.release();
 	GLCall(glDeleteFramebuffers(1, &frameBuffer));
 	GLCall(glDeleteRenderbuffers(1, &renderBuffer));
-	GLCall(glDeleteTextures(1, &renderTargetTexture));
 
 	frameBuffer = GL_FALSE;
 	renderBuffer = GL_FALSE;
-	renderTargetTexture = GL_FALSE;
 
 	cubeMapResult.release();
 }
@@ -529,11 +393,6 @@ void CubeRenderTargetGL::setCubeMapResult(GLuint newValue)
 	cubeMapResult = newValue;
 }
 
-void CubeRenderTargetGL::setRenderTargetTexture(GLuint newValue)
-{
-	renderTargetTexture = newValue;
-}
-
 RenderTargetGL::RenderTargetGL(int width, int height) : 
 	BaseRenderTargetGL(width, height, GL_FALSE),
 	renderBuffer(GL_FALSE)
@@ -551,8 +410,11 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 	assert(samples > 1);
 
 	RenderTargetGL result(width, height);
-	GLuint format = TextureGL::getFormat(data.colorspace);
-	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
+
+	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
+	GLuint minFilter = static_cast<GLuint>(data.minFilter);
+	GLuint magFilter = static_cast<GLuint>(data.magFilter);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
 
 	GLCall(glGenFramebuffers(1, &result.frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
@@ -563,6 +425,14 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_TRUE);
+
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	// clamp is important so that no pixel artifacts occur on the border!
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, uvTechnique);
+
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	// attach texture to currently bound frame buffer
@@ -601,9 +471,12 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	result.width = width;
 	result.height = height;
 
-	GLuint format = TextureGL::getFormat(data.colorspace);
-	GLuint internalFormat = TextureGL::getInternalFormat(format, data.useSRGB, data.isFloatData, data.resolution);
-	GLuint type = TextureGL::getType(data.isFloatData);
+	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
+	GLuint minFilter = static_cast<GLuint>(data.minFilter);
+	GLuint magFilter = static_cast<GLuint>(data.magFilter);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	GLuint colorspace = static_cast<GLuint>(data.colorspace);
+	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
 
 	GLCall(glGenFramebuffers(1, &result.frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
@@ -616,14 +489,14 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	//glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, colorspace, pixelDataType, 0);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
 
 	//glBindTexture(GL_TEXTURE_2D, 0);
 

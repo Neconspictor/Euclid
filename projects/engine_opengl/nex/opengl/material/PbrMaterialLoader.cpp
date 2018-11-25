@@ -21,15 +21,16 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-		TextureData data;
-		data.useSRGB = true;
-		data.generateMipMaps = true;
-		data.uvTechnique = Repeat;
-		data.minFilter = Linear_Mipmap_Linear;
-		data.magFilter = Linear;
-		data.colorspace = RGBA;
-		data.isFloatData = false;
-		data.resolution = BITS_8;
+
+		TextureData data = {
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			ColorSpace::SRGBA,
+			PixelDataType::UBYTE,
+			InternFormat::SRGBA8,
+			true
+		};
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
@@ -60,7 +61,10 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 			material->setEmissionMap(textureManager->getDefaultBlackTexture()); // no emission
 		}
 
-		data.useSRGB = false;
+		// the following textures are linear, so we use the RGBA color space
+		data.colorspace = ColorSpace::RGBA;
+		data.internalFormat = InternFormat::RGBA8;
+
 		vector<string> metallicMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
 		if (metallicMaps.size())
 		{
@@ -70,7 +74,6 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 			material->setMetallicMap(textureManager->getDefaultBlackTexture()); // we assume a non metallic material
 		}
 
-		data.useSRGB = false;
 		vector<string> roughnessMaps = loadMaterialTextures(mat, aiTextureType_SHININESS, data);
 		if (roughnessMaps.size())
 		{
@@ -80,17 +83,10 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 			material->setRoughnessMap(textureManager->getDefaultWhiteTexture()); // we assume a full rough material
 		}
 
-		data.useSRGB = false;
 
 		//normal maps shouldn't use mipmaps (important for shading!)
-		data.generateMipMaps = true;
-		// Linear_Mipmap_Linear is also important!
-		data.magFilter = Linear;
-		data.minFilter = Linear_Mipmap_Linear;
-		data.colorspace = RGB;
-		data.uvTechnique = Repeat;
-		data.isFloatData = false;
-		data.resolution = BITS_8;
+		data.generateMipMaps = true; // TODO use mip maps or not????
+
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{

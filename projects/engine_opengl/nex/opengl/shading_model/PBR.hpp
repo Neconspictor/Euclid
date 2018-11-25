@@ -46,8 +46,6 @@ public:
 
   GenericImageGL readBrdfLookupPixelData() const;
 
-  GenericImageGL readTestPixelData();
-
 
 protected:
 

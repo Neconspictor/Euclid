@@ -12,7 +12,6 @@ struct GenericImageGL
 	size_t pixelSize = 0; // The byte size of one pixel (all components combined)
 	unsigned int components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
 	GLint format = 0;
-	unsigned int numMipmaps = 0;
 
 	GenericImageGL() = default;
 	GenericImageGL(GenericImageGL&& o) noexcept;

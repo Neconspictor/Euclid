@@ -7,46 +7,85 @@ class RendererOpenGL;
 class CubeRenderTargetGL;
 class BaseRenderTargetGL;
 
-enum TextureFilter
+enum class TextureFilter
 {
-	NearestNeighbor,
-	Linear,
-	Bilinear,
-	Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
-	Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
-	Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
-	Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
+	NearestNeighbor = GL_NEAREST,
+	Linear = GL_LINEAR,
+	Bilinear = GL_LINEAR,
+	Near_Mipmap_Near = GL_NEAREST_MIPMAP_NEAREST,     // trilinear filtering with double nearest neighbor filtering
+	Near_Mipmap_Linear = GL_NEAREST_MIPMAP_LINEAR,   // trilinear filtering from nearest neighbor to bilinear filtering
+	Linear_Mipmap_Near = GL_LINEAR_MIPMAP_NEAREST,   // trilinear filtering from bilinear to nearest neighbor filtering
+	Linear_Mipmap_Linear = GL_LINEAR_MIPMAP_LINEAR, // trilinear filtering from bilinear to bilinear filtering
 };
 
-enum TextureUVTechnique
+enum class TextureUVTechnique
 {
-	ClampToEdge,
-	Repeat,
+	ClampToBorder = GL_CLAMP_TO_BORDER,
+	ClampToEdge = GL_CLAMP_TO_EDGE,
+	MirrorRepeat = GL_MIRRORED_REPEAT,
+	MirrorClampToEdge = GL_MIRROR_CLAMP_TO_EDGE,
+	Repeat = GL_REPEAT,
 };
 
-enum ColorSpace {
-	RGB,
-	RGBA,
-	RG,
+enum class ColorSpace {
+	R = GL_RED,
+	RG = GL_RG,
+	RGB = GL_RGB,
+	RGBA = GL_RGBA,
+
+	// srgb formats
+	SRGB = GL_SRGB,
+	SRGBA = GL_SRGB_ALPHA,
 };
 
-enum Resolution {
-	BITS_8,
-	BITS_16,
-	BITS_32,
+enum class InternFormat
+{
+	R8 = GL_R8,
+	R16 = GL_R16,
+	R32F = GL_R32F,
+	R32I = GL_R32I,
+	R32UI = GL_R32UI,
+
+	RG8 = GL_RG8,
+	RG16 = GL_RG16,
+	RG32F = GL_RG32F,
+	RG32I = GL_RG32I,
+	RG32UI = GL_RG32UI,
+
+	RGB8 = GL_RGB8,
+	RGB16 = GL_RGB16,
+	RGB32F = GL_RGB32F,
+	RGB32I = GL_RGB32I,
+	RGB32UI = GL_RGB32UI,
+
+	RGBA8 = GL_RGBA8,
+	RGBA16 = GL_RGBA16,
+	RGBA32F = GL_RGBA32F,
+	RGBA32I = GL_RGBA32I,
+	RGBA32UI = GL_RGBA32UI,
+
+	// srgb formats
+	SRGB8 = GL_SRGB8,
+	SRGBA8 = GL_SRGB8_ALPHA8,
+};
+
+enum class PixelDataType
+{
+	FLOAT = GL_FLOAT,
+	UBYTE = GL_UNSIGNED_BYTE,
+	UINT = GL_UNSIGNED_INT,
 };
 
 
 struct TextureData
 {
-	bool useSRGB;
-	bool generateMipMaps;
 	TextureFilter minFilter;  // minification filter
 	TextureFilter magFilter;  // magnification filter
 	TextureUVTechnique uvTechnique;
 	ColorSpace colorspace;
-	bool isFloatData; //specifies whether the data should be interpreted as float data
-	Resolution resolution;
+	PixelDataType pixelDataType;
+	InternFormat internalFormat;
+	bool generateMipMaps;
 };
 
 
@@ -68,17 +107,8 @@ public:
 
 	void setTexture(GLuint id);
 
-
-	static GLint mapFilter(TextureFilter filter);
-	static GLint mapUVTechnique(TextureUVTechnique technique);
-	static GLuint getFormat(ColorSpace colorspace);
 	static GLuint getFormat(int numberComponents);
-	static GLuint getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution);
 	static GLuint getType(bool isFloatData);
-
-	static GLuint rgba_float_resolutions[3];
-	static GLuint rgb_float_resolutions[3];
-	static GLuint rg_float_resolutions[3];
 
 	virtual void release();
 
@@ -116,12 +146,12 @@ public:
 	 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
 	 */
 	enum Side {
-		POSITIVE_X,
-		NEGATIVE_X,
-		POSITIVE_Y,
-		NEGATIVE_Y,
-		POSITIVE_Z,
-		NEGATIVE_Z
+		POSITIVE_X = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		NEGATIVE_X = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		POSITIVE_Y = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		NEGATIVE_Y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		POSITIVE_Z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
 	explicit CubeMapGL();
@@ -133,11 +163,6 @@ public:
 	CubeMapGL& operator=(const CubeMapGL& other) = delete;
 
 	virtual ~CubeMapGL() = default;
-
-	/**
-	 * Maps a cube map side to a corresponding opengl view axis 
-	 */
-	static GLuint mapCubeSideToSystemAxis(Side side);
 
 	/**
 	 *  Generates mipmaps for the current content of this cubemap.
@@ -221,7 +246,6 @@ public:
 	GLuint getRenderBuffer();
 	GLuint getCubeMapGL();
 	CubeMapGL* getCubeMap();
-	GLuint getRendertargetTexture();
 
 	inline int getHeightMipLevel(unsigned int mipMapLevel) const {
 		return (int)(height * std::pow(0.5, mipMapLevel));
@@ -237,13 +261,11 @@ public:
 
 	void setRenderBuffer(GLuint newValue);
 	void setCubeMapResult(GLuint newValue);
-	void setRenderTargetTexture(GLuint newValue);
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	//friend CubeRenderTargetGL;
 	GLuint renderBuffer;
-	GLuint renderTargetTexture;
 	CubeMapGL cubeMapResult;
 	TextureData data;
 };

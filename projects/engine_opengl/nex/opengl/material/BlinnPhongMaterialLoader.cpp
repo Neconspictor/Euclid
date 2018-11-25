@@ -21,15 +21,16 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-		TextureData data;
-		data.useSRGB = true;
-		data.generateMipMaps = true;
-		data.uvTechnique = Repeat;
-		data.minFilter = Linear_Mipmap_Linear;
-		data.magFilter = Linear;
-		data.colorspace = RGBA;
-		data.isFloatData = false;
-		data.resolution = BITS_8;
+		
+		TextureData data = {
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			ColorSpace::SRGBA,
+			PixelDataType::UBYTE,
+			InternFormat::SRGBA8,
+			true
+		};
 
 		// a material can have more than one diffuse/specular/normal map,
 		// but we only use the first one by now
@@ -44,29 +45,28 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 			material->setEmissionMap(textureManager->getImage(emissionMaps[0], data));
 		}
 
-		data.useSRGB = false;
+
+
+		// the following textures are linear, so we use the RGBA color space
+		data.colorspace = ColorSpace::RGBA;
+		data.internalFormat = InternFormat::RGBA8;
+
 		vector<string> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
 		if (specularMaps.size())
 		{
 			material->setSpecularMap(textureManager->getImage(specularMaps[0], data));
 		}
 
-		data.useSRGB = false;
 		vector<string> reflectionMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
 		if (reflectionMaps.size())
 		{
 			material->setReflectionMap(textureManager->getImage(reflectionMaps[0], data));
 		}
 
-		data.useSRGB = false;
 		//normal maps shouldn't use mipmaps (important for shading!)
 		data.generateMipMaps = false;
-		data.magFilter = Linear_Mipmap_Linear;
-		data.minFilter = Linear_Mipmap_Linear;
-		data.colorspace = RGBA;
-		data.uvTechnique = Repeat;
-		data.isFloatData = false;
-		data.resolution = BITS_8;
+		data.magFilter = TextureFilter::Linear;
+
 		vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
 		if (normalMaps.size())
 		{

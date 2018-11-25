@@ -126,8 +126,8 @@ GenericImageGL PBR::readBrdfLookupPixelData() const
 	GenericImageGL data;
 	data.width = brdfLookupTexture->getWidth();
 	data.height = brdfLookupTexture->getHeight();
-	data.components = 3; // RGB
-	data.format = GL_RGB;
+	data.components = 2; // RGB
+	data.format = GL_RG;
 	data.pixelSize = sizeof(float) * data.components;
 
 	data.bufSize = data.width * data.height * data.pixelSize;
@@ -143,40 +143,17 @@ GenericImageGL PBR::readBrdfLookupPixelData() const
 	return data;
 }
 
-GenericImageGL PBR::readTestPixelData()
-{
-	GenericImageGL data;
-	data.width = prefilterRenderTarget->getWidth();
-	data.height = prefilterRenderTarget->getHeight();
-	data.components = 4; // RGB
-	data.format = GL_RGBA;
-	data.pixelSize = 4 * data.components;
-
-	data.bufSize = data.width * data.height * data.pixelSize;
-	data.pixels = new char[data.bufSize];
-
-	// read the data back from the gpu
-	GLuint textureID = prefilterRenderTarget->getCubeMap()->getTexture();
-
-	//glGenFramebuffers(1, &fbo);
-	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, textureID, 0);
-	//glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, data.format, 0, 0, data.width, data.height, 0);
-	GLCall(glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, data.format, GL_FLOAT, data.pixels));
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glDeleteFramebuffers(1, &fbo);
-
-	return data;
-}
-
 CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 {
-	TextureData textureData = {false, false, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32};
+	TextureData textureData = {
+		TextureFilter::Linear_Mipmap_Linear,
+		TextureFilter::Linear,
+		TextureUVTechnique::ClampToEdge,
+		ColorSpace::RGB,
+		PixelDataType::FLOAT,
+		InternFormat::RGB32F,
+		false
+	};
 
 	CubeRenderTargetGL* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048, textureData);
 
@@ -262,7 +239,15 @@ CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 
 CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 {
-	TextureData textureData = { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 };
+	TextureData textureData = {
+		TextureFilter::Linear_Mipmap_Linear,
+		TextureFilter::Linear,
+		TextureUVTechnique::ClampToEdge,
+		ColorSpace::RGB,
+		PixelDataType::FLOAT,
+		InternFormat::RGB32F,
+		true
+	};
 
 	CubeRenderTargetGL* prefilterRenderTarget = renderer->createCubeRenderTarget(256, 256, textureData);
 
@@ -322,7 +307,15 @@ CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 
 RenderTargetGL * PBR::createBRDFlookupTexture()
 {
-	TextureData data = { false, false, Linear, Linear, ClampToEdge, RG, true, BITS_32 };
+	TextureData data = {
+		TextureFilter::Linear, 
+		TextureFilter::Linear, 
+		TextureUVTechnique::ClampToEdge, 
+		ColorSpace::RG, 
+		PixelDataType::FLOAT, 
+		InternFormat::RGB32F, 
+		false};
+
 	RenderTargetGL* target = renderer->create2DRenderTarget(1024, 1024, data);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
@@ -388,5 +381,5 @@ void PBR::init(TextureGL* backgroundHDR)
 
 	// read backs
 	GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
-	TextureManagerGL::get()->writeHDR(brdfLUTImage, "brdfLUT.hdr");
+	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
 }
