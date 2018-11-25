@@ -46,6 +46,9 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path)
 	}
 
 	throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
+
+	// won't be reached
+	return {};
 }
 
 std::filesystem::path FileSystem::resolveRelative(const std::filesystem::path& path,

@@ -129,6 +129,9 @@ const mat4& Projectional::getProjection(ProjectionMode mode)
 	default:
 		throw_with_trace(runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode)));
 	}
+
+	// won't be reached
+	return getPerspProjection();
 }
 
 const vec3& Projectional::getPosition() const

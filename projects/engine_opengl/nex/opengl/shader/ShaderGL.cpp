@@ -330,8 +330,8 @@ std::string ShaderProgramGL::adjustLineNumbers(char* message, const ProgramDesc&
 		{
 			//LOG(demo::Logger()) << "Read line number: " << lineNumber.str();
 
-			int lineNumberInt = atoi(lineNumber.str().c_str());
-			int column = 1;
+			size_t lineNumberInt = atol(lineNumber.str().c_str());
+			size_t column = 1;
 			unsigned int resolvedPosition = ShaderSourceFileGenerator::calcResolvedPosition(desc, lineNumberInt - 1, column - 1);
 			ReverseInfo reverseInfo = ShaderSourceFileGenerator::reversePosition(&desc.root, resolvedPosition);
 			ShaderSourceFileGenerator::calcLineColumn(reverseInfo.fileDesc->source, reverseInfo.position, &lineNumberInt, &column);

@@ -131,7 +131,7 @@ GenericImageGL PBR::readBrdfLookupPixelData()
 	data.pixelSize = sizeof(float) * data.components;
 
 	data.bufSize = data.width * data.height * data.pixelSize;
-	data.pixels = new float[data.width * data.height * data.components];
+	data.pixels = new char[data.bufSize];
 
 	// read the data back from the gpu
 	GLuint textureID = brdfLookupTexture->getTexture()->getTexture();

@@ -12,12 +12,15 @@ struct IncludeDesc;
 
 struct Replacement {
 	// where the include statement is located in the parent source code
-	unsigned int begin = 0;
-	unsigned int end = 0;
+	size_t begin = 0;
+	size_t end = 0;
 
-	// Specifies the difference between the byte size from the old code ([begin, end)) and the 
-	// included source code
-	int diff = 0;
+	// Specifies the difference between the resolved source code (resolved include statements) and the original source code
+	// The resolved source code can be smaller than the original source code. Thus it is important to use a signed type.
+	// Note that in theory the difference between two unsigned numbers (we use size_t for the size of the resolved and original code)
+	// can result into an overflow when assigning it to a signed number (diff has to to be signed). As  the difference between the origginal an the
+	// resolved source code won't reach really high numbers, this shouldn't be an issue, practically.
+	long long diff = 0;
 };
 
 std::ostream& operator<<(std::ostream& os, const Replacement& r);
@@ -55,11 +58,11 @@ struct IncludeDesc : FileDesc {
 	virtual ~IncludeDesc() = default;
 
 	// where the include statement is located in the parent source code
-	unsigned int begin = 0;
-	unsigned int end = 0;
+	size_t begin = 0;
+	size_t end = 0;
 
 	// Specifies information of position and size of the include source code, 
-	// that replaces the include statement in the parent souce code.
+	// that replaces the include statement in the parent source code.
 	Replacement replacement;
 	
 	FileDesc* parent = nullptr;
@@ -70,7 +73,7 @@ std::ostream& operator<<(std::ostream& os, const IncludeDesc& include);
 struct ReverseInfo
 {
 	FileDesc* fileDesc;
-	unsigned int position;
+	size_t position;
 };
 
 std::ostream& operator<<(std::ostream& os, const ReverseInfo& r);
@@ -95,7 +98,7 @@ public:
 
 	ShaderSourceFileGenerator();
 
-	ProgramSources extractShaderPrograms(const std::filesystem::path& filePath);
+	ProgramSources extractShaderPrograms(const std::filesystem::path& filePath) const;
 
 	FileDesc generate(const std::filesystem::path& filePath);
 
@@ -104,27 +107,28 @@ public:
 	void init(const FileSystem* fileSystem);
 
 	/**
+	 * @param desc
 	 * @param lineNumber: The line number (starting at 0)
 	 * @param column: Starts at 0.
 	 */
-	static unsigned int calcResolvedPosition(const ProgramDesc& desc, int lineNumber, int column);
-	static void calcLineColumn(const std::vector<char>& source, unsigned int position, int* lineNumber, int* column);
+	static unsigned int calcResolvedPosition(const ProgramDesc& desc, size_t lineNumber, size_t column);
+	static void calcLineColumn(const std::vector<char>& source, size_t position, size_t* lineNumber, size_t* column);
 
-	static ReverseInfo reversePosition(const FileDesc* fileDesc, unsigned int resolvedPosition);
+	static ReverseInfo reversePosition(const FileDesc* fileDesc, size_t resolvedPosition);
 
 
 private:
 
-	void buildShader(FileDesc* fileDesc);
+	static void buildShader(FileDesc* fileDesc);
 
 	void generate(FileDesc* root);
 
 	/**
-	 * @throws ParseException: If the file couldn't be parsed
+	 * @throws ParseException: If the file could not be parsed
 	 */
-	void parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath);
+	void parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath) const;
 
-	void parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source);
+	void parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source) const;
 
 	const FileSystem* mFileSystem;
 

@@ -41,6 +41,9 @@ const mat4& CubeMapGL::getViewLookAtMatrixRH(Side side)
 	default:
 		throw_with_trace(std::runtime_error("No mapping defined for " + side));
 	}
+
+	// won't be reached
+	return rightSide;
 }
 
 CubeMapGL::CubeMapGL() : TextureGL() {}
@@ -65,6 +68,9 @@ GLuint CubeMapGL::mapCubeSideToSystemAxis(Side side)
 	default:
 		throw_with_trace(std::runtime_error("No mapping defined for " + side));
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 void CubeMapGL::generateMipMaps()
@@ -154,6 +160,9 @@ GLint TextureGL::mapFilter(TextureFilter filter)
 	default:
 		throw_with_trace(runtime_error("TextureManagerGL::mapFilter(TextureFilter): Unknown filter enum: " + to_string(filter)));
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 GLint TextureGL::mapUVTechnique(TextureUVTechnique technique)
@@ -167,6 +176,9 @@ GLint TextureGL::mapUVTechnique(TextureUVTechnique technique)
 	default:
 		throw_with_trace(runtime_error("TextureManagerGL::mapUVTechnique(TextureUVTechnique): Unknown uv technique enum: " + to_string(technique)));
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 GLuint TextureGL::getFormat(ColorSpace colorspace)
@@ -182,6 +194,9 @@ GLuint TextureGL::getFormat(ColorSpace colorspace)
 		throw_with_trace(runtime_error("TextureManagerGL::getFormat(Colorspace): Unknown colorspace: " + colorspace));
 	}
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 GLuint TextureGL::getFormat(int numberComponents)
@@ -194,6 +209,9 @@ GLuint TextureGL::getFormat(int numberComponents)
 		throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
 	}
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatData, Resolution resolution)
@@ -231,6 +249,9 @@ GLuint TextureGL::getInternalFormat(GLuint format, bool useSRGB, bool isFloatDat
 		throw_with_trace(runtime_error("TextureManagerGL::getInternalFormat(): Unknown format: " + format));
 	}
 	}
+
+	// won't be reached
+	return GL_FALSE;
 }
 
 GLuint TextureGL::getType(bool isFloatData)

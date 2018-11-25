@@ -5,12 +5,12 @@
 
 struct GenericImageGL
 {
-	void* pixels = nullptr;
+	char* pixels = nullptr;
 	unsigned long long bufSize = 0;
-	int width = 0;
-	int height = 0;
-	unsigned char pixelSize = 0; // The byte size of one pixel (all components combined)
-	int components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
+	unsigned int width = 0;
+	unsigned int height = 0;
+	size_t pixelSize = 0; // The byte size of one pixel (all components combined)
+	unsigned int components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
 	GLint format = 0;
 	unsigned int numMipmaps = 0;
 };

@@ -20,8 +20,8 @@ FileDesc::FileDesc(FileDesc&& o) noexcept : source(std::move(o.source)),
 sourceSize(o.sourceSize), 
 resolvedSource(std::move(o.resolvedSource)), 
 resolvedSourceSize(o.resolvedSourceSize),
-filePath(std::move(o.filePath)),
-includes(std::move(o.includes))
+includes(std::move(o.includes)),
+filePath(std::move(o.filePath))
 {
 }
 
@@ -71,7 +71,7 @@ IncludeDesc& IncludeDesc::operator=(IncludeDesc&& o) noexcept
 
 std::ostream& operator<<(std::ostream& os, const IncludeDesc& include)
 {
-	os << "(FileDesc" << (FileDesc&)include << ", begin=" << include.begin << ", end=" << include.end 
+	os << "(FileDesc" << static_cast<const FileDesc&>(include) << ", begin=" << include.begin << ", end=" << include.end
 	<< ", parent= " << include.parent <<", replacement=" << include.replacement << ")";
 	return os;
 }
@@ -87,7 +87,7 @@ ShaderSourceFileGenerator::ShaderSourceFileGenerator() : mFileSystem(nullptr),
 {
 }
 
-ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath)
+ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath) const
 {
 
 	auto path = mFileSystem->resolvePath(filePath);
@@ -120,17 +120,17 @@ ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::files
 				if (line.find("vertex") != std::string::npos)
 				{
 					type = ShaderType::Vertex;
-					parseResult[(int)type].parseErrorLogOffset = lineNumber;
+					parseResult[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
 				}
 				else if (line.find("fragment") != std::string::npos)
 				{
 					type = ShaderType::Fragment;
-					parseResult[(int)type].parseErrorLogOffset = lineNumber;
+					parseResult[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
 				}
 			}
 			else
 			{
-				ss[(int)type] << line << '\n';
+				ss[static_cast<int>(type)] << line << '\n';
 			}
 		}
 
@@ -158,6 +158,9 @@ ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::files
 	{
 		throw_with_trace(std::runtime_error("Couldn't extract shader programs from " + path.generic_string()));
 	}
+
+	//won't be reached
+	return ProgramSources();
 }
 
 FileDesc ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath)
@@ -179,7 +182,7 @@ void ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
 	mFileSystem = fileSystem;
 }
 
-unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& desc, int lineNumber, int column)
+unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& desc, size_t lineNumber, size_t column)
 {
 	auto& source = desc.root.resolvedSource;
 
@@ -202,8 +205,8 @@ unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& 
 	return resolvedPosition;
 }
 
-void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, unsigned int position, int* lineNumber,
-	int* column)
+void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, size_t position, size_t* lineNumber,
+	size_t* column)
 {
 	int workLineNumber = 0;
 	int workColumn = 0;
@@ -225,11 +228,11 @@ void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, 
 	*column = workColumn;
 }
 
-ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc, unsigned int resolvedPosition)
+ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc, size_t resolvedPosition)
 {
 	ReverseInfo result;
 	result.position = resolvedPosition;
-	unsigned int& cursor = result.position;
+	size_t& cursor = result.position;
 
 	using IteratorType = std::list<IncludeDesc>::const_iterator;
 	std::queue<IteratorType> queue;
@@ -297,11 +300,11 @@ void ShaderSourceFileGenerator::buildShader(FileDesc* fileDesc)
 		buildShader(&include);
 		const std::vector<char>& sourceCode = include.resolvedSource;
 
-		// Note: We want the change the content of the repalcement in the current include desc!
+		// Note: We want the change the content of the replacement in the current include desc!
 		Replacement& replacement = include.replacement;
 
-		unsigned int sizeOriginal = include.end - include.begin;
-		unsigned int sizeInclude = sourceCode.size();
+		const size_t sizeOriginal = include.end - include.begin;
+		const size_t sizeInclude = sourceCode.size();
 
 		replacement.diff = sizeInclude - sizeOriginal;
 
@@ -316,7 +319,7 @@ void ShaderSourceFileGenerator::buildShader(FileDesc* fileDesc)
 		replacement.end = replacement.begin + sizeInclude;
 
 		// replace include statement with include source code
-		unsigned int eraseEnd = replacement.begin + sizeOriginal;
+		const size_t eraseEnd = replacement.begin + sizeOriginal;
 		out.erase(out.begin() + replacement.begin, out.begin() + eraseEnd);
 		out.insert(out.begin() + replacement.begin, sourceCode.begin(), sourceCode.end());
 
@@ -393,7 +396,7 @@ void ShaderSourceFileGenerator::generate(FileDesc* root)
 	buildShader(root);
 }
 
-void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath)
+void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath) const
 {
 	SourceFileParser reader(filePath);
 
@@ -420,28 +423,19 @@ void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::f
 
 	fileDesc->sourceSize = fileDesc->source.size();
 
-	//std::cout << "Line count root: " << lineCounter.getLineCount() << std::endl;
-	//std::cout << "Found include statements" << std::endl;
 	for (const auto& it : includeCollector.getIncludes())
 	{
-		//std::string statement(fileDesc.source.begin() + it.lineBegin, fileDesc.source.begin() + it.lineEnd);
-		//std::cout << it << std::endl;
-
 		IncludeDesc include;
-		//std::string test = "Hello World!";
-		//include.source = std::vector<char>(test.begin(), test.end());
-		//include.sourceSize = include.source.size();
 		include.filePath = it.filePath;
 		include.begin = it.lineBegin;
 		include.end = it.lineEnd;
-		//include.replacement.diff = include.source.size() - (include.replacement.end - include.replacement.begin);
 		include.parent = fileDesc;
 
 		fileDesc->includes.emplace_back(std::move(include));
 	}
 }
 
-void ShaderSourceFileGenerator::parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source)
+void ShaderSourceFileGenerator::parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source) const
 {
 	fileDesc->filePath = filePath.generic_string();
 	fileDesc->source = std::move(source);
