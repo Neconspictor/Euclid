@@ -48,6 +48,45 @@ void TextureManagerGL::writeHDR(const GenericImageGL& imageData, const char* fil
 	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels);
 }
 
+void TextureManagerGL::readImage(GenericImageGL* imageData, const char* filePath)
+{
+	FILE* file = nullptr;
+	errno_t err;
+	if ((err = fopen_s(&file, filePath, "rb")) != 0)
+		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
+
+	std::fread(imageData, sizeof(GenericImageGL), 1, file);
+
+	if (std::ferror(file) != 0)
+		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
+
+
+	imageData->pixels = new char[imageData->bufSize];
+
+	std::fread(imageData->pixels, imageData->bufSize, 1, file);
+
+	if (std::ferror(file) != 0)
+		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
+
+	fclose(file);
+}
+
+void TextureManagerGL::writeImage(const GenericImageGL& imageData, const char* filePath)
+{
+	FILE* file = nullptr;
+	errno_t err;
+	if ((err = fopen_s(&file, filePath, "w+b")) != 0)
+		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
+
+	std::fwrite(&imageData, sizeof(GenericImageGL), 1, file);
+	std::fwrite(imageData.pixels, imageData.bufSize, 1, file);
+
+	if (std::ferror(file) != 0)
+		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
+
+	fclose(file);
+}
+
 TextureManagerGL::~TextureManagerGL()
 {
 	delete mDefaultImageSampler;

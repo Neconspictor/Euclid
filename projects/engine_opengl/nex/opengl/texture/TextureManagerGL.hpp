@@ -75,7 +75,13 @@ public:
 
 	void releaseTexture(TextureGL * tex);
 
+
+
+
 	void writeHDR(const GenericImageGL& imageData, const char* filePath);
+
+	void readImage(GenericImageGL* imageData, const char* filePath);
+	void writeImage(const GenericImageGL& imageData, const char* filePath);
 
 protected:
 	std::list<TextureGL> textures;
