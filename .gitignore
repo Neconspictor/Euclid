@@ -37,6 +37,10 @@ lib/boost-1.67.0/*
 lib/glfw-3.2.1/*
 !lib/glfw-3.2.1/COPYING.txt
 
+# GLIis included in the repo!!!
+!lib/gli/
+!lib/gli/*
+
 # GLM is included in the repo!!!
 !lib/glm-0.9.9.0/
 !lib/glm-0.9.9.0/*
