@@ -161,6 +161,7 @@ find_package(ASSIMP REQUIRED)
 find_package(Boost 1.67 EXACT REQUIRED COMPONENTS atomic chrono date_time filesystem locale program_options system thread)
 find_package(Boxer REQUIRED)
 find_package(GLAD REQUIRED)
+find_package(GLI REQUIRED)
 find_package(GLM REQUIRED)
 find_package(IMGUI REQUIRED)
 find_package(STB REQUIRED)
@@ -180,6 +181,7 @@ target_link_libraries(engine
         Boost::system
         Boost::thread
 		Boxer
+        GLI
 		GLM
 		IMGUI
 		STB

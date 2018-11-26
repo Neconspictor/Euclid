@@ -121,9 +121,17 @@ TextureGL * PBR::getBrdfLookupTexture()
 	return brdfLookupTexture->getTexture();
 }
 
-GenericImageGL PBR::readBrdfLookupPixelData() const
+StoreImageGL PBR::readBrdfLookupPixelData() const
 {
-	GenericImageGL data;
+	StoreImageGL store;
+	store.sideCount = 1;
+	store.mipmapCounts = new unsigned short[store.sideCount];
+	store.mipmapCounts[0] = 1;
+	store.images = new nex::MemoryGuardArray<GenericImageGL>[store.sideCount];
+	store.images[0] = new GenericImageGL[store.mipmapCounts[0]];
+
+
+	GenericImageGL& data = store.images[0][0];
 	data.width = brdfLookupTexture->getWidth();
 	data.height = brdfLookupTexture->getHeight();
 	data.components = 2; // RGB
@@ -138,9 +146,9 @@ GenericImageGL PBR::readBrdfLookupPixelData() const
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, textureID));
-	GLCall(glGetTexImage(GL_TEXTURE_2D, 0, data.format, GL_FLOAT, data.pixels));
+	GLCall(glGetTexImage(GL_TEXTURE_2D, 0, data.format, GL_FLOAT, data.pixels.get()));
 
-	return data;
+	return store;
 }
 
 CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
@@ -389,9 +397,16 @@ void PBR::init(TextureGL* backgroundHDR)
 
 
 	// read backs
-	//GenericImageGL brdfLUTImage = readBrdfLookupPixelData();
-	GenericImageGL brdfLUTImage;
+	StoreImageGL brdfLUTImage = readBrdfLookupPixelData();
+	/*GenericImageGL brdfLUTImage;
 	TextureManagerGL::get()->readImage(&brdfLUTImage, "brdfLUT.NeXImage");
 	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
-	TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");
+	TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");*/
+
+	//TextureManagerGL::get()->readGLITest("brdfLUT.hdr");
+	StoreImageGL::write(brdfLUTImage, "brdfLUT.NeXImage");
+
+	StoreImageGL readBrdfLUTImage;
+	StoreImageGL::load(&readBrdfLUTImage, "brdfLUT.NeXImage");
+
 }

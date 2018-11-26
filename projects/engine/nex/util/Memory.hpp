@@ -1,39 +1,125 @@
 #pragma once
 
-namespace nex::util {
+namespace nex {
 
-	class MemoryWrapper
+	template<typename T>
+	class MemoryGuard
 	{
 	public:
-		explicit MemoryWrapper(char* value)
-			: _value(value)
+
+		MemoryGuard() : mItem(nullptr) {}
+
+		explicit MemoryGuard(T* item)
+			: mItem(item)
 		{ }
 
-		MemoryWrapper(const MemoryWrapper&) = delete;
-		MemoryWrapper(MemoryWrapper&&) = delete;
-
-		MemoryWrapper& operator=(const MemoryWrapper&) = delete;
-		MemoryWrapper& operator=(MemoryWrapper&&) = delete;
-
-		char* operator *()
+		MemoryGuard(const MemoryGuard&) = delete;
+		MemoryGuard& operator=(const MemoryGuard&) = delete;
+		
+		MemoryGuard(MemoryGuard&& o) noexcept : mItem(o.mItem)
 		{
-			return _value;
+			o.mItem = nullptr;
+		}
+		MemoryGuard& operator=(MemoryGuard&& o) noexcept
+		{
+			if (this == &o) return *this;
+			mItem = o.mItem;
+			o.mItem = nullptr;
+
+			return *this;
 		}
 
-		void setContent(char* content)
+		T* get() const
 		{
-			_value = content;
+			return mItem;
 		}
 
-		virtual ~MemoryWrapper()
+		T* operator *() const
 		{
-			if (_value)
-			{
-				delete[] _value;
-				_value = nullptr;
-			}
+			return mItem;
+		}
+
+		void setContent(T* item)
+		{
+			mItem = item;
+		}
+
+		~MemoryGuard()
+		{
+			delete mItem;
+			mItem = nullptr;
 		}
 	private:
-		char* _value;
+		T* mItem;
 	};
+
+
+	template<typename T>
+	class MemoryGuardArray
+	{
+	public:
+
+		MemoryGuardArray() : mArray(nullptr){}
+
+		explicit MemoryGuardArray(T* arr)
+			: mArray(arr)
+		{ }
+
+		MemoryGuardArray(const MemoryGuardArray&) = delete;
+		MemoryGuardArray& operator=(const MemoryGuardArray&) = delete;
+
+		MemoryGuardArray(MemoryGuardArray&& o) noexcept : mArray(o.mArray)
+		{
+			o.mArray = nullptr;
+		}
+		MemoryGuardArray& operator=(MemoryGuardArray&& o) noexcept
+		{
+			if (this == &o) return *this;
+			mArray = o.mArray;
+			o.mArray = nullptr;
+
+			return *this;
+		}
+
+		MemoryGuardArray& operator=(T* arr) noexcept
+		{
+			mArray = arr;
+			return *this;
+		}
+
+		T* get() const
+		{
+			return mArray;
+		}
+
+		T& operator *() const
+		{
+			return *mArray;
+		}
+
+		T* operator ->() const
+		{
+			return mArray;
+		}
+
+		T& operator [](size_t index) const
+		{
+			return mArray[index];
+		}
+
+		void setContent(T* arr)
+		{
+			mArray = arr;
+		}
+
+		~MemoryGuardArray()
+		{
+			delete[] mArray;
+			mArray = nullptr;
+		}
+	private:
+		T* mArray;
+	};
+
+	typedef MemoryGuardArray<char> MemoryWrapper;
 }

@@ -17,6 +17,11 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <imgui/imgui.h>
 
+#include <gli/gli.hpp>
+#include <gli/texture2d.hpp>
+#include <gli/load.hpp>
+#include <gli/save.hpp>
+
 using namespace std;
 using namespace nex;
 
@@ -45,7 +50,7 @@ void TextureManagerGL::releaseTexture(TextureGL * tex)
 void TextureManagerGL::writeHDR(const GenericImageGL& imageData, const char* filePath)
 {
 	stbi__flip_vertically_on_write = true;
-	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels);
+	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.get());
 }
 
 void TextureManagerGL::readImage(GenericImageGL* imageData, const char* filePath)
@@ -63,7 +68,7 @@ void TextureManagerGL::readImage(GenericImageGL* imageData, const char* filePath
 
 	imageData->pixels = new char[imageData->bufSize];
 
-	std::fread(imageData->pixels, imageData->bufSize, 1, file);
+	std::fread(imageData->pixels.get(), imageData->bufSize, 1, file);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
@@ -79,12 +84,34 @@ void TextureManagerGL::writeImage(const GenericImageGL& imageData, const char* f
 		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
 
 	std::fwrite(&imageData, sizeof(GenericImageGL), 1, file);
-	std::fwrite(imageData.pixels, imageData.bufSize, 1, file);
+	std::fwrite(imageData.pixels.get(), imageData.bufSize, 1, file);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
 
 	fclose(file);
+}
+
+void TextureManagerGL::readGLITest(const char* filePath)
+{
+	gli::texture tex = gli::load(filePath);
+
+	if (tex.empty())
+	{
+		LOG(m_logger, Error) << "Couldn't load file" << filePath;
+		return;
+	}
+
+	gli::texture2d tex2D(tex);
+
+	if (tex2D.empty())
+	{
+		LOG(m_logger, Error) << "Couldn't create texture 2D from " << filePath;
+	}
+
+	gli::gl GL(gli::gl::PROFILE_GL33);
+	GLenum target = GL.translate(tex.target());
+	gli::gl::format const format = GL.translate(tex.format(), tex.swizzles());
 }
 
 TextureManagerGL::~TextureManagerGL()

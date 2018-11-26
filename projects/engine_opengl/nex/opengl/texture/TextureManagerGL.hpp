@@ -83,6 +83,8 @@ public:
 	void readImage(GenericImageGL* imageData, const char* filePath);
 	void writeImage(const GenericImageGL& imageData, const char* filePath);
 
+	void readGLITest(const char* filePath);
+
 protected:
 	std::list<TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;

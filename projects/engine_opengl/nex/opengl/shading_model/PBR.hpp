@@ -44,7 +44,7 @@ public:
 
   TextureGL* getBrdfLookupTexture();
 
-  GenericImageGL readBrdfLookupPixelData() const;
+  StoreImageGL readBrdfLookupPixelData() const;
 
 
 protected:

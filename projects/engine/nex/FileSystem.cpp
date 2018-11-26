@@ -123,7 +123,7 @@ void FileSystem::writeToFile(const std::string& path, const std::vector<char>& s
 char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* fileSize)
 {
 	std::ifstream file;
-	nex::util::MemoryWrapper content(nullptr);
+	nex::MemoryWrapper content(nullptr);
 	*fileSize = 0;
 	nex::Logger logger("FileSystem");
 
@@ -146,7 +146,7 @@ char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* 
 		content.setContent(memory);
 
 		//copy data to content buffer
-		buffer->sgetn(*content, *fileSize);
+		buffer->sgetn(content.get(), *fileSize);
 	}
 	catch (std::ifstream::failure e)
 	{
@@ -169,7 +169,7 @@ char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* 
 	file.exceptions((std::ios_base::iostate)0);
 	file.close();
 
-	char* result = *content;
+	char* result = content.get();
 	content.setContent(nullptr);
 
 	return result;
