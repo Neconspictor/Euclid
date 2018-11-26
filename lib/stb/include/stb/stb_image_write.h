@@ -604,6 +604,10 @@ void stbiw__write_hdr_scanline(stbi__write_context *s, int width, int ncomp, uns
                     linear[1] = scanline[x*ncomp + 1];
                     linear[0] = scanline[x*ncomp + 0];
                     break;
+			case 2: linear[2] = 0;
+					linear[1] = scanline[x*ncomp + 1];
+					linear[0] = scanline[x*ncomp + 0];
+					break;
             default:
                     linear[0] = linear[1] = linear[2] = scanline[x*ncomp + 0];
                     break;
@@ -621,6 +625,10 @@ void stbiw__write_hdr_scanline(stbi__write_context *s, int width, int ncomp, uns
                     linear[1] = scanline[x*ncomp + 1];
                     linear[0] = scanline[x*ncomp + 0];
                     break;
+			case 2: linear[2] = 0;
+					linear[1] = scanline[x*ncomp + 1];
+					linear[0] = scanline[x*ncomp + 0];
+					break;
             default:
                     linear[0] = linear[1] = linear[2] = scanline[x*ncomp + 0];
                     break;

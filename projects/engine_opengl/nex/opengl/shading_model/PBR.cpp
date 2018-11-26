@@ -126,8 +126,8 @@ GenericImageGL PBR::readBrdfLookupPixelData() const
 	GenericImageGL data;
 	data.width = brdfLookupTexture->getWidth();
 	data.height = brdfLookupTexture->getHeight();
-	data.components = 3; // RGB
-	data.format = GL_RGB;
+	data.components = 2; // RGB
+	data.format = GL_RG;
 	data.pixelSize = sizeof(float) * data.components;
 
 	data.bufSize = data.width * data.height * data.pixelSize;
@@ -393,5 +393,5 @@ void PBR::init(TextureGL* backgroundHDR)
 	GenericImageGL brdfLUTImage;
 	TextureManagerGL::get()->readImage(&brdfLUTImage, "brdfLUT.NeXImage");
 	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
-	//TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");
+	TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");
 }
