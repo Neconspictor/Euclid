@@ -440,8 +440,9 @@ void RendererOpenGL::release()
 	}
 
 	for (auto it = renderTargets.begin(); it != renderTargets.end();) {
-		RenderTargetGL& target = *it;
-		target.release();
+		RenderTargetGL* target = *it;
+		target->release();
+		delete target;
 		it = renderTargets.erase(it);
 	}
 
@@ -622,12 +623,12 @@ void RendererOpenGL::__clearRenderTarget(RenderTargetGL* renderTarget, bool rele
 	{
 		GLCall(glDeleteFramebuffers(1, &renderTarget->frameBuffer));
 		glDeleteTextures(1, &renderTarget->renderBuffer);
-		GLCall(glDeleteRenderbuffers(1, &renderTarget->textureBuffer.textureID));
+		GLCall(glDeleteRenderbuffers(1, &renderTarget->textureBuffer->textureID));
 	}
 
 	renderTarget->frameBuffer = GL_FALSE;
 	renderTarget->renderBuffer = GL_FALSE;
-	renderTarget->textureBuffer.setTexture(GL_FALSE);
+	renderTarget->textureBuffer->setTexture(GL_FALSE);
 }
 
 CubeRenderTargetGL* RendererOpenGL::renderCubeMap(int width, int height, TextureGL* equirectangularMap)
@@ -690,7 +691,7 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 
 	GLClearError();
 
-	RenderTargetGL result(width, height);
+	RenderTargetGL* result;
 
 	if (samples > 1)
 	{
@@ -704,8 +705,8 @@ RenderTargetGL* RendererOpenGL::createRenderTargetGL(int width, int height, cons
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	renderTargets.push_back(move(result));
-	return &renderTargets.back();
+	renderTargets.push_back(result);
+	return result;
 }
 
 std::unique_ptr<SSAO_DeferredGL> RendererOpenGL::createDeferredSSAO()
@@ -725,9 +726,9 @@ EffectLibraryGL* RendererOpenGL::getEffectLibrary()
 
 RenderTargetGL* RendererOpenGL::createVarianceShadowMap(int width, int height)
 {
-	RenderTargetGL target = RenderTargetGL::createVSM(width, height);
-	renderTargets.push_back(move(target));
-	return &renderTargets.back();
+	RenderTargetGL* target = RenderTargetGL::createVSM(width, height);
+	renderTargets.push_back(target);
+	return target;
 }
 
 void RendererOpenGL::cullFaces(CullingMode mode)
@@ -766,9 +767,9 @@ void RendererOpenGL::destroyRenderTarget(RenderTargetGL* target)
 {
 	for (auto it = renderTargets.begin(); it != renderTargets.end(); ++it)
 	{
-		if (&(*it) == target)
+		if ((*it) == target)
 		{
-			target->release();
+			delete target;
 			renderTargets.erase(it);
 			break;
 		}

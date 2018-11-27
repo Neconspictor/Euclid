@@ -16,7 +16,7 @@ struct GenericImageGL
 
 	GenericImageGL() = default;
 	GenericImageGL(GenericImageGL&& o) noexcept;
-	GenericImageGL& operator=(GenericImageGL&& o) noexcept;
+	GenericImageGL& operator=(GenericImageGL&& o) = delete;
 
 	GenericImageGL(const GenericImageGL&) = delete;
 	GenericImageGL& operator=(const GenericImageGL&) = delete;
@@ -48,7 +48,7 @@ struct StoreImageGL
 
 	StoreImageGL() = default;
 	StoreImageGL(StoreImageGL&& o) noexcept;
-	StoreImageGL& operator=(StoreImageGL&& o) noexcept;
+	StoreImageGL& operator=(StoreImageGL&& o) = delete;
 
 	StoreImageGL(const StoreImageGL&) = delete;
 	StoreImageGL& operator=(const StoreImageGL&) = delete;
@@ -63,7 +63,7 @@ class ImageLoaderGL
 {
 public:
 	explicit ImageLoaderGL();
-	GenericImageGL loadImageFromDisc(std::string fileName);
+	//GenericImageGL loadImageFromDisc(std::string fileName);
 
 private:
 	nex::Logger m_logger;

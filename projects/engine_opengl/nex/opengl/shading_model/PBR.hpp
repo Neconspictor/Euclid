@@ -55,12 +55,12 @@ protected:
 	CubeMapGL* renderBackgroundToCube(TextureGL* background);
 	CubeRenderTargetGL* convolute(CubeMapGL* source);
 	CubeRenderTargetGL* prefilter(CubeMapGL* source);
-	RenderTargetGL* createBRDFlookupTexture();
+	TextureGL* createBRDFlookupTexture();
 
 	CubeRenderTargetGL* convolutedEnvironmentMap;
 	CubeRenderTargetGL* prefilterRenderTarget;
 	CubeMapGL* environmentMap;
-	RenderTargetGL* brdfLookupTexture;
+	TextureGL* brdfLookupTexture;
 
 
 	RendererOpenGL* renderer;

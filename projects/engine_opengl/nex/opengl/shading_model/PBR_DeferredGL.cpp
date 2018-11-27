@@ -127,7 +127,7 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	shader->setNormalEyeMap(gBuffer->getNormal());
 	shader->setPositionEyeMap(gBuffer->getPosition());
 
-	shader->setBrdfLookupTexture(brdfLookupTexture->getTexture());
+	shader->setBrdfLookupTexture(brdfLookupTexture);
 	//shader->setGBuffer(gBuffer);
 	shader->setViewGPass(viewFromGPass);
 	shader->setInverseViewFromGPass(inverse(viewFromGPass));

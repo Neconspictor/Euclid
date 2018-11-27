@@ -20,18 +20,17 @@ namespace nex {
 		{
 			o.mItem = nullptr;
 		}
-		Guard& operator=(Guard&& o) noexcept
-		{
-			if (this == &o) return *this;
-			mItem = o.mItem;
-			o.mItem = nullptr;
-
-			return *this;
-		}
+		Guard& operator=(Guard&& o) = delete;
 
 		T* get() const
 		{
 			return mItem;
+		}
+
+		Guard& operator=(T* item) noexcept
+		{
+			mItem = item;
+			return *this;
 		}
 
 		T& operator *() const
@@ -82,14 +81,7 @@ namespace nex {
 		{
 			o.mArray = nullptr;
 		}
-		GuardArray& operator=(GuardArray&& o) noexcept
-		{
-			if (this == &o) return *this;
-			mArray = o.mArray;
-			o.mArray = nullptr;
-
-			return *this;
-		}
+		GuardArray& operator=(GuardArray&& o) = delete;
 
 		GuardArray& operator=(T* arr) noexcept
 		{

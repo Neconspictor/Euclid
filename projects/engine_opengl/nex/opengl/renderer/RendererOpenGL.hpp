@@ -339,7 +339,7 @@ protected:
 	ModelDrawerGL modelDrawer;
 	unsigned int msaaSamples;
 	std::list<CubeRenderTargetGL> cubeRenderTargets;
-	std::list<RenderTargetGL> renderTargets;
+	std::list<RenderTargetGL*> renderTargets;
 	std::unique_ptr<SMAA_GL> smaa;
 	BaseRenderTargetGL defaultRenderTarget;
 

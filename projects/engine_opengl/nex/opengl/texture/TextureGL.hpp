@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <nex/util/Math.hpp>
+#include <nex/util/Memory.hpp>
 
 struct StoreImageGL;
 class RenderTargetGL;
@@ -333,12 +334,12 @@ public:
 
 	virtual ~RenderTargetGL();
 
-	static RenderTargetGL createMultisampled(int width, int height, const TextureData& data,
+	static RenderTargetGL* createMultisampled(int width, int height, const TextureData& data,
 		GLuint samples, GLuint depthStencilType);
 
-	static RenderTargetGL createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType);
+	static RenderTargetGL* createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType);
 
-	static RenderTargetGL createVSM(int width, int height);
+	static RenderTargetGL* createVSM(int width, int height);
 
 	GLuint getRenderBuffer();
 	GLuint getTextureGL();
@@ -347,12 +348,14 @@ public:
 	void release();
 
 	void setRenderBuffer(GLuint newValue);
+
+	void setTexture(TextureGL* texture);
 	void setTextureBuffer(GLuint newValue);
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	friend CubeRenderTargetGL;
-	TextureGL textureBuffer;
+	nex::Guard<TextureGL> textureBuffer;
 	GLuint renderBuffer;
 };
 

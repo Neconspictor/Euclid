@@ -169,6 +169,9 @@ TextureGL* TextureGL::createFromImage(const StoreImageGL& store, const TextureDa
 		result = new TextureGL(textureID);
 	}
 
+	result->width = store.images[0][0].width;
+	result->height = store.images[0][0].height;
+
 	return result;
 }
 
@@ -197,18 +200,12 @@ GLuint TextureGL::getTexture() const
 
 unsigned TextureGL::getHeight() const
 {
-	GLint result;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &result);
-
-	return result;
+	return height;
 }
 
 unsigned TextureGL::getWidth() const
 {
-	GLint result;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &result);
-
-	return result;
+	return width;
 }
 
 void TextureGL::setTexture(GLuint id)
@@ -335,6 +332,10 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 	data(data),
 	cubeMapResult(new CubeMapGL())
 {
+
+	cubeMapResult->setWidth(width);
+	cubeMapResult->setHeight(height);
+
 	// generate framebuffer and renderbuffer with a depth component
 	GLCall(glGenFramebuffers(1, &frameBuffer));
 	glGenRenderbuffers(1, &renderBuffer);
@@ -505,31 +506,55 @@ RenderTargetGL::RenderTargetGL(int width, int height) :
 	BaseRenderTargetGL(width, height, GL_FALSE),
 	renderBuffer(GL_FALSE)
 {
+	textureBuffer = new TextureGL();
+	textureBuffer->setWidth(width);
+	textureBuffer->setHeight(height);
 }
+
+/*
+RenderTargetGL::RenderTargetGL(RenderTargetGL&& other) noexcept : BaseRenderTargetGL(std::move(other)), textureBuffer(other.textureBuffer),
+                                                         renderBuffer(other.renderBuffer)
+{
+	other.textureBuffer = nullptr;
+}
+
+RenderTargetGL& RenderTargetGL::operator=(RenderTargetGL&& other) noexcept
+{
+	BaseRenderTargetGL::operator=(std::move(other));
+	if (this == &other) return *this;
+	textureBuffer = other.textureBuffer;
+	renderBuffer = other.renderBuffer;
+	other.textureBuffer = nullptr;
+	return *this;
+}*/
 
 RenderTargetGL::~RenderTargetGL()
 {
 	release();
 }
 
-RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
+RenderTargetGL* RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
 	GLuint samples, GLuint depthStencilType)
 {
 	assert(samples > 1);
 
-	RenderTargetGL result(width, height);
+
+	nex::Guard<RenderTargetGL> result;
+	result.setContent(new RenderTargetGL(width, height));
+	result->width = width;
+	result->height = height;
 
 	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
 	GLuint minFilter = static_cast<GLuint>(data.minFilter);
 	GLuint magFilter = static_cast<GLuint>(data.magFilter);
 	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
 
-	GLCall(glGenFramebuffers(1, &result.frameBuffer));
-	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
+	GLCall(glGenFramebuffers(1, &result->frameBuffer));
+	glBindFramebuffer(GL_FRAMEBUFFER, result->frameBuffer);
 
 	// Generate texture
-	glGenTextures(1, &result.textureBuffer.textureID);
-	const GLuint& textureID = result.textureBuffer.textureID;
+	glGenTextures(1, &result->textureBuffer->textureID);
+	const GLuint& textureID = result->textureBuffer->textureID;
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
 	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_TRUE);
@@ -547,19 +572,19 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
 
 	//create a render buffer for depth and stencil testing
-	glGenRenderbuffers(1, &result.renderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glGenRenderbuffers(1, &result->renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result->renderBuffer);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, depthStencilType, width, height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// attach render buffer to the frame buffer
 	if (depthStencilType == GL_DEPTH_COMPONENT)
 	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
 	}
 	else
 	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
 	}
 
 	// finally check if all went successfully
@@ -570,14 +595,18 @@ RenderTargetGL RenderTargetGL::createMultisampled(int width, int height, const T
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-	return move(result);
+	auto cache = result.get();
+	result.setContent(nullptr);
+
+	return cache;
 }
 
-RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
+RenderTargetGL* RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
 {
-	RenderTargetGL result(width, height);
-	result.width = width;
-	result.height = height;
+	nex::Guard<RenderTargetGL> result;
+	result.setContent(new RenderTargetGL(width, height));
+	result->width = width;
+	result->height = height;
 
 	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
 	GLuint minFilter = static_cast<GLuint>(data.minFilter);
@@ -586,12 +615,12 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	GLuint colorspace = static_cast<GLuint>(data.colorspace);
 	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
 
-	GLCall(glGenFramebuffers(1, &result.frameBuffer));
-	glBindFramebuffer(GL_FRAMEBUFFER, result.frameBuffer);
+	GLCall(glGenFramebuffers(1, &result->frameBuffer));
+	glBindFramebuffer(GL_FRAMEBUFFER, result->frameBuffer);
 
 	// Generate texture
-	glGenTextures(1, &result.textureBuffer.textureID);
-	const GLuint& textureID = result.textureBuffer.textureID;
+	glGenTextures(1, &result->textureBuffer->textureID);
+	const GLuint& textureID = result->textureBuffer->textureID;
 
 
 	//glActiveTexture(GL_TEXTURE0);
@@ -609,8 +638,8 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	//glBindTexture(GL_TEXTURE_2D, 0);
 
 	//create a render buffer for depth and stencil testing
-	glGenRenderbuffers(1, &result.renderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glGenRenderbuffers(1, &result->renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result->renderBuffer);
 
 	// GL_DEPTH_COMPONENT24 depthStencilType
 	glRenderbufferStorage(GL_RENDERBUFFER, depthStencilType, width, height);
@@ -627,11 +656,11 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 	// attach render buffer to the frame buffer
 	if (depthStencilType == GL_DEPTH_COMPONENT)
 	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
 	}
 	else
 	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
 	}
 
 	// finally check if all went successfully
@@ -642,15 +671,22 @@ RenderTargetGL RenderTargetGL::createSingleSampled(int width, int height, const 
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-	return move(result);
+	auto cache = result.get();
+	result.setContent(nullptr);
+
+	return cache;
 }
 
-RenderTargetGL RenderTargetGL::createVSM(int width, int height)
+RenderTargetGL* RenderTargetGL::createVSM(int width, int height)
 {
-	RenderTargetGL result(width, height);
-	GLuint* frameBuffer = &result.frameBuffer;
-	GLuint* textureID = &result.textureBuffer.textureID;
-	TextureGL& texture = result.textureBuffer;
+	nex::Guard<RenderTargetGL> result;
+	result.setContent(new RenderTargetGL(width, height));
+	result->width = width;
+	result->height = height;
+
+	GLuint* frameBuffer = &result->frameBuffer;
+	GLuint* textureID = &result->textureBuffer->textureID;
+	TextureGL& texture = *result->textureBuffer;
 	GLCall(glGenFramebuffers(1, frameBuffer));
 	glGenTextures(1, textureID);
 
@@ -684,13 +720,13 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 
 
 								   //create a render buffer for depth and stencil testing
-	glGenRenderbuffers(1, &result.renderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, result.renderBuffer);
+	glGenRenderbuffers(1, &result->renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, result->renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// attach render buffer to the frame buffer
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.renderBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
 								   // Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw_with_trace(runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!"));
@@ -698,7 +734,10 @@ RenderTargetGL RenderTargetGL::createVSM(int width, int height)
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	return move(result);
+	auto cache = result.get();
+	result.setContent(nullptr);
+
+	return cache;
 }
 
 GLuint RenderTargetGL::getRenderBuffer()
@@ -708,12 +747,12 @@ GLuint RenderTargetGL::getRenderBuffer()
 
 GLuint RenderTargetGL::getTextureGL()
 {
-	return textureBuffer.getTexture();
+	return textureBuffer->getTexture();
 }
 
 TextureGL* RenderTargetGL::getTexture()
 {
-	return &textureBuffer;
+	return &*textureBuffer;
 }
 
 void RenderTargetGL::release()
@@ -734,9 +773,14 @@ void RenderTargetGL::setRenderBuffer(GLuint newValue)
 	renderBuffer = newValue;
 }
 
+void RenderTargetGL::setTexture(TextureGL* texture)
+{
+	textureBuffer = texture;
+}
+
 void RenderTargetGL::setTextureBuffer(GLuint newValue)
 {
-	textureBuffer.setTexture(newValue);
+	textureBuffer->setTexture(newValue);
 }
 
 CubeDepthMapGL::CubeDepthMapGL(int width, int height) : 

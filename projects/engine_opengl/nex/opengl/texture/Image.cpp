@@ -17,7 +17,7 @@ bufSize(o.bufSize), pixelSize(o.pixelSize), format(o.format)
 {
 }
 
-GenericImageGL& GenericImageGL::operator=(GenericImageGL&& o) noexcept
+/*GenericImageGL& GenericImageGL::operator=(GenericImageGL&& o) noexcept
 {
 	if (this == &o) return *this;
 
@@ -30,7 +30,7 @@ GenericImageGL& GenericImageGL::operator=(GenericImageGL&& o) noexcept
 	format = (o.format);
 
 	return *this;
-}
+}*/
 
 void GenericImageGL::load(GenericImageGL* dest, FILE* file)
 {
@@ -65,7 +65,7 @@ images(std::move(o.images)), mipmapCounts(std::move(o.mipmapCounts)), sideCount(
 	o.sideCount = 0;
 }
 
-StoreImageGL& StoreImageGL::operator=(StoreImageGL&& o) noexcept
+/*StoreImageGL& StoreImageGL::operator=(StoreImageGL&& o) noexcept
 {
 	if (this == &o) return *this;
 
@@ -76,7 +76,7 @@ StoreImageGL& StoreImageGL::operator=(StoreImageGL&& o) noexcept
 	o.sideCount = 0;
 
 	return *this;
-}
+}*/
 
 
 void StoreImageGL::load(StoreImageGL* dest, const char* filePath)
@@ -162,7 +162,7 @@ void StoreImageGL::create(StoreImageGL* result, unsigned short sideCount, unsign
 ImageLoaderGL::ImageLoaderGL() : m_logger("ImageLoaderGL")
 {}
 
-GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
+/*GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 {
 	GenericImageGL imageData;
 	memset(&imageData, 0, sizeof(imageData));
@@ -196,7 +196,7 @@ GenericImageGL ImageLoaderGL::loadImageFromDisc(string fileName)
 	delete[] bytes;
 
 	return imageData;
-}
+}*/
 
 GenericImageGL ImageLoaderGL::loadDDSFile(char* imageData, streampos fileSize)
 {
