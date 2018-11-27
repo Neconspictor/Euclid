@@ -2,10 +2,12 @@
 #include <glad/glad.h>
 #include <nex/util/Math.hpp>
 
+struct StoreImageGL;
 class RenderTargetGL;
 class RendererOpenGL;
 class CubeRenderTargetGL;
 class BaseRenderTargetGL;
+class CubeMapGL;
 
 enum class TextureFilter
 {
@@ -129,6 +131,16 @@ public:
 	TextureGL& operator=(const TextureGL&) = delete;
 
 	virtual ~TextureGL();
+
+
+	/**
+	 * Creates a texture from an image store.
+	 * The returned texture has to be released by the caller!
+	 * NOTE: Supports only TEXTURE2D and CUBEMAP as targets!
+	 *
+	 * @return a TextureGL or an CubeMapGL dependent on the state of isCubeMap
+	 */
+	static TextureGL* createFromImage(const StoreImageGL& store, const TextureData& data, bool isCubeMap);
 
 	GLuint getTexture() const;
 

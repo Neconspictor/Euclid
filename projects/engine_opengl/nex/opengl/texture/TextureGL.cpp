@@ -97,6 +97,79 @@ TextureGL::~TextureGL()
 	release();
 }
 
+TextureGL* TextureGL::createFromImage(const StoreImageGL& store, const TextureData& data, bool isCubeMap)
+{
+	GLuint format = static_cast<GLuint>(data.colorspace);
+	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
+	GLuint bindTarget;
+
+	if (isCubeMap)
+	{
+		assert(store.sideCount == 6);
+		bindTarget = GL_TEXTURE_CUBE_MAP;
+	}
+	else
+	{
+		assert(store.sideCount == 1);
+		bindTarget = GL_TEXTURE_2D;
+	}
+
+	GLuint textureID;
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	glGenTextures(1, &textureID);
+	glBindTexture(bindTarget, textureID);
+
+	if (isCubeMap)
+	{
+		for (unsigned int i = 0; i < store.sideCount; ++i)
+		{
+			for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[i]; ++mipMapLevel)
+			{
+				auto& image = store.images[i][mipMapLevel];
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get());
+			}
+
+		}
+	}
+	else
+	{
+		for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[0]; ++mipMapLevel)
+		{
+			auto& image = store.images[0][mipMapLevel];
+			glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get());
+		}
+	}
+
+	GLint minFilter = static_cast<GLuint>(data.minFilter);
+	GLint magFilter = static_cast<GLuint>(data.magFilter);
+	GLint uvTechnique = static_cast<GLuint>(data.uvTechnique);
+
+	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, uvTechnique);
+	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(bindTarget, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+
+	if (data.generateMipMaps)
+		glGenerateMipmap(bindTarget);
+
+	GLCall(glBindTexture(bindTarget, 0));
+
+	TextureGL* result;
+
+	if (isCubeMap)
+	{
+		result = new CubeMapGL(textureID);
+	}
+	else
+	{
+		result = new TextureGL(textureID);
+	}
+
+	return result;
+}
+
 void TextureGL::release()
 {
 	if (textureID != GL_FALSE) {
@@ -255,6 +328,7 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 
 	//pre-allocate the six faces of the cubemap
 	glGenTextures(1, &cubeMapResult.textureID);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapResult.textureID);
 	for (int i = 0; i < 6; ++i)
 	{
@@ -262,8 +336,6 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 			pixelDataType, nullptr);
 	}
 
-
-	glActiveTexture(GL_TEXTURE0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique);
