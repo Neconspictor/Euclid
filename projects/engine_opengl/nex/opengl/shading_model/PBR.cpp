@@ -394,6 +394,13 @@ void PBR::init(TextureGL* backgroundHDR)
 
 	Viewport backup = renderer->getViewport();
 
+	// if environment map has been compiled already and load it from file 
+	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
+	{
+		StoreImageGL readImage;
+		StoreImageGL::load(&readImage, "pbr_environmentMap.NeXImage");
+	}
+
 	environmentMap = renderBackgroundToCube(backgroundHDR);
 	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
 	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
@@ -438,7 +445,7 @@ void PBR::init(TextureGL* backgroundHDR)
 		}
 	}
 
-	{
+	/*{
 		StoreImageGL enviromentMapImage = readBackgroundPixelData();
 		StoreImageGL::write(enviromentMapImage, "pbr_environmentMap.NeXImage");
 
@@ -446,6 +453,6 @@ void PBR::init(TextureGL* backgroundHDR)
 			StoreImageGL readImage;
 			StoreImageGL::load(&readImage, "pbr_environmentMap.NeXImage");
 		}
-	}
+	}*/
 
 }
