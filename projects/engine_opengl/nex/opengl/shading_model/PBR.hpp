@@ -15,7 +15,7 @@ class PBR {
 
 public:
   PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR);
-  virtual ~PBR() = default;
+  virtual ~PBR();
 
   virtual void drawSceneToShadowMap(SceneNode * scene,
 	  DepthMapGL* shadowMap,
@@ -52,14 +52,14 @@ protected:
 
 	void init(TextureGL* backgroundHDR);
 
-	CubeRenderTargetGL* renderBackgroundToCube(TextureGL* background);
+	CubeMapGL* renderBackgroundToCube(TextureGL* background);
 	CubeRenderTargetGL* convolute(CubeMapGL* source);
 	CubeRenderTargetGL* prefilter(CubeMapGL* source);
 	RenderTargetGL* createBRDFlookupTexture();
 
 	CubeRenderTargetGL* convolutedEnvironmentMap;
 	CubeRenderTargetGL* prefilterRenderTarget;
-	CubeRenderTargetGL* environmentMap;
+	CubeMapGL* environmentMap;
 	RenderTargetGL* brdfLookupTexture;
 
 

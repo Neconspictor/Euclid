@@ -123,8 +123,8 @@ class TextureGL
 public:
 	explicit TextureGL();
 	TextureGL(GLuint texture);
-	TextureGL(TextureGL&& o);
-	TextureGL& operator=(TextureGL&& o);
+	TextureGL(TextureGL&& o) noexcept;
+	TextureGL& operator=(TextureGL&& o) noexcept;
 
 
 	TextureGL(const TextureGL&) = delete;
@@ -144,12 +144,18 @@ public:
 
 	GLuint getTexture() const;
 
+
+	unsigned getHeight() const;
+	unsigned getWidth() const;
+
 	void setTexture(GLuint id);
 
 	static GLuint getFormat(int numberComponents);
 
 	virtual void release();
 
+	void setHeight(int height);
+	void setWidth(int width);
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
@@ -157,6 +163,8 @@ protected:
 	friend CubeRenderTargetGL;
 	friend BaseRenderTargetGL;
 	GLuint textureID;
+	int width;
+	int height;
 };
 
 class RenderBufferGL : public TextureGL {
@@ -283,6 +291,7 @@ public:
 
 	GLuint getRenderBuffer();
 	GLuint getCubeMapGL();
+
 	CubeMapGL* getCubeMap();
 
 	inline int getHeightMipLevel(unsigned int mipMapLevel) const {
@@ -298,13 +307,14 @@ public:
 	void resizeForMipMap(unsigned int mipMapLevel);
 
 	void setRenderBuffer(GLuint newValue);
+	void setCubeMap(CubeMapGL* cubeMap);
 	void setCubeMapResult(GLuint newValue);
 
 protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	//friend CubeRenderTargetGL;
 	GLuint renderBuffer;
-	CubeMapGL cubeMapResult;
+	CubeMapGL* cubeMapResult;
 	TextureData data;
 };
 

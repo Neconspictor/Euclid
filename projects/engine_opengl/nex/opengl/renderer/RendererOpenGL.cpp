@@ -495,8 +495,8 @@ void RendererOpenGL::useCubeDepthMap(CubeDepthMapGL* cubeDepthMap)
 
 	CubeMapGL* cubeMap = cubeDepthMap->getCubeMap();
 
-	GLCall(glViewport(mViewport.x, mViewport.y, cubeDepthMap->getWidth(), cubeDepthMap->getHeight()));
-	glScissor(mViewport.x, mViewport.y, cubeDepthMap->getWidth(), cubeDepthMap->getHeight());
+	GLCall(glViewport(mViewport.x, mViewport.y, cubeMap->getWidth(), cubeMap->getHeight()));
+	glScissor(mViewport.x, mViewport.y, cubeMap->getWidth(), cubeMap->getHeight());
 	glBindFramebuffer(GL_FRAMEBUFFER, cubeDepthMap->getFramebuffer());
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0);
 	glDrawBuffer(GL_NONE);

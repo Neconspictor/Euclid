@@ -36,7 +36,7 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
 
-	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID);
+	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID, int width, int height);
 
 	TextureGL* getImageGL(const std::string& file);
 

@@ -192,11 +192,15 @@ CubeMapGL* TextureManagerGL::createCubeMap(const string& right, const string& le
 	return nullptr;
 }
 
-TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID)
+TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID, int width, int height)
 {
 	textures.emplace_back(move(TextureGL(textureID)));
 	TextureGL* pointer = &textures.back();
 	textureLookupTable.insert(pair<string, TextureGL*>(localPathFileName, pointer));
+
+	pointer->setWidth(width);
+	pointer->setHeight(height);
+
 	return pointer;
 }
 
@@ -299,7 +303,7 @@ TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 
 	stbi_image_free(rawData);
 
-	return createTextureGL(file, hdrTexture);
+	return createTextureGL(file, hdrTexture, width, height);
 }
 
 TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
@@ -370,7 +374,7 @@ TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	return createTextureGL(file, textureID);
+	return createTextureGL(file, textureID, width, height);
 }
 
 void TextureManagerGL::init(FileSystem* textureFileSystem)

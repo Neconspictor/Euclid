@@ -16,6 +16,11 @@ PBR::PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR) :
 	init(backgroundHDR);
 }
 
+PBR::~PBR()
+{
+	delete environmentMap;
+}
+
 void PBR::drawSky(const mat4& projection, const mat4& view)
 {
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
@@ -33,7 +38,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	skyboxShader->setProjection(projection);
 	skyboxShader->setMVP(projection * skyBoxView);
 	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
-	skyboxShader->setSkyTexture(environmentMap->getCubeMap());
+	skyboxShader->setSkyTexture(environmentMap);
 
 	modelDrawer->draw(skybox.getModel(), skyboxShader);
 
@@ -108,7 +113,7 @@ CubeMapGL * PBR::getConvolutedEnvironmentMap()
 
 CubeMapGL* PBR::getEnvironmentMap()
 {
-	return environmentMap->getCubeMap();
+	return environmentMap;
 }
 
 CubeMapGL * PBR::getPrefilteredEnvironmentMap()
@@ -165,7 +170,7 @@ StoreImageGL PBR::readBackgroundPixelData() const
 
 		// read the data back from the gpu
 		renderer->readback(
-			environmentMap->getCubeMap(),
+			environmentMap,
 			static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
 			0, // base level
 			ColorSpace::RGB,
@@ -176,7 +181,7 @@ StoreImageGL PBR::readBackgroundPixelData() const
 	return store;
 }
 
-CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
+CubeMapGL * PBR::renderBackgroundToCube(TextureGL * background)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -188,7 +193,8 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 		false
 	};
 
-	CubeRenderTargetGL* cubeRenderTarget = renderer->createCubeRenderTarget(2048, 2048, textureData);
+
+	CubeRenderTargetGL cubeRenderTarget(2048, 2048, textureData);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
@@ -212,11 +218,11 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 	};
 
 	
-	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget.getWidth(), cubeRenderTarget.getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 
-	const GLuint textureID = cubeRenderTarget->getCubeMap()->getTexture();
+	const GLuint textureID = cubeRenderTarget.getCubeMap()->getTexture();
 	std::stringstream ss;
 	ss << "Before rendering background cube maps; cubemap texture id = " << textureID;
 
@@ -226,16 +232,20 @@ CubeRenderTargetGL * PBR::renderBackgroundToCube(TextureGL * background)
 
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
+		renderer->useCubeRenderTarget(&cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
+
+	CubeMapGL* result = cubeRenderTarget.getCubeMap();
+	cubeRenderTarget.setCubeMap(nullptr); // ensures that it won't be deleted 
+
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
-	cubeRenderTarget->getCubeMap()->generateMipMaps();
+	result->generateMipMaps();
 
 	//CubeMap* result = cubeRenderTarget->createCopy(); 
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return cubeRenderTarget;
+	return result;
 }
 
 CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
@@ -399,11 +409,23 @@ void PBR::init(TextureGL* backgroundHDR)
 	{
 		StoreImageGL readImage;
 		StoreImageGL::load(&readImage, "pbr_environmentMap.NeXImage");
+
+		TextureData data = {
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			false
+		};
+		CubeMapGL* map = static_cast<CubeMapGL*>(TextureGL::createFromImage(readImage, data, true));
+		delete map;
 	}
 
 	environmentMap = renderBackgroundToCube(backgroundHDR);
-	prefilterRenderTarget = prefilter(environmentMap->getCubeMap());
-	convolutedEnvironmentMap = convolute(environmentMap->getCubeMap());
+	prefilterRenderTarget = prefilter(environmentMap);
+	convolutedEnvironmentMap = convolute(environmentMap);
 	
 
 	renderer->setViewPort(backup.x, backup.y, backup.width, backup.height);
