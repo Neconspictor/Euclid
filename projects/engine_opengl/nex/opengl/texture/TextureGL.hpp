@@ -278,7 +278,7 @@ public:
 	explicit CubeRenderTargetGL(int width, int height, TextureData data);
 	
 	CubeRenderTargetGL(CubeRenderTargetGL&&) = default;
-	CubeRenderTargetGL& operator=(CubeRenderTargetGL&&) = default;
+	CubeRenderTargetGL& operator=(CubeRenderTargetGL&&) = delete;
 
 
 	CubeRenderTargetGL(const CubeRenderTargetGL&) = delete;

@@ -19,7 +19,14 @@ PBR::PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR) :
 PBR::~PBR()
 {
 	delete environmentMap;
+	environmentMap = nullptr;
 	delete brdfLookupTexture;
+	brdfLookupTexture = nullptr;
+	delete prefilteredEnvMap;
+	prefilteredEnvMap = nullptr;
+
+	delete convolutedEnvironmentMap;
+	convolutedEnvironmentMap = nullptr;
 }
 
 void PBR::drawSky(const mat4& projection, const mat4& view)
@@ -82,7 +89,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->bind();
 
 	shader->setBrdfLookupTexture(brdfLookupTexture);
-	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
+	shader->setIrradianceMap(convolutedEnvironmentMap);
 	
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
@@ -90,7 +97,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
 
-	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	shader->setPrefilterMap(prefilteredEnvMap);
 	shader->setShadowMap(shadowMap);
 
 	//TODO validate whether this is needed
@@ -109,7 +116,7 @@ void PBR::drawScene(SceneNode * scene,
 
 CubeMapGL * PBR::getConvolutedEnvironmentMap()
 {
-	return convolutedEnvironmentMap->getCubeMap();
+	return convolutedEnvironmentMap;
 }
 
 CubeMapGL* PBR::getEnvironmentMap()
@@ -119,7 +126,7 @@ CubeMapGL* PBR::getEnvironmentMap()
 
 CubeMapGL * PBR::getPrefilteredEnvironmentMap()
 {
-	return prefilterRenderTarget->getCubeMap();
+	return prefilteredEnvMap;
 }
 
 TextureGL * PBR::getBrdfLookupTexture()
@@ -177,6 +184,70 @@ StoreImageGL PBR::readBackgroundPixelData() const
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
 			data.pixels.get());
+	}
+
+	return store;
+}
+
+StoreImageGL PBR::readConvolutedEnvMapPixelData()
+{
+	StoreImageGL store;
+	StoreImageGL::create(&store, 6, 6); // 6 sides, 32/16/8/4/2/1 = 6 levels
+
+	for (unsigned i = 0; i < store.sideCount; ++i)
+	{
+		for (unsigned level = 0; level < store.mipmapCounts[i]; ++level)
+		{
+			GenericImageGL& data = store.images[i][level];
+			data.width = convolutedEnvironmentMap->getWidth();
+			data.height = convolutedEnvironmentMap->getHeight();
+			data.components = 3; // RGB
+			data.format = GL_RGB;
+			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
+			data.bufSize = data.width * data.height * data.pixelSize;
+			data.pixels = new char[data.bufSize];
+
+			// read the data back from the gpu
+			renderer->readback(
+				convolutedEnvironmentMap,
+				static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
+				level,
+				ColorSpace::RGB,
+				PixelDataType::FLOAT,
+				data.pixels.get());
+		}
+	}
+
+	return store;
+}
+
+StoreImageGL PBR::readPrefilteredEnvMapPixelData()
+{
+	StoreImageGL store;
+	StoreImageGL::create(&store, 6, 9); // 6 sides, 256/128/64/32/16/8/4/2/1 = 9 mipmap textures
+
+	for (unsigned i = 0; i < store.sideCount; ++i)
+	{
+		for (unsigned level =  0; level < store.mipmapCounts[i]; ++level)
+		{
+			GenericImageGL& data = store.images[i][level];
+			data.width = prefilteredEnvMap->getWidth();
+			data.height = prefilteredEnvMap->getHeight();
+			data.components = 3; // RGB
+			data.format = GL_RGB;
+			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
+			data.bufSize = data.width * data.height * data.pixelSize;
+			data.pixels = new char[data.bufSize];
+
+			// read the data back from the gpu
+			renderer->readback(
+				prefilteredEnvMap,
+				static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
+				level,
+				ColorSpace::RGB,
+				PixelDataType::FLOAT,
+				data.pixels.get());
+		}
 	}
 
 	return store;
@@ -245,11 +316,10 @@ CubeMapGL * PBR::renderBackgroundToCube(TextureGL * background)
 	result->generateMipMaps();
 
 	//CubeMap* result = cubeRenderTarget->createCopy(); 
-	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 	return result;
 }
 
-CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
+CubeMapGL * PBR::convolute(CubeMapGL * source)
 {
 	// uses RGB and 32bit per component (floats)
 	CubeRenderTargetGL* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
@@ -287,10 +357,15 @@ CubeRenderTargetGL * PBR::convolute(CubeMapGL * source)
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
-	return cubeRenderTarget;
+
+	CubeMapGL* result = cubeRenderTarget->getCubeMap();
+	cubeRenderTarget->setCubeMap(nullptr); // ensures that it won't be deleted 
+	renderer->destroyCubeRenderTarget(cubeRenderTarget);
+
+	return result;
 }
 
-CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
+CubeMapGL* PBR::prefilter(CubeMapGL * source)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -351,11 +426,12 @@ CubeRenderTargetGL* PBR::prefilter(CubeMapGL * source)
 		}
 	}
 
-	//CubeMap* result = prefilterRenderTarget->createCopy();
-	//renderer->destroyCubeRenderTarget(prefilterRenderTarget);
 
-	//TODO extract the cubemap from the render target (if possible?)
-	return prefilterRenderTarget;
+	CubeMapGL* result = prefilterRenderTarget->getCubeMap();
+	prefilterRenderTarget->setCubeMap(nullptr);
+	renderer->destroyCubeRenderTarget(prefilterRenderTarget);
+
+	return result;
 }
 
 TextureGL* PBR::createBRDFlookupTexture()
@@ -424,15 +500,65 @@ void PBR::init(TextureGL* backgroundHDR)
 			InternFormat::RGB32F,
 			false
 		};
-		environmentMap = static_cast<CubeMapGL*>(TextureGL::createFromImage(readImage, data, true));
+		environmentMap = dynamic_cast<CubeMapGL*>(TextureGL::createFromImage(readImage, data, true));
 	} else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
+		StoreImageGL enviromentMapImage = readBackgroundPixelData();
+		StoreImageGL::write(enviromentMapImage, "pbr_environmentMap.NeXImage");
 	}
 
-	prefilterRenderTarget = prefilter(environmentMap);
-	convolutedEnvironmentMap = convolute(environmentMap);
+
+	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage"))
+	{
+		StoreImageGL readImage;
+		StoreImageGL::load(&readImage, "pbr_prefilteredEnvMap.NeXImage");
+
+		TextureData data = {
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			true
+		};
+		prefilteredEnvMap = dynamic_cast<CubeMapGL*>(TextureGL::createFromImage(readImage, data, true));
+	}
+	else
+	{
+		prefilteredEnvMap = prefilter(environmentMap);
+		StoreImageGL enviromentMapImage = readPrefilteredEnvMapPixelData();
+		StoreImageGL::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
+	}
+
 	
+
+
+
+	// if environment map has been compiled already and load it from file 
+	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage"))
+	{
+		StoreImageGL readImage;
+		StoreImageGL::load(&readImage, "pbr_convolutedEnvMap.NeXImage");
+
+		const TextureData data = {
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			true };
+
+		convolutedEnvironmentMap = dynamic_cast<CubeMapGL*>(TextureGL::createFromImage(readImage, data, true));
+	}
+	else
+	{
+		convolutedEnvironmentMap = convolute(environmentMap);
+		StoreImageGL enviromentMapImage = readConvolutedEnvMapPixelData();
+		StoreImageGL::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
+	}
 
 	renderer->setViewPort(backup.x, backup.y, backup.width, backup.height);
 
@@ -474,6 +600,8 @@ void PBR::init(TextureGL* backgroundHDR)
 	else
 	{
 		brdfLookupTexture = createBRDFlookupTexture();
+		StoreImageGL brdfLUTImage = readBrdfLookupPixelData();
+		StoreImageGL::write(brdfLUTImage, "brdfLUT.NeXImage");
 	}
 
 

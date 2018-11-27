@@ -131,13 +131,13 @@ void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBufferGL * gBuffer,
 	//shader->setGBuffer(gBuffer);
 	shader->setViewGPass(viewFromGPass);
 	shader->setInverseViewFromGPass(inverse(viewFromGPass));
-	shader->setIrradianceMap(convolutedEnvironmentMap->getCubeMap());
+	shader->setIrradianceMap(convolutedEnvironmentMap);
 	shader->setLightColor(light.getColor());
 	shader->setWorldLightDirection(light.getLook());
 
 	vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
 	shader->setEyeLightDirection(vec3(lightEyeDirection));
-	shader->setPrefilterMap(prefilterRenderTarget->getCubeMap());
+	shader->setPrefilterMap(prefilteredEnvMap);
 	shader->setShadowMap(shadowMap);
 	shader->setAOMap(ssaoMap);
 	//TODO

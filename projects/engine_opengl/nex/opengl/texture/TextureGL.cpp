@@ -153,6 +153,7 @@ TextureGL* TextureGL::createFromImage(const StoreImageGL& store, const TextureDa
 	glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter);
 	glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
 
+
 	if (data.generateMipMaps)
 		glGenerateMipmap(bindTarget);
 
@@ -467,6 +468,7 @@ void CubeRenderTargetGL::release()
 	if (cubeMapResult != nullptr)
 		cubeMapResult->release();
 	delete cubeMapResult;
+	cubeMapResult = nullptr;
 }
 
 void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {

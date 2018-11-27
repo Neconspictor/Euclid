@@ -50,15 +50,17 @@ public:
 
 protected:
 
+	StoreImageGL readConvolutedEnvMapPixelData();
+	StoreImageGL readPrefilteredEnvMapPixelData();
 	void init(TextureGL* backgroundHDR);
 
 	CubeMapGL* renderBackgroundToCube(TextureGL* background);
-	CubeRenderTargetGL* convolute(CubeMapGL* source);
-	CubeRenderTargetGL* prefilter(CubeMapGL* source);
+	CubeMapGL* convolute(CubeMapGL* source);
+	CubeMapGL* prefilter(CubeMapGL* source);
 	TextureGL* createBRDFlookupTexture();
 
-	CubeRenderTargetGL* convolutedEnvironmentMap;
-	CubeRenderTargetGL* prefilterRenderTarget;
+	CubeMapGL* convolutedEnvironmentMap;
+	CubeMapGL* prefilteredEnvMap;
 	CubeMapGL* environmentMap;
 	TextureGL* brdfLookupTexture;
 
