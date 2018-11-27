@@ -123,7 +123,7 @@ void FileSystem::writeToFile(const std::string& path, const std::vector<char>& s
 char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* fileSize)
 {
 	std::ifstream file;
-	nex::MemoryWrapper content(nullptr);
+	nex::MemGuard content(nullptr);
 	*fileSize = 0;
 	nex::Logger logger("FileSystem");
 

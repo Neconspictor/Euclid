@@ -6,7 +6,7 @@
 
 struct GenericImageGL
 {
-	nex::MemoryWrapper pixels;
+	nex::MemGuard pixels;
 	unsigned long long bufSize = 0;
 	unsigned int width = 0;
 	unsigned int height = 0;
@@ -28,7 +28,7 @@ struct GenericImageGL
 struct StoreImageGL
 {
 
-	using Image2DArray = nex::MemoryGuardArray<nex::MemoryGuardArray<GenericImageGL>>;
+	using Image2DArray = nex::GuardArray<nex::GuardArray<GenericImageGL>>;
 
 	/**
 	 * Memory layout for images:
@@ -43,7 +43,7 @@ struct StoreImageGL
 	 * images[sideCount-1] points to all mipmap images of the last side (only if sideCount > 0)
 	 */
 	Image2DArray images; // a pointer to an array of sideCount base images. With base image 
-	nex::MemoryGuardArray<unsigned short> mipmapCounts; // The number of mipmaps for each side
+	nex::GuardArray<unsigned short> mipmapCounts; // The number of mipmaps for each side
 	unsigned short sideCount = 0; // 6 for cubemaps, arbitrary number for texture arrays, 1 otherwise
 
 	StoreImageGL() = default;

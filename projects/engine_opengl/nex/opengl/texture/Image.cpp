@@ -1,4 +1,4 @@
-#include <nex/opengl/texture/ImageLoaderGL.hpp>
+#include <nex/opengl/texture/Image.hpp>
 #include <nex/FileSystem.hpp>
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -97,7 +97,7 @@ void StoreImageGL::load(StoreImageGL* dest, const char* filePath)
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 	
-	dest->images = new MemoryGuardArray<GenericImageGL>[dest->sideCount];
+	dest->images = new GuardArray<GenericImageGL>[dest->sideCount];
 
 	
 	for (unsigned i = 0; i < dest->sideCount; ++i)

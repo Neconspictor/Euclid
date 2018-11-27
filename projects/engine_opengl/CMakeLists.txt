@@ -130,8 +130,8 @@ set(
 	nex/opengl/shadowing/CascadedShadowGL.hpp
     
     #nex/opengl/texture
-    nex/opengl/texture/ImageLoaderGL.hpp
-	nex/opengl/texture/ImageLoaderGL.cpp
+    nex/opengl/texture/Image.hpp
+	nex/opengl/texture/Image.cpp
 	nex/opengl/texture/SamplerGL.hpp
     nex/opengl/texture/SamplerGL.cpp
     nex/opengl/texture/Sprite.hpp

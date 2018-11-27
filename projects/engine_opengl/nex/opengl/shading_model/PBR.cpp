@@ -127,7 +127,7 @@ StoreImageGL PBR::readBrdfLookupPixelData() const
 	store.sideCount = 1;
 	store.mipmapCounts = new unsigned short[store.sideCount];
 	store.mipmapCounts[0] = 1;
-	store.images = new nex::MemoryGuardArray<GenericImageGL>[store.sideCount];
+	store.images = new nex::GuardArray<GenericImageGL>[store.sideCount];
 	store.images[0] = new GenericImageGL[store.mipmapCounts[0]];
 
 

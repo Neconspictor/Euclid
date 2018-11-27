@@ -3,24 +3,24 @@
 namespace nex {
 
 	template<typename T>
-	class MemoryGuard
+	class Guard
 	{
 	public:
 
-		MemoryGuard() : mItem(nullptr) {}
+		Guard() : mItem(nullptr) {}
 
-		explicit MemoryGuard(T* item)
+		explicit Guard(T* item)
 			: mItem(item)
 		{ }
 
-		MemoryGuard(const MemoryGuard&) = delete;
-		MemoryGuard& operator=(const MemoryGuard&) = delete;
+		Guard(const Guard&) = delete;
+		Guard& operator=(const Guard&) = delete;
 		
-		MemoryGuard(MemoryGuard&& o) noexcept : mItem(o.mItem)
+		Guard(Guard&& o) noexcept : mItem(o.mItem)
 		{
 			o.mItem = nullptr;
 		}
-		MemoryGuard& operator=(MemoryGuard&& o) noexcept
+		Guard& operator=(Guard&& o) noexcept
 		{
 			if (this == &o) return *this;
 			mItem = o.mItem;
@@ -34,9 +34,19 @@ namespace nex {
 			return mItem;
 		}
 
-		T* operator *() const
+		T& operator *() const
+		{
+			return *mItem;
+		}
+
+		T* operator ->() const
 		{
 			return mItem;
+		}
+
+		T& operator [](size_t index) const
+		{
+			return mItem[index];
 		}
 
 		void setContent(T* item)
@@ -44,7 +54,7 @@ namespace nex {
 			mItem = item;
 		}
 
-		~MemoryGuard()
+		~Guard()
 		{
 			delete mItem;
 			mItem = nullptr;
@@ -55,24 +65,24 @@ namespace nex {
 
 
 	template<typename T>
-	class MemoryGuardArray
+	class GuardArray
 	{
 	public:
 
-		MemoryGuardArray() : mArray(nullptr){}
+		GuardArray() : mArray(nullptr){}
 
-		explicit MemoryGuardArray(T* arr)
+		explicit GuardArray(T* arr)
 			: mArray(arr)
 		{ }
 
-		MemoryGuardArray(const MemoryGuardArray&) = delete;
-		MemoryGuardArray& operator=(const MemoryGuardArray&) = delete;
+		GuardArray(const GuardArray&) = delete;
+		GuardArray& operator=(const GuardArray&) = delete;
 
-		MemoryGuardArray(MemoryGuardArray&& o) noexcept : mArray(o.mArray)
+		GuardArray(GuardArray&& o) noexcept : mArray(o.mArray)
 		{
 			o.mArray = nullptr;
 		}
-		MemoryGuardArray& operator=(MemoryGuardArray&& o) noexcept
+		GuardArray& operator=(GuardArray&& o) noexcept
 		{
 			if (this == &o) return *this;
 			mArray = o.mArray;
@@ -81,7 +91,7 @@ namespace nex {
 			return *this;
 		}
 
-		MemoryGuardArray& operator=(T* arr) noexcept
+		GuardArray& operator=(T* arr) noexcept
 		{
 			mArray = arr;
 			return *this;
@@ -112,7 +122,7 @@ namespace nex {
 			mArray = arr;
 		}
 
-		~MemoryGuardArray()
+		~GuardArray()
 		{
 			delete[] mArray;
 			mArray = nullptr;
@@ -121,5 +131,5 @@ namespace nex {
 		T* mArray;
 	};
 
-	typedef MemoryGuardArray<char> MemoryWrapper;
+	typedef GuardArray<char> MemGuard;
 }

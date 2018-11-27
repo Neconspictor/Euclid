@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 #include <GL/gl.h>
 #include <nex/opengl/antialiasing/SMAA_GL.hpp>
-#include <nex/opengl/texture/ImageLoaderGL.hpp>
+#include <nex/opengl/texture/Image.hpp>
 #include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 #include <nex/opengl/model/Vob.hpp>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>

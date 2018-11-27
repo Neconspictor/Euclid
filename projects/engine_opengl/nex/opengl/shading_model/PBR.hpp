@@ -7,7 +7,7 @@
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/opengl/texture/Sprite.hpp>
-#include "nex/opengl/texture/ImageLoaderGL.hpp"
+#include "nex/opengl/texture/Image.hpp"
 
 class RendererOpenGL;
 
