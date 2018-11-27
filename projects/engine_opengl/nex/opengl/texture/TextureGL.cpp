@@ -63,6 +63,14 @@ void CubeMapGL::setCubeMap(GLuint id)
 	textureID = id;
 }
 
+bool nex::Texture::isCubeTarget(TextureTarget target)
+{
+	auto first  = static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X);
+	auto last = static_cast<unsigned>(TextureTarget::CUBE_NEGATIVE_Z);
+	auto current = static_cast<unsigned>(target);
+	return first <= current && last >= current;
+}
+
 TextureGL::TextureGL(): textureID(GL_FALSE)
 {
 }

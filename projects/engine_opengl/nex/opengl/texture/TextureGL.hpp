@@ -96,8 +96,12 @@ enum class TextureTarget
 	CUBE_NEGATIVE_Y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 	CUBE_POSITIVE_Z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 	CUBE_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-
 };
+
+namespace nex::Texture
+{
+	bool isCubeTarget(TextureTarget target);
+}
 
 
 struct TextureData

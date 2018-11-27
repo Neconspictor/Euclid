@@ -165,7 +165,7 @@ StoreImageGL PBR::readBackgroundPixelData() const
 
 		// read the data back from the gpu
 		renderer->readback(
-			brdfLookupTexture->getTexture(),
+			environmentMap->getCubeMap(),
 			static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
 			0, // base level
 			ColorSpace::RGB,

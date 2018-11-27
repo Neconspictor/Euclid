@@ -410,7 +410,14 @@ void RendererOpenGL::readback(const TextureGL* texture, TextureTarget target, un
 	const GLuint textureID = texture->getTexture();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(static_cast<GLenum>(target), textureID));
+	if (Texture::isCubeTarget(target))
+	{
+		GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
+	} else
+	{
+		GLCall(glBindTexture(static_cast<GLenum>(target), textureID));
+	}
+
 	GLCall(glGetTexImage(static_cast<GLenum>(target), mipmapLevel, static_cast<GLenum>(format), static_cast<GLenum>(type), dest));
 }
 
