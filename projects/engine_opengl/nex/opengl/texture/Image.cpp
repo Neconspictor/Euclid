@@ -139,6 +139,26 @@ void StoreImageGL::write(const StoreImageGL& source, const char* filePath)
 	fclose(file);
 }
 
+void StoreImageGL::create(StoreImageGL* result, unsigned short sideCount, unsigned short mipMapCountPerSide)
+{
+	assert(sideCount > 0);
+	assert(mipMapCountPerSide > 0);
+
+	result->sideCount = sideCount;
+	result->mipmapCounts = new unsigned short[result->sideCount];
+	for (unsigned short i = 0; i < result->sideCount; ++i)
+	{
+		result->mipmapCounts[i] = mipMapCountPerSide;
+	}
+	
+	result->images = new GuardArray<GenericImageGL>[result->sideCount];
+
+	for (unsigned short i = 0; i < result->sideCount; ++i)
+	{
+		result->images[i] = new GenericImageGL[result->mipmapCounts[i]];
+	}
+}
+
 ImageLoaderGL::ImageLoaderGL() : m_logger("ImageLoaderGL")
 {}
 

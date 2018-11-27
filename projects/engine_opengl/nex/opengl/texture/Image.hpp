@@ -55,6 +55,8 @@ struct StoreImageGL
 
 	static void load(StoreImageGL* dest, const char* filePath);
 	static void write(const StoreImageGL& source, const char* filePath);
+
+	static void create(StoreImageGL* result, unsigned short sideCount, unsigned short mipMapCountPerSide);
 };
 
 class ImageLoaderGL

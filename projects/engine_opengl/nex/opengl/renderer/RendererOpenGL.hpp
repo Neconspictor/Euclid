@@ -264,6 +264,12 @@ public:
 	*/
 	void present();
 
+	/**
+	 * Reads a texture back from the gpu
+	 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
+	 */
+	void readback(const  TextureGL* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+
 	void resize(int width, int height);
 
 	/**

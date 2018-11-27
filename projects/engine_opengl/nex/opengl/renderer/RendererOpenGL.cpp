@@ -404,6 +404,16 @@ void RendererOpenGL::present()
 {
 }
 
+void RendererOpenGL::readback(const TextureGL* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format,
+	PixelDataType type, void* dest)
+{
+	const GLuint textureID = texture->getTexture();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(static_cast<GLenum>(target), textureID));
+	GLCall(glGetTexImage(static_cast<GLenum>(target), mipmapLevel, static_cast<GLenum>(format), static_cast<GLenum>(type), dest));
+}
+
 void RendererOpenGL::resize(int width, int height)
 {
 	mViewport.width = width;

@@ -124,17 +124,12 @@ TextureGL * PBR::getBrdfLookupTexture()
 StoreImageGL PBR::readBrdfLookupPixelData() const
 {
 	StoreImageGL store;
-	store.sideCount = 1;
-	store.mipmapCounts = new unsigned short[store.sideCount];
-	store.mipmapCounts[0] = 1;
-	store.images = new nex::GuardArray<GenericImageGL>[store.sideCount];
-	store.images[0] = new GenericImageGL[store.mipmapCounts[0]];
-
+	StoreImageGL::create(&store, 1, 1);
 
 	GenericImageGL& data = store.images[0][0];
 	data.width = brdfLookupTexture->getWidth();
 	data.height = brdfLookupTexture->getHeight();
-	data.components = 2; // RGB
+	data.components = 2; // RG
 	data.format = GL_RG;
 	data.pixelSize = sizeof(float) * data.components;
 
@@ -142,11 +137,41 @@ StoreImageGL PBR::readBrdfLookupPixelData() const
 	data.pixels = new char[data.bufSize];
 
 	// read the data back from the gpu
-	const GLuint textureID = brdfLookupTexture->getTexture()->getTexture();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_2D, textureID));
-	GLCall(glGetTexImage(GL_TEXTURE_2D, 0, data.format, GL_FLOAT, data.pixels.get()));
+	renderer->readback(
+		brdfLookupTexture->getTexture(), 
+		TextureTarget::TEXTURE2D, 
+		0, ColorSpace::RG, 
+		PixelDataType::FLOAT, 
+		data.pixels.get());
+
+	return store;
+}
+
+StoreImageGL PBR::readBackgroundPixelData() const
+{
+	StoreImageGL store;
+	StoreImageGL::create(&store, 6, 1); // 6 sides, no mipmaps (only base level)
+
+	for (unsigned i = 0; i < store.sideCount; ++i)
+	{
+		GenericImageGL& data = store.images[i][0];
+		data.width = environmentMap->getWidth();
+		data.height = environmentMap->getHeight();
+		data.components = 3; // RGB
+		data.format = GL_RGB;
+		data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
+		data.bufSize = data.width * data.height * data.pixelSize;
+		data.pixels = new char[data.bufSize];
+
+		// read the data back from the gpu
+		renderer->readback(
+			brdfLookupTexture->getTexture(),
+			static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
+			0, // base level
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			data.pixels.get());
+	}
 
 	return store;
 }
@@ -397,16 +422,30 @@ void PBR::init(TextureGL* backgroundHDR)
 
 
 	// read backs
-	StoreImageGL brdfLUTImage = readBrdfLookupPixelData();
 	/*GenericImageGL brdfLUTImage;
 	TextureManagerGL::get()->readImage(&brdfLUTImage, "brdfLUT.NeXImage");
 	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
 	TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");*/
 
 	//TextureManagerGL::get()->readGLITest("brdfLUT.hdr");
-	StoreImageGL::write(brdfLUTImage, "brdfLUT.NeXImage");
+	{
+		StoreImageGL brdfLUTImage = readBrdfLookupPixelData();
+		StoreImageGL::write(brdfLUTImage, "brdfLUT.NeXImage");
 
-	StoreImageGL readBrdfLUTImage;
-	StoreImageGL::load(&readBrdfLUTImage, "brdfLUT.NeXImage");
+		{
+			//StoreImageGL readBrdfLUTImage;
+			//StoreImageGL::load(&readBrdfLUTImage, "brdfLUT.NeXImage");
+		}
+	}
+
+	{
+		StoreImageGL enviromentMapImage = readBackgroundPixelData();
+		StoreImageGL::write(enviromentMapImage, "pbr_environmentMap.NeXImage");
+
+		{
+			StoreImageGL readImage;
+			StoreImageGL::load(&readImage, "pbr_environmentMap.NeXImage");
+		}
+	}
 
 }
