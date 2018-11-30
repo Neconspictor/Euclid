@@ -13,6 +13,7 @@
 #include <nex/opengl/material/Material.hpp>
 #include "nex/shader_generator/SourceFileConsumer.hpp"
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
+#include <nex/texture/Texture.hpp>
 
 using namespace nex;
 using namespace ::util;
@@ -138,7 +139,7 @@ void nex::ShaderProgram::setMat4(const UniformLocation* locationID, const glm::m
 }
 
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
-void nex::ShaderProgram::setTexture(const UniformLocation* locationID, const nex::Texture* data, unsigned bindingSlot)
+void nex::ShaderProgram::setTexture(const UniformLocation* locationID, const nex::Texture* data, unsigned int bindingSlot)
 {
 	//assert(mIsBound);
 	ASSERT(mIsBound);

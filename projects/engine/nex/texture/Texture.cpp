@@ -46,3 +46,33 @@ bool nex::isCubeTarget(TextureTarget target)
 	auto current = static_cast<unsigned>(target);
 	return first <= current && last >= current;
 }
+
+nex::Texture::~Texture()
+{
+	delete mImpl;
+	mImpl = nullptr;
+}
+
+unsigned nex::Texture::getHeight() const
+{
+	return height;
+}
+
+unsigned nex::Texture::getWidth() const
+{
+	return width;
+}
+
+void nex::Texture::setHeight(int height)
+{
+	this->height = height;
+}
+
+void nex::Texture::setWidth(int width)
+{
+	this->width = width;
+}
+
+nex::Texture::Texture(TextureImpl* impl) : mImpl(impl)
+{
+}

@@ -101,7 +101,7 @@ enum class TextureTarget
 	CUBE_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 };
 
-namespace nex::Texture
+namespace nex
 {
 	bool isCubeTarget(TextureTarget target);
 }
