@@ -4,10 +4,6 @@
 namespace nex
 {
 	struct StoreImage;
-	class RenderTarget;
-	class CubeRenderTarget;
-	class BaseRenderTarget;
-	class CubeMap;
 
 	enum class TextureFilter
 	{
@@ -171,7 +167,8 @@ namespace nex
 
 	protected:
 
-		// Mustn't be called by user code.
+		// Mustn't be called by user code
+		// Has to be implemented by renderer backend
 		Texture(TextureImpl* impl);
 
 		int width = 0;
@@ -186,6 +183,7 @@ namespace nex
 		static RenderBuffer* create();
 
 	protected:
+		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		RenderBuffer();
 	};
@@ -223,10 +221,9 @@ namespace nex
 		 */
 		static const glm::mat4& getViewLookAtMatrixRH(Side side);
 
-		friend CubeRenderTarget;
-
 	protected:
 
+		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		CubeMap();
 
@@ -236,154 +233,5 @@ namespace nex
 		static glm::mat4 bottomSide;
 		static glm::mat4 frontSide;
 		static glm::mat4 backSide;
-	};
-
-
-	// Has to be implemented by the renderer backend
-	class RenderTargetImpl
-	{
-	public:
-		// Class and subclasses shouldn't be movable/copiable
-		// Implicitly removes auto-generated move constructor/assignment operator
-		// Inherited classes cannot be copied/moved as well
-		RenderTargetImpl(const RenderTargetImpl&) = delete;
-		RenderTargetImpl& operator=(const RenderTargetImpl&) = delete;
-
-		// virtual needed for backend implementations
-		virtual ~RenderTargetImpl() = default;
-	};
-
-
-	class RenderTarget
-	{
-	public:
-		RenderTarget(const RenderTarget& other) = delete;
-		RenderTarget& operator=(const RenderTarget& other) = delete;
-
-
-		virtual ~RenderTarget()
-		{
-			delete mImpl;
-			mImpl = nullptr;
-			delete mRenderResult;
-			mRenderResult = nullptr;
-		};
-
-		// Has to be implemented by renderer backend
-		static RenderTarget* createMultisampled(int width, int height, const TextureData& data,
-			unsigned samples, DepthStencil depthStencilType);
-
-		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
-
-		// Has to be implemented by renderer backend
-		static RenderTarget* createVSM(int width, int height);
-
-		//void copyFrom(BaseRenderTarget* dest, const Dimension& sourceDim, int components);
-
-		Texture* getTexture()
-		{
-			return mRenderResult;
-		}
-
-		int getHeight() const
-		{
-			return mRenderResult->getHeight();
-		}
-
-		int getWidth() const
-		{
-			return  mRenderResult->getWidth();
-		}
-
-		void setTexture(Texture* texture)
-		{
-			mRenderResult = texture;
-		}
-
-	protected:
-		// Mustn't be called by user code
-		explicit RenderTarget(RenderTargetImpl* impl, Texture* renderResult);
-
-		Texture* mRenderResult;
-		RenderTargetImpl* mImpl;
-	};
-
-
-	class CubeRenderTarget : public RenderTarget
-	{
-	public:
-
-		//CubeMap* createCopy();
-
-		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
-
-		inline int getHeightMipLevel(unsigned int mipMapLevel) const {
-			return (int)(mRenderResult->getHeight() * std::pow(0.5, mipMapLevel));
-		}
-
-		inline int getWidthMipLevel(unsigned int mipMapLevel) const {
-			return (int)(mRenderResult->getWidth() * std::pow(0.5, mipMapLevel));
-		}
-
-		// Has to be implemented by renderer backend
-		void resizeForMipMap(unsigned int mipMapLevel);
-
-	protected:
-		CubeRenderTarget(int width, int height, TextureData data);
-	};
-
-
-	class CubeDepthMap : public RenderTarget
-	{
-	public:
-
-		// Has to be implemented by renderer backend
-		static CubeDepthMap* create(unsigned width, unsigned height);
-
-	protected:
-
-		// Has to be implemented by renderer backend
-		explicit CubeDepthMap(int width, int height);
-		glm::mat4 matrices[6];
-	};
-
-
-	class DepthMap : public RenderTarget
-	{
-		// Has to be implemented by renderer backend
-		static DepthMap* create(unsigned width, unsigned height);
-
-	protected:
-
-		// Has to be implemented by renderer backend
-		explicit DepthMap(int width, int height);
-	};
-
-	class PBR_GBufferGL : public RenderTarget 
-	{
-	public:
-
-		// Has to be implemented by renderer backend
-		static PBR_GBufferGL* create(unsigned width, unsigned height);
-
-		Texture* getAlbedo() const;
-		Texture* getAoMetalRoughness() const;
-		Texture* getNormal() const;
-		Texture* getPosition() const;
-		Texture* getDepth() const;
-
-	protected:
-
-		// Has to be implemented by renderer backend
-		explicit PBR_GBufferGL(int width, int height);
-
-
-		Texture* albedo;
-		Texture* aoMetalRoughness;
-		Texture* normal;
-		Texture* position;
-		RenderBuffer* depth;
 	};
 }

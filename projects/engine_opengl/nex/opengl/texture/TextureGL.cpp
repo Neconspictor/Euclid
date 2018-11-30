@@ -63,40 +63,21 @@ void CubeMapGL::setCubeMap(GLuint id)
 	textureID = id;
 }
 
-bool nex::Texture::isCubeTarget(TextureTarget target)
-{
-	auto first  = static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X);
-	auto last = static_cast<unsigned>(TextureTarget::CUBE_NEGATIVE_Z);
-	auto current = static_cast<unsigned>(target);
-	return first <= current && last >= current;
-}
-
-TextureGL::TextureGL(): textureID(GL_FALSE), width(0), height(0)
+TextureGL::TextureGL(): mTextureID(GL_FALSE), width(0), height(0)
 {
 }
 
-TextureGL::TextureGL(GLuint texture) : textureID(texture), width(0), height(0)
+TextureGL::TextureGL(GLuint texture) : mTextureID(texture), width(0), height(0)
 {
 }
 
-TextureGL::TextureGL(TextureGL && o) noexcept : textureID(o.textureID), width(o.width), height(o.height)
-{
-	o.textureID = GL_FALSE;
-}
-
-TextureGL & TextureGL::operator=(TextureGL && o) noexcept
-{
-	if (this == &o) return *this;
-	textureID = o.textureID;
-	width = o.width;
-	height = o.height;
-	o.textureID = GL_FALSE;
-	return *this;
-}
 
 TextureGL::~TextureGL()
 {
-	release();
+	if (mTextureID != GL_FALSE) {
+		GLCall(glDeleteTextures(1, &mTextureID));
+		mTextureID = GL_FALSE;
+	}
 }
 
 TextureGL* TextureGL::createFromImage(const StoreImageGL& store, const TextureData& data, bool isCubeMap)
@@ -176,14 +157,6 @@ TextureGL* TextureGL::createFromImage(const StoreImageGL& store, const TextureDa
 	return result;
 }
 
-void TextureGL::release()
-{
-	if (textureID != GL_FALSE) {
-		GLCall(glDeleteTextures(1, &textureID));
-		textureID = GL_FALSE;
-	}
-}
-
 void TextureGL::setHeight(int height)
 {
 	this->height = height;
@@ -196,7 +169,7 @@ void TextureGL::setWidth(int width)
 
 GLuint TextureGL::getTexture() const
 {
-	return textureID;
+	return mTextureID;
 }
 
 unsigned TextureGL::getHeight() const
@@ -211,7 +184,7 @@ unsigned TextureGL::getWidth() const
 
 void TextureGL::setTexture(GLuint id)
 {
-	textureID = id;
+	mTextureID = id;
 }
 
 GLuint TextureGL::getFormat(int numberComponents)
@@ -236,29 +209,14 @@ RenderBufferGL::RenderBufferGL() : TextureGL()
 
 RenderBufferGL::~RenderBufferGL()
 {
-	release();
+	if (mTextureID != GL_FALSE) {
+		GLCall(glDeleteRenderbuffers(1, &mTextureID));
+		mTextureID = GL_FALSE;
+	}
 }
 
 RenderBufferGL::RenderBufferGL(GLuint texture) : TextureGL(texture)
 {
-}
-
-RenderBufferGL::RenderBufferGL(RenderBufferGL && o) : TextureGL(move(o))
-{
-}
-
-RenderBufferGL & RenderBufferGL::operator=(RenderBufferGL && o)
-{
-	TextureGL::operator=(move(o));
-	return *this;
-}
-
-void RenderBufferGL::release()
-{
-	if (textureID != GL_FALSE) {
-		GLCall(glDeleteRenderbuffers(1, &textureID));
-		textureID = GL_FALSE;
-	}
 }
 
 
@@ -382,8 +340,13 @@ CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) 
 
 CubeRenderTargetGL::~CubeRenderTargetGL()
 {
-	// Don't release memory. Is needed!
-	//release();
+	if (frameBuffer != GL_FALSE)
+		GLCall(glDeleteFramebuffers(1, &frameBuffer));
+	if (renderBuffer != GL_FALSE)
+		GLCall(glDeleteRenderbuffers(1, &renderBuffer));
+
+	frameBuffer = GL_FALSE;
+	renderBuffer = GL_FALSE;
 }
 
 CubeMapGL * CubeRenderTargetGL::createCopy()
@@ -455,20 +418,6 @@ GLuint CubeRenderTargetGL::getCubeMapGL()
 CubeMapGL * CubeRenderTargetGL::getCubeMap()
 {
 	return cubeMapResult;
-}
-
-void CubeRenderTargetGL::release()
-{
-	GLCall(glDeleteFramebuffers(1, &frameBuffer));
-	GLCall(glDeleteRenderbuffers(1, &renderBuffer));
-
-	frameBuffer = GL_FALSE;
-	renderBuffer = GL_FALSE;
-
-	if (cubeMapResult != nullptr)
-		cubeMapResult->release();
-	delete cubeMapResult;
-	cubeMapResult = nullptr;
 }
 
 void CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {

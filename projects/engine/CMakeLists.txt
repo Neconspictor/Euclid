@@ -125,7 +125,9 @@ set(
     #nex/texture
     nex/texture/Texture.cpp
     nex/texture/Texture.hpp
-	
+	nex/texture/RenderTarget.cpp
+    nex/texture/RenderTarget.hp
+    
 	#nex/util
     nex/util/CallbackContainer.hpp
 	nex/util/ExceptionHandling.hpp

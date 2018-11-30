@@ -124,9 +124,6 @@ class TextureGL
 public:
 	explicit TextureGL();
 	TextureGL(GLuint texture);
-	TextureGL(TextureGL&& o) noexcept;
-	TextureGL& operator=(TextureGL&& o) noexcept;
-
 
 	TextureGL(const TextureGL&) = delete;
 	TextureGL& operator=(const TextureGL&) = delete;
@@ -153,17 +150,11 @@ public:
 
 	static GLuint getFormat(int numberComponents);
 
-	virtual void release();
-
 	void setHeight(int height);
 	void setWidth(int width);
 
 protected:
-	friend RendererOpenGL; // allow the OpenGL renderer easier access
-	friend RenderTargetGL;
-	friend CubeRenderTargetGL;
-	friend BaseRenderTargetGL;
-	GLuint textureID;
+	GLuint mTextureID;
 	int width;
 	int height;
 };
@@ -174,13 +165,8 @@ public:
 	virtual ~RenderBufferGL();
 	RenderBufferGL(GLuint texture);
 
-	RenderBufferGL(RenderBufferGL&& o);
-	RenderBufferGL& operator=(RenderBufferGL&& o);
-
 	RenderBufferGL(const RenderBufferGL&) = delete;
 	RenderBufferGL& operator=(const RenderBufferGL&) = delete;
-
-	void release() override;
 };
 
 
@@ -203,13 +189,9 @@ public:
 
 	explicit CubeMapGL();
 	CubeMapGL(GLuint cubeMap);
-	CubeMapGL(CubeMapGL&& o) = default;
-	CubeMapGL& operator=(CubeMapGL&& o) = default;
 
 	CubeMapGL(const CubeMapGL& other) = delete;
 	CubeMapGL& operator=(const CubeMapGL& other) = delete;
-
-	virtual ~CubeMapGL() = default;
 
 	/**
 	 *  Generates mipmaps for the current content of this cubemap.
@@ -275,10 +257,6 @@ class CubeRenderTargetGL : public BaseRenderTargetGL
 {
 public:
 	explicit CubeRenderTargetGL(int width, int height, TextureData data);
-	
-	CubeRenderTargetGL(CubeRenderTargetGL&&) = default;
-	CubeRenderTargetGL& operator=(CubeRenderTargetGL&&) = delete;
-
 
 	CubeRenderTargetGL(const CubeRenderTargetGL&) = delete;
 	CubeRenderTargetGL& operator=(const CubeRenderTargetGL&) = delete;
@@ -302,8 +280,6 @@ public:
 		return (int)(height * std::pow(0.5, mipMapLevel));
 	}
 
-	void release();
-
 	void resizeForMipMap(unsigned int mipMapLevel);
 
 	void setRenderBuffer(GLuint newValue);
@@ -314,8 +290,6 @@ protected:
 	friend RendererOpenGL; // allow the OpenGL renderer easier access
 	//friend CubeRenderTargetGL;
 	GLuint renderBuffer;
-	CubeMapGL* cubeMapResult;
-	TextureData data;
 };
 
 
