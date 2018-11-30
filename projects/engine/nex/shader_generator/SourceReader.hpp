@@ -2,44 +2,47 @@
 #include "SourceFileConsumer.hpp"
 #include <filesystem>
 
-class Parser
+namespace nex
 {
-public:
+	class Parser
+	{
+	public:
 
-	virtual ~Parser() = default;
+		virtual ~Parser() = default;
 
-	void addConsumer(SourceFileConsumer* consumer);
+		void addConsumer(SourceFileConsumer* consumer);
 
-	/**
-	 * @throws ParseException: If syntax errors are detected in the source file.
-	 */
-	void parse(StreamPos& streamPos);
+		/**
+		 * @throws ParseException: If syntax errors are detected in the source file.
+		 */
+		void parse(StreamPos& streamPos);
 
-protected:
+	protected:
 
-	std::vector<SourceFileConsumer*> mConsumers;
-};
+		std::vector<SourceFileConsumer*> mConsumers;
+	};
 
-class SourceFileParser : public Parser
-{
-public:
-	SourceFileParser(const std::filesystem::path& filePath);
-	virtual ~SourceFileParser() = default;
-	void read(std::vector<char>* result);
+	class SourceFileParser : public Parser
+	{
+	public:
+		SourceFileParser(const std::filesystem::path& filePath);
+		virtual ~SourceFileParser() = default;
+		void read(std::vector<char>* result);
 
-	std::streampos getFileSize(std::ifstream & file);
+		std::streampos getFileSize(std::ifstream & file);
 
-private:
-	std::filesystem::path mFilePath;
-};
+	private:
+		std::filesystem::path mFilePath;
+	};
 
-class SourceMemoryParser : public Parser
-{
-public:
-	SourceMemoryParser(const std::vector<char>* source);
-	virtual ~SourceMemoryParser() = default;
-	void read();
+	class SourceMemoryParser : public Parser
+	{
+	public:
+		SourceMemoryParser(const std::vector<char>* source);
+		virtual ~SourceMemoryParser() = default;
+		void read();
 
-private:
-	const std::vector<char>* mSource;
-};
+	private:
+		const std::vector<char>* mSource;
+	};
+}

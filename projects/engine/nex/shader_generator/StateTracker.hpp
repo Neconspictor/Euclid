@@ -2,31 +2,34 @@
 #include "SourceFileConsumer.hpp"
 #include <list>
 
-class StateTracker
+namespace nex
 {
-public:
-	virtual ~StateTracker() = default;
+	class StateTracker
+	{
+	public:
+		virtual ~StateTracker() = default;
 
-	virtual bool isActive() const = 0;
-	virtual void update(const StreamPos& streamPos) = 0;
-};
+		virtual bool isActive() const = 0;
+		virtual void update(const StreamPos& streamPos) = 0;
+	};
 
-class ExclusiveTrackCollection : public StateTracker
-{
-public:
+	class ExclusiveTrackCollection : public StateTracker
+	{
+	public:
 
-	virtual ~ExclusiveTrackCollection() = default;
+		virtual ~ExclusiveTrackCollection() = default;
 
-	void addTracker(StateTracker* tracker);
+		void addTracker(StateTracker* tracker);
 
-	/**
-	 * Checks whether any of the registered StateTrackers is active.
-	 */
-	bool isActive() const override;
+		/**
+		 * Checks whether any of the registered StateTrackers is active.
+		 */
+		bool isActive() const override;
 
-	void update(const StreamPos& streamPos) override;
+		void update(const StreamPos& streamPos) override;
 
-private:
-	std::list<StateTracker*> mTrackers;
-	StateTracker* mActiveTracker = nullptr;
-};
+	private:
+		std::list<StateTracker*> mTrackers;
+		StateTracker* mActiveTracker = nullptr;
+	};
+}

@@ -1,14 +1,17 @@
 #pragma once
 #include "StateTracker.hpp"
 
-class StringStateTracker : public StateTracker
+namespace nex
 {
-public:
-	StringStateTracker(bool isStringActive = false);
+	class StringStateTracker : public StateTracker
+	{
+	public:
+		StringStateTracker(bool isStringActive = false);
 
-	void update(const StreamPos& streamPos) override;
-	bool isActive() const override;
+		void update(const StreamPos& streamPos) override;
+		bool isActive() const override;
 
-private:
-	bool mIsStringActive;
-};
+	private:
+		bool mIsStringActive;
+	};
+}

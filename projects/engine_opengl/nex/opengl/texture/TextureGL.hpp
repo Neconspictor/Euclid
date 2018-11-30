@@ -268,7 +268,6 @@ private:
 
 protected:
 	int width, height;
-	GLuint frameBuffer;
 };
 
 

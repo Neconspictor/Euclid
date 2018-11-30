@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include "nex/util/ExceptionHandling.hpp"
 
+using namespace nex;
+
 CommentStateTracker::CommentStateTracker(CommentState initialState) : mState(initialState)
 {
 }

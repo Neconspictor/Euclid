@@ -1,5 +1,7 @@
 #include "StateTracker.hpp"
 
+using namespace nex;
+
 void ExclusiveTrackCollection::addTracker(StateTracker* tracker)
 {
 	mTrackers.push_back(tracker);

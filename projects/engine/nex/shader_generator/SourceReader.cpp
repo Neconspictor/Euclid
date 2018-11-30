@@ -6,6 +6,8 @@
 #include <sstream>
 #include <cassert>
 
+using namespace nex;
+
 void Parser::addConsumer(SourceFileConsumer* consumer)
 {
 	mConsumers.push_back(consumer);

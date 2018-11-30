@@ -2,6 +2,8 @@
 #include <sstream>
 #include "nex/util/ExceptionHandling.hpp"
 
+using namespace nex;
+
 void LineCounter::consume(const StreamDesc& desc)
 {
 	char c = *desc.position->pos;

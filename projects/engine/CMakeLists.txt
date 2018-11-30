@@ -103,6 +103,11 @@ set(
 	nex/platform/windows/StackWalker.h
 	nex/platform/windows/WindowsPlatform.hpp
     
+    
+    #nex/shader
+    nex/shader/Shader.hpp
+    nex/shader/Shader.cpp
+    
     #nex/shader_generator
     nex/shader_generator/CommentStateTracker.cpp
     nex/shader_generator/CommentStateTracker.hpp
@@ -116,6 +121,10 @@ set(
     nex/shader_generator/StateTracker.hpp
     nex/shader_generator/StringStateTracker.cpp
     nex/shader_generator/StringStateTracker.hpp
+    
+    #nex/texture
+    nex/texture/Texture.cpp
+    nex/texture/Texture.hpp
 	
 	#nex/util
     nex/util/CallbackContainer.hpp

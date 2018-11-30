@@ -1,5 +1,7 @@
 #include "StringStateTracker.hpp"
 
+using namespace nex;
+
 StringStateTracker::StringStateTracker(bool isStringActive) : mIsStringActive(isStringActive)
 {
 }

@@ -10,13 +10,13 @@
 #include <functional>
 #include "nex/util/ExceptionHandling.hpp"
 
-std::ostream& operator<<(std::ostream& os, const Replacement& r)
+std::ostream& operator<<(std::ostream& os, const nex::Replacement& r)
 {
 	os << "(begin=" << r.begin << ", end=" << r.end << ", diff=" << r.diff << ")";
 	return os;
 }
 
-FileDesc::FileDesc(FileDesc&& o) noexcept : source(std::move(o.source)),
+nex::FileDesc::FileDesc(FileDesc&& o) noexcept : source(std::move(o.source)),
 sourceSize(o.sourceSize), 
 resolvedSource(std::move(o.resolvedSource)), 
 resolvedSourceSize(o.resolvedSourceSize),
@@ -25,7 +25,7 @@ filePath(std::move(o.filePath))
 {
 }
 
-FileDesc& FileDesc::operator=(FileDesc&& o) noexcept
+nex::FileDesc& nex::FileDesc::operator=(nex::FileDesc&& o) noexcept
 {
 	if (this == &o) return *this;
 	this->source = std::move(o.source);
@@ -38,17 +38,17 @@ FileDesc& FileDesc::operator=(FileDesc&& o) noexcept
 	return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const FileDesc& fileDesc)
+std::ostream& operator<<(std::ostream& os, const nex::FileDesc& fileDesc)
 {
 	os << "(filePath='"<< fileDesc.filePath << "', sourceSize= " << fileDesc.sourceSize << ", resolvedSourceSize=" << fileDesc.resolvedSourceSize << ")";
 	return os;
 }
 
-IncludeDesc::IncludeDesc()
+nex::IncludeDesc::IncludeDesc()
 {
 }
 
-IncludeDesc::IncludeDesc(IncludeDesc&& o) noexcept :
+nex::IncludeDesc::IncludeDesc(IncludeDesc&& o) noexcept :
 FileDesc(std::move(o)),
 begin(o.begin),
 end(o.end),
@@ -57,7 +57,7 @@ parent(o.parent)
 {
 }
 
-IncludeDesc& IncludeDesc::operator=(IncludeDesc&& o) noexcept
+nex::IncludeDesc& nex::IncludeDesc::operator=(nex::IncludeDesc&& o) noexcept
 {
 	if (this == &o) return *this;
 	FileDesc::operator=(std::move(o));
@@ -69,25 +69,25 @@ IncludeDesc& IncludeDesc::operator=(IncludeDesc&& o) noexcept
 	return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const IncludeDesc& include)
+std::ostream& operator<<(std::ostream& os, const nex::IncludeDesc& include)
 {
-	os << "(FileDesc" << static_cast<const FileDesc&>(include) << ", begin=" << include.begin << ", end=" << include.end
+	os << "(FileDesc" << static_cast<const nex::FileDesc&>(include) << ", begin=" << include.begin << ", end=" << include.end
 	<< ", parent= " << include.parent <<", replacement=" << include.replacement << ")";
 	return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ReverseInfo& r)
+std::ostream& operator<<(std::ostream& os, const nex::ReverseInfo& r)
 {
 	os << "(" << r.fileDesc << ", " << r.position << ")";
 	return os;
 }
 
-ShaderSourceFileGenerator::ShaderSourceFileGenerator() : mFileSystem(nullptr),
+nex::ShaderSourceFileGenerator::ShaderSourceFileGenerator() : mFileSystem(nullptr),
                                                                                      mLogger("ShaderGenerator")
 {
 }
 
-ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath) const
+nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const std::filesystem::path& filePath) const
 {
 
 	auto path = mFileSystem->resolvePath(filePath);
@@ -105,7 +105,7 @@ ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::files
 
 		std::string line;
 		std::stringstream ss[2];
-		ProgramDesc parseResult[2];
+		ShaderStageDesc parseResult[2];
 
 		ShaderType type = ShaderType::None;
 
@@ -163,7 +163,7 @@ ProgramSources ShaderSourceFileGenerator::extractShaderPrograms(const std::files
 	return ProgramSources();
 }
 
-FileDesc ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath)
+nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath)
 {
 	FileDesc root; 
 	parseShaderFile(&root, mFileSystem->resolvePath(filePath));
@@ -171,18 +171,18 @@ FileDesc ShaderSourceFileGenerator::generate(const std::filesystem::path& filePa
 	return root;
 }
 
-void ShaderSourceFileGenerator::generate(ProgramDesc* programDesc)
+void nex::ShaderSourceFileGenerator::generate(nex::ShaderStageDesc* programDesc)
 {
 	parseShaderSource(&programDesc->root, programDesc->root.filePath, std::move(programDesc->root.source));
 	generate(&programDesc->root);
 }
 
-void ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
+void nex::ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
 {
 	mFileSystem = fileSystem;
 }
 
-unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& desc, size_t lineNumber, size_t column)
+unsigned int nex::ShaderSourceFileGenerator::calcResolvedPosition(const nex::ShaderStageDesc& desc, size_t lineNumber, size_t column)
 {
 	auto& source = desc.root.resolvedSource;
 
@@ -205,7 +205,7 @@ unsigned int ShaderSourceFileGenerator::calcResolvedPosition(const ProgramDesc& 
 	return resolvedPosition;
 }
 
-void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, size_t position, size_t* lineNumber,
+void nex::ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, size_t position, size_t* lineNumber,
 	size_t* column)
 {
 	int workLineNumber = 0;
@@ -228,7 +228,7 @@ void ShaderSourceFileGenerator::calcLineColumn(const std::vector<char>& source, 
 	*column = workColumn;
 }
 
-ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc, size_t resolvedPosition)
+nex::ReverseInfo nex::ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc, size_t resolvedPosition)
 {
 	ReverseInfo result;
 	result.position = resolvedPosition;
@@ -284,7 +284,7 @@ ReverseInfo ShaderSourceFileGenerator::reversePosition(const FileDesc* fileDesc,
 	return result;
 }
 
-void ShaderSourceFileGenerator::buildShader(FileDesc* fileDesc)
+void nex::ShaderSourceFileGenerator::buildShader(nex::FileDesc* fileDesc)
 {
 	fileDesc->resolvedSource;
 	fileDesc->resolvedSource = std::vector<char>(fileDesc->source.begin(), fileDesc->source.end());
@@ -331,7 +331,7 @@ void ShaderSourceFileGenerator::buildShader(FileDesc* fileDesc)
 	fileDesc->resolvedSourceSize = fileDesc->resolvedSource.size();
 }
 
-void ShaderSourceFileGenerator::generate(FileDesc* root)
+void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root)
 {
 	using namespace std::filesystem;
 
@@ -396,7 +396,7 @@ void ShaderSourceFileGenerator::generate(FileDesc* root)
 	buildShader(root);
 }
 
-void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::filesystem::path& filePath) const
+void nex::ShaderSourceFileGenerator::parseShaderFile(nex::FileDesc* fileDesc, const std::filesystem::path& filePath) const
 {
 	SourceFileParser reader(filePath);
 
@@ -435,7 +435,7 @@ void ShaderSourceFileGenerator::parseShaderFile(FileDesc* fileDesc, const std::f
 	}
 }
 
-void ShaderSourceFileGenerator::parseShaderSource(FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source) const
+void nex::ShaderSourceFileGenerator::parseShaderSource(nex::FileDesc* fileDesc, const std::filesystem::path& filePath, std::vector<char> source) const
 {
 	fileDesc->filePath = filePath.generic_string();
 	fileDesc->source = std::move(source);
