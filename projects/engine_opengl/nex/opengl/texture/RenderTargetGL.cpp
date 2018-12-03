@@ -144,10 +144,10 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-nex::RenderTargetGL::RenderTargetGL(int width, int height) : RenderTargetImpl(),
+nex::RenderTargetGL::RenderTargetGL(int width, int height, GLuint frameBuffer) : RenderTargetImpl(),
                                                              width(width), height(height),
                                                              renderBuffer(GL_FALSE),
-                                                             frameBuffer(GL_FALSE)
+                                                             frameBuffer(frameBuffer)
 {
 	textureBuffer = new TextureGL();
 	textureBuffer->setWidth(width);
@@ -161,10 +161,24 @@ nex::RenderTargetGL::~RenderTargetGL()
 
 void nex::RenderTargetGL::copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, int components)
 {
+	GLint readFBId = 0;
+	GLint drawFboId = 0;
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, dest->getFrameBuffer());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+		sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+		components,
+		GL_NEAREST);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
+	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId));
 }
 
-RenderTargetGL* nex::RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
-	GLuint samples, GLuint depthStencilType)
+
+nex::RenderTargetGL* nex::RenderTargetGL::createMultisampled(int width, int height, const TextureData& data,
+                                                             GLuint samples, GLuint depthStencilType)
 {
 	assert(samples > 1);
 
@@ -231,7 +245,7 @@ RenderTargetGL* nex::RenderTargetGL::createMultisampled(int width, int height, c
 	return cache;
 }
 
-RenderTargetGL* nex::RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
+nex::RenderTargetGL* nex::RenderTargetGL::createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType)
 {
 	nex::Guard<RenderTargetGL> result;
 	result.setContent(new RenderTargetGL(width, height));
@@ -307,7 +321,7 @@ RenderTargetGL* nex::RenderTargetGL::createSingleSampled(int width, int height, 
 	return cache;
 }
 
-RenderTargetGL* nex::RenderTargetGL::createVSM(int width, int height)
+nex::RenderTargetGL* nex::RenderTargetGL::createVSM(int width, int height)
 {
 	nex::Guard<RenderTargetGL> result;
 	result.setContent(new RenderTargetGL(width, height));
@@ -370,6 +384,11 @@ RenderTargetGL* nex::RenderTargetGL::createVSM(int width, int height)
 	return cache;
 }
 
+GLuint nex::RenderTargetGL::getFrameBuffer() const
+{
+	return frameBuffer;
+}
+
 GLuint nex::RenderTargetGL::getRenderBuffer()
 {
 	return renderBuffer;
@@ -394,6 +413,11 @@ void nex::RenderTargetGL::release()
 	renderBuffer = GL_FALSE;
 }
 
+void nex::RenderTargetGL::setFrameBuffer(GLuint newValue)
+{
+	frameBuffer = newValue;
+}
+
 void nex::RenderTargetGL::setRenderBuffer(GLuint newValue)
 {
 	renderBuffer = newValue;
@@ -404,19 +428,14 @@ void nex::RenderTargetGL::setTexture(TextureGL* texture)
 	textureBuffer = texture;
 }
 
-void nex::RenderTargetGL::setTextureBuffer(GLuint newValue)
-{
-	textureBuffer->setTexture(newValue);
-}
-
 nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	RenderTargetGL(width, height)
 {
 	GLuint texture;
 	GLCall(glGenTextures(1, &texture));
 	glGenFramebuffers(1, &frameBuffer);
-	cubeMap.setCubeMap(texture);
-	textureBuffer = new 
+	textureBuffer = new CubeMapGL();
+	textureBuffer->setTexture(texture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
@@ -489,7 +508,7 @@ nex::DepthMapGL::DepthMapGL(int width, int height) :
 
 nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	: 
-	RenderTargetGL(width, height, GL_FALSE),
+	RenderTargetGL(width, height),
 	albedo(GL_FALSE),
 	aoMetalRoughness(GL_FALSE),
 	normal(GL_FALSE),
@@ -502,7 +521,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// albedo
 	glGenTextures(1, &tempTexture);
-	albedo.setTexture(tempTexture);
+	albedo->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -514,7 +533,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// ao metal roughness
 	glGenTextures(1, &tempTexture);
-	aoMetalRoughness.setTexture(tempTexture);
+	aoMetalRoughness->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -526,7 +545,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// normal
 	glGenTextures(1, &tempTexture);
-	normal.setTexture(tempTexture);
+	normal->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -538,7 +557,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// position
 	glGenTextures(1, &tempTexture);
-	position.setTexture(tempTexture);
+	position->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -569,7 +588,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// depth/stencil
 	glGenTextures(1, &tempTexture);
-	depth.setTexture(tempTexture);
+	depth->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
@@ -590,35 +609,36 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	
 }
 
-TextureGL * nex::PBR_GBufferGL::getAlbedo()
+nex::TextureGL* nex::PBR_GBufferGL::getAlbedo()
 {
 	return albedo.get();
 }
 
-TextureGL * nex::PBR_GBufferGL::getAoMetalRoughness()
+nex::TextureGL * nex::PBR_GBufferGL::getAoMetalRoughness()
 {
-	return &aoMetalRoughness;
+	return aoMetalRoughness.get();
 }
 
-TextureGL * nex::PBR_GBufferGL::getNormal()
+nex::TextureGL * nex::PBR_GBufferGL::getNormal()
 {
-	return &normal;
+	return normal.get();
 }
 
-TextureGL * nex::PBR_GBufferGL::getPosition()
+nex::TextureGL * nex::PBR_GBufferGL::getPosition()
 {
-	return &position;
+	return position.get();
 }
 
-TextureGL * nex::PBR_GBufferGL::getDepth()
+nex::TextureGL * nex::PBR_GBufferGL::getDepth()
 {
-	return &depth;
+	return depth.get();
 }
 
 nex::OneTextureRenderTarget::OneTextureRenderTarget(GLuint frameBuffer,
-	TextureGL texture,
+	TextureGL* texture,
 	unsigned int width,
 	unsigned int height) :
-	RenderTargetGL(width, height, frameBuffer),
+	RenderTargetGL(width, height, frameBuffer)
 {
+	textureBuffer = texture;
 }

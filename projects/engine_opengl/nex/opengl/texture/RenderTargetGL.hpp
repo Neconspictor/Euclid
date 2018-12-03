@@ -13,7 +13,7 @@ namespace nex
 	class RenderTargetGL : public RenderTargetImpl
 	{
 	public:
-		explicit RenderTargetGL(int width, int height);
+		explicit RenderTargetGL(int width, int height, GLuint frameBuffer = GL_FALSE);
 		virtual ~RenderTargetGL();
 
 		void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, int components);
@@ -25,15 +25,16 @@ namespace nex
 
 		static RenderTargetGL* createVSM(int width, int height);
 
+		GLuint getFrameBuffer() const;
 		GLuint getRenderBuffer();
 		TextureGL* getTexture();
 
+
 		virtual void release();
 
+		void setFrameBuffer(GLuint newValue);
 		void setRenderBuffer(GLuint newValue);
-
 		void setTexture(TextureGL* texture);
-		void setTextureBuffer(GLuint newValue);
 
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
@@ -119,11 +120,10 @@ namespace nex
 	class OneTextureRenderTarget : public RenderTargetGL {
 	public:
 		OneTextureRenderTarget(GLuint frameBuffer,
-			TextureGL texture,
+			TextureGL* texture,
 			unsigned int width,
 			unsigned int height);
 
 		virtual ~OneTextureRenderTarget() = default;
 	};
-
 }

@@ -117,12 +117,12 @@ namespace nex
 		DepthMap(int width, int height);
 	};
 
-	class PBR_GBufferGL : public RenderTarget 
+	class PBR_GBuffer : public RenderTarget 
 	{
 	public:
 
 		// Has to be implemented by renderer backend
-		static PBR_GBufferGL* create(unsigned width, unsigned height);
+		static PBR_GBuffer* create(unsigned width, unsigned height);
 
 		Texture* getAlbedo() const { return albedo; }
 		Texture* getAoMetalRoughness() const { return aoMetalRoughness; }
@@ -134,7 +134,7 @@ namespace nex
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		PBR_GBufferGL(int width, int height);
+		PBR_GBuffer(int width, int height);
 
 
 		Texture* albedo;
