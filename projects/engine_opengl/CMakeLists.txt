@@ -132,6 +132,8 @@ set(
     #nex/opengl/texture
     nex/opengl/texture/Image.hpp
 	nex/opengl/texture/Image.cpp
+    nex/opengl/texture/RenderTargetGL.cpp
+    nex/opengl/texture/RenderTargetGL.hpp
 	nex/opengl/texture/SamplerGL.hpp
     nex/opengl/texture/SamplerGL.cpp
     nex/opengl/texture/Sprite.hpp

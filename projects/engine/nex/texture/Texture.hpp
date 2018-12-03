@@ -7,38 +7,37 @@ namespace nex
 
 	enum class TextureFilter
 	{
-		NearestNeighbor,
+		NearestNeighbor, FIRST = NearestNeighbor,
 		Linear,
-		Bilinear,
 		Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
 		Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
 		Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
-		Linear_Mipmap_Linear, // trilinear filtering from bilinear to bilinear filtering
+		Linear_Mipmap_Linear, LAST = Linear_Mipmap_Linear,// trilinear filtering from bilinear to bilinear filtering
 	};
 
 	enum class TextureUVTechnique
 	{
-		ClampToBorder,
+		ClampToBorder, FIRST = ClampToBorder,
 		ClampToEdge,
 		MirrorRepeat,
 		MirrorClampToEdge,
-		Repeat,
+		Repeat, LAST = Repeat,
 	};
 
 	enum class ColorSpace {
-		R,
+		R, FIRST = R,
 		RG,
 		RGB,
 		RGBA,
 
 		// srgb formats
 		SRGB,
-		SRGBA,
+		SRGBA, LAST = SRGBA,
 	};
 
 	enum class InternFormat
 	{
-		R8,
+		R8, FIRST = R8,
 		R16,
 		R32F,
 		R32I,
@@ -64,20 +63,20 @@ namespace nex
 
 		// srgb formats
 		SRGB8,
-		SRGBA8,
+		SRGBA8, LAST = SRGBA8,
 	};
 
 	enum class PixelDataType
 	{
-		FLOAT,
+		FLOAT, FIRST = FLOAT,
 		UBYTE,
-		UINT,
+		UINT, LAST = UINT,
 	};
 
 	enum class TextureTarget
 	{
 		//1D
-		TEXTURE1D,
+		TEXTURE1D, FIRST = TEXTURE1D,
 		TEXTURE1D_ARRAY,
 
 		//2D
@@ -93,7 +92,7 @@ namespace nex
 		CUBE_POSITIVE_Y,
 		CUBE_NEGATIVE_Y,
 		CUBE_POSITIVE_Z,
-		CUBE_NEGATIVE_Z,
+		CUBE_NEGATIVE_Z, LAST = CUBE_NEGATIVE_Z,
 	};
 
 	enum class DepthStencil
@@ -130,6 +129,9 @@ namespace nex
 
 		// virtual needed for backend implementations
 		virtual ~TextureImpl() = default;
+
+	protected:
+		TextureImpl() = default;
 	};
 
 
