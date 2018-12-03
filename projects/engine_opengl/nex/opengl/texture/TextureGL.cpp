@@ -1,10 +1,9 @@
 #include <nex/opengl/texture/TextureGL.hpp>
-#include <memory>
 #include <cassert>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <nex/opengl/texture/Image.hpp>
 
 using namespace std;
 using namespace glm;
@@ -306,9 +305,9 @@ void nex::TextureGL::setWidth(int width)
 	this->width = width;
 }
 
-GLuint nex::TextureGL::getTexture() const
+GLuint* nex::TextureGL::getTexture()
 {
-	return mTextureID;
+	return &mTextureID;
 }
 
 unsigned nex::TextureGL::getHeight() const

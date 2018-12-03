@@ -21,6 +21,9 @@ namespace nex
 
 		// virtual needed for backend implementations
 		virtual ~RenderTargetImpl() = default;
+
+	protected:
+		RenderTargetImpl() = default;
 	};
 
 

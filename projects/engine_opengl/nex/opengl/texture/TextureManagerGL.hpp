@@ -6,10 +6,14 @@
 #include "nex/gui/Drawable.hpp"
 
 
-struct GenericImageGL;
-class FileSystem;
-class TextureGL;
-class CubeMapGL;
+namespace nex {
+	struct GenericImageGL;
+	class FileSystem;
+	class TextureGL;
+	class CubeMapGL;
+}
+
+
 
 /**
  * A texture manager for an opengl renderer.
@@ -36,24 +40,24 @@ public:
 		const std::string& top, const std::string& bottom,
 		const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
 
-	TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID, int width, int height);
+	nex::TextureGL* createTextureGL(std::string localPathFileName, GLuint textureID, int width, int height);
 
-	TextureGL* getImageGL(const std::string& file);
+	nex::TextureGL* getImageGL(const std::string& file);
 
-	TextureGL* getDefaultBlackTexture();
-	TextureGL* getDefaultNormalTexture();
-	TextureGL* getDefaultWhiteTexture();
+	nex::TextureGL* getDefaultBlackTexture();
+	nex::TextureGL* getDefaultNormalTexture();
+	nex::TextureGL* getDefaultWhiteTexture();
 
-	TextureGL* getHDRImage(const std::string& file, TextureData data);
+	nex::TextureGL* getHDRImage(const std::string& file, nex::TextureData data);
 
-	TextureGL* getImage(const std::string& file, 
-		TextureData data = {
-			TextureFilter::Linear_Mipmap_Linear, 
-			TextureFilter::Linear, 
-			TextureUVTechnique::Repeat, 
-			ColorSpace::SRGBA, 
-			PixelDataType::UBYTE, 
-			InternFormat::SRGBA8, 
+	nex::TextureGL* getImage(const std::string& file,
+		nex::TextureData data = {
+			nex::TextureFilter::Linear_Mipmap_Linear,
+			nex::TextureFilter::Linear,
+			nex::TextureUVTechnique::Repeat,
+			nex::ColorSpace::SRGBA,
+			nex::PixelDataType::UBYTE,
+			nex::InternFormat::SRGBA8,
 			true}
 	);
 
@@ -61,7 +65,7 @@ public:
 	 * Initializes the texture manager.
 	 * @param textureFileSystem Used to resolve texture file paths
 	 */
-	void init(FileSystem* textureFileSystem);
+	void init(nex::FileSystem* textureFileSystem);
 
 	void loadImages(const std::string& imageFolder);
 	SamplerGL* getDefaultImageSampler();
@@ -73,25 +77,25 @@ public:
 
 	void release();
 
-	void releaseTexture(TextureGL * tex);
+	void releaseTexture(nex::TextureGL * tex);
 
 
 
 
-	void writeHDR(const GenericImageGL& imageData, const char* filePath);
+	void writeHDR(const nex::GenericImageGL& imageData, const char* filePath);
 
-	void readImage(GenericImageGL* imageData, const char* filePath);
-	void writeImage(const GenericImageGL& imageData, const char* filePath);
+	void readImage(nex::GenericImageGL* imageData, const char* filePath);
+	void writeImage(const nex::GenericImageGL& imageData, const char* filePath);
 
 	void readGLITest(const char* filePath);
 
 protected:
-	std::list<TextureGL> textures;
+	std::list<nex::TextureGL> textures;
 	std::list<CubeMapGL> cubeMaps;
-	std::map<std::string, TextureGL*> textureLookupTable;
+	std::map<std::string, nex::TextureGL*> textureLookupTable;
 	nex::Logger m_logger;
 	SamplerGL* mDefaultImageSampler;
-	FileSystem* mFileSystem;
+	nex::FileSystem* mFileSystem;
 
 private:
 

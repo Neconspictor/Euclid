@@ -22,7 +22,12 @@ namespace nex {
 		}
 		Guard& operator=(Guard&& o) = delete;
 
-		T* get() const
+		T* get()
+		{
+			return mItem;
+		}
+
+		const T* get() const
 		{
 			return mItem;
 		}
@@ -89,7 +94,12 @@ namespace nex {
 			return *this;
 		}
 
-		T* get() const
+		T* get()
+		{
+			return mArray;
+		}
+
+		const T* get() const
 		{
 			return mArray;
 		}

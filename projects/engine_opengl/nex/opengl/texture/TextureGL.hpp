@@ -3,15 +3,10 @@
 #include <nex/util/Math.hpp>
 #include <nex/texture/Texture.hpp>
 
-struct StoreImageGL;
-class RenderTargetGL;
-class RendererOpenGL;
-class CubeRenderTargetGL;
-class BaseRenderTargetGL;
-class CubeMapGL;
-
 namespace nex
 {
+
+	class StoreImageGL;
 
 	enum TextureFilterGL
 	{
@@ -129,9 +124,9 @@ namespace nex
 		 *
 		 * @return a TextureGL or an CubeMapGL dependent on the state of isCubeMap
 		 */
-		static TextureGL* createFromImage(const StoreImageGL& store, const TextureData& data, bool isCubeMap);
+		static TextureGL* createFromImage(const nex::StoreImageGL& store, const TextureData& data, bool isCubeMap);
 
-		GLuint getTexture() const;
+		GLuint* getTexture();
 
 
 		unsigned getHeight() const;
@@ -184,8 +179,6 @@ namespace nex
 		static const glm::mat4& getViewLookAtMatrixRH(Side side);
 
 		void setCubeMap(GLuint id);
-
-		friend CubeRenderTargetGL;
 
 	protected:
 		static glm::mat4 rightSide;
