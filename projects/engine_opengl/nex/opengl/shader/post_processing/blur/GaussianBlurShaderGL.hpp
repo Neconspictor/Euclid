@@ -1,48 +1,51 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/texture/Texture.hpp>
 
-class GaussianBlurHorizontalShaderGL : public TransformShaderGL
+namespace nex
 {
-public:
-	GaussianBlurHorizontalShaderGL();
+	class GaussianBlurHorizontalShader : public TransformShaderGL
+	{
+	public:
+		GaussianBlurHorizontalShader();
 
-	virtual ~GaussianBlurHorizontalShaderGL() = default;
+		virtual ~GaussianBlurHorizontalShader() = default;
 
-	void setImageHeight(float height);
-	void setImageWidth(float width);
+		void setImageHeight(float height);
+		void setImageWidth(float width);
 
-	void setTexture(const TextureGL* tex);
+		void setTexture(const Texture* tex);
 
-	void setMVP(const glm::mat4& mvp);
+		void setMVP(const glm::mat4& mvp);
 
 
-	void onTransformUpdate(const TransformData& data) override;
-protected:
-	UniformTex image;
-	Uniform transform;
-	Uniform windowWidth;
-	Uniform windowHeight;
-};
+		void onTransformUpdate(const TransformData& data) override;
+	protected:
+		UniformTex image;
+		Uniform transform;
+		Uniform windowWidth;
+		Uniform windowHeight;
+	};
 
-class GaussianBlurVerticalShaderGL : public TransformShaderGL
-{
-public:
-	GaussianBlurVerticalShaderGL();
+	class GaussianBlurVerticalShader : public TransformShaderGL
+	{
+	public:
+		GaussianBlurVerticalShader();
 
-	virtual ~GaussianBlurVerticalShaderGL() = default;
+		virtual ~GaussianBlurVerticalShader() = default;
 
-	void setImageHeight(float height);
-	void setImageWidth(float width);
+		void setImageHeight(float height);
+		void setImageWidth(float width);
 
-	void setTexture(const TextureGL* tex);
+		void setTexture(const Texture* tex);
 
-	void setMVP(const glm::mat4& mvp);
+		void setMVP(const glm::mat4& mvp);
 
-	void onTransformUpdate(const TransformData& data) override;
-protected:
-	UniformTex image;
-	Uniform transform;
-	Uniform windowWidth;
-	Uniform windowHeight;
-};
+		void onTransformUpdate(const TransformData& data) override;
+	protected:
+		UniformTex image;
+		Uniform transform;
+		Uniform windowWidth;
+		Uniform windowHeight;
+	};
+}

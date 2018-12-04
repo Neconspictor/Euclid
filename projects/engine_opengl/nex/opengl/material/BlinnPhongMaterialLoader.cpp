@@ -3,6 +3,7 @@
 #include <string>
 
 using namespace std;
+using namespace nex;
 
 
 BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), m_logger("BlinnPhongMaterialLoader")

@@ -5,10 +5,11 @@
 
 using namespace glm;
 using namespace std;
+using namespace nex;
 
-PBRShaderGL::PBRShaderGL()
+PBRShader::PBRShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
@@ -61,128 +62,128 @@ PBRShaderGL::PBRShaderGL()
 	//attributes.create(types::CUBE_MAP, nullptr, "skybox");
 }
 
-void PBRShaderGL::setAlbedoMap(const TextureGL* texture)
+void PBRShader::setAlbedoMap(const Texture* texture)
 {
-	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.textureUnit);
+	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
 }
 
-void PBRShaderGL::setAmbientOcclusionMap(const TextureGL* texture)
+void PBRShader::setAmbientOcclusionMap(const Texture* texture)
 {
-	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.textureUnit);
+	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.bindingSlot);
 }
 
-void PBRShaderGL::setEmissionMap(const TextureGL* texture)
+void PBRShader::setEmissionMap(const Texture* texture)
 {
-	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.textureUnit);
+	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.bindingSlot);
 }
 
-void PBRShaderGL::setMetalMap(const TextureGL* texture)
+void PBRShader::setMetalMap(const Texture* texture)
 {
-	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.textureUnit);
+	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.bindingSlot);
 }
 
-void PBRShaderGL::setNormalMap(const TextureGL* texture)
+void PBRShader::setNormalMap(const Texture* texture)
 {
-	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.textureUnit);
+	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.bindingSlot);
 }
 
-void PBRShaderGL::setRoughnessMap(const TextureGL* texture)
+void PBRShader::setRoughnessMap(const Texture* texture)
 {
-	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.textureUnit);
+	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
 }
 
-void PBRShaderGL::setBrdfLookupTexture(const TextureGL* brdfLUT)
+void PBRShader::setBrdfLookupTexture(const TextuTexturereGL* brdfLUT)
 {
-	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.textureUnit);
+	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
 }
 
-void PBRShaderGL::setIrradianceMap(const CubeMapGL* irradianceMap)
+void PBRShader::setIrradianceMap(const CubeMap* irradianceMap)
 {
-	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.textureUnit);
+	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.bindingSlot);
 }
 
-void PBRShaderGL::setLightColor(const glm::vec3& color)
+void PBRShader::setLightColor(const glm::vec3& color)
 {
 	mProgram->setVec3(mLightColor.location, color);
 }
 
-void PBRShaderGL::setLightDirection(const glm::vec3& direction)
+void PBRShader::setLightDirection(const glm::vec3& direction)
 {
 	mProgram->setVec3(mLightDirection.location, direction);
 }
 
-void PBRShaderGL::setLightProjMatrix(const glm::mat4& mat)
+void PBRShader::setLightProjMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mLightProjMatrix.location, mat);
 }
 
-void PBRShaderGL::setLightSpaceMatrix(const glm::mat4& mat)
+void PBRShader::setLightSpaceMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mLightSpaceMatrix.location, mat);
 }
 
-void PBRShaderGL::setLightViewMatrix(const glm::mat4& mat)
+void PBRShader::setLightViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mLightViewMatrix.location, mat);
 }
 
-void PBRShaderGL::setPrefilterMap(const CubeMapGL* prefilterMap)
+void PBRShader::setPrefilterMap(const CubeMap* prefilterMap)
 {
-	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.textureUnit);
+	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
 }
 
-void PBRShaderGL::setProjectionMatrix(const glm::mat4& mat)
+void PBRShader::setProjectionMatrix(const glm::mat4& mat)
 {
 	mProjectionMatrixSource = &mat;
 }
 
-void PBRShaderGL::setShadowMap(const TextureGL* texture)
+void PBRShader::setShadowMap(const Texture* texture)
 {
-	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.textureUnit);
+	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.bindingSlot);
 }
 
-void PBRShaderGL::setCameraPosition(const glm::vec3& position)
+void PBRShader::setCameraPosition(const glm::vec3& position)
 {
 	mProgram->setVec3(mCameraPos.location, position);
 }
 
-void PBRShaderGL::setBiasMatrix(const glm::mat4& mat)
+void PBRShader::setBiasMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mBiasMatrix.location, mat);
 }
 
-void PBRShaderGL::setModelMatrix(const glm::mat4& mat)
+void PBRShader::setModelMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mModelMatrix.location, mat);
 }
 
-void PBRShaderGL::setModelViewMatrix(const glm::mat4& mat)
+void PBRShader::setModelViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mModelView.location, mat);
 }
 
-void PBRShaderGL::setNormalMatrix(const glm::mat3& mat)
+void PBRShader::setNormalMatrix(const glm::mat3& mat)
 {
 	mProgram->setMat4(mNormalMatrix.location, mat);
 }
 
-void PBRShaderGL::setMVP(const glm::mat4& mat)
+void PBRShader::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
 
-void PBRShaderGL::setViewMatrix(const glm::mat4& mat)
+void PBRShader::setViewMatrix(const glm::mat4& mat)
 {
 	mViewMatrixSource = &mat;
 	mProgram->setMat4(mView.location, mat);
 }
 
-void PBRShaderGL::setInverseViewMatrix(const glm::mat4& mat)
+void PBRShader::setInverseViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mInverseView.location, mat);
 }
 
-void PBRShaderGL::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
+void PBRShader::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
 	mat4 modelView = *mViewMatrixSource * modelMatrix;
 
@@ -192,7 +193,7 @@ void PBRShaderGL::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 	setNormalMatrix(transpose(inverse(mat3(modelView))));
 }
 
-void PBRShaderGL::onMaterialUpdate(const Material* materialSource)
+void PBRShader::onMaterialUpdate(const Material* materialSource)
 {
 	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
 

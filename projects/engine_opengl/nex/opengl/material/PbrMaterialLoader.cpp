@@ -3,6 +3,7 @@
 #include <string>
 
 using namespace std;
+using namespace nex;
 
 
 PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), m_logger("PbrMaterialLoader")

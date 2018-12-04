@@ -53,6 +53,11 @@ nex::Texture::~Texture()
 	mImpl = nullptr;
 }
 
+nex::TextureImpl* nex::Texture::getImpl() const
+{
+	return mImpl;
+}
+
 unsigned nex::Texture::getHeight() const
 {
 	return height;

@@ -1,59 +1,60 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/texture/Texture.hpp>
 
-class CubeDepthMapShaderGL : public ShaderGL
+namespace nex
 {
-public:
-	CubeDepthMapShaderGL();
+	class CubeDepthMapShader : public Shader
+	{
+	public:
+		CubeDepthMapShader();
 
-	virtual ~CubeDepthMapShaderGL();
-	
-	void useCubeDepthMap(const CubeMapGL* map);
+		void useCubeDepthMap(const CubeMap* map);
 
-	void setLightPos(const glm::vec3& pos);
+		void setLightPos(const glm::vec3& pos);
 
-	void setRange(float range);
+		void setRange(float range);
 
-	void setModelMatrix(const glm::mat4& model);
-	void setMVP(const glm::mat4& trafo);
+		void setModelMatrix(const glm::mat4& model);
+		void setMVP(const glm::mat4& trafo);
 
-private:
-	UniformTex mCubeMap;
-	Uniform mLightPos;
-	Uniform mRange;
-	Uniform mModel;
-	Uniform mTransform;
-};
+	private:
+		UniformTex mCubeMap;
+		Uniform mLightPos;
+		Uniform mRange;
+		Uniform mModel;
+		Uniform mTransform;
+	};
 
-class DepthMapShaderGL : public ShaderGL
-{
-public:
-	DepthMapShaderGL();
+	class DepthMapShader : public Shader
+	{
+	public:
+		DepthMapShader();
 
-	virtual ~DepthMapShaderGL() = default;
+		virtual ~DepthMapShader() = default;
 
-	void useDepthMapTexture(const TextureGL* texture);
+		void useDepthMapTexture(const Texture* texture);
 
-	void setMVP(const glm::mat4& trafo);
+		void setMVP(const glm::mat4& trafo);
 
-private:
-	UniformTex mDephTexture;
-	Uniform mTransform;
-};
+	private:
+		UniformTex mDephTexture;
+		Uniform mTransform;
+	};
 
-class VarianceDepthMapShaderGL : public ShaderGL
-{
-public:
-	VarianceDepthMapShaderGL();
+	class VarianceDepthMapShader : public Shader
+	{
+	public:
+		VarianceDepthMapShader();
 
-	virtual ~VarianceDepthMapShaderGL() = default;
+		virtual ~VarianceDepthMapShader() = default;
 
-	void useVDepthMapTexture(const TextureGL* texture);
+		void useVDepthMapTexture(const Texture* texture);
 
-	void setMVP(const glm::mat4& trafo);
+		void setMVP(const glm::mat4& trafo);
 
-private:
-	UniformTex mDephTexture;
-	Uniform mTransform;
-};
+	private:
+		UniformTex mDephTexture;
+		Uniform mTransform;
+	};
+}

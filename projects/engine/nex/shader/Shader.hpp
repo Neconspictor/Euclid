@@ -1,5 +1,6 @@
 #pragma once
 #include "nex/util/StringUtils.hpp"
+#include <nex/util/Memory.hpp>
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 
 namespace nex
@@ -161,9 +162,6 @@ namespace nex
 
 		static ShaderProgram* create(const std::list<ShaderStage*>& stages);
 
-		// destroys an 
-		static void destroy(ShaderProgram* program);
-
 		void release();
 
 		/**
@@ -277,7 +275,7 @@ namespace nex
 		Shader(const Shader&) = delete;
 		Shader& operator=(const Shader&) = delete;
 
-		ShaderProgram* mProgram;
+		nex::Guard<ShaderProgram> mProgram;
 	};
 
 	class TransformShaderGL : public Shader

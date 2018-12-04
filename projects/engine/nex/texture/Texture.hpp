@@ -146,6 +146,7 @@ namespace nex
 		Texture& operator=(const Texture&) = delete;
 
 		virtual ~Texture();
+		TextureImpl* getImpl() const;
 
 
 		/**

@@ -1,12 +1,13 @@
 #include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
 
 using namespace glm;
+using namespace nex;
 
 //height(1024), width(800)
 
-GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL()
+GaussianBlurHorizontalShader::GaussianBlurHorizontalShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"post_processing/blur/gaussian_blur_vs.glsl", "post_processing/blur/gaussian_blur_horizontal_fs.glsl");
 
 	image			= { mProgram->getUniformLocation("image"), UniformType::TEXTURE2D, 0};
@@ -16,27 +17,27 @@ GaussianBlurHorizontalShaderGL::GaussianBlurHorizontalShaderGL()
 }
 
 
-void GaussianBlurHorizontalShaderGL::setTexture(const TextureGL* tex)
+void GaussianBlurHorizontalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(image.location, tex, image.textureUnit);
+	mProgram->setTexture(image.location, tex, image.bindingSlot);
 }
 
-void GaussianBlurHorizontalShaderGL::setMVP(const mat4& mvp)
+void GaussianBlurHorizontalShader::setMVP(const mat4& mvp)
 {
 	mProgram->setMat4(transform.location, mvp);
 }
 
-void GaussianBlurHorizontalShaderGL::onTransformUpdate(const TransformData& data)
+void GaussianBlurHorizontalShader::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection)*(*data.view)*(*data.model));
 }
 
-void GaussianBlurHorizontalShaderGL::setImageWidth(float width)
+void GaussianBlurHorizontalShader::setImageWidth(float width)
 {
 	mProgram->setInt(windowWidth.location, width);
 }
 
-void GaussianBlurHorizontalShaderGL::setImageHeight(float height)
+void GaussianBlurHorizontalShader::setImageHeight(float height)
 {
 	mProgram->setInt(windowHeight.location, height);
 }
@@ -44,9 +45,9 @@ void GaussianBlurHorizontalShaderGL::setImageHeight(float height)
 
 //height(1024), width(1024)
 
-GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL()
+GaussianBlurVerticalShader::GaussianBlurVerticalShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"post_processing/blur/gaussian_blur_vs.glsl", "post_processing/blur/gaussian_blur_vertical_fs.glsl");
 
 	image = { mProgram->getUniformLocation("image"), UniformType::TEXTURE2D, 0 };
@@ -56,27 +57,27 @@ GaussianBlurVerticalShaderGL::GaussianBlurVerticalShaderGL()
 }
 
 
-void GaussianBlurVerticalShaderGL::setTexture(const TextureGL* tex)
+void GaussianBlurVerticalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(image.location, tex, image.textureUnit);
+	mProgram->setTexture(image.location, tex, image.bindingSlot);
 }
 
-void GaussianBlurVerticalShaderGL::setMVP(const mat4& mvp)
+void GaussianBlurVerticalShader::setMVP(const mat4& mvp)
 {
 	mProgram->setMat4(transform.location, mvp);
 }
 
-void GaussianBlurVerticalShaderGL::onTransformUpdate(const TransformData& data)
+void GaussianBlurVerticalShader::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection)*(*data.view)*(*data.model));
 }
 
-void GaussianBlurVerticalShaderGL::setImageWidth(float width)
+void GaussianBlurVerticalShader::setImageWidth(float width)
 {
 	mProgram->setInt(windowWidth.location, width);
 }
 
-void GaussianBlurVerticalShaderGL::setImageHeight(float height)
+void GaussianBlurVerticalShader::setImageHeight(float height)
 {
 	mProgram->setInt(windowHeight.location, height);
 }

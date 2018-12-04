@@ -146,7 +146,9 @@ void nex::ShaderProgram::setTexture(const UniformLocation* locationID, const nex
 	//ASSERT(isValid(textureSlot));
 	if ((GLint)locationID < 0) return;
 
-	GLCall(glBindTextureUnit(bindingSlot, ((TextureGL*)data)->getTexture()));
+	TextureGL* gl = (TextureGL*)data->getImpl();
+
+	GLCall(glBindTextureUnit(bindingSlot, *gl->getTexture()));
 	GLCall(glUniform1i((GLint)locationID, bindingSlot));
 }
 
@@ -280,6 +282,9 @@ nex::ShaderProgramGL::ShaderProgramGL(GLuint program) : programID(program)
 
 nex::ShaderProgramGL::~ShaderProgramGL()
 {
+	if (programID != GL_FALSE)
+		GLCall(glDeleteProgram(programID));
+	programID = GL_FALSE;
 }
 
 void nex::ShaderProgram::bind()

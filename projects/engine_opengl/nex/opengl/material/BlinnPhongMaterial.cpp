@@ -2,6 +2,7 @@
 #include <type_traits>
 
 using namespace std;
+using namespace nex;
 
 BlinnPhongMaterial::BlinnPhongMaterial() : Material(), 
 diffuseMap(nullptr), 
@@ -13,7 +14,7 @@ shininess(0)
 {
 }
 
-BlinnPhongMaterial::BlinnPhongMaterial(TextureGL* diffuseMap, TextureGL* emissionMap, TextureGL* normalMap, TextureGL* reflectionMap, TextureGL* specularMap, float shininess) :
+BlinnPhongMaterial::BlinnPhongMaterial(Texture* diffuseMap, Texture* emissionMap, Texture* normalMap, Texture* reflectionMap, Texture* specularMap, float shininess) :
 	Material()
 {
 	this->diffuseMap = diffuseMap;
@@ -68,22 +69,22 @@ BlinnPhongMaterial::~BlinnPhongMaterial()
 {
 }
 
-TextureGL* BlinnPhongMaterial::getDiffuseMap() const
+Texture* BlinnPhongMaterial::getDiffuseMap() const
 {
 	return diffuseMap;
 }
 
-TextureGL* BlinnPhongMaterial::getEmissionMap() const
+Texture* BlinnPhongMaterial::getEmissionMap() const
 {
 	return emissionMap;
 }
 
-TextureGL * BlinnPhongMaterial::getNormalMap() const
+Texture * BlinnPhongMaterial::getNormalMap() const
 {
 	return normalMap;
 }
 
-TextureGL* BlinnPhongMaterial::getReflectionMap() const
+Texture* BlinnPhongMaterial::getReflectionMap() const
 {
 	return reflectionMap;
 }
@@ -93,32 +94,32 @@ float BlinnPhongMaterial::getShininess() const
 	return shininess;
 }
 
-TextureGL* BlinnPhongMaterial::getSpecularMap() const
+Texture* BlinnPhongMaterial::getSpecularMap() const
 {
 	return specularMap;
 }
 
-void BlinnPhongMaterial::setDiffuseMap(TextureGL* diffuse)
+void BlinnPhongMaterial::setDiffuseMap(Texture* diffuse)
 {
 	diffuseMap = diffuse;
 }
 
-void BlinnPhongMaterial::setEmissionMap(TextureGL* emission)
+void BlinnPhongMaterial::setEmissionMap(Texture* emission)
 {
 	emissionMap = emission;
 }
 
-void BlinnPhongMaterial::setNormalMap(TextureGL * normal)
+void BlinnPhongMaterial::setNormalMap(Texture * normal)
 {
 	normalMap = normal;
 }
 
-void BlinnPhongMaterial::setReflectionMap(TextureGL* reflection)
+void BlinnPhongMaterial::setReflectionMap(Texture* reflection)
 {
 	reflectionMap = reflection;
 }
 
-void BlinnPhongMaterial::setSpecularMap(TextureGL* specular)
+void BlinnPhongMaterial::setSpecularMap(Texture* specular)
 {
 	specularMap = specular;
 }

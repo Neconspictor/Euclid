@@ -6,6 +6,8 @@
 #include "util/Memory.hpp"
 #include "util/ExceptionHandling.hpp"
 
+using namespace nex;
+
 FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories) :
 	mIncludeDirectories(std::move(includeDirectories))
 {

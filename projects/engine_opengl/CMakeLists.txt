@@ -136,8 +136,6 @@ set(
     nex/opengl/texture/RenderTargetGL.hpp
 	nex/opengl/texture/SamplerGL.hpp
     nex/opengl/texture/SamplerGL.cpp
-    nex/opengl/texture/Sprite.hpp
-	nex/opengl/texture/Sprite.cpp
     nex/opengl/texture/TextureGL.hpp
     nex/opengl/texture/TextureGL.cpp
 	nex/opengl/texture/TextureManagerGL.hpp

@@ -1,7 +1,8 @@
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 
 using namespace std;
 using namespace glm;
+using namespace nex;
 
 Sprite::Sprite() : relativeHeight(1.0f), 
     relativeWidth(1.0f), screenPosition({0,0}), texture(nullptr)
@@ -27,7 +28,7 @@ const vec3& Sprite::getRotation() const
 	return rotation;
 }
 
-TextureGL* Sprite::getTexture() const
+Texture* Sprite::getTexture() const
 {
 	return texture;
 }
@@ -67,7 +68,7 @@ void Sprite::setWidth(float width)
 	this->relativeWidth = width;
 }
 
-void Sprite::setTexture(TextureGL* texture)
+void Sprite::setTexture(Texture* texture)
 {
 	this->texture = texture;
 }

@@ -3,18 +3,21 @@
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
 
-class BlinnPhongMaterialLoader : public AbstractMaterialLoader {
+namespace nex
+{
+	class BlinnPhongMaterialLoader : public nex::AbstractMaterialLoader {
 
-public:
+	public:
 
-	BlinnPhongMaterialLoader(TextureManagerGL* textureManager);
+		BlinnPhongMaterialLoader(TextureManagerGL* textureManager);
 
-	virtual ~BlinnPhongMaterialLoader();
+		virtual ~BlinnPhongMaterialLoader();
 
-	std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
+		std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
 
-private:
+	private:
 
-	nex::Logger m_logger;
+		nex::Logger m_logger;
 
-};
+	};
+}

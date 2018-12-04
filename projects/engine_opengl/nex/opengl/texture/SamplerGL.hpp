@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/texture/Sampler.hpp>
 
 
 /*
@@ -21,69 +22,22 @@
 *
 */
 
-struct SamplerState
+namespace nex
 {
-	glm::vec4 borderColor = { 0,0,0,0 };
-	TextureFilter minFilter = TextureFilter::Near_Mipmap_Linear;
-	TextureFilter magFilter = TextureFilter::Linear;
-	TextureUVTechnique wrapS = TextureUVTechnique::Repeat;
-	TextureUVTechnique wrapT = TextureUVTechnique::Repeat;
-	TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
-	int minLOD = -1000;
-	int maxLOD = 1000;
-	float biasLOD = 0.0f;
-	//compareMode TODO
-	//compareFunc TODO
-	float anisotropy = 1.0f;
-};
 
+	class SamplerGL : public Sampler
+	{
+	public:
+		SamplerGL(const SamplerState& state);
 
+		virtual ~SamplerGL();
 
-class SamplerGL
-{
-public:
-	explicit SamplerGL();
-	SamplerGL(SamplerGL&& o);
-	SamplerGL& operator=(SamplerGL&& o);
+		GLuint getID() const;
+		static GLfloat getMaxAnisotropicFiltering();
+		GLuint getCompareMode() const;
+		GLuint getCompareFuntion() const;
 
-
-	SamplerGL(const SamplerGL&) = delete;
-	SamplerGL& operator=(const SamplerGL&) = delete;
-
-	virtual ~SamplerGL();
-
-	GLfloat getAnisotropy() const;
-	GLuint getID() const;
-	static GLfloat getMaxAnisotropicFiltering();
-	GLint getMinFilter() const;
-	GLint getMagFilter() const;
-	GLuint getCompareMode() const;
-	GLuint getCompareFuntion() const;
-
-	GLuint getWrapS() const;
-	GLuint getWrapT() const;
-	GLuint getWrapR() const;
-
-	glm::vec4 getBorderColor() const;
-
-	GLint getMinLOD() const;
-	GLint getMaxLOD() const;
-	GLint getLodBias() const;
-
-	void setMinFilter(TextureFilter filter);
-	void setMagFilter(TextureFilter filter);
-	void setAnisotropy(float anisotropy);
-	void setCompareMode(GLuint mode);
-	void setCompareFunction(GLuint compareFunction);
-
-	void setWrapS(TextureUVTechnique wrap);
-	void setWrapT(TextureUVTechnique wrap);
-	void setWrapR(TextureUVTechnique wrap);
-	void setBorderColor(const glm::vec4& color);
-	void setMinLOD(float lod);
-	void setMaxLOD(float lod);
-	void setLodBias(float bias);
-
-protected:
-	GLuint m_samplerID;
-};
+	protected:
+		GLuint m_samplerID;
+	};
+}

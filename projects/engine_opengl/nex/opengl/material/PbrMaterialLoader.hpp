@@ -2,19 +2,21 @@
 
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
+namespace nex
+{
+	class PbrMaterialLoader : public AbstractMaterialLoader {
 
-class PbrMaterialLoader : public AbstractMaterialLoader {
+	public:
 
-public:
+		PbrMaterialLoader(TextureManagerGL* textureManager);
 
-	PbrMaterialLoader(TextureManagerGL* textureManager);
+		virtual ~PbrMaterialLoader();
 
-	virtual ~PbrMaterialLoader();
+		std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
 
-	std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
+	private:
 
-private:
+		nex::Logger m_logger;
 
-	nex::Logger m_logger;
-
-};
+	};
+}

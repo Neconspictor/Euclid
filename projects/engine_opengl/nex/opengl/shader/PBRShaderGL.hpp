@@ -1,268 +1,269 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/texture/Texture.hpp>
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 
-class PBRShaderGL : public ShaderGL
-{
-public:
 
-	struct DirLight
+namespace nex
+{
+	class PBRShader : public Shader
 	{
-		glm::vec3 direction;
-		glm::vec3 color;
+	public:
+
+		struct DirLight
+		{
+			glm::vec3 direction;
+			glm::vec3 color;
+		};
+
+		PBRShader();
+
+		void setAlbedoMap(const Texture* texture);
+		void setAmbientOcclusionMap(const Texture* texture);
+		void setEmissionMap(const Texture* texture);
+		void setMetalMap(const Texture* texture);
+		void setNormalMap(const Texture* texture);
+		void setRoughnessMap(const Texture* texture);
+
+
+		void setBrdfLookupTexture(const Texture* brdfLUT);
+
+		void setIrradianceMap(const CubeMap* irradianceMap);
+
+		void setLightColor(const glm::vec3& color);
+		void setLightDirection(const glm::vec3& direction);
+
+		void setLightProjMatrix(const glm::mat4& mat);
+		void setLightSpaceMatrix(const glm::mat4& mat);
+		void setLightViewMatrix(const glm::mat4& mat);
+
+		void setPrefilterMap(const CubeMap* prefilterMap);
+
+		void setProjectionMatrix(const glm::mat4& mat);
+
+		void setShadowMap(const Texture* texture);
+
+		//TODO
+		//void setSkyBox(const CubeMap* sky);
+
+		void setCameraPosition(const glm::vec3& position);
+
+		void setBiasMatrix(const glm::mat4& mat);
+
+		void setModelMatrix(const glm::mat4& mat);
+		void setModelViewMatrix(const glm::mat4& mat);
+		void setNormalMatrix(const glm::mat3& mat);
+
+		void setMVP(const glm::mat4& mat);
+
+		void setViewMatrix(const glm::mat4& mat);
+		void setInverseViewMatrix(const glm::mat4& mat);
+
+		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+		void onMaterialUpdate(const Material* material) override;
+
+	private:
+
+		UniformTex mAlbedoMap;
+		UniformTex mAmbientOcclusionMap;
+		UniformTex mEmissionMap;
+		UniformTex mMetalMap;
+		UniformTex mNormalMap;
+		UniformTex mRoughnessMap;
+
+		Uniform mBiasMatrix;
+		glm::mat4 mBiasMatrixSource;
+		UniformTex mBrdfLUT;
+
+		UniformTex mIrradianceMap;
+		UniformTex mPrefilterMap;
+
+		Uniform mLightDirection;
+		Uniform mLightColor;
+		Uniform mLightProjMatrix;
+		Uniform mLightSpaceMatrix;
+		Uniform mLightViewMatrix;
+		Uniform mModelMatrix;
+		Uniform mModelView;
+		Uniform mNormalMatrix;
+
+		UniformTex mShadowMap;
+		UniformTex mSkybox;
+
+		Uniform mTransform;
+		Uniform mCameraPos;
+
+		Uniform mView;
+		Uniform mInverseView;
+
+		glm::mat4 const* mProjectionMatrixSource;
+		glm::mat4 const* mViewMatrixSource;
 	};
 
-	PBRShaderGL();
+	class PBRShader_Deferred_Geometry : public Shader {
+	public:
+		PBRShader_Deferred_Geometry();
 
-	virtual ~PBRShaderGL() = default;
+		void setAlbedoMap(const Texture* texture);
+		void setAmbientOcclusionMap(const Texture* texture);
+		void setEmissionMap(const Texture* texture);
+		void setMetalMap(const Texture* texture);
+		void setNormalMap(const Texture* texture);
+		void setRoughnessMap(const Texture* texture);
 
-	void setAlbedoMap(const TextureGL* texture);
-	void setAmbientOcclusionMap(const TextureGL* texture);
-	void setEmissionMap(const TextureGL* texture);
-	void setMetalMap(const TextureGL* texture);
-	void setNormalMap(const TextureGL* texture);
-	void setRoughnessMap(const TextureGL* texture);
 
+		void setMVP(const glm::mat4& mat);
+		void setModelViewMatrix(const glm::mat4& mat);
+		void setModelView_NormalMatrix(const glm::mat4& mat);
 
-	void setBrdfLookupTexture(const TextureGL* brdfLUT);
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
 
-	void setIrradianceMap(const CubeMapGL* irradianceMap);
 
-	void setLightColor(const glm::vec3& color);
-	void setLightDirection(const glm::vec3& direction);
+		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+		void onMaterialUpdate(const Material* material) override;
 
-	void setLightProjMatrix(const glm::mat4& mat);
-	void setLightSpaceMatrix(const glm::mat4& mat);
-	void setLightViewMatrix(const glm::mat4& mat);
+	private:
 
-	void setPrefilterMap(const CubeMapGL* prefilterMap);
+		Uniform mTransform;
+		Uniform mModelView;
+		Uniform mModelView_normalMatrix;
 
-	void setProjectionMatrix(const glm::mat4& mat);
+		UniformTex mAlbedoMap;
+		UniformTex mAmbientOcclusionMap;
+		UniformTex mEmissionMap;
+		UniformTex mMetalMap;
+		UniformTex mNormalMap;
+		UniformTex mRoughnessMap;
 
-	void setShadowMap(const TextureGL* texture);
+		glm::mat4 const* mProjection;
+		glm::mat4 const* mView;
+	};
 
-	//TODO
-	//void setSkyBox(const CubeMapGL* sky);
+	class PBRShader_Deferred_Lighting : public TransformShaderGL {
+	public:
 
-	void setCameraPosition(const glm::vec3& position);
+		PBRShader_Deferred_Lighting();
+		virtual ~PBRShader_Deferred_Lighting();
 
-	void setBiasMatrix(const glm::mat4& mat);
 
-	void setModelMatrix(const glm::mat4& mat);
-	void setModelViewMatrix(const glm::mat4& mat);
-	void setNormalMatrix(const glm::mat3& mat);
+		void setMVP(const glm::mat4& trafo);
+		void setViewGPass(const glm::mat4& mat);
+		void setInverseViewFromGPass(const glm::mat4& mat);
 
-	void setMVP(const glm::mat4& mat);
+		void setBrdfLookupTexture(const Texture* brdfLUT);
 
-	void setViewMatrix(const glm::mat4& mat);
-	void setInverseViewMatrix(const glm::mat4& mat);
+		void setWorldLightDirection(const glm::vec3& direction);
+		void setEyeLightDirection(const glm::vec3& direction);
+		void setLightColor(const glm::vec3& color);
 
-	void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
-	void onMaterialUpdate(const Material* material) override;
 
-private:
 
-	UniformTex mAlbedoMap;
-	UniformTex mAmbientOcclusionMap;
-	UniformTex mEmissionMap;
-	UniformTex mMetalMap;
-	UniformTex mNormalMap;
-	UniformTex mRoughnessMap;
+		void setIrradianceMap(const CubeMap* irradianceMap);
+		void setPrefilterMap(const CubeMap* prefilterMap);
 
-	Uniform mBiasMatrix;
-	glm::mat4 mBiasMatrixSource;
-	UniformTex mBrdfLUT;
+		void setEyeToLightSpaceMatrix(const glm::mat4& mat);
+		void setWorldToLightSpaceMatrix(const glm::mat4& mat);
 
-	UniformTex mIrradianceMap;
-	UniformTex mPrefilterMap;
+		void setShadowMap(const Texture* texture);
+		void setAOMap(const Texture* texture);
+		void setSkyBox(const CubeMap* sky);
 
-	Uniform mLightDirection;
-	Uniform mLightColor;
-	Uniform mLightProjMatrix;
-	Uniform mLightSpaceMatrix;
-	Uniform mLightViewMatrix;
-	Uniform mModelMatrix;
-	Uniform mModelView;
-	Uniform mNormalMatrix;
+		void setCascadedDepthMap(const Texture* cascadedDepthMap);
+		void setCascadedData(const CascadedShadowGL::CascadeData* cascadedData);
 
-	UniformTex mShadowMap;
-	UniformTex mSkybox;
+		void setAlbedoMap(const Texture* texture);
+		void setAoMetalRoughnessMap(const Texture* texture);
+		void setNormalEyeMap(const Texture* texture);
+		void setPositionEyeMap(const Texture* texture);
 
-	Uniform mTransform;
-	Uniform mCameraPos;
 
-	Uniform mView;
-	Uniform mInverseView;
+		void onTransformUpdate(const TransformData& data) override;
 
-	glm::mat4 const* mProjectionMatrixSource;
-	glm::mat4 const* mViewMatrixSource;
-};
+	private:
+		Uniform mTransform;
+		Uniform mViewGPass;
+		Uniform mInverseViewFromGPass;
 
-class PBRShader_Deferred_GeometryGL : public ShaderGL {
-public:
-	PBRShader_Deferred_GeometryGL();
-	virtual ~PBRShader_Deferred_GeometryGL() = default;
+		UniformTex mBrdfLUT;
 
-	void setAlbedoMap(const TextureGL* texture);
-	void setAmbientOcclusionMap(const TextureGL* texture);
-	void setEmissionMap(const TextureGL* texture);
-	void setMetalMap(const TextureGL* texture);
-	void setNormalMap(const TextureGL* texture);
-	void setRoughnessMap(const TextureGL* texture);
+		//Uniform mWorldDirection;
+		Uniform mEyeLightDirection;
+		Uniform mLightColor;
 
+		UniformTex mIrradianceMap;
+		UniformTex mPrefilterMap;
 
-	void setMVP(const glm::mat4& mat);
-	void setModelViewMatrix(const glm::mat4& mat);
-	void setModelView_NormalMatrix(const glm::mat4& mat);
+		Uniform mEyeToLightTrafo;
+		Uniform mWorldToLightTrafo;
 
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
+		UniformTex mShadowMap;
+		UniformTex mAoMap;
+		UniformTex mSkyBox;
 
+		Uniform mBiasMatrix;
+		glm::mat4 mBiasMatrixSource;
 
-	void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
-	void onMaterialUpdate(const Material* material) override;
+		// Cascaded shadow mapping
+		UniformTex mCascadedDepthMap;
+		GLuint cascadeBufferUBO;
 
-private:
 
-	Uniform mTransform;
-	Uniform mModelView;
-	Uniform mModelView_normalMatrix;
+		UniformTex mAlbedoMap;
+		UniformTex mAoMetalRoughnessMap;
+		UniformTex mNormalEyeMap;
+		UniformTex mPositionEyeMap;
+	};
 
-	UniformTex mAlbedoMap;
-	UniformTex mAmbientOcclusionMap;
-	UniformTex mEmissionMap;
-	UniformTex mMetalMap;
-	UniformTex mNormalMap;
-	UniformTex mRoughnessMap;
+	class PBR_ConvolutionShader : public Shader
+	{
+	public:
+		PBR_ConvolutionShader();
 
-	glm::mat4 const* mProjection;
-	glm::mat4 const* mView;
-};
+		virtual ~PBR_ConvolutionShader() = default;
 
-class PBRShader_Deferred_LightingGL : public TransformShaderGL {
-public:
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
+		void setEnvironmentMap(const CubeMap* cubeMap);
 
-	PBRShader_Deferred_LightingGL();
-	virtual ~PBRShader_Deferred_LightingGL();
+	private:
+		Uniform mProjection;
+		Uniform mView;
+		UniformTex mEnvironmentMap;
+	};
 
+	class PBR_PrefilterShader : public Shader
+	{
+	public:
+		PBR_PrefilterShader();
 
-	void setMVP(const glm::mat4& trafo);
-	void setViewGPass(const glm::mat4& mat);
-	void setInverseViewFromGPass(const glm::mat4& mat);
+		virtual ~PBR_PrefilterShader() = default;
 
-	void setBrdfLookupTexture(const TextureGL* brdfLUT);
+		void setMapToPrefilter(CubeMap* cubeMap);
 
-	void setWorldLightDirection(const glm::vec3& direction);
-	void setEyeLightDirection(const glm::vec3& direction);
-	void setLightColor(const glm::vec3& color);
+		void setRoughness(float roughness);
 
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
 
-	
-	void setIrradianceMap(const CubeMapGL* irradianceMap);
-	void setPrefilterMap(const CubeMapGL* prefilterMap);
+	private:
+		Uniform mProjection;
+		Uniform mView;
+		UniformTex mEnvironmentMap;
+		Uniform mRoughness;
+	};
 
-	void setEyeToLightSpaceMatrix(const glm::mat4& mat);
-	void setWorldToLightSpaceMatrix(const glm::mat4& mat);
+	class PBR_BrdfPrecomputeShader : public TransformShaderGL
+	{
+	public:
+		PBR_BrdfPrecomputeShader();
 
-	void setShadowMap(const TextureGL* texture);
-	void setAOMap(const TextureGL* texture);
-	void setSkyBox(const CubeMapGL* sky);
+		virtual ~PBR_BrdfPrecomputeShader() = default;
 
-	void setCascadedDepthMap(const TextureGL* cascadedDepthMap);
-	void setCascadedData(const CascadedShadowGL::CascadeData* cascadedData);
+		void setMVP(const glm::mat4& mat);
 
-	void setAlbedoMap(const TextureGL* texture);
-	void setAoMetalRoughnessMap(const TextureGL* texture);
-	void setNormalEyeMap(const TextureGL* texture);
-	void setPositionEyeMap(const TextureGL* texture);
-
-
-	void onTransformUpdate(const TransformData& data) override;
-
-private:
-	Uniform mTransform;
-	Uniform mViewGPass;
-	Uniform mInverseViewFromGPass;
-
-	UniformTex mBrdfLUT;
-
-	//Uniform mWorldDirection;
-	Uniform mEyeLightDirection;
-	Uniform mLightColor;
-
-	UniformTex mIrradianceMap;
-	UniformTex mPrefilterMap;
-
-	Uniform mEyeToLightTrafo;
-	Uniform mWorldToLightTrafo;
-
-	UniformTex mShadowMap;
-	UniformTex mAoMap;
-	UniformTex mSkyBox;
-
-	Uniform mBiasMatrix;
-	glm::mat4 mBiasMatrixSource;
-
-	// Cascaded shadow mapping
-	UniformTex mCascadedDepthMap;
-	GLuint cascadeBufferUBO;
-
-
-	UniformTex mAlbedoMap;
-	UniformTex mAoMetalRoughnessMap;
-	UniformTex mNormalEyeMap;
-	UniformTex mPositionEyeMap;
-};
-
-class PBR_ConvolutionShaderGL : public ShaderGL
-{
-public:
-	PBR_ConvolutionShaderGL();
-
-	virtual ~PBR_ConvolutionShaderGL() = default;
-
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
-	void setEnvironmentMap(const CubeMapGL* cubeMap);
-
-private:
-	Uniform mProjection;
-	Uniform mView;
-	UniformTex mEnvironmentMap;
-};
-
-class PBR_PrefilterShaderGL : public ShaderGL
-{
-public:
-	PBR_PrefilterShaderGL();
-
-	virtual ~PBR_PrefilterShaderGL() = default;
-
-	void setMapToPrefilter(CubeMapGL* cubeMap);
-
-	void setRoughness(float roughness);
-
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
-
-private:
-	Uniform mProjection;
-	Uniform mView;
-	UniformTex mEnvironmentMap;
-	Uniform mRoughness;
-};
-
-class PBR_BrdfPrecomputeShaderGL : public TransformShaderGL
-{
-public:
-	PBR_BrdfPrecomputeShaderGL();
-
-	virtual ~PBR_BrdfPrecomputeShaderGL() = default;
-
-	void setMVP(const glm::mat4& mat);
-
-	void onTransformUpdate(const TransformData& data) override;
-private:
-	Uniform mTransform;
-};
+		void onTransformUpdate(const TransformData& data) override;
+	private:
+		Uniform mTransform;
+	};
+}

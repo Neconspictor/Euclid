@@ -1,6 +1,7 @@
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
 
 using namespace std;
+using namespace nex;
 
 AbstractMaterialLoader::AbstractMaterialLoader(TextureManagerGL * textureManager)
 {

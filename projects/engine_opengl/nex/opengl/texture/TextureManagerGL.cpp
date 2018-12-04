@@ -22,6 +22,8 @@
 #include <gli/load.hpp>
 #include <gli/save.hpp>
 
+#include <nex/FileSystem.hpp>
+
 using namespace std;
 using namespace nex;
 
@@ -30,17 +32,17 @@ TextureManagerGL TextureManagerGL::instance;
 
 TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr), mFileSystem(nullptr)
 {
-	textureLookupTable = map<string, TextureGL*>();
+	textureLookupTable = map<string, Texture*>();
 
 	//TextureManagerGL::setAnisotropicFiltering(m_anisotropy);
 }
 
-void TextureManagerGL::releaseTexture(TextureGL * tex)
+void TextureManagerGL::releaseTexture(Texture * tex)
 {
 	for (auto&& it = textures.begin(); it != textures.end(); ++it) {
-		if (&(*it) == tex) {
-			GLuint id = it->getTexture();
-			GLCall(glDeleteTextures(1, &id));
+		if ((*it) == tex) {
+			delete ((TextureGL*)*it);
+			*it = nullptr;
 			textures.erase(it);
 			break; // we're done
 		}
@@ -116,7 +118,7 @@ void TextureManagerGL::readGLITest(const char* filePath)
 
 TextureManagerGL::~TextureManagerGL()
 {
-	delete mDefaultImageSampler;
+	release();
 }
 
 void TextureManagerGL::init()
@@ -126,7 +128,7 @@ void TextureManagerGL::init()
 	//glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
-	mDefaultImageSampler = new SamplerGL();
+	mDefaultImageSampler = new SamplerGL({});
 	mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
 	mDefaultImageSampler->setMagFilter(TextureFilter::Linear);
 	mDefaultImageSampler->setWrapR(TextureUVTechnique::Repeat);
@@ -135,13 +137,12 @@ void TextureManagerGL::init()
 	mDefaultImageSampler->setAnisotropy(16.0f);
 }
 
-CubeMapGL * TextureManagerGL::addCubeMap(CubeMapGL cubemap)
+void TextureManagerGL::addCubeMap(CubeMap* cubemap)
 {
-	cubeMaps.emplace_back(move(cubemap));
-	return &cubeMaps.back();
+	cubeMaps.push_back(cubemap);
 }
 
-CubeMapGL* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
+CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left, const string& top,
 	const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
 {
 
@@ -192,24 +193,21 @@ CubeMapGL* TextureManagerGL::createCubeMap(const string& right, const string& le
 	return nullptr;
 }
 
-TextureGL* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID, int width, int height)
+Texture* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID, int width, int height)
 {
-	textures.emplace_back(move(TextureGL(textureID)));
-	TextureGL* pointer = &textures.back();
-	textureLookupTable.insert(pair<string, TextureGL*>(localPathFileName, pointer));
+	Texture* texture = Texture::create();
+	textures.push_back(texture);
+	TextureGL* glTexture = (TextureGL*)texture->getImpl();
+	glTexture->setTexture(textureID);
+	glTexture->setWidth(width);
+	glTexture->setHeight(height);
 
-	pointer->setWidth(width);
-	pointer->setHeight(height);
+	textureLookupTable.insert(std::pair<std::string, nex::Texture*>(localPathFileName, texture));
 
-	return pointer;
+	return texture;
 }
 
-TextureGL* TextureManagerGL::getImageGL(const string& file)
-{
-	return static_cast<TextureGL*>(getImage(file));
-}
-
-TextureGL * TextureManagerGL::getDefaultBlackTexture()
+Texture * TextureManagerGL::getDefaultBlackTexture()
 {
 	return getImage("_intern/black.png", 
 		{
@@ -223,7 +221,7 @@ TextureGL * TextureManagerGL::getDefaultBlackTexture()
 		});
 }
 
-TextureGL * TextureManagerGL::getDefaultNormalTexture()
+Texture * TextureManagerGL::getDefaultNormalTexture()
 {
 	//normal maps shouldn't use mipmaps (important for shading!)
 	return getImage("_intern/default_normal.png", 
@@ -238,7 +236,7 @@ TextureGL * TextureManagerGL::getDefaultNormalTexture()
 		});
 }
 
-TextureGL * TextureManagerGL::getDefaultWhiteTexture()
+Texture * TextureManagerGL::getDefaultWhiteTexture()
 {
 	return getImage("_intern/white.png", 
 		{
@@ -253,7 +251,7 @@ TextureGL * TextureManagerGL::getDefaultWhiteTexture()
 }
 
 
-TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
+Texture* TextureManagerGL::getHDRImage(const string& file, const TextureData& data)
 {
 	auto it = textureLookupTable.find(file);
 
@@ -306,7 +304,7 @@ TextureGL* TextureManagerGL::getHDRImage(const string& file, TextureData data)
 	return createTextureGL(file, hdrTexture, width, height);
 }
 
-TextureGL* TextureManagerGL::getImage(const string& file, TextureData data)
+Texture* TextureManagerGL::getImage(const string& file, const TextureData& data)
 {
 	if (data.pixelDataType == PixelDataType::FLOAT) {
 		return getHDRImage(file, data);
@@ -387,7 +385,7 @@ void TextureManagerGL::loadImages(const string& imageFolder)
 	//TODO!
 }
 
-SamplerGL* TextureManagerGL::getDefaultImageSampler()
+Sampler* TextureManagerGL::getDefaultImageSampler()
 {
 	return mDefaultImageSampler;
 }
@@ -401,17 +399,22 @@ void TextureManagerGL::release()
 {
 	for (auto& texture : textures)
 	{
-		texture.release();
+		delete texture;
 	}
 
 	textures.clear();
 
 	for (auto& map : cubeMaps)
 	{
-		map.release();
+		delete map;
 	}
 
 	cubeMaps.clear();
+
+	textureLookupTable.clear();
+
+	delete mDefaultImageSampler;
+	mDefaultImageSampler = nullptr;
 }
 
 
@@ -422,8 +425,8 @@ TextureManager_Configuration::TextureManager_Configuration(TextureManagerGL* tex
 void TextureManager_Configuration::drawSelf()
 {
 
-	SamplerGL* sampler = m_textureManager->getDefaultImageSampler();
-	float anisotropy = sampler->getAnisotropy();
+	Sampler* sampler = m_textureManager->getDefaultImageSampler();
+	float anisotropy = sampler->getState().anisotropy;
 
 	//float anisotropyBackup = anisotropy;
 

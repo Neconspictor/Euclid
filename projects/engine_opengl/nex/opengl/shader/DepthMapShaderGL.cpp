@@ -1,13 +1,13 @@
 #include <nex/opengl/shader/DepthMapShaderGL.hpp>
 #include <glm/glm.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
 
 using namespace glm;
 using namespace std;
+using namespace nex;
 
-CubeDepthMapShaderGL::CubeDepthMapShaderGL()
+CubeDepthMapShader::CubeDepthMapShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
 
 	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4};
@@ -17,68 +17,66 @@ CubeDepthMapShaderGL::CubeDepthMapShaderGL()
 	mCubeMap = { mProgram->getUniformLocation("cubeDepthMap"), UniformType::CUBE_MAP, 0};
 }
 
-CubeDepthMapShaderGL::~CubeDepthMapShaderGL(){}
-
-void CubeDepthMapShaderGL::useCubeDepthMap(const CubeMapGL* map)
+void CubeDepthMapShader::useCubeDepthMap(const CubeMap* map)
 {
-	mProgram->setTexture(mCubeMap.location, map, mCubeMap.textureUnit);
+	mProgram->setTexture(mCubeMap.location, map, mCubeMap.bindingSlot);
 }
 
-void CubeDepthMapShaderGL::setLightPos(const vec3& pos)
+void CubeDepthMapShader::setLightPos(const vec3& pos)
 {
 	mProgram->setVec3(mLightPos.location, pos);
 }
 
-void CubeDepthMapShaderGL::setRange(float range)
+void CubeDepthMapShader::setRange(float range)
 {
 	mProgram->setFloat(mRange.location, range);
 }
 
-void CubeDepthMapShaderGL::setModelMatrix(const glm::mat4& model)
+void CubeDepthMapShader::setModelMatrix(const glm::mat4& model)
 {
 	mProgram->setMat4(mModel.location, model);
 }
 
-void CubeDepthMapShaderGL::setMVP(const glm::mat4& trafo)
+void CubeDepthMapShader::setMVP(const glm::mat4& trafo)
 {
 	mProgram->setMat4(mTransform.location, trafo);
 }
 
-DepthMapShaderGL::DepthMapShaderGL()
+DepthMapShader::DepthMapShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"depth_map_vs.glsl", "depth_map_fs.glsl");
 
 	mDephTexture = { mProgram->getUniformLocation("depthMap"), UniformType::TEXTURE2D, 0};
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-void DepthMapShaderGL::useDepthMapTexture(const TextureGL* texture)
+void DepthMapShader::useDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.textureUnit);
+	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.bindingSlot);
 }
 
-void DepthMapShaderGL::setMVP(const glm::mat4& trafo)
+void DepthMapShader::setMVP(const glm::mat4& trafo)
 {
 	mProgram->setMat4(mTransform.location, trafo);
 }
 
-VarianceDepthMapShaderGL::VarianceDepthMapShaderGL()
+VarianceDepthMapShader::VarianceDepthMapShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create (
 		"variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
 
 	mDephTexture = { mProgram->getUniformLocation("vDepthMap"), UniformType::TEXTURE2D, 0 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-void VarianceDepthMapShaderGL::setMVP(const glm::mat4& trafo)
+void VarianceDepthMapShader::setMVP(const glm::mat4& trafo)
 {
 	mProgram->setMat4(mTransform.location, trafo);
 }
 
 
-void VarianceDepthMapShaderGL::useVDepthMapTexture(const TextureGL* texture)
+void VarianceDepthMapShader::useVDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.textureUnit);
+	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.bindingSlot);
 }

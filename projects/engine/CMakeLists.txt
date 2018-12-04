@@ -123,6 +123,9 @@ set(
     nex/shader_generator/StringStateTracker.hpp
     
     #nex/texture
+    nex/texture/Sampler.hpp
+    nex/texture/Sprite.cpp
+    nex/texture/Sprite.hpp
     nex/texture/Texture.cpp
     nex/texture/Texture.hpp
 	nex/texture/RenderTarget.cpp
