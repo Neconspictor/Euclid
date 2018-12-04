@@ -1,17 +1,20 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
+
+using namespace nex;
 
 CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
-	mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight)),
-	mDepthPass("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl")
+	mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight))
 {
 	// Directional light shadow map buffer
 	glGenFramebuffers(1, &mCascadedShadowFBO);
 
+
+	mDepthPass = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
 
 	updateTextureArray();
 }
@@ -25,13 +28,13 @@ CascadedShadowGL::~CascadedShadowGL()
 
 void CascadedShadowGL::begin(int cascadeIndex)
 {
-	mDepthPass.bind();
+	mDepthPass->bind();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
 	glScissor(0, 0, mCascadeWidth, mCascadeWidth);
 	glViewport(0, 0, mCascadeWidth, mCascadeWidth);
 
-	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mDepthTextureArray.getTexture(), 0, cascadeIndex);
+	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -54,9 +57,9 @@ void CascadedShadowGL::end()
 	glCullFace(GL_BACK);
 }
 
-TextureGL* CascadedShadowGL::getDepthTextureArray()
+Texture* CascadedShadowGL::getDepthTextureArray()
 {
-	return &mDepthTextureArray;
+	return mDepthTextureArray.get();
 }
 
 void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
@@ -87,16 +90,17 @@ void CascadedShadowGL::render(MeshGL* mesh, const glm::mat4* modelMatrix)
 
 void CascadedShadowGL::updateTextureArray()
 {
-	mDepthTextureArray.release();
+	TextureGL* depthGL = (TextureGL*)mDepthTextureArray->getImpl();
+	depthGL->release();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
 
 	GLuint temp = GL_FALSE;
 	glGenTextures(1, &temp);
-	mDepthTextureArray.setTexture(temp);
+	depthGL->setTexture(temp);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mDepthTextureArray.getTexture());
+	glBindTexture(GL_TEXTURE_2D_ARRAY, *depthGL->getTexture());
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, mCascadeWidth, mCascadeHeight, NUM_CASCADES, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -106,7 +110,7 @@ void CascadedShadowGL::updateTextureArray()
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	//glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthTextureArray.getTexture(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depthGL->getTexture(), 0);
 
 	GLCall(glDrawBuffer(GL_NONE));
 	GLCall(glReadBuffer(GL_NONE));

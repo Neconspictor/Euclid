@@ -40,13 +40,10 @@ set(
     #nex/opengl/material
     nex/opengl/material/AbstractMaterialLoader.hpp
 	nex/opengl/material/AbstractMaterialLoader.cpp
-    nex/opengl/material/BlinnPhongMaterial.hpp
-	nex/opengl/material/BlinnPhongMaterial.cpp
 	nex/opengl/material/BlinnPhongMaterialLoader.hpp
 	nex/opengl/material/BlinnPhongMaterialLoader.cpp
     nex/opengl/material/Material.hpp
-	nex/opengl/material/PbrMaterial.hpp
-	nex/opengl/material/PbrMaterial.cpp
+    nex/opengl/material/Material.cpp
 	nex/opengl/material/PbrMaterialLoader.hpp
 	nex/opengl/material/PbrMaterialLoader.cpp
     
@@ -130,8 +127,6 @@ set(
 	nex/opengl/shadowing/CascadedShadowGL.hpp
     
     #nex/opengl/texture
-    nex/opengl/texture/Image.hpp
-	nex/opengl/texture/Image.cpp
     nex/opengl/texture/RenderTargetGL.cpp
     nex/opengl/texture/RenderTargetGL.hpp
 	nex/opengl/texture/SamplerGL.hpp

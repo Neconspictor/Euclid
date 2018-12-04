@@ -49,7 +49,7 @@ private:
 
 	RenderTargetGL* renderTargetSingleSampled;
 	Sprite screenSprite;
-	DepthMapGL* shadowMap;
+	DepthMap* shadowMap;
 	bool showDepthMap;
 };
 

@@ -1,5 +1,4 @@
 #include <nex/opengl/material/PbrMaterialLoader.hpp>
-#include <nex/opengl/material/PbrMaterial.hpp>
 #include <string>
 
 using namespace std;

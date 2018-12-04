@@ -5,6 +5,7 @@
 //#include <utf8.h>
 
 using namespace std;
+using namespace nex;
 
 
 SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), m_logger("SubSystemProviderGLFW")

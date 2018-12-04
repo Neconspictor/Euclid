@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/util/Math.hpp>
+#include <nex/util/Memory.hpp>
 
 namespace nex
 {
@@ -87,6 +88,7 @@ namespace nex
 		TEXTURE3D,
 
 		// cubemap
+		CUBE_MAP,
 		CUBE_POSITIVE_X,
 		CUBE_NEGATIVE_X,
 		CUBE_POSITIVE_Y,
@@ -145,7 +147,6 @@ namespace nex
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture&) = delete;
 
-		virtual ~Texture();
 		TextureImpl* getImpl() const;
 
 
@@ -155,9 +156,12 @@ namespace nex
 		 * NOTE: Supports only TEXTURE2D and CUBEMAP as targets!
 		 * NOTE: Has to be implemented by renderer backend
 		 *
-		 * @return a TextureGL or an CubeMapGL dependent on the state of isCubeMap
+		 * @return a Texture or an CubeMap dependent on the state of isCubeMap
 		 */
 		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
+
+
+		static Texture* createTexture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
 		// Has to be implemented by renderer backend
 		static Texture* create();
@@ -176,7 +180,7 @@ namespace nex
 
 		int width = 0;
 		int height = 0;
-		TextureImpl* mImpl = nullptr;
+		nex::Guard<TextureImpl> mImpl;
 	};
 
 	class RenderBuffer : public Texture {

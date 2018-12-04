@@ -26,7 +26,7 @@ ShaderManagerGL::~ShaderManagerGL()
 	shaderMap.clear();
 }
 
-ShaderGL* ShaderManagerGL::getShader(ShaderType shaderEnum)
+Shader* ShaderManagerGL::getShader(ShaderType shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
@@ -58,67 +58,59 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::SkyBoxPanorama);
 }
 
-void ShaderManagerGL::validateShader(ShaderProgramGL* shader)
-{
-	if (!dynamic_cast<ShaderProgramGL*>(shader))
-	{
-		throw_with_trace(runtime_error("ShaderManagerGL::validateShader(Shader*): Shader isn't a valid OpenGL shader!"));
-	}
-}
-
 ShaderManagerGL* ShaderManagerGL::get()
 {
 	return instance.get();
 }
 
-ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
+Shader* ShaderManagerGL::createShader(ShaderType shaderEnum)
 {
 	using s = ShaderType;
-	ShaderGL* shaderPtr = nullptr;
+	Shader* shaderPtr = nullptr;
 	switch(shaderEnum)
 	{
 	case s::Pbr: {
-		shaderPtr = new PBRShaderGL();
+		shaderPtr = new PBRShader();
 		break;
 	}
 	case s::Pbr_Deferred_Geometry: {
-		shaderPtr = new PBRShader_Deferred_GeometryGL();
+		shaderPtr = new PBRShader_Deferred_Geometry();
 		break;
 	}
 	case s::Pbr_Deferred_Lighting: {
-		shaderPtr = new PBRShader_Deferred_LightingGL();
+		shaderPtr = new PBRShader_Deferred_Lighting();
 		break;
 	}
 	case s::Pbr_Convolution: {
-		shaderPtr = new PBR_ConvolutionShaderGL();
+		shaderPtr = new PBR_ConvolutionShader();
 		break;
 	}
 	case s::Pbr_Prefilter: {
-		shaderPtr = new PBR_PrefilterShaderGL();
+		shaderPtr = new PBR_PrefilterShader();
 		break;
 	}
 	case s::Pbr_BrdfPrecompute: {
-		shaderPtr = new PBR_BrdfPrecomputeShaderGL();
+		shaderPtr = new PBR_BrdfPrecomputeShader();
 		break;
 	}
 	case s::CubeDepthMap: {
-		shaderPtr = new CubeDepthMapShaderGL();
+		shaderPtr = new CubeDepthMapShader();
 		break;
 	}
 	case s::DepthMap: {
-		shaderPtr = new DepthMapShaderGL();
+		shaderPtr = new DepthMapShader();
 		break;
 	}
 	case s::GaussianBlurHorizontal: {
-		shaderPtr = new GaussianBlurHorizontalShaderGL();
+		shaderPtr = new GaussianBlurHorizontalShader();
 		break;
 	}
 	case s::GaussianBlurVertical: {
-		shaderPtr = new GaussianBlurVerticalShaderGL();
+		shaderPtr = new GaussianBlurVerticalShader();
 		break;
 	}
 	case s::Shadow: {
-		shaderPtr = new ShadowShaderGL();
+		shaderPtr = new ShadowShader();
 		break;
 	}
 	case s::Screen: {
@@ -126,15 +118,15 @@ ShaderGL* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::SkyBox: {
-		shaderPtr = new SkyBoxShaderGL();
+		shaderPtr = new SkyBoxShader();
 		break;
 	}
 	case s::SkyBoxEquirectangular: {
-		shaderPtr = new EquirectangularSkyBoxShaderGL();
+		shaderPtr = new EquirectangularSkyBoxShader();
 		break;
 	}
 	case s::SkyBoxPanorama: {
-		shaderPtr = new PanoramaSkyBoxShaderGL();
+		shaderPtr = new PanoramaSkyBoxShader();
 		break;
 	}
 	default: {

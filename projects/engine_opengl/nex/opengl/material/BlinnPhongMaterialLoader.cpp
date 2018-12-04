@@ -1,5 +1,4 @@
 #include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
-#include <nex/opengl/material/BlinnPhongMaterial.hpp>
 #include <string>
 
 using namespace std;

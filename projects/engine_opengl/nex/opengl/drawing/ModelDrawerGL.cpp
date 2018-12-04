@@ -5,27 +5,28 @@
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
 
 using namespace glm;
 using namespace std;
+using namespace nex;
 
-ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
+nex::ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
 {
 	assert(renderer != nullptr);
 }
 
-void ModelDrawerGL::vobRenderCallbackTest(Vob* vob)
+void nex::ModelDrawerGL::vobRenderCallbackTest(Vob* vob)
 {
 	SceneNode* root = nullptr;
 	ModelDrawerGL* drawer = nullptr;
 	//drawer->draw(root, vobRenderCallbackTest);
 }
 
-void ModelDrawerGL::draw(SceneNode* root, ShaderGL* shader)
+void nex::ModelDrawerGL::draw(SceneNode* root, Shader* shader)
 {
 	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
 		draw(*it, shader);
@@ -44,7 +45,7 @@ void ModelDrawerGL::draw(SceneNode* root, ShaderGL* shader)
 	}
 }
 
-void ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
+void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
 {
 	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -94,7 +95,7 @@ void ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
 	}
 }
 
-void ModelDrawerGL::draw(ModelGL* model, ShaderGL* shader)
+void nex::ModelDrawerGL::draw(ModelGL* model, Shader* shader)
 {
 	//TODO
 	//shader->bind();
@@ -180,7 +181,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void ModelDrawerGL::drawWired(ModelGL* model, ShaderGL* shader, int lineStrength)
+void nex::ModelDrawerGL::drawWired(ModelGL* model, Shader* shader, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();

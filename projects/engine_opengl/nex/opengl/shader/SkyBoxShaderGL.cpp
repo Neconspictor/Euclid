@@ -1,11 +1,11 @@
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
 
 using namespace glm;
+using namespace nex;
 
-SkyBoxShaderGL::SkyBoxShaderGL()
+SkyBoxShader::SkyBoxShader()
 {
-	mProgram = new ShaderProgramGL("skybox_vs.glsl", "skybox_fs.glsl");
+	mProgram = ShaderProgram::create("skybox_vs.glsl", "skybox_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
@@ -13,33 +13,33 @@ SkyBoxShaderGL::SkyBoxShaderGL()
 	mSkyTexture = { mProgram->getUniformLocation("skybox"), UniformType::CUBE_MAP, 0 };
 }
 
-void SkyBoxShaderGL::setMVP(const glm::mat4& mat)
+void SkyBoxShader::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
 
-void SkyBoxShaderGL::setProjection(const glm::mat4& mat)
+void SkyBoxShader::setProjection(const glm::mat4& mat)
 {
 	mProgram->setMat4(mProjection.location, mat);
 }
 
-void SkyBoxShaderGL::setView(const glm::mat4& mat)
+void SkyBoxShader::setView(const glm::mat4& mat)
 {
 	mProgram->setMat4(mView.location, mat);
 }
 
-void SkyBoxShaderGL::setSkyTexture(const CubeMapGL* texture)
+void SkyBoxShader::setSkyTexture(const CubeMap* texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
 }
 
-void SkyBoxShaderGL::setupRenderState()
+void SkyBoxShader::setupRenderState()
 {
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 }
 
-void SkyBoxShaderGL::reverseRenderState()
+void SkyBoxShader::reverseRenderState()
 {
 	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	glDepthMask(GL_TRUE);
@@ -60,28 +60,28 @@ void SkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 }*/
 
 
-PanoramaSkyBoxShaderGL::PanoramaSkyBoxShaderGL()
+PanoramaSkyBoxShader::PanoramaSkyBoxShader()
 {
-	mProgram = new ShaderProgramGL("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
+	mProgram = ShaderProgram::create("panorama_skybox_vs.glsl", "panorama_skybox_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 	mSkyTexture = { mProgram->getUniformLocation("panorama"), UniformType::TEXTURE2D, 0 };
 }
 
-void PanoramaSkyBoxShaderGL::setProjection(const glm::mat4& mat)
+void PanoramaSkyBoxShader::setProjection(const glm::mat4& mat)
 {
 	mProgram->setMat4(mProjection.location, mat);
 }
 
-void PanoramaSkyBoxShaderGL::setView(const glm::mat4& mat)
+void PanoramaSkyBoxShader::setView(const glm::mat4& mat)
 {
 	mProgram->setMat4(mView.location, mat);
 }
 
-void PanoramaSkyBoxShaderGL::setSkyTexture(const TextureGL* texture)
+void PanoramaSkyBoxShader::setSkyTexture(const Texture* texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
 }
 
 //TODO
@@ -99,28 +99,28 @@ void PanoramaSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
 }*/
 
 
-EquirectangularSkyBoxShaderGL::EquirectangularSkyBoxShaderGL()
+EquirectangularSkyBoxShader::EquirectangularSkyBoxShader()
 {
-	mProgram = new ShaderProgramGL("skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
+	mProgram = ShaderProgram::create("skybox_equirectangular_vs.glsl", "skybox_equirectangular_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
 	mSkyTexture = { mProgram->getUniformLocation("equirectangularMap"), UniformType::TEXTURE2D, 0 };
 }
 
-void EquirectangularSkyBoxShaderGL::setProjection(const glm::mat4& mat)
+void EquirectangularSkyBoxShader::setProjection(const glm::mat4& mat)
 {
 	mProgram->setMat4(mProjection.location, mat);
 }
 
-void EquirectangularSkyBoxShaderGL::setView(const glm::mat4& mat)
+void EquirectangularSkyBoxShader::setView(const glm::mat4& mat)
 {
 	mProgram->setMat4(mView.location, mat);
 }
 
-void EquirectangularSkyBoxShaderGL::setSkyTexture(const TextureGL * texture)
+void EquirectangularSkyBoxShader::setSkyTexture(const Texture * texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.textureUnit);
+	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
 }
 
 //TODO

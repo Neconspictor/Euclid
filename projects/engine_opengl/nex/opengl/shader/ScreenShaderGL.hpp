@@ -1,19 +1,20 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/shader/Shader.hpp>
 
-class ScreenShaderGL : public TransformShaderGL
+namespace nex
 {
-public:
-	ScreenShaderGL();
+	class ScreenShader : public TransformShaderGL
+	{
+	public:
+		ScreenShader();
 
-	virtual ~ScreenShaderGL() = default;
+		void useTexture(const Texture* texture);
 
-	void useTexture(const TextureGL* texture);
+		void setMVP(const glm::mat4& mat);
 
-	void setMVP(const glm::mat4& mat);
-
-	void onTransformUpdate(const TransformData& data) override;
-protected:
-	UniformTex mTexture;
-	Uniform mTransform;
-};
+		void onTransformUpdate(const TransformData& data) override;
+	protected:
+		UniformTex mTexture;
+		Uniform mTransform;
+	};
+}

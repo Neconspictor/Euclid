@@ -3,51 +3,56 @@
 #include <string>
 #include <glad/glad.h>
 
-class WindowGLFW;
+
 struct GLFWcursor;
 
-class ImGUI_GL : public ImGUI_Impl
+namespace nex
 {
-public:
-	ImGUI_GL(WindowGLFW& window, std::string glsl_version = "#version 150");
+	class WindowGLFW;
 
-	virtual ~ImGUI_GL();
+	class ImGUI_GL : public ImGUI_Impl
+	{
+	public:
+		ImGUI_GL(WindowGLFW& window, std::string glsl_version = "#version 150");
 
-	virtual void newFrame() override;
+		virtual ~ImGUI_GL();
 
-	virtual void renderDrawData(ImDrawData* draw_data) override;
+		void newFrame() override;
 
-	void shutdown();
+		void renderDrawData(ImDrawData* draw_data) override;
+
+		void shutdown();
 
 
 
-	static const char* getClipboardText(void* user_data);
+		static const char* getClipboardText(void* user_data);
 
-	static void setClipboardText(void* user_data, const char* text);
+		static void setClipboardText(void* user_data, const char* text);
 
-protected:
-	void init();
+	protected:
+		void init();
 
-	bool createDeviceObjects();
+		bool createDeviceObjects();
 
-	void createFontsTexture();
+		void createFontsTexture();
 
-protected:
-	WindowGLFW* window;
-	std::string glsl_version;
-	GLFWcursor*  g_MouseCursors[ImGuiMouseCursor_COUNT];
-	bool         g_MouseJustPressed[3];
-	double g_Time;
-	GLuint g_FontTexture;
-	GLuint g_ShaderHandle; 
-	GLuint g_VertHandle;
-	GLuint g_FragHandle;
-	GLint  g_AttribLocationTex; 
-	GLint  g_AttribLocationProjMtx;
-	GLint  g_AttribLocationPosition;
-	GLint g_AttribLocationUV; 
-	GLint g_AttribLocationColor;
-	GLuint g_VboHandle;
-	GLuint g_ElementsHandle;
-	nex::Logger m_logger;
-};
+	protected:
+		WindowGLFW* window;
+		std::string glsl_version;
+		GLFWcursor*  g_MouseCursors[ImGuiMouseCursor_COUNT];
+		bool         g_MouseJustPressed[3];
+		double g_Time;
+		GLuint g_FontTexture;
+		GLuint g_ShaderHandle;
+		GLuint g_VertHandle;
+		GLuint g_FragHandle;
+		GLint  g_AttribLocationTex;
+		GLint  g_AttribLocationProjMtx;
+		GLint  g_AttribLocationPosition;
+		GLint g_AttribLocationUV;
+		GLint g_AttribLocationColor;
+		GLuint g_VboHandle;
+		GLuint g_ElementsHandle;
+		nex::Logger m_logger;
+	};
+}

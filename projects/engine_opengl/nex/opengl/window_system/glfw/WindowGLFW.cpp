@@ -42,10 +42,6 @@ WindowGLFW & WindowGLFW::operator=(WindowGLFW && o)
 	return *this;
 }
 
-WindowGLFW::~WindowGLFW()
-{
-}
-
 void WindowGLFW::activate()
 {
 	glfwMakeContextCurrent(window);

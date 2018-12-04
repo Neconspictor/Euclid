@@ -1,30 +1,31 @@
 #include <nex/opengl/shader/ScreenShaderGL.hpp>
 #include <glm/glm.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
 #include <glm/gtc/type_ptr.inl>
+
+using namespace nex;
 
 using namespace std;
 using namespace glm;
 
-ScreenShaderGL::ScreenShaderGL()
+ScreenShader::ScreenShader()
 {
-	mProgram = new ShaderProgramGL("screen_vs.glsl", "screen_fs.glsl");
+	mProgram = ShaderProgram::create("screen_vs.glsl", "screen_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	mTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0};
 }
 
-void ScreenShaderGL::useTexture(const TextureGL* texture)
+void ScreenShader::useTexture(const Texture* texture)
 {
-	mProgram->setTexture(mTexture.location, texture, mTexture.textureUnit);
+	mProgram->setTexture(mTexture.location, texture, mTexture.bindingSlot);
 }
 
-void ScreenShaderGL::setMVP(const glm::mat4& mat)
+void ScreenShader::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
 
-void ScreenShaderGL::onTransformUpdate(const TransformData& data)
+void ScreenShader::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection)*(*data.view)*(*data.model));
 }

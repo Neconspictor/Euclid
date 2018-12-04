@@ -92,7 +92,7 @@ void PBRShader::setRoughnessMap(const Texture* texture)
 	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
 }
 
-void PBRShader::setBrdfLookupTexture(const TextuTexturereGL* brdfLUT)
+void PBRShader::setBrdfLookupTexture(const Texture* brdfLUT)
 {
 	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
 }
@@ -253,9 +253,9 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL()
+PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
@@ -297,107 +297,107 @@ PBRShader_Deferred_LightingGL::PBRShader_Deferred_LightingGL()
 	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
 }
 
-PBRShader_Deferred_LightingGL::~PBRShader_Deferred_LightingGL()
+PBRShader_Deferred_Lighting::~PBRShader_Deferred_Lighting()
 {
 	glDeleteBuffers(1, &cascadeBufferUBO);
 }
 
-void PBRShader_Deferred_LightingGL::setMVP(const glm::mat4& trafo)
+void PBRShader_Deferred_Lighting::setMVP(const glm::mat4& trafo)
 {
 	mProgram->setMat4(mTransform.location, trafo);
 }
 
-void PBRShader_Deferred_LightingGL::setViewGPass(const glm::mat4& mat)
+void PBRShader_Deferred_Lighting::setViewGPass(const glm::mat4& mat)
 {
 	mProgram->setMat4(mViewGPass.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setInverseViewFromGPass(const glm::mat4& mat)
+void PBRShader_Deferred_Lighting::setInverseViewFromGPass(const glm::mat4& mat)
 {
 	mProgram->setMat4(mInverseViewFromGPass.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setBrdfLookupTexture(const TextureGL* brdfLUT)
+void PBRShader_Deferred_Lighting::setBrdfLookupTexture(const Texture* brdfLUT)
 {
-	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.textureUnit);
+	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setWorldLightDirection(const glm::vec3& direction)
+void PBRShader_Deferred_Lighting::setWorldLightDirection(const glm::vec3& direction)
 {
 	//mProgram->setVec3(mWorldDirection.location, direction);
 }
 
-void PBRShader_Deferred_LightingGL::setEyeLightDirection(const glm::vec3& direction)
+void PBRShader_Deferred_Lighting::setEyeLightDirection(const glm::vec3& direction)
 {
 	mProgram->setVec3(mEyeLightDirection.location, direction);
 }
 
-void PBRShader_Deferred_LightingGL::setLightColor(const glm::vec3& color)
+void PBRShader_Deferred_Lighting::setLightColor(const glm::vec3& color)
 {
 	mProgram->setVec3(mLightColor.location, color);
 }
 
-void PBRShader_Deferred_LightingGL::setIrradianceMap(const CubeMapGL* irradianceMap)
+void PBRShader_Deferred_Lighting::setIrradianceMap(const CubeMap* irradianceMap)
 {
-	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.textureUnit);
+	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setPrefilterMap(const CubeMapGL* prefilterMap)
+void PBRShader_Deferred_Lighting::setPrefilterMap(const CubeMap* prefilterMap)
 {
-	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.textureUnit);
+	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setEyeToLightSpaceMatrix(const glm::mat4& mat)
+void PBRShader_Deferred_Lighting::setEyeToLightSpaceMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mEyeToLightTrafo.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setWorldToLightSpaceMatrix(const glm::mat4& mat)
+void PBRShader_Deferred_Lighting::setWorldToLightSpaceMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mWorldToLightTrafo.location, mat);
 }
 
-void PBRShader_Deferred_LightingGL::setShadowMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setShadowMap(const Texture* texture)
 {
-	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.textureUnit);
+	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setAOMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setAOMap(const Texture* texture)
 {
-	mProgram->setTexture(mAoMap.location, texture, mAoMap.textureUnit);
+	mProgram->setTexture(mAoMap.location, texture, mAoMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setSkyBox(const CubeMapGL* sky)
+void PBRShader_Deferred_Lighting::setSkyBox(const CubeMap* sky)
 {
-	mProgram->setTexture(mSkyBox.location, sky, mSkyBox.textureUnit);
+	mProgram->setTexture(mSkyBox.location, sky, mSkyBox.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setCascadedDepthMap(const TextureGL* cascadedDepthMap)
+void PBRShader_Deferred_Lighting::setCascadedDepthMap(const Texture* cascadedDepthMap)
 {
-	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.textureUnit);
+	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setAlbedoMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setAlbedoMap(const Texture* texture)
 {
-	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.textureUnit);
+	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setAoMetalRoughnessMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setAoMetalRoughnessMap(const Texture* texture)
 {
-	mProgram->setTexture(mAoMetalRoughnessMap.location, texture, mAoMetalRoughnessMap.textureUnit);
+	mProgram->setTexture(mAoMetalRoughnessMap.location, texture, mAoMetalRoughnessMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setNormalEyeMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setNormalEyeMap(const Texture* texture)
 {
-	mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.textureUnit);
+	mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::setPositionEyeMap(const TextureGL* texture)
+void PBRShader_Deferred_Lighting::setPositionEyeMap(const Texture* texture)
 {
-	mProgram->setTexture(mPositionEyeMap.location, texture, mPositionEyeMap.textureUnit);
+	mProgram->setTexture(mPositionEyeMap.location, texture, mPositionEyeMap.bindingSlot);
 }
 
-void PBRShader_Deferred_LightingGL::onTransformUpdate(const TransformData& data)
+void PBRShader_Deferred_Lighting::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection) * (*data.view) * (*data.model));
 }
@@ -445,16 +445,16 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 }*/
 
 
-void PBRShader_Deferred_LightingGL::setCascadedData(const CascadedShadowGL::CascadeData* cascadedData)
+void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadowGL::CascadeData* cascadedData)
 {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 }
 
 
-PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL(): mProjection(nullptr), mView(nullptr)
+PBRShader_Deferred_Geometry::PBRShader_Deferred_Geometry(): mProjection(nullptr), mView(nullptr)
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
 
 	mTransform = {mProgram->getUniformLocation("transform"), UniformType::MAT4};
@@ -472,62 +472,62 @@ PBRShader_Deferred_GeometryGL::PBRShader_Deferred_GeometryGL(): mProjection(null
 	mRoughnessMap = {mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5};
 }
 
-void PBRShader_Deferred_GeometryGL::setAlbedoMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setAlbedoMap(const Texture* texture)
 {
-	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.textureUnit);
+	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setAmbientOcclusionMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setAmbientOcclusionMap(const Texture* texture)
 {
-	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.textureUnit);
+	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setEmissionMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setEmissionMap(const Texture* texture)
 {
-	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.textureUnit);
+	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setMetalMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setMetalMap(const Texture* texture)
 {
-	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.textureUnit);
+	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setNormalMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setNormalMap(const Texture* texture)
 {
-	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.textureUnit);
+	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setRoughnessMap(const TextureGL* texture)
+void PBRShader_Deferred_Geometry::setRoughnessMap(const Texture* texture)
 {
-	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.textureUnit);
+	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
 }
 
-void PBRShader_Deferred_GeometryGL::setMVP(const glm::mat4& mat)
+void PBRShader_Deferred_Geometry::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
 
-void PBRShader_Deferred_GeometryGL::setModelViewMatrix(const glm::mat4& mat)
+void PBRShader_Deferred_Geometry::setModelViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mModelView.location, mat);
 }
 
-void PBRShader_Deferred_GeometryGL::setModelView_NormalMatrix(const glm::mat4& mat)
+void PBRShader_Deferred_Geometry::setModelView_NormalMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mModelView_normalMatrix.location, mat);
 }
 
-void PBRShader_Deferred_GeometryGL::setProjection(const glm::mat4& mat)
+void PBRShader_Deferred_Geometry::setProjection(const glm::mat4& mat)
 {
 	mProjection = &mat;
 }
 
-void PBRShader_Deferred_GeometryGL::setView(const glm::mat4& mat)
+void PBRShader_Deferred_Geometry::setView(const glm::mat4& mat)
 {
 	mView = &mat;
 }
 
-void PBRShader_Deferred_GeometryGL::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
+void PBRShader_Deferred_Geometry::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
 	mat4 modelView = *mView * modelMatrix;
 
@@ -536,7 +536,7 @@ void PBRShader_Deferred_GeometryGL::onModelMatrixUpdate(const glm::mat4 & modelM
 	setModelView_NormalMatrix(transpose(inverse(mat3(modelView))));
 }
 
-void PBRShader_Deferred_GeometryGL::onMaterialUpdate(const Material* materialSource)
+void PBRShader_Deferred_Geometry::onMaterialUpdate(const Material* materialSource)
 {
 	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
 
@@ -597,9 +597,9 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 */
 
 
-PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL()
+PBR_ConvolutionShader::PBR_ConvolutionShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_convolution_vs.glsl", "pbr/pbr_convolution_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
@@ -607,24 +607,24 @@ PBR_ConvolutionShaderGL::PBR_ConvolutionShaderGL()
 	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0};
 }
 
-void PBR_ConvolutionShaderGL::setProjection(const glm::mat4& mat)
+void PBR_ConvolutionShader::setProjection(const glm::mat4& mat)
 {
 	mProgram->setMat4(mProjection.location, mat);
 }
 
-void PBR_ConvolutionShaderGL::setView(const glm::mat4& mat)
+void PBR_ConvolutionShader::setView(const glm::mat4& mat)
 {
 	mProgram->setMat4(mView.location, mat);
 }
 
-void PBR_ConvolutionShaderGL::setEnvironmentMap(const CubeMapGL * cubeMap)
+void PBR_ConvolutionShader::setEnvironmentMap(const CubeMap * cubeMap)
 {
-	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.textureUnit);
+	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.bindingSlot);
 }
 
-PBR_PrefilterShaderGL::PBR_PrefilterShaderGL()
+PBR_PrefilterShader::PBR_PrefilterShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_prefilter_cubemap_vs.glsl", "pbr/pbr_prefilter_cubemap_fs.glsl");
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
@@ -633,40 +633,40 @@ PBR_PrefilterShaderGL::PBR_PrefilterShaderGL()
 	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
 }
 
-void PBR_PrefilterShaderGL::setMapToPrefilter(CubeMapGL * cubeMap)
+void PBR_PrefilterShader::setMapToPrefilter(CubeMap * cubeMap)
 {
-	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.textureUnit);
+	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.bindingSlot);
 }
 
-void PBR_PrefilterShaderGL::setRoughness(float roughness)
+void PBR_PrefilterShader::setRoughness(float roughness)
 {
 	mProgram->setFloat(mRoughness.location, roughness);
 }
 
-void PBR_PrefilterShaderGL::setProjection(const glm::mat4& mat)
+void PBR_PrefilterShader::setProjection(const glm::mat4& mat)
 {
 	mProgram->setMat4(mProjection.location, mat);
 }
 
-void PBR_PrefilterShaderGL::setView(const glm::mat4& mat)
+void PBR_PrefilterShader::setView(const glm::mat4& mat)
 {
 	mProgram->setMat4(mView.location, mat);
 }
 
-PBR_BrdfPrecomputeShaderGL::PBR_BrdfPrecomputeShaderGL()
+PBR_BrdfPrecomputeShader::PBR_BrdfPrecomputeShader()
 {
-	mProgram = new ShaderProgramGL(
+	mProgram = ShaderProgram::create(
 		"pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
-void PBR_BrdfPrecomputeShaderGL::setMVP(const glm::mat4& mat)
+void PBR_BrdfPrecomputeShader::setMVP(const glm::mat4& mat)
 {
 	mProgram->setMat4(mTransform.location, mat);
 }
 
-void PBR_BrdfPrecomputeShaderGL::onTransformUpdate(const TransformData& data)
+void PBR_BrdfPrecomputeShader::onTransformUpdate(const TransformData& data)
 {
 	setMVP(*data.projection * (*data.view) * (*data.model));
 }

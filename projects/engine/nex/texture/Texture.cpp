@@ -1,5 +1,4 @@
 #include <nex/texture/Texture.hpp>
-#include <memory>
 #include <cassert>
 #include <nex/util/ExceptionHandling.hpp>
 #include <glm/gtc/matrix_transform.inl>
@@ -47,15 +46,9 @@ bool nex::isCubeTarget(TextureTarget target)
 	return first <= current && last >= current;
 }
 
-nex::Texture::~Texture()
-{
-	delete mImpl;
-	mImpl = nullptr;
-}
-
 nex::TextureImpl* nex::Texture::getImpl() const
 {
-	return mImpl;
+	return mImpl.get();
 }
 
 unsigned nex::Texture::getHeight() const

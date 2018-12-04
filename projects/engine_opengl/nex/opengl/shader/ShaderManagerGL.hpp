@@ -1,56 +1,55 @@
 #pragma once
 #include <map>
 #include <memory>
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/common/Log.hpp>
 
-/**
- * An opengl implementation of a shader manager
- */
- /**
-  * An interface for creating, receiving and storing renderer independent shaders
-  */
-class ShaderManagerGL
+namespace nex
 {
-public:
-	virtual ~ShaderManagerGL();
-
 	/**
-	 * Provides a singleton of a shader by its shader enumeration.
-	 * NOTE: A ShaderInitException can be thrown if the specified has to be created but
-	 * an error occured during initialization.
+	 * An opengl implementation of a shader manager
 	 */
-	ShaderGL* getShader(ShaderType shader);
+	 /**
+	  * An interface for creating, receiving and storing renderer independent shaders
+	  */
+	class ShaderManagerGL
+	{
+	public:
+		virtual ~ShaderManagerGL();
 
-	/**
-	 * Loads all shaders.
-	 * NOTE: A ShaderInitException is thrown if one shaders couldn't be created.
-	 */
-	void loadShaders();
+		/**
+		 * Provides a singleton of a shader by its shader enumeration.
+		 * NOTE: A ShaderInitException can be thrown if the specified has to be created but
+		 * an error occured during initialization.
+		 */
+		Shader* getShader(ShaderType shader);
 
-	/**
-	* Checks, if the specified shader is an implementation of the underlying render engine
-	* NOTE: A runtime error is thrown if the validation fails!
-	*/
-	void validateShader(ShaderProgramGL* shader);
-	/**
-	* Provides access the shader manager singleton.
-	*/
-	static ShaderManagerGL* get();
+		/**
+		 * Loads all shaders.
+		 * NOTE: A ShaderInitException is thrown if one shaders couldn't be created.
+		 */
+		void loadShaders();
 
-private:
-	std::map<ShaderType, ShaderGL*> shaderMap;
-	nex::Logger m_logger;
+		/**
+		* Provides access the shader manager singleton.
+		*/
+		static ShaderManagerGL* get();
 
-	// this class is a singleton, thus private constructor
-	ShaderManagerGL();
+	private:
+		std::map<ShaderType, Shader*> shaderMap;
+		nex::Logger m_logger;
 
-	/**
-	 * Creates a shader by its enum and registers it to the shader map.
-	 * @return : A pointer to the created shader.
-	 *
-	 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
-	 */
-	ShaderGL* createShader(ShaderType shaderEnum);
+		// this class is a singleton, thus private constructor
+		ShaderManagerGL();
 
-	static std::unique_ptr<ShaderManagerGL> instance;
-};
+		/**
+		 * Creates a shader by its enum and registers it to the shader map.
+		 * @return : A pointer to the created shader.
+		 *
+		 * NOTE: A ShaderInitException will be thrown if the shader can't be created.
+		 */
+		Shader* createShader(ShaderType shaderEnum);
+
+		static std::unique_ptr<ShaderManagerGL> instance;
+	};
+}

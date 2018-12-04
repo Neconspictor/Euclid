@@ -49,20 +49,20 @@ void TextureManagerGL::releaseTexture(Texture * tex)
 	}
 }
 
-void TextureManagerGL::writeHDR(const GenericImageGL& imageData, const char* filePath)
+void TextureManagerGL::writeHDR(const GenericImage& imageData, const char* filePath)
 {
 	stbi__flip_vertically_on_write = true;
 	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.get());
 }
 
-void TextureManagerGL::readImage(GenericImageGL* imageData, const char* filePath)
+void TextureManagerGL::readImage(GenericImage* imageData, const char* filePath)
 {
 	FILE* file = nullptr;
 	errno_t err;
 	if ((err = fopen_s(&file, filePath, "rb")) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 
-	std::fread(imageData, sizeof(GenericImageGL), 1, file);
+	std::fread(imageData, sizeof(GenericImage), 1, file);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
@@ -78,14 +78,14 @@ void TextureManagerGL::readImage(GenericImageGL* imageData, const char* filePath
 	fclose(file);
 }
 
-void TextureManagerGL::writeImage(const GenericImageGL& imageData, const char* filePath)
+void TextureManagerGL::writeImage(const GenericImage& imageData, const char* filePath)
 {
 	FILE* file = nullptr;
 	errno_t err;
 	if ((err = fopen_s(&file, filePath, "w+b")) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
 
-	std::fwrite(&imageData, sizeof(GenericImageGL), 1, file);
+	std::fwrite(&imageData, sizeof(GenericImage), 1, file);
 	std::fwrite(imageData.pixels.get(), imageData.bufSize, 1, file);
 
 	if (std::ferror(file) != 0)
@@ -128,7 +128,7 @@ void TextureManagerGL::init()
 	//glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
-	mDefaultImageSampler = new SamplerGL({});
+	mDefaultImageSampler = Sampler::create({});
 	mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
 	mDefaultImageSampler->setMagFilter(TextureFilter::Linear);
 	mDefaultImageSampler->setWrapR(TextureUVTechnique::Repeat);
@@ -267,7 +267,7 @@ Texture* TextureManagerGL::getHDRImage(const string& file, const TextureData& da
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
 	int width, height, nrComponents;
 	float *rawData = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
-	unsigned int hdrTexture;
+
 	if (!rawData) {
 		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
@@ -275,33 +275,17 @@ Texture* TextureManagerGL::getHDRImage(const string& file, const TextureData& da
 		throw_with_trace(runtime_error(ss.str()));
 	}
 
-	GLuint format = TextureGL::getFormat(nrComponents);
-	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
-	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
-
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	glGenTextures(1, &hdrTexture);
-	glBindTexture(GL_TEXTURE_2D, hdrTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, pixelDataType, rawData);
-
-	GLint minFilter = static_cast<GLuint>(data.minFilter);
-	GLint magFilter = static_cast<GLuint>(data.magFilter);
-	GLint uvTechnique = static_cast<GLuint>(data.uvTechnique);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
-
-	if (data.generateMipMaps)
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-
+	Texture* texture = Texture::createTexture2D(width, height, data, rawData);
 	stbi_image_free(rawData);
 
-	return createTextureGL(file, hdrTexture, width, height);
+	LOG(m_logger, Debug) << "texture to load: " << path;
+
+	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
+
+	textures.push_back(texture);
+	textureLookupTable.insert(std::pair<std::string, nex::Texture*>(path, texture));
+
+	return texture;
 }
 
 Texture* TextureManagerGL::getImage(const string& file, const TextureData& data)
@@ -319,13 +303,11 @@ Texture* TextureManagerGL::getImage(const string& file, const TextureData& data)
 	}
 
 
-	const auto resolvedPath = mFileSystem->resolvePath(file);
-
-
+	const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
 	int width, height, nrComponents;
-	unsigned char* rawData = stbi_load(resolvedPath.generic_string().c_str(), &width, &height, &nrComponents, 0);
+	unsigned char* rawData = stbi_load(resolvedPath.c_str(), &width, &height, &nrComponents, 0);
 	unsigned int textureID;
 	if (!rawData) {
 		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
@@ -335,44 +317,19 @@ Texture* TextureManagerGL::getImage(const string& file, const TextureData& data)
 	}
 
 
-	GLuint format = TextureGL::getFormat(nrComponents);
-	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
-	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	//GLuint format = TextureGL::getFormat(nrComponents);
 
-	GLuint minFilter = static_cast<GLuint>(data.minFilter);
-	GLuint magFilter = static_cast<GLuint>(data.magFilter);
-	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
-
-
-
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, pixelDataType, rawData);
-
-	if (data.generateMipMaps)
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
-
-	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-
+	Texture* texture = Texture::createTexture2D(width, height, data, rawData);
 	stbi_image_free(rawData);
-
-	float aniso = 0.0f;
-	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 
 	LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-	return createTextureGL(file, textureID, width, height);
+	textures.push_back(texture);
+	textureLookupTable.insert(std::pair<std::string, nex::Texture*>(resolvedPath, texture));
+
+	return texture;
 }
 
 void TextureManagerGL::init(FileSystem* textureFileSystem)

@@ -1,63 +1,60 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/texture/Texture.hpp>
 
-class SkyBoxShaderGL : public ShaderGL
+namespace nex
 {
-public:
-	SkyBoxShaderGL();
+	class SkyBoxShader : public Shader
+	{
+	public:
+		SkyBoxShader();
 
-	virtual ~SkyBoxShaderGL() = default;
+		void setMVP(const glm::mat4& mat);
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
 
-	void setMVP(const glm::mat4& mat);
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
+		void setSkyTexture(const CubeMap* sky);
 
-	void setSkyTexture(const CubeMapGL* sky);
+		void setupRenderState() override;
 
-	void setupRenderState() override;
+		void reverseRenderState() override;
 
-	void reverseRenderState() override;
+	private:
 
-private:
+		UniformTex mSkyTexture;
+		Uniform mTransform;
+		Uniform mProjection;
+		Uniform mView;
+	};
 
-	UniformTex mSkyTexture;
-	Uniform mTransform;
-	Uniform mProjection;
-	Uniform mView;
-};
+	class PanoramaSkyBoxShader : public Shader
+	{
+	public:
+		PanoramaSkyBoxShader();
 
-class PanoramaSkyBoxShaderGL : public ShaderGL
-{
-public:
-	PanoramaSkyBoxShaderGL();
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
+		void setSkyTexture(const Texture* tex);
 
-	virtual ~PanoramaSkyBoxShaderGL() = default;
+	private:
 
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
-	void setSkyTexture(const TextureGL* tex);
+		UniformTex mSkyTexture;
+		Uniform mProjection;
+		Uniform mView;
+	};
 
-private:
+	class EquirectangularSkyBoxShader : public Shader
+	{
+	public:
+		EquirectangularSkyBoxShader();
 
-	UniformTex mSkyTexture;
-	Uniform mProjection;
-	Uniform mView;
-};
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
+		void setSkyTexture(const Texture* texture);
 
-class EquirectangularSkyBoxShaderGL : public ShaderGL
-{
-public:
-	EquirectangularSkyBoxShaderGL();
-
-	virtual ~EquirectangularSkyBoxShaderGL() = default;
-
-	void setProjection(const glm::mat4& mat);
-	void setView(const glm::mat4& mat);
-	void setSkyTexture(const TextureGL* texture);
-
-private:
-	UniformTex mSkyTexture;
-	Uniform mProjection;
-	Uniform mView;
-};
+	private:
+		UniformTex mSkyTexture;
+		Uniform mProjection;
+		Uniform mView;
+	};
+}

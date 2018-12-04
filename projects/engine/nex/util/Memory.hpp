@@ -1,4 +1,5 @@
 #pragma once
+#include "nex/texture/Texture.hpp"
 
 namespace nex {
 
@@ -27,7 +28,7 @@ namespace nex {
 			return mItem;
 		}
 
-		const T* get() const
+		T* get() const
 		{
 			return mItem;
 		}
@@ -63,6 +64,14 @@ namespace nex {
 			delete mItem;
 			mItem = nullptr;
 		}
+
+		T* reset()
+		{
+			T* backup = mItem;
+			mItem = nullptr;
+			return backup;
+		}
+
 	private:
 		T* mItem;
 	};
@@ -99,7 +108,7 @@ namespace nex {
 			return mArray;
 		}
 
-		const T* get() const
+		T* get() const
 		{
 			return mArray;
 		}
@@ -117,6 +126,13 @@ namespace nex {
 		T& operator [](size_t index) const
 		{
 			return mArray[index];
+		}
+
+		T* reset()
+		{
+			T* backup = mArray;
+			mArray = nullptr;
+			return backup;
 		}
 
 		void setContent(T* arr)

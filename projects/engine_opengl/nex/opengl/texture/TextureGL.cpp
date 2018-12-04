@@ -3,7 +3,7 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <nex/opengl/texture/Image.hpp>
+#include <nex/texture/Image.hpp>
 
 using namespace std;
 using namespace glm;
@@ -187,6 +187,7 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 		TEXTURE3D,
 
 		// cubemap
+		CUBE_MAP,
 		CUBE_POSITIVE_X,
 		CUBE_NEGATIVE_X,
 		CUBE_POSITIVE_Y,
@@ -212,17 +213,59 @@ nex::TextureGL::TextureGL(GLuint texture) : mTextureID(texture), width(0), heigh
 
 nex::TextureGL::~TextureGL()
 {
+
+}
+
+void nex::TextureGL::release()
+{
 	if (mTextureID != GL_FALSE) {
 		GLCall(glDeleteTextures(1, &mTextureID));
 		mTextureID = GL_FALSE;
 	}
 }
 
-nex::TextureGL* nex::TextureGL::createFromImage(const StoreImageGL& store, const nex::TextureData& data, bool isCubeMap)
+nex::Texture* nex::Texture::create()
 {
-	GLuint format = static_cast<GLuint>(data.colorspace);
-	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
-	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
+	Guard<TextureGL> gl(new TextureGL());
+	return new Texture(gl.reset());
+}
+
+/*
+nex::Texture* nex::Texture::create(TextureTarget target, const TextureData& data)
+{
+	nex::Guard<Texture> texture(Texture::create());
+	GLuint textureID;
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	glGenTextures(1, &textureID);
+
+	const GLenum glTarget = translate(target);
+
+	glBindTexture(glTarget, textureID);
+
+	if (data.generateMipMaps)
+		glGenerateMipmap(glTarget);
+
+	glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(data.uvTechnique));
+	glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(data.uvTechnique));
+	glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(data.minFilter));
+	glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(data.magFilter));
+	glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f);
+	glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
+
+	GLCall(glBindTexture(glTarget, 0));
+
+	((TextureGL*)texture->getImpl())->setTexture(textureID);
+
+	return texture.reset();
+}*/
+
+nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap)
+{
+	nex::Guard<Texture> texture (new Texture(nullptr));
+
+	GLuint format = translate(data.colorspace);
+	GLuint internalFormat = translate(data.internalFormat);
+	GLuint pixelDataType = translate(data.pixelDataType);
 	GLuint bindTarget;
 
 	if (isCubeMap)
@@ -262,9 +305,9 @@ nex::TextureGL* nex::TextureGL::createFromImage(const StoreImageGL& store, const
 		}
 	}
 
-	GLint minFilter = static_cast<GLuint>(data.minFilter);
-	GLint magFilter = static_cast<GLuint>(data.magFilter);
-	GLint uvTechnique = static_cast<GLuint>(data.uvTechnique);
+	GLint minFilter = translate(data.minFilter);
+	GLint magFilter = translate(data.magFilter);
+	GLint uvTechnique = translate(data.uvTechnique);
 
 	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, uvTechnique);
 	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, uvTechnique);
@@ -278,21 +321,58 @@ nex::TextureGL* nex::TextureGL::createFromImage(const StoreImageGL& store, const
 
 	GLCall(glBindTexture(bindTarget, 0));
 
-	TextureGL* result;
+	TextureGL* glTexture;
 
 	if (isCubeMap)
 	{
-		result = new CubeMapGL(textureID);
+		glTexture = new CubeMapGL(textureID);
 	}
 	else
 	{
-		result = new TextureGL(textureID);
+		glTexture = new TextureGL(textureID);
 	}
 
-	result->width = store.images[0][0].width;
-	result->height = store.images[0][0].height;
+	glTexture->width = store.images[0][0].width;
+	glTexture->height = store.images[0][0].height;
+
+	Texture* result = texture.get();
+	texture.setContent(nullptr);
+	result->mImpl = glTexture;
 
 	return result;
+}
+
+nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, const TextureData& textureData,
+	const void* data)
+{
+	nex::Guard<Texture> texture(Texture::create());
+	GLuint textureID;
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	glGenTextures(1, &textureID);
+
+	static const GLenum glTarget = GL_TEXTURE_2D;
+
+	glBindTexture(glTarget, textureID);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, translate(textureData.internalFormat), width, height, 
+		0, translate(textureData.colorspace), translate(textureData.pixelDataType), 
+		data);
+
+	if (textureData.generateMipMaps)
+		glGenerateMipmap(glTarget);
+
+	glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.uvTechnique));
+	glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.uvTechnique));
+	glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(textureData.minFilter));
+	glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(textureData.magFilter));
+	glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f);
+	glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
+
+	GLCall(glBindTexture(glTarget, 0));
+
+	((TextureGL*)texture->getImpl())->setTexture(textureID);
+
+	return texture.reset();
 }
 
 void nex::TextureGL::setHeight(int height)

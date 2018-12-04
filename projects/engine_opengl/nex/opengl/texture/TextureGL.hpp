@@ -5,8 +5,7 @@
 
 namespace nex
 {
-
-	class StoreImageGL;
+	struct StoreImage;
 
 	enum TextureFilterGL
 	{
@@ -90,6 +89,7 @@ namespace nex
 		TEXTURE3D = GL_TEXTURE_3D,
 
 		// cubemap
+		CUBE_MAP = GL_TEXTURE_CUBE_MAP,
 		CUBE_POSITIVE_X = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 		CUBE_NEGATIVE_X = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
 		CUBE_POSITIVE_Y = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
@@ -116,21 +116,13 @@ namespace nex
 
 		virtual ~TextureGL();
 
-
-		/**
-		 * Creates a texture from an image store.
-		 * The returned texture has to be released by the caller!
-		 * NOTE: Supports only TEXTURE2D and CUBEMAP as targets!
-		 *
-		 * @return a TextureGL or an CubeMapGL dependent on the state of isCubeMap
-		 */
-		static TextureGL* createFromImage(const nex::StoreImageGL& store, const TextureData& data, bool isCubeMap);
-
 		GLuint* getTexture();
 
 
 		unsigned getHeight() const;
 		unsigned getWidth() const;
+
+		void release();
 
 		void setTexture(GLuint id);
 
@@ -140,6 +132,8 @@ namespace nex
 		void setWidth(int width);
 
 	protected:
+		friend Texture;
+
 		GLuint mTextureID;
 		int width;
 		int height;

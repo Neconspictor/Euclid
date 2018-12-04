@@ -3,34 +3,36 @@
 #include <unordered_set>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 
-
-class SubSystemProviderGLFW : public SubSystemProvider
+namespace nex
 {
-public:
+	class SubSystemProviderGLFW : public SubSystemProvider
+	{
+	public:
 
-	Window* createWindow(Window::WindowStruct& desc) override;
+		Window* createWindow(Window::WindowStruct& desc) override;
 
-	std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
+		std::unique_ptr<ImGUI_Impl> createGUI(Window* window) override;
 
-	static SubSystemProviderGLFW* get();
+		static SubSystemProviderGLFW* get();
 
-	bool init() override;
+		bool init() override;
 
-	bool isTerminated() const override;
+		bool isTerminated() const override;
 
-	void pollEvents() override;
+		void pollEvents() override;
 
-	void terminate() override;
+		void terminate() override;
 
-	static void errorCallback(int error, const char* description);
+		static void errorCallback(int error, const char* description);
 
 
-protected:
-	bool m_isInitialized;
-	nex::Logger m_logger;
+	protected:
+		bool m_isInitialized;
+		nex::Logger m_logger;
 
-private:
-	SubSystemProviderGLFW();
+	private:
+		SubSystemProviderGLFW();
 
-	std::list<WindowGLFW> windows;
-};
+		std::list<WindowGLFW> windows;
+	};
+}

@@ -5,14 +5,15 @@
 
 
 using namespace std;
+using namespace nex;
 
-SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
+nex::SMAA_GL::SMAA_GL(RendererOpenGL* renderer) : renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
 edgesTex(nullptr), blendTex(nullptr), edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), 
 neighborhoodBlendingPass(GL_FALSE), initialized(false)
 {
 }
 
-SMAA_GL::~SMAA_GL()
+nex::SMAA_GL::~SMAA_GL()
 {
 	/*if (edgesTex)
 		renderer->destroyRenderTarget(edgesTex);
@@ -23,11 +24,11 @@ SMAA_GL::~SMAA_GL()
 	blendTex = nullptr;*/
 }
 
-void SMAA_GL::antialias(RenderTargetGL* renderTarget)
+void nex::SMAA_GL::antialias(RenderTargetGL* renderTarget)
 {
 }
 
-void SMAA_GL::init()
+void nex::SMAA_GL::init()
 {
 	/*RenderBackend::Viewport viewPort = renderer->getViewport();
 	int& width = viewPort.width;
@@ -133,14 +134,14 @@ void SMAA_GL::init()
 	initialized = true;
 }
 
-void SMAA_GL::reset()
+void nex::SMAA_GL::reset()
 {
 	if (!initialized) return;
 	//renderer->clearFrameBuffer(blendTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
 	//renderer->clearFrameBuffer(edgesTex->getFrameBuffer(), { 0,0,0,1 }, 1.0f, 0);
 }
 
-void SMAA_GL::updateBuffers()
+void nex::SMAA_GL::updateBuffers()
 {
 	if (!initialized) return;
 	/*if (edgesTex)

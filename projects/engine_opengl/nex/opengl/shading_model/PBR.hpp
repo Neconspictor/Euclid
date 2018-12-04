@@ -1,74 +1,77 @@
-#ifndef PBR_HPP
-#define PBR_HPP
+#pragma once
 
+
+#include <nex/texture/RenderTarget.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/model/Vob.hpp>
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/opengl/texture/Sprite.hpp>
-#include "nex/opengl/texture/Image.hpp"
-
-class RendererOpenGL;
-
-class PBR {
-
-public:
-  PBR(RendererOpenGL* renderer, TextureGL* backgroundHDR);
-  virtual ~PBR();
-
-  virtual void drawSceneToShadowMap(SceneNode * scene,
-	  DepthMapGL* shadowMap,
-	  const DirectionalLight& light,
-	  const glm::mat4& lightViewMatrix,
-	  const glm::mat4& lightProjMatrix);
-
-  virtual void drawScene(SceneNode * scene,
-	  const glm::vec3& cameraPosition,
-	  TextureGL* shadowMap,
-	  const DirectionalLight& light,
-	  const glm::mat4& lightViewMatrix,
-	  const glm::mat4& lightProjMatrix,
-	  const glm::mat4& view,
-	  const glm::mat4& projection);
-
-  virtual void drawSky(const glm::mat4& projection, 
-	  const glm::mat4& view);
+#include <nex/texture/Sprite.hpp>
+#include <nex/texture/Image.hpp>
 
 
-  CubeMapGL* getConvolutedEnvironmentMap();
+namespace nex
+{
+	class RendererOpenGL;
 
-  CubeMapGL* getEnvironmentMap();
+	class PBR {
 
-  CubeMapGL* getPrefilteredEnvironmentMap();
+	public:
+		PBR(RendererOpenGL* renderer, Texture* backgroundHDR);
+		virtual ~PBR();
 
-  TextureGL* getBrdfLookupTexture();
+		virtual void drawSceneToShadowMap(SceneNode * scene,
+			DepthMap* shadowMap,
+			const DirectionalLight& light,
+			const glm::mat4& lightViewMatrix,
+			const glm::mat4& lightProjMatrix);
 
-  StoreImageGL readBrdfLookupPixelData() const;
-  StoreImageGL readBackgroundPixelData() const;
+		virtual void drawScene(SceneNode * scene,
+			const glm::vec3& cameraPosition,
+			Texture* shadowMap,
+			const DirectionalLight& light,
+			const glm::mat4& lightViewMatrix,
+			const glm::mat4& lightProjMatrix,
+			const glm::mat4& view,
+			const glm::mat4& projection);
 
-
-protected:
-
-	StoreImageGL readConvolutedEnvMapPixelData();
-	StoreImageGL readPrefilteredEnvMapPixelData();
-	void init(TextureGL* backgroundHDR);
-
-	CubeMapGL* renderBackgroundToCube(TextureGL* background);
-	CubeMapGL* convolute(CubeMapGL* source);
-	CubeMapGL* prefilter(CubeMapGL* source);
-	TextureGL* createBRDFlookupTexture();
-
-	CubeMapGL* convolutedEnvironmentMap;
-	CubeMapGL* prefilteredEnvMap;
-	CubeMapGL* environmentMap;
-	TextureGL* brdfLookupTexture;
+		virtual void drawSky(const glm::mat4& projection,
+			const glm::mat4& view);
 
 
-	RendererOpenGL* renderer;
+		CubeMap* getConvolutedEnvironmentMap();
 
-	Sprite brdfSprite;
-	Vob skybox;
-};
+		CubeMap* getEnvironmentMap();
 
-#endif
+		CubeMap* getPrefilteredEnvironmentMap();
+
+		Texture* getBrdfLookupTexture();
+
+		StoreImage readBrdfLookupPixelData() const;
+		StoreImage readBackgroundPixelData() const;
+
+
+	protected:
+
+		StoreImage readConvolutedEnvMapPixelData();
+		StoreImage readPrefilteredEnvMapPixelData();
+		void init(Texture* backgroundHDR);
+
+		CubeMap* renderBackgroundToCube(Texture* background);
+		CubeMap* convolute(CubeMap* source);
+		CubeMap* prefilter(CubeMap* source);
+		Texture* createBRDFlookupTexture();
+
+		CubeMap* convolutedEnvironmentMap;
+		CubeMap* prefilteredEnvMap;
+		CubeMap* environmentMap;
+		Texture* brdfLookupTexture;
+
+
+		RendererOpenGL* renderer;
+
+		Sprite brdfSprite;
+		Vob skybox;
+	};
+}

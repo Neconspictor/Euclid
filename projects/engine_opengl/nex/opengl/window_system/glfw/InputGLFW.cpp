@@ -8,55 +8,51 @@
 
 
 using namespace std;
-using namespace nex;
 
 
-InputMapperGLFW InputMapperGLFW::instance;
+nex::InputMapperGLFW nex::InputMapperGLFW::instance;
 
-int InputMapperGLFW::toGLFWbutton(Input::Button button) const
+int nex::InputMapperGLFW::toGLFWbutton(Input::Button button) const
 {
 	auto it = buttonToGlfwMap.find(button);
 	if (it == buttonToGlfwMap.end()) return GLFW_KEY_UNKNOWN;
 	return it->second;
 }
 
-int InputMapperGLFW::toGLFWkey(Input::Key key) const
+int nex::InputMapperGLFW::toGLFWkey(Input::Key key) const
 {
 	auto it = keyToGlfwMap.find(key);
 	if (it == keyToGlfwMap.end()) return GLFW_KEY_UNKNOWN;
 	return it->second;
 }
 
-InputMapperGLFW::InputMapperGLFW()
+nex::InputMapperGLFW::InputMapperGLFW()
 {
 	initInputButtonMap();
 	initInputKeyMap();
 }
 
-InputMapperGLFW::~InputMapperGLFW()
-{
-}
 
-Input::Button InputMapperGLFW::toButton(int glfwButton) const
+Input::Button nex::InputMapperGLFW::toButton(int glfwButton) const
 {
 	auto it = glfwToButtonMap.find(glfwButton);
 	if (it == glfwToButtonMap.end()) return Input::InvalidButton;
 	return it->second;
 }
 
-Input::Key InputMapperGLFW::toKey(int glfwKey) const
+Input::Key nex::InputMapperGLFW::toKey(int glfwKey) const
 {
 	auto it = glfwToKeyMap.find(glfwKey);
 	if (it == glfwToKeyMap.end()) return Input::KEY_UNKNOWN;
 	return it->second;
 }
 
-InputMapperGLFW const* InputMapperGLFW::get()
+nex::InputMapperGLFW const* nex::InputMapperGLFW::get()
 {
 	return &instance;
 }
 
-void InputMapperGLFW::initInputButtonMap()
+void nex::InputMapperGLFW::initInputButtonMap()
 {
 	glfwToButtonMap.insert(make_pair(GLFW_MOUSE_BUTTON_LEFT, Input::LeftMouseButton));
 	glfwToButtonMap.insert(make_pair(GLFW_MOUSE_BUTTON_RIGHT, Input::RightMouseButton));
@@ -68,7 +64,7 @@ void InputMapperGLFW::initInputButtonMap()
 	}
 }
 
-void InputMapperGLFW::initInputKeyMap()
+void nex::InputMapperGLFW::initInputKeyMap()
 {
 	glfwToKeyMap.insert(make_pair(GLFW_KEY_UNKNOWN, Input::Key::KEY_UNKNOWN));
 	glfwToKeyMap.insert(make_pair(GLFW_KEY_SPACE, Input::Key::KEY_SPACE));
@@ -205,12 +201,12 @@ void InputMapperGLFW::initInputKeyMap()
 
 
 
-InputGLFW::InputGLFW(WindowGLFW* window) : Input(), window(window), 
+nex::InputGLFW::InputGLFW(nex::WindowGLFW* window) : Input(), window(window),
 anyPressedKey(KEY_UNKNOWN), anyPressedButton(InvalidButton), _disableCallbacks(false), m_logger("InputGLFW")
 {
 }
 
-InputGLFW::InputGLFW(InputGLFW && o) : Input(move(o)), m_logger(move(o.m_logger))
+nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o.m_logger))
 {
 	window = o.window;
 	anyPressedKey = o.anyPressedKey;
@@ -234,7 +230,7 @@ InputGLFW::InputGLFW(InputGLFW && o) : Input(move(o)), m_logger(move(o.m_logger)
 	//o.window = nullptr;
 }
 
-InputGLFW & InputGLFW::operator=(InputGLFW && o)
+nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 {
 	if (this == &o) return *this;
 
@@ -262,11 +258,7 @@ InputGLFW & InputGLFW::operator=(InputGLFW && o)
 	return *this;
 }
 
-InputGLFW::~InputGLFW()
-{
-}
-
-void InputGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods)
+void nex::InputGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods)
 {
 	/*vector<unsigned char> utf8Result;
 
@@ -286,14 +278,14 @@ void InputGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint
 	input->onCharMods(codepoint, mods);
 }
 
-void InputGLFW::closeWindowCallbackHandler(GLFWwindow* window)
+void nex::InputGLFW::closeWindowCallbackHandler(GLFWwindow* window)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
 	input->informWindowCloseListeners();
 }
 
-void InputGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
+void nex::InputGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
@@ -305,7 +297,7 @@ void InputGLFW::focusInputHandler(GLFWwindow * window, int hasFocus)
 	input->window->setFocus(focus);
 }
 
-void InputGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
+void nex::InputGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
@@ -314,7 +306,7 @@ void InputGLFW::keyInputHandler(GLFWwindow* window, int key, int scancode, int a
 	input->onKey(key, scancode, action, mods);
 }
 
-void InputGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, int mods)
+void nex::InputGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, int mods)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
@@ -322,7 +314,7 @@ void InputGLFW::mouseInputHandler(GLFWwindow * window, int button, int action, i
 	input->onMouse(button, action, mods);
 }
 
-void InputGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double yOffset)
+void nex::InputGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double yOffset)
 {
 	//TODO refactor
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
@@ -331,7 +323,7 @@ void InputGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, double y
 	input->scrollCallback(xOffset, yOffset);
 }
 
-void InputGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
+void nex::InputGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
@@ -342,12 +334,12 @@ void InputGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
 }
 
 
-inline bool InputGLFW::areCallbacksActive() const
+inline bool nex::InputGLFW::areCallbacksActive() const
 {
 	return !_disableCallbacks;
 }
 
-void InputGLFW::scrollCallback(double xOffset, double yOffset)
+void nex::InputGLFW::scrollCallback(double xOffset, double yOffset)
 {
 	frameScrollOffsetX = xOffset;
 	frameScrollOffsetY = yOffset;
@@ -358,11 +350,11 @@ void InputGLFW::scrollCallback(double xOffset, double yOffset)
 	}
 }
 
-void InputGLFW::disableCallbacks()
+void nex::InputGLFW::disableCallbacks()
 {
 	_disableCallbacks = true;
 }
-void InputGLFW::enableCallbacks()
+void nex::InputGLFW::enableCallbacks()
 {
 	using namespace placeholders;
 
@@ -387,7 +379,7 @@ void InputGLFW::enableCallbacks()
 	_disableCallbacks = false;
 }
 
-void InputGLFW::removeCallbacks()
+void nex::InputGLFW::removeCallbacks()
 {
 	glfwSetCharModsCallback(window->getSource(), nullptr);
 
@@ -406,7 +398,7 @@ void InputGLFW::removeCallbacks()
 	glfwSetScrollCallback(window->getSource(), nullptr);
 }
 
-void InputGLFW::frameUpdate()
+void nex::InputGLFW::frameUpdate()
 {
 	double mouseX, mouseY;
 	glfwGetCursorPos(window->getSource(), &mouseX, &mouseY);
@@ -429,64 +421,64 @@ void InputGLFW::frameUpdate()
 	}
 }
 
-Input::Button InputGLFW::getAnyPressedButton()
+Input::Button nex::InputGLFW::getAnyPressedButton()
 {
 	return anyPressedButton;
 }
 
-Input::Key InputGLFW::getAnyPressedKey()
+Input::Key nex::InputGLFW::getAnyPressedKey()
 {
 	return anyPressedKey;
 }
 
-Window * InputGLFW::getWindow()
+Window * nex::InputGLFW::getWindow()
 {
 	return window;
 }
 
-bool InputGLFW::isDown(Button button)
+bool nex::InputGLFW::isDown(Button button)
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetMouseButton(window->getSource(), glfwButton) != GLFW_RELEASE;
 }
 
-bool InputGLFW::isDown(Key key)
+bool nex::InputGLFW::isDown(Key key)
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetKey(window->getSource(), glfwKey) != GLFW_RELEASE;
 }
 
-bool InputGLFW::isPressed(Button button)
+bool nex::InputGLFW::isPressed(Button button)
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return pressedButtons.find(glfwButton) != pressedButtons.end();
 }
 
-bool InputGLFW::isPressed(Key key)
+bool nex::InputGLFW::isPressed(Key key)
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return pressedKeys.find(glfwKey) != pressedKeys.end();
 }
 
-bool InputGLFW::isReleased(Button button)
+bool nex::InputGLFW::isReleased(Button button)
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return releasedButtons.find(glfwButton) != releasedButtons.end();
 }
 
-bool InputGLFW::isReleased(Key key)
+bool nex::InputGLFW::isReleased(Key key)
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return releasedKeys.find(glfwKey) != releasedKeys.end();
 }
 
-void InputGLFW::onCharMods(unsigned int codepoint, int mods)
+void nex::InputGLFW::onCharMods(unsigned int codepoint, int mods)
 {
 	for (auto& c : charModsCallbacks)
 	{
@@ -494,7 +486,7 @@ void InputGLFW::onCharMods(unsigned int codepoint, int mods)
 	}
 }
 
-void InputGLFW::onKey(int key, int scancode, int action, int mods)
+void nex::InputGLFW::onKey(int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
 	{
@@ -529,7 +521,7 @@ void InputGLFW::onKey(int key, int scancode, int action, int mods)
 	}
 }
 
-void InputGLFW::onMouse(int button, int action, int mods)
+void nex::InputGLFW::onMouse(int button, int action, int mods)
 {
 
 	if (action == GLFW_PRESS)
@@ -564,22 +556,22 @@ void InputGLFW::onMouse(int button, int action, int mods)
 	}
 }
 
-void InputGLFW::registerCharModsCallback(function<CharModsCallback> callback)
+void nex::InputGLFW::registerCharModsCallback(function<CharModsCallback> callback)
 {
 	charModsCallbacks.push_back(callback);
 }
 
-void InputGLFW::registerKeyCallback(function<KeyCallback> callback)
+void nex::InputGLFW::registerKeyCallback(function<KeyCallback> callback)
 {
 	keyCallbacks.push_back(callback);
 }
 
-void InputGLFW::registerMouseCallback(function<MouseCallback> callback)
+void nex::InputGLFW::registerMouseCallback(function<MouseCallback> callback)
 {
 	mouseCallbacks.push_back(callback);
 }
 
-void InputGLFW::resetForFrame()
+void nex::InputGLFW::resetForFrame()
 {
 	// clear state of keys  and mouse buttons before polling, as callbacks are called during polling!
 	// TODO move releasedKeys/pressedKeys to this class
@@ -592,13 +584,13 @@ void InputGLFW::resetForFrame()
 	frameScrollOffsetY = 0;
 }
 
-void InputGLFW::setMousePosition(int xPos, int yPos)
+void nex::InputGLFW::setMousePosition(int xPos, int yPos)
 {
 	glfwSetCursorPos(window->getSource(), static_cast<double>(xPos), static_cast<double>(yPos));
 	Input::setMousePosition(xPos, yPos);
 }
 
-void InputGLFW::setWindow(WindowGLFW* window)
+void nex::InputGLFW::setWindow(WindowGLFW* window)
 {
 	this->window = window;
 }

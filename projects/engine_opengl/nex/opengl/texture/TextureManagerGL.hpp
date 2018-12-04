@@ -1,13 +1,12 @@
 #pragma once
 #include <map>
-#include <glad/glad.h>
 #include <list>
 #include <nex/texture/Sampler.hpp>
 #include <nex/gui/Drawable.hpp>
 
 
 namespace nex {
-	struct GenericImageGL;
+	struct GenericImage;
 	class FileSystem;
 
 	/**
@@ -73,10 +72,10 @@ namespace nex {
 
 
 
-		void writeHDR(const nex::GenericImageGL& imageData, const char* filePath);
+		void writeHDR(const nex::GenericImage& imageData, const char* filePath);
 
-		void readImage(nex::GenericImageGL* imageData, const char* filePath);
-		void writeImage(const nex::GenericImageGL& imageData, const char* filePath);
+		void readImage(nex::GenericImage* imageData, const char* filePath);
+		void writeImage(const nex::GenericImage& imageData, const char* filePath);
 
 		void readGLITest(const char* filePath);
 

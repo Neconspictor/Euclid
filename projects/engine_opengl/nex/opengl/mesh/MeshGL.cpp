@@ -2,6 +2,7 @@
 #include "nex/opengl/renderer/RendererOpenGL.hpp"
 
 using namespace std;
+using namespace nex;
 
 MeshGL::MeshGL(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, std::unique_ptr<Material> material) :
 mVertexArray(std::move(vertexArray)),

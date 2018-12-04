@@ -10,7 +10,6 @@
 #include <nex/util/StringUtils.hpp>
 #include <regex>
 #include "nex/opengl/mesh/MeshGL.hpp"
-#include <nex/opengl/material/Material.hpp>
 #include "nex/shader_generator/SourceFileConsumer.hpp"
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include <nex/texture/Texture.hpp>

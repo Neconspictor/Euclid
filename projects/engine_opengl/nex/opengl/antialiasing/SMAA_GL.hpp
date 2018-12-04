@@ -2,32 +2,34 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-
-class SMAA_GL
+namespace nex
 {
-public:
-	explicit SMAA_GL(RendererOpenGL* renderer);
-	virtual ~SMAA_GL();
+	class SMAA_GL
+	{
+	public:
+		explicit SMAA_GL(RendererOpenGL* renderer);
+		virtual ~SMAA_GL();
 
-	void antialias(RenderTargetGL* renderTarget);
+		void antialias(RenderTargetGL* renderTarget);
 
-	void init();
+		void init();
 
-	void reset();
+		void reset();
 
-	void updateBuffers();
+		void updateBuffers();
 
-private:
-	RendererOpenGL* renderer;
-	RenderTargetGL* edgesTex;
-	RenderTargetGL* blendTex;
+	private:
+		RendererOpenGL* renderer;
+		RenderTargetGL* edgesTex;
+		RenderTargetGL* blendTex;
 
-	TextureGL* areaTex;
-	TextureGL* searchTex;
+		TextureGL* areaTex;
+		TextureGL* searchTex;
 
-	GLuint edgeDetectionPass;
-	GLuint blendingWeightCalculationPass;
-	GLuint neighborhoodBlendingPass;
+		GLuint edgeDetectionPass;
+		GLuint blendingWeightCalculationPass;
+		GLuint neighborhoodBlendingPass;
 
-	bool initialized;
-};
+		bool initialized;
+	};
+}
