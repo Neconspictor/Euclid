@@ -270,7 +270,7 @@ namespace nex
 		 * Reads a texture back from the gpu
 		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
 		 */
-		void readback(const  TextureGL* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+		void readback(const  Texture* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
 
 		void resize(int width, int height);
 
@@ -282,7 +282,7 @@ namespace nex
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
 		 */
-		CubeRenderTarget* renderCubeMap(int width, int height, TextureGL* equirectangularMap);
+		CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap);
 
 		void setBackgroundColor(glm::vec3 color);
 
@@ -298,7 +298,7 @@ namespace nex
 
 		void useCubeDepthMap(CubeDepthMap* cubeDepthMap);
 
-		void useCubeRenderTarget(CubeRenderTarget* target, CubeMapGL::Side side, unsigned int mipLevel = 0);
+		void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0);
 
 		/**
 		* All draw calls are performed on a offscreen texture.

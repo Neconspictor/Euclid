@@ -24,24 +24,21 @@
 */
 #include <nex/event/Task.hpp>
 
-Task::Task(unsigned int flags) :
+nex::Task::Task(unsigned int flags) :
 	mTaskFlags(flags)
 {
 }
 
-Task::~Task() {
-}
-
-unsigned int Task::getTaskFlags() const {
+unsigned int nex::Task::getTaskFlags() const {
 	return mTaskFlags;
 }
 
-Task::TaskBeginning::TaskBeginning(Task::TaskPtr t) :
+nex::Task::TaskBeginning::TaskBeginning(Task::TaskPtr t) :
 	mTask(t)
 {
 }
 
-Task::TaskCompleted::TaskCompleted(Task::TaskPtr t) :
+nex::Task::TaskCompleted::TaskCompleted(Task::TaskPtr t) :
 	mTask(t)
 {
 }
