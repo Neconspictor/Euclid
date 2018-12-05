@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/util/Math.hpp>
+#include <nex/util/Memory.hpp>
 
 namespace nex
 {
@@ -22,8 +23,12 @@ namespace nex
 		// virtual needed for backend implementations
 		virtual ~RenderTargetImpl() = default;
 
+		Texture* getTexture();
+
 	protected:
 		RenderTargetImpl() = default;
+
+		Texture* mRenderResult;
 	};
 
 
@@ -34,7 +39,13 @@ namespace nex
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
 
-		virtual ~RenderTarget();;
+		virtual ~RenderTarget();
+
+		// Has to be implemented by renderer backend
+		void bind();
+
+		// Has to be implemented by renderer backend
+		void unbind();
 
 		// Has to be implemented by renderer backend
 		static RenderTarget* createMultisampled(int width, int height, const TextureData& data,
@@ -48,20 +59,17 @@ namespace nex
 
 		//void copyFrom(BaseRenderTarget* dest, const Dimension& sourceDim, int components);
 
-		Texture* getTexture();
-
+		// Has to be implemented by renderer backend
 		int getHeight() const;
 
+		// Has to be implemented by renderer backend
 		int getWidth() const;
-
-		void setTexture(Texture* texture);
 
 	protected:
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		RenderTarget(RenderTargetImpl* impl, Texture* renderResult);
+		RenderTarget(RenderTargetImpl* impl);
 
-		Texture* mRenderResult;
 		RenderTargetImpl* mImpl;
 	};
 

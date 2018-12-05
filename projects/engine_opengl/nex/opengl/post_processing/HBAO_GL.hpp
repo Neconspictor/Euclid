@@ -7,14 +7,12 @@
 #include <glm/glm.hpp>
 
 namespace nex {
+	class HBAO_ConfigurationView;
+	class ModelDrawerGL;
+
 #define UBO_SCENE     0
 
 
-	class TextureGL;
-	class BaseRenderTargetGL;
-	class ModelDrawerGL;
-	class HBAO_ConfigurationView;
-	class OneTextureRenderTarget;
 
 	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
@@ -59,55 +57,55 @@ namespace nex {
 	};
 
 
-	class BilateralBlur : public ShaderProgramGL {
+	class BilateralBlur : public Shader {
 	public:
 
 		explicit BilateralBlur();
 		virtual ~BilateralBlur() = default;
 
-		void setLinearDepth(TextureGL* linearDepth);
+		void setLinearDepth(Texture* linearDepth);
 		void setSharpness(float sharpness);
-		void setSourceTexture(TextureGL* source, unsigned int textureWidth, unsigned int textureHeight);
+		void setSourceTexture(Texture* source, unsigned int textureWidth, unsigned int textureHeight);
 
-		void draw(OneTextureRenderTarget* temp, BaseRenderTargetGL* result);
+		void draw(RenderTarget* temp, RenderTarget* result);
 
 	private:
-		TextureGL* m_linearDepth;
+		Texture* m_linearDepth;
 		float m_sharpness;
-		TextureGL* m_source;
+		Texture* m_source;
 		unsigned int m_textureHeight;
 		unsigned int m_textureWidth;
  	};
 
-	class DepthLinearizer : public ShaderProgramGL {
+	class DepthLinearizer : public Shader {
 	public:
 
 		DepthLinearizer();
 		virtual ~DepthLinearizer() = default;
 
 		void draw();
-		void setInputTexture(TextureGL* input);
+		void setInputTexture(Texture* input);
 		void setProjection(const Projection* projection);
 
 	private:
-		TextureGL* m_input;
+		Texture* m_input;
 		const Projection* m_projection;
 	};
 
-	class DisplayTex : public ShaderProgramGL {
+	class DisplayTex : public Shader {
 	public:
 
 		DisplayTex();
 		virtual ~DisplayTex() = default;
 
 		void draw();
-		void setInputTexture(TextureGL* input);
+		void setInputTexture(Texture* input);
 
 	private:
-		TextureGL* m_input;
+		Texture* m_input;
 	};
 
-	class HBAO_Shader : public ShaderProgramGL {
+	class HBAO_Shader : public Shader {
 	public:
 
 		HBAO_Shader();
@@ -116,14 +114,14 @@ namespace nex {
 		void draw();
 		void setHbaoData(HBAOData hbao);
 		void setHbaoUBO(GLuint hbao_ubo);
-		void setLinearDepth(TextureGL* linearDepth);
-		void setRamdomView(TextureGL* randomView);
+		void setLinearDepth(Texture* linearDepth);
+		void setRamdomView(Texture* randomView);
 
 	private:
 		HBAOData m_hbao_data;
-		TextureGL* m_hbao_randomview;
+		Texture* m_hbao_randomview;
 		GLuint m_hbao_ubo;
-		TextureGL* m_linearDepth;
+		Texture* m_linearDepth;
 	};
 
 
@@ -144,9 +142,9 @@ namespace nex {
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-		void renderAO(TextureGL* depth, const Projection& projection, bool blur);
+		void renderAO(Texture* depth, const Projection& projection, bool blur);
 
-		void displayAOTexture(TextureGL* texture);
+		void displayAOTexture(Texture* texture);
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);
@@ -156,7 +154,7 @@ namespace nex {
 		static float randomFloat(float a, float b);
 		static float lerp(float a, float b, float f);
 
-		void drawLinearDepth(TextureGL* depthTexture, const Projection & projection);
+		void drawLinearDepth(Texture* depthTexture, const Projection & projection);
 		void initRenderTargets(unsigned int width, unsigned int height);
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
@@ -175,8 +173,8 @@ namespace nex {
 
 		ModelDrawerGL* m_modelDrawer;
 
-		TextureGL m_hbao_random;
-		TextureGL m_hbao_randomview;
+		Texture* m_hbao_random;
+		Texture* m_hbao_randomview;
 		GLuint m_hbao_ubo{};
 
 		HBAOData   m_hbaoDataSource;

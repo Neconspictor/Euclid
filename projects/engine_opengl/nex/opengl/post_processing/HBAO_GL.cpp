@@ -71,8 +71,10 @@ namespace nex
 
 		GLuint temp;
 		//newTexture(textures.hbao_random);
+		m_hbao_random = Texture::create();
+		TextureGL* gl = (TextureGL*)m_hbao_random->getImpl();
 		glGenTextures(1, &temp);
-		m_hbao_random.setTexture(temp);
+		gl->setTexture(temp);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, temp);
 		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1);
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, GL_RGBA, GL_SHORT, hbaoRandomShort);
@@ -82,8 +84,10 @@ namespace nex
 
 
 		glGenTextures(1, &temp);
-		m_hbao_randomview.setTexture(temp);
-		glTextureView(temp, GL_TEXTURE_2D, m_hbao_random.getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1);
+		m_hbao_randomview = Texture::create();
+		gl = (TextureGL*)m_hbao_randomview->getImpl();
+		gl->setTexture(temp);
+		glTextureView(temp, GL_TEXTURE_2D, *m_hbao_random.getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1);
 		glBindTexture(GL_TEXTURE_2D, temp);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -102,7 +106,7 @@ namespace nex
 		initRenderTargets(windowWidth, windowHeight);
 
 		// initialize static shader attributes
-		m_hbaoShader->setRamdomView(&m_hbao_randomview);
+		m_hbaoShader->setRamdomView(m_hbao_randomview);
 		m_hbaoShader->setHbaoUBO(m_hbao_ubo);
 
 		// create a vao for rendering fullscreen triangles directly with glDrawArrays
@@ -244,7 +248,7 @@ namespace nex
 		m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
 	}
 
-	void HBAO_GL::drawLinearDepth(TextureGL* depthTexture, const Projection & projection)
+	void HBAO_GL::drawLinearDepth(Texture* depthTexture, const Projection & projection)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_depthLinearRT->getFrameBuffer());
 		m_depthLinearizer->setProjection(&projection);
@@ -357,17 +361,17 @@ namespace nex
 	}
 
 	BilateralBlur::BilateralBlur() :
-		ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl"),
+		Shader(),
 		m_linearDepth(nullptr),
 		m_sharpness(0),
 		m_textureWidth(0),
 		m_textureHeight(0),
 		m_source(nullptr)
 	{
-
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
 	}
 
-	void BilateralBlur::setLinearDepth(TextureGL * linearDepth)
+	void BilateralBlur::setLinearDepth(Texture * linearDepth)
 	{
 		m_linearDepth = linearDepth;
 	}
@@ -377,20 +381,23 @@ namespace nex
 		m_sharpness = sharpness;
 	}
 
-	void BilateralBlur::setSourceTexture(TextureGL * source, unsigned int textureWidth, unsigned int textureHeight)
+	void BilateralBlur::setSourceTexture(Texture * source, unsigned int textureWidth, unsigned int textureHeight)
 	{
 		m_source = source;
 		m_textureHeight = textureHeight;
 		m_textureWidth = textureWidth;
 	}
 
-	void BilateralBlur::draw(OneTextureRenderTarget * temp, BaseRenderTargetGL* result)
+	void BilateralBlur::draw(RenderTarget* temp, RenderTarget* result)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, temp->getFrameBuffer());
-		glUseProgram(programID);
+		temp->bind();
+		bind();
 
-		glBindTextureUnit(0, m_source->getTexture());
-		glBindTextureUnit(1, m_linearDepth->getTexture());
+		TextureGL* sourceGL = (TextureGL*)m_source->getImpl();
+		TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
+
+		glBindTextureUnit(0, *sourceGL->getTexture());
+		glBindTextureUnit(1, *linearDepthGL->getTexture());
 
 		glUniform1f(0, m_sharpness);
 
@@ -399,35 +406,37 @@ namespace nex
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// blur vertically
-		glBindFramebuffer(GL_FRAMEBUFFER, result->getFrameBuffer());
-		glBindTextureUnit(0, temp->getTexture()->getTexture());
+		result->bind();
+		TextureGL* tempTexGL = (TextureGL*)temp->getTexture()->getImpl();
+
+		glBindTextureUnit(0, *tempTexGL->getTexture());
 		glUniform2f(1, 0, 1.0f / (float)m_textureHeight);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glUseProgram(0);
 	}
 
 	DepthLinearizer::DepthLinearizer() :
-		ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl"),
+		Shader(),
 		m_input(nullptr),
 		m_projection(nullptr)
 	{
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 	}
 
 	void DepthLinearizer::draw()
 	{
-		glUseProgram(programID);
+		bind();
 		glUniform4f(0, m_projection->nearplane * m_projection->farplane,
 			m_projection->nearplane - m_projection->farplane,
 			m_projection->farplane,
 			m_projection->perspective ? 1.0f : 0.0f);
 
-		glBindTextureUnit(0, m_input->getTexture());
+		TextureGL* inputGL = (TextureGL*)m_input->getImpl();
+		glBindTextureUnit(0, *inputGL->getTexture());
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glUseProgram(0);
 	}
 
-	void DepthLinearizer::setInputTexture(TextureGL * input)
+	void DepthLinearizer::setInputTexture(Texture * input)
 	{
 		m_input = input;
 	}
@@ -437,44 +446,48 @@ namespace nex
 		m_projection = projection;
 	}
 
-	DisplayTex::DisplayTex() :
-		ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl"),
+	DisplayTex::DisplayTex() : Shader(),
 		m_input(nullptr)
 	{
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
 	}
 
 	void DisplayTex::draw()
 	{
-		glUseProgram(programID);
-		glBindTextureUnit(0, m_input->getTexture());
+		bind();
+		TextureGL* inputGL = (TextureGL*)m_input->getImpl();
+		glBindTextureUnit(0, *inputGL->getTexture());
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glUseProgram(0);
 	}
 
-	void DisplayTex::setInputTexture(TextureGL * input)
+	void DisplayTex::setInputTexture(Texture * input)
 	{
 		m_input = input;
 	}
 
 	HBAO_Shader::HBAO_Shader() :
-		ShaderProgramGL("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl"),
+		Shader(),
 		m_linearDepth(nullptr),
 		m_hbao_randomview(nullptr),
 		m_hbao_ubo(GL_FALSE)
 	{
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
+
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl");
 	}
 
 	void HBAO_Shader::draw()
 	{
-		glUseProgram(programID);
+		bind();
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_hbao_ubo);
 		glNamedBufferSubData(m_hbao_ubo, 0, sizeof(HBAOData), &m_hbao_data);
 
-		glBindTextureUnit(0, m_linearDepth->getTexture());
-		glBindTextureUnit(1, m_hbao_randomview->getTexture());
+		TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
+		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
+
+		glBindTextureUnit(0, *linearDepthGL->getTexture());
+		glBindTextureUnit(1, *randomViewGL->getTexture());
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glUseProgram(0);
 	}
 
 	void HBAO_Shader::setHbaoData(HBAOData hbao)
@@ -487,12 +500,12 @@ namespace nex
 		m_hbao_ubo = hbao_ubo;
 	}
 
-	void HBAO_Shader::setLinearDepth(TextureGL * linearDepth)
+	void HBAO_Shader::setLinearDepth(Texture * linearDepth)
 	{
 		m_linearDepth = linearDepth;
 	}
 
-	void HBAO_Shader::setRamdomView(TextureGL * randomView)
+	void HBAO_Shader::setRamdomView(Texture * randomView)
 	{
 		m_hbao_randomview = randomView;
 	}

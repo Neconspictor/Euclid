@@ -23,22 +23,20 @@ namespace nex
 
 		static RenderTargetGL* createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType);
 
-		static RenderTargetGL* createVSM(int width, int height);
-
 		GLuint getFrameBuffer() const;
 		GLuint getRenderBuffer();
-		TextureGL* getTexture();
-
 
 		virtual void release();
 
 		void setFrameBuffer(GLuint newValue);
 		void setRenderBuffer(GLuint newValue);
-		void setTexture(TextureGL* texture);
+		void setTexture(Texture* texture);
 
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
-		nex::Guard<TextureGL> textureBuffer;
+		friend RenderTarget;
+
+		nex::Guard<Texture> textureBuffer;
 		GLuint renderBuffer;
 		int width;
 		int height;
@@ -115,15 +113,5 @@ namespace nex
 		nex::Guard<TextureGL> normal;
 		nex::Guard<TextureGL> position;
 		nex::Guard<RenderBufferGL> depth;
-	};
-
-	class OneTextureRenderTarget : public RenderTargetGL {
-	public:
-		OneTextureRenderTarget(GLuint frameBuffer,
-			TextureGL* texture,
-			unsigned int width,
-			unsigned int height);
-
-		virtual ~OneTextureRenderTarget() = default;
 	};
 }
