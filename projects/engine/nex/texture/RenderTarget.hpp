@@ -45,6 +45,9 @@ namespace nex
 		void bind();
 
 		// Has to be implemented by renderer backend
+		void copyFrom(RenderTarget* dest, const Dimension& sourceDim, int components);
+
+		// Has to be implemented by renderer backend
 		void unbind();
 
 		// Has to be implemented by renderer backend
@@ -61,6 +64,8 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		int getHeight() const;
+
+		Texture* getTexture();
 
 		// Has to be implemented by renderer backend
 		int getWidth() const;

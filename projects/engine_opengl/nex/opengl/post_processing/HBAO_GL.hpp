@@ -137,8 +137,8 @@ namespace nex {
 
 		virtual ~HBAO_GL();
 
-		TextureGL* getAO_Result();
-		TextureGL* getBlurredResult();
+		Texture* getAO_Result();
+		Texture* getBlurredResult();
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
@@ -164,10 +164,10 @@ namespace nex {
 		std::unique_ptr<DisplayTex> m_aoDisplay;
 		std::unique_ptr<HBAO_Shader> m_hbaoShader;
 
-		std::unique_ptr<OneTextureRenderTarget> m_depthLinearRT;
-		std::unique_ptr<OneTextureRenderTarget> m_aoResultRT;
-		std::unique_ptr<OneTextureRenderTarget> m_tempRT;
-		std::unique_ptr<OneTextureRenderTarget> m_aoBlurredResultRT = nullptr;
+		std::unique_ptr<RenderTarget> m_depthLinearRT;
+		std::unique_ptr<RenderTarget> m_aoResultRT;
+		std::unique_ptr<RenderTarget> m_tempRT;
+		std::unique_ptr<RenderTarget> m_aoBlurredResultRT;
 		
 
 

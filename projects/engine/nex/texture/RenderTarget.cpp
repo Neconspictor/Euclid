@@ -13,6 +13,11 @@ nex::RenderTarget::~RenderTarget()
 	mImpl = nullptr;
 }
 
+nex::Texture* nex::RenderTarget::getTexture()
+{
+	return mImpl->getTexture();
+}
+
 int nex::CubeRenderTarget::getHeightMipLevel(unsigned mipMapLevel) const
 {
 	return (int)(getHeight() * std::pow(0.5, mipMapLevel));

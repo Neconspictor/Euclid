@@ -2,113 +2,94 @@
 #define SSAO_GL_HPP
 
 #include <vector>
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
 
-class TextureGL;
-class BaseRenderTargetGL;
-class ShaderProgramGL;
-class ModelDrawerGL;
+namespace nex
+{
 
-const int SSAO_SAMPLING_SIZE = 32;
+	class Texture;
+	class RenderTarget;
+	class ShaderProgram;
+	class ModelDrawerGL;
 
-struct SSAOData {
-	float   bias;
-	float   intensity;
-	float   radius;
-	float   _pad0;
+	const int SSAO_SAMPLING_SIZE = 32;
 
-	glm::mat4 projection_GPass;
+	struct SSAOData {
+		float   bias;
+		float   intensity;
+		float   radius;
+		float   _pad0;
 
-	glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
-};
+		glm::mat4 projection_GPass;
 
-
-class SSAO_RendertargetGL : public BaseRenderTargetGL {
-public:
-	SSAO_RendertargetGL(int width, int height, GLuint frameBuffer, GLuint ssaoColorBuffer);
-
-	virtual ~SSAO_RendertargetGL() = default;
-
-	SSAO_RendertargetGL(SSAO_RendertargetGL&& o);
-	SSAO_RendertargetGL& operator=(SSAO_RendertargetGL&& o);
-
-	SSAO_RendertargetGL(const SSAO_RendertargetGL& o) = delete;
-	SSAO_RendertargetGL& operator=(const SSAO_RendertargetGL& o) = delete;
-
-	TextureGL* getTexture();
-
-private:
-	void swap(SSAO_RendertargetGL& o);
-
-protected:
-	TextureGL ssaoColorBuffer;
-};
+		glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
+	};
 
 
+	class SSAO_DeferredGL {
+	public:
+
+		SSAO_DeferredGL(unsigned int windowWidth,
+			unsigned int windowHeight, ModelDrawerGL* modelDrawer);
+
+		virtual ~SSAO_DeferredGL() = default;
+
+		Texture* getAO_Result();
+		Texture* getBlurredResult();
+
+		Texture* getNoiseTexture();
+		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
+
+		void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass);
+		void blur();
+
+		void displayAOTexture(Texture* aoTexture);
+
+		SSAOData* getSSAOData();
+
+		void setBias(float bias);
+		void setItensity(float itensity);
+		void setRadius(float radius);
 
 
-class SSAO_DeferredGL {
-public:
+	private:
 
-	SSAO_DeferredGL(unsigned int windowWidth,
-		unsigned int windowHeight, ModelDrawerGL* modelDrawer);
+		static RenderTarget* createSSAO_FBO(unsigned int width, unsigned int height);
 
-	virtual ~SSAO_DeferredGL() = default;
+		float randomFloat(float a, float b);
+		float lerp(float a, float b, float f);
 
-	TextureGL* getAO_Result();
-	TextureGL* getBlurredResult();
+		Guard<Texture> noiseTexture;
+		Guard<RenderTarget> aoRenderTarget;
+		Guard<RenderTarget> tiledBlurRenderTarget;
+		std::unique_ptr<nex::Shader> aoPass;
+		std::unique_ptr<nex::Shader> tiledBlurPass;
+		std::unique_ptr<nex::Shader> aoDisplay;
+		ModelDrawerGL* modelDrawer;
 
-	TextureGL* getNoiseTexture();
-	void onSizeChange(unsigned int newWidth, unsigned int newHeight);
+		unsigned int windowWidth;
+		unsigned int windowHeight;
+		unsigned int noiseTileWidth;
+		std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
+		std::vector<glm::vec3> noiseTextureValues;
 
-	void renderAO(TextureGL* gPositions, TextureGL* gNormals, const glm::mat4& projectionGPass);
-	void blur();
+		nex::Sprite screenSprite;
 
-	void displayAOTexture(TextureGL* aoTexture);
+		SSAOData   m_shaderData;
+	};
 
-	SSAOData* getSSAOData();
+	class SSAO_ConfigurationView : public nex::gui::Drawable {
+	public:
+		SSAO_ConfigurationView(SSAO_DeferredGL* ssao);
 
-	void setBias(float bias);
-	void setItensity(float itensity);
-	void setRadius(float radius);
+	protected:
+		void drawSelf() override;
 
+	private:
+		SSAO_DeferredGL * m_ssao;
+	};
 
-private:
-
-	static SSAO_RendertargetGL createSSAO_FBO(unsigned int width, unsigned int height);
-
-	float randomFloat(float a, float b);
-	float lerp(float a, float b, float f);
-
-	TextureGL noiseTexture;
-	SSAO_RendertargetGL aoRenderTarget;
-	SSAO_RendertargetGL tiledBlurRenderTarget;
-	std::unique_ptr<ShaderProgramGL> aoPass;
-	std::unique_ptr<ShaderGL> tiledBlurPass;
-	std::unique_ptr<ShaderGL> aoDisplay;
-	ModelDrawerGL* modelDrawer;
-
-	unsigned int windowWidth;
-	unsigned int windowHeight;
-	unsigned int noiseTileWidth;
-	std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
-	std::vector<glm::vec3> noiseTextureValues;
-
-	Sprite screenSprite;
-
-	SSAOData   m_shaderData;
-};
-
-class SSAO_ConfigurationView : public nex::engine::gui::Drawable {
-public:
-	SSAO_ConfigurationView(SSAO_DeferredGL* ssao);
-
-protected:
-	void drawSelf() override;
-
-private:
-	SSAO_DeferredGL * m_ssao;
-};
+}
 
 #endif //SSAO_GL_HPP

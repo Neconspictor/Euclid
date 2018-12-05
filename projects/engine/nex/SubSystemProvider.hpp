@@ -3,7 +3,7 @@
 
 namespace nex
 {
-	class ImGUI_Impl;
+	namespace gui{ class ImGUI_Impl; }
 	class Input;
 	class RenderBackend;
 
@@ -15,7 +15,7 @@ namespace nex
 
 		virtual Window* createWindow(Window::WindowStruct& desc) = 0;
 
-		virtual std::unique_ptr<ImGUI_Impl> createGUI(Window* window) = 0;
+		virtual std::unique_ptr<gui::ImGUI_Impl> createGUI(Window* window) = 0;
 
 		virtual bool init() = 0;
 

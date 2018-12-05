@@ -16,13 +16,6 @@ namespace nex
 		explicit RenderTargetGL(int width, int height, GLuint frameBuffer = GL_FALSE);
 		virtual ~RenderTargetGL();
 
-		void copyFrom(RenderTargetGL* dest, const Dimension& sourceDim, int components);
-
-		static RenderTargetGL* createMultisampled(int width, int height, const TextureData& data,
-			GLuint samples, GLuint depthStencilType);
-
-		static RenderTargetGL* createSingleSampled(int width, int height, const TextureData& data, GLuint depthStencilType);
-
 		GLuint getFrameBuffer() const;
 		GLuint getRenderBuffer();
 

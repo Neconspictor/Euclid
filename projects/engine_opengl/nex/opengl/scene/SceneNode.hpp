@@ -2,35 +2,37 @@
 #include <vector>
 #include <nex/opengl/model/Vob.hpp>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
-#include <nex/opengl/shader/ShaderGL.hpp>
 
-class RendererOpenGL;
-
-class SceneNode
+namespace nex
 {
-public:
-	explicit SceneNode();
+	class RendererOpenGL;
 
-	SceneNode(const SceneNode& copy);
-	SceneNode(SceneNode&& copy);
-	SceneNode& operator=(const SceneNode& copy);
-	SceneNode&& operator=(SceneNode&& copy);
+	class SceneNode
+	{
+	public:
+		explicit SceneNode();
 
-	virtual ~SceneNode() = default;
+		SceneNode(const SceneNode& copy);
+		SceneNode(SceneNode&& copy);
+		SceneNode& operator=(const SceneNode& copy);
+		SceneNode&& operator=(SceneNode&& copy);
 
-	void addChild(SceneNode* child);
-	void removeChild(SceneNode* child);
+		virtual ~SceneNode() = default;
 
-	void init(ModelManagerGL* modelManager);
+		void addChild(SceneNode* child);
+		void removeChild(SceneNode* child);
 
-	void update(float frameTime);
+		void init(ModelManagerGL* modelManager);
 
-	// public for convenient editing!
-	SceneNode* parent;
-	Vob* vob;
-	glm::mat4 worldTrafo;
-	glm::mat4 localTrafo;
-	std::vector<SceneNode*> childs;
-	DrawingTypes drawingType;
-	int instanceCount;
-};
+		void update(float frameTime);
+
+		// public for convenient editing!
+		SceneNode* parent;
+		Vob* vob;
+		glm::mat4 worldTrafo;
+		glm::mat4 localTrafo;
+		std::vector<SceneNode*> childs;
+		DrawingTypes drawingType;
+		int instanceCount;
+	};
+}

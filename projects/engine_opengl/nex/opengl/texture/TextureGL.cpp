@@ -62,6 +62,27 @@ void nex::CubeMapGL::setCubeMap(GLuint id)
 	mTextureID = id;
 }
 
+bool nex::isNoStencilFormat(nex::DepthStencil format)
+{
+	return format != DepthStencil::DEPTH24_STENCIL8;
+}
+
+nex::ChannelGL nex::translate(nex::Channel channel)
+{
+	static ChannelGL const table[]
+	{
+		RED,
+		GREEN,
+		BLUE,
+		ALPHA,
+	};
+
+	static const unsigned size = (unsigned)Channel::LAST - (unsigned)Channel::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)channel];
+}
+
 nex::TextureFilterGL nex::translate(nex::TextureFilter filter)
 {
 	static TextureFilterGL const table[]
@@ -123,24 +144,28 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 	{
 		R8,
 		R16,
+		R16F,
 		R32F,
 		R32I,
 		R32UI,
 
 		RG8,
 		RG16,
+		RG16F,
 		RG32F,
 		RG32I,
 		RG32UI,
 
 		RGB8,
 		RGB16,
+		RGB16F,
 		RGB32F,
 		RGB32I,
 		RGB32UI,
 
 		RGBA8,
 		RGBA16,
+		RGBA16F,
 		RGBA32F,
 		RGBA32I,
 		RGBA32UI,
@@ -200,6 +225,21 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
 
 	return table[(unsigned)target];
+}
+
+nex::DepthStencilGL nex::translate(nex::DepthStencil depth)
+{
+	static DepthStencilGL const table[]
+	{
+		NONE,
+		DEPTH24,
+		DEPTH24_STENCIL8,
+	};
+
+	static const unsigned size = (unsigned)DepthStencil::LAST - (unsigned)DepthStencil::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)depth];
 }
 
 nex::TextureGL::TextureGL(): mTextureID(GL_FALSE), width(0), height(0)

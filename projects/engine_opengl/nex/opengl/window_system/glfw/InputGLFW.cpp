@@ -33,14 +33,14 @@ nex::InputMapperGLFW::InputMapperGLFW()
 }
 
 
-Input::Button nex::InputMapperGLFW::toButton(int glfwButton) const
+nex::Input::Button nex::InputMapperGLFW::toButton(int glfwButton) const
 {
 	auto it = glfwToButtonMap.find(glfwButton);
 	if (it == glfwToButtonMap.end()) return Input::InvalidButton;
 	return it->second;
 }
 
-Input::Key nex::InputMapperGLFW::toKey(int glfwKey) const
+nex::Input::Key nex::InputMapperGLFW::toKey(int glfwKey) const
 {
 	auto it = glfwToKeyMap.find(glfwKey);
 	if (it == glfwToKeyMap.end()) return Input::KEY_UNKNOWN;
@@ -421,17 +421,17 @@ void nex::InputGLFW::frameUpdate()
 	}
 }
 
-Input::Button nex::InputGLFW::getAnyPressedButton()
+nex::Input::Button nex::InputGLFW::getAnyPressedButton()
 {
 	return anyPressedButton;
 }
 
-Input::Key nex::InputGLFW::getAnyPressedKey()
+nex::Input::Key nex::InputGLFW::getAnyPressedKey()
 {
 	return anyPressedKey;
 }
 
-Window * nex::InputGLFW::getWindow()
+nex::Window * nex::InputGLFW::getWindow()
 {
 	return window;
 }

@@ -40,24 +40,28 @@ namespace nex
 	{
 		R8, FIRST = R8,
 		R16,
+		R16F,
 		R32F,
 		R32I,
 		R32UI,
 
 		RG8,
 		RG16,
+		RG16F,
 		RG32F,
 		RG32I,
 		RG32UI,
 
 		RGB8,
 		RGB16,
+		RGB16F,
 		RGB32F,
 		RGB32I,
 		RGB32UI,
 
 		RGBA8,
 		RGBA16,
+		RGBA16F,
 		RGBA32F,
 		RGBA32I,
 		RGBA32UI,
@@ -72,6 +76,14 @@ namespace nex
 		FLOAT, FIRST = FLOAT,
 		UBYTE,
 		UINT, LAST = UINT,
+	};
+
+	enum class Channel
+	{
+		RED, FIRST = RED,
+		GREEN,
+		BLUE,
+		ALPHA, LAST = ALPHA,
 	};
 
 	enum class TextureTarget
@@ -99,7 +111,9 @@ namespace nex
 
 	enum class DepthStencil
 	{
-
+		NONE, FIRST = NONE,
+		DEPTH24,
+		DEPTH24_STENCIL8, LAST = DEPTH24_STENCIL8,
 	};
 		
 	bool isCubeTarget(TextureTarget target);
@@ -107,13 +121,32 @@ namespace nex
 
 	struct TextureData
 	{
-		TextureFilter minFilter;  // minification filter
-		TextureFilter magFilter;  // magnification filter
-		TextureUVTechnique uvTechnique;
-		ColorSpace colorspace;
-		PixelDataType pixelDataType;
-		InternFormat internalFormat;
-		bool generateMipMaps;
+		TextureFilter minFilter = TextureFilter::Linear_Mipmap_Linear;  // minification filter
+		TextureFilter magFilter = TextureFilter::Linear;  // magnification filter
+		TextureUVTechnique uvTechnique = TextureUVTechnique::Repeat;
+		ColorSpace colorspace = ColorSpace::SRGBA;
+		PixelDataType pixelDataType = PixelDataType::UBYTE;
+		InternFormat internalFormat = InternFormat::RGBA8;
+		bool generateMipMaps = false;
+		bool useSwizzle = false;
+		glm::vec<4, Channel, glm::highp> swizzle = { Channel::RED, Channel::GREEN, Channel::BLUE, Channel::ALPHA};
+
+		TextureData() {}
+
+		TextureData(TextureFilter minFilter, 
+			TextureFilter magFilter, 
+			TextureUVTechnique uvTechnique, 
+			ColorSpace colorspace, 
+			PixelDataType pixelDataType, 
+			InternFormat internalFormat,
+			bool generateMipMaps) : minFilter(minFilter),
+			                        magFilter(magFilter),
+			                        uvTechnique(uvTechnique),
+			                        colorspace(colorspace),
+			                        pixelDataType(pixelDataType),
+			                        internalFormat(internalFormat)
+		{
+		}
 	};
 
 

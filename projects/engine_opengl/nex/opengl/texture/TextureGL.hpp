@@ -7,6 +7,14 @@ namespace nex
 {
 	struct StoreImage;
 
+	enum ChannelGL
+	{
+		RED = GL_RED,
+		GREEN = GL_GREEN,
+		BLUE = GL_BLUE,
+		ALPHA = GL_ALPHA,
+	};
+
 	enum TextureFilterGL
 	{
 		NearestNeighbor = GL_NEAREST,
@@ -41,24 +49,28 @@ namespace nex
 	{
 		R8 = GL_R8,
 		R16 = GL_R16,
+		R16F = GL_R16F,
 		R32F = GL_R32F,
 		R32I = GL_R32I,
 		R32UI = GL_R32UI,
 
 		RG8 = GL_RG8,
 		RG16 = GL_RG16,
+		RG16F = GL_RG16F,
 		RG32F = GL_RG32F,
 		RG32I = GL_RG32I,
 		RG32UI = GL_RG32UI,
 
 		RGB8 = GL_RGB8,
 		RGB16 = GL_RGB16,
+		RGB16F = GL_RGB16F,
 		RGB32F = GL_RGB32F,
 		RGB32I = GL_RGB32I,
 		RGB32UI = GL_RGB32UI,
 
 		RGBA8 = GL_RGBA8,
 		RGBA16 = GL_RGBA16,
+		RGBA16F = GL_RGBA16F,
 		RGBA32F = GL_RGBA32F,
 		RGBA32I = GL_RGBA32I,
 		RGBA32UI = GL_RGBA32UI,
@@ -98,15 +110,26 @@ namespace nex
 		CUBE_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
+	enum DepthStencilGL
+	{
+		NONE = GL_FALSE,
+		DEPTH24 = GL_DEPTH_COMPONENT24,  // GL_DEPTH_COMPONENT  GL_DEPTH_COMPONENT24
+		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8, // GL_DEPTH24_STENCIL8
+	};
+
 
 	bool isCubeTarget(TextureTarget target);
 
+	bool isNoStencilFormat(nex::DepthStencil format);
+
+	ChannelGL translate(nex::Channel);
 	TextureFilterGL translate(nex::TextureFilter);
 	TextureUVTechniqueGL translate(nex::TextureUVTechnique);
 	ColorSpaceGL translate(nex::ColorSpace);
 	InternFormatGL translate(nex::InternFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
+	DepthStencilGL translate(nex::DepthStencil);
 
 	class TextureGL : public TextureImpl
 	{

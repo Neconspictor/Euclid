@@ -87,7 +87,7 @@ namespace nex
 		m_hbao_randomview = Texture::create();
 		gl = (TextureGL*)m_hbao_randomview->getImpl();
 		gl->setTexture(temp);
-		glTextureView(temp, GL_TEXTURE_2D, *m_hbao_random.getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1);
+		glTextureView(temp, GL_TEXTURE_2D, *gl->getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1);
 		glBindTexture(GL_TEXTURE_2D, temp);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -126,12 +126,12 @@ namespace nex
 		}
 	}
 
-	TextureGL * HBAO_GL::getAO_Result()
+	Texture * HBAO_GL::getAO_Result()
 	{
 		return m_aoResultRT->getTexture();
 	}
 
-	TextureGL * HBAO_GL::getBlurredResult()
+	Texture * HBAO_GL::getBlurredResult()
 	{
 		return m_aoBlurredResultRT->getTexture();
 	}
@@ -144,9 +144,8 @@ namespace nex
 		initRenderTargets(windowWidth, windowHeight);
 	}
 
-	void HBAO_GL::renderAO(TextureGL * depthTexture, const Projection& projection, bool blur)
+	void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
 	{
-		TextureGL& depthTextureGL = dynamic_cast<TextureGL&>(*depthTexture);
 		unsigned int width = m_aoResultRT->getWidth();
 		unsigned int height = m_aoResultRT->getHeight();
 
@@ -157,24 +156,24 @@ namespace nex
 		glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 		glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 
-		drawLinearDepth(&depthTextureGL, projection);
+		drawLinearDepth(depthTexture, projection);
 
 		// draw hbao to hbao render target
-		glBindFramebuffer(GL_FRAMEBUFFER, m_aoResultRT->getFrameBuffer());
+		m_aoResultRT->bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		m_hbaoShader->setHbaoData(move(m_hbaoDataSource));
 		m_hbaoShader->setLinearDepth(m_depthLinearRT->getTexture());
-		m_hbaoShader->setRamdomView(&m_hbao_randomview);
+		m_hbaoShader->setRamdomView(m_hbao_randomview);
 		m_hbaoShader->draw();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		if (blur) {
 			// clear color/depth/stencil for all involved render targets
-			glBindFramebuffer(GL_FRAMEBUFFER, m_aoBlurredResultRT->getFrameBuffer());
+			m_aoBlurredResultRT->bind();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-			glBindFramebuffer(GL_FRAMEBUFFER, m_tempRT->getFrameBuffer());
+			m_tempRT->bind();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			// setup bilaterial blur and draw
@@ -188,12 +187,11 @@ namespace nex
 		glBindVertexArray(0);
 	}
 
-	void HBAO_GL::displayAOTexture(TextureGL* texture)
+	void HBAO_GL::displayAOTexture(Texture* texture)
 	{
 		//modelDrawer->draw(&screenSprite, *aoDisplay);
-		TextureGL& textureGL = dynamic_cast<TextureGL&>(*texture);
 		glBindVertexArray(m_fullscreenTriangleVAO);
-		m_aoDisplay->setInputTexture(&textureGL);
+		m_aoDisplay->setInputTexture(texture);
 		m_aoDisplay->draw();
 		glBindVertexArray(0);
 	}
@@ -250,11 +248,10 @@ namespace nex
 
 	void HBAO_GL::drawLinearDepth(Texture* depthTexture, const Projection & projection)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, m_depthLinearRT->getFrameBuffer());
+		m_depthLinearRT->bind();
 		m_depthLinearizer->setProjection(&projection);
 		m_depthLinearizer->setInputTexture(depthTexture);
 		m_depthLinearizer->draw();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	void HBAO_GL::initRenderTargets(unsigned int width, unsigned int height)
@@ -266,98 +263,30 @@ namespace nex
 		m_tempRT = nullptr;
 
 		// m_depthLinearRT
-		GLuint depthLinearTex;
-		GLuint depthLinearFBO;
-		glGenTextures(1, &depthLinearTex);
-		glBindTexture(GL_TEXTURE_2D, depthLinearTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, windowWidth, windowHeight);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		TextureData data;
+		data.internalFormat = InternFormat::R32F;
+		data.magFilter = TextureFilter::NearestNeighbor;
+		data.minFilter = TextureFilter::NearestNeighbor;
+		data.uvTechnique = TextureUVTechnique::ClampToEdge;
+		data.pixelDataType = PixelDataType::FLOAT;
+		data.generateMipMaps = false;
 
-		glGenFramebuffers(1, &depthLinearFBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthLinearFBO);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthLinearTex, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		m_depthLinearRT = make_unique<OneTextureRenderTarget>(depthLinearFBO,
-			TextureGL(depthLinearTex),
-			width,
-			height);
-
+		m_depthLinearRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
 
 		// m_aoResultRT
-		GLuint aoResultTex;
-		GLuint aoResultFBO;
-		GLenum formatAO = GL_R8;
-		GLint swizzle[4] = { GL_RED,GL_RED,GL_RED,GL_RED };
-
-		glGenTextures(1, &aoResultTex);
-		glBindTexture(GL_TEXTURE_2D, aoResultTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, formatAO, width, height);
-		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glGenFramebuffers(1, &aoResultFBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, aoResultFBO);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, aoResultTex, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		m_aoResultRT = make_unique<OneTextureRenderTarget>(aoResultFBO,
-			TextureGL(aoResultTex),
-			width,
-			height);
-
+		data.internalFormat = InternFormat::R8;
+		data.useSwizzle = true;
+		data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
+		data.uvTechnique = TextureUVTechnique::ClampToEdge;
+		data.pixelDataType = PixelDataType::UBYTE;
+		data.generateMipMaps = false;
+		m_aoResultRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
 
 		// m_aoBlurredResultRT
-		GLuint aoBlurredResultTex;
-		GLuint aoBlurredResultFBO;
-
-		glGenTextures(1, &aoBlurredResultTex);
-		glBindTexture(GL_TEXTURE_2D, aoBlurredResultTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, formatAO, width, height);
-		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glGenFramebuffers(1, &aoBlurredResultFBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, aoBlurredResultFBO);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, aoBlurredResultTex, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		m_aoBlurredResultRT = make_unique<OneTextureRenderTarget>(aoBlurredResultFBO,
-			TextureGL(aoBlurredResultTex),
-			width,
-			height);
-
+		m_aoBlurredResultRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
 
 		// m_tempRT
-		GLuint tempTex;
-		GLuint tempFBO;
-
-		glGenTextures(1, &tempTex);
-		glBindTexture(GL_TEXTURE_2D, tempTex);
-		glTexStorage2D(GL_TEXTURE_2D, 1, formatAO, width, height);
-		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glGenFramebuffers(1, &tempFBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, tempFBO);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tempTex, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-		m_tempRT = make_unique<OneTextureRenderTarget>(tempFBO,
-			TextureGL(tempTex),
-			width,
-			height);
+		m_tempRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
 	}
 
 	BilateralBlur::BilateralBlur() :
