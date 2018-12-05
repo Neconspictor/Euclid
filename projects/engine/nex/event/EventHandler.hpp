@@ -26,18 +26,21 @@
 */
 #pragma once
 
-template <class> class EventHandlerQueue;
+namespace nex
+{
+	template <class> class EventHandlerQueue;
 
-/**
- * 
- */
-template <class tEvent>
-class EventHandler {
-public:
-	virtual ~EventHandler(){}
+	/**
+	 *
+	 */
+	template <class tEvent>
+	class EventHandler {
+	public:
+		virtual ~EventHandler() {}
 
-private:
-	friend class EventHandlerQueue<tEvent>;
+	private:
+		friend class EventHandlerQueue<tEvent>;
 
-	virtual void handle(tEvent& object) = 0;
-};
+		virtual void handle(tEvent& object) = 0;
+	};
+}

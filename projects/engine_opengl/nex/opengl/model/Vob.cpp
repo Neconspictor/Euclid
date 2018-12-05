@@ -5,112 +5,115 @@
 using namespace std;
 using namespace glm;
 
-Vob::Vob(string meshName, ShaderType materialShaderType)
-{
-	this->meshName = move(meshName);
-	this->materialShaderType = materialShaderType;
-	position = { 0,0,0 };
-	scale = { 1,1,1 };
-	orientation = { 1,0,0,0 };
-}
+namespace nex {
 
-Vob::Vob(const Vob& other) : meshName(other.meshName), 
-materialShaderType(other.materialShaderType),
-orientation(other.orientation), 
-position(other.position),
-scale(other.scale), 
-trafo(other.trafo)
-{}
+	Vob::Vob(string meshName, ShaderType materialShaderType)
+	{
+		this->meshName = move(meshName);
+		this->materialShaderType = materialShaderType;
+		position = { 0,0,0 };
+		scale = { 1,1,1 };
+		orientation = { 1,0,0,0 };
+	}
 
-Vob::Vob(Vob&& other) : meshName(other.meshName), 
-materialShaderType(other.materialShaderType),
-orientation(other.orientation), 
-position(other.position),
-scale(other.scale), 
-trafo(other.trafo)
-{}
+	Vob::Vob(const Vob& other) : meshName(other.meshName),
+		materialShaderType(other.materialShaderType),
+		orientation(other.orientation),
+		position(other.position),
+		scale(other.scale),
+		trafo(other.trafo)
+	{}
 
-Vob& Vob::operator=(const Vob& other)
-{
-	meshName = other.meshName;
-	materialShaderType = other.materialShaderType;
-	orientation = other.orientation;
-	position = other.position;
-	scale = other.scale;
-	trafo = other.trafo;
-	return *this;
-}
+	Vob::Vob(Vob&& other) : meshName(other.meshName),
+		materialShaderType(other.materialShaderType),
+		orientation(other.orientation),
+		position(other.position),
+		scale(other.scale),
+		trafo(other.trafo)
+	{}
 
-Vob& Vob::operator=(Vob&& other)
-{
-	meshName = move(other.meshName);
-	materialShaderType = other.materialShaderType;
-	orientation = move(other.orientation);
-	position = move(other.position);
-	scale = move(other.scale);
-	trafo = move(other.trafo);
-	return *this;
-}
+	Vob& Vob::operator=(const Vob& other)
+	{
+		meshName = other.meshName;
+		materialShaderType = other.materialShaderType;
+		orientation = other.orientation;
+		position = other.position;
+		scale = other.scale;
+		trafo = other.trafo;
+		return *this;
+	}
 
-Vob::~Vob()
-{
-}
+	Vob& Vob::operator=(Vob&& other)
+	{
+		meshName = move(other.meshName);
+		materialShaderType = other.materialShaderType;
+		orientation = move(other.orientation);
+		position = move(other.position);
+		scale = move(other.scale);
+		trafo = move(other.trafo);
+		return *this;
+	}
 
-void Vob::calcTrafo()
-{
-	trafo = mat4();
-	mat4 rotation = mat4_cast(orientation);
-	mat4 scaleMat = glm::scale(trafo, scale);
-	mat4 transMat = translate(trafo, position);
-	trafo = transMat * rotation * scaleMat;
-}
+	Vob::~Vob()
+	{
+	}
 
-string const& Vob::getMeshName() const
-{
-	return meshName;
-}
+	void Vob::calcTrafo()
+	{
+		trafo = mat4();
+		mat4 rotation = mat4_cast(orientation);
+		mat4 scaleMat = glm::scale(trafo, scale);
+		mat4 transMat = translate(trafo, position);
+		trafo = transMat * rotation * scaleMat;
+	}
 
-ModelGL* Vob::getModel()
-{
-	return m_model;
-}
+	string const& Vob::getMeshName() const
+	{
+		return meshName;
+	}
 
-ShaderType Vob::getMaterialShaderType() const
-{
-	return materialShaderType;
-}
+	ModelGL* Vob::getModel()
+	{
+		return m_model;
+	}
 
-vec3 Vob::getPosition() const
-{
-	return position;
-}
+	ShaderType Vob::getMaterialShaderType() const
+	{
+		return materialShaderType;
+	}
 
-const mat4& Vob::getTrafo() const
-{
-	return trafo;
-}
+	vec3 Vob::getPosition() const
+	{
+		return position;
+	}
 
-void Vob::init(ModelManagerGL* modelManager)
-{
-	m_model = modelManager->getModel(meshName, materialShaderType);
-}
+	const mat4& Vob::getTrafo() const
+	{
+		return trafo;
+	}
 
-void Vob::setEulerXYZ(vec3 rotation)
-{
-	orientation = quat(move(rotation));
-}
+	void Vob::init(ModelManagerGL* modelManager)
+	{
+		m_model = modelManager->getModel(meshName, materialShaderType);
+	}
 
-void Vob::setPosition(vec3 position)
-{
-	this->position = move(position);
-}
+	void Vob::setEulerXYZ(vec3 rotation)
+	{
+		orientation = quat(move(rotation));
+	}
 
-void Vob::setScale(vec3 scale)
-{
-	this->scale = move(scale);
-}
+	void Vob::setPosition(vec3 position)
+	{
+		this->position = move(position);
+	}
 
-void Vob::setTrafo(mat4 mat)
-{
-	trafo = move(mat);
+	void Vob::setScale(vec3 scale)
+	{
+		this->scale = move(scale);
+	}
+
+	void Vob::setTrafo(mat4 mat)
+	{
+		trafo = move(mat);
+	}
 }

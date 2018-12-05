@@ -3,23 +3,27 @@
 #include <nex/gui/Controller.hpp>
 #include <memory>
 
-class ControllerStateMachine {
+namespace nex::gui
+{
 
-public:
+	class ControllerStateMachine {
 
-	using ControllerPtr = std::unique_ptr<Controller>;
+	public:
 
-	ControllerStateMachine(ControllerPtr controller);
-	virtual ~ControllerStateMachine() = default;
+		using ControllerPtr = std::unique_ptr<Controller>;
 
-	void frameUpdate(float frameTime);
-	
-	Controller* getCurrentController();
+		ControllerStateMachine(ControllerPtr controller);
+		virtual ~ControllerStateMachine() = default;
 
-	void init();
+		void frameUpdate(float frameTime);
 
-	void setCurrentController(ControllerPtr controller);
+		Controller* getCurrentController();
 
-private:
-	ControllerPtr m_controller;
-};
+		void init();
+
+		void setCurrentController(ControllerPtr controller);
+
+	private:
+		ControllerPtr m_controller;
+	};
+}

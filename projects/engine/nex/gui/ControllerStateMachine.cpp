@@ -1,25 +1,29 @@
 #include <nex/gui/ControllerStateMachine.hpp>
 
-ControllerStateMachine::ControllerStateMachine(ControllerPtr controller) : m_controller(move(controller))
+namespace nex::gui
 {
-}
 
-void ControllerStateMachine::frameUpdate(float frameTime)
-{
-	m_controller->frameUpdate(*this, frameTime);
-}
+	ControllerStateMachine::ControllerStateMachine(ControllerPtr controller) : m_controller(move(controller))
+	{
+	}
 
-Controller * ControllerStateMachine::getCurrentController()
-{
-	return m_controller.get();
-}
+	void ControllerStateMachine::frameUpdate(float frameTime)
+	{
+		m_controller->frameUpdate(*this, frameTime);
+	}
 
-void ControllerStateMachine::init()
-{
-	m_controller->init();
-}
+	Controller * ControllerStateMachine::getCurrentController()
+	{
+		return m_controller.get();
+	}
 
-void ControllerStateMachine::setCurrentController(ControllerPtr controller)
-{
-	m_controller = std::move(controller);
+	void ControllerStateMachine::init()
+	{
+		m_controller->init();
+	}
+
+	void ControllerStateMachine::setCurrentController(ControllerPtr controller)
+	{
+		m_controller = std::move(controller);
+	}
 }

@@ -6,7 +6,7 @@
 #include <nex/gui/imgui_tabs.h>
 #include <sstream>
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	Drawable::Drawable(): m_isVisible(true)
 	{

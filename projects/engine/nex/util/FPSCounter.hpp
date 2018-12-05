@@ -1,43 +1,47 @@
 #pragma once
-/**
- * A facility for counting frames per seconds. 
- */
-class FPSCounter
+
+namespace nex
 {
-public:
-	FPSCounter()
+	/**
+	 * A facility for counting frames per seconds.
+	 */
+	class FPSCounter
 	{
-		counter = 0;
-		runtime = 0;
-	};
-	virtual ~FPSCounter(){};
-
-	float update(float timeDiff)
-	{
-		runtime += timeDiff;
-		++counter;
-		float currentFPS = counter / runtime;
-		if (!isValid(currentFPS))
+	public:
+		FPSCounter()
 		{
-			currentFPS = 0;
-		}
-		if (runtime > 1)
-		{
-			// restart fps counting
-			runtime -= 1;
 			counter = 0;
+			runtime = 0;
+		};
+		virtual ~FPSCounter() {};
+
+		float update(float timeDiff)
+		{
+			runtime += timeDiff;
+			++counter;
+			float currentFPS = counter / runtime;
+			if (!isValid(currentFPS))
+			{
+				currentFPS = 0;
+			}
+			if (runtime > 1)
+			{
+				// restart fps counting
+				runtime -= 1;
+				counter = 0;
+			}
+
+			return currentFPS;
 		}
 
-		return currentFPS;
-	}
+	protected:
+		static bool isValid(float value)
+		{
+			return !isnan(value) && value != HUGE_VALL && value != -HUGE_VALL;
+		}
 
-protected:
-	static bool isValid(float value)
-	{
-		return !isnan(value) && value != HUGE_VALL && value != -HUGE_VALL;
-	}
-
-private:
-	float runtime;
-	int counter;
-};
+	private:
+		float runtime;
+		int counter;
+	};
+}

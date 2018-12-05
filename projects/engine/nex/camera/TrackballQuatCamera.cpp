@@ -8,7 +8,7 @@
 using namespace std;
 using namespace glm;
 
-TrackballQuatCamera::TrackballQuatCamera()
+nex::TrackballQuatCamera::TrackballQuatCamera()
 {
 	trackPosition = { 0.0f, 0.0f, 0 };
 	radius = 3; 
@@ -19,7 +19,7 @@ TrackballQuatCamera::TrackballQuatCamera()
 	init();
 }
 
-TrackballQuatCamera::TrackballQuatCamera(glm::vec3 trackPosition, float radius, glm::vec3 look, glm::vec3 up)
+nex::TrackballQuatCamera::TrackballQuatCamera(glm::vec3 trackPosition, float radius, glm::vec3 look, glm::vec3 up)
 {
 	position = trackPosition - radius*look;
 	Camera(position, look, up);
@@ -28,17 +28,14 @@ TrackballQuatCamera::TrackballQuatCamera(glm::vec3 trackPosition, float radius, 
 	this->radius = radius;
 }
 
-TrackballQuatCamera::TrackballQuatCamera(const TrackballQuatCamera& other) : Camera(other), radius(other.radius),
+nex::TrackballQuatCamera::TrackballQuatCamera(const TrackballQuatCamera& other) : Camera(other), radius(other.radius),
 	trackPosition(other.trackPosition), prevMouseX(other.prevMouseX), prevMouseY(other.prevMouseY), 
 	halfScreenWidth(other.halfScreenWidth), halfScreenHeight(other.halfScreenHeight), orientation(other.orientation)
 {
 }
 
-TrackballQuatCamera::~TrackballQuatCamera()
-{
-}
 
-void TrackballQuatCamera::calcView()
+void nex::TrackballQuatCamera::calcView()
 {
 	view = glm::lookAt(position, trackPosition, up);
 	look = glm::normalize(position - trackPosition);
@@ -50,7 +47,7 @@ void TrackballQuatCamera::calcView()
 	//view =  view * getArcBallTransformation();
 }
 
-glm::mat4 TrackballQuatCamera::getArcBallTransformation()
+glm::mat4 nex::TrackballQuatCamera::getArcBallTransformation()
 {
 	glm::mat4 result  = mat4_cast(orientation);
 	//view = transpose(view);
@@ -60,22 +57,22 @@ glm::mat4 TrackballQuatCamera::getArcBallTransformation()
 	return result;
 }
 
-float TrackballQuatCamera::getRadius() const
+float nex::TrackballQuatCamera::getRadius() const
 {
 	return radius;
 }
 
-const glm::quat& TrackballQuatCamera::getOrientation() const
+const glm::quat& nex::TrackballQuatCamera::getOrientation() const
 {
 	return orientation;
 }
 
-const glm::vec3& TrackballQuatCamera::getTrackPosition() const
+const glm::vec3& nex::TrackballQuatCamera::getTrackPosition() const
 {
 	return trackPosition;
 }
 
-glm::quat TrackballQuatCamera::multiply(glm::quat q1, glm::quat q2)
+glm::quat nex::TrackballQuatCamera::multiply(glm::quat q1, glm::quat q2)
 {
 	glm::vec3 v1(q1.x, q1.y, q1.z);
 	glm::vec3 v2(q2.x, q2.y, q2.z);
@@ -87,27 +84,27 @@ glm::quat TrackballQuatCamera::multiply(glm::quat q1, glm::quat q2)
 	return glm::quat(q1.w * q2.w - dotP, v3.x, v3.y, v3.z);
 }
 
-void TrackballQuatCamera::setHalfScreenWidth(int width)
+void nex::TrackballQuatCamera::setHalfScreenWidth(int width)
 {
 	halfScreenWidth = width;
 }
 
-void TrackballQuatCamera::setHalfScreenHeight(int height)
+void nex::TrackballQuatCamera::setHalfScreenHeight(int height)
 {
 	halfScreenHeight = height;
 }
 
-void TrackballQuatCamera::setRadius(float radius)
+void nex::TrackballQuatCamera::setRadius(float radius)
 {
 	this->radius = radius;
 }
 
-void TrackballQuatCamera::setTrackPosition(glm::vec3 trackPosition)
+void nex::TrackballQuatCamera::setTrackPosition(glm::vec3 trackPosition)
 {
 	this->trackPosition = trackPosition;
 }
 
-void TrackballQuatCamera::update(Input* input, float frameTime)
+void nex::TrackballQuatCamera::update(Input* input, float frameTime)
 {
 	MouseOffset data = input->getFrameMouseOffset();
 	float xPos = static_cast<float>(data.xAbsolute);
@@ -133,19 +130,19 @@ void TrackballQuatCamera::update(Input* input, float frameTime)
 	orientation = multiply(rotation, prevOrientation);
 }
 
-void TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
+void nex::TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
 {
 	halfScreenWidth = screenWidth / 2;
 	halfScreenHeight = screenHeight / 2;
 }
 
-bool TrackballQuatCamera::equal(const glm::vec3& v1, const glm::vec3& v2, float epsilon)
+bool nex::TrackballQuatCamera::equal(const glm::vec3& v1, const glm::vec3& v2, float epsilon)
 {
 	auto eps = glm::epsilonEqual(v1, v2, epsilon);
 	return eps.x && eps.y && eps.z;
 }
 
-glm::quat TrackballQuatCamera::createRotationQuat(glm::vec3 axis, float angle)
+glm::quat nex::TrackballQuatCamera::createRotationQuat(glm::vec3 axis, float angle)
 {
 	axis = glm::normalize(axis);                  // convert to unit vector
 	float sine = sinf(angle);       // angle is radian
@@ -156,7 +153,7 @@ glm::quat TrackballQuatCamera::createRotationQuat(glm::vec3 axis, float angle)
 	return glm::quat(w, x, y, z);
 }
 
-glm::quat TrackballQuatCamera::getRotation( const glm::vec3& from, const glm::vec3& to)
+glm::quat nex::TrackballQuatCamera::getRotation( const glm::vec3& from, const glm::vec3& to)
 {
 	static const float EPSILON = 0.001f;
 	static const float HALF_PI = 1.570796f;
@@ -190,14 +187,14 @@ glm::quat TrackballQuatCamera::getRotation( const glm::vec3& from, const glm::ve
 	return createRotationQuat(axis, 0.5f*angle);   // return half angle for quaternion*/
 }
 
-glm::vec3 TrackballQuatCamera::getUnitVector(float x, float y)
+glm::vec3 nex::TrackballQuatCamera::getUnitVector(float x, float y)
 {
 	glm::vec3 vec = getVector(x, y);
 	vec = glm::normalize(vec);
 	return vec;
 }
 
-glm::vec3 TrackballQuatCamera::getVector(float x, float y)
+glm::vec3 nex::TrackballQuatCamera::getVector(float x, float y)
 {
 	if (radius == 0 || halfScreenWidth == 0 || halfScreenHeight == 0)
 		return glm::vec3(0, 0, 0);
@@ -209,7 +206,7 @@ glm::vec3 TrackballQuatCamera::getVector(float x, float y)
 	return getVectorWithArc(halfScreenX, halfScreenY); // default mode
 }
 
-glm::vec3 TrackballQuatCamera::getVectorWithArc(float x, float y)
+glm::vec3 nex::TrackballQuatCamera::getVectorWithArc(float x, float y)
 {
 	float arc = sqrtf(x*x + y*y);   // legnth between cursor and screen center
 	float a = arc;// / radius;         // arc = r * a
@@ -223,7 +220,7 @@ glm::vec3 TrackballQuatCamera::getVectorWithArc(float x, float y)
 	return vec;
 }
 
-void TrackballQuatCamera::init()
+void nex::TrackballQuatCamera::init()
 {
 	prevMouseX = 0; 
 	prevMouseY = 0; 
@@ -234,14 +231,14 @@ void TrackballQuatCamera::init()
 	fov = 45;
 }
 
-string TrackballQuatCamera::toString(const glm::vec3& vec) const
+string nex::TrackballQuatCamera::toString(const glm::vec3& vec) const
 {
 	stringstream ss;
 	ss << vec.x << ", " << vec.y << ", " << vec.z;
 	return ss.str();
 }
 
-string TrackballQuatCamera::toString(const glm::quat& quaternion) const
+string nex::TrackballQuatCamera::toString(const glm::quat& quaternion) const
 {
 	stringstream ss;
 	ss << quaternion.x << ", " << quaternion.y << ", " << quaternion.z << ", " << quaternion.w;

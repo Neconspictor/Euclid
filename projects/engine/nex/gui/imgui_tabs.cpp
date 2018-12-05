@@ -9,6 +9,7 @@
 
 #define TAB_SMOOTH_DRAG 0   // This work nicely but has overlapping issues (maybe render dragged tab separately, at end)
 
+
 // Basic keyed storage, slow/amortized insertion, O(Log N) queries over a dense/hot buffer
 template<typename T>
 struct ImGuiBigStorage
@@ -223,7 +224,7 @@ void    ImGui::BeginTabBar(const char* str_id, ImGuiTabBarFlags flags)
 	if ((flags & ImGuiTabBarFlags_SizingPolicyMask_) == 0)
 		flags |= ImGuiTabBarFlags_SizingPolicyDefault_;
 
-	PushID(str_id);
+	ImGui::PushID(str_id);
 	const ImGuiID id = window->GetID("");
 	ImGuiTabBar* tab_bar = ctx.TabBars.GetOrCreateByKey(id);
 	IM_ASSERT(tab_bar->CurrFrameVisible != g.FrameCount);   // Cannot call multiple times in the same frame 
@@ -231,7 +232,7 @@ void    ImGui::BeginTabBar(const char* str_id, ImGuiTabBarFlags flags)
 	ctx.CurrentTabBar.push_back(tab_bar);
 	tab_bar->Id = id;
 	tab_bar->Flags = flags;
-	tab_bar->BarRect = ImRect(window->DC.CursorPos, window->DC.CursorPos + ImVec2(GetContentRegionAvailWidth(), g.FontSize + style.FramePadding.y * 2.0f));
+	tab_bar->BarRect = ImRect(window->DC.CursorPos, window->DC.CursorPos + ImVec2(ImGui::GetContentRegionAvailWidth(), g.FontSize + style.FramePadding.y * 2.0f));
 	tab_bar->WantLayout = true; // Layout will be done on the first call to ItemTab()
 	tab_bar->LastFrameVisible = tab_bar->CurrFrameVisible;
 	tab_bar->CurrFrameVisible = g.FrameCount;
@@ -240,10 +241,10 @@ void    ImGui::BeginTabBar(const char* str_id, ImGuiTabBarFlags flags)
 	if (!tab_bar->CurrSelectedTabIdIsAlive)
 		tab_bar->CurrSelectedTabId = 0;
 
-	ItemSize(tab_bar->BarRect);
-	ItemAdd(tab_bar->BarRect, 0);
+	ImGui::ItemSize(tab_bar->BarRect);
+	ImGui::ItemAdd(tab_bar->BarRect, 0);
 	window->DC.LastItemId = id; // We don't want Nav but for drag and drop we need an item id
-	tab_bar->ContentsRect = ImRect(window->DC.CursorPos, window->DC.CursorPos + GetContentRegionAvail());
+	tab_bar->ContentsRect = ImRect(window->DC.CursorPos, window->DC.CursorPos + ImGui::GetContentRegionAvail());
 
 	// Draw separator
 #if 1
@@ -461,7 +462,7 @@ void    ImGui::EndTabBar()
 	ImGuiTabsContext& ctx = GTabs;
 	IM_ASSERT(!ctx.CurrentTabBar.empty());      // Mismatched BeginTabBar/EndTabBar
 
-	PopID();
+	ImGui::PopID();
 	ctx.CurrentTabBar.pop_back();
 }
 
@@ -523,9 +524,9 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	// If the user called us with *p_open == false, we early out and don't render. We make a dummy call to ItemAdd() so that attempts to use a contextual popup menu with an implicit ID won't use an older ID.
 	if (p_open && !*p_open)
 	{
-		PushItemFlag(ImGuiItemFlags_NoNav | ImGuiItemFlags_NoNavDefaultFocus, true);
-		ItemAdd(ImRect(), id);
-		PopItemFlag();
+		ImGui::PushItemFlag(ImGuiItemFlags_NoNav | ImGuiItemFlags_NoNavDefaultFocus, true);
+		ImGui::ItemAdd(ImRect(), id);
+		ImGui::PopItemFlag();
 		return false;
 	}
 	tab_bar->NextTabCount++;
@@ -572,7 +573,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	const ImVec2 backup_main_cursor_pos = window->DC.CursorPos;
 
 	// Calculate tab contents size
-	ImVec2 label_size = CalcTextSize(label, NULL, true);
+	ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
 	ImVec2 size = TabBarCalcTabBaseSize(label_size, p_open);
 	tab->WidthContents = size.x;
 
@@ -613,20 +614,20 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	ImRect bb(pos, pos + size);
 	bool want_clip_rect = (bb.Max.x >= tab_bar->BarRect.Max.x) || (tab->AppearAnim < 1.0f);
 	if (want_clip_rect)
-		PushClipRect(ImVec2(bb.Min.x, bb.Min.y - 1), ImVec2(tab_bar->BarRect.Max.x, bb.Max.y), true);
+		ImGui::PushClipRect(ImVec2(bb.Min.x, bb.Min.y - 1), ImVec2(tab_bar->BarRect.Max.x, bb.Max.y), true);
 
-	ItemSize(bb, style.FramePadding.y);
-	if (!ItemAdd(bb, id))
+	ImGui::ItemSize(bb, style.FramePadding.y);
+	if (!ImGui::ItemAdd(bb, id))
 	{
 		if (want_clip_rect)
-			PopClipRect();
+			ImGui::PopClipRect();
 		window->DC.CursorPos = backup_main_cursor_pos;
 		return tab_selected && !tab_appearing;
 	}
 
 	// Click to Select a tab
 	bool hovered, held;
-	bool pressed = ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_PressedOnClick | ImGuiButtonFlags_PressedOnDragDropHold | ImGuiButtonFlags_AllowItemOverlap);
+	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_PressedOnClick | ImGuiButtonFlags_PressedOnDragDropHold | ImGuiButtonFlags_AllowItemOverlap);
 	hovered |= (g.HoveredId == id);
 	if (pressed || (flags & ImGuiTabItemFlags_SetSelected))
 		tab_bar->NextSelectedTabId = id;
@@ -635,10 +636,10 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 
 	// Allow the close button to overlap unless we are dragging (in which case we don't want any overlapping tabs to be hovered)
 	if (!held)
-		SetItemAllowOverlap();
+		ImGui::SetItemAllowOverlap();
 
 	// Drag and drop
-	if (held && !tab_appearing && IsMouseDragging())
+	if (held && !tab_appearing && ImGui::IsMouseDragging())
 	{
 		// Re-order local tabs
 		if (!(tab_bar->Flags & ImGuiTabBarFlags_NoReorder))
@@ -694,9 +695,9 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 		float text_gradient_extent = g.FontSize * 1.5f;
 		if (flags & ImGuiTabItemFlags_UnsavedDocument)
 		{
-			text_clip_bb.Max.x -= CalcTextSize(TAB_UNSAVED_MARKER, NULL, false).x;
+			text_clip_bb.Max.x -= ImGui::CalcTextSize(TAB_UNSAVED_MARKER, NULL, false).x;
 			ImVec2 unsaved_marker_pos(ImMin(bb.Min.x + style.FramePadding.x + label_size.x + 1, text_clip_bb.Max.x), bb.Min.y + style.FramePadding.y + (float)(int)(-g.FontSize * 0.25f));
-			RenderTextClipped(unsaved_marker_pos, bb.Max - style.FramePadding, TAB_UNSAVED_MARKER, NULL, NULL);
+			ImGui::RenderTextClipped(unsaved_marker_pos, bb.Max - style.FramePadding, TAB_UNSAVED_MARKER, NULL, NULL);
 		}
 
 		// Close Button
@@ -708,24 +709,24 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 			//  'g.HoveredId==id' will be true when hovering the Tab including when hovering the close button
 			//  'g.ActiveId==close_button_id' will be true when we are holding on the close button, in which case both hovered booleans are false
 			const ImGuiID close_button_id = window->GetID((void*)(intptr_t)(id + 1));
-			const bool hovered_unblocked = IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+			const bool hovered_unblocked = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
 			const bool hovered_regular = g.HoveredId == id || g.HoveredId == close_button_id;
 			if (hovered_regular || g.ActiveId == close_button_id)
 			{
 				close_button_visible = true;
 				ImGuiItemHoveredDataBackup last_item_backup;
 				last_item_backup.Backup();
-				if (CloseButton(close_button_id, ImVec2(bb.Max.x - style.FramePadding.x - close_button_sz, bb.Min.y + style.FramePadding.y + close_button_sz), close_button_sz))
+				if (ImGui::CloseButton(close_button_id, ImVec2(bb.Max.x - style.FramePadding.x - close_button_sz, bb.Min.y + style.FramePadding.y + close_button_sz), close_button_sz))
 					just_closed = true;
 				last_item_backup.Restore();
 
 				// Close with middle mouse button
-				if (!(tab_bar->Flags & ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) && IsMouseClicked(2))
+				if (!(tab_bar->Flags & ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) && ImGui::IsMouseClicked(2))
 					just_closed = true;
 			}
 
 			// Select with right mouse button. This is so the common idiom for context menu automatically highlight the current widget.
-			if (IsMouseClicked(1) && hovered_unblocked)
+			if (ImGui::IsMouseClicked(1) && hovered_unblocked)
 				tab_bar->NextSelectedTabId = id;
 		}
 		if (close_button_visible)
@@ -738,9 +739,9 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 		// Text with alpha fade if it doesn't fit
 		// FIXME: Move into fancy RenderText* helpers.
 		int vert_start_idx = draw_list->_VtxCurrentIdx;
-		RenderTextClipped(text_clip_bb.Min, text_clip_bb.Max, label, NULL, &label_size, ImVec2(0.0f, 0.0f));
+		ImGui::RenderTextClipped(text_clip_bb.Min, text_clip_bb.Max, label, NULL, &label_size, ImVec2(0.0f, 0.0f));
 		if (text_clip_bb.GetWidth() < label_size.x)
-			ShadeVertsLinearAlphaGradientForLeftToRightText(draw_list->_VtxWritePtr - (draw_list->_VtxCurrentIdx - vert_start_idx), draw_list->_VtxWritePtr, text_clip_bb.Max.x - text_gradient_extent, text_clip_bb.Max.x);
+			ImGui::ShadeVertsLinearAlphaGradientForLeftToRightText(draw_list->_VtxWritePtr - (draw_list->_VtxCurrentIdx - vert_start_idx), draw_list->_VtxWritePtr, text_clip_bb.Max.x - text_gradient_extent, text_clip_bb.Max.x);
 	}
 
 	// Process close
@@ -764,7 +765,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 
 	// Restore main window position so user can draw there
 	if (want_clip_rect)
-		PopClipRect();
+		ImGui::PopClipRect();
 	window->DC.CursorPos = backup_main_cursor_pos;
 
 	return tab_selected && !tab_appearing;

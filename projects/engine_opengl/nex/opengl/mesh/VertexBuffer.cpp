@@ -1,34 +1,36 @@
 #include "VertexBuffer.hpp"
 #include "nex/opengl/renderer/RendererOpenGL.hpp"
 
-
-VertexBuffer::VertexBuffer(const void* data, size_t size)
+namespace nex
 {
-	GLCall(glGenBuffers(1, &mRendererID));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, mRendererID));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
-}
-
-VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept :
-	mRendererID(other.mRendererID)
-{
-	other.mRendererID = GL_FALSE;
-}
-
-VertexBuffer::~VertexBuffer()
-{
-	if (mRendererID != GL_FALSE)
+	VertexBuffer::VertexBuffer(const void* data, size_t size)
 	{
-		GLCall(glDeleteBuffers(1, &mRendererID));
+		GLCall(glGenBuffers(1, &mRendererID));
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, mRendererID));
+		GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
 	}
-}
 
-void VertexBuffer::bind() const
-{
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, mRendererID));
-}
+	VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept :
+		mRendererID(other.mRendererID)
+	{
+		other.mRendererID = GL_FALSE;
+	}
 
-void VertexBuffer::unbind() const
-{
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0 ));
+	VertexBuffer::~VertexBuffer()
+	{
+		if (mRendererID != GL_FALSE)
+		{
+			GLCall(glDeleteBuffers(1, &mRendererID));
+		}
+	}
+
+	void VertexBuffer::bind() const
+	{
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, mRendererID));
+	}
+
+	void VertexBuffer::unbind() const
+	{
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	}
 }

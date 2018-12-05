@@ -7,80 +7,84 @@
 #include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <memory>
 
-enum class ShaderType;
-class MeshGL;
 
-/**
- * A mesh manager provides a central access point for creating and receiving
- * 3d meshes. All memory allocated by a mesh is held by the manager and no user
- * memory management is needed. If the mesh manager isn't needed anymore, the
- * allocated memory can be released by calling the manager's release method.
- */
-class ModelManagerGL
+namespace nex
 {
-public:
-
-	static const unsigned int SKYBOX_MODEL_HASH;
-	static const  unsigned int SPRITE_MODEL_HASH;
-
-	ModelManagerGL();
-
-	virtual ~ModelManagerGL();
-
-	static ModelManagerGL* get();
-
-	ModelGL* getSkyBox();
+	enum class ShaderType;
+	class MeshGL;
 
 	/**
-	 * Provides access to a mesh by its name.
-	 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+	 * A mesh manager provides a central access point for creating and receiving
+	 * 3d meshes. All memory allocated by a mesh is held by the manager and no user
+	 * memory management is needed. If the mesh manager isn't needed anymore, the
+	 * allocated memory can be released by calling the manager's release method.
 	 */
-	ModelGL* getModel(const std::string& meshName, ShaderType materialShader);
+	class ModelManagerGL
+	{
+	public:
 
-	/*
-	 * Provides read acces to a cube that has position, normal and texture coordinates.
-	 */
-	ModelGL* getPositionNormalTexCube();
+		static const unsigned int SKYBOX_MODEL_HASH;
+		static const  unsigned int SPRITE_MODEL_HASH;
 
-	/*
-	* \param xPos : The x position of the sprite model measured in screen space.
-	* \param yPos : The y position of the sprite model measured in screen space.
-	* \param widthWeight : specifies the width of the model as a percentage of the active viewport width.
-	*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
-	* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
-	*/
-	ModelGL* getSprite();
+		ModelManagerGL();
+
+		virtual ~ModelManagerGL();
+
+		static ModelManagerGL* get();
+
+		ModelGL* getSkyBox();
+
+		/**
+		 * Provides access to a mesh by its name.
+		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+		 */
+		ModelGL* getModel(const std::string& meshName, ShaderType materialShader);
+
+		/*
+		 * Provides read acces to a cube that has position, normal and texture coordinates.
+		 */
+		ModelGL* getPositionNormalTexCube();
+
+		/*
+		* \param xPos : The x position of the sprite model measured in screen space.
+		* \param yPos : The y position of the sprite model measured in screen space.
+		* \param widthWeight : specifies the width of the model as a percentage of the active viewport width.
+		*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
+		* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
+		*/
+		ModelGL* getSprite();
 
 
-	/**
-	 * Initializes the model manager. 
-	 * @param meshFileSystem Used to resolve mesh file paths
-	 */
-	void init(FileSystem* meshFileSystem);
+		/**
+		 * Initializes the model manager.
+		 * @param meshFileSystem Used to resolve mesh file paths
+		 */
+		void init(FileSystem* meshFileSystem);
 
 
-	/**
-	 * loads all meshes
-	 */
-	void loadModels();
+		/**
+		 * loads all meshes
+		 */
+		void loadModels();
 
-	void release();
+		void release();
 
-	//void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
+		//void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
 
-private:
+	private:
 
-	ModelManagerGL(const ModelManagerGL&) = delete;
-	ModelManagerGL& operator=(const ModelManagerGL&) = delete;
+		ModelManagerGL(const ModelManagerGL&) = delete;
+		ModelManagerGL& operator=(const ModelManagerGL&) = delete;
 
-	
-	static std::unique_ptr<ModelManagerGL> instance;
-	std::vector<std::unique_ptr<ModelGL>> models;
-	std::unordered_map<unsigned int, ModelGL*> modelTable;
-	AssimpModelLoader assimpLoader;
-	PbrMaterialLoader pbrMaterialLoader;
-	BlinnPhongMaterialLoader blinnPhongMaterialLoader;
-	FileSystem* mFileSystem;
 
-	unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
-};
+		static std::unique_ptr<ModelManagerGL> instance;
+		std::vector<std::unique_ptr<ModelGL>> models;
+		std::unordered_map<unsigned int, ModelGL*> modelTable;
+		AssimpModelLoader assimpLoader;
+		PbrMaterialLoader pbrMaterialLoader;
+		BlinnPhongMaterialLoader blinnPhongMaterialLoader;
+		FileSystem* mFileSystem;
+
+		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
+	};
+}

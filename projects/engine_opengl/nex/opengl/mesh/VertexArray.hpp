@@ -2,23 +2,27 @@
 #include "VertexBuffer.hpp"
 #include "VertexLayout.hpp"
 
-class VertexArray
+namespace nex
 {
-public:
-	VertexArray();
-	VertexArray(VertexArray&& other) noexcept;
-	VertexArray& operator=(VertexArray&& o) noexcept = default;
 
-	VertexArray(const VertexArray& o) = delete;
-	VertexArray& operator=(const VertexArray& o) = delete;
+	class VertexArray
+	{
+	public:
+		VertexArray();
+		VertexArray(VertexArray&& other) noexcept;
+		VertexArray& operator=(VertexArray&& o) noexcept = default;
 
-	~VertexArray();
+		VertexArray(const VertexArray& o) = delete;
+		VertexArray& operator=(const VertexArray& o) = delete;
 
-	void addBuffer(const VertexBuffer& buffer, const VertexLayout& layout);
+		~VertexArray();
 
-	void bind() const;
-	void unbind() const;
+		void addBuffer(const VertexBuffer& buffer, const VertexLayout& layout);
 
-private:
-	unsigned int mRendererID;
-};
+		void bind() const;
+		void unbind() const;
+
+	private:
+		unsigned int mRendererID;
+	};
+}

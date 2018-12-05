@@ -2,16 +2,19 @@
 
 #include <imgui/imgui.h>
 
-/**
- * An interface for concrete render implementations of ImGUI 
- * https://github.com/ocornut/imgui
- */
-class ImGUI_Impl
+namespace nex::gui
 {
-public:
-	virtual ~ImGUI_Impl() = default;
+	/**
+	 * An interface for concrete render implementations of ImGUI
+	 * https://github.com/ocornut/imgui
+	 */
+	class ImGUI_Impl
+	{
+	public:
+		virtual ~ImGUI_Impl() = default;
 
-	virtual void newFrame() = 0;
-	
-	virtual void renderDrawData(ImDrawData* draw_data) = 0;
-};
+		virtual void newFrame() = 0;
+
+		virtual void renderDrawData(ImDrawData* draw_data) = 0;
+	};
+}

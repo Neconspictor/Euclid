@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 
 	/**

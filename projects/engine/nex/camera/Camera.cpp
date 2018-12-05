@@ -6,27 +6,25 @@
 //using namespace glm;
 //using namespace platform;
 
-Camera::Camera() : Projectional()
+
+
+nex::Camera::Camera() : Projectional()
 {
 	m_logger.setPrefix("Camera");
 }
 
-Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()
+nex::Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()
 {
 	this->position = std::move(position);
 	this->look = std::move(look);
 	this->up = std::move(up);
 }
 
-Camera::Camera(const Camera& other) :  Projectional(other)
+nex::Camera::Camera(const Camera& other) :  Projectional(other)
 {
 }
 
-Camera::~Camera()
-{
-}
-
-void Camera::update(Input* input, float frameTime)
+void nex::Camera::update(Input* input, float frameTime)
 {
 	double yOffset = input->getFrameScrollOffsetY();
 	

@@ -3,7 +3,7 @@
 #include <imgui/imgui_internal.h>
 #include <nex/util/ExceptionHandling.hpp>
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	MenuItem::MenuItem(Callback callback) : m_callback(std::move(callback))
 	{

@@ -1,26 +1,30 @@
 #pragma once
 
-/**
-* Based on http://www.gamedev.net/page/resources/_/technical/general-programming/c-custom-memory-allocation-r3010
-*/
 #include <nex/memory/Allocator.hpp>
 
-class PoolAllocator : public Allocator
-{
-public:
-	PoolAllocator(size_t objectSize, uint64_t objectAlignment, size_t size, void* mem);
-	~PoolAllocator();
+namespace nex {
 
-	void* alloc(size_t size, uint64_t alignment) override;
+	/**
+	* Based on http://www.gamedev.net/page/resources/_/technical/general-programming/c-custom-memory-allocation-r3010
+	*/
 
-	void dealloc(void* p) override;
+	class PoolAllocator : public Allocator
+	{
+	public:
+		PoolAllocator(size_t objectSize, uint64_t objectAlignment, size_t size, void* mem);
+		~PoolAllocator();
 
-private:
-	PoolAllocator(const PoolAllocator&); //Prevent copies because it might cause errors
-	PoolAllocator& operator=(const PoolAllocator&);
+		void* alloc(size_t size, uint64_t alignment) override;
 
-	size_t objectSize;
-	uint64_t objectAlignment;
+		void dealloc(void* p) override;
 
-	void**     freeList;
-};
+	private:
+		PoolAllocator(const PoolAllocator&); //Prevent copies because it might cause errors
+		PoolAllocator& operator=(const PoolAllocator&);
+
+		size_t objectSize;
+		uint64_t objectAlignment;
+
+		void**     freeList;
+	};
+}

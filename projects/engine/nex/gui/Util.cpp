@@ -2,7 +2,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	using namespace ImGui;
 

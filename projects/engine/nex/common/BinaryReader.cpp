@@ -1,11 +1,11 @@
-#include "BinaryReader.h"
+#include <nex/common/BinaryReader.h>
 
 #include <iostream>  
 #include <fstream>  
 
 
 // Constructor reads from the filesystem.
-BinaryReader::BinaryReader(char const* fileName) :
+nex::BinaryReader::BinaryReader(char const* fileName) :
 	mBegin(nullptr),
     mPos(nullptr),
     mEnd(nullptr)
@@ -27,7 +27,7 @@ BinaryReader::BinaryReader(char const* fileName) :
 
 
 // Constructor reads from an existing memory buffer.
-BinaryReader::BinaryReader(char const* dataBlob, size_t dataSize) :
+nex::BinaryReader::BinaryReader(char const* dataBlob, size_t dataSize) :
 	mBegin(dataBlob),
     mPos(dataBlob),
     mEnd(dataBlob + dataSize)
@@ -35,18 +35,18 @@ BinaryReader::BinaryReader(char const* dataBlob, size_t dataSize) :
 }
 
 
-size_t BinaryReader::getTotalSize() const
+size_t nex::BinaryReader::getTotalSize() const
 {
 	return mEnd - mBegin;
 }
 
-size_t BinaryReader::getAmountLeftBytes() const
+size_t nex::BinaryReader::getAmountLeftBytes() const
 {
 	return mEnd - mPos;
 }
 
 // Reads from the filesystem into memory.
-void BinaryReader::ReadEntireFile(char const* fileName, std::unique_ptr<char[]>& data, size_t* dataSize)
+void nex::BinaryReader::ReadEntireFile(char const* fileName, std::unique_ptr<char[]>& data, size_t* dataSize)
 {
 	using namespace std;
 
@@ -74,7 +74,7 @@ void BinaryReader::ReadEntireFile(char const* fileName, std::unique_ptr<char[]>&
     *dataSize = fileSize;
 }
 
-std::streampos BinaryReader::getFileSize(std::ifstream& file)
+std::streampos nex::BinaryReader::getFileSize(std::ifstream& file)
 {
 	using namespace std;
 

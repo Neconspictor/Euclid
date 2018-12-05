@@ -1,36 +1,41 @@
 #ifndef UI_MODE_HPP
 #define UI_MODE_HPP
 
-class ControllerStateMachine;
-
 #include <nex/gui/Drawable.hpp>
 #include <utility>
 #include <memory>
 #include <nex/gui/ImGUI.hpp>
 
-class Controller {
+class ControllerStateMachine;
 
-public:
-	using Drawable = nex::engine::gui::Drawable;
-	using DrawablePtr = nex::engine::gui::Drawable*;
-	using ManagedDrawable = std::unique_ptr<Drawable>;
+namespace nex::gui
+{
 
-	Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)){}
-	virtual ~Controller() = default;
-	virtual void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) = 0;
-	virtual void init() = 0;
+	class Controller {
 
-	DrawablePtr getDrawable()const
-	{
-		return m_drawable.get();
-	}
+	public:
+		using Drawable = nex::gui::Drawable;
+		using DrawablePtr = nex::gui::Drawable*;
+		using ManagedDrawable = std::unique_ptr<Drawable>;
 
-	void setDrawable(std::unique_ptr<nex::engine::gui::Drawable> drawable) {
-		m_drawable = std::move(drawable);
+		Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)) {}
+		virtual ~Controller() = default;
+		virtual void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) = 0;
+		virtual void init() = 0;
+
+		DrawablePtr getDrawable()const
+		{
+			return m_drawable.get();
+		}
+
+		void setDrawable(std::unique_ptr<nex::gui::Drawable> drawable) {
+			m_drawable = std::move(drawable);
+		};
+
+	protected:
+		ManagedDrawable m_drawable;
 	};
 
-protected:
-	ManagedDrawable m_drawable;
-};
+}
 
 #endif

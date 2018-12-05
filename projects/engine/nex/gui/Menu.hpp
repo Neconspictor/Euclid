@@ -8,7 +8,7 @@
 #include <imgui/imgui.h>
 
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 
 	class Menu;

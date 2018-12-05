@@ -35,106 +35,108 @@
 #include <nex/event/GlobalEventChannel.hpp>
 #include <condition_variable>
 
-
-/**
- * A task manager is responsible for managing the live time of a task.
- * With a task manager the user can also decide to render a task on a frame
- * base, singlethreaded or multithreaded. Furthermore the task manager
- * restarts a task if it is repeating.
- *
- *  Note: when using this there must be at least one background task!
- */
-class TaskManager {
-public:
-	typedef std::shared_ptr<Task> TaskPtr;
-	typedef ConcurrentQueue<TaskPtr> TaskList;
-
+namespace nex
+{
 	/**
-	 * An event to stop this task manager.
+	 * A task manager is responsible for managing the live time of a task.
+	 * With a task manager the user can also decide to render a task on a frame
+	 * base, singlethreaded or multithreaded. Furthermore the task manager
+	 * restarts a task if it is repeating.
+	 *
+	 *  Note: when using this there must be at least one background task!
 	 */
-	struct StopEvent {};
+	class TaskManager {
+	public:
+		typedef std::shared_ptr<Task> TaskPtr;
+		typedef ConcurrentQueue<TaskPtr> TaskList;
 
-	/**
-	 * Creates a new task manager. The parameter numThreads specifies how much
-	 * threads the task manager should use for multithreaded tasks. If numThreads == 0,
-	 * the task manager uses as many threads as the CPU natively supports.
-	 */
-	TaskManager(unsigned int numThreads = 0); //0 for autodetect
+		/**
+		 * An event to stop this task manager.
+		 */
+		struct StopEvent {};
 
-	~TaskManager();
+		/**
+		 * Creates a new task manager. The parameter numThreads specifies how much
+		 * threads the task manager should use for multithreaded tasks. If numThreads == 0,
+		 * the task manager uses as many threads as the CPU natively supports.
+		 */
+		TaskManager(unsigned int numThreads = 0); //0 for autodetect
 
-	/**
-	 * Adds a given task.
-	 */
-	void add(TaskPtr task);
+		~TaskManager();
 
-	/**
-	 * Starts this task manager. 
-	 * Note: This function is blocking!
-	 */
-	void start();
+		/**
+		 * Adds a given task.
+		 */
+		void add(TaskPtr task);
 
-	/**
-	 * Stops this task manager. All threads controlled by this task manager will be destroyed.
-	 */
-	void stop();
+		/**
+		 * Starts this task manager.
+		 * Note: This function is blocking!
+		 */
+		void start();
 
-	/**
-	 * The task manager is an event handler for a StopEvent. It will stop
-	 * the execution of this task manager.
-	 */
-	void handle(const StopEvent&);
+		/**
+		 * Stops this task manager. All threads controlled by this task manager will be destroyed.
+		 */
+		void stop();
 
-	/**
-	 * This function is called when a task provided to this task manager has finished its work.
-	 */
-	void handle(const Task::TaskCompleted& tc);
+		/**
+		 * The task manager is an event handler for a StopEvent. It will stop
+		 * the execution of this task manager.
+		 */
+		void handle(const StopEvent&);
 
-private:
+		/**
+		 * This function is called when a task provided to this task manager has finished its work.
+		 */
+		void handle(const Task::TaskCompleted& tc);
 
-	/**
-	 * This function processes all tasks.
-	 */
-	void worker();
+	private:
 
-	/**
-	 * Executes a given task and promotes this to the underlying event channel.
-	 */
-	void execute(TaskPtr task);
+		/**
+		 * This function processes all tasks.
+		 */
+		void worker();
 
-	/**
-	 * Synchronizes multithreaded tasks that are signed to be synchronized.
-	 * Basically this function waits for all running multithreaded tasks (that have the snychronization flag)
-	 * to be finished. This function is intended to be called on each frame.
-	 */
-	void synchronize();
+		/**
+		 * Executes a given task and promotes this to the underlying event channel.
+		 */
+		void execute(TaskPtr task);
 
-	std::list<std::unique_ptr<std::thread>> mThreads;
-	unsigned int mNumThreads;
+		/**
+		 * Synchronizes multithreaded tasks that are signed to be synchronized.
+		 * Basically this function waits for all running multithreaded tasks (that have the snychronization flag)
+		 * to be finished. This function is intended to be called on each frame.
+		 */
+		void synchronize();
 
-	bool mRunning;
+		std::list<std::unique_ptr<std::thread>> mThreads;
+		unsigned int mNumThreads;
 
-	//single threaded tasks are worked off on a frame base.
-	//In order to avoid a 'blocking frame' caused by adding more
-	//tasks than working off, two lists are used: a write list for adding new tasks
-	// and are read list for processing tasks for the current frame.
-	// at the end of the frame read and write list are swaped so that the new tasks
-	// will be worked off on the next frame.
-	TaskList mTaskList[2];
-	TaskList mBackgroundTasks;
-	TaskList mSyncTasks;
+		bool mRunning;
 
-	GlobalEventChannel eventChannel;
+		//single threaded tasks are worked off on a frame base.
+		//In order to avoid a 'blocking frame' caused by adding more
+		//tasks than working off, two lists are used: a write list for adding new tasks
+		// and are read list for processing tasks for the current frame.
+		// at the end of the frame read and write list are swaped so that the new tasks
+		// will be worked off on the next frame.
+		TaskList mTaskList[2];
+		TaskList mBackgroundTasks;
+		TaskList mSyncTasks;
 
-	unsigned int mReadList;
-	unsigned int mWriteList;
+		GlobalEventChannel eventChannel;
 
-	typedef std::mutex Mutex;
-	typedef std::condition_variable Condition;
-	typedef std::lock_guard<Mutex> ScopedLock;
+		unsigned int mReadList;
+		unsigned int mWriteList;
 
-	mutable Mutex mSyncMutex;
-	mutable Mutex mSwapMutex;
-	Condition mCondition;
-	size_t mNumTasksToWaitFor;
-};
+		typedef std::mutex Mutex;
+		typedef std::condition_variable Condition;
+		typedef std::lock_guard<Mutex> ScopedLock;
+
+		mutable Mutex mSyncMutex;
+		mutable Mutex mSwapMutex;
+		Condition mCondition;
+		size_t mNumTasksToWaitFor;
+	};
+}

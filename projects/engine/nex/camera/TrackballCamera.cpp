@@ -12,53 +12,49 @@
 using namespace std;
 using namespace glm;
 
-TrackballCamera::TrackballCamera() : Camera(), coords({ 0,0,100 }), trackPosition(0,0,0)
+nex::TrackballCamera::TrackballCamera() : Camera(), coords({ 0,0,100 }), trackPosition(0,0,0)
 {
 	updateCartesianCoordinates();
 }
 
-TrackballCamera::TrackballCamera(vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(),
+nex::TrackballCamera::TrackballCamera(vec3 trackPosition, float polarAngle, float azimuthAngle, float radius) : Camera(),
 coords({ polarAngle, azimuthAngle, radius }), trackPosition(trackPosition)
 {
 	updateCartesianCoordinates();
 }
 
-TrackballCamera::TrackballCamera(const TrackballCamera& other) : Camera(other), 
+nex::TrackballCamera::TrackballCamera(const TrackballCamera& other) : Camera(other),
 	coords(other.coords), trackPosition(other.trackPosition)
 {
 	updateCartesianCoordinates();
 }
 
-TrackballCamera::~TrackballCamera()
-{
-}
-
-float TrackballCamera::getAzimuthAngle() const
+float nex::TrackballCamera::getAzimuthAngle() const
 {
 	return coords.azimuth;
 }
 
-float TrackballCamera::getPolarAngle() const
+float nex::TrackballCamera::getPolarAngle() const
 {
 	return coords.polar;
 }
 
-float TrackballCamera::getRadius() const
+float nex::TrackballCamera::getRadius() const
 {
 	return coords.radius;
 }
 
-const vec3& TrackballCamera::getTrackPosition() const
+const vec3& nex::TrackballCamera::getTrackPosition() const
 {
 	return trackPosition;
 }
 
-void TrackballCamera::pan(float xPos, float zPos)
+void nex::TrackballCamera::pan(float xPos, float zPos)
 {
 	setPosition({xPos, position.y, zPos});
 }
 
-void TrackballCamera::rotate(float polar, float azimuth)
+void nex::TrackballCamera::rotate(float polar, float azimuth)
 {
 	updatePolar(&coords.polar, coords.polar + polar);
 	updateCartesianCoordinates();
@@ -66,24 +62,24 @@ void TrackballCamera::rotate(float polar, float azimuth)
 	updateCartesianCoordinates();
 }
 
-void TrackballCamera::setAzimuthAngle(float azimuth)
+void nex::TrackballCamera::setAzimuthAngle(float azimuth)
 {
 	updateAzimuth(&coords.azimuth, azimuth);
 	updateCartesianCoordinates();
 }
 
-void TrackballCamera::setLook(vec3 direction)
+void nex::TrackballCamera::setLook(vec3 direction)
 {
 	//Do nothing!
 }
 
-void TrackballCamera::setPolarAngle(float polar)
+void nex::TrackballCamera::setPolarAngle(float polar)
 {
 	updatePolar(&coords.polar, polar);
 	updateCartesianCoordinates();
 }
 
-void TrackballCamera::setPosition(vec3 position)
+void nex::TrackballCamera::setPosition(vec3 position)
 {
 	this->position = position;
 	updateSphericalCoords();
@@ -92,23 +88,23 @@ void TrackballCamera::setPosition(vec3 position)
 	revalidate = true;
 }
 
-void TrackballCamera::setRadius(float radius)
+void nex::TrackballCamera::setRadius(float radius)
 {
 	if (radius < 0) throw_with_trace(runtime_error("TrackballCamera::setRadius(float radius): radius is supposed to be greater/equal zero!"));
 	coords.radius = radius;
 }
 
-void TrackballCamera::setTrackPosition(vec3 trackPosition)
+void nex::TrackballCamera::setTrackPosition(vec3 trackPosition)
 {
 	this->trackPosition = move(trackPosition);
 }
 
-void TrackballCamera::setUp(vec3 up)
+void nex::TrackballCamera::setUp(vec3 up)
 {
 	//Do nothing!
 }
 
-void TrackballCamera::update(Input* input, float frameTime)
+void nex::TrackballCamera::update(Input* input, float frameTime)
 {
 	MouseOffset data = input->getFrameMouseOffset();
 	
@@ -123,7 +119,7 @@ void TrackballCamera::update(Input* input, float frameTime)
 	LOG(m_logger, nex::Debug) << "coords after: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
 }
 
-TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 position, vec3 lookTarget) const
+nex::TrackballCamera::SphericalCoord nex::TrackballCamera::cartesianToSpherical(vec3 position, vec3 lookTarget) const
 {
 	// Spherical coordinates are always relative to the look target, so shift the position relative to the origin.
 	// This step simplifies the calculation of later arccosines.
@@ -178,7 +174,7 @@ TrackballCamera::SphericalCoord TrackballCamera::cartesianToSpherical(vec3 posit
 	return { polar, azimuth, radius };
 }
 
-vec3 TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 lookTarget) const
+vec3 nex::TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 lookTarget) const
 {
 	const float& polar = sphericalCoord.polar;
 	const float& azimuth = sphericalCoord.azimuth;
@@ -202,7 +198,7 @@ vec3 TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 l
 	return vec3(x, y, z);
 }
 
-void TrackballCamera::updateAzimuth(float* sourceAngle, float newValue) const
+void nex::TrackballCamera::updateAzimuth(float* sourceAngle, float newValue) const
 {
 	*sourceAngle = newValue;
 	*sourceAngle = fmod(*sourceAngle, static_cast<float>(2*M_PI));
@@ -214,7 +210,7 @@ void TrackballCamera::updateAzimuth(float* sourceAngle, float newValue) const
 	}
 }
 
-void TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
+void nex::TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
 {
 	*sourceAngle = newValue;
 
@@ -235,13 +231,13 @@ void TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
 	}
 }
 
-void TrackballCamera::updateCartesianCoordinates()
+void nex::TrackballCamera::updateCartesianCoordinates()
 {
 	position = sphericalToCartesian(move(coords), move(trackPosition));
 	look = trackPosition - position;
 }
 
-void TrackballCamera::updateSphericalCoords()
+void nex::TrackballCamera::updateSphericalCoords()
 {
 	coords = cartesianToSpherical(move(position), move(trackPosition));
 	look = trackPosition - position;

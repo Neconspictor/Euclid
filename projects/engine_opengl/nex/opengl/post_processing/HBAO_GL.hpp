@@ -1,44 +1,20 @@
 #ifndef HBAO_GL_HPP
 #define HBAO_GL_HPP
 
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <glm/glm.hpp>
 
-class TextureGL;
-class BaseRenderTargetGL;
-class ModelDrawerGL;
-
-/*-----------------------------------------------------------------------
-Copyright (c) 2014, NVIDIA. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-* Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-* Neither the name of its contributors may be used to endorse
-or promote products derived from this software without specific
-prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
------------------------------------------------------------------------*/
-
-namespace hbao {
+namespace nex {
 #define UBO_SCENE     0
 
+
+	class TextureGL;
+	class BaseRenderTargetGL;
+	class ModelDrawerGL;
 	class HBAO_ConfigurationView;
+	class OneTextureRenderTarget;
 
 	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
@@ -185,10 +161,10 @@ namespace hbao {
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
 	protected:
-		std::unique_ptr<hbao::BilateralBlur> m_bilateralBlur;
-		std::unique_ptr<hbao::DepthLinearizer> m_depthLinearizer;
-		std::unique_ptr<hbao::DisplayTex> m_aoDisplay;
-		std::unique_ptr<hbao::HBAO_Shader> m_hbaoShader;
+		std::unique_ptr<BilateralBlur> m_bilateralBlur;
+		std::unique_ptr<DepthLinearizer> m_depthLinearizer;
+		std::unique_ptr<DisplayTex> m_aoDisplay;
+		std::unique_ptr<HBAO_Shader> m_hbaoShader;
 
 		std::unique_ptr<OneTextureRenderTarget> m_depthLinearRT;
 		std::unique_ptr<OneTextureRenderTarget> m_aoResultRT;
@@ -227,7 +203,7 @@ namespace hbao {
 	};
 
 
-	class HBAO_ConfigurationView : public nex::engine::gui::Drawable {
+	class HBAO_ConfigurationView : public nex::gui::Drawable {
 	public:
 		HBAO_ConfigurationView(HBAO_GL* hbao);
 

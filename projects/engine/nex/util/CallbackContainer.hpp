@@ -5,47 +5,50 @@
 #include <algorithm>
 #include <memory>
 
-/**
-* A callback collection stores callbacks of a given type and provides methods
-* for managing its callbacks.
-*/
-template <class CallbackType>
-class CallbackCollection
+namespace nex
 {
-public:
-	using Callback = std::function<CallbackType>;
-	using Handle = std::shared_ptr<Callback>;
-private:
-	std::vector<Handle> callbacks;
-public:
-
 	/**
-	* Adds a callback to this container.
+	* A callback collection stores callbacks of a given type and provides methods
+	* for managing its callbacks.
 	*/
-	Handle addCallback(const Callback& callback)
+	template <class CallbackType>
+	class CallbackCollection
 	{
-		Handle sharedItem = std::make_shared<Callback>(callback);
-		callbacks.emplace_back(std::move(sharedItem));
-		return sharedItem;
-	}
+	public:
+		using Callback = std::function<CallbackType>;
+		using Handle = std::shared_ptr<Callback>;
+	private:
+		std::vector<Handle> callbacks;
+	public:
 
-	/**
-	* Removes a callback from this container.
-	*/
-	void removeCallback(const Handle& handle)
-	{
-		auto it = std::remove_if(callbacks.begin(), callbacks.end(), [&](const Handle& current) ->bool
+		/**
+		* Adds a callback to this container.
+		*/
+		Handle addCallback(const Callback& callback)
 		{
-			return static_cast<bool>(current.get() == handle.get());
-		});
-		callbacks.erase(it);
-	}
+			Handle sharedItem = std::make_shared<Callback>(callback);
+			callbacks.emplace_back(std::move(sharedItem));
+			return sharedItem;
+		}
 
-	/**
-	* Provides immutable access to the stored callbacks.
-	*/
-	const std::vector<Handle>& getCallbacks()
-	{
-		return callbacks;
-	}
-};
+		/**
+		* Removes a callback from this container.
+		*/
+		void removeCallback(const Handle& handle)
+		{
+			auto it = std::remove_if(callbacks.begin(), callbacks.end(), [&](const Handle& current) ->bool
+			{
+				return static_cast<bool>(current.get() == handle.get());
+			});
+			callbacks.erase(it);
+		}
+
+		/**
+		* Provides immutable access to the stored callbacks.
+		*/
+		const std::vector<Handle>& getCallbacks()
+		{
+			return callbacks;
+		}
+	};
+}

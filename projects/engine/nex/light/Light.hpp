@@ -2,39 +2,43 @@
 #include <glm/glm.hpp>
 #include <nex/util/Projectional.hpp>
 
-class DirectionalLight : public Projectional
-{
-public:
-	explicit DirectionalLight();
-	virtual ~DirectionalLight();
+namespace nex {
 
-	const glm::vec3& getColor() const;
+	class DirectionalLight : public Projectional
+	{
+	public:
+		explicit DirectionalLight();
+		virtual ~DirectionalLight();
 
-	const glm::vec3& getDirection() const;
+		const glm::vec3& getColor() const;
 
-	void setColor(glm::vec3 color);
+		const glm::vec3& getDirection() const;
 
-	void setDirection(glm::vec3 dir);
+		void setColor(glm::vec3 color);
 
-protected:
-	glm::vec3 color;
-	glm::vec3 direction;
-};
+		void setDirection(glm::vec3 dir);
 
-class PointLight : public Projectional
-{
-public:
-	PointLight();
-	virtual ~PointLight();
+	protected:
+		glm::vec3 color;
+		glm::vec3 direction;
+	};
 
-	glm::mat4* getMatrices();
+	class PointLight : public Projectional
+	{
+	public:
+		PointLight();
+		virtual ~PointLight();
 
-	float getRange() const;
+		glm::mat4* getMatrices();
 
-	void setRange(float range);
+		float getRange() const;
 
-protected:
-	glm::mat4 shadowMatrices[6];
+		void setRange(float range);
 
-	void update(bool alwaysUpdate = false) override;
-};
+	protected:
+		glm::mat4 shadowMatrices[6];
+
+		void update(bool alwaysUpdate = false) override;
+	};
+
+}

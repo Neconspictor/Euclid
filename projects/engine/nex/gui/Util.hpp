@@ -1,6 +1,6 @@
 #pragma once
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	void Separator(unsigned int thickness);
 

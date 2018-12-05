@@ -1,24 +1,27 @@
 #pragma once
 
-class IndexBuffer
+namespace nex
 {
-public:
-	IndexBuffer(const unsigned int* data, unsigned int count);
+	class IndexBuffer
+	{
+	public:
+		IndexBuffer(const unsigned int* data, unsigned int count);
 
-	IndexBuffer(IndexBuffer&& other) noexcept;
-	IndexBuffer& operator=(IndexBuffer&& o) noexcept = default;
+		IndexBuffer(IndexBuffer&& other) noexcept;
+		IndexBuffer& operator=(IndexBuffer&& o) noexcept = default;
 
-	IndexBuffer(const IndexBuffer& o) = delete;
-	IndexBuffer& operator=(const IndexBuffer& o) = delete;
+		IndexBuffer(const IndexBuffer& o) = delete;
+		IndexBuffer& operator=(const IndexBuffer& o) = delete;
 
-	~IndexBuffer();
+		~IndexBuffer();
 
-	void bind() const;
-	void unbind() const;
+		void bind() const;
+		void unbind() const;
 
-	inline unsigned int getCount() const { return mCount; }
+		inline unsigned int getCount() const { return mCount; }
 
-private:
-	unsigned int mRendererID;
-	unsigned int mCount;
-};
+	private:
+		unsigned int mRendererID;
+		unsigned int mCount;
+	};
+}

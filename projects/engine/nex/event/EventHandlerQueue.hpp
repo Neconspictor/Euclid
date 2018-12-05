@@ -25,80 +25,82 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
-
 #include <nex/event/EventBridge.hpp>
 #include <list>
 #include <memory>
 
 
-/**
- * The responsibilities of this class are the storing of events of type tEvent and managing handler 
- * for this event type. This class is not intended to be used by publicity. The public interface for
- * events are platform/event/EventChannel and platform/event/GlobalEventChannel.
- */
-template <typename tEvent>
-class EventHandlerQueue {
-private: //the entire class is private, so no unauthored class may use it
-
-	// event channels are allowed to access this class
-	friend class EventChannel;
-	friend class GlobalEventChannel;
-
-	typedef EventHandler<tEvent> EventHandlerType;
-
-	typedef std::shared_ptr<EventHandlerType> EventHandlerPtr;
-
-	typedef std::list<EventHandlerPtr> HandlerList;
-	typedef typename HandlerList::iterator HandlerIterator;
-	typedef typename HandlerList::const_iterator ConstHandlerIterator;
-
-	HandlerList mHandlerList;
-
+namespace nex
+{
 	/**
-	 * Adds an event handler, that is willing to listen to events of type tEvent. 
+	 * The responsibilities of this class are the storing of events of type tEvent and managing handler
+	 * for this event type. This class is not intended to be used by publicity. The public interface for
+	 * events are platform/event/EventChannel and platform/event/GlobalEventChannel.
 	 */
-	template <class tHandler>
-	void add(tHandler& handler) {
-		mHandlerList.push_back(std::make_shared<EventBridge<tEvent, tHandler>>(handler));
-	}
+	template <typename tEvent>
+	class EventHandlerQueue {
+	private: //the entire class is private, so no unauthored class may use it
 
-	/**
-	 * Broadcasts an event to all registered event handlers.
-	 */
-	void broadcast(tEvent object) {
-		ConstHandlerIterator next;
-		for (ConstHandlerIterator it = mHandlerList.begin(); it != mHandlerList.end(); ) {
+		// event channels are allowed to access this class
+		friend class EventChannel;
+		friend class GlobalEventChannel;
 
-			//the handle function might invalidate the iterator, so make a copy and advance immediately
-			next = it++;
-			(*next)->handle(object);
+		typedef EventHandler<tEvent> EventHandlerType;
+
+		typedef std::shared_ptr<EventHandlerType> EventHandlerPtr;
+
+		typedef std::list<EventHandlerPtr> HandlerList;
+		typedef typename HandlerList::iterator HandlerIterator;
+		typedef typename HandlerList::const_iterator ConstHandlerIterator;
+
+		HandlerList mHandlerList;
+
+		/**
+		 * Adds an event handler, that is willing to listen to events of type tEvent.
+		 */
+		template <class tHandler>
+		void add(tHandler& handler) {
+			mHandlerList.push_back(std::make_shared<EventBridge<tEvent, tHandler>>(handler));
 		}
-	}
 
-	/**
-	 * Comparison predicate class. It decides if two event handlers are equal or not.
-	 * This class is needed for removing a handler.
-	 */
-	template <class tHandler>
-	class IsEqualTo {
-	public:
-		typedef EventBridge<tEvent, tHandler> BridgeType;
+		/**
+		 * Broadcasts an event to all registered event handlers.
+		 */
+		void broadcast(tEvent object) {
+			ConstHandlerIterator next;
+			for (ConstHandlerIterator it = mHandlerList.begin(); it != mHandlerList.end(); ) {
 
-		const tHandler& mHandler;
+				//the handle function might invalidate the iterator, so make a copy and advance immediately
+				next = it++;
+				(*next)->handle(object);
+			}
+		}
 
-		IsEqualTo(const tHandler& h) : mHandler(h) {}
+		/**
+		 * Comparison predicate class. It decides if two event handlers are equal or not.
+		 * This class is needed for removing a handler.
+		 */
+		template <class tHandler>
+		class IsEqualTo {
+		public:
+			typedef EventBridge<tEvent, tHandler> BridgeType;
 
-		bool operator()(EventHandlerPtr ptr) {
-			return ((*std::static_pointer_cast<BridgeType>(ptr)) == mHandler);
+			const tHandler& mHandler;
+
+			IsEqualTo(const tHandler& h) : mHandler(h) {}
+
+			bool operator()(EventHandlerPtr ptr) {
+				return ((*std::static_pointer_cast<BridgeType>(ptr)) == mHandler);
+			}
+		};
+
+		/**
+		 * Removes an event handler if it was registered to this queue before.
+		 */
+		template <class tHandler>
+		void remove(const tHandler& handler) {
+			IsEqualTo<tHandler> pts(handler);
+			mHandlerList.remove_if(pts);
 		}
 	};
-
-	/**
-	 * Removes an event handler if it was registered to this queue before.
-	 */
-	template <class tHandler>
-	void remove(const tHandler& handler) {
-		IsEqualTo<tHandler> pts(handler);
-		mHandlerList.remove_if(pts);
-	}
-};
+}

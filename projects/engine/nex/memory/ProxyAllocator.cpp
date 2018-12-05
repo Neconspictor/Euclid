@@ -1,34 +1,37 @@
 
 #include <nex/memory/ProxyAllocator.hpp>
 
-ProxyAllocator::ProxyAllocator(Allocator& allocator)
-	: Allocator(allocator.getSize(), allocator.getStart()), _allocator(allocator)
-{}
+namespace nex {
 
-ProxyAllocator::~ProxyAllocator()
-{}
+	ProxyAllocator::ProxyAllocator(Allocator& allocator)
+		: Allocator(allocator.getSize(), allocator.getStart()), _allocator(allocator)
+	{}
 
-void* ProxyAllocator::alloc(size_t size, uint64_t alignment)
-{
-	assert(size != 0);
-	++numAllocations;
+	ProxyAllocator::~ProxyAllocator()
+	{}
 
-	size_t mem = _allocator.getUsedMemory();
+	void* ProxyAllocator::alloc(size_t size, uint64_t alignment)
+	{
+		assert(size != 0);
+		++numAllocations;
 
-	void* p = _allocator.alloc(size, alignment);
+		size_t mem = _allocator.getUsedMemory();
 
-	usedMemory += _allocator.getUsedMemory() - mem;
+		void* p = _allocator.alloc(size, alignment);
 
-	return p;
-}
+		usedMemory += _allocator.getUsedMemory() - mem;
 
-void ProxyAllocator::dealloc(void* p)
-{
-	--numAllocations;
+		return p;
+	}
 
-	size_t mem = _allocator.getUsedMemory();
+	void ProxyAllocator::dealloc(void* p)
+	{
+		--numAllocations;
 
-	_allocator.dealloc(p);
+		size_t mem = _allocator.getUsedMemory();
 
-	usedMemory -= mem - _allocator.getUsedMemory();
+		_allocator.dealloc(p);
+
+		usedMemory -= mem - _allocator.getUsedMemory();
+	}
 }

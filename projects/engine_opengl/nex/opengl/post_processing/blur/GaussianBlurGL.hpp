@@ -1,23 +1,26 @@
 #pragma once
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 
-class RendererOpenGL;
-class RenderTargetGL;
+namespace nex {
 
-class GaussianBlurGL {
+	class RendererOpenGL;
+	class RenderTargetGL;
 
-public:
-	GaussianBlurGL(RendererOpenGL* renderer);
+	class GaussianBlurGL {
 
-	virtual ~GaussianBlurGL();
+	public:
+		GaussianBlurGL(RendererOpenGL* renderer);
 
-	void blur(RenderTargetGL* target, RenderTargetGL* cache);
+		virtual ~GaussianBlurGL();
 
-	void init();
+		void blur(RenderTargetGL* target, RenderTargetGL* cache);
 
-	void release();
+		void init();
 
-protected:
-	RendererOpenGL* renderer;
-	Sprite sprite;
-};
+		void release();
+
+	protected:
+		RendererOpenGL* renderer;
+		nex::Sprite sprite;
+	};
+}

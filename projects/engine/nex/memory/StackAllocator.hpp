@@ -5,31 +5,34 @@
  */
 #include <nex/memory/Allocator.hpp>
 
-class StackAllocator : public Allocator
-{
-public:
-	StackAllocator(size_t size, void* start);
-	~StackAllocator();
+namespace nex {
 
-	void* alloc(size_t size, uint64_t alignment) override;
-
-	void dealloc(void* p) override;
-
-private:
-	StackAllocator(const StackAllocator&); //Prevent copies because it might cause errors
-	StackAllocator& operator=(const StackAllocator&);
-
-	struct AllocationHeader
+	class StackAllocator : public Allocator
 	{
+	public:
+		StackAllocator(size_t size, void* start);
+		~StackAllocator();
+
+		void* alloc(size_t size, uint64_t alignment) override;
+
+		void dealloc(void* p) override;
+
+	private:
+		StackAllocator(const StackAllocator&); //Prevent copies because it might cause errors
+		StackAllocator& operator=(const StackAllocator&);
+
+		struct AllocationHeader
+		{
 #if _DEBUG
-		void* prev_address;
+			void* prev_address;
 #endif
-		uint64_t adjustment;
+			uint64_t adjustment;
+		};
+
+#if _DEBUG
+		void* prevPosition;
+#endif
+
+		void*  currentPos;
 	};
-
-#if _DEBUG
-	void* prevPosition;
-#endif
-
-	void*  currentPos;
-};
+}

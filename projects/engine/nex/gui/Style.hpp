@@ -1,6 +1,6 @@
 #pragma once 
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	class Style
 	{

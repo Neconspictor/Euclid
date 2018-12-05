@@ -28,7 +28,7 @@
 #include <iostream>
 #include <algorithm>
 
-TaskManager::TaskManager(unsigned int numThreads)
+nex::TaskManager::TaskManager(unsigned int numThreads)
 	: mRunning(false)
 {
 	mNumThreads = numThreads;
@@ -41,7 +41,7 @@ TaskManager::TaskManager(unsigned int numThreads)
 	mNumTasksToWaitFor = 0;
 }
 
-TaskManager::~TaskManager() {
+nex::TaskManager::~TaskManager() {
 	
 	// If an exception is thrown during TaskManager::render()
 	// mRunning is still true, i.d. the backgroud tasks
@@ -56,7 +56,7 @@ TaskManager::~TaskManager() {
 	mThreads.clear();
 }
 
-void TaskManager::add(TaskPtr task) {
+void nex::TaskManager::add(TaskPtr task) {
 	unsigned flags = task->getTaskFlags();
 
 	if (flags & Task::THREADSAFE) {
@@ -73,7 +73,7 @@ void TaskManager::add(TaskPtr task) {
 	}
 }
 
-void TaskManager::start() {
+void nex::TaskManager::start() {
 	mRunning = true;
 
 	eventChannel.add<Task::TaskCompleted>(*this);
@@ -100,7 +100,7 @@ void TaskManager::start() {
 	}
 }
 
-void TaskManager::synchronize() {
+void nex::TaskManager::synchronize() {
     std::unique_lock<std::mutex> lock(mSyncMutex);
 
 	while (mNumTasksToWaitFor > 0)
@@ -112,27 +112,27 @@ void TaskManager::synchronize() {
 		mBackgroundTasks.push(mSyncTasks.wait_pop());
 }
 
-void TaskManager::stop() {
+void nex::TaskManager::stop() {
 	mRunning = false;
 }
 
-void TaskManager::execute(TaskPtr t) {
+void nex::TaskManager::execute(TaskPtr t) {
 
 	eventChannel.broadcast(Task::TaskBeginning(t));
 	t->run();
 	eventChannel.broadcast(Task::TaskCompleted(t));
 }
 
-void TaskManager::handle(const StopEvent&) {
+void nex::TaskManager::handle(const StopEvent&) {
 	stop();
 }
 
-void TaskManager::handle(const Task::TaskCompleted& tc) {
+void nex::TaskManager::handle(const Task::TaskCompleted& tc) {
 	if (tc.mTask->getTaskFlags() & Task::REPEATING)
 		add(tc.mTask);
 }
 
-void TaskManager::worker() {
+void nex::TaskManager::worker() {
 	TaskPtr task;
 
 	while (mRunning) {

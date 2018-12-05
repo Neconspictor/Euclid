@@ -4,38 +4,38 @@
 #include <memory>
 
 
-class ShaderProgramGL;
-
-class ModelGL
+namespace nex
 {
-public:
-	
-	ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes);
-	
-	ModelGL(ModelGL&& o);
-	ModelGL& operator=(ModelGL&& o);
+	class ShaderProgram;
 
-	ModelGL(const ModelGL&) = delete;
-	ModelGL& operator=(const ModelGL& o) = delete;
-	
-	virtual ~ModelGL();
+	class ModelGL
+	{
+	public:
 
-	//void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
+		ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes);
 
-	bool instancedUsed() const;
+		ModelGL(const ModelGL&) = delete;
+		ModelGL& operator=(const ModelGL& o) = delete;
 
-	void setInstanced(bool value);
+		virtual ~ModelGL() = default;
 
-	const std::vector<std::reference_wrapper<MeshGL>>& getMeshes() const;
+		//void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
 
-	void draw(ShaderProgramGL* shader);
+		bool instancedUsed() const;
 
-protected:
-	std::vector<std::reference_wrapper<MeshGL>> meshReferences;
-	std::vector<std::unique_ptr<MeshGL>> meshes;
-	bool instanced;
-	GLuint vertexAttributeBuffer;
+		void setInstanced(bool value);
 
-private:
-	static std::vector<std::reference_wrapper<MeshGL>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);
-};
+		const std::vector<std::reference_wrapper<MeshGL>>& getMeshes() const;
+
+		void draw(ShaderProgram* shader) {};
+
+	protected:
+		std::vector<std::reference_wrapper<MeshGL>> meshReferences;
+		std::vector<std::unique_ptr<MeshGL>> meshes;
+		bool instanced;
+		GLuint vertexAttributeBuffer;
+
+	private:
+		static std::vector<std::reference_wrapper<MeshGL>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);
+	};
+}

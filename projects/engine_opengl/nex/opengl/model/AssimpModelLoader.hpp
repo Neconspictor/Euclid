@@ -4,27 +4,32 @@
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
 #include <filesystem>
 
-struct TextureData;
-
-class AssimpModelLoader
+namespace nex
 {
-public:
 
-	using Vertex = MeshGL::Vertex;
 
-	AssimpModelLoader();
-	std::unique_ptr<ModelGL> loadModel(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
+	struct TextureData;
 
-protected:
+	class AssimpModelLoader
+	{
+	public:
 
-	void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes, const AbstractMaterialLoader& materialLoader) const;
+		using Vertex = MeshGL::Vertex;
 
-	/**
-	 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
-	 */
-	std::unique_ptr<MeshGL> processMesh(aiMesh* mesh, const aiScene* scene, const AbstractMaterialLoader& materialLoader) const;
+		AssimpModelLoader();
+		std::unique_ptr<ModelGL> loadModel(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
 
-private:
+	protected:
 
-	nex::Logger m_logger;
-};
+		void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes, const AbstractMaterialLoader& materialLoader) const;
+
+		/**
+		 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
+		 */
+		std::unique_ptr<MeshGL> processMesh(aiMesh* mesh, const aiScene* scene, const AbstractMaterialLoader& materialLoader) const;
+
+	private:
+
+		nex::Logger m_logger;
+	};
+}

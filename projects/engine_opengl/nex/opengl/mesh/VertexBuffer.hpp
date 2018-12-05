@@ -1,22 +1,24 @@
 #pragma once
-
-class VertexBuffer
+namespace nex
 {
-public:
-	VertexBuffer(const void* data, size_t size);
-	
+	class VertexBuffer
+	{
+	public:
+		VertexBuffer(const void* data, size_t size);
 
-	VertexBuffer(VertexBuffer&& other) noexcept;
-	VertexBuffer& operator=(VertexBuffer&& o) noexcept = default;
 
-	VertexBuffer(const VertexBuffer& o) = delete;
-	VertexBuffer& operator=(const VertexBuffer& o) = delete;
+		VertexBuffer(VertexBuffer&& other) noexcept;
+		VertexBuffer& operator=(VertexBuffer&& o) noexcept = default;
 
-	~VertexBuffer();
+		VertexBuffer(const VertexBuffer& o) = delete;
+		VertexBuffer& operator=(const VertexBuffer& o) = delete;
 
-	void bind() const;
-	void unbind() const;
+		~VertexBuffer();
 
-private:
-	unsigned int mRendererID;
-};
+		void bind() const;
+		void unbind() const;
+
+	private:
+		unsigned int mRendererID;
+	};
+}

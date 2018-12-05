@@ -9,8 +9,12 @@ struct GLFWcursor;
 namespace nex
 {
 	class WindowGLFW;
+}
 
-	class ImGUI_GL : public ImGUI_Impl
+namespace nex::gui
+{
+
+	class ImGUI_GL : public gui::ImGUI_Impl
 	{
 	public:
 		ImGUI_GL(WindowGLFW& window, std::string glsl_version = "#version 150");

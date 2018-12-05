@@ -1,66 +1,70 @@
 #pragma once
 
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 #include <memory>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 
-class SceneNode;
-class TextureGL;
+namespace nex {
 
-class AmbientOcclusion_Deferred {
-public:
 
-	AmbientOcclusion_Deferred(unsigned int windowWidth, unsigned int windowHeight) : 
-	m_windowWidth(windowWidth), m_windowHeight(windowHeight){}
+	class SceneNode;
+	class TextureGL;
 
-	virtual ~AmbientOcclusion_Deferred() = default;
+	class AmbientOcclusion_Deferred {
+	public:
 
-	virtual TextureGL* getAO_Result() = 0;
-	virtual TextureGL* getBlurredResult() = 0;
-	virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
+		AmbientOcclusion_Deferred(unsigned int windowWidth, unsigned int windowHeight) :
+			m_windowWidth(windowWidth), m_windowHeight(windowHeight) {}
 
-	//virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
-	virtual void blur() = 0;
-	virtual void displayAOTexture(TextureGL* aoTexture) = 0;
-	
-protected:
-	unsigned int m_windowWidth;
-	unsigned int m_windowHeight;
-};
+		virtual ~AmbientOcclusion_Deferred() = default;
 
-class AmbientOcclusionSelector
-{
-public:
+		virtual TextureGL* getAO_Result() = 0;
+		virtual TextureGL* getBlurredResult() = 0;
+		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
 
-	enum AOTechnique
-	{
-		HBAO,
-		SSAO
+		//virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
+		virtual void blur() = 0;
+		virtual void displayAOTexture(TextureGL* aoTexture) = 0;
+
+	protected:
+		unsigned int m_windowWidth;
+		unsigned int m_windowHeight;
 	};
 
-	AmbientOcclusionSelector();
-	virtual ~AmbientOcclusionSelector();
+	class AmbientOcclusionSelector
+	{
+	public:
 
-	hbao::HBAO_GL* getHBAO();
-	SSAO_DeferredGL* getSSAO();
+		enum AOTechnique
+		{
+			HBAO,
+			SSAO
+		};
 
-	bool isAmbientOcclusionActive() const;
+		AmbientOcclusionSelector();
+		virtual ~AmbientOcclusionSelector();
 
-	AOTechnique getActiveAOTechnique() const;
+		hbao::HBAO_GL* getHBAO();
+		SSAO_DeferredGL* getSSAO();
 
-	void setAOTechniqueToUse(AOTechnique technique);
-	void setUseAmbientOcclusion(bool useAO);
+		bool isAmbientOcclusionActive() const;
 
-	void setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao);
-	void setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao);
+		AOTechnique getActiveAOTechnique() const;
 
-private:
+		void setAOTechniqueToUse(AOTechnique technique);
+		void setUseAmbientOcclusion(bool useAO);
 
-	std::unique_ptr<hbao::HBAO_GL> m_hbao;
-	std::unique_ptr<SSAO_DeferredGL> m_ssao;
-	bool m_useAO = true;
-	AOTechnique m_usedAOTechnique;
-};
+		void setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao);
+		void setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao);
 
-std::ostream& operator<<(std::ostream& os, AmbientOcclusionSelector::AOTechnique aoTechnique);
+	private:
+
+		std::unique_ptr<hbao::HBAO_GL> m_hbao;
+		std::unique_ptr<SSAO_DeferredGL> m_ssao;
+		bool m_useAO = true;
+		AOTechnique m_usedAOTechnique;
+	};
+}
+
+std::ostream& operator<<(std::ostream& os, nex::AmbientOcclusionSelector::AOTechnique aoTechnique);
