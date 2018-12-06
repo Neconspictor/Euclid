@@ -13,6 +13,11 @@ nex::RenderTarget::~RenderTarget()
 	mImpl = nullptr;
 }
 
+nex::RenderTargetImpl* nex::RenderTarget::getImpl()
+{
+	return mImpl;
+}
+
 nex::Texture* nex::RenderTarget::getTexture()
 {
 	return mImpl->getTexture();

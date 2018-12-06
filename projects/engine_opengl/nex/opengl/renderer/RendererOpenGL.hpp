@@ -1,6 +1,5 @@
 #pragma once
 #include <glad/glad.h>
-#include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 #include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include <list>
@@ -11,7 +10,7 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <memory>
 #include <nex/common/debug_break.h>
-#include "nex/common/Log.hpp"
+#include <nex/common/Log.hpp>
 
 extern nex::Logger GLOBAL_RENDERER_LOGGER;
 
@@ -176,8 +175,8 @@ namespace nex
 
 		RenderTarget* createRenderTarget(int samples = 1);
 
-		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, GLuint samples,
-			GLuint depthStencilType);
+		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples,
+			DepthStencil depthStencilType);
 
 		std::unique_ptr<SSAO_DeferredGL> createDeferredSSAO();
 
@@ -329,10 +328,6 @@ namespace nex
 		static bool checkGLErrorSilently();
 
 	protected:
-
-		static void __clearRenderTarget(RenderTarget* screenBuffer, bool releasedAllocatedMemory = true);
-
-	protected:
 		glm::vec3 backgroundColor;
 		std::list<CubeDepthMap*> cubeDepthMaps;
 		std::list<DepthMap*> depthMaps;
@@ -343,7 +338,7 @@ namespace nex
 		std::list<CubeRenderTarget*> cubeRenderTargets;
 		std::list<RenderTarget*> renderTargets;
 		std::unique_ptr<SMAA_GL> smaa;
-		Guard<RenderTarget> defaultRenderTarget;
+		RenderTarget* defaultRenderTarget;
 
 	protected:
 		nex::Logger m_logger;

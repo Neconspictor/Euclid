@@ -38,7 +38,6 @@ namespace nex
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
-
 		virtual ~RenderTarget();
 
 		// Has to be implemented by renderer backend
@@ -65,6 +64,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		int getHeight() const;
 
+		RenderTargetImpl* getImpl();
+
 		Texture* getTexture();
 
 		// Has to be implemented by renderer backend
@@ -86,7 +87,8 @@ namespace nex
 		//CubeMap* createCopy();
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
+		//TODO depthStencilType isn't used currently
+		static CubeRenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
 
 		int getHeightMipLevel(unsigned int mipMapLevel) const;
 
@@ -120,6 +122,7 @@ namespace nex
 
 	class DepthMap : public RenderTarget
 	{
+	public:
 		// Has to be implemented by renderer backend
 		static DepthMap* create(unsigned width, unsigned height);
 

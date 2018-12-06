@@ -109,11 +109,14 @@ namespace nex
 		CUBE_NEGATIVE_Z, LAST = CUBE_NEGATIVE_Z,
 	};
 
+	bool isCubeTarget(TextureTarget target);
+
 	enum class DepthStencil
 	{
 		NONE, FIRST = NONE,
 		DEPTH24,
-		DEPTH24_STENCIL8, LAST = DEPTH24_STENCIL8,
+		DEPTH24_STENCIL8, 
+		DEPTH32F_STENCIL8, LAST = DEPTH32F_STENCIL8,
 	};
 		
 	bool isCubeTarget(TextureTarget target);
@@ -253,6 +256,7 @@ namespace nex
 		 *  Generates mipmaps for the current content of this cubemap.
 		 *  NOTE: Has to be implemented by renderer backend
 		 */
+		 // has to be implemented by the renderer backend
 		void generateMipMaps();
 
 		/**

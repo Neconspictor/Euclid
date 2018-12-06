@@ -16,6 +16,21 @@ mat4 nex::CubeMapGL::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f,
 mat4 nex::CubeMapGL::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
 
+nex::CubeMap* nex::CubeMap::create()
+{
+	return new CubeMap();
+}
+
+void nex::CubeMap::generateMipMaps()
+{
+	CubeMapGL* gl = (CubeMapGL*)getImpl();
+	gl->generateMipMaps();
+}
+
+nex::CubeMap::CubeMap() : Texture(new CubeMapGL())
+{
+}
+
 
 const mat4& nex::CubeMapGL::getViewLookAtMatrixRH(Side side)
 {
@@ -64,7 +79,8 @@ void nex::CubeMapGL::setCubeMap(GLuint id)
 
 bool nex::isNoStencilFormat(nex::DepthStencil format)
 {
-	return format != DepthStencil::DEPTH24_STENCIL8;
+	return format == DepthStencil::NONE ||
+		format == DepthStencil::DEPTH24;
 }
 
 nex::ChannelGL nex::translate(nex::Channel channel)
@@ -234,6 +250,7 @@ nex::DepthStencilGL nex::translate(nex::DepthStencil depth)
 		NONE,
 		DEPTH24,
 		DEPTH24_STENCIL8,
+		DEPTH32F_STENCIL8,
 	};
 
 	static const unsigned size = (unsigned)DepthStencil::LAST - (unsigned)DepthStencil::FIRST + 1;
@@ -460,6 +477,16 @@ GLuint nex::TextureGL::getFormat(int numberComponents)
 	// won't be reached
 	return GL_FALSE;
 }
+
+nex::RenderBuffer* nex::RenderBuffer::create()
+{
+	return new RenderBuffer();
+}
+
+nex::RenderBuffer::RenderBuffer() : Texture(new RenderBufferGL())
+{
+}
+
 
 nex::RenderBufferGL::RenderBufferGL() : TextureGL()
 {

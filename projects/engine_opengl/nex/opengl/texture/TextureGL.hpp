@@ -115,10 +115,8 @@ namespace nex
 		NONE = GL_FALSE,
 		DEPTH24 = GL_DEPTH_COMPONENT24,  // GL_DEPTH_COMPONENT  GL_DEPTH_COMPONENT24
 		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8, // GL_DEPTH24_STENCIL8
+		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8,
 	};
-
-
-	bool isCubeTarget(TextureTarget target);
 
 	bool isNoStencilFormat(nex::DepthStencil format);
 

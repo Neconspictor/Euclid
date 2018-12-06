@@ -7,6 +7,24 @@
 using namespace std;
 using namespace glm;
 
+nex::CubeRenderTarget* nex::CubeRenderTarget::createSingleSampled(int width, int height, const TextureData& data,
+	DepthStencil depthStencilType)
+{
+	return new CubeRenderTarget(width, height, data);
+}
+
+void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
+{
+	CubeRenderTargetGL* gl = (CubeRenderTargetGL*)getImpl();
+	gl->resizeForMipMap(mipMapLevel);
+}
+
+nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data) : 
+	RenderTarget(new CubeRenderTargetGL(width, height, data))
+{
+
+}
+
 
 nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) :
 	RenderTargetGL(width, height), data(std::move(data))

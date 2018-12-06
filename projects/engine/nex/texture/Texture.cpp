@@ -14,7 +14,6 @@ mat4 nex::CubeMap::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -
 mat4 nex::CubeMap::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
 
-
 const mat4& nex::CubeMap::getViewLookAtMatrixRH(Side side)
 {
 	switch (side) {

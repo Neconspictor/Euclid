@@ -35,6 +35,7 @@ namespace nex {
 
 		Guard& operator=(T* item) noexcept
 		{
+			this->~Guard();
 			mItem = item;
 			return *this;
 		}
@@ -56,6 +57,7 @@ namespace nex {
 
 		void setContent(T* item)
 		{
+			this->~Guard();
 			mItem = item;
 		}
 
@@ -99,6 +101,7 @@ namespace nex {
 
 		GuardArray& operator=(T* arr) noexcept
 		{
+			this->~GuardArray();
 			mArray = arr;
 			return *this;
 		}
@@ -137,6 +140,7 @@ namespace nex {
 
 		void setContent(T* arr)
 		{
+			this->~GuardArray();
 			mArray = arr;
 		}
 
