@@ -3,11 +3,12 @@
 
 #include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
 
 namespace nex {
 	class HBAO_ConfigurationView;
+	class RenderTarget;
 	class ModelDrawerGL;
 
 #define UBO_SCENE     0

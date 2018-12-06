@@ -131,7 +131,7 @@ set(
     nex/texture/Texture.cpp
     nex/texture/Texture.hpp
 	nex/texture/RenderTarget.cpp
-    nex/texture/RenderTarget.hp
+    nex/texture/RenderTarget.hpp
     
 	#nex/util
     nex/util/CallbackContainer.hpp

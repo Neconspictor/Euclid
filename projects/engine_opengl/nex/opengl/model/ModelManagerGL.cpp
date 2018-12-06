@@ -9,6 +9,7 @@
 #include <string>
 #include <nex/util/StringUtils.hpp>
 #include <nex/opengl/mesh/SampleMeshes.hpp>
+#include <nex/shader/Shader.hpp>
 //TODO
 //#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
 
@@ -168,7 +169,7 @@ namespace nex
 		}
 		else {
 			std::stringstream msg;
-			msg << "No suitable material loader found for shader type: " << materialShader << std::endl;
+			msg << "No suitable material loader found for shader type: " << materialShader << std::endl; //TODO
 
 			throw_with_trace(std::runtime_error(msg.str()));
 		}

@@ -1,5 +1,5 @@
 #pragma once
-#include "VertexLayout.hpp"
+#include <nex/opengl/mesh/VertexLayout.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 
 namespace nex

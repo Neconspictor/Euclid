@@ -4,15 +4,18 @@
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <memory>
 
-class RendererOpenGL;
+namespace nex {
 
-class ShadingModelFactoryGL {
+	class RendererOpenGL;
 
-public:
-	ShadingModelFactoryGL();
-	virtual ~ShadingModelFactoryGL() = default;
+	class ShadingModelFactoryGL {
 
-	std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(RendererOpenGL* renderer, TextureGL* backgroundHDR);
-};
+	public:
+		ShadingModelFactoryGL();
+		virtual ~ShadingModelFactoryGL() = default;
+
+		std::unique_ptr<PBR_DeferredGL> create_PBR_Deferred_Model(RendererOpenGL* renderer, Texture* backgroundHDR);
+	};
+}
 
 #endif

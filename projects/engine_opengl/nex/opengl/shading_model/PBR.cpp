@@ -3,8 +3,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include "nex/opengl/shader/ShadowShaderGL.hpp"
-#include "nex/util/ExceptionHandling.hpp"
+#include <nex/opengl/shader/ShadowShaderGL.hpp>
+#include <nex/util/ExceptionHandling.hpp>
+#include <nex/texture/Texture.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -267,7 +268,8 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 
-	CubeRenderTarget cubeRenderTarget(2048, 2048, textureData);
+	Guard<CubeRenderTarget> cubeRenderTarget;
+	cubeRenderTarget = CubeRenderTarget::createSingleSampled(2048, 2048, textureData, DepthStencil::NONE);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
@@ -282,23 +284,23 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_X), //right; sign of up vector is not important
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_X), //left
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Y), //top
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Y), //bottom
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Z), //back
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 	};
 
 	
-	renderer->setViewPort(0, 0, cubeRenderTarget.getWidth(), cubeRenderTarget.getHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 
-	TextureGL* gl = (TextureGL*)cubeRenderTarget.getTexture()->getImpl();
+	/*TextureGL* gl = (TextureGL*)cubeRenderTarget->getTexture()->getImpl();
 	const GLuint textureID = *gl->getTexture();
 	std::stringstream ss;
-	ss << "Before rendering background cube maps; cubemap texture id = " << textureID;
+	ss << "Before rendering background cube maps; cubemap texture id = " << textureID;*/
 
 
 	//glEnable(GL_DEBUG_OUTPUT);
@@ -306,13 +308,13 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(&cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
+		renderer->useCubeRenderTarget(cubeRenderTarget.get(), static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget.getTexture();
-	cubeRenderTarget.setTexture(nullptr); // ensures that it won't be deleted 
+	CubeMap* result = (CubeMap*)cubeRenderTarget->getTexture();
+	cubeRenderTarget->setTexture(nullptr); // ensures that it won't be deleted 
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
 	result->generateMipMaps();
@@ -340,12 +342,12 @@ CubeMap * PBR::convolute(CubeMap * source)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_X), //right; sign of up vector is not important
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_X), //left
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Y), //top
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Y), //bottom
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Z), //back
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 	};
 
 	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
@@ -353,7 +355,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 
 	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X));
+		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -396,12 +398,12 @@ CubeMap* PBR::prefilter(CubeMap * source)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_X), //right; sign of up vector is not important
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_X), //left
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Y), //top
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Y), //bottom
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Z), //back
-		CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 	};
 
 	unsigned int maxMipLevels = 5;
@@ -423,7 +425,7 @@ CubeMap* PBR::prefilter(CubeMap * source)
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
 			shader->setView(views[side]);
-			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMapGL::Side>(side + CubeMapGL::POSITIVE_X), mipLevel);
+			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X), mipLevel);
 			modelDrawer->draw(skybox.getModel(), shader);
 		}
 	}
@@ -502,7 +504,7 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			false
 		};
-		environmentMap = dynamic_cast<CubeMap*>(Texture::createFromImage(readImage, data, true));
+		environmentMap = (CubeMap*)(Texture::createFromImage(readImage, data, true));
 	} else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
@@ -525,7 +527,7 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			true
 		};
-		prefilteredEnvMap = dynamic_cast<CubeMap*>(Texture::createFromImage(readImage, data, true));
+		prefilteredEnvMap = (nex::CubeMap*)(Texture::createFromImage(readImage, data, true));
 	}
 	else
 	{
@@ -553,7 +555,7 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			true };
 
-		convolutedEnvironmentMap = dynamic_cast<CubeMap*>(Texture::createFromImage(readImage, data, true));
+		convolutedEnvironmentMap = (nex::CubeMap*)(Texture::createFromImage(readImage, data, true));
 	}
 	else
 	{

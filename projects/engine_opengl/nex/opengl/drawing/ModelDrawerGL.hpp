@@ -7,6 +7,7 @@ namespace nex
 	class RendererOpenGL;
 	class Sprite;
 	class Vob;
+	class MeshGL;
 	class ModelGL;
 	class SceneNode;
 

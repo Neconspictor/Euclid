@@ -45,7 +45,7 @@ namespace nex {
 		AmbientOcclusionSelector();
 		virtual ~AmbientOcclusionSelector();
 
-		hbao::HBAO_GL* getHBAO();
+		nex::HBAO_GL* getHBAO();
 		SSAO_DeferredGL* getSSAO();
 
 		bool isAmbientOcclusionActive() const;
@@ -55,12 +55,12 @@ namespace nex {
 		void setAOTechniqueToUse(AOTechnique technique);
 		void setUseAmbientOcclusion(bool useAO);
 
-		void setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao);
+		void setHBAO(std::unique_ptr<nex::HBAO_GL> hbao);
 		void setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao);
 
 	private:
 
-		std::unique_ptr<hbao::HBAO_GL> m_hbao;
+		std::unique_ptr<nex::HBAO_GL> m_hbao;
 		std::unique_ptr<SSAO_DeferredGL> m_ssao;
 		bool m_useAO = true;
 		AOTechnique m_usedAOTechnique;

@@ -1,6 +1,5 @@
 #include<nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 
-#include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
@@ -19,15 +18,12 @@ namespace nex {
 	{
 	}
 
-	void GaussianBlurGL::blur(RenderTargetGL* target, RenderTargetGL* cache)
+	void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
 	{
-		RenderTargetGL* glTarget = dynamic_cast<RenderTargetGL*>(target);
-		assert(glTarget != nullptr);
-		GLuint texture = glTarget->getTextureGL();
 		ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
-		GaussianBlurHorizontalShaderGL* horizontalShader = dynamic_cast<GaussianBlurHorizontalShaderGL*>(
+		GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
 			renderer->getShaderManager()->getShader(ShaderType::GaussianBlurHorizontal));
-		GaussianBlurVerticalShaderGL* verticalShader = dynamic_cast<GaussianBlurVerticalShaderGL*>(
+		GaussianBlurVerticalShader* verticalShader = dynamic_cast<GaussianBlurVerticalShader*>(
 			renderer->getShaderManager()->getShader(ShaderType::GaussianBlurVertical));
 
 
@@ -38,29 +34,29 @@ namespace nex {
 
 
 		// horizontal pass
-		sprite.setTexture(glTarget->getTexture());
+		sprite.setTexture(target->getTexture());
 		horizontalShader->bind();
 		horizontalShader->setTexture(sprite.getTexture());
-		horizontalShader->setImageHeight((float)glTarget->getHeight());
-		horizontalShader->setImageWidth((float)glTarget->getWidth());
+		horizontalShader->setImageHeight((float)target->getHeight());
+		horizontalShader->setImageWidth((float)target->getWidth());
 		modelDrawer->draw(&sprite, horizontalShader);
 
 		using r = RenderComponent;
-		Dimension blitRegion = { 0,0, glTarget->getWidth(), glTarget->getHeight() };
-		renderer->blitRenderTargets(cache, glTarget, blitRegion, r::Color | r::Depth | r::Stencil);
+		Dimension blitRegion = { 0,0, target->getWidth(), target->getHeight() };
+		renderer->blitRenderTargets(cache, target, blitRegion, r::Color | r::Depth | r::Stencil);
 
 		// vertical pass
 		renderer->useBaseRenderTarget(cache);
 		renderer->beginScene();
-		sprite.setTexture(glTarget->getTexture());
+		sprite.setTexture(target->getTexture());
 		verticalShader->bind();
 		verticalShader->setTexture(sprite.getTexture());
-		verticalShader->setImageHeight((float)glTarget->getHeight());
-		verticalShader->setImageWidth((float)glTarget->getWidth());
+		verticalShader->setImageHeight((float)target->getHeight());
+		verticalShader->setImageWidth((float)target->getWidth());
 		modelDrawer->draw(&sprite, verticalShader);
 
 
-		renderer->blitRenderTargets(cache, glTarget, blitRegion, r::Color | r::Depth | r::Stencil);
+		renderer->blitRenderTargets(cache, target, blitRegion, r::Color | r::Depth | r::Stencil);
 	}
 
 	void GaussianBlurGL::init()

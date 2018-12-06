@@ -23,13 +23,11 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 		void setRenderBuffer(GLuint newValue);
-		void setTexture(Texture* texture);
 
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
 		friend RenderTarget;
 
-		nex::Guard<Texture> textureBuffer;
 		GLuint renderBuffer;
 		int width;
 		int height;
@@ -93,18 +91,18 @@ namespace nex
 
 		virtual ~PBR_GBufferGL() = default;
 
-		TextureGL* getAlbedo();
-		TextureGL* getAoMetalRoughness();
-		TextureGL* getNormal();
-		TextureGL* getPosition();
-		TextureGL* getDepth();
+		Texture* getAlbedo();
+		Texture* getAoMetalRoughness();
+		Texture* getNormal();
+		Texture* getPosition();
+		RenderBuffer* getDepth();
 
 
 	protected:
-		nex::Guard<TextureGL> albedo;
-		nex::Guard<TextureGL> aoMetalRoughness;
-		nex::Guard<TextureGL> normal;
-		nex::Guard<TextureGL> position;
-		nex::Guard<RenderBufferGL> depth;
+		nex::Guard<Texture> albedo;
+		nex::Guard<Texture> aoMetalRoughness;
+		nex::Guard<Texture> normal;
+		nex::Guard<Texture> position;
+		nex::Guard<RenderBuffer> depth;
 	};
 }

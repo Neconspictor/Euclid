@@ -103,7 +103,7 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 	ImGui::DragFloat("far plane", &m_camera->perspFrustum.farPlane, 1.0f, 1.0f, 10000.0f);
 	ImGui::DragFloat("speed", &m_camera->cameraSpeed, 0.2f, 0.0f, 100.0f);
 
-	nex::engine::gui::Vector3D(&m_camera->position, "Position");
+	nex::gui::Vector3D(&m_camera->position, "Position");
 
 	m_camera->recalculateLookVector();
 	ImGui::PopID();

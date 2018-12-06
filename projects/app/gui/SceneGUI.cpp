@@ -1,9 +1,8 @@
 #include <gui/SceneGUI.hpp>
 #include <imgui/imgui.h>
-#include <iostream>
 #include <gui/Controller.hpp>
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	SceneGUI::SceneGUI(ControllerStateMachine* controllerSM) : m_optionMenu(nullptr), m_controllerSM(controllerSM)
 	{
@@ -13,7 +12,7 @@ namespace nex::engine::gui
 			if (ImGui::MenuItem("Exit", "Esc"))
 			{
 				//handleExitEvent();
-				App::BaseController* controller = dynamic_cast<App::BaseController*>(m_controllerSM->getCurrentController());
+				nex::gui::BaseController* controller = dynamic_cast<nex::gui::BaseController*>(m_controllerSM->getCurrentController());
 
 				if (controller != nullptr)
 					controller->handleExitEvent();

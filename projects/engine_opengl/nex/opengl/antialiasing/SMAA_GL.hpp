@@ -1,6 +1,6 @@
 #pragma once
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/texture/Texture.hpp>
 
 namespace nex
 {
@@ -10,7 +10,7 @@ namespace nex
 		explicit SMAA_GL(RendererOpenGL* renderer);
 		virtual ~SMAA_GL();
 
-		void antialias(RenderTargetGL* renderTarget);
+		void antialias(RenderTarget* renderTarget);
 
 		void init();
 
@@ -20,11 +20,11 @@ namespace nex
 
 	private:
 		RendererOpenGL* renderer;
-		RenderTargetGL* edgesTex;
-		RenderTargetGL* blendTex;
+		RenderTarget* edgesTex;
+		RenderTarget* blendTex;
 
-		TextureGL* areaTex;
-		TextureGL* searchTex;
+		Texture* areaTex;
+		Texture* searchTex;
 
 		GLuint edgeDetectionPass;
 		GLuint blendingWeightCalculationPass;

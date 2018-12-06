@@ -6,10 +6,9 @@
 #include <memory>
 #include <nex/gui/ImGUI.hpp>
 
-class ControllerStateMachine;
-
 namespace nex::gui
 {
+	class ControllerStateMachine;
 
 	class Controller {
 
@@ -20,7 +19,7 @@ namespace nex::gui
 
 		Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)) {}
 		virtual ~Controller() = default;
-		virtual void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) = 0;
+		virtual void frameUpdate(nex::gui::ControllerStateMachine& stateMachine, float frameTime) = 0;
 		virtual void init() = 0;
 
 		DrawablePtr getDrawable()const

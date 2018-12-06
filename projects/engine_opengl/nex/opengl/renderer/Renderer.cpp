@@ -1,5 +1,5 @@
 #include <nex/opengl/renderer/Renderer.hpp>
 
-Renderer::Renderer(RendererOpenGL* renderBackend) : m_renderBackend(renderBackend) {
+nex::Renderer::Renderer(RendererOpenGL* renderBackend) : m_renderBackend(renderBackend) {
 	
 }

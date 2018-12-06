@@ -34,8 +34,6 @@ set(
 	#nex/opengl/gui
 	nex/opengl/gui/ImGUI_GL.hpp
 	nex/opengl/gui/ImGUI_GL.cpp
-	nex/opengl/gui/NanoGUI.hpp
-	nex/opengl/gui/NanoGUI.cpp
     
     #nex/opengl/material
     nex/opengl/material/AbstractMaterialLoader.hpp

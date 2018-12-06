@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {

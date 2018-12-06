@@ -12,7 +12,7 @@
 #include "nex/opengl/mesh/MeshGL.hpp"
 #include "nex/shader_generator/SourceFileConsumer.hpp"
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
-#include <nex/texture/Texture.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
 
 using namespace nex;
 using namespace ::util;
@@ -82,31 +82,35 @@ nex::ShaderProgram::ShaderProgram(): mIsBound(false)
 void nex::ShaderProgram::setInt(const UniformLocation* locationID, int data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;
-	GLCall(glUniform1i((GLint)locationID, data));
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
+	GLCall(glUniform1i(glID, data));
 }
 
 void nex::ShaderProgram::setFloat(const UniformLocation* locationID, float data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;
-	GLCall(glUniform1f((GLint)locationID, data));
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
+	GLCall(glUniform1f(glID, data));
 }
 
 void nex::ShaderProgram::setVec2(const UniformLocation* locationID, const glm::vec2& data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;;
-	GLCall(glUniform2f((GLint)locationID, data.x, data.y));
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
+	GLCall(glUniform2f(glID, data.x, data.y));
 }
 
 void nex::ShaderProgram::setVec3(const UniformLocation* locationID, const glm::vec3& data)
 {
 	ASSERT(mIsBound);
-	if ((GLint)locationID < 0) return;
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
 
 	//GLClearError();
-	GLCall(glUniform3f((GLint)locationID, data.x, data.y, data.z));
+	GLCall(glUniform3f(glID, data.x, data.y, data.z));
 
 	/*if (!GLLogCall())
 	{
@@ -118,23 +122,26 @@ void nex::ShaderProgram::setVec3(const UniformLocation* locationID, const glm::v
 void nex::ShaderProgram::setVec4(const UniformLocation* locationID, const glm::vec4& data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
 
-	GLCall(glUniform4f((GLint)locationID, data.x, data.y, data.z, data.w));
+	GLCall(glUniform4f(glID, data.x, data.y, data.z, data.w));
 }
 
 void nex::ShaderProgram::setMat3(const UniformLocation* locationID, const glm::mat3& data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;
-	GLCall(glUniformMatrix3fv((GLint)locationID, 1, GL_FALSE, value_ptr(data)));
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
+	GLCall(glUniformMatrix3fv(glID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void nex::ShaderProgram::setMat4(const UniformLocation* locationID, const glm::mat4& data)
 {
 	assert(mIsBound);
-	if ((GLint)locationID < 0) return;
-	GLCall(glUniformMatrix4fv((GLint)locationID, 1, GL_FALSE, value_ptr(data)));
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
+	GLCall(glUniformMatrix4fv(glID, 1, GL_FALSE, value_ptr(data)));
 }
 
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
@@ -143,12 +150,13 @@ void nex::ShaderProgram::setTexture(const UniformLocation* locationID, const nex
 	//assert(mIsBound);
 	ASSERT(mIsBound);
 	//ASSERT(isValid(textureSlot));
-	if ((GLint)locationID < 0) return;
+	GLint glID = GLint(locationID);
+	if (glID < 0) return;
 
 	TextureGL* gl = (TextureGL*)data->getImpl();
 
 	GLCall(glBindTextureUnit(bindingSlot, *gl->getTexture()));
-	GLCall(glUniform1i((GLint)locationID, bindingSlot));
+	GLCall(glUniform1i(glID, bindingSlot));
 }
 
 void nex::ShaderProgram::setDebugName(const char* name)
@@ -180,7 +188,7 @@ UniformLocation* nex::ShaderProgram::getUniformLocation(const char* name)
 		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
 	}
 
-	return (UniformLocation*)loc;
+	return reinterpret_cast<UniformLocation*>(loc);
 }
 
 ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
@@ -219,7 +227,7 @@ GLuint nex::ShaderProgramGL::loadShaders(const std::string& vertexFile, const st
 	ShaderStageDesc fragmentDesc;
 	ShaderStageDesc geometryDesc;
 	GLuint shaderProgram;
-	ShaderSourceFileGenerator* generator = getSourceFileGenerator();
+	ShaderSourceFileGenerator* generator = nullptr;//getSourceFileGenerator(); //TODO
 
 
 	// Read the Vertex Shader code from file

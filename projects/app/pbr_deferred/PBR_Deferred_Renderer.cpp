@@ -80,16 +80,16 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 	
-	SkyBoxShaderGL* skyBoxShader = dynamic_cast<SkyBoxShaderGL*>
+	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBox));
 
-	PanoramaSkyBoxShaderGL* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShaderGL*>
+	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBoxPanorama));
 
-	EquirectangularSkyBoxShaderGL* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShaderGL*>
+	EquirectangularSkyBoxShader* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
 
-	PBRShaderGL* pbrShader = dynamic_cast<PBRShaderGL*>
+	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getShader(ShaderType::Pbr));
 
 	shadowMap = m_renderBackend->createDepthMap(2048, 2048);
@@ -143,7 +143,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
 	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
 
-	CubeMapGL* background = m_pbr_deferred->getEnvironmentMap();
+	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->bind();
 	skyBoxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
@@ -173,9 +173,9 @@ void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
 	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
-	ScreenShaderGL* screenShader = (ScreenShaderGL*)(
+	ScreenShader* screenShader = (ScreenShader*)(
 		m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
-	DepthMapShaderGL* depthMapShader = (DepthMapShaderGL*)(
+	DepthMapShader* depthMapShader = (DepthMapShader*)(
 		m_renderBackend->getShaderManager()->getShader(ShaderType::DepthMap));
 	using namespace chrono;
 
@@ -222,7 +222,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			camera->getPerspProjection());
 	//renderer->endScene();
 
-	TextureGL* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
+	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
@@ -243,7 +243,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//renderer->enableAlphaBlending(true);
 
 	CascadedShadowGL::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
-	TextureGL* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
+	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
@@ -262,7 +262,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	BaseRenderTargetGL* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
 	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
@@ -337,7 +337,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	}*/
 }
 
-hbao::HBAO_GL* PBR_Deferred_Renderer::getHBAO()
+nex::HBAO_GL* PBR_Deferred_Renderer::getHBAO()
 {
 	return m_aoSelector.getHBAO();
 }
@@ -352,7 +352,7 @@ PBR_DeferredGL* PBR_Deferred_Renderer::getPBR()
 	return m_pbr_deferred.get();
 }
 
-TextureGL* PBR_Deferred_Renderer::renderAO(Camera* camera, TextureGL* gPosition, TextureGL* gNormal)
+Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
 {
 	if (!m_aoSelector.isAmbientOcclusionActive())
 		// Return a default white texture (means no ambient occlusion)
@@ -360,7 +360,7 @@ TextureGL* PBR_Deferred_Renderer::renderAO(Camera* camera, TextureGL* gPosition,
 
 	if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
 	{
-		hbao::Projection projection;
+		nex::Projection projection;
 		Frustum frustum = camera->getFrustum(Perspective);
 		projection.fov = radians(camera->getFOV());
 		projection.farplane = frustum.farPlane;

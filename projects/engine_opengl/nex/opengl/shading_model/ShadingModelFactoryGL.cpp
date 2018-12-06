@@ -2,13 +2,14 @@
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 
 using namespace std;
+namespace nex {
 
+	ShadingModelFactoryGL::ShadingModelFactoryGL()
+	{
+	}
 
-ShadingModelFactoryGL::ShadingModelFactoryGL()
-{
-}
-
-std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(RendererOpenGL* renderer, TextureGL* backgroundHDR)
-{
-	return make_unique<PBR_DeferredGL>(renderer, backgroundHDR);
+	std::unique_ptr<PBR_DeferredGL> ShadingModelFactoryGL::create_PBR_Deferred_Model(RendererOpenGL* renderer, Texture* backgroundHDR)
+	{
+		return make_unique<PBR_DeferredGL>(renderer, backgroundHDR);
+	}
 }

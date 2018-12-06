@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/Input.hpp>
+#include <nex/common/Log.hpp>
 #include <nex/gui/Drawable.hpp>
 
 namespace nex

@@ -1,6 +1,6 @@
 #pragma once
-#include "VertexBuffer.hpp"
-#include "VertexLayout.hpp"
+#include <nex/opengl/mesh/VertexBuffer.hpp>
+#include <nex/opengl/mesh/VertexLayout.hpp>
 
 namespace nex
 {

@@ -1,6 +1,4 @@
 #pragma once
-#include "nex/texture/Texture.hpp"
-
 namespace nex {
 
 	template<typename T>

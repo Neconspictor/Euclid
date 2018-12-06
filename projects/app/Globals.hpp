@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace util {
+namespace nex::util {
 	class Globals {
 	public:
 		static void initGlobals();

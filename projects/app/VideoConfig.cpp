@@ -4,12 +4,12 @@
 
 using namespace std;
 
-VideoConfig::VideoConfig() :
+nex::VideoConfig::VideoConfig() :
 	fullscreen(false), width(0), height(0), colorBitDepth(0), refreshRate(0), 
 	vSync(false), msaaSamples(0) {
 }
 
-void VideoConfig::handle(Configuration& config)
+void nex::VideoConfig::handle(Configuration& config)
 {
 	config.addOption("Video", "Title", &windowTitle, string(""));
 	config.addOption("Video", "Fullscreen", &fullscreen, false);

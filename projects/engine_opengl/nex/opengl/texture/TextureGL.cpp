@@ -318,8 +318,6 @@ nex::Texture* nex::Texture::create(TextureTarget target, const TextureData& data
 
 nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap)
 {
-	nex::Guard<Texture> texture (new Texture(nullptr));
-
 	GLuint format = translate(data.colorspace);
 	GLuint internalFormat = translate(data.internalFormat);
 	GLuint pixelDataType = translate(data.pixelDataType);
@@ -378,23 +376,27 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	GLCall(glBindTexture(bindTarget, 0));
 
-	TextureGL* glTexture;
+	Guard<TextureGL> glTexture;
+	nex::Guard<Texture> texture;
 
 	if (isCubeMap)
 	{
 		glTexture = new CubeMapGL(textureID);
+		texture = CubeMap::create();
 	}
 	else
 	{
 		glTexture = new TextureGL(textureID);
+		texture = Texture::create();
 	}
+
 
 	glTexture->width = store.images[0][0].width;
 	glTexture->height = store.images[0][0].height;
 
 	Texture* result = texture.get();
 	texture.setContent(nullptr);
-	result->mImpl = glTexture;
+	result->mImpl = glTexture.reset();
 
 	return result;
 }

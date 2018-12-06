@@ -2,6 +2,7 @@
 #include <nex/opengl/mesh/MeshGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include "nex/opengl/texture/TextureGL.hpp"
 
 using namespace nex;
 

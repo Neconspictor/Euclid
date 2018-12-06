@@ -5,12 +5,6 @@ nex::Shader::Shader(ShaderProgram* program) : mProgram(program)
 {
 }
 
-nex::Shader::~Shader()
-{
-	ShaderProgram::destroy(mProgram);
-	mProgram = nullptr;
-}
-
 void nex::Shader::bind()
 {
 	mProgram->bind();
@@ -18,7 +12,7 @@ void nex::Shader::bind()
 
 nex::ShaderProgram* nex::Shader::getProgram()
 {
-	return mProgram;
+	return mProgram.get();
 }
 
 void nex::Shader::setProgram(ShaderProgram* program)

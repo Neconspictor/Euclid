@@ -3,9 +3,9 @@
 #include "nex/gui/imgui_tabs.h"
 #include "nex/gui/Util.hpp"
 
-using namespace nex::engine::gui;
+using namespace nex::gui;
 
-App::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Menu* configurationMenu) :
+nex::gui::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Menu* configurationMenu) :
 	Window("Graphics and Video Settings", false), m_mainMenuBar(mainMenuBar),
 	m_menuTitle("Graphics and Video Settings"), m_tabBar(nullptr)
 {
@@ -37,32 +37,32 @@ App::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Menu* co
 	m_tabBar->newTab(CAMERA);
 }
 
-void App::ConfigurationWindow::drawGUI()
+void nex::gui::ConfigurationWindow::drawGUI()
 {
 		Window::drawGUI();
 }
 
-Tab* App::ConfigurationWindow::getGeneralTab()
+Tab* nex::gui::ConfigurationWindow::getGeneralTab()
 {
 	return m_tabBar->getTab(GENERAL);
 }
 
-Tab* App::ConfigurationWindow::getGraphicsTechniquesTab()
+Tab* nex::gui::ConfigurationWindow::getGraphicsTechniquesTab()
 {
 	return m_tabBar->getTab(GRAPHICS_TECHNIQUES);
 }
 
-Tab* App::ConfigurationWindow::getCameraTab()
+Tab* nex::gui::ConfigurationWindow::getCameraTab()
 {
 	return m_tabBar->getTab(CAMERA);
 }
 
-Tab* App::ConfigurationWindow::getVideoTab()
+Tab* nex::gui::ConfigurationWindow::getVideoTab()
 {
 	return m_tabBar->getTab(VIDEO);
 }
 
-bool App::ConfigurationWindow::hasVisibleChild() const
+bool nex::gui::ConfigurationWindow::hasVisibleChild() const
 {
 	for (auto &child : m_childs)
 	{
@@ -73,7 +73,7 @@ bool App::ConfigurationWindow::hasVisibleChild() const
 	return false;
 }
 
-void App::ConfigurationWindow::drawSelf()
+void nex::gui::ConfigurationWindow::drawSelf()
 {
 	const float mainbarHeight = m_mainMenuBar->getSize().y;
 	const ImVec2 mainbarPos = m_mainMenuBar->getPosition();

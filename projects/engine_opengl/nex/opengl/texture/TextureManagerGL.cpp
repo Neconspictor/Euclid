@@ -28,8 +28,6 @@ using namespace std;
 using namespace nex;
 
 
-TextureManagerGL TextureManagerGL::instance;
-
 TextureManagerGL::TextureManagerGL() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr), mFileSystem(nullptr)
 {
 	textureLookupTable = map<string, Texture*>();
@@ -41,8 +39,7 @@ void TextureManagerGL::releaseTexture(Texture * tex)
 {
 	for (auto&& it = textures.begin(); it != textures.end(); ++it) {
 		if ((*it) == tex) {
-			delete ((TextureGL*)*it);
-			*it = nullptr;
+			delete *it;
 			textures.erase(it);
 			break; // we're done
 		}
@@ -193,20 +190,6 @@ CubeMap* TextureManagerGL::createCubeMap(const string& right, const string& left
 	return nullptr;
 }
 
-Texture* TextureManagerGL::createTextureGL(string localPathFileName, GLuint textureID, int width, int height)
-{
-	Texture* texture = Texture::create();
-	textures.push_back(texture);
-	TextureGL* glTexture = (TextureGL*)texture->getImpl();
-	glTexture->setTexture(textureID);
-	glTexture->setWidth(width);
-	glTexture->setHeight(height);
-
-	textureLookupTable.insert(std::pair<std::string, nex::Texture*>(localPathFileName, texture));
-
-	return texture;
-}
-
 Texture * TextureManagerGL::getDefaultBlackTexture()
 {
 	return getImage("_intern/black.png", 
@@ -308,7 +291,6 @@ Texture* TextureManagerGL::getImage(const string& file, const TextureData& data)
 	stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
 	int width, height, nrComponents;
 	unsigned char* rawData = stbi_load(resolvedPath.c_str(), &width, &height, &nrComponents, 0);
-	unsigned int textureID;
 	if (!rawData) {
 		LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
 		stringstream ss;
@@ -349,6 +331,7 @@ Sampler* TextureManagerGL::getDefaultImageSampler()
 
 TextureManagerGL* TextureManagerGL::get()
 {
+	static TextureManagerGL instance;
 	return &instance;
 }
 

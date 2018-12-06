@@ -9,7 +9,7 @@ namespace nex
 	{
 	}
 
-	void AmbientOcclusionSelector::setHBAO(std::unique_ptr<hbao::HBAO_GL> hbao)
+	void AmbientOcclusionSelector::setHBAO(std::unique_ptr<nex::HBAO_GL> hbao)
 	{
 		m_hbao = move(hbao);
 	}
@@ -44,7 +44,7 @@ namespace nex
 	{
 	}
 
-	hbao::HBAO_GL* AmbientOcclusionSelector::getHBAO()
+	nex::HBAO_GL* AmbientOcclusionSelector::getHBAO()
 	{
 		return m_hbao.get();
 	}

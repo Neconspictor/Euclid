@@ -2,7 +2,6 @@
 
 
 #include <nex/texture/RenderTarget.hpp>
-#include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/model/Vob.hpp>
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>

@@ -5,8 +5,6 @@
 
 namespace nex
 {
-
-	
 	class Material;
 	class Texture;
 	struct ShaderStageDesc;
@@ -147,6 +145,8 @@ namespace nex
 	{
 	public:
 
+		virtual ~ShaderProgram() = default;
+
 		/**
 		 * Binds this shader program.
 		 */
@@ -224,10 +224,6 @@ namespace nex
 
 		ShaderProgram();
 
-		// We don't allow to delete shader programs by user code. 
-		// By this, it is safe to specify the destructor as non-virtual (avoids vtable)
-		~ShaderProgram() = default;
-
 		bool mIsBound;
 		std::string mDebugName;
 
@@ -243,7 +239,7 @@ namespace nex
 
 		Shader(ShaderProgram* program = nullptr);
 
-		virtual ~Shader();
+		virtual ~Shader() = default;
 
 		/**
 		 * Binds this shader and the underlying shader program.
@@ -286,7 +282,6 @@ namespace nex
 
 		virtual void onTransformUpdate(const TransformData& data) = 0;
 	};
-};
 
 /**
 	* Maps a string to a shader enum.
@@ -302,3 +297,4 @@ nex::ShaderType stringToShaderEnum(const std::string& str);
 * Puts a string representation of a shader enum to an output stream.
 */
 std::ostream& operator<<(std::ostream& os, nex::ShaderType shader);
+};

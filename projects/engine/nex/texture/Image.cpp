@@ -1,4 +1,4 @@
-#include <nex/opengl/texture/Image.hpp>
+#include <nex/texture/Image.hpp>
 #include <nex/FileSystem.hpp>
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>

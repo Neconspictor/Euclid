@@ -29,9 +29,9 @@ nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data)
 nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData data) :
 	RenderTargetGL(width, height), data(std::move(data))
 {
-	textureBuffer = CubeMap::create();
-	textureBuffer->setWidth(width);
-	textureBuffer->setHeight(height);
+	mRenderResult = CubeMap::create();
+	mRenderResult->setWidth(width);
+	mRenderResult->setHeight(height);
 
 	// generate framebuffer and renderbuffer with a depth component
 	GLCall(glGenFramebuffers(1, &frameBuffer));
@@ -54,7 +54,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 
 
 	//pre-allocate the six faces of the cubemap
-	TextureGL* textureGL = (TextureGL*)textureBuffer->getImpl();
+	TextureGL* textureGL = (TextureGL*)mRenderResult->getImpl();
 	glGenTextures(1, textureGL->getTexture());
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, *textureGL->getTexture());
@@ -100,8 +100,8 @@ nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
 
 
-	TextureGL* textureGL = (TextureGL*)textureBuffer->getImpl();
-	TextureGL* copyTexGL = (TextureGL*)copy.textureBuffer->getImpl();
+	TextureGL* textureGL = (TextureGL*)mRenderResult->getImpl();
+	TextureGL* copyTexGL = (TextureGL*)copy.mRenderResult->getImpl();
 
 	for (int i = 0; i < 6; ++i) {
 
@@ -138,8 +138,8 @@ nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	// reset the texture id of the cubemap of the copy, so that it won't be released!
-	auto cache = copy.textureBuffer.get();
-	copy.textureBuffer = nullptr;
+	auto cache = copy.mRenderResult.get();
+	copy.mRenderResult = nullptr;
 
 	copy.release();
 
@@ -166,14 +166,11 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-nex::RenderTargetGL::RenderTargetGL(int width, int height, GLuint frameBuffer) : RenderTargetImpl(),
+nex::RenderTargetGL::RenderTargetGL(int width, int height, GLuint frameBuffer) : RenderTargetImpl(width, height),
                                                              width(width), height(height),
                                                              renderBuffer(GL_FALSE),
                                                              frameBuffer(frameBuffer)
 {
-	textureBuffer = Texture::create();
-	textureBuffer->setWidth(width);
-	textureBuffer->setHeight(height);
 }
 
 nex::RenderTargetGL::~RenderTargetGL()
@@ -224,7 +221,7 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 	glBindFramebuffer(GL_FRAMEBUFFER, glTarget->frameBuffer);
 
 	// Generate texture
-	TextureGL* textureGL = (TextureGL*)glTarget->textureBuffer->getImpl();
+	TextureGL* textureGL = (TextureGL*)glTarget->mRenderResult->getImpl();
 	glGenTextures(1, textureGL->getTexture());
 	const GLuint& textureID = *textureGL->getTexture();
 
@@ -299,7 +296,7 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 
 	// Generate texture
 
-	TextureGL* textureGL = (TextureGL*)glTarget->textureBuffer->getImpl();
+	TextureGL* textureGL = (TextureGL*)glTarget->getTexture()->getImpl();
 	glGenTextures(1, textureGL->getTexture());
 	const GLuint& textureID = *textureGL->getTexture();
 
@@ -410,7 +407,7 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 
 	GLuint* frameBuffer = &result->frameBuffer;
 
-	TextureGL& texture = *(TextureGL*)result->textureBuffer->getImpl();
+	TextureGL& texture = *(TextureGL*)result->getTexture()->getImpl();
 	GLuint* textureID = texture.getTexture();
 	GLCall(glGenFramebuffers(1, frameBuffer));
 	glGenTextures(1, textureID);
@@ -465,6 +462,7 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 	return target;
 }
 
+
 GLuint nex::RenderTargetGL::getFrameBuffer() const
 {
 	return frameBuffer;
@@ -499,19 +497,27 @@ void nex::RenderTargetGL::setRenderBuffer(GLuint newValue)
 	renderBuffer = newValue;
 }
 
-void nex::RenderTargetGL::setTexture(Texture* texture)
+nex::CubeDepthMap* nex::CubeDepthMap::create(unsigned width, unsigned height)
 {
-	textureBuffer = texture;
+	return new CubeDepthMap(width, height);
+}
+
+nex::CubeDepthMap::CubeDepthMap(int width, int height) : RenderTarget(new CubeDepthMapGL(width, height))
+{
 }
 
 nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	RenderTargetGL(width, height)
 {
+
+	mRenderResult = CubeMap::create();
+	mRenderResult->setWidth(width);
+	mRenderResult->setHeight(height);
+
 	GLuint texture;
 	GLCall(glGenTextures(1, &texture));
 	glGenFramebuffers(1, &frameBuffer);
-	textureBuffer = CubeMap::create();
-	TextureGL* textureGL = (TextureGL*)textureBuffer->getImpl();
+	TextureGL* textureGL = (TextureGL*)mRenderResult->getImpl();
 	textureGL->setTexture(texture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -539,6 +545,16 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
+
+nex::DepthMap* nex::DepthMap::create(unsigned width, unsigned height)
+{
+	return new DepthMap(width, height);
+}
+
+nex::DepthMap::DepthMap(int width, int height) : RenderTarget(new DepthMapGL(width, height))
+{
+}
+
 
 nex::DepthMapGL::DepthMapGL(int width, int height) :
 	RenderTargetGL(width, height)
@@ -583,6 +599,45 @@ nex::DepthMapGL::DepthMapGL(int width, int height) :
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
+nex::PBR_GBuffer* nex::PBR_GBuffer::create(unsigned width, unsigned height)
+{
+	return new PBR_GBuffer(width, height);
+}
+
+nex::PBR_GBuffer::PBR_GBuffer(int width, int height) : RenderTarget(new PBR_GBufferGL(width, height))
+{
+}
+
+nex::Texture* nex::PBR_GBuffer::getAlbedo() const
+{
+	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
+	return gl->getAlbedo();
+}
+
+nex::Texture* nex::PBR_GBuffer::getAoMetalRoughness() const
+{
+	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
+	return gl->getAoMetalRoughness();
+}
+
+nex::Texture* nex::PBR_GBuffer::getNormal() const
+{
+	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
+	return gl->getNormal();
+}
+
+nex::Texture* nex::PBR_GBuffer::getPosition() const
+{
+	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
+	return gl->getPosition();
+}
+
+nex::RenderBuffer* nex::PBR_GBuffer::getDepth() const
+{
+	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
+	return gl->getDepth();
+}
+
 nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	: 
 	RenderTargetGL(width, height),
@@ -598,7 +653,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// albedo
 	glGenTextures(1, &tempTexture);
-	albedo->setTexture(tempTexture);
+	((TextureGL*)albedo->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -610,7 +665,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// ao metal roughness
 	glGenTextures(1, &tempTexture);
-	aoMetalRoughness->setTexture(tempTexture);
+	((TextureGL*)aoMetalRoughness->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -622,7 +677,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// normal
 	glGenTextures(1, &tempTexture);
-	normal->setTexture(tempTexture);
+	((TextureGL*)normal->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -634,7 +689,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// position
 	glGenTextures(1, &tempTexture);
-	position->setTexture(tempTexture);
+	((TextureGL*)position->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
@@ -665,7 +720,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	// depth/stencil
 	glGenTextures(1, &tempTexture);
-	depth->setTexture(tempTexture);
+	((TextureGL*)depth->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
@@ -686,27 +741,27 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	
 }
 
-nex::TextureGL* nex::PBR_GBufferGL::getAlbedo()
+nex::Texture* nex::PBR_GBufferGL::getAlbedo()
 {
 	return albedo.get();
 }
 
-nex::TextureGL * nex::PBR_GBufferGL::getAoMetalRoughness()
+nex::Texture * nex::PBR_GBufferGL::getAoMetalRoughness()
 {
 	return aoMetalRoughness.get();
 }
 
-nex::TextureGL * nex::PBR_GBufferGL::getNormal()
+nex::Texture * nex::PBR_GBufferGL::getNormal()
 {
 	return normal.get();
 }
 
-nex::TextureGL * nex::PBR_GBufferGL::getPosition()
+nex::Texture* nex::PBR_GBufferGL::getPosition()
 {
 	return position.get();
 }
 
-nex::TextureGL * nex::PBR_GBufferGL::getDepth()
+nex::RenderBuffer * nex::PBR_GBufferGL::getDepth()
 {
 	return depth.get();
 }

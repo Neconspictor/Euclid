@@ -1,7 +1,7 @@
 #include <Globals.hpp>
 #include <nex/config/Configuration.hpp>
 
-namespace util {
+namespace nex::util {
 
 	std::string Globals::rootDirectory = "./";
 

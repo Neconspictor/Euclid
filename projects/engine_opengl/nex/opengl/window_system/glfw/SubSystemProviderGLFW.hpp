@@ -1,6 +1,4 @@
 #include <nex/SubSystemProvider.hpp>
-#include <unordered_map>
-#include <unordered_set>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 
 namespace nex

@@ -30,7 +30,12 @@ namespace nex
 		Sampler(const Texture&) = delete;
 		Sampler& operator=(const Sampler&) = delete;
 
+		virtual ~Sampler() = default;
+
 		static Sampler* create(const SamplerState& samplerState);
+
+		// Has to be implemented by renderer backend
+		void bind(unsigned textureBindingSlot);
 
 		const SamplerState& getState() const;
 
@@ -70,7 +75,9 @@ namespace nex
 		// Has to be implemented by renderer backend
 		void setLodBias(float bias);
 
-		virtual ~Sampler() = default;
+		// Has to be implemented by renderer backend
+		void unbind(unsigned textureBindingSlot);
+
 	protected:
 		Sampler(const SamplerState& samplerState) : mState(samplerState) {}
 		SamplerState mState;

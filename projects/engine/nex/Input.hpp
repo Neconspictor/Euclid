@@ -1,10 +1,11 @@
 #pragma once
 #include <nex/util/CallbackContainer.hpp>
 #include <nex/common/Log.hpp>
-#include <nex/Window.hpp>
 
 namespace nex
 {
+
+	class Window;
 
 	/**
 	 * A struct for storing/receiving relative mouse movement.
@@ -27,8 +28,8 @@ namespace nex
 	public:
 
 		using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
-		using WindowCloseCallbacks = CallbackCollection<void(Window*)>;
-		using WindowFocusCallbacks = CallbackCollection<void(Window*, bool)>;
+		using WindowCloseCallbacks = CallbackCollection<void(nex::Window*)>;
+		using WindowFocusCallbacks = CallbackCollection<void(nex::Window*, bool)>;
 		using WindowResizeCallbacks = CallbackCollection<void(int width, int height)>;
 
 

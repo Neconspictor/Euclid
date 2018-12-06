@@ -4,7 +4,7 @@
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
-#include "nex/shader/Shader.hpp"
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {

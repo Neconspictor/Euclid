@@ -28,40 +28,44 @@
 
 #include <nex/event/EventHandler.hpp>
 
-template <class> class EventHandlerQueue;
-
-template <typename tEventType, class tHandler>
-class EventBridge : public EventHandler<tEventType> {
-public:
-
-	EventBridge(tHandler& handler);
-
-private:
-	friend class EventHandlerQueue<tEventType>;
-
-	tHandler& mHandler;
-
-	void handle(tEventType& type) override;
-
-public:
-	bool operator == (tHandler& handler) const;
-};
-
-//Implementation
-template <typename T, class U>
-EventBridge<T, U>::EventBridge(U& handler) :
-	mHandler(handler)
+namespace nex
 {
-}
 
-template <typename T, class U>
-void EventBridge<T, U>::handle(T& object) {
-	mHandler.handle(object);
-}
+	template <class> class EventHandlerQueue;
 
-template <typename T, class U>
-bool EventBridge<T, U>::operator == (U& handler) const {
-	return ((&mHandler) == (&handler));
+	template <typename tEventType, class tHandler>
+	class EventBridge : public EventHandler<tEventType> {
+	public:
+
+		EventBridge(tHandler& handler);
+
+	private:
+		friend class EventHandlerQueue<tEventType>;
+
+		tHandler& mHandler;
+
+		void handle(tEventType& type) override;
+
+	public:
+		bool operator == (tHandler& handler) const;
+	};
+
+	//Implementation
+	template <typename T, class U>
+	EventBridge<T, U>::EventBridge(U& handler) :
+		mHandler(handler)
+	{
+	}
+
+	template <typename T, class U>
+	void EventBridge<T, U>::handle(T& object) {
+		mHandler.handle(object);
+	}
+
+	template <typename T, class U>
+	bool EventBridge<T, U>::operator == (U& handler) const {
+		return ((&mHandler) == (&handler));
+	}
 }
 
 #endif

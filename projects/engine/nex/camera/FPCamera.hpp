@@ -30,7 +30,7 @@ namespace nex
 		float yaw, pitch;
 	};
 
-	class FPCamera_ConfigurationView : public nex::engine::gui::Drawable {
+	class FPCamera_ConfigurationView : public nex::gui::Drawable {
 	public:
 		FPCamera_ConfigurationView(FPCamera* camera);
 

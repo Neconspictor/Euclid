@@ -1,8 +1,8 @@
 #pragma once
 
-#include <nex/Window.hpp>
 #include <unordered_set>
 #include <list>
+#include <nex/Input.hpp>
 
 struct GLFWwindow;
 

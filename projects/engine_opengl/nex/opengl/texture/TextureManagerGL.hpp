@@ -32,8 +32,6 @@ namespace nex {
 			const std::string& top, const std::string& bottom,
 			const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
 
-		nex::Texture* createTextureGL(std::string localPathFileName, GLuint textureID, int width, int height);
-
 		nex::Texture* getDefaultBlackTexture();
 		nex::Texture* getDefaultNormalTexture();
 		nex::Texture* getDefaultWhiteTexture();
@@ -86,13 +84,9 @@ namespace nex {
 		nex::Logger m_logger;
 		Sampler* mDefaultImageSampler;
 		nex::FileSystem* mFileSystem;
-
-	private:
-
-		static TextureManagerGL instance;
 	};
 
-	class TextureManager_Configuration : public nex::engine::gui::Drawable
+	class TextureManager_Configuration : public nex::gui::Drawable
 	{
 	public:
 		TextureManager_Configuration(TextureManagerGL* textureManager);

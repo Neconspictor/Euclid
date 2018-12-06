@@ -24,7 +24,7 @@ nex::SMAA_GL::~SMAA_GL()
 	blendTex = nullptr;*/
 }
 
-void nex::SMAA_GL::antialias(RenderTargetGL* renderTarget)
+void nex::SMAA_GL::antialias(RenderTarget* renderTarget)
 {
 }
 

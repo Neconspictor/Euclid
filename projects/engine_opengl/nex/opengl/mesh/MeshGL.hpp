@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 #include <nex/opengl/material/Material.hpp>
 #include <memory>
-#include "VertexArray.hpp"
-#include "IndexBuffer.hpp"
+#include <nex/opengl/mesh/VertexArray.hpp>
+#include <nex/opengl/mesh/IndexBuffer.hpp>
 
 namespace nex
 {

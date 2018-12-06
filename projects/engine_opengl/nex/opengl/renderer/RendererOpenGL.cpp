@@ -16,6 +16,7 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
 
 using namespace std;
 using namespace nex;
@@ -649,12 +650,12 @@ namespace nex
 
 		//view matrices;
 		const mat4 views[] = {
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_X), //right; sign of up vector is not important
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_X), //left
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Y), //top
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Y), //bottom
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::POSITIVE_Z), //back
-			CubeMapGL::getViewLookAtMatrixRH(CubeMapGL::NEGATIVE_Z) //front
+			CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
+			CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
+			CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
+			CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
+			CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
+			CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
 		};
 
 

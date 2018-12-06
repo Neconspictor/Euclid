@@ -114,7 +114,7 @@ Shader* ShaderManagerGL::createShader(ShaderType shaderEnum)
 		break;
 	}
 	case s::Screen: {
-		shaderPtr = new ScreenShaderGL();
+		shaderPtr = new ScreenShader();
 		break;
 	}
 	case s::SkyBox: {

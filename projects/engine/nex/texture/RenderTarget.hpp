@@ -25,10 +25,17 @@ namespace nex
 
 		Texture* getTexture();
 
-	protected:
-		RenderTargetImpl() = default;
+		/**
+		 * Sets the texture of this render target.
+		 * The previous texture won't be destroyed, so you have to delete it manually
+		 *   (use getTexture and than delete it).
+		 * NOTE: You should know what you do, when setting the texture manually!
+		 */
+		void setTexture(Texture* texture);
 
-		Texture* mRenderResult;
+	protected:
+		RenderTargetImpl(unsigned width, unsigned height);
+		Guard<Texture> mRenderResult;
 	};
 
 
@@ -64,12 +71,21 @@ namespace nex
 		// Has to be implemented by renderer backend
 		int getHeight() const;
 
-		RenderTargetImpl* getImpl();
+		RenderTargetImpl* getImpl() const;
 
 		Texture* getTexture();
 
 		// Has to be implemented by renderer backend
 		int getWidth() const;
+
+		/**
+		 * Sets the texture of this render target. 
+		 * The previous texture won't be destroyed, so you have to delete it manually
+		 *   (use getTexture and than delete it).
+		 * NOTE: You should know what you do, when setting the texture manually!
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void setTexture(Texture* texture);
 
 	protected:
 		// Mustn't be called by user code
@@ -138,25 +154,20 @@ namespace nex
 	public:
 
 		// Has to be implemented by renderer backend
-		static PBR_GBuffer* create(unsigned width, unsigned height);
-
-		Texture* getAlbedo() const { return albedo; }
-		Texture* getAoMetalRoughness() const { return aoMetalRoughness; }
-		Texture* getNormal() const { return normal; }
-		Texture* getPosition() const { return position; }
-		RenderBuffer* getDepth() const { return depth; }
-
-	protected:
-
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
 		PBR_GBuffer(int width, int height);
 
+		// Has to be implemented by renderer backend
+		static PBR_GBuffer* create(unsigned width, unsigned height);
 
-		Texture* albedo;
-		Texture* aoMetalRoughness;
-		Texture* normal;
-		Texture* position;
-		RenderBuffer* depth;
+		// Has to be implemented by renderer backend
+		Texture* getAlbedo() const;
+		// Has to be implemented by renderer backend
+		Texture* getAoMetalRoughness() const;
+		// Has to be implemented by renderer backend
+		Texture* getNormal() const;
+		// Has to be implemented by renderer backend
+		Texture* getPosition() const;
+		// Has to be implemented by renderer backend
+		RenderBuffer* getDepth() const;
 	};
 }
