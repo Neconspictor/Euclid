@@ -79,7 +79,7 @@ namespace nex
 		void unbind(unsigned textureBindingSlot);
 
 	protected:
-		Sampler(const SamplerState& samplerState) : mState(samplerState) {}
+		Sampler(const SamplerState& samplerState, void* impl) : mState(samplerState), mImpl(impl) {}
 		SamplerState mState;
 
 		//Used in order to avoid virtual function calls

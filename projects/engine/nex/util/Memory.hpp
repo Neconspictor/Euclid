@@ -97,6 +97,8 @@ namespace nex {
 		}
 		GuardArray& operator=(GuardArray&& o) = delete;
 
+
+
 		GuardArray& operator=(T* arr) noexcept
 		{
 			this->~GuardArray();

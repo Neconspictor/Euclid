@@ -78,6 +78,8 @@ void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
 	// finally scale
 	model = scale(model, scaling);
 
+	shader->bind();
+
 	const TransformData data = { &projection, &view, &model };
 	shader->onTransformUpdate(data);
 

@@ -1,5 +1,9 @@
 #include <nex/shader/Shader.hpp>
-#include "nex/util/StringUtils.hpp"
+#include <nex/util/StringUtils.hpp>
+
+nex::ShaderProgram::ShaderProgram(void* impl): mImpl(impl), mIsBound(false)
+{
+}
 
 nex::Shader::Shader(ShaderProgram* program) : mProgram(program)
 {
@@ -41,12 +45,12 @@ void nex::Shader::reverseRenderState()
 {
 }
 
-nex::ShaderType stringToShaderEnum(const std::string& str)
+nex::ShaderType nex::stringToShaderEnum(const std::string& str)
 {
 	return nex::util::stringToEnum(str, nex::shaderEnumConversion);
 }
 
-std::ostream& operator<<(std::ostream& os, nex::ShaderType shader)
+std::ostream& nex::operator<<(std::ostream& os, nex::ShaderType shader)
 {
 	os << nex::util::enumToString(shader, nex::shaderEnumConversion);
 	return os;
@@ -68,7 +72,7 @@ std::ostream& nex::operator<<(std::ostream& os, nex::ShaderStageType stageType)
 		"VERTEX",
 	};
 
-	static const unsigned size = static_cast<unsigned>(ShaderStageType::SHADER_STAGE_LAST) + 1;
+	static const unsigned size = static_cast<unsigned>(nex::ShaderStageType::SHADER_STAGE_LAST) + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: ShaderStageType descriptor list doesn't match number of supported shader stages");
 
 	os << table[static_cast<unsigned>(stageType)];

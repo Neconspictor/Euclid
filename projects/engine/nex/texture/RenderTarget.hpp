@@ -45,6 +45,10 @@ namespace nex
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
+		// Has to be implemented by renderer backend
+		RenderTarget(RenderTargetImpl* impl);
+
+
 		virtual ~RenderTarget();
 
 		// Has to be implemented by renderer backend
@@ -88,9 +92,6 @@ namespace nex
 		void setTexture(Texture* texture);
 
 	protected:
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		RenderTarget(RenderTargetImpl* impl);
 
 		RenderTargetImpl* mImpl;
 	};

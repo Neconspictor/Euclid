@@ -338,7 +338,7 @@ namespace nex
 		std::list<CubeRenderTarget*> cubeRenderTargets;
 		std::list<RenderTarget*> renderTargets;
 		std::unique_ptr<SMAA_GL> smaa;
-		RenderTarget* defaultRenderTarget;
+		Guard<RenderTarget> defaultRenderTarget;
 
 	protected:
 		nex::Logger m_logger;

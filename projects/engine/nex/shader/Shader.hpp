@@ -1,6 +1,7 @@
 #pragma once
 #include "nex/util/StringUtils.hpp"
 #include <nex/util/Memory.hpp>
+#include <ostream>
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 
 namespace nex
@@ -100,11 +101,11 @@ namespace nex
 		VEC4
 	};
 
-	class UniformLocation;
+	using UniformLocation = int;
 
 	struct Uniform
 	{
-		UniformLocation const* location = nullptr;
+		UniformLocation location = -1;
 		UniformType type = UniformType::INT;
 	};
 	
@@ -154,7 +155,7 @@ namespace nex
 		/**
 		 * Provides the uniform location by name. The memory is managed by this class and mustn't be freed manually.
 		 */
-		UniformLocation* getUniformLocation(const char* name);
+		UniformLocation getUniformLocation(const char* name);
 
 		static ShaderProgram* create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "");
@@ -166,42 +167,42 @@ namespace nex
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound 
 		 */
-		void setInt(const UniformLocation* locationID, int data);
+		void setInt(UniformLocation locationID, int data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setFloat(const UniformLocation* locationID, float data);
+		void setFloat(UniformLocation locationID, float data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setVec2(const UniformLocation* locationID, const glm::vec2& data);
+		void setVec2(UniformLocation locationID, const glm::vec2& data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setVec3(const UniformLocation* locationID, const glm::vec3& data);
+		void setVec3(UniformLocation locationID, const glm::vec3& data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setVec4(const UniformLocation* locationID, const glm::vec4& data);
+		void setVec4(UniformLocation locationID, const glm::vec4& data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setMat3(const UniformLocation* locationID, const glm::mat3& data);
+		void setMat3(UniformLocation locationID, const glm::mat3& data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setMat4(const UniformLocation* locationID, const glm::mat4& data);
+		void setMat4(UniformLocation locationID, const glm::mat4& data);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setTexture(const UniformLocation* locationID, const nex::Texture* data, unsigned int bindingSlot);
+		void setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot);
 
 		/**
 		 * Sets a name for this shader program useful when debugging this class.
@@ -221,10 +222,11 @@ namespace nex
 
 	protected:
 
-		ShaderProgram();
+		ShaderProgram(void* impl);;
 
 		bool mIsBound;
 		std::string mDebugName;
+		void* mImpl;
 
 	private:
 		ShaderProgram& operator=(const ShaderProgram& other) = delete;
@@ -290,17 +292,11 @@ namespace nex
 	* ATTENTION: If the string couldn't be mapped, a EnumFormatException
 	* will be thrown.
 	*/
-nex::ShaderType stringToShaderEnum(const std::string& str);
-
-/**
-* Puts a string representation of a shader enum to an output stream.
-*/
-std::ostream& operator<<(std::ostream& os, nex::ShaderType shader);
+	nex::ShaderType stringToShaderEnum(const std::string& str);
 
 
-/**
-* Puts a string representation of a shader enum to an output stream.
-*/
-std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
+
+	std::ostream& operator<<(std::ostream& os, nex::ShaderType shader);
+	std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
 
 };

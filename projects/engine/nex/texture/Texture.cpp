@@ -17,24 +17,42 @@ mat4 nex::CubeMap::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.
 const mat4& nex::CubeMap::getViewLookAtMatrixRH(Side side)
 {
 	switch (side) {
-	case POSITIVE_X:
+	case Side::POSITIVE_X:
 		return rightSide;
-	case NEGATIVE_X:
+	case Side::NEGATIVE_X:
 		return leftSide;
-	case POSITIVE_Y:
+	case Side::POSITIVE_Y:
 		return topSide;
-	case NEGATIVE_Y:
+	case Side::NEGATIVE_Y:
 		return bottomSide;
-	case NEGATIVE_Z:
+	case Side::NEGATIVE_Z:
 		return frontSide;
-	case POSITIVE_Z:
+	case Side::POSITIVE_Z:
 		return backSide;
 	default:
-		throw_with_trace(std::runtime_error("No mapping defined for " + side));
+		throw_with_trace(std::runtime_error("No mapping defined for CubeMap side!"));
 	}
 
 	// won't be reached
 	return rightSide;
+}
+
+unsigned nex::getComponents(const ColorSpace colorSpace)
+{
+	static unsigned const table[]
+	{
+		1,
+		2,
+		3,
+		4,
+		3,
+		4,
+	};
+
+	static const unsigned size = (unsigned)ColorSpace::LAST - (unsigned)ColorSpace::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)colorSpace];
 }
 
 bool nex::isCubeTarget(TextureTarget target)

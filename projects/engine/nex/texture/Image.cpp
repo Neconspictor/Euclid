@@ -24,6 +24,7 @@ void GenericImage::load(GenericImage* dest, FILE* file)
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file: Error code =  " + std::to_string(err)));
 
+	dest->pixels.reset();
 	dest->pixels = new char[dest->bufSize];
 
 	std::fread(&*dest->pixels, dest->bufSize, 1, file);
@@ -63,12 +64,16 @@ void StoreImage::load(StoreImage* dest, const char* filePath)
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 
+
+
+	dest->mipmapCounts.reset(); // Until now there is rubbish; reset it to avoid crash
 	dest->mipmapCounts = new unsigned short[dest->sideCount];
 	std::fread(dest->mipmapCounts.get(), sizeof(unsigned short) * dest->sideCount, 1, file);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 	
+	dest->images.reset(); // Until now there is rubbish; reset it to avoid crash
 	dest->images = new GuardArray<GenericImage>[dest->sideCount];
 
 	

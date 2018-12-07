@@ -41,8 +41,8 @@ namespace nex
 		RGBA = GL_RGBA,
 
 		// srgb formats
-		SRGB = GL_SRGB,
-		SRGBA = GL_SRGB_ALPHA,
+		SRGB = RGB,
+		SRGBA = RGBA,
 	};
 
 	enum InternFormatGL
@@ -176,6 +176,8 @@ namespace nex
 			POSITIVE_Z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 			NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 		};
+
+		static Side translate(CubeMap::Side side);
 
 		explicit CubeMapGL();
 		CubeMapGL(GLuint cubeMap);

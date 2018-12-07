@@ -7,21 +7,18 @@
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/util/StringUtils.hpp>
 #include <regex>
 #include "nex/opengl/mesh/MeshGL.hpp"
 #include "nex/shader_generator/SourceFileConsumer.hpp"
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 
-using namespace nex;
-using namespace ::util;
 using namespace glm;
 
-Logger staticLogClient("ShaderGL-static");
+nex::Logger staticLogClient("ShaderGL-static");
 
 
-ShaderStageTypeGL translate(nex::ShaderStageType stage)
+nex::ShaderStageTypeGL nex::translate(nex::ShaderStageType stage)
 {
 	static ShaderStageTypeGL const table[] =
 	{
@@ -39,7 +36,7 @@ ShaderStageTypeGL translate(nex::ShaderStageType stage)
 	return table[static_cast<unsigned>(stage)];
 }
 
-ShaderStageType translate(ShaderStageTypeGL stage)
+nex::ShaderStageType nex::translate(ShaderStageTypeGL stage)
 {
 	switch (stage)
 	{
@@ -58,7 +55,7 @@ ShaderStageType translate(ShaderStageTypeGL stage)
 	return ShaderStageType::VERTEX;
 }
 
-std::ostream& operator<<(std::ostream& os, ShaderStageTypeGL type)
+std::ostream& nex::operator<<(std::ostream& os, ShaderStageTypeGL type)
 {
 	switch (type)
 	{
@@ -74,39 +71,35 @@ std::ostream& operator<<(std::ostream& os, ShaderStageTypeGL type)
 	return os;
 }
 
-nex::ShaderProgram::ShaderProgram(): mIsBound(false)
-{
-}
 
-
-void nex::ShaderProgram::setInt(const UniformLocation* locationID, int data)
+void nex::ShaderProgram::setInt(UniformLocation locationID, int data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 	GLCall(glUniform1i(glID, data));
 }
 
-void nex::ShaderProgram::setFloat(const UniformLocation* locationID, float data)
+void nex::ShaderProgram::setFloat(UniformLocation locationID, float data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 	GLCall(glUniform1f(glID, data));
 }
 
-void nex::ShaderProgram::setVec2(const UniformLocation* locationID, const glm::vec2& data)
+void nex::ShaderProgram::setVec2(UniformLocation locationID, const glm::vec2& data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 	GLCall(glUniform2f(glID, data.x, data.y));
 }
 
-void nex::ShaderProgram::setVec3(const UniformLocation* locationID, const glm::vec3& data)
+void nex::ShaderProgram::setVec3(UniformLocation locationID, const glm::vec3& data)
 {
 	ASSERT(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 
 	//GLClearError();
@@ -119,38 +112,38 @@ void nex::ShaderProgram::setVec3(const UniformLocation* locationID, const glm::v
 	}*/
 }
 
-void nex::ShaderProgram::setVec4(const UniformLocation* locationID, const glm::vec4& data)
+void nex::ShaderProgram::setVec4( UniformLocation locationID, const glm::vec4& data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 
 	GLCall(glUniform4f(glID, data.x, data.y, data.z, data.w));
 }
 
-void nex::ShaderProgram::setMat3(const UniformLocation* locationID, const glm::mat3& data)
+void nex::ShaderProgram::setMat3( UniformLocation locationID, const glm::mat3& data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 	GLCall(glUniformMatrix3fv(glID, 1, GL_FALSE, value_ptr(data)));
 }
 
-void nex::ShaderProgram::setMat4(const UniformLocation* locationID, const glm::mat4& data)
+void nex::ShaderProgram::setMat4(UniformLocation locationID, const glm::mat4& data)
 {
 	assert(mIsBound);
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 	GLCall(glUniformMatrix4fv(glID, 1, GL_FALSE, value_ptr(data)));
 }
 
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
-void nex::ShaderProgram::setTexture(const UniformLocation* locationID, const nex::Texture* data, unsigned int bindingSlot)
+void nex::ShaderProgram::setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot)
 {
 	//assert(mIsBound);
 	ASSERT(mIsBound);
 	//ASSERT(isValid(textureSlot));
-	GLint glID = GLint(locationID);
+	GLint glID = locationID;
 	if (glID < 0) return;
 
 	TextureGL* gl = (TextureGL*)data->getImpl();
@@ -206,11 +199,11 @@ nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShader
 }
 
 
-ShaderStageGL::ShaderStageGL(GLuint shaderStage, ShaderStageType type) : ShaderStage(type), mShaderStage(shaderStage)
+nex::ShaderStageGL::ShaderStageGL(GLuint shaderStage, nex::ShaderStageType type) : ShaderStage(type), mShaderStage(shaderStage)
 {
 }
 
-ShaderStageGL::~ShaderStageGL()
+nex::ShaderStageGL::~ShaderStageGL()
 {
 	if (mShaderStage != GL_FALSE)
 	{
@@ -219,7 +212,7 @@ ShaderStageGL::~ShaderStageGL()
 	}
 }
 
-GLuint ShaderStageGL::getID() const
+GLuint nex::ShaderStageGL::getID() const
 {
 	return mShaderStage;
 }
@@ -229,11 +222,11 @@ GLuint nex::ShaderProgramGL::getProgramID() const
 	return programID;
 }
 
-UniformLocation* nex::ShaderProgram::getUniformLocation(const char* name)
+nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name)
 {
-	ShaderProgramGL* thiss = (ShaderProgramGL*)this;
+	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 
-	auto loc = glGetUniformLocation(thiss->programID, name);
+	GLCall(auto loc = glGetUniformLocation(thiss->programID, name));
 
 	if (loc < 0)
 	{
@@ -241,10 +234,10 @@ UniformLocation* nex::ShaderProgram::getUniformLocation(const char* name)
 		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
 	}
 
-	return reinterpret_cast<UniformLocation*>(loc);
+	return loc;
 }
 
-ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
+nex::ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
 {
 
 	bool useGeometryShader = std::filesystem::exists(geometryShaderFile);
@@ -252,9 +245,9 @@ ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const File
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 
 	if (useGeometryShader)
-		unresolved.reserve(3);
+		unresolved.resize(3);
 	else
-		unresolved.reserve(2);
+		unresolved.resize(2);
 
 
 	unresolved[0].filePath = vertexFile;
@@ -287,7 +280,7 @@ nex::ShaderProgram* nex::ShaderProgram::create(const std::vector<Guard<ShaderSta
 
 void nex::ShaderProgram::release()
 {
-	ShaderProgramGL* thiss = (ShaderProgramGL*)this;
+	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 	if (thiss->programID != GL_FALSE)
 	{
 		GLCall(glDeleteProgram(thiss->programID));
@@ -303,11 +296,11 @@ void nex::ShaderProgram::unbind()
 
 GLuint nex::ShaderProgramGL::loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs)
 {	
-	ShaderSourceFileGenerator* generator = nullptr;//getSourceFileGenerator(); //TODO
+	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get(); 
 	ProgramSources programSources = generator->generate(stageDescs);
 
 	std::vector<Guard<ShaderStage>> shaderStages;
-	shaderStages.reserve(programSources.descs.size());
+	shaderStages.resize(programSources.descs.size());
 	for (auto i = 0;  i < shaderStages.size(); ++i)
 	{
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
@@ -316,20 +309,20 @@ GLuint nex::ShaderProgramGL::loadShaders(const std::vector<UnresolvedShaderStage
 	return createShaderProgram(shaderStages);
 }
 
-nex::ShaderProgramGL::ShaderProgramGL(GLuint program) : programID(program)
+nex::ShaderProgramGL::ShaderProgramGL(GLuint program) : ShaderProgram(this), programID(program)
 {
 }
 
 nex::ShaderProgramGL::~ShaderProgramGL()
 {
 	if (programID != GL_FALSE)
-		GLCall(glDeleteProgram(programID));
+		glDeleteProgram(programID);
 	programID = GL_FALSE;
 }
 
 void nex::ShaderProgram::bind()
 {
-	GLCall(glUseProgram(((ShaderProgramGL*)this)->programID));
+	GLCall(glUseProgram(((ShaderProgramGL*)this->mImpl)->programID));
 	mIsBound = true;
 }
 
@@ -447,7 +440,7 @@ GLuint nex::ShaderProgramGL::compileShaderStage(const ResolvedShaderStageDesc& d
 	return id;
 }
 
-GLuint ShaderProgramGL::createShaderProgram(const std::vector<Guard<ShaderStage>>& stages)
+GLuint nex::ShaderProgramGL::createShaderProgram(const std::vector<Guard<ShaderStage>>& stages)
 {
 	GLuint program;
 	int infoLogLength;

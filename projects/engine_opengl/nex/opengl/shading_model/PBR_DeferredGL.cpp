@@ -58,30 +58,15 @@ namespace nex {
 
 		for (int i = 0; i < 6; ++i)
 		{
-			sampler->bind(i);
+			//sampler->bind(i);
 		}
 
 		modelDrawer->draw(scene, shader);
 
 		for (int i = 0; i < 6; ++i)
 		{
-			sampler->unbind(i);
+			//sampler->unbind(i);
 		}
-		/*glBindSampler(1, GL_FALSE);
-		glBindSampler(2, GL_FALSE);
-		glBindSampler(3, GL_FALSE);
-		glBindSampler(4, GL_FALSE);
-		glBindSampler(5, GL_FALSE);
-		glBindSampler(6, GL_FALSE);
-		glBindSampler(7, GL_FALSE);
-		glBindSampler(8, GL_FALSE);
-		glBindSampler(9, GL_FALSE);
-		glBindSampler(10, GL_FALSE);
-		glBindSampler(11, GL_FALSE);
-		glBindSampler(12, GL_FALSE);
-		glBindSampler(13, GL_FALSE);
-		glBindSampler(14, GL_FALSE);
-		glBindSampler(15, GL_FALSE);*/
 
 		glDisable(GL_STENCIL_TEST);
 	}

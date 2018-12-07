@@ -69,17 +69,17 @@ void NeXEngine::init()
 	//init render backend
 	initRenderBackend();
 
+	// init texture manager (filesystem)
+	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
+	TextureManagerGL::get()->init(&mTextureFileSystem);
+
 	// init model manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
 	ModelManagerGL::get()->init(&mMeshFileSystem);
 
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
-	ShaderProgramGL::getSourceFileGenerator()->init(&mShaderFileSystem);
-
-	// init texture manager (filesystem)
-	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
-	TextureManagerGL::get()->init(&mTextureFileSystem);
+	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
 
 
 

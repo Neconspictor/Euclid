@@ -10,9 +10,6 @@
 
 namespace nex
 {
-	enum class ShaderType;
-	class MeshGL;
-
 	/**
 	 * A mesh manager provides a central access point for creating and receiving
 	 * 3d meshes. All memory allocated by a mesh is held by the manager and no user
@@ -28,8 +25,9 @@ namespace nex
 
 		ModelManagerGL();
 
-		virtual ~ModelManagerGL();
-
+		/**
+		 * NOTE: Has to be initialized on first use
+		 */
 		static ModelManagerGL* get();
 
 		ModelGL* getSkyBox();
@@ -76,8 +74,6 @@ namespace nex
 		ModelManagerGL(const ModelManagerGL&) = delete;
 		ModelManagerGL& operator=(const ModelManagerGL&) = delete;
 
-
-		static std::unique_ptr<ModelManagerGL> instance;
 		std::vector<std::unique_ptr<ModelGL>> models;
 		std::unordered_map<unsigned int, ModelGL*> modelTable;
 		AssimpModelLoader assimpLoader;

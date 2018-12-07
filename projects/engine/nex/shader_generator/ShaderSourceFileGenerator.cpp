@@ -211,6 +211,12 @@ void nex::ShaderSourceFileGenerator::generate(nex::ResolvedShaderStageDesc* prog
 	generate(&programDesc->root);
 }
 
+nex::ShaderSourceFileGenerator* nex::ShaderSourceFileGenerator::get()
+{
+	static ShaderSourceFileGenerator instance;
+	return &instance;
+}
+
 void nex::ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
 {
 	mFileSystem = fileSystem;

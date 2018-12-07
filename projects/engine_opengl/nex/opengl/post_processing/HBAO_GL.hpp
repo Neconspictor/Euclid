@@ -174,8 +174,8 @@ namespace nex {
 
 		ModelDrawerGL* m_modelDrawer;
 
-		Texture* m_hbao_random;
-		Texture* m_hbao_randomview;
+		Guard<Texture> m_hbao_random;
+		Guard<Texture> m_hbao_randomview;
 		GLuint m_hbao_ubo{};
 
 		HBAOData   m_hbaoDataSource;

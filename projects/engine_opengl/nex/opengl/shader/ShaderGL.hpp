@@ -8,10 +8,6 @@
 
 namespace nex
 {
-	// UniformLocation* will be reinterpreted as GLint
-	// Thus we don't need any storage 
-	class UniformLocation {};
-
 	enum ShaderStageTypeGL
 	{
 		COMPUTE = GL_COMPUTE_SHADER,
@@ -22,7 +18,7 @@ namespace nex
 		VERTEX = GL_VERTEX_SHADER,
 	};
 
-
+	std::ostream& operator<<(std::ostream& os, nex::ShaderStageTypeGL type);
 	ShaderStageTypeGL translate(nex::ShaderStageType stage);
 	nex::ShaderStageType translate(ShaderStageTypeGL stage);
 
@@ -77,5 +73,3 @@ namespace nex
 		GLuint programID;
 	};
 }
-
-std::ostream& operator<<(std::ostream& os, nex::ShaderStageTypeGL type);

@@ -10,34 +10,20 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/opengl/mesh/SampleMeshes.hpp>
 #include <nex/shader/Shader.hpp>
-//TODO
-//#include <nex/opengl/shader/SimpleColorShaderGL.hpp>
-
-using namespace std;
-using namespace glm;
-
-namespace nex
-{
 
 
-	const unsigned int ModelManagerGL::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
-	const unsigned int ModelManagerGL::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");
+	const unsigned int nex::ModelManagerGL::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
+	const unsigned int nex::ModelManagerGL::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");
 
 
-	unique_ptr<ModelManagerGL> ModelManagerGL::instance = make_unique<ModelManagerGL>();
-
-	ModelManagerGL::ModelManagerGL() :
+	nex::ModelManagerGL::ModelManagerGL() :
 		pbrMaterialLoader(TextureManagerGL::get()),
 		blinnPhongMaterialLoader(TextureManagerGL::get()), mFileSystem(nullptr)
 	{
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	}
 
-	ModelManagerGL::~ModelManagerGL()
-	{
-	}
-
-	ModelGL* ModelManagerGL::getSkyBox()
+	nex::ModelGL* nex::ModelManagerGL::getSkyBox()
 	{
 		using Vertex = VertexPosition;
 
@@ -49,13 +35,13 @@ namespace nex
 			int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
 			int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
 
-			unique_ptr<MeshGL> mesh = MeshFactoryGL::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
+			std::unique_ptr<MeshGL> mesh = MeshFactoryGL::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
 				sample_meshes::skyBoxIndices, (int)indexCount);
 
-			vector<unique_ptr<MeshGL>> meshes;
+			std::vector<std::unique_ptr<MeshGL>> meshes;
 			meshes.push_back(move(mesh));
 
-			auto model = make_unique<ModelGL>(move(meshes));
+			auto model = std::make_unique<ModelGL>(move(meshes));
 
 			models.push_back(move(model));
 			ModelGL* result = models.back().get();
@@ -66,7 +52,7 @@ namespace nex
 		return it->second;
 	}
 
-	ModelGL* ModelManagerGL::getSprite()
+	nex::ModelGL* nex::ModelManagerGL::getSprite()
 	{
 		using Vertex = VertexPositionTex;
 
@@ -79,7 +65,7 @@ namespace nex
 		// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
 		// as we want a  2D model, the z axis is ignored/set to 1.0f
 		// normal vectors aren't needed, too -> set to 0.0f as well.
-		vector<Vertex> vertices;
+		std::vector<Vertex> vertices;
 		Vertex vertex;
 
 		// left upper corner 
@@ -103,7 +89,7 @@ namespace nex
 		vertices.push_back(vertex);
 
 		// create index buffer in counter clock winding order
-		vector<unsigned int> indices;
+		std::vector<unsigned int> indices;
 
 		// first triangle
 		indices.push_back(0);
@@ -115,28 +101,28 @@ namespace nex
 		indices.push_back(2);
 		indices.push_back(3);
 
-		unique_ptr<MeshGL> mesh = MeshFactoryGL::createPositionUV(vertices.data(), (int)vertices.size(),
+		std::unique_ptr<MeshGL> mesh = MeshFactoryGL::createPositionUV(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
 
-		vector<unique_ptr<MeshGL>> meshes;
+		std::vector<std::unique_ptr<MeshGL>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = make_unique<ModelGL>(move(meshes));
+		auto model = std::make_unique<ModelGL>(move(meshes));
 
-		models.push_back(move(model));
+		models.push_back(std::move(model));
 
 		ModelGL* result = models.back().get();
 		modelTable[SPRITE_MODEL_HASH] = result;
 		return result;
 	}
 
-	void ModelManagerGL::init(FileSystem* meshFileSystem)
+	void nex::ModelManagerGL::init(FileSystem* meshFileSystem)
 	{
 		mFileSystem = meshFileSystem;
 	}
 
-	ModelGL* ModelManagerGL::getModel(const string& meshPath, ShaderType materialShader)
+	nex::ModelGL* nex::ModelManagerGL::getModel(const std::string& meshPath, nex::ShaderType materialShader)
 	{
 		auto hash = nex::util::customSimpleHash(meshPath);
 
@@ -160,7 +146,7 @@ namespace nex
 
 		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 
-		AbstractMaterialLoader* materialLoader = nullptr;
+		nex::AbstractMaterialLoader* materialLoader = nullptr;
 		if (materialShader == ShaderType::BlinnPhongTex) {
 			materialLoader = &blinnPhongMaterialLoader;
 		}
@@ -183,7 +169,7 @@ namespace nex
 	}
 
 
-	ModelGL* ModelManagerGL::getPositionNormalTexCube()
+	nex::ModelGL* nex::ModelManagerGL::getPositionNormalTexCube()
 	{
 		using Vertex = VertexPositionNormalTex;
 
@@ -193,7 +179,7 @@ namespace nex
 			return it->second;
 		}
 
-		vector<Vertex> vertices;
+		std::vector<Vertex> vertices;
 		unsigned int vertexCount = sizeof(sample_meshes::cubePositionNormalTexVertices) / sizeof(Vertex);
 		unsigned int vertexSlice = sizeof(Vertex) / sizeof(float);
 		for (unsigned int i = 0; i < vertexCount; ++i)
@@ -208,14 +194,14 @@ namespace nex
 			vertices.emplace_back(std::move(vertex));
 		}
 
-		vector<unsigned int> indices;
+		std::vector<unsigned int> indices;
 		unsigned int indexCount = sizeof(sample_meshes::cubePositionNormalTexIndices) / sizeof(unsigned int);
 		for (unsigned int i = 0; i < indexCount; ++i)
 		{
 			indices.push_back(sample_meshes::cubePositionNormalTexIndices[i]);
 		}
 
-		unique_ptr<MeshGL> mesh = MeshFactoryGL::create(vertices.data(), (int)vertices.size(),
+		std::unique_ptr<MeshGL> mesh = MeshFactoryGL::create(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
 
@@ -229,12 +215,12 @@ namespace nex
 			material->setShininess(32);
 		}
 
-		vector<unique_ptr<MeshGL>> meshes;
+		std::vector<std::unique_ptr<MeshGL>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = make_unique<ModelGL>(move(meshes));
+		auto model = std::make_unique<ModelGL>(move(meshes));
 
-		models.push_back(move(model));
+		models.push_back(std::move(model));
 
 		ModelGL* result = models.back().get();
 		modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
@@ -242,12 +228,13 @@ namespace nex
 		return result;
 	}
 
-	ModelManagerGL* ModelManagerGL::get()
+	nex::ModelManagerGL* nex::ModelManagerGL::get()
 	{
-		return instance.get();
+		static ModelManagerGL instance;
+		return &instance;
 	}
 
-	void ModelManagerGL::loadModels()
+	void nex::ModelManagerGL::loadModels()
 	{
 		//TODO
 		getPositionNormalTexCube();
@@ -256,7 +243,7 @@ namespace nex
 		//AssimpModelLoader::loadModel("");
 	}
 
-	void ModelManagerGL::release()
+	void nex::ModelManagerGL::release()
 	{
 		modelTable.clear();
 		models.clear();
@@ -267,4 +254,3 @@ namespace nex
 		ModelGL* model = static_cast<ModelGL*>(source);
 		model->createInstanced(amount, modelMatrices);
 	}*/
-}

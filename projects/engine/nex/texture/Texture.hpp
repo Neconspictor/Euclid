@@ -36,6 +36,8 @@ namespace nex
 		SRGBA, LAST = SRGBA,
 	};
 
+	unsigned getComponents(const ColorSpace colorspace);
+
 	enum class InternFormat
 	{
 		R8, FIRST = R8,
@@ -147,7 +149,8 @@ namespace nex
 			                        uvTechnique(uvTechnique),
 			                        colorspace(colorspace),
 			                        pixelDataType(pixelDataType),
-			                        internalFormat(internalFormat)
+			                        internalFormat(internalFormat),
+									generateMipMaps(generateMipMaps)
 		{
 		}
 	};
@@ -240,7 +243,7 @@ namespace nex
 		 * Specifies the sides of a cubemap in relation to a coordinate system.
 		 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
 		 */
-		enum Side {
+		enum class Side {
 			POSITIVE_X,
 			NEGATIVE_X,
 			POSITIVE_Y,

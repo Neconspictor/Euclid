@@ -3,12 +3,12 @@
 
 using namespace nex;
 
-SamplerGL::SamplerGL(const SamplerState& state) : Sampler(state), m_samplerID(GL_FALSE)
+SamplerGL::SamplerGL(const SamplerState& state) : Sampler(state, this), m_samplerID(GL_FALSE)
 {
 	GLCall(glGenSamplers(1, &m_samplerID));
 
 	setMinFilter(mState.minFilter);
-	setMagFilter(mState.minFilter);
+	setMagFilter(mState.magFilter);
 	setAnisotropy(mState.anisotropy);
 	setWrapS(mState.wrapS);
 	setWrapR(mState.wrapR);
@@ -36,6 +36,11 @@ SamplerGL::~SamplerGL()
 GLuint SamplerGL::getID() const
 {
 	return m_samplerID;
+}
+
+Sampler* Sampler::create(const SamplerState& samplerState)
+{
+	return new SamplerGL(samplerState);
 }
 
 void Sampler::bind(unsigned textureBindingSlot)

@@ -214,6 +214,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	
 
 	m_renderBackend->useBaseRenderTarget(pbr_mrt.get());
+
+
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
 	m_renderBackend->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
@@ -226,6 +228,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	// render scene to a offscreen buffer
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
+
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	//renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Stencil);
@@ -354,6 +357,8 @@ PBR_DeferredGL* PBR_Deferred_Renderer::getPBR()
 
 Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
 {
+	//TODO
+	//return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
 	if (!m_aoSelector.isAmbientOcclusionActive())
 		// Return a default white texture (means no ambient occlusion)
 		return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();

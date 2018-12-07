@@ -35,45 +35,45 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 
 	// generate framebuffer and renderbuffer with a depth component
 	GLCall(glGenFramebuffers(1, &frameBuffer));
-	glGenRenderbuffers(1, &renderBuffer);
+	GLCall(glGenRenderbuffers(1, &renderBuffer));
 
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
 
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height));
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer));
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
-	GLuint minFilter = static_cast<GLuint>(data.minFilter);
-	GLuint magFilter = static_cast<GLuint>(data.magFilter);
-	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
-	GLuint colorspace = static_cast<GLuint>(data.colorspace);
-	GLuint pixelDataType = static_cast<GLuint>(data.pixelDataType);
+	GLuint uvTechnique = translate(data.uvTechnique);
+	GLuint minFilter = translate(data.minFilter);
+	GLuint magFilter = translate(data.magFilter);
+	GLuint internalFormat = translate(data.internalFormat);
+	GLuint colorspace = translate(data.colorspace);
+	GLuint pixelDataType = translate(data.pixelDataType);
 
 
 	//pre-allocate the six faces of the cubemap
 	TextureGL* textureGL = (TextureGL*)mRenderResult->getImpl();
-	glGenTextures(1, textureGL->getTexture());
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, *textureGL->getTexture());
+	GLCall(glGenTextures(1, textureGL->getTexture()));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, *textureGL->getTexture()));
 	for (int i = 0; i < 6; ++i)
 	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, colorspace,
-			pixelDataType, nullptr);
+		GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, colorspace,
+			pixelDataType, nullptr));
 	}
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter);
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter));
 
 	if (data.generateMipMaps)
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+		GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
 
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER,0));
 }
 
@@ -97,7 +97,7 @@ nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 	GLint readFBId = 0;
 	GLint drawFboId = 0;
 	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
-	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+	GLCall(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId));
 
 
 	TextureGL* textureGL = (TextureGL*)mRenderResult->getImpl();
@@ -106,33 +106,33 @@ nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 	for (int i = 0; i < 6; ++i) {
 
 		//attach the cubemap side of this render target
-		glBindFramebuffer(GL_FRAMEBUFFER,  frameBuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *textureGL->getTexture(), 0);
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER,  frameBuffer));
+		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *textureGL->getTexture(), 0));
 
 		//attach the cubemap side of the copy render target
-		glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *copyTexGL->getTexture(), 0);
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer));
+		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *copyTexGL->getTexture(), 0));
 
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// now we can blit the content to the copy
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, copy.frameBuffer);
-		glBlitFramebuffer(0, 0, width, height,
+		GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer));
+		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, copy.frameBuffer));
+		GLCall(glBlitFramebuffer(0, 0, width, height,
 			0, 0, copy.width, copy.height,
 			GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-			GL_NEAREST);
+			GL_NEAREST));
 	}
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+	GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId));
+	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId));
 
 	//extract cubemap texture from the copy and delete copy
-	glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, copy.frameBuffer));
 	for (int i = 0; i < 6; ++i) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0); // unbound the cubemap side
+		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0)); // unbound the cubemap side
 	}
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -155,12 +155,12 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	}
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer));
 
 	unsigned int mipWidth = (unsigned int)(width * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(height * std::pow(0.5, mipMapLevel));
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight));
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer));
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -187,15 +187,15 @@ void nex::RenderTarget::copyFrom(RenderTarget* dest, const Dimension& sourceDim,
 	GLint readFBId = 0;
 	GLint drawFboId = 0;
 	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId));
-	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId);
+	GLCall(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBId));
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, other->getFrameBuffer());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self->getFrameBuffer());
-	glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
+	GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, other->getFrameBuffer()));
+	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self->getFrameBuffer()));
+	GLCall(glBlitFramebuffer(sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
 		sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
 		components,
-		GL_NEAREST);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId);
+		GL_NEAREST));
+	GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBId));
 	GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId));
 }
 
@@ -211,54 +211,54 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 	glTarget->width = width;
 	glTarget->height = height;
 
-	GLuint uvTechnique = static_cast<GLuint>(data.uvTechnique);
-	GLuint minFilter = static_cast<GLuint>(data.minFilter);
-	GLuint magFilter = static_cast<GLuint>(data.magFilter);
-	GLuint internalFormat = static_cast<GLuint>(data.internalFormat);
+	GLuint uvTechnique = translate(data.uvTechnique);
+	GLuint minFilter = translate(data.minFilter);
+	GLuint magFilter = translate(data.magFilter);
+	GLuint internalFormat = translate(data.internalFormat);
 	GLuint depthStencilTypeGL = translate(depthStencilType);
 
 	GLCall(glGenFramebuffers(1, &glTarget->frameBuffer));
-	glBindFramebuffer(GL_FRAMEBUFFER, glTarget->frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, glTarget->frameBuffer));
 
 	// Generate texture
 	TextureGL* textureGL = (TextureGL*)glTarget->mRenderResult->getImpl();
-	glGenTextures(1, textureGL->getTexture());
+	GLCall(glGenTextures(1, textureGL->getTexture()));
 	const GLuint& textureID = *textureGL->getTexture();
 
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_TRUE);
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID));
+	GLCall(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_TRUE));
 
-	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, magFilter);
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, minFilter));
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, magFilter));
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, uvTechnique);
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, uvTechnique));
 
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
 
 	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0));
 
 
 	if (depthStencilType != DepthStencil::NONE)
 	{
 
 		//create a render buffer for depth and stencil testing
-		glGenRenderbuffers(1, &glTarget->renderBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, glTarget->renderBuffer);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, depthStencilTypeGL, width, height);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		GLCall(glGenRenderbuffers(1, &glTarget->renderBuffer));
+		GLCall(glBindRenderbuffer(GL_RENDERBUFFER, glTarget->renderBuffer));
+		GLCall(glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, depthStencilTypeGL, width, height));
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 
 		// attach render buffer to the frame buffer
 		if (isNoStencilFormat(depthStencilType))
 		{
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer);
+			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer));
 		}
 		else
 		{
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer);
+			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer));
 		}
 	}
 
@@ -292,26 +292,26 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 	GLuint depthStencilTypeGL = translate(depthStencilType);
 
 	GLCall(glGenFramebuffers(1, &glTarget->frameBuffer));
-	glBindFramebuffer(GL_FRAMEBUFFER, glTarget->frameBuffer);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, glTarget->frameBuffer));
 
 	// Generate texture
 
 	TextureGL* textureGL = (TextureGL*)glTarget->getTexture()->getImpl();
-	glGenTextures(1, textureGL->getTexture());
+	GLCall(glGenTextures(1, textureGL->getTexture()));
 	const GLuint& textureID = *textureGL->getTexture();
 
 
 	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	GLCall(glBindTexture(GL_TEXTURE_2D, textureID));
 	//glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, colorspace, pixelDataType, 0);
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, colorspace, pixelDataType, 0));
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique);
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique));
 
 	//swizzle
 	if (data.useSwizzle)
@@ -322,7 +322,7 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 		swizzle[2] = translate(data.swizzle.b);
 		swizzle[3] = translate(data.swizzle.a);
 
-		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+		GLCall(glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
 
 	}
 
@@ -330,30 +330,30 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 	//glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach texture to currently bound frame buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0));
 
 	// Set the list of draw buffers.
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+	GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
 
 
 	if (depthStencilType != DepthStencil::NONE)
 	{
 		//create a render buffer for depth and stencil testing
-		glGenRenderbuffers(1, &glTarget->renderBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, glTarget->renderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, depthStencilTypeGL, width, height);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		GLCall(glGenRenderbuffers(1, &glTarget->renderBuffer));
+		GLCall(glBindRenderbuffer(GL_RENDERBUFFER, glTarget->renderBuffer));
+		GLCall(glRenderbufferStorage(GL_RENDERBUFFER, depthStencilTypeGL, width, height));
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 
 		// attach render buffer to the frame buffer
 		if (isNoStencilFormat(depthStencilType))
 		{
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer);
+			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer));
 		}
 		else
 		{
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer);
+			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glTarget->renderBuffer));
 		}
 	}
 
@@ -410,23 +410,23 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 	TextureGL& texture = *(TextureGL*)result->getTexture()->getImpl();
 	GLuint* textureID = texture.getTexture();
 	GLCall(glGenFramebuffers(1, frameBuffer));
-	glGenTextures(1, textureID);
+	GLCall(glGenTextures(1, textureID));
 
 
 	//GL_RG32F
-	glBindTexture(GL_TEXTURE_2D, *textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLCall(glBindTexture(GL_TEXTURE_2D, *textureID));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 	GLfloat borderColor[] = { 2.0f, 2.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	GLCall(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor));
+	GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
-	glBindFramebuffer(GL_FRAMEBUFFER, *frameBuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureID, 0);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, *frameBuffer));
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureID, 0));
 
 
 	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
@@ -438,17 +438,17 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 
 	// Set the list of draw buffers.
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+	GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
 
 
 								   //create a render buffer for depth and stencil testing
-	glGenRenderbuffers(1, &result->renderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, result->renderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	GLCall(glGenRenderbuffers(1, &result->renderBuffer));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, result->renderBuffer));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
 	// attach render buffer to the frame buffer
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer);
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result->renderBuffer));
 								   // Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		throw_with_trace(runtime_error("VarianceShadowMapGL::VarianceShadowMapGL(): Couldn't configure frame buffer!"));
@@ -641,10 +641,11 @@ nex::RenderBuffer* nex::PBR_GBuffer::getDepth() const
 nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	: 
 	RenderTargetGL(width, height),
-	albedo(GL_FALSE),
-	aoMetalRoughness(GL_FALSE),
-	normal(GL_FALSE),
-	position(GL_FALSE)
+	albedo(Texture::create()),
+	aoMetalRoughness(Texture::create()),
+	normal(Texture::create()),
+	position(Texture::create()),
+	depth(RenderBuffer::create())
 {
 	GLCall(glGenFramebuffers(1, &frameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -719,10 +720,10 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);*/
 
 	// depth/stencil
-	glGenTextures(1, &tempTexture);
-	((TextureGL*)depth->getImpl())->setTexture(tempTexture);
+	glGenTextures(1, &renderBuffer);
+	((RenderBufferGL*)depth->getImpl())->setTexture(renderBuffer);
 
-	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glBindTexture(GL_TEXTURE_2D, renderBuffer);
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0);
@@ -732,7 +733,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, tempTexture, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, renderBuffer, 0);
 
 	// finally check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

@@ -60,6 +60,7 @@ namespace nex {
 
 		/**
 		 * Provides access the texture manager singleton.
+		 * NOTE: Has to be initialized on first use
 		 */
 		static TextureManagerGL* get();
 

@@ -108,7 +108,13 @@ namespace nex
 
 		void generate(ResolvedShaderStageDesc* programDesc) const;
 
+		/**
+		 * NOTE: Has to be initialized on first use
+		 */
+		static ShaderSourceFileGenerator* get();
+
 		void init(const FileSystem* fileSystem);
+		
 
 
 		/**

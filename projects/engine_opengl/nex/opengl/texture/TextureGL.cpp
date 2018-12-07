@@ -55,6 +55,24 @@ const mat4& nex::CubeMapGL::getViewLookAtMatrixRH(Side side)
 	return rightSide;
 }
 
+nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
+{
+	static Side const table[]
+	{
+			POSITIVE_X,
+			NEGATIVE_X,
+			POSITIVE_Y,
+			NEGATIVE_Y,
+			POSITIVE_Z,
+			NEGATIVE_Z,
+	};
+
+	//static const unsigned size = (unsigned)CubeMap::Side::LAST - (unsigned)TextureFilter::FIRST + 1;
+	//static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)side];
+}
+
 nex::CubeMapGL::CubeMapGL() : TextureGL() {}
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
@@ -394,8 +412,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	glTexture->width = store.images[0][0].width;
 	glTexture->height = store.images[0][0].height;
 
-	Texture* result = texture.get();
-	texture.setContent(nullptr);
+	Texture* result = texture.reset();
 	result->mImpl = glTexture.reset();
 
 	return result;
@@ -407,25 +424,25 @@ nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, con
 	nex::Guard<Texture> texture(Texture::create());
 	GLuint textureID;
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	glGenTextures(1, &textureID);
+	GLCall(glGenTextures(1, &textureID));
 
 	static const GLenum glTarget = GL_TEXTURE_2D;
 
-	glBindTexture(glTarget, textureID);
+	GLCall(glBindTexture(glTarget, textureID));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, translate(textureData.internalFormat), width, height, 
+	GLCall(glTexImage2D(glTarget, 0, translate(textureData.internalFormat), width, height,
 		0, translate(textureData.colorspace), translate(textureData.pixelDataType), 
-		data);
+		data));
 
 	if (textureData.generateMipMaps)
-		glGenerateMipmap(glTarget);
+		GLCall(glGenerateMipmap(glTarget));
 
-	glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.uvTechnique));
-	glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.uvTechnique));
-	glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(textureData.minFilter));
-	glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(textureData.magFilter));
-	glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f);
-	glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.uvTechnique)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.uvTechnique)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(textureData.minFilter)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(textureData.magFilter)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
+	GLCall(glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f));
 
 	GLCall(glBindTexture(glTarget, 0));
 

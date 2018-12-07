@@ -284,12 +284,12 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
 	
@@ -308,7 +308,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget.get(), static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X));
+		renderer->useCubeRenderTarget(cubeRenderTarget.get(), static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -342,12 +342,12 @@ CubeMap * PBR::convolute(CubeMap * source)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
 	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
@@ -355,7 +355,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 
 	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X));
+		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -398,12 +398,12 @@ CubeMap* PBR::prefilter(CubeMap * source)
 
 	//view matrices;
 	const mat4 views[] = {
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_X), //right; sign of up vector is not important
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_X), //left
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Y), //top
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Y), //bottom
-		CubeMap::getViewLookAtMatrixRH(CubeMap::POSITIVE_Z), //back
-		CubeMap::getViewLookAtMatrixRH(CubeMap::NEGATIVE_Z) //front
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_X), //right; sign of up vector is not important
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_X), //left
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Y), //top
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Y), //bottom
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Z), //back
+		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
 	unsigned int maxMipLevels = 5;
@@ -425,7 +425,7 @@ CubeMap* PBR::prefilter(CubeMap * source)
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
 			shader->setView(views[side]);
-			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMap::Side>(side + CubeMap::POSITIVE_X), mipLevel);
+			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X), mipLevel);
 			modelDrawer->draw(skybox.getModel(), shader);
 		}
 	}

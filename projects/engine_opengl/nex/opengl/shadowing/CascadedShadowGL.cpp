@@ -17,6 +17,8 @@ CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int casca
 
 	mDepthPass = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
 
+	mDepthTextureArray = Texture::create();
+
 	updateTextureArray();
 }
 
@@ -52,7 +54,7 @@ void CascadedShadowGL::begin(int cascadeIndex)
 void CascadedShadowGL::end()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glUseProgram(0);
+	mDepthPass->unbind();
 	//glDisable(GL_DEPTH_TEST);
 	glDisable(GL_DEPTH_CLAMP);
 	glCullFace(GL_BACK);
