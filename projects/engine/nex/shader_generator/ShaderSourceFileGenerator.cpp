@@ -9,6 +9,7 @@
 #include "SourceReader.hpp"
 #include <functional>
 #include "nex/util/ExceptionHandling.hpp"
+#include <vector>
 
 std::ostream& operator<<(std::ostream& os, const nex::Replacement& r)
 {
@@ -91,6 +92,13 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const 
 {
 
 	auto path = mFileSystem->resolvePath(filePath);
+	ProgramSources result;
+	result.sourceFile = filePath;
+
+	// currently vertex and fragment shader
+	result.descs.resize(2);
+	result.descs[0].type = ShaderStageType::VERTEX;
+	result.descs[1].type = ShaderStageType::FRAGMENT;
 
 	try
 	{
@@ -105,7 +113,6 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const 
 
 		std::string line;
 		std::stringstream ss[2];
-		ShaderStageDesc parseResult[2];
 
 		ShaderType type = ShaderType::None;
 
@@ -120,12 +127,12 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const 
 				if (line.find("vertex") != std::string::npos)
 				{
 					type = ShaderType::Vertex;
-					parseResult[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
+					result.descs[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
 				}
 				else if (line.find("fragment") != std::string::npos)
 				{
 					type = ShaderType::Fragment;
-					parseResult[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
+					result.descs[static_cast<int>(type)].parseErrorLogOffset = lineNumber;
 				}
 			}
 			else
@@ -138,21 +145,19 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const 
 		contents[0] = ss[0].str();
 		contents[1] = ss[1].str();
 
-		std::copy(contents[0].begin(), contents[0].end(), std::back_inserter(parseResult[0].root.source));
-		std::copy(contents[1].begin(), contents[1].end(), std::back_inserter(parseResult[1].root.source));
+		std::copy(contents[0].begin(), contents[0].end(), std::back_inserter(result.descs[0].root.source));
+		std::copy(contents[1].begin(), contents[1].end(), std::back_inserter(result.descs[1].root.source));
 
 		// Null-byte is needed for shader compilation!
-		parseResult[0].root.source.push_back('\0');
-		parseResult[0].root.sourceSize = parseResult[0].root.source.size();
-		parseResult[0].root.filePath = path.generic_string();
+		result.descs[0].root.source.push_back('\0');
+		result.descs[0].root.sourceSize = result.descs[0].root.source.size();
+		result.descs[0].root.filePath = path.generic_string();
 	
-		parseResult[1].root.source.push_back('\0');
-		parseResult[1].root.sourceSize = parseResult[0].root.source.size();
-		parseResult[1].root.filePath = path.generic_string();
+		result.descs[1].root.source.push_back('\0');
+		result.descs[1].root.sourceSize = result.descs[0].root.source.size();
+		result.descs[1].root.filePath = path.generic_string();
 
-		return {	std::move(parseResult[0]), 
-					std::move(parseResult[1]), 
-					std::move(path)};
+		return result;
 	}
 	catch (const std::ios_base::failure&)
 	{
@@ -163,7 +168,36 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::extractShaderPrograms(const 
 	return ProgramSources();
 }
 
-nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath)
+nex::ProgramSources nex::ShaderSourceFileGenerator::generate(const std::vector<UnresolvedShaderStageDesc>& stages) const
+{
+	ProgramSources result;
+	result.descs.resize(stages.size());
+
+	for (auto i = 0; i < stages.size(); ++i)
+	{
+		auto& unresolved = stages[i];
+		auto& resolved = result.descs[i];
+
+		try
+		{
+			resolved.type = unresolved.type;
+			resolved.root = generate(unresolved.filePath);
+			//writeUnfoldedShaderContentToFile(vertexDesc.root.filePath, vertexDesc.root.resolvedSource);
+		} catch (const ParseException& e)
+		{
+			std::stringstream ss;
+			ss << "Couldn't generate unresolved shader stage of type " << unresolved.type << std::endl;
+			ss << "File: " << unresolved.filePath << std::endl;
+			ss << "Reason: " << e.what();
+
+			throw_with_trace(ParseException(ss.str().c_str()));
+		}
+	}
+
+	return result;
+}
+
+nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath) const
 {
 	FileDesc root; 
 	parseShaderFile(&root, mFileSystem->resolvePath(filePath));
@@ -171,7 +205,7 @@ nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::pa
 	return root;
 }
 
-void nex::ShaderSourceFileGenerator::generate(nex::ShaderStageDesc* programDesc)
+void nex::ShaderSourceFileGenerator::generate(nex::ResolvedShaderStageDesc* programDesc) const
 {
 	parseShaderSource(&programDesc->root, programDesc->root.filePath, std::move(programDesc->root.source));
 	generate(&programDesc->root);
@@ -182,7 +216,7 @@ void nex::ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
 	mFileSystem = fileSystem;
 }
 
-unsigned int nex::ShaderSourceFileGenerator::calcResolvedPosition(const nex::ShaderStageDesc& desc, size_t lineNumber, size_t column)
+unsigned int nex::ShaderSourceFileGenerator::calcResolvedPosition(const nex::ResolvedShaderStageDesc& desc, size_t lineNumber, size_t column)
 {
 	auto& source = desc.root.resolvedSource;
 
@@ -331,7 +365,7 @@ void nex::ShaderSourceFileGenerator::buildShader(nex::FileDesc* fileDesc)
 	fileDesc->resolvedSourceSize = fileDesc->resolvedSource.size();
 }
 
-void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root)
+void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root) const
 {
 	using namespace std::filesystem;
 

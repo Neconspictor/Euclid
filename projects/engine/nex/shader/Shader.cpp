@@ -55,3 +55,22 @@ std::ostream& operator<<(std::ostream& os, nex::ShaderType shader)
 nex::TransformShaderGL::TransformShaderGL(ShaderProgram * program) : Shader(program)
 {
 }
+
+std::ostream& nex::operator<<(std::ostream& os, nex::ShaderStageType stageType)
+{
+	static std::string const table[] =
+	{
+		"COMPUTE",
+		"FRAGMENT",
+		"GEOMETRY",
+		"TESSELATION_CONTROL",
+		"TESSELATION_EVALUATION",
+		"VERTEX",
+	};
+
+	static const unsigned size = static_cast<unsigned>(ShaderStageType::SHADER_STAGE_LAST) + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: ShaderStageType descriptor list doesn't match number of supported shader stages");
+
+	os << table[static_cast<unsigned>(stageType)];
+	return os;
+}

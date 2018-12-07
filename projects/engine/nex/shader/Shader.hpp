@@ -5,9 +5,9 @@
 
 namespace nex
 {
+	struct ResolvedShaderStageDesc;
 	class Material;
 	class Texture;
-	struct ShaderStageDesc;
 	//class ShaderSourceFileGenerator;
 	using FilePath = const char*;
 
@@ -118,9 +118,12 @@ namespace nex
 	{
 	public:
 
-		~ShaderStage();
+		nex::ShaderStage& operator=(const nex::ShaderStage& other) = delete;
+		ShaderStage(const nex::ShaderStage& other) = delete;
 
-		static nex::ShaderStage* compileShaderStage(nex::ShaderStageType type, const nex::ShaderStageDesc& desc);
+		virtual ~ShaderStage() = default;
+
+		static nex::ShaderStage* compileShaderStage(const nex::ResolvedShaderStageDesc& desc);
 
 		ShaderStageType getType() const
 		{
@@ -128,13 +131,9 @@ namespace nex
 		}
 
 	protected:
-		ShaderStage();
+		ShaderStage(ShaderStageType type) : type(type){};
 
 		ShaderStageType type;
-
-	private:
-		nex::ShaderStage& operator=(const nex::ShaderStage& other) = delete;
-		ShaderStage(const nex::ShaderStage& other) = delete;
 	};
 
 
@@ -160,7 +159,7 @@ namespace nex
 		static ShaderProgram* create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "");
 
-		static ShaderProgram* create(const std::list<ShaderStage*>& stages);
+		static ShaderProgram* create(const std::vector<Guard<ShaderStage>>& stages);
 
 		void release();
 
@@ -297,4 +296,11 @@ nex::ShaderType stringToShaderEnum(const std::string& str);
 * Puts a string representation of a shader enum to an output stream.
 */
 std::ostream& operator<<(std::ostream& os, nex::ShaderType shader);
+
+
+/**
+* Puts a string representation of a shader enum to an output stream.
+*/
+std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
+
 };

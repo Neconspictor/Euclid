@@ -3,17 +3,16 @@
 #include <glad/glad.h>
 #include <nex/exception/ShaderInitException.hpp>
 #include <nex/common/Log.hpp>
-#include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include <nex/shader/Shader.hpp>
+#include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 
 namespace nex
 {
-
 	// UniformLocation* will be reinterpreted as GLint
 	// Thus we don't need any storage 
 	class UniformLocation {};
 
-	enum class ShaderStageGL
+	enum ShaderStageTypeGL
 	{
 		COMPUTE = GL_COMPUTE_SHADER,
 		FRAGMENT = GL_FRAGMENT_SHADER,
@@ -24,8 +23,20 @@ namespace nex
 	};
 
 
-	ShaderStageGL translate(nex::ShaderStageType stage);
-	nex::ShaderStageType translate(ShaderStageGL stage);
+	ShaderStageTypeGL translate(nex::ShaderStageType stage);
+	nex::ShaderStageType translate(ShaderStageTypeGL stage);
+
+	class ShaderStageGL : public ShaderStage
+	{
+	public:
+		ShaderStageGL(GLuint shaderStage, ShaderStageType type);
+		virtual ~ShaderStageGL();
+
+		GLuint getID() const;
+
+	private:
+		GLuint mShaderStage;
+	};
 
 
 	/**
@@ -40,20 +51,20 @@ namespace nex
 
 		GLuint getProgramID() const;
 
-		static GLuint loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
-			const std::string& geometryShaderFile = "");
+		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
 
 	protected:
 
 		friend ShaderProgram;
+		friend ShaderStage;
 
 		ShaderProgramGL(GLuint program);
 		~ShaderProgramGL();
 
 
-		static std::string adjustLineNumbers(char* message, const ShaderStageDesc& desc);
-		static GLuint compileShaderStage(unsigned int type, const ShaderStageDesc& desc);
-		static GLuint createShaderProgram(const ShaderStageDesc& vertexShader, const ShaderStageDesc& fragmentShader, const ShaderStageDesc* geometryShader = nullptr);
+		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);
+		static GLuint compileShaderStage(const ResolvedShaderStageDesc& desc, ShaderStageType type);
+		static GLuint createShaderProgram(const std::vector<Guard<ShaderStage>>& stages);
 
 		/**
 		 * @param shaderSourceFile The source file for that an unfolded version should be written for.
@@ -67,4 +78,4 @@ namespace nex
 	};
 }
 
-std::ostream& operator<<(std::ostream& os, nex::ShaderStageGL type);
+std::ostream& operator<<(std::ostream& os, nex::ShaderStageTypeGL type);

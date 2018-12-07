@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <nex/FileSystem.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/shader/Shader.hpp>
 
 
 namespace nex
@@ -74,16 +75,22 @@ namespace nex
 	};
 
 
-	struct ShaderStageDesc
+	struct ResolvedShaderStageDesc
 	{
 		FileDesc root;
 		int parseErrorLogOffset = 0;
+		ShaderStageType type;
+	};
+
+	struct UnresolvedShaderStageDesc
+	{
+		std::filesystem::path filePath;
+		ShaderStageType type;
 	};
 
 	struct ProgramSources
 	{
-		ShaderStageDesc vertexShaderDesc;
-		ShaderStageDesc fragmentShaderDesc;
+		std::vector<ResolvedShaderStageDesc> descs;
 		std::filesystem::path sourceFile;
 	};
 
@@ -95,9 +102,11 @@ namespace nex
 
 		ProgramSources extractShaderPrograms(const std::filesystem::path& filePath) const;
 
-		FileDesc generate(const std::filesystem::path& filePath);
+		ProgramSources generate(const std::vector<UnresolvedShaderStageDesc>& stages) const;
 
-		void generate(ShaderStageDesc* programDesc);
+		FileDesc generate(const std::filesystem::path& filePath) const;
+
+		void generate(ResolvedShaderStageDesc* programDesc) const;
 
 		void init(const FileSystem* fileSystem);
 
@@ -107,7 +116,7 @@ namespace nex
 		 * @param lineNumber: The line number (starting at 0)
 		 * @param column: Starts at 0.
 		 */
-		static unsigned int calcResolvedPosition(const ShaderStageDesc& desc, size_t lineNumber, size_t column);
+		static unsigned int calcResolvedPosition(const ResolvedShaderStageDesc& desc, size_t lineNumber, size_t column);
 		static void calcLineColumn(const std::vector<char>& source, size_t position, size_t* lineNumber, size_t* column);
 
 		static ReverseInfo reversePosition(const FileDesc* fileDesc, size_t resolvedPosition);
@@ -117,7 +126,7 @@ namespace nex
 
 		static void buildShader(FileDesc* fileDesc);
 
-		void generate(FileDesc* root);
+		void generate(FileDesc* root) const;
 
 		/**
 		 * @throws ParseException: If the file could not be parsed

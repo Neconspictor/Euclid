@@ -21,16 +21,16 @@ using namespace glm;
 Logger staticLogClient("ShaderGL-static");
 
 
-ShaderStageGL translate(nex::ShaderStageType stage)
+ShaderStageTypeGL translate(nex::ShaderStageType stage)
 {
-	static ShaderStageGL const table[] =
+	static ShaderStageTypeGL const table[] =
 	{
-		ShaderStageGL::COMPUTE,
-		ShaderStageGL::FRAGMENT,
-		ShaderStageGL::GEOMETRY,
-		ShaderStageGL::TESSELATION_CONTROL,
-		ShaderStageGL::TESSELATION_EVALUATION,
-		ShaderStageGL::VERTEX,
+		ShaderStageTypeGL::COMPUTE,
+		ShaderStageTypeGL::FRAGMENT,
+		ShaderStageTypeGL::GEOMETRY,
+		ShaderStageTypeGL::TESSELATION_CONTROL,
+		ShaderStageTypeGL::TESSELATION_EVALUATION,
+		ShaderStageTypeGL::VERTEX,
 	};
 
 	static const unsigned size = static_cast<unsigned>(ShaderStageType::SHADER_STAGE_LAST) + 1;
@@ -39,16 +39,16 @@ ShaderStageGL translate(nex::ShaderStageType stage)
 	return table[static_cast<unsigned>(stage)];
 }
 
-ShaderStageType translate(ShaderStageGL stage)
+ShaderStageType translate(ShaderStageTypeGL stage)
 {
 	switch (stage)
 	{
-		case ShaderStageGL::VERTEX: return ShaderStageType::VERTEX;
-		case ShaderStageGL::FRAGMENT: return ShaderStageType::FRAGMENT;
-		case ShaderStageGL::GEOMETRY: return ShaderStageType::GEOMETRY;
-		case ShaderStageGL::COMPUTE: return ShaderStageType::COMPUTE;
-		case ShaderStageGL::TESSELATION_CONTROL: return ShaderStageType::TESSELATION_CONTROL;
-		case ShaderStageGL::TESSELATION_EVALUATION: return ShaderStageType::TESSELATION_EVALUATION;
+		case ShaderStageTypeGL::VERTEX: return ShaderStageType::VERTEX;
+		case ShaderStageTypeGL::FRAGMENT: return ShaderStageType::FRAGMENT;
+		case ShaderStageTypeGL::GEOMETRY: return ShaderStageType::GEOMETRY;
+		case ShaderStageTypeGL::COMPUTE: return ShaderStageType::COMPUTE;
+		case ShaderStageTypeGL::TESSELATION_CONTROL: return ShaderStageType::TESSELATION_CONTROL;
+		case ShaderStageTypeGL::TESSELATION_EVALUATION: return ShaderStageType::TESSELATION_EVALUATION;
 	default:;
 	}
 
@@ -58,16 +58,16 @@ ShaderStageType translate(ShaderStageGL stage)
 	return ShaderStageType::VERTEX;
 }
 
-std::ostream& operator<<(std::ostream& os, ShaderStageGL type)
+std::ostream& operator<<(std::ostream& os, ShaderStageTypeGL type)
 {
 	switch (type)
 	{
-		case ShaderStageGL::VERTEX: os << "vertex";  break;
-		case ShaderStageGL::FRAGMENT: os << "fragment"; break;
-		case ShaderStageGL::GEOMETRY: os << "geometry"; break;
-		case ShaderStageGL::COMPUTE: os << "compute"; break;
-		case ShaderStageGL::TESSELATION_CONTROL:os << "tesselation control"; break;
-		case ShaderStageGL::TESSELATION_EVALUATION:os << "tesselation evaluation"; break;
+		case ShaderStageTypeGL::VERTEX: os << "vertex";  break;
+		case ShaderStageTypeGL::FRAGMENT: os << "fragment"; break;
+		case ShaderStageTypeGL::GEOMETRY: os << "geometry"; break;
+		case ShaderStageTypeGL::COMPUTE: os << "compute"; break;
+		case ShaderStageTypeGL::TESSELATION_CONTROL:os << "tesselation control"; break;
+		case ShaderStageTypeGL::TESSELATION_EVALUATION:os << "tesselation evaluation"; break;
 	default:;
 	}
 
@@ -170,6 +170,59 @@ void nex::ShaderProgram::updateBuffer(const UniformLocation* locationID, void* d
 	assert(false);
 }
 
+nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShaderStageDesc& desc)
+{
+	GLuint id;
+	GLCall(id = glCreateShader(translate(desc.type)));
+
+	const char* src = desc.root.resolvedSource.data();
+
+	GLCall(glShaderSource(id, 1, &src, nullptr));
+	GLCall(glCompileShader(id));
+
+	int result;
+	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+	if (result == GL_FALSE)
+	{
+		int length;
+		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
+		char* message = (char*)alloca(length * sizeof(char));
+		GLCall(glGetShaderInfoLog(id, length, &length, message));
+
+		std::string modifiedMessage = ShaderProgramGL::adjustLineNumbers(message, desc);
+
+		LOG(staticLogClient, Error) << modifiedMessage;
+
+		GLCall(glDeleteShader(id));
+
+		std::stringstream ss;
+		ss << "Failed to compile " << desc.type << " shader!";
+
+		throw_with_trace(std::runtime_error(ss.str()));
+		//return GL_FALSE;
+	}
+
+	return new ShaderStageGL(id, desc.type);
+}
+
+
+ShaderStageGL::ShaderStageGL(GLuint shaderStage, ShaderStageType type) : ShaderStage(type), mShaderStage(shaderStage)
+{
+}
+
+ShaderStageGL::~ShaderStageGL()
+{
+	if (mShaderStage != GL_FALSE)
+	{
+		GLCall(glDeleteShader(mShaderStage));
+		mShaderStage = GL_FALSE;
+	}
+}
+
+GLuint ShaderStageGL::getID() const
+{
+	return mShaderStage;
+}
 
 GLuint nex::ShaderProgramGL::getProgramID() const
 {
@@ -193,13 +246,43 @@ UniformLocation* nex::ShaderProgram::getUniformLocation(const char* name)
 
 ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
 {
-	GLuint programID = ShaderProgramGL::loadShaders(vertexFile, fragmentFile, geometryShaderFile);
+
+	bool useGeometryShader = std::filesystem::exists(geometryShaderFile);
+
+	std::vector<UnresolvedShaderStageDesc> unresolved;
+
+	if (useGeometryShader)
+		unresolved.reserve(3);
+	else
+		unresolved.reserve(2);
+
+
+	unresolved[0].filePath = vertexFile;
+	unresolved[0].type = ShaderStageType::VERTEX;
+	unresolved[1].filePath = fragmentFile;
+	unresolved[1].type = ShaderStageType::FRAGMENT;
+
+	if (useGeometryShader)
+	{
+		unresolved[2].filePath = geometryShaderFile;
+		unresolved[2].type = ShaderStageType::GEOMETRY;
+	}
+
+
+
+	GLuint programID = ShaderProgramGL::loadShaders(unresolved);
 	if (programID == GL_FALSE)
 	{
 		throw_with_trace(ShaderInitException("ShaderProgram::create: couldn't create shader!"));
 	}
 
 	return new ShaderProgramGL(programID);
+}
+
+nex::ShaderProgram* nex::ShaderProgram::create(const std::vector<Guard<ShaderStage>>& stages)
+{
+	GLuint program = ShaderProgramGL::createShaderProgram(stages);
+	return new ShaderProgramGL(program);
 }
 
 void nex::ShaderProgram::release()
@@ -218,69 +301,19 @@ void nex::ShaderProgram::unbind()
 	mIsBound = false;
 }
 
-GLuint nex::ShaderProgramGL::loadShaders(const std::string& vertexFile, const std::string& fragmentFile,
-	const std::string& geometryShaderFile)
+GLuint nex::ShaderProgramGL::loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs)
 {	
-	bool useGeometryShader = geometryShaderFile.compare("") != 0;
-
-	ShaderStageDesc vertexDesc;
-	ShaderStageDesc fragmentDesc;
-	ShaderStageDesc geometryDesc;
-	GLuint shaderProgram;
 	ShaderSourceFileGenerator* generator = nullptr;//getSourceFileGenerator(); //TODO
+	ProgramSources programSources = generator->generate(stageDescs);
 
-
-	// Read the Vertex Shader code from file
-	try
+	std::vector<Guard<ShaderStage>> shaderStages;
+	shaderStages.reserve(programSources.descs.size());
+	for (auto i = 0;  i < shaderStages.size(); ++i)
 	{
-		vertexDesc.root = generator->generate(vertexFile);
-		writeUnfoldedShaderContentToFile(vertexDesc.root.filePath, vertexDesc.root.resolvedSource);
-	} catch(const ParseException& e)
-	{
-		LOG(staticLogClient, Error) << e.what();
-		throw_with_trace(ShaderInitException("Couldn't initialize vertex shader: " + vertexFile));
+		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 
-	// Read the Fragment Shader code from file
-	try
-	{
-		fragmentDesc.root = generator->generate(fragmentFile);
-		writeUnfoldedShaderContentToFile(fragmentDesc.root.filePath, fragmentDesc.root.resolvedSource);
-	}
-	catch (const ShaderInitException e)
-	{
-		LOG(staticLogClient, Error) << e.what();
-		throw_with_trace(ShaderInitException("Couldn't initialize fragment shader: " + fragmentFile));
-	}
-
-
-	if (useGeometryShader)
-	{
-		// Read the geometry Shader code from file
-		try
-		{
-			geometryDesc.root = generator->generate(geometryShaderFile);
-			writeUnfoldedShaderContentToFile(geometryDesc.root.filePath, geometryDesc.root.resolvedSource);
-		}
-		catch (const ShaderInitException e)
-		{
-			LOG(staticLogClient, Error) << e.what();
-			throw_with_trace(ShaderInitException("Couldn't initialize geometry shader: " + geometryShaderFile));
-		}
-
-
-		shaderProgram = createShaderProgram(vertexDesc, fragmentDesc, &geometryDesc);
-
-
-	} else
-	{
-		shaderProgram = createShaderProgram(vertexDesc, fragmentDesc, nullptr);
-	}
-
-	/*if (writeUnfoldedResult)
-		writeUnfoldedShaderContentToFile(shaderFile, lines);*/
-
-	return shaderProgram;
+	return createShaderProgram(shaderStages);
 }
 
 nex::ShaderProgramGL::ShaderProgramGL(GLuint program) : programID(program)
@@ -301,7 +334,7 @@ void nex::ShaderProgram::bind()
 }
 
 
-std::string nex::ShaderProgramGL::adjustLineNumbers(char* message, const ShaderStageDesc& desc)
+std::string nex::ShaderProgramGL::adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc)
 {
 	if (message == nullptr) return "";
 
@@ -377,17 +410,17 @@ std::string nex::ShaderProgramGL::adjustLineNumbers(char* message, const ShaderS
 	return result.str();
 }
 
-GLuint nex::ShaderProgramGL::compileShaderStage(unsigned int type, const ShaderStageDesc& desc)
+
+
+GLuint nex::ShaderProgramGL::compileShaderStage(const ResolvedShaderStageDesc& desc, ShaderStageType type)
 {
 	GLuint id;
-	GLCall(id = glCreateShader(type));
+	GLCall(id = glCreateShader(translate(type)));
 
 	const char* src = desc.root.resolvedSource.data();
 
 	GLCall(glShaderSource(id, 1, &src, nullptr));
 	GLCall(glCompileShader(id));
-
-	// TODO error handling
 
 	int result;
 	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
@@ -402,7 +435,7 @@ GLuint nex::ShaderProgramGL::compileShaderStage(unsigned int type, const ShaderS
 
 		LOG(staticLogClient, Error) << modifiedMessage;
 
-		//GLCall(glDeleteShader(id));
+		GLCall(glDeleteShader(id));
 
 		std::stringstream ss;
 		ss << "Failed to compile " << type << " shader!";
@@ -414,26 +447,18 @@ GLuint nex::ShaderProgramGL::compileShaderStage(unsigned int type, const ShaderS
 	return id;
 }
 
-GLuint nex::ShaderProgramGL::createShaderProgram(const ShaderStageDesc& vertexShader, const ShaderStageDesc& fragmentShader, const ShaderStageDesc* geometryShader)
+GLuint ShaderProgramGL::createShaderProgram(const std::vector<Guard<ShaderStage>>& stages)
 {
-	GLuint program, vs, fs, gs;
-	bool useGeometryShader = geometryShader != nullptr;
+	GLuint program;
 	int infoLogLength;
 	GLint result = GL_FALSE;
 
-
 	GLCall(program = glCreateProgram());
-	GLCall(vs = compileShaderStage(GL_VERTEX_SHADER, vertexShader));
-	GLCall(fs = compileShaderStage(GL_FRAGMENT_SHADER, fragmentShader));
-	
-	if (useGeometryShader)
+	for (auto& stage : stages)
 	{
-		GLCall(gs = compileShaderStage(GL_GEOMETRY_SHADER, *geometryShader));
-		GLCall(glAttachShader(program, gs));
+		ShaderStageGL* stageGL = (ShaderStageGL*)stage.get();
+		GLCall(glAttachShader(program, stageGL->getID()));
 	}
-
-	GLCall(glAttachShader(program, vs));
-	GLCall(glAttachShader(program, fs));
 
 	GLCall(glLinkProgram(program));
 	GLCall(glValidateProgram(program));
@@ -449,15 +474,11 @@ GLuint nex::ShaderProgramGL::createShaderProgram(const ShaderStageDesc& vertexSh
 			glGetProgramInfoLog(program, infoLogLength, nullptr, &ProgramErrorMessage[0]);
 			LOG(staticLogClient, Error) << &ProgramErrorMessage[0];
 		}
+
+		// release progrom
+		GLCall(glDeleteProgram(program));
+
 		throw_with_trace(ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!"));
-	}
-
-	GLCall(glDeleteShader(vs));
-	GLCall(glDeleteShader(fs));
-
-	if (useGeometryShader)
-	{
-		GLCall(glDeleteShader(gs));
 	}
 
 	return program;
