@@ -222,7 +222,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		m_pbr_deferred->drawGeometryScene(scene,
 			camera->getView(),
 			camera->getPerspProjection());
-	//renderer->endScene();
 
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
 
@@ -231,8 +230,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-	//renderer->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Stencil);
-	//renderer->beginScene();
+
 	
 
 	Dimension blitRegion = { 0,0, windowWidth * ssaaSamples, windowHeight * ssaaSamples };
@@ -241,9 +239,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		blitRegion,
 		RenderComponent::Depth | RenderComponent::Stencil);
 
-	//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-
-		//renderer->enableAlphaBlending(true);
 
 	CascadedShadowGL::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
 	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
@@ -272,7 +267,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->beginScene();
 	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	
-	screenSprite.setTexture(renderTargetSingleSampled->getTexture());
+	screenSprite.setTexture(renderTargetSingleSampled->getTexture()); //TODO
+
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 	//screenSprite.setTexture(ssao_deferred->getAO_Result());
 	

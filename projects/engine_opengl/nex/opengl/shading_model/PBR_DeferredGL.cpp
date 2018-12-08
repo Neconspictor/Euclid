@@ -58,14 +58,14 @@ namespace nex {
 
 		for (int i = 0; i < 6; ++i)
 		{
-			//sampler->bind(i);
+			sampler->bind(i);
 		}
 
 		modelDrawer->draw(scene, shader);
 
 		for (int i = 0; i < 6; ++i)
 		{
-			//sampler->unbind(i);
+			sampler->unbind(i);
 		}
 
 		glDisable(GL_STENCIL_TEST);
