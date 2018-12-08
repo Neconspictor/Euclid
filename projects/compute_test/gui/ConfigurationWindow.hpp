@@ -2,14 +2,14 @@
 #include <nex/gui/Drawable.hpp>
 #include <nex/gui/Menu.hpp>
 
-namespace App
+namespace nex::gui
 {
-	class ConfigurationWindow : public nex::engine::gui::Window
+	class ConfigurationWindow : public nex::gui::Window
 	{
 	private:
-		nex::engine::gui::MainMenuBar* m_mainMenuBar;
+		nex::gui::MainMenuBar* m_mainMenuBar;
 		std::string m_menuTitle;
-		nex::engine::gui::TabBar* m_tabBar;
+		nex::gui::TabBar* m_tabBar;
 
 		inline static const char* GENERAL = "General";
 		inline static const char* GRAPHICS_TECHNIQUES = "Graphics Techniques";
@@ -17,17 +17,17 @@ namespace App
 		inline static const char* VIDEO = "Video";
 
 	public:
-		ConfigurationWindow(nex::engine::gui::MainMenuBar* mainMenuBar, nex::engine::gui::Menu* configurationMenu);
+		ConfigurationWindow(nex::gui::MainMenuBar* mainMenuBar, nex::gui::Menu* configurationMenu);
 
 		void drawGUI() override;
 
-		nex::engine::gui::Tab* getGeneralTab();
+		nex::gui::Tab* getGeneralTab();
 
-		nex::engine::gui::Tab* getGraphicsTechniquesTab();
+		nex::gui::Tab* getGraphicsTechniquesTab();
 
-		nex::engine::gui::Tab* getCameraTab();
+		nex::gui::Tab* getCameraTab();
 
-		nex::engine::gui::Tab* getVideoTab();
+		nex::gui::Tab* getVideoTab();
 
 	protected:
 		bool hasVisibleChild() const;

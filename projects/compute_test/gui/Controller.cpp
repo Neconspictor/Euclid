@@ -1,10 +1,11 @@
 #include <nex/Window.hpp>
 #include <gui/Controller.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <nex/Input.hpp>
 
 
-App::BaseController::BaseController(Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable) :
-	Controller(move(drawable)),
+nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable) :
+	Controller(std::move(drawable)),
 	m_window(window),
 	m_input(input),
 	guiRenderer(guiRenderer),
@@ -91,7 +92,7 @@ guiRenderer->renderDrawData(ImGui::GetDrawData());
 }
 */
 
-void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
+void nex::gui::BaseController::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
 	using namespace nex;
 
@@ -119,20 +120,20 @@ void App::BaseController::frameUpdate(ControllerStateMachine & stateMachine, flo
 	}
 }
 
-void App::BaseController::init()
+void nex::gui::BaseController::init()
 {
 }
 
-void App::BaseController::handleExitEvent()
+void nex::gui::BaseController::handleExitEvent()
 {
 	m_window->close();
 }
 
 
-App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_Renderer* mainTask,
+nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, PBR_Deferred_Renderer* mainTask,
 	Camera* camera,
 	ImGUI_Impl* guiRenderer, 
-	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
+	std::unique_ptr<nex::gui::Drawable> drawable) :
 	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
 	m_camera(camera)
 {
@@ -140,7 +141,7 @@ App::EditMode::EditMode(Window* window, Input* input, PBR_Deferred_Renderer* mai
 	m_window->showCursor(false);
 }
 
-void App::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
+void nex::gui::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
 	BaseController::frameUpdate(stateMachine, frameTime);
 	//std::cout << "EditMode::frameUpdate(ControllerStateMachine &) called!" << std::endl;
@@ -151,19 +152,19 @@ void App::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float fra
 	}
 }
 
-App::CameraMode::CameraMode(Window* window, 
-	Input* input, 
+nex::gui::CameraMode::CameraMode(nex::Window* window,
+	nex::Input* input,
 	PBR_Deferred_Renderer* mainTask, 
 	Camera* camera, ImGUI_Impl* guiRenderer, 
-	std::unique_ptr<nex::engine::gui::Drawable> drawable) :
-	BaseController(window, input, mainTask, guiRenderer, move(drawable)),
+	std::unique_ptr<nex::gui::Drawable> drawable) :
+	BaseController(window, input, mainTask, guiRenderer, std::move(drawable)),
 m_window(window), m_camera(camera)
 {
 	m_logger.setPrefix("CameraMode");
 	m_window->showCursor(true);
 }
 
-void App::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
+void nex::gui::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
 {
 	BaseController::frameUpdate(stateMachine, frameTime);
 
@@ -179,7 +180,7 @@ void App::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, float f
 	}
 }
 
-void App::CameraMode::updateCamera(Input * input, float deltaTime)
+void nex::gui::CameraMode::updateCamera(Input * input, float deltaTime)
 {
 	m_camera->update(input, deltaTime);
 	m_window->setCursorPosition(m_window->getWidth() / 2, m_window->getHeight() / 2);

@@ -17,6 +17,9 @@
 #include <Globals.hpp>
 #include "nex/opengl/model/ModelManagerGL.hpp"
 
+using namespace nex;
+
+
 NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	m_logger("NeX-Engine"),
 	m_windowSystem(provider),
@@ -53,7 +56,7 @@ void NeXEngine::init()
 	Configuration::setGlobalConfiguration(&m_config);
 	readConfig();
 	
-	util::Globals::initGlobals();
+	nex::util::Globals::initGlobals();
 	LOG(m_logger, nex::Info) << "root Directory = " << ::util::Globals::getRootDirectory();
 
 
@@ -66,28 +69,28 @@ void NeXEngine::init()
 	//init render backend
 	initRenderBackend();
 
+	// init texture manager (filesystem)
+	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
+	TextureManagerGL::get()->init(&mTextureFileSystem);
+
 	// init model manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
 	ModelManagerGL::get()->init(&mMeshFileSystem);
 
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
-	ShaderProgramGL::getSourceFileGenerator()->init(&mShaderFileSystem);
-
-	// init texture manager (filesystem)
-	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
-	TextureManagerGL::get()->init(&mTextureFileSystem);
+	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
 
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
 	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());
-	m_controllerSM = std::make_unique<ControllerStateMachine>(std::make_unique<App::EditMode>(m_window,
+	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),
 		m_camera.get(),
 		m_gui.get(),
-		std::unique_ptr<nex::engine::gui::Drawable>()));
+		std::unique_ptr<nex::gui::Drawable>()));
 
 	m_window->activate();
 	m_renderer->init(m_window->getWidth(), m_window->getHeight());
@@ -328,22 +331,22 @@ void NeXEngine::setupCallbacks()
 
 void NeXEngine::setupGUI()
 {
-	using namespace nex::engine::gui;
+	using namespace nex::gui;
 
-	App::AppStyle style;
+	nex::gui::AppStyle style;
 	style.apply();
 
 	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(m_controllerSM.get());
-	std::unique_ptr<App::ConfigurationWindow> configurationWindow = std::make_unique<App::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
+	std::unique_ptr<nex::gui::ConfigurationWindow> configurationWindow = std::make_unique<nex::gui::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
-	Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
-	Tab* cameraTab = configurationWindow->getCameraTab();
-	Tab* videoTab = configurationWindow->getVideoTab();
-	Tab* generalTab = configurationWindow->getGeneralTab();
+	gui::Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
+	gui::Tab* cameraTab = configurationWindow->getCameraTab();
+	gui::Tab* videoTab = configurationWindow->getVideoTab();
+	gui::Tab* generalTab = configurationWindow->getGeneralTab();
 
 
-	auto hbaoView = std::make_unique<hbao::HBAO_ConfigurationView>(m_renderer->getHBAO());
-	graphicsTechniques->addChild(move(hbaoView));
+	auto hbaoView = std::make_unique<nex::HBAO_ConfigurationView>(m_renderer->getHBAO());
+	graphicsTechniques->addChild(std::move(hbaoView));
 
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
 	graphicsTechniques->addChild(std::move(ssaoView));
@@ -364,7 +367,7 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(m_renderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
-	configurationWindow->useStyleClass(std::make_shared<App::ConfigurationStyle>());
+	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
 	m_controllerSM->getCurrentController()->setDrawable(move(root));

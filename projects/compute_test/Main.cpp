@@ -41,13 +41,13 @@ void logLastCrashReport(nex::Logger& logger)
 int main(int argc, char** argv)
 {
 #ifdef WIN32
-	initWin32CrashHandler();
+	nex::initWin32CrashHandler();
 #else
 	::signal(SIGSEGV, signal_handler);
 	::signal(SIGABRT, signal_handler);
 #endif
 
-	SubSystemProviderGLFW* provider = SubSystemProviderGLFW::get();
+	nex::SubSystemProviderGLFW* provider = nex::SubSystemProviderGLFW::get();
 
 	std::ofstream logFile("extLog.txt");
 
@@ -66,11 +66,11 @@ int main(int argc, char** argv)
 	try {
 		if (!provider->init())
 		{
-			throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
+			nex::throw_with_trace(std::runtime_error("Couldn't initialize window system!"));
 		}
 
 		{
-			NeXEngine neXEngine(provider);
+			nex::NeXEngine neXEngine(provider);
 			neXEngine.init();
 			neXEngine.run();
 		}
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 	{
 		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
 		//LOG(logger, nex::Fault) << "Stack trace: " << boost::stacktrace::stacktrace();
-		const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+		const boost::stacktrace::stacktrace* st = boost::get_error_info<nex::traced>(e);
 		if (st) {
 			LOG(logger, nex::Fault) << "Stack trace: " << *st;
 		}
@@ -92,8 +92,8 @@ int main(int argc, char** argv)
 
 
 
-	ModelManagerGL::get()->release();
-	TextureManagerGL::get()->release();
+	nex::ModelManagerGL::get()->release();
+	nex::TextureManagerGL::get()->release();
 
 	provider->terminate();
 

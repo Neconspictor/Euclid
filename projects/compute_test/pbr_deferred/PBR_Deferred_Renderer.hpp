@@ -3,63 +3,66 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/opengl/texture/Sprite.hpp>
+#include <nex/texture/Sprite.hpp>
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/opengl/renderer/Renderer.hpp>
 #include "nex/opengl/post_processing/AmbientOcclusion.hpp"
 
-class PBR_Deferred_Renderer : public Renderer
+namespace nex
 {
-public:
-	typedef unsigned int uint;
+	class PBR_Deferred_Renderer : public Renderer
+	{
+	public:
+		typedef unsigned int uint;
 
-	PBR_Deferred_Renderer(RendererOpenGL* renderer);
+		PBR_Deferred_Renderer(RendererOpenGL* renderer);
 
-	bool getShowDepthMap() const;
-	void init(int windowWidth, int windowHeight);
-	void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
-	void setShowDepthMap(bool showDepthMap);
-	void updateRenderTargets(int width, int height);
-	hbao::HBAO_GL* getHBAO();
-	AmbientOcclusionSelector* getAOSelector();
+		bool getShowDepthMap() const;
+		void init(int windowWidth, int windowHeight);
+		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
+		void setShowDepthMap(bool showDepthMap);
+		void updateRenderTargets(int width, int height);
+		nex::HBAO_GL* getHBAO();
+		AmbientOcclusionSelector* getAOSelector();
 
-	PBR_DeferredGL* getPBR();
+		PBR_DeferredGL* getPBR();
 
 
-private:
+	private:
 
-	inline TextureGL * renderAO(Camera* camera, TextureGL* gPosition, TextureGL* gNormal);
+		Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
 
-	void drawSceneToCascade(SceneNode* scene);
+		void drawSceneToCascade(SceneNode* scene);
 
-	// Allow the UI mode classes accessing private members
+		// Allow the UI mode classes accessing private members
 
-	GaussianBlurGL* blurEffect;
-	DirectionalLight globalLight;
-	nex::Logger m_logger;
-	TextureGL* panoramaSky;
-	TextureGL* testTexture;
+		GaussianBlurGL* blurEffect;
+		DirectionalLight globalLight;
+		nex::Logger m_logger;
+		Texture* panoramaSky;
+		Texture* testTexture;
 
-	std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
-	std::unique_ptr<PBR_GBufferGL>  pbr_mrt;
-	std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
+		std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
+		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
+		std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
 
-	AmbientOcclusionSelector m_aoSelector;
+		AmbientOcclusionSelector m_aoSelector;
 
-	RenderTargetGL* renderTargetSingleSampled;
-	Sprite screenSprite;
-	DepthMapGL* shadowMap;
-	bool showDepthMap;
-};
+		RenderTarget* renderTargetSingleSampled;
+		Sprite screenSprite;
+		DepthMap* shadowMap;
+		bool showDepthMap;
+	};
 
-class PBR_Deferred_Renderer_ConfigurationView : public nex::engine::gui::Drawable
-{
-public:
-	PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer);
+	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable
+	{
+	public:
+		PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer);
 
-protected:
-	void drawSelf() override;
+	protected:
+		void drawSelf() override;
 
-	PBR_Deferred_Renderer* m_renderer;
-};
+		PBR_Deferred_Renderer* m_renderer;
+	};
+}

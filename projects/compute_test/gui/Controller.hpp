@@ -3,16 +3,17 @@
 #include <nex/gui/ImGUI.hpp>
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
+#include "pbr_deferred/PBR_Deferred_Renderer.hpp"
 
 
 class Input;
 class PBR_Deferred_Renderer;
 
-namespace App
+namespace nex::gui
 {
 	class BaseController : public Controller {
 	public:
-		BaseController(Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::engine::gui::Drawable> drawable);
+		BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable);
 		virtual ~BaseController() = default;
 
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
@@ -21,8 +22,8 @@ namespace App
 		virtual void handleExitEvent();
 
 	protected:
-		Window * m_window;
-		Input* m_input;
+		nex::Window * m_window;
+		nex::Input* m_input;
 		ImGUI_Impl* guiRenderer;
 		PBR_Deferred_Renderer* m_mainTask;
 		nex::Logger m_logger;
@@ -30,12 +31,12 @@ namespace App
 
 	class EditMode : public BaseController {
 	public:
-		EditMode(Window* window, 
+		EditMode(nex::Window* window,
 			Input* input, 
 			PBR_Deferred_Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
-			std::unique_ptr<nex::engine::gui::Drawable> drawable);
+			std::unique_ptr<nex::gui::Drawable> drawable);
 		virtual ~EditMode() = default;
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
 
@@ -45,19 +46,19 @@ namespace App
 
 	class CameraMode : public BaseController {
 	public:
-		CameraMode(Window* window, 
+		CameraMode(nex::Window* window,
 			Input* input, 
 			PBR_Deferred_Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
-			std::unique_ptr<nex::engine::gui::Drawable> drawable);
+			std::unique_ptr<nex::gui::Drawable> drawable);
 		virtual ~CameraMode() = default;
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
 
 	private:
 		void updateCamera(Input* input, float deltaTime);
 
-		Window* m_window;
+		nex::Window* m_window;
 		Camera* m_camera;
 	};
 

@@ -1,20 +1,23 @@
 #pragma once
 
-class Configuration;
-
-struct VideoConfig
+namespace nex
 {
-public:
-	VideoConfig();
+	class Configuration;
 
-	void handle(Configuration& config);
+	struct VideoConfig
+	{
+	public:
+		VideoConfig();
 
-	std::string windowTitle;
-	bool fullscreen;
-	unsigned int width;
-	unsigned int height;
-	unsigned int colorBitDepth;
-	unsigned int refreshRate;
-	bool vSync;
-	unsigned int msaaSamples;
-};
+		void handle(Configuration& config);
+
+		std::string windowTitle;
+		bool fullscreen;
+		unsigned int width;
+		unsigned int height;
+		unsigned int colorBitDepth;
+		unsigned int refreshRate;
+		bool vSync;
+		unsigned int msaaSamples;
+	};
+}

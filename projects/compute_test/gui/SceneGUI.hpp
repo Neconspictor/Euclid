@@ -5,7 +5,7 @@
 #include <nex/gui/ControllerStateMachine.hpp>
 
 
-namespace nex::engine::gui
+namespace nex::gui
 {
 	class SceneGUI : public Drawable
 	{
