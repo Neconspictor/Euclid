@@ -8,12 +8,51 @@
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/opengl/renderer/Renderer.hpp>
 #include "nex/opengl/post_processing/AmbientOcclusion.hpp"
+#include "nex/opengl/shader/ShaderBufferGL.hpp"
 
 namespace nex
 {
 	class PBR_Deferred_Renderer : public Renderer
 	{
 	public:
+
+		
+
+
+		class ComputeTestShader : public nex::ComputeShader
+		{
+		public:
+			static const unsigned width = 2048;
+			static const unsigned height = 2048;
+
+
+			struct ShaderBuffer
+			{
+				glm::vec4 mCameraNearFar;
+				glm::vec4 mColor;
+				float mDepthValues[width * height];
+			};
+
+			struct WriteOut
+			{
+				float minResult;
+				float _pad0[3];
+			};
+			
+			ComputeTestShader(unsigned width, unsigned height);
+			Guard<Texture> result;
+			Guard<ShaderStorageBufferGL> uniformBuffer;
+			Guard<ShaderStorageBufferGL> storageBuffer;
+		};
+
+		class ComputeClearColorShader : public nex::ComputeShader
+		{
+		public:
+			ComputeClearColorShader(Texture* texture);
+		};
+
+
+
 		typedef unsigned int uint;
 
 		PBR_Deferred_Renderer(RendererOpenGL* renderer);
@@ -53,6 +92,8 @@ namespace nex
 		Sprite screenSprite;
 		DepthMap* shadowMap;
 		bool showDepthMap;
+		Guard<ComputeTestShader> mComputeTest;
+		Guard<ComputeClearColorShader> mComputeClearColor;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
+#include <nex/common/Log.hpp>
 
 
 namespace nex

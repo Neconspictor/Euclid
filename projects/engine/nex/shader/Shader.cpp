@@ -60,6 +60,10 @@ nex::TransformShaderGL::TransformShaderGL(ShaderProgram * program) : Shader(prog
 {
 }
 
+nex::ComputeShader::ComputeShader(ShaderProgram* program) : Shader(program)
+{
+}
+
 std::ostream& nex::operator<<(std::ostream& os, nex::ShaderStageType stageType)
 {
 	static std::string const table[] =

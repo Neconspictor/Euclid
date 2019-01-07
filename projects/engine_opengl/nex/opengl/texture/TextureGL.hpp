@@ -7,6 +7,13 @@ namespace nex
 {
 	struct StoreImage;
 
+	enum TextureAccessGL
+	{
+		READ_ONLY = GL_READ_ONLY,
+		READ_WRITE = GL_READ_WRITE,
+		WRITE_ONLY = GL_WRITE_ONLY,
+	};
+
 	enum ChannelGL
 	{
 		RED = GL_RED,
@@ -120,6 +127,8 @@ namespace nex
 
 	bool isNoStencilFormat(nex::DepthStencil format);
 
+	GLuint translate(bool boolean);
+	TextureAccessGL translate(nex::TextureAccess);
 	ChannelGL translate(nex::Channel);
 	TextureFilterGL translate(nex::TextureFilter);
 	TextureUVTechniqueGL translate(nex::TextureUVTechnique);
@@ -128,6 +137,7 @@ namespace nex
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
 	DepthStencilGL translate(nex::DepthStencil);
+
 
 	class TextureGL : public TextureImpl
 	{

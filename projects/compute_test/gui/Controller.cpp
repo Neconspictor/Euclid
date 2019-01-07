@@ -103,7 +103,7 @@ void nex::gui::BaseController::frameUpdate(ControllerStateMachine & stateMachine
 
 	if (m_input->isPressed(Input::KEY_Y))
 	{
-		m_mainTask->setShowDepthMap(!m_mainTask->getShowDepthMap());
+		//m_mainTask->setShowDepthMap(!m_mainTask->getShowDepthMap());
 	}
 
 

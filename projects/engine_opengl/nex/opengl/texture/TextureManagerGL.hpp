@@ -43,6 +43,8 @@ namespace nex {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,
 				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
 				nex::ColorSpace::SRGBA,
 				nex::PixelDataType::UBYTE,
 				nex::InternFormat::SRGBA8,

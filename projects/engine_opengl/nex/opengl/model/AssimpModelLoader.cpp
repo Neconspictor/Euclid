@@ -21,7 +21,6 @@ namespace nex
 	unique_ptr<ModelGL> AssimpModelLoader::loadModel(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
 	{
 		Timer timer;
-		timer.update();
 
 		Assimp::Importer importer;
 
@@ -45,7 +44,8 @@ namespace nex
 		vector<unique_ptr<MeshGL>> meshes;
 		processNode(scene->mRootNode, scene, &meshes, materialLoader);
 
-		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.update();
+		timer.update();
+		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
 
 		return make_unique<ModelGL>(move(meshes));
 	}

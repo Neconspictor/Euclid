@@ -12,6 +12,7 @@ namespace nex
 	class SubSystemProvider;
 	class SubSystemProviderGLFW;
 
+
 	class NeXEngine
 	{
 	public:

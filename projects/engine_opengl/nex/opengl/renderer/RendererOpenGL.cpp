@@ -308,7 +308,9 @@ namespace nex
 		data.colorspace = ColorSpace::RGB;
 		data.internalFormat = InternFormat::RGB32F;
 		data.pixelDataType = PixelDataType::FLOAT;
-		data.uvTechnique = TextureUVTechnique::ClampToEdge;
+		data.wrapR = TextureUVTechnique::ClampToEdge;
+		data.wrapS = TextureUVTechnique::ClampToEdge;
+		data.wrapT = TextureUVTechnique::ClampToEdge;
 
 		int ssaaSamples = 1;
 
@@ -556,8 +558,8 @@ namespace nex
 
 		int width = target->getWidth();
 		int height = target->getHeight();
-		GLCall(glViewport(0, 0, width, height));
-		GLCall(glScissor(0, 0, width, height));
+		//GLCall(glViewport(0, 0, width, height)); //TODO
+		//GLCall(glScissor(0, 0, width, height));
 		target->bind();
 
 		// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
@@ -640,6 +642,8 @@ namespace nex
 		TextureData textureData = {
 			TextureFilter::Linear,
 			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
 			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,

@@ -130,7 +130,8 @@ void NeXEngine::run()
 		// the window is likely to hang or crash (at least on windows platform)
 		m_windowSystem->pollEvents();
 
-		float frameTime = m_timer.update();
+		m_timer.update();
+		float frameTime = m_timer.getTimeInSeconds();
 		float fps = m_counter.update(frameTime);
 		updateWindowTitle(frameTime, fps);
 
@@ -141,10 +142,10 @@ void NeXEngine::run()
 			m_camera->Projectional::update(true);
 			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
 
-			m_gui->newFrame();
-			m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
-			ImGui::Render();
-			m_gui->renderDrawData(ImGui::GetDrawData());
+			//m_gui->newFrame();
+			//m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
+			//ImGui::Render();
+			//m_gui->renderDrawData(ImGui::GetDrawData());
 			
 			// present rendered frame
 			m_window->swapBuffers();
@@ -171,6 +172,8 @@ SceneNode* NeXEngine::createScene()
 {
 	m_nodes.push_back(SceneNode());
 	SceneNode* root = &m_nodes.back();
+
+	return root;
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
@@ -199,26 +202,7 @@ SceneNode* NeXEngine::createScene()
 	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
 	root->addChild(sphere);
 
-	//m_nodes.push_back(SceneNode());
-	//SceneNode* cube1 = &m_nodes.back();
-	//root->addChild(cube1);
 
-	//m_nodes.push_back(SceneNode());
-	//SceneNode* sphere = &m_nodes.back();
-	//root->addChild(sphere);
-
-	//m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
-	//m_vobs.push_back(Vob("misc/textured_cube.obj"));
-	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
-	//cube1->setVob(&m_vobs.back());
-
-	//m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
-	//sphere->setVob(&m_vobs.back());
-
-	//ground->getVob()->setPosition({ 10, 0, 0 });
-	//cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
-
-	//sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
 
 	return root;
 }
@@ -344,16 +328,6 @@ void NeXEngine::setupGUI()
 	gui::Tab* videoTab = configurationWindow->getVideoTab();
 	gui::Tab* generalTab = configurationWindow->getGeneralTab();
 
-
-	auto hbaoView = std::make_unique<nex::HBAO_ConfigurationView>(m_renderer->getHBAO());
-	graphicsTechniques->addChild(std::move(hbaoView));
-
-	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
-	graphicsTechniques->addChild(std::move(ssaoView));
-
-	auto pbrDeferredView = std::make_unique<PBR_Deferred_ConfigurationView>(m_renderer->getPBR());
-	graphicsTechniques->addChild(std::move(pbrDeferredView));
-
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));
 
@@ -420,7 +394,7 @@ void NeXEngine::updateWindowTitle(float frameTime, float fps)
 		ss << baseTitle << " : FPS = " << std::setw(6) << std::setfill(' ') << temp << " : frame time (ms) = " << frameTime * 1000;
 		window->setTitle(ss.str());*/
 
-		ss << m_baseTitle << " : FPS = " << fps;
+		ss << m_baseTitle << " ; frame time = " << frameTime << " ; FPS = " << fps;
 		m_window->setTitle(ss.str());
 		ss.str("");
 		runtime = 0;

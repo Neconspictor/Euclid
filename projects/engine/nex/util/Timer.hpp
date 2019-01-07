@@ -12,42 +12,78 @@ namespace nex
 	public:
 		Timer()
 		{
-			lastUpdateDiff = 0;
+			
+			lastUpdateTime = nanos();
+			diff = 0;
 		};
-		virtual ~Timer() {};
+		~Timer() {};
 
-		/**
-		 * Returns the time difference since the last update function call
-		 * measured in seconds.
-		 * E.g. if the last call of this function happend 1/2 second ago, this function
-		 * will return 0.5 .
-		 */
-		float update()
+		void update()
 		{
 			using namespace std::chrono;
-			auto currentFrameTime = timer.now();
-			if (!lastUpdateTime.time_since_epoch().count())
-			{
-				lastUpdateTime = currentFrameTime;
-			}
-
-			auto diff = duration_cast<duration<float>>(currentFrameTime - lastUpdateTime);
-			lastUpdateDiff = diff.count();
+			const auto currentFrameTime = nanos();
+			diff = currentFrameTime - lastUpdateTime;
 			lastUpdateTime = currentFrameTime;
-			return lastUpdateDiff;
 		};
 
-		/**
-		 * Provides the time difference calculated by the last function call of Timer::update().
-		 */
-		float getLastUpdateTimeDifference() const
+		float getTimeInSeconds()
 		{
-			return lastUpdateDiff;
+			return diff / (long double)1000000000;
 		}
 
+		uint64_t getTimeInNanos()
+		{
+			return diff;
+		}
+
+		uint64_t getTimeInMicros()
+		{
+			return diff / (long double)1000;
+		}
+
+		uint64_t getTimeInMillis()
+		{
+			return diff / (long double)1000000;
+		}
+
+
 	private:
-		std::chrono::high_resolution_clock timer;
-		std::chrono::high_resolution_clock::time_point lastUpdateTime;
-		float lastUpdateDiff;
+		uint64_t lastUpdateTime;
+		uint64_t diff;
+
+
+
+		// Get time stamp in milliseconds.
+		uint64_t millis()
+		{
+			uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::
+				now().time_since_epoch()).count();
+			return ms;
+		}
+
+		// Get time stamp in microseconds.
+		uint64_t micros()
+		{
+			uint64_t us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::
+				now().time_since_epoch()).count();
+			return us;
+		}
+
+		// Get time stamp in nanoseconds.
+		uint64_t nanos()
+		{
+			uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::
+				now().time_since_epoch()).count();
+			return ns;
+		}
+
+		// Get time stamp in seconds.
+		uint64_t seconds()
+		{
+			uint64_t ns = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::
+				now().time_since_epoch()).count();
+			return ns;
+		}
+
 	};
 }

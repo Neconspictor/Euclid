@@ -6,6 +6,13 @@ namespace nex
 {
 	struct StoreImage;
 
+	enum class TextureAccess
+	{
+		READ_ONLY, FIRST = READ_ONLY,
+		READ_WRITE,
+		WRITE_ONLY, LAST = WRITE_ONLY,
+	};
+
 	enum class TextureFilter
 	{
 		NearestNeighbor, FIRST = NearestNeighbor,
@@ -128,7 +135,9 @@ namespace nex
 	{
 		TextureFilter minFilter = TextureFilter::Linear_Mipmap_Linear;  // minification filter
 		TextureFilter magFilter = TextureFilter::Linear;  // magnification filter
-		TextureUVTechnique uvTechnique = TextureUVTechnique::Repeat;
+		TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
+		TextureUVTechnique wrapS = TextureUVTechnique::Repeat;
+		TextureUVTechnique wrapT = TextureUVTechnique::Repeat;
 		ColorSpace colorspace = ColorSpace::SRGBA;
 		PixelDataType pixelDataType = PixelDataType::UBYTE;
 		InternFormat internalFormat = InternFormat::RGBA8;
@@ -140,13 +149,17 @@ namespace nex
 
 		TextureData(TextureFilter minFilter, 
 			TextureFilter magFilter, 
-			TextureUVTechnique uvTechnique, 
+			TextureUVTechnique wrapR,
+			TextureUVTechnique wrapS,
+			TextureUVTechnique wrapT,
 			ColorSpace colorspace, 
 			PixelDataType pixelDataType, 
 			InternFormat internalFormat,
 			bool generateMipMaps) : minFilter(minFilter),
 			                        magFilter(magFilter),
-			                        uvTechnique(uvTechnique),
+			                        wrapR(wrapR),
+									wrapS(wrapS),
+									wrapT(wrapT),
 			                        colorspace(colorspace),
 			                        pixelDataType(pixelDataType),
 			                        internalFormat(internalFormat),
@@ -186,6 +199,10 @@ namespace nex
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture&) = delete;
 
+		// Mustn't be called by user code
+		// Has to be implemented by renderer backend
+		Texture(TextureImpl* impl);
+
 		TextureImpl* getImpl() const;
 
 
@@ -212,10 +229,6 @@ namespace nex
 		void setWidth(int width);
 
 	protected:
-
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		Texture(TextureImpl* impl);
 
 		int width = 0;
 		int height = 0;

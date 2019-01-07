@@ -278,7 +278,9 @@ namespace nex
 		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
 		data.minFilter = TextureFilter::NearestNeighbor;
 		data.magFilter = TextureFilter::NearestNeighbor;
-		data.uvTechnique = TextureUVTechnique::Repeat;
+		data.wrapR = TextureUVTechnique::Repeat;
+		data.wrapS = TextureUVTechnique::Repeat;
+		data.wrapT = TextureUVTechnique::Repeat;
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
@@ -378,7 +380,9 @@ namespace nex
 		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
 		data.minFilter = TextureFilter::NearestNeighbor;
 		data.magFilter = TextureFilter::NearestNeighbor;
-		data.uvTechnique = TextureUVTechnique::ClampToBorder;
+		data.wrapR = TextureUVTechnique::ClampToBorder;
+		data.wrapS = TextureUVTechnique::ClampToBorder;
+		data.wrapT = TextureUVTechnique::ClampToBorder;
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;

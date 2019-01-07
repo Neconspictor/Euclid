@@ -101,6 +101,26 @@ bool nex::isNoStencilFormat(nex::DepthStencil format)
 		format == DepthStencil::DEPTH24;
 }
 
+GLuint nex::translate(bool boolean)
+{
+	return boolean ? GL_TRUE : GL_FALSE;
+}
+
+nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)
+{
+	static TextureAccessGL const table[]
+	{
+		READ_ONLY,
+		READ_WRITE,
+		WRITE_ONLY,
+	};
+
+	static const unsigned size = (unsigned)TextureAccess::LAST - (unsigned)TextureAccess::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)accessType];
+}
+
 nex::ChannelGL nex::translate(nex::Channel channel)
 {
 	static ChannelGL const table[]
@@ -380,10 +400,13 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	GLint minFilter = translate(data.minFilter);
 	GLint magFilter = translate(data.magFilter);
-	GLint uvTechnique = translate(data.uvTechnique);
+	GLint wrapR = translate(data.wrapR);
+	GLint wrapS = translate(data.wrapS);
+	GLint wrapT = translate(data.wrapT);
 
-	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, uvTechnique);
-	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, uvTechnique);
+	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_R, wrapR);
+	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, wrapS);
+	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, wrapT);
 	glTexParameteri(bindTarget, GL_TEXTURE_MIN_FILTER, minFilter);
 	glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter);
 	glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
@@ -437,8 +460,9 @@ nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, con
 	if (textureData.generateMipMaps)
 		GLCall(glGenerateMipmap(glTarget));
 
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.uvTechnique)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.uvTechnique)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_R, translate(textureData.wrapR)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.wrapS)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.wrapT)));
 	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(textureData.minFilter)));
 	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(textureData.magFilter)));
 	GLCall(glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
@@ -447,6 +471,9 @@ nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, con
 	GLCall(glBindTexture(glTarget, 0));
 
 	((TextureGL*)texture->getImpl())->setTexture(textureID);
+
+	texture->setWidth(width);
+	texture->setHeight(height);
 
 	return texture.reset();
 }

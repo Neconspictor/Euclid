@@ -49,10 +49,10 @@ namespace nex
 		void setAnisotropy(float anisotropy);
 
 		// Has to be implemented by renderer backend
-		void setCompareMode(GLuint mode);
+		void setCompareMode(unsigned mode);
 
 		// Has to be implemented by renderer backend
-		void setCompareFunction(GLuint compareFunction);
+		void setCompareFunction(unsigned compareFunction);
 
 		// Has to be implemented by renderer backend
 		void setWrapS(TextureUVTechnique wrap);

@@ -269,7 +269,9 @@ namespace nex
 		data.internalFormat = InternFormat::R32F;
 		data.magFilter = TextureFilter::NearestNeighbor;
 		data.minFilter = TextureFilter::NearestNeighbor;
-		data.uvTechnique = TextureUVTechnique::ClampToEdge;
+		data.wrapR = TextureUVTechnique::ClampToEdge;
+		data.wrapS = TextureUVTechnique::ClampToEdge;
+		data.wrapT = TextureUVTechnique::ClampToEdge;
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
@@ -280,7 +282,9 @@ namespace nex
 		data.internalFormat = InternFormat::R8;
 		data.useSwizzle = true;
 		data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
-		data.uvTechnique = TextureUVTechnique::ClampToEdge;
+		data.wrapR = TextureUVTechnique::ClampToEdge;
+		data.wrapS = TextureUVTechnique::ClampToEdge;
+		data.wrapT = TextureUVTechnique::ClampToEdge;
 		data.pixelDataType = PixelDataType::UBYTE;
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;

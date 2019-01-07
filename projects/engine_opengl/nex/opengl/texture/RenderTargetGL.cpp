@@ -45,7 +45,9 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	GLuint uvTechnique = translate(data.uvTechnique);
+	GLuint wrapR = translate(data.wrapR);
+	GLuint wrapS = translate(data.wrapS);
+	GLuint wrapT = translate(data.wrapT);
 	GLuint minFilter = translate(data.minFilter);
 	GLuint magFilter = translate(data.magFilter);
 	GLuint internalFormat = translate(data.internalFormat);
@@ -64,9 +66,9 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 			pixelDataType, nullptr));
 	}
 
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, uvTechnique));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, uvTechnique));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT));
 	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter));
 	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter));
 
@@ -211,7 +213,9 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 	glTarget->width = width;
 	glTarget->height = height;
 
-	GLuint uvTechnique = translate(data.uvTechnique);
+	GLuint wrapR = translate(data.wrapR);
+	GLuint wrapS = translate(data.wrapS);
+	GLuint wrapT = translate(data.wrapT);
 	GLuint minFilter = translate(data.minFilter);
 	GLuint magFilter = translate(data.magFilter);
 	GLuint internalFormat = translate(data.internalFormat);
@@ -232,8 +236,9 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, magFilter));
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, uvTechnique));
-	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_R, wrapR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, wrapS));
+	GLCall(glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, wrapT));
 
 	GLCall(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
 
@@ -283,7 +288,9 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 	glTarget->width = width;
 	glTarget->height = height;
 
-	GLuint uvTechnique = translate(data.uvTechnique);
+	GLuint wrapR = translate(data.wrapR);
+	GLuint wrapS = translate(data.wrapS);
+	GLuint wrapT = translate(data.wrapT);
 	GLuint minFilter = translate(data.minFilter);
 	GLuint magFilter = translate(data.magFilter);
 	GLuint internalFormat = translate(data.internalFormat);
@@ -310,8 +317,9 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter));
 
 	// clamp is important so that no pixel artifacts occur on the border!
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uvTechnique));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, uvTechnique));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, wrapR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT));
 
 	//swizzle
 	if (data.useSwizzle)

@@ -72,6 +72,33 @@ std::ostream& nex::operator<<(std::ostream& os, ShaderStageTypeGL type)
 }
 
 
+void nex::ComputeShader::dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ)
+{
+	glDispatchCompute(workGroupsX, workGroupsY, workGroupsZ);
+}
+
+
+void nex::ShaderProgram::setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot,
+	TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer)
+{
+	assert(mIsBound);
+	GLint glID = locationID;
+	if (glID < 0) return;
+
+	TextureGL* gl = (TextureGL*)data->getImpl();
+
+	GLCall(glBindImageTexture(bindingSlot, 
+		*gl->getTexture(), 
+		level, 
+		translate(textureIsArray), 
+		layer, 
+		translate(accessType), 
+		translate(format)));
+
+	GLCall(glUniform1i(glID, bindingSlot));
+}
+
+
 void nex::ShaderProgram::setInt(UniformLocation locationID, int data)
 {
 	assert(mIsBound);
@@ -157,12 +184,6 @@ void nex::ShaderProgram::setDebugName(const char* name)
 	mDebugName = name;
 }
 
-void nex::ShaderProgram::updateBuffer(const UniformLocation* locationID, void* data, size_t bufferSize)
-{
-	// Not implemented yet!
-	assert(false);
-}
-
 nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShaderStageDesc& desc)
 {
 	GLuint id;
@@ -222,13 +243,43 @@ GLuint nex::ShaderProgramGL::getProgramID() const
 	return programID;
 }
 
+nex::UniformLocation nex::ShaderProgram::getUniformBufferLocation(const char* name)
+{
+	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
+
+	GLCall(auto loc = glGetUniformBlockIndex(thiss->programID, name));
+
+	if (loc == GL_INVALID_INDEX)
+	{
+		static Logger logger("ShaderProgramGL::getUniformBufferLocation");
+		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
+	}
+
+	return loc;
+}
+
+nex::UniformLocation nex::ShaderProgram::getShaderStorageBufferLocation(const char* name)
+{
+	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
+
+	GLCall(auto loc = glGetProgramResourceIndex(thiss->programID, GL_SHADER_STORAGE_BLOCK, name));
+
+	if (loc == GL_INVALID_INDEX)
+	{
+		static Logger logger("ShaderProgramGL::getUniformLocation");
+		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";
+	}
+
+	return loc;
+}
+
 nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name)
 {
 	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 
 	GLCall(auto loc = glGetUniformLocation(thiss->programID, name));
 
-	if (loc < 0)
+	if (loc == GL_INVALID_INDEX)
 	{
 		static Logger logger("ShaderProgramGL::getUniformLocation");
 		logger(Debug) << "Uniform '" << name << "' doesn't exist in shader '" << mDebugName << "'";

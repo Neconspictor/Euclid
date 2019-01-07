@@ -64,7 +64,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		{ 
 			TextureFilter::Linear,
 			TextureFilter::Linear, 
-			TextureUVTechnique::ClampToEdge, 
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB, 
 			PixelDataType::FLOAT, 
 			InternFormat::RGB32F, 

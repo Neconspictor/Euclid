@@ -1,4 +1,5 @@
 #include <nex/opengl/material/AbstractMaterialLoader.hpp>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
 
 using namespace std;
 using namespace nex;

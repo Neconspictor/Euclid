@@ -1,5 +1,8 @@
 #include <nex/opengl/material/BlinnPhongMaterialLoader.hpp>
 #include <string>
+#include <nex/opengl/material/Material.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
 
 using namespace std;
 using namespace nex;
@@ -25,6 +28,8 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
 			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			TextureUVTechnique::Repeat,
 			TextureUVTechnique::Repeat,
 			ColorSpace::SRGBA,
 			PixelDataType::UBYTE,

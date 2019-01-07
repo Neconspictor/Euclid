@@ -1,13 +1,17 @@
 #pragma once
 
-#include <nex/opengl/material/Material.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <memory>
 #include <assimp/scene.h>
 #include<vector>
 
+
 namespace nex
 {
+
+	class TextureManagerGL;
+	struct TextureData;
+	class Material;
+
 	class AbstractMaterialLoader
 	{
 	public:

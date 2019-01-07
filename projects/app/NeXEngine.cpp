@@ -130,7 +130,8 @@ void NeXEngine::run()
 		// the window is likely to hang or crash (at least on windows platform)
 		m_windowSystem->pollEvents();
 
-		float frameTime = m_timer.update();
+		m_timer.update();
+		float frameTime = m_timer.getTimeInSeconds();
 		float fps = m_counter.update(frameTime);
 		updateWindowTitle(frameTime, fps);
 
@@ -172,20 +173,20 @@ SceneNode* NeXEngine::createScene()
 	m_nodes.push_back(SceneNode());
 	SceneNode* root = &m_nodes.back();
 
-	m_nodes.push_back(SceneNode());
+	/*m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
 	m_vobs.push_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
 	ground->vob = &m_vobs.back();
 	ground->vob->setPosition({ 10, 0, 0 });
-	root->addChild(ground);
-
-	/*m_nodes.push_back(SceneNode());
-	SceneNode* cerberus = &m_nodes.back();
-	m_vobs.push_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
-	cerberus->vob(&m_vobs.back());
-	root->addChild(cerberus);*/
+	root->addChild(ground);*/
 
 	m_nodes.push_back(SceneNode());
+	SceneNode* cerberus = &m_nodes.back();
+	m_vobs.push_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
+	cerberus->vob = &m_vobs.back();
+	root->addChild(cerberus);
+
+	/*m_nodes.push_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();
 	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
 	cube1->vob = &m_vobs.back();
@@ -197,7 +198,7 @@ SceneNode* NeXEngine::createScene()
 	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
 	sphere->vob = &m_vobs.back();
 	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
-	root->addChild(sphere);
+	root->addChild(sphere);*/
 
 	//m_nodes.push_back(SceneNode());
 	//SceneNode* cube1 = &m_nodes.back();

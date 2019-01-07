@@ -150,6 +150,8 @@ namespace nex
 				TextureFilter::Linear,
 				TextureFilter::Linear,
 				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
 				ColorSpace::RGB,
 				PixelDataType::FLOAT,
 				InternFormat::RGB32F,
@@ -159,6 +161,8 @@ namespace nex
 			const TextureData& data = {
 				TextureFilter::Linear,
 				TextureFilter::Linear,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
 				TextureUVTechnique::ClampToEdge,
 				ColorSpace::RGB,
 				PixelDataType::FLOAT,

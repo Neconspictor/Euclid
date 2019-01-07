@@ -1,5 +1,7 @@
 #include <nex/opengl/material/PbrMaterialLoader.hpp>
+#include <nex/opengl/material/Material.hpp>
 #include <string>
+#include <nex/opengl/texture/TextureManagerGL.hpp>
 
 using namespace std;
 using namespace nex;
@@ -25,6 +27,8 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
 			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			TextureUVTechnique::Repeat,
 			TextureUVTechnique::Repeat,
 			ColorSpace::SRGBA,
 			PixelDataType::UBYTE,

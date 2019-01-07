@@ -2,10 +2,15 @@
 #include "nex/util/StringUtils.hpp"
 #include <nex/util/Memory.hpp>
 #include <ostream>
+#include "../../../engine_opengl/nex/opengl/material/AbstractMaterialLoader.hpp"
+
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 
 namespace nex
 {
+	enum class InternFormat;
+	enum class TextureAccess;
+	class Shader;
 	struct ResolvedShaderStageDesc;
 	class Material;
 	class Texture;
@@ -157,12 +162,31 @@ namespace nex
 		 */
 		UniformLocation getUniformLocation(const char* name);
 
+		UniformLocation getUniformBufferLocation(const char* name);
+
+		UniformLocation getShaderStorageBufferLocation(const char* name);
+
 		static ShaderProgram* create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "");
 
 		static ShaderProgram* create(const std::vector<Guard<ShaderStage>>& stages);
 
 		void release();
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 * @param accessType : Specifies how the image will be accessed. Notices, that access violations will result 
+		 *                     in undefined behaviour.
+		 * @param level : The mip map level of the texture to bind. Should be zero for textures not having mip maps.                    
+		 * @param textureIsArray: Specifies if the texture is an array. If true the whole array is bound as one image and the layer
+		 *                        parameter is ignored.
+		 *                        If false, the layer parameter specifies the layer of the texture array. 
+		 *                        Should be zero for non array textures.
+		 * @param format: Specifies the format that the elements of the image will be treated as for the purposes of formatted stores.
+		 */
+		void setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot, 
+			TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer);
+
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound 
@@ -204,6 +228,7 @@ namespace nex
 		 */
 		void setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot);
 
+		
 		/**
 		 * Sets a name for this shader program useful when debugging this class.
 		 */
@@ -214,18 +239,17 @@ namespace nex
 		 */
 		void unbind();
 
-		/**
-		 * @throws ShaderNotBoundException if this shader program isn't currently bound
-		 */
-		void updateBuffer(const UniformLocation* locationID, void* data, size_t bufferSize);
-
 
 	protected:
+
+		friend Shader;
 
 		ShaderProgram(void* impl);;
 
 		bool mIsBound;
 		std::string mDebugName;
+
+	public:
 		void* mImpl;
 
 	private:
@@ -282,6 +306,24 @@ namespace nex
 		virtual ~TransformShaderGL() = default;
 
 		virtual void onTransformUpdate(const TransformData& data) = 0;
+	};
+
+	class ComputeShader : public Shader
+	{
+	public:
+		ComputeShader(ShaderProgram* program = nullptr);
+		virtual ~ComputeShader() = default;
+
+		/**
+		 * Notice: Has to be implemented by the render backend implementation!
+		 * Notice: The shader has to be bound (with bind()) before this function is called!
+		 * Otherwise the behaviour is undefined!
+		 * 
+		 * @param workGroupsX: The number of work groups to be launched in the X dimension. 
+		 * @param workGroupsY: The number of work groups to be launched in the Y dimension. 
+		 * @param workGroupsZ: The number of work groups to be launched in the Z dimension. 
+		 */
+		void dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ);
 	};
 
 /**

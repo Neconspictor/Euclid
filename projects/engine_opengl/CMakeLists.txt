@@ -98,6 +98,8 @@ set(
 	nex/opengl/shader/PBRShaderGL.cpp
     nex/opengl/shader/ScreenShaderGL.hpp
 	nex/opengl/shader/ScreenShaderGL.cpp
+    nex/opengl/shader/ShaderBufferGL.hpp
+	nex/opengl/shader/ShaderBufferGL.cpp
     nex/opengl/shader/ShaderGL.hpp
 	nex/opengl/shader/ShaderGL.cpp
 	nex/opengl/shader/ShadowShaderGL.hpp
