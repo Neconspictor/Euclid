@@ -280,7 +280,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	timer.update();
 
 
-	auto diff = timer.getTimeInMicros();
+	const auto diff = timer.getTimeInMicros();
 	sum += diff;
 	++counter;
 
@@ -295,7 +295,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		std::cout << "Diff: " << diff << " ; AVG = " << sum / counter << 
 			 " ; Min = " << min << " ; Max = " << max << std::endl;
 	}
-
 }
 
 void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)

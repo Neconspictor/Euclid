@@ -3,15 +3,6 @@
 
 #define REDUCE_BOUNDS_BLOCK_X 32
 #define REDUCE_BOUNDS_BLOCK_Y 16
-
-
-#define DEPTH_WIDTH 2048 
-#define DEPTH_SIZE DEPTH_WIDTH * 2048
-
-
-
-
-
 #define GROUP_NUM_X 32
 #define GROUP_NUM_Y 16
 
@@ -28,10 +19,9 @@ layout(std430, binding = 2) buffer readonly BufferData
 {
     vec4 mCameraNearFar;  // z and w component aren't used
     vec4 mColor;
-    //uint mDepthValues[DEPTH_SIZE];
 } shader_data;
 
-layout(std430, binding = 1) buffer BufferObject
+layout(std430, binding = 1) buffer writeonly BufferObject
 {
     uint minResult; // a float value, but glsl doesn't support atomic operations on floats
 } writeOut;
@@ -41,11 +31,7 @@ shared uint groupTempValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 
 void main(void)
 {
-    //float minOfTile = intBitsToFloat(2139095039);
     uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
-    
-    //REDUCE_BOUNDS_BLOCK_X  REDUCE_BOUNDS_BLOCK_Y
-    
     const ivec2 tileStart = ivec2(  gl_GlobalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, 
                                     gl_GlobalInvocationID.y) * REDUCE_BOUNDS_BLOCK_Y;
            
@@ -53,10 +39,7 @@ void main(void)
     for (uint tileX = 0; tileX < REDUCE_BOUNDS_BLOCK_X; ++tileX) {
         for (uint tileY = 0; tileY < REDUCE_BOUNDS_BLOCK_Y; ++tileY) {
         
-            ivec2 location = tileStart + ivec2(tileX, tileY);
-         
-            //uint flattenIndex = location.y * DEPTH_WIDTH + location.x;
-         
+            ivec2 location = tileStart + ivec2(tileX, tileY);         
             uint depth = imageLoad(depthTexture, location).r;
             
             if (depth != 0) {
@@ -77,8 +60,6 @@ void main(void)
         groupMemoryBarrier();
         barrier();
     }
-    
-    
     
     if (groupIndex == 0) {
         atomicMin(writeOut.minResult,  groupTempValues[groupIndex]); //floatBitsToUint(depth)
