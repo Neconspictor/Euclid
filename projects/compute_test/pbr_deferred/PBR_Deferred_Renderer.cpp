@@ -58,7 +58,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	TextureData tData;
 	tData.internalFormat = InternFormat::R32UI;
-	tData.colorspace = ColorSpace::R;
+	tData.colorspace = ColorSpace::RED_INTEGER;
 	tData.pixelDataType = PixelDataType::UINT;
 	tData.useSwizzle = false;
 	tData.generateMipMaps = false;

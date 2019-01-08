@@ -34,6 +34,7 @@ namespace nex
 
 	enum class ColorSpace {
 		R, FIRST = R,
+		RED_INTEGER,
 		RG,
 		RGB,
 		RGBA,

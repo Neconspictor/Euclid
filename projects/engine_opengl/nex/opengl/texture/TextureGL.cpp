@@ -177,6 +177,7 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 	static ColorSpaceGL const table[]
 	{
 		R,
+		RED_INTEGER,
 		RG,
 		RGB,
 		RGBA,

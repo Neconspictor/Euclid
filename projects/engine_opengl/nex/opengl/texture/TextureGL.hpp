@@ -43,6 +43,7 @@ namespace nex
 
 	enum ColorSpaceGL {
 		R = GL_RED,
+		RED_INTEGER = GL_RED_INTEGER,
 		RG = GL_RG,
 		RGB = GL_RGB,
 		RGBA = GL_RGBA,

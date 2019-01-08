@@ -42,6 +42,7 @@ unsigned nex::getComponents(const ColorSpace colorSpace)
 	static unsigned const table[]
 	{
 		1,
+		1,
 		2,
 		3,
 		4,
