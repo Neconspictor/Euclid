@@ -471,6 +471,8 @@ nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, con
 	GLCall(glBindTexture(glTarget, 0));
 
 	((TextureGL*)texture->getImpl())->setTexture(textureID);
+	((TextureGL*)texture->getImpl())->setWidth(width);
+	((TextureGL*)texture->getImpl())->setHeight(height);
 
 	texture->setWidth(width);
 	texture->setHeight(height);

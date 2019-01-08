@@ -1,8 +1,8 @@
 #version 430 core
 
 
-#define REDUCE_BOUNDS_BLOCK_X 16
-#define REDUCE_BOUNDS_BLOCK_Y 8
+#define REDUCE_BOUNDS_BLOCK_X 32
+#define REDUCE_BOUNDS_BLOCK_Y 16
 
 
 #define DEPTH_WIDTH 2048 
@@ -13,7 +13,7 @@
 
 
 #define GROUP_NUM_X 32
-#define GROUP_NUM_Y 32
+#define GROUP_NUM_Y 16
 
 #define REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE (GROUP_NUM_X*GROUP_NUM_Y)
 
@@ -21,13 +21,14 @@ layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 // An image to store data into.
 //layout (rg32f, binding = 0) uniform image2D data;
 
+layout (r32ui, binding = 0) uniform readonly uimage2D depthTexture;
 
 
 layout(std430, binding = 2) buffer readonly BufferData
 {
     vec4 mCameraNearFar;  // z and w component aren't used
     vec4 mColor;
-    uint mDepthValues[DEPTH_SIZE];
+    //uint mDepthValues[DEPTH_SIZE];
 } shader_data;
 
 layout(std430, binding = 1) buffer BufferObject
@@ -43,22 +44,24 @@ void main(void)
     //float minOfTile = intBitsToFloat(2139095039);
     uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
     
-    const uvec2 tileStart = uvec2(gl_GlobalInvocationID.x * gl_WorkGroupSize.x, 
-                         gl_GlobalInvocationID.y * gl_WorkGroupSize.y);
+    //REDUCE_BOUNDS_BLOCK_X  REDUCE_BOUNDS_BLOCK_Y
+    
+    const ivec2 tileStart = ivec2(  gl_GlobalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, 
+                                    gl_GlobalInvocationID.y) * REDUCE_BOUNDS_BLOCK_Y;
            
     
     for (uint tileX = 0; tileX < REDUCE_BOUNDS_BLOCK_X; ++tileX) {
         for (uint tileY = 0; tileY < REDUCE_BOUNDS_BLOCK_Y; ++tileY) {
         
-            uvec2 location = tileStart + uvec2(tileX, tileY);
+            ivec2 location = tileStart + ivec2(tileX, tileY);
          
-            uint flattenIndex = location.y * DEPTH_WIDTH + location.x;
+            //uint flattenIndex = location.y * DEPTH_WIDTH + location.x;
          
-            if (flattenIndex < DEPTH_SIZE) {
-                uint depth = shader_data.mDepthValues[flattenIndex];
+            uint depth = imageLoad(depthTexture, location).r;
+            
+            if (depth != 0) {
                 minOfTile = min(minOfTile, depth);
             }
-         
         }
     }
     
@@ -83,11 +86,6 @@ void main(void)
     
     
     //atomicMin(writeOut.minResult, minOfTile); //floatBitsToUint(depth)
-    
-    //if (gl_GlobalInvocationID.x == 0) {
-    //    writeOut.minResult = min(writeOut.minResult, minOfTile);
-    //}
-    //writeOut.minResult = min(writeOut.minResult, minOfTile);
 }
 
 /*

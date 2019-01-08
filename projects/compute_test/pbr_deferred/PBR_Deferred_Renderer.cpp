@@ -57,17 +57,17 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);*/
 
 	TextureData tData;
-	tData.internalFormat = InternFormat::RGBA32F;
-	tData.colorspace = ColorSpace::RGBA;
+	tData.internalFormat = InternFormat::R32UI;
+	tData.colorspace = ColorSpace::R;
+	tData.pixelDataType = PixelDataType::UINT;
 	tData.useSwizzle = false;
 	tData.generateMipMaps = false;
 	tData.wrapR = TextureUVTechnique::ClampToEdge;
 	tData.wrapS = TextureUVTechnique::ClampToEdge;
 	tData.wrapT = TextureUVTechnique::ClampToEdge;
-	tData.magFilter = TextureFilter::Linear;
-	tData.minFilter = TextureFilter::Linear;
+	tData.magFilter = TextureFilter::NearestNeighbor;
+	tData.minFilter = TextureFilter::NearestNeighbor;
 
-	result = Texture::createTexture2D(width, height, tData, nullptr);
 	//result = new Texture(new TextureGL(textureID));
 
 	unbind();
@@ -87,26 +87,32 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	data->mCameraNearFar = vec4(0.03, 1.0, 0.0, 0.0);
 	data->mColor = vec4(1.0, 1.0, 1.0, 1.0);
 
+	uniformBuffer->update(data.get(), sizeof(*data));
+
+	std::vector<float> memory(ComputeTestShader::width * ComputeTestShader::height);
+	auto size = memory.size();
+
+
+	
 
 	srand(static_cast <unsigned> (time(0)));
 
-	for (auto i = 0; i < width * height; ++i)
+	for (auto i = 0; i < size; ++i)
 	{
-		data->mDepthValues[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		memory[i] = 1.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
 	//data->mDepthValues[7483] = 0.004;
 	//data->mDepthValues[50000] = 0.002;
 	//data->mDepthValues[650043] = 0.003;
-	data->mDepthValues[1000030] = 0.001;
+	//memory[1000030] = 0.001;
 
-	float* minValue = std::min_element(std::begin(data->mDepthValues), std::end(data->mDepthValues));
+	//auto minValue = std::min_element(memory.begin(), memory.end());
 
-	std::cout << "minValue = " << *minValue << std::endl;
+	//std::cout << "minValue = " << *minValue << std::endl;
 
-	size_t size = sizeof(*data);
 
-	uniformBuffer->update(data.get(), sizeof(*data));
+	depth = Texture::createTexture2D(ComputeTestShader::width, ComputeTestShader::height, tData, memory.data());
 
 	storageBuffer->bind();
 	WriteOut dataOut;
@@ -114,12 +120,12 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	storageBuffer->update(&dataOut, sizeof(dataOut));
 
 
-	UniformLocation location = getProgram()->getUniformLocation("data");
+	UniformLocation location = getProgram()->getUniformLocation("depthTexture");
 	getProgram()->setImageLayerOfTexture(0,
-		result.get(),
+		depth.get(),
 		0,
-		TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F,
+		TextureAccess::READ_ONLY,
+		InternFormat::R32UI,
 		0,
 		false,
 		0);
@@ -214,16 +220,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
-
-	
-
-	
-
 	mComputeTest = new ComputeTestShader(windowWidth, windowHeight);
-	mComputeClearColor = new ComputeClearColorShader(mComputeTest->result.get());
-
-	ScreenShader* screenShader = (ScreenShader*)(
-		m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
 
 	//mComputeTest->bind();
 	//GLuint location = mComputeTest->getProgram()->getUniformLocation("data");
@@ -231,18 +228,15 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//GLCall(glUniform1i(location, 0));
 	//mComputeTest->getProgram()->setTexture(0, mComputeTest->result.get(), 0);
 	//glBindImageTexture(0, HeightMap, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-	
-	screenSprite.setTexture(mComputeTest->result.get());
-	screenShader->bind();
-	screenShader->useTexture(screenSprite.getTexture());
+
 }
 
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
-	ScreenShader* screenShader = (ScreenShader*)(
-		m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
+	//ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
+	//ScreenShader* screenShader = (ScreenShader*)(
+	//	m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
 	using namespace chrono;
 
 	const unsigned width = mComputeTest->width;//mComputeTest->result->getWidth();
@@ -252,8 +246,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	mComputeTest->bind();
 
-	unsigned xDim = 32 * 16; // 256
-	unsigned yDim = 32 * 8; // 128
+
+	unsigned xDim = 32 * 32; // 256
+	unsigned yDim = 16 * 16; // 128
 
 	unsigned dispatchX = width % xDim == 0 ? width / xDim : width / xDim + 1;
 	unsigned dispatchY = height % yDim == 0 ? height / yDim : height / yDim + 1;
@@ -266,7 +261,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	static uint64 max = 0;
 	timer.update();
 	mComputeTest->dispatch(dispatchX, dispatchY, 1);
-
 
 	ComputeTestShader::WriteOut* result = (ComputeTestShader::WriteOut*) mComputeTest->storageBuffer->map(ShaderBufferGL::READ_WRITE);
 
@@ -313,44 +307,34 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 
+	/*
+
 	TextureData tData;
-	tData.internalFormat = InternFormat::RGBA32F;
-	tData.colorspace = ColorSpace::RGBA;
+	tData.internalFormat = InternFormat::R32F;
+	tData.colorspace = ColorSpace::R;
 	tData.useSwizzle = false;
 	tData.generateMipMaps = false;
 	tData.wrapR = TextureUVTechnique::ClampToEdge;
 	tData.wrapS = TextureUVTechnique::ClampToEdge;
 	tData.wrapT = TextureUVTechnique::ClampToEdge;
-	tData.magFilter = TextureFilter::Linear;
-	tData.minFilter = TextureFilter::Linear;
+	tData.magFilter = TextureFilter::NearestNeighbor;
+	tData.minFilter = TextureFilter::NearestNeighbor;
 
-	mComputeTest->result = Texture::createTexture2D(width, height, tData, nullptr);
+	mComputeTest->depth = Texture::createTexture2D(width, height, tData, nullptr);
 
 
 	mComputeTest->bind();
 
-	UniformLocation location = mComputeTest->getProgram()->getUniformLocation("data");
-	mComputeTest->getProgram()->setImageLayerOfTexture(location,
-		mComputeTest->result.get(),
+	mComputeTest->getProgram()->setImageLayerOfTexture(0,
+		mComputeTest->depth.get(),
 		0,
-		TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F,
-		0,
-		false,
-		0);
-
-
-	mComputeClearColor->bind();
-
-	location = mComputeClearColor->getProgram()->getUniformLocation("data");
-	mComputeClearColor->getProgram()->setImageLayerOfTexture(location,
-		mComputeTest->result.get(),
-		0,
-		TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F,
+		TextureAccess::READ_ONLY,
+		InternFormat::R32UI,
 		0,
 		false,
 		0);
+
+	*/
 }
 
 PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)

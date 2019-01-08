@@ -30,7 +30,6 @@ namespace nex
 			{
 				glm::vec4 mCameraNearFar;
 				glm::vec4 mColor;
-				float mDepthValues[width * height];
 			};
 
 			struct WriteOut
@@ -40,7 +39,7 @@ namespace nex
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);
-			Guard<Texture> result;
+			Guard<Texture> depth;
 			Guard<ShaderStorageBufferGL> uniformBuffer;
 			Guard<ShaderStorageBufferGL> storageBuffer;
 		};
