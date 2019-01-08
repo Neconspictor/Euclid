@@ -24,9 +24,11 @@ layout(std430, binding = 2) buffer readonly BufferData
 layout(std430, binding = 1) buffer writeonly BufferObject
 {
     uint minResult; // a float value, but glsl doesn't support atomic operations on floats
+    uint maxResult;
 } writeOut;
 
-shared uint groupTempValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
+shared uint groupMinValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
+shared uint groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 
 
 void main(void)
@@ -34,6 +36,9 @@ void main(void)
     uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
     const ivec2 tileStart = ivec2(  gl_GlobalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, 
                                     gl_GlobalInvocationID.y) * REDUCE_BOUNDS_BLOCK_Y;
+                          
+    // for preserving ordering, it is necessary to use a positive number (are 0)                       
+    uint maxOfTile = 0x0;                                
            
     
     for (uint tileX = 0; tileX < REDUCE_BOUNDS_BLOCK_X; ++tileX) {
@@ -44,29 +49,34 @@ void main(void)
             
             if (depth != 0) {
                 minOfTile = min(minOfTile, depth);
+                maxOfTile = max(maxOfTile, depth);
             }
         }
     }
     
     const uint groupIndex = gl_LocalInvocationID.x + gl_LocalInvocationID.y * gl_WorkGroupSize.x;
     
-    groupTempValues[groupIndex] = minOfTile;
+    groupMinValues[groupIndex] = minOfTile;
+    groupMaxValues[groupIndex] = maxOfTile;
     
     groupMemoryBarrier();
     barrier();
     
     for (uint offset = REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE >> 1; offset > 0; offset >>= 1) {
-        groupTempValues[groupIndex] = min(groupTempValues[groupIndex], groupTempValues[groupIndex + offset]);
+        groupMinValues[groupIndex] = min(groupMinValues[groupIndex], groupMinValues[groupIndex + offset]);
+        groupMaxValues[groupIndex] = max(groupMaxValues[groupIndex], groupMaxValues[groupIndex + offset]);
         groupMemoryBarrier();
         barrier();
     }
     
     if (groupIndex == 0) {
-        atomicMin(writeOut.minResult,  groupTempValues[groupIndex]); //floatBitsToUint(depth)
+        atomicMin(writeOut.minResult,  groupMinValues[groupIndex]);
+        atomicMax(writeOut.maxResult,  groupMaxValues[groupIndex]);
     }
     
     
-    //atomicMin(writeOut.minResult, minOfTile); //floatBitsToUint(depth)
+    //atomicMin(writeOut.minResult, floatBitsToUint(0.1)); //floatBitsToUint(depth)
+    //atomicMax(writeOut.maxResult, floatBitsToUint(1.0));
 }
 
 /*
