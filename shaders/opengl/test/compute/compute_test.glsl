@@ -22,23 +22,73 @@ layout(std430, binding = 2) buffer readonly BufferData
 {
     vec4 mCameraNearFar;  // z and w component aren't used
     vec4 mColor;
+    mat4 mCameraProj;
 } shader_data;
 
 layout(std430, binding = 1) buffer writeonly BufferObject
 {
-    uint minResult; // a float value, but glsl doesn't support atomic operations on floats
-    uint maxResult;
+    ivec3 minResult; // a float value, but glsl doesn't support atomic operations on floats
+    ivec3 maxResult;
 } writeOut;
 
-shared uint groupMinValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
-shared uint groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
+shared vec3 groupMinValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
+shared vec3 groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
+
+// Uint version of the bounds structure for atomic usage
+// NOTE: This version cannot represent negative numbers!
+struct BoundsInt
+{
+    ivec3 minCoord;
+    ivec3 maxCoord;
+};
+
+// Reset bounds to [0, maxFloat]
+BoundsInt EmptyBoundsInt()
+{
+    BoundsInt b;
+    b.minCoord = int(0x7F7FFFFF).xxx;      // Float max
+    b.maxCoord = int(0xff7fffff).xxx;      // Float min
+    return b;
+}
+
+// Float version of structure for convenient
+// NOTE: We still tend to maintain the non-negative semantics of the above for consistency
+struct BoundsFloat
+{
+    vec3 minCoord;
+    vec3 maxCoord;
+};
+
+BoundsFloat BoundsUintToFloat(BoundsInt u)
+{
+    BoundsFloat f;
+    f.minCoord.x = intBitsToFloat(u.minCoord.x);
+    f.minCoord.y = intBitsToFloat(u.minCoord.y);
+    f.minCoord.z = intBitsToFloat(u.minCoord.z);
+    f.maxCoord.x = intBitsToFloat(u.maxCoord.x);
+    f.maxCoord.y = intBitsToFloat(u.maxCoord.y);
+    f.maxCoord.z = intBitsToFloat(u.maxCoord.z);
+    return f;
+}
+
+BoundsFloat EmptyBoundsFloat()
+{
+    return BoundsUintToFloat(EmptyBoundsInt());
+}
+
+
+struct SurfaceData {
+    uint depth;
+    vec3 positionView;
+    vec3 lightTexCoord;
+};
+
+SurfaceData computeSurfaceData(ivec2 location);
 
 
 void main(void)
 {
-    uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
-    // for preserving ordering, it is necessary to use a positive number (are 0)                       
-    uint maxOfTile = 0x0;   
+    BoundsFloat bounds = EmptyBoundsFloat();
    
 
     // NOTE: This variant is much slower (doesn't know why exactly...)
@@ -69,19 +119,19 @@ void main(void)
         for (uint tileX = 0; tileX < REDUCE_TILE_WIDTH; tileX += REDUCE_BOUNDS_BLOCK_X) {
         
             ivec2 location = tileStart + ivec2(tileX, tileY);         
-            uint depth = imageLoad(depthTexture, location).r;
+            SurfaceData data = computeSurfaceData(location);
             
-            if (depth != 0) {
-                minOfTile = min(minOfTile, depth);
-                maxOfTile = max(maxOfTile, depth);
+            if (data.depth != 0) {
+                bounds.minCoord = min(bounds.minCoord, data.lightTexCoord);
+                bounds.maxCoord = max(bounds.maxCoord, data.lightTexCoord);
             }
         }
     }
     
     const uint groupIndex = gl_LocalInvocationID.x + gl_LocalInvocationID.y * gl_WorkGroupSize.x;
     
-    groupMinValues[groupIndex] = minOfTile;
-    groupMaxValues[groupIndex] = maxOfTile;
+    groupMinValues[groupIndex] = bounds.minCoord;
+    groupMaxValues[groupIndex] = bounds.maxCoord;
     
     groupMemoryBarrier();
     barrier();
@@ -94,13 +144,48 @@ void main(void)
     }
     
     if (groupIndex == 0) {
-        atomicMin(writeOut.minResult,  groupMinValues[groupIndex]);
-        atomicMax(writeOut.maxResult,  groupMaxValues[groupIndex]);
+        atomicMin(writeOut.minResult.x,  floatBitsToInt(groupMinValues[groupIndex].x));
+        atomicMin(writeOut.minResult.y,  floatBitsToInt(groupMinValues[groupIndex].y));
+        atomicMin(writeOut.minResult.z,  floatBitsToInt(groupMinValues[groupIndex].z));
+        
+        atomicMax(writeOut.maxResult.x,  floatBitsToInt(groupMaxValues[groupIndex].x));
+        atomicMax(writeOut.maxResult.y,  floatBitsToInt(groupMaxValues[groupIndex].y));
+        atomicMax(writeOut.maxResult.z,  floatBitsToInt(groupMaxValues[groupIndex].z));
     }
     
     
     //atomicMin(writeOut.minResult, floatBitsToUint(0.1)); //floatBitsToUint(depth)
     //atomicMax(writeOut.maxResult, floatBitsToUint(1.0));
+}
+
+
+SurfaceData computeSurfaceData(ivec2 location) {
+    
+    SurfaceData data;
+    data.depth = imageLoad(depthTexture, location).r;
+    float depth = uintBitsToFloat(data.depth);
+      
+      
+    vec2 gBufferDim = vec2(imageSize(depthTexture));
+      
+    //In OpenGl the mapping works a bit differently: (0,0) should be mapped to (-1, -1)
+    // as the origin in NDC is in OpenGL (-1, -1) and not (-1, 1) like in DirectX11
+    // Further in OpenGL is in screen space the origin (0,0) at the lower left corner
+    // whereas in DirectX it is the top-left corner. So, pixel coordinates in OpenGL are handled differently
+    // than in DirectX. The following mapping thus does basically the same although the result is differently.
+    // (The result will be flipped on the y-axis, screen space (1,1) in DirectX will map to (1,-1) in OpenGL)
+    vec2 screenPixelOffsetGL = vec2(2.0f, 2.0f) / gBufferDim;
+    vec2 positionScreenGL = (vec2(location) + 0.5f) * screenPixelOffsetGL + vec2(-1.0f, -1.0f);
+    vec2 positionScreenXGL = positionScreenGL + vec2(screenPixelOffsetGL.x, 0.0f);
+    vec2 positionScreenYGL = positionScreenGL + vec2(0.0f, screenPixelOffsetGL.y);
+    
+    float z_ndc = 2.0 * depth - 1.0;
+    float viewSpaceZ =  - shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO
+    
+          
+      
+      data.lightTexCoord = depth.xxx;
+    return data;
 }
 
 /*

@@ -34,9 +34,10 @@ namespace nex
 
 			struct WriteOut
 			{
-				float minResult;
-				float maxResult;
-				float _pad0[2];
+				glm::vec3 minResult;
+				float _pad0;
+				glm::vec3 maxResult;
+				float _pad1;
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);

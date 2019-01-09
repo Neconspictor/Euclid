@@ -121,8 +121,8 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	storageBuffer->bind();
 	WriteOut dataOut;
-	dataOut.minResult = 2.0f;
-	dataOut.maxResult = 0.0f;
+	dataOut.minResult = vec3(2.0f);
+	dataOut.maxResult = vec3(0.0f);
 	storageBuffer->update(&dataOut, sizeof(dataOut));
 
 
@@ -274,14 +274,14 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	if (!printed)
 	{
-		std::cout << "result->minResult = " << result->minResult << "\n";
-		std::cout << "result->maxResult = " << result->maxResult << std::endl;
+		std::cout << "result->minResult = " << result->minResult.x << "\n";
+		std::cout << "result->maxResult = " << result->maxResult.x << std::endl;
 		printed = true;
 	}
 
 	// reset
-	result->minResult = 2.0;
-	result->maxResult = 0.0;
+	result->minResult = vec3(2.0);
+	result->maxResult = vec3(0.0);
 
 	mComputeTest->storageBuffer->unmap();
 
