@@ -99,8 +99,13 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	for (auto i = 0; i < size; ++i)
 	{
-		memory[i] = 1.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		memory[i] = 0.5f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
+
+	memory[10000] = 0.1;
+	memory[1000030] = 0.9;
+	memory[748373] = 0.07;
+	memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
 
 	//data->mDepthValues[7483] = 0.004;
 	//data->mDepthValues[50000] = 0.002;
@@ -248,8 +253,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	mComputeTest->bind();
 
 
-	unsigned xDim = 32 * 32; // 256
-	unsigned yDim = 16 * 16; // 128
+	unsigned xDim = 16 * 16; // 256
+	unsigned yDim = 8 * 8; // 128
 
 	unsigned dispatchX = width % xDim == 0 ? width / xDim : width / xDim + 1;
 	unsigned dispatchY = height % yDim == 0 ? height / yDim : height / yDim + 1;

@@ -1,10 +1,13 @@
 #version 430 core
 
+#define GROUP_NUM_X 16
+#define GROUP_NUM_Y 8
+#define REDUCE_BOUNDS_BLOCK_X 16
+#define REDUCE_BOUNDS_BLOCK_Y 8
 
-#define REDUCE_BOUNDS_BLOCK_X 32
-#define REDUCE_BOUNDS_BLOCK_Y 16
-#define GROUP_NUM_X 32
-#define GROUP_NUM_Y 16
+
+#define REDUCE_TILE_WIDTH REDUCE_BOUNDS_BLOCK_X * GROUP_NUM_X
+#define REDUCE_TILE_HEIGHT REDUCE_BOUNDS_BLOCK_Y * GROUP_NUM_Y
 
 #define REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE (GROUP_NUM_X*GROUP_NUM_Y)
 
@@ -34,8 +37,11 @@ shared uint groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 void main(void)
 {
     uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
-    const ivec2 tileStart = ivec2(  gl_GlobalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, 
-                                    gl_GlobalInvocationID.y) * REDUCE_BOUNDS_BLOCK_Y;
+    
+    
+    const ivec2 globalID =  ivec2(gl_WorkGroupID.xy) * ivec2(REDUCE_TILE_WIDTH, REDUCE_TILE_HEIGHT);
+    
+    const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, gl_LocalInvocationID.y * REDUCE_BOUNDS_BLOCK_Y);
                           
     // for preserving ordering, it is necessary to use a positive number (are 0)                       
     uint maxOfTile = 0x0;                                

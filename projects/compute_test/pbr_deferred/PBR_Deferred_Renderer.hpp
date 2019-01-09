@@ -23,7 +23,7 @@ namespace nex
 		{
 		public:
 			static const unsigned width = 2048;
-			static const unsigned height = 2048;
+			static const unsigned height = 1024;
 
 
 			struct ShaderBuffer
