@@ -104,8 +104,8 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	memory[10000] = 0.1;
 	memory[1000030] = 0.9;
-	memory[748373] = 0.07;
-	memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
+	//memory[748373] = 0.07;
+	//memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
 
 	//data->mDepthValues[7483] = 0.004;
 	//data->mDepthValues[50000] = 0.002;

@@ -37,18 +37,36 @@ shared uint groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 void main(void)
 {
     uint minOfTile = 0x7f7fffff; //max float as unsigned int bits
+    // for preserving ordering, it is necessary to use a positive number (are 0)                       
+    uint maxOfTile = 0x0;   
+   
+
+    // NOTE: This variant is much slower (doesn't know why exactly...)
+    /*const ivec2 globalID =  ivec2(gl_WorkGroupID.xy) * ivec2(REDUCE_TILE_WIDTH, REDUCE_TILE_HEIGHT);
     
+    const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.x * GROUP_NUM_X, gl_LocalInvocationID.y * GROUP_NUM_Y);
+                          
+    
+    for (uint tileY = 0; tileY < REDUCE_BOUNDS_BLOCK_Y; ++tileY) {
+        for (uint tileX = 0; tileX < REDUCE_BOUNDS_BLOCK_X; ++tileX) {
+        
+            ivec2 location = tileStart + ivec2(tileX, tileY);         
+            uint depth = imageLoad(depthTexture, location).r;
+            
+            if (depth != 0) {
+                minOfTile = min(minOfTile, depth);
+                maxOfTile = max(maxOfTile, depth);
+            }
+        }
+    }*/
     
     const ivec2 globalID =  ivec2(gl_WorkGroupID.xy) * ivec2(REDUCE_TILE_WIDTH, REDUCE_TILE_HEIGHT);
     
-    const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.x * REDUCE_BOUNDS_BLOCK_X, gl_LocalInvocationID.y * REDUCE_BOUNDS_BLOCK_Y);
+    const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.xy);
                           
-    // for preserving ordering, it is necessary to use a positive number (are 0)                       
-    uint maxOfTile = 0x0;                                
-           
     
-    for (uint tileX = 0; tileX < REDUCE_BOUNDS_BLOCK_X; ++tileX) {
-        for (uint tileY = 0; tileY < REDUCE_BOUNDS_BLOCK_Y; ++tileY) {
+    for (uint tileY = 0; tileY < REDUCE_TILE_HEIGHT; tileY += REDUCE_BOUNDS_BLOCK_Y) {
+        for (uint tileX = 0; tileX < REDUCE_TILE_WIDTH; tileX += REDUCE_BOUNDS_BLOCK_X) {
         
             ivec2 location = tileStart + ivec2(tileX, tileY);         
             uint depth = imageLoad(depthTexture, location).r;
