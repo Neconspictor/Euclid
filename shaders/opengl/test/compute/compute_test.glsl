@@ -25,10 +25,12 @@ layout(std430, binding = 2) buffer readonly BufferData
     mat4 mCameraProj;
 } shader_data;
 
-layout(std430, binding = 1) buffer writeonly BufferObject
+layout(std430, binding = 1) buffer BufferObject
 {
-    ivec3 minResult; // a float value, but glsl doesn't support atomic operations on floats
-    ivec3 maxResult;
+    uint lock;
+    vec3 minResult; // a float value, but glsl doesn't support atomic operations on floats
+    vec3 maxResult;
+    
 } writeOut;
 
 shared vec3 groupMinValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
@@ -59,7 +61,7 @@ struct BoundsFloat
     vec3 maxCoord;
 };
 
-BoundsFloat BoundsUintToFloat(BoundsInt u)
+BoundsFloat BoundsIntToFloat(BoundsInt u)
 {
     BoundsFloat f;
     f.minCoord.x = intBitsToFloat(u.minCoord.x);
@@ -73,7 +75,11 @@ BoundsFloat BoundsUintToFloat(BoundsInt u)
 
 BoundsFloat EmptyBoundsFloat()
 {
-    return BoundsUintToFloat(EmptyBoundsInt());
+    BoundsFloat f;
+    f.minCoord = vec3(3.402823466e+38F);
+    f.maxCoord = vec3(-3.402823466e+38F);
+    
+    return f;
 }
 
 
@@ -84,6 +90,40 @@ struct SurfaceData {
 };
 
 SurfaceData computeSurfaceData(ivec2 location);
+
+
+#define ATOMIC_MIN_FLOAT(mem, value) (value >= 0) ? atomicMin(mem, floatBitsToInt(value)) : atomicMax(mem, floatBitsToInt(value))
+
+#define ATOMIC_MAX_FLOAT(mem, value) (value >= 0) ? atomicMax(mem, floatBitsToInt(value)) : atomicMin(mem, floatBitsToInt(value))
+
+/*void atomicMinFloat (inout int mem, float value) {
+        //float old;
+        
+        //if (value >= 0) {
+            //float old = intBitsToFloat(atomicMin(mem, floatBitsToInt(value)));
+            atomicMin(mem, floatBitsToInt(value));
+        
+        /*} else {
+        
+        old =  intBitsToFloat(atomicMax(mem, floatBitsToInt(value)));
+        }
+
+        //return old;
+};*/
+
+
+void takeMinMaxLock() {
+    uint lockAvailable;
+    
+    do {
+        lockAvailable = atomicCompSwap(writeOut.lock, 0, 1);
+    } while(lockAvailable == 1);
+};
+
+void releaseMinMaxLock() {
+    //writeOut.lock = 0;
+    atomicExchange(writeOut.lock, 0);
+};
 
 
 void main(void)
@@ -144,18 +184,71 @@ void main(void)
     }
     
     if (groupIndex == 0) {
-        atomicMin(writeOut.minResult.x,  floatBitsToInt(groupMinValues[groupIndex].x));
-        atomicMin(writeOut.minResult.y,  floatBitsToInt(groupMinValues[groupIndex].y));
-        atomicMin(writeOut.minResult.z,  floatBitsToInt(groupMinValues[groupIndex].z));
+    
+        // 0.0 is not compatible with ordering floats using unsigned reperesentations.
+        /*if (groupMinValues[groupIndex].x == 0.0) {
+            groupMinValues[groupIndex].x = 1.175494351E-38;
+        }
         
-        atomicMax(writeOut.maxResult.x,  floatBitsToInt(groupMaxValues[groupIndex].x));
-        atomicMax(writeOut.maxResult.y,  floatBitsToInt(groupMaxValues[groupIndex].y));
-        atomicMax(writeOut.maxResult.z,  floatBitsToInt(groupMaxValues[groupIndex].z));
+        if (groupMinValues[groupIndex].y == 0.0) {
+            groupMinValues[groupIndex].y = 1.175494351E-38;
+        }
+        
+        if (groupMinValues[groupIndex].z == 0.0) {
+            groupMinValues[groupIndex].z = 1.175494351E-38;
+        }
+        
+        if (groupMaxValues[groupIndex].x == 0.0) {
+            groupMaxValues[groupIndex].x = 1.175494351E-38;
+        }
+        
+        if (groupMaxValues[groupIndex].y == 0.0) {
+            groupMaxValues[groupIndex].y = 1.175494351E-38;
+        }
+        
+        if (groupMaxValues[groupIndex].z == 0.0) {
+            groupMaxValues[groupIndex].z = 1.175494351E-38;
+        }
+    
+        //groupMinValues[groupIndex] = max(groupMinValues[groupIndex], vec3(1.175494351E-38));
+        //groupMaxValues[groupIndex] = max(groupMaxValues[groupIndex], vec3(1.175494351E-38));
+    
+        // we use the opposite min/max functions as negative floats are greater than positive when 
+        // represented as unsigneds.
+        atomicMax(writeOut.minResult.x,  floatBitsToUint(groupMinValues[groupIndex].x));
+        atomicMax(writeOut.minResult.y,  floatBitsToUint(groupMinValues[groupIndex].y));
+        atomicMax(writeOut.minResult.z,  floatBitsToUint(groupMinValues[groupIndex].z));
+        
+        atomicMin(writeOut.maxResult.x,  floatBitsToUint(groupMaxValues[groupIndex].x));
+        atomicMin(writeOut.maxResult.y,  floatBitsToUint(groupMaxValues[groupIndex].y));
+        atomicMin(writeOut.maxResult.z,  floatBitsToUint(groupMaxValues[groupIndex].z));*/
+        
+        //atomicMin(writeOut.maxResult.x,  floatBitsToUint(0.0));
+        
+       /* ATOMIC_MIN_FLOAT(writeOut.minResult.x, groupMinValues[groupIndex].x);
+        ATOMIC_MIN_FLOAT(writeOut.minResult.y, groupMinValues[groupIndex].y);
+        ATOMIC_MIN_FLOAT(writeOut.minResult.z, groupMinValues[groupIndex].z);
+        
+        ATOMIC_MAX_FLOAT(writeOut.maxResult.x, groupMaxValues[groupIndex].x);
+        ATOMIC_MAX_FLOAT(writeOut.maxResult.y, groupMaxValues[groupIndex].y);
+        ATOMIC_MAX_FLOAT(writeOut.maxResult.z, groupMaxValues[groupIndex].z);*/
+        
+        
+        // TODO replace with faster algorithm using atomics, that handles float -> unsigned reinterpretation
+        // correctly.
+        takeMinMaxLock();
+        
+        writeOut.minResult = min(writeOut.minResult, groupMinValues[groupIndex]);
+        writeOut.maxResult = max(writeOut.maxResult, groupMaxValues[groupIndex]);
+        
+        releaseMinMaxLock();
+        
+
+        
+        
+        
+        //atomicMax(writeOut.maxResult.x, -100);
     }
-    
-    
-    //atomicMin(writeOut.minResult, floatBitsToUint(0.1)); //floatBitsToUint(depth)
-    //atomicMax(writeOut.maxResult, floatBitsToUint(1.0));
 }
 
 
@@ -180,11 +273,9 @@ SurfaceData computeSurfaceData(ivec2 location) {
     vec2 positionScreenYGL = positionScreenGL + vec2(0.0f, screenPixelOffsetGL.y);
     
     float z_ndc = 2.0 * depth - 1.0;
-    float viewSpaceZ =  - shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO
-    
-          
+    float viewSpaceZ =  -shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO        
       
-      data.lightTexCoord = depth.xxx;
+      data.lightTexCoord = viewSpaceZ.xxx;
     return data;
 }
 

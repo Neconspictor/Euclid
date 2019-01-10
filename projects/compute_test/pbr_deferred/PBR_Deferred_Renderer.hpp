@@ -30,14 +30,17 @@ namespace nex
 			{
 				glm::vec4 mCameraNearFar;
 				glm::vec4 mColor;
+				glm::mat4 mCameraProj;
 			};
 
 			struct WriteOut
 			{
-				glm::vec3 minResult;
-				float _pad0;
-				glm::vec3 maxResult;
-				float _pad1;
+				int lock = 0;
+				float _pad3[3] = {-1000,-1000,-1000 };
+				glm::vec3 minResult = glm::vec3(FLT_MAX);
+				float _pad0 = -1000;
+				glm::vec3 maxResult= glm::vec3(-FLT_MAX);
+				float _pad1 = -1000;
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);

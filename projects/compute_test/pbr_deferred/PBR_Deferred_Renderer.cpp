@@ -86,6 +86,9 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	data = new ShaderBuffer();
 	data->mCameraNearFar = vec4(0.03, 1.0, 0.0, 0.0);
 	data->mColor = vec4(1.0, 1.0, 1.0, 1.0);
+	data->mCameraProj = glm::perspectiveFov<float>(radians(45.0f),
+		ComputeTestShader::width,
+		ComputeTestShader::height, 0.1f, 100.0f);
 
 	uniformBuffer->update(data.get(), sizeof(*data));
 
@@ -104,7 +107,8 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	memory[10000] = 0.1;
 	memory[1000030] = 0.9;
-	//memory[748373] = 0.07;
+	memory[748373] = 0.07;
+	//memory[748373] = -0.07;
 	//memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
 
 	//data->mDepthValues[7483] = 0.004;
@@ -121,8 +125,9 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	storageBuffer->bind();
 	WriteOut dataOut;
-	dataOut.minResult = vec3(2.0f);
-	dataOut.maxResult = vec3(0.0f);
+	//dataOut.minResult = vec3(std::numeric_limits<float>::max());
+	//std::numeric_limits<float>::max();
+	//dataOut.maxResult = vec3(std::numeric_limits<float>::min());
 	storageBuffer->update(&dataOut, sizeof(dataOut));
 
 
@@ -274,14 +279,15 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	if (!printed)
 	{
+		std::cout << "result->lock = " << result->lock << "\n";
 		std::cout << "result->minResult = " << result->minResult.x << "\n";
 		std::cout << "result->maxResult = " << result->maxResult.x << std::endl;
 		printed = true;
 	}
 
 	// reset
-	result->minResult = vec3(2.0);
-	result->maxResult = vec3(0.0);
+	result->minResult = vec3(std::numeric_limits<float>::max());
+	result->maxResult = vec3(std::numeric_limits<float>::min());
 
 	mComputeTest->storageBuffer->unmap();
 
