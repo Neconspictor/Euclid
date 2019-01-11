@@ -14,6 +14,10 @@
 #include <math.h>
 #include<algorithm>
 #include "nex/util/Timer.hpp"
+#include <ostream>
+
+#define GLM_ENABLE_EXPERIMENTAL 1
+#include <glm/gtx/string_cast.hpp>
 
 namespace nex {
 	class Timer;
@@ -90,6 +94,9 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		ComputeTestShader::width,
 		ComputeTestShader::height, 0.1f, 100.0f);
 
+	data->mCameraViewToLightProj = data->mCameraProj;//glm::ortho(-100.0f, 100.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+	//glm::ortho(-1000, 1000, 0, 1);
+
 	uniformBuffer->update(data.get(), sizeof(*data));
 
 	std::vector<float> memory(ComputeTestShader::width * ComputeTestShader::height);
@@ -102,12 +109,12 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	for (auto i = 0; i < size; ++i)
 	{
-		memory[i] = 0.5f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		memory[i] = 0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
-	memory[10000] = 0.1;
-	memory[1000030] = 0.9;
-	memory[748373] = 0.07;
+	//memory[2048-1] = 0.001;
+	memory[2048*1024 - 1] = 0.00001;
+	//memory[748373] = 0.07;
 	//memory[748373] = -0.07;
 	//memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
 
@@ -242,7 +249,6 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 }
 
-
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
 	//ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
@@ -280,8 +286,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	if (!printed)
 	{
 		std::cout << "result->lock = " << result->lock << "\n";
-		std::cout << "result->minResult = " << result->minResult.x << "\n";
-		std::cout << "result->maxResult = " << result->maxResult.x << std::endl;
+		std::cout << "result->minResult = " << glm::to_string(result->minResult) << "\n";
+		std::cout << "result->maxResult = " << glm::to_string(result->maxResult) << std::endl;
 		printed = true;
 	}
 

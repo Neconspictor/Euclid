@@ -31,6 +31,7 @@ namespace nex
 				glm::vec4 mCameraNearFar;
 				glm::vec4 mColor;
 				glm::mat4 mCameraProj;
+				glm::mat4 mCameraViewToLightProj;
 			};
 
 			struct WriteOut

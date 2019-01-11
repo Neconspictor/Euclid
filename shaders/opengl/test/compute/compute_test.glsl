@@ -23,6 +23,7 @@ layout(std430, binding = 2) buffer readonly BufferData
     vec4 mCameraNearFar;  // z and w component aren't used
     vec4 mColor;
     mat4 mCameraProj;
+    mat4 mCameraViewToLightProj;
 } shader_data;
 
 layout(std430, binding = 1) buffer BufferObject
@@ -90,6 +91,8 @@ struct SurfaceData {
 };
 
 SurfaceData computeSurfaceData(ivec2 location);
+vec3 computePositionViewFromZ(in vec2 positionScreen, float viewSpaceZ);
+vec3 projectIntoLightTexCoord(in vec3 positionView);
 
 
 #define ATOMIC_MIN_FLOAT(mem, value) (value >= 0) ? atomicMin(mem, floatBitsToInt(value)) : atomicMax(mem, floatBitsToInt(value))
@@ -116,13 +119,14 @@ void takeMinMaxLock() {
     uint lockAvailable;
     
     do {
+        //memoryBarrier();
         lockAvailable = atomicCompSwap(writeOut.lock, 0, 1);
     } while(lockAvailable == 1);
 };
 
 void releaseMinMaxLock() {
-    //writeOut.lock = 0;
-    atomicExchange(writeOut.lock, 0);
+    writeOut.lock = 0;
+    //atomicExchange(writeOut.lock, 0);
 };
 
 
@@ -158,8 +162,8 @@ void main(void)
     for (uint tileY = 0; tileY < REDUCE_TILE_HEIGHT; tileY += REDUCE_BOUNDS_BLOCK_Y) {
         for (uint tileX = 0; tileX < REDUCE_TILE_WIDTH; tileX += REDUCE_BOUNDS_BLOCK_X) {
         
-            ivec2 location = tileStart + ivec2(tileX, tileY);         
-            SurfaceData data = computeSurfaceData(location);
+            ivec2 positionScreen = tileStart + ivec2(tileX, tileY);         
+            SurfaceData data = computeSurfaceData(positionScreen);
             
             if (data.depth != 0) {
                 bounds.minCoord = min(bounds.minCoord, data.lightTexCoord);
@@ -252,10 +256,10 @@ void main(void)
 }
 
 
-SurfaceData computeSurfaceData(ivec2 location) {
+SurfaceData computeSurfaceData(ivec2 positionScreen) {
     
     SurfaceData data;
-    data.depth = imageLoad(depthTexture, location).r;
+    data.depth = imageLoad(depthTexture, positionScreen).r;
     float depth = uintBitsToFloat(data.depth);
       
       
@@ -267,16 +271,53 @@ SurfaceData computeSurfaceData(ivec2 location) {
     // whereas in DirectX it is the top-left corner. So, pixel coordinates in OpenGL are handled differently
     // than in DirectX. The following mapping thus does basically the same although the result is differently.
     // (The result will be flipped on the y-axis, screen space (1,1) in DirectX will map to (1,-1) in OpenGL)
-    vec2 screenPixelOffsetGL = vec2(2.0f, 2.0f) / gBufferDim;
-    vec2 positionScreenGL = (vec2(location) + 0.5f) * screenPixelOffsetGL + vec2(-1.0f, -1.0f);
-    vec2 positionScreenXGL = positionScreenGL + vec2(screenPixelOffsetGL.x, 0.0f);
-    vec2 positionScreenYGL = positionScreenGL + vec2(0.0f, screenPixelOffsetGL.y);
+    // See also: http://www.songho.ca/opengl/gl_transform.html
+    vec2 screenPixelOffset = vec2(2.0f, 2.0f) / gBufferDim;
     
+    // Note: add 0.5f to the positionScreen for minimzing rounding errors
+    vec2 positionClipSpace = (positionScreen + 0.5f) * 2.0f / gBufferDim + vec2(-1.0f, -1.0f);
+    
+    // Unproject depth z value into view space
     float z_ndc = 2.0 * depth - 1.0;
-    float viewSpaceZ =  -shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO        
+    float viewSpaceZ =  shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO       
+
+    data.positionView = computePositionViewFromZ(positionClipSpace, viewSpaceZ);
       
-      data.lightTexCoord = viewSpaceZ.xxx;
+    // Solve for light space position and screen-space derivatives
+    data.lightTexCoord = projectIntoLightTexCoord(data.positionView);
+    //data.lightTexCoord = data.positionView;
+    
     return data;
+}
+
+
+vec3 computePositionViewFromZ(in vec2 positionClipSpace, float viewSpaceZ) {
+    // For more information: https://stackoverflow.com/questions/11277501/how-to-recover-view-space-position-given-view-space-depth-value-and-ndc-xy/46118945#46118945
+    
+    vec2 screenSpaceRay = vec2(
+        positionClipSpace.x / shader_data.mCameraProj[0][0],
+        positionClipSpace.y / shader_data.mCameraProj[1][1]);
+                               
+    vec3 positionView;
+    positionView.z = -viewSpaceZ;
+    positionView.xy = screenSpaceRay.xy * viewSpaceZ;
+    
+    
+    
+    return positionView;
+}
+
+/**
+ * NOTE: Function assumes shader_data.mCameraViewToLightProj to be orthographic
+ * Result is light space - clip space mapped to [0,1] (not [-1,1]!)
+ */
+vec3 projectIntoLightTexCoord(in vec3 positionView) {
+    vec4 positionLight = shader_data.mCameraViewToLightProj * vec4(positionView, 1.0f);
+    
+    // perspective division and mapping from [-1,1] -> [0,1]
+    vec3 texCoord = (positionLight.xyz / positionLight.w) * 0.5 + vec3(0.5);
+
+    return texCoord;
 }
 
 /*
