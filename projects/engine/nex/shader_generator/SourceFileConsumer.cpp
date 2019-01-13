@@ -194,6 +194,56 @@ const char* IncludeCollector::getLineEnd(const StreamDesc& desc)
 	return it;
 }
 
+void FirstLineAfterVersionStatementSearcher::consume(const StreamDesc& desc)
+{
+	// Nothing to do?
+	if (mState == State::FOUND) return;
+
+	// update the position
+	++mFirstLineAfterVersionPosition;
+
+	const char* pos = desc.position->pos;
+	char c = *pos;
+
+	bool isNewLine = c == '\n';
+
+	if (!desc.isComment)
+		mBuffer.push_back(c);
+
+	if (desc.isComment && !isNewLine) return;
+
+	if (isNewLine)
+	{
+		mBuffer.clear();
+	}
+
+	switch (mState)
+	{
+	case State::DEFAULT:
+		if (mBuffer == "#version")
+		{
+			mState = State::VERSION_DIRECTIVE;
+		}
+		break;
+	case State::VERSION_DIRECTIVE:
+		
+		if (isNewLine)
+		{
+			mState = State::FOUND;
+			mBuffer.clear();
+		}
+
+		break;
+	default:;
+	}
+}
+
+const size_t FirstLineAfterVersionStatementSearcher::getResultPosition() const
+{
+	// Only return the calculated position if the target position was actually found!
+	return mState == State::FOUND ? mFirstLineAfterVersionPosition : 0;
+}
+
 std::ostream& operator<<(std::ostream& os, const IncludeCollector::Include& include)
 {
 	os << include.filePath << ", " << include.lineBegin << ", " << include.lineEnd;

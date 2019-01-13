@@ -1,6 +1,5 @@
 #version 430 core
-
-#include "test/compute/SDSM.glsl" 
+#include "test/compute/SDSM.glsl"
 
 #define GROUP_NUM_X 16
 #define GROUP_NUM_Y 8

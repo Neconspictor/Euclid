@@ -28,6 +28,12 @@ namespace nex
 
 	struct FileDesc {
 
+		struct Define
+		{
+			size_t begin;
+			size_t size;
+		};
+
 		FileDesc() = default;
 
 		virtual ~FileDesc() = default;
@@ -44,7 +50,15 @@ namespace nex
 		size_t resolvedSourceSize = 0;
 
 		std::list<IncludeDesc> includes;
+		Define defineInfo;
+		bool mIsRoot;
+		size_t firstLineAfterVersionStatement;
 		std::string filePath = "";
+
+		bool isRoot() const
+		{
+			return mIsRoot;
+		}
 	};
 
 	struct IncludeDesc : FileDesc {
@@ -72,6 +86,7 @@ namespace nex
 	{
 		FileDesc* fileDesc;
 		size_t position;
+		bool errorInUserDefineMacro;
 	};
 
 
@@ -86,6 +101,7 @@ namespace nex
 	{
 		std::filesystem::path filePath;
 		ShaderStageType type;
+		std::vector<std::string> defines;
 	};
 
 	struct ProgramSources
@@ -104,9 +120,7 @@ namespace nex
 
 		ProgramSources generate(const std::vector<UnresolvedShaderStageDesc>& stages) const;
 
-		FileDesc generate(const std::filesystem::path& filePath) const;
-
-		void generate(ResolvedShaderStageDesc* programDesc) const;
+		FileDesc generate(const std::filesystem::path& filePath, const std::vector<std::string>& defines) const;
 
 		/**
 		 * NOTE: Has to be initialized on first use

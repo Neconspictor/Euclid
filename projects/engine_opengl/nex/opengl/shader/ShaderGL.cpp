@@ -429,14 +429,16 @@ std::string nex::ShaderProgramGL::adjustLineNumbers(char* message, const Resolve
 		else if (state == ParseState::LineNumber && c == ':')
 		{
 			//LOG(demo::Logger()) << "Read line number: " << lineNumber.str();
-
 			size_t lineNumberInt = atol(lineNumber.str().c_str());
 			size_t column = 1;
 			unsigned int resolvedPosition = ShaderSourceFileGenerator::calcResolvedPosition(desc, lineNumberInt - 1, column - 1);
 			ReverseInfo reverseInfo = ShaderSourceFileGenerator::reversePosition(&desc.root, resolvedPosition);
+
+			// calc line and column number
 			ShaderSourceFileGenerator::calcLineColumn(reverseInfo.fileDesc->source, reverseInfo.position, &lineNumberInt, &column);
 			++lineNumberInt;
 			++column;
+
 
 			// Adjust the linenumber by offset if the error occurred in the root file
 			if (reverseInfo.fileDesc == &desc.root)
@@ -445,7 +447,14 @@ std::string nex::ShaderProgramGL::adjustLineNumbers(char* message, const Resolve
 			}
 
 			messageLine.str("");
-			messageLine << "ERROR: " << reverseInfo.fileDesc->filePath << ", line " << lineNumberInt << ": ";
+
+			if (reverseInfo.errorInUserDefineMacro)
+			{
+				messageLine << "ERROR: " << reverseInfo.fileDesc->filePath << ", User provided define macro " << ": ";
+			} else
+			{
+				messageLine << "ERROR: " << reverseInfo.fileDesc->filePath << ", line " << lineNumberInt << ": ";
+			}
 
 			lineNumber.str("");
 			state = ParseState::None;

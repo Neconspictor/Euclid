@@ -120,6 +120,31 @@ namespace nex
 		static const char* getLineEnd(const StreamDesc& desc);
 
 	};
+
+	class FirstLineAfterVersionStatementSearcher : public SourceFileConsumer
+	{
+	public:
+		
+		/**
+		 * @throws ParseException: If syntax errors are detected in the source file at the current stream position.
+		 */
+		void consume(const StreamDesc& desc) override;
+
+		const size_t getResultPosition() const;
+
+	private:
+
+		enum class State
+		{
+			DEFAULT,
+			VERSION_DIRECTIVE,
+			FOUND,
+		};
+
+		std::string mBuffer;
+		State mState = State::DEFAULT;
+		size_t mFirstLineAfterVersionPosition = 0;
+	};
 }
 
 std::ostream& operator<<(std::ostream& os, const nex::IncludeCollector::Include& include);

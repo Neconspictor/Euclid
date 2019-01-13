@@ -36,6 +36,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	unresolved.resize(1);
 
 	unresolved[0].filePath = "test/compute/compute_test.glsl";
+	unresolved[0].defines.push_back("#define PARTITIONS 5");
 	unresolved[0].type = ShaderStageType::COMPUTE;
 
 	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get();

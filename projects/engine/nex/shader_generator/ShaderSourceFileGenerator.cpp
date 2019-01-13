@@ -18,11 +18,13 @@ std::ostream& operator<<(std::ostream& os, const nex::Replacement& r)
 }
 
 nex::FileDesc::FileDesc(FileDesc&& o) noexcept : source(std::move(o.source)),
-sourceSize(o.sourceSize), 
-resolvedSource(std::move(o.resolvedSource)), 
-resolvedSourceSize(o.resolvedSourceSize),
-includes(std::move(o.includes)),
-filePath(std::move(o.filePath))
+                                                 sourceSize(o.sourceSize),
+                                                 resolvedSource(std::move(o.resolvedSource)),
+                                                 resolvedSourceSize(o.resolvedSourceSize),
+                                                 includes(std::move(o.includes)), defineInfo(std::move(o.defineInfo)),
+                                                 mIsRoot(o.mIsRoot), 
+												 firstLineAfterVersionStatement(o.firstLineAfterVersionStatement),
+                                                 filePath(std::move(o.filePath))
 {
 }
 
@@ -35,6 +37,9 @@ nex::FileDesc& nex::FileDesc::operator=(nex::FileDesc&& o) noexcept
 	this->resolvedSourceSize = o.resolvedSourceSize;
 	this->filePath = std::move(o.filePath);
 	this->includes = std::move(o.includes);
+	this->mIsRoot = o.mIsRoot;
+	this->firstLineAfterVersionStatement = o.firstLineAfterVersionStatement;
+	this->defineInfo = std::move(o.defineInfo);
 
 	return *this;
 }
@@ -181,7 +186,7 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::generate(const std::vector<U
 		try
 		{
 			resolved.type = unresolved.type;
-			resolved.root = generate(unresolved.filePath);
+			resolved.root = generate(unresolved.filePath, unresolved.defines);
 			//writeUnfoldedShaderContentToFile(vertexDesc.root.filePath, vertexDesc.root.resolvedSource);
 		} catch (const ParseException& e)
 		{
@@ -197,18 +202,47 @@ nex::ProgramSources nex::ShaderSourceFileGenerator::generate(const std::vector<U
 	return result;
 }
 
-nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath) const
+nex::FileDesc nex::ShaderSourceFileGenerator::generate(const std::filesystem::path& filePath, const std::vector<std::string>& defines) const
 {
-	FileDesc root; 
+	FileDesc root;
+	root.mIsRoot = true;
 	parseShaderFile(&root, mFileSystem->resolvePath(filePath));
+
+	// build source code for defines and update dependencies accordingly
+	std::stringstream ss;
+	for (auto& define : defines)
+	{
+		ss << define + "\n";
+	}
+
+	std::string defineSource = ss.str();
+	
+	auto oldSize = root.source.size();
+	root.source.insert( root.source.begin() + root.firstLineAfterVersionStatement,
+						defineSource.begin(), 
+						defineSource.end());
+
+	root.sourceSize = root.source.size();
+
+	auto sizeDiff = root.sourceSize - oldSize;
+
+	root.defineInfo.begin = root.firstLineAfterVersionStatement;
+	root.defineInfo.size = sizeDiff;
+
+	for (auto& include : root.includes)
+	{
+		include.begin += sizeDiff;
+		include.end += sizeDiff;
+
+		// diff is calculated later
+		//include.replacement.diff += sizeDiff;
+	}
+
+
+
+
 	generate(&root);
 	return root;
-}
-
-void nex::ShaderSourceFileGenerator::generate(nex::ResolvedShaderStageDesc* programDesc) const
-{
-	parseShaderSource(&programDesc->root, programDesc->root.filePath, std::move(programDesc->root.source));
-	generate(&programDesc->root);
 }
 
 nex::ShaderSourceFileGenerator* nex::ShaderSourceFileGenerator::get()
@@ -278,6 +312,8 @@ nex::ReverseInfo nex::ShaderSourceFileGenerator::reversePosition(const FileDesc*
 	ReverseInfo result;
 	result.position = resolvedPosition;
 	size_t& cursor = result.position;
+	result.errorInUserDefineMacro = false;
+
 
 	using IteratorType = std::list<IncludeDesc>::const_iterator;
 	std::queue<IteratorType> queue;
@@ -325,6 +361,17 @@ nex::ReverseInfo nex::ShaderSourceFileGenerator::reversePosition(const FileDesc*
 	}
 
 	result.fileDesc = const_cast<FileDesc*>(current);
+
+	if (result.fileDesc->isRoot())
+	{
+		const auto& pos = result.position;
+		const auto& info = result.fileDesc->defineInfo;
+		// Adjust position when user set define macros
+		if (pos >= info.begin && pos < info.begin + info.size)
+			result.errorInUserDefineMacro = true;
+		else if (pos >= info.begin + info.size)
+			result.position -= result.fileDesc->defineInfo.size;
+	}
 
 	return result;
 }
@@ -379,6 +426,7 @@ void nex::ShaderSourceFileGenerator::buildShader(nex::FileDesc* fileDesc)
 void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root) const
 {
 	using namespace std::filesystem;
+
 
 	std::queue<IncludeDesc*> queue;
 	const auto compare = [](const path& a, const path& b)
@@ -448,10 +496,13 @@ void nex::ShaderSourceFileGenerator::parseShaderFile(nex::FileDesc* fileDesc, co
 	LineCounter lineCounter;
 	OffsetIncludeCalculator offsetIncludeCalculator;
 	IncludeCollector includeCollector;
+	FirstLineAfterVersionStatementSearcher definesBeginPositionSearcher;
+	
 
 	reader.addConsumer(&lineCounter);
 	reader.addConsumer(&offsetIncludeCalculator);
 	reader.addConsumer(&includeCollector);
+	reader.addConsumer(&definesBeginPositionSearcher);
 
 	fileDesc->filePath = filePath.generic_string();
 
@@ -467,6 +518,7 @@ void nex::ShaderSourceFileGenerator::parseShaderFile(nex::FileDesc* fileDesc, co
 	}
 
 	fileDesc->sourceSize = fileDesc->source.size();
+	fileDesc->firstLineAfterVersionStatement = definesBeginPositionSearcher.getResultPosition();
 
 	for (const auto& it : includeCollector.getIncludes())
 	{
