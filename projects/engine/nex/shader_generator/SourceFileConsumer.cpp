@@ -164,7 +164,8 @@ const std::vector<IncludeCollector::Include>& IncludeCollector::getIncludes() co
 bool IncludeCollector::isIgnorable(char c)
 {
 	return c == ' '
-		|| c == '\t';
+		|| c == '\t'
+		|| c == '\r';
 }
 
 const char* IncludeCollector::getLineBegin(const StreamDesc& desc)

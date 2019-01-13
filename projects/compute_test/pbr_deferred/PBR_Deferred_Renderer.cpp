@@ -45,6 +45,9 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	shaderStages.resize(programSources.descs.size());
 	for (auto i = 0; i < shaderStages.size(); ++i)
 	{
+		auto path = generator->getFileSystem()->resolvePath("test/compute");
+		path += "/compute_test-resolved.glsl";
+		FileSystem::writeToFile(path.generic_string(), programSources.descs[i].root.resolvedSource);
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 

@@ -114,6 +114,8 @@ namespace nex
 		static ShaderSourceFileGenerator* get();
 
 		void init(const FileSystem* fileSystem);
+
+		const FileSystem* getFileSystem() const;
 		
 
 

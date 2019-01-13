@@ -222,6 +222,11 @@ void nex::ShaderSourceFileGenerator::init(const FileSystem* fileSystem)
 	mFileSystem = fileSystem;
 }
 
+const nex::FileSystem* nex::ShaderSourceFileGenerator::getFileSystem() const
+{
+	return mFileSystem;
+}
+
 unsigned int nex::ShaderSourceFileGenerator::calcResolvedPosition(const nex::ResolvedShaderStageDesc& desc, size_t lineNumber, size_t column)
 {
 	auto& source = desc.root.resolvedSource;

@@ -64,9 +64,8 @@ void SourceFileParser::read(std::vector<char>* result)
 	file.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 	file.open(mFilePath, std::ios::binary);
 	size_t fileSize = getFileSize(file);
-	result->resize(fileSize + 1);
+	result->resize(fileSize);
 	file.read(result->data(), fileSize);
-	(*result)[fileSize] = '\0';
 
 	StreamPos streamPos{ result->data(), result->data(), result->data() + fileSize};
 	parse(streamPos);
