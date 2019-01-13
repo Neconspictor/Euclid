@@ -1,5 +1,6 @@
 #version 430 core
 
+
 #define GROUP_NUM_X 16
 #define GROUP_NUM_Y 8
 #define REDUCE_BOUNDS_BLOCK_X 16
@@ -275,32 +276,33 @@ SurfaceData computeSurfaceData(ivec2 positionScreen) {
     vec2 screenPixelOffset = vec2(2.0f, 2.0f) / gBufferDim;
     
     // Note: add 0.5f to the positionScreen for minimzing rounding errors
-    vec2 positionClipSpace = (positionScreen + 0.5f) * 2.0f / gBufferDim + vec2(-1.0f, -1.0f);
+    vec2 positionNDC = (positionScreen + 0.5f) * 2.0f / gBufferDim + vec2(-1.0f, -1.0f);
     
     // Unproject depth z value into view space
     float z_ndc = 2.0 * depth - 1.0;
     float viewSpaceZ =  shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO       
 
-    data.positionView = computePositionViewFromZ(positionClipSpace, viewSpaceZ);
+    data.positionView = computePositionViewFromZ(positionNDC, viewSpaceZ);
       
     // Solve for light space position and screen-space derivatives
     data.lightTexCoord = projectIntoLightTexCoord(data.positionView);
-    //data.lightTexCoord = data.positionView;
+    data.lightTexCoord = vec3(positionNDC, viewSpaceZ);
+    data.lightTexCoord = data.positionView;
     
     return data;
 }
 
 
-vec3 computePositionViewFromZ(in vec2 positionClipSpace, float viewSpaceZ) {
+vec3 computePositionViewFromZ(in vec2 positionNDC, float viewSpaceZ) {
     // For more information: https://stackoverflow.com/questions/11277501/how-to-recover-view-space-position-given-view-space-depth-value-and-ndc-xy/46118945#46118945
     
     vec2 screenSpaceRay = vec2(
-        positionClipSpace.x / shader_data.mCameraProj[0][0],
-        positionClipSpace.y / shader_data.mCameraProj[1][1]);
+        viewSpaceZ * positionNDC.x / shader_data.mCameraProj[0][0],
+        viewSpaceZ * positionNDC.y / shader_data.mCameraProj[1][1]);
                                
     vec3 positionView;
     positionView.z = -viewSpaceZ;
-    positionView.xy = screenSpaceRay.xy * viewSpaceZ;
+    positionView.xy = screenSpaceRay.xy;
     
     
     
@@ -315,7 +317,7 @@ vec3 projectIntoLightTexCoord(in vec3 positionView) {
     vec4 positionLight = shader_data.mCameraViewToLightProj * vec4(positionView, 1.0f);
     
     // perspective division and mapping from [-1,1] -> [0,1]
-    vec3 texCoord = (positionLight.xyz / positionLight.w) * 0.5 + vec3(0.5);
+    vec3 texCoord = (positionLight.xyz / positionLight.w)* 0.5 + vec3(0.5);
 
     return texCoord;
 }

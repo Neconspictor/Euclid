@@ -94,8 +94,10 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		ComputeTestShader::width,
 		ComputeTestShader::height, 0.1f, 100.0f);
 
-	data->mCameraViewToLightProj = data->mCameraProj;//glm::ortho(-100.0f, 100.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-	//glm::ortho(-1000, 1000, 0, 1);
+	data->mCameraViewToLightProj = glm::ortho(-82.802315f, 82.8023150f, -41.380932f, 41.380932f, 0.1f, 100.0f);
+	//data->mCameraViewToLightProj  = glm::perspectiveFov<float>(radians(45.0f),
+	//	ComputeTestShader::width,
+	//	ComputeTestShader::height, 0.1f, 100.0f);
 
 	uniformBuffer->update(data.get(), sizeof(*data));
 
@@ -113,7 +115,24 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	}
 
 	//memory[2048-1] = 0.001;
-	memory[2048*1024 - 1] = 0.00001;
+	memory[0] = 0.1;
+
+	vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
+	vec4 clipSpace = data->mCameraViewToLightProj * vec4(viewSpaceResult, 1.0f);
+	vec3 texCoord = (vec3(clipSpace) / clipSpace.w)* 0.5f + vec3(0.5f);
+	std::cout << "texCoord = " << glm::to_string(texCoord) << std::endl;
+
+	vec3 viewSpaceResult2(-0.091992, -0.045974, -0.111099);
+	vec4 clipSpace2 = data->mCameraViewToLightProj * vec4(viewSpaceResult2, 1.0f);
+	vec3 texCoord2 = (vec3(clipSpace2) / clipSpace2.w)* 0.5f + vec3(0.5f);
+	std::cout << "texCoord2 = " << glm::to_string(texCoord2) << std::endl;
+
+	vec3 viewSpaceResult3(82.802315, 41.380932, -100.000061);
+	vec4 clipSpace3 = data->mCameraViewToLightProj * vec4(viewSpaceResult3, 1.0f);
+	vec3 texCoord3 = (vec3(clipSpace3) / clipSpace3.w)* 0.5f + vec3(0.5f);
+	std::cout << "texCoord3 = " << glm::to_string(texCoord3) << std::endl;
+
+
 	//memory[748373] = 0.07;
 	//memory[748373] = -0.07;
 	//memory[ComputeTestShader::width * ComputeTestShader::height - 1] = 0.99;
