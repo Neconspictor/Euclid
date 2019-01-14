@@ -40,7 +40,7 @@ namespace nex
 				float _pad3[3] = {-1000,-1000,-1000 };
 				glm::vec3 minResult = glm::vec3(FLT_MAX);
 				float _pad0 = -1000;
-				glm::vec3 maxResult= glm::vec3(-FLT_MAX);
+				glm::vec3 maxResult = glm::vec3(0.0f);//glm::vec3(-FLT_MAX);
 				float _pad1 = -1000;
 			};
 			

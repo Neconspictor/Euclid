@@ -118,8 +118,11 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		memory[i] = 0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
-	//memory[2048-1] = 0.001;
-	memory[0] = 0.1;
+	memory[2048*1024 - 1] = 1.0;
+	memory[2048-1] = 0.0001;
+	memory[0] = 0.09;
+	memory[1] = 1.0;
+	memory[2048] = 1.0;
 
 	vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
 	vec4 clipSpace = data->mCameraViewToLightProj * vec4(viewSpaceResult, 1.0f);
