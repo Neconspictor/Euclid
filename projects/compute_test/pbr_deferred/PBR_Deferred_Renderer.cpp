@@ -103,16 +103,19 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	//	ComputeTestShader::width,
 	//	ComputeTestShader::height, 0.1f, 100.0f);
 
-	const float range = 1.0f / (float)partitionCount;
+	const float step = 1.0f / (float)partitionCount;
+
+	const float begin = -0.2f;
+	const float end = -100.0f;
 
 	for(unsigned i = 0; i < partitionCount; ++i)
 	{
 		auto& partition = data->partitions[i];
-		partition.intervalBegin = i * range;
-		partition.intervalEnd = (i+1) * range;
+		partition.intervalBegin = begin + i * step * (end - begin);
+		partition.intervalEnd = begin + (i+1) * step * (end - begin);
 	}
 
-	data->partitions[0].intervalBegin = 0.00001f;
+	//data->partitions[0].intervalBegin = 0.00001f;
 
 	uniformBuffer->update(data.get(), sizeof(*data));
 
@@ -126,14 +129,14 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	for (auto i = 0; i < size; ++i)
 	{
-		memory[i] = 0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		memory[i] = -0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
-	memory[2048*1024 - 1] = 0.67;
+	memory[2048*1024 - 1] = 0.999;
 	//memory[2048-1] = 0.0001;
-	memory[0] = 0.000009;
-	memory[1] = 0.2;
-	memory[2048] = 0.9;
+	//memory[0] = 0.000009;
+	//memory[1] = 0.2;
+	//memory[2048] = 0.99999;
 
 	vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
 	vec4 clipSpace = data->mCameraViewToLightProj * vec4(viewSpaceResult, 1.0f);
@@ -359,7 +362,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		if (diff < 2000) max = diff;
 	}	
 
-	if (diff > 1000)
+	if (diff > 1000 && false)
 	{
 		std::cout << "Diff: " << diff << " ; AVG = " << sum / counter << 
 			 " ; Min = " << min << " ; Max = " << max << std::endl;

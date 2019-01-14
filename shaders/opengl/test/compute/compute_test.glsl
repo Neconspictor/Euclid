@@ -121,7 +121,7 @@ SurfaceData computeSurfaceData(ivec2 positionScreen) {
     // Solve for light space position and screen-space derivatives
     data.lightTexCoord = projectIntoLightTexCoord(data.positionView);
     //data.lightTexCoord = vec3(positionNDC, viewSpaceZ);
-    //data.lightTexCoord = data.positionView;
+    data.lightTexCoord = data.positionView;
     
     return data;
 }
@@ -151,24 +151,32 @@ void main(void)
             
             /*if (data.depth != 0) {
             
-                for (uint i = 0; i < PARTITIONS; ++i) {
+                //for (uint i = 0; i < PARTITIONS; ++i) {
+                    int i = 0;
                     bounds[i].minCoord = min(bounds[i].minCoord, data.lightTexCoord);
                     bounds[i].maxCoord = max(bounds[i].maxCoord, data.lightTexCoord);
-                }
+                //}
                 
             }*/
             
             // Drop samples that fall outside the view frustum (clear color, etc)
-            if (data.depth >= nearZ && data.depth <= farZ) {
+            // Note: in view space z values are negative and thus nearZ is greater 
+            // than farZ!
+            //if (data.depth >= nearZ && data.depth <= farZ) {
+            const float viewZ = data.positionView.z;
+            if (viewZ <= nearZ) { //&& viewZ <= farZ
                 uint index = 0;
                 for (uint i = 0; i < (PARTITIONS - 1); ++i) {
-                    if (data.depth >= shader_data.partitions[i].intervalEnd) {
+                    if (viewZ <= shader_data.partitions[i].intervalEnd) {
                         ++index;
                     }
                 }
                 
-                bounds[index].minCoord = min(bounds[index].minCoord, data.lightTexCoord);
-                bounds[index].maxCoord = max(bounds[index].maxCoord, data.lightTexCoord);
+                //abs(data.lightTexCoord.z)
+                const vec3 toWrite = vec3(data.lightTexCoord.xy, data.depth);
+                
+                bounds[index].minCoord = min(bounds[index].minCoord, toWrite);
+                bounds[index].maxCoord = max(bounds[index].maxCoord, toWrite);
             }
             
         }
