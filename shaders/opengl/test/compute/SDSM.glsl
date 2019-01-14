@@ -1,25 +1,20 @@
 #ifndef SDSM_INCLUDE
 #define SDSM_INCLUDE
 
-// The number of partitions to produce
-#ifndef PARTITIONS
-#define PARTITIONS 4
-#endif 
-
 // Uint version of the bounds structure for atomic usage
 // NOTE: This version cannot represent negative numbers!
-struct BoundsInt
+struct BoundsUint
 {
-    ivec3 minCoord;
-    ivec3 maxCoord;
+    uvec3 minCoord;
+    uvec3 maxCoord;
 };
 
 // Reset bounds to [0, maxFloat]
-BoundsInt EmptyBoundsInt()
+BoundsUint EmptyBoundsUint()
 {
-    BoundsInt b;
-    b.minCoord = int(0x7F7FFFFF).xxx;      // Float max
-    b.maxCoord = int(0x0).xxx;//int(0xff7fffff).xxx;      // Float min
+    BoundsUint b;
+    b.minCoord = uint(0x7F7FFFFF).xxx;      // Float max
+    b.maxCoord = uint(0x0).xxx;//int(0xff7fffff).xxx;      // Float min
     return b;
 }
 
@@ -27,19 +22,21 @@ BoundsInt EmptyBoundsInt()
 // NOTE: We still tend to maintain the non-negative semantics of the above for consistency
 struct BoundsFloat
 {
-    vec3 minCoord;
-    vec3 maxCoord;
+    vec3 minCoord; //base alignment: 4N
+    float _pad0;
+    vec3 maxCoord; //base alignment: 4N
+    float _pad1;
 };
 
-BoundsFloat BoundsIntToFloat(BoundsInt u)
+BoundsFloat BoundsUintToFloat(BoundsUint u)
 {
     BoundsFloat f;
-    f.minCoord.x = intBitsToFloat(u.minCoord.x);
-    f.minCoord.y = intBitsToFloat(u.minCoord.y);
-    f.minCoord.z = intBitsToFloat(u.minCoord.z);
-    f.maxCoord.x = intBitsToFloat(u.maxCoord.x);
-    f.maxCoord.y = intBitsToFloat(u.maxCoord.y);
-    f.maxCoord.z = intBitsToFloat(u.maxCoord.z);
+    f.minCoord.x = uintBitsToFloat(u.minCoord.x);
+    f.minCoord.y = uintBitsToFloat(u.minCoord.y);
+    f.minCoord.z = uintBitsToFloat(u.minCoord.z);
+    f.maxCoord.x = uintBitsToFloat(u.maxCoord.x);
+    f.maxCoord.y = uintBitsToFloat(u.maxCoord.y);
+    f.maxCoord.z = uintBitsToFloat(u.maxCoord.z);
     return f;
 }
 
@@ -52,9 +49,17 @@ BoundsFloat EmptyBoundsFloat()
     return f;
 }
 
+struct Partition
+{
+    vec3 scale; // These are given in texture coordinate [0, 1] space
+    float intervalBegin;
+    vec3 bias;  // These are given in texture coordinate [0, 1] space
+    float intervalEnd;
+};
+
 
 struct SurfaceData {
-    uint depth;
+    float depth;
     vec3 positionView;
     vec3 lightTexCoord;
 };

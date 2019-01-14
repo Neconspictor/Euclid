@@ -36,7 +36,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	unresolved.resize(1);
 
 	unresolved[0].filePath = "test/compute/compute_test.glsl";
-	unresolved[0].defines.push_back("#define PARTITIONS 5");
+	unresolved[0].defines.push_back("#define PARTITIONS 6");
 	unresolved[0].type = ShaderStageType::COMPUTE;
 
 	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get();
@@ -103,6 +103,17 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	//	ComputeTestShader::width,
 	//	ComputeTestShader::height, 0.1f, 100.0f);
 
+	const float range = 1.0f / (float)partitionCount;
+
+	for(unsigned i = 0; i < partitionCount; ++i)
+	{
+		auto& partition = data->partitions[i];
+		partition.intervalBegin = i * range;
+		partition.intervalEnd = (i+1) * range;
+	}
+
+	data->partitions[0].intervalBegin = 0.00001f;
+
 	uniformBuffer->update(data.get(), sizeof(*data));
 
 	std::vector<float> memory(ComputeTestShader::width * ComputeTestShader::height);
@@ -118,11 +129,11 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		memory[i] = 0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
-	memory[2048*1024 - 1] = 1.0;
-	memory[2048-1] = 0.0001;
-	memory[0] = 0.09;
-	memory[1] = 1.0;
-	memory[2048] = 1.0;
+	memory[2048*1024 - 1] = 0.67;
+	//memory[2048-1] = 0.0001;
+	memory[0] = 0.000009;
+	memory[1] = 0.2;
+	memory[2048] = 0.9;
 
 	vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
 	vec4 clipSpace = data->mCameraViewToLightProj * vec4(viewSpaceResult, 1.0f);
@@ -158,9 +169,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	storageBuffer->bind();
 	WriteOut dataOut;
-	//dataOut.minResult = vec3(std::numeric_limits<float>::max());
-	//std::numeric_limits<float>::max();
-	//dataOut.maxResult = vec3(std::numeric_limits<float>::min());
+	reset(&dataOut);
 	storageBuffer->update(&dataOut, sizeof(dataOut));
 
 
@@ -173,6 +182,17 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		0,
 		false,
 		0);
+}
+
+void PBR_Deferred_Renderer::ComputeTestShader::reset(WriteOut* out)
+{
+	for (int i = 0; i < partitionCount; ++i)
+	{
+		out->results[i].minCoord = vec3(FLT_MAX);
+		out->results[i].maxCoord = vec3(0.0f);
+	}
+
+	out->lock = 0;
 }
 
 PBR_Deferred_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputeShader()
@@ -312,15 +332,18 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	if (!printed)
 	{
 		std::cout << "result->lock = " << result->lock << "\n";
-		std::cout << "result->minResult = " << glm::to_string(result->minResult) << "\n";
-		std::cout << "result->maxResult = " << glm::to_string(result->maxResult) << std::endl;
+
+		for (int i = 0; i < mComputeTest->partitionCount; ++i)
+		{
+			std::cout << "result->minResult[" << i << "] = " << glm::to_string(result->results[i].minCoord) << "\n";
+			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(result->results[i].maxCoord) << std::endl;
+		}
+
 		printed = true;
 	}
 
 	// reset
-	result->minResult = vec3(std::numeric_limits<float>::max());
-	result->maxResult = vec3(std::numeric_limits<float>::min());
-
+	mComputeTest->reset(result);
 	mComputeTest->storageBuffer->unmap();
 
 	timer.update();

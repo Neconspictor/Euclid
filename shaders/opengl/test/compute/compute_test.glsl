@@ -1,5 +1,11 @@
 #version 430 core
+
 #include "test/compute/SDSM.glsl"
+
+// The number of partitions to produce
+//#ifndef PARTITIONS
+//#define PARTITIONS 4
+//#endif 
 
 #define GROUP_NUM_X 16
 #define GROUP_NUM_Y 8
@@ -10,7 +16,7 @@
 #define REDUCE_TILE_WIDTH REDUCE_BOUNDS_BLOCK_X * GROUP_NUM_X
 #define REDUCE_TILE_HEIGHT REDUCE_BOUNDS_BLOCK_Y * GROUP_NUM_Y
 
-#define REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE (GROUP_NUM_X*GROUP_NUM_Y)
+#define REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE (PARTITIONS * GROUP_NUM_X*GROUP_NUM_Y)
 
 layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 // An image to store data into.
@@ -25,13 +31,16 @@ layout(std430, binding = 2) buffer readonly BufferData
     vec4 mColor;
     mat4 mCameraProj;
     mat4 mCameraViewToLightProj;
+    Partition partitions[PARTITIONS];
 } shader_data;
 
 layout(std430, binding = 1) buffer BufferObject
 {
+    BoundsUint results[PARTITIONS];
     uint lock;
-    uvec3 minResult; // a float value, but glsl doesn't support atomic operations on floats
-    uvec3 maxResult;
+    vec3 _pad0;
+    //uvec3 minResults[PARTITIONS]; // a float value, but glsl doesn't support atomic operations on floats
+    //uvec3 maxResults[PARTITIONS];
     
 } writeOut;
 
@@ -85,8 +94,8 @@ vec3 computePositionViewFromZ(in vec2 positionNDC, float viewSpaceZ) {
 SurfaceData computeSurfaceData(ivec2 positionScreen) {
     
     SurfaceData data;
-    data.depth = imageLoad(depthTexture, positionScreen).r;
-    float depth = uintBitsToFloat(data.depth);
+    data.depth = uintBitsToFloat(imageLoad(depthTexture, positionScreen).r);
+    float depth = data.depth;
       
       
     vec2 gBufferDim = vec2(imageSize(depthTexture));
@@ -120,11 +129,18 @@ SurfaceData computeSurfaceData(ivec2 positionScreen) {
 
 void main(void)
 {
-    BoundsFloat bounds = EmptyBoundsFloat();
+    BoundsFloat bounds[PARTITIONS]; 
+    for (uint i = 0; i < PARTITIONS; ++i) {
+        bounds[i] = EmptyBoundsFloat();
+    }
+    
        
     const ivec2 globalID =  ivec2(gl_WorkGroupID.xy) * ivec2(REDUCE_TILE_WIDTH, REDUCE_TILE_HEIGHT);
     
     const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.xy);
+    
+    const float nearZ = shader_data.partitions[0].intervalBegin;
+    const float farZ = shader_data.partitions[PARTITIONS-1].intervalEnd;
                           
     
     for (uint tileY = 0; tileY < REDUCE_TILE_HEIGHT; tileY += REDUCE_BOUNDS_BLOCK_Y) {
@@ -133,40 +149,75 @@ void main(void)
             ivec2 positionScreen = tileStart + ivec2(tileX, tileY);         
             SurfaceData data = computeSurfaceData(positionScreen);
             
-            if (data.depth != 0) {
-                bounds.minCoord = min(bounds.minCoord, data.lightTexCoord);
-                bounds.maxCoord = max(bounds.maxCoord, data.lightTexCoord);
+            /*if (data.depth != 0) {
+            
+                for (uint i = 0; i < PARTITIONS; ++i) {
+                    bounds[i].minCoord = min(bounds[i].minCoord, data.lightTexCoord);
+                    bounds[i].maxCoord = max(bounds[i].maxCoord, data.lightTexCoord);
+                }
+                
+            }*/
+            
+            // Drop samples that fall outside the view frustum (clear color, etc)
+            if (data.depth >= nearZ && data.depth <= farZ) {
+                uint index = 0;
+                for (uint i = 0; i < (PARTITIONS - 1); ++i) {
+                    if (data.depth >= shader_data.partitions[i].intervalEnd) {
+                        ++index;
+                    }
+                }
+                
+                bounds[index].minCoord = min(bounds[index].minCoord, data.lightTexCoord);
+                bounds[index].maxCoord = max(bounds[index].maxCoord, data.lightTexCoord);
             }
+            
         }
     }
     
     const uint groupIndex = gl_LocalInvocationID.x + gl_LocalInvocationID.y * gl_WorkGroupSize.x;
     
-    groupMinValues[groupIndex] = bounds.minCoord;
-    groupMaxValues[groupIndex] = bounds.maxCoord;
+    for (uint i = 0; i < PARTITIONS; ++i) {
+        uint index = PARTITIONS * groupIndex + i;
+        groupMinValues[index] = bounds[i].minCoord;
+        groupMaxValues[index] = bounds[i].maxCoord;
+    }
+    
+    
     
     groupMemoryBarrier();
     barrier();
     
-    for (uint offset = REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE >> 1; offset > 0; offset >>= 1) {
-        groupMinValues[groupIndex] = min(groupMinValues[groupIndex], groupMinValues[groupIndex + offset]);
-        groupMaxValues[groupIndex] = max(groupMaxValues[groupIndex], groupMaxValues[groupIndex + offset]);
+    for (uint offset = (REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE >> 1); offset >= PARTITIONS; offset >>= 1) {
+        
+        for (uint i = groupIndex; i < offset; i += (GROUP_NUM_X*GROUP_NUM_Y)) {
+            groupMinValues[i] = min(groupMinValues[i], groupMinValues[i + offset]);
+            groupMaxValues[i] = max(groupMaxValues[i], groupMaxValues[i + offset]);
+        }
+        
         groupMemoryBarrier();
         barrier();
     }
     
-    if (groupIndex == 0) {
+    if (groupIndex < PARTITIONS) {
         
         // Using atomic min/max is much faster than using a spin lock
         // This approach assumes that the values are >= 0 ; otherwise correct number order isn't guaranteed!
         // As we mapped the coordinates to lightspace texture space to [0,1] this approach is valid        
-        atomicMin(writeOut.minResult.x,  floatBitsToUint(groupMinValues[groupIndex].x));
-        atomicMin(writeOut.minResult.y,  floatBitsToUint(groupMinValues[groupIndex].y));
-        atomicMin(writeOut.minResult.z,  floatBitsToUint(groupMinValues[groupIndex].z));
+        atomicMin(writeOut.results[groupIndex].minCoord.x,  floatBitsToUint(groupMinValues[groupIndex].x));
+        atomicMin(writeOut.results[groupIndex].minCoord.y,  floatBitsToUint(groupMinValues[groupIndex].y));
+        atomicMin(writeOut.results[groupIndex].minCoord.z,  floatBitsToUint(groupMinValues[groupIndex].z));
         
-        atomicMax(writeOut.maxResult.x,  floatBitsToUint(groupMaxValues[groupIndex].x));
-        atomicMax(writeOut.maxResult.y,  floatBitsToUint(groupMaxValues[groupIndex].y));
-        atomicMax(writeOut.maxResult.z,  floatBitsToUint(groupMaxValues[groupIndex].z));
+        atomicMax(writeOut.results[groupIndex].maxCoord.x,  floatBitsToUint(groupMaxValues[groupIndex].x));
+        atomicMax(writeOut.results[groupIndex].maxCoord.y,  floatBitsToUint(groupMaxValues[groupIndex].y));
+        atomicMax(writeOut.results[groupIndex].maxCoord.z,  floatBitsToUint(groupMaxValues[groupIndex].z));
+        
+        /*atomicMin(writeOut.results[groupIndex].minCoord.x,  floatBitsToUint(0.0));
+        atomicMin(writeOut.results[groupIndex].minCoord.y,  floatBitsToUint(0.0));
+        atomicMin(writeOut.results[groupIndex].minCoord.z,  floatBitsToUint(0.0));
+        
+        atomicMax(writeOut.results[groupIndex].maxCoord.x,  floatBitsToUint(1.0));
+        atomicMax(writeOut.results[groupIndex].maxCoord.y,  floatBitsToUint(1.0));
+        atomicMax(writeOut.results[groupIndex].maxCoord.z,  floatBitsToUint(1.0));*/
         
         //atomicMin(writeOut.maxResult.x,  floatBitsToUint(0.0));
         

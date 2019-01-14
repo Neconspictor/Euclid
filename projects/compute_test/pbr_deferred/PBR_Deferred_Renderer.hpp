@@ -24,7 +24,21 @@ namespace nex
 		public:
 			static const unsigned width = 2048;
 			static const unsigned height = 1024;
+			static const unsigned partitionCount = 6;
 
+			struct BoundsFloat
+			{
+				glm::vec3 minCoord; float _pad0;
+				glm::vec3 maxCoord; float _pad1;
+			};
+
+			struct Partition
+			{
+				glm::vec3 scale; // These are given in texture coordinate [0, 1] space
+				float intervalBegin;
+				glm::vec3 bias;  // These are given in texture coordinate [0, 1] space
+				float intervalEnd;
+			};
 
 			struct ShaderBuffer
 			{
@@ -32,22 +46,24 @@ namespace nex
 				glm::vec4 mColor;
 				glm::mat4 mCameraProj;
 				glm::mat4 mCameraViewToLightProj;
+				Partition partitions[partitionCount];
 			};
 
 			struct WriteOut
 			{
-				int lock = 0;
-				float _pad3[3] = {-1000,-1000,-1000 };
-				glm::vec3 minResult = glm::vec3(FLT_MAX);
-				float _pad0 = -1000;
-				glm::vec3 maxResult = glm::vec3(0.0f);//glm::vec3(-FLT_MAX);
-				float _pad1 = -1000;
+				BoundsFloat results[partitionCount];
+				int lock = 0; glm::vec3 _pad0;
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);
+			
+			void reset(WriteOut* out);
+			
 			Guard<Texture> depth;
 			Guard<ShaderStorageBufferGL> uniformBuffer;
 			Guard<ShaderStorageBufferGL> storageBuffer;
+
+
 		};
 
 		class ComputeClearColorShader : public nex::ComputeShader
