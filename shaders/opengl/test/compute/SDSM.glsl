@@ -6,7 +6,9 @@
 struct BoundsUint
 {
     uvec3 minCoord;
+    float _pad0;
     uvec3 maxCoord;
+    float _pad1;
 };
 
 // Reset bounds to [0, maxFloat]
@@ -43,8 +45,8 @@ BoundsFloat BoundsUintToFloat(BoundsUint u)
 BoundsFloat EmptyBoundsFloat()
 {
     BoundsFloat f;
-    f.minCoord = vec3(3.402823466e+38F);
-    f.maxCoord = vec3(0);//vec3(-3.402823466e+38F);
+    f.minCoord = vec3(1.0);
+    f.maxCoord = vec3(0);
     
     return f;
 }

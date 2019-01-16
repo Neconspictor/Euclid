@@ -84,11 +84,23 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	storageBuffer = new ShaderStorageBufferGL(1, sizeof(WriteOut), ShaderBufferGL::DYNAMIC_COPY);
 
+	lockBuffer = new ShaderStorageBufferGL(3, sizeof(LockBuffer), ShaderBufferGL::DYNAMIC_COPY);
+
 
 	//ShaderProgramGL* gl = (ShaderProgramGL*)mProgram->mImpl;
 	//GLuint id = glGetUniformBlockIndex(gl->getProgramID(), "BufferData");
 
 	bind();
+
+
+	lockBuffer->bind();
+
+	LockBuffer buffer;
+	buffer.lock = 0;
+	lockBuffer->update(&buffer, sizeof(LockBuffer));
+
+	lockBuffer->unbind();
+
 	uniformBuffer->bind();
 	Guard<ShaderBuffer> data; 
 	data = new ShaderBuffer();
@@ -105,7 +117,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	const float step = 1.0f / (float)partitionCount;
 
-	const float begin = -0.2f;
+	const float begin = -0.101f;
 	const float end = -100.0f;
 
 	for(unsigned i = 0; i < partitionCount; ++i)
@@ -129,11 +141,11 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	for (auto i = 0; i < size; ++i)
 	{
-		memory[i] = -0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		memory[i] = 0.0f;//static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 	}
 
-	memory[2048*1024 - 1] = 0.999;
-	//memory[2048-1] = 0.0001;
+	//memory[2048*1024 - 1] = 1.0; //vec3(0.250408, 0.125143, 0.302416)
+	memory[2048-1] = 0.99999999;
 	//memory[0] = 0.000009;
 	//memory[1] = 0.2;
 	//memory[2048] = 0.99999;
@@ -152,6 +164,13 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	vec4 clipSpace3 = data->mCameraViewToLightProj * vec4(viewSpaceResult3, 1.0f);
 	vec3 texCoord3 = (vec3(clipSpace3) / clipSpace3.w)* 0.5f + vec3(0.5f);
 	std::cout << "texCoord3 = " << glm::to_string(texCoord3) << std::endl;
+
+
+	//vec3(0.206696, 0.103297, 0.249626)
+	vec3 viewSpaceResult4 (0.206696, -0.103297, -0.249626);
+	vec4 clipSpace4 = data->mCameraViewToLightProj * vec4(viewSpaceResult4, 1.0f);
+	vec3 texCoord4 = (vec3(clipSpace4) / clipSpace4.w)* 0.5f + vec3(0.5f);
+	std::cout << "texCoord4 = " << glm::to_string(texCoord4) << std::endl;
 
 
 	//memory[748373] = 0.07;
@@ -195,7 +214,7 @@ void PBR_Deferred_Renderer::ComputeTestShader::reset(WriteOut* out)
 		out->results[i].maxCoord = vec3(0.0f);
 	}
 
-	out->lock = 0;
+	//out->lock = 0;
 }
 
 PBR_Deferred_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputeShader()
@@ -334,7 +353,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	if (!printed)
 	{
-		std::cout << "result->lock = " << result->lock << "\n";
+		//std::cout << "result->lock = " << result->lock << "\n";
 
 		for (int i = 0; i < mComputeTest->partitionCount; ++i)
 		{

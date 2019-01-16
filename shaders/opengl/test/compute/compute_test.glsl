@@ -36,28 +36,34 @@ layout(std430, binding = 2) buffer readonly BufferData
 
 layout(std430, binding = 1) buffer BufferObject
 {
+    //int lock;
+    //float _pad0[3];
     BoundsUint results[PARTITIONS];
-    uint lock;
-    vec3 _pad0;
+    
     //uvec3 minResults[PARTITIONS]; // a float value, but glsl doesn't support atomic operations on floats
     //uvec3 maxResults[PARTITIONS];
     
 } writeOut;
 
+layout(binding = 3) volatile buffer LockBuffer
+{
+   int lock;    
+} _lock;
+
 shared vec3 groupMinValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 shared vec3 groupMaxValues[REDUCE_BOUNDS_SHARED_MEMORY_ARRAY_SIZE];
 
 void takeMinMaxLock() {
-    uint lockAvailable;
+    int lockAvailable;
     
     do {
         //memoryBarrier();
-        lockAvailable = atomicCompSwap(writeOut.lock, 0, 1);
+        lockAvailable = atomicCompSwap(_lock.lock, 0, 1);
     } while(lockAvailable == 1);
 };
 
 void releaseMinMaxLock() {
-    writeOut.lock = 0;
+    _lock.lock = 0;
     //atomicExchange(writeOut.lock, 0);
 };
 
@@ -121,7 +127,7 @@ SurfaceData computeSurfaceData(ivec2 positionScreen) {
     // Solve for light space position and screen-space derivatives
     data.lightTexCoord = projectIntoLightTexCoord(data.positionView);
     //data.lightTexCoord = vec3(positionNDC, viewSpaceZ);
-    data.lightTexCoord = data.positionView;
+    //data.lightTexCoord = data.positionView;
     
     return data;
 }
@@ -172,11 +178,15 @@ void main(void)
                     }
                 }
                 
-                //abs(data.lightTexCoord.z)
-                const vec3 toWrite = vec3(data.lightTexCoord.xy, data.depth);
                 
-                bounds[index].minCoord = min(bounds[index].minCoord, toWrite);
-                bounds[index].maxCoord = max(bounds[index].maxCoord, toWrite);
+                bounds[index].minCoord = min(bounds[index].minCoord, abs(data.lightTexCoord));
+                bounds[index].maxCoord = max(bounds[index].maxCoord, abs(data.lightTexCoord));
+                //abs(data.lightTexCoord.z)
+                //const vec3 toWrite = data.lightTexCoord;
+                //const vec3 toWrite = vec3(abs(data.positionView.xy), -data.positionView.z);
+                
+                //bounds[index].minCoord = min(bounds[index].minCoord, toWrite);
+                //bounds[index].maxCoord = max(bounds[index].maxCoord, toWrite);
             }
             
         }
@@ -232,13 +242,18 @@ void main(void)
         
         // TODO replace with faster algorithm using atomics, that handles float -> unsigned reinterpretation
         // correctly.
+        
         /*takeMinMaxLock();
         
-        writeOut.minResult = min(writeOut.minResult, groupMinValues[groupIndex]);
-        writeOut.maxResult = max(writeOut.maxResult, groupMaxValues[groupIndex]);
+        for (uint i = 0; i < PARTITIONS; ++i) {
+            //writeOut.lock = -1;
+            //writeOut.results[groupIndex].minCoord = vec3(_lock.lock);
+            //writeOut.results[groupIndex].maxCoord = vec3(_lock.lock);
+            //writeOut.results[groupIndex].minCoord = min(writeOut.results[groupIndex].minCoord, groupMinValues[groupIndex]);
+            writeOut.results[i].minCoord = min(writeOut.results[i].minCoord, groupMinValues[i]);
+            writeOut.results[i].maxCoord = max(writeOut.results[i].maxCoord, groupMaxValues[i]);
+        }
         
         releaseMinMaxLock();*/
-        
-        //atomicMax(writeOut.maxResult.x, -100);
     }
 }

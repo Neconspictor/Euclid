@@ -51,8 +51,14 @@ namespace nex
 
 			struct WriteOut
 			{
+				//int lock = 0; float _pad0[3];
 				BoundsFloat results[partitionCount];
-				int lock = 0; glm::vec3 _pad0;
+				
+			};
+
+			struct LockBuffer
+			{
+				int lock = 0; float _pad0[3];
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);
@@ -62,6 +68,7 @@ namespace nex
 			Guard<Texture> depth;
 			Guard<ShaderStorageBufferGL> uniformBuffer;
 			Guard<ShaderStorageBufferGL> storageBuffer;
+			Guard<ShaderStorageBufferGL> lockBuffer;
 
 
 		};
