@@ -4,16 +4,9 @@
 #include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/opengl/shader/SkyBoxShaderGL.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
-#include <nex/opengl/shader/ScreenShaderGL.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
-#include "nex/opengl/model/ModelManagerGL.hpp"
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include "nex/opengl/texture/TextureGL.hpp"
-#include <math.h>
-#include<algorithm>
-#include "nex/util/Timer.hpp"
+#include <nex/shader/Shader.hpp>
+#include <nex/util/Timer.hpp>
 #include <ostream>
 
 #define GLM_ENABLE_EXPERIMENTAL 1
@@ -44,7 +37,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	std::vector<Guard<ShaderStage>> shaderStages;
 	shaderStages.resize(programSources.descs.size());
-	for (auto i = 0; i < shaderStages.size(); ++i)
+	for (unsigned i = 0; i < shaderStages.size(); ++i)
 	{
 		auto path = generator->getFileSystem()->resolvePath("test/compute");
 		path += "/compute_test-resolved.glsl";
@@ -80,11 +73,11 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	unbind();
 
-	uniformBuffer = new ShaderStorageBufferGL(2, sizeof(ShaderBuffer), ShaderBufferGL::DYNAMIC_DRAW);
+	uniformBuffer = new ShaderStorageBuffer(2, sizeof(Constant), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
-	storageBuffer = new ShaderStorageBufferGL(1, sizeof(WriteOut), ShaderBufferGL::DYNAMIC_COPY);
+	storageBuffer = new ShaderStorageBuffer(1, sizeof(WriteOut), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 
-	lockBuffer = new ShaderStorageBufferGL(3, sizeof(LockBuffer), ShaderBufferGL::DYNAMIC_COPY);
+	lockBuffer = new ShaderStorageBuffer(3, sizeof(LockBuffer), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 
 
 	//ShaderProgramGL* gl = (ShaderProgramGL*)mProgram->mImpl;
@@ -102,8 +95,8 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	lockBuffer->unbind();
 
 	uniformBuffer->bind();
-	Guard<ShaderBuffer> data; 
-	data = new ShaderBuffer();
+	Guard<Constant> data;
+	data = new Constant();
 	data->mCameraNearFar = vec4(0.03, 1.0, 0.0, 0.0);
 	data->mColor = vec4(1.0, 1.0, 1.0, 1.0);
 	data->mCameraProj = glm::perspectiveFov<float>(radians(45.0f),
@@ -117,7 +110,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 
 	const float step = 1.0f / (float)partitionCount;
 
-	const float begin = -0.101f;
+	const float begin = -0.1f;
 	const float end = -100.0f;
 
 	for(unsigned i = 0; i < partitionCount; ++i)
@@ -268,8 +261,6 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	ModelManagerGL* modelManager = m_renderBackend->getModelManager();
 
-	modelManager->loadModels();
-
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 
 
@@ -347,7 +338,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	timer.update();
 	mComputeTest->dispatch(dispatchX, dispatchY, 1);
 
-	ComputeTestShader::WriteOut* result = (ComputeTestShader::WriteOut*) mComputeTest->storageBuffer->map(ShaderBufferGL::READ_WRITE);
+	ComputeTestShader::WriteOut* result = (ComputeTestShader::WriteOut*) mComputeTest->storageBuffer->map(ShaderBuffer::Access::READ_WRITE);
 
 	static bool printed = false;
 

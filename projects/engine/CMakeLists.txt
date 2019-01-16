@@ -105,8 +105,10 @@ set(
     
     
     #nex/shader
-    nex/shader/Shader.hpp
     nex/shader/Shader.cpp
+    nex/shader/Shader.hpp
+    nex/shader/ShaderBuffer.hpp
+	
     
     #nex/shader_generator
     nex/shader_generator/CommentStateTracker.cpp

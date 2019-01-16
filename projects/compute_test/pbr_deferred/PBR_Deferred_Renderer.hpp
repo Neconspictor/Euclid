@@ -1,23 +1,17 @@
 #pragma once
 #include <nex/event/Task.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/opengl/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/opengl/renderer/Renderer.hpp>
-#include "nex/opengl/post_processing/AmbientOcclusion.hpp"
-#include "nex/opengl/shader/ShaderBufferGL.hpp"
+#include "nex/shader/ShaderBuffer.hpp"
 
 namespace nex
 {
 	class PBR_Deferred_Renderer : public Renderer
 	{
 	public:
-
-		
-
 
 		class ComputeTestShader : public nex::ComputeShader
 		{
@@ -40,7 +34,7 @@ namespace nex
 				float intervalEnd;
 			};
 
-			struct ShaderBuffer
+			struct Constant
 			{
 				glm::vec4 mCameraNearFar;
 				glm::vec4 mColor;
@@ -66,9 +60,9 @@ namespace nex
 			void reset(WriteOut* out);
 			
 			Guard<Texture> depth;
-			Guard<ShaderStorageBufferGL> uniformBuffer;
-			Guard<ShaderStorageBufferGL> storageBuffer;
-			Guard<ShaderStorageBufferGL> lockBuffer;
+			Guard<ShaderStorageBuffer> uniformBuffer;
+			Guard<ShaderStorageBuffer> storageBuffer;
+			Guard<ShaderStorageBuffer> lockBuffer;
 
 
 		};
@@ -91,7 +85,6 @@ namespace nex
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(int width, int height);
 		nex::HBAO_GL* getHBAO();
-		AmbientOcclusionSelector* getAOSelector();
 
 		PBR_DeferredGL* getPBR();
 
@@ -113,8 +106,6 @@ namespace nex
 		std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
 		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 		std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
-
-		AmbientOcclusionSelector m_aoSelector;
 
 		RenderTarget* renderTargetSingleSampled;
 		Sprite screenSprite;

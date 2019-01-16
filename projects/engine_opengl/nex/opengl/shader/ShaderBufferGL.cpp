@@ -1,7 +1,7 @@
 #include <nex/opengl/shader/ShaderBufferGL.hpp>
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/opengl/renderer/RendererOpenGL.hpp>
 
-nex::ShaderStorageBufferGL::ShaderStorageBufferGL(unsigned binding, size_t size, ShaderBufferGL::UsageHint hint) :
+nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, ShaderBuffer::UsageHint hint) :
 	mRendererID(GL_FALSE),
 	mBinding(binding),
 	mSize(size),
@@ -13,53 +13,53 @@ nex::ShaderStorageBufferGL::ShaderStorageBufferGL(unsigned binding, size_t size,
 	GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mBinding, mRendererID));
 }
 
-nex::ShaderStorageBufferGL::~ShaderStorageBufferGL()
+nex::ShaderStorageBuffer::~ShaderStorageBuffer()
 {
 	GLCall(glDeleteBuffers(1, &mRendererID));
 }
 
-void nex::ShaderStorageBufferGL::bind()
+void nex::ShaderStorageBuffer::bind()
 {
 	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
 }
 
-size_t nex::ShaderStorageBufferGL::getSize() const
+size_t nex::ShaderStorageBuffer::getSize() const
 {
 	return mSize;
 }
 
-nex::ShaderBufferGL::UsageHint nex::ShaderStorageBufferGL::getUsageHint() const
+nex::ShaderBuffer::UsageHint nex::ShaderStorageBuffer::getUsageHint() const
 {
 	return mUsageHint;
 }
 
-void* nex::ShaderStorageBufferGL::map(ShaderBufferGL::Access usage)
+void* nex::ShaderStorageBuffer::map(ShaderBuffer::Access usage)
 {
-	GLCall(void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, usage));
+	GLCall(void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, translate(usage)));
 	return ptr;
 }
 
-void nex::ShaderStorageBufferGL::unbind()
+void nex::ShaderStorageBuffer::unbind()
 {
 	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, GL_FALSE));
 }
 
-void nex::ShaderStorageBufferGL::unmap()
+void nex::ShaderStorageBuffer::unmap()
 {
 	GLCall(glUnmapBuffer(GL_SHADER_STORAGE_BUFFER));
 }
 
-void nex::ShaderStorageBufferGL::update(const void* data, size_t size, size_t offset)
+void nex::ShaderStorageBuffer::update(const void* data, size_t size, size_t offset)
 {
 	GLCall(glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data));
 }
 
-void nex::ShaderStorageBufferGL::createStore(void* data, size_t size, ShaderBufferGL::UsageHint hint)
+void nex::ShaderStorageBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
-	GLCall(glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, hint));
+	GLCall(glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, translate(hint)));
 }
 
-nex::UniformBufferGL::UniformBufferGL(unsigned int binding, size_t size, ShaderBufferGL::UsageHint hint) :
+nex::UniformBuffer::UniformBuffer(unsigned int binding, size_t size, ShaderBuffer::UsageHint hint) :
 mRendererID(GL_FALSE),
 mBinding(binding),
 mSize(size),
@@ -71,48 +71,89 @@ mUsageHint(hint)
 	GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, binding, mRendererID));
 }
 
-nex::UniformBufferGL::~UniformBufferGL()
+nex::UniformBuffer::~UniformBuffer()
 {
 	GLCall(glDeleteBuffers(1, &mRendererID));
 }
 
-void nex::UniformBufferGL::createStore(void* data, size_t size, ShaderBufferGL::UsageHint hint)
+void nex::UniformBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
-	GLCall(glBufferData(GL_UNIFORM_BUFFER, size, data, hint));
+	GLCall(glBufferData(GL_UNIFORM_BUFFER, size, data, translate(hint)));
 }
 
-void nex::UniformBufferGL::bind()
+void nex::UniformBuffer::bind()
 {
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, mRendererID));
 }
 
-size_t nex::UniformBufferGL::getSize() const
+size_t nex::UniformBuffer::getSize() const
 {
 	return mSize;
 }
 
-nex::ShaderBufferGL::UsageHint nex::UniformBufferGL::getUsageHint() const
+nex::ShaderBuffer::UsageHint nex::UniformBuffer::getUsageHint() const
 {
 	return mUsageHint;
 }
 
-void* nex::UniformBufferGL::map(ShaderBufferGL::Access usage)
+void* nex::UniformBuffer::map(ShaderBuffer::Access usage)
 {
-	 GLCall(void* ptr = glMapBuffer(GL_UNIFORM_BUFFER, usage));
+	 GLCall(void* ptr = glMapBuffer(GL_UNIFORM_BUFFER, translate(usage)));
 	 return ptr;
 }
 
-void nex::UniformBufferGL::unmap()
+void nex::UniformBuffer::unmap()
 {
 	GLCall(glUnmapBuffer(GL_UNIFORM_BUFFER));
 }
 
-void nex::UniformBufferGL::unbind()
+void nex::UniformBuffer::unbind()
 {
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, GL_FALSE));
 }
 
-void nex::UniformBufferGL::update(const void* data, size_t size, size_t offset)
+void nex::UniformBuffer::update(const void* data, size_t size, size_t offset)
 {
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data));
+}
+
+nex::ShaderBuffer::UsageHintGL nex::translate(nex::ShaderBuffer::UsageHint hint)
+{
+	using namespace ShaderBuffer;
+
+	static UsageHintGL const table[] =
+	{
+			DYNAMIC_COPY,
+			DYNAMIC_DRAW,
+			DYNAMIC_READ,
+
+			STATIC_COPY,
+			STATIC_READ,
+			STATIC_DRAW,
+
+			STREAM_COPY,
+			STREAM_DRAW,
+			STREAM_READ,
+	};
+
+	static const unsigned size = static_cast<unsigned>(UsageHint::LAST) + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: UsageHint and UsageHintGL doesn't match");
+
+	return table[static_cast<unsigned>(hint)];
+}
+
+nex::ShaderBuffer::AccessGL nex::translate(nex::ShaderBuffer::Access access)
+{
+	using namespace ShaderBuffer;
+	static AccessGL const table[] =
+	{
+		READ_ONLY,
+		WRITE_ONLY,
+		READ_WRITE,
+	};
+
+	static const unsigned size = static_cast<unsigned>(Access::LAST) + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: Access and AccessGL doesn't match");
+
+	return table[static_cast<unsigned>(access)];
 }
