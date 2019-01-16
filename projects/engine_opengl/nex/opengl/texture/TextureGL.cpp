@@ -73,7 +73,7 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL() : TextureGL() {}
+nex::CubeMapGL::CubeMapGL() : TextureGL(0,0) {}
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
 
@@ -93,12 +93,6 @@ GLuint nex::CubeMapGL::getCubeMap() const
 void nex::CubeMapGL::setCubeMap(GLuint id)
 {
 	mTextureID = id;
-}
-
-bool nex::isNoStencilFormat(nex::DepthStencil format)
-{
-	return format == DepthStencil::NONE ||
-		format == DepthStencil::DEPTH24;
 }
 
 GLuint nex::translate(bool boolean)
@@ -282,23 +276,41 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 	return table[(unsigned)target];
 }
 
-nex::DepthStencilGL nex::translate(nex::DepthStencil depth)
+nex::DepthStencilFormatGL nex::translate(nex::DepthStencilFormat format)
 {
-	static DepthStencilGL const table[]
+	static DepthStencilFormatGL const table[]
 	{
-		NONE,
-		DEPTH24,
 		DEPTH24_STENCIL8,
 		DEPTH32F_STENCIL8,
+		DEPTH16,
+		DEPTH24,
+		DEPTH32,
+		DEPTH_COMPONENT32F,
+		STENCIL8,
 	};
 
-	static const unsigned size = (unsigned)DepthStencil::LAST - (unsigned)DepthStencil::FIRST + 1;
+	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
 
-	return table[(unsigned)depth];
+	return table[(unsigned)format];
 }
 
-nex::TextureGL::TextureGL(): mTextureID(GL_FALSE), width(0), height(0)
+nex::DepthStencilTypeGL nex::translate(nex::DepthStencilType type)
+{
+	static DepthStencilTypeGL const typeTable[]
+	{
+		DEPTH,
+		STENCIL,
+		DEPTH_STENCIL
+	};
+
+	static const unsigned size = (unsigned)DepthStencilType::LAST - (unsigned)DepthStencilType::FIRST + 1;
+	static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: RenderBuffer::Type matching isn't valid!");
+
+	return typeTable[(unsigned)type];
+}
+
+nex::TextureGL::TextureGL(GLuint width, GLuint height): mTextureID(GL_FALSE), width(width), height(height)
 {
 }
 
@@ -309,7 +321,7 @@ nex::TextureGL::TextureGL(GLuint texture) : mTextureID(texture), width(0), heigh
 
 nex::TextureGL::~TextureGL()
 {
-
+	release();
 }
 
 void nex::TextureGL::release()
@@ -322,7 +334,7 @@ void nex::TextureGL::release()
 
 nex::Texture* nex::Texture::create()
 {
-	Guard<TextureGL> gl(new TextureGL());
+	Guard<TextureGL> gl(new TextureGL(0,0));
 	return new Texture(gl.reset());
 }
 
@@ -527,18 +539,164 @@ GLuint nex::TextureGL::getFormat(int numberComponents)
 	return GL_FALSE;
 }
 
-nex::RenderBuffer* nex::RenderBuffer::create()
-{
-	return new RenderBuffer();
-}
 
-nex::RenderBuffer::RenderBuffer() : Texture(new RenderBufferGL())
+nex::DepthStencilMap::DepthStencilMap(int width, int height, const DepthStencilDesc& desc) : Texture(new DepthStencilMapGL(width, height, desc))
 {
 }
 
 
-nex::RenderBufferGL::RenderBufferGL() : TextureGL()
+nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc) :
+	TextureGL(width, height)
 {
+	mFormat = desc.format;
+
+	GLuint format = translate(mFormat);
+	GLuint depthType = getDepthType(mFormat);
+	GLuint dataType = getDataType(mFormat);
+
+	glBindTexture(GL_TEXTURE_2D, mTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, depthType, dataType, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translate(desc.minFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translate(desc.wrap));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translate(desc.wrap));
+
+	if (desc.wrap == TextureUVTechnique::ClampToBorder)
+	{
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&desc.borderColor.data);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
+
+nex::DepthStencilMapGL::~DepthStencilMapGL()
+{
+	release();
+}
+
+nex::DepthStencilFormat nex::DepthStencilMap::getFormat()
+{
+	return ((DepthStencilMapGL*)mImpl.get())->mFormat;
+}
+
+GLuint nex::DepthStencilMapGL::getDepthType(DepthStencilFormat format)
+{
+
+	enum DepthStencilTypeGL
+	{
+		DEPTH_ONLY = GL_DEPTH_COMPONENT,
+		STENCIL_ONLY = GL_STENCIL_INDEX,
+		DEPTH_STENCIL = GL_DEPTH_STENCIL,
+	};
+
+	static DepthStencilTypeGL const table[]
+	{
+		DEPTH_STENCIL, //DEPTH24_STENCIL8
+		DEPTH_STENCIL, //DEPTH32F_STENCIL8
+		DEPTH_ONLY,	   //DEPTH_COMPONENT16
+		DEPTH_ONLY,	   //DEPTH_COMPONENT24
+		DEPTH_ONLY,	   //DEPTH_COMPONENT32
+		DEPTH_ONLY,	   //DEPTH_COMPONENT32F
+		STENCIL_ONLY, //STENCIL8
+	};
+
+	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)format];
+}
+
+GLuint nex::DepthStencilMapGL::getDataType(DepthStencilFormat format)
+{
+	enum DepthStencilDataTypeGL
+	{
+		FLOAT = GL_FLOAT,
+		FLOAT_32_UNSIGNED_INT_24_8_REV = GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
+		UNSIGNED_INT_24_8 = GL_UNSIGNED_INT_24_8,
+		UNSIGNED_INT_8 = GL_UNSIGNED_BYTE,
+		UNSIGNED_INT = GL_UNSIGNED_INT,
+		UNSIGNED_SHORT = GL_UNSIGNED_SHORT,
+		UNSIGNED_INT_24 = GL_UNSIGNED_INT,
+	};
+
+
+	static DepthStencilDataTypeGL const table[]
+	{
+		UNSIGNED_INT_24_8, //DEPTH24_STENCIL8
+		FLOAT_32_UNSIGNED_INT_24_8_REV, //DEPTH32F_STENCIL8
+		UNSIGNED_SHORT,	   //DEPTH_COMPONENT16
+		UNSIGNED_INT_24,	   //DEPTH_COMPONENT24
+		UNSIGNED_INT,	   //DEPTH_COMPONENT32
+		FLOAT,	   //DEPTH_COMPONENT32F
+		UNSIGNED_INT_8, //STENCIL8
+	};
+
+	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)format];
+}
+
+GLuint nex::DepthStencilMapGL::getAttachmentType(DepthStencilFormat format)
+{
+	enum AttachmentTypeGL
+	{
+		DEPTH = GL_DEPTH_ATTACHMENT,
+		STENCIL = GL_STENCIL_ATTACHMENT,
+		DEPTH_STENCIL = GL_DEPTH_STENCIL_ATTACHMENT,
+	};
+
+
+	static AttachmentTypeGL const table[]
+	{
+		DEPTH_STENCIL, //DEPTH24_STENCIL8
+		DEPTH_STENCIL, //DEPTH32F_STENCIL8
+		DEPTH,	   //DEPTH_COMPONENT16
+		DEPTH,	   //DEPTH_COMPONENT24
+		DEPTH,	   //DEPTH_COMPONENT32
+		DEPTH,	   //DEPTH_COMPONENT32F
+		STENCIL, //STENCIL8
+	};
+
+	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+
+	return table[(unsigned)format];
+}
+
+
+nex::RenderBuffer* nex::RenderBuffer::create(unsigned width, unsigned height, DepthStencilFormat format)
+{
+	return new RenderBuffer(width, height, format);
+}
+
+nex::RenderBuffer::RenderBuffer(unsigned width, unsigned height, DepthStencilFormat format) : Texture(new RenderBufferGL(width, height, format)), mFormat(format)
+{
+}
+
+nex::DepthStencilFormat nex::RenderBuffer::getFormat() const
+{
+	return mFormat;
+}
+
+void nex::RenderBuffer::resize(unsigned width, unsigned height)
+{
+	RenderBufferGL* impl = (RenderBufferGL*)mImpl.get();
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, *(impl->getTexture())));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, translate(mFormat), width, height));
+}
+
+
+nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format) : TextureGL(width, height)
+{
+	GLCall(glGenRenderbuffers(1, &mTextureID));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, mTextureID));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, translate(format), width, height));
 }
 
 nex::RenderBufferGL::~RenderBufferGL()

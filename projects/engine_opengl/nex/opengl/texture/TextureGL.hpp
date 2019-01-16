@@ -118,15 +118,31 @@ namespace nex
 		CUBE_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
-	enum DepthStencilGL
+	/*enum DepthStencilGL
 	{
 		NONE = GL_FALSE,
 		DEPTH24 = GL_DEPTH_COMPONENT24,  // GL_DEPTH_COMPONENT  GL_DEPTH_COMPONENT24
 		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8, // GL_DEPTH24_STENCIL8
 		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8,
+	};*/
+
+	enum DepthStencilFormatGL
+	{
+		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
+		DEPTH16 = GL_DEPTH_COMPONENT16,
+		DEPTH24 = GL_DEPTH_COMPONENT24,
+		DEPTH32 = GL_DEPTH_COMPONENT32,
+		DEPTH_COMPONENT32F = GL_DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
+		STENCIL8 = GL_STENCIL_INDEX8,  //GL_STENCIL_INDEX8
 	};
 
-	bool isNoStencilFormat(nex::DepthStencil format);
+	enum DepthStencilTypeGL
+	{
+		DEPTH = GL_DEPTH_COMPONENT,
+		STENCIL = GL_STENCIL_INDEX,
+		DEPTH_STENCIL = GL_DEPTH_STENCIL,
+	};
 
 	GLuint translate(bool boolean);
 	TextureAccessGL translate(nex::TextureAccess);
@@ -137,13 +153,15 @@ namespace nex
 	InternFormatGL translate(nex::InternFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
-	DepthStencilGL translate(nex::DepthStencil);
+	//DepthStencilGL translate(nex::DepthStencil);
+	DepthStencilFormatGL translate(nex::DepthStencilFormat);
+	DepthStencilTypeGL translate(nex::DepthStencilType);
 
 
 	class TextureGL : public TextureImpl
 	{
 	public:
-		explicit TextureGL();
+		explicit TextureGL(GLuint width, GLuint height);
 		TextureGL(GLuint texture);
 
 		virtual ~TextureGL();
@@ -218,9 +236,26 @@ namespace nex
 	};
 
 
+	class DepthStencilMapGL : public TextureGL
+	{
+	public:
+		explicit DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc);
+
+		virtual ~DepthStencilMapGL();
+
+		static GLuint getDepthType(DepthStencilFormat format);
+		static GLuint getDataType(DepthStencilFormat format);
+		static GLuint getAttachmentType(DepthStencilFormat format);
+
+	private:
+		friend DepthStencilMap;
+		DepthStencilFormat mFormat;
+	};
+
+
 	class RenderBufferGL : public TextureGL {
 	public:
-		RenderBufferGL();
+		RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format);
 		virtual ~RenderBufferGL();
 		RenderBufferGL(GLuint texture);
 	};

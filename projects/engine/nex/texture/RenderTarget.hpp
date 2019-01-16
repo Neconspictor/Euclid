@@ -1,11 +1,10 @@
 #pragma once
 #include <nex/util/Math.hpp>
 #include <nex/util/Memory.hpp>
+#include <nex/texture/Texture.hpp>
 
 namespace nex
 {
-
-	enum class DepthStencil;
 	class RenderBuffer;
 	class Texture;
 	struct TextureData;
@@ -62,10 +61,10 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		static RenderTarget* createMultisampled(int width, int height, const TextureData& data,
-			unsigned samples, DepthStencil depthStencilType);
+			unsigned samples, Texture* depthStencilMap = nullptr);
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
+		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, Texture* depthStencilMap = nullptr);
 
 		// Has to be implemented by renderer backend
 		static RenderTarget* createVSM(int width, int height);
@@ -91,9 +90,24 @@ namespace nex
 		 */
 		void setTexture(Texture* texture);
 
+		/**
+		 * Specifies a depth-stencil map this render target should use.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void useDepthStencilMap(Texture* depthStencilMap);
+
+		/**
+		 * Provides access to the used depth-stencil map.
+		 * Null will be returned if the render target has no assigned depth-stencil map.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		Texture* getDepthStencilMap();
+
 	protected:
 
 		RenderTargetImpl* mImpl;
+
+		static void validateDepthStencilMap(Texture* texture);
 	};
 
 
@@ -105,7 +119,7 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		//TODO depthStencilType isn't used currently
-		static CubeRenderTarget* createSingleSampled(int width, int height, const TextureData& data, DepthStencil depthStencilType);
+		static CubeRenderTarget* createSingleSampled(int width, int height, const TextureData& data);
 
 		int getHeightMipLevel(unsigned int mipMapLevel) const;
 
@@ -136,20 +150,6 @@ namespace nex
 		glm::mat4 matrices[6];
 	};
 
-
-	class DepthMap : public RenderTarget
-	{
-	public:
-		// Has to be implemented by renderer backend
-		static DepthMap* create(unsigned width, unsigned height);
-
-	protected:
-
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		DepthMap(int width, int height);
-	};
-
 	class PBR_GBuffer : public RenderTarget 
 	{
 	public:
@@ -169,6 +169,6 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture* getPosition() const;
 		// Has to be implemented by renderer backend
-		RenderBuffer* getDepth() const;
+		DepthStencilMap* getDepth() const;
 	};
 }

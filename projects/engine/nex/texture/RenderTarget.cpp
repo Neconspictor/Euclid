@@ -41,6 +41,15 @@ void nex::RenderTarget::setTexture(Texture* texture)
 	mImpl->setTexture(texture);
 }
 
+void nex::RenderTarget::validateDepthStencilMap(Texture* texture)
+{
+	const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(texture) != nullptr;
+	const bool isRenderBuffer = dynamic_cast<RenderBuffer*>(texture) != nullptr;
+
+	if (!isDepthStencil && !isRenderBuffer)
+		throw std::runtime_error("nex::RenderTarget::validateDepthStencilMap failed: Wrong texture input!");
+}
+
 int nex::CubeRenderTarget::getHeightMipLevel(unsigned mipMapLevel) const
 {
 	return (int)(getHeight() * std::pow(0.5, mipMapLevel));

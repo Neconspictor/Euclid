@@ -21,8 +21,6 @@ namespace nex
 		virtual ~PBR();
 
 		virtual void drawSceneToShadowMap(SceneNode * scene,
-			DepthMap* shadowMap,
-			const DirectionalLight& light,
 			const glm::mat4& lightViewMatrix,
 			const glm::mat4& lightProjMatrix);
 

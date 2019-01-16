@@ -291,14 +291,6 @@ namespace nex
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, drawFboId));
 	}
 
-	DepthMap* nex::RendererOpenGL::createDepthMap(int width, int height)
-	{
-		Guard<DepthMap> guard;
-		guard = DepthMap::create(width, height);
-		depthMaps.push_back(guard.reset());
-		return depthMaps.back();
-	}
-
 	RenderTarget* nex::RendererOpenGL::createRenderTarget(int samples)
 	{
 		TextureData data;
@@ -454,16 +446,6 @@ namespace nex
 		for (auto it = renderTargets.begin(); it != renderTargets.end();) {
 			delete *it;
 			it = renderTargets.erase(it);
-		}
-
-		for (auto it = depthMaps.begin(); it != depthMaps.end();) {
-			delete *it;
-			it = depthMaps.erase(it);
-		}
-
-		for (auto it = depthMaps.begin(); it != depthMaps.end();) {
-			delete *it;
-			it = depthMaps.erase(it);
 		}
 	}
 

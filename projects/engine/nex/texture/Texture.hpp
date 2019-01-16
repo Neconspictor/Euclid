@@ -121,15 +121,27 @@ namespace nex
 
 	bool isCubeTarget(TextureTarget target);
 
-	enum class DepthStencil
-	{
-		NONE, FIRST = NONE,
-		DEPTH24,
-		DEPTH24_STENCIL8, 
-		DEPTH32F_STENCIL8, LAST = DEPTH32F_STENCIL8,
-	};
 		
 	bool isCubeTarget(TextureTarget target);
+
+
+	enum class DepthStencilFormat
+	{
+		DEPTH24_STENCIL8, FIRST = DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+		DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
+		DEPTH16,
+		DEPTH24,
+		DEPTH32,
+		DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
+		STENCIL8, LAST = STENCIL8,  //GL_STENCIL_INDEX8
+	};
+
+	enum class DepthStencilType
+	{
+		DEPTH, FIRST = DEPTH,
+		STENCIL,
+		DEPTH_STENCIL, LAST = DEPTH_STENCIL
+	};
 
 
 	struct TextureData
@@ -200,6 +212,8 @@ namespace nex
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture&) = delete;
 
+		virtual ~Texture() = default; // needed for inheritance
+
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		Texture(TextureImpl* impl);
@@ -240,12 +254,20 @@ namespace nex
 	public:
 
 		// Has to be implemented by renderer backend
-		static RenderBuffer* create();
+		static RenderBuffer* create(unsigned width, unsigned height, DepthStencilFormat format);
+
+		// Has to be implemented by renderer backend
+		DepthStencilFormat getFormat() const;
+
+		// Has to be implemented by renderer backend
+		void resize(unsigned width, unsigned height);
 
 	protected:
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		RenderBuffer();
+		RenderBuffer(unsigned width, unsigned height, DepthStencilFormat format);
+
+		DepthStencilFormat mFormat;
 	};
 
 
@@ -294,5 +316,40 @@ namespace nex
 		static glm::mat4 bottomSide;
 		static glm::mat4 frontSide;
 		static glm::mat4 backSide;
+	};
+
+	struct DepthStencilDesc
+	{
+		TextureFilter minFilter = TextureFilter::Linear_Mipmap_Linear;  // minification filter
+		TextureFilter magFilter = TextureFilter::Linear;  // magnification filter
+		TextureUVTechnique wrap = TextureUVTechnique::ClampToEdge;
+		DepthStencilFormat format = DepthStencilFormat::DEPTH24_STENCIL8;
+		glm::vec4 borderColor = glm::vec4(1.0f);
+
+		DepthStencilDesc() {}
+
+		DepthStencilDesc(TextureFilter minFilter,
+			TextureFilter magFilter,
+			TextureUVTechnique wrap,
+			DepthStencilFormat format,
+			glm::vec4 borderColor) : minFilter(minFilter),
+			magFilter(magFilter),
+			wrap(wrap),
+			format(format),
+			borderColor(borderColor)
+		{
+		}
+	};
+
+	class DepthStencilMap : public Texture
+	{
+	public:
+		// Mustn't be called by user code
+		// Has to be implemented by renderer backend
+		DepthStencilMap(int width, int height, const DepthStencilDesc& desc);
+
+
+		// Has to be implemented by renderer backend
+		DepthStencilFormat getFormat();
 	};
 }

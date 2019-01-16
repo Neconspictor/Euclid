@@ -56,9 +56,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	skyboxShader->reverseRenderState();
 }
 
-void PBR::drawSceneToShadowMap(SceneNode * scene, 
-	DepthMap* shadowMap,
-	const DirectionalLight & light, 
+void PBR::drawSceneToShadowMap(SceneNode * scene,
 	const mat4 & lightViewMatrix, 
 	const mat4 & lightProjMatrix)
 {

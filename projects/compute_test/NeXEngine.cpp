@@ -173,7 +173,7 @@ SceneNode* NeXEngine::createScene()
 	m_nodes.push_back(SceneNode());
 	SceneNode* root = &m_nodes.back();
 
-	return root;
+	//return root;
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();

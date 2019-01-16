@@ -17,21 +17,19 @@ namespace nex
 		virtual ~RenderTargetGL();
 
 		GLuint getFrameBuffer() const;
-		GLuint getRenderBuffer();
 
 		virtual void release();
 
 		void setFrameBuffer(GLuint newValue);
-		void setRenderBuffer(GLuint newValue);
 
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
 		friend RenderTarget;
 
-		GLuint renderBuffer;
 		int width;
 		int height;
 		GLuint frameBuffer;
+		std::unique_ptr<TextureGL> mDepthStencilMap;
 	};
 
 	
@@ -73,18 +71,6 @@ namespace nex
 	};
 
 
-	class DepthMapGL : public RenderTargetGL
-	{
-	public:
-		explicit DepthMapGL(int width, int height);
-
-		virtual ~DepthMapGL() = default;
-
-	private:
-		friend RendererOpenGL; // allow the OpenGL renderer easier access
-		TextureGL texture;
-	};
-
 	class PBR_GBufferGL : public RenderTargetGL {
 	public:
 		explicit PBR_GBufferGL(int width, int height);
@@ -95,7 +81,7 @@ namespace nex
 		Texture* getAoMetalRoughness();
 		Texture* getNormal();
 		Texture* getPosition();
-		RenderBuffer* getDepth();
+		DepthStencilMap* getDepth();
 
 
 	protected:
@@ -103,6 +89,6 @@ namespace nex
 		nex::Guard<Texture> aoMetalRoughness;
 		nex::Guard<Texture> normal;
 		nex::Guard<Texture> position;
-		nex::Guard<RenderBuffer> depth;
+		nex::Guard<DepthStencilMap> depth;
 	};
 }

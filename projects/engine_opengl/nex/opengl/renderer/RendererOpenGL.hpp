@@ -175,8 +175,6 @@ namespace nex
 
 		std::unique_ptr<CascadedShadowGL> createCascadedShadow(unsigned int width, unsigned int height);
 
-		DepthMap* createDepthMap(int width, int height);
-
 		RenderTarget* createRenderTarget(int samples = 1);
 
 		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples,
@@ -334,7 +332,6 @@ namespace nex
 	protected:
 		glm::vec3 backgroundColor;
 		std::list<CubeDepthMap*> cubeDepthMaps;
-		std::list<DepthMap*> depthMaps;
 		std::unique_ptr<EffectLibraryGL> effectLibrary;
 		std::unique_ptr<ShadingModelFactoryGL> shadingModelFactory;
 		ModelDrawerGL modelDrawer;
