@@ -161,16 +161,12 @@ namespace nex
 	class TextureGL : public TextureImpl
 	{
 	public:
-		explicit TextureGL(GLuint width, GLuint height);
+		explicit TextureGL();
 		TextureGL(GLuint texture);
 
 		virtual ~TextureGL();
 
 		GLuint* getTexture();
-
-
-		unsigned getHeight() const;
-		unsigned getWidth() const;
 
 		void release();
 
@@ -178,15 +174,32 @@ namespace nex
 
 		static GLuint getFormat(int numberComponents);
 
-		void setHeight(int height);
-		void setWidth(int width);
-
 	protected:
 		friend Texture;
 
 		GLuint mTextureID;
-		int width;
-		int height;
+	};
+
+	class Texture2DGL : public TextureGL
+	{
+	public:
+		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
+		Texture2DGL(GLuint texture);
+
+		virtual ~Texture2DGL() = default;
+
+		unsigned getWidth() const;
+		unsigned getHeight() const;
+
+		void setHeight(int height);
+		void setWidth(int width);
+
+		void resize(unsigned width, unsigned height) override;
+
+	protected:
+		friend Texture2D;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 
 	class CubeMapGL : public TextureGL
@@ -258,5 +271,10 @@ namespace nex
 		RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format);
 		virtual ~RenderBufferGL();
 		RenderBufferGL(GLuint texture);
+
+		void resize(unsigned width, unsigned height) override;
+
+	private:
+		DepthStencilFormat mFormat;
 	};
 }

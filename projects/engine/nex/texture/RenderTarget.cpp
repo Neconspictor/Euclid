@@ -12,11 +12,14 @@ void nex::RenderTargetImpl::setTexture(Texture* texture)
 	mRenderResult = texture;
 }
 
-nex::RenderTargetImpl::RenderTargetImpl(unsigned width, unsigned height)
+void nex::RenderTargetImpl::useDepthStencilMap(Texture* depthStencilMap)
+{
+	mDepthStencilMap = depthStencilMap;
+}
+
+nex::RenderTargetImpl::RenderTargetImpl(unsigned width, unsigned height) : mWidth(width), mHeight(height), mDepthStencilMap(nullptr)
 {
 	mRenderResult = Texture::create();
-	mRenderResult->setWidth(width);
-	mRenderResult->setHeight(height);
 }
 
 
@@ -36,6 +39,21 @@ nex::Texture* nex::RenderTarget::getTexture()
 	return mImpl->getTexture();
 }
 
+unsigned nex::RenderTarget::getHeight() const
+{
+	return mImpl->mHeight;
+}
+
+unsigned nex::RenderTarget::getWidth() const
+{
+	return mImpl->mWidth;
+}
+
+nex::Texture* nex::RenderTarget::getDepthStencilMap()
+{
+	return mImpl->mDepthStencilMap;
+}
+
 void nex::RenderTarget::setTexture(Texture* texture)
 {
 	mImpl->setTexture(texture);
@@ -48,6 +66,11 @@ void nex::RenderTarget::validateDepthStencilMap(Texture* texture)
 
 	if (!isDepthStencil && !isRenderBuffer)
 		throw std::runtime_error("nex::RenderTarget::validateDepthStencilMap failed: Wrong texture input!");
+}
+
+void nex::RenderTarget::useDepthStencilMap(Texture* depthStencilMap)
+{
+	mImpl->useDepthStencilMap(depthStencilMap);
 }
 
 int nex::CubeRenderTarget::getHeightMipLevel(unsigned mipMapLevel) const

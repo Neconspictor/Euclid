@@ -5,6 +5,7 @@
 namespace nex
 {
 	struct StoreImage;
+	class Texture;
 
 	enum class TextureAccess
 	{
@@ -197,7 +198,13 @@ namespace nex
 		// virtual needed for backend implementations
 		virtual ~TextureImpl() = default;
 
+		//Has to be implemented by the renderer backend
+		virtual void resize(unsigned width, unsigned height);
+
 	protected:
+
+		friend Texture;
+
 		TextureImpl() = default;
 	};
 
@@ -237,17 +244,33 @@ namespace nex
 		// Has to be implemented by renderer backend
 		static Texture* create();
 
-		unsigned getHeight() const;
-		unsigned getWidth() const;
+		void resize(unsigned width, unsigned height);
 
-		void setHeight(int height);
-		void setWidth(int width);
+
+		void setImpl(TextureImpl* impl);
 
 	protected:
-
-		int width = 0;
-		int height = 0;
 		nex::Guard<TextureImpl> mImpl;
+	};
+
+	class Texture2D : public Texture
+	{
+	public:
+
+		// creates an unintialized texture2D object. Shouldn't be used by user code.
+		// 
+		Texture2D(TextureImpl* impl);
+
+		// Has to be implemented by renderer backend
+		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
+
+		/**
+		 * Resizes this 2d texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned width, unsigned height);
+
+	protected:
 	};
 
 	class RenderBuffer : public Texture {
@@ -258,9 +281,6 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		DepthStencilFormat getFormat() const;
-
-		// Has to be implemented by renderer backend
-		void resize(unsigned width, unsigned height);
 
 	protected:
 		// Mustn't be called by user code

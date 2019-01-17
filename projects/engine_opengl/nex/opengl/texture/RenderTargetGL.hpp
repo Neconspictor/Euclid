@@ -26,10 +26,7 @@ namespace nex
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
 		friend RenderTarget;
 
-		int width;
-		int height;
 		GLuint frameBuffer;
-		std::unique_ptr<TextureGL> mDepthStencilMap;
 	};
 
 	
@@ -42,12 +39,12 @@ namespace nex
 		
 		nex::CubeMapGL* createCopy();
 
-		inline int getHeightMipLevel(unsigned int mipMapLevel) const {
-			return (int)(height * std::pow(0.5, mipMapLevel));
+		int getHeightMipLevel(unsigned int mipMapLevel) const {
+			return (int)(mHeight * std::pow(0.5, mipMapLevel));
 		}
 
-		inline int getWidthMipLevel(unsigned int mipMapLevel) const {
-			return (int)(height * std::pow(0.5, mipMapLevel));
+		int getWidthMipLevel(unsigned int mipMapLevel) const {
+			return (int)(mWidth * std::pow(0.5, mipMapLevel));
 		}
 
 		void resizeForMipMap(unsigned int mipMapLevel);

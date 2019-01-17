@@ -7,6 +7,7 @@ namespace nex
 {
 	class RenderBuffer;
 	class Texture;
+	class RenderTarget;
 	struct TextureData;
 
 	// Has to be implemented by the renderer backend
@@ -32,9 +33,15 @@ namespace nex
 		 */
 		void setTexture(Texture* texture);
 
+		virtual void useDepthStencilMap(Texture* depthStencilMap);
+
 	protected:
+		friend RenderTarget;
 		RenderTargetImpl(unsigned width, unsigned height);
 		Guard<Texture> mRenderResult;
+		Texture* mDepthStencilMap;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 
 
@@ -67,19 +74,17 @@ namespace nex
 		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, Texture* depthStencilMap = nullptr);
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createVSM(int width, int height);
+		//static RenderTarget* createVSM(int width, int height);
 
 		//void copyFrom(BaseRenderTarget* dest, const Dimension& sourceDim, int components);
 
-		// Has to be implemented by renderer backend
-		int getHeight() const;
+		unsigned getHeight() const;
 
 		RenderTargetImpl* getImpl() const;
 
 		Texture* getTexture();
 
-		// Has to be implemented by renderer backend
-		int getWidth() const;
+		unsigned getWidth() const;
 
 		/**
 		 * Sets the texture of this render target. 
@@ -92,14 +97,12 @@ namespace nex
 
 		/**
 		 * Specifies a depth-stencil map this render target should use.
-		 * NOTE: Has to be implemented by renderer backend
 		 */
 		void useDepthStencilMap(Texture* depthStencilMap);
 
 		/**
 		 * Provides access to the used depth-stencil map.
 		 * Null will be returned if the render target has no assigned depth-stencil map.
-		 * NOTE: Has to be implemented by renderer backend
 		 */
 		Texture* getDepthStencilMap();
 
