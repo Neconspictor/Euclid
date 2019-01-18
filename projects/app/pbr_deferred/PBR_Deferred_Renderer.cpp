@@ -299,9 +299,11 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			m_aoSelector.getSSAO()->displayAOTexture(aoTexture);
 		}*/
 		//hbao->displayTexture(pbr_mrt->getDepth());
+		m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
 	} else
 	{
 		modelDrawer->draw(&screenSprite, screenShader);
+		
 		//ssao_deferred->displayAOTexture();
 	}
 	//renderer->endScene();

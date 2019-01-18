@@ -699,15 +699,17 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	desc.minFilter = TextureFilter::NearestNeighbor;
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrap = TextureUVTechnique::ClampToEdge;
-	desc.format = DepthStencilFormat::DEPTH32F_STENCIL8;
+	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
 	depth = new DepthStencilMap(width, height, desc);
 
 	TextureGL* depthGL = (TextureGL*)depth->getImpl();
 
-	auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24_STENCIL8);
+	useDepthStencilMap(depth.get());
 
-	useDepthStencilMap(renderBuffer.get());
-	renderBuffer.release();
+	//auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24_STENCIL8);
+
+	//useDepthStencilMap(renderBuffer.get());
+	//renderBuffer.release();
 
 
 	/*glGenTextures(1, &renderBuffer);
