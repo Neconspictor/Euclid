@@ -73,7 +73,7 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL() : TextureGL(0,0) {}
+nex::CubeMapGL::CubeMapGL() : TextureGL() {}
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap){}
 
@@ -88,6 +88,26 @@ void nex::CubeMapGL::generateMipMaps()
 GLuint nex::CubeMapGL::getCubeMap() const
 {
 	return mTextureID;
+}
+
+unsigned nex::CubeMapGL::getSideWidth() const
+{
+	return mSideWidth;
+}
+
+unsigned nex::CubeMapGL::getSideHeight() const
+{
+	return mSideHeight;
+}
+
+void nex::CubeMapGL::setSideWidth(unsigned width)
+{
+	mSideWidth = width;
+}
+
+void nex::CubeMapGL::setSideHeight(unsigned height)
+{
+	mSideHeight = height;
 }
 
 void nex::CubeMapGL::setCubeMap(GLuint id)
@@ -334,7 +354,7 @@ void nex::TextureGL::release()
 
 nex::Texture* nex::Texture::create()
 {
-	Guard<TextureGL> gl(new TextureGL(0,0));
+	Guard<TextureGL> gl(new TextureGL());
 	return new Texture(gl.reset());
 }
 
@@ -432,12 +452,9 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	if (isCubeMap)
 	{
-		glTexture = new CubeMapGL(textureID);
-		texture = CubeMap::create();
-
 		auto glTexture = std::make_unique<CubeMapGL>(textureID);
-		glTexture->setWidth(store.images[0][0].width);
-		glTexture->setHeight(store.images[0][0].height);
+		glTexture->setSideWidth(store.images[0][0].width);
+		glTexture->setSideHeight(store.images[0][0].height);
 
 		auto result = std::make_unique<CubeMap> ();
 		result->setImpl(glTexture.release());
@@ -446,19 +463,9 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	}
 
-	auto glTexture = std::make_unique<Texture2DGL>(textureID);
-	glTexture->setWidth(store.images[0][0].width);
-	glTexture->setHeight(store.images[0][0].height);
-	
+	auto glTexture = std::make_unique<Texture2DGL>(textureID, data, store.images[0][0].width, store.images[0][0].height);
 	auto result = std::make_unique<Texture2D>(glTexture.release());
 	return result.release();
-}
-
-nex::Texture* nex::Texture::createTexture2D(unsigned width, unsigned height, const TextureData& textureData,
-	const void* data)
-{
-	nex::Guard<Texture2D> texture; texture = new Texture2D(width, height, textureData, data);
-	return texture.reset();
 }
 
 GLuint* nex::TextureGL::getTexture()
@@ -487,7 +494,21 @@ GLuint nex::TextureGL::getFormat(int numberComponents)
 	return GL_FALSE;
 }
 
-nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) : TextureGL(GL_FALSE), mWidth(width), mHeight(height)
+nex::Texture2D* nex::Texture2D::create(unsigned width, unsigned height, const TextureData& textureData,
+	const void* data)
+{
+	nex::Guard<Texture2D> texture; texture = new Texture2D(width, height, textureData, data);
+	return texture.reset();
+}
+
+void nex::Texture2D::resize(unsigned width, unsigned height)
+{
+	Texture2DGL* impl = (Texture2DGL*)mImpl.get();
+	impl->resize(width, height);
+}
+
+nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) : 
+TextureGL(GL_FALSE), mWidth(width), mHeight(height), mData(textureData)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glGenTextures(1, &mTextureID));
@@ -496,26 +517,28 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 
 	GLCall(glBindTexture(glTarget, mTextureID));
 
-	GLCall(glTexImage2D(glTarget, 0, translate(textureData.internalFormat), width, height,
-		0, translate(textureData.colorspace), translate(textureData.pixelDataType),
+	GLCall(glTexImage2D(glTarget, 0, translate(mData.internalFormat), width, height,
+		0, translate(mData.colorspace), translate(mData.pixelDataType),
 		data));
 
-	if (textureData.generateMipMaps)
+	if (mData.generateMipMaps)
 		GLCall(glGenerateMipmap(glTarget));
 
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_R, translate(textureData.wrapR)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(textureData.wrapS)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(textureData.wrapT)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(textureData.minFilter)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(textureData.magFilter)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_R, translate(mData.wrapR)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(mData.wrapS)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(mData.wrapT)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(mData.minFilter)));
+	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(mData.magFilter)));
 	GLCall(glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
 	GLCall(glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f));
 
 	GLCall(glBindTexture(glTarget, 0));
 }
 
-nex::Texture2DGL::Texture2DGL(GLuint texture) : TextureGL(texture), mWidth(0), mHeight(0)
+nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height) 
+: TextureGL(texture), mWidth(width), mHeight(height), mData(textureData)
 {
+
 }
 
 unsigned nex::Texture2DGL::getWidth() const
@@ -540,7 +563,17 @@ void nex::Texture2DGL::setWidth(int width)
 
 void nex::Texture2DGL::resize(unsigned width, unsigned height)
 {
-	//TODO
+	mWidth = width;
+	mHeight = height;
+
+	GLCall(glBindTexture(GL_TEXTURE_2D, mTextureID));
+
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, translate(mData.internalFormat), width, height,
+		0, translate(mData.colorspace), translate(mData.pixelDataType),
+		nullptr));
+
+	if (mData.generateMipMaps)
+		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 }
 
 
@@ -557,26 +590,25 @@ nex::DepthStencilMap::DepthStencilMap(int width, int height, const DepthStencilD
 
 
 nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc) :
-	TextureGL(width, height)
+	// Note: we don't care about TextureData properties, as we use DepthStencilDesc
+	Texture2DGL(GL_FALSE, TextureData(), width, height), mDesc(desc)
 {
-	mFormat = desc.format;
-
-	GLuint format = translate(mFormat);
-	GLuint depthType = getDepthType(mFormat);
-	GLuint dataType = getDataType(mFormat);
+	GLuint format = translate(mDesc.format);
+	GLuint depthType = getDepthType(mDesc.format);
+	GLuint dataType = getDataType(mDesc.format);
 
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, depthType, dataType, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translate(desc.minFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translate(desc.wrap));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translate(desc.wrap));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translate(mDesc.wrap));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translate(mDesc.wrap));
 
-	if (desc.wrap == TextureUVTechnique::ClampToBorder)
+	if (mDesc.wrap == TextureUVTechnique::ClampToBorder)
 	{
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&desc.borderColor.data);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -592,7 +624,7 @@ nex::DepthStencilMapGL::~DepthStencilMapGL()
 
 nex::DepthStencilFormat nex::DepthStencilMap::getFormat()
 {
-	return ((DepthStencilMapGL*)mImpl.get())->mFormat;
+	return ((DepthStencilMapGL*)mImpl.get())->mDesc.format;
 }
 
 GLuint nex::DepthStencilMapGL::getDepthType(DepthStencilFormat format)
@@ -680,6 +712,10 @@ GLuint nex::DepthStencilMapGL::getAttachmentType(DepthStencilFormat format)
 	return table[(unsigned)format];
 }
 
+void nex::DepthStencilMapGL::resize(unsigned width, unsigned height)
+{
+}
+
 
 nex::RenderBuffer* nex::RenderBuffer::create(unsigned width, unsigned height, DepthStencilFormat format)
 {
@@ -696,7 +732,7 @@ nex::DepthStencilFormat nex::RenderBuffer::getFormat() const
 }
 
 
-nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format) : TextureGL(width, height), mFormat(format)
+nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format) : TextureGL(GL_FALSE), mFormat(format), mWidth(width), mHeight(height)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
 	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, mTextureID));
@@ -711,7 +747,8 @@ nex::RenderBufferGL::~RenderBufferGL()
 	}
 }
 
-nex::RenderBufferGL::RenderBufferGL(GLuint texture) : TextureGL(texture)
+nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format)
+: TextureGL(texture), mFormat(format), mWidth(width), mHeight(height)
 {
 }
 

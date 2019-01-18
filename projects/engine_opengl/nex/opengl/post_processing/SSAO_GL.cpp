@@ -284,7 +284,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
-		noiseTexture = Texture::createTexture2D(noiseTileWidth, noiseTileWidth, data, &noiseTextureValues[0]);
+		noiseTexture = Texture2D::create(noiseTileWidth, noiseTileWidth, data, &noiseTextureValues[0]);
 
 		aoRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 		tiledBlurRenderTarget = createSSAO_FBO(windowWidth, windowHeight);

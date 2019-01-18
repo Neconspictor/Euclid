@@ -265,7 +265,7 @@ namespace nex {
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
-		Texture* texture = Texture::createTexture2D(width, height, data, rawData);
+		Texture* texture = Texture2D::create(width, height, data, rawData);
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << path;
@@ -309,7 +309,7 @@ namespace nex {
 
 		//GLuint format = TextureGL::getFormat(nrComponents);
 
-		Texture* texture = Texture::createTexture2D(width, height, data, rawData);
+		Texture* texture = Texture2D::create(width, height, data, rawData);
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;

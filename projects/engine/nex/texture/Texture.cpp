@@ -69,21 +69,12 @@ nex::TextureImpl* nex::Texture::getImpl() const
 	return mImpl.get();
 }
 
-void nex::Texture::resize(unsigned width, unsigned height)
-{
-	mImpl->resize(width, height);
-}
-
 void nex::Texture::setImpl(TextureImpl* impl)
 {
 	mImpl = impl;
 }
 
 nex::Texture2D::Texture2D(TextureImpl* impl) : Texture(impl)
-{
-}
-
-void nex::TextureImpl::resize(unsigned width, unsigned height)
 {
 }
 

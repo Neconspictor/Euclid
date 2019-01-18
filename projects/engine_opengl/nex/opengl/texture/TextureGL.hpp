@@ -184,7 +184,7 @@ namespace nex
 	{
 	public:
 		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
-		Texture2DGL(GLuint texture);
+		Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0);
 
 		virtual ~Texture2DGL() = default;
 
@@ -194,12 +194,13 @@ namespace nex
 		void setHeight(int height);
 		void setWidth(int width);
 
-		void resize(unsigned width, unsigned height) override;
+		virtual void resize(unsigned width, unsigned height);
 
 	protected:
 		friend Texture2D;
 		unsigned mWidth;
 		unsigned mHeight;
+		TextureData mData;
 	};
 
 	class CubeMapGL : public TextureGL
@@ -231,6 +232,9 @@ namespace nex
 
 		GLuint getCubeMap() const;
 
+		unsigned getSideWidth() const;
+		unsigned getSideHeight() const;
+
 		/**
 		 * Provides a 'look at' view matrix for a specific cubemap side
 		 * The returned view matrix is for right handed coordinate systems
@@ -239,6 +243,9 @@ namespace nex
 
 		void setCubeMap(GLuint id);
 
+		void setSideWidth(unsigned width);
+		void setSideHeight(unsigned height);
+
 	protected:
 		static glm::mat4 rightSide;
 		static glm::mat4 leftSide;
@@ -246,10 +253,13 @@ namespace nex
 		static glm::mat4 bottomSide;
 		static glm::mat4 frontSide;
 		static glm::mat4 backSide;
+
+		unsigned mSideWidth;
+		unsigned mSideHeight;
 	};
 
 
-	class DepthStencilMapGL : public TextureGL
+	class DepthStencilMapGL : public Texture2DGL
 	{
 	public:
 		explicit DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc);
@@ -260,9 +270,11 @@ namespace nex
 		static GLuint getDataType(DepthStencilFormat format);
 		static GLuint getAttachmentType(DepthStencilFormat format);
 
+		void resize(unsigned width, unsigned height) override;
+
 	private:
 		friend DepthStencilMap;
-		DepthStencilFormat mFormat;
+		DepthStencilDesc mDesc;
 	};
 
 
@@ -270,11 +282,13 @@ namespace nex
 	public:
 		RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format);
 		virtual ~RenderBufferGL();
-		RenderBufferGL(GLuint texture);
+		RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format);
 
-		void resize(unsigned width, unsigned height) override;
+		void resize(unsigned width, unsigned height);
 
 	private:
 		DepthStencilFormat mFormat;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 }

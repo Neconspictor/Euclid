@@ -198,9 +198,6 @@ namespace nex
 		// virtual needed for backend implementations
 		virtual ~TextureImpl() = default;
 
-		//Has to be implemented by the renderer backend
-		virtual void resize(unsigned width, unsigned height);
-
 	protected:
 
 		friend Texture;
@@ -238,14 +235,8 @@ namespace nex
 		 */
 		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
 
-
-		static Texture* createTexture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
-
 		// Has to be implemented by renderer backend
 		static Texture* create();
-
-		void resize(unsigned width, unsigned height);
-
 
 		void setImpl(TextureImpl* impl);
 
@@ -264,11 +255,13 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
+		static Texture2D* create(unsigned width, unsigned height, const TextureData& textureData, const void* data);
+
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void resize(unsigned width, unsigned height);
+		virtual void resize(unsigned width, unsigned height);
 
 	protected:
 	};
