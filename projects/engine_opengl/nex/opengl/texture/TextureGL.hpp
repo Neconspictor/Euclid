@@ -270,6 +270,9 @@ namespace nex
 		static GLuint getDataType(DepthStencilFormat format);
 		static GLuint getAttachmentType(DepthStencilFormat format);
 
+
+		const DepthStencilDesc& getDescription() const;
+
 		void resize(unsigned width, unsigned height) override;
 
 	private:
@@ -283,6 +286,9 @@ namespace nex
 		RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format);
 		virtual ~RenderBufferGL();
 		RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format);
+
+
+		DepthStencilFormat getFormat() const;
 
 		void resize(unsigned width, unsigned height);
 

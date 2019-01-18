@@ -28,7 +28,7 @@ PBR_Deferred_Renderer::PBR_Deferred_Renderer(RendererOpenGL* backend) :
 	m_logger("PBR_Deferred_Renderer"),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
-	shadowMap(nullptr),
+	//shadowMap(nullptr),
 	showDepthMap(false)
 {
 	m_aoSelector.setUseAmbientOcclusion(true);
@@ -94,7 +94,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	PBRShader* pbrShader = dynamic_cast<PBRShader*>
 		(shaderManager->getShader(ShaderType::Pbr));
 
-	shadowMap = m_renderBackend->createDepthMap(2048, 2048);
+	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 
 	panoramaSkyBoxShader->bind();
@@ -247,7 +247,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
-			shadowMap->getTexture(), 
+			//shadowMap->getTexture(), 
 			aoTexture,
 			globalLight, 
 			camera->getView(), 
@@ -276,8 +276,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 
-	depthMapShader->bind();
-	depthMapShader->useDepthMapTexture(shadowMap->getTexture());
+	//depthMapShader->bind();
+	//depthMapShader->useDepthMapTexture(shadowMap->getTexture());
 
 	screenShader->bind();
 	screenShader->useTexture(screenSprite.getTexture());
@@ -289,8 +289,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//screenSprite.setTexture(shadowMap->getTexture());
 		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
-		screenShader->useTexture(shadowMap->getTexture());
-		modelDrawer->draw(&screenSprite, screenShader);
+		//screenShader->useTexture(shadowMap->getTexture());
+		//modelDrawer->draw(&screenSprite, screenShader);
 		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
 		/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
 			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);

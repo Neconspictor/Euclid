@@ -19,7 +19,6 @@ namespace nex
 
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,
-			Texture* shadowMap,
 			Texture* ssaoMap,
 			const DirectionalLight& light,
 			const glm::mat4& viewFromGPass,

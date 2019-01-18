@@ -58,12 +58,12 @@ namespace nex
 		CubeMap* renderBackgroundToCube(Texture* background);
 		CubeMap* convolute(CubeMap* source);
 		CubeMap* prefilter(CubeMap* source);
-		Texture* createBRDFlookupTexture();
+		Texture2D* createBRDFlookupTexture();
 
 		CubeMap* convolutedEnvironmentMap;
 		CubeMap* prefilteredEnvMap;
 		CubeMap* environmentMap;
-		Texture* brdfLookupTexture;
+		Texture2D* brdfLookupTexture;
 
 
 		RendererOpenGL* renderer;

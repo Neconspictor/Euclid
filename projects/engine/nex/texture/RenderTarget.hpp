@@ -33,7 +33,7 @@ namespace nex
 		 */
 		void setTexture(Texture* texture);
 
-		virtual void useDepthStencilMap(Texture* depthStencilMap);
+		virtual void useDepthStencilMap(Texture* depthStencilMap) = 0;
 
 	protected:
 		friend RenderTarget;

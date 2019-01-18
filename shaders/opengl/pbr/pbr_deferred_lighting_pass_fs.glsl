@@ -35,7 +35,7 @@ in VS_OUT {
 uniform DirLight dirLight;
 
 uniform GBuffer gBuffer;
-uniform sampler2D shadowMap;
+//uniform sampler2D shadowMap;
 uniform sampler2D ssaoMap;
 
 uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!

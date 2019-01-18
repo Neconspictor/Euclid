@@ -276,7 +276,7 @@ namespace nex
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
 
-		m_depthLinearRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
+		m_depthLinearRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
 
 		// m_aoResultRT
 		data.internalFormat = InternFormat::R8;
@@ -288,13 +288,13 @@ namespace nex
 		data.pixelDataType = PixelDataType::UBYTE;
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
-		m_aoResultRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
+		m_aoResultRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
 
 		// m_aoBlurredResultRT
-		m_aoBlurredResultRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
+		m_aoBlurredResultRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
 
 		// m_tempRT
-		m_tempRT.reset(RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE));
+		m_tempRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
 	}
 
 	BilateralBlur::BilateralBlur() :

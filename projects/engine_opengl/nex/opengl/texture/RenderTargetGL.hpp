@@ -22,6 +22,8 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 
+		void useDepthStencilMap(Texture* depthStencilMap) override;
+
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
 		friend RenderTarget;

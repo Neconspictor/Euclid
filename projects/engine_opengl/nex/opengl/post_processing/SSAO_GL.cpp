@@ -387,7 +387,7 @@ namespace nex
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
 
-		return RenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE);
+		return RenderTarget::createSingleSampled(width, height, data, nullptr);
 	}
 
 

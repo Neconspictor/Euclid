@@ -31,6 +31,18 @@ nex::CubeMap::CubeMap() : Texture(new CubeMapGL())
 {
 }
 
+unsigned nex::CubeMap::getSideWidth() const
+{
+	auto impl = (CubeMapGL*)mImpl.get();
+	return impl->getSideWidth();
+}
+
+unsigned nex::CubeMap::getSideHeight() const
+{
+	auto impl = (CubeMapGL*)mImpl.get();
+	return impl->getSideHeight();
+}
+
 
 const mat4& nex::CubeMapGL::getViewLookAtMatrixRH(Side side)
 {
@@ -583,6 +595,18 @@ nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& te
 	setImpl(impl.reset());
 }
 
+unsigned nex::Texture2D::getWidth() const
+{
+	auto impl = (Texture2DGL*)mImpl.get();
+	return impl->getWidth();
+}
+
+unsigned nex::Texture2D::getHeight() const
+{
+	auto impl = (Texture2DGL*)mImpl.get();
+	return impl->getHeight();
+}
+
 
 nex::DepthStencilMap::DepthStencilMap(int width, int height, const DepthStencilDesc& desc) : Texture(new DepthStencilMapGL(width, height, desc))
 {
@@ -597,12 +621,14 @@ nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthSten
 	GLuint depthType = getDepthType(mDesc.format);
 	GLuint dataType = getDataType(mDesc.format);
 
+	GLCall(glGenTextures(1, &mTextureID));
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, depthType, dataType, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translate(mDesc.wrap));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translate(mDesc.wrap));
 
@@ -712,6 +738,11 @@ GLuint nex::DepthStencilMapGL::getAttachmentType(DepthStencilFormat format)
 	return table[(unsigned)format];
 }
 
+const nex::DepthStencilDesc& nex::DepthStencilMapGL::getDescription() const
+{
+	return mDesc;
+}
+
 void nex::DepthStencilMapGL::resize(unsigned width, unsigned height)
 {
 }
@@ -750,6 +781,11 @@ nex::RenderBufferGL::~RenderBufferGL()
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format)
 : TextureGL(texture), mFormat(format), mWidth(width), mHeight(height)
 {
+}
+
+nex::DepthStencilFormat nex::RenderBufferGL::getFormat() const
+{
+	return mFormat;
 }
 
 void nex::RenderBufferGL::resize(unsigned width, unsigned height)

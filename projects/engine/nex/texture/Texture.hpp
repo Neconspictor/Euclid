@@ -263,6 +263,9 @@ namespace nex
 		 */
 		virtual void resize(unsigned width, unsigned height);
 
+		unsigned getWidth() const;
+		unsigned getHeight() const;
+
 	protected:
 	};
 
@@ -272,13 +275,14 @@ namespace nex
 		// Has to be implemented by renderer backend
 		static RenderBuffer* create(unsigned width, unsigned height, DepthStencilFormat format);
 
+		// Mustn't be called by user code
+		// Has to be implemented by renderer backend
+		RenderBuffer(unsigned width, unsigned height, DepthStencilFormat format);
+
 		// Has to be implemented by renderer backend
 		DepthStencilFormat getFormat() const;
 
 	protected:
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		RenderBuffer(unsigned width, unsigned height, DepthStencilFormat format);
 
 		DepthStencilFormat mFormat;
 	};
@@ -304,12 +308,19 @@ namespace nex
 		// has to be implemented by the renderer backend
 		static CubeMap* create();
 
+		// Mustn't be called by user code
+		// Has to be implemented by renderer backend
+		CubeMap();
+
 		/**
 		 *  Generates mipmaps for the current content of this cubemap.
 		 *  NOTE: Has to be implemented by renderer backend
 		 */
 		 // has to be implemented by the renderer backend
 		void generateMipMaps();
+
+		unsigned getSideWidth() const;
+		unsigned getSideHeight() const;
 
 		/**
 		 * Provides a 'look at' view matrix for a specific cubemap side
@@ -318,10 +329,6 @@ namespace nex
 		static const glm::mat4& getViewLookAtMatrixRH(Side side);
 
 	protected:
-
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		CubeMap();
 
 		static glm::mat4 rightSide;
 		static glm::mat4 leftSide;
@@ -333,8 +340,8 @@ namespace nex
 
 	struct DepthStencilDesc
 	{
-		TextureFilter minFilter = TextureFilter::Linear_Mipmap_Linear;  // minification filter
-		TextureFilter magFilter = TextureFilter::Linear;  // magnification filter
+		TextureFilter minFilter = TextureFilter::NearestNeighbor;  // minification filter
+		TextureFilter magFilter = TextureFilter::NearestNeighbor;  // magnification filter
 		TextureUVTechnique wrap = TextureUVTechnique::ClampToEdge;
 		DepthStencilFormat format = DepthStencilFormat::DEPTH24_STENCIL8;
 		glm::vec4 borderColor = glm::vec4(1.0f);

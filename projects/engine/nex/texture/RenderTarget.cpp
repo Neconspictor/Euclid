@@ -12,11 +12,6 @@ void nex::RenderTargetImpl::setTexture(Texture* texture)
 	mRenderResult = texture;
 }
 
-void nex::RenderTargetImpl::useDepthStencilMap(Texture* depthStencilMap)
-{
-	mDepthStencilMap = depthStencilMap;
-}
-
 nex::RenderTargetImpl::RenderTargetImpl(unsigned width, unsigned height) : mWidth(width), mHeight(height), mDepthStencilMap(nullptr)
 {
 	mRenderResult = Texture::create();

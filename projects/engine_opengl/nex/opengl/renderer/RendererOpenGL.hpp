@@ -177,14 +177,13 @@ namespace nex
 
 		RenderTarget* createRenderTarget(int samples = 1);
 
-		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples,
-			DepthStencil depthStencilType);
+		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, Texture* depthStencilMap);
 
 		std::unique_ptr<SSAO_DeferredGL> createDeferredSSAO();
 
 		std::unique_ptr<HBAO_GL> createHBAO();
 
-		RenderTarget* createVarianceShadowMap(int width, int height);
+		//RenderTarget* createVarianceShadowMap(int width, int height);
 
 		void cullFaces(CullingMode mode);
 

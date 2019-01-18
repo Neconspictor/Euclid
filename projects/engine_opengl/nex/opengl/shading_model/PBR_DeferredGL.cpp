@@ -72,7 +72,7 @@ namespace nex {
 	}
 
 	void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
-		Texture* shadowMap, Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
+		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
 		CascadedShadowGL::CascadeData* cascadeData,
 		Texture* cascadedDepthMap)
 	{
@@ -103,7 +103,7 @@ namespace nex {
 		vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
 		shader->setEyeLightDirection(vec3(lightEyeDirection));
 		shader->setPrefilterMap(prefilteredEnvMap);
-		shader->setShadowMap(shadowMap);
+		//shader->setShadowMap(shadowMap);
 		shader->setAOMap(ssaoMap);
 		//TODO
 		//shader->setSkyBox(environmentMap->getCubeMap());

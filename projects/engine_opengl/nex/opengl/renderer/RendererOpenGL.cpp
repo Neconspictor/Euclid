@@ -248,7 +248,7 @@ namespace nex
 	CubeRenderTarget * nex::RendererOpenGL::createCubeRenderTarget(int width, int height, const TextureData& data)
 	{
 		Guard<CubeRenderTarget> guard;
-		guard = CubeRenderTarget::createSingleSampled(width, height, data, DepthStencil::NONE);
+		guard = CubeRenderTarget::createSingleSampled(width, height, data);
 		cubeRenderTargets.push_back(guard.reset());
 		return cubeRenderTargets.back();
 	}
@@ -267,7 +267,11 @@ namespace nex
 
 	RenderTarget* nex::RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
-		return createRenderTargetGL(width, height, data, samples, DepthStencil::DEPTH24_STENCIL8);
+		DepthStencilDesc desc;
+		auto depthTexture = make_unique<DepthStencilMap>(width, height, desc);
+		auto result = createRenderTargetGL(width, height, data, samples, depthTexture.get());
+		depthTexture.release();
+		return result;
 	}
 
 	void nex::RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float depthValue, int stencilValue)
@@ -304,10 +308,17 @@ namespace nex
 		data.wrapS = TextureUVTechnique::ClampToEdge;
 		data.wrapT = TextureUVTechnique::ClampToEdge;
 
-		int ssaaSamples = 1;
+		const int ssaaSamples = 1;
 
-		//return createRenderTargetGL(width * ssaaSamples, height * ssaaSamples, data, samples, GL_DEPTH_STENCIL); //GL_RGBA
-		return createRenderTargetGL(mViewport.width * ssaaSamples, mViewport.height * ssaaSamples, data, samples, DepthStencil::DEPTH32F_STENCIL8); //GL_RGBA
+		const unsigned width = mViewport.width * ssaaSamples;
+		const unsigned height = mViewport.height * ssaaSamples;
+
+		DepthStencilDesc desc;
+		auto depthTexture = make_unique<DepthStencilMap>(width, height, desc);
+		auto result = createRenderTargetGL(width, height, data, samples, depthTexture.get()); //GL_RGBA
+		depthTexture.release();
+
+		return result;
 	}
 
 	void RendererOpenGL::enableAlphaBlending(bool enable)
@@ -488,8 +499,8 @@ namespace nex
 		Texture* tex = cubeDepthMap->getTexture();
 		CubeMapGL* cubeMap = (CubeMapGL*)tex->getImpl();
 
-		GLCall(glViewport(mViewport.x, mViewport.y, cubeMap->getWidth(), cubeMap->getHeight()));
-		GLCall(glScissor(mViewport.x, mViewport.y, cubeMap->getWidth(), cubeMap->getHeight()));
+		GLCall(glViewport(mViewport.x, mViewport.y, cubeMap->getSideWidth(), cubeMap->getSideHeight()));
+		GLCall(glScissor(mViewport.x, mViewport.y, cubeMap->getSideWidth(), cubeMap->getSideHeight()));
 		cubeDepthMap->bind();
 		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0));
 		GLCall(glDrawBuffer(GL_NONE));
@@ -669,7 +680,7 @@ namespace nex
 	}
 
 	RenderTarget* RendererOpenGL::createRenderTargetGL(int width, int height, const TextureData& data,
-		unsigned samples, DepthStencil depthStencilType)
+		unsigned samples, Texture* depthStencilMap)
 	{
 		assert(samples >= 1);
 
@@ -679,11 +690,11 @@ namespace nex
 
 		if (samples > 1)
 		{
-			result = RenderTarget::createMultisampled(width, height, data, samples, depthStencilType);
+			result = RenderTarget::createMultisampled(width, height, data, samples, depthStencilMap);
 		}
 		else
 		{
-			result = RenderTarget::createSingleSampled(width, height, data, depthStencilType);
+			result = RenderTarget::createSingleSampled(width, height, data, depthStencilMap);
 		}
 
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -708,12 +719,12 @@ namespace nex
 		return effectLibrary.get();
 	}
 
-	RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)
+	/*RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)
 	{
 		RenderTarget* target = RenderTarget::createVSM(width, height);
 		renderTargets.push_back(target);
 		return target;
-	}
+	}*/
 
 	void RendererOpenGL::cullFaces(CullingMode mode)
 	{

@@ -51,7 +51,7 @@ namespace nex
 
 		RenderTarget* renderTargetSingleSampled;
 		Sprite screenSprite;
-		DepthMap* shadowMap;
+		//DepthMap* shadowMap;
 		bool showDepthMap;
 	};
 
