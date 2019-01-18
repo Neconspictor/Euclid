@@ -142,6 +142,8 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(m_renderBackend, panoramaSky);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
+	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepth());
+
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
 	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
 
@@ -231,15 +233,15 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color); //| RenderComponent::Depth | RenderComponent::Stencil
 
 	
 
-	Dimension blitRegion = { 0,0, windowWidth * ssaaSamples, windowHeight * ssaaSamples };
+	/*Dimension blitRegion = { 0,0, windowWidth * ssaaSamples, windowHeight * ssaaSamples };
 	m_renderBackend->blitRenderTargets(pbr_mrt.get(),
 		renderTargetSingleSampled,
 		blitRegion,
-		RenderComponent::Depth | RenderComponent::Stencil);
+		RenderComponent::Depth | RenderComponent::Stencil);*/
 
 
 	CascadedShadowGL::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
@@ -326,6 +328,8 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
+
+	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepth());
 	//ssao_deferred->onSizeChange(width, height);
 
 	m_aoSelector.getHBAO()->onSizeChange(width, height);
