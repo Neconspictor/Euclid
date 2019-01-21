@@ -1,15 +1,13 @@
 #pragma once
-#include <nex/event/Task.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/gui/ControllerStateMachine.hpp>
 #include <nex/opengl/renderer/Renderer.hpp>
 #include "nex/shader/ShaderBuffer.hpp"
 
 namespace nex
 {
-	class PBR_Deferred_Renderer : public Renderer
+	class ComputeTest_Renderer : public Renderer
 	{
 	public:
 
@@ -56,6 +54,8 @@ namespace nex
 			};
 			
 			ComputeTestShader(unsigned width, unsigned height);
+
+			void setDepthTexture(Texture* depth, InternFormat format);
 			
 			void reset(WriteOut* out);
 			
@@ -73,11 +73,34 @@ namespace nex
 			ComputeClearColorShader(Texture* texture);
 		};
 
+		class SimpleBlinnPhong : public Shader
+		{
+		public:
+			SimpleBlinnPhong();
+
+			void onModelMatrixUpdate(const glm::mat4 & modelMatrix) override;
+
+			void setLightDirection(const glm::vec3 lightDirectionWorld);
+
+			void setView(const glm::mat4* view);
+			void setProjection(const glm::mat4* projection);
+
+			void setViewPositionWorld(const glm::vec3 viewPositionWorld);
+
+		private:
+			Uniform mTransformMatrix;
+			Uniform mModelMatrix;
+			Uniform mViewPositionWorld;
+			Uniform mDirLightDirection;
+			const glm::mat4* mView;
+			const glm::mat4* mProjection;
+		};
+
 
 
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RendererOpenGL* renderer);
+		ComputeTest_Renderer(RendererOpenGL* renderer);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -103,26 +126,11 @@ namespace nex
 		Texture* panoramaSky;
 		Texture* testTexture;
 
-		std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
-		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
-		std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
-
 		RenderTarget* renderTargetSingleSampled;
 		Sprite screenSprite;
-		DepthMap* shadowMap;
 		bool showDepthMap;
 		Guard<ComputeTestShader> mComputeTest;
 		Guard<ComputeClearColorShader> mComputeClearColor;
-	};
-
-	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable
-	{
-	public:
-		PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer);
-
-	protected:
-		void drawSelf() override;
-
-		PBR_Deferred_Renderer* m_renderer;
+		std::unique_ptr<SimpleBlinnPhong> mSimpleBlinnPhong;
 	};
 }

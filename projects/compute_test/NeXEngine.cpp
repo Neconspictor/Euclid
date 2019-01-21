@@ -1,6 +1,6 @@
 #include <NeXEngine.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <renderer/ComputeTest_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
 #include <nex/camera/TrackballQuatCamera.hpp>
@@ -13,9 +13,9 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/common/Log.hpp>
-#include "nex/exception/EnumFormatException.hpp"
+#include <nex/exception/EnumFormatException.hpp>
 #include <Globals.hpp>
-#include "nex/opengl/model/ModelManagerGL.hpp"
+#include <nex/opengl/model/ModelManagerGL.hpp>
 
 using namespace nex;
 
@@ -84,7 +84,7 @@ void NeXEngine::init()
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
-	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());
+	m_renderer = std::make_unique<ComputeTest_Renderer>(m_renderBackend.get());
 	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),
@@ -337,9 +337,6 @@ void NeXEngine::setupGUI()
 
 	auto textureManagerView = std::make_unique<TextureManager_Configuration>(m_renderBackend->getTextureManager());
 	generalTab->addChild(move(textureManagerView));
-
-	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(m_renderer.get());
-	generalTab->addChild(move(pbr_deferred_rendererView));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

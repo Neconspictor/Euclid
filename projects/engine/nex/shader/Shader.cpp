@@ -56,7 +56,7 @@ std::ostream& nex::operator<<(std::ostream& os, nex::ShaderType shader)
 	return os;
 }
 
-nex::TransformShaderGL::TransformShaderGL(ShaderProgram * program) : Shader(program)
+nex::TransformShader::TransformShader(ShaderProgram * program) : Shader(program)
 {
 }
 

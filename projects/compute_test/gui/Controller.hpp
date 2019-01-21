@@ -3,17 +3,19 @@
 #include <nex/gui/ImGUI.hpp>
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
-#include "pbr_deferred/PBR_Deferred_Renderer.hpp"
 
+
+namespace nex {
+	class Renderer;
+}
 
 class Input;
-class PBR_Deferred_Renderer;
 
 namespace nex::gui
 {
 	class BaseController : public Controller {
 	public:
-		BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable);
+		BaseController(nex::Window* window, Input* input, Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable);
 		virtual ~BaseController() = default;
 
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
@@ -25,7 +27,7 @@ namespace nex::gui
 		nex::Window * m_window;
 		nex::Input* m_input;
 		ImGUI_Impl* guiRenderer;
-		PBR_Deferred_Renderer* m_mainTask;
+		Renderer* m_mainTask;
 		nex::Logger m_logger;
 	};
 
@@ -33,7 +35,7 @@ namespace nex::gui
 	public:
 		EditMode(nex::Window* window,
 			Input* input, 
-			PBR_Deferred_Renderer* mainTask, 
+			Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
 			std::unique_ptr<nex::gui::Drawable> drawable);
@@ -48,7 +50,7 @@ namespace nex::gui
 	public:
 		CameraMode(nex::Window* window,
 			Input* input, 
-			PBR_Deferred_Renderer* mainTask, 
+			Renderer* mainTask, 
 			Camera* camera, 
 			ImGUI_Impl* guiRenderer, 
 			std::unique_ptr<nex::gui::Drawable> drawable);

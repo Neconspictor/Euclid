@@ -47,7 +47,7 @@ namespace nex
 		/**
 		 * Draws a sprite onto the screen
 		 */
-		void draw(Sprite* sprite, nex::TransformShaderGL* shader);
+		void draw(Sprite* sprite, nex::TransformShader* shader);
 
 		/**
 		 * Draws the specified model with a given shader onto the screen.

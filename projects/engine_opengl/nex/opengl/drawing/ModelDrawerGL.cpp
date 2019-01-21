@@ -45,7 +45,7 @@ void nex::ModelDrawerGL::draw(SceneNode* root, Shader* shader)
 	}
 }
 
-void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShaderGL* shader)
+void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShader* shader)
 {
 	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());

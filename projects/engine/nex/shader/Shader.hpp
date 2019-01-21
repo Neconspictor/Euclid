@@ -299,11 +299,11 @@ namespace nex
 		nex::Guard<ShaderProgram> mProgram;
 	};
 
-	class TransformShaderGL : public Shader
+	class TransformShader : public Shader
 	{
 	public:
-		TransformShaderGL(ShaderProgram* program = nullptr);
-		virtual ~TransformShaderGL() = default;
+		TransformShader(ShaderProgram* program = nullptr);
+		virtual ~TransformShader() = default;
 
 		virtual void onTransformUpdate(const TransformData& data) = 0;
 	};

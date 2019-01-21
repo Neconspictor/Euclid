@@ -20,9 +20,10 @@ set(
 	gui/Controller.cpp
 	gui/Controller.hpp
 	
-	#pbr_deferred
-	pbr_deferred/PBR_Deferred_Renderer.hpp
-	pbr_deferred/PBR_Deferred_Renderer.cpp
+	#renderer
+	renderer/ComputeTest_Renderer.cpp
+    renderer/ComputeTest_Renderer.hpp
+	
 )
 
 # Create named folders for the sources within the .vcproj

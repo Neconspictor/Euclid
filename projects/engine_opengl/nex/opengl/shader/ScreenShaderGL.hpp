@@ -3,7 +3,7 @@
 
 namespace nex
 {
-	class ScreenShader : public TransformShaderGL
+	class ScreenShader : public TransformShader
 	{
 	public:
 		ScreenShader();

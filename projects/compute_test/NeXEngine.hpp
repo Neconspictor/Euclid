@@ -1,6 +1,6 @@
 #pragma once
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <renderer/ComputeTest_Renderer.hpp>
 #include <gui/SceneGUI.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
@@ -45,7 +45,7 @@ namespace nex
 	private:
 		nex::Logger m_logger;
 		std::unique_ptr<RendererOpenGL> m_renderBackend;
-		std::unique_ptr<PBR_Deferred_Renderer> m_renderer;
+		std::unique_ptr<ComputeTest_Renderer> m_renderer;
 		std::unique_ptr<gui::ControllerStateMachine> m_controllerSM;
 		std::unique_ptr<Camera> m_camera;
 		SubSystemProvider* m_windowSystem;

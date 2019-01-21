@@ -152,7 +152,7 @@ namespace nex
 		GLuint m_fullscreenTriangleVAO;
 	};
 
-	class SSAO_Tiled_Blur_ShaderGL : public TransformShaderGL
+	class SSAO_Tiled_Blur_ShaderGL : public TransformShader
 	{
 	public:
 
@@ -186,7 +186,7 @@ namespace nex
 	};
 
 
-	class SSAO_AO_Display_ShaderGL : public TransformShaderGL
+	class SSAO_AO_Display_ShaderGL : public TransformShader
 	{
 	public:
 

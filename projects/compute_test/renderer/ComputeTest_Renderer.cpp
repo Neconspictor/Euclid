@@ -1,4 +1,4 @@
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <renderer/ComputeTest_Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
@@ -11,6 +11,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/gtx/string_cast.hpp>
+#include <iostream>
 
 namespace nex {
 	class Timer;
@@ -23,7 +24,7 @@ using namespace nex;
 int ssaaSamples = 1;
 
 
-nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, unsigned height) : ComputeShader()
+nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, unsigned height) : ComputeShader()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -180,7 +181,7 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 	//std::cout << "minValue = " << *minValue << std::endl;
 
 
-	depth = Texture::createTexture2D(ComputeTestShader::width, ComputeTestShader::height, tData, memory.data());
+	depth = Texture2D::create(ComputeTestShader::width, ComputeTestShader::height, tData, memory.data());
 
 	storageBuffer->bind();
 	WriteOut dataOut;
@@ -199,7 +200,19 @@ nex::PBR_Deferred_Renderer::ComputeTestShader::ComputeTestShader(unsigned width,
 		0);
 }
 
-void PBR_Deferred_Renderer::ComputeTestShader::reset(WriteOut* out)
+void ComputeTest_Renderer::ComputeTestShader::setDepthTexture(Texture* depth, InternFormat format)
+{
+	getProgram()->setImageLayerOfTexture(0,
+		depth,
+		0,
+		TextureAccess::READ_ONLY,
+		format,
+		0,
+		false,
+		0);
+}
+
+void ComputeTest_Renderer::ComputeTestShader::reset(WriteOut* out)
 {
 	for (int i = 0; i < partitionCount; ++i)
 	{
@@ -210,7 +223,7 @@ void PBR_Deferred_Renderer::ComputeTestShader::reset(WriteOut* out)
 	//out->lock = 0;
 }
 
-PBR_Deferred_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputeShader()
+ComputeTest_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputeShader()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -245,17 +258,58 @@ PBR_Deferred_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture*
 	unbind();
 }
 
+ComputeTest_Renderer::SimpleBlinnPhong::SimpleBlinnPhong() : mView(nullptr), mProjection(nullptr)
+{
+	mProgram = ShaderProgram::create("test/compute/blinn_phong_simple_vs.glsl",
+		"test/compute/blinn_phong_simple_fs.glsl");
+
+	mTransformMatrix = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mModelMatrix = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
+	mViewPositionWorld = { mProgram->getUniformLocation("viewPos_world"), UniformType::MAT4 };
+	mDirLightDirection = { mProgram->getUniformLocation("dirLight.direction"), UniformType::MAT4 };
+}
+
+void nex::ComputeTest_Renderer::SimpleBlinnPhong::setLightDirection(const glm::vec3 lightDirectionWorld)
+{
+	mProgram->setVec3(mDirLightDirection.location, lightDirectionWorld);
+}
+
+void ComputeTest_Renderer::SimpleBlinnPhong::setView(const glm::mat4* view)
+{
+	mView = view;
+}
+
+void ComputeTest_Renderer::SimpleBlinnPhong::setProjection(const glm::mat4* projection)
+{
+	mProjection = projection;
+}
+
+void ComputeTest_Renderer::SimpleBlinnPhong::setViewPositionWorld(const glm::vec3 viewPositionWorld)
+{
+	mProgram->setVec3(mViewPositionWorld.location, viewPositionWorld);
+}
+
+void ComputeTest_Renderer::SimpleBlinnPhong::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
+{
+	mat4 modelView = *mView * modelMatrix;
+
+	const mat4 transform = *mProjection * *mView * modelMatrix;
+
+	mProgram->setMat4(mTransformMatrix.location, transform);
+	mProgram->setMat4(mModelMatrix.location, modelMatrix);
+}
+
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_Renderer::PBR_Deferred_Renderer(RendererOpenGL* backend) :
+ComputeTest_Renderer::ComputeTest_Renderer(RendererOpenGL* backend) :
 	Renderer(backend),
 	m_logger("PBR_Deferred_Renderer"),
 	renderTargetSingleSampled(nullptr)
 {
 }
 
-void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
+void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
@@ -299,6 +353,8 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	mComputeTest = new ComputeTestShader(windowWidth, windowHeight);
 
+	mSimpleBlinnPhong = make_unique<SimpleBlinnPhong>();
+
 	//mComputeTest->bind();
 	//GLuint location = mComputeTest->getProgram()->getUniformLocation("data");
 	//GLCall(glBindImageTexture(0, textureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGB8));
@@ -308,15 +364,34 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 }
 
-void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
+void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	//ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
+	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
 	//ScreenShader* screenShader = (ScreenShader*)(
 	//	m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
 	using namespace chrono;
 
 	const unsigned width = mComputeTest->width;//mComputeTest->result->getWidth();
 	const unsigned height = mComputeTest->height; // mComputeTest->result->getHeight();
+
+	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
+	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
+	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+
+	mSimpleBlinnPhong->bind();
+
+	mSimpleBlinnPhong->setLightDirection(vec3(100, 100, 100));
+	mSimpleBlinnPhong->setViewPositionWorld(camera->getPosition());
+	mSimpleBlinnPhong->setView(&camera->getView());
+	mSimpleBlinnPhong->setProjection(&camera->getPerspProjection());
+	modelDrawer->draw(scene, mSimpleBlinnPhong.get());
+
+	auto depthStencilMap = screenRenderTarget->getDepthStencilMap();
+
+
+	return;
 
 
 
@@ -379,7 +454,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	}
 }
 
-void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
+void ComputeTest_Renderer::updateRenderTargets(int width, int height)
 {
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
@@ -416,15 +491,4 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 		0);
 
 	*/
-}
-
-PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)
-{
-}
-
-void PBR_Deferred_Renderer_ConfigurationView::drawSelf()
-{
-	// render configuration properties
-	ImGui::PushID(m_id.c_str());
-	ImGui::PopID();
 }

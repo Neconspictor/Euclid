@@ -140,7 +140,7 @@ namespace nex
 		glm::mat4 const* mView;
 	};
 
-	class PBRShader_Deferred_Lighting : public TransformShaderGL {
+	class PBRShader_Deferred_Lighting : public TransformShader {
 	public:
 
 		PBRShader_Deferred_Lighting();
@@ -253,7 +253,7 @@ namespace nex
 		Uniform mRoughness;
 	};
 
-	class PBR_BrdfPrecomputeShader : public TransformShaderGL
+	class PBR_BrdfPrecomputeShader : public TransformShader
 	{
 	public:
 		PBR_BrdfPrecomputeShader();

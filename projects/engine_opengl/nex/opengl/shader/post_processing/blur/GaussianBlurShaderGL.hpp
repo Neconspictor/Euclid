@@ -4,7 +4,7 @@
 
 namespace nex
 {
-	class GaussianBlurHorizontalShader : public TransformShaderGL
+	class GaussianBlurHorizontalShader : public TransformShader
 	{
 	public:
 		GaussianBlurHorizontalShader();
@@ -27,7 +27,7 @@ namespace nex
 		Uniform windowHeight;
 	};
 
-	class GaussianBlurVerticalShader : public TransformShaderGL
+	class GaussianBlurVerticalShader : public TransformShader
 	{
 	public:
 		GaussianBlurVerticalShader();

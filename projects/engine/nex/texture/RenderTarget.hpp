@@ -104,7 +104,13 @@ namespace nex
 		 * Provides access to the used depth-stencil map.
 		 * Null will be returned if the render target has no assigned depth-stencil map.
 		 */
-		std::shared_ptr<Texture> getDepthStencilMap();
+		std::shared_ptr<Texture> getDepthStencilMapShared();
+
+		/**
+		 * Provides access to the used depth-stencil map.
+		 * Null will be returned if the render target has no assigned depth-stencil map.
+		 */
+		Texture* getDepthStencilMap();
 
 	protected:
 

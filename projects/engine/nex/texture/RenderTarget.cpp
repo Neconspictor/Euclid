@@ -44,9 +44,14 @@ unsigned nex::RenderTarget::getWidth() const
 	return mImpl->mWidth;
 }
 
-std::shared_ptr<nex::Texture> nex::RenderTarget::getDepthStencilMap()
+std::shared_ptr<nex::Texture> nex::RenderTarget::getDepthStencilMapShared()
 {
 	return mImpl->mDepthStencilMap;
+}
+
+nex::Texture* nex::RenderTarget::getDepthStencilMap()
+{
+	return mImpl->mDepthStencilMap.get();
 }
 
 void nex::RenderTarget::setTexture(Texture* texture)
