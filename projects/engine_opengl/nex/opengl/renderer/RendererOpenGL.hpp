@@ -177,7 +177,7 @@ namespace nex
 
 		RenderTarget* createRenderTarget(int samples = 1);
 
-		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, Texture* depthStencilMap);
+		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, std::shared_ptr<Texture> depthStencilMap);
 
 		std::unique_ptr<SSAO_DeferredGL> createDeferredSSAO();
 

@@ -30,9 +30,8 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 {
 	mRenderResult = CubeMap::create();
 
-	auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24);
-	auto renderBufferTexture = renderBuffer.release();
-	mDepthStencilMap = renderBuffer.release();
+	auto renderBuffer = make_shared<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24);
+	
 
 
 	// generate framebuffer and renderbuffer with a depth component
@@ -41,7 +40,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(int width, int height, TextureData d
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
 
-	useDepthStencilMap(renderBufferTexture);
+	useDepthStencilMap(renderBuffer);
 
 	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -206,7 +205,7 @@ void nex::RenderTarget::copyFrom(RenderTarget* dest, const Dimension& sourceDim,
 
 
 nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, const TextureData& data,
-                                                             GLuint samples, Texture* depthStencilMap)
+                                                             GLuint samples, std::shared_ptr<Texture> depthStencilMap)
 {
 	assert(samples > 1);
 
@@ -248,17 +247,17 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 
 	if (depthStencilMap != nullptr)
 	{
-		validateDepthStencilMap(depthStencilMap);
+		validateDepthStencilMap(depthStencilMap.get());
 
 		glTarget->mDepthStencilMap = depthStencilMap;
 
-		const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(depthStencilMap) != nullptr;
+		const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(depthStencilMap.get()) != nullptr;
 		TextureGL* depthStencilMapGL = (TextureGL*)depthStencilMap->getImpl();
 
 
 		if (isDepthStencil)
 		{
-			DepthStencilFormat format = dynamic_cast<DepthStencilMap*>(depthStencilMap)->getFormat();
+			DepthStencilFormat format = dynamic_cast<DepthStencilMap*>(depthStencilMap.get())->getFormat();
 			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
 
 			GLCall(glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, *depthStencilMapGL->getTexture(), 0));
@@ -266,7 +265,7 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 		}
 		else
 		{
-			DepthStencilFormat format = dynamic_cast<RenderBuffer*>(depthStencilMap)->getFormat();
+			DepthStencilFormat format = dynamic_cast<RenderBuffer*>(depthStencilMap.get())->getFormat();
 			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
 
 			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentType, GL_RENDERBUFFER, *depthStencilMapGL->getTexture()));
@@ -288,7 +287,7 @@ nex::RenderTarget* nex::RenderTarget::createMultisampled(int width, int height, 
 	return result;
 }
 
-nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height, const TextureData& data, Texture* depthStencilMap)
+nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height, const TextureData& data, std::shared_ptr<Texture> depthStencilMap)
 {
 	nex::Guard<RenderTargetGL> glTarget;
 	glTarget.setContent(new RenderTargetGL(width, height));
@@ -352,17 +351,17 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 
 	if (depthStencilMap != nullptr)
 	{
-		validateDepthStencilMap(depthStencilMap);
+		validateDepthStencilMap(depthStencilMap.get());
 
 		glTarget->mDepthStencilMap = depthStencilMap;
 
-		const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(depthStencilMap) != nullptr;
+		const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(depthStencilMap.get()) != nullptr;
 		TextureGL* depthStencilMapGL = (TextureGL*)depthStencilMap->getImpl();
 
 
 		if (isDepthStencil)
 		{
-			DepthStencilFormat format = dynamic_cast<DepthStencilMap*>(depthStencilMap)->getFormat();
+			DepthStencilFormat format = dynamic_cast<DepthStencilMap*>(depthStencilMap.get())->getFormat();
 			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
 
 			GLCall(glBindTexture(GL_TEXTURE_2D, *depthStencilMapGL->getTexture()));
@@ -371,7 +370,7 @@ nex::RenderTarget* nex::RenderTarget::createSingleSampled(int width, int height,
 		}
 		else
 		{
-			DepthStencilFormat format = dynamic_cast<RenderBuffer*>(depthStencilMap)->getFormat();
+			DepthStencilFormat format = dynamic_cast<RenderBuffer*>(depthStencilMap.get())->getFormat();
 			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
 
 			GLCall(glBindTexture(GL_RENDERBUFFER, *depthStencilMapGL->getTexture()));
@@ -498,7 +497,7 @@ void nex::RenderTargetGL::setFrameBuffer(GLuint newValue)
 	frameBuffer = newValue;
 }
 
-void nex::RenderTargetGL::useDepthStencilMap(Texture* depthStencilMap)
+void nex::RenderTargetGL::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
 {
 
 	auto renderBuffer = dynamic_cast<RenderBufferGL*> (depthStencilMap->getImpl());
@@ -608,7 +607,7 @@ nex::Texture* nex::PBR_GBuffer::getPosition() const
 	return gl->getPosition();
 }
 
-nex::DepthStencilMap* nex::PBR_GBuffer::getDepth() const
+std::shared_ptr<nex::DepthStencilMap> nex::PBR_GBuffer::getDepth() const
 {
 	PBR_GBufferGL* gl = (PBR_GBufferGL*)getImpl();
 	return gl->getDepth();
@@ -700,11 +699,11 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrap = TextureUVTechnique::ClampToEdge;
 	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-	depth = new DepthStencilMap(width, height, desc);
+	depth = make_shared<DepthStencilMap>(width, height, desc);
 
 	TextureGL* depthGL = (TextureGL*)depth->getImpl();
 
-	useDepthStencilMap(depth.get());
+	useDepthStencilMap(depth);
 
 	//auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24_STENCIL8);
 
@@ -752,7 +751,7 @@ nex::Texture* nex::PBR_GBufferGL::getPosition()
 	return position.get();
 }
 
-nex::DepthStencilMap * nex::PBR_GBufferGL::getDepth()
+std::shared_ptr<nex::DepthStencilMap> nex::PBR_GBufferGL::getDepth()
 {
-	return depth.get();
+	return depth;
 }

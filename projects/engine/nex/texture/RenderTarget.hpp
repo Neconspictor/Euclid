@@ -33,13 +33,13 @@ namespace nex
 		 */
 		void setTexture(Texture* texture);
 
-		virtual void useDepthStencilMap(Texture* depthStencilMap) = 0;
+		virtual void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap) = 0;
 
 	protected:
 		friend RenderTarget;
 		RenderTargetImpl(unsigned width, unsigned height);
 		Guard<Texture> mRenderResult;
-		Texture* mDepthStencilMap;
+		std::shared_ptr<Texture> mDepthStencilMap;
 		unsigned mWidth;
 		unsigned mHeight;
 	};
@@ -68,10 +68,10 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		static RenderTarget* createMultisampled(int width, int height, const TextureData& data,
-			unsigned samples, Texture* depthStencilMap = nullptr);
+			unsigned samples, std::shared_ptr<Texture> depthStencilMap = nullptr);
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, Texture* depthStencilMap = nullptr);
+		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, std::shared_ptr<Texture> depthStencilMap = nullptr);
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);
@@ -98,13 +98,13 @@ namespace nex
 		/**
 		 * Specifies a depth-stencil map this render target should use.
 		 */
-		void useDepthStencilMap(Texture* depthStencilMap);
+		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
 
 		/**
 		 * Provides access to the used depth-stencil map.
 		 * Null will be returned if the render target has no assigned depth-stencil map.
 		 */
-		Texture* getDepthStencilMap();
+		std::shared_ptr<Texture> getDepthStencilMap();
 
 	protected:
 
@@ -172,6 +172,6 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture* getPosition() const;
 		// Has to be implemented by renderer backend
-		DepthStencilMap* getDepth() const;
+		std::shared_ptr<DepthStencilMap> getDepth() const;
 	};
 }

@@ -1,8 +1,8 @@
 #pragma once
-#include "nex/opengl/texture/TextureGL.hpp"
+#include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/util/Memory.hpp>
 #include <nex/texture/RenderTarget.hpp>
-#include "nex/texture/Texture.hpp"
+#include <nex/texture/Texture.hpp>
 
 namespace nex
 {
@@ -22,7 +22,7 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 
-		void useDepthStencilMap(Texture* depthStencilMap) override;
+		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap) override;
 
 	protected:
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
@@ -80,7 +80,7 @@ namespace nex
 		Texture* getAoMetalRoughness();
 		Texture* getNormal();
 		Texture* getPosition();
-		DepthStencilMap* getDepth();
+		std::shared_ptr<DepthStencilMap> getDepth();
 
 
 	protected:
@@ -88,6 +88,6 @@ namespace nex
 		nex::Guard<Texture> aoMetalRoughness;
 		nex::Guard<Texture> normal;
 		nex::Guard<Texture> position;
-		nex::Guard<DepthStencilMap> depth;
+		std::shared_ptr<DepthStencilMap> depth;
 	};
 }

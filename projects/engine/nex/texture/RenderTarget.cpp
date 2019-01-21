@@ -44,7 +44,7 @@ unsigned nex::RenderTarget::getWidth() const
 	return mImpl->mWidth;
 }
 
-nex::Texture* nex::RenderTarget::getDepthStencilMap()
+std::shared_ptr<nex::Texture> nex::RenderTarget::getDepthStencilMap()
 {
 	return mImpl->mDepthStencilMap;
 }
@@ -63,7 +63,7 @@ void nex::RenderTarget::validateDepthStencilMap(Texture* texture)
 		throw std::runtime_error("nex::RenderTarget::validateDepthStencilMap failed: Wrong texture input!");
 }
 
-void nex::RenderTarget::useDepthStencilMap(Texture* depthStencilMap)
+void nex::RenderTarget::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
 {
 	mImpl->useDepthStencilMap(depthStencilMap);
 }

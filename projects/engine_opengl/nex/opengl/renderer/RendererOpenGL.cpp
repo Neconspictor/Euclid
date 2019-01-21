@@ -99,7 +99,7 @@ namespace nex
 			gaussianBlur->release();
 	}
 
-	RendererOpenGL::RendererOpenGL() : m_logger("RendererOpenGL"), mViewport(),
+	RendererOpenGL::RendererOpenGL() : m_logger("RendererOpenGL"),
 		backgroundColor(0.0f, 0.0f, 0.0f), modelDrawer(this),
 		msaaSamples(1), smaa(nullptr), defaultRenderTarget(nullptr)
 	{
@@ -268,9 +268,8 @@ namespace nex
 	RenderTarget* nex::RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
 		DepthStencilDesc desc;
-		auto depthTexture = make_unique<DepthStencilMap>(width, height, desc);
-		auto result = createRenderTargetGL(width, height, data, samples, depthTexture.get());
-		depthTexture.release();
+		auto depthTexture = make_shared<DepthStencilMap>(width, height, desc);
+		auto result = createRenderTargetGL(width, height, data, samples, depthTexture);
 		return result;
 	}
 
@@ -314,9 +313,8 @@ namespace nex
 		const unsigned height = mViewport.height * ssaaSamples;
 
 		DepthStencilDesc desc;
-		auto depthTexture = make_unique<DepthStencilMap>(width, height, desc);
-		auto result = createRenderTargetGL(width, height, data, samples, depthTexture.get()); //GL_RGBA
-		depthTexture.release();
+		auto depthTexture = make_shared<DepthStencilMap>(width, height, desc);
+		auto result = createRenderTargetGL(width, height, data, samples, depthTexture); //GL_RGBA
 
 		return result;
 	}
@@ -680,7 +678,7 @@ namespace nex
 	}
 
 	RenderTarget* RendererOpenGL::createRenderTargetGL(int width, int height, const TextureData& data,
-		unsigned samples, Texture* depthStencilMap)
+		unsigned samples, std::shared_ptr<Texture> depthStencilMap)
 	{
 		assert(samples >= 1);
 

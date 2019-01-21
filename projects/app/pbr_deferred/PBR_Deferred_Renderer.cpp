@@ -378,7 +378,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Tex
 		projection.orthoheight = 0;
 		projection.perspective = true;
 
-		m_aoSelector.getHBAO()->renderAO(pbr_mrt->getDepth(), projection, true);
+		m_aoSelector.getHBAO()->renderAO(pbr_mrt->getDepth().get(), projection, true);
 
 		return m_aoSelector.getHBAO()->getBlurredResult();
 	}
