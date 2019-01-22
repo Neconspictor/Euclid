@@ -13,46 +13,78 @@ namespace nex
 	class RenderTargetGL : public RenderTargetImpl
 	{
 	public:
-		explicit RenderTargetGL(int width, int height, GLuint frameBuffer = GL_FALSE);
+		explicit RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer = GL_FALSE,
+			std::shared_ptr<Texture> depthStencilMap = nullptr);
+
 		virtual ~RenderTargetGL();
+
+		Texture* getDepthStencilMap() const;
+
+		std::shared_ptr<Texture> getDepthStencilMapShared() const;
 
 		GLuint getFrameBuffer() const;
 
-		virtual void release();
+		Texture* getResult() const;
+
+		unsigned getWidth() const;
+
+		unsigned getHeight() const;
 
 		void setFrameBuffer(GLuint newValue);
 
-		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap) override;
+		void setRenderResult(Texture* texture);
+
+		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
 
 	protected:
-		friend RendererOpenGL; // allow the OpenGL renderer easier access
-		friend RenderTarget;
 
-		GLuint frameBuffer;
+		friend RenderTargetImpl;
+
+		GLuint mFrameBuffer;
+		std::unique_ptr<Texture> mRenderResult;
+		std::shared_ptr<Texture> mDepthStencilMap;
+		unsigned mWidth;
+		unsigned mHeight;
+
+		static void validateDepthStencilMap(Texture* texture);
+	};
+
+	class RenderTarget2DGL : public RenderTargetGL
+	{
+	public:
+
+		RenderTarget2DGL(unsigned width, unsigned height);
+
+		explicit RenderTarget2DGL(unsigned width, 
+			unsigned height, 
+			const TextureData& data, 
+			unsigned samples, 
+			std::shared_ptr<Texture> depthStencilMap = nullptr);
+
+		// Has to be implemented by renderer backend
+		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components);
+		static GLint getRenderComponents(int components);
 	};
 
 	
 	class CubeRenderTargetGL : public RenderTargetGL
 	{
 	public:
-		explicit CubeRenderTargetGL(int width, int height, TextureData data);
-
-		virtual ~CubeRenderTargetGL();
+		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data);
 		
 		nex::CubeMapGL* createCopy();
 
-		int getHeightMipLevel(unsigned int mipMapLevel) const {
+		int getHeightMipLevel(unsigned mipMapLevel) const {
 			return (int)(mHeight * std::pow(0.5, mipMapLevel));
 		}
 
-		int getWidthMipLevel(unsigned int mipMapLevel) const {
+		int getWidthMipLevel(unsigned mipMapLevel) const {
 			return (int)(mWidth * std::pow(0.5, mipMapLevel));
 		}
 
-		void resizeForMipMap(unsigned int mipMapLevel);
+		void resizeForMipMap(unsigned mipMapLevel);
 
 	protected:
-		friend RendererOpenGL;
 		nex::TextureData data;
 	};
 
@@ -76,18 +108,18 @@ namespace nex
 
 		virtual ~PBR_GBufferGL() = default;
 
-		Texture* getAlbedo();
-		Texture* getAoMetalRoughness();
-		Texture* getNormal();
-		Texture* getPosition();
-		std::shared_ptr<DepthStencilMap> getDepth();
+		Texture2D* getAlbedo() const;
+		Texture2D* getAoMetalRoughness() const;
+		Texture2D* getNormal() const;
+		Texture2D* getPosition() const;
+		const std::shared_ptr<DepthStencilMap>& getDepth() const;
 
 
 	protected:
-		nex::Guard<Texture> albedo;
-		nex::Guard<Texture> aoMetalRoughness;
-		nex::Guard<Texture> normal;
-		nex::Guard<Texture> position;
+		std::unique_ptr<Texture2D> albedo;
+		std::unique_ptr<Texture2D> aoMetalRoughness;
+		std::unique_ptr<Texture2D> normal;
+		std::unique_ptr<Texture2D> position;
 		std::shared_ptr<DepthStencilMap> depth;
 	};
 }

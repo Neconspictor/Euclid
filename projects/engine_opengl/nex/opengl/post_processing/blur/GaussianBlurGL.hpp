@@ -3,7 +3,7 @@
 
 namespace nex {
 
-	class RenderTarget;
+	class RenderTarget2D;
 	class RendererOpenGL;
 
 	class GaussianBlurGL {
@@ -13,7 +13,7 @@ namespace nex {
 
 		virtual ~GaussianBlurGL();
 
-		void blur(RenderTarget* target, RenderTarget* cache);
+		void blur(RenderTarget2D* target, RenderTarget2D* cache);
 
 		void init();
 

@@ -289,7 +289,7 @@ nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name)
 	return loc;
 }
 
-nex::ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
+std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
 {
 
 	bool useGeometryShader = std::filesystem::exists(geometryShaderFile);
@@ -321,13 +321,15 @@ nex::ShaderProgram* nex::ShaderProgram::create(const FilePath& vertexFile, const
 		throw_with_trace(ShaderInitException("ShaderProgram::create: couldn't create shader!"));
 	}
 
-	return new ShaderProgramGL(programID);
+	auto result = std::make_unique<ShaderProgramGL>(programID);
+	return result;
 }
 
-nex::ShaderProgram* nex::ShaderProgram::create(const std::vector<Guard<ShaderStage>>& stages)
+std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::create(const std::vector<Guard<ShaderStage>>& stages)
 {
 	GLuint program = ShaderProgramGL::createShaderProgram(stages);
-	return new ShaderProgramGL(program);
+	auto result = std::make_unique<ShaderProgramGL>(program);
+	return result;
 }
 
 void nex::ShaderProgram::release()

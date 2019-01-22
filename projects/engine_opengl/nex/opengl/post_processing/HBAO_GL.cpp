@@ -72,7 +72,7 @@ namespace nex
 
 		GLuint temp;
 		//newTexture(textures.hbao_random);
-		m_hbao_random = Texture::create();
+		m_hbao_random = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, TextureData());
 		TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glGenTextures(1, &temp));
 		randomGL->setTexture(temp);
@@ -86,7 +86,7 @@ namespace nex
 
 
 		glGenTextures(1, &temp);
-		m_hbao_randomview = Texture::create();
+		m_hbao_randomview = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, TextureData());
 		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
 		randomViewGL->setTexture(temp);
 		GLCall(glTextureView(*randomViewGL->getTexture(), GL_TEXTURE_2D, *randomGL->getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1));
@@ -128,14 +128,14 @@ namespace nex
 		}
 	}
 
-	Texture * HBAO_GL::getAO_Result()
+	Texture2D * HBAO_GL::getAO_Result()
 	{
-		return m_aoResultRT->getTexture();
+		return (Texture2D*)m_aoResultRT->getRenderResult();
 	}
 
-	Texture * HBAO_GL::getBlurredResult()
+	Texture2D * HBAO_GL::getBlurredResult()
 	{
-		return m_aoBlurredResultRT->getTexture();
+		return (Texture2D*)m_aoBlurredResultRT->getRenderResult();
 	}
 
 	void HBAO_GL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
@@ -165,7 +165,7 @@ namespace nex
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
 		m_hbaoShader->setHbaoData(move(m_hbaoDataSource));
-		m_hbaoShader->setLinearDepth(m_depthLinearRT->getTexture());
+		m_hbaoShader->setLinearDepth(m_depthLinearRT->getRenderResult());
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->draw();
 
@@ -179,8 +179,8 @@ namespace nex
 			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
 			// setup bilaterial blur and draw
-			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getTexture());
-			m_bilateralBlur->setSourceTexture(m_aoResultRT->getTexture(), width, height);
+			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getRenderResult());
+			m_bilateralBlur->setSourceTexture(m_aoResultRT->getRenderResult(), width, height);
 			m_bilateralBlur->setSharpness(m_blur_sharpness);
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 		}
@@ -276,7 +276,7 @@ namespace nex
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
 
-		m_depthLinearRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
+		m_depthLinearRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
 
 		// m_aoResultRT
 		data.internalFormat = InternFormat::R8;
@@ -288,13 +288,13 @@ namespace nex
 		data.pixelDataType = PixelDataType::UBYTE;
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
-		m_aoResultRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
+		m_aoResultRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
 
 		// m_aoBlurredResultRT
-		m_aoBlurredResultRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
+		m_aoBlurredResultRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
 
 		// m_tempRT
-		m_tempRT.reset(RenderTarget::createSingleSampled(width, height, data, nullptr));
+		m_tempRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
 	}
 
 	BilateralBlur::BilateralBlur() :
@@ -325,7 +325,7 @@ namespace nex
 		m_textureWidth = textureWidth;
 	}
 
-	void BilateralBlur::draw(RenderTarget* temp, RenderTarget* result)
+	void BilateralBlur::draw(RenderTarget2D* temp, RenderTarget2D* result)
 	{
 		temp->bind();
 		bind();
@@ -344,7 +344,7 @@ namespace nex
 
 		// blur vertically
 		result->bind();
-		TextureGL* tempTexGL = (TextureGL*)temp->getTexture()->getImpl();
+		TextureGL* tempTexGL = (TextureGL*)temp->getRenderResult()->getImpl();
 
 		GLCall(glBindTextureUnit(0, *tempTexGL->getTexture()));
 		GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));

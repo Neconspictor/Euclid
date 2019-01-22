@@ -166,10 +166,10 @@ namespace nex
 
 		UniformLocation getShaderStorageBufferLocation(const char* name);
 
-		static ShaderProgram* create(const FilePath& vertexFile, const FilePath& fragmentFile,
+		static std::unique_ptr<ShaderProgram> create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "");
 
-		static ShaderProgram* create(const std::vector<Guard<ShaderStage>>& stages);
+		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
 
 		void release();
 
@@ -262,7 +262,7 @@ namespace nex
 	{
 	public:
 
-		Shader(ShaderProgram* program = nullptr);
+		Shader(std::unique_ptr<ShaderProgram> program = nullptr);
 
 		virtual ~Shader() = default;
 
@@ -273,7 +273,7 @@ namespace nex
 
 		ShaderProgram* getProgram();
 
-		void setProgram(ShaderProgram* program);
+		void setProgram(std::unique_ptr<ShaderProgram> program);
 
 		/**
 		 * Unbinds this shader and the underlying shader program.
@@ -296,13 +296,13 @@ namespace nex
 		Shader(const Shader&) = delete;
 		Shader& operator=(const Shader&) = delete;
 
-		nex::Guard<ShaderProgram> mProgram;
+		std::unique_ptr<ShaderProgram> mProgram;
 	};
 
 	class TransformShader : public Shader
 	{
 	public:
-		TransformShader(ShaderProgram* program = nullptr);
+		TransformShader(std::unique_ptr<ShaderProgram> program = nullptr);
 		virtual ~TransformShader() = default;
 
 		virtual void onTransformUpdate(const TransformData& data) = 0;
@@ -311,7 +311,7 @@ namespace nex
 	class ComputeShader : public Shader
 	{
 	public:
-		ComputeShader(ShaderProgram* program = nullptr);
+		ComputeShader(std::unique_ptr<ShaderProgram> program = nullptr);
 		virtual ~ComputeShader() = default;
 
 		/**

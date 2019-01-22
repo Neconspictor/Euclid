@@ -215,25 +215,24 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 
 	// update and render into cascades
-	
-
-	m_renderBackend->useBaseRenderTarget(pbr_mrt.get());
+	pbr_mrt->bind();
 
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
-	m_renderBackend->clearRenderTarget(pbr_mrt.get(), RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-		m_pbr_deferred->drawGeometryScene(scene,
-			camera->getView(),
-			camera->getPerspProjection());
+
+	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	m_pbr_deferred->drawGeometryScene(scene,
+		camera->getView(),
+		camera->getPerspProjection());
 
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
-	m_renderBackend->useBaseRenderTarget(renderTargetSingleSampled);
+	renderTargetSingleSampled->bind();
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	m_renderBackend->clearRenderTarget(renderTargetSingleSampled, RenderComponent::Color); //| RenderComponent::Depth | RenderComponent::Stencil
+	renderTargetSingleSampled->clear(RenderComponent::Color);//| RenderComponent::Depth | RenderComponent::Stencil
 
 	
 
@@ -264,14 +263,14 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->endScene();
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
+	screenRenderTarget->bind();
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	//renderer->beginScene();
-	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	
-	screenSprite.setTexture(renderTargetSingleSampled->getTexture()); //TODO
+	screenSprite.setTexture(renderTargetSingleSampled->getRenderResult()); //TODO
 
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 	//screenSprite.setTexture(ssao_deferred->getAO_Result());

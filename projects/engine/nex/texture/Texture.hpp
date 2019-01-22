@@ -1,6 +1,5 @@
 #pragma once
 #include <nex/util/Math.hpp>
-#include <nex/util/Memory.hpp>
 
 namespace nex
 {
@@ -220,7 +219,7 @@ namespace nex
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		Texture(TextureImpl* impl);
+		Texture(std::unique_ptr<TextureImpl> impl);
 
 		TextureImpl* getImpl() const;
 
@@ -235,13 +234,10 @@ namespace nex
 		 */
 		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
 
-		// Has to be implemented by renderer backend
-		static Texture* create();
-
-		void setImpl(TextureImpl* impl);
+		void setImpl(std::unique_ptr<TextureImpl> impl);
 
 	protected:
-		nex::Guard<TextureImpl> mImpl;
+		std::unique_ptr<TextureImpl> mImpl;
 	};
 
 	class Texture2D : public Texture
@@ -250,7 +246,11 @@ namespace nex
 
 		// creates an unintialized texture2D object. Shouldn't be used by user code.
 		// 
-		Texture2D(TextureImpl* impl);
+		Texture2D(std::unique_ptr<TextureImpl> impl);
+
+		// Creates an empty 2d texture
+		// Has to be implemented by renderer backend
+		Texture2D(unsigned width, unsigned height, const TextureData& textureData);
 
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
@@ -304,9 +304,6 @@ namespace nex
 			POSITIVE_Z,
 			NEGATIVE_Z,
 		};
-
-		// has to be implemented by the renderer backend
-		static CubeMap* create();
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend

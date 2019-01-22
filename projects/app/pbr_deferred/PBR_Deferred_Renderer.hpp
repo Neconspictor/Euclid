@@ -49,7 +49,7 @@ namespace nex
 
 		AmbientOcclusionSelector m_aoSelector;
 
-		RenderTarget* renderTargetSingleSampled;
+		RenderTarget2D* renderTargetSingleSampled;
 		Sprite screenSprite;
 		//DepthMap* shadowMap;
 		bool showDepthMap;

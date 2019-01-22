@@ -1,6 +1,5 @@
 #pragma once
 #include <nex/util/Math.hpp>
-#include <nex/util/Memory.hpp>
 #include <nex/texture/Texture.hpp>
 
 namespace nex
@@ -14,6 +13,8 @@ namespace nex
 	class RenderTargetImpl
 	{
 	public:
+
+		RenderTargetImpl() = default;
 		// Class and subclasses shouldn't be movable/copiable
 		// Implicitly removes auto-generated move constructor/assignment operator
 		// Inherited classes cannot be copied/moved as well
@@ -22,56 +23,80 @@ namespace nex
 
 		// virtual needed for backend implementations
 		virtual ~RenderTargetImpl() = default;
-
-		Texture* getTexture();
-
-		/**
-		 * Sets the texture of this render target.
-		 * The previous texture won't be destroyed, so you have to delete it manually
-		 *   (use getTexture and than delete it).
-		 * NOTE: You should know what you do, when setting the texture manually!
-		 */
-		void setTexture(Texture* texture);
-
-		virtual void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap) = 0;
-
-	protected:
-		friend RenderTarget;
-		RenderTargetImpl(unsigned width, unsigned height);
-		Guard<Texture> mRenderResult;
-		std::shared_ptr<Texture> mDepthStencilMap;
-		unsigned mWidth;
-		unsigned mHeight;
 	};
 
 
 	class RenderTarget
 	{
 	public:
+
+		// Has to be implemented by renderer backend
+		RenderTarget(std::unique_ptr<RenderTargetImpl> impl);
+
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
 		// Has to be implemented by renderer backend
-		RenderTarget(RenderTargetImpl* impl);
-
-
-		virtual ~RenderTarget();
-
-		// Has to be implemented by renderer backend
 		void bind();
 
-		// Has to be implemented by renderer backend
-		void copyFrom(RenderTarget* dest, const Dimension& sourceDim, int components);
+		void clear(int components);
 
 		// Has to be implemented by renderer backend
 		void unbind();
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createMultisampled(int width, int height, const TextureData& data,
-			unsigned samples, std::shared_ptr<Texture> depthStencilMap = nullptr);
+		//static RenderTarget* createVSM(int width, int height);
+
+		/**
+		 * Provides access to the used depth-stencil map.
+		 * Null will be returned if the render target has no assigned depth-stencil map.
+		 */
+		Texture* getDepthStencilMap();
+
+		/**
+		 * Provides access to the used depth-stencil map.
+		 * Null will be returned if the render target has no assigned depth-stencil map.
+		 */
+		std::shared_ptr<Texture> getDepthStencilMapShared();
 
 		// Has to be implemented by renderer backend
-		static RenderTarget* createSingleSampled(int width, int height, const TextureData& data, std::shared_ptr<Texture> depthStencilMap = nullptr);
+		RenderTargetImpl* getImpl() const;
+
+		// Has to be implemented by renderer backend
+		Texture* getRenderResult();
+
+		/**
+		 * Sets the texture of this render target.
+		 * The previous texture won't be destroyed, so you have to delete it manually
+		 *   (use getTexture and than delete it).
+		 * NOTE: You should know what you do, when setting the texture manually!
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void setRenderResult(Texture* texture);
+
+		// Has to be implemented by renderer backend
+		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
+
+	protected:
+
+		std::unique_ptr<RenderTargetImpl> mImpl;
+
+		// Has to be implemented by renderer backend
+		void setImpl(std::unique_ptr<RenderTargetImpl> impl);
+	};
+
+	class RenderTarget2D : public RenderTarget
+	{
+	public:
+
+		RenderTarget2D(std::unique_ptr<RenderTargetImpl> impl);
+
+		//Has to be implemented by renderer backend
+		RenderTarget2D(int width, int height, const TextureData& data,
+			unsigned samples = 1, std::shared_ptr<Texture> depthStencilMap = nullptr);
+
+		// Has to be implemented by renderer backend
+		void blit(RenderTarget2D* dest, const Dimension& sourceDim, int components);
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);
@@ -80,43 +105,7 @@ namespace nex
 
 		unsigned getHeight() const;
 
-		RenderTargetImpl* getImpl() const;
-
-		Texture* getTexture();
-
 		unsigned getWidth() const;
-
-		/**
-		 * Sets the texture of this render target. 
-		 * The previous texture won't be destroyed, so you have to delete it manually
-		 *   (use getTexture and than delete it).
-		 * NOTE: You should know what you do, when setting the texture manually!
-		 * NOTE: Has to be implemented by renderer backend
-		 */
-		void setTexture(Texture* texture);
-
-		/**
-		 * Specifies a depth-stencil map this render target should use.
-		 */
-		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
-
-		/**
-		 * Provides access to the used depth-stencil map.
-		 * Null will be returned if the render target has no assigned depth-stencil map.
-		 */
-		std::shared_ptr<Texture> getDepthStencilMapShared();
-
-		/**
-		 * Provides access to the used depth-stencil map.
-		 * Null will be returned if the render target has no assigned depth-stencil map.
-		 */
-		Texture* getDepthStencilMap();
-
-	protected:
-
-		RenderTargetImpl* mImpl;
-
-		static void validateDepthStencilMap(Texture* texture);
 	};
 
 
@@ -128,19 +117,22 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		//TODO depthStencilType isn't used currently
-		static CubeRenderTarget* createSingleSampled(int width, int height, const TextureData& data);
+		CubeRenderTarget(int width, int height, TextureData data);
 
-		int getHeightMipLevel(unsigned int mipMapLevel) const;
+		// Has to be implemented by renderer backend
+		unsigned getHeightMipLevel(unsigned int mipMapLevel) const;
 
-		int getWidthMipLevel(unsigned int mipMapLevel) const;
+		// Has to be implemented by renderer backend
+		unsigned getWidthMipLevel(unsigned int mipMapLevel) const;
+
+		// Has to be implemented by renderer backend
+		unsigned getSideWidth() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getSideHeight() const;
 
 		// Has to be implemented by renderer backend
 		void resizeForMipMap(unsigned int mipMapLevel);
-
-	protected:
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		CubeRenderTarget(int width, int height, TextureData data);
 	};
 
 
@@ -178,6 +170,6 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture* getPosition() const;
 		// Has to be implemented by renderer backend
-		std::shared_ptr<DepthStencilMap> getDepth() const;
+		const std::shared_ptr<DepthStencilMap>& getDepth() const;
 	};
 }

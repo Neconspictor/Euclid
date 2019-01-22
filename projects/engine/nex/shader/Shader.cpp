@@ -5,7 +5,7 @@ nex::ShaderProgram::ShaderProgram(void* impl): mImpl(impl), mIsBound(false)
 {
 }
 
-nex::Shader::Shader(ShaderProgram* program) : mProgram(program)
+nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move(program))
 {
 }
 
@@ -19,9 +19,9 @@ nex::ShaderProgram* nex::Shader::getProgram()
 	return mProgram.get();
 }
 
-void nex::Shader::setProgram(ShaderProgram* program)
+void nex::Shader::setProgram(std::unique_ptr<ShaderProgram> program)
 {
-	mProgram = program;
+	mProgram = std::move(program);
 }
 
 void nex::Shader::unbind()
@@ -56,11 +56,11 @@ std::ostream& nex::operator<<(std::ostream& os, nex::ShaderType shader)
 	return os;
 }
 
-nex::TransformShader::TransformShader(ShaderProgram * program) : Shader(program)
+nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
 {
 }
 
-nex::ComputeShader::ComputeShader(ShaderProgram* program) : Shader(program)
+nex::ComputeShader::ComputeShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
 {
 }
 

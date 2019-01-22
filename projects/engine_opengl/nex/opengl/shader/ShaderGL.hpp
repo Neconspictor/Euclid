@@ -45,6 +45,9 @@ namespace nex
 		ShaderProgramGL(const ShaderProgramGL& other) = delete;
 		ShaderProgramGL& operator=(const ShaderProgramGL& other) = delete;
 
+		ShaderProgramGL(GLuint program);
+		~ShaderProgramGL();
+
 		GLuint getProgramID() const;
 
 		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
@@ -53,9 +56,6 @@ namespace nex
 
 		friend ShaderProgram;
 		friend ShaderStage;
-
-		ShaderProgramGL(GLuint program);
-		~ShaderProgramGL();
 
 
 		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);

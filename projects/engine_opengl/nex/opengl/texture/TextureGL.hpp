@@ -235,25 +235,12 @@ namespace nex
 		unsigned getSideWidth() const;
 		unsigned getSideHeight() const;
 
-		/**
-		 * Provides a 'look at' view matrix for a specific cubemap side
-		 * The returned view matrix is for right handed coordinate systems
-		 */
-		static const glm::mat4& getViewLookAtMatrixRH(Side side);
-
 		void setCubeMap(GLuint id);
 
 		void setSideWidth(unsigned width);
 		void setSideHeight(unsigned height);
 
 	protected:
-		static glm::mat4 rightSide;
-		static glm::mat4 leftSide;
-		static glm::mat4 topSide;
-		static glm::mat4 bottomSide;
-		static glm::mat4 frontSide;
-		static glm::mat4 backSide;
-
 		unsigned mSideWidth;
 		unsigned mSideHeight;
 	};

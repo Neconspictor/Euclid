@@ -13,26 +13,6 @@
 using namespace std; 
 using namespace glm;
 
-/*class HBAO_Shader : public ShaderGL {
-public:
-
-	HBAO_Shader();
-	virtual ~HBAO_Shader() = default;
-
-	virtual void draw(const Mesh& mesh) override;
-	void draw();
-	void setHbaoData(HBAOData hbao);
-	void setHbaoUBO(GLuint hbao_ubo);
-	void setLinearDepth(TextureGL* linearDepth);
-	void setRamdomView(TextureGL* randomView);
-
-private:
-	HBAOData m_hbao_data;
-	TextureGL* m_hbao_randomview;
-	GLuint m_hbao_ubo;
-	TextureGL* m_linearDepth;
-};*/
-
 namespace nex
 {
 
@@ -284,7 +264,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
-		noiseTexture = Texture2D::create(noiseTileWidth, noiseTileWidth, data, &noiseTextureValues[0]);
+		noiseTexture = make_unique<Texture2D>(noiseTileWidth, noiseTileWidth, data, &noiseTextureValues[0]);
 
 		aoRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 		tiledBlurRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
@@ -309,12 +289,12 @@ namespace nex
 
 	Texture * SSAO_DeferredGL::getAO_Result()
 	{
-		return aoRenderTarget->getTexture();
+		return aoRenderTarget->getRenderResult();
 	}
 
 	Texture * SSAO_DeferredGL::getBlurredResult()
 	{
-		return tiledBlurRenderTarget->getTexture();
+		return tiledBlurRenderTarget->getRenderResult();
 	}
 
 	Texture * SSAO_DeferredGL::getNoiseTexture()
@@ -353,7 +333,7 @@ namespace nex
 	{
 		SSAO_Tiled_Blur_ShaderGL* tiledBlurShader = reinterpret_cast<SSAO_Tiled_Blur_ShaderGL*>(tiledBlurPass.get());
 		tiledBlurShader->bind();
-		tiledBlurShader->setAOTexture(aoRenderTarget->getTexture());
+		tiledBlurShader->setAOTexture(aoRenderTarget->getRenderResult());
 
 		glViewport(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		glScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
@@ -373,7 +353,7 @@ namespace nex
 		modelDrawer->draw(&screenSprite, aoDisplayShader);
 	}
 
-	RenderTarget* SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned int height)
+	std::unique_ptr<RenderTarget2D> SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
 		TextureData data;
 		data.internalFormat = InternFormat::R32F;
@@ -387,7 +367,7 @@ namespace nex
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
 
-		return RenderTarget::createSingleSampled(width, height, data, nullptr);
+		return make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
 	}
 
 

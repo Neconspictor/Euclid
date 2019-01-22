@@ -10,6 +10,7 @@ namespace nex
 
 	class Texture;
 	class RenderTarget;
+	class RenderTarget2D;
 	class ShaderProgram;
 	class ModelDrawerGL;
 
@@ -55,14 +56,14 @@ namespace nex
 
 	private:
 
-		static RenderTarget* createSSAO_FBO(unsigned int width, unsigned int height);
+		static std::unique_ptr<RenderTarget2D> createSSAO_FBO(unsigned int width, unsigned int height);
 
 		float randomFloat(float a, float b);
 		float lerp(float a, float b, float f);
 
-		Guard<Texture> noiseTexture;
-		Guard<RenderTarget> aoRenderTarget;
-		Guard<RenderTarget> tiledBlurRenderTarget;
+		std::unique_ptr<Texture> noiseTexture;
+		std::unique_ptr<RenderTarget2D> aoRenderTarget;
+		std::unique_ptr<RenderTarget2D> tiledBlurRenderTarget;
 		std::unique_ptr<nex::Shader> aoPass;
 		std::unique_ptr<nex::Shader> tiledBlurPass;
 		std::unique_ptr<nex::Shader> aoDisplay;

@@ -68,9 +68,9 @@ namespace nex
 
 		void updateTextureArray();
 	protected:
-		nex::Guard<nex::ShaderProgram> mDepthPass;
+		std::unique_ptr<nex::ShaderProgram> mDepthPass;
 		GLuint mCascadedShadowFBO = GL_FALSE;
-		nex::Guard<nex::Texture> mDepthTextureArray;
+		std::unique_ptr<nex::Texture> mDepthTextureArray;
 
 	protected:
 		glm::mat4 mLightViewMatrix;

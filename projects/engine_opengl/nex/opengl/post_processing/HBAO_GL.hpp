@@ -9,6 +9,7 @@
 namespace nex {
 	class HBAO_ConfigurationView;
 	class RenderTarget;
+	class RenderTarget2D;
 	class ModelDrawerGL;
 
 #define UBO_SCENE     0
@@ -68,7 +69,7 @@ namespace nex {
 		void setSharpness(float sharpness);
 		void setSourceTexture(Texture* source, unsigned int textureWidth, unsigned int textureHeight);
 
-		void draw(RenderTarget* temp, RenderTarget* result);
+		void draw(RenderTarget2D* temp, RenderTarget2D* result);
 
 	private:
 		Texture* m_linearDepth;
@@ -138,8 +139,8 @@ namespace nex {
 
 		virtual ~HBAO_GL();
 
-		Texture* getAO_Result();
-		Texture* getBlurredResult();
+		Texture2D* getAO_Result();
+		Texture2D* getBlurredResult();
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
@@ -165,17 +166,17 @@ namespace nex {
 		std::unique_ptr<DisplayTex> m_aoDisplay;
 		std::unique_ptr<HBAO_Shader> m_hbaoShader;
 
-		std::unique_ptr<RenderTarget> m_depthLinearRT;
-		std::unique_ptr<RenderTarget> m_aoResultRT;
-		std::unique_ptr<RenderTarget> m_tempRT;
-		std::unique_ptr<RenderTarget> m_aoBlurredResultRT;
+		std::unique_ptr<RenderTarget2D> m_depthLinearRT;
+		std::unique_ptr<RenderTarget2D> m_aoResultRT;
+		std::unique_ptr<RenderTarget2D> m_tempRT;
+		std::unique_ptr<RenderTarget2D> m_aoBlurredResultRT;
 		
 
 
 		ModelDrawerGL* m_modelDrawer;
 
-		Guard<Texture> m_hbao_random;
-		Guard<Texture> m_hbao_randomview;
+		std::unique_ptr<Texture2D> m_hbao_random;
+		std::unique_ptr<Texture2D> m_hbao_randomview;
 		GLuint m_hbao_ubo{};
 
 		HBAOData   m_hbaoDataSource;

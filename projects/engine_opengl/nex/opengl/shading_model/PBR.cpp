@@ -268,8 +268,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 
-	Guard<CubeRenderTarget> cubeRenderTarget;
-	cubeRenderTarget = CubeRenderTarget::createSingleSampled(2048, 2048, textureData);
+	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(2048, 2048, textureData);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
@@ -293,7 +292,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 	
-	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 
@@ -313,8 +312,8 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	}
 
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget->getTexture();
-	cubeRenderTarget->setTexture(nullptr); // ensures that it won't be deleted 
+	CubeMap* result = (CubeMap*)cubeRenderTarget->getRenderResult();
+	cubeRenderTarget->setRenderResult(nullptr); // ensures that it won't be deleted 
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
 	result->generateMipMaps();
@@ -350,7 +349,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
-	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 	for (int side = 0; side < 6; ++side) {
@@ -362,8 +361,8 @@ CubeMap * PBR::convolute(CubeMap * source)
 	//CubeMap* result = cubeRenderTarget->createCopy();
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget->getTexture();
-	cubeRenderTarget->setTexture(nullptr); // ensures that it won't be deleted 
+	CubeMap* result = (CubeMap*)cubeRenderTarget->getRenderResult();
+	cubeRenderTarget->setRenderResult(nullptr); // ensures that it won't be deleted 
 	renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
 	return result;
@@ -433,8 +432,8 @@ CubeMap* PBR::prefilter(CubeMap * source)
 	}
 
 
-	CubeMap* result = (CubeMap*)prefilterRenderTarget->getTexture();
-	prefilterRenderTarget->setTexture(nullptr);
+	CubeMap* result = (CubeMap*)prefilterRenderTarget->getRenderResult();
+	prefilterRenderTarget->setRenderResult(nullptr);
 	renderer->destroyCubeRenderTarget(prefilterRenderTarget);
 
 	return result;
@@ -453,7 +452,7 @@ Texture2D* PBR::createBRDFlookupTexture()
 		InternFormat::RG32F, 
 		false};
 
-	RenderTarget* target = renderer->create2DRenderTarget(1024, 1024, data);
+	RenderTarget2D* target = renderer->create2DRenderTarget(1024, 1024, data);
 
 	ShaderManagerGL* shaderManager = renderer->getShaderManager();
 
@@ -462,7 +461,7 @@ Texture2D* PBR::createBRDFlookupTexture()
 
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
-	renderer->useBaseRenderTarget(target);
+	target->bind();
 	renderer->beginScene();
 
 	Sprite sprite;
@@ -481,8 +480,8 @@ Texture2D* PBR::createBRDFlookupTexture()
 	brdfPrecomputeShader->bind();
 	modelDrawer->draw(&sprite, brdfPrecomputeShader);
 
-	Texture2D* result = (Texture2D*)target->getTexture();
-	target->setTexture(nullptr);
+	Texture2D* result = (Texture2D*)target->getRenderResult();
+	target->setRenderResult(nullptr);
 	renderer->destroyRenderTarget(target);
 
 	return result;

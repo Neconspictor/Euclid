@@ -138,10 +138,6 @@ namespace nex
 		*/
 		void beginScene();
 
-		void blitRenderTargets(RenderTarget* src, RenderTarget* dest, const Dimension& dim, int renderComponents);
-
-		void clearRenderTarget(RenderTarget* renderTarget, int renderComponents);
-
 		CubeDepthMap* createCubeDepthMap(int width, int height);
 
 		//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
@@ -157,7 +153,7 @@ namespace nex
 				InternFormat::RGB32F,
 				false });
 
-		RenderTarget* create2DRenderTarget(int width, int height,
+		RenderTarget2D* create2DRenderTarget(int width, int height,
 			const TextureData& data = {
 				TextureFilter::Linear,
 				TextureFilter::Linear,
@@ -175,9 +171,9 @@ namespace nex
 
 		std::unique_ptr<CascadedShadowGL> createCascadedShadow(unsigned int width, unsigned int height);
 
-		RenderTarget* createRenderTarget(int samples = 1);
+		RenderTarget2D* createRenderTarget(int samples = 1);
 
-		RenderTarget* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, std::shared_ptr<Texture> depthStencilMap);
+		RenderTarget2D* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, std::shared_ptr<Texture> depthStencilMap);
 
 		std::unique_ptr<SSAO_DeferredGL> createDeferredSSAO();
 
@@ -189,7 +185,7 @@ namespace nex
 
 		void destroyCubeRenderTarget(CubeRenderTarget* target);
 
-		void destroyRenderTarget(RenderTarget* target);
+		void destroyRenderTarget(RenderTarget2D* target);
 
 		void enableAlphaBlending(bool enable);
 
@@ -209,7 +205,7 @@ namespace nex
 
 		GLint getCurrentRenderTarget() const;
 
-		RenderTarget* getDefaultRenderTarget();
+		RenderTarget2D* getDefaultRenderTarget();
 
 		// Inherited via RenderBackend
 		EffectLibraryGL* getEffectLibrary();
@@ -223,8 +219,6 @@ namespace nex
 		* Provides access to a mesh manager, that creates and stores 3d meshes.
 		 */
 		ModelManagerGL* getModelManager();
-
-		static int getRenderComponentsGL(int renderComponents);
 
 
 		/**
@@ -301,21 +295,10 @@ namespace nex
 		void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0);
 
 		/**
-		* All draw calls are performed on a offscreen texture.
-		* The output of all draw calls won't be visible after swapping the window's screen buffer
-		*/
-		void useBaseRenderTarget(RenderTarget* target);
-
-		/**
-		 * Draws directly to the screen buffer ->
-		 */
-		void useScreenTarget();
-
-		/**
 		* All draw calls are performed on a variance shadow map texture.
 		* Only the depth value and it's square are written (no color information).
 		*/
-		void useVarianceShadowMap(RenderTarget* map);
+		void useVarianceShadowMap(RenderTarget2D* map);
 
 		/**
 		* A function for checking any opengl related errors.
@@ -335,10 +318,10 @@ namespace nex
 		std::unique_ptr<ShadingModelFactoryGL> shadingModelFactory;
 		ModelDrawerGL modelDrawer;
 		unsigned int msaaSamples;
-		std::list<CubeRenderTarget*> cubeRenderTargets;
-		std::list<RenderTarget*> renderTargets;
+		std::list<std::unique_ptr<CubeRenderTarget>> cubeRenderTargets;
+		std::list<std::unique_ptr<RenderTarget2D>> mRenderTargets;
 		std::unique_ptr<SMAA_GL> smaa;
-		Guard<RenderTarget> defaultRenderTarget;
+		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
 
 	protected:
 		nex::Logger m_logger;

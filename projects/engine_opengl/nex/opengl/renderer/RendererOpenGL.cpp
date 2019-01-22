@@ -136,7 +136,7 @@ namespace nex
 		GLCall(glEnable(GL_SCISSOR_TEST));
 		GLCall(glViewport(0, 0, mViewport.width, mViewport.height));
 		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
-		defaultRenderTarget = new RenderTarget(new RenderTargetGL(mViewport.width, mViewport.height));
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
 
@@ -224,19 +224,6 @@ namespace nex
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
-	void RendererOpenGL::blitRenderTargets(RenderTarget* src, RenderTarget* dest, const Dimension& dim, int renderComponents)
-	{
-		int componentsGL = getRenderComponentsGL(renderComponents);
-		dest->copyFrom(src, dim, componentsGL);
-	}
-
-	void RendererOpenGL::clearRenderTarget(RenderTarget * renderTarget, int renderComponents)
-	{
-		renderTarget->bind();
-		int renderComponentsComponentsGL = getRenderComponentsGL(renderComponents);
-		GLCall(glClear(renderComponentsComponentsGL));
-	}
-
 	CubeDepthMap* RendererOpenGL::createCubeDepthMap(int width, int height)
 	{
 		Guard<CubeDepthMap> guard;
@@ -247,10 +234,8 @@ namespace nex
 
 	CubeRenderTarget * nex::RendererOpenGL::createCubeRenderTarget(int width, int height, const TextureData& data)
 	{
-		Guard<CubeRenderTarget> guard;
-		guard = CubeRenderTarget::createSingleSampled(width, height, data);
-		cubeRenderTargets.push_back(guard.reset());
-		return cubeRenderTargets.back();
+		cubeRenderTargets.emplace_back(make_unique<CubeRenderTarget>(width, height, data));
+		return cubeRenderTargets.back().get();
 	}
 
 	GLint nex::RendererOpenGL::getCurrentRenderTarget() const
@@ -260,12 +245,12 @@ namespace nex
 		return drawFboId;
 	}
 
-	RenderTarget* nex::RendererOpenGL::getDefaultRenderTarget()
+	RenderTarget2D* nex::RendererOpenGL::getDefaultRenderTarget()
 	{
 		return defaultRenderTarget.get();
 	}
 
-	RenderTarget* nex::RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
+	RenderTarget2D* nex::RendererOpenGL::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
 		DepthStencilDesc desc;
 		auto depthTexture = make_shared<DepthStencilMap>(width, height, desc);
@@ -294,7 +279,7 @@ namespace nex
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, drawFboId));
 	}
 
-	RenderTarget* nex::RendererOpenGL::createRenderTarget(int samples)
+	RenderTarget2D* nex::RendererOpenGL::createRenderTarget(int samples)
 	{
 		TextureData data;
 		data.generateMipMaps = false;
@@ -372,16 +357,6 @@ namespace nex
 		return ModelManagerGL::get();
 	}
 
-	int RendererOpenGL::getRenderComponentsGL(int renderComponents)
-	{
-		int componentsGL = 0;
-		if (renderComponents & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
-		if (renderComponents & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
-		if (renderComponents & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
-
-		return componentsGL;
-	}
-
 	ShaderManagerGL* RendererOpenGL::getShaderManager()
 	{
 		return ShaderManagerGL::get();
@@ -439,23 +414,13 @@ namespace nex
 	{
 		mViewport.width = width;
 		mViewport.height = height;
-		defaultRenderTarget = new RenderTarget(new RenderTargetGL(width, height));
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height));
 	}
 
 	void RendererOpenGL::release()
 	{
 		if (effectLibrary.get() != nullptr)
 			effectLibrary->release();
-
-		for (auto it = cubeRenderTargets.begin(); it != cubeRenderTargets.end(); ) {
-			delete *it;
-			it = cubeRenderTargets.erase(it);
-		}
-
-		for (auto it = renderTargets.begin(); it != renderTargets.end();) {
-			delete *it;
-			it = renderTargets.erase(it);
-		}
 	}
 
 	void RendererOpenGL::setBackgroundColor(glm::vec3 color)
@@ -494,7 +459,7 @@ namespace nex
 	void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
 	{
 
-		Texture* tex = cubeDepthMap->getTexture();
+		Texture* tex = cubeDepthMap->getRenderResult();
 		CubeMapGL* cubeMap = (CubeMapGL*)tex->getImpl();
 
 		GLCall(glViewport(mViewport.x, mViewport.y, cubeMap->getSideWidth(), cubeMap->getSideHeight()));
@@ -529,13 +494,10 @@ namespace nex
 
 	void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side, unsigned int mipLevel)
 	{
-		Texture* tex = target->getTexture();
+		Texture* tex = target->getRenderResult();
 		CubeMapGL* cubeMap = (CubeMapGL*)tex->getImpl();
 
 		GLuint AXIS_SIDE = CubeMapGL::translate(side);
-
-		int width = target->getWidth();
-		int height = target->getHeight();
 		GLuint cubeMapTexture = cubeMap->getCubeMap();
 
 		target->bind();
@@ -544,28 +506,7 @@ namespace nex
 		GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	}
 
-	void RendererOpenGL::useBaseRenderTarget(RenderTarget * target)
-	{
-
-		int width = target->getWidth();
-		int height = target->getHeight();
-		//GLCall(glViewport(0, 0, width, height)); //TODO
-		//GLCall(glScissor(0, 0, width, height));
-		target->bind();
-
-		// clear the stencil (with 1.0) and depth (with 0) buffer of the screen buffer 
-		//glClearBufferfi(GL_DEPTH_STENCIL, 0, 0.0f, 0);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		//glClear(GL_COLOR_BUFFER_BIT);
-		//glDisable(GL_FRAMEBUFFER_SRGB);
-	}
-
-	void RendererOpenGL::useScreenTarget()
-	{
-		useBaseRenderTarget(defaultRenderTarget.get());
-	}
-
-	void RendererOpenGL::useVarianceShadowMap(RenderTarget* source)
+	void RendererOpenGL::useVarianceShadowMap(RenderTarget2D* source)
 	{
 		GLCall(glViewport(0, 0, source->getWidth(), source->getHeight()));
 		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
@@ -660,7 +601,7 @@ namespace nex
 		GLCall(glScissor(0, 0, width, height));
 		target->bind();
 
-		CubeMapGL* cubeMap = (CubeMapGL*)target->getTexture()->getImpl();
+		CubeMapGL* cubeMap = (CubeMapGL*)target->getRenderResult()->getImpl();
 
 		for (int i = 0; i < 6; ++i) {
 			GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *cubeMap->getTexture(), 0));
@@ -677,29 +618,20 @@ namespace nex
 		return target.reset();
 	}
 
-	RenderTarget* RendererOpenGL::createRenderTargetGL(int width, int height, const TextureData& data,
+	RenderTarget2D* RendererOpenGL::createRenderTargetGL(int width, int height, const TextureData& data,
 		unsigned samples, std::shared_ptr<Texture> depthStencilMap)
 	{
 		assert(samples >= 1);
 
 		GLClearError();
 
-		Guard<RenderTarget> result;
-
-		if (samples > 1)
-		{
-			result = RenderTarget::createMultisampled(width, height, data, samples, depthStencilMap);
-		}
-		else
-		{
-			result = RenderTarget::createSingleSampled(width, height, data, depthStencilMap);
-		}
+		auto result = make_unique<RenderTarget2D>(width, height, data, samples, std::move(depthStencilMap));
 
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-		renderTargets.push_back(result.get());
-		return result.reset();
+		mRenderTargets.emplace_back(std::move(result));
+		return mRenderTargets.back().get();
 	}
 
 	std::unique_ptr<SSAO_DeferredGL> RendererOpenGL::createDeferredSSAO()
@@ -743,27 +675,19 @@ namespace nex
 
 	void RendererOpenGL::destroyCubeRenderTarget(CubeRenderTarget * target)
 	{
-		for (auto it = cubeRenderTargets.begin(); it != cubeRenderTargets.end(); ++it)
+		using type = std::unique_ptr<CubeRenderTarget>;
+		cubeRenderTargets.remove_if([&](const type& it)->bool
 		{
-			if ((*it) == target)
-			{
-				delete target;
-				cubeRenderTargets.erase(it);
-				break;
-			}
-		}
+			return it.get() == target;
+		});
 	}
 
-	void RendererOpenGL::destroyRenderTarget(RenderTarget* target)
+	void RendererOpenGL::destroyRenderTarget(RenderTarget2D* target)
 	{
-		for (auto it = renderTargets.begin(); it != renderTargets.end(); ++it)
+		using type = std::unique_ptr<RenderTarget2D>;
+		mRenderTargets.remove_if([&](const type& it)->bool
 		{
-			if ((*it) == target)
-			{
-				delete target;
-				renderTargets.erase(it);
-				break;
-			}
-		}
+			return it.get() == target;
+		});
 	}
 }

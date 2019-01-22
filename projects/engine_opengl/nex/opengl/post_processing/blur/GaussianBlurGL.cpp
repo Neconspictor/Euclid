@@ -18,7 +18,7 @@ namespace nex {
 	{
 	}
 
-	void GaussianBlurGL::blur(RenderTarget* target, RenderTarget* cache)
+	void GaussianBlurGL::blur(RenderTarget2D* target, RenderTarget2D* cache)
 	{
 		ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 		GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
@@ -28,13 +28,12 @@ namespace nex {
 
 
 		//TODO do a blur pass
-
-		renderer->useBaseRenderTarget(cache);
+		cache->bind();
 		renderer->beginScene();
 
 
 		// horizontal pass
-		sprite.setTexture(target->getTexture());
+		sprite.setTexture(target->getRenderResult());
 		horizontalShader->bind();
 		horizontalShader->setTexture(sprite.getTexture());
 		horizontalShader->setImageHeight((float)target->getHeight());
@@ -43,20 +42,19 @@ namespace nex {
 
 		using r = RenderComponent;
 		Dimension blitRegion = { 0,0, target->getWidth(), target->getHeight() };
-		renderer->blitRenderTargets(cache, target, blitRegion, r::Color | r::Depth | r::Stencil);
+		cache->blit(target, blitRegion, r::Color | r::Depth | r::Stencil);
 
 		// vertical pass
-		renderer->useBaseRenderTarget(cache);
+		cache->bind();
 		renderer->beginScene();
-		sprite.setTexture(target->getTexture());
+		sprite.setTexture(target->getRenderResult());
 		verticalShader->bind();
 		verticalShader->setTexture(sprite.getTexture());
 		verticalShader->setImageHeight((float)target->getHeight());
 		verticalShader->setImageWidth((float)target->getWidth());
 		modelDrawer->draw(&sprite, verticalShader);
 
-
-		renderer->blitRenderTargets(cache, target, blitRegion, r::Color | r::Depth | r::Stencil);
+		cache->blit(target, blitRegion, r::Color | r::Depth | r::Stencil);
 	}
 
 	void GaussianBlurGL::init()

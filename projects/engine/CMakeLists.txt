@@ -130,9 +130,7 @@ set(
     nex/texture/Sampler.hpp
     nex/texture/Sprite.cpp
     nex/texture/Sprite.hpp
-    nex/texture/Texture.cpp
     nex/texture/Texture.hpp
-	nex/texture/RenderTarget.cpp
     nex/texture/RenderTarget.hpp
     
 	#nex/util
