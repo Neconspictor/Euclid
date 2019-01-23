@@ -11,7 +11,7 @@ struct GBuffer {
     sampler2D albedoMap;
 	sampler2D aoMetalRoughnessMap;
 	sampler2D normalEyeMap;
-	sampler2D positionEyeMap;
+    sampler2D depthMap;
 };
 
 
@@ -55,6 +55,8 @@ layout(std140,binding=0) uniform CascadeBuffer {
 };
 
 uniform sampler2DArrayShadow cascadedDepthMap;
+
+uniform mat4 inverseProjMatrix_GPass;
 
 
 
@@ -136,7 +138,14 @@ float chebyshevUpperBound( float distance, vec2 uv);
 float PCSS (sampler2D shadowMap, vec3 coords, float bias);
 float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadiusUV, float bias);
 
-
+vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inverseMatrix) {
+  vec4 clipSpaceLocation;
+  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
+  clipSpaceLocation.z = depth * 2.0f - 1.0f;
+  clipSpaceLocation.w = 1.0f;
+  vec4 homogenousLocation = inverseMatrix * clipSpaceLocation;
+  return homogenousLocation.xyz / homogenousLocation.w;
+};
 
 
 void main()
@@ -155,7 +164,9 @@ void main()
 	};*/
 	
 	
-	vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
+	//vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
+    float depth = texture(gBuffer.depthMap, fs_in.tex_coords).r;
+    vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth, inverseProjMatrix_GPass);
 	
 	float ambientOcclusion = texture(ssaoMap, fs_in.tex_coords).r;
 	

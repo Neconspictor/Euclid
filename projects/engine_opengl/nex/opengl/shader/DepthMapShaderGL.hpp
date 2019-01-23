@@ -26,7 +26,7 @@ namespace nex
 		Uniform mTransform;
 	};
 
-	class DepthMapShader : public Shader
+	class DepthMapShader : public TransformShader
 	{
 	public:
 		DepthMapShader();
@@ -37,6 +37,7 @@ namespace nex
 
 		void setMVP(const glm::mat4& trafo);
 
+		void onTransformUpdate(const TransformData& data) override;
 	private:
 		UniformTex mDephTexture;
 		Uniform mTransform;

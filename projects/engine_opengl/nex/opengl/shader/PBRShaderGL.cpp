@@ -258,6 +258,8 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
 	mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
 
+	unsigned textureCounter = 0;
+
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	mEyeToLightTrafo = { mProgram->getUniformLocation("eyeToLight"), UniformType::MAT4 };
 	mInverseViewFromGPass = { mProgram->getUniformLocation("inverseViewMatrix_GPass"), UniformType::MAT4 };
@@ -267,17 +269,35 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
 	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
 	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 
-	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, 0 };
-	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, 1 };
-	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
-	mPositionEyeMap = { mProgram->getUniformLocation("gBuffer.positionEyeMap"), UniformType::TEXTURE2D, 3 };
+	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, textureCounter };
+	if (mAlbedoMap.location != -1)
+		++textureCounter;
 
-	mShadowMap = { mProgram->getUniformLocation("shadowMap"), UniformType::TEXTURE2D, 4 };
-	mAoMap = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, 5 };
+	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, textureCounter };
+	if (mAoMetalRoughnessMap.location != -1)
+		++textureCounter;
 
-	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 6 };
-	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
-	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
+	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, textureCounter };
+	if (mNormalEyeMap.location != -1)
+		++textureCounter;
+	mDepthMap = { mProgram->getUniformLocation("gBuffer.depthMap"), UniformType::TEXTURE2D, textureCounter };
+	if (mDepthMap.location != -1)
+		++textureCounter;
+
+	//mShadowMap = { mProgram->getUniformLocation("shadowMap"), UniformType::TEXTURE2D, 5 };
+	mAoMap = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, textureCounter };
+	if (mAoMap.location != -1)
+		++textureCounter;
+
+	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, textureCounter };
+	if (mIrradianceMap.location != -1)
+		++textureCounter;
+	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, textureCounter };
+	if (mPrefilterMap.location != -1)
+		++textureCounter;
+	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, textureCounter };
+	if (mBrdfLUT.location != -1)
+		++textureCounter;
 
 	mBiasMatrix = { mProgram->getUniformLocation("biasMatrix"), UniformType::MAT4 };
 	mBiasMatrixSource = mat4(
@@ -291,7 +311,11 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
 	unbind();
 
 
-	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
+	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, textureCounter };
+	if (mCascadedDepthMap.location != -1)
+		++textureCounter;
+
+	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 
 	glCreateBuffers(1, &cascadeBufferUBO);
 	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
@@ -392,9 +416,14 @@ void PBRShader_Deferred_Lighting::setNormalEyeMap(const Texture* texture)
 	mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.bindingSlot);
 }
 
-void PBRShader_Deferred_Lighting::setPositionEyeMap(const Texture* texture)
+void PBRShader_Deferred_Lighting::setDepthMap(const Texture* texture)
 {
-	mProgram->setTexture(mPositionEyeMap.location, texture, mPositionEyeMap.bindingSlot);
+	mProgram->setTexture(mDepthMap.location, texture, mDepthMap.bindingSlot);
+}
+
+void PBRShader_Deferred_Lighting::setInverseProjMatrixFromGPass(const glm::mat4& mat)
+{
+	mProgram->setMat4(mInverseProjFromGPass.location, mat);
 }
 
 void PBRShader_Deferred_Lighting::onTransformUpdate(const TransformData& data)

@@ -176,6 +176,9 @@ namespace nex
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
 		void setPositionEyeMap(const Texture* texture);
+		void setDepthMap(const Texture* texture);
+
+		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
 
 		void onTransformUpdate(const TransformData& data) override;
@@ -212,7 +215,9 @@ namespace nex
 		UniformTex mAlbedoMap;
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
-		UniformTex mPositionEyeMap;
+		UniformTex mDepthMap;
+
+		Uniform mInverseProjFromGPass;
 	};
 
 	class PBR_ConvolutionShader : public Shader

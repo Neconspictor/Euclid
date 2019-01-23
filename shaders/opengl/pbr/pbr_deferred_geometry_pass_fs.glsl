@@ -3,17 +3,16 @@
 layout(location = 0) out vec3 albedo;
 layout(location = 1) out vec3 aoMetallRoughness;
 layout(location = 2) out vec3 normalEye;
-layout(location = 3) out vec3 positionEye;
+layout(location = 3) out float depth;
 
 const float PI = 3.14159265359;
 
 struct Material {
-    sampler2D albedoMap;
-	sampler2D aoMap;
-	sampler2D metallicMap;
-	sampler2D normalMap;
-	sampler2D roughnessMap;
-	sampler2D shadowMap;
+    layout(binding = 0) sampler2D albedoMap;
+	layout(binding = 1) sampler2D aoMap;
+	layout(binding = 2) sampler2D metallicMap;
+	layout(binding = 3) sampler2D normalMap;
+	layout(binding = 4) sampler2D roughnessMap;
 };
 
 
@@ -52,5 +51,7 @@ void main()
 	//normalEye = normalEye*0.5 + 0.5;
 	
 	// position
-	positionEye = fs_in.fragment_position_eye.xyz;
+	//positionEye = fs_in.fragment_position_eye.xyz;
+    
+    depth = gl_FragCoord.z;
 }

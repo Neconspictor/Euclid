@@ -15,7 +15,7 @@ float linearizeDepth(float depth)
 
 void main()
 { 
-	color = texture(depthMap, texCoordsFS);
+	color = vec4(texture(depthMap, texCoordsFS).r);
 		//float depthValue = texture(depthMap, texCoordsFS).r;
     //color = vec4(vec3(depthValue), 1.0); // orthographic
 		//color = vec4(vec3(linearizeDepth(depthValue) / far_plane), 1.0); // perspective

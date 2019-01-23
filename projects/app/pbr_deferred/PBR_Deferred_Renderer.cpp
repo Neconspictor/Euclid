@@ -142,7 +142,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(m_renderBackend, panoramaSky);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
-	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepth());
+	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 
 	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
 	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
@@ -226,7 +226,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		camera->getView(),
 		camera->getPerspProjection());
 
-	Texture* aoTexture = renderAO(camera, pbr_mrt->getPosition(), pbr_mrt->getNormal());
+	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
 	renderTargetSingleSampled->bind();
@@ -251,7 +251,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			//shadowMap->getTexture(), 
 			aoTexture,
 			globalLight, 
-			camera->getView(), 
+			camera->getView(),
+			camera->getPerspProjection(),
 			lightProj * lightView,
 			cascadedData,
 			cascadedDepthMap);
@@ -289,10 +290,11 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//screenShader->useTexture(ssaoTexture);
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//screenSprite.setTexture(shadowMap->getTexture());
-		//depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
+		depthMapShader->bind();
+		depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		//screenShader->useTexture(shadowMap->getTexture());
 		//modelDrawer->draw(&screenSprite, screenShader);
-		//modelDrawer->draw(&screenSprite, Shaders::DepthMap);
+		modelDrawer->draw(&screenSprite, depthMapShader);
 		/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
 			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
 		} else
@@ -300,7 +302,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			m_aoSelector.getSSAO()->displayAOTexture(aoTexture);
 		}*/
 		//hbao->displayTexture(pbr_mrt->getDepth());
-		m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
+		
+		//m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
 	} else
 	{
 		modelDrawer->draw(&screenSprite, screenShader);
@@ -328,7 +331,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
 
-	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepth());
+	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	//ssao_deferred->onSizeChange(width, height);
 
 	m_aoSelector.getHBAO()->onSizeChange(width, height);
@@ -358,7 +361,7 @@ PBR_DeferredGL* PBR_Deferred_Renderer::getPBR()
 	return m_pbr_deferred.get();
 }
 
-Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Texture* gNormal)
+Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gDepth, Texture* gNormal)
 {
 	//TODO
 	//return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
@@ -377,7 +380,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Tex
 		projection.orthoheight = 0;
 		projection.perspective = true;
 
-		m_aoSelector.getHBAO()->renderAO(pbr_mrt->getDepth().get(), projection, true);
+		m_aoSelector.getHBAO()->renderAO(gDepth, projection, true);
 
 		return m_aoSelector.getHBAO()->getBlurredResult();
 	}
@@ -385,7 +388,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gPosition, Tex
 	// use SSAO
 
 	SSAO_DeferredGL* ssao = m_aoSelector.getSSAO();
-	ssao->renderAO(pbr_mrt->getPosition(), pbr_mrt->getNormal(), camera->getPerspProjection());
+	ssao->renderAO(gDepth, gNormal, camera->getPerspProjection());
 	ssao->blur();
 	return ssao->getBlurredResult();
 	//return ssao->getAO_Result();

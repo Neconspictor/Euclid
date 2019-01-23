@@ -51,6 +51,11 @@ DepthMapShader::DepthMapShader()
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
+void DepthMapShader::onTransformUpdate(const TransformData& data)
+{
+	setMVP(*data.projection * *data.view * *data.model);
+}
+
 void DepthMapShader::useDepthMapTexture(const Texture* texture)
 {
 	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.bindingSlot);

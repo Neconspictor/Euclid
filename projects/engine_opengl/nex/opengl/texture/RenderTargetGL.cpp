@@ -661,13 +661,7 @@ nex::Texture* nex::PBR_GBuffer::getNormal() const
 	return gl->getNormal();
 }
 
-nex::Texture* nex::PBR_GBuffer::getPosition() const
-{
-	auto gl = (PBR_GBufferGL*)getImpl();
-	return gl->getPosition();
-}
-
-const std::shared_ptr<nex::DepthStencilMap>& nex::PBR_GBuffer::getDepth() const
+nex::Texture* nex::PBR_GBuffer::getDepth() const
 {
 	auto gl = (PBR_GBufferGL*)getImpl();
 	return gl->getDepth();
@@ -679,7 +673,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	albedo(make_unique<Texture2D>(width, height, TextureData())),
 	aoMetalRoughness(make_unique<Texture2D>(width, height, TextureData())),
 	normal(make_unique<Texture2D>(width, height, TextureData())),
-	position(make_unique<Texture2D>(width, height, TextureData()))
+	depth(make_unique<Texture2D>(width, height, TextureData()))
 {
 	GLCall(glGenFramebuffers(1, &mFrameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
@@ -723,11 +717,23 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
 
 	// position
-	glGenTextures(1, &tempTexture);
+	/*glGenTextures(1, &tempTexture);
 	((TextureGL*)position->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);*/
+
+	// depth
+	glGenTextures(1, &tempTexture);
+	((TextureGL*)depth->getImpl())->setTexture(tempTexture);
+
+	glBindTexture(GL_TEXTURE_2D, tempTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -759,11 +765,11 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrap = TextureUVTechnique::ClampToEdge;
 	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-	depth = make_shared<DepthStencilMap>(width, height, desc);
+	auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
+
+	useDepthStencilMap(std::move(depthBuffer));
 
 	auto depthGL = (TextureGL*)depth->getImpl();
-
-	useDepthStencilMap(depth);
 
 	//auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24_STENCIL8);
 
@@ -806,12 +812,7 @@ nex::Texture2D * nex::PBR_GBufferGL::getNormal() const
 	return normal.get();
 }
 
-nex::Texture2D* nex::PBR_GBufferGL::getPosition() const
+nex::Texture2D* nex::PBR_GBufferGL::getDepth() const
 {
-	return position.get();
-}
-
-const std::shared_ptr<nex::DepthStencilMap>& nex::PBR_GBufferGL::getDepth() const
-{
-	return depth;
+	return depth.get();
 }

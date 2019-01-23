@@ -72,7 +72,8 @@ namespace nex {
 	}
 
 	void PBR_DeferredGL::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
-		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, const glm::mat4 & worldToLight,
+		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, 
+		const glm::mat4& projFromGPass, const glm::mat4 & worldToLight,
 		CascadedShadowGL::CascadeData* cascadeData,
 		Texture* cascadedDepthMap)
 	{
@@ -90,12 +91,13 @@ namespace nex {
 		shader->setAlbedoMap(gBuffer->getAlbedo());
 		shader->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		shader->setNormalEyeMap(gBuffer->getNormal());
-		shader->setPositionEyeMap(gBuffer->getPosition());
+		shader->setDepthMap(gBuffer->getDepth());
 
 		shader->setBrdfLookupTexture(brdfLookupTexture);
 		//shader->setGBuffer(gBuffer);
 		shader->setViewGPass(viewFromGPass);
 		shader->setInverseViewFromGPass(inverse(viewFromGPass));
+		shader->setInverseProjMatrixFromGPass(inverse(projFromGPass));
 		shader->setIrradianceMap(convolutedEnvironmentMap);
 		shader->setLightColor(light.getColor());
 		shader->setWorldLightDirection(light.getLook());

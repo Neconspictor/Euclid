@@ -23,7 +23,7 @@ namespace nex
 
 		explicit SSAO_AO_ShaderGL(unsigned int kernelSampleSize) :
 			Shader(),
-			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gPosition(nullptr),
+			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr),
 			m_gNormal(nullptr), m_samples(nullptr)
 		{
 			mProgram = ShaderProgram::create("post_processing/ssao/fullscreenquad.vert.glsl",
@@ -60,7 +60,7 @@ namespace nex
 				m_ssaoData);
 
 			glBindTextureUnit(0,*((TextureGL*)m_gNormal->getImpl())->getTexture());
-			glBindTextureUnit(1, *((TextureGL*)m_gPosition->getImpl())->getTexture());
+			glBindTextureUnit(1, *((TextureGL*)m_gDepth->getImpl())->getTexture());
 			glBindTextureUnit(2, *((TextureGL*)m_texNoise->getImpl())->getTexture());
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -76,8 +76,8 @@ namespace nex
 			m_gNormal = texture;
 		}
 
-		void setGPositionTexture(Texture* texture) {
-			m_gPosition = texture;
+		void setGDepthTexture(Texture* texture) {
+			m_gDepth = texture;
 		}
 
 		void setKernelSamples(const vector<vec3>& vec) {
@@ -125,7 +125,7 @@ namespace nex
 		SSAOData* m_ssaoData;
 		GLuint m_ssaoUBO;
 		Texture* m_texNoise;
-		Texture* m_gPosition;
+		Texture* m_gDepth;
 		Texture* m_gNormal;
 		const std::vector<vec3>* m_samples;
 
@@ -310,12 +310,12 @@ namespace nex
 		tiledBlurRenderTarget = createSSAO_FBO(newWidth, newHeight);
 	}
 
-	void SSAO_DeferredGL::renderAO(Texture * gPositions, Texture * gNormals, const glm::mat4& projectionGPass)
+	void SSAO_DeferredGL::renderAO(Texture * gDepth, Texture * gNormals, const glm::mat4& projectionGPass)
 	{
 		SSAO_AO_ShaderGL&  aoShader = dynamic_cast<SSAO_AO_ShaderGL&>(*aoPass);
 
 		aoShader.setGNormalTexture(gNormals);
-		aoShader.setGPositionTexture(gPositions);
+		aoShader.setGDepthTexture(gDepth);
 
 		m_shaderData.projection_GPass = projectionGPass;
 

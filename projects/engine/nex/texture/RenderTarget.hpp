@@ -168,8 +168,6 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture* getNormal() const;
 		// Has to be implemented by renderer backend
-		Texture* getPosition() const;
-		// Has to be implemented by renderer backend
-		const std::shared_ptr<DepthStencilMap>& getDepth() const;
+		Texture* getDepth() const;
 	};
 }

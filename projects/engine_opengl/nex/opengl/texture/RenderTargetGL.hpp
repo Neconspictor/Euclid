@@ -111,15 +111,13 @@ namespace nex
 		Texture2D* getAlbedo() const;
 		Texture2D* getAoMetalRoughness() const;
 		Texture2D* getNormal() const;
-		Texture2D* getPosition() const;
-		const std::shared_ptr<DepthStencilMap>& getDepth() const;
+		Texture2D* getDepth() const;
 
 
 	protected:
 		std::unique_ptr<Texture2D> albedo;
 		std::unique_ptr<Texture2D> aoMetalRoughness;
 		std::unique_ptr<Texture2D> normal;
-		std::unique_ptr<Texture2D> position;
-		std::shared_ptr<DepthStencilMap> depth;
+		std::unique_ptr<Texture2D> depth;
 	};
 }

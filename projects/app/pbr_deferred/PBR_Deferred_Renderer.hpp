@@ -31,7 +31,7 @@ namespace nex
 
 	private:
 
-		Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
+		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
 
 		void drawSceneToCascade(SceneNode* scene);
 

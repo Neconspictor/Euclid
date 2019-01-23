@@ -23,7 +23,7 @@ layout(std140,binding=0) uniform controlBuffer {
 };
 
 layout(binding=0) uniform sampler2D gNormal;
-layout(binding=1) uniform sampler2D gPosition;
+layout(binding=1) uniform sampler2D gDepth;
 layout(binding=2) uniform sampler2D texNoise;
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
@@ -33,14 +33,24 @@ layout(binding=2) uniform sampler2D texNoise;
 
 //const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0); 
 
+vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inverseMatrix) {
+  vec4 clipSpaceLocation;
+  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
+  clipSpaceLocation.z = depth * 2.0f - 1.0f;
+  clipSpaceLocation.w = 1.0f;
+  vec4 homogenousLocation = inverseMatrix * clipSpaceLocation;
+  return homogenousLocation.xyz / homogenousLocation.w;
+};
+
 void main()
 {
 
 	// tile noise texture over screen based on screen dimensions divided by noise size
-	vec2 noiseScale = textureSize(gPosition, 0) / 4.0;
+	vec2 noiseScale = textureSize(gDepth, 0) / 4.0;
 
     // get input for SSAO algorithm
-    vec3 fragPos = texture(gPosition, texCoord).xyz;
+    mat4 inverseProj = inverse(control.projection_GPass);
+    vec3 fragPos = computeViewPositionFromDepth(texCoord, texture(gDepth, texCoord).r, inverseProj);
     vec3 normal = normalize(texture(gNormal, texCoord).rgb);
 	
 	//float nLength = length(normal);
@@ -74,7 +84,8 @@ void main()
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
         // get sample depth
-        float sampleDepth = texture(gPosition, offset.xy).z; // get depth value of kernel sample
+        //float sampleDepth = texture(gDepth, offset.xy).r; // get depth value of kernel sample
+        float sampleDepth = computeViewPositionFromDepth(offset.xy, texture(gDepth, offset.xy).r, inverseProj).z;
         
         // range check & accumulate
         //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));

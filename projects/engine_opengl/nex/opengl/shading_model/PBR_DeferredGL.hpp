@@ -22,6 +22,7 @@ namespace nex
 			Texture* ssaoMap,
 			const DirectionalLight& light,
 			const glm::mat4& viewFromGPass,
+			const glm::mat4& projFromGPass,
 			const glm::mat4& worldToLight,
 			CascadedShadowGL::CascadeData* cascadeData,
 			Texture* cascadedDepthMap);
