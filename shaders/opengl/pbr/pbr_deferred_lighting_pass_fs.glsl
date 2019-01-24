@@ -73,7 +73,7 @@ uniform mat4 inverseProjMatrix_GPass;
 #define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH) 
 
 
-vec2 poissonDisk[16] = { 
+vec2 poissonDisk[16] = vec2[]( 
 	vec2 ( -0.94201624, -0.39906216 ), 
 	vec2 ( 0.94558609, -0.76890725 ), 
 	vec2 ( -0.094184101, -0.92938870 ), 
@@ -90,7 +90,7 @@ vec2 poissonDisk[16] = {
 	vec2 ( -0.81409955, 0.91437590 ), 
 	vec2 ( 0.19984126, 0.78641367 ), 
 	vec2 ( 0.14383161, -0.14100790 )
-};
+);
  
  
 struct BlockerResult {
@@ -238,7 +238,7 @@ vec3 pbrModel(float ao,
 	
 	float ambientShadow = clamp(shadow, 1.0, 1.0);
 	
-	shadow = clamp(shadow, 0.2, 1);
+	shadow = clamp(shadow, 0.2f, 1.0f);
 	
 	//float ssaoFactor = max(max(ambient.r, ambient.g), ambient.b);
 	//ssaoFactor = clamp (1 / ssaoFactor, 0, 1);

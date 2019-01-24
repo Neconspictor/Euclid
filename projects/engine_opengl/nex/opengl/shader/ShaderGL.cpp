@@ -186,6 +186,8 @@ void nex::ShaderProgram::setDebugName(const char* name)
 
 nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShaderStageDesc& desc)
 {
+	static Logger logger("nex::ShaderStage::compileShaderStage");
+	LOG(logger, LogLevel::Info) << "compiling " << desc.root.filePath;
 	GLuint id;
 	GLCall(id = glCreateShader(translate(desc.type)));
 

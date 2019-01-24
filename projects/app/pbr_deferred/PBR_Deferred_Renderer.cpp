@@ -45,6 +45,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
+
+	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
+
 	ShaderManagerGL* shaderManager = m_renderBackend->getShaderManager();
 	ModelManagerGL* modelManager = m_renderBackend->getModelManager();
 	TextureManagerGL* textureManager = m_renderBackend->getTextureManager();
