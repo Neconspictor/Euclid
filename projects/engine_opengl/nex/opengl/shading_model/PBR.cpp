@@ -313,10 +313,11 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 
 	CubeMap* result = (CubeMap*)cubeRenderTarget->getRenderResult();
-	cubeRenderTarget->setRenderResult(nullptr); // ensures that it won't be deleted 
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
 	result->generateMipMaps();
+
+	cubeRenderTarget->setRenderResult(nullptr);
 
 	//CubeMap* result = cubeRenderTarget->createCopy(); 
 	return result;
@@ -361,8 +362,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 	//CubeMap* result = cubeRenderTarget->createCopy();
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget->getRenderResult();
-	cubeRenderTarget->setRenderResult(nullptr); // ensures that it won't be deleted 
+	CubeMap* result = (CubeMap*)cubeRenderTarget->setRenderResult(nullptr);
 	renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
 	return result;
@@ -432,8 +432,7 @@ CubeMap* PBR::prefilter(CubeMap * source)
 	}
 
 
-	CubeMap* result = (CubeMap*)prefilterRenderTarget->getRenderResult();
-	prefilterRenderTarget->setRenderResult(nullptr);
+	CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
 	renderer->destroyCubeRenderTarget(prefilterRenderTarget);
 
 	return result;
@@ -480,8 +479,7 @@ Texture2D* PBR::createBRDFlookupTexture()
 	brdfPrecomputeShader->bind();
 	modelDrawer->draw(&sprite, brdfPrecomputeShader);
 
-	Texture2D* result = (Texture2D*)target->getRenderResult();
-	target->setRenderResult(nullptr);
+	Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	renderer->destroyRenderTarget(target);
 
 	return result;

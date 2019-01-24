@@ -32,7 +32,7 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 
-		void setRenderResult(Texture* texture);
+		Texture* setRenderResult(Texture* texture);
 
 		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
 

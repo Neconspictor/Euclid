@@ -222,8 +222,8 @@ namespace nex
 
 		static Side translate(CubeMap::Side side);
 
-		explicit CubeMapGL();
-		CubeMapGL(GLuint cubeMap);
+		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight);
+		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight);
 
 		/**
 		 *  Generates mipmaps for the current content of this cubemap.

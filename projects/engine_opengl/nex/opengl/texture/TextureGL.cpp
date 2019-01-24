@@ -41,14 +41,18 @@ const mat4& nex::CubeMap::getViewLookAtMatrixRH(Side side)
 	return rightSide;
 }
 
+nex::CubeMap::CubeMap(std::unique_ptr<TextureImpl> impl) : Texture(std::move(impl))
+{
+}
+
+nex::CubeMap::CubeMap(unsigned sideWidth, unsigned sideHeight) : Texture(make_unique<CubeMapGL>(sideWidth, sideHeight))
+{
+}
+
 void nex::CubeMap::generateMipMaps()
 {
 	auto gl = (CubeMapGL*)getImpl();
 	gl->generateMipMaps();
-}
-
-nex::CubeMap::CubeMap() : Texture(make_unique<CubeMapGL>())
-{
 }
 
 unsigned nex::CubeMap::getSideWidth() const
@@ -82,11 +86,11 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL() : TextureGL(), mSideWidth(0), mSideHeight(0)
+nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight) : TextureGL(), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
 }
 
-nex::CubeMapGL::CubeMapGL(GLuint cubeMap) : TextureGL(cubeMap), mSideWidth(0), mSideHeight(0)
+nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
 }
 
@@ -412,15 +416,9 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	if (isCubeMap)
 	{
-		auto glTexture = std::make_unique<CubeMapGL>(textureID);
-		glTexture->setSideWidth(store.images[0][0].width);
-		glTexture->setSideHeight(store.images[0][0].height);
-
-		auto result = std::make_unique<CubeMap>();
-		result->setImpl(std::move(glTexture));
+		auto glTexture = std::make_unique<CubeMapGL>(textureID, store.images[0][0].width, store.images[0][0].height);
+		auto result = std::make_unique<CubeMap>(std::move(glTexture));
 		return result.release();
-
-
 	}
 
 	auto glTexture = std::make_unique<Texture2DGL>(textureID, data, store.images[0][0].width, store.images[0][0].height);

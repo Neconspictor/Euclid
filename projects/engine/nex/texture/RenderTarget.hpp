@@ -66,13 +66,11 @@ namespace nex
 		Texture* getRenderResult();
 
 		/**
-		 * Sets the texture of this render target.
-		 * The previous texture won't be destroyed, so you have to delete it manually
-		 *   (use getTexture and than delete it).
+		 * Sets the texture of this render target and returns the old texture.
 		 * NOTE: You should know what you do, when setting the texture manually!
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void setRenderResult(Texture* texture);
+		Texture* setRenderResult(Texture* texture);
 
 		// Has to be implemented by renderer backend
 		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);

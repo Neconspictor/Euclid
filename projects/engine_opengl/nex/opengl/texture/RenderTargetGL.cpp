@@ -42,7 +42,7 @@ void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
 nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data) :
 	RenderTargetGL(width, height), data(data)
 {
-	mRenderResult = make_unique<CubeMap>();
+	mRenderResult = make_unique<CubeMap>(width, height);
 
 	auto renderBuffer = make_shared<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24);
 	
@@ -220,7 +220,7 @@ void nex::RenderTarget::setImpl(std::unique_ptr<RenderTargetImpl> impl)
 	mImpl = std::move(impl);
 }
 
-void nex::RenderTarget::setRenderResult(Texture* texture)
+nex::Texture* nex::RenderTarget::setRenderResult(Texture* texture)
 {
 	auto gl = (RenderTargetGL*)getImpl();
 	return gl->setRenderResult(texture);
@@ -552,9 +552,11 @@ void nex::RenderTargetGL::setFrameBuffer(GLuint newValue)
 	mFrameBuffer = newValue;
 }
 
-void nex::RenderTargetGL::setRenderResult(Texture* texture)
+nex::Texture* nex::RenderTargetGL::setRenderResult(Texture* texture)
 {
+	const auto old = mRenderResult.release();
 	mRenderResult.reset(texture);
+	return old;
 }
 
 void nex::RenderTargetGL::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
@@ -597,7 +599,7 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	RenderTargetGL(width, height)
 {
 
-	mRenderResult = make_unique<CubeMap>();
+	mRenderResult = make_unique<CubeMap>(width, height);
 
 	GLuint texture;
 	GLCall(glGenTextures(1, &texture));

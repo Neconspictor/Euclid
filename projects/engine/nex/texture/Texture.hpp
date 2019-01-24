@@ -305,9 +305,12 @@ namespace nex
 			NEGATIVE_Z,
 		};
 
+
+		CubeMap(std::unique_ptr<TextureImpl> impl);
+
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		CubeMap();
+		CubeMap(unsigned sideWidth, unsigned sideHeight);
 
 		/**
 		 *  Generates mipmaps for the current content of this cubemap.
