@@ -91,7 +91,7 @@ nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight) : TextureGL()
 {
 }
 
-nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap, GL_TEXTURE_CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
 }
 
@@ -147,22 +147,22 @@ nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthSten
 	GLuint dataType = getDataType(mDesc.format);
 
 	GLCall(glGenTextures(1, &mTextureID));
-	glBindTexture(GL_TEXTURE_2D, mTextureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, depthType, dataType, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
+	glBindTexture(mTarget, mTextureID);
+	glTexImage2D(mTarget, 0, format, width, height, 0, depthType, dataType, nullptr);
+	glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter));
+	glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translate(mDesc.wrap));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translate(mDesc.wrap));
+	//glTexParameteri(mTarget, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	//glTexParameteri(mTarget, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mDesc.wrap));
+	glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mDesc.wrap));
 
 	if (mDesc.wrap == TextureUVTechnique::ClampToBorder)
 	{
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data);
+		glTexParameterfv(mTarget, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data);
 	}
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(mTarget, 0);
 
 
 	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
@@ -315,11 +315,11 @@ nex::DepthStencilFormat nex::RenderBuffer::getFormat() const
 }
 
 
-nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format) : TextureGL(GL_FALSE), mFormat(format), mWidth(width), mHeight(height)
+nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format) : TextureGL(GL_FALSE, GL_RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
-	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, mTextureID));
-	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, translate(mFormat), mWidth, mHeight));
+	GLCall(glBindRenderbuffer(mTarget, mTextureID));
+	GLCall(glRenderbufferStorage(mTarget, translate(mFormat), mWidth, mHeight));
 }
 
 nex::RenderBufferGL::~RenderBufferGL()
@@ -331,7 +331,7 @@ nex::RenderBufferGL::~RenderBufferGL()
 }
 
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format)
-	: TextureGL(texture), mFormat(format), mWidth(width), mHeight(height)
+	: TextureGL(texture, GL_RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
 {
 }
 
@@ -344,8 +344,8 @@ void nex::RenderBufferGL::resize(unsigned width, unsigned height)
 {
 	mWidth = width;
 	mHeight = height;
-	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, mTextureID));
-	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, translate(mFormat), width, height));
+	GLCall(glBindRenderbuffer(mTarget, mTextureID));
+	GLCall(glRenderbufferStorage(mTarget, translate(mFormat), width, height));
 }
 
 nex::Texture::Texture(std::unique_ptr<TextureImpl> impl) : mImpl(std::move(impl))
@@ -443,11 +443,11 @@ void nex::Texture::setImpl(std::unique_ptr<TextureImpl> impl)
 	mImpl = std::move(impl);
 }
 
-nex::TextureGL::TextureGL() : mTextureID(GL_FALSE)
+nex::TextureGL::TextureGL() : mTextureID(GL_FALSE), mTarget(GL_FALSE)
 {
 }
 
-nex::TextureGL::TextureGL(GLuint texture) : mTextureID(texture)
+nex::TextureGL::TextureGL(GLuint texture, GLuint target) : mTextureID(texture), mTarget(target)
 {
 }
 
@@ -508,6 +508,11 @@ void nex::TextureGL::setTexture(GLuint id)
 	mTextureID = id;
 }
 
+GLuint nex::TextureGL::getTarget() const
+{
+	return mTarget;
+}
+
 nex::Texture2D::Texture2D(std::unique_ptr<TextureImpl> impl) : Texture(std::move(impl))
 {
 }
@@ -548,35 +553,33 @@ void nex::Texture2D::resize(unsigned width, unsigned height)
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
-	TextureGL(GL_FALSE), mWidth(width), mHeight(height), mData(textureData)
+	TextureGL(GL_FALSE, GL_TEXTURE_2D), mWidth(width), mHeight(height), mData(textureData)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glGenTextures(1, &mTextureID));
 
-	static const GLenum glTarget = GL_TEXTURE_2D;
+	GLCall(glBindTexture(mTarget, mTextureID));
 
-	GLCall(glBindTexture(glTarget, mTextureID));
-
-	GLCall(glTexImage2D(glTarget, 0, translate(mData.internalFormat), width, height,
+	GLCall(glTexImage2D(mTarget, 0, translate(mData.internalFormat), width, height,
 		0, translate(mData.colorspace), translate(mData.pixelDataType),
 		data));
 
 	if (mData.generateMipMaps)
-		GLCall(glGenerateMipmap(glTarget));
+		GLCall(glGenerateMipmap(mTarget));
 
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_R, translate(mData.wrapR)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(mData.wrapS)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(mData.wrapT)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(mData.minFilter)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(mData.magFilter)));
-	GLCall(glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
-	GLCall(glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_R, translate(mData.wrapR)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mData.wrapS)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mData.wrapT)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mData.minFilter)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(mData.magFilter)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
+	GLCall(glTexParameterf(mTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f));
 
-	GLCall(glBindTexture(glTarget, 0));
+	GLCall(glBindTexture(mTarget, 0));
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
-	: TextureGL(texture), mWidth(width), mHeight(height), mData(textureData)
+	: TextureGL(texture, GL_TEXTURE_2D), mWidth(width), mHeight(height), mData(textureData)
 {
 
 }

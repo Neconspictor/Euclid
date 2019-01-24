@@ -162,7 +162,7 @@ namespace nex
 	{
 	public:
 		explicit TextureGL();
-		TextureGL(GLuint texture);
+		TextureGL(GLuint texture, GLuint target);
 
 		virtual ~TextureGL();
 
@@ -173,6 +173,7 @@ namespace nex
 		void release();
 
 		void setTexture(GLuint id);
+		GLuint getTarget() const;
 
 		static GLuint getFormat(int numberComponents);
 
@@ -180,6 +181,7 @@ namespace nex
 		friend Texture;
 
 		GLuint mTextureID;
+		GLuint mTarget;
 	};
 
 	class Texture2DGL : public TextureGL

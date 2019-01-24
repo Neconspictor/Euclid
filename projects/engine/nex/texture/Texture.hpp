@@ -121,9 +121,6 @@ namespace nex
 
 	bool isCubeTarget(TextureTarget target);
 
-		
-	bool isCubeTarget(TextureTarget target);
-
 
 	enum class DepthStencilFormat
 	{

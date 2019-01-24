@@ -10,6 +10,18 @@ namespace nex
 	class RendererOpenGL;
 	class CubeRenderTargetGL;
 
+
+	enum AttachmentTypeGL
+	{
+		ATTACHMENT_COLOR = GL_COLOR_ATTACHMENT0,
+		ATTACHMENT_DEPTH = GL_DEPTH_ATTACHMENT,
+		ATTACHMENT_STENCIL = GL_STENCIL_ATTACHMENT,
+		ATTACHMNET_DEPTH_STENCIL = GL_DEPTH_STENCIL_ATTACHMENT,
+	};
+
+
+	GLuint translate(RenderAttachment::Type type, unsigned attachIndex);
+
 	class RenderTargetGL : public RenderTargetImpl
 	{
 	public:
@@ -17,6 +29,8 @@ namespace nex
 			std::shared_ptr<Texture> depthStencilMap = nullptr);
 
 		virtual ~RenderTargetGL();
+
+		void addAttachment(RenderAttachment attachment);
 
 		void bind();
 
@@ -46,6 +60,7 @@ namespace nex
 
 		GLuint mFrameBuffer;
 		std::unique_ptr<Texture> mRenderResult;
+		std::vector<RenderAttachment> mAttachments;
 		std::shared_ptr<Texture> mDepthStencilMap;
 		unsigned mWidth;
 		unsigned mHeight;

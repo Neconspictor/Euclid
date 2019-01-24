@@ -7,6 +7,29 @@
 using namespace std;
 using namespace glm;
 
+
+GLuint nex::translate(RenderAttachment::Type type, unsigned attachIndex)
+{
+	static AttachmentTypeGL table [] = {
+		ATTACHMENT_COLOR,
+		ATTACHMENT_DEPTH,
+		ATTACHMENT_STENCIL,
+		ATTACHMNET_DEPTH_STENCIL
+	};
+
+	static const size_t size = (size_t)RenderAttachment::Type::LAST - (size_t)RenderAttachment::Type::FIRST + 1;
+	static const size_t tableSize = sizeof(table) / sizeof(AttachmentTypeGL);
+	static_assert(tableSize == size, "RenderAttachment and RenderAttachmentTypeGL don't match!");
+
+	GLuint resultBase = table[(unsigned)type];
+
+	if (resultBase == ATTACHMENT_COLOR)
+		resultBase += attachIndex;
+
+	return resultBase;
+}
+
+
 nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data) : 
 	RenderTarget(make_unique<CubeRenderTargetGL>(width, height, data))
 {
@@ -198,6 +221,12 @@ nex::RenderTarget::RenderTarget(std::unique_ptr<RenderTargetImpl> impl) : mImpl(
 {
 }
 
+void nex::RenderTarget::addAttachment(RenderAttachment attachment)
+{
+	auto gl = (RenderTargetGL*)mImpl.get();
+	gl->addAttachment(std::move(attachment));
+}
+
 void nex::RenderTarget::bind()
 {
 	RenderTargetGL* impl = (RenderTargetGL*)mImpl.get();
@@ -323,8 +352,6 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 }*/
 
 
-
-
 nex::RenderTargetGL::RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer, std::shared_ptr<Texture> depthStencilMap) :
 	RenderTargetImpl(),
 	mFrameBuffer(frameBuffer), mWidth(width), mHeight(height), mRenderResult(make_unique<Texture>(nullptr))
@@ -339,6 +366,18 @@ nex::RenderTargetGL::~RenderTargetGL()
 	}
 
 	mFrameBuffer = GL_FALSE;
+}
+
+void nex::RenderTargetGL::addAttachment(RenderAttachment attachment)
+{
+	const GLuint attachmentType = translate(attachment.type, attachment.attachIndex);
+	auto gl = (TextureGL*)attachment.texture->getImpl();
+	
+	GLuint textureID = *gl->getTexture();
+	GLuint target = translate(attachment.target);
+	GLCall(glFramebufferTexture(target, textureID, attachmentType, attachment.mipmapLevel));
+
+	mAttachments.emplace_back(std::move(attachment));
 }
 
 void nex::RenderTargetGL::bind()

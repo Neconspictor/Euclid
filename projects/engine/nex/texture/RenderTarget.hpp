@@ -25,6 +25,32 @@ namespace nex
 		virtual ~RenderTargetImpl() = default;
 	};
 
+	struct RenderAttachment
+	{
+		enum class Type
+		{
+			COLOR, FIRST = COLOR,
+			DEPTH,
+			STENCIL, 
+			DEPTH_STENCIL, LAST = DEPTH_STENCIL,
+		};
+
+		std::shared_ptr<Texture> texture;
+		Type type = Type::COLOR;
+		TextureTarget target;
+		unsigned attachIndex = 0;
+		unsigned mipmapLevel = 0;
+
+		RenderAttachment(std::shared_ptr<Texture> texture, Type type, TextureTarget target, unsigned attachIndex, unsigned mipmapLevel)
+		: texture(std::move(texture)), 
+		type(type), 
+		target(target), 
+		attachIndex(attachIndex), 
+		mipmapLevel(mipmapLevel)
+		{}
+
+	};
+
 
 	class RenderTarget
 	{
@@ -35,6 +61,9 @@ namespace nex
 
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
+
+		// Has to be implemented by renderer backend
+		void addAttachment(RenderAttachment attachment);
 
 		// Has to be implemented by renderer backend
 		void bind();
