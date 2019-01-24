@@ -347,9 +347,9 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 
 	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
-	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
+	screenRenderTarget->bind();
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
-	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	mComputeTest = new ComputeTestShader(windowWidth, windowHeight);
 
@@ -375,9 +375,9 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	const unsigned height = mComputeTest->height; // mComputeTest->result->getHeight();
 
 	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
-	m_renderBackend->useBaseRenderTarget(screenRenderTarget);
+	screenRenderTarget->bind();
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
-	m_renderBackend->clearRenderTarget(screenRenderTarget, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 
 	mSimpleBlinnPhong->bind();

@@ -126,7 +126,7 @@ namespace nex
 		Texture* panoramaSky;
 		Texture* testTexture;
 
-		RenderTarget* renderTargetSingleSampled;
+		RenderTarget2D* renderTargetSingleSampled;
 		Sprite screenSprite;
 		bool showDepthMap;
 		Guard<ComputeTestShader> mComputeTest;
