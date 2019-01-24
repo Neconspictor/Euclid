@@ -273,6 +273,12 @@ nex::Texture* nex::RenderTarget::setRenderResult(Texture* texture)
 	return gl->setRenderResult(texture);
 }
 
+void nex::RenderTarget::updateAttachments()
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->updateAttachments();
+}
+
 
 void nex::RenderTarget::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
 {
@@ -653,6 +659,18 @@ void nex::RenderTargetGL::useDepthStencilMap(std::shared_ptr<Texture> depthStenc
 	mDepthStencilMap = std::move(depthStencilMap);
 }
 
+void nex::RenderTargetGL::updateAttachments()
+{
+	std::vector<GLuint> drawBufferList(mAttachments.size());
+	for (unsigned i = 0; i < drawBufferList.size(); ++i)
+	{
+		const auto& attachment = mAttachments[i];
+		drawBufferList[i] = translate(attachment.type, attachment.attachIndex);
+	}
+
+	GLCall(glDrawBuffers(drawBufferList.size(), drawBufferList.data()));
+}
+
 
 nex::CubeDepthMap* nex::CubeDepthMap::create(unsigned width, unsigned height)
 {
@@ -850,13 +868,14 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 
 	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-	unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, 
-		GL_COLOR_ATTACHMENT1, 
-		GL_COLOR_ATTACHMENT2, 
-		GL_COLOR_ATTACHMENT3
+	/*unsigned int attachments[4] = { translate(albedo.type, albedo.attachIndex), 
+		translate(aoMetalRoughness.type, aoMetalRoughness.attachIndex),
+		translate(normal.type, normal.attachIndex),
+		translate(depth.type, depth.attachIndex)
 	};
 
-	glDrawBuffers(4, attachments);
+	glDrawBuffers(4, attachments);*/
+	updateAttachments();
 
 	// create and attach depth buffer (renderbuffer)
 	/*unsigned int rboDepth;

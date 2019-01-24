@@ -53,6 +53,7 @@ namespace nex
 		void unbind();
 
 		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
+		void updateAttachments();
 
 	protected:
 

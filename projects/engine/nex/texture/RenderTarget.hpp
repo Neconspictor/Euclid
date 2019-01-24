@@ -104,6 +104,8 @@ namespace nex
 		Texture* setRenderResult(Texture* texture);
 
 		// Has to be implemented by renderer backend
+		void updateAttachments();
+
 		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
 
 	protected:
