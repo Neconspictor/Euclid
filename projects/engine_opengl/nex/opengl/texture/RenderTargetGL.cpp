@@ -12,6 +12,11 @@ nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data)
 {
 }
 
+void nex::CubeRenderTarget::useSide(CubeMap::Side side, unsigned mipLevel)
+{
+	((CubeRenderTargetGL*)getImpl())->useSide(side, mipLevel);
+}
+
 unsigned nex::CubeRenderTarget::getHeightMipLevel(unsigned mipMapLevel) const
 {
 	return ((CubeRenderTargetGL*)getImpl())->getHeightMipLevel(mipMapLevel);
@@ -90,6 +95,19 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER,0));
+}
+
+void nex::CubeRenderTargetGL::useSide(CubeMap::Side side, unsigned mipLevel)
+{
+	CubeMapGL* cubeMap = (CubeMapGL*)mRenderResult->getImpl();
+
+	const GLuint AXIS_SIDE = CubeMapGL::translate(side);
+	const GLuint cubeMapTexture = cubeMap->getCubeMap();
+
+	bind();
+
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel));
+	GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
 nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
@@ -183,7 +201,7 @@ nex::RenderTarget::RenderTarget(std::unique_ptr<RenderTargetImpl> impl) : mImpl(
 void nex::RenderTarget::bind()
 {
 	RenderTargetGL* impl = (RenderTargetGL*)mImpl.get();
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, impl->getFrameBuffer()));
+	impl->bind();
 }
 
 void nex::RenderTarget::clear(int components)
@@ -235,7 +253,8 @@ void nex::RenderTarget::useDepthStencilMap(std::shared_ptr<Texture> depthStencil
 
 void nex::RenderTarget::unbind()
 {
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->unbind();
 }
 
 /*
@@ -320,6 +339,16 @@ nex::RenderTargetGL::~RenderTargetGL()
 	}
 
 	mFrameBuffer = GL_FALSE;
+}
+
+void nex::RenderTargetGL::bind()
+{
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer));
+}
+
+void nex::RenderTargetGL::unbind()
+{
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 nex::Texture* nex::RenderTargetGL::getDepthStencilMap() const

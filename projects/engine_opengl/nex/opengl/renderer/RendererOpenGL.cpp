@@ -258,27 +258,6 @@ namespace nex
 		return result;
 	}
 
-	void nex::RendererOpenGL::clearFrameBuffer(GLuint frameBuffer, vec4 color, float depthValue, int stencilValue)
-	{
-		// backup current bound drawing frame buffer
-		GLint drawFboId = getCurrentRenderTarget();
-
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
-		//glClearColor(color.r, color.g, color.b, color.a);
-
-		GLCall(glViewport(mViewport.x, mViewport.y, mViewport.width, mViewport.height));
-		GLCall(glScissor(mViewport.x, mViewport.y, mViewport.width, mViewport.height));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
-
-		GLCall(glClearDepth(depthValue));
-		GLCall(glClearStencil(stencilValue));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-
-		// restore frame buffer
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, drawFboId));
-	}
-
 	RenderTarget2D* nex::RendererOpenGL::createRenderTarget(int samples)
 	{
 		TextureData data;
@@ -391,25 +370,6 @@ namespace nex
 	{
 	}
 
-	void RendererOpenGL::readback(const Texture* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format,
-		PixelDataType type, void* dest)
-	{
-		TextureGL* gl = (TextureGL*)texture->getImpl();
-		const GLuint textureID = *gl->getTexture();
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		GLCall(glActiveTexture(GL_TEXTURE0));
-		if (nex::isCubeTarget(target))
-		{
-			GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
-		}
-		else
-		{
-			GLCall(glBindTexture(translate(target), textureID));
-		}
-
-		GLCall(glGetTexImage(translate(target), mipmapLevel, translate(format), translate(type), dest));
-	}
-
 	void RendererOpenGL::resize(int width, int height)
 	{
 		mViewport.width = width;
@@ -456,23 +416,6 @@ namespace nex
 		//	effectLibrary->getGaussianBlur()->init();
 	}
 
-	void RendererOpenGL::useCubeDepthMap(CubeDepthMap* cubeDepthMap)
-	{
-
-		Texture* tex = cubeDepthMap->getRenderResult();
-		CubeMapGL* cubeMap = (CubeMapGL*)tex->getImpl();
-
-		GLCall(glViewport(mViewport.x, mViewport.y, cubeMap->getSideWidth(), cubeMap->getSideHeight()));
-		GLCall(glScissor(mViewport.x, mViewport.y, cubeMap->getSideWidth(), cubeMap->getSideHeight()));
-		cubeDepthMap->bind();
-		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, cubeMap->getCubeMap(), 0));
-		GLCall(glDrawBuffer(GL_NONE));
-		GLCall(glReadBuffer(GL_NONE));
-
-		GLCall(glClearDepth(1.0));
-		GLCall(glClear(GL_DEPTH_BUFFER_BIT));
-	}
-
 	/*void RendererOpenGL::useDepthMap(DepthMap* depthMap)
 	{
 		DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
@@ -491,28 +434,6 @@ namespace nex
 
 		//glClear(GL_DEPTH_BUFFER_BIT);
 	}*/
-
-	void RendererOpenGL::useCubeRenderTarget(CubeRenderTarget * target, CubeMap::Side side, unsigned int mipLevel)
-	{
-		Texture* tex = target->getRenderResult();
-		CubeMapGL* cubeMap = (CubeMapGL*)tex->getImpl();
-
-		GLuint AXIS_SIDE = CubeMapGL::translate(side);
-		GLuint cubeMapTexture = cubeMap->getCubeMap();
-
-		target->bind();
-
-		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel));
-		GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-	}
-
-	void RendererOpenGL::useVarianceShadowMap(RenderTarget2D* source)
-	{
-		GLCall(glViewport(0, 0, source->getWidth(), source->getHeight()));
-		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
-		source->bind();
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	}
 
 	void RendererOpenGL::checkGLErrors(const string& errorPrefix)
 	{

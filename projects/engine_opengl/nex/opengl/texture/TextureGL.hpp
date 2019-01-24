@@ -168,6 +168,8 @@ namespace nex
 
 		GLuint* getTexture();
 
+		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+
 		void release();
 
 		void setTexture(GLuint id);

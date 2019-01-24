@@ -167,8 +167,6 @@ namespace nex
 			},
 			int samples = 1);
 
-		void clearFrameBuffer(GLuint frameBuffer, glm::vec4 color, float depthValue, int StencilValue);
-
 		std::unique_ptr<CascadedShadowGL> createCascadedShadow(unsigned int width, unsigned int height);
 
 		RenderTarget2D* createRenderTarget(int samples = 1);
@@ -260,12 +258,6 @@ namespace nex
 		*/
 		void present();
 
-		/**
-		 * Reads a texture back from the gpu
-		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
-		 */
-		void readback(const  Texture* texture, TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
-
 		void resize(int width, int height);
 
 		/**
@@ -289,16 +281,6 @@ namespace nex
 		* Sets the viewport size and position.
 		*/
 		void setViewPort(int x, int y, int width, int height);
-
-		void useCubeDepthMap(CubeDepthMap* cubeDepthMap);
-
-		void useCubeRenderTarget(CubeRenderTarget* target, CubeMap::Side side, unsigned int mipLevel = 0);
-
-		/**
-		* All draw calls are performed on a variance shadow map texture.
-		* Only the depth value and it's square are written (no color information).
-		*/
-		void useVarianceShadowMap(RenderTarget2D* map);
 
 		/**
 		* A function for checking any opengl related errors.

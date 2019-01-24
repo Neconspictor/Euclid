@@ -117,6 +117,8 @@ namespace nex
 		//TODO depthStencilType isn't used currently
 		CubeRenderTarget(int width, int height, TextureData data);
 
+		void useSide(CubeMap::Side side, unsigned int mipLevel = 0);
+
 		// Has to be implemented by renderer backend
 		unsigned getHeightMipLevel(unsigned int mipMapLevel) const;
 

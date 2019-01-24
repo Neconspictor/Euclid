@@ -150,8 +150,7 @@ StoreImage PBR::readBrdfLookupPixelData() const
 	data.pixels = new char[data.bufSize];
 
 	// read the data back from the gpu
-	renderer->readback(
-		brdfLookupTexture, 
+	brdfLookupTexture->readback(
 		TextureTarget::TEXTURE2D, 
 		0, ColorSpace::RG, 
 		PixelDataType::FLOAT, 
@@ -177,8 +176,7 @@ StoreImage PBR::readBackgroundPixelData() const
 		data.pixels = new char[data.bufSize];
 
 		// read the data back from the gpu
-		renderer->readback(
-			environmentMap,
+		environmentMap->readback(
 			static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
 			0, // base level
 			ColorSpace::RGB,
@@ -208,8 +206,7 @@ StoreImage PBR::readConvolutedEnvMapPixelData()
 			data.pixels = new char[data.bufSize];
 
 			// read the data back from the gpu
-			renderer->readback(
-				convolutedEnvironmentMap,
+			convolutedEnvironmentMap->readback(
 				static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
 				level,
 				ColorSpace::RGB,
@@ -240,8 +237,7 @@ StoreImage PBR::readPrefilteredEnvMapPixelData()
 			data.pixels = new char[data.bufSize];
 
 			// read the data back from the gpu
-			renderer->readback(
-				prefilteredEnvMap,
+			prefilteredEnvMap->readback(
 				static_cast<TextureTarget>(static_cast<unsigned>(TextureTarget::CUBE_POSITIVE_X) + i),
 				level,
 				ColorSpace::RGB,
@@ -307,7 +303,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget.get(), static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
+		cubeRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -355,7 +351,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 
 	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
-		renderer->useCubeRenderTarget(cubeRenderTarget, static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
+		cubeRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
 		modelDrawer->draw(skybox.getModel(), shader);
 	}
 
@@ -426,7 +422,7 @@ CubeMap* PBR::prefilter(CubeMap * source)
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
 			shader->setView(views[side]);
-			renderer->useCubeRenderTarget(prefilterRenderTarget, static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X), mipLevel);
+			prefilterRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X), mipLevel);
 			modelDrawer->draw(skybox.getModel(), shader);
 		}
 	}

@@ -234,6 +234,14 @@ namespace nex
 		 */
 		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
 
+
+		/**
+		 * Reads a texture back from the gpu
+		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+
 		void setImpl(std::unique_ptr<TextureImpl> impl);
 
 	protected:

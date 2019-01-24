@@ -1,3 +1,4 @@
+#include "..\..\..\..\engine\nex\texture\Texture.hpp"
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <cassert>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
@@ -431,6 +432,12 @@ nex::TextureImpl* nex::Texture::getImpl() const
 	return mImpl.get();
 }
 
+void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest)
+{
+	auto gl = (TextureGL*)getImpl();
+	gl->readback(target, mipmapLevel, format, type, dest);
+}
+
 void nex::Texture::setImpl(std::unique_ptr<TextureImpl> impl)
 {
 	mImpl = std::move(impl);
@@ -453,6 +460,23 @@ nex::TextureGL::~TextureGL()
 GLuint* nex::TextureGL::getTexture()
 {
 	return &mTextureID;
+}
+
+void nex::TextureGL::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type,
+	void* dest)
+{
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	if (nex::isCubeTarget(target))
+	{
+		GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID));
+	}
+	else
+	{
+		GLCall(glBindTexture(translate(target), mTextureID));
+	}
+
+	GLCall(glGetTexImage(translate(target), mipmapLevel, translate(format), translate(type), dest));
 }
 
 GLuint nex::TextureGL::getFormat(int numberComponents)

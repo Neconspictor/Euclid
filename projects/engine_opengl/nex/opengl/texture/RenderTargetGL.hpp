@@ -18,6 +18,8 @@ namespace nex
 
 		virtual ~RenderTargetGL();
 
+		void bind();
+
 		Texture* getDepthStencilMap() const;
 
 		std::shared_ptr<Texture> getDepthStencilMapShared() const;
@@ -33,6 +35,8 @@ namespace nex
 		void setFrameBuffer(GLuint newValue);
 
 		Texture* setRenderResult(Texture* texture);
+
+		void unbind();
 
 		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
 
@@ -71,7 +75,9 @@ namespace nex
 	{
 	public:
 		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data);
-		
+
+		void useSide(CubeMap::Side side, unsigned mipLevel);
+
 		nex::CubeMapGL* createCopy();
 
 		int getHeightMipLevel(unsigned mipMapLevel) const {
