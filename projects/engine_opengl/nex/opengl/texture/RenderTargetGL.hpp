@@ -136,9 +136,9 @@ namespace nex
 
 
 	protected:
-		std::unique_ptr<Texture2D> albedo;
-		std::unique_ptr<Texture2D> aoMetalRoughness;
-		std::unique_ptr<Texture2D> normal;
-		std::unique_ptr<Texture2D> depth;
+		RenderAttachment albedo;
+		RenderAttachment aoMetalRoughness;
+		RenderAttachment normal;
+		RenderAttachment depth;
 	};
 }

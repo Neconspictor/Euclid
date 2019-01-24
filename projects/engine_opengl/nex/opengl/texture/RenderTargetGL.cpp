@@ -375,7 +375,7 @@ void nex::RenderTargetGL::addAttachment(RenderAttachment attachment)
 	
 	GLuint textureID = *gl->getTexture();
 	GLuint target = translate(attachment.target);
-	GLCall(glFramebufferTexture(target, textureID, attachmentType, attachment.mipmapLevel));
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, textureID, 0));
 
 	mAttachments.emplace_back(std::move(attachment));
 }
@@ -739,19 +739,35 @@ nex::Texture* nex::PBR_GBuffer::getDepth() const
 
 nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	: 
-	RenderTargetGL(width, height),
-	albedo(make_unique<Texture2D>(width, height, TextureData())),
-	aoMetalRoughness(make_unique<Texture2D>(width, height, TextureData())),
-	normal(make_unique<Texture2D>(width, height, TextureData())),
-	depth(make_unique<Texture2D>(width, height, TextureData()))
+	RenderTargetGL(width, height)
 {
 	GLCall(glGenFramebuffers(1, &mFrameBuffer));
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
 	//unsigned int gPosition, gNormal, gAlbedo;
 	unsigned int tempTexture;
 
+	TextureData data;
+	data.minFilter = TextureFilter::NearestNeighbor;
+	data.magFilter = TextureFilter::NearestNeighbor;
+	data.wrapR = TextureUVTechnique::ClampToEdge;
+	data.wrapS = TextureUVTechnique::ClampToEdge;
+	data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.generateMipMaps = false;
+	data.useSwizzle = false;
+
+
+
 	// albedo
-	glGenTextures(1, &tempTexture);
+	data.colorspace = ColorSpace::RGB;
+	data.pixelDataType = PixelDataType::FLOAT;
+	data.internalFormat = InternFormat::RGB16F;
+	albedo.texture = make_shared<Texture2D>(width, height, data, nullptr);
+	albedo.attachIndex = 0;
+	addAttachment(albedo);
+
+	//make_unique<Texture2D>(width, height, TextureData(), nullptr)
+	
+	/*glGenTextures(1, &tempTexture);
 	((TextureGL*)albedo->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
@@ -760,10 +776,16 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempTexture, 0);*/
 
 	// ao metal roughness
-	glGenTextures(1, &tempTexture);
+	data.internalFormat = InternFormat::RGB8;
+	data.pixelDataType = PixelDataType::UBYTE;
+	aoMetalRoughness.texture = make_shared<Texture2D>(width, height, data, nullptr);
+	aoMetalRoughness.attachIndex = 1;
+	addAttachment(aoMetalRoughness);
+
+	/*glGenTextures(1, &tempTexture);
 	((TextureGL*)aoMetalRoughness->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
@@ -772,10 +794,17 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, tempTexture, 0);*/
 
 	// normal
-	glGenTextures(1, &tempTexture);
+	data.internalFormat = InternFormat::RGB16F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	normal.texture = make_shared<Texture2D>(width, height, data, nullptr);
+	normal.attachIndex = 2;
+	addAttachment(normal);
+
+
+	/*glGenTextures(1, &tempTexture);
 	((TextureGL*)normal->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
@@ -784,7 +813,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, tempTexture, 0);*/
 
 	// position
 	/*glGenTextures(1, &tempTexture);
@@ -799,7 +828,15 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);*/
 
 	// depth
-	glGenTextures(1, &tempTexture);
+	data.internalFormat = InternFormat::R32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	depth.texture = make_shared<Texture2D>(width, height, data, nullptr);
+	depth.attachIndex = 3;
+	addAttachment(depth);
+
+
+
+	/*glGenTextures(1, &tempTexture);
 	((TextureGL*)depth->getImpl())->setTexture(tempTexture);
 
 	glBindTexture(GL_TEXTURE_2D, tempTexture);
@@ -808,7 +845,7 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, tempTexture, 0);*/
 
 
 
@@ -839,8 +876,6 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 	useDepthStencilMap(std::move(depthBuffer));
 
-	auto depthGL = (TextureGL*)depth->getImpl();
-
 	//auto renderBuffer = make_unique<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24_STENCIL8);
 
 	//useDepthStencilMap(renderBuffer.get());
@@ -869,20 +904,20 @@ nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
 
 nex::Texture2D* nex::PBR_GBufferGL::getAlbedo() const
 {
-	return albedo.get();
+	return (Texture2D*)albedo.texture.get();
 }
 
 nex::Texture2D * nex::PBR_GBufferGL::getAoMetalRoughness() const
 {
-	return aoMetalRoughness.get();
+	return (Texture2D*)aoMetalRoughness.texture.get();
 }
 
 nex::Texture2D * nex::PBR_GBufferGL::getNormal() const
 {
-	return normal.get();
+	return (Texture2D*)normal.texture.get();
 }
 
 nex::Texture2D* nex::PBR_GBufferGL::getDepth() const
 {
-	return depth.get();
+	return (Texture2D*)depth.texture.get();
 }

@@ -253,10 +253,6 @@ namespace nex
 		// 
 		Texture2D(std::unique_ptr<TextureImpl> impl);
 
-		// Creates an empty 2d texture
-		// Has to be implemented by renderer backend
-		Texture2D(unsigned width, unsigned height, const TextureData& textureData);
-
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 

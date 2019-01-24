@@ -37,9 +37,11 @@ namespace nex
 
 		std::shared_ptr<Texture> texture;
 		Type type = Type::COLOR;
-		TextureTarget target;
+		TextureTarget target = TextureTarget::TEXTURE2D;
 		unsigned attachIndex = 0;
 		unsigned mipmapLevel = 0;
+
+		RenderAttachment() {}
 
 		RenderAttachment(std::shared_ptr<Texture> texture, Type type, TextureTarget target, unsigned attachIndex, unsigned mipmapLevel)
 		: texture(std::move(texture)), 

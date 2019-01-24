@@ -72,10 +72,9 @@ namespace nex
 
 		GLuint temp;
 		//newTexture(textures.hbao_random);
-		m_hbao_random = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, TextureData());
-		TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glGenTextures(1, &temp));
-		randomGL->setTexture(temp);
+		m_hbao_random = make_unique<Texture2D>(make_unique<Texture2DGL>(temp, TextureData(), HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE));
+		TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
 		GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1));
@@ -86,9 +85,8 @@ namespace nex
 
 
 		glGenTextures(1, &temp);
-		m_hbao_randomview = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, TextureData());
+		m_hbao_randomview = make_unique<Texture2D>(make_unique<Texture2DGL>(temp, TextureData(), HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE));
 		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
-		randomViewGL->setTexture(temp);
 		GLCall(glTextureView(*randomViewGL->getTexture(), GL_TEXTURE_2D, *randomGL->getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1));
 		GLCall(glBindTexture(GL_TEXTURE_2D, *randomViewGL->getTexture()));
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));

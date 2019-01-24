@@ -517,10 +517,6 @@ nex::Texture2D::Texture2D(std::unique_ptr<TextureImpl> impl) : Texture(std::move
 {
 }
 
-nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& textureData) : Texture(make_unique<Texture2DGL>(GL_FALSE, textureData, width, height))
-{
-}
-
 nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data)
 	:
 	Texture(make_unique<Texture2DGL>(width, height, textureData, data))

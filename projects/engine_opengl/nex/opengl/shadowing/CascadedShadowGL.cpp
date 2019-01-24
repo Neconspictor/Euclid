@@ -17,7 +17,7 @@ CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int casca
 
 	mDepthPass = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
 
-	mDepthTextureArray = std::make_unique<Texture2D>(cascadeWidth, cascadeHeight, TextureData());
+	mDepthTextureArray = std::make_unique<Texture2D>(std::make_unique<Texture2DGL>(GL_FALSE, TextureData(), cascadeWidth, cascadeHeight));
 
 	updateTextureArray();
 }
