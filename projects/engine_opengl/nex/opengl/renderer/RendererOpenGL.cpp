@@ -136,7 +136,7 @@ namespace nex
 		GLCall(glEnable(GL_SCISSOR_TEST));
 		GLCall(glViewport(0, 0, mViewport.width, mViewport.height));
 		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height));
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height, GL_FALSE, nullptr));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
 
@@ -374,7 +374,7 @@ namespace nex
 	{
 		mViewport.width = width;
 		mViewport.height = height;
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height));
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height, GL_FALSE, nullptr));
 	}
 
 	void RendererOpenGL::release()

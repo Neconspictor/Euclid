@@ -25,8 +25,17 @@ namespace nex
 	class RenderTargetGL : public RenderTargetImpl
 	{
 	public:
-		explicit RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer = GL_FALSE,
-			std::shared_ptr<Texture> depthStencilMap = nullptr);
+
+		/**
+		 * Creates a RenderTargetGL object, that generates a framebuffer
+		 */
+		explicit RenderTargetGL(unsigned width, unsigned height, std::shared_ptr<Texture> depthStencilMap);
+
+		/**
+		 * Creates a RenderTargetGL object, that doesn't create a framebuffer, but uses an existing one.
+		 */
+		explicit RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer,
+			std::shared_ptr<Texture> depthStencilMap);
 
 		virtual ~RenderTargetGL();
 
@@ -45,6 +54,8 @@ namespace nex
 		unsigned getWidth() const;
 
 		unsigned getHeight() const;
+
+		bool isComplete() const;
 
 		void setFrameBuffer(GLuint newValue);
 
@@ -73,13 +84,13 @@ namespace nex
 	{
 	public:
 
-		RenderTarget2DGL(unsigned width, unsigned height);
+		RenderTarget2DGL(unsigned width, unsigned height, GLuint frameBuffer, std::shared_ptr<Texture> depthStencilMap);
 
 		explicit RenderTarget2DGL(unsigned width, 
 			unsigned height, 
 			const TextureData& data, 
 			unsigned samples, 
-			std::shared_ptr<Texture> depthStencilMap = nullptr);
+			std::shared_ptr<Texture> depthStencilMap);
 
 		// Has to be implemented by renderer backend
 		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components);

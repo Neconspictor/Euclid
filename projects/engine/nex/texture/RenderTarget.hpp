@@ -96,6 +96,15 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture* getRenderResult();
 
+
+		// Has to be implemented by renderer backend
+		/**
+		 * Checks whether the render target is complete. A render target is complete
+		 * if it has attachments, the attachments have been updated and optionally a valid depth-stencil map has been assigned.
+		 * Note: A render target has to be completed before it can be used for rendering.
+		 */
+		bool isComplete() const;
+
 		/**
 		 * Sets the texture of this render target and returns the old texture.
 		 * NOTE: You should know what you do, when setting the texture manually!
