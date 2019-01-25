@@ -8,6 +8,28 @@
 
 namespace nex
 {
+
+	class PBR_GBuffer : public RenderTarget
+	{
+	public:
+
+		// Has to be implemented by renderer backend
+		PBR_GBuffer(unsigned width, unsigned height);
+
+		Texture* getAlbedo() const;
+		Texture* getAoMetalRoughness() const;
+		Texture* getNormal() const;
+		Texture* getDepth() const;
+
+	private:
+		RenderAttachment albedo;
+		RenderAttachment aoMetalRoughness;
+		RenderAttachment normal;
+		RenderAttachment depth;
+	};
+
+
+
 	class PBR_DeferredGL : public PBR {
 
 	public:

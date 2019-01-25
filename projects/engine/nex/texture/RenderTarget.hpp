@@ -61,6 +61,15 @@ namespace nex
 		// Has to be implemented by renderer backend
 		RenderTarget(std::unique_ptr<RenderTargetImpl> impl);
 
+
+		// Has to be implemented by renderer backend
+		/**
+		 * Creates an uncompleted render target with no attachments.
+		 * Before it can be used for rendering the user has to add attachments, optionally a depth-stencil buffer
+		 * and update the attachments.
+		 */
+		RenderTarget(unsigned width, unsigned height);
+
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
@@ -89,6 +98,12 @@ namespace nex
 		 * Null will be returned if the render target has no assigned depth-stencil map.
 		 */
 		std::shared_ptr<Texture> getDepthStencilMapShared();
+
+		// Has to be implemented by renderer backend
+		unsigned getHeight() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getWidth() const;
 
 		// Has to be implemented by renderer backend
 		RenderTargetImpl* getImpl() const;
@@ -142,10 +157,6 @@ namespace nex
 		//static RenderTarget* createVSM(int width, int height);
 
 		//void copyFrom(BaseRenderTarget* dest, const Dimension& sourceDim, int components);
-
-		unsigned getHeight() const;
-
-		unsigned getWidth() const;
 	};
 
 
@@ -168,12 +179,6 @@ namespace nex
 		unsigned getWidthMipLevel(unsigned int mipMapLevel) const;
 
 		// Has to be implemented by renderer backend
-		unsigned getSideWidth() const;
-
-		// Has to be implemented by renderer backend
-		unsigned getSideHeight() const;
-
-		// Has to be implemented by renderer backend
 		void resizeForMipMap(unsigned int mipMapLevel);
 	};
 
@@ -191,25 +196,5 @@ namespace nex
 		// Has to be implemented by renderer backend
 		CubeDepthMap(int width, int height);
 		glm::mat4 matrices[6];
-	};
-
-	class PBR_GBuffer : public RenderTarget 
-	{
-	public:
-
-		// Has to be implemented by renderer backend
-		PBR_GBuffer(int width, int height);
-
-		// Has to be implemented by renderer backend
-		static PBR_GBuffer* create(unsigned width, unsigned height);
-
-		// Has to be implemented by renderer backend
-		Texture* getAlbedo() const;
-		// Has to be implemented by renderer backend
-		Texture* getAoMetalRoughness() const;
-		// Has to be implemented by renderer backend
-		Texture* getNormal() const;
-		// Has to be implemented by renderer backend
-		Texture* getDepth() const;
 	};
 }

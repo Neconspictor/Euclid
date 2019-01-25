@@ -288,7 +288,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 	
-	renderer->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 
@@ -346,7 +346,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
-	renderer->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
+	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
 
 	for (int side = 0; side < 6; ++side) {

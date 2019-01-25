@@ -50,16 +50,6 @@ unsigned nex::CubeRenderTarget::getWidthMipLevel(unsigned mipMapLevel) const
 	return ((CubeRenderTargetGL*)getImpl())->getWidthMipLevel(mipMapLevel);
 }
 
-unsigned nex::CubeRenderTarget::getSideWidth() const
-{
-	return ((CubeRenderTargetGL*)getImpl())->getWidth();
-}
-
-unsigned nex::CubeRenderTarget::getSideHeight() const
-{
-	return ((CubeRenderTargetGL*)getImpl())->getHeight();
-}
-
 void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
 {
 	CubeRenderTargetGL* gl = (CubeRenderTargetGL*)getImpl();
@@ -214,6 +204,10 @@ nex::RenderTarget::RenderTarget(std::unique_ptr<RenderTargetImpl> impl) : mImpl(
 {
 }
 
+nex::RenderTarget::RenderTarget(unsigned width, unsigned height) : mImpl(make_unique<RenderTargetGL>(width, height, nullptr))
+{
+}
+
 void nex::RenderTarget::addAttachment(RenderAttachment attachment)
 {
 	auto gl = (RenderTargetGL*)mImpl.get();
@@ -241,6 +235,18 @@ std::shared_ptr<nex::Texture> nex::RenderTarget::getDepthStencilMapShared()
 {
 	auto gl = (RenderTargetGL*)getImpl();
 	return gl->getDepthStencilMapShared();
+}
+
+unsigned nex::RenderTarget::getHeight() const
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	return gl->getHeight();
+}
+
+unsigned nex::RenderTarget::getWidth() const
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	return gl->getWidth();
 }
 
 nex::Texture* nex::RenderTarget::getDepthStencilMap()
@@ -564,18 +570,6 @@ void nex::RenderTarget2D::blit(RenderTarget2D * dest, const Dimension & sourceDi
 	self->blit(other, sourceDim, componentsGL);
 }
 
-unsigned nex::RenderTarget2D::getHeight() const
-{
-	auto gl = (RenderTarget2DGL*)getImpl();
-	return gl->getHeight();
-}
-
-unsigned nex::RenderTarget2D::getWidth() const
-{
-	auto gl = (RenderTarget2DGL*)getImpl();
-	return gl->getWidth();
-}
-
 
 void nex::RenderTarget2DGL::blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components)
 {
@@ -737,127 +731,4 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	unbind();
 
 	((CubeMapGL*)mRenderResult->getImpl())->setCubeMap(texture);
-}
-
-
-nex::PBR_GBuffer* nex::PBR_GBuffer::create(unsigned width, unsigned height)
-{
-	return new PBR_GBuffer(width, height);
-}
-
-nex::PBR_GBuffer::PBR_GBuffer(int width, int height) : RenderTarget(make_unique<PBR_GBufferGL>(width, height))
-{
-}
-
-nex::Texture* nex::PBR_GBuffer::getAlbedo() const
-{
-	auto gl = (PBR_GBufferGL*)getImpl();
-	return gl->getAlbedo();
-}
-
-nex::Texture* nex::PBR_GBuffer::getAoMetalRoughness() const
-{
-	auto gl = (PBR_GBufferGL*)getImpl();
-	return gl->getAoMetalRoughness();
-}
-
-nex::Texture* nex::PBR_GBuffer::getNormal() const
-{
-	auto gl = (PBR_GBufferGL*)getImpl();
-	return gl->getNormal();
-}
-
-nex::Texture* nex::PBR_GBuffer::getDepth() const
-{
-	auto gl = (PBR_GBufferGL*)getImpl();
-	return gl->getDepth();
-}
-
-nex::PBR_GBufferGL::PBR_GBufferGL(int width, int height)
-	: 
-	RenderTargetGL(width, height, nullptr)
-{
-	bind();
-
-	TextureData data;
-	data.minFilter = TextureFilter::NearestNeighbor;
-	data.magFilter = TextureFilter::NearestNeighbor;
-	data.wrapR = TextureUVTechnique::ClampToEdge;
-	data.wrapS = TextureUVTechnique::ClampToEdge;
-	data.wrapT = TextureUVTechnique::ClampToEdge;
-	data.generateMipMaps = false;
-	data.useSwizzle = false;
-
-
-	// albedo
-	data.colorspace = ColorSpace::RGB;
-	data.pixelDataType = PixelDataType::FLOAT;
-	data.internalFormat = InternFormat::RGB16F;
-	albedo.texture = make_shared<Texture2D>(width, height, data, nullptr);
-	albedo.attachIndex = 0;
-	addAttachment(albedo);
-
-	// ao metal roughness
-	data.internalFormat = InternFormat::RGB8;
-	data.pixelDataType = PixelDataType::UBYTE;
-	aoMetalRoughness.texture = make_shared<Texture2D>(width, height, data, nullptr);
-	aoMetalRoughness.attachIndex = 1;
-	addAttachment(aoMetalRoughness);
-
-
-	// normal
-	data.internalFormat = InternFormat::RGB16F;
-	data.pixelDataType = PixelDataType::FLOAT;
-	normal.texture = make_shared<Texture2D>(width, height, data, nullptr);
-	normal.attachIndex = 2;
-	addAttachment(normal);
-
-	// depth
-	data.internalFormat = InternFormat::R32F;
-	data.pixelDataType = PixelDataType::FLOAT;
-	depth.texture = make_shared<Texture2D>(width, height, data, nullptr);
-	depth.attachIndex = 3;
-	addAttachment(depth);
-
-
-	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-	updateAttachments();
-
-	// create and attach depth buffer (renderbuffer)
-	// depth/stencil
-	DepthStencilDesc desc;
-	desc.minFilter = TextureFilter::NearestNeighbor;
-	desc.magFilter = TextureFilter::NearestNeighbor;
-	desc.wrap = TextureUVTechnique::ClampToEdge;
-	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-	auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
-
-	useDepthStencilMap(std::move(depthBuffer));
-
-	// finally check if framebuffer is complete
-	if (!isComplete())
-		throw_with_trace(std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!"));
-
-	unbind();
-	
-}
-
-nex::Texture2D* nex::PBR_GBufferGL::getAlbedo() const
-{
-	return (Texture2D*)albedo.texture.get();
-}
-
-nex::Texture2D * nex::PBR_GBufferGL::getAoMetalRoughness() const
-{
-	return (Texture2D*)aoMetalRoughness.texture.get();
-}
-
-nex::Texture2D * nex::PBR_GBufferGL::getNormal() const
-{
-	return (Texture2D*)normal.texture.get();
-}
-
-nex::Texture2D* nex::PBR_GBufferGL::getDepth() const
-{
-	return (Texture2D*)depth.texture.get();
 }

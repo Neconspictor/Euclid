@@ -133,24 +133,4 @@ namespace nex
 		friend RendererOpenGL; // allow the OpenGL renderer easier access
 		glm::mat4 matrices[6];
 	};
-
-
-	class PBR_GBufferGL : public RenderTargetGL {
-	public:
-		explicit PBR_GBufferGL(int width, int height);
-
-		virtual ~PBR_GBufferGL() = default;
-
-		Texture2D* getAlbedo() const;
-		Texture2D* getAoMetalRoughness() const;
-		Texture2D* getNormal() const;
-		Texture2D* getDepth() const;
-
-
-	protected:
-		RenderAttachment albedo;
-		RenderAttachment aoMetalRoughness;
-		RenderAttachment normal;
-		RenderAttachment depth;
-	};
 }
