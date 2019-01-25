@@ -73,7 +73,7 @@ namespace nex
 
 		// finally check if framebuffer is complete
 		if (!isComplete())
-			throw_with_trace(std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!"));
+			throw_with_trace(std::runtime_error("PBR_GBuffer::PBR_GBuffer: Couldn't successfully init framebuffer!"));
 
 		unbind();
 	}

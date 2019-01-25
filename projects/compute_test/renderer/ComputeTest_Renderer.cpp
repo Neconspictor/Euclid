@@ -12,6 +12,8 @@
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
+#include "nex/opengl/shader/ScreenShaderGL.hpp"
+#include "nex/opengl/shader/DepthMapShaderGL.hpp"
 
 namespace nex {
 	class Timer;
@@ -24,13 +26,44 @@ using namespace nex;
 int ssaaSamples = 1;
 
 
+void ComputeTest_Renderer::ComputeTestShader::setConstants(float viewNearZ, float viewFarZ, const glm::mat4& projection, const glm::mat4& cameraViewToLightProjection)
+{
+	uniformBuffer->bind();
+	Guard<Constant> data;
+	data = new Constant();
+	data->mCameraNearFar = vec4(0.03, 1.0, 0.0, 0.0);
+	data->mColor = vec4(1.0, 1.0, 1.0, 1.0);
+	data->mCameraProj = projection;
+
+	data->mCameraViewToLightProj = cameraViewToLightProjection;
+
+	const float step = 1.0f / (float)partitionCount;
+
+	const float begin = viewNearZ;
+	const float end = viewFarZ;
+
+	for (unsigned i = 0; i < partitionCount; ++i)
+	{
+		auto& partition = data->partitions[i];
+		partition.intervalBegin = begin + i * step * (end - begin);
+		partition.intervalEnd = begin + (i + 1) * step * (end - begin);
+	}
+
+	//data->partitions[0].intervalBegin = 0.00001f;
+
+	uniformBuffer->update(data.get(), sizeof(*data));
+}
+
 nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, unsigned height) : ComputeShader()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
 
 	unresolved[0].filePath = "test/compute/compute_test.glsl";
-	unresolved[0].defines.push_back("#define PARTITIONS 6");
+
+	std::stringstream ss;
+	ss << "#define PARTITIONS " << partitionCount;
+	unresolved[0].defines.push_back(ss.str());
 	unresolved[0].type = ShaderStageType::COMPUTE;
 
 	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get();
@@ -95,35 +128,14 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 
 	lockBuffer->unbind();
 
-	uniformBuffer->bind();
-	Guard<Constant> data;
-	data = new Constant();
-	data->mCameraNearFar = vec4(0.03, 1.0, 0.0, 0.0);
-	data->mColor = vec4(1.0, 1.0, 1.0, 1.0);
-	data->mCameraProj = glm::perspectiveFov<float>(radians(45.0f),
+
+	auto projection = glm::perspectiveFov<float>(radians(45.0f),
 		ComputeTestShader::width,
 		ComputeTestShader::height, 0.1f, 100.0f);
 
-	data->mCameraViewToLightProj = glm::ortho(-82.802315f, 82.8023150f, -41.380932f, 41.380932f, 0.1f, 100.0f);
-	//data->mCameraViewToLightProj  = glm::perspectiveFov<float>(radians(45.0f),
-	//	ComputeTestShader::width,
-	//	ComputeTestShader::height, 0.1f, 100.0f);
+	auto viewToLightProjection = glm::ortho(-82.802315f, 82.8023150f, -41.380932f, 41.380932f, 0.1f, 100.0f);
 
-	const float step = 1.0f / (float)partitionCount;
-
-	const float begin = -0.1f;
-	const float end = -100.0f;
-
-	for(unsigned i = 0; i < partitionCount; ++i)
-	{
-		auto& partition = data->partitions[i];
-		partition.intervalBegin = begin + i * step * (end - begin);
-		partition.intervalEnd = begin + (i+1) * step * (end - begin);
-	}
-
-	//data->partitions[0].intervalBegin = 0.00001f;
-
-	uniformBuffer->update(data.get(), sizeof(*data));
+	setConstants(-0.1, -100.0, projection, viewToLightProjection);
 
 	std::vector<float> memory(ComputeTestShader::width * ComputeTestShader::height);
 	auto size = memory.size();
@@ -144,7 +156,7 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 	//memory[1] = 0.2;
 	//memory[2048] = 0.99999;
 
-	vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
+	/*vec3 viewSpaceResult(-82.802315, -41.380932, -100.000061);
 	vec4 clipSpace = data->mCameraViewToLightProj * vec4(viewSpaceResult, 1.0f);
 	vec3 texCoord = (vec3(clipSpace) / clipSpace.w)* 0.5f + vec3(0.5f);
 	std::cout << "texCoord = " << glm::to_string(texCoord) << std::endl;
@@ -164,7 +176,7 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 	vec3 viewSpaceResult4 (0.206696, -0.103297, -0.249626);
 	vec4 clipSpace4 = data->mCameraViewToLightProj * vec4(viewSpaceResult4, 1.0f);
 	vec3 texCoord4 = (vec3(clipSpace4) / clipSpace4.w)* 0.5f + vec3(0.5f);
-	std::cout << "texCoord4 = " << glm::to_string(texCoord4) << std::endl;
+	std::cout << "texCoord4 = " << glm::to_string(texCoord4) << std::endl;*/
 
 
 	//memory[748373] = 0.07;
@@ -181,14 +193,42 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 	//std::cout << "minValue = " << *minValue << std::endl;
 
 
-	depth = Texture2D::create(ComputeTestShader::width, ComputeTestShader::height, tData, memory.data());
 
 	storageBuffer->bind();
 	WriteOut dataOut;
-	reset(&dataOut);
+
+	for (auto i = 0; i < partitionCount; ++i)
+	{
+		dataOut.results[i].minCoord = vec4(1.0f);
+		dataOut.results[i].maxCoord = vec4(0.0f);
+	}
+
+	//reset(&dataOut);
 	storageBuffer->update(&dataOut, sizeof(dataOut));
 
+	ComputeTestShader::WriteOut* result = (ComputeTestShader::WriteOut*) storageBuffer->map(ShaderBuffer::Access::READ_WRITE);
 
+	static bool printed = false;
+
+	if (!printed)
+	{
+		//std::cout << "result->lock = " << result->lock << "\n";
+
+		for (int i = 0; i < partitionCount; ++i)
+		{
+			std::cout << "result->minResult[" << i << "] = " << glm::to_string(result->results[i].minCoord) << "\n";
+			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(result->results[i].maxCoord) << std::endl;
+		}
+
+		printed = true;
+	}
+
+	// reset
+	reset(result);
+	storageBuffer->unmap();
+
+
+	/*depth = Texture2D::create(ComputeTestShader::width, ComputeTestShader::height, tData, memory.data());
 	UniformLocation location = getProgram()->getUniformLocation("depthTexture");
 	getProgram()->setImageLayerOfTexture(0,
 		depth.get(),
@@ -197,27 +237,29 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 		InternFormat::R32UI,
 		0,
 		false,
-		0);
+		0);*/
 }
 
 void ComputeTest_Renderer::ComputeTestShader::setDepthTexture(Texture* depth, InternFormat format)
 {
-	getProgram()->setImageLayerOfTexture(0,
+	UniformLocation location = getProgram()->getUniformLocation("depthTexture");
+	getProgram()->setTexture(location, depth, 0);
+	/*getProgram()->setImageLayerOfTexture(0,
 		depth,
 		0,
 		TextureAccess::READ_ONLY,
 		format,
 		0,
 		false,
-		0);
+		0);*/
 }
 
 void ComputeTest_Renderer::ComputeTestShader::reset(WriteOut* out)
 {
 	for (int i = 0; i < partitionCount; ++i)
 	{
-		out->results[i].minCoord = vec3(FLT_MAX);
-		out->results[i].maxCoord = vec3(0.0f);
+		out->results[i].minCoord = vec4(FLT_MAX);
+		out->results[i].maxCoord = vec4(0.0f);
 	}
 
 	//out->lock = 0;
@@ -299,13 +341,91 @@ void ComputeTest_Renderer::SimpleBlinnPhong::onModelMatrixUpdate(const glm::mat4
 	mProgram->setMat4(mModelMatrix.location, modelMatrix);
 }
 
+
+
+ComputeTest_Renderer::SimpleGeometryShader::SimpleGeometryShader() : mProjection(nullptr), mView(nullptr)
+{
+	mProgram = ShaderProgram::create("test/compute/simpl_geometry_vs.glsl",
+		"test/compute/simpl_geometry_fs.glsl");
+
+	mTransformMatrix = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+}
+
+void ComputeTest_Renderer::SimpleGeometryShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+{
+	const mat4 transform = *mProjection * *mView * modelMatrix;
+	mProgram->setMat4(mTransformMatrix.location, transform);
+}
+
+void ComputeTest_Renderer::SimpleGeometryShader::setView(const glm::mat4* view)
+{
+	mView = view;
+}
+
+void ComputeTest_Renderer::SimpleGeometryShader::setProjection(const glm::mat4* projection)
+{
+	mProjection = projection;
+}
+
+ComputeTest_Renderer::GBuffer::GBuffer(unsigned width, unsigned height) : RenderTarget(width, height), mDepth(nullptr)
+{
+	bind();
+
+	TextureData data;
+	data.minFilter = TextureFilter::NearestNeighbor;
+	data.magFilter = TextureFilter::NearestNeighbor;
+	data.wrapR = TextureUVTechnique::ClampToEdge;
+	data.wrapS = TextureUVTechnique::ClampToEdge;
+	data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.generateMipMaps = false;
+	data.useSwizzle = false;
+
+	RenderAttachment temp;
+
+	// depth
+	data.colorspace = ColorSpace::R;
+	data.internalFormat = InternFormat::R32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
+	temp.attachIndex = 0;
+	mDepth = temp.texture.get();
+	addAttachment(temp);
+
+
+	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+	updateAttachments();
+
+	// create and attach depth buffer (renderbuffer)
+	// depth/stencil
+	DepthStencilDesc desc;
+	desc.minFilter = TextureFilter::NearestNeighbor;
+	desc.magFilter = TextureFilter::NearestNeighbor;
+	desc.wrap = TextureUVTechnique::ClampToEdge;
+	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
+	auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
+
+	useDepthStencilMap(std::move(depthBuffer));
+
+	// finally check if framebuffer is complete
+	if (!isComplete())
+		throw_with_trace(std::runtime_error("ComputeTest_Renderer::GBuffer::GBuffer: Couldn't successfully init framebuffer!"));
+
+	unbind();
+}
+
+Texture* ComputeTest_Renderer::GBuffer::getDepth() const
+{
+	return mDepth;
+}
+
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-ComputeTest_Renderer::ComputeTest_Renderer(RendererOpenGL* backend) :
+ComputeTest_Renderer::ComputeTest_Renderer(RendererOpenGL* backend, Input* input) :
 	Renderer(backend),
 	m_logger("PBR_Deferred_Renderer"),
-	renderTargetSingleSampled(nullptr)
+	renderTargetSingleSampled(nullptr),
+	mInput(input)
 {
 }
 
@@ -333,14 +453,6 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 	pos.x = 0.5f * (1.0f - dim.x);
 	pos.y = 0.5f * (1.0f - dim.y);
 
-	// align to bottom corner
-	//pos.x = 1.0f - dim.x;
-	//pos.y = 1.0f - dim.y;
-
-	//align to top right corner
-	//pos.x = 1.0f - dim.x;
-	//pos.y = 0;
-
 	screenSprite.setPosition(pos);
 	screenSprite.setWidth(dim.x);
 	screenSprite.setHeight(dim.y);
@@ -351,9 +463,17 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
+
+	mGBuffer = make_unique<GBuffer>(windowWidth, windowHeight);
+
 	mComputeTest = new ComputeTestShader(windowWidth, windowHeight);
 
+	mComputeTest->bind();
+	mComputeTest->setDepthTexture(mGBuffer->getDepth(), InternFormat::R32F);
+
 	mSimpleBlinnPhong = make_unique<SimpleBlinnPhong>();
+
+	mSimpleGeometry = make_unique<SimpleGeometryShader>();
 
 	//mComputeTest->bind();
 	//GLuint location = mComputeTest->getProgram()->getUniformLocation("data");
@@ -366,19 +486,35 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
-	//ScreenShader* screenShader = (ScreenShader*)(
-	//	m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
+	auto modelDrawer = m_renderBackend->getModelDrawer();
+	auto screenShader = (ScreenShader*)m_renderBackend->getShaderManager()->getShader(ShaderType::Screen);
+	auto depthMapShader = (DepthMapShader*)m_renderBackend->getShaderManager()->getShader(ShaderType::DepthMap);
 	using namespace chrono;
 
-	const unsigned width = mComputeTest->width;//mComputeTest->result->getWidth();
-	const unsigned height = mComputeTest->height; // mComputeTest->result->getHeight();
+	const unsigned width = windowWidth;
+	const unsigned height = windowHeight;
+
+	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
+
+	mGBuffer->bind();
+	mGBuffer->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+	mSimpleGeometry->bind();
+	mSimpleGeometry->setView(&camera->getView());
+	mSimpleGeometry->setProjection(&camera->getPerspProjection());
+
+	modelDrawer->draw(scene, mSimpleGeometry.get());
 
 	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 	screenRenderTarget->bind();
-	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
+	/*depthMapShader->bind();
+	depthMapShader->useDepthMapTexture(depthBuffer);
+
+	modelDrawer->draw(&screenSprite, depthMapShader);*/
+
+	//return;
 
 	mSimpleBlinnPhong->bind();
 
@@ -388,10 +524,8 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	mSimpleBlinnPhong->setProjection(&camera->getPerspProjection());
 	modelDrawer->draw(scene, mSimpleBlinnPhong.get());
 
-	auto depthStencilMap = screenRenderTarget->getDepthStencilMap();
+	//auto depthStencilMap = screenRenderTarget->getDepthStencilMap();
 
-
-	return;
 
 
 
@@ -411,13 +545,33 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	static uint64 min = 10000000;
 	static uint64 max = 0;
 	timer.update();
+
+
+
+	auto projection = glm::perspectiveFov<float>(radians(45.0f),
+		width,
+		height, 0.1f, 100.0f);
+
+	auto viewToLightProjection = glm::ortho(-82.802315f, 82.8023150f, -41.380932f, 41.380932f, 0.1f, 100.0f);
+
+	mat4 transform = camera->getView();
+	const vec3 look = camera->getLook();
+	vec4 nearPos = vec4(camera->getPosition() + (0.1f*look), 1.0);
+	nearPos = transform * nearPos;
+	vec4 farPos = vec4(camera->getPosition() + (100.f*look), 1.0f);
+	farPos = transform * farPos;
+
+	mComputeTest->setConstants(nearPos.z, farPos.z, projection, viewToLightProjection);
+	mComputeTest->setDepthTexture(mGBuffer->getDepth(), InternFormat::R32F);
+
 	mComputeTest->dispatch(dispatchX, dispatchY, 1);
 
+	mComputeTest->storageBuffer->bind();
 	ComputeTestShader::WriteOut* result = (ComputeTestShader::WriteOut*) mComputeTest->storageBuffer->map(ShaderBuffer::Access::READ_WRITE);
 
 	static bool printed = false;
 
-	if (!printed)
+	if (!printed || mInput->isPressed(Input::KEY_K))
 	{
 		//std::cout << "result->lock = " << result->lock << "\n";
 

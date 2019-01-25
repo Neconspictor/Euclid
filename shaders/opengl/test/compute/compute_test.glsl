@@ -22,7 +22,7 @@ layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 // An image to store data into.
 //layout (rg32f, binding = 0) uniform image2D data;
 
-layout (r32ui, binding = 0) uniform readonly uimage2D depthTexture;
+layout (binding = 0) uniform sampler2D depthTexture;
 
 
 layout(std430, binding = 2) buffer readonly BufferData
@@ -100,11 +100,11 @@ vec3 computePositionViewFromZ(in vec2 positionNDC, float viewSpaceZ) {
 SurfaceData computeSurfaceData(ivec2 positionScreen) {
     
     SurfaceData data;
-    data.depth = uintBitsToFloat(imageLoad(depthTexture, positionScreen).r);
+    data.depth = texelFetch(depthTexture, positionScreen, 0).r; //;imageLoad(depthTexture, positionScreen).r;
     float depth = data.depth;
       
       
-    vec2 gBufferDim = vec2(imageSize(depthTexture));
+    vec2 gBufferDim = vec2(textureSize(depthTexture, 0));
       
     //In OpenGl the mapping works a bit differently: (0,0) should be mapped to (-1, -1)
     // as the origin in NDC is in OpenGL (-1, -1) and not (-1, 1) like in DirectX11
@@ -123,6 +123,8 @@ SurfaceData computeSurfaceData(ivec2 positionScreen) {
     float viewSpaceZ =  shader_data.mCameraProj[3][2] / (z_ndc + shader_data.mCameraProj[2][2]); //TODO       
 
     data.positionView = computePositionViewFromZ(positionNDC, viewSpaceZ);
+    
+    //data.positionView.z = -50;
       
     // Solve for light space position and screen-space derivatives
     data.lightTexCoord = projectIntoLightTexCoord(data.positionView);
@@ -178,9 +180,9 @@ void main(void)
                     }
                 }
                 
-                
-                bounds[index].minCoord = min(bounds[index].minCoord, abs(data.lightTexCoord));
-                bounds[index].maxCoord = max(bounds[index].maxCoord, abs(data.lightTexCoord));
+                const vec3 toWrite = vec3(-viewZ);//data.lightTexCoord;
+                bounds[index].minCoord = min(bounds[index].minCoord, toWrite);
+                bounds[index].maxCoord = max(bounds[index].maxCoord, toWrite);
                 //abs(data.lightTexCoord.z)
                 //const vec3 toWrite = data.lightTexCoord;
                 //const vec3 toWrite = vec3(abs(data.positionView.xy), -data.positionView.z);

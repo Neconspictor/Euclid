@@ -561,7 +561,9 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 		data));
 
 	if (mData.generateMipMaps)
+	{
 		GLCall(glGenerateMipmap(mTarget));
+	}
 
 	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_R, translate(mData.wrapR)));
 	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mData.wrapS)));

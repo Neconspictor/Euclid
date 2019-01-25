@@ -20,8 +20,8 @@ namespace nex
 
 			struct BoundsFloat
 			{
-				glm::vec3 minCoord; float _pad0;
-				glm::vec3 maxCoord; float _pad1;
+				glm::vec4 minCoord;
+				glm::vec4 maxCoord;
 			};
 
 			struct Partition
@@ -52,7 +52,8 @@ namespace nex
 			{
 				int lock = 0; float _pad0[3];
 			};
-			
+
+			void setConstants(float viewNearZ, float viewFarZ, const glm::mat4& projection, const glm::mat4& cameraViewToLightProjection);
 			ComputeTestShader(unsigned width, unsigned height);
 
 			void setDepthTexture(Texture* depth, InternFormat format);
@@ -96,11 +97,38 @@ namespace nex
 			const glm::mat4* mProjection;
 		};
 
+		class SimpleGeometryShader : public Shader
+		{
+		public:
+			SimpleGeometryShader();
+
+			void onModelMatrixUpdate(const glm::mat4 & modelMatrix) override;
+
+			void setView(const glm::mat4* view);
+			void setProjection(const glm::mat4* projection);
+
+		private:
+			Uniform mTransformMatrix;
+			const glm::mat4* mView;
+			const glm::mat4* mProjection;
+		};
+
+		class GBuffer : public RenderTarget
+		{
+		public:
+			GBuffer(unsigned width, unsigned height);
+
+			Texture* getDepth()const;
+
+		private:
+			Texture* mDepth;
+		};
+
 
 
 		typedef unsigned int uint;
 
-		ComputeTest_Renderer(RendererOpenGL* renderer);
+		ComputeTest_Renderer(RendererOpenGL* renderer, Input* input);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -132,5 +160,8 @@ namespace nex
 		Guard<ComputeTestShader> mComputeTest;
 		Guard<ComputeClearColorShader> mComputeClearColor;
 		std::unique_ptr<SimpleBlinnPhong> mSimpleBlinnPhong;
+		std::unique_ptr<SimpleGeometryShader> mSimpleGeometry;
+		std::unique_ptr<GBuffer> mGBuffer;
+		Input* mInput;
 	};
 }
