@@ -12,6 +12,7 @@
 #include <nex/opengl/texture/TextureManagerGL.hpp>
 #include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/opengl/model/ModelManagerGL.hpp"
+#include <nex/texture/Gbuffer.hpp>
 
 using namespace glm;
 using namespace std;

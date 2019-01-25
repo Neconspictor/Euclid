@@ -1,8 +1,7 @@
 #pragma once
-#include "nex/util/StringUtils.hpp"
+#include <nex/util/StringUtils.hpp>
 #include <nex/util/Memory.hpp>
 #include <ostream>
-#include "../../../engine_opengl/nex/opengl/material/AbstractMaterialLoader.hpp"
 
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 

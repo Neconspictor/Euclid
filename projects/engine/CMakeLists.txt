@@ -125,6 +125,8 @@ set(
     nex/shader_generator/StringStateTracker.hpp
     
     #nex/texture
+    nex/texture/GBuffer.hpp
+	nex/texture/GBuffer.cpp
     nex/texture/Image.hpp
 	nex/texture/Image.cpp
     nex/texture/Sampler.hpp

@@ -10,98 +10,13 @@
 #include <imgui/imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/texture/GBuffer.hpp>
 
 using namespace glm;
 
 using namespace std;
 
 namespace nex {
-
-	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(width, height)
-	{
-		bind();
-
-		TextureData data;
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.magFilter = TextureFilter::NearestNeighbor;
-		data.wrapR = TextureUVTechnique::ClampToEdge;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
-		data.generateMipMaps = false;
-		data.useSwizzle = false;
-
-
-		// albedo
-		data.colorspace = ColorSpace::RGB;
-		data.pixelDataType = PixelDataType::FLOAT;
-		data.internalFormat = InternFormat::RGB16F;
-		albedo.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		albedo.attachIndex = 0;
-		addAttachment(albedo);
-
-		// ao metal roughness
-		data.internalFormat = InternFormat::RGB8;
-		data.pixelDataType = PixelDataType::UBYTE;
-		aoMetalRoughness.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		aoMetalRoughness.attachIndex = 1;
-		addAttachment(aoMetalRoughness);
-
-
-		// normal
-		data.internalFormat = InternFormat::RGB16F;
-		data.pixelDataType = PixelDataType::FLOAT;
-		normal.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		normal.attachIndex = 2;
-		addAttachment(normal);
-
-		// depth
-		data.internalFormat = InternFormat::R32F;
-		data.pixelDataType = PixelDataType::FLOAT;
-		depth.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		depth.attachIndex = 3;
-		addAttachment(depth);
-
-
-		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-		updateAttachments();
-
-		// create and attach depth buffer (renderbuffer)
-		// depth/stencil
-		DepthStencilDesc desc;
-		desc.minFilter = TextureFilter::NearestNeighbor;
-		desc.magFilter = TextureFilter::NearestNeighbor;
-		desc.wrap = TextureUVTechnique::ClampToEdge;
-		desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-		auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
-
-		useDepthStencilMap(std::move(depthBuffer));
-
-		// finally check if framebuffer is complete
-		if (!isComplete())
-			throw_with_trace(std::runtime_error("PBR_DeferredGL::createMultipleRenderTarget(int, int): Couldn't successfully init framebuffer!"));
-
-		unbind();
-	}
-
-	Texture* PBR_GBuffer::getAlbedo() const
-	{
-		return albedo.texture.get();
-	}
-
-	Texture* PBR_GBuffer::getAoMetalRoughness() const
-	{
-		return aoMetalRoughness.texture.get();
-	}
-
-	Texture* PBR_GBuffer::getNormal() const
-	{
-		return normal.texture.get();
-	}
-
-	Texture* PBR_GBuffer::getDepth() const
-	{
-		return depth.texture.get();
-	}
 
 
 	PBR_DeferredGL::PBR_DeferredGL(RendererOpenGL* renderer, Texture* backgroundHDR) :
