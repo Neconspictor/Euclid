@@ -85,8 +85,8 @@ void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShader* shader)
 
 	for (auto& mesh : spriteModel->getMeshes())
 	{
-		const VertexArray* vertexArray = mesh.get().getVertexArray();
-		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+		const VertexArray* vertexArray = mesh->getVertexArray();
+		const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
 
 		vertexArray->bind();
 		indexBuffer->bind();
@@ -104,10 +104,10 @@ void nex::ModelDrawerGL::draw(ModelGL* model, Shader* shader)
 	//shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
-		shader->onMaterialUpdate(mesh.get().getMaterial());
+		shader->onMaterialUpdate(mesh.get()->getMaterial());
 
-		const VertexArray* vertexArray = mesh.get().getVertexArray();
-		const IndexBuffer* indexBuffer = mesh.get().getIndexBuffer();
+		const VertexArray* vertexArray = mesh->getVertexArray();
+		const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
 
 		vertexArray->bind();
 		indexBuffer->bind();

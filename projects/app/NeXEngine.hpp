@@ -56,6 +56,7 @@ namespace nex
 		FPSCounter m_counter;
 		std::list<SceneNode> m_nodes;
 		std::list<Vob> m_vobs;
+		std::list<std::unique_ptr<ModelGL>> mModels;
 		SceneNode* m_scene;
 		bool m_isRunning;
 

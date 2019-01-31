@@ -16,6 +16,7 @@
 #include "nex/exception/EnumFormatException.hpp"
 #include <Globals.hpp>
 #include "nex/opengl/model/ModelManagerGL.hpp"
+#include "nex/opengl/mesh/Sphere.hpp"
 
 using namespace nex;
 
@@ -170,35 +171,70 @@ void NeXEngine::setRunning(bool isRunning)
 
 SceneNode* NeXEngine::createScene()
 {
-	m_nodes.push_back(SceneNode());
+	m_nodes.emplace_back(SceneNode());
 	SceneNode* root = &m_nodes.back();
 
-	m_nodes.push_back(SceneNode());
+	m_nodes.emplace_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
-	m_vobs.push_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
 	ground->vob = &m_vobs.back();
 	ground->vob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
-	m_nodes.push_back(SceneNode());
+	m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
-	m_vobs.push_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
 	cerberus->vob = &m_vobs.back();
 	root->addChild(cerberus);
 
-	m_nodes.push_back(SceneNode());
+	m_nodes.emplace_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
 	cube1->vob = &m_vobs.back();
 	cube1->vob->setPosition({ 0.0f, 1.3f, 0.0f });
 	root->addChild(cube1);
 
-	m_nodes.push_back(SceneNode());
+	m_nodes.emplace_back(SceneNode());
 	SceneNode* sphere = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
 	sphere->vob = &m_vobs.back();
 	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
 	root->addChild(sphere);
+
+
+	auto* textureManager = TextureManagerGL::get();
+	TextureData data = {
+			TextureFilter::Linear_Mipmap_Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::Repeat,
+			TextureUVTechnique::Repeat,
+			TextureUVTechnique::Repeat,
+			ColorSpace::SRGBA,
+			PixelDataType::UBYTE,
+			InternFormat::SRGBA8,
+			true
+	};
+
+	m_nodes.emplace_back(SceneNode());
+	SceneNode* sphere2 = &m_nodes.back();
+	auto material = std::make_unique<PbrMaterial>();
+	material->setAlbedoMap(textureManager->getImage("pbr/albedo.png", data));
+	
+
+	data.colorspace = ColorSpace::RGBA;
+	data.internalFormat = InternFormat::RGBA8;
+	material->setAoMap(textureManager->getImage("pbr/ao.png", data));
+	material->setNormalMap(textureManager->getImage("pbr/normal.png", data));
+	material->setEmissionMap(textureManager->getDefaultBlackTexture());
+	material->setMetallicMap(textureManager->getDefaultBlackTexture());
+	material->setRoughnessMap(textureManager->getImage("pbr/roughness.png", data));
+	mModels.emplace_back(ModelManagerGL::createSphere(16, 16, std::move(material)));
+
+
+	m_vobs.emplace_back(Vob(mModels.back().get()));
+	sphere2->vob = &m_vobs.back();
+	sphere2->vob->setPosition({ 4.0f, 4.8f, -1.0f });
+	root->addChild(sphere2);
 
 	//m_nodes.push_back(SceneNode());
 	//SceneNode* cube1 = &m_nodes.back();

@@ -172,7 +172,7 @@ void main(void)
             // than farZ!
             //if (data.depth >= nearZ && data.depth <= farZ) {
             const float viewZ = data.positionView.z;
-            if (viewZ <= nearZ) { //&& viewZ <= farZ
+            if (viewZ <= nearZ && (distance(data.lightTexCoord.z,0) > 0.0000001)) { //&& viewZ <= farZ (distance(data.lightTexCoord.z,0) > 0.00001)
                 uint index = 0;
                 for (uint i = 0; i < (PARTITIONS - 1); ++i) {
                     if (viewZ <= shader_data.partitions[i].intervalEnd) {
@@ -180,7 +180,7 @@ void main(void)
                     }
                 }
                 
-                const vec3 toWrite = vec3(-viewZ);//data.lightTexCoord;
+                const vec3 toWrite = data.lightTexCoord; //vec3(-viewZ);
                 bounds[index].minCoord = min(bounds[index].minCoord, toWrite);
                 bounds[index].maxCoord = max(bounds[index].maxCoord, toWrite);
                 //abs(data.lightTexCoord.z)

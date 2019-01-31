@@ -20,12 +20,8 @@ namespace nex
 	{
 	public:
 		explicit Vob(std::string meshName, ShaderType materialShaderType);
-		Vob(const Vob& other);
-		Vob(Vob&& other);
-		Vob& operator=(const Vob& other);
-		Vob& operator=(Vob&& other);
 
-		virtual ~Vob();
+		explicit Vob(ModelGL* model);
 
 		/**
 		 * Calculates the transformatino matrix of this model
@@ -62,6 +58,11 @@ namespace nex
 		 * Sets the rotation measured in euler angles int XYZ order.
 		 */
 		void setEulerXYZ(glm::vec3 rotation);
+
+		/**
+		 * Sets the model of this vob.
+		 */
+		void setModel(ModelGL* model);
 
 		/**
 		 * Sets the position of this model.

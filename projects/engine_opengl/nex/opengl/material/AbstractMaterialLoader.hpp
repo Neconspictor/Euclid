@@ -19,7 +19,7 @@ namespace nex
 
 		virtual ~AbstractMaterialLoader();
 
-		virtual std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const = 0;
+		virtual std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const = 0;
 
 
 	protected:

@@ -11,18 +11,14 @@ PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : Abstrac
 {
 }
 
-PbrMaterialLoader::~PbrMaterialLoader()
+std::vector<std::unique_ptr<Material>> PbrMaterialLoader::loadShadingMaterial(const aiScene * scene) const
 {
-}
+	std::vector<std::unique_ptr<Material>> materials;
 
-std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, const aiScene * scene) const
-{
-	unique_ptr<PbrMaterial> material = make_unique<PbrMaterial>();
-
-	// process material (if any available)
-	if (mesh->mMaterialIndex >= 0)
+	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
-		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+		aiMaterial* mat = scene->mMaterials[i];
+		auto material = make_unique<PbrMaterial>();
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
@@ -102,7 +98,10 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(aiMesh * mesh, 
 			Texture* texture = textureManager->getDefaultNormalTexture();
 			material->setNormalMap(texture);
 		}
+
+
+		materials.emplace_back(std::move(material));
 	}
 
-	return move(material);
+	return materials;
 }

@@ -4,21 +4,23 @@
 using namespace std;
 using namespace nex;
 
-MeshGL::MeshGL(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, std::unique_ptr<Material> material) :
+MeshGL::MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, Material* material) :
 mVertexArray(std::move(vertexArray)),
-mVertexBuffer(std::move(vertexBuffer)),
 mIndexBuffer(std::move(indexBuffer)),
-mMaterial(std::move(material))
+mMaterial(material)
 {
 }
 
-MeshGL::MeshGL(MeshGL&& o) noexcept :
-	mVertexArray(std::move(o.mVertexArray)),
-	mVertexBuffer(std::move(o.mVertexBuffer)),
-	mIndexBuffer(std::move(o.mIndexBuffer)),
-	mMaterial(std::move(o.mMaterial))
+MeshGL::MeshGL(): mMaterial(nullptr)
 {
 }
+
+/*MeshGL::MeshGL(MeshGL&& o) noexcept :
+	mVertexArray(std::move(o.mVertexArray)),
+	mIndexBuffer(std::move(o.mIndexBuffer)),
+	mMaterial(o.mMaterial)
+{
+}*/
 
 /*MeshGL& MeshGL::operator=(MeshGL&& o) noexcept
 {
@@ -31,22 +33,32 @@ MeshGL::MeshGL(MeshGL&& o) noexcept :
 	return *this;
 }*/
 
-const IndexBuffer* MeshGL::getIndexBuffer() const
+IndexBuffer* MeshGL::getIndexBuffer()
 {
 	return &mIndexBuffer;
 }
 
 Material* MeshGL::getMaterial() const
 {
-	return mMaterial.get();
+	return mMaterial;
 }
 
-const VertexArray* MeshGL::getVertexArray() const
+VertexArray* MeshGL::getVertexArray()
 {
 	return &mVertexArray;
 }
 
-void MeshGL::setMaterial(std::unique_ptr<Material> material)
+void MeshGL::setIndexBuffer(IndexBuffer buffer)
 {
-	mMaterial = std::move(material);
+	mIndexBuffer = std::move(buffer);
+}
+
+void MeshGL::setVertexArray(VertexArray vertexArray)
+{
+	mVertexArray = std::move(vertexArray);
+}
+
+void MeshGL::setMaterial(Material* material)
+{
+	mMaterial = material;
 }

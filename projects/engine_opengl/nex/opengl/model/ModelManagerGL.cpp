@@ -10,9 +10,10 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/opengl/mesh/SampleMeshes.hpp>
 #include <nex/shader/Shader.hpp>
+#include "nex/opengl/mesh/Sphere.hpp"
 
 
-	const unsigned int nex::ModelManagerGL::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
+const unsigned int nex::ModelManagerGL::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
 	const unsigned int nex::ModelManagerGL::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");
 
 
@@ -23,7 +24,17 @@
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
 	}
 
-	nex::ModelGL* nex::ModelManagerGL::getSkyBox()
+std::unique_ptr<nex::ModelGL> nex::ModelManagerGL::createSphere(unsigned xSegments, unsigned ySegments,
+	std::unique_ptr<Material> material)
+{
+	std::vector<std::unique_ptr<MeshGL>> meshes;
+	std::vector<std::unique_ptr<Material>> materials;
+	materials.emplace_back(std::move(material));
+	meshes.emplace_back(std::make_unique<Sphere>(xSegments, ySegments, materials.back().get()));
+	return std::make_unique<ModelGL>(std::move(meshes), std::move(materials));
+}
+
+nex::ModelGL* nex::ModelManagerGL::getSkyBox()
 	{
 		using Vertex = VertexPosition;
 
@@ -41,7 +52,7 @@
 			std::vector<std::unique_ptr<MeshGL>> meshes;
 			meshes.push_back(move(mesh));
 
-			auto model = std::make_unique<ModelGL>(move(meshes));
+			auto model = std::make_unique<ModelGL>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 			models.push_back(move(model));
 			ModelGL* result = models.back().get();
@@ -108,7 +119,7 @@
 		std::vector<std::unique_ptr<MeshGL>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = std::make_unique<ModelGL>(move(meshes));
+		auto model = std::make_unique<ModelGL>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 		models.push_back(std::move(model));
 
@@ -218,7 +229,7 @@
 		std::vector<std::unique_ptr<MeshGL>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = std::make_unique<ModelGL>(move(meshes));
+		auto model = std::make_unique<ModelGL>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 		models.push_back(std::move(model));
 

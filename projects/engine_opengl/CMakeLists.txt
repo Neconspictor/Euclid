@@ -53,6 +53,8 @@ set(
     nex/opengl/mesh/MeshFactoryGL.hpp
 	nex/opengl/mesh/MeshFactoryGL.cpp
     nex/opengl/mesh/SampleMeshes.hpp
+    nex/opengl/mesh/Sphere.cpp
+    nex/opengl/mesh/Sphere.hpp
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexArray.hpp
     nex/opengl/mesh/VertexBuffer.cpp

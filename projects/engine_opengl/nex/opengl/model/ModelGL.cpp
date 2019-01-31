@@ -6,10 +6,9 @@ using namespace glm;
 
 namespace nex
 {
-	ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes)
+	ModelGL::ModelGL(vector<unique_ptr<MeshGL>> meshes, std::vector<std::unique_ptr<Material>> materials) :
+		mMeshes(std::move(meshes)), mMaterials(std::move(materials)), instanced(false)
 	{
-		this->meshes = move(meshes);
-		this->meshReferences = move(createReferences(this->meshes));
 	}
 
 	// TODO code has to be updated for new MeshGL class
@@ -62,17 +61,13 @@ namespace nex
 		instanced = value;
 	}
 
-	const vector<std::reference_wrapper<MeshGL>>& ModelGL::getMeshes() const
+	const std::vector<std::unique_ptr<MeshGL>>& ModelGL::getMeshes() const
 	{
-		return meshReferences;
+		return mMeshes;
 	}
 
-	std::vector<std::reference_wrapper<MeshGL>> ModelGL::createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes)
+	const std::vector<std::unique_ptr<Material>>& ModelGL::getMaterials() const
 	{
-		std::vector<std::reference_wrapper<MeshGL>> result;
-		for (auto&& elem : meshes) {
-			result.push_back(*elem.get());
-		}
-		return result;
+		return mMaterials;
 	}
 }

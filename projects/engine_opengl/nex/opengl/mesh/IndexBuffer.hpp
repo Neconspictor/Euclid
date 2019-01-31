@@ -7,8 +7,10 @@ namespace nex
 	public:
 		IndexBuffer(const unsigned int* data, unsigned int count);
 
+		IndexBuffer();
+
 		IndexBuffer(IndexBuffer&& other) noexcept;
-		IndexBuffer& operator=(IndexBuffer&& o) noexcept = default;
+		IndexBuffer& operator=(IndexBuffer&& o) noexcept;
 
 		IndexBuffer(const IndexBuffer& o) = delete;
 		IndexBuffer& operator=(const IndexBuffer& o) = delete;
@@ -17,6 +19,8 @@ namespace nex
 
 		void bind() const;
 		void unbind() const;
+
+		void fill(const unsigned int* data, unsigned int count);
 
 		inline unsigned int getCount() const { return mCount; }
 

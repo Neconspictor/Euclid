@@ -7,54 +7,17 @@ using namespace glm;
 
 namespace nex {
 
-	Vob::Vob(string meshName, ShaderType materialShaderType)
+	Vob::Vob(string meshName, ShaderType materialShaderType): m_model(nullptr)
 	{
 		this->meshName = move(meshName);
 		this->materialShaderType = materialShaderType;
-		position = { 0,0,0 };
-		scale = { 1,1,1 };
-		orientation = { 1,0,0,0 };
+		position = {0, 0, 0};
+		scale = {1, 1, 1};
+		orientation = {1, 0, 0, 0};
 	}
 
-	Vob::Vob(const Vob& other) : meshName(other.meshName),
-		materialShaderType(other.materialShaderType),
-		orientation(other.orientation),
-		position(other.position),
-		scale(other.scale),
-		trafo(other.trafo)
-	{}
-
-	Vob::Vob(Vob&& other) : meshName(other.meshName),
-		materialShaderType(other.materialShaderType),
-		orientation(other.orientation),
-		position(other.position),
-		scale(other.scale),
-		trafo(other.trafo)
-	{}
-
-	Vob& Vob::operator=(const Vob& other)
-	{
-		meshName = other.meshName;
-		materialShaderType = other.materialShaderType;
-		orientation = other.orientation;
-		position = other.position;
-		scale = other.scale;
-		trafo = other.trafo;
-		return *this;
-	}
-
-	Vob& Vob::operator=(Vob&& other)
-	{
-		meshName = move(other.meshName);
-		materialShaderType = other.materialShaderType;
-		orientation = move(other.orientation);
-		position = move(other.position);
-		scale = move(other.scale);
-		trafo = move(other.trafo);
-		return *this;
-	}
-
-	Vob::~Vob()
+	Vob::Vob(ModelGL* model) : m_model(model), materialShaderType(ShaderType::Unknown), position(0, 0, 0), scale(1, 1, 1),
+	                           orientation(1, 0, 0, 0)
 	{
 	}
 
@@ -94,7 +57,8 @@ namespace nex {
 
 	void Vob::init(ModelManagerGL* modelManager)
 	{
-		m_model = modelManager->getModel(meshName, materialShaderType);
+		if (m_model == nullptr)
+			m_model = modelManager->getModel(meshName, materialShaderType);
 	}
 
 	void Vob::setEulerXYZ(vec3 rotation)
@@ -115,5 +79,10 @@ namespace nex {
 	void Vob::setTrafo(mat4 mat)
 	{
 		trafo = move(mat);
+	}
+
+	void Vob::setModel(ModelGL* model)
+	{
+		m_model = model;
 	}
 }

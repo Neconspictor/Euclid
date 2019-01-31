@@ -10,19 +10,20 @@ namespace nex
 	public:
 		VertexArray();
 		VertexArray(VertexArray&& other) noexcept;
-		VertexArray& operator=(VertexArray&& o) noexcept = default;
+		VertexArray& operator=(VertexArray&& o) noexcept;
 
 		VertexArray(const VertexArray& o) = delete;
 		VertexArray& operator=(const VertexArray& o) = delete;
 
 		~VertexArray();
 
-		void addBuffer(const VertexBuffer& buffer, const VertexLayout& layout);
+		void addBuffer(VertexBuffer buffer, const VertexLayout& layout);
 
 		void bind() const;
 		void unbind() const;
 
 	private:
 		unsigned int mRendererID;
+		std::vector<VertexBuffer> mBuffers;
 	};
 }

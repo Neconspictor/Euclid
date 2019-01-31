@@ -195,7 +195,7 @@ void PBRShader::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 
 void PBRShader::onMaterialUpdate(const Material* materialSource)
 {
-	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
+	const PbrMaterial* material = dynamic_cast<const PbrMaterial*>(materialSource);
 
 	if (material == nullptr)
 		return;

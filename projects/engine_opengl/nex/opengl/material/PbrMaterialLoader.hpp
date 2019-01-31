@@ -11,9 +11,9 @@ namespace nex
 
 		PbrMaterialLoader(TextureManagerGL* textureManager);
 
-		virtual ~PbrMaterialLoader();
+		virtual ~PbrMaterialLoader() = default;
 
-		std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
+		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override;
 
 	private:
 

@@ -167,7 +167,7 @@ void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
 		auto& meshes = vob->getModel()->getMeshes();
 		for (auto& mesh : meshes)
 		{
-			m_cascadedShadow->render(&mesh.get(), &vob->getTrafo());
+			m_cascadedShadow->render(mesh.get(), &vob->getTrafo());
 		}
 	}
 

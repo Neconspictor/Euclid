@@ -12,18 +12,15 @@ BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManagerGL* textureMana
 {
 }
 
-BlinnPhongMaterialLoader::~BlinnPhongMaterialLoader()
+std::vector<std::unique_ptr<Material>> BlinnPhongMaterialLoader::loadShadingMaterial(const aiScene* scene) const
 {
-}
-
-std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh * mesh, const aiScene * scene) const
-{
-	unique_ptr<BlinnPhongMaterial> material = make_unique<BlinnPhongMaterial>();
+	std::vector<std::unique_ptr<Material>> materials;
 
 	// process material (if any available)
-	if (mesh->mMaterialIndex >= 0)
+	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
-		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+		auto material = make_unique<BlinnPhongMaterial>();
+		aiMaterial* mat = scene->mMaterials[i];
 		
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
@@ -77,9 +74,11 @@ std::unique_ptr<Material> BlinnPhongMaterialLoader::loadShadingMaterial(aiMesh *
 		{
 			material->setNormalMap(textureManager->getImage(normalMaps[0], data));
 		}
+
+		material->setShininess(32);
+
+		materials.emplace_back(std::move(material));
 	}
 
-	material->setShininess(32);
-
-	return move(material);
+	return materials;
 }

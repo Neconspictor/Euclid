@@ -575,11 +575,15 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	{
 		//std::cout << "result->lock = " << result->lock << "\n";
 
+		std::cout << "----------------------------------------------------------------------------\n";
+
 		for (int i = 0; i < mComputeTest->partitionCount; ++i)
 		{
 			std::cout << "result->minResult[" << i << "] = " << glm::to_string(result->results[i].minCoord) << "\n";
-			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(result->results[i].maxCoord) << std::endl;
+			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(result->results[i].maxCoord) << "\n"; 
 		}
+
+		std::cout << "----------------------------------------------------------------------------\n" << std::endl;
 
 		printed = true;
 	}

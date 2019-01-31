@@ -41,32 +41,36 @@ namespace nex
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
+
+		auto materials = materialLoader.loadShadingMaterial(scene);
+
 		vector<unique_ptr<MeshGL>> meshes;
-		processNode(scene->mRootNode, scene, &meshes, materialLoader);
+
+		processNode(scene->mRootNode, scene, &meshes, materials);
 
 		timer.update();
 		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
 
-		return make_unique<ModelGL>(move(meshes));
+		return make_unique<ModelGL>(move(meshes), move(materials));
 	}
 
-	void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, vector<unique_ptr<MeshGL>>* meshes, const AbstractMaterialLoader& materialLoader) const
+	void AssimpModelLoader::processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* meshes, const std::vector<std::unique_ptr<Material>>& materials) const
 	{
 		// process all the node's meshes (if any)
 		for (GLuint i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			meshes->push_back(move(processMesh(mesh, scene, materialLoader)));
+			meshes->push_back(move(processMesh(mesh, scene, materials)));
 		}
 
 		// then do the same for each of its children
 		for (GLuint i = 0; i < node->mNumChildren; ++i)
 		{
-			processNode(node->mChildren[i], scene, meshes, materialLoader);
+			processNode(node->mChildren[i], scene, meshes, materials);
 		}
 	}
 
-	unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene, const AbstractMaterialLoader& materialLoader) const
+	unique_ptr<MeshGL> AssimpModelLoader::processMesh(aiMesh* mesh, const aiScene* scene, const std::vector<std::unique_ptr<Material>>& materials) const
 	{
 		// Vertex and index count can be large -> store temp objects on heap
 		auto vertices = make_unique<vector<Vertex>>();
@@ -144,14 +148,13 @@ namespace nex
 			}
 		}
 
-
-		unique_ptr<Material> material = materialLoader.loadShadingMaterial(mesh, scene);
+		auto* material = materials[mesh->mMaterialIndex].get();
 
 		unique_ptr<MeshGL> result = MeshFactoryGL::create(vertices->data(), mesh->mNumVertices,
 			indices->data(), mesh->mNumFaces * 3);
 
-		result->setMaterial(move(material));
+		result->setMaterial(material);
 
-		return move(result);
+		return result;
 	}
 }

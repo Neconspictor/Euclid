@@ -21,12 +21,12 @@ namespace nex
 
 	protected:
 
-		void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes, const AbstractMaterialLoader& materialLoader) const;
+		void processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<MeshGL>>* resultMeshes, const std::vector<std::unique_ptr<Material>>& materials) const;
 
 		/**
 		 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		std::unique_ptr<MeshGL> processMesh(aiMesh* mesh, const aiScene* scene, const AbstractMaterialLoader& materialLoader) const;
+		std::unique_ptr<MeshGL> processMesh(aiMesh* mesh, const aiScene* scene, const std::vector<std::unique_ptr<Material>>& materials) const;
 
 	private:
 

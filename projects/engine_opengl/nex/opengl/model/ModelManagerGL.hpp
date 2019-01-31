@@ -25,6 +25,8 @@ namespace nex
 
 		ModelManagerGL();
 
+		static std::unique_ptr<ModelGL> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
+
 		/**
 		 * NOTE: Has to be initialized on first use
 		 */

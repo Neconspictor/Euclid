@@ -12,12 +12,10 @@ namespace nex
 	{
 	public:
 
-		ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes);
+		ModelGL(std::vector<std::unique_ptr<MeshGL>> meshes, std::vector<std::unique_ptr<Material>> materials);
 
 		ModelGL(const ModelGL&) = delete;
 		ModelGL& operator=(const ModelGL& o) = delete;
-
-		virtual ~ModelGL() = default;
 
 		//void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
 
@@ -25,17 +23,14 @@ namespace nex
 
 		void setInstanced(bool value);
 
-		const std::vector<std::reference_wrapper<MeshGL>>& getMeshes() const;
+		const std::vector<std::unique_ptr<MeshGL>>& getMeshes() const;
+		const std::vector<std::unique_ptr<Material>>& getMaterials() const;
 
 		void draw(ShaderProgram* shader) {};
 
 	protected:
-		std::vector<std::reference_wrapper<MeshGL>> meshReferences;
-		std::vector<std::unique_ptr<MeshGL>> meshes;
+		std::vector<std::unique_ptr<MeshGL>> mMeshes;
+		std::vector<std::unique_ptr<Material>> mMaterials;
 		bool instanced;
-		GLuint vertexAttributeBuffer;
-
-	private:
-		static std::vector<std::reference_wrapper<MeshGL>> createReferences(const std::vector<std::unique_ptr<MeshGL>>& meshes);
 	};
 }

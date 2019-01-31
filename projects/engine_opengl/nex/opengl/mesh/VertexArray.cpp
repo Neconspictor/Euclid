@@ -11,9 +11,21 @@ namespace nex
 	}
 
 	VertexArray::VertexArray(VertexArray&& other) noexcept :
-		mRendererID(other.mRendererID)
+		mRendererID(other.mRendererID), mBuffers(std::move(other.mBuffers))
 	{
 		other.mRendererID = GL_FALSE;
+	}
+
+	VertexArray& VertexArray::operator=(VertexArray&& o) noexcept
+	{
+		if (this == &o) return *this;
+
+		this->mRendererID = o.mRendererID;
+		o.mRendererID = GL_FALSE;
+
+		this->mBuffers = std::move(o.mBuffers);
+
+		return *this;
 	}
 
 	VertexArray::~VertexArray()
@@ -24,10 +36,12 @@ namespace nex
 		}
 	}
 
-	void VertexArray::addBuffer(const VertexBuffer& buffer, const VertexLayout& layout)
+	void VertexArray::addBuffer(VertexBuffer buffer, const VertexLayout& layout)
 	{
 		bind();
 		buffer.bind();
+
+		mBuffers.emplace_back(std::move(buffer));
 
 		const auto& elements = layout.getElements();
 

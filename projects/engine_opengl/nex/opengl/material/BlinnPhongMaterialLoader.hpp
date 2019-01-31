@@ -12,9 +12,9 @@ namespace nex
 
 		BlinnPhongMaterialLoader(TextureManagerGL* textureManager);
 
-		virtual ~BlinnPhongMaterialLoader();
+		virtual ~BlinnPhongMaterialLoader() = default;
 
-		std::unique_ptr<Material> loadShadingMaterial(aiMesh* mesh, const aiScene* scene) const override;
+		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override;
 
 	private:
 

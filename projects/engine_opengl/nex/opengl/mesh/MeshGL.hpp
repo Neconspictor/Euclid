@@ -49,8 +49,10 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		MeshGL(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, std::unique_ptr<Material> material = nullptr);
-		MeshGL(MeshGL&& other) noexcept;
+		MeshGL(VertexArray vertexArray, IndexBuffer indexBuffer, Material* material = nullptr);
+		MeshGL();
+
+		MeshGL(MeshGL&& other) noexcept = default;
 		MeshGL& operator=(MeshGL&& o) noexcept = default;
 
 		MeshGL(const MeshGL& o) = delete;
@@ -58,20 +60,20 @@ namespace nex
 
 		virtual ~MeshGL() = default;
 
-		const IndexBuffer* getIndexBuffer() const;
+		IndexBuffer* getIndexBuffer();
 		Material* getMaterial() const;
-		const VertexArray* getVertexArray() const;
+		VertexArray* getVertexArray();
 
-		void setMaterial(std::unique_ptr<Material> material);
+		void setIndexBuffer(IndexBuffer buffer);
+		void setMaterial(Material* material);
+		void setVertexArray(VertexArray vertexArray);
 
 	protected:
 		friend MeshFactoryGL; // allow factory for easier access!
 
 		VertexArray mVertexArray;
-		VertexBuffer mVertexBuffer;
 		IndexBuffer mIndexBuffer;
 
-
-		std::unique_ptr<Material> mMaterial;
+		Material* mMaterial;
 	};
 }
