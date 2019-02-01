@@ -421,7 +421,7 @@ Texture* ComputeTest_Renderer::GBuffer::getDepth() const
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-ComputeTest_Renderer::ComputeTest_Renderer(RendererOpenGL* backend, Input* input) :
+ComputeTest_Renderer::ComputeTest_Renderer(RenderBackend* backend, Input* input) :
 	Renderer(backend),
 	m_logger("PBR_Deferred_Renderer"),
 	renderTargetSingleSampled(nullptr),
@@ -433,7 +433,7 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
-	ModelManagerGL* modelManager = m_renderBackend->getModelManager();
+	StaticMeshManager* modelManager = m_renderBackend->getModelManager();
 
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 

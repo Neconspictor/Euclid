@@ -22,10 +22,10 @@ set(
     
     ###header files###
     pch_engine_opengl.hpp
-		
-    #nex/opengl/antialiasing
-    nex/opengl/antialiasing/SMAA_GL.hpp
-	nex/opengl/antialiasing/SMAA_GL.cpp
+    
+    nex/opengl/opengl.hpp
+    nex/opengl/opengl.cpp
+    nex/opengl/RenderBackend.cpp
     
     #nex/opengl/drawing
     nex/opengl/drawing/ModelDrawerGL.hpp
@@ -35,42 +35,13 @@ set(
 	nex/opengl/gui/ImGUI_GL.hpp
 	nex/opengl/gui/ImGUI_GL.cpp
     
-    #nex/opengl/material
-    nex/opengl/material/AbstractMaterialLoader.hpp
-	nex/opengl/material/AbstractMaterialLoader.cpp
-	nex/opengl/material/BlinnPhongMaterialLoader.hpp
-	nex/opengl/material/BlinnPhongMaterialLoader.cpp
-    nex/opengl/material/Material.hpp
-    nex/opengl/material/Material.cpp
-	nex/opengl/material/PbrMaterialLoader.hpp
-	nex/opengl/material/PbrMaterialLoader.cpp
-    
     #nex/opengl/mesh
     nex/opengl/mesh/IndexBuffer.cpp
-    nex/opengl/mesh/IndexBuffer.hpp
-    nex/opengl/mesh/MeshGL.hpp
-	nex/opengl/mesh/MeshGL.cpp
-    nex/opengl/mesh/MeshFactoryGL.hpp
-	nex/opengl/mesh/MeshFactoryGL.cpp
-    nex/opengl/mesh/SampleMeshes.hpp
-    nex/opengl/mesh/Sphere.cpp
-    nex/opengl/mesh/Sphere.hpp
     nex/opengl/mesh/VertexArray.cpp
-    nex/opengl/mesh/VertexArray.hpp
     nex/opengl/mesh/VertexBuffer.cpp
-    nex/opengl/mesh/VertexBuffer.hpp
-    nex/opengl/mesh/VertexLayout.hpp
-    nex/opengl/mesh/VertexLayout.inl
     
-    #nex/opengl/model
-    nex/opengl/model/AssimpModelLoader.hpp
-	nex/opengl/model/AssimpModelLoader.cpp
-    nex/opengl/model/ModelGL.hpp
-	nex/opengl/model/ModelGL.cpp
-    nex/opengl/model/ModelManagerGL.hpp
-	nex/opengl/model/ModelManagerGL.cpp
-    nex/opengl/model/Vob.hpp
-	nex/opengl/model/Vob.cpp
+    #nex/opengl/pbr
+	nex/opengl/pbr/PBR_Deferred.cpp
     
 	#nex/opengl/post_processing
     nex/opengl/post_processing/AmbientOcclusion.cpp
@@ -82,12 +53,6 @@ set(
 	#nex/opengl/post_processing/blur
 	nex/opengl/post_processing/blur/GaussianBlurGL.hpp
 	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
-	
-    #nex/opengl/renderer
-    nex/opengl/renderer/Renderer.hpp
-    nex/opengl/renderer/Renderer.cpp
-    nex/opengl/renderer/RendererOpenGL.hpp
-	nex/opengl/renderer/RendererOpenGL.cpp
     
     #nex/opengl/scene
     nex/opengl/scene/SceneNode.cpp
@@ -113,15 +78,6 @@ set(
 	#nex/opengl/shader/post_processing/blur
     nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp
 	nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.cpp
-	
-	#nex/opengl/shading_model
-    nex/opengl/shading_model/PBR.cpp
-    nex/opengl/shading_model/PBR.hpp
-	nex/opengl/shading_model/PBR_DeferredGL.hpp
-	nex/opengl/shading_model/PBR_DeferredGL.cpp
-	nex/opengl/shading_model/ShadingModelFactoryGL.cpp
-	nex/opengl/shading_model/ShadingModelFactoryGL.hpp
-	nex/opengl/shading_model/ShadingModelFactoryGL.cpp
  
 	#nex/opengl/shadowing
 	nex/opengl/shadowing/CascadedShadowGL.cpp
@@ -134,8 +90,6 @@ set(
     nex/opengl/texture/SamplerGL.cpp
     nex/opengl/texture/TextureGL.hpp
     nex/opengl/texture/TextureGL.cpp
-	nex/opengl/texture/TextureManagerGL.hpp
-	nex/opengl/texture/TextureManagerGL.cpp
 	
 	
 	#nex/opengl/window_system/

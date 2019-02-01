@@ -165,7 +165,7 @@ nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthSten
 	glBindTexture(mTarget, 0);
 
 
-	RendererOpenGL::checkGLErrors(BOOST_CURRENT_FUNCTION);
+	RenderBackend::checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 nex::DepthStencilMapGL::~DepthStencilMapGL()

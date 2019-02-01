@@ -1,7 +1,7 @@
 #include <nex/opengl/shader/PBRShaderGL.hpp>
 #include <glm/glm.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
-#include <nex/opengl/material/Material.hpp>
+#include <nex/mesh/SubMesh.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace glm;
 using namespace std;

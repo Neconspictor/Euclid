@@ -5,7 +5,7 @@
 
 namespace nex
 {
-	class RendererOpenGL;
+	class RenderBackend;
 
 	class SceneNode
 	{
@@ -22,7 +22,7 @@ namespace nex
 		void addChild(SceneNode* child);
 		void removeChild(SceneNode* child);
 
-		void init(ModelManagerGL* modelManager);
+		void init(StaticMeshManager* modelManager);
 
 		void update(float frameTime);
 

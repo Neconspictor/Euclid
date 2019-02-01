@@ -1,5 +1,5 @@
-#include "VertexBuffer.hpp"
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/mesh/VertexBuffer.hpp>
+#include <nex/opengl/opengl.hpp>
 
 namespace nex
 {

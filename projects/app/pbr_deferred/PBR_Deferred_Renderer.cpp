@@ -23,7 +23,7 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_Renderer::PBR_Deferred_Renderer(RendererOpenGL* backend) :
+PBR_Deferred_Renderer::PBR_Deferred_Renderer(RenderBackend* backend) :
 	Renderer(backend),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
@@ -50,8 +50,8 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
 
 	ShaderManagerGL* shaderManager = m_renderBackend->getShaderManager();
-	ModelManagerGL* modelManager = m_renderBackend->getModelManager();
-	TextureManagerGL* textureManager = m_renderBackend->getTextureManager();
+	StaticMeshManager* modelManager = m_renderBackend->getModelManager();
+	TextureManager* textureManager = m_renderBackend->getTextureManager();
 
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
@@ -180,7 +180,7 @@ void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ModelDrawerGL* modelDrawer = m_renderBackend->getModelDrawer();
+	StaticMeshDrawer* modelDrawer = m_renderBackend->getModelDrawer();
 	ScreenShader* screenShader = (ScreenShader*)(
 		m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
 	DepthMapShader* depthMapShader = (DepthMapShader*)(
@@ -360,7 +360,7 @@ AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
 	return &m_aoSelector;
 }
 
-PBR_DeferredGL* PBR_Deferred_Renderer::getPBR()
+PBR_Deferred* PBR_Deferred_Renderer::getPBR()
 {
 	return m_pbr_deferred.get();
 }

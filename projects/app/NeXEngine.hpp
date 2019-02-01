@@ -43,7 +43,7 @@ namespace nex
 		void updateWindowTitle(float frameTime, float fps);
 	private:
 		nex::Logger m_logger;
-		std::unique_ptr<RendererOpenGL> m_renderBackend;
+		std::unique_ptr<RenderBackend> m_renderBackend;
 		std::unique_ptr<PBR_Deferred_Renderer> m_renderer;
 		std::unique_ptr<gui::ControllerStateMachine> m_controllerSM;
 		std::unique_ptr<Camera> m_camera;
@@ -56,7 +56,7 @@ namespace nex
 		FPSCounter m_counter;
 		std::list<SceneNode> m_nodes;
 		std::list<Vob> m_vobs;
-		std::list<std::unique_ptr<ModelGL>> mModels;
+		std::list<std::unique_ptr<StaticMesh>> mModels;
 		SceneNode* m_scene;
 		bool m_isRunning;
 

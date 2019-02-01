@@ -10,7 +10,7 @@ namespace nex {
 	class HBAO_ConfigurationView;
 	class RenderTarget;
 	class RenderTarget2D;
-	class ModelDrawerGL;
+	class StaticMeshDrawer;
 
 #define UBO_SCENE     0
 
@@ -135,7 +135,7 @@ namespace nex {
 	public:
 
 		HBAO_GL(unsigned int windowWidth,
-			unsigned int windowHeight, ModelDrawerGL* modelDrawer);
+			unsigned int windowHeight, StaticMeshDrawer* modelDrawer);
 
 		virtual ~HBAO_GL();
 
@@ -173,7 +173,7 @@ namespace nex {
 		
 
 
-		ModelDrawerGL* m_modelDrawer;
+		StaticMeshDrawer* m_modelDrawer;
 
 		std::unique_ptr<Texture2D> m_hbao_random;
 		std::unique_ptr<Texture2D> m_hbao_randomview;

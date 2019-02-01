@@ -5,7 +5,6 @@ namespace nex
 {
 	namespace gui{ class ImGUI_Impl; }
 	class Input;
-	class RenderBackend;
 
 	class SubSystemProvider
 	{

@@ -1,5 +1,5 @@
-#include "VertexArray.hpp"
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/mesh/VertexArray.hpp>
+#include <nex/opengl/opengl.hpp>
 
 namespace nex
 {

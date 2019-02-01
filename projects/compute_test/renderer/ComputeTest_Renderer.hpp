@@ -128,7 +128,7 @@ namespace nex
 
 		typedef unsigned int uint;
 
-		ComputeTest_Renderer(RendererOpenGL* renderer, Input* input);
+		ComputeTest_Renderer(RenderBackend* renderer, Input* input);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -137,7 +137,7 @@ namespace nex
 		void updateRenderTargets(int width, int height);
 		nex::HBAO_GL* getHBAO();
 
-		PBR_DeferredGL* getPBR();
+		PBR_Deferred* getPBR();
 
 
 	private:

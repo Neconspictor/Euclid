@@ -49,7 +49,7 @@ void NeXEngine::init()
 
 	LOG(m_logger, nex::Info) << "Initializing Engine...";
 
-	m_renderBackend = std::make_unique<RendererOpenGL>();
+	m_renderBackend = std::make_unique<RenderBackend>();
 
 
 	m_video.handle(m_config);
@@ -71,11 +71,11 @@ void NeXEngine::init()
 
 	// init texture manager (filesystem)
 	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
-	TextureManagerGL::get()->init(&mTextureFileSystem);
+	TextureManager::get()->init(&mTextureFileSystem);
 
 	// init model manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	ModelManagerGL::get()->init(&mMeshFileSystem);
+	StaticMeshManager::get()->init(&mMeshFileSystem);
 
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());

@@ -29,7 +29,7 @@ namespace nex
 {
 
 	HBAO_GL::HBAO_GL(unsigned int windowWidth,
-		unsigned int windowHeight, ModelDrawerGL* modelDrawer)
+		unsigned int windowHeight, StaticMeshDrawer* modelDrawer)
 		:
 		m_blur_sharpness(40.0f),
 		m_meters2viewspace(1.0f),

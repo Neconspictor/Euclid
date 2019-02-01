@@ -6,6 +6,7 @@
 #include <nex/opengl/model/ModelManagerGL.hpp>
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/texture/Sprite.hpp>
+#include <nex/opengl/opengl.hpp>
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
@@ -14,19 +15,19 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-nex::ModelDrawerGL::ModelDrawerGL(RendererOpenGL* renderer): renderer(renderer)
+nex::StaticMeshDrawer::StaticMeshDrawer(RenderBackend* renderer): renderer(renderer)
 {
 	assert(renderer != nullptr);
 }
 
-void nex::ModelDrawerGL::vobRenderCallbackTest(Vob* vob)
+void nex::StaticMeshDrawer::vobRenderCallbackTest(Vob* vob)
 {
 	SceneNode* root = nullptr;
-	ModelDrawerGL* drawer = nullptr;
+	StaticMeshDrawer* drawer = nullptr;
 	//drawer->draw(root, vobRenderCallbackTest);
 }
 
-void nex::ModelDrawerGL::draw(SceneNode* root, Shader* shader)
+void nex::StaticMeshDrawer::draw(SceneNode* root, Shader* shader)
 {
 	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
 		draw(*it, shader);
@@ -45,9 +46,9 @@ void nex::ModelDrawerGL::draw(SceneNode* root, Shader* shader)
 	}
 }
 
-void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShader* shader)
+void nex::StaticMeshDrawer::draw(Sprite * sprite, TransformShader* shader)
 {
-	ModelGL* spriteModel = ModelManagerGL::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	StaticMesh* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
@@ -97,7 +98,7 @@ void nex::ModelDrawerGL::draw(Sprite * sprite, TransformShader* shader)
 	}
 }
 
-void nex::ModelDrawerGL::draw(ModelGL* model, Shader* shader)
+void nex::StaticMeshDrawer::draw(StaticMesh* model, Shader* shader)
 {
 	//TODO
 	//shader->bind();
@@ -183,7 +184,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void nex::ModelDrawerGL::drawWired(ModelGL* model, Shader* shader, int lineStrength)
+void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Shader* shader, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();

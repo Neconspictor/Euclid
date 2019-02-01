@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
 
 
-	nex::ModelManagerGL::get()->release();
+	nex::StaticMeshManager::get()->release();
 	nex::TextureManagerGL::get()->release();
 
 	provider->terminate();

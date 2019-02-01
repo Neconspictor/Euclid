@@ -210,7 +210,7 @@ namespace nex
 
 
 	SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
-		unsigned int windowHeight, ModelDrawerGL* modelDrawer)
+		unsigned int windowHeight, StaticMeshDrawer* modelDrawer)
 		:
 		windowWidth(windowWidth),
 		windowHeight(windowHeight),

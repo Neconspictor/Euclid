@@ -12,7 +12,7 @@ namespace nex
 	class RenderTarget;
 	class RenderTarget2D;
 	class ShaderProgram;
-	class ModelDrawerGL;
+	class StaticMeshDrawer;
 
 	const int SSAO_SAMPLING_SIZE = 32;
 
@@ -32,7 +32,7 @@ namespace nex
 	public:
 
 		SSAO_DeferredGL(unsigned int windowWidth,
-			unsigned int windowHeight, ModelDrawerGL* modelDrawer);
+			unsigned int windowHeight, StaticMeshDrawer* modelDrawer);
 
 		virtual ~SSAO_DeferredGL() = default;
 
@@ -67,7 +67,7 @@ namespace nex
 		std::unique_ptr<nex::Shader> aoPass;
 		std::unique_ptr<nex::Shader> tiledBlurPass;
 		std::unique_ptr<nex::Shader> aoDisplay;
-		ModelDrawerGL* modelDrawer;
+		StaticMeshDrawer* modelDrawer;
 
 		unsigned int windowWidth;
 		unsigned int windowHeight;

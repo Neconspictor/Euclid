@@ -3,6 +3,10 @@ set(
     
     ###header files###
     pch_engine.hpp
+    
+    nex/RenderBackend.hpp
+    nex/Renderer.hpp
+    nex/Renderer.cpp
 	
 	
 	#nex
@@ -13,6 +17,10 @@ set(
 	nex/SubSystemProvider.hpp
     nex/Window.hpp
 	nex/Window.cpp
+    
+    #nex/antialiasing
+    nex/antialiasing/SMAA.hpp
+	nex/antialiasing/SMAA.cpp
     
     #nex/camera
     nex/camera/Camera.hpp
@@ -96,6 +104,44 @@ set(
 	nex/memory/ProxyAllocator.cpp
     nex/memory/StackAllocator.hpp
 	nex/memory/StackAllocator.cpp
+    
+    #nex/mesh
+    nex/mesh/IndexBuffer.hpp
+    nex/mesh/MeshFactory.hpp
+	nex/mesh/MeshFactory.cpp
+    nex/mesh/MeshLoader.hpp
+	nex/mesh/MeshLoader.cpp
+    nex/mesh/SampleMeshes.hpp
+    nex/mesh/Sphere.cpp
+    nex/mesh/Sphere.hpp
+    nex/mesh/StaticMesh.hpp
+	nex/mesh/StaticMesh.cpp
+    nex/mesh/StaticMeshManager.hpp
+	nex/mesh/StaticMeshManager.cpp
+    nex/mesh/SubMesh.hpp
+    nex/mesh/SubMesh.cpp
+    nex/mesh/VertexArray.hpp
+    nex/mesh/VertexBuffer.hpp
+    nex/mesh/VertexLayout.hpp
+    nex/mesh/VertexLayout.inl
+    nex/mesh/Vob.hpp
+	nex/mesh/Vob.cpp
+    
+    
+    #nex/material
+    nex/material/AbstractMaterialLoader.hpp
+	nex/material/AbstractMaterialLoader.cpp
+	nex/material/BlinnPhongMaterialLoader.hpp
+	nex/material/BlinnPhongMaterialLoader.cpp
+    nex/material/Material.hpp
+    nex/material/Material.cpp
+	nex/material/PbrMaterialLoader.hpp
+	nex/material/PbrMaterialLoader.cpp
+    
+    #nex/pbr
+    nex/pbr/PBR.hpp
+    nex/pbr/PBR.cpp
+    nex/pbr/PBR_Deferred.hpp
 	
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp
@@ -129,11 +175,13 @@ set(
 	nex/texture/GBuffer.cpp
     nex/texture/Image.hpp
 	nex/texture/Image.cpp
+    nex/texture/RenderTarget.hpp
     nex/texture/Sampler.hpp
     nex/texture/Sprite.cpp
     nex/texture/Sprite.hpp
-    nex/texture/Texture.hpp
-    nex/texture/RenderTarget.hpp
+    nex/texture/Texture.hpp    
+    nex/texture/TextureManager.hpp
+	nex/texture/TextureManager.cpp
     
 	#nex/util
     nex/util/CallbackContainer.hpp

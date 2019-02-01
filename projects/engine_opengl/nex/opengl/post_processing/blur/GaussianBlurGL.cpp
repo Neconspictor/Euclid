@@ -7,7 +7,7 @@
 namespace nex {
 
 
-	GaussianBlurGL::GaussianBlurGL(RendererOpenGL* renderer) : renderer(renderer)
+	GaussianBlurGL::GaussianBlurGL(RenderBackend* renderer) : renderer(renderer)
 	{
 		sprite.setPosition({ 0,0 });
 		sprite.setHeight(1);
@@ -20,7 +20,7 @@ namespace nex {
 
 	void GaussianBlurGL::blur(RenderTarget2D* target, RenderTarget2D* cache)
 	{
-		ModelDrawerGL* modelDrawer = renderer->getModelDrawer();
+		StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
 		GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
 			renderer->getShaderManager()->getShader(ShaderType::GaussianBlurHorizontal));
 		GaussianBlurVerticalShader* verticalShader = dynamic_cast<GaussianBlurVerticalShader*>(

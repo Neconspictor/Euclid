@@ -7,7 +7,7 @@
 namespace nex
 {
 	class RenderTargetGL;
-	class RendererOpenGL;
+	class RenderBackend;
 	class CubeRenderTargetGL;
 
 
@@ -130,7 +130,7 @@ namespace nex
 		virtual ~CubeDepthMapGL() = default;
 
 	private:
-		friend RendererOpenGL; // allow the OpenGL renderer easier access
+		friend RenderBackend; // allow the OpenGL renderer easier access
 		glm::mat4 matrices[6];
 	};
 }

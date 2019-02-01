@@ -1,14 +1,14 @@
 #pragma once
 
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/shader/Shader.hpp>
 
 namespace nex
 {
-	class RendererOpenGL;
+	class RenderBackend;
 	class Sprite;
 	class Vob;
-	class MeshGL;
-	class ModelGL;
+	class SubMesh;
+	class StaticMesh;
 	class SceneNode;
 
 	enum class DrawingTypes
@@ -19,12 +19,12 @@ namespace nex
 		WIRED,
 	};
 
-	class ModelDrawerGL
+	class StaticMeshDrawer
 	{
 	public:
-		explicit ModelDrawerGL(RendererOpenGL* renderer);
+		explicit StaticMeshDrawer(RenderBackend* renderer);
 
-		virtual ~ModelDrawerGL() = default;
+		virtual ~StaticMeshDrawer() = default;
 
 		struct RenderContext
 		{
@@ -34,7 +34,7 @@ namespace nex
 		};
 
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
-		using MeshRenderCallback = void(const nex::MeshGL* mesh, const RenderContext* context);
+		using MeshRenderCallback = void(const nex::SubMesh* mesh, const RenderContext* context);
 
 
 		static void vobRenderCallbackTest(Vob* vob);
@@ -52,7 +52,7 @@ namespace nex
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		void draw(ModelGL* model, nex::Shader* shader);
+		void draw(StaticMesh* model, nex::Shader* shader);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
@@ -63,9 +63,9 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		void drawWired(ModelGL* model, nex::Shader* shader, int lineStrength);
+		void drawWired(StaticMesh* model, nex::Shader* shader, int lineStrength);
 
 	private:
-		RendererOpenGL* renderer;
+		RenderBackend* renderer;
 	};
 }

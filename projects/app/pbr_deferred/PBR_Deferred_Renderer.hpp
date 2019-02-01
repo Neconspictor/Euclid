@@ -16,7 +16,7 @@ namespace nex
 	public:
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RendererOpenGL* renderer);
+		PBR_Deferred_Renderer(RenderBackend* renderer);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -26,7 +26,7 @@ namespace nex
 		nex::HBAO_GL* getHBAO();
 		AmbientOcclusionSelector* getAOSelector();
 
-		PBR_DeferredGL* getPBR();
+		PBR_Deferred* getPBR();
 
 
 	private:
@@ -43,7 +43,7 @@ namespace nex
 		Texture* panoramaSky;
 		Texture* testTexture;
 
-		std::unique_ptr<PBR_DeferredGL> m_pbr_deferred;
+		std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
 		std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
 

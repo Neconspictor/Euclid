@@ -73,7 +73,7 @@ namespace nex
 		}
 	}
 
-	void SceneNode::init(ModelManagerGL* modelManager)
+	void SceneNode::init(StaticMeshManager* modelManager)
 	{
 		for (auto it = childs.begin(); it != childs.end(); ++it)
 			(*it)->init(modelManager);

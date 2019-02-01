@@ -4,12 +4,12 @@
 namespace nex {
 
 	class RenderTarget2D;
-	class RendererOpenGL;
+	class RenderBackend;
 
 	class GaussianBlurGL {
 
 	public:
-		GaussianBlurGL(RendererOpenGL* renderer);
+		GaussianBlurGL(RenderBackend* renderer);
 
 		virtual ~GaussianBlurGL();
 
@@ -20,7 +20,7 @@ namespace nex {
 		void release();
 
 	protected:
-		RendererOpenGL* renderer;
+		RenderBackend* renderer;
 		nex::Sprite sprite;
 	};
 }

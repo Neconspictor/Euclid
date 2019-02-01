@@ -50,7 +50,7 @@ void NeXEngine::init()
 
 	LOG(m_logger, nex::Info) << "Initializing Engine...";
 
-	m_renderBackend = std::make_unique<RendererOpenGL>();
+	m_renderBackend = std::make_unique<RenderBackend>();
 
 
 	m_video.handle(m_config);
@@ -72,11 +72,11 @@ void NeXEngine::init()
 
 	// init texture manager (filesystem)
 	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
-	TextureManagerGL::get()->init(&mTextureFileSystem);
+	TextureManager::get()->init(&mTextureFileSystem);
 
 	// init model manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	ModelManagerGL::get()->init(&mMeshFileSystem);
+	StaticMeshManager::get()->init(&mMeshFileSystem);
 
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
@@ -202,7 +202,7 @@ SceneNode* NeXEngine::createScene()
 	root->addChild(sphere);
 
 
-	auto* textureManager = TextureManagerGL::get();
+	auto* textureManager = TextureManager::get();
 	TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
 			TextureFilter::Linear,
@@ -228,7 +228,7 @@ SceneNode* NeXEngine::createScene()
 	material->setEmissionMap(textureManager->getDefaultBlackTexture());
 	material->setMetallicMap(textureManager->getDefaultBlackTexture());
 	material->setRoughnessMap(textureManager->getImage("pbr/roughness.png", data));
-	mModels.emplace_back(ModelManagerGL::createSphere(16, 16, std::move(material)));
+	mModels.emplace_back(StaticMeshManager::createSphere(16, 16, std::move(material)));
 
 
 	m_vobs.emplace_back(Vob(mModels.back().get()));

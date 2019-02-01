@@ -1,5 +1,5 @@
-#include "IndexBuffer.hpp"
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/mesh/IndexBuffer.hpp>
+#include <nex/opengl/opengl.hpp>
 
 namespace nex
 {
@@ -10,7 +10,7 @@ namespace nex
 		fill(data, count);
 	}
 
-	IndexBuffer::IndexBuffer() : mCount(0), mRendererID(GL_FALSE)
+	IndexBuffer::IndexBuffer() : mRendererID(GL_FALSE)
 	{
 		ASSERT(sizeof(unsigned int) == sizeof(GLuint));
 		GLCall(glGenBuffers(1, &mRendererID));
