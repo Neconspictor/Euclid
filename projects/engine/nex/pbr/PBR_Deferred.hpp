@@ -8,6 +8,7 @@
 
 namespace nex
 {
+	class SceneNode;
 
 	class PBR_GBuffer;
 

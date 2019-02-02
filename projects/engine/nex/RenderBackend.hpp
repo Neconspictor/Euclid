@@ -39,6 +39,20 @@ namespace nex
 		DIRECTX
 	};
 
+	enum class PolygonRasterizationType
+	{
+		FILL, FIRST = FILL,
+		LINE,
+		POINT, LAST = POINT,
+	};
+
+	enum class PolygonSide
+	{
+		BACK, FIRST = BACK,
+		FRONT,
+		FRONT_BACK, LAST = FRONT_BACK,
+	};
+
 	struct Viewport
 	{
 		int x;
@@ -222,9 +236,16 @@ namespace nex
 		void setBackgroundColor(const glm::vec3& color);
 
 		/**
+		 * @param thickness: must be >= 0
+		 */
+		void setLineThickness(float thickness);
+
+		/**
 		 * Sets the number of samples used for msaa
 		 */
 		void setMSAASamples(unsigned int samples);
+
+		void setPolygonRasterization(PolygonSide side, PolygonRasterizationType type);
 
 		/**
 		* Sets the viewport size and position.

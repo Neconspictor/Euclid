@@ -1,8 +1,10 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include "nex/opengl/texture/TextureGL.hpp"
+#include "nex/mesh/VertexArray.hpp"
+#include "nex/mesh/IndexBuffer.hpp"
+#include "nex/opengl/opengl.hpp"
+#include "nex/mesh/SubMesh.hpp"
 
 using namespace nex;
 

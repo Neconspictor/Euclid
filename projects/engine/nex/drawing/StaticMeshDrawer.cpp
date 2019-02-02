@@ -5,7 +5,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/SceneNode.hpp>
-#include "nex/RenderBackend.hpp"
+#include <nex/RenderBackend.hpp>
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
@@ -13,13 +13,6 @@
 using namespace glm;
 using namespace std;
 using namespace nex;
-
-void nex::StaticMeshDrawer::vobRenderCallbackTest(Vob* vob)
-{
-	SceneNode* root = nullptr;
-	StaticMeshDrawer* drawer = nullptr;
-	//drawer->draw(root, vobRenderCallbackTest);
-}
 
 void nex::StaticMeshDrawer::draw(SceneNode* root, Shader* shader)
 {
@@ -187,8 +180,9 @@ void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Shader* shader, int lin
 	//TODO
 	//vob->calcTrafo();
 
-	glLineWidth(static_cast<float>(lineStrength));
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	static auto* backend = RenderBackend::get();
+	backend->setLineThickness(static_cast<float>(lineStrength));
+	backend->setPolygonRasterization(PolygonSide::FRONT_BACK, PolygonRasterizationType::LINE);
 
 	draw(model, shader);
 }

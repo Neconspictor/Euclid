@@ -1,15 +1,16 @@
 #include <nex/pbr/PBR_Deferred.hpp>
-#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/gui/Util.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/opengl/shader/PBRShaderGL.hpp>
+#include <nex/shader/PBRShader.hpp>
 
 #include <imgui/imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/GBuffer.hpp>
+#include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/shader/ShaderManager.hpp"
 
 using namespace glm;
 
@@ -84,7 +85,7 @@ namespace nex {
 		//glStencilMask(0x00);
 
 		PBRShader_Deferred_Lighting* shader = reinterpret_cast<PBRShader_Deferred_Lighting*>(
-			renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Lighting));
+			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Lighting));
 
 
 		shader->bind();
@@ -116,8 +117,7 @@ namespace nex {
 		shader->setCascadedDepthMap(cascadedDepthMap);
 
 
-		StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-		modelDrawer->draw(&screenSprite, shader);
+		StaticMeshDrawer::draw(&screenSprite, shader);
 
 		//glStencilMask(0xff);
 		glDisable(GL_STENCIL_TEST);

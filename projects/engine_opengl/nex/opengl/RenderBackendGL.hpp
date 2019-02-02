@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "nex/mesh/IndexBuffer.hpp"
 #include "nex/mesh/SubMesh.hpp"
+#include <nex/RenderBackend.hpp>
 #include <nex/opengl/opengl.hpp>
 
 namespace nex {
@@ -26,7 +27,22 @@ namespace nex {
 		BIT_32 = GL_UNSIGNED_INT,
 	};
 
+	enum PolygonSideGL
+	{
+		BACK = GL_BACK,
+		FRONT = GL_FRONT,
+		FRONT_BACK = GL_FRONT_AND_BACK,
+	};
 
-	GLuint translate(Topology topology);
+	enum PolygonRasterizationTypeGL
+	{
+		FILL = GL_FILL,
+		LINE = GL_LINE,
+		POINT = GL_POINT,
+	};
+
 	GLuint translate(IndexElementType indexType);
+	GLuint translate(PolygonSide side);
+	GLuint translate(PolygonRasterizationType type);
+	GLuint translate(Topology topology);
 }

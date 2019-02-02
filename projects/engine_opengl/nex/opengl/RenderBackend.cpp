@@ -55,6 +55,36 @@ namespace nex
 		return table[(unsigned)indexType];	
 	}
 
+	GLuint translate(PolygonSide side)
+	{
+		static PolygonSideGL table[]
+		{
+			BACK,
+			FRONT,
+			FRONT_BACK,
+		};
+
+		static const unsigned size = (unsigned)PolygonSide::LAST - (unsigned)PolygonSide::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonSide and PolygonSideGL don't match!");
+
+		return table[(unsigned)side];
+	}
+
+	GLuint translate(PolygonRasterizationType type)
+	{
+		static PolygonRasterizationTypeGL table[]
+		{
+			FILL,
+			LINE,
+			POINT,
+		};
+
+		static const unsigned size = (unsigned)PolygonRasterizationType::LAST - (unsigned)PolygonRasterizationType::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonRasterizationType and PolygonRasterizationTypeGL don't match!");
+
+		return table[(unsigned)type];
+	}
+
 
 	/*EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
 	{
@@ -322,6 +352,12 @@ namespace nex
 		backgroundColor = color;
 	}
 
+	void RenderBackend::setLineThickness(float thickness)
+	{
+		assert(thickness >= 0.0f);
+		GLCall(glLineWidth(thickness));
+	}
+
 	void RenderBackend::setMSAASamples(unsigned int samples)
 	{
 		if (samples == 0)
@@ -333,6 +369,11 @@ namespace nex
 		{
 			msaaSamples = samples;
 		}
+	}
+
+	void RenderBackend::setPolygonRasterization(PolygonSide side, PolygonRasterizationType type)
+	{
+		GLCall(glPolygonMode(translate(side), translate(type)));
 	}
 
 	void RenderBackend::setViewPort(int x, int y, int width, int height)
@@ -419,9 +460,8 @@ namespace nex
 
 			//render into the texture
 			shader->setView(views[i]);
-			static StaticMeshDrawer drawer;
 
-			drawer.draw(skyBox.getModel(), shader);
+			StaticMeshDrawer::draw(skyBox.getModel(), shader);
 		}
 
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
