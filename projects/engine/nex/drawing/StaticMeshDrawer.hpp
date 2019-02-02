@@ -22,9 +22,6 @@ namespace nex
 	class StaticMeshDrawer
 	{
 	public:
-		explicit StaticMeshDrawer(RenderBackend* renderer);
-
-		virtual ~StaticMeshDrawer() = default;
 
 		struct RenderContext
 		{
@@ -64,8 +61,5 @@ namespace nex
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
 		void drawWired(StaticMesh* model, nex::Shader* shader, int lineStrength);
-
-	private:
-		RenderBackend* renderer;
 	};
 }

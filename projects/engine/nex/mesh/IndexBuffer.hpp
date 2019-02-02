@@ -2,6 +2,12 @@
 
 namespace nex
 {
+
+	enum class IndexElementType {
+		BIT_16, FIRST = BIT_16,
+		BIT_32, LAST = BIT_32,
+	};
+
 	class IndexBuffer
 	{
 	public:
@@ -21,11 +27,14 @@ namespace nex
 		void unbind() const;
 
 		void fill(const unsigned int* data, unsigned int count);
+		void fill(const unsigned short* data, unsigned short count);
 
-		inline unsigned int getCount() const { return mCount; }
+		unsigned int getCount() const { return mCount; }
+		IndexElementType getType() const { return mType; }
 
 	private:
 		unsigned int mRendererID;
 		unsigned int mCount = 0;
+		IndexElementType mType;
 	};
 }

@@ -1,7 +1,7 @@
 ﻿#include <nex/RenderBackend.hpp>
+#include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -9,6 +9,7 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include "nex/opengl/texture/RenderTargetGL.hpp"
 #include <nex/opengl/opengl.hpp>
+#include "nex/drawing/StaticMeshDrawer.hpp"
 
 using namespace std;
 using namespace nex;
@@ -16,6 +17,45 @@ using namespace glm;
 
 namespace nex
 {
+
+	GLuint translate(Topology topology)
+	{
+		static TopologyGL table[]
+		{
+			LINES,
+			LINES_ADJACENCY,
+			LINE_LOOP,
+			LINE_STRIP,
+			LINE_STRIP_ADJACENCY,
+			PATCHES,
+			POINTS,
+			TRIANGLES,
+			TRIANGLES_ADJACENCY,
+			TRIANGLE_FAN,
+			TRIANGLE_STRIP,
+			TRIANGLE_STRIP_ADJACENCY,
+		};
+
+		static const unsigned size = (unsigned)Topology::LAST - (unsigned)Topology::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: Topology and TopologyGL don't match!");
+
+		return table[(unsigned)topology];
+	}
+	GLuint translate(IndexElementType indexType)
+	{
+		static IndexElementTypeGL table[]
+		{
+			BIT_16,
+			BIT_32,
+		};
+
+		static const unsigned size = (unsigned)IndexElementType::LAST - (unsigned)IndexElementType::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: IndexElementType and IndexElementTypeGL don't match!");
+
+		return table[(unsigned)indexType];	
+	}
+
+
 	/*EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
 	{
 		gaussianBlur = make_unique<GaussianBlurGL>(renderer);
@@ -33,14 +73,15 @@ namespace nex
 			gaussianBlur->release();
 	}*/
 
+
+
+
 	RenderBackend::RenderBackend() : m_logger("RenderBackend - OPENGL"),
 		backgroundColor(0.0f, 0.0f, 0.0f),
 		msaaSamples(1), defaultRenderTarget(nullptr)
 	{
 		//__clearRenderTarget(&singleSampledScreenBuffer, false);
 		//__clearRenderTarget(&multiSampledScreenBuffer, false);
-
-		modelDrawer = make_unique<StaticMeshDrawer>(this);
 	}
 
 	RenderBackend::~RenderBackend()
@@ -231,6 +272,11 @@ namespace nex
 		GLCall(glDepthMask(value));
 	}
 
+	void RenderBackend::drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType)
+	{
+		GLCall(glDrawElements(translate(topology), indexCount, translate(indexType), nullptr));
+	}
+
 	void RenderBackend::endScene()
 	{
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -242,11 +288,6 @@ namespace nex
 	{
 		static RenderBackend backend;
 		return &backend;
-	}
-
-	StaticMeshDrawer* RenderBackend::getModelDrawer()
-	{
-		return modelDrawer.get();
 	}
 
 	RendererType RenderBackend::getType() const
@@ -378,7 +419,9 @@ namespace nex
 
 			//render into the texture
 			shader->setView(views[i]);
-			modelDrawer->draw(skyBox.getModel(), shader);
+			static StaticMeshDrawer drawer;
+
+			drawer.draw(skyBox.getModel(), shader);
 		}
 
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

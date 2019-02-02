@@ -13,6 +13,7 @@ namespace nex
 	IndexBuffer::IndexBuffer() : mRendererID(GL_FALSE)
 	{
 		ASSERT(sizeof(unsigned int) == sizeof(GLuint));
+		ASSERT(sizeof(unsigned short) == sizeof(GLshort));
 		GLCall(glGenBuffers(1, &mRendererID));
 	}
 
@@ -21,6 +22,15 @@ namespace nex
 		bind();
 		mCount = count;
 		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * sizeof(GLuint), data, GL_STATIC_DRAW));
+		mType = IndexElementType::BIT_32;
+	}
+
+	void IndexBuffer::fill(const unsigned short* data, unsigned short count)
+	{
+		bind();
+		mCount = count;
+		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * sizeof(GLshort), data, GL_STATIC_DRAW));
+		mType = IndexElementType::BIT_16;
 	}
 
 	IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept :

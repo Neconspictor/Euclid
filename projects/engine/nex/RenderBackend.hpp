@@ -167,6 +167,12 @@ namespace nex
 		void enableDepthWriting(bool enable);
 
 		/**
+		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound
+		 * IndexBuffer object.
+		 */
+		void drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType);
+
+		/**
 		* Finishes the current active scene and sends the resulting data to the GPU.
 		*/
 		void endScene();
@@ -177,11 +183,6 @@ namespace nex
 
 		// Inherited via RenderBackend
 		EffectLibrary* getEffectLibrary();
-
-		/**
-		 * Provides a facility class for drawing models.
-		 */
-		StaticMeshDrawer* getModelDrawer();
 
 		/**
 		* Provides the type of renderer class, this renderer belongs to.
@@ -234,7 +235,6 @@ namespace nex
 		glm::vec3 backgroundColor;
 		std::list<CubeDepthMap*> cubeDepthMaps;
 		std::unique_ptr<EffectLibrary> effectLibrary;
-		std::unique_ptr<StaticMeshDrawer> modelDrawer;
 		unsigned int msaaSamples;
 		std::list<std::unique_ptr<CubeRenderTarget>> cubeRenderTargets;
 		std::list<std::unique_ptr<RenderTarget2D>> mRenderTargets;

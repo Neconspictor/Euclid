@@ -5,6 +5,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/SceneNode.hpp>
+#include "nex/RenderBackend.hpp"
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
@@ -12,11 +13,6 @@
 using namespace glm;
 using namespace std;
 using namespace nex;
-
-nex::StaticMeshDrawer::StaticMeshDrawer(RenderBackend* renderer): renderer(renderer)
-{
-	assert(renderer != nullptr);
-}
 
 void nex::StaticMeshDrawer::vobRenderCallbackTest(Vob* vob)
 {
@@ -89,7 +85,8 @@ void nex::StaticMeshDrawer::draw(Sprite * sprite, TransformShader* shader)
 
 		vertexArray->bind();
 		indexBuffer->bind();
-		glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
+		static auto* backend = RenderBackend::get();
+		backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 
 		//indexBuffer->unbind();
 		//vertexArray->unbind();
@@ -110,7 +107,10 @@ void nex::StaticMeshDrawer::draw(StaticMesh* model, Shader* shader)
 
 		vertexArray->bind();
 		indexBuffer->bind();
-		GLCall(glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr));
+
+		static auto* backend = RenderBackend::get();
+
+		backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 
 		//indexBuffer->unbind();
 		//vertexArray->unbind();

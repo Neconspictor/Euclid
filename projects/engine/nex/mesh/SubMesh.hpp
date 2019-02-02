@@ -34,6 +34,22 @@ namespace nex
 		glm::vec2 texCoords;
 	};
 
+	enum class Topology
+	{
+		LINES, FIRST = LINES,
+		LINES_ADJACENCY,
+		LINE_LOOP,
+		LINE_STRIP,
+		LINE_STRIP_ADJACENCY,
+		PATCHES,
+		POINTS,
+		TRIANGLES,
+		TRIANGLES_ADJACENCY,
+		TRIANGLE_FAN,
+		TRIANGLE_STRIP,
+		TRIANGLE_STRIP_ADJACENCY, LAST = TRIANGLE_STRIP_ADJACENCY,
+	};
+
 
 	/**
 	 * Represents a 3d mesh consisting of vertices and a list of indices describing
@@ -48,7 +64,7 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		SubMesh(VertexArray vertexArray, IndexBuffer indexBuffer, Material* material = nullptr);
+		SubMesh(VertexArray vertexArray, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
 		SubMesh();
 
 		SubMesh(SubMesh&& other) noexcept = default;
@@ -61,16 +77,21 @@ namespace nex
 
 		IndexBuffer* getIndexBuffer();
 		Material* getMaterial() const;
+		Topology getTopology() const;
 		VertexArray* getVertexArray();
 
 		void setIndexBuffer(IndexBuffer buffer);
 		void setMaterial(Material* material);
+		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
+		
 
 	protected:
 		VertexArray mVertexArray;
 		IndexBuffer mIndexBuffer;
 
 		Material* mMaterial;
+
+		Topology mTopology;
 	};
 }
