@@ -1,4 +1,4 @@
-#include <nex/opengl/scene/SceneNode.hpp>
+#include <nex/SceneNode.hpp>
 
 namespace nex
 {

@@ -1,12 +1,10 @@
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
-#include <nex/opengl/model/Vob.hpp>
-#include <glad/glad.h>
+#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/opengl/model/ModelManagerGL.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include <nex/shader/ShaderManager.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/opengl/opengl.hpp>
+#include <nex/SceneNode.hpp>
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"

@@ -1,11 +1,11 @@
 #pragma once
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <gui/SceneGUI.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
-#include "nex/config/Configuration.hpp"
+#include <nex/config/Configuration.hpp>
 #include <VideoConfig.hpp>
+#include <nex/FileSystem.hpp>
 
 namespace nex
 {
@@ -43,7 +43,6 @@ namespace nex
 		void updateWindowTitle(float frameTime, float fps);
 	private:
 		nex::Logger m_logger;
-		std::unique_ptr<RenderBackend> m_renderBackend;
 		std::unique_ptr<PBR_Deferred_Renderer> m_renderer;
 		std::unique_ptr<gui::ControllerStateMachine> m_controllerSM;
 		std::unique_ptr<Camera> m_camera;
@@ -66,8 +65,8 @@ namespace nex
 		std::string m_systemLogLevelStr;
 		nex::LogLevel m_systemLogLevel;
 
-		FileSystem mMeshFileSystem;
-		FileSystem mShaderFileSystem;
-		FileSystem mTextureFileSystem;
+		nex::FileSystem mMeshFileSystem;
+		nex::FileSystem mShaderFileSystem;
+		nex::FileSystem mTextureFileSystem;
 	};
 }

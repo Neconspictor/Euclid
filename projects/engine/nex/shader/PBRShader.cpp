@@ -1,4 +1,4 @@
-#include <nex/opengl/shader/PBRShaderGL.hpp>
+#include <nex/shader/PBRShader.hpp>
 #include <glm/glm.hpp>
 #include <nex/mesh/SubMesh.hpp>
 #include <nex/material/Material.hpp>

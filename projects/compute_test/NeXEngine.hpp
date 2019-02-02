@@ -1,11 +1,11 @@
 #pragma once
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <renderer/ComputeTest_Renderer.hpp>
 #include <gui/SceneGUI.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
-#include "nex/config/Configuration.hpp"
+#include <nex/config/Configuration.hpp>
 #include <VideoConfig.hpp>
+#include <nex/RenderBackend.hpp>
 
 namespace nex
 {

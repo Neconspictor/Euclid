@@ -1,4 +1,4 @@
-#include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
 
 using namespace glm;
 using namespace nex;

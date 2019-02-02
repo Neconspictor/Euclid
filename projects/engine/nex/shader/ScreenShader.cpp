@@ -1,4 +1,4 @@
-#include <nex/opengl/shader/ScreenShaderGL.hpp>
+#include <nex/shader/ScreenShader.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.inl>
 

@@ -1,5 +1,5 @@
-#include <nex/opengl/shader/ShadowShaderGL.hpp>
-#include <nex/opengl/mesh/MeshGL.hpp>
+#include <nex/shader/ShadowShader.hpp>
+#include <nex/mesh/SubMesh.hpp>
 
 using namespace std;
 using namespace glm;

@@ -1,5 +1,4 @@
 #include <NeXEngine.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
@@ -11,12 +10,17 @@
 #include <gui/Controller.hpp>
 #include <boxer/boxer.h>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/texture/TextureManager.hpp>
 #include <nex/common/Log.hpp>
-#include "nex/exception/EnumFormatException.hpp"
+#include <nex/exception/EnumFormatException.hpp>
 #include <Globals.hpp>
-#include "nex/opengl/model/ModelManagerGL.hpp"
-#include "nex/opengl/mesh/Sphere.hpp"
+#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/mesh/Sphere.hpp>
+#include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
+#include "nex/RenderBackend.hpp"
+#include "nex/mesh/Vob.hpp"
+#include "nex/material/Material.hpp"
+#include "nex/pbr/PBR_Deferred.hpp"
 
 using namespace nex;
 
@@ -49,8 +53,6 @@ void NeXEngine::init()
 {
 
 	LOG(m_logger, nex::Info) << "Initializing Engine...";
-
-	m_renderBackend = std::make_unique<RenderBackend>();
 
 
 	m_video.handle(m_config);
@@ -85,7 +87,7 @@ void NeXEngine::init()
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
-	m_renderer = std::make_unique<PBR_Deferred_Renderer>(m_renderBackend.get());
+	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get());
 	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),
@@ -102,7 +104,7 @@ void NeXEngine::init()
 
 	m_scene = createScene();
 
-	m_scene->init(m_renderBackend->getModelManager());
+	m_scene->init(StaticMeshManager::get());
 
 	m_input->addWindowCloseCallback([](Window* window)
 	{
@@ -280,9 +282,10 @@ Window* NeXEngine::createWindow()
 void NeXEngine::initRenderBackend()
 {
 	m_window->activate();
-	m_renderBackend->setViewPort(0, 0, m_video.width, m_video.height);
-	m_renderBackend->setMSAASamples(m_video.msaaSamples);
-	m_renderBackend->init();
+	auto* backend = RenderBackend::get();
+	backend->setViewPort(0, 0, m_video.width, m_video.height);
+	backend->setMSAASamples(m_video.msaaSamples);
+	backend->init();
 }
 
 
@@ -398,7 +401,7 @@ void NeXEngine::setupGUI()
 	auto windowView = std::make_unique<Window_ConfigurationView>(m_window);
 	videoTab->addChild(move(windowView));
 
-	auto textureManagerView = std::make_unique<TextureManager_Configuration>(m_renderBackend->getTextureManager());
+	auto textureManagerView = std::make_unique<TextureManager_Configuration>(TextureManager::get());
 	generalTab->addChild(move(textureManagerView));
 
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(m_renderer.get());

@@ -26,10 +26,6 @@ set(
     nex/opengl/opengl.hpp
     nex/opengl/opengl.cpp
     nex/opengl/RenderBackend.cpp
-    
-    #nex/opengl/drawing
-    nex/opengl/drawing/ModelDrawerGL.hpp
-	nex/opengl/drawing/ModelDrawerGL.cpp
 	
 	#nex/opengl/gui
 	nex/opengl/gui/ImGUI_GL.hpp
@@ -54,30 +50,11 @@ set(
 	nex/opengl/post_processing/blur/GaussianBlurGL.hpp
 	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
     
-    #nex/opengl/scene
-    nex/opengl/scene/SceneNode.cpp
-    nex/opengl/scene/SceneNode.hpp
-    
     #nex/opengl/shader
-	nex/opengl/shader/DepthMapShaderGL.hpp
-	nex/opengl/shader/DepthMapShaderGL.cpp
-    nex/opengl/shader/PBRShaderGL.hpp
-	nex/opengl/shader/PBRShaderGL.cpp
-    nex/opengl/shader/ScreenShaderGL.hpp
-	nex/opengl/shader/ScreenShaderGL.cpp
     nex/opengl/shader/ShaderBufferGL.hpp
 	nex/opengl/shader/ShaderBufferGL.cpp
     nex/opengl/shader/ShaderGL.hpp
 	nex/opengl/shader/ShaderGL.cpp
-	nex/opengl/shader/ShadowShaderGL.hpp
-	nex/opengl/shader/ShadowShaderGL.cpp
-    nex/opengl/shader/ShaderManagerGL.hpp
-	nex/opengl/shader/ShaderManagerGL.cpp
-    nex/opengl/shader/SkyBoxShaderGL.hpp
-	nex/opengl/shader/SkyBoxShaderGL.cpp
-	#nex/opengl/shader/post_processing/blur
-    nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp
-	nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.cpp
  
 	#nex/opengl/shadowing
 	nex/opengl/shadowing/CascadedShadowGL.cpp

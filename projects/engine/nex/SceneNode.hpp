@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
-#include <nex/opengl/model/Vob.hpp>
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
+#include <nex/mesh/Vob.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 namespace nex
 {
+	class StaticMeshManager;
 	class RenderBackend;
 
 	class SceneNode

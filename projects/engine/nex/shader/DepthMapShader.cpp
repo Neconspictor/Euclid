@@ -1,4 +1,4 @@
-#include <nex/opengl/shader/DepthMapShaderGL.hpp>
+#include <nex/shader/DepthMapShader.hpp>
 #include <glm/glm.hpp>
 
 using namespace glm;

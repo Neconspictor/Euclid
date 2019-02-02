@@ -7,6 +7,9 @@ set(
     nex/RenderBackend.hpp
     nex/Renderer.hpp
     nex/Renderer.cpp
+    
+    nex/SceneNode.cpp
+    nex/SceneNode.hpp
 	
 	
 	#nex
@@ -47,6 +50,10 @@ set(
     #nex/config
     nex/config/Configuration.hpp
 	nex/config/Configuration.cpp
+    
+    #nex/drawing
+    nex/drawing/StaticMeshDrawer.hpp
+	nex/drawing/StaticMeshDrawer.cpp
     
     #nex/exception
     nex/exception/MeshNotFoundException.hpp
@@ -151,9 +158,24 @@ set(
     
     
     #nex/shader
+    nex/shader/DepthMapShader.hpp
+	nex/shader/DepthMapShader.cpp
+    nex/shader/PBRShader.hpp
+	nex/shader/PBRShader.cpp
+    nex/shader/ScreenShader.hpp
+	nex/shader/ScreenShader.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
+    nex/shader/ShaderManager.hpp
+	nex/shader/ShaderManager.cpp
+    nex/shader/ShadowShader.hpp
+	nex/shader/ShadowShader.cpp
+    nex/shader/SkyBoxShader.hpp
+	nex/shader/SkyBoxShader.cpp
+	#nex/shader/post_processing/blur
+    nex/shader/post_processing/blur/GaussianBlurShader.hpp
+	nex/shader/post_processing/blur/GaussianBlurShader.cpp
 	
     
     #nex/shader_generator

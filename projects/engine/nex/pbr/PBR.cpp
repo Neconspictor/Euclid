@@ -34,7 +34,7 @@ PBR::~PBR()
 void PBR::drawSky(const mat4& projection, const mat4& view)
 {
 	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	ShaderManagerGL* shaderManager = renderer->getShaderManager();
+	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	SkyBoxShader* skyboxShader = reinterpret_cast<SkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBox));
@@ -266,7 +266,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(2048, 2048, textureData);
 
-	ShaderManagerGL* shaderManager = renderer->getShaderManager();
+	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	EquirectangularSkyBoxShader* shader = reinterpret_cast<EquirectangularSkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
@@ -324,7 +324,7 @@ CubeMap * PBR::convolute(CubeMap * source)
 	// uses RGB and 32bit per component (floats)
 	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
 
-	ShaderManagerGL* shaderManager = renderer->getShaderManager();
+	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	PBR_ConvolutionShader* shader = reinterpret_cast<PBR_ConvolutionShader*>
 		(shaderManager->getShader(ShaderType::Pbr_Convolution));
@@ -381,7 +381,7 @@ CubeMap* PBR::prefilter(CubeMap * source)
 	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(256, 256, textureData);
 
 	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	ShaderManagerGL* shaderManager = renderer->getShaderManager();
+	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	PBR_PrefilterShader* shader = dynamic_cast<PBR_PrefilterShader*>
 		(shaderManager->getShader(ShaderType::Pbr_Prefilter));
@@ -449,7 +449,7 @@ Texture2D* PBR::createBRDFlookupTexture()
 
 	RenderTarget2D* target = renderer->create2DRenderTarget(1024, 1024, data);
 
-	ShaderManagerGL* shaderManager = renderer->getShaderManager();
+	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = reinterpret_cast<PBR_BrdfPrecomputeShader*>
 		(shaderManager->getShader(ShaderType::Pbr_BrdfPrecompute));

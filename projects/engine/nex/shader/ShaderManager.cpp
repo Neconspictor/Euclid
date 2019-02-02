@@ -1,32 +1,32 @@
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
+#include <nex/shader/ShaderManager.hpp>
 #include <sstream>
 #include <nex/exception/ShaderInitException.hpp>
-#include <nex/opengl/shader/PBRShaderGL.hpp>
-#include <nex/opengl/shader/ScreenShaderGL.hpp>
-#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
-#include <nex/opengl/shader/ShadowShaderGL.hpp>
-#include <nex/opengl/shader/DepthMapShaderGL.hpp>
-#include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
+#include <nex/shader/PBRShader.hpp>
+#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/shader/ShadowShader.hpp>
+#include <nex/shader/DepthMapShader.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 
 using namespace std;
 using namespace nex;
 
-unique_ptr<ShaderManagerGL> ShaderManagerGL::instance = make_unique<ShaderManagerGL>(ShaderManagerGL());
+unique_ptr<ShaderManager> ShaderManager::instance = make_unique<ShaderManager>(ShaderManager());
 
-ShaderManagerGL::ShaderManagerGL() : 
+ShaderManager::ShaderManager() : 
 	m_logger("ShaderManagerGL")
 {
 }
 
-ShaderManagerGL::~ShaderManagerGL()
+ShaderManager::~ShaderManager()
 {
 	for (auto& it : shaderMap)
 		delete it.second;
 	shaderMap.clear();
 }
 
-Shader* ShaderManagerGL::getShader(ShaderType shaderEnum)
+Shader* ShaderManager::getShader(ShaderType shaderEnum)
 {
 	auto it = shaderMap.find(shaderEnum);
 	if (it == shaderMap.end())
@@ -38,7 +38,7 @@ Shader* ShaderManagerGL::getShader(ShaderType shaderEnum)
 	return it->second;
 }
 
-void ShaderManagerGL::loadShaders()
+void ShaderManager::loadShaders()
 {
 	using s = ShaderType;
 	createShader(s::Pbr);
@@ -58,12 +58,12 @@ void ShaderManagerGL::loadShaders()
 	createShader(s::SkyBoxPanorama);
 }
 
-ShaderManagerGL* ShaderManagerGL::get()
+ShaderManager* ShaderManager::get()
 {
 	return instance.get();
 }
 
-Shader* ShaderManagerGL::createShader(ShaderType shaderEnum)
+Shader* ShaderManager::createShader(ShaderType shaderEnum)
 {
 	using s = ShaderType;
 	Shader* shaderPtr = nullptr;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nex/SubSystemProvider.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 

@@ -4,8 +4,10 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
-#include "nex/opengl/model/ModelManagerGL.hpp"
+#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/texture/TextureManager.hpp>
+#include <nex/RenderBackend.hpp>
 
 
 #ifdef WIN32
@@ -93,7 +95,8 @@ int main(int argc, char** argv)
 
 
 	nex::StaticMeshManager::get()->release();
-	nex::TextureManagerGL::get()->release();
+	nex::TextureManager::get()->release();
+	nex::RenderBackend::get()->release();
 
 	provider->terminate();
 

@@ -1,11 +1,11 @@
 ﻿#include <nex/RenderBackend.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
+#include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include "nex/opengl/texture/RenderTargetGL.hpp"
 #include <nex/opengl/opengl.hpp>
@@ -227,14 +227,8 @@ namespace nex
 
 	void RenderBackend::enableDepthWriting(bool enable)
 	{
-		if (enable)
-		{
-			GLCall(glDepthMask(GL_TRUE));
-		}
-		else
-		{
-			GLCall(glDepthMask(GL_FALSE));
-		}
+		const GLuint value = enable ? GL_TRUE : GL_FALSE;
+		GLCall(glDepthMask(value));
 	}
 
 	void RenderBackend::endScene()
@@ -242,6 +236,12 @@ namespace nex
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		//glDisable(GL_POLYGON_OFFSET_FILL);
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
+	}
+
+	RenderBackend* RenderBackend::get()
+	{
+		static RenderBackend backend;
+		return &backend;
 	}
 
 	StaticMeshDrawer* RenderBackend::getModelDrawer()
@@ -330,7 +330,7 @@ namespace nex
 
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
-		auto* shaderManager = ShaderManagerGL::get();
+		auto* shaderManager = ShaderManager::get();
 		EquirectangularSkyBoxShader* shader = dynamic_cast<EquirectangularSkyBoxShader*>(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
 		mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 

@@ -171,6 +171,8 @@ namespace nex
 		*/
 		void endScene();
 
+		static RenderBackend* get();
+
 		RenderTarget2D* getDefaultRenderTarget();
 
 		// Inherited via RenderBackend

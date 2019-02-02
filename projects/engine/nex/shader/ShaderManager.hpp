@@ -12,10 +12,10 @@ namespace nex
 	 /**
 	  * An interface for creating, receiving and storing renderer independent shaders
 	  */
-	class ShaderManagerGL
+	class ShaderManager
 	{
 	public:
-		virtual ~ShaderManagerGL();
+		virtual ~ShaderManager();
 
 		/**
 		 * Provides a singleton of a shader by its shader enumeration.
@@ -33,14 +33,14 @@ namespace nex
 		/**
 		* Provides access the shader manager singleton.
 		*/
-		static ShaderManagerGL* get();
+		static ShaderManager* get();
 
 	private:
 		std::map<ShaderType, Shader*> shaderMap;
 		nex::Logger m_logger;
 
 		// this class is a singleton, thus private constructor
-		ShaderManagerGL();
+		ShaderManager();
 
 		/**
 		 * Creates a shader by its enum and registers it to the shader map.
@@ -50,6 +50,6 @@ namespace nex
 		 */
 		Shader* createShader(ShaderType shaderEnum);
 
-		static std::unique_ptr<ShaderManagerGL> instance;
+		static std::unique_ptr<ShaderManager> instance;
 	};
 }

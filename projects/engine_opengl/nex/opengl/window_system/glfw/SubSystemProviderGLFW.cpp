@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <nex/opengl/gui/ImGUI_GL.hpp>
+#include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
+#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 //#include <utf8.h>
 
 using namespace std;
@@ -28,7 +30,7 @@ Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 	//else
 		//pointer->setWindowed();
 
-	InputGLFW* input = dynamic_cast<InputGLFW*>(pointer->getInputDevice());
+	nex::InputGLFW* input = dynamic_cast<InputGLFW*>(pointer->getInputDevice());
 	input->enableCallbacks();
 
 	return pointer;

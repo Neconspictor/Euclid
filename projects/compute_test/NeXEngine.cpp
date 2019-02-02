@@ -1,5 +1,4 @@
 #include <NeXEngine.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <renderer/ComputeTest_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
@@ -11,11 +10,12 @@
 #include <gui/Controller.hpp>
 #include <boxer/boxer.h>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/texture/TextureManager.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/exception/EnumFormatException.hpp>
 #include <Globals.hpp>
-#include <nex/opengl/model/ModelManagerGL.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
+#include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 
 using namespace nex;
 
@@ -48,8 +48,6 @@ void NeXEngine::init()
 {
 
 	LOG(m_logger, nex::Info) << "Initializing Engine...";
-
-	m_renderBackend = std::make_unique<RenderBackend>();
 
 
 	m_video.handle(m_config);
