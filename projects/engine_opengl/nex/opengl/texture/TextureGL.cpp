@@ -1,12 +1,11 @@
-#include "..\..\..\..\engine\nex\texture\Texture.hpp"
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <cassert>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/texture/Texture.hpp>
 #include <cassert>
 #include <glm/gtc/matrix_transform.inl>
+#include <nex/opengl/opengl.hpp>
 
 using namespace std;
 using namespace glm;
@@ -97,9 +96,9 @@ nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeigh
 
 void nex::CubeMapGL::generateMipMaps()
 {
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID);
-	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID));
+	GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 }
 
 
@@ -140,32 +139,32 @@ nex::DepthStencilMap::DepthStencilMap(int width, int height, const DepthStencilD
 
 nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc) :
 	// Note: we don't care about TextureData properties, as we use DepthStencilDesc
-	Texture2DGL(GL_FALSE, TextureData(), width, height), mDesc(desc)
+	TextureGL(GL_FALSE, GL_TEXTURE_2D), mWidth(width), mHeight(height), mDesc(desc)
 {
 	GLuint format = translate(mDesc.format);
 	GLuint depthType = getDepthType(mDesc.format);
 	GLuint dataType = getDataType(mDesc.format);
 
 	GLCall(glGenTextures(1, &mTextureID));
-	glBindTexture(mTarget, mTextureID);
-	glTexImage2D(mTarget, 0, format, width, height, 0, depthType, dataType, nullptr);
-	glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter));
-	glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter));
+	GLCall(glBindTexture(mTarget, mTextureID));
+	GLCall(glTexImage2D(mTarget, 0, format, mWidth, mHeight, 0, depthType, dataType, nullptr));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter)));
 
-	//glTexParameteri(mTarget, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	//glTexParameteri(mTarget, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mDesc.wrap));
-	glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mDesc.wrap));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_COMPARE_FUNC, translate(desc.compareFunc)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mDesc.wrap)));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mDesc.wrap)));
 
 	if (mDesc.wrap == TextureUVTechnique::ClampToBorder)
 	{
-		glTexParameterfv(mTarget, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data);
+		GLCall(glTexParameterfv(mTarget, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data));
 	}
 
-	glBindTexture(mTarget, 0);
+	GLCall(glBindTexture(mTarget, 0));
 
 
-	RenderBackend::checkGLErrors(BOOST_CURRENT_FUNCTION);
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
 }
 
 nex::DepthStencilMapGL::~DepthStencilMapGL()
@@ -176,6 +175,11 @@ nex::DepthStencilMapGL::~DepthStencilMapGL()
 nex::DepthStencilFormat nex::DepthStencilMap::getFormat()
 {
 	return ((DepthStencilMapGL*)mImpl.get())->mDesc.format;
+}
+
+void nex::DepthStencilMap::resize(unsigned width, unsigned height)
+{
+	((DepthStencilMapGL*)mImpl.get())->resize(width, height);
 }
 
 GLuint nex::DepthStencilMapGL::getDepthType(DepthStencilFormat format)
@@ -270,6 +274,14 @@ const nex::DepthStencilDesc& nex::DepthStencilMapGL::getDescription() const
 
 void nex::DepthStencilMapGL::resize(unsigned width, unsigned height)
 {
+	mWidth = width;
+	mHeight = height;
+
+	GLuint depthType = getDepthType(mDesc.format);
+	GLuint dataType = getDataType(mDesc.format);
+
+	Texture2DGL::resizeTexImage2D(mTextureID, mTarget, 0, mWidth, mHeight, depthType, translate(mDesc.format),
+		dataType, false, nullptr);
 }
 
 unsigned nex::getComponents(const ColorSpace colorSpace)
@@ -372,8 +384,8 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	GLuint textureID;
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	glGenTextures(1, &textureID);
-	glBindTexture(bindTarget, textureID);
+	GLCall(glGenTextures(1, &textureID));
+	GLCall(glBindTexture(bindTarget, textureID));
 
 	if (isCubeMap)
 	{
@@ -382,7 +394,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 			for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[i]; ++mipMapLevel)
 			{
 				auto& image = store.images[i][mipMapLevel];
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get());
+				GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
 			}
 
 		}
@@ -392,7 +404,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 		for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[0]; ++mipMapLevel)
 		{
 			auto& image = store.images[0][mipMapLevel];
-			glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get());
+			GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
 		}
 	}
 
@@ -402,16 +414,18 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	GLint wrapS = translate(data.wrapS);
 	GLint wrapT = translate(data.wrapT);
 
-	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_R, wrapR);
-	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, wrapS);
-	glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, wrapT);
-	glTexParameteri(bindTarget, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_R, wrapR));
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, wrapS));
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, wrapT));
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MIN_FILTER, minFilter));
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter));
+	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f));
 
 
 	if (data.generateMipMaps)
-		glGenerateMipmap(bindTarget);
+	{
+		GLCall(glGenerateMipmap(bindTarget));
+	}
 
 	GLCall(glBindTexture(bindTarget, 0));
 
@@ -455,6 +469,49 @@ nex::TextureGL::TextureGL(GLuint texture, GLuint target) : mTextureID(texture), 
 nex::TextureGL::~TextureGL()
 {
 	release();
+}
+
+void nex::TextureGL::generateTexture(GLuint* out, const TextureDesc& desc, GLenum target)
+{
+	GLCall(glActiveTexture(GL_TEXTURE0 + desc.textureIndex));
+	GLCall(glGenTextures(1, out));
+
+	GLCall(glBindTexture(target, *out));
+
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_R, translate(desc.wrapR)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_S, translate(desc.wrapS)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_T, translate(desc.wrapT)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, translate(desc.minFilter)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_LOD_BIAS, desc.lodBias));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_LOD, desc.minLod));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LOD, desc.maxLod));
+	GLCall(glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, desc.lodBaseLevel));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, desc.lodMaxLevel));
+	GLCall(glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY, desc.maxAnisotropy));
+
+	//swizzle
+	if (desc.useSwizzle)
+	{
+		int swizzle[4];
+		swizzle[0] = translate(desc.swizzle.r);
+		swizzle[1] = translate(desc.swizzle.g);
+		swizzle[2] = translate(desc.swizzle.b);
+		swizzle[3] = translate(desc.swizzle.a);
+
+		GLCall(glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
+	}
+
+	// border color
+	GLCall(glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, (float*)&desc.borderColor.data));
+
+
+	// depth comparison
+	if (desc.useDepthComparison)
+	{
+		GLCall(glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
+		GLCall(glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, translate(desc.compareFunc)));
+	}
 }
 
 GLuint* nex::TextureGL::getTexture()
@@ -551,29 +608,19 @@ void nex::Texture2D::resize(unsigned width, unsigned height)
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
 	TextureGL(GL_FALSE, GL_TEXTURE_2D), mWidth(width), mHeight(height), mData(textureData)
 {
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glGenTextures(1, &mTextureID));
+	TextureGL::generateTexture(&mTextureID, textureData, mTarget);
 
-	GLCall(glBindTexture(mTarget, mTextureID));
+	//GLCall(glBindTexture(mTarget, mTextureID));
 
 	GLCall(glTexImage2D(mTarget, 0, translate(mData.internalFormat), width, height,
 		0, translate(mData.colorspace), translate(mData.pixelDataType),
 		data));
 
+
 	if (mData.generateMipMaps)
 	{
 		GLCall(glGenerateMipmap(mTarget));
 	}
-
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_R, translate(mData.wrapR)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mData.wrapS)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mData.wrapT)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mData.minFilter)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(mData.magFilter)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_LOD_BIAS, 0.0f));
-	GLCall(glTexParameterf(mTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f));
-
-	GLCall(glBindTexture(mTarget, 0));
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
@@ -607,14 +654,21 @@ void nex::Texture2DGL::resize(unsigned width, unsigned height)
 	mWidth = width;
 	mHeight = height;
 
-	GLCall(glBindTexture(GL_TEXTURE_2D, mTextureID));
+	resizeTexImage2D(mTextureID, mTarget, 0, mWidth, mHeight, translate(mData.colorspace), translate(mData.internalFormat),
+		translate(mData.pixelDataType), mData.generateMipMaps, nullptr);
+}
 
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, translate(mData.internalFormat), width, height,
-		0, translate(mData.colorspace), translate(mData.pixelDataType),
-		nullptr));
+void nex::Texture2DGL::resizeTexImage2D(GLuint textureID, GLenum target, GLint level, unsigned width, unsigned height, GLenum  colorspace,
+                                        GLint internalFormat, GLenum  pixelDataType, bool generateMipMaps, const void* data)
+{
+	GLCall(glBindTexture(target, textureID));
 
-	if (mData.generateMipMaps)
-		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+	GLCall(glTexImage2D(target, level, internalFormat, width, height, 0, colorspace, pixelDataType,data));
+
+	if (generateMipMaps)
+	{
+		GLCall(glGenerateMipmap(target));
+	}
 }
 
 
@@ -633,7 +687,7 @@ nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)
 	};
 
 	static const unsigned size = (unsigned)TextureAccess::LAST - (unsigned)TextureAccess::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureAccess and TextureAccessGL don't match!");
 
 	return table[(unsigned)accessType];
 }
@@ -649,7 +703,7 @@ nex::ChannelGL nex::translate(nex::Channel channel)
 	};
 
 	static const unsigned size = (unsigned)Channel::LAST - (unsigned)Channel::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: Channel and ChannelGL don't match!");
 
 	return table[(unsigned)channel];
 }
@@ -667,7 +721,7 @@ nex::TextureFilterGL nex::translate(nex::TextureFilter filter)
 	};
 
 	static const unsigned size = (unsigned)TextureFilter::LAST - (unsigned)TextureFilter::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureFilter and TextureFilterGL don't match!");
 
 	return table[(unsigned)filter];
 }
@@ -684,7 +738,7 @@ nex::TextureUVTechniqueGL nex::translate(nex::TextureUVTechnique technique)
 	};
 
 	static const unsigned size = (unsigned)TextureUVTechnique::LAST - (unsigned)TextureUVTechnique::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureUVTechnique and TextureUVTechniqueGL don't match!");
 
 	return table[(unsigned)technique];
 }
@@ -705,7 +759,7 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 	};
 
 	static const unsigned size = (unsigned)ColorSpace::LAST - (unsigned)ColorSpace::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: ColorSpace and ColorSpaceGL don't match!");
 
 	return table[(unsigned)colorSpace];
 }
@@ -748,7 +802,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 	};
 
 	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: InternFormat and InternFormatGL don't match!");
 
 	return table[(unsigned)format];
 }
@@ -763,7 +817,7 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 	};
 
 	static const unsigned size = (unsigned)PixelDataType::LAST - (unsigned)PixelDataType::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PixelDataType and PixelDataTypeGL don't match!");
 
 	return table[(unsigned)dataType];
 }
@@ -794,7 +848,7 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 	};
 
 	static const unsigned size = (unsigned)TextureTarget::LAST - (unsigned)TextureTarget::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureTarget and TextureTargetGl don't match!");
 
 	return table[(unsigned)target];
 }
@@ -813,7 +867,7 @@ nex::DepthStencilFormatGL nex::translate(nex::DepthStencilFormat format)
 	};
 
 	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: DepthStencilFormat and DepthStencilFormatGL don't match!");
 
 	return table[(unsigned)format];
 }
@@ -828,9 +882,29 @@ nex::DepthStencilTypeGL nex::translate(nex::DepthStencilType type)
 	};
 
 	static const unsigned size = (unsigned)DepthStencilType::LAST - (unsigned)DepthStencilType::FIRST + 1;
-	static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: RenderBuffer::Type matching isn't valid!");
+	static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthStencilType and DepthStencilTypeGL don't match!");
 
 	return typeTable[(unsigned)type];
+}
+
+nex::DepthComparisonGL nex::translate(nex::DepthComparison compareFunc)
+{
+	static DepthComparisonGL const typeTable[]
+	{
+		ALWAYS,
+		EQUAL,
+		GREATER,
+		GREATER_EQUAL,
+		LESS,
+		LESS_EQUAL,
+		NEVER,
+		NOT_EQUAL,
+	};
+
+	static const unsigned size = (unsigned)DepthComparison::LAST - (unsigned)DepthComparison::FIRST + 1;
+	static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
+
+	return typeTable[(unsigned)compareFunc];
 }
 
 

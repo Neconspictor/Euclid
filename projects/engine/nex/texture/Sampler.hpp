@@ -17,6 +17,8 @@ namespace nex
 		int biasLOD = 0;
 		//compareMode TODO
 		//compareFunc TODO
+		bool useDepthComparison = false; // Only used for depth-stencil maps
+		DepthComparison compareFunction = DepthComparison::LESS_EQUAL;
 		float anisotropy = 1.0f;
 	};
 
@@ -49,10 +51,10 @@ namespace nex
 		void setAnisotropy(float anisotropy);
 
 		// Has to be implemented by renderer backend
-		void setCompareMode(unsigned mode);
+		void useDepthComparison(bool use);
 
 		// Has to be implemented by renderer backend
-		void setCompareFunction(unsigned compareFunction);
+		void setCompareFunction(DepthComparison compareFunction);
 
 		// Has to be implemented by renderer backend
 		void setWrapS(TextureUVTechnique wrap);

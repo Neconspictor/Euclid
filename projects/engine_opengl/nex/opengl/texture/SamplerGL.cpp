@@ -1,5 +1,5 @@
 #include <nex/opengl/texture/SamplerGL.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include "nex/opengl/opengl.hpp"
 
 using namespace nex;
 
@@ -17,10 +17,8 @@ SamplerGL::SamplerGL(const SamplerState& state) : Sampler(state, this), m_sample
 	setMinLOD(mState.minLOD);
 	setMaxLOD(mState.maxLOD);
 	setLodBias(mState.biasLOD);
-
-
-	setCompareMode(GL_NONE);
-	setCompareFunction(GL_LEQUAL);
+	useDepthComparison(state.useDepthComparison);
+	setCompareFunction(state.compareFunction);
 
 	mImpl = this;
 }
@@ -95,14 +93,17 @@ void Sampler::setAnisotropy(float anisotropy)
 	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, &mState.anisotropy));
 }
 
-void Sampler::setCompareMode(GLuint mode)
+void Sampler::useDepthComparison(bool use)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_MODE, mode));
+	mState.useDepthComparison = use;
+	const GLuint translated = mState.useDepthComparison ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
+	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_MODE, translated));
 }
 
-void Sampler::setCompareFunction(GLuint compareFunction)
+void Sampler::setCompareFunction(DepthComparison compareFunction)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_FUNC, compareFunction));
+	mState.compareFunction = compareFunction;
+	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_FUNC, translate(mState.compareFunction)));
 }
 
 void Sampler::setWrapS(TextureUVTechnique wrap)

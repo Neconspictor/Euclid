@@ -144,6 +144,18 @@ namespace nex
 		DEPTH_STENCIL = GL_DEPTH_STENCIL,
 	};
 
+	enum DepthComparisonGL
+	{
+		ALWAYS = GL_ALWAYS,
+		EQUAL = GL_EQUAL,
+		GREATER = GL_GREATER,
+		GREATER_EQUAL = GL_GEQUAL,
+		LESS = GL_LESS,
+		LESS_EQUAL = GL_LEQUAL,
+		NEVER = GL_NEVER,
+		NOT_EQUAL = GL_NOTEQUAL,
+	};
+
 	GLuint translate(bool boolean);
 	TextureAccessGL translate(nex::TextureAccess);
 	ChannelGL translate(nex::Channel);
@@ -156,6 +168,8 @@ namespace nex
 	//DepthStencilGL translate(nex::DepthStencil);
 	DepthStencilFormatGL translate(nex::DepthStencilFormat);
 	DepthStencilTypeGL translate(nex::DepthStencilType);
+	DepthComparisonGL translate(nex::DepthComparison);
+
 
 
 	class TextureGL : public TextureImpl
@@ -165,6 +179,8 @@ namespace nex
 		TextureGL(GLuint texture, GLuint target);
 
 		virtual ~TextureGL();
+
+		static void generateTexture(GLuint* out, const TextureDesc& desc, GLenum target);
 
 		GLuint* getTexture();
 
@@ -198,7 +214,19 @@ namespace nex
 		void setHeight(int height);
 		void setWidth(int width);
 
-		virtual void resize(unsigned width, unsigned height);
+		void resize(unsigned width, unsigned height);
+
+		static void resizeTexImage2D(
+			GLuint textureID,
+			GLenum target,
+			GLint level,
+			unsigned width,
+			unsigned height,
+			GLenum  colorspace,
+			GLint  internalFormat,
+			GLenum  pixelDataType, 
+			bool generateMipMaps,
+			const void* data);
 
 	protected:
 		friend Texture2D;
@@ -250,7 +278,7 @@ namespace nex
 	};
 
 
-	class DepthStencilMapGL : public Texture2DGL
+	class DepthStencilMapGL : public TextureGL
 	{
 	public:
 		explicit DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc);
@@ -264,10 +292,12 @@ namespace nex
 
 		const DepthStencilDesc& getDescription() const;
 
-		void resize(unsigned width, unsigned height) override;
+		void resize(unsigned width, unsigned height);
 
 	private:
 		friend DepthStencilMap;
+		unsigned mWidth;
+		unsigned mHeight;
 		DepthStencilDesc mDesc;
 	};
 
