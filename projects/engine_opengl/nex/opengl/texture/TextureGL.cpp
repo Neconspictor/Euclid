@@ -145,31 +145,12 @@ nex::DepthStencilMapGL::DepthStencilMapGL(int width, int height, const DepthSten
 	GLuint depthType = getDepthType(mDesc.format);
 	GLuint dataType = getDataType(mDesc.format);
 
-	GLCall(glGenTextures(1, &mTextureID));
+	TextureGL::generateTexture(&mTextureID, desc, mTarget);
+
 	GLCall(glBindTexture(mTarget, mTextureID));
 	GLCall(glTexImage2D(mTarget, 0, format, mWidth, mHeight, 0, depthType, dataType, nullptr));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MIN_FILTER, translate(mDesc.minFilter)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter)));
-
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_COMPARE_FUNC, translate(desc.compareFunc)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_S, translate(mDesc.wrap)));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_WRAP_T, translate(mDesc.wrap)));
-
-	if (mDesc.wrap == TextureUVTechnique::ClampToBorder)
-	{
-		GLCall(glTexParameterfv(mTarget, GL_TEXTURE_BORDER_COLOR, (GLfloat*)&mDesc.borderColor.data));
-	}
-
-	GLCall(glBindTexture(mTarget, 0));
-
 
 	checkGLErrors(BOOST_CURRENT_FUNCTION);
-}
-
-nex::DepthStencilMapGL::~DepthStencilMapGL()
-{
-	release();
 }
 
 nex::DepthStencilFormat nex::DepthStencilMap::getFormat()
@@ -181,6 +162,7 @@ void nex::DepthStencilMap::resize(unsigned width, unsigned height)
 {
 	((DepthStencilMapGL*)mImpl.get())->resize(width, height);
 }
+
 
 GLuint nex::DepthStencilMapGL::getDepthType(DepthStencilFormat format)
 {
@@ -281,6 +263,56 @@ void nex::DepthStencilMapGL::resize(unsigned width, unsigned height)
 	GLuint dataType = getDataType(mDesc.format);
 
 	Texture2DGL::resizeTexImage2D(mTextureID, mTarget, 0, mWidth, mHeight, depthType, translate(mDesc.format),
+		dataType, false, nullptr);
+}
+
+
+nex::DepthStencilMapArray::DepthStencilMapArray(unsigned width, unsigned height, unsigned depth,
+	const DepthStencilDesc& desc) :
+	Texture(make_unique<DepthStencilMapArrayGL>(width, height, depth, desc))
+{
+}
+
+nex::DepthStencilFormat nex::DepthStencilMapArray::getFormat()
+{
+	return ((DepthStencilMapArrayGL*)mImpl.get())->mDesc.format;
+}
+
+void nex::DepthStencilMapArray::resize(unsigned width, unsigned height, unsigned depth)
+{
+	((DepthStencilMapArrayGL*)mImpl.get())->resize(width, height, depth);
+}
+
+nex::DepthStencilMapArrayGL::DepthStencilMapArrayGL(unsigned width, unsigned height, unsigned depth,
+	const DepthStencilDesc& desc) :
+	// Note: we don't care about TextureData properties, as we use DepthStencilDesc
+	TextureGL(GL_FALSE, GL_TEXTURE_2D_ARRAY), mWidth(width), mHeight(height), mDepth(depth), mDesc(desc)
+{
+	GLuint format = translate(mDesc.format);
+	GLuint depthType = DepthStencilMapGL::getDepthType(mDesc.format);
+	GLuint dataType = DepthStencilMapGL::getDataType(mDesc.format);
+
+	generateTexture(&mTextureID, desc, mTarget);
+	resizeTexImage3D(mTextureID, mTarget, 0, mWidth, mHeight, mDepth, depthType, format, dataType, false, nullptr);
+
+	checkGLErrors(BOOST_CURRENT_FUNCTION);
+}
+
+const nex::DepthStencilDesc& nex::DepthStencilMapArrayGL::getDescription() const
+{
+	return mDesc;
+}
+
+void nex::DepthStencilMapArrayGL::resize(unsigned width, unsigned height, unsigned depth)
+{
+	mWidth = width;
+	mHeight = height;
+	mDepth = depth;
+
+	GLuint depthType = DepthStencilMapGL::getDepthType(mDesc.format);
+	GLuint dataType = DepthStencilMapGL::getDataType(mDesc.format);
+
+	resizeTexImage3D(mTextureID, mTarget, 0, mWidth, mHeight, mDepth, depthType, translate(mDesc.format),
 		dataType, false, nullptr);
 }
 
@@ -385,6 +417,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	GLuint textureID;
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glGenTextures(1, &textureID));
+	TextureGL::generateTexture(&textureID, data, bindTarget);
 	GLCall(glBindTexture(bindTarget, textureID));
 
 	if (isCubeMap)
@@ -407,19 +440,6 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 			GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
 		}
 	}
-
-	GLint minFilter = translate(data.minFilter);
-	GLint magFilter = translate(data.magFilter);
-	GLint wrapR = translate(data.wrapR);
-	GLint wrapS = translate(data.wrapS);
-	GLint wrapT = translate(data.wrapT);
-
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_R, wrapR));
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_S, wrapS));
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_WRAP_T, wrapT));
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MIN_FILTER, minFilter));
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MAG_FILTER, magFilter));
-	GLCall(glTexParameteri(bindTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f));
 
 
 	if (data.generateMipMaps)
@@ -471,7 +491,7 @@ nex::TextureGL::~TextureGL()
 	release();
 }
 
-void nex::TextureGL::generateTexture(GLuint* out, const TextureDesc& desc, GLenum target)
+void nex::TextureGL::generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + desc.textureIndex));
 	GLCall(glGenTextures(1, out));
@@ -483,9 +503,9 @@ void nex::TextureGL::generateTexture(GLuint* out, const TextureDesc& desc, GLenu
 	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_T, translate(desc.wrapT)));
 	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, translate(desc.minFilter)));
 	GLCall(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter)));
-	GLCall(glTexParameteri(target, GL_TEXTURE_LOD_BIAS, desc.lodBias));
-	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_LOD, desc.minLod));
-	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LOD, desc.maxLod));
+	GLCall(glTexParameteri(target, GL_TEXTURE_LOD_BIAS, desc.biasLOD));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_LOD, desc.minLOD));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LOD, desc.maxLOD));
 	GLCall(glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, desc.lodBaseLevel));
 	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, desc.lodMaxLevel));
 	GLCall(glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY, desc.maxAnisotropy));
@@ -514,6 +534,22 @@ void nex::TextureGL::generateTexture(GLuint* out, const TextureDesc& desc, GLenu
 	}
 }
 
+GLuint nex::TextureGL::getFormat(int numberComponents)
+{
+	switch (numberComponents) {
+	case 4: return GL_RGBA;
+	case 3: return GL_RGB;
+	case 2: return GL_RG;
+	case 1: return GL_RED;
+	default: {
+		throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
+	}
+	}
+
+	// won't be reached
+	return GL_FALSE;
+}
+
 GLuint* nex::TextureGL::getTexture()
 {
 	return &mTextureID;
@@ -536,20 +572,31 @@ void nex::TextureGL::readback(TextureTarget target, unsigned mipmapLevel, ColorS
 	GLCall(glGetTexImage(translate(target), mipmapLevel, translate(format), translate(type), dest));
 }
 
-GLuint nex::TextureGL::getFormat(int numberComponents)
+void nex::TextureGL::resizeTexImage2D(GLuint textureID, GLenum target, GLint level, unsigned width, unsigned height, GLenum  colorspace,
+	GLint internalFormat, GLenum  pixelDataType, bool generateMipMaps, const void* data)
 {
-	switch (numberComponents) {
-	case 4: return GL_RGBA;
-	case 3: return GL_RGB;
-	case 2: return GL_RG;
-	case 1: return GL_RED;
-	default: {
-		throw_with_trace(runtime_error("TextureManagerGL::getFormat(int): Not supported number of components " + numberComponents));
-	}
-	}
+	GLCall(glBindTexture(target, textureID));
 
-	// won't be reached
-	return GL_FALSE;
+	GLCall(glTexImage2D(target, level, internalFormat, width, height, 0, colorspace, pixelDataType, data));
+
+	if (generateMipMaps)
+	{
+		GLCall(glGenerateMipmap(target));
+	}
+}
+
+void nex::TextureGL::resizeTexImage3D(GLuint textureID, GLenum target, GLint level, unsigned width, unsigned height,
+	unsigned depth, GLenum colorspace, GLint internalFormat, GLenum pixelDataType, bool generateMipMaps,
+	const void* data)
+{
+	GLCall(glBindTexture(target, textureID));
+
+	GLCall(glTexImage3D(target, level, internalFormat, width, height, depth, 0, colorspace, pixelDataType, data));
+
+	if (generateMipMaps)
+	{
+		GLCall(glGenerateMipmap(target));
+	}
 }
 
 void nex::TextureGL::release()
@@ -658,17 +705,114 @@ void nex::Texture2DGL::resize(unsigned width, unsigned height)
 		translate(mData.pixelDataType), mData.generateMipMaps, nullptr);
 }
 
-void nex::Texture2DGL::resizeTexImage2D(GLuint textureID, GLenum target, GLint level, unsigned width, unsigned height, GLenum  colorspace,
-                                        GLint internalFormat, GLenum  pixelDataType, bool generateMipMaps, const void* data)
+nex::Texture2DArray::Texture2DArray(std::unique_ptr<TextureImpl> impl) : Texture(std::move(impl))
 {
-	GLCall(glBindTexture(target, textureID));
+}
 
-	GLCall(glTexImage2D(target, level, internalFormat, width, height, 0, colorspace, pixelDataType,data));
+nex::Texture2DArray::Texture2DArray(unsigned width, unsigned height, unsigned size, const TextureData& textureData,
+	const void* data) :
+	Texture(make_unique<Texture2DArrayGL>(width, height, size, textureData, data))
+{
+}
 
-	if (generateMipMaps)
-	{
-		GLCall(glGenerateMipmap(target));
-	}
+void nex::Texture2DArray::resize(unsigned width, unsigned height, unsigned size)
+{
+	auto impl = (Texture2DArrayGL*)mImpl.get();
+	impl->resize(width, height, size);
+}
+
+unsigned nex::Texture2DArray::getWidth() const
+{
+	auto impl = (Texture2DArrayGL*)mImpl.get();
+	return impl->getWidth();
+}
+
+unsigned nex::Texture2DArray::getHeight() const
+{
+	auto impl = (Texture2DArrayGL*)mImpl.get();
+	return impl->getHeight();
+}
+
+unsigned nex::Texture2DArray::getSize() const
+{
+	auto impl = (Texture2DArrayGL*)mImpl.get();
+	return impl->getSize();
+}
+
+
+nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size, const TextureData& textureData,
+	const void* data) :
+	TextureGL(GL_FALSE, GL_TEXTURE_2D_ARRAY), mWidth(width), mHeight(height), mSize(size), mData(textureData)
+{
+	TextureGL::generateTexture(&mTextureID, textureData, mTarget);
+
+	//GLCall(glBindTexture(mTarget, mTextureID));
+
+	resizeTexImage3D(mTextureID, 
+		mTarget, 
+		0, 
+		mWidth, 
+		mHeight, 
+		mSize, 
+		translate(mData.colorspace), 
+		translate(mData.internalFormat),
+		translate(mData.pixelDataType), 
+		mData.generateMipMaps, 
+		data);
+}
+
+nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned size)
+	: TextureGL(texture, GL_TEXTURE_2D), mWidth(width), mHeight(height), mSize(size), mData(textureData)
+{
+}
+
+unsigned nex::Texture2DArrayGL::getWidth() const
+{
+	return mWidth;
+}
+
+unsigned nex::Texture2DArrayGL::getHeight() const
+{
+	return mHeight;
+}
+
+unsigned nex::Texture2DArrayGL::getSize() const
+{
+	return mSize;
+}
+
+void nex::Texture2DArrayGL::setHeight(unsigned height)
+{
+	mHeight = height;
+}
+
+void nex::Texture2DArrayGL::setWidth(unsigned width)
+{
+	mWidth = width;
+}
+
+void nex::Texture2DArrayGL::setSize(unsigned size)
+{
+	mSize = size;
+}
+
+void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned size)
+{
+	mWidth = width;
+	mHeight = height;
+	mSize = size;
+
+	resizeTexImage3D(mTextureID, 
+		mTarget, 
+		0, 
+		mWidth, 
+		mHeight, 
+		mSize, 
+		translate(mData.colorspace), 
+		translate(mData.internalFormat),
+		translate(mData.pixelDataType), 
+		mData.generateMipMaps, 
+		nullptr);
 }
 
 
@@ -906,33 +1050,3 @@ nex::DepthComparisonGL nex::translate(nex::DepthComparison compareFunc)
 
 	return typeTable[(unsigned)compareFunc];
 }
-
-
-/*
-nex::Texture* nex::Texture::create(TextureTarget target, const TextureData& data)
-{
-	nex::Guard<Texture> texture(Texture::create());
-	GLuint textureID;
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	glGenTextures(1, &textureID);
-
-	const GLenum glTarget = translate(target);
-
-	glBindTexture(glTarget, textureID);
-
-	if (data.generateMipMaps)
-		glGenerateMipmap(glTarget);
-
-	glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, translate(data.uvTechnique));
-	glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, translate(data.uvTechnique));
-	glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, translate(data.minFilter));
-	glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, translate(data.magFilter));
-	glTexParameteri(glTarget, GL_TEXTURE_LOD_BIAS, 0.0f);
-	glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
-
-	GLCall(glBindTexture(glTarget, 0));
-
-	((TextureGL*)texture->getImpl())->setTexture(textureID);
-
-	return texture.reset();
-}*/

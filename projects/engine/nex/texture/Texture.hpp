@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/util/Math.hpp>
+#include "Sampler.hpp"
 
 namespace nex
 {
@@ -152,30 +153,19 @@ namespace nex
 		NOT_EQUAL, LAST = NOT_EQUAL
 	};
 
-	struct TextureDesc
+	struct BaseTextureDesc : public SamplerDesc
 	{
-		glm::vec4 borderColor = glm::vec4(0.0f);
 		DepthComparison compareFunc = DepthComparison::LESS_EQUAL;
 		bool generateMipMaps = false;
 		unsigned lodBaseLevel = 0; // index of the lowest defined mipmap level
-		float lodBias = 0.0f;
 		unsigned lodMaxLevel = 1000.0f; //index of the highest defined mipmap level
-		TextureFilter magFilter = TextureFilter::Linear;
-		float maxAnisotropy = 0.0f; // anisotropy (range: [0, 16])
-		float maxLod = 1000.0f;
-		TextureFilter minFilter = TextureFilter::Linear_Mipmap_Linear;
-		float minLod = -1000.0f;
 		glm::vec<4, Channel, glm::highp> swizzle = { Channel::RED, Channel::GREEN, Channel::BLUE, Channel::ALPHA };
 		unsigned textureIndex = 0;
-		bool useDepthComparison = false;
 		bool useSwizzle = false;
-		TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
-		TextureUVTechnique wrapS = TextureUVTechnique::Repeat;
-		TextureUVTechnique wrapT = TextureUVTechnique::Repeat;
 	};
 
 
-	struct TextureData : public TextureDesc
+	struct TextureData : public BaseTextureDesc
 	{
 		ColorSpace colorspace = ColorSpace::SRGBA;
 		PixelDataType pixelDataType = PixelDataType::UBYTE;
@@ -294,8 +284,28 @@ namespace nex
 
 		unsigned getWidth() const;
 		unsigned getHeight() const;
+	};
 
-	protected:
+	class Texture2DArray : public Texture
+	{
+	public:
+
+		// creates an unintialized texture2D object. Shouldn't be used by user code.
+		// 
+		Texture2DArray(std::unique_ptr<TextureImpl> impl);
+
+		// Has to be implemented by renderer backend
+		Texture2DArray(unsigned width, unsigned height, unsigned size, const TextureData& textureData, const void* data);
+
+		/**
+		 * Resizes this 2d texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned width, unsigned height, unsigned size);
+
+		unsigned getWidth() const;
+		unsigned getHeight() const;
+		unsigned getSize() const;
 	};
 
 	class RenderBuffer : public Texture {
@@ -367,30 +377,36 @@ namespace nex
 		static glm::mat4 backSide;
 	};
 
-	struct DepthStencilDesc
+	struct DepthStencilDesc : public BaseTextureDesc
 	{
-		TextureFilter minFilter = TextureFilter::NearestNeighbor;  // minification filter
-		TextureFilter magFilter = TextureFilter::NearestNeighbor;  // magnification filter
-		TextureUVTechnique wrap = TextureUVTechnique::ClampToEdge;
 		DepthStencilFormat format = DepthStencilFormat::DEPTH24_STENCIL8;
-		DepthComparison compareFunc = DepthComparison::LESS_EQUAL;
-		glm::vec4 borderColor = glm::vec4(1.0f);
 		
 
-		DepthStencilDesc() {}
+		DepthStencilDesc()
+		{
+			minFilter = TextureFilter::NearestNeighbor;
+			magFilter = TextureFilter::NearestNeighbor;
+			wrapS = TextureUVTechnique::ClampToEdge;
+			wrapT = TextureUVTechnique::ClampToEdge;
+			compareFunc = DepthComparison::LESS_EQUAL;
+			useDepthComparison = true;
+			borderColor = glm::vec4(1.0f);
+		}
 
 		DepthStencilDesc(TextureFilter minFilter,
 			TextureFilter magFilter,
 			TextureUVTechnique wrap,
 			DepthStencilFormat format,
 			DepthComparison compareFunc,
-			glm::vec4 borderColor) : minFilter(minFilter),
-			magFilter(magFilter),
-			wrap(wrap),
-			format(format),
-			compareFunc(compareFunc),
-			borderColor(borderColor)
+			glm::vec4 borderColor) : format(format)
 		{
+			this->minFilter = minFilter;
+			this->magFilter = magFilter;
+			this->wrapS = wrap;
+			this->wrapT = wrap;
+			this->compareFunc = compareFunc;
+			this->useDepthComparison = true;
+			this->borderColor = borderColor;
 		}
 	};
 
@@ -407,5 +423,16 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		void resize(unsigned width, unsigned height);
+	};
+
+	class DepthStencilMapArray : public Texture
+	{
+	public:
+		explicit DepthStencilMapArray(unsigned width, unsigned height, unsigned depth, const DepthStencilDesc& desc);
+
+		// Has to be implemented by renderer backend
+		DepthStencilFormat getFormat();
+
+		void resize(unsigned width, unsigned height, unsigned depth);
 	};
 }

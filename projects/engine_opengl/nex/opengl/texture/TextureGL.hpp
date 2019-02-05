@@ -180,7 +180,9 @@ namespace nex
 
 		virtual ~TextureGL();
 
-		static void generateTexture(GLuint* out, const TextureDesc& desc, GLenum target);
+		static void generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target);
+
+		static GLuint getFormat(int numberComponents);
 
 		GLuint* getTexture();
 
@@ -188,10 +190,34 @@ namespace nex
 
 		void release();
 
+		static void resizeTexImage2D(
+			GLuint textureID,
+			GLenum target,
+			GLint level,
+			unsigned width,
+			unsigned height,
+			GLenum  colorspace,
+			GLint  internalFormat,
+			GLenum  pixelDataType,
+			bool generateMipMaps,
+			const void* data);
+
+
+		static void resizeTexImage3D(
+			GLuint textureID,
+			GLenum target,
+			GLint level,
+			unsigned width,
+			unsigned height,
+			unsigned depth,
+			GLenum  colorspace,
+			GLint  internalFormat,
+			GLenum  pixelDataType,
+			bool generateMipMaps,
+			const void* data);
+
 		void setTexture(GLuint id);
 		GLuint getTarget() const;
-
-		static GLuint getFormat(int numberComponents);
 
 	protected:
 		friend Texture;
@@ -216,22 +242,35 @@ namespace nex
 
 		void resize(unsigned width, unsigned height);
 
-		static void resizeTexImage2D(
-			GLuint textureID,
-			GLenum target,
-			GLint level,
-			unsigned width,
-			unsigned height,
-			GLenum  colorspace,
-			GLint  internalFormat,
-			GLenum  pixelDataType, 
-			bool generateMipMaps,
-			const void* data);
-
 	protected:
 		friend Texture2D;
 		unsigned mWidth;
 		unsigned mHeight;
+		TextureData mData;
+	};
+
+	class Texture2DArrayGL : public TextureGL
+	{
+		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, const TextureData& textureData, const void* data);
+		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned size = 0);
+
+		virtual ~Texture2DArrayGL() = default;
+
+		unsigned getWidth() const;
+		unsigned getHeight() const;
+		unsigned getSize() const;
+
+		void setHeight(unsigned height);
+		void setWidth(unsigned width);
+		void setSize(unsigned size);
+
+		void resize(unsigned width, unsigned height, unsigned size);
+
+	protected:
+		friend Texture2DArray;
+		unsigned mWidth;
+		unsigned mHeight;
+		unsigned mSize;
 		TextureData mData;
 	};
 
@@ -283,8 +322,6 @@ namespace nex
 	public:
 		explicit DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc);
 
-		virtual ~DepthStencilMapGL();
-
 		static GLuint getDepthType(DepthStencilFormat format);
 		static GLuint getDataType(DepthStencilFormat format);
 		static GLuint getAttachmentType(DepthStencilFormat format);
@@ -298,6 +335,23 @@ namespace nex
 		friend DepthStencilMap;
 		unsigned mWidth;
 		unsigned mHeight;
+		DepthStencilDesc mDesc;
+	};
+
+	class DepthStencilMapArrayGL : public TextureGL
+	{
+	public:
+		explicit DepthStencilMapArrayGL(unsigned width, unsigned height, unsigned depth, const DepthStencilDesc& desc);
+
+		const DepthStencilDesc& getDescription() const;
+
+		void resize(unsigned width, unsigned height, unsigned depth);
+
+	private:
+		friend DepthStencilMapArray;
+		unsigned mWidth;
+		unsigned mHeight;
+		unsigned mDepth;
 		DepthStencilDesc mDesc;
 	};
 

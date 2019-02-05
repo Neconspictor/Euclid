@@ -4,7 +4,7 @@
 
 namespace nex
 {
-	struct SamplerState
+	struct SamplerDesc
 	{
 		glm::vec4 borderColor = { 0,0,0,0 };
 		TextureFilter minFilter = TextureFilter::Near_Mipmap_Linear;
@@ -14,12 +14,10 @@ namespace nex
 		TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
 		int minLOD = -1000;
 		int maxLOD = 1000;
-		int biasLOD = 0;
-		//compareMode TODO
-		//compareFunc TODO
+		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
 		DepthComparison compareFunction = DepthComparison::LESS_EQUAL;
-		float anisotropy = 1.0f;
+		float maxAnisotropy = 0.0f;
 	};
 
 
@@ -34,12 +32,12 @@ namespace nex
 
 		virtual ~Sampler() = default;
 
-		static Sampler* create(const SamplerState& samplerState);
+		static Sampler* create(const SamplerDesc& samplerState);
 
 		// Has to be implemented by renderer backend
 		void bind(unsigned textureBindingSlot);
 
-		const SamplerState& getState() const;
+		const SamplerDesc& getState() const;
 
 		// Has to be implemented by renderer backend
 		void setMinFilter(TextureFilter filter);
@@ -81,8 +79,8 @@ namespace nex
 		void unbind(unsigned textureBindingSlot);
 
 	protected:
-		Sampler(const SamplerState& samplerState, void* impl) : mState(samplerState), mImpl(impl) {}
-		SamplerState mState;
+		Sampler(const SamplerDesc& samplerState, void* impl) : mState(samplerState), mImpl(impl) {}
+		SamplerDesc mState;
 
 		//Used in order to avoid virtual function calls
 		void* mImpl;

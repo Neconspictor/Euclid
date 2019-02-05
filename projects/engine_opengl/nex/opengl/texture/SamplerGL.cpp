@@ -3,13 +3,13 @@
 
 using namespace nex;
 
-SamplerGL::SamplerGL(const SamplerState& state) : Sampler(state, this), m_samplerID(GL_FALSE)
+SamplerGL::SamplerGL(const SamplerDesc& state) : Sampler(state, this), m_samplerID(GL_FALSE)
 {
 	GLCall(glGenSamplers(1, &m_samplerID));
 
 	setMinFilter(mState.minFilter);
 	setMagFilter(mState.magFilter);
-	setAnisotropy(mState.anisotropy);
+	setAnisotropy(mState.maxAnisotropy);
 	setWrapS(mState.wrapS);
 	setWrapR(mState.wrapR);
 	setWrapT(mState.wrapT);
@@ -36,7 +36,7 @@ GLuint SamplerGL::getID() const
 	return m_samplerID;
 }
 
-Sampler* Sampler::create(const SamplerState& samplerState)
+Sampler* Sampler::create(const SamplerDesc& samplerState)
 {
 	return new SamplerGL(samplerState);
 }
@@ -46,7 +46,7 @@ void Sampler::bind(unsigned textureBindingSlot)
 	GLCall(glBindSampler(textureBindingSlot, ((SamplerGL*)mImpl)->getID()));
 }
 
-const SamplerState& Sampler::getState() const
+const SamplerDesc& Sampler::getState() const
 {
 	return mState;
 }
@@ -90,7 +90,7 @@ void Sampler::setAnisotropy(float anisotropy)
 	anisotropy = std::min(anisotropy, maxAnisotropy);
 
 	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropy));
-	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, &mState.anisotropy));
+	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, &mState.maxAnisotropy));
 }
 
 void Sampler::useDepthComparison(bool use)
@@ -145,7 +145,7 @@ void Sampler::setMaxLOD(float lod)
 void Sampler::setLodBias(float bias)
 {
 	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_LOD_BIAS, bias));
-	GLCall(glGetSamplerParameterIiv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_LOD_BIAS, &mState.biasLOD));
+	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_LOD_BIAS, &mState.biasLOD));
 }
 
 void Sampler::unbind(unsigned textureBindingSlot)

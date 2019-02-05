@@ -7,9 +7,9 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
-#include "nex/opengl/texture/RenderTargetGL.hpp"
+#include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <nex/opengl/opengl.hpp>
-#include "nex/drawing/StaticMeshDrawer.hpp"
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 using namespace std;
 using namespace nex;
@@ -118,15 +118,6 @@ namespace nex
 	{
 		release();
 	}
-
-	// An array of 3 vectors which represents 3 vertices
-	static const GLfloat g_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		0.0f,  1.0f, 0.0f,
-	};
-	GLuint vertexbuffer;
-	GLuint vertexArrayObjID;
 
 	void RenderBackend::init()
 	{

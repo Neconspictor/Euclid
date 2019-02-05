@@ -28,7 +28,7 @@ namespace nex
 	class SamplerGL : public Sampler
 	{
 	public:
-		SamplerGL(const SamplerState& state);
+		SamplerGL(const SamplerDesc& state);
 
 		virtual ~SamplerGL();
 

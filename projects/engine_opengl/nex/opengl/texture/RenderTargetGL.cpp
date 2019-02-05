@@ -1,8 +1,9 @@
 #include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <cassert>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <nex/opengl/opengl.hpp>
+#include <nex/RenderBackend.hpp>
 
 using namespace std;
 using namespace glm;
@@ -65,16 +66,8 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 	auto renderBuffer = make_shared<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24);
 	
 	bind();
-
 	useDepthStencilMap(renderBuffer);
 
-	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	GLuint wrapR = translate(data.wrapR);
-	GLuint wrapS = translate(data.wrapS);
-	GLuint wrapT = translate(data.wrapT);
-	GLuint minFilter = translate(data.minFilter);
-	GLuint magFilter = translate(data.magFilter);
 	GLuint internalFormat = translate(data.internalFormat);
 	GLuint colorspace = translate(data.colorspace);
 	GLuint pixelDataType = translate(data.pixelDataType);
@@ -82,8 +75,9 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 
 	//pre-allocate the six faces of the cubemap
 	CubeMapGL* textureGL = (CubeMapGL*)mRenderResult->getImpl();
-	GLCall(glGenTextures(1, textureGL->getTexture()));
-	GLCall(glActiveTexture(GL_TEXTURE0));
+
+	TextureGL::generateTexture(textureGL->getTexture(), data, GL_TEXTURE_CUBE_MAP);
+
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, *textureGL->getTexture()));
 	for (int i = 0; i < 6; ++i)
 	{
@@ -91,16 +85,11 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 			pixelDataType, nullptr));
 	}
 
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter));
-	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter));
-
 	if (data.generateMipMaps)
+	{
 		GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+	}
 
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 	unbind();
 }
 
@@ -439,12 +428,6 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 :
 	RenderTargetGL(width, height, std::move(depthStencilMap))
 {
-
-	GLuint wrapR = translate(data.wrapR);
-	GLuint wrapS = translate(data.wrapS);
-	GLuint wrapT = translate(data.wrapT);
-	GLuint minFilter = translate(data.minFilter);
-	GLuint magFilter = translate(data.magFilter);
 	GLuint internalFormat = translate(data.internalFormat);
 	GLuint colorspace = translate(data.colorspace);
 	GLuint pixelDataType = translate(data.pixelDataType);
@@ -462,12 +445,10 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	// Generate texture
 
 	GLuint textureID;
-	GLCall(glGenTextures(1, &textureID));
+	TextureGL::generateTexture(&textureID, data, textureTargetType);
 
-
-	//glActiveTexture(GL_TEXTURE0);
 	GLCall(glBindTexture(textureTargetType, textureID));
-	//glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
+
 
 	if (isMultiSample)
 	{
@@ -476,31 +457,6 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	{
 		GLCall(glTexImage2D(textureTargetType, 0, internalFormat, width, height, 0, colorspace, pixelDataType, 0));
 	}
-
-	
-
-	GLCall(glTexParameteri(textureTargetType, GL_TEXTURE_MIN_FILTER, minFilter));
-	GLCall(glTexParameteri(textureTargetType, GL_TEXTURE_MAG_FILTER, magFilter));
-
-	// clamp is important so that no pixel artifacts occur on the border!
-	GLCall(glTexParameteri(textureTargetType, GL_TEXTURE_WRAP_R, wrapR));
-	GLCall(glTexParameteri(textureTargetType, GL_TEXTURE_WRAP_S, wrapS));
-	GLCall(glTexParameteri(textureTargetType, GL_TEXTURE_WRAP_T, wrapT));
-
-	//swizzle
-	if (data.useSwizzle)
-	{
-		int swizzle[4];
-		swizzle[0] = translate(data.swizzle.r);
-		swizzle[1] = translate(data.swizzle.g);
-		swizzle[2] = translate(data.swizzle.b);
-		swizzle[3] = translate(data.swizzle.a);
-
-		GLCall(glTexParameteriv(textureTargetType, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
-
-	}
-
-	//glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach texture to currently bound frame buffer
 	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureTargetType, textureID, 0));
@@ -701,21 +657,25 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	mRenderResult = make_unique<CubeMap>(width, height);
 
 	GLuint texture;
-	GLCall(glGenTextures(1, &texture));
+	BaseTextureDesc desc;
+	desc.minFilter = TextureFilter::NearestNeighbor;
+	desc.magFilter = TextureFilter::NearestNeighbor;
+	desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::ClampToEdge;
+	TextureGL::generateTexture(&texture, desc, GL_TEXTURE_CUBE_MAP);
+
+
 	auto textureGL = (TextureGL*)mRenderResult->getImpl();
 	textureGL->setTexture(texture);
 
 	bind();
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
 	for (int i = 0; i < 6; ++i)
+	{
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
 			width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
 
 	bind();
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);

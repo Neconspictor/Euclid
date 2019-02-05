@@ -368,7 +368,7 @@ namespace nex {
 	{
 
 		Sampler* sampler = m_textureManager->getDefaultImageSampler();
-		float anisotropy = sampler->getState().anisotropy;
+		float anisotropy = sampler->getState().maxAnisotropy;
 
 		//float anisotropyBackup = anisotropy;
 

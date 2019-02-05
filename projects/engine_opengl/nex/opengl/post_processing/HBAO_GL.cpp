@@ -3,7 +3,7 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <random>
 #include <nex/gui/Util.hpp>
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/opengl/opengl.hpp>
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)

@@ -65,7 +65,8 @@ namespace nex
 		DepthStencilDesc desc;
 		desc.minFilter = TextureFilter::NearestNeighbor;
 		desc.magFilter = TextureFilter::NearestNeighbor;
-		desc.wrap = TextureUVTechnique::ClampToEdge;
+		desc.wrapS = TextureUVTechnique::ClampToEdge;
+		desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
 		auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
 

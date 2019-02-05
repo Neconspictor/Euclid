@@ -3,12 +3,12 @@
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/SSAO_GL.hpp>
 #include <vector>
-#include <nex/opengl/drawing/ModelDrawerGL.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <random>
 #include <imgui/imgui.h>
 #include <nex/gui/Util.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 using namespace std; 
 using namespace glm;
@@ -339,7 +339,7 @@ namespace nex
 		glScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		tiledBlurRenderTarget->bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		modelDrawer->draw(&screenSprite, tiledBlurShader);
+		StaticMeshDrawer::draw(&screenSprite, tiledBlurShader);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -350,7 +350,7 @@ namespace nex
 
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);
-		modelDrawer->draw(&screenSprite, aoDisplayShader);
+		StaticMeshDrawer::draw(&screenSprite, aoDisplayShader);
 	}
 
 	std::unique_ptr<RenderTarget2D> SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned int height)
