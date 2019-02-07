@@ -35,20 +35,25 @@ namespace nex
 			DEPTH_STENCIL, LAST = DEPTH_STENCIL,
 		};
 
-		std::shared_ptr<Texture> texture;
-		Type type = Type::COLOR;
-		TextureTarget target = TextureTarget::TEXTURE2D;
 		unsigned attachIndex = 0;
 		unsigned mipmapLevel = 0;
+		unsigned layer = 0; // Specifies the layer of an array texture; Must be zero for non array textures;
+		CubeMap::Side side = CubeMap::Side::POSITIVE_X;  // only used when target is TextureTarget::CubeMap
+		TextureTarget target = TextureTarget::TEXTURE2D;
+		Type type = Type::COLOR;
+		std::shared_ptr<Texture> texture;
 
 		RenderAttachment() {}
 
-		RenderAttachment(std::shared_ptr<Texture> texture, Type type, TextureTarget target, unsigned attachIndex, unsigned mipmapLevel)
-		: texture(std::move(texture)), 
-		type(type), 
-		target(target), 
-		attachIndex(attachIndex), 
-		mipmapLevel(mipmapLevel)
+		RenderAttachment( unsigned attachIndex, unsigned mipmapLevel, unsigned layer, CubeMap::Side side, TextureTarget target, Type type, std::shared_ptr<Texture> texture)
+		: 
+			attachIndex(attachIndex), 
+			mipmapLevel(mipmapLevel),
+			layer(layer),
+			side(side),
+			target(target),
+			type(type),
+			texture(std::move(texture))
 		{}
 
 	};
@@ -68,7 +73,7 @@ namespace nex
 		 * Before it can be used for rendering the user has to add attachments, optionally a depth-stencil buffer
 		 * and update the attachments.
 		 */
-		RenderTarget(unsigned width, unsigned height);
+		RenderTarget();
 
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
@@ -82,34 +87,13 @@ namespace nex
 		void clear(int components);
 
 		// Has to be implemented by renderer backend
-		void unbind();
+		void finalizeAttachments();
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);
 
-		/**
-		 * Provides access to the used depth-stencil map.
-		 * Null will be returned if the render target has no assigned depth-stencil map.
-		 */
-		Texture* getDepthStencilMap();
-
-		/**
-		 * Provides access to the used depth-stencil map.
-		 * Null will be returned if the render target has no assigned depth-stencil map.
-		 */
-		std::shared_ptr<Texture> getDepthStencilMapShared();
-
-		// Has to be implemented by renderer backend
-		unsigned getHeight() const;
-
-		// Has to be implemented by renderer backend
-		unsigned getWidth() const;
-
 		// Has to be implemented by renderer backend
 		RenderTargetImpl* getImpl() const;
-
-		// Has to be implemented by renderer backend
-		Texture* getRenderResult();
 
 
 		// Has to be implemented by renderer backend
@@ -120,17 +104,11 @@ namespace nex
 		 */
 		bool isComplete() const;
 
-		/**
-		 * Sets the texture of this render target and returns the old texture.
-		 * NOTE: You should know what you do, when setting the texture manually!
-		 * NOTE: Has to be implemented by renderer backend
-		 */
-		Texture* setRenderResult(Texture* texture);
+		// Has to be implemented by renderer backend
+		void unbind();
 
 		// Has to be implemented by renderer backend
-		void updateAttachments();
-
-		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
+		void updateAttachment(unsigned index);
 
 	protected:
 
@@ -148,7 +126,7 @@ namespace nex
 
 		//Has to be implemented by renderer backend
 		RenderTarget2D(int width, int height, const TextureData& data,
-			unsigned samples = 1, std::shared_ptr<Texture> depthStencilMap = nullptr);
+			unsigned samples = 1);
 
 		// Has to be implemented by renderer backend
 		void blit(RenderTarget2D* dest, const Dimension& sourceDim, int components);

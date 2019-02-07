@@ -51,6 +51,10 @@ namespace nex
 		// srgb formats
 		SRGB = RGB,
 		SRGBA = RGBA,
+
+		DEPTH = GL_DEPTH_COMPONENT,
+		STENCIL = GL_STENCIL_COMPONENTS,
+		DEPTH_STENCIL = GL_DEPTH_STENCIL,
 	};
 
 	enum InternFormatGL
@@ -86,6 +90,14 @@ namespace nex
 		// srgb formats
 		SRGB8 = GL_SRGB8,
 		SRGBA8 = GL_SRGB8_ALPHA8,
+
+		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
+		DEPTH16 = GL_DEPTH_COMPONENT16,
+		DEPTH24 = GL_DEPTH_COMPONENT24,
+		DEPTH32 = GL_DEPTH_COMPONENT32,
+		DEPTH_COMPONENT32F = GL_DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
+		STENCIL8 = GL_STENCIL_INDEX8,   //GL_STENCIL_INDEX8
 	};
 
 	enum PixelDataTypeGL
@@ -93,6 +105,12 @@ namespace nex
 		FLOAT = GL_FLOAT,
 		UBYTE = GL_UNSIGNED_BYTE,
 		UINT = GL_UNSIGNED_INT,
+
+		FLOAT_32_UNSIGNED_INT_24_8_REV = GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
+		UNSIGNED_INT_24_8 = GL_UNSIGNED_INT_24_8,
+		UNSIGNED_INT_8 = GL_UNSIGNED_BYTE,
+		UNSIGNED_SHORT = GL_UNSIGNED_SHORT,
+		UNSIGNED_INT_24 = GL_UNSIGNED_INT,
 	};
 
 	enum TextureTargetGl
@@ -103,19 +121,15 @@ namespace nex
 
 		//2D
 		TEXTURE2D = GL_TEXTURE_2D,
+		TEXTURE2D_MULTISAMPLE = GL_TEXTURE_2D_MULTISAMPLE,
 
 		// 3D
 		TEXTURE2D_ARRAY = GL_TEXTURE_2D_ARRAY,
+		TEXTURE2D_MULTISAMPLE_ARRAY = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
 		TEXTURE3D = GL_TEXTURE_3D,
 
 		// cubemap
 		CUBE_MAP = GL_TEXTURE_CUBE_MAP,
-		CUBE_POSITIVE_X = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-		CUBE_NEGATIVE_X = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-		CUBE_POSITIVE_Y = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-		CUBE_NEGATIVE_Y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-		CUBE_POSITIVE_Z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-		CUBE_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
 	/*enum DepthStencilGL
@@ -125,24 +139,6 @@ namespace nex
 		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8, // GL_DEPTH24_STENCIL8
 		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8,
 	};*/
-
-	enum DepthStencilFormatGL
-	{
-		DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
-		DEPTH16 = GL_DEPTH_COMPONENT16,
-		DEPTH24 = GL_DEPTH_COMPONENT24,
-		DEPTH32 = GL_DEPTH_COMPONENT32,
-		DEPTH_COMPONENT32F = GL_DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
-		STENCIL8 = GL_STENCIL_INDEX8,  //GL_STENCIL_INDEX8
-	};
-
-	enum DepthStencilTypeGL
-	{
-		DEPTH = GL_DEPTH_COMPONENT,
-		STENCIL = GL_STENCIL_INDEX,
-		DEPTH_STENCIL = GL_DEPTH_STENCIL,
-	};
 
 	enum DepthComparisonGL
 	{
@@ -165,9 +161,6 @@ namespace nex
 	InternFormatGL translate(nex::InternFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
-	//DepthStencilGL translate(nex::DepthStencil);
-	DepthStencilFormatGL translate(nex::DepthStencilFormat);
-	DepthStencilTypeGL translate(nex::DepthStencilType);
 	DepthComparisonGL translate(nex::DepthComparison);
 
 
@@ -186,7 +179,7 @@ namespace nex
 
 		GLuint* getTexture();
 
-		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMap::Side side = CubeMap::Side::POSITIVE_X);
 
 		void release();
 
@@ -240,13 +233,29 @@ namespace nex
 		void setHeight(int height);
 		void setWidth(int width);
 
-		void resize(unsigned width, unsigned height);
+		virtual void resize(unsigned width, unsigned height);
 
 	protected:
 		friend Texture2D;
 		unsigned mWidth;
 		unsigned mHeight;
+		unsigned mSamples;
 		TextureData mData;
+	};
+
+	class Texture2DMultisampleGL : public Texture2DGL
+	{
+	public:
+		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData, unsigned samples = 1);
+		Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples = 1, unsigned width = 0, unsigned height = 0);
+
+		virtual ~Texture2DMultisampleGL() = default;
+
+		void resize(unsigned width, unsigned height) override;
+		unsigned getSamples() const;
+
+	protected:
+		unsigned mSamples;
 	};
 
 	class Texture2DArrayGL : public TextureGL
@@ -293,7 +302,7 @@ namespace nex
 
 		static Side translate(CubeMap::Side side);
 
-		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight);
+		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight);
 
 		/**
@@ -317,58 +326,19 @@ namespace nex
 	};
 
 
-	class DepthStencilMapGL : public TextureGL
-	{
-	public:
-		explicit DepthStencilMapGL(int width, int height, const DepthStencilDesc& desc);
-
-		static GLuint getDepthType(DepthStencilFormat format);
-		static GLuint getDataType(DepthStencilFormat format);
-		static GLuint getAttachmentType(DepthStencilFormat format);
-
-
-		const DepthStencilDesc& getDescription() const;
-
-		void resize(unsigned width, unsigned height);
-
-	private:
-		friend DepthStencilMap;
-		unsigned mWidth;
-		unsigned mHeight;
-		DepthStencilDesc mDesc;
-	};
-
-	class DepthStencilMapArrayGL : public TextureGL
-	{
-	public:
-		explicit DepthStencilMapArrayGL(unsigned width, unsigned height, unsigned depth, const DepthStencilDesc& desc);
-
-		const DepthStencilDesc& getDescription() const;
-
-		void resize(unsigned width, unsigned height, unsigned depth);
-
-	private:
-		friend DepthStencilMapArray;
-		unsigned mWidth;
-		unsigned mHeight;
-		unsigned mDepth;
-		DepthStencilDesc mDesc;
-	};
-
-
 	class RenderBufferGL : public TextureGL {
 	public:
-		RenderBufferGL(GLuint width, GLuint height, DepthStencilFormat format);
+		RenderBufferGL(GLuint width, GLuint height, InternFormat format);
 		virtual ~RenderBufferGL();
-		RenderBufferGL(GLuint texture, GLuint width, GLuint height, DepthStencilFormat format);
+		RenderBufferGL(GLuint texture, GLuint width, GLuint height, InternFormat format);
 
 
-		DepthStencilFormat getFormat() const;
+		InternFormat getFormat() const;
 
 		void resize(unsigned width, unsigned height);
 
 	private:
-		DepthStencilFormat mFormat;
+		InternFormat mFormat;
 		unsigned mWidth;
 		unsigned mHeight;
 	};

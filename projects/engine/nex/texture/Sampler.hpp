@@ -1,9 +1,39 @@
 #pragma once
 #include <glm/detail/type_vec4.hpp>
-#include <nex/texture/Texture.hpp>
 
 namespace nex
 {
+	enum class DepthComparison
+	{
+		ALWAYS, FIRST = ALWAYS,
+		EQUAL,
+		GREATER,
+		GREATER_EQUAL,
+		LESS,
+		LESS_EQUAL,
+		NEVER,
+		NOT_EQUAL, LAST = NOT_EQUAL
+	};
+
+	enum class TextureFilter
+	{
+		NearestNeighbor, FIRST = NearestNeighbor,
+		Linear,
+		Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
+		Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
+		Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
+		Linear_Mipmap_Linear, LAST = Linear_Mipmap_Linear,// trilinear filtering from bilinear to bilinear filtering
+	};
+
+	enum class TextureUVTechnique
+	{
+		ClampToBorder, FIRST = ClampToBorder,
+		ClampToEdge,
+		MirrorRepeat,
+		MirrorClampToEdge,
+		Repeat, LAST = Repeat,
+	};
+
 	struct SamplerDesc
 	{
 		glm::vec4 borderColor = { 0,0,0,0 };
@@ -27,7 +57,7 @@ namespace nex
 		// Class and subclasses shouldn't be movable/copiable
 		// Implicitly removes auto-generated move constructor/assignment operator
 		// Inherited classes cannot be copied/moved as well
-		Sampler(const Texture&) = delete;
+		Sampler(const Sampler&) = delete;
 		Sampler& operator=(const Sampler&) = delete;
 
 		virtual ~Sampler() = default;

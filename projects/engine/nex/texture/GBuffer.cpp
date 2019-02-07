@@ -5,7 +5,7 @@ using namespace std;
 
 namespace nex
 {
-	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(width, height),
+	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(),
 	mAlbedo(nullptr), mAoMetalRoughness(nullptr), mNormal(nullptr), mDepth(nullptr)
 	{
 		bind();
@@ -58,7 +58,7 @@ namespace nex
 
 
 		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-		updateAttachments();
+		finalizeAttachments();
 
 		// create and attach depth buffer (renderbuffer)
 		// depth/stencil

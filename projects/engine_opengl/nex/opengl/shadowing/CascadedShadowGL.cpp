@@ -127,6 +127,8 @@ void CascadedShadowGL::updateTextureArray()
 
 	// restore default FBO
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	RenderTarget
 }
 
 

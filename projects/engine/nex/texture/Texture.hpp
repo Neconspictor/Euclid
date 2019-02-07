@@ -1,6 +1,5 @@
 #pragma once
-#include <nex/util/Math.hpp>
-#include "Sampler.hpp"
+#include <nex/texture/Sampler.hpp>
 
 namespace nex
 {
@@ -14,25 +13,6 @@ namespace nex
 		WRITE_ONLY, LAST = WRITE_ONLY,
 	};
 
-	enum class TextureFilter
-	{
-		NearestNeighbor, FIRST = NearestNeighbor,
-		Linear,
-		Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
-		Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
-		Linear_Mipmap_Near,   // trilinear filtering from bilinear to nearest neighbor filtering
-		Linear_Mipmap_Linear, LAST = Linear_Mipmap_Linear,// trilinear filtering from bilinear to bilinear filtering
-	};
-
-	enum class TextureUVTechnique
-	{
-		ClampToBorder, FIRST = ClampToBorder,
-		ClampToEdge,
-		MirrorRepeat,
-		MirrorClampToEdge,
-		Repeat, LAST = Repeat,
-	};
-
 	enum class ColorSpace {
 		R, FIRST = R,
 		RED_INTEGER,
@@ -42,7 +22,11 @@ namespace nex
 
 		// srgb formats
 		SRGB,
-		SRGBA, LAST = SRGBA,
+		SRGBA, 
+		
+		DEPTH,
+		STENCIL,
+		DEPTH_STENCIL, LAST = DEPTH_STENCIL,
 	};
 
 	unsigned getComponents(const ColorSpace colorspace);
@@ -79,14 +63,28 @@ namespace nex
 
 		// srgb formats
 		SRGB8,
-		SRGBA8, LAST = SRGBA8,
+		SRGBA8,
+
+		DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+		DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
+		DEPTH16,
+		DEPTH24,
+		DEPTH32,
+		DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
+		STENCIL8, LAST = STENCIL8,  //GL_STENCIL_INDEX8
 	};
 
 	enum class PixelDataType
 	{
 		FLOAT, FIRST = FLOAT,
 		UBYTE,
-		UINT, LAST = UINT,
+		UINT,
+
+		UNSIGNED_INT_24_8,
+		FLOAT_32_UNSIGNED_INT_24_8_REV,
+		UNSIGNED_SHORT,
+		UNSIGNED_INT_24,
+		UNSIGNED_INT_8, LAST = UNSIGNED_INT_8,
 	};
 
 	enum class Channel
@@ -106,51 +104,15 @@ namespace nex
 		//2D
 		TEXTURE2D,
 
+		TEXTURE2D_MULTISAMPLE,
+
 		// 3D
 		TEXTURE2D_ARRAY,
+		TEXTURE2D_ARRAY_MULTISAMPLE,
 		TEXTURE3D,
 
 		// cubemap
-		CUBE_MAP,
-		CUBE_POSITIVE_X,
-		CUBE_NEGATIVE_X,
-		CUBE_POSITIVE_Y,
-		CUBE_NEGATIVE_Y,
-		CUBE_POSITIVE_Z,
-		CUBE_NEGATIVE_Z, LAST = CUBE_NEGATIVE_Z,
-	};
-
-	bool isCubeTarget(TextureTarget target);
-
-
-	enum class DepthStencilFormat
-	{
-		DEPTH24_STENCIL8, FIRST = DEPTH24_STENCIL8,  // GL_DEPTH24_STENCIL8 GL_FLOAT_32_UNSIGNED_INT_24_8_REV
-		DEPTH32F_STENCIL8, //GL_DEPTH32F_STENCIL8
-		DEPTH16,
-		DEPTH24,
-		DEPTH32,
-		DEPTH_COMPONENT32F, //GL_DEPTH_COMPONENT32F
-		STENCIL8, LAST = STENCIL8,  //GL_STENCIL_INDEX8
-	};
-
-	enum class DepthStencilType
-	{
-		DEPTH, FIRST = DEPTH,
-		STENCIL,
-		DEPTH_STENCIL, LAST = DEPTH_STENCIL
-	};
-
-	enum class DepthComparison
-	{
-		ALWAYS, FIRST = ALWAYS,
-		EQUAL,
-		GREATER,
-		GREATER_EQUAL,
-		LESS,
-		LESS_EQUAL,
-		NEVER,
-		NOT_EQUAL, LAST = NOT_EQUAL
+		CUBE_MAP, LAST = CUBE_MAP,
 	};
 
 	struct BaseTextureDesc : public SamplerDesc
@@ -274,6 +236,7 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
+		// Has to be implemented by renderer backend
 		static Texture2D* create(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
 		/**
@@ -282,8 +245,31 @@ namespace nex
 		 */
 		void resize(unsigned width, unsigned height);
 
+		// Has to be implemented by renderer backend
 		unsigned getWidth() const;
+
+		// Has to be implemented by renderer backend
 		unsigned getHeight() const;
+	};
+
+	class Texture2DMultisample : public Texture2D
+	{
+	public:
+
+		// creates an unintialized texture2D object. Shouldn't be used by user code.
+		// 
+		Texture2DMultisample(std::unique_ptr<TextureImpl> impl);
+
+		// Has to be implemented by renderer backend
+		Texture2DMultisample(unsigned width, unsigned height, const TextureData& textureData, unsigned samples);
+
+		/**
+		 * Resizes this 2d texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned width, unsigned height);
+
+		unsigned getSamples() const;
 	};
 
 	class Texture2DArray : public Texture
@@ -311,19 +297,12 @@ namespace nex
 	class RenderBuffer : public Texture {
 	public:
 
-		// Has to be implemented by renderer backend
-		static RenderBuffer* create(unsigned width, unsigned height, DepthStencilFormat format);
-
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		RenderBuffer(unsigned width, unsigned height, DepthStencilFormat format);
+		RenderBuffer(unsigned width, unsigned height, InternFormat format);
 
 		// Has to be implemented by renderer backend
-		DepthStencilFormat getFormat() const;
-
-	protected:
-
-		DepthStencilFormat mFormat;
+		InternFormat getFormat() const;
 	};
 
 
@@ -349,7 +328,7 @@ namespace nex
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		CubeMap(unsigned sideWidth, unsigned sideHeight);
+		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 
 		/**
 		 *  Generates mipmaps for the current content of this cubemap.
@@ -375,64 +354,5 @@ namespace nex
 		static glm::mat4 bottomSide;
 		static glm::mat4 frontSide;
 		static glm::mat4 backSide;
-	};
-
-	struct DepthStencilDesc : public BaseTextureDesc
-	{
-		DepthStencilFormat format = DepthStencilFormat::DEPTH24_STENCIL8;
-		
-
-		DepthStencilDesc()
-		{
-			minFilter = TextureFilter::NearestNeighbor;
-			magFilter = TextureFilter::NearestNeighbor;
-			wrapS = TextureUVTechnique::ClampToEdge;
-			wrapT = TextureUVTechnique::ClampToEdge;
-			compareFunc = DepthComparison::LESS_EQUAL;
-			useDepthComparison = true;
-			borderColor = glm::vec4(1.0f);
-		}
-
-		DepthStencilDesc(TextureFilter minFilter,
-			TextureFilter magFilter,
-			TextureUVTechnique wrap,
-			DepthStencilFormat format,
-			DepthComparison compareFunc,
-			glm::vec4 borderColor) : format(format)
-		{
-			this->minFilter = minFilter;
-			this->magFilter = magFilter;
-			this->wrapS = wrap;
-			this->wrapT = wrap;
-			this->compareFunc = compareFunc;
-			this->useDepthComparison = true;
-			this->borderColor = borderColor;
-		}
-	};
-
-	class DepthStencilMap : public Texture
-	{
-	public:
-		// Mustn't be called by user code
-		// Has to be implemented by renderer backend
-		DepthStencilMap(int width, int height, const DepthStencilDesc& desc);
-
-
-		// Has to be implemented by renderer backend
-		DepthStencilFormat getFormat();
-
-		// Has to be implemented by renderer backend
-		void resize(unsigned width, unsigned height);
-	};
-
-	class DepthStencilMapArray : public Texture
-	{
-	public:
-		explicit DepthStencilMapArray(unsigned width, unsigned height, unsigned depth, const DepthStencilDesc& desc);
-
-		// Has to be implemented by renderer backend
-		DepthStencilFormat getFormat();
-
-		void resize(unsigned width, unsigned height, unsigned depth);
 	};
 }

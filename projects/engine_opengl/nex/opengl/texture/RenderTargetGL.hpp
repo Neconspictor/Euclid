@@ -29,13 +29,12 @@ namespace nex
 		/**
 		 * Creates a RenderTargetGL object, that generates a framebuffer
 		 */
-		explicit RenderTargetGL(unsigned width, unsigned height, std::shared_ptr<Texture> depthStencilMap);
+		explicit RenderTargetGL();
 
 		/**
 		 * Creates a RenderTargetGL object, that doesn't create a framebuffer, but uses an existing one.
 		 */
-		explicit RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer,
-			std::shared_ptr<Texture> depthStencilMap);
+		explicit RenderTargetGL(GLuint frameBuffer);
 
 		virtual ~RenderTargetGL();
 
@@ -43,54 +42,38 @@ namespace nex
 
 		void bind();
 
-		Texture* getDepthStencilMap() const;
+		void finalizeAttachments();
 
-		std::shared_ptr<Texture> getDepthStencilMapShared() const;
+		const std::vector<RenderAttachment>& getAttachments();
 
 		GLuint getFrameBuffer() const;
 
-		Texture* getResult() const;
-
-		unsigned getWidth() const;
-
-		unsigned getHeight() const;
+		static unsigned getLayerFromCubeMapSide(CubeMap::Side side);
 
 		bool isComplete() const;
 
 		void setFrameBuffer(GLuint newValue);
 
-		Texture* setRenderResult(Texture* texture);
-
 		void unbind();
 
-		void useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap);
-		void updateAttachments();
+		void updateAttachment(unsigned index);
 
 	protected:
 
 		friend RenderTargetImpl;
 
 		GLuint mFrameBuffer;
-		std::unique_ptr<Texture> mRenderResult;
 		std::vector<RenderAttachment> mAttachments;
-		std::shared_ptr<Texture> mDepthStencilMap;
-		unsigned mWidth;
-		unsigned mHeight;
-
-		static void validateDepthStencilMap(Texture* texture);
 	};
 
 	class RenderTarget2DGL : public RenderTargetGL
 	{
 	public:
 
-		RenderTarget2DGL(unsigned width, unsigned height, GLuint frameBuffer, std::shared_ptr<Texture> depthStencilMap);
-
 		explicit RenderTarget2DGL(unsigned width, 
 			unsigned height, 
 			const TextureData& data, 
-			unsigned samples, 
-			std::shared_ptr<Texture> depthStencilMap);
+			unsigned samples);
 
 		// Has to be implemented by renderer backend
 		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components);
@@ -105,7 +88,7 @@ namespace nex
 
 		void useSide(CubeMap::Side side, unsigned mipLevel);
 
-		nex::CubeMapGL* createCopy();
+		//nex::CubeMapGL* createCopy();
 
 		int getHeightMipLevel(unsigned mipMapLevel) const {
 			return (int)(mHeight * std::pow(0.5, mipMapLevel));
@@ -119,6 +102,8 @@ namespace nex
 
 	protected:
 		nex::TextureData data;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 
 

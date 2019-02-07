@@ -59,54 +59,44 @@ void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
 
 
 nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data) :
-	RenderTargetGL(width, height, nullptr), data(data)
-{
-	mRenderResult = make_unique<CubeMap>(width, height);
-
-	auto renderBuffer = make_shared<RenderBuffer>(width, height, DepthStencilFormat::DEPTH24);
-	
+	RenderTargetGL(), data(data), mWidth(width), mHeight(height)
+{	
 	bind();
-	useDepthStencilMap(renderBuffer);
 
-	GLuint internalFormat = translate(data.internalFormat);
-	GLuint colorspace = translate(data.colorspace);
-	GLuint pixelDataType = translate(data.pixelDataType);
+	RenderAttachment color;
+	color.target = TextureTarget::CUBE_MAP;
+	color.type = RenderAttachment::Type::COLOR;
+	color.texture = make_unique<CubeMap>(width, height, data);
+	addAttachment(std::move(color));
 
 
-	//pre-allocate the six faces of the cubemap
-	CubeMapGL* textureGL = (CubeMapGL*)mRenderResult->getImpl();
+	//TODO generify!
+	RenderAttachment depth;
+	depth.target = TextureTarget::TEXTURE2D;
+	depth.type = RenderAttachment::Type::DEPTH;
+	depth.texture = make_unique<RenderBuffer>(width, height, InternFormat::DEPTH24);
+	addAttachment(std::move(depth));
 
-	TextureGL::generateTexture(textureGL->getTexture(), data, GL_TEXTURE_CUBE_MAP);
-
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, *textureGL->getTexture()));
-	for (int i = 0; i < 6; ++i)
-	{
-		GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, colorspace,
-			pixelDataType, nullptr));
-	}
-
-	if (data.generateMipMaps)
-	{
-		GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
-	}
-
-	unbind();
+	finalizeAttachments();
 }
 
 void nex::CubeRenderTargetGL::useSide(CubeMap::Side side, unsigned mipLevel)
 {
-	CubeMapGL* cubeMap = (CubeMapGL*)mRenderResult->getImpl();
+	//TODO
+	//bind();
 
-	const GLuint AXIS_SIDE = CubeMapGL::translate(side);
-	const GLuint cubeMapTexture = cubeMap->getCubeMap();
+	const unsigned index = 0;
 
-	bind();
-
-	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, AXIS_SIDE, cubeMapTexture, mipLevel));
-	GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+	auto& attachment = mAttachments[index];
+	attachment.mipmapLevel = mipLevel;
+	attachment.side = side;
+	updateAttachment(index);
+	
+	//TODO
+	//GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
-nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
+/*nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 {
 
 	//first create a new cube render target that we use to blit the content
@@ -161,39 +151,39 @@ nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
 
 	return (CubeMapGL*)cache;
 	
-}
+}*/
 
 
 void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 
 	if (!data.generateMipMaps) {
-		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube rener target!"));
+		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube render target!"));
 	}
 
-	assert(mDepthStencilMap != nullptr);
+	const unsigned renderBufferIndex = 1;
 
-	auto renderBuffer = (RenderBufferGL*)mDepthStencilMap->getImpl();
+	auto& renderBufferAttachment = mAttachments[renderBufferIndex];
 
-	const GLuint texture = *renderBuffer->getTexture();
-	const GLuint attachment = DepthStencilMapGL::getAttachmentType(renderBuffer->getFormat());
+	auto renderBuffer = (RenderBufferGL*)renderBufferAttachment.texture->getImpl();
 
 	bind();
 
 	unsigned int mipWidth = (unsigned int)(mWidth * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(mHeight * std::pow(0.5, mipMapLevel));
 	renderBuffer->resize(mipWidth, mipHeight);
-	//GLCall(glBindRenderbuffer(GL_RENDERBUFFER, texture));
-	//GLCall(glRenderbufferStorage(GL_RENDERBUFFER, format, mipWidth, mipHeight));
-	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, texture));
 
-	unbind();
+	updateAttachment(renderBufferIndex);
+
+	//TODO validate!
+	//GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, texture));
+	//unbind();
 }
 
 nex::RenderTarget::RenderTarget(std::unique_ptr<RenderTargetImpl> impl) : mImpl(std::move(impl))
 {
 }
 
-nex::RenderTarget::RenderTarget(unsigned width, unsigned height) : mImpl(make_unique<RenderTargetGL>(width, height, nullptr))
+nex::RenderTarget::RenderTarget() : mImpl(make_unique<RenderTargetGL>())
 {
 }
 
@@ -215,39 +205,15 @@ void nex::RenderTarget::clear(int components)
 	GLCall(glClear(renderComponentsComponentsGL));
 }
 
+void nex::RenderTarget::finalizeAttachments()
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->finalizeAttachments();
+}
+
 nex::RenderTargetImpl* nex::RenderTarget::getImpl() const
 {
 	return mImpl.get();
-}
-
-std::shared_ptr<nex::Texture> nex::RenderTarget::getDepthStencilMapShared()
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->getDepthStencilMapShared();
-}
-
-unsigned nex::RenderTarget::getHeight() const
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->getHeight();
-}
-
-unsigned nex::RenderTarget::getWidth() const
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->getWidth();
-}
-
-nex::Texture* nex::RenderTarget::getDepthStencilMap()
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->getDepthStencilMap();
-}
-
-nex::Texture* nex::RenderTarget::getRenderResult()
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->getResult();
 }
 
 bool nex::RenderTarget::isComplete() const
@@ -261,29 +227,16 @@ void nex::RenderTarget::setImpl(std::unique_ptr<RenderTargetImpl> impl)
 	mImpl = std::move(impl);
 }
 
-nex::Texture* nex::RenderTarget::setRenderResult(Texture* texture)
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	return gl->setRenderResult(texture);
-}
-
-void nex::RenderTarget::updateAttachments()
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	gl->updateAttachments();
-}
-
-
-void nex::RenderTarget::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
-{
-	auto gl = (RenderTargetGL*)getImpl();
-	gl->useDepthStencilMap(std::move(depthStencilMap));
-}
-
 void nex::RenderTarget::unbind()
 {
 	auto gl = (RenderTargetGL*)getImpl();
 	gl->unbind();
+}
+
+void nex::RenderTarget::updateAttachment(unsigned index)
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->updateAttachment(index);
 }
 
 /*
@@ -351,25 +304,17 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 	return target;
 }*/
 
-nex::RenderTargetGL::RenderTargetGL(unsigned width, unsigned height, std::shared_ptr<Texture> depthStencilMap) :
+nex::RenderTargetGL::RenderTargetGL() :
 	RenderTargetImpl(),
-	mFrameBuffer(GL_FALSE), 
-	mWidth(width), 
-	mHeight(height), 
-	mRenderResult(make_unique<Texture>(nullptr)), 
-	mDepthStencilMap(std::move(depthStencilMap))
+	mFrameBuffer(GL_FALSE)
 {
 		GLCall(glGenFramebuffers(1, &mFrameBuffer));
 }
 
 
-nex::RenderTargetGL::RenderTargetGL(unsigned width, unsigned height, GLuint frameBuffer, std::shared_ptr<Texture> depthStencilMap) :
+nex::RenderTargetGL::RenderTargetGL(GLuint frameBuffer) :
 	RenderTargetImpl(),
-	mFrameBuffer(frameBuffer), 
-	mWidth(width), 
-	mHeight(height), 
-	mRenderResult(make_unique<Texture>(nullptr)), 
-	mDepthStencilMap(std::move(depthStencilMap))
+	mFrameBuffer(frameBuffer)
 {
 }
 
@@ -385,14 +330,8 @@ nex::RenderTargetGL::~RenderTargetGL()
 
 void nex::RenderTargetGL::addAttachment(RenderAttachment attachment)
 {
-	const GLuint attachmentType = translate(attachment.type, attachment.attachIndex);
-	auto gl = (TextureGL*)attachment.texture->getImpl();
-	
-	GLuint textureID = *gl->getTexture();
-	GLuint target = translate(attachment.target);
-	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, textureID, 0));
-
 	mAttachments.emplace_back(std::move(attachment));
+	updateAttachment(mAttachments.size() - 1);
 }
 
 void nex::RenderTargetGL::bind()
@@ -405,99 +344,76 @@ void nex::RenderTargetGL::unbind()
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-nex::Texture* nex::RenderTargetGL::getDepthStencilMap() const
+void nex::RenderTargetGL::updateAttachment(unsigned index)
 {
-	return mDepthStencilMap.get();
-}
+	const auto& attachment = mAttachments[index];
 
-std::shared_ptr<nex::Texture> nex::RenderTargetGL::getDepthStencilMapShared() const
-{
-	return mDepthStencilMap;
-}
+	const auto gl = (TextureGL*)attachment.texture->getImpl();
+	const GLuint textureID = *gl->getTexture();
 
-nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width, unsigned height, GLuint frameBuffer, std::shared_ptr<Texture> depthStencilMap) 
-: RenderTargetGL(width, height, frameBuffer, std::move(depthStencilMap))
-{
+
+	auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture->getImpl());
+
+	const GLuint attachmentType = translate(attachment.type, attachment.attachIndex);
+
+	auto layer = attachment.layer;
+
+	if (attachment.target == TextureTarget::CUBE_MAP) {
+		layer = getLayerFromCubeMapSide(attachment.side);
+	}
+
+	if (renderBuffer)
+	{
+		GLCall(glNamedFramebufferRenderbuffer(mFrameBuffer, attachmentType, GL_RENDERBUFFER, textureID));
+	} else
+	{
+		//NOTE: OpenGL 4.5 or DSA extension is needed for textures not being array, cube or 3d
+		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
+	}
 }
 
 nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	unsigned height,
 	const TextureData& data,
-	unsigned samples,
-	std::shared_ptr<Texture> depthStencilMap) 
+	unsigned samples) 
 :
-	RenderTargetGL(width, height, std::move(depthStencilMap))
+	RenderTargetGL()
 {
-	GLuint internalFormat = translate(data.internalFormat);
-	GLuint colorspace = translate(data.colorspace);
-	GLuint pixelDataType = translate(data.pixelDataType);
-
-
-	GLuint textureTargetType = GL_TEXTURE_2D;
 
 	const bool isMultiSample = samples > 1;
 
-	if (isMultiSample)
-		textureTargetType = GL_TEXTURE_2D_MULTISAMPLE;
-
 	bind();
 
-	// Generate texture
-
-	GLuint textureID;
-	TextureGL::generateTexture(&textureID, data, textureTargetType);
-
-	GLCall(glBindTexture(textureTargetType, textureID));
-
+	RenderAttachment color;
 
 	if (isMultiSample)
 	{
-		GLCall(glTexImage2DMultisample(textureTargetType, samples, internalFormat, width, height, GL_TRUE));
+		color.target = TextureTarget::TEXTURE2D_MULTISAMPLE;
+		color.texture = make_unique<Texture2DMultisample>(width, height, data, samples);
 	} else
 	{
-		GLCall(glTexImage2D(textureTargetType, 0, internalFormat, width, height, 0, colorspace, pixelDataType, 0));
+		color.target = TextureTarget::TEXTURE2D;
+		color.texture = make_unique<Texture2D>(width, height, data, nullptr);
 	}
 
-	// attach texture to currently bound frame buffer
-	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureTargetType, textureID, 0));
+	addAttachment(std::move(color));
 
-	auto resultTexture = getResult();
-	resultTexture->setImpl(make_unique<Texture2DGL>(textureID, data, width, height));
-
-	// Set the list of draw buffers.
-	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
+	//TODO handle depth-stencil map!
 
 
-
-	mDepthStencilMap = depthStencilMap;
-
-	if (mDepthStencilMap != nullptr)
+	/*if (depthStencilMap != nullptr)
 	{
-		validateDepthStencilMap(mDepthStencilMap.get());
+		RenderAttachment depth;
+		depth.texture = std::move(depthStencilMap);
+		depth.target = TextureTarget::TEXTURE2D;
+		depth.type = RenderAttachment::Type::DEPTH;
+		// Note: target and type haven't to be set for depth-/stencil textures
+		addAttachment(std::move(depth));
+	}*/
 
-		const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(depthStencilMap.get()) != nullptr;
-		TextureGL* depthStencilMapGL = (TextureGL*)depthStencilMap->getImpl();
+	
+	finalizeAttachments();
 
-
-		if (isDepthStencil)
-		{
-			DepthStencilFormat format = dynamic_cast<DepthStencilMap*>(depthStencilMap.get())->getFormat();
-			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
-
-			GLCall(glBindTexture(textureTargetType, *depthStencilMapGL->getTexture()));
-			GLCall(glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, *depthStencilMapGL->getTexture(), 0));
-
-		}
-		else
-		{
-			DepthStencilFormat format = dynamic_cast<RenderBuffer*>(depthStencilMap.get())->getFormat();
-			GLuint attachmentType = DepthStencilMapGL::getAttachmentType(format);
-
-			GLCall(glBindTexture(GL_RENDERBUFFER, *depthStencilMapGL->getTexture()));
-			GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentType, GL_RENDERBUFFER, *depthStencilMapGL->getTexture()));
-		}
-	}
 
 	// finally check if all went successfully
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -513,8 +429,7 @@ nex::RenderTarget2D::RenderTarget2D(std::unique_ptr<RenderTargetImpl> impl) : Re
 {
 }
 
-nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureData& data, unsigned samples,
-	std::shared_ptr<Texture> depthStencilMap): RenderTarget(make_unique<RenderTarget2DGL>(width, height, data, samples, std::move(depthStencilMap)))
+nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureData& data, unsigned samples): RenderTarget(make_unique<RenderTarget2DGL>(width, height, data, samples))
 {
 }
 
@@ -555,38 +470,21 @@ GLint nex::RenderTarget2DGL::getRenderComponents(int components)
 	return componentsGL;
 }
 
-void nex::RenderTargetGL::validateDepthStencilMap(Texture* texture)
-{
-	const bool isDepthStencil = dynamic_cast<DepthStencilMap*>(texture) != nullptr;
-	const bool isRenderBuffer = dynamic_cast<RenderBuffer*>(texture) != nullptr;
-
-	if (!isDepthStencil && !isRenderBuffer)
-		throw std::runtime_error("nex::RenderTargetGL::validateDepthStencilMap failed: Wrong texture input!");
-}
-
 GLuint nex::RenderTargetGL::getFrameBuffer() const
 {
 	return mFrameBuffer;
 }
 
-nex::Texture* nex::RenderTargetGL::getResult() const
+unsigned nex::RenderTargetGL::getLayerFromCubeMapSide(CubeMap::Side side)
 {
-	return mRenderResult.get();
-}
-
-unsigned nex::RenderTargetGL::getWidth() const
-{
-	return mWidth;
-}
-
-unsigned nex::RenderTargetGL::getHeight() const
-{
-	return mHeight;
+	return (unsigned)side;
 }
 
 bool nex::RenderTargetGL::isComplete() const
 {
-	return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+	bool result;
+	GLCall(result = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	return result;
 }
 
 
@@ -595,40 +493,7 @@ void nex::RenderTargetGL::setFrameBuffer(GLuint newValue)
 	mFrameBuffer = newValue;
 }
 
-nex::Texture* nex::RenderTargetGL::setRenderResult(Texture* texture)
-{
-	const auto old = mRenderResult.release();
-	mRenderResult.reset(texture);
-	return old;
-}
-
-void nex::RenderTargetGL::useDepthStencilMap(std::shared_ptr<Texture> depthStencilMap)
-{
-
-	auto renderBuffer = dynamic_cast<RenderBufferGL*> (depthStencilMap->getImpl());
-	auto depthStencilMapGL = dynamic_cast<DepthStencilMapGL*> (depthStencilMap->getImpl());
-
-	if (renderBuffer)
-	{
-		const GLuint texture = *renderBuffer->getTexture();
-		const GLuint attachment = DepthStencilMapGL::getAttachmentType(renderBuffer->getFormat());
-		bind();
-		GLCall(glBindRenderbuffer(GL_RENDERBUFFER, texture)); //TODO
-		GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, texture));
-	} else if (depthStencilMapGL)
-	{
-		const GLuint texture = *depthStencilMapGL->getTexture();
-		const auto& desc = depthStencilMapGL->getDescription();
-		const GLuint attachment = DepthStencilMapGL::getAttachmentType(desc.format);
-		bind();
-		GLCall(glBindTexture(GL_TEXTURE_2D, texture)); //TODO
-		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture, 0));
-	}
-
-	mDepthStencilMap = std::move(depthStencilMap);
-}
-
-void nex::RenderTargetGL::updateAttachments()
+void nex::RenderTargetGL::finalizeAttachments()
 {
 	std::vector<GLuint> drawBufferList(mAttachments.size());
 	for (unsigned i = 0; i < drawBufferList.size(); ++i)
@@ -638,6 +503,11 @@ void nex::RenderTargetGL::updateAttachments()
 	}
 
 	GLCall(glDrawBuffers(drawBufferList.size(), drawBufferList.data()));
+}
+
+const std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getAttachments()
+{
+	return mAttachments;
 }
 
 
@@ -651,35 +521,30 @@ nex::CubeDepthMap::CubeDepthMap(int width, int height) : RenderTarget(make_uniqu
 }
 
 nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
-	RenderTargetGL(width, height, nullptr)
+	RenderTargetGL()
 {
 
-	mRenderResult = make_unique<CubeMap>(width, height);
-
-	GLuint texture;
-	BaseTextureDesc desc;
+	TextureData desc;
 	desc.minFilter = TextureFilter::NearestNeighbor;
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::ClampToEdge;
-	TextureGL::generateTexture(&texture, desc, GL_TEXTURE_CUBE_MAP);
+	desc.pixelDataType = PixelDataType::FLOAT;
+	desc.colorspace = ColorSpace::DEPTH;
+	desc.internalFormat = InternFormat::DEPTH_COMPONENT32F;
 
+	RenderAttachment depth;
 
-	auto textureGL = (TextureGL*)mRenderResult->getImpl();
-	textureGL->setTexture(texture);
-
-	bind();
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-
-	for (int i = 0; i < 6; ++i)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
-			width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	}
+	depth.texture = make_unique<CubeMap>(width, height, desc);
+	depth.type = RenderAttachment::Type::DEPTH;
+	depth.target = TextureTarget::CUBE_MAP;
+	depth.side = CubeMap::Side::POSITIVE_X;
 
 	bind();
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_COMPONENT, GL_RENDERBUFFER, texture);
+	addAttachment(std::move(depth));
+	finalizeAttachments();
+
+	// TODO validate!
+	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
 
 	if (!isComplete())
 		throw_with_trace(runtime_error("CubeDepthMapGL::CubeDepthMapGL(int, int): Framebuffer not complete!"));
@@ -689,6 +554,4 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	glReadBuffer(GL_NONE);
 
 	unbind();
-
-	((CubeMapGL*)mRenderResult->getImpl())->setCubeMap(texture);
 }
