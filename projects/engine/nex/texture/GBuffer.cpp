@@ -29,7 +29,7 @@ namespace nex
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.attachIndex = 0;
 		mAlbedo = temp.texture.get();
-		addAttachment(temp);
+		addColorAttachment(temp);
 
 		// ao metal roughness
 		data.internalFormat = InternFormat::RGB8;
@@ -37,7 +37,7 @@ namespace nex
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.attachIndex = 1;
 		mAoMetalRoughness = temp.texture.get();
-		addAttachment(temp);
+		addColorAttachment(temp);
 
 
 		// normal
@@ -46,7 +46,7 @@ namespace nex
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.attachIndex = 2;
 		mNormal = temp.texture.get();
-		addAttachment(temp);
+		addColorAttachment(temp);
 
 		// depth
 		data.internalFormat = InternFormat::R32F;
@@ -54,7 +54,7 @@ namespace nex
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.attachIndex = 3;
 		mDepth = temp.texture.get();
-		addAttachment(temp);
+		addColorAttachment(temp);
 
 
 		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 

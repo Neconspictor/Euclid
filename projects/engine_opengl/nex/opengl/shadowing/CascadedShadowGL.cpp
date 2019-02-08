@@ -5,6 +5,8 @@
 #include "nex/mesh/IndexBuffer.hpp"
 #include "nex/opengl/opengl.hpp"
 #include "nex/mesh/SubMesh.hpp"
+#include "nex/texture/RenderTarget.hpp"
+#include "nex/RenderBackend.hpp"
 
 using namespace nex;
 
@@ -13,33 +15,23 @@ CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int casca
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight))
 {
-	// Directional light shadow map buffer
-	glGenFramebuffers(1, &mCascadedShadowFBO);
-
-
-	mDepthPass = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
-
-	mDepthTextureArray = std::make_unique<Texture2D>(std::make_unique<Texture2DGL>(GL_FALSE, TextureData(), cascadeWidth, cascadeHeight));
-
 	updateTextureArray();
-}
-
-CascadedShadowGL::~CascadedShadowGL()
-{
-	if (mCascadedShadowFBO != GL_FALSE)
-		glDeleteBuffers(1, &mCascadedShadowFBO);
-	mCascadedShadowFBO = GL_FALSE;
 }
 
 void CascadedShadowGL::begin(int cascadeIndex)
 {
-	mDepthPass->bind();
+	mDepthPassShader.bind();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
+	mRenderTarget.bind();
 	glScissor(0, 0, mCascadeWidth, mCascadeWidth);
-	glViewport(0, 0, mCascadeWidth, mCascadeWidth);
+	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeWidth);
 
-	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
+	auto* depth = mRenderTarget.getDepthAttachment();
+	depth->layer = cascadeIndex;
+	mRenderTarget.updateDepthAttachment();
+
+	//TODO validate!
+	//glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -49,22 +41,23 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
 	// update lightViewProjectionMatrix uniform
-	static const GLuint LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
-	glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
+	static const UniformLocation LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
+	mDepthPassShader.getProgram()->setMat4(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, lightViewProjection);
+	//glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
 }
 
 void CascadedShadowGL::end()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	mDepthPass->unbind();
-	//glDisable(GL_DEPTH_TEST);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mDepthPassShader.unbind();
+	//###glDisable(GL_DEPTH_TEST);
 	glDisable(GL_DEPTH_CLAMP);
 	glCullFace(GL_BACK);
 }
 
 Texture* CascadedShadowGL::getDepthTextureArray()
 {
-	return mDepthTextureArray.get();
+	return mRenderTarget.getDepthAttachment()->texture.get();
 }
 
 void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
@@ -75,7 +68,7 @@ void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	updateTextureArray();
 }
 
-void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
+/*void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
 {
 	// Update modelMatrix uniform
 	static const GLuint MODEL_MATRIX_LOCATION = 1;
@@ -91,44 +84,43 @@ void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
 
 	indexBuffer->unbind();
 	vertexArray->unbind();
-}
+}*/
 
 void CascadedShadowGL::updateTextureArray()
 {
-	TextureGL* depthGL = (TextureGL*)mDepthTextureArray->getImpl();
-	depthGL->release();
+	TextureData data;
+	data.colorspace = ColorSpace::DEPTH;
+	data.internalFormat = InternFormat::DEPTH_COMPONENT32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.useDepthComparison = true;
+	data.compareFunc = DepthComparison::LESS_EQUAL;
 
-	glBindFramebuffer(GL_FRAMEBUFFER, mCascadedShadowFBO);
+	RenderAttachment depth;
+	depth.type = RenderAttachment::Type::DEPTH;
+	depth.target = TextureTarget::TEXTURE2D_ARRAY;
+	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, NUM_CASCADES, data, nullptr);
 
-	GLuint temp = GL_FALSE;
-	glGenTextures(1, &temp);
-	depthGL->setTexture(temp);
+	mRenderTarget.bind();
+	mRenderTarget.addColorAttachment(std::move(depth));
+	mRenderTarget.finalizeAttachments();
+	mRenderTarget.enableDrawToColorAttachments(false);
+	mRenderTarget.enableReadFromColorAttachments(false);
+	mRenderTarget.assertCompletion();
+}
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, *depthGL->getTexture());
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, mCascadeWidth, mCascadeHeight, NUM_CASCADES, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE); //GL_COMPARE_REF_TO_TEXTURE
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	//glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+CascadedShadowGL::DepthPassShader::DepthPassShader()
+{
+	mProgram = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
+}
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *depthGL->getTexture(), 0);
-
-	GLCall(glDrawBuffer(GL_NONE));
-	GLCall(glReadBuffer(GL_NONE));
-	//GLCall(glNamedFramebufferDrawBuffer(mCascadedShadowFBO, GL_NONE));
-	//GLCall(glNamedFramebufferReadBuffer(mCascadedShadowFBO, GL_NONE));
-
-
-	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-	// restore default FBO
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-	RenderTarget
+void CascadedShadowGL::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+{
+	static const GLuint MODEL_MATRIX_LOCATION = 1;
+	mProgram->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
+	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
 
@@ -270,6 +262,11 @@ void CascadedShadowGL::frameUpdate(Camera* camera, const glm::vec3& lightDirecti
 const glm::mat4& CascadedShadowGL::getLightProjectionMatrix() const
 {
 	return mLightProjMatrix;
+}
+
+Shader* CascadedShadowGL::getDepthPassShader()
+{
+	return &mDepthPassShader;
 }
 
 CascadedShadowGL::CascadeData* CascadedShadowGL::getCascadeData()

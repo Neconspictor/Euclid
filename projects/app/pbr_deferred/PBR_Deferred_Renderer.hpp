@@ -1,13 +1,17 @@
 #pragma once
 #include <nex/event/Task.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/opengl/scene/SceneNode.hpp>
+#include <nex/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
-#include <nex/opengl/renderer/Renderer.hpp>
 #include "nex/opengl/post_processing/AmbientOcclusion.hpp"
+#include "nex/opengl/shadowing/CascadedShadowGL.hpp"
+#include "nex/texture/GBuffer.hpp"
+#include "nex/pbr/PBR_Deferred.hpp"
+#include "nex/opengl/post_processing/blur/GaussianBlurGL.hpp"
+#include "nex/Renderer.hpp"
 
 namespace nex
 {
@@ -32,8 +36,6 @@ namespace nex
 	private:
 
 		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
-
-		void drawSceneToCascade(SceneNode* scene);
 
 		// Allow the UI mode classes accessing private members
 

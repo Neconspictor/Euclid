@@ -2,11 +2,10 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/texture/RenderTarget.hpp>
 
 namespace nex
 {
-	class SubMesh;
-
 	/**
  * Abstract class for Cascaded shadow implementations.
  */
@@ -27,8 +26,6 @@ namespace nex
 		};
 
 		CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight);
-
-		virtual ~CascadedShadowGL();
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -52,7 +49,7 @@ namespace nex
 		/**
 		 * Renders a mesh with a given model matrix to the active cascade
 		 */
-		void render(SubMesh* mesh, const glm::mat4* modelMatrix);
+		//void render(SubMesh* mesh, const glm::mat4* modelMatrix);
 
 		/**
 		 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
@@ -62,15 +59,24 @@ namespace nex
 		CascadeData* getCascadeData();
 
 		const glm::mat4& getLightProjectionMatrix() const;
+		Shader* getDepthPassShader();
 
 
 	protected:
 
 		void updateTextureArray();
 	protected:
-		std::unique_ptr<nex::ShaderProgram> mDepthPass;
-		GLuint mCascadedShadowFBO = GL_FALSE;
-		std::unique_ptr<nex::Texture> mDepthTextureArray;
+
+		class DepthPassShader : public Shader
+		{
+		public:
+			DepthPassShader();
+			void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+		};
+
+
+		DepthPassShader mDepthPassShader;
+		RenderTarget mRenderTarget;
 
 	protected:
 		glm::mat4 mLightViewMatrix;

@@ -58,7 +58,7 @@ void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
 }
 
 
-nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data) :
+nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat) :
 	RenderTargetGL(), data(data), mWidth(width), mHeight(height)
 {	
 	bind();
@@ -67,17 +67,17 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 	color.target = TextureTarget::CUBE_MAP;
 	color.type = RenderAttachment::Type::COLOR;
 	color.texture = make_unique<CubeMap>(width, height, data);
-	addAttachment(std::move(color));
+	addColorAttachment(std::move(color));
+
+	finalizeColorAttachments();
 
 
 	//TODO generify!
-	RenderAttachment depth;
+	/*RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	depth.type = RenderAttachment::Type::DEPTH;
-	depth.texture = make_unique<RenderBuffer>(width, height, InternFormat::DEPTH24);
-	addAttachment(std::move(depth));
-
-	finalizeAttachments();
+	depth.texture = make_unique<RenderBuffer>(width, height, depthFormat);
+	useDepthAttachment(std::move(depth));*/
 }
 
 void nex::CubeRenderTargetGL::useSide(CubeMap::Side side, unsigned mipLevel)
@@ -87,10 +87,10 @@ void nex::CubeRenderTargetGL::useSide(CubeMap::Side side, unsigned mipLevel)
 
 	const unsigned index = 0;
 
-	auto& attachment = mAttachments[index];
+	auto& attachment = mColorAttachments[index];
 	attachment.mipmapLevel = mipLevel;
 	attachment.side = side;
-	updateAttachment(index);
+	updateColorAttachment(index);
 	
 	//TODO
 	//GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
@@ -160,11 +160,7 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube render target!"));
 	}
 
-	const unsigned renderBufferIndex = 1;
-
-	auto& renderBufferAttachment = mAttachments[renderBufferIndex];
-
-	auto renderBuffer = (RenderBufferGL*)renderBufferAttachment.texture->getImpl();
+	auto renderBuffer = dynamic_cast<RenderBufferGL*>(mDepthAttachment.texture->getImpl());
 
 	bind();
 
@@ -172,7 +168,7 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	unsigned int mipHeight = (unsigned int)(mHeight * std::pow(0.5, mipMapLevel));
 	renderBuffer->resize(mipWidth, mipHeight);
 
-	updateAttachment(renderBufferIndex);
+	updateDepthAttachment();
 
 	//TODO validate!
 	//GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, texture));
@@ -187,10 +183,16 @@ nex::RenderTarget::RenderTarget() : mImpl(make_unique<RenderTargetGL>())
 {
 }
 
-void nex::RenderTarget::addAttachment(RenderAttachment attachment)
+void nex::RenderTarget::addColorAttachment(RenderAttachment attachment)
 {
 	auto gl = (RenderTargetGL*)mImpl.get();
-	gl->addAttachment(std::move(attachment));
+	gl->addColorAttachment(std::move(attachment));
+}
+
+void nex::RenderTarget::assertCompletion() const
+{
+	auto gl = (RenderTargetGL*)mImpl.get();
+	gl->assertCompletion();
 }
 
 void nex::RenderTarget::bind()
@@ -199,16 +201,34 @@ void nex::RenderTarget::bind()
 	impl->bind();
 }
 
-void nex::RenderTarget::clear(int components)
+void nex::RenderTarget::clear(int components) const
 {
 	int renderComponentsComponentsGL = RenderTarget2DGL::getRenderComponents(components);
 	GLCall(glClear(renderComponentsComponentsGL));
 }
 
-void nex::RenderTarget::finalizeAttachments()
+void nex::RenderTarget::enableDrawToColorAttachments(bool enable) const
+{
+	auto gl = (RenderTargetGL*)mImpl.get();
+	gl->enableDrawToColorAttachments(enable);
+}
+
+void nex::RenderTarget::enableReadFromColorAttachments(bool enable) const
+{
+	auto gl = (RenderTargetGL*)mImpl.get();
+	gl->enableReadFromColorAttachments(enable);
+}
+
+void nex::RenderTarget::finalizeAttachments() const
 {
 	auto gl = (RenderTargetGL*)getImpl();
-	gl->finalizeAttachments();
+	gl->finalizeColorAttachments();
+}
+
+nex::RenderAttachment* nex::RenderTarget::getDepthAttachment()
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	return &gl->getDepthAttachment();
 }
 
 nex::RenderTargetImpl* nex::RenderTarget::getImpl() const
@@ -227,16 +247,28 @@ void nex::RenderTarget::setImpl(std::unique_ptr<RenderTargetImpl> impl)
 	mImpl = std::move(impl);
 }
 
-void nex::RenderTarget::unbind()
+void nex::RenderTarget::unbind() const
 {
 	auto gl = (RenderTargetGL*)getImpl();
 	gl->unbind();
 }
 
-void nex::RenderTarget::updateAttachment(unsigned index)
+void nex::RenderTarget::updateColorAttachment(unsigned index) const
 {
 	auto gl = (RenderTargetGL*)getImpl();
-	gl->updateAttachment(index);
+	gl->updateColorAttachment(index);
+}
+
+void nex::RenderTarget::updateDepthAttachment() const
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->updateDepthAttachment();
+}
+
+void nex::RenderTarget::useDepthAttachment(RenderAttachment attachment) const
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	gl->useDepthAttachment(std::move(attachment));
 }
 
 /*
@@ -308,7 +340,7 @@ nex::RenderTargetGL::RenderTargetGL() :
 	RenderTargetImpl(),
 	mFrameBuffer(GL_FALSE)
 {
-		GLCall(glGenFramebuffers(1, &mFrameBuffer));
+	GLCall(glGenFramebuffers(1, &mFrameBuffer));
 }
 
 
@@ -328,31 +360,92 @@ nex::RenderTargetGL::~RenderTargetGL()
 	mFrameBuffer = GL_FALSE;
 }
 
-void nex::RenderTargetGL::addAttachment(RenderAttachment attachment)
+void nex::RenderTargetGL::addColorAttachment(RenderAttachment attachment)
 {
-	mAttachments.emplace_back(std::move(attachment));
-	updateAttachment(mAttachments.size() - 1);
+	if (attachment.type != RenderAttachment::Type::COLOR)
+	{
+		throw_with_trace(std::runtime_error("nex::RenderTargetGL::addColorAttachment(): attachment isn't a color component!"));
+	}
+
+	mColorAttachments.emplace_back(std::move(attachment));
+	updateColorAttachment(mColorAttachments.size() - 1);
 }
 
-void nex::RenderTargetGL::bind()
+void nex::RenderTargetGL::assertCompletion() const
+{
+	if (!isComplete())
+	{
+		throw_with_trace(std::runtime_error("RenderTargetGL::assertCompletion(): RenderTargetGL not complete!"));
+	}
+}
+
+void nex::RenderTargetGL::bind() const
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer));
 }
 
-void nex::RenderTargetGL::unbind()
+void nex::RenderTargetGL::enableDrawToColorAttachments(bool enable) const
+{
+	if (enable)
+	{
+		const auto colorAttachments = calcColorAttachments();
+		GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, colorAttachments.size(), colorAttachments.data()));
+	}
+	else
+	{
+		GLCall(glNamedFramebufferDrawBuffer(mFrameBuffer, GL_NONE));
+	}
+}
+
+void nex::RenderTargetGL::enableReadFromColorAttachments(bool enable) const
+{
+	if (enable)
+	{
+		const auto colorAttachments = calcColorAttachments();
+
+		GLenum buf = 0;
+
+		for (auto buffer : colorAttachments)
+		{
+			buf |= buffer;
+		}
+
+		GLCall(glNamedFramebufferReadBuffer(mFrameBuffer, buf));
+	}
+	else
+	{
+		GLCall(glNamedFramebufferReadBuffer(mFrameBuffer, GL_NONE));
+	}
+}
+
+void nex::RenderTargetGL::unbind() const
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-void nex::RenderTargetGL::updateAttachment(unsigned index)
+void nex::RenderTargetGL::updateColorAttachment(unsigned index) const
 {
-	const auto& attachment = mAttachments[index];
+	const auto& attachment = mColorAttachments[index];
+	updateAttachment(attachment);
+}
 
-	const auto gl = (TextureGL*)attachment.texture->getImpl();
-	const GLuint textureID = *gl->getTexture();
+void nex::RenderTargetGL::updateDepthAttachment() const
+{
+	updateAttachment(mDepthAttachment);
+}
 
+void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) const
+{
 
-	auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture->getImpl());
+	GLuint textureID = 0; // zero for detaching any currently bound texture
+
+	if (attachment.texture != nullptr)
+	{
+		const auto gl = (TextureGL*)attachment.texture->getImpl();
+		textureID = *gl->getTexture();
+	}
+
+	const auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture.get());
 
 	const GLuint attachmentType = translate(attachment.type, attachment.attachIndex);
 
@@ -365,11 +458,27 @@ void nex::RenderTargetGL::updateAttachment(unsigned index)
 	if (renderBuffer)
 	{
 		GLCall(glNamedFramebufferRenderbuffer(mFrameBuffer, attachmentType, GL_RENDERBUFFER, textureID));
-	} else
+	}
+	else
 	{
 		//NOTE: OpenGL 4.5 or DSA extension is needed for textures not being array, cube or 3d
 		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
 	}
+}
+
+std::vector<GLenum> nex::RenderTargetGL::calcColorAttachments() const
+{
+	std::vector<GLenum> result;
+	for (const auto& attachment : mColorAttachments)
+	{
+		if (attachment.type == RenderAttachment::Type::COLOR)
+		{
+			const auto glEnum = translate(attachment.type, attachment.attachIndex);
+			result.push_back(glEnum);
+		}
+	}
+
+	return result;
 }
 
 nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
@@ -396,7 +505,7 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 		color.texture = make_unique<Texture2D>(width, height, data, nullptr);
 	}
 
-	addAttachment(std::move(color));
+	addColorAttachment(std::move(color));
 
 	//TODO handle depth-stencil map!
 
@@ -412,14 +521,8 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	}*/
 
 	
-	finalizeAttachments();
-
-
-	// finally check if all went successfully
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		throw_with_trace(runtime_error("RenderTarget2DGL::RenderTarget2DGL(): Couldn't successfully init framebuffer!"));
-	}
+	finalizeColorAttachments();
+	assertCompletion();
 
 	unbind();
 }
@@ -442,7 +545,7 @@ void nex::RenderTarget2D::blit(RenderTarget2D * dest, const Dimension & sourceDi
 }
 
 
-void nex::RenderTarget2DGL::blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components)
+void nex::RenderTarget2DGL::blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const
 {
 
 	GLint readFBId = 0;
@@ -483,8 +586,24 @@ unsigned nex::RenderTargetGL::getLayerFromCubeMapSide(CubeMap::Side side)
 bool nex::RenderTargetGL::isComplete() const
 {
 	bool result;
-	GLCall(result = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	return result;
+}
+
+bool nex::RenderTargetGL::isDepthType(RenderAttachment::Type type)
+{
+	static bool table[] = {
+		false,
+		true,
+		true,
+		true
+	};
+
+	static const size_t size = (size_t)RenderAttachment::Type::LAST - (size_t)RenderAttachment::Type::FIRST + 1;
+	static const size_t tableSize = sizeof(table) / sizeof(bool);
+	static_assert(tableSize == size, "RenderAttachment::Type and bool table don't match!");
+
+	return table[(unsigned)type];
 }
 
 
@@ -493,21 +612,32 @@ void nex::RenderTargetGL::setFrameBuffer(GLuint newValue)
 	mFrameBuffer = newValue;
 }
 
-void nex::RenderTargetGL::finalizeAttachments()
+void nex::RenderTargetGL::finalizeColorAttachments() const
 {
-	std::vector<GLuint> drawBufferList(mAttachments.size());
-	for (unsigned i = 0; i < drawBufferList.size(); ++i)
-	{
-		const auto& attachment = mAttachments[i];
-		drawBufferList[i] = translate(attachment.type, attachment.attachIndex);
-	}
-
-	GLCall(glDrawBuffers(drawBufferList.size(), drawBufferList.data()));
+	enableDrawToColorAttachments(true);
 }
 
-const std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getAttachments()
+const std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getColorAttachments() const
 {
-	return mAttachments;
+	return mColorAttachments;
+}
+
+nex::RenderAttachment& nex::RenderTargetGL::getDepthAttachment()
+{
+	return mDepthAttachment;
+}
+
+void nex::RenderTargetGL::useDepthAttachment(RenderAttachment attachment)
+{
+
+	if (!isDepthType(attachment.type))
+	{
+		throw_with_trace(std::runtime_error("nex::RenderTargetGL::useDepthAttachment(): attachment isn't a depth-stencil component!"));
+	}
+
+
+	mDepthAttachment = std::move(attachment);
+	updateDepthAttachment();
 }
 
 
@@ -540,18 +670,16 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	depth.side = CubeMap::Side::POSITIVE_X;
 
 	bind();
-	addAttachment(std::move(depth));
-	finalizeAttachments();
+	useDepthAttachment(std::move(depth));
 
 	// TODO validate!
 	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
 
-	if (!isComplete())
-		throw_with_trace(runtime_error("CubeDepthMapGL::CubeDepthMapGL(int, int): Framebuffer not complete!"));
-
 	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	enableDrawToColorAttachments(false);
+	enableReadFromColorAttachments(false);
+
+	assertCompletion();
 
 	unbind();
 }

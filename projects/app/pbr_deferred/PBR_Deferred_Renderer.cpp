@@ -13,6 +13,9 @@
 #include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/opengl/model/ModelManagerGL.hpp"
 #include <nex/texture/Gbuffer.hpp>
+#include "nex/opengl/shadowing/CascadedShadowGL.hpp"
+#include <nex/drawing/StaticMeshDrawer.hpp>
+#include "nex/RenderBackend.hpp"
 
 using namespace glm;
 using namespace std;
@@ -159,24 +162,6 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_cascadedShadow = m_renderBackend->createCascadedShadow(2048, 2048);
 }
 
-void PBR_Deferred_Renderer::drawSceneToCascade(SceneNode* scene)
-{
-	Vob* vob = scene->vob;
-	if (vob)
-	{
-		auto& meshes = vob->getModel()->getMeshes();
-		for (auto& mesh : meshes)
-		{
-			m_cascadedShadow->render(mesh.get(), &vob->getTrafo());
-		}
-	}
-
-	for (auto child = scene->childs.begin(); child != scene->childs.end(); ++child)
-	{
-		drawSceneToCascade(*child);
-	}
-}
-
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
@@ -212,8 +197,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	for (int i = 0; i < CascadedShadowGL::NUM_CASCADES; ++i)
 	{
 		m_cascadedShadow->begin(i);
-		drawSceneToCascade(scene);
-
+		StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());
 		m_cascadedShadow->end();
 	}
 

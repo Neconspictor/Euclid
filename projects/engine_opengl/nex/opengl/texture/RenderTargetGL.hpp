@@ -38,13 +38,21 @@ namespace nex
 
 		virtual ~RenderTargetGL();
 
-		void addAttachment(RenderAttachment attachment);
+		void addColorAttachment(RenderAttachment attachment);
 
-		void bind();
+		void assertCompletion() const;
 
-		void finalizeAttachments();
+		void bind() const;
 
-		const std::vector<RenderAttachment>& getAttachments();
+		void enableDrawToColorAttachments(bool enable) const;
+
+		void enableReadFromColorAttachments(bool enable) const;
+
+		void finalizeColorAttachments() const;
+
+		const std::vector<RenderAttachment>& getColorAttachments() const;
+
+		RenderAttachment& getDepthAttachment();
 
 		GLuint getFrameBuffer() const;
 
@@ -52,18 +60,29 @@ namespace nex
 
 		bool isComplete() const;
 
+		static bool isDepthType(RenderAttachment::Type type);
+
 		void setFrameBuffer(GLuint newValue);
 
-		void unbind();
+		void unbind() const;
 
-		void updateAttachment(unsigned index);
+		void updateColorAttachment(unsigned index) const;
+
+		void updateDepthAttachment() const;
+
+		void useDepthAttachment(RenderAttachment attachment);
 
 	protected:
 
 		friend RenderTargetImpl;
 
 		GLuint mFrameBuffer;
-		std::vector<RenderAttachment> mAttachments;
+		std::vector<RenderAttachment> mColorAttachments;
+		RenderAttachment mDepthAttachment;
+
+		void updateAttachment(const RenderAttachment& attachment) const;
+
+		std::vector<GLenum> calcColorAttachments() const;
 	};
 
 	class RenderTarget2DGL : public RenderTargetGL
@@ -76,7 +95,7 @@ namespace nex
 			unsigned samples);
 
 		// Has to be implemented by renderer backend
-		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components);
+		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const;
 		static GLint getRenderComponents(int components);
 	};
 
@@ -84,7 +103,7 @@ namespace nex
 	class CubeRenderTargetGL : public RenderTargetGL
 	{
 	public:
-		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data);
+		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat = InternFormat::DEPTH24);
 
 		void useSide(CubeMap::Side side, unsigned mipLevel);
 

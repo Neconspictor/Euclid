@@ -3,15 +3,14 @@
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/FileSystem.hpp>
 #include <nex/exception/ShaderInitException.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <regex>
-#include "nex/opengl/mesh/MeshGL.hpp"
-#include "nex/shader_generator/SourceFileConsumer.hpp"
+#include <nex/shader_generator/SourceFileConsumer.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/opengl/opengl.hpp>
 
 using namespace glm;
 

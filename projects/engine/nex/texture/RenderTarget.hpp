@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/util/Math.hpp>
 #include <nex/texture/Texture.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex
 {
@@ -79,15 +80,27 @@ namespace nex
 		RenderTarget& operator=(const RenderTarget& other) = delete;
 
 		// Has to be implemented by renderer backend
-		void addAttachment(RenderAttachment attachment);
+		void addColorAttachment(RenderAttachment attachment);
+
+		void assertCompletion() const;
 
 		// Has to be implemented by renderer backend
 		void bind();
 
-		void clear(int components);
+		// Has to be implemented by renderer backend
+		void clear(int components) const;
 
 		// Has to be implemented by renderer backend
-		void finalizeAttachments();
+		void enableDrawToColorAttachments(bool enable) const;
+
+		// Has to be implemented by renderer backend
+		void enableReadFromColorAttachments(bool enable) const;
+
+		// Has to be implemented by renderer backend
+		void finalizeAttachments() const;
+
+		// Has to be implemented by renderer backend
+		RenderAttachment* getDepthAttachment();
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);
@@ -105,10 +118,15 @@ namespace nex
 		bool isComplete() const;
 
 		// Has to be implemented by renderer backend
-		void unbind();
+		void unbind() const;
 
 		// Has to be implemented by renderer backend
-		void updateAttachment(unsigned index);
+		void updateColorAttachment(unsigned index) const;
+
+		void updateDepthAttachment() const;
+
+		// Has to be implemented by renderer backend
+		void useDepthAttachment(RenderAttachment attachment) const;
 
 	protected:
 

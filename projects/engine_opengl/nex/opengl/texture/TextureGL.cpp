@@ -150,62 +150,6 @@ void nex::CubeMapGL::setCubeMap(GLuint id)
 }
 
 
-GLuint nex::DepthStencilMapGL::getDepthType(DepthStencilFormat format)
-{
-
-	enum DepthStencilTypeGL
-	{
-		DEPTH_ONLY = GL_DEPTH_COMPONENT,
-		STENCIL_ONLY = GL_STENCIL_INDEX,
-		DEPTH_STENCIL = GL_DEPTH_STENCIL,
-	};
-
-	static DepthStencilTypeGL const table[]
-	{
-		DEPTH_STENCIL, //DEPTH24_STENCIL8
-		DEPTH_STENCIL, //DEPTH32F_STENCIL8
-		DEPTH_ONLY,	   //DEPTH_COMPONENT16
-		DEPTH_ONLY,	   //DEPTH_COMPONENT24
-		DEPTH_ONLY,	   //DEPTH_COMPONENT32
-		DEPTH_ONLY,	   //DEPTH_COMPONENT32F
-		STENCIL_ONLY, //STENCIL8
-	};
-
-	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
-
-	return table[(unsigned)format];
-}
-
-
-GLuint nex::DepthStencilMapGL::getAttachmentType(DepthStencilFormat format)
-{
-	enum AttachmentTypeGL
-	{
-		DEPTH = GL_DEPTH_ATTACHMENT,
-		STENCIL = GL_STENCIL_ATTACHMENT,
-		DEPTH_STENCIL = GL_DEPTH_STENCIL_ATTACHMENT,
-	};
-
-
-	static AttachmentTypeGL const table[]
-	{
-		DEPTH_STENCIL, //DEPTH24_STENCIL8
-		DEPTH_STENCIL, //DEPTH32F_STENCIL8
-		DEPTH,	   //DEPTH_COMPONENT16
-		DEPTH,	   //DEPTH_COMPONENT24
-		DEPTH,	   //DEPTH_COMPONENT32
-		DEPTH,	   //DEPTH_COMPONENT32F
-		STENCIL, //STENCIL8
-	};
-
-	static const unsigned size = (unsigned)DepthStencilFormat::LAST - (unsigned)DepthStencilFormat::FIRST + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: target descriptor list doesn't match number of supported targets");
-
-	return table[(unsigned)format];
-}
-
-
 unsigned nex::getComponents(const ColorSpace colorSpace)
 {
 	static unsigned const table[]
