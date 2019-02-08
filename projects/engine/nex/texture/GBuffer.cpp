@@ -21,7 +21,6 @@ namespace nex
 
 		RenderAttachment temp;
 
-
 		// albedo
 		data.colorspace = ColorSpace::RGB;
 		data.pixelDataType = PixelDataType::FLOAT;
@@ -62,21 +61,21 @@ namespace nex
 
 		// create and attach depth buffer (renderbuffer)
 		// depth/stencil
-		DepthStencilDesc desc;
-		desc.minFilter = TextureFilter::NearestNeighbor;
-		desc.magFilter = TextureFilter::NearestNeighbor;
-		desc.wrapS = TextureUVTechnique::ClampToEdge;
-		desc.wrapT = TextureUVTechnique::ClampToEdge;
-		desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-		auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
+		data.minFilter = TextureFilter::NearestNeighbor;
+		data.magFilter = TextureFilter::NearestNeighbor;
+		data.wrapS = TextureUVTechnique::ClampToEdge;
+		data.wrapT = TextureUVTechnique::ClampToEdge;
+		data.internalFormat = InternFormat::DEPTH24_STENCIL8;
+		data.pixelDataType = PixelDataType::UNSIGNED_INT_24_8;
+		data.colorspace = ColorSpace::DEPTH_STENCIL;
 
-		useDepthStencilMap(std::move(depthBuffer));
+		temp.type = RenderAttachment::Type::DEPTH_STENCIL;
+		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
+
+		useDepthAttachment(std::move(temp));
 
 		// finally check if framebuffer is complete
-		if (!isComplete())
-			throw_with_trace(std::runtime_error("PBR_GBuffer::PBR_GBuffer: Couldn't successfully init framebuffer!"));
-
-		unbind();
+		assertCompletion();
 	}
 
 	Texture* PBR_GBuffer::getAlbedo() const
