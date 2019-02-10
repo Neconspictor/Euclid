@@ -96,6 +96,72 @@ namespace nex
 		RenderBackend* renderer;
 	};
 
+	enum class FillMode
+	{
+		
+	};
+
+	enum class CullMode
+	{
+		
+	};
+
+
+	struct RasterizerState
+	{
+		FillMode fillMode;
+		CullMode cullMode;
+		bool frontCounterClockwise = false;
+		float depthBias = 0.0f;
+		float depthBiasClamp = 0.0f;
+		float slopeScaledDepthBias = 0.0f;
+		//bool enableDepthClipable = false; // not possible in opengl
+		bool enableScissorTest = false;
+		bool enableMultisampleAntialising;
+		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
+		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
+		bool enableAntialisedLine = false;
+	};
+
+	struct BlendState
+	{
+		bool enableBlend = false;
+		bool enableAlphaToCoverage = false;
+		glm::vec4 constantBlendColor = glm::vec4(0,0,0,0);
+		//bool enableIndependentBlend = false; // not possible for opengl
+	};
+
+	enum class BlendFunc
+	{
+		ZERO,
+		ONE,
+		
+		SOURCE_COLOR,
+		ONE_MINUS_SOURCE_COLOR,
+		DESTINATION_COLOR,
+		ONE_MINUS_DESTINATION_COLOR,
+		
+		SOURCE_ALPHA,
+		ONE_MINUS_SOURCE_ALPHA,		
+		DESTINATION_ALPHA,
+		ONE_MINUS_DESTINATION_ALPHA,
+
+		CONSTANT_COLOR,
+		ONE_MINUS_CONSTANT_COLOR,
+		CONSTANT_ALPHA,
+		ONE_MINUS_CONSTANT_ALPHA,
+	};
+
+	enum class BlendOperation
+	{
+		ADD, // source + destination
+		SUBTRACT, // source - destination
+		REV_SUBTRACT, // destination - source
+		MIN, // min(source, destination)
+		MAX, // max(source, destination)
+	};
+
+
 
 	/**
 	* A renderer is responsible for visualizing triangle data onto a screen. Commonly, a renderer uses one of the common
