@@ -36,7 +36,7 @@ namespace nex
 			DEPTH_STENCIL, LAST = DEPTH_STENCIL,
 		};
 
-		unsigned attachIndex = 0;
+		unsigned colorAttachIndex = 0; // only used for color attachments
 		unsigned mipmapLevel = 0;
 		unsigned layer = 0; // Specifies the layer of an array texture; Must be zero for non array textures;
 		CubeMap::Side side = CubeMap::Side::POSITIVE_X;  // only used when target is TextureTarget::CubeMap
@@ -48,7 +48,7 @@ namespace nex
 
 		RenderAttachment( unsigned attachIndex, unsigned mipmapLevel, unsigned layer, CubeMap::Side side, TextureTarget target, Type type, std::shared_ptr<Texture> texture)
 		: 
-			attachIndex(attachIndex), 
+			colorAttachIndex(attachIndex), 
 			mipmapLevel(mipmapLevel),
 			layer(layer),
 			side(side),
@@ -99,6 +99,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		void finalizeAttachments() const;
 
+		const std::vector<RenderAttachment>& getColorAttachments() const;
+
 		// Has to be implemented by renderer backend
 		RenderAttachment* getDepthAttachment();
 
@@ -121,6 +123,9 @@ namespace nex
 		void unbind() const;
 
 		// Has to be implemented by renderer backend
+		/**
+		 * @param index: The vector index of the color attachment (see getColorAttachments())
+		 */
 		void updateColorAttachment(unsigned index) const;
 
 		void updateDepthAttachment() const;

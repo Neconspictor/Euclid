@@ -225,6 +225,12 @@ void nex::RenderTarget::finalizeAttachments() const
 	gl->finalizeColorAttachments();
 }
 
+const std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments() const
+{
+	auto gl = (RenderTargetGL*)getImpl();
+	return gl->getColorAttachments();
+}
+
 nex::RenderAttachment* nex::RenderTarget::getDepthAttachment()
 {
 	auto gl = (RenderTargetGL*)getImpl();
@@ -434,8 +440,29 @@ void nex::RenderTargetGL::updateDepthAttachment() const
 	updateAttachment(mDepthAttachment);
 }
 
+const nex::RenderAttachment* nex::RenderTargetGL::getByIndex(const unsigned colorAttachIndex) const
+{
+	for (auto& attachment : mColorAttachments)
+	{
+		if (attachment.colorAttachIndex == colorAttachIndex)
+			return &attachment;
+	}
+
+	return nullptr;
+}
+
 void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) const
 {
+	if (attachment.type == RenderAttachment::Type::COLOR)
+	{
+		// check that there is no other color attachment with the same color attach index
+		const auto* firstFound = getByIndex(attachment.colorAttachIndex);
+
+		if (firstFound != &attachment)
+		{
+			throw_with_trace(std::runtime_error("nex::RenderTargetGL::updateAttachment(): colorAttachIndex is already used by another attachment!"));
+		}
+	}
 
 	GLuint textureID = 0; // zero for detaching any currently bound texture
 
@@ -447,7 +474,7 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 
 	const auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture.get());
 
-	const GLuint attachmentType = translate(attachment.type, attachment.attachIndex);
+	const GLuint attachmentType = translate(attachment.type, attachment.colorAttachIndex);
 
 	auto layer = attachment.layer;
 
@@ -473,7 +500,7 @@ std::vector<GLenum> nex::RenderTargetGL::calcColorAttachments() const
 	{
 		if (attachment.type == RenderAttachment::Type::COLOR)
 		{
-			const auto glEnum = translate(attachment.type, attachment.attachIndex);
+			const auto glEnum = translate(attachment.type, attachment.colorAttachIndex);
 			result.push_back(glEnum);
 		}
 	}

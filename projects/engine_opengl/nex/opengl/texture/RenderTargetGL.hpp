@@ -80,6 +80,7 @@ namespace nex
 		std::vector<RenderAttachment> mColorAttachments;
 		RenderAttachment mDepthAttachment;
 
+		const RenderAttachment* getByIndex(const unsigned colorAttachIndex) const;
 		void updateAttachment(const RenderAttachment& attachment) const;
 
 		std::vector<GLenum> calcColorAttachments() const;

@@ -26,7 +26,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.internalFormat = InternFormat::RGB16F;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		temp.attachIndex = 0;
+		temp.colorAttachIndex = 0;
 		mAlbedo = temp.texture.get();
 		addColorAttachment(temp);
 
@@ -34,7 +34,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGB8;
 		data.pixelDataType = PixelDataType::UBYTE;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		temp.attachIndex = 1;
+		temp.colorAttachIndex = 1;
 		mAoMetalRoughness = temp.texture.get();
 		addColorAttachment(temp);
 
@@ -43,7 +43,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGB16F;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		temp.attachIndex = 2;
+		temp.colorAttachIndex = 2;
 		mNormal = temp.texture.get();
 		addColorAttachment(temp);
 
@@ -51,7 +51,7 @@ namespace nex
 		data.internalFormat = InternFormat::R32F;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
-		temp.attachIndex = 3;
+		temp.colorAttachIndex = 3;
 		mDepth = temp.texture.get();
 		addColorAttachment(temp);
 
