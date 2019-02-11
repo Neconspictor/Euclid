@@ -39,7 +39,7 @@ namespace nex
 		DIRECTX
 	};
 
-	enum class PolygonRasterizationType
+	enum class FillMode
 	{
 		FILL, FIRST = FILL,
 		LINE,
@@ -96,28 +96,18 @@ namespace nex
 		RenderBackend* renderer;
 	};
 
-	enum class FillMode
-	{
-		
-	};
-
-	enum class CullMode
-	{
-		
-	};
-
 
 	struct RasterizerState
 	{
-		FillMode fillMode;
-		CullMode cullMode;
+		FillMode fillMode = FillMode::FILL;
+		PolygonSide cullMode = PolygonSide::BACK;
 		bool frontCounterClockwise = false;
 		float depthBias = 0.0f;
 		float depthBiasClamp = 0.0f;
 		float slopeScaledDepthBias = 0.0f;
 		//bool enableDepthClipable = false; // not possible in opengl
 		bool enableScissorTest = false;
-		bool enableMultisampleAntialising;
+		bool enableMultisampleAntialising = true;
 		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
 		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
 		bool enableAntialisedLine = false;
@@ -127,13 +117,15 @@ namespace nex
 	{
 		bool enableBlend = false;
 		bool enableAlphaToCoverage = false;
+		float sampleCoverage = 1.0f;
+		bool invertSampleConverage = false;
 		glm::vec4 constantBlendColor = glm::vec4(0,0,0,0);
 		//bool enableIndependentBlend = false; // not possible for opengl
 	};
 
 	enum class BlendFunc
 	{
-		ZERO,
+		ZERO, FIRST = ZERO,
 		ONE,
 		
 		SOURCE_COLOR,
@@ -149,16 +141,42 @@ namespace nex
 		CONSTANT_COLOR,
 		ONE_MINUS_CONSTANT_COLOR,
 		CONSTANT_ALPHA,
-		ONE_MINUS_CONSTANT_ALPHA,
+		ONE_MINUS_CONSTANT_ALPHA, LAST = ONE_MINUS_CONSTANT_ALPHA,
 	};
 
 	enum class BlendOperation
 	{
-		ADD, // source + destination
+		ADD, FIRST = ADD,// source + destination
 		SUBTRACT, // source - destination
 		REV_SUBTRACT, // destination - source
 		MIN, // min(source, destination)
-		MAX, // max(source, destination)
+		MAX, LAST = MAX,// max(source, destination)
+	};
+
+	/**
+	 * typedef struct D3D11_RENDER_TARGET_BLEND_DESC {
+  BOOL           BlendEnable;
+  D3D11_BLEND    SrcBlend;
+  D3D11_BLEND    DestBlend;
+  D3D11_BLEND_OP BlendOp;
+  D3D11_BLEND    SrcBlendAlpha;
+  D3D11_BLEND    DestBlendAlpha;
+  D3D11_BLEND_OP BlendOpAlpha;
+  UINT8          RenderTargetWriteMask;
+} D3D11_RENDER_TARGET_BLEND_DESC;
+	 */
+
+	struct RenderTargetBlendDesc
+	{
+		bool enableBlend;
+		unsigned colorAttachIndex;
+		BlendFunc sourceRGB;
+		BlendFunc destRGB;
+		BlendOperation operationRGB;
+		BlendFunc sourceAlpha;
+		BlendFunc destAlpha;
+		BlendOperation operationAlpha;
+		//unsigned char renderTargetWriteMask; // not supported by opengl
 	};
 
 
@@ -301,6 +319,11 @@ namespace nex
 
 		void setBackgroundColor(const glm::vec3& color);
 
+
+		void setBlendDesc(const RenderTargetBlendDesc& blendDesc);
+
+		void setBlendState(const BlendState& state);
+
 		/**
 		 * @param thickness: must be >= 0
 		 */
@@ -311,7 +334,7 @@ namespace nex
 		 */
 		void setMSAASamples(unsigned int samples);
 
-		void setPolygonRasterization(PolygonSide side, PolygonRasterizationType type);
+		void setPolygonRasterization(PolygonSide side, FillMode type);
 
 		/**
 		* Sets the viewport size and position.
@@ -326,6 +349,8 @@ namespace nex
 		std::list<std::unique_ptr<CubeRenderTarget>> cubeRenderTargets;
 		std::list<std::unique_ptr<RenderTarget2D>> mRenderTargets;
 		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
+		std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
+		BlendState mBlendState;
 
 	protected:
 		nex::Logger m_logger{"RenderBackend"};

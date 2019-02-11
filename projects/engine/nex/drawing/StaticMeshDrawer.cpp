@@ -182,7 +182,7 @@ void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Shader* shader, int lin
 
 	static auto* backend = RenderBackend::get();
 	backend->setLineThickness(static_cast<float>(lineStrength));
-	backend->setPolygonRasterization(PolygonSide::FRONT_BACK, PolygonRasterizationType::LINE);
+	backend->setPolygonRasterization(PolygonSide::FRONT_BACK, FillMode::LINE);
 
 	draw(model, shader);
 }

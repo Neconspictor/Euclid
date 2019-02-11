@@ -1,4 +1,5 @@
-﻿#include <nex/RenderBackend.hpp>
+﻿#include "..\..\..\engine\nex\RenderBackend.hpp"
+#include <nex/RenderBackend.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
@@ -41,6 +42,66 @@ namespace nex
 
 		return table[(unsigned)topology];
 	}
+
+	BlendFuncGL translate(BlendFunc func)
+	{
+		static BlendFuncGL table[]
+		{
+			ZERO,
+			ONE,
+
+			SOURCE_COLOR,
+			ONE_MINUS_SOURCE_COLOR,
+			DESTINATION_COLOR,
+			ONE_MINUS_DESTINATION_COLOR,
+
+			SOURCE_ALPHA,
+			ONE_MINUS_SOURCE_ALPHA,
+			DESTINATION_ALPHA,
+			ONE_MINUS_DESTINATION_ALPHA,
+
+			CONSTANT_COLOR,
+			ONE_MINUS_CONSTANT_COLOR,
+			CONSTANT_ALPHA,
+			ONE_MINUS_CONSTANT_ALPHA,
+		};
+
+		static const unsigned size = (unsigned)BlendFunc::LAST - (unsigned)BlendFunc::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
+
+		return table[(unsigned)func];
+	}
+
+	BlendOperationGL translate(BlendOperation op)
+	{
+		static BlendOperationGL table[]
+		{
+			ADD,
+			SUBTRACT, 
+			REV_SUBTRACT,
+			MIN,
+			MAX,
+		};
+
+		static const unsigned size = (unsigned)BlendOperation::LAST - (unsigned)BlendOperation::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
+
+		return table[(unsigned)op];
+	}
+
+	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
+		enableBlend(translate(desc.enableBlend)),
+		colorAttachIndex(desc.colorAttachIndex),
+		sourceRGB(translate(desc.sourceRGB)),
+		destRGB(translate(desc.destRGB)),
+		operationRGB(translate(desc.operationRGB)),
+		sourceAlpha(translate(desc.sourceAlpha)),
+		destAlpha(translate(desc.destAlpha)),
+		operationAlpha(translate(desc.operationAlpha))
+	{
+
+	}
+
 	GLuint translate(IndexElementType indexType)
 	{
 		static IndexElementTypeGL table[]
@@ -70,16 +131,16 @@ namespace nex
 		return table[(unsigned)side];
 	}
 
-	GLuint translate(PolygonRasterizationType type)
+	GLuint translate(FillMode type)
 	{
-		static PolygonRasterizationTypeGL table[]
+		static FillTypeGL table[]
 		{
 			FILL,
 			LINE,
 			POINT,
 		};
 
-		static const unsigned size = (unsigned)PolygonRasterizationType::LAST - (unsigned)PolygonRasterizationType::FIRST + 1;
+		static const unsigned size = (unsigned)FillMode::LAST - (unsigned)FillMode::FIRST + 1;
 		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonRasterizationType and PolygonRasterizationTypeGL don't match!");
 
 		return table[(unsigned)type];
@@ -343,6 +404,54 @@ namespace nex
 		backgroundColor = color;
 	}
 
+	void RenderBackend::setBlendDesc(const RenderTargetBlendDesc & blendDesc)
+	{
+		mBlendDescs[blendDesc.colorAttachIndex] = blendDesc;
+
+		RenderTargetBlendDescGL descGL(blendDesc);
+
+		if (blendDesc.enableBlend)
+		{
+			GLCall(glEnablei(GL_BLEND, descGL.colorAttachIndex));
+			GLCall(glBlendEquationSeparatei(descGL.colorAttachIndex, descGL.operationRGB, descGL.operationAlpha));
+			GLCall(glBlendFuncSeparatei(descGL.colorAttachIndex, 
+				descGL.sourceRGB, descGL.destRGB,
+				descGL.sourceAlpha, descGL.destAlpha));
+			
+		}
+		else
+		{
+			GLCall(glDisablei(GL_BLEND, descGL.colorAttachIndex));
+		}
+	}
+
+	void RenderBackend::setBlendState(const BlendState& state)
+	{
+		mBlendState = state;
+
+		if (mBlendState.enableBlend)
+		{
+			GLCall(glEnable(GL_BLEND));
+		} else
+		{
+			GLCall(glDisable(GL_BLEND));
+		}
+
+		if (mBlendState.enableAlphaToCoverage)
+		{
+			GLCall(glEnable(GL_SAMPLE_COVERAGE));
+			GLCall(glSampleCoverage(state.sampleCoverage, translate(state.invertSampleConverage)));
+
+		} else
+		{
+			GLCall(glDisable(GL_SAMPLE_COVERAGE));
+		}
+
+		auto& c = state.constantBlendColor;
+
+		GLCall(glBlendColor(c.r, c.g, c.b, c.a));
+	}
+
 	void RenderBackend::setLineThickness(float thickness)
 	{
 		assert(thickness >= 0.0f);
@@ -362,7 +471,7 @@ namespace nex
 		}
 	}
 
-	void RenderBackend::setPolygonRasterization(PolygonSide side, PolygonRasterizationType type)
+	void RenderBackend::setPolygonRasterization(PolygonSide side, FillMode type)
 	{
 		GLCall(glPolygonMode(translate(side), translate(type)));
 	}
