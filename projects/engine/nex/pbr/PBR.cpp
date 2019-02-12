@@ -457,7 +457,7 @@ Texture2D* PBR::createBRDFlookupTexture()
 	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
 
 	target->bind();
-	renderer->beginScene();
+	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	Sprite sprite;
 	// setup sprite for brdf integration lookup texture

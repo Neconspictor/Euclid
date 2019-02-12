@@ -78,19 +78,54 @@ namespace nex {
 		OFFSET_POINT = GL_POLYGON_OFFSET_POINT,
 	};
 
-	struct RenderTargetBlendDescGL
+	struct BlendDescGL
 	{
-		GLuint enableBlend;
-		unsigned colorAttachIndex;
 		BlendFuncGL sourceRGB;
 		BlendFuncGL destRGB;
 		BlendOperationGL operationRGB;
 		BlendFuncGL sourceAlpha;
 		BlendFuncGL destAlpha;
 		BlendOperationGL operationAlpha;
+
+		BlendDescGL(const BlendDesc& desc);
+	};
+
+	struct RenderTargetBlendDescGL
+	{
+		GLuint enableBlend;
+		unsigned colorAttachIndex;
 		//unsigned char renderTargetWriteMask; // not supported by opengl
+		BlendDescGL blendDesc;
 
 		RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc);
+	};
+
+
+	class BlenderGL : public Blender::Implementation
+	{
+	public:
+
+		BlenderGL();
+
+		void enableBlend(bool enable);
+		void enableAlphaToCoverage(bool enable);
+		void setSampleConverage(float sampleCoverage, bool invert);
+		void setConstantBlendColor(const glm::vec4& color);
+		void setGlobalBlendDesc(const BlendDesc& desc);
+		void setState(const BlendState& state);
+
+		void setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc);
+
+	private:
+		bool mEnableBlend;
+		bool mEnableAlphaToCoverage;
+		float mSampleCoverage;
+		GLuint mInvertSampleConverage;
+		glm::vec4 mConstantBlendColor;
+		BlendDescGL mGlobalBlendDesc;
+
+		std::map<unsigned, RenderTargetBlendDescGL> mRenderTargetBlendings;
+		
 	};
 
 

@@ -77,9 +77,7 @@ namespace nex
 		return table[(unsigned)op];
 	}
 
-	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
-		enableBlend(translate(desc.enableBlend)),
-		colorAttachIndex(desc.colorAttachIndex),
+	BlendDescGL::BlendDescGL(const BlendDesc& desc) :
 		sourceRGB(translate(desc.sourceRGB)),
 		destRGB(translate(desc.destRGB)),
 		operationRGB(translate(desc.operationRGB)),
@@ -87,7 +85,94 @@ namespace nex
 		destAlpha(translate(desc.destAlpha)),
 		operationAlpha(translate(desc.operationAlpha))
 	{
+	}
 
+	BlenderGL::BlenderGL() :
+		mGlobalBlendDesc(BlendDesc())
+	{
+		setState(BlendState());
+	}
+
+	void BlenderGL::enableBlend(bool enable)
+	{
+		mEnableBlend = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_BLEND));
+		}
+		else
+		{
+			GLCall(glDisable(GL_BLEND));
+		}
+	}
+
+	void BlenderGL::enableAlphaToCoverage(bool enable)
+	{
+		mEnableAlphaToCoverage = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_SAMPLE_COVERAGE));
+		}
+		else
+		{
+			GLCall(glDisable(GL_SAMPLE_COVERAGE));
+		}
+	}
+
+	void BlenderGL::setSampleConverage(float sampleCoverage, bool invert)
+	{
+		mSampleCoverage = sampleCoverage;
+		mInvertSampleConverage = translate(invert);
+		GLCall(glSampleCoverage(mSampleCoverage, mInvertSampleConverage));
+	}
+
+	void BlenderGL::setConstantBlendColor(const glm::vec4& color)
+	{
+		mConstantBlendColor = color;
+		GLCall(glBlendColor(color.r, color.g, color.b, color.a));
+	}
+
+	void BlenderGL::setGlobalBlendDesc(const BlendDesc& desc)
+	{
+		mGlobalBlendDesc = desc;
+	}
+
+	void BlenderGL::setState(const BlendState& state)
+	{
+		enableBlend(state.enableBlend);
+		enableAlphaToCoverage(state.enableAlphaToCoverage);
+		setSampleConverage(state.sampleCoverage, state.invertSampleConverage);
+		setConstantBlendColor(state.constantBlendColor);
+		setGlobalBlendDesc(state.globalBlendDesc);
+	}
+
+	void BlenderGL::setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc)
+	{
+		RenderTargetBlendDescGL descGL(blendDesc);
+		mRenderTargetBlendings[blendDesc.colorAttachIndex] = descGL;
+
+		if (blendDesc.enableBlend)
+		{
+			GLCall(glEnablei(GL_BLEND, descGL.colorAttachIndex));
+			GLCall(glBlendEquationSeparatei(descGL.colorAttachIndex, descGL.blendDesc.operationRGB, descGL.blendDesc.operationAlpha));
+			GLCall(glBlendFuncSeparatei(descGL.colorAttachIndex,
+				descGL.blendDesc.sourceRGB, descGL.blendDesc.destRGB,
+				descGL.blendDesc.sourceAlpha, descGL.blendDesc.destAlpha));
+
+		}
+		else
+		{
+			GLCall(glDisablei(GL_BLEND, descGL.colorAttachIndex));
+		}
+	}
+
+	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
+		enableBlend(translate(desc.enableBlend)),
+		colorAttachIndex(desc.colorAttachIndex),
+		blendDesc(desc.blendDesc)	
+	{
 	}
 
 	RasterizerGL::RasterizerGL()
@@ -112,7 +197,7 @@ namespace nex
 	void RasterizerGL::setFrontCounterClockwise(bool set)
 	{
 		mFrontCounterClockwise = set;
-		auto enumGL = set ? GL_CCW : GL_CW;
+		const auto enumGL = set ? GL_CCW : GL_CW;
 		GLCall(glFrontFace(enumGL));
 	}
 
@@ -273,5 +358,4 @@ namespace nex
 
 		return table[(unsigned)type];
 	}
-
 }

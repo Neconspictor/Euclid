@@ -8,6 +8,7 @@
 
 namespace nex
 {
+	struct RenderTargetBlendDesc;
 	class GaussianBlur;
 	class TextureManager;
 	class ShaderManager;
@@ -91,17 +92,6 @@ namespace nex
 		RenderBackend* renderer;
 	};
 
-
-	struct BlendState
-	{
-		bool enableBlend = false;
-		bool enableAlphaToCoverage = false;
-		float sampleCoverage = 1.0f;
-		bool invertSampleConverage = false;
-		glm::vec4 constantBlendColor = glm::vec4(0,0,0,0);
-		//bool enableIndependentBlend = false; // not possible for opengl
-	};
-
 	enum class BlendFunc
 	{
 		ZERO, FIRST = ZERO,
@@ -145,16 +135,58 @@ namespace nex
 } D3D11_RENDER_TARGET_BLEND_DESC;
 	 */
 
+
+	struct BlendDesc
+	{
+		BlendFunc sourceRGB = BlendFunc::ONE;
+		BlendFunc destRGB = BlendFunc::ZERO;
+		BlendOperation operationRGB = BlendOperation::ADD;
+		BlendFunc sourceAlpha = BlendFunc::ONE;
+		BlendFunc destAlpha = BlendFunc::ZERO;
+		BlendOperation operationAlpha = BlendOperation::ADD;
+	};
+
+	struct BlendState
+	{
+		bool enableBlend = false;
+		bool enableAlphaToCoverage = false;
+		float sampleCoverage = 1.0f;
+		bool invertSampleConverage = false;
+		glm::vec4 constantBlendColor = glm::vec4(0, 0, 0, 0);
+		//bool enableIndependentBlend = false; // not possible for opengl
+
+		BlendDesc globalBlendDesc;
+	};
+
+	 /**
+	  * Configuration class for blending
+	  */
+	class Blender
+	{
+	public:
+
+		class Implementation {};
+
+		Blender();
+
+		void enableBlend(bool enable);
+		void enableAlphaToCoverage(bool enable);
+		void setSampleConverage(float sampleCoverage, bool invert);
+		void setConstantBlendColor(const glm::vec4& color);
+		void setGlobalBlendDesc(const BlendDesc& desc);
+		void setState(const BlendState& state);
+
+		void setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc);
+
+	private:
+		std::unique_ptr<Implementation> mImpl;
+	};
+
 	struct RenderTargetBlendDesc
 	{
 		bool enableBlend;
 		unsigned colorAttachIndex;
-		BlendFunc sourceRGB;
-		BlendFunc destRGB;
-		BlendOperation operationRGB;
-		BlendFunc sourceAlpha;
-		BlendFunc destAlpha;
-		BlendOperation operationAlpha;
+		BlendDesc blendDesc;
 		//unsigned char renderTargetWriteMask; // not supported by opengl
 	};
 
@@ -192,6 +224,8 @@ namespace nex
 	public:
 
 		class Implementation {};
+
+		Rasterizer();
 
 		void setFillMode(FillMode fillMode, PolygonSide faceSide);
 		void setCullMode(PolygonSide faceSide);
@@ -236,13 +270,6 @@ namespace nex
 
 		virtual ~RenderBackend();
 
-		/**
-		* Clears the current scene and begins a new one. A scene is the combination of
-		* all, that should be rendered.
-		* This function should be called before any rendering is done.
-		*/
-		void beginScene();
-
 		CubeDepthMap* createCubeDepthMap(int width, int height);
 
 		//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
@@ -284,8 +311,6 @@ namespace nex
 
 		void destroyRenderTarget(RenderTarget2D* target);
 
-		void enableAlphaBlending(bool enable);
-
 		/**
 		 * Enables / Disables depth mask writing.
 		 * models drawn with disabled depth mask will always overwrite
@@ -305,6 +330,8 @@ namespace nex
 		void endScene();
 
 		static RenderBackend* get();
+
+		Blender* getBlender();
 
 		RenderTarget2D* getDefaultRenderTarget();
 
@@ -350,11 +377,6 @@ namespace nex
 
 		void setBackgroundColor(const glm::vec3& color);
 
-
-		void setBlendDesc(const RenderTargetBlendDesc& blendDesc);
-
-		void setBlendState(const BlendState& state);
-
 		/**
 		 * @param thickness: must be >= 0
 		 */
@@ -380,10 +402,11 @@ namespace nex
 		std::list<std::unique_ptr<CubeRenderTarget>> cubeRenderTargets;
 		std::list<std::unique_ptr<RenderTarget2D>> mRenderTargets;
 		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
-		std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
-		BlendState mBlendState;
+		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
+		//BlendState mBlendState;
 
 		nex::Logger m_logger{"RenderBackend"};
+		Blender mBlender;
 		Rasterizer mRasterizer;
 		Viewport mViewport;
 	};

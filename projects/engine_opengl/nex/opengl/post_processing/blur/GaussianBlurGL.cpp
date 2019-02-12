@@ -3,6 +3,7 @@
 #include <nex/opengl/renderer/RendererOpenGL.hpp>
 #include <nex/opengl/shader/ShaderManagerGL.hpp>
 #include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
+#include "nex/RenderBackend.hpp"
 
 namespace nex {
 
@@ -29,7 +30,7 @@ namespace nex {
 
 		//TODO do a blur pass
 		cache->bind();
-		renderer->beginScene();
+		cache->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 
 		// horizontal pass
@@ -46,7 +47,7 @@ namespace nex {
 
 		// vertical pass
 		cache->bind();
-		renderer->beginScene();
+		cache->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		sprite.setTexture(target->getRenderResult());
 		verticalShader->bind();
 		verticalShader->setTexture(sprite.getTexture());

@@ -1,4 +1,7 @@
 ﻿#include "..\..\..\engine\nex\RenderBackend.hpp"
+#include "..\..\..\engine\nex\RenderBackend.hpp"
+#include "..\..\..\engine\nex\RenderBackend.hpp"
+#include "..\..\..\engine\nex\RenderBackend.hpp"
 #include <nex/RenderBackend.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/shader/ShaderManager.hpp>
@@ -35,6 +38,51 @@ namespace nex
 		if (gaussianBlur.get() != nullptr)
 			gaussianBlur->release();
 	}*/
+
+	Blender::Blender()
+	{
+		mImpl = make_unique<BlenderGL>();
+	}
+
+	void Blender::enableBlend(bool enable)
+	{
+		((BlenderGL*)mImpl.get())->enableBlend(enable);
+	}
+
+	void Blender::enableAlphaToCoverage(bool enable)
+	{
+		((BlenderGL*)mImpl.get())->enableAlphaToCoverage(enable);
+	}
+
+	void Blender::setSampleConverage(float sampleCoverage, bool invert)
+	{
+		((BlenderGL*)mImpl.get())->setSampleConverage(sampleCoverage, invert);
+	}
+
+	void Blender::setConstantBlendColor(const glm::vec4& color)
+	{
+		((BlenderGL*)mImpl.get())->setConstantBlendColor(color);
+	}
+
+	void Blender::setGlobalBlendDesc(const BlendDesc& desc)
+	{
+		((BlenderGL*)mImpl.get())->setGlobalBlendDesc(desc);
+	}
+
+	void Blender::setState(const BlendState& state)
+	{
+		((BlenderGL*)mImpl.get())->setState(state);
+	}
+
+	void Blender::setRenderTargetBlending(const RenderTargetBlendDesc & blendDesc)
+	{
+		((BlenderGL*)mImpl.get())->setRenderTargetBlending(blendDesc);
+	}
+
+	Rasterizer::Rasterizer()
+	{
+		mImpl = make_unique<RasterizerGL>();
+	}
 
 	void nex::Rasterizer::setFillMode(FillMode fillMode, PolygonSide faceSide)
 	{
@@ -168,28 +216,9 @@ namespace nex
 
 	void RenderBackend::newFrame()
 	{
-		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-		GLCall(glEnable(GL_CULL_FACE));
-		GLCall(glCullFace(GL_BACK));
-	}
-
-	void RenderBackend::beginScene()
-	{
-		// enable alpha blending
-		//glEnable(GL_BLEND); // TODO
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-		//glViewport(xPos, yPos, width, height);
-		//glScissor(xPos, yPos, width, height);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-
-		//clearFrameBuffer(getCurrentRenderTarget(), { 0.5, 0.5, 0.5, 1 }, 1.0f, 0);
-
-		//glStencilMask(0x00);
-
-		//checkGLErrors(BOOST_CURRENT_FUNCTION);
+		setPolygonRasterization(PolygonSide::FRONT_BACK, FillMode::FILL);
+		getRasterizer()->enableFaceCulling(true);
+		getRasterizer()->setCullMode(PolygonSide::BACK);
 	}
 
 	CubeDepthMap* RenderBackend::createCubeDepthMap(int width, int height)
@@ -244,17 +273,6 @@ namespace nex
 		return result;
 	}
 
-	void RenderBackend::enableAlphaBlending(bool enable)
-	{
-		if (!enable) {
-			GLCall(glDisable(GL_BLEND));
-			return;
-		}
-
-		GLCall(glEnable(GL_BLEND));
-		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	}
-
 	void RenderBackend::enableDepthWriting(bool enable)
 	{
 		const GLuint value = enable ? GL_TRUE : GL_FALSE;
@@ -277,6 +295,11 @@ namespace nex
 	{
 		static RenderBackend backend;
 		return &backend;
+	}
+
+	Blender * RenderBackend::getBlender()
+	{
+		return &mBlender;
 	}
 
 	Rasterizer * RenderBackend::getRasterizer()
@@ -314,54 +337,6 @@ namespace nex
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
 	{
 		backgroundColor = color;
-	}
-
-	void RenderBackend::setBlendDesc(const RenderTargetBlendDesc & blendDesc)
-	{
-		mBlendDescs[blendDesc.colorAttachIndex] = blendDesc;
-
-		RenderTargetBlendDescGL descGL(blendDesc);
-
-		if (blendDesc.enableBlend)
-		{
-			GLCall(glEnablei(GL_BLEND, descGL.colorAttachIndex));
-			GLCall(glBlendEquationSeparatei(descGL.colorAttachIndex, descGL.operationRGB, descGL.operationAlpha));
-			GLCall(glBlendFuncSeparatei(descGL.colorAttachIndex, 
-				descGL.sourceRGB, descGL.destRGB,
-				descGL.sourceAlpha, descGL.destAlpha));
-			
-		}
-		else
-		{
-			GLCall(glDisablei(GL_BLEND, descGL.colorAttachIndex));
-		}
-	}
-
-	void RenderBackend::setBlendState(const BlendState& state)
-	{
-		mBlendState = state;
-
-		if (mBlendState.enableBlend)
-		{
-			GLCall(glEnable(GL_BLEND));
-		} else
-		{
-			GLCall(glDisable(GL_BLEND));
-		}
-
-		if (mBlendState.enableAlphaToCoverage)
-		{
-			GLCall(glEnable(GL_SAMPLE_COVERAGE));
-			GLCall(glSampleCoverage(state.sampleCoverage, translate(state.invertSampleConverage)));
-
-		} else
-		{
-			GLCall(glDisable(GL_SAMPLE_COVERAGE));
-		}
-
-		auto& c = state.constantBlendColor;
-
-		GLCall(glBlendColor(c.r, c.g, c.b, c.a));
 	}
 
 	void RenderBackend::setLineThickness(float thickness)
