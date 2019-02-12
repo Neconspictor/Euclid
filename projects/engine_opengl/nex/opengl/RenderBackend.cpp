@@ -19,134 +19,6 @@ using namespace glm;
 namespace nex
 {
 
-	GLuint translate(Topology topology)
-	{
-		static TopologyGL table[]
-		{
-			LINES,
-			LINES_ADJACENCY,
-			LINE_LOOP,
-			LINE_STRIP,
-			LINE_STRIP_ADJACENCY,
-			PATCHES,
-			POINTS,
-			TRIANGLES,
-			TRIANGLES_ADJACENCY,
-			TRIANGLE_FAN,
-			TRIANGLE_STRIP,
-			TRIANGLE_STRIP_ADJACENCY,
-		};
-
-		static const unsigned size = (unsigned)Topology::LAST - (unsigned)Topology::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: Topology and TopologyGL don't match!");
-
-		return table[(unsigned)topology];
-	}
-
-	BlendFuncGL translate(BlendFunc func)
-	{
-		static BlendFuncGL table[]
-		{
-			ZERO,
-			ONE,
-
-			SOURCE_COLOR,
-			ONE_MINUS_SOURCE_COLOR,
-			DESTINATION_COLOR,
-			ONE_MINUS_DESTINATION_COLOR,
-
-			SOURCE_ALPHA,
-			ONE_MINUS_SOURCE_ALPHA,
-			DESTINATION_ALPHA,
-			ONE_MINUS_DESTINATION_ALPHA,
-
-			CONSTANT_COLOR,
-			ONE_MINUS_CONSTANT_COLOR,
-			CONSTANT_ALPHA,
-			ONE_MINUS_CONSTANT_ALPHA,
-		};
-
-		static const unsigned size = (unsigned)BlendFunc::LAST - (unsigned)BlendFunc::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
-
-		return table[(unsigned)func];
-	}
-
-	BlendOperationGL translate(BlendOperation op)
-	{
-		static BlendOperationGL table[]
-		{
-			ADD,
-			SUBTRACT, 
-			REV_SUBTRACT,
-			MIN,
-			MAX,
-		};
-
-		static const unsigned size = (unsigned)BlendOperation::LAST - (unsigned)BlendOperation::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
-
-		return table[(unsigned)op];
-	}
-
-	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
-		enableBlend(translate(desc.enableBlend)),
-		colorAttachIndex(desc.colorAttachIndex),
-		sourceRGB(translate(desc.sourceRGB)),
-		destRGB(translate(desc.destRGB)),
-		operationRGB(translate(desc.operationRGB)),
-		sourceAlpha(translate(desc.sourceAlpha)),
-		destAlpha(translate(desc.destAlpha)),
-		operationAlpha(translate(desc.operationAlpha))
-	{
-
-	}
-
-	GLuint translate(IndexElementType indexType)
-	{
-		static IndexElementTypeGL table[]
-		{
-			BIT_16,
-			BIT_32,
-		};
-
-		static const unsigned size = (unsigned)IndexElementType::LAST - (unsigned)IndexElementType::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: IndexElementType and IndexElementTypeGL don't match!");
-
-		return table[(unsigned)indexType];	
-	}
-
-	GLuint translate(PolygonSide side)
-	{
-		static PolygonSideGL table[]
-		{
-			BACK,
-			FRONT,
-			FRONT_BACK,
-		};
-
-		static const unsigned size = (unsigned)PolygonSide::LAST - (unsigned)PolygonSide::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonSide and PolygonSideGL don't match!");
-
-		return table[(unsigned)side];
-	}
-
-	GLuint translate(FillMode type)
-	{
-		static FillTypeGL table[]
-		{
-			FILL,
-			LINE,
-			POINT,
-		};
-
-		static const unsigned size = (unsigned)FillMode::LAST - (unsigned)FillMode::FIRST + 1;
-		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonRasterizationType and PolygonRasterizationTypeGL don't match!");
-
-		return table[(unsigned)type];
-	}
-
-
 	/*EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
 	{
 		gaussianBlur = make_unique<GaussianBlurGL>(renderer);
@@ -164,6 +36,60 @@ namespace nex
 			gaussianBlur->release();
 	}*/
 
+	void nex::Rasterizer::setFillMode(FillMode fillMode, PolygonSide faceSide)
+	{
+		((RasterizerGL*)mImpl.get())->setFillMode(fillMode, faceSide);
+	}
+
+	void nex::Rasterizer::setCullMode(PolygonSide faceSide)
+	{
+		((RasterizerGL*)mImpl.get())->setCullMode(faceSide);
+	}
+
+	void nex::Rasterizer::setFrontCounterClockwise(bool set)
+	{
+		((RasterizerGL*)mImpl.get())->setFrontCounterClockwise(set);
+	}
+
+	void nex::Rasterizer::setDepthBias(float slopeScale, float unit, float clamp)
+	{
+		((RasterizerGL*)mImpl.get())->setDepthBias(slopeScale, unit, clamp);
+	}
+
+	void nex::Rasterizer::setState(const RasterizerState& state)
+	{
+		((RasterizerGL*)mImpl.get())->setState(state);
+	}
+
+	void nex::Rasterizer::enableFaceCulling(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableFaceCulling(enable);
+	}
+
+	void nex::Rasterizer::enableScissorTest(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableScissorTest(enable);
+	}
+
+	void nex::Rasterizer::enableMultisample(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableMultisample(enable);
+	}
+
+	void nex::Rasterizer::enableOffsetPolygonFill(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableOffsetPolygonFill(enable);
+	}
+
+	void nex::Rasterizer::enableOffsetLine(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableOffsetLine(enable);
+	}
+
+	void nex::Rasterizer::enableOffsetPoint(bool enable)
+	{
+		((RasterizerGL*)mImpl.get())->enableOffsetPoint(enable);
+	}
 
 
 
@@ -185,7 +111,7 @@ namespace nex
 		LOG(m_logger, Info) << "Initializing...";
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-		GLCall(glEnable(GL_SCISSOR_TEST));
+		getRasterizer()->enableScissorTest(true);
 		GLCall(glViewport(0, 0, mViewport.width, mViewport.height));
 		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
 		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height, GL_FALSE, nullptr));
@@ -197,12 +123,6 @@ namespace nex
 
 		// stencil buffering is enabled when needed!
 		//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
-
-		// we want counter clock wise winding order
-		GLCall(glFrontFace(GL_CCW));
-
-		// only draw front faces
-		enableBackfaceDrawing(false);
 
 		enableDepthWriting(true);
 
@@ -231,10 +151,10 @@ namespace nex
 		// we want counter clock wise winding order
 		GLCall(glEnable(GL_DEPTH_TEST)); // Enables Depth Testing
 		GLCall(glDepthFunc(GL_LESS)); // The Type Of Depth Testing To Do
-		GLCall(glFrontFace(GL_CCW));
-		GLCall(glEnable(GL_CULL_FACE));
+		getRasterizer()->setFrontCounterClockwise(true);
 		GLCall(glEnable(GL_STENCIL_TEST));
-		cullFaces(CullingMode::Back);
+		getRasterizer()->enableFaceCulling(true);
+		getRasterizer()->setCullMode(PolygonSide::BACK);
 
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
 		GLCall(glClearDepth(1.0f));
@@ -335,19 +255,6 @@ namespace nex
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	}
 
-	void RenderBackend::enableBackfaceDrawing(bool enable)
-	{
-		if (enable)
-		{
-			GLCall(glDisable(GL_CULL_FACE));
-		}
-		else
-		{
-			GLCall(glEnable(GL_CULL_FACE));
-			//glCullFace(GL_BACK);
-		}
-	}
-
 	void RenderBackend::enableDepthWriting(bool enable)
 	{
 		const GLuint value = enable ? GL_TRUE : GL_FALSE;
@@ -370,6 +277,11 @@ namespace nex
 	{
 		static RenderBackend backend;
 		return &backend;
+	}
+
+	Rasterizer * RenderBackend::getRasterizer()
+	{
+		return &mRasterizer;
 	}
 
 	RendererType RenderBackend::getType() const
@@ -598,21 +510,10 @@ namespace nex
 		return target;
 	}*/
 
-	void RenderBackend::cullFaces(CullingMode mode)
+	void RenderBackend::cullFaces(PolygonSide faceSide)
 	{
-		if (mode == CullingMode::Front)
-		{
-			GLCall(glCullFace(GL_FRONT));
-
-			// TODO this is needed for rendering shadow maps => put it on a more suitable place
-			//glEnable(GL_POLYGON_OFFSET_FILL);
-			//glPolygonOffset(-1.0f, -1.0f);
-		}
-		else
-		{
-			//glDisable(GL_POLYGON_OFFSET_FILL);
-			GLCall(glCullFace(GL_BACK));
-		}
+		auto faceSideGL = translate(faceSide);
+		GLCall(glCullFace(faceSideGL));
 	}
 
 	void RenderBackend::destroyCubeRenderTarget(CubeRenderTarget * target)

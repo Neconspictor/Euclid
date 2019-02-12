@@ -6,6 +6,7 @@
 #include <cassert>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/opengl/opengl.hpp>
+#include <nex/opengl/RenderBackendGL.hpp>
 
 using namespace std;
 using namespace glm;
@@ -693,12 +694,6 @@ void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned siz
 		translate(mData.pixelDataType), 
 		mData.generateMipMaps, 
 		nullptr);
-}
-
-
-GLuint nex::translate(bool boolean)
-{
-	return boolean ? GL_TRUE : GL_FALSE;
 }
 
 nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)

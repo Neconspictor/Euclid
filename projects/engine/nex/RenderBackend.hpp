@@ -16,11 +16,6 @@ namespace nex
 	class StaticMeshDrawer;
 	class ShadingModelFactory;
 
-	enum class CullingMode
-	{
-		Front, Back
-	};
-
 	enum RenderComponent {
 		Color = 1 << 0,
 		Depth = 1 << 1,
@@ -97,22 +92,6 @@ namespace nex
 	};
 
 
-	struct RasterizerState
-	{
-		FillMode fillMode = FillMode::FILL;
-		PolygonSide cullMode = PolygonSide::BACK;
-		bool frontCounterClockwise = false;
-		float depthBias = 0.0f;
-		float depthBiasClamp = 0.0f;
-		float slopeScaledDepthBias = 0.0f;
-		//bool enableDepthClipable = false; // not possible in opengl
-		bool enableScissorTest = false;
-		bool enableMultisampleAntialising = true;
-		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
-		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
-		bool enableAntialisedLine = false;
-	};
-
 	struct BlendState
 	{
 		bool enableBlend = false;
@@ -177,6 +156,58 @@ namespace nex
 		BlendFunc destAlpha;
 		BlendOperation operationAlpha;
 		//unsigned char renderTargetWriteMask; // not supported by opengl
+	};
+
+
+	struct RasterizerState
+	{
+		std::map<PolygonSide, FillMode> fillModes;
+		PolygonSide cullMode = PolygonSide::BACK;
+		bool frontCounterClockwise = false;
+		float depthBias = 0.0f;
+		float depthBiasClamp = 0.0f;
+		float slopeScaledDepthBias = 0.0f;
+		//bool enableDepthClipable = false; // not possible in opengl
+		bool enableFaceCulling = true;
+		bool enableScissorTest = false;
+		bool enableMultisample = true;
+		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
+		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
+		bool enableOffsetPolygonFill = false;
+		bool enableOffsetLine = false;
+		bool enableOffsetPoint = false;
+
+		RasterizerState()
+		{
+			fillModes[PolygonSide::FRONT_BACK] = FillMode::FILL;
+		}
+	};
+
+
+	/**
+	 * Configuration class for the rasterizer
+	 */
+	class Rasterizer
+	{
+	public:
+
+		class Implementation {};
+
+		void setFillMode(FillMode fillMode, PolygonSide faceSide);
+		void setCullMode(PolygonSide faceSide);
+		void setFrontCounterClockwise(bool set);
+		void setDepthBias(float slopeScale, float unit, float clamp);
+
+		void setState(const RasterizerState& state);
+		void enableFaceCulling(bool enable);
+		void enableScissorTest(bool enable);
+		void enableMultisample(bool enable);
+		void enableOffsetPolygonFill(bool enable);
+		void enableOffsetLine(bool enable);
+		void enableOffsetPoint(bool enable);
+
+	private:
+		std::unique_ptr<Implementation> mImpl;
 	};
 
 
@@ -247,15 +278,13 @@ namespace nex
 
 		//RenderTarget* createVarianceShadowMap(int width, int height);
 
-		void cullFaces(CullingMode mode);
+		void cullFaces(PolygonSide faceSide);
 
 		void destroyCubeRenderTarget(CubeRenderTarget* target);
 
 		void destroyRenderTarget(RenderTarget2D* target);
 
 		void enableAlphaBlending(bool enable);
-
-		void enableBackfaceDrawing(bool enable);
 
 		/**
 		 * Enables / Disables depth mask writing.
@@ -281,6 +310,8 @@ namespace nex
 
 		// Inherited via RenderBackend
 		EffectLibrary* getEffectLibrary();
+
+		Rasterizer* getRasterizer();
 
 		/**
 		* Provides the type of renderer class, this renderer belongs to.
@@ -352,8 +383,8 @@ namespace nex
 		std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
 		BlendState mBlendState;
 
-	protected:
 		nex::Logger m_logger{"RenderBackend"};
+		Rasterizer mRasterizer;
 		Viewport mViewport;
 	};
 }

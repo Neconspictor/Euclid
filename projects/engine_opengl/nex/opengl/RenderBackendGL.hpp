@@ -34,7 +34,7 @@ namespace nex {
 		FRONT_BACK = GL_FRONT_AND_BACK,
 	};
 
-	enum FillTypeGL
+	enum FillModeGL
 	{
 		FILL = GL_FILL,
 		LINE = GL_LINE,
@@ -71,6 +71,13 @@ namespace nex {
 		MAX = GL_MAX, // max(source, destination)
 	};
 
+	enum PolygonOffsetFillModeGL
+	{
+		OFFSET_FILL = GL_POLYGON_OFFSET_FILL,
+		OFFSET_LINE = GL_POLYGON_OFFSET_LINE,
+		OFFSET_POINT = GL_POLYGON_OFFSET_POINT,
+	};
+
 	struct RenderTargetBlendDescGL
 	{
 		GLuint enableBlend;
@@ -86,10 +93,49 @@ namespace nex {
 		RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc);
 	};
 
-	GLuint translate(IndexElementType indexType);
-	GLuint translate(PolygonSide side);
-	GLuint translate(FillMode type);
-	GLuint translate(Topology topology);
+
+	class RasterizerGL : public Rasterizer::Implementation
+	{
+	public:
+		RasterizerGL();
+
+		void setFillMode(FillMode fillMode, PolygonSide faceSide);
+		void setCullMode(PolygonSide faceSide);
+		void setFrontCounterClockwise(bool set);
+		void setDepthBias(float slopeScale, float unit, float clamp);
+		void setState(const RasterizerState& state);
+		void enableFaceCulling(bool enable);
+		void enableScissorTest(bool enable);
+		void enableMultisample(bool enable);
+		void enableOffsetPolygonFill(bool enable);
+		void enableOffsetLine(bool enable);
+		void enableOffsetPoint(bool enable);
+
+		std::map<PolygonSideGL, FillModeGL> mFillModes;
+		PolygonSideGL cullMode;
+
+		bool mFrontCounterClockwise;
+		float mDepthBias;
+		float mDepthBiasClamp;
+		float mSlopeScaledDepthBias;
+		//bool enableDepthClipable = false; // not possible in opengl
+		bool mEnableFaceCulling;
+		bool mEnableScissorTest;
+		bool mEnableMultisample;
+		// Enable or disables line antialiasing. Note that this option only applies when alpha blending is enabled, 
+		// you are drawing lines, and the MultisampleEnable member is FALSE. The default value is FALSE.
+		bool mEnableOffsetPolygonFill;
+		bool mEnableOffsetLine;
+		bool mEnableOffsetPoint;
+
+	};
+
+
+	GLuint translate(bool boolean);
+	IndexElementTypeGL translate(IndexElementType indexType);
+	PolygonSideGL translate(PolygonSide side);
+	FillModeGL translate(FillMode type);
+	TopologyGL translate(Topology topology);
 
 	BlendFuncGL translate(BlendFunc func);
 	BlendOperationGL translate(BlendOperation op);

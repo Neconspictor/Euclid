@@ -152,7 +152,6 @@ namespace nex
 		NOT_EQUAL = GL_NOTEQUAL,
 	};
 
-	GLuint translate(bool boolean);
 	TextureAccessGL translate(nex::TextureAccess);
 	ChannelGL translate(nex::Channel);
 	TextureFilterGL translate(nex::TextureFilter);
