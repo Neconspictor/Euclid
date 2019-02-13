@@ -9,7 +9,7 @@ namespace nex
 	/**
  * Abstract class for Cascaded shadow implementations.
  */
-	class CascadedShadowGL
+	class CascadedShadow
 	{
 	public:
 
@@ -25,7 +25,7 @@ namespace nex
 			glm::vec4 cascadedSplits[NUM_CASCADES];
 		};
 
-		CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight);
 
 		/**
 		 * Allows rendering to the i-th cascade.

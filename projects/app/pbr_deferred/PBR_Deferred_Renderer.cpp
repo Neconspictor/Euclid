@@ -2,18 +2,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/opengl/shader/PBRShaderGL.hpp>
-#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
+#include <nex/shader/PBRShader.hpp>
+#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/opengl/scene/SceneNode.hpp>
-#include <nex/opengl/shader/DepthMapShaderGL.hpp>
-#include <nex/opengl/shader/ScreenShaderGL.hpp>
+#include <nex/shader/DepthMapShader.hpp>
+#include <nex/shader/ScreenShader.hpp>
 #include <nex/util/Math.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
-#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
-#include "nex/opengl/model/ModelManagerGL.hpp"
+#include <nex/shader/ShaderManager.hpp>
+#include <nex/texture/TextureManager.hpp>
+//#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
+#include "nex/mesh/StaticMeshManager.hpp"
 #include <nex/texture/Gbuffer.hpp>
-#include "nex/opengl/shadowing/CascadedShadowGL.hpp"
+#include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/RenderBackend.hpp"
 
@@ -52,9 +52,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
 
-	ShaderManagerGL* shaderManager = m_renderBackend->getShaderManager();
-	StaticMeshManager* modelManager = m_renderBackend->getModelManager();
-	TextureManager* textureManager = m_renderBackend->getTextureManager();
+	ShaderManager* shaderManager = ShaderManager::get();
+	StaticMeshManager* modelManager = StaticMeshManager::get();
+	TextureManager* textureManager = TextureManager::get();
 
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
@@ -146,7 +146,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	m_pbr_deferred = m_renderBackend->getShadingModelFactory().create_PBR_Deferred_Model(m_renderBackend, panoramaSky);
+	m_pbr_deferred = make_unique<PBR_Deferred>(m_renderBackend, panoramaSky);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
@@ -159,17 +159,16 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	skyBoxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
 
-	m_cascadedShadow = m_renderBackend->createCascadedShadow(2048, 2048);
+	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048);
 }
 
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	StaticMeshDrawer* modelDrawer = m_renderBackend->getModelDrawer();
-	ScreenShader* screenShader = (ScreenShader*)(
-		m_renderBackend->getShaderManager()->getShader(ShaderType::Screen));
-	DepthMapShader* depthMapShader = (DepthMapShader*)(
-		m_renderBackend->getShaderManager()->getShader(ShaderType::DepthMap));
+	ShaderManager* shaderManager = ShaderManager::get();
+	ScreenShader* screenShader = (ScreenShader*)(shaderManager->getShader(ShaderType::Screen));
+	DepthMapShader* depthMapShader = (DepthMapShader*)(shaderManager->getShader(ShaderType::DepthMap));
+
 	using namespace chrono;
 
 	m_renderBackend->newFrame();
@@ -194,7 +193,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	//m_renderBackend->setViewPort(0, 0, 4096, 4096);
 
-	for (int i = 0; i < CascadedShadowGL::NUM_CASCADES; ++i)
+	for (int i = 0; i < CascadedShadow::NUM_CASCADES; ++i)
 	{
 		m_cascadedShadow->begin(i);
 		StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());
@@ -231,7 +230,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		RenderComponent::Depth | RenderComponent::Stencil);*/
 
 
-	CascadedShadowGL::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
+	CascadedShadow::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
 	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
 		m_pbr_deferred->drawLighting(scene, 
@@ -282,7 +281,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
 		//screenShader->useTexture(shadowMap->getTexture());
 		//modelDrawer->draw(&screenSprite, screenShader);
-		modelDrawer->draw(&screenSprite, depthMapShader);
+		StaticMeshDrawer::draw(&screenSprite, depthMapShader);
 		/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
 			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
 		} else
@@ -294,7 +293,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		//m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
 	} else
 	{
-		modelDrawer->draw(&screenSprite, screenShader);
+		StaticMeshDrawer::draw(&screenSprite, screenShader);
 		
 		//ssao_deferred->displayAOTexture();
 	}
@@ -355,7 +354,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gDepth, Textur
 	//return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
 	if (!m_aoSelector.isAmbientOcclusionActive())
 		// Return a default white texture (means no ambient occlusion)
-		return m_renderBackend->getTextureManager()->getDefaultWhiteTexture();
+		return TextureManager::get()->getDefaultWhiteTexture();
 
 	if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO)
 	{

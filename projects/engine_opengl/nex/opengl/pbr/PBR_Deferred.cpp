@@ -9,8 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/GBuffer.hpp>
-#include "nex/drawing/StaticMeshDrawer.hpp"
-#include "nex/shader/ShaderManager.hpp"
+#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/shader/ShaderManager.hpp>
 
 using namespace glm;
 
@@ -76,7 +76,7 @@ namespace nex {
 	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
 		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, 
 		const glm::mat4& projFromGPass, const glm::mat4 & worldToLight,
-		CascadedShadowGL::CascadeData* cascadeData,
+		CascadedShadow::CascadeData* cascadeData,
 		Texture* cascadedDepthMap)
 	{
 		glEnable(GL_STENCIL_TEST);

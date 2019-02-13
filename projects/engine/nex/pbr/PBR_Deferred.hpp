@@ -4,7 +4,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/gui/Drawable.hpp>
 #include <nex/pbr/PBR.hpp>
-#include <nex/opengl/shadowing/CascadedShadowGL.hpp>
+#include <nex/shadow/CascadedShadow.hpp>
 
 namespace nex
 {
@@ -28,7 +28,7 @@ namespace nex
 			const glm::mat4& viewFromGPass,
 			const glm::mat4& projFromGPass,
 			const glm::mat4& worldToLight,
-			CascadedShadowGL::CascadeData* cascadeData,
+			CascadedShadow::CascadeData* cascadeData,
 			Texture* cascadedDepthMap);
 
 		void drawSky(const glm::mat4& projection,

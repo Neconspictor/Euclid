@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.inl>
 using namespace nex;
 
-CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight))
@@ -13,7 +13,7 @@ CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int casca
 	updateTextureArray();
 }
 
-void CascadedShadowGL::begin(int cascadeIndex)
+void CascadedShadow::begin(int cascadeIndex)
 {
 	mDepthPassShader.bind();
 
@@ -43,7 +43,7 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	//glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
 }
 
-void CascadedShadowGL::end()
+void CascadedShadow::end()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	mDepthPassShader.unbind();
@@ -53,12 +53,12 @@ void CascadedShadowGL::end()
 	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 }
 
-Texture* CascadedShadowGL::getDepthTextureArray()
+Texture* CascadedShadow::getDepthTextureArray()
 {
 	return mRenderTarget.getDepthAttachment()->texture.get();
 }
 
-void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
+void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 {
 	mCascadeWidth = cascadeWidth;
 	mCascadeHeight = cascadeHeight;
@@ -84,7 +84,7 @@ void CascadedShadowGL::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	vertexArray->unbind();
 }*/
 
-void CascadedShadowGL::updateTextureArray()
+void CascadedShadow::updateTextureArray()
 {
 	TextureData data;
 	data.colorspace = ColorSpace::DEPTH;
@@ -109,12 +109,12 @@ void CascadedShadowGL::updateTextureArray()
 	mRenderTarget.assertCompletion();
 }
 
-CascadedShadowGL::DepthPassShader::DepthPassShader()
+CascadedShadow::DepthPassShader::DepthPassShader()
 {
 	mProgram = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
 }
 
-void CascadedShadowGL::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
 {
 	static const UniformLocation MODEL_MATRIX_LOCATION = 1;
 	mProgram->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
@@ -122,7 +122,7 @@ void CascadedShadowGL::DepthPassShader::onModelMatrixUpdate(const glm::mat4& mod
 }
 
 
-void CascadedShadowGL::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
+void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
 {
 	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
 
@@ -257,17 +257,17 @@ void CascadedShadowGL::frameUpdate(Camera* camera, const glm::vec3& lightDirecti
 	}
 }
 
-const glm::mat4& CascadedShadowGL::getLightProjectionMatrix() const
+const glm::mat4& CascadedShadow::getLightProjectionMatrix() const
 {
 	return mLightProjMatrix;
 }
 
-Shader* CascadedShadowGL::getDepthPassShader()
+Shader* CascadedShadow::getDepthPassShader()
 {
 	return &mDepthPassShader;
 }
 
-CascadedShadowGL::CascadeData* CascadedShadowGL::getCascadeData()
+CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
 {
 	return &mCascadeData;
 }

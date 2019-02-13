@@ -4,14 +4,15 @@
 #include <nex/scene/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/opengl/shading_model/PBR_DeferredGL.hpp>
+#include <nex/pbr/PBR_Deferred.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
-#include "nex/opengl/post_processing/AmbientOcclusion.hpp"
-#include "nex/opengl/shadowing/CascadedShadowGL.hpp"
-#include "nex/texture/GBuffer.hpp"
-#include "nex/pbr/PBR_Deferred.hpp"
-#include "nex/opengl/post_processing/blur/GaussianBlurGL.hpp"
-#include "nex/Renderer.hpp"
+#include <nex/opengl/post_processing/AmbientOcclusion.hpp>
+#include <nex/shadow/CascadedShadow.hpp>
+#include <nex/texture/GBuffer.hpp>
+#include <nex/pbr/PBR_Deferred.hpp>
+#include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
+#include <nex/Renderer.hpp>
+#include <nex/RenderBackend.hpp>
 
 namespace nex
 {
@@ -39,7 +40,7 @@ namespace nex
 
 		// Allow the UI mode classes accessing private members
 
-		GaussianBlurGL* blurEffect;
+		GaussianBlur* blurEffect;
 		DirectionalLight globalLight;
 		nex::Logger m_logger;
 		Texture* panoramaSky;
@@ -47,7 +48,7 @@ namespace nex
 
 		std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
-		std::unique_ptr<CascadedShadowGL> m_cascadedShadow;
+		std::unique_ptr<CascadedShadow> m_cascadedShadow;
 
 		AmbientOcclusionSelector m_aoSelector;
 
