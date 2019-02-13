@@ -168,6 +168,65 @@ namespace nex
 		}
 	}
 
+	DepthBufferGL::DepthBufferGL()
+	{
+		setState(DepthBuffer::State());
+	}
+
+	void DepthBufferGL::enableDepthBufferWriting(bool enable)
+	{
+		mEnableDepthBufferWriting = enable;
+		GLCall(glDepthMask(translate(mEnableDepthBufferWriting)));
+	}
+
+	void DepthBufferGL::enableDepthTest(bool enable)
+	{
+		mEnableDepthTest = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_DEPTH_TEST));
+		} else
+		{
+			GLCall(glDisable(GL_DEPTH_TEST));
+		}
+	}
+
+	void DepthBufferGL::enableDepthClamp(bool enable)
+	{
+		mEnableDepthClamp = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_DEPTH_CLAMP));
+		}
+		else
+		{
+			GLCall(glDisable(GL_DEPTH_CLAMP));
+		}
+	}
+
+	void DepthBufferGL::setDefaultDepthFunc(DepthComparison depthFunc)
+	{
+		mDepthFunc = translate(depthFunc);
+		GLCall(glDepthFunc(mDepthFunc));
+	}
+
+	void DepthBufferGL::setDepthRange(const DepthBuffer::Range& range)
+	{
+		mDepthRange = range;
+		GLCall(glDepthRange(range.nearVal, range.farVal));
+	}
+
+	void DepthBufferGL::setState(const DepthBuffer::State& state)
+	{
+		enableDepthBufferWriting(state.enableDepthBufferWriting);
+		enableDepthTest(state.enableDepthTest);
+		enableDepthClamp(state.enableDepthClamp);
+		setDefaultDepthFunc(state.depthFunc);
+		setDepthRange(state.depthRange);
+	}
+
 	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
 		enableBlend(translate(desc.enableBlend)),
 		colorAttachIndex(desc.colorAttachIndex),
@@ -313,6 +372,26 @@ namespace nex
 	GLuint translate(bool boolean)
 	{
 		return boolean ? GL_TRUE : GL_FALSE;
+	}
+
+	nex::DepthComparisonGL nex::translate(nex::DepthComparison compareFunc)
+	{
+		static DepthComparisonGL const typeTable[]
+		{
+			ALWAYS,
+			EQUAL,
+			GREATER,
+			GREATER_EQUAL,
+			LESS,
+			LESS_EQUAL,
+			NEVER,
+			NOT_EQUAL,
+		};
+
+		static const unsigned size = (unsigned)DepthComparison::LAST - (unsigned)DepthComparison::FIRST + 1;
+		static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
+
+		return typeTable[(unsigned)compareFunc];
 	}
 
 	IndexElementTypeGL translate(IndexElementType indexType)

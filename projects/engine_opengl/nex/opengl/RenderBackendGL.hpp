@@ -6,6 +6,18 @@
 
 namespace nex {
 
+	enum DepthComparisonGL
+	{
+		ALWAYS = GL_ALWAYS,
+		EQUAL = GL_EQUAL,
+		GREATER = GL_GREATER,
+		GREATER_EQUAL = GL_GEQUAL,
+		LESS = GL_LESS,
+		LESS_EQUAL = GL_LEQUAL,
+		NEVER = GL_NEVER,
+		NOT_EQUAL = GL_NOTEQUAL,
+	};
+
 	enum TopologyGL
 	{
 		LINES = GL_LINES,
@@ -128,6 +140,32 @@ namespace nex {
 		
 	};
 
+	class DepthBufferGL : public DepthBuffer::Implementation
+	{
+	public:
+		DepthBufferGL();
+
+
+		void enableDepthBufferWriting(bool enable);
+		void enableDepthTest(bool enable);
+		void enableDepthClamp(bool enable);
+
+		// depth comparison function being used when depth test is enabled and no sampler is bound
+		void setDefaultDepthFunc(DepthComparison depthFunc);
+
+		//specify mapping of depth values from normalized device coordinates to window coordinates
+		void setDepthRange(const DepthBuffer::Range& range);
+
+		void setState(const DepthBuffer::State& state);
+
+	private:
+		bool mEnableDepthBufferWriting;
+		bool mEnableDepthTest;
+		bool mEnableDepthClamp;
+		DepthComparisonGL mDepthFunc;
+		DepthBuffer::Range mDepthRange;
+	};
+
 
 	class RasterizerGL : public Rasterizer::Implementation
 	{
@@ -145,6 +183,8 @@ namespace nex {
 		void enableOffsetPolygonFill(bool enable);
 		void enableOffsetLine(bool enable);
 		void enableOffsetPoint(bool enable);
+
+	private:
 
 		std::map<PolygonSideGL, FillModeGL> mFillModes;
 		PolygonSideGL cullMode;
@@ -167,6 +207,7 @@ namespace nex {
 
 
 	GLuint translate(bool boolean);
+	DepthComparisonGL translate(nex::DepthComparison);
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
 	FillModeGL translate(FillMode type);

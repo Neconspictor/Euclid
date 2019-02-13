@@ -1,9 +1,6 @@
 #include <nex/opengl/shadowing/CascadedShadowGL.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/opengl/texture/TextureGL.hpp"
-#include "nex/mesh/VertexArray.hpp"
-#include "nex/mesh/IndexBuffer.hpp"
-#include "nex/opengl/opengl.hpp"
 #include "nex/mesh/SubMesh.hpp"
 #include "nex/texture/RenderTarget.hpp"
 #include "nex/RenderBackend.hpp"
@@ -23,8 +20,8 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	mDepthPassShader.bind();
 
 	mRenderTarget.bind();
-	glScissor(0, 0, mCascadeWidth, mCascadeWidth);
-	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeWidth);
+	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
+	RenderBackend::get()->setScissor(0, 0, mCascadeWidth, mCascadeHeight);
 
 	auto* depth = mRenderTarget.getDepthAttachment();
 	depth->layer = cascadeIndex;
@@ -33,10 +30,12 @@ void CascadedShadowGL::begin(int cascadeIndex)
 	//TODO validate!
 	//glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_DEPTH_CLAMP); // We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
-	glCullFace(GL_BACK);
+	mRenderTarget.clear(RenderComponent::Depth);
+	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+
+	// We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
+	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
+	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 
 	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
@@ -51,8 +50,9 @@ void CascadedShadowGL::end()
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	mDepthPassShader.unbind();
 	//###glDisable(GL_DEPTH_TEST);
-	glDisable(GL_DEPTH_CLAMP);
-	glCullFace(GL_BACK);
+	// disable depth clamping
+	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
+	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 }
 
 Texture* CascadedShadowGL::getDepthTextureArray()

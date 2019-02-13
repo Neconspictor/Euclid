@@ -5,6 +5,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include "shader/DepthMapShader.hpp"
 
 namespace nex
 {
@@ -191,6 +192,50 @@ namespace nex
 	};
 
 
+	/**
+	 * Configuration class for the depth buffer
+	 */
+	class DepthBuffer
+	{
+	public:
+
+		class Implementation {};
+
+		//specify mapping of depth values from normalized device coordinates to window coordinates
+		struct Range
+		{
+			double nearVal;
+			double farVal;
+		};
+
+		struct State
+		{
+			bool enableDepthBufferWriting = true;
+			bool enableDepthTest = true;
+			bool enableDepthClamp = false;
+			DepthComparison depthFunc = DepthComparison::LESS;
+			Range depthRange = {0.0, 1.0};
+		};
+
+		DepthBuffer();
+
+		void enableDepthBufferWriting(bool enable);
+		void enableDepthTest(bool enable);
+		void enableDepthClamp(bool enable);
+
+		// depth comparison function being used when depth test is enabled and no sampler is bound
+		void setDefaultDepthFunc(DepthComparison depthFunc);
+		
+		//specify mapping of depth values from normalized device coordinates to window coordinates
+		void setDepthRange(const Range& range);
+
+		void setState(const State& state);
+
+	private:
+		std::unique_ptr<Implementation> mImpl;
+	};
+
+
 	struct RasterizerState
 	{
 		std::map<PolygonSide, FillMode> fillModes;
@@ -312,13 +357,6 @@ namespace nex
 		void destroyRenderTarget(RenderTarget2D* target);
 
 		/**
-		 * Enables / Disables depth mask writing.
-		 * models drawn with disabled depth mask will always overwrite
-		 * the existing fragments/pixels.
-		 */
-		void enableDepthWriting(bool enable);
-
-		/**
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound
 		 * IndexBuffer object.
 		 */
@@ -334,6 +372,8 @@ namespace nex
 		Blender* getBlender();
 
 		RenderTarget2D* getDefaultRenderTarget();
+
+		DepthBuffer* getDepthBuffer();
 
 		// Inherited via RenderBackend
 		EffectLibrary* getEffectLibrary();
@@ -389,6 +429,8 @@ namespace nex
 
 		void setPolygonRasterization(PolygonSide side, FillMode type);
 
+		void setScissor(int x, int y, unsigned width, unsigned height);
+
 		/**
 		* Sets the viewport size and position.
 		*/
@@ -407,6 +449,7 @@ namespace nex
 
 		nex::Logger m_logger{"RenderBackend"};
 		Blender mBlender;
+		DepthBuffer mDepthBuffer;
 		Rasterizer mRasterizer;
 		Viewport mViewport;
 	};

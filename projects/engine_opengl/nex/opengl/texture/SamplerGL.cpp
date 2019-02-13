@@ -1,5 +1,6 @@
 #include <nex/opengl/texture/SamplerGL.hpp>
 #include "nex/opengl/opengl.hpp"
+#include <nex/opengl/RenderBackendGL.hpp>
 
 using namespace nex;
 

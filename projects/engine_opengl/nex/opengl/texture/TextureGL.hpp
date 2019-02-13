@@ -1,6 +1,5 @@
 #pragma once
 #include <glad/glad.h>
-#include <nex/util/Math.hpp>
 #include <nex/texture/Texture.hpp>
 
 namespace nex
@@ -140,18 +139,6 @@ namespace nex
 		DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8,
 	};*/
 
-	enum DepthComparisonGL
-	{
-		ALWAYS = GL_ALWAYS,
-		EQUAL = GL_EQUAL,
-		GREATER = GL_GREATER,
-		GREATER_EQUAL = GL_GEQUAL,
-		LESS = GL_LESS,
-		LESS_EQUAL = GL_LEQUAL,
-		NEVER = GL_NEVER,
-		NOT_EQUAL = GL_NOTEQUAL,
-	};
-
 	TextureAccessGL translate(nex::TextureAccess);
 	ChannelGL translate(nex::Channel);
 	TextureFilterGL translate(nex::TextureFilter);
@@ -160,7 +147,6 @@ namespace nex
 	InternFormatGL translate(nex::InternFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
-	DepthComparisonGL translate(nex::DepthComparison);
 
 
 

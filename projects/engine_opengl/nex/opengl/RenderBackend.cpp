@@ -79,6 +79,41 @@ namespace nex
 		((BlenderGL*)mImpl.get())->setRenderTargetBlending(blendDesc);
 	}
 
+	DepthBuffer::DepthBuffer()
+	{
+		mImpl = std::make_unique<DepthBufferGL>();
+	}
+
+	void DepthBuffer::enableDepthBufferWriting(bool enable)
+	{
+		((DepthBufferGL*)mImpl.get())->enableDepthBufferWriting(enable);
+	}
+
+	void DepthBuffer::enableDepthTest(bool enable)
+	{
+		((DepthBufferGL*)mImpl.get())->enableDepthTest(enable);
+	}
+
+	void DepthBuffer::enableDepthClamp(bool enable)
+	{
+		((DepthBufferGL*)mImpl.get())->enableDepthClamp(enable);
+	}
+
+	void DepthBuffer::setDefaultDepthFunc(DepthComparison depthFunc)
+	{
+		((DepthBufferGL*)mImpl.get())->setDefaultDepthFunc(depthFunc);
+	}
+
+	void DepthBuffer::setDepthRange(const Range& range)
+	{
+		((DepthBufferGL*)mImpl.get())->setDepthRange(range);
+	}
+
+	void DepthBuffer::setState(const State& state)
+	{
+		((DepthBufferGL*)mImpl.get())->setState(state);
+	}
+
 	Rasterizer::Rasterizer()
 	{
 		mImpl = make_unique<RasterizerGL>();
@@ -172,7 +207,7 @@ namespace nex
 		// stencil buffering is enabled when needed!
 		//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
 
-		enableDepthWriting(true);
+		getDepthBuffer()->enableDepthBufferWriting(true);
 
 		// enable alpha blending
 		//glEnable(GL_BLEND); // TODO
@@ -240,6 +275,11 @@ namespace nex
 		return defaultRenderTarget.get();
 	}
 
+	DepthBuffer* RenderBackend::getDepthBuffer()
+	{
+		return &mDepthBuffer;
+	}
+
 	RenderTarget2D* nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
 
 		DepthStencilDesc desc;
@@ -271,12 +311,6 @@ namespace nex
 		auto result = createRenderTargetGL(width, height, data, samples, depthTexture); //GL_RGBA
 
 		return result;
-	}
-
-	void RenderBackend::enableDepthWriting(bool enable)
-	{
-		const GLuint value = enable ? GL_TRUE : GL_FALSE;
-		GLCall(glDepthMask(value));
 	}
 
 	void RenderBackend::drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType)
@@ -363,6 +397,11 @@ namespace nex
 		GLCall(glPolygonMode(translate(side), translate(type)));
 	}
 
+	void RenderBackend::setScissor(int x, int y, unsigned width, unsigned height)
+	{
+		GLCall(glScissor(x, y, width, height));
+	}
+
 	void RenderBackend::setViewPort(int x, int y, int width, int height)
 	{
 		mViewport.x = x;
@@ -371,7 +410,6 @@ namespace nex
 		mViewport.height = height;
 
 		GLCall(glViewport(x, y, width, height));
-		GLCall(glScissor(x, y, width, height));
 		//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
 
 		//if (effectLibrary)

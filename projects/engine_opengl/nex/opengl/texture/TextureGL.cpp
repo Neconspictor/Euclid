@@ -885,24 +885,3 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 
 	return table[(unsigned)target];
 }
-
-
-nex::DepthComparisonGL nex::translate(nex::DepthComparison compareFunc)
-{
-	static DepthComparisonGL const typeTable[]
-	{
-		ALWAYS,
-		EQUAL,
-		GREATER,
-		GREATER_EQUAL,
-		LESS,
-		LESS_EQUAL,
-		NEVER,
-		NOT_EQUAL,
-	};
-
-	static const unsigned size = (unsigned)DepthComparison::LAST - (unsigned)DepthComparison::FIRST + 1;
-	static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
-
-	return typeTable[(unsigned)compareFunc];
-}
