@@ -4,7 +4,7 @@
 #include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/shader/PBRShader.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
-#include <nex/opengl/scene/SceneNode.hpp>
+#include <nex/SceneNode.hpp>
 #include <nex/shader/DepthMapShader.hpp>
 #include <nex/shader/ScreenShader.hpp>
 #include <nex/util/Math.hpp>
