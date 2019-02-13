@@ -94,7 +94,7 @@ void CascadedShadow::updateTextureArray()
 	data.magFilter = TextureFilter::Linear;
 	data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
 	data.useDepthComparison = true;
-	data.compareFunc = DepthComparison::LESS_EQUAL;
+	data.compareFunc = CompareFunction::LESS_EQUAL;
 
 	RenderAttachment depth;
 	depth.type = RenderAttachment::Type::DEPTH;

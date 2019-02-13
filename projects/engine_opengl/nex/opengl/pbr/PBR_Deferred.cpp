@@ -46,9 +46,7 @@ namespace nex {
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 		PBRShader_Deferred_Geometry* shader = reinterpret_cast<PBRShader_Deferred_Geometry*> (
-			renderer->getShaderManager()->getShader(ShaderType::Pbr_Deferred_Geometry));
-
-		StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
+			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Geometry));
 
 		shader->bind();
 		shader->setView(view);
@@ -63,7 +61,7 @@ namespace nex {
 			sampler->bind(i);
 		}
 
-		modelDrawer->draw(scene, shader);
+		StaticMeshDrawer::draw(scene, shader);
 
 		for (int i = 0; i < 6; ++i)
 		{

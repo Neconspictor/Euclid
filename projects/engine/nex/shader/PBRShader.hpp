@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
-#include <nex/opengl/shadowing/CascadedShadowGL.hpp>
+#include <nex/shadow/CascadedShadow.hpp>
 
 
 namespace nex

@@ -77,6 +77,26 @@ namespace nex
 		return table[(unsigned)op];
 	}
 
+	StencilTestGL::OperationGL translate(StencilTest::Operation op)
+	{
+		static StencilTestGL::OperationGL table[]
+		{
+			StencilTestGL::KEEP,
+			StencilTestGL::ZERO,
+			StencilTestGL::REPLACE,
+			StencilTestGL::INCREMENT,
+			StencilTestGL::INCREMENT_WRAP,
+			StencilTestGL::DECREMENT,
+			StencilTestGL::DECREMENT_WRAP,
+			StencilTestGL::INVERT,
+		};
+
+		static const unsigned size = (unsigned)StencilTest::Operation::LAST - (unsigned)StencilTest::Operation::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: StencilTest::Operation and StencilTestGL::OperationGL don't match!");
+
+		return table[(unsigned)op];
+	}
+
 	BlendDescGL::BlendDescGL(const BlendDesc& desc) :
 		sourceRGB(translate(desc.sourceRGB)),
 		destRGB(translate(desc.destRGB)),
@@ -206,7 +226,7 @@ namespace nex
 		}
 	}
 
-	void DepthBufferGL::setDefaultDepthFunc(DepthComparison depthFunc)
+	void DepthBufferGL::setDefaultDepthFunc(CompareFunction depthFunc)
 	{
 		mDepthFunc = translate(depthFunc);
 		GLCall(glDepthFunc(mDepthFunc));
@@ -369,14 +389,58 @@ namespace nex
 		}
 	}
 
+	StencilTestGL::StencilTestGL()
+	{
+		setState(StencilTest::State());
+	}
+
+	void StencilTestGL::enableStencilTest(bool enable)
+	{
+		mEnableStencilTest = enable;
+
+		if (mEnableStencilTest)
+		{
+			GLCall(glEnable(GL_STENCIL_TEST));
+		} else
+		{
+			GLCall(glDisable(GL_STENCIL_TEST));
+		}
+	}
+
+	void StencilTestGL::setCompareFunc(CompareFunction func, int referenceValue, unsigned mask)
+	{
+		mCompareFunc = translate(func);
+		mCompareReferenceValue = referenceValue;
+		mCompareMask = mask;
+
+		GLCall(glStencilFunc(mCompareFunc, mCompareReferenceValue, mCompareMask));
+	}
+
+	void StencilTestGL::setOperations(StencilTest::Operation stencilFail, StencilTest::Operation depthFail,
+		StencilTest::Operation depthPass)
+	{
+		mStencilTestFailOperation = translate(stencilFail);
+		mDepthTestFailOperation = translate(depthFail);
+		mDepthPassOperation = translate(depthPass);
+
+		GLCall(glStencilOp(mStencilTestFailOperation, mDepthTestFailOperation, mDepthPassOperation));
+	}
+
+	void StencilTestGL::setState(const StencilTest::State& state)
+	{
+		enableStencilTest(state.enableStencilTest);
+		setCompareFunc(state.compareFunc, state.compareReferenceValue, state.compareMask);
+		setOperations(state.stencilTestFailOperation, state.depthTestFailOperation, state.depthPassOperation);
+	}
+
 	GLuint translate(bool boolean)
 	{
 		return boolean ? GL_TRUE : GL_FALSE;
 	}
 
-	nex::DepthComparisonGL nex::translate(nex::DepthComparison compareFunc)
+	nex::CompareFunctionGL nex::translate(nex::CompareFunction compareFunc)
 	{
-		static DepthComparisonGL const typeTable[]
+		static CompareFunctionGL const typeTable[]
 		{
 			ALWAYS,
 			EQUAL,
@@ -388,7 +452,7 @@ namespace nex
 			NOT_EQUAL,
 		};
 
-		static const unsigned size = (unsigned)DepthComparison::LAST - (unsigned)DepthComparison::FIRST + 1;
+		static const unsigned size = (unsigned)CompareFunction::LAST - (unsigned)CompareFunction::FIRST + 1;
 		static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
 
 		return typeTable[(unsigned)compareFunc];

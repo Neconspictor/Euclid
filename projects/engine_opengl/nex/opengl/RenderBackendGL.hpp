@@ -1,12 +1,12 @@
 ﻿#pragma once
-#include "nex/mesh/IndexBuffer.hpp"
-#include "nex/mesh/SubMesh.hpp"
+#include <nex/mesh/IndexBuffer.hpp>
+#include <nex/mesh/SubMesh.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/opengl/opengl.hpp>
 
 namespace nex {
 
-	enum DepthComparisonGL
+	enum CompareFunctionGL
 	{
 		ALWAYS = GL_ALWAYS,
 		EQUAL = GL_EQUAL,
@@ -151,7 +151,7 @@ namespace nex {
 		void enableDepthClamp(bool enable);
 
 		// depth comparison function being used when depth test is enabled and no sampler is bound
-		void setDefaultDepthFunc(DepthComparison depthFunc);
+		void setDefaultDepthFunc(CompareFunction depthFunc);
 
 		//specify mapping of depth values from normalized device coordinates to window coordinates
 		void setDepthRange(const DepthBuffer::Range& range);
@@ -162,7 +162,7 @@ namespace nex {
 		bool mEnableDepthBufferWriting;
 		bool mEnableDepthTest;
 		bool mEnableDepthClamp;
-		DepthComparisonGL mDepthFunc;
+		CompareFunctionGL mDepthFunc;
 		DepthBuffer::Range mDepthRange;
 	};
 
@@ -205,9 +205,49 @@ namespace nex {
 
 	};
 
+	class StencilTestGL : public StencilTest::Implementation
+	{
+	public:
+
+		enum OperationGL
+		{
+			KEEP = GL_KEEP,
+			ZERO = GL_ZERO, 
+			REPLACE = GL_REPLACE, 
+			INCREMENT = GL_INCR,  
+			INCREMENT_WRAP = GL_INCR_WRAP,
+			DECREMENT = GL_DECR, 
+			DECREMENT_WRAP = GL_DECR_WRAP, 
+			INVERT = GL_INVERT, 
+		};
+
+
+		StencilTestGL();
+
+		void enableStencilTest(bool enable);
+		void setCompareFunc(CompareFunction func, int referenceValue, unsigned mask);
+		void setOperations(StencilTest::Operation stencilFail, StencilTest::Operation depthFail, StencilTest::Operation depthPass);
+		void setState(const StencilTest::State& state);
+
+	private:
+		bool mEnableStencilTest;
+		CompareFunctionGL mCompareFunc;
+		int mCompareReferenceValue;
+		unsigned mCompareMask;
+
+		// action to take if the stencil test fails.
+		OperationGL mStencilTestFailOperation;
+
+		// action to take if the stencil test passes, but the depth test fails.
+		OperationGL mDepthTestFailOperation;
+
+		// action to take if both the stencil and the depth test pass.
+		OperationGL mDepthPassOperation;
+	};
+
 
 	GLuint translate(bool boolean);
-	DepthComparisonGL translate(nex::DepthComparison);
+	CompareFunctionGL translate(nex::CompareFunction);
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
 	FillModeGL translate(FillMode type);
@@ -215,4 +255,6 @@ namespace nex {
 
 	BlendFuncGL translate(BlendFunc func);
 	BlendOperationGL translate(BlendOperation op);
+
+	StencilTestGL::OperationGL translate(StencilTest::Operation op);
 }

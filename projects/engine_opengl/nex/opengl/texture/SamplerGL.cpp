@@ -101,7 +101,7 @@ void Sampler::useDepthComparison(bool use)
 	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_MODE, translated));
 }
 
-void Sampler::setCompareFunction(DepthComparison compareFunction)
+void Sampler::setCompareFunction(CompareFunction compareFunction)
 {
 	mState.compareFunction = compareFunction;
 	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_FUNC, translate(mState.compareFunction)));

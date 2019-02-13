@@ -99,7 +99,7 @@ namespace nex
 		((DepthBufferGL*)mImpl.get())->enableDepthClamp(enable);
 	}
 
-	void DepthBuffer::setDefaultDepthFunc(DepthComparison depthFunc)
+	void DepthBuffer::setDefaultDepthFunc(CompareFunction depthFunc)
 	{
 		((DepthBufferGL*)mImpl.get())->setDefaultDepthFunc(depthFunc);
 	}
@@ -174,7 +174,30 @@ namespace nex
 		((RasterizerGL*)mImpl.get())->enableOffsetPoint(enable);
 	}
 
+	StencilTest::StencilTest()
+	{
+		mImpl = make_unique<StencilTestGL>();
+	}
 
+	void StencilTest::enableStencilTest(bool enable)
+	{
+		((StencilTestGL*)mImpl.get())->enableStencilTest(enable);
+	}
+
+	void StencilTest::setCompareFunc(CompareFunction func, int referenceValue, unsigned mask)
+	{
+		((StencilTestGL*)mImpl.get())->setCompareFunc(func, referenceValue, mask);
+	}
+
+	void StencilTest::setOperations(Operation stencilFail, Operation depthFail, Operation depthPass)
+	{
+		((StencilTestGL*)mImpl.get())->setOperations(stencilFail, depthFail, depthPass);
+	}
+
+	void StencilTest::setState(const State& state)
+	{
+		((StencilTestGL*)mImpl.get())->setState(state);
+	}
 
 	RenderBackend::RenderBackend() : m_logger("RenderBackend - OPENGL"),
 		backgroundColor(0.0f, 0.0f, 0.0f),

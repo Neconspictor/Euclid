@@ -117,7 +117,7 @@ namespace nex
 
 	struct BaseTextureDesc : public SamplerDesc
 	{
-		DepthComparison compareFunc = DepthComparison::LESS_EQUAL;
+		CompareFunction compareFunc = CompareFunction::LESS_EQUAL;
 		bool generateMipMaps = false;
 		unsigned lodBaseLevel = 0; // index of the lowest defined mipmap level
 		unsigned lodMaxLevel = 1000.0f; //index of the highest defined mipmap level

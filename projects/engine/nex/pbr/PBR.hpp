@@ -4,7 +4,7 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/mesh/Vob.hpp>
 #include <nex/shader/PBRShader.hpp>
-#include <nex/scene/SceneNode.hpp>
+#include <nex/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>

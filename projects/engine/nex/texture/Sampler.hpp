@@ -3,7 +3,7 @@
 
 namespace nex
 {
-	enum class DepthComparison
+	enum class CompareFunction
 	{
 		ALWAYS, FIRST = ALWAYS,
 		EQUAL,
@@ -46,7 +46,7 @@ namespace nex
 		int maxLOD = 1000;
 		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
-		DepthComparison compareFunction = DepthComparison::LESS_EQUAL;
+		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
 		float maxAnisotropy = 0.0f;
 	};
 
@@ -82,7 +82,7 @@ namespace nex
 		void useDepthComparison(bool use);
 
 		// Has to be implemented by renderer backend
-		void setCompareFunction(DepthComparison compareFunction);
+		void setCompareFunction(CompareFunction compareFunction);
 
 		// Has to be implemented by renderer backend
 		void setWrapS(TextureUVTechnique wrap);

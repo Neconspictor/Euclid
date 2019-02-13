@@ -123,19 +123,6 @@ namespace nex
 		MAX, LAST = MAX,// max(source, destination)
 	};
 
-	/**
-	 * typedef struct D3D11_RENDER_TARGET_BLEND_DESC {
-  BOOL           BlendEnable;
-  D3D11_BLEND    SrcBlend;
-  D3D11_BLEND    DestBlend;
-  D3D11_BLEND_OP BlendOp;
-  D3D11_BLEND    SrcBlendAlpha;
-  D3D11_BLEND    DestBlendAlpha;
-  D3D11_BLEND_OP BlendOpAlpha;
-  UINT8          RenderTargetWriteMask;
-} D3D11_RENDER_TARGET_BLEND_DESC;
-	 */
-
 
 	struct BlendDesc
 	{
@@ -213,7 +200,7 @@ namespace nex
 			bool enableDepthBufferWriting = true;
 			bool enableDepthTest = true;
 			bool enableDepthClamp = false;
-			DepthComparison depthFunc = DepthComparison::LESS;
+			CompareFunction depthFunc = CompareFunction::LESS;
 			Range depthRange = {0.0, 1.0};
 		};
 
@@ -224,7 +211,7 @@ namespace nex
 		void enableDepthClamp(bool enable);
 
 		// depth comparison function being used when depth test is enabled and no sampler is bound
-		void setDefaultDepthFunc(DepthComparison depthFunc);
+		void setDefaultDepthFunc(CompareFunction depthFunc);
 		
 		//specify mapping of depth values from normalized device coordinates to window coordinates
 		void setDepthRange(const Range& range);
@@ -284,6 +271,55 @@ namespace nex
 		void enableOffsetPolygonFill(bool enable);
 		void enableOffsetLine(bool enable);
 		void enableOffsetPoint(bool enable);
+
+	private:
+		std::unique_ptr<Implementation> mImpl;
+	};
+
+
+	/**
+	  * Configuration class for stencil testing
+	  */
+	class StencilTest
+	{
+	public:
+		class Implementation {};
+
+		enum class Operation
+		{
+			KEEP, FIRST = KEEP,  // The currently stored stencil value is kept.
+			ZERO, // The stencil value is set to 0.
+			REPLACE, // The stencil value is replaced with the reference value
+			INCREMENT, // The stencil value is increased by 1 if it is lower than the maximum value. 
+			INCREMENT_WRAP, // Same as INCREMENT, but wraps it back to 0 as soon as the maximum value is exceeded.
+			DECREMENT, //  The stencil value is decreased by 1 if it is higher than the minimum value.
+			DECREMENT_WRAP, // Same as DECREMENT, but wraps it to the maximum value if it ends up lower than 0.
+			INVERT, LAST = INVERT, // Bitwise inverts the current stencil buffer value.
+		};
+
+		struct State
+		{
+			bool enableStencilTest = false;
+			CompareFunction compareFunc = CompareFunction::LESS;
+			int compareReferenceValue = 0;
+			unsigned compareMask = 0xFF;
+
+			// action to take if the stencil test fails.
+			Operation stencilTestFailOperation = Operation::KEEP;
+
+			// action to take if the stencil test passes, but the depth test fails.
+			Operation depthTestFailOperation = Operation::KEEP;
+
+			// action to take if both the stencil and the depth test pass.
+			Operation depthPassOperation = Operation::KEEP;
+		};
+
+		StencilTest();
+
+		void enableStencilTest(bool enable);
+		void setCompareFunc(CompareFunction func, int referenceValue, unsigned mask);
+		void setOperations(Operation stencilFail, Operation depthFail, Operation depthPass);
+		void setState(const State& state);
 
 	private:
 		std::unique_ptr<Implementation> mImpl;
