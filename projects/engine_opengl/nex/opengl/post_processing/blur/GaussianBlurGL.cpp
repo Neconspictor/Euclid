@@ -1,9 +1,9 @@
 #include<nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
 
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
-#include <nex/opengl/shader/ShaderManagerGL.hpp>
-#include <nex/opengl/shader/post_processing/blur/GaussianBlurShaderGL.hpp>
-#include "nex/RenderBackend.hpp"
+#include <nex/shader/ShaderManager.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include <nex/RenderBackend.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 namespace nex {
 
@@ -21,11 +21,10 @@ namespace nex {
 
 	void GaussianBlurGL::blur(RenderTarget2D* target, RenderTarget2D* cache)
 	{
-		StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
 		GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
-			renderer->getShaderManager()->getShader(ShaderType::GaussianBlurHorizontal));
+			ShaderManager::get()->getShader(ShaderType::GaussianBlurHorizontal));
 		GaussianBlurVerticalShader* verticalShader = dynamic_cast<GaussianBlurVerticalShader*>(
-			renderer->getShaderManager()->getShader(ShaderType::GaussianBlurVertical));
+			ShaderManager::get()->getShader(ShaderType::GaussianBlurVertical));
 
 
 		//TODO do a blur pass
@@ -39,7 +38,7 @@ namespace nex {
 		horizontalShader->setTexture(sprite.getTexture());
 		horizontalShader->setImageHeight((float)target->getHeight());
 		horizontalShader->setImageWidth((float)target->getWidth());
-		modelDrawer->draw(&sprite, horizontalShader);
+		StaticMeshDrawer::draw(&sprite, horizontalShader);
 
 		using r = RenderComponent;
 		Dimension blitRegion = { 0,0, target->getWidth(), target->getHeight() };
@@ -53,7 +52,7 @@ namespace nex {
 		verticalShader->setTexture(sprite.getTexture());
 		verticalShader->setImageHeight((float)target->getHeight());
 		verticalShader->setImageWidth((float)target->getWidth());
-		modelDrawer->draw(&sprite, verticalShader);
+		StaticMeshDrawer::draw(&sprite, verticalShader);
 
 		cache->blit(target, blitRegion, r::Color | r::Depth | r::Stencil);
 	}

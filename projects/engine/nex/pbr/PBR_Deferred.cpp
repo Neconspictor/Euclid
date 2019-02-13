@@ -11,6 +11,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/shader/ShaderManager.hpp>
+#include <nex/RenderBackend.hpp>
 
 using namespace glm;
 
@@ -40,10 +41,12 @@ namespace nex {
 
 	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
 	{
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_ALWAYS, 1, 1);
-		glStencilMask(0xFF);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		auto* stencilTest = renderer->getStencilTest();
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		//glStencilFunc(GL_ALWAYS, 1, 1);
+		//glStencilMask(0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		PBRShader_Deferred_Geometry* shader = reinterpret_cast<PBRShader_Deferred_Geometry*> (
 			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Geometry));
@@ -68,7 +71,7 @@ namespace nex {
 			sampler->unbind(i);
 		}
 
-		glDisable(GL_STENCIL_TEST);
+		stencilTest->enableStencilTest(false);
 	}
 
 	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
@@ -77,10 +80,9 @@ namespace nex {
 		CascadedShadow::CascadeData* cascadeData,
 		Texture* cascadedDepthMap)
 	{
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_EQUAL, 1, 1);
-		//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		//glStencilMask(0x00);
+		auto* stencilTest = renderer->getStencilTest();
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
 		PBRShader_Deferred_Lighting* shader = reinterpret_cast<PBRShader_Deferred_Lighting*>(
 			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Lighting));
@@ -117,22 +119,16 @@ namespace nex {
 
 		StaticMeshDrawer::draw(&screenSprite, shader);
 
-		//glStencilMask(0xff);
-		glDisable(GL_STENCIL_TEST);
-
-		//PBR_Deferred::drawLighting(scene, frameTimeElapsed, gBuffer, shadowMap, ssaoMap, light, viewFromGPass, worldToLight);
+		stencilTest->enableStencilTest(false);
 	}
 
 	void PBR_Deferred::drawSky(const glm::mat4 & projection, const glm::mat4 & view)
 	{
-		//glClear(GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_NOTEQUAL, 1, 1);
-		//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		//glStencilMask(0x00);
+		auto* stencilTest = renderer->getStencilTest();
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 		PBR::drawSky(projection, view);
-		//glStencilMask(0xff);
-		glDisable(GL_STENCIL_TEST);
+		stencilTest->enableStencilTest(false);
 	}
 
 	std::unique_ptr<PBR_GBuffer> PBR_Deferred::createMultipleRenderTarget(int width, int height)

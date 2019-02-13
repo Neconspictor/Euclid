@@ -364,6 +364,11 @@ namespace nex
 		return &mRasterizer;
 	}
 
+	StencilTest* RenderBackend::getStencilTest()
+	{
+		return &mStencilTest;
+	}
+
 	RendererType RenderBackend::getType() const
 	{
 		return OPENGL;

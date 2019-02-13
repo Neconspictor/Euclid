@@ -38,9 +38,6 @@ set(
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexBuffer.cpp
     
-    #nex/opengl/pbr
-	nex/opengl/pbr/PBR_Deferred.cpp
-    
 	#nex/opengl/post_processing
     nex/opengl/post_processing/AmbientOcclusion.cpp
 	nex/opengl/post_processing/AmbientOcclusion.hpp

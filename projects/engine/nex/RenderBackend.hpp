@@ -416,6 +416,8 @@ namespace nex
 
 		Rasterizer* getRasterizer();
 
+		StencilTest* getStencilTest();
+
 		/**
 		* Provides the type of renderer class, this renderer belongs to.
 		*/
@@ -487,6 +489,7 @@ namespace nex
 		Blender mBlender;
 		DepthBuffer mDepthBuffer;
 		Rasterizer mRasterizer;
+		StencilTest mStencilTest;
 		Viewport mViewport;
 	};
 }

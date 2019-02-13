@@ -149,6 +149,7 @@ set(
     nex/pbr/PBR.hpp
     nex/pbr/PBR.cpp
     nex/pbr/PBR_Deferred.hpp
+    nex/pbr/PBR_Deferred.cpp
 	
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp
