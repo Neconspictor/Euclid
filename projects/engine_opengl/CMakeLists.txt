@@ -57,10 +57,6 @@ set(
 	nex/opengl/shader/ShaderBufferGL.cpp
     nex/opengl/shader/ShaderGL.hpp
 	nex/opengl/shader/ShaderGL.cpp
- 
-	#nex/opengl/shadowing
-	nex/opengl/shadowing/CascadedShadowGL.cpp
-	nex/opengl/shadowing/CascadedShadowGL.hpp
     
     #nex/opengl/texture
     nex/opengl/texture/RenderTargetGL.cpp

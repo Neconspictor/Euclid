@@ -1,10 +1,8 @@
-#include <nex/opengl/shadowing/CascadedShadowGL.hpp>
+#include <nex/shadow/CascadedShadow.hpp>
+#include <nex/mesh/SubMesh.hpp>
+#include <nex/texture/RenderTarget.hpp>
+#include <nex/RenderBackend.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include "nex/opengl/texture/TextureGL.hpp"
-#include "nex/mesh/SubMesh.hpp"
-#include "nex/texture/RenderTarget.hpp"
-#include "nex/RenderBackend.hpp"
-
 using namespace nex;
 
 CascadedShadowGL::CascadedShadowGL(unsigned int cascadeWidth, unsigned int cascadeHeight) :
@@ -118,7 +116,7 @@ CascadedShadowGL::DepthPassShader::DepthPassShader()
 
 void CascadedShadowGL::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
 {
-	static const GLuint MODEL_MATRIX_LOCATION = 1;
+	static const UniformLocation MODEL_MATRIX_LOCATION = 1;
 	mProgram->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }

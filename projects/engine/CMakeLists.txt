@@ -192,6 +192,10 @@ set(
     nex/shader_generator/StringStateTracker.cpp
     nex/shader_generator/StringStateTracker.hpp
     
+    #nex/shadow
+	nex/shadow/CascadedShadow.cpp
+	nex/shadow/CascadedShadow.hpp
+    
     #nex/texture
     nex/texture/GBuffer.hpp
 	nex/texture/GBuffer.cpp
