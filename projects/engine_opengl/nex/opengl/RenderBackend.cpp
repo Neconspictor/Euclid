@@ -218,17 +218,15 @@ namespace nex
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 		getRasterizer()->enableScissorTest(true);
-		GLCall(glViewport(0, 0, mViewport.width, mViewport.height));
-		GLCall(glScissor(0, 0, mViewport.width, mViewport.height));
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height, GL_FALSE, nullptr));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
+		setViewPort(0, 0, mViewport.width, mViewport.height);
+		setScissor(0, 0, mViewport.width, mViewport.height);
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
+		defaultRenderTarget->bind(); 
+		defaultRenderTarget->clear(RenderComponent::Color);
+		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
 
-		GLCall(glEnable(GL_DEPTH_TEST)); // Enables Depth Testing
-		GLCall(glDepthFunc(GL_LESS)); // The Type Of Depth Testing To Do
-
-		// stencil buffering is enabled when needed!
-		//glEnable(GL_STENCIL_TEST); // Enable stencil buffering
+		getDepthBuffer()->enableDepthTest(true);
+		getDepthBuffer()->setDefaultDepthFunc(CompareFunction::LESS);
 
 		getDepthBuffer()->enableDepthBufferWriting(true);
 
@@ -252,20 +250,19 @@ namespace nex
 
 
 		//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-		GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
+		GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)); // TODO abstract?
 
 		// we want counter clock wise winding order
-		GLCall(glEnable(GL_DEPTH_TEST)); // Enables Depth Testing
-		GLCall(glDepthFunc(GL_LESS)); // The Type Of Depth Testing To Do
 		getRasterizer()->setFrontCounterClockwise(true);
-		GLCall(glEnable(GL_STENCIL_TEST));
+		getStencilTest()->enableStencilTest(true);
 		getRasterizer()->enableFaceCulling(true);
 		getRasterizer()->setCullMode(PolygonSide::BACK);
 
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
 		GLCall(glClearDepth(1.0f));
-		GLCall(glClearStencil(0));
-		GLCall(glStencilMask(0xFF));
+		GLCall(glClearStencil(0)); // TODO abstract?
+		GLCall(glStencilMask(0xFF)); // TODO abstract ?
+		getStencilTest()->setCompareFunc(CompareFunction::LESS, 0, 0xFF); // TODO: Is it right?
 
 		TextureManager::get()->init();
 
@@ -274,7 +271,7 @@ namespace nex
 
 	void RenderBackend::newFrame()
 	{
-		setPolygonRasterization(PolygonSide::FRONT_BACK, FillMode::FILL);
+		getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
 		getRasterizer()->enableFaceCulling(true);
 		getRasterizer()->setCullMode(PolygonSide::BACK);
 	}
@@ -303,11 +300,13 @@ namespace nex
 		return &mDepthBuffer;
 	}
 
-	RenderTarget2D* nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, int samples) {
+	RenderTarget2D* nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, const TextureData& depthData, int samples) {
+		RenderAttachment depth;
+		depth.type = RenderAttachment::translate(depthData.internalFormat);
+		depth.texture = make_shared<Texture2D>(width, height, depthData, nullptr);
 
-		DepthStencilDesc desc;
-		auto depthTexture = make_shared<DepthStencilMap>(width, height, desc);
-		auto result = createRenderTargetGL(width, height, data, samples, depthTexture);
+		auto result = createRenderTargetGL(width, height, data, samples);
+		result->useDepthAttachment(std::move(depth));
 		return result;
 	}
 
@@ -329,11 +328,12 @@ namespace nex
 		const unsigned width = mViewport.width * ssaaSamples;
 		const unsigned height = mViewport.height * ssaaSamples;
 
-		DepthStencilDesc desc;
-		auto depthTexture = make_shared<DepthStencilMap>(width, height, desc);
-		auto result = createRenderTargetGL(width, height, data, samples, depthTexture); //GL_RGBA
+		TextureData depthData = TextureData::createDepth(CompareFunction::LESS,
+			ColorSpace::DEPTH_STENCIL,
+			PixelDataType::UNSIGNED_INT_24_8,
+			InternFormat::DEPTH24_STENCIL8);
 
-		return result;
+		return create2DRenderTarget(width, height, data, depthData, samples);
 	}
 
 	void RenderBackend::drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType)
@@ -387,7 +387,7 @@ namespace nex
 	{
 		mViewport.width = width;
 		mViewport.height = height;
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(mViewport.width, mViewport.height, GL_FALSE, nullptr));
+		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
 	}
 
 	void RenderBackend::release()
@@ -418,11 +418,6 @@ namespace nex
 		{
 			msaaSamples = samples;
 		}
-	}
-
-	void RenderBackend::setPolygonRasterization(PolygonSide side, FillMode type)
-	{
-		GLCall(glPolygonMode(translate(side), translate(type)));
 	}
 
 	void RenderBackend::setScissor(int x, int y, unsigned width, unsigned height)
@@ -466,8 +461,8 @@ namespace nex
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
 		auto* shaderManager = ShaderManager::get();
-		EquirectangularSkyBoxShader* shader = dynamic_cast<EquirectangularSkyBoxShader*>(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
-		mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+		auto* shader = dynamic_cast<EquirectangularSkyBoxShader*>(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
+		const mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 		shader->bind();
 		shader->setSkyTexture(equirectangularMap);
@@ -501,15 +496,20 @@ namespace nex
 
 
 		//set the viewport to the dimensoion of the cubemap
-		GLCall(glViewport(0, 0, width, height));
-		GLCall(glScissor(0, 0, width, height));
+		//GLCall(glViewport(0, 0, width, height));
+		//GLCall(glScissor(0, 0, width, height));
+		setViewPort(0, 0, width, height);
+		setScissor(0, 0, width, height);
 		target->bind();
 
-		CubeMapGL* cubeMap = (CubeMapGL*)target->getRenderResult()->getImpl();
+		CubeMapGL* cubeMap = (CubeMapGL*)target->getColorAttachments()[0].texture->getImpl();
+		
 
 		for (int i = 0; i < 6; ++i) {
-			GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *cubeMap->getTexture(), 0));
-			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			//GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *cubeMap->getTexture(), 0));
+			target->useSide((CubeMap::Side) i, 0);
+			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			target->clear(RenderComponent::Color | RenderComponent::Depth);
 
 			//render into the texture
 			shader->setView(views[i]);
@@ -517,23 +517,23 @@ namespace nex
 			StaticMeshDrawer::draw(skyBox.getModel(), shader);
 		}
 
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 		//register and return the cubemap
 		return target.reset();
 	}
 
 	RenderTarget2D* RenderBackend::createRenderTargetGL(int width, int height, const TextureData& data,
-		unsigned samples, std::shared_ptr<Texture> depthStencilMap)
+		unsigned samples)
 	{
 		assert(samples >= 1);
 
-		GLClearError();
+		//GLClearError();
 
-		auto result = make_unique<RenderTarget2D>(width, height, data, samples, std::move(depthStencilMap));
+		auto result = make_unique<RenderTarget2D>(width, height, data, samples);
 
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		checkGLErrors(BOOST_CURRENT_FUNCTION);
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 		mRenderTargets.emplace_back(std::move(result));
 		return mRenderTargets.back().get();
@@ -550,12 +550,6 @@ namespace nex
 		renderTargets.push_back(target);
 		return target;
 	}*/
-
-	void RenderBackend::cullFaces(PolygonSide faceSide)
-	{
-		auto faceSideGL = translate(faceSide);
-		GLCall(glCullFace(faceSideGL));
-	}
 
 	void RenderBackend::destroyCubeRenderTarget(CubeRenderTarget * target)
 	{

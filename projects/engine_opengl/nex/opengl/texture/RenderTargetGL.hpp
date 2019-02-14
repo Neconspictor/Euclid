@@ -95,9 +95,19 @@ namespace nex
 			const TextureData& data, 
 			unsigned samples);
 
+		explicit RenderTarget2DGL(GLuint frameBuffer, unsigned width,
+			unsigned height);
+
 		// Has to be implemented by renderer backend
 		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const;
 		static GLint getRenderComponents(int components);
+
+		unsigned getWidth() const;
+		unsigned getHeight() const;
+
+	private:
+		unsigned mHeight;
+		unsigned mWidth;
 	};
 
 	

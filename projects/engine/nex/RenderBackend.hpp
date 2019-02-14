@@ -6,6 +6,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include "shader/DepthMapShader.hpp"
+#include "../../compute_test/renderer/ComputeTest_Renderer.hpp"
 
 namespace nex
 {
@@ -367,7 +368,7 @@ namespace nex
 				false });
 
 		RenderTarget2D* create2DRenderTarget(int width, int height,
-			const TextureData& data = {
+			const TextureData& data = TextureData::createImage(
 				TextureFilter::Linear,
 				TextureFilter::Linear,
 				TextureUVTechnique::ClampToEdge,
@@ -377,16 +378,18 @@ namespace nex
 				PixelDataType::FLOAT,
 				InternFormat::RGB32F,
 				false
-			},
+			),
+			const TextureData& depthData = TextureData::createDepth(CompareFunction::LESS, 
+				ColorSpace::DEPTH_STENCIL,
+				PixelDataType::UNSIGNED_INT_24_8,
+				InternFormat::DEPTH24_STENCIL8),
 			int samples = 1);
 
 		RenderTarget2D* createRenderTarget(int samples = 1);
 
-		RenderTarget2D* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples, std::shared_ptr<Texture> depthStencilMap);
+		RenderTarget2D* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples);
 
 		//RenderTarget* createVarianceShadowMap(int width, int height);
-
-		void cullFaces(PolygonSide faceSide);
 
 		void destroyCubeRenderTarget(CubeRenderTarget* target);
 
@@ -464,8 +467,6 @@ namespace nex
 		 * Sets the number of samples used for msaa
 		 */
 		void setMSAASamples(unsigned int samples);
-
-		void setPolygonRasterization(PolygonSide side, FillMode type);
 
 		void setScissor(int x, int y, unsigned width, unsigned height);
 

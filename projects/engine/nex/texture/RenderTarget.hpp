@@ -57,6 +57,8 @@ namespace nex
 			texture(std::move(texture))
 		{}
 
+		static Type translate(InternFormat format);
+
 	};
 
 
@@ -158,6 +160,12 @@ namespace nex
 		//static RenderTarget* createVSM(int width, int height);
 
 		//void copyFrom(BaseRenderTarget* dest, const Dimension& sourceDim, int components);
+
+		// Has to be implemented by renderer backend
+		unsigned getWidth() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getHeight() const;
 	};
 
 

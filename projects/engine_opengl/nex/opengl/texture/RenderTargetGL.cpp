@@ -175,6 +175,58 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	//unbind();
 }
 
+nex::RenderAttachment::Type nex::RenderAttachment::translate(InternFormat format)
+{
+	static nex::RenderAttachment::Type const table[]
+	{
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+		Type::COLOR,
+
+		Type::COLOR,
+		Type::COLOR,
+
+		Type::DEPTH_STENCIL,
+		Type::DEPTH_STENCIL,
+
+		Type::DEPTH,
+		Type::DEPTH,
+		Type::DEPTH,
+		Type::DEPTH,
+
+		Type::STENCIL
+	};
+
+	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: InternFormat and nex::RenderAttachment::Type table don't match!");
+
+	return table[(unsigned)format];
+}
+
 nex::RenderTarget::RenderTarget(std::unique_ptr<RenderTargetImpl> impl) : mImpl(std::move(impl))
 {
 }
@@ -513,7 +565,9 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	const TextureData& data,
 	unsigned samples) 
 :
-	RenderTargetGL()
+	RenderTargetGL(),
+mHeight(height),
+mWidth(width)
 {
 
 	const bool isMultiSample = samples > 1;
@@ -554,6 +608,13 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	unbind();
 }
 
+nex::RenderTarget2DGL::RenderTarget2DGL(GLuint frameBuffer, unsigned width, unsigned height) : 
+RenderTargetGL(frameBuffer),
+mHeight(height),
+mWidth(width)
+{
+}
+
 
 nex::RenderTarget2D::RenderTarget2D(std::unique_ptr<RenderTargetImpl> impl) : RenderTarget(std::move(impl))
 {
@@ -569,6 +630,16 @@ void nex::RenderTarget2D::blit(RenderTarget2D * dest, const Dimension & sourceDi
 	auto other = (RenderTarget2DGL*)dest->getImpl();
 	GLint componentsGL = RenderTarget2DGL::getRenderComponents(components);
 	self->blit(other, sourceDim, componentsGL);
+}
+
+unsigned nex::RenderTarget2D::getWidth() const
+{
+	return ((RenderTarget2DGL*)getImpl())->getWidth();
+}
+
+unsigned nex::RenderTarget2D::getHeight() const
+{
+	return ((RenderTarget2DGL*)getImpl())->getHeight();
 }
 
 
@@ -598,6 +669,15 @@ GLint nex::RenderTarget2DGL::getRenderComponents(int components)
 	if (components & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
 
 	return componentsGL;
+}
+unsigned nex::RenderTarget2DGL::getWidth() const
+{
+	return mWidth;
+}
+
+unsigned nex::RenderTarget2DGL::getHeight() const
+{
+	return mHeight;
 }
 
 GLuint nex::RenderTargetGL::getFrameBuffer() const

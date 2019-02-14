@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/texture/Sampler.hpp>
+#include <boost/locale/format.hpp>
 
 namespace nex
 {
@@ -154,7 +155,45 @@ namespace nex
 			this->wrapS = wrapS;
 			this->wrapT = wrapT;
 			this->generateMipMaps = generateMipMaps;
-			this->useDepthComparison = false;
+		}
+
+		static TextureData createImage(TextureFilter minFilter,
+			TextureFilter magFilter,
+			TextureUVTechnique wrapR,
+			TextureUVTechnique wrapS,
+			TextureUVTechnique wrapT,
+			ColorSpace colorspace,
+			PixelDataType pixelDataType,
+			InternFormat internalFormat,
+			bool generateMipMaps)
+		{
+			TextureData result;
+			result.colorspace = colorspace;
+			result.pixelDataType = pixelDataType;
+			result.internalFormat = internalFormat;
+			result.minFilter = minFilter;
+			result.magFilter = magFilter;
+			result.wrapS = wrapR;
+			result.wrapR = wrapS;
+			result.wrapT = wrapT;
+			result.generateMipMaps = generateMipMaps;
+			return result;
+		}
+
+		static TextureData createDepth(CompareFunction compareFunction, 
+			ColorSpace colorSpace,
+			PixelDataType dataType, 
+			InternFormat format)
+		{
+			TextureData result;
+			result.useDepthComparison = true;
+			result.compareFunction = compareFunction;
+			result.colorspace = colorSpace;
+			result.pixelDataType = dataType;
+			result.internalFormat = format;
+			result.minFilter = result.magFilter = TextureFilter::NearestNeighbor;
+			result.wrapS = result.wrapR = result.wrapT = TextureUVTechnique::ClampToEdge;
+			return result;
 		}
 	};
 
