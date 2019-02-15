@@ -4,6 +4,7 @@
 #include <nex/texture/Sprite.hpp>
 #include "nex/shader/ShaderBuffer.hpp"
 #include "nex/Renderer.hpp"
+#include "nex/shader/Shader.hpp"
 
 namespace nex
 {
