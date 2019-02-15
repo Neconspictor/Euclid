@@ -287,6 +287,13 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	return result.release();
 }
 
+std::unique_ptr<nex::Texture> nex::Texture::createView(Texture* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
+	unsigned minLayer, unsigned numLayers, const TextureData& data)
+{
+	auto impl = TextureGL::createView((TextureGL*)original->getImpl(), target, minLevel, numLevel, minLayer, numLayers, data);
+	return make_unique<Texture>(std::move(impl));
+}
+
 nex::TextureImpl* nex::Texture::getImpl() const
 {
 	return mImpl.get();
@@ -317,12 +324,33 @@ nex::TextureGL::~TextureGL()
 	release();
 }
 
+std::unique_ptr<nex::TextureGL> nex::TextureGL::createView(TextureGL* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
+	unsigned minLayer, unsigned numLayers, const TextureData& data)
+{
+	auto result = make_unique<TextureGL>();
+	// TODO check whether target and the target of the original texture are compatible!
+	const GLenum targetGL = translate(target);
+
+	const GLenum internalFormat = translate(data.internalFormat);
+	
+	GLCall(glGenTextures(1, result->getTexture()));
+	const GLuint textureID = *result->getTexture();
+
+	GLCall(glTextureView(textureID, targetGL, *original->getTexture(), internalFormat, minLevel, numLevel, minLayer, numLayers));
+	applyTextureData(textureID, data, targetGL);
+	return result;
+}
+
 void nex::TextureGL::generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target)
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + desc.textureIndex));
 	GLCall(glGenTextures(1, out));
+	applyTextureData(*out, desc, target);
+}
 
-	GLCall(glBindTexture(target, *out));
+void nex::TextureGL::applyTextureData(GLuint texture, const BaseTextureDesc& desc, GLenum target)
+{
+	GLCall(glBindTexture(target, texture));
 
 	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_R, translate(desc.wrapR)));
 	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_S, translate(desc.wrapS)));
@@ -815,6 +843,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		RGBA8,
 		RGBA16,
 		RGBA16F,
+		RGBA16_SNORM,
 		RGBA32F,
 		RGBA32I,
 		RGBA32UI,
@@ -845,6 +874,7 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 		FLOAT,
 		UBYTE,
 		UINT,
+		SHORT,
 
 		UNSIGNED_INT_24_8,
 		FLOAT_32_UNSIGNED_INT_24_8_REV,

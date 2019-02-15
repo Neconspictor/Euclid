@@ -1,6 +1,6 @@
-#include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/opengl/texture/RenderTargetGL.hpp>
-#include <nex/opengl/shader/ShaderGL.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/texture/RenderTarget.hpp>
+#include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
 #include <nex/opengl/post_processing/HBAO_GL.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <random>
 #include <nex/gui/Util.hpp>
-#include <nex/opengl/opengl.hpp>
+#include "nex/shader/ShaderBuffer.hpp"
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
@@ -42,7 +42,8 @@ namespace nex
 		m_aoResultRT(nullptr),
 		m_tempRT(nullptr),
 		m_modelDrawer(modelDrawer),
-		m_fullscreenTriangleVAO(GL_FALSE)
+		m_fullscreenTriangleVAO(GL_FALSE),
+		m_hbao_ubo(0, sizeof(HBAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 
 	{
 
@@ -70,31 +71,38 @@ namespace nex
 #undef SCALE
 		}
 
-		GLuint temp;
-		//newTexture(textures.hbao_random);
-		GLCall(glGenTextures(1, &temp));
-		m_hbao_random = make_unique<Texture2D>(make_unique<Texture2DGL>(temp, TextureData(), HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE));
-		TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
+		//GLuint temp;
+		//GLCall(glGenTextures(1, &temp));
+
+		TextureData data;
+		data.pixelDataType = PixelDataType::SHORT;
+		data.internalFormat = InternFormat::RGBA16_SNORM;
+		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
+
+		m_hbao_random = make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		/*TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
 		GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1));
 		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, GL_RGBA, GL_SHORT, hbaoRandomShort));
 		GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 		GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));*/
 
 
-		glGenTextures(1, &temp);
-		m_hbao_randomview = make_unique<Texture2D>(make_unique<Texture2DGL>(temp, TextureData(), HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE));
+		//glGenTextures(1, &temp);
+		m_hbao_randomview = Texture::createView(m_hbao_random.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
+		/*m_hbao_randomview = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, data, nullptr);
 		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
 		GLCall(glTextureView(*randomViewGL->getTexture(), GL_TEXTURE_2D, *randomGL->getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1));
 		GLCall(glBindTexture(GL_TEXTURE_2D, *randomViewGL->getTexture()));
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		GLCall(glBindTexture(GL_TEXTURE_2D, 0));*/
 
-		GLCall(glCreateBuffers(1, &m_hbao_ubo));
-		GLCall(glNamedBufferStorage(m_hbao_ubo, sizeof(HBAOData), NULL, GL_DYNAMIC_STORAGE_BIT));
+		//GLCall(glCreateBuffers(1, &m_hbao_ubo));
+		//GLCall(glNamedBufferStorage(m_hbao_ubo, sizeof(HBAOData), NULL, GL_DYNAMIC_STORAGE_BIT));
+
 
 
 		m_aoDisplay = std::make_unique<DisplayTex>();
@@ -107,7 +115,7 @@ namespace nex
 
 		// initialize static shader attributes
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
-		m_hbaoShader->setHbaoUBO(m_hbao_ubo);
+		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
 
 		// create a vao for rendering fullscreen triangles directly with glDrawArrays
 		GLCall(glGenVertexArrays(1, &m_fullscreenTriangleVAO));
@@ -115,10 +123,10 @@ namespace nex
 
 	HBAO_GL::~HBAO_GL()
 	{
-		if (m_hbao_ubo != GL_FALSE) {
+		/*if (m_hbao_ubo != GL_FALSE) {
 			glDeleteBuffers(1, &m_hbao_ubo);
 			m_hbao_ubo = GL_FALSE;
-		}
+		}*/
 
 		if (m_fullscreenTriangleVAO != GL_FALSE) {
 			glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
@@ -328,24 +336,31 @@ namespace nex
 		temp->bind();
 		bind();
 
-		TextureGL* sourceGL = (TextureGL*)m_source->getImpl();
-		TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
+		//TextureGL* sourceGL = (TextureGL*)m_source->getImpl();
+		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
+		//GLCall(glBindTextureUnit(0, *sourceGL->getTexture()));
+		mProgram->setTexture(0, m_source, 0); // TODO: check binding point!
+		//GLCall(glBindTextureUnit(1, *linearDepthGL->getTexture()));
+		mProgram->setTexture(1, m_linearDepth, 1); // TODO: check binding point!
 
-		GLCall(glBindTextureUnit(0, *sourceGL->getTexture()));
-		GLCall(glBindTextureUnit(1, *linearDepthGL->getTexture()));
-
-		GLCall(glUniform1f(0, m_sharpness));
+		//GLCall(glUniform1f(0, m_sharpness));
+		mProgram->setFloat(0, m_sharpness);
 
 		// blur horizontal
-		GLCall(glUniform2f(1, 1.0f / (float)m_textureWidth, 0));
+		//GLCall(glUniform2f(1, 1.0f / (float)m_textureWidth, 0));
+		mProgram->setVec2(1, glm::vec2(1.0f / (float)m_textureWidth, 0));
+
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 
 		// blur vertically
 		result->bind();
-		TextureGL* tempTexGL = (TextureGL*)temp->getRenderResult()->getImpl();
+		//TextureGL* tempTexGL = (TextureGL*)temp->getRenderResult()->getImpl();
+		//GLCall(glBindTextureUnit(0, *tempTexGL->getTexture()));
+		auto* renderResult = temp->getColorAttachments()[0].texture.get();
+		mProgram->setTexture(0, renderResult, 0); // TODO: check binding point!
+		//GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
+		mProgram->setVec2(1, glm::vec2(1.0f / (float)m_textureHeight, 1));
 
-		GLCall(glBindTextureUnit(0, *tempTexGL->getTexture()));
-		GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 	}
 
@@ -360,16 +375,24 @@ namespace nex
 	void DepthLinearizer::draw()
 	{
 		bind();
-		GLCall(glUniform4f(0, m_projection->nearplane * m_projection->farplane,
+		//GLCall(glUniform4f(0, m_projection->nearplane * m_projection->farplane,
+		//	m_projection->nearplane - m_projection->farplane,
+		//	m_projection->farplane,
+		//	m_projection->perspective ? 1.0f : 0.0f));
+
+
+		glm::vec4 vecData(m_projection->nearplane * m_projection->farplane,
 			m_projection->nearplane - m_projection->farplane,
 			m_projection->farplane,
-			m_projection->perspective ? 1.0f : 0.0f));
+			m_projection->perspective ? 1.0f : 0.0f);
+		mProgram->setVec4(0, vecData);
 
-		TextureGL* inputGL = (TextureGL*)m_input->getImpl();
-		GLuint texture = *inputGL->getTexture();
-		GLCall(glBindTextureUnit(0, texture));
+		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
+		//GLuint texture = *inputGL->getTexture();
+		//GLCall(glBindTextureUnit(0, texture));
+		mProgram->setTexture(0, m_input, 0); // TODO: check binding point!
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
-		GLCall(glUseProgram(0));
+		//GLCall(glUseProgram(0));
 	}
 
 	void DepthLinearizer::setInputTexture(Texture * input)
@@ -391,8 +414,9 @@ namespace nex
 	void DisplayTex::draw()
 	{
 		bind();
-		TextureGL* inputGL = (TextureGL*)m_input->getImpl();
-		GLCall(glBindTextureUnit(0, *inputGL->getTexture()));
+		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
+		//GLCall(glBindTextureUnit(0, *inputGL->getTexture()));
+		mProgram->setTexture(0, m_input, 0); // TODO: check binding point!
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 	}
 
@@ -415,23 +439,28 @@ namespace nex
 	void HBAO_Shader::draw()
 	{
 		bind();
-		GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_hbao_ubo));
-		GLCall(glNamedBufferSubData(m_hbao_ubo, 0, sizeof(HBAOData), &m_hbao_data));
+		//GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_hbao_ubo));
+		m_hbao_ubo->bind();
+		//GLCall(glNamedBufferSubData(m_hbao_ubo, 0, sizeof(HBAOData), &m_hbao_data));
+		m_hbao_ubo->update(&m_hbao_data, sizeof(HBAOData));
+		
 
-		TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
-		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
+		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
+		//TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
+		//GLCall(glBindTextureUnit(0, *linearDepthGL->getTexture()));
+		mProgram->setTexture(0, m_linearDepth, 0); // TODO: check binding point!
+		//GLCall(glBindTextureUnit(1, *randomViewGL->getTexture()));
+		mProgram->setTexture(1, m_hbao_randomview, 1); // TODO: check binding point!
 
-		GLCall(glBindTextureUnit(0, *linearDepthGL->getTexture()));
-		GLCall(glBindTextureUnit(1, *randomViewGL->getTexture()));
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 	}
 
-	void HBAO_Shader::setHbaoData(HBAOData hbao)
+	void HBAO_Shader::setHbaoData(const HBAOData& hbao)
 	{
-		m_hbao_data = move(hbao);
+		m_hbao_data = hbao;
 	}
 
-	void HBAO_Shader::setHbaoUBO(GLuint hbao_ubo)
+	void HBAO_Shader::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
 		m_hbao_ubo = hbao_ubo;
 	}
@@ -479,16 +508,6 @@ namespace nex
 	float nex::HBAO_GL::lerp(float a, float b, float f) {
 		return a + f * (b - a);
 	}
-
-	class Test {
-	public:
-		void operator()() const
-		{
-			if (ImGui::MenuItem("operator()")) {
-				std::cout << "called Test()" << std::endl;
-			}
-		}
-	};
 
 	HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO_GL * hbao) : m_hbao(hbao)
 	{

@@ -82,6 +82,7 @@ namespace nex
 		RGBA8 = GL_RGBA8,
 		RGBA16 = GL_RGBA16,
 		RGBA16F = GL_RGBA16F,
+		RGBA16_SNORM = GL_RGBA16_SNORM,
 		RGBA32F = GL_RGBA32F,
 		RGBA32I = GL_RGBA32I,
 		RGBA32UI = GL_RGBA32UI,
@@ -104,6 +105,7 @@ namespace nex
 		FLOAT = GL_FLOAT,
 		UBYTE = GL_UNSIGNED_BYTE,
 		UINT = GL_UNSIGNED_INT,
+		SHORT = GL_SHORT,
 
 		FLOAT_32_UNSIGNED_INT_24_8_REV = GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
 		UNSIGNED_INT_24_8 = GL_UNSIGNED_INT_24_8,
@@ -158,7 +160,17 @@ namespace nex
 
 		virtual ~TextureGL();
 
+		static std::unique_ptr<TextureGL> createView(TextureGL* original,
+			TextureTarget target,
+			unsigned minLevel,
+			unsigned numLevel,
+			unsigned minLayer,
+			unsigned numLayers,
+			const TextureData& data);
+
 		static void generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target);
+
+		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc, GLenum target);
 
 		static GLuint getFormat(int numberComponents);
 

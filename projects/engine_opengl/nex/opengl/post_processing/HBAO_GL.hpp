@@ -5,6 +5,7 @@
 #include <nex/gui/Drawable.hpp>
 #include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
 
 namespace nex {
 	class HBAO_ConfigurationView;
@@ -114,15 +115,15 @@ namespace nex {
 		virtual ~HBAO_Shader() = default;
 
 		void draw();
-		void setHbaoData(HBAOData hbao);
-		void setHbaoUBO(GLuint hbao_ubo);
+		void setHbaoData(const HBAOData& hbao);
+		void setHbaoUBO(UniformBuffer* hbao_ubo);
 		void setLinearDepth(Texture* linearDepth);
 		void setRamdomView(Texture* randomView);
 
 	private:
 		HBAOData m_hbao_data;
 		Texture* m_hbao_randomview;
-		GLuint m_hbao_ubo;
+		UniformBuffer* m_hbao_ubo;
 		Texture* m_linearDepth;
 	};
 
@@ -175,9 +176,10 @@ namespace nex {
 
 		StaticMeshDrawer* m_modelDrawer;
 
-		std::unique_ptr<Texture2D> m_hbao_random;
-		std::unique_ptr<Texture2D> m_hbao_randomview;
-		GLuint m_hbao_ubo{};
+		std::unique_ptr<Texture2DArray> m_hbao_random;
+		std::unique_ptr<Texture> m_hbao_randomview;
+		UniformBuffer m_hbao_ubo;
+
 
 		HBAOData   m_hbaoDataSource;
 		GLuint m_fullscreenTriangleVAO;

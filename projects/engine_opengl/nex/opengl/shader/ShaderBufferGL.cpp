@@ -1,5 +1,5 @@
 #include <nex/opengl/shader/ShaderBufferGL.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include <nex/opengl/opengl.hpp>
 
 nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, ShaderBuffer::UsageHint hint) :
 	mRendererID(GL_FALSE),
@@ -78,11 +78,14 @@ nex::UniformBuffer::~UniformBuffer()
 
 void nex::UniformBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
+	//TODO use glBufferStorage for improved performance!
 	GLCall(glBufferData(GL_UNIFORM_BUFFER, size, data, translate(hint)));
+	//GLCall(glNamedBufferStorage(mRendererID, size, data, translate(hint)));
 }
 
 void nex::UniformBuffer::bind()
 {
+	//TODO: Use glBindBufferBase???
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, mRendererID));
 }
 

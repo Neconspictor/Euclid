@@ -58,6 +58,7 @@ namespace nex
 		RGBA8,
 		RGBA16,
 		RGBA16F,
+		RGBA16_SNORM,
 		RGBA32F,
 		RGBA32I,
 		RGBA32UI,
@@ -80,6 +81,8 @@ namespace nex
 		FLOAT, FIRST = FLOAT,
 		UBYTE,
 		UINT,
+
+		SHORT,
 
 		UNSIGNED_INT_24_8,
 		FLOAT_32_UNSIGNED_INT_24_8_REV,
@@ -249,6 +252,14 @@ namespace nex
 		 * @return a Texture or an CubeMap dependent on the state of isCubeMap
 		 */
 		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
+
+		static std::unique_ptr<Texture> createView(Texture* original,
+			TextureTarget target,
+			unsigned minLevel, 
+			unsigned numLevel, 
+			unsigned minLayer, 
+			unsigned numLayers,
+			const TextureData& data);
 
 
 		/**

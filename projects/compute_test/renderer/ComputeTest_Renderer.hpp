@@ -2,8 +2,8 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/opengl/renderer/Renderer.hpp>
 #include "nex/shader/ShaderBuffer.hpp"
+#include "nex/Renderer.hpp"
 
 namespace nex
 {
