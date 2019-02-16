@@ -1,8 +1,7 @@
 #pragma once
-#include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/util/Memory.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Texture.hpp>
+#include <nex/opengl/opengl.hpp>
 
 namespace nex
 {

@@ -253,7 +253,8 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
+PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting() :
+	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 {
 	mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
@@ -317,13 +318,13 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting()
 
 	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 
-	glCreateBuffers(1, &cascadeBufferUBO);
-	glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
+	//glCreateBuffers(1, &cascadeBufferUBO);
+	//glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
 }
 
 PBRShader_Deferred_Lighting::~PBRShader_Deferred_Lighting()
 {
-	glDeleteBuffers(1, &cascadeBufferUBO);
+	//glDeleteBuffers(1, &cascadeBufferUBO);
 }
 
 void PBRShader_Deferred_Lighting::setMVP(const glm::mat4& trafo)
@@ -474,10 +475,12 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 }*/
 
 
-void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadowGL::CascadeData* cascadedData)
+void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData* cascadedData)
 {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
-	glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
+	cascadeBufferUBO.bind();
+	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
+	cascadeBufferUBO.update(cascadedData, sizeof(CascadedShadow::CascadeData));
 }
 
 

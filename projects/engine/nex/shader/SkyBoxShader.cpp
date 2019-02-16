@@ -1,4 +1,5 @@
 #include <nex/shader/SkyBoxShader.hpp>
+#include <nex/RenderBackend.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -35,14 +36,20 @@ void SkyBoxShader::setSkyTexture(const CubeMap* texture)
 
 void SkyBoxShader::setupRenderState()
 {
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
+	//glDepthMask(GL_FALSE);
+	depthConfig->enableDepthBufferWriting(false);
+	//glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
 }
 
 void SkyBoxShader::reverseRenderState()
 {
-	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-	glDepthMask(GL_TRUE);
+	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
+	//glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
+	depthConfig->setDefaultDepthFunc(CompareFunction::LESS);
+	//glDepthMask(GL_TRUE);
+	depthConfig->enableDepthBufferWriting(true);
 }
 
 //TODO

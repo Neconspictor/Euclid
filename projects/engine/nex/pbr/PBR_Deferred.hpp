@@ -15,7 +15,7 @@ namespace nex
 	class PBR_Deferred : public PBR {
 
 	public:
-		PBR_Deferred(RenderBackend* renderer, Texture* backgroundHDR);
+		PBR_Deferred(Texture* backgroundHDR);
 
 		void drawGeometryScene(SceneNode * scene,
 			const glm::mat4& view,

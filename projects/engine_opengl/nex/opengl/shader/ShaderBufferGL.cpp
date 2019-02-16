@@ -1,5 +1,7 @@
 #include <nex/opengl/shader/ShaderBufferGL.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
 #include <nex/opengl/opengl.hpp>
+
 
 nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, ShaderBuffer::UsageHint hint) :
 	mRendererID(GL_FALSE),

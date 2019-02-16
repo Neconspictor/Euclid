@@ -3,10 +3,10 @@
 #include <glm/glm.hpp>
 #include "VertexArray.hpp"
 #include "IndexBuffer.hpp"
+#include <nex/material/Material.hpp>
 
 namespace nex
 {
-	class Material;
 	class MeshFactory;
 
 	struct VertexPositionNormalTexTangent {

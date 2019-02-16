@@ -1,9 +1,6 @@
 #pragma once
 
-
-#include <nex/texture/RenderTarget.hpp>
 #include <nex/mesh/Vob.hpp>
-#include <nex/shader/PBRShader.hpp>
 #include <nex/SceneNode.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
@@ -12,12 +9,10 @@
 
 namespace nex
 {
-	class RenderBackend;
-
 	class PBR {
 
 	public:
-		PBR(RenderBackend* renderer, Texture* backgroundHDR);
+		PBR(Texture* backgroundHDR);
 		virtual ~PBR();
 
 		virtual void drawSceneToShadowMap(SceneNode * scene,
@@ -64,9 +59,6 @@ namespace nex
 		CubeMap* prefilteredEnvMap;
 		CubeMap* environmentMap;
 		Texture2D* brdfLookupTexture;
-
-
-		RenderBackend* renderer;
 
 		Sprite brdfSprite;
 		Vob skybox;

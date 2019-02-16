@@ -3,6 +3,7 @@
 #include <memory>
 #include <assimp/scene.h>
 #include<vector>
+#include "Material.hpp"
 
 
 namespace nex
@@ -10,7 +11,6 @@ namespace nex
 
 	class TextureManager;
 	struct TextureData;
-	class Material;
 
 	class AbstractMaterialLoader
 	{

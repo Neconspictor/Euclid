@@ -1,5 +1,6 @@
 #include "Sphere.hpp"
 #include <math.h>
+#include <nex/util/Math.hpp>
 
 namespace nex
 {

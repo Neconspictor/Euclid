@@ -6,9 +6,10 @@ namespace nex
 
 	enum class LayoutType
 	{
-		UNSIGNED_INT,
+		UNSIGNED_INT, FIRST= UNSIGNED_INT,
 		FLOAT,
-		UNSIGNED_BYTE
+		UNSIGNED_BYTE,
+		UNSIGNED_SHORT, LAST = UNSIGNED_SHORT,
 	};
 
 
@@ -41,6 +42,9 @@ namespace nex
 
 		template<>
 		inline void push<unsigned char>(unsigned int count);
+
+		template<>
+		inline void push<unsigned short>(unsigned int count);
 
 		template<>
 		inline void push<glm::vec3>(unsigned int count);

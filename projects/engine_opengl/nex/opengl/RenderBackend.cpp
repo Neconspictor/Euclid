@@ -10,6 +10,7 @@
 #include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <nex/opengl/opengl.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/post_processing/blur/GaussianBlur.hpp>
 
 using namespace std;
 using namespace nex;

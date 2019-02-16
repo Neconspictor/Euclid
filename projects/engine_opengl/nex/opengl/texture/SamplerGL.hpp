@@ -1,7 +1,6 @@
 #pragma once
-#include <glad/glad.h>
-#include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/texture/Sampler.hpp>
+#include <nex/opengl/opengl.hpp>
 
 
 /*

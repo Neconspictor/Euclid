@@ -6,8 +6,8 @@ using namespace std;
 using namespace nex;
 
 nex::SMAA::SMAA(RenderBackend* renderer) : renderer(renderer), areaTex(nullptr), searchTex(nullptr), 
-edgesTex(nullptr), blendTex(nullptr), edgeDetectionPass(GL_FALSE), blendingWeightCalculationPass(GL_FALSE), 
-neighborhoodBlendingPass(GL_FALSE), initialized(false)
+edgesTex(nullptr), blendTex(nullptr), edgeDetectionPass(0), blendingWeightCalculationPass(0), 
+neighborhoodBlendingPass(0), initialized(false)
 {
 }
 

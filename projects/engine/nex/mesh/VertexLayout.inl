@@ -11,7 +11,8 @@ namespace nex
 		case LayoutType::UNSIGNED_INT: return sizeof(unsigned int);
 		case LayoutType::FLOAT: return sizeof(float);
 		case LayoutType::UNSIGNED_BYTE: return sizeof(unsigned char);
-		default: throw std::runtime_error("Unsupported type: " + std::to_string(type));
+		case LayoutType::UNSIGNED_SHORT: return sizeof(unsigned short);
+		default: throw std::runtime_error("Unsupported type: " + std::to_string((unsigned)type));
 		}
 
 		assert(false);
@@ -37,6 +38,13 @@ namespace nex
 	{
 		mElements.push_back({ LayoutType::UNSIGNED_BYTE, count, false });
 		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_BYTE);
+	}
+
+	template <>
+	void VertexLayout::push<unsigned short>(unsigned count)
+	{
+		mElements.push_back({ LayoutType::UNSIGNED_SHORT, count, false });
+		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_SHORT);
 	}
 
 	template <>

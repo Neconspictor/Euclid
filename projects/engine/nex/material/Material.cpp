@@ -1,4 +1,4 @@
-#include <nex/opengl/material/Material.hpp>
+#include <nex/material/Material.hpp>
 #include <nex/texture/Texture.hpp>
 
 using namespace std;

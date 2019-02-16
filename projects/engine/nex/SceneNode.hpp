@@ -23,7 +23,7 @@ namespace nex
 		void addChild(SceneNode* child);
 		void removeChild(SceneNode* child);
 
-		void init(StaticMeshManager* modelManager);
+		void init();
 
 		void update(float frameTime);
 

@@ -52,7 +52,7 @@ namespace nex
 		const glm::mat4& getTrafo() const;
 
 
-		void init(StaticMeshManager* modelManager);
+		void init();
 
 		/**
 		 * Sets the rotation measured in euler angles int XYZ order.

@@ -1,4 +1,7 @@
 ﻿#include <nex/opengl/RenderBackendGL.hpp>
+#include <nex/opengl/opengl.hpp>
+#include <nex/mesh/SubMesh.hpp>
+#include <nex/RenderBackend.hpp>
 
 using namespace std;
 using namespace nex;
@@ -247,11 +250,16 @@ namespace nex
 		setDepthRange(state.depthRange);
 	}
 
+	RenderTargetBlendDescGL::RenderTargetBlendDescGL(): RenderTargetBlendDescGL(RenderTargetBlendDesc())
+	{
+	}
+
 	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
 		enableBlend(translate(desc.enableBlend)),
 		colorAttachIndex(desc.colorAttachIndex),
 		blendDesc(desc.blendDesc)	
 	{
+
 	}
 
 	RasterizerGL::RasterizerGL()

@@ -55,10 +55,12 @@ namespace nex {
 		return trafo;
 	}
 
-	void Vob::init(StaticMeshManager* modelManager)
+	void Vob::init()
 	{
+
+		static auto* manager = StaticMeshManager::get();
 		if (m_model == nullptr)
-			m_model = modelManager->getModel(meshName, materialShaderType);
+			m_model = manager->getModel(meshName, materialShaderType);
 	}
 
 	void Vob::setEulerXYZ(vec3 rotation)

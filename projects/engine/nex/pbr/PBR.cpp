@@ -6,14 +6,15 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/RenderBackend.hpp>
+#include "nex/shader/PBRShader.hpp"
 
 using namespace glm;
 using namespace nex;
 
-PBR::PBR(RenderBackend* renderer, Texture* backgroundHDR) :
-	environmentMap(nullptr), renderer(renderer), skybox("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex){
+PBR::PBR(Texture* backgroundHDR) :
+	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex){
 
-	skybox.init(renderer->getModelManager());
+	skybox.init();
 
 	init(backgroundHDR);
 }
@@ -33,8 +34,7 @@ PBR::~PBR()
 
 void PBR::drawSky(const mat4& projection, const mat4& view)
 {
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	ShaderManager* shaderManager = renderer->getShaderManager();
+	static auto* shaderManager = ShaderManager::get();
 
 	SkyBoxShader* skyboxShader = reinterpret_cast<SkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBox));
@@ -50,7 +50,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
 	skyboxShader->setSkyTexture(environmentMap);
 
-	modelDrawer->draw(skybox.getModel(), skyboxShader);
+	StaticMeshDrawer::draw(skybox.getModel(), skyboxShader);
 
 	//TODO optimize out
 	skyboxShader->reverseRenderState();
@@ -60,15 +60,15 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 	const mat4 & lightViewMatrix, 
 	const mat4 & lightProjMatrix)
 {
+	static auto* shaderManager = ShaderManager::get();
 	const mat4& lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	ShadowShader* shader = (ShadowShader*) renderer->getShaderManager()->getShader(ShaderType::Shadow);
+	ShadowShader* shader = (ShadowShader*)shaderManager->getShader(ShaderType::Shadow);
 
 	shader->bind();
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
 
 	// render shadows to a depth map
-	modelDrawer->draw(scene, shader);
+	StaticMeshDrawer::draw(scene, shader);
 	//scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, ShaderType::Shadow);
 }
 
@@ -81,10 +81,10 @@ void PBR::drawScene(SceneNode * scene,
 	const mat4& view,
 	const mat4& projection)
 {
-
+	static auto* shaderManager = ShaderManager::get();
 	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 
-	 PBRShader* shader = reinterpret_cast<PBRShader*> (renderer->getShaderManager()->getShader(ShaderType::Pbr));
+	 PBRShader* shader = reinterpret_cast<PBRShader*> (shaderManager->getShader(ShaderType::Pbr));
 
 	shader->bind();
 
@@ -109,9 +109,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setInverseViewMatrix(inverse(view));
 	shader->setProjectionMatrix(projection);
 	
-
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	modelDrawer->draw(scene, shader);
+	StaticMeshDrawer::draw(scene, shader);
 }
 
 CubeMap * PBR::getConvolutedEnvironmentMap()
@@ -266,7 +264,8 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(2048, 2048, textureData);
 
-	ShaderManager* shaderManager = renderer->getShaderManager();
+	static auto* shaderManager = ShaderManager::get();
+	static auto* renderBackend = RenderBackend::get();
 
 	EquirectangularSkyBoxShader* shader = reinterpret_cast<EquirectangularSkyBoxShader*>
 		(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
@@ -288,8 +287,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 	
-	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
+	renderBackend->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
 
 
 	/*TextureGL* gl = (TextureGL*)cubeRenderTarget->getTexture()->getImpl();
@@ -304,7 +302,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
-		modelDrawer->draw(skybox.getModel(), shader);
+		StaticMeshDrawer::draw(skybox.getModel(), shader);
 	}
 
 
@@ -321,10 +319,12 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 
 CubeMap * PBR::convolute(CubeMap * source)
 {
+	static auto* renderBackend = RenderBackend::get();
+	static auto* shaderManager = ShaderManager::get();
+	
 	// uses RGB and 32bit per component (floats)
-	CubeRenderTarget* cubeRenderTarget = renderer->createCubeRenderTarget(32, 32);
+	CubeRenderTarget* cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32);
 
-	ShaderManager* shaderManager = renderer->getShaderManager();
 
 	PBR_ConvolutionShader* shader = reinterpret_cast<PBR_ConvolutionShader*>
 		(shaderManager->getShader(ShaderType::Pbr_Convolution));
@@ -346,20 +346,19 @@ CubeMap * PBR::convolute(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
 	};
 
-	renderer->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
+	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X));
-		modelDrawer->draw(skybox.getModel(), shader);
+		StaticMeshDrawer::draw(skybox.getModel(), shader);
 	}
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
 	CubeMap* result = (CubeMap*)cubeRenderTarget->setRenderResult(nullptr);
-	renderer->destroyCubeRenderTarget(cubeRenderTarget);
+	renderBackend->destroyCubeRenderTarget(cubeRenderTarget);
 
 	return result;
 }
@@ -378,10 +377,10 @@ CubeMap* PBR::prefilter(CubeMap * source)
 		true
 	};
 
-	CubeRenderTarget* prefilterRenderTarget = renderer->createCubeRenderTarget(256, 256, textureData);
+	static auto* renderBackend = RenderBackend::get();
+	static auto* shaderManager = ShaderManager::get();
 
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
-	ShaderManager* shaderManager = renderer->getShaderManager();
+	CubeRenderTarget* prefilterRenderTarget = renderBackend->createCubeRenderTarget(256, 256, textureData);
 
 	PBR_PrefilterShader* shader = dynamic_cast<PBR_PrefilterShader*>
 		(shaderManager->getShader(ShaderType::Pbr_Prefilter));
@@ -417,19 +416,19 @@ CubeMap* PBR::prefilter(CubeMap * source)
 		// update the viewport size
 		unsigned int width = prefilterRenderTarget->getWidthMipLevel(mipLevel);
 		unsigned int height = prefilterRenderTarget->getHeightMipLevel(mipLevel);
-		renderer->setViewPort(0, 0, width, height);
+		renderBackend->setViewPort(0, 0, width, height);
 
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
 			shader->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMap::Side>(side + (unsigned)CubeMap::Side::POSITIVE_X), mipLevel);
-			modelDrawer->draw(skybox.getModel(), shader);
+			StaticMeshDrawer::draw(skybox.getModel(), shader);
 		}
 	}
 
 
 	CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
-	renderer->destroyCubeRenderTarget(prefilterRenderTarget);
+	renderBackend->destroyCubeRenderTarget(prefilterRenderTarget);
 
 	return result;
 }
@@ -447,14 +446,13 @@ Texture2D* PBR::createBRDFlookupTexture()
 		InternFormat::RG32F, 
 		false};
 
-	RenderTarget2D* target = renderer->create2DRenderTarget(1024, 1024, data);
+	static auto* renderBackend = RenderBackend::get();
+	static auto* shaderManager = ShaderManager::get();
 
-	ShaderManager* shaderManager = renderer->getShaderManager();
+	RenderTarget2D* target = renderBackend->create2DRenderTarget(1024, 1024, data);
 
 	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = reinterpret_cast<PBR_BrdfPrecomputeShader*>
 		(shaderManager->getShader(ShaderType::Pbr_BrdfPrecompute));
-
-	StaticMeshDrawer* modelDrawer = renderer->getModelDrawer();
 
 	target->bind();
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
@@ -473,18 +471,19 @@ Texture2D* PBR::createBRDFlookupTexture()
 	sprite.setHeight(dim.y);
 
 	brdfPrecomputeShader->bind();
-	modelDrawer->draw(&sprite, brdfPrecomputeShader);
+	StaticMeshDrawer::draw(&sprite, brdfPrecomputeShader);
 
 	Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
-	renderer->destroyRenderTarget(target);
+	renderBackend->destroyRenderTarget(target);
 
 	return result;
 }
 
 void PBR::init(Texture* backgroundHDR)
 {
+	static auto* renderBackend = RenderBackend::get();
 
-	Viewport backup = renderer->getViewport();
+	Viewport backup = renderBackend->getViewport();
 
 	// if environment map has been compiled already and load it from file 
 	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
@@ -567,7 +566,7 @@ void PBR::init(Texture* backgroundHDR)
 		StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
 	}
 
-	renderer->setViewPort(backup.x, backup.y, backup.width, backup.height);
+	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 
 
 	// setup sprite for brdf integration lookup texture

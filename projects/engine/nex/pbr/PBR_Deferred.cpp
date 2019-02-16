@@ -20,13 +20,9 @@ using namespace std;
 namespace nex {
 
 
-	PBR_Deferred::PBR_Deferred(RenderBackend* renderer, Texture* backgroundHDR) :
-		PBR(renderer, backgroundHDR)
+	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR) :
+		PBR(backgroundHDR)
 	{
-
-		//TextureManagerGL* textureManager = dynamic_cast<TextureManagerGL*>(renderer->getTextureManager());
-		//textureManager->registerAnistropySampler(&m_sampler);
-
 		vec2 dim = { 1.0, 1.0 };
 		vec2 pos = { 0, 0 };
 
@@ -41,7 +37,9 @@ namespace nex {
 
 	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
 	{
-		auto* stencilTest = renderer->getStencilTest();
+		static auto* renderBackend = RenderBackend::get();
+
+		auto* stencilTest = renderBackend->getStencilTest();
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 		//glStencilFunc(GL_ALWAYS, 1, 1);
@@ -80,7 +78,10 @@ namespace nex {
 		CascadedShadow::CascadeData* cascadeData,
 		Texture* cascadedDepthMap)
 	{
-		auto* stencilTest = renderer->getStencilTest();
+
+		static auto* renderBackend = RenderBackend::get();
+
+		auto* stencilTest = renderBackend->getStencilTest();
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
@@ -124,7 +125,9 @@ namespace nex {
 
 	void PBR_Deferred::drawSky(const glm::mat4 & projection, const glm::mat4 & view)
 	{
-		auto* stencilTest = renderer->getStencilTest();
+		static auto* renderBackend = RenderBackend::get();
+
+		auto* stencilTest = renderBackend->getStencilTest();
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 		PBR::drawSky(projection, view);

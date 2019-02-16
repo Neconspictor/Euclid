@@ -1,5 +1,5 @@
 // glad has to be included before glfw
-#include <glad/glad.h>
+#include <nex/opengl/opengl.hpp>
 #include <GLFW/glfw3.h>
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>

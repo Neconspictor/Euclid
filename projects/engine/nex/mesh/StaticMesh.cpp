@@ -1,5 +1,4 @@
-#include <nex/opengl/model/ModelGL.hpp>
-#include "nex/opengl/renderer/RendererOpenGL.hpp"
+#include <nex/mesh/StaticMesh.hpp>
 
 using namespace std;
 using namespace glm;

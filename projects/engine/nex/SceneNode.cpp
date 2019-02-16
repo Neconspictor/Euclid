@@ -73,14 +73,14 @@ namespace nex
 		}
 	}
 
-	void SceneNode::init(StaticMeshManager* modelManager)
+	void SceneNode::init()
 	{
 		for (auto it = childs.begin(); it != childs.end(); ++it)
-			(*it)->init(modelManager);
+			(*it)->init();
 
 		if (!vob) return;
 
-		vob->init(modelManager);
+		vob->init();
 	}
 
 	void SceneNode::update(float frameTime)

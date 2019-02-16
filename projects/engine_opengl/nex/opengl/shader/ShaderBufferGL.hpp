@@ -28,6 +28,6 @@ namespace nex
 		};
 	};
 
-	ShaderBuffer::UsageHintGL translate(nex::ShaderBuffer::UsageHint);
-	ShaderBuffer::AccessGL translate(nex::ShaderBuffer::Access);	
+	ShaderBuffer::UsageHintGL translate(nex::ShaderBuffer::UsageHint usageHint);
+	ShaderBuffer::AccessGL translate(nex::ShaderBuffer::Access access);	
 }

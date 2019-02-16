@@ -1,13 +1,13 @@
-#include <nex/opengl/material/PbrMaterialLoader.hpp>
-#include <nex/opengl/material/Material.hpp>
+#include <nex/material/PbrMaterialLoader.hpp>
+#include <nex/material/Material.hpp>
 #include <string>
-#include <nex/opengl/texture/TextureManagerGL.hpp>
+#include <nex/texture/TextureManager.hpp>
 
 using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TextureManagerGL* textureManager) : AbstractMaterialLoader(textureManager), m_logger("PbrMaterialLoader")
+PbrMaterialLoader::PbrMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager), m_logger("PbrMaterialLoader")
 {
 }
 

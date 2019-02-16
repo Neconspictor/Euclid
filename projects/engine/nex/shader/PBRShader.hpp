@@ -2,6 +2,7 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
 
 
 namespace nex
@@ -170,7 +171,7 @@ namespace nex
 		void setSkyBox(const CubeMap* sky);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		void setCascadedData(const CascadedShadowGL::CascadeData* cascadedData);
+		void setCascadedData(const CascadedShadow::CascadeData* cascadedData);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -209,7 +210,7 @@ namespace nex
 
 		// Cascaded shadow mapping
 		UniformTex mCascadedDepthMap;
-		GLuint cascadeBufferUBO;
+		UniformBuffer cascadeBufferUBO;
 
 
 		UniformTex mAlbedoMap;

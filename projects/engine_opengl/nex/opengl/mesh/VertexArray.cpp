@@ -1,8 +1,27 @@
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/opengl/opengl.hpp>
+#include "nex/opengl/RenderBackendGL.hpp"
+#include "VertexArrayGL.hpp"
 
 namespace nex
 {
+
+	LayoutTypeGL translate(LayoutType type)
+	{
+		static LayoutTypeGL const table[]
+		{
+			UNSIGNED_INT,
+			FLOAT,
+			UNSIGNED_BYTE,
+			UNSIGNED_SHORT,
+		};
+
+		static const unsigned size = (unsigned)LayoutType::LAST - (unsigned)LayoutType::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: LayoutType and LayoutTypeGL don't match!");
+
+		return table[(unsigned)type];
+	}
+
 
 
 	VertexArray::VertexArray() : mRendererID(0)
@@ -52,7 +71,7 @@ namespace nex
 			const auto& elem = elements[i];
 			GLCall(glEnableVertexAttribArray(i));
 			GLCall(
-				glVertexAttribPointer(i, elem.count, elem.type,
+				glVertexAttribPointer(i, elem.count, translate(elem.type),
 					elem.normalized, layout.getStride(), (GLvoid*)offset)
 			);
 			offset += elem.count * LayoutElement::getSizeOfType(elem.type);

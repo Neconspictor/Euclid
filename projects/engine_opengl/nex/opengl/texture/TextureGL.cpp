@@ -89,9 +89,9 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
 
 nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : TextureGL(), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
-	GLuint internalFormat = nex::translate(data.internalFormat);
-	GLuint colorspace = nex::translate(data.colorspace);
-	GLuint pixelDataType = nex::translate(data.pixelDataType);
+	auto internalFormat = nex::translate(data.internalFormat);
+	auto colorspace = nex::translate(data.colorspace);
+	auto pixelDataType = nex::translate(data.pixelDataType);
 
 	const GLuint target = GL_TEXTURE_CUBE_MAP;
 

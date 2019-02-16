@@ -109,6 +109,7 @@ namespace nex {
 		//unsigned char renderTargetWriteMask; // not supported by opengl
 		BlendDescGL blendDesc;
 
+		RenderTargetBlendDescGL();
 		RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc);
 	};
 

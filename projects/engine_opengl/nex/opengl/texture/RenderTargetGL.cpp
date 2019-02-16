@@ -2,8 +2,9 @@
 #include <cassert>
 #include <nex/util/ExceptionHandling.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <nex/opengl/opengl.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/opengl/texture/TextureGL.hpp>
+#include <nex/opengl/opengl.hpp>
 
 using namespace std;
 using namespace glm;
@@ -200,6 +201,7 @@ nex::RenderAttachment::Type nex::RenderAttachment::translate(InternFormat format
 		Type::COLOR,
 		Type::COLOR,
 
+		Type::COLOR,
 		Type::COLOR,
 		Type::COLOR,
 		Type::COLOR,

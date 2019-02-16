@@ -11,6 +11,8 @@
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/opengl.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/opengl/RenderBackendGL.hpp>
 
 using namespace glm;
 

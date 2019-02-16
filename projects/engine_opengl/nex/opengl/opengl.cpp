@@ -1,6 +1,6 @@
-#include "opengl.hpp"
-#include "nex/util/ExceptionHandling.hpp"
-#include "nex/exception/OpenglException.hpp"
+#include <nex/opengl/opengl.hpp>
+#include <nex/util/ExceptionHandling.hpp>
+#include <nex/exception/OpenglException.hpp>
 
 nex::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
 
@@ -97,7 +97,7 @@ namespace nex
 			case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
 			case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-			default:							   error = "Unknown error code: " + to_string(errorCode);
+			default:							   error = "Unknown error code: " + std::to_string(errorCode);
 			}
 
 			return true;

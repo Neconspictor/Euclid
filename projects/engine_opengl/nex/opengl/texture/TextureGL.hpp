@@ -1,6 +1,6 @@
 #pragma once
-#include <glad/glad.h>
 #include <nex/texture/Texture.hpp>
+#include <nex/opengl/opengl.hpp>
 
 namespace nex
 {
@@ -257,6 +257,7 @@ namespace nex
 
 	class Texture2DArrayGL : public TextureGL
 	{
+	public:
 		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, const TextureData& textureData, const void* data);
 		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned size = 0);
 

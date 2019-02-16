@@ -172,8 +172,8 @@ namespace nex
 
 	struct RenderTargetBlendDesc
 	{
-		bool enableBlend;
-		unsigned colorAttachIndex;
+		bool enableBlend = false;
+		unsigned colorAttachIndex = 0;
 		BlendDesc blendDesc;
 		//unsigned char renderTargetWriteMask; // not supported by opengl
 	};
