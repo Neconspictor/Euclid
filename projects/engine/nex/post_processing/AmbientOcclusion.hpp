@@ -1,6 +1,5 @@
 #pragma once
 
-#include <nex/texture/Sprite.hpp>
 #include <memory>
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/post_processing/SSAO.hpp>
@@ -63,7 +62,7 @@ namespace nex {
 		std::unique_ptr<nex::HBAO> m_hbao;
 		std::unique_ptr<SSAO_Deferred> m_ssao;
 		bool m_useAO = true;
-		AOTechnique m_usedAOTechnique;
+		AOTechnique m_usedAOTechnique = HBAO;
 	};
 }
 

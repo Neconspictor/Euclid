@@ -3,9 +3,7 @@
 
 namespace nex
 {
-
-
-	AmbientOcclusionSelector::AmbientOcclusionSelector() : m_usedAOTechnique(HBAO), m_hbao(nullptr), m_ssao(nullptr)
+	AmbientOcclusionSelector::AmbientOcclusionSelector() : m_hbao(nullptr), m_ssao(nullptr)
 	{
 	}
 
@@ -17,27 +15,6 @@ namespace nex
 	void AmbientOcclusionSelector::setSSAO(std::unique_ptr<SSAO_Deferred> ssao)
 	{
 		m_ssao = move(ssao);
-	}
-
-	std::ostream& operator<<(std::ostream& os, AmbientOcclusionSelector::AOTechnique aoTechnique)
-	{
-		switch (aoTechnique)
-		{
-		case AmbientOcclusionSelector::HBAO:
-		{
-			os << "HBAO";
-			break;
-		}
-		case AmbientOcclusionSelector::SSAO:
-		{
-			os << "SSAO";
-			break;
-		}
-		default:
-			throw_with_trace(std::out_of_range("Not a registered aoTechnique: " + (int)aoTechnique));
-		}
-
-		return os;
 	}
 
 	AmbientOcclusionSelector::~AmbientOcclusionSelector()
@@ -73,4 +50,25 @@ namespace nex
 	{
 		m_useAO = useAO;
 	}
+}
+
+std::ostream& operator<<(std::ostream& os, nex::AmbientOcclusionSelector::AOTechnique aoTechnique)
+{
+	switch (aoTechnique)
+	{
+	case nex::AmbientOcclusionSelector::HBAO:
+	{
+		os << "HBAO";
+		break;
+	}
+	case nex::AmbientOcclusionSelector::SSAO:
+	{
+		os << "SSAO";
+		break;
+	}
+	default:
+		nex::throw_with_trace(std::out_of_range("Not a registered aoTechnique: " + (int)aoTechnique));
+	}
+
+	return os;
 }
