@@ -49,7 +49,7 @@ namespace nex
 
 		void finalizeColorAttachments() const;
 
-		const std::vector<RenderAttachment>& getColorAttachments() const;
+		std::vector<RenderAttachment>& getColorAttachments();
 
 		RenderAttachment& getDepthAttachment();
 
@@ -128,6 +128,18 @@ namespace nex
 		}
 
 		void resizeForMipMap(unsigned mipMapLevel);
+
+		// Has to be implemented by renderer backend
+		unsigned getWidth() const 
+		{
+			return mWidth;
+		}
+
+		// Has to be implemented by renderer backend
+		unsigned getHeight() const
+		{
+			return mHeight;
+		}
 
 	protected:
 		nex::TextureData data;

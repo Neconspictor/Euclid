@@ -21,7 +21,7 @@ PBR::PBR(Texture* backgroundHDR) :
 
 PBR::~PBR()
 {
-	delete environmentMap;
+	/*delete environmentMap;
 	environmentMap = nullptr;
 	delete brdfLookupTexture;
 	brdfLookupTexture = nullptr;
@@ -29,7 +29,7 @@ PBR::~PBR()
 	prefilteredEnvMap = nullptr;
 
 	delete convolutedEnvironmentMap;
-	convolutedEnvironmentMap = nullptr;
+	convolutedEnvironmentMap = nullptr;*/
 }
 
 void PBR::drawSky(const mat4& projection, const mat4& view)
@@ -48,7 +48,7 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	skyboxShader->setProjection(projection);
 	skyboxShader->setMVP(projection * skyBoxView);
 	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
-	skyboxShader->setSkyTexture(environmentMap);
+	skyboxShader->setSkyTexture(getEnvironmentMap());
 
 	StaticMeshDrawer::draw(skybox.getModel(), skyboxShader);
 
@@ -88,8 +88,8 @@ void PBR::drawScene(SceneNode * scene,
 
 	shader->bind();
 
-	shader->setBrdfLookupTexture(brdfLookupTexture);
-	shader->setIrradianceMap(convolutedEnvironmentMap);
+	shader->setBrdfLookupTexture(getBrdfLookupTexture());
+	shader->setIrradianceMap(getConvolutedEnvironmentMap());
 	
 	shader->setLightColor(light.getColor());
 	shader->setLightDirection(light.getLook());
@@ -97,7 +97,7 @@ void PBR::drawScene(SceneNode * scene,
 	shader->setLightProjMatrix(lightProjMatrix);
 	shader->setLightViewMatrix(lightViewMatrix);
 
-	shader->setPrefilterMap(prefilteredEnvMap);
+	shader->setPrefilterMap(getPrefilteredEnvironmentMap());
 	shader->setShadowMap(shadowMap);
 
 	//TODO validate whether this is needed
@@ -112,24 +112,24 @@ void PBR::drawScene(SceneNode * scene,
 	StaticMeshDrawer::draw(scene, shader);
 }
 
-CubeMap * PBR::getConvolutedEnvironmentMap()
+CubeMap * PBR::getConvolutedEnvironmentMap() const
 {
-	return convolutedEnvironmentMap;
+	return convolutedEnvironmentMap.get();
 }
 
-CubeMap* PBR::getEnvironmentMap()
+CubeMap* PBR::getEnvironmentMap() const
 {
-	return environmentMap;
+	return  environmentMap.get();
 }
 
-CubeMap * PBR::getPrefilteredEnvironmentMap()
+CubeMap * PBR::getPrefilteredEnvironmentMap() const
 {
-	return prefilteredEnvMap;
+	return  prefilteredEnvMap.get();
 }
 
-Texture * PBR::getBrdfLookupTexture()
+Texture2D * PBR::getBrdfLookupTexture() const
 {
-	return brdfLookupTexture;
+	return brdfLookupTexture.get();
 }
 
 StoreImage PBR::readBrdfLookupPixelData() const
@@ -138,8 +138,8 @@ StoreImage PBR::readBrdfLookupPixelData() const
 	StoreImage::create(&store, 1, 1);
 
 	GenericImage& data = store.images[0][0];
-	data.width = brdfLookupTexture->getWidth();
-	data.height = brdfLookupTexture->getHeight();
+	data.width = getBrdfLookupTexture()->getWidth();
+	data.height = getBrdfLookupTexture()->getHeight();
 	data.components = 2; // RG
 	data.format = (unsigned)ColorSpace::RG;
 	data.pixelSize = sizeof(float) * data.components;
@@ -165,8 +165,8 @@ StoreImage PBR::readBackgroundPixelData() const
 	for (unsigned i = 0; i < store.sideCount; ++i)
 	{
 		GenericImage& data = store.images[i][0];
-		data.width = environmentMap->getSideWidth();
-		data.height = environmentMap->getSideHeight();
+		data.width = getEnvironmentMap()->getSideWidth();
+		data.height = getEnvironmentMap()->getSideHeight();
 		data.components = 3; // RGB
 		data.format = (unsigned)ColorSpace::RGB;
 		data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
@@ -196,8 +196,8 @@ StoreImage PBR::readConvolutedEnvMapPixelData()
 		for (unsigned level = 0; level < store.mipmapCounts[i]; ++level)
 		{
 			GenericImage& data = store.images[i][level];
-			data.width = convolutedEnvironmentMap->getSideWidth();
-			data.height = convolutedEnvironmentMap->getSideHeight();
+			data.width = getConvolutedEnvironmentMap()->getSideWidth();
+			data.height = getConvolutedEnvironmentMap()->getSideHeight();
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
 			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
@@ -228,8 +228,8 @@ StoreImage PBR::readPrefilteredEnvMapPixelData()
 		for (unsigned level =  0; level < store.mipmapCounts[i]; ++level)
 		{
 			GenericImage& data = store.images[i][level];
-			data.width = prefilteredEnvMap->getSideWidth();
-			data.height = prefilteredEnvMap->getSideHeight();
+			data.width = getPrefilteredEnvironmentMap()->getSideWidth();
+			data.height = getPrefilteredEnvironmentMap()->getSideHeight();
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
 			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
@@ -250,7 +250,7 @@ StoreImage PBR::readPrefilteredEnvMapPixelData()
 	return store;
 }
 
-CubeMap * PBR::renderBackgroundToCube(Texture * background)
+std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -290,7 +290,7 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	};
 
 	
-	renderBackend->setViewPort(0, 0, cubeRenderTarget->getSideWidth(), cubeRenderTarget->getSideHeight());
+	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 
 	/*TextureGL* gl = (TextureGL*)cubeRenderTarget->getTexture()->getImpl();
@@ -309,18 +309,20 @@ CubeMap * PBR::renderBackgroundToCube(Texture * background)
 	}
 
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget->getRenderResult();
+	auto& resultAttachment = cubeRenderTarget->getColorAttachments()[0];
+	auto result = std::dynamic_pointer_cast<CubeMap>(resultAttachment.texture);
 
 	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
 	result->generateMipMaps();
 
-	cubeRenderTarget->setRenderResult(nullptr);
+	//cubeRenderTarget->setRenderResult(nullptr);
+
 
 	//CubeMap* result = cubeRenderTarget->createCopy(); 
 	return result;
 }
 
-CubeMap * PBR::convolute(CubeMap * source)
+std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 {
 	static auto* renderBackend = RenderBackend::get();
 	static auto* shaderManager = ShaderManager::get();
@@ -360,13 +362,14 @@ CubeMap * PBR::convolute(CubeMap * source)
 	//CubeMap* result = cubeRenderTarget->createCopy();
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
-	CubeMap* result = (CubeMap*)cubeRenderTarget->setRenderResult(nullptr);
+	//CubeMap* result = (CubeMap*)cubeRenderTarget->setRenderResult(nullptr);
+	auto result = std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 	renderBackend->destroyCubeRenderTarget(cubeRenderTarget);
 
 	return result;
 }
 
-CubeMap* PBR::prefilter(CubeMap * source)
+std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -430,13 +433,14 @@ CubeMap* PBR::prefilter(CubeMap * source)
 	}
 
 
-	CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
+	//CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
+	auto result = std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
 	renderBackend->destroyCubeRenderTarget(prefilterRenderTarget);
 
 	return result;
 }
 
-Texture2D* PBR::createBRDFlookupTexture()
+std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 {
 	TextureData data = {
 		TextureFilter::Linear, 
@@ -476,7 +480,8 @@ Texture2D* PBR::createBRDFlookupTexture()
 	brdfPrecomputeShader->bind();
 	StaticMeshDrawer::draw(&sprite, brdfPrecomputeShader);
 
-	Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
+	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
+	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
 	renderBackend->destroyRenderTarget(target);
 
 	return result;
@@ -505,7 +510,7 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			false
 		};
-		environmentMap = (CubeMap*)(Texture::createFromImage(readImage, data, true));
+		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	} else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
@@ -530,11 +535,11 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			true
 		};
-		prefilteredEnvMap = (nex::CubeMap*)(Texture::createFromImage(readImage, data, true));
+		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}
 	else
 	{
-		prefilteredEnvMap = prefilter(environmentMap);
+		prefilteredEnvMap = prefilter(getEnvironmentMap());
 		StoreImage enviromentMapImage = readPrefilteredEnvMapPixelData();
 		StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
 	}
@@ -560,11 +565,11 @@ void PBR::init(Texture* backgroundHDR)
 			InternFormat::RGB32F,
 			true };
 
-		convolutedEnvironmentMap = (nex::CubeMap*)(Texture::createFromImage(readImage, data, true));
+		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}
 	else
 	{
-		convolutedEnvironmentMap = convolute(environmentMap);
+		convolutedEnvironmentMap = convolute(getEnvironmentMap());
 		StoreImage enviromentMapImage = readConvolutedEnvMapPixelData();
 		StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
 	}
@@ -606,7 +611,7 @@ void PBR::init(Texture* backgroundHDR)
 		InternFormat::RG32F,
 		false };
 
-		brdfLookupTexture = (Texture2D*)Texture::createFromImage(readImage, data, false);
+		brdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));
 	}
 	else
 	{

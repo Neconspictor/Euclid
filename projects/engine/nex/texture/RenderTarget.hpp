@@ -101,7 +101,7 @@ namespace nex
 		// Has to be implemented by renderer backend
 		void finalizeAttachments() const;
 
-		const std::vector<RenderAttachment>& getColorAttachments() const;
+		std::vector<RenderAttachment>& getColorAttachments();
 
 		// Has to be implemented by renderer backend
 		RenderAttachment* getDepthAttachment();
@@ -189,6 +189,12 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		void resizeForMipMap(unsigned int mipMapLevel);
+
+		// Has to be implemented by renderer backend
+		unsigned getWidth() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getHeight() const;
 	};
 
 

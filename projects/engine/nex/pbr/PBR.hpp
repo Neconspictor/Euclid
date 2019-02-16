@@ -5,6 +5,7 @@
 #include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
+#include "nex/texture/RenderTarget.hpp"
 
 
 namespace nex
@@ -32,13 +33,13 @@ namespace nex
 			const glm::mat4& view);
 
 
-		CubeMap* getConvolutedEnvironmentMap();
+		CubeMap* getConvolutedEnvironmentMap() const;
 
-		CubeMap* getEnvironmentMap();
+		CubeMap* getEnvironmentMap() const;
 
-		CubeMap* getPrefilteredEnvironmentMap();
+		CubeMap* getPrefilteredEnvironmentMap() const;
 
-		Texture* getBrdfLookupTexture();
+		Texture2D* getBrdfLookupTexture() const;
 
 		StoreImage readBrdfLookupPixelData() const;
 		StoreImage readBackgroundPixelData() const;
@@ -50,15 +51,15 @@ namespace nex
 		StoreImage readPrefilteredEnvMapPixelData();
 		void init(Texture* backgroundHDR);
 
-		CubeMap* renderBackgroundToCube(Texture* background);
-		CubeMap* convolute(CubeMap* source);
-		CubeMap* prefilter(CubeMap* source);
-		Texture2D* createBRDFlookupTexture();
+		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
+		std::shared_ptr<CubeMap> convolute(CubeMap* source);
+		std::shared_ptr<CubeMap> prefilter(CubeMap* source);
+		std::shared_ptr<Texture2D> createBRDFlookupTexture();
 
-		CubeMap* convolutedEnvironmentMap;
-		CubeMap* prefilteredEnvMap;
-		CubeMap* environmentMap;
-		Texture2D* brdfLookupTexture;
+		std::shared_ptr<CubeMap> convolutedEnvironmentMap;
+		std::shared_ptr<CubeMap> prefilteredEnvMap;
+		std::shared_ptr<CubeMap> environmentMap;
+		std::shared_ptr<Texture2D> brdfLookupTexture;
 
 		Sprite brdfSprite;
 		Vob skybox;

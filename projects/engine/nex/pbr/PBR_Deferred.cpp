@@ -96,18 +96,18 @@ namespace nex {
 		shader->setNormalEyeMap(gBuffer->getNormal());
 		shader->setDepthMap(gBuffer->getDepth());
 
-		shader->setBrdfLookupTexture(brdfLookupTexture);
+		shader->setBrdfLookupTexture(getBrdfLookupTexture());
 		//shader->setGBuffer(gBuffer);
 		shader->setViewGPass(viewFromGPass);
 		shader->setInverseViewFromGPass(inverse(viewFromGPass));
 		shader->setInverseProjMatrixFromGPass(inverse(projFromGPass));
-		shader->setIrradianceMap(convolutedEnvironmentMap);
+		shader->setIrradianceMap(getConvolutedEnvironmentMap());
 		shader->setLightColor(light.getColor());
 		shader->setWorldLightDirection(light.getLook());
 
 		vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
 		shader->setEyeLightDirection(vec3(lightEyeDirection));
-		shader->setPrefilterMap(prefilteredEnvMap);
+		shader->setPrefilterMap(getPrefilteredEnvironmentMap());
 		//shader->setShadowMap(shadowMap);
 		shader->setAOMap(ssaoMap);
 		//TODO

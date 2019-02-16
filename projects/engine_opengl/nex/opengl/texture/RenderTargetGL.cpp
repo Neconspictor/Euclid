@@ -58,6 +58,16 @@ void nex::CubeRenderTarget::resizeForMipMap(unsigned mipMapLevel)
 	gl->resizeForMipMap(mipMapLevel);
 }
 
+unsigned nex::CubeRenderTarget::getWidth() const
+{
+	return ((CubeRenderTargetGL*)getImpl())->getWidth();
+}
+
+unsigned nex::CubeRenderTarget::getHeight() const
+{
+	return ((CubeRenderTargetGL*)getImpl())->getHeight();
+}
+
 
 nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat) :
 	RenderTargetGL(), data(data), mWidth(width), mHeight(height)
@@ -279,7 +289,7 @@ void nex::RenderTarget::finalizeAttachments() const
 	gl->finalizeColorAttachments();
 }
 
-const std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments() const
+std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments()
 {
 	auto gl = (RenderTargetGL*)getImpl();
 	return gl->getColorAttachments();
@@ -726,7 +736,7 @@ void nex::RenderTargetGL::finalizeColorAttachments() const
 	enableDrawToColorAttachments(true);
 }
 
-const std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getColorAttachments() const
+std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getColorAttachments()
 {
 	return mColorAttachments;
 }
