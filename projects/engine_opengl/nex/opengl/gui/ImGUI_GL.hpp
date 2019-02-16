@@ -2,6 +2,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include <string>
 #include <glad/glad.h>
+#include <nex/common/Log.hpp>
 
 
 struct GLFWcursor;
