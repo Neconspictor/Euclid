@@ -164,6 +164,9 @@ set(
 	nex/post_processing/AmbientOcclusion.hpp
 	nex/post_processing/SSAO.hpp
 	nex/post_processing/SSAO.cpp
+    #nex/post_processing/blur
+	nex/post_processing/blur/GaussianBlur.hpp
+	nex/post_processing/blur/GaussianBlur.cpp
     
     
     #nex/shader

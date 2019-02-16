@@ -38,11 +38,6 @@ set(
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexBuffer.cpp
     
-	
-	#nex/opengl/post_processing/blur
-	nex/opengl/post_processing/blur/GaussianBlurGL.hpp
-	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
-    
     #nex/opengl/shader
     nex/opengl/shader/ShaderBufferGL.hpp
 	nex/opengl/shader/ShaderBufferGL.cpp

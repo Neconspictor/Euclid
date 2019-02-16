@@ -5,8 +5,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
-#include "shader/DepthMapShader.hpp"
-#include "../../compute_test/renderer/ComputeTest_Renderer.hpp"
+#include <nex/shader/DepthMapShader.hpp>
 
 namespace nex
 {

@@ -1,8 +1,4 @@
-﻿#include "..\..\..\engine\nex\RenderBackend.hpp"
-#include "..\..\..\engine\nex\RenderBackend.hpp"
-#include "..\..\..\engine\nex\RenderBackend.hpp"
-#include "..\..\..\engine\nex\RenderBackend.hpp"
-#include <nex/RenderBackend.hpp>
+﻿#include <nex/RenderBackend.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
