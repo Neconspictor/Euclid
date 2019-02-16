@@ -1,11 +1,12 @@
 
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/gui/ImGUI_GL.hpp>
-#include <nex/opengl/renderer/RendererOpenGL.hpp>
+#include <nex/opengl/opengl.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
+#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 
 #ifdef _WIN32
 #undef APIENTRY
@@ -439,8 +440,6 @@ namespace nex::gui
 			LOG(m_logger, Error) << &shaderErrorMessage[0];
 		}
 
-		nex::RenderBackend::checkGLErrors("ImGUI_GL.cpp<createDeviceObjects>000");
-
 		g_FragHandle = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(g_FragHandle, 2, fragment_shader_with_version, NULL);
 		glCompileShader(g_FragHandle);
@@ -458,15 +457,9 @@ namespace nex::gui
 
 		glAttachShader(g_ShaderHandle, g_VertHandle);
 		glAttachShader(g_ShaderHandle, g_FragHandle);
-		nex::RenderBackend::checkGLErrors("ImGUI_GL.cpp<createDeviceObjects>001");
 		glLinkProgram(g_ShaderHandle);
-		nex::RenderBackend::checkGLErrors("ImGUI_GL.cpp<createDeviceObjects>002");
-
-		nex::RenderBackend::checkGLErrors("ImGUI_GL.cpp");
 
 		g_AttribLocationTex = glGetUniformLocation(g_ShaderHandle, "Texture");
-
-		nex::RenderBackend::checkGLErrors("ImGUI_GL.cpp<createDeviceObjects>XXX");
 
 		g_AttribLocationProjMtx = glGetUniformLocation(g_ShaderHandle, "ProjMtx");
 		g_AttribLocationPosition = glGetAttribLocation(g_ShaderHandle, "Position");
@@ -488,7 +481,6 @@ namespace nex::gui
 
 	void ImGUI_GL::createFontsTexture()
 	{
-		nex::RenderBackend::checkGLErrors("ShaderGL.cpp<createFontsTexture>000");
 		// Build texture atlas
 		ImGuiIO& io = ImGui::GetIO();
 		unsigned char* pixels;
@@ -508,12 +500,8 @@ namespace nex::gui
 		// Store our identifier
 		io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
 
-		nex::RenderBackend::checkGLErrors("ShaderGL.cpp<createFontsTexture>001");
-
 		// Restore state
 		glBindTexture(GL_TEXTURE_2D, last_texture);
-
-		nex::RenderBackend::checkGLErrors("ShaderGL.cpp<createFontsTexture>XXX");
 	}
 
 	const char* ImGUI_GL::getClipboardText(void* user_data)
