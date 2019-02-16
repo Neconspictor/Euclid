@@ -41,8 +41,6 @@ set(
 	#nex/opengl/post_processing
     nex/opengl/post_processing/AmbientOcclusion.cpp
 	nex/opengl/post_processing/AmbientOcclusion.hpp
-	nex/opengl/post_processing/HBAO_GL.hpp
-	nex/opengl/post_processing/HBAO_GL.cpp
 	nex/opengl/post_processing/SSAO_GL.hpp
 	nex/opengl/post_processing/SSAO_GL.cpp
 	#nex/opengl/post_processing/blur

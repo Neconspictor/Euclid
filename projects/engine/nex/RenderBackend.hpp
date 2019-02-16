@@ -396,6 +396,14 @@ namespace nex
 		void destroyRenderTarget(RenderTarget2D* target);
 
 		/**
+		 * Draws primitives directly from the currently bound VertexArray object.
+		 * @param primitiveType The topology of the primitives to draw
+		 * @param startingIndex Specifies the first vertex to use for drawing
+		 * @param indexCount Specifies the number of indices used to draw the primitives beginning from the starting index.
+		 */
+		static void drawArray(Topology primitiveType, unsigned startingIndex, unsigned indexCount);
+
+		/**
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound
 		 * IndexBuffer object.
 		 */

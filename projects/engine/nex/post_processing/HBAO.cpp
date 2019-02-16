@@ -2,34 +2,32 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
-#include <nex/opengl/post_processing/HBAO_GL.hpp>
-#include <nex/drawing/StaticMeshDrawer.hpp>
-#include <algorithm>
-#include <glm/gtc/matrix_transform.hpp>
+#include <nex/post_processing/HBAO.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <nex/util/Math.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/gui/ImGUI.hpp>
-#include <iostream>
 #include <random>
 #include <nex/gui/Util.hpp>
-#include "nex/shader/ShaderBuffer.hpp"
+#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/mesh/VertexArray.hpp>
+#include <nex/RenderBackend.hpp>
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
 #include <boost/random/random_device.hpp>
 #endif
 
+#include <algorithm>
 
-using namespace std; 
 using namespace glm;
 
 namespace nex
 {
 
-	HBAO_GL::HBAO_GL(unsigned int windowWidth,
-		unsigned int windowHeight, StaticMeshDrawer* modelDrawer)
+	HBAO::HBAO(unsigned int windowWidth,
+		unsigned int windowHeight)
 		:
 		m_blur_sharpness(40.0f),
 		m_meters2viewspace(1.0f),
@@ -41,8 +39,6 @@ namespace nex
 		m_depthLinearRT(nullptr),
 		m_aoResultRT(nullptr),
 		m_tempRT(nullptr),
-		m_modelDrawer(modelDrawer),
-		m_fullscreenTriangleVAO(GL_FALSE),
 		m_hbao_ubo(0, sizeof(HBAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 
 	{
@@ -79,7 +75,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGBA16_SNORM;
 		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
 
-		m_hbao_random = make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
 		/*TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
@@ -118,33 +114,36 @@ namespace nex
 		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
 
 		// create a vao for rendering fullscreen triangles directly with glDrawArrays
-		GLCall(glGenVertexArrays(1, &m_fullscreenTriangleVAO));
+		//GLCall(glGenVertexArrays(1, &m_fullscreenTriangleVAO));
+		
 	}
 
-	HBAO_GL::~HBAO_GL()
+	/*HBAO_GL::~HBAO_GL()
 	{
-		/*if (m_hbao_ubo != GL_FALSE) {
+		if (m_hbao_ubo != GL_FALSE) {
 			glDeleteBuffers(1, &m_hbao_ubo);
 			m_hbao_ubo = GL_FALSE;
-		}*/
+		}
 
 		if (m_fullscreenTriangleVAO != GL_FALSE) {
 			glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
 			m_fullscreenTriangleVAO = GL_FALSE;
 		}
-	}
+	}*/
 
-	Texture2D * HBAO_GL::getAO_Result()
+	Texture2D * HBAO::getAO_Result()
 	{
-		return (Texture2D*)m_aoResultRT->getRenderResult();
+		//return (Texture2D*)m_aoResultRT->getRenderResult();
+		return (Texture2D*)m_aoResultRT->getColorAttachments()[0].texture.get();
 	}
 
-	Texture2D * HBAO_GL::getBlurredResult()
+	Texture2D * HBAO::getBlurredResult()
 	{
-		return (Texture2D*)m_aoBlurredResultRT->getRenderResult();
+		//return (Texture2D*)m_aoBlurredResultRT->getRenderResult();
+		return (Texture2D*)m_aoBlurredResultRT->getColorAttachments()[0].texture.get();
 	}
 
-	void HBAO_GL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
+	void HBAO::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 	{
 		this->windowWidth = newWidth;
 		this->windowHeight = newHeight;
@@ -152,60 +151,71 @@ namespace nex
 		initRenderTargets(windowWidth, windowHeight);
 	}
 
-	void HBAO_GL::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
+	void HBAO::renderAO(Texture * depthTexture, const Projection& projection, bool blur)
 	{
 		unsigned int width = m_aoResultRT->getWidth();
 		unsigned int height = m_aoResultRT->getHeight();
+		auto* renderBackend = RenderBackend::get();
 
 		prepareHbaoData(projection, width, height);
 
 
-		GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
-		GLCall(glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
-		GLCall(glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
+		//GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
+		m_fullscreenTriangleVAO.bind();
+		renderBackend->setViewPort(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
+		//GLCall(glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
+		renderBackend->setScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
+		//GLCall(glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
 
 		drawLinearDepth(depthTexture, projection);
 
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+		//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+		m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
-		m_hbaoShader->setHbaoData(move(m_hbaoDataSource));
-		m_hbaoShader->setLinearDepth(m_depthLinearRT->getRenderResult());
+		m_hbaoShader->setHbaoData(std::move(m_hbaoDataSource));
+		//m_hbaoShader->setLinearDepth(m_depthLinearRT->getRenderResult());
+		m_hbaoShader->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->draw();
 
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 		if (blur) {
 			// clear color/depth/stencil for all involved render targets
 			m_aoBlurredResultRT->bind();
-			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+			m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 			m_tempRT->bind();
-			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 			// setup bilaterial blur and draw
-			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getRenderResult());
-			m_bilateralBlur->setSourceTexture(m_aoResultRT->getRenderResult(), width, height);
+			//m_bilateralBlur->setLinearDepth(m_depthLinearRT->getRenderResult());
+			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
+			//m_bilateralBlur->setSourceTexture(m_aoResultRT->getRenderResult(), width, height);
+			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
 			m_bilateralBlur->setSharpness(m_blur_sharpness);
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 		}
 
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		GLCall(glBindVertexArray(0));
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		//GLCall(glBindVertexArray(0));
 	}
 
-	void HBAO_GL::displayAOTexture(Texture* texture)
+	void HBAO::displayAOTexture(Texture* texture)
 	{
 		//modelDrawer->draw(&screenSprite, *aoDisplay);
-		GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
+		//GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
+		m_fullscreenTriangleVAO.bind();
 		m_aoDisplay->setInputTexture(texture);
 		m_aoDisplay->draw();
-		GLCall(glBindVertexArray(0));
+		//GLCall(glBindVertexArray(0));
 	}
 
 
-	void HBAO_GL::prepareHbaoData(const Projection & projection, int width, int height)
+	void HBAO::prepareHbaoData(const Projection & projection, int width, int height)
 	{
 		// projection
 		const float* P = glm::value_ptr(projection.matrix);
@@ -224,7 +234,7 @@ namespace nex
 			-(1.0f - P[4 * 3 + 1]) / P[4 * 1 + 1], // B
 		};
 
-		int useOrtho = projection.perspective ? 0 : 1;
+		const int useOrtho = projection.perspective ? 0 : 1;
 		m_hbaoDataSource.projOrtho = useOrtho;
 		m_hbaoDataSource.projInfo = useOrtho ? projInfoOrtho : projInfoPerspective;
 
@@ -242,19 +252,19 @@ namespace nex
 		m_hbaoDataSource.RadiusToScreen = R * 0.5f * projScale;
 
 		// ao
-		m_hbaoDataSource.PowExponent = std::max(m_intensity, 0.0f);
-		m_hbaoDataSource.NDotVBias = std::min(std::max(0.0f, m_bias), 1.0f);
+		m_hbaoDataSource.PowExponent = std::max<float>(m_intensity, 0.0f);
+		m_hbaoDataSource.NDotVBias = std::min<float>(std::max<float>(0.0f, m_bias), 1.0f);
 		m_hbaoDataSource.AOMultiplier = 1.0f / (1.0f - m_hbaoDataSource.NDotVBias);
 
 		// resolution
-		int quarterWidth = ((width + 3) / 4);
-		int quarterHeight = ((height + 3) / 4);
+		const int quarterWidth = ((width + 3) / 4);
+		const int quarterHeight = ((height + 3) / 4);
 
 		m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / float(quarterWidth), 1.0f / float(quarterHeight));
 		m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
 	}
 
-	void HBAO_GL::drawLinearDepth(Texture* depthTexture, const Projection & projection)
+	void HBAO::drawLinearDepth(Texture* depthTexture, const Projection & projection)
 	{
 		m_depthLinearRT->bind();
 		m_depthLinearizer->setProjection(&projection);
@@ -262,7 +272,7 @@ namespace nex
 		m_depthLinearizer->draw();
 	}
 
-	void HBAO_GL::initRenderTargets(unsigned int width, unsigned int height)
+	void HBAO::initRenderTargets(unsigned int width, unsigned int height)
 	{
 		//at first release gpu memory before acquiring new memory
 		m_depthLinearRT = nullptr;
@@ -282,7 +292,7 @@ namespace nex
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
 
-		m_depthLinearRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
+		m_depthLinearRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
 
 		// m_aoResultRT
 		data.internalFormat = InternFormat::R8;
@@ -294,13 +304,13 @@ namespace nex
 		data.pixelDataType = PixelDataType::UBYTE;
 		data.generateMipMaps = false;
 		data.colorspace = ColorSpace::R;
-		m_aoResultRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
+		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
 
 		// m_aoBlurredResultRT
-		m_aoBlurredResultRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
+		m_aoBlurredResultRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
 
 		// m_tempRT
-		m_tempRT = make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
+		m_tempRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
 	}
 
 	BilateralBlur::BilateralBlur() :
@@ -350,7 +360,9 @@ namespace nex
 		//GLCall(glUniform2f(1, 1.0f / (float)m_textureWidth, 0));
 		mProgram->setVec2(1, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		static auto* renderBackend = RenderBackend::get();
+		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 
 		// blur vertically
 		result->bind();
@@ -361,7 +373,8 @@ namespace nex
 		//GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
 		mProgram->setVec2(1, glm::vec2(1.0f / (float)m_textureHeight, 1));
 
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
 	DepthLinearizer::DepthLinearizer() :
@@ -391,7 +404,10 @@ namespace nex
 		//GLuint texture = *inputGL->getTexture();
 		//GLCall(glBindTextureUnit(0, texture));
 		mProgram->setTexture(0, m_input, 0); // TODO: check binding point!
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		static auto* renderBackend = RenderBackend::get();
+		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 		//GLCall(glUseProgram(0));
 	}
 
@@ -417,7 +433,10 @@ namespace nex
 		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
 		//GLCall(glBindTextureUnit(0, *inputGL->getTexture()));
 		mProgram->setTexture(0, m_input, 0); // TODO: check binding point!
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		static auto* renderBackend = RenderBackend::get();
+		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
 	void DisplayTex::setInputTexture(Texture * input)
@@ -429,7 +448,7 @@ namespace nex
 		Shader(),
 		m_linearDepth(nullptr),
 		m_hbao_randomview(nullptr),
-		m_hbao_ubo(GL_FALSE)
+		m_hbao_ubo(nullptr)
 	{
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
 
@@ -452,7 +471,9 @@ namespace nex
 		//GLCall(glBindTextureUnit(1, *randomViewGL->getTexture()));
 		mProgram->setTexture(1, m_hbao_randomview, 1); // TODO: check binding point!
 
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		static auto* renderBackend = RenderBackend::get();
+		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
 	void HBAO_Shader::setHbaoData(const HBAOData& hbao)
@@ -476,17 +497,17 @@ namespace nex
 	}
 
 
-	float HBAO_GL::getBlurSharpness() const
+	float HBAO::getBlurSharpness() const
 	{
 		return m_blur_sharpness;
 	}
 
-	void HBAO_GL::setBlurSharpness(float sharpness)
+	void HBAO::setBlurSharpness(float sharpness)
 	{
 		m_blur_sharpness = sharpness;
 	}
 
-	float HBAO_GL::randomFloat(float a, float b)
+	float HBAO::randomFloat(float a, float b)
 	{
 		// GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
@@ -497,19 +518,19 @@ namespace nex
 		boost::random::uniform_real_distribution<double> gen(a, b);
 		return gen(rng);
 #else
-		uniform_real_distribution<double> dist(a, b);
-		random_device device;
-		mt19937 gen(device());
+		std::uniform_real_distribution<double> dist(a, b);
+		std::random_device device;
+		std::mt19937 gen(device());
 		return dist(gen);
 
 #endif
 	}
 
-	float nex::HBAO_GL::lerp(float a, float b, float f) {
+	float nex::HBAO::lerp(float a, float b, float f) {
 		return a + f * (b - a);
 	}
 
-	HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO_GL * hbao) : m_hbao(hbao)
+	HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao) : m_hbao(hbao), m_parent(nullptr), m_test(0)
 	{
 		m_isVisible = true;
 	}

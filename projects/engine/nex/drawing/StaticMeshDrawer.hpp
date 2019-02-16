@@ -4,6 +4,8 @@
 
 namespace nex
 {
+	enum class Topology;
+	class VertexArray;
 	class RenderBackend;
 	class Sprite;
 	class Vob;

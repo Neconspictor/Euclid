@@ -568,4 +568,11 @@ namespace nex
 			return it.get() == target;
 		});
 	}
+
+	void RenderBackend::drawArray(Topology primitiveType, unsigned startingIndex,
+		unsigned indexCount)
+	{
+		const GLenum primitiveTypeGL = translate(primitiveType);
+		GLCall(glDrawArrays(primitiveTypeGL, startingIndex, indexCount));
+	}
 }

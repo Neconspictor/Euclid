@@ -157,6 +157,10 @@ set(
 	nex/platform/windows/StackWalker.h
 	nex/platform/windows/WindowsPlatform.hpp
     
+    #nex/post_processing
+    nex/post_processing/HBAO.hpp
+	nex/post_processing/HBAO.cpp
+    
     
     #nex/shader
     nex/shader/DepthMapShader.hpp

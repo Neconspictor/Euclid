@@ -374,7 +374,7 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gDepth, Textur
 
 	// use SSAO
 
-	SSAO_DeferredGL* ssao = m_aoSelector.getSSAO();
+	SSAO_Deferred* ssao = m_aoSelector.getSSAO();
 	ssao->renderAO(gDepth, gNormal, camera->getPerspProjection());
 	ssao->blur();
 	return ssao->getBlurredResult();

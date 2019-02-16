@@ -1,17 +1,16 @@
-#ifndef HBAO_GL_HPP
-#define HBAO_GL_HPP
+#pragma once
 
 #include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
 #include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
+#include <nex/mesh/VertexArray.hpp>
 
 namespace nex {
 	class HBAO_ConfigurationView;
 	class RenderTarget;
 	class RenderTarget2D;
-	class StaticMeshDrawer;
 
 #define UBO_SCENE     0
 
@@ -132,13 +131,13 @@ namespace nex {
 	 * An Horizon based ambient occlusion (HBAO) implementation for deferred rendering.
 	 * This implementation doesn't support MSAA for performance reasons.
 	 */
-	class HBAO_GL {
+	class HBAO {
 	public:
 
-		HBAO_GL(unsigned int windowWidth,
-			unsigned int windowHeight, StaticMeshDrawer* modelDrawer);
+		HBAO(unsigned int windowWidth,
+			unsigned int windowHeight);
 
-		virtual ~HBAO_GL();
+		//virtual ~HBAO_GL();
 
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
@@ -174,7 +173,7 @@ namespace nex {
 		
 
 
-		StaticMeshDrawer* m_modelDrawer;
+		//StaticMeshDrawer* m_modelDrawer;
 
 		std::unique_ptr<Texture2DArray> m_hbao_random;
 		std::unique_ptr<Texture> m_hbao_randomview;
@@ -182,7 +181,7 @@ namespace nex {
 
 
 		HBAOData   m_hbaoDataSource;
-		GLuint m_fullscreenTriangleVAO;
+		VertexArray m_fullscreenTriangleVAO;
 
 
 	protected:
@@ -207,16 +206,14 @@ namespace nex {
 
 	class HBAO_ConfigurationView : public nex::gui::Drawable {
 	public:
-		HBAO_ConfigurationView(HBAO_GL* hbao);
+		HBAO_ConfigurationView(HBAO* hbao);
 
 	protected:
 		void drawSelf() override;
 
 	private:
-		HBAO_GL * m_hbao;
+		HBAO * m_hbao;
 		Drawable* m_parent;
 		float m_test;
 	};
 }
-
-#endif //HBAO_GL_HPP
