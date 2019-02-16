@@ -1,7 +1,5 @@
-#include <nex/opengl/texture/TextureGL.hpp>
-#include <nex/opengl/shader/ShaderGL.hpp>
-#include <glm/glm.hpp>
-#include <nex/opengl/post_processing/SSAO_GL.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/post_processing/SSAO.hpp>
 #include <vector>
 #include <nex/util/ExceptionHandling.hpp>
 #include <random>
@@ -9,6 +7,9 @@
 #include <nex/gui/Util.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/mesh/VertexArray.hpp>
+#include <nex/RenderBackend.hpp>
 
 using namespace std; 
 using namespace glm;
@@ -17,27 +18,28 @@ namespace nex
 {
 
 
-	class SSAO_AO_ShaderGL : public nex::Shader
+	class SSAO_AO_Shader : public nex::Shader
 	{
 	public:
 
-		explicit SSAO_AO_ShaderGL(unsigned int kernelSampleSize) :
+		SSAO_AO_Shader(unsigned int kernelSampleSize) :
 			Shader(),
 			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr),
-			m_gNormal(nullptr), m_samples(nullptr)
+			m_gNormal(nullptr), m_samples(nullptr),
+			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
 			mProgram = ShaderProgram::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
 
-			glCreateBuffers(1, &m_ssaoUBO);
-			glNamedBufferStorage(m_ssaoUBO, sizeof(SSAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
+			//glCreateBuffers(1, &m_ssaoUBO);
+			//glNamedBufferStorage(m_ssaoUBO, sizeof(SSAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
 
 			// create a vao for rendering fullscreen triangles directly with glDrawArrays
-			glGenVertexArrays(1, &m_fullscreenTriangleVAO);
+			//glGenVertexArrays(1, &m_fullscreenTriangleVAO);
 		}
 
 
-		virtual ~SSAO_AO_ShaderGL() {
+		/*virtual ~SSAO_AO_Shader() {
 			if (m_ssaoUBO != GL_FALSE) {
 				glDeleteBuffers(1, &m_ssaoUBO);
 				m_ssaoUBO = GL_FALSE;
@@ -47,25 +49,38 @@ namespace nex
 				glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
 				m_fullscreenTriangleVAO = GL_FALSE;
 			}
-		}
+		}*/
 
 
 		void drawCustom()
 		{
 			bind();
-			glBindVertexArray(m_fullscreenTriangleVAO);
-			glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
-			glNamedBufferSubData(m_ssaoUBO, 0,
+			//glBindVertexArray(m_fullscreenTriangleVAO);
+			m_fullscreenTriangleVAO.bind();
+			
+			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
+			m_ssaoUBO.bind();
+			m_ssaoUBO.update(m_ssaoData,
 				4 * 4 + 4 * 4 * 4, // we update only the first 4 floats + the matrix  <projection_GPass>
-				m_ssaoData);
+				0);
+			//glNamedBufferSubData(m_ssaoUBO, 0,
+			//	4 * 4 + 4 * 4 * 4, // we update only the first 4 floats + the matrix  <projection_GPass>
+			//	m_ssaoData);
 
-			glBindTextureUnit(0,*((TextureGL*)m_gNormal->getImpl())->getTexture());
-			glBindTextureUnit(1, *((TextureGL*)m_gDepth->getImpl())->getTexture());
-			glBindTextureUnit(2, *((TextureGL*)m_texNoise->getImpl())->getTexture());
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+			//glBindTextureUnit(0,*((TextureGL*)m_gNormal->getImpl())->getTexture());
+			mProgram->setTexture(0, m_gNormal, 0); // TODO check binding point!
+			//glBindTextureUnit(1, *((TextureGL*)m_gDepth->getImpl())->getTexture());
+			mProgram->setTexture(1, m_gDepth, 1); // TODO check binding point!
+			//glBindTextureUnit(2, *((TextureGL*)m_texNoise->getImpl())->getTexture());
+			mProgram->setTexture(2, m_texNoise, 2); // TODO check binding point!
 
-			glBindVertexArray(0);
-			glUseProgram(0);
+			//glDrawArrays(GL_TRIANGLES, 0, 3);
+			static auto* renderBackend = RenderBackend::get();
+			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+
+
+			//glBindVertexArray(0);
+			//glUseProgram(0);
 		}
 
 		void setGNoiseTexture(Texture* texture) {
@@ -99,12 +114,14 @@ namespace nex
 			m_ssaoData = data;
 
 			bind();
-			glBindVertexArray(m_fullscreenTriangleVAO);
-			glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
-			glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
-
-			glBindVertexArray(0);
-			glUseProgram(0);
+			//glBindVertexArray(m_fullscreenTriangleVAO)
+			m_fullscreenTriangleVAO.bind(); // TODO shouldn't be needed????
+			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
+			m_ssaoUBO.bind();
+			//glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
+			m_ssaoUBO.update(m_ssaoData, sizeof(SSAOData), 0);
+			//glBindVertexArray(0);
+			//glUseProgram(0);
 		}
 
 		/*virtual void update(const MeshGL& mesh, const TransformData& data) {
@@ -123,20 +140,20 @@ namespace nex
 		glm::mat4 projection_GPass;
 		unsigned int kernelSampleSize;
 		SSAOData* m_ssaoData;
-		GLuint m_ssaoUBO;
+		UniformBuffer m_ssaoUBO;
 		Texture* m_texNoise;
 		Texture* m_gDepth;
 		Texture* m_gNormal;
 		const std::vector<vec3>* m_samples;
 
-		GLuint m_fullscreenTriangleVAO;
+		VertexArray m_fullscreenTriangleVAO;
 	};
 
-	class SSAO_Tiled_Blur_ShaderGL : public TransformShader
+	class SSAO_Tiled_Blur_Shader : public TransformShader
 	{
 	public:
 
-		SSAO_Tiled_Blur_ShaderGL() {
+		SSAO_Tiled_Blur_Shader() {
 
 			mProgram = ShaderProgram::create("post_processing/ssao/ssao_tiled_blur_vs.glsl",
 				"post_processing/ssao/ssao_tiled_blur_fs.glsl");
@@ -145,7 +162,7 @@ namespace nex
 			mAoTexture = { mProgram->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
 		}
 
-		virtual ~SSAO_Tiled_Blur_ShaderGL() = default;
+		virtual ~SSAO_Tiled_Blur_Shader() = default;
 
 		void setAOTexture(const Texture* texture) {
 			mProgram->setTexture(mAoTexture.location, texture, mAoTexture.bindingSlot);
@@ -166,11 +183,11 @@ namespace nex
 	};
 
 
-	class SSAO_AO_Display_ShaderGL : public TransformShader
+	class SSAO_AO_Display_Shader : public TransformShader
 	{
 	public:
 
-		SSAO_AO_Display_ShaderGL() {
+		SSAO_AO_Display_Shader() {
 			mProgram = ShaderProgram::create("post_processing/ssao/ssao_ao_display_vs.glsl",
 				"post_processing/ssao/ssao_ao_display_fs.glsl");
 
@@ -178,7 +195,7 @@ namespace nex
 			mScreenTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0 };
 		}
 
-		virtual ~SSAO_AO_Display_ShaderGL() = default;
+		virtual ~SSAO_AO_Display_Shader() = default;
 
 		void setScreenTexture(const Texture* texture) {
 			mProgram->setTexture(mScreenTexture.location, texture, mScreenTexture.bindingSlot);
@@ -209,14 +226,11 @@ namespace nex
 	};
 
 
-	SSAO_DeferredGL::SSAO_DeferredGL(unsigned int windowWidth,
-		unsigned int windowHeight, StaticMeshDrawer* modelDrawer)
+	SSAO_Deferred::SSAO_Deferred(unsigned int windowWidth,
+		unsigned int windowHeight)
 		:
 		windowWidth(windowWidth),
-		windowHeight(windowHeight),
-		noiseTileWidth(4),
-		modelDrawer(modelDrawer)
-
+		windowHeight(windowHeight)
 	{
 
 		// create random kernel samples
@@ -269,14 +283,14 @@ namespace nex
 		aoRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 		tiledBlurRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 
-		aoPass = make_unique <SSAO_AO_ShaderGL>(32);
+		aoPass = make_unique <SSAO_AO_Shader>(32);
 
-		tiledBlurPass = make_unique <SSAO_Tiled_Blur_ShaderGL>();
+		tiledBlurPass = make_unique <SSAO_Tiled_Blur_Shader>();
 
-		aoDisplay = make_unique <SSAO_AO_Display_ShaderGL>();
+		aoDisplay = make_unique <SSAO_AO_Display_Shader>();
 
 
-		SSAO_AO_ShaderGL*  configAO = dynamic_cast<SSAO_AO_ShaderGL*>(aoPass.get());
+		SSAO_AO_Shader*  configAO = dynamic_cast<SSAO_AO_Shader*>(aoPass.get());
 		configAO->setGNoiseTexture(noiseTexture.get());
 
 		for (int i = 0; i < SSAO_SAMPLING_SIZE; ++i)
@@ -287,22 +301,22 @@ namespace nex
 		configAO->setSSAOData(&m_shaderData);
 	}
 
-	Texture * SSAO_DeferredGL::getAO_Result()
+	Texture * SSAO_Deferred::getAO_Result()
 	{
-		return aoRenderTarget->getRenderResult();
+		return aoRenderTarget->getColorAttachments()[0].texture.get();
 	}
 
-	Texture * SSAO_DeferredGL::getBlurredResult()
+	Texture * SSAO_Deferred::getBlurredResult()
 	{
-		return tiledBlurRenderTarget->getRenderResult();
+		return tiledBlurRenderTarget->getColorAttachments()[0].texture.get();
 	}
 
-	Texture * SSAO_DeferredGL::getNoiseTexture()
+	Texture * SSAO_Deferred::getNoiseTexture()
 	{
 		return noiseTexture.get();
 	}
 
-	void SSAO_DeferredGL::onSizeChange(unsigned int newWidth, unsigned int newHeight)
+	void SSAO_Deferred::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 	{
 		this->windowWidth = newWidth;
 		this->windowHeight = newHeight;
@@ -310,42 +324,51 @@ namespace nex
 		tiledBlurRenderTarget = createSSAO_FBO(newWidth, newHeight);
 	}
 
-	void SSAO_DeferredGL::renderAO(Texture * gDepth, Texture * gNormals, const glm::mat4& projectionGPass)
+	void SSAO_Deferred::renderAO(Texture * gDepth, Texture * gNormals, const glm::mat4& projectionGPass)
 	{
-		SSAO_AO_ShaderGL&  aoShader = dynamic_cast<SSAO_AO_ShaderGL&>(*aoPass);
+		SSAO_AO_Shader&  aoShader = dynamic_cast<SSAO_AO_Shader&>(*aoPass);
 
 		aoShader.setGNormalTexture(gNormals);
 		aoShader.setGDepthTexture(gDepth);
 
 		m_shaderData.projection_GPass = projectionGPass;
 
-		glViewport(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
-		glScissor(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
+		static auto* renderBackend = RenderBackend::get();
+
+		//glViewport(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
+		renderBackend->setViewPort(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
+		//glScissor(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
+		renderBackend->setScissor(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
 
 		aoRenderTarget->bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		aoRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		aoShader.drawCustom();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void SSAO_DeferredGL::blur()
+	void SSAO_Deferred::blur()
 	{
-		SSAO_Tiled_Blur_ShaderGL* tiledBlurShader = reinterpret_cast<SSAO_Tiled_Blur_ShaderGL*>(tiledBlurPass.get());
+		SSAO_Tiled_Blur_Shader* tiledBlurShader = reinterpret_cast<SSAO_Tiled_Blur_Shader*>(tiledBlurPass.get());
 		tiledBlurShader->bind();
-		tiledBlurShader->setAOTexture(aoRenderTarget->getRenderResult());
+		tiledBlurShader->setAOTexture(aoRenderTarget->getColorAttachments()[0].texture.get());
 
-		glViewport(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
-		glScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
+		static auto* renderBackend = RenderBackend::get();
+		//glViewport(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
+		renderBackend->setViewPort(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
+		//glScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
+		renderBackend->setScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		tiledBlurRenderTarget->bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		StaticMeshDrawer::draw(&screenSprite, tiledBlurShader);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void SSAO_DeferredGL::displayAOTexture(Texture* aoTexture)
+	void SSAO_Deferred::displayAOTexture(Texture* aoTexture)
 	{
-		SSAO_AO_Display_ShaderGL* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_ShaderGL*>(aoDisplay.get());
+		SSAO_AO_Display_Shader* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_Shader*>(aoDisplay.get());
 		//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
 
 		aoDisplayShader->bind();
@@ -353,7 +376,7 @@ namespace nex
 		StaticMeshDrawer::draw(&screenSprite, aoDisplayShader);
 	}
 
-	std::unique_ptr<RenderTarget2D> SSAO_DeferredGL::createSSAO_FBO(unsigned int width, unsigned int height)
+	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
 		TextureData data;
 		data.internalFormat = InternFormat::R32F;
@@ -367,42 +390,42 @@ namespace nex
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
 
-		return make_unique<RenderTarget2D>(width, height, data, 1, nullptr);
+		return make_unique<RenderTarget2D>(width, height, data, 1);
 	}
 
 
-	SSAOData* SSAO_DeferredGL::getSSAOData()
+	SSAOData* SSAO_Deferred::getSSAOData()
 	{
 		return &m_shaderData;
 	}
 
-	void SSAO_DeferredGL::setBias(float bias)
+	void SSAO_Deferred::setBias(float bias)
 	{
 		m_shaderData.bias = bias;
 	}
 
-	void SSAO_DeferredGL::setItensity(float itensity)
+	void SSAO_Deferred::setItensity(float itensity)
 	{
 		m_shaderData.intensity = itensity;
 	}
 
-	void SSAO_DeferredGL::setRadius(float radius)
+	void SSAO_Deferred::setRadius(float radius)
 	{
 		m_shaderData.radius = radius;
 	}
 
-	float SSAO_DeferredGL::randomFloat(float a, float b) {
+	float SSAO_Deferred::randomFloat(float a, float b) {
 		uniform_real_distribution<float> dist(a, b);
 		random_device device;
 		default_random_engine gen(device());
 		return dist(gen);
 	}
 
-	float SSAO_DeferredGL::lerp(float a, float b, float f) {
+	float SSAO_Deferred::lerp(float a, float b, float f) {
 		return a + f * (b - a);
 	}
 
-	SSAO_ConfigurationView::SSAO_ConfigurationView(SSAO_DeferredGL* ssao) : m_ssao(ssao)
+	SSAO_ConfigurationView::SSAO_ConfigurationView(SSAO_Deferred* ssao) : m_ssao(ssao)
 	{
 	}
 

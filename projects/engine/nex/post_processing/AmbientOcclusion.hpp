@@ -2,8 +2,8 @@
 
 #include <nex/texture/Sprite.hpp>
 #include <memory>
-#include <nex/opengl/post_processing/HBAO_GL.hpp>
-#include <nex/opengl/post_processing/SSAO_GL.hpp>
+#include <nex/post_processing/HBAO.hpp>
+#include <nex/post_processing/SSAO.hpp>
 
 namespace nex {
 
@@ -45,8 +45,8 @@ namespace nex {
 		AmbientOcclusionSelector();
 		virtual ~AmbientOcclusionSelector();
 
-		nex::HBAO_GL* getHBAO();
-		SSAO_DeferredGL* getSSAO();
+		nex::HBAO* getHBAO();
+		SSAO_Deferred* getSSAO();
 
 		bool isAmbientOcclusionActive() const;
 
@@ -55,13 +55,13 @@ namespace nex {
 		void setAOTechniqueToUse(AOTechnique technique);
 		void setUseAmbientOcclusion(bool useAO);
 
-		void setHBAO(std::unique_ptr<nex::HBAO_GL> hbao);
-		void setSSAO(std::unique_ptr<SSAO_DeferredGL> ssao);
+		void setHBAO(std::unique_ptr<nex::HBAO> hbao);
+		void setSSAO(std::unique_ptr<SSAO_Deferred> ssao);
 
 	private:
 
-		std::unique_ptr<nex::HBAO_GL> m_hbao;
-		std::unique_ptr<SSAO_DeferredGL> m_ssao;
+		std::unique_ptr<nex::HBAO> m_hbao;
+		std::unique_ptr<SSAO_Deferred> m_ssao;
 		bool m_useAO = true;
 		AOTechnique m_usedAOTechnique;
 	};

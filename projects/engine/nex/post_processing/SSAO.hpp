@@ -1,9 +1,10 @@
-#ifndef SSAO_GL_HPP
-#define SSAO_GL_HPP
+#pragma once
 
 #include <vector>
 #include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
+#include <nex/shader/Shader.hpp>
+#include <glm/glm.hpp>
 
 namespace nex
 {
@@ -28,13 +29,13 @@ namespace nex
 	};
 
 
-	class SSAO_DeferredGL {
+	class SSAO_Deferred {
 	public:
 
-		SSAO_DeferredGL(unsigned int windowWidth,
-			unsigned int windowHeight, StaticMeshDrawer* modelDrawer);
+		SSAO_Deferred(unsigned int windowWidth,
+			unsigned int windowHeight);
 
-		virtual ~SSAO_DeferredGL() = default;
+		virtual ~SSAO_Deferred() = default;
 
 		Texture* getAO_Result();
 		Texture* getBlurredResult();
@@ -67,11 +68,10 @@ namespace nex
 		std::unique_ptr<nex::Shader> aoPass;
 		std::unique_ptr<nex::Shader> tiledBlurPass;
 		std::unique_ptr<nex::Shader> aoDisplay;
-		StaticMeshDrawer* modelDrawer;
 
 		unsigned int windowWidth;
 		unsigned int windowHeight;
-		unsigned int noiseTileWidth;
+		unsigned int noiseTileWidth = 4;
 		std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
 		std::vector<glm::vec3> noiseTextureValues;
 
@@ -82,15 +82,12 @@ namespace nex
 
 	class SSAO_ConfigurationView : public nex::gui::Drawable {
 	public:
-		SSAO_ConfigurationView(SSAO_DeferredGL* ssao);
+		SSAO_ConfigurationView(SSAO_Deferred* ssao);
 
 	protected:
 		void drawSelf() override;
 
 	private:
-		SSAO_DeferredGL * m_ssao;
+		SSAO_Deferred * m_ssao;
 	};
-
 }
-
-#endif //SSAO_GL_HPP

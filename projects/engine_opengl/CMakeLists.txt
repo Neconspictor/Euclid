@@ -38,11 +38,7 @@ set(
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexBuffer.cpp
     
-	#nex/opengl/post_processing
-    nex/opengl/post_processing/AmbientOcclusion.cpp
-	nex/opengl/post_processing/AmbientOcclusion.hpp
-	nex/opengl/post_processing/SSAO_GL.hpp
-	nex/opengl/post_processing/SSAO_GL.cpp
+	
 	#nex/opengl/post_processing/blur
 	nex/opengl/post_processing/blur/GaussianBlurGL.hpp
 	nex/opengl/post_processing/blur/GaussianBlurGL.cpp
