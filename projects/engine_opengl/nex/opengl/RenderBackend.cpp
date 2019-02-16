@@ -483,12 +483,12 @@ namespace nex
 
 		//view matrices;
 		const mat4 views[] = {
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_X), //right; sign of up vector is not important
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_X), //left
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Y), //top
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Y), //bottom
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::POSITIVE_Z), //back
-			CubeMap::getViewLookAtMatrixRH(CubeMap::Side::NEGATIVE_Z) //front
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_X), //right; sign of up vector is not important
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_X), //left
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_Y), //top
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Y), //bottom
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_Z), //back
+			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
 		};
 
 
@@ -504,7 +504,7 @@ namespace nex
 
 		for (int i = 0; i < 6; ++i) {
 			//GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *cubeMap->getTexture(), 0));
-			target->useSide((CubeMap::Side) i, 0);
+			target->useSide((CubeMapSide) i, 0);
 			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 			target->clear(RenderComponent::Color | RenderComponent::Depth);
 

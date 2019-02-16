@@ -37,7 +37,7 @@ nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data)
 {
 }
 
-void nex::CubeRenderTarget::useSide(CubeMap::Side side, unsigned mipLevel)
+void nex::CubeRenderTarget::useSide(CubeMapSide side, unsigned mipLevel)
 {
 	((CubeRenderTargetGL*)getImpl())->useSide(side, mipLevel);
 }
@@ -81,7 +81,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 	useDepthAttachment(std::move(depth));*/
 }
 
-void nex::CubeRenderTargetGL::useSide(CubeMap::Side side, unsigned mipLevel)
+void nex::CubeRenderTargetGL::useSide(CubeMapSide side, unsigned mipLevel)
 {
 	//TODO
 	//bind();
@@ -687,7 +687,7 @@ GLuint nex::RenderTargetGL::getFrameBuffer() const
 	return mFrameBuffer;
 }
 
-unsigned nex::RenderTargetGL::getLayerFromCubeMapSide(CubeMap::Side side)
+unsigned nex::RenderTargetGL::getLayerFromCubeMapSide(CubeMapSide side)
 {
 	return (unsigned)side;
 }
@@ -776,7 +776,7 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	depth.texture = make_unique<CubeMap>(width, height, desc);
 	depth.type = RenderAttachment::Type::DEPTH;
 	depth.target = TextureTarget::CUBE_MAP;
-	depth.side = CubeMap::Side::POSITIVE_X;
+	depth.side = CubeMapSide::POSITIVE_X;
 
 	bind();
 	useDepthAttachment(std::move(depth));

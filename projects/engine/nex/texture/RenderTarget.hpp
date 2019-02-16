@@ -39,14 +39,14 @@ namespace nex
 		unsigned colorAttachIndex = 0; // only used for color attachments
 		unsigned mipmapLevel = 0;
 		unsigned layer = 0; // Specifies the layer of an array texture; Must be zero for non array textures;
-		CubeMap::Side side = CubeMap::Side::POSITIVE_X;  // only used when target is TextureTarget::CubeMap
+		CubeMapSide side = CubeMapSide::POSITIVE_X;  // only used when target is TextureTarget::CubeMap
 		TextureTarget target = TextureTarget::TEXTURE2D;
 		Type type = Type::COLOR;
 		std::shared_ptr<Texture> texture;
 
 		RenderAttachment() {}
 
-		RenderAttachment( unsigned attachIndex, unsigned mipmapLevel, unsigned layer, CubeMap::Side side, TextureTarget target, Type type, std::shared_ptr<Texture> texture)
+		RenderAttachment( unsigned attachIndex, unsigned mipmapLevel, unsigned layer, CubeMapSide side, TextureTarget target, Type type, std::shared_ptr<Texture> texture)
 		: 
 			colorAttachIndex(attachIndex), 
 			mipmapLevel(mipmapLevel),
@@ -179,7 +179,7 @@ namespace nex
 		//TODO depthStencilType isn't used currently
 		CubeRenderTarget(int width, int height, TextureData data);
 
-		void useSide(CubeMap::Side side, unsigned int mipLevel = 0);
+		void useSide(CubeMapSide side, unsigned int mipLevel = 0);
 
 		// Has to be implemented by renderer backend
 		unsigned getHeightMipLevel(unsigned int mipMapLevel) const;

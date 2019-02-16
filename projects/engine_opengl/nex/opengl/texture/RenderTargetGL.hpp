@@ -55,7 +55,7 @@ namespace nex
 
 		GLuint getFrameBuffer() const;
 
-		static unsigned getLayerFromCubeMapSide(CubeMap::Side side);
+		static unsigned getLayerFromCubeMapSide(CubeMapSide side);
 
 		bool isComplete() const;
 
@@ -115,7 +115,7 @@ namespace nex
 	public:
 		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat = InternFormat::DEPTH24);
 
-		void useSide(CubeMap::Side side, unsigned mipLevel);
+		void useSide(CubeMapSide side, unsigned mipLevel);
 
 		//nex::CubeMapGL* createCopy();
 

@@ -119,6 +119,19 @@ namespace nex
 		CUBE_MAP, LAST = CUBE_MAP,
 	};
 
+		/**
+		 * Specifies the sides of a cubemap in relation to a coordinate system.
+		 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
+		 */
+	enum class CubeMapSide {
+		POSITIVE_X,
+		NEGATIVE_X,
+		POSITIVE_Y,
+		NEGATIVE_Y,
+		POSITIVE_Z,
+		NEGATIVE_Z,
+	};
+
 	struct BaseTextureDesc : public SamplerDesc
 	{
 		CompareFunction compareFunc = CompareFunction::LESS_EQUAL;
@@ -265,9 +278,10 @@ namespace nex
 		/**
 		 * Reads a texture back from the gpu
 		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
+		 * @param side: Specifies the cubemap side if the texture target is set to CUBE_MAP
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest);
+		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMapSide side = CubeMapSide::POSITIVE_X);
 
 		void setImpl(std::unique_ptr<TextureImpl> impl);
 
@@ -360,20 +374,6 @@ namespace nex
 	{
 	public:
 
-		/**
-		 * Specifies the sides of a cubemap in relation to a coordinate system.
-		 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
-		 */
-		enum class Side {
-			POSITIVE_X,
-			NEGATIVE_X,
-			POSITIVE_Y,
-			NEGATIVE_Y,
-			POSITIVE_Z,
-			NEGATIVE_Z,
-		};
-
-
 		CubeMap(std::unique_ptr<TextureImpl> impl);
 
 		// Mustn't be called by user code
@@ -394,7 +394,7 @@ namespace nex
 		 * Provides a 'look at' view matrix for a specific cubemap side
 		 * The returned view matrix is for right handed coordinate systems
 		 */
-		static const glm::mat4& getViewLookAtMatrixRH(Side side);
+		static const glm::mat4& getViewLookAtMatrixRH(CubeMapSide side);
 
 	protected:
 

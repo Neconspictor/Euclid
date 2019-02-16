@@ -176,7 +176,7 @@ namespace nex
 
 		GLuint* getTexture();
 
-		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMap::Side side = CubeMap::Side::POSITIVE_X);
+		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMapSide side = CubeMapSide::POSITIVE_X);
 
 		void release();
 
@@ -298,7 +298,7 @@ namespace nex
 			NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 		};
 
-		static Side translate(CubeMap::Side side);
+		static Side translate(CubeMapSide side);
 
 		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight);

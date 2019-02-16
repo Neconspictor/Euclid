@@ -19,20 +19,20 @@ mat4 nex::CubeMap::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -
 mat4 nex::CubeMap::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
 
-const mat4& nex::CubeMap::getViewLookAtMatrixRH(Side side)
+const mat4& nex::CubeMap::getViewLookAtMatrixRH(CubeMapSide side)
 {
 	switch (side) {
-	case Side::POSITIVE_X:
+	case CubeMapSide::POSITIVE_X:
 		return rightSide;
-	case Side::NEGATIVE_X:
+	case CubeMapSide::NEGATIVE_X:
 		return leftSide;
-	case Side::POSITIVE_Y:
+	case CubeMapSide::POSITIVE_Y:
 		return topSide;
-	case Side::NEGATIVE_Y:
+	case CubeMapSide::NEGATIVE_Y:
 		return bottomSide;
-	case Side::NEGATIVE_Z:
+	case CubeMapSide::NEGATIVE_Z:
 		return frontSide;
-	case Side::POSITIVE_Z:
+	case CubeMapSide::POSITIVE_Z:
 		return backSide;
 	default:
 		throw_with_trace(std::runtime_error("No mapping defined for CubeMap side!"));
@@ -69,7 +69,7 @@ unsigned nex::CubeMap::getSideHeight() const
 }
 
 
-nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMap::Side side)
+nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 {
 	static Side const table[]
 	{
@@ -299,10 +299,10 @@ nex::TextureImpl* nex::Texture::getImpl() const
 	return mImpl.get();
 }
 
-void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest)
+void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, CubeMapSide side)
 {
 	auto gl = (TextureGL*)getImpl();
-	gl->readback(target, mipmapLevel, format, type, dest);
+	gl->readback(target, mipmapLevel, format, type, dest, side);
 }
 
 void nex::Texture::setImpl(std::unique_ptr<TextureImpl> impl)
@@ -410,7 +410,7 @@ GLuint* nex::TextureGL::getTexture()
 }
 
 void nex::TextureGL::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type,
-	void* dest, CubeMap::Side side)
+	void* dest, CubeMapSide side)
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GLCall(glActiveTexture(GL_TEXTURE0));
