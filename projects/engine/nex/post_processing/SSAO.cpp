@@ -68,11 +68,14 @@ namespace nex
 			//	m_ssaoData);
 
 			//glBindTextureUnit(0,*((TextureGL*)m_gNormal->getImpl())->getTexture());
-			mProgram->setTexture(0, m_gNormal, 0); // TODO check binding point!
+			static UniformLocation normalLoc = mProgram->getUniformLocation("gNormal");
+			mProgram->setTexture(normalLoc, m_gNormal, 0);
 			//glBindTextureUnit(1, *((TextureGL*)m_gDepth->getImpl())->getTexture());
-			mProgram->setTexture(1, m_gDepth, 1); // TODO check binding point!
+			static UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
+			mProgram->setTexture(depthLoc, m_gDepth, 1);
 			//glBindTextureUnit(2, *((TextureGL*)m_texNoise->getImpl())->getTexture());
-			mProgram->setTexture(2, m_texNoise, 2); // TODO check binding point!
+			static UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
+			mProgram->setTexture(noiseLoc, m_texNoise, 2);
 
 			//glDrawArrays(GL_TRIANGLES, 0, 3);
 			static auto* renderBackend = RenderBackend::get();

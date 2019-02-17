@@ -47,7 +47,7 @@ namespace nex
 		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
 		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
-		float maxAnisotropy = 0.0f;
+		float maxAnisotropy = 1.0f;
 	};
 
 

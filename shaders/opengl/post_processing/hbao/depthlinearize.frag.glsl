@@ -2,7 +2,7 @@
 
 layout(location=0) uniform vec4 clipInfo; // z_n * z_f,  z_n - z_f,  z_f, perspective = 1 : 0
 
-layout(binding=0)  uniform sampler2D inputTexture;
+layout(location=1, binding=0)  uniform sampler2D inputTexture;
 
 layout(location=0,index=0) out float out_Color;
 

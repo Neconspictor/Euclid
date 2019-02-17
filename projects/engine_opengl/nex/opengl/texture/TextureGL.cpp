@@ -657,7 +657,10 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size
 
 	//GLCall(glBindTexture(mTarget, mTextureID));
 
-	resizeTexImage3D(mTextureID, 
+	GLCall(glTexStorage3D(mTarget, 1, translate(mData.internalFormat), width, height, size));
+	GLCall(glTexSubImage3D(mTarget, 0, 0, 0, 0, width, height, size, translate(mData.colorspace), translate(mData.pixelDataType), data));
+
+	/*resizeTexImage3D(mTextureID, 
 		mTarget, 
 		0, 
 		mWidth, 
@@ -667,7 +670,7 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size
 		translate(mData.internalFormat),
 		translate(mData.pixelDataType), 
 		mData.generateMipMaps, 
-		data);
+		data);*/
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned size)
@@ -707,6 +710,9 @@ void nex::Texture2DArrayGL::setSize(unsigned size)
 
 void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned size)
 {
+	///TODO
+	assert(false);
+	return;
 	mWidth = width;
 	mHeight = height;
 	mSize = size;
