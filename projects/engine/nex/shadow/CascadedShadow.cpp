@@ -102,7 +102,7 @@ void CascadedShadow::updateTextureArray()
 	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, NUM_CASCADES, data, nullptr);
 
 	mRenderTarget.bind();
-	mRenderTarget.addColorAttachment(std::move(depth));
+	mRenderTarget.useDepthAttachment(std::move(depth));
 	mRenderTarget.finalizeAttachments();
 	mRenderTarget.enableDrawToColorAttachments(false);
 	mRenderTarget.enableReadFromColorAttachments(false);

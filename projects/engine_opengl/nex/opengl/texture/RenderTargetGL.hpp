@@ -80,6 +80,7 @@ namespace nex
 		RenderAttachment mDepthAttachment;
 
 		const RenderAttachment* getByIndex(const unsigned colorAttachIndex) const;
+		static bool isArrayTarget(GLenum textureTarget);
 		void updateAttachment(const RenderAttachment& attachment) const;
 
 		std::vector<GLenum> calcColorAttachments() const;

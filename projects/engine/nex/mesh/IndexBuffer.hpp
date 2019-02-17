@@ -4,8 +4,8 @@ namespace nex
 {
 
 	enum class IndexElementType {
-		BIT_16, FIRST = BIT_16,
-		BIT_32, LAST = BIT_32,
+		BIT_16 = 0, FIRST = BIT_16,
+		BIT_32 = 1, LAST = BIT_32,
 	};
 
 	class IndexBuffer

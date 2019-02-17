@@ -434,7 +434,7 @@ void nex::RenderTargetGL::addColorAttachment(RenderAttachment attachment)
 {
 	if (attachment.type != RenderAttachment::Type::COLOR)
 	{
-		throw_with_trace(std::runtime_error("nex::RenderTargetGL::addColorAttachment(): attachment isn't a color component!"));
+		//throw_with_trace(std::runtime_error("nex::RenderTargetGL::addColorAttachment(): attachment isn't a color component!"));
 	}
 
 	mColorAttachments.emplace_back(std::move(attachment));
@@ -515,6 +515,12 @@ const nex::RenderAttachment* nex::RenderTargetGL::getByIndex(const unsigned colo
 	return nullptr;
 }
 
+bool nex::RenderTargetGL::isArrayTarget(GLenum target)
+{
+	return target == GL_TEXTURE_1D_ARRAY ||
+		target == GL_TEXTURE_2D_ARRAY;
+}
+
 void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) const
 {
 	if (attachment.type == RenderAttachment::Type::COLOR)
@@ -529,11 +535,13 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 	}
 
 	GLuint textureID = 0; // zero for detaching any currently bound texture
+	GLenum textureTarget = GL_FALSE;
 
 	if (attachment.texture != nullptr)
 	{
 		const auto gl = (TextureGL*)attachment.texture->getImpl();
 		textureID = *gl->getTexture();
+		textureTarget = gl->getTarget();
 	}
 
 	const auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture.get());
@@ -550,10 +558,13 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 	{
 		GLCall(glNamedFramebufferRenderbuffer(mFrameBuffer, attachmentType, GL_RENDERBUFFER, textureID));
 	}
-	else
+	else if (isArrayTarget(textureTarget) || textureTarget == GL_TEXTURE_3D)
 	{
 		//NOTE: OpenGL 4.5 or DSA extension is needed for textures not being array, cube or 3d
 		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
+	} else
+	{
+		GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
 	}
 }
 
@@ -704,9 +715,9 @@ unsigned nex::RenderTargetGL::getLayerFromCubeMapSide(CubeMapSide side)
 
 bool nex::RenderTargetGL::isComplete() const
 {
-	bool result;
-	GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-	return result;
+	GLenum result;
+	GLCall(result = glCheckNamedFramebufferStatus(mFrameBuffer, GL_FRAMEBUFFER));
+	return result == GL_FRAMEBUFFER_COMPLETE;
 }
 
 bool nex::RenderTargetGL::isDepthType(RenderAttachment::Type type)

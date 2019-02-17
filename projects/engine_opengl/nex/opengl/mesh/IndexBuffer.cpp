@@ -35,7 +35,8 @@ namespace nex
 
 	IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept :
 		mRendererID(other.mRendererID),
-		mCount(other.mCount)
+		mCount(other.mCount),
+		mType(other.mType)
 	{
 		other.mRendererID = GL_FALSE;
 	}
@@ -48,6 +49,7 @@ namespace nex
 		o.mRendererID = GL_FALSE;
 
 		this->mCount = o.mCount;
+		this->mType = o.mType;
 
 		return *this;
 	}
