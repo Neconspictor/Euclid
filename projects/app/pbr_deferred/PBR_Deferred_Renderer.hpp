@@ -6,11 +6,11 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/pbr/PBR_Deferred.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
-#include <nex/opengl/post_processing/AmbientOcclusion.hpp>
+#include <nex/post_processing/AmbientOcclusion.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include <nex/pbr/PBR_Deferred.hpp>
-#include <nex/opengl/post_processing/blur/GaussianBlurGL.hpp>
+#include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/Renderer.hpp>
 #include <nex/RenderBackend.hpp>
 
@@ -28,7 +28,7 @@ namespace nex
 		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(int width, int height);
-		nex::HBAO_GL* getHBAO();
+		nex::HBAO* getHBAO();
 		AmbientOcclusionSelector* getAOSelector();
 
 		PBR_Deferred* getPBR();

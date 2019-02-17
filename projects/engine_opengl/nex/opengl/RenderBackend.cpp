@@ -19,22 +19,19 @@ using namespace glm;
 namespace nex
 {
 
-	/*EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
+	EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
 	{
-		gaussianBlur = make_unique<GaussianBlurGL>(renderer);
-		gaussianBlur->init();
+		gaussianBlur = make_unique<GaussianBlur>();
 	}
 
-	GaussianBlurGL* EffectLibrary::getGaussianBlur()
+	GaussianBlur* EffectLibrary::getGaussianBlur()
 	{
 		return gaussianBlur.get();
 	}
 
 	void EffectLibrary::release()
 	{
-		if (gaussianBlur.get() != nullptr)
-			gaussianBlur->release();
-	}*/
+	}
 
 	Blender::Blender()
 	{

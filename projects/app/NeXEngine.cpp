@@ -21,6 +21,8 @@
 #include "nex/mesh/Vob.hpp"
 #include "nex/material/Material.hpp"
 #include "nex/pbr/PBR_Deferred.hpp"
+#include "nex/post_processing/HBAO.hpp"
+#include "nex/post_processing/SSAO.hpp"
 
 using namespace nex;
 
@@ -104,7 +106,7 @@ void NeXEngine::init()
 
 	m_scene = createScene();
 
-	m_scene->init(StaticMeshManager::get());
+	m_scene->init();
 
 	m_input->addWindowCloseCallback([](Window* window)
 	{

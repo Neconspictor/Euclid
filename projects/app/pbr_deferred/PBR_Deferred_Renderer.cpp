@@ -146,13 +146,15 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	m_pbr_deferred = make_unique<PBR_Deferred>(m_renderBackend, panoramaSky);
+	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
-	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
+	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
+	
+	renderTargetSingleSampled->useDepthAttachment(*pbr_mrt->getDepthAttachment());
 
-	m_aoSelector.setSSAO(m_renderBackend->createDeferredSSAO());
-	m_aoSelector.setHBAO(m_renderBackend->createHBAO());
+	m_aoSelector.setSSAO(make_unique<SSAO_Deferred>(windowWidth * ssaaSamples, windowHeight * ssaaSamples));
+	m_aoSelector.setHBAO(make_unique<HBAO>(windowWidth * ssaaSamples, windowHeight * ssaaSamples));
 
 	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
 	skyBoxShader->bind();
@@ -258,7 +260,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	//renderer->beginScene();
 	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	
-	screenSprite.setTexture(renderTargetSingleSampled->getRenderResult()); //TODO
+	screenSprite.setTexture(renderTargetSingleSampled->getColorAttachments()[0].texture.get()); //TODO
 
 	//screenSprite.setTexture(pbr_mrt->getAlbedo());
 	//screenSprite.setTexture(ssao_deferred->getAO_Result());
@@ -318,7 +320,8 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
 
-	renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
+	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
+	renderTargetSingleSampled->useDepthAttachment(*pbr_mrt->getDepthAttachment());
 	//ssao_deferred->onSizeChange(width, height);
 
 	m_aoSelector.getHBAO()->onSizeChange(width, height);
@@ -333,7 +336,7 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	}*/
 }
 
-nex::HBAO_GL* PBR_Deferred_Renderer::getHBAO()
+nex::HBAO* PBR_Deferred_Renderer::getHBAO()
 {
 	return m_aoSelector.getHBAO();
 }
