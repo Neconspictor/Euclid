@@ -153,7 +153,11 @@ namespace nex
 	{
 	public:
 
-		class Implementation {};
+		class Implementation
+		{
+		public:
+			virtual ~Implementation() = default;
+		};
 
 		Blender();
 
@@ -186,7 +190,11 @@ namespace nex
 	{
 	public:
 
-		class Implementation {};
+		class Implementation
+		{
+		public:
+			virtual ~Implementation() = default;
+		};
 
 		//specify mapping of depth values from normalized device coordinates to window coordinates
 		struct Range
@@ -255,7 +263,11 @@ namespace nex
 	{
 	public:
 
-		class Implementation {};
+		class Implementation
+		{
+			public:
+				virtual ~Implementation() = default;
+		};
 
 		Rasterizer();
 
@@ -351,10 +363,10 @@ namespace nex
 
 		virtual ~RenderBackend();
 
-		CubeDepthMap* createCubeDepthMap(int width, int height);
+		std::unique_ptr < CubeDepthMap> createCubeDepthMap(int width, int height);
 
 		//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
-		CubeRenderTarget* createCubeRenderTarget(int width, int height,
+		std::unique_ptr <CubeRenderTarget> createCubeRenderTarget(int width, int height,
 			const TextureData& data = {
 				TextureFilter::Linear,
 				TextureFilter::Linear,
@@ -366,7 +378,7 @@ namespace nex
 				InternFormat::RGB32F,
 				false });
 
-		RenderTarget2D* create2DRenderTarget(int width, int height,
+		std::unique_ptr<RenderTarget2D> create2DRenderTarget(int width, int height,
 			const TextureData& data = TextureData::createImage(
 				TextureFilter::Linear,
 				TextureFilter::Linear,
@@ -384,15 +396,11 @@ namespace nex
 				InternFormat::DEPTH24_STENCIL8),
 			int samples = 1);
 
-		RenderTarget2D* createRenderTarget(int samples = 1);
+		std::unique_ptr<RenderTarget2D> createRenderTarget(int samples = 1);
 
-		RenderTarget2D* createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples);
+		std::unique_ptr<RenderTarget2D> createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples);
 
 		//RenderTarget* createVarianceShadowMap(int width, int height);
-
-		void destroyCubeRenderTarget(CubeRenderTarget* target);
-
-		void destroyRenderTarget(RenderTarget2D* target);
 
 		/**
 		 * Draws primitives directly from the currently bound VertexArray object.
@@ -456,7 +464,7 @@ namespace nex
 		/**
 		* Shuts down this renderer and releases all allocated memory.
 		*/
-		void release();
+		static void release();
 
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
@@ -484,11 +492,8 @@ namespace nex
 
 	protected:
 		glm::vec3 backgroundColor;
-		std::list<CubeDepthMap*> cubeDepthMaps;
 		std::unique_ptr<EffectLibrary> effectLibrary;
 		unsigned int msaaSamples;
-		std::list<std::unique_ptr<CubeRenderTarget>> cubeRenderTargets;
-		std::list<std::unique_ptr<RenderTarget2D>> mRenderTargets;
 		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
 		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
 		//BlendState mBlendState;

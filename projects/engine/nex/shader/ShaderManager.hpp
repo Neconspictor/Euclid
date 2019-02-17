@@ -35,6 +35,8 @@ namespace nex
 		*/
 		static ShaderManager* get();
 
+		static void release();
+
 	private:
 		std::map<ShaderType, Shader*> shaderMap;
 		nex::Logger m_logger;

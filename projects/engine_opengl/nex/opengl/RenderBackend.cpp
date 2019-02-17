@@ -203,7 +203,8 @@ namespace nex
 
 	RenderBackend::~RenderBackend()
 	{
-		release();
+		if (effectLibrary.get() != nullptr)
+			effectLibrary->release();
 	}
 
 	void RenderBackend::init()
@@ -270,18 +271,14 @@ namespace nex
 		getRasterizer()->setCullMode(PolygonSide::BACK);
 	}
 
-	CubeDepthMap* RenderBackend::createCubeDepthMap(int width, int height)
+	std::unique_ptr<CubeDepthMap> RenderBackend::createCubeDepthMap(int width, int height)
 	{
-		Guard<CubeDepthMap> guard;
-		guard = CubeDepthMap::create(width, height);
-		cubeDepthMaps.push_back(guard.reset());
-		return cubeDepthMaps.back();
+		return std::unique_ptr<CubeDepthMap>(CubeDepthMap::create(width, height));
 	}
 
-	CubeRenderTarget * nex::RenderBackend::createCubeRenderTarget(int width, int height, const TextureData& data)
+	std::unique_ptr<CubeRenderTarget> nex::RenderBackend::createCubeRenderTarget(int width, int height, const TextureData& data)
 	{
-		cubeRenderTargets.emplace_back(make_unique<CubeRenderTarget>(width, height, data));
-		return cubeRenderTargets.back().get();
+		return make_unique<CubeRenderTarget>(width, height, data);
 	}
 
 	RenderTarget2D* nex::RenderBackend::getDefaultRenderTarget()
@@ -294,7 +291,7 @@ namespace nex
 		return &mDepthBuffer;
 	}
 
-	RenderTarget2D* nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, const TextureData& depthData, int samples) {
+	std::unique_ptr <RenderTarget2D> nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, const TextureData& depthData, int samples) {
 		RenderAttachment depth;
 		depth.type = RenderAttachment::translate(depthData.internalFormat);
 		depth.texture = make_shared<Texture2D>(width, height, depthData, nullptr);
@@ -304,7 +301,7 @@ namespace nex
 		return result;
 	}
 
-	RenderTarget2D* nex::RenderBackend::createRenderTarget(int samples)
+	std::unique_ptr <RenderTarget2D> nex::RenderBackend::createRenderTarget(int samples)
 	{
 		TextureData data;
 		data.generateMipMaps = false;
@@ -386,8 +383,6 @@ namespace nex
 
 	void RenderBackend::release()
 	{
-		if (effectLibrary.get() != nullptr)
-			effectLibrary->release();
 	}
 
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
@@ -475,8 +470,7 @@ namespace nex
 			InternFormat::RGB32F,
 			false };
 
-		Guard<CubeRenderTarget>  target;
-		target = createCubeRenderTarget(width, height, std::move(textureData));
+		auto target = createCubeRenderTarget(width, height, std::move(textureData));
 
 		//view matrices;
 		const mat4 views[] = {
@@ -514,23 +508,17 @@ namespace nex
 		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 		//register and return the cubemap
-		return target.reset();
+		return target.release();
 	}
 
-	RenderTarget2D* RenderBackend::createRenderTargetGL(int width, int height, const TextureData& data,
+	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureData& data,
 		unsigned samples)
 	{
 		assert(samples >= 1);
 
 		//GLClearError();
 
-		auto result = make_unique<RenderTarget2D>(width, height, data, samples);
-
-		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		//checkGLErrors(BOOST_CURRENT_FUNCTION);
-
-		mRenderTargets.emplace_back(std::move(result));
-		return mRenderTargets.back().get();
+		return make_unique<RenderTarget2D>(width, height, data, samples);
 	}
 
 	EffectLibrary* RenderBackend::getEffectLibrary()
@@ -544,24 +532,6 @@ namespace nex
 		renderTargets.push_back(target);
 		return target;
 	}*/
-
-	void RenderBackend::destroyCubeRenderTarget(CubeRenderTarget * target)
-	{
-		using type = std::unique_ptr<CubeRenderTarget>;
-		cubeRenderTargets.remove_if([&](const type& it)->bool
-		{
-			return it.get() == target;
-		});
-	}
-
-	void RenderBackend::destroyRenderTarget(RenderTarget2D* target)
-	{
-		using type = std::unique_ptr<RenderTarget2D>;
-		mRenderTargets.remove_if([&](const type& it)->bool
-		{
-			return it.get() == target;
-		});
-	}
 
 	void RenderBackend::drawArray(Topology primitiveType, unsigned startingIndex,
 		unsigned indexCount)

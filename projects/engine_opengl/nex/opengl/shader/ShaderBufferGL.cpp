@@ -75,7 +75,11 @@ mUsageHint(hint)
 
 nex::UniformBuffer::~UniformBuffer()
 {
-	GLCall(glDeleteBuffers(1, &mRendererID));
+	if (mRendererID != GL_FALSE)
+	{
+		GLCall(glDeleteBuffers(1, &mRendererID));
+		mRendererID = GL_FALSE;
+	}
 }
 
 void nex::UniformBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)

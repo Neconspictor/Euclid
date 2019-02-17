@@ -172,6 +172,7 @@ namespace nex {
 	{
 	public:
 		RasterizerGL();
+		virtual ~RasterizerGL() = default;
 
 		void setFillMode(FillMode fillMode, PolygonSide faceSide);
 		void setCullMode(PolygonSide faceSide);

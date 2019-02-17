@@ -328,7 +328,7 @@ std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 	static auto* shaderManager = ShaderManager::get();
 	
 	// uses RGB and 32bit per component (floats)
-	CubeRenderTarget* cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32);
+	auto cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32);
 
 
 	PBR_ConvolutionShader* shader = reinterpret_cast<PBR_ConvolutionShader*>
@@ -363,10 +363,7 @@ std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 	//renderer->destroyCubeRenderTarget(cubeRenderTarget);
 
 	//CubeMap* result = (CubeMap*)cubeRenderTarget->setRenderResult(nullptr);
-	auto result = std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
-	renderBackend->destroyCubeRenderTarget(cubeRenderTarget);
-
-	return result;
+	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
 std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
@@ -386,7 +383,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 	static auto* renderBackend = RenderBackend::get();
 	static auto* shaderManager = ShaderManager::get();
 
-	CubeRenderTarget* prefilterRenderTarget = renderBackend->createCubeRenderTarget(256, 256, textureData);
+	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(256, 256, textureData);
 
 	PBR_PrefilterShader* shader = dynamic_cast<PBR_PrefilterShader*>
 		(shaderManager->getShader(ShaderType::Pbr_Prefilter));
@@ -434,10 +431,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 
 
 	//CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
-	auto result = std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
-	renderBackend->destroyCubeRenderTarget(prefilterRenderTarget);
-
-	return result;
+	return std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
 }
 
 std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
@@ -456,7 +450,7 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	static auto* renderBackend = RenderBackend::get();
 	static auto* shaderManager = ShaderManager::get();
 
-	RenderTarget2D* target = renderBackend->create2DRenderTarget(1024, 1024, data);
+	auto target = renderBackend->create2DRenderTarget(1024, 1024, data);
 
 	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = reinterpret_cast<PBR_BrdfPrecomputeShader*>
 		(shaderManager->getShader(ShaderType::Pbr_BrdfPrecompute));
@@ -481,10 +475,7 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	StaticMeshDrawer::draw(&sprite, brdfPrecomputeShader);
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
-	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
-	renderBackend->destroyRenderTarget(target);
-
-	return result;
+	return std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
 }
 
 void PBR::init(Texture* backgroundHDR)

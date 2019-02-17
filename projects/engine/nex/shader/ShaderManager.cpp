@@ -63,6 +63,11 @@ ShaderManager* ShaderManager::get()
 	return instance.get();
 }
 
+void ShaderManager::release()
+{
+	instance.reset(nullptr);
+}
+
 Shader* ShaderManager::createShader(ShaderType shaderEnum)
 {
 	using s = ShaderType;

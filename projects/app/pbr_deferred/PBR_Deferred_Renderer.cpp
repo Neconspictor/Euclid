@@ -316,7 +316,6 @@ void PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
 	m_renderBackend->resize(width, height);
-	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
 

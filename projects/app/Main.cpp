@@ -8,6 +8,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/shader/ShaderManager.hpp>
 
 
 #ifdef WIN32
@@ -96,7 +97,8 @@ int main(int argc, char** argv)
 
 	nex::StaticMeshManager::get()->release();
 	nex::TextureManager::get()->release();
-	nex::RenderBackend::get()->release();
+	nex::ShaderManager::release();
+	nex::RenderBackend::release();
 
 	provider->terminate();
 
