@@ -52,12 +52,12 @@ struct HBAOData {
 const float  NUM_STEPS = 4;
 const float  NUM_DIRECTIONS = 8; // texRandom/g_Jitter initialization depends on this
 
-layout(std140,binding=0, location=0) uniform controlBuffer {
+layout(std140,binding=0) uniform controlBuffer {
   HBAOData   control;
 };
 
-  layout(location=1, binding=0) uniform sampler2D texLinearDepth;
-  layout(location=2, binding=1) uniform sampler2D texRandom;
+  layout(binding=0) uniform sampler2D texLinearDepth;
+  layout(binding=1) uniform sampler2D texRandom;
   
   layout(location=0,index=0) out vec4 out_Color;
   

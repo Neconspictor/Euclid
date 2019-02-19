@@ -124,7 +124,7 @@ void nex::UniformBuffer::unbind()
 
 void nex::UniformBuffer::update(const void* data, size_t size, size_t offset)
 {
-	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data));
+	GLCall(glNamedBufferSubData(mRendererID, offset, size, data));
 }
 
 nex::ShaderBuffer::UsageHintGL nex::translate(nex::ShaderBuffer::UsageHint hint)

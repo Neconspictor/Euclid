@@ -378,7 +378,7 @@ namespace nex
 		mProgram->setTexture(sourceLoc, renderResult, 0); // TODO: check binding point!
 		//GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
 		//g_InvResolutionDirection
-		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureHeight, 1));
+		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
