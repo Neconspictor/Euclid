@@ -618,9 +618,9 @@ nex::Texture2DArray::Texture2DArray(std::unique_ptr<TextureImpl> impl) : Texture
 {
 }
 
-nex::Texture2DArray::Texture2DArray(unsigned width, unsigned height, unsigned size, const TextureData& textureData,
+nex::Texture2DArray::Texture2DArray(unsigned width, unsigned height, unsigned size, bool immutableStorage, const TextureData& textureData,
 	const void* data) :
-	Texture(make_unique<Texture2DArrayGL>(width, height, size, textureData, data))
+	Texture(make_unique<Texture2DArrayGL>(width, height, size, immutableStorage, textureData, data))
 {
 }
 
@@ -649,7 +649,7 @@ unsigned nex::Texture2DArray::getSize() const
 }
 
 
-nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size, const TextureData& textureData,
+nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size, bool immutableStorage, const TextureData& textureData,
 	const void* data) :
 	TextureGL(GL_FALSE, GL_TEXTURE_2D_ARRAY), mWidth(width), mHeight(height), mSize(size), mData(textureData)
 {
@@ -657,20 +657,24 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size
 
 	//GLCall(glBindTexture(mTarget, mTextureID));
 
-	GLCall(glTexStorage3D(mTarget, 1, translate(mData.internalFormat), width, height, size));
-	GLCall(glTexSubImage3D(mTarget, 0, 0, 0, 0, width, height, size, translate(mData.colorspace), translate(mData.pixelDataType), data));
-
-	/*resizeTexImage3D(mTextureID, 
-		mTarget, 
-		0, 
-		mWidth, 
-		mHeight, 
-		mSize, 
-		translate(mData.colorspace), 
-		translate(mData.internalFormat),
-		translate(mData.pixelDataType), 
-		mData.generateMipMaps, 
-		data);*/
+	if (immutableStorage)
+	{
+		GLCall(glTexStorage3D(mTarget, 1, translate(mData.internalFormat), width, height, size));
+		GLCall(glTexSubImage3D(mTarget, 0, 0, 0, 0, width, height, size, translate(mData.colorspace), translate(mData.pixelDataType), data));
+	} else
+	{
+		resizeTexImage3D(mTextureID,
+			mTarget,
+			0,
+			mWidth,
+			mHeight,
+			mSize,
+			translate(mData.colorspace),
+			translate(mData.internalFormat),
+			translate(mData.pixelDataType),
+			mData.generateMipMaps,
+			data);
+	}
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned size)

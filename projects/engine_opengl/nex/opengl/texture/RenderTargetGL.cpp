@@ -562,6 +562,8 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 	{
 		//NOTE: OpenGL 4.5 or DSA extension is needed for textures not being array, cube or 3d
 		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
+		//GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, textureID, 0);
 	} else
 	{
 		GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));

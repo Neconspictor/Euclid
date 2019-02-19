@@ -345,7 +345,7 @@ namespace nex
 		Texture2DArray(std::unique_ptr<TextureImpl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2DArray(unsigned width, unsigned height, unsigned size, const TextureData& textureData, const void* data);
+		Texture2DArray(unsigned width, unsigned height, unsigned size, bool immutableStorage, const TextureData& textureData, const void* data);
 
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.

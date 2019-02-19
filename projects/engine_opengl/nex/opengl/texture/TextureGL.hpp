@@ -258,7 +258,7 @@ namespace nex
 	class Texture2DArrayGL : public TextureGL
 	{
 	public:
-		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, const TextureData& textureData, const void* data);
+		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, bool immutableStorage, const TextureData& textureData, const void* data);
 		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned size = 0);
 
 		virtual ~Texture2DArrayGL() = default;

@@ -480,7 +480,7 @@ void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeD
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	cascadeBufferUBO.bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
-	cascadeBufferUBO.update(cascadedData, sizeof(CascadedShadow::CascadeData));
+	cascadeBufferUBO.update(cascadedData, sizeof(CascadedShadow::CascadeData), 0);
 }
 
 

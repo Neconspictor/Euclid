@@ -93,6 +93,7 @@ void nex::UniformBuffer::bind()
 {
 	//TODO: Use glBindBufferBase???
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, mRendererID));
+	GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, mBinding, mRendererID));
 }
 
 size_t nex::UniformBuffer::getSize() const

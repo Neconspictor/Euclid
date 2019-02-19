@@ -460,10 +460,12 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 			float compare = currentDepth - bias;
 			//float pcfDepth =  texture2DArrayShadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias);
 			float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias )).r; 
-			//shadow += pcfDepth;
+            //pcfDepth = -100;
+            //shadow += pcfDepth;
 			shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
         }
     }
+    
     return shadow / (sampleCount);
 
 	//float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth + bias )).r; 

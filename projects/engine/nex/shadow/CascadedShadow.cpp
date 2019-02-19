@@ -92,14 +92,14 @@ void CascadedShadow::updateTextureArray()
 	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TextureFilter::Linear;
 	data.magFilter = TextureFilter::Linear;
-	data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
 	data.useDepthComparison = true;
 	data.compareFunc = CompareFunction::LESS_EQUAL;
 
 	RenderAttachment depth;
 	depth.type = RenderAttachment::Type::DEPTH;
 	depth.target = TextureTarget::TEXTURE2D_ARRAY;
-	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, NUM_CASCADES, data, nullptr);
+	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, NUM_CASCADES, false, data, nullptr);
 
 	mRenderTarget.bind();
 	mRenderTarget.useDepthAttachment(std::move(depth));

@@ -76,7 +76,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
 		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
 
-		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, true, data, hbaoRandomShort);
 		/*TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
