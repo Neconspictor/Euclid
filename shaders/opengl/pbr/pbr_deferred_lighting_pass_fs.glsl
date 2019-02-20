@@ -1,5 +1,6 @@
 #version 430
-#extension GL_EXT_texture_array : enable
+
+#include "shadow/shadows_array.glsl"
 
 #define NUM_CASCADES 4
 
@@ -54,54 +55,9 @@ layout(std140,binding=0) uniform CascadeBuffer {
 	CascadeData cascadeData;
 };
 
-uniform sampler2DArrayShadow cascadedDepthMap;
+uniform sampler2DArray cascadedDepthMap;
 
 uniform mat4 inverseProjMatrix_GPass;
-
-
-
-/*******************************************************************/
- 
- 
-#define BLOCKER_SEARCH_NUM_SAMPLES 16 
-#define PCF_NUM_SAMPLES 36
-#define NEAR_PLANE 0.0f 
-#define LIGHT_WORLD_SIZE 0.1f 
-#define LIGHT_FRUSTUM_WIDTH 3.75f 
-
-// Assuming that LIGHT_FRUSTUM_WIDTH == LIGHT_FRUSTUM_HEIGHT 
-#define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH) 
-
-
-vec2 poissonDisk[16] = vec2[]( 
-	vec2 ( -0.94201624, -0.39906216 ), 
-	vec2 ( 0.94558609, -0.76890725 ), 
-	vec2 ( -0.094184101, -0.92938870 ), 
-	vec2 ( 0.34495938, 0.29387760 ), 
-	vec2 ( -0.91588581, 0.45771432 ), 
-	vec2 ( -0.81544232, -0.87912464 ), 
-	vec2 ( -0.38277543, 0.27676845 ), 
-	vec2 ( 0.97484398, 0.75648379 ), 
-	vec2 ( 0.44323325, -0.97511554 ), 
-	vec2 ( 0.53742981, -0.47373420 ), 
-	vec2 ( -0.26496911, -0.41893023 ), 
-	vec2 ( 0.79197514, 0.19090188 ), 
-	vec2 ( -0.24188840, 0.99706507 ), 
-	vec2 ( -0.81409955, 0.91437590 ), 
-	vec2 ( 0.19984126, 0.78641367 ), 
-	vec2 ( 0.14383161, -0.14100790 )
-);
- 
- 
-struct BlockerResult {
-	float avgBlockerDepth;
-	float numBlockers;
-}; 
- 
- 
- 
- 
-/*******************************************************************/
 
 
 vec3 pbrModel(float ao,
@@ -126,17 +82,6 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 
 float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition);
-float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
-float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace);
-float texture2DArrayCompare(sampler2DArray depths, vec3 uv, float compare, float bias);
-float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias);
-float texture2DArrayShadowLerp(sampler2DArrayShadow depths, vec2 size, vec2 uv, float projectedZ, float compare, float bias);
-float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias);
-float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias, float penumbraSize);
-float chebyshevUpperBound( float distance, vec2 uv);
-
-float PCSS (sampler2D shadowMap, vec3 coords, float bias);
-float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadiusUV, float bias);
 
 vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inverseMatrix) {
   vec4 clipSpaceLocation;
@@ -446,23 +391,17 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	penumbraSize = clamp(penumbraSize, 0, 1);
 	penumbraSize = (NUM_CASCADES - projCoords.z) / NUM_CASCADES;
 	penumbraSize = NUM_CASCADES * projCoords.z;*/
-	float penumbraSize = 1.0;
+	float penumbraSize = 1;
 	vec2 size = textureSize(cascadedDepthMap, 0).xy;
 	
 		
     for(float x=-xSamples; x<=xSamples; x += 1){
         for(float y=-ySamples; y<=ySamples; y += 1){
             vec2 off = vec2(x,y)/size * penumbraSize;
-			//off = vec2(0,0);
-			//result += texture2DCompare(depths, uv, compare, bias);
-            //result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
 			vec2 uv = projCoords.xy + off;
 			float compare = currentDepth - bias;
-			//float pcfDepth =  texture2DArrayShadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias);
-			float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias )).r; 
-            //pcfDepth = -100;
-            //shadow += pcfDepth;
-			shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
+			float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias);
+            shadow += shadowSample;
         }
     }
     
@@ -472,207 +411,3 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	//shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
 	//return shadow; 
 }
-
-
-
-
-float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace)
-{		
-	vec3 shadowCoordinateWdivide = fragment_position_lightspace.xyz / fragment_position_lightspace.w;
-	shadowCoordinateWdivide.r = shadowCoordinateWdivide.r*0.5 + 0.5;
-	shadowCoordinateWdivide.g = shadowCoordinateWdivide.g*0.5 + 0.5;
-	
-	float currentDepth = shadowCoordinateWdivide.z*0.5 + 0.5;
-	float angle = dot(lightDir, normal);
-	vec2 texelSize = vec2(1.0)/textureSize(shadowMap, 0);
-	
-	float sDotN = dot(lightDir, normal);
-	
-	float sDotNAbs = abs(sDotN);
-	
-	// assure that fragments with a normal facing away from the light source 
-	// are always in shadow (reduces unwanted unshadowing).
-	if (sDotN < 0) {
-		return 0;
-	}
-	
-	if (sDotNAbs < (0.3f)) {
-		//return 0;
-	}
-	
-	float bias = 0.0;
-	float shadow;
-	float depth = texture2D(shadowMap, shadowCoordinateWdivide.xy).r;
-	float diff =  abs(currentDepth - depth);
-
-	
-
-	//bias = 9.0f * max(texelSize.x,texelSize.y);
-	float minBias = max(texelSize.x,texelSize.y);
-	float penumbraSize = diff / (minBias);
-	penumbraSize = clamp(penumbraSize, 0, 1);
-	//penumbraSize = max(penumbraSize, 0.0f);
-	//penumbraSize =  min(penumbraSize, 1);
-	penumbraSize = 1;
-	bias = 2 * minBias;
-	
-	shadow = PCF(shadowMap, textureSize(shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias, penumbraSize);
-	//shadow = texture2DCompare(shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
-	//shadow = PCSS(material.shadowMap, shadowCoordinateWdivide, bias);
-	//shadow = PCF_Filter(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, 0.005f, bias);
-	
-	
-	//float shadow = textureProj(material.shadowMap, test, 0);
-	//float shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
-	//float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
-	//float shadow = texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
-    return 1 - shadow;	
-}
-
-float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace) {
-		if (fragment_position_lightspace.z >= 1.0)
-				return 0.0;
-	
-		return 1 - chebyshevUpperBound(fragment_position_lightspace.z, fragment_position_lightspace.xy);
-}
-
-float texture2DArrayCompare(sampler2DArray depths, vec3 uv, float compare, float bias){
-    float depth = texture2DArray(depths, uv).r;
-		if (depth >= 1.0)
-			return 0.0f;
-    return step(depth + bias, compare);
-}
-
-float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){
-    float depth = texture2D(depths, uv).r;
-		if (depth >= 1.0)
-			return 0.0f;
-    return step(depth + bias, compare);
-}
-
-float texture2DArrayShadowLerp(sampler2DArrayShadow depths, vec2 size, vec2 uv, float projectedZ, float compare, float bias){
-    vec2 texelSize = vec2(1.0)/size;
-    vec2 f = fract(uv*size+0.5);
-    vec2 centroidUV = (uv*size+0.5)/size;
-
-    float lb = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(0.0, 0.0), projectedZ, compare - bias)).r;
-	float lt = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(0.0, 1.0), projectedZ, compare - bias)).r;
-	float rb = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(1.0, 0.0), projectedZ, compare - bias)).r;
-	float rt = shadow2DArray(depths, vec4(centroidUV +texelSize*vec2(1.0, 1.0), projectedZ, compare - bias)).r;
-	float a = mix(lb, lt, f.y);
-	float b = mix(rb, rt, f.y);
-    float c = mix(a, b, f.x);
-    return c;
-}
-
-float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
-    vec2 texelSize = vec2(1.0)/size;
-    vec2 f = fract(uv*size+0.5);
-    vec2 centroidUV = (uv*size+0.5)/size;
-
-    float lb = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 0.0), compare, bias);
-    float lt = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 1.0), compare, bias);
-    float rb = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 0.0), compare, bias);
-    float rt = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 1.0), compare, bias);
-    float a = mix(lb, lt, f.y);
-    float b = mix(rb, rt, f.y);
-    float c = mix(a, b, f.x);
-    return c;
-}
-
-float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias, float penumbraSize){
-    float result = 0.0;
-		float xSamples = 2;
-		float ySamples = 2;
-		float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
-		
-    for(float x=-xSamples; x<=xSamples; x += 1){
-        for(float y=-ySamples; y<=ySamples; y += 1){
-            vec2 off = vec2(x,y)/size * penumbraSize;
-			//off = vec2(0,0);
-			//result += texture2DCompare(depths, uv, compare, bias);
-            result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
-        }
-    }
-    return result / (sampleCount);
-}
-
-
-
-
-/***************************************************************************************************/
-
-
-float PenumbraSize(float zReceiver, float zBlocker) { //Parallel plane estimation
-return (zReceiver - zBlocker) / zBlocker; 
-} 
-
-BlockerResult FindBlocker(sampler2D shadowMap, vec2 uv, float zReceiver ) {
-
-	BlockerResult result;
-
-
-    //This uses similar triangles to compute what  
-    //area of the shadow map we should search 
-    float searchWidth = LIGHT_SIZE_UV * (zReceiver - NEAR_PLANE) / zReceiver; 
-    float blockerSum = 0; 
-    result.numBlockers = 0; 
-    
-	for( int i = 0; i < BLOCKER_SEARCH_NUM_SAMPLES; ++i ) { 
-		float shadowMapDepth = texture2D(shadowMap, uv + poissonDisk[i] * searchWidth).r; 
-		
-		if ( shadowMapDepth < zReceiver ) { 
-                blockerSum += shadowMapDepth; 
-                result.numBlockers++; 
-            } 
-     }
-	 
-    result.avgBlockerDepth = blockerSum / result.numBlockers; 
-	
-	return result;
-}
- 
-float PCF_Filter(sampler2D shadowMap, vec2 uv, float zReceiver, float filterRadiusUV, float bias) { 
-    
-	vec2 size = textureSize(shadowMap, 0);
-	
-	float sum = 0.0f; 
-	
-	
-    for ( int i = 0; i < PCF_NUM_SAMPLES; ++i ) { 
-		vec2 offset = poissonDisk[i] * filterRadiusUV; 
-        sum += texture2DShadowLerp(shadowMap, size, uv + offset, zReceiver, bias);
-    } 
-	
-    return sum / PCF_NUM_SAMPLES; 
-} 
-
-float PCSS (sampler2D shadowMap, vec3 coords, float bias) 
-{ 
-    vec2 uv = coords.xy; 
-    float zReceiver = coords.z; 
-	
-	// Assumed to be eye-space z in this code
-    // STEP 1: blocker search 
-
-    BlockerResult blockerResult = FindBlocker(shadowMap, uv, zReceiver ); 
-	
-    if( blockerResult.numBlockers == 0.0f )   
-		//There are no occluders so early out (this saves filtering) 
-		return 1.0f; 
-	
-    // STEP 2: penumbra size 
-    float penumbraRatio = PenumbraSize(zReceiver, blockerResult.avgBlockerDepth);     
-    float filterRadiusUV = penumbraRatio * LIGHT_SIZE_UV /* NEAR_PLANE*/ / coords.z; 
-	filterRadiusUV *= 0.5;
-	//filterRadiusUV = 1.0f;
-	
-	
-	
-    // STEP 3: filtering 
-	//return PCF(shadowMap, textureSize(shadowMap, 0), uv, zReceiver, bias);
-    return PCF_Filter(shadowMap, uv, zReceiver, filterRadiusUV, bias); 
-}
-
-
-/*************************************************************************************************/

@@ -1,0 +1,99 @@
+/*float shadowCalculationVariance(vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace) {
+		if (fragment_position_lightspace.z >= 1.0)
+				return 0.0;
+	
+		return 1 - chebyshevUpperBound(fragment_position_lightspace.z, fragment_position_lightspace.xy);
+}*/
+
+float texture2DCompare(sampler2D depths, vec2 uv, float compare, float bias){
+    float depth = texture2D(depths, uv).r;
+		if (depth >= 1.0)
+			return 0.0f;
+    return step(depth + bias, compare);
+}
+
+float texture2DShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare, float bias){
+    vec2 texelSize = vec2(1.0)/size;
+    vec2 f = fract(uv*size+0.5);
+    vec2 centroidUV = (uv*size+0.5)/size;
+
+    float lb = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 0.0), compare, bias);
+    float lt = texture2DCompare(depths, centroidUV+texelSize*vec2(0.0, 1.0), compare, bias);
+    float rb = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 0.0), compare, bias);
+    float rt = texture2DCompare(depths, centroidUV+texelSize*vec2(1.0, 1.0), compare, bias);
+    float a = mix(lb, lt, f.y);
+    float b = mix(rb, rt, f.y);
+    float c = mix(a, b, f.x);
+    return c;
+}
+
+float PCF(sampler2D depths, vec2 size, vec2 uv, float compare, float bias, float penumbraSize){
+    float result = 0.0;
+		float xSamples = 2;
+		float ySamples = 2;
+		float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
+		
+    for(float x=-xSamples; x<=xSamples; x += 1){
+        for(float y=-ySamples; y<=ySamples; y += 1){
+            vec2 off = vec2(x,y)/size * penumbraSize;
+			//off = vec2(0,0);
+			//result += texture2DCompare(depths, uv, compare, bias);
+            result += texture2DShadowLerp(depths, size, uv+off, compare, bias);
+        }
+    }
+    return result / (sampleCount);
+}
+
+
+/*float shadowCalculation(sampler2D shadowMap, vec3 lightDir, vec3 normal, vec4 fragment_position_lightspace)
+{		
+	vec3 shadowCoordinateWdivide = fragment_position_lightspace.xyz / fragment_position_lightspace.w;
+	shadowCoordinateWdivide.r = shadowCoordinateWdivide.r*0.5 + 0.5;
+	shadowCoordinateWdivide.g = shadowCoordinateWdivide.g*0.5 + 0.5;
+	
+	float currentDepth = shadowCoordinateWdivide.z*0.5 + 0.5;
+	float angle = dot(lightDir, normal);
+	vec2 texelSize = vec2(1.0)/textureSize(shadowMap, 0);
+	
+	float sDotN = dot(lightDir, normal);
+	
+	float sDotNAbs = abs(sDotN);
+	
+	// assure that fragments with a normal facing away from the light source 
+	// are always in shadow (reduces unwanted unshadowing).
+	if (sDotN < 0) {
+		return 0;
+	}
+	
+	if (sDotNAbs < (0.3f)) {
+		//return 0;
+	}
+	
+	float bias = 0.0;
+	float shadow;
+	float depth = texture2D(shadowMap, shadowCoordinateWdivide.xy).r;
+	float diff =  abs(currentDepth - depth);
+
+	
+
+	//bias = 9.0f * max(texelSize.x,texelSize.y);
+	float minBias = max(texelSize.x,texelSize.y);
+	float penumbraSize = diff / (minBias);
+	penumbraSize = clamp(penumbraSize, 0, 1);
+	//penumbraSize = max(penumbraSize, 0.0f);
+	//penumbraSize =  min(penumbraSize, 1);
+	penumbraSize = 1;
+	bias = 2 * minBias;
+	
+	shadow = PCF(shadowMap, textureSize(shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias, penumbraSize);
+	//shadow = texture2DCompare(shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
+	//shadow = PCSS(material.shadowMap, shadowCoordinateWdivide, bias);
+	//shadow = PCF_Filter(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, 0.005f, bias);
+	
+	
+	//float shadow = textureProj(material.shadowMap, test, 0);
+	//float shadow = texture2DCompare(material.shadowMap, shadowCoordinateWdivide.xy, currentDepth, bias);
+	//float shadow = PCF(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+	//float shadow = texture2DShadowLerp(material.shadowMap, textureSize(material.shadowMap, 0), shadowCoordinateWdivide.xy, currentDepth, bias);
+    return 1 - shadow;	
+}*/

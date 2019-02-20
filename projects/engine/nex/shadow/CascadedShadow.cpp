@@ -90,11 +90,11 @@ void CascadedShadow::updateTextureArray()
 	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternFormat::DEPTH_COMPONENT32F;
 	data.pixelDataType = PixelDataType::FLOAT;
-	data.minFilter = TextureFilter::Linear;
-	data.magFilter = TextureFilter::Linear;
+	data.minFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
+	data.magFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
 	data.useDepthComparison = true;
-	data.compareFunc = CompareFunction::LESS_EQUAL;
+	data.compareFunc = CompareFunction::LESS;
 
 	RenderAttachment depth;
 	depth.type = RenderAttachment::Type::DEPTH;
