@@ -112,6 +112,23 @@ void CascadedShadow::updateTextureArray()
 
 void CascadedShadow::calcSplitSchemes(Camera* camera)
 {
+	calcSplitDistances(camera);
+
+	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
+	const float nearClip = frustum.nearPlane;
+	const float farClip = frustum.farPlane;
+	const float clipRange = farClip - nearClip;
+
+	// We calculate the splitting planes of the view frustum by using an algorithm 
+	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
+	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
+	{
+		mCascadeData.cascadedFarPlanesVS[i].x = (nearClip + mSplitDistances[i] * clipRange) * -1.0f; // -1.0f for right handed coord systems
+	}
+}
+
+void CascadedShadow::calcSplitDistances(Camera* camera)
+{
 	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
 	//Between 0 and 1, change in order to see the results
 	const float lambda = 1.0f;
@@ -138,11 +155,7 @@ void CascadedShadow::calcSplitSchemes(Camera* camera)
 		const float log = minZ * std::pow(ratio, p);
 		const float uniform = minZ + range * p;
 		const float d = lambda * (log - uniform) + uniform;
-		const float splitDistance = (d - nearClip) / clipRange;
-
-		mCascadeData.cascadedFarPlanesVS[i].x = (nearClip + splitDistance * clipRange) * -1.0f; // -1.0f for right handed coord systems
-
-
+		mSplitDistances[i] = (d - nearClip) / clipRange;
 	}
 }
 
@@ -179,12 +192,12 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 	const auto& look = glm::vec3(0,0,-1);//camera->getLook();
 	const auto& left = glm::vec3(1,0,0);//camera->getRight();
 
-	const float aspectRatio = glm::radians(camera->getAspectRatio());
+	const float aspectRatio = camera->getAspectRatio();
 	const float fov = glm::radians(camera->getFOV());
 
 	// Calculate the tangent values (this can be cached
-	const float tanFOVX = camera->getFrustum(Perspective).right * 2;//tanf(aspectRatio * fov / 2.0f);
-	const float tanFOVY = camera->getFrustum(Perspective).top * 2;//tanf(aspectRatio / 2.0f);
+	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
+	const float tanFOVY = tanf(aspectRatio / 2.0f);
 
 
 	// Calculate the points on the near plane
@@ -303,7 +316,7 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		for (unsigned int i = 0; i < 8; ++i)
 		{
 			// transform point to world space and add it to center
-			frustumCornersWS[i] = mCascadeData.inverseViewMatrix * glm::vec4(frustumCornersVS[i], 1.0f);
+			frustumCornersWS[i] = mCascadeData.inverseViewMatrix * glm::vec4(frustumCornersVS[i], 0.0f);
 			frustumCenterWS += frustumCornersWS[i];
 		}
 			

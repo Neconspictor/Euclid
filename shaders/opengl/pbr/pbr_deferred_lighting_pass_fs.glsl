@@ -92,6 +92,21 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inve
   return homogenousLocation.xyz / homogenousLocation.w;
 };
 
+uint getCascadeIdx(float viewSpaceZ) {
+    uint cascadeIdx = 0;
+
+    // Figure out which cascade to sample from
+    for(uint i = 0; i < NUM_CASCADES - 1; ++i)
+    {
+        if(viewSpaceZ < cascadeData.cascadedSplits[i].x)
+        {	
+            cascadeIdx = i + 1;
+        }
+    }
+    
+    return cascadeIdx;
+};
+
 
 void main()
 {   
@@ -157,6 +172,24 @@ void main()
 	//alpha = clamp(alpha, 0, 1);
 	
 	FragColor = vec4(result, 1);
+    
+    
+    uint cascadeIdx = getCascadeIdx(positionEye.z);
+    
+    vec4 cascadeColor = FragColor;
+    
+    if (cascadeIdx == 0) {
+    
+       cascadeColor = vec4(1,0,0,1); 
+    
+    } else if (cascadeIdx == 1) {
+        cascadeColor = vec4(0,1,0,1); 
+    } else if (cascadeIdx == 2) {
+        cascadeColor = vec4(0,0,1,1); 
+    };
+    
+    FragColor = 0.5*cascadeColor * 0.5*FragColor;
+    
 	//vec2 windowSize = gl_FragCoord.xy / textureSize(gBuffer.positionEyeMap, 0).xy;
 	//FragColor = vec4(windowSize, 1, 1);
 }

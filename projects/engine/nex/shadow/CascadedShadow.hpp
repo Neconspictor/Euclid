@@ -74,6 +74,7 @@ namespace nex
 
 
 		void calcSplitSchemes(Camera* camera);
+		void calcSplitDistances(Camera* camera);
 		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearPlane, float farPlane);
 		void extractFrustumPoints(Camera* camera, float nearPLane, float farPlane, glm::vec3 (&frustumCorners)[8]);
 		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter, glm::vec3* offset);
@@ -105,5 +106,6 @@ namespace nex
 		float m_arrCascadeBoundRadius[NUM_CASCADES];
 		bool mAntiFlickerOn;
 		float m_arrCascadeRanges[NUM_CASCADES];
+		float mSplitDistances[NUM_CASCADES];
 	};
 }
