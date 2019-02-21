@@ -64,6 +64,7 @@ namespace nex
 		const glm::mat4& getPerspProjection();
 		const glm::mat4& getProjection(ProjectionMode mode);
 		const glm::vec3& getPosition() const;
+		const glm::vec3& getRight() const;
 		const glm::vec3& getUp() const;
 		const glm::mat4& getView();
 
@@ -106,6 +107,7 @@ namespace nex
 		bool revalidate;
 		glm::vec3 up;
 		glm::mat4 view;
+		glm::vec3 right;
 
 		void calcPerspFrustum();
 	};

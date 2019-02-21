@@ -142,6 +142,11 @@ namespace nex
 		return position;
 	}
 
+	const glm::vec3& Projectional::getRight() const
+	{
+		return right;
+	}
+
 	const vec3& Projectional::getUp() const
 	{
 		return up;
@@ -247,6 +252,9 @@ namespace nex
 				aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
 			calcView();
 			calcPerspFrustum();
+
+			right = normalize(cross(up,look));
+
 			revalidate = false;
 		}
 	}

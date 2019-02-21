@@ -381,8 +381,8 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	float shadow = 0.0;
 	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	
-	float xSamples = 3;
-	float ySamples = 3;
+	float xSamples = 4;
+	float ySamples = 4;
 	float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
 	
 	/*float depth = texture2DArray(cascadedDepthMap, vec3(projCoords.xy, projCoords.z)).r;
@@ -391,7 +391,7 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	penumbraSize = clamp(penumbraSize, 0, 1);
 	penumbraSize = (NUM_CASCADES - projCoords.z) / NUM_CASCADES;
 	penumbraSize = NUM_CASCADES * projCoords.z;*/
-	float penumbraSize = 1;
+	float penumbraSize = 1.0;
 	vec2 size = textureSize(cascadedDepthMap, 0).xy;
 	
 		
@@ -400,7 +400,7 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
             vec2 off = vec2(x,y)/size * penumbraSize;
 			vec2 uv = projCoords.xy + off;
 			float compare = currentDepth - bias;
-			float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias);
+			float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
             shadow += shadowSample;
         }
     }

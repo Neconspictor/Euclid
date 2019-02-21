@@ -22,7 +22,7 @@ namespace nex
 		struct CascadeData {
 			glm::mat4 inverseViewMatrix;
 			glm::mat4 lightViewProjectionMatrices[NUM_CASCADES];
-			glm::vec4 cascadedSplits[NUM_CASCADES];
+			glm::vec4 cascadedFarPlanesVS[NUM_CASCADES]; // far plane splits in view space
 		};
 
 		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight);
@@ -65,6 +65,19 @@ namespace nex
 	protected:
 
 		void updateTextureArray();
+
+		struct BoundingSphere
+		{
+			glm::vec3 center;
+			float radius;
+		};
+
+
+		void calcSplitSchemes(Camera* camera);
+		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearPlane, float farPlane);
+		void extractFrustumPoints(Camera* camera, float nearPLane, float farPlane, glm::vec3 (&frustumCorners)[8]);
+		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter, glm::vec3* offset);
+
 	protected:
 
 		class DepthPassShader : public Shader
@@ -87,5 +100,10 @@ namespace nex
 
 		float mShadowMapSize;
 		CascadeData mCascadeData;
+
+		glm::vec3 m_arrCascadeBoundCenter[NUM_CASCADES];
+		float m_arrCascadeBoundRadius[NUM_CASCADES];
+		bool mAntiFlickerOn;
+		float m_arrCascadeRanges[NUM_CASCADES];
 	};
 }
