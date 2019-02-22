@@ -116,7 +116,7 @@ void CascadedShadow::updateTextureArray()
 void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirection)
 {
 	const float minDistance = 0.0f;
-	const float cameraNearPlaneVS = -camera->getFrustum(ProjectionMode::Perspective).nearPlane;
+	const float cameraNearPlaneVS = camera->getFrustum(ProjectionMode::Perspective).nearPlane;
 	calcSplitSchemes(camera);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
 
@@ -127,8 +127,8 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		//float splitDistance = cascadeSplits[cascadeIterator];
 
 		// the far plane of the previous cascade is the near plane of the current cascade
-		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanesVS[cascadeIterator - 1].x;
-		float farPlane = mCascadeData.cascadedFarPlanesVS[cascadeIterator].x;
+		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
+		float farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
 
 		glm::vec3 frustumCornersWS[8];
 		// extracts frustum points in view space
@@ -297,7 +297,7 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 		//float far = -INFINITY;
 		//float near = INFINITY;
 
-		static bool debug = true;
+		static bool debug = false;
 
 		if (debug)
 		{
@@ -356,7 +356,7 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 
 		//Store the split distances and the relevant matrices
 		const float clipDist = clipRange;
-		mCascadeData.cascadedFarPlanesVS[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
+		mCascadeData.cascadedFarPlanes[cascadeIterator].x = (nearClip + splitDistance * clipDist);
 		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
 	}
 }
@@ -374,7 +374,7 @@ void CascadedShadow::calcSplitSchemes(Camera* camera)
 	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
 	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
 	{
-		mCascadeData.cascadedFarPlanesVS[i].x = (nearClip + mSplitDistances[i] * clipRange) * -1.0f; // -1.0f for right handed coord systems
+		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i] * clipRange);
 	}
 }
 
@@ -438,10 +438,6 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 
 void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float farPlane, glm::vec3(& frustumCorners)[8])
 {
-
-	nearPlane = -nearPlane;
-	farPlane = -farPlane;
-
 	const auto& position = camera->getPosition();
 	const auto& up = camera->getUp(); // glm::vec3(0,1,0);
 	const auto& look = camera->getLook(); // glm::vec3(0,0,1);
@@ -547,6 +543,7 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
 {
 	frameUpdateNew(camera, lightDirection);
+	//frameUpdateOld(camera, lightDirection);
 }
 
 const glm::mat4& CascadedShadow::getLightProjectionMatrix() const

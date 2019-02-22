@@ -94,11 +94,13 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inve
 
 uint getCascadeIdx(float viewSpaceZ) {
     uint cascadeIdx = 0;
+    
+    const float positiveZ = -viewSpaceZ;
 
     // Figure out which cascade to sample from
     for(uint i = 0; i < NUM_CASCADES - 1; ++i)
     {
-        if(viewSpaceZ < cascadeData.cascadedSplits[i].x)
+        if(positiveZ > cascadeData.cascadedSplits[i].x)
         {	
             cascadeIdx = i + 1;
         }
@@ -374,17 +376,9 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 		return 0;
 	}
 	
-	float positiveViewSpaceZ = depthViewSpace;
-	uint cascadeIdx = 0;
-
-	// Figure out which cascade to sample from
-	for(uint i = 0; i < NUM_CASCADES - 1; ++i)
-	{
-		if(positiveViewSpaceZ < cascadeData.cascadedSplits[i].x)
-		{	
-			cascadeIdx = i + 1;
-		}
-	}
+    // Figure out which cascade to sample from
+	uint cascadeIdx = getCascadeIdx(depthViewSpace);
+    
 	float angleBias = 0.006f;
 
 	mat4 lightViewProjectionMatrix = cascadeData.lightViewProjectionMatrices[cascadeIdx];
