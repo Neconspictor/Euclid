@@ -113,6 +113,256 @@ void CascadedShadow::updateTextureArray()
 	mRenderTarget.assertCompletion();
 }
 
+void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirection)
+{
+	const float minDistance = 0.0f;
+	const float cameraNearPlaneVS = -camera->getFrustum(ProjectionMode::Perspective).nearPlane;
+	calcSplitSchemes(camera);
+	mCascadeData.inverseViewMatrix = inverse(camera->getView());
+
+	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
+	{
+
+		//float prevSplitDistance = cascadeIterator == 0 ? minDistance : mCascadeData.cascadedSplits[cascadeIterator - 1].x;
+		//float splitDistance = cascadeSplits[cascadeIterator];
+
+		// the far plane of the previous cascade is the near plane of the current cascade
+		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanesVS[cascadeIterator - 1].x;
+		float farPlane = mCascadeData.cascadedFarPlanesVS[cascadeIterator].x;
+
+		glm::vec3 frustumCornersVS[8];
+		// extracts frustum points in view space
+		extractFrustumPoints(camera, nearPlane, farPlane, frustumCornersVS);
+
+		// calc center of the frustum
+		glm::vec3 frustumCornersWS[8];
+		glm::vec3 frustumCenterWS = glm::vec3(0.0f);
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			// transform point to world space and add it to center
+			frustumCornersWS[i] = mCascadeData.inverseViewMatrix * glm::vec4(frustumCornersVS[i], 1.0f);
+			frustumCenterWS += frustumCornersWS[i];
+		}
+
+		frustumCenterWS /= 8.0f;
+
+
+		static bool debug = false;
+
+		if (debug)
+		{
+			std::ofstream file("frustumCorners-new.txt");
+			for (auto i = 0; i < 8; ++i)
+			{
+				file << "Corner " << i << " = " << glm::to_string<glm::vec3>(frustumCornersWS[i]) << std::endl;
+			}
+
+			file << "center = " << glm::to_string<glm::vec3>(frustumCenterWS) << std::endl;
+		}
+
+		//float far = -INFINITY;
+		//float near = INFINITY;
+
+		// calc sphere that tightly encloses the frustum
+		// We use the max distance from the frustum center to the corners
+		// TODO Actually should the distance ot all corners be the same???
+		float radius = 0.0f;
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			float distance = glm::length(frustumCornersWS[i] - frustumCenterWS);
+			radius = std::max<float>(radius, distance);
+		}
+		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
+
+		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
+		glm::vec3 minExtents = -maxExtents;
+		glm::vec3 cascadeExtents = maxExtents - minExtents;
+
+
+		//Position the view matrix looking down the center of the frustum with the light direction
+		// We multiply the normalized light direction by radius so that nothing of the shadow map gets clipped
+		glm::vec3 lightPositionWS = frustumCenterWS - normalize(lightDirection) * radius;
+		mLightViewMatrix = glm::mat4(1.0f);
+		mLightViewMatrix = glm::lookAt(lightPositionWS, frustumCenterWS, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		// Calculate the projection matrix by defining the AABB of the cascade (as ortho projection)
+		mLightProjMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
+
+		// Calculate the rounding matrix that ensures that shadow edges do not shimmer
+		// At first we need the shadow space transformation matrix
+		glm::mat4 shadowMatrix = mLightProjMatrix * mLightViewMatrix;
+
+		glm::vec4 shadowOrigin = glm::vec4(100.0f, -333.0f, 0.0f, 1.0f); // The origin in world space; Actually it is irrelevant which reference point we use.
+																	// Just any point in world space
+		shadowOrigin = shadowMatrix * shadowOrigin; // Get the shadow space coordinates of the sample point
+		shadowOrigin = shadowOrigin * mShadowMapSize / 2.0f; // Todo: Why multiply by  mShadowMapSize / 2.0f ?
+
+		glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+		glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+		roundOffset = roundOffset * 2.0f / mShadowMapSize; //  2.0f / mShadowMapSize probably reverses previous mShadowMapSize / 2.0f mulitplication
+		roundOffset.z = 0.0f;
+		roundOffset.w = 0.0f;
+
+		glm::mat4 shadowProj = mLightProjMatrix;
+		shadowProj[3] += roundOffset; // adjust translation in (x,y) plane
+		mLightProjMatrix = shadowProj;
+
+		//Store the split distances and the relevant matrices
+		//const float clipDist = clipRange;
+		//mCascadeData.cascadedSplits[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
+	}
+}
+
+void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirection)
+{
+	mCascadeData.inverseViewMatrix = inverse(camera->getView());
+
+	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
+
+	//Start off by calculating the split distances
+	float cascadeSplits[NUM_CASCADES] = { 0 };
+
+	//Between 0 and 1, change in order to see the results
+	float lambda = 1.0f;
+	//Between 0 and 1, change these to check the results
+	float minDistance = 0.0f;
+	float maxDistance = 1.0f;
+
+
+	float nearClip = frustum.nearPlane;
+	float farClip = frustum.farPlane;
+	float clipRange = farClip - nearClip;
+
+	float minZ = nearClip + minDistance * clipRange;
+	float maxZ = nearClip + maxDistance * clipRange;
+
+	float range = maxZ - minZ;
+	float ratio = maxZ / minZ;
+
+	// We calculate the splitting planes of the view frustum by using an algorithm 
+	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
+	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
+	{
+		float p = (i + 1) / static_cast<float>(NUM_CASCADES);
+		float log = minZ * std::pow(ratio, p);
+		float uniform = minZ + range * p;
+		float d = lambda * (log - uniform) + uniform;
+		cascadeSplits[i] = (d - nearClip) / clipRange;
+	}
+
+	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
+	{
+
+		float prevSplitDistance = cascadeIterator == 0 ? minDistance : cascadeSplits[cascadeIterator - 1];
+		float splitDistance = cascadeSplits[cascadeIterator];
+
+		// At first we define the frustum corners in NDC space
+		glm::vec3 frustumCornersWS[8] =
+		{
+			glm::vec3(-1.0f,  1.0f, -1.0f),
+			glm::vec3(1.0f,  1.0f, -1.0f),
+			glm::vec3(1.0f, -1.0f, -1.0f),
+			glm::vec3(-1.0f, -1.0f, -1.0f),
+			glm::vec3(-1.0f,  1.0f,  1.0f),
+			glm::vec3(1.0f,  1.0f,  1.0f),
+			glm::vec3(1.0f, -1.0f,  1.0f),
+			glm::vec3(-1.0f, -1.0f,  1.0f),
+		};
+
+		// Now we transform the frustum corners back to world space
+		glm::mat4 invViewProj = glm::inverse(camera->getPerspProjection() * camera->getView());
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			glm::vec4 inversePoint = invViewProj * glm::vec4(frustumCornersWS[i], 1.0f);
+			frustumCornersWS[i] = glm::vec3(inversePoint / inversePoint.w);
+		}
+
+		// Calculate rays that define the near and far plane of each cascade split.
+		// Than we translate the frustum corner accordingly so that the frustum starts at the near splitting plane
+		// and ends at the far splitting plane.
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			glm::vec3 cornerRay = frustumCornersWS[i + 4] - frustumCornersWS[i];
+			glm::vec3 nearCornerRay = cornerRay * prevSplitDistance;
+			glm::vec3 farCornerRay = cornerRay * splitDistance;
+			frustumCornersWS[i + 4] = frustumCornersWS[i] + farCornerRay;
+			frustumCornersWS[i] = frustumCornersWS[i] + nearCornerRay;
+		}
+
+		// calc center of the frustum
+		glm::vec3 frustumCenter = glm::vec3(0.0f);
+		for (unsigned int i = 0; i < 8; ++i)
+			frustumCenter += frustumCornersWS[i];
+		frustumCenter /= 8.0f;
+
+		//float far = -INFINITY;
+		//float near = INFINITY;
+
+		static bool debug = true;
+
+		if (debug)
+		{
+			std::ofstream file("frustumCorners-old.txt");
+			for (auto i = 0; i < 8; ++i)
+			{
+				file << "Corner " << i << " = " << glm::to_string<glm::vec3>(frustumCornersWS[i]) << std::endl;
+			}
+
+			file << "center = " << glm::to_string<glm::vec3>(frustumCenter) << std::endl;
+		}
+
+		// calc sphere that tightly encloses the frustum
+		// We use the max distance from the frustum center to the corners
+		// TODO Actually should the distance ot all corners be the same???
+		float radius = 0.0f;
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			float distance = glm::length(frustumCornersWS[i] - frustumCenter);
+			radius = std::max<float>(radius, distance);
+		}
+		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
+
+		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
+		glm::vec3 minExtents = -maxExtents;
+		glm::vec3 cascadeExtents = maxExtents - minExtents;
+
+
+		//Position the view matrix looking down the center of the frustum with the light direction
+		// We multiply the normalized light direction by radius so that nothing of the shadow map gets clipped
+		glm::vec3 lightPositionWS = frustumCenter - normalize(lightDirection) * radius;
+		mLightViewMatrix = glm::mat4(1.0f);
+		mLightViewMatrix = glm::lookAt(lightPositionWS, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		// Calculate the projection matrix by defining the AABB of the cascade (as ortho projection)
+		mLightProjMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
+
+		// Calculate the rounding matrix that ensures that shadow edges do not shimmer
+		// At first we need the shadow space transformation matrix
+		glm::mat4 shadowMatrix = mLightProjMatrix * mLightViewMatrix;
+
+		glm::vec4 shadowOrigin = glm::vec4(100.0f, -333.0f, 0.0f, 1.0f); // The origin in world space; Actually it is irrelevant which reference point we use.
+																	// Just any point in world space
+		shadowOrigin = shadowMatrix * shadowOrigin; // Get the shadow space coordinates of the sample point
+		shadowOrigin = shadowOrigin * mShadowMapSize / 2.0f; // Todo: Why multiply by  mShadowMapSize / 2.0f ?
+
+		glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+		glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+		roundOffset = roundOffset * 2.0f / mShadowMapSize; //  2.0f / mShadowMapSize probably reverses previous mShadowMapSize / 2.0f mulitplication
+		roundOffset.z = 0.0f;
+		roundOffset.w = 0.0f;
+
+		glm::mat4 shadowProj = mLightProjMatrix;
+		shadowProj[3] += roundOffset; // adjust translation in (x,y) plane
+		mLightProjMatrix = shadowProj;
+
+		//Store the split distances and the relevant matrices
+		const float clipDist = clipRange;
+		mCascadeData.cascadedFarPlanesVS[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
+	}
+}
+
 void CascadedShadow::calcSplitSchemes(Camera* camera)
 {
 	calcSplitDistances(camera);
@@ -192,15 +442,15 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 {
 	const auto& position = camera->getPosition();
 	const auto& up = glm::vec3(0,1,0);//camera->getUp();
-	const auto& look = glm::vec3(0,0,-1);//camera->getLook();
-	const auto& left = glm::vec3(1,0,0);//camera->getRight();
+	const auto& look = glm::vec3(0,0,1);//camera->getLook();
+	const auto& left = glm::vec3(-1,0,0);//camera->getRight();
 
 	const float aspectRatio = camera->getAspectRatio();
 	const float fov = glm::radians(camera->getFOV());
 
 	// Calculate the tangent values (this can be cached
 	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
-	const float tanFOVY = tanf(aspectRatio / 2.0f);
+	const float tanFOVY = tanf(fov / 2.0f);
 
 
 	// Calculate the points on the near plane
@@ -294,103 +544,7 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 
 void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
 {
-	const float minDistance = 0.0f;
-	const float cameraNearPlaneVS = -camera->getFrustum(ProjectionMode::Perspective).nearPlane;
-	calcSplitSchemes(camera);
-	mCascadeData.inverseViewMatrix = inverse(camera->getView());
-
-	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
-	{
-
-		//float prevSplitDistance = cascadeIterator == 0 ? minDistance : mCascadeData.cascadedSplits[cascadeIterator - 1].x;
-		//float splitDistance = cascadeSplits[cascadeIterator];
-
-		// the far plane of the previous cascade is the near plane of the current cascade
-		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanesVS[cascadeIterator - 1].x;
-		float farPlane = mCascadeData.cascadedFarPlanesVS[cascadeIterator].x;
-
-		glm::vec3 frustumCornersVS[8];
-		// extracts frustum points in view space
-		extractFrustumPoints(camera, nearPlane, farPlane, frustumCornersVS);
-
-		// calc center of the frustum
-		glm::vec3 frustumCornersWS[8];
-		glm::vec3 frustumCenterWS = glm::vec3(0.0f);
-		for (unsigned int i = 0; i < 8; ++i)
-		{
-			// transform point to world space and add it to center
-			frustumCornersWS[i] = mCascadeData.inverseViewMatrix * glm::vec4(frustumCornersVS[i], 0.0f);
-			frustumCenterWS += frustumCornersWS[i];
-		}
-			
-		frustumCenterWS /= 8.0f;
-
-
-		static bool debug = false;
-
-		if (debug)
-		{
-			std::ofstream file("frustumCorners.txt");
-			for (auto i = 0; i < 8; ++i)
-			{
-				file << "Corner " << i << " = " << glm::to_string<glm::vec3>(frustumCornersWS[i]) << std::endl;
-			}
-
-			file << "center = " << glm::to_string<glm::vec3>(frustumCenterWS) << std::endl;
-		}
-
-		//float far = -INFINITY;
-		//float near = INFINITY;
-
-		// calc sphere that tightly encloses the frustum
-		// We use the max distance from the frustum center to the corners
-		// TODO Actually should the distance ot all corners be the same???
-		float radius = 0.0f;
-		for (unsigned int i = 0; i < 8; ++i)
-		{
-			float distance = glm::length(frustumCornersWS[i] - frustumCenterWS);
-			radius = std::max<float>(radius, distance);
-		}
-		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
-
-		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
-		glm::vec3 minExtents = -maxExtents;
-		glm::vec3 cascadeExtents = maxExtents - minExtents;
-
-
-		//Position the view matrix looking down the center of the frustum with the light direction
-		// We multiply the normalized light direction by radius so that nothing of the shadow map gets clipped
-		glm::vec3 lightPositionWS = frustumCenterWS - normalize(lightDirection) * radius;
-		mLightViewMatrix = glm::mat4(1.0f);
-		mLightViewMatrix = glm::lookAt(lightPositionWS, frustumCenterWS, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		// Calculate the projection matrix by defining the AABB of the cascade (as ortho projection)
-		mLightProjMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
-
-		// Calculate the rounding matrix that ensures that shadow edges do not shimmer
-		// At first we need the shadow space transformation matrix
-		glm::mat4 shadowMatrix = mLightProjMatrix * mLightViewMatrix;
-
-		glm::vec4 shadowOrigin = glm::vec4(100.0f, -333.0f, 0.0f, 1.0f); // The origin in world space; Actually it is irrelevant which reference point we use.
-																	// Just any point in world space
-		shadowOrigin = shadowMatrix * shadowOrigin; // Get the shadow space coordinates of the sample point
-		shadowOrigin = shadowOrigin * mShadowMapSize / 2.0f; // Todo: Why multiply by  mShadowMapSize / 2.0f ?
-
-		glm::vec4 roundedOrigin = glm::round(shadowOrigin);
-		glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-		roundOffset = roundOffset * 2.0f / mShadowMapSize; //  2.0f / mShadowMapSize probably reverses previous mShadowMapSize / 2.0f mulitplication
-		roundOffset.z = 0.0f;
-		roundOffset.w = 0.0f;
-
-		glm::mat4 shadowProj = mLightProjMatrix;
-		shadowProj[3] += roundOffset; // adjust translation in (x,y) plane
-		mLightProjMatrix = shadowProj;
-
-		//Store the split distances and the relevant matrices
-		//const float clipDist = clipRange;
-		//mCascadeData.cascadedSplits[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
-		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
-	}
+	frameUpdateNew(camera, lightDirection);
 }
 
 const glm::mat4& CascadedShadow::getLightProjectionMatrix() const

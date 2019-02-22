@@ -72,6 +72,9 @@ namespace nex
 			float radius;
 		};
 
+		void frameUpdateNew(Camera* camera, const glm::vec3& lightDirection);
+		void frameUpdateOld(Camera* camera, const glm::vec3& lightDirection);
+
 
 		void calcSplitSchemes(Camera* camera);
 		void calcSplitDistances(Camera* camera);
