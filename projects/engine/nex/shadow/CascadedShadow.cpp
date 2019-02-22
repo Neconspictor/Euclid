@@ -3,6 +3,9 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/RenderBackend.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include "nex/FileSystem.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 using namespace nex;
 
 CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight) :
@@ -321,6 +324,20 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		}
 			
 		frustumCenterWS /= 8.0f;
+
+
+		static bool debug = false;
+
+		if (debug)
+		{
+			std::ofstream file("frustumCorners.txt");
+			for (auto i = 0; i < 8; ++i)
+			{
+				file << "Corner " << i << " = " << glm::to_string<glm::vec3>(frustumCornersWS[i]) << std::endl;
+			}
+
+			file << "center = " << glm::to_string<glm::vec3>(frustumCenterWS) << std::endl;
+		}
 
 		//float far = -INFINITY;
 		//float near = INFINITY;
