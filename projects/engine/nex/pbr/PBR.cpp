@@ -266,6 +266,12 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 
 
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(2048, 2048, textureData);
+	RenderAttachment depth;
+	depth.target = TextureTarget::TEXTURE2D;
+	depth.texture = std::make_unique<RenderBuffer>(2048, 2048, InternFormat::DEPTH24);
+	depth.type = RenderAttachment::Type::DEPTH;
+	cubeRenderTarget->useDepthAttachment(depth);
+	cubeRenderTarget->updateDepthAttachment();
 
 	static auto* shaderManager = ShaderManager::get();
 	static auto* renderBackend = RenderBackend::get();
@@ -290,7 +296,7 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 	};
 
 	
-	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	
 
 
 	/*TextureGL* gl = (TextureGL*)cubeRenderTarget->getTexture()->getImpl();
@@ -301,6 +307,10 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0x100000, GL_DEBUG_SEVERITY_NOTIFICATION, 0, "This is a test!");
+	cubeRenderTarget->bind();
+	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+
 
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
@@ -351,7 +361,9 @@ std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
 	};
 
+	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 	for (int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
@@ -405,6 +417,8 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
 	};
 
+
+	prefilterRenderTarget->bind();
 	unsigned int maxMipLevels = 5;
 
 	for (unsigned int mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
@@ -420,6 +434,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 		unsigned int width = prefilterRenderTarget->getWidthMipLevel(mipLevel);
 		unsigned int height = prefilterRenderTarget->getHeightMipLevel(mipLevel);
 		renderBackend->setViewPort(0, 0, width, height);
+		renderBackend->setScissor(0, 0, width, height);
 
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
@@ -447,15 +462,23 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 		InternFormat::RG32F, 
 		false};
 
+	TextureData depthData = TextureData::createDepth(CompareFunction::LESS,
+		ColorSpace::DEPTH_STENCIL,
+		PixelDataType::UNSIGNED_INT_24_8,
+		InternFormat::DEPTH24_STENCIL8);
+
 	static auto* renderBackend = RenderBackend::get();
 	static auto* shaderManager = ShaderManager::get();
 
-	auto target = renderBackend->create2DRenderTarget(1024, 1024, data);
+	//auto target = renderBackend->create2DRenderTarget(1024, 1024, data, depthData, 1);
+	auto target = std::make_unique<RenderTarget2D>(1024, 1024, data);
 
 	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = reinterpret_cast<PBR_BrdfPrecomputeShader*>
 		(shaderManager->getShader(ShaderType::Pbr_BrdfPrecompute));
 
 	target->bind();
+	renderBackend->setViewPort(0, 0, 1024, 1024);
+	renderBackend->setScissor(0, 0, 1024, 1024);
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	Sprite sprite;
@@ -475,7 +498,11 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	StaticMeshDrawer::draw(&sprite, brdfPrecomputeShader);
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
-	return std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
+	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
+
+	target->getColorAttachments()[0].texture = nullptr;
+	target->updateColorAttachment(0);
+	return result;
 }
 
 void PBR::init(Texture* backgroundHDR)
@@ -586,7 +613,7 @@ void PBR::init(Texture* backgroundHDR)
 
 	
 
-	if (std::filesystem::exists("brdfLUT.NeXImage"))
+	if (std::filesystem::exists("brdfLUT.NeXImage") && false)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "brdfLUT.NeXImage");

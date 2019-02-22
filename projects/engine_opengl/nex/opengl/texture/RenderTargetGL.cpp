@@ -94,7 +94,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 void nex::CubeRenderTargetGL::useSide(CubeMapSide side, unsigned mipLevel)
 {
 	//TODO
-	//bind();
+	bind();
 
 	const unsigned index = 0;
 
@@ -104,7 +104,7 @@ void nex::CubeRenderTargetGL::useSide(CubeMapSide side, unsigned mipLevel)
 	updateColorAttachment(index);
 	
 	//TODO
-	//GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+	GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
 /*nex::CubeMapGL * nex::CubeRenderTargetGL::createCopy()
@@ -171,15 +171,27 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube render target!"));
 	}
 
-	auto renderBuffer = dynamic_cast<RenderBufferGL*>(mDepthAttachment.texture->getImpl());
-
 	bind();
 
 	unsigned int mipWidth = (unsigned int)(mWidth * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(mHeight * std::pow(0.5, mipMapLevel));
-	renderBuffer->resize(mipWidth, mipHeight);
 
-	updateDepthAttachment();
+	if (mDepthAttachment.texture)
+	{
+		TextureGL* impl = (TextureGL*)mDepthAttachment.texture->getImpl();
+		auto renderBuffer = dynamic_cast<RenderBufferGL*>(impl);
+		auto texture2D = dynamic_cast<Texture2DGL*>(impl);
+
+		if (renderBuffer)
+		{
+			renderBuffer->resize(mipWidth, mipHeight);
+		} else if (texture2D)
+		{
+			texture2D->resize(mipWidth, mipHeight);
+		}
+
+		updateDepthAttachment();
+	}
 
 	//TODO validate!
 	//GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, texture));
@@ -523,7 +535,7 @@ bool nex::RenderTargetGL::isArrayTarget(GLenum target)
 
 void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) const
 {
-	if (attachment.type == RenderAttachment::Type::COLOR)
+	if (attachment.type == RenderAttachment::Type::COLOR && (attachment.texture != nullptr))
 	{
 		// check that there is no other color attachment with the same color attach index
 		const auto* firstFound = getByIndex(attachment.colorAttachIndex);
@@ -564,7 +576,14 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
 		//GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, textureID, 0);
-	} else
+	} else if (textureTarget == GL_TEXTURE_CUBE_MAP)
+	{
+
+		auto glSide  = GL_TEXTURE_CUBE_MAP_POSITIVE_X + getLayerFromCubeMapSide(attachment.side);
+		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, glSide, textureID, attachment.mipmapLevel));
+	}
+	
+	else
 	{
 		GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
 	}

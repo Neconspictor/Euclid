@@ -155,7 +155,7 @@ namespace nex
 	class TextureGL : public TextureImpl
 	{
 	public:
-		explicit TextureGL();
+		explicit TextureGL(GLuint target);
 		TextureGL(GLuint texture, GLuint target);
 
 		virtual ~TextureGL();

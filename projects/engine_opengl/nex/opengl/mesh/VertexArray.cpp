@@ -69,12 +69,13 @@ namespace nex
 		for (unsigned int i = 0; i < elements.size(); ++i)
 		{
 			const auto& elem = elements[i];
-			GLCall(glEnableVertexAttribArray(i));
+			
 			GLCall(
 				glVertexAttribPointer(i, elem.count, translate(elem.type),
 					elem.normalized, layout.getStride(), (GLvoid*)offset)
-			);
+			); //layout.getStride() TODO
 			offset += elem.count * LayoutElement::getSizeOfType(elem.type);
+			GLCall(glEnableVertexAttribArray(i));
 		}
 
 		//buffer.unbind();

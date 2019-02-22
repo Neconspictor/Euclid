@@ -87,15 +87,13 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : TextureGL(), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : TextureGL(GL_TEXTURE_CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
 	auto internalFormat = nex::translate(data.internalFormat);
 	auto colorspace = nex::translate(data.colorspace);
 	auto pixelDataType = nex::translate(data.pixelDataType);
 
-	const GLuint target = GL_TEXTURE_CUBE_MAP;
-
-	TextureGL::generateTexture(&mTextureID, data, target);
+	TextureGL::generateTexture(&mTextureID, data, mTarget);
 
 	for (int i = 0; i < 6; ++i)
 	{
@@ -310,7 +308,7 @@ void nex::Texture::setImpl(std::unique_ptr<TextureImpl> impl)
 	mImpl = std::move(impl);
 }
 
-nex::TextureGL::TextureGL() : mTextureID(GL_FALSE), mTarget(GL_FALSE)
+nex::TextureGL::TextureGL(GLuint target) : mTextureID(GL_FALSE), mTarget(target)
 {
 }
 
@@ -327,7 +325,7 @@ nex::TextureGL::~TextureGL()
 std::unique_ptr<nex::TextureGL> nex::TextureGL::createView(TextureGL* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
 	unsigned minLayer, unsigned numLayers, const TextureData& data)
 {
-	auto result = make_unique<TextureGL>();
+	auto result = make_unique<TextureGL>(original->getTarget());
 	// TODO check whether target and the target of the original texture are compatible!
 	const GLenum targetGL = translate(target);
 
