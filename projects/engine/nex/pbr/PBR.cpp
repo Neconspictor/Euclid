@@ -613,7 +613,7 @@ void PBR::init(Texture* backgroundHDR)
 
 	
 
-	if (std::filesystem::exists("brdfLUT.NeXImage") && false)
+	if (std::filesystem::exists("brdfLUT.NeXImage"))
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "brdfLUT.NeXImage");
