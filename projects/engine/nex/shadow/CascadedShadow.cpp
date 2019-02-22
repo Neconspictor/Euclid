@@ -130,17 +130,15 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanesVS[cascadeIterator - 1].x;
 		float farPlane = mCascadeData.cascadedFarPlanesVS[cascadeIterator].x;
 
-		glm::vec3 frustumCornersVS[8];
+		glm::vec3 frustumCornersWS[8];
 		// extracts frustum points in view space
-		extractFrustumPoints(camera, nearPlane, farPlane, frustumCornersVS);
+		extractFrustumPoints(camera, nearPlane, farPlane, frustumCornersWS);
 
 		// calc center of the frustum
-		glm::vec3 frustumCornersWS[8];
 		glm::vec3 frustumCenterWS = glm::vec3(0.0f);
 		for (unsigned int i = 0; i < 8; ++i)
 		{
 			// transform point to world space and add it to center
-			frustumCornersWS[i] = mCascadeData.inverseViewMatrix * glm::vec4(frustumCornersVS[i], 1.0f);
 			frustumCenterWS += frustumCornersWS[i];
 		}
 
@@ -440,10 +438,14 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 
 void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float farPlane, glm::vec3(& frustumCorners)[8])
 {
+
+	nearPlane = -nearPlane;
+	farPlane = -farPlane;
+
 	const auto& position = camera->getPosition();
-	const auto& up = glm::vec3(0,1,0);//camera->getUp();
-	const auto& look = glm::vec3(0,0,1);//camera->getLook();
-	const auto& left = glm::vec3(-1,0,0);//camera->getRight();
+	const auto& up = camera->getUp(); // glm::vec3(0,1,0);
+	const auto& look = camera->getLook(); // glm::vec3(0,0,1);
+	const auto& left = -camera->getRight(); // glm::vec3(-1,0,0);
 
 	const float aspectRatio = camera->getAspectRatio();
 	const float fov = glm::radians(camera->getFOV());
@@ -454,16 +456,16 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 
 
 	// Calculate the points on the near plane
-	frustumCorners[0] = (-left * tanFOVX + up * tanFOVY + look) * nearPlane;
-	frustumCorners[1] = (left * tanFOVX + up * tanFOVY + look) * nearPlane;
-	frustumCorners[2] = (left * tanFOVX - up * tanFOVY + look) * nearPlane;
-	frustumCorners[3] = (-left * tanFOVX - up * tanFOVY + look) * nearPlane;
+	frustumCorners[0] = position + (-left * tanFOVX + up * tanFOVY + look) * nearPlane;
+	frustumCorners[1] = position + (left * tanFOVX + up * tanFOVY + look) * nearPlane;
+	frustumCorners[2] = position + (left * tanFOVX - up * tanFOVY + look) * nearPlane;
+	frustumCorners[3] = position + (-left * tanFOVX - up * tanFOVY + look) * nearPlane;
 
 	// Calculate the points on the far plane
-	frustumCorners[4] = (-left * tanFOVX + up * tanFOVY + look) * farPlane;
-	frustumCorners[5] = (left * tanFOVX + up * tanFOVY + look) * farPlane;
-	frustumCorners[6] = (left * tanFOVX - up * tanFOVY + look) * farPlane;
-	frustumCorners[7] = (-left * tanFOVX - up * tanFOVY + look) * farPlane;
+	frustumCorners[4] = position + (-left * tanFOVX + up * tanFOVY + look) * farPlane;
+	frustumCorners[5] = position + (left * tanFOVX + up * tanFOVY + look) * farPlane;
+	frustumCorners[6] = position + (left * tanFOVX - up * tanFOVY + look) * farPlane;
+	frustumCorners[7] = position + (-left * tanFOVX - up * tanFOVY + look) * farPlane;
 
 
 
