@@ -244,29 +244,60 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	TextureGL::generateTexture(&textureID, data, bindTarget);
 	GLCall(glBindTexture(bindTarget, textureID));
 
+	const auto baseWidth = store.images[0]->width;
+	const auto baseHeight = store.images[0]->height;
+	const auto size = std::min<unsigned>(baseWidth, baseHeight);
+	const auto maxMipMapCount = Texture::getMipMapCount(size);
+
 	if (isCubeMap)
 	{
 		for (unsigned int i = 0; i < store.sideCount; ++i)
 		{
-			for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[i]; ++mipMapLevel)
+
+			const auto mipMapCount = store.mipmapCounts[i];
+			for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
 			{
 				auto& image = store.images[i][mipMapLevel];
 				GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
 			}
 
+			// Has the texture non base mipmaps?
+			if (mipMapCount > 1)
+			{
+				// NOTE: opengl needs a complete mipmap chain in order to work properly; otherwise mipmaps aren't used
+				for (unsigned mipMapLevel = store.mipmapCounts[i]; mipMapLevel < maxMipMapCount; ++mipMapLevel)
+				{
+					const auto divisor = std::pow<unsigned>(2, mipMapLevel);
+					GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, baseWidth / divisor, baseHeight / divisor, 0, format, pixelDataType, nullptr));
+				}
+			}
 		}
 	}
 	else
 	{
-		for (unsigned mipMapLevel = 0; mipMapLevel < store.mipmapCounts[0]; ++mipMapLevel)
+
+		const auto mipMapCount = store.mipmapCounts[0];
+
+		for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
 		{
 			auto& image = store.images[0][mipMapLevel];
 			GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
 		}
+
+		// Has the texture non base mipmaps?
+		if (mipMapCount > 1)
+		{
+			// NOTE: opengl needs a complete mipmap chain in order to work properly; otherwise mipmaps aren't used
+			for (unsigned mipMapLevel = mipMapCount; mipMapLevel < maxMipMapCount; ++mipMapLevel)
+			{
+				const auto divisor = std::pow<unsigned>(2, mipMapLevel);
+				GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, baseWidth / divisor, baseHeight / divisor, 0, format, pixelDataType, nullptr));
+			}
+		}
 	}
 
 
-	if (data.generateMipMaps)
+	if (data.generateMipMaps &&  store.mipmapCounts[0] == 1)
 	{
 		GLCall(glGenerateMipmap(bindTarget));
 	}

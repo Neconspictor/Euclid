@@ -197,8 +197,9 @@ StoreImage PBR::readConvolutedEnvMapPixelData()
 		for (unsigned level = 0; level < store.mipmapCounts[i]; ++level)
 		{
 			GenericImage& data = store.images[i][level];
-			data.width = getConvolutedEnvironmentMap()->getSideWidth();
-			data.height = getConvolutedEnvironmentMap()->getSideHeight();
+			unsigned mipMapDivisor = std::pow(2, level);
+			data.width = getConvolutedEnvironmentMap()->getSideWidth() / mipMapDivisor;
+			data.height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
 			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
@@ -233,8 +234,9 @@ StoreImage PBR::readPrefilteredEnvMapPixelData()
 		for (unsigned level =  0; level < store.mipmapCounts[i]; ++level)
 		{
 			GenericImage& data = store.images[i][level];
-			data.width = getPrefilteredEnvironmentMap()->getSideWidth();
-			data.height = getPrefilteredEnvironmentMap()->getSideHeight();
+			unsigned mipMapDivisor = std::pow(2, level);
+			data.width = getPrefilteredEnvironmentMap()->getSideWidth() / mipMapDivisor;
+			data.height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
 			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
@@ -559,7 +561,7 @@ void PBR::init(Texture* backgroundHDR)
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
-			false
+			true
 		};
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}
@@ -575,7 +577,7 @@ void PBR::init(Texture* backgroundHDR)
 
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage"))
+	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage") && true)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_convolutedEnvMap.NeXImage");
