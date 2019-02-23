@@ -189,7 +189,8 @@ StoreImage PBR::readBackgroundPixelData() const
 StoreImage PBR::readConvolutedEnvMapPixelData()
 {
 	StoreImage store;
-	StoreImage::create(&store, 6, 6); // 6 sides, 32/16/8/4/2/1 = 6 levels
+	// note, that the convoluted environment map has no generated mip maps!
+	StoreImage::create(&store, 6, 1); // 6 sides, 32/16/8/4/2/1 = 6 levels
 
 	for (unsigned i = 0; i < store.sideCount; ++i)
 	{
@@ -446,7 +447,10 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 
 
 	//CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
-	return std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
+	auto result =  std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
+	result->generateMipMaps();
+
+	return result;
 }
 
 std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
@@ -512,7 +516,7 @@ void PBR::init(Texture* backgroundHDR)
 	Viewport backup = renderBackend->getViewport();
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
+	if (std::filesystem::exists("pbr_environmentMap.NeXImage") && false)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_environmentMap.NeXImage");
@@ -537,7 +541,7 @@ void PBR::init(Texture* backgroundHDR)
 	}
 
 
-	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage"))
+	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage") && false)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_prefilteredEnvMap.NeXImage");
@@ -567,7 +571,7 @@ void PBR::init(Texture* backgroundHDR)
 
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage"))
+	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage") && false)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_convolutedEnvMap.NeXImage");
@@ -593,6 +597,7 @@ void PBR::init(Texture* backgroundHDR)
 	}
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
+	renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
 
 
 	// setup sprite for brdf integration lookup texture
@@ -613,7 +618,7 @@ void PBR::init(Texture* backgroundHDR)
 
 	
 
-	if (std::filesystem::exists("brdfLUT.NeXImage"))
+	if (std::filesystem::exists("brdfLUT.NeXImage") && false)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "brdfLUT.NeXImage");
