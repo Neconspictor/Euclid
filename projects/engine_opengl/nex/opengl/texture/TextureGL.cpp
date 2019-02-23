@@ -297,6 +297,18 @@ nex::TextureImpl* nex::Texture::getImpl() const
 	return mImpl.get();
 }
 
+unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
+{
+	unsigned count = 0;
+	while(levelZeroMipMap > 0)
+	{
+		levelZeroMipMap /= 2;
+		++count;
+	}
+
+	return count;
+}
+
 void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, CubeMapSide side)
 {
 	auto gl = (TextureGL*)getImpl();

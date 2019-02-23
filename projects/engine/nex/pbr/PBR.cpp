@@ -222,7 +222,11 @@ StoreImage PBR::readConvolutedEnvMapPixelData()
 StoreImage PBR::readPrefilteredEnvMapPixelData()
 {
 	StoreImage store;
-	StoreImage::create(&store, 6, 9); // 6 sides, 256/128/64/32/16/8/4/2/1 = 9 mipmap textures
+	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
+	auto mipMapCount = Texture::getMipMapCount(size);
+
+	// Note: we produced only 5 mip map levels instead of possible 9 (for 256 width/height)
+	StoreImage::create(&store, 6, 5);
 
 	for (unsigned i = 0; i < store.sideCount; ++i)
 	{
@@ -448,7 +452,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 
 	//CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
 	auto result =  std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
-	result->generateMipMaps();
+	//result->generateMipMaps();
 
 	return result;
 }
@@ -541,7 +545,7 @@ void PBR::init(Texture* backgroundHDR)
 	}
 
 
-	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage") && false)
+	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage"))
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_prefilteredEnvMap.NeXImage");
