@@ -520,7 +520,7 @@ void PBR::init(Texture* backgroundHDR)
 	Viewport backup = renderBackend->getViewport();
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_environmentMap.NeXImage") && false)
+	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_environmentMap.NeXImage");
@@ -545,7 +545,7 @@ void PBR::init(Texture* backgroundHDR)
 	}
 
 
-	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage"))
+	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage") && true)
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_prefilteredEnvMap.NeXImage");
@@ -559,7 +559,7 @@ void PBR::init(Texture* backgroundHDR)
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
-			true
+			false
 		};
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}
@@ -575,7 +575,7 @@ void PBR::init(Texture* backgroundHDR)
 
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage") && false)
+	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage"))
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "pbr_convolutedEnvMap.NeXImage");
@@ -589,7 +589,7 @@ void PBR::init(Texture* backgroundHDR)
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
-			true };
+			false };
 
 		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}
@@ -622,7 +622,7 @@ void PBR::init(Texture* backgroundHDR)
 
 	
 
-	if (std::filesystem::exists("brdfLUT.NeXImage") && false)
+	if (std::filesystem::exists("brdfLUT.NeXImage"))
 	{
 		StoreImage readImage;
 		StoreImage::load(&readImage, "brdfLUT.NeXImage");
