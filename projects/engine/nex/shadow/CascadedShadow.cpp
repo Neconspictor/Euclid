@@ -116,9 +116,33 @@ void CascadedShadow::updateTextureArray()
 void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirection)
 {
 	const float minDistance = 0.0f;
-	const float cameraNearPlaneVS = camera->getFrustum(ProjectionMode::Perspective).nearPlane;
+	const Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
+	const float cascadeTotalRange = frustum.farPlane - frustum.nearPlane;
+	const float cameraNearPlaneVS = frustum.nearPlane;
 	calcSplitSchemes(camera);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
+
+	// Find the view matrix
+	const glm::vec3 cameraFrustumCenterWS = camera->getPosition() + camera->getLook() * cascadeTotalRange * 0.5f;
+	const glm::vec3 lookAt = cameraFrustumCenterWS + lightDirection * frustum.farPlane;
+	glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(1.0f, 0.0f, 0.0f)));
+	if (glm::length(upVec) < 0.999f)
+	{
+		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
+	}
+
+	const glm::mat4 shadowView = glm::lookAt(cameraFrustumCenterWS, lookAt, upVec);
+
+
+	// Get the bounds for the shadow space
+	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
+	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius, 
+		-shadowBounds.radius, shadowBounds.radius, 
+		-shadowBounds.radius, shadowBounds.radius);
+
+	// The combined transformation from world to shadow space
+	const glm::mat4 worldToShadowSpace = shadowView * shadowProj;
+
 
 	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
 	{
@@ -128,7 +152,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 
 		// the far plane of the previous cascade is the near plane of the current cascade
 		const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
-		float farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
+		const float farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
 
 		glm::vec3 frustumCornersWS[8];
 		// extracts frustum points in view space
@@ -171,6 +195,12 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 			radius = std::max<float>(radius, distance);
 		}
 		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
+
+
+		auto boundingSphere = extractFrustumBoundSphere(camera, nearPlane, farPlane);
+
+		radius = boundingSphere.radius;
+		frustumCenterWS = boundingSphere.center;
 
 		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
 		glm::vec3 minExtents = -maxExtents;
@@ -321,6 +351,7 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 		}
 		radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
 
+
 		glm::vec3 maxExtents = glm::vec3(radius, radius, radius);
 		glm::vec3 minExtents = -maxExtents;
 		glm::vec3 cascadeExtents = maxExtents - minExtents;
@@ -449,6 +480,7 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 	// Calculate the tangent values (this can be cached
 	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
 	const float tanFOVY = tanf(fov / 2.0f);
+
 
 
 	// Calculate the points on the near plane
