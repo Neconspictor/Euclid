@@ -71,11 +71,18 @@ namespace nex
 			float radius;
 		};
 
+		struct GlobalShadow
+		{
+			glm::mat4 worldToShadowSpace;
+			glm::mat4 shadowView;
+			float radius;
+		};
+
 		void frameUpdateNew(Camera* camera, const glm::vec3& lightDirection);
 		void frameUpdateOld(Camera* camera, const glm::vec3& lightDirection);
 
 
-		glm::mat4 calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
+		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
 		void calcSplitSchemes(Camera* camera);
 		void calcSplitDistances(Camera* camera);
 		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearPlane, float farPlane);
