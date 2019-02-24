@@ -58,7 +58,6 @@ namespace nex
 
 		CascadeData* getCascadeData();
 
-		const glm::mat4& getLightProjectionMatrix() const;
 		Shader* getDepthPassShader();
 
 
@@ -97,9 +96,6 @@ namespace nex
 		RenderTarget mRenderTarget;
 
 	protected:
-		glm::mat4 mLightViewMatrix;
-		glm::mat4 mLightProjMatrix;
-
 		unsigned int mCascadeWidth;
 		unsigned int mCascadeHeight;
 
