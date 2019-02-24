@@ -418,12 +418,12 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 	const auto& right = camera->getRight();
 
 
-	const float aspectRatio = glm::radians(camera->getAspectRatio());
+	const float aspectRatio = camera->getAspectRatio();
 	const float fov = glm::radians(camera->getFOV());
 
 	// Calculate the tangent values (this can be cached as long as the FOV doesn't change)
-	const float tanFOVX = tanf(aspectRatio * fov);
-	const float tanFOVY = tanf(aspectRatio);
+	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
+	const float tanFOVY = tanf(fov / 2.0f);
 
 	// The center of the sphere is in the center of the frustum
 	const auto boundCenter = position + look * (nearPlane + 0.5f * (nearPlane + farPlane));
@@ -441,7 +441,7 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 	const auto& position = camera->getPosition();
 	const auto& up = camera->getUp(); // glm::vec3(0,1,0);
 	const auto& look = camera->getLook(); // glm::vec3(0,0,1);
-	const auto& left = -camera->getRight(); // glm::vec3(-1,0,0);
+	const auto& right = camera->getRight(); // glm::vec3(-1,0,0);
 
 	const float aspectRatio = camera->getAspectRatio();
 	const float fov = glm::radians(camera->getFOV());
@@ -452,52 +452,16 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 
 
 	// Calculate the points on the near plane
-	frustumCorners[0] = position + (-left * tanFOVX + up * tanFOVY + look) * nearPlane;
-	frustumCorners[1] = position + (left * tanFOVX + up * tanFOVY + look) * nearPlane;
-	frustumCorners[2] = position + (left * tanFOVX - up * tanFOVY + look) * nearPlane;
-	frustumCorners[3] = position + (-left * tanFOVX - up * tanFOVY + look) * nearPlane;
+	frustumCorners[0] = position + (-right * tanFOVX + up * tanFOVY + look) * nearPlane;
+	frustumCorners[1] = position + (right * tanFOVX + up * tanFOVY + look) * nearPlane;
+	frustumCorners[2] = position + (right * tanFOVX - up * tanFOVY + look) * nearPlane;
+	frustumCorners[3] = position + (-right * tanFOVX - up * tanFOVY + look) * nearPlane;
 
 	// Calculate the points on the far plane
-	frustumCorners[4] = position + (-left * tanFOVX + up * tanFOVY + look) * farPlane;
-	frustumCorners[5] = position + (left * tanFOVX + up * tanFOVY + look) * farPlane;
-	frustumCorners[6] = position + (left * tanFOVX - up * tanFOVY + look) * farPlane;
-	frustumCorners[7] = position + (-left * tanFOVX - up * tanFOVY + look) * farPlane;
-
-
-
-	/*// At first we define the frustum corners in NDC space
-	const glm::vec3 frustumCornersNDC[8] =
-	{
-		glm::vec3(-1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f,  1.0f, -1.0f),
-		glm::vec3(1.0f, -1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f, -1.0f),
-		glm::vec3(-1.0f,  1.0f,  1.0f),
-		glm::vec3(1.0f,  1.0f,  1.0f),
-		glm::vec3(1.0f, -1.0f,  1.0f),
-		glm::vec3(-1.0f, -1.0f,  1.0f),
-	};
-
-	// Now we transform the frustum corners back to world space
-	glm::mat4 invViewProj = glm::inverse(camera->getPerspProjection() * camera->getView());
-	for (unsigned int i = 0; i < 8; ++i)
-	{
-		glm::vec4 inversePoint = invViewProj * glm::vec4(frustumCornersNDC[i], 1.0f);
-		frustumCorners[i] = glm::vec3(inversePoint / inversePoint.w);
-	}
-
-	// Calculate rays that define the near and far plane of each cascade split.
-	// Than we translate the frustum corner accordingly so that the frustum starts at the near splitting plane
-	// and ends at the far splitting plane.
-	for (unsigned int i = 0; i < 4; ++i)
-	{
-		glm::vec3 cornerRay = frustumCorners[i + 4] - frustumCorners[i];
-		glm::vec3 nearCornerRay = cornerRay * prevSplitDistance;
-		glm::vec3 farCornerRay = cornerRay * splitDistance;
-		frustumCorners[i + 4] = frustumCorners[i] + farCornerRay;
-		frustumCorners[i] = frustumCorners[i] + nearCornerRay;
-	}*/
-
+	frustumCorners[4] = position + (-right * tanFOVX + up * tanFOVY + look) * farPlane;
+	frustumCorners[5] = position + (right * tanFOVX + up * tanFOVY + look) * farPlane;
+	frustumCorners[6] = position + (right * tanFOVX - up * tanFOVY + look) * farPlane;
+	frustumCorners[7] = position + (-right * tanFOVX - up * tanFOVY + look) * farPlane;
 }
 
 bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,

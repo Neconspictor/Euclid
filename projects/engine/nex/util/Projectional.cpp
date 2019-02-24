@@ -253,7 +253,7 @@ namespace nex
 			calcView();
 			calcPerspFrustum();
 
-			right = normalize(cross(up,look));
+			right = normalize(cross(look, up));
 
 			revalidate = false;
 		}
