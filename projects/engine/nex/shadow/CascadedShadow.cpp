@@ -18,8 +18,7 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	// reset cascade cound centers 
 	for (int i = 0; i < NUM_CASCADES; i++)
 	{
-		m_arrCascadeBoundCenter[i] = glm::vec3(0.0f);
-		m_arrCascadeBoundRadius[i] = 0.0f;
+		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 	}
 
 	updateTextureArray();
@@ -79,8 +78,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	// reset cascade cound centers 
 	for (int i = 0; i < NUM_CASCADES; i++)
 	{
-		m_arrCascadeBoundCenter[i] = glm::vec3(0.0f);
-		m_arrCascadeBoundRadius[i] = 0.0f;
+		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 	}
 
 	updateTextureArray();
@@ -159,7 +157,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		// Only update the cascade bounds if it moved at least a full pixel unit
 		// This makes the transformation invariant to translation
 		glm::vec3 offset;
-		if (cascadeNeedsUpdate(global.shadowView, cascadeIterator, frustumCenterWS, &offset))
+		if (cascadeNeedsUpdate(global.shadowView, cascadeIterator, frustumCenterWS, mCascadeBoundCenters[cascadeIterator], radius, &offset))
 		{
 			// To avoid flickering we need to move the bound center in full units
 			/*D3DXVECTOR3 vOffsetOut;
@@ -167,14 +165,15 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 			m_arrCascadeBoundCenter[iCascadeIdx] += vOffsetOut;*/
 			// NOTE: we don't want translation affect the offset!
 			glm::vec3 offsetWS = glm::mat3(global.shadowView) * offset;
-			m_arrCascadeBoundCenter[cascadeIterator] += offsetWS;
+			mCascadeBoundCenters[cascadeIterator] += offsetWS;
 		}
 
 		// Get the cascade center in shadow space
-		glm::vec3 cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(m_arrCascadeBoundCenter[cascadeIterator], 1.0f));
+		glm::vec3 cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f));
 
 		// Update the translation from shadow to cascade space
 		glm::mat4 cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0f));
+		//glm::mat4 cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 		// Update the scale from shadow to cascade space
 		float scale = global.radius / radius;
@@ -217,7 +216,8 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		//Store the split distances and the relevant matrices
 		//const float clipDist = clipRange;
 		//mCascadeData.cascadedSplits[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
-		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = global.worldToShadowSpace * cascadeTrans * cascadeScale;//cascadeProjMatrix * cascadeViewMatrix;
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTrans * global.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
+		//mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeProjMatrix * cascadeViewMatrix;
 	}
 }
 
@@ -374,24 +374,28 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(Camera* camer
 {
 	const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
 	const float cascadeTotalRange = frustum.farPlane - frustum.nearPlane;
+	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
 
 	// Find the view matrix
 	const glm::vec3 cameraFrustumCenterWS = camera->getPosition() + camera->getLook() * cascadeTotalRange * 0.5f;
-	const glm::vec3 lookAt = cameraFrustumCenterWS + lightDirection * frustum.farPlane;
+	const glm::vec3 lookAt = cameraFrustumCenterWS + normalize(lightDirection) * frustum.farPlane;
+
+	const glm::vec3 lightPos = cameraFrustumCenterWS - normalize(lightDirection) * shadowBounds.radius;
+
 	glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(1.0f, 0.0f, 0.0f)));
 	if (glm::length(upVec) < 0.999f)
 	{
 		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
 	}
 
-	const glm::mat4 shadowView = glm::lookAt(cameraFrustumCenterWS, lookAt, upVec);
+	const glm::mat4 shadowView = glm::lookAt(lightPos, cameraFrustumCenterWS, glm::vec3(0,1,0));
 
 
 	// Get the bounds for the shadow space
-	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
+	
 	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius,
-		-shadowBounds.radius, shadowBounds.radius);
+		0.0f, shadowBounds.radius*2);
 
 	// The combined transformation from world to shadow space
 	GlobalShadow result;
@@ -506,15 +510,15 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearPlane, float
 }
 
 bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
-	glm::vec3* offset)
+	const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset)
 {
 	// Find the offset between the new and old bound center
-	const glm::vec3 oldCenterInCascade = glm::vec3(shadowView * glm::vec4(m_arrCascadeBoundCenter[cascadeIdx], 0));
+	const glm::vec3 oldCenterInCascade = glm::vec3(shadowView * glm::vec4(oldCenter, 0));
 	const glm::vec3 newCenterInCascade = glm::vec3(shadowView * glm::vec4(newCenter, 0));
 	const glm::vec3 centerDiff = oldCenterInCascade - newCenterInCascade;
 
 	// Find the pixel size based on the diameters and map pixel size
-	const float pixelSize = (float)mShadowMapSize / (2.0f * m_arrCascadeBoundRadius[cascadeIdx]);
+	const float pixelSize = (float)mShadowMapSize / (2.0f * cascadeBoundRadius);
 
 	const float pixelOffX = centerDiff.x * pixelSize;
 	const float pixelOffY = centerDiff.y * pixelSize;
