@@ -116,32 +116,11 @@ void CascadedShadow::updateTextureArray()
 void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirection)
 {
 	const float minDistance = 0.0f;
-	const Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
-	const float cascadeTotalRange = frustum.farPlane - frustum.nearPlane;
+	const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
 	const float cameraNearPlaneVS = frustum.nearPlane;
 	calcSplitSchemes(camera);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
-
-	// Find the view matrix
-	const glm::vec3 cameraFrustumCenterWS = camera->getPosition() + camera->getLook() * cascadeTotalRange * 0.5f;
-	const glm::vec3 lookAt = cameraFrustumCenterWS + lightDirection * frustum.farPlane;
-	glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(1.0f, 0.0f, 0.0f)));
-	if (glm::length(upVec) < 0.999f)
-	{
-		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
-	}
-
-	const glm::mat4 shadowView = glm::lookAt(cameraFrustumCenterWS, lookAt, upVec);
-
-
-	// Get the bounds for the shadow space
-	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
-	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius, 
-		-shadowBounds.radius, shadowBounds.radius, 
-		-shadowBounds.radius, shadowBounds.radius);
-
-	// The combined transformation from world to shadow space
-	const glm::mat4 worldToShadowSpace = shadowView * shadowProj;
+	const glm::mat4 worldToShadowSpace = calcShadowSpaceMatrix(camera, lightDirection);
 
 
 	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
@@ -390,6 +369,33 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 		mCascadeData.cascadedFarPlanes[cascadeIterator].x = (nearClip + splitDistance * clipDist);
 		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = mLightProjMatrix * mLightViewMatrix;
 	}
+}
+
+glm::mat4 CascadedShadow::calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection)
+{
+	const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
+	const float cascadeTotalRange = frustum.farPlane - frustum.nearPlane;
+
+	// Find the view matrix
+	const glm::vec3 cameraFrustumCenterWS = camera->getPosition() + camera->getLook() * cascadeTotalRange * 0.5f;
+	const glm::vec3 lookAt = cameraFrustumCenterWS + lightDirection * frustum.farPlane;
+	glm::vec3 upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(1.0f, 0.0f, 0.0f)));
+	if (glm::length(upVec) < 0.999f)
+	{
+		upVec = glm::normalize(glm::cross(lightDirection, glm::vec3(0.0f, 1.0f, 0.0f)));
+	}
+
+	const glm::mat4 shadowView = glm::lookAt(cameraFrustumCenterWS, lookAt, upVec);
+
+
+	// Get the bounds for the shadow space
+	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
+	const auto shadowProj = glm::ortho(-shadowBounds.radius, shadowBounds.radius,
+		-shadowBounds.radius, shadowBounds.radius,
+		-shadowBounds.radius, shadowBounds.radius);
+
+	// The combined transformation from world to shadow space
+	return shadowProj * shadowView;
 }
 
 void CascadedShadow::calcSplitSchemes(Camera* camera)

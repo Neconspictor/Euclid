@@ -76,6 +76,7 @@ namespace nex
 		void frameUpdateOld(Camera* camera, const glm::vec3& lightDirection);
 
 
+		glm::mat4 calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
 		void calcSplitSchemes(Camera* camera);
 		void calcSplitDistances(Camera* camera);
 		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearPlane, float farPlane);
