@@ -136,6 +136,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
 	const auto global = calcShadowSpaceMatrix(camera, lightDirection);
 	const glm::mat3 shadowOffsetMatrix = glm::mat3(glm::transpose(global.shadowView));
+	static const float orthoZMin = 10.0f;
 
 
 	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
@@ -146,44 +147,81 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		const float nearSplitDistance = cascadeIterator == 0 ? minDistance : mSplitDistances[cascadeIterator - 1];
 		const float farSplitDistance = mSplitDistances[cascadeIterator];
 
-		// To avoid anti flickering we need to make the transformation invariant to camera rotation and translation
-		// By encapsulating the cascade frustum with a sphere we achive the rotation invariance
 		const auto boundingSphere = extractFrustumBoundSphere(camera, nearSplitDistance, farSplitDistance);
 		const float radius = boundingSphere.radius;
 		const glm::vec3& frustumCenterWS = boundingSphere.center;
 
+		//Position the view matrix looking down the center of the frustum with the light direction
+		// We multiply the normalized light direction by radius so that nothing of the shadow map gets clipped
+		glm::vec3 lightPositionWS = frustumCenterWS + normalize(lightDirection);
 
-		glm::vec3 cascadeCenterShadowSpace;
-		if (mAntiTranslationFlickering)
-		{
-			// Only update the cascade bounds if it moved at least a full pixel unit
-			// This makes the transformation invariant to translation
-			glm::vec3 offset;
-			if (cascadeNeedsUpdate(global.shadowView, cascadeIterator, frustumCenterWS, mCascadeBoundCenters[cascadeIterator], radius, &offset))
-			{
-				// To avoid flickering we need to move the bound center in full units
-				// NOTE: we don't want translation affect the offset!
-				glm::vec3 offsetWS = shadowOffsetMatrix * offset;
-				mCascadeBoundCenters[cascadeIterator] += offsetWS;
-			}
+		glm::vec3 up (0.0f, 1.0f, 0.0f);
 
-			// Get the cascade center in shadow space
-			cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(mCascadeBoundCenters[cascadeIterator], 1.0f));
-		} else
+		if (length(cross(up, camera->getLook())) < 0.1f)
 		{
-			cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f));
+			up = glm::vec3(1.0f, 0.0f, 0.0f);
 		}
 
-		// Update the translation from shadow to cascade space
-		glm::mat4 cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0f));
+		glm::mat4 cascadeViewMatrix = glm::lookAt(frustumCenterWS, lightPositionWS, up);
 
-		// Update the scale from shadow to cascade space
-		float scale = global.radius / radius;
-		glm::mat4 cascadeScale = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
 
-		//Store the split distances and the relevant matrices
-		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTrans * global.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
-		mCascadeData.scaleFactors[cascadeIterator].x = scale;
+
+		glm::vec3 maxExtents;
+		glm::vec3 minExtents;
+		glm::mat4 cascadeProjMatrix;
+
+		if (mAntiRotationFlickering)
+		{
+			// To avoid anti flickering we need to make the transformation invariant to camera rotation and translation
+			// By encapsulating the cascade frustum with a sphere we achive the rotation invariance
+			maxExtents = glm::vec3(radius, radius, radius);
+			minExtents = -maxExtents;
+			//glm::vec3 cascadeExtents = maxExtents - minExtents;
+		} else
+		{
+			glm::vec3 frustumPointsWS[8];
+			extractFrustumPoints(camera, nearSplitDistance, farSplitDistance, frustumPointsWS);
+			maxExtents = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+			minExtents = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+
+			for (auto i = 0; i < 8; ++i)
+			{
+				glm::vec3 pointInShadowSpace = cascadeViewMatrix * glm::vec4(frustumPointsWS[i], 1.0f);
+				minExtents = minVec(minExtents, pointInShadowSpace);
+				maxExtents = maxVec(maxExtents, pointInShadowSpace);
+			}
+		}
+
+		// Calculate the projection matrix by defining the AABB of the cascade (as ortho projection)
+		float zComponent = max(radius, 10.0f);
+		cascadeProjMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -zComponent, zComponent);
+
+		
+
+		if (mAntiTranslationFlickering)
+		{
+			// Calculate the rounding matrix that ensures that shadow edges do not shimmer
+			// At first we need the shadow space transformation matrix
+			glm::mat4 shadowMatrix = cascadeProjMatrix * cascadeViewMatrix;
+
+			//glm::vec4 shadowOrigin = glm::vec4(100.0f, -333.0f, 0.0f, 1.0f); // The origin in world space; Actually it is irrelevant which reference point we use.
+																		// Just any point in world space
+			const glm::vec4 shadowOriginWS = shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Get the shadow space coordinates of the sample point shadowOrigin;//
+			
+			
+			glm::vec4 shadowOriginTranslated = shadowOriginWS * mShadowMapSize / 2.0f; // Todo: Why multiply by  mShadowMapSize / 2.0f ?
+
+			glm::vec4 roundedOrigin = glm::round(shadowOriginTranslated);
+			glm::vec4 roundOffset = roundedOrigin - shadowOriginTranslated;
+			roundOffset = roundOffset * 2.0f / mShadowMapSize; //  2.0f / mShadowMapSize probably reverses previous mShadowMapSize / 2.0f mulitplication
+			//roundOffset.z = 0.0f;
+			roundOffset.w = 0.0f;
+
+			cascadeProjMatrix[3] += roundOffset; // adjust translation in (x,y) plane
+		}
+
+
+		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeProjMatrix * cascadeViewMatrix;
 	}
 }
 

@@ -218,7 +218,7 @@ namespace nex
 		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
 		defaultRenderTarget->bind(); 
 		defaultRenderTarget->clear(RenderComponent::Color);
-		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
+		GLCall(glClearColor(1.0, 0.0, 0.0, 1.0)); // TODO abstract
 
 		getDepthBuffer()->enableDepthTest(true);
 		getDepthBuffer()->setDefaultDepthFunc(CompareFunction::LESS);
@@ -253,7 +253,7 @@ namespace nex
 		getRasterizer()->enableFaceCulling(true);
 		getRasterizer()->setCullMode(PolygonSide::BACK);
 
-		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
+		//GLCall(glClearColor(0.0, 0.0, 0.0, 1.0));
 		GLCall(glClearDepth(1.0f));
 		GLCall(glClearStencil(0)); // TODO abstract?
 		GLCall(glStencilMask(0xFF)); // TODO abstract ?

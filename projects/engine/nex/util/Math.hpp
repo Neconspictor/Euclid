@@ -5,6 +5,7 @@
 #define _USE_MATH_DEFINES 1
 #endif
 #include <math.h>
+#include <glm/glm.hpp>
 
 namespace nex
 {
@@ -117,5 +118,19 @@ namespace nex
 	{
 		glm::vec3 result = source / w;
 		return std::move(result);
+	}
+
+	inline glm::vec3 minVec(const glm::vec3& a, const glm::vec3& b)
+	{
+		return glm::vec3(std::min<float>(a.x, b.x),
+			std::min<float>(a.y, b.y),
+			std::min<float>(a.z, b.z));
+	}
+
+	inline glm::vec3 maxVec(const glm::vec3& a, const glm::vec3& b)
+	{
+		return glm::vec3(std::max<float>(a.x, b.x),
+			std::max<float>(a.y, b.y),
+			std::max<float>(a.z, b.z));
 	}
 }
