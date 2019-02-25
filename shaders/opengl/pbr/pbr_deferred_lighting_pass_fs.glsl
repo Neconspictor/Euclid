@@ -25,6 +25,7 @@ struct CascadeData {
 	//mat4 viewMatrix;
 	mat4 inverseViewMatrix;
 	mat4 lightViewProjectionMatrices[NUM_CASCADES];
+    vec4 scaleFactors[NUM_CASCADES];
 	vec4 cascadedSplits[NUM_CASCADES];
 };
 
@@ -117,7 +118,9 @@ void main()
 	vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
 	float ao = aoMetalRoughness.r;
 	float metallic = aoMetalRoughness.g;
+    //metallic = 0;
 	float roughness = aoMetalRoughness.b;
+    //roughness = 0.3;
 	
 	vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
 	/*float alpha = length(normalEye);
@@ -177,6 +180,7 @@ void main()
     
     
     uint cascadeIdx = getCascadeIdx(positionEye.z);
+    cascadeIdx = 10;
     
     vec4 cascadeColor = FragColor;
     
@@ -403,13 +407,14 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	bias =  9 * minBias;
+	bias =  9 * minBias / cascadeData.scaleFactors[cascadeIdx].x;
+    //bias = minBias;
 
 	float shadow = 0.0;
 	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	
-	float xSamples = 4;
-	float ySamples = 4;
+	float xSamples = 0;
+	float ySamples = 0;
 	float sampleCount = (2*xSamples + 1) * (2*ySamples + 1);
 	
 	/*float depth = texture2DArray(cascadedDepthMap, vec3(projCoords.xy, projCoords.z)).r;
@@ -427,7 +432,8 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
             vec2 off = vec2(x,y)/size * penumbraSize;
 			vec2 uv = projCoords.xy + off;
 			float compare = currentDepth - bias;
-			float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
+			//float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
+            float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
             shadow += shadowSample;
         }
     }

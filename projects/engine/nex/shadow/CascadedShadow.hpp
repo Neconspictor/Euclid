@@ -22,7 +22,8 @@ namespace nex
 		struct CascadeData {
 			glm::mat4 inverseViewMatrix;
 			glm::mat4 lightViewProjectionMatrices[NUM_CASCADES];
-			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space
+			glm::vec4 scaleFactors[NUM_CASCADES]; // only x component is used
+			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space; only x component is used
 		};
 
 		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight);

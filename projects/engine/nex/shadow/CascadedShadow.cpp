@@ -135,6 +135,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 	calcSplitSchemes(camera);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
 	const auto global = calcShadowSpaceMatrix(camera, lightDirection);
+	const glm::mat4 shadowViewInverse = glm::transpose(global.shadowView);
 
 
 	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
@@ -164,12 +165,14 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 			D3DXVec3TransformNormal(&vOffsetOut, &vOffset, &mShadowViewInv);
 			m_arrCascadeBoundCenter[iCascadeIdx] += vOffsetOut;*/
 			// NOTE: we don't want translation affect the offset!
-			glm::vec3 offsetWS = glm::mat3(global.shadowView) * offset;
+			glm::vec3 offsetWS = glm::mat3(shadowViewInverse) * offset;
+			//glm::vec3 offsetWS = shadowViewInverse * glm::vec4(offset, 0.0f);
 			mCascadeBoundCenters[cascadeIterator] += offsetWS;
 		}
 
 		// Get the cascade center in shadow space
-		glm::vec3 cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f));
+		glm::vec3 cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(mCascadeBoundCenters[cascadeIterator], 1.0f)); //frustumCenterWS
+		//glm::vec3 cascadeCenterShadowSpace = glm::vec3(global.worldToShadowSpace * glm::vec4(frustumCenterWS, 1.0f)); //frustumCenterWS
 
 		// Update the translation from shadow to cascade space
 		glm::mat4 cascadeTrans = glm::translate(glm::mat4(1.0f), glm::vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0f));
@@ -217,6 +220,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		//const float clipDist = clipRange;
 		//mCascadeData.cascadedSplits[cascadeIterator].x = (nearClip + splitDistance * clipDist) * -1.0f;
 		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTrans * global.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
+		mCascadeData.scaleFactors[cascadeIterator].x = scale;
 		//mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeProjMatrix * cascadeViewMatrix;
 	}
 }
@@ -513,24 +517,26 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 	const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset)
 {
 	// Find the offset between the new and old bound center
-	const glm::vec3 oldCenterInCascade = glm::vec3(shadowView * glm::vec4(oldCenter, 0));
-	const glm::vec3 newCenterInCascade = glm::vec3(shadowView * glm::vec4(newCenter, 0));
-	const glm::vec3 centerDiff = oldCenterInCascade - newCenterInCascade;
+	const glm::vec3 oldCenterInCascade = glm::vec3(shadowView * glm::vec4(oldCenter, 1.0f));
+	const glm::vec3 newCenterInCascade = glm::vec3(shadowView * glm::vec4(newCenter, 1.0f));
+	const glm::vec3 centerDiff = newCenterInCascade - oldCenterInCascade;
 
 	// Find the pixel size based on the diameters and map pixel size
 	const float pixelSize = (float)mShadowMapSize / (2.0f * cascadeBoundRadius);
 
 	const float pixelOffX = centerDiff.x * pixelSize;
 	const float pixelOffY = centerDiff.y * pixelSize;
+	const float pixelOffZ = centerDiff.z * pixelSize;
 
 	// Check if the center moved at least half a pixel unit
-	const bool needUpdate = abs(pixelOffX) > 0.5f || abs(pixelOffY) > 0.5f;
+	const bool needUpdate = abs(pixelOffX) > 0.5f || abs(pixelOffY) > 0.5f || abs(pixelOffZ) > 0.5f;
 	if (needUpdate)
 	{
 		// Round to the 
 		offset->x = floorf(0.5f + pixelOffX) / pixelSize;
 		offset->y = floorf(0.5f + pixelOffY) / pixelSize;
-		offset->z = centerDiff.z;
+		offset->z = floorf(0.5f + pixelOffZ) / pixelSize;
+		//offset->z = centerDiff.z;
 	}
 
 	return needUpdate;
