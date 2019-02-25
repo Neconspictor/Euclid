@@ -26,7 +26,7 @@ namespace nex
 			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space; only x component is used
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiRotationFlickering = true, bool antiTranslationFlickering = true);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -86,8 +86,8 @@ namespace nex
 		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
 		void calcSplitSchemes(Camera* camera);
 		void calcSplitDistances(Camera* camera);
-		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearPlane, float farPlane);
-		void extractFrustumPoints(Camera* camera, float nearPLane, float farPlane, glm::vec3 (&frustumCorners)[8]);
+		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance);
+		void extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
 		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
 			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
 
@@ -111,7 +111,9 @@ namespace nex
 		float mShadowMapSize;
 		CascadeData mCascadeData;
 		bool mAntiFlickerOn;
-		float m_arrCascadeRanges[NUM_CASCADES];
+		bool mAntiRotationFlickering; 
+		bool mAntiTranslationFlickering;
+		float mArrCascadeRanges[NUM_CASCADES];
 		float mSplitDistances[NUM_CASCADES];
 		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];
 	};
