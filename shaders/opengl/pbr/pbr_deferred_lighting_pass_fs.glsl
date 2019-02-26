@@ -158,8 +158,7 @@ void main()
 	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
 	//float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	//shadow = 1;
+	float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	
 	
     vec3 result = pbrModel(ao, 
@@ -170,7 +169,7 @@ void main()
 		viewEye, 
 		lightEye, 
 		reflectionDir,
-		shadow,
+		fragmentLitProportion,
 		ambientOcclusion);
 
 	
@@ -407,7 +406,7 @@ float cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3
 	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	bias =  9 * minBias / cascadeData.scaleFactors[cascadeIdx].x;
+	bias =  9 * minBias; // / cascadeData.scaleFactors[cascadeIdx].x;
     //bias = minBias;
 
 	float shadow = 0.0;

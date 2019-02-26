@@ -26,7 +26,7 @@ namespace nex
 			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space; only x component is used
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiRotationFlickering = true, bool antiTranslationFlickering = true);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiFlickerOn = true);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -111,8 +111,6 @@ namespace nex
 		float mShadowMapSize;
 		CascadeData mCascadeData;
 		bool mAntiFlickerOn;
-		bool mAntiRotationFlickering; 
-		bool mAntiTranslationFlickering;
 		float mArrCascadeRanges[NUM_CASCADES];
 		float mSplitDistances[NUM_CASCADES];
 		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];

@@ -8,12 +8,11 @@
 #include <glm/gtx/string_cast.hpp>
 using namespace nex;
 
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiRotationFlickering, bool antiTranslationFlickering) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiFlickerOn) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::max<int>(cascadeWidth, cascadeHeight)),
-	mAntiRotationFlickering(antiRotationFlickering),
-	mAntiTranslationFlickering(antiTranslationFlickering)
+	mAntiFlickerOn(antiFlickerOn)
 {
 	// reset cascade cound centers 
 	for (int i = 0; i < NUM_CASCADES; i++)
@@ -170,7 +169,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		glm::vec3 minExtents;
 		glm::mat4 cascadeProjMatrix;
 
-		if (mAntiRotationFlickering)
+		if (mAntiFlickerOn)
 		{
 			// To avoid anti flickering we need to make the transformation invariant to camera rotation and translation
 			// By encapsulating the cascade frustum with a sphere we achive the rotation invariance
@@ -198,7 +197,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 
 		
 
-		if (mAntiTranslationFlickering)
+		if (mAntiFlickerOn)
 		{
 			// Calculate the rounding matrix that ensures that shadow edges do not shimmer
 			// At first we need the shadow space transformation matrix
