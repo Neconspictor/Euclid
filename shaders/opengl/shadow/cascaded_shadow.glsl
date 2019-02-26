@@ -1,16 +1,19 @@
 #include "shadow/shadows_array.glsl"
 
-#ifndef NUM_CASCADES
-#define NUM_CASCADES 4
+#ifndef CSM_NUM_CASCADES
+#define CSM_NUM_CASCADES 4
 #endif
 
-#ifndef SAMPLE_COUNT_X
-#define SAMPLE_COUNT_X 0
+#ifndef CSM_SAMPLE_COUNT_X
+#define CSM_SAMPLE_COUNT_X 0
 #endif
 
+#ifndef CSM_SAMPLE_COUNT_Y
+#define CSM_SAMPLE_COUNT_Y 0
+#endif
 
-#ifndef SAMPLE_COUNT_Y
-#define SAMPLE_COUNT_Y 0
+#ifndef CSM_USE_LERP_FILTER
+#define CSM_USE_LERP_FILTER 0
 #endif
 
 
@@ -19,9 +22,9 @@
 struct CascadeData {
 	//mat4 viewMatrix;
 	mat4 inverseViewMatrix;
-	mat4 lightViewProjectionMatrices[NUM_CASCADES];
-    vec4 scaleFactors[NUM_CASCADES];
-	vec4 cascadedSplits[NUM_CASCADES];
+	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
+    vec4 scaleFactors[CSM_NUM_CASCADES];
+	vec4 cascadedSplits[CSM_NUM_CASCADES];
 };
 
 uint getCascadeIdx(in float viewSpaceZ, in CascadeData cascadeData) {
@@ -30,7 +33,7 @@ uint getCascadeIdx(in float viewSpaceZ, in CascadeData cascadeData) {
     const float positiveZ = -viewSpaceZ;
 
     // Figure out which cascade to sample from
-    for(uint i = 0; i < NUM_CASCADES - 1; ++i)
+    for(uint i = 0; i < CSM_NUM_CASCADES - 1; ++i)
     {
         if(positiveZ > cascadeData.cascadedSplits[i].x)
         {	
@@ -91,25 +94,31 @@ float cascadedShadow(in vec3 lightDirection,
 	float shadow = 0.0;
 	//vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	
-	float sampleCount = (2*SAMPLE_COUNT_X + 1) * (2*SAMPLE_COUNT_Y + 1);
+	float sampleCount = (2*CSM_SAMPLE_COUNT_X + 1) * (2*CSM_SAMPLE_COUNT_Y + 1);
 	
 	/*float depth = texture2DArray(cascadedDepthMap, vec3(projCoords.xy, projCoords.z)).r;
 	float diff =  abs(currentDepth - depth);
 	float penumbraSize = diff / (minBias);
 	penumbraSize = clamp(penumbraSize, 0, 1);
-	penumbraSize = (NUM_CASCADES - projCoords.z) / NUM_CASCADES;
-	penumbraSize = NUM_CASCADES * projCoords.z;*/
+	penumbraSize = (CSM_NUM_CASCADES - projCoords.z) / CSM_NUM_CASCADES;
+	penumbraSize = CSM_NUM_CASCADES * projCoords.z;*/
 	float penumbraSize = 1.0;
 	vec2 size = textureSize(cascadedDepthMap, 0).xy;
 	
 		
-    for(float x=-SAMPLE_COUNT_X; x<=SAMPLE_COUNT_X; x += 1){
-        for(float y=-SAMPLE_COUNT_Y; y<=SAMPLE_COUNT_Y; y += 1){
+    for(float x=-CSM_SAMPLE_COUNT_X; x<=CSM_SAMPLE_COUNT_X; x += 1){
+        for(float y=-CSM_SAMPLE_COUNT_Y; y<=CSM_SAMPLE_COUNT_Y; y += 1){
             vec2 off = vec2(x,y)/size * penumbraSize;
 			vec2 uv = projCoords.xy + off;
 			float compare = currentDepth - bias;
-			//float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
-            float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
+            
+            #if CSM_USE_LERP_FILTER
+                float shadowSample =  shadowLerp(cascadedDepthMap, size, uv, projCoords.z, currentDepth, bias, penumbraSize);
+            #else
+                float shadowSample = shadowCompare(cascadedDepthMap, vec4(uv, projCoords.z, currentDepth - bias));
+            #endif
+            
+            
             shadow += shadowSample;
         }
     }

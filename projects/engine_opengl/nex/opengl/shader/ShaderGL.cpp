@@ -292,7 +292,8 @@ nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name)
 	return loc;
 }
 
-std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile)
+std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile, 
+	const std::vector<std::string>& defines)
 {
 
 	bool useGeometryShader = std::filesystem::exists(geometryShaderFile);
@@ -307,13 +308,16 @@ std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::create(const FilePath& v
 
 	unresolved[0].filePath = vertexFile;
 	unresolved[0].type = ShaderStageType::VERTEX;
+	unresolved[0].defines = defines;
 	unresolved[1].filePath = fragmentFile;
 	unresolved[1].type = ShaderStageType::FRAGMENT;
+	unresolved[1].defines = defines;
 
 	if (useGeometryShader)
 	{
 		unresolved[2].filePath = geometryShaderFile;
 		unresolved[2].type = ShaderStageType::GEOMETRY;
+		unresolved[3].defines = defines;
 	}
 
 

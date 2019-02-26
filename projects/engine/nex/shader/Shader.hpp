@@ -166,7 +166,7 @@ namespace nex
 		UniformLocation getShaderStorageBufferLocation(const char* name);
 
 		static std::unique_ptr<ShaderProgram> create(const FilePath& vertexFile, const FilePath& fragmentFile,
-			const FilePath& geometryShaderFile = "");
+			const FilePath& geometryShaderFile = "", const std::vector<std::string>& defines = {});
 
 		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
 

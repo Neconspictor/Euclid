@@ -257,7 +257,7 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting() :
 	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 {
 	mProgram = ShaderProgram::create(
-		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl");
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", {"#define CSM_NUM_CASCADES 4", "#define CSM_SAMPLE_COUNT_X 4", "#define CSM_SAMPLE_COUNT_Y 4", "#define CSM_USE_LERP_FILTER 1"});
 
 	unsigned textureCounter = 0;
 
