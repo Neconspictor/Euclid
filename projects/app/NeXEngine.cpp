@@ -387,6 +387,9 @@ void NeXEngine::setupGUI()
 	gui::Tab* generalTab = configurationWindow->getGeneralTab();
 
 
+	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(m_renderer->getCSM());
+	graphicsTechniques->addChild(std::move(csmView));
+
 	auto hbaoView = std::make_unique<nex::HBAO_ConfigurationView>(m_renderer->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
 

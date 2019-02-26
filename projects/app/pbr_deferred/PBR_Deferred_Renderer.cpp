@@ -174,22 +174,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	using namespace chrono;
 
 	m_renderBackend->newFrame();
+	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
-	
-	//FrustumCuboid cameraCuboid = camera->getFrustumCuboid(Perspective, 0.0f, 0.08f);
-	const mat4& cameraView = camera->getView();
-	mat4 inverseCameraView = inverse(cameraView);
 
-	mat4 test = globalLight.getView();
-	FrustumCuboid cameraCuboidWorld = test * inverseCameraView * camera->getFrustumCuboid(Orthographic);
-	AABB ccBB = fromCuboid(cameraCuboidWorld);
-
-	Frustum shadowFrustum = { ccBB.min.x, ccBB.max.x, ccBB.min.y, ccBB.max.y, ccBB.min.z, ccBB.max.z };
-	shadowFrustum = {-15.0f, 15.0f, -15.0f, 15.0f, -10.0f, 100.0f};
-	globalLight.setOrthoFrustum(shadowFrustum);
-
-	const mat4& lightView = globalLight.getView();
-	const mat4& lightProj = globalLight.getProjection(Orthographic);
 
 	m_cascadedShadow->frameUpdate(camera, globalLight.getLook());
 
@@ -208,6 +195,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	m_renderBackend->setScissor(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
 
 	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
@@ -221,7 +209,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	renderTargetSingleSampled->bind();
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	renderTargetSingleSampled->clear(RenderComponent::Color);//| RenderComponent::Depth | RenderComponent::Stencil
+	renderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//| RenderComponent::Depth | RenderComponent::Stencil
 
 	
 
@@ -235,6 +223,8 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	CascadedShadow::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
 	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
+		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
 			//shadowMap->getTexture(), 
@@ -242,7 +232,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			globalLight, 
 			camera->getView(),
 			camera->getPerspProjection(),
-			lightProj * lightView,
+			m_cascadedShadow->getWorldToShadowSpace(),
 			cascadedData,
 			cascadedDepthMap);
 
@@ -343,6 +333,11 @@ nex::HBAO* PBR_Deferred_Renderer::getHBAO()
 AmbientOcclusionSelector* PBR_Deferred_Renderer::getAOSelector()
 {
 	return &m_aoSelector;
+}
+
+CascadedShadow* PBR_Deferred_Renderer::getCSM()
+{
+	return m_cascadedShadow.get();
 }
 
 PBR_Deferred* PBR_Deferred_Renderer::getPBR()

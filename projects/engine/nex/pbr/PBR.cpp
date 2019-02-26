@@ -472,7 +472,7 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 		InternFormat::RG32F, 
 		false};
 
-	TextureData depthData = TextureData::createDepth(CompareFunction::LESS,
+	TextureData depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL,
 		ColorSpace::DEPTH_STENCIL,
 		PixelDataType::UNSIGNED_INT_24_8,
 		InternFormat::DEPTH24_STENCIL8);

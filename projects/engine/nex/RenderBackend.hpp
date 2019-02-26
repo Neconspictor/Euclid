@@ -208,7 +208,7 @@ namespace nex
 			bool enableDepthBufferWriting = true;
 			bool enableDepthTest = true;
 			bool enableDepthClamp = false;
-			CompareFunction depthFunc = CompareFunction::LESS;
+			CompareFunction depthFunc = CompareFunction::LESS_EQUAL;
 			Range depthRange = {0.0, 1.0};
 		};
 
@@ -312,7 +312,7 @@ namespace nex
 		struct State
 		{
 			bool enableStencilTest = false;
-			CompareFunction compareFunc = CompareFunction::LESS;
+			CompareFunction compareFunc = CompareFunction::LESS_EQUAL;
 			int compareReferenceValue = 0;
 			unsigned compareMask = 0xFF;
 
@@ -390,7 +390,7 @@ namespace nex
 				InternFormat::RGB32F,
 				false
 			),
-			const TextureData& depthData = TextureData::createDepth(CompareFunction::LESS, 
+			const TextureData& depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL, 
 				ColorSpace::DEPTH_STENCIL,
 				PixelDataType::UNSIGNED_INT_24_8,
 				InternFormat::DEPTH24_STENCIL8),

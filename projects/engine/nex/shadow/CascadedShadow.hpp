@@ -3,6 +3,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include "nex/gui/Drawable.hpp"
 
 namespace nex
 {
@@ -57,9 +58,20 @@ namespace nex
 		 */
 		void frameUpdate(Camera* camera, const glm::vec3& lightDirection);
 
+		bool getAntiFlickering() const;
+
 		CascadeData* getCascadeData();
 
 		Shader* getDepthPassShader();
+
+		unsigned getHeight() const;
+
+		unsigned getWidth() const;
+
+		const glm::mat4& getWorldToShadowSpace() const;
+		const glm::mat4& getShadowView() const;
+
+		void setAntiFlickering(bool enable);
 
 
 	protected:
@@ -111,8 +123,19 @@ namespace nex
 		float mShadowMapSize;
 		CascadeData mCascadeData;
 		bool mAntiFlickerOn;
-		float mArrCascadeRanges[NUM_CASCADES];
 		float mSplitDistances[NUM_CASCADES];
 		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];
+		GlobalShadow mGlobal;
+	};
+
+	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {
+	public:
+		CascadedShadow_ConfigurationView(CascadedShadow* model);
+
+	protected:
+		void drawSelf() override;
+
+	private:
+		CascadedShadow * mModel;
 	};
 }

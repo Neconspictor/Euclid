@@ -59,7 +59,26 @@ namespace nex::gui
 	}
 
 
-	void Separator(unsigned thickness)
+	void VerticalSeparatorThickness(float thickness)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return;
+		ImGuiContext& g = *GImGui;
+
+		float y1 = window->DC.CursorPos.y;
+		float y2 = window->DC.CursorPos.y + window->DC.CurrentLineHeight;
+		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness, y2));
+		ItemSize(ImVec2(bb.GetWidth(), 0.0f));
+		if (!ItemAdd(bb, 0))
+			return;
+
+		window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y), ImVec2(bb.Min.x, bb.Max.y), GetColorU32(ImGuiCol_Separator), thickness);
+		if (g.LogEnabled)
+			LogText(" |");
+	}
+
+	void Separator(float thickness, bool vertical)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -67,12 +86,16 @@ namespace nex::gui
 		ImGuiContext& g = *GImGui;
 
 		ImGuiSeparatorFlags flags = 0;
+
+		if (vertical)
+			flags |= ImGuiSeparatorFlags_Vertical;
+
 		if ((flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical)) == 0)
 			flags |= (window->DC.LayoutType == ImGuiLayoutType_Horizontal) ? ImGuiSeparatorFlags_Vertical : ImGuiSeparatorFlags_Horizontal;
 		IM_ASSERT(ImIsPowerOfTwo((int)(flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical))));   // Check that only 1 option is selected
 		if (flags & ImGuiSeparatorFlags_Vertical)
 		{
-			VerticalSeparator();
+			VerticalSeparatorThickness(thickness);
 			return;
 		}
 

@@ -82,6 +82,7 @@ namespace nex {
 		static auto* renderBackend = RenderBackend::get();
 
 		auto* stencilTest = renderBackend->getStencilTest();
+		stencilTest->enableStencilTest(false);
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 

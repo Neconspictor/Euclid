@@ -31,6 +31,8 @@ namespace nex
 		nex::HBAO* getHBAO();
 		AmbientOcclusionSelector* getAOSelector();
 
+		CascadedShadow* getCSM();
+
 		PBR_Deferred* getPBR();
 
 

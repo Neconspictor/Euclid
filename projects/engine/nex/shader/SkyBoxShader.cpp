@@ -47,7 +47,7 @@ void SkyBoxShader::reverseRenderState()
 {
 	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
 	//glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-	depthConfig->setDefaultDepthFunc(CompareFunction::LESS);
+	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
 	//glDepthMask(GL_TRUE);
 	depthConfig->enableDepthBufferWriting(true);
 }
