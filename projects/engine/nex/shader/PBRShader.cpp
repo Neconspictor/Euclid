@@ -253,15 +253,10 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(unsigned csmNumCascades,
-	unsigned csmSampleCountX,
-	unsigned csmSampleCountY,
-	bool csmUseLerpFilter) :
+PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(unsigned csmNumCascades, const CascadedShadow::PCFFilter& pcf) :
 	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mCsmNumCascades(csmNumCascades),
-	mCsmSampleCountX(csmSampleCountX),
-	mCsmSampleCountY(csmSampleCountY),
-	mCsmUseLerpFilter(csmUseLerpFilter ? 1 : 0)
+	mCsmPcf(pcf)
 {
 
 	std::vector<string> defines = generateCsmDefines();
@@ -644,9 +639,9 @@ std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
 	std::vector<string> result;
 
 	result.emplace_back(makeDefine("CSM_NUM_CASCADES", mCsmNumCascades));
-	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_X", mCsmSampleCountX));
-	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_Y", mCsmSampleCountY));
-	result.emplace_back(makeDefine("CSM_USE_LERP_FILTER", mCsmUseLerpFilter));
+	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_X", mCsmPcf.sampleCountX));
+	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_Y", mCsmPcf.sampleCountY));
+	result.emplace_back(makeDefine("CSM_USE_LERP_FILTER", mCsmPcf.useLerpFiltering));
 
 	return result;
 }

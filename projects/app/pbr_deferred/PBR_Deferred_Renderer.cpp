@@ -128,7 +128,13 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky);
+	CascadedShadow::PCFFilter pcf;
+	pcf.sampleCountX = 3;
+	pcf.sampleCountY = 3;
+	pcf.useLerpFiltering = true;
+	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, pcf, true);
+
+	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky, m_cascadedShadow.get());
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
@@ -142,15 +148,6 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	skyboxShader->bind();
 	skyboxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
-
-	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048);
-
-	m_cascadedShadow->addResizeCallback([&](CascadedShadow* cascade)->void
-	{
-		LOG(m_logger, Info) << "Cascade width = " << cascade->getWidth();
-
-		m_pbr_deferred->reloadLightingShader(cascade->NUM_CASCADES, 0, 0, false);
-	});
 }
 
 

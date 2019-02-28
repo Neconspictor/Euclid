@@ -27,7 +27,16 @@ namespace nex
 			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space; only x component is used
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiFlickerOn = true);
+		struct PCFFilter
+		{
+			unsigned sampleCountX;
+			unsigned sampleCountY;
+			bool useLerpFiltering;
+
+			bool operator==(const PCFFilter& o);
+		};
+
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, const PCFFilter& pcf, bool antiFlickerOn = true);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -48,7 +57,8 @@ namespace nex
 		 */
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
 
-		void addResizeCallback(std::function<void(CascadedShadow*)> callback);
+		void addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback);
+		void informCascadeChanges();
 
 		/**
 		 * Renders a mesh with a given model matrix to the active cascade
@@ -68,12 +78,16 @@ namespace nex
 
 		unsigned getHeight() const;
 
+		const PCFFilter& getPCF() const;
+
 		unsigned getWidth() const;
 
 		const glm::mat4& getWorldToShadowSpace() const;
 		const glm::mat4& getShadowView() const;
 
 		void setAntiFlickering(bool enable);
+
+		void setPCF(const PCFFilter& filter, bool informOberservers = true);
 
 
 	protected:
@@ -128,6 +142,7 @@ namespace nex
 		float mSplitDistances[NUM_CASCADES];
 		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];
 		GlobalShadow mGlobal;
+		PCFFilter mPCF;
 		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
 	};
 
@@ -136,6 +151,8 @@ namespace nex
 		CascadedShadow_ConfigurationView(CascadedShadow* model);
 
 	protected:
+		void drawCascadeDimensionConfig();
+		void drawPCFConfig();
 		void drawSelf() override;
 
 	private:

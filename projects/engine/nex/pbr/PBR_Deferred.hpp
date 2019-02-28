@@ -15,7 +15,7 @@ namespace nex
 	class PBR_Deferred : public PBR {
 
 	public:
-		PBR_Deferred(Texture* backgroundHDR);
+		PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow);
 
 		void drawGeometryScene(SceneNode * scene,
 			const glm::mat4& view,
@@ -37,14 +37,13 @@ namespace nex
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
 		void reloadLightingShader(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES,
-			unsigned csmSampleCountX = 3,
-			unsigned csmSampleCountY = 3,
-			bool csmUseLerpFilter = true);
+			const CascadedShadow::PCFFilter& pcf);
 
 	private:
 		Sprite screenSprite;
 		std::unique_ptr<PBRShader_Deferred_Geometry> mGeometryPass;
 		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
+		CascadedShadow* mCascadeShadow;
 	};
 
 	class PBR_Deferred_ConfigurationView : public nex::gui::Drawable {

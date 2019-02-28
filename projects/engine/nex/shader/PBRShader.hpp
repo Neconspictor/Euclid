@@ -144,10 +144,8 @@ namespace nex
 	class PBRShader_Deferred_Lighting : public TransformShader {
 	public:
 
-		PBRShader_Deferred_Lighting(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES, 
-			unsigned csmSampleCountX = 3, 
-			unsigned csmSampleCountY = 3, 
-			bool csmUseLerpFilter = true);
+		PBRShader_Deferred_Lighting(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES,
+			const CascadedShadow::PCFFilter& pcf);
 
 		virtual ~PBRShader_Deferred_Lighting();
 
@@ -226,9 +224,7 @@ namespace nex
 
 		// CSM
 		unsigned mCsmNumCascades;
-		unsigned mCsmSampleCountX;
-		unsigned mCsmSampleCountY;
-		unsigned mCsmUseLerpFilter;
+		CascadedShadow::PCFFilter mCsmPcf;
 
 		std::vector<std::string> generateCsmDefines();
 		

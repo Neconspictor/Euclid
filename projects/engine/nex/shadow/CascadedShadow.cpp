@@ -11,11 +11,19 @@
 #include "imgui/imgui_internal.h"
 using namespace nex;
 
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, bool antiFlickerOn) :
+bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
+{
+	return sampleCountX == o.sampleCountX
+	&& (sampleCountY == o.sampleCountY)
+	&& (useLerpFiltering == o.useLerpFiltering);
+}
+
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, const PCFFilter& pcf, bool antiFlickerOn) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
-	mAntiFlickerOn(antiFlickerOn)
+	mAntiFlickerOn(antiFlickerOn),
+	mPCF(pcf)
 {
 	resize(cascadeWidth, cascadeHeight);
 }
@@ -79,16 +87,19 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	}
 
 	updateTextureArray();
+}
 
+void CascadedShadow::addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback)
+{
+	mCallbacks.emplace_back(std::move(callback));
+}
+
+void CascadedShadow::informCascadeChanges()
+{
 	for (auto& callback : mCallbacks)
 	{
 		callback(this);
 	}
-}
-
-void CascadedShadow::addResizeCallback(std::function<void(CascadedShadow*)> callback)
-{
-	mCallbacks.emplace_back(std::move(callback));
 }
 
 /*void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
@@ -627,6 +638,11 @@ unsigned CascadedShadow::getHeight() const
 	return mCascadeHeight;
 }
 
+const CascadedShadow::PCFFilter& CascadedShadow::getPCF() const
+{
+	return mPCF;
+}
+
 unsigned CascadedShadow::getWidth() const
 {
 	return mCascadeWidth;
@@ -647,6 +663,12 @@ void CascadedShadow::setAntiFlickering(bool enable)
 	mAntiFlickerOn = enable;
 }
 
+void CascadedShadow::setPCF(const PCFFilter& filter, bool informOberservers)
+{
+	mPCF = filter;
+	if (informOberservers) informCascadeChanges();
+}
+
 CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
 {
 	return &mCascadeData;
@@ -656,27 +678,16 @@ CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShado
 {
 }
 
-void CascadedShadow_ConfigurationView::drawSelf()
+void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 {
-	ImGui::PushID(m_id.c_str());
-	//m_pbr
-	ImGui::LabelText("", "CSM:");
-	ImGui::Dummy(ImVec2(0, 20));
-	bool enableAntiFlickering = mModel->getAntiFlickering();
-
-	if (ImGui::Checkbox("Anti Flickering", &enableAntiFlickering))
-	{
-		mModel->setAntiFlickering(enableAntiFlickering);
-	}
-
 	const glm::uvec2 realDimension(mModel->getWidth(), mModel->getHeight());
 
-	static glm::uvec2 dimension(2048, 2048);
+	static glm::uvec2 dimension(realDimension);
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
 	ImGui::InputScalarN("Cascade Dimension", ImGuiDataType_U32, &dimension, 2);
-	
+
 
 	//nex::gui::Separator(2.0f, true);
 	ImGui::Dummy(ImVec2(56, 0));
@@ -713,6 +724,62 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	}
 
 	ImGui::EndGroup();
+}
+
+void CascadedShadow_ConfigurationView::drawPCFConfig()
+{
+	const auto& realPCF= mModel->getPCF();
+
+	static CascadedShadow::PCFFilter pcf(realPCF);
+
+	ImGuiContext& g = *GImGui;
+	ImGui::BeginGroup();
+	ImGui::InputScalarN("PCF Samples", ImGuiDataType_U32, &pcf.sampleCountX, 2);
+	ImGui::Checkbox("PCF Lerp filtering", &pcf.useLerpFiltering);
+
+
+	//nex::gui::Separator(2.0f, true);
+	ImGui::Dummy(ImVec2(56, 0));
+	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+	const unsigned flags = 0;
+
+	const bool disableButton = pcf == realPCF;
+
+	if (!disableButton)
+	{
+		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
+		{
+			mModel->setPCF(pcf);
+		}
+
+		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
+		{
+			pcf = realPCF;
+		}
+	}
+
+	ImGui::EndGroup();
+}
+
+void CascadedShadow_ConfigurationView::drawSelf()
+{
+	ImGui::PushID(m_id.c_str());
+	//m_pbr
+	ImGui::LabelText("", "CSM:");
+	ImGui::Dummy(ImVec2(0, 20));
+	bool enableAntiFlickering = mModel->getAntiFlickering();
+
+	if (ImGui::Checkbox("Anti Flickering", &enableAntiFlickering))
+	{
+		mModel->setAntiFlickering(enableAntiFlickering);
+	}
+
+	drawCascadeDimensionConfig();
+
+	drawPCFConfig();
 
 	nex::gui::Separator(2.0f);
 	

@@ -19,10 +19,11 @@ using namespace std;
 namespace nex {
 
 
-	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR) :
+	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow) :
 		PBR(backgroundHDR),
 		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
-		mLightPass(make_unique<PBRShader_Deferred_Lighting>())
+		mLightPass(make_unique<PBRShader_Deferred_Lighting>()),
+		mCascadeShadow(cascadeShadow)
 	{
 		vec2 dim = { 1.0, 1.0 };
 		vec2 pos = { 0, 0 };
@@ -34,6 +35,11 @@ namespace nex {
 		screenSprite.setPosition(pos);
 		screenSprite.setWidth(dim.x);
 		screenSprite.setHeight(dim.y);
+
+		mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)->void
+		{
+			reloadLightingShader(cascade->NUM_CASCADES, cascade->getPCF());
+		});
 	}
 
 	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
@@ -135,10 +141,9 @@ namespace nex {
 		return make_unique<PBR_GBuffer>(width, height);
 	}
 
-	void PBR_Deferred::reloadLightingShader(unsigned csmNumCascades, unsigned csmSampleCountX, unsigned csmSampleCountY,
-		bool csmUseLerpFilter)
+	void PBR_Deferred::reloadLightingShader(unsigned csmNumCascades, const CascadedShadow::PCFFilter& pcf)
 	{
-		mLightPass = make_unique<PBRShader_Deferred_Lighting>(csmNumCascades, csmSampleCountX, csmSampleCountY, csmUseLerpFilter);
+		mLightPass = make_unique<PBRShader_Deferred_Lighting>(csmNumCascades, pcf);
 	}
 
 
