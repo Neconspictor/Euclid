@@ -780,6 +780,8 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 
 	if (!disableButton)
 	{
+		//ImGui::NewLine();
+
 		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
 		{
 			mModel->resizeCascadeData(number, true);
@@ -809,7 +811,7 @@ void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 
 	//nex::gui::Separator(2.0f, true);
 	//ImGui::Dummy(ImVec2(56, 0));
-	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	unsigned flags = 0;
 
@@ -857,8 +859,8 @@ void CascadedShadow_ConfigurationView::drawPCFConfig()
 
 
 	//nex::gui::Separator(2.0f, true);
-	ImGui::Dummy(ImVec2(56, 0));
-	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+	//ImGui::Dummy(ImVec2(56, 0));
+	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	const unsigned flags = 0;
 
