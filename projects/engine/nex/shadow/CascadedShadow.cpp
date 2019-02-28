@@ -722,7 +722,7 @@ void CascadedShadow::setPCF(const PCFFilter& filter, bool informOberservers)
 	if (informOberservers) informCascadeChanges();
 }
 
-void CascadedShadow::resizeCascadeData(unsigned numCascades)
+void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObservers)
 {
 	mCascadeData.numCascades = numCascades;
 	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
@@ -731,6 +731,11 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades)
 
 	mSplitDistances.resize(numCascades);
 	mCascadeBoundCenters.resize(numCascades);
+
+	if (informObservers)
+	{
+		informCascadeChanges();
+	}
 }
 
 CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
@@ -740,6 +745,39 @@ CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
 
 CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model)
 {
+}
+
+void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
+{
+	const unsigned realNumber(mModel->getCascadeData()->numCascades);
+
+	static unsigned number(realNumber);
+
+	ImGuiContext& g = *GImGui;
+	ImGui::BeginGroup();
+	ImGui::InputScalar("Cascade Dimension", ImGuiDataType_U32, &number);
+	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+	unsigned flags = 0;
+
+	bool disableButton = number == realNumber;
+
+	if (!disableButton)
+	{
+		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
+		{
+			mModel->resizeCascadeData(number, true);
+		}
+
+		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
+		{
+			number = realNumber;
+		}
+	}
+
+	ImGui::EndGroup();
 }
 
 void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
@@ -754,7 +792,7 @@ void CascadedShadow_ConfigurationView::drawCascadeDimensionConfig()
 
 
 	//nex::gui::Separator(2.0f, true);
-	ImGui::Dummy(ImVec2(56, 0));
+	//ImGui::Dummy(ImVec2(56, 0));
 	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	unsigned flags = 0;
@@ -840,6 +878,8 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	{
 		mModel->setAntiFlickering(enableAntiFlickering);
 	}
+
+	drawCascadeNumConfig();
 
 	drawCascadeDimensionConfig();
 

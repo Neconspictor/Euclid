@@ -55,6 +55,7 @@ namespace nex
 		 * Resizes the cascades
 		 */
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
+		void resizeCascadeData(unsigned numCascades, bool informObservers = true);
 
 		void addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback);
 		void informCascadeChanges();
@@ -90,8 +91,6 @@ namespace nex
 
 
 	protected:
-
-		void resizeCascadeData(unsigned numCascades);
 
 		void updateTextureArray();
 
@@ -155,6 +154,7 @@ namespace nex
 		CascadedShadow_ConfigurationView(CascadedShadow* model);
 
 	protected:
+		void drawCascadeNumConfig();
 		void drawCascadeDimensionConfig();
 		void drawPCFConfig();
 		void drawSelf() override;
