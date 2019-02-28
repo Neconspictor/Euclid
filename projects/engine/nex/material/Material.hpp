@@ -17,15 +17,15 @@ namespace nex
 	public:
 		Material() {};
 		virtual ~Material() {};
+	};
 
-		/**
+	/**
 		* Maps material enumerations to a string representation.
 		*/
-		inline static const util::EnumString<MaterialType> materialEnumConversion[] = {
-			{nex::MaterialType::BlinnPhong, "BLINN_PHONG" },
-			{ nex::MaterialType::Pbr, "PBR" },
-			{ nex::MaterialType::None, "NONE" }
-		};
+	static const util::EnumString<MaterialType> materialEnumConversion[] = {
+		{nex::MaterialType::BlinnPhong, "BLINN_PHONG" },
+		{ nex::MaterialType::Pbr, "PBR" },
+		{ nex::MaterialType::None, "NONE" }
 	};
 
 	std::ostream& operator<<(std::ostream& os, nex::MaterialType type);

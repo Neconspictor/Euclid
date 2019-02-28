@@ -11,6 +11,16 @@
 #include "imgui/imgui_internal.h"
 using namespace nex;
 
+unsigned CascadedShadow::CascadeData::calcCascadeDataByteSize(unsigned numCascades)
+{
+	unsigned size = sizeof(glm::mat4); // inverseViewMatrix
+	size += sizeof(glm::mat4)* numCascades; // lightViewProjectionMatrices
+	size += sizeof(glm::vec4)* numCascades; // scaleFactors
+	size += sizeof(glm::vec4)* numCascades; // cascadedFarPlanes
+
+	return size;
+}
+
 bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
 {
 	return sampleCountX == o.sampleCountX
@@ -18,13 +28,16 @@ bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
 	&& (useLerpFiltering == o.useLerpFiltering);
 }
 
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, const PCFFilter& pcf, bool antiFlickerOn) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, bool antiFlickerOn) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
 	mAntiFlickerOn(antiFlickerOn),
 	mPCF(pcf)
 {
+
+	resizeCascadeData(numCascades);
+
 	resize(cascadeWidth, cascadeHeight);
 }
 
@@ -80,7 +93,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	mShadowMapSize = std::min<unsigned>(cascadeWidth, cascadeHeight);
 
 	// reset cascade cound centers 
-	for (int i = 0; i < NUM_CASCADES; i++)
+	for (int i = 0; i < mCascadeData.numCascades; i++)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
@@ -135,7 +148,7 @@ void CascadedShadow::updateTextureArray()
 	RenderAttachment depth;
 	depth.type = RenderAttachment::Type::DEPTH;
 	depth.target = TextureTarget::TEXTURE2D_ARRAY;
-	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, NUM_CASCADES, false, data, nullptr);
+	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mCascadeData.numCascades, false, data, nullptr);
 
 	mRenderTarget.bind();
 	mRenderTarget.useDepthAttachment(std::move(depth));
@@ -143,6 +156,43 @@ void CascadedShadow::updateTextureArray()
 	mRenderTarget.enableDrawToColorAttachments(false);
 	mRenderTarget.enableReadFromColorAttachments(false);
 	mRenderTarget.assertCompletion();
+}
+
+void CascadedShadow::updateCascadeData()
+{
+	// calc size of cascade data
+	unsigned size = CascadeData::calcCascadeDataByteSize(mCascadeData.numCascades);
+
+	// Only resize if needed
+	if (mCascadeData.shaderBuffer.size() != size)
+	{
+		mCascadeData.shaderBuffer.resize(size);
+		
+	}
+
+	unsigned offset = 0;
+
+	// inverseViewMatrix
+	unsigned currentSize = sizeof(glm::mat4);
+	memcpy(mCascadeData.shaderBuffer.data() + offset, &mCascadeData.inverseViewMatrix, currentSize);
+	offset += currentSize;
+
+	// lightViewProjectionMatrices
+	currentSize = sizeof(glm::mat4)* mCascadeData.numCascades;
+	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.lightViewProjectionMatrices.data(), currentSize);
+	offset += currentSize;
+
+	// scaleFactors
+	currentSize = sizeof(glm::vec4)* mCascadeData.numCascades;
+	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.scaleFactors.data(), currentSize);
+	offset += currentSize;
+
+	// scaleFactors
+	currentSize = sizeof(glm::vec4)* mCascadeData.numCascades;
+	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.cascadedFarPlanes.data(), currentSize);
+	offset += currentSize;
+
+	assert(offset == size);
 }
 
 void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirection)
@@ -157,7 +207,7 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 	const glm::mat3 shadowOffsetMatrix = glm::mat3(glm::transpose(mGlobal.shadowView));
 
 
-	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
+	for (unsigned int cascadeIterator = 0; cascadeIterator < mCascadeData.numCascades; ++cascadeIterator)
 	{
 		// the far plane of the previous cascade is the near plane of the current cascade
 		//const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
@@ -226,6 +276,9 @@ void CascadedShadow::frameUpdateNew(Camera* camera, const glm::vec3& lightDirect
 		mCascadeData.lightViewProjectionMatrices[cascadeIterator] = cascadeScale * cascadeTrans * mGlobal.worldToShadowSpace;//cascadeProjMatrix * cascadeViewMatrix;
 		mCascadeData.scaleFactors[cascadeIterator].x = scale;
 	}
+
+
+	updateCascadeData();
 }
 
 void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirection)
@@ -235,7 +288,7 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
 
 	//Start off by calculating the split distances
-	float cascadeSplits[NUM_CASCADES] = { 0 };
+	std::vector<float>  cascadeSplits(mCascadeData.numCascades);
 
 	//Between 0 and 1, change in order to see the results
 	float lambda = 1.0f;
@@ -256,16 +309,16 @@ void CascadedShadow::frameUpdateOld(Camera* camera, const glm::vec3& lightDirect
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
-	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
+	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
-		float p = (i + 1) / static_cast<float>(NUM_CASCADES);
+		float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
 		float log = minZ * std::pow(ratio, p);
 		float uniform = minZ + range * p;
 		float d = lambda * (log - uniform) + uniform;
 		cascadeSplits[i] = (d - nearClip) / clipRange;
 	}
 
-	for (unsigned int cascadeIterator = 0; cascadeIterator < NUM_CASCADES; ++cascadeIterator)
+	for (unsigned int cascadeIterator = 0; cascadeIterator < mCascadeData.numCascades; ++cascadeIterator)
 	{
 
 		float prevSplitDistance = cascadeIterator == 0 ? minDistance : cascadeSplits[cascadeIterator - 1];
@@ -423,7 +476,7 @@ void CascadedShadow::calcSplitSchemes(Camera* camera)
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
-	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
+	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
 		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i] * clipRange);
 	}
@@ -451,9 +504,9 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
-	for (unsigned int i = 0; i < NUM_CASCADES; ++i)
+	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
-		const float p = (i + 1) / static_cast<float>(NUM_CASCADES);
+		const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
 		const float log = minZ * std::pow(ratio, p);
 		const float uniform = minZ + range * p;
 		const float d = lambda * (log - uniform) + uniform;
@@ -667,6 +720,17 @@ void CascadedShadow::setPCF(const PCFFilter& filter, bool informOberservers)
 {
 	mPCF = filter;
 	if (informOberservers) informCascadeChanges();
+}
+
+void CascadedShadow::resizeCascadeData(unsigned numCascades)
+{
+	mCascadeData.numCascades = numCascades;
+	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
+	mCascadeData.scaleFactors.resize(numCascades);
+	mCascadeData.cascadedFarPlanes.resize(numCascades);
+
+	mSplitDistances.resize(numCascades);
+	mCascadeBoundCenters.resize(numCascades);
 }
 
 CascadedShadow::CascadeData* CascadedShadow::getCascadeData()

@@ -132,7 +132,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	pcf.sampleCountX = 3;
 	pcf.sampleCountY = 3;
 	pcf.useLerpFiltering = true;
-	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, pcf, true);
+	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, 4, pcf, true);
 
 	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky, m_cascadedShadow.get());
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
@@ -167,7 +167,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	//m_renderBackend->setViewPort(0, 0, 4096, 4096);
 
-	for (int i = 0; i < CascadedShadow::NUM_CASCADES; ++i)
+	for (int i = 0; i < m_cascadedShadow->getCascadeData()->numCascades; ++i)
 	{
 		m_cascadedShadow->begin(i);
 		StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());

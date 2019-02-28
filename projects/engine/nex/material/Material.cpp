@@ -7,7 +7,7 @@ using namespace nex;
 
 std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 {
-	os << enumToString(type, Material::materialEnumConversion);
+	os << enumToString(type, materialEnumConversion);
 	return os;
 }
 

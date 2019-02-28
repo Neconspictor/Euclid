@@ -254,7 +254,7 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 }*/
 
 PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(unsigned csmNumCascades, const CascadedShadow::PCFFilter& pcf) :
-	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+	cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(csmNumCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mCsmNumCascades(csmNumCascades),
 	mCsmPcf(pcf)
 {
@@ -485,7 +485,10 @@ void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeD
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	cascadeBufferUBO.bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
-	cascadeBufferUBO.update(cascadedData, sizeof(CascadedShadow::CascadeData), 0);
+
+	assert(cascadeBufferUBO.getSize() == cascadedData->shaderBuffer.size());
+
+	cascadeBufferUBO.update(cascadedData->shaderBuffer.data(), cascadedData->shaderBuffer.size(), 0);
 }
 
 

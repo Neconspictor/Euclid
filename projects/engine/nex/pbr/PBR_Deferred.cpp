@@ -22,7 +22,7 @@ namespace nex {
 	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow) :
 		PBR(backgroundHDR),
 		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
-		mLightPass(make_unique<PBRShader_Deferred_Lighting>(CascadedShadow::NUM_CASCADES, cascadeShadow->getPCF())),
+		mLightPass(make_unique<PBRShader_Deferred_Lighting>(cascadeShadow->getCascadeData()->numCascades, cascadeShadow->getPCF())),
 		mCascadeShadow(cascadeShadow)
 	{
 		vec2 dim = { 1.0, 1.0 };
@@ -38,7 +38,7 @@ namespace nex {
 
 		mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)->void
 		{
-			reloadLightingShader(cascade->NUM_CASCADES, cascade->getPCF());
+			reloadLightingShader(cascade->getCascadeData()->numCascades, cascade->getPCF());
 		});
 	}
 

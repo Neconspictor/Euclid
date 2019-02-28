@@ -14,17 +14,16 @@ namespace nex
 	{
 	public:
 
-		/**
-		 * Specifies the number of used cascades
-		 * IMPORTANT: Keep in sync with shader implementation(s)
-		 */
-		static const int NUM_CASCADES = 4;
-
 		struct CascadeData {
 			glm::mat4 inverseViewMatrix;
-			glm::mat4 lightViewProjectionMatrices[NUM_CASCADES];
-			glm::vec4 scaleFactors[NUM_CASCADES]; // only x component is used
-			glm::vec4 cascadedFarPlanes[NUM_CASCADES]; // far plane splits in (positive z-axis) view space; only x component is used
+			std::vector<glm::mat4> lightViewProjectionMatrices;
+			std::vector <glm::vec4> scaleFactors; // only x component is used
+			std::vector <glm::vec4> cascadedFarPlanes; // far plane splits in (positive z-axis) view space; only x component is used
+			unsigned numCascades; // IMPORTANT: Keep in sync with shader implementation(s)
+
+			std::vector<char> shaderBuffer; // used for shader data transfer
+
+			static unsigned calcCascadeDataByteSize(unsigned numCascades);
 		};
 
 		struct PCFFilter
@@ -36,7 +35,7 @@ namespace nex
 			bool operator==(const PCFFilter& o);
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, const PCFFilter& pcf, bool antiFlickerOn = true);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, bool antiFlickerOn = true);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -92,7 +91,12 @@ namespace nex
 
 	protected:
 
+		void resizeCascadeData(unsigned numCascades);
+
 		void updateTextureArray();
+
+		void updateCascadeData();
+
 
 		struct BoundingSphere
 		{
@@ -139,8 +143,8 @@ namespace nex
 		float mShadowMapSize;
 		CascadeData mCascadeData;
 		bool mAntiFlickerOn;
-		float mSplitDistances[NUM_CASCADES];
-		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];
+		std::vector<float> mSplitDistances;
+		std::vector<glm::vec3> mCascadeBoundCenters;
 		GlobalShadow mGlobal;
 		PCFFilter mPCF;
 		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
