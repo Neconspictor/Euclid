@@ -2,11 +2,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
-#include <nex/shader/Shader.hpp>
 
 
 namespace nex
 {
+	enum class MaterialType;
 	class StaticMesh;
 	class StaticMeshManager;
 
@@ -19,7 +19,7 @@ namespace nex
 	class Vob
 	{
 	public:
-		explicit Vob(std::string meshName, ShaderType materialShaderType);
+		explicit Vob(std::string meshName, MaterialType  materialType);
 
 		explicit Vob(StaticMesh* model);
 
@@ -32,7 +32,7 @@ namespace nex
 		/**
 		* Provides the shader type of the mesh of this vob.
 		*/
-		ShaderType getMaterialShaderType() const;
+		MaterialType getMaterialType() const;
 
 
 		/**
@@ -82,7 +82,7 @@ namespace nex
 	protected:
 		std::string meshName;
 		StaticMesh* m_model;
-		ShaderType materialShaderType;
+		MaterialType mMaterialType;
 		glm::quat orientation;
 		glm::vec3 position;
 		glm::vec3 scale;

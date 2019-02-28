@@ -1,7 +1,6 @@
 #include <nex/pbr/PBR.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/shader/ShadowShader.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>
@@ -12,7 +11,12 @@ using namespace glm;
 using namespace nex;
 
 PBR::PBR(Texture* backgroundHDR) :
-	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex){
+	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::BlinnPhong),
+	mConvolutionPass(std::make_unique<PBR_ConvolutionShader>()),
+	mPrefilterPass(std::make_unique<PBR_PrefilterShader>()),
+	mBrdfPrecomputePass(std::make_unique<PBR_BrdfPrecomputeShader>()),
+	mForwardShader(std::make_unique<PBRShader>())
+{
 
 	skybox.init();
 
@@ -34,10 +38,7 @@ PBR::~PBR()
 
 void PBR::drawSky(const mat4& projection, const mat4& view)
 {
-	static auto* shaderManager = ShaderManager::get();
-
-	SkyBoxShader* skyboxShader = reinterpret_cast<SkyBoxShader*>
-		(shaderManager->getShader(ShaderType::SkyBox));
+	static auto* skyboxShader = RenderBackend::get()->getEffectLibrary()->getSkyBoxShader();
 
 	mat4 skyBoxView = mat4(mat3(view));
 
@@ -60,9 +61,9 @@ void PBR::drawSceneToShadowMap(SceneNode * scene,
 	const mat4 & lightViewMatrix, 
 	const mat4 & lightProjMatrix)
 {
-	static auto* shaderManager = ShaderManager::get();
 	const mat4& lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
-	ShadowShader* shader = (ShadowShader*)shaderManager->getShader(ShaderType::Shadow);
+
+	static auto* shader = RenderBackend::get()->getEffectLibrary()->getShadowVisualizer();
 
 	shader->bind();
 	shader->setLightSpaceMatrix(lightSpaceMatrix);
@@ -81,35 +82,32 @@ void PBR::drawScene(SceneNode * scene,
 	const mat4& view,
 	const mat4& projection)
 {
-	static auto* shaderManager = ShaderManager::get();
 	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
 
-	 PBRShader* shader = reinterpret_cast<PBRShader*> (shaderManager->getShader(ShaderType::Pbr));
+	mForwardShader->bind();
 
-	shader->bind();
-
-	shader->setBrdfLookupTexture(getBrdfLookupTexture());
-	shader->setIrradianceMap(getConvolutedEnvironmentMap());
+	mForwardShader->setBrdfLookupTexture(getBrdfLookupTexture());
+	mForwardShader->setIrradianceMap(getConvolutedEnvironmentMap());
 	
-	shader->setLightColor(light.getColor());
-	shader->setLightDirection(light.getLook());
-	shader->setLightSpaceMatrix(lightSpaceMatrix);
-	shader->setLightProjMatrix(lightProjMatrix);
-	shader->setLightViewMatrix(lightViewMatrix);
+	mForwardShader->setLightColor(light.getColor());
+	mForwardShader->setLightDirection(light.getLook());
+	mForwardShader->setLightSpaceMatrix(lightSpaceMatrix);
+	mForwardShader->setLightProjMatrix(lightProjMatrix);
+	mForwardShader->setLightViewMatrix(lightViewMatrix);
 
-	shader->setPrefilterMap(getPrefilteredEnvironmentMap());
-	shader->setShadowMap(shadowMap);
+	mForwardShader->setPrefilterMap(getPrefilteredEnvironmentMap());
+	mForwardShader->setShadowMap(shadowMap);
 
 	//TODO validate whether this is needed
 	//shader->setSkyBox(environmentMap->getCubeMap());
 
-	shader->setCameraPosition(cameraPosition);
+	mForwardShader->setCameraPosition(cameraPosition);
 
-	shader->setViewMatrix(view);
-	shader->setInverseViewMatrix(inverse(view));
-	shader->setProjectionMatrix(projection);
+	mForwardShader->setViewMatrix(view);
+	mForwardShader->setInverseViewMatrix(inverse(view));
+	mForwardShader->setProjectionMatrix(projection);
 	
-	StaticMeshDrawer::draw(scene, shader);
+	StaticMeshDrawer::draw(scene, mForwardShader.get());
 }
 
 CubeMap * PBR::getConvolutedEnvironmentMap() const
@@ -280,11 +278,9 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 	cubeRenderTarget->useDepthAttachment(depth);
 	cubeRenderTarget->updateDepthAttachment();
 
-	static auto* shaderManager = ShaderManager::get();
 	static auto* renderBackend = RenderBackend::get();
-
-	EquirectangularSkyBoxShader* shader = reinterpret_cast<EquirectangularSkyBoxShader*>
-		(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
+	static auto* effectLib = renderBackend->getEffectLibrary();
+	static auto* shader = effectLib->getEquirectangularSkyBoxShader();
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
@@ -342,20 +338,15 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 {
 	static auto* renderBackend = RenderBackend::get();
-	static auto* shaderManager = ShaderManager::get();
 	
 	// uses RGB and 32bit per component (floats)
 	auto cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32);
 
-
-	PBR_ConvolutionShader* shader = reinterpret_cast<PBR_ConvolutionShader*>
-		(shaderManager->getShader(ShaderType::Pbr_Convolution));
-
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-	shader->bind();
-	shader->setProjection(projection);
-	shader->setEnvironmentMap(source);
+	mConvolutionPass->bind();
+	mConvolutionPass->setProjection(projection);
+	mConvolutionPass->setEnvironmentMap(source);
 
 
 	//view matrices;
@@ -373,9 +364,9 @@ std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 	renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 	for (int side = 0; side < 6; ++side) {
-		shader->setView(views[side]);
+		mConvolutionPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
-		StaticMeshDrawer::draw(skybox.getModel(), shader);
+		StaticMeshDrawer::draw(skybox.getModel(), mConvolutionPass.get());
 	}
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
@@ -400,19 +391,15 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 	};
 
 	static auto* renderBackend = RenderBackend::get();
-	static auto* shaderManager = ShaderManager::get();
 
 	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(256, 256, textureData);
-
-	PBR_PrefilterShader* shader = dynamic_cast<PBR_PrefilterShader*>
-		(shaderManager->getShader(ShaderType::Pbr_Prefilter));
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 
-	shader->bind();
-	shader->setProjection(projection);
-	shader->setMapToPrefilter(source);
+	mPrefilterPass->bind();
+	mPrefilterPass->setProjection(projection);
+	mPrefilterPass->setMapToPrefilter(source);
 
 	//view matrices;
 	const mat4 views[] = {
@@ -432,7 +419,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 
 		// update the roughness value for the current mipmap level
 		float roughness = (float)mipLevel / (float)(maxMipLevels - 1);
-		shader->setRoughness(roughness);
+		mPrefilterPass->setRoughness(roughness);
 
 		//resize render target according to mip level size
 		prefilterRenderTarget->resizeForMipMap(mipLevel);
@@ -445,9 +432,9 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
-			shader->setView(views[side]);
+			mPrefilterPass->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X), mipLevel);
-			StaticMeshDrawer::draw(skybox.getModel(), shader);
+			StaticMeshDrawer::draw(skybox.getModel(), mPrefilterPass.get());
 		}
 	}
 
@@ -478,13 +465,9 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 		InternFormat::DEPTH24_STENCIL8);
 
 	static auto* renderBackend = RenderBackend::get();
-	static auto* shaderManager = ShaderManager::get();
 
 	//auto target = renderBackend->create2DRenderTarget(1024, 1024, data, depthData, 1);
 	auto target = std::make_unique<RenderTarget2D>(1024, 1024, data);
-
-	PBR_BrdfPrecomputeShader* brdfPrecomputeShader = reinterpret_cast<PBR_BrdfPrecomputeShader*>
-		(shaderManager->getShader(ShaderType::Pbr_BrdfPrecompute));
 
 	target->bind();
 	renderBackend->setViewPort(0, 0, 1024, 1024);
@@ -504,8 +487,8 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	sprite.setWidth(dim.x);
 	sprite.setHeight(dim.y);
 
-	brdfPrecomputeShader->bind();
-	StaticMeshDrawer::draw(&sprite, brdfPrecomputeShader);
+	mBrdfPrecomputePass->bind();
+	StaticMeshDrawer::draw(&sprite, mBrdfPrecomputePass.get());
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);

@@ -45,17 +45,6 @@ void nex::Shader::reverseRenderState()
 {
 }
 
-nex::ShaderType nex::stringToShaderEnum(const std::string& str)
-{
-	return nex::util::stringToEnum(str, nex::shaderEnumConversion);
-}
-
-std::ostream& nex::operator<<(std::ostream& os, nex::ShaderType shader)
-{
-	os << nex::util::enumToString(shader, nex::shaderEnumConversion);
-	return os;
-}
-
 nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
 {
 }

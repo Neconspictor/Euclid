@@ -48,6 +48,8 @@ namespace nex
 		 */
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
 
+		void addResizeCallback(std::function<void(CascadedShadow*)> callback);
+
 		/**
 		 * Renders a mesh with a given model matrix to the active cascade
 		 */
@@ -126,6 +128,7 @@ namespace nex
 		float mSplitDistances[NUM_CASCADES];
 		glm::vec3 mCascadeBoundCenters[NUM_CASCADES];
 		GlobalShadow mGlobal;
+		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

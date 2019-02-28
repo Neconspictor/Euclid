@@ -5,6 +5,12 @@ using namespace std;
 using namespace nex;
 
 
+std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
+{
+	os << enumToString(type, Material::materialEnumConversion);
+	return os;
+}
+
 BlinnPhongMaterial::BlinnPhongMaterial() : Material(),
 diffuseMap(nullptr),
 emissionMap(nullptr),

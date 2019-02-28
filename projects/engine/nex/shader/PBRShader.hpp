@@ -144,7 +144,11 @@ namespace nex
 	class PBRShader_Deferred_Lighting : public TransformShader {
 	public:
 
-		PBRShader_Deferred_Lighting();
+		PBRShader_Deferred_Lighting(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES, 
+			unsigned csmSampleCountX = 3, 
+			unsigned csmSampleCountY = 3, 
+			bool csmUseLerpFilter = true);
+
 		virtual ~PBRShader_Deferred_Lighting();
 
 
@@ -219,7 +223,26 @@ namespace nex
 		UniformTex mDepthMap;
 
 		Uniform mInverseProjFromGPass;
+
+		// CSM
+		unsigned mCsmNumCascades;
+		unsigned mCsmSampleCountX;
+		unsigned mCsmSampleCountY;
+		unsigned mCsmUseLerpFilter;
+
+		std::vector<std::string> generateCsmDefines();
+		
+		template<typename T>
+		std::string makeDefine(const char* str, T value);
 	};
+
+	template <typename T>
+	std::string PBRShader_Deferred_Lighting::makeDefine(const char* str, T value)
+	{
+		std::stringstream ss;
+		ss <<"#define " << str << " " << value;
+		return ss.str();
+	}
 
 	class PBR_ConvolutionShader : public Shader
 	{

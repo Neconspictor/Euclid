@@ -253,11 +253,21 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting() :
-	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
+PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(unsigned csmNumCascades,
+	unsigned csmSampleCountX,
+	unsigned csmSampleCountY,
+	bool csmUseLerpFilter) :
+	cascadeBufferUBO(0, sizeof(CascadedShadow::CascadeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+	mCsmNumCascades(csmNumCascades),
+	mCsmSampleCountX(csmSampleCountX),
+	mCsmSampleCountY(csmSampleCountY),
+	mCsmUseLerpFilter(csmUseLerpFilter ? 1 : 0)
 {
+
+	std::vector<string> defines = generateCsmDefines();
+
 	mProgram = ShaderProgram::create(
-		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", {"#define CSM_NUM_CASCADES 4", "#define CSM_SAMPLE_COUNT_X 4", "#define CSM_SAMPLE_COUNT_Y 4", "#define CSM_USE_LERP_FILTER 1"});
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", defines);
 
 	unsigned textureCounter = 0;
 
@@ -628,6 +638,18 @@ void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformD
 }
 */
 
+
+std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
+{
+	std::vector<string> result;
+
+	result.emplace_back(makeDefine("CSM_NUM_CASCADES", mCsmNumCascades));
+	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_X", mCsmSampleCountX));
+	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_Y", mCsmSampleCountY));
+	result.emplace_back(makeDefine("CSM_USE_LERP_FILTER", mCsmUseLerpFilter));
+
+	return result;
+}
 
 PBR_ConvolutionShader::PBR_ConvolutionShader()
 {

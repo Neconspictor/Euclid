@@ -14,6 +14,7 @@
 #include <iostream>
 #include "nex/opengl/shader/ScreenShaderGL.hpp"
 #include "nex/opengl/shader/DepthMapShaderGL.hpp"
+#include "nex/shader/DepthMapShader.hpp"
 
 namespace nex {
 	class Timer;

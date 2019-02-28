@@ -71,9 +71,6 @@ void NeXEngine::init()
 	m_baseTitle = m_window->getTitle();
 
 
-	//init render backend
-	initRenderBackend();
-
 	// init texture manager (filesystem)
 	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
 	TextureManager::get()->init(&mTextureFileSystem);
@@ -85,6 +82,9 @@ void NeXEngine::init()
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
 	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
+
+	//init render backend
+	initRenderBackend();
 
 
 
@@ -180,27 +180,27 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.emplace_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
-	m_vobs.emplace_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
 	ground->vob = &m_vobs.back();
 	ground->vob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
 	m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
-	m_vobs.emplace_back(Vob("cerberus/cerberus.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("cerberus/cerberus.obj", MaterialType::Pbr));
 	cerberus->vob = &m_vobs.back();
 	root->addChild(cerberus);
 
 	m_nodes.emplace_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();
-	m_vobs.emplace_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("normal_map_test/normal_map_test.obj", MaterialType::Pbr));
 	cube1->vob = &m_vobs.back();
 	cube1->vob->setPosition({ 0.0f, 1.3f, 0.0f });
 	root->addChild(cube1);
 
 	m_nodes.emplace_back(SceneNode());
 	SceneNode* sphere = &m_nodes.back();
-	m_vobs.emplace_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
+	m_vobs.emplace_back(Vob("normal_map_test/normal_map_sphere.obj", MaterialType::Pbr));
 	sphere->vob = &m_vobs.back();
 	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
 	root->addChild(sphere);

@@ -2,13 +2,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/shader/PBRShader.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
 #include <nex/SceneNode.hpp>
 #include <nex/shader/DepthMapShader.hpp>
 #include <nex/shader/ScreenShader.hpp>
 #include <nex/util/Math.hpp>
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
@@ -52,15 +50,12 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
 
-	ShaderManager* shaderManager = ShaderManager::get();
 	StaticMeshManager* modelManager = StaticMeshManager::get();
 	TextureManager* textureManager = TextureManager::get();
 
 	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
 	//window->addResizeCallback(rendererResizeCallback);
 
-
-	shaderManager->loadShaders();
 
 	modelManager->loadModels();
 
@@ -88,18 +83,11 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-	
-	SkyBoxShader* skyBoxShader = dynamic_cast<SkyBoxShader*>
-		(shaderManager->getShader(ShaderType::SkyBox));
 
-	PanoramaSkyBoxShader* panoramaSkyBoxShader = dynamic_cast<PanoramaSkyBoxShader*>
-		(shaderManager->getShader(ShaderType::SkyBoxPanorama));
-
-	EquirectangularSkyBoxShader* equirectangularSkyBoxShader = dynamic_cast<EquirectangularSkyBoxShader*>
-		(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
-
-	PBRShader* pbrShader = dynamic_cast<PBRShader*>
-		(shaderManager->getShader(ShaderType::Pbr));
+	auto* effectLib = m_renderBackend->getEffectLibrary();
+	auto* equirectangularSkyBoxShader = effectLib->getEquirectangularSkyBoxShader();
+	auto* panoramaSkyBoxShader = effectLib->getPanoramaSkyBoxShader();
+	auto* skyboxShader = effectLib->getSkyBoxShader();
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
@@ -117,12 +105,6 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	globalLight.lookAt({0,0,0});
 	globalLight.update(true);
 	globalLight.setColor(vec3(1.0f, 1.0f, 1.0f));
-
-
-	// init shaders
-	pbrShader->bind();
-	//pbrShader->setLightColor({ 1.0f, 1.0f, 1.0f });
-	//pbrShader->setLightDirection(globalLight.getLook());
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
@@ -157,19 +139,25 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	m_aoSelector.setHBAO(make_unique<HBAO>(windowWidth * ssaaSamples, windowHeight * ssaaSamples));
 
 	CubeMap* background = m_pbr_deferred->getEnvironmentMap();
-	skyBoxShader->bind();
-	skyBoxShader->setSkyTexture(background);
+	skyboxShader->bind();
+	skyboxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
 
 	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048);
+
+	m_cascadedShadow->addResizeCallback([&](CascadedShadow* cascade)->void
+	{
+		LOG(m_logger, Info) << "Cascade width = " << cascade->getWidth();
+
+		m_pbr_deferred->reloadLightingShader(cascade->NUM_CASCADES, 0, 0, false);
+	});
 }
 
 
 void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	ShaderManager* shaderManager = ShaderManager::get();
-	ScreenShader* screenShader = (ScreenShader*)(shaderManager->getShader(ShaderType::Screen));
-	DepthMapShader* depthMapShader = (DepthMapShader*)(shaderManager->getShader(ShaderType::DepthMap));
+	static auto* depthMapShader = RenderBackend::get()->getEffectLibrary()->getDepthMapShader();
+	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
 
 	using namespace chrono;
 

@@ -179,8 +179,6 @@ set(
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
-    nex/shader/ShaderManager.hpp
-	nex/shader/ShaderManager.cpp
     nex/shader/ShadowShader.hpp
 	nex/shader/ShadowShader.cpp
     nex/shader/SkyBoxShader.hpp

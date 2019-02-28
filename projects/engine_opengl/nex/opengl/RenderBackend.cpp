@@ -1,6 +1,5 @@
 ﻿#include <nex/RenderBackend.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,14 +18,50 @@ using namespace glm;
 namespace nex
 {
 
-	EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer)
+	EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer),
+		mGaussianBlur(make_unique<GaussianBlur>()),
+		mEquirectangualrSkyBox(make_unique<EquirectangularSkyBoxShader>()),
+		mPanoramaSkyBox(make_unique<PanoramaSkyBoxShader>()),
+		mSkyBox(make_unique<SkyBoxShader>()),
+		mDepthMap(make_unique<DepthMapShader>()),
+		mShadow(make_unique<ShadowShader>()),
+		mScreen(make_unique<ScreenShader>())
 	{
-		gaussianBlur = make_unique<GaussianBlur>();
 	}
 
 	GaussianBlur* EffectLibrary::getGaussianBlur()
 	{
-		return gaussianBlur.get();
+		return mGaussianBlur.get();
+	}
+
+	EquirectangularSkyBoxShader* EffectLibrary::getEquirectangularSkyBoxShader()
+	{
+		return mEquirectangualrSkyBox.get();
+	}
+
+	PanoramaSkyBoxShader* EffectLibrary::getPanoramaSkyBoxShader()
+	{
+		return mPanoramaSkyBox.get();
+	}
+
+	SkyBoxShader* EffectLibrary::getSkyBoxShader()
+	{
+		return mSkyBox.get();
+	}
+
+	DepthMapShader* EffectLibrary::getDepthMapShader()
+	{
+		return mDepthMap.get();
+	}
+
+	ShadowShader* EffectLibrary::getShadowVisualizer()
+	{
+		return mShadow.get();
+	}
+
+	ScreenShader* EffectLibrary::getScreenShader()
+	{
+		return mScreen.get();
 	}
 
 	void EffectLibrary::release()
@@ -449,15 +484,14 @@ namespace nex
 
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
-		auto* shaderManager = ShaderManager::get();
-		auto* shader = dynamic_cast<EquirectangularSkyBoxShader*>(shaderManager->getShader(ShaderType::SkyBoxEquirectangular));
+		auto* shader = effectLibrary->getEquirectangularSkyBoxShader();
 		const mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 		shader->bind();
 		shader->setSkyTexture(equirectangularMap);
 		shader->setProjection(projection);
 
-		Vob skyBox("misc/SkyBoxCube.obj", ShaderType::BlinnPhongTex);
+		Vob skyBox("misc/SkyBoxCube.obj", MaterialType::BlinnPhong);
 
 		TextureData textureData = {
 			TextureFilter::Linear,

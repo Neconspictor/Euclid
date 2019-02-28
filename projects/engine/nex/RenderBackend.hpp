@@ -6,6 +6,9 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/shader/DepthMapShader.hpp>
+#include "shader/SkyBoxShader.hpp"
+#include "shader/ShadowShader.hpp"
+#include "shader/ScreenShader.hpp"
 
 namespace nex
 {
@@ -86,10 +89,26 @@ namespace nex
 		// Inherited via EffectLibrary
 		GaussianBlur* getGaussianBlur();
 
+		EquirectangularSkyBoxShader* getEquirectangularSkyBoxShader();
+		PanoramaSkyBoxShader* getPanoramaSkyBoxShader();
+		SkyBoxShader* getSkyBoxShader();
+
+		DepthMapShader* getDepthMapShader();
+
+		ShadowShader* getShadowVisualizer();
+
+		ScreenShader* getScreenShader();
+
 		void release();
 
 	protected:
-		std::unique_ptr<GaussianBlur> gaussianBlur;
+		std::unique_ptr<GaussianBlur> mGaussianBlur;
+		std::unique_ptr<EquirectangularSkyBoxShader> mEquirectangualrSkyBox;
+		std::unique_ptr<PanoramaSkyBoxShader> mPanoramaSkyBox;
+		std::unique_ptr<SkyBoxShader> mSkyBox;
+		std::unique_ptr<DepthMapShader> mDepthMap;
+		std::unique_ptr<ShadowShader> mShadow;
+		std::unique_ptr<ScreenShader> mScreen;
 		RenderBackend* renderer;
 	};
 

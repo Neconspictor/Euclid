@@ -26,64 +26,6 @@ namespace nex
 		VERTEX, SHADER_STAGE_LAST = VERTEX
 	};
 
-	/**
-	* Enumerates all shaders that can be used for shading models.
-	*/
-	enum class ShaderType
-	{
-		Unknown = 0,
-		BlinnPhongTex,
-		Pbr,
-		Pbr_Deferred_Geometry,
-		Pbr_Deferred_Lighting,
-		Pbr_Convolution,
-		Pbr_Prefilter,
-		Pbr_BrdfPrecompute,
-		CubeDepthMap,
-		DepthMap,
-		GaussianBlurHorizontal,
-		GaussianBlurVertical,
-		Normals,
-		Shadow,
-		ShadowPoint,
-		SimpleColor,
-		SimpleExtrude,
-		Screen,
-		SkyBox,
-		SkyBoxEquirectangular,
-		SkyBoxPanorama,
-		VarianceDepthMap,
-		VarianceShadow,
-	};
-
-	/**
-* Maps shader enumerations to a string representation.
-*/
-	static const nex::util::EnumString<nex::ShaderType> shaderEnumConversion[] = {
-		{nex::ShaderType::BlinnPhongTex, "BLINN_PHONG_TEX" },
-		{ nex::ShaderType::Pbr, "PBR" },
-		{ nex::ShaderType::Pbr_Deferred_Geometry, "PBR_DEFERRED_GEOMETRY" },
-		{ nex::ShaderType::Pbr_Deferred_Lighting, "PBR_DEFERRED_LIGHTING" },
-		{ nex::ShaderType::Pbr_Convolution, "PBR_CONVOLUTION" },
-		{ nex::ShaderType::Pbr_Prefilter, "PBR_PREFILTER" },
-		{ nex::ShaderType::Pbr_BrdfPrecompute, "PBR_BRDF_PRECOMPUTE" },
-		{ nex::ShaderType::CubeDepthMap, "CUBE_DEPTH_MAP" },
-		{ nex::ShaderType::DepthMap, "DEPTH_MAP" },
-		{ nex::ShaderType::GaussianBlurHorizontal, "GAUSSIAN_BLUR_HORIZONTAL" },
-		{ nex::ShaderType::GaussianBlurVertical, "GAUSSIAN_BLUR_VERTICAL" },
-		{ nex::ShaderType::Normals, "NORMALS" },
-		{ nex::ShaderType::Shadow, "SHADOW" },
-		{ nex::ShaderType::ShadowPoint, "SHADOW_POINT" },
-		{ nex::ShaderType::SimpleColor, "SIMPLE_COLOR" },
-		{ nex::ShaderType::SimpleExtrude, "SIMPLE_EXTRUDE" },
-		{ nex::ShaderType::Screen, "SCREEN" },
-		{ nex::ShaderType::SkyBox, "SKY_BOX" },
-		{ nex::ShaderType::SkyBoxEquirectangular, "SKY_BOX_EQUIRECTANGULAR" },
-		{ nex::ShaderType::SkyBoxPanorama, "SKY_BOX_PANORAMA" },
-		{ nex::ShaderType::VarianceShadow, "VARIANCE_DEPTH_MAP" },
-		{ nex::ShaderType::VarianceShadow, "VARIANCE_SHADOW" }
-	};
-
 	struct TransformData
 	{
 		glm::mat4 const* projection = nullptr;
@@ -325,19 +267,5 @@ namespace nex
 		void dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ);
 	};
 
-/**
-	* Maps a string to a shader enum.
-	* @param str: The string to be mapped
-	* @return: The mapped shader enum.
-	*
-	* ATTENTION: If the string couldn't be mapped, a EnumFormatException
-	* will be thrown.
-	*/
-	nex::ShaderType stringToShaderEnum(const std::string& str);
-
-
-
-	std::ostream& operator<<(std::ostream& os, nex::ShaderType shader);
 	std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
-
 };

@@ -6,6 +6,7 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
 #include "nex/texture/RenderTarget.hpp"
+#include "nex/shader/PBRShader.hpp"
 
 
 namespace nex
@@ -60,6 +61,12 @@ namespace nex
 		std::shared_ptr<CubeMap> prefilteredEnvMap;
 		std::shared_ptr<CubeMap> environmentMap;
 		std::shared_ptr<Texture2D> brdfLookupTexture;
+
+		std::unique_ptr<PBR_ConvolutionShader> mConvolutionPass;
+		std::unique_ptr<PBR_PrefilterShader> mPrefilterPass;
+		std::unique_ptr<PBR_BrdfPrecomputeShader> mBrdfPrecomputePass;
+
+		std::unique_ptr<PBRShader> mForwardShader;
 
 		Sprite brdfSprite;
 		Vob skybox;

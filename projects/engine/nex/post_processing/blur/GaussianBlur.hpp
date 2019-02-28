@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/texture/Sprite.hpp>
+#include "nex/shader/post_processing/blur/GaussianBlurShader.hpp"
 
 namespace nex {
 
@@ -14,5 +15,8 @@ namespace nex {
 
 	protected:
 		nex::Sprite sprite;
+
+		std::unique_ptr<GaussianBlurHorizontalShader> mHorizontalPass;
+		std::unique_ptr<GaussianBlurVerticalShader> mVerticalPass;
 	};
 }

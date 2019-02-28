@@ -1,6 +1,5 @@
 #include<nex/post_processing/blur/GaussianBlur.hpp>
 
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
@@ -9,7 +8,9 @@
 namespace nex {
 
 
-	GaussianBlur::GaussianBlur()
+	GaussianBlur::GaussianBlur() :
+		mHorizontalPass(std::make_unique< GaussianBlurHorizontalShader>()),
+		mVerticalPass(std::make_unique< GaussianBlurVerticalShader>())
 	{
 		sprite.setPosition({ 0,0 });
 		sprite.setHeight(1);
@@ -18,11 +19,6 @@ namespace nex {
 
 	void GaussianBlur::blur(RenderTarget2D* target, RenderTarget2D* cache)
 	{
-		GaussianBlurHorizontalShader* horizontalShader = dynamic_cast<GaussianBlurHorizontalShader*>(
-			ShaderManager::get()->getShader(ShaderType::GaussianBlurHorizontal));
-		GaussianBlurVerticalShader* verticalShader = dynamic_cast<GaussianBlurVerticalShader*>(
-			ShaderManager::get()->getShader(ShaderType::GaussianBlurVertical));
-
 
 		//TODO do a blur pass
 		cache->bind();
@@ -33,11 +29,11 @@ namespace nex {
 
 		// horizontal pass
 		sprite.setTexture(renderResult);
-		horizontalShader->bind();
-		horizontalShader->setTexture(sprite.getTexture());
-		horizontalShader->setImageHeight((float)target->getHeight());
-		horizontalShader->setImageWidth((float)target->getWidth());
-		StaticMeshDrawer::draw(&sprite, horizontalShader);
+		mHorizontalPass->bind();
+		mHorizontalPass->setTexture(sprite.getTexture());
+		mHorizontalPass->setImageHeight((float)target->getHeight());
+		mHorizontalPass->setImageWidth((float)target->getWidth());
+		StaticMeshDrawer::draw(&sprite, mHorizontalPass.get());
 
 		using r = RenderComponent;
 		Dimension blitRegion = { 0,0, target->getWidth(), target->getHeight() };
@@ -47,11 +43,11 @@ namespace nex {
 		cache->bind();
 		cache->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		sprite.setTexture(renderResult);
-		verticalShader->bind();
-		verticalShader->setTexture(sprite.getTexture());
-		verticalShader->setImageHeight((float)target->getHeight());
-		verticalShader->setImageWidth((float)target->getWidth());
-		StaticMeshDrawer::draw(&sprite, verticalShader);
+		mVerticalPass->bind();
+		mVerticalPass->setTexture(sprite.getTexture());
+		mVerticalPass->setImageHeight((float)target->getHeight());
+		mVerticalPass->setImageWidth((float)target->getWidth());
+		StaticMeshDrawer::draw(&sprite, mVerticalPass.get());
 
 		cache->blit(target, blitRegion, r::Color | r::Depth | r::Stencil);
 	}

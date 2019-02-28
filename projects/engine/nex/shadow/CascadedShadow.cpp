@@ -79,6 +79,16 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	}
 
 	updateTextureArray();
+
+	for (auto& callback : mCallbacks)
+	{
+		callback(this);
+	}
+}
+
+void CascadedShadow::addResizeCallback(std::function<void(CascadedShadow*)> callback)
+{
+	mCallbacks.emplace_back(std::move(callback));
 }
 
 /*void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)

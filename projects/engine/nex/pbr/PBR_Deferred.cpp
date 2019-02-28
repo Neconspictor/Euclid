@@ -10,7 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/RenderBackend.hpp>
 
 using namespace glm;
@@ -21,7 +20,9 @@ namespace nex {
 
 
 	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR) :
-		PBR(backgroundHDR)
+		PBR(backgroundHDR),
+		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
+		mLightPass(make_unique<PBRShader_Deferred_Lighting>())
 	{
 		vec2 dim = { 1.0, 1.0 };
 		vec2 pos = { 0, 0 };
@@ -46,12 +47,9 @@ namespace nex {
 		//glStencilMask(0xFF);
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-		PBRShader_Deferred_Geometry* shader = reinterpret_cast<PBRShader_Deferred_Geometry*> (
-			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Geometry));
-
-		shader->bind();
-		shader->setView(view);
-		shader->setProjection(projection);
+		mGeometryPass->bind();
+		mGeometryPass->setView(view);
+		mGeometryPass->setProjection(projection);
 
 
 
@@ -62,7 +60,7 @@ namespace nex {
 			sampler->bind(i);
 		}
 
-		StaticMeshDrawer::draw(scene, shader);
+		StaticMeshDrawer::draw(scene, mGeometryPass.get());
 
 		for (int i = 0; i < 6; ++i)
 		{
@@ -86,40 +84,37 @@ namespace nex {
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
-		PBRShader_Deferred_Lighting* shader = reinterpret_cast<PBRShader_Deferred_Lighting*>(
-			ShaderManager::get()->getShader(ShaderType::Pbr_Deferred_Lighting));
 
+		mLightPass->bind();
 
-		shader->bind();
+		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
+		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
+		mLightPass->setNormalEyeMap(gBuffer->getNormal());
+		mLightPass->setDepthMap(gBuffer->getDepth());
 
-		shader->setAlbedoMap(gBuffer->getAlbedo());
-		shader->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
-		shader->setNormalEyeMap(gBuffer->getNormal());
-		shader->setDepthMap(gBuffer->getDepth());
-
-		shader->setBrdfLookupTexture(getBrdfLookupTexture());
+		mLightPass->setBrdfLookupTexture(getBrdfLookupTexture());
 		//shader->setGBuffer(gBuffer);
-		shader->setViewGPass(viewFromGPass);
-		shader->setInverseViewFromGPass(inverse(viewFromGPass));
-		shader->setInverseProjMatrixFromGPass(inverse(projFromGPass));
-		shader->setIrradianceMap(getConvolutedEnvironmentMap());
-		shader->setLightColor(light.getColor());
-		shader->setWorldLightDirection(light.getLook());
+		mLightPass->setViewGPass(viewFromGPass);
+		mLightPass->setInverseViewFromGPass(inverse(viewFromGPass));
+		mLightPass->setInverseProjMatrixFromGPass(inverse(projFromGPass));
+		mLightPass->setIrradianceMap(getConvolutedEnvironmentMap());
+		mLightPass->setLightColor(light.getColor());
+		mLightPass->setWorldLightDirection(light.getLook());
 
 		vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
-		shader->setEyeLightDirection(vec3(lightEyeDirection));
-		shader->setPrefilterMap(getPrefilteredEnvironmentMap());
+		mLightPass->setEyeLightDirection(vec3(lightEyeDirection));
+		mLightPass->setPrefilterMap(getPrefilteredEnvironmentMap());
 		//shader->setShadowMap(shadowMap);
-		shader->setAOMap(ssaoMap);
+		mLightPass->setAOMap(ssaoMap);
 		//TODO
 		//shader->setSkyBox(environmentMap->getCubeMap());
-		shader->setWorldToLightSpaceMatrix(worldToLight);
-		shader->setEyeToLightSpaceMatrix(worldToLight  * viewFromGPass);
-		shader->setCascadedData(cascadeData);
-		shader->setCascadedDepthMap(cascadedDepthMap);
+		mLightPass->setWorldToLightSpaceMatrix(worldToLight);
+		mLightPass->setEyeToLightSpaceMatrix(worldToLight  * viewFromGPass);
+		mLightPass->setCascadedData(cascadeData);
+		mLightPass->setCascadedDepthMap(cascadedDepthMap);
 
 
-		StaticMeshDrawer::draw(&screenSprite, shader);
+		StaticMeshDrawer::draw(&screenSprite, mLightPass.get());
 
 		stencilTest->enableStencilTest(false);
 	}
@@ -140,6 +135,11 @@ namespace nex {
 		return make_unique<PBR_GBuffer>(width, height);
 	}
 
+	void PBR_Deferred::reloadLightingShader(unsigned csmNumCascades, unsigned csmSampleCountX, unsigned csmSampleCountY,
+		bool csmUseLerpFilter)
+	{
+		mLightPass = make_unique<PBRShader_Deferred_Lighting>(csmNumCascades, csmSampleCountX, csmSampleCountY, csmUseLerpFilter);
+	}
 
 
 	PBR_Deferred_ConfigurationView::PBR_Deferred_ConfigurationView(PBR_Deferred* pbr) : m_pbr(pbr)

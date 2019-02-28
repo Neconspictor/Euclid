@@ -1,7 +1,6 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <nex/shader/ShaderManager.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/SceneNode.hpp>

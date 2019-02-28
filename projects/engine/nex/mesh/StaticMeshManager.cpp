@@ -136,7 +136,7 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		mFileSystem = meshFileSystem;
 	}
 
-	nex::StaticMesh* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::ShaderType materialShader)
+	nex::StaticMesh* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
 	{
 		auto hash = nex::util::customSimpleHash(meshPath);
 
@@ -161,15 +161,15 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 
 		nex::AbstractMaterialLoader* materialLoader = nullptr;
-		if (materialShader == ShaderType::BlinnPhongTex) {
+		if (type == MaterialType::BlinnPhong) {
 			materialLoader = &blinnPhongMaterialLoader;
 		}
-		else if (materialShader == ShaderType::Pbr) {
+		else if (type == MaterialType::Pbr) {
 			materialLoader = &pbrMaterialLoader;
 		}
 		else {
 			std::stringstream msg;
-			msg << "No suitable material loader found for shader type: " << materialShader << std::endl; //TODO
+			msg << "No suitable material loader found for shader type: " << type << std::endl; //TODO
 
 			throw_with_trace(std::runtime_error(msg.str()));
 		}

@@ -7,16 +7,16 @@ using namespace glm;
 
 namespace nex {
 
-	Vob::Vob(string meshName, ShaderType materialShaderType): m_model(nullptr)
+	Vob::Vob(string meshName, MaterialType materialType): m_model(nullptr),
+		mMaterialType(materialType),
+		meshName(move(meshName))
 	{
-		this->meshName = move(meshName);
-		this->materialShaderType = materialShaderType;
 		position = {0, 0, 0};
 		scale = {1, 1, 1};
 		orientation = {1, 0, 0, 0};
 	}
 
-	Vob::Vob(StaticMesh* model) : m_model(model), materialShaderType(ShaderType::Unknown), position(0, 0, 0), scale(1, 1, 1),
+	Vob::Vob(StaticMesh* model) : m_model(model), mMaterialType(MaterialType::None), position(0, 0, 0), scale(1, 1, 1),
 	                           orientation(1, 0, 0, 0)
 	{
 	}
@@ -40,9 +40,9 @@ namespace nex {
 		return m_model;
 	}
 
-	ShaderType Vob::getMaterialShaderType() const
+	MaterialType Vob::getMaterialType() const
 	{
-		return materialShaderType;
+		return mMaterialType;
 	}
 
 	vec3 Vob::getPosition() const
@@ -60,7 +60,7 @@ namespace nex {
 
 		static auto* manager = StaticMeshManager::get();
 		if (m_model == nullptr)
-			m_model = manager->getModel(meshName, materialShaderType);
+			m_model = manager->getModel(meshName, mMaterialType);
 	}
 
 	void Vob::setEulerXYZ(vec3 rotation)

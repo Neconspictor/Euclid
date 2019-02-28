@@ -41,7 +41,7 @@ namespace nex
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMesh* getModel(const std::string& meshName, ShaderType materialShader);
+		StaticMesh* getModel(const std::string& meshName, MaterialType type);
 
 		/*
 		 * Provides read acces to a cube that has position, normal and texture coordinates.
