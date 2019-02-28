@@ -26,7 +26,6 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mPCF(pcf)
 {
 	resize(cascadeWidth, cascadeHeight);
-	//test
 }
 
 void CascadedShadow::begin(int cascadeIndex)
