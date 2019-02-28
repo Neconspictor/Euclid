@@ -36,7 +36,7 @@ namespace nex
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
-		void reloadLightingShader(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES,
+		void reloadLightingShader(unsigned csmNumCascades,
 			const CascadedShadow::PCFFilter& pcf);
 
 	private:

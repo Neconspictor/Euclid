@@ -144,7 +144,7 @@ namespace nex
 	class PBRShader_Deferred_Lighting : public TransformShader {
 	public:
 
-		PBRShader_Deferred_Lighting(unsigned csmNumCascades = CascadedShadow::NUM_CASCADES,
+		PBRShader_Deferred_Lighting(unsigned csmNumCascades,
 			const CascadedShadow::PCFFilter& pcf);
 
 		virtual ~PBRShader_Deferred_Lighting();
