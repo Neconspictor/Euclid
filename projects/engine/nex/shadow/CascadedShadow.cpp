@@ -502,6 +502,8 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 	const float range = maxZ - minZ;
 	const float ratio = maxZ / minZ;
 
+	const float step = range / (float)mCascadeData.numCascades;
+
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
@@ -511,6 +513,7 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 		const float uniform = minZ + range * p;
 		const float d = lambda * (log - uniform) + uniform;
 		mSplitDistances[i] = (d - nearClip) / clipRange;
+		//mSplitDistances[i] = ((i + 1)*step - nearClip) / clipRange;
 	}
 }
 
@@ -732,6 +735,19 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 	mSplitDistances.resize(numCascades);
 	mCascadeBoundCenters.resize(numCascades);
 
+	// reset cascade data 
+	for (int i = 0; i < mCascadeData.numCascades; i++)
+	{
+		mCascadeBoundCenters[i] = glm::vec3(0.0f);
+		mSplitDistances[i] = 0.0f;
+		mCascadeData.cascadedFarPlanes[i] = glm::vec4(0.0f);
+		mCascadeData.scaleFactors[i] = glm::vec4(0.0f);
+		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
+	}
+
+
+	updateTextureArray();
+
 	if (informObservers)
 	{
 		informCascadeChanges();
@@ -755,8 +771,8 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();
-	ImGui::InputScalar("Cascade Dimension", ImGuiDataType_U32, &number);
-	ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+	ImGui::InputScalar("Number of cascades", ImGuiDataType_U32, &number);
+	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
 
 	unsigned flags = 0;
 
