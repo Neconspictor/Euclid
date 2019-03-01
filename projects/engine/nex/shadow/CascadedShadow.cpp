@@ -127,24 +127,6 @@ bool CascadedShadow::isEnabled() const
 	return mEnabled;
 }
 
-/*void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
-{
-	// Update modelMatrix uniform
-	static const GLuint MODEL_MATRIX_LOCATION = 1;
-	glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
-
-	// render mesh
-	const VertexArray* vertexArray = mesh->getVertexArray();
-	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
-
-	vertexArray->bind();
-	indexBuffer->bind();
-	glDrawElements(GL_TRIANGLES, indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
-
-	indexBuffer->unbind();
-	vertexArray->unbind();
-}*/
-
 void CascadedShadow::updateTextureArray()
 {
 	TextureData data;
@@ -179,7 +161,6 @@ void CascadedShadow::updateCascadeData()
 	if (mCascadeData.shaderBuffer.size() != size)
 	{
 		mCascadeData.shaderBuffer.resize(size);
-		
 	}
 
 	unsigned offset = 0;
@@ -253,7 +234,6 @@ void CascadedShadow::calcSplitSchemes(Camera* camera)
 	const float clipRange = farClip - nearClip;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
-	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
 		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i] * clipRange);
@@ -300,33 +280,6 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 
 CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance)
 {
-	/*const auto& position = camera->getPosition();
-	const auto& up = camera->getUp();
-	const auto& look = camera->getLook();
-	const auto& right = camera->getRight();
-
-
-	const float aspectRatio = camera->getAspectRatio();
-	const float fov = glm::radians(camera->getFOV());
-
-	// Calculate the tangent values (this can be cached as long as the FOV doesn't change)
-	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
-	const float tanFOVY = tanf(fov / 2.0f);
-
-	// The center of the sphere is in the center of the frustum
-	const auto boundCenter = position + look * (nearPlane + 0.5f * (nearPlane + farPlane));
-
-	// Radius is the distance to one of the frustum far corners
-	// TODO use right instead of -right ???
-	const auto boundSpan = position + (-right * tanFOVX + up * tanFOVY + look) * farPlane - boundCenter;
-	const auto boundRadius = glm::length(boundSpan);*/
-
-	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
-	const float nearClip = frustum.nearPlane;
-	const float farClip = frustum.farPlane;
-	const float clipRange = farClip - nearClip;
-
-
 	glm::vec3 frustumCornersWS[8];
 	extractFrustumPoints(camera, nearSplitDistance, farSplitDistance, frustumCornersWS);
 	// calc center of the frustum
@@ -349,8 +302,6 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 	// This helps to reduce flickering
 	// Note that we use here a different formula than in function calcSplitDistances, as it produces better results 
 	radius = std::round(radius *16.0f) / 16.0f;
-
-
 
 	return { frustumCenter, radius };
 }
@@ -783,5 +734,4 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	nex::gui::Separator(2.0f);
 	
 	ImGui::PopID();
-
 }
