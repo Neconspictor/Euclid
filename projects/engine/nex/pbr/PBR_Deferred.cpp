@@ -22,7 +22,7 @@ namespace nex {
 	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow) :
 		PBR(backgroundHDR),
 		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
-		mLightPass(make_unique<PBRShader_Deferred_Lighting>(cascadeShadow->getCascadeData()->numCascades, cascadeShadow->getPCF())),
+		mLightPass(make_unique<PBRShader_Deferred_Lighting>(*cascadeShadow)),
 		mCascadeShadow(cascadeShadow)
 	{
 		vec2 dim = { 1.0, 1.0 };
@@ -36,9 +36,9 @@ namespace nex {
 		screenSprite.setWidth(dim.x);
 		screenSprite.setHeight(dim.y);
 
-		mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)->void
+		cascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
 		{
-			reloadLightingShader(cascade->getCascadeData()->numCascades, cascade->getPCF());
+			reloadLightingShader(cascade);
 		});
 	}
 
@@ -79,7 +79,7 @@ namespace nex {
 	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
 		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, 
 		const glm::mat4& projFromGPass, const glm::mat4 & worldToLight,
-		CascadedShadow::CascadeData* cascadeData,
+		const CascadedShadow::CascadeData& cascadeData,
 		Texture* cascadedDepthMap)
 	{
 
@@ -141,9 +141,9 @@ namespace nex {
 		return make_unique<PBR_GBuffer>(width, height);
 	}
 
-	void PBR_Deferred::reloadLightingShader(unsigned csmNumCascades, const CascadedShadow::PCFFilter& pcf)
+	void PBR_Deferred::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
-		mLightPass = make_unique<PBRShader_Deferred_Lighting>(csmNumCascades, pcf);
+		mLightPass = make_unique<PBRShader_Deferred_Lighting>(cascadedShadow);
 	}
 
 

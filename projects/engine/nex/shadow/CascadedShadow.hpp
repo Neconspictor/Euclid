@@ -42,6 +42,8 @@ namespace nex
 		 */
 		void begin(int cascadeIndex);
 
+		void enable(bool enable, bool informObservers = true);
+
 		/**
 		 * Finishes rendering to the i-th shadow cascade.
 		 * Should be called after rendering to the cascade
@@ -57,8 +59,10 @@ namespace nex
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
 		void resizeCascadeData(unsigned numCascades, bool informObservers = true);
 
-		void addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback);
+		void addCascadeChangeCallback(std::function<void(const CascadedShadow&)> callback);
 		void informCascadeChanges();
+
+		bool isEnabled() const;
 
 		/**
 		 * Renders a mesh with a given model matrix to the active cascade
@@ -72,7 +76,7 @@ namespace nex
 
 		bool getAntiFlickering() const;
 
-		CascadeData* getCascadeData();
+		const CascadeData& getCascadeData() const;
 
 		Shader* getDepthPassShader();
 
@@ -92,11 +96,6 @@ namespace nex
 
 	protected:
 
-		void updateTextureArray();
-
-		void updateCascadeData();
-
-
 		struct BoundingSphere
 		{
 			glm::vec3 center;
@@ -110,17 +109,6 @@ namespace nex
 			float radius;
 		};
 
-
-		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
-		void calcSplitSchemes(Camera* camera);
-		void calcSplitDistances(Camera* camera);
-		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance);
-		void extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
-		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
-			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
-
-	protected:
-
 		class DepthPassShader : public Shader
 		{
 		public:
@@ -128,11 +116,28 @@ namespace nex
 			void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		};
 
+		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
+		
+		void calcSplitSchemes(Camera* camera);
+		
+		void calcSplitDistances(Camera* camera);
+		
+		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
+			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
+
+		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance);
+		void extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
+
+		void updateCascadeData();
+
+		void updateTextureArray();
+		
+
+
 
 		DepthPassShader mDepthPassShader;
 		RenderTarget mRenderTarget;
 
-	protected:
 		unsigned int mCascadeWidth;
 		unsigned int mCascadeHeight;
 
@@ -143,7 +148,8 @@ namespace nex
 		std::vector<glm::vec3> mCascadeBoundCenters;
 		GlobalShadow mGlobal;
 		PCFFilter mPCF;
-		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
+		std::list<std::function<void(const CascadedShadow&)>> mCallbacks;
+		bool mEnabled;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

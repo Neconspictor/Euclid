@@ -28,7 +28,7 @@ namespace nex
 			const glm::mat4& viewFromGPass,
 			const glm::mat4& projFromGPass,
 			const glm::mat4& worldToLight,
-			CascadedShadow::CascadeData* cascadeData,
+			const CascadedShadow::CascadeData& cascadeData,
 			Texture* cascadedDepthMap);
 
 		void drawSky(const glm::mat4& projection,
@@ -36,8 +36,7 @@ namespace nex
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
-		void reloadLightingShader(unsigned csmNumCascades,
-			const CascadedShadow::PCFFilter& pcf);
+		void reloadLightingShader(const CascadedShadow& cascadedShadow);
 
 	private:
 		Sprite screenSprite;

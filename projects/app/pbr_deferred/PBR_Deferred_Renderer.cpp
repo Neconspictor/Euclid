@@ -161,17 +161,17 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	m_renderBackend->newFrame();
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
-
-
-	m_cascadedShadow->frameUpdate(camera, globalLight.getLook());
-
-	//m_renderBackend->setViewPort(0, 0, 4096, 4096);
-
-	for (int i = 0; i < m_cascadedShadow->getCascadeData()->numCascades; ++i)
+	// Update CSM if it is enabled
+	if (m_cascadedShadow->isEnabled())
 	{
-		m_cascadedShadow->begin(i);
-		StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());
-		m_cascadedShadow->end();
+		m_cascadedShadow->frameUpdate(camera, globalLight.getLook());
+
+		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
+		{
+			m_cascadedShadow->begin(i);
+			StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());
+			m_cascadedShadow->end();
+		}
 	}
 
 
@@ -205,7 +205,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		RenderComponent::Depth | RenderComponent::Stencil);*/
 
 
-	CascadedShadow::CascadeData* cascadedData = m_cascadedShadow->getCascadeData();
+	const auto& cascadedData = m_cascadedShadow->getCascadeData();
 	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
 
 		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());

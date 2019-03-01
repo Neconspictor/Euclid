@@ -253,10 +253,11 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 	//attributes.setData("brdfLUT", white, white);
 }*/
 
-PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(unsigned csmNumCascades, const CascadedShadow::PCFFilter& pcf) :
-	cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(csmNumCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
-	mCsmNumCascades(csmNumCascades),
-	mCsmPcf(pcf)
+PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& cascadedShadow) :
+	cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow.getCascadeData().numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+	mCsmNumCascades(cascadedShadow.getCascadeData().numCascades),
+	mCsmPcf(cascadedShadow.getPCF()),
+	mCsmEnabled(cascadedShadow.isEnabled())
 {
 
 	std::vector<string> defines = generateCsmDefines();
@@ -480,15 +481,15 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 }*/
 
 
-void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData* cascadedData)
+void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
 {
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	cascadeBufferUBO.bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 
-	assert(cascadeBufferUBO.getSize() == cascadedData->shaderBuffer.size());
+	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
 
-	cascadeBufferUBO.update(cascadedData->shaderBuffer.data(), cascadedData->shaderBuffer.size(), 0);
+	cascadeBufferUBO.update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
 }
 
 
@@ -645,6 +646,7 @@ std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
 	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_X", mCsmPcf.sampleCountX));
 	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_Y", mCsmPcf.sampleCountY));
 	result.emplace_back(makeDefine("CSM_USE_LERP_FILTER", mCsmPcf.useLerpFiltering));
+	result.emplace_back(makeDefine("CSM_ENABLED", mCsmEnabled));
 
 	return result;
 }

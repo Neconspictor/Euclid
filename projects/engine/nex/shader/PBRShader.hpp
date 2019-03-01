@@ -144,8 +144,7 @@ namespace nex
 	class PBRShader_Deferred_Lighting : public TransformShader {
 	public:
 
-		PBRShader_Deferred_Lighting(unsigned csmNumCascades,
-			const CascadedShadow::PCFFilter& pcf);
+		PBRShader_Deferred_Lighting(const CascadedShadow& cascadedShadow);
 
 		virtual ~PBRShader_Deferred_Lighting();
 
@@ -173,7 +172,7 @@ namespace nex
 		void setSkyBox(const CubeMap* sky);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		void setCascadedData(const CascadedShadow::CascadeData* cascadedData);
+		void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -225,6 +224,7 @@ namespace nex
 		// CSM
 		unsigned mCsmNumCascades;
 		CascadedShadow::PCFFilter mCsmPcf;
+		bool mCsmEnabled;
 
 		std::vector<std::string> generateCsmDefines();
 		

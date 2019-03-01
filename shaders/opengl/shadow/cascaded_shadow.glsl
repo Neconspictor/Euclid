@@ -16,6 +16,10 @@
 #define CSM_USE_LERP_FILTER 0
 #endif
 
+#ifndef CSM_ENABLED
+#define CSM_ENABLED 1
+#endif
+
 
 
 
@@ -52,6 +56,12 @@ float cascadedShadow(in vec3 lightDirection,
                      in CascadeData cascadeData,
                      in sampler2DArray cascadedDepthMap)
 {
+
+#if CSM_ENABLED == 0
+    // sample is full lit
+    return 1.0f;
+#else
+
 	
 	float sDotN = dot(lightDirection, normal);
 	
@@ -128,4 +138,5 @@ float cascadedShadow(in vec3 lightDirection,
 	//float pcfDepth =  shadow2DArray(cascadedDepthMap, vec4(projCoords.xyz, currentDepth + bias )).r; 
 	//shadow += currentDepth  > pcfDepth ? 0.0  : 1.0;
 	//return shadow; 
+#endif    
 }

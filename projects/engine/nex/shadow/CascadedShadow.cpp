@@ -33,7 +33,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
 	mAntiFlickerOn(antiFlickerOn),
-	mPCF(pcf)
+	mPCF(pcf),
+	mEnabled(true)
 {
 
 	resizeCascadeData(numCascades);
@@ -71,6 +72,12 @@ void CascadedShadow::begin(int cascadeIndex)
 	//glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
 }
 
+void CascadedShadow::enable(bool enable, bool informObservers)
+{
+	mEnabled = enable;
+	if (informObservers) informCascadeChanges();
+}
+
 void CascadedShadow::end()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -102,7 +109,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	updateTextureArray();
 }
 
-void CascadedShadow::addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback)
+void CascadedShadow::addCascadeChangeCallback(std::function<void(const CascadedShadow&)> callback)
 {
 	mCallbacks.emplace_back(std::move(callback));
 }
@@ -111,8 +118,13 @@ void CascadedShadow::informCascadeChanges()
 {
 	for (auto& callback : mCallbacks)
 	{
-		callback(this);
+		callback(*this);
 	}
+}
+
+bool CascadedShadow::isEnabled() const
+{
+	return mEnabled;
 }
 
 /*void CascadedShadowGL::render(SubMesh* mesh, const glm::mat4* modelMatrix)
@@ -599,9 +611,9 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 	}
 }
 
-CascadedShadow::CascadeData* CascadedShadow::getCascadeData()
+const CascadedShadow::CascadeData& CascadedShadow::getCascadeData() const
 {
-	return &mCascadeData;
+	return mCascadeData;
 }
 
 CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShadow* model) : mModel(model)
@@ -610,7 +622,7 @@ CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShado
 
 void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 {
-	const unsigned realNumber(mModel->getCascadeData()->numCascades);
+	const unsigned realNumber(mModel->getCascadeData().numCascades);
 
 	static unsigned number(realNumber);
 
@@ -735,6 +747,15 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	//m_pbr
 	ImGui::LabelText("", "CSM:");
 	ImGui::Dummy(ImVec2(0, 20));
+
+	bool isEnabled = mModel->isEnabled();
+
+	if (ImGui::Checkbox("Enable CSM", &isEnabled))
+	{
+		mModel->enable(isEnabled, true);
+	}
+
+
 	bool enableAntiFlickering = mModel->getAntiFlickering();
 
 	if (ImGui::Checkbox("Anti Flickering", &enableAntiFlickering))
