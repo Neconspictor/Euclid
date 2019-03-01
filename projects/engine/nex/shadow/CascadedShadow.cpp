@@ -28,16 +28,32 @@ bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
 	&& (useLerpFiltering == o.useLerpFiltering);
 }
 
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, bool antiFlickerOn) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
 	mAntiFlickerOn(antiFlickerOn),
 	mPCF(pcf),
-	mEnabled(true)
+	mEnabled(true),
+	mBiasMultiplier(biasMultiplier)
 {
+	mCascadeData.numCascades = numCascades;
+	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
+	mCascadeData.scaleFactors.resize(numCascades);
+	mCascadeData.cascadedFarPlanes.resize(numCascades);
 
-	resizeCascadeData(numCascades);
+	mSplitDistances.resize(numCascades);
+	mCascadeBoundCenters.resize(numCascades);
+
+	// reset cascade data 
+	for (int i = 0; i < mCascadeData.numCascades; i++)
+	{
+		mCascadeBoundCenters[i] = glm::vec3(0.0f);
+		mSplitDistances[i] = 0.0f;
+		mCascadeData.cascadedFarPlanes[i] = glm::vec4(0.0f);
+		mCascadeData.scaleFactors[i] = glm::vec4(0.0f);
+		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
+	}
 
 	resize(cascadeWidth, cascadeHeight);
 }
@@ -62,7 +78,8 @@ void CascadedShadow::begin(int cascadeIndex)
 
 	// We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
-	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
+	RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
+	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 
 	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
@@ -85,6 +102,7 @@ void CascadedShadow::end()
 	//###glDisable(GL_DEPTH_TEST);
 	// disable depth clamping
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
+	RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
 	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 }
 
@@ -503,6 +521,17 @@ bool CascadedShadow::getAntiFlickering() const
 	return mAntiFlickerOn;
 }
 
+float CascadedShadow::getBiasMultiplier() const
+{
+	return mBiasMultiplier;
+}
+
+void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
+{
+	mBiasMultiplier = bias;
+	if (informObservers) informCascadeChanges();
+}
+
 Shader* CascadedShadow::getDepthPassShader()
 {
 	return &mDepthPassShader;
@@ -611,6 +640,41 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
 		{
 			number = realNumber;
+		}
+	}
+
+	ImGui::EndGroup();
+}
+
+void CascadedShadow_ConfigurationView::drawCascadeBiasConfig()
+{
+	const float realBias(mModel->getBiasMultiplier());
+
+	static float bias(realBias);
+
+	ImGuiContext& g = *GImGui;
+	ImGui::BeginGroup();
+	ImGui::InputScalar("Bias multiplier", ImGuiDataType_Float, &bias);
+	//ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+	unsigned flags = 0;
+
+	bool disableButton = bias == realBias;
+
+	if (!disableButton)
+	{
+		//ImGui::NewLine();
+
+		if (ImGui::ButtonEx("Apply", { 0, 0 }, flags))
+		{
+			mModel->setBiasMultiplier(bias, true);
+		}
+
+		ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
+
+		if (ImGui::ButtonEx("Revert", { 0, 0 }, flags))
+		{
+			bias = realBias;
 		}
 	}
 
@@ -728,6 +792,8 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	drawCascadeNumConfig();
 
 	drawCascadeDimensionConfig();
+
+	drawCascadeBiasConfig();
 
 	drawPCFConfig();
 

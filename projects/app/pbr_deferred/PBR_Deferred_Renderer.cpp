@@ -132,7 +132,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	pcf.sampleCountX = 1;
 	pcf.sampleCountY = 1;
 	pcf.useLerpFiltering = true;
-	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, 4, pcf, true);
+	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, 4, pcf, 9.0f, true);
 
 	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky, m_cascadedShadow.get());
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);

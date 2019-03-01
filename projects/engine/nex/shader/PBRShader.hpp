@@ -225,6 +225,7 @@ namespace nex
 		unsigned mCsmNumCascades;
 		CascadedShadow::PCFFilter mCsmPcf;
 		bool mCsmEnabled;
+		float mCsmBiasMultiplier;
 
 		std::vector<std::string> generateCsmDefines();
 		

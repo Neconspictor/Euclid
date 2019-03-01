@@ -35,7 +35,7 @@ namespace nex
 			bool operator==(const PCFFilter& o);
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, bool antiFlickerOn = true);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
 
 		/**
 		 * Allows rendering to the i-th cascade.
@@ -76,6 +76,8 @@ namespace nex
 
 		bool getAntiFlickering() const;
 
+		float getBiasMultiplier() const;
+
 		const CascadeData& getCascadeData() const;
 
 		Shader* getDepthPassShader();
@@ -90,6 +92,8 @@ namespace nex
 		const glm::mat4& getShadowView() const;
 
 		void setAntiFlickering(bool enable);
+
+		void setBiasMultiplier(float bias, bool informObservers = true);
 
 		void setPCF(const PCFFilter& filter, bool informOberservers = true);
 
@@ -150,6 +154,7 @@ namespace nex
 		PCFFilter mPCF;
 		std::list<std::function<void(const CascadedShadow&)>> mCallbacks;
 		bool mEnabled;
+		float mBiasMultiplier;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {
@@ -158,6 +163,7 @@ namespace nex
 
 	protected:
 		void drawCascadeNumConfig();
+		void drawCascadeBiasConfig();
 		void drawCascadeDimensionConfig();
 		void drawPCFConfig();
 		void drawSelf() override;

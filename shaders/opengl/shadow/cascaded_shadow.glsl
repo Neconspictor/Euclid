@@ -20,6 +20,10 @@
 #define CSM_ENABLED 1
 #endif
 
+#ifndef CSM_BIAS_MULTIPLIER
+#define CSM_BIAS_MULTIPLIER 9.0
+#endif
+
 
 
 
@@ -98,7 +102,7 @@ float cascadedShadow(in vec3 lightDirection,
 	//vec2 texelSize = vec2(1.0)/textureSize(cascadedDepthMap, 0);
 	vec2 texelSize = 1.0 / textureSize(cascadedDepthMap, 0).xy;
 	float minBias = max(texelSize.x,texelSize.y);
-	bias =  9 * minBias / cascadeData.scaleFactors[cascadeIdx].x;
+	bias =  CSM_BIAS_MULTIPLIER * minBias / cascadeData.scaleFactors[cascadeIdx].x;
     //bias = minBias;
 
 	float shadow = 0.0;

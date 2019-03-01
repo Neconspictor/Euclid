@@ -257,7 +257,8 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow.getCascadeData().numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mCsmNumCascades(cascadedShadow.getCascadeData().numCascades),
 	mCsmPcf(cascadedShadow.getPCF()),
-	mCsmEnabled(cascadedShadow.isEnabled())
+	mCsmEnabled(cascadedShadow.isEnabled()),
+	mCsmBiasMultiplier(cascadedShadow.getBiasMultiplier())
 {
 
 	std::vector<string> defines = generateCsmDefines();
@@ -647,6 +648,7 @@ std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
 	result.emplace_back(makeDefine("CSM_SAMPLE_COUNT_Y", mCsmPcf.sampleCountY));
 	result.emplace_back(makeDefine("CSM_USE_LERP_FILTER", mCsmPcf.useLerpFiltering));
 	result.emplace_back(makeDefine("CSM_ENABLED", mCsmEnabled));
+	result.emplace_back(makeDefine("CSM_BIAS_MULTIPLIER", mCsmBiasMultiplier));
 
 	return result;
 }
