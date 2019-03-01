@@ -283,7 +283,6 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 	const float step = range / (float)mCascadeData.numCascades;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
-	// created by NVIDIA: The algorithm works by using a logarithmic and uniform split scheme.
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
 		const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
@@ -292,6 +291,10 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 		const float d = lambda * (log - uniform) + uniform;
 		mSplitDistances[i] = (d - nearClip) / clipRange;
 		mSplitDistances[i] = ((i + 1)*step - nearClip) / clipRange;
+
+		// do some rounding for fighting numerical issues
+		// This helps to reduce flickering
+		mSplitDistances[i] = std::ceil(mSplitDistances[i] * 32.0f) / 32.0f;
 	}
 }
 
@@ -318,6 +321,10 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 	const auto boundSpan = position + (-right * tanFOVX + up * tanFOVY + look) * farPlane - boundCenter;
 	const auto boundRadius = glm::length(boundSpan);*/
 
+	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
+	const float nearClip = frustum.nearPlane;
+	const float farClip = frustum.farPlane;
+	const float clipRange = farClip - nearClip;
 
 
 	glm::vec3 frustumCornersWS[8];
@@ -337,7 +344,11 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 		float distance = glm::length(frustumCornersWS[i] - frustumCenter);
 		radius = std::max<float>(radius, distance);
 	}
-	radius = std::ceil(radius * 16.0f) / 16.0f; // alignment???
+
+	// do some rounding for fighting numerical issues
+	// This helps to reduce flickering
+	// Note that we use here a different formula than in function calcSplitDistances, as it produces better results 
+	radius = std::round(radius *16.0f) / 16.0f;
 
 
 
