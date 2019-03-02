@@ -78,8 +78,8 @@ void CascadedShadow::begin(int cascadeIndex)
 
 	// We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
-	RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
-	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
+	//RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
+	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 
 	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
@@ -102,7 +102,7 @@ void CascadedShadow::end()
 	//###glDisable(GL_DEPTH_TEST);
 	// disable depth clamping
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
-	RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
+	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
 	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 }
 
@@ -155,7 +155,7 @@ void CascadedShadow::updateTextureArray()
 	data.magFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
 	data.useDepthComparison = true;
-	data.compareFunc = CompareFunction::LESS_EQUAL;
+	data.compareFunc = CompareFunction::LESS;
 
 	RenderAttachment depth;
 	depth.type = RenderAttachment::Type::DEPTH;
@@ -278,7 +278,7 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 	const float range = maxZ - minZ;
 	const float ratio = maxZ / minZ;
 
-	const float step = range / (float)mCascadeData.numCascades;
+	float step = range / (float)mCascadeData.numCascades;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
@@ -289,6 +289,20 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 		const float d = lambda * (log - uniform) + uniform;
 		mSplitDistances[i] = (d - nearClip) / clipRange;
 		mSplitDistances[i] = ((i + 1)*step - nearClip) / clipRange;
+		if (mCascadeData.numCascades == 4)
+		{
+			switch (i) {
+			case 0: mSplitDistances[i] = 4.0f / clipRange;
+				break;
+			case 1: mSplitDistances[i] = 14.0f / clipRange;
+				break;
+			case 2: mSplitDistances[i] = 30.0f / clipRange;
+				break;
+			case 3: mSplitDistances[i] = 1.0 - mSplitDistances[2];
+				break;
+			default: break;
+			}
+		}
 
 		// do some rounding for fighting numerical issues
 		// This helps to reduce flickering

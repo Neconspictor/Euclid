@@ -1,5 +1,14 @@
 #extension GL_EXT_texture_array : enable
 
+/**
+ * Checks if compare is in range [min, max]
+ * Returns 1.0 if compare is in the forementioned range.
+ * Otherwise 0.0 is returned.
+ */
+float isInRange(float min, float max, float compare) {
+    return step(min, compare) - step(max, compare);
+};
+
 float shadowCompare(sampler2DArrayShadow depths, vec4 uvZCompareBias){
     return shadow2DArray(depths, uvZCompareBias.xyzw).r;
 }
