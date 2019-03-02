@@ -129,10 +129,10 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
 	CascadedShadow::PCFFilter pcf;
-	pcf.sampleCountX = 0;
-	pcf.sampleCountY = 0;
-	pcf.useLerpFiltering = false;
-	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, 4, pcf, 9.0f, true);
+	pcf.sampleCountX = 2;
+	pcf.sampleCountY = 2;
+	pcf.useLerpFiltering = true;
+	m_cascadedShadow = make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
 
 	m_pbr_deferred = make_unique<PBR_Deferred>(panoramaSky, m_cascadedShadow.get());
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);

@@ -190,21 +190,30 @@ vec3 pbrModel(float ao,
 
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewDir, normal, lightDir, roughness, F0, metallic, albedo);
-	vec3 ambient =  pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
+    
+    vec3 ambient =  1.5 * pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
 	
-	float ambientShadow = clamp(shadow, 1.0, 1.0);
+    float NdotL = max(dot(lightDir, normal), 0.0);   
+    
+	//if (NdotL == 0.0) {
+        //shadow = clamp(shadow + 1.0, 0.0, 1.0);
+    //}
 	
-	shadow = clamp(shadow, 0.2f, 1.0f);
+	//shadow = clamp(shadow, 0.3f, 1.0f);
 	
 	//float ssaoFactor = max(max(ambient.r, ambient.g), ambient.b);
 	//ssaoFactor = clamp (1 / ssaoFactor, 0, 1);
 	
     vec3 color = ambient; //* ambientShadow; // ssaoAmbientOcclusion;
+    
+    
+    float ambientShadow = clamp(shadow, 1-0.5, 1.0);
+    color -= color*(1-ambientShadow);
 	
 	// shadows affecting only direct light contribution
 	//color += Lo * shadow;
-	color += Lo;
-	color *= shadow;
+	color += shadow * Lo;
+	//color *= shadow;
 	
 	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);
 	
@@ -224,7 +233,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float meta
 	//243 159 24
 	
 	//vec3 radiance = vec3(243/ 255.0f, 159 / 255.0f, 24 / 255.0f) * 1.0f;//dirLight.color; /** attenuation*/
-	vec3 radiance = dirLight.color * 1.0f;//dirLight.color; /** attenuation*/
+	vec3 radiance = dirLight.color * 3.0f;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
@@ -286,8 +295,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return (kD * diffuse + ambientLightSpecular) * ao; //ambientLightSpecular * 0.4
-	//return prefilteredColor;
+    return (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 

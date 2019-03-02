@@ -153,7 +153,8 @@ void CascadedShadow::updateTextureArray()
 	data.pixelDataType = PixelDataType::FLOAT;
 	data.minFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.magFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
-	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToBorder;
+	data.borderColor = glm::vec4(1.0f);
 	data.useDepthComparison = true;
 	data.compareFunc = CompareFunction::LESS;
 
@@ -254,7 +255,7 @@ void CascadedShadow::calcSplitSchemes(Camera* camera)
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
-		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i] * clipRange);
+		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i]);// *clipRange);
 	}
 }
 
@@ -287,22 +288,47 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 		const float log = minZ * std::pow(ratio, p);
 		const float uniform = minZ + range * p;
 		const float d = lambda * (log - uniform) + uniform;
-		mSplitDistances[i] = (d - nearClip) / clipRange;
-		mSplitDistances[i] = ((i + 1)*step - nearClip) / clipRange;
-		if (mCascadeData.numCascades == 4)
+		mSplitDistances[i] = (d - nearClip);
+		mSplitDistances[i] = ((i + 1)*step - nearClip);
+
+
+		switch (i) {
+		case 0: mSplitDistances[i] = 5.0f + nearClip;
+			break;
+		case 1: mSplitDistances[i] = 20.0f + nearClip;
+			break;
+		case 2: mSplitDistances[i] = 40.0f + nearClip;
+			break;
+		case 3: mSplitDistances[i] = 60.0f + nearClip;
+			break;
+		case 4: mSplitDistances[i] = 150.0f + nearClip;
+			break;
+		case 5: mSplitDistances[i] = 200.0f + nearClip;
+			break;
+		case 6: mSplitDistances[i] = 300.0f + nearClip;
+			break;
+		case 7: mSplitDistances[i] = 400.0f + nearClip;
+			break;
+		default: break;
+		}
+
+
+		/*if (mCascadeData.numCascades == 4)
 		{
 			switch (i) {
-			case 0: mSplitDistances[i] = 4.0f / clipRange;
+			case 0: mSplitDistances[i] = 3.0f / clipRange;
 				break;
-			case 1: mSplitDistances[i] = 14.0f / clipRange;
+			case 1: mSplitDistances[i] = 12.0f / clipRange;
 				break;
-			case 2: mSplitDistances[i] = 30.0f / clipRange;
+			case 2: mSplitDistances[i] = 20.0f / clipRange;
 				break;
 			case 3: mSplitDistances[i] = 1.0 - mSplitDistances[2];
 				break;
 			default: break;
 			}
-		}
+		}*/
+
+		mSplitDistances[i] *= 0.5f;
 
 		// do some rounding for fighting numerical issues
 		// This helps to reduce flickering
@@ -390,14 +416,19 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistanc
 		frustumCornersWS[i] = glm::vec3(inversePoint / inversePoint.w);
 	}
 
+	const Frustum& frustum = camera->getFrustum(Perspective);
+	const float nearClip = frustum.nearPlane;
+	const float farClip = frustum.farPlane;
+	const float clipRange = farClip - nearClip;
+
 	// Calculate rays that define the near and far plane of each cascade split.
 	// Than we translate the frustum corner accordingly so that the frustum starts at the near splitting plane
 	// and ends at the far splitting plane.
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		glm::vec3 cornerRay = frustumCornersWS[i + 4] - frustumCornersWS[i];
-		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance;
-		glm::vec3 farCornerRay = cornerRay * farSplitDistance;
+		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance / clipRange;
+		glm::vec3 farCornerRay = cornerRay * farSplitDistance / clipRange;
 		frustumCorners[i + 4] = frustumCornersWS[i] + farCornerRay;
 		frustumCorners[i] = frustumCornersWS[i] + nearCornerRay;
 	}
