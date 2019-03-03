@@ -4,7 +4,7 @@
 
 namespace nex {
 
-	class DirectionalLight : public Projectional
+	class DirectionalLight
 	{
 	public:
 		explicit DirectionalLight();

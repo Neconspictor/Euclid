@@ -667,6 +667,15 @@ CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShado
 {
 }
 
+void CascadedShadow_ConfigurationView::drawShadowStrengthConfig()
+{
+	float strength = mModel->getShadowStrength();
+	if (ImGui::SliderFloat("Shadow Strength", &strength, 0.0f, 1.0f))
+	{
+		mModel->setShadowStrength(strength);
+	}
+}
+
 void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 {
 	const unsigned realNumber(mModel->getCascadeData().numCascades);
@@ -836,6 +845,8 @@ void CascadedShadow_ConfigurationView::drawSelf()
 	{
 		mModel->enable(isEnabled, true);
 	}
+
+	drawShadowStrengthConfig();
 
 
 	bool enableAntiFlickering = mModel->getAntiFlickering();

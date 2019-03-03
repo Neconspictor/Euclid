@@ -9,9 +9,8 @@ using namespace std;
 
 namespace nex {
 
-	DirectionalLight::DirectionalLight() : Projectional(), mColor(1, 1, 1), mDirection(1,1,1), mPower(1.0f)
+	DirectionalLight::DirectionalLight() : mColor(1, 1, 1), mDirection(1,1,1), mPower(1.0f)
 	{
-		m_logger.setPrefix("DirectionalLight");
 	}
 
 	const glm::vec3& DirectionalLight::getColor() const

@@ -24,8 +24,7 @@ namespace nex
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,
 			Camera* camera,
-			Texture* ssaoMap,
-			const DirectionalLight& light);
+			Texture* ssaoMap);
 
 		void drawSky(Camera* camera);
 
@@ -33,9 +32,13 @@ namespace nex
 
 		float getAmbientLightPower() const;
 
+		DirectionalLight* getDirLight();
+
 		void reloadLightingShader(const CascadedShadow& cascadedShadow);
 
 		void setAmbientLightPower(float power);
+
+		void setDirLight(DirectionalLight * light);
 
 	private:
 		Sprite screenSprite;
@@ -43,6 +46,7 @@ namespace nex
 		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
 		CascadedShadow* mCascadeShadow;
 		float mAmbientLightPower;
+		DirectionalLight* mLight;
 	};
 
 	class PBR_Deferred_ConfigurationView : public nex::gui::Drawable {

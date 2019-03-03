@@ -99,13 +99,9 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
 
 
-	vec3 position = {1.0f, 1.0f, 1.0f };
-	position = 15.0f * position;
-	globalLight.setPosition(position);
-	globalLight.lookAt({0,0,0});
-	globalLight.update(true);
 	globalLight.setColor(vec3(1.0f, 1.0f, 1.0f));
 	globalLight.setPower(3.0f);
+	globalLight.setDirection({-1,-1,-1});
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
@@ -165,7 +161,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{
-		m_cascadedShadow->frameUpdate(camera, globalLight.getLook());
+		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection());
 
 		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -207,11 +203,12 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
+		m_pbr_deferred->setDirLight(&globalLight);
+
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
 			camera, 
-			aoTexture,
-			globalLight);
+			aoTexture);
 
 		m_pbr_deferred->drawSky(camera);
 	

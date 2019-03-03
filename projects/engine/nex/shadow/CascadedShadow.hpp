@@ -170,6 +170,7 @@ namespace nex
 		CascadedShadow_ConfigurationView(CascadedShadow* model);
 
 	protected:
+		void drawShadowStrengthConfig();
 		void drawCascadeNumConfig();
 		void drawCascadeBiasConfig();
 		void drawCascadeDimensionConfig();

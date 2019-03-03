@@ -78,7 +78,7 @@ namespace nex {
 	}
 
 	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
-		Texture* ssaoMap, const DirectionalLight & light)
+		Texture* ssaoMap)
 	{
 
 		static auto* renderBackend = RenderBackend::get();
@@ -102,12 +102,12 @@ namespace nex {
 		mLightPass->setInverseViewFromGPass(inverse(camera->getView()));
 		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
 		mLightPass->setIrradianceMap(getConvolutedEnvironmentMap());
-		mLightPass->setLightColor(light.getColor());
-		mLightPass->setWorldLightDirection(light.getLook());
+		mLightPass->setLightColor(mLight->getColor());
+		mLightPass->setWorldLightDirection(mLight->getDirection());
 
-		vec4 lightEyeDirection = camera->getView() * vec4(light.getLook(), 0);
+		vec4 lightEyeDirection = camera->getView() * vec4(mLight->getDirection(), 0);
 		mLightPass->setEyeLightDirection(vec3(lightEyeDirection));
-		mLightPass->setLightPower(light.getLightPower());
+		mLightPass->setLightPower(mLight->getLightPower());
 		mLightPass->setAmbientLightPower(mAmbientLightPower);
 		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
 
@@ -148,6 +148,16 @@ namespace nex {
 		return mAmbientLightPower;
 	}
 
+	DirectionalLight* PBR_Deferred::getDirLight()
+	{
+		return mLight;
+	}
+
+	void PBR_Deferred::setDirLight(DirectionalLight* light)
+	{
+		mLight = light;
+	}
+
 	void PBR_Deferred::setAmbientLightPower(float power)
 	{
 		mAmbientLightPower = power;
@@ -168,7 +178,42 @@ namespace nex {
 		ImGui::PushID(m_id.c_str());
 		//m_pbr
 		ImGui::LabelText("", "PBR:");
-		ImGui::Dummy(ImVec2(0, 20));
+
+
+		auto* dirLight = m_pbr->getDirLight();
+
+		glm::vec3 lightColor = dirLight->getColor();
+		glm::vec3 lightDirection = dirLight->getDirection();
+		float dirLightPower = dirLight->getLightPower();
+		
+
+		if (ImGui::InputScalarN("Directional Light Color", ImGuiDataType_Float, &lightColor, 3))
+		{
+			lightColor = clamp(lightColor, glm::vec3(0), glm::vec3(1));
+			dirLight->setColor(lightColor);
+		}
+		
+		if (ImGui::DragFloat("Directional Light Power", &dirLightPower, 0.1f, 0.0f, 10.0f))
+		{
+			dirLight->setPower(dirLightPower);
+		}
+
+		if (ImGui::InputScalarN("Directional Light Direction", ImGuiDataType_Float, &lightDirection, 3))
+		{
+			lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
+			dirLight->setDirection(lightDirection);
+		}
+
+
+
+		float ambientLightPower = m_pbr->getAmbientLightPower();
+
+		if(ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
+		{
+			m_pbr->setAmbientLightPower(ambientLightPower);
+		}
+
+
 		nex::gui::Separator(2.0f);
 		ImGui::PopID();
 	}

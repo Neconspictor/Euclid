@@ -90,7 +90,7 @@ void PBR::drawScene(SceneNode * scene,
 	mForwardShader->setIrradianceMap(getConvolutedEnvironmentMap());
 	
 	mForwardShader->setLightColor(light.getColor());
-	mForwardShader->setLightDirection(light.getLook());
+	mForwardShader->setLightDirection(light.getDirection());
 	mForwardShader->setLightSpaceMatrix(lightSpaceMatrix);
 	mForwardShader->setLightProjMatrix(lightProjMatrix);
 	mForwardShader->setLightViewMatrix(lightViewMatrix);
