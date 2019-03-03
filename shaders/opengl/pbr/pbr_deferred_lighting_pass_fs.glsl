@@ -17,6 +17,7 @@ struct GBuffer {
 struct DirLight {
     vec3 directionEye;
     vec3 color;
+    float power;
 };
 
 
@@ -25,6 +26,10 @@ in VS_OUT {
 } fs_in;
 
 uniform DirLight dirLight;
+
+uniform float ambientLightPower;
+
+uniform float shadowStrength;
 
 uniform GBuffer gBuffer;
 //uniform sampler2D shadowMap;
@@ -191,7 +196,7 @@ vec3 pbrModel(float ao,
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewDir, normal, lightDir, roughness, F0, metallic, albedo);
     
-    vec3 ambient =  1.5 * pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
+    vec3 ambient =  pbrAmbientLight(viewDir, normal, roughness, F0, metallic, albedo, reflectionDir, ao);
 	
     float NdotL = max(dot(lightDir, normal), 0.0);   
     
@@ -207,8 +212,8 @@ vec3 pbrModel(float ao,
     vec3 color = ambient; //* ambientShadow; // ssaoAmbientOcclusion;
     
     
-    float ambientShadow = clamp(shadow, 1-0.5, 1.0);
-    color -= color*(1-ambientShadow);
+    float ambientShadow = clamp(shadow, 1.0 - shadowStrength, 1.0);
+    color -= color*(1.0 - ambientShadow);
 	
 	// shadows affecting only direct light contribution
 	//color += Lo * shadow;
@@ -233,7 +238,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float meta
 	//243 159 24
 	
 	//vec3 radiance = vec3(243/ 255.0f, 159 / 255.0f, 24 / 255.0f) * 1.0f;//dirLight.color; /** attenuation*/
-	vec3 radiance = dirLight.color * 3.0f;//dirLight.color; /** attenuation*/
+	vec3 radiance = dirLight.color * dirLight.power;//dirLight.color; /** attenuation*/
 
 	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(N, H, roughness);   
@@ -295,7 +300,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, v
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return (kD * diffuse + ambientLightSpecular) * ao;
+    return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 

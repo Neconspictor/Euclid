@@ -86,6 +86,8 @@ namespace nex
 
 		const PCFFilter& getPCF() const;
 
+		float getShadowStrength()const;
+
 		unsigned getWidth() const;
 
 		const glm::mat4& getWorldToShadowSpace() const;
@@ -96,6 +98,11 @@ namespace nex
 		void setBiasMultiplier(float bias, bool informObservers = true);
 
 		void setPCF(const PCFFilter& filter, bool informOberservers = true);
+
+		/**
+		 * @param strength : a float in the range [0,1]
+		 */
+		void setShadowStrength(float strength);
 
 
 	protected:
@@ -155,6 +162,7 @@ namespace nex
 		std::list<std::function<void(const CascadedShadow&)>> mCallbacks;
 		bool mEnabled;
 		float mBiasMultiplier;
+		float mShadowStrength;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

@@ -158,6 +158,9 @@ namespace nex
 		void setWorldLightDirection(const glm::vec3& direction);
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
+		void setLightPower(float power);
+		void setAmbientLightPower(float power);
+		void setShadowStrength(float strength);
 
 
 
@@ -195,6 +198,9 @@ namespace nex
 		//Uniform mWorldDirection;
 		Uniform mEyeLightDirection;
 		Uniform mLightColor;
+		Uniform mLightPower;
+		Uniform mAmbientLightPower;
+		Uniform mShadowStrength;
 
 		UniformTex mIrradianceMap;
 		UniformTex mPrefilterMap;

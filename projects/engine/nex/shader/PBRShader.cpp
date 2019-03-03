@@ -276,6 +276,9 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 
 	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
 	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+	mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
+	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
 
 	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, textureCounter };
 	if (mAlbedoMap.location != -1)
@@ -367,6 +370,21 @@ void PBRShader_Deferred_Lighting::setEyeLightDirection(const glm::vec3& directio
 void PBRShader_Deferred_Lighting::setLightColor(const glm::vec3& color)
 {
 	mProgram->setVec3(mLightColor.location, color);
+}
+
+void PBRShader_Deferred_Lighting::setLightPower(float power)
+{
+	mProgram->setFloat(mLightPower.location, power);
+}
+
+void PBRShader_Deferred_Lighting::setAmbientLightPower(float power)
+{
+	mProgram->setFloat(mAmbientLightPower.location, power);
+}
+
+void PBRShader_Deferred_Lighting::setShadowStrength(float strength)
+{
+	mProgram->setFloat(mShadowStrength.location, strength);
 }
 
 void PBRShader_Deferred_Lighting::setIrradianceMap(const CubeMap* irradianceMap)

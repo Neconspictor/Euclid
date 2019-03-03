@@ -8,26 +8,29 @@ namespace nex {
 	{
 	public:
 		explicit DirectionalLight();
-		virtual ~DirectionalLight();
 
 		const glm::vec3& getColor() const;
 
 		const glm::vec3& getDirection() const;
 
+		float getLightPower() const;
+
 		void setColor(glm::vec3 color);
 
 		void setDirection(glm::vec3 dir);
 
+		void setPower(float power);
+
 	protected:
-		glm::vec3 color;
-		glm::vec3 direction;
+		glm::vec3 mColor;
+		glm::vec3 mDirection;
+		float mPower;
 	};
 
 	class PointLight : public Projectional
 	{
 	public:
 		PointLight();
-		virtual ~PointLight();
 
 		glm::mat4* getMatrices();
 

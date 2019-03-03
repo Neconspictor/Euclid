@@ -35,7 +35,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mAntiFlickerOn(antiFlickerOn),
 	mPCF(pcf),
 	mEnabled(true),
-	mBiasMultiplier(biasMultiplier)
+	mBiasMultiplier(biasMultiplier),
+	mShadowStrength(0.0f)
 {
 	mCascadeData.numCascades = numCascades;
 	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
@@ -590,6 +591,16 @@ unsigned CascadedShadow::getHeight() const
 const CascadedShadow::PCFFilter& CascadedShadow::getPCF() const
 {
 	return mPCF;
+}
+
+float CascadedShadow::getShadowStrength() const
+{
+	return mShadowStrength;
+}
+
+void CascadedShadow::setShadowStrength(float strength)
+{
+	mShadowStrength = strength;
 }
 
 unsigned CascadedShadow::getWidth() const

@@ -51,7 +51,7 @@ namespace nex
 			glm::vec3 up = { 0,1,0 }
 		);
 
-		virtual ~Projectional();
+		virtual ~Projectional() = default;
 
 		virtual void calcView();
 		float getAspectRatio() const;

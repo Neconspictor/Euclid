@@ -23,7 +23,8 @@ namespace nex {
 		PBR(backgroundHDR),
 		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
 		mLightPass(make_unique<PBRShader_Deferred_Lighting>(*cascadeShadow)),
-		mCascadeShadow(cascadeShadow)
+		mCascadeShadow(cascadeShadow),
+		mAmbientLightPower(1.0f)
 	{
 		vec2 dim = { 1.0, 1.0 };
 		vec2 pos = { 0, 0 };
@@ -36,7 +37,7 @@ namespace nex {
 		screenSprite.setWidth(dim.x);
 		screenSprite.setHeight(dim.y);
 
-		cascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
+		mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
 		{
 			reloadLightingShader(cascade);
 		});
@@ -76,11 +77,8 @@ namespace nex {
 		stencilTest->enableStencilTest(false);
 	}
 
-	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer,
-		Texture* ssaoMap, const DirectionalLight & light, const glm::mat4 & viewFromGPass, 
-		const glm::mat4& projFromGPass, const glm::mat4 & worldToLight,
-		const CascadedShadow::CascadeData& cascadeData,
-		Texture* cascadedDepthMap)
+	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
+		Texture* ssaoMap, const DirectionalLight & light)
 	{
 
 		static auto* renderBackend = RenderBackend::get();
@@ -100,24 +98,28 @@ namespace nex {
 
 		mLightPass->setBrdfLookupTexture(getBrdfLookupTexture());
 		//shader->setGBuffer(gBuffer);
-		mLightPass->setViewGPass(viewFromGPass);
-		mLightPass->setInverseViewFromGPass(inverse(viewFromGPass));
-		mLightPass->setInverseProjMatrixFromGPass(inverse(projFromGPass));
+		mLightPass->setViewGPass(camera->getView());
+		mLightPass->setInverseViewFromGPass(inverse(camera->getView()));
+		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
 		mLightPass->setIrradianceMap(getConvolutedEnvironmentMap());
 		mLightPass->setLightColor(light.getColor());
 		mLightPass->setWorldLightDirection(light.getLook());
 
-		vec4 lightEyeDirection = viewFromGPass * vec4(light.getLook(), 0);
+		vec4 lightEyeDirection = camera->getView() * vec4(light.getLook(), 0);
 		mLightPass->setEyeLightDirection(vec3(lightEyeDirection));
+		mLightPass->setLightPower(light.getLightPower());
+		mLightPass->setAmbientLightPower(mAmbientLightPower);
+		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
+
 		mLightPass->setPrefilterMap(getPrefilteredEnvironmentMap());
 		//shader->setShadowMap(shadowMap);
 		mLightPass->setAOMap(ssaoMap);
 		//TODO
 		//shader->setSkyBox(environmentMap->getCubeMap());
-		mLightPass->setWorldToLightSpaceMatrix(worldToLight);
-		mLightPass->setEyeToLightSpaceMatrix(worldToLight  * viewFromGPass);
-		mLightPass->setCascadedData(cascadeData);
-		mLightPass->setCascadedDepthMap(cascadedDepthMap);
+		mLightPass->setWorldToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace());
+		mLightPass->setEyeToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace()  * camera->getView());
+		mLightPass->setCascadedData(mCascadeShadow->getCascadeData());
+		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 
 
 		StaticMeshDrawer::draw(&screenSprite, mLightPass.get());
@@ -125,20 +127,30 @@ namespace nex {
 		stencilTest->enableStencilTest(false);
 	}
 
-	void PBR_Deferred::drawSky(const glm::mat4 & projection, const glm::mat4 & view)
+	void PBR_Deferred::drawSky(Camera* camera)
 	{
 		static auto* renderBackend = RenderBackend::get();
 
 		auto* stencilTest = renderBackend->getStencilTest();
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-		PBR::drawSky(projection, view);
+		PBR::drawSky(camera->getPerspProjection(), camera->getView());
 		stencilTest->enableStencilTest(false);
 	}
 
 	std::unique_ptr<PBR_GBuffer> PBR_Deferred::createMultipleRenderTarget(int width, int height)
 	{
 		return make_unique<PBR_GBuffer>(width, height);
+	}
+
+	float PBR_Deferred::getAmbientLightPower() const
+	{
+		return mAmbientLightPower;
+	}
+
+	void PBR_Deferred::setAmbientLightPower(float power)
+	{
+		mAmbientLightPower = power;
 	}
 
 	void PBR_Deferred::reloadLightingShader(const CascadedShadow& cascadedShadow)

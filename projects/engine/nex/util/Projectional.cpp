@@ -19,10 +19,6 @@ namespace nex
 		perspFrustum.farPlane = perspFar;
 	}
 
-	Projectional::~Projectional()
-	{
-	}
-
 	void Projectional::calcView()
 	{
 		view = glm::lookAt(

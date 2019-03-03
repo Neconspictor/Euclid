@@ -9,33 +9,39 @@ using namespace std;
 
 namespace nex {
 
-	DirectionalLight::DirectionalLight() : Projectional(), color(1, 1, 1)
+	DirectionalLight::DirectionalLight() : Projectional(), mColor(1, 1, 1), mDirection(1,1,1), mPower(1.0f)
 	{
 		m_logger.setPrefix("DirectionalLight");
 	}
 
-	DirectionalLight::~DirectionalLight()
-	{
-	}
-
 	const glm::vec3& DirectionalLight::getColor() const
 	{
-		return color;
+		return mColor;
 	}
 
 	const glm::vec3& DirectionalLight::getDirection() const
 	{
-		return direction;
+		return mDirection;
+	}
+
+	float DirectionalLight::getLightPower() const
+	{
+		return mPower;
+	}
+
+	void DirectionalLight::setPower(float power)
+	{
+		mPower = power;
 	}
 
 	void DirectionalLight::setColor(glm::vec3 color)
 	{
-		this->color = move(color);
+		this->mColor = move(color);
 	}
 
 	void DirectionalLight::setDirection(glm::vec3 dir)
 	{
-		direction = move(dir);
+		mDirection = move(dir);
 	}
 
 	PointLight::PointLight() : Projectional()
@@ -45,10 +51,6 @@ namespace nex {
 		perspFrustum.nearPlane = 0.1f;
 		perspFrustum.farPlane = 1.0f;
 		m_logger.setPrefix("PointLight");
-	}
-
-	PointLight::~PointLight()
-	{
 	}
 
 	glm::mat4* PointLight::getMatrices()

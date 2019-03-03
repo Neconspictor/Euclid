@@ -105,6 +105,7 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	globalLight.lookAt({0,0,0});
 	globalLight.update(true);
 	globalLight.setColor(vec3(1.0f, 1.0f, 1.0f));
+	globalLight.setPower(3.0f);
 
 	vec2 dim = {1.0, 1.0};
 	vec2 pos = {0, 0};
@@ -204,24 +205,15 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		blitRegion,
 		RenderComponent::Depth | RenderComponent::Stencil);*/
 
-
-	const auto& cascadedData = m_cascadedShadow->getCascadeData();
-	Texture* cascadedDepthMap = m_cascadedShadow->getDepthTextureArray();
-
 		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
 		m_pbr_deferred->drawLighting(scene, 
 			pbr_mrt.get(), 
-			//shadowMap->getTexture(), 
+			camera, 
 			aoTexture,
-			globalLight, 
-			camera->getView(),
-			camera->getPerspProjection(),
-			m_cascadedShadow->getWorldToShadowSpace(),
-			cascadedData,
-			cascadedDepthMap);
+			globalLight);
 
-		m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
+		m_pbr_deferred->drawSky(camera);
 	
 
 

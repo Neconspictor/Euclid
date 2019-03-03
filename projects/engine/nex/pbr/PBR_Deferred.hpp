@@ -23,26 +23,26 @@ namespace nex
 
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,
+			Camera* camera,
 			Texture* ssaoMap,
-			const DirectionalLight& light,
-			const glm::mat4& viewFromGPass,
-			const glm::mat4& projFromGPass,
-			const glm::mat4& worldToLight,
-			const CascadedShadow::CascadeData& cascadeData,
-			Texture* cascadedDepthMap);
+			const DirectionalLight& light);
 
-		void drawSky(const glm::mat4& projection,
-			const glm::mat4& view);
+		void drawSky(Camera* camera);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
+		float getAmbientLightPower() const;
+
 		void reloadLightingShader(const CascadedShadow& cascadedShadow);
+
+		void setAmbientLightPower(float power);
 
 	private:
 		Sprite screenSprite;
 		std::unique_ptr<PBRShader_Deferred_Geometry> mGeometryPass;
 		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
 		CascadedShadow* mCascadeShadow;
+		float mAmbientLightPower;
 	};
 
 	class PBR_Deferred_ConfigurationView : public nex::gui::Drawable {
