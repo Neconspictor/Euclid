@@ -183,7 +183,6 @@ namespace nex {
 		auto* dirLight = m_pbr->getDirLight();
 
 		glm::vec3 lightColor = dirLight->getColor();
-		glm::vec3 lightDirection = dirLight->getDirection();
 		float dirLightPower = dirLight->getLightPower();
 		
 
@@ -198,12 +197,7 @@ namespace nex {
 			dirLight->setPower(dirLightPower);
 		}
 
-		if (ImGui::InputScalarN("Directional Light Direction", ImGuiDataType_Float, &lightDirection, 3))
-		{
-			lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
-			dirLight->setDirection(lightDirection);
-		}
-
+		drawLightSphericalDirection();
 
 
 		float ambientLightPower = m_pbr->getAmbientLightPower();
@@ -216,5 +210,29 @@ namespace nex {
 
 		nex::gui::Separator(2.0f);
 		ImGui::PopID();
+	}
+
+	void PBR_Deferred_ConfigurationView::drawLightSphericalDirection()
+	{
+		auto* dirLight = m_pbr->getDirLight();
+		glm::vec3 lightDirection = normalize(dirLight->getDirection());
+
+		static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);
+
+		float temp[2] = {sphericalCoordinate.polar, sphericalCoordinate.azimuth};
+
+		if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05))
+		{
+			//temp = clamp(temp, glm::vec2(-1.0f), glm::vec2(1.0f));
+			//temp[0] = std::clamp<float>(temp[0], 0, M_PI);
+			//temp[0] = std::clamp<float>(temp[0], -2 * M_PI, 2 * M_PI);
+			//temp[1] = std::clamp<float>(temp[1], -2*M_PI, 2*M_PI);
+			sphericalCoordinate.polar = temp[0];
+			sphericalCoordinate.azimuth = temp[1];
+			lightDirection = -SphericalCoordinate::cartesian(sphericalCoordinate);
+			lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
+			dirLight->setDirection(lightDirection);
+		}
+
 	}
 }

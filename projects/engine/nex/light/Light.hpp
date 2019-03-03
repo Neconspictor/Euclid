@@ -4,6 +4,19 @@
 
 namespace nex {
 
+	/**
+	 * Spherical coordintes with a zenith direction of (0,1,0) (the y-axis)
+	 */
+	struct SphericalCoordinate
+	{
+		float polar;
+		float azimuth;
+		float radius;
+
+		static glm::vec3 cartesian(const SphericalCoordinate& coord);
+		static SphericalCoordinate convert(glm::vec3 cartesian);
+	};
+
 	class DirectionalLight
 	{
 	public:

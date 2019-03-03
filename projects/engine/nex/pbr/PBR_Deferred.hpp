@@ -56,6 +56,8 @@ namespace nex
 	protected:
 		void drawSelf() override;
 
+		void drawLightSphericalDirection();
+
 	private:
 		PBR_Deferred * m_pbr;
 	};
