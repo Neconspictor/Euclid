@@ -185,7 +185,7 @@ SceneNode* NeXEngine::createScene()
 	ground->vob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
-	m_nodes.emplace_back(SceneNode());
+	/*m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
 	m_vobs.emplace_back(Vob("cerberus/cerberus.obj", MaterialType::Pbr));
 	cerberus->vob = &m_vobs.back();
@@ -238,7 +238,7 @@ SceneNode* NeXEngine::createScene()
 	m_vobs.emplace_back(Vob(mModels.back().get()));
 	sphere2->vob = &m_vobs.back();
 	sphere2->vob->setPosition({ 4.0f, 4.8f, -1.0f });
-	root->addChild(sphere2);
+	root->addChild(sphere2);*/
 
 	//m_nodes.push_back(SceneNode());
 	//SceneNode* cube1 = &m_nodes.back();

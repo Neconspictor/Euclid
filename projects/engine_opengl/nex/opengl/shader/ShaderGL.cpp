@@ -116,6 +116,38 @@ void nex::ShaderProgram::setFloat(UniformLocation locationID, float data)
 	GLCall(glUniform1f(glID, data));
 }
 
+void nex::ShaderProgram::setUInt(UniformLocation locationID, unsigned data)
+{
+	assert(mIsBound);
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform1ui(glID, data));
+}
+
+void nex::ShaderProgram::setUVec2(UniformLocation locationID, const glm::uvec2& data)
+{
+	assert(mIsBound);
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform2ui(glID, data.x, data.y));
+}
+
+void nex::ShaderProgram::setUVec3(UniformLocation locationID, const glm::uvec3& data)
+{
+	assert(mIsBound);
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform3ui(glID, data.x, data.y, data.z));
+}
+
+void nex::ShaderProgram::setUVec4(UniformLocation locationID, const glm::uvec4& data)
+{
+	assert(mIsBound);
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform4ui(glID, data.x, data.y, data.z, data.w));
+}
+
 void nex::ShaderProgram::setVec2(UniformLocation locationID, const glm::vec2& data)
 {
 	assert(mIsBound);

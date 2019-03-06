@@ -206,6 +206,10 @@ set(
 	nex/shadow/CascadedShadow.cpp
 	nex/shadow/CascadedShadow.hpp
     
+    #nex/sky
+    nex/sky/AtmosphericScattering.cpp
+    nex/sky/AtmosphericScattering.hpp
+    
     #nex/texture
     nex/texture/GBuffer.hpp
 	nex/texture/GBuffer.cpp

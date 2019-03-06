@@ -132,10 +132,10 @@ namespace nex {
 		static auto* renderBackend = RenderBackend::get();
 
 		auto* stencilTest = renderBackend->getStencilTest();
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
+		//stencilTest->enableStencilTest(true);
+		//stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 		PBR::drawSky(camera->getPerspProjection(), camera->getView());
-		stencilTest->enableStencilTest(false);
+		//stencilTest->enableStencilTest(false);
 	}
 
 	std::unique_ptr<PBR_GBuffer> PBR_Deferred::createMultipleRenderTarget(int width, int height)

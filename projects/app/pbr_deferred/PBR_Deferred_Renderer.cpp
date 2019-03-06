@@ -203,6 +203,38 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
 
+		//m_pbr_deferred->drawSky(camera);
+
+
+		mAtmosphericScattering.bind();
+		mAtmosphericScattering.setInverseProjection(inverse(camera->getPerspProjection()));
+		mAtmosphericScattering.setInverseViewRotation(inverse(camera->getView()));
+		mAtmosphericScattering.setStepCount(16);
+		mAtmosphericScattering.setSurfaceHeight(0.99f);
+		mAtmosphericScattering.setScatterStrength(0.028f);
+		mAtmosphericScattering.setSpotBrightness(10.0f);
+		mAtmosphericScattering.setViewport(windowWidth, windowHeight);
+
+		AtmosphericScattering::Light light;
+		light.direction = -normalize(globalLight.getDirection());
+		light.intensity = 1.8f;
+		mAtmosphericScattering.setLight(light);
+
+		AtmosphericScattering::Mie mie;
+		mie.brightness = 0.1f;
+		mie.collectionPower = 0.39f;
+		mie.distribution = 0.63f;
+		mie.strength = 0.264f;
+		mAtmosphericScattering.setMie(mie);
+
+		AtmosphericScattering::Rayleigh rayleigh;
+		rayleigh.brightness = 3.3f;
+		rayleigh.collectionPower = 0.81f;
+		rayleigh.strength = 0.139f;
+		mAtmosphericScattering.setRayleigh(rayleigh);
+
+		mAtmosphericScattering.renderSky();
+
 		m_pbr_deferred->setDirLight(&globalLight);
 
 		m_pbr_deferred->drawLighting(scene, 
@@ -210,7 +242,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			camera, 
 			aoTexture);
 
-		m_pbr_deferred->drawSky(camera);
+		//m_pbr_deferred->drawSky(camera);
 	
 
 

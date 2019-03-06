@@ -42,6 +42,10 @@ namespace nex
 		MAT4,
 		TEXTURE2D,
 		TEXTURE2D_ARRAY,
+		UINT,
+		UVEC2,
+		UVEC3,
+		UVEC4,
 		VEC2,
 		VEC3,
 		VEC4
@@ -138,6 +142,28 @@ namespace nex
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
 		void setFloat(UniformLocation locationID, float data);
+
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 */
+		void setUInt(UniformLocation locationID, unsigned data);
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 */
+		void setUVec2(UniformLocation locationID, const glm::uvec2& data);
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 */
+		void setUVec3(UniformLocation locationID, const glm::uvec3& data);
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 */
+		void setUVec4(UniformLocation locationID, const glm::uvec4& data);
+
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound

@@ -13,6 +13,7 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/Renderer.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/sky/AtmosphericScattering.hpp>
 
 namespace nex
 {
@@ -55,6 +56,9 @@ namespace nex
 		AmbientOcclusionSelector m_aoSelector;
 
 		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
+
+		AtmosphericScattering mAtmosphericScattering;
+
 		Sprite screenSprite;
 		//DepthMap* shadowMap;
 		bool showDepthMap;
