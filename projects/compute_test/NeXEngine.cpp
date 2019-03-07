@@ -16,6 +16,8 @@
 #include <Globals.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
+#include "nex/mesh/Vob.hpp"
+#include "nex/SceneNode.hpp"
 
 using namespace nex;
 
@@ -63,10 +65,6 @@ void NeXEngine::init()
 	m_camera = std::make_unique<FPCamera>(FPCamera());
 	m_baseTitle = m_window->getTitle();
 
-
-	//init render backend
-	initRenderBackend();
-
 	// init texture manager (filesystem)
 	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
 	TextureManager::get()->init(&mTextureFileSystem);
@@ -79,10 +77,13 @@ void NeXEngine::init()
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
 	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
 
+	//init render backend
+	initRenderBackend();
+
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
-	m_renderer = std::make_unique<ComputeTest_Renderer>(m_renderBackend.get(), m_window->getInputDevice());
+	m_renderer = std::make_unique<ComputeTest_Renderer>(RenderBackend::get(), m_window->getInputDevice());
 	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),
@@ -99,7 +100,7 @@ void NeXEngine::init()
 
 	m_scene = createScene();
 
-	m_scene->init(m_renderBackend->getModelManager());
+	m_scene->init();
 
 	m_input->addWindowCloseCallback([](Window* window)
 	{
@@ -175,7 +176,7 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* ground = &m_nodes.back();
-	m_vobs.push_back(Vob("misc/textured_plane.obj", ShaderType::Pbr));
+	m_vobs.push_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
 	ground->vob = &m_vobs.back();
 	ground->vob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
@@ -188,14 +189,14 @@ SceneNode* NeXEngine::createScene()
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* cube1 = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", ShaderType::Pbr));
+	m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", MaterialType::Pbr));
 	cube1->vob = &m_vobs.back();
 	cube1->vob->setPosition({ 0.0f, 1.3f, 0.0f });
 	root->addChild(cube1);
 
 	m_nodes.push_back(SceneNode());
 	SceneNode* sphere = &m_nodes.back();
-	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", ShaderType::Pbr));
+	m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", MaterialType::Pbr));
 	sphere->vob = &m_vobs.back();
 	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
 	root->addChild(sphere);
@@ -225,9 +226,10 @@ Window* NeXEngine::createWindow()
 void NeXEngine::initRenderBackend()
 {
 	m_window->activate();
-	m_renderBackend->setViewPort(0, 0, m_video.width, m_video.height);
-	m_renderBackend->setMSAASamples(m_video.msaaSamples);
-	m_renderBackend->init();
+	auto* backend = RenderBackend::get();
+	backend->setViewPort(0, 0, m_video.width, m_video.height);
+	backend->setMSAASamples(m_video.msaaSamples);
+	backend->init();
 }
 
 
@@ -333,7 +335,7 @@ void NeXEngine::setupGUI()
 	auto windowView = std::make_unique<Window_ConfigurationView>(m_window);
 	videoTab->addChild(move(windowView));
 
-	auto textureManagerView = std::make_unique<TextureManager_Configuration>(m_renderBackend->getTextureManager());
+	auto textureManagerView = std::make_unique<TextureManager_Configuration>(TextureManager::get());
 	generalTab->addChild(move(textureManagerView));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());

@@ -6,6 +6,7 @@
 #include <nex/config/Configuration.hpp>
 #include <VideoConfig.hpp>
 #include <nex/RenderBackend.hpp>
+#include "nex/FileSystem.hpp"
 
 namespace nex
 {
@@ -44,7 +45,6 @@ namespace nex
 		void updateWindowTitle(float frameTime, float fps);
 	private:
 		nex::Logger m_logger;
-		std::unique_ptr<RenderBackend> m_renderBackend;
 		std::unique_ptr<ComputeTest_Renderer> m_renderer;
 		std::unique_ptr<gui::ControllerStateMachine> m_controllerSM;
 		std::unique_ptr<Camera> m_camera;

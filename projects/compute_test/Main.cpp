@@ -4,9 +4,10 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/exception/get_error_info.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include "nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp"
-#include "nex/mesh/StaticMeshManager.hpp"
-#include "nex/texture/TextureManager.hpp"
+#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/texture/TextureManager.hpp>
+#include <nex/RenderBackend.hpp>
 
 
 #ifdef WIN32
@@ -78,15 +79,17 @@ int main(int argc, char** argv)
 
 		LOG(logger, nex::Info) << "Done.";
 
-	} catch (const std::exception& e)
+	}
+	catch (const std::exception& e)
 	{
-		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
+		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": " << e.what();
 		//LOG(logger, nex::Fault) << "Stack trace: " << boost::stacktrace::stacktrace();
 		const boost::stacktrace::stacktrace* st = boost::get_error_info<nex::traced>(e);
 		if (st) {
 			LOG(logger, nex::Fault) << "Stack trace: " << *st;
 		}
-	} catch(...)
+	}
+	catch (...)
 	{
 		LOG(logger, nex::Fault) << "Unknown Exception occurred.";
 	}
@@ -95,6 +98,7 @@ int main(int argc, char** argv)
 
 	nex::StaticMeshManager::get()->release();
 	nex::TextureManager::get()->release();
+	nex::RenderBackend::release();
 
 	provider->terminate();
 

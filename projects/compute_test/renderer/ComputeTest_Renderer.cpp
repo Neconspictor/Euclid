@@ -2,9 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/opengl/shader/SkyBoxShaderGL.hpp>
-#include <nex/opengl/scene/SceneNode.hpp>
-#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/util/Timer.hpp>
 #include <ostream>
@@ -12,9 +9,9 @@
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
-#include "nex/opengl/shader/ScreenShaderGL.hpp"
-#include "nex/opengl/shader/DepthMapShaderGL.hpp"
 #include "nex/shader/DepthMapShader.hpp"
+#include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
+#include "nex/RenderBackend.hpp"
 
 namespace nex {
 	class Timer;
@@ -368,7 +365,7 @@ void ComputeTest_Renderer::SimpleGeometryShader::setProjection(const glm::mat4* 
 	mProjection = projection;
 }
 
-ComputeTest_Renderer::GBuffer::GBuffer(unsigned width, unsigned height) : RenderTarget(width, height), mDepth(nullptr)
+ComputeTest_Renderer::GBuffer::GBuffer(unsigned width, unsigned height) : RenderTarget(), mDepth(nullptr)
 {
 	bind();
 
@@ -388,25 +385,30 @@ ComputeTest_Renderer::GBuffer::GBuffer(unsigned width, unsigned height) : Render
 	data.internalFormat = InternFormat::R32F;
 	data.pixelDataType = PixelDataType::FLOAT;
 	temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
-	temp.attachIndex = 0;
+	temp.target = TextureTarget::TEXTURE2D;
+	temp.colorAttachIndex = 0;
 	mDepth = temp.texture.get();
-	addAttachment(temp);
+	addColorAttachment(temp);
 
 
 	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-	updateAttachments();
+	updateColorAttachment(0);
 
 	// create and attach depth buffer (renderbuffer)
 	// depth/stencil
-	DepthStencilDesc desc;
+	TextureData desc;
 	desc.minFilter = TextureFilter::NearestNeighbor;
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrapS = TextureUVTechnique::ClampToEdge;
 	desc.wrapT = TextureUVTechnique::ClampToEdge;
-	desc.format = DepthStencilFormat::DEPTH24_STENCIL8;
-	auto depthBuffer = make_shared<DepthStencilMap>(width, height, desc);
+	desc.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	desc.colorspace = ColorSpace::DEPTH_STENCIL;
+	desc.pixelDataType = PixelDataType::UNSIGNED_INT_24_8;
 
-	useDepthStencilMap(std::move(depthBuffer));
+	temp.texture = make_shared<Texture2D>(width, height, desc, nullptr);
+	temp.type = RenderAttachment::Type::DEPTH_STENCIL;
+	temp.target = TextureTarget::TEXTURE2D;
+	useDepthAttachment(temp);
 
 	// finally check if framebuffer is complete
 	if (!isComplete())
@@ -435,16 +437,13 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 {
 	using namespace placeholders;
 
-	StaticMeshManager* modelManager = m_renderBackend->getModelManager();
+	static auto* meshManager = StaticMeshManager::get();
 
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
 
 
 	vec3 position = {1.0f, 1.0f, 1.0f };
-	position = 15.0f * position;
-	globalLight.setPosition(position);
-	globalLight.lookAt({0,0,0});
-	globalLight.update(true);
+	globalLight.setDirection(-position);
 	globalLight.setColor(vec3(1.0f, 1.0f, 1.0f));
 
 
@@ -488,9 +487,6 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	auto modelDrawer = m_renderBackend->getModelDrawer();
-	auto screenShader = (ScreenShader*)m_renderBackend->getShaderManager()->getShader(ShaderType::Screen);
-	auto depthMapShader = (DepthMapShader*)m_renderBackend->getShaderManager()->getShader(ShaderType::DepthMap);
 	using namespace chrono;
 
 	const unsigned width = windowWidth;
@@ -505,7 +501,7 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	mSimpleGeometry->setView(&camera->getView());
 	mSimpleGeometry->setProjection(&camera->getPerspProjection());
 
-	modelDrawer->draw(scene, mSimpleGeometry.get());
+	StaticMeshDrawer::draw(scene, mSimpleGeometry.get());
 
 	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 	screenRenderTarget->bind();
@@ -524,7 +520,7 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	mSimpleBlinnPhong->setViewPositionWorld(camera->getPosition());
 	mSimpleBlinnPhong->setView(&camera->getView());
 	mSimpleBlinnPhong->setProjection(&camera->getPerspProjection());
-	modelDrawer->draw(scene, mSimpleBlinnPhong.get());
+	StaticMeshDrawer::draw(scene, mSimpleBlinnPhong.get());
 
 	//auto depthStencilMap = screenRenderTarget->getDepthStencilMap();
 
@@ -620,8 +616,8 @@ void ComputeTest_Renderer::updateRenderTargets(int width, int height)
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
 	m_renderBackend->resize(width, height);
-	m_renderBackend->destroyRenderTarget(renderTargetSingleSampled);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
+	mGBuffer = make_unique<GBuffer>(width, height);
 
 	/*
 

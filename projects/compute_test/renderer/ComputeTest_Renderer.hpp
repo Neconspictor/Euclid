@@ -5,6 +5,8 @@
 #include "nex/shader/ShaderBuffer.hpp"
 #include "nex/Renderer.hpp"
 #include "nex/shader/Shader.hpp"
+#include "nex/texture/RenderTarget.hpp"
+#include "nex/pbr/PBR_Deferred.hpp"
 
 namespace nex
 {
@@ -136,7 +138,6 @@ namespace nex
 		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(int width, int height);
-		nex::HBAO_GL* getHBAO();
 
 		PBR_Deferred* getPBR();
 
@@ -149,13 +150,12 @@ namespace nex
 
 		// Allow the UI mode classes accessing private members
 
-		GaussianBlurGL* blurEffect;
 		DirectionalLight globalLight;
 		nex::Logger m_logger;
 		Texture* panoramaSky;
 		Texture* testTexture;
 
-		RenderTarget2D* renderTargetSingleSampled;
+		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
 		Sprite screenSprite;
 		bool showDepthMap;
 		Guard<ComputeTestShader> mComputeTest;
