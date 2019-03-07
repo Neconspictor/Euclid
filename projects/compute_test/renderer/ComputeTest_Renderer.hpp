@@ -7,6 +7,7 @@
 #include "nex/shader/Shader.hpp"
 #include "nex/texture/RenderTarget.hpp"
 #include "nex/pbr/PBR_Deferred.hpp"
+#include "SceneNearFarComputeShader.hpp"
 
 namespace nex
 {
@@ -133,20 +134,15 @@ namespace nex
 
 		ComputeTest_Renderer(RenderBackend* renderer, Input* input);
 
-		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
 		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
-		void setShowDepthMap(bool showDepthMap);
-		void updateRenderTargets(int width, int height);
 
-		PBR_Deferred* getPBR();
+		void renderNew(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+		void renderOld(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+		void updateRenderTargets(int width, int height);
 
 
 	private:
-
-		Texture * renderAO(Camera* camera, Texture* gPosition, Texture* gNormal);
-
-		void drawSceneToCascade(SceneNode* scene);
 
 		// Allow the UI mode classes accessing private members
 
@@ -156,13 +152,13 @@ namespace nex
 		Texture* testTexture;
 
 		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
-		Sprite screenSprite;
-		bool showDepthMap;
-		Guard<ComputeTestShader> mComputeTest;
-		Guard<ComputeClearColorShader> mComputeClearColor;
+		Sprite screenSprite;;
+		std::unique_ptr<ComputeTestShader> mComputeTest;
+		std::unique_ptr<ComputeClearColorShader> mComputeClearColor;
 		std::unique_ptr<SimpleBlinnPhong> mSimpleBlinnPhong;
 		std::unique_ptr<SimpleGeometryShader> mSimpleGeometry;
 		std::unique_ptr<GBuffer> mGBuffer;
+		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
 		Input* mInput;
 	};
 }

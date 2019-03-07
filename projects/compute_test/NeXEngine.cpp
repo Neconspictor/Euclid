@@ -366,11 +366,11 @@ void NeXEngine::setupCamera()
 	frustum.right = 10.0f;
 	frustum.bottom = -10.0f;
 	frustum.top = 10.0f;
-	frustum.nearPlane = 0.1f;
-	frustum.farPlane = 100.0f;
+	frustum.nearPlane = 1.0f;
+	frustum.farPlane = 200.0f;
 	m_camera->setOrthoFrustum(frustum);
-	m_camera->setNearPlane(0.1f);
-	m_camera->setFarPlane(150.0f);
+	m_camera->setNearPlane(1.0f);
+	m_camera->setFarPlane(200.0f);
 }
 
 void NeXEngine::updateWindowTitle(float frameTime, float fps)

@@ -20,7 +20,7 @@ struct BoundsFloat
 BoundsFloat EmptyBoundsFloat()
 {
     BoundsFloat f;
-    f.minCoord = vec3(10000.0);
+    f.minCoord = vec3(9999999.0);
     f.maxCoord = vec3(0);
     
     return f;

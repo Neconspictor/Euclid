@@ -467,7 +467,7 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 	mGBuffer = make_unique<GBuffer>(windowWidth, windowHeight);
 
-	mComputeTest = new ComputeTestShader(windowWidth, windowHeight);
+	mComputeTest = make_unique<ComputeTestShader>(windowWidth, windowHeight);
 
 	mComputeTest->bind();
 	mComputeTest->setDepthTexture(mGBuffer->getDepth(), InternFormat::R32F);
@@ -475,6 +475,9 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 	mSimpleBlinnPhong = make_unique<SimpleBlinnPhong>();
 
 	mSimpleGeometry = make_unique<SimpleGeometryShader>();
+
+	mSceneNearFarComputeShader = make_unique<SceneNearFarComputeShader>();
+
 
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
@@ -488,6 +491,91 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 }
 
 void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
+{
+	renderNew(scene, camera, frameTime, windowWidth, windowHeight);
+	//renderOld(scene, camera, frameTime, windowWidth, windowHeight);
+}
+
+void ComputeTest_Renderer::renderNew(SceneNode* scene, Camera* camera, float frameTime, int windowWidth,
+	int windowHeight)
+{
+	using namespace chrono;
+
+	const unsigned width = windowWidth;
+	const unsigned height = windowHeight;
+
+	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
+
+	mGBuffer->bind();
+	mGBuffer->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+	mSimpleGeometry->bind();
+	mSimpleGeometry->setView(&camera->getView());
+	mSimpleGeometry->setProjection(&camera->getPerspProjection());
+
+	StaticMeshDrawer::draw(scene, mSimpleGeometry.get());
+
+	RenderTarget* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	screenRenderTarget->bind();
+	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+	/*depthMapShader->bind();
+	depthMapShader->useDepthMapTexture(depthBuffer);
+
+	modelDrawer->draw(&screenSprite, depthMapShader);*/
+
+	//return;
+
+	mSimpleBlinnPhong->bind();
+
+	mSimpleBlinnPhong->setLightDirection(vec3(100, 100, 100));
+	mSimpleBlinnPhong->setViewPositionWorld(camera->getPosition());
+	mSimpleBlinnPhong->setView(&camera->getView());
+	mSimpleBlinnPhong->setProjection(&camera->getPerspProjection());
+	StaticMeshDrawer::draw(scene, mSimpleBlinnPhong.get());
+
+	//auto depthStencilMap = screenRenderTarget->getDepthStencilMap();
+
+
+
+
+	mSceneNearFarComputeShader->bind();
+
+
+	unsigned xDim = 16 * 16; // 256
+	unsigned yDim = 8 * 8; // 128
+
+	unsigned dispatchX = width % xDim == 0 ? width / xDim : width / xDim + 1;
+	unsigned dispatchY = height % yDim == 0 ? height / yDim : height / yDim + 1;
+
+	const auto frustum = camera->getFrustum(Perspective);
+
+	mSceneNearFarComputeShader->setConstants(frustum.nearPlane + 0.05, frustum.farPlane - 0.05, camera->getPerspProjection());
+	mSceneNearFarComputeShader->setDepthTexture(mGBuffer->getDepth());
+
+	mSceneNearFarComputeShader->dispatch(dispatchX, dispatchY, 1);
+
+	auto result = mSceneNearFarComputeShader->readResult();
+
+	static bool printed = false;
+
+	if (!printed || mInput->isPressed(Input::KEY_K))
+	{
+		//std::cout << "result->lock = " << result->lock << "\n";
+
+		std::cout << "----------------------------------------------------------------------------\n";
+			std::cout << "result min/max = " << glm::to_string(glm::vec2(result.minMax)) << "\n";
+		std::cout << "----------------------------------------------------------------------------\n" << std::endl;
+
+		printed = true;
+	}
+
+	// reset
+	mSceneNearFarComputeShader->reset();
+}
+
+void ComputeTest_Renderer::renderOld(SceneNode* scene, Camera* camera, float frameTime, int windowWidth,
+	int windowHeight)
 {
 	using namespace chrono;
 
@@ -579,8 +667,8 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 
 		for (int i = 0; i < mComputeTest->partitionCount; ++i)
 		{
-			std::cout << "result->minResult[" << i << "] = " << glm::to_string(result->results[i].minCoord) << "\n";
-			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(result->results[i].maxCoord) << "\n"; 
+			std::cout << "result->minResult[" << i << "] = " << glm::to_string(glm::vec3(result->results[i].minCoord)) << "\n";
+			std::cout << "result->maxResult[" << i << "] = " << glm::to_string(glm::vec3(result->results[i].maxCoord)) << "\n";
 		}
 
 		std::cout << "----------------------------------------------------------------------------\n" << std::endl;
@@ -603,12 +691,12 @@ void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameT
 	if (diff > max)
 	{
 		if (diff < 2000) max = diff;
-	}	
+	}
 
 	if (diff > 1000 && false)
 	{
-		std::cout << "Diff: " << diff << " ; AVG = " << sum / counter << 
-			 " ; Min = " << min << " ; Max = " << max << std::endl;
+		std::cout << "Diff: " << diff << " ; AVG = " << sum / counter <<
+			" ; Min = " << min << " ; Max = " << max << std::endl;
 	}
 }
 

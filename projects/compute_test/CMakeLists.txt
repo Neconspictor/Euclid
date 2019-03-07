@@ -23,6 +23,8 @@ set(
 	#renderer
 	renderer/ComputeTest_Renderer.cpp
     renderer/ComputeTest_Renderer.hpp
+    renderer/SceneNearFarComputeShader.cpp
+    renderer/SceneNearFarComputeShader.hpp
 	
 )
 
