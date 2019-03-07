@@ -476,6 +476,8 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 	mSimpleGeometry = make_unique<SimpleGeometryShader>();
 
+	m_renderBackend->getRasterizer()->enableScissorTest(false);
+
 	//mComputeTest->bind();
 	//GLuint location = mComputeTest->getProgram()->getUniformLocation("data");
 	//GLCall(glBindImageTexture(0, textureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGB8));
