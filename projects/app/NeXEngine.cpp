@@ -89,7 +89,7 @@ void NeXEngine::init()
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
-	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get());
+	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), m_window->getInputDevice());
 	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),

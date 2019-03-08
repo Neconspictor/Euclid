@@ -14,6 +14,8 @@
 #include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/RenderBackend.hpp"
+#define GLM_ENABLE_EXPERIMENTAL 1
+#include <glm/gtx/string_cast.hpp>
 
 using namespace glm;
 using namespace std;
@@ -24,14 +26,15 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-PBR_Deferred_Renderer::PBR_Deferred_Renderer(RenderBackend* backend) :
+PBR_Deferred_Renderer::PBR_Deferred_Renderer(RenderBackend* backend, Input* input) :
 	Renderer(backend),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
 	//shadowMap(nullptr),
-	showDepthMap(false)
+	showDepthMap(false),
+	mInput(input)
 {
 	m_aoSelector.setUseAmbientOcclusion(true);
 	//m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
@@ -145,6 +148,10 @@ void PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	skyboxShader->bind();
 	skyboxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
+
+	mSceneNearFarComputeShader = make_unique<SceneNearFarComputeShader>();
+
+	m_renderBackend->getRasterizer()->enableScissorTest(false);
 }
 
 
@@ -156,12 +163,27 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	using namespace chrono;
 
 	m_renderBackend->newFrame();
-	m_renderBackend->getRasterizer()->enableScissorTest(false);
+
+
+	// update and render into cascades
+	pbr_mrt->bind();
+
+
+	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	//renderer->beginScene();
+
+	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	m_pbr_deferred->drawGeometryScene(scene,
+		camera->getView(),
+		camera->getPerspProjection());
+
+	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
+	glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
 
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{
-		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection());
+		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ);
 
 		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -171,21 +193,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		}
 	}
 
-
-	// update and render into cascades
-	pbr_mrt->bind();
-
-
-	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	m_renderBackend->setScissor(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	//renderer->beginScene();
-
-	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-	m_pbr_deferred->drawGeometryScene(scene,
-		camera->getView(),
-		camera->getPerspProjection());
-
-	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
 
 	// render scene to a offscreen buffer
 	renderTargetSingleSampled->bind();
@@ -382,6 +389,49 @@ Texture* PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gDepth, Textur
 	ssao->blur();
 	return ssao->getBlurredResult();
 	//return ssao->getAO_Result();
+}
+
+glm::vec2 PBR_Deferred_Renderer::computeNearFarTest(Camera* camera, int windowWidth, int windowHeight, Texture* depth)
+{
+	mSceneNearFarComputeShader->bind();
+
+
+	unsigned xDim = 16 * 16; // 256
+	unsigned yDim = 8 * 8; // 128
+
+	unsigned dispatchX = windowWidth % xDim == 0 ? windowWidth / xDim : windowWidth / xDim + 1;
+	unsigned dispatchY = windowHeight % yDim == 0 ? windowHeight / yDim : windowHeight / yDim + 1;
+
+	const auto frustum = camera->getFrustum(Perspective);
+
+	mSceneNearFarComputeShader->setConstants(frustum.nearPlane + 0.05, frustum.farPlane - 0.05, camera->getPerspProjection());
+	mSceneNearFarComputeShader->setDepthTexture(depth);
+
+	mSceneNearFarComputeShader->dispatch(dispatchX, dispatchY, 1);
+
+
+	// TODO : readback is very slow -> optimize by calculating csm bounds on the gpu!
+	auto result = mSceneNearFarComputeShader->readResult();
+	glm::vec2 vecResult(result.minMax);
+
+	static bool printed = false;
+	
+
+	if (!printed || mInput->isPressed(Input::KEY_K))
+	{
+		//std::cout << "result->lock = " << result->lock << "\n";
+
+		std::cout << "----------------------------------------------------------------------------\n";
+		std::cout << "result min/max = " << glm::to_string(vecResult) << "\n";
+		std::cout << "----------------------------------------------------------------------------\n" << std::endl;
+
+		printed = true;
+	}
+
+	// reset
+	mSceneNearFarComputeShader->reset();
+
+	return vecResult;
 }
 
 PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : m_renderer(renderer)

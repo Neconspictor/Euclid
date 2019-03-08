@@ -244,56 +244,53 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(Camera* camer
 	return result;
 }
 
-void CascadedShadow::calcSplitSchemes(Camera* camera)
+void CascadedShadow::calcSplitSchemes(const glm::vec2& minMaxPositiveZ)
 {
-	calcSplitDistances(camera);
+	calcSplitDistances(minMaxPositiveZ.y - minMaxPositiveZ.x, minMaxPositiveZ);
 
-	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
-	const float nearClip = frustum.nearPlane;
-	const float farClip = frustum.farPlane;
-	const float clipRange = farClip - nearClip;
+	const float nearClip = minMaxPositiveZ.x;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
+		//nearClip +
 		mCascadeData.cascadedFarPlanes[i].x = (nearClip + mSplitDistances[i]);// *clipRange);
 	}
 }
 
-void CascadedShadow::calcSplitDistances(Camera* camera)
+void CascadedShadow::calcSplitDistances(float range, const glm::vec2& minMaxPositiveZ)
 {
-	Frustum frustum = camera->getFrustum(ProjectionMode::Perspective);
-	//Between 0 and 1, change in order to see the results
+	/*//Between 0 and 1, change in order to see the results
 	const float lambda = 1.0f;
 	//Between 0 and 1, change these to check the results
 	const float minDistance = 0.0f;
-	const float maxDistance = 1.0f;
+	const float maxDistance = 1.0f;*/
 
 
-	const float nearClip = frustum.nearPlane;
-	const float farClip = frustum.farPlane;
-	const float clipRange = farClip - nearClip;
+	/*const float nearClip = minMaxPositiveZ.x;//frustum.nearPlane;
+	//const float farClip = minMaxPositiveZ.y;// frustum.farPlane;
+	const float clipRange = max(minMaxPositiveZ.y - nearClip, 10.0f);
 
 	const float minZ = nearClip + minDistance * clipRange;
 	const float maxZ = nearClip + maxDistance * clipRange;
 
 	const float range = maxZ - minZ;
-	const float ratio = maxZ / minZ;
+	const float ratio = maxZ / minZ;*/
 
 	float step = range / (float)mCascadeData.numCascades;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
-		const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
-		const float log = minZ * std::pow(ratio, p);
-		const float uniform = minZ + range * p;
-		const float d = lambda * (log - uniform) + uniform;
-		mSplitDistances[i] = (d - nearClip);
-		mSplitDistances[i] = ((i + 1)*step - nearClip);
+		//const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
+		//const float log = minZ * std::pow(ratio, p);
+		//const float uniform = minZ + range * p;
+		//const float d = lambda * (log - uniform) + uniform;
+		//mSplitDistances[i] = (d - nearClip);
+		mSplitDistances[i] = ((i + 1)*step);
 
 
-		switch (i) {
+		/*switch (i) {
 		case 0: mSplitDistances[i] = 5.0f + nearClip;
 			break;
 		case 1: mSplitDistances[i] = 20.0f + nearClip;
@@ -313,23 +310,7 @@ void CascadedShadow::calcSplitDistances(Camera* camera)
 		default: break;
 		}
 
-
-		/*if (mCascadeData.numCascades == 4)
-		{
-			switch (i) {
-			case 0: mSplitDistances[i] = 3.0f / clipRange;
-				break;
-			case 1: mSplitDistances[i] = 12.0f / clipRange;
-				break;
-			case 2: mSplitDistances[i] = 20.0f / clipRange;
-				break;
-			case 3: mSplitDistances[i] = 1.0 - mSplitDistances[2];
-				break;
-			default: break;
-			}
-		}*/
-
-		mSplitDistances[i] *= 0.5f;
+		mSplitDistances[i] *= 0.5f;*/
 
 		// do some rounding for fighting numerical issues
 		// This helps to reduce flickering
@@ -477,12 +458,12 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 }
 
 
-void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection)
+void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ)
 {
-	const float minDistance = 0.0f;
+	const float minDistance = 0.0f;//minMaxPositiveZ.x / (minMaxPositiveZ.y - minMaxPositiveZ.x);
 	//const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
 	//const float cameraNearPlaneVS = frustum.nearPlane;
-	calcSplitSchemes(camera);
+	calcSplitSchemes(minMaxPositiveZ);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
 	mGlobal = calcShadowSpaceMatrix(camera, lightDirection);
 	const glm::mat3 shadowOffsetMatrix = glm::mat3(glm::transpose(mGlobal.shadowView));
@@ -493,8 +474,8 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		// the far plane of the previous cascade is the near plane of the current cascade
 		//const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
 		//const float farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
-		const float nearSplitDistance = cascadeIterator == 0 ? minDistance : mSplitDistances[cascadeIterator - 1];
-		const float farSplitDistance = mSplitDistances[cascadeIterator];
+		const float nearSplitDistance = minMaxPositiveZ.x + (cascadeIterator == 0 ? minDistance : mSplitDistances[cascadeIterator - 1]);
+		const float farSplitDistance = minMaxPositiveZ.x + mSplitDistances[cascadeIterator];
 
 
 		glm::mat4 cascadeTrans;

@@ -14,6 +14,7 @@
 #include <nex/Renderer.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/sky/AtmosphericScattering.hpp>
+#include "SceneNearFarComputeShader.hpp"
 
 namespace nex
 {
@@ -22,7 +23,7 @@ namespace nex
 	public:
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RenderBackend* renderer);
+		PBR_Deferred_Renderer(RenderBackend* renderer, Input* input);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -40,6 +41,8 @@ namespace nex
 	private:
 
 		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
+
+		glm::vec2 computeNearFarTest(Camera* camera, int windowWidth, int windowHeight, Texture* depth);
 
 		// Allow the UI mode classes accessing private members
 
@@ -62,6 +65,9 @@ namespace nex
 		Sprite screenSprite;
 		//DepthMap* shadowMap;
 		bool showDepthMap;
+
+		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
+		Input* mInput;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

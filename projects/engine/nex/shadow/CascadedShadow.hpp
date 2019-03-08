@@ -72,7 +72,7 @@ namespace nex
 		/**
 		 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 		 */
-		void frameUpdate(Camera* camera, const glm::vec3& lightDirection);
+		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ);
 
 		bool getAntiFlickering() const;
 
@@ -129,9 +129,9 @@ namespace nex
 
 		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
 		
-		void calcSplitSchemes(Camera* camera);
+		void calcSplitSchemes(const glm::vec2& minMaxPositiveZ);
 		
-		void calcSplitDistances(Camera* camera);
+		void calcSplitDistances(float range, const glm::vec2& minMaxPositiveZ);
 		
 		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
 			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
