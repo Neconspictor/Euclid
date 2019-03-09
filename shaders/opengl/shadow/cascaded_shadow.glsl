@@ -1,8 +1,5 @@
 #include "shadow/shadows_array.glsl"
-
-#ifndef CSM_NUM_CASCADES
-#define CSM_NUM_CASCADES 4
-#endif
+#include "shadow/cascade_common.glsl"
 
 #ifndef CSM_SAMPLE_COUNT_X
 #define CSM_SAMPLE_COUNT_X 0
@@ -24,16 +21,6 @@
 #define CSM_BIAS_MULTIPLIER 9.0
 #endif
 
-
-
-
-struct CascadeData {
-	//mat4 viewMatrix;
-	mat4 inverseViewMatrix;
-	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
-    vec4 scaleFactors[CSM_NUM_CASCADES];
-	vec4 cascadedSplits[CSM_NUM_CASCADES];
-};
 
 uint getCascadeIdx(in float viewSpaceZ, in CascadeData cascadeData) {
     uint cascadeIdx = 0;
