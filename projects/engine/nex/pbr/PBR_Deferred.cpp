@@ -118,7 +118,7 @@ namespace nex {
 		//shader->setSkyBox(environmentMap->getCubeMap());
 		mLightPass->setWorldToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace());
 		mLightPass->setEyeToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace()  * camera->getView());
-		mLightPass->setCascadedData(mCascadeShadow->getCascadeData());
+		mLightPass->setCascadedData(mCascadeShadow->getCascadeData(), camera);
 		//mLightPass->setCascadedData(mCascadeShadow->getCascadeBuffer());
 		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 

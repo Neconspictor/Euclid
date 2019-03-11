@@ -175,7 +175,7 @@ namespace nex
 		void setSkyBox(const CubeMap* sky);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
+		void setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera);
 		void setCascadedData(ShaderStorageBuffer* buffer);
 
 		void setAlbedoMap(const Texture* texture);

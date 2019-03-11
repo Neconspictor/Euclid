@@ -47,8 +47,12 @@ uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
-layout(std140,binding=0) uniform CascadeBuffer { //buffer uniform
-	CascadeData cascadeData;
+layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
+	/*mat4 inverseViewMatrix;
+	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
+    vec4 scaleFactors[CSM_NUM_CASCADES];
+	vec4 cascadedSplits[CSM_NUM_CASCADES];*/
+    CascadeData cascadeData;
 } csmData;
 
 uniform sampler2DArray cascadedDepthMap;
@@ -136,8 +140,23 @@ void main()
 	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
 	//float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, csmData.cascadeData, cascadedDepthMap);
 	
+    
+    
+    
+    //CascadeData cascadeData;
+    /*cascadeData.inverseViewMatrix = csmData.cascadeData.inverseViewMatrix;
+    
+    for (uint i = 0; i < CSM_NUM_CASCADES; ++i) {
+        cascadeData.lightViewProjectionMatrices[i] = csmData.cascadeData.lightViewProjectionMatrices[i];
+        cascadeData.scaleFactors[i] = csmData.cascadeData.scaleFactors[i];
+        cascadeData.cascadedSplits[i] = csmData.cascadeData.cascadedSplits[i];
+    }*/
+    
+    CascadeData cascadeData = csmData.cascadeData;
+    
+    float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, cascadeData, cascadedDepthMap);
+	//float fragmentLitProportion = csmData.value;
 	
     vec3 result = pbrModel(ao, 
 		albedo, 
@@ -152,11 +171,13 @@ void main()
 
 	
 	//alpha = clamp(alpha, 0, 1);
+    
+    //vec4 scale = cascadeData.lightViewProjectionMatrices[2] * vec4(1.0,0,1.0,1.0);
 	
-	FragColor = vec4(result, 1);
+	FragColor = vec4(result, 1) ;//* scale;
     
     
-    uint cascadeIdx = getCascadeIdx(positionEye.z, csmData.cascadeData);
+    uint cascadeIdx = getCascadeIdx(positionEye.z, cascadeData);
     cascadeIdx = 10;
     
     vec4 cascadeColor = FragColor;
@@ -171,7 +192,7 @@ void main()
         cascadeColor = vec4(0,0,1,1); 
     };
     
-    FragColor = 0.5*cascadeColor * 0.5*FragColor;
+    FragColor = 0.5*cascadeColor + 0.5*FragColor;
     
 	//vec2 windowSize = gl_FragCoord.xy / textureSize(gBuffer.positionEyeMap, 0).xy;
 	//FragColor = vec4(windowSize, 1, 1);

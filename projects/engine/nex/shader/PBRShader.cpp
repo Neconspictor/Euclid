@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <nex/mesh/SubMesh.hpp>
 #include <nex/material/Material.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
 using namespace std;
@@ -510,19 +511,49 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 }*/
 
 
-void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
+void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera)
 {
 	
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
 	//cascadeBufferUBO.bind();
 	
-	auto* buffer = (UniformBuffer*)&cascadeBufferUBO; // UniformBuffer
+	auto* buffer = (ShaderStorageBuffer*)&cascadeBufferUBO; // UniformBuffer ShaderStorageBuffer
 	buffer->bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 
 	//assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
 
-	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+	//buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+	
+
+	struct Data
+	{
+		mat4 inverseViewMatrix;
+		mat4 lightViewProjectionMatrices[4];
+		vec4 scaleFactors[4];
+		vec4 cascadedSplits[4];
+	};
+
+	Data input;
+	input.inverseViewMatrix = inverse(camera->getView());//cascadedData.inverseViewMatrix;
+	for (int i = 0; i < 4; ++i) {
+		input.lightViewProjectionMatrices[i] = cascadedData.lightViewProjectionMatrices[i];
+		input.scaleFactors[i] = cascadedData.scaleFactors[i];
+		input.cascadedSplits[i] = cascadedData.cascadedFarPlanes[i];
+	}
+
+	//input.lightViewProjectionMatrices[3] = mat4(1.0);
+	//input.lightViewProjectionMatrices[3][3][1] = 1.0f;
+
+	mat4 test = glm::translate(mat4(1.0), vec3(0,1,0));
+	
+	
+	buffer->update(&input, sizeof(input), 0);
+
+	
+
+	auto* data = (Data*)buffer->map(ShaderBuffer::Access::READ_ONLY);
+	buffer->unmap();
 }
 
 

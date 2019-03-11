@@ -40,12 +40,12 @@ uint getCascadeIdx(in float viewSpaceZ, in CascadeData cascadeData) {
 };
 
 
-float cascadedShadow(in vec3 lightDirection, 
-                     in vec3 normal, 
-                     in float depthViewSpace,
-                     in vec3 viewPosition,
-                     in CascadeData cascadeData,
-                     in sampler2DArray cascadedDepthMap)
+float cascadedShadow(const in vec3 lightDirection, 
+                     const in vec3 normal, 
+                     const in float depthViewSpace,
+                     const in vec3 viewPosition,
+                     const in CascadeData cascadeData,
+                     const in sampler2DArray cascadedDepthMap)
 {
 
 #if CSM_ENABLED == 0
