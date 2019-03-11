@@ -56,6 +56,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
 	}
 
+	mDataComputeShader = std::make_unique<CascadeDataShader>(numCascades);
+
 	resize(cascadeWidth, cascadeHeight);
 }
 
@@ -119,10 +121,11 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	mShadowMapSize = std::min<unsigned>(cascadeWidth, cascadeHeight);
 
 	// reset cascade cound centers 
-	for (int i = 0; i < mCascadeData.numCascades; i++)
+	for (auto i = 0; i < mCascadeData.numCascades; i++)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
+		//TODO : update buffer for data compute shader!
 	}
 
 	updateTextureArray();
@@ -457,6 +460,32 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
+CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader()
+{
+	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl");
+	mInputBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Input), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(2, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(3, sizeof(glm::vec4) * numCascades, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+
+	mUseAntiFlickering = { mProgram->getUniformLocation("useAntiFlickering"), UniformType::UINT};
+}
+
+ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
+{
+	return mSharedOutput.get();
+}
+
+void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
+{
+	buffer->bind(1);
+}
+
+void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
+{
+	mProgram->setUInt(mUseAntiFlickering.location, use);
+}
+
 
 void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ)
 {
@@ -632,6 +661,8 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 
 
 	updateTextureArray();
+
+	mDataComputeShader = std::make_unique<CascadeDataShader>(numCascades);
 
 	if (informObservers)
 	{

@@ -22,7 +22,13 @@ nex::ShaderStorageBuffer::~ShaderStorageBuffer()
 
 void nex::ShaderStorageBuffer::bind()
 {
+	bind(mBinding);
+}
+
+void nex::ShaderStorageBuffer::bind(unsigned binding)
+{
 	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
+	GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, mRendererID));
 }
 
 size_t nex::ShaderStorageBuffer::getSize() const

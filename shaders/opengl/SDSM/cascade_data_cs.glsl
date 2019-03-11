@@ -28,22 +28,31 @@ struct Frustum {
 /**
  * A buffer that holds readonly input
  */
-layout(std430, binding = 0) buffer readonly BufferData
+layout(std430, binding = 0) buffer readonly ConstantInput
 {
-   vec4 minMax; // x and y component hold the min and max (positive) viewspace z value; the other components are not used
    vec4 lightDirection; // w-component isn't used
    vec4 nearFarPlane; // x and y component hold the near and far plane of the camera
+   vec4 shadowMapSize; // only x component is used
    vec4 cameraPostionWS; // w component isn't used
    vec4 cameraLook; // w component isn't used
    mat4 viewMatrix;
    mat4 projectionMatrix;
    
-} input;
+} constantInput;
+
+/**
+ * A buffer that holds readonly input
+ */
+layout(std430, binding = 1) buffer readonly DistanceInput
+{
+   vec4 minMax; // x and y component hold the min and max (positive) viewspace z value; the other components are not used
+   
+} distanceInput;
 
 /**
  * A buffer that holds writable cascade data, that is needed by other shaders, too.
  */
-layout(std430, binding = 1) buffer BufferObject
+layout(std430, binding = 2) buffer SharedOutput
 {
     CascadeData data;
 } sharedOutput;
@@ -51,10 +60,10 @@ layout(std430, binding = 1) buffer BufferObject
 /**
  * A buffer that holds writable data, that is only needed by this shader
  */
-layout(std430, binding = 2) buffer BufferObject
+layout(std430, binding = 3) buffer PrivateOutput
 {
-    vec4 cascadeBoundCenters[CSM_NUM_CASCADES] // w component has to be 1.0!
-} output;
+    vec4 cascadeBoundCenters[CSM_NUM_CASCADES]; // w component has to be 1.0!
+} privateOutput;
 
 
 uniform uint useAntiFlickering;
@@ -113,9 +122,9 @@ mat4 lookAt(in vec3 eye, in vec3 center, in vec3 up) {
 
 void calcSplitSchemes(in vec2 minMaxPositiveZ) {
 
-    const float range = minMaxPositiveZ.y - minMaxPositiveZ.x, minMaxPositiveZ;
+    const float range = minMaxPositiveZ.y - minMaxPositiveZ.x;
     const float step = range / float(CSM_NUM_CASCADES);
-    const float splitDistances[CSM_NUM_CASCADES];
+    float splitDistances[CSM_NUM_CASCADES];
    
    
    for (uint i = 0; i < CSM_NUM_CASCADES; ++i) {
@@ -138,8 +147,8 @@ Frustum extractFrustumPoints(in float nearSplitDistance, in float farSplitDistan
     Frustum frustum;
     
     // At first we define the frustum corners in NDC space
-	frustum.corners =
-	{
+	frustum.corners = vec3[8]
+	(
 		vec3(-1.0,  1.0, -1.0),
 		vec3(1.0,  1.0, -1.0),
 		vec3(1.0, -1.0, -1.0),
@@ -147,18 +156,18 @@ Frustum extractFrustumPoints(in float nearSplitDistance, in float farSplitDistan
 		vec3(-1.0,  1.0,  1.0),
 		vec3(1.0,  1.0,  1.0),
 		vec3(1.0, -1.0,  1.0),
-		vec3(-1.0, -1.0,  1.0),
-	};
+		vec3(-1.0, -1.0,  1.0)
+	);
     
     // Now we transform the frustum corners back to world space
-	mat4 invViewProj = inverse(input.projectionMatrix * input.viewMatrix);
+	mat4 invViewProj = inverse(constantInput.projectionMatrix * constantInput.viewMatrix);
 	for (uint i = 0; i < 8; ++i)
 	{
-		vec4 inversePoint = invViewProj * glm::vec4(frustum.corners[i], 1.0f);
+		vec4 inversePoint = invViewProj * vec4(frustum.corners[i], 1.0f);
 		frustum.corners[i] = vec3(inversePoint / inversePoint.w);
 	}
     
-    const float clipRange = input.nearFarPlane.y - input.nearFarPlane.x;
+    const float clipRange = constantInput.nearFarPlane.y - constantInput.nearFarPlane.x;
     
     // Calculate rays that define the near and far plane of each cascade split.
 	// Than we translate the frustum corner accordingly so that the frustum starts at the near splitting plane
@@ -217,11 +226,11 @@ GlobalShadow calcShadowSpace(in float nearPlane, in float farPlane, in vec3 ligh
     BoundingSphere shadowBounds = extractFrustumBoundSphere(nearPlane, farPlane);
     
     // Find the (global)shadow view matrix
-	const vec3 cameraFrustumCenterWS = input.cameraPostionWS.xyz + input.cameraLook.xyz * cascadeTotalRange * 0.5;
+	const vec3 cameraFrustumCenterWS = constantInput.cameraPostionWS.xyz + constantInput.cameraLook.xyz * cascadeTotalRange * 0.5;
     const vec3 lightPos = cameraFrustumCenterWS + normalize(lightDirection) * shadowBounds.radius;
     
     
-    vec3 upVec = glm::normalize(cross(lightDirection, vec3(0.0f, 1.0f, 0.0f)));
+    vec3 upVec = normalize(cross(lightDirection, vec3(0.0f, 1.0f, 0.0f)));
 	if (length(upVec) < 0.999)
 	{
 		upVec = normalize(cross(lightDirection, vec3(1.0f, 0.0f, 0.0f)));
@@ -232,7 +241,7 @@ GlobalShadow calcShadowSpace(in float nearPlane, in float farPlane, in vec3 ligh
     
     // Get the bounds for the shadow space
 
-	const auto shadowProj = ortho(-shadowBounds.radius, shadowBounds.radius,
+	const mat4 shadowProj = ortho(-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius,
 		-shadowBounds.radius, shadowBounds.radius);
     
@@ -244,7 +253,7 @@ GlobalShadow calcShadowSpace(in float nearPlane, in float farPlane, in vec3 ligh
 	return result;
 }
 
-bool cascadeNeedsUpdate(in mat4 shadowView, in int cascadeIdx, in vec3 newCenter, in vec3 oldCenter, 
+bool cascadeNeedsUpdate(in mat4 shadowView, in uint cascadeIdx, in vec3 newCenter, in vec3 oldCenter, 
                         in float cascadeBoundRadius, out vec3 offset)
 {
 	// Find the offset between the new and old bound center
@@ -253,7 +262,7 @@ bool cascadeNeedsUpdate(in mat4 shadowView, in int cascadeIdx, in vec3 newCenter
 	const vec3 centerDiff = newCenterInCascade - oldCenterInCascade;
 
 	// Find the pixel size based on the diameters and map pixel size
-	const float pixelSize = (float)mShadowMapSize / (2.0 * cascadeBoundRadius);
+	const float pixelSize = float(constantInput.shadowMapSize.x) / (2.0 * cascadeBoundRadius);
 
 	const float pixelOffX = centerDiff.x * pixelSize;
 	const float pixelOffY = centerDiff.y * pixelSize;
@@ -278,16 +287,16 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 void main(void)
 {
-    calcSplitSchemes(input.minMax.xy);
-    sharedOutput.data.inverseViewMatrix = inverse(input.viewMatrix);
-    GlobalShadow global = calcShadowSpace(input.nearFarPlane.x, input.nearFarPlane.y, input.lightDirection.xyz);
+    calcSplitSchemes(distanceInput.minMax.xy);
+    sharedOutput.data.inverseViewMatrix = inverse(constantInput.viewMatrix);
+    GlobalShadow global = calcShadowSpace(constantInput.nearFarPlane.x, constantInput.nearFarPlane.y, constantInput.lightDirection.xyz);
     const mat3 shadowOffsetMatrix = mat3(transpose(global.shadowView));
-    const float minDistance = input.minMax.x;
+    const float minDistance = distanceInput.minMax.x;
     
     for (uint cascadeIdx = 0; cascadeIdx < CSM_NUM_CASCADES; ++cascadeIdx)
 	{
-		const float nearSplitDistance = (cascadeIdx == 0 ? minDistance : sharedOutput.data.cascadedSplits[cascadeIdx - 1]);
-		const float farSplitDistance = sharedOutput.data.cascadedSplits[cascadeIdx];
+		const float nearSplitDistance = (cascadeIdx == 0 ? minDistance : sharedOutput.data.cascadedSplits[cascadeIdx - 1].x);
+		const float farSplitDistance = sharedOutput.data.cascadedSplits[cascadeIdx].x;
 
 
 		mat4 cascadeTrans;
@@ -301,23 +310,23 @@ void main(void)
 
 			// To avoid anti flickering we need to make the transformation invariant to camera rotation and translation
 			// By encapsulating the cascade frustum with a sphere we achive the rotation invariance
-			const auto boundingSphere = extractFrustumBoundSphere(camera, nearSplitDistance, farSplitDistance);
+			const BoundingSphere boundingSphere = extractFrustumBoundSphere(nearSplitDistance, farSplitDistance);
 			const float radius = boundingSphere.radius;
 			const vec3 frustumCenterWS = boundingSphere.center;
 
 			// Only update the cascade bounds if it moved at least a full pixel unit
 			// This makes the transformation invariant to translation
 			vec3 offset;
-			if (cascadeNeedsUpdate(global.shadowView, cascadeIdx, frustumCenterWS, output.cascadeBoundCenters[cascadeIdx], radius, offset))
+			if (cascadeNeedsUpdate(global.shadowView, cascadeIdx, frustumCenterWS, privateOutput.cascadeBoundCenters[cascadeIdx].xyz, radius, offset))
 			{
 				// To avoid flickering we need to move the bound center in full units
 				// NOTE: we don't want translation affect the offset!
 				vec3 offsetWS = shadowOffsetMatrix * offset;
-				output.cascadeBoundCenters[cascadeIdx] += offsetWS;
+				privateOutput.cascadeBoundCenters[cascadeIdx] += vec4(offsetWS, 1.0);
 			}
 
 			// Get the cascade center in shadow space
-			cascadeCenterShadowSpace = vec3(global.worldToShadowSpace * output.cascadeBoundCenters[cascadeIdx]);
+			cascadeCenterShadowSpace = vec3(global.worldToShadowSpace * privateOutput.cascadeBoundCenters[cascadeIdx]);
 
 			// Update the scale from shadow to cascade space
 			scale = global.radius / radius;
@@ -328,9 +337,9 @@ void main(void)
 			vec3 maxExtents = vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 			vec3 minExtents = vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 
-			for (auto i = 0; i < 8; ++i)
+			for (uint i = 0; i < 8; ++i)
 			{
-				vec3 pointInShadowSpace = global.worldToShadowSpace * vec4(frustumWS.corners[i], 1.0f);
+				vec3 pointInShadowSpace = vec3(global.worldToShadowSpace * vec4(frustumWS.corners[i], 1.0f));
 				minExtents = min(minExtents, pointInShadowSpace);
 				maxExtents = max(maxExtents, pointInShadowSpace);
 			}

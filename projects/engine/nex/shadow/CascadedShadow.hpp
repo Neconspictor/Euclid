@@ -4,6 +4,7 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
+#include "nex/shader/ShaderBuffer.hpp"
 
 namespace nex
 {
@@ -33,6 +34,49 @@ namespace nex
 			bool useLerpFiltering;
 
 			bool operator==(const PCFFilter& o);
+		};
+
+		class CascadeDataShader : public ComputeShader
+		{
+		public:
+
+			struct Input
+			{
+				glm::vec4 lightDirection; // w-component isn't used
+				glm::vec4 nearFarPlane; // x and y component hold the near and far plane of the camera
+				glm::vec4 cameraPostionWS; // w component isn't used
+				glm::vec4 cameraLook; // w component isn't used
+				glm::mat4 viewMatrix;
+				glm::mat4 projectionMatrix;
+			};
+
+			struct DistanceInput
+			{
+				glm::vec4 minMax; // x and y component hold the min and max (positive) viewspace z value; the other components are not used
+			};
+
+
+			CascadeDataShader(unsigned numCascades);
+
+			ShaderStorageBuffer* getSharedOutput();
+
+			/**
+			 * NOTE: This shader has to be bound!
+			 */
+			void useDistanceInputBuffer(ShaderStorageBuffer* buffer);
+
+
+			/**
+			 * NOTE: This shader has to be bound!
+			 */
+			void setUseAntiFlickering(bool use);
+
+		private:
+			std::unique_ptr<ShaderStorageBuffer> mInputBuffer;
+			//std::unique_ptr<ShaderStorageBuffer> mDistanceInputBuffer;
+			std::unique_ptr<ShaderStorageBuffer> mSharedOutput;
+			std::unique_ptr<ShaderStorageBuffer> mPrivateOutput;
+			Uniform mUseAntiFlickering;
 		};
 
 		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
@@ -163,6 +207,8 @@ namespace nex
 		bool mEnabled;
 		float mBiasMultiplier;
 		float mShadowStrength;
+
+		std::unique_ptr<CascadeDataShader> mDataComputeShader;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

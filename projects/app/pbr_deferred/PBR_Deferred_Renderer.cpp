@@ -180,6 +180,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
 	glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
 
+	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
+	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
+
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{

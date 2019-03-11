@@ -45,6 +45,12 @@ namespace nex
 
 
 		void bind();
+
+		/**
+		 * Binds the buffer using a specified binding point.
+		 */
+		void bind(unsigned binding);
+		
 		size_t getSize() const;
 		ShaderBuffer::UsageHint getUsageHint() const;
 

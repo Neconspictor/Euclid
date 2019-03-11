@@ -1,5 +1,27 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/util/StringUtils.hpp>
+#include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
+
+std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(const FilePath& computeFile)
+{
+	std::vector<UnresolvedShaderStageDesc> unresolved;
+	unresolved.resize(1);
+
+	unresolved[0].filePath = computeFile;
+	unresolved[0].type = ShaderStageType::COMPUTE;
+
+	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get();
+	ProgramSources programSources = generator->generate(unresolved);
+
+	std::vector<Guard<ShaderStage>> shaderStages;
+	shaderStages.resize(programSources.descs.size());
+	for (unsigned i = 0; i < shaderStages.size(); ++i)
+	{
+		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
+	}
+
+	return create(shaderStages);
+}
 
 nex::ShaderProgram::ShaderProgram(void* impl): mImpl(impl), mIsBound(false)
 {
