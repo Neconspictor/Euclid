@@ -47,9 +47,9 @@ uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
-layout(std140,binding=0) uniform CascadeBuffer {
+layout(std140,binding=0) uniform CascadeBuffer { //buffer uniform
 	CascadeData cascadeData;
-};
+} csmData;
 
 uniform sampler2DArray cascadedDepthMap;
 
@@ -136,7 +136,7 @@ void main()
 	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
 	//float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-	float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, cascadeData, cascadedDepthMap);
+	float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, csmData.cascadeData, cascadedDepthMap);
 	
 	
     vec3 result = pbrModel(ao, 
@@ -156,7 +156,7 @@ void main()
 	FragColor = vec4(result, 1);
     
     
-    uint cascadeIdx = getCascadeIdx(positionEye.z, cascadeData);
+    uint cascadeIdx = getCascadeIdx(positionEye.z, csmData.cascadeData);
     cascadeIdx = 10;
     
     vec4 cascadeColor = FragColor;

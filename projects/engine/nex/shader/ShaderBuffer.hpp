@@ -38,7 +38,7 @@ namespace nex
 		 * @param binding : The binding location of the buffer in the shader.
 		 * @param size : The size of the buffer. Must be a multiple of four.
 		 */
-		ShaderStorageBuffer(unsigned int binding, size_t size, ShaderBuffer::UsageHint hint);
+		ShaderStorageBuffer(unsigned int binding, size_t size, ShaderBuffer::UsageHint hint, void* test = nullptr);
 
 		~ShaderStorageBuffer();
 
@@ -105,6 +105,7 @@ namespace nex
 		
 
 		void bind();
+		void bind(unsigned binding);
 		size_t getSize() const;
 		ShaderBuffer::UsageHint getUsageHint() const;
 		

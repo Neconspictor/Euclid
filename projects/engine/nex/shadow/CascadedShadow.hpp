@@ -42,12 +42,17 @@ namespace nex
 
 			struct Input
 			{
-				glm::vec4 lightDirection; // w-component isn't used
-				glm::vec4 nearFarPlane; // x and y component hold the near and far plane of the camera
-				glm::vec4 cameraPostionWS; // w component isn't used
-				glm::vec4 cameraLook; // w component isn't used
 				glm::mat4 viewMatrix;
 				glm::mat4 projectionMatrix;
+				glm::vec4 lightDirection; // w-component isn't used
+				glm::vec4 nearFarPlane; // x and y component hold the near and far plane of the camera
+				glm::vec4 shadowMapSize; // only x component is used
+				glm::vec4 cameraPostionWS; // w component isn't used
+				glm::vec4 cameraLook; // w component isn't used
+
+				glm::vec4 _pad0; 
+				glm::vec4 _pad1;
+				glm::vec4 _pad2;
 			};
 
 			struct DistanceInput
@@ -70,13 +75,16 @@ namespace nex
 			 * NOTE: This shader has to be bound!
 			 */
 			void setUseAntiFlickering(bool use);
+			void update(const Input& input);
+			void resetPrivateData();
 
-		private:
+			// public access for easier access
 			std::unique_ptr<ShaderStorageBuffer> mInputBuffer;
 			//std::unique_ptr<ShaderStorageBuffer> mDistanceInputBuffer;
 			std::unique_ptr<ShaderStorageBuffer> mSharedOutput;
 			std::unique_ptr<ShaderStorageBuffer> mPrivateOutput;
 			Uniform mUseAntiFlickering;
+			unsigned mNumCascades;
 		};
 
 		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
@@ -116,7 +124,7 @@ namespace nex
 		/**
 		 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 		 */
-		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ);
+		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ, nex::ShaderStorageBuffer* minMaxOutputBuffer);
 
 		bool getAntiFlickering() const;
 
@@ -147,6 +155,7 @@ namespace nex
 		 * @param strength : a float in the range [0,1]
 		 */
 		void setShadowStrength(float strength);
+		ShaderStorageBuffer* getCascadeBuffer();
 
 
 	protected:

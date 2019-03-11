@@ -1,16 +1,38 @@
 #include <nex/opengl/shader/ShaderBufferGL.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
 #include <nex/opengl/opengl.hpp>
+#include "ShaderGL.hpp"
 
 
-nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, ShaderBuffer::UsageHint hint) :
+nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, ShaderBuffer::UsageHint hint, void* test) :
 	mRendererID(GL_FALSE),
 	mBinding(binding),
 	mSize(size),
 	mUsageHint(hint)
 {
 	GLCall(glGenBuffers(1, &mRendererID));
-	bind();
+
+	if (false)
+	{
+		GLint block_index = 0;
+		auto* gl = (ShaderProgramGL*)((ShaderProgram*)(test))->mImpl;
+		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "SharedOutput");
+		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 0);
+
+		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "PrivateOutput");
+		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 1);
+
+		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "ConstantInput");
+		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 2);
+
+		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "DistanceInput");
+		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 3);
+		
+
+		bool last = true;
+	}
+
+	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
 	createStore(nullptr, mSize, mUsageHint);
 	GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mBinding, mRendererID));
 }
@@ -23,6 +45,8 @@ nex::ShaderStorageBuffer::~ShaderStorageBuffer()
 void nex::ShaderStorageBuffer::bind()
 {
 	bind(mBinding);
+	//GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
+	//GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mBinding, mRendererID));
 }
 
 void nex::ShaderStorageBuffer::bind(unsigned binding)
@@ -43,6 +67,9 @@ nex::ShaderBuffer::UsageHint nex::ShaderStorageBuffer::getUsageHint() const
 
 void* nex::ShaderStorageBuffer::map(ShaderBuffer::Access usage)
 {
+	glFinish();
+	//glFlush();
+	GLCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)); //TODO : needed if we don't want to map but if we share a buffer between two shaders!
 	GLCall(void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, translate(usage)));
 	return ptr;
 }
@@ -59,12 +86,13 @@ void nex::ShaderStorageBuffer::unmap()
 
 void nex::ShaderStorageBuffer::update(const void* data, size_t size, size_t offset)
 {
-	GLCall(glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data));
+	//GLCall(glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data));
+	GLCall(glNamedBufferSubData(mRendererID, offset, size, data));
 }
 
 void nex::ShaderStorageBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
-	GLCall(glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, translate(hint)));
+	GLCall(glNamedBufferData(mRendererID, size, data, translate(hint)));
 }
 
 nex::UniformBuffer::UniformBuffer(unsigned int binding, size_t size, ShaderBuffer::UsageHint hint) :
@@ -100,6 +128,13 @@ void nex::UniformBuffer::bind()
 	//TODO: Use glBindBufferBase???
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, mRendererID));
 	GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, mBinding, mRendererID));
+}
+
+void nex::UniformBuffer::bind(unsigned binding)
+{
+	//unbind();
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, mRendererID));
+	GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, binding, mRendererID));
 }
 
 size_t nex::UniformBuffer::getSize() const

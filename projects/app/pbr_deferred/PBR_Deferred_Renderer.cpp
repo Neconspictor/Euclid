@@ -179,6 +179,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
 	glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
+	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
 
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
@@ -186,7 +187,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{
-		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ);
+		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ, mSceneNearFarComputeShader->getWriteOutBuffer());
 
 		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -195,6 +196,9 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			m_cascadedShadow->end();
 		}
 	}
+
+	// reset
+	mSceneNearFarComputeShader->reset();
 
 
 	// render scene to a offscreen buffer
@@ -430,9 +434,6 @@ glm::vec2 PBR_Deferred_Renderer::computeNearFarTest(Camera* camera, int windowWi
 
 		printed = true;
 	}
-
-	// reset
-	mSceneNearFarComputeShader->reset();
 
 	return vecResult;
 }

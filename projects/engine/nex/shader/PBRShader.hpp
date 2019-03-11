@@ -176,6 +176,7 @@ namespace nex
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
 		void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
+		void setCascadedData(ShaderStorageBuffer* buffer);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -217,7 +218,7 @@ namespace nex
 
 		// Cascaded shadow mapping
 		UniformTex mCascadedDepthMap;
-		UniformBuffer cascadeBufferUBO;
+		ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
 
 
 		UniformTex mAlbedoMap;

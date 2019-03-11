@@ -24,46 +24,49 @@ struct Frustum {
     vec3 corners[8];
 };
 
+/**
+ * A buffer that holds writable cascade data, that is needed by other shaders, too.
+ */
+layout(std140, binding = 0) buffer writeonly SharedOutput
+{
+    CascadeData data;
+    //mat4 matrix;
+} sharedOutput;
+
+
+/**
+ * A buffer that holds writable data, that is only needed by this shader
+ */
+layout(std430, binding = 1) buffer PrivateOutput
+{
+    vec4 cascadeBoundCenters[CSM_NUM_CASCADES]; // w component has to be 1.0!
+} privateOutput;
+
 
 /**
  * A buffer that holds readonly input
  */
-layout(std430, binding = 0) buffer readonly ConstantInput
+layout(std430, binding = 2) buffer readonly ConstantInput
 {
+   mat4 viewMatrix;
+   mat4 projectionMatrix;
    vec4 lightDirection; // w-component isn't used
    vec4 nearFarPlane; // x and y component hold the near and far plane of the camera
    vec4 shadowMapSize; // only x component is used
    vec4 cameraPostionWS; // w component isn't used
    vec4 cameraLook; // w component isn't used
-   mat4 viewMatrix;
-   mat4 projectionMatrix;
-   
 } constantInput;
 
 /**
  * A buffer that holds readonly input
  */
-layout(std430, binding = 1) buffer readonly DistanceInput
+layout(std430, binding = 3) buffer DistanceInput
 {
    vec4 minMax; // x and y component hold the min and max (positive) viewspace z value; the other components are not used
    
 } distanceInput;
 
-/**
- * A buffer that holds writable cascade data, that is needed by other shaders, too.
- */
-layout(std430, binding = 2) buffer SharedOutput
-{
-    CascadeData data;
-} sharedOutput;
 
-/**
- * A buffer that holds writable data, that is only needed by this shader
- */
-layout(std430, binding = 3) buffer PrivateOutput
-{
-    vec4 cascadeBoundCenters[CSM_NUM_CASCADES]; // w component has to be 1.0!
-} privateOutput;
 
 
 uniform uint useAntiFlickering;
@@ -287,8 +290,23 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 void main(void)
 {
+    //sharedOutput.data.inverseViewMatrix = mat4();
+    //sharedOutput.data.inverseViewMatrix[0] = vec4(1,2,3,4);
+    
+    
+    /*uint id = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y + gl_GlobalInvocationID.z; 
+    
+    if (id == 0) {
+        if (sharedOutput.matrix[0][0] == 1.0) {
+            sharedOutput.matrix = mat4(5,6,7,8,5,6,7,8,5,6,7,8,5,6,7,8);
+        } else {
+            sharedOutput.matrix = mat4(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4);
+        }
+    }*/
+    
     calcSplitSchemes(distanceInput.minMax.xy);
     sharedOutput.data.inverseViewMatrix = inverse(constantInput.viewMatrix);
+    
     GlobalShadow global = calcShadowSpace(constantInput.nearFarPlane.x, constantInput.nearFarPlane.y, constantInput.lightDirection.xyz);
     const mat3 shadowOffsetMatrix = mat3(transpose(global.shadowView));
     const float minDistance = distanceInput.minMax.x;
@@ -361,5 +379,6 @@ void main(void)
 		//Store the split distances and the relevant matrices
 		sharedOutput.data.lightViewProjectionMatrices[cascadeIdx] = cascadeScale * cascadeTrans * global.worldToShadowSpace;
 		sharedOutput.data.scaleFactors[cascadeIdx].x = scale;
+        //sharedOutput.minMax = distanceInput.minMax;
 	}
 }

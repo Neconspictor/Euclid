@@ -9,6 +9,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include "nex/gui/Util.hpp"
 #include "imgui/imgui_internal.h"
+
 using namespace nex;
 
 unsigned CascadedShadow::CascadeData::calcCascadeDataByteSize(unsigned numCascades)
@@ -125,8 +126,9 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	{
 		mCascadeBoundCenters[i] = glm::vec3(0.0f);
 		mSplitDistances[i] = 0.0f;
-		//TODO : update buffer for data compute shader!
 	}
+
+	mDataComputeShader->resetPrivateData();
 
 	updateTextureArray();
 }
@@ -186,10 +188,19 @@ void CascadedShadow::updateCascadeData()
 		mCascadeData.shaderBuffer.resize(size);
 	}
 
+
+	/*mCascadeData.inverseViewMatrix = transpose(mCascadeData.inverseViewMatrix);
+
+	for (auto i = 0; i < mCascadeData.lightViewProjectionMatrices.size(); ++i)
+	{
+		mCascadeData.lightViewProjectionMatrices[i] = transpose(mCascadeData.lightViewProjectionMatrices[i]);
+	}*/
+
 	unsigned offset = 0;
+	unsigned currentSize;
 
 	// inverseViewMatrix
-	unsigned currentSize = sizeof(glm::mat4);
+	currentSize = sizeof(glm::mat4);
 	memcpy(mCascadeData.shaderBuffer.data() + offset, &mCascadeData.inverseViewMatrix, currentSize);
 	offset += currentSize;
 
@@ -203,7 +214,7 @@ void CascadedShadow::updateCascadeData()
 	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.scaleFactors.data(), currentSize);
 	offset += currentSize;
 
-	// scaleFactors
+	// cascadedSplits
 	currentSize = sizeof(glm::vec4)* mCascadeData.numCascades;
 	memcpy(mCascadeData.shaderBuffer.data() + offset, mCascadeData.cascadedFarPlanes.data(), currentSize);
 	offset += currentSize;
@@ -460,15 +471,20 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
-CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader()
+CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
 {
 	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl");
-	mInputBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Input), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	mSharedOutput = std::make_unique<ShaderStorageBuffer>(2, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY);
-	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(3, sizeof(glm::vec4) * numCascades, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	bind();
+	//CascadeData::calcCascadeDataByteSize(numCascades)
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY, mProgram.get());
 
+	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	
 	mUseAntiFlickering = { mProgram->getUniformLocation("useAntiFlickering"), UniformType::UINT};
+
+	resetPrivateData();
 }
 
 ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
@@ -478,7 +494,7 @@ ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
 
 void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
 {
-	buffer->bind(1);
+	buffer->bind(3);
 }
 
 void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
@@ -486,9 +502,70 @@ void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
 	mProgram->setUInt(mUseAntiFlickering.location, use);
 }
 
-
-void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ)
+void CascadedShadow::CascadeDataShader::update(const Input& input)
 {
+	mInputBuffer->bind();
+	mInputBuffer->update(&input, sizeof(Input), 0);
+}
+
+void CascadedShadow::CascadeDataShader::resetPrivateData()
+{
+	mPrivateOutput->bind();
+
+	std::vector<glm::vec4> data(mNumCascades);
+
+	for (auto i = 0; i < data.size(); ++i)
+	{
+		data[i] = glm::vec4(0.0f);
+	}
+
+	mPrivateOutput->update(data.data(), data.size() * sizeof(glm::vec4), 0);
+	mPrivateOutput->map(ShaderBuffer::Access::READ_ONLY);
+	mPrivateOutput->unmap();
+}
+
+
+void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ, nex::ShaderStorageBuffer* minMaxOutputBuffer)
+{
+	//mDataComputeShader->getSharedOutput()->unbind();
+	mDataComputeShader->bind();
+	mDataComputeShader->setUseAntiFlickering(mAntiFlickerOn);
+	mDataComputeShader->useDistanceInputBuffer(minMaxOutputBuffer);
+
+	CascadeDataShader::Input constantInput;
+
+	const auto& frustum = camera->getFrustum(Perspective);
+	constantInput.lightDirection = glm::vec4(lightDirection, 0.0f);
+	constantInput.nearFarPlane = glm::vec4(frustum.nearPlane, frustum.farPlane, 0.0f, 0.0f);
+	constantInput.shadowMapSize = glm::vec4(mShadowMapSize, 0.0f, 0.0f, 0.0f);
+	constantInput.cameraPostionWS = glm::vec4(camera->getPosition(), 0.0f);
+	constantInput.cameraLook = glm::vec4(camera->getLook(), 0.0f);
+	constantInput.viewMatrix = camera->getView();
+	constantInput.projectionMatrix = camera->getPerspProjection();
+
+	mDataComputeShader->mInputBuffer->bind();
+	mDataComputeShader->update(constantInput);
+
+	mDataComputeShader->mPrivateOutput->bind();
+
+	struct TestCascadeData
+	{
+		glm::mat4 inverseViewMatrix;
+		glm::mat4 lightViewProjectionMatrices[4];
+		glm::vec4 scaleFactors[4];
+		glm::vec4 cascadedSplits[4];
+	};
+	
+	auto* cs = mDataComputeShader->getSharedOutput();
+	cs->bind();
+
+	mDataComputeShader->dispatch(1, 1, 1);
+
+	auto* data = (TestCascadeData*)cs->map(ShaderBuffer::Access::READ_WRITE);
+	cs->unmap();
+
+
+
 	const float minDistance = 0.0f;//minMaxPositiveZ.x / (minMaxPositiveZ.y - minMaxPositiveZ.x);
 	//const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
 	//const float cameraNearPlaneVS = frustum.nearPlane;
@@ -611,6 +688,11 @@ float CascadedShadow::getShadowStrength() const
 void CascadedShadow::setShadowStrength(float strength)
 {
 	mShadowStrength = strength;
+}
+
+ShaderStorageBuffer* CascadedShadow::getCascadeBuffer()
+{
+	return mDataComputeShader->getSharedOutput();
 }
 
 unsigned CascadedShadow::getWidth() const

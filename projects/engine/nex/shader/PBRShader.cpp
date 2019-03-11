@@ -427,6 +427,16 @@ void PBRShader_Deferred_Lighting::setCascadedDepthMap(const Texture* cascadedDep
 	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.bindingSlot);
 }
 
+void PBRShader_Deferred_Lighting::setCascadedData(ShaderStorageBuffer* buffer)
+{
+	auto* uniformBuffer = (ShaderStorageBuffer*)buffer; //UniformBuffer ShaderStorageBuffer
+	//uniformBuffer->unbind();
+	uniformBuffer->bind(0);
+	uniformBuffer->map(ShaderBuffer::Access::READ_WRITE);
+	uniformBuffer->unmap();
+	
+}
+
 void PBRShader_Deferred_Lighting::setAlbedoMap(const Texture* texture)
 {
 	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
@@ -502,13 +512,17 @@ void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformD
 
 void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
 {
+	
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
-	cascadeBufferUBO.bind();
+	//cascadeBufferUBO.bind();
+	
+	auto* buffer = (UniformBuffer*)&cascadeBufferUBO; // UniformBuffer
+	buffer->bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 
-	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
+	//assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
 
-	cascadeBufferUBO.update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
 }
 
 
