@@ -114,7 +114,7 @@ namespace nex
 		static std::unique_ptr<ShaderProgram> create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "", const std::vector<std::string>& defines = {});
 
-		static std::unique_ptr<ShaderProgram> createComputeShader(const FilePath& computeFile);
+		static std::unique_ptr<ShaderProgram> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
 
 		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
 

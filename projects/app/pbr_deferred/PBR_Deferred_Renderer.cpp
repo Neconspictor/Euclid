@@ -178,7 +178,6 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 		camera->getPerspProjection());
 
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
-	glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
 
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
@@ -187,6 +186,7 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{
+		glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
 		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ, mSceneNearFarComputeShader->getWriteOutBuffer());
 
 		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
@@ -195,10 +195,10 @@ void PBR_Deferred_Renderer::render(SceneNode* scene, Camera* camera, float frame
 			StaticMeshDrawer::draw(scene, m_cascadedShadow->getDepthPassShader());
 			m_cascadedShadow->end();
 		}
-	}
 
-	// reset
-	mSceneNearFarComputeShader->reset();
+		// reset
+		mSceneNearFarComputeShader->reset();
+	}
 
 
 	// render scene to a offscreen buffer
@@ -416,6 +416,7 @@ glm::vec2 PBR_Deferred_Renderer::computeNearFarTest(Camera* camera, int windowWi
 
 	mSceneNearFarComputeShader->dispatch(dispatchX, dispatchY, 1);
 
+	return vec2();
 
 	// TODO : readback is very slow -> optimize by calculating csm bounds on the gpu!
 	auto result = mSceneNearFarComputeShader->readResult();

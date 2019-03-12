@@ -67,9 +67,6 @@ nex::ShaderBuffer::UsageHint nex::ShaderStorageBuffer::getUsageHint() const
 
 void* nex::ShaderStorageBuffer::map(ShaderBuffer::Access usage)
 {
-	glFinish();
-	//glFlush();
-	GLCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)); //TODO : needed if we don't want to map but if we share a buffer between two shaders!
 	GLCall(void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, translate(usage)));
 	return ptr;
 }
@@ -88,6 +85,11 @@ void nex::ShaderStorageBuffer::update(const void* data, size_t size, size_t offs
 {
 	//GLCall(glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data));
 	GLCall(glNamedBufferSubData(mRendererID, offset, size, data));
+}
+
+void nex::ShaderStorageBuffer::syncWithGPU()
+{
+	//GLCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
 }
 
 void nex::ShaderStorageBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)

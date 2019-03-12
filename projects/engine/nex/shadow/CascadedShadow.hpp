@@ -176,8 +176,14 @@ namespace nex
 		class DepthPassShader : public Shader
 		{
 		public:
-			DepthPassShader();
+			DepthPassShader(unsigned numCascades);
 			void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
+
+			void setCascadeIndex(unsigned index);
+			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
+
+		private:
+			unsigned mNumCascades;
 		};
 
 		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
@@ -199,7 +205,8 @@ namespace nex
 
 
 
-		DepthPassShader mDepthPassShader;
+		std::unique_ptr<DepthPassShader> mDepthPassShader;
+		std::unique_ptr<CascadeDataShader> mDataComputeShader;
 		RenderTarget mRenderTarget;
 
 		unsigned int mCascadeWidth;
@@ -216,8 +223,6 @@ namespace nex
 		bool mEnabled;
 		float mBiasMultiplier;
 		float mShadowStrength;
-
-		std::unique_ptr<CascadeDataShader> mDataComputeShader;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

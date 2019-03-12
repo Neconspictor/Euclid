@@ -83,9 +83,9 @@ mat4 ortho(float left, float right, float bottom, float top, float zNear, float 
     result[1][1] = 2.0 / (top - bottom);
     result[2][2] = -2.0 / (zFar - zNear);
     
-    result[0][3] = -(right + left) / (right - left);
-    result[1][3] = -(top + bottom) / (top - bottom);
-    result[2][3] = -(zFar + zNear) / (zFar - zNear);
+    result[3][0] = -(right + left) / (right - left);
+    result[3][1] = -(top + bottom) / (top - bottom);
+    result[3][2] = -(zFar + zNear) / (zFar - zNear);
     
     result[3][3] = 1.0;
     return result;
@@ -103,20 +103,20 @@ mat4 lookAt(in vec3 eye, in vec3 center, in vec3 up) {
     mat4 result;
     // Note: glsl uses columns as the first index and rows for the second!
     result[0][0] = s.x;
-    result[0][1] = s.y;
-    result[0][2] = s.z;
+    result[1][0] = s.y;
+    result[2][0] = s.z;
     
-    result[1][0] = u.x;
+    result[0][1] = u.x;
     result[1][1] = u.y;
-    result[1][2] = u.z;
+    result[2][1] = u.z;
     
-    result[2][0] =-f.x;
-    result[2][1] =-f.y;
+    result[0][2] =-f.x;
+    result[1][2] =-f.y;
     result[2][2] =-f.z;
     
-    result[0][3] =-dot(s, eye);
-    result[1][3] =-dot(u, eye);
-    result[2][3] = dot(f, eye);
+    result[3][0] =-dot(s, eye);
+    result[3][1] =-dot(u, eye);
+    result[3][2] = dot(f, eye);
     
     result[3][3] = 1.0;
     return result;
@@ -340,11 +340,11 @@ void main(void)
 				// To avoid flickering we need to move the bound center in full units
 				// NOTE: we don't want translation affect the offset!
 				vec3 offsetWS = shadowOffsetMatrix * offset;
-				privateOutput.cascadeBoundCenters[cascadeIdx] += vec4(offsetWS, 1.0);
+				privateOutput.cascadeBoundCenters[cascadeIdx] += vec4(offsetWS, 0.0);
 			}
 
 			// Get the cascade center in shadow space
-			cascadeCenterShadowSpace = vec3(global.worldToShadowSpace * privateOutput.cascadeBoundCenters[cascadeIdx]);
+			cascadeCenterShadowSpace = vec3(global.worldToShadowSpace * vec4(privateOutput.cascadeBoundCenters[cascadeIdx].xyz, 1.0));
 
 			// Update the scale from shadow to cascade space
 			scale = global.radius / radius;
@@ -369,15 +369,25 @@ void main(void)
 
 		// Update the translation from shadow to cascade space  
         // translate by vec3(-cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0)
-        cascadeTrans = mat4(1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  
+        //cascadeTrans = mat4(1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  
+        //                    -cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0, 1.0);
+                            
+        cascadeTrans = mat4(1.0, 0.0, 0.0, 0.0,  
+                            0.0, 1.0, 0.0, 0.0,  
+                            0.0, 0.0, 1.0, 0.0,  
                             -cascadeCenterShadowSpace.x, -cascadeCenterShadowSpace.y, 0.0, 1.0);
 
         // scale by vec3(scale, scale, 1.0)
-        cascadeScale = mat4(scale, 0.0, 0.0, 0.0,  0.0, scale, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  
+        cascadeScale = mat4(scale, 0.0, 0.0, 0.0,  
+                            0.0, scale, 0.0, 0.0,  
+                            0.0, 0.0, 1.0, 0.0,  
                             0.0, 0.0, 0.0, 1.0);
 
 		//Store the split distances and the relevant matrices
 		sharedOutput.data.lightViewProjectionMatrices[cascadeIdx] = cascadeScale * cascadeTrans * global.worldToShadowSpace;
+        
+        //sharedOutput.data.lightViewProjectionMatrices[cascadeIdx] = cascadeTrans;
+        
 		sharedOutput.data.scaleFactors[cascadeIdx].x = scale;
         //sharedOutput.minMax = distanceInput.minMax;
 	}

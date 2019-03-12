@@ -36,8 +36,8 @@ uniform GBuffer gBuffer;
 uniform sampler2D ssaoMap;
 
 uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
-uniform mat4 eyeToLight;
-uniform mat4 viewGPass;
+//uniform mat4 eyeToLight;
+//uniform mat4 viewGPass;
 
 
 // IBL
@@ -136,8 +136,9 @@ void main()
 	//reflectionDir = vec3(inverseViewMatrix_GPass * vec4(reflectionDir, 0.0f)); // reflectionDir needs to be in world space
 	
 	//directional shadow calculation
-	vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
-	//float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
+	//vec4 positionLight = eyeToLight * vec4(positionEye.rgb, 1.0);
+	
+    //float shadow = shadowCalculation(shadowMap, lightEye, normalEye, positionLight);
 	//cascadedShadow(vec3 lightDirection, vec3 normal, float depthViewSpace,vec3 viewPosition)
 	//float shadow = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	

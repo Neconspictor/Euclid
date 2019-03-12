@@ -37,7 +37,9 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mPCF(pcf),
 	mEnabled(true),
 	mBiasMultiplier(biasMultiplier),
-	mShadowStrength(0.0f)
+	mShadowStrength(0.0f),
+	mDepthPassShader(std::make_unique<DepthPassShader>(numCascades)),
+	mDataComputeShader(std::make_unique<CascadeDataShader>(numCascades))
 {
 	mCascadeData.numCascades = numCascades;
 	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
@@ -57,14 +59,12 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 		mCascadeData.lightViewProjectionMatrices[i] = glm::mat4(0.0f);
 	}
 
-	mDataComputeShader = std::make_unique<CascadeDataShader>(numCascades);
-
 	resize(cascadeWidth, cascadeHeight);
 }
 
 void CascadedShadow::begin(int cascadeIndex)
 {
-	mDepthPassShader.bind();
+	mDepthPassShader->bind();
 
 	mRenderTarget.bind();
 	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
@@ -85,12 +85,18 @@ void CascadedShadow::begin(int cascadeIndex)
 	//RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
 	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 
-	glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
 
-	// update lightViewProjectionMatrix uniform
-	static const UniformLocation LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
-	mDepthPassShader.getProgram()->setMat4(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, lightViewProjection);
-	//glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
+	mDepthPassShader->setCascadeIndex(cascadeIndex);
+	mDepthPassShader->setCascadeShaderBuffer(mDataComputeShader->getSharedOutput());
+
+
+
+	//glm::mat4 lightViewProjection = mCascadeData.lightViewProjectionMatrices[cascadeIndex];
+
+	//// update lightViewProjectionMatrix uniform
+	//static const UniformLocation LIGHT_VIEW_PROJECTION_MATRIX_LOCATION = 0;
+	//mDepthPassShader->getProgram()->setMat4(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, lightViewProjection);
+	////glUniformMatrix4fv(LIGHT_VIEW_PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, &lightViewProjection[0][0]);
 }
 
 void CascadedShadow::enable(bool enable, bool informObservers)
@@ -102,7 +108,7 @@ void CascadedShadow::enable(bool enable, bool informObservers)
 void CascadedShadow::end()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	mDepthPassShader.unbind();
+	mDepthPassShader->unbind();
 	//###glDisable(GL_DEPTH_TEST);
 	// disable depth clamping
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
@@ -459,9 +465,10 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 	return needUpdate;
 }
 
-CascadedShadow::DepthPassShader::DepthPassShader()
+CascadedShadow::DepthPassShader::DepthPassShader(unsigned numCascades) : mNumCascades(numCascades)
 {
-	mProgram = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl");
+	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
+	mProgram = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
 }
 
 void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
@@ -471,9 +478,22 @@ void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& model
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
+void CascadedShadow::DepthPassShader::setCascadeIndex(unsigned index)
+{
+	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
+	mProgram->setUInt(CASCADE_INDEX_LOCATION, index);
+}
+
+void CascadedShadow::DepthPassShader::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
+{
+	buffer->bind(0);
+	buffer->syncWithGPU();
+}
+
 CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
 {
-	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl");
+	std::vector<std::string> defines{ std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
+	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
 	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY, mProgram.get());
@@ -495,6 +515,7 @@ ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
 void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(3);
+	buffer->syncWithGPU();
 }
 
 void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
@@ -561,10 +582,13 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 
 	mDataComputeShader->dispatch(1, 1, 1);
 
-	auto* data = (TestCascadeData*)cs->map(ShaderBuffer::Access::READ_WRITE);
+	return;
+
+	
+
+	static TestCascadeData* data = nullptr;
+	data = (TestCascadeData*)cs->map(ShaderBuffer::Access::READ_WRITE);
 	cs->unmap();
-
-
 
 	const float minDistance = 0.0f;//minMaxPositiveZ.x / (minMaxPositiveZ.y - minMaxPositiveZ.x);
 	//const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
@@ -667,7 +691,7 @@ void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
 
 Shader* CascadedShadow::getDepthPassShader()
 {
-	return &mDepthPassShader;
+	return mDepthPassShader.get();
 }
 
 unsigned CascadedShadow::getHeight() const
@@ -745,6 +769,7 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 	updateTextureArray();
 
 	mDataComputeShader = std::make_unique<CascadeDataShader>(numCascades);
+	mDepthPassShader = std::make_unique<DepthPassShader>(numCascades);
 
 	if (informObservers)
 	{

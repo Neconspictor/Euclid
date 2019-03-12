@@ -433,8 +433,9 @@ void PBRShader_Deferred_Lighting::setCascadedData(ShaderStorageBuffer* buffer)
 	auto* uniformBuffer = (ShaderStorageBuffer*)buffer; //UniformBuffer ShaderStorageBuffer
 	//uniformBuffer->unbind();
 	uniformBuffer->bind(0);
-	uniformBuffer->map(ShaderBuffer::Access::READ_WRITE);
-	uniformBuffer->unmap();
+	uniformBuffer->syncWithGPU();
+	//uniformBuffer->map(ShaderBuffer::Access::READ_WRITE);
+	//uniformBuffer->unmap();
 	
 }
 
@@ -521,9 +522,9 @@ void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeD
 	buffer->bind();
 	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
 
-	//assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
+	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
 
-	//buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
 	
 
 	struct Data
@@ -534,26 +535,29 @@ void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeD
 		vec4 cascadedSplits[4];
 	};
 
-	Data input;
-	input.inverseViewMatrix = inverse(camera->getView());//cascadedData.inverseViewMatrix;
-	for (int i = 0; i < 4; ++i) {
-		input.lightViewProjectionMatrices[i] = cascadedData.lightViewProjectionMatrices[i];
-		input.scaleFactors[i] = cascadedData.scaleFactors[i];
-		input.cascadedSplits[i] = cascadedData.cascadedFarPlanes[i];
-	}
+	static auto* data = (Data*)nullptr; 
+	data = (Data*)cascadedData.shaderBuffer.data();
+	mat4 test = glm::translate(mat4(1.0), vec3(0, 1, 0));
+
+	//Data input;
+	//input.inverseViewMatrix = inverse(camera->getView());//cascadedData.inverseViewMatrix;
+	//for (int i = 0; i < 4; ++i) {
+	//	input.lightViewProjectionMatrices[i] = cascadedData.lightViewProjectionMatrices[i];
+	//	input.scaleFactors[i] = cascadedData.scaleFactors[i];
+	//	input.cascadedSplits[i] = cascadedData.cascadedFarPlanes[i];
+	//}
 
 	//input.lightViewProjectionMatrices[3] = mat4(1.0);
 	//input.lightViewProjectionMatrices[3][3][1] = 1.0f;
 
-	mat4 test = glm::translate(mat4(1.0), vec3(0,1,0));
 	
 	
-	buffer->update(&input, sizeof(input), 0);
+	//buffer->update(&input, sizeof(input), 0);
 
 	
 
-	auto* data = (Data*)buffer->map(ShaderBuffer::Access::READ_ONLY);
-	buffer->unmap();
+	//auto* data = (Data*)buffer->map(ShaderBuffer::Access::READ_ONLY);
+	//buffer->unmap();
 }
 
 

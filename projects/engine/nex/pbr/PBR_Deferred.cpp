@@ -116,10 +116,12 @@ namespace nex {
 		mLightPass->setAOMap(ssaoMap);
 		//TODO
 		//shader->setSkyBox(environmentMap->getCubeMap());
-		mLightPass->setWorldToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace());
-		mLightPass->setEyeToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace()  * camera->getView());
-		mLightPass->setCascadedData(mCascadeShadow->getCascadeData(), camera);
-		//mLightPass->setCascadedData(mCascadeShadow->getCascadeBuffer());
+		
+		//mLightPass->setWorldToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace());
+		//mLightPass->setEyeToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace()  * camera->getView());
+		
+		//mLightPass->setCascadedData(mCascadeShadow->getCascadeData(), camera);
+		mLightPass->setCascadedData(mCascadeShadow->getCascadeBuffer());
 		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 
 
