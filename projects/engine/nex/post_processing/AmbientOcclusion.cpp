@@ -36,7 +36,7 @@ namespace nex
 		return m_useAO;
 	}
 
-	AmbientOcclusionSelector::AOTechnique AmbientOcclusionSelector::getActiveAOTechnique() const
+	AOTechnique AmbientOcclusionSelector::getActiveAOTechnique() const
 	{
 		return m_usedAOTechnique;
 	}
@@ -52,16 +52,16 @@ namespace nex
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, nex::AmbientOcclusionSelector::AOTechnique aoTechnique)
+std::ostream& nex::operator<<(std::ostream& os, const nex::AOTechnique& aoTechnique)
 {
 	switch (aoTechnique)
 	{
-	case nex::AmbientOcclusionSelector::HBAO:
+	case nex::AOTechnique::HBAO:
 	{
 		os << "HBAO";
 		break;
 	}
-	case nex::AmbientOcclusionSelector::SSAO:
+	case nex::AOTechnique::SSAO:
 	{
 		os << "SSAO";
 		break;

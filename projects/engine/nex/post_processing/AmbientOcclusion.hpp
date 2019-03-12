@@ -3,6 +3,7 @@
 #include <memory>
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/post_processing/SSAO.hpp>
+#include <ostream>
 
 namespace nex {
 
@@ -31,15 +32,15 @@ namespace nex {
 		unsigned int m_windowHeight;
 	};
 
+	enum class AOTechnique
+	{
+		HBAO,
+		SSAO
+	};
+
 	class AmbientOcclusionSelector
 	{
 	public:
-
-		enum AOTechnique
-		{
-			HBAO,
-			SSAO
-		};
 
 		AmbientOcclusionSelector();
 		virtual ~AmbientOcclusionSelector();
@@ -62,8 +63,8 @@ namespace nex {
 		std::unique_ptr<nex::HBAO> m_hbao;
 		std::unique_ptr<SSAO_Deferred> m_ssao;
 		bool m_useAO = true;
-		AOTechnique m_usedAOTechnique = HBAO;
+		AOTechnique m_usedAOTechnique = AOTechnique::HBAO;
 	};
-}
 
-std::ostream& operator<<(std::ostream& os, nex::AmbientOcclusionSelector::AOTechnique aoTechnique);
+	std::ostream& operator<<(std::ostream& os, const nex::AOTechnique& aoTechnique);
+}
