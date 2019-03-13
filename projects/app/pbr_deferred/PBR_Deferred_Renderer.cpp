@@ -157,10 +157,15 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 {
 	static auto* depthMapShader = RenderBackend::get()->getEffectLibrary()->getDepthMapShader();
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
+	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 
 	using namespace std::chrono;
 
-	m_renderBackend->newFrame();
+	//m_renderBackend->newFrame();
+	//RenderBackend::get()->getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
+	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
+	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
+	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 
 
 	// update and render into cascades
@@ -170,10 +175,18 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
 
-	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	pbr_mrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
+
+
+	stencilTest->enableStencilTest(true);
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+
 	m_pbr_deferred->drawGeometryScene(scene,
 		camera->getView(),
 		camera->getPerspProjection());
+
+	stencilTest->enableStencilTest(false);
 
 	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
@@ -203,7 +216,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	renderTargetSingleSampled->bind();
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	renderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//| RenderComponent::Depth | RenderComponent::Stencil
+	renderTargetSingleSampled->clear(RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 	
 
@@ -217,6 +230,19 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 		//m_pbr_deferred->drawSky(camera);
 
+		m_pbr_deferred->setDirLight(&globalLight);
+
+		
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
+
+		m_pbr_deferred->drawLighting(scene, 
+			pbr_mrt.get(), 
+			camera, 
+			aoTexture);
+
+
+		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 
 		mAtmosphericScattering.bind();
 		mAtmosphericScattering.setInverseProjection(inverse(camera->getPerspProjection()));
@@ -247,12 +273,8 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 		mAtmosphericScattering.renderSky();
 
-		m_pbr_deferred->setDirLight(&globalLight);
 
-		m_pbr_deferred->drawLighting(scene, 
-			pbr_mrt.get(), 
-			camera, 
-			aoTexture);
+		//stencilTest->enableStencilTest(false);
 
 		//m_pbr_deferred->drawSky(camera);
 	
@@ -260,18 +282,16 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 	//renderer->endScene();
 
-	renderTargetSingleSampled->clear(RenderComponent::Depth | RenderComponent::Stencil);//| RenderComponent::Depth | RenderComponent::Stencil
+	//renderTargetSingleSampled->clear(RenderComponent::Depth | RenderComponent::Stencil);//| RenderComponent::Depth | RenderComponent::Stencil
 
-	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	//postProcessor->doPostProcessing(renderTargetSingleSampled.get());
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	screenRenderTarget->bind();
-	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
-	//renderer->beginScene();
-	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
+	postProcessor->doPostProcessing(renderTargetSingleSampled->getColorAttachments()[0].texture.get(), screenRenderTarget);
+
+	return;
 
 
 	

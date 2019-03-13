@@ -20,9 +20,10 @@ namespace nex
 
 		/**
 		 * Does post processing. The result is rendered into the given render target.
-		 * @param renderTarget : The render target to use for post processing.
+		 * @param source : The texture to use as a source for the post processing
+		 * @param renderTarget : The render target that will be used to store the result of the post processing.
 		 */
-		void doPostProcessing(RenderTarget2D* renderTarget);
+		void doPostProcessing(Texture* source, RenderTarget2D* output);
 
 		/**
 		 * Resizes the post processor for a different resolution.
@@ -33,6 +34,8 @@ namespace nex
 
 	private:
 
+		void setPostProcessTexture(Texture* texture);
+
 		/**
 		 * Used for ping pong rendering.
 		 */
@@ -40,5 +43,8 @@ namespace nex
 		VertexArray* mFullscreenPlane;
 
 		std::unique_ptr<Shader> mPostprocessPass;
+		Uniform mSourceTextureUniform;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 }

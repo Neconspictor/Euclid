@@ -1,8 +1,28 @@
 #version 330
 
-out vec4 color;
+in VS_OUT {
+    vec2 texCoord;
+} fs_in;
+
+out vec4 fragColor;
+
+layout(binding = 0) uniform sampler2D sourceTexture;
+
+
 
 
 void main() {
-    color = vec4(1.0,1.0,0.0,1.0);
+
+    vec3 color = texture(sourceTexture, fs_in.texCoord).rgb;
+
+    // HDR tonemapping
+    const float exposure = 1.0;
+    color *= exposure;
+    color = color / (color + vec3(1.0));
+	
+    // gamma correct
+    const float gamma = 2.2f;
+    color = pow(color, vec3(1.0/gamma)); 
+
+    fragColor = vec4(color, 1.0);
 }

@@ -28,15 +28,17 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 
 		mFullscreenPlane = std::make_unique<VertexArray>();
 		static const float fullscreenTriangleStripOpengl[] = {
-			-1.0, -1.0, 0.0, 1.0,
-			+1.0, -1.0, 0.0, 1.0,
-			-1.0, +1.0, 0.0, 1.0,
-			+1.0, +1.0, 0.0, 1.0,
+			// position 4 floats, texture coords 2 floats
+			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+			+1.0, -1.0, 0.0, 1.0, 1.0, 0.0,
+			-1.0, +1.0, 0.0, 1.0, 0.0, 1.0,
+			+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 		};
 
 		VertexBuffer buffer(fullscreenTriangleStripOpengl, sizeof(fullscreenTriangleStripOpengl));
 		VertexLayout layout;
 		layout.push<float>(4);
+		layout.push<float>(2);
 		mFullscreenPlane->addBuffer(std::move(buffer), layout);
 	}
 

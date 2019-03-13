@@ -45,20 +45,9 @@ namespace nex {
 
 	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
 	{
-		static auto* renderBackend = RenderBackend::get();
-
-		auto* stencilTest = renderBackend->getStencilTest();
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-		//glStencilFunc(GL_ALWAYS, 1, 1);
-		//glStencilMask(0xFF);
-		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
-
 		mGeometryPass->bind();
 		mGeometryPass->setView(view);
 		mGeometryPass->setProjection(projection);
-
-
 
 		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
 
@@ -73,22 +62,11 @@ namespace nex {
 		{
 			sampler->unbind(i);
 		}
-
-		stencilTest->enableStencilTest(false);
 	}
 
 	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
 		Texture* ssaoMap)
 	{
-
-		static auto* renderBackend = RenderBackend::get();
-
-		auto* stencilTest = renderBackend->getStencilTest();
-		stencilTest->enableStencilTest(false);
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
-
-
 		mLightPass->bind();
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
@@ -126,19 +104,11 @@ namespace nex {
 
 
 		StaticMeshDrawer::draw(&screenSprite, mLightPass.get());
-
-		stencilTest->enableStencilTest(false);
 	}
 
 	void PBR_Deferred::drawSky(Camera* camera)
 	{
-		static auto* renderBackend = RenderBackend::get();
-
-		auto* stencilTest = renderBackend->getStencilTest();
-		//stencilTest->enableStencilTest(true);
-		//stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 		PBR::drawSky(camera->getPerspProjection(), camera->getView());
-		//stencilTest->enableStencilTest(false);
 	}
 
 	std::unique_ptr<PBR_GBuffer> PBR_Deferred::createMultipleRenderTarget(int width, int height)
