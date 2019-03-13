@@ -18,15 +18,17 @@ using namespace glm;
 namespace nex
 {
 
-	EffectLibrary::EffectLibrary(RenderBackend * renderer) : renderer(renderer),
+	EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 		mGaussianBlur(make_unique<GaussianBlur>()),
 		mEquirectangualrSkyBox(make_unique<EquirectangularSkyBoxShader>()),
 		mPanoramaSkyBox(make_unique<PanoramaSkyBoxShader>()),
 		mSkyBox(make_unique<SkyBoxShader>()),
 		mDepthMap(make_unique<DepthMapShader>()),
 		mShadow(make_unique<ShadowShader>()),
-		mScreen(make_unique<ScreenShader>())
+		mScreen(make_unique<ScreenShader>()),
+		mPostProcessor(width, height)
 	{
+
 	}
 
 	GaussianBlur* EffectLibrary::getGaussianBlur()
@@ -62,6 +64,11 @@ namespace nex
 	ScreenShader* EffectLibrary::getScreenShader()
 	{
 		return mScreen.get();
+	}
+
+	PostProcessor* EffectLibrary::getPostProcessor()
+	{
+		return &mPostProcessor;
 	}
 
 	void EffectLibrary::release()
@@ -238,8 +245,8 @@ namespace nex
 
 	RenderBackend::~RenderBackend()
 	{
-		if (effectLibrary.get() != nullptr)
-			effectLibrary->release();
+		if (mEffectLibrary.get() != nullptr)
+			mEffectLibrary->release();
 	}
 
 	void RenderBackend::init()
@@ -268,7 +275,7 @@ namespace nex
 
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-		effectLibrary = make_unique<EffectLibrary>(this);
+		mEffectLibrary = make_unique<EffectLibrary>(mViewport.width, mViewport.height);
 
 		/*ImageLoaderGL imageLoader;
 		GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
@@ -338,17 +345,6 @@ namespace nex
 
 	std::unique_ptr <RenderTarget2D> nex::RenderBackend::createRenderTarget(int samples)
 	{
-		TextureData data;
-		data.generateMipMaps = false;
-		data.minFilter = TextureFilter::Linear;
-		data.magFilter = TextureFilter::Linear;
-		data.colorspace = ColorSpace::RGB;
-		data.internalFormat = InternFormat::RGB32F;
-		data.pixelDataType = PixelDataType::FLOAT;
-		data.wrapR = TextureUVTechnique::ClampToEdge;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
-
 		const int ssaaSamples = 1;
 
 		const unsigned width = mViewport.width * ssaaSamples;
@@ -359,7 +355,7 @@ namespace nex
 			PixelDataType::UNSIGNED_INT_24_8,
 			InternFormat::DEPTH24_STENCIL8);
 
-		return create2DRenderTarget(width, height, data, depthData, samples);
+		return create2DRenderTarget(width, height, TextureData::createRenderTargetRGBAHDR(), depthData, samples);
 	}
 
 	void RenderBackend::drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType)
@@ -414,10 +410,12 @@ namespace nex
 		mViewport.width = width;
 		mViewport.height = height;
 		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
+		mEffectLibrary->getPostProcessor()->resize(width, height);
 	}
 
 	void RenderBackend::release()
 	{
+		mEffectLibrary.reset(nullptr);
 	}
 
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
@@ -484,7 +482,7 @@ namespace nex
 
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
-		auto* shader = effectLibrary->getEquirectangularSkyBoxShader();
+		auto* shader = mEffectLibrary->getEquirectangularSkyBoxShader();
 		const mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 		shader->bind();
@@ -557,7 +555,7 @@ namespace nex
 
 	EffectLibrary* RenderBackend::getEffectLibrary()
 	{
-		return effectLibrary.get();
+		return mEffectLibrary.get();
 	}
 
 	/*RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)

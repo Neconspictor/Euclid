@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 
 	nex::StaticMeshManager::get()->release();
 	nex::TextureManager::get()->release();
-	nex::RenderBackend::release();
+	nex::RenderBackend::get()->release();
 
 	provider->terminate();
 

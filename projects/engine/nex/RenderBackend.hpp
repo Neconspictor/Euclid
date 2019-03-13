@@ -9,6 +9,7 @@
 #include "shader/SkyBoxShader.hpp"
 #include "shader/ShadowShader.hpp"
 #include "shader/ScreenShader.hpp"
+#include "post_processing/PostProcessor.hpp"
 
 namespace nex
 {
@@ -84,7 +85,7 @@ namespace nex
 	class EffectLibrary {
 	public:
 
-		EffectLibrary(RenderBackend* renderer);
+		EffectLibrary(unsigned width, unsigned height);
 
 		// Inherited via EffectLibrary
 		GaussianBlur* getGaussianBlur();
@@ -99,6 +100,8 @@ namespace nex
 
 		ScreenShader* getScreenShader();
 
+		PostProcessor* getPostProcessor();
+
 		void release();
 
 	protected:
@@ -109,7 +112,7 @@ namespace nex
 		std::unique_ptr<DepthMapShader> mDepthMap;
 		std::unique_ptr<ShadowShader> mShadow;
 		std::unique_ptr<ScreenShader> mScreen;
-		RenderBackend* renderer;
+		PostProcessor mPostProcessor;
 	};
 
 	enum class BlendFunc
@@ -483,7 +486,7 @@ namespace nex
 		/**
 		* Shuts down this renderer and releases all allocated memory.
 		*/
-		static void release();
+		void release();
 
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
@@ -511,7 +514,7 @@ namespace nex
 
 	protected:
 		glm::vec3 backgroundColor;
-		std::unique_ptr<EffectLibrary> effectLibrary;
+		std::unique_ptr<EffectLibrary> mEffectLibrary;
 		unsigned int msaaSamples;
 		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
 		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;

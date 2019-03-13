@@ -27,22 +27,12 @@ nex::AtmosphericScattering::AtmosphericScattering() : Shader(
 	mRayleighStrengthUniform = { mProgram->getUniformLocation("rayleigh_strength"), UniformType::FLOAT };
 	mMieStrengthUniform = { mProgram->getUniformLocation("mie_strength"), UniformType::FLOAT };
 
-	static const float fullscreenTriangleStrip[] = {
-		-1.0, -1.0, 0.0, 1.0,
-		+1.0, -1.0, 0.0, 1.0,
-		-1.0, +1.0, 0.0, 1.0,
-		+1.0, +1.0, 0.0, 1.0,
-	};
-
-	VertexBuffer buffer(fullscreenTriangleStrip, sizeof(fullscreenTriangleStrip));
-	VertexLayout layout;
-	layout.push<float>(4);
-	mFullscreenTriangleStrip.addBuffer(std::move(buffer), layout);
+	mFullscreenTriangleStrip = StaticMeshManager::get()->getNDCFullscreenPlane();
 }
 
 void nex::AtmosphericScattering::renderSky()
 {
-	mFullscreenTriangleStrip.bind();
+	mFullscreenTriangleStrip->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
 }
 

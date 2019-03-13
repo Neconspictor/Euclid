@@ -259,6 +259,11 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 
 	//renderer->endScene();
+
+	renderTargetSingleSampled->clear(RenderComponent::Depth | RenderComponent::Stencil);//| RenderComponent::Depth | RenderComponent::Stencil
+
+	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
+	//postProcessor->doPostProcessing(renderTargetSingleSampled.get());
 	
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
@@ -267,6 +272,8 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	m_renderBackend->setViewPort(0, 0, windowWidth, windowHeight);
 	//renderer->beginScene();
 	screenRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+
 	
 	screenSprite.setTexture(renderTargetSingleSampled->getColorAttachments()[0].texture.get()); //TODO
 

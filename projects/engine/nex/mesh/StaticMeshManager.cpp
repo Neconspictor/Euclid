@@ -25,6 +25,19 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 		blinnPhongMaterialLoader(TextureManager::get()), mFileSystem(nullptr)
 	{
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
+
+		mFullscreenPlane = std::make_unique<VertexArray>();
+		static const float fullscreenTriangleStripOpengl[] = {
+			-1.0, -1.0, 0.0, 1.0,
+			+1.0, -1.0, 0.0, 1.0,
+			-1.0, +1.0, 0.0, 1.0,
+			+1.0, +1.0, 0.0, 1.0,
+		};
+
+		VertexBuffer buffer(fullscreenTriangleStripOpengl, sizeof(fullscreenTriangleStripOpengl));
+		VertexLayout layout;
+		layout.push<float>(4);
+		mFullscreenPlane->addBuffer(std::move(buffer), layout);
 	}
 
 std::unique_ptr<nex::StaticMesh> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
@@ -182,8 +195,13 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
+nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenPlane()
+{
+	return mFullscreenPlane.get();
+}
 
-	nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
+
+nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
 	{
 		using Vertex = VertexPositionNormalTex;
 
@@ -250,6 +268,7 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 	{
 		modelTable.clear();
 		models.clear();
+		mFullscreenPlane.reset(nullptr);
 	}
 
 	/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)

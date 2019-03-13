@@ -211,6 +211,22 @@ namespace nex
 			result.wrapS = result.wrapR = result.wrapT = TextureUVTechnique::ClampToEdge;
 			return result;
 		}
+
+		static TextureData createRenderTargetRGBAHDR()
+		{
+			TextureData data;
+			data.generateMipMaps = false;
+			data.minFilter = TextureFilter::Linear;
+			data.magFilter = TextureFilter::Linear;
+			data.colorspace = ColorSpace::RGBA;
+			data.internalFormat = InternFormat::RGBA16F;
+			data.pixelDataType = PixelDataType::FLOAT;
+			data.wrapR = TextureUVTechnique::ClampToEdge;
+			data.wrapS = TextureUVTechnique::ClampToEdge;
+			data.wrapT = TextureUVTechnique::ClampToEdge;
+
+			return data;
+		}
 	};
 
 

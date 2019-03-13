@@ -162,6 +162,8 @@ set(
 	nex/post_processing/HBAO.cpp
     nex/post_processing/AmbientOcclusion.cpp
 	nex/post_processing/AmbientOcclusion.hpp
+    nex/post_processing/PostProcessor.cpp
+    nex/post_processing/PostProcessor.hpp
 	nex/post_processing/SSAO.hpp
 	nex/post_processing/SSAO.cpp
     #nex/post_processing/blur

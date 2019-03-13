@@ -118,6 +118,6 @@ namespace nex
 		Uniform mRayleighStrengthUniform;
 		Uniform mMieStrengthUniform;
 
-		VertexArray mFullscreenTriangleStrip;
+		VertexArray* mFullscreenTriangleStrip;
 	};
 }

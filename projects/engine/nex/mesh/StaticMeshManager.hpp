@@ -35,6 +35,8 @@ namespace nex
 		 */
 		static StaticMeshManager* get();
 
+
+
 		StaticMesh* getSkyBox();
 
 		/**
@@ -42,6 +44,16 @@ namespace nex
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
 		StaticMesh* getModel(const std::string& meshName, MaterialType type);
+
+		/**
+		 * Provides a vertex array holding four vertices forming a fullscreen plane.
+		 * To render the plane, no index buffer is needed. It is sufficient to call
+		 * RenderBackend::drawArrays(Topology::TRIANGLE_STRIP, 0, 4) after binding the returned vertex array.
+		 * 
+		 * TODO: Until now only opengl NDC is supported! Generalize it to support also DirectX NDC!
+		 */
+		VertexArray* getNDCFullscreenPlane();
+
 
 		/*
 		 * Provides read acces to a cube that has position, normal and texture coordinates.
@@ -85,6 +97,7 @@ namespace nex
 		PbrMaterialLoader pbrMaterialLoader;
 		BlinnPhongMaterialLoader blinnPhongMaterialLoader;
 		FileSystem* mFileSystem;
+		std::unique_ptr<VertexArray> mFullscreenPlane;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 	};
