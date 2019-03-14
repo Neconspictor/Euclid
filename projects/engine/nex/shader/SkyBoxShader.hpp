@@ -1,9 +1,10 @@
 #pragma once
 #include <nex/shader/Shader.hpp>
-#include <nex/texture/Texture.hpp>
 
 namespace nex
 {
+	class CubeMap;
+
 	class SkyBoxShader : public Shader
 	{
 	public:

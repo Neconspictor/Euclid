@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nex/material/AbstractMaterialLoader.hpp>
-#include <nex/common/Log.hpp>
 
 namespace nex
 {
@@ -11,13 +10,8 @@ namespace nex
 
 		PbrMaterialLoader(TextureManager* textureManager);
 
-		virtual ~PbrMaterialLoader() = default;
+		virtual ~PbrMaterialLoader();
 
 		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override;
-
-	private:
-
-		nex::Logger m_logger;
-
 	};
 }

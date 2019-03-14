@@ -23,6 +23,7 @@
 #include <nex/texture/TextureManager.hpp>
 #include <nex/texture/TextureSamplerData.hpp>
 #include <nex/texture/Sampler.hpp>
+#include <nex/texture/Texture.hpp>
 
 using namespace std;
 
@@ -31,16 +32,12 @@ namespace nex {
 
 	TextureManager::TextureManager() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr), mFileSystem(nullptr)
 	{
-		textureLookupTable = map<string, Texture*>();
-
-		//TextureManagerGL::setAnisotropicFiltering(m_anisotropy);
 	}
 
 	void TextureManager::releaseTexture(Texture * tex)
 	{
 		for (auto&& it = textures.begin(); it != textures.end(); ++it) {
-			if ((*it) == tex) {
-				delete *it;
+			if ((&*it) == tex) {
 				textures.erase(it);
 				break; // we're done
 			}
@@ -133,11 +130,6 @@ namespace nex {
 		mDefaultImageSampler->setWrapS(TextureUVTechnique::Repeat);
 		mDefaultImageSampler->setWrapT(TextureUVTechnique::Repeat);
 		mDefaultImageSampler->setAnisotropy(16.0f);
-	}
-
-	void TextureManager::addCubeMap(CubeMap* cubemap)
-	{
-		cubeMaps.push_back(cubemap);
 	}
 
 	CubeMap* TextureManager::createCubeMap(const string& right, const string& left, const string& top,
@@ -265,15 +257,18 @@ namespace nex {
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
-		Texture* texture = Texture2D::create(width, height, data, rawData);
+		textures.emplace_back(std::move(Texture2D(width, height, data, rawData)));
+
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << path;
 
-		textures.push_back(texture);
-		textureLookupTable.insert(std::pair<std::string, nex::Texture*>(path, texture));
 
-		return texture;
+		auto* result = &textures.back();
+
+		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(path, result));
+
+		return result;
 	}
 
 	Texture* TextureManager::getImage(const string& file, const TextureData& data)
@@ -307,15 +302,17 @@ namespace nex {
 
 		//GLuint format = TextureGL::getFormat(nrComponents);
 
-		Texture* texture = Texture2D::create(width, height, data, rawData);
+		textures.emplace_back(std::move(Texture2D(width, height, data, rawData)));
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
-		textures.push_back(texture);
-		textureLookupTable.insert(std::pair<std::string, nex::Texture*>(resolvedPath, texture));
 
-		return texture;
+		auto* result = &textures.back();
+
+		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(resolvedPath, result));
+
+		return result;
 	}
 
 	void TextureManager::init(FileSystem* textureFileSystem)
@@ -341,22 +338,10 @@ namespace nex {
 
 	void TextureManager::release()
 	{
-		for (auto& texture : textures)
-		{
-			delete texture;
-		}
-
 		textures.clear();
-
-		for (auto& map : cubeMaps)
-		{
-			delete map;
-		}
-
 		cubeMaps.clear();
 
 		textureLookupTable.clear();
-
 		mDefaultImageSampler.reset(nullptr);
 	}
 

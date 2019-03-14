@@ -24,7 +24,6 @@ Sampler::Sampler(const SamplerDesc& samplerState) : mImpl(std::make_unique<Sampl
 
 Sampler::~Sampler()
 {
-	int i = 0;
 };
 
 

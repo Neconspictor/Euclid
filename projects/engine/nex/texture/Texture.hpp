@@ -34,13 +34,13 @@ namespace nex
 	{
 	public:
 
-		// Class and subclasses shouldn't be movable/copiable
-		// Implicitly removes auto-generated move constructor/assignment operator
-		// Inherited classes cannot be copied/moved as well
+		// Class and subclasses shouldn't be copiable
 		Texture(const Texture&) = delete;
 		Texture& operator=(const Texture&) = delete;
+		Texture(Texture&&) = default;
+		Texture& operator=(Texture&&) = default;
 
-		virtual ~Texture() = default; // needed for inheritance
+		virtual ~Texture();
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
@@ -93,9 +93,6 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
-
-		// Has to be implemented by renderer backend
-		static Texture2D* create(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.

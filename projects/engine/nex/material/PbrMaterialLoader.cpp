@@ -7,9 +7,11 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager), m_logger("PbrMaterialLoader")
+PbrMaterialLoader::PbrMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager)
 {
 }
+
+PbrMaterialLoader::~PbrMaterialLoader() = default;
 
 std::vector<std::unique_ptr<Material>> PbrMaterialLoader::loadShadingMaterial(const aiScene * scene) const
 {

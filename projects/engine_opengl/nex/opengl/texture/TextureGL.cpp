@@ -216,6 +216,8 @@ void nex::RenderBufferGL::resize(unsigned width, unsigned height)
 	GLCall(glRenderbufferStorage(mTarget, translate(mFormat), width, height));
 }
 
+nex::Texture::~Texture() = default;
+
 nex::Texture::Texture(std::unique_ptr<TextureImpl> impl) : mImpl(std::move(impl))
 {
 }
@@ -520,13 +522,6 @@ nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& te
 	:
 	Texture(make_unique<Texture2DGL>(width, height, textureData, data))
 {
-}
-
-nex::Texture2D* nex::Texture2D::create(unsigned width, unsigned height, const TextureData& textureData,
-	const void* data)
-{
-	nex::Guard<Texture2D> texture; texture = new Texture2D(width, height, textureData, data);
-	return texture.reset();
 }
 
 unsigned nex::Texture2D::getWidth() const

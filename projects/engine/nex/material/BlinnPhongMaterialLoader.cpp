@@ -1,14 +1,13 @@
 #include <nex/material/BlinnPhongMaterialLoader.hpp>
 #include <string>
 #include <nex/material/Material.hpp>
-#include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 
 using namespace std;
 using namespace nex;
 
 
-BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager), m_logger("BlinnPhongMaterialLoader")
+BlinnPhongMaterialLoader::BlinnPhongMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager)
 {
 }
 

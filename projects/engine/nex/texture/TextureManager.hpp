@@ -2,14 +2,17 @@
 #include <map>
 #include <list>
 #include <nex/gui/Drawable.hpp>
-#include <nex/texture/Texture.hpp>
 #include "nex/common/Log.hpp"
+#include <nex/texture/TextureSamplerData.hpp>
 
 
 namespace nex {
+	class CubeMap;
 	struct GenericImage;
 	class FileSystem;
 	class Sampler;
+	class Texture;
+	class Texture2D;
 
 	/**
  * A texture manager for an opengl renderer.
@@ -27,8 +30,6 @@ namespace nex {
 		virtual ~TextureManager();
 
 		void init();
-
-		void addCubeMap(CubeMap* cubemap);
 
 		CubeMap* createCubeMap(const std::string& right, const std::string& left,
 			const std::string& top, const std::string& bottom,
@@ -83,9 +84,9 @@ namespace nex {
 		//void readGLITest(const char* filePath);
 
 	protected:
-		std::list<nex::Texture*> textures;
-		std::list<CubeMap*> cubeMaps;
-		std::map<std::string, nex::Texture*> textureLookupTable;
+		std::list<nex::Texture2D> textures;
+		std::list<CubeMap> cubeMaps;
+		std::map<std::string, nex::Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<Sampler> mDefaultImageSampler;
 		nex::FileSystem* mFileSystem;
