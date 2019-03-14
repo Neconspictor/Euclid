@@ -308,6 +308,11 @@ std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments()
 	return gl->getColorAttachments();
 }
 
+nex::Texture* nex::RenderTarget::getColorAttachmentTexture(std::size_t attachmentIndex)
+{
+	return getColorAttachments()[attachmentIndex].texture.get();
+}
+
 nex::RenderAttachment* nex::RenderTarget::getDepthAttachment()
 {
 	auto gl = (RenderTargetGL*)getImpl();

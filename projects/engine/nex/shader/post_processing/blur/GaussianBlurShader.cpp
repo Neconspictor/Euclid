@@ -34,12 +34,12 @@ void GaussianBlurHorizontalShader::onTransformUpdate(const TransformData& data)
 
 void GaussianBlurHorizontalShader::setImageWidth(float width)
 {
-	mProgram->setInt(windowWidth.location, width);
+	mProgram->setFloat(windowWidth.location, width);
 }
 
 void GaussianBlurHorizontalShader::setImageHeight(float height)
 {
-	mProgram->setInt(windowHeight.location, height);
+	mProgram->setFloat(windowHeight.location, height);
 }
 
 
@@ -74,10 +74,10 @@ void GaussianBlurVerticalShader::onTransformUpdate(const TransformData& data)
 
 void GaussianBlurVerticalShader::setImageWidth(float width)
 {
-	mProgram->setInt(windowWidth.location, width);
+	mProgram->setFloat(windowWidth.location, width);
 }
 
 void GaussianBlurVerticalShader::setImageHeight(float height)
 {
-	mProgram->setInt(windowHeight.location, height);
+	mProgram->setFloat(windowHeight.location, height);
 }

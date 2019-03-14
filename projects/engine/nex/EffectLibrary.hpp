@@ -14,6 +14,7 @@ namespace nex
 	class ShadowShader;
 	class ScreenShader;
 	class PostProcessor;
+	class Sampler;
 
 	class RenderTarget;
 
@@ -21,20 +22,31 @@ namespace nex
 	{
 	public:
 
-		DownSampler();
+		DownSampler(unsigned width, unsigned height);
 
 		~DownSampler();
+
+		Texture2D* downsampleHalfResolution(Texture2D* src);
+
+		Texture2D* downsampleQuarterResolution(Texture2D* src);
+
+		Texture2D* downsampleEigthResolution(Texture2D* src);
 
 		/**
 		 * Renders a texture to the 
 		 */
-		void downsample(Texture2D* src, RenderTarget2D* dest);
+		nex::Texture2D* downsample(Texture2D* src, RenderTarget2D* dest);
+
+		void resize(unsigned width, unsigned height);
 
 	private:
 
 		class DownSampleShader;
 		std::unique_ptr<DownSampleShader> mDownSampleShader;
-		std::unique_ptr<RenderTarget> mHalfResolution;
+		std::unique_ptr<RenderTarget2D> mHalfResolution;
+		std::unique_ptr<RenderTarget2D> mQuarterResolution;
+		std::unique_ptr<RenderTarget2D> mEigthResolution;
+		std::unique_ptr<Sampler> mSampler;
 	};
 
 
@@ -61,6 +73,8 @@ namespace nex
 		PostProcessor* getPostProcessor();
 
 		DownSampler* getDownSampler();
+
+		void resize(unsigned width, unsigned height);
 
 	protected:
 		std::unique_ptr<GaussianBlur> mGaussianBlur;

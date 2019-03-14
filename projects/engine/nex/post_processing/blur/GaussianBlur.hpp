@@ -3,7 +3,6 @@
 #include "nex/shader/post_processing/blur/GaussianBlurShader.hpp"
 
 namespace nex {
-
 	class RenderTarget2D;
 
 	class GaussianBlur {
@@ -11,7 +10,7 @@ namespace nex {
 	public:
 		GaussianBlur();
 
-		void blur(RenderTarget2D* target, RenderTarget2D* cache);
+		Texture2D* blur(Texture2D* texture, RenderTarget2D* out, RenderTarget2D* cache);
 
 	protected:
 		nex::Sprite sprite;

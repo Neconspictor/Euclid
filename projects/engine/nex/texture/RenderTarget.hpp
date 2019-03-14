@@ -69,6 +69,8 @@ namespace nex
 
 		std::vector<RenderAttachment>& getColorAttachments();
 
+		Texture* getColorAttachmentTexture(std::size_t attachmentIndex);
+
 		// Has to be implemented by renderer backend
 		RenderAttachment* getDepthAttachment();
 

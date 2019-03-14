@@ -3,18 +3,25 @@
 #include "nex/RenderBackend.hpp"
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/shader/Shader.hpp>
+#include "nex/texture/TextureManager.hpp"
+#include "nex/texture/Sampler.hpp"
 
 
 class nex::PostProcessor::PostProcessShader : public nex::Shader
 {
 public:
-	PostProcessShader()
+	PostProcessShader() : mSampler({})
 	{
 		mProgram = nex::ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
 		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D };
+
+		mSampler.setAnisotropy(0.0f);
+		mSampler.setMinFilter(TextureFilter::Linear);
+		mSampler.setMagFilter(TextureFilter::Linear);
 	}
 
 	Uniform sourceTextureUniform;
+	Sampler mSampler;
 };
 
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height) : mWidth(width), mHeight(height),
@@ -30,20 +37,18 @@ nex::PostProcessor::~PostProcessor() = default;
 void nex::PostProcessor::doPostProcessing(Texture* source, RenderTarget2D* output)
 {
 	RenderBackend::get()->setViewPort(0, 0, mWidth, mHeight);
-	
-	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
-	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
-
 
 	//renderer->beginScene();
 	//output->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 	output->bind();
 	mPostprocessPass->bind();
+	//TextureManager::get()->getDefaultImageSampler()->bind(0);
+	mPostprocessPass->mSampler.bind(0);
 	setPostProcessTexture(source);
 
 	mFullscreenPlane->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	mPostprocessPass->mSampler.unbind(0);
 	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 }
 

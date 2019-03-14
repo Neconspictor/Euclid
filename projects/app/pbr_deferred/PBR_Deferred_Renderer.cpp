@@ -33,6 +33,9 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	m_logger("PBR_Deferred_Renderer"),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
+	mTempRenderTarget(nullptr),
+	mTempRenderTargetEidth1(nullptr),
+	mTempRenderTargetEidth2(nullptr),
 	//shadowMap(nullptr),
 	showDepthMap(false),
 	mInput(input)
@@ -95,6 +98,9 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
+	mTempRenderTarget = m_renderBackend->createRenderTarget();
+	mTempRenderTargetEidth1 = std::make_unique<RenderTarget2D>(windowWidth / 8, windowHeight / 8, TextureData::createRenderTargetRGBAHDR());
+	mTempRenderTargetEidth2 = std::make_unique<RenderTarget2D>(windowWidth / 8, windowHeight / 8, TextureData::createRenderTargetRGBAHDR());
 
 	panoramaSkyBoxShader->bind();
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -291,8 +297,28 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
+	static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
+
+	auto* renderImage = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
+
+	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
+	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
+	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
+
+	static auto* downSampler = RenderBackend::get()->getEffectLibrary()->getDownSampler();
+	auto* halfResolution = downSampler->downsampleEigthResolution(renderImage);
+
+	for (auto i = 0; i < 3; ++i)
+	{
+		halfResolution = blur->blur(halfResolution, mTempRenderTargetEidth1.get(), mTempRenderTargetEidth2.get());
+	}
+
+
+
+
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	postProcessor->doPostProcessing(renderTargetSingleSampled->getColorAttachments()[0].texture.get(), screenRenderTarget);
+	postProcessor->doPostProcessing(halfResolution, screenRenderTarget);
+	//postProcessor->doPostProcessing(renderImage, screenRenderTarget);
 
 	return;
 
@@ -359,6 +385,12 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	renderTargetSingleSampled->useDepthAttachment(*pbr_mrt->getDepthAttachment());
+
+	mTempRenderTarget = m_renderBackend->createRenderTarget();
+
+	mTempRenderTargetEidth1 = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
+	mTempRenderTargetEidth2 = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
+
 	//ssao_deferred->onSizeChange(width, height);
 
 	m_aoSelector.getHBAO()->onSizeChange(width, height);

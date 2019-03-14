@@ -8,6 +8,8 @@
 #include <nex/shader/ShadowShader.hpp>
 #include <nex/shader/ScreenShader.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
+#include <nex/texture/Attachment.hpp>
+#include <nex/texture/Sampler.hpp>
 
 
 class nex::DownSampler::DownSampleShader : public Shader
@@ -30,13 +32,34 @@ private:
 };
 
 
-nex::DownSampler::DownSampler() : mDownSampleShader(std::make_unique<DownSampleShader>())
+nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSampleShader>()),
+mSampler(std::make_unique<Sampler>(SamplerDesc()))
 {
+	mSampler->setAnisotropy(0.0f);
+	mSampler->setMinFilter(TextureFilter::Linear);
+	mSampler->setMagFilter(TextureFilter::Linear);
+	resize(width, height);
 }
 
 nex::DownSampler::~DownSampler() = default;
 
-void nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* dest)
+nex::Texture2D* nex::DownSampler::downsampleHalfResolution(Texture2D* src)
+{
+	return downsample(src, mHalfResolution.get());
+}
+
+nex::Texture2D* nex::DownSampler::downsampleQuarterResolution(Texture2D* src)
+{
+	return downsample(downsampleHalfResolution(src), mQuarterResolution.get());
+}
+
+nex::Texture2D* nex::DownSampler::downsampleEigthResolution(Texture2D* src)
+{
+	return downsample(downsampleQuarterResolution(src), mEigthResolution.get());
+	//return downsample(src, mEigthResolution.get());
+}
+
+nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* dest)
 {
 	auto* renderBackend = RenderBackend::get();
 	dest->bind();
@@ -44,12 +67,30 @@ void nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* dest)
 	dest->clear(Color);
 
 	mDownSampleShader->bind();
+	mSampler->bind(0);
 	mDownSampleShader->getProgram()->setTexture(mDownSampleShader->getSourceLocation(), src, 0);
 
 	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
 
 	vertexArray->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+
+	return static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
+}
+
+void nex::DownSampler::resize(unsigned width, unsigned height)
+{
+	width = static_cast<unsigned>(width * 0.5);
+	height = static_cast<unsigned>(height * 0.5);
+	mHalfResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+
+	width = static_cast<unsigned>(width * 0.5);
+	height = static_cast<unsigned>(height * 0.5);
+	mQuarterResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+
+	width = static_cast<unsigned>(width * 0.5);
+	height = static_cast<unsigned>(height * 0.5);
+	mEigthResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
 }
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
@@ -60,7 +101,8 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mDepthMap(std::make_unique<DepthMapShader>()),
 	mShadow(std::make_unique<ShadowShader>()),
 	mScreen(std::make_unique<ScreenShader>()),
-	mPostProcessor(std::make_unique<PostProcessor>(width, height))
+	mPostProcessor(std::make_unique<PostProcessor>(width, height)),
+	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
 
 }
@@ -110,4 +152,10 @@ nex::PostProcessor* nex::EffectLibrary::getPostProcessor()
 nex::DownSampler* nex::EffectLibrary::getDownSampler()
 {
 	return mDownSampler.get();
+}
+
+void nex::EffectLibrary::resize(unsigned width, unsigned height)
+{
+	mDownSampler->resize(width, height);
+	mPostProcessor->resize(width, height);
 }
