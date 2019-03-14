@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/texture/Sampler.hpp>
 #include <nex/opengl/opengl.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
 
 
 /*
@@ -24,7 +25,13 @@
 namespace nex
 {
 
-	class SamplerGL : public Sampler
+	class Sampler::Impl
+	{
+	public:
+		virtual ~Impl();
+	};
+
+	class SamplerGL : public Sampler::Impl
 	{
 	public:
 		SamplerGL(const SamplerDesc& state);
@@ -37,6 +44,8 @@ namespace nex
 		GLuint getCompareFuntion() const;
 
 	protected:
+		friend Sampler;
 		GLuint m_samplerID;
+		SamplerDesc mState;
 	};
 }

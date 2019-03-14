@@ -23,10 +23,10 @@ namespace nex
 
 	struct Dimension
 	{
-		int xPos;
-		int yPos;
-		int width;
-		int height;
+		unsigned xPos;
+		unsigned yPos;
+		unsigned width;
+		unsigned height;
 	};
 
 	FrustumCuboid operator*=(const FrustumCuboid& frustum, const glm::mat4& matrix);

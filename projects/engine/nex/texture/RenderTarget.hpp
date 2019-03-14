@@ -1,7 +1,5 @@
 #pragma once
 #include <nex/util/Math.hpp>
-#include <nex/texture/Texture.hpp>
-#include <nex/util/ExceptionHandling.hpp>
 
 namespace nex
 {
@@ -9,6 +7,9 @@ namespace nex
 	class Texture;
 	class RenderTarget;
 	struct TextureData;
+	enum class CubeMapSide;
+	struct TextureData;
+	struct RenderAttachment;
 
 	// Has to be implemented by the renderer backend
 	class RenderTargetImpl
@@ -24,41 +25,6 @@ namespace nex
 
 		// virtual needed for backend implementations
 		virtual ~RenderTargetImpl() = default;
-	};
-
-	struct RenderAttachment
-	{
-		enum class Type
-		{
-			COLOR, FIRST = COLOR,
-			DEPTH,
-			STENCIL, 
-			DEPTH_STENCIL, LAST = DEPTH_STENCIL,
-		};
-
-		unsigned colorAttachIndex = 0; // only used for color attachments
-		unsigned mipmapLevel = 0;
-		unsigned layer = 0; // Specifies the layer of an array texture; Must be zero for non array textures;
-		CubeMapSide side = CubeMapSide::POSITIVE_X;  // only used when target is TextureTarget::CubeMap
-		TextureTarget target = TextureTarget::TEXTURE2D;
-		Type type = Type::COLOR;
-		std::shared_ptr<Texture> texture;
-
-		RenderAttachment() {}
-
-		RenderAttachment( unsigned attachIndex, unsigned mipmapLevel, unsigned layer, CubeMapSide side, TextureTarget target, Type type, std::shared_ptr<Texture> texture)
-		: 
-			colorAttachIndex(attachIndex), 
-			mipmapLevel(mipmapLevel),
-			layer(layer),
-			side(side),
-			target(target),
-			type(type),
-			texture(std::move(texture))
-		{}
-
-		static Type translate(InternFormat format);
-
 	};
 
 

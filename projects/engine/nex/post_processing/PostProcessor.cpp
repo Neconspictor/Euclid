@@ -1,16 +1,31 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/RenderBackend.hpp"
+#include <nex/texture/RenderTarget.hpp>
+#include <nex/shader/Shader.hpp>
 
-nex::PostProcessor::PostProcessor(unsigned width, unsigned height) : mWidth(width), mHeight(height)
+
+class nex::PostProcessor::PostProcessShader : public nex::Shader
+{
+public:
+	PostProcessShader()
+	{
+		mProgram = nex::ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
+		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D };
+	}
+
+	Uniform sourceTextureUniform;
+};
+
+nex::PostProcessor::PostProcessor(unsigned width, unsigned height) : mWidth(width), mHeight(height),
+mPostprocessPass(std::make_unique<PostProcessShader>())
 {
 	mFullscreenPlane = StaticMeshManager::get()->getNDCFullscreenPlane();
 	
 	resize(width, height);
-
-	mPostprocessPass = std::make_unique<Shader>(ShaderProgram::create("post_processing/postProcess_vs.glsl", "post_processing/postProcess_fs.glsl"));
-	mSourceTextureUniform = { mPostprocessPass->getProgram()->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D};
 }
+
+nex::PostProcessor::~PostProcessor() = default;
 
 void nex::PostProcessor::doPostProcessing(Texture* source, RenderTarget2D* output)
 {
@@ -42,5 +57,5 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
-	mPostprocessPass->getProgram()->setTexture(mSourceTextureUniform.location, texture, 0);
+	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->sourceTextureUniform.location, texture, 0);
 }

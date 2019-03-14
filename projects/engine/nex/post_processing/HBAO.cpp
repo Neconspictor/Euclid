@@ -20,6 +20,7 @@
 #endif
 
 #include <algorithm>
+#include "nex/texture/Attachment.hpp"
 
 using namespace glm;
 

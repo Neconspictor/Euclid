@@ -4,12 +4,15 @@
 #include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <nex/opengl/opengl.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
+#include "nex/texture/Attachment.hpp"
+#include "nex/post_processing/PostProcessor.hpp"
+#include "nex/shader/SkyBoxShader.hpp"
+#include <nex/EffectLibrary.hpp>
 
 using namespace std;
 using namespace nex;
@@ -18,62 +21,35 @@ using namespace glm;
 namespace nex
 {
 
-	EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
-		mGaussianBlur(make_unique<GaussianBlur>()),
-		mEquirectangualrSkyBox(make_unique<EquirectangularSkyBoxShader>()),
-		mPanoramaSkyBox(make_unique<PanoramaSkyBoxShader>()),
-		mSkyBox(make_unique<SkyBoxShader>()),
-		mDepthMap(make_unique<DepthMapShader>()),
-		mShadow(make_unique<ShadowShader>()),
-		mScreen(make_unique<ScreenShader>()),
-		mPostProcessor(width, height)
+	class RenderBackend::Impl
 	{
+	public:
 
-	}
+		Impl() : m_logger("RenderBackend - OPENGL"),
+			backgroundColor(0.0f, 0.0f, 0.0f),
+			msaaSamples(1), defaultRenderTarget(nullptr)
+		{
+			
+		}
 
-	GaussianBlur* EffectLibrary::getGaussianBlur()
-	{
-		return mGaussianBlur.get();
-	}
+		~Impl() = default;
 
-	EquirectangularSkyBoxShader* EffectLibrary::getEquirectangularSkyBoxShader()
-	{
-		return mEquirectangualrSkyBox.get();
-	}
+		//Note: we use public qualifier as this class is private and only used for the RenderBackend!
+		glm::vec3 backgroundColor;
+		std::unique_ptr<EffectLibrary> mEffectLibrary;
+		unsigned int msaaSamples;
+		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
+		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
+		//BlendState mBlendState;
 
-	PanoramaSkyBoxShader* EffectLibrary::getPanoramaSkyBoxShader()
-	{
-		return mPanoramaSkyBox.get();
-	}
+		nex::Logger m_logger{ "RenderBackend" };
+		Blender mBlender;
+		DepthBuffer mDepthBuffer;
+		Rasterizer mRasterizer;
+		StencilTest mStencilTest;
+		Viewport mViewport;
+	};
 
-	SkyBoxShader* EffectLibrary::getSkyBoxShader()
-	{
-		return mSkyBox.get();
-	}
-
-	DepthMapShader* EffectLibrary::getDepthMapShader()
-	{
-		return mDepthMap.get();
-	}
-
-	ShadowShader* EffectLibrary::getShadowVisualizer()
-	{
-		return mShadow.get();
-	}
-
-	ScreenShader* EffectLibrary::getScreenShader()
-	{
-		return mScreen.get();
-	}
-
-	PostProcessor* EffectLibrary::getPostProcessor()
-	{
-		return &mPostProcessor;
-	}
-
-	void EffectLibrary::release()
-	{
-	}
 
 	Blender::Blender()
 	{
@@ -235,9 +211,8 @@ namespace nex
 		((StencilTestGL*)mImpl.get())->setState(state);
 	}
 
-	RenderBackend::RenderBackend() : m_logger("RenderBackend - OPENGL"),
-		backgroundColor(0.0f, 0.0f, 0.0f),
-		msaaSamples(1), defaultRenderTarget(nullptr)
+	RenderBackend::RenderBackend() :
+	mPimpl(std::make_unique<Impl>())
 	{
 		//__clearRenderTarget(&singleSampledScreenBuffer, false);
 		//__clearRenderTarget(&multiSampledScreenBuffer, false);
@@ -245,21 +220,21 @@ namespace nex
 
 	RenderBackend::~RenderBackend()
 	{
-		if (mEffectLibrary.get() != nullptr)
-			mEffectLibrary->release();
+		//delete mPimpl;
+		//mPimpl = nullptr;
 	}
 
 	void RenderBackend::init()
 	{
-		LOG(m_logger, Info) << "Initializing...";
+		LOG(mPimpl->m_logger, Info) << "Initializing...";
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
 		getRasterizer()->enableScissorTest(true);
-		setViewPort(0, 0, mViewport.width, mViewport.height);
-		setScissor(0, 0, mViewport.width, mViewport.height);
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
-		defaultRenderTarget->bind(); 
-		defaultRenderTarget->clear(RenderComponent::Color);
+		setViewPort(0, 0, mPimpl->mViewport.width, mPimpl->mViewport.height);
+		setScissor(0, 0, mPimpl->mViewport.width, mPimpl->mViewport.height);
+		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
+		mPimpl->defaultRenderTarget->bind();
+		mPimpl->defaultRenderTarget->clear(RenderComponent::Color);
 		GLCall(glClearColor(1.0, 0.0, 0.0, 1.0)); // TODO abstract
 
 		getDepthBuffer()->enableDepthTest(true);
@@ -275,7 +250,7 @@ namespace nex
 
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 
-		mEffectLibrary = make_unique<EffectLibrary>(mViewport.width, mViewport.height);
+		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);
 
 		/*ImageLoaderGL imageLoader;
 		GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
@@ -325,12 +300,12 @@ namespace nex
 
 	RenderTarget2D* nex::RenderBackend::getDefaultRenderTarget()
 	{
-		return defaultRenderTarget.get();
+		return mPimpl->defaultRenderTarget.get();
 	}
 
 	DepthBuffer* RenderBackend::getDepthBuffer()
 	{
-		return &mDepthBuffer;
+		return &mPimpl->mDepthBuffer;
 	}
 
 	std::unique_ptr <RenderTarget2D> nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, const TextureData& depthData, int samples) {
@@ -347,8 +322,8 @@ namespace nex
 	{
 		const int ssaaSamples = 1;
 
-		const unsigned width = mViewport.width * ssaaSamples;
-		const unsigned height = mViewport.height * ssaaSamples;
+		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
+		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
 		TextureData depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL,
 			ColorSpace::DEPTH_STENCIL,
@@ -378,17 +353,17 @@ namespace nex
 
 	Blender * RenderBackend::getBlender()
 	{
-		return &mBlender;
+		return &mPimpl->mBlender;
 	}
 
 	Rasterizer * RenderBackend::getRasterizer()
 	{
-		return &mRasterizer;
+		return &mPimpl->mRasterizer;
 	}
 
 	StencilTest* RenderBackend::getStencilTest()
 	{
-		return &mStencilTest;
+		return &mPimpl->mStencilTest;
 	}
 
 	RendererType RenderBackend::getType() const
@@ -398,7 +373,7 @@ namespace nex
 
 	const Viewport& RenderBackend::getViewport() const
 	{
-		return mViewport;
+		return mPimpl->mViewport;
 	}
 
 	void RenderBackend::present()
@@ -407,20 +382,20 @@ namespace nex
 
 	void RenderBackend::resize(int width, int height)
 	{
-		mViewport.width = width;
-		mViewport.height = height;
-		defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mViewport.width, mViewport.height));
-		mEffectLibrary->getPostProcessor()->resize(width, height);
+		mPimpl->mViewport.width = width;
+		mPimpl->mViewport.height = height;
+		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
+		mPimpl->mEffectLibrary->getPostProcessor()->resize(width, height);
 	}
 
 	void RenderBackend::release()
 	{
-		mEffectLibrary.reset(nullptr);
+		mPimpl->mEffectLibrary.reset(nullptr);
 	}
 
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
 	{
-		backgroundColor = color;
+		mPimpl->backgroundColor = color;
 	}
 
 	void RenderBackend::setLineThickness(float thickness)
@@ -434,11 +409,11 @@ namespace nex
 		if (samples == 0)
 		{
 			// Samples smaller one cannot be handled by OpenGL
-			msaaSamples = 1;
+			mPimpl->msaaSamples = 1;
 		}
 		else
 		{
-			msaaSamples = samples;
+			mPimpl->msaaSamples = samples;
 		}
 	}
 
@@ -449,10 +424,10 @@ namespace nex
 
 	void RenderBackend::setViewPort(int x, int y, int width, int height)
 	{
-		mViewport.x = x;
-		mViewport.y = y;
-		mViewport.width = width;
-		mViewport.height = height;
+		mPimpl->mViewport.x = x;
+		mPimpl->mViewport.y = y;
+		mPimpl->mViewport.width = width;
+		mPimpl->mViewport.height = height;
 
 		GLCall(glViewport(x, y, width, height));
 		//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
@@ -482,7 +457,7 @@ namespace nex
 
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
-		auto* shader = mEffectLibrary->getEquirectangularSkyBoxShader();
+		auto* shader = mPimpl->mEffectLibrary->getEquirectangularSkyBoxShader();
 		const mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 		shader->bind();
@@ -555,7 +530,7 @@ namespace nex
 
 	EffectLibrary* RenderBackend::getEffectLibrary()
 	{
-		return mEffectLibrary.get();
+		return mPimpl->mEffectLibrary.get();
 	}
 
 	/*RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)

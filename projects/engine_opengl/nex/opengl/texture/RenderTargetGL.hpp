@@ -5,6 +5,7 @@
 
 namespace nex
 {
+	enum class RenderAttachmentType;
 	class RenderTargetGL;
 	class RenderBackend;
 	class CubeRenderTargetGL;
@@ -19,7 +20,7 @@ namespace nex
 	};
 
 
-	GLuint translate(RenderAttachment::Type type, unsigned attachIndex);
+	GLuint translate(RenderAttachmentType type, unsigned attachIndex);
 
 	class RenderTargetGL : public RenderTargetImpl
 	{
@@ -59,7 +60,7 @@ namespace nex
 
 		bool isComplete() const;
 
-		static bool isDepthType(RenderAttachment::Type type);
+		static bool isDepthType(RenderAttachmentType type);
 
 		void setFrameBuffer(GLuint newValue);
 
@@ -77,7 +78,7 @@ namespace nex
 
 		GLuint mFrameBuffer;
 		std::vector<RenderAttachment> mColorAttachments;
-		RenderAttachment mDepthAttachment;
+		std::unique_ptr<RenderAttachment> mDepthAttachment;
 
 		const RenderAttachment* getByIndex(const unsigned colorAttachIndex) const;
 		static bool isArrayTarget(GLenum textureTarget);

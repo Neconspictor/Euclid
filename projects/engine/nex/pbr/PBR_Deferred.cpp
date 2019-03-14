@@ -11,6 +11,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/texture/Sampler.hpp>
 
 using namespace glm;
 
@@ -194,7 +195,7 @@ namespace nex {
 
 		float temp[2] = {sphericalCoordinate.polar, sphericalCoordinate.azimuth};
 
-		if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05))
+		if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05f))
 		{
 			//temp = clamp(temp, glm::vec2(-1.0f), glm::vec2(1.0f));
 			//temp[0] = std::clamp<float>(temp[0], 0, M_PI);

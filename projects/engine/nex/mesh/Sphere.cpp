@@ -63,7 +63,7 @@ namespace nex
 		vertexBuffer.fill(vertices.data(), vertices.size() * sizeof(Vertex));
 
 		mIndexBuffer.bind();
-		mIndexBuffer.fill(indices.data(), indices.size());
+		mIndexBuffer.fill(indices.data(), static_cast<unsigned>(indices.size()));
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position

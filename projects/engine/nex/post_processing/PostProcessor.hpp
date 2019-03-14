@@ -1,12 +1,12 @@
 #pragma once
 
-#include <nex/texture/RenderTarget.hpp>
-#include <nex/shader/Shader.hpp>
-
 namespace nex
 {
 
 	class VertexArray;
+	class RenderTarget2D;
+	class Texture;
+	struct Uniform;
 
 	class PostProcessor {
 	public:
@@ -17,6 +17,9 @@ namespace nex
 		 * @param height : The screen height
 		 */
 		PostProcessor(unsigned width, unsigned height);
+
+		// Don't allow inlined destructor for Pimpl 
+		~PostProcessor();
 
 		/**
 		 * Does post processing. The result is rendered into the given render target.
@@ -34,6 +37,8 @@ namespace nex
 
 	private:
 
+		class PostProcessShader;
+
 		void setPostProcessTexture(Texture* texture);
 
 		/**
@@ -42,8 +47,7 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> mTemp;
 		VertexArray* mFullscreenPlane;
 
-		std::unique_ptr<Shader> mPostprocessPass;
-		Uniform mSourceTextureUniform;
+		std::unique_ptr<PostProcessShader> mPostprocessPass;
 		unsigned mWidth;
 		unsigned mHeight;
 	};

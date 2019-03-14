@@ -1,7 +1,6 @@
 #pragma once
 #include <map>
 #include <list>
-#include <nex/texture/Sampler.hpp>
 #include <nex/gui/Drawable.hpp>
 #include <nex/texture/Texture.hpp>
 #include "nex/common/Log.hpp"
@@ -10,6 +9,7 @@
 namespace nex {
 	struct GenericImage;
 	class FileSystem;
+	class Sampler;
 
 	/**
  * A texture manager for an opengl renderer.
@@ -87,7 +87,7 @@ namespace nex {
 		std::list<CubeMap*> cubeMaps;
 		std::map<std::string, nex::Texture*> textureLookupTable;
 		nex::Logger m_logger;
-		Sampler* mDefaultImageSampler;
+		std::unique_ptr<Sampler> mDefaultImageSampler;
 		nex::FileSystem* mFileSystem;
 	};
 

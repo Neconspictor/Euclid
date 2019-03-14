@@ -9,6 +9,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include "nex/gui/Util.hpp"
 #include "imgui/imgui_internal.h"
+#include "nex/texture/Attachment.hpp"
 
 using namespace nex;
 
@@ -171,7 +172,7 @@ void CascadedShadow::updateTextureArray()
 	data.compareFunc = CompareFunction::LESS;
 
 	RenderAttachment depth;
-	depth.type = RenderAttachment::Type::DEPTH;
+	depth.type = RenderAttachmentType::DEPTH;
 	depth.target = TextureTarget::TEXTURE2D_ARRAY;
 	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mCascadeData.numCascades, false, data, nullptr);
 

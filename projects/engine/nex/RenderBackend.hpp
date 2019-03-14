@@ -1,15 +1,8 @@
 #pragma once
-#include <list>
 #include <memory>
-#include <nex/common/Log.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
-#include <nex/shader/DepthMapShader.hpp>
-#include "shader/SkyBoxShader.hpp"
-#include "shader/ShadowShader.hpp"
-#include "shader/ScreenShader.hpp"
-#include "post_processing/PostProcessor.hpp"
 
 namespace nex
 {
@@ -18,6 +11,7 @@ namespace nex
 	class TextureManager;
 	class ShaderManager;
 	class CubeDepthMap;
+	class EffectLibrary;
 
 	class StaticMeshDrawer;
 	class ShadingModelFactory;
@@ -81,39 +75,6 @@ namespace nex
 
 	class SMAA;
 	class RenderBackend;
-
-	class EffectLibrary {
-	public:
-
-		EffectLibrary(unsigned width, unsigned height);
-
-		// Inherited via EffectLibrary
-		GaussianBlur* getGaussianBlur();
-
-		EquirectangularSkyBoxShader* getEquirectangularSkyBoxShader();
-		PanoramaSkyBoxShader* getPanoramaSkyBoxShader();
-		SkyBoxShader* getSkyBoxShader();
-
-		DepthMapShader* getDepthMapShader();
-
-		ShadowShader* getShadowVisualizer();
-
-		ScreenShader* getScreenShader();
-
-		PostProcessor* getPostProcessor();
-
-		void release();
-
-	protected:
-		std::unique_ptr<GaussianBlur> mGaussianBlur;
-		std::unique_ptr<EquirectangularSkyBoxShader> mEquirectangualrSkyBox;
-		std::unique_ptr<PanoramaSkyBoxShader> mPanoramaSkyBox;
-		std::unique_ptr<SkyBoxShader> mSkyBox;
-		std::unique_ptr<DepthMapShader> mDepthMap;
-		std::unique_ptr<ShadowShader> mShadow;
-		std::unique_ptr<ScreenShader> mScreen;
-		PostProcessor mPostProcessor;
-	};
 
 	enum class BlendFunc
 	{
@@ -513,18 +474,8 @@ namespace nex
 		void setViewPort(int x, int y, int width, int height);
 
 	protected:
-		glm::vec3 backgroundColor;
-		std::unique_ptr<EffectLibrary> mEffectLibrary;
-		unsigned int msaaSamples;
-		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
-		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
-		//BlendState mBlendState;
 
-		nex::Logger m_logger{"RenderBackend"};
-		Blender mBlender;
-		DepthBuffer mDepthBuffer;
-		Rasterizer mRasterizer;
-		StencilTest mStencilTest;
-		Viewport mViewport;
+		class Impl;
+		std::unique_ptr<Impl> mPimpl;
 	};
 }

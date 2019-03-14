@@ -1,8 +1,10 @@
 set(
     ENGINE_SOURCES 
     
-    ###header files###
     pch_engine.hpp
+    
+    nex/EffectLibrary.cpp
+    nex/EffectLibrary.hpp
     
     nex/RenderBackend.hpp
     nex/Renderer.hpp
@@ -213,6 +215,7 @@ set(
     nex/sky/AtmosphericScattering.hpp
     
     #nex/texture
+    nex/texture/Attachment.hpp
     nex/texture/GBuffer.hpp
 	nex/texture/GBuffer.cpp
     nex/texture/Image.hpp
@@ -221,7 +224,8 @@ set(
     nex/texture/Sampler.hpp
     nex/texture/Sprite.cpp
     nex/texture/Sprite.hpp
-    nex/texture/Texture.hpp    
+    nex/texture/Texture.hpp  
+    nex/texture/TextureSamplerData.hpp    
     nex/texture/TextureManager.hpp
 	nex/texture/TextureManager.cpp
     

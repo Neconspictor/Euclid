@@ -10,7 +10,7 @@
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
-#include <nex/texture/Gbuffer.hpp>
+#include <nex/texture/GBuffer.hpp>
 #include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/RenderBackend.hpp"
@@ -18,6 +18,9 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include  <nex/post_processing/AmbientOcclusion.hpp>
+#include <nex/EffectLibrary.hpp>
+#include "nex/texture/Attachment.hpp"
+#include "nex/post_processing/PostProcessor.hpp"
 
 int ssaaSamples = 1;
 

@@ -6,6 +6,8 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/RenderBackend.hpp>
 #include "nex/shader/PBRShader.hpp"
+#include "nex/EffectLibrary.hpp"
+#include "nex/texture/Attachment.hpp"
 
 using namespace glm;
 using namespace nex;
@@ -274,7 +276,7 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	depth.texture = std::make_unique<RenderBuffer>(2048, 2048, InternFormat::DEPTH24);
-	depth.type = RenderAttachment::Type::DEPTH;
+	depth.type = RenderAttachmentType::DEPTH;
 	cubeRenderTarget->useDepthAttachment(depth);
 	cubeRenderTarget->updateDepthAttachment();
 

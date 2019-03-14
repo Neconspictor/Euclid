@@ -10,6 +10,7 @@
 #include <nex/shader/ShaderBuffer.hpp>
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
+#include "nex/texture/Attachment.hpp"
 
 using namespace std; 
 using namespace glm;

@@ -21,6 +21,8 @@
 #include <nex/FileSystem.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
+#include <nex/texture/Sampler.hpp>
 
 using namespace std;
 
@@ -124,7 +126,7 @@ namespace nex {
 		//glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 
-		mDefaultImageSampler = Sampler::create({});
+		mDefaultImageSampler = std::make_unique<Sampler>(SamplerDesc());
 		mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
 		mDefaultImageSampler->setMagFilter(TextureFilter::Linear);
 		mDefaultImageSampler->setWrapR(TextureUVTechnique::Repeat);
@@ -328,7 +330,7 @@ namespace nex {
 
 	Sampler* TextureManager::getDefaultImageSampler()
 	{
-		return mDefaultImageSampler;
+		return mDefaultImageSampler.get();
 	}
 
 	TextureManager* TextureManager::get()
@@ -355,8 +357,7 @@ namespace nex {
 
 		textureLookupTable.clear();
 
-		delete mDefaultImageSampler;
-		mDefaultImageSampler = nullptr;
+		mDefaultImageSampler.reset(nullptr);
 	}
 
 

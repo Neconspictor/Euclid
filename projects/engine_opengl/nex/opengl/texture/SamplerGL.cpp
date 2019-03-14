@@ -5,24 +5,34 @@
 
 using namespace nex;
 
-SamplerGL::SamplerGL(const SamplerDesc& state) : Sampler(state, this), m_samplerID(GL_FALSE)
+Sampler::Sampler(const SamplerDesc& samplerState) : mImpl(std::make_unique<SamplerGL>(samplerState))
+{
+	
+	setMinFilter(samplerState.minFilter);
+	setMagFilter(samplerState.magFilter);
+	setAnisotropy(samplerState.maxAnisotropy);
+	setWrapS(samplerState.wrapS);
+	setWrapR(samplerState.wrapR);
+	setWrapT(samplerState.wrapT);
+	setBorderColor(samplerState.borderColor);
+	setMinLOD(samplerState.minLOD);
+	setMaxLOD(samplerState.maxLOD);
+	setLodBias(samplerState.biasLOD);
+	useDepthComparison(samplerState.useDepthComparison);
+	setCompareFunction(samplerState.compareFunction);
+}
+
+Sampler::~Sampler()
+{
+	int i = 0;
+};
+
+
+Sampler::Impl::~Impl() = default;
+
+SamplerGL::SamplerGL(const SamplerDesc& state) :  m_samplerID(GL_FALSE), mState(state)
 {
 	GLCall(glGenSamplers(1, &m_samplerID));
-
-	setMinFilter(mState.minFilter);
-	setMagFilter(mState.magFilter);
-	setAnisotropy(mState.maxAnisotropy);
-	setWrapS(mState.wrapS);
-	setWrapR(mState.wrapR);
-	setWrapT(mState.wrapT);
-	setBorderColor(mState.borderColor);
-	setMinLOD(mState.minLOD);
-	setMaxLOD(mState.maxLOD);
-	setLodBias(mState.biasLOD);
-	useDepthComparison(state.useDepthComparison);
-	setCompareFunction(state.compareFunction);
-
-	mImpl = this;
 }
 
 SamplerGL::~SamplerGL()
@@ -38,31 +48,28 @@ GLuint SamplerGL::getID() const
 	return m_samplerID;
 }
 
-Sampler* Sampler::create(const SamplerDesc& samplerState)
-{
-	return new SamplerGL(samplerState);
-}
-
 void Sampler::bind(unsigned textureBindingSlot)
 {
-	GLCall(glBindSampler(textureBindingSlot, ((SamplerGL*)mImpl)->getID()));
+	GLCall(glBindSampler(textureBindingSlot, ((SamplerGL*)mImpl.get())->getID()));
 }
 
 const SamplerDesc& Sampler::getState() const
 {
-	return mState;
+	return ((SamplerGL*)mImpl.get())->mState;
 }
 
 void Sampler::setMinFilter(TextureFilter filter)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MIN_FILTER, translate(filter)));
-	mState.minFilter = filter;
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_MIN_FILTER, translate(filter)));
+	impl->mState.minFilter = filter;
 }
 
 void Sampler::setMagFilter(TextureFilter filter)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAG_FILTER, translate(filter)));
-	mState.magFilter = filter;
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameteri(((SamplerGL*)mImpl.get())->getID(), GL_TEXTURE_MAG_FILTER, translate(filter)));
+	impl->mState.magFilter = filter;
 }
 
 GLfloat SamplerGL::getMaxAnisotropicFiltering()
@@ -91,63 +98,74 @@ void Sampler::setAnisotropy(float anisotropy)
 	GLfloat maxAnisotropy = SamplerGL::getMaxAnisotropicFiltering();
 	anisotropy = std::min(anisotropy, maxAnisotropy);
 
-	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropy));
-	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_ANISOTROPY, &mState.maxAnisotropy));
+	auto* impl = ((SamplerGL*)mImpl.get());
+
+	GLCall(glSamplerParameterf(impl->getID(), GL_TEXTURE_MAX_ANISOTROPY, anisotropy));
+	GLCall(glGetSamplerParameterfv(impl->getID(), GL_TEXTURE_MAX_ANISOTROPY, &impl->mState.maxAnisotropy));
 }
 
 void Sampler::useDepthComparison(bool use)
 {
-	mState.useDepthComparison = use;
-	const GLuint translated = mState.useDepthComparison ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_MODE, translated));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	impl->mState.useDepthComparison = use;
+	const GLuint translated = impl->mState.useDepthComparison ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_COMPARE_MODE, translated));
 }
 
 void Sampler::setCompareFunction(CompareFunction compareFunction)
 {
-	mState.compareFunction = compareFunction;
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_COMPARE_FUNC, translate(mState.compareFunction)));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	impl->mState.compareFunction = compareFunction;
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_COMPARE_FUNC, translate(impl->mState.compareFunction)));
 }
 
 void Sampler::setWrapS(TextureUVTechnique wrap)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_WRAP_S, translate(wrap)));
-	mState.wrapS = wrap;
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_S, translate(wrap)));
+	impl->mState.wrapS = wrap;
 }
 
 void Sampler::setWrapT(TextureUVTechnique wrap)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_WRAP_T, translate(wrap)));
-	mState.wrapT = wrap;
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_T, translate(wrap)));
+	impl->mState.wrapT = wrap;
 }
 
 void Sampler::setWrapR(TextureUVTechnique wrap)
 {
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_WRAP_R, translate(wrap)));
-	mState.wrapR = wrap;
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_R, translate(wrap)));
+	impl->mState.wrapR = wrap;
 }
 
 void Sampler::setBorderColor(const glm::vec4& color)
 {
-	GLCall(glSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_BORDER_COLOR, (float*)&color.data));
-	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_BORDER_COLOR, (float*)&mState.borderColor));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameterfv(impl->getID(), GL_TEXTURE_BORDER_COLOR, (float*)&color.data));
+	GLCall(glGetSamplerParameterfv(impl->getID(), GL_TEXTURE_BORDER_COLOR, (float*)&impl->mState.borderColor));
 }
 
 void Sampler::setMinLOD(float lod)
 {
-	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MIN_LOD, lod));
-	GLCall(glGetSamplerParameterIiv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MIN_LOD, &mState.minLOD));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameterf(impl->getID(), GL_TEXTURE_MIN_LOD, lod));
+	GLCall(glGetSamplerParameterIiv(impl->getID(), GL_TEXTURE_MIN_LOD, &impl->mState.minLOD));
 }
 
 void Sampler::setMaxLOD(float lod)
 {
-	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_LOD, lod));
-	GLCall(glGetSamplerParameterIiv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_MAX_LOD, &mState.maxLOD));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameterf(impl->getID(), GL_TEXTURE_MAX_LOD, lod));
+	GLCall(glGetSamplerParameterIiv(impl->getID(), GL_TEXTURE_MAX_LOD, &impl->mState.maxLOD));
 }
 
 void Sampler::setLodBias(float bias)
 {
-	GLCall(glSamplerParameterf(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_LOD_BIAS, bias));
-	GLCall(glGetSamplerParameterfv(((SamplerGL*)mImpl)->getID(), GL_TEXTURE_LOD_BIAS, &mState.biasLOD));
+	auto* impl = ((SamplerGL*)mImpl.get());
+	GLCall(glSamplerParameterf(impl->getID(), GL_TEXTURE_LOD_BIAS, bias));
+	GLCall(glGetSamplerParameterfv(impl->getID(), GL_TEXTURE_LOD_BIAS, &impl->mState.biasLOD));
 }
 
 void Sampler::unbind(unsigned textureBindingSlot)

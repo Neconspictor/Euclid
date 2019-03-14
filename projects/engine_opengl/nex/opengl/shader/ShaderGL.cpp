@@ -225,7 +225,7 @@ nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShader
 	GLCall(id = glCreateShader(translate(desc.type)));
 
 	const char* src = desc.root.resolvedSource.data();
-	const GLint size = desc.root.resolvedSource.size();
+	const GLint size = static_cast<GLint>(desc.root.resolvedSource.size());
 
 	GLCall(glShaderSource(id, 1, &src, &size));
 	GLCall(glCompileShader(id));

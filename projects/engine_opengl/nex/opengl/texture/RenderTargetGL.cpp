@@ -5,12 +5,13 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/opengl.hpp>
+#include "nex/texture/Attachment.hpp"
 
 using namespace std;
 using namespace glm;
 
 
-GLuint nex::translate(RenderAttachment::Type type, unsigned attachIndex)
+GLuint nex::translate(RenderAttachmentType type, unsigned attachIndex)
 {
 	static AttachmentTypeGL table [] = {
 		ATTACHMENT_COLOR,
@@ -19,7 +20,7 @@ GLuint nex::translate(RenderAttachment::Type type, unsigned attachIndex)
 		ATTACHMNET_DEPTH_STENCIL
 	};
 
-	static const size_t size = (size_t)RenderAttachment::Type::LAST - (size_t)RenderAttachment::Type::FIRST + 1;
+	static const size_t size = (size_t)RenderAttachmentType::LAST - (size_t)RenderAttachmentType::FIRST + 1;
 	static const size_t tableSize = sizeof(table) / sizeof(AttachmentTypeGL);
 	static_assert(tableSize == size, "RenderAttachment and RenderAttachmentTypeGL don't match!");
 
@@ -76,7 +77,7 @@ nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, Tex
 
 	RenderAttachment color;
 	color.target = TextureTarget::CUBE_MAP;
-	color.type = RenderAttachment::Type::COLOR;
+	color.type = RenderAttachmentType::COLOR;
 	color.texture = make_unique<CubeMap>(width, height, data);
 	addColorAttachment(std::move(color));
 
@@ -176,9 +177,9 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	unsigned int mipWidth = (unsigned int)(mWidth * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(mHeight * std::pow(0.5, mipMapLevel));
 
-	if (mDepthAttachment.texture)
+	if (mDepthAttachment->texture)
 	{
-		TextureGL* impl = (TextureGL*)mDepthAttachment.texture->getImpl();
+		TextureGL* impl = (TextureGL*)mDepthAttachment->texture->getImpl();
 		auto renderBuffer = dynamic_cast<RenderBufferGL*>(impl);
 		auto texture2D = dynamic_cast<Texture2DGL*>(impl);
 
@@ -198,51 +199,51 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	//unbind();
 }
 
-nex::RenderAttachment::Type nex::RenderAttachment::translate(InternFormat format)
+nex::RenderAttachmentType nex::RenderAttachment::translate(InternFormat format)
 {
-	static nex::RenderAttachment::Type const table[]
+	static nex::RenderAttachmentType const table[]
 	{
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
 
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
 
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
 
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
-		Type::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
 
-		Type::COLOR,
-		Type::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
 
-		Type::DEPTH_STENCIL,
-		Type::DEPTH_STENCIL,
+		RenderAttachmentType::DEPTH_STENCIL,
+		RenderAttachmentType::DEPTH_STENCIL,
 
-		Type::DEPTH,
-		Type::DEPTH,
-		Type::DEPTH,
-		Type::DEPTH,
+		RenderAttachmentType::DEPTH,
+		RenderAttachmentType::DEPTH,
+		RenderAttachmentType::DEPTH,
+		RenderAttachmentType::DEPTH,
 
-		Type::STENCIL
+		RenderAttachmentType::STENCIL
 	};
 
 	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
@@ -420,6 +421,7 @@ nex::RenderTarget* nex::RenderTarget::createVSM(int width, int height)
 
 nex::RenderTargetGL::RenderTargetGL() :
 	RenderTargetImpl(),
+	mDepthAttachment(make_unique<RenderAttachment>()),
 	mFrameBuffer(GL_FALSE)
 {
 	GLCall(glGenFramebuffers(1, &mFrameBuffer));
@@ -444,13 +446,13 @@ nex::RenderTargetGL::~RenderTargetGL()
 
 void nex::RenderTargetGL::addColorAttachment(RenderAttachment attachment)
 {
-	if (attachment.type != RenderAttachment::Type::COLOR)
+	if (attachment.type != RenderAttachmentType::COLOR)
 	{
 		//throw_with_trace(std::runtime_error("nex::RenderTargetGL::addColorAttachment(): attachment isn't a color component!"));
 	}
 
 	mColorAttachments.emplace_back(std::move(attachment));
-	updateColorAttachment(mColorAttachments.size() - 1);
+	updateColorAttachment(static_cast<unsigned>(mColorAttachments.size() - 1));
 }
 
 void nex::RenderTargetGL::assertCompletion() const
@@ -471,7 +473,7 @@ void nex::RenderTargetGL::enableDrawToColorAttachments(bool enable) const
 	if (enable)
 	{
 		const auto colorAttachments = calcColorAttachments();
-		GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, colorAttachments.size(), colorAttachments.data()));
+		GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, static_cast<unsigned>(colorAttachments.size()), colorAttachments.data()));
 	}
 	else
 	{
@@ -513,7 +515,7 @@ void nex::RenderTargetGL::updateColorAttachment(unsigned index) const
 
 void nex::RenderTargetGL::updateDepthAttachment() const
 {
-	updateAttachment(mDepthAttachment);
+	updateAttachment(*mDepthAttachment);
 }
 
 const nex::RenderAttachment* nex::RenderTargetGL::getByIndex(const unsigned colorAttachIndex) const
@@ -535,7 +537,7 @@ bool nex::RenderTargetGL::isArrayTarget(GLenum target)
 
 void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) const
 {
-	if (attachment.type == RenderAttachment::Type::COLOR && (attachment.texture != nullptr))
+	if (attachment.type == RenderAttachmentType::COLOR && (attachment.texture != nullptr))
 	{
 		// check that there is no other color attachment with the same color attach index
 		const auto* firstFound = getByIndex(attachment.colorAttachIndex);
@@ -594,7 +596,7 @@ std::vector<GLenum> nex::RenderTargetGL::calcColorAttachments() const
 	std::vector<GLenum> result;
 	for (const auto& attachment : mColorAttachments)
 	{
-		if (attachment.type == RenderAttachment::Type::COLOR)
+		if (attachment.type == RenderAttachmentType::COLOR)
 		{
 			const auto glEnum = translate(attachment.type, attachment.colorAttachIndex);
 			result.push_back(glEnum);
@@ -741,7 +743,7 @@ bool nex::RenderTargetGL::isComplete() const
 	return result == GL_FRAMEBUFFER_COMPLETE;
 }
 
-bool nex::RenderTargetGL::isDepthType(RenderAttachment::Type type)
+bool nex::RenderTargetGL::isDepthType(RenderAttachmentType type)
 {
 	static bool table[] = {
 		false,
@@ -750,7 +752,7 @@ bool nex::RenderTargetGL::isDepthType(RenderAttachment::Type type)
 		true
 	};
 
-	static const size_t size = (size_t)RenderAttachment::Type::LAST - (size_t)RenderAttachment::Type::FIRST + 1;
+	static const size_t size = (size_t)RenderAttachmentType::LAST - (size_t)RenderAttachmentType::FIRST + 1;
 	static const size_t tableSize = sizeof(table) / sizeof(bool);
 	static_assert(tableSize == size, "RenderAttachment::Type and bool table don't match!");
 
@@ -775,7 +777,7 @@ std::vector<nex::RenderAttachment>& nex::RenderTargetGL::getColorAttachments()
 
 nex::RenderAttachment& nex::RenderTargetGL::getDepthAttachment()
 {
-	return mDepthAttachment;
+	return *mDepthAttachment;
 }
 
 void nex::RenderTargetGL::useDepthAttachment(RenderAttachment attachment)
@@ -787,7 +789,7 @@ void nex::RenderTargetGL::useDepthAttachment(RenderAttachment attachment)
 	}
 
 
-	mDepthAttachment = std::move(attachment);
+	*mDepthAttachment = std::move(attachment);
 	updateDepthAttachment();
 }
 
@@ -816,7 +818,7 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	RenderAttachment depth;
 
 	depth.texture = make_unique<CubeMap>(width, height, desc);
-	depth.type = RenderAttachment::Type::DEPTH;
+	depth.type = RenderAttachmentType::DEPTH;
 	depth.target = TextureTarget::CUBE_MAP;
 	depth.side = CubeMapSide::POSITIVE_X;
 

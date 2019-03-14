@@ -1,5 +1,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include "Texture.hpp"
+#include "Attachment.hpp"
 
 using namespace std;
 
@@ -69,7 +71,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::UNSIGNED_INT_24_8;
 		data.colorspace = ColorSpace::DEPTH_STENCIL;
 
-		temp.type = RenderAttachment::Type::DEPTH_STENCIL;
+		temp.type = RenderAttachmentType::DEPTH_STENCIL;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 
 		useDepthAttachment(std::move(temp));

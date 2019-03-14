@@ -4,6 +4,7 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/texture/Texture.hpp>
+#include "nex/texture/Attachment.hpp"
 
 namespace nex {
 
