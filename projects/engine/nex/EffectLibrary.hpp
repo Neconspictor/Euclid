@@ -32,6 +32,8 @@ namespace nex
 
 		Texture2D* downsampleEigthResolution(Texture2D* src);
 
+		Texture2D* downsampleSixteenthResolution(Texture2D* src);
+
 		/**
 		 * Renders a texture to the 
 		 */
@@ -46,6 +48,7 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> mHalfResolution;
 		std::unique_ptr<RenderTarget2D> mQuarterResolution;
 		std::unique_ptr<RenderTarget2D> mEigthResolution;
+		std::unique_ptr<RenderTarget2D> mSixteenthResolution;
 		std::unique_ptr<Sampler> mSampler;
 	};
 

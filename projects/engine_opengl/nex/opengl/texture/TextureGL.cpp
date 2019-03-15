@@ -50,12 +50,6 @@ nex::CubeMap::CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData
 {
 }
 
-void nex::CubeMap::generateMipMaps()
-{
-	auto gl = (CubeMapGL*)getImpl();
-	gl->generateMipMaps();
-}
-
 unsigned nex::CubeMap::getSideWidth() const
 {
 	const auto impl = (CubeMapGL*)mImpl.get();
@@ -109,12 +103,6 @@ nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const Texture
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap, GL_TEXTURE_CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
-}
-
-void nex::CubeMapGL::generateMipMaps()
-{
-	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID));
-	GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
 }
 
 
@@ -325,6 +313,12 @@ std::unique_ptr<nex::Texture> nex::Texture::createView(Texture* original, Textur
 	return make_unique<Texture>(std::move(impl));
 }
 
+void nex::Texture::generateMipMaps()
+{
+	auto impl = (TextureGL*)mImpl.get();
+	impl->generateMipMaps();
+}
+
 nex::TextureImpl* nex::Texture::getImpl() const
 {
 	return mImpl.get();
@@ -365,6 +359,17 @@ nex::TextureGL::TextureGL(GLuint texture, GLuint target) : mTextureID(texture), 
 nex::TextureGL::~TextureGL()
 {
 	release();
+}
+
+void nex::TextureGL::generateMipMaps()
+{
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(mTarget, mTextureID));
+	GLCall(glBindSampler(0, GL_FALSE));
+
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_BASE_LEVEL, 0));
+	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAX_LEVEL, 1000));
+	GLCall(glGenerateMipmap(mTarget));
 }
 
 std::unique_ptr<nex::TextureGL> nex::TextureGL::createView(TextureGL* original, TextureTarget target, unsigned minLevel, unsigned numLevel,

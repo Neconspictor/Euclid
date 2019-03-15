@@ -59,9 +59,13 @@ namespace nex
 		AmbientOcclusionSelector m_aoSelector;
 
 		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
-		std::unique_ptr<RenderTarget2D> mTempRenderTarget;
-		std::unique_ptr<RenderTarget2D> mTempRenderTargetEidth1;
-		std::unique_ptr<RenderTarget2D> mTempRenderTargetEidth2;
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetHalfth;
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetQuarter;
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetEigth1;
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetEigth2;
+
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetSixteenth1;
+		std::unique_ptr<RenderTarget2D> mTempRenderTargetSixteenth2;
 
 		AtmosphericScattering mAtmosphericScattering;
 

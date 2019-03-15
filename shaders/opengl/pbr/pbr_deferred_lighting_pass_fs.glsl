@@ -195,6 +195,8 @@ void main()
     
     FragColor = 0.5*cascadeColor + 0.5*FragColor;
     
+    //FragColor = vec4(0.8, 0.8, 0.8, 1);
+    
 	//vec2 windowSize = gl_FragCoord.xy / textureSize(gBuffer.positionEyeMap, 0).xy;
 	//FragColor = vec4(windowSize, 1, 1);
 }

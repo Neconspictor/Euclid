@@ -68,6 +68,12 @@ namespace nex
 			unsigned numLayers,
 			const TextureData& data);
 
+		/**
+		 *  Generates mipmaps for the current content of this texture.
+		 *  NOTE: Has to be implemented by renderer backend
+		 */
+		void generateMipMaps();
+
 
 		/**
 		 * Reads a texture back from the gpu
@@ -170,13 +176,6 @@ namespace nex
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
-
-		/**
-		 *  Generates mipmaps for the current content of this cubemap.
-		 *  NOTE: Has to be implemented by renderer backend
-		 */
-		 // has to be implemented by the renderer backend
-		void generateMipMaps();
 
 		unsigned getSideWidth() const;
 		unsigned getSideHeight() const;

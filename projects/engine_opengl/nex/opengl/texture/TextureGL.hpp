@@ -159,6 +159,7 @@ namespace nex
 		TextureGL(GLuint texture, GLuint target);
 
 		virtual ~TextureGL();
+		void generateMipMaps();
 
 		static std::unique_ptr<TextureGL> createView(TextureGL* original,
 			TextureTarget target,
@@ -302,11 +303,6 @@ namespace nex
 
 		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight);
-
-		/**
-		 *  Generates mipmaps for the current content of this cubemap.
-		 */
-		void generateMipMaps();
 
 		GLuint getCubeMap() const;
 

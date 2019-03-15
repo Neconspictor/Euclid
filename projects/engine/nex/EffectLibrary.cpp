@@ -38,6 +38,9 @@ mSampler(std::make_unique<Sampler>(SamplerDesc()))
 	mSampler->setAnisotropy(0.0f);
 	mSampler->setMinFilter(TextureFilter::Linear);
 	mSampler->setMagFilter(TextureFilter::Linear);
+	mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
+	mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
+	mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
 	resize(width, height);
 }
 
@@ -51,12 +54,19 @@ nex::Texture2D* nex::DownSampler::downsampleHalfResolution(Texture2D* src)
 nex::Texture2D* nex::DownSampler::downsampleQuarterResolution(Texture2D* src)
 {
 	return downsample(downsampleHalfResolution(src), mQuarterResolution.get());
+	//return downsample(src, mQuarterResolution.get());
 }
 
 nex::Texture2D* nex::DownSampler::downsampleEigthResolution(Texture2D* src)
 {
 	return downsample(downsampleQuarterResolution(src), mEigthResolution.get());
 	//return downsample(src, mEigthResolution.get());
+}
+
+nex::Texture2D* nex::DownSampler::downsampleSixteenthResolution(Texture2D* src)
+{
+	return downsample(downsampleEigthResolution(src), mSixteenthResolution.get());
+	//return downsample(src, mSixteenthResolution.get());
 }
 
 nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* dest)
@@ -75,7 +85,12 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	vertexArray->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
 
-	return static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
+	mSampler->unbind(0);
+
+	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
+	//renderImage->generateMipMaps();
+
+	return renderImage;
 }
 
 void nex::DownSampler::resize(unsigned width, unsigned height)
@@ -91,10 +106,14 @@ void nex::DownSampler::resize(unsigned width, unsigned height)
 	width = static_cast<unsigned>(width * 0.5);
 	height = static_cast<unsigned>(height * 0.5);
 	mEigthResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+
+	width = static_cast<unsigned>(width * 0.5);
+	height = static_cast<unsigned>(height * 0.5);
+	mSixteenthResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
 }
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
-	mGaussianBlur(std::make_unique<GaussianBlur>()),
+	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
 	mEquirectangualrSkyBox(std::make_unique<EquirectangularSkyBoxShader>()),
 	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxShader>()),
 	mSkyBox(std::make_unique<SkyBoxShader>()),
@@ -158,4 +177,5 @@ void nex::EffectLibrary::resize(unsigned width, unsigned height)
 {
 	mDownSampler->resize(width, height);
 	mPostProcessor->resize(width, height);
+	mGaussianBlur->resize(width, height);
 }
