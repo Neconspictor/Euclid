@@ -6,7 +6,10 @@ namespace nex
 	class VertexArray;
 	class RenderTarget2D;
 	class Texture;
+	class Texture2D;
 	struct Uniform;
+	class DownSampler;
+	class GaussianBlur;
 
 	class PostProcessor {
 	public:
@@ -15,8 +18,10 @@ namespace nex
 		 * Creates a new post processor.
 		 * @param width : The screen width
 		 * @param height : The screen height
+		 * @param downSampler: 
+		 * @param gaussianBlur: 
 		 */
-		PostProcessor(unsigned width, unsigned height);
+		PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur);
 
 		// Don't allow inlined destructor for Pimpl 
 		~PostProcessor();
@@ -24,9 +29,10 @@ namespace nex
 		/**
 		 * Does post processing. The result is rendered into the given render target.
 		 * @param source : The texture to use as a source for the post processing
-		 * @param renderTarget : The render target that will be used to store the result of the post processing.
+		 * @param glowTexture : Used for Bloom
+		 * @param output : The render target that will be used to store the result of the post processing.
 		 */
-		void doPostProcessing(Texture* source, Texture* glowTexture, RenderTarget2D* output);
+		void doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output);
 
 		/**
 		 * Resizes the post processor for a different resolution.
@@ -40,16 +46,19 @@ namespace nex
 		class PostProcessShader;
 
 		void setPostProcessTexture(Texture* texture);
-		void setGlowTexture(Texture* texture);
+		void setGlowTextures(Texture* halfth, Texture* quarter, Texture* eigth, Texture* sixteenth);
 
-		/**
-		 * Used for ping pong rendering.
-		 */
-		std::unique_ptr<RenderTarget2D> mTemp;
 		VertexArray* mFullscreenPlane;
 
+		DownSampler* mDownSampler;
+		GaussianBlur* mGaussianBlur;
+
 		std::unique_ptr<PostProcessShader> mPostprocessPass;
-		unsigned mWidth;
-		unsigned mHeight;
+
+		//Bloom
+		std::unique_ptr<RenderTarget2D> mBloomHalfth;
+		std::unique_ptr<RenderTarget2D> mBloomQuarter;
+		std::unique_ptr<RenderTarget2D> mBloomEigth;
+		std::unique_ptr<RenderTarget2D> mBloomSixteenth;
 	};
 }

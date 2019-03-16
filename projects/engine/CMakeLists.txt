@@ -160,6 +160,8 @@ set(
 	nex/platform/windows/WindowsPlatform.hpp
     
     #nex/post_processing
+    nex/post_processing/DownSampler.cpp
+    nex/post_processing/DownSampler.hpp
     nex/post_processing/HBAO.hpp
 	nex/post_processing/HBAO.cpp
     nex/post_processing/AmbientOcclusion.cpp

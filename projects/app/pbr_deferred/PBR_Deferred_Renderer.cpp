@@ -33,10 +33,6 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	m_logger("PBR_Deferred_Renderer"),
 	panoramaSky(nullptr),
 	renderTargetSingleSampled(nullptr),
-	mTempRenderTargetHalfth(nullptr),
-	mTempRenderTargetQuarter(nullptr),
-	mTempRenderTargetEigth1(nullptr),
-	mTempRenderTargetEigth2(nullptr),
 	//shadowMap(nullptr),
 	showDepthMap(false),
 	mInput(input)
@@ -99,13 +95,6 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
-	mTempRenderTargetHalfth = std::make_unique<RenderTarget2D>(windowWidth / 2, windowWidth / 2, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetQuarter = std::make_unique<RenderTarget2D>(windowWidth / 4, windowHeight / 4, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetEigth1 = std::make_unique<RenderTarget2D>(windowWidth / 8, windowHeight / 8, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetEigth2 = std::make_unique<RenderTarget2D>(windowWidth / 8, windowHeight / 8, TextureData::createRenderTargetRGBAHDR());
-
-	mTempRenderTargetSixteenth1 = std::make_unique<RenderTarget2D>(windowWidth / 16, windowHeight / 16, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetSixteenth2 = std::make_unique<RenderTarget2D>(windowWidth / 16, windowHeight / 16, TextureData::createRenderTargetRGBAHDR());
 
 	panoramaSkyBoxShader->bind();
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -307,38 +296,12 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	auto* renderResult = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(1));
 
-	//renderImage->generateMipMaps();
-
-
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
-	static auto* downSampler = RenderBackend::get()->getEffectLibrary()->getDownSampler();
-	Texture2D* glowTexture = luminanceTexture;
-	//glowTexture = downSampler->downsampleHalfResolution(glowTexture);
-	//glowTexture = blur->blurHalfResolution(glowTexture, mTempRenderTargetHalfth.get());
-
-	//glowTexture = downSampler->downsampleQuarterResolution(glowTexture);
-	//glowTexture = blur->blurQuarterResolution(glowTexture, mTempRenderTargetQuarter.get());
-
-	//glowTexture = downSampler->downsampleEigthResolution(glowTexture);
-	//halfResolution = blur->blurEigthResolution(glowTexture, mTempRenderTargetEigth1.get());
-
-	glowTexture = downSampler->downsampleSixteenthResolution(glowTexture);
-	glowTexture = blur->blurSixteenthResolution(glowTexture, mTempRenderTargetSixteenth1.get());
-
-	/*for (auto i = 0; i < 1; ++i)
-	{
-		halfResolution = blur->blur(halfResolution, mTempRenderTargetSixteenth1.get(), mTempRenderTargetSixteenth2.get());
-	}*/
-
-
-
-
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	postProcessor->doPostProcessing(renderResult, glowTexture, screenRenderTarget);
-	//postProcessor->doPostProcessing(renderImage, screenRenderTarget);
+	postProcessor->doPostProcessing(renderResult, luminanceTexture, screenRenderTarget);
 
 	return;
 
@@ -405,14 +368,6 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	renderTargetSingleSampled->useDepthAttachment(*pbr_mrt->getDepthAttachment());
-
-	mTempRenderTargetHalfth = std::make_unique<RenderTarget2D>(width / 2, width / 2, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetQuarter = std::make_unique<RenderTarget2D>(width / 4, width / 4, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetEigth1 = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetEigth2 = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
-
-	mTempRenderTargetSixteenth1 = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureData::createRenderTargetRGBAHDR());
-	mTempRenderTargetSixteenth2 = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureData::createRenderTargetRGBAHDR());
 
 	//ssao_deferred->onSizeChange(width, height);
 
