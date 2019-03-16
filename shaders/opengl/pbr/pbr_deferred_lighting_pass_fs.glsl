@@ -2,7 +2,8 @@
 
 #include "shadow/cascaded_shadow.glsl"
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 LuminaceColor;
 
 const float PI = 3.14159265359;
 
@@ -69,7 +70,8 @@ vec3 pbrModel(float ao,
 		vec3 lightDir,
 		vec3 reflectionDir,
 		float shadow,
-		float ssaoAmbientOcclusion);
+		float ssaoAmbientOcclusion,
+        out vec3 directLighting);
 
 
 vec3 pbrDirectLight(vec3 V, vec3 N, vec3 L, float roughness, vec3 F0, float metallic, vec3 albedo);
@@ -159,6 +161,7 @@ void main()
     float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, cascadeData, cascadedDepthMap);
 	//float fragmentLitProportion = csmData.value;
 	
+    vec3 directLighting;
     vec3 result = pbrModel(ao, 
 		albedo, 
 		metallic, 
@@ -168,7 +171,8 @@ void main()
 		lightEye, 
 		reflectionDir,
 		fragmentLitProportion,
-		ambientOcclusion);
+		ambientOcclusion,
+        directLighting);
 
 	
 	//alpha = clamp(alpha, 0, 1);
@@ -195,6 +199,8 @@ void main()
     
     FragColor = 0.5*cascadeColor + 0.5*FragColor;
     
+    LuminaceColor = vec4(directLighting.rgb, FragColor.a);
+    
     //FragColor = vec4(0.8, 0.8, 0.8, 1);
     
 	//vec2 windowSize = gl_FragCoord.xy / textureSize(gBuffer.positionEyeMap, 0).xy;
@@ -210,7 +216,8 @@ vec3 pbrModel(float ao,
 		vec3 lightDir,
 		vec3 reflectionDir,
 		float shadow,
-		float ssaoAmbientOcclusion) {
+		float ssaoAmbientOcclusion,
+        out vec3 directLighting) {
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -241,7 +248,8 @@ vec3 pbrModel(float ao,
 	
 	// shadows affecting only direct light contribution
 	//color += Lo * shadow;
-	color += shadow * Lo;
+    directLighting = shadow * Lo;
+	color += directLighting;
 	//color *= shadow;
 	
 	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);

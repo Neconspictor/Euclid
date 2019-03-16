@@ -13,14 +13,16 @@ public:
 	PostProcessShader() : mSampler({})
 	{
 		mProgram = nex::ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
-		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D };
+		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
+		glowTextureUniform = { mProgram->getUniformLocation("glowTexture"), UniformType::TEXTURE2D, 1 };
 
 		mSampler.setAnisotropy(0.0f);
 		mSampler.setMinFilter(TextureFilter::Linear);
 		mSampler.setMagFilter(TextureFilter::Linear);
 	}
 
-	Uniform sourceTextureUniform;
+	UniformTex sourceTextureUniform;
+	UniformTex glowTextureUniform;
 	Sampler mSampler;
 };
 
@@ -34,7 +36,7 @@ mPostprocessPass(std::make_unique<PostProcessShader>())
 
 nex::PostProcessor::~PostProcessor() = default;
 
-void nex::PostProcessor::doPostProcessing(Texture* source, RenderTarget2D* output)
+void nex::PostProcessor::doPostProcessing(Texture* source, Texture* glowTexture, RenderTarget2D* output)
 {
 	RenderBackend::get()->setViewPort(0, 0, mWidth, mHeight);
 
@@ -45,6 +47,7 @@ void nex::PostProcessor::doPostProcessing(Texture* source, RenderTarget2D* outpu
 	//TextureManager::get()->getDefaultImageSampler()->bind(0);
 	mPostprocessPass->mSampler.bind(0);
 	setPostProcessTexture(source);
+	setGlowTexture(glowTexture);
 
 	mFullscreenPlane->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
@@ -62,5 +65,12 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
-	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->sourceTextureUniform.location, texture, 0);
+	auto& uniform = mPostprocessPass->sourceTextureUniform;
+	mPostprocessPass->getProgram()->setTexture(uniform.location, texture, uniform.bindingSlot);
+}
+
+void nex::PostProcessor::setGlowTexture(Texture* texture)
+{
+	auto& glowUniform = mPostprocessPass->glowTextureUniform;
+	mPostprocessPass->getProgram()->setTexture(glowUniform.location, texture, glowUniform.bindingSlot);
 }

@@ -26,7 +26,7 @@ namespace nex
 		 * @param source : The texture to use as a source for the post processing
 		 * @param renderTarget : The render target that will be used to store the result of the post processing.
 		 */
-		void doPostProcessing(Texture* source, RenderTarget2D* output);
+		void doPostProcessing(Texture* source, Texture* glowTexture, RenderTarget2D* output);
 
 		/**
 		 * Resizes the post processor for a different resolution.
@@ -40,6 +40,7 @@ namespace nex
 		class PostProcessShader;
 
 		void setPostProcessTexture(Texture* texture);
+		void setGlowTexture(Texture* texture);
 
 		/**
 		 * Used for ping pong rendering.

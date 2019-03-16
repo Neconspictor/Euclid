@@ -42,6 +42,8 @@ namespace nex
 
 		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
 
+		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
+
 		glm::vec2 computeNearFarTest(Camera* camera, int windowWidth, int windowHeight, Texture* depth);
 
 		// Allow the UI mode classes accessing private members

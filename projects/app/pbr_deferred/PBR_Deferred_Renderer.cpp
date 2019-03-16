@@ -98,7 +98,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	auto* skyboxShader = effectLib->getSkyBoxShader();
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
-	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
+	renderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
 	mTempRenderTargetHalfth = std::make_unique<RenderTarget2D>(windowWidth / 2, windowWidth / 2, TextureData::createRenderTargetRGBAHDR());
 	mTempRenderTargetQuarter = std::make_unique<RenderTarget2D>(windowWidth / 4, windowHeight / 4, TextureData::createRenderTargetRGBAHDR());
 	mTempRenderTargetEigth1 = std::make_unique<RenderTarget2D>(windowWidth / 8, windowHeight / 8, TextureData::createRenderTargetRGBAHDR());
@@ -230,7 +230,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	renderTargetSingleSampled->bind();
 
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	renderTargetSingleSampled->clear(RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+	renderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 	
 
@@ -304,7 +304,8 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 	static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
 
-	auto* renderImage = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
+	auto* renderResult = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
+	auto* luminanceTexture = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(1));
 
 	//renderImage->generateMipMaps();
 
@@ -314,18 +315,18 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	static auto* downSampler = RenderBackend::get()->getEffectLibrary()->getDownSampler();
-	Texture2D* downSampled = nullptr;
-	//downSampled = downSampler->downsampleHalfResolution(renderImage);
-	//downSampled = blur->blurHalfResolution(downSampled, mTempRenderTargetHalfth.get());
+	Texture2D* glowTexture = luminanceTexture;
+	//glowTexture = downSampler->downsampleHalfResolution(glowTexture);
+	//glowTexture = blur->blurHalfResolution(glowTexture, mTempRenderTargetHalfth.get());
 
-	//downSampled = downSampler->downsampleQuarterResolution(renderImage);
-	//downSampled = blur->blurQuarterResolution(downSampled, mTempRenderTargetQuarter.get());
+	//glowTexture = downSampler->downsampleQuarterResolution(glowTexture);
+	//glowTexture = blur->blurQuarterResolution(glowTexture, mTempRenderTargetQuarter.get());
 
-	//downSampled = downSampler->downsampleEigthResolution(renderImage);
-	//halfResolution = blur->blurEigthResolution(downSampled, mTempRenderTargetEigth1.get());
+	//glowTexture = downSampler->downsampleEigthResolution(glowTexture);
+	//halfResolution = blur->blurEigthResolution(glowTexture, mTempRenderTargetEigth1.get());
 
-	downSampled = downSampler->downsampleSixteenthResolution(renderImage);
-	downSampled = blur->blurSixteenthResolution(downSampled, mTempRenderTargetSixteenth1.get());
+	glowTexture = downSampler->downsampleSixteenthResolution(glowTexture);
+	glowTexture = blur->blurSixteenthResolution(glowTexture, mTempRenderTargetSixteenth1.get());
 
 	/*for (auto i = 0; i < 1; ++i)
 	{
@@ -336,7 +337,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	postProcessor->doPostProcessing(downSampled, screenRenderTarget);
+	postProcessor->doPostProcessing(renderResult, glowTexture, screenRenderTarget);
 	//postProcessor->doPostProcessing(renderImage, screenRenderTarget);
 
 	return;
@@ -399,7 +400,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
 	m_renderBackend->resize(width, height);
-	renderTargetSingleSampled = m_renderBackend->createRenderTarget();
+	renderTargetSingleSampled = createLightingTarget(width, height);
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(width, height);
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
@@ -478,6 +479,24 @@ nex::Texture* nex::PBR_Deferred_Renderer::renderAO(Camera* camera, Texture* gDep
 	ssao->blur();
 	return ssao->getBlurredResult();
 	//return ssao->getAO_Result();
+}
+
+std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height)
+{
+	auto result = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR());
+
+	RenderAttachment luminance;
+	luminance.colorAttachIndex = 1;
+	luminance.target = TextureTarget::TEXTURE2D;
+	luminance.type = RenderAttachmentType::COLOR;
+	// TODO: use one color channel!
+	luminance.texture = std::make_shared<Texture2D>(width, height, TextureData::createRenderTargetRGBAHDR(), nullptr);
+
+	result->addColorAttachment(std::move(luminance));
+
+	result->finalizeAttachments();
+
+	return result;
 }
 
 glm::vec2 nex::PBR_Deferred_Renderer::computeNearFarTest(nex::Camera* camera, int windowWidth, int windowHeight, nex::Texture* depth)
