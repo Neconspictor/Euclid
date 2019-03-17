@@ -1,12 +1,13 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
-#include "nex/RenderBackend.hpp"
+#include <nex/RenderBackend.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/shader/Shader.hpp>
-#include "nex/texture/TextureManager.hpp"
-#include "nex/texture/Sampler.hpp"
+#include <nex/texture/TextureManager.hpp>
+#include <nex/texture/Sampler.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/post_processing/DownSampler.hpp>
+#include <nex/post_processing//SMAA.hpp>
 
 
 class nex::PostProcessor::PostProcessShader : public nex::Shader
@@ -70,6 +71,9 @@ void nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowText
 	mFullscreenPlane->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
 	mPostprocessPass->mSampler.unbind(0);
+
+	//Do SMAA antialising after texture is in sRGB (gamma space)
+	//But for best results the input read for the color/luma edge detection should *NOT* be sRGB !
 }
 
 void nex::PostProcessor::resize(unsigned width, unsigned height)
@@ -78,6 +82,15 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 	mBloomQuarter = std::make_unique<RenderTarget2D>(width / 4, height / 4, TextureData::createRenderTargetRGBAHDR());
 	mBloomEigth = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
 	mBloomSixteenth = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureData::createRenderTargetRGBAHDR());
+
+	// Avoid double resizing of SMAA class.
+	if (!mSmaa)
+	{
+		mSmaa = std::make_unique<SMAA>(width, height);
+	} else
+	{
+		mSmaa->resize(width, height);
+	}
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)

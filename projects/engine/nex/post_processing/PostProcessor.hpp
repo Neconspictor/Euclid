@@ -10,6 +10,7 @@ namespace nex
 	struct Uniform;
 	class DownSampler;
 	class GaussianBlur;
+	class SMAA;
 
 	class PostProcessor {
 	public:
@@ -60,5 +61,6 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> mBloomQuarter;
 		std::unique_ptr<RenderTarget2D> mBloomEigth;
 		std::unique_ptr<RenderTarget2D> mBloomSixteenth;
+		std::unique_ptr<SMAA> mSmaa;
 	};
 }

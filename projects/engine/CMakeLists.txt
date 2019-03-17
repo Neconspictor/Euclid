@@ -23,10 +23,6 @@ set(
     nex/Window.hpp
 	nex/Window.cpp
     
-    #nex/antialiasing
-    nex/antialiasing/SMAA.hpp
-	nex/antialiasing/SMAA.cpp
-    
     #nex/camera
     nex/camera/Camera.hpp
 	nex/camera/Camera.cpp
@@ -170,6 +166,12 @@ set(
     nex/post_processing/PostProcessor.hpp
 	nex/post_processing/SSAO.hpp
 	nex/post_processing/SSAO.cpp
+    
+    ../../extern_sources/engine/extern/SMAA/AreaTex.h
+    ../../extern_sources/engine/extern/SMAA/SearchTex.h
+    nex/post_processing/SMAA.hpp
+	nex/post_processing/SMAA.cpp
+    
     #nex/post_processing/blur
 	nex/post_processing/blur/GaussianBlur.hpp
 	nex/post_processing/blur/GaussianBlur.cpp
@@ -265,6 +267,7 @@ enable_precompiled_headers(pch_engine.hpp ENGINE_SOURCES)
 add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
 	./
+    ../../extern_sources/engine/
     #${CMAKE_SOURCE_DIR}/libs/glm/include 
     #${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
     #${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include
