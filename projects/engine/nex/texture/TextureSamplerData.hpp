@@ -29,7 +29,7 @@ namespace nex
 
 	enum class InternFormat
 	{
-		R8, FIRST = R8,
+		R8, FIRST = R8, //Note: nothing specified after the bit depth means UNORM = unsigned normalized integers (range [0, 1]) , see: https://www.khronos.org/opengl/wiki/Normalized_Integer
 		R16,
 		R16F,
 		R32F,
@@ -37,6 +37,7 @@ namespace nex
 		R32UI,
 
 		RG8,
+		RG8_SNORM, // SNORM = signed normalized integers (range [-1, 1]) , see: https://www.khronos.org/opengl/wiki/Normalized_Integer
 		RG16,
 		RG16F,
 		RG32F,

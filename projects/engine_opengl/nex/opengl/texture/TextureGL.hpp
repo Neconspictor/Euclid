@@ -66,6 +66,7 @@ namespace nex
 		R32UI = GL_R32UI,
 
 		RG8 = GL_RG8,
+		RG8_SNORM = GL_RG8_SNORM,
 		RG16 = GL_RG16,
 		RG16F = GL_RG16F,
 		RG32F = GL_RG32F,

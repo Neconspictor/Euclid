@@ -878,6 +878,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		R32UI,
 
 		RG8,
+		RG8_SNORM,
 		RG16,
 		RG16F,
 		RG32F,
