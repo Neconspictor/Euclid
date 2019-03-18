@@ -6,6 +6,7 @@
 #include <extern/SMAA/AreaTex.h>
 #include <extern/SMAA/SearchTex.h>
 #include <nex/shader/Shader.hpp>
+#include "nex/texture/TextureManager.hpp"
 
 
 namespace nex
@@ -56,7 +57,13 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	areaDesc.colorspace = ColorSpace::RG;
 	areaDesc.internalFormat = InternFormat::RG8;
 	areaDesc.pixelDataType = PixelDataType::UBYTE;
-	mAreaTex = std::make_unique<Texture2D>(AREATEX_WIDTH, AREATEX_HEIGHT, areaDesc, areaTexBytes);
+
+	//flip y axis of areatex
+	std::vector<char>temp(AREATEX_PITCH * AREATEX_HEIGHT);
+	memcpy_s(temp.data(), temp.size(), areaTexBytes, temp.size());
+	TextureManager::flipYAxis(temp.data(), AREATEX_PITCH, AREATEX_HEIGHT);
+
+	mAreaTex = std::make_unique<Texture2D>(AREATEX_WIDTH, AREATEX_HEIGHT, areaDesc, temp.data());
 
 	TextureData searchDesc;
 	searchDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
@@ -64,7 +71,16 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	searchDesc.colorspace = ColorSpace::R;
 	searchDesc.internalFormat = InternFormat::R8;
 	areaDesc.pixelDataType = PixelDataType::UBYTE;
-	mSearchTex = std::make_unique<Texture2D>(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchDesc, searchTexBytes);
+
+	//flip y axis of searchtex
+	temp.resize(SEARCHTEX_PITCH * SEARCHTEX_HEIGHT);
+	memcpy_s(temp.data(), temp.size(), searchTexBytes, temp.size());
+	TextureManager::flipYAxis(temp.data(), SEARCHTEX_PITCH, SEARCHTEX_HEIGHT);
+
+	mSearchTex = std::make_unique<Texture2D>(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchDesc, temp.data());
+
+	//release memory
+	temp.resize(0);
 
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::NearestNeighbor;
@@ -80,6 +96,16 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 }
 
 nex::SMAA::~SMAA() = default;
+
+nex::Texture2D* nex::SMAA::getArexTex()
+{
+	return mAreaTex.get();
+}
+
+nex::Texture2D* nex::SMAA::getSearchTex()
+{
+	return mSearchTex.get();
+}
 
 void nex::SMAA::resize(unsigned width, unsigned height)
 {

@@ -35,6 +35,14 @@ namespace nex {
 			const std::string& top, const std::string& bottom,
 			const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
 
+		/**
+		 * Flips the y axis of an image
+		 * Note: imageSize has to have at least width * height bytes!
+		 * @param pitch : The byte size(!) of one row
+		 * @param height : The amount of rows
+		 */
+		static void flipYAxis(char* imageSource, size_t pitch, size_t height);
+
 		nex::Texture* getDefaultBlackTexture();
 		nex::Texture* getDefaultNormalTexture();
 		nex::Texture* getDefaultWhiteTexture();

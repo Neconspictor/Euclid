@@ -306,19 +306,19 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
 	renderResult = postProcessor->doPostProcessing(renderResult, luminanceTexture, mPingPong.get());
 
+	auto* smaa = postProcessor->getSMAA();
 
 
 	if (showDepthMap)
 	{
 		screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(renderResult);
+		screenSprite.setTexture(smaa->getSearchTex());
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);
 	} else
 	{
-		auto* smaa = postProcessor->getSMAA();
 		smaa->reset();
 		auto* edgeTex = smaa->renderEdgeDetectionPass(renderResult);
 

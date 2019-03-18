@@ -183,6 +183,29 @@ namespace nex {
 		return nullptr;
 	}
 
+	void TextureManager::flipYAxis(char* imageSource, size_t pitch, size_t height)
+	{
+		std::vector<char> backupRowVec(pitch);
+		auto* backupRow = backupRowVec.data();
+
+		for (size_t i = 0; i < height; ++i)
+		{
+			// backup current row
+			auto* currentRow = imageSource + i * pitch;
+			memcpy_s(backupRow, pitch, currentRow, pitch);
+
+			// get the y-axis mirrored row
+			auto mirroredRowIndex = height - i - 1;
+			auto* mirroredRow = imageSource + mirroredRowIndex * pitch;
+
+			// Replace the current row with the mirrored row
+			memcpy_s(currentRow, pitch, mirroredRow, pitch);
+
+			// Replace the mirrored row with the backup
+			memcpy_s(mirroredRow, pitch, backupRow, pitch);
+		}
+	}
+
 	Texture * TextureManager::getDefaultBlackTexture()
 	{
 		return getImage("_intern/black.png",

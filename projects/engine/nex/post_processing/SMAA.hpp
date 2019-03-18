@@ -13,6 +13,9 @@ namespace nex
 		SMAA(unsigned width, unsigned height);
 		~SMAA();
 
+		Texture2D* getArexTex();
+		Texture2D* getSearchTex();
+
 
 		void resize(unsigned width, unsigned height);
 
