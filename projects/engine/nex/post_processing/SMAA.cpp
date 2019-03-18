@@ -80,6 +80,38 @@ namespace nex
 		UniformTex mAreaTex;
 		UniformTex mSearchTex;
 	};
+
+
+	class SMAA::NeighborhoodBlendingShader : public nex::Shader {
+	public:
+
+		NeighborhoodBlendingShader(unsigned width, unsigned height)
+		{
+			std::vector<std::string> defines{
+				calcMetricDefine(width, height)
+			};
+
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_NeighborhoodBlending_vs.glsl",
+				"post_processing/SMAA/SMAA_NeighborhoodBlending_fs.glsl", "", defines);
+			mBlendTex = { mProgram->getUniformLocation("blendTex"), UniformType::TEXTURE2D, 0 };
+			mColorTex = { mProgram->getUniformLocation("colorTex"), UniformType::TEXTURE2D, 1 };
+		}
+
+		void setBlendTex(Texture2D* tex)
+		{
+			mProgram->setTexture(mBlendTex.location, tex, mBlendTex.location);
+		}
+
+		void setColorTex(Texture2D* tex)
+		{
+			mProgram->setTexture(mColorTex.location, tex, mColorTex.location);
+		}
+
+	private:
+
+		UniformTex mBlendTex;
+		UniformTex mColorTex;
+	};
 }
 
 
@@ -155,10 +187,15 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 	data.wrapR = data.wrapS  = data.wrapT = TextureUVTechnique::ClampToEdge;
 
 	mEdgesTex = std::make_unique<RenderTarget2D>(width, height, data);
+
+	data.colorspace = ColorSpace::RGBA;
+	data.internalFormat = InternFormat::RGBA16F;
+	data.pixelDataType = PixelDataType::FLOAT;
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
 
 	mEdgeDetectionShader = std::make_unique<EdgeDetectionShader>(width, height);
 	mBlendingWeightCalculationShader = std::make_unique<BlendingWeightCalculationShader>(width, height);
+	mNeighborhoodBlendingShader = std::make_unique<NeighborhoodBlendingShader>(width, height);
 }
 
 nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
@@ -193,12 +230,27 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 	return mBlendTex->getColor0AttachmentTexture();
 }
 
+void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget2D* output)
+{
+	output->bind();
+	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
+	output->clear(Color | Depth | Stencil);
+	mNeighborhoodBlendingShader->bind();
+	mBilinearFilter->bind(0);
+	mBilinearFilter->bind(1);
+	mNeighborhoodBlendingShader->setBlendTex(blendTex);
+	mNeighborhoodBlendingShader->setColorTex(colorTex);
+
+	mFullscreenTriangle->bind();
+	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+}
+
 
 void nex::SMAA::reset()
 {
 	mEdgesTex->bind();
-	mEdgesTex->clear(RenderComponent::Color); // no depth-/stencil buffer needed
+	mEdgesTex->clear(RenderComponent::Color | Depth | Stencil); // no depth-/stencil buffer needed
 
 	mBlendTex->bind();
-	mBlendTex->clear(RenderComponent::Color); // no depth-/stencil buffer needed
+	mBlendTex->clear(RenderComponent::Color | Depth | Stencil); // no depth-/stencil buffer needed
 }

@@ -2,6 +2,7 @@
 
 namespace nex
 {
+	class RenderTarget;
 	class RenderTarget2D;
 	class Texture2D;
 	class Sampler;
@@ -23,12 +24,15 @@ namespace nex
 
 		Texture2D* renderBlendingWeigthCalculationPass(Texture2D* edgeTex);
 
+		void renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget2D* output);
+
 		void reset();
 
 	private:
 
 		class EdgeDetectionShader;
 		class BlendingWeightCalculationShader;
+		class NeighborhoodBlendingShader;
 
 		std::unique_ptr<RenderTarget2D> mEdgesTex;
 		std::unique_ptr<RenderTarget2D> mBlendTex;
@@ -40,6 +44,7 @@ namespace nex
 
 		std::unique_ptr<EdgeDetectionShader> mEdgeDetectionShader;
 		std::unique_ptr<BlendingWeightCalculationShader> mBlendingWeightCalculationShader;
+		std::unique_ptr<NeighborhoodBlendingShader> mNeighborhoodBlendingShader;
 
 		VertexArray* mFullscreenTriangle;
 	};

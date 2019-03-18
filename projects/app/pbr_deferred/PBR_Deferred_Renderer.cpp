@@ -296,7 +296,8 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 	//static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
 
-	auto* renderResult = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
+	auto* colorTex = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
+	auto* postProcessed = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(1));
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
@@ -304,31 +305,38 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	renderResult = postProcessor->doPostProcessing(renderResult, luminanceTexture, mPingPong.get());
+	postProcessed = postProcessor->doPostProcessing(postProcessed, luminanceTexture, mPingPong.get());
 
 	auto* smaa = postProcessor->getSMAA();
+
+	if (mInput->isPressed(Input::KEY_Y))
+	{
+		std::cout << "SMAA is rendered: " << showDepthMap << std::endl;
+	}
 
 
 	if (showDepthMap)
 	{
 		screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(renderResult);
+		screenSprite.setTexture(postProcessed);
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);
+
 	} else
 	{
 		smaa->reset();
-		auto* edgeTex = smaa->renderEdgeDetectionPass(renderResult);
+		auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
 		auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
+		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
 
-		screenRenderTarget->bind();
+		/*screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
 		screenSprite.setTexture(blendTex);
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
-		StaticMeshDrawer::draw(&screenSprite, screenShader);
+		StaticMeshDrawer::draw(&screenSprite, screenShader);*/
 	}
 
 	return;
