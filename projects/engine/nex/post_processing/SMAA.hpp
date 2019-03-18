@@ -21,11 +21,14 @@ namespace nex
 
 		Texture2D* renderEdgeDetectionPass(Texture2D* colorTexGamma);
 
+		Texture2D* renderBlendingWeigthCalculationPass(Texture2D* edgeTex);
+
 		void reset();
 
 	private:
 
 		class EdgeDetectionShader;
+		class BlendingWeightCalculationShader;
 
 		std::unique_ptr<RenderTarget2D> mEdgesTex;
 		std::unique_ptr<RenderTarget2D> mBlendTex;
@@ -36,6 +39,7 @@ namespace nex
 		std::unique_ptr<Sampler> mPointFilter;
 
 		std::unique_ptr<EdgeDetectionShader> mEdgeDetectionShader;
+		std::unique_ptr<BlendingWeightCalculationShader> mBlendingWeightCalculationShader;
 
 		VertexArray* mFullscreenTriangle;
 	};

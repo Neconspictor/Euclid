@@ -313,7 +313,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	{
 		screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(smaa->getSearchTex());
+		screenSprite.setTexture(renderResult);
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);
@@ -321,10 +321,11 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	{
 		smaa->reset();
 		auto* edgeTex = smaa->renderEdgeDetectionPass(renderResult);
+		auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
 
 		screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(edgeTex);
+		screenSprite.setTexture(blendTex);
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);

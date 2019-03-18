@@ -6,19 +6,20 @@
 #include <extern/SMAA/AreaTex.h>
 #include <extern/SMAA/SearchTex.h>
 #include <nex/shader/Shader.hpp>
-#include "nex/texture/TextureManager.hpp"
+#include <nex/texture/TextureManager.hpp>
 
 
 namespace nex
 {
+	std::string calcMetricDefine(float width, float height)
+	{
+		std::stringstream ss;
+		ss << "#define SMAA_RT_METRICS float4(" << 1.0 / width << ", " << 1.0 / height << ", " << width << ", " << height << ")";
+		return ss.str();
+	}
+
 	class SMAA::EdgeDetectionShader : public nex::Shader {
 	public:
-		std::string calcMetricDefine(float width, float height)
-		{
-			std::stringstream ss;
-			ss << "#define SMAA_RT_METRICS float4(" << 1.0 / width << ", " << 1.0 / height << ", " << width << ", " << height << ")";
-			return ss.str();
-		}
 
 		EdgeDetectionShader(unsigned width, unsigned height)
 		{
@@ -37,11 +38,47 @@ namespace nex
 			mProgram->setTexture(mColorTexGamma.location, tex, mColorTexGamma.location);
 		}
 
-
-
 	private:
 
 		UniformTex mColorTexGamma;
+	};
+
+	class SMAA::BlendingWeightCalculationShader : public nex::Shader {
+	public:
+
+		BlendingWeightCalculationShader(unsigned width, unsigned height)
+		{
+			std::vector<std::string> defines{
+				calcMetricDefine(width, height)
+			};
+
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_BlendingWeightCalculation_vs.glsl",
+				"post_processing/SMAA/SMAA_BlendingWeightCalculation_fs.glsl", "", defines);
+			mEdgeTex = { mProgram->getUniformLocation("edgeTex"), UniformType::TEXTURE2D, 0};
+			mAreaTex = { mProgram->getUniformLocation("areaTex"), UniformType::TEXTURE2D, 1};
+			mSearchTex = { mProgram->getUniformLocation("searchTex"), UniformType::TEXTURE2D, 2};
+		}
+
+		void setEdgeTex(Texture2D* tex)
+		{
+			mProgram->setTexture(mEdgeTex.location, tex, mEdgeTex.location);
+		}
+
+		void setAreaTex(Texture2D* tex)
+		{
+			mProgram->setTexture(mAreaTex.location, tex, mAreaTex.location);
+		}
+
+		void setSearchTex(Texture2D* tex)
+		{
+			mProgram->setTexture(mSearchTex.location, tex, mSearchTex.location);
+		}
+
+	private:
+
+		UniformTex mEdgeTex;
+		UniformTex mAreaTex;
+		UniformTex mSearchTex;
 	};
 }
 
@@ -121,6 +158,7 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
 
 	mEdgeDetectionShader = std::make_unique<EdgeDetectionShader>(width, height);
+	mBlendingWeightCalculationShader = std::make_unique<BlendingWeightCalculationShader>(width, height);
 }
 
 nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
@@ -128,12 +166,31 @@ nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
 	mEdgesTex->bind();
 	RenderBackend::get()->setViewPort(0, 0, mEdgesTex->getWidth(), mEdgesTex->getHeight());
 	mEdgeDetectionShader->bind();
+	mBilinearFilter->bind(0);
 	mEdgeDetectionShader->setColorTexGamma(colorTexGamma);
 
 	mFullscreenTriangle->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
 
 	return mEdgesTex->getColor0AttachmentTexture();
+}
+
+nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTex)
+{
+	mBlendTex->bind();
+	RenderBackend::get()->setViewPort(0, 0, mBlendTex->getWidth(), mBlendTex->getHeight());
+	mBlendingWeightCalculationShader->bind();
+	mBilinearFilter->bind(0);
+	mBilinearFilter->bind(1);
+	mBilinearFilter->bind(2);
+	mBlendingWeightCalculationShader->setEdgeTex(edgeTex);
+	mBlendingWeightCalculationShader->setAreaTex(mAreaTex.get());
+	mBlendingWeightCalculationShader->setSearchTex(mSearchTex.get());
+
+	mFullscreenTriangle->bind();
+	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+
+	return mBlendTex->getColor0AttachmentTexture();
 }
 
 
