@@ -10,6 +10,7 @@ namespace nex
 	enum class CubeMapSide;
 	struct TextureData;
 	struct RenderAttachment;
+	class Texture2D;
 
 	// Has to be implemented by the renderer backend
 	class RenderTargetImpl
@@ -134,6 +135,8 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		unsigned getHeight() const;
+
+		Texture2D* getColor0AttachmentTexture();
 	};
 
 

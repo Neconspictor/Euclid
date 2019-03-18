@@ -25,7 +25,7 @@ void main()
     //color = vec4(weighted, weighted, weighted, 1.0f);
     
     //image kernels
-    vec2 offsets[9] = vec2[] (
+    /*vec2 offsets[9] = vec2[] (
         vec2(-offset, offset),  // top-left
         vec2(0, offset),        // top-center
         vec2(offset, offset),   // top-right
@@ -35,7 +35,7 @@ void main()
         vec2(-offset, -offset), // bottom-left
         vec2(0, -offset),       // bottom-center
         vec2(offset, -offset)   // bottom-right
-    );
+    );*/
     
     //sharpening kernel
     /*float kernel[9] = float[] (
@@ -75,12 +75,6 @@ void main()
         col += sampleTex[i] * kernel[i];
 		
 	*/	
-    
-    
-    // apply gamma correction
-    float gamma = 2.2f;
-	vec3 col = texture(screenTexture, texCoordsFS).rgb;
-	col = pow(col.rgb, vec3(1.0 / gamma));
-    color = vec4(col, 1);
+    color = vec4(texture(screenTexture, texCoordsFS).rgb, 1);
 	//color = texture(screenTexture, texCoordsFS);
 }

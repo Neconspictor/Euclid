@@ -5,6 +5,45 @@
 #include <nex/texture/Sampler.hpp>
 #include <extern/SMAA/AreaTex.h>
 #include <extern/SMAA/SearchTex.h>
+#include <nex/shader/Shader.hpp>
+
+
+namespace nex
+{
+	class SMAA::EdgeDetectionShader : public nex::Shader {
+	public:
+		std::string calcMetricDefine(float width, float height)
+		{
+			std::stringstream ss;
+			ss << "#define SMAA_RT_METRICS float4(" << 1.0 / width << ", " << 1.0 / height << ", " << width << ", " << height << ")";
+			return ss.str();
+		}
+
+		EdgeDetectionShader(unsigned width, unsigned height)
+		{
+
+			std::vector<std::string> defines {
+				calcMetricDefine(width, height)
+			};
+
+			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
+				"post_processing/SMAA/SMAA_ColorEdgeDetection_fs.glsl", "", defines);
+			mColorTexGamma = {mProgram->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
+		}
+
+		void setColorTexGamma(Texture2D* tex)
+		{
+			mProgram->setTexture(mColorTexGamma.location, tex, mColorTexGamma.location);
+		}
+
+
+
+	private:
+
+		UniformTex mColorTexGamma;
+	};
+}
+
 
 nex::SMAA::SMAA(unsigned width, unsigned height)
 {
@@ -35,6 +74,9 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::Linear;
 	mBilinearFilter = std::make_unique<Sampler>(samplerDesc);
+
+
+	mFullscreenTriangle = StaticMeshManager::get()->getNDCFullscreenPlane();
 }
 
 nex::SMAA::~SMAA() = default;
@@ -51,6 +93,21 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 
 	mEdgesTex = std::make_unique<RenderTarget2D>(width, height, data);
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
+
+	mEdgeDetectionShader = std::make_unique<EdgeDetectionShader>(width, height);
+}
+
+nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
+{
+	mEdgesTex->bind();
+	RenderBackend::get()->setViewPort(0, 0, mEdgesTex->getWidth(), mEdgesTex->getHeight());
+	mEdgeDetectionShader->bind();
+	mEdgeDetectionShader->setColorTexGamma(colorTexGamma);
+
+	mFullscreenTriangle->bind();
+	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+
+	return mEdgesTex->getColor0AttachmentTexture();
 }
 
 

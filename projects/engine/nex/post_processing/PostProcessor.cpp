@@ -45,7 +45,7 @@ mPostprocessPass(std::make_unique<PostProcessShader>()), mDownSampler(downSample
 
 nex::PostProcessor::~PostProcessor() = default;
 
-void nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output)
+nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output)
 {
 	// Bloom
 	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
@@ -74,6 +74,14 @@ void nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowText
 
 	//Do SMAA antialising after texture is in sRGB (gamma space)
 	//But for best results the input read for the color/luma edge detection should *NOT* be sRGB !
+
+	//return nullptr;
+	return output->getColor0AttachmentTexture();
+}
+
+nex::SMAA* nex::PostProcessor::getSMAA()
+{
+	return mSmaa.get();
 }
 
 void nex::PostProcessor::resize(unsigned width, unsigned height)

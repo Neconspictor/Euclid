@@ -21,6 +21,7 @@
 #include <nex/EffectLibrary.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/post_processing/PostProcessor.hpp"
+#include "nex/post_processing/SMAA.hpp"
 
 int ssaaSamples = 1;
 
@@ -95,6 +96,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	renderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
+	mPingPong = m_renderBackend->createRenderTarget();
 
 	panoramaSkyBoxShader->bind();
 	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -137,6 +139,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	m_pbr_deferred = std::make_unique<PBR_Deferred>(panoramaSky, m_cascadedShadow.get());
 	pbr_mrt = m_pbr_deferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	
@@ -291,7 +294,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
+	//static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
 
 	auto* renderResult = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(renderTargetSingleSampled->getColorAttachmentTexture(1));
@@ -301,7 +304,31 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	postProcessor->doPostProcessing(renderResult, luminanceTexture, screenRenderTarget);
+	renderResult = postProcessor->doPostProcessing(renderResult, luminanceTexture, mPingPong.get());
+
+
+
+	if (showDepthMap)
+	{
+		screenRenderTarget->bind();
+		screenRenderTarget->clear(Color | Depth | Stencil);
+		screenSprite.setTexture(renderResult);
+		screenShader->bind();
+		screenShader->useTexture(screenSprite.getTexture());
+		StaticMeshDrawer::draw(&screenSprite, screenShader);
+	} else
+	{
+		auto* smaa = postProcessor->getSMAA();
+		smaa->reset();
+		auto* edgeTex = smaa->renderEdgeDetectionPass(renderResult);
+
+		screenRenderTarget->bind();
+		screenRenderTarget->clear(Color | Depth | Stencil);
+		screenSprite.setTexture(edgeTex);
+		screenShader->bind();
+		screenShader->useTexture(screenSprite.getTexture());
+		StaticMeshDrawer::draw(&screenSprite, screenShader);
+	}
 
 	return;
 
@@ -368,6 +395,8 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	renderTargetSingleSampled->useDepthAttachment(*pbr_mrt->getDepthAttachment());
+
+	mPingPong = m_renderBackend->createRenderTarget();
 
 	//ssao_deferred->onSizeChange(width, height);
 

@@ -61,6 +61,7 @@ namespace nex
 		AmbientOcclusionSelector m_aoSelector;
 
 		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
+		std::unique_ptr<RenderTarget2D> mPingPong;
 
 		AtmosphericScattering mAtmosphericScattering;
 

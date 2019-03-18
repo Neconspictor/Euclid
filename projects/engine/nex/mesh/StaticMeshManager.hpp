@@ -48,11 +48,20 @@ namespace nex
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
 		 * To render the plane, no index buffer is needed. It is sufficient to call
-		 * RenderBackend::drawArrays(Topology::TRIANGLE_STRIP, 0, 4) after binding the returned vertex array.
+		 * RenderBackend::drawArrays(Topology::TRIANGLES_STRIP, 0, 4) after binding the returned vertex array.
 		 * 
 		 * TODO: Until now only opengl NDC is supported! Generalize it to support also DirectX NDC!
 		 */
 		VertexArray* getNDCFullscreenPlane();
+
+		/**
+		 * Provides a vertex array holding three vertices forming a fullscreen triangle.
+		 * To render the triangle, no index buffer is needed. It is sufficient to call
+		 * RenderBackend::drawArrays(Topology::TRIANGLES, 0, 3) after binding the returned vertex array.
+		 *
+		 * TODO: Until now only opengl NDC is supported! Generalize it to support also DirectX NDC!
+		 */
+		VertexArray* getNDCFullscreenTriangle();
 
 
 		/*
@@ -98,6 +107,7 @@ namespace nex
 		BlinnPhongMaterialLoader blinnPhongMaterialLoader;
 		FileSystem* mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
+		std::unique_ptr<VertexArray> mFullscreenTriangle;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 	};

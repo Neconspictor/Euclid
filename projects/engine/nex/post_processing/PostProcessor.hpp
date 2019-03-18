@@ -33,7 +33,9 @@ namespace nex
 		 * @param glowTexture : Used for Bloom
 		 * @param output : The render target that will be used to store the result of the post processing.
 		 */
-		void doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output);
+		nex::Texture2D* doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output);
+
+		SMAA* getSMAA();
 
 		/**
 		 * Resizes the post processor for a different resolution.

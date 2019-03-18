@@ -27,7 +27,7 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
 
 		mFullscreenPlane = std::make_unique<VertexArray>();
-		static const float fullscreenTriangleStripOpengl[] = {
+		static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
 			// position 4 floats, texture coords 2 floats
 			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
 			+1.0, -1.0, 0.0, 1.0, 1.0, 0.0,
@@ -35,11 +35,23 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 			+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 		};
 
-		VertexBuffer buffer(fullscreenTriangleStripOpengl, sizeof(fullscreenTriangleStripOpengl));
+		VertexBuffer planeBuffer(fullscreenPlaneTriangleStripVerticesOpengl, sizeof(fullscreenPlaneTriangleStripVerticesOpengl));
 		VertexLayout layout;
 		layout.push<float>(4);
 		layout.push<float>(2);
-		mFullscreenPlane->addBuffer(std::move(buffer), layout);
+		mFullscreenPlane->addBuffer(std::move(planeBuffer), layout);
+
+
+		mFullscreenTriangle = std::make_unique<VertexArray>();
+		static const float fullscreenTriangleVerticesOpengl[] = {
+			// position 4 floats, texture coords 2 floats
+			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+			+2.0, -1.0, 0.0, 1.0, 2.0, 0.0,
+			-1.0, +2.0, 0.0, 1.0, 0.0, 2.0
+		};
+
+		VertexBuffer triangleBuffer(fullscreenTriangleVerticesOpengl, sizeof(fullscreenTriangleVerticesOpengl));
+		mFullscreenTriangle->addBuffer(std::move(triangleBuffer), layout);
 	}
 
 std::unique_ptr<nex::StaticMesh> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
@@ -200,6 +212,11 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenPlane()
 {
 	return mFullscreenPlane.get();
+}
+
+nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenTriangle()
+{
+	return mFullscreenTriangle.get();
 }
 
 

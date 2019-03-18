@@ -6,6 +6,7 @@
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <nex/opengl/opengl.hpp>
 #include "nex/texture/Attachment.hpp"
+#include <nex/texture/Texture.hpp>
 
 using namespace std;
 using namespace glm;
@@ -692,6 +693,11 @@ unsigned nex::RenderTarget2D::getWidth() const
 unsigned nex::RenderTarget2D::getHeight() const
 {
 	return ((RenderTarget2DGL*)getImpl())->getHeight();
+}
+
+nex::Texture2D* nex::RenderTarget2D::getColor0AttachmentTexture()
+{
+	return static_cast<Texture2D*>(getColorAttachmentTexture(0));
 }
 
 

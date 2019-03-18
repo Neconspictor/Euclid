@@ -1,3 +1,5 @@
+#version 430
+
 #define SMAA_INCLUDE_VS 1
 #define SMAA_INCLUDE_PS 0
 #include "post_processing/SMAA/SMAA_base.glsl"

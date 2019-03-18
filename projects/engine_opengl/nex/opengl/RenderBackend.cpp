@@ -235,7 +235,7 @@ namespace nex
 		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
 		mPimpl->defaultRenderTarget->bind();
 		mPimpl->defaultRenderTarget->clear(RenderComponent::Color);
-		GLCall(glClearColor(0.0, 0.0, 0.0, 0.0)); // TODO abstract
+		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
 
 		getDepthBuffer()->enableDepthTest(true);
 		getDepthBuffer()->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
