@@ -338,6 +338,27 @@ namespace nex {
 		return result;
 	}
 
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, bool flip, const nex::TextureData& data)
+	{
+		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
+
+		stbi_set_flip_vertically_on_load(flip); // opengl uses texture coordinates with origin at bottom left 
+		int width, height, nrComponents;
+		const unsigned requiredComponents = getComponents(data.colorspace);
+		unsigned char* rawData = stbi_load(resolvedPath.c_str(), &width, &height, &nrComponents, requiredComponents);
+		if (!rawData) {
+			LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
+			stringstream ss;
+			ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
+			throw_with_trace(runtime_error(ss.str()));
+		}
+
+		auto texture = std::make_unique<Texture2D>(width, height, data, rawData);
+		stbi_image_free(rawData);
+
+		return texture;
+	}
+
 	void TextureManager::init(FileSystem* textureFileSystem)
 	{
 		mFileSystem = textureFileSystem;

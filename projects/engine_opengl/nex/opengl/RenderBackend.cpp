@@ -276,6 +276,25 @@ namespace nex
 		GLCall(glStencilMask(0xFF)); // TODO abstract ?
 		getStencilTest()->setCompareFunc(CompareFunction::LESS_EQUAL, 0, 0xFF); // TODO: Is it right?
 
+
+		
+		GLCall(glEnable(GL_LINE_SMOOTH));
+		GLCall(glEnable(GL_POLYGON_SMOOTH));
+		GLCall(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+		GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
+
+		getBlender()->enableBlend(true);
+		//getBlender()->enableAlphaToCoverage(true);
+		RenderTargetBlendDesc desc;
+		//desc.enableBlend = true;
+		//desc.blendDesc.sourceRGB = BlendFunc::SOURCE_ALPHA;
+		//desc.blendDesc.destRGB = BlendFunc::ONE_MINUS_DESTINATION_ALPHA;
+		//desc.blendDesc.sourceAlpha = BlendFunc::SOURCE_ALPHA;
+		//desc.blendDesc.destAlpha = BlendFunc::ONE_MINUS_DESTINATION_ALPHA;
+		//desc.blendDesc.operationRGB = BlendOperation::ADD;
+		//desc.blendDesc.operationAlpha = BlendOperation::ADD;
+		//getBlender()->setRenderTargetBlending(desc);
+
 		TextureManager::get()->init();
 
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);

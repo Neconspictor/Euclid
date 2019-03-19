@@ -53,6 +53,8 @@ namespace nex
 		nex::Logger m_logger;
 		Texture* panoramaSky;
 		Texture* testTexture;
+		Texture2D* smaaTestTex;
+		Texture2D* smaaTestSRGBTex;
 
 		std::unique_ptr<PBR_Deferred> m_pbr_deferred;
 		std::unique_ptr<PBR_GBuffer>  pbr_mrt;

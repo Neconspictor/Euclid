@@ -81,6 +81,19 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	);
 
 
+	nex::TextureData data = {
+				nex::TextureFilter::Linear_Mipmap_Linear,
+				nex::TextureFilter::Linear,
+				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
+				nex::ColorSpace::RGBA,
+				nex::PixelDataType::UBYTE,
+				nex::InternFormat::RGBA8,
+				true };
+	smaaTestTex = static_cast<Texture2D*>(textureManager->getImage("trash/Unigine01.png", data));
+	smaaTestSRGBTex = static_cast<Texture2D*>(textureManager->getImage("trash/Unigine01.png"));
+
 	testTexture = textureManager->getImage("container.png");
 
 	//HDR_Free_City_Night_Lights_Ref
@@ -291,8 +304,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	//renderTargetSingleSampled->clear(RenderComponent::Depth | RenderComponent::Stencil);//| RenderComponent::Depth | RenderComponent::Stencil
 
 	
-	// finally render the offscreen buffer to a quad and do post processing stuff
-	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	
 
 	//static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
 
@@ -304,8 +316,12 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
+	// finally render the offscreen buffer to a quad and do post processing stuff
+	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-	postProcessed = postProcessor->doPostProcessing(postProcessed, luminanceTexture, mPingPong.get());
+	postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, mPingPong.get());
+	//auto* postProcessed = smaaTestTex;
 
 	auto* smaa = postProcessor->getSMAA();
 
@@ -314,8 +330,25 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 		std::cout << "SMAA is rendered: " << showDepthMap << std::endl;
 	}
 
+	smaa->reset();
+	auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
+	auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
 
-	if (showDepthMap)
+	//mPingPong->bind();
+	//mPingPong->clear(Color | Depth | Stencil);
+	//blendTex = postProcessor->doPostProcessing(blendTex, nullptr, mPingPong.get());
+
+	static int switcher = 0;
+
+	if (mInput->isPressed(Input::KEY_Y))
+	{
+		++switcher;
+		switcher %= 4;
+
+		std::cout << "switcher = " << switcher << std::endl;
+	}
+
+	if (switcher == 1)
 	{
 		screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
@@ -323,17 +356,31 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);
-
-	} else
+		
+	} else if (switcher == 2)
 	{
-		smaa->reset();
-		auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
-		auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
+		screenRenderTarget->bind();
+		screenRenderTarget->clear(Color | Depth | Stencil);
+		screenSprite.setTexture(edgeTex);
+		screenShader->bind();
+		screenShader->useTexture(screenSprite.getTexture());
+		StaticMeshDrawer::draw(&screenSprite, screenShader);
+		
+	} else if (switcher == 3)
+	{
+		screenRenderTarget->bind();
+		screenRenderTarget->clear(Color | Depth | Stencil);
+		screenSprite.setTexture(blendTex);
+		screenShader->bind();
+		screenShader->useTexture(screenSprite.getTexture());
+		StaticMeshDrawer::draw(&screenSprite, screenShader);
+
+	} else {
 		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
 
 		/*screenRenderTarget->bind();
 		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(blendTex);
+		screenSprite.setTexture(postProcessed);
 		screenShader->bind();
 		screenShader->useTexture(screenSprite.getTexture());
 		StaticMeshDrawer::draw(&screenSprite, screenShader);*/

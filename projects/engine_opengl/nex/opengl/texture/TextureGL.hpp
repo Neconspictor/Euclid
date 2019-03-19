@@ -44,6 +44,7 @@ namespace nex
 		R = GL_RED,
 		RED_INTEGER = GL_RED_INTEGER,
 		RG = GL_RG,
+		RG_INTEGER = GL_RG_INTEGER,
 		RGB = GL_RGB,
 		RGBA = GL_RGBA,
 
@@ -59,6 +60,7 @@ namespace nex
 	enum InternFormatGL
 	{
 		R8 = GL_R8,
+		R8UI = GL_R8UI,
 		R16 = GL_R16,
 		R16F = GL_R16F,
 		R32F = GL_R32F,
@@ -66,6 +68,7 @@ namespace nex
 		R32UI = GL_R32UI,
 
 		RG8 = GL_RG8,
+		RG8UI = GL_RG8UI,
 		RG8_SNORM = GL_RG8_SNORM,
 		RG16 = GL_RG16,
 		RG16F = GL_RG16F,

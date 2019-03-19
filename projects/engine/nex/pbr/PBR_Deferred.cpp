@@ -42,6 +42,13 @@ namespace nex {
 		{
 			reloadLightingShader(cascade);
 		});
+
+
+		SamplerDesc desc;
+		desc.minFilter = desc.magFilter = TextureFilter::Linear;
+		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
+		desc.maxAnisotropy = 1.0f;
+		mPointSampler = std::make_unique<Sampler>(desc);
 	}
 
 	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
@@ -69,6 +76,17 @@ namespace nex {
 		Texture* ssaoMap)
 	{
 		mLightPass->bind();
+
+		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
+
+		for (int i = 0; i < 4; ++i)
+		{
+			//mPointSampler->bind(i);
+		}
+
+		//sampler->bind(4);
+		//sampler->bind(5);
+
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
@@ -105,6 +123,16 @@ namespace nex {
 
 
 		StaticMeshDrawer::draw(&screenSprite, mLightPass.get());
+
+
+		for (int i = 0; i < 4; ++i)
+		{
+			//mPointSampler->unbind(i);
+			//sampler->unbind(i);
+		}
+
+		//sampler->bind(4);
+		//sampler->bind(5);
 	}
 
 	void PBR_Deferred::drawSky(Camera* camera)

@@ -11,6 +11,7 @@ namespace nex
 	class SceneNode;
 
 	class PBR_GBuffer;
+	class Sampler;
 
 	class PBR_Deferred : public PBR {
 
@@ -44,6 +45,7 @@ namespace nex
 		Sprite screenSprite;
 		std::unique_ptr<PBRShader_Deferred_Geometry> mGeometryPass;
 		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
+		std::unique_ptr<Sampler> mPointSampler;
 		CascadedShadow* mCascadeShadow;
 		float mAmbientLightPower;
 		DirectionalLight* mLight;

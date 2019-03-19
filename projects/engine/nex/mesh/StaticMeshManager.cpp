@@ -288,6 +288,7 @@ nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
 		modelTable.clear();
 		models.clear();
 		mFullscreenPlane.reset(nullptr);
+		mFullscreenTriangle.reset(nullptr);
 	}
 
 	/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)

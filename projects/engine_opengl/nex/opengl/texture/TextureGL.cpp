@@ -144,6 +144,7 @@ unsigned nex::getComponents(const ColorSpace colorSpace)
 		1,
 		1,
 		2,
+		2,
 		3,
 		4,
 		3,
@@ -848,6 +849,7 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 		R,
 		RED_INTEGER,
 		RG,
+		RG_INTEGER,
 		RGB,
 		RGBA,
 
@@ -871,6 +873,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 	static InternFormatGL const table[]
 	{
 		R8,
+		R8UI,
 		R16,
 		R16F,
 		R32F,
@@ -878,6 +881,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		R32UI,
 
 		RG8,
+		RG8UI,
 		RG8_SNORM,
 		RG16,
 		RG16F,

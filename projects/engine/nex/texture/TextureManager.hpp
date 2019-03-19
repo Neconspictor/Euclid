@@ -62,6 +62,19 @@ namespace nex {
 				true }
 		);
 
+		std::unique_ptr<nex::Texture2D> loadImage(const std::string& file, bool flip,
+			const nex::TextureData& data = {
+				nex::TextureFilter::Linear_Mipmap_Linear,
+				nex::TextureFilter::Linear,
+				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
+				nex::TextureUVTechnique::Repeat,
+				nex::ColorSpace::SRGBA,
+				nex::PixelDataType::UBYTE,
+				nex::InternFormat::SRGBA8,
+				true }
+		);
+
 		/**
 		 * Initializes the texture manager.
 		 * @param textureFileSystem Used to resolve texture file paths

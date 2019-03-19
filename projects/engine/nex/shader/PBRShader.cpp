@@ -281,18 +281,18 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
 	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
 
-	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, textureCounter };
+	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, 0 };
 	if (mAlbedoMap.location != -1)
 		++textureCounter;
 
-	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, textureCounter };
+	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, 1 };
 	if (mAoMetalRoughnessMap.location != -1)
 		++textureCounter;
 
-	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, textureCounter };
+	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
 	if (mNormalEyeMap.location != -1)
 		++textureCounter;
-	mDepthMap = { mProgram->getUniformLocation("gBuffer.depthMap"), UniformType::TEXTURE2D, textureCounter };
+	mDepthMap = { mProgram->getUniformLocation("gBuffer.depthMap"), UniformType::TEXTURE2D, 3 };
 	if (mDepthMap.location != -1)
 		++textureCounter;
 

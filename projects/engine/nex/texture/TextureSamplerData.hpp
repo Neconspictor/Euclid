@@ -13,6 +13,7 @@ namespace nex
 		R, FIRST = R,
 		RED_INTEGER,
 		RG,
+		RG_INTEGER,
 		RGB,
 		RGBA,
 
@@ -30,6 +31,7 @@ namespace nex
 	enum class InternFormat
 	{
 		R8, FIRST = R8, //Note: nothing specified after the bit depth means UNORM = unsigned normalized integers (range [0, 1]) , see: https://www.khronos.org/opengl/wiki/Normalized_Integer
+		R8UI,
 		R16,
 		R16F,
 		R32F,
@@ -37,6 +39,7 @@ namespace nex
 		R32UI,
 
 		RG8,
+		RG8UI,
 		RG8_SNORM, // SNORM = signed normalized integers (range [-1, 1]) , see: https://www.khronos.org/opengl/wiki/Normalized_Integer
 		RG16,
 		RG16F,
@@ -189,7 +192,7 @@ namespace nex
 
 	struct TextureData : public BaseTextureDesc
 	{
-		ColorSpace colorspace = ColorSpace::SRGBA;
+		ColorSpace colorspace = ColorSpace::RGBA;
 		PixelDataType pixelDataType = PixelDataType::UBYTE;
 		InternFormat internalFormat = InternFormat::RGBA8;
 
@@ -262,7 +265,7 @@ namespace nex
 			data.minFilter = TextureFilter::Linear;
 			data.magFilter = TextureFilter::Linear;
 			data.colorspace = ColorSpace::RGBA;
-			data.internalFormat = InternFormat::RGBA16F;
+			data.internalFormat = InternFormat::RGBA32F;
 			data.pixelDataType = PixelDataType::FLOAT;
 			data.wrapR = TextureUVTechnique::ClampToEdge;
 			data.wrapS = TextureUVTechnique::ClampToEdge;

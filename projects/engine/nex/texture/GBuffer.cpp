@@ -18,6 +18,7 @@ namespace nex
 		data.wrapR = TextureUVTechnique::ClampToEdge;
 		data.wrapS = TextureUVTechnique::ClampToEdge;
 		data.wrapT = TextureUVTechnique::ClampToEdge;
+		data.maxAnisotropy = 1.0f;
 		data.generateMipMaps = false;
 		data.useSwizzle = false;
 
@@ -51,6 +52,7 @@ namespace nex
 
 		// depth
 		data.internalFormat = InternFormat::R32F;
+		//data.colorspace = ColorSpace::DEPTH;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 3;

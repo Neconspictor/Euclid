@@ -52,6 +52,7 @@ namespace nex
 		if (mRendererID != GL_FALSE)
 		{
 			GLCall(glDeleteVertexArrays(1, &mRendererID));
+			mRendererID = GL_FALSE;
 		}
 	}
 

@@ -17,24 +17,24 @@ layout(binding = 4) uniform sampler2D bloomSixteenth;
 
 void main() {
 
-    vec3 color = texture(sourceTexture, fs_in.texCoord).rgb;
+    vec4 color = texture(sourceTexture, fs_in.texCoord).rgba;
     
     // Bloom
     const float strength = 0.5 * 1.0;
-    vec3 bloomHalfthSample = texture(bloomHalfth, fs_in.texCoord).rgb * strength;
-    vec3 bloomQuarterSample = texture(bloomQuarter, fs_in.texCoord).rgb * strength * 0.75;
-    vec3 bloomEigthSample = texture(bloomEigth, fs_in.texCoord).rgb * strength * 0.5;
-    vec3 bloomSixteenthSample = texture(bloomSixteenth, fs_in.texCoord).rgb * strength * 0.25;
+    vec4 bloomHalfthSample = texture(bloomHalfth, fs_in.texCoord) * strength;
+    vec4 bloomQuarterSample = texture(bloomQuarter, fs_in.texCoord) * strength * 0.75;
+    vec4 bloomEigthSample = texture(bloomEigth, fs_in.texCoord) * strength * 0.5;
+    vec4 bloomSixteenthSample = texture(bloomSixteenth, fs_in.texCoord) * strength * 0.25;
     color += bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample;
 
     // HDR tonemapping
     const float exposure = 1.0;
     color *= exposure;
-    color = color / (color + vec3(1.0));
+    color = color / (color + vec4(1.0));
 	
     // gamma correct
     const float gamma = 2.2f;
-    color = pow(color, vec3(1.0/gamma)); 
+    color = pow(color, vec4(1.0/gamma)); 
 
-    fragColor = vec4(color, 1.0);
+    fragColor = color;
 }
