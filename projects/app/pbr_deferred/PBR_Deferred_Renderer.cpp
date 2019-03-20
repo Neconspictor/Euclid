@@ -201,13 +201,11 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	m_pbr_deferred->drawGeometryScene(scene,
-		camera->getView(),
-		camera->getPerspProjection());
+	m_pbr_deferred->drawGeometryScene(scene, camera);
 
 	stencilTest->enableStencilTest(false);
 
-	Texture* aoTexture = renderAO(camera, pbr_mrt->getDepth(), pbr_mrt->getNormal());
+	Texture* aoTexture = renderAO(camera, pbr_mrt->getNormalizedViewSpaceZ(), pbr_mrt->getNormal());
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
 
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
@@ -216,7 +214,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	// Update CSM if it is enabled
 	if (m_cascadedShadow->isEnabled())
 	{
-		glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getDepth());
+		glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, pbr_mrt->getNormalizedViewSpaceZ());
 		m_cascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ, mSceneNearFarComputeShader->getWriteOutBuffer());
 
 		for (int i = 0; i < m_cascadedShadow->getCascadeData().numCascades; ++i)
@@ -410,7 +408,7 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 		//modelDrawer->draw(&screenSprite, Shaders::Screen);
 		//screenSprite.setTexture(shadowMap->getTexture());
 		depthMapShader->bind();
-		depthMapShader->useDepthMapTexture(pbr_mrt->getDepth());
+		depthMapShader->useDepthMapTexture(pbr_mrt->getNormalizedViewSpaceZ());
 		//screenShader->useTexture(shadowMap->getTexture());
 		//modelDrawer->draw(&screenSprite, screenShader);
 		StaticMeshDrawer::draw(&screenSprite, depthMapShader);

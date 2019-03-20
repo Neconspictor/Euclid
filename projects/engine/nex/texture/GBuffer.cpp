@@ -8,7 +8,7 @@ using namespace std;
 namespace nex
 {
 	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(),
-	mAlbedo(nullptr), mAoMetalRoughness(nullptr), mNormal(nullptr), mDepth(nullptr)
+	mAlbedo(nullptr), mAoMetalRoughness(nullptr), mNormal(nullptr), mNormalizedViewSpaceZ(nullptr)
 	{
 		bind();
 
@@ -50,13 +50,13 @@ namespace nex
 		mNormal = temp.texture.get();
 		addColorAttachment(temp);
 
-		// depth
+		// normalized viewspace z
 		data.internalFormat = InternFormat::R32F;
 		//data.colorspace = ColorSpace::DEPTH;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 3;
-		mDepth = temp.texture.get();
+		mNormalizedViewSpaceZ = temp.texture.get();
 		addColorAttachment(temp);
 
 
@@ -97,8 +97,8 @@ namespace nex
 		return mNormal;
 	}
 
-	Texture* PBR_GBuffer::getDepth() const
+	Texture* PBR_GBuffer::getNormalizedViewSpaceZ() const
 	{
-		return mDepth;
+		return mNormalizedViewSpaceZ;
 	}
 }

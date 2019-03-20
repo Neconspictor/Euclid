@@ -154,6 +154,21 @@ namespace nex
 		return view;
 	}
 
+	float Projectional::getViewSpaceZfromPlaneDistance(float distance)
+	{
+#ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
+		distance *= -1; // the z-axis is inverted on right handed systems
+#endif
+		return distance;
+	}
+
+	glm::vec2 nex::Projectional::getNearFarPlaneViewSpace(ProjectionMode mode)
+	{
+		const auto& frustum = getFrustum(mode);
+		return glm::vec2(getViewSpaceZfromPlaneDistance(frustum.nearPlane), 
+			getViewSpaceZfromPlaneDistance(frustum.farPlane));
+	}
+
 	void Projectional::lookAt(vec3 location)
 	{
 		//setLook(location - position);

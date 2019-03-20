@@ -292,8 +292,8 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
 	if (mNormalEyeMap.location != -1)
 		++textureCounter;
-	mDepthMap = { mProgram->getUniformLocation("gBuffer.depthMap"), UniformType::TEXTURE2D, 3 };
-	if (mDepthMap.location != -1)
+	mNormalizedViewSpaceZMap = { mProgram->getUniformLocation("gBuffer.normalizedViewSpaceZMap"), UniformType::TEXTURE2D, 3 };
+	if (mNormalizedViewSpaceZMap.location != -1)
 		++textureCounter;
 
 	//mShadowMap = { mProgram->getUniformLocation("shadowMap"), UniformType::TEXTURE2D, 5 };
@@ -328,6 +328,8 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 		++textureCounter;
 
 	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
+
+	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
 	//glCreateBuffers(1, &cascadeBufferUBO);
 	//glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
@@ -454,14 +456,19 @@ void PBRShader_Deferred_Lighting::setNormalEyeMap(const Texture* texture)
 	mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.bindingSlot);
 }
 
-void PBRShader_Deferred_Lighting::setDepthMap(const Texture* texture)
+void PBRShader_Deferred_Lighting::setNormalizedViewSpaceZMap(const Texture* texture)
 {
-	mProgram->setTexture(mDepthMap.location, texture, mDepthMap.bindingSlot);
+	mProgram->setTexture(mNormalizedViewSpaceZMap.location, texture, mNormalizedViewSpaceZMap.bindingSlot);
 }
 
 void PBRShader_Deferred_Lighting::setInverseProjMatrixFromGPass(const glm::mat4& mat)
 {
 	mProgram->setMat4(mInverseProjFromGPass.location, mat);
+}
+
+void PBRShader_Deferred_Lighting::setNearFarPlane(const glm::vec2& nearFarPlane)
+{
+	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
 void PBRShader_Deferred_Lighting::onTransformUpdate(const TransformData& data)
@@ -579,6 +586,8 @@ PBRShader_Deferred_Geometry::PBRShader_Deferred_Geometry(): mProjection(nullptr)
 	mMetalMap = {mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3};
 	mNormalMap = {mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4};
 	mRoughnessMap = {mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5};
+
+	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 }
 
 void PBRShader_Deferred_Geometry::setAlbedoMap(const Texture* texture)
@@ -658,6 +667,11 @@ void PBRShader_Deferred_Geometry::onMaterialUpdate(const Material* materialSourc
 	setMetalMap(material->getMetallicMap());
 	setNormalMap(material->getNormalMap());
 	setRoughnessMap(material->getRoughnessMap());
+}
+
+void PBRShader_Deferred_Geometry::setNearFarPlane(const glm::vec2& nearFarPlane)
+{
+	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
 //TODO

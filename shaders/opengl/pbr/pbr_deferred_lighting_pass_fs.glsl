@@ -1,6 +1,7 @@
 #version 430
 
 #include "shadow/cascaded_shadow.glsl"
+#include "pbr/viewspaceNormalization.glsl"
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminaceColor;
@@ -11,7 +12,7 @@ struct GBuffer {
     sampler2D albedoMap;
 	sampler2D aoMetalRoughnessMap;
 	sampler2D normalEyeMap;
-    sampler2D depthMap;
+    sampler2D normalizedViewSpaceZMap;
 };
 
 
@@ -59,6 +60,8 @@ layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
 uniform sampler2DArray cascadedDepthMap;
 
 uniform mat4 inverseProjMatrix_GPass;
+
+uniform vec2 nearFarPlane;
 
 
 vec3 pbrModel(float ao,
@@ -113,9 +116,9 @@ void main()
 	};*/
 	
 	
-	//vec3 positionEye = texture(gBuffer.positionEyeMap, fs_in.tex_coords).rgb;
-    float depth = texture(gBuffer.depthMap, fs_in.tex_coords).r;
-    vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth, inverseProjMatrix_GPass);
+    float normalizedViewSpaceZ = texture(gBuffer.normalizedViewSpaceZMap, fs_in.tex_coords).r;
+    float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
+    vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.tex_coords, viewSpaceZ, inverseProjMatrix_GPass);
 	
 	float ambientOcclusion = texture(ssaoMap, fs_in.tex_coords).r;
 	

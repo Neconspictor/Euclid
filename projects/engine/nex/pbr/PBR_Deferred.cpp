@@ -51,11 +51,16 @@ namespace nex {
 		mPointSampler = std::make_unique<Sampler>(desc);
 	}
 
-	void PBR_Deferred::drawGeometryScene(SceneNode * scene, const glm::mat4 & view, const glm::mat4 & projection)
+
+	void PBR_Deferred::drawGeometryScene(SceneNode * scene, Camera* camera)
 	{
+
+		const auto & view = camera->getView();
+		const auto & projection = camera->getPerspProjection();
 		mGeometryPass->bind();
 		mGeometryPass->setView(view);
 		mGeometryPass->setProjection(projection);
+		mGeometryPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 
 		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
 
@@ -91,7 +96,7 @@ namespace nex {
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
-		mLightPass->setDepthMap(gBuffer->getDepth());
+		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
 		mLightPass->setBrdfLookupTexture(getBrdfLookupTexture());
 		//shader->setGBuffer(gBuffer);
@@ -111,6 +116,9 @@ namespace nex {
 		mLightPass->setPrefilterMap(getPrefilteredEnvironmentMap());
 		//shader->setShadowMap(shadowMap);
 		mLightPass->setAOMap(ssaoMap);
+
+		mLightPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+
 		//TODO
 		//shader->setSkyBox(environmentMap->getCubeMap());
 		

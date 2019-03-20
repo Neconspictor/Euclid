@@ -1,9 +1,11 @@
 #version 420 core
 
+#include "pbr/viewspaceNormalization.glsl"
+
 layout(location = 0) out vec3 albedo;
 layout(location = 1) out vec3 aoMetallRoughness;
 layout(location = 2) out vec3 normalEye;
-layout(location = 3) out float depth;
+layout(location = 3) out float normalizedViewSpaceZ;
 
 const float PI = 3.14159265359;
 
@@ -18,6 +20,7 @@ struct Material {
 
 in VS_OUT {	
 	vec4 fragment_position_eye;
+    float viewSpaceZ;
 	vec2 tex_coords;
 	mat3 TBN_eye_directions; // used to transform the normal vector from tangent to eye space.
 						  //  This matrix mustn't be used with positions!!!
@@ -25,6 +28,10 @@ in VS_OUT {
 
 
 uniform Material material;
+
+// Viewspace z values of the near and far plane
+// Note: near and far mustn't be equal (Divide by zero!)
+uniform vec2 nearFarPlane;
 
 
 void main()
@@ -53,5 +60,5 @@ void main()
 	// position
 	//positionEye = fs_in.fragment_position_eye.xyz;
     
-    depth = gl_FragCoord.z;
+    normalizedViewSpaceZ = normalizeViewSpaceZ(fs_in.viewSpaceZ, nearFarPlane.x, nearFarPlane.y);
 }

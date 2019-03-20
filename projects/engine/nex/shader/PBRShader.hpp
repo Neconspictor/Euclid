@@ -123,12 +123,14 @@ namespace nex
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
+		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 	private:
 
 		Uniform mTransform;
 		Uniform mModelView;
 		Uniform mModelView_normalMatrix;
+		Uniform mNearFarPlane;
 
 		UniformTex mAlbedoMap;
 		UniformTex mAmbientOcclusionMap;
@@ -182,9 +184,11 @@ namespace nex
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
 		void setPositionEyeMap(const Texture* texture);
-		void setDepthMap(const Texture* texture);
+		void setNormalizedViewSpaceZMap(const Texture* texture);
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
+
+		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 
 		void onTransformUpdate(const TransformData& data) override;
@@ -224,9 +228,10 @@ namespace nex
 		UniformTex mAlbedoMap;
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
-		UniformTex mDepthMap;
+		UniformTex mNormalizedViewSpaceZMap;
 
 		Uniform mInverseProjFromGPass;
+		Uniform mNearFarPlane;
 
 		// CSM
 		unsigned mCsmNumCascades;

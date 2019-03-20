@@ -18,9 +18,7 @@ namespace nex
 	public:
 		PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow);
 
-		void drawGeometryScene(SceneNode * scene,
-			const glm::mat4& view,
-			const glm::mat4& projection);
+		void drawGeometryScene(SceneNode * scene, Camera* camera);
 
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,

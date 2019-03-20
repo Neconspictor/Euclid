@@ -15,6 +15,7 @@ uniform mat4 biasMatrix;
 
 out VS_OUT {
 	vec4 fragment_position_eye;
+    float viewSpaceZ;
 	vec2 tex_coords;
 	mat3 TBN_eye_directions; // used to transform the normal vector from tangent to eye space. 
 						  //  This matrix mustn't be used with positions!!!	
@@ -25,6 +26,7 @@ void main()
 
     gl_Position = transform * vec4(position, 1.0f);
 	vs_out.fragment_position_eye = modelView * vec4(position, 1.0f);
+    vs_out.viewSpaceZ = vs_out.fragment_position_eye.z;
 	vs_out.tex_coords = texCoords;
 	
 	mat3 normalMatrix = mat3(inverse(transpose(modelView)));

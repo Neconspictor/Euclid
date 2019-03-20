@@ -68,6 +68,12 @@ namespace nex
 		const glm::vec3& getUp() const;
 		const glm::mat4& getView();
 
+		/**
+		 * Calculate viewspace z from a plane distance (which is always positive!)
+		 */
+		float getViewSpaceZfromPlaneDistance(float distance);
+		glm::vec2 getNearFarPlaneViewSpace(ProjectionMode mode);
+
 		void lookAt(glm::vec3 location);
 
 		/**

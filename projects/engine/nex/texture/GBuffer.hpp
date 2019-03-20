@@ -14,12 +14,12 @@ namespace nex
 		Texture* getAlbedo() const;
 		Texture* getAoMetalRoughness() const;
 		Texture* getNormal() const;
-		Texture* getDepth() const;
+		Texture* getNormalizedViewSpaceZ() const;
 
 	private:
 		Texture* mAlbedo;
 		Texture* mAoMetalRoughness;
 		Texture* mNormal;
-		Texture* mDepth;
+		Texture* mNormalizedViewSpaceZ;
 	};
 }
