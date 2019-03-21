@@ -61,4 +61,5 @@ void main()
 	//positionEye = fs_in.fragment_position_eye.xyz;
     
     normalizedViewSpaceZ = normalizeViewSpaceZ(fs_in.viewSpaceZ, nearFarPlane.x, nearFarPlane.y);
+    normalizedViewSpaceZ = gl_FragCoord.z;
 }
