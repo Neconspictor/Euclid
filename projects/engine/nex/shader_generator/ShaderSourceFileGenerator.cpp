@@ -445,6 +445,8 @@ void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root) const
 			queue.push(&desc);
 		} else
 		{
+			parsedFiles.insert(p);
+			queue.push(&desc);
 			std::stringstream ss;
 			ss << "Detected include file is multiple times included: " << p.generic_string() << ":\n"
 								<< "Include hierarchy for " << p.generic_string() << ":\n";
@@ -464,9 +466,9 @@ void nex::ShaderSourceFileGenerator::generate(nex::FileDesc* root) const
 
 			}
 
-			mLogger.log(nex::Error) << ss.str();
+			mLogger.log(nex::Debug) << ss.str();
 
-			throw_with_trace(std::runtime_error("File is included multiple times: " + p.generic_string()));
+			//throw_with_trace(std::runtime_error("File is included multiple times: " + p.generic_string()));
 		}
 	};
 

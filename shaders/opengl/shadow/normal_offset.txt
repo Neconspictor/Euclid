@@ -1,0 +1,39 @@
+//normal offset shadow stuff
+	
+	//scale normal offset by shadow depth
+    vec4 fragPosWorld = model * vec4(position, 1.0f);
+    vs_out.fragment_position_lightspace = biasMatrix * eyeToLightSpaceMatrix * fragPosWorld;
+	vec4 positionLightView = vs_out.fragment_position_lightspace;
+	float shadowFOVFactor = max(lightProjMatrix[0].x, lightProjMatrix[1].y);
+	vec2 size = textureSize(material.shadowMap, 0);
+	float shadowMapTexelSize = 1 / max(size.x, size.y);
+	
+	shadowMapTexelSize *= abs(vs_out.fragment_position_lightspace.z) * shadowFOVFactor;
+	
+	vec4 positionLightSpace;
+	float cosLightAngle = dot(vs_out.light_direction_eye, normal_eye);
+	
+	bool bNormalOffsetScale = true;
+	float normalOffsetScale = bNormalOffsetScale ? clamp(1 - cosLightAngle, 0, 1) : 1.0;
+	float shadowNormalOffset = 10;
+	
+	
+	normalOffsetScale *= shadowNormalOffset * shadowMapTexelSize;
+	vec4 shadowOffset = vec4(normal_eye * normalOffsetScale, 0);
+	
+	bool bOnlyUVNormalOffset = true;
+	
+	if (bOnlyUVNormalOffset) {
+		positionLightSpace = vs_out.fragment_position_lightspace;
+		
+		vec4 shadowPositionEyeUVOnly = fragPosWorld  + shadowOffset;
+		vec4 UVOffsetPositionLightSpace = biasMatrix * eyeToLightSpaceMatrix * shadowPositionEyeUVOnly;
+		
+		positionLightSpace.xy = UVOffsetPositionLightSpace.xy;
+		
+	} else {
+		vec4 shadowPositionEye = fragPosWorld  + shadowOffset;
+		positionLightSpace =  biasMatrix * eyeToLightSpaceMatrix * shadowPositionEye;
+	}
+	
+	//vs_out.fragment_position_lightspace = positionLightSpace;

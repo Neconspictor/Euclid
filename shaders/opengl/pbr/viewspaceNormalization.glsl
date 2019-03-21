@@ -1,3 +1,6 @@
+#ifndef VIEWSPACE_NORMALIZATION_HEADER
+#define VIEWSPACE_NORMALIZATION_HEADER
+
 /**
  * Maps a viewspace z value to the range [0,1]
  * @param z : viewspace z value to be mapped.
@@ -31,3 +34,5 @@ vec3 getViewPositionFromNormalizedZ(in vec2 texCoord, in float viewSpaceZ, in ma
   // Note: we use a distance value. In opengl viewSpaceZ is negative, thus we use the negative 
   return -viewSpaceZ * viewSpaceRay;
 };
+
+#endif // VIEWSPACE_NORMALIZATION_HEADER

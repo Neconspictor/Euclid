@@ -1,3 +1,7 @@
+#include "shadow/cascaded_shadow.glsl"
+#include "pbr/viewspaceNormalization.glsl"
+
+
 const float PI = 3.14159265359;
 
 struct DirLight {
@@ -18,8 +22,21 @@ uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
 
+// Cascaded shadow mapping
+layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
+	/*mat4 inverseViewMatrix;
+	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
+    vec4 scaleFactors[CSM_NUM_CASCADES];
+	vec4 cascadedSplits[CSM_NUM_CASCADES];*/
+    CascadeData cascadeData;
+} csmData;
+
+uniform sampler2DArray cascadedDepthMap;
+uniform sampler2D ssaoMap;
+
+
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo);
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 R, float ao);
+vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao);
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
@@ -27,43 +44,66 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 
-vec3 pbrModel(float ao,
-		vec3 albedo,
-		float metallic, 
-		vec3 normal,
-        vec3 normalWorld,
-		float roughness,
-		vec3 viewDir,
-		vec3 reflectionDir,
-		float shadow,
-		float ssaoAmbientOcclusion,
-        out vec3 directLighting) {
-
+void calcLighting(in float ao, 
+             in vec3 albedo, 
+             in float metallic, 
+             in vec3 normalEye, 
+             in vec3 normalWorld, 
+             in float roughness,
+             in vec3 positionEye,             
+             in vec3 viewEye, 
+             in vec3 reflectionDirWorld,
+             in vec2 texCoord,
+             out vec3 colorOut,
+             out vec3 luminanceOut) 
+{
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 
     // reflectance equation
-    vec3 Lo = pbrDirectLight(viewDir, normal, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo);
     
-    vec3 ambient =  pbrAmbientLight(viewDir, normal, normalWorld, roughness, F0, metallic, albedo, reflectionDir, ao);
+    vec3 ambient =  pbrAmbientLight(viewEye, normalEye, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao);
+    
+    
+    CascadeData cascadeData = csmData.cascadeData;
+    float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye, cascadeData, cascadedDepthMap);
+    
 	
     vec3 color = ambient; //* ambientShadow; // ssaoAmbientOcclusion;
-    float ambientShadow = clamp(shadow, 1.0 - shadowStrength, 1.0);
+    float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
     color -= color*(1.0 - ambientShadow);
 	
 	// shadows affecting only direct light contribution
 	//color += Lo * shadow;
-    directLighting = shadow * Lo;
+    vec3 directLighting = fragmentLitProportion * Lo;
+    
 	color += directLighting;
-	//color *= shadow;
-	
-	//ssaoAmbientOcclusion = pow(ssaoAmbientOcclusion, 2.2);
-	
+    float ssaoAmbientOcclusion = texture(ssaoMap, texCoord).r;
 	color *= ssaoAmbientOcclusion;
-	
-	return color;
+    
+    colorOut = color;
+    luminanceOut = directLighting;
+    
+    return;
+    
+    //Debug
+    uint cascadeIdx = getCascadeIdx(positionEye.z, cascadeData);
+    cascadeIdx = 10;
+    
+    vec3 cascadeColor = colorOut;
+    
+    if (cascadeIdx == 0) {
+       cascadeColor = vec3(1,0,0); 
+    } else if (cascadeIdx == 1) {
+        cascadeColor = vec3(0,1,0); 
+    } else if (cascadeIdx == 2) {
+        cascadeColor = vec3(0,0,1); 
+    };
+    
+    colorOut = 0.5*cascadeColor + 0.5*colorOut;
 }
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
@@ -107,7 +147,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 R, float ao) {
+vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao) {
 	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
@@ -124,7 +164,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     const float MAX_REFLECTION_LOD = 4.0;
 	
     // Important: R has to be in world space, too.
-    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);
