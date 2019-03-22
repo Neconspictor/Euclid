@@ -8,129 +8,224 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-PBRShader::PBRShader()
+pbr::CommonGeometryMaterial::CommonGeometryMaterial() : mProgram(nullptr)
 {
-	mProgram = ShaderProgram::create(
-		"pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl");
-
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mModelMatrix = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
-
-	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mInverseView = { mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
-
-	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
-	mNormalMatrix = { mProgram->getUniformLocation("normalMatrix"), UniformType::MAT3 };
-
-	mBiasMatrix = { mProgram->getUniformLocation("biasMatrix"), UniformType::MAT4 };
-	mBiasMatrixSource = mat4(
-		0.5, 0.0, 0.0, 0.0,
-		0.0, 0.5, 0.0, 0.0,
-		0.0, 0.0, 0.5, 0.0,
-		0.5, 0.5, 0.5, 1.0
-	);
-	bind();
-	mProgram->setMat4(mBiasMatrix.location, mBiasMatrixSource);
-	unbind();
-
-
-	mLightSpaceMatrix = { mProgram->getUniformLocation("eyeToLightSpaceMatrix"), UniformType::MAT4 };
-	mLightProjMatrix = { mProgram->getUniformLocation("lightProjMatrix"), UniformType::MAT4 };
-	mLightViewMatrix = { mProgram->getUniformLocation("lightViewMatrix"), UniformType::MAT4 };
-
-	mCameraPos = { mProgram->getUniformLocation("cameraPos"), UniformType::VEC3 };
-
-	mLightDirection = { mProgram->getUniformLocation("dirLight.direction"), UniformType::VEC3 };
-	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
-
-
-
-	mAlbedoMap = { mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0};
-	mAmbientOcclusionMap = { mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1};
-	mEmissionMap = { mProgram->getUniformLocation("material.emissionMap"), UniformType::TEXTURE2D, 2};
-	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3};
-	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4};
-	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5};
-
-
-	mShadowMap = { mProgram->getUniformLocation("material.shadowMap"), UniformType::TEXTURE2D, 6};
-
-	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 7};
-	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 8};
-
-	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 9};
-
-	//attributes.create(types::CUBE_MAP, nullptr, "skybox");
+	assert(mProgram == nullptr);
 }
 
-void PBRShader::setAlbedoMap(const Texture* texture)
+void pbr::CommonGeometryMaterial::init(ShaderProgram* program)
 {
+	mProgram = program;
+	assert(mProgram != nullptr);
+	// mesh material
+	mAlbedoMap = { mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0 };
+	mAmbientOcclusionMap = { mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1 };
+	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 2 };
+	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 3 };
+	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 4 };
+}
+
+
+void pbr::CommonGeometryMaterial::setAlbedoMap(const Texture* texture)
+{
+	assert(mProgram != nullptr);
 	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
 }
 
-void PBRShader::setAmbientOcclusionMap(const Texture* texture)
+void pbr::CommonGeometryMaterial::setAmbientOcclusionMap(const Texture* texture)
 {
+	assert(mProgram != nullptr);
 	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.bindingSlot);
 }
 
-void PBRShader::setEmissionMap(const Texture* texture)
+void pbr::CommonGeometryMaterial::setMetalMap(const Texture* texture)
 {
-	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.bindingSlot);
-}
-
-void PBRShader::setMetalMap(const Texture* texture)
-{
+	assert(mProgram != nullptr);
 	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.bindingSlot);
 }
 
-void PBRShader::setNormalMap(const Texture* texture)
+void pbr::CommonGeometryMaterial::setNormalMap(const Texture* texture)
 {
+	assert(mProgram != nullptr);
 	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.bindingSlot);
 }
 
-void PBRShader::setRoughnessMap(const Texture* texture)
+void pbr::CommonGeometryMaterial::setRoughnessMap(const Texture* texture)
 {
 	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
 }
 
-void PBRShader::setBrdfLookupTexture(const Texture* brdfLUT)
+pbr::CommonLightingMaterial::CommonLightingMaterial(const CascadedShadow& cascadedShadow) : mProgram(nullptr),
+cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow.getCascadeData().numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mCsmNumCascades(cascadedShadow.getCascadeData().numCascades),
+mCsmPcf(cascadedShadow.getPCF()),
+mCsmEnabled(cascadedShadow.isEnabled()),
+mCsmBiasMultiplier(cascadedShadow.getBiasMultiplier())
+{
+}
+
+void pbr::CommonLightingMaterial::init(ShaderProgram* program)
+{
+	mProgram = program;
+	assert(mProgram != nullptr);
+
+	// ambient occlusion
+	mGlobalAo = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, 5 };
+
+	// ibl
+	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 6 };
+	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
+	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
+
+	// shaodw mapping
+	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
+
+
+	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
+	mLightColor = { mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+	mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
+	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
+
+	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
+
+
+}
+
+void pbr::CommonLightingMaterial::setGlobalAOMap(const Texture* aoMap)
+{
+	mProgram->setTexture(mGlobalAo.location, aoMap, mGlobalAo.bindingSlot);
+}
+
+void pbr::CommonLightingMaterial::setBrdfLookupTexture(const Texture* brdfLUT)
 {
 	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
 }
 
-void PBRShader::setIrradianceMap(const CubeMap* irradianceMap)
+void pbr::CommonLightingMaterial::setIrradianceMap(const CubeMap* irradianceMap)
 {
 	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.bindingSlot);
 }
 
-void PBRShader::setLightColor(const glm::vec3& color)
+void pbr::CommonLightingMaterial::setPrefilterMap(const CubeMap* prefilterMap)
+{
+	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
+}
+
+void pbr::CommonLightingMaterial::setCascadedDepthMap(const Texture* cascadedDepthMap)
+{
+	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.bindingSlot);
+}
+
+void pbr::CommonLightingMaterial::setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera)
+{
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, cascadeBufferUBO);
+	//cascadeBufferUBO.bind();
+
+	auto* buffer = (ShaderStorageBuffer*)&cascadeBufferUBO; // UniformBuffer ShaderStorageBuffer
+	buffer->bind();
+	//glNamedBufferSubData(cascadeBufferUBO, 0, sizeof(CascadedShadowGL::CascadeData), cascadedData);
+
+	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
+
+	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+
+
+	struct Data
+	{
+		mat4 inverseViewMatrix;
+		mat4 lightViewProjectionMatrices[4];
+		vec4 scaleFactors[4];
+		vec4 cascadedSplits[4];
+	};
+
+	static auto* data = (Data*)nullptr;
+	data = (Data*)cascadedData.shaderBuffer.data();
+	mat4 test = glm::translate(mat4(1.0), vec3(0, 1, 0));
+
+	//Data input;
+	//input.inverseViewMatrix = inverse(camera->getView());//cascadedData.inverseViewMatrix;
+	//for (int i = 0; i < 4; ++i) {
+	//	input.lightViewProjectionMatrices[i] = cascadedData.lightViewProjectionMatrices[i];
+	//	input.scaleFactors[i] = cascadedData.scaleFactors[i];
+	//	input.cascadedSplits[i] = cascadedData.cascadedFarPlanes[i];
+	//}
+
+	//input.lightViewProjectionMatrices[3] = mat4(1.0);
+	//input.lightViewProjectionMatrices[3][3][1] = 1.0f;
+
+
+
+	//buffer->update(&input, sizeof(input), 0);
+
+
+
+	//auto* data = (Data*)buffer->map(ShaderBuffer::Access::READ_ONLY);
+	//buffer->unmap();
+}
+
+void pbr::CommonLightingMaterial::setCascadedData(ShaderStorageBuffer* buffer)
+{
+	buffer->bind(0);
+	buffer->syncWithGPU();
+	//uniformBuffer->map(ShaderBuffer::Access::READ_WRITE);
+	//uniformBuffer->unmap();
+}
+
+void pbr::CommonLightingMaterial::setEyeLightDirection(const glm::vec3& direction)
+{
+	mProgram->setVec3(mEyeLightDirection.location, direction);
+}
+
+void pbr::CommonLightingMaterial::setLightColor(const glm::vec3& color)
 {
 	mProgram->setVec3(mLightColor.location, color);
 }
 
-void PBRShader::setLightDirection(const glm::vec3& direction)
+void pbr::CommonLightingMaterial::setLightPower(float power)
 {
-	mProgram->setVec3(mLightDirection.location, direction);
+	mProgram->setFloat(mLightPower.location, power);
 }
 
-void PBRShader::setLightProjMatrix(const glm::mat4& mat)
+void pbr::CommonLightingMaterial::setAmbientLightPower(float power)
 {
-	mProgram->setMat4(mLightProjMatrix.location, mat);
+	mProgram->setFloat(mAmbientLightPower.location, power);
 }
 
-void PBRShader::setLightSpaceMatrix(const glm::mat4& mat)
+void pbr::CommonLightingMaterial::setShadowStrength(float strength)
 {
-	mProgram->setMat4(mLightSpaceMatrix.location, mat);
+	mProgram->setFloat(mShadowStrength.location, strength);
 }
 
-void PBRShader::setLightViewMatrix(const glm::mat4& mat)
+void pbr::CommonLightingMaterial::setNearFarPlane(const glm::vec2& nearFarPlane)
 {
-	mProgram->setMat4(mLightViewMatrix.location, mat);
+	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-void PBRShader::setPrefilterMap(const CubeMap* prefilterMap)
+PBRShader::PBRShader(const CascadedShadow& cascadedShadow) : Shader(ShaderProgram::create(
+	                                                             "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl")),
+                                                             CommonLightingMaterial(cascadedShadow)
 {
-	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
+	mTransform = {Shader::mProgram->getUniformLocation("transform"), UniformType::MAT4};
+
+	mView = {Shader::mProgram->getUniformLocation("view"), UniformType::MAT4};
+	mInverseView = {Shader::mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4};
+
+	mModelView = {Shader::mProgram->getUniformLocation("modelView"), UniformType::MAT4};
+
+	/*mBiasMatrixSource = mat4(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+	);*/
+
+	//bind();
+	//mProgram->setMat4(mBiasMatrix.location, mBiasMatrixSource);
+	//unbind();
+
+	mLightDirection = {Shader::mProgram->getUniformLocation("dirLight.direction"), UniformType::VEC3};
+	mLightColor = {Shader::mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3};
 }
 
 void PBRShader::setProjectionMatrix(const glm::mat4& mat)
@@ -138,34 +233,9 @@ void PBRShader::setProjectionMatrix(const glm::mat4& mat)
 	mProjectionMatrixSource = &mat;
 }
 
-void PBRShader::setShadowMap(const Texture* texture)
-{
-	mProgram->setTexture(mShadowMap.location, texture, mShadowMap.bindingSlot);
-}
-
-void PBRShader::setCameraPosition(const glm::vec3& position)
-{
-	mProgram->setVec3(mCameraPos.location, position);
-}
-
-void PBRShader::setBiasMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mBiasMatrix.location, mat);
-}
-
-void PBRShader::setModelMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mModelMatrix.location, mat);
-}
-
 void PBRShader::setModelViewMatrix(const glm::mat4& mat)
 {
 	mProgram->setMat4(mModelView.location, mat);
-}
-
-void PBRShader::setNormalMatrix(const glm::mat3& mat)
-{
-	mProgram->setMat4(mNormalMatrix.location, mat);
 }
 
 void PBRShader::setMVP(const glm::mat4& mat)
@@ -188,10 +258,8 @@ void PBRShader::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
 	mat4 modelView = *mViewMatrixSource * modelMatrix;
 
-	setModelMatrix(modelMatrix);
 	setModelViewMatrix(modelView);
 	setMVP(*mProjectionMatrixSource * modelView);
-	setNormalMatrix(transpose(inverse(mat3(modelView))));
 }
 
 void PBRShader::onMaterialUpdate(const Material* materialSource)
@@ -203,56 +271,10 @@ void PBRShader::onMaterialUpdate(const Material* materialSource)
 
 	setAlbedoMap(material->getAlbedoMap());
 	setAmbientOcclusionMap(material->getAoMap());
-	setEmissionMap(material->getEmissionMap());
 	setMetalMap(material->getMetallicMap());
 	setNormalMap(material->getNormalMap());
 	setRoughnessMap(material->getRoughnessMap());
 }
-
-
-// TODO
-/*void PBRShaderGL::update(const MeshGL& mesh, const TransformData& data)
-{
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	modelMatrix = model;
-
-	inverseView = inverse(view);
-
-	transform = projection * view * model;
-	modelView = view * model;
-	normalMatrix = transpose(inverse(mat3(modelView)));
-	
-	//attributes.setData("projection", data.projection);
-	attributes.setData("model", &modelMatrix, nullptr, true);
-	attributes.setData("view", data.view);
-	attributes.setData("inverseViewMatrix", &inverseView);
-	attributes.setData("transform", &transform);
-	attributes.setData("modelView", &modelView);
-	attributes.setData("normalMatrix", &normalMatrix);
-
-	PbrMaterial* material = dynamic_cast<PbrMaterial*>(mesh.getMaterial());
-
-	TextureGL* albedoMap = material->getAlbedoMap();
-	TextureGL* aoMap = material->getAoMap();
-	TextureGL* emissionMap = material->getEmissionMap();
-	TextureGL* metallicMap = material->getMetallicMap();
-	TextureGL* normalMap = material->getNormalMap();
-	TextureGL* roughnessMap = material->getRoughnessMap();
-
-
-	attributes.setData("material.albedoMap", albedoMap);
-
-	attributes.setData("material.aoMap", aoMap);
-	//attributes.setData("material.emissionMap", emissionMap, black);
-	attributes.setData("material.metallicMap", metallicMap);
-	attributes.setData("material.normalMap", normalMap);
-	attributes.setData("material.roughnessMap", roughnessMap);
-
-	//attributes.setData("brdfLUT", white, white);
-}*/
 
 PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& cascadedShadow) :
 	cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow.getCascadeData().numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
@@ -267,8 +289,6 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", defines);
 
-	unsigned textureCounter = 0;
-
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	mEyeToLightTrafo = { mProgram->getUniformLocation("eyeToLight"), UniformType::MAT4 };
 	mInverseViewFromGPass = { mProgram->getUniformLocation("inverseViewMatrix_GPass"), UniformType::MAT4 };
@@ -282,34 +302,19 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
 
 	mAlbedoMap = { mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, 0 };
-	if (mAlbedoMap.location != -1)
-		++textureCounter;
 
 	mAoMetalRoughnessMap = { mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, 1 };
-	if (mAoMetalRoughnessMap.location != -1)
-		++textureCounter;
 
 	mNormalEyeMap = { mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
-	if (mNormalEyeMap.location != -1)
-		++textureCounter;
 	mNormalizedViewSpaceZMap = { mProgram->getUniformLocation("gBuffer.normalizedViewSpaceZMap"), UniformType::TEXTURE2D, 3 };
-	if (mNormalizedViewSpaceZMap.location != -1)
-		++textureCounter;
 
-	//mShadowMap = { mProgram->getUniformLocation("shadowMap"), UniformType::TEXTURE2D, 5 };
-	mAoMap = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, textureCounter };
-	if (mAoMap.location != -1)
-		++textureCounter;
 
-	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, textureCounter };
-	if (mIrradianceMap.location != -1)
-		++textureCounter;
-	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, textureCounter };
-	if (mPrefilterMap.location != -1)
-		++textureCounter;
-	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, textureCounter };
-	if (mBrdfLUT.location != -1)
-		++textureCounter;
+	// Note: We skip one texture binding slot to be consistent with the pbr forward shader (both shaders use base source files)
+	mAoMap = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, 5 };
+
+	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 6 };
+	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
+	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
 
 	mBiasMatrix = { mProgram->getUniformLocation("biasMatrix"), UniformType::MAT4 };
 	mBiasMatrixSource = mat4(
@@ -323,16 +328,11 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	unbind();
 
 
-	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, textureCounter };
-	if (mCascadedDepthMap.location != -1)
-		++textureCounter;
+	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
 
 	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 
 	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
-
-	//glCreateBuffers(1, &cascadeBufferUBO);
-	//glNamedBufferStorage(cascadeBufferUBO, sizeof(CascadedShadowGL::CascadeData), NULL, GL_DYNAMIC_STORAGE_BIT);
 }
 
 PBRShader_Deferred_Lighting::~PBRShader_Deferred_Lighting()
@@ -358,11 +358,6 @@ void PBRShader_Deferred_Lighting::setInverseViewFromGPass(const glm::mat4& mat)
 void PBRShader_Deferred_Lighting::setBrdfLookupTexture(const Texture* brdfLUT)
 {
 	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
-}
-
-void PBRShader_Deferred_Lighting::setWorldLightDirection(const glm::vec3& direction)
-{
-	//mProgram->setVec3(mWorldDirection.location, direction);
 }
 
 void PBRShader_Deferred_Lighting::setEyeLightDirection(const glm::vec3& direction)
@@ -475,49 +470,6 @@ void PBRShader_Deferred_Lighting::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection) * (*data.view) * (*data.model));
 }
-
-//TODO
-
-/*
-void PBRShader_Deferred_LightingGL::update(const MeshGL & mesh, const TransformData & data)
-{
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
-	eyeToLight = worldToLight * inverseViewFromGPass;
-	myView = inverse(inverseViewFromGPass);
-
-	dirEyeToLight.color = dirWorldToLight.color;
-	dirEyeToLight.direction = vec3(myView * vec4(dirWorldToLight.direction, 0));
-
-
-	
-	//myView = mat4();
-	attributes.setData("viewGPass", &myView);
-	attributes.setData("inverseViewMatrix_GPass", &inverseViewFromGPass);
-	attributes.setData("transform", &transform);
-	attributes.setData("eyeToLight", &eyeToLight);
-
-	attributes.setData("shadowMap", shadowMap);
-	attributes.setData("ssaoMap", ssaoMap);
-
-	attributes.setData("gBuffer.albedoMap", gBuffer->getAlbedo());
-	attributes.setData("gBuffer.aoMetalRoughnessMap", gBuffer->getAoMetalRoughness());
-	attributes.setData("gBuffer.normalEyeMap", gBuffer->getNormal());
-	attributes.setData("gBuffer.positionEyeMap", gBuffer->getPosition());
-
-	attributes.setData("dirLight.color", &dirEyeToLight.color);
-	attributes.setData("dirLight.directionEye", &dirEyeToLight.direction);
-
-	attributes.setData("irradianceMap", irradianceMap);
-	attributes.setData("prefilterMap", prefilterMap);
-	attributes.setData("brdfLUT", brdfLUT);
-
-	attributes.setData("cascadedDepthMap", this->cascadedDepthMap);
-}*/
-
 
 void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera)
 {
@@ -673,52 +625,6 @@ void PBRShader_Deferred_Geometry::setNearFarPlane(const glm::vec2& nearFarPlane)
 {
 	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
 }
-
-//TODO
-/*
-void PBRShader_Deferred_GeometryGL::update(const MeshGL & mesh, const TransformData & data)
-{
-
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glSamplerParameteri(m_sampler.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glSamplerParameterf(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
-
-	//float value = 0.0f;
-	//glGetSamplerParameterfv(m_sampler.getID(), GL_TEXTURE_MAX_ANISOTROPY, &value);
-
-	//std::cout << "GL_TEXTURE_MAX_ANISOTROPY = " << value << std::endl;
-
-	mat4 const& projection = *data.projection;
-	mat4 const& view = *data.view;
-	mat4 const& model = *data.model;
-
-	transform = projection * view * model;
-	modelView = view * model;
-	modelView_normalMatrix = mat3(transpose(inverse(modelView)));
-
-	//attributes.setData("projection", data.projection);
-	attributes.setData("transform", &transform);
-	attributes.setData("modelView", &modelView);
-	attributes.setData("modelView_normalMatrix", &modelView_normalMatrix);
-
-	PbrMaterial* material = dynamic_cast<PbrMaterial*>(mesh.getMaterial());
-
-	TextureGL* albedoMap = material->getAlbedoMap();
-	TextureGL* aoMap = material->getAoMap();
-	TextureGL* emissionMap = material->getEmissionMap();
-	TextureGL* metallicMap = material->getMetallicMap();
-	TextureGL* normalMap = material->getNormalMap();
-	TextureGL* roughnessMap = material->getRoughnessMap();
-
-	attributes.setData("material.albedoMap", albedoMap); 
-	attributes.setData("material.aoMap", aoMap);
-	//attributes.setData("material.emissionMap", emissionMap, black);
-	attributes.setData("material.metallicMap", metallicMap);
-	attributes.setData("material.normalMap", normalMap);
-	attributes.setData("material.roughnessMap", roughnessMap);
-}
-*/
-
 
 std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
 {

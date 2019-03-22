@@ -91,13 +91,11 @@ namespace nex {
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
 		mLightPass->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
-		//shader->setGBuffer(gBuffer);
 		mLightPass->setViewGPass(camera->getView());
 		mLightPass->setInverseViewFromGPass(inverse(camera->getView()));
 		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
 		mLightPass->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
 		mLightPass->setLightColor(mLight->getColor());
-		mLightPass->setWorldLightDirection(mLight->getDirection());
 
 		vec4 lightEyeDirection = camera->getView() * vec4(mLight->getDirection(), 0);
 		mLightPass->setEyeLightDirection(vec3(lightEyeDirection));
@@ -106,18 +104,11 @@ namespace nex {
 		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
 
 		mLightPass->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-		//shader->setShadowMap(shadowMap);
 		mLightPass->setAOMap(ssaoMap);
 
 		mLightPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 
 		//TODO
-		//shader->setSkyBox(environmentMap->getCubeMap());
-		
-		//mLightPass->setWorldToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace());
-		//mLightPass->setEyeToLightSpaceMatrix(mCascadeShadow->getWorldToShadowSpace()  * camera->getView());
-		
-		//mLightPass->setCascadedData(mCascadeShadow->getCascadeData(), camera);
 		mLightPass->setCascadedData(mCascadeShadow->getCascadeBuffer());
 		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 

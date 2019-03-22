@@ -15,11 +15,12 @@ uniform DirLight dirLight;
 uniform float ambientLightPower;
 uniform float shadowStrength;
 
+layout(binding = 5) uniform sampler2D ssaoMap;
 
 // IBL
-uniform samplerCube irradianceMap;
-uniform samplerCube prefilterMap;
-uniform sampler2D brdfLUT;
+layout(binding = 6) uniform samplerCube irradianceMap;
+layout(binding = 7) uniform samplerCube prefilterMap;
+layout(binding = 8) uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
@@ -31,8 +32,7 @@ layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
     CascadeData cascadeData;
 } csmData;
 
-uniform sampler2DArray cascadedDepthMap;
-uniform sampler2D ssaoMap;
+layout(binding = 9) uniform sampler2DArray cascadedDepthMap;
 
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo);

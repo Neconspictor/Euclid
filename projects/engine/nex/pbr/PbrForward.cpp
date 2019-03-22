@@ -78,24 +78,22 @@ namespace nex {
 
 		mForwardShader->bind();
 
+		mForwardShader->setGlobalAOMap(ssaoMap);
+
 		mForwardShader->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
 		mForwardShader->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
+		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
 
 		mForwardShader->setLightColor(mLight->getColor());
-		mForwardShader->setLightDirection(mLight->getDirection());
+		mForwardShader->setLightPower(mLight->getLightPower());
+		mForwardShader->setEyeLightDirection(mLight->getDirection());
+
+
+		//TODO
+		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());
+		mForwardShader->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 		
 		//TODO update!!!
-		//mForwardShader->setLightSpaceMatrix(lightSpaceMatrix);
-		//mForwardShader->setLightProjMatrix(lightProjMatrix);
-		//mForwardShader->setLightViewMatrix(lightViewMatrix);
-
-		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-		//mForwardShader->setShadowMap(shadowMap);
-
-		//TODO validate whether this is needed
-		//shader->setSkyBox(environmentMap->getCubeMap());
-
-		mForwardShader->setCameraPosition(camera->getPosition());
 
 		mForwardShader->setViewMatrix(camera->getView());
 		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));

@@ -7,7 +7,90 @@
 
 namespace nex
 {
-	class PBRShader : public Shader
+	namespace pbr
+	{
+		class CommonGeometryMaterial
+		{
+		public:
+			void setAlbedoMap(const Texture* texture);
+			void setAmbientOcclusionMap(const Texture* texture);
+			void setMetalMap(const Texture* texture);
+			void setNormalMap(const Texture* texture);
+			void setRoughnessMap(const Texture* texture);
+
+		protected:
+			CommonGeometryMaterial();
+			void init(ShaderProgram* program);
+
+		private:
+			// mesh material
+			UniformTex mAlbedoMap;
+			UniformTex mAmbientOcclusionMap;
+			UniformTex mMetalMap;
+			UniformTex mNormalMap;
+			UniformTex mRoughnessMap;
+			ShaderProgram* mProgram;
+		};
+
+		class CommonLightingMaterial
+		{
+		public:
+			void setGlobalAOMap(const Texture* texture);
+
+			void setBrdfLookupTexture(const Texture* brdfLUT);
+			void setIrradianceMap(const CubeMap* irradianceMap);
+			void setPrefilterMap(const CubeMap* prefilterMap);
+
+			void setCascadedDepthMap(const Texture* cascadedDepthMap);
+			void setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera);
+			void setCascadedData(ShaderStorageBuffer* buffer);
+			
+			
+			void setEyeLightDirection(const glm::vec3& direction);
+			void setLightColor(const glm::vec3& color);
+			void setLightPower(float power);
+			void setAmbientLightPower(float power);
+			void setShadowStrength(float strength);
+
+			void setNearFarPlane(const glm::vec2& nearFarPlane);
+
+
+
+		protected:
+			CommonLightingMaterial(const CascadedShadow& cascadedShadow);
+			void init(ShaderProgram* program);
+
+		private:
+			// ao
+			UniformTex mGlobalAo;
+
+			//ibl
+			UniformTex mBrdfLUT;
+			UniformTex mIrradianceMap;
+			UniformTex mPrefilterMap;
+
+			// CSM
+			UniformTex mCascadedDepthMap;
+			ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
+			unsigned mCsmNumCascades;
+			CascadedShadow::PCFFilter mCsmPcf;
+			bool mCsmEnabled;
+			float mCsmBiasMultiplier;
+
+
+			Uniform mEyeLightDirection;
+			Uniform mLightColor;
+			Uniform mLightPower;
+			Uniform mAmbientLightPower;
+			Uniform mShadowStrength;
+
+			Uniform mNearFarPlane;
+
+			ShaderProgram* mProgram;
+		};
+	}
+
+	class PBRShader : public Shader, public pbr::CommonGeometryMaterial, public pbr::CommonLightingMaterial
 	{
 	public:
 
@@ -17,43 +100,11 @@ namespace nex
 			glm::vec3 color;
 		};
 
-		PBRShader();
-
-		void setAlbedoMap(const Texture* texture);
-		void setAmbientOcclusionMap(const Texture* texture);
-		void setEmissionMap(const Texture* texture);
-		void setMetalMap(const Texture* texture);
-		void setNormalMap(const Texture* texture);
-		void setRoughnessMap(const Texture* texture);
-
-
-		void setBrdfLookupTexture(const Texture* brdfLUT);
-
-		void setIrradianceMap(const CubeMap* irradianceMap);
-
-		void setLightColor(const glm::vec3& color);
-		void setLightDirection(const glm::vec3& direction);
-
-		void setLightProjMatrix(const glm::mat4& mat);
-		void setLightSpaceMatrix(const glm::mat4& mat);
-		void setLightViewMatrix(const glm::mat4& mat);
-
-		void setPrefilterMap(const CubeMap* prefilterMap);
+		PBRShader(const CascadedShadow& cascadedShadow);
 
 		void setProjectionMatrix(const glm::mat4& mat);
 
-		void setShadowMap(const Texture* texture);
-
-		//TODO
-		//void setSkyBox(const CubeMap* sky);
-
-		void setCameraPosition(const glm::vec3& position);
-
-		void setBiasMatrix(const glm::mat4& mat);
-
-		void setModelMatrix(const glm::mat4& mat);
 		void setModelViewMatrix(const glm::mat4& mat);
-		void setNormalMatrix(const glm::mat3& mat);
 
 		void setMVP(const glm::mat4& mat);
 
@@ -64,29 +115,12 @@ namespace nex
 		void onMaterialUpdate(const Material* material) override;
 
 	private:
-
-		UniformTex mAlbedoMap;
-		UniformTex mAmbientOcclusionMap;
-		UniformTex mEmissionMap;
-		UniformTex mMetalMap;
-		UniformTex mNormalMap;
-		UniformTex mRoughnessMap;
-
-		Uniform mBiasMatrix;
-		glm::mat4 mBiasMatrixSource;
-		UniformTex mBrdfLUT;
-
-		UniformTex mIrradianceMap;
-		UniformTex mPrefilterMap;
-
 		Uniform mLightDirection;
 		Uniform mLightColor;
 		Uniform mLightProjMatrix;
 		Uniform mLightSpaceMatrix;
 		Uniform mLightViewMatrix;
-		Uniform mModelMatrix;
 		Uniform mModelView;
-		Uniform mNormalMatrix;
 
 		UniformTex mShadowMap;
 		UniformTex mSkybox;
@@ -157,7 +191,6 @@ namespace nex
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 
-		void setWorldLightDirection(const glm::vec3& direction);
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
 		void setLightPower(float power);
@@ -183,7 +216,6 @@ namespace nex
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
-		void setPositionEyeMap(const Texture* texture);
 		void setNormalizedViewSpaceZMap(const Texture* texture);
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);

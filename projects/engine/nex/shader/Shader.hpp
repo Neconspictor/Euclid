@@ -105,11 +105,11 @@ namespace nex
 		/**
 		 * Provides the uniform location by name. The memory is managed by this class and mustn't be freed manually.
 		 */
-		UniformLocation getUniformLocation(const char* name);
+		UniformLocation getUniformLocation(const char* name) const;
 
-		UniformLocation getUniformBufferLocation(const char* name);
+		UniformLocation getUniformBufferLocation(const char* name) const;
 
-		UniformLocation getShaderStorageBufferLocation(const char* name);
+		UniformLocation getShaderStorageBufferLocation(const char* name) const;
 
 		static std::unique_ptr<ShaderProgram> create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "", const std::vector<std::string>& defines = {});

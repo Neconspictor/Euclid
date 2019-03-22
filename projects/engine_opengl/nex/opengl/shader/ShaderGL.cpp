@@ -279,7 +279,7 @@ GLuint nex::ShaderProgramGL::getProgramID() const
 	return programID;
 }
 
-nex::UniformLocation nex::ShaderProgram::getUniformBufferLocation(const char* name)
+nex::UniformLocation nex::ShaderProgram::getUniformBufferLocation(const char* name) const
 {
 	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 
@@ -294,7 +294,7 @@ nex::UniformLocation nex::ShaderProgram::getUniformBufferLocation(const char* na
 	return loc;
 }
 
-nex::UniformLocation nex::ShaderProgram::getShaderStorageBufferLocation(const char* name)
+nex::UniformLocation nex::ShaderProgram::getShaderStorageBufferLocation(const char* name) const
 {
 	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 
@@ -309,7 +309,7 @@ nex::UniformLocation nex::ShaderProgram::getShaderStorageBufferLocation(const ch
 	return loc;
 }
 
-nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name)
+nex::UniformLocation nex::ShaderProgram::getUniformLocation(const char* name) const
 {
 	ShaderProgramGL* thiss = (ShaderProgramGL*)this->mImpl;
 
