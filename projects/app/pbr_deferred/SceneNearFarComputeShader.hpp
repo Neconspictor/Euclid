@@ -1,13 +1,11 @@
 #pragma once
-#include <nex/camera/Camera.hpp>
-#include <nex/texture/Sprite.hpp>
-#include "nex/shader/ShaderBuffer.hpp"
 #include "nex/shader/Shader.hpp"
-#include "nex/texture/RenderTarget.hpp"
-#include "nex/pbr/PBR_Deferred.hpp"
 
 namespace nex
 {
+
+	class ShaderStorageBuffer;
+
 	class SceneNearFarComputeShader : public nex::ComputeShader
 	{
 	public:

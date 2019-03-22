@@ -3,21 +3,22 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/SceneNode.hpp>
 #include <nex/light/Light.hpp>
-#include <nex/texture/Sprite.hpp>
-#include <nex/pbr/PBR_Deferred.hpp>
-#include <nex/gui/ControllerStateMachine.hpp>
-#include <nex/post_processing/AmbientOcclusion.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>
-#include <nex/pbr/PBR_Deferred.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/Renderer.hpp>
-#include <nex/RenderBackend.hpp>
-#include <nex/sky/AtmosphericScattering.hpp>
-#include "SceneNearFarComputeShader.hpp"
 
 namespace nex
 {
+
+	class PbrDeferred;
+	class HBAO;
+	class AmbientOcclusionSelector;
+	class RenderTarget2D;
+	class SceneNearFarComputeShader;
+	class AtmosphericScattering;
+	class PbrProbe;
+
 	class PBR_Deferred_Renderer : public Renderer
 	{
 	public:
@@ -35,7 +36,7 @@ namespace nex
 
 		CascadedShadow* getCSM();
 
-		PBR_Deferred* getPBR();
+		PbrDeferred* getPBR();
 
 
 	private:
@@ -56,20 +57,19 @@ namespace nex
 		Texture2D* smaaTestTex;
 		Texture2D* smaaTestSRGBTex;
 
-		std::unique_ptr<PBR_Deferred> m_pbr_deferred;
-		std::unique_ptr<PBR_GBuffer>  pbr_mrt;
-		std::unique_ptr<CascadedShadow> m_cascadedShadow;
+		std::unique_ptr<PbrProbe> mPbrProbe;
+		std::unique_ptr<PbrDeferred> mPbrDeferred;
+		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
+		std::unique_ptr<CascadedShadow> mCascadedShadow;
 
-		AmbientOcclusionSelector m_aoSelector;
+		std::unique_ptr < AmbientOcclusionSelector> mAoSelector;
 
-		std::unique_ptr<RenderTarget2D> renderTargetSingleSampled;
+		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 
-		AtmosphericScattering mAtmosphericScattering;
-
-		Sprite screenSprite;
+		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;
-		bool showDepthMap;
+		bool mShowDepthMap;
 
 		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
 		Input* mInput;
@@ -83,6 +83,6 @@ namespace nex
 	protected:
 		void drawSelf() override;
 
-		PBR_Deferred_Renderer* m_renderer;
+		PBR_Deferred_Renderer* mRenderer;
 	};
 }

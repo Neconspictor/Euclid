@@ -2,6 +2,7 @@
 #include <gui/Controller.hpp>
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/Input.hpp>
+#include "nex/gui/ControllerStateMachine.hpp"
 
 
 nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable) :

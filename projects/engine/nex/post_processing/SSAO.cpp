@@ -11,6 +11,8 @@
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
 #include "nex/texture/Attachment.hpp"
+#include "nex/texture/Sprite.hpp"
+#include <nex/shader/Shader.hpp>
 
 using namespace std; 
 using namespace glm;
@@ -366,7 +368,7 @@ namespace nex
 		tiledBlurRenderTarget->bind();
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-		StaticMeshDrawer::draw(&screenSprite, tiledBlurShader);
+		StaticMeshDrawer::draw(Sprite::getScreenSprite(), tiledBlurShader);
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -377,7 +379,7 @@ namespace nex
 
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);
-		StaticMeshDrawer::draw(&screenSprite, aoDisplayShader);
+		StaticMeshDrawer::draw(Sprite::getScreenSprite(), aoDisplayShader);
 	}
 
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)

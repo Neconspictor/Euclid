@@ -144,10 +144,12 @@ set(
 	nex/material/PbrMaterialLoader.cpp
     
     #nex/pbr
-    nex/pbr/PBR.hpp
-    nex/pbr/PBR.cpp
-    nex/pbr/PBR_Deferred.hpp
-    nex/pbr/PBR_Deferred.cpp
+    nex/pbr/PbrDeferred.cpp
+    nex/pbr/PbrDeferred.hpp
+    nex/pbr/PbrForward.cpp
+    nex/pbr/PbrForward.hpp
+    nex/pbr/PbrProbe.cpp
+    nex/pbr/PbrProbe.hpp
 	
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp

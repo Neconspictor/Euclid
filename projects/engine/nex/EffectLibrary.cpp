@@ -8,6 +8,7 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/texture/Sampler.hpp>
 #include <nex/post_processing/DownSampler.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
 
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :

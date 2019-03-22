@@ -1,9 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/shader/Shader.hpp>
 #include <glm/glm.hpp>
 
 namespace nex
@@ -14,6 +12,7 @@ namespace nex
 	class RenderTarget2D;
 	class ShaderProgram;
 	class StaticMeshDrawer;
+	class Shader;
 
 	const int SSAO_SAMPLING_SIZE = 32;
 
@@ -74,8 +73,6 @@ namespace nex
 		unsigned int noiseTileWidth = 4;
 		std::array<glm::vec3, SSAO_SAMPLING_SIZE> ssaoKernel;
 		std::vector<glm::vec3> noiseTextureValues;
-
-		nex::Sprite screenSprite;
 
 		SSAOData   m_shaderData;
 	};

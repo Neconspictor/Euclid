@@ -1,10 +1,11 @@
 #pragma once
-#include <nex/texture/Sprite.hpp>
-#include "nex/shader/post_processing/blur/GaussianBlurShader.hpp"
 
 namespace nex {
 	class RenderTarget2D;
 	class Sampler;
+	class Texture2D;
+	class GaussianBlurHorizontalShader;
+	class GaussianBlurVerticalShader;
 
 	class GaussianBlur {
 
@@ -21,8 +22,6 @@ namespace nex {
 		void resize(unsigned width, unsigned height);
 
 	protected:
-		nex::Sprite sprite;
-
 		std::unique_ptr<GaussianBlurHorizontalShader> mHorizontalPass;
 		std::unique_ptr<GaussianBlurVerticalShader> mVerticalPass;
 		std::unique_ptr<RenderTarget2D>mHalfBlur;

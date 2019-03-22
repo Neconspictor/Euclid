@@ -20,9 +20,10 @@
 #include "nex/RenderBackend.hpp"
 #include "nex/mesh/Vob.hpp"
 #include "nex/material/Material.hpp"
-#include "nex/pbr/PBR_Deferred.hpp"
+#include "nex/pbr/PbrDeferred.hpp"
 #include "nex/post_processing/HBAO.hpp"
 #include "nex/post_processing/SSAO.hpp"
+#include "nex/post_processing/AmbientOcclusion.hpp"
 
 using namespace nex;
 

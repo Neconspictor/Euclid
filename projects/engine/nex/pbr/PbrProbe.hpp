@@ -1,36 +1,22 @@
 #pragma once
 
 #include <nex/mesh/Vob.hpp>
-#include <nex/SceneNode.hpp>
-#include <nex/light/Light.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
-#include "nex/texture/RenderTarget.hpp"
 #include "nex/shader/PBRShader.hpp"
 
 
 namespace nex
 {
-	class PBR {
+	class SceneNode;
+	class DirectionalLight;
+
+	class PbrProbe {
 
 	public:
-		PBR(Texture* backgroundHDR);
-		virtual ~PBR();
+		PbrProbe(Texture* backgroundHDR);
 
-		virtual void drawSceneToShadowMap(SceneNode * scene,
-			const glm::mat4& lightViewMatrix,
-			const glm::mat4& lightProjMatrix);
-
-		virtual void drawScene(SceneNode * scene,
-			const glm::vec3& cameraPosition,
-			Texture* shadowMap,
-			const DirectionalLight& light,
-			const glm::mat4& lightViewMatrix,
-			const glm::mat4& lightProjMatrix,
-			const glm::mat4& view,
-			const glm::mat4& projection);
-
-		virtual void drawSky(const glm::mat4& projection,
+		void drawSky(const glm::mat4& projection,
 			const glm::mat4& view);
 
 
@@ -65,8 +51,6 @@ namespace nex
 		std::unique_ptr<PBR_ConvolutionShader> mConvolutionPass;
 		std::unique_ptr<PBR_PrefilterShader> mPrefilterPass;
 		std::unique_ptr<PBR_BrdfPrecomputeShader> mBrdfPrecomputePass;
-
-		std::unique_ptr<PBRShader> mForwardShader;
 
 		Sprite brdfSprite;
 		Vob skybox;

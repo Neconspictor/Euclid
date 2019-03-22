@@ -1,23 +1,24 @@
-#include <nex/pbr/PBR.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 #include <nex/shader/SkyBoxShader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <nex/shader/ShadowShader.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/RenderBackend.hpp>
 #include "nex/shader/PBRShader.hpp"
 #include "nex/EffectLibrary.hpp"
 #include "nex/texture/Attachment.hpp"
+#include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/light/Light.hpp"
+#include <nex/texture/Sprite.hpp>
 
 using namespace glm;
 using namespace nex;
 
-PBR::PBR(Texture* backgroundHDR) :
+PbrProbe::PbrProbe(Texture* backgroundHDR) :
 	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::BlinnPhong),
 	mConvolutionPass(std::make_unique<PBR_ConvolutionShader>()),
 	mPrefilterPass(std::make_unique<PBR_PrefilterShader>()),
-	mBrdfPrecomputePass(std::make_unique<PBR_BrdfPrecomputeShader>()),
-	mForwardShader(std::make_unique<PBRShader>())
+	mBrdfPrecomputePass(std::make_unique<PBR_BrdfPrecomputeShader>())
 {
 
 	skybox.init();
@@ -25,20 +26,7 @@ PBR::PBR(Texture* backgroundHDR) :
 	init(backgroundHDR);
 }
 
-PBR::~PBR()
-{
-	/*delete environmentMap;
-	environmentMap = nullptr;
-	delete brdfLookupTexture;
-	brdfLookupTexture = nullptr;
-	delete prefilteredEnvMap;
-	prefilteredEnvMap = nullptr;
-
-	delete convolutedEnvironmentMap;
-	convolutedEnvironmentMap = nullptr;*/
-}
-
-void PBR::drawSky(const mat4& projection, const mat4& view)
+void PbrProbe::drawSky(const mat4& projection, const mat4& view)
 {
 	static auto* skyboxShader = RenderBackend::get()->getEffectLibrary()->getSkyBoxShader();
 
@@ -59,80 +47,27 @@ void PBR::drawSky(const mat4& projection, const mat4& view)
 	skyboxShader->reverseRenderState();
 }
 
-void PBR::drawSceneToShadowMap(SceneNode * scene,
-	const mat4 & lightViewMatrix, 
-	const mat4 & lightProjMatrix)
-{
-	const mat4& lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
-
-	static auto* shader = RenderBackend::get()->getEffectLibrary()->getShadowVisualizer();
-
-	shader->bind();
-	shader->setLightSpaceMatrix(lightSpaceMatrix);
-
-	// render shadows to a depth map
-	StaticMeshDrawer::draw(scene, shader);
-	//scene->draw(renderer, modelDrawer, lightProjMatrix, lightViewMatrix, ShaderType::Shadow);
-}
-
-void PBR::drawScene(SceneNode * scene,
-	const vec3& cameraPosition, 
-	Texture* shadowMap,
-	const DirectionalLight& light, 
-	const mat4& lightViewMatrix, 
-	const mat4& lightProjMatrix,
-	const mat4& view,
-	const mat4& projection)
-{
-	 mat4 lightSpaceMatrix = lightProjMatrix * lightViewMatrix;
-
-	mForwardShader->bind();
-
-	mForwardShader->setBrdfLookupTexture(getBrdfLookupTexture());
-	mForwardShader->setIrradianceMap(getConvolutedEnvironmentMap());
-	
-	mForwardShader->setLightColor(light.getColor());
-	mForwardShader->setLightDirection(light.getDirection());
-	mForwardShader->setLightSpaceMatrix(lightSpaceMatrix);
-	mForwardShader->setLightProjMatrix(lightProjMatrix);
-	mForwardShader->setLightViewMatrix(lightViewMatrix);
-
-	mForwardShader->setPrefilterMap(getPrefilteredEnvironmentMap());
-	mForwardShader->setShadowMap(shadowMap);
-
-	//TODO validate whether this is needed
-	//shader->setSkyBox(environmentMap->getCubeMap());
-
-	mForwardShader->setCameraPosition(cameraPosition);
-
-	mForwardShader->setViewMatrix(view);
-	mForwardShader->setInverseViewMatrix(inverse(view));
-	mForwardShader->setProjectionMatrix(projection);
-	
-	StaticMeshDrawer::draw(scene, mForwardShader.get());
-}
-
-CubeMap * PBR::getConvolutedEnvironmentMap() const
+CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
 {
 	return convolutedEnvironmentMap.get();
 }
 
-CubeMap* PBR::getEnvironmentMap() const
+CubeMap* PbrProbe::getEnvironmentMap() const
 {
 	return  environmentMap.get();
 }
 
-CubeMap * PBR::getPrefilteredEnvironmentMap() const
+CubeMap * PbrProbe::getPrefilteredEnvironmentMap() const
 {
 	return  prefilteredEnvMap.get();
 }
 
-Texture2D * PBR::getBrdfLookupTexture() const
+Texture2D * PbrProbe::getBrdfLookupTexture() const
 {
 	return brdfLookupTexture.get();
 }
 
-StoreImage PBR::readBrdfLookupPixelData() const
+StoreImage PbrProbe::readBrdfLookupPixelData() const
 {
 	StoreImage store;
 	StoreImage::create(&store, 1, 1);
@@ -157,7 +92,7 @@ StoreImage PBR::readBrdfLookupPixelData() const
 	return store;
 }
 
-StoreImage PBR::readBackgroundPixelData() const
+StoreImage PbrProbe::readBackgroundPixelData() const
 {
 	StoreImage store;
 	StoreImage::create(&store, 6, 1); // 6 sides, no mipmaps (only base level)
@@ -186,7 +121,7 @@ StoreImage PBR::readBackgroundPixelData() const
 	return store;
 }
 
-StoreImage PBR::readConvolutedEnvMapPixelData()
+StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 {
 	StoreImage store;
 	// note, that the convoluted environment map has no generated mip maps!
@@ -220,7 +155,7 @@ StoreImage PBR::readConvolutedEnvMapPixelData()
 	return store;
 }
 
-StoreImage PBR::readPrefilteredEnvMapPixelData()
+StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 {
 	StoreImage store;
 	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
@@ -257,7 +192,7 @@ StoreImage PBR::readPrefilteredEnvMapPixelData()
 	return store;
 }
 
-std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
+std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -337,7 +272,7 @@ std::shared_ptr<CubeMap> PBR::renderBackgroundToCube(Texture* background)
 	return result;
 }
 
-std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
+std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 {
 	static auto* renderBackend = RenderBackend::get();
 	
@@ -378,7 +313,7 @@ std::shared_ptr<CubeMap> PBR::convolute(CubeMap * source)
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
 }
 
-std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
+std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 {
 	TextureData textureData = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -448,7 +383,7 @@ std::shared_ptr<CubeMap> PBR::prefilter(CubeMap * source)
 	return result;
 }
 
-std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
+std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 {
 	TextureData data = {
 		TextureFilter::Linear, 
@@ -476,21 +411,8 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	renderBackend->setScissor(0, 0, 1024, 1024);
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
-	Sprite sprite;
-	// setup sprite for brdf integration lookup texture
-	vec2 dim = { 1.0, 1.0 };
-	vec2 pos = { 0, 0 };
-
-	// center
-	pos.x = 0.5f * (1.0f - dim.x);
-	pos.y = 0.5f * (1.0f - dim.y);
-
-	sprite.setPosition(pos);
-	sprite.setWidth(dim.x);
-	sprite.setHeight(dim.y);
-
 	mBrdfPrecomputePass->bind();
-	StaticMeshDrawer::draw(&sprite, mBrdfPrecomputePass.get());
+	StaticMeshDrawer::draw(Sprite::getScreenSprite(), mBrdfPrecomputePass.get());
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
@@ -500,7 +422,7 @@ std::shared_ptr<Texture2D> PBR::createBRDFlookupTexture()
 	return result;
 }
 
-void PBR::init(Texture* backgroundHDR)
+void PbrProbe::init(Texture* backgroundHDR)
 {
 	static auto* renderBackend = RenderBackend::get();
 

@@ -3,6 +3,7 @@
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/RenderBackend.hpp"
 #include <glm/glm.hpp>
+#include "nex/shader/ShaderBuffer.hpp"
 
 
 void nex::SceneNearFarComputeShader::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)

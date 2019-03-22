@@ -1,22 +1,25 @@
 #pragma once
 
-#include <nex/texture/Texture.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/pbr/PBR.hpp>
-#include <nex/shadow/CascadedShadow.hpp>
-#include <nex/shader/PBRShader.hpp>
 
 namespace nex
 {
+	class Texture;
+	class Camera;
+	class CascadedShadow;
+	class DirectionalLight;
 	class SceneNode;
 
 	class PBR_GBuffer;
 	class Sampler;
+	class PbrProbe;
+	class PBRShader_Deferred_Geometry;
+	class PBRShader_Deferred_Lighting;
 
-	class PBR_Deferred : public PBR {
+	class PbrDeferred {
 
 	public:
-		PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow);
+		PbrDeferred(PbrProbe* probe, DirectionalLight* dirLight, CascadedShadow* cascadeShadow);
 
 		void drawGeometryScene(SceneNode * scene, Camera* camera);
 
@@ -40,18 +43,18 @@ namespace nex
 		void setDirLight(DirectionalLight * light);
 
 	private:
-		Sprite screenSprite;
 		std::unique_ptr<PBRShader_Deferred_Geometry> mGeometryPass;
 		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;
 		CascadedShadow* mCascadeShadow;
 		float mAmbientLightPower;
 		DirectionalLight* mLight;
+		PbrProbe* mProbe;
 	};
 
 	class PBR_Deferred_ConfigurationView : public nex::gui::Drawable {
 	public:
-		PBR_Deferred_ConfigurationView(PBR_Deferred* pbr);
+		PBR_Deferred_ConfigurationView(PbrDeferred* pbr);
 
 	protected:
 		void drawSelf() override;
@@ -59,6 +62,6 @@ namespace nex
 		void drawLightSphericalDirection();
 
 	private:
-		PBR_Deferred * m_pbr;
+		PbrDeferred * mPbr;
 	};
 }

@@ -32,7 +32,7 @@ void nex::StaticMeshDrawer::draw(SceneNode* root, Shader* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(Sprite * sprite, TransformShader* shader)
+void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformShader* shader)
 {
 	StaticMesh* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -42,10 +42,10 @@ void nex::StaticMeshDrawer::draw(Sprite * sprite, TransformShader* shader)
 	mat4 projection = ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
 	mat4 view = mat4(); // just use identity matrix
 	mat4 model = mat4();
-	vec2 spriteOrigin(0.5f * sprite->getWidth(), 0.5f * sprite->getHeight());
-	vec3 rotation = sprite->getRotation();
-	vec3 translation = vec3(sprite->getPosition(), 0.0f);
-	vec3 scaling = vec3(sprite->getWidth(), sprite->getHeight(), 1.0f);
+	vec2 spriteOrigin(0.5f * sprite.getWidth(), 0.5f * sprite.getHeight());
+	vec3 rotation = sprite.getRotation();
+	vec3 translation = vec3(sprite.getPosition(), 0.0f);
+	vec3 scaling = vec3(sprite.getWidth(), sprite.getHeight(), 1.0f);
 
 	// Matrix application order is scale->rotate->translate
 	// But as multiplication is resolved from right to left the order is reversed

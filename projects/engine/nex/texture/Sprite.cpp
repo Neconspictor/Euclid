@@ -68,6 +68,12 @@ void Sprite::setWidth(float width)
 	this->relativeWidth = width;
 }
 
+const Sprite& Sprite::getScreenSprite()
+{
+	static Sprite screenSprite;
+	return screenSprite;
+}
+
 void Sprite::setTexture(Texture* texture)
 {
 	this->texture = texture;

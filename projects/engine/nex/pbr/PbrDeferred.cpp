@@ -1,5 +1,4 @@
-#include <nex/pbr/PBR_Deferred.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/pbr/PbrDeferred.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/gui/Util.hpp>
@@ -12,6 +11,8 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
+#include "nex/light/Light.hpp"
+#include "PbrProbe.hpp"
 
 using namespace glm;
 
@@ -20,23 +21,15 @@ using namespace std;
 namespace nex {
 
 
-	PBR_Deferred::PBR_Deferred(Texture* backgroundHDR, CascadedShadow* cascadeShadow) :
-		PBR(backgroundHDR),
+	PbrDeferred::PbrDeferred(PbrProbe* probe, DirectionalLight* dirLight, CascadedShadow* cascadeShadow) :
+		mProbe(probe),
 		mGeometryPass(make_unique<PBRShader_Deferred_Geometry>()),
 		mLightPass(make_unique<PBRShader_Deferred_Lighting>(*cascadeShadow)),
 		mCascadeShadow(cascadeShadow),
-		mAmbientLightPower(1.0f)
+		mAmbientLightPower(1.0f),
+		mLight(dirLight)
 	{
-		vec2 dim = { 1.0, 1.0 };
-		vec2 pos = { 0, 0 };
 
-		// center
-		pos.x = 0.5f * (1.0f - dim.x);
-		pos.y = 0.5f * (1.0f - dim.y);
-
-		screenSprite.setPosition(pos);
-		screenSprite.setWidth(dim.x);
-		screenSprite.setHeight(dim.y);
 
 		mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
 		{
@@ -52,9 +45,8 @@ namespace nex {
 	}
 
 
-	void PBR_Deferred::drawGeometryScene(SceneNode * scene, Camera* camera)
+	void PbrDeferred::drawGeometryScene(SceneNode * scene, Camera* camera)
 	{
-
 		const auto & view = camera->getView();
 		const auto & projection = camera->getPerspProjection();
 		mGeometryPass->bind();
@@ -77,7 +69,7 @@ namespace nex {
 		}
 	}
 
-	void PBR_Deferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
+	void PbrDeferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
 		Texture* ssaoMap)
 	{
 		mLightPass->bind();
@@ -98,12 +90,12 @@ namespace nex {
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
-		mLightPass->setBrdfLookupTexture(getBrdfLookupTexture());
+		mLightPass->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
 		//shader->setGBuffer(gBuffer);
 		mLightPass->setViewGPass(camera->getView());
 		mLightPass->setInverseViewFromGPass(inverse(camera->getView()));
 		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
-		mLightPass->setIrradianceMap(getConvolutedEnvironmentMap());
+		mLightPass->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
 		mLightPass->setLightColor(mLight->getColor());
 		mLightPass->setWorldLightDirection(mLight->getDirection());
 
@@ -113,7 +105,7 @@ namespace nex {
 		mLightPass->setAmbientLightPower(mAmbientLightPower);
 		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
 
-		mLightPass->setPrefilterMap(getPrefilteredEnvironmentMap());
+		mLightPass->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
 		//shader->setShadowMap(shadowMap);
 		mLightPass->setAOMap(ssaoMap);
 
@@ -130,7 +122,7 @@ namespace nex {
 		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 
 
-		StaticMeshDrawer::draw(&screenSprite, mLightPass.get());
+		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mLightPass.get());
 
 
 		for (int i = 0; i < 4; ++i)
@@ -143,43 +135,43 @@ namespace nex {
 		//sampler->bind(5);
 	}
 
-	void PBR_Deferred::drawSky(Camera* camera)
+	void PbrDeferred::drawSky(Camera* camera)
 	{
-		PBR::drawSky(camera->getPerspProjection(), camera->getView());
+		mProbe->drawSky(camera->getPerspProjection(), camera->getView());
 	}
 
-	std::unique_ptr<PBR_GBuffer> PBR_Deferred::createMultipleRenderTarget(int width, int height)
+	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)
 	{
 		return make_unique<PBR_GBuffer>(width, height);
 	}
 
-	float PBR_Deferred::getAmbientLightPower() const
+	float PbrDeferred::getAmbientLightPower() const
 	{
 		return mAmbientLightPower;
 	}
 
-	DirectionalLight* PBR_Deferred::getDirLight()
+	DirectionalLight* PbrDeferred::getDirLight()
 	{
 		return mLight;
 	}
 
-	void PBR_Deferred::setDirLight(DirectionalLight* light)
+	void PbrDeferred::setDirLight(DirectionalLight* light)
 	{
 		mLight = light;
 	}
 
-	void PBR_Deferred::setAmbientLightPower(float power)
+	void PbrDeferred::setAmbientLightPower(float power)
 	{
 		mAmbientLightPower = power;
 	}
 
-	void PBR_Deferred::reloadLightingShader(const CascadedShadow& cascadedShadow)
+	void PbrDeferred::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
 		mLightPass = make_unique<PBRShader_Deferred_Lighting>(cascadedShadow);
 	}
 
 
-	PBR_Deferred_ConfigurationView::PBR_Deferred_ConfigurationView(PBR_Deferred* pbr) : m_pbr(pbr)
+	PBR_Deferred_ConfigurationView::PBR_Deferred_ConfigurationView(PbrDeferred* pbr) : mPbr(pbr)
 	{
 	}
 
@@ -190,7 +182,7 @@ namespace nex {
 		ImGui::LabelText("", "PBR:");
 
 
-		auto* dirLight = m_pbr->getDirLight();
+		auto* dirLight = mPbr->getDirLight();
 
 		glm::vec3 lightColor = dirLight->getColor();
 		float dirLightPower = dirLight->getLightPower();
@@ -210,11 +202,11 @@ namespace nex {
 		drawLightSphericalDirection();
 
 
-		float ambientLightPower = m_pbr->getAmbientLightPower();
+		float ambientLightPower = mPbr->getAmbientLightPower();
 
 		if(ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
 		{
-			m_pbr->setAmbientLightPower(ambientLightPower);
+			mPbr->setAmbientLightPower(ambientLightPower);
 		}
 
 
@@ -224,7 +216,7 @@ namespace nex {
 
 	void PBR_Deferred_ConfigurationView::drawLightSphericalDirection()
 	{
-		auto* dirLight = m_pbr->getDirLight();
+		auto* dirLight = mPbr->getDirLight();
 		glm::vec3 lightDirection = normalize(dirLight->getDirection());
 
 		static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);

@@ -6,7 +6,7 @@
 #include "nex/Renderer.hpp"
 #include "nex/shader/Shader.hpp"
 #include "nex/texture/RenderTarget.hpp"
-#include "nex/pbr/PBR_Deferred.hpp"
+#include "nex/pbr/PbrDeferred.hpp"
 #include "SceneNearFarComputeShader.hpp"
 
 namespace nex

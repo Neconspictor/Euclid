@@ -4,6 +4,7 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/texture/Sampler.hpp>
+#include "nex/texture/Sprite.hpp"
 
 namespace nex {
 
@@ -13,10 +14,6 @@ namespace nex {
 		mVerticalPass(std::make_unique< GaussianBlurVerticalShader>()),
 		mSampler(std::make_unique<Sampler>(SamplerDesc()))
 	{
-		sprite.setPosition({ 0,0 });
-		sprite.setHeight(1);
-		sprite.setWidth(1);
-
 		mSampler->setAnisotropy(0.0f);
 		mSampler->setMinFilter(TextureFilter::Linear);
 		mSampler->setMagFilter(TextureFilter::Linear);
@@ -42,22 +39,20 @@ namespace nex {
 		RenderBackend::get()->setViewPort(0, 0, cache->getWidth(), cache->getHeight());
 
 		// horizontal pass
-		sprite.setTexture(texture);
 		mHorizontalPass->bind();
-		mHorizontalPass->setTexture(sprite.getTexture());
+		mHorizontalPass->setTexture(texture);
 		mHorizontalPass->setImageHeight((float)cache->getHeight());
 		mHorizontalPass->setImageWidth((float)cache->getWidth());
-		StaticMeshDrawer::draw(&sprite, mHorizontalPass.get());
+		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mHorizontalPass.get());
 
 		// vertical pass
 		out->bind();
 		RenderBackend::get()->setViewPort(0, 0, out->getWidth(), out->getHeight());
-		sprite.setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->bind();
-		mVerticalPass->setTexture(sprite.getTexture());
+		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)out->getHeight());
 		mVerticalPass->setImageWidth((float)out->getWidth());
-		StaticMeshDrawer::draw(&sprite, mVerticalPass.get());
+		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mVerticalPass.get());
 
 		mSampler->unbind(0);
 

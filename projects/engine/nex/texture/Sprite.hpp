@@ -29,6 +29,8 @@ namespace nex
 		void setTexture(Texture* texture);
 		void setWidth(float width);
 
+		static const Sprite& getScreenSprite();
+
 	protected:
 		float relativeHeight;
 		float relativeWidth;
