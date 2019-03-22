@@ -43,7 +43,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	//shadowMap(nullptr),
 	mShowDepthMap(false),
 	mInput(input),
-	mAoSelector(std::make_unique<AmbientOcclusionSelector>())
+	mAoSelector(std::make_unique<AmbientOcclusionSelector>()),
+	mAtmosphericScattering(std::make_unique<AtmosphericScattering>())
 {
 	mAoSelector->setUseAmbientOcclusion(true);
 	//m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
@@ -250,7 +251,6 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 		stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 
-		mAtmosphericScattering = std::make_unique<AtmosphericScattering>();
 		mAtmosphericScattering->bind();
 		mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
 		mAtmosphericScattering->setInverseViewRotation(inverse(camera->getView()));
