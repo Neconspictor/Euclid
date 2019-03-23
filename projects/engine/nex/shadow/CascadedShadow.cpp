@@ -93,12 +93,12 @@ void CascadedShadow::begin(int cascadeIndex)
 	//glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *((TextureGL*)mDepthTextureArray->getImpl())->getTexture(), 0, cascadeIndex);
 
 	mRenderTarget.clear(RenderComponent::Depth);
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 
 	// We use depth clamping so that the shadow maps keep from moving through objects which causes shadows to disappear.
-	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
+	//RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 	//RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
-	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
+	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 
 
 	mDepthPassShader->setCascadeIndex(cascadeIndex);

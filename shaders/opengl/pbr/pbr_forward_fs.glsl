@@ -26,6 +26,8 @@ void main()
 	//normal
     vec3 normalEye = getNormalEye();
     
+    vec2 texCoords = fs_in.tex_coords;
+    
     
     vec3 colorOut;
     vec3 luminanceOut;
@@ -35,7 +37,7 @@ void main()
                 normalEye, 
                 roughness, 
                 positionEye,
-                fs_in.tex_coords,
+                texCoords,
                 colorOut,
                 luminanceOut);
         

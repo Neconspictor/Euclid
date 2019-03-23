@@ -18,6 +18,7 @@ namespace nex
 	class SceneNearFarComputeShader;
 	class AtmosphericScattering;
 	class PbrProbe;
+	class PbrForward;
 
 	class PBR_Deferred_Renderer : public Renderer
 	{
@@ -41,6 +42,9 @@ namespace nex
 
 	private:
 
+		void renderDeferred(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+		void renderForward(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+
 		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
@@ -61,6 +65,9 @@ namespace nex
 		std::unique_ptr<PbrDeferred> mPbrDeferred;
 		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
+
+		// forward
+		std::unique_ptr<PbrForward> mPbrForward;
 
 		std::unique_ptr < AmbientOcclusionSelector> mAoSelector;
 

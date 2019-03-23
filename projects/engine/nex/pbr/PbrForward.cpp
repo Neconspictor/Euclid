@@ -66,8 +66,7 @@ namespace nex {
 
 	void PbrForward::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
-		//TODO update!!!
-		//mForwardShader = std::make_unique<PBRShader>(cascadedShadow);
+		mForwardShader = std::make_unique<PBRShader>(cascadedShadow);
 	}
 
 
@@ -78,27 +77,46 @@ namespace nex {
 
 		mForwardShader->bind();
 
-		mForwardShader->setGlobalAOMap(ssaoMap);
+		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
 
-		mForwardShader->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
-		mForwardShader->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
-		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-
-		mForwardShader->setLightColor(mLight->getColor());
-		mForwardShader->setLightPower(mLight->getLightPower());
-		mForwardShader->setEyeLightDirection(mLight->getDirection());
-
-
-		//TODO
-		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());
-		mForwardShader->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
+		for (int i = 0; i < 6; ++i)
+		{
+			sampler->bind(i);
+		}
 		
 		//TODO update!!!
 		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));
 		mForwardShader->setView(camera->getView());
 		mForwardShader->setProjection(camera->getPerspProjection());
 
+
+		mForwardShader->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
+		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));
+		mForwardShader->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
+		mForwardShader->setLightColor(mLight->getColor());
+
+		vec4 lightEyeDirection = camera->getView() * vec4(mLight->getDirection(), 0);
+		mForwardShader->setEyeLightDirection(vec3(lightEyeDirection));
+		mForwardShader->setLightPower(mLight->getLightPower());
+		mForwardShader->setAmbientLightPower(mAmbientLightPower);
+		mForwardShader->setShadowStrength(mCascadeShadow->getShadowStrength());
+
+		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
+		mForwardShader->setGlobalAOMap(ssaoMap);
+
+		mForwardShader->pbr::CommonGeometryMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mForwardShader->pbr::CommonLightingMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+
+		//TODO
+		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());
+		mForwardShader->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
+
 		StaticMeshDrawer::draw(scene, mForwardShader.get());
+
+		for (int i = 0; i < 6; ++i)
+		{
+			sampler->unbind(i);
+		}
 	}
 
 
