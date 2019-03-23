@@ -91,7 +91,7 @@ namespace nex {
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
 		mLightPass->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
-		mLightPass->setInverseViewFromGPass(inverse(camera->getView()));
+		mLightPass->setInverseViewMatrix(inverse(camera->getView()));
 		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
 		mLightPass->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
 		mLightPass->setLightColor(mLight->getColor());
@@ -103,7 +103,7 @@ namespace nex {
 		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
 
 		mLightPass->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-		mLightPass->setAOMap(ssaoMap);
+		mLightPass->setGlobalAOMap(ssaoMap);
 
 		mLightPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 

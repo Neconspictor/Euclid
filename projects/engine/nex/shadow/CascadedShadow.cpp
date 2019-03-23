@@ -63,6 +63,20 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	resize(cascadeWidth, cascadeHeight);
 }
 
+std::vector<std::string> CascadedShadow::generateCsmDefines() const
+{
+	std::vector<std::string> result;
+
+	result.emplace_back(ShaderProgram::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_ENABLED", mEnabled));
+	result.emplace_back(ShaderProgram::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
+
+	return result;
+}
+
 void CascadedShadow::begin(int cascadeIndex)
 {
 	mDepthPassShader->bind();

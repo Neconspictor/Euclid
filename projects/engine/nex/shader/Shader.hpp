@@ -97,6 +97,9 @@ namespace nex
 
 		virtual ~ShaderProgram() = default;
 
+		template<typename T>
+		static std::string makeDefine(const char* str, T value);
+
 		/**
 		 * Binds this shader program.
 		 */
@@ -225,6 +228,12 @@ namespace nex
 		ShaderProgram& operator=(const ShaderProgram& other) = delete;
 		ShaderProgram(const ShaderProgram& other) = delete;
 	};
+
+	template <typename T>
+	std::string ShaderProgram::makeDefine(const char* str, T value)
+	{
+		return std::string("#define ") + std::string(str) + std::string(" ") + std::to_string(value);
+	}
 
 
 	class Shader

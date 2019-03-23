@@ -89,6 +89,9 @@ namespace nex
 
 		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
 
+
+		std::vector<std::string> generateCsmDefines() const;
+
 		/**
 		 * Allows rendering to the i-th cascade.
 		 */

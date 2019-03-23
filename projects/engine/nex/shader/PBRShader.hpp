@@ -95,10 +95,6 @@ namespace nex
 			// CSM
 			UniformTex mCascadedDepthMap;
 			ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
-			unsigned mCsmNumCascades;
-			CascadedShadow::PCFFilter mCsmPcf;
-			bool mCsmEnabled;
-			float mCsmBiasMultiplier;
 
 
 			Uniform mEyeLightDirection;
@@ -139,37 +135,12 @@ namespace nex
 		void onMaterialUpdate(const Material* material) override;
 	};
 
-	class PBRShader_Deferred_Lighting : public TransformShader {
+	class PBRShader_Deferred_Lighting : public TransformShader, public pbr::CommonLightingMaterial {
 	public:
 
 		PBRShader_Deferred_Lighting(const CascadedShadow& cascadedShadow);
 
-		virtual ~PBRShader_Deferred_Lighting();
-
-
 		void setMVP(const glm::mat4& trafo);
-		void setInverseViewFromGPass(const glm::mat4& mat);
-
-		void setBrdfLookupTexture(const Texture* brdfLUT);
-
-		void setEyeLightDirection(const glm::vec3& direction);
-		void setLightColor(const glm::vec3& color);
-		void setLightPower(float power);
-		void setAmbientLightPower(float power);
-		void setShadowStrength(float strength);
-
-
-
-		void setIrradianceMap(const CubeMap* irradianceMap);
-		void setPrefilterMap(const CubeMap* prefilterMap);
-
-		void setShadowMap(const Texture* texture);
-		void setAOMap(const Texture* texture);
-		void setSkyBox(const CubeMap* sky);
-
-		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		void setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera);
-		void setCascadedData(ShaderStorageBuffer* buffer);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -178,35 +149,11 @@ namespace nex
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-		void setNearFarPlane(const glm::vec2& nearFarPlane);
-
 
 		void onTransformUpdate(const TransformData& data) override;
 
 	private:
 		Uniform mTransform;
-		Uniform mInverseViewFromGPass;
-
-		UniformTex mBrdfLUT;
-
-		//Uniform mWorldDirection;
-		Uniform mEyeLightDirection;
-		Uniform mLightColor;
-		Uniform mLightPower;
-		Uniform mAmbientLightPower;
-		Uniform mShadowStrength;
-
-		UniformTex mIrradianceMap;
-		UniformTex mPrefilterMap;
-
-		UniformTex mShadowMap;
-		UniformTex mAoMap;
-		UniformTex mSkyBox;
-
-		// Cascaded shadow mapping
-		UniformTex mCascadedDepthMap;
-		ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
-
 
 		UniformTex mAlbedoMap;
 		UniformTex mAoMetalRoughnessMap;
@@ -214,27 +161,7 @@ namespace nex
 		UniformTex mNormalizedViewSpaceZMap;
 
 		Uniform mInverseProjFromGPass;
-		Uniform mNearFarPlane;
-
-		// CSM
-		unsigned mCsmNumCascades;
-		CascadedShadow::PCFFilter mCsmPcf;
-		bool mCsmEnabled;
-		float mCsmBiasMultiplier;
-
-		std::vector<std::string> generateCsmDefines();
-		
-		template<typename T>
-		std::string makeDefine(const char* str, T value);
 	};
-
-	template <typename T>
-	std::string PBRShader_Deferred_Lighting::makeDefine(const char* str, T value)
-	{
-		std::stringstream ss;
-		ss <<"#define " << str << " " << value;
-		return ss.str();
-	}
 
 	class PBR_ConvolutionShader : public Shader
 	{
