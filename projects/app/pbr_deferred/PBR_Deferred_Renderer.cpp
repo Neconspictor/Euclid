@@ -48,7 +48,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>())
 {
 	mAoSelector->setUseAmbientOcclusion(true);
-	//m_aoSelector.setAOTechniqueToUse(AmbientOcclusionSelector::SSAO);
+	mAoSelector->setAOTechniqueToUse(AOTechnique::SSAO);
 }
 
 
@@ -167,8 +167,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	//renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
-	renderForward(scene, camera, frameTime, windowWidth, windowHeight);
+	renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
+	//renderForward(scene, camera, frameTime, windowWidth, windowHeight);
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)

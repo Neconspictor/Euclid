@@ -22,7 +22,10 @@ namespace nex
 		float   radius;
 		float   _pad0;
 
+		glm::vec4 invFullResolution;
+
 		glm::mat4 projection_GPass;
+		glm::mat4 inv_projection_GPass;
 
 		glm::vec4 samples[SSAO_SAMPLING_SIZE]; // the w component is not used (just for padding)!
 	};
@@ -42,7 +45,7 @@ namespace nex
 		Texture* getNoiseTexture();
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-		void renderAO(Texture* gPositions, Texture* gNormals, const glm::mat4& projectionGPass);
+		void renderAO(Texture* depth, Texture* normal, const glm::mat4& projectionGPass);
 		void blur();
 
 		void displayAOTexture(Texture* aoTexture);

@@ -130,6 +130,14 @@ namespace nex {
 		mDefaultImageSampler->setWrapS(TextureUVTechnique::Repeat);
 		mDefaultImageSampler->setWrapT(TextureUVTechnique::Repeat);
 		mDefaultImageSampler->setAnisotropy(16.0f);
+
+		mPointSampler = std::make_unique<Sampler>(SamplerDesc());
+		mPointSampler->setMinFilter(TextureFilter::NearestNeighbor);
+		mPointSampler->setMagFilter(TextureFilter::NearestNeighbor);
+		mPointSampler->setWrapR(TextureUVTechnique::ClampToEdge);
+		mPointSampler->setWrapS(TextureUVTechnique::ClampToEdge);
+		mPointSampler->setWrapT(TextureUVTechnique::ClampToEdge);
+		mPointSampler->setAnisotropy(1.0f);
 	}
 
 	CubeMap* TextureManager::createCubeMap(const string& right, const string& left, const string& top,
@@ -373,6 +381,10 @@ namespace nex {
 	{
 		return mDefaultImageSampler.get();
 	}
+	Sampler* TextureManager::getPointSampler()
+	{
+		return mPointSampler.get();
+	}
 
 	TextureManager* TextureManager::get()
 	{
@@ -387,6 +399,7 @@ namespace nex {
 
 		textureLookupTable.clear();
 		mDefaultImageSampler.reset(nullptr);
+		mPointSampler.reset(nullptr);
 	}
 
 

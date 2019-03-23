@@ -8,13 +8,16 @@ struct SSAOData {
   float   radius;
   float   _pad0; 
   
+  vec4 invFullResolution; //only x,y component used
+  
   mat4 projection_GPass;
+  mat4 inv_projection_GPass;
   
   vec4 samples[SSAO_KERNEL_SIZE]; // the w component is not used (just for padding)!
 };
 
 
-layout(location=0,index=0) out float FragColor;
+layout(location=0,index=0) out vec3 FragColor;
 
 in vec2 texCoord;
 
@@ -22,9 +25,9 @@ layout(std140,binding=0) uniform controlBuffer {
   SSAOData   control;
 };
 
-layout(binding=0) uniform sampler2D gNormal;
-layout(binding=1) uniform sampler2D gDepth;
-layout(binding=2) uniform sampler2D texNoise;
+layout(binding=0) uniform sampler2D gDepth;
+layout(binding=1) uniform sampler2D texNoise;
+layout(binding=2) uniform sampler2D gNormal;
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 //float radius = 0.25;
@@ -33,39 +36,102 @@ layout(binding=2) uniform sampler2D texNoise;
 
 //const vec2 noiseScale = vec2(1920.0/4.0, 1080.0/4.0); 
 
-vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth, in mat4 inverseMatrix) {
+/*vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
   vec4 clipSpaceLocation;
   clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
   clipSpaceLocation.z = depth * 2.0f - 1.0f;
   clipSpaceLocation.w = 1.0f;
-  vec4 homogenousLocation = inverseMatrix * clipSpaceLocation;
+  vec4 homogenousLocation = control.inv_projection_GPass * clipSpaceLocation;
   return homogenousLocation.xyz / homogenousLocation.w;
-};
+};*/
+
+vec3 computeViewPositionFromDepth(in vec2 texCoord, float depth) {
+    
+    vec2 positionNDC = texCoord * 2.0 - 1.0;
+    
+    // Unproject depth z value into view space
+    float z_ndc = 2.0 * depth - 1.0;
+    float viewSpaceZ =  control.projection_GPass[3][2] / (z_ndc + control.projection_GPass[2][2]); //TODO  
+    
+    // For more information: https://stackoverflow.com/questions/11277501/how-to-recover-view-space-position-given-view-space-depth-value-and-ndc-xy/46118945#46118945
+    
+    vec2 screenSpaceRay = vec2(
+        viewSpaceZ * positionNDC.x / control.projection_GPass[0][0],
+        viewSpaceZ * positionNDC.y / control.projection_GPass[1][1]);
+                               
+    vec3 positionView;
+    positionView.z = -viewSpaceZ;
+    positionView.xy = screenSpaceRay.xy;
+
+    return positionView;
+}
+
+
+/*
+vec3 UVToView(vec2 uv, float eye_z)
+{
+  return vec3((uv * control.projInfo.xy + control.projInfo.zw) * (control.projOrtho != 0 ? 1. : eye_z), eye_z);
+}*/
+
+vec3 fetchViewPos(vec2 uv)
+{  
+  float depth = texture(gDepth,uv).r;
+  return computeViewPositionFromDepth(uv, depth);
+}
+
+vec3 minDiff(vec3 P, vec3 Pr, vec3 Pl)
+{
+  vec3 V1 = Pr - P;
+  vec3 V2 = P - Pl;
+  return (dot(V1,V1) < dot(V2,V2)) ? V1 : V2;
+}
+
+vec3 reconstructNormal(vec2 uv, vec3 position)
+{
+    vec2 invTexSize = control.invFullResolution.xy; //textureSize(gDepth, 0);
+
+  vec3 right = fetchViewPos(uv + vec2(invTexSize.x, 0));
+  vec3 left = fetchViewPos(uv + vec2(-invTexSize.x, 0));
+  vec3 top = fetchViewPos(uv + vec2(0, invTexSize.y));
+  vec3 bottom = fetchViewPos(uv + vec2(0, -invTexSize.y));
+  
+  return normalize(cross(minDiff(position, right, left), minDiff(position, top, bottom)));
+}
 
 void main()
 {
+
+
+
+    vec2 uv = texCoord;
+    
+    float depth = texture(gDepth, uv).r;
+    
+    //if (depth == 0.0) {
+    //    discard;
+    //};
 
 	// tile noise texture over screen based on screen dimensions divided by noise size
 	vec2 noiseScale = textureSize(gDepth, 0) / 4.0;
 
     // get input for SSAO algorithm
-    mat4 inverseProj = inverse(control.projection_GPass);
-    vec3 fragPos = computeViewPositionFromDepth(texCoord, texture(gDepth, texCoord).r, inverseProj);
-    vec3 normal = normalize(texture(gNormal, texCoord).rgb);
-	
+    vec3 fragPos = computeViewPositionFromDepth(uv, depth);
+    vec3 normal = reconstructNormal(uv, fragPos);
+	//vec3 normal = normalize(texture(gNormal, uv).rgb);
+    
 	//float nLength = length(normal);
 	//if (nLength < 0.9) {
 	//	discard;
 	//}
 	
-    vec3 randomVec = normalize(texture(texNoise, texCoord * noiseScale).xyz);
+    vec3 randomVec = normalize(texture(texNoise, uv * noiseScale).xyz);
     // create TBN change-of-basis matrix: from tangent-space to view-space
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
 	//vec3 tangent = normalize(randomVec);
 	//vec3 tangent = normalize(vec3(0,1,0) + randomVec);
 	//vec3 tangent = normalize(vec3(0, 0, 1));
 	//tangent = normal;
-    vec3 bitangent = cross(normal, tangent);
+    vec3 bitangent = normalize(cross(normal, tangent));
     mat3 TBN = mat3(tangent, bitangent, normal);
     // iterate over the sample kernel and calculate occlusion factor
     float occlusion = 0.0;
@@ -85,7 +151,7 @@ void main()
         
         // get sample depth
         //float sampleDepth = texture(gDepth, offset.xy).r; // get depth value of kernel sample
-        float sampleDepth = computeViewPositionFromDepth(offset.xy, texture(gDepth, offset.xy).r, inverseProj).z;
+        float sampleDepth = computeViewPositionFromDepth(offset.xy, texture(gDepth, offset.xy).r).z;
         
         // range check & accumulate
         //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
@@ -107,7 +173,7 @@ void main()
 	
 	
 	
-	occlusion = clamp(pow(occlusion, 1/control.intensity), 0, 1);
+	occlusion = clamp(pow(occlusion, 1.0 / control.intensity), 0, 1);
 	//occlusion = clamp(2.0 * occlusion, 0, 1);
     occlusion = 1.0 - (occlusion);
 	//occlusion = clamp(pow(occlusion, 2.2), 0, 1);
@@ -117,5 +183,7 @@ void main()
 	//occlusion = clamp(2.0 * occlusion, 0, 1);
 	//occlusion = clamp(pow(occlusion, 2.2 * 2), 0, 1);
 	
-    FragColor = occlusion;
+    FragColor = vec3(occlusion);
+    
+    //FragColor = normal;
 }

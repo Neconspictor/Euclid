@@ -13,6 +13,8 @@
 #include "nex/texture/Attachment.hpp"
 #include "nex/texture/Sprite.hpp"
 #include <nex/shader/Shader.hpp>
+#include "nex/texture/TextureManager.hpp"
+#include <nex/texture/Sampler.hpp>
 
 using namespace std; 
 using namespace glm;
@@ -27,74 +29,49 @@ namespace nex
 
 		SSAO_AO_Shader(unsigned int kernelSampleSize) :
 			Shader(),
-			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr),
-			m_gNormal(nullptr), m_samples(nullptr),
+			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr), m_samples(nullptr),
 			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
 			mProgram = ShaderProgram::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
-
-			//glCreateBuffers(1, &m_ssaoUBO);
-			//glNamedBufferStorage(m_ssaoUBO, sizeof(SSAOData), NULL, GL_DYNAMIC_STORAGE_BIT);
-
-			// create a vao for rendering fullscreen triangles directly with glDrawArrays
-			//glGenVertexArrays(1, &m_fullscreenTriangleVAO);
 		}
-
-
-		/*virtual ~SSAO_AO_Shader() {
-			if (m_ssaoUBO != GL_FALSE) {
-				glDeleteBuffers(1, &m_ssaoUBO);
-				m_ssaoUBO = GL_FALSE;
-			}
-
-			if (m_fullscreenTriangleVAO != GL_FALSE) {
-				glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
-				m_fullscreenTriangleVAO = GL_FALSE;
-			}
-		}*/
-
 
 		void drawCustom()
 		{
 			bind();
-			//glBindVertexArray(m_fullscreenTriangleVAO);
 			m_fullscreenTriangleVAO.bind();
 			
-			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
 			m_ssaoUBO.bind();
 			m_ssaoUBO.update(m_ssaoData,
-				4 * 4 + 4 * 4 * 4, // we update only the first 4 floats + the matrix  <projection_GPass>
+				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
 				0);
-			//glNamedBufferSubData(m_ssaoUBO, 0,
-			//	4 * 4 + 4 * 4 * 4, // we update only the first 4 floats + the matrix  <projection_GPass>
-			//	m_ssaoData);
 
-			//glBindTextureUnit(0,*((TextureGL*)m_gNormal->getImpl())->getTexture());
-			static UniformLocation normalLoc = mProgram->getUniformLocation("gNormal");
-			mProgram->setTexture(normalLoc, m_gNormal, 0);
-			//glBindTextureUnit(1, *((TextureGL*)m_gDepth->getImpl())->getTexture());
+			auto* sampler = TextureManager::get()->getPointSampler();
+
 			static UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
-			mProgram->setTexture(depthLoc, m_gDepth, 1);
-			//glBindTextureUnit(2, *((TextureGL*)m_texNoise->getImpl())->getTexture());
+			mProgram->setTexture(depthLoc, m_gDepth, 0);
+			sampler->bind(0);
 			static UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
-			mProgram->setTexture(noiseLoc, m_texNoise, 2);
+			mProgram->setTexture(noiseLoc, m_texNoise, 1);
+			sampler->bind(1);
+			static UniformLocation normalLoc = mProgram->getUniformLocation("gNormal");
+			mProgram->setTexture(normalLoc, m_gNormal, 2);
+			sampler->bind(2);
 
-			//glDrawArrays(GL_TRIANGLES, 0, 3);
 			static auto* renderBackend = RenderBackend::get();
 			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 
-
-			//glBindVertexArray(0);
-			//glUseProgram(0);
-		}
-
-		void setGNoiseTexture(Texture* texture) {
-			m_texNoise = texture;
+			sampler->unbind(0);
+			sampler->unbind(1);
+			sampler->unbind(2);
 		}
 
 		void setGNormalTexture(Texture* texture) {
 			m_gNormal = texture;
+		}
+
+		void setGNoiseTexture(Texture* texture) {
+			m_texNoise = texture;
 		}
 
 		void setGDepthTexture(Texture* texture) {
@@ -109,10 +86,6 @@ namespace nex
 			/*const vec3* ptr = vec.data();
 			for (unsigned int i = 0; i < vec.size(); ++i)
 				attributes.setData("samples[" + std::to_string(i) + "]", &ptr[i]);*/
-		}
-
-		void setProjectionGPass(glm::mat4 matrix) {
-			projection_GPass = move(matrix);
 		}
 
 		void setSSAOData(SSAOData* data)
@@ -143,7 +116,6 @@ namespace nex
 
 	private:
 		glm::mat4 transform;
-		glm::mat4 projection_GPass;
 		unsigned int kernelSampleSize;
 		SSAOData* m_ssaoData;
 		UniformBuffer m_ssaoUBO;
@@ -330,28 +302,25 @@ namespace nex
 		tiledBlurRenderTarget = createSSAO_FBO(newWidth, newHeight);
 	}
 
-	void SSAO_Deferred::renderAO(Texture * gDepth, Texture * gNormals, const glm::mat4& projectionGPass)
+	void SSAO_Deferred::renderAO(Texture * gDepth, Texture* gNormals, const glm::mat4& projectionGPass)
 	{
-		SSAO_AO_Shader&  aoShader = dynamic_cast<SSAO_AO_Shader&>(*aoPass);
-
-		aoShader.setGNormalTexture(gNormals);
-		aoShader.setGDepthTexture(gDepth);
-
-		m_shaderData.projection_GPass = projectionGPass;
-
 		static auto* renderBackend = RenderBackend::get();
 
-		//glViewport(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
-		renderBackend->setViewPort(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
-		//glScissor(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
-		renderBackend->setScissor(0, 0, aoRenderTarget->getWidth(), aoRenderTarget->getHeight());
+		SSAO_AO_Shader&  aoShader = dynamic_cast<SSAO_AO_Shader&>(*aoPass);
+		const unsigned width = aoRenderTarget->getWidth();
+		const unsigned height = aoRenderTarget->getHeight();
+
+		aoShader.setGDepthTexture(gDepth);
+		aoShader.setGNormalTexture(gNormals);
+		m_shaderData.projection_GPass = projectionGPass;
+		m_shaderData.inv_projection_GPass = inverse(projectionGPass);
+		m_shaderData.invFullResolution = glm::vec4(1 / float(width), 1/float(height), 0, 0);
+
+		renderBackend->setViewPort(0, 0, width, height);
 
 		aoRenderTarget->bind();
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		aoRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		aoShader.drawCustom();
-
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	void SSAO_Deferred::blur()
@@ -385,7 +354,7 @@ namespace nex
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
 		TextureData data;
-		data.internalFormat = InternFormat::R32F;
+		data.internalFormat = InternFormat::RGB32F;
 		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
 		data.minFilter = TextureFilter::NearestNeighbor;
 		data.magFilter = TextureFilter::NearestNeighbor;

@@ -83,6 +83,7 @@ namespace nex {
 
 		void loadImages(const std::string& imageFolder);
 		Sampler* getDefaultImageSampler();
+		Sampler* getPointSampler();
 
 		/**
 		 * Provides access the texture manager singleton.
@@ -110,6 +111,7 @@ namespace nex {
 		std::map<std::string, nex::Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<Sampler> mDefaultImageSampler;
+		std::unique_ptr<Sampler> mPointSampler;
 		nex::FileSystem* mFileSystem;
 	};
 
