@@ -23,7 +23,7 @@ namespace nex {
 		mCascadeShadow(cascadeShadow),
 		mAmbientLightPower(1.0f),
 		mLight(light),
-		mForwardShader(std::make_unique<PBRShader>())
+		mForwardShader(std::make_unique<PBRShader>(*cascadeShadow))
 	{
 		mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
 		{
@@ -94,10 +94,9 @@ namespace nex {
 		mForwardShader->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 		
 		//TODO update!!!
-
-		mForwardShader->setViewMatrix(camera->getView());
 		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));
-		mForwardShader->setProjectionMatrix(camera->getPerspProjection());
+		mForwardShader->setView(camera->getView());
+		mForwardShader->setProjection(camera->getPerspProjection());
 
 		StaticMeshDrawer::draw(scene, mForwardShader.get());
 	}

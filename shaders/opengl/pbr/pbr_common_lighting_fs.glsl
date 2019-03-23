@@ -15,6 +15,9 @@ uniform DirLight dirLight;
 uniform float ambientLightPower;
 uniform float shadowStrength;
 
+// The inverse view matrix. Note, for deferred renderings the inverse view of the geometry pass is meant!
+uniform mat4 inverseViewMatrix;
+
 layout(binding = 5) uniform sampler2D ssaoMap;
 
 // IBL
@@ -48,15 +51,21 @@ void calcLighting(in float ao,
              in vec3 albedo, 
              in float metallic, 
              in vec3 normalEye, 
-             in vec3 normalWorld, 
              in float roughness,
              in vec3 positionEye,             
-             in vec3 viewEye, 
-             in vec3 reflectionDirWorld,
              in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
+    // view direction
+	vec3 viewEye = normalize(-positionEye);
+    
+	// reflection direction
+    vec3 viewWorld = vec3(inverseViewMatrix * vec4(viewEye, 0.0f));
+    vec3 normalWorld = vec3(inverseViewMatrix * vec4(normalEye, 0.0f));
+    vec3 reflectionDirWorld = reflect(-viewWorld, normalWorld);
+
+
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 

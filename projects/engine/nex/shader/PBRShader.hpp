@@ -18,6 +18,19 @@ namespace nex
 			void setNormalMap(const Texture* texture);
 			void setRoughnessMap(const Texture* texture);
 
+			void setModelViewMatrix(const glm::mat4& mat);
+			void setTransform(const glm::mat4& mat);
+
+			void setProjection(const glm::mat4& mat);
+			void setView(const glm::mat4& mat);
+
+			void setNearFarPlane(const glm::vec2& nearFarPlane);
+
+			/**
+			 * Prerequisites: prjection and view matrix are set (and mustn't be null!) 
+			 */
+			void doModelMatrixUpdate(const glm::mat4& model);
+
 		protected:
 			CommonGeometryMaterial();
 			void init(ShaderProgram* program);
@@ -29,6 +42,14 @@ namespace nex
 			UniformTex mMetalMap;
 			UniformTex mNormalMap;
 			UniformTex mRoughnessMap;
+
+			Uniform mModelView;
+			Uniform mTransform;
+			Uniform mNearFarPlane;
+
+			glm::mat4 const* mProjectionMatrixSource;
+			glm::mat4 const* mViewMatrixSource;
+
 			ShaderProgram* mProgram;
 		};
 
@@ -51,6 +72,8 @@ namespace nex
 			void setLightPower(float power);
 			void setAmbientLightPower(float power);
 			void setShadowStrength(float strength);
+
+			void setInverseViewMatrix(const glm::mat4& mat);
 
 			void setNearFarPlane(const glm::vec2& nearFarPlane);
 
@@ -84,6 +107,8 @@ namespace nex
 			Uniform mAmbientLightPower;
 			Uniform mShadowStrength;
 
+			Uniform mInverseView;
+
 			Uniform mNearFarPlane;
 
 			ShaderProgram* mProgram;
@@ -102,79 +127,16 @@ namespace nex
 
 		PBRShader(const CascadedShadow& cascadedShadow);
 
-		void setProjectionMatrix(const glm::mat4& mat);
-
-		void setModelViewMatrix(const glm::mat4& mat);
-
-		void setMVP(const glm::mat4& mat);
-
-		void setViewMatrix(const glm::mat4& mat);
-		void setInverseViewMatrix(const glm::mat4& mat);
-
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
-
-	private:
-		Uniform mLightDirection;
-		Uniform mLightColor;
-		Uniform mLightProjMatrix;
-		Uniform mLightSpaceMatrix;
-		Uniform mLightViewMatrix;
-		Uniform mModelView;
-
-		UniformTex mShadowMap;
-		UniformTex mSkybox;
-
-		Uniform mTransform;
-		Uniform mCameraPos;
-
-		Uniform mView;
-		Uniform mInverseView;
-
-		glm::mat4 const* mProjectionMatrixSource;
-		glm::mat4 const* mViewMatrixSource;
 	};
 
-	class PBRShader_Deferred_Geometry : public Shader {
+	class PBRShader_Deferred_Geometry : public Shader, public pbr::CommonGeometryMaterial {
 	public:
 		PBRShader_Deferred_Geometry();
 
-		void setAlbedoMap(const Texture* texture);
-		void setAmbientOcclusionMap(const Texture* texture);
-		void setEmissionMap(const Texture* texture);
-		void setMetalMap(const Texture* texture);
-		void setNormalMap(const Texture* texture);
-		void setRoughnessMap(const Texture* texture);
-
-
-		void setMVP(const glm::mat4& mat);
-		void setModelViewMatrix(const glm::mat4& mat);
-		void setModelView_NormalMatrix(const glm::mat4& mat);
-
-		void setProjection(const glm::mat4& mat);
-		void setView(const glm::mat4& mat);
-
-
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
-		void setNearFarPlane(const glm::vec2& nearFarPlane);
-
-	private:
-
-		Uniform mTransform;
-		Uniform mModelView;
-		Uniform mModelView_normalMatrix;
-		Uniform mNearFarPlane;
-
-		UniformTex mAlbedoMap;
-		UniformTex mAmbientOcclusionMap;
-		UniformTex mEmissionMap;
-		UniformTex mMetalMap;
-		UniformTex mNormalMap;
-		UniformTex mRoughnessMap;
-
-		glm::mat4 const* mProjection;
-		glm::mat4 const* mView;
 	};
 
 	class PBRShader_Deferred_Lighting : public TransformShader {
@@ -186,7 +148,6 @@ namespace nex
 
 
 		void setMVP(const glm::mat4& trafo);
-		void setViewGPass(const glm::mat4& mat);
 		void setInverseViewFromGPass(const glm::mat4& mat);
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
@@ -201,9 +162,6 @@ namespace nex
 
 		void setIrradianceMap(const CubeMap* irradianceMap);
 		void setPrefilterMap(const CubeMap* prefilterMap);
-
-		void setEyeToLightSpaceMatrix(const glm::mat4& mat);
-		void setWorldToLightSpaceMatrix(const glm::mat4& mat);
 
 		void setShadowMap(const Texture* texture);
 		void setAOMap(const Texture* texture);
@@ -227,7 +185,6 @@ namespace nex
 
 	private:
 		Uniform mTransform;
-		Uniform mViewGPass;
 		Uniform mInverseViewFromGPass;
 
 		UniformTex mBrdfLUT;
@@ -242,15 +199,9 @@ namespace nex
 		UniformTex mIrradianceMap;
 		UniformTex mPrefilterMap;
 
-		Uniform mEyeToLightTrafo;
-		Uniform mWorldToLightTrafo;
-
 		UniformTex mShadowMap;
 		UniformTex mAoMap;
 		UniformTex mSkyBox;
-
-		Uniform mBiasMatrix;
-		glm::mat4 mBiasMatrixSource;
 
 		// Cascaded shadow mapping
 		UniformTex mCascadedDepthMap;

@@ -8,7 +8,8 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-pbr::CommonGeometryMaterial::CommonGeometryMaterial() : mProgram(nullptr)
+pbr::CommonGeometryMaterial::CommonGeometryMaterial() : mProjectionMatrixSource(nullptr), mViewMatrixSource(nullptr),
+                                                        mProgram(nullptr)
 {
 	assert(mProgram == nullptr);
 }
@@ -23,6 +24,10 @@ void pbr::CommonGeometryMaterial::init(ShaderProgram* program)
 	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 2 };
 	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 3 };
 	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 4 };
+	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
+	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+
+	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 }
 
 
@@ -52,7 +57,43 @@ void pbr::CommonGeometryMaterial::setNormalMap(const Texture* texture)
 
 void pbr::CommonGeometryMaterial::setRoughnessMap(const Texture* texture)
 {
+	assert(mProgram != nullptr);
 	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
+}
+
+void pbr::CommonGeometryMaterial::setModelViewMatrix(const glm::mat4& mat)
+{
+	assert(mProgram != nullptr);
+	mProgram->setMat4(mModelView.location, mat);
+}
+
+void pbr::CommonGeometryMaterial::setTransform(const glm::mat4& mat)
+{
+	mProgram->setMat4(mTransform.location, mat);
+}
+
+void pbr::CommonGeometryMaterial::setProjection(const glm::mat4& mat)
+{
+	mProjectionMatrixSource = &mat;
+}
+
+void pbr::CommonGeometryMaterial::setView(const glm::mat4& mat)
+{
+	mViewMatrixSource = &mat;
+}
+
+void pbr::CommonGeometryMaterial::setNearFarPlane(const glm::vec2& nearFarPlane)
+{
+	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
+}
+
+void pbr::CommonGeometryMaterial::doModelMatrixUpdate(const glm::mat4& model)
+{
+	assert(mViewMatrixSource != nullptr);
+	assert(mProjectionMatrixSource != nullptr);
+	mat4 modelView = *mViewMatrixSource * model;
+	setModelViewMatrix(modelView);
+	setTransform(*mProjectionMatrixSource * modelView);
 }
 
 pbr::CommonLightingMaterial::CommonLightingMaterial(const CascadedShadow& cascadedShadow) : mProgram(nullptr),
@@ -86,6 +127,8 @@ void pbr::CommonLightingMaterial::init(ShaderProgram* program)
 	mLightPower = { mProgram->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 	mAmbientLightPower = { mProgram->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
 	mShadowStrength = { mProgram->getUniformLocation("shadowStrength"), UniformType::FLOAT };
+
+	mInverseView = { mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
 
 	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
@@ -197,6 +240,11 @@ void pbr::CommonLightingMaterial::setShadowStrength(float strength)
 	mProgram->setFloat(mShadowStrength.location, strength);
 }
 
+void pbr::CommonLightingMaterial::setInverseViewMatrix(const glm::mat4& mat)
+{
+	mProgram->setMat4(mInverseView.location, mat);
+}
+
 void pbr::CommonLightingMaterial::setNearFarPlane(const glm::vec2& nearFarPlane)
 {
 	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
@@ -206,12 +254,8 @@ PBRShader::PBRShader(const CascadedShadow& cascadedShadow) : Shader(ShaderProgra
 	                                                             "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl")),
                                                              CommonLightingMaterial(cascadedShadow)
 {
-	mTransform = {Shader::mProgram->getUniformLocation("transform"), UniformType::MAT4};
-
-	mView = {Shader::mProgram->getUniformLocation("view"), UniformType::MAT4};
-	mInverseView = {Shader::mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4};
-
-	mModelView = {Shader::mProgram->getUniformLocation("modelView"), UniformType::MAT4};
+	CommonGeometryMaterial::init(Shader::mProgram.get());
+	CommonLightingMaterial::init(Shader::mProgram.get());
 
 	/*mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -223,43 +267,11 @@ PBRShader::PBRShader(const CascadedShadow& cascadedShadow) : Shader(ShaderProgra
 	//bind();
 	//mProgram->setMat4(mBiasMatrix.location, mBiasMatrixSource);
 	//unbind();
-
-	mLightDirection = {Shader::mProgram->getUniformLocation("dirLight.direction"), UniformType::VEC3};
-	mLightColor = {Shader::mProgram->getUniformLocation("dirLight.color"), UniformType::VEC3};
-}
-
-void PBRShader::setProjectionMatrix(const glm::mat4& mat)
-{
-	mProjectionMatrixSource = &mat;
-}
-
-void PBRShader::setModelViewMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mModelView.location, mat);
-}
-
-void PBRShader::setMVP(const glm::mat4& mat)
-{
-	mProgram->setMat4(mTransform.location, mat);
-}
-
-void PBRShader::setViewMatrix(const glm::mat4& mat)
-{
-	mViewMatrixSource = &mat;
-	mProgram->setMat4(mView.location, mat);
-}
-
-void PBRShader::setInverseViewMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mInverseView.location, mat);
 }
 
 void PBRShader::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
-	mat4 modelView = *mViewMatrixSource * modelMatrix;
-
-	setModelViewMatrix(modelView);
-	setMVP(*mProjectionMatrixSource * modelView);
+	doModelMatrixUpdate(modelMatrix);
 }
 
 void PBRShader::onMaterialUpdate(const Material* materialSource)
@@ -290,9 +302,7 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", defines);
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mEyeToLightTrafo = { mProgram->getUniformLocation("eyeToLight"), UniformType::MAT4 };
-	mInverseViewFromGPass = { mProgram->getUniformLocation("inverseViewMatrix_GPass"), UniformType::MAT4 };
-	mViewGPass = { mProgram->getUniformLocation("viewGPass"), UniformType::MAT4 };
+	mInverseViewFromGPass = { mProgram->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
 
 
 	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
@@ -316,18 +326,6 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
 	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
 
-	mBiasMatrix = { mProgram->getUniformLocation("biasMatrix"), UniformType::MAT4 };
-	mBiasMatrixSource = mat4(
-		0.5, 0.0, 0.0, 0.0,
-		0.0, 0.5, 0.0, 0.0,
-		0.0, 0.0, 0.5, 0.0,
-		0.5, 0.5, 0.5, 1.0
-	);
-	bind();
-	mProgram->setMat4(mBiasMatrix.location, mBiasMatrixSource);
-	unbind();
-
-
 	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
 
 	mInverseProjFromGPass = { mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
@@ -343,11 +341,6 @@ PBRShader_Deferred_Lighting::~PBRShader_Deferred_Lighting()
 void PBRShader_Deferred_Lighting::setMVP(const glm::mat4& trafo)
 {
 	mProgram->setMat4(mTransform.location, trafo);
-}
-
-void PBRShader_Deferred_Lighting::setViewGPass(const glm::mat4& mat)
-{
-	mProgram->setMat4(mViewGPass.location, mat);
 }
 
 void PBRShader_Deferred_Lighting::setInverseViewFromGPass(const glm::mat4& mat)
@@ -393,16 +386,6 @@ void PBRShader_Deferred_Lighting::setIrradianceMap(const CubeMap* irradianceMap)
 void PBRShader_Deferred_Lighting::setPrefilterMap(const CubeMap* prefilterMap)
 {
 	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Lighting::setEyeToLightSpaceMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mEyeToLightTrafo.location, mat);
-}
-
-void PBRShader_Deferred_Lighting::setWorldToLightSpaceMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mWorldToLightTrafo.location, mat);
 }
 
 void PBRShader_Deferred_Lighting::setShadowMap(const Texture* texture)
@@ -520,90 +503,17 @@ void PBRShader_Deferred_Lighting::setCascadedData(const CascadedShadow::CascadeD
 }
 
 
-PBRShader_Deferred_Geometry::PBRShader_Deferred_Geometry(): mProjection(nullptr), mView(nullptr)
+PBRShader_Deferred_Geometry::PBRShader_Deferred_Geometry()
 {
-	mProgram = ShaderProgram::create(
+	Shader::mProgram = ShaderProgram::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl");
 
-	mTransform = {mProgram->getUniformLocation("transform"), UniformType::MAT4};
-	mModelView = {mProgram->getUniformLocation("modelView"), UniformType::MAT4};
-	mModelView_normalMatrix = {mProgram->getUniformLocation("modelView_normalMatrix"), UniformType::MAT4};
-
-	mAlbedoMap = {mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0};
-	mAmbientOcclusionMap = {mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1};
-
-	// TODO
-	mEmissionMap = {mProgram->getUniformLocation("material.emissionMap"), UniformType::TEXTURE2D, 2};
-
-	mMetalMap = {mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 3};
-	mNormalMap = {mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 4};
-	mRoughnessMap = {mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 5};
-
-	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
-}
-
-void PBRShader_Deferred_Geometry::setAlbedoMap(const Texture* texture)
-{
-	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setAmbientOcclusionMap(const Texture* texture)
-{
-	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setEmissionMap(const Texture* texture)
-{
-	mProgram->setTexture(mEmissionMap.location, texture, mEmissionMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setMetalMap(const Texture* texture)
-{
-	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setNormalMap(const Texture* texture)
-{
-	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setRoughnessMap(const Texture* texture)
-{
-	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
-}
-
-void PBRShader_Deferred_Geometry::setMVP(const glm::mat4& mat)
-{
-	mProgram->setMat4(mTransform.location, mat);
-}
-
-void PBRShader_Deferred_Geometry::setModelViewMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mModelView.location, mat);
-}
-
-void PBRShader_Deferred_Geometry::setModelView_NormalMatrix(const glm::mat4& mat)
-{
-	mProgram->setMat4(mModelView_normalMatrix.location, mat);
-}
-
-void PBRShader_Deferred_Geometry::setProjection(const glm::mat4& mat)
-{
-	mProjection = &mat;
-}
-
-void PBRShader_Deferred_Geometry::setView(const glm::mat4& mat)
-{
-	mView = &mat;
+	init(Shader::mProgram.get());
 }
 
 void PBRShader_Deferred_Geometry::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
-	mat4 modelView = *mView * modelMatrix;
-
-	setModelViewMatrix(modelView);
-	setMVP(*mProjection * modelView);
-	setModelView_NormalMatrix(transpose(inverse(mat3(modelView))));
+	doModelMatrixUpdate(modelMatrix);
 }
 
 void PBRShader_Deferred_Geometry::onMaterialUpdate(const Material* materialSource)
@@ -615,15 +525,10 @@ void PBRShader_Deferred_Geometry::onMaterialUpdate(const Material* materialSourc
 
 	setAlbedoMap(material->getAlbedoMap());
 	setAmbientOcclusionMap(material->getAoMap());
-	setEmissionMap(material->getEmissionMap());
+	//setEmissionMap(material->getEmissionMap());
 	setMetalMap(material->getMetallicMap());
 	setNormalMap(material->getNormalMap());
 	setRoughnessMap(material->getRoughnessMap());
-}
-
-void PBRShader_Deferred_Geometry::setNearFarPlane(const glm::vec2& nearFarPlane)
-{
-	mProgram->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
 std::vector<std::string> PBRShader_Deferred_Lighting::generateCsmDefines()
