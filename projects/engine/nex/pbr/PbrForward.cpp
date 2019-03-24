@@ -71,8 +71,7 @@ namespace nex {
 
 
 	void PbrForward::drawLighting(SceneNode * scene,
-		Camera* camera,
-		Texture* ssaoMap)
+		Camera* camera)
 	{
 
 		mForwardShader->bind();
@@ -102,7 +101,6 @@ namespace nex {
 		mForwardShader->setShadowStrength(mCascadeShadow->getShadowStrength());
 
 		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-		mForwardShader->setGlobalAOMap(ssaoMap);
 
 		mForwardShader->pbr::CommonGeometryMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 		mForwardShader->pbr::CommonLightingMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));

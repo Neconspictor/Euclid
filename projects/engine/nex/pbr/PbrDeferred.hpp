@@ -25,8 +25,7 @@ namespace nex
 
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,
-			Camera* camera,
-			Texture* ssaoMap);
+			Camera* camera);
 
 		void drawSky(Camera* camera);
 

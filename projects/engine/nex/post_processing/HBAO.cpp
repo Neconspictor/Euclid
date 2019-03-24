@@ -136,13 +136,12 @@ namespace nex
 	Texture2D * HBAO::getAO_Result()
 	{
 		//return (Texture2D*)m_aoResultRT->getRenderResult();
-		return (Texture2D*)m_aoResultRT->getColorAttachments()[0].texture.get();
+		return m_aoResultRT->getColor0AttachmentTexture();
 	}
 
 	Texture2D * HBAO::getBlurredResult()
 	{
-		//return (Texture2D*)m_aoBlurredResultRT->getRenderResult();
-		return (Texture2D*)m_aoBlurredResultRT->getColorAttachments()[0].texture.get();
+		return m_aoBlurredResultRT->getColor0AttachmentTexture();
 	}
 
 	void HBAO::onSizeChange(unsigned int newWidth, unsigned int newHeight)

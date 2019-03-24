@@ -30,7 +30,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGB16F;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 0;
-		mAlbedo = temp.texture.get();
+		mAlbedo = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 		// ao metal roughness
@@ -38,7 +38,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::UBYTE;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 1;
-		mAoMetalRoughness = temp.texture.get();
+		mAoMetalRoughness = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 
@@ -47,7 +47,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 2;
-		mNormal = temp.texture.get();
+		mNormal = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 		// normalized viewspace z
@@ -56,7 +56,7 @@ namespace nex
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 3;
-		mNormalizedViewSpaceZ = temp.texture.get();
+		mNormalizedViewSpaceZ = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 
@@ -82,22 +82,22 @@ namespace nex
 		assertCompletion();
 	}
 
-	Texture* PBR_GBuffer::getAlbedo() const
+	Texture2D* PBR_GBuffer::getAlbedo() const
 	{
 		return mAlbedo;
 	}
 
-	Texture* PBR_GBuffer::getAoMetalRoughness() const
+	Texture2D* PBR_GBuffer::getAoMetalRoughness() const
 	{
 		return mAoMetalRoughness;
 	}
 
-	Texture* PBR_GBuffer::getNormal() const
+	Texture2D* PBR_GBuffer::getNormal() const
 	{
 		return mNormal;
 	}
 
-	Texture* PBR_GBuffer::getNormalizedViewSpaceZ() const
+	Texture2D* PBR_GBuffer::getNormalizedViewSpaceZ() const
 	{
 		return mNormalizedViewSpaceZ;
 	}

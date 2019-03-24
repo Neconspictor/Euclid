@@ -28,12 +28,28 @@ namespace nex
 	public:
 
 		SSAO_AO_Shader(unsigned int kernelSampleSize) :
-			Shader(),
+			Shader(), mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
 			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr), m_samples(nullptr),
 			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
 			mProgram = ShaderProgram::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
+
+			mSamplerDepth.setMinFilter(TextureFilter::Linear);
+			mSamplerDepth.setMagFilter(TextureFilter::Linear);
+			mSamplerDepth.setWrapR(TextureUVTechnique::ClampToBorder);
+			mSamplerDepth.setWrapS(TextureUVTechnique::ClampToBorder);
+			mSamplerDepth.setWrapT(TextureUVTechnique::ClampToBorder);
+			mSamplerDepth.setBorderColor(glm::vec4(1.0));
+
+			mSamplerNoise.setMinFilter(TextureFilter::NearestNeighbor);
+			mSamplerNoise.setMagFilter(TextureFilter::NearestNeighbor);
+			mSamplerNoise.setWrapR(TextureUVTechnique::Repeat);
+			mSamplerNoise.setWrapS(TextureUVTechnique::Repeat);
+			mSamplerNoise.setWrapT(TextureUVTechnique::Repeat);
+
+
+
 		}
 
 		void drawCustom()
@@ -46,28 +62,18 @@ namespace nex
 				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
 				0);
 
-			auto* sampler = TextureManager::get()->getPointSampler();
-
 			static UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
 			mProgram->setTexture(depthLoc, m_gDepth, 0);
-			sampler->bind(0);
+			mSamplerDepth.bind(0);
 			static UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
 			mProgram->setTexture(noiseLoc, m_texNoise, 1);
-			sampler->bind(1);
-			static UniformLocation normalLoc = mProgram->getUniformLocation("gNormal");
-			mProgram->setTexture(normalLoc, m_gNormal, 2);
-			sampler->bind(2);
+			mSamplerNoise.bind(1);
 
 			static auto* renderBackend = RenderBackend::get();
 			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 
-			sampler->unbind(0);
-			sampler->unbind(1);
-			sampler->unbind(2);
-		}
-
-		void setGNormalTexture(Texture* texture) {
-			m_gNormal = texture;
+			mSamplerDepth.unbind(0);
+			mSamplerNoise.unbind(1);
 		}
 
 		void setGNoiseTexture(Texture* texture) {
@@ -121,8 +127,9 @@ namespace nex
 		UniformBuffer m_ssaoUBO;
 		Texture* m_texNoise;
 		Texture* m_gDepth;
-		Texture* m_gNormal;
 		const std::vector<vec3>* m_samples;
+		Sampler mSamplerDepth;
+		Sampler mSamplerNoise;
 
 		VertexArray m_fullscreenTriangleVAO;
 	};
@@ -131,18 +138,31 @@ namespace nex
 	{
 	public:
 
-		SSAO_Tiled_Blur_Shader() {
+		SSAO_Tiled_Blur_Shader() : mBlurSampler(SamplerDesc()){
 
 			mProgram = ShaderProgram::create("post_processing/ssao/ssao_tiled_blur_vs.glsl",
 				"post_processing/ssao/ssao_tiled_blur_fs.glsl");
 
 			mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 			mAoTexture = { mProgram->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
+
+			mBlurSampler.setWrapR(TextureUVTechnique::ClampToBorder);
+			mBlurSampler.setWrapS(TextureUVTechnique::ClampToBorder);
+			mBlurSampler.setWrapT(TextureUVTechnique::ClampToBorder);
+			mBlurSampler.setBorderColor(glm::vec4(1.0));
+			mBlurSampler.setMinFilter(TextureFilter::Linear);
+			mBlurSampler.setMagFilter(TextureFilter::Linear);
 		}
 
 		virtual ~SSAO_Tiled_Blur_Shader() = default;
 
+		void afterBlur()
+		{
+			mBlurSampler.unbind(mAoTexture.bindingSlot);
+		}
+
 		void setAOTexture(const Texture* texture) {
+			mBlurSampler.bind(mAoTexture.bindingSlot);
 			mProgram->setTexture(mAoTexture.location, texture, mAoTexture.bindingSlot);
 		}
 
@@ -158,6 +178,7 @@ namespace nex
 	private:
 		UniformTex mAoTexture;
 		Uniform mTransform;
+		Sampler mBlurSampler;
 	};
 
 
@@ -279,17 +300,17 @@ namespace nex
 		configAO->setSSAOData(&m_shaderData);
 	}
 
-	Texture * SSAO_Deferred::getAO_Result()
+	Texture2D * SSAO_Deferred::getAO_Result()
 	{
-		return aoRenderTarget->getColorAttachments()[0].texture.get();
+		return aoRenderTarget->getColor0AttachmentTexture();
 	}
 
-	Texture * SSAO_Deferred::getBlurredResult()
+	Texture2D * SSAO_Deferred::getBlurredResult()
 	{
-		return tiledBlurRenderTarget->getColorAttachments()[0].texture.get();
+		return tiledBlurRenderTarget->getColor0AttachmentTexture();
 	}
 
-	Texture * SSAO_Deferred::getNoiseTexture()
+	Texture2D * SSAO_Deferred::getNoiseTexture()
 	{
 		return noiseTexture.get();
 	}
@@ -302,7 +323,7 @@ namespace nex
 		tiledBlurRenderTarget = createSSAO_FBO(newWidth, newHeight);
 	}
 
-	void SSAO_Deferred::renderAO(Texture * gDepth, Texture* gNormals, const glm::mat4& projectionGPass)
+	void SSAO_Deferred::renderAO(Texture * gDepth, const glm::mat4& projectionGPass)
 	{
 		static auto* renderBackend = RenderBackend::get();
 
@@ -311,7 +332,6 @@ namespace nex
 		const unsigned height = aoRenderTarget->getHeight();
 
 		aoShader.setGDepthTexture(gDepth);
-		aoShader.setGNormalTexture(gNormals);
 		m_shaderData.projection_GPass = projectionGPass;
 		m_shaderData.inv_projection_GPass = inverse(projectionGPass);
 		m_shaderData.invFullResolution = glm::vec4(1 / float(width), 1/float(height), 0, 0);
@@ -338,6 +358,8 @@ namespace nex
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		StaticMeshDrawer::draw(Sprite::getScreenSprite(), tiledBlurShader);
+
+		tiledBlurShader->afterBlur();
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -354,14 +376,14 @@ namespace nex
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
 		TextureData data;
-		data.internalFormat = InternFormat::RGB32F;
-		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.magFilter = TextureFilter::NearestNeighbor;
+		data.internalFormat = InternFormat::R8;
+		data.colorspace = ColorSpace::R; // TODO use ColorSpace::R?
+		data.minFilter = TextureFilter::Linear;
+		data.magFilter = TextureFilter::Linear;
 		data.wrapR = TextureUVTechnique::ClampToBorder;
 		data.wrapS = TextureUVTechnique::ClampToBorder;
 		data.wrapT = TextureUVTechnique::ClampToBorder;
-		data.pixelDataType = PixelDataType::FLOAT;
+		data.pixelDataType = PixelDataType::UBYTE;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
 

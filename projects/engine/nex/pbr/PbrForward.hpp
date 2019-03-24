@@ -20,8 +20,7 @@ namespace nex
 		PbrForward(PbrProbe* probe, DirectionalLight* dirLight, CascadedShadow* cascadeShadow);
 
 		void drawLighting(SceneNode * scene,
-			Camera* camera,
-			Texture* ssaoMap);
+			Camera* camera);
 
 		void drawSky(Camera* camera);
 

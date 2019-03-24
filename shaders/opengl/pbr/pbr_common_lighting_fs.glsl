@@ -18,12 +18,10 @@ uniform float shadowStrength;
 // The inverse view matrix. Note, for deferred renderings the inverse view of the geometry pass is meant!
 uniform mat4 inverseViewMatrix;
 
-layout(binding = 5) uniform sampler2D ssaoMap;
-
 // IBL
-layout(binding = 6) uniform samplerCube irradianceMap;
-layout(binding = 7) uniform samplerCube prefilterMap;
-layout(binding = 8) uniform sampler2D brdfLUT;
+layout(binding = 5) uniform samplerCube irradianceMap;
+layout(binding = 6) uniform samplerCube prefilterMap;
+layout(binding = 7) uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
@@ -35,7 +33,7 @@ layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
     CascadeData cascadeData;
 } csmData;
 
-layout(binding = 9) uniform sampler2DArray cascadedDepthMap;
+layout(binding = 8) uniform sampler2DArray cascadedDepthMap;
 
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo);
@@ -90,8 +88,6 @@ void calcLighting(in float ao,
     vec3 directLighting = fragmentLitProportion * Lo;
     
 	color += directLighting;
-    float ssaoAmbientOcclusion = texture(ssaoMap, texCoord).r;
-	color *= ssaoAmbientOcclusion;
     
     colorOut = color;
     luminanceOut = directLighting;

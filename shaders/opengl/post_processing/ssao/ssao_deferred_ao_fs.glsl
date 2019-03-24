@@ -17,7 +17,7 @@ struct SSAOData {
 };
 
 
-layout(location=0,index=0) out vec3 FragColor;
+layout(location=0,index=0) out float FragColor;
 
 in vec2 texCoord;
 
@@ -27,7 +27,7 @@ layout(std140,binding=0) uniform controlBuffer {
 
 layout(binding=0) uniform sampler2D gDepth;
 layout(binding=1) uniform sampler2D texNoise;
-layout(binding=2) uniform sampler2D gNormal;
+//layout(binding=2) uniform sampler2D gNormal;
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 //float radius = 0.25;
@@ -88,7 +88,7 @@ vec3 minDiff(vec3 P, vec3 Pr, vec3 Pl)
 
 vec3 reconstructNormal(vec2 uv, vec3 position)
 {
-    vec2 invTexSize = control.invFullResolution.xy; //textureSize(gDepth, 0);
+  vec2 invTexSize = control.invFullResolution.xy; //textureSize(gDepth, 0);
 
   vec3 right = fetchViewPos(uv + vec2(invTexSize.x, 0));
   vec3 left = fetchViewPos(uv + vec2(-invTexSize.x, 0));
@@ -117,7 +117,6 @@ void main()
     // get input for SSAO algorithm
     vec3 fragPos = computeViewPositionFromDepth(uv, depth);
     vec3 normal = reconstructNormal(uv, fragPos);
-	//vec3 normal = normalize(texture(gNormal, uv).rgb);
     
 	//float nLength = length(normal);
 	//if (nLength < 0.9) {
@@ -183,7 +182,5 @@ void main()
 	//occlusion = clamp(2.0 * occlusion, 0, 1);
 	//occlusion = clamp(pow(occlusion, 2.2 * 2), 0, 1);
 	
-    FragColor = vec3(occlusion);
-    
-    //FragColor = normal;
+    FragColor = occlusion;
 }

@@ -12,7 +12,6 @@ namespace nex
 {
 
 	class PbrDeferred;
-	class HBAO;
 	class AmbientOcclusionSelector;
 	class RenderTarget2D;
 	class SceneNearFarComputeShader;
@@ -32,7 +31,7 @@ namespace nex
 		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(int width, int height);
-		nex::HBAO* getHBAO();
+
 		AmbientOcclusionSelector* getAOSelector();
 
 		CascadedShadow* getCSM();
@@ -44,8 +43,6 @@ namespace nex
 
 		void renderDeferred(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
 		void renderForward(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
-
-		Texture * renderAO(Camera* camera, Texture* gDepth, Texture* gNormal);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
 
@@ -68,8 +65,6 @@ namespace nex
 
 		// forward
 		std::unique_ptr<PbrForward> mPbrForward;
-
-		std::unique_ptr < AmbientOcclusionSelector> mAoSelector;
 
 		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
 		std::unique_ptr<RenderTarget2D> mPingPong;

@@ -11,6 +11,7 @@ layout(binding = 1) uniform sampler2D bloomHalfth;
 layout(binding = 2) uniform sampler2D bloomQuarter;
 layout(binding = 3) uniform sampler2D bloomEigth;
 layout(binding = 4) uniform sampler2D bloomSixteenth;
+layout(binding = 5) uniform sampler2D aoMap;
 
 
 
@@ -35,6 +36,9 @@ void main() {
     // gamma correct
     const float gamma = 2.2f;
     color = pow(color, vec4(1.0/gamma)); 
+    
+    // Ambient Occlusion
+    color.rgb *= texture(aoMap, fs_in.texCoord).r;
 
     fragColor = color;
 }

@@ -1,6 +1,7 @@
 #include <nex/material/BlinnPhongMaterialLoader.hpp>
 #include <string>
 #include <nex/material/Material.hpp>
+#include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 
 using namespace std;

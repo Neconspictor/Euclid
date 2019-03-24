@@ -391,7 +391,7 @@ void NeXEngine::setupGUI()
 	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(m_renderer->getCSM());
 	graphicsTechniques->addChild(std::move(csmView));
 
-	auto hbaoView = std::make_unique<nex::HBAO_ConfigurationView>(m_renderer->getHBAO());
+	auto hbaoView = std::make_unique<nex::HBAO_ConfigurationView>(m_renderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
 
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());

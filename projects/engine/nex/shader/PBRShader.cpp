@@ -106,16 +106,13 @@ void pbr::CommonLightingMaterial::init(ShaderProgram* program)
 	mProgram = program;
 	assert(mProgram != nullptr);
 
-	// ambient occlusion
-	mGlobalAo = { mProgram->getUniformLocation("ssaoMap"), UniformType::TEXTURE2D, 5 };
-
 	// ibl
-	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 6 };
-	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 7 };
-	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 8 };
+	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 5 };
+	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 6 };
+	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 7 };
 
 	// shaodw mapping
-	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 9 };
+	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 8 };
 
 
 	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
@@ -129,11 +126,6 @@ void pbr::CommonLightingMaterial::init(ShaderProgram* program)
 	mNearFarPlane = { mProgram->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
 
-}
-
-void pbr::CommonLightingMaterial::setGlobalAOMap(const Texture* aoMap)
-{
-	mProgram->setTexture(mGlobalAo.location, aoMap, mGlobalAo.bindingSlot);
 }
 
 void pbr::CommonLightingMaterial::setBrdfLookupTexture(const Texture* brdfLUT)

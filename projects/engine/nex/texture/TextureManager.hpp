@@ -43,13 +43,13 @@ namespace nex {
 		 */
 		static void flipYAxis(char* imageSource, size_t pitch, size_t height);
 
-		nex::Texture* getDefaultBlackTexture();
-		nex::Texture* getDefaultNormalTexture();
-		nex::Texture* getDefaultWhiteTexture();
+		nex::Texture2D* getDefaultBlackTexture();
+		nex::Texture2D* getDefaultNormalTexture();
+		nex::Texture2D* getDefaultWhiteTexture();
 
-		nex::Texture* getHDRImage(const std::string& file, const nex::TextureData& data);
+		nex::Texture2D* getHDRImage(const std::string& file, const nex::TextureData& data);
 
-		nex::Texture* getImage(const std::string& file,
+		nex::Texture2D* getImage(const std::string& file,
 			const nex::TextureData& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,

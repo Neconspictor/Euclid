@@ -214,7 +214,7 @@ namespace nex {
 		}
 	}
 
-	Texture * TextureManager::getDefaultBlackTexture()
+	Texture2D * TextureManager::getDefaultBlackTexture()
 	{
 		return getImage("_intern/black.png",
 			{
@@ -230,7 +230,7 @@ namespace nex {
 			});
 	}
 
-	Texture * TextureManager::getDefaultNormalTexture()
+	Texture2D * TextureManager::getDefaultNormalTexture()
 	{
 		//normal maps shouldn't use mipmaps (important for shading!)
 		return getImage("_intern/default_normal.png",
@@ -247,7 +247,7 @@ namespace nex {
 			});
 	}
 
-	Texture * TextureManager::getDefaultWhiteTexture()
+	Texture2D * TextureManager::getDefaultWhiteTexture()
 	{
 		return getImage("_intern/white.png",
 			{
@@ -264,7 +264,7 @@ namespace nex {
 	}
 
 
-	Texture* TextureManager::getHDRImage(const string& file, const TextureData& data)
+	Texture2D* TextureManager::getHDRImage(const string& file, const TextureData& data)
 	{
 		auto it = textureLookupTable.find(file);
 
@@ -302,7 +302,7 @@ namespace nex {
 		return result;
 	}
 
-	Texture* TextureManager::getImage(const string& file, const TextureData& data)
+	Texture2D* TextureManager::getImage(const string& file, const TextureData& data)
 	{
 		if (data.pixelDataType == PixelDataType::FLOAT) {
 			return getHDRImage(file, data);

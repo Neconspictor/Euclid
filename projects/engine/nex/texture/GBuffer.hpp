@@ -11,15 +11,15 @@ namespace nex
 		// Has to be implemented by renderer backend
 		PBR_GBuffer(unsigned width, unsigned height);
 
-		Texture* getAlbedo() const;
-		Texture* getAoMetalRoughness() const;
-		Texture* getNormal() const;
-		Texture* getNormalizedViewSpaceZ() const;
+		Texture2D* getAlbedo() const;
+		Texture2D* getAoMetalRoughness() const;
+		Texture2D* getNormal() const;
+		Texture2D* getNormalizedViewSpaceZ() const;
 
 	private:
-		Texture* mAlbedo;
-		Texture* mAoMetalRoughness;
-		Texture* mNormal;
-		Texture* mNormalizedViewSpaceZ;
+		Texture2D* mAlbedo;
+		Texture2D* mAoMetalRoughness;
+		Texture2D* mNormal;
+		Texture2D* mNormalizedViewSpaceZ;
 	};
 }

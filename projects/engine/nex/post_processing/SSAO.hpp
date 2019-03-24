@@ -7,7 +7,7 @@
 namespace nex
 {
 
-	class Texture;
+	class Texture2D;
 	class RenderTarget;
 	class RenderTarget2D;
 	class ShaderProgram;
@@ -39,13 +39,13 @@ namespace nex
 
 		virtual ~SSAO_Deferred() = default;
 
-		Texture* getAO_Result();
-		Texture* getBlurredResult();
+		Texture2D* getAO_Result();
+		Texture2D* getBlurredResult();
 
-		Texture* getNoiseTexture();
+		Texture2D* getNoiseTexture();
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
-		void renderAO(Texture* depth, Texture* normal, const glm::mat4& projectionGPass);
+		void renderAO(Texture* depth, const glm::mat4& projectionGPass);
 		void blur();
 
 		void displayAOTexture(Texture* aoTexture);
@@ -64,7 +64,7 @@ namespace nex
 		float randomFloat(float a, float b);
 		float lerp(float a, float b, float f);
 
-		std::unique_ptr<Texture> noiseTexture;
+		std::unique_ptr<Texture2D> noiseTexture;
 		std::unique_ptr<RenderTarget2D> aoRenderTarget;
 		std::unique_ptr<RenderTarget2D> tiledBlurRenderTarget;
 		std::unique_ptr<nex::Shader> aoPass;

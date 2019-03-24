@@ -1,25 +1,19 @@
 #include <nex/post_processing/AmbientOcclusion.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/texture/Texture.hpp>
+#include <nex/post_processing/HBAO.hpp>
+#include <nex/post_processing/SSAO.hpp>
+#include "nex/texture/TextureManager.hpp"
+#include "nex/camera/Camera.hpp"
 
 namespace nex
 {
-	AmbientOcclusionSelector::AmbientOcclusionSelector() : m_hbao(nullptr), m_ssao(nullptr)
+	AmbientOcclusionSelector::AmbientOcclusionSelector(unsigned width, unsigned height) : m_hbao(std::make_unique<HBAO>(width, height)),
+	m_ssao(std::make_unique<SSAO_Deferred>(width, height))
 	{
 	}
 
-	void AmbientOcclusionSelector::setHBAO(std::unique_ptr<nex::HBAO> hbao)
-	{
-		m_hbao = move(hbao);
-	}
-
-	void AmbientOcclusionSelector::setSSAO(std::unique_ptr<SSAO_Deferred> ssao)
-	{
-		m_ssao = move(ssao);
-	}
-
-	AmbientOcclusionSelector::~AmbientOcclusionSelector()
-	{
-	}
+	AmbientOcclusionSelector::~AmbientOcclusionSelector() = default;
 
 	nex::HBAO* AmbientOcclusionSelector::getHBAO()
 	{
@@ -39,6 +33,42 @@ namespace nex
 	AOTechnique AmbientOcclusionSelector::getActiveAOTechnique() const
 	{
 		return m_usedAOTechnique;
+	}
+
+	void AmbientOcclusionSelector::onSizeChange(unsigned width, unsigned height)
+	{
+		m_hbao->onSizeChange(width, height);
+		m_ssao->onSizeChange(width, height);
+	}
+
+	Texture2D* AmbientOcclusionSelector::renderAO(Camera* camera, Texture2D* gDepth)
+	{
+		if (!isAmbientOcclusionActive())
+			// Return a default white texture (means no ambient occlusion)
+			return TextureManager::get()->getDefaultWhiteTexture();
+
+		if (getActiveAOTechnique() == AOTechnique::HBAO)
+		{
+			nex::Projection projection;
+			Frustum frustum = camera->getFrustum(Perspective);
+			projection.fov = glm::radians(camera->getFOV());
+			projection.farplane = frustum.farPlane;
+			projection.matrix = camera->getPerspProjection();
+			projection.nearplane = frustum.nearPlane;
+			projection.orthoheight = 0;
+			projection.perspective = true;
+
+			getHBAO()->renderAO(gDepth, projection, true);
+
+			return getHBAO()->getBlurredResult();
+		}
+
+		// use SSAO
+
+		SSAO_Deferred* ssao = getSSAO();
+		ssao->renderAO(gDepth, camera->getPerspProjection());
+		ssao->blur();
+		return ssao->getBlurredResult();
 	}
 
 	void AmbientOcclusionSelector::setAOTechniqueToUse(AOTechnique technique)

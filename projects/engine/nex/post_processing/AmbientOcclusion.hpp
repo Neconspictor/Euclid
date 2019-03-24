@@ -1,8 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <nex/post_processing/HBAO.hpp>
-#include <nex/post_processing/SSAO.hpp>
 #include <ostream>
 
 namespace nex {
@@ -10,27 +8,10 @@ namespace nex {
 
 	class SceneNode;
 	class TextureGL;
-
-	class AmbientOcclusion_Deferred {
-	public:
-
-		AmbientOcclusion_Deferred(unsigned int windowWidth, unsigned int windowHeight) :
-			m_windowWidth(windowWidth), m_windowHeight(windowHeight) {}
-
-		virtual ~AmbientOcclusion_Deferred() = default;
-
-		virtual TextureGL* getAO_Result() = 0;
-		virtual TextureGL* getBlurredResult() = 0;
-		virtual void onSizeChange(unsigned int newWidth, unsigned int newHeight) = 0;
-
-		//virtual void renderAO(Texture* depth, const Projection& projection, bool blur) = 0;
-		virtual void blur() = 0;
-		virtual void displayAOTexture(TextureGL* aoTexture) = 0;
-
-	protected:
-		unsigned int m_windowWidth;
-		unsigned int m_windowHeight;
-	};
+	class HBAO;
+	class SSAO_Deferred;
+	class Texture2D;
+	class Camera;
 
 	enum class AOTechnique
 	{
@@ -42,8 +23,9 @@ namespace nex {
 	{
 	public:
 
-		AmbientOcclusionSelector();
-		virtual ~AmbientOcclusionSelector();
+		AmbientOcclusionSelector(unsigned width, unsigned height);
+
+		~AmbientOcclusionSelector();
 
 		nex::HBAO* getHBAO();
 		SSAO_Deferred* getSSAO();
@@ -52,11 +34,12 @@ namespace nex {
 
 		AOTechnique getActiveAOTechnique() const;
 
+		void onSizeChange(unsigned width, unsigned height);
+
+		Texture2D* renderAO(Camera* camera, Texture2D* gDepth);
+
 		void setAOTechniqueToUse(AOTechnique technique);
 		void setUseAmbientOcclusion(bool useAO);
-
-		void setHBAO(std::unique_ptr<nex::HBAO> hbao);
-		void setSSAO(std::unique_ptr<SSAO_Deferred> ssao);
 
 	private:
 

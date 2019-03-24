@@ -2,6 +2,7 @@
 
 namespace nex
 {
+	class Camera;
 
 	class VertexArray;
 	class RenderTarget2D;
@@ -11,6 +12,7 @@ namespace nex
 	class DownSampler;
 	class GaussianBlur;
 	class SMAA;
+	class AmbientOcclusionSelector;
 
 	class PostProcessor {
 	public:
@@ -33,7 +35,11 @@ namespace nex
 		 * @param glowTexture : Used for Bloom
 		 * @param output : The render target that will be used to store the result of the post processing.
 		 */
-		nex::Texture2D* doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output);
+		nex::Texture2D* doPostProcessing(
+			Texture2D* source, 
+			Texture2D* glowTexture,
+			Texture2D* aoMap,
+			RenderTarget2D* output);
 
 		SMAA* getSMAA();
 
@@ -43,11 +49,13 @@ namespace nex
 		 * @param height : The new screen height
 		 */
 		void resize(unsigned width, unsigned height);
+		AmbientOcclusionSelector* getAOSelector();
 
 	private:
 
 		class PostProcessShader;
 
+		void setAoMap(Texture2D* aoMap);
 		void setPostProcessTexture(Texture* texture);
 		void setGlowTextures(Texture* halfth, Texture* quarter, Texture* eigth, Texture* sixteenth);
 
@@ -57,6 +65,7 @@ namespace nex
 		GaussianBlur* mGaussianBlur;
 
 		std::unique_ptr<PostProcessShader> mPostprocessPass;
+		std::unique_ptr<AmbientOcclusionSelector> mAoSelector;
 
 		//Bloom
 		std::unique_ptr<RenderTarget2D> mBloomHalfth;

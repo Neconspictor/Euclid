@@ -1,6 +1,7 @@
 #include <nex/material/PbrMaterialLoader.hpp>
 #include <nex/material/Material.hpp>
 #include <string>
+#include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
 
 using namespace std;

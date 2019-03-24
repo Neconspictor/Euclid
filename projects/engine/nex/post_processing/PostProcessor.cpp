@@ -8,6 +8,7 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/post_processing//SMAA.hpp>
+#include "AmbientOcclusion.hpp"
 
 
 class nex::PostProcessor::PostProcessShader : public nex::Shader
@@ -22,6 +23,8 @@ public:
 		bloomEigth = { mProgram->getUniformLocation("bloomEigth"), UniformType::TEXTURE2D, 3 };
 		bloomSixteenth = { mProgram->getUniformLocation("bloomSixteenth"), UniformType::TEXTURE2D, 4 };
 
+		aoMap = { mProgram->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
+
 		mSampler.setAnisotropy(0.0f);
 		mSampler.setMinFilter(TextureFilter::Linear);
 		mSampler.setMagFilter(TextureFilter::Linear);
@@ -32,11 +35,13 @@ public:
 	UniformTex bloomQuarter;
 	UniformTex bloomEigth;
 	UniformTex bloomSixteenth;
+	UniformTex aoMap;
 	Sampler mSampler;
 };
 
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
-mPostprocessPass(std::make_unique<PostProcessShader>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur)
+mPostprocessPass(std::make_unique<PostProcessShader>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
+mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
 {
 	mFullscreenPlane = StaticMeshManager::get()->getNDCFullscreenPlane();
 	
@@ -45,7 +50,7 @@ mPostprocessPass(std::make_unique<PostProcessShader>()), mDownSampler(downSample
 
 nex::PostProcessor::~PostProcessor() = default;
 
-nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, RenderTarget2D* output)
+nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, RenderTarget2D* output)
 {
 	// Bloom
 	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
@@ -64,13 +69,13 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
 	mPostprocessPass->bind();
 	//TextureManager::get()->getDefaultImageSampler()->bind(0);
-	mPostprocessPass->mSampler.bind(0);
 	setPostProcessTexture(source);
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
+	setAoMap(aoMap);
 
 	mFullscreenPlane->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
-	mPostprocessPass->mSampler.unbind(0);
+	//mPostprocessPass->mSampler.unbind(0);
 
 	//Do SMAA antialising after texture is in sRGB (gamma space)
 	//But for best results the input read for the color/luma edge detection should *NOT* be sRGB !
@@ -99,18 +104,37 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 	{
 		mSmaa->resize(width, height);
 	}
+
+	mAoSelector->onSizeChange(width, height);
+}
+
+nex::AmbientOcclusionSelector* nex::PostProcessor::getAOSelector()
+{
+	return mAoSelector.get();
+}
+
+void nex::PostProcessor::setAoMap(Texture2D* aoMap)
+{
+	auto& uniform = mPostprocessPass->aoMap;
+	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(uniform.location, aoMap, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
 	auto& uniform = mPostprocessPass->sourceTextureUniform;
+	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
 	mPostprocessPass->getProgram()->setTexture(uniform.location, texture, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setGlowTextures(Texture* halfth, nex::Texture* quarter, nex::Texture* eigth, nex::Texture* sixteenth)
 {
+	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomHalfth.bindingSlot);
 	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomHalfth.location, halfth, mPostprocessPass->bloomHalfth.bindingSlot);
+	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomQuarter.bindingSlot);
 	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomQuarter.location, quarter, mPostprocessPass->bloomQuarter.bindingSlot);
+	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomEigth.bindingSlot);
 	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomEigth.location, eigth, mPostprocessPass->bloomEigth.bindingSlot);
+	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomSixteenth.bindingSlot);
 	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomSixteenth.location, sixteenth, mPostprocessPass->bloomSixteenth.bindingSlot);
 }

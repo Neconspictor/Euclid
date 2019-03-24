@@ -56,8 +56,6 @@ namespace nex
 		class CommonLightingMaterial
 		{
 		public:
-			void setGlobalAOMap(const Texture* texture);
-
 			void setBrdfLookupTexture(const Texture* brdfLUT);
 			void setIrradianceMap(const CubeMap* irradianceMap);
 			void setPrefilterMap(const CubeMap* prefilterMap);
@@ -84,9 +82,6 @@ namespace nex
 			void init(ShaderProgram* program);
 
 		private:
-			// ao
-			UniformTex mGlobalAo;
-
 			//ibl
 			UniformTex mBrdfLUT;
 			UniformTex mIrradianceMap;

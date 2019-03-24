@@ -69,8 +69,7 @@ namespace nex {
 		}
 	}
 
-	void PbrDeferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera,
-		Texture* ssaoMap)
+	void PbrDeferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera)
 	{
 		mLightPass->bind();
 
@@ -103,7 +102,6 @@ namespace nex {
 		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
 
 		mLightPass->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-		mLightPass->setGlobalAOMap(ssaoMap);
 
 		mLightPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 
