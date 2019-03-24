@@ -8,9 +8,9 @@
 
 namespace nex
 {
-	/**
- * Abstract class for Cascaded shadow implementations.
- */
+	class SceneNearFarComputeShader;
+
+
 	class CascadedShadow
 	{
 	public:
@@ -127,7 +127,7 @@ namespace nex
 		/**
 		 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 		 */
-		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ, nex::ShaderStorageBuffer* minMaxOutputBuffer);
+		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, Texture2D* depth);
 
 		bool getAntiFlickering() const;
 
@@ -148,6 +148,8 @@ namespace nex
 		const glm::mat4& getWorldToShadowSpace() const;
 		const glm::mat4& getShadowView() const;
 
+		void frameReset();
+
 		void setAntiFlickering(bool enable);
 
 		void setBiasMultiplier(float bias, bool informObservers = true);
@@ -159,6 +161,8 @@ namespace nex
 		 */
 		void setShadowStrength(float strength);
 		ShaderStorageBuffer* getCascadeBuffer();
+
+		void useTightNearFarPlane(bool use);
 
 
 	protected:
@@ -204,12 +208,16 @@ namespace nex
 		void updateCascadeData();
 
 		void updateTextureArray();
+
+		void frameUpdateTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection, nex::ShaderStorageBuffer* minMaxOutputBuffer);
+		void frameUpdateNoTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ);
 		
 
 
 
 		std::unique_ptr<DepthPassShader> mDepthPassShader;
 		std::unique_ptr<CascadeDataShader> mDataComputeShader;
+		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
 		RenderTarget mRenderTarget;
 
 		unsigned int mCascadeWidth;
@@ -226,6 +234,7 @@ namespace nex
 		bool mEnabled;
 		float mBiasMultiplier;
 		float mShadowStrength;
+		bool mUseTightNearFarPlane;
 	};
 
 	class CascadedShadow_ConfigurationView : public nex::gui::Drawable {

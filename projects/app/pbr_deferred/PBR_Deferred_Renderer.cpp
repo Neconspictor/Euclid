@@ -25,10 +25,10 @@
 #include "imgui/imgui.h"
 #include <nex/pbr/PbrDeferred.hpp>
 #include "nex/pbr/PbrProbe.hpp"
-#include "SceneNearFarComputeShader.hpp"
 #include "nex/sky/AtmosphericScattering.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
+#include <nex/shadow/SceneNearFarComputeShader.hpp>
 
 int ssaaSamples = 1;
 
@@ -152,8 +152,6 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	skyboxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
 
-	mSceneNearFarComputeShader = std::make_unique<SceneNearFarComputeShader>();
-
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
 	auto* mAoSelector = m_renderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
@@ -242,8 +240,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	// Update CSM if it is enabled
 	if (mCascadedShadow->isEnabled())
 	{
-		glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, mPbrMrt->getNormalizedViewSpaceZ());
-		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ, mSceneNearFarComputeShader->getWriteOutBuffer());
+		mCascadedShadow->useTightNearFarPlane(false);
+		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), mPbrMrt->getNormalizedViewSpaceZ());
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -252,8 +250,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 			mCascadedShadow->end();
 		}
 
-		// reset
-		mSceneNearFarComputeShader->reset();
+		mCascadedShadow->frameReset();
 	}
 
 
@@ -457,14 +454,10 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 
-	//TODO
-	Texture* aoTexture = TextureManager::get()->getDefaultWhiteTexture();//renderAO(camera, mPbrMrt->getNormalizedViewSpaceZ(), mPbrMrt->getNormal());
-
 	// Update CSM if it is enabled
 	if (mCascadedShadow->isEnabled())
 	{
-		glm::vec2 minMaxPositiveZ = computeNearFarTest(camera, windowWidth, windowHeight, mPbrMrt->getNormalizedViewSpaceZ());
-		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), minMaxPositiveZ, mSceneNearFarComputeShader->getWriteOutBuffer());
+		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), nullptr);
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -473,8 +466,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 			mCascadedShadow->end();
 		}
 
-		// reset
-		mSceneNearFarComputeShader->reset();
+		mCascadedShadow->frameReset();
 	}
 
 
@@ -611,47 +603,6 @@ std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingT
 	result->finalizeAttachments();
 
 	return result;
-}
-
-glm::vec2 nex::PBR_Deferred_Renderer::computeNearFarTest(nex::Camera* camera, int windowWidth, int windowHeight, nex::Texture* depth)
-{
-	mSceneNearFarComputeShader->bind();
-
-
-	unsigned xDim = 16 * 16; // 256
-	unsigned yDim = 8 * 8; // 128
-
-	unsigned dispatchX = windowWidth % xDim == 0 ? windowWidth / xDim : windowWidth / xDim + 1;
-	unsigned dispatchY = windowHeight % yDim == 0 ? windowHeight / yDim : windowHeight / yDim + 1;
-
-	const auto frustum = camera->getFrustum(Perspective);
-
-	mSceneNearFarComputeShader->setConstants(frustum.nearPlane + 0.05, frustum.farPlane - 0.05, camera->getPerspProjection());
-	mSceneNearFarComputeShader->setDepthTexture(depth);
-
-	mSceneNearFarComputeShader->dispatch(dispatchX, dispatchY, 1);
-
-	return glm::vec2();
-
-	// TODO : readback is very slow -> optimize by calculating csm bounds on the gpu!
-	auto result = mSceneNearFarComputeShader->readResult();
-	glm::vec2 vecResult(result.minMax);
-
-	static bool printed = false;
-	
-
-	if (!printed || mInput->isPressed(Input::KEY_K))
-	{
-		//std::cout << "result->lock = " << result->lock << "\n";
-
-		std::cout << "----------------------------------------------------------------------------\n";
-		std::cout << "result min/max = " << glm::to_string(vecResult) << "\n";
-		std::cout << "----------------------------------------------------------------------------\n" << std::endl;
-
-		printed = true;
-	}
-
-	return vecResult;
 }
 
 nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer)

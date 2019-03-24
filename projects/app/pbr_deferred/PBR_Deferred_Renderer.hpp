@@ -14,7 +14,6 @@ namespace nex
 	class PbrDeferred;
 	class AmbientOcclusionSelector;
 	class RenderTarget2D;
-	class SceneNearFarComputeShader;
 	class AtmosphericScattering;
 	class PbrProbe;
 	class PbrForward;
@@ -46,8 +45,6 @@ namespace nex
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
 
-		glm::vec2 computeNearFarTest(Camera* camera, int windowWidth, int windowHeight, Texture* depth);
-
 		// Allow the UI mode classes accessing private members
 
 		GaussianBlur* blurEffect;
@@ -72,8 +69,6 @@ namespace nex
 		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;
 		bool mShowDepthMap;
-
-		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
 		Input* mInput;
 	};
 

@@ -215,6 +215,8 @@ set(
     #nex/shadow
 	nex/shadow/CascadedShadow.cpp
 	nex/shadow/CascadedShadow.hpp
+    nex/shadow/SceneNearFarComputeShader.cpp
+    nex/shadow/SceneNearFarComputeShader.hpp
     
     #nex/sky
     nex/sky/AtmosphericScattering.cpp
