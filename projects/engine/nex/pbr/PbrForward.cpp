@@ -78,10 +78,12 @@ namespace nex {
 
 		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
 
-		for (int i = 0; i < 6; ++i)
+		for (int i = 0; i < 5; ++i)
 		{
 			sampler->bind(i);
 		}
+
+		sampler->unbind(8);
 		
 		//TODO update!!!
 		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));
@@ -111,7 +113,7 @@ namespace nex {
 
 		StaticMeshDrawer::draw(scene, mForwardShader.get());
 
-		for (int i = 0; i < 6; ++i)
+		for (int i = 0; i < 5; ++i)
 		{
 			sampler->unbind(i);
 		}

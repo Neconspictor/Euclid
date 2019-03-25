@@ -239,7 +239,8 @@ void pbr::CommonLightingMaterial::setNearFarPlane(const glm::vec2& nearFarPlane)
 }
 
 PBRShader::PBRShader(const CascadedShadow& cascadedShadow) : Shader(ShaderProgram::create(
-	                                                             "pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl")),
+																	"pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", "",
+																	cascadedShadow.generateCsmDefines())),
                                                              CommonLightingMaterial(cascadedShadow)
 {
 	CommonGeometryMaterial::init(Shader::mProgram.get());

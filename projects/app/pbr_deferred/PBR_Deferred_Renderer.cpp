@@ -162,8 +162,16 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, int windowWidth, int windowHeight)
 {
-	renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
-	//renderForward(scene, camera, frameTime, windowWidth, windowHeight);
+	static bool switcher = true;
+	if (mInput->isPressed(Input::KEY_O))
+	{
+		switcher = !switcher;
+	}
+
+	if (switcher)
+		renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
+	else
+		renderForward(scene, camera, frameTime, windowWidth, windowHeight);
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -450,6 +458,12 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
+	static auto* defaultImageSampler = TextureManager::get()->getDefaultImageSampler();
+
+	for (auto i = 0; i < 10; ++i)
+	{
+		defaultImageSampler->unbind(i);
+	}
 
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
