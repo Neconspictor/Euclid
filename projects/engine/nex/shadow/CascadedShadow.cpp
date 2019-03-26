@@ -82,11 +82,7 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 
 void CascadedShadow::begin(int cascadeIndex)
 {
-	mDepthPassShader->bind();
-
-	mRenderTarget.bind();
-	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
-	RenderBackend::get()->setScissor(0, 0, mCascadeWidth, mCascadeHeight);
+	mDepthPassShader->setCascadeIndex(cascadeIndex);
 
 	auto* depth = mRenderTarget.getDepthAttachment();
 	depth->layer = cascadeIndex;
@@ -102,10 +98,6 @@ void CascadedShadow::begin(int cascadeIndex)
 	//RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 	//RenderBackend::get()->getRasterizer()->enableFaceCulling(false);
 	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
-
-
-	mDepthPassShader->setCascadeIndex(cascadeIndex);
-	mDepthPassShader->setCascadeShaderBuffer(mDataComputeShader->getSharedOutput());
 
 
 
@@ -630,7 +622,7 @@ void CascadedShadow::DepthPassShader::setCascadeIndex(unsigned index)
 void CascadedShadow::DepthPassShader::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(0);
-	buffer->syncWithGPU();
+	//buffer->syncWithGPU();
 }
 
 CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
@@ -658,7 +650,7 @@ ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
 void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(3);
-	buffer->syncWithGPU();
+	//buffer->syncWithGPU();
 }
 
 void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
@@ -717,6 +709,12 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		const auto& frustum = camera->getFrustum(Perspective);
 		frameUpdateNoTightNearFarPlane(camera, lightDirection, glm::vec2(frustum.nearPlane, frustum.farPlane));
 	}
+
+
+	mDepthPassShader->bind();
+	mRenderTarget.bind();
+	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
+	mDepthPassShader->setCascadeShaderBuffer(mDataComputeShader->getSharedOutput());
 }
 
 bool CascadedShadow::getAntiFlickering() const
@@ -787,7 +785,10 @@ const glm::mat4& CascadedShadow::getShadowView() const
 
 void CascadedShadow::frameReset()
 {
-	mSceneNearFarComputeShader->reset();
+	if (mUseTightNearFarPlane)
+	{
+		mSceneNearFarComputeShader->reset();
+	}
 }
 
 void CascadedShadow::setAntiFlickering(bool enable)

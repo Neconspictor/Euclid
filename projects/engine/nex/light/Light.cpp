@@ -92,6 +92,30 @@ namespace nex {
 		mDirection = move(dir);
 	}
 
+	AmbientLight::AmbientLight() : mColor(1.0f), mPower(1.0f)
+	{
+	}
+
+	const glm::vec3& AmbientLight::getColor() const
+	{
+		return mColor;
+	}
+
+	float AmbientLight::getPower() const
+	{
+		return mPower;
+	}
+
+	void AmbientLight::setColor(glm::vec3 color)
+	{
+		mColor = std::move(color);
+	}
+
+	void AmbientLight::setPower(float power)
+	{
+		mPower = power;
+	}
+
 	PointLight::PointLight() : Projectional()
 	{
 		fov = 90.0f;

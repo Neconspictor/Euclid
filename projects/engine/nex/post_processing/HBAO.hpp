@@ -10,6 +10,7 @@
 
 namespace nex {
 	class HBAO_ConfigurationView;
+	class Sampler;
 
 #define UBO_SCENE     0
 
@@ -91,6 +92,7 @@ namespace nex {
 	private:
 		Texture* m_input;
 		const Projection* m_projection;
+		std::unique_ptr<Sampler> mSampler;
 	};
 
 	class DisplayTex : public Shader {

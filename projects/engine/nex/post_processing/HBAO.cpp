@@ -13,6 +13,7 @@
 #include <nex/shader/ShaderBuffer.hpp>
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/texture/Sampler.hpp>
 
 // GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
@@ -163,9 +164,8 @@ namespace nex
 
 		//GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
 		m_fullscreenTriangleVAO.bind();
-		renderBackend->setViewPort(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
+		renderBackend->setViewPort(0, 0, width, height);
 		//GLCall(glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
-		renderBackend->setScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight());
 		//GLCall(glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
 
 		drawLinearDepth(depthTexture, projection);
@@ -390,6 +390,14 @@ namespace nex
 		m_projection(nullptr)
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
+		mSampler = std::make_unique<Sampler>(SamplerDesc());
+		mSampler->setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler->setMagFilter(TextureFilter::NearestNeighbor);
+
+		mSampler->setWrapR(TextureUVTechnique::ClampToBorder);
+		mSampler->setWrapS(TextureUVTechnique::ClampToBorder);
+		mSampler->setWrapT(TextureUVTechnique::ClampToBorder);
+		mSampler->setBorderColor(glm::vec4(1.0));
 	}
 
 	void DepthLinearizer::draw()
@@ -412,10 +420,12 @@ namespace nex
 		//GLCall(glBindTextureUnit(0, texture));
 		static UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
 		mProgram->setTexture(inputLoc, m_input, 0);
+		mSampler->bind(0);
 		
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		mSampler->unbind(0);
 		//GLCall(glUseProgram(0));
 	}
 

@@ -20,7 +20,7 @@
 #include "nex/RenderBackend.hpp"
 #include "nex/mesh/Vob.hpp"
 #include "nex/material/Material.hpp"
-#include "nex/pbr/PbrDeferred.hpp"
+#include "nex/pbr/Pbr.hpp"
 #include "nex/post_processing/HBAO.hpp"
 #include "nex/post_processing/SSAO.hpp"
 #include "nex/post_processing/AmbientOcclusion.hpp"
@@ -130,6 +130,8 @@ void NeXEngine::run()
 	m_isRunning = true;
 	m_window->activate();
 
+	SimpleTimer timer;
+
 	while (m_window->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
@@ -138,18 +140,24 @@ void NeXEngine::run()
 
 		m_timer.update();
 		float frameTime = m_timer.getTimeInSeconds();
+		//timer.update(ImGui::GetTime());
+		//float frameTime = timer.diff;
+		
 		float fps = m_counter.update(frameTime);
+
 		updateWindowTitle(frameTime, fps);
 
 		if (isRunning())
 		{
+
+			m_gui->newFrame();
 			m_scene->update(frameTime);
 			m_controllerSM->frameUpdate(frameTime);
 			m_camera->Projectional::update(true);
-			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
 
-			m_gui->newFrame();
+			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
 			m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
+			
 			ImGui::Render();
 			m_gui->renderDrawData(ImGui::GetDrawData());
 			
@@ -397,8 +405,8 @@ void NeXEngine::setupGUI()
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
 	graphicsTechniques->addChild(std::move(ssaoView));
 
-	auto pbrDeferredView = std::make_unique<PBR_Deferred_ConfigurationView>(m_renderer->getPBR());
-	graphicsTechniques->addChild(std::move(pbrDeferredView));
+	auto pbrView = std::make_unique<Pbr_ConfigurationView>(m_renderer->getPBR());
+	graphicsTechniques->addChild(std::move(pbrView));
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
 	cameraTab->addChild(move(cameraView));
@@ -436,14 +444,7 @@ void NeXEngine::setupCamera()
 	m_camera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 	m_camera->setAspectRatio((float)windowWidth / (float)windowHeight);
 
-	Frustum frustum = m_camera->getFrustum(Perspective);
-	frustum.left = -10.0f;
-	frustum.right = 10.0f;
-	frustum.bottom = -10.0f;
-	frustum.top = 10.0f;
-	frustum.nearPlane = 0.1f;
-	frustum.farPlane = 150.0f;
-	m_camera->setOrthoFrustum(frustum);
+
 	m_camera->setNearPlane(0.1f);
 	m_camera->setFarPlane(150.0f);
 }

@@ -198,7 +198,7 @@ void pbr::CommonLightingMaterial::setCascadedData(const CascadedShadow::CascadeD
 void pbr::CommonLightingMaterial::setCascadedData(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(0);
-	buffer->syncWithGPU();
+	//buffer->syncWithGPU();
 	//uniformBuffer->map(ShaderBuffer::Access::READ_WRITE);
 	//uniformBuffer->unmap();
 }

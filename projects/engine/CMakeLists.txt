@@ -36,6 +36,13 @@ set(
 	nex/camera/TrackballCamera.cpp
     nex/camera/TrackballQuatCamera.hpp
 	nex/camera/TrackballQuatCamera.cpp
+    #nex/camera/cell
+    nex/camera/cell/camera.h
+    nex/camera/cell/camera.cpp
+    nex/camera/cell/camera_frustum.h
+    nex/camera/cell/camera_frustum.cpp
+    nex/camera/cell/fly_camera.cpp
+    nex/camera/cell/fly_camera.h
     
     #nex/common
     nex/common/BinaryReader.h
@@ -144,6 +151,8 @@ set(
 	nex/material/PbrMaterialLoader.cpp
     
     #nex/pbr
+    nex/pbr/Pbr.cpp
+    nex/pbr/Pbr.hpp
     nex/pbr/PbrDeferred.cpp
     nex/pbr/PbrDeferred.hpp
     nex/pbr/PbrForward.cpp

@@ -66,7 +66,7 @@ namespace nex
 		 * Note: bind() has to be called before calling this function.
 		 */
 		void update(const void* data, size_t size, size_t offset = 0);
-		void syncWithGPU();
+		static void syncWithGPU();
 
 
 	private:

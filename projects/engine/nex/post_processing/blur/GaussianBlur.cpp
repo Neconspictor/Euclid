@@ -14,7 +14,7 @@ namespace nex {
 		mVerticalPass(std::make_unique< GaussianBlurVerticalShader>()),
 		mSampler(std::make_unique<Sampler>(SamplerDesc()))
 	{
-		mSampler->setAnisotropy(0.0f);
+		mSampler->setAnisotropy(1.0f);
 		mSampler->setMinFilter(TextureFilter::Linear);
 		mSampler->setMagFilter(TextureFilter::Linear);
 		mSampler->setWrapR(TextureUVTechnique::ClampToEdge);

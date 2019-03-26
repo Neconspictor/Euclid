@@ -31,22 +31,22 @@ namespace nex
 		this->vSync = vsync;
 	}
 
-	int Window::getHeight() const
+	unsigned Window::getHeight() const
 	{
 		return height;
 	}
 
-	int Window::getPosX() const
+	unsigned Window::getPosX() const
 	{
 		return posX;
 	}
 
-	int Window::getPosY() const
+	unsigned Window::getPosY() const
 	{
 		return posY;
 	}
 
-	int Window::getWidth() const
+	unsigned Window::getWidth() const
 	{
 		return width;
 	}

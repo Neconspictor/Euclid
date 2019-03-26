@@ -1,7 +1,7 @@
 /**
  * Calculates the minimum and maximum z-value of the scene (seen from the camera)  
  */
-#version 430 core
+#version 450
 
 #include "shadow/cascade_common.glsl"
 
@@ -27,7 +27,7 @@ struct Frustum {
 /**
  * A buffer that holds writable cascade data, that is needed by other shaders, too.
  */
-layout(std140, binding = 0) buffer writeonly SharedOutput
+layout(std140, binding = 0) buffer SharedOutput
 {
     CascadeData data;
     //mat4 matrix;
@@ -46,7 +46,7 @@ layout(std430, binding = 1) buffer PrivateOutput
 /**
  * A buffer that holds readonly input
  */
-layout(std430, binding = 2) buffer readonly ConstantInput
+layout(std430, binding = 2) buffer ConstantInput
 {
    mat4 viewMatrix;
    mat4 projectionMatrix;
@@ -304,7 +304,7 @@ void main(void)
         }
     }*/
     
-    calcSplitSchemes(distanceInput.minMax.xy);
+    /*calcSplitSchemes(distanceInput.minMax.xy);
     sharedOutput.data.inverseViewMatrix = inverse(constantInput.viewMatrix);
     
     GlobalShadow global = calcShadowSpace(constantInput.nearFarPlane.x, constantInput.nearFarPlane.y, constantInput.lightDirection.xyz);
@@ -335,7 +335,7 @@ void main(void)
 			// Only update the cascade bounds if it moved at least a full pixel unit
 			// This makes the transformation invariant to translation
 			vec3 offset;
-			if (cascadeNeedsUpdate(global.shadowView, cascadeIdx, frustumCenterWS, privateOutput.cascadeBoundCenters[cascadeIdx].xyz, radius, offset))
+			if (cascadeNeedsUpdate(global.shadowView, cascadeIdx, frustumCenterWS, privateOutput.cascadeBoundCenters[cascadeIdx].xyz, radius, offset) == 0)
 			{
 				// To avoid flickering we need to move the bound center in full units
 				// NOTE: we don't want translation affect the offset!
@@ -390,5 +390,5 @@ void main(void)
         
 		sharedOutput.data.scaleFactors[cascadeIdx].x = scale;
         //sharedOutput.minMax = distanceInput.minMax;
-	}
+	}*/
 }

@@ -16,8 +16,8 @@ namespace nex
 	public:
 		PbrProbe(Texture* backgroundHDR);
 
-		void drawSky(const glm::mat4& projection,
-			const glm::mat4& view);
+		//void drawSky(const glm::mat4& projection,
+		//	const glm::mat4& view);
 
 
 		CubeMap* getConvolutedEnvironmentMap() const;

@@ -157,7 +157,7 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::NearestNeighbor;
-	samplerDesc.maxAnisotropy = 0.0f;
+	samplerDesc.maxAnisotropy = 1.0f;
 	samplerDesc.wrapR = samplerDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
 	mPointFilter = std::make_unique<Sampler>(samplerDesc);
 

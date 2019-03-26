@@ -25,7 +25,7 @@ layout(binding = 7) uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
-layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
+layout(std430,binding=0) buffer CascadeBuffer { //buffer uniform
 	/*mat4 inverseViewMatrix;
 	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
     vec4 scaleFactors[CSM_NUM_CASCADES];
@@ -92,7 +92,7 @@ void calcLighting(in float ao,
     colorOut = color;
     luminanceOut = directLighting;
     
-    return;
+    /*return;
     
     //Debug
     uint cascadeIdx = getCascadeIdx(positionEye.z, cascadeData);
@@ -108,7 +108,7 @@ void calcLighting(in float ao,
         cascadeColor = vec3(0,0,1); 
     };
     
-    colorOut = 0.5*cascadeColor + 0.5*colorOut;
+    colorOut = 0.5*cascadeColor + 0.5*colorOut;*/
 }
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {

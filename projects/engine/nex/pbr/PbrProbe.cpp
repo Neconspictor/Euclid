@@ -24,9 +24,10 @@ PbrProbe::PbrProbe(Texture* backgroundHDR) :
 	skybox.init();
 
 	init(backgroundHDR);
+	environmentMap.reset();
 }
 
-void PbrProbe::drawSky(const mat4& projection, const mat4& view)
+/*void PbrProbe::drawSky(const mat4& projection, const mat4& view)
 {
 	static auto* skyboxShader = RenderBackend::get()->getEffectLibrary()->getSkyBoxShader();
 
@@ -45,7 +46,7 @@ void PbrProbe::drawSky(const mat4& projection, const mat4& view)
 
 	//TODO optimize out
 	skyboxShader->reverseRenderState();
-}
+}*/
 
 CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
 {
@@ -323,13 +324,13 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RGB,
 		PixelDataType::FLOAT,
-		InternFormat::RGB32F,
+		InternFormat::RGB16F,
 		true
 	};
 
 	static auto* renderBackend = RenderBackend::get();
 
-	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(256, 256, textureData);
+	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(128, 128, textureData);
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
@@ -393,7 +394,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RG, 
 		PixelDataType::FLOAT, 
-		InternFormat::RG32F, 
+		InternFormat::RG16F,
 		false};
 
 	TextureData depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL,
@@ -404,11 +405,11 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 	static auto* renderBackend = RenderBackend::get();
 
 	//auto target = renderBackend->create2DRenderTarget(1024, 1024, data, depthData, 1);
-	auto target = std::make_unique<RenderTarget2D>(1024, 1024, data);
+	auto target = std::make_unique<RenderTarget2D>(512, 512, data);
 
 	target->bind();
-	renderBackend->setViewPort(0, 0, 1024, 1024);
-	renderBackend->setScissor(0, 0, 1024, 1024);
+	renderBackend->setViewPort(0, 0, 512, 512);
+	renderBackend->setScissor(0, 0, 512, 512);
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	mBrdfPrecomputePass->bind();
@@ -467,7 +468,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
+			InternFormat::RGB16F,
 			true
 		};
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
@@ -497,7 +498,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
+			InternFormat::RGB16F,
 			false };
 
 		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
@@ -544,7 +545,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RG,
 		PixelDataType::FLOAT,
-		InternFormat::RG32F,
+		InternFormat::RG16F,
 		false };
 
 		brdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));

@@ -90,6 +90,7 @@ void nex::ShaderStorageBuffer::update(const void* data, size_t size, size_t offs
 void nex::ShaderStorageBuffer::syncWithGPU()
 {
 	//GLCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
+	GLCall(glFinish());
 }
 
 void nex::ShaderStorageBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)

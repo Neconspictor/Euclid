@@ -293,17 +293,24 @@ void WindowGLFW::createOpenGLWindow()
 	
 	
 
-	glfwWindowHint(GLFW_RED_BITS, 8);
+	/*glfwWindowHint(GLFW_RED_BITS, 8);
 	glfwWindowHint(GLFW_GREEN_BITS, 8);
 	glfwWindowHint(GLFW_BLUE_BITS, 8);
 	glfwWindowHint(GLFW_ALPHA_BITS, 8);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);*/
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+
+	auto* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
 
 	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE);
+	//glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE);
 	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);

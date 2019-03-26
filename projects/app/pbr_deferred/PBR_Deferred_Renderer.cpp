@@ -29,6 +29,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include <nex/shadow/SceneNearFarComputeShader.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
 
 int ssaaSamples = 1;
 
@@ -124,9 +125,10 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
 
 
-	globalLight.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	globalLight.setPower(3.0f);
-	globalLight.setDirection({-1,-1,-1});
+
+	mGlobalLight.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	mGlobalLight.setPower(3.0f);
+	mGlobalLight.setDirection({-1,-1,-1});
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
@@ -137,30 +139,29 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
 
 	mPbrProbe = std::make_unique<PbrProbe>(panoramaSky);
-	mPbrDeferred = std::make_unique<PbrDeferred>(mPbrProbe.get(), &globalLight, mCascadedShadow.get());
+	mPbrDeferred = std::make_unique<PbrDeferred>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-
-	mPbrForward = std::make_unique<PbrForward>(mPbrProbe.get(), &globalLight, mCascadedShadow.get());
+	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	
 	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
 
-	CubeMap* background = mPbrProbe->getEnvironmentMap();
-	skyboxShader->bind();
-	skyboxShader->setSkyTexture(background);
+	//CubeMap* background = mPbrProbe->getEnvironmentMap();
+	//skyboxShader->bind();
+	//skyboxShader->setSkyTexture(background);
 	//pbrShader->setSkyBox(background);
 
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
 	auto* mAoSelector = m_renderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 	mAoSelector->setUseAmbientOcclusion(true);
-	mAoSelector->setAOTechniqueToUse(AOTechnique::SSAO);
+	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
 }
 
 
-void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, int windowWidth, int windowHeight)
+void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight)
 {
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
@@ -172,6 +173,9 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 		renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
 	else
 		renderForward(scene, camera, frameTime, windowWidth, windowHeight);
+
+
+	//ShaderStorageBuffer::syncWithGPU();
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -179,7 +183,7 @@ void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
 	this->mShowDepthMap = showDepthMap;
 }
 
-void nex::PBR_Deferred_Renderer::updateRenderTargets(int width, int height)
+void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned height)
 {
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
@@ -202,13 +206,23 @@ nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCSM()
 	return mCascadedShadow.get();
 }
 
-nex::PbrDeferred* nex::PBR_Deferred_Renderer::getPBR()
+nex::Pbr* nex::PBR_Deferred_Renderer::getPBR()
 {
 	return mPbrDeferred.get();
 }
 
-void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, float frameTime, int windowWidth,
-	int windowHeight)
+nex::PbrDeferred* nex::PBR_Deferred_Renderer::getDeferred()
+{
+	return mPbrDeferred.get();
+}
+
+nex::PbrForward* nex::PBR_Deferred_Renderer::getForward()
+{
+	return mPbrForward.get();
+}
+
+void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth,
+	unsigned windowHeight)
 {
 	static auto* depthMapShader = RenderBackend::get()->getEffectLibrary()->getDepthMapShader();
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
@@ -249,13 +263,13 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
-		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), mPbrMrt->getNormalizedViewSpaceZ());
+		mCascadedShadow->frameUpdate(camera, mGlobalLight.getDirection(), mPbrMrt->getNormalizedViewSpaceZ());
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
 			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPassShader());
-			mCascadedShadow->end();
+			//mCascadedShadow->end();
 		}
 
 		mCascadedShadow->frameReset();
@@ -280,7 +294,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 
 		//m_pbr_deferred->drawSky(camera);
 
-	mPbrDeferred->setDirLight(&globalLight);
+	mPbrDeferred->setDirLight(&mGlobalLight);
 
 
 	stencilTest->enableStencilTest(true);
@@ -292,61 +306,30 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-
-	mAtmosphericScattering->bind();
-	mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
-	mAtmosphericScattering->setInverseViewRotation(inverse(camera->getView()));
-	mAtmosphericScattering->setStepCount(16);
-	mAtmosphericScattering->setSurfaceHeight(0.99f);
-	mAtmosphericScattering->setScatterStrength(0.028f);
-	mAtmosphericScattering->setSpotBrightness(10.0f);
-	mAtmosphericScattering->setViewport(windowWidth, windowHeight);
-
-	AtmosphericScattering::Light light;
-	light.direction = -normalize(globalLight.getDirection());
-	light.intensity = 1.8f;
-	mAtmosphericScattering->setLight(light);
-
-	AtmosphericScattering::Mie mie;
-	mie.brightness = 0.1f;
-	mie.collectionPower = 0.39f;
-	mie.distribution = 0.63f;
-	mie.strength = 0.264f;
-	mAtmosphericScattering->setMie(mie);
-
-	AtmosphericScattering::Rayleigh rayleigh;
-	rayleigh.brightness = 3.3f;
-	rayleigh.collectionPower = 0.81f;
-	rayleigh.strength = 0.139f;
-	mAtmosphericScattering->setRayleigh(rayleigh);
-
-	mAtmosphericScattering->renderSky();
+	renderSky(camera, windowWidth, windowHeight);
+	stencilTest->enableStencilTest(false);
 
 
-	//stencilTest->enableStencilTest(false);
-
-	//m_pbr_deferred->drawSky(camera);
-
-
-
-//renderer->endScene();
-
-//renderTargetSingleSampled->clear(RenderComponent::Depth | RenderComponent::Stencil);//| RenderComponent::Depth | RenderComponent::Stencil
-
-
-
-
-//static auto* blur = RenderBackend::get()->getEffectLibrary()->getGaussianBlur();
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(1));
 
+
+	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+
+	/*screenRenderTarget->bind();
+	screenRenderTarget->clear(Color | Depth | Stencil);
+	screenShader->bind();
+	screenShader->useTexture(colorTex);
+	StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);*/
+
+
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
-	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
+	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
+	//RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	
 
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
 
@@ -364,10 +347,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	smaa->reset();
 	auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
 	auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
-
-	//mPingPong->bind();
-	//mPingPong->clear(Color | Depth | Stencil);
-	//blendTex = postProcessor->doPostProcessing(blendTex, nullptr, mPingPong.get());
 
 	static int switcher = 0;
 
@@ -408,52 +387,11 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	}
 	else {
 		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
-
-		/*screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenSprite.setTexture(postProcessed);
-		screenShader->bind();
-		screenShader->useTexture(screenSprite.getTexture());
-		StaticMeshDrawer::draw(&screenSprite, screenShader);*/
 	}
-
-	return;
-
-	screenShader->bind();
-	screenShader->useTexture(mRenderTargetSingleSampled->getColorAttachments()[0].texture.get());
-	//screenShader->useTexture(testTexture);
-	if (mShowDepthMap)
-	{
-		//renderer->setViewPort(width / 2 - 256, height / 2 - 256, 512, 512);
-		//screenShader->useTexture(ssaoTexture);
-		//modelDrawer->draw(&screenSprite, Shaders::Screen);
-		//screenSprite.setTexture(shadowMap->getTexture());
-		depthMapShader->bind();
-		depthMapShader->useDepthMapTexture(mPbrMrt->getNormalizedViewSpaceZ());
-		//screenShader->useTexture(shadowMap->getTexture());
-		//modelDrawer->draw(&screenSprite, screenShader);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), depthMapShader);
-		/*if (m_aoSelector.getActiveAOTechnique() == AmbientOcclusionSelector::HBAO) {
-			m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
-		} else
-		{
-			m_aoSelector.getSSAO()->displayAOTexture(aoTexture);
-		}*/
-		//hbao->displayTexture(pbr_mrt->getDepth());
-
-		//m_aoSelector.getHBAO()->displayAOTexture(aoTexture);
-	}
-	else
-	{
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-		//ssao_deferred->displayAOTexture();
-	}
-	//renderer->endScene();
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, float frameTime, int windowWidth,
-	int windowHeight)
+void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth,
+	unsigned windowHeight)
 {
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -471,7 +409,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	// Update CSM if it is enabled
 	if (mCascadedShadow->isEnabled())
 	{
-		mCascadedShadow->frameUpdate(camera, globalLight.getDirection(), nullptr);
+		mCascadedShadow->frameUpdate(camera, mGlobalLight.getDirection(), nullptr);
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
@@ -506,34 +444,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 
-	mAtmosphericScattering->bind();
-	mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
-	mAtmosphericScattering->setInverseViewRotation(inverse(camera->getView()));
-	mAtmosphericScattering->setStepCount(16);
-	mAtmosphericScattering->setSurfaceHeight(0.99f);
-	mAtmosphericScattering->setScatterStrength(0.028f);
-	mAtmosphericScattering->setSpotBrightness(10.0f);
-	mAtmosphericScattering->setViewport(windowWidth, windowHeight);
-
-	AtmosphericScattering::Light light;
-	light.direction = -normalize(globalLight.getDirection());
-	light.intensity = 1.8f;
-	mAtmosphericScattering->setLight(light);
-
-	AtmosphericScattering::Mie mie;
-	mie.brightness = 0.1f;
-	mie.collectionPower = 0.39f;
-	mie.distribution = 0.63f;
-	mie.strength = 0.264f;
-	mAtmosphericScattering->setMie(mie);
-
-	AtmosphericScattering::Rayleigh rayleigh;
-	rayleigh.brightness = 3.3f;
-	rayleigh.collectionPower = 0.81f;
-	rayleigh.strength = 0.139f;
-	mAtmosphericScattering->setRayleigh(rayleigh);
-
-	mAtmosphericScattering->renderSky();
+	renderSky(camera, windowWidth, windowHeight);
 
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
@@ -599,6 +510,38 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	else {
 		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
 	}
+}
+
+void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, unsigned width, unsigned height)
+{
+	mAtmosphericScattering->bind();
+	mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
+	mAtmosphericScattering->setInverseViewRotation(inverse(camera->getView()));
+	mAtmosphericScattering->setStepCount(16);
+	mAtmosphericScattering->setSurfaceHeight(0.99f);
+	mAtmosphericScattering->setScatterStrength(0.028f);
+	mAtmosphericScattering->setSpotBrightness(10.0f);
+	mAtmosphericScattering->setViewport(width, height);
+
+	AtmosphericScattering::Light light;
+	light.direction = -normalize(mGlobalLight.getDirection());
+	light.intensity = 1.8f;
+	mAtmosphericScattering->setLight(light);
+
+	AtmosphericScattering::Mie mie;
+	mie.brightness = 0.1f;
+	mie.collectionPower = 0.39f;
+	mie.distribution = 0.63f;
+	mie.strength = 0.264f;
+	mAtmosphericScattering->setMie(mie);
+
+	AtmosphericScattering::Rayleigh rayleigh;
+	rayleigh.brightness = 3.3f;
+	rayleigh.collectionPower = 0.81f;
+	rayleigh.strength = 0.139f;
+	mAtmosphericScattering->setRayleigh(rayleigh);
+
+	mAtmosphericScattering->renderSky();
 }
 
 std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height)

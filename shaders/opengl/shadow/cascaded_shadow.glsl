@@ -22,7 +22,7 @@
 #endif
 
 
-uint getCascadeIdx(in float viewSpaceZ, in CascadeData cascadeData) {
+uint getCascadeIdx(in float viewSpaceZ, const in CascadeData cascadeData) {
     uint cascadeIdx = 0;
     
     const float positiveZ = -viewSpaceZ;

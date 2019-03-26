@@ -40,6 +40,21 @@ namespace nex {
 		float mPower;
 	};
 
+	class AmbientLight
+	{
+	public:
+		AmbientLight();
+		const glm::vec3& getColor()const;
+		float getPower() const;
+		void setColor(glm::vec3 color);
+		void setPower(float power);
+		
+
+	private:
+		glm::vec3 mColor;
+		float mPower;
+	};
+
 	class PointLight : public Projectional
 	{
 	public:

@@ -1,4 +1,4 @@
-#version 430
+#version 460
 
 #include "pbr/pbr_common_lighting_fs.glsl"
 

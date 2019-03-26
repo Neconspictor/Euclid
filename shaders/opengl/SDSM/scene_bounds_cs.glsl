@@ -1,7 +1,7 @@
 /**
  * Calculates the minimum and maximum z-value of the scene (seen from the camera)  
  */
-#version 430 core
+#version 460
 
 #define GROUP_NUM_X 16
 #define GROUP_NUM_Y 8
@@ -21,7 +21,7 @@ layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 layout (binding = 0) uniform sampler2D depthTexture;
 
 
-layout(std430, binding = 0) buffer readonly BufferData
+layout(std430, binding = 0) buffer
 {
     // Holds positive(!) camera view near and far z-value
     // z and w component aren't used
@@ -29,7 +29,7 @@ layout(std430, binding = 0) buffer readonly BufferData
     mat4 mCameraProj;
 } shader_data;
 
-layout(std430, binding = 1) buffer BufferObject
+layout(std430, binding = 1) buffer
 {
     uvec4 minMax; // x and y component will hold the min and max z value; the other components are not used
 } writeOut;

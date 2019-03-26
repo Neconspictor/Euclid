@@ -6,7 +6,7 @@
  */
 
 
-#version 330
+#version 420
 
 uniform vec2 viewport;
 uniform mat4 inv_proj;
@@ -160,7 +160,7 @@ void main() {
     vec3 rayleigh_collected = vec3(0.0, 0.0, 0.0);
     vec3 mie_collected = vec3(0.0, 0.0, 0.0);
     
-    for(int i=0; i<step_count; i++){
+    for(uint i=0; i<step_count; i++){
         float sample_distance = step_length*float(i);
         vec3 position = eye_position + eyedir*sample_distance;
         float extinction = horizon_extinction(position, lightdir, surface_height-0.35);

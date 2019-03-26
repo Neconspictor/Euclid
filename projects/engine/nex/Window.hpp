@@ -26,13 +26,13 @@ namespace nex
 		 */
 		struct WindowStruct
 		{
-			int width;
-			int height;
-			int colorBitDepth;
+			unsigned width;
+			unsigned height;
+			unsigned colorBitDepth;
 			bool fullscreen;
-			int refreshRate;
-			int posX;
-			int posY;
+			unsigned refreshRate;
+			unsigned posX;
+			unsigned posY;
 			std::string title;
 			bool visible;
 			bool vSync;
@@ -76,10 +76,10 @@ namespace nex
 		*/
 		virtual Input* getInputDevice() = 0;
 
-		int getHeight() const;
-		int getPosX() const;
-		int getPosY() const;
-		int getWidth() const;
+		unsigned getHeight() const;
+		unsigned getPosX() const;
+		unsigned getPosY() const;
+		unsigned getWidth() const;
 
 		/**
 		 * Provides access to the underlying native window.
@@ -172,18 +172,18 @@ namespace nex
 		/**
 		* The width of this window.
 		*/
-		int width;
+		unsigned width;
 
 		/**
 		* The height of this window.
 		*/
-		int height;
+		unsigned height;
 
 		/**
 		* the color depth used on the monitor, measured in bits.
 		* Usual values are 16, 24 and 32 bits.
 		*/
-		int colorBitDepth;
+		unsigned colorBitDepth;
 
 		/**
 		* Specifies if the window is drawn in fullscreen mode or in windowed mode.
@@ -198,7 +198,7 @@ namespace nex
 		/**
 		* Refresh rate the monitor should use, if the window is in fullscreen mode.
 		*/
-		int refreshRate;
+		unsigned refreshRate;
 
 		/**
 		* Specifies if the window is currently visible or hidden.
@@ -208,7 +208,7 @@ namespace nex
 		/**
 		* The position of the window on screen
 		*/
-		int posX, posY;
+		unsigned posX, posY;
 
 		/**
 		* The title of the window.

@@ -27,7 +27,7 @@ private:
 nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSampleShader>()),
 mSampler(std::make_unique<Sampler>(SamplerDesc()))
 {
-	mSampler->setAnisotropy(0.0f);
+	mSampler->setAnisotropy(1.0f);
 	mSampler->setMinFilter(TextureFilter::Linear);
 	mSampler->setMagFilter(TextureFilter::Linear);
 	mSampler->setWrapR(TextureUVTechnique::ClampToEdge);

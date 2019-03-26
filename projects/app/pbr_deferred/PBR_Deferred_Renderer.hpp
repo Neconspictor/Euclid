@@ -17,6 +17,7 @@ namespace nex
 	class AtmosphericScattering;
 	class PbrProbe;
 	class PbrForward;
+	class Pbr;
 
 	class PBR_Deferred_Renderer : public Renderer
 	{
@@ -27,28 +28,33 @@ namespace nex
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
-		void render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight) override;
+		void render(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight) override;
 		void setShowDepthMap(bool showDepthMap);
-		void updateRenderTargets(int width, int height);
+		void updateRenderTargets(unsigned width, unsigned height);
 
 		AmbientOcclusionSelector* getAOSelector();
 
 		CascadedShadow* getCSM();
 
-		PbrDeferred* getPBR();
+		Pbr* getPBR();
+
+		PbrDeferred* getDeferred();
+		PbrForward* getForward();
 
 
 	private:
 
-		void renderDeferred(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
-		void renderForward(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight);
+		void renderDeferred(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderForward(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderSky(Camera* camera, unsigned width, unsigned height);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
 
 		// Allow the UI mode classes accessing private members
 
 		GaussianBlur* blurEffect;
-		DirectionalLight globalLight;
+		AmbientLight mAmbientLight;
+		DirectionalLight mGlobalLight;
 		nex::Logger m_logger;
 		Texture* panoramaSky;
 		Texture* testTexture;
