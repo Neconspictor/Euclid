@@ -30,6 +30,7 @@
 #include "nex/pbr/PbrForward.hpp"
 #include <nex/shadow/SceneNearFarComputeShader.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
+#include "nex/camera/FPCamera.hpp"
 
 int ssaaSamples = 1;
 

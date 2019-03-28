@@ -21,11 +21,22 @@ namespace nex
 		float getYaw() const;
 		float getPitch() const;
 
+		void recalculateLookVector();
+
+		/**
+		 * Sets yaw angle in degree
+		 */
+		void setYaw(float yaw);
+		
+		/**
+		 * Sets pitch angle in degree
+		 */
+		void setPitch(float pitch);
+
 	protected:
 
 		friend FPCamera_ConfigurationView;
 
-		void recalculateLookVector();
 
 		float yaw, pitch;
 	};

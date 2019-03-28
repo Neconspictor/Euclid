@@ -74,6 +74,16 @@ float nex::FPCamera::getPitch() const
 	return pitch;
 }
 
+void nex::FPCamera::setYaw(float yaw)
+{
+	this->yaw = yaw;
+}
+
+void nex::FPCamera::setPitch(float pitch)
+{
+	this->pitch = pitch;
+}
+
 void nex::FPCamera::recalculateLookVector()
 {
 	vec3 front;

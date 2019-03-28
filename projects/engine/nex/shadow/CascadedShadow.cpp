@@ -177,7 +177,7 @@ void CascadedShadow::updateTextureArray()
 	data.magFilter = TextureFilter::NearestNeighbor; // IMPORTANT: Linear filter produces ugly artifacts when using PCF filtering
 	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToBorder;
 	data.borderColor = glm::vec4(1.0f);
-	data.useDepthComparison = true;
+	//data.useDepthComparison = true;
 	data.compareFunc = CompareFunction::LESS;
 
 	RenderAttachment depth;
