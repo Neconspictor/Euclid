@@ -21,7 +21,7 @@ layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 layout (binding = 0) uniform sampler2D depthTexture;
 
 
-layout(std430, binding = 0) buffer BufferData
+layout(std430, binding = 0) buffer BufferData // readonly
 {
     // Holds positive(!) camera view near and far z-value
     // z and w component aren't used

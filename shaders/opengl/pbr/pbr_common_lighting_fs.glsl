@@ -25,7 +25,7 @@ layout(binding = 7) uniform sampler2D brdfLUT;
 
 
 // Cascaded shadow mapping
-layout(std430,binding=0) buffer CascadeBuffer { //buffer uniform
+layout(std140,binding=0) buffer CascadeBuffer { //buffer uniform
 	/*mat4 inverseViewMatrix;
 	mat4 lightViewProjectionMatrices[CSM_NUM_CASCADES];
     vec4 scaleFactors[CSM_NUM_CASCADES];
