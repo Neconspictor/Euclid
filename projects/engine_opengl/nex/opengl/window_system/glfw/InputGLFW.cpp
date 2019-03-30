@@ -442,6 +442,16 @@ nex::Input::Key nex::InputGLFW::getAnyPressedKey() const
 	return anyPressedKey;
 }
 
+void nex::InputGLFW::setClipBoardText(const char* text)
+{
+	glfwSetClipboardString(window->getSource(), text);
+}
+
+const char* nex::InputGLFW::getClipBoardText() const
+{
+	return glfwGetClipboardString(window->getSource());
+}
+
 nex::Window * nex::InputGLFW::getWindow()
 {
 	return window;

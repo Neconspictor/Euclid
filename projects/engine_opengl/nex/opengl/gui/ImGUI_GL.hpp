@@ -28,13 +28,11 @@ namespace nex::gui
 
 		void shutdown();
 
-
-
-		static const char* getClipboardText(void* user_data);
-
-		static void setClipboardText(void* user_data, const char* text);
-
 	protected:
+
+		static const char* getClipboardText(void* inputDevice);
+		static void setClipboardText(void* inputDevice, const char* text);
+
 		void init();
 
 		bool createDeviceObjects();

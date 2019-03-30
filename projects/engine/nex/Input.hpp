@@ -507,6 +507,16 @@ namespace nex
 		virtual Key getAnyPressedKey() const = 0;
 
 		/**
+		 * Sets the clipboard text (encoded in UTF-8)
+		 */
+		virtual void setClipBoardText(const char* text) = 0;
+
+		/**
+		 * Provides the clipboard text (UTF-8 encoded) or nullptr.
+		 */
+		virtual const char* getClipBoardText() const = 0;
+
+		/**
 		* Returns the amount of scrolling the user did since the last frame.
 		* If the result is positive, the user scrolled up, negative values means
 		* down scrolling and 0 means no scolling.

@@ -87,6 +87,10 @@ namespace nex
 
 		Button getAnyPressedButton() const override;
 		Key getAnyPressedKey() const override;
+
+		void setClipBoardText(const char* text) override;
+		const char* getClipBoardText() const override;
+
 		Window* getWindow() override;
 		bool isDown(Button button) const override;
 		bool isDown(Key key) const override;

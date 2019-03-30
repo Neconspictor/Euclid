@@ -116,6 +116,7 @@ namespace nex::gui
 			g_MouseJustPressed[i] = false;
 		}
 
+		//TODO use input class
 		// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
 		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && glfwGetInputMode(window->getSource(), GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
 		{
@@ -321,7 +322,7 @@ namespace nex::gui
 
 		io.SetClipboardTextFn = ImGUI_GL::setClipboardText;
 		io.GetClipboardTextFn = ImGUI_GL::getClipboardText;
-		io.ClipboardUserData = window->getSource();
+		io.ClipboardUserData = window->getInputDevice();
 #ifdef _WIN32
 		io.ImeWindowHandle = glfwGetWin32Window(window->getSource());
 #endif
@@ -502,13 +503,13 @@ namespace nex::gui
 		glBindTexture(GL_TEXTURE_2D, last_texture);
 	}
 
-	const char* ImGUI_GL::getClipboardText(void* user_data)
+	const char* ImGUI_GL::getClipboardText(void* inputDevice)
 	{
-		return glfwGetClipboardString((GLFWwindow*)user_data);
+		return ((Input*)inputDevice)->getClipBoardText();
 	}
 
-	void ImGUI_GL::setClipboardText(void* user_data, const char* text)
+	void ImGUI_GL::setClipboardText(void* inputDevice, const char* text)
 	{
-		glfwSetClipboardString((GLFWwindow*)user_data, text);
+		((Input*)inputDevice)->setClipBoardText(text);
 	}
 }
