@@ -51,7 +51,7 @@ namespace nex
 
 		virtual void update(Input* input, float frameTime) override;
 
-		virtual void updateOnResize(int screenWidth, int screenHeight);
+		virtual void updateOnResize(unsigned screenWidth, unsigned screenHeight);
 
 
 

@@ -99,8 +99,8 @@ void WindowGLFW::init()
 
 bool WindowGLFW::isOpen()
 {
-	m_isOpen = glfwWindowShouldClose(window) ? false : true;
-	return m_isOpen;
+	mIsClosed = static_cast<bool>(glfwWindowShouldClose(window));
+	return !mIsClosed;
 }
 
 void WindowGLFW::minimize()
@@ -124,12 +124,14 @@ void WindowGLFW::reopen()
 	}
 }
 
-void WindowGLFW::resize(int newWidth, int newHeight)
+void WindowGLFW::resize(unsigned newWidth, unsigned newHeight)
 {
-	width = newWidth;
-	height = newHeight;
-	glfwSetWindowSize(window, width, height);
-	inputDevice.informResizeListeners(width, height);
+	//mConfig.frameBufferWidth = newWidth;
+	//mConfig.frameBufferHeight = newHeight;
+	glfwSetWindowSize(window, static_cast<int>(newWidth), static_cast<int>(newHeight));
+
+	//TODO
+	//inputDevice.informVirtualDimensionResizeListeners(mConfig.virtualScreenWidth, mConfig.virtualScreenHeight);
 }
 
 void WindowGLFW::setCursorPosition(int xPos, int yPos)
@@ -140,9 +142,9 @@ void WindowGLFW::setCursorPosition(int xPos, int yPos)
 void WindowGLFW::setFocus(bool focus)
 {
 	if (focus) {
-		LOG(m_logger, nex::Debug) << "gained focus!";
+		LOG(mLogger, nex::Debug) << "gained focus!";
 	} else {
-		LOG(m_logger, nex::Debug) << "lost focus!";
+		LOG(mLogger, nex::Debug) << "lost focus!";
 	}
 
 	m_hasFocus = focus;
@@ -151,30 +153,37 @@ void WindowGLFW::setFocus(bool focus)
 
 void WindowGLFW::setFullscreen()
 {
-	glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), this->posX, this->posY, this->width, this->height, this->refreshRate);
-	fullscreen = true;
+	glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), mConfig.posX, mConfig.posY, mConfig.frameBufferWidth, mConfig.frameBufferHeight, mConfig.refreshRate);
+	mConfig.fullscreen = true;
 }
 
-void WindowGLFW::setSize(int width, int height)
+void WindowGLFW::setFrameBufferSize(unsigned width, unsigned height)
 {
-	this->width = width;
-	this->height = height;
-	inputDevice.informResizeListeners(width, height);
+	mConfig.frameBufferWidth = width;
+	mConfig.frameBufferHeight = height;
+	inputDevice.inforrmFrameBufferResiteListeners(width, height);
+}
+
+void WindowGLFW::setVirtualScreenDimension(unsigned width, unsigned height)
+{
+	mConfig.virtualScreenWidth = width;
+	mConfig.virtualScreenHeight = height;
+	inputDevice.informVirtualDimensionResizeListeners(width, height);
 }
 
 void WindowGLFW::setTitle(const string& newTitle)
 {
 	Window::setTitle(newTitle);
-	glfwSetWindowTitle(window, title.c_str());
+	glfwSetWindowTitle(window, mConfig.title.c_str());
 }
 
 void WindowGLFW::setVisible(bool visible)
 {
-	if (m_isVisible == visible) return;
+	if (mConfig.visible == visible) return;
 
-	m_isVisible = visible;
+	mConfig.visible = visible;
 
-	if (m_isVisible)
+	if (mConfig.visible)
 		glfwShowWindow(window);
 	else
 		glfwHideWindow(window);
@@ -184,7 +193,7 @@ void WindowGLFW::setVsync(bool vsync)
 {
 	Window::setVsync(vsync);
 
-	if (!vSync)
+	if (!mConfig.vSync)
 	{
 		glfwSwapInterval(0);
 	}
@@ -196,13 +205,13 @@ void WindowGLFW::setVsync(bool vsync)
 
 void WindowGLFW::setWindowed()
 {	
-	glfwSetWindowMonitor(window, nullptr, this->posX, this->posY, this->width, this->height, this->refreshRate);
+	glfwSetWindowMonitor(window, nullptr, mConfig.posX, mConfig.posY, mConfig.frameBufferWidth, mConfig.frameBufferHeight, mConfig.refreshRate);
 	
 	int top, left, bottom, right;
 	glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
-	glfwSetWindowPos(window, this->posX + left, this->posY + top);
+	glfwSetWindowPos(window, mConfig.posX + left, mConfig.posY + top);
 
-	fullscreen = false;
+	mConfig.fullscreen = false;
 
 	refreshWindowWithoutCallbacks();
 
@@ -241,9 +250,9 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 
 	// change the size of the window temporarily in order to trigger the operating system to repaint the window
 	// To avoid issues we don't propagate this temporary change
-	int widthBackup = width;
+	const auto widthBackup = mConfig.frameBufferWidth;
 
-	glfwSetWindowSize(window, 0, height);
+	glfwSetWindowSize(window, 0, mConfig.frameBufferHeight);
 
 	int top, left, bottom, right;
 	glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
@@ -252,7 +261,7 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 
 	// nothing has changed
 	if (newWidth == widthBackup) {
-		glfwSetWindowSize(window, newWidth+1, height);
+		glfwSetWindowSize(window, newWidth+1, mConfig.frameBufferHeight);
 	}
 
 	// hack!!! so that opengl recognises that it should update 
@@ -260,15 +269,15 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glViewport(0, 0, width, height);
-	glScissor(0, 0, width, height);
+	glViewport(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
+	glScissor(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
 	glfwSwapBuffers(window);
 
 	//now restore the original window size
-	glfwSetWindowSize(window, widthBackup, height);
+	glfwSetWindowSize(window, widthBackup, mConfig.frameBufferHeight);
 
 	// restore the callbacks
 	inputDevice.enableCallbacks();
@@ -307,7 +316,7 @@ void WindowGLFW::createOpenGLWindow()
 
 	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 	//glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE);
-	glfwWindowHint(GLFW_REFRESH_RATE, this->refreshRate);
+	glfwWindowHint(GLFW_REFRESH_RATE, mConfig.refreshRate);
 
 
 
@@ -325,12 +334,23 @@ void WindowGLFW::createOpenGLWindow()
 	//glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 
-	window = glfwCreateWindow(this->width, this->height, this->title.c_str(), nullptr, nullptr);
+	window = glfwCreateWindow(mConfig.virtualScreenWidth, mConfig.virtualScreenHeight, mConfig.title.c_str(), nullptr, nullptr);
 
 	if (!window)
 	{
 		throw_with_trace(runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!"));
 	}
+
+
+	// update virtual screen and framebuffer dimensions
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+	mConfig.frameBufferWidth = static_cast<unsigned>(w);
+	mConfig.frameBufferHeight = static_cast<unsigned>(h);
+
+	glfwGetWindowSize(window, &w, &h);
+	mConfig.virtualScreenWidth = static_cast<unsigned>(w);
+	mConfig.virtualScreenHeight = static_cast<unsigned>(h);
 
 	//glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
 
@@ -354,13 +374,7 @@ void WindowGLFW::createOpenGLWindow()
 		throw_with_trace(runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context"));
 	}
 
-	if (!vSync)
-	{
-		glfwSwapInterval(0);
-	} else
-	{
-		glfwSwapInterval(1);
-	}
+	setVsync(mConfig.vSync);
 
 	// Alternative use the builtin loader, e.g. if no other loader function is available
 	/*
@@ -372,13 +386,13 @@ void WindowGLFW::createOpenGLWindow()
 
 	// glad populates global constants after loading to indicate,
 	// if a certain extension/version is available.
-	LOG(m_logger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
+	LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
 
 	/*if (GLAD_GL_EXT_framebuffer_multisample) {
 	}*/
 
-	glViewport(0,0, width, height);
-	glScissor(0, 0, width, height);
+	glViewport(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
+	glScissor(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
 	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 }

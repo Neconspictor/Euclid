@@ -99,7 +99,7 @@ void NeXEngine::init()
 		std::unique_ptr<nex::gui::Drawable>()));
 
 	m_window->activate();
-	m_renderer->init(m_window->getWidth(), m_window->getHeight());
+	m_renderer->init(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 	m_controllerSM->init();
 	setupCamera();
 	setupCallbacks();
@@ -155,7 +155,7 @@ void NeXEngine::run()
 			m_controllerSM->frameUpdate(frameTime);
 			m_camera->Projectional::update(true);
 
-			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
+			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 			m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -282,8 +282,10 @@ Window* NeXEngine::createWindow()
 	desc.refreshRate = m_video.refreshRate;
 	desc.posX = 0;
 	desc.posY = 0;
-	desc.width = m_video.width;
-	desc.height = m_video.height;
+
+	// Note that framebuffer width and height are inferred!
+	desc.virtualScreenWidth = m_video.width;
+	desc.virtualScreenHeight = m_video.height;
 	desc.visible = true;
 	desc.vSync = m_video.vSync;
 
@@ -361,16 +363,16 @@ void NeXEngine::setupCallbacks()
 	});
 	//input->addScrollCallback(scrollCallback);
 
-	input->addResizeCallback([=](int width, int height)
+	input->addFrameBufferResizeCallback([=](unsigned width, unsigned height)
 	{
-		LOG(m_logger, nex::Debug) << "addResizeCallback : width: " << width << ", height: " << height;
+		LOG(m_logger, nex::Debug) << "addFrameBufferResizeCallback : width: " << width << ", height: " << height;
 
 		if (!m_window->hasFocus()) {
-			LOG(m_logger, nex::Debug) << "addResizeCallback : no focus!";
+			LOG(m_logger, nex::Debug) << "addFrameBufferResizeCallback : no focus!";
 		}
 
 		if (width == 0 || height == 0) {
-			LOG(m_logger, nex::Warning) << "addResizeCallback : width or height is 0!";
+			LOG(m_logger, nex::Warning) << "addFrameBufferResizeCallback : width or height is 0!";
 			return;
 		}
 
@@ -432,12 +434,12 @@ void NeXEngine::setupCamera()
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(m_camera.get()))
 	{
 		auto cameraResizeCallback = std::bind(&TrackballQuatCamera::updateOnResize, casted, std::placeholders::_1, std::placeholders::_2);
-		casted->updateOnResize(m_window->getWidth(), m_window->getHeight());
-		m_input->addResizeCallback(cameraResizeCallback);
+		casted->updateOnResize(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
+		m_input->addFrameBufferResizeCallback(cameraResizeCallback);
 	}
 
-	int windowWidth = m_window->getWidth();
-	int windowHeight = m_window->getHeight();
+	int windowWidth = m_window->getFrameBufferWidth();
+	int windowHeight = m_window->getFrameBufferHeight();
 
 	m_camera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
 	m_camera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));

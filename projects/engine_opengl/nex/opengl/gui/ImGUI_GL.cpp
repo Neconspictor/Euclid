@@ -75,12 +75,15 @@ namespace nex::gui
 		ImGuiIO& io = ImGui::GetIO();
 
 		// Setup display size (every frame to accommodate for window resizing)
-		int w, h;
+		unsigned width = window->getFrameBufferWidth();
+		unsigned height = window->getFrameBufferHeight();
 		int display_w, display_h;
-		glfwGetWindowSize(window->getSource(), &w, &h);
 		glfwGetFramebufferSize(window->getSource(), &display_w, &display_h);
-		io.DisplaySize = ImVec2((float)w, (float)h);
-		io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+
+		
+
+		io.DisplaySize = ImVec2((float)width, (float)height);
+		io.DisplayFramebufferScale = ImVec2(width > 0 ? ((float)display_w / width) : 0, height > 0 ? ((float)display_h / height) : 0);
 
 		// Setup time step
 		double current_time = glfwGetTime();

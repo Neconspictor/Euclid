@@ -323,14 +323,24 @@ void nex::InputGLFW::scrollInputHandler(GLFWwindow * window, double xOffset, dou
 	input->scrollCallback(xOffset, yOffset);
 }
 
-void nex::InputGLFW::sizeInputHandler(GLFWwindow * window, int width, int height)
+void nex::InputGLFW::windowSizeInputHandler(GLFWwindow * window, int width, int height)
 {
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
 
 	assert(input->window != nullptr);
 
-	input->window->setSize(width, height);
+	input->window->setVirtualScreenDimension(width, height);
+}
+
+void nex::InputGLFW::frameBufferSizeInputHandler(GLFWwindow * window, int width, int height)
+{
+	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
+	if (input == nullptr || !input->areCallbacksActive()) return;
+
+	assert(input->window != nullptr);
+
+	input->window->setFrameBufferSize(width, height);
 }
 
 
@@ -341,10 +351,10 @@ inline bool nex::InputGLFW::areCallbacksActive() const
 
 void nex::InputGLFW::scrollCallback(double xOffset, double yOffset)
 {
-	frameScrollOffsetX = xOffset;
-	frameScrollOffsetY = yOffset;
+	mFrameScrollOffsetX = xOffset;
+	mFrameScrollOffsetY = yOffset;
 
-	if (frameScrollOffsetX || frameScrollOffsetY)
+	if (mFrameScrollOffsetX || mFrameScrollOffsetY)
 	{
 		informScrollListeners(xOffset, yOffset);
 	}
@@ -370,7 +380,9 @@ void nex::InputGLFW::enableCallbacks()
 
 	glfwSetMouseButtonCallback(window->getSource(), mouseInputHandler);
 
-	glfwSetWindowSizeCallback(window->getSource(), sizeInputHandler);
+	//glfwSetWindowSizeCallback(window->getSource(), windowSizeInputHandler);
+
+	glfwSetFramebufferSizeCallback(window->getSource(), frameBufferSizeInputHandler);
 
 	glfwSetScrollCallback(window->getSource(), scrollInputHandler);
 
@@ -402,13 +414,13 @@ void nex::InputGLFW::frameUpdate()
 {
 	double mouseX, mouseY;
 	glfwGetCursorPos(window->getSource(), &mouseX, &mouseY);
-	int mouseXOld = mouseXabsolut;
-	int mouseYOld = mouseYabsolut;
-	mouseXabsolut = static_cast<int>(mouseX);
-	mouseYabsolut = static_cast<int>(mouseY);
+	int mouseXOld = mMouseXabsolut;
+	int mouseYOld = mMouseYabsolut;
+	mMouseXabsolut = static_cast<int>(mouseX);
+	mMouseYabsolut = static_cast<int>(mouseY);
 
-	frameMouseXOffset = mouseXabsolut - mouseXOld;
-	frameMouseYOffset = mouseYabsolut - mouseYOld;
+	mFrameMouseXOffset = mMouseXabsolut - mouseXOld;
+	mFrameMouseYOffset = mMouseYabsolut - mouseYOld;
 
 	if (!isDown(anyPressedKey))
 	{
@@ -580,8 +592,8 @@ void nex::InputGLFW::resetForFrame()
 	releasedButtons.clear();
 	pressedButtons.clear();
 
-	frameScrollOffsetX = 0;
-	frameScrollOffsetY = 0;
+	mFrameScrollOffsetX = 0;
+	mFrameScrollOffsetY = 0;
 }
 
 void nex::InputGLFW::setMousePosition(int xPos, int yPos)

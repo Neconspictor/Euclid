@@ -28,9 +28,10 @@ namespace nex
 	public:
 
 		using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
-		using WindowCloseCallbacks = CallbackCollection<void(nex::Window*)>;
-		using WindowFocusCallbacks = CallbackCollection<void(nex::Window*, bool)>;
-		using WindowResizeCallbacks = CallbackCollection<void(int width, int height)>;
+		using CloseCallbacks = CallbackCollection<void(nex::Window*)>;
+		using FocusCallbacks = CallbackCollection<void(nex::Window*, bool)>;
+		using VirtualDimesionResizeCallbacks = CallbackCollection<void(unsigned width, unsigned height)>;
+		using FrameBufferResizeCallbacks = CallbackCollection<void(unsigned frameBufferWidth, unsigned frameBufferHeight)>;
 
 
 		/**
@@ -469,19 +470,25 @@ namespace nex
 		* Adds a callback to windows resize events. Every time, when the window of this Input is resized,
 		* the callback will be called.
 		*/
-		WindowResizeCallbacks::Handle addResizeCallback(const WindowResizeCallbacks::Callback& callback);
+		VirtualDimesionResizeCallbacks::Handle addVirtualDimensionResizeCallback(const VirtualDimesionResizeCallbacks::Callback& callback);
+
+		/**
+		* Adds a callback to the window's framebuffer resize events. Every time, when the framebuffer is resized,
+		* the callback will be called.
+		*/
+		FrameBufferResizeCallbacks::Handle addFrameBufferResizeCallback(const FrameBufferResizeCallbacks::Callback& callback);
 
 		/**
 		* Adds a callback that is called when the user clicks on the close widget of a window (if the window has one)
 		* or the function Window::close() is called.
 		*/
-		WindowCloseCallbacks::Handle addWindowCloseCallback(const WindowCloseCallbacks::Callback& callback);
+		CloseCallbacks::Handle addWindowCloseCallback(const CloseCallbacks::Callback& callback);
 
 		/**
 		* Adds a callback to windows focus events. Every time, when the window of this Input receives or
 		* looses focus, the callback will be called.
 		*/
-		WindowFocusCallbacks::Handle addWindowFocusCallback(const WindowFocusCallbacks::Callback& callback);
+		FocusCallbacks::Handle addWindowFocusCallback(const FocusCallbacks::Callback& callback);
 
 
 
@@ -523,9 +530,14 @@ namespace nex
 		void informScrollListeners(float scrollX, float scrollY);
 
 		/**
-		* Informs windows resize listeners that the size of the window of this Input has changed.
+		* Informs windows resize listeners that the window's virtual dimension has changed
 		*/
-		void informResizeListeners(int width, int height);
+		void informVirtualDimensionResizeListeners(unsigned width, unsigned height);
+
+		/**
+		* Informs listeners that the framebuffer size has changed
+		*/
+		void inforrmFrameBufferResiteListeners(unsigned frameBufferWidth, unsigned frameBufferHeight);
 
 		/**
 		* Informs windows focus listeners that the window of this Input lost or gained focus.
@@ -588,17 +600,17 @@ namespace nex
 		/**
 		* Removes a given window resize callback.
 		*/
-		void removeResizeCallback(const WindowResizeCallbacks::Handle& handle);
+		void removeResizeCallback(const VirtualDimesionResizeCallbacks::Handle& handle);
 
 		/**
 		* Removes a given window close callback.
 		*/
-		void removeWindowCloseCallback(const WindowCloseCallbacks::Handle& handle);
+		void removeWindowCloseCallback(const CloseCallbacks::Handle& handle);
 
 		/**
 		* Removes a given window focus callback.
 		*/
-		void removeWindowFocusCallback(const WindowFocusCallbacks::Handle& handle);
+		void removeWindowFocusCallback(const FocusCallbacks::Handle& handle);
 
 		/**
 		 * Resets the mouse movement offset of the current frame.
@@ -620,18 +632,19 @@ namespace nex
 
 	protected:
 
-		int frameMouseXOffset, frameMouseYOffset;
-		int mouseXabsolut, mouseYabsolut;
-		float frameScrollOffsetX, frameScrollOffsetY;
-		bool m_windowHasFocus;
-		bool firstMouseInput;
+		int mFrameMouseXOffset, mFrameMouseYOffset;
+		int mMouseXabsolut, mMouseYabsolut;
+		float mFrameScrollOffsetX, mFrameScrollOffsetY;
+		bool mHasFocus;
+		bool mFirstMouseInput;
 
-		nex::Logger m_logger;
+		nex::Logger mLogger;
 
-		ScrollCallbacks scrollContainer;
+		ScrollCallbacks mScrollContainer;
 
-		WindowCloseCallbacks m_windowCloseCallbacks;
-		WindowFocusCallbacks windowFocusChanged;
-		WindowResizeCallbacks windowResizeContainer;
+		CloseCallbacks mCloseCallbacks;
+		FocusCallbacks mFocusChanged;
+		VirtualDimesionResizeCallbacks mVirtualDimensionResizeContainer;
+		FrameBufferResizeCallbacks mFrameBufferResizeContainer;
 	};
 }

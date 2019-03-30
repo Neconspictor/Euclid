@@ -5,65 +5,67 @@ namespace nex
 {
 
 	Window::Window(WindowStruct const& description) :
-		m_logger("Window")
+		mLogger("Window"),
+		mIsClosed(false),
+		mHasFocus(false),
+		mConfig(description)
 	{
-		width = description.width;
-		height = description.height;
-		colorBitDepth = description.colorBitDepth;
-		fullscreen = description.fullscreen;
-		refreshRate = description.refreshRate;
-		posX = description.posX;
-		posY = description.posY;
-		title = description.title;
-		m_isVisible = description.visible;
-		m_isOpen = true;
-		m_hasFocus = false;
-		vSync = description.vSync;
+		
 	}
 
 	void Window::setTitle(const std::string& newTitle)
 	{
-		title = newTitle;
+		mConfig.title = newTitle;
 	}
 
 	void Window::setVsync(bool vsync)
 	{
-		this->vSync = vsync;
+		mConfig.vSync = vsync;
 	}
 
-	unsigned Window::getHeight() const
+	unsigned Window::getFrameBufferHeight() const
 	{
-		return height;
+		return mConfig.frameBufferHeight;
 	}
 
 	unsigned Window::getPosX() const
 	{
-		return posX;
+		return mConfig.posX;
 	}
 
 	unsigned Window::getPosY() const
 	{
-		return posY;
+		return mConfig.posY;
 	}
 
-	unsigned Window::getWidth() const
+	unsigned Window::getFrameBufferWidth() const
 	{
-		return width;
+		return mConfig.frameBufferWidth;
+	}
+
+	unsigned Window::getVirtualScreenHeight() const
+	{
+		return mConfig.virtualScreenHeight;
+	}
+
+	unsigned Window::getVirtualScreenWidth() const
+	{
+		return mConfig.virtualScreenWidth;
 	}
 
 	const std::string& Window::getTitle() const
 	{
-		return title;
+		return mConfig.title;
 	}
 
 	bool Window::getVsync() const
 	{
-		return vSync;
+		return mConfig.vSync;
 	}
 
 	bool Window::isInFullscreenMode()
 	{
-		return fullscreen;
+		return mConfig.fullscreen;
 	}
 
 	Window_ConfigurationView::Window_ConfigurationView(Window* window) : m_window(window)

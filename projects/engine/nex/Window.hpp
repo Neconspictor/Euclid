@@ -26,30 +26,82 @@ namespace nex
 		 */
 		struct WindowStruct
 		{
-			unsigned width;
-			unsigned height;
+			/**
+			* The width of the framebuffer (pixel size).
+			*/
+			unsigned frameBufferWidth;
+
+			/**
+			* The height of the framebuffer (pixel size).
+			*/
+			unsigned frameBufferHeight;
+
+			/**
+			* The width of the (virtual) screen. Can be different from the framebuffer width (e.g. retina displays)
+			*/
+			unsigned virtualScreenWidth;
+			
+			/**
+			* The height of the (virtual) screen. Can be different from the framebuffer height (e.g. retina displays)
+			*/
+			unsigned virtualScreenHeight;
+
+			/**
+			* the color depth used on the monitor, measured in bits.
+			* Usual values are 16, 24 and 32 bits.
+			*/
 			unsigned colorBitDepth;
+
+			/**
+			* Specifies if the window is drawn in fullscreen mode or in windowed mode.
+			*/
 			bool fullscreen;
+
+			/**
+			* Refresh rate the monitor should use, if the window is in fullscreen mode.
+			*/
 			unsigned refreshRate;
+
+			/**
+			* The x-position of the window on screen (in virtual screen coodinates)
+			*/
 			unsigned posX;
+			
+			/**
+			* The y-position of the window on screen (in virtual screen coodinates)
+			*/
 			unsigned posY;
+
+			/**
+			* The title of the window.
+			*/
 			std::string title;
+
+			/**
+			* Specifies if the window is currently visible or hidden.
+			*/
 			bool visible;
+
+			/**
+			 * Specifies if vertical synchronization is active.
+			 */
 			bool vSync;
 
-			WindowStruct()
+			WindowStruct() :
+				frameBufferWidth(0),
+				frameBufferHeight(0),
+				virtualScreenWidth(0),
+				virtualScreenHeight(0),
+				colorBitDepth(0),
+				fullscreen(false),
+				refreshRate(0),
+				posX(0),
+				posY(0),
+				title(""),
+				visible(false),
+				vSync(false)
 			{
-				width = 0;
-				height = 0;
-				colorBitDepth = 0;
-				fullscreen = false;
-				refreshRate = 0;
-				posX = 0;
-				posY = 0;
-				title = "";
-				visible = false;
-				vSync = false;
-			};
+			}
 		};
 
 		/**
@@ -76,10 +128,35 @@ namespace nex
 		*/
 		virtual Input* getInputDevice() = 0;
 
-		unsigned getHeight() const;
+		/**
+		 * Provides the height of the framebuffer (in pixels).
+		 */
+		unsigned getFrameBufferHeight() const;
+		
+		/**
+		 * Provides the x-position of the window (in virtual screen coordinates).
+		 */
 		unsigned getPosX() const;
+		
+		/**
+		 * Provides the y-position of the window (in virtual screen coordinates).
+		 */
 		unsigned getPosY() const;
-		unsigned getWidth() const;
+		
+		/**
+		 * Provides the width of the framebuffer (in pixels).
+		 */
+		unsigned getFrameBufferWidth() const;
+		
+		/**
+		 * Provides the width of the virtual screen.
+		 */
+		unsigned getVirtualScreenHeight() const;
+		
+		/**
+		 * Provides the height of the virtual screen.
+		 */
+		unsigned getVirtualScreenWidth() const;
 
 		/**
 		 * Provides access to the underlying native window.
@@ -92,6 +169,9 @@ namespace nex
 		 */
 		const std::string& getTitle() const;
 
+		/**
+		 * Checks, if vertical synchronization is currently active.
+		 */
 		virtual bool getVsync() const;
 
 		/**
@@ -122,7 +202,7 @@ namespace nex
 		/**
 		* Updates the width and height of this window.
 		*/
-		virtual void resize(int newWidth, int newHeight) = 0;
+		virtual void resize(unsigned newWidth, unsigned newHeight) = 0;
 
 		/**
 		 * Sets the cursor to a specified position (xPos, yPos)
@@ -149,6 +229,9 @@ namespace nex
 		*/
 		virtual void setVisible(bool visible) = 0;
 
+		/**
+		 * Enables/Disables vertical synchronization.
+		 */
 		virtual void setVsync(bool vsync);
 
 		/**
@@ -169,66 +252,11 @@ namespace nex
 		virtual void swapBuffers() = 0;
 
 	protected:
-		/**
-		* The width of this window.
-		*/
-		unsigned width;
 
-		/**
-		* The height of this window.
-		*/
-		unsigned height;
-
-		/**
-		* the color depth used on the monitor, measured in bits.
-		* Usual values are 16, 24 and 32 bits.
-		*/
-		unsigned colorBitDepth;
-
-		/**
-		* Specifies if the window is drawn in fullscreen mode or in windowed mode.
-		*/
-		bool fullscreen;
-
-		/**
-		* Specifies if the window is currently open.
-		*/
-		bool m_isOpen;
-
-		/**
-		* Refresh rate the monitor should use, if the window is in fullscreen mode.
-		*/
-		unsigned refreshRate;
-
-		/**
-		* Specifies if the window is currently visible or hidden.
-		*/
-		bool m_isVisible;
-
-		/**
-		* The position of the window on screen
-		*/
-		unsigned posX, posY;
-
-		/**
-		* The title of the window.
-		*/
-		std::string title;
-
-		/**
-		* Is this window currently focused for input events?
-		*/
-		bool m_hasFocus;
-
-		/**
-		 * Checks if window buffer swapping should be synchronized to monitor refresh rate.
-		 */
-		bool vSync;
-
-		/**
-		 * a logging client for logging internals.
-		 */
-		nex::Logger m_logger;
+		WindowStruct mConfig;
+		bool mIsClosed;
+		bool mHasFocus;
+		nex::Logger mLogger;
 	};
 
 

@@ -45,16 +45,22 @@ namespace nex
 
 		void reopen() override;
 
-		void resize(int newWidth, int newHeight) override;
+		void resize(unsigned newWidth, unsigned newHeight) override;
 		void setCursorPosition(int xPos, int yPos) override;
 		void setFocus(bool focus);
 		void setFullscreen() override;
 
 		/**
-		 * Sets width and height of the window, but doesn't update the underlying GLFWwindow
+		 * Sets framebuffer width and height of the window, but doesn't update the underlying GLFWwindow
 		 * (-> no visual update!)
 		 */
-		void setSize(int width, int height);
+		void setFrameBufferSize(unsigned width, unsigned height);
+
+		/**
+		 * Sets the virtual screen dimensions of the window, but doesn't update the underlying GLFWwindow
+		 * (-> no visual update!)
+		 */
+		void setVirtualScreenDimension(unsigned width, unsigned height);
 
 		void setTitle(const std::string& newTitle) override;
 

@@ -70,7 +70,8 @@ namespace nex
 		static void keyInputHandler(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void mouseInputHandler(GLFWwindow * window, int button, int action, int mods);
 		static void scrollInputHandler(GLFWwindow* window, double xOffset, double yOffset);
-		static void sizeInputHandler(GLFWwindow* window, int width, int height);
+		static void windowSizeInputHandler(GLFWwindow* window, int width, int height);
+		static void frameBufferSizeInputHandler(GLFWwindow* window, int width, int height);
 
 
 

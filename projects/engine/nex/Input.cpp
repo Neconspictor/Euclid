@@ -5,84 +5,99 @@ namespace nex
 {
 
 	Input::Input() :
-		m_logger("Input")
+		mLogger("Input")
 	{
-		frameMouseXOffset = frameMouseYOffset = 0;
-		frameScrollOffsetX = 0;
-		frameScrollOffsetY = 0;
-		mouseXabsolut = 0;
-		mouseYabsolut = 0;
-		firstMouseInput = true;
-		m_windowHasFocus = true;
+		mFrameMouseXOffset = mFrameMouseYOffset = 0;
+		mFrameScrollOffsetX = 0;
+		mFrameScrollOffsetY = 0;
+		mMouseXabsolut = 0;
+		mMouseYabsolut = 0;
+		mFirstMouseInput = true;
+		mHasFocus = true;
 	}
 
 	Input::~Input()
 	{
 	}
 
-	Input::WindowCloseCallbacks::Handle Input::addWindowCloseCallback(const WindowCloseCallbacks::Callback& callback)
+	CallbackCollection<void(unsigned, unsigned)>::Handle Input::addFrameBufferResizeCallback(
+		const FrameBufferResizeCallbacks::Callback& callback)
 	{
-		return m_windowCloseCallbacks.addCallback(callback);
+		return mFrameBufferResizeContainer.addCallback(callback);
 	}
 
-	Input::WindowResizeCallbacks::Handle Input::addResizeCallback(const WindowResizeCallbacks::Callback& callback)
+	Input::CloseCallbacks::Handle Input::addWindowCloseCallback(const CloseCallbacks::Callback& callback)
 	{
-		return windowResizeContainer.addCallback(callback);
+		return mCloseCallbacks.addCallback(callback);
+	}
+
+	Input::VirtualDimesionResizeCallbacks::Handle Input::addVirtualDimensionResizeCallback(const VirtualDimesionResizeCallbacks::Callback& callback)
+	{
+		return mVirtualDimensionResizeContainer.addCallback(callback);
 	}
 
 	Input::ScrollCallbacks::Handle Input::addScrollCallback(const ScrollCallbacks::Callback& callback)
 	{
-		return scrollContainer.addCallback(callback);
+		return mScrollContainer.addCallback(callback);
 	}
 
-	Input::WindowFocusCallbacks::Handle Input::addWindowFocusCallback(const WindowFocusCallbacks::Callback& callback)
+	Input::FocusCallbacks::Handle Input::addWindowFocusCallback(const FocusCallbacks::Callback& callback)
 	{
-		return windowFocusChanged.addCallback(callback);
+		return mFocusChanged.addCallback(callback);
 	}
 
 
 	MouseOffset Input::getFrameMouseOffset()
 	{
 		MouseOffset offset;
-		offset.xAbsolute = mouseXabsolut;
-		offset.yAbsolute = mouseYabsolut;
-		offset.xOffset = frameMouseXOffset;
-		offset.yOffset = frameMouseYOffset;
+		offset.xAbsolute = mMouseXabsolut;
+		offset.yAbsolute = mMouseYabsolut;
+		offset.xOffset = mFrameMouseXOffset;
+		offset.yOffset = mFrameMouseYOffset;
 		return offset;
 	}
 
 
 	double Input::getFrameScrollOffsetX()
 	{
-		return frameScrollOffsetX;
+		return mFrameScrollOffsetX;
 	}
 
 	double Input::getFrameScrollOffsetY()
 	{
-		return frameScrollOffsetY;
+		return mFrameScrollOffsetY;
 	}
 
 	void Input::informScrollListeners(float scrollX, float scrollY)
 	{
-		for (const auto& handle : scrollContainer.getCallbacks())
+		for (const auto& handle : mScrollContainer.getCallbacks())
 		{
 			const auto& callback = *handle;
 			callback(scrollX, scrollY);
 		}
 	}
 
-	void Input::informResizeListeners(int width, int height)
+	void Input::informVirtualDimensionResizeListeners(unsigned width, unsigned height)
 	{
-		for (const auto& handle : windowResizeContainer.getCallbacks())
+		for (const auto& handle : mVirtualDimensionResizeContainer.getCallbacks())
 		{
 			const auto& callback = *handle;
 			callback(width, height);
 		}
 	}
 
+	void Input::inforrmFrameBufferResiteListeners(unsigned frameBufferWidth, unsigned frameBufferHeight)
+	{
+		for (const auto& handle : mFrameBufferResizeContainer.getCallbacks())
+		{
+			const auto& callback = *handle;
+			callback(frameBufferWidth, frameBufferHeight);
+		}
+	}
+
 	void Input::informWindowFocusListeners(bool receivedFocus)
 	{
-		for (const auto& handle : windowFocusChanged.getCallbacks())
+		for (const auto& handle : mFocusChanged.getCallbacks())
 		{
 			const auto& callback = *handle;
 			callback(getWindow(), receivedFocus);
@@ -91,7 +106,7 @@ namespace nex
 
 	void Input::informWindowCloseListeners()
 	{
-		for (const auto& handle : m_windowCloseCallbacks.getCallbacks())
+		for (const auto& handle : mCloseCallbacks.getCallbacks())
 		{
 			const auto callback = *handle;
 			callback(getWindow());
@@ -101,40 +116,40 @@ namespace nex
 
 	void Input::removeScrollConnection(const ScrollCallbacks::Handle& handle)
 	{
-		scrollContainer.removeCallback(handle);
+		mScrollContainer.removeCallback(handle);
 	}
 
-	void Input::removeWindowCloseCallback(const WindowCloseCallbacks::Handle& handle)
+	void Input::removeWindowCloseCallback(const CloseCallbacks::Handle& handle)
 	{
-		m_windowCloseCallbacks.removeCallback(handle);
+		mCloseCallbacks.removeCallback(handle);
 	}
 
-	void Input::removeResizeCallback(const WindowResizeCallbacks::Handle& handle)
+	void Input::removeResizeCallback(const VirtualDimesionResizeCallbacks::Handle& handle)
 	{
-		windowResizeContainer.removeCallback(handle);
+		mVirtualDimensionResizeContainer.removeCallback(handle);
 	}
 
-	void Input::removeWindowFocusCallback(const WindowFocusCallbacks::Handle& handle)
+	void Input::removeWindowFocusCallback(const FocusCallbacks::Handle& handle)
 	{
-		windowFocusChanged.removeCallback(handle);
+		mFocusChanged.removeCallback(handle);
 	}
 
 	void Input::resetMouseMovement()
 	{
-		frameMouseXOffset = 0;
-		frameMouseYOffset = 0;
+		mFrameMouseXOffset = 0;
+		mFrameMouseYOffset = 0;
 	}
 
 	void Input::setMousePosition(int xPos, int yPos)
 	{
-		frameMouseXOffset += xPos - mouseXabsolut;
-		frameMouseYOffset += yPos - mouseYabsolut;
-		mouseXabsolut = xPos;
-		mouseYabsolut = yPos;
+		mFrameMouseXOffset += xPos - mMouseXabsolut;
+		mFrameMouseYOffset += yPos - mMouseYabsolut;
+		mMouseXabsolut = xPos;
+		mMouseYabsolut = yPos;
 	}
 
 	bool Input::windowHasFocus()
 	{
-		return m_windowHasFocus;
+		return mHasFocus;
 	}
 }

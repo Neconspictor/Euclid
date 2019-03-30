@@ -132,7 +132,7 @@ void nex::TrackballQuatCamera::update(Input* input, float frameTime)
 	orientation = multiply(rotation, prevOrientation);
 }
 
-void nex::TrackballQuatCamera::updateOnResize(int screenWidth, int screenHeight)
+void nex::TrackballQuatCamera::updateOnResize(unsigned screenWidth, unsigned screenHeight)
 {
 	halfScreenWidth = screenWidth / 2;
 	halfScreenHeight = screenHeight / 2;

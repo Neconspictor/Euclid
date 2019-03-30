@@ -92,7 +92,7 @@ void NeXEngine::init()
 		std::unique_ptr<nex::gui::Drawable>()));
 
 	m_window->activate();
-	m_renderer->init(m_window->getWidth(), m_window->getHeight());
+	m_renderer->init(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 	m_controllerSM->init();
 	setupCamera();
 	setupCallbacks();
@@ -139,7 +139,7 @@ void NeXEngine::run()
 			m_scene->update(frameTime);
 			m_controllerSM->frameUpdate(frameTime);
 			m_camera->Projectional::update(true);
-			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getWidth(), m_window->getHeight());
+			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 
 			//m_gui->newFrame();
 			//m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
@@ -215,8 +215,8 @@ Window* NeXEngine::createWindow()
 	desc.refreshRate = m_video.refreshRate;
 	desc.posX = 0;
 	desc.posY = 0;
-	desc.width = m_video.width;
-	desc.height = m_video.height;
+	desc.frameBufferWidth = m_video.width;
+	desc.frameBufferHeight = m_video.height;
 	desc.visible = true;
 	desc.vSync = m_video.vSync;
 
@@ -349,12 +349,12 @@ void NeXEngine::setupCamera()
 	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(m_camera.get()))
 	{
 		auto cameraResizeCallback = std::bind(&TrackballQuatCamera::updateOnResize, casted, std::placeholders::_1, std::placeholders::_2);
-		casted->updateOnResize(m_window->getWidth(), m_window->getHeight());
+		casted->updateOnResize(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 		m_input->addResizeCallback(cameraResizeCallback);
 	}
 
-	int windowWidth = m_window->getWidth();
-	int windowHeight = m_window->getHeight();
+	int windowWidth = m_window->getFrameBufferWidth();
+	int windowHeight = m_window->getFrameBufferHeight();
 
 	m_camera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
 	m_camera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
