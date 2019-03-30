@@ -1,19 +1,17 @@
 #pragma once
 #include <glad/glad.h>
-#include <nex/common/debug_break.h>
 #include <nex/common/Log.hpp>
 
 extern nex::Logger GLOBAL_RENDERER_LOGGER;
 
-#define NDEBUG 1
-
-#if defined(NDEBUG)
+#if defined(EUCLID_ALL_OPTIMIZATIONS)
 #define SET_BREAK()
 #define ASSERT(x)
 #define GLCall(x) x;
 
 
 #else
+#include <nex/common/debug_break.h>
 #define SET_BREAK()	 psnip_trap()
 #define ASSERT(x) if (!x) {LOG(GLOBAL_RENDERER_LOGGER, nex::LogLevel::Error) << "Assertion failed!"; SET_BREAK();}
 
