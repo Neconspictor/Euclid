@@ -95,6 +95,18 @@ void WindowGLFW::init()
 	}
 
 	createOpenGLWindow();
+
+	// update virtual screen and framebuffer dimensions
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+	mConfig.frameBufferWidth = static_cast<unsigned>(w);
+	mConfig.frameBufferHeight = static_cast<unsigned>(h);
+
+	glfwGetWindowSize(window, &w, &h);
+	mConfig.virtualScreenWidth = static_cast<unsigned>(w);
+	mConfig.virtualScreenHeight = static_cast<unsigned>(h);
+
+	setVsync(mConfig.vSync);
 }
 
 bool WindowGLFW::isOpen()
@@ -126,12 +138,7 @@ void WindowGLFW::reopen()
 
 void WindowGLFW::resize(unsigned newWidth, unsigned newHeight)
 {
-	//mConfig.frameBufferWidth = newWidth;
-	//mConfig.frameBufferHeight = newHeight;
 	glfwSetWindowSize(window, static_cast<int>(newWidth), static_cast<int>(newHeight));
-
-	//TODO
-	//inputDevice.informVirtualDimensionResizeListeners(mConfig.virtualScreenWidth, mConfig.virtualScreenHeight);
 }
 
 void WindowGLFW::setCursorPosition(int xPos, int yPos)
@@ -214,10 +221,6 @@ void WindowGLFW::setWindowed()
 	mConfig.fullscreen = false;
 
 	refreshWindowWithoutCallbacks();
-
-	//now inform listeners
-	//setSize(width, height);
-	//informResizeListeners(width, height);
 }
 
 void WindowGLFW::showCursor(bool show)
@@ -239,14 +242,8 @@ void WindowGLFW::swapBuffers()
 
 void WindowGLFW::refreshWindowWithoutCallbacks()
 {
-
-	// assure that o callbacks get called!
+	// assure that no callbacks get called!
 	inputDevice.disableCallbacks();
-	//SubSystemProviderGLFW* system = SubSystemProviderGLFW::get();
-	//system->removeSizeCallback(this);
-
-	//register a dummy callback that does nothing
-	//system->registerRefreshCallback(this, [](GLFWwindow*){}); 
 
 	// change the size of the window temporarily in order to trigger the operating system to repaint the window
 	// To avoid issues we don't propagate this temporary change
@@ -264,18 +261,6 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 		glfwSetWindowSize(window, newWidth+1, mConfig.frameBufferHeight);
 	}
 
-	// hack!!! so that opengl recognises that it should update 
-	// TODO: Do not use opengl commands in the window class!
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	glViewport(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
-	glScissor(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-
-	glfwSwapBuffers(window);
-
 	//now restore the original window size
 	glfwSetWindowSize(window, widthBackup, mConfig.frameBufferHeight);
 
@@ -285,9 +270,6 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 
 void WindowGLFW::createOpenGLWindow()
 {
-	//TODO
-	/*glfwWindowHint(GLFW_VISIBLE, m_isVisible ? GLFW_TRUE : GLFW_FALSE);*/
-
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -297,13 +279,6 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
 	
-
-	/*glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);*/
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	auto* monitor = glfwGetPrimaryMonitor();
@@ -341,30 +316,7 @@ void WindowGLFW::createOpenGLWindow()
 		throw_with_trace(runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!"));
 	}
 
-
-	// update virtual screen and framebuffer dimensions
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h);
-	mConfig.frameBufferWidth = static_cast<unsigned>(w);
-	mConfig.frameBufferHeight = static_cast<unsigned>(h);
-
-	glfwGetWindowSize(window, &w, &h);
-	mConfig.virtualScreenWidth = static_cast<unsigned>(w);
-	mConfig.virtualScreenHeight = static_cast<unsigned>(h);
-
-	//glfwGetWindowFrameSize(window, &left, &top, &right, &bottom);
-
-	//glfwSetWindowPos(window, this->posX + left, this->posY + top);
-
-	glfwMakeContextCurrent(window);
-	//gladLoadGLLoader(GLADloadproc(glfwGetProcAddress));
-
-//#if defined(NANOGUI_GLAD)
-	//if (!gladLoadGL())
-	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		//throw std::runtime_error("Could not initialize GLAD!");
-	//glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
-//#endif
+	activate();
 
 	// Load all OpenGL functions using the glfw loader function
 	// If you use SDL you can use: https://wiki.libsdl.org/SDL_GL_GetProcAddress
@@ -374,25 +326,5 @@ void WindowGLFW::createOpenGLWindow()
 		throw_with_trace(runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context"));
 	}
 
-	setVsync(mConfig.vSync);
-
-	// Alternative use the builtin loader, e.g. if no other loader function is available
-	/*
-	if (!gladLoadGL()) {
-	std::cout << "Failed to initialize OpenGL context" << std::endl;
-	return -1;
-	}
-	*/
-
-	// glad populates global constants after loading to indicate,
-	// if a certain extension/version is available.
 	LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
-
-	/*if (GLAD_GL_EXT_framebuffer_multisample) {
-	}*/
-
-	glViewport(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
-	glScissor(0, 0, mConfig.frameBufferWidth, mConfig.frameBufferHeight);
-	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
 }
