@@ -7,11 +7,8 @@ namespace nex
 	Input::Input() :
 		mLogger("Input")
 	{
-		mFrameMouseXOffset = mFrameMouseYOffset = 0;
 		mFrameScrollOffsetX = 0;
 		mFrameScrollOffsetY = 0;
-		mMouseXabsolut = 0;
-		mMouseYabsolut = 0;
 		mFirstMouseInput = true;
 		mHasFocus = true;
 	}
@@ -47,23 +44,18 @@ namespace nex
 	}
 
 
-	MouseOffset Input::getFrameMouseOffset()
+	const MouseOffset& Input::getFrameMouseOffset() const
 	{
-		MouseOffset offset;
-		offset.xAbsolute = mMouseXabsolut;
-		offset.yAbsolute = mMouseYabsolut;
-		offset.xOffset = mFrameMouseXOffset;
-		offset.yOffset = mFrameMouseYOffset;
-		return offset;
+		return mMouseData;
 	}
 
 
-	double Input::getFrameScrollOffsetX()
+	double Input::getFrameScrollOffsetX() const
 	{
 		return mFrameScrollOffsetX;
 	}
 
-	double Input::getFrameScrollOffsetY()
+	double Input::getFrameScrollOffsetY() const
 	{
 		return mFrameScrollOffsetY;
 	}
@@ -136,19 +128,23 @@ namespace nex
 
 	void Input::resetMouseMovement()
 	{
-		mFrameMouseXOffset = 0;
-		mFrameMouseYOffset = 0;
+		mMouseData.xOffset = 0;
+		mMouseData.yOffset = 0;
 	}
 
-	void Input::setMousePosition(int xPos, int yPos)
+	void Input::setMousePosition(int xPos, int yPos, bool updateOffsets)
 	{
-		mFrameMouseXOffset += xPos - mMouseXabsolut;
-		mFrameMouseYOffset += yPos - mMouseYabsolut;
-		mMouseXabsolut = xPos;
-		mMouseYabsolut = yPos;
+		if (updateOffsets)
+		{
+			mMouseData.xOffset += xPos - mMouseData.xAbsolute;
+			mMouseData.yOffset += yPos - mMouseData.yAbsolute;
+		}
+
+		mMouseData.xAbsolute = xPos;
+		mMouseData.yAbsolute = yPos;
 	}
 
-	bool Input::windowHasFocus()
+	bool Input::windowHasFocus() const
 	{
 		return mHasFocus;
 	}

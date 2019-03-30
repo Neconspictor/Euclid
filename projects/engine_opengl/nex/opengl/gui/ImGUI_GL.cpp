@@ -32,7 +32,6 @@ namespace nex::gui
 	ImGUI_GL::ImGUI_GL(WindowGLFW& window, std::string glsl_version) :
 		window(&window),
 		glsl_version(move(glsl_version)),
-		g_Time(0.0),
 		g_FontTexture(GL_FALSE),
 		g_ShaderHandle(0), g_VertHandle(0), g_FragHandle(0),
 		g_AttribLocationTex(0), g_AttribLocationProjMtx(0),
@@ -67,7 +66,7 @@ namespace nex::gui
 		ImGui::DestroyContext();
 	}
 
-	void ImGUI_GL::newFrame()
+	void ImGUI_GL::newFrame(float frameTime)
 	{
 		if (!g_FontTexture)
 			createDeviceObjects();
@@ -75,35 +74,33 @@ namespace nex::gui
 		ImGuiIO& io = ImGui::GetIO();
 
 		// Setup display size (every frame to accommodate for window resizing)
-		unsigned width = window->getFrameBufferWidth();
-		unsigned height = window->getFrameBufferHeight();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window->getSource(), &display_w, &display_h);
-
+		const auto width = window->getFrameBufferWidth();
+		const auto height = window->getFrameBufferHeight();
+		const auto frameBufferW = window->getFrameBufferWidth();
+		const auto frameBufferH = window->getFrameBufferHeight();
 		
 
+		const auto* input = window->getInputDevice();
+
 		io.DisplaySize = ImVec2((float)width, (float)height);
-		io.DisplayFramebufferScale = ImVec2(width > 0 ? ((float)display_w / width) : 0, height > 0 ? ((float)display_h / height) : 0);
+		io.DisplayFramebufferScale = ImVec2(width > 0 ? ((float)frameBufferW / width) : 0, height > 0 ? ((float)frameBufferH / height) : 0);
 
 		// Setup time step
-		double current_time = glfwGetTime();
-		io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
-		g_Time = current_time;
+		io.DeltaTime = frameTime;
 
-		// Setup inputs
-		// (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-		if (glfwGetWindowAttrib(window->getSource(), GLFW_FOCUSED))
+		// Setup inputs		
+		if (window->hasFocus())
 		{
 			// Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
 			if (io.WantSetMousePos)
 			{
-				glfwSetCursorPos(window->getSource(), (double)io.MousePos.x, (double)io.MousePos.y);
+				//glfwSetCursorPos(window->getSource(), (double)io.MousePos.x, (double)io.MousePos.y);
+				window->setCursorPosition(io.MousePos.x, io.MousePos.y);
 			}
 			else
 			{
-				double mouse_x, mouse_y;
-				glfwGetCursorPos(window->getSource(), &mouse_x, &mouse_y);
-				io.MousePos = ImVec2((float)mouse_x, (float)mouse_y);
+				const auto& mouseData = window->getInputDevice()->getFrameMouseOffset();
+				io.MousePos = ImVec2((float)mouseData.xAbsolute, (float)mouseData.yAbsolute);
 			}
 		}
 		else
@@ -111,10 +108,11 @@ namespace nex::gui
 			io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
 		}
 
-		for (int i = 0; i < 3; i++)
+		for (int i = Input::BUTTON_MIN_VALUE; i < Input::BUTTON_SIZE; i++)
 		{
 			// If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-			io.MouseDown[i] = g_MouseJustPressed[i] || glfwGetMouseButton(window->getSource(), i) != 0;
+			const auto button = static_cast<Input::Button>(Input::BUTTON_MIN_VALUE + i);
+			io.MouseDown[i] = g_MouseJustPressed[i] || input->isDown(button);
 			g_MouseJustPressed[i] = false;
 		}
 
@@ -293,9 +291,6 @@ namespace nex::gui
 
 	void ImGUI_GL::init()
 	{
-
-		g_Time = 0.0;
-
 		// Setup back-end capabilities flags
 		ImGuiIO& io = ImGui::GetIO();
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;   // We can honor GetMouseCursor() values (optional)

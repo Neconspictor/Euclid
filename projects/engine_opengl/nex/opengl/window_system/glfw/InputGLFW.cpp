@@ -5,7 +5,7 @@
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <functional>
-
+#include <algorithm>
 
 using namespace std;
 
@@ -414,13 +414,12 @@ void nex::InputGLFW::frameUpdate()
 {
 	double mouseX, mouseY;
 	glfwGetCursorPos(window->getSource(), &mouseX, &mouseY);
-	int mouseXOld = mMouseXabsolut;
-	int mouseYOld = mMouseYabsolut;
-	mMouseXabsolut = static_cast<int>(mouseX);
-	mMouseYabsolut = static_cast<int>(mouseY);
 
-	mFrameMouseXOffset = mMouseXabsolut - mouseXOld;
-	mFrameMouseYOffset = mMouseYabsolut - mouseYOld;
+	const auto x = static_cast<int>(std::floor(mouseX));
+	const auto y = static_cast<int>(std::floor(mouseY));
+
+	resetMouseMovement();
+	Input::setMousePosition(x,y, true);
 
 	if (!isDown(anyPressedKey))
 	{
@@ -433,12 +432,12 @@ void nex::InputGLFW::frameUpdate()
 	}
 }
 
-nex::Input::Button nex::InputGLFW::getAnyPressedButton()
+nex::Input::Button nex::InputGLFW::getAnyPressedButton() const
 {
 	return anyPressedButton;
 }
 
-nex::Input::Key nex::InputGLFW::getAnyPressedKey()
+nex::Input::Key nex::InputGLFW::getAnyPressedKey() const
 {
 	return anyPressedKey;
 }
@@ -448,42 +447,42 @@ nex::Window * nex::InputGLFW::getWindow()
 	return window;
 }
 
-bool nex::InputGLFW::isDown(Button button)
+bool nex::InputGLFW::isDown(Button button) const
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetMouseButton(window->getSource(), glfwButton) != GLFW_RELEASE;
 }
 
-bool nex::InputGLFW::isDown(Key key)
+bool nex::InputGLFW::isDown(Key key) const
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return glfwGetKey(window->getSource(), glfwKey) != GLFW_RELEASE;
 }
 
-bool nex::InputGLFW::isPressed(Button button)
+bool nex::InputGLFW::isPressed(Button button) const
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return pressedButtons.find(glfwButton) != pressedButtons.end();
 }
 
-bool nex::InputGLFW::isPressed(Key key)
+bool nex::InputGLFW::isPressed(Key key) const
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
 	return pressedKeys.find(glfwKey) != pressedKeys.end();
 }
 
-bool nex::InputGLFW::isReleased(Button button)
+bool nex::InputGLFW::isReleased(Button button) const
 {
 	int glfwButton = InputMapperGLFW::get()->toGLFWbutton(button);
 	if (glfwButton == GLFW_KEY_UNKNOWN) return false;
 	return releasedButtons.find(glfwButton) != releasedButtons.end();
 }
 
-bool nex::InputGLFW::isReleased(Key key)
+bool nex::InputGLFW::isReleased(Key key) const
 {
 	int glfwKey = InputMapperGLFW::get()->toGLFWkey(key);
 	if (glfwKey == GLFW_KEY_UNKNOWN) return false;
@@ -596,10 +595,10 @@ void nex::InputGLFW::resetForFrame()
 	mFrameScrollOffsetY = 0;
 }
 
-void nex::InputGLFW::setMousePosition(int xPos, int yPos)
+void nex::InputGLFW::setMousePosition(int xPos, int yPos, bool updateOffsets)
 {
 	glfwSetCursorPos(window->getSource(), static_cast<double>(xPos), static_cast<double>(yPos));
-	Input::setMousePosition(xPos, yPos);
+	Input::setMousePosition(xPos, yPos, updateOffsets);
 }
 
 void nex::InputGLFW::setWindow(WindowGLFW* window)

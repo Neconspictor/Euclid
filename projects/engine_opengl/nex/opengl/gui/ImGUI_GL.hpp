@@ -22,7 +22,7 @@ namespace nex::gui
 
 		virtual ~ImGUI_GL();
 
-		void newFrame() override;
+		void newFrame(float frameTime) override;
 
 		void renderDrawData(ImDrawData* draw_data) override;
 
@@ -46,7 +46,6 @@ namespace nex::gui
 		std::string glsl_version;
 		GLFWcursor*  g_MouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];
-		double g_Time;
 		GLuint g_FontTexture;
 		GLuint g_ShaderHandle;
 		GLuint g_VertHandle;

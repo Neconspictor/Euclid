@@ -13,7 +13,7 @@ namespace nex::gui
 	public:
 		virtual ~ImGUI_Impl() = default;
 
-		virtual void newFrame() = 0;
+		virtual void newFrame(float frameTime) = 0;
 
 		virtual void renderDrawData(ImDrawData* draw_data) = 0;
 	};

@@ -150,7 +150,7 @@ void NeXEngine::run()
 		if (isRunning())
 		{
 
-			m_gui->newFrame();
+			m_gui->newFrame(frameTime);
 			m_scene->update(frameTime);
 			m_controllerSM->frameUpdate(frameTime);
 			m_camera->Projectional::update(true);

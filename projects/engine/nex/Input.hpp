@@ -12,10 +12,10 @@ namespace nex
 	 */
 	struct MouseOffset
 	{
-		int xAbsolute;
-		int yAbsolute;
-		int xOffset;
-		int yOffset;
+		int xAbsolute = 0;
+		int yAbsolute = 0;
+		int xOffset = 0;
+		int yOffset = 0;
 	};
 
 	/**
@@ -497,14 +497,14 @@ namespace nex
 		* If no valid key is pressed than Button::InvalidButton
 		* will be returned.
 		*/
-		virtual Button getAnyPressedButton() = 0;
+		virtual Button getAnyPressedButton() const = 0;
 
 		/**
 		 * Provides any key that was currently pressed.
 		 * If no valid key is pressed than Key::InvalidKey
 		 * will be returned.
 		 */
-		virtual Key getAnyPressedKey() = 0;
+		virtual Key getAnyPressedKey() const = 0;
 
 		/**
 		* Returns the amount of scrolling the user did since the last frame.
@@ -512,14 +512,14 @@ namespace nex
 		* down scrolling and 0 means no scolling.
 		*/
 
-		virtual double getFrameScrollOffsetX();
+		double getFrameScrollOffsetX() const;
 
-		virtual double getFrameScrollOffsetY();
+		double getFrameScrollOffsetY() const;
 
 		/**
 		*  Provides information about how much the cursor moved since the last frame.
 		*/
-		virtual MouseOffset getFrameMouseOffset();
+		const MouseOffset& getFrameMouseOffset() const;
 
 		virtual Window* getWindow() = 0;
 
@@ -552,12 +552,12 @@ namespace nex
 		/**
 		* Checks if a given input button is currently hold down.
 		*/
-		virtual bool isDown(Button button) = 0;
+		virtual bool isDown(Button button) const  = 0;
 
 		/**
 		* Checks if a given input key is currently hold down.
 		*/
-		virtual bool isDown(Key key) = 0;
+		virtual bool isDown(Key key) const  = 0;
 
 		/**
 		* Checks if a given input button is currently pressed.
@@ -565,7 +565,7 @@ namespace nex
 		* The user has to release the button again, before another
 		* button press event can be triggered!
 		*/
-		virtual bool isPressed(Button button) = 0;
+		virtual bool isPressed(Button button) const = 0;
 
 		/**
 		* Checks if a given input key is currently pressed.
@@ -573,7 +573,7 @@ namespace nex
 		* The user has to release the key again, before another
 		* key press event can be triggered!
 		*/
-		virtual bool isPressed(Key key) = 0;
+		virtual bool isPressed(Key key) const = 0;
 
 		/**
 		* Checks if a given input button, that was pressed or hold, is currently released.
@@ -581,7 +581,7 @@ namespace nex
 		* The user has to press the button again, before another
 		* button press event can be triggered!
 		*/
-		virtual bool isReleased(Button button) = 0;
+		virtual bool isReleased(Button button) const = 0;
 
 		/**
 		* Checks if a given input key, that was pressed or hold, is currently released.
@@ -589,7 +589,7 @@ namespace nex
 		* The user has to press the key again, before another
 		* key press event can be triggered!
 		*/
-		virtual bool isReleased(Key key) = 0;
+		virtual bool isReleased(Key key) const  = 0;
 
 		/**
 		* Removes a previously established scrolling connection. The callback of the connection
@@ -615,25 +615,24 @@ namespace nex
 		/**
 		 * Resets the mouse movement offset of the current frame.
 		 */
-		virtual void resetMouseMovement();
+		void resetMouseMovement();
 
 
 		/**
 		 * Sets the absolut mouse position in the coordination system of the current active window.
 		 */
-		virtual void setMousePosition(int xPos, int yPos);
+		virtual void setMousePosition(int xPos, int yPos, bool updateOffsets = false);
 
 		/**
 		*  Checks, if a window, this input class is listening on, is currently on focus or inactive.
 		* NOTE: This input class has to be asigned as window focus listener to any window, otherwise
 		* this function will always return 'false'.
 		*/
-		virtual bool windowHasFocus();
+		virtual bool windowHasFocus() const;
 
 	protected:
+		MouseOffset mMouseData;
 
-		int mFrameMouseXOffset, mFrameMouseYOffset;
-		int mMouseXabsolut, mMouseYabsolut;
 		float mFrameScrollOffsetX, mFrameScrollOffsetY;
 		bool mHasFocus;
 		bool mFirstMouseInput;

@@ -85,15 +85,15 @@ namespace nex
 
 		void frameUpdate();
 
-		Button getAnyPressedButton() override;
-		Key getAnyPressedKey() override;
+		Button getAnyPressedButton() const override;
+		Key getAnyPressedKey() const override;
 		Window* getWindow() override;
-		bool isDown(Button button) override;
-		bool isDown(Key key) override;
-		bool isPressed(Button button) override;
-		bool isPressed(Key key) override;
-		bool isReleased(Button button) override;
-		bool isReleased(Key key) override;
+		bool isDown(Button button) const override;
+		bool isDown(Key key) const override;
+		bool isPressed(Button button) const override;
+		bool isPressed(Key key) const override;
+		bool isReleased(Button button) const override;
+		bool isReleased(Key key) const override;
 
 
 		void onCharMods(unsigned int codepoint, int mods);
@@ -109,7 +109,7 @@ namespace nex
 
 		void resetForFrame();
 
-		void setMousePosition(int xPos, int yPos) override;
+		void setMousePosition(int xPos, int yPos, bool updateOffsets=false) override;
 		void setWindow(WindowGLFW* window);
 
 	protected:
