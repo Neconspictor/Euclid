@@ -14,15 +14,17 @@ nex::TrackballQuatCamera::TrackballQuatCamera()
 	radius = 3; 
 	look = { 0, 0, -1 };
 	up = { 0,1,0 };
-	position = trackPosition - radius * look;
-	Camera(position, look, up);
+	mCurrentPosition = trackPosition - radius * look;
+	mTargetPosition = mCurrentPosition;
+	Camera(mCurrentPosition, look, up);
 	init();
 }
 
 nex::TrackballQuatCamera::TrackballQuatCamera(glm::vec3 trackPosition, float radius, glm::vec3 look, glm::vec3 up)
 {
-	position = trackPosition - radius*look;
-	Camera(position, look, up);
+	mCurrentPosition = trackPosition - radius*look;
+	mTargetPosition = mCurrentPosition;
+	Camera(mCurrentPosition, look, up);
 	init();
 	this->trackPosition = trackPosition;
 	this->radius = radius;
@@ -37,8 +39,8 @@ nex::TrackballQuatCamera::TrackballQuatCamera(const TrackballQuatCamera& other) 
 
 void nex::TrackballQuatCamera::calcView()
 {
-	view = glm::lookAt(position, trackPosition, up);
-	look = glm::normalize(position - trackPosition);
+	view = glm::lookAt(mCurrentPosition, trackPosition, up);
+	look = glm::normalize(mCurrentPosition - trackPosition);
 	glm::mat4 trackTargetTrans;
 	glm::mat4 trackTargetTransInverse;
 	trackTargetTrans = translate(trackTargetTrans, -trackPosition);

@@ -1,7 +1,9 @@
 #include <nex/camera/FPCamera.hpp>
-#include <glm/glm.hpp>
 #include <nex/gui/Util.hpp>
 #include <imgui/imgui.h>
+#define GLM_ENABLE_EXPERIMENTAL 1
+#include <glm/glm.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 using namespace std;
 using namespace glm;
@@ -62,6 +64,12 @@ void nex::FPCamera::update(Input* input, float frameTime)
 	
 	//Camera::setLookDirection(direction);
 	doUserMovement(input, frameTime);
+
+	//smooth transition from current position to target position using lerping 
+	// A damping factor slows down speed over time.
+	static const float DAMPING = 1.0f;
+	const float alpha = std::clamp<float>(frameTime*2.0*DAMPING, 0.0f, 1.0f);
+	mCurrentPosition = glm::lerp<glm::vec3>(mCurrentPosition, mTargetPosition, glm::vec3(alpha));
 }
 
 float nex::FPCamera::getYaw() const
@@ -113,7 +121,7 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 	ImGui::DragFloat("far plane", &m_camera->perspFrustum.farPlane, 1.0f, 1.0f, 10000.0f);
 	ImGui::DragFloat("speed", &m_camera->cameraSpeed, 0.2f, 0.0f, 100.0f);
 
-	nex::gui::Vector3D(&m_camera->position, "Position");
+	nex::gui::Vector3D(&m_camera->mCurrentPosition, "Position");
 
 	m_camera->recalculateLookVector();
 	ImGui::PopID();

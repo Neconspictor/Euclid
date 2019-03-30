@@ -12,7 +12,7 @@ namespace nex
 
 	Projectional::Projectional(float aspectRatio, float fov, float perspNear, float perspFar, Frustum frustum,
 		vec3 look, vec3 position, vec3 up) : aspectRatio(aspectRatio), fov(fov),
-		m_logger("Projectional"), look(look), orthoFrustum(frustum), position(position),
+		m_logger("Projectional"), look(look), orthoFrustum(frustum), mCurrentPosition(position), mTargetPosition(position),
 		revalidate(true), up(up)
 	{
 		perspFrustum.nearPlane = perspNear;
@@ -22,8 +22,8 @@ namespace nex
 	void Projectional::calcView()
 	{
 		view = glm::lookAt(
-			position,
-			position + look,
+			mCurrentPosition,
+			mCurrentPosition + look,
 			up
 		);
 	}
@@ -135,7 +135,7 @@ namespace nex
 
 	const vec3& Projectional::getPosition() const
 	{
-		return position;
+		return mCurrentPosition;
 	}
 
 	const glm::vec3& Projectional::getRight() const
@@ -172,7 +172,7 @@ namespace nex
 	void Projectional::lookAt(vec3 location)
 	{
 		//setLook(location - position);
-		look = normalize(location - position);
+		look = normalize(location - mCurrentPosition);
 		revalidate = true;
 	}
 
@@ -228,7 +228,8 @@ namespace nex
 
 	void Projectional::setPosition(vec3 position)
 	{
-		this->position = move(position);
+		mCurrentPosition = move(position);
+		mTargetPosition = mCurrentPosition;
 		revalidate = true;
 	}
 

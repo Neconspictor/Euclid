@@ -107,7 +107,8 @@ namespace nex
 		glm::vec3 look;
 		Frustum orthoFrustum;
 		glm::mat4 orthographic;
-		glm::vec3 position;
+		glm::vec3 mCurrentPosition;
+		glm::vec3 mTargetPosition;
 		glm::mat4 perspective;
 		Frustum perspFrustum;
 		bool revalidate;

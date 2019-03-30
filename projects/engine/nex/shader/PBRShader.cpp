@@ -281,7 +281,7 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 {
 
 	Shader::mProgram = ShaderProgram::create(
-		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", cascadedShadow.generateCsmDefines());
+		"pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs_optimized.glsl", "", cascadedShadow.generateCsmDefines());
 
 	CommonLightingMaterial::init(Shader::mProgram.get());
 

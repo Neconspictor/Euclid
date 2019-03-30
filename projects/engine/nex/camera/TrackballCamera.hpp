@@ -73,14 +73,14 @@ namespace nex
 		 * NOTE: This function assumes a right handed coordination system with the positive y-axis as
 		 * the up direction.
 		 */
-		SphericalCoord cartesianToSpherical(glm::vec3 position, glm::vec3 lookTarget) const;
+		SphericalCoord cartesianToSpherical(const glm::vec3& position, const glm::vec3& lookTarget) const;
 
 		/**
 		 * Converts spherical coordindates (polar, azimuth, radius) to cartesian coordinates (x,y,z)
 		 * NOTE: This function assumes a right handed coordination system with the positive y-axis as
 		 * the up direction.
 		 */
-		glm::vec3 sphericalToCartesian(SphericalCoord sphericalCoord, glm::vec3 lookTarget = { 0,0,0 }) const;
+		glm::vec3 sphericalToCartesian(SphericalCoord sphericalCoord, const glm::vec3& lookTarget = { 0,0,0 }) const;
 
 		/**
 		 * Sets the value of a given pointer to a radian angle.

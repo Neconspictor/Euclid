@@ -146,28 +146,28 @@ namespace nex {
 	{
 		if (revalidate || alwaysUpdate)
 		{
-			glm::vec3 test2 = position;
+			glm::vec3 test2 = mCurrentPosition;
 			glm::vec3 test = glm::vec3(1.0, 0.0, 0.0);
 			test2 + test;
 
 			glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
 			// right plane
-			shadowMatrices[0] = shadowProj * glm::lookAt(position, position + glm::vec3(1.0, 0.0, 0.0),
+			shadowMatrices[0] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(1.0, 0.0, 0.0),
 				glm::vec3(0.0, -1.0, 0.0));
 			// left plane
-			shadowMatrices[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0),
+			shadowMatrices[1] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(-1.0, 0.0, 0.0),
 				glm::vec3(0.0, -1.0, 0.0));
 			// top plane
-			shadowMatrices[2] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 1.0, 0.0),
+			shadowMatrices[2] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(0.0, 1.0, 0.0),
 				glm::vec3(0.0, 0.0, 1.0));
 			// bottom plane
-			shadowMatrices[3] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, -1.0, 0.0),
+			shadowMatrices[3] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(0.0, -1.0, 0.0),
 				glm::vec3(0.0, 0.0, -1.0));
 			// front plane
-			shadowMatrices[4] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 0.0, 1.0),
+			shadowMatrices[4] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(0.0, 0.0, 1.0),
 				glm::vec3(0.0, -1.0, 0.0));
 			// back plane
-			shadowMatrices[5] = shadowProj * glm::lookAt(position, position + glm::vec3(0.0, 0.0, -1.0),
+			shadowMatrices[5] = shadowProj * glm::lookAt(mCurrentPosition, mCurrentPosition + glm::vec3(0.0, 0.0, -1.0),
 				glm::vec3(0.0, -1.0, 0.0));
 		}
 		Projectional::update();

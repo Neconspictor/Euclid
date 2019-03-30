@@ -62,5 +62,5 @@ void nex::FPCameraBase::doUserMovement(Input* input, float frameTime)
 		direction -= cameraUp;
 
 	if (length(direction) > 0)
-		position += moveAmount * normalize(direction);
+		mTargetPosition += moveAmount * normalize(direction);
 }

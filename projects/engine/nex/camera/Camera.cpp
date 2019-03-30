@@ -15,7 +15,8 @@ nex::Camera::Camera() : Projectional()
 
 nex::Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()
 {
-	this->position = std::move(position);
+	mCurrentPosition = std::move(position);
+	mTargetPosition = mCurrentPosition;
 	this->look = std::move(look);
 	this->up = std::move(up);
 }

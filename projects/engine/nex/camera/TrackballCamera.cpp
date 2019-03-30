@@ -51,7 +51,7 @@ const vec3& nex::TrackballCamera::getTrackPosition() const
 
 void nex::TrackballCamera::pan(float xPos, float zPos)
 {
-	setPosition({xPos, position.y, zPos});
+	setPosition({xPos, mCurrentPosition.y, zPos});
 }
 
 void nex::TrackballCamera::rotate(float polar, float azimuth)
@@ -81,7 +81,8 @@ void nex::TrackballCamera::setPolarAngle(float polar)
 
 void nex::TrackballCamera::setPosition(vec3 position)
 {
-	this->position = position;
+	mCurrentPosition = position;
+	mTargetPosition = mCurrentPosition;
 	updateSphericalCoords();
 	// update look direction
 	look = trackPosition - position;
@@ -119,7 +120,7 @@ void nex::TrackballCamera::update(Input* input, float frameTime)
 	LOG(m_logger, nex::Debug) << "coords after: " << degrees(coords.polar) << ", " << degrees(coords.azimuth) << ", " << coords.radius;
 }
 
-nex::TrackballCamera::SphericalCoord nex::TrackballCamera::cartesianToSpherical(vec3 position, vec3 lookTarget) const
+nex::TrackballCamera::SphericalCoord nex::TrackballCamera::cartesianToSpherical(const vec3& position, const vec3& lookTarget) const
 {
 	// Spherical coordinates are always relative to the look target, so shift the position relative to the origin.
 	// This step simplifies the calculation of later arccosines.
@@ -174,7 +175,7 @@ nex::TrackballCamera::SphericalCoord nex::TrackballCamera::cartesianToSpherical(
 	return { polar, azimuth, radius };
 }
 
-vec3 nex::TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, vec3 lookTarget) const
+vec3 nex::TrackballCamera::sphericalToCartesian(SphericalCoord sphericalCoord, const vec3& lookTarget) const
 {
 	const float& polar = sphericalCoord.polar;
 	const float& azimuth = sphericalCoord.azimuth;
@@ -233,12 +234,12 @@ void nex::TrackballCamera::updatePolar(float* sourceAngle, float newValue) const
 
 void nex::TrackballCamera::updateCartesianCoordinates()
 {
-	position = sphericalToCartesian(move(coords), move(trackPosition));
-	look = trackPosition - position;
+	mCurrentPosition = sphericalToCartesian(coords, trackPosition);
+	look = trackPosition - mCurrentPosition;
 }
 
 void nex::TrackballCamera::updateSphericalCoords()
 {
-	coords = cartesianToSpherical(move(position), move(trackPosition));
-	look = trackPosition - position;
+	coords = cartesianToSpherical(mCurrentPosition, move(trackPosition));
+	look = trackPosition - mCurrentPosition;
 }
