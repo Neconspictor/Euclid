@@ -139,7 +139,7 @@ nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, PBR_Deferre
 	m_camera(camera)
 {
 	m_logger.setPrefix("EditMode");
-	m_window->showCursor(false);
+	m_window->showCursor(true);
 }
 
 void nex::gui::EditMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)
@@ -162,7 +162,7 @@ nex::gui::CameraMode::CameraMode(nex::Window* window,
 m_window(window), m_camera(camera)
 {
 	m_logger.setPrefix("CameraMode");
-	m_window->showCursor(true);
+	m_window->showCursor(false);
 }
 
 void nex::gui::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, float frameTime)

@@ -3,11 +3,41 @@
 #include <nex/Window.hpp>
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
 
+#include <GLFW/glfw3.h>
+
 struct GLFWwindow;
 
 namespace nex
 {
 	class InputGLFW;
+
+	enum class StandardCursorTypeGLFW
+	{
+		Arrow = GLFW_ARROW_CURSOR,
+		Hand = GLFW_HAND_CURSOR,
+		TextIBeam = GLFW_IBEAM_CURSOR,
+		CrossHair = GLFW_CROSSHAIR_CURSOR,
+		HorizontalResize = GLFW_HRESIZE_CURSOR,
+		VerticalResize = GLFW_VRESIZE_CURSOR
+	};
+
+	StandardCursorTypeGLFW translate(StandardCursorType type);
+
+	class Cursor::Impl 
+	{
+	public:
+		Impl(StandardCursorTypeGLFW shape);
+		~Impl();
+		Impl(const Impl&) = delete;
+		Impl(Impl&&) = delete;
+		Impl& operator=(const Impl&) = delete;
+		Impl& operator=(Impl&&) = delete;
+
+		GLFWcursor* getCursor();
+
+	private:
+		GLFWcursor* mCursor;
+	};
 
 	class WindowGLFW : public Window
 	{
@@ -24,6 +54,8 @@ namespace nex
 
 
 		void close() override;
+
+		const Cursor* getCursor() const override;
 
 		void* getNativeWindow() override;
 
@@ -46,6 +78,9 @@ namespace nex
 		void reopen() override;
 
 		void resize(unsigned newWidth, unsigned newHeight) override;
+
+		void setCursor(Cursor* cursor) override;
+
 		void setCursorPosition(int xPos, int yPos) override;
 		void setFocus(bool focus);
 		void setFullscreen() override;
@@ -80,6 +115,7 @@ namespace nex
 		GLFWwindow* window;
 		InputGLFW inputDevice;
 		bool m_hasFocus;
+		Cursor* mCursor;
 
 		void createOpenGLWindow();
 	};

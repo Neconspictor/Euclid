@@ -44,7 +44,6 @@ namespace nex::gui
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		memset(g_MouseCursors, 0, sizeof(g_MouseCursors));
 		std::fill(g_MouseJustPressed, g_MouseJustPressed + 3, false);
 
 		init();
@@ -55,11 +54,7 @@ namespace nex::gui
 		// Destroy GLFW mouse cursors
 		if (!SubSystemProviderGLFW::get()->isTerminated())
 		{
-			for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
-				glfwDestroyCursor(g_MouseCursors[cursor_n]);
 		}
-
-		memset(g_MouseCursors, 0, sizeof(g_MouseCursors));
 
 		//ImGui_ImplGlfwGL3_InvalidateDeviceObjects  // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -127,8 +122,9 @@ namespace nex::gui
 			}
 			else
 			{
-				glfwSetCursor(window->getSource(), g_MouseCursors[cursor] ? g_MouseCursors[cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
-				glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				window->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
+				window->showCursor(true);
+				//glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 		}
 
@@ -329,13 +325,13 @@ namespace nex::gui
 
 		// Load cursors
 		// FIXME: GLFW doesn't expose suitable cursors for ResizeAll, ResizeNESW, ResizeNWSE. We revert to arrow cursor for those.
-		g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-		g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+		mMouseCursors[ImGuiMouseCursor_Arrow] = std::make_unique<Cursor>(StandardCursorType::Arrow);
+		mMouseCursors[ImGuiMouseCursor_TextInput] = std::make_unique<Cursor>(StandardCursorType::TextIBeam);
+		mMouseCursors[ImGuiMouseCursor_ResizeAll] = std::make_unique<Cursor>(StandardCursorType::Arrow);
+		mMouseCursors[ImGuiMouseCursor_ResizeNS] = std::make_unique<Cursor>(StandardCursorType::VerticalResize);
+		mMouseCursors[ImGuiMouseCursor_ResizeEW] = std::make_unique<Cursor>(StandardCursorType::HorizontalResize);
+		mMouseCursors[ImGuiMouseCursor_ResizeNESW] = std::make_unique<Cursor>(StandardCursorType::Arrow);
+		mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 
 		InputGLFW& input = dynamic_cast<InputGLFW&>(*window->getInputDevice());
 

@@ -99,6 +99,11 @@ void NeXEngine::init()
 		std::unique_ptr<nex::gui::Drawable>()));
 
 	m_window->activate();
+
+	mCursor = std::make_unique<Cursor>(StandardCursorType::Hand);
+	m_window->setCursor(mCursor.get());
+
+
 	m_renderer->init(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
 	m_controllerSM->init();
 	setupCamera();

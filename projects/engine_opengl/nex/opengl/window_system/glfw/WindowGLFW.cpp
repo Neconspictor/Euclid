@@ -16,12 +16,58 @@ using namespace std;
 using namespace nex;
 
 
+Cursor::Cursor(StandardCursorType type) : mPimpl(std::make_unique<Impl>(translate(type))){}
+
+Cursor::~Cursor() = default;
+
+Cursor::Impl* Cursor::getImpl()
+{
+	return mPimpl.get();
+}
+
+StandardCursorTypeGLFW nex::translate(StandardCursorType type)
+{
+	static StandardCursorTypeGLFW table[]
+	{
+		StandardCursorTypeGLFW::Arrow,
+		StandardCursorTypeGLFW::Hand,
+		StandardCursorTypeGLFW::TextIBeam,
+		StandardCursorTypeGLFW::CrossHair,
+		StandardCursorTypeGLFW::HorizontalResize,
+		StandardCursorTypeGLFW::VerticalResize,
+	};
+
+	static const auto tableSize = sizeof(table) / sizeof(StandardCursorTypeGLFW);
+	static const auto targetSize = static_cast<unsigned>(StandardCursorType::LAST) - static_cast<unsigned>(StandardCursorType::FIRST) + 1;
+	static_assert(tableSize == targetSize, "StandardCursorType and StandardCursorTypeGLFW don't match!");
+
+	return table[static_cast<unsigned>(type)];
+}
+
+Cursor::Impl::Impl(StandardCursorTypeGLFW shape) : mCursor(nullptr)
+{
+	mCursor = glfwCreateStandardCursor(static_cast<int>(shape));
+	assert(mCursor != nullptr);
+}
+
+Cursor::Impl::~Impl()
+{
+	if (mCursor != nullptr)
+		glfwDestroyCursor(mCursor);
+	mCursor = nullptr;
+}
+
+GLFWcursor* Cursor::Impl::getCursor()
+{
+	return mCursor;
+}
+
 WindowGLFW::WindowGLFW(WindowStruct const& desc) :
-	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true)
+	Window(desc), window(nullptr), inputDevice(this), m_hasFocus(true), mCursor(nullptr)
 {
 }
 
-WindowGLFW::WindowGLFW(WindowGLFW && o) : Window(move(o)), inputDevice(move(o.inputDevice))
+WindowGLFW::WindowGLFW(WindowGLFW && o) : Window(move(o)), inputDevice(move(o.inputDevice)),mCursor(std::exchange(o.mCursor, nullptr))
 {
 	window = o.window;
 	inputDevice.setWindow(this);
@@ -38,6 +84,7 @@ WindowGLFW & WindowGLFW::operator=(WindowGLFW && o)
 	m_hasFocus = o.m_hasFocus;
 
 	o.window = nullptr;
+	mCursor = std::exchange(o.mCursor, nullptr);
 
 	return *this;
 }
@@ -60,6 +107,17 @@ void WindowGLFW::close()
 		//inputDevice.removeCallbacks();
 	}
 
+}
+
+const Cursor* WindowGLFW::getCursor() const
+{
+	return mCursor;
+}
+
+void WindowGLFW::setCursor(Cursor* cursor)
+{
+	assert(cursor != nullptr);
+	glfwSetCursor(window, cursor->getImpl()->getCursor());
 }
 
 void* WindowGLFW::getNativeWindow()
@@ -226,9 +284,9 @@ void WindowGLFW::setWindowed()
 void WindowGLFW::showCursor(bool show)
 {
 	if (show) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	} else {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	} else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
 }
 

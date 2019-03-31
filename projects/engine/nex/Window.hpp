@@ -7,6 +7,39 @@ namespace nex
 
 	class WindowFocusListener;
 	class Input;
+	class Window;
+
+	enum class StandardCursorType
+	{
+		Arrow, FIRST = Arrow,
+		Hand,
+		TextIBeam,
+		CrossHair,
+		HorizontalResize,
+		VerticalResize, LAST = VerticalResize
+	};
+
+	class Cursor
+	{
+	public:
+		/**
+		 * Creates a cursor with a standard type visual.
+		 */
+		Cursor(StandardCursorType type);
+		~Cursor();
+
+		Cursor(const Cursor&) = delete;
+		Cursor(Cursor&&) = delete;
+		Cursor& operator=(const Cursor&) = delete;
+		Cursor& operator=(Cursor&&) = delete;
+
+		class Impl;
+
+		Impl* getImpl();
+
+	private:
+		std::unique_ptr<Impl> mPimpl;
+	};
 
 	/**
 	 * A window is a render target where a renderer executes draw calls on.
@@ -123,6 +156,11 @@ namespace nex
 		virtual void close() = 0;
 
 		/**
+		 * Provides the active cursor.
+		 */
+		virtual const Cursor* getCursor() const = 0;
+
+		/**
 		* Provides access to the underlying input device.
 		* With that device input actions can be queried from the user.
 		*/
@@ -203,6 +241,11 @@ namespace nex
 		* Updates the width and height of this window.
 		*/
 		virtual void resize(unsigned newWidth, unsigned newHeight) = 0;
+
+		/**
+		 * Sets the active cursor.
+		 */
+		virtual void setCursor(Cursor* cursor) = 0;
 
 		/**
 		 * Sets the cursor to a specified position (xPos, yPos)

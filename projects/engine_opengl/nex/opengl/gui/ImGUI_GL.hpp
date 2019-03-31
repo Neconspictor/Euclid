@@ -20,6 +20,12 @@ namespace nex::gui
 	public:
 		ImGUI_GL(WindowGLFW& window, std::string glsl_version = "#version 150");
 
+		ImGUI_GL(const ImGUI_GL&) = delete;
+		ImGUI_GL& operator=(const ImGUI_GL&) = delete;
+
+		ImGUI_GL(ImGUI_GL&& o) = delete;
+		ImGUI_GL& operator=(ImGUI_GL&& o) = delete;
+
 		virtual ~ImGUI_GL();
 
 		void newFrame(float frameTime) override;
@@ -42,7 +48,7 @@ namespace nex::gui
 	protected:
 		WindowGLFW* window;
 		std::string glsl_version;
-		GLFWcursor*  g_MouseCursors[ImGuiMouseCursor_COUNT];
+		std::unique_ptr<Cursor> mMouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];
 		GLuint g_FontTexture;
 		GLuint g_ShaderHandle;

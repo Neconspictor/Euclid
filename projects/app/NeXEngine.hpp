@@ -11,6 +11,7 @@ namespace nex
 {
 	class SubSystemProvider;
 	class SubSystemProviderGLFW;
+	class Cursor;
 
 	class NeXEngine
 	{
@@ -49,6 +50,7 @@ namespace nex
 		SubSystemProvider* m_windowSystem;
 		std::unique_ptr<gui::ImGUI_Impl> m_gui;
 		Window* m_window;
+		std::unique_ptr<Cursor> mCursor;
 		Input* m_input;
 		std::string m_baseTitle;
 		Timer m_timer;
