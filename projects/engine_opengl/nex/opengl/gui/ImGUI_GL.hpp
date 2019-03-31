@@ -4,12 +4,10 @@
 #include <glad/glad.h>
 #include <nex/common/Log.hpp>
 
-
-struct GLFWcursor;
-
 namespace nex
 {
-	class WindowGLFW;
+	class Window;
+	class Cursor;
 }
 
 namespace nex::gui
@@ -18,7 +16,7 @@ namespace nex::gui
 	class ImGUI_GL : public gui::ImGUI_Impl
 	{
 	public:
-		ImGUI_GL(WindowGLFW& window, std::string glsl_version = "#version 150");
+		ImGUI_GL(nex::Window* window, std::string glsl_version = "#version 150");
 
 		ImGUI_GL(const ImGUI_GL&) = delete;
 		ImGUI_GL& operator=(const ImGUI_GL&) = delete;
@@ -46,7 +44,7 @@ namespace nex::gui
 		void createFontsTexture();
 
 	protected:
-		WindowGLFW* window;
+		nex::Window* mWindow;
 		std::string glsl_version;
 		std::unique_ptr<Cursor> mMouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];

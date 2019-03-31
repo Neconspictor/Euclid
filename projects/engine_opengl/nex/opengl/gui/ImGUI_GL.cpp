@@ -1,36 +1,13 @@
-
-#include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/gui/ImGUI_GL.hpp>
 #include <nex/opengl/opengl.hpp>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <nex/opengl/window_system/glfw/InputGLFW.hpp>
-
-#ifdef _WIN32
-#undef APIENTRY
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_EXPOSE_NATIVE_WGL
-#include <GLFW/glfw3native.h>
-#endif
-
-// GLFW data
-/*static GLFWwindow*  g_Window = NULL;
-static double       g_Time = 0.0;
-static bool         g_MouseJustPressed[3] = { false, false, false };
-
-// OpenGL3 data
-static GLuint       g_FontTexture = 0;
-static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
-static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
-static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
-static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;*/
+#include <nex/Window.hpp>
+#include <nex/Input.hpp>
 
 namespace nex::gui
 {
-	ImGUI_GL::ImGUI_GL(WindowGLFW& window, std::string glsl_version) :
-		window(&window),
+	ImGUI_GL::ImGUI_GL(nex::Window* window, std::string glsl_version) :
+		mWindow(window),
 		glsl_version(move(glsl_version)),
 		g_FontTexture(GL_FALSE),
 		g_ShaderHandle(0), g_VertHandle(0), g_FragHandle(0),
@@ -39,7 +16,7 @@ namespace nex::gui
 		g_VboHandle(0), g_ElementsHandle(0),
 		m_logger("ImGUI_GL")
 	{
-		window.activate();
+		mWindow->activate();
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -51,11 +28,6 @@ namespace nex::gui
 
 	ImGUI_GL::~ImGUI_GL()
 	{
-		// Destroy GLFW mouse cursors
-		if (!SubSystemProviderGLFW::get()->isTerminated())
-		{
-		}
-
 		//ImGui_ImplGlfwGL3_InvalidateDeviceObjects  // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		ImGui::DestroyContext();
@@ -69,13 +41,13 @@ namespace nex::gui
 		ImGuiIO& io = ImGui::GetIO();
 
 		// Setup display size (every frame to accommodate for window resizing)
-		const auto width = window->getFrameBufferWidth();
-		const auto height = window->getFrameBufferHeight();
-		const auto frameBufferW = window->getFrameBufferWidth();
-		const auto frameBufferH = window->getFrameBufferHeight();
+		const auto width = mWindow->getFrameBufferWidth();
+		const auto height = mWindow->getFrameBufferHeight();
+		const auto frameBufferW = mWindow->getFrameBufferWidth();
+		const auto frameBufferH = mWindow->getFrameBufferHeight();
 		
 
-		const auto* input = window->getInputDevice();
+		const auto* input = mWindow->getInputDevice();
 
 		io.DisplaySize = ImVec2((float)width, (float)height);
 		io.DisplayFramebufferScale = ImVec2(width > 0 ? ((float)frameBufferW / width) : 0, height > 0 ? ((float)frameBufferH / height) : 0);
@@ -84,17 +56,16 @@ namespace nex::gui
 		io.DeltaTime = frameTime;
 
 		// Setup inputs		
-		if (window->hasFocus())
+		if (mWindow->hasFocus())
 		{
 			// Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
 			if (io.WantSetMousePos)
 			{
-				//glfwSetCursorPos(window->getSource(), (double)io.MousePos.x, (double)io.MousePos.y);
-				window->setCursorPosition(io.MousePos.x, io.MousePos.y);
+				mWindow->setCursorPosition(io.MousePos.x, io.MousePos.y);
 			}
 			else
 			{
-				const auto& mouseData = window->getInputDevice()->getFrameMouseOffset();
+				const auto& mouseData = mWindow->getInputDevice()->getFrameMouseOffset();
 				io.MousePos = ImVec2((float)mouseData.xAbsolute, (float)mouseData.yAbsolute);
 			}
 		}
@@ -113,19 +84,17 @@ namespace nex::gui
 
 		//TODO use input class
 		// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
-		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && window->getCursorState() != CursorState::Disabled)
+		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && mWindow->getCursorState() != CursorState::Disabled)
 		{
 			ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
 			if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
 			{
-				//glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-				window->showCursor(CursorState::Hidden);
+				mWindow->showCursor(CursorState::Hidden);
 			}
 			else
 			{
-				window->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
-				window->showCursor(CursorState::Normal);
-				//glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				mWindow->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
+				mWindow->showCursor(CursorState::Normal);
 			}
 		}
 
@@ -133,34 +102,8 @@ namespace nex::gui
 		memset(io.NavInputs, 0, sizeof(io.NavInputs));
 		if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
 		{
-			// Update gamepad inputs
-#define MAP_BUTTON(NAV_NO, BUTTON_NO)       { if (buttons_count > BUTTON_NO && buttons[BUTTON_NO] == GLFW_PRESS) io.NavInputs[NAV_NO] = 1.0f; }
-#define MAP_ANALOG(NAV_NO, AXIS_NO, V0, V1) { float v = (axes_count > AXIS_NO) ? axes[AXIS_NO] : V0; v = (v - V0) / (V1 - V0); if (v > 1.0f) v = 1.0f; if (io.NavInputs[NAV_NO] < v) io.NavInputs[NAV_NO] = v; }
-			int axes_count = 0, buttons_count = 0;
-			const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axes_count);
-			const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttons_count);
-			MAP_BUTTON(ImGuiNavInput_Activate, 0);     // Cross / A
-			MAP_BUTTON(ImGuiNavInput_Cancel, 1);     // Circle / B
-			MAP_BUTTON(ImGuiNavInput_Menu, 2);     // Square / X
-			MAP_BUTTON(ImGuiNavInput_Input, 3);     // Triangle / Y
-			MAP_BUTTON(ImGuiNavInput_DpadLeft, 13);    // D-Pad Left
-			MAP_BUTTON(ImGuiNavInput_DpadRight, 11);    // D-Pad Right
-			MAP_BUTTON(ImGuiNavInput_DpadUp, 10);    // D-Pad Up
-			MAP_BUTTON(ImGuiNavInput_DpadDown, 12);    // D-Pad Down
-			MAP_BUTTON(ImGuiNavInput_FocusPrev, 4);     // L1 / LB
-			MAP_BUTTON(ImGuiNavInput_FocusNext, 5);     // R1 / RB
-			MAP_BUTTON(ImGuiNavInput_TweakSlow, 4);     // L1 / LB
-			MAP_BUTTON(ImGuiNavInput_TweakFast, 5);     // R1 / RB
-			MAP_ANALOG(ImGuiNavInput_LStickLeft, 0, -0.3f, -0.9f);
-			MAP_ANALOG(ImGuiNavInput_LStickRight, 0, +0.3f, +0.9f);
-			MAP_ANALOG(ImGuiNavInput_LStickUp, 1, +0.3f, +0.9f);
-			MAP_ANALOG(ImGuiNavInput_LStickDown, 1, -0.3f, -0.9f);
-#undef MAP_BUTTON
-#undef MAP_ANALOG
-			if (axes_count > 0 && buttons_count > 0)
-				io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-			else
-				io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+			// For now we don't support gamepads
+			io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
 		}
 
 		// Start the frame. This call will update the io.WantCaptureMouse, io.WantCaptureKeyboard flag that you can use to dispatch inputs (or not) to your application.
@@ -295,33 +238,33 @@ namespace nex::gui
 		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
 
 																// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
-		io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
-		io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
-		io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
-		io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
-		io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
-		io.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
-		io.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
-		io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
-		io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
-		io.KeyMap[ImGuiKey_Insert] = GLFW_KEY_INSERT;
-		io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
-		io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
-		io.KeyMap[ImGuiKey_Space] = GLFW_KEY_SPACE;
-		io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-		io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
-		io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
-		io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
-		io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
-		io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
-		io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
-		io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
+		io.KeyMap[ImGuiKey_Tab] = Input::Key::KEY_TAB;
+		io.KeyMap[ImGuiKey_LeftArrow] = Input::Key::KEY_LEFT;
+		io.KeyMap[ImGuiKey_RightArrow] = Input::Key::KEY_RIGHT;
+		io.KeyMap[ImGuiKey_UpArrow] = Input::Key::KEY_UP;
+		io.KeyMap[ImGuiKey_DownArrow] = Input::Key::KEY_DOWN;
+		io.KeyMap[ImGuiKey_PageUp] = Input::Key::KEY_PAGEUP;
+		io.KeyMap[ImGuiKey_PageDown] = Input::Key::KEY_PAGEDOWN;
+		io.KeyMap[ImGuiKey_Home] = Input::Key::KEY_HOME;
+		io.KeyMap[ImGuiKey_End] = Input::Key::KEY_END;
+		io.KeyMap[ImGuiKey_Insert] = Input::Key::KEY_INSERT;
+		io.KeyMap[ImGuiKey_Delete] = Input::Key::KEY_DELETE;
+		io.KeyMap[ImGuiKey_Backspace] = Input::Key::KEY_BACKSPACE;
+		io.KeyMap[ImGuiKey_Space] = Input::Key::KEY_SPACE;
+		io.KeyMap[ImGuiKey_Enter] = Input::Key::KEY_RETURN;
+		io.KeyMap[ImGuiKey_Escape] = Input::Key::KEY_ESCAPE;
+		io.KeyMap[ImGuiKey_A] = Input::Key::KEY_A;
+		io.KeyMap[ImGuiKey_C] = Input::Key::KEY_C;
+		io.KeyMap[ImGuiKey_V] = Input::Key::KEY_V;
+		io.KeyMap[ImGuiKey_X] = Input::Key::KEY_X;
+		io.KeyMap[ImGuiKey_Y] = Input::Key::KEY_Y;
+		io.KeyMap[ImGuiKey_Z] = Input::Key::KEY_Z;
 
 		io.SetClipboardTextFn = ImGUI_GL::setClipboardText;
 		io.GetClipboardTextFn = ImGUI_GL::getClipboardText;
-		io.ClipboardUserData = window->getInputDevice();
+		io.ClipboardUserData = mWindow->getInputDevice();
 #ifdef _WIN32
-		io.ImeWindowHandle = glfwGetWin32Window(window->getSource());
+		io.ImeWindowHandle = mWindow->getNativeWindow();
 #endif
 
 		// Load cursors
@@ -334,45 +277,39 @@ namespace nex::gui
 		mMouseCursors[ImGuiMouseCursor_ResizeNESW] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 		mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = std::make_unique<Cursor>(StandardCursorType::Arrow);
 
-		InputGLFW& input = dynamic_cast<InputGLFW&>(*window->getInputDevice());
+		auto* input = mWindow->getInputDevice();
 
-		input.registerMouseCallback([&](GLFWwindow* window, int button, int action, int mods) {
-			//std::cout << "mouse button callback: button: " << button << ", action: " << action << ", mods: " << mods  << std::endl;
-
-			if (action == GLFW_PRESS && button >= 0 && button < 3)
+		input->addMouseCallback([&](Input::Button button, Input::InputItemState state, int mods)
+		{
+			if (state == Input::Pressed)
 				this->g_MouseJustPressed[button] = true;
 		});
 
-		input.addScrollCallback([](double scrollX, double scrollY) {
+		input->addScrollCallback([](double scrollX, double scrollY) {
 			//std::cout << "scroll callback: scrollX: " << scrollX << ", scrollY: " << scrollY << std::endl;
 			ImGuiIO& io = ImGui::GetIO();
 			io.MouseWheelH += (float)scrollX;
 			io.MouseWheel += (float)scrollY;
 		});
 
-		input.registerCharModsCallback([](GLFWwindow* window, unsigned int codepoint, int mods) {
-			//std::cout << "char mods callback: codepoint: " << codepoint << ", mods: " << mods << std::endl;
-
+		input->addCharCallback([&](unsigned int codepoint, int mods)
+		{
 			ImGuiIO& io = ImGui::GetIO();
 			if (codepoint > 0 && codepoint < 0x10000)
 				io.AddInputCharacter((unsigned short)codepoint);
 		});
 
-		//void(GLFWwindow*, int, int, int, int);
-		input.registerKeyCallback([](GLFWwindow* window, int key, int scancode, int action, int mods) {
-			//std::cout << "key callback: key=" << key << ", scancode: " << scancode << ", action= " << action << ", mods= " << mods << std::endl;
-
+		input->addKeyCallback([&](Input::Key key, Input::InputItemState state, int scancode, int mods)
+		{
 			ImGuiIO& io = ImGui::GetIO();
-			if (action == GLFW_PRESS)
+			if (state == Input::Down)
 				io.KeysDown[key] = true;
-			if (action == GLFW_RELEASE)
-				io.KeysDown[key] = false;
 
 			(void)mods; // Modifiers are not reliable across systems
-			io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-			io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-			io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-			io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+			io.KeyCtrl = io.KeysDown[Input::Key::KEY_LEFT_CONTROL] || io.KeysDown[Input::KEY_RIGHT_CONTROL];
+			io.KeyShift = io.KeysDown[Input::Key::KEY_LEFT_SHIFT] || io.KeysDown[Input::Key::KEY_RIGHT_SHIFT];
+			io.KeyAlt = io.KeysDown[Input::Key::KEY_LEFT_ALT] || io.KeysDown[Input::Key::KEY_RIGHT_ALT];
+			io.KeySuper = io.KeysDown[Input::Key::KEY_LEFT_SUPER] || io.KeysDown[Input::Key::KEY_RIGHT_SUPER];
 		});
 
 
