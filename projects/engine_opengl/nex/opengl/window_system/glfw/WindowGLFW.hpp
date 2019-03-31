@@ -21,7 +21,16 @@ namespace nex
 		VerticalResize = GLFW_VRESIZE_CURSOR
 	};
 
+	enum class CursorStateGLFW
+	{
+		Disabled = GLFW_CURSOR_DISABLED,
+		Hidden = GLFW_CURSOR_HIDDEN,
+		Normal = GLFW_CURSOR_NORMAL,
+	};
+
 	StandardCursorTypeGLFW translate(StandardCursorType type);
+	CursorStateGLFW translate(CursorState state);
+	CursorState translate(CursorStateGLFW state);
 
 	class Cursor::Impl 
 	{
@@ -56,6 +65,8 @@ namespace nex
 		void close() override;
 
 		const Cursor* getCursor() const override;
+
+		CursorState getCursorState() const override;
 
 		void* getNativeWindow() override;
 
@@ -102,7 +113,7 @@ namespace nex
 		void setVisible(bool visible) override;
 		void setVsync(bool vsync) override;
 		void setWindowed() override;
-		void showCursor(bool show) override;
+		void showCursor(CursorState state) override;
 		void swapBuffers() override;
 
 

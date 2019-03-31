@@ -19,6 +19,13 @@ namespace nex
 		VerticalResize, LAST = VerticalResize
 	};
 
+	enum class CursorState
+	{
+		Disabled, FIRST = Disabled,
+		Hidden,
+		Normal, LAST = Normal
+	};
+
 	class Cursor
 	{
 	public:
@@ -160,6 +167,8 @@ namespace nex
 		 */
 		virtual const Cursor* getCursor() const = 0;
 
+		virtual CursorState getCursorState() const = 0;
+
 		/**
 		* Provides access to the underlying input device.
 		* With that device input actions can be queried from the user.
@@ -287,7 +296,7 @@ namespace nex
 		/**
 		 * Specifies , whether the cursor should be displayed in this window
 		 */
-		virtual void showCursor(bool show) = 0;
+		virtual void showCursor(CursorState state) = 0;
 
 		/**
 		 * Swaps the buffers of the graphics card, the content of this Window is send to.

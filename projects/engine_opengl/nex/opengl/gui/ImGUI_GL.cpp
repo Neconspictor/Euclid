@@ -113,17 +113,18 @@ namespace nex::gui
 
 		//TODO use input class
 		// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
-		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && glfwGetInputMode(window->getSource(), GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
+		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && window->getCursorState() != CursorState::Disabled)
 		{
 			ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
 			if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
 			{
-				glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				//glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				window->showCursor(CursorState::Hidden);
 			}
 			else
 			{
 				window->setCursor(mMouseCursors[cursor].get() ? mMouseCursors[cursor].get() : mMouseCursors[ImGuiMouseCursor_Arrow].get());
-				window->showCursor(true);
+				window->showCursor(CursorState::Normal);
 				//glfwSetInputMode(window->getSource(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 		}

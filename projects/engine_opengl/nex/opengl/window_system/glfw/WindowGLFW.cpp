@@ -44,6 +44,37 @@ StandardCursorTypeGLFW nex::translate(StandardCursorType type)
 	return table[static_cast<unsigned>(type)];
 }
 
+CursorStateGLFW nex::translate(CursorState state)
+{
+	static CursorStateGLFW table[]
+	{
+		CursorStateGLFW::Disabled,
+		CursorStateGLFW::Hidden,
+		CursorStateGLFW::Normal,
+	};
+
+	static const auto tableSize = sizeof(table) / sizeof(CursorStateGLFW);
+	static const auto targetSize = static_cast<unsigned>(CursorState::LAST) - static_cast<unsigned>(CursorState::FIRST) + 1;
+	static_assert(tableSize == targetSize, "CursorState and CursorStateGLFW don't match!");
+
+	return table[static_cast<unsigned>(state)];
+}
+
+CursorState nex::translate(CursorStateGLFW state)
+{
+	static const std::map<CursorStateGLFW, CursorState> table = {
+		{CursorStateGLFW::Disabled, CursorState::Disabled},
+		{CursorStateGLFW::Hidden, CursorState::Hidden},
+		{CursorStateGLFW::Normal, CursorState::Normal}
+	};
+
+	static const auto tableSize = 3;
+	static const auto targetSize = static_cast<unsigned>(CursorState::LAST) - static_cast<unsigned>(CursorState::FIRST) + 1;
+	static_assert(tableSize == targetSize, "CursorStateGLFW and CursorState don't match!");
+
+	return table.at(state);
+}
+
 Cursor::Impl::Impl(StandardCursorTypeGLFW shape) : mCursor(nullptr)
 {
 	mCursor = glfwCreateStandardCursor(static_cast<int>(shape));
@@ -112,6 +143,12 @@ void WindowGLFW::close()
 const Cursor* WindowGLFW::getCursor() const
 {
 	return mCursor;
+}
+
+CursorState WindowGLFW::getCursorState() const
+{
+	auto stateGLFW = glfwGetInputMode(window, GLFW_CURSOR);
+	return translate(static_cast<CursorStateGLFW>(stateGLFW));
 }
 
 void WindowGLFW::setCursor(Cursor* cursor)
@@ -281,13 +318,9 @@ void WindowGLFW::setWindowed()
 	refreshWindowWithoutCallbacks();
 }
 
-void WindowGLFW::showCursor(bool show)
+void WindowGLFW::showCursor(CursorState state)
 {
-	if (show) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	} else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	}
+	glfwSetInputMode(window, GLFW_CURSOR, static_cast<int>(translate(state)));
 }
 
 void WindowGLFW::swapBuffers()
