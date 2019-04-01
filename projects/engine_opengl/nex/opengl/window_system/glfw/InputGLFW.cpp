@@ -220,13 +220,7 @@ nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o
 	downButtons = move(o.downButtons);
 	pressedButtons = move(o.pressedButtons);
 	releasedButtons = move(o.releasedButtons);
-
-	charModsCallbacks = move(o.charModsCallbacks);
 	keyCallbacks = move(o.keyCallbacks);
-
-	//refreshCallbacks = move(o.refreshCallbacks);
-
-	//o.window = nullptr;
 }
 
 nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
@@ -245,11 +239,7 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 	downButtons = move(o.downButtons);
 	pressedButtons = move(o.pressedButtons);
 	releasedButtons = move(o.releasedButtons);
-
-	charModsCallbacks = move(o.charModsCallbacks);
 	keyCallbacks = move(o.keyCallbacks);
-
-	//refreshCallbacks = move(o.refreshCallbacks);
 
 	o.window = nullptr;
 
@@ -258,22 +248,10 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 
 void nex::InputGLFW::charModsInputHandler(GLFWwindow * window, unsigned int codepoint, int mods)
 {
-	/*vector<unsigned char> utf8Result;
-
-	utf8::utf32to8(&codepoint, &codepoint + 1, back_inserter(utf8Result));
-
-	stringstream ss;
-	for (char c : utf8Result)
-	{
-	ss << c;
-	}
-
-	cout << " WindowGLFW::charModsInputHandler(): " << ss.str() << endl;*/
-
 	InputGLFW* input = static_cast<InputGLFW*>(glfwGetWindowUserPointer(window));
 	if (input == nullptr || !input->areCallbacksActive()) return;
 
-	input->onCharMods(codepoint, mods);
+	input->informCharListeners(codepoint, mods);
 }
 
 void nex::InputGLFW::closeWindowCallbackHandler(GLFWwindow* window)
@@ -497,14 +475,6 @@ bool nex::InputGLFW::isReleased(Key key) const
 	return releasedKeys.find(glfwKey) != releasedKeys.end();
 }
 
-void nex::InputGLFW::onCharMods(unsigned int codepoint, int mods)
-{
-	for (auto& c : charModsCallbacks)
-	{
-		c(window->getSource(), codepoint, mods);
-	}
-}
-
 void nex::InputGLFW::onKey(int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
@@ -584,11 +554,6 @@ void nex::InputGLFW::onMouse(int button, int action, int mods)
 	}
 
 	informMouseListeners(inputButton, state, mods);
-}
-
-void nex::InputGLFW::registerCharModsCallback(function<CharModsCallback> callback)
-{
-	charModsCallbacks.push_back(callback);
 }
 
 void nex::InputGLFW::registerKeyCallback(function<KeyCallback> callback)

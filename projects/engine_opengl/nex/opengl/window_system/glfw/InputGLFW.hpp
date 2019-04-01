@@ -99,15 +99,9 @@ namespace nex
 		bool isReleased(Button button) const override;
 		bool isReleased(Key key) const override;
 
-
-		void onCharMods(unsigned int codepoint, int mods);
 		void onKey(int key, int scancode, int action, int mods);
 		void onMouse(int button, int action, int mods);
 
-		// This callbacks are primarily for classes using GLFW (e.g. GUI classes)
-		// TODO: Maybe refactor it probably, so that the input base class provides this
-		// functionality
-		void registerCharModsCallback(std::function<CharModsCallback> callback);
 		void registerKeyCallback(std::function<KeyCallback> callback);
 
 		void resetForFrame();
@@ -134,8 +128,6 @@ namespace nex
 		std::unordered_set<int> pressedButtons;
 		std::unordered_set<int> releasedButtons;
 
-
-		std::list<std::function<CharModsCallback>> charModsCallbacks;
 		std::list<std::function<KeyCallback>> keyCallbacks;
 	};
 }

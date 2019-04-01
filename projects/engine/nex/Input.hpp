@@ -36,6 +36,7 @@ namespace nex
 		using VirtualDimesionResizeCallbacks = CallbackCollection<void(unsigned width, unsigned height)>;
 		using FrameBufferResizeCallbacks = CallbackCollection<void(unsigned frameBufferWidth, unsigned frameBufferHeight)>;
 		using MouseCallbacks = CallbackCollection<void(Input::Button button, Input::InputItemState state, int mods)>;
+		using CharCallbacks = CallbackCollection<void(unsigned int codepoint, int mods)>;
 
 
 		/**
@@ -477,11 +478,19 @@ namespace nex
 		VirtualDimesionResizeCallbacks::Handle addVirtualDimensionResizeCallback(const VirtualDimesionResizeCallbacks::Callback& callback);
 
 		/**
+		 * Adds a character callback.
+		 */
+		CharCallbacks::Handle addCharCallback(const CharCallbacks::Callback& callback);
+
+		/**
 		* Adds a callback to the window's framebuffer resize events. Every time, when the framebuffer is resized,
 		* the callback will be called.
 		*/
 		FrameBufferResizeCallbacks::Handle addFrameBufferResizeCallback(const FrameBufferResizeCallbacks::Callback& callback);
 
+		/**
+		 * Adds a mouse callback.
+		 */
 		MouseCallbacks::Handle addMouseCallback(const MouseCallbacks::Callback& callback);
 
 		/**
@@ -539,6 +548,11 @@ namespace nex
 
 		virtual Window* getWindow() = 0;
 
+
+		/**
+		* Calls all registered character callbacks.
+		*/
+		void informCharListeners(unsigned codepoint, int mods);
 
 		/**
 		* Calls all registered mouse callbacks.
@@ -614,6 +628,11 @@ namespace nex
 		virtual bool isReleased(Key key) const  = 0;
 
 		/**
+		* Removes a given character callback.
+		*/
+		void removeCharCallback(const CharCallbacks::Handle& handle);
+
+		/**
 		* Removes a given mouse callback.
 		*/
 		void removeMouseCallback(const MouseCallbacks::Handle& handle);
@@ -673,5 +692,6 @@ namespace nex
 		VirtualDimesionResizeCallbacks mVirtualDimensionResizeContainer;
 		FrameBufferResizeCallbacks mFrameBufferResizeContainer;
 		MouseCallbacks mMouseCallbacks;
+		CharCallbacks mCharCallbacks;
 	};
 }

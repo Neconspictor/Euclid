@@ -13,9 +13,7 @@ namespace nex
 		mHasFocus = true;
 	}
 
-	Input::~Input()
-	{
-	}
+	Input::~Input() = default;
 
 	CallbackCollection<void(unsigned, unsigned)>::Handle Input::addFrameBufferResizeCallback(
 		const FrameBufferResizeCallbacks::Callback& callback)
@@ -37,6 +35,11 @@ namespace nex
 	Input::VirtualDimesionResizeCallbacks::Handle Input::addVirtualDimensionResizeCallback(const VirtualDimesionResizeCallbacks::Callback& callback)
 	{
 		return mVirtualDimensionResizeContainer.addCallback(callback);
+	}
+
+	CallbackCollection<void(unsigned, int)>::Handle Input::addCharCallback(const CharCallbacks::Callback& callback)
+	{
+		return mCharCallbacks.addCallback(callback);
 	}
 
 	Input::ScrollCallbacks::Handle Input::addScrollCallback(const ScrollCallbacks::Callback& callback)
@@ -64,6 +67,15 @@ namespace nex
 	double Input::getFrameScrollOffsetY() const
 	{
 		return mFrameScrollOffsetY;
+	}
+
+	void Input::informCharListeners(unsigned codepoint, int mods)
+	{
+		for (const auto& handle : mCharCallbacks.getCallbacks())
+		{
+			const auto& callback = *handle;
+			callback(codepoint, mods);
+		}
 	}
 
 	void Input::informMouseListeners(Input::Button button, Input::InputItemState state, int mods)
@@ -120,6 +132,11 @@ namespace nex
 		}
 	}
 
+
+	void Input::removeCharCallback(const CharCallbacks::Handle& handle)
+	{
+		mCharCallbacks.removeCallback(handle);
+	}
 
 	void Input::removeMouseCallback(const MouseCallbacks::Handle& handle)
 	{
