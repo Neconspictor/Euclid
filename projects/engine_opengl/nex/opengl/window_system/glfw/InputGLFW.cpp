@@ -220,7 +220,6 @@ nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o
 	downButtons = move(o.downButtons);
 	pressedButtons = move(o.pressedButtons);
 	releasedButtons = move(o.releasedButtons);
-	keyCallbacks = move(o.keyCallbacks);
 }
 
 nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
@@ -239,7 +238,6 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 	downButtons = move(o.downButtons);
 	pressedButtons = move(o.pressedButtons);
 	releasedButtons = move(o.releasedButtons);
-	keyCallbacks = move(o.keyCallbacks);
 
 	o.window = nullptr;
 
@@ -503,11 +501,13 @@ void nex::InputGLFW::onKey(int key, int scancode, int action, int mods)
 		}
 	}
 
+	const auto inputKey = InputMapperGLFW::get()->toKey(key);
+	auto state = Up;
+	if (isPressed(inputKey)) state = Pressed;
+	else if (isDown(inputKey)) state = Down;
+	else if (isReleased(inputKey)) state = Released;
 
-	for (auto& c : keyCallbacks)
-	{
-		c(window->getSource(), key, scancode, action, mods);
-	}
+	informKeyListeners(inputKey, state, scancode, mods);
 }
 
 void nex::InputGLFW::onMouse(int button, int action, int mods)
@@ -554,11 +554,6 @@ void nex::InputGLFW::onMouse(int button, int action, int mods)
 	}
 
 	informMouseListeners(inputButton, state, mods);
-}
-
-void nex::InputGLFW::registerKeyCallback(function<KeyCallback> callback)
-{
-	keyCallbacks.push_back(callback);
 }
 
 void nex::InputGLFW::resetForFrame()

@@ -29,6 +29,7 @@ namespace nex
 
 		enum Button;
 		enum InputItemState;
+		enum Key;
 
 		using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
 		using CloseCallbacks = CallbackCollection<void(nex::Window*)>;
@@ -37,6 +38,7 @@ namespace nex
 		using FrameBufferResizeCallbacks = CallbackCollection<void(unsigned frameBufferWidth, unsigned frameBufferHeight)>;
 		using MouseCallbacks = CallbackCollection<void(Input::Button button, Input::InputItemState state, int mods)>;
 		using CharCallbacks = CallbackCollection<void(unsigned int codepoint, int mods)>;
+		using KeyCallbacks = CallbackCollection<void(Input::Key key, Input::InputItemState state, int scancode, int mods)>;
 
 
 		/**
@@ -489,6 +491,11 @@ namespace nex
 		FrameBufferResizeCallbacks::Handle addFrameBufferResizeCallback(const FrameBufferResizeCallbacks::Callback& callback);
 
 		/**
+		 * Adds a key callback.
+		 */
+		KeyCallbacks::Handle addKeyCallback(const KeyCallbacks::Callback& callback);
+
+		/**
 		 * Adds a mouse callback.
 		 */
 		MouseCallbacks::Handle addMouseCallback(const MouseCallbacks::Callback& callback);
@@ -555,6 +562,16 @@ namespace nex
 		void informCharListeners(unsigned codepoint, int mods);
 
 		/**
+		* Informs listeners that the framebuffer size has changed
+		*/
+		void informFrameBufferResizeListeners(unsigned frameBufferWidth, unsigned frameBufferHeight);
+
+		/**
+		* Informs key listeners.
+		*/
+		void informKeyListeners(Input::Key key, Input::InputItemState state, int scancode, int mods);
+
+		/**
 		* Calls all registered mouse callbacks.
 		*/
 		void informMouseListeners(Input::Button button, Input::InputItemState state, int mods);
@@ -570,10 +587,6 @@ namespace nex
 		*/
 		void informVirtualDimensionResizeListeners(unsigned width, unsigned height);
 
-		/**
-		* Informs listeners that the framebuffer size has changed
-		*/
-		void inforrmFrameBufferResiteListeners(unsigned frameBufferWidth, unsigned frameBufferHeight);
 
 		/**
 		* Informs windows focus listeners that the window of this Input lost or gained focus.
@@ -631,6 +644,12 @@ namespace nex
 		* Removes a given character callback.
 		*/
 		void removeCharCallback(const CharCallbacks::Handle& handle);
+
+
+		/**
+		* Removes a given key callback.
+		*/
+		void removeKeyCallback(const KeyCallbacks::Handle& handle);
 
 		/**
 		* Removes a given mouse callback.
@@ -693,5 +712,6 @@ namespace nex
 		FrameBufferResizeCallbacks mFrameBufferResizeContainer;
 		MouseCallbacks mMouseCallbacks;
 		CharCallbacks mCharCallbacks;
+		KeyCallbacks mKeyCallbacks;
 	};
 }

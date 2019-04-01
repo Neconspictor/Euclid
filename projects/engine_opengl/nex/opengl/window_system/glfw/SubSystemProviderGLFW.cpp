@@ -16,7 +16,6 @@ SubSystemProviderGLFW::SubSystemProviderGLFW() : m_isInitialized(false), m_logge
 
 Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 {
-
 	WindowGLFW window(desc);
 	window.init();
 
@@ -38,8 +37,7 @@ Window* SubSystemProviderGLFW::createWindow(Window::WindowStruct& desc)
 
 std::unique_ptr<nex::gui::ImGUI_Impl> SubSystemProviderGLFW::createGUI(Window * window)
 {
-	WindowGLFW& windowGLFW = dynamic_cast<WindowGLFW&>(*window);
-	return make_unique<gui::ImGUI_GL>(windowGLFW);
+	return make_unique<gui::ImGUI_GL>(window);
 }
 
 void SubSystemProviderGLFW::errorCallback(int error, const char* description)

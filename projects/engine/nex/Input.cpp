@@ -21,6 +21,12 @@ namespace nex
 		return mFrameBufferResizeContainer.addCallback(callback);
 	}
 
+	CallbackCollection<void(Input::Key, Input::InputItemState, int, int)>::Handle Input::addKeyCallback(
+		const KeyCallbacks::Callback& callback)
+	{
+		return mKeyCallbacks.addCallback(callback);
+	}
+
 	CallbackCollection<void(Input::Button, Input::InputItemState, int)>::Handle Input::addMouseCallback(
 		const MouseCallbacks::Callback& callback)
 	{
@@ -105,12 +111,21 @@ namespace nex
 		}
 	}
 
-	void Input::inforrmFrameBufferResiteListeners(unsigned frameBufferWidth, unsigned frameBufferHeight)
+	void Input::informFrameBufferResizeListeners(unsigned frameBufferWidth, unsigned frameBufferHeight)
 	{
 		for (const auto& handle : mFrameBufferResizeContainer.getCallbacks())
 		{
 			const auto& callback = *handle;
 			callback(frameBufferWidth, frameBufferHeight);
+		}
+	}
+
+	void Input::informKeyListeners(Input::Key key, Input::InputItemState state, int scancode, int mods)
+	{
+		for (const auto& handle : mKeyCallbacks.getCallbacks())
+		{
+			const auto& callback = *handle;
+			callback(key, state, scancode, mods);
 		}
 	}
 
@@ -136,6 +151,11 @@ namespace nex
 	void Input::removeCharCallback(const CharCallbacks::Handle& handle)
 	{
 		mCharCallbacks.removeCallback(handle);
+	}
+
+	void Input::removeKeyCallback(const KeyCallbacks::Handle& handle)
+	{
+		mKeyCallbacks.removeCallback(handle);
 	}
 
 	void Input::removeMouseCallback(const MouseCallbacks::Handle& handle)

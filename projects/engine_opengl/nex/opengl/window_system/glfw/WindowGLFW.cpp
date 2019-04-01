@@ -263,7 +263,7 @@ void WindowGLFW::setFrameBufferSize(unsigned width, unsigned height)
 {
 	mConfig.frameBufferWidth = width;
 	mConfig.frameBufferHeight = height;
-	inputDevice.inforrmFrameBufferResiteListeners(width, height);
+	inputDevice.informFrameBufferResizeListeners(width, height);
 }
 
 void WindowGLFW::setVirtualScreenDimension(unsigned width, unsigned height)

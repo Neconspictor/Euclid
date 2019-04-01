@@ -102,8 +102,6 @@ namespace nex
 		void onKey(int key, int scancode, int action, int mods);
 		void onMouse(int button, int action, int mods);
 
-		void registerKeyCallback(std::function<KeyCallback> callback);
-
 		void resetForFrame();
 
 		void setMousePosition(int xPos, int yPos, bool updateOffsets=false) override;
@@ -127,7 +125,5 @@ namespace nex
 		std::unordered_set<int> downButtons;
 		std::unordered_set<int> pressedButtons;
 		std::unordered_set<int> releasedButtons;
-
-		std::list<std::function<KeyCallback>> keyCallbacks;
 	};
 }
