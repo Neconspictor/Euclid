@@ -62,6 +62,7 @@ namespace nex::gui
 		GLint g_AttribLocationUV;
 		GLint g_AttribLocationColor;
 		//GLuint g_VboHandle;
+		std::unique_ptr<VertexArray> mVertexArray;
 		std::unique_ptr<VertexBuffer> mVertexBuffer;
 		std::unique_ptr<IndexBuffer> mIndices;
 		nex::Logger m_logger;

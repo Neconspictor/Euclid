@@ -170,28 +170,7 @@ namespace nex::gui
 		glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
 		if (glBindSampler) glBindSampler(0, 0); // We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
 
-												// Recreate the VAO every time 
-												// (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts, and we don't track creation/deletion of windows so we don't have an obvious key to use to cache them.)
-		
-		VertexArray vertexArray;
-		VertexLayout layout;
-		layout.push<float>(2); // g_AttribLocationPosition
-		layout.push<float>(2); // g_AttribLocationUV
-		layout.push<unsigned char>(4); // g_AttribLocationColor
-		vertexArray.bind();
-		vertexArray.useBuffer(*mVertexBuffer, layout);
-
-		//GLuint vao_handle = 0;
-		//glGenVertexArrays(1, &vao_handle);
-		//glBindVertexArray(vao_handle);
-		//mVertexBuffer->bind();
-		//glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-		/*glEnableVertexAttribArray(g_AttribLocationPosition);
-		glEnableVertexAttribArray(g_AttribLocationUV);
-		glEnableVertexAttribArray(g_AttribLocationColor);
-		glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos));
-		glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv));
-		glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col));*/
+		mVertexArray->bind();
 
 		// Draw
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -230,7 +209,6 @@ namespace nex::gui
 				idx_buffer_offset += pcmd->ElemCount;
 			}
 		}
-		//glDeleteVertexArrays(1, &vao_handle);
 
 		// Restore modified GL state
 		/*glUseProgram(last_program);
@@ -433,8 +411,22 @@ namespace nex::gui
 
 		//glGenBuffers(1, &g_VboHandle);
 		//glGenBuffers(1, &g_ElementsHandle);
+		
 		mVertexBuffer = std::make_unique<VertexBuffer>();
 		mIndices = std::make_unique<IndexBuffer>();
+
+
+		VertexLayout layout;
+		layout.push<float>(2); // g_AttribLocationPosition
+		layout.push<float>(2); // g_AttribLocationUV
+		layout.push<unsigned char>(4); // g_AttribLocationColor
+
+		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
+		// For now we use only one context, so this solution is fine
+		mVertexArray = std::make_unique<VertexArray>();
+		mVertexArray->bind();
+		mVertexArray->useBuffer(*mVertexBuffer, layout);
+		mVertexArray->unbind();
 
 		createFontsTexture();
 
