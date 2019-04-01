@@ -1,6 +1,8 @@
 #include "Sphere.hpp"
 #include <math.h>
 #include <nex/util/Math.hpp>
+#include "VertexBuffer.hpp"
+#include "VertexLayout.hpp"
 
 namespace nex
 {
@@ -58,12 +60,12 @@ namespace nex
 
 
 
-		VertexBuffer vertexBuffer;
-		vertexBuffer.bind();
-		vertexBuffer.fill(vertices.data(), vertices.size() * sizeof(Vertex));
+
+		mVertexBuffer.bind();
+		mVertexBuffer.fill(vertices.data(), vertices.size() * sizeof(Vertex));
 
 		mIndexBuffer.bind();
-		mIndexBuffer.fill(indices.data(), static_cast<unsigned>(indices.size()));
+		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
@@ -72,7 +74,7 @@ namespace nex
 
 
 		mVertexArray.bind();
-		mVertexArray.addBuffer(std::move(vertexBuffer), layout);
+		mVertexArray.useBuffer(mVertexBuffer, layout);
 
 		mVertexArray.unbind();
 		mIndexBuffer.unbind();

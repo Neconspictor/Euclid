@@ -1,9 +1,9 @@
 #pragma once
-#include <nex/mesh/VertexBuffer.hpp>
-#include <nex/mesh/VertexLayout.hpp>
 
 namespace nex
 {
+	class VertexBuffer;
+	class VertexLayout;
 
 	class VertexArray
 	{
@@ -17,13 +17,13 @@ namespace nex
 
 		~VertexArray();
 
-		void addBuffer(VertexBuffer buffer, const VertexLayout& layout);
+		void useBuffer(const VertexBuffer& buffer, const VertexLayout& layout);
 
 		void bind() const;
+
 		void unbind() const;
 
 	private:
 		unsigned int mRendererID;
-		std::vector<VertexBuffer> mBuffers;
 	};
 }

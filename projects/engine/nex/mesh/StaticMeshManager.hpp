@@ -107,7 +107,9 @@ namespace nex
 		BlinnPhongMaterialLoader blinnPhongMaterialLoader;
 		FileSystem* mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
+		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
+		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 	};

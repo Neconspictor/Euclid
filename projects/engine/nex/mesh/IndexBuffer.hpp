@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nex/shader/ShaderBuffer.hpp>
+
 namespace nex
 {
 
@@ -11,7 +13,7 @@ namespace nex
 	class IndexBuffer
 	{
 	public:
-		IndexBuffer(const unsigned int* data, unsigned int count);
+		IndexBuffer(const void* data, unsigned int count, IndexElementType type);
 
 		IndexBuffer();
 
@@ -26,15 +28,14 @@ namespace nex
 		void bind() const;
 		void unbind() const;
 
-		void fill(const unsigned int* data, unsigned int count);
-		void fill(const unsigned short* data, unsigned short count);
+		void fill(const void* data, size_t count, IndexElementType type, ShaderBuffer::UsageHint usage = ShaderBuffer::UsageHint::STATIC_DRAW);
 
-		unsigned int getCount() const { return mCount; }
+		size_t getCount() const { return mCount; }
 		IndexElementType getType() const { return mType; }
 
 	private:
 		unsigned int mRendererID;
-		unsigned int mCount = 0;
+		size_t mCount = 0;
 		IndexElementType mType;
 	};
 }

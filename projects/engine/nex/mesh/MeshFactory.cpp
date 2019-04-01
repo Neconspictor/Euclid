@@ -18,7 +18,7 @@ namespace nex
 		VertexBuffer vertexBuffer;
 		vertexBuffer.bind();
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount);
+		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
 		indexBuffer.bind();
 
 		VertexLayout layout;
@@ -29,12 +29,13 @@ namespace nex
 		layout.push<glm::vec3>(1); // bitangent
 
 		VertexArray vertexArray;
-		vertexArray.addBuffer(std::move(vertexBuffer), layout);
+		vertexArray.bind();
+		vertexArray.useBuffer(vertexBuffer, layout);
 
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(indexBuffer));
+		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
 	unique_ptr<SubMesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
@@ -43,7 +44,7 @@ namespace nex
 
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount);
+		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
@@ -51,12 +52,13 @@ namespace nex
 		layout.push<glm::vec2>(1); // uv
 
 		VertexArray vertexArray;
-		vertexArray.addBuffer(std::move(vertexBuffer), layout);
+		vertexArray.bind();
+		vertexArray.useBuffer(vertexBuffer, layout);
 
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(indexBuffer));
+		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
 
@@ -66,18 +68,19 @@ namespace nex
 
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount);
+		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 
 		VertexArray vertexArray;
-		vertexArray.addBuffer(std::move(vertexBuffer), layout);
+		vertexArray.bind();
+		vertexArray.useBuffer(vertexBuffer, layout);
 
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(indexBuffer));
+		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
 	unique_ptr<SubMesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
@@ -86,18 +89,19 @@ namespace nex
 
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount);
+		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 		layout.push<glm::vec2>(1); // uv
 
 		VertexArray vertexArray;
-		vertexArray.addBuffer(std::move(vertexBuffer), layout);
+		vertexArray.bind();
+		vertexArray.useBuffer(vertexBuffer, layout);
 
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(indexBuffer));
+		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 }

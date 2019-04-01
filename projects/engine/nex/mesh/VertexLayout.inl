@@ -36,14 +36,14 @@ namespace nex
 	template <>
 	inline void VertexLayout::push<unsigned char>(unsigned count)
 	{
-		mElements.push_back({ LayoutType::UNSIGNED_BYTE, count, false });
+		mElements.push_back({ LayoutType::UNSIGNED_BYTE, count, true });
 		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_BYTE);
 	}
 
 	template <>
 	void VertexLayout::push<unsigned short>(unsigned count)
 	{
-		mElements.push_back({ LayoutType::UNSIGNED_SHORT, count, false });
+		mElements.push_back({ LayoutType::UNSIGNED_SHORT, count, true });
 		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_SHORT);
 	}
 

@@ -1,4 +1,8 @@
 #pragma once
+
+//TODO generalize buffers!
+#include <nex/shader/ShaderBuffer.hpp>
+
 namespace nex
 {
 	class VertexBuffer
@@ -21,7 +25,7 @@ namespace nex
 		void bind() const;
 		void unbind() const;
 
-		void fill(const void* data, size_t size);
+		void fill(const void* data, size_t size, ShaderBuffer::UsageHint usage = ShaderBuffer::UsageHint::STATIC_DRAW);
 
 	private:
 		unsigned int mRendererID;

@@ -352,9 +352,9 @@ namespace nex
 		return create2DRenderTarget(width, height, TextureData::createRenderTargetRGBAHDR(), depthData, samples);
 	}
 
-	void RenderBackend::drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType)
+	void RenderBackend::drawWithIndices(Topology topology, size_t indexCount, IndexElementType indexType)
 	{
-		GLCall(glDrawElements(translate(topology), indexCount, translate(indexType), nullptr));
+		GLCall(glDrawElements(translate(topology), static_cast<GLsizei>(indexCount), translate(indexType), nullptr));
 	}
 
 	void RenderBackend::endScene()

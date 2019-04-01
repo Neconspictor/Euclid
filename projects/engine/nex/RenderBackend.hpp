@@ -397,7 +397,7 @@ namespace nex
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound
 		 * IndexBuffer object.
 		 */
-		void drawWithIndices(Topology topology, unsigned indexCount, IndexElementType indexType);
+		void drawWithIndices(Topology topology, size_t indexCount, IndexElementType indexType);
 
 		/**
 		* Finishes the current active scene and sends the resulting data to the GPU.

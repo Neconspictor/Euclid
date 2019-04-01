@@ -14,6 +14,8 @@
 #include "nex/material/Material.hpp"
 #include "nex/material/AbstractMaterialLoader.hpp"
 #include <nex/FileSystem.hpp>
+#include "VertexLayout.hpp"
+#include "VertexBuffer.hpp"
 
 
 const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
@@ -35,11 +37,13 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 			+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 		};
 
-		VertexBuffer planeBuffer(fullscreenPlaneTriangleStripVerticesOpengl, sizeof(fullscreenPlaneTriangleStripVerticesOpengl));
+		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl, sizeof(fullscreenPlaneTriangleStripVerticesOpengl));
 		VertexLayout layout;
 		layout.push<float>(4);
 		layout.push<float>(2);
-		mFullscreenPlane->addBuffer(std::move(planeBuffer), layout);
+		mFullscreenPlane->bind();
+		mFullscreenPlane->useBuffer(*mFullscreenTriangleData, layout);
+		mFullscreenPlane->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 
 		mFullscreenTriangle = std::make_unique<VertexArray>();
@@ -50,8 +54,10 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 			-1.0, +2.0, 0.0, 1.0, 0.0, 2.0
 		};
 
-		VertexBuffer triangleBuffer(fullscreenTriangleVerticesOpengl, sizeof(fullscreenTriangleVerticesOpengl));
-		mFullscreenTriangle->addBuffer(std::move(triangleBuffer), layout);
+		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenTriangleVerticesOpengl, sizeof(fullscreenTriangleVerticesOpengl));
+		mFullscreenTriangle->bind();
+		mFullscreenTriangle->useBuffer(*mFullscreenTriangleData, layout);
+		mFullscreenTriangle->unbind();
 	}
 
 std::unique_ptr<nex::StaticMesh> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,

@@ -8,6 +8,10 @@ namespace nex
 {
 	class Window;
 	class Cursor;
+	class Texture2D;
+	class VertexArray;
+	class IndexBuffer;
+	class VertexBuffer;
 }
 
 namespace nex::gui
@@ -48,7 +52,7 @@ namespace nex::gui
 		std::string glsl_version;
 		std::unique_ptr<Cursor> mMouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];
-		GLuint g_FontTexture;
+		std::unique_ptr<Texture2D> mFontTexture;
 		GLuint g_ShaderHandle;
 		GLuint g_VertHandle;
 		GLuint g_FragHandle;
@@ -57,8 +61,9 @@ namespace nex::gui
 		GLint  g_AttribLocationPosition;
 		GLint g_AttribLocationUV;
 		GLint g_AttribLocationColor;
-		GLuint g_VboHandle;
-		GLuint g_ElementsHandle;
+		//GLuint g_VboHandle;
+		std::unique_ptr<VertexBuffer> mVertexBuffer;
+		std::unique_ptr<IndexBuffer> mIndices;
 		nex::Logger m_logger;
 	};
 }

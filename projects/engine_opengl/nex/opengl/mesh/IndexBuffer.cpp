@@ -1,13 +1,14 @@
 #include <nex/mesh/IndexBuffer.hpp>
 #include <nex/opengl/opengl.hpp>
+#include "nex/opengl/shader/ShaderBufferGL.hpp"
 
 namespace nex
 {
 
-	IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count) : IndexBuffer()
+	IndexBuffer::IndexBuffer(const void* data, unsigned int count, IndexElementType type) : IndexBuffer()
 	{
 
-		fill(data, count);
+		fill(data, count, type);
 	}
 
 	IndexBuffer::IndexBuffer() : mRendererID(GL_FALSE)
@@ -17,20 +18,16 @@ namespace nex
 		GLCall(glGenBuffers(1, &mRendererID));
 	}
 
-	void IndexBuffer::fill(const unsigned int* data, unsigned int count)
+	void IndexBuffer::fill(const void* data, size_t count, IndexElementType type, ShaderBuffer::UsageHint usage)
 	{
 		bind();
 		mCount = count;
-		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * sizeof(GLuint), data, GL_STATIC_DRAW));
-		mType = IndexElementType::BIT_32;
-	}
+		mType = type;
 
-	void IndexBuffer::fill(const unsigned short* data, unsigned short count)
-	{
-		bind();
-		mCount = count;
-		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * sizeof(GLshort), data, GL_STATIC_DRAW));
-		mType = IndexElementType::BIT_16;
+		auto byteSize = sizeof(GLuint);
+		if (mType == IndexElementType::BIT_16) byteSize = sizeof(GLushort);
+
+		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mCount * byteSize, data, translate(usage)));
 	}
 
 	IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept :

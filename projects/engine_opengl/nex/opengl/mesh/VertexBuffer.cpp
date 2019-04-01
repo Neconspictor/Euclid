@@ -1,5 +1,6 @@
 #include <nex/mesh/VertexBuffer.hpp>
 #include <nex/opengl/opengl.hpp>
+#include "nex/opengl/shader/ShaderBufferGL.hpp"
 
 namespace nex
 {
@@ -47,9 +48,9 @@ namespace nex
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	}
 
-	void VertexBuffer::fill(const void* data, size_t size)
+	void VertexBuffer::fill(const void* data, size_t size, ShaderBuffer::UsageHint usage)
 	{
 		bind();
-		GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
+		GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, translate(usage)));
 	}
 }

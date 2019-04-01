@@ -6,6 +6,8 @@
 namespace nex
 {
 
+	enum class LayoutType;
+
 	enum LayoutTypeGL
 	{
 		UNSIGNED_INT = GL_UNSIGNED_INT,

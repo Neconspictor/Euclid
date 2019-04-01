@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "VertexArray.hpp"
+#include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
 #include <nex/material/Material.hpp>
 
@@ -64,7 +65,7 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		SubMesh(VertexArray vertexArray, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
+		SubMesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
 		SubMesh();
 
 		SubMesh(SubMesh&& other) noexcept = default;
@@ -79,16 +80,19 @@ namespace nex
 		Material* getMaterial() const;
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
+		VertexBuffer* getVertexBuffer();
 
 		void setIndexBuffer(IndexBuffer buffer);
 		void setMaterial(Material* material);
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
+		void setVertexBuffer(VertexBuffer buffer);
 		
 
 	protected:
 		VertexArray mVertexArray;
 		IndexBuffer mIndexBuffer;
+		VertexBuffer mVertexBuffer;
 
 		Material* mMaterial;
 

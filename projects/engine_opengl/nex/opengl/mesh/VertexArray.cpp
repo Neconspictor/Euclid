@@ -2,6 +2,8 @@
 #include <nex/opengl/opengl.hpp>
 #include "nex/opengl/RenderBackendGL.hpp"
 #include "VertexArrayGL.hpp"
+#include <nex/mesh/VertexBuffer.hpp>
+#include <nex/mesh/VertexLayout.hpp>
 
 namespace nex
 {
@@ -30,7 +32,7 @@ namespace nex
 	}
 
 	VertexArray::VertexArray(VertexArray&& other) noexcept :
-		mRendererID(other.mRendererID), mBuffers(std::move(other.mBuffers))
+		mRendererID(other.mRendererID)
 	{
 		other.mRendererID = GL_FALSE;
 	}
@@ -41,8 +43,6 @@ namespace nex
 
 		this->mRendererID = o.mRendererID;
 		o.mRendererID = GL_FALSE;
-
-		this->mBuffers = std::move(o.mBuffers);
 
 		return *this;
 	}
@@ -56,12 +56,9 @@ namespace nex
 		}
 	}
 
-	void VertexArray::addBuffer(VertexBuffer buffer, const VertexLayout& layout)
+	void VertexArray::useBuffer(const VertexBuffer& buffer, const VertexLayout& layout)
 	{
-		bind();
 		buffer.bind();
-
-		mBuffers.emplace_back(std::move(buffer));
 
 		const auto& elements = layout.getElements();
 
@@ -78,10 +75,6 @@ namespace nex
 			offset += elem.count * LayoutElement::getSizeOfType(elem.type);
 			GLCall(glEnableVertexAttribArray(i));
 		}
-
-		//buffer.unbind();
-
-		unbind();
 	}
 
 	void VertexArray::bind() const

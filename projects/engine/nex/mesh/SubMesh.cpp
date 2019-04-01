@@ -6,12 +6,18 @@
 using namespace std;
 using namespace nex;
 
-SubMesh::SubMesh(VertexArray vertexArray, IndexBuffer indexBuffer, Topology topology, Material* material) :
+SubMesh::SubMesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology, Material* material) :
 mVertexArray(std::move(vertexArray)),
+mVertexBuffer(std::move(vertexBuffer)),
 mIndexBuffer(std::move(indexBuffer)),
 mMaterial(material),
 mTopology(topology)
 {
+}
+
+void SubMesh::setVertexBuffer(VertexBuffer buffer)
+{
+	mVertexBuffer = std::move(buffer);
 }
 
 SubMesh::SubMesh(): mMaterial(nullptr), mTopology(Topology::TRIANGLES)
@@ -41,6 +47,11 @@ void SubMesh::setTopology(Topology topology)
 VertexArray* SubMesh::getVertexArray()
 {
 	return &mVertexArray;
+}
+
+VertexBuffer* SubMesh::getVertexBuffer()
+{
+	return &mVertexBuffer;
 }
 
 void SubMesh::setIndexBuffer(IndexBuffer buffer)
