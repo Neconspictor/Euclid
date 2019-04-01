@@ -23,6 +23,12 @@ namespace nex
 		return mFrameBufferResizeContainer.addCallback(callback);
 	}
 
+	CallbackCollection<void(Input::Button, Input::InputItemState, int)>::Handle Input::addMouseCallback(
+		const MouseCallbacks::Callback& callback)
+	{
+		return mMouseCallbacks.addCallback(callback);
+	}
+
 	Input::CloseCallbacks::Handle Input::addWindowCloseCallback(const CloseCallbacks::Callback& callback)
 	{
 		return mCloseCallbacks.addCallback(callback);
@@ -58,6 +64,15 @@ namespace nex
 	double Input::getFrameScrollOffsetY() const
 	{
 		return mFrameScrollOffsetY;
+	}
+
+	void Input::informMouseListeners(Input::Button button, Input::InputItemState state, int mods)
+	{
+		for (const auto& handle : mMouseCallbacks.getCallbacks())
+		{
+			const auto& callback = *handle;
+			callback(button, state, mods);
+		}
 	}
 
 	void Input::informScrollListeners(float scrollX, float scrollY)
@@ -105,6 +120,11 @@ namespace nex
 		}
 	}
 
+
+	void Input::removeMouseCallback(const MouseCallbacks::Handle& handle)
+	{
+		mMouseCallbacks.removeCallback(handle);
+	}
 
 	void Input::removeScrollConnection(const ScrollCallbacks::Handle& handle)
 	{

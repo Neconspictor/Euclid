@@ -223,7 +223,6 @@ nex::InputGLFW::InputGLFW(nex::InputGLFW && o) : Input(move(o)), m_logger(move(o
 
 	charModsCallbacks = move(o.charModsCallbacks);
 	keyCallbacks = move(o.keyCallbacks);
-	mouseCallbacks = move(o.mouseCallbacks);
 
 	//refreshCallbacks = move(o.refreshCallbacks);
 
@@ -249,7 +248,6 @@ nex::InputGLFW & nex::InputGLFW::operator=(nex::InputGLFW && o)
 
 	charModsCallbacks = move(o.charModsCallbacks);
 	keyCallbacks = move(o.keyCallbacks);
-	mouseCallbacks = move(o.mouseCallbacks);
 
 	//refreshCallbacks = move(o.refreshCallbacks);
 
@@ -571,10 +569,21 @@ void nex::InputGLFW::onMouse(int button, int action, int mods)
 		}
 	}
 
-	for (auto& c : mouseCallbacks)
+	//get button state
+	auto inputButton = InputMapperGLFW::get()->toButton(button);
+	auto state = Up;
+	if (isPressed(inputButton))
 	{
-		c(window->getSource(), button, action, mods);
+		state = Pressed;
+	} else if (isDown(inputButton))
+	{
+		state = Down;
+	} else if (isReleased(inputButton))
+	{
+		state = Released;
 	}
+
+	informMouseListeners(inputButton, state, mods);
 }
 
 void nex::InputGLFW::registerCharModsCallback(function<CharModsCallback> callback)
@@ -585,11 +594,6 @@ void nex::InputGLFW::registerCharModsCallback(function<CharModsCallback> callbac
 void nex::InputGLFW::registerKeyCallback(function<KeyCallback> callback)
 {
 	keyCallbacks.push_back(callback);
-}
-
-void nex::InputGLFW::registerMouseCallback(function<MouseCallback> callback)
-{
-	mouseCallbacks.push_back(callback);
 }
 
 void nex::InputGLFW::resetForFrame()

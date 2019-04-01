@@ -109,7 +109,6 @@ namespace nex
 		// functionality
 		void registerCharModsCallback(std::function<CharModsCallback> callback);
 		void registerKeyCallback(std::function<KeyCallback> callback);
-		void registerMouseCallback(std::function<MouseCallback> callback);
 
 		void resetForFrame();
 
@@ -138,6 +137,5 @@ namespace nex
 
 		std::list<std::function<CharModsCallback>> charModsCallbacks;
 		std::list<std::function<KeyCallback>> keyCallbacks;
-		std::list<std::function<MouseCallback>> mouseCallbacks;
 	};
 }

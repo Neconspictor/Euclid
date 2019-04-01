@@ -27,11 +27,15 @@ namespace nex
 	{
 	public:
 
+		enum Button;
+		enum InputItemState;
+
 		using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
 		using CloseCallbacks = CallbackCollection<void(nex::Window*)>;
 		using FocusCallbacks = CallbackCollection<void(nex::Window*, bool)>;
 		using VirtualDimesionResizeCallbacks = CallbackCollection<void(unsigned width, unsigned height)>;
 		using FrameBufferResizeCallbacks = CallbackCollection<void(unsigned frameBufferWidth, unsigned frameBufferHeight)>;
+		using MouseCallbacks = CallbackCollection<void(Input::Button button, Input::InputItemState state, int mods)>;
 
 
 		/**
@@ -478,6 +482,8 @@ namespace nex
 		*/
 		FrameBufferResizeCallbacks::Handle addFrameBufferResizeCallback(const FrameBufferResizeCallbacks::Callback& callback);
 
+		MouseCallbacks::Handle addMouseCallback(const MouseCallbacks::Callback& callback);
+
 		/**
 		* Adds a callback that is called when the user clicks on the close widget of a window (if the window has one)
 		* or the function Window::close() is called.
@@ -532,6 +538,12 @@ namespace nex
 		const MouseOffset& getFrameMouseOffset() const;
 
 		virtual Window* getWindow() = 0;
+
+
+		/**
+		* Calls all registered mouse callbacks.
+		*/
+		void informMouseListeners(Input::Button button, Input::InputItemState state, int mods);
 
 		/**
 		* Calls all regsitered scrolling callbacks.
@@ -602,6 +614,11 @@ namespace nex
 		virtual bool isReleased(Key key) const  = 0;
 
 		/**
+		* Removes a given mouse callback.
+		*/
+		void removeMouseCallback(const MouseCallbacks::Handle& handle);
+
+		/**
 		* Removes a previously established scrolling connection. The callback of the connection
 		* won't be notified anymore if scrolling events occurs.
 		*/
@@ -655,5 +672,6 @@ namespace nex
 		FocusCallbacks mFocusChanged;
 		VirtualDimesionResizeCallbacks mVirtualDimensionResizeContainer;
 		FrameBufferResizeCallbacks mFrameBufferResizeContainer;
+		MouseCallbacks mMouseCallbacks;
 	};
 }
