@@ -160,6 +160,8 @@ namespace nex
 	void BlenderGL::setGlobalBlendDesc(const BlendDesc& desc)
 	{
 		mGlobalBlendDesc = desc;
+		GLCall(glBlendEquationSeparate(mGlobalBlendDesc.operationRGB, mGlobalBlendDesc.operationAlpha));
+		GLCall(glBlendFuncSeparate(mGlobalBlendDesc.sourceRGB, mGlobalBlendDesc.destRGB, mGlobalBlendDesc.sourceAlpha, mGlobalBlendDesc.destAlpha));
 	}
 
 	void BlenderGL::setState(const BlendState& state)

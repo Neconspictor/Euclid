@@ -66,7 +66,10 @@ namespace nex
 		void setLodBias(float bias);
 
 		// Has to be implemented by renderer backend
-		void unbind(unsigned textureBindingSlot);
+		/**
+		 * Unbinds any current bound Sampler from a specific texture binding point.
+		 */
+		static void unbind(unsigned textureBindingSlot);
 
 	protected:
 		//Used in order to avoid virtual function calls

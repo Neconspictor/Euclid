@@ -1,7 +1,5 @@
 #pragma once
 #include <nex/gui/ImGUI.hpp>
-#include <string>
-#include <glad/glad.h>
 #include <nex/common/Log.hpp>
 
 namespace nex
@@ -16,11 +14,10 @@ namespace nex
 
 namespace nex::gui
 {
-
 	class ImGUI_GL : public gui::ImGUI_Impl
 	{
 	public:
-		ImGUI_GL(nex::Window* window, std::string glsl_version = "#version 150");
+		ImGUI_GL(nex::Window* window);
 
 		ImGUI_GL(const ImGUI_GL&) = delete;
 		ImGUI_GL& operator=(const ImGUI_GL&) = delete;
@@ -48,23 +45,18 @@ namespace nex::gui
 		void createFontsTexture();
 
 	protected:
+
+		class Drawer;
+
 		nex::Window* mWindow;
-		std::string glsl_version;
 		std::unique_ptr<Cursor> mMouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];
 		std::unique_ptr<Texture2D> mFontTexture;
-		GLuint g_ShaderHandle;
-		GLuint g_VertHandle;
-		GLuint g_FragHandle;
-		GLint  g_AttribLocationTex;
-		GLint  g_AttribLocationProjMtx;
-		GLint  g_AttribLocationPosition;
-		GLint g_AttribLocationUV;
-		GLint g_AttribLocationColor;
 		//GLuint g_VboHandle;
 		std::unique_ptr<VertexArray> mVertexArray;
 		std::unique_ptr<VertexBuffer> mVertexBuffer;
 		std::unique_ptr<IndexBuffer> mIndices;
+		std::unique_ptr<Drawer> mShader;
 		nex::Logger m_logger;
 	};
 }
