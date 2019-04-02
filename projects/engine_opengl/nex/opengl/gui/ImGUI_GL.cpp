@@ -306,7 +306,8 @@ namespace nex::gui
 		input->addKeyCallback([&](Input::Key key, Input::InputItemState state, int scancode, int mods)
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			if (state == Input::Down)
+			io.KeysDown[key] = false;
+			if (state == Input::Down || state == Input::Pressed)
 				io.KeysDown[key] = true;
 
 			(void)mods; // Modifiers are not reliable across systems

@@ -196,6 +196,6 @@ void main() {
         rayleigh_factor*rayleigh_collected
     ); 
 
-    color = mix(color, rayleigh_collected, 1-eye_extinction);  
+    color = 10.0*mix(color, rayleigh_collected, 1-eye_extinction);  
 
 }

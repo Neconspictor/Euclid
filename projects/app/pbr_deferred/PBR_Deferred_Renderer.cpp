@@ -458,7 +458,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
+	auto* postProcessed = postProcessor->doPostProcessing(colorTex, colorTex, aoMap, mPingPong.get());
 
 	auto* smaa = postProcessor->getSMAA();
 
