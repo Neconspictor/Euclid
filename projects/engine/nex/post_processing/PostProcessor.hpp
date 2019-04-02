@@ -41,6 +41,8 @@ namespace nex
 			Texture2D* aoMap,
 			RenderTarget2D* output);
 
+		void antialias(Texture2D* source, RenderTarget2D* output);
+
 		SMAA* getSMAA();
 
 		/**

@@ -337,58 +337,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, mPbrMrt->getNormalizedViewSpaceZ());
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
-
-	auto* smaa = postProcessor->getSMAA();
-
-	if (mInput->isPressed(Input::KEY_Y))
-	{
-		std::cout << "SMAA is rendered: " << mShowDepthMap << std::endl;
-	}
-
-	smaa->reset();
-	auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
-	auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
-
-	static int switcher = 0;
-
-	if (mInput->isPressed(Input::KEY_Y))
-	{
-		++switcher;
-		switcher %= 4;
-
-		std::cout << "switcher = " << switcher << std::endl;
-	}
-
-	if (switcher == 1)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(postProcessed);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else if (switcher == 2)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(edgeTex);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else if (switcher == 3)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(blendTex);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else {
-		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
-	}
+	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth,
@@ -459,58 +408,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
-
-	auto* smaa = postProcessor->getSMAA();
-
-	if (mInput->isPressed(Input::KEY_Y))
-	{
-		std::cout << "SMAA is rendered: " << mShowDepthMap << std::endl;
-	}
-
-	smaa->reset();
-	auto* edgeTex = smaa->renderEdgeDetectionPass(postProcessed);
-	auto* blendTex = smaa->renderBlendingWeigthCalculationPass(edgeTex);
-
-	static int switcher = 0;
-
-	if (mInput->isPressed(Input::KEY_Y))
-	{
-		++switcher;
-		switcher %= 4;
-
-		std::cout << "switcher = " << switcher << std::endl;
-	}
-
-	if (switcher == 1)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(postProcessed);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else if (switcher == 2)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(edgeTex);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else if (switcher == 3)
-	{
-		screenRenderTarget->bind();
-		screenRenderTarget->clear(Color | Depth | Stencil);
-		screenShader->bind();
-		screenShader->useTexture(blendTex);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);
-
-	}
-	else {
-		smaa->renderNeighborhoodBlendingPass(blendTex, postProcessed, screenRenderTarget);
-	}
+	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, unsigned width, unsigned height)

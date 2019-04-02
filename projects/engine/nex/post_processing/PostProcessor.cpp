@@ -76,13 +76,17 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 
 	mFullscreenPlane->bind();
 	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
-	//mPostprocessPass->mSampler.unbind(0);
+	return output->getColor0AttachmentTexture();
+}
 
+void nex::PostProcessor::antialias(Texture2D * source, RenderTarget2D * output)
+{
 	//Do SMAA antialising after texture is in sRGB (gamma space)
 	//But for best results the input read for the color/luma edge detection should *NOT* be sRGB !
-
-	//return nullptr;
-	return output->getColor0AttachmentTexture();
+	mSmaa->reset();
+	auto* edgeTex = mSmaa->renderEdgeDetectionPass(source);
+	auto* blendTex = mSmaa->renderBlendingWeigthCalculationPass(edgeTex);
+	mSmaa->renderNeighborhoodBlendingPass(blendTex, source, output);
 }
 
 nex::SMAA* nex::PostProcessor::getSMAA()
