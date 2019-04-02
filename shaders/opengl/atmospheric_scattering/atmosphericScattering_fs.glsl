@@ -32,7 +32,9 @@ uniform float mie_collection_power;
 uniform float rayleigh_strength;
 uniform float mie_strength;
 
-out vec3 color;
+out vec4 color;
+
+out vec4 luminance;
 
 
 /**
@@ -142,7 +144,7 @@ void main() {
      */
     float rayleigh_factor = phase(alpha, -0.01)*rayleigh_brightness;
     float mie_factor = phase(alpha, mie_distribution)*mie_brightness;
-    float spot = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*spot_brightness;
+    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.9995))*spot_brightness * 2;
     
     // atmospheric depth
     vec3 eye_position = vec3(0.0, surface_height, 0.0);
@@ -190,12 +192,16 @@ void main() {
         
     // Finally the color is the summation of the collected light with the reflection distribution
     // factors.                    
-    color = vec3(
+    vec3 result = vec3(
         spot*mie_collected +
         mie_factor*mie_collected +
         rayleigh_factor*rayleigh_collected
     ); 
 
-    color = 10.0*mix(color, rayleigh_collected, 1-eye_extinction);  
+    result = mix(result, rayleigh_collected, 1-eye_extinction); 
+
+color = vec4(result, 1.0);    
+
+luminance = color;
 
 }
