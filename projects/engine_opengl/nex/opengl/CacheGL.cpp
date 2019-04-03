@@ -10,6 +10,56 @@ nex::CacheError::CacheError(const char* _Message): runtime_error(_Message)
 {
 }
 
+void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer,
+	GLenum access, GLenum format)
+{
+	struct Item
+	{
+		GLuint unit; 
+		GLuint texture; 
+		GLint level; 
+		GLboolean layered; 
+		GLint layer;
+		GLenum access; 
+		GLenum format;
+	};
+
+	static std::unordered_map<GLuint, Item> cache;
+
+	Item* item;
+	const auto it = cache.find(unit);
+
+	if (it == cache.end())
+	{
+		cache[unit] = Item();
+		item = &cache.find(unit)->second;
+	} else
+	{
+		item = &it->second;
+	}
+
+	if (item->texture != texture 
+		|| item->level != level
+		|| item->layered != layer
+		|| item->access != access
+		|| item->format != format)
+	{
+		item->texture = texture;
+		item->level = level;
+		item->layered = layered;
+		item->access = access;
+		item->format = format;
+
+		GLCall(glBindImageTexture(unit,
+			item->texture,
+			item->level,
+			item->layered,
+			item->layer,
+			item->access,
+			item->format));
+	}
+}
+
 void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
 {
 	static std::unordered_map<GLuint, GLuint> cache;
@@ -27,6 +77,19 @@ nex::ShaderCacheGL::ShaderCacheGL(GLuint program) : mProgram(program)
 	if (mGlobalCache == nullptr)
 	{
 		mGlobalCache = nex::GlobalCacheGL::get();
+	}
+}
+
+void nex::ShaderCacheGL::Uniform1f(GLint location, GLfloat value)
+{
+	EUCLID_DEBUG(assertActiveProgram());
+
+	const auto it = mUniform1fValues.find(location);
+
+	if (it == mUniform1fValues.end() || it->second != value)
+	{
+		mUniform1fValues[location] = value;
+		GLCall(glUniform1f(location, value));
 	}
 }
 
@@ -48,6 +111,19 @@ void nex::ShaderCacheGL::Uniform1i(GLint location, GLint value)
 	{
 		mUniform1iValues[location] = value;
 		GLCall(glUniform1i(location, value));
+	}
+}
+
+void nex::ShaderCacheGL::Uniform1ui(GLint location, GLuint value)
+{
+	EUCLID_DEBUG(assertActiveProgram());
+
+	const auto it = mUniform1uiValues.find(location);
+
+	if (it == mUniform1uiValues.end() || it->second != value)
+	{
+		mUniform1uiValues[location] = value;
+		GLCall(glUniform1ui(location, value));
 	}
 }
 

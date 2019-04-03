@@ -289,13 +289,13 @@ void nex::ShaderProgram::Impl::setImageLayerOfTexture(UniformLocation locationID
 
 	TextureGL* gl = (TextureGL*)data->getImpl();
 
-	GLCall(glBindImageTexture(bindingSlot,
+	GlobalCacheGL::get()->BindImageTexture(bindingSlot,
 		*gl->getTexture(),
 		level,
 		translate(textureIsArray),
 		layer,
 		translate(accessType),
-		translate(format)));
+		translate(format));
 
 	mCache.Uniform1i(glID, bindingSlot);
 }
@@ -304,7 +304,7 @@ void nex::ShaderProgram::Impl::setFloat(UniformLocation locationID, float data)
 {
 	GLint glID = locationID;
 	if (glID < 0) return;
-	GLCall(glUniform1f(glID, data));
+	mCache.Uniform1f(glID, data);
 }
 
 void nex::ShaderProgram::Impl::setInt(UniformLocation locationID, int data)
@@ -312,7 +312,6 @@ void nex::ShaderProgram::Impl::setInt(UniformLocation locationID, int data)
 	GLint glID = locationID;
 	if (glID < 0) return;
 	mCache.Uniform1i(glID, data);
-	//GLCall(glUniform1i(glID, data));
 }
 
 void nex::ShaderProgram::Impl::setTexture(UniformLocation locationID, const Texture* data, unsigned bindingSlot)
@@ -330,7 +329,7 @@ void nex::ShaderProgram::Impl::setUInt(UniformLocation locationID, unsigned data
 {
 	GLint glID = locationID;
 	if (glID < 0) return;
-	GLCall(glUniform1ui(glID, data));
+	mCache.Uniform1ui(glID, data);
 }
 
 void nex::ShaderProgram::Impl::setMat3(UniformLocation locationID, const glm::mat3& data)

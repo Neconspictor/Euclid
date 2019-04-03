@@ -119,7 +119,6 @@ void CascadedShadow::end()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	mDepthPassShader->unbind();
-	//###glDisable(GL_DEPTH_TEST);
 	// disable depth clamping
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
 	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);

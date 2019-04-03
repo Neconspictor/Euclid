@@ -130,7 +130,7 @@ namespace nex {
 		void setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc);
 
 	private:
-		bool mEnableBlend;
+		GLboolean mEnableBlend;
 		bool mEnableAlphaToCoverage;
 		float mSampleCoverage;
 		GLuint mInvertSampleConverage;
@@ -160,9 +160,9 @@ namespace nex {
 		void setState(const DepthBuffer::State& state);
 
 	private:
-		bool mEnableDepthBufferWriting;
-		bool mEnableDepthTest;
-		bool mEnableDepthClamp;
+		GLboolean mEnableDepthBufferWriting;
+		GLboolean mEnableDepthTest;
+		GLboolean mEnableDepthClamp;
 		CompareFunctionGL mDepthFunc;
 		DepthBuffer::Range mDepthRange;
 	};
@@ -188,8 +188,14 @@ namespace nex {
 
 	private:
 
-		std::map<PolygonSideGL, FillModeGL> mFillModes;
-		PolygonSideGL cullMode;
+		struct FillModeCache
+		{
+			GLint side = GL_FALSE;
+			GLint mode = GL_FALSE;
+		};
+
+		FillModeCache mFillModeCache;
+		PolygonSideGL mCullMode;
 
 		bool mFrontCounterClockwise;
 		float mDepthBias;

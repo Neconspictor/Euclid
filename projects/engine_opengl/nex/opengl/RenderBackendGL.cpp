@@ -113,11 +113,14 @@ namespace nex
 	BlenderGL::BlenderGL() :
 		mGlobalBlendDesc(BlendDesc())
 	{
+		glGetBooleanv(GL_BLEND, &mEnableBlend);
 		setState(BlendState());
 	}
 
 	void BlenderGL::enableBlend(bool enable)
 	{
+		if (mEnableBlend == enable) return;
+
 		mEnableBlend = enable;
 
 		if (enable)
@@ -195,17 +198,27 @@ namespace nex
 
 	DepthBufferGL::DepthBufferGL()
 	{
+		glGetBooleanv(GL_DEPTH_TEST, &mEnableDepthTest);
+		glGetBooleanv(GL_DEPTH_CLAMP, &mEnableDepthClamp);
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &mEnableDepthBufferWriting);
+		glGetIntegerv(GL_DEPTH_FUNC, (GLint*)&mDepthFunc);
+
+		
 		setState(DepthBuffer::State());
 	}
 
 	void DepthBufferGL::enableDepthBufferWriting(bool enable)
 	{
+		if (mEnableDepthBufferWriting == enable) return;
+
 		mEnableDepthBufferWriting = enable;
 		GLCall(glDepthMask(translate(mEnableDepthBufferWriting)));
 	}
 
 	void DepthBufferGL::enableDepthTest(bool enable)
 	{
+		if (mEnableDepthTest == enable) return;
+
 		mEnableDepthTest = enable;
 
 		if (enable)
@@ -219,6 +232,8 @@ namespace nex
 
 	void DepthBufferGL::enableDepthClamp(bool enable)
 	{
+		if (mEnableDepthClamp == enable) return;
+
 		mEnableDepthClamp = enable;
 
 		if (enable)
@@ -233,7 +248,11 @@ namespace nex
 
 	void DepthBufferGL::setDefaultDepthFunc(CompareFunction depthFunc)
 	{
-		mDepthFunc = translate(depthFunc);
+		const auto translated = translate(depthFunc);
+
+		if (mDepthFunc == translated) return;
+
+		mDepthFunc = translated;
 		GLCall(glDepthFunc(mDepthFunc));
 	}
 
@@ -266,21 +285,39 @@ namespace nex
 
 	RasterizerGL::RasterizerGL()
 	{
+		glGetIntegerv(GL_CULL_FACE_MODE, (GLint*)&mCullMode);
+		glGetBooleanv(GL_CULL_FACE, (GLboolean*)&mEnableFaceCulling);
+		glGetBooleanv(GL_SCISSOR_TEST, (GLboolean*)&mEnableScissorTest);
+		glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&mEnableMultisample);
+		glGetBooleanv(GL_POLYGON_OFFSET_FILL, (GLboolean*)&mEnableOffsetPolygonFill);
+		glGetBooleanv(GL_POLYGON_OFFSET_LINE, (GLboolean*)&mEnableOffsetLine);
+		glGetBooleanv(GL_POLYGON_OFFSET_POINT, (GLboolean*)&mEnableOffsetPoint);
+
+		
+
 		setState(RasterizerState());
+
+
 	}
 
 	void RasterizerGL::setFillMode(FillMode fillMode, PolygonSide faceSide)
 	{
 		const auto fillModeGL = translate(fillMode);
 		const auto faceSideGL = translate(faceSide);
-		mFillModes[faceSideGL] = fillModeGL;
+
+		if (mFillModeCache.mode == fillModeGL && mFillModeCache.side == faceSideGL) return;
+
+		mFillModeCache.mode = fillModeGL;
+		mFillModeCache.mode = faceSideGL;
 		GLCall(glPolygonMode(faceSideGL, fillModeGL));
 	}
 
 	void RasterizerGL::setCullMode(PolygonSide faceSide)
 	{
-		cullMode = translate(faceSide);
-		GLCall(glCullFace(cullMode));
+		const auto translated = translate(faceSide);
+		if (mCullMode == translated) return;
+		mCullMode = translated;
+		GLCall(glCullFace(mCullMode));
 	}
 
 	void RasterizerGL::setFrontCounterClockwise(bool set)
@@ -320,6 +357,8 @@ namespace nex
 
 	void RasterizerGL::enableFaceCulling(bool enable)
 	{
+		if (mEnableFaceCulling == enable) return;
+
 		mEnableFaceCulling = enable;
 		if (enable)
 		{
@@ -332,6 +371,7 @@ namespace nex
 
 	void RasterizerGL::enableScissorTest(bool enable)
 	{
+		if (mEnableScissorTest == enable) return;
 		mEnableScissorTest = enable;
 
 		if (enable)
@@ -345,6 +385,7 @@ namespace nex
 
 	void RasterizerGL::enableMultisample(bool enable)
 	{
+		if (mEnableMultisample == enable) return;
 		mEnableMultisample = enable;
 
 		if (enable)
@@ -359,6 +400,7 @@ namespace nex
 
 	void RasterizerGL::enableOffsetPolygonFill(bool enable)
 	{
+		if (mEnableOffsetPolygonFill == enable) return;
 		mEnableOffsetPolygonFill = enable;
 
 		if (enable)
@@ -373,6 +415,7 @@ namespace nex
 
 	void RasterizerGL::enableOffsetLine(bool enable)
 	{
+		if (mEnableOffsetLine == enable) return;
 		mEnableOffsetLine = enable;
 
 		if (enable)
@@ -387,6 +430,7 @@ namespace nex
 
 	void RasterizerGL::enableOffsetPoint(bool enable)
 	{
+		if (mEnableOffsetPoint == enable) return;
 		mEnableOffsetPoint = enable;
 
 		if (enable)
@@ -401,11 +445,21 @@ namespace nex
 
 	StencilTestGL::StencilTestGL()
 	{
+		glGetBooleanv(GL_STENCIL_TEST, (GLboolean*)&mEnableStencilTest);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareFunc);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareReferenceValue);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareMask);
+
+		glGetIntegerv(GL_STENCIL_FAIL, (GLint*)&mStencilTestFailOperation);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_FAIL, (GLint*)&mDepthTestFailOperation);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_PASS, (GLint*)&mDepthPassOperation);
+		
 		setState(StencilTest::State());
 	}
 
 	void StencilTestGL::enableStencilTest(bool enable)
 	{
+		if (mEnableStencilTest == enable) return;
 		mEnableStencilTest = enable;
 
 		if (mEnableStencilTest)
@@ -419,7 +473,11 @@ namespace nex
 
 	void StencilTestGL::setCompareFunc(CompareFunction func, int referenceValue, unsigned mask)
 	{
-		mCompareFunc = translate(func);
+		const auto translated = translate(func);
+		if (mCompareFunc == translated && mCompareReferenceValue == referenceValue && mCompareMask == mask) return;
+
+
+		mCompareFunc = translated;
 		mCompareReferenceValue = referenceValue;
 		mCompareMask = mask;
 
@@ -429,9 +487,18 @@ namespace nex
 	void StencilTestGL::setOperations(StencilTest::Operation stencilFail, StencilTest::Operation depthFail,
 		StencilTest::Operation depthPass)
 	{
-		mStencilTestFailOperation = translate(stencilFail);
-		mDepthTestFailOperation = translate(depthFail);
-		mDepthPassOperation = translate(depthPass);
+		const auto stencilFailTrans = translate(stencilFail);
+		const auto depthFailTrans = translate(depthFail);
+		const auto depthPassTrans = translate(depthPass);
+
+		if (mStencilTestFailOperation == stencilFailTrans 
+			&& mDepthTestFailOperation == depthFailTrans 
+			&& mDepthPassOperation == depthPassTrans) return;
+
+
+		mStencilTestFailOperation = stencilFailTrans;
+		mDepthTestFailOperation = depthFailTrans;
+		mDepthPassOperation = depthPassTrans;
 
 		GLCall(glStencilOp(mStencilTestFailOperation, mDepthTestFailOperation, mDepthPassOperation));
 	}

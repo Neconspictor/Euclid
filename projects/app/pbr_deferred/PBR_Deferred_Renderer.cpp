@@ -232,9 +232,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	using namespace std::chrono;
 
 	//m_renderBackend->newFrame();
-	//RenderBackend::get()->getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
-	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
-	//RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
+	RenderBackend::get()->getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
+	RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
+	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 
 

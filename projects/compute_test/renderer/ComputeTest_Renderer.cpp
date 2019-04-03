@@ -481,13 +481,6 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
-	//mComputeTest->bind();
-	//GLuint location = mComputeTest->getProgram()->getUniformLocation("data");
-	//GLCall(glBindImageTexture(0, textureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGB8));
-	//GLCall(glUniform1i(location, 0));
-	//mComputeTest->getProgram()->setTexture(0, mComputeTest->result.get(), 0);
-	//glBindImageTexture(0, HeightMap, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
 }
 
 void ComputeTest_Renderer::render(SceneNode* scene, Camera* camera, float frameTime, int windowWidth, int windowHeight)
