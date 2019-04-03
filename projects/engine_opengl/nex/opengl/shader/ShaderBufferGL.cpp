@@ -12,26 +12,6 @@ nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, Sha
 {
 	GLCall(glGenBuffers(1, &mRendererID));
 
-	if (false)
-	{
-		GLint block_index = 0;
-		auto* gl = (ShaderProgramGL*)((ShaderProgram*)(test))->mImpl;
-		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "SharedOutput");
-		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 0);
-
-		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "PrivateOutput");
-		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 1);
-
-		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "ConstantInput");
-		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 2);
-
-		block_index = glGetProgramResourceIndex(gl->getProgramID(), GL_SHADER_STORAGE_BLOCK, "DistanceInput");
-		glShaderStorageBlockBinding(gl->getProgramID(), block_index, 3);
-		
-
-		bool last = true;
-	}
-
 	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
 	createStore(nullptr, mSize, mUsageHint);
 	GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mBinding, mRendererID));

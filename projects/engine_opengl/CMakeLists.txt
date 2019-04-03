@@ -23,6 +23,8 @@ set(
     ###header files###
     pch_engine_opengl.hpp
     
+    nex/opengl/CacheGL.hpp
+    nex/opengl/CacheGL.cpp
     nex/opengl/opengl.hpp
     nex/opengl/opengl.cpp
     nex/opengl/RenderBackend.cpp

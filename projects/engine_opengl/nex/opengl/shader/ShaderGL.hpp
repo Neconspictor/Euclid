@@ -5,6 +5,7 @@
 #include <nex/common/Log.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
+#include "nex/opengl/CacheGL.hpp"
 
 namespace nex
 {
@@ -38,25 +39,48 @@ namespace nex
 	/**
 	 * Represents a shader program for an OpenGL renderer.
 	 */
-	class ShaderProgramGL : public ShaderProgram
+	class ShaderProgram::Impl
 	{
 	public:
 
-		ShaderProgramGL(const ShaderProgramGL& other) = delete;
-		ShaderProgramGL& operator=(const ShaderProgramGL& other) = delete;
+		Impl(const Impl& other) = delete;
+		Impl& operator=(const Impl& other) = delete;
 
-		ShaderProgramGL(GLuint program);
-		~ShaderProgramGL();
+		Impl(GLuint program);
+		~Impl();
+
+		void bind();
 
 		GLuint getProgramID() const;
-
+		nex::UniformLocation getShaderStorageBufferLocation(const char* name) const;
+		nex::UniformLocation getUniformBufferLocation(const char* name) const;
+		nex::UniformLocation getUniformLocation(const char* name) const;
+		
+		
+		
 		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
+
+
+		void setDebugName(const char* name);
+
+		void setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot,
+			TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer);
+
+
+
+		void setMat3(UniformLocation locationID, const glm::mat3& data);
+		void setMat4(UniformLocation locationID, const glm::mat4& data);
+
+		void setVec2(UniformLocation locationID, const glm::vec2& data);
+		void setVec3(UniformLocation locationID, const glm::vec3& data);
+		void setVec4(UniformLocation locationID, const glm::vec4& data);
+
+		void unbind();
 
 	protected:
 
 		friend ShaderProgram;
 		friend ShaderStage;
-
 
 		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);
 		static GLuint compileShaderStage(const ResolvedShaderStageDesc& desc, ShaderStageType type);
@@ -67,9 +91,9 @@ namespace nex
 		 * @throws ShaderInitException - if an IO error occurs
 		 */
 		static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<char>& sourceCode);
-		
-		
-		
-		GLuint programID;
+
+		std::string mDebugName;
+		GLuint mProgramID;
+		ShaderCacheGL mCache;
 	};
 }

@@ -24,10 +24,6 @@ std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(cons
 	return create(shaderStages);
 }
 
-nex::ShaderProgram::ShaderProgram(void* impl): mImpl(impl), mIsBound(false)
-{
-}
-
 nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move(program))
 {
 }

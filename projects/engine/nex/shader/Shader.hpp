@@ -95,6 +95,10 @@ namespace nex
 	{
 	public:
 
+		class Impl;
+
+		ShaderProgram(std::unique_ptr<Impl> impl);
+
 		virtual ~ShaderProgram() = default;
 
 		template<typename T>
@@ -120,8 +124,6 @@ namespace nex
 		static std::unique_ptr<ShaderProgram> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
 
 		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
-
-		void release();
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
@@ -215,14 +217,7 @@ namespace nex
 	protected:
 
 		friend Shader;
-
-		ShaderProgram(void* impl);;
-
-		bool mIsBound;
-		std::string mDebugName;
-
-	public:
-		void* mImpl;
+		std::unique_ptr<Impl> mImpl;
 
 	private:
 		ShaderProgram& operator=(const ShaderProgram& other) = delete;

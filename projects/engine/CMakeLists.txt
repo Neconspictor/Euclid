@@ -250,7 +250,8 @@ set(
     nex/util/CallbackContainer.hpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
-	nex/util/Math.hpp
+	nex/util/Macro.hpp
+    nex/util/Math.hpp
     nex/util/Memory.hpp
     nex/util/PointerUtils.hpp
 	nex/util/Projectional.hpp
