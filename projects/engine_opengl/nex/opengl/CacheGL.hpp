@@ -19,7 +19,11 @@ namespace nex
 	class GlobalCacheGL
 	{
 	public:
+		
+		void BindTextureUnit(GLuint unit, GLuint texture);
+		
 		static GlobalCacheGL* get();
+
 
 		GLuint getActiveProgram() const;
 		void UseProgram(GLuint program);
@@ -42,7 +46,6 @@ namespace nex
 
 		ShaderCacheGL(GLuint program);
 
-		void BindTextureUnit(GLuint unit, GLuint texture);
 		void Uniform1i(GLint location, GLint value);
 		void UseProgram();
 
@@ -51,8 +54,6 @@ namespace nex
 		static GlobalCacheGL* mGlobalCache;
 
 		GLuint mProgram;
-
-		std::unordered_map<GLuint, GLuint> mTextureUnits;
 		std::unordered_map<GLint, GLint> mUniform1iValues;
 
 		void assertActiveProgram();

@@ -10,24 +10,23 @@ nex::CacheError::CacheError(const char* _Message): runtime_error(_Message)
 {
 }
 
+void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
+{
+	static std::unordered_map<GLuint, GLuint> cache;
+	const auto it = cache.find(unit);
+
+	if (it == cache.end() || it->second != texture)
+	{
+		cache[unit] = texture;
+		GLCall(glBindTextureUnit(unit, texture));
+	}
+}
+
 nex::ShaderCacheGL::ShaderCacheGL(GLuint program) : mProgram(program)
 {
 	if (mGlobalCache == nullptr)
 	{
 		mGlobalCache = nex::GlobalCacheGL::get();
-	}
-}
-
-void nex::ShaderCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
-{
-	EUCLID_DEBUG(assertActiveProgram());
-
-	const auto it = mTextureUnits.find(unit);
-
-	if (it == mTextureUnits.end() || it->second != texture)
-	{
-		mTextureUnits[unit] = texture;
-		GLCall(glBindTextureUnit(unit, texture));
 	}
 }
 

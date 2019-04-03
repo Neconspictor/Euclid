@@ -88,50 +88,32 @@ void nex::ShaderProgram::setImageLayerOfTexture(UniformLocation locationID, cons
 
 void nex::ShaderProgram::setInt(UniformLocation locationID, int data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform1i(glID, data));
+	mImpl->setInt(locationID, data);
 }
 
 void nex::ShaderProgram::setFloat(UniformLocation locationID, float data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform1f(glID, data));
+	mImpl->setFloat(locationID, data);
 }
 
 void nex::ShaderProgram::setUInt(UniformLocation locationID, unsigned data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform1ui(glID, data));
+	mImpl->setUInt(locationID, data);
 }
 
 void nex::ShaderProgram::setUVec2(UniformLocation locationID, const glm::uvec2& data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform2ui(glID, data.x, data.y));
+	mImpl->setUVec2(locationID, data);
 }
 
 void nex::ShaderProgram::setUVec3(UniformLocation locationID, const glm::uvec3& data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform3ui(glID, data.x, data.y, data.z));
+	mImpl->setUVec3(locationID, data);
 }
 
 void nex::ShaderProgram::setUVec4(UniformLocation locationID, const glm::uvec4& data)
 {
-	assert(mIsBound);
-	GLint glID = locationID;
-	if (glID < 0) return;
-	GLCall(glUniform4ui(glID, data.x, data.y, data.z, data.w));
+	mImpl->setUVec4(locationID, data);
 }
 
 void nex::ShaderProgram::setVec2(UniformLocation locationID, const glm::vec2& data)
@@ -162,16 +144,7 @@ void nex::ShaderProgram::setMat4(UniformLocation locationID, const glm::mat4& da
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
 void nex::ShaderProgram::setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot)
 {
-	//assert(mIsBound);
-	ASSERT(mIsBound);
-	//ASSERT(isValid(textureSlot));
-	GLint glID = locationID;
-	if (glID < 0) return;
-
-	TextureGL* gl = (TextureGL*)data->getImpl();
-
-	GLCall(glBindTextureUnit(bindingSlot, *gl->getTexture()));
-	GLCall(glUniform1i(glID, bindingSlot));
+	mImpl->setTexture(locationID, data, bindingSlot);
 }
 
 void nex::ShaderProgram::setDebugName(const char* name)
@@ -234,6 +207,10 @@ nex::ShaderStageGL::~ShaderStageGL()
 GLuint nex::ShaderStageGL::getID() const
 {
 	return mShaderStage;
+}
+
+nex::ShaderProgram::ShaderProgram(std::unique_ptr<Impl> impl) : mImpl(std::move(impl))
+{
 }
 
 nex::ShaderProgram::Impl::Impl(GLuint program) : mProgramID(program), mCache(program)
@@ -323,6 +300,39 @@ void nex::ShaderProgram::Impl::setImageLayerOfTexture(UniformLocation locationID
 	mCache.Uniform1i(glID, bindingSlot);
 }
 
+void nex::ShaderProgram::Impl::setFloat(UniformLocation locationID, float data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform1f(glID, data));
+}
+
+void nex::ShaderProgram::Impl::setInt(UniformLocation locationID, int data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+	mCache.Uniform1i(glID, data);
+	//GLCall(glUniform1i(glID, data));
+}
+
+void nex::ShaderProgram::Impl::setTexture(UniformLocation locationID, const Texture* data, unsigned bindingSlot)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+
+	TextureGL* gl = (TextureGL*)data->getImpl();
+
+	GlobalCacheGL::get()->BindTextureUnit(bindingSlot, *gl->getTexture());
+	mCache.Uniform1i(glID, bindingSlot);
+}
+
+void nex::ShaderProgram::Impl::setUInt(UniformLocation locationID, unsigned data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniform1ui(glID, data));
+}
+
 void nex::ShaderProgram::Impl::setMat3(UniformLocation locationID, const glm::mat3& data)
 {
 	GLint glID = locationID;
@@ -359,6 +369,30 @@ void nex::ShaderProgram::Impl::setVec4(UniformLocation locationID, const glm::ve
 	if (glID < 0) return;
 
 	GLCall(glUniform4f(glID, data.x, data.y, data.z, data.w));
+}
+
+void nex::ShaderProgram::Impl::setUVec2(UniformLocation locationID, const glm::uvec2& data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+
+	GLCall(glUniform2ui(glID, data.x, data.y));
+}
+
+void nex::ShaderProgram::Impl::setUVec3(UniformLocation locationID, const glm::uvec3& data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+
+	GLCall(glUniform3ui(glID, data.x, data.y, data.z));
+}
+
+void nex::ShaderProgram::Impl::setUVec4(UniformLocation locationID, const glm::uvec4& data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+
+	GLCall(glUniform4ui(glID, data.x, data.y, data.z, data.w));
 }
 
 void nex::ShaderProgram::Impl::unbind()

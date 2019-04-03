@@ -55,9 +55,8 @@ namespace nex
 		nex::UniformLocation getShaderStorageBufferLocation(const char* name) const;
 		nex::UniformLocation getUniformBufferLocation(const char* name) const;
 		nex::UniformLocation getUniformLocation(const char* name) const;
-		
-		
-		
+
+
 		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
 
 
@@ -67,15 +66,27 @@ namespace nex
 			TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer);
 
 
+		void setFloat(UniformLocation locationID, float data);
 
 		void setMat3(UniformLocation locationID, const glm::mat3& data);
 		void setMat4(UniformLocation locationID, const glm::mat4& data);
+
+		void setInt(UniformLocation locationID, int data);
+
+		void setTexture(UniformLocation locationID, const Texture* data, unsigned bindingSlot);
+
+		void setUInt(UniformLocation locationID, unsigned data);
+		void setUVec2(UniformLocation locationID, const glm::uvec2& data);
+		void setUVec3(UniformLocation locationID, const glm::uvec3& data);
+		void setUVec4(UniformLocation locationID, const glm::uvec4& data);
 
 		void setVec2(UniformLocation locationID, const glm::vec2& data);
 		void setVec3(UniformLocation locationID, const glm::vec3& data);
 		void setVec4(UniformLocation locationID, const glm::vec4& data);
 
 		void unbind();
+
+
 
 	protected:
 

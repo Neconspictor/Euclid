@@ -2,6 +2,7 @@
 #include <nex/util/StringUtils.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 
+
 std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines)
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
