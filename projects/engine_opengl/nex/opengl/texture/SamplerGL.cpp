@@ -60,14 +60,14 @@ const SamplerDesc& Sampler::getState() const
 void Sampler::setMinFilter(TextureFilter filter)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
-	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_MIN_FILTER, translate(filter)));
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_MIN_FILTER, (GLenum)translate(filter)));
 	impl->mState.minFilter = filter;
 }
 
 void Sampler::setMagFilter(TextureFilter filter)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
-	GLCall(glSamplerParameteri(((SamplerGL*)mImpl.get())->getID(), GL_TEXTURE_MAG_FILTER, translate(filter)));
+	GLCall(glSamplerParameteri(((SamplerGL*)mImpl.get())->getID(), GL_TEXTURE_MAG_FILTER, (GLenum)translate(filter)));
 	impl->mState.magFilter = filter;
 }
 
@@ -115,27 +115,27 @@ void Sampler::setCompareFunction(CompareFunction compareFunction)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
 	impl->mState.compareFunction = compareFunction;
-	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_COMPARE_FUNC, translate(impl->mState.compareFunction)));
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_COMPARE_FUNC, (GLenum)translate(impl->mState.compareFunction)));
 }
 
 void Sampler::setWrapS(TextureUVTechnique wrap)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
-	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_S, translate(wrap)));
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_S, (GLenum)translate(wrap)));
 	impl->mState.wrapS = wrap;
 }
 
 void Sampler::setWrapT(TextureUVTechnique wrap)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
-	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_T, translate(wrap)));
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_T, (GLenum)translate(wrap)));
 	impl->mState.wrapT = wrap;
 }
 
 void Sampler::setWrapR(TextureUVTechnique wrap)
 {
 	auto* impl = ((SamplerGL*)mImpl.get());
-	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_R, translate(wrap)));
+	GLCall(glSamplerParameteri(impl->getID(), GL_TEXTURE_WRAP_R, (GLenum)translate(wrap)));
 	impl->mState.wrapR = wrap;
 }
 

@@ -109,12 +109,9 @@ namespace nex
 
 	struct BlendDesc
 	{
-		BlendFunc sourceRGB = BlendFunc::ONE;
-		BlendFunc destRGB = BlendFunc::ZERO;
-		BlendOperation operationRGB = BlendOperation::ADD;
-		BlendFunc sourceAlpha = BlendFunc::ONE;
-		BlendFunc destAlpha = BlendFunc::ZERO;
-		BlendOperation operationAlpha = BlendOperation::ADD;
+		BlendFunc source = BlendFunc::ONE;
+		BlendFunc destination = BlendFunc::ZERO;
+		BlendOperation operation = BlendOperation::ADD;
 	};
 
 	struct BlendState
@@ -135,26 +132,20 @@ namespace nex
 	class Blender
 	{
 	public:
-
-		class Implementation
-		{
-		public:
-			virtual ~Implementation() = default;
-		};
-
 		Blender();
 
 		void enableBlend(bool enable);
 		void enableAlphaToCoverage(bool enable);
 		void setSampleConverage(float sampleCoverage, bool invert);
 		void setConstantBlendColor(const glm::vec4& color);
-		void setGlobalBlendDesc(const BlendDesc& desc);
+		void setBlendDesc(const BlendDesc& desc);
 		void setState(const BlendState& state);
 
-		void setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc);
+		void setRenderTargetBlending(const RenderTargetBlendDesc& desc);
 
 	private:
-		std::unique_ptr<Implementation> mImpl;
+		class Impl;
+		std::unique_ptr<Impl> mImpl;
 	};
 
 	struct RenderTargetBlendDesc
@@ -172,12 +163,6 @@ namespace nex
 	class DepthBuffer
 	{
 	public:
-
-		class Implementation
-		{
-		public:
-			virtual ~Implementation() = default;
-		};
 
 		//specify mapping of depth values from normalized device coordinates to window coordinates
 		struct Range
@@ -210,7 +195,8 @@ namespace nex
 		void setState(const State& state);
 
 	private:
-		std::unique_ptr<Implementation> mImpl;
+		class Impl;
+		std::unique_ptr<Impl> mImpl;
 	};
 
 
@@ -245,13 +231,6 @@ namespace nex
 	class Rasterizer
 	{
 	public:
-
-		class Implementation
-		{
-			public:
-				virtual ~Implementation() = default;
-		};
-
 		Rasterizer();
 
 		void setFillMode(FillMode fillMode, PolygonSide faceSide);
@@ -268,7 +247,8 @@ namespace nex
 		void enableOffsetPoint(bool enable);
 
 	private:
-		std::unique_ptr<Implementation> mImpl;
+		class Impl;
+		std::unique_ptr<Impl> mImpl;
 	};
 
 
@@ -278,7 +258,7 @@ namespace nex
 	class StencilTest
 	{
 	public:
-		class Implementation {};
+		class Impl;
 
 		enum class Operation
 		{
@@ -317,7 +297,7 @@ namespace nex
 		void setState(const State& state);
 
 	private:
-		std::unique_ptr<Implementation> mImpl;
+		std::unique_ptr<Impl> mImpl;
 	};
 
 

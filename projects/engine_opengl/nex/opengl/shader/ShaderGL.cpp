@@ -294,8 +294,8 @@ void nex::ShaderProgram::Impl::setImageLayerOfTexture(UniformLocation locationID
 		level,
 		translate(textureIsArray),
 		layer,
-		translate(accessType),
-		translate(format));
+		(GLenum)translate(accessType),
+		(GLenum)translate(format));
 
 	mCache.Uniform1i(glID, bindingSlot);
 }

@@ -564,7 +564,7 @@ void nex::RenderTargetGL::updateAttachment(const RenderAttachment& attachment) c
 	{
 		const auto gl = (TextureGL*)attachment.texture->getImpl();
 		textureID = *gl->getTexture();
-		textureTarget = gl->getTarget();
+		textureTarget = (GLenum)gl->getTarget();
 	}
 
 	const auto renderBuffer = dynamic_cast<RenderBuffer*> (attachment.texture.get());

@@ -67,12 +67,12 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 {
 	static Side const table[]
 	{
-			POSITIVE_X,
-			NEGATIVE_X,
-			POSITIVE_Y,
-			NEGATIVE_Y,
-			POSITIVE_Z,
-			NEGATIVE_Z,
+			Side::POSITIVE_X,
+			Side::NEGATIVE_X,
+			Side::POSITIVE_Y,
+			Side::NEGATIVE_Y,
+			Side::POSITIVE_Z,
+			Side::NEGATIVE_Z,
 	};
 
 	//static const unsigned size = (unsigned)CubeMap::Side::LAST - (unsigned)TextureFilter::FIRST + 1;
@@ -81,13 +81,13 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : TextureGL(GL_TEXTURE_CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : TextureGL(TextureTargetGl::CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
-	auto internalFormat = nex::translate(data.internalFormat);
-	auto colorspace = nex::translate(data.colorspace);
-	auto pixelDataType = nex::translate(data.pixelDataType);
+	const auto internalFormat = (GLenum)nex::translate(data.internalFormat);
+	const auto colorspace = (GLenum)nex::translate(data.colorspace);
+	const auto pixelDataType = (GLenum)nex::translate(data.pixelDataType);
 
-	TextureGL::generateTexture(&mTextureID, data, mTarget);
+	TextureGL::generateTexture(&mTextureID, data, (GLenum)mTarget);
 
 	for (int i = 0; i < 6; ++i)
 	{
@@ -101,7 +101,7 @@ nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const Texture
 	}
 }
 
-nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap, GL_TEXTURE_CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight) : TextureGL(cubeMap, TextureTargetGl::CUBE_MAP), mSideWidth(sideWidth), mSideHeight(sideHeight)
 {
 }
 
@@ -172,11 +172,11 @@ nex::InternFormat nex::RenderBuffer::getFormat() const
 }
 
 
-nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, InternFormat format) : TextureGL(GL_FALSE, GL_RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
+nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, InternFormat format) : TextureGL(GL_FALSE, TextureTargetGl::RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
-	GLCall(glBindRenderbuffer(mTarget, mTextureID));
-	GLCall(glRenderbufferStorage(mTarget, translate(mFormat), mWidth, mHeight));
+	GLCall(glBindRenderbuffer((GLenum)mTarget, mTextureID));
+	GLCall(glRenderbufferStorage((GLenum)mTarget, (GLenum)translate(mFormat), mWidth, mHeight));
 }
 
 nex::RenderBufferGL::~RenderBufferGL()
@@ -188,7 +188,7 @@ nex::RenderBufferGL::~RenderBufferGL()
 }
 
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, InternFormat format)
-	: TextureGL(texture, GL_RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
+	: TextureGL(texture, TextureTargetGl::RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
 {
 }
 
@@ -201,8 +201,8 @@ void nex::RenderBufferGL::resize(unsigned width, unsigned height)
 {
 	mWidth = width;
 	mHeight = height;
-	GLCall(glBindRenderbuffer(mTarget, mTextureID));
-	GLCall(glRenderbufferStorage(mTarget, translate(mFormat), width, height));
+	GLCall(glBindRenderbuffer((GLenum)mTarget, mTextureID));
+	GLCall(glRenderbufferStorage((GLenum)mTarget, (GLenum)translate(mFormat), width, height));
 }
 
 nex::Texture::~Texture() = default;
@@ -213,10 +213,10 @@ nex::Texture::Texture(std::unique_ptr<TextureImpl> impl) : mImpl(std::move(impl)
 
 nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap)
 {
-	GLuint format = translate(data.colorspace);
-	GLuint internalFormat = translate(data.internalFormat);
-	GLuint pixelDataType = translate(data.pixelDataType);
-	GLuint bindTarget;
+	const auto format = (GLenum)translate(data.colorspace);
+	const auto internalFormat = (GLenum)translate(data.internalFormat);
+	const auto pixelDataType = (GLenum)translate(data.pixelDataType);
+	GLenum bindTarget;
 
 	if (isCubeMap)
 	{
@@ -348,11 +348,11 @@ void nex::Texture::setImpl(std::unique_ptr<TextureImpl> impl)
 	mImpl = std::move(impl);
 }
 
-nex::TextureGL::TextureGL(GLuint target) : mTextureID(GL_FALSE), mTarget(target)
+nex::TextureGL::TextureGL(TextureTargetGl target) : mTextureID(GL_FALSE), mTarget(target)
 {
 }
 
-nex::TextureGL::TextureGL(GLuint texture, GLuint target) : mTextureID(texture), mTarget(target)
+nex::TextureGL::TextureGL(GLuint texture, TextureTargetGl target) : mTextureID(texture), mTarget(target)
 {
 }
 
@@ -365,12 +365,12 @@ nex::TextureGL::~TextureGL()
 void nex::TextureGL::generateMipMaps()
 {
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(mTarget, mTextureID));
+	GLCall(glBindTexture((GLenum)mTarget, mTextureID));
 	GLCall(glBindSampler(0, GL_FALSE));
 
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_BASE_LEVEL, 0));
-	GLCall(glTexParameteri(mTarget, GL_TEXTURE_MAX_LEVEL, 1000));
-	GLCall(glGenerateMipmap(mTarget));
+	GLCall(glTexParameteri((GLenum)mTarget, GL_TEXTURE_BASE_LEVEL, 0));
+	GLCall(glTexParameteri((GLenum)mTarget, GL_TEXTURE_MAX_LEVEL, 1000));
+	GLCall(glGenerateMipmap((GLenum)mTarget));
 }
 
 std::unique_ptr<nex::TextureGL> nex::TextureGL::createView(TextureGL* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
@@ -378,9 +378,9 @@ std::unique_ptr<nex::TextureGL> nex::TextureGL::createView(TextureGL* original, 
 {
 	auto result = make_unique<TextureGL>(original->getTarget());
 	// TODO check whether target and the target of the original texture are compatible!
-	const GLenum targetGL = translate(target);
+	const auto targetGL = (GLenum)translate(target);
 
-	const GLenum internalFormat = translate(data.internalFormat);
+	const auto internalFormat = (GLenum)translate(data.internalFormat);
 	
 	GLCall(glGenTextures(1, result->getTexture()));
 	const GLuint textureID = *result->getTexture();
@@ -401,11 +401,11 @@ void nex::TextureGL::applyTextureData(GLuint texture, const BaseTextureDesc& des
 {
 	GLCall(glBindTexture(target, texture));
 
-	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_R, translate(desc.wrapR)));
-	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_S, translate(desc.wrapS)));
-	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_T, translate(desc.wrapT)));
-	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, translate(desc.minFilter)));
-	GLCall(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, translate(desc.magFilter)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_R, (GLenum)translate(desc.wrapR)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_S, (GLenum)translate(desc.wrapS)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_WRAP_T, (GLenum)translate(desc.wrapT)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, (GLenum)translate(desc.minFilter)));
+	GLCall(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, (GLenum)translate(desc.magFilter)));
 	GLCall(glTexParameteri(target, GL_TEXTURE_LOD_BIAS, desc.biasLOD));
 	GLCall(glTexParameteri(target, GL_TEXTURE_MIN_LOD, desc.minLOD));
 	GLCall(glTexParameteri(target, GL_TEXTURE_MAX_LOD, desc.maxLOD));
@@ -417,10 +417,10 @@ void nex::TextureGL::applyTextureData(GLuint texture, const BaseTextureDesc& des
 	if (desc.useSwizzle)
 	{
 		int swizzle[4];
-		swizzle[0] = translate(desc.swizzle.r);
-		swizzle[1] = translate(desc.swizzle.g);
-		swizzle[2] = translate(desc.swizzle.b);
-		swizzle[3] = translate(desc.swizzle.a);
+		swizzle[0] = (GLenum)translate(desc.swizzle.r);
+		swizzle[1] = (GLenum)translate(desc.swizzle.g);
+		swizzle[2] = (GLenum)translate(desc.swizzle.b);
+		swizzle[3] = (GLenum)translate(desc.swizzle.a);
 
 		GLCall(glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle));
 	}
@@ -433,7 +433,7 @@ void nex::TextureGL::applyTextureData(GLuint texture, const BaseTextureDesc& des
 	if (desc.useDepthComparison)
 	{
 		GLCall(glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
-		GLCall(glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, translate(desc.compareFunc)));
+		GLCall(glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, (GLenum)translate(desc.compareFunc)));
 	}
 }
 
@@ -466,12 +466,12 @@ void nex::TextureGL::readback(TextureTarget target, unsigned mipmapLevel, ColorS
 	if (target == TextureTarget::CUBE_MAP)
 	{
 		GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID));
-		GLCall(glGetTexImage(CubeMapGL::translate(side), mipmapLevel, translate(format), translate(type), dest));
+		GLCall(glGetTexImage((GLenum)CubeMapGL::translate(side), mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), dest));
 	}
 	else
 	{
-		GLCall(glBindTexture(translate(target), mTextureID));
-		GLCall(glGetTexImage(translate(target), mipmapLevel, translate(format), translate(type), dest));
+		GLCall(glBindTexture((GLenum)translate(target), mTextureID));
+		GLCall(glGetTexImage((GLenum)translate(target), mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), dest));
 	}
 }
 
@@ -515,7 +515,7 @@ void nex::TextureGL::setTexture(GLuint id)
 	mTextureID = id;
 }
 
-GLuint nex::TextureGL::getTarget() const
+nex::TextureTargetGl nex::TextureGL::getTarget() const
 {
 	return mTarget;
 }
@@ -549,23 +549,23 @@ void nex::Texture2D::resize(unsigned width, unsigned height)
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
-	TextureGL(GL_FALSE, GL_TEXTURE_2D), mWidth(width), mHeight(height), mData(textureData)
+	TextureGL(GL_FALSE, TextureTargetGl::TEXTURE2D), mWidth(width), mHeight(height), mData(textureData)
 {
-	TextureGL::generateTexture(&mTextureID, textureData, mTarget);
+	TextureGL::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
 
-	GLCall(glTexImage2D(mTarget, 0, translate(mData.internalFormat), width, height,
-		0, translate(mData.colorspace), translate(mData.pixelDataType),
+	GLCall(glTexImage2D((GLenum)mTarget, 0, (GLenum)translate(mData.internalFormat), width, height,
+		0, (GLenum)translate(mData.colorspace), (GLenum)translate(mData.pixelDataType),
 		data));
 
 
 	if (mData.generateMipMaps)
 	{
-		GLCall(glGenerateMipmap(mTarget));
+		GLCall(glGenerateMipmap((GLenum)mTarget));
 	}
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
-	: TextureGL(texture, GL_TEXTURE_2D), mWidth(width), mHeight(height), mData(textureData)
+	: TextureGL(texture, TextureTargetGl::TEXTURE2D), mWidth(width), mHeight(height), mData(textureData)
 {
 }
 
@@ -594,8 +594,8 @@ void nex::Texture2DGL::resize(unsigned width, unsigned height)
 	mWidth = width;
 	mHeight = height;
 
-	resizeTexImage2D(mTextureID, mTarget, 0, mWidth, mHeight, translate(mData.colorspace), translate(mData.internalFormat),
-		translate(mData.pixelDataType), mData.generateMipMaps, nullptr);
+	resizeTexImage2D(mTextureID, (GLenum)mTarget, 0, mWidth, mHeight, (GLenum)translate(mData.colorspace), (GLenum)translate(mData.internalFormat),
+		(GLenum)translate(mData.pixelDataType), mData.generateMipMaps, nullptr);
 }
 
 
@@ -623,31 +623,31 @@ unsigned nex::Texture2DMultisample::getSamples() const
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData,
 	unsigned samples) : Texture2DGL(GL_FALSE, textureData, width, height), mSamples(samples)
 {
-	mTarget = TEXTURE2D_MULTISAMPLE;
-	TextureGL::generateTexture(&mTextureID, textureData, mTarget);
-	GLCall(glTexImage2DMultisample(mTarget, mSamples, translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
+	mTarget = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
+	TextureGL::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
+	GLCall(glTexImage2DMultisample((GLenum)mTarget, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
 
 	if (mData.generateMipMaps)
 	{
-		GLCall(glGenerateMipmap(mTarget));
+		GLCall(glGenerateMipmap((GLenum)mTarget));
 	}
 }
 
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples,
 	unsigned width, unsigned height) : Texture2DGL(texture, textureData, width, height), mSamples(samples)
 {
-	mTarget = TEXTURE2D_MULTISAMPLE;
+	mTarget = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
 }
 
 void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height)
 {
 	mWidth = width;
 	mHeight = height;
-	GLCall(glTexImage2DMultisample(mTarget, mSamples, translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
+	GLCall(glTexImage2DMultisample((GLenum)mTarget, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
 
 	if (mData.generateMipMaps)
 	{
-		GLCall(glGenerateMipmap(mTarget));
+		GLCall(glGenerateMipmap((GLenum)mTarget));
 	}
 }
 
@@ -693,34 +693,34 @@ unsigned nex::Texture2DArray::getSize() const
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint size, bool immutableStorage, const TextureData& textureData,
 	const void* data) :
-	TextureGL(GL_FALSE, GL_TEXTURE_2D_ARRAY), mWidth(width), mHeight(height), mSize(size), mData(textureData)
+	TextureGL(GL_FALSE, TextureTargetGl::TEXTURE2D_ARRAY), mWidth(width), mHeight(height), mSize(size), mData(textureData)
 {
-	TextureGL::generateTexture(&mTextureID, textureData, mTarget);
+	TextureGL::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
 
 	//GLCall(glBindTexture(mTarget, mTextureID));
 
 	if (immutableStorage)
 	{
-		GLCall(glTexStorage3D(mTarget, 1, translate(mData.internalFormat), width, height, size));
-		GLCall(glTexSubImage3D(mTarget, 0, 0, 0, 0, width, height, size, translate(mData.colorspace), translate(mData.pixelDataType), data));
+		GLCall(glTexStorage3D((GLenum)mTarget, 1, (GLenum)translate(mData.internalFormat), width, height, size));
+		GLCall(glTexSubImage3D((GLenum)mTarget, 0, 0, 0, 0, width, height, size, (GLenum)translate(mData.colorspace), (GLenum)translate(mData.pixelDataType), data));
 	} else
 	{
 		resizeTexImage3D(mTextureID,
-			mTarget,
+			(GLenum)mTarget,
 			0,
 			mWidth,
 			mHeight,
 			mSize,
-			translate(mData.colorspace),
-			translate(mData.internalFormat),
-			translate(mData.pixelDataType),
+			(GLenum)translate(mData.colorspace),
+			(GLenum)translate(mData.internalFormat),
+			(GLenum)translate(mData.pixelDataType),
 			mData.generateMipMaps,
 			data);
 	}
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned size)
-	: TextureGL(texture, GL_TEXTURE_2D), mWidth(width), mHeight(height), mSize(size), mData(textureData)
+	: TextureGL(texture, TextureTargetGl::TEXTURE2D_ARRAY), mWidth(width), mHeight(height), mSize(size), mData(textureData)
 {
 }
 
@@ -764,14 +764,14 @@ void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned siz
 	mSize = size;
 
 	resizeTexImage3D(mTextureID, 
-		mTarget, 
+		(GLenum)mTarget,
 		0, 
 		mWidth, 
 		mHeight, 
 		mSize, 
-		translate(mData.colorspace), 
-		translate(mData.internalFormat),
-		translate(mData.pixelDataType), 
+		(GLenum)translate(mData.colorspace),
+		(GLenum)translate(mData.internalFormat),
+		(GLenum)translate(mData.pixelDataType),
 		mData.generateMipMaps, 
 		nullptr);
 }
@@ -780,9 +780,9 @@ nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)
 {
 	static TextureAccessGL const table[]
 	{
-		READ_ONLY,
-		READ_WRITE,
-		WRITE_ONLY,
+		TextureAccessGL::READ_ONLY,
+		TextureAccessGL::READ_WRITE,
+		TextureAccessGL::WRITE_ONLY,
 	};
 
 	static const unsigned size = (unsigned)TextureAccess::LAST - (unsigned)TextureAccess::FIRST + 1;
@@ -795,10 +795,10 @@ nex::ChannelGL nex::translate(nex::Channel channel)
 {
 	static ChannelGL const table[]
 	{
-		RED,
-		GREEN,
-		BLUE,
-		ALPHA,
+		ChannelGL::RED,
+		ChannelGL::GREEN,
+		ChannelGL::BLUE,
+		ChannelGL::ALPHA,
 	};
 
 	static const unsigned size = (unsigned)Channel::LAST - (unsigned)Channel::FIRST + 1;
@@ -811,12 +811,12 @@ nex::TextureFilterGL nex::translate(nex::TextureFilter filter)
 {
 	static TextureFilterGL const table[]
 	{
-		NearestNeighbor,
-		Linear,
-		Near_Mipmap_Near,
-		Near_Mipmap_Linear,
-		Linear_Mipmap_Near,
-		Linear_Mipmap_Linear,
+		TextureFilterGL::NearestNeighbor,
+		TextureFilterGL::Linear,
+		TextureFilterGL::Near_Mipmap_Near,
+		TextureFilterGL::Near_Mipmap_Linear,
+		TextureFilterGL::Linear_Mipmap_Near,
+		TextureFilterGL::Linear_Mipmap_Linear,
 	};
 
 	static const unsigned size = (unsigned)TextureFilter::LAST - (unsigned)TextureFilter::FIRST + 1;
@@ -829,11 +829,11 @@ nex::TextureUVTechniqueGL nex::translate(nex::TextureUVTechnique technique)
 {
 	static TextureUVTechniqueGL const table[]
 	{
-		ClampToBorder,
-		ClampToEdge,
-		MirrorRepeat,
-		MirrorClampToEdge,
-		Repeat,
+		TextureUVTechniqueGL::ClampToBorder,
+		TextureUVTechniqueGL::ClampToEdge,
+		TextureUVTechniqueGL::MirrorRepeat,
+		TextureUVTechniqueGL::MirrorClampToEdge,
+		TextureUVTechniqueGL::Repeat,
 	};
 
 	static const unsigned size = (unsigned)TextureUVTechnique::LAST - (unsigned)TextureUVTechnique::FIRST + 1;
@@ -846,20 +846,20 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 {
 	static ColorSpaceGL const table[]
 	{
-		R,
-		RED_INTEGER,
-		RG,
-		RG_INTEGER,
-		RGB,
-		RGBA,
+		ColorSpaceGL::R,
+		ColorSpaceGL::RED_INTEGER,
+		ColorSpaceGL::RG,
+		ColorSpaceGL::RG_INTEGER,
+		ColorSpaceGL::RGB,
+		ColorSpaceGL::RGBA,
 
 		// srgb formats
-		SRGB,
-		SRGBA,
+		ColorSpaceGL::SRGB,
+		ColorSpaceGL::SRGBA,
 
-		DEPTH,
-		STENCIL,
-		DEPTH_STENCIL,
+		ColorSpaceGL::DEPTH,
+		ColorSpaceGL::STENCIL,
+		ColorSpaceGL::DEPTH_STENCIL,
 	};
 
 	static const unsigned size = (unsigned)ColorSpace::LAST - (unsigned)ColorSpace::FIRST + 1;
@@ -872,49 +872,49 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 {
 	static InternFormatGL const table[]
 	{
-		R8,
-		R8UI,
-		R16,
-		R16F,
-		R32F,
-		R32I,
-		R32UI,
+		InternFormatGL::R8,
+		InternFormatGL::R8UI,
+		InternFormatGL::R16,
+		InternFormatGL::R16F,
+		InternFormatGL::R32F,
+		InternFormatGL::R32I,
+		InternFormatGL::R32UI,
 
-		RG8,
-		RG8UI,
-		RG8_SNORM,
-		RG16,
-		RG16F,
-		RG32F,
-		RG32I,
-		RG32UI,
+		InternFormatGL::RG8,
+		InternFormatGL::RG8UI,
+		InternFormatGL::RG8_SNORM,
+		InternFormatGL::RG16,
+		InternFormatGL::RG16F,
+		InternFormatGL::RG32F,
+		InternFormatGL::RG32I,
+		InternFormatGL::RG32UI,
 
-		RGB8,
-		RGB16,
-		RGB16F,
-		RGB32F,
-		RGB32I,
-		RGB32UI,
+		InternFormatGL::RGB8,
+		InternFormatGL::RGB16,
+		InternFormatGL::RGB16F,
+		InternFormatGL::RGB32F,
+		InternFormatGL::RGB32I,
+		InternFormatGL::RGB32UI,
 
-		RGBA8,
-		RGBA16,
-		RGBA16F,
-		RGBA16_SNORM,
-		RGBA32F,
-		RGBA32I,
-		RGBA32UI,
+		InternFormatGL::RGBA8,
+		InternFormatGL::RGBA16,
+		InternFormatGL::RGBA16F,
+		InternFormatGL::RGBA16_SNORM,
+		InternFormatGL::RGBA32F,
+		InternFormatGL::RGBA32I,
+		InternFormatGL::RGBA32UI,
 
 		// srgb formats
-		SRGB8,
-		SRGBA8,
+		InternFormatGL::SRGB8,
+		InternFormatGL::SRGBA8,
 
-		DEPTH24_STENCIL8,
-		DEPTH32F_STENCIL8,
-		DEPTH16,
-		DEPTH24,
-		DEPTH32,
-		DEPTH_COMPONENT32F,
-		STENCIL8,
+		InternFormatGL::DEPTH24_STENCIL8,
+		InternFormatGL::DEPTH32F_STENCIL8,
+		InternFormatGL::DEPTH16,
+		InternFormatGL::DEPTH24,
+		InternFormatGL::DEPTH32,
+		InternFormatGL::DEPTH_COMPONENT32F,
+		InternFormatGL::STENCIL8,
 	};
 
 	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
@@ -927,16 +927,16 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 {
 	static PixelDataTypeGL const table[]
 	{
-		FLOAT,
-		UBYTE,
-		UINT,
-		SHORT,
+		PixelDataTypeGL::FLOAT,
+		PixelDataTypeGL::UBYTE,
+		PixelDataTypeGL::UINT,
+		PixelDataTypeGL::SHORT,
 
-		UNSIGNED_INT_24_8,
-		FLOAT_32_UNSIGNED_INT_24_8_REV,
-		UNSIGNED_SHORT,
-		UNSIGNED_INT_24,
-		UNSIGNED_INT_8,
+		PixelDataTypeGL::UNSIGNED_INT_24_8,
+		PixelDataTypeGL::FLOAT_32_UNSIGNED_INT_24_8_REV,
+		PixelDataTypeGL::UNSIGNED_SHORT,
+		PixelDataTypeGL::UNSIGNED_INT_24,
+		PixelDataTypeGL::UNSIGNED_INT_8,
 	};
 
 	static const unsigned size = (unsigned)PixelDataType::LAST - (unsigned)PixelDataType::FIRST + 1;
@@ -950,20 +950,20 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 	static TextureTargetGl const table[]
 	{
 		//1D
-		TEXTURE1D,
-		TEXTURE1D_ARRAY,
+		TextureTargetGl::TEXTURE1D,
+		TextureTargetGl::TEXTURE1D_ARRAY,
 
 		//2D
-		TEXTURE2D,
-		TEXTURE2D_MULTISAMPLE,
+		TextureTargetGl::TEXTURE2D,
+		TextureTargetGl::TEXTURE2D_MULTISAMPLE,
 
 		// 3D
-		TEXTURE2D_ARRAY,
-		TEXTURE2D_MULTISAMPLE_ARRAY,
-		TEXTURE3D,
+		TextureTargetGl::TEXTURE2D_ARRAY,
+		TextureTargetGl::TEXTURE2D_MULTISAMPLE_ARRAY,
+		TextureTargetGl::TEXTURE3D,
 
 		// cubemap
-		CUBE_MAP,
+		TextureTargetGl::CUBE_MAP,
 	};
 
 	static const unsigned size = (unsigned)TextureTarget::LAST - (unsigned)TextureTarget::FIRST + 1;

@@ -8,9 +8,7 @@
 #include <nex/opengl/texture/RenderTargetGL.hpp>
 #include <nex/opengl/opengl.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include <nex/post_processing/blur/GaussianBlur.hpp>
 #include "nex/texture/Attachment.hpp"
-#include "nex/post_processing/PostProcessor.hpp"
 #include "nex/shader/SkyBoxShader.hpp"
 #include <nex/EffectLibrary.hpp>
 
@@ -20,196 +18,436 @@ using namespace glm;
 
 namespace nex
 {
-
-	class RenderBackend::Impl
+	BlendDescGL::BlendDescGL(const BlendDesc& desc) :
+		source(translate(desc.source)),
+		destination(translate(desc.destination)),
+		operation(translate(desc.operation))
 	{
-	public:
+	}
 
-		Impl() : m_logger("RenderBackend - OPENGL"),
-			backgroundColor(0.0f, 0.0f, 0.0f),
-			msaaSamples(1), defaultRenderTarget(nullptr)
-		{
-			
-		}
+	RenderTargetBlendDescGL::RenderTargetBlendDescGL() : RenderTargetBlendDescGL(RenderTargetBlendDesc())
+	{
+	}
 
-		~Impl() = default;
+	RenderTargetBlendDescGL::RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc) :
+		enableBlend(translate(desc.enableBlend)),
+		colorAttachIndex(desc.colorAttachIndex),
+		blendDesc(desc.blendDesc)
+	{
 
-		//Note: we use public qualifier as this class is private and only used for the RenderBackend!
-		glm::vec3 backgroundColor;
-		std::unique_ptr<EffectLibrary> mEffectLibrary;
-		unsigned int msaaSamples;
-		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
-		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
-		//BlendState mBlendState;
-
-		nex::Logger m_logger{ "RenderBackend" };
-		Blender mBlender;
-		DepthBuffer mDepthBuffer;
-		Rasterizer mRasterizer;
-		StencilTest mStencilTest;
-		Viewport mViewport;
-	};
-
+	}
 
 	Blender::Blender()
 	{
-		mImpl = make_unique<BlenderGL>();
+		mImpl = make_unique<Blender::Impl>();
+		setState(BlendState());
+	}
+
+	Blender::Impl::Impl() :
+		mBlendDesc(BlendDesc())
+	{
+		glGetBooleanv(GL_BLEND, &mEnableBlend);
+		glGetBooleanv(GL_SAMPLE_COVERAGE, (GLboolean*)&mEnableAlphaToCoverage);
 	}
 
 	void Blender::enableBlend(bool enable)
 	{
-		((BlenderGL*)mImpl.get())->enableBlend(enable);
+		if (mImpl->mEnableBlend == enable) return;
+
+		mImpl->mEnableBlend = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_BLEND));
+		}
+		else
+		{
+			GLCall(glDisable(GL_BLEND));
+		}
 	}
 
 	void Blender::enableAlphaToCoverage(bool enable)
 	{
-		((BlenderGL*)mImpl.get())->enableAlphaToCoverage(enable);
+		if (mImpl->mEnableAlphaToCoverage == enable) return;
+		mImpl->mEnableAlphaToCoverage = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_SAMPLE_COVERAGE));
+		}
+		else
+		{
+			GLCall(glDisable(GL_SAMPLE_COVERAGE));
+		}
 	}
 
 	void Blender::setSampleConverage(float sampleCoverage, bool invert)
 	{
-		((BlenderGL*)mImpl.get())->setSampleConverage(sampleCoverage, invert);
+		mImpl->mSampleCoverage = sampleCoverage;
+		mImpl->mInvertSampleConverage = translate(invert);
+		GLCall(glSampleCoverage(mImpl->mSampleCoverage, mImpl->mInvertSampleConverage));
 	}
 
 	void Blender::setConstantBlendColor(const glm::vec4& color)
 	{
-		((BlenderGL*)mImpl.get())->setConstantBlendColor(color);
+		mImpl->mConstantBlendColor = color;
+		GLCall(glBlendColor(color.r, color.g, color.b, color.a));
 	}
 
-	void Blender::setGlobalBlendDesc(const BlendDesc& desc)
+	void Blender::setBlendDesc(const BlendDesc& desc)
 	{
-		((BlenderGL*)mImpl.get())->setGlobalBlendDesc(desc);
+		// Translate description
+		mImpl->mBlendDesc = desc;
+
+		GLCall(glBlendEquation((GLenum)mImpl->mBlendDesc.operation));
+		GLCall(glBlendFunc((GLenum)mImpl->mBlendDesc.source, (GLenum)mImpl->mBlendDesc.destination));
 	}
 
 	void Blender::setState(const BlendState& state)
 	{
-		((BlenderGL*)mImpl.get())->setState(state);
+		enableBlend(state.enableBlend);
+		enableAlphaToCoverage(state.enableAlphaToCoverage);
+		setSampleConverage(state.sampleCoverage, state.invertSampleConverage);
+		setConstantBlendColor(state.constantBlendColor);
+		setBlendDesc(state.globalBlendDesc);
 	}
 
 	void Blender::setRenderTargetBlending(const RenderTargetBlendDesc & blendDesc)
 	{
-		((BlenderGL*)mImpl.get())->setRenderTargetBlending(blendDesc);
+		RenderTargetBlendDescGL descGL(blendDesc);
+		mImpl->mRenderTargetBlendings[blendDesc.colorAttachIndex] = descGL;
+
+		if (blendDesc.enableBlend)
+		{
+			GLCall(glEnablei(GL_BLEND, descGL.colorAttachIndex));
+			GLCall(glBlendEquationi(descGL.colorAttachIndex, (GLenum)descGL.blendDesc.operation));
+			GLCall(glBlendFunci(descGL.colorAttachIndex,
+				(GLenum)descGL.blendDesc.source, (GLenum)descGL.blendDesc.destination));
+		}
+		else
+		{
+			GLCall(glDisablei(GL_BLEND, descGL.colorAttachIndex));
+		}
 	}
 
-	DepthBuffer::DepthBuffer()
+	DepthBuffer::DepthBuffer() : mImpl(std::make_unique<DepthBuffer::Impl>())
 	{
-		mImpl = std::make_unique<DepthBufferGL>();
+		setState(DepthBuffer::State());
+	}
+
+	DepthBuffer::Impl::Impl()
+	{
+		glGetBooleanv(GL_DEPTH_TEST, &mEnableDepthTest);
+		glGetBooleanv(GL_DEPTH_CLAMP, &mEnableDepthClamp);
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &mEnableDepthBufferWriting);
+		glGetIntegerv(GL_DEPTH_FUNC, (GLint*)&mDepthFunc);
 	}
 
 	void DepthBuffer::enableDepthBufferWriting(bool enable)
 	{
-		((DepthBufferGL*)mImpl.get())->enableDepthBufferWriting(enable);
+		if (mImpl->mEnableDepthBufferWriting == enable) return;
+
+		mImpl->mEnableDepthBufferWriting = enable;
+		GLCall(glDepthMask(translate(mImpl->mEnableDepthBufferWriting)));
 	}
 
 	void DepthBuffer::enableDepthTest(bool enable)
 	{
-		((DepthBufferGL*)mImpl.get())->enableDepthTest(enable);
+		if (mImpl->mEnableDepthTest == enable) return;
+
+		mImpl->mEnableDepthTest = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_DEPTH_TEST));
+		}
+		else
+		{
+			GLCall(glDisable(GL_DEPTH_TEST));
+		}
 	}
 
 	void DepthBuffer::enableDepthClamp(bool enable)
 	{
-		((DepthBufferGL*)mImpl.get())->enableDepthClamp(enable);
+		if (mImpl->mEnableDepthClamp == enable) return;
+
+		mImpl->mEnableDepthClamp = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_DEPTH_CLAMP));
+		}
+		else
+		{
+			GLCall(glDisable(GL_DEPTH_CLAMP));
+		}
 	}
 
 	void DepthBuffer::setDefaultDepthFunc(CompareFunction depthFunc)
 	{
-		((DepthBufferGL*)mImpl.get())->setDefaultDepthFunc(depthFunc);
+		const auto translated = translate(depthFunc);
+
+		if (mImpl->mDepthFunc == translated) return;
+
+		mImpl->mDepthFunc = translated;
+		GLCall(glDepthFunc((GLenum)mImpl->mDepthFunc));
 	}
 
 	void DepthBuffer::setDepthRange(const Range& range)
 	{
-		((DepthBufferGL*)mImpl.get())->setDepthRange(range);
+		mImpl->mDepthRange = range;
+		GLCall(glDepthRange(range.nearVal, range.farVal));
 	}
 
 	void DepthBuffer::setState(const State& state)
 	{
-		((DepthBufferGL*)mImpl.get())->setState(state);
+		enableDepthBufferWriting(state.enableDepthBufferWriting);
+		enableDepthTest(state.enableDepthTest);
+		enableDepthClamp(state.enableDepthClamp);
+		setDefaultDepthFunc(state.depthFunc);
+		setDepthRange(state.depthRange);
 	}
 
 	Rasterizer::Rasterizer()
 	{
-		mImpl = make_unique<RasterizerGL>();
+		mImpl = make_unique<Impl>();
+		setState(RasterizerState());
+	}
+
+	Rasterizer::Impl::Impl()
+	{
+		glGetIntegerv(GL_CULL_FACE_MODE, (GLint*)&mCullMode);
+		glGetBooleanv(GL_CULL_FACE, (GLboolean*)&mEnableFaceCulling);
+		glGetBooleanv(GL_SCISSOR_TEST, (GLboolean*)&mEnableScissorTest);
+		glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&mEnableMultisample);
+		glGetBooleanv(GL_POLYGON_OFFSET_FILL, (GLboolean*)&mEnableOffsetPolygonFill);
+		glGetBooleanv(GL_POLYGON_OFFSET_LINE, (GLboolean*)&mEnableOffsetLine);
+		glGetBooleanv(GL_POLYGON_OFFSET_POINT, (GLboolean*)&mEnableOffsetPoint);
 	}
 
 	void nex::Rasterizer::setFillMode(FillMode fillMode, PolygonSide faceSide)
 	{
-		((RasterizerGL*)mImpl.get())->setFillMode(fillMode, faceSide);
+		const auto fillModeGL = translate(fillMode);
+		const auto faceSideGL = translate(faceSide);
+
+		if (mImpl->mFillModeCache.mode == fillModeGL && mImpl->mFillModeCache.side == faceSideGL) return;
+
+		mImpl->mFillModeCache.mode = fillModeGL;
+		mImpl->mFillModeCache.side = faceSideGL;
+		GLCall(glPolygonMode((GLenum)faceSideGL, (GLenum)fillModeGL));
 	}
 
 	void nex::Rasterizer::setCullMode(PolygonSide faceSide)
 	{
-		((RasterizerGL*)mImpl.get())->setCullMode(faceSide);
+		const auto translated = translate(faceSide);
+		if (mImpl->mCullMode == translated) return;
+		mImpl->mCullMode = translated;
+		GLCall(glCullFace((GLenum)mImpl->mCullMode));
 	}
 
 	void nex::Rasterizer::setFrontCounterClockwise(bool set)
 	{
-		((RasterizerGL*)mImpl.get())->setFrontCounterClockwise(set);
+		mImpl->mFrontCounterClockwise = set;
+		const auto enumGL = set ? GL_CCW : GL_CW;
+		GLCall(glFrontFace(enumGL));
 	}
 
 	void nex::Rasterizer::setDepthBias(float slopeScale, float unit, float clamp)
 	{
-		((RasterizerGL*)mImpl.get())->setDepthBias(slopeScale, unit, clamp);
+		mImpl->mDepthBias = unit;
+		mImpl->mSlopeScaledDepthBias = slopeScale;
+		mImpl->mDepthBiasClamp = clamp;
+
+		//TODO use clamp with EXT_polygon_offset_clamp !
+		GLCall(glPolygonOffset(slopeScale, unit));
 	}
 
 	void nex::Rasterizer::setState(const RasterizerState& state)
 	{
-		((RasterizerGL*)mImpl.get())->setState(state);
+		for (auto& mode : state.fillModes)
+		{
+			setFillMode(mode.second, mode.first);
+		}
+
+		setCullMode(state.cullMode);
+		setFrontCounterClockwise(state.frontCounterClockwise);
+		setDepthBias(state.slopeScaledDepthBias, state.depthBias, state.depthBiasClamp);
+		enableFaceCulling(state.enableFaceCulling);
+		enableScissorTest(state.enableScissorTest);
+		enableMultisample(state.enableMultisample);
+		enableOffsetPolygonFill(state.enableOffsetPolygonFill);
+		enableOffsetLine(state.enableOffsetLine);
+		enableOffsetPoint(state.enableOffsetPoint);
 	}
 
 	void nex::Rasterizer::enableFaceCulling(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableFaceCulling(enable);
+		if (mImpl->mEnableFaceCulling == enable) return;
+
+		mImpl->mEnableFaceCulling = enable;
+		if (enable)
+		{
+			GLCall(glEnable(GL_CULL_FACE));
+		}
+		else
+		{
+			GLCall(glDisable(GL_CULL_FACE));
+		}
 	}
 
 	void nex::Rasterizer::enableScissorTest(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableScissorTest(enable);
+		if (mImpl->mEnableScissorTest == enable) return;
+		mImpl->mEnableScissorTest = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_SCISSOR_TEST));
+		}
+		else
+		{
+			GLCall(glDisable(GL_SCISSOR_TEST));
+		}
 	}
 
 	void nex::Rasterizer::enableMultisample(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableMultisample(enable);
+		if (mImpl->mEnableMultisample == enable) return;
+		mImpl->mEnableMultisample = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_MULTISAMPLE));
+		}
+		else
+		{
+			GLCall(glDisable(GL_MULTISAMPLE));
+		}
 	}
 
 	void nex::Rasterizer::enableOffsetPolygonFill(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableOffsetPolygonFill(enable);
+		if (mImpl->mEnableOffsetPolygonFill == enable) return;
+		mImpl->mEnableOffsetPolygonFill = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_POLYGON_OFFSET_FILL));
+		}
+		else
+		{
+			GLCall(glDisable(GL_POLYGON_OFFSET_FILL));
+		}
 	}
 
 	void nex::Rasterizer::enableOffsetLine(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableOffsetLine(enable);
+		if (mImpl->mEnableOffsetLine == enable) return;
+		mImpl->mEnableOffsetLine = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_POLYGON_OFFSET_LINE));
+		}
+		else
+		{
+			GLCall(glDisable(GL_POLYGON_OFFSET_LINE));
+		}
 	}
 
 	void nex::Rasterizer::enableOffsetPoint(bool enable)
 	{
-		((RasterizerGL*)mImpl.get())->enableOffsetPoint(enable);
+		if (mImpl->mEnableOffsetPoint == enable) return;
+		mImpl->mEnableOffsetPoint = enable;
+
+		if (enable)
+		{
+			GLCall(glEnable(GL_POLYGON_OFFSET_POINT));
+		}
+		else
+		{
+			GLCall(glDisable(GL_POLYGON_OFFSET_POINT));
+		}
 	}
 
 	StencilTest::StencilTest()
 	{
-		mImpl = make_unique<StencilTestGL>();
+		mImpl = make_unique<Impl>();
+		setState(State());
+	}
+
+	StencilTest::Impl::Impl()
+	{
+		glGetBooleanv(GL_STENCIL_TEST, (GLboolean*)&mEnableStencilTest);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareFunc);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareReferenceValue);
+		glGetIntegerv(GL_STENCIL_FUNC, (GLint*)&mCompareMask);
+
+		glGetIntegerv(GL_STENCIL_FAIL, (GLint*)&mStencilTestFailOperation);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_FAIL, (GLint*)&mDepthTestFailOperation);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_PASS, (GLint*)&mDepthPassOperation);
 	}
 
 	void StencilTest::enableStencilTest(bool enable)
 	{
-		((StencilTestGL*)mImpl.get())->enableStencilTest(enable);
+		if (mImpl->mEnableStencilTest == enable) return;
+		mImpl->mEnableStencilTest = enable;
+
+		if (mImpl->mEnableStencilTest)
+		{
+			GLCall(glEnable(GL_STENCIL_TEST));
+		}
+		else
+		{
+			GLCall(glDisable(GL_STENCIL_TEST));
+		}
 	}
 
 	void StencilTest::setCompareFunc(CompareFunction func, int referenceValue, unsigned mask)
 	{
-		((StencilTestGL*)mImpl.get())->setCompareFunc(func, referenceValue, mask);
+		const auto translated = translate(func);
+		if (mImpl->mCompareFunc == translated && mImpl->mCompareReferenceValue == referenceValue && mImpl->mCompareMask == mask) return;
+
+
+		mImpl->mCompareFunc = translated;
+		mImpl->mCompareReferenceValue = referenceValue;
+		mImpl->mCompareMask = mask;
+
+		GLCall(glStencilFunc((GLenum)mImpl->mCompareFunc, mImpl->mCompareReferenceValue, mImpl->mCompareMask));
 	}
 
 	void StencilTest::setOperations(Operation stencilFail, Operation depthFail, Operation depthPass)
 	{
-		((StencilTestGL*)mImpl.get())->setOperations(stencilFail, depthFail, depthPass);
+		const auto stencilFailTrans = translate(stencilFail);
+		const auto depthFailTrans = translate(depthFail);
+		const auto depthPassTrans = translate(depthPass);
+
+		if (mImpl->mStencilTestFailOperation == stencilFailTrans
+			&& mImpl->mDepthTestFailOperation == depthFailTrans
+			&& mImpl->mDepthPassOperation == depthPassTrans) return;
+
+
+		mImpl->mStencilTestFailOperation = stencilFailTrans;
+		mImpl->mDepthTestFailOperation = depthFailTrans;
+		mImpl->mDepthPassOperation = depthPassTrans;
+
+		GLCall(glStencilOp(mImpl->mStencilTestFailOperation, mImpl->mDepthTestFailOperation, mImpl->mDepthPassOperation));
 	}
 
 	void StencilTest::setState(const State& state)
 	{
-		((StencilTestGL*)mImpl.get())->setState(state);
+		enableStencilTest(state.enableStencilTest);
+		setCompareFunc(state.compareFunc, state.compareReferenceValue, state.compareMask);
+		setOperations(state.stencilTestFailOperation, state.depthTestFailOperation, state.depthPassOperation);
 	}
+
+	RenderBackend::Impl::Impl(): m_logger("RenderBackend - OPENGL"),
+	                             backgroundColor(0.0f, 0.0f, 0.0f),
+	                             msaaSamples(1), defaultRenderTarget(nullptr)
+	{
+	}
+
+	RenderBackend::Impl::~Impl() = default;
 
 	RenderBackend::RenderBackend() :
 	mPimpl(std::make_unique<Impl>())
@@ -354,7 +592,7 @@ namespace nex
 
 	void RenderBackend::drawWithIndices(Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset)
 	{
-		GLCall(glDrawElements(translate(topology), static_cast<GLsizei>(indexCount), translate(indexType), (GLvoid*)byteOffset));
+		GLCall(glDrawElements((GLenum)translate(topology), static_cast<GLsizei>(indexCount), (GLenum)translate(indexType), (GLvoid*)byteOffset));
 	}
 
 	void RenderBackend::endScene()
@@ -562,7 +800,168 @@ namespace nex
 	void RenderBackend::drawArray(Topology primitiveType, unsigned startingIndex,
 		unsigned indexCount)
 	{
-		const GLenum primitiveTypeGL = translate(primitiveType);
-		GLCall(glDrawArrays(primitiveTypeGL, startingIndex, indexCount));
+		const auto primitiveTypeGL = translate(primitiveType);
+		GLCall(glDrawArrays((GLenum)primitiveTypeGL, startingIndex, indexCount));
+	}
+
+
+
+	TopologyGL translate(Topology topology)
+	{
+		static TopologyGL table[]
+		{
+			TopologyGL::LINES,
+			TopologyGL::LINES_ADJACENCY,
+			TopologyGL::LINE_LOOP,
+			TopologyGL::LINE_STRIP,
+			TopologyGL::LINE_STRIP_ADJACENCY,
+			TopologyGL::PATCHES,
+			TopologyGL::POINTS,
+			TopologyGL::TRIANGLES,
+			TopologyGL::TRIANGLES_ADJACENCY,
+			TopologyGL::TRIANGLE_FAN,
+			TopologyGL::TRIANGLE_STRIP,
+			TopologyGL::TRIANGLE_STRIP_ADJACENCY,
+		};
+
+		static const unsigned size = (unsigned)Topology::LAST - (unsigned)Topology::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: Topology and TopologyGL don't match!");
+
+		return table[(unsigned)topology];
+	}
+
+	BlendFuncGL translate(BlendFunc func)
+	{
+		static BlendFuncGL table[]
+		{
+			BlendFuncGL::ZERO,
+			BlendFuncGL::ONE,
+
+			BlendFuncGL::SOURCE_COLOR,
+			BlendFuncGL::ONE_MINUS_SOURCE_COLOR,
+			BlendFuncGL::DESTINATION_COLOR,
+			BlendFuncGL::ONE_MINUS_DESTINATION_COLOR,
+
+			BlendFuncGL::SOURCE_ALPHA,
+			BlendFuncGL::ONE_MINUS_SOURCE_ALPHA,
+			BlendFuncGL::DESTINATION_ALPHA,
+			BlendFuncGL::ONE_MINUS_DESTINATION_ALPHA,
+
+			BlendFuncGL::CONSTANT_COLOR,
+			BlendFuncGL::ONE_MINUS_CONSTANT_COLOR,
+			BlendFuncGL::CONSTANT_ALPHA,
+			BlendFuncGL::ONE_MINUS_CONSTANT_ALPHA,
+		};
+
+		static const unsigned size = (unsigned)BlendFunc::LAST - (unsigned)BlendFunc::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
+
+		return table[(unsigned)func];
+	}
+
+	BlendOperationGL translate(BlendOperation op)
+	{
+		static BlendOperationGL table[]
+		{
+			BlendOperationGL::ADD,
+			BlendOperationGL::SUBTRACT,
+			BlendOperationGL::REV_SUBTRACT,
+			BlendOperationGL::MIN,
+			BlendOperationGL::MAX,
+		};
+
+		static const unsigned size = (unsigned)BlendOperation::LAST - (unsigned)BlendOperation::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: BlendFunc and BlendFuncGL don't match!");
+
+		return table[(unsigned)op];
+	}
+
+	StencilTest::Impl::OperationGL translate(StencilTest::Operation op)
+	{
+		static StencilTest::Impl::OperationGL table[]
+		{
+			StencilTest::Impl::KEEP,
+			StencilTest::Impl::ZERO,
+			StencilTest::Impl::REPLACE,
+			StencilTest::Impl::INCREMENT,
+			StencilTest::Impl::INCREMENT_WRAP,
+			StencilTest::Impl::DECREMENT,
+			StencilTest::Impl::DECREMENT_WRAP,
+			StencilTest::Impl::INVERT,
+		};
+
+		static const unsigned size = (unsigned)StencilTest::Operation::LAST - (unsigned)StencilTest::Operation::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: StencilTest::Operation and StencilTestGL::OperationGL don't match!");
+
+		return table[(unsigned)op];
+	}
+
+	GLuint translate(bool boolean)
+	{
+		return boolean ? GL_TRUE : GL_FALSE;
+	}
+
+	nex::CompareFunctionGL translate(nex::CompareFunction compareFunc)
+	{
+		static CompareFunctionGL const typeTable[]
+		{
+			CompareFunctionGL::ALWAYS,
+			CompareFunctionGL::EQUAL,
+			CompareFunctionGL::GREATER,
+			CompareFunctionGL::GREATER_EQUAL,
+			CompareFunctionGL::LESS,
+			CompareFunctionGL::LESS_EQUAL,
+			CompareFunctionGL::NEVER,
+			CompareFunctionGL::NOT_EQUAL,
+		};
+
+		static const unsigned size = (unsigned)CompareFunction::LAST - (unsigned)CompareFunction::FIRST + 1;
+		static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
+
+		return typeTable[(unsigned)compareFunc];
+	}
+
+	IndexElementTypeGL translate(IndexElementType indexType)
+	{
+		static IndexElementTypeGL table[]
+		{
+			IndexElementTypeGL::BIT_16,
+			IndexElementTypeGL::BIT_32,
+		};
+
+		static const unsigned size = (unsigned)IndexElementType::LAST - (unsigned)IndexElementType::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: IndexElementType and IndexElementTypeGL don't match!");
+
+		return table[(unsigned)indexType];
+	}
+
+	PolygonSideGL translate(PolygonSide side)
+	{
+		static PolygonSideGL table[]
+		{
+			PolygonSideGL::BACK,
+			PolygonSideGL::FRONT,
+			PolygonSideGL::FRONT_BACK,
+		};
+
+		static const unsigned size = (unsigned)PolygonSide::LAST - (unsigned)PolygonSide::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonSide and PolygonSideGL don't match!");
+
+		return table[(unsigned)side];
+	}
+
+	FillModeGL translate(FillMode type)
+	{
+		static FillModeGL table[]
+		{
+			FillModeGL::FILL,
+			FillModeGL::LINE,
+			FillModeGL::POINT,
+		};
+
+		static const unsigned size = (unsigned)FillMode::LAST - (unsigned)FillMode::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonRasterizationType and PolygonRasterizationTypeGL don't match!");
+
+		return table[(unsigned)type];
 	}
 }

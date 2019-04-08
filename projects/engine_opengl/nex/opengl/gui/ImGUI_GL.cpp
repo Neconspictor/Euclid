@@ -159,13 +159,10 @@ namespace nex::gui
 		// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
 		blender->enableBlend(true);
 		BlendDesc desc;
-		desc.operationRGB = BlendOperation::ADD;
-		desc.operationAlpha = BlendOperation::ADD;
-		desc.sourceRGB = BlendFunc::SOURCE_ALPHA;
-		desc.sourceAlpha = BlendFunc::SOURCE_ALPHA;
-		desc.destRGB = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
-		desc.destAlpha = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
-		blender->setGlobalBlendDesc(desc);
+		desc.operation = BlendOperation::ADD;
+		desc.source = BlendFunc::SOURCE_ALPHA;
+		desc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
+		blender->setBlendDesc(desc);
 		
 		rasterizer->enableFaceCulling(false);
 		depthTest->enableDepthTest(false);

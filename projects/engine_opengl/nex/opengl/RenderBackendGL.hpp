@@ -1,12 +1,10 @@
 ﻿#pragma once
-#include <nex/mesh/IndexBuffer.hpp>
-#include <nex/mesh/SubMesh.hpp>
-#include <nex/RenderBackend.hpp>
 #include <nex/opengl/opengl.hpp>
+#include <nex/RenderBackend.hpp>
 
 namespace nex {
 
-	enum CompareFunctionGL
+	enum class CompareFunctionGL
 	{
 		ALWAYS = GL_ALWAYS,
 		EQUAL = GL_EQUAL,
@@ -18,7 +16,7 @@ namespace nex {
 		NOT_EQUAL = GL_NOTEQUAL,
 	};
 
-	enum TopologyGL
+	enum class TopologyGL
 	{
 		LINES = GL_LINES,
 		LINES_ADJACENCY = GL_LINES_ADJACENCY,
@@ -34,26 +32,26 @@ namespace nex {
 		TRIANGLE_STRIP_ADJACENCY = GL_TRIANGLE_STRIP_ADJACENCY,
 	};
 
-	enum IndexElementTypeGL {
+	enum class IndexElementTypeGL {
 		BIT_16 = GL_UNSIGNED_SHORT,
 		BIT_32 = GL_UNSIGNED_INT,
 	};
 
-	enum PolygonSideGL
+	enum class PolygonSideGL
 	{
 		BACK = GL_BACK,
 		FRONT = GL_FRONT,
 		FRONT_BACK = GL_FRONT_AND_BACK,
 	};
 
-	enum FillModeGL
+	enum class FillModeGL
 	{
 		FILL = GL_FILL,
 		LINE = GL_LINE,
 		POINT = GL_POINT,
 	};
 
-	enum BlendFuncGL
+	enum class BlendFuncGL
 	{
 		ZERO = GL_ZERO,
 		ONE = GL_ONE,
@@ -74,7 +72,7 @@ namespace nex {
 		ONE_MINUS_CONSTANT_ALPHA = GL_ONE_MINUS_CONSTANT_ALPHA,
 	};
 
-	enum BlendOperationGL
+	enum class BlendOperationGL
 	{
 		ADD = GL_FUNC_ADD, // source + destination
 		SUBTRACT = GL_FUNC_SUBTRACT, // source - destination
@@ -83,21 +81,49 @@ namespace nex {
 		MAX = GL_MAX, // max(source, destination)
 	};
 
-	enum PolygonOffsetFillModeGL
+	enum class PolygonOffsetFillModeGL
 	{
 		OFFSET_FILL = GL_POLYGON_OFFSET_FILL,
 		OFFSET_LINE = GL_POLYGON_OFFSET_LINE,
 		OFFSET_POINT = GL_POLYGON_OFFSET_POINT,
 	};
 
+
+
+	class RenderBackend::Impl
+	{
+	public:
+
+		Impl();
+
+		~Impl();
+
+	private:
+
+		friend RenderBackend;
+
+		//Note: we use public qualifier as this class is private and only used for the RenderBackend!
+		glm::vec3 backgroundColor;
+		std::unique_ptr<EffectLibrary> mEffectLibrary;
+		unsigned int msaaSamples;
+		std::unique_ptr<RenderTarget2D> defaultRenderTarget;
+		//std::map<unsigned, RenderTargetBlendDesc> mBlendDescs;
+		//BlendState mBlendState;
+
+		nex::Logger m_logger{ "RenderBackend" };
+		Blender mBlender;
+		DepthBuffer mDepthBuffer;
+		Rasterizer mRasterizer;
+		StencilTest mStencilTest;
+		Viewport mViewport;
+	};
+
+
 	struct BlendDescGL
 	{
-		BlendFuncGL sourceRGB;
-		BlendFuncGL destRGB;
-		BlendOperationGL operationRGB;
-		BlendFuncGL sourceAlpha;
-		BlendFuncGL destAlpha;
-		BlendOperationGL operationAlpha;
+		BlendFuncGL source;
+		BlendFuncGL destination;
+		BlendOperationGL operation;
 
 		BlendDescGL(const BlendDesc& desc);
 	};
@@ -113,85 +139,53 @@ namespace nex {
 		RenderTargetBlendDescGL(const RenderTargetBlendDesc& desc);
 	};
 
-
-	class BlenderGL : public Blender::Implementation
+	class Blender::Impl
 	{
 	public:
-
-		BlenderGL();
-
-		void enableBlend(bool enable);
-		void enableAlphaToCoverage(bool enable);
-		void setSampleConverage(float sampleCoverage, bool invert);
-		void setConstantBlendColor(const glm::vec4& color);
-		void setGlobalBlendDesc(const BlendDesc& desc);
-		void setState(const BlendState& state);
-
-		void setRenderTargetBlending(const RenderTargetBlendDesc& blendDesc);
+		Impl();
 
 	private:
+		friend Blender;
 		GLboolean mEnableBlend;
 		bool mEnableAlphaToCoverage;
 		float mSampleCoverage;
 		GLuint mInvertSampleConverage;
 		glm::vec4 mConstantBlendColor;
-		BlendDescGL mGlobalBlendDesc;
+		BlendDescGL mBlendDesc;
 
 		std::map<unsigned, RenderTargetBlendDescGL> mRenderTargetBlendings;
-		
+
 	};
 
-	class DepthBufferGL : public DepthBuffer::Implementation
+	class DepthBuffer::Impl
 	{
 	public:
-		DepthBufferGL();
-
-
-		void enableDepthBufferWriting(bool enable);
-		void enableDepthTest(bool enable);
-		void enableDepthClamp(bool enable);
-
-		// depth comparison function being used when depth test is enabled and no sampler is bound
-		void setDefaultDepthFunc(CompareFunction depthFunc);
-
-		//specify mapping of depth values from normalized device coordinates to window coordinates
-		void setDepthRange(const DepthBuffer::Range& range);
-
-		void setState(const DepthBuffer::State& state);
+		Impl();
 
 	private:
+		friend DepthBuffer;
+
 		GLboolean mEnableDepthBufferWriting;
 		GLboolean mEnableDepthTest;
 		GLboolean mEnableDepthClamp;
 		CompareFunctionGL mDepthFunc;
-		DepthBuffer::Range mDepthRange;
+		Range mDepthRange;
 	};
 
 
-	class RasterizerGL : public Rasterizer::Implementation
+	class Rasterizer::Impl
 	{
 	public:
-		RasterizerGL();
-		virtual ~RasterizerGL() = default;
-
-		void setFillMode(FillMode fillMode, PolygonSide faceSide);
-		void setCullMode(PolygonSide faceSide);
-		void setFrontCounterClockwise(bool set);
-		void setDepthBias(float slopeScale, float unit, float clamp);
-		void setState(const RasterizerState& state);
-		void enableFaceCulling(bool enable);
-		void enableScissorTest(bool enable);
-		void enableMultisample(bool enable);
-		void enableOffsetPolygonFill(bool enable);
-		void enableOffsetLine(bool enable);
-		void enableOffsetPoint(bool enable);
+		Impl();
 
 	private:
 
+		friend Rasterizer;
+
 		struct FillModeCache
 		{
-			GLint side = GL_FALSE;
-			GLint mode = GL_FALSE;
+			PolygonSideGL side = PolygonSideGL::FRONT;
+			FillModeGL mode = FillModeGL::FILL;
 		};
 
 		FillModeCache mFillModeCache;
@@ -213,31 +207,29 @@ namespace nex {
 
 	};
 
-	class StencilTestGL : public StencilTest::Implementation
+	class StencilTest::Impl
 	{
 	public:
 
 		enum OperationGL
 		{
 			KEEP = GL_KEEP,
-			ZERO = GL_ZERO, 
-			REPLACE = GL_REPLACE, 
-			INCREMENT = GL_INCR,  
+			ZERO = GL_ZERO,
+			REPLACE = GL_REPLACE,
+			INCREMENT = GL_INCR,
 			INCREMENT_WRAP = GL_INCR_WRAP,
-			DECREMENT = GL_DECR, 
-			DECREMENT_WRAP = GL_DECR_WRAP, 
-			INVERT = GL_INVERT, 
+			DECREMENT = GL_DECR,
+			DECREMENT_WRAP = GL_DECR_WRAP,
+			INVERT = GL_INVERT,
 		};
 
 
-		StencilTestGL();
-
-		void enableStencilTest(bool enable);
-		void setCompareFunc(CompareFunction func, int referenceValue, unsigned mask);
-		void setOperations(StencilTest::Operation stencilFail, StencilTest::Operation depthFail, StencilTest::Operation depthPass);
-		void setState(const StencilTest::State& state);
+		Impl();
 
 	private:
+
+		friend StencilTest;
+
 		bool mEnableStencilTest;
 		CompareFunctionGL mCompareFunc;
 		int mCompareReferenceValue;
@@ -254,15 +246,15 @@ namespace nex {
 	};
 
 
+
 	GLuint translate(bool boolean);
-	CompareFunctionGL translate(nex::CompareFunction);
+
+	TopologyGL translate(Topology topology);
+	BlendFuncGL translate(BlendFunc func);
+	BlendOperationGL translate(BlendOperation op);
+	StencilTest::Impl::OperationGL translate(StencilTest::Operation op);
+	CompareFunctionGL translate(nex::CompareFunction compareFunc);
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
 	FillModeGL translate(FillMode type);
-	TopologyGL translate(Topology topology);
-
-	BlendFuncGL translate(BlendFunc func);
-	BlendOperationGL translate(BlendOperation op);
-
-	StencilTestGL::OperationGL translate(StencilTest::Operation op);
 }

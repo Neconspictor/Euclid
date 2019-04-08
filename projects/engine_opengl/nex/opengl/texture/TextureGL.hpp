@@ -6,14 +6,14 @@ namespace nex
 {
 	struct StoreImage;
 
-	enum TextureAccessGL
+	enum class TextureAccessGL
 	{
 		READ_ONLY = GL_READ_ONLY,
 		READ_WRITE = GL_READ_WRITE,
 		WRITE_ONLY = GL_WRITE_ONLY,
 	};
 
-	enum ChannelGL
+	enum class ChannelGL
 	{
 		RED = GL_RED,
 		GREEN = GL_GREEN,
@@ -21,7 +21,7 @@ namespace nex
 		ALPHA = GL_ALPHA,
 	};
 
-	enum TextureFilterGL
+	enum class TextureFilterGL
 	{
 		NearestNeighbor = GL_NEAREST,
 		Linear = GL_LINEAR,
@@ -31,7 +31,7 @@ namespace nex
 		Linear_Mipmap_Linear = GL_LINEAR_MIPMAP_LINEAR, // trilinear filtering from bilinear to bilinear filtering
 	};
 
-	enum TextureUVTechniqueGL
+	enum class TextureUVTechniqueGL
 	{
 		ClampToBorder = GL_CLAMP_TO_BORDER,
 		ClampToEdge = GL_CLAMP_TO_EDGE,
@@ -40,7 +40,7 @@ namespace nex
 		Repeat = GL_REPEAT,
 	};
 
-	enum ColorSpaceGL {
+	enum class ColorSpaceGL {
 		R = GL_RED,
 		RED_INTEGER = GL_RED_INTEGER,
 		RG = GL_RG,
@@ -57,7 +57,7 @@ namespace nex
 		DEPTH_STENCIL = GL_DEPTH_STENCIL,
 	};
 
-	enum InternFormatGL
+	enum class InternFormatGL
 	{
 		R8 = GL_R8,
 		R8UI = GL_R8UI,
@@ -104,7 +104,7 @@ namespace nex
 		STENCIL8 = GL_STENCIL_INDEX8,   //GL_STENCIL_INDEX8
 	};
 
-	enum PixelDataTypeGL
+	enum class PixelDataTypeGL
 	{
 		FLOAT = GL_FLOAT,
 		UBYTE = GL_UNSIGNED_BYTE,
@@ -118,7 +118,7 @@ namespace nex
 		UNSIGNED_INT_24 = GL_UNSIGNED_INT,
 	};
 
-	enum TextureTargetGl
+	enum class TextureTargetGl
 	{
 		//1D
 		TEXTURE1D = GL_TEXTURE_1D,
@@ -135,6 +135,8 @@ namespace nex
 
 		// cubemap
 		CUBE_MAP = GL_TEXTURE_CUBE_MAP,
+
+		RENDERBUFFER = GL_RENDERBUFFER,
 	};
 
 	/*enum DepthStencilGL
@@ -159,10 +161,10 @@ namespace nex
 	class TextureGL : public TextureImpl
 	{
 	public:
-		explicit TextureGL(GLuint target);
-		TextureGL(GLuint texture, GLuint target);
+		explicit TextureGL(TextureTargetGl target);
+		TextureGL(GLuint texture, TextureTargetGl target);
 
-		virtual ~TextureGL();
+		~TextureGL();
 		void generateMipMaps();
 
 		static std::unique_ptr<TextureGL> createView(TextureGL* original,
@@ -212,13 +214,13 @@ namespace nex
 			const void* data);
 
 		void setTexture(GLuint id);
-		GLuint getTarget() const;
+		TextureTargetGl getTarget() const;
 
 	protected:
 		friend Texture;
 
 		GLuint mTextureID;
-		GLuint mTarget;
+		TextureTargetGl mTarget;
 	};
 
 	class Texture2DGL : public TextureGL
@@ -294,7 +296,7 @@ namespace nex
 		 * Specifies the sides of a cubemap in relation to a coordinate system.
 		 * E.g. in a right handed coordinate system POSITIVE_X would specifiy the right side.
 		 */
-		enum Side {
+		enum class Side {
 			POSITIVE_X = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 			NEGATIVE_X = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
 			POSITIVE_Y = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
