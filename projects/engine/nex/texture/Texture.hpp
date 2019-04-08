@@ -7,46 +7,19 @@ namespace nex
 	struct StoreImage;
 	class Texture;
 
-	// Has to be implemented by the renderer backend
-	class TextureImpl
-	{
-	public:
-
-		// Class and subclasses shouldn't be movable/copiable
-		// Implicitly removes auto-generated move constructor/assignment operator
-		// Inherited classes cannot be copied/moved as well
-		TextureImpl(const TextureImpl&) = delete;
-		TextureImpl& operator=(const TextureImpl&) = delete;
-
-
-		// virtual needed for backend implementations
-		virtual ~TextureImpl() = default;
-
-	protected:
-
-		friend Texture;
-
-		TextureImpl() = default;
-	};
-
 
 	class Texture
 	{
 	public:
-
-		// Class and subclasses shouldn't be copiable
-		Texture(const Texture&) = delete;
-		Texture& operator=(const Texture&) = delete;
-		Texture(Texture&&) = default;
-		Texture& operator=(Texture&&) = default;
+		class Impl;
 
 		virtual ~Texture();
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		Texture(std::unique_ptr<TextureImpl> impl);
+		Texture(std::unique_ptr<Impl> impl);
 
-		TextureImpl* getImpl() const;
+		Impl* getImpl() const;
 		static unsigned getMipMapCount(unsigned levelZeroMipMap);
 
 
@@ -83,10 +56,10 @@ namespace nex
 		 */
 		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMapSide side = CubeMapSide::POSITIVE_X);
 
-		void setImpl(std::unique_ptr<TextureImpl> impl);
+		void setImpl(std::unique_ptr<Impl> impl);
 
 	protected:
-		std::unique_ptr<TextureImpl> mImpl;
+		std::unique_ptr<Impl> mImpl;
 	};
 
 	class Texture2D : public Texture
@@ -95,7 +68,7 @@ namespace nex
 
 		// creates an unintialized texture2D object. Shouldn't be used by user code.
 		// 
-		Texture2D(std::unique_ptr<TextureImpl> impl);
+		Texture2D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
@@ -119,7 +92,7 @@ namespace nex
 
 		// creates an unintialized texture2D object. Shouldn't be used by user code.
 		// 
-		Texture2DMultisample(std::unique_ptr<TextureImpl> impl);
+		Texture2DMultisample(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
 		Texture2DMultisample(unsigned width, unsigned height, const TextureData& textureData, unsigned samples);
@@ -139,7 +112,7 @@ namespace nex
 
 		// creates an unintialized texture2D object. Shouldn't be used by user code.
 		// 
-		Texture2DArray(std::unique_ptr<TextureImpl> impl);
+		Texture2DArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
 		Texture2DArray(unsigned width, unsigned height, unsigned size, bool immutableStorage, const TextureData& textureData, const void* data);
@@ -171,7 +144,7 @@ namespace nex
 	{
 	public:
 
-		CubeMap(std::unique_ptr<TextureImpl> impl);
+		CubeMap(std::unique_ptr<Impl> impl);
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend

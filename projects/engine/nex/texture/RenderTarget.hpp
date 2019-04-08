@@ -12,29 +12,15 @@ namespace nex
 	struct RenderAttachment;
 	class Texture2D;
 
-	// Has to be implemented by the renderer backend
-	class RenderTargetImpl
-	{
-	public:
-
-		RenderTargetImpl() = default;
-		// Class and subclasses shouldn't be movable/copiable
-		// Implicitly removes auto-generated move constructor/assignment operator
-		// Inherited classes cannot be copied/moved as well
-		RenderTargetImpl(const RenderTargetImpl&) = delete;
-		RenderTargetImpl& operator=(const RenderTargetImpl&) = delete;
-
-		// virtual needed for backend implementations
-		virtual ~RenderTargetImpl() = default;
-	};
-
 
 	class RenderTarget
 	{
 	public:
 
+		class Impl;
+
 		// Has to be implemented by renderer backend
-		RenderTarget(std::unique_ptr<RenderTargetImpl> impl);
+		RenderTarget(std::unique_ptr<Impl> impl);
 
 
 		// Has to be implemented by renderer backend
@@ -44,6 +30,8 @@ namespace nex
 		 * and update the attachments.
 		 */
 		RenderTarget();
+
+		virtual ~RenderTarget();
 
 		RenderTarget(const RenderTarget& other) = delete;
 		RenderTarget& operator=(const RenderTarget& other) = delete;
@@ -79,7 +67,7 @@ namespace nex
 		//static RenderTarget* createVSM(int width, int height);
 
 		// Has to be implemented by renderer backend
-		RenderTargetImpl* getImpl() const;
+		Impl* getImpl() const;
 
 
 		// Has to be implemented by renderer backend
@@ -106,17 +94,18 @@ namespace nex
 
 	protected:
 
-		std::unique_ptr<RenderTargetImpl> mImpl;
+		std::unique_ptr<Impl> mImpl;
 
 		// Has to be implemented by renderer backend
-		void setImpl(std::unique_ptr<RenderTargetImpl> impl);
+		void setImpl(std::unique_ptr<Impl> impl);
 	};
 
 	class RenderTarget2D : public RenderTarget
 	{
 	public:
 
-		RenderTarget2D(std::unique_ptr<RenderTargetImpl> impl);
+		RenderTarget2D(std::unique_ptr<Impl> impl);
+
 
 		//Has to be implemented by renderer backend
 		RenderTarget2D(int width, int height, const TextureData& data,

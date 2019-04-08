@@ -106,9 +106,9 @@ namespace nex {
 		//void readGLITest(const char* filePath);
 
 	protected:
-		std::list<nex::Texture2D> textures;
+		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;
-		std::map<std::string, nex::Texture2D*> textureLookupTable;
+		std::map<std::string, Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
 		std::unique_ptr<Sampler> mDefaultImageSampler;
 		std::unique_ptr<Sampler> mPointSampler;

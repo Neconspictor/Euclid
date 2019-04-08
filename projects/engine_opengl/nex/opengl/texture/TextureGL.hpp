@@ -158,16 +158,15 @@ namespace nex
 
 
 
-	class TextureGL : public TextureImpl
+	class Texture::Impl
 	{
 	public:
-		explicit TextureGL(TextureTargetGl target);
-		TextureGL(GLuint texture, TextureTargetGl target);
+		explicit Impl(TextureTargetGl target);
+		Impl(GLuint texture, TextureTargetGl target);
 
-		~TextureGL();
-		void generateMipMaps();
+		virtual ~Impl();
 
-		static std::unique_ptr<TextureGL> createView(TextureGL* original,
+		static std::unique_ptr<Impl> createView(Impl* original,
 			TextureTarget target,
 			unsigned minLevel,
 			unsigned numLevel,
@@ -182,8 +181,6 @@ namespace nex
 		static GLuint getFormat(int numberComponents);
 
 		GLuint* getTexture();
-
-		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMapSide side = CubeMapSide::POSITIVE_X);
 
 		void release();
 
@@ -223,13 +220,11 @@ namespace nex
 		TextureTargetGl mTarget;
 	};
 
-	class Texture2DGL : public TextureGL
+	class Texture2DGL : public Texture::Impl
 	{
 	public:
 		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
 		Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0);
-
-		virtual ~Texture2DGL() = default;
 
 		unsigned getWidth() const;
 		unsigned getHeight() const;
@@ -253,8 +248,6 @@ namespace nex
 		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData, unsigned samples = 1);
 		Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples = 1, unsigned width = 0, unsigned height = 0);
 
-		virtual ~Texture2DMultisampleGL() = default;
-
 		void resize(unsigned width, unsigned height) override;
 		unsigned getSamples() const;
 
@@ -262,13 +255,11 @@ namespace nex
 		unsigned mSamples;
 	};
 
-	class Texture2DArrayGL : public TextureGL
+	class Texture2DArrayGL : public Texture::Impl
 	{
 	public:
 		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, bool immutableStorage, const TextureData& textureData, const void* data);
 		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned size = 0);
-
-		virtual ~Texture2DArrayGL() = default;
 
 		unsigned getWidth() const;
 		unsigned getHeight() const;
@@ -288,7 +279,7 @@ namespace nex
 		TextureData mData;
 	};
 
-	class CubeMapGL : public TextureGL
+	class CubeMapGL : public Texture::Impl
 	{
 	public:
 
@@ -326,7 +317,7 @@ namespace nex
 	};
 
 
-	class RenderBufferGL : public TextureGL {
+	class RenderBufferGL : public Texture::Impl {
 	public:
 		RenderBufferGL(GLuint width, GLuint height, InternFormat format);
 		virtual ~RenderBufferGL();

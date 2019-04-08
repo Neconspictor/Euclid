@@ -11,7 +11,7 @@ namespace nex
 	class CubeRenderTargetGL;
 
 
-	enum AttachmentTypeGL
+	enum class AttachmentTypeGL
 	{
 		ATTACHMENT_COLOR = GL_COLOR_ATTACHMENT0,
 		ATTACHMENT_DEPTH = GL_DEPTH_ATTACHMENT,
@@ -22,21 +22,21 @@ namespace nex
 
 	GLuint translate(RenderAttachmentType type, unsigned attachIndex);
 
-	class RenderTargetGL : public RenderTargetImpl
+	class RenderTarget::Impl
 	{
 	public:
 
 		/**
 		 * Creates a RenderTargetGL object, that generates a framebuffer
 		 */
-		explicit RenderTargetGL();
+		explicit Impl();
 
 		/**
 		 * Creates a RenderTargetGL object, that doesn't create a framebuffer, but uses an existing one.
 		 */
-		explicit RenderTargetGL(GLuint frameBuffer);
+		explicit Impl(GLuint frameBuffer);
 
-		virtual ~RenderTargetGL();
+		virtual ~Impl();
 
 		void addColorAttachment(RenderAttachment attachment);
 
@@ -74,7 +74,7 @@ namespace nex
 
 	protected:
 
-		friend RenderTargetImpl;
+		friend RenderTarget;
 
 		GLuint mFrameBuffer;
 		std::vector<RenderAttachment> mColorAttachments;
@@ -87,7 +87,7 @@ namespace nex
 		std::vector<GLenum> calcColorAttachments() const;
 	};
 
-	class RenderTarget2DGL : public RenderTargetGL
+	class RenderTarget2DGL : public RenderTarget::Impl
 	{
 	public:
 
@@ -112,7 +112,7 @@ namespace nex
 	};
 
 	
-	class CubeRenderTargetGL : public RenderTargetGL
+	class CubeRenderTargetGL : public RenderTarget::Impl
 	{
 	public:
 		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat = InternFormat::DEPTH24);
@@ -150,7 +150,7 @@ namespace nex
 	};
 
 
-	class CubeDepthMapGL : public RenderTargetGL
+	class CubeDepthMapGL : public RenderTarget::Impl
 	{
 	public:
 		explicit CubeDepthMapGL(int width, int height);

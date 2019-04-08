@@ -37,7 +37,7 @@ namespace nex {
 	void TextureManager::releaseTexture(Texture * tex)
 	{
 		for (auto&& it = textures.begin(); it != textures.end(); ++it) {
-			if ((&*it) == tex) {
+			if ((it->get()) == tex) {
 				textures.erase(it);
 				break; // we're done
 			}
@@ -288,14 +288,14 @@ namespace nex {
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
-		textures.emplace_back(std::move(Texture2D(width, height, data, rawData)));
+		textures.emplace_back(std::make_unique<Texture2D>(width, height, data, rawData));
 
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << path;
 
 
-		auto* result = &textures.back();
+		auto* result = textures.back().get();
 
 		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(path, result));
 
@@ -333,13 +333,13 @@ namespace nex {
 
 		//GLuint format = TextureGL::getFormat(nrComponents);
 
-		textures.emplace_back(std::move(Texture2D(width, height, data, rawData)));
+		textures.emplace_back(std::make_unique<Texture2D>(width, height, data, rawData));
 		stbi_image_free(rawData);
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
 
-		auto* result = &textures.back();
+		auto* result = textures.back().get();
 
 		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(resolvedPath, result));
 

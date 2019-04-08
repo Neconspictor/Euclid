@@ -287,7 +287,7 @@ void nex::ShaderProgram::Impl::setImageLayerOfTexture(UniformLocation locationID
 	GLint glID = locationID;
 	if (glID < 0) return;
 
-	TextureGL* gl = (TextureGL*)data->getImpl();
+	auto* gl = data->getImpl();
 
 	GlobalCacheGL::get()->BindImageTexture(bindingSlot,
 		*gl->getTexture(),
@@ -319,7 +319,7 @@ void nex::ShaderProgram::Impl::setTexture(UniformLocation locationID, const Text
 	GLint glID = locationID;
 	if (glID < 0) return;
 
-	TextureGL* gl = (TextureGL*)data->getImpl();
+	auto* gl = data->getImpl();
 
 	GlobalCacheGL::get()->BindTextureUnit(bindingSlot, *gl->getTexture());
 	mCache.Uniform1i(glID, bindingSlot);
