@@ -51,10 +51,9 @@ namespace nex
 		/**
 		 * Reads a texture back from the gpu
 		 * @param dest : Memory for storing the texture read back from the gpu. Has to be large enough to store the requested texture.
-		 * @param side: Specifies the cubemap side if the texture target is set to CUBE_MAP
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, CubeMapSide side = CubeMapSide::POSITIVE_X);
+		void readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, size_t destBufferSize);
 
 		void setImpl(std::unique_ptr<Impl> impl);
 

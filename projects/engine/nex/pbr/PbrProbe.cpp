@@ -85,10 +85,10 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 
 	// read the data back from the gpu
 	brdfLookupTexture->readback(
-		TextureTarget::TEXTURE2D, 
 		0, ColorSpace::RG, 
 		PixelDataType::FLOAT, 
-		data.pixels.get());
+		data.pixels.get(),
+		data.bufSize);
 
 	return store;
 }
@@ -98,25 +98,35 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 	StoreImage store;
 	StoreImage::create(&store, 6, 1); // 6 sides, no mipmaps (only base level)
 
+	// readback the cubemap
+	const auto components = 3;
+	const auto format = (unsigned)ColorSpace::RGB;
+	const auto pixelDataSize = sizeof(float) * components; // RGB32F
+	const auto width = getEnvironmentMap()->getSideWidth();
+	const auto height = getEnvironmentMap()->getSideHeight();
+	const auto sideSlice = width * height * pixelDataSize;
+	std::vector<char> pixels(sideSlice * 6);
+	environmentMap->readback(
+		0, // base level
+		ColorSpace::RGB,
+		PixelDataType::FLOAT,
+		pixels.data(),
+		pixels.size());
+
+	
+
 	for (unsigned i = 0; i < store.sideCount; ++i)
 	{
 		GenericImage& data = store.images[i][0];
-		data.width = getEnvironmentMap()->getSideWidth();
-		data.height = getEnvironmentMap()->getSideHeight();
-		data.components = 3; // RGB
-		data.format = (unsigned)ColorSpace::RGB;
-		data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
-		data.bufSize = data.width * data.height * data.pixelSize;
+		data.width = width;
+		data.height = height;
+		data.components = components; // RGB
+		data.format = format;
+		data.pixelSize = pixelDataSize;
+		data.bufSize = sideSlice;
 		data.pixels = new char[data.bufSize];
 
-		// read the data back from the gpu
-		environmentMap->readback(
-			TextureTarget::CUBE_MAP,
-			0, // base level
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			data.pixels.get(),
-			(CubeMapSide)i);
+		memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + i * sideSlice, sideSlice);
 	}
 
 	return store;
@@ -128,28 +138,39 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 	// note, that the convoluted environment map has no generated mip maps!
 	StoreImage::create(&store, 6, 1); // 6 sides, 32/16/8/4/2/1 = 6 levels
 
-	for (unsigned i = 0; i < store.sideCount; ++i)
-	{
-		for (unsigned level = 0; level < store.mipmapCounts[i]; ++level)
-		{
-			GenericImage& data = store.images[i][level];
-			unsigned mipMapDivisor = std::pow(2, level);
-			data.width = getConvolutedEnvironmentMap()->getSideWidth() / mipMapDivisor;
-			data.height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
-			data.components = 3; // RGB
-			data.format = (unsigned)ColorSpace::RGB;
-			data.pixelSize = sizeof(float) * data.components; // internal format: RGB16F
-			data.bufSize = data.width * data.height * data.pixelSize;
-			data.pixels = new char[data.bufSize];
+	const auto mipMapCount = store.mipmapCounts[0];
 
-			// read the data back from the gpu
-			convolutedEnvironmentMap->readback(
-				TextureTarget::CUBE_MAP,
-				level,
-				ColorSpace::RGB,
-				PixelDataType::FLOAT,
-				data.pixels.get(),
-				(CubeMapSide)i);
+	for (auto level = 0; level < mipMapCount; ++level)
+	{
+		// readback the mipmap level of the cubemap
+		const auto components = 3;  // RGB
+		const auto format = (unsigned)ColorSpace::RGB;
+		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
+		unsigned mipMapDivisor = std::pow(2, level);
+		const auto width = getConvolutedEnvironmentMap()->getSideWidth() / mipMapDivisor;
+		const auto height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
+		const auto sideSlice = width * height * pixelDataSize;
+		std::vector<char> pixels(sideSlice * 6);
+
+		convolutedEnvironmentMap->readback(
+			level, // mipmap level
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			pixels.data(),
+			pixels.size());
+
+		for (unsigned side = 0; side < store.sideCount; ++side)
+		{
+				GenericImage& data = store.images[side][level];
+				data.width = width;
+				data.height = height;
+				data.components = components;
+				data.format = format;
+				data.pixelSize = pixelDataSize;
+				data.bufSize = sideSlice;
+				data.pixels = new char[data.bufSize];
+
+				memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 
@@ -160,33 +181,42 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 {
 	StoreImage store;
 	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
-	auto mipMapCount = Texture::getMipMapCount(size);
 
 	// Note: we produced only 5 mip map levels instead of possible 9 (for 256 width/height)
 	StoreImage::create(&store, 6, 5);
+	const auto mipMapCount = store.mipmapCounts[0];
 
-	for (unsigned i = 0; i < store.sideCount; ++i)
+	for (auto level = 0; level < mipMapCount; ++level)
 	{
-		for (unsigned level =  0; level < store.mipmapCounts[i]; ++level)
+		// readback the mipmap level of the cubemap
+		const auto components = 3;  // RGB
+		const auto format = (unsigned)ColorSpace::RGB;
+		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
+		unsigned mipMapDivisor = std::pow(2, level);
+		const auto width = getPrefilteredEnvironmentMap()->getSideWidth() / mipMapDivisor;
+		const auto height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
+		const auto sideSlice = width * height * pixelDataSize;
+		std::vector<char> pixels(sideSlice * 6);
+
+		prefilteredEnvMap->readback(
+			level, // mipmap level
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			pixels.data(),
+			pixels.size());
+
+		for (unsigned side = 0; side < store.sideCount; ++side)
 		{
-			GenericImage& data = store.images[i][level];
-			unsigned mipMapDivisor = std::pow(2, level);
-			data.width = getPrefilteredEnvironmentMap()->getSideWidth() / mipMapDivisor;
-			data.height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
-			data.components = 3; // RGB
-			data.format = (unsigned)ColorSpace::RGB;
-			data.pixelSize = sizeof(float) * data.components; // internal format: RGB16F
-			data.bufSize = data.width * data.height * data.pixelSize;
+			GenericImage& data = store.images[side][level];
+			data.width = width;
+			data.height = height;
+			data.components = components;
+			data.format = format;
+			data.pixelSize = pixelDataSize;
+			data.bufSize = sideSlice;
 			data.pixels = new char[data.bufSize];
 
-			// read the data back from the gpu
-			prefilteredEnvMap->readback(
-				TextureTarget::CUBE_MAP,
-				level,
-				ColorSpace::RGB,
-				PixelDataType::FLOAT,
-				data.pixels.get(),
-				(CubeMapSide)i);
+			memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 

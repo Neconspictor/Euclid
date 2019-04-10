@@ -316,22 +316,11 @@ unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
 	return std::log2<>(levelZeroMipMap) + 1;
 }
 
-void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, CubeMapSide side)
+void nex::Texture::readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, size_t destBufferSize)
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GlobalCacheGL::get()->UseProgram(0);
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	if (target == TextureTarget::CUBE_MAP)
-	{
-		GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, mImpl->mTextureID));
-		GLCall(glGetTexImage((GLenum)CubeMapGL::translate(side), mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), dest));
-	}
-	else
-	{
-		GLCall(glBindTexture((GLenum)translate(target), mImpl->mTextureID));
-		GLCall(glGetTexImage((GLenum)translate(target), mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), dest));
-	}
-
+	GLCall(glGetTextureImage(mImpl->mTextureID, mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), destBufferSize, dest));
 	GLCall(glFinish());
 }
 
