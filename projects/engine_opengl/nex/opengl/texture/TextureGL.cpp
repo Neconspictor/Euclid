@@ -526,12 +526,15 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 		mData.generateMipMaps // specifies the storage for mipmaps!
 	);
 
-	GLCall(glTextureSubImage2D(mTextureID, 0, 
-		0, 0, 
-		width, height, 
-		(GLenum)translate(mData.colorspace), 
-		(GLenum)translate(mData.pixelDataType), 
-		data));
+	// On some cards glTextureSubImage2D crashes when data is nullptr
+	if (data != nullptr) {
+		GLCall(glTextureSubImage2D(mTextureID, 0,
+			0, 0,
+			width, height,
+			(GLenum)translate(mData.colorspace),
+			(GLenum)translate(mData.pixelDataType),
+			data));
+	}
 
 	//GLCall(glTexImage2D((GLenum)mTarget, 0, (GLenum)translate(mData.internalFormat), width, height,
 	//	0, (GLenum)translate(mData.colorspace), (GLenum)translate(mData.pixelDataType),
@@ -686,12 +689,15 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint dept
 
 
 		// set base mip map
-		GLCall(glTextureSubImage3D(mTextureID, 0, 
-			0, 0, 0, 
-			width, height, depth, 
-			(GLenum)translate(mData.colorspace),
-			(GLenum)translate(mData.pixelDataType), 
-			data));
+		if (data != nullptr) {
+			GLCall(glTextureSubImage3D(mTextureID, 0,
+				0, 0, 0,
+				width, height, depth,
+				(GLenum)translate(mData.colorspace),
+				(GLenum)translate(mData.pixelDataType),
+				data));
+		}
+		
 
 	// create content of the other mipmaps
 	if (mData.generateMipMaps) generateMipMaps();
