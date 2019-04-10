@@ -166,6 +166,8 @@ namespace nex
 
 		virtual ~Impl();
 
+		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc);
+
 		static std::unique_ptr<Impl> createView(Impl* original,
 			TextureTarget target,
 			unsigned minLevel,
@@ -174,9 +176,10 @@ namespace nex
 			unsigned numLayers,
 			const TextureData& data);
 
+		void generateMipMaps();
+
 		static void generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target);
 
-		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc, GLenum target);
 
 		static GLuint getFormat(int numberComponents);
 
@@ -186,29 +189,21 @@ namespace nex
 
 		static void resizeTexImage2D(
 			GLuint textureID,
-			GLenum target,
-			GLint level,
+			GLint levels,
 			unsigned width,
 			unsigned height,
-			GLenum  colorspace,
 			GLint  internalFormat,
-			GLenum  pixelDataType,
-			bool generateMipMaps,
-			const void* data);
+			bool generateMipMaps);
 
 
 		static void resizeTexImage3D(
 			GLuint textureID,
-			GLenum target,
-			GLint level,
+			GLint levels,
 			unsigned width,
 			unsigned height,
 			unsigned depth,
-			GLenum  colorspace,
 			GLint  internalFormat,
-			GLenum  pixelDataType,
-			bool generateMipMaps,
-			const void* data);
+			bool generateMipMaps);
 
 		void setTexture(GLuint id);
 		TextureTargetGl getTarget() const;
@@ -258,16 +253,16 @@ namespace nex
 	class Texture2DArrayGL : public Texture::Impl
 	{
 	public:
-		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint size, bool immutableStorage, const TextureData& textureData, const void* data);
-		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned size = 0);
+		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
+		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
 		unsigned getWidth() const;
 		unsigned getHeight() const;
-		unsigned getSize() const;
+		unsigned getDepth() const;
 
 		void setHeight(unsigned height);
 		void setWidth(unsigned width);
-		void setSize(unsigned size);
+		void setDepth(unsigned depth);
 
 		void resize(unsigned width, unsigned height, unsigned size);
 
@@ -275,7 +270,7 @@ namespace nex
 		friend Texture2DArray;
 		unsigned mWidth;
 		unsigned mHeight;
-		unsigned mSize;
+		unsigned mDepth;
 		TextureData mData;
 	};
 

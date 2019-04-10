@@ -146,7 +146,10 @@ namespace nex
 			}
 		}
 
-		auto* material = materials[mesh->mMaterialIndex].get();
+		Material* material = nullptr;
+		
+		if (materials.size() > mesh->mMaterialIndex)
+			material = materials[mesh->mMaterialIndex].get();
 
 		unique_ptr<SubMesh> result = MeshFactory::create(vertices->data(), mesh->mNumVertices,
 			indices->data(), mesh->mNumFaces * 3);

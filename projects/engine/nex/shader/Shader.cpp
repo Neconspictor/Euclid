@@ -3,6 +3,13 @@
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 
 
+nex::UniformTex nex::ShaderProgram::createTextureUniform(const char* name, UniformType type, unsigned bindingSlot)
+{
+	UniformLocation loc = getUniformLocation(name);
+	setBinding(loc, bindingSlot);
+	return {loc, type, bindingSlot};
+}
+
 std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines)
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;

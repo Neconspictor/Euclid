@@ -1,9 +1,180 @@
 #include <nex/material/Material.hpp>
 #include <nex/texture/Texture.hpp>
+#include <nex/shader/Shader.hpp>
 
 using namespace std;
 using namespace nex;
 
+
+Material::Material() : mProgram(nullptr)
+{
+}
+
+ShaderProgram* Material::getProgram()
+{
+	return mProgram;
+}
+
+void Material::setProgram(ShaderProgram* program)
+{
+	mProgram = program;
+}
+
+void Material::init(ShaderProgram* program)
+{
+	setProgram(program);
+
+	mFloats.clear();
+	mInts.clear();
+	mMat2s.clear();
+	mMat3s.clear();
+	mMat4s.clear();
+	mUints.clear();
+	mUVec2s.clear();
+	mUVec3s.clear();
+	mUVec4s.clear();
+	mVec2s.clear();
+	mVec3s.clear();
+	mVec4s.clear();
+	mTextures.clear();
+}
+
+void Material::set(UniformLocation loc, float value)
+{
+	mFloats[loc] = value;
+}
+
+void Material::set(UniformLocation loc, int value)
+{
+	mInts[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::mat2& value)
+{
+	mMat2s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::mat3& value)
+{
+	mMat3s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::mat4& value)
+{
+	mMat4s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, unsigned value)
+{
+	mUints[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::u32vec2& value)
+{
+	mUVec2s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::u32vec3& value)
+{
+	mUVec3s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::u32vec4& value)
+{
+	mUVec4s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::vec2& value)
+{
+	mVec2s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::vec3& value)
+{
+	mVec3s[loc] = value;
+}
+
+void Material::set(UniformLocation loc, const glm::vec4& value)
+{
+	mVec4s[loc] = value;
+}
+
+void Material::set(unsigned bindingSlot, const Texture* texture)
+{
+	mTextures[bindingSlot] = texture;
+}
+
+void Material::upload() const
+{
+	if (mProgram == nullptr) return;
+
+	mProgram->bind();
+
+	for (auto& uniform : mTextures)
+	{
+		mProgram->setTexture(uniform.second, uniform.first);
+	}
+
+	for (auto& uniform : mFloats)
+	{
+		mProgram->setFloat(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mInts)
+	{
+		mProgram->setInt(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mMat2s)
+	{
+		mProgram->setMat3(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mMat3s)
+	{
+		mProgram->setMat3(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mMat4s)
+	{
+		mProgram->setMat4(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mUints)
+	{
+		mProgram->setUInt(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mUVec2s)
+	{
+		mProgram->setUVec2(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mUVec3s)
+	{
+		mProgram->setUVec3(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mUVec4s)
+	{
+		mProgram->setUVec4(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mVec2s)
+	{
+		mProgram->setVec2(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mVec3s)
+	{
+		mProgram->setVec3(uniform.first, uniform.second);
+	}
+
+	for (auto& uniform : mVec4s)
+	{
+		mProgram->setVec4(uniform.first, uniform.second);
+	}
+}
 
 std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 {
@@ -11,240 +182,81 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 	return os;
 }
 
-BlinnPhongMaterial::BlinnPhongMaterial() : Material(),
-diffuseMap(nullptr),
-emissionMap(nullptr),
-normalMap(nullptr),
-reflectionMap(nullptr),
-specularMap(nullptr),
-shininess(0)
-{
-}
-
-BlinnPhongMaterial::BlinnPhongMaterial(Texture* diffuseMap, Texture* emissionMap, Texture* normalMap, Texture* reflectionMap, Texture* specularMap, float shininess) :
-	Material()
-{
-	this->diffuseMap = diffuseMap;
-	this->emissionMap = emissionMap;
-	this->reflectionMap = reflectionMap;
-	this->specularMap = specularMap;
-	this->shininess = shininess;
-}
-
-BlinnPhongMaterial::BlinnPhongMaterial(const BlinnPhongMaterial& other) : Material(),
-diffuseMap(other.diffuseMap),
-emissionMap(other.emissionMap),
-normalMap(other.normalMap),
-reflectionMap(other.reflectionMap),
-specularMap(other.specularMap),
-shininess(other.shininess)
-{}
-
-BlinnPhongMaterial::BlinnPhongMaterial(BlinnPhongMaterial&& other)
-{
-	diffuseMap = move(other.diffuseMap);
-	emissionMap = move(other.emissionMap);
-	normalMap = move(other.normalMap);
-	reflectionMap = move(other.reflectionMap);
-	specularMap = move(other.specularMap);
-	shininess = move(other.shininess);
-}
-
-BlinnPhongMaterial& BlinnPhongMaterial::operator=(const BlinnPhongMaterial& other)
-{
-	diffuseMap = other.diffuseMap;
-	emissionMap = other.emissionMap;
-	normalMap = other.normalMap;
-	reflectionMap = other.reflectionMap;
-	specularMap = other.specularMap;
-	shininess = other.shininess;
-	return *this;
-}
-
-BlinnPhongMaterial& BlinnPhongMaterial::operator=(BlinnPhongMaterial&& other)
-{
-	diffuseMap = move(other.diffuseMap);
-	emissionMap = move(other.emissionMap);
-	normalMap = move(other.normalMap);
-	reflectionMap = move(other.reflectionMap);
-	specularMap = move(other.specularMap);
-	shininess = move(other.shininess);
-	return *this;
-}
-
-BlinnPhongMaterial::~BlinnPhongMaterial()
-{
-}
-
-Texture* BlinnPhongMaterial::getDiffuseMap() const
-{
-	return diffuseMap;
-}
-
-Texture* BlinnPhongMaterial::getEmissionMap() const
-{
-	return emissionMap;
-}
-
-Texture * BlinnPhongMaterial::getNormalMap() const
-{
-	return normalMap;
-}
-
-Texture* BlinnPhongMaterial::getReflectionMap() const
-{
-	return reflectionMap;
-}
-
-float BlinnPhongMaterial::getShininess() const
-{
-	return shininess;
-}
-
-Texture* BlinnPhongMaterial::getSpecularMap() const
-{
-	return specularMap;
-}
-
-void BlinnPhongMaterial::setDiffuseMap(Texture* diffuse)
-{
-	diffuseMap = diffuse;
-}
-
-void BlinnPhongMaterial::setEmissionMap(Texture* emission)
-{
-	emissionMap = emission;
-}
-
-void BlinnPhongMaterial::setNormalMap(Texture * normal)
-{
-	normalMap = normal;
-}
-
-void BlinnPhongMaterial::setReflectionMap(Texture* reflection)
-{
-	reflectionMap = reflection;
-}
-
-void BlinnPhongMaterial::setSpecularMap(Texture* specular)
-{
-	specularMap = specular;
-}
-
-void BlinnPhongMaterial::setShininess(float shininess)
-{
-	this->shininess = shininess;
-}
-
-const float& BlinnPhongMaterial::getShininessRef() const
-{
-	return shininess;
-}
-
-
-
 PbrMaterial::PbrMaterial():
-albedoMap(nullptr),
-aoMap(nullptr),
-emissionMap(nullptr),
-metallicMap(nullptr),
-normalMap(nullptr),
-roughnessMap(nullptr)
+	PbrMaterial(nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
 }
 
-PbrMaterial::PbrMaterial(Texture * albedoMap,
+PbrMaterial::PbrMaterial(
+	Texture * albedoMap,
 	Texture * aoMap,
 	Texture * emissionMap,
 	Texture * metallicMap,
 	Texture * normalMap,
-	Texture * roughnessMap) :
-
-	albedoMap(albedoMap),
-	aoMap(aoMap),
-	emissionMap(emissionMap),
-	metallicMap(metallicMap),
-	normalMap(normalMap),
-	roughnessMap(roughnessMap)
+	Texture * roughnessMap)
 {
+	mTextures[0] = albedoMap;
+	mTextures[1] = aoMap;
+	mTextures[2] = metallicMap;
+	mTextures[3] = normalMap;
+	mTextures[4] = roughnessMap;
 }
 
-PbrMaterial::PbrMaterial(const PbrMaterial & other) : Material(), 
-albedoMap(other.albedoMap), aoMap(other.aoMap),
-emissionMap(other.emissionMap), metallicMap(other.metallicMap), 
-normalMap(other.normalMap),roughnessMap(other.roughnessMap)
+const Texture * PbrMaterial::getAlbedoMap() const
 {
+	return mTextures.at(0);
 }
 
-PbrMaterial & PbrMaterial::operator=(const PbrMaterial & other)
+const Texture * PbrMaterial::getAoMap() const
 {
-	if (this != &other) {
-		this->albedoMap = other.albedoMap;
-		this->aoMap = other.aoMap;
-		this->emissionMap = other.emissionMap;
-		this->metallicMap = other.metallicMap;
-		this->normalMap = other.normalMap;
-		this->roughnessMap = other.roughnessMap;
-	}
-	return *this;
+	return mTextures.at(1);
 }
 
-Texture * PbrMaterial::getAlbedoMap() const
+const Texture * PbrMaterial::getEmissionMap() const
 {
-	return albedoMap;
+	return nullptr;
 }
 
-Texture * PbrMaterial::getAoMap() const
+const Texture * PbrMaterial::getMetallicMap() const
 {
-	return aoMap;
+	return mTextures.at(2);
 }
 
-Texture * PbrMaterial::getEmissionMap() const
+const Texture * PbrMaterial::getNormalMap() const
 {
-	return emissionMap;
+	return mTextures.at(3);
 }
 
-Texture * PbrMaterial::getMetallicMap() const
+const Texture * PbrMaterial::getRoughnessMap() const
 {
-	return metallicMap;
-}
-
-Texture * PbrMaterial::getNormalMap() const
-{
-	return normalMap;
-}
-
-Texture * PbrMaterial::getRoughnessMap() const
-{
-	return roughnessMap;
+	return mTextures.at(4);
 }
 
 void PbrMaterial::setAlbedoMap(Texture * albedoMap)
 {
-	this->albedoMap = albedoMap;
+	mTextures[0] = albedoMap;
 }
 
 void PbrMaterial::setAoMap(Texture * aoMap)
 {
-	this->aoMap = aoMap;
+	mTextures[1] = aoMap;
 }
 
 void PbrMaterial::setEmissionMap(Texture * emissionMap)
 {
-	this->emissionMap = emissionMap;
 }
 
 void PbrMaterial::setMetallicMap(Texture * metallicMap)
 {
-	this->metallicMap = metallicMap;
+	mTextures[2] = metallicMap;
 }
 
 void PbrMaterial::setNormalMap(Texture * normalMap)
 {
-	this->normalMap = normalMap;
+	mTextures[3] = normalMap;
 }
 
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
-	this->roughnessMap = roughnessMap;
+	mTextures[4] = roughnessMap;
 }

@@ -31,11 +31,13 @@ namespace nex
 			mProgram = ShaderProgram::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
 				"post_processing/SMAA/SMAA_LumaEdgeDetection_fs.glsl", "", defines);
 			mColorTexGamma = {mProgram->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
+
+			mProgram->setBinding(mColorTexGamma.location, mColorTexGamma.bindingSlot);
 		}
 
 		void setColorTexGamma(Texture2D* tex)
 		{
-			mProgram->setTexture(mColorTexGamma.location, tex, mColorTexGamma.location);
+			mProgram->setTexture(tex, mColorTexGamma.bindingSlot);
 		}
 
 	private:
@@ -57,21 +59,25 @@ namespace nex
 			mEdgeTex = { mProgram->getUniformLocation("edgeTex"), UniformType::TEXTURE2D, 0};
 			mAreaTex = { mProgram->getUniformLocation("areaTex"), UniformType::TEXTURE2D, 1};
 			mSearchTex = { mProgram->getUniformLocation("searchTex"), UniformType::TEXTURE2D, 2};
+
+			mProgram->setBinding(mEdgeTex.location, mEdgeTex.bindingSlot);
+			mProgram->setBinding(mAreaTex.location, mAreaTex.bindingSlot);
+			mProgram->setBinding(mSearchTex.location, mSearchTex.bindingSlot);
 		}
 
 		void setEdgeTex(Texture2D* tex)
 		{
-			mProgram->setTexture(mEdgeTex.location, tex, mEdgeTex.location);
+			mProgram->setTexture(tex, mEdgeTex.bindingSlot);
 		}
 
 		void setAreaTex(Texture2D* tex)
 		{
-			mProgram->setTexture(mAreaTex.location, tex, mAreaTex.location);
+			mProgram->setTexture(tex, mAreaTex.bindingSlot);
 		}
 
 		void setSearchTex(Texture2D* tex)
 		{
-			mProgram->setTexture(mSearchTex.location, tex, mSearchTex.location);
+			mProgram->setTexture(tex, mSearchTex.bindingSlot);
 		}
 
 	private:
@@ -95,16 +101,19 @@ namespace nex
 				"post_processing/SMAA/SMAA_NeighborhoodBlending_fs.glsl", "", defines);
 			mBlendTex = { mProgram->getUniformLocation("blendTex"), UniformType::TEXTURE2D, 0 };
 			mColorTex = { mProgram->getUniformLocation("colorTex"), UniformType::TEXTURE2D, 1 };
+
+			mProgram->setBinding(mBlendTex.location, mBlendTex.bindingSlot);
+			mProgram->setBinding(mColorTex.location, mColorTex.bindingSlot);
 		}
 
 		void setBlendTex(Texture2D* tex)
 		{
-			mProgram->setTexture(mBlendTex.location, tex, mBlendTex.location);
+			mProgram->setTexture(tex, mBlendTex.bindingSlot);
 		}
 
 		void setColorTex(Texture2D* tex)
 		{
-			mProgram->setTexture(mColorTex.location, tex, mColorTex.location);
+			mProgram->setTexture(tex, mColorTex.bindingSlot);
 		}
 
 	private:

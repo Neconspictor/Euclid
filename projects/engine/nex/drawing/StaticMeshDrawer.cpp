@@ -92,6 +92,12 @@ void nex::StaticMeshDrawer::draw(StaticMesh* model, Shader* shader)
 	//shader->setTransformData(data);
 	for (auto& mesh : model->getMeshes())
 	{
+		auto* material = mesh.get()->getMaterial();
+		if (material != nullptr)
+		{
+			material->setProgram(shader->getProgram());
+			material->upload();
+		}
 		shader->onMaterialUpdate(mesh.get()->getMaterial());
 
 		const VertexArray* vertexArray = mesh->getVertexArray();

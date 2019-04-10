@@ -1,13 +1,14 @@
 #pragma once
 #include "nex/util/StringUtils.hpp"
+#include <nex/shader/ShaderType.hpp>
 
 namespace nex
 {
+	class ShaderProgram;
 	class Texture;
 
 	enum class MaterialType
 	{
-		BlinnPhong,
 		Pbr,
 		None
 	};
@@ -15,59 +16,68 @@ namespace nex
 	class Material
 	{
 	public:
-		Material() {};
-		virtual ~Material() {};
+		Material();
+
+		virtual ~Material() = default;
+
+		ShaderProgram* getProgram();
+
+		void init(ShaderProgram* program);
+
+		void set(UniformLocation loc, float value);
+		void set(UniformLocation loc, int value);
+		void set(UniformLocation loc, const glm::mat2& value);
+		void set(UniformLocation loc, const glm::mat3& value);
+		void set(UniformLocation loc, const glm::mat4& value);
+		void set(UniformLocation loc, unsigned value);
+		void set(UniformLocation loc, const glm::u32vec2& value);
+		void set(UniformLocation loc, const glm::u32vec3& value);
+		void set(UniformLocation loc, const glm::u32vec4& value);
+		void set(UniformLocation loc, const glm::vec2& value);
+		void set(UniformLocation loc, const glm::vec3& value);
+		void set(UniformLocation loc, const glm::vec4& value);
+		void set(unsigned bindingSlot, const Texture* texture);
+
+		void setProgram(ShaderProgram* program);
+
+		/**
+		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
+		 */
+		void upload() const;
+
+
+	protected:
+		template<typename T>
+		using Map = std::unordered_map<UniformLocation, T>;
+
+		using MapTexture = std::unordered_map<int, const Texture*>;
+
+		MapTexture mTextures;
+		Map<float> mFloats;
+		Map<int> mInts;
+		Map<glm::mat2> mMat2s;
+		Map<glm::mat3> mMat3s;
+		Map<glm::mat4> mMat4s;
+		Map<unsigned> mUints;
+		Map<glm::uvec2> mUVec2s;
+		Map<glm::uvec3> mUVec3s;
+		Map<glm::uvec4> mUVec4s;
+		Map<glm::vec2> mVec2s;
+		Map<glm::vec3> mVec3s;
+		Map<glm::vec4> mVec4s;
+
+		ShaderProgram* mProgram;
 	};
 
 	/**
 		* Maps material enumerations to a string representation.
 		*/
 	static const util::EnumString<MaterialType> materialEnumConversion[] = {
-		{nex::MaterialType::BlinnPhong, "BLINN_PHONG" },
 		{ nex::MaterialType::Pbr, "PBR" },
 		{ nex::MaterialType::None, "NONE" }
 	};
 
 	std::ostream& operator<<(std::ostream& os, nex::MaterialType type);
-
-	class BlinnPhongMaterial : public Material
-	{
-	public:
-		BlinnPhongMaterial();
-		BlinnPhongMaterial(Texture* diffuseMap, Texture* emissionMap, Texture* normalMap, Texture* reflectionMap,
-			Texture* specularMap, float shininess);
-
-		BlinnPhongMaterial(const BlinnPhongMaterial& other);
-		BlinnPhongMaterial(BlinnPhongMaterial&& other);
-		BlinnPhongMaterial& operator=(const BlinnPhongMaterial& other);
-		BlinnPhongMaterial& operator=(BlinnPhongMaterial&& other);
-
-		virtual ~BlinnPhongMaterial();
-
-		Texture* getDiffuseMap() const;
-		Texture* getEmissionMap() const;
-		Texture* getNormalMap() const;
-		Texture* getReflectionMap() const;
-		float getShininess() const;
-		const float& getShininessRef() const;
-
-		Texture* getSpecularMap() const;
-
-		void setDiffuseMap(Texture* diffuse);
-		void setEmissionMap(Texture* emission);
-		void setNormalMap(Texture* normal);
-		void setReflectionMap(Texture* reflection);
-		void setSpecularMap(Texture* specular);
-		void setShininess(float shininess);
-
-	protected:
-		Texture* diffuseMap;
-		Texture* emissionMap;
-		Texture* normalMap;
-		Texture* reflectionMap;
-		Texture* specularMap;
-		float shininess;
-	};
 
 
 	class PbrMaterial : public Material
@@ -81,18 +91,14 @@ namespace nex
 			Texture* normalMap,
 			Texture* roughnessMap);
 
-		PbrMaterial(const PbrMaterial& other);
-
-		PbrMaterial& operator=(const PbrMaterial& other);
-
 		virtual ~PbrMaterial() = default;
 
-		Texture* getAlbedoMap() const;
-		Texture* getAoMap() const;
-		Texture* getEmissionMap() const;
-		Texture* getMetallicMap() const;
-		Texture* getNormalMap() const;
-		Texture* getRoughnessMap() const;
+		const Texture* getAlbedoMap() const;
+		const Texture* getAoMap() const;
+		const Texture* getEmissionMap() const;
+		const Texture* getMetallicMap() const;
+		const Texture* getNormalMap() const;
+		const Texture* getRoughnessMap() const;
 
 
 		void setAlbedoMap(Texture* albedoMap);
@@ -102,13 +108,5 @@ namespace nex
 		void setNormalMap(Texture* normalMap);
 		void setRoughnessMap(Texture* roughnessMap);
 
-	protected:
-		Texture* albedoMap;
-		Texture* aoMap;
-		Texture* emissionMap;
-		Texture* metallicMap;
-		Texture* normalMap;
-		Texture* roughnessMap;
 	};
 }
-

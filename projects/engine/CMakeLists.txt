@@ -143,8 +143,6 @@ set(
     #nex/material
     nex/material/AbstractMaterialLoader.hpp
 	nex/material/AbstractMaterialLoader.cpp
-	nex/material/BlinnPhongMaterialLoader.hpp
-	nex/material/BlinnPhongMaterialLoader.cpp
     nex/material/Material.hpp
     nex/material/Material.cpp
 	nex/material/PbrMaterialLoader.hpp
@@ -198,6 +196,7 @@ set(
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
+    nex/shader/ShaderType.hpp
     nex/shader/ShadowShader.hpp
 	nex/shader/ShadowShader.cpp
     nex/shader/SkyBoxShader.hpp

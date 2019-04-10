@@ -2,6 +2,7 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/util/Memory.hpp>
 #include <ostream>
+#include <nex/shader/ShaderType.hpp>
 
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 
@@ -31,38 +32,6 @@ namespace nex
 		glm::mat4 const* projection = nullptr;
 		glm::mat4 const* view = nullptr;
 		glm::mat4 const* model = nullptr;
-	};
-
-	enum class UniformType
-	{
-		CUBE_MAP,
-		FLOAT,
-		INT,
-		MAT3,
-		MAT4,
-		TEXTURE2D,
-		TEXTURE2D_ARRAY,
-		UINT,
-		UVEC2,
-		UVEC3,
-		UVEC4,
-		VEC2,
-		VEC3,
-		VEC4
-	};
-
-	using UniformLocation = int;
-
-	struct Uniform
-	{
-		UniformLocation location = -1;
-		UniformType type = UniformType::INT;
-	};
-	
-
-	struct UniformTex : public Uniform
-	{
-		unsigned int bindingSlot = 0;
 	};
 
 	class ShaderStage
@@ -109,6 +78,8 @@ namespace nex
 		 */
 		void bind();
 
+		UniformTex createTextureUniform(const char* name, UniformType type, unsigned bindingSlot);
+
 		/**
 		 * Provides the uniform location by name. The memory is managed by this class and mustn't be freed manually.
 		 */
@@ -124,6 +95,9 @@ namespace nex
 		static std::unique_ptr<ShaderProgram> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
 
 		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
+
+
+		void setBinding(UniformLocation locationID, unsigned int bindingSlot);
 
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
@@ -190,6 +164,11 @@ namespace nex
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
+		void setMat2(UniformLocation locationID, const glm::mat2& data);
+
+		/**
+		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 */
 		void setMat3(UniformLocation locationID, const glm::mat3& data);
 
 		/**
@@ -200,7 +179,7 @@ namespace nex
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */
-		void setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot);
+		void setTexture(const nex::Texture* data, unsigned int bindingSlot);
 
 		
 		/**

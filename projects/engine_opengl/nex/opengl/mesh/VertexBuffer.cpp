@@ -35,6 +35,7 @@ namespace nex
 		if (mRendererID != GL_FALSE)
 		{
 			GLCall(glDeleteBuffers(1, &mRendererID));
+			mRendererID = GL_FALSE;
 		}
 	}
 

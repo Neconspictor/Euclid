@@ -14,12 +14,14 @@ GaussianBlurHorizontalShader::GaussianBlurHorizontalShader()
 	transform		= { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	windowWidth		= { mProgram->getUniformLocation("windowWidth"), UniformType::FLOAT };
 	windowHeight	= { mProgram->getUniformLocation("windowHeight"), UniformType::FLOAT };
+
+	mProgram->setBinding(image.location, image.bindingSlot);
 }
 
 
 void GaussianBlurHorizontalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(image.location, tex, image.bindingSlot);
+	mProgram->setTexture(tex, image.bindingSlot);
 }
 
 void GaussianBlurHorizontalShader::setMVP(const mat4& mvp)
@@ -54,12 +56,14 @@ GaussianBlurVerticalShader::GaussianBlurVerticalShader()
 	transform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	windowWidth = { mProgram->getUniformLocation("windowWidth"), UniformType::FLOAT };
 	windowHeight = { mProgram->getUniformLocation("windowHeight"), UniformType::FLOAT };
+
+	mProgram->setBinding(image.location, image.bindingSlot);
 }
 
 
 void GaussianBlurVerticalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(image.location, tex, image.bindingSlot);
+	mProgram->setTexture(tex, image.bindingSlot);
 }
 
 void GaussianBlurVerticalShader::setMVP(const mat4& mvp)

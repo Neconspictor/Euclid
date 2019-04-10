@@ -10,10 +10,10 @@ in VS_OUT {
 } fs_in;
 
 struct GBuffer {
-    sampler2D albedoMap;
-	sampler2D aoMetalRoughnessMap;
-	sampler2D normalEyeMap;
-    sampler2D normalizedViewSpaceZMap;
+    layout(binding = 0) sampler2D albedoMap;
+    layout(binding = 1)	sampler2D aoMetalRoughnessMap;
+    layout(binding = 2)	sampler2D normalEyeMap;
+    layout(binding = 3) sampler2D normalizedViewSpaceZMap;
 };
 
 uniform GBuffer gBuffer;

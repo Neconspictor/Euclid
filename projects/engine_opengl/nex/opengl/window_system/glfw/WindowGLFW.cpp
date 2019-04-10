@@ -359,6 +359,14 @@ void WindowGLFW::refreshWindowWithoutCallbacks()
 	inputDevice.enableCallbacks();
 }
 
+void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	std::stringstream ss;
+	ss << "0x" << std::hex << id << ": " << message;
+	Logger logger("DebugCallback");
+	LOG(logger, Error) << ss.str();
+}
+
 void WindowGLFW::createOpenGLWindow()
 {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -418,4 +426,8 @@ void WindowGLFW::createOpenGLWindow()
 	}
 
 	LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
+
+	GLCall(glDebugMessageCallback(DebugCallback, nullptr));
+	GLCall(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE));
+	GLCall(glEnable(GL_DEBUG_OUTPUT));
 }

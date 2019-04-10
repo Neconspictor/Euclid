@@ -21,14 +21,14 @@ namespace nex::gui
 		{
 			mProgram = nex::ShaderProgram::create("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 
-			mTexture = { mProgram->getUniformLocation("Texture"), nex::UniformType::TEXTURE2D, 0 };
+			mTexture = mProgram->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
 			mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
 		}
 
 		void setTexture(nex::Texture2D* texture)
 		{
-			mProgram->setTexture(mTexture.location, texture, mTexture.bindingSlot);
+			mProgram->setTexture(texture, mTexture.bindingSlot);
 		}
 
 		void setProjMtx(const glm::mat4& mat)
@@ -226,7 +226,7 @@ namespace nex::gui
 		rasterizer->enableFaceCulling(false);
 		depthTest->enableDepthTest(true);
 		rasterizer->enableScissorTest(false);
-		rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT);
+		//rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT);
 	}
 
 	void ImGUI_GL::shutdown() {}

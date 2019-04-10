@@ -12,12 +12,12 @@ ScreenShader::ScreenShader()
 	mProgram = ShaderProgram::create("screen_vs.glsl", "screen_fs.glsl");
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0};
+	mTexture = mProgram->createTextureUniform("screenTexture", UniformType::TEXTURE2D, 0);
 }
 
 void ScreenShader::useTexture(const Texture* texture)
 {
-	mProgram->setTexture(mTexture.location, texture, mTexture.bindingSlot);
+	mProgram->setTexture(texture, mTexture.bindingSlot);
 }
 
 void ScreenShader::setMVP(const glm::mat4& mat)

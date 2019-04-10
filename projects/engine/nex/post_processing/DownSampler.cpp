@@ -10,17 +10,13 @@ public:
 	DownSampleShader()
 	{
 		mProgram = ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
-		mSourceUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D };
-	}
-
-	const UniformLocation& getSourceLocation() const
-	{
-		return mSourceUniform.location;
+		mSourceUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
+		mProgram->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
 
 private:
 
-	Uniform mSourceUniform;
+	UniformTex mSourceUniform;
 };
 
 
@@ -70,7 +66,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 
 	mDownSampleShader->bind();
 	mSampler->bind(0);
-	mDownSampleShader->getProgram()->setTexture(mDownSampleShader->getSourceLocation(), src, 0);
+	mDownSampleShader->getProgram()->setTexture(src, 0);
 
 	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
 

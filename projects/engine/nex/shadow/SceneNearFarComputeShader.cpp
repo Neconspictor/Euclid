@@ -50,7 +50,8 @@ nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputeShader()
 	mConstantBuffer->bind();
 	mConstantBuffer->update(&constant, sizeof(constant));
 
-	mDepthTextureUniform = {mProgram->getUniformLocation("depthTexture"), UniformType::TEXTURE2D};
+	mDepthTextureUniform = mProgram->createTextureUniform("depthTexture", UniformType::TEXTURE2D, 0);
+	
 }
 
 nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readResult()
@@ -64,7 +65,7 @@ nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readRes
 
 void nex::SceneNearFarComputeShader::setDepthTexture(Texture* depth)
 {
-	mProgram->setTexture(mDepthTextureUniform.location, depth, 0);
+	mProgram->setTexture(depth, mDepthTextureUniform.bindingSlot);
 }
 
 nex::ShaderStorageBuffer* nex::SceneNearFarComputeShader::getConstantBuffer()

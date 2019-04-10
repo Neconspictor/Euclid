@@ -11,7 +11,8 @@ SkyBoxShader::SkyBoxShader()
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mSkyTexture = { mProgram->getUniformLocation("skybox"), UniformType::CUBE_MAP, 0 };
+
+	mSkyTexture = mProgram->createTextureUniform("skybox", UniformType::CUBE_MAP, 0);
 }
 
 void SkyBoxShader::setMVP(const glm::mat4& mat)
@@ -31,40 +32,22 @@ void SkyBoxShader::setView(const glm::mat4& mat)
 
 void SkyBoxShader::setSkyTexture(const CubeMap* texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
 }
 
 void SkyBoxShader::setupRenderState()
 {
 	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
-	//glDepthMask(GL_FALSE);
 	depthConfig->enableDepthBufferWriting(false);
-	//glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
 }
 
 void SkyBoxShader::reverseRenderState()
 {
 	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
-	//glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
 	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
-	//glDepthMask(GL_TRUE);
 	depthConfig->enableDepthBufferWriting(true);
 }
-
-//TODO
-/*
-void SkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
-{
-	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-	glDepthMask(GL_TRUE);
-}
-
-void SkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
-{
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}*/
 
 
 PanoramaSkyBoxShader::PanoramaSkyBoxShader()
@@ -73,7 +56,8 @@ PanoramaSkyBoxShader::PanoramaSkyBoxShader()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mSkyTexture = { mProgram->getUniformLocation("panorama"), UniformType::TEXTURE2D, 0 };
+
+	mSkyTexture = mProgram->createTextureUniform("panorama", UniformType::TEXTURE2D, 0);
 }
 
 void PanoramaSkyBoxShader::setProjection(const glm::mat4& mat)
@@ -88,22 +72,8 @@ void PanoramaSkyBoxShader::setView(const glm::mat4& mat)
 
 void PanoramaSkyBoxShader::setSkyTexture(const Texture* texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
 }
-
-//TODO
-/*
-void PanoramaSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
-{
-	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-	glDepthMask(GL_TRUE);
-}
-
-void PanoramaSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
-{
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}*/
 
 
 EquirectangularSkyBoxShader::EquirectangularSkyBoxShader()
@@ -112,7 +82,7 @@ EquirectangularSkyBoxShader::EquirectangularSkyBoxShader()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mSkyTexture = { mProgram->getUniformLocation("equirectangularMap"), UniformType::TEXTURE2D, 0 };
+	mSkyTexture = mProgram->createTextureUniform("equirectangularMap", UniformType::TEXTURE2D, 0);
 }
 
 void EquirectangularSkyBoxShader::setProjection(const glm::mat4& mat)
@@ -127,19 +97,5 @@ void EquirectangularSkyBoxShader::setView(const glm::mat4& mat)
 
 void EquirectangularSkyBoxShader::setSkyTexture(const Texture * texture)
 {
-	mProgram->setTexture(mSkyTexture.location, texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
 }
-
-//TODO
-/*
-void EquirectangularSkyBoxShaderGL::afterDrawing(const MeshGL& mesh)
-{
-	glDepthFunc(GL_LESS); // The Type Of Depth Testing To Do
-	glDepthMask(GL_TRUE);
-}
-
-void EquirectangularSkyBoxShaderGL::beforeDrawing(const MeshGL& mesh)
-{
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-}*/

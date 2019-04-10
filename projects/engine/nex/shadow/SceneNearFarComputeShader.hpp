@@ -52,6 +52,6 @@ namespace nex
 	private:
 		std::unique_ptr<ShaderStorageBuffer> mConstantBuffer;
 		std::unique_ptr<ShaderStorageBuffer> mWriteOutBuffer;
-		Uniform mDepthTextureUniform;
+		UniformTex mDepthTextureUniform;
 	};
 }

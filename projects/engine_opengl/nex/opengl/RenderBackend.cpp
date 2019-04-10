@@ -721,7 +721,7 @@ namespace nex
 		shader->setSkyTexture(equirectangularMap);
 		shader->setProjection(projection);
 
-		Vob skyBox("misc/SkyBoxCube.obj", MaterialType::BlinnPhong);
+		Vob skyBox("misc/SkyBoxCube.obj", MaterialType::None);
 
 		TextureData textureData = {
 			TextureFilter::Linear,

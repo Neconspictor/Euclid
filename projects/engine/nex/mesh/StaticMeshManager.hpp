@@ -4,7 +4,6 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <nex/material/PbrMaterialLoader.hpp>
-#include <nex/material/BlinnPhongMaterialLoader.hpp>
 #include <memory>
 
 
@@ -104,7 +103,7 @@ namespace nex
 		std::unordered_map<unsigned int, StaticMesh*> modelTable;
 		MeshLoader assimpLoader;
 		PbrMaterialLoader pbrMaterialLoader;
-		BlinnPhongMaterialLoader blinnPhongMaterialLoader;
+		DefaultMaterialLoader mDefaultMaterialLoader;
 		FileSystem* mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;

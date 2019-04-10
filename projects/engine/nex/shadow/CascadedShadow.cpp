@@ -182,7 +182,7 @@ void CascadedShadow::updateTextureArray()
 	RenderAttachment depth;
 	depth.type = RenderAttachmentType::DEPTH;
 	depth.target = TextureTarget::TEXTURE2D_ARRAY;
-	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mCascadeData.numCascades, false, data, nullptr);
+	depth.texture = std::make_unique<Texture2DArray>(mCascadeWidth, mCascadeHeight, mCascadeData.numCascades, data, nullptr);
 
 	mRenderTarget.bind();
 	mRenderTarget.useDepthAttachment(std::move(depth));

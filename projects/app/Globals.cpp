@@ -7,7 +7,7 @@ namespace nex::util {
 
 	void Globals::initGlobals()
 	{
-		rootDirectory = "./";
+		rootDirectory = canonical(std::filesystem::path("./")).generic_string();
 		Configuration* globalConfig = Configuration::getGlobalConfiguration();
 		
 		if (globalConfig == nullptr) return;

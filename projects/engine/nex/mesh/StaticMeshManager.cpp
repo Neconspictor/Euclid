@@ -2,7 +2,6 @@
 #include <nex/mesh/SubMesh.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/mesh/MeshLoader.hpp>
-#include <nex/material/BlinnPhongMaterialLoader.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/mesh/MeshFactory.hpp>
 #include <sstream>
@@ -24,7 +23,7 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 
 	nex::StaticMeshManager::StaticMeshManager() :
 		pbrMaterialLoader(TextureManager::get()),
-		blinnPhongMaterialLoader(TextureManager::get()), mFileSystem(nullptr)
+		mFileSystem(nullptr)
 	{
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
 
@@ -194,11 +193,11 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 
 		nex::AbstractMaterialLoader* materialLoader = nullptr;
-		if (type == MaterialType::BlinnPhong) {
-			materialLoader = &blinnPhongMaterialLoader;
-		}
-		else if (type == MaterialType::Pbr) {
+		if (type == MaterialType::Pbr) {
 			materialLoader = &pbrMaterialLoader;
+		} else if (type == MaterialType::None)
+		{
+			materialLoader = &mDefaultMaterialLoader;
 		}
 		else {
 			std::stringstream msg;
@@ -295,6 +294,8 @@ nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
 		models.clear();
 		mFullscreenPlane.reset(nullptr);
 		mFullscreenTriangle.reset(nullptr);
+		mFullscreenPlaneData.reset(nullptr);
+		mFullscreenTriangleData.reset(nullptr);
 	}
 
 	/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)

@@ -48,6 +48,11 @@ namespace nex
 			mSamplerNoise.setWrapS(TextureUVTechnique::Repeat);
 			mSamplerNoise.setWrapT(TextureUVTechnique::Repeat);
 
+			UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
+			mProgram->setBinding(depthLoc, 0);
+
+			UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
+			mProgram->setBinding(noiseLoc, 1);
 
 
 		}
@@ -62,11 +67,9 @@ namespace nex
 				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
 				0);
 
-			static UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
-			mProgram->setTexture(depthLoc, m_gDepth, 0);
+			mProgram->setTexture(m_gDepth, 0);
 			mSamplerDepth.bind(0);
-			static UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
-			mProgram->setTexture(noiseLoc, m_texNoise, 1);
+			mProgram->setTexture(m_texNoise, 1);
 			mSamplerNoise.bind(1);
 
 			static auto* renderBackend = RenderBackend::get();
@@ -145,6 +148,7 @@ namespace nex
 
 			mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 			mAoTexture = { mProgram->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
+			mProgram->setBinding(mAoTexture.location, mAoTexture.bindingSlot);
 
 			mBlurSampler.setWrapR(TextureUVTechnique::ClampToBorder);
 			mBlurSampler.setWrapS(TextureUVTechnique::ClampToBorder);
@@ -163,7 +167,7 @@ namespace nex
 
 		void setAOTexture(const Texture* texture) {
 			mBlurSampler.bind(mAoTexture.bindingSlot);
-			mProgram->setTexture(mAoTexture.location, texture, mAoTexture.bindingSlot);
+			mProgram->setTexture(texture, mAoTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {
@@ -192,12 +196,13 @@ namespace nex
 
 			mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 			mScreenTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0 };
+			mProgram->setBinding(mScreenTexture.location, mScreenTexture.bindingSlot);
 		}
 
 		virtual ~SSAO_AO_Display_Shader() = default;
 
 		void setScreenTexture(const Texture* texture) {
-			mProgram->setTexture(mScreenTexture.location, texture, mScreenTexture.bindingSlot);
+			mProgram->setTexture(texture, mScreenTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {

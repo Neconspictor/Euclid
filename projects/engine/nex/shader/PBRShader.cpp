@@ -19,11 +19,13 @@ void pbr::CommonGeometryMaterial::init(ShaderProgram* program)
 	mProgram = program;
 	assert(mProgram != nullptr);
 	// mesh material
-	mAlbedoMap = { mProgram->getUniformLocation("material.albedoMap"), UniformType::TEXTURE2D, 0 };
-	mAmbientOcclusionMap = { mProgram->getUniformLocation("material.aoMap"), UniformType::TEXTURE2D, 1 };
-	mMetalMap = { mProgram->getUniformLocation("material.metallicMap"), UniformType::TEXTURE2D, 2 };
-	mNormalMap = { mProgram->getUniformLocation("material.normalMap"), UniformType::TEXTURE2D, 3 };
-	mRoughnessMap = { mProgram->getUniformLocation("material.roughnessMap"), UniformType::TEXTURE2D, 4 };
+	mAlbedoMap = mProgram->createTextureUniform("material.albedoMap", UniformType::TEXTURE2D, 0);
+
+	mAmbientOcclusionMap = mProgram->createTextureUniform("material.aoMap", UniformType::TEXTURE2D, 1);
+	mMetalMap = mProgram->createTextureUniform("material.metallicMap", UniformType::TEXTURE2D, 2);
+	mNormalMap = mProgram->createTextureUniform("material.normalMap", UniformType::TEXTURE2D, 3);
+	mRoughnessMap = mProgram->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, 4);
+
 	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 
@@ -34,31 +36,31 @@ void pbr::CommonGeometryMaterial::init(ShaderProgram* program)
 void pbr::CommonGeometryMaterial::setAlbedoMap(const Texture* texture)
 {
 	assert(mProgram != nullptr);
-	mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
+	mProgram->setTexture(texture, mAlbedoMap.bindingSlot);
 }
 
 void pbr::CommonGeometryMaterial::setAmbientOcclusionMap(const Texture* texture)
 {
 	assert(mProgram != nullptr);
-	mProgram->setTexture(mAmbientOcclusionMap.location, texture, mAmbientOcclusionMap.bindingSlot);
+	mProgram->setTexture(texture, mAmbientOcclusionMap.bindingSlot);
 }
 
 void pbr::CommonGeometryMaterial::setMetalMap(const Texture* texture)
 {
 	assert(mProgram != nullptr);
-	mProgram->setTexture(mMetalMap.location, texture, mMetalMap.bindingSlot);
+	mProgram->setTexture(texture, mMetalMap.bindingSlot);
 }
 
 void pbr::CommonGeometryMaterial::setNormalMap(const Texture* texture)
 {
 	assert(mProgram != nullptr);
-	mProgram->setTexture(mNormalMap.location, texture, mNormalMap.bindingSlot);
+	mProgram->setTexture(texture, mNormalMap.bindingSlot);
 }
 
 void pbr::CommonGeometryMaterial::setRoughnessMap(const Texture* texture)
 {
 	assert(mProgram != nullptr);
-	mProgram->setTexture(mRoughnessMap.location, texture, mRoughnessMap.bindingSlot);
+	mProgram->setTexture(texture, mRoughnessMap.bindingSlot);
 }
 
 void pbr::CommonGeometryMaterial::setModelViewMatrix(const glm::mat4& mat)
@@ -107,12 +109,12 @@ void pbr::CommonLightingMaterial::init(ShaderProgram* program)
 	assert(mProgram != nullptr);
 
 	// ibl
-	mIrradianceMap = { mProgram->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP, 5 };
-	mPrefilterMap = { mProgram->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP, 6 };
-	mBrdfLUT = { mProgram->getUniformLocation("brdfLUT"), UniformType::TEXTURE2D, 7 };
+	mIrradianceMap = mProgram->createTextureUniform("irradianceMap", UniformType::CUBE_MAP, 5);
+	mPrefilterMap = mProgram->createTextureUniform("prefilterMap", UniformType::CUBE_MAP, 6);
+	mBrdfLUT = mProgram->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
 
 	// shaodw mapping
-	mCascadedDepthMap = { mProgram->getUniformLocation("cascadedDepthMap"), UniformType::TEXTURE2D_ARRAY, 8 };
+	mCascadedDepthMap = mProgram->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
 
 	mEyeLightDirection = { mProgram->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
@@ -130,22 +132,22 @@ void pbr::CommonLightingMaterial::init(ShaderProgram* program)
 
 void pbr::CommonLightingMaterial::setBrdfLookupTexture(const Texture* brdfLUT)
 {
-	mProgram->setTexture(mBrdfLUT.location, brdfLUT, mBrdfLUT.bindingSlot);
+	mProgram->setTexture(brdfLUT, mBrdfLUT.bindingSlot);
 }
 
 void pbr::CommonLightingMaterial::setIrradianceMap(const CubeMap* irradianceMap)
 {
-	mProgram->setTexture(mIrradianceMap.location, irradianceMap, mIrradianceMap.bindingSlot);
+	mProgram->setTexture(irradianceMap, mIrradianceMap.bindingSlot);
 }
 
 void pbr::CommonLightingMaterial::setPrefilterMap(const CubeMap* prefilterMap)
 {
-	mProgram->setTexture(mPrefilterMap.location, prefilterMap, mPrefilterMap.bindingSlot);
+	mProgram->setTexture(prefilterMap, mPrefilterMap.bindingSlot);
 }
 
 void pbr::CommonLightingMaterial::setCascadedDepthMap(const Texture* cascadedDepthMap)
 {
-	mProgram->setTexture(mCascadedDepthMap.location, cascadedDepthMap, mCascadedDepthMap.bindingSlot);
+	mProgram->setTexture(cascadedDepthMap, mCascadedDepthMap.bindingSlot);
 }
 
 void pbr::CommonLightingMaterial::setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera)
@@ -265,7 +267,7 @@ void PBRShader::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 
 void PBRShader::onMaterialUpdate(const Material* materialSource)
 {
-	const PbrMaterial* material = dynamic_cast<const PbrMaterial*>(materialSource);
+	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
 
 	if (material == nullptr)
 		return;
@@ -288,13 +290,10 @@ PBRShader_Deferred_Lighting::PBRShader_Deferred_Lighting(const CascadedShadow& c
 	mTransform = { Shader::mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 
 
-	mAlbedoMap = { Shader::mProgram->getUniformLocation("gBuffer.albedoMap"), UniformType::TEXTURE2D, 0 };
-
-	mAoMetalRoughnessMap = { Shader::mProgram->getUniformLocation("gBuffer.aoMetalRoughnessMap"), UniformType::TEXTURE2D, 1 };
-
-	mNormalEyeMap = { Shader::mProgram->getUniformLocation("gBuffer.normalEyeMap"), UniformType::TEXTURE2D, 2 };
-	mNormalizedViewSpaceZMap = { Shader::mProgram->getUniformLocation("gBuffer.normalizedViewSpaceZMap"), UniformType::TEXTURE2D, 3 };
-
+	mAlbedoMap = Shader::mProgram->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
+	mAoMetalRoughnessMap = Shader::mProgram->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
+	mNormalEyeMap = Shader::mProgram->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
+	mNormalizedViewSpaceZMap = Shader::mProgram->createTextureUniform("gBuffer.normalizedViewSpaceZMap", UniformType::TEXTURE2D, 3);
 
 	mInverseProjFromGPass = { Shader::mProgram->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 }
@@ -306,22 +305,22 @@ void PBRShader_Deferred_Lighting::setMVP(const glm::mat4& trafo)
 
 void PBRShader_Deferred_Lighting::setAlbedoMap(const Texture* texture)
 {
-	Shader::mProgram->setTexture(mAlbedoMap.location, texture, mAlbedoMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, mAlbedoMap.bindingSlot);
 }
 
 void PBRShader_Deferred_Lighting::setAoMetalRoughnessMap(const Texture* texture)
 {
-	Shader::mProgram->setTexture(mAoMetalRoughnessMap.location, texture, mAoMetalRoughnessMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, mAoMetalRoughnessMap.bindingSlot);
 }
 
 void PBRShader_Deferred_Lighting::setNormalEyeMap(const Texture* texture)
 {
-	Shader::mProgram->setTexture(mNormalEyeMap.location, texture, mNormalEyeMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, mNormalEyeMap.bindingSlot);
 }
 
 void PBRShader_Deferred_Lighting::setNormalizedViewSpaceZMap(const Texture* texture)
 {
-	Shader::mProgram->setTexture(mNormalizedViewSpaceZMap.location, texture, mNormalizedViewSpaceZMap.bindingSlot);
+	Shader::mProgram->setTexture(texture, mNormalizedViewSpaceZMap.bindingSlot);
 }
 
 void PBRShader_Deferred_Lighting::setInverseProjMatrixFromGPass(const glm::mat4& mat)
@@ -350,17 +349,6 @@ void PBRShader_Deferred_Geometry::onModelMatrixUpdate(const glm::mat4 & modelMat
 
 void PBRShader_Deferred_Geometry::onMaterialUpdate(const Material* materialSource)
 {
-	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
-
-	if (material == nullptr)
-		return;
-
-	setAlbedoMap(material->getAlbedoMap());
-	setAmbientOcclusionMap(material->getAoMap());
-	//setEmissionMap(material->getEmissionMap());
-	setMetalMap(material->getMetallicMap());
-	setNormalMap(material->getNormalMap());
-	setRoughnessMap(material->getRoughnessMap());
 }
 
 PBR_ConvolutionShader::PBR_ConvolutionShader()
@@ -370,7 +358,8 @@ PBR_ConvolutionShader::PBR_ConvolutionShader()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0};
+
+	mEnvironmentMap = mProgram->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
 }
 
 void PBR_ConvolutionShader::setProjection(const glm::mat4& mat)
@@ -385,7 +374,8 @@ void PBR_ConvolutionShader::setView(const glm::mat4& mat)
 
 void PBR_ConvolutionShader::setEnvironmentMap(const CubeMap * cubeMap)
 {
-	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.bindingSlot);
+	mProgram->setTexture(cubeMap, mEnvironmentMap.bindingSlot);
+	mProgram->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
 PBR_PrefilterShader::PBR_PrefilterShader()
@@ -395,13 +385,16 @@ PBR_PrefilterShader::PBR_PrefilterShader()
 
 	mProjection = { mProgram->getUniformLocation("projection"), UniformType::MAT4 };
 	mView = { mProgram->getUniformLocation("view"), UniformType::MAT4 };
-	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0};
 	mRoughness = { mProgram->getUniformLocation("roughness"), UniformType::FLOAT };
+
+	//mEnvironmentMap = mProgram->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
+	mEnvironmentMap = { mProgram->getUniformLocation("environmentMap"), UniformType::CUBE_MAP, 0 };
 }
 
 void PBR_PrefilterShader::setMapToPrefilter(CubeMap * cubeMap)
 {
-	mProgram->setTexture(mEnvironmentMap.location, cubeMap, mEnvironmentMap.bindingSlot);
+	mProgram->setTexture(cubeMap, mEnvironmentMap.bindingSlot);
+	mProgram->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
 void PBR_PrefilterShader::setRoughness(float roughness)

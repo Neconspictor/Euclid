@@ -15,11 +15,13 @@ CubeDepthMapShader::CubeDepthMapShader()
 	mLightPos = { mProgram->getUniformLocation("lightPos"), UniformType::VEC3 };
 	mRange = { mProgram->getUniformLocation("range"), UniformType::FLOAT };
 	mCubeMap = { mProgram->getUniformLocation("cubeDepthMap"), UniformType::CUBE_MAP, 0};
+
+	mProgram->setBinding(mCubeMap.location, mCubeMap.bindingSlot);
 }
 
 void CubeDepthMapShader::useCubeDepthMap(const CubeMap* map)
 {
-	mProgram->setTexture(mCubeMap.location, map, mCubeMap.bindingSlot);
+	mProgram->setTexture(map, mCubeMap.bindingSlot);
 }
 
 void CubeDepthMapShader::setLightPos(const vec3& pos)
@@ -49,6 +51,8 @@ DepthMapShader::DepthMapShader()
 
 	mDephTexture = { mProgram->getUniformLocation("depthMap"), UniformType::TEXTURE2D, 0};
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+
+	mProgram->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
 }
 
 void DepthMapShader::onTransformUpdate(const TransformData& data)
@@ -58,7 +62,7 @@ void DepthMapShader::onTransformUpdate(const TransformData& data)
 
 void DepthMapShader::useDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.bindingSlot);
+	mProgram->setTexture(texture, mDephTexture.bindingSlot);
 }
 
 void DepthMapShader::setMVP(const glm::mat4& trafo)
@@ -73,6 +77,8 @@ VarianceDepthMapShader::VarianceDepthMapShader()
 
 	mDephTexture = { mProgram->getUniformLocation("vDepthMap"), UniformType::TEXTURE2D, 0 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+
+	mProgram->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
 }
 
 void VarianceDepthMapShader::setMVP(const glm::mat4& trafo)
@@ -83,5 +89,5 @@ void VarianceDepthMapShader::setMVP(const glm::mat4& trafo)
 
 void VarianceDepthMapShader::useVDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(mDephTexture.location, texture, mDephTexture.bindingSlot);
+	mProgram->setTexture(texture, mDephTexture.bindingSlot);
 }

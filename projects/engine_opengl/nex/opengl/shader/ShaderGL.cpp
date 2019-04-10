@@ -78,6 +78,11 @@ void nex::ComputeShader::dispatch(unsigned workGroupsX, unsigned workGroupsY, un
 	GLCall(glDispatchCompute(workGroupsX, workGroupsY, workGroupsZ));
 }
 
+void nex::ShaderProgram::setBinding(UniformLocation locationID, unsigned bindingSlot)
+{
+	bind();
+	mImpl->setBinding(locationID, bindingSlot);
+}
 
 void nex::ShaderProgram::setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot,
 	TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer)
@@ -131,6 +136,12 @@ void nex::ShaderProgram::setVec4( UniformLocation locationID, const glm::vec4& d
 	mImpl->setVec4(locationID, data);
 }
 
+
+void nex::ShaderProgram::setMat2(UniformLocation locationID, const glm::mat2& data)
+{
+	mImpl->setMat2(locationID, data);
+}
+
 void nex::ShaderProgram::setMat3( UniformLocation locationID, const glm::mat3& data)
 {
 	mImpl->setMat3(locationID, data);
@@ -142,9 +153,9 @@ void nex::ShaderProgram::setMat4(UniformLocation locationID, const glm::mat4& da
 }
 
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
-void nex::ShaderProgram::setTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot)
+void nex::ShaderProgram::setTexture(const nex::Texture* data, unsigned int bindingSlot)
 {
-	mImpl->setTexture(locationID, data, bindingSlot);
+	mImpl->setTexture(data, bindingSlot);
 }
 
 void nex::ShaderProgram::setDebugName(const char* name)
@@ -314,15 +325,13 @@ void nex::ShaderProgram::Impl::setInt(UniformLocation locationID, int data)
 	mCache.Uniform1i(glID, data);
 }
 
-void nex::ShaderProgram::Impl::setTexture(UniformLocation locationID, const Texture* data, unsigned bindingSlot)
+void nex::ShaderProgram::Impl::setTexture(const Texture* data, unsigned bindingSlot)
 {
-	GLint glID = locationID;
-	if (glID < 0) return;
-
 	auto* gl = data->getImpl();
 
+	//GLCall(glBindTextureUnit(bindingSlot, *data->getImpl()->getTexture()));
 	GlobalCacheGL::get()->BindTextureUnit(bindingSlot, *gl->getTexture());
-	mCache.Uniform1i(glID, bindingSlot);
+	//mCache.Uniform1i(glID, bindingSlot);
 }
 
 void nex::ShaderProgram::Impl::setUInt(UniformLocation locationID, unsigned data)
@@ -330,6 +339,13 @@ void nex::ShaderProgram::Impl::setUInt(UniformLocation locationID, unsigned data
 	GLint glID = locationID;
 	if (glID < 0) return;
 	mCache.Uniform1ui(glID, data);
+}
+
+void nex::ShaderProgram::Impl::setMat2(UniformLocation locationID, const glm::mat2& data)
+{
+	GLint glID = locationID;
+	if (glID < 0) return;
+	GLCall(glUniformMatrix2fv(glID, 1, GL_FALSE, value_ptr(data)));
 }
 
 void nex::ShaderProgram::Impl::setMat3(UniformLocation locationID, const glm::mat3& data)
@@ -477,6 +493,11 @@ GLuint nex::ShaderProgram::Impl::loadShaders(const std::vector<UnresolvedShaderS
 	}
 
 	return createShaderProgram(shaderStages);
+}
+
+void nex::ShaderProgram::Impl::setBinding(UniformLocation locationID, unsigned bindingSlot)
+{
+	mCache.Uniform1i(locationID, bindingSlot);
 }
 
 void nex::ShaderProgram::bind()

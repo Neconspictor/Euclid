@@ -28,6 +28,14 @@ public:
 		mSampler.setAnisotropy(1.0f);
 		mSampler.setMinFilter(TextureFilter::Linear);
 		mSampler.setMagFilter(TextureFilter::Linear);
+
+
+		mProgram->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
+		mProgram->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
+		mProgram->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
+		mProgram->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
+		mProgram->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
+		mProgram->setBinding(aoMap.location, aoMap.bindingSlot);
 	}
 
 	UniformTex sourceTextureUniform;
@@ -122,24 +130,24 @@ void nex::PostProcessor::setAoMap(Texture2D* aoMap)
 {
 	auto& uniform = mPostprocessPass->aoMap;
 	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(uniform.location, aoMap, uniform.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(aoMap, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
 	auto& uniform = mPostprocessPass->sourceTextureUniform;
 	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(uniform.location, texture, uniform.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(texture, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setGlowTextures(Texture* halfth, nex::Texture* quarter, nex::Texture* eigth, nex::Texture* sixteenth)
 {
 	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomHalfth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomHalfth.location, halfth, mPostprocessPass->bloomHalfth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(halfth, mPostprocessPass->bloomHalfth.bindingSlot);
 	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomQuarter.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomQuarter.location, quarter, mPostprocessPass->bloomQuarter.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(quarter, mPostprocessPass->bloomQuarter.bindingSlot);
 	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomEigth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomEigth.location, eigth, mPostprocessPass->bloomEigth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(eigth, mPostprocessPass->bloomEigth.bindingSlot);
 	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomSixteenth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(mPostprocessPass->bloomSixteenth.location, sixteenth, mPostprocessPass->bloomSixteenth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(sixteenth, mPostprocessPass->bloomSixteenth.bindingSlot);
 }

@@ -78,7 +78,7 @@ namespace nex
 		data.internalFormat = InternFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
 		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
 
-		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, true, data, hbaoRandomShort);
+		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
 		/*TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
@@ -340,6 +340,13 @@ namespace nex
 		m_source = source;
 		m_textureHeight = textureHeight;
 		m_textureWidth = textureWidth;
+
+		UniformLocation sourceLoc = mProgram->getUniformLocation("texSource");
+		mProgram->setBinding(sourceLoc, 0);
+
+		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
+		mProgram->setBinding(linearDepthLoc, 1);
+
 	}
 
 	void BilateralBlur::draw(RenderTarget2D* temp, RenderTarget2D* result)
@@ -350,11 +357,9 @@ namespace nex
 		//TextureGL* sourceGL = (TextureGL*)m_source->getImpl();
 		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
 		//GLCall(glBindTextureUnit(0, *sourceGL->getTexture()));
-		static UniformLocation sourceLoc = mProgram->getUniformLocation("texSource");
-		mProgram->setTexture(sourceLoc, m_source, 0); // TODO: check binding point!
+		mProgram->setTexture(m_source, 0); // TODO: check binding point!
 		//GLCall(glBindTextureUnit(1, *linearDepthGL->getTexture()));
-		static UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
-		mProgram->setTexture(linearDepthLoc, m_linearDepth, 1); // TODO: check binding point!
+		mProgram->setTexture(m_linearDepth, 1); // TODO: check binding point!
 
 		//GLCall(glUniform1f(0, m_sharpness));
 		static UniformLocation sharpnessLoc = mProgram->getUniformLocation("g_Sharpness");
@@ -375,7 +380,7 @@ namespace nex
 		//TextureGL* tempTexGL = (TextureGL*)temp->getRenderResult()->getImpl();
 		//GLCall(glBindTextureUnit(0, *tempTexGL->getTexture()));
 		auto* renderResult = temp->getColorAttachments()[0].texture.get();
-		mProgram->setTexture(sourceLoc, renderResult, 0); // TODO: check binding point!
+		mProgram->setTexture(renderResult, 0); // TODO: check binding point!
 		//GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
 		//g_InvResolutionDirection
 		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
@@ -398,6 +403,10 @@ namespace nex
 		mSampler->setWrapS(TextureUVTechnique::ClampToBorder);
 		mSampler->setWrapT(TextureUVTechnique::ClampToBorder);
 		mSampler->setBorderColor(glm::vec4(1.0));
+
+
+		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
+		mProgram->setBinding(inputLoc, 0);
 	}
 
 	void DepthLinearizer::draw()
@@ -418,8 +427,7 @@ namespace nex
 		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
 		//GLuint texture = *inputGL->getTexture();
 		//GLCall(glBindTextureUnit(0, texture));
-		static UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
-		mProgram->setTexture(inputLoc, m_input, 0);
+		mProgram->setTexture(m_input, 0);
 		mSampler->bind(0);
 		
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
@@ -451,7 +459,7 @@ namespace nex
 		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
 		//GLCall(glBindTextureUnit(0, *inputGL->getTexture()));
 		static UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
-		mProgram->setTexture(inputLoc, m_input, 0); // TODO: check binding point!
+		mProgram->setTexture(m_input, 0); // TODO: check binding point!
 		
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
@@ -472,6 +480,12 @@ namespace nex
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
 
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl");
+
+		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
+		mProgram->setBinding(linearDepthLoc, 0);
+
+		UniformLocation randomLoc = mProgram->getUniformLocation("texRandom");
+		mProgram->setBinding(randomLoc, 1);
 	}
 
 	void HBAO_Shader::draw()
@@ -486,11 +500,9 @@ namespace nex
 		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
 		//TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
 		//GLCall(glBindTextureUnit(0, *linearDepthGL->getTexture()));
-		static UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
-		mProgram->setTexture(linearDepthLoc, m_linearDepth, 0); // TODO: check binding point!
+		mProgram->setTexture(m_linearDepth, 0); // TODO: check binding point!
 		//GLCall(glBindTextureUnit(1, *randomViewGL->getTexture()));
-		static UniformLocation randomLoc = mProgram->getUniformLocation("texRandom");
-		mProgram->setTexture(randomLoc, m_hbao_randomview, 1); // TODO: check binding point!
+		mProgram->setTexture(m_hbao_randomview, 1); // TODO: check binding point!
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();

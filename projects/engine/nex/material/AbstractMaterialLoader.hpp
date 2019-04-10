@@ -27,4 +27,11 @@ namespace nex
 
 		TextureManager* textureManager;
 	};
+
+	class DefaultMaterialLoader : public AbstractMaterialLoader
+	{
+	public:
+		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
+		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override { return {}; }
+	};
 }

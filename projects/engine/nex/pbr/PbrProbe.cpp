@@ -15,7 +15,7 @@ using namespace glm;
 using namespace nex;
 
 PbrProbe::PbrProbe(Texture* backgroundHDR) :
-	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::BlinnPhong),
+	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::None),
 	mConvolutionPass(std::make_unique<PBR_ConvolutionShader>()),
 	mPrefilterPass(std::make_unique<PBR_PrefilterShader>()),
 	mBrdfPrecomputePass(std::make_unique<PBR_BrdfPrecomputeShader>())
@@ -138,7 +138,7 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 			data.height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
-			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
+			data.pixelSize = sizeof(float) * data.components; // internal format: RGB16F
 			data.bufSize = data.width * data.height * data.pixelSize;
 			data.pixels = new char[data.bufSize];
 
@@ -175,7 +175,7 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 			data.height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
 			data.components = 3; // RGB
 			data.format = (unsigned)ColorSpace::RGB;
-			data.pixelSize = sizeof(float) * data.components; // internal format: RGB32F
+			data.pixelSize = sizeof(float) * data.components; // internal format: RGB16F
 			data.bufSize = data.width * data.height * data.pixelSize;
 			data.pixels = new char[data.bufSize];
 
@@ -250,7 +250,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	//glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0x100000, GL_DEBUG_SEVERITY_NOTIFICATION, 0, "This is a test!");
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
-	renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	//renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 
 	for (unsigned int side = 0; side < 6; ++side) {
@@ -278,7 +278,18 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	static auto* renderBackend = RenderBackend::get();
 	
 	// uses RGB and 32bit per component (floats)
-	auto cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32);
+
+	const TextureData& data = {
+				TextureFilter::Linear,
+				TextureFilter::Linear,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
+				ColorSpace::RGB,
+				PixelDataType::FLOAT,
+				InternFormat::RGB32F,
+				false };
+	auto cubeRenderTarget = renderBackend->createCubeRenderTarget(32, 32, data);
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
@@ -299,7 +310,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
-	renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+	//renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 	for (int side = 0; side < 6; ++side) {
 		mConvolutionPass->setView(views[side]);
@@ -324,7 +335,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RGB,
 		PixelDataType::FLOAT,
-		InternFormat::RGB16F,
+		InternFormat::RGB32F,
 		true
 	};
 
@@ -366,7 +377,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		unsigned int width = prefilterRenderTarget->getWidthMipLevel(mipLevel);
 		unsigned int height = prefilterRenderTarget->getHeightMipLevel(mipLevel);
 		renderBackend->setViewPort(0, 0, width, height);
-		renderBackend->setScissor(0, 0, width, height);
+		//renderBackend->setScissor(0, 0, width, height);
 
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
@@ -409,7 +420,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 
 	target->bind();
 	renderBackend->setViewPort(0, 0, 512, 512);
-	renderBackend->setScissor(0, 0, 512, 512);
+	//renderBackend->setScissor(0, 0, 512, 512);
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	mBrdfPrecomputePass->bind();
@@ -428,6 +439,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 	static auto* renderBackend = RenderBackend::get();
 
 	Viewport backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	// if environment map has been compiled already and load it from file 
 	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
@@ -477,7 +489,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 	{
 		prefilteredEnvMap = prefilter(getEnvironmentMap());
 		StoreImage enviromentMapImage = readPrefilteredEnvMapPixelData();
-		StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
+		//StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
 	}
 
 	
@@ -507,11 +519,11 @@ void PbrProbe::init(Texture* backgroundHDR)
 	{
 		convolutedEnvironmentMap = convolute(getEnvironmentMap());
 		StoreImage enviromentMapImage = readConvolutedEnvMapPixelData();
-		StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
+		//StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
 	}
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
-	renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
+	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
 
 
 	// setup sprite for brdf integration lookup texture

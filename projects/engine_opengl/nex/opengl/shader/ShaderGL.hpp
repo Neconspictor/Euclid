@@ -59,6 +59,7 @@ namespace nex
 
 		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
 
+		void setBinding(UniformLocation locationID, unsigned bindingSlot);
 
 		void setDebugName(const char* name);
 
@@ -68,12 +69,13 @@ namespace nex
 
 		void setFloat(UniformLocation locationID, float data);
 
+		void setMat2(UniformLocation locationID, const glm::mat2& data);
 		void setMat3(UniformLocation locationID, const glm::mat3& data);
 		void setMat4(UniformLocation locationID, const glm::mat4& data);
 
 		void setInt(UniformLocation locationID, int data);
 
-		void setTexture(UniformLocation locationID, const Texture* data, unsigned bindingSlot);
+		void setTexture(const Texture* data, unsigned bindingSlot);
 
 		void setUInt(UniformLocation locationID, unsigned data);
 		void setUVec2(UniformLocation locationID, const glm::uvec2& data);
