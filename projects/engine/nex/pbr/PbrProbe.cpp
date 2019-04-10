@@ -489,7 +489,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 	{
 		prefilteredEnvMap = prefilter(getEnvironmentMap());
 		StoreImage enviromentMapImage = readPrefilteredEnvMapPixelData();
-		//StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
+		StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
 	}
 
 	
@@ -519,7 +519,7 @@ void PbrProbe::init(Texture* backgroundHDR)
 	{
 		convolutedEnvironmentMap = convolute(getEnvironmentMap());
 		StoreImage enviromentMapImage = readConvolutedEnvMapPixelData();
-		//StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
+		StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
 	}
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
@@ -568,33 +568,4 @@ void PbrProbe::init(Texture* backgroundHDR)
 		StoreImage brdfLUTImage = readBrdfLookupPixelData();
 		StoreImage::write(brdfLUTImage, "brdfLUT.NeXImage");
 	}
-
-
-	// read backs
-	/*GenericImageGL brdfLUTImage;
-	TextureManagerGL::get()->readImage(&brdfLUTImage, "brdfLUT.NeXImage");
-	TextureManagerGL::get()->writeHDR(brdfLUTImage, "readBacks/brdfLUT.hdr");
-	TextureManagerGL::get()->writeImage(brdfLUTImage, "brdfLUT.NeXImage");*/
-
-	//TextureManagerGL::get()->readGLITest("brdfLUT.hdr");
-	{
-		//StoreImageGL brdfLUTImage = readBrdfLookupPixelData();
-		//StoreImageGL::write(brdfLUTImage, "brdfLUT.NeXImage");
-
-		{
-			//StoreImageGL readBrdfLUTImage;
-			//StoreImageGL::load(&readBrdfLUTImage, "brdfLUT.NeXImage");
-		}
-	}
-
-	{
-		//StoreImageGL enviromentMapImage = readBackgroundPixelData();
-		//StoreImageGL::write(enviromentMapImage, "pbr_environmentMap.NeXImage");
-
-		{
-			//StoreImageGL readImage;
-			//StoreImageGL::load(&readImage, "pbr_environmentMap.NeXImage");
-		}
-	}
-
 }

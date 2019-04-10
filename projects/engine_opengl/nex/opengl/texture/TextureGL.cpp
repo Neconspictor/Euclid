@@ -165,8 +165,7 @@ nex::InternFormat nex::RenderBuffer::getFormat() const
 nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, InternFormat format) : Impl(GL_FALSE, TextureTargetGl::RENDERBUFFER), mFormat(format), mWidth(width), mHeight(height)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
-	GLCall(glBindRenderbuffer((GLenum)mTarget, mTextureID));
-	GLCall(glRenderbufferStorage((GLenum)mTarget, (GLenum)translate(mFormat), mWidth, mHeight));
+	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(mFormat), width, height));
 }
 
 nex::RenderBufferGL::~RenderBufferGL()
@@ -191,8 +190,7 @@ void nex::RenderBufferGL::resize(unsigned width, unsigned height)
 {
 	mWidth = width;
 	mHeight = height;
-	GLCall(glBindRenderbuffer((GLenum)mTarget, mTextureID));
-	GLCall(glRenderbufferStorage((GLenum)mTarget, (GLenum)translate(mFormat), width, height));
+	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(mFormat), width, height));
 }
 
 nex::Texture::~Texture() = default;
@@ -219,16 +217,22 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 		bindTarget = GL_TEXTURE_2D;
 	}
 
+	auto dataCopy = data;
+	if (store.mipmapCounts[0] > 0)
+	{
+		dataCopy.generateMipMaps = true;
+	}
+
 	GLuint textureID;
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glGenTextures(1, &textureID));
-	Impl::generateTexture(&textureID, data, bindTarget);
-	GLCall(glBindTexture(bindTarget, textureID));
+	Impl::generateTexture(&textureID, dataCopy, bindTarget);
 
 	const auto baseWidth = store.images[0]->width;
 	const auto baseHeight = store.images[0]->height;
 	const auto size = std::min<unsigned>(baseWidth, baseHeight);
 	const auto maxMipMapCount = Texture::getMipMapCount(size);
+
+	// allocate texture storage
+	Impl::resizeTexImage2D(textureID, 1, baseWidth, baseHeight, internalFormat, dataCopy.generateMipMaps);
 
 	if (isCubeMap)
 	{
@@ -239,51 +243,40 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 			for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
 			{
 				auto& image = store.images[i][mipMapLevel];
-				GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
-			}
-
-			// Has the texture non base mipmaps?
-			if (mipMapCount > 1)
-			{
-				// NOTE: opengl needs a complete mipmap chain in order to work properly; otherwise mipmaps aren't used
-				for (unsigned mipMapLevel = store.mipmapCounts[i]; mipMapLevel < maxMipMapCount; ++mipMapLevel)
-				{
-					const auto divisor = std::pow<unsigned>(2, mipMapLevel);
-					GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipMapLevel, internalFormat, baseWidth / divisor, baseHeight / divisor, 0, format, pixelDataType, nullptr));
-				}
+				GLCall(glTextureSubImage3D(textureID, 
+					mipMapLevel,
+					0, 0,
+					i, // zoffset specifies the cubemap side
+					image.width, image.height,
+					1, // depth specifies the number of sides to be updated
+					format,
+					pixelDataType,
+					image.pixels.get()));
 			}
 		}
 	}
 	else
 	{
-
 		const auto mipMapCount = store.mipmapCounts[0];
 
 		for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
 		{
 			auto& image = store.images[0][mipMapLevel];
-			GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, image.width, image.height, 0, format, pixelDataType, image.pixels.get()));
-		}
-
-		// Has the texture non base mipmaps?
-		if (mipMapCount > 1)
-		{
-			// NOTE: opengl needs a complete mipmap chain in order to work properly; otherwise mipmaps aren't used
-			for (unsigned mipMapLevel = mipMapCount; mipMapLevel < maxMipMapCount; ++mipMapLevel)
-			{
-				const auto divisor = std::pow<unsigned>(2, mipMapLevel);
-				GLCall(glTexImage2D(GL_TEXTURE_2D, mipMapLevel, internalFormat, baseWidth / divisor, baseHeight / divisor, 0, format, pixelDataType, nullptr));
-			}
+			GLCall(glTextureSubImage2D(textureID,
+				mipMapLevel,
+				0, 0,
+				image.width, image.height,
+				format,
+				pixelDataType,
+				image.pixels.get()));
 		}
 	}
 
 
 	if (data.generateMipMaps &&  store.mipmapCounts[0] == 1)
 	{
-		GLCall(glGenerateMipmap(bindTarget));
+		GLCall(glGenerateTextureMipmap(textureID));
 	}
-
-	GLCall(glBindTexture(bindTarget, 0));
 
 	if (isCubeMap)
 	{
@@ -320,14 +313,7 @@ nex::Texture::Impl* nex::Texture::getImpl() const
 
 unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
 {
-	unsigned count = 0;
-	while(levelZeroMipMap > 0)
-	{
-		levelZeroMipMap /= 2;
-		++count;
-	}
-
-	return count;
+	return std::log2<>(levelZeroMipMap) + 1;
 }
 
 void nex::Texture::readback(TextureTarget target, unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, CubeMapSide side)
