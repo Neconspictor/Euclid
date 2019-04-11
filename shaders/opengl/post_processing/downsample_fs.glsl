@@ -11,17 +11,17 @@ void main() {
 
     vec2 texelSize = 1.0 / textureSize(sourceTexture, 0).xy;
    
-	float scale = 1.0;
+	/*float scale = 1.0;
 
-    /*fragColor =  texture(sourceTexture, texCoord + scale * texelSize * vec2(-1,-1));
+    fragColor =  texture(sourceTexture, texCoord + scale * texelSize * vec2(-1,-1));
     fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(1, -1));
     fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(-1, 1));
     fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(1,  1));
     fragColor /= 4.0;
 	
-	fragColor = max(texture(sourceTexture, texCoord), vec4(0.0));*/
+	fragColor = max(texture(sourceTexture, texCoord), vec4(0.0));
     
-    
+    return;*/
     /*
        Lanzcos resampling:
         sinc(x) * sinc(x/a) = (a * sin(pi * x) * sin(pi * x / a)) / (pi^2 * x^2)

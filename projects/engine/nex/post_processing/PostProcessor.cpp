@@ -28,6 +28,9 @@ public:
 		mSampler.setAnisotropy(1.0f);
 		mSampler.setMinFilter(TextureFilter::Linear);
 		mSampler.setMagFilter(TextureFilter::Linear);
+		mSampler.setWrapR(TextureUVTechnique::ClampToEdge);
+		mSampler.setWrapS(TextureUVTechnique::ClampToEdge);
+		mSampler.setWrapT(TextureUVTechnique::ClampToEdge);
 
 
 		mProgram->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
@@ -80,7 +83,7 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	//TextureManager::get()->getDefaultImageSampler()->bind(0);
 	setPostProcessTexture(source);
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
-	//setGlowTextures(glowHalfth, glowHalfth, glowHalfth, glowHalfth);
+	//setGlowTextures(glowTexture, glowHalfth, glowHalfth, glowHalfth);
 	setAoMap(aoMap);
 
 	mFullscreenPlane->bind();

@@ -49,8 +49,8 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 		static const float fullscreenTriangleVerticesOpengl[] = {
 			// position 4 floats, texture coords 2 floats
 			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-			+2.0, -1.0, 0.0, 1.0, 2.0, 0.0,
-			-1.0, +2.0, 0.0, 1.0, 0.0, 2.0
+			+3.0, -1.0, 0.0, 1.0, 2.0, 0.0,
+			-1.0, +3.0, 0.0, 1.0, 0.0, 2.0
 		};
 
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenTriangleVerticesOpengl, sizeof(fullscreenTriangleVerticesOpengl));

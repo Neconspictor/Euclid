@@ -17,10 +17,9 @@ namespace nex {
 		mSampler->setAnisotropy(1.0f);
 		mSampler->setMinFilter(TextureFilter::Linear);
 		mSampler->setMagFilter(TextureFilter::Linear);
-		mSampler->setWrapR(TextureUVTechnique::Repeat);
-		mSampler->setWrapS(TextureUVTechnique::Repeat);
-		mSampler->setWrapT(TextureUVTechnique::Repeat);
-
+		mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
+		mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
+		mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
 		resize(width, height);
 	}
 
