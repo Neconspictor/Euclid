@@ -31,9 +31,6 @@ nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputeShader()
 	shaderStages.resize(programSources.descs.size());
 	for (unsigned i = 0; i < shaderStages.size(); ++i)
 	{
-		auto path = generator->getFileSystem()->resolvePath("test/compute");
-		path += "/scene_bounds_cs-resolved.glsl";
-		FileSystem::writeToFile(path.generic_string(), programSources.descs[i].root.resolvedSource);
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 
