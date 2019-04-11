@@ -10,6 +10,25 @@ nex::CacheError::CacheError(const char* _Message): runtime_error(_Message)
 {
 }
 
+void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer)
+{
+	if (mActiveDrawFrameBuffer != framebuffer)
+	{
+		mActiveDrawFrameBuffer = framebuffer;
+		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer));
+	}
+}
+
+void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer)
+{
+	if (mActiveDrawFrameBuffer != framebuffer || mActiveReadFrameBuffer != framebuffer)
+	{
+		mActiveDrawFrameBuffer = framebuffer;
+		mActiveReadFrameBuffer = framebuffer;
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+	}
+}
+
 void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer,
 	GLenum access, GLenum format)
 {
@@ -57,6 +76,15 @@ void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint lev
 			item->layer,
 			item->access,
 			item->format));
+	}
+}
+
+void nex::GlobalCacheGL::BindReadFramebuffer(GLuint framebuffer)
+{
+	if (mActiveReadFrameBuffer != framebuffer)
+	{
+		mActiveReadFrameBuffer = framebuffer;
+		GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer));
 	}
 }
 
@@ -135,9 +163,11 @@ void nex::ShaderCacheGL::assertActiveProgram()
 	}
 }
 
-nex::GlobalCacheGL::GlobalCacheGL() : mActiveProgram(GL_FALSE)
+nex::GlobalCacheGL::GlobalCacheGL() : mActiveProgram(GL_FALSE), mActiveDrawFrameBuffer(GL_FALSE), mActiveReadFrameBuffer(GL_FALSE)
 {
 	GLCall(glGetIntegerv(GL_CURRENT_PROGRAM, reinterpret_cast<GLint*>(&mActiveProgram)));
+	GLCall(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint*)&mActiveDrawFrameBuffer));
+	GLCall(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, (GLint*)&mActiveReadFrameBuffer));
 }
 
 void nex::GlobalCacheGL::UseProgram(GLuint program)
@@ -152,6 +182,16 @@ void nex::GlobalCacheGL::UseProgram(GLuint program)
 GLuint nex::GlobalCacheGL::getActiveProgram() const 
 {
 	return mActiveProgram;
+}
+
+GLuint nex::GlobalCacheGL::getActiveDrawFrameBuffer() const
+{
+	return mActiveDrawFrameBuffer;
+}
+
+GLuint nex::GlobalCacheGL::getActiveReadFrameBuffer() const
+{
+	return mActiveReadFrameBuffer;
 }
 
 nex::GlobalCacheGL* nex::GlobalCacheGL::get()

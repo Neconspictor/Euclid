@@ -64,8 +64,6 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 
-		void unbind() const;
-
 		void updateColorAttachment(unsigned index) const;
 
 		void updateDepthAttachment() const;
@@ -85,6 +83,12 @@ namespace nex
 		void updateAttachment(const RenderAttachment& attachment) const;
 
 		std::vector<GLenum> calcColorAttachments() const;
+
+		/**
+		 * This function binds the specified framebuffer and reverse it again, so that the OpenGL state remains unchanged.
+		 * The purpose of this function is, that a framebuffer object gets created (certain opengl function are not working correctly otherwise). 
+		 */
+		static void bindOnce(GLuint frameBufferID);
 	};
 
 	class RenderTarget2DGL : public RenderTarget::Impl

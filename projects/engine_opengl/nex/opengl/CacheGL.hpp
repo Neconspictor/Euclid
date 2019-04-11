@@ -19,18 +19,24 @@ namespace nex
 	class GlobalCacheGL
 	{
 	public:
-
+		void BindDrawFramebuffer(GLuint framebuffer);
+		void BindFramebuffer(GLuint framebuffer);
 		void BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+		void BindReadFramebuffer(GLuint framebuffer);
 		void BindTextureUnit(GLuint unit, GLuint texture);
 		
 		static GlobalCacheGL* get();
 
 
 		GLuint getActiveProgram() const;
+		GLuint getActiveDrawFrameBuffer() const;
+		GLuint getActiveReadFrameBuffer() const;
 		void UseProgram(GLuint program);
 
 	private:
 		GLuint mActiveProgram;
+		GLuint mActiveDrawFrameBuffer;
+		GLuint mActiveReadFrameBuffer;
 
 		GlobalCacheGL();
 	};

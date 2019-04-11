@@ -79,9 +79,6 @@ namespace nex
 		bool isComplete() const;
 
 		// Has to be implemented by renderer backend
-		void unbind() const;
-
-		// Has to be implemented by renderer backend
 		/**
 		 * @param index: The vector index of the color attachment (see getColorAttachments())
 		 */

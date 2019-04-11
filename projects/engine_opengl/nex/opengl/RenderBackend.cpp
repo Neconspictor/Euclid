@@ -597,7 +597,6 @@ namespace nex
 
 	void RenderBackend::endScene()
 	{
-		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		//glDisable(GL_POLYGON_OFFSET_FILL);
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
