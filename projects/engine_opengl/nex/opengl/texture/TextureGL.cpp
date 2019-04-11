@@ -554,16 +554,9 @@ unsigned nex::Texture2DMultisample::getSamples() const
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData,
 	unsigned samples) : Texture2DGL(GL_FALSE, textureData, width, height), mSamples(samples)
 {
-	assert(false); //TODO
-	return;
 	mTarget = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
 	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
-	GLCall(glTexImage2DMultisample((GLenum)mTarget, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
-
-	if (mData.generateMipMaps)
-	{
-		GLCall(glGenerateMipmap((GLenum)mTarget));
-	}
+	resize(width, height);
 }
 
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples,
@@ -574,16 +567,10 @@ nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const Textur
 
 void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height)
 {
-	assert(false); //TODO
-	return;
 	mWidth = width;
 	mHeight = height;
-	GLCall(glTexImage2DMultisample((GLenum)mTarget, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE));
 
-	if (mData.generateMipMaps)
-	{
-		GLCall(glGenerateMipmap((GLenum)mTarget));
-	}
+	glTextureStorage2DMultisample(mTextureID, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE);
 }
 
 unsigned nex::Texture2DMultisampleGL::getSamples() const
