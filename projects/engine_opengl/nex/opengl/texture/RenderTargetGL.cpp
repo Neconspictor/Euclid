@@ -446,21 +446,11 @@ void nex::RenderTarget::Impl::updateAttachment(const RenderAttachment& attachmen
 	{
 		GLCall(glNamedFramebufferRenderbuffer(mFrameBuffer, attachmentType, GL_RENDERBUFFER, textureID));
 	}
-	else if (isArrayTarget(textureTarget) || textureTarget == GL_TEXTURE_3D)
+	else if (isArrayTarget(textureTarget) || textureTarget == GL_TEXTURE_3D || textureTarget == GL_TEXTURE_CUBE_MAP)
 	{
 		//NOTE: OpenGL 4.5 or DSA extension is needed for textures not being array, cube or 3d
 		GLCall(glNamedFramebufferTextureLayer(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel, layer));
-		//GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, textureID, 0);
-	} else if (textureTarget == GL_TEXTURE_CUBE_MAP)
-	{
-
-		auto glSide  = GL_TEXTURE_CUBE_MAP_POSITIVE_X + getLayerFromCubeMapSide(attachment.side);
-		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, glSide, textureID, attachment.mipmapLevel));
-	}
-	
-	else
-	{
+	} else {
 		GLCall(glNamedFramebufferTexture(mFrameBuffer, attachmentType, textureID, attachment.mipmapLevel));
 	}
 }
