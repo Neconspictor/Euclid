@@ -164,6 +164,15 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight)
 {
+
+	/*FPCamera* fp = (FPCamera*)camera;
+	fp->setPosition({3.527f, 5.133f, 1.022f});
+	fp->setYaw(-1.450f);
+	fp->setPitch(45.052f);
+	fp->recalculateLookVector();
+	fp->calcView();*/
+	
+
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
 	{

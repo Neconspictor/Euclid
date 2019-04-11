@@ -9,7 +9,7 @@ class nex::DownSampler::DownSampleShader : public Shader
 public:
 	DownSampleShader()
 	{
-		mProgram = ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
+		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/downsample_fs.glsl");
 		mSourceUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
 		mProgram->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
@@ -26,9 +26,9 @@ mSampler(std::make_unique<Sampler>(SamplerDesc()))
 	mSampler->setAnisotropy(1.0f);
 	mSampler->setMinFilter(TextureFilter::Linear);
 	mSampler->setMagFilter(TextureFilter::Linear);
-	mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
-	mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
-	mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
+	mSampler->setWrapR(TextureUVTechnique::Repeat);
+	mSampler->setWrapS(TextureUVTechnique::Repeat);
+	mSampler->setWrapT(TextureUVTechnique::Repeat);
 	resize(width, height);
 }
 
@@ -62,16 +62,16 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	auto* renderBackend = RenderBackend::get();
 	dest->bind();
 	renderBackend->setViewPort(0, 0, dest->getWidth(), dest->getHeight());
-	dest->clear(Color);
+	dest->clear(Color | Stencil | Depth);
 
 	mDownSampleShader->bind();
 	mSampler->bind(0);
 	mDownSampleShader->getProgram()->setTexture(src, 0);
 
-	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
+	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenTriangle();
 
 	vertexArray->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 3);
 
 	mSampler->unbind(0);
 

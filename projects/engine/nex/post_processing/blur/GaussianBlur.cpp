@@ -17,9 +17,9 @@ namespace nex {
 		mSampler->setAnisotropy(1.0f);
 		mSampler->setMinFilter(TextureFilter::Linear);
 		mSampler->setMagFilter(TextureFilter::Linear);
-		mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
-		mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
-		mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
+		mSampler->setWrapR(TextureUVTechnique::Repeat);
+		mSampler->setWrapS(TextureUVTechnique::Repeat);
+		mSampler->setWrapT(TextureUVTechnique::Repeat);
 
 		resize(width, height);
 	}
@@ -37,6 +37,7 @@ namespace nex {
 		mSampler->bind(0);
 		cache->bind();
 		RenderBackend::get()->setViewPort(0, 0, cache->getWidth(), cache->getHeight());
+		cache->clear(Color | Depth | Stencil);
 
 		// horizontal pass
 		mHorizontalPass->bind();
@@ -48,6 +49,7 @@ namespace nex {
 		// vertical pass
 		out->bind();
 		RenderBackend::get()->setViewPort(0, 0, out->getWidth(), out->getHeight());
+		out->clear(Color | Depth | Stencil);
 		mVerticalPass->bind();
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)out->getHeight());

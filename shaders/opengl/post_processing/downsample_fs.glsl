@@ -1,8 +1,6 @@
 #version 420
 
-in VS_OUT {
-    vec2 texCoord;
-} fs_in;
+in vec2 texCoord;
 
 out vec4 fragColor;
 
@@ -13,13 +11,15 @@ void main() {
 
     vec2 texelSize = 1.0 / textureSize(sourceTexture, 0).xy;
    
-   /* float scale = 0.5;
+	float scale = 1.0;
 
-    fragColor =  texture(sourceTexture, fs_in.texCoord + scale * texelSize * vec2(-1,-1));
-    fragColor += texture(sourceTexture, fs_in.texCoord + scale * texelSize * vec2(1, -1));
-    fragColor += texture(sourceTexture, fs_in.texCoord + scale * texelSize * vec2(-1, 1));
-    fragColor += texture(sourceTexture, fs_in.texCoord + scale * texelSize * vec2(1,  1));
-    fragColor /= 4.0;*/
+    /*fragColor =  texture(sourceTexture, texCoord + scale * texelSize * vec2(-1,-1));
+    fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(1, -1));
+    fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(-1, 1));
+    fragColor += texture(sourceTexture, texCoord + scale * texelSize * vec2(1,  1));
+    fragColor /= 4.0;
+	
+	fragColor = max(texture(sourceTexture, texCoord), vec4(0.0));*/
     
     
     /*
@@ -41,15 +41,15 @@ void main() {
     vec2 thirdOffset  = 3.0*texelSize;
     vec2 fourthOffset  = 4.0*texelSize;
     
-    vec2 centerTextureCoordinate = fs_in.texCoord;
-    vec2 oneStepLeftTextureCoordinate = fs_in.texCoord - firstOffset;
-    vec2 twoStepsLeftTextureCoordinate = fs_in.texCoord - secondOffset;
-    vec2 threeStepsLeftTextureCoordinate = fs_in.texCoord - thirdOffset;
-    vec2 fourStepsLeftTextureCoordinate = fs_in.texCoord - fourthOffset;
-    vec2 oneStepRightTextureCoordinate = fs_in.texCoord + firstOffset;
-    vec2 twoStepsRightTextureCoordinate = fs_in.texCoord + secondOffset;
-    vec2 threeStepsRightTextureCoordinate = fs_in.texCoord + thirdOffset;
-    vec2 fourStepsRightTextureCoordinate = fs_in.texCoord + fourthOffset;
+    vec2 centerTextureCoordinate = texCoord;
+    vec2 oneStepLeftTextureCoordinate = texCoord - firstOffset;
+    vec2 twoStepsLeftTextureCoordinate = texCoord - secondOffset;
+    vec2 threeStepsLeftTextureCoordinate = texCoord - thirdOffset;
+    vec2 fourStepsLeftTextureCoordinate = texCoord - fourthOffset;
+    vec2 oneStepRightTextureCoordinate = texCoord + firstOffset;
+    vec2 twoStepsRightTextureCoordinate = texCoord + secondOffset;
+    vec2 threeStepsRightTextureCoordinate = texCoord + thirdOffset;
+    vec2 fourStepsRightTextureCoordinate = texCoord + fourthOffset;
     
     fragColor = texture(sourceTexture, centerTextureCoordinate) * 0.38026; // 1.0 / 2.7024201060744596
 
@@ -64,4 +64,7 @@ void main() {
 
     fragColor += texture(sourceTexture, fourStepsLeftTextureCoordinate) * -0.02143; //sinc(12/8) * sinc((12/8.0)/2.0) / 2.7024201060744596
     fragColor += texture(sourceTexture, fourStepsRightTextureCoordinate) * -0.02143; //sinc(12/8) * sinc((12/8.0)/2.0) / 2.7024201060744596
+	
+	// Nvidia cards don't clamp negative values
+	fragColor = max(fragColor, vec4(0.0));
 }

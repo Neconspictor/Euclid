@@ -41,4 +41,5 @@ void main() {
     color.rgb *= texture(aoMap, fs_in.texCoord).r;
 
     fragColor = color;
+	//fragColor = bloomQuarterSample;
 }

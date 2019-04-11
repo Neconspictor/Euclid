@@ -80,6 +80,7 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	//TextureManager::get()->getDefaultImageSampler()->bind(0);
 	setPostProcessTexture(source);
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
+	//setGlowTextures(glowHalfth, glowHalfth, glowHalfth, glowHalfth);
 	setAoMap(aoMap);
 
 	mFullscreenPlane->bind();
