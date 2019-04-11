@@ -204,18 +204,10 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	const auto format = (GLenum)translate(data.colorspace);
 	const auto internalFormat = (GLenum)translate(data.internalFormat);
 	const auto pixelDataType = (GLenum)translate(data.pixelDataType);
-	GLenum bindTarget;
+	const auto bindTarget = (GLenum)translate(store.textureTarget);
 
-	if (store.isCubeMap)
-	{
-		assert(store.images.size() == 6);
-		bindTarget = GL_TEXTURE_CUBE_MAP;
-	}
-	else
-	{
-		assert(store.images.size() == 1);
-		bindTarget = GL_TEXTURE_2D;
-	}
+	// For now only cubemaps and 2d tetures are supported (other targets are not tested yet)!
+	assert(store.textureTarget == TextureTarget::TEXTURE2D || store.textureTarget == TextureTarget::CUBE_MAP);
 
 	auto dataCopy = data;
 	if (store.mipmapCount > 1)

@@ -1,6 +1,8 @@
 #pragma once
 #include "nex/util/Memory.hpp"
 #include <vector>
+#include <nex/texture/TextureSamplerData.hpp>
+
 
 namespace nex
 {
@@ -43,7 +45,7 @@ namespace nex
 		 */
 		Image2DArray images; // a pointer to an array of sideCount base images. With base image 
 		unsigned short mipmapCount; // The number of mipmaps for each side
-		bool isCubeMap;
+		TextureTarget textureTarget = TextureTarget::TEXTURE2D;
 
 		StoreImage() = default;
 		StoreImage(StoreImage&& o) noexcept = default;
@@ -55,6 +57,6 @@ namespace nex
 		static void load(StoreImage* dest, const char* filePath);
 		static void write(const StoreImage& source, const char* filePath);
 
-		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, bool isCubeMap);
+		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target);
 	};
 }

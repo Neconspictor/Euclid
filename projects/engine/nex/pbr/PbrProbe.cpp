@@ -71,7 +71,7 @@ Texture2D * PbrProbe::getBrdfLookupTexture() const
 StoreImage PbrProbe::readBrdfLookupPixelData() const
 {
 	StoreImage store;
-	StoreImage::create(&store, 1, 1, false);
+	StoreImage::create(&store, 1, 1, TextureTarget::TEXTURE2D);
 
 	GenericImage& data = store.images[0][0];
 	data.width = getBrdfLookupTexture()->getWidth();
@@ -96,7 +96,7 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 StoreImage PbrProbe::readBackgroundPixelData() const
 {
 	StoreImage store;
-	StoreImage::create(&store, 6, 1, true); // 6 sides, no mipmaps (only base level)
+	StoreImage::create(&store, 6, 1, TextureTarget::CUBE_MAP); // 6 sides, no mipmaps (only base level)
 
 	// readback the cubemap
 	const auto components = 3;
@@ -136,7 +136,7 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 {
 	StoreImage store;
 	// note, that the convoluted environment map has no generated mip maps!
-	StoreImage::create(&store, 6, 1, true); // 6 sides, 32/16/8/4/2/1 = 6 levels
+	StoreImage::create(&store, 6, 1, TextureTarget::CUBE_MAP); // 6 sides, 32/16/8/4/2/1 = 6 levels
 
 	for (auto level = 0; level < store.mipmapCount; ++level)
 	{
@@ -181,7 +181,7 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
 
 	// Note: we produced only 5 mip map levels instead of possible 9 (for 256 width/height)
-	StoreImage::create(&store, 6, 5, true);
+	StoreImage::create(&store, 6, 5, TextureTarget::CUBE_MAP);
 
 	for (auto level = 0; level < store.mipmapCount; ++level)
 	{

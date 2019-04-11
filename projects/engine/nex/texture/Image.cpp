@@ -49,6 +49,7 @@ struct SerializedStoreImage
 	unsigned short levelCount = 1;
 	unsigned short mipMapCount = 1;
 	bool isCubeMap = false;
+	unsigned textureTarget = 0;
 
 	SerializedStoreImage() = default;
 
@@ -56,14 +57,14 @@ struct SerializedStoreImage
 	{
 		levelCount = image.images.size();
 		mipMapCount = image.mipmapCount;
-		isCubeMap = image.isCubeMap;
+		textureTarget = static_cast<unsigned>(image.textureTarget);
 	}
 
 	void fill(StoreImage& image) const
 	{
 		image.images.resize(levelCount);
 		image.mipmapCount = mipMapCount;
-		image.isCubeMap = isCubeMap;
+		image.textureTarget = static_cast<TextureTarget>(textureTarget);
 
 		for (auto& vec : image.images)
 		{
@@ -160,19 +161,19 @@ void StoreImage::write(const StoreImage& source, const char* filePath)
 	fclose(file);
 }
 
-void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, bool isCubeMap)
+void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target)
 {
 	assert(levels > 0);
 	assert(mipMapCountPerLevel > 0);
 
-	if (isCubeMap)
+	if (target == TextureTarget::CUBE_MAP)
 	{
 		levels = 6;
 	}
 
 	result->images.resize(levels);
 	result->mipmapCount = mipMapCountPerLevel;
-	result->isCubeMap = isCubeMap;
+	result->textureTarget = target;
 
 	for (auto& vec : result->images)
 	{
