@@ -1,12 +1,12 @@
 #pragma once
 #include "nex/util/Memory.hpp"
+#include <vector>
 
 namespace nex
 {
 	struct GenericImage
 	{
-		nex::MemGuard pixels;
-		size_t bufSize = 0;
+		std::vector<char> pixels;
 		unsigned width = 0;
 		unsigned height = 0;
 		size_t pixelSize = 0; // The byte size of one pixel (all components combined)
@@ -14,7 +14,7 @@ namespace nex
 		unsigned format = 0;
 
 		GenericImage() = default;
-		GenericImage(GenericImage&& o) noexcept;
+		GenericImage(GenericImage&& o) = default;
 		GenericImage& operator=(GenericImage&& o) = delete;
 
 		GenericImage(const GenericImage&) = delete;
@@ -27,7 +27,7 @@ namespace nex
 	struct StoreImage
 	{
 
-		using Image2DArray = nex::GuardArray<nex::GuardArray<GenericImage>>;
+		using Image2DArray = std::vector<std::vector<GenericImage>>;
 
 		/**
 		 * Memory layout for images:
@@ -42,11 +42,11 @@ namespace nex
 		 * images[sideCount-1] points to all mipmap images of the last side (only if sideCount > 0)
 		 */
 		Image2DArray images; // a pointer to an array of sideCount base images. With base image 
-		nex::GuardArray<unsigned short> mipmapCounts; // The number of mipmaps for each side
-		unsigned short sideCount = 0; // 6 for cubemaps, arbitrary number for texture arrays, 1 otherwise
+		unsigned short mipmapCount; // The number of mipmaps for each side
+		bool isCubeMap;
 
 		StoreImage() = default;
-		StoreImage(StoreImage&& o) noexcept;
+		StoreImage(StoreImage&& o) noexcept = default;
 		StoreImage& operator=(StoreImage&& o) = delete;
 
 		StoreImage(const StoreImage&) = delete;
@@ -55,6 +55,6 @@ namespace nex
 		static void load(StoreImage* dest, const char* filePath);
 		static void write(const StoreImage& source, const char* filePath);
 
-		static void create(StoreImage* result, unsigned short sideCount, unsigned short mipMapCountPerSide);
+		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, bool isCubeMap);
 	};
 }

@@ -47,69 +47,9 @@ namespace nex {
 	void TextureManager::writeHDR(const GenericImage& imageData, const char* filePath)
 	{
 		stbi__flip_vertically_on_write = true;
-		stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.get());
+		stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.data());
 	}
 
-	void TextureManager::readImage(GenericImage* imageData, const char* filePath)
-	{
-		FILE* file = nullptr;
-		errno_t err;
-		if ((err = fopen_s(&file, filePath, "rb")) != 0)
-			throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-
-		std::fread(imageData, sizeof(GenericImage), 1, file);
-
-		if (std::ferror(file) != 0)
-			throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-
-
-		imageData->pixels = new char[imageData->bufSize];
-
-		std::fread(imageData->pixels.get(), imageData->bufSize, 1, file);
-
-		if (std::ferror(file) != 0)
-			throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-
-		fclose(file);
-	}
-
-	void TextureManager::writeImage(const GenericImage& imageData, const char* filePath)
-	{
-		FILE* file = nullptr;
-		errno_t err;
-		if ((err = fopen_s(&file, filePath, "w+b")) != 0)
-			throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
-
-		std::fwrite(&imageData, sizeof(GenericImage), 1, file);
-		std::fwrite(imageData.pixels.get(), imageData.bufSize, 1, file);
-
-		if (std::ferror(file) != 0)
-			throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
-
-		fclose(file);
-	}
-
-	/*void TextureManager::readGLITest(const char* filePath)
-	{
-		gli::texture tex = gli::load(filePath);
-
-		if (tex.empty())
-		{
-			LOG(m_logger, Error) << "Couldn't load file" << filePath;
-			return;
-		}
-
-		gli::texture2d tex2D(tex);
-
-		if (tex2D.empty())
-		{
-			LOG(m_logger, Error) << "Couldn't create texture 2D from " << filePath;
-		}
-
-		gli::gl GL(gli::gl::PROFILE_GL33);
-		GLenum target = GL.translate(tex.target());
-		gli::gl::format const format = GL.translate(tex.format(), tex.swizzles());
-	}*/
 
 	TextureManager::~TextureManager()
 	{

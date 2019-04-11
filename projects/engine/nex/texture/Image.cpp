@@ -11,23 +11,78 @@ using namespace boost::interprocess;
 using namespace std;
 using namespace nex;
 
-GenericImage::GenericImage(GenericImage&& o) noexcept :
-	pixels(std::move(o.pixels)), width(o.width), height(o.height), components(o.components),
-	bufSize(o.bufSize), pixelSize(o.pixelSize), format(o.format)
+struct SerializedGenericImage
 {
-}
+	size_t bufferSize = 0;
+	unsigned width = 0;
+	unsigned height = 0;
+	size_t pixelSize = 0;
+	unsigned components = 0;
+	unsigned format = 0;
+
+	SerializedGenericImage() = default;
+
+	SerializedGenericImage(const GenericImage& image)
+	{
+		bufferSize = image.pixels.size();
+		width = image.width;
+		height = image.height;
+		pixelSize = image.pixelSize;
+		components = image.components;
+		format = image.format;
+	}
+
+	void fill(GenericImage& image) const
+	{
+		image.width = width;
+		image.height = height;
+		image.pixelSize = pixelSize;
+		image.pixels.resize(bufferSize);
+		image.components = components;
+		image.format = format;
+	}
+};
+
+
+struct SerializedStoreImage
+{
+	unsigned short levelCount = 1;
+	unsigned short mipMapCount = 1;
+	bool isCubeMap = false;
+
+	SerializedStoreImage() = default;
+
+	SerializedStoreImage(const StoreImage& image)
+	{
+		levelCount = image.images.size();
+		mipMapCount = image.mipmapCount;
+		isCubeMap = image.isCubeMap;
+	}
+
+	void fill(StoreImage& image) const
+	{
+		image.images.resize(levelCount);
+		image.mipmapCount = mipMapCount;
+		image.isCubeMap = isCubeMap;
+
+		for (auto& vec : image.images)
+		{
+			vec.resize(mipMapCount);
+		}
+	}
+};
 
 void GenericImage::load(GenericImage* dest, FILE* file)
 {
-	std::fread(dest, sizeof(GenericImage), 1, file);
+	SerializedGenericImage serialized;
+	std::fread(&serialized, sizeof(SerializedGenericImage), 1, file);
 	int err;
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file: Error code =  " + std::to_string(err)));
 
-	dest->pixels.reset();
-	dest->pixels = new char[dest->bufSize];
+	serialized.fill(*dest);
 
-	std::fread(&*dest->pixels, dest->bufSize, 1, file);
+	std::fread(dest->pixels.data(), dest->pixels.size(), 1, file);
 
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file: Error code =  " + std::to_string(err)));
@@ -35,20 +90,16 @@ void GenericImage::load(GenericImage* dest, FILE* file)
 
 void GenericImage::write(const GenericImage& image, FILE* file)
 {
+	SerializedGenericImage serialized(image);
+
 	int err;
-	std::fwrite(&image, sizeof(GenericImage), 1, file);
+	std::fwrite(&serialized, sizeof(SerializedGenericImage), 1, file);
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
 
-	std::fwrite(&*image.pixels, image.bufSize, 1, file);
+	std::fwrite(image.pixels.data(), image.pixels.size(), 1, file);
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
-}
-
-StoreImage::StoreImage(StoreImage&& o) noexcept :
-images(std::move(o.images)), mipmapCounts(std::move(o.mipmapCounts)), sideCount(o.sideCount)
-{
-	o.sideCount = 0;
 }
 
 
@@ -59,29 +110,22 @@ void StoreImage::load(StoreImage* dest, const char* filePath)
 	if ((err = fopen_s(&file, filePath, "rb")) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 
-	std::fread(dest, sizeof(StoreImage), 1, file);
+
+	SerializedStoreImage serialized;
+
+	std::fread(&serialized, sizeof(SerializedStoreImage), 1, file);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 
-
-
-	dest->mipmapCounts.reset(); // Until now there is rubbish; reset it to avoid crash
-	dest->mipmapCounts = new unsigned short[dest->sideCount];
-	std::fread(dest->mipmapCounts.get(), sizeof(unsigned short) * dest->sideCount, 1, file);
+	serialized.fill(*dest);
 
 	if (std::ferror(file) != 0)
 		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
 	
-	dest->images.reset(); // Until now there is rubbish; reset it to avoid crash
-	dest->images = new GuardArray<GenericImage>[dest->sideCount];
-
-	
-	for (unsigned i = 0; i < dest->sideCount; ++i)
+	for (unsigned i = 0; i < dest->images.size(); ++i)
 	{
-		dest->images[i] = new GenericImage[dest->mipmapCounts[i]];
-
-		for (unsigned j = 0; j < dest->mipmapCounts[i]; ++j)
+		for (unsigned j = 0; j < dest->mipmapCount; ++j)
 		{
 			GenericImage::load(&dest->images[i][j], file);
 		}
@@ -98,15 +142,15 @@ void StoreImage::write(const StoreImage& source, const char* filePath)
 	if ((err = fopen_s(&file, filePath, "w+b")) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
 
-	std::fwrite(&source, sizeof(StoreImage), 1, file);
-	std::fwrite(source.mipmapCounts.get(), sizeof(unsigned short), source.sideCount, file);
 
-	for (unsigned i = 0; i < source.sideCount; ++i)
+	SerializedStoreImage serialized(source);
+	std::fwrite(&serialized, sizeof(SerializedStoreImage), 1, file);
+
+	for (unsigned i = 0; i < source.images.size(); ++i)
 	{
-		auto& array = source.images[i];
-		for (unsigned j = 0; j < source.mipmapCounts[i]; ++j)
+		for (unsigned j = 0; j < source.mipmapCount; ++j)
 		{
-			GenericImage::write(array[j], file);
+			GenericImage::write(source.images[i][j], file);
 		}
 	}
 
@@ -116,22 +160,22 @@ void StoreImage::write(const StoreImage& source, const char* filePath)
 	fclose(file);
 }
 
-void StoreImage::create(StoreImage* result, unsigned short sideCount, unsigned short mipMapCountPerSide)
+void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, bool isCubeMap)
 {
-	assert(sideCount > 0);
-	assert(mipMapCountPerSide > 0);
+	assert(levels > 0);
+	assert(mipMapCountPerLevel > 0);
 
-	result->sideCount = sideCount;
-	result->mipmapCounts = new unsigned short[result->sideCount];
-	for (unsigned short i = 0; i < result->sideCount; ++i)
+	if (isCubeMap)
 	{
-		result->mipmapCounts[i] = mipMapCountPerSide;
+		levels = 6;
 	}
-	
-	result->images = new GuardArray<GenericImage>[result->sideCount];
 
-	for (unsigned short i = 0; i < result->sideCount; ++i)
+	result->images.resize(levels);
+	result->mipmapCount = mipMapCountPerLevel;
+	result->isCubeMap = isCubeMap;
+
+	for (auto& vec : result->images)
 	{
-		result->images[i] = new GenericImage[result->mipmapCounts[i]];
+		vec.resize(result->mipmapCount);
 	}
 }

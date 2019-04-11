@@ -100,9 +100,6 @@ namespace nex {
 
 		void writeHDR(const nex::GenericImage& imageData, const char* filePath);
 
-		void readImage(nex::GenericImage* imageData, const char* filePath);
-		void writeImage(const nex::GenericImage& imageData, const char* filePath);
-
 		//void readGLITest(const char* filePath);
 
 	protected:

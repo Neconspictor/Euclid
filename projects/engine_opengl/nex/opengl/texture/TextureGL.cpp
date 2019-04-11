@@ -206,19 +206,19 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	const auto pixelDataType = (GLenum)translate(data.pixelDataType);
 	GLenum bindTarget;
 
-	if (isCubeMap)
+	if (store.isCubeMap)
 	{
-		assert(store.sideCount == 6);
+		assert(store.images.size() == 6);
 		bindTarget = GL_TEXTURE_CUBE_MAP;
 	}
 	else
 	{
-		assert(store.sideCount == 1);
+		assert(store.images.size() == 1);
 		bindTarget = GL_TEXTURE_2D;
 	}
 
 	auto dataCopy = data;
-	if (store.mipmapCounts[0] > 0)
+	if (store.mipmapCount > 1)
 	{
 		dataCopy.generateMipMaps = true;
 	}
@@ -226,67 +226,48 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	GLuint textureID;
 	Impl::generateTexture(&textureID, dataCopy, bindTarget);
 
-	const auto baseWidth = store.images[0]->width;
-	const auto baseHeight = store.images[0]->height;
-	const auto size = std::min<unsigned>(baseWidth, baseHeight);
-	const auto maxMipMapCount = Texture::getMipMapCount(size);
+	const auto baseWidth = store.images[0][0].width;
+	const auto baseHeight = store.images[0][0].height;
 
 	// allocate texture storage
-	Impl::resizeTexImage2D(textureID, 1, baseWidth, baseHeight, internalFormat, dataCopy.generateMipMaps);
+	// Note: for cubemaps six sides are allocated automatically!
+	Impl::resizeTexImage2D(textureID, store.mipmapCount, baseWidth, baseHeight, internalFormat, dataCopy.generateMipMaps);
 
-	if (isCubeMap)
+	for (unsigned int side = 0; side < store.images.size(); ++side)
 	{
-		for (unsigned int i = 0; i < store.sideCount; ++i)
+		for (unsigned mipMapLevel = 0; mipMapLevel < store.images[side].size(); ++mipMapLevel)
 		{
-
-			const auto mipMapCount = store.mipmapCounts[i];
-			for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
-			{
-				auto& image = store.images[i][mipMapLevel];
-				GLCall(glTextureSubImage3D(textureID, 
-					mipMapLevel,
-					0, 0,
-					i, // zoffset specifies the cubemap side
-					image.width, image.height,
-					1, // depth specifies the number of sides to be updated
-					format,
-					pixelDataType,
-					image.pixels.get()));
-			}
-		}
-	}
-	else
-	{
-		const auto mipMapCount = store.mipmapCounts[0];
-
-		for (unsigned mipMapLevel = 0; mipMapLevel < mipMapCount; ++mipMapLevel)
-		{
-			auto& image = store.images[0][mipMapLevel];
-			GLCall(glTextureSubImage2D(textureID,
+			auto& image = store.images[side][mipMapLevel];
+			GLCall(glTextureSubImage3D(textureID,
 				mipMapLevel,
 				0, 0,
+				side, // zoffset specifies the cubemap side
 				image.width, image.height,
+				1, // depth specifies the number of sides to be updated
 				format,
 				pixelDataType,
-				image.pixels.get()));
+				image.pixels.data()));
 		}
 	}
 
-
-	if (data.generateMipMaps &&  store.mipmapCounts[0] == 1)
-	{
-		GLCall(glGenerateTextureMipmap(textureID));
-	}
+	std::unique_ptr<Impl> impl;
 
 	if (isCubeMap)
 	{
-		auto glTexture = std::make_unique<CubeMapGL>(textureID, store.images[0][0].width, store.images[0][0].height);
-		auto result = std::make_unique<CubeMap>(std::move(glTexture));
-		return result.release();
+		impl = std::make_unique<CubeMapGL>(textureID, store.images[0][0].width, store.images[0][0].height);
+	} else
+	{
+		impl = std::make_unique<Texture2DGL>(textureID, data, store.images[0][0].width, store.images[0][0].height);
 	}
 
-	auto glTexture = std::make_unique<Texture2DGL>(textureID, data, store.images[0][0].width, store.images[0][0].height);
-	auto result = std::make_unique<Texture2D>(std::move(glTexture));
+	auto result = std::make_unique<Texture2D>(std::move(impl));
+
+	if (data.generateMipMaps)
+	{
+		result->generateMipMaps();
+	}
+
+
 	return result.release();
 }
 

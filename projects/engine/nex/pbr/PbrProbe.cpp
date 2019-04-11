@@ -71,7 +71,7 @@ Texture2D * PbrProbe::getBrdfLookupTexture() const
 StoreImage PbrProbe::readBrdfLookupPixelData() const
 {
 	StoreImage store;
-	StoreImage::create(&store, 1, 1);
+	StoreImage::create(&store, 1, 1, false);
 
 	GenericImage& data = store.images[0][0];
 	data.width = getBrdfLookupTexture()->getWidth();
@@ -80,15 +80,15 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 	data.format = (unsigned)ColorSpace::RG;
 	data.pixelSize = sizeof(float) * data.components;
 
-	data.bufSize = data.width * data.height * data.pixelSize;
-	data.pixels = new char[data.bufSize];
+	auto bufSize = data.width * data.height * data.pixelSize;
+	data.pixels.resize(bufSize);
 
 	// read the data back from the gpu
 	brdfLookupTexture->readback(
 		0, ColorSpace::RG, 
 		PixelDataType::FLOAT, 
-		data.pixels.get(),
-		data.bufSize);
+		data.pixels.data(),
+		bufSize);
 
 	return store;
 }
@@ -96,7 +96,7 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 StoreImage PbrProbe::readBackgroundPixelData() const
 {
 	StoreImage store;
-	StoreImage::create(&store, 6, 1); // 6 sides, no mipmaps (only base level)
+	StoreImage::create(&store, 6, 1, true); // 6 sides, no mipmaps (only base level)
 
 	// readback the cubemap
 	const auto components = 3;
@@ -115,7 +115,7 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 
 	
 
-	for (unsigned i = 0; i < store.sideCount; ++i)
+	for (unsigned i = 0; i < store.images.size(); ++i)
 	{
 		GenericImage& data = store.images[i][0];
 		data.width = width;
@@ -123,10 +123,10 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 		data.components = components; // RGB
 		data.format = format;
 		data.pixelSize = pixelDataSize;
-		data.bufSize = sideSlice;
-		data.pixels = new char[data.bufSize];
+		auto bufSize = sideSlice;
+		data.pixels.resize(bufSize);
 
-		memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + i * sideSlice, sideSlice);
+		memcpy_s(data.pixels.data(), bufSize, pixels.data() + i * sideSlice, sideSlice);
 	}
 
 	return store;
@@ -136,11 +136,9 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 {
 	StoreImage store;
 	// note, that the convoluted environment map has no generated mip maps!
-	StoreImage::create(&store, 6, 1); // 6 sides, 32/16/8/4/2/1 = 6 levels
+	StoreImage::create(&store, 6, 1, true); // 6 sides, 32/16/8/4/2/1 = 6 levels
 
-	const auto mipMapCount = store.mipmapCounts[0];
-
-	for (auto level = 0; level < mipMapCount; ++level)
+	for (auto level = 0; level < store.mipmapCount; ++level)
 	{
 		// readback the mipmap level of the cubemap
 		const auto components = 3;  // RGB
@@ -159,7 +157,7 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 			pixels.data(),
 			pixels.size());
 
-		for (unsigned side = 0; side < store.sideCount; ++side)
+		for (unsigned side = 0; side < store.images.size(); ++side)
 		{
 				GenericImage& data = store.images[side][level];
 				data.width = width;
@@ -167,10 +165,10 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 				data.components = components;
 				data.format = format;
 				data.pixelSize = pixelDataSize;
-				data.bufSize = sideSlice;
-				data.pixels = new char[data.bufSize];
+				auto bufSize = sideSlice;
+				data.pixels.resize(bufSize);
 
-				memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + side * sideSlice, sideSlice);
+				memcpy_s(data.pixels.data(), bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 
@@ -183,10 +181,9 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
 
 	// Note: we produced only 5 mip map levels instead of possible 9 (for 256 width/height)
-	StoreImage::create(&store, 6, 5);
-	const auto mipMapCount = store.mipmapCounts[0];
+	StoreImage::create(&store, 6, 5, true);
 
-	for (auto level = 0; level < mipMapCount; ++level)
+	for (auto level = 0; level < store.mipmapCount; ++level)
 	{
 		// readback the mipmap level of the cubemap
 		const auto components = 3;  // RGB
@@ -205,7 +202,7 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 			pixels.data(),
 			pixels.size());
 
-		for (unsigned side = 0; side < store.sideCount; ++side)
+		for (unsigned side = 0; side < store.images.size(); ++side)
 		{
 			GenericImage& data = store.images[side][level];
 			data.width = width;
@@ -213,10 +210,10 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 			data.components = components;
 			data.format = format;
 			data.pixelSize = pixelDataSize;
-			data.bufSize = sideSlice;
-			data.pixels = new char[data.bufSize];
+			auto bufSize = sideSlice;
+			data.pixels.resize(bufSize);
 
-			memcpy_s(data.pixels.get(), data.bufSize, pixels.data() + side * sideSlice, sideSlice);
+			memcpy_s(data.pixels.data(), bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 
