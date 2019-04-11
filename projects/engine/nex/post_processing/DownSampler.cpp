@@ -62,7 +62,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	auto* renderBackend = RenderBackend::get();
 	dest->bind();
 	renderBackend->setViewPort(0, 0, dest->getWidth(), dest->getHeight());
-	dest->clear(Color);
+	//dest->clear(Color);
 
 	mDownSampleShader->bind();
 	mSampler->bind(0);

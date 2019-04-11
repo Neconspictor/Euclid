@@ -36,7 +36,7 @@ namespace nex {
 		mSampler->bind(0);
 		cache->bind();
 		RenderBackend::get()->setViewPort(0, 0, cache->getWidth(), cache->getHeight());
-		cache->clear(Color | Depth | Stencil);
+		//cache->clear(Color | Depth | Stencil);
 
 		// horizontal pass
 		mHorizontalPass->bind();
@@ -48,7 +48,7 @@ namespace nex {
 		// vertical pass
 		out->bind();
 		RenderBackend::get()->setViewPort(0, 0, out->getWidth(), out->getHeight());
-		out->clear(Color | Depth | Stencil);
+		//out->clear(Color | Depth | Stencil);
 		mVerticalPass->bind();
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)out->getHeight());

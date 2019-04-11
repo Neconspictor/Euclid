@@ -344,7 +344,7 @@ namespace nex
 		renderBackend->setViewPort(0, 0, width, height);
 
 		aoRenderTarget->bind();
-		aoRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+		aoRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 		aoShader.drawCustom();
 	}
 
@@ -361,7 +361,7 @@ namespace nex
 		renderBackend->setScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		tiledBlurRenderTarget->bind();
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 		StaticMeshDrawer::draw(Sprite::getScreenSprite(), tiledBlurShader);
 
 		tiledBlurShader->afterBlur();

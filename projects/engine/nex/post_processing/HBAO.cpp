@@ -173,7 +173,7 @@ namespace nex
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
 		//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-		m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+		m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 		m_hbaoShader->setHbaoData(std::move(m_hbaoDataSource));
 		//m_hbaoShader->setLinearDepth(m_depthLinearRT->getRenderResult());
@@ -187,10 +187,10 @@ namespace nex
 			// clear color/depth/stencil for all involved render targets
 			m_aoBlurredResultRT->bind();
 			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-			m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+			m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 			m_tempRT->bind();
 			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
 			//m_bilateralBlur->setLinearDepth(m_depthLinearRT->getRenderResult());

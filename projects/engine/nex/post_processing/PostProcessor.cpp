@@ -77,7 +77,8 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	
 	// Post process
 	output->bind();
-	output->clear(Color | Depth | Stencil);
+	//output->clear(Color | Depth | Stencil);
+	output->clear(Depth);
 	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
 	mPostprocessPass->bind();
 	//TextureManager::get()->getDefaultImageSampler()->bind(0);
