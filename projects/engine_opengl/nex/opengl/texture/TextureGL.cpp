@@ -299,10 +299,6 @@ std::unique_ptr<nex::Texture> nex::Texture::createView(Texture* original, Textur
 
 void nex::Texture::generateMipMaps()
 {
-	//GLCall(glActiveTexture(GL_TEXTURE0));
-	//GLCall(glBindTexture((GLenum)mImpl->mTarget, mImpl->mTextureID));
-	//GLCall(glBindSampler(0, GL_FALSE));
-
 	mImpl->generateMipMaps();
 }
 
@@ -318,10 +314,7 @@ unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
 
 void nex::Texture::readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, size_t destBufferSize)
 {
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	GlobalCacheGL::get()->UseProgram(0);
 	GLCall(glGetTextureImage(mImpl->mTextureID, mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), destBufferSize, dest));
-	GLCall(glFinish());
 }
 
 void nex::Texture::setImpl(std::unique_ptr<Impl> impl)
@@ -360,8 +353,8 @@ std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* origina
 	const auto internalFormat = (GLenum)translate(data.internalFormat);
 
 
-	GLCall(glGenTextures(1, result->getTexture())); // Note: we mustn't bind the texture to a target (necessary for glTextureView)
-	//GLCall(glCreateTextures(targetGL, 1, result->getTexture()));
+	// Note: we mustn't bind the texture to a target (necessary for glTextureView)
+	GLCall(glGenTextures(1, result->getTexture()));
 	const GLuint textureID = *result->getTexture();
 
 	GLCall(glTextureView(textureID, targetGL, *original->getTexture(), internalFormat, minLevel, numLevel, minLayer, numLayers));
@@ -371,16 +364,12 @@ std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* origina
 
 void nex::Texture::Impl::generateTexture(GLuint* out, const BaseTextureDesc& desc, GLenum target)
 {
-	//GLCall(glActiveTexture(GL_TEXTURE0 + desc.textureIndex));
-	//GLCall(glGenTextures(1, out));
 	GLCall(glCreateTextures(target, 1, out));
 	applyTextureData(*out, desc);
 }
 
 void nex::Texture::Impl::applyTextureData(GLuint texture, const BaseTextureDesc& desc)
 {
-	//GLCall(glBindTexture(target, texture));
-
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_WRAP_R, (GLenum)translate(desc.wrapR)));
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_WRAP_S, (GLenum)translate(desc.wrapS)));
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_WRAP_T, (GLenum)translate(desc.wrapT)));
@@ -441,9 +430,6 @@ GLuint* nex::Texture::Impl::getTexture()
 void nex::Texture::Impl::resizeTexImage2D(GLuint textureID, GLint levels, unsigned width, unsigned height,
 	GLint internalFormat, bool generateMipMaps)
 {
-	//GLCall(glBindTexture(target, textureID)); //glTextureStorage2D
-	//GLCall(glTexImage2D(target, level, internalFormat, width, height, 0, colorspace, pixelDataType, data));
-
 	if (generateMipMaps)
 	{
 		levels = std::log2<>(std::min<>(width, height)) + 1;
@@ -455,9 +441,6 @@ void nex::Texture::Impl::resizeTexImage2D(GLuint textureID, GLint levels, unsign
 void nex::Texture::Impl::resizeTexImage3D(GLuint textureID, GLint levels, unsigned width, unsigned height,
 	unsigned depth, GLint internalFormat, bool generateMipMaps)
 {
-	//GLCall(glBindTexture(target, textureID));
-	//GLCall(glTexImage3D(target, level, internalFormat, width, height, depth, 0, colorspace, pixelDataType, data));
-
 
 	if (generateMipMaps)
 	{
@@ -535,11 +518,6 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 			(GLenum)translate(mData.pixelDataType),
 			data));
 	}
-
-	//GLCall(glTexImage2D((GLenum)mTarget, 0, (GLenum)translate(mData.internalFormat), width, height,
-	//	0, (GLenum)translate(mData.colorspace), (GLenum)translate(mData.pixelDataType),
-	//	data));
-
 
 	// fill the allocated mipmaps
 	if (mData.generateMipMaps) generateMipMaps();
@@ -741,9 +719,6 @@ void nex::Texture2DArrayGL::setDepth(unsigned depth)
 
 void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned depth)
 {
-	///TODO
-	assert(false);
-	return;
 	mWidth = width;
 	mHeight = height;
 	mDepth = depth;
