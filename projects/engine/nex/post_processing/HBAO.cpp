@@ -316,14 +316,14 @@ namespace nex
 	}
 
 	BilateralBlur::BilateralBlur() :
-		Shader(),
+		Pass(),
 		m_linearDepth(nullptr),
 		m_sharpness(0),
 		m_textureWidth(0),
 		m_textureHeight(0),
 		m_source(nullptr)
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
 
 		auto state = mSampler.getState();
 		state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
@@ -346,11 +346,11 @@ namespace nex
 		m_textureHeight = textureHeight;
 		m_textureWidth = textureWidth;
 
-		UniformLocation sourceLoc = mProgram->getUniformLocation("texSource");
-		mProgram->setBinding(sourceLoc, 0);
+		UniformLocation sourceLoc = mShader->getUniformLocation("texSource");
+		mShader->setBinding(sourceLoc, 0);
 
-		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
-		mProgram->setBinding(linearDepthLoc, 1);
+		UniformLocation linearDepthLoc = mShader->getUniformLocation("texLinearDepth");
+		mShader->setBinding(linearDepthLoc, 1);
 
 	}
 
@@ -359,15 +359,15 @@ namespace nex
 		temp->bind();
 		bind();
 
-		mProgram->setTexture(m_source, &mSampler, 0); // TODO: check binding point!
-		mProgram->setTexture(m_linearDepth, &mSampler, 1); // TODO: check binding point!
+		mShader->setTexture(m_source, &mSampler, 0); // TODO: check binding point!
+		mShader->setTexture(m_linearDepth, &mSampler, 1); // TODO: check binding point!
 
-		static UniformLocation sharpnessLoc = mProgram->getUniformLocation("g_Sharpness");
-		mProgram->setFloat(sharpnessLoc, m_sharpness);
+		static UniformLocation sharpnessLoc = mShader->getUniformLocation("g_Sharpness");
+		mShader->setFloat(sharpnessLoc, m_sharpness);
 
 		// blur horizontal
-		static UniformLocation invResolutionDirectionLoc = mProgram->getUniformLocation("g_InvResolutionDirection");
-		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
+		static UniformLocation invResolutionDirectionLoc = mShader->getUniformLocation("g_InvResolutionDirection");
+		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -377,8 +377,8 @@ namespace nex
 		auto* renderResult = temp->getColorAttachments()[0].texture.get();
 
 		// Note: mSampler is already bound to binding point 0!
-		mProgram->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
-		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
+		mShader->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
+		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -388,7 +388,7 @@ namespace nex
 		m_input(nullptr),
 		m_projection(nullptr)
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
 		mSampler->setMinFilter(TextureFilter::NearestNeighbor);
 		mSampler->setMagFilter(TextureFilter::NearestNeighbor);
@@ -399,8 +399,8 @@ namespace nex
 		mSampler->setBorderColor(glm::vec4(1.0));
 
 
-		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
-		mProgram->setBinding(inputLoc, 0);
+		UniformLocation inputLoc = mShader->getUniformLocation("inputTexture");
+		mShader->setBinding(inputLoc, 0);
 	}
 
 	void DepthLinearizer::draw()
@@ -411,9 +411,9 @@ namespace nex
 			m_projection->nearplane - m_projection->farplane,
 			m_projection->farplane,
 			m_projection->perspective ? 1.0f : 0.0f);
-		mProgram->setVec4(0, vecData);
+		mShader->setVec4(0, vecData);
 
-		mProgram->setTexture(m_input, mSampler.get(), 0);
+		mShader->setTexture(m_input, mSampler.get(), 0);
 		
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -429,19 +429,19 @@ namespace nex
 		m_projection = projection;
 	}
 
-	DisplayTex::DisplayTex() : Shader(),
+	DisplayTex::DisplayTex() : Pass(),
 		m_input(nullptr)
 	{
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
 
-		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
-		mProgram->setBinding(inputLoc, 0);
+		UniformLocation inputLoc = mShader->getUniformLocation("inputTexture");
+		mShader->setBinding(inputLoc, 0);
 	}
 
 	void DisplayTex::draw()
 	{
 		bind();
-		mProgram->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
+		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
 		
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -459,13 +459,13 @@ namespace nex
 	{
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
 
-		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl");
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl");
 
-		UniformLocation linearDepthLoc = mProgram->getUniformLocation("texLinearDepth");
-		mProgram->setBinding(linearDepthLoc, 0);
+		UniformLocation linearDepthLoc = mShader->getUniformLocation("texLinearDepth");
+		mShader->setBinding(linearDepthLoc, 0);
 
-		UniformLocation randomLoc = mProgram->getUniformLocation("texRandom");
-		mProgram->setBinding(randomLoc, 1);
+		UniformLocation randomLoc = mShader->getUniformLocation("texRandom");
+		mShader->setBinding(randomLoc, 1);
 
 		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
 		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
@@ -485,8 +485,8 @@ namespace nex
 		m_hbao_ubo->bind();
 		m_hbao_ubo->update(&m_hbao_data, sizeof(HBAOData));
 
-		mProgram->setTexture(m_linearDepth, &mSampler, 0);
-		mProgram->setTexture(m_hbao_randomview, &mPointSampler2, 1);
+		mShader->setTexture(m_linearDepth, &mSampler, 0);
+		mShader->setTexture(m_hbao_randomview, &mPointSampler2, 1);
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();

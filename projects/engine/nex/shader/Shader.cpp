@@ -3,14 +3,14 @@
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 
 
-nex::UniformTex nex::ShaderProgram::createTextureUniform(const char* name, UniformType type, unsigned bindingSlot)
+nex::UniformTex nex::Shader::createTextureUniform(const char* name, UniformType type, unsigned bindingSlot)
 {
 	UniformLocation loc = getUniformLocation(name);
 	setBinding(loc, bindingSlot);
 	return {loc, type, bindingSlot};
 }
 
-std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines)
+std::unique_ptr<nex::Shader> nex::Shader::createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines)
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -30,54 +30,6 @@ std::unique_ptr<nex::ShaderProgram> nex::ShaderProgram::createComputeShader(cons
 	}
 
 	return create(shaderStages);
-}
-
-nex::Shader::Shader(std::unique_ptr<ShaderProgram> program) : mProgram(std::move(program))
-{
-}
-
-void nex::Shader::bind()
-{
-	mProgram->bind();
-}
-
-nex::ShaderProgram* nex::Shader::getProgram()
-{
-	return mProgram.get();
-}
-
-void nex::Shader::setProgram(std::unique_ptr<ShaderProgram> program)
-{
-	mProgram = std::move(program);
-}
-
-void nex::Shader::unbind()
-{
-	mProgram->unbind();
-}
-
-void nex::Shader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
-{
-}
-
-void nex::Shader::onMaterialUpdate(const Material* material)
-{
-}
-
-void nex::Shader::setupRenderState()
-{
-}
-
-void nex::Shader::reverseRenderState()
-{
-}
-
-nex::TransformShader::TransformShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
-{
-}
-
-nex::ComputeShader::ComputeShader(std::unique_ptr<ShaderProgram> program) : Shader(std::move(program))
-{
 }
 
 std::ostream& nex::operator<<(std::ostream& os, nex::ShaderStageType stageType)

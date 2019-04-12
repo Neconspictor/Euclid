@@ -1,12 +1,12 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
 
 	class Sampler;
 
-	class GaussianBlurHorizontalShader : public TransformShader
+	class GaussianBlurHorizontalShader : public TransformPass
 	{
 	public:
 		GaussianBlurHorizontalShader();
@@ -29,7 +29,7 @@ namespace nex
 		Uniform windowHeight;
 	};
 
-	class GaussianBlurVerticalShader : public TransformShader
+	class GaussianBlurVerticalShader : public TransformPass
 	{
 	public:
 		GaussianBlurVerticalShader();

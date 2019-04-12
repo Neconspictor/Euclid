@@ -1,9 +1,9 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
-	class ScreenShader : public TransformShader
+	class ScreenShader : public TransformPass
 	{
 	public:
 		ScreenShader();

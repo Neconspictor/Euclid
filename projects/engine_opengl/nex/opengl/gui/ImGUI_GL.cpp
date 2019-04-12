@@ -7,33 +7,33 @@
 #include <nex/mesh/VertexBuffer.hpp>
 #include "nex/mesh/IndexBuffer.hpp"
 #include <nex/mesh/VertexLayout.hpp>
-#include "nex/shader/Shader.hpp"
+#include "nex/shader/Pass.hpp"
 
 #include <nex/RenderBackend.hpp>
 #include "nex/texture/Sampler.hpp"
 
 namespace nex::gui
 {
-	class ImGUI_GL::Drawer : public nex::Shader
+	class ImGUI_GL::Drawer : public nex::Pass
 	{
 	public:
 		Drawer()
 		{
-			mProgram = nex::ShaderProgram::create("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
+			mShader = nex::Shader::create("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 
-			mTexture = mProgram->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
-			mProjMtx = { mProgram->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
+			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
 		}
 
 		void setTexture(nex::Texture2D* texture)
 		{
-			mProgram->setTexture(texture, &mSampler, mTexture.bindingSlot);
+			mShader->setTexture(texture, &mSampler, mTexture.bindingSlot);
 		}
 
 		void setProjMtx(const glm::mat4& mat)
 		{
-			mProgram->setMat4(mProjMtx.location, mat);
+			mShader->setMat4(mProjMtx.location, mat);
 		}
 
 	private:

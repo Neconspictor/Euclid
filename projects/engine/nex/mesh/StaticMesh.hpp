@@ -6,7 +6,7 @@
 
 namespace nex
 {
-	class ShaderProgram;
+	class Shader;
 
 	class StaticMesh
 	{
@@ -26,7 +26,7 @@ namespace nex
 		const std::vector<std::unique_ptr<SubMesh>>& getMeshes() const;
 		const std::vector<std::unique_ptr<Material>>& getMaterials() const;
 
-		void draw(ShaderProgram* shader) {};
+		void draw(Shader* shader) {};
 
 	protected:
 		std::vector<std::unique_ptr<SubMesh>> mMeshes;

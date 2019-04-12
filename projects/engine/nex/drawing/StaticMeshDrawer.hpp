@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
@@ -29,26 +29,26 @@ namespace nex
 		{
 			const glm::mat4* projection;
 			const glm::mat4* view;
-			nex::Shader* shader;
+			nex::Pass* shader;
 		};
 
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
 		using MeshRenderCallback = void(const nex::SubMesh* mesh, const RenderContext* context);
 
 		/**
-		 * Draws this scene node and all its children using a specific shader.
+		 * Draws this scene node and all its children using a specific pass.
 		 */
-		static void draw(SceneNode* root, nex::Shader* shader);
+		static void draw(SceneNode* root, nex::Pass* pass);
 
 		/**
 		 * Draws a sprite onto the screen
 		 */
-		static void draw(const Sprite& sprite, nex::TransformShader* shader);
+		static void draw(const Sprite& sprite, nex::TransformPass* pass);
 
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		static void draw(StaticMesh* model, nex::Shader* shader);
+		static void draw(StaticMesh* model, nex::Pass* shader);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
@@ -59,6 +59,6 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		static void drawWired(StaticMesh* model, nex::Shader* shader, int lineStrength);
+		static void drawWired(StaticMesh* model, nex::Pass* pass, int lineStrength);
 	};
 }

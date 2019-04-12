@@ -4,7 +4,7 @@
 
 namespace nex
 {
-	class ShaderProgram;
+	class Shader;
 	class Texture;
 
 	enum class MaterialType
@@ -20,9 +20,9 @@ namespace nex
 
 		virtual ~Material() = default;
 
-		ShaderProgram* getProgram();
+		Shader* getProgram();
 
-		void init(ShaderProgram* program);
+		void init(Shader* program);
 
 		void set(UniformLocation loc, float value);
 		void set(UniformLocation loc, int value);
@@ -38,7 +38,7 @@ namespace nex
 		void set(UniformLocation loc, const glm::vec4& value);
 		void set(unsigned bindingSlot, const Texture* texture);
 
-		void setProgram(ShaderProgram* program);
+		void setProgram(Shader* program);
 
 		/**
 		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
@@ -66,7 +66,7 @@ namespace nex
 		Map<glm::vec3> mVec3s;
 		Map<glm::vec4> mVec4s;
 
-		ShaderProgram* mProgram;
+		Shader* mProgram;
 	};
 
 	/**
@@ -92,8 +92,6 @@ namespace nex
 			Texture* normalMap,
 			Texture* roughnessMap);
 
-		virtual ~PbrMaterial() = default;
-
 		const Texture* getAlbedoMap() const;
 		const Texture* getAoMap() const;
 		const Texture* getEmissionMap() const;
@@ -108,6 +106,5 @@ namespace nex
 		void setMetallicMap(Texture* metallicMap);
 		void setNormalMap(Texture* normalMap);
 		void setRoughnessMap(Texture* roughnessMap);
-
 	};
 }

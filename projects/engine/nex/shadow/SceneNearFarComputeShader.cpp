@@ -1,5 +1,5 @@
 #include "SceneNearFarComputeShader.hpp"
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/RenderBackend.hpp"
 #include <glm/glm.hpp>
@@ -16,7 +16,7 @@ void nex::SceneNearFarComputeShader::setConstants(float positiveViewNearZ, float
 	mConstantBuffer->update(&data, sizeof(Constant));
 }
 
-nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputeShader()
+nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputePass()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -34,7 +34,7 @@ nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputeShader()
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 
-	mProgram = ShaderProgram::create(shaderStages);
+	mShader = Shader::create(shaderStages);
 
 	mConstantBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Constant), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	mWriteOutBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(WriteOut), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
@@ -47,7 +47,7 @@ nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputeShader()
 	mConstantBuffer->bind();
 	mConstantBuffer->update(&constant, sizeof(constant));
 
-	mDepthTextureUniform = mProgram->createTextureUniform("depthTexture", UniformType::TEXTURE2D, 0);
+	mDepthTextureUniform = mShader->createTextureUniform("depthTexture", UniformType::TEXTURE2D, 0);
 	
 }
 
@@ -62,7 +62,7 @@ nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readRes
 
 void nex::SceneNearFarComputeShader::setDepthTexture(Texture* depth)
 {
-	mProgram->setTexture(depth, &mSampler, mDepthTextureUniform.bindingSlot);
+	mShader->setTexture(depth, &mSampler, mDepthTextureUniform.bindingSlot);
 }
 
 nex::ShaderStorageBuffer* nex::SceneNearFarComputeShader::getConstantBuffer()

@@ -13,7 +13,7 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-void nex::StaticMeshDrawer::draw(SceneNode* root, Shader* shader)
+void nex::StaticMeshDrawer::draw(SceneNode* root, Pass* shader)
 {
 	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
 		draw(*it, shader);
@@ -32,7 +32,7 @@ void nex::StaticMeshDrawer::draw(SceneNode* root, Shader* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformShader* shader)
+void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 {
 	StaticMesh* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
@@ -85,7 +85,7 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformShader* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(StaticMesh* model, Shader* shader)
+void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* shader)
 {
 	//TODO
 	//shader->bind();
@@ -95,7 +95,7 @@ void nex::StaticMeshDrawer::draw(StaticMesh* model, Shader* shader)
 		auto* material = mesh.get()->getMaterial();
 		if (material != nullptr)
 		{
-			material->setProgram(shader->getProgram());
+			material->setProgram(shader->getShader());
 			material->upload();
 		}
 		shader->onMaterialUpdate(mesh.get()->getMaterial());
@@ -180,7 +180,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Shader* shader, int lineStrength)
+void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Pass* shader, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();

@@ -52,7 +52,7 @@ void ComputeTest_Renderer::ComputeTestShader::setConstants(float viewNearZ, floa
 	uniformBuffer->update(data.get(), sizeof(*data));
 }
 
-nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, unsigned height) : ComputeShader()
+nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, unsigned height) : ComputePass()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -77,7 +77,7 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 
-	mProgram = ShaderProgram::create(shaderStages);
+	mShader = Shader::create(shaderStages);
 
 	/*GLuint textureID;
 	glGenTextures(1, &textureID);
@@ -240,8 +240,8 @@ nex::ComputeTest_Renderer::ComputeTestShader::ComputeTestShader(unsigned width, 
 
 void ComputeTest_Renderer::ComputeTestShader::setDepthTexture(Texture* depth, InternFormat format)
 {
-	UniformLocation location = getProgram()->getUniformLocation("depthTexture");
-	getProgram()->setTexture(location, depth, 0);
+	UniformLocation location = getShader()->getUniformLocation("depthTexture");
+	getShader()->setTexture(location, depth, 0);
 	/*getProgram()->setImageLayerOfTexture(0,
 		depth,
 		0,
@@ -263,7 +263,7 @@ void ComputeTest_Renderer::ComputeTestShader::reset(WriteOut* out)
 	//out->lock = 0;
 }
 
-ComputeTest_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputeShader()
+ComputeTest_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* texture) : ComputePass()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -281,12 +281,12 @@ ComputeTest_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* 
 		shaderStages[i] = ShaderStage::compileShaderStage(programSources.descs[i]);
 	}
 
-	mProgram = ShaderProgram::create(shaderStages);
+	mShader = Shader::create(shaderStages);
 
 	bind();
 
-	UniformLocation location = getProgram()->getUniformLocation("data");
-	getProgram()->setImageLayerOfTexture(location,
+	UniformLocation location = getShader()->getUniformLocation("data");
+	getShader()->setImageLayerOfTexture(location,
 		texture,
 		0,
 		TextureAccess::READ_WRITE,
@@ -300,18 +300,18 @@ ComputeTest_Renderer::ComputeClearColorShader::ComputeClearColorShader(Texture* 
 
 ComputeTest_Renderer::SimpleBlinnPhong::SimpleBlinnPhong() : mView(nullptr), mProjection(nullptr)
 {
-	mProgram = ShaderProgram::create("test/compute/blinn_phong_simple_vs.glsl",
+	mShader = Shader::create("test/compute/blinn_phong_simple_vs.glsl",
 		"test/compute/blinn_phong_simple_fs.glsl");
 
-	mTransformMatrix = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mModelMatrix = { mProgram->getUniformLocation("model"), UniformType::MAT4 };
-	mViewPositionWorld = { mProgram->getUniformLocation("viewPos_world"), UniformType::MAT4 };
-	mDirLightDirection = { mProgram->getUniformLocation("dirLight.direction"), UniformType::MAT4 };
+	mTransformMatrix = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	mModelMatrix = { mShader->getUniformLocation("model"), UniformType::MAT4 };
+	mViewPositionWorld = { mShader->getUniformLocation("viewPos_world"), UniformType::MAT4 };
+	mDirLightDirection = { mShader->getUniformLocation("dirLight.direction"), UniformType::MAT4 };
 }
 
 void nex::ComputeTest_Renderer::SimpleBlinnPhong::setLightDirection(const glm::vec3 lightDirectionWorld)
 {
-	mProgram->setVec3(mDirLightDirection.location, lightDirectionWorld);
+	mShader->setVec3(mDirLightDirection.location, lightDirectionWorld);
 }
 
 void ComputeTest_Renderer::SimpleBlinnPhong::setView(const glm::mat4* view)
@@ -326,7 +326,7 @@ void ComputeTest_Renderer::SimpleBlinnPhong::setProjection(const glm::mat4* proj
 
 void ComputeTest_Renderer::SimpleBlinnPhong::setViewPositionWorld(const glm::vec3 viewPositionWorld)
 {
-	mProgram->setVec3(mViewPositionWorld.location, viewPositionWorld);
+	mShader->setVec3(mViewPositionWorld.location, viewPositionWorld);
 }
 
 void ComputeTest_Renderer::SimpleBlinnPhong::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
@@ -335,24 +335,24 @@ void ComputeTest_Renderer::SimpleBlinnPhong::onModelMatrixUpdate(const glm::mat4
 
 	const mat4 transform = *mProjection * *mView * modelMatrix;
 
-	mProgram->setMat4(mTransformMatrix.location, transform);
-	mProgram->setMat4(mModelMatrix.location, modelMatrix);
+	mShader->setMat4(mTransformMatrix.location, transform);
+	mShader->setMat4(mModelMatrix.location, modelMatrix);
 }
 
 
 
 ComputeTest_Renderer::SimpleGeometryShader::SimpleGeometryShader() : mProjection(nullptr), mView(nullptr)
 {
-	mProgram = ShaderProgram::create("test/compute/simpl_geometry_vs.glsl",
+	mShader = Shader::create("test/compute/simpl_geometry_vs.glsl",
 		"test/compute/simpl_geometry_fs.glsl");
 
-	mTransformMatrix = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mTransformMatrix = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 }
 
 void ComputeTest_Renderer::SimpleGeometryShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
 {
 	const mat4 transform = *mProjection * *mView * modelMatrix;
-	mProgram->setMat4(mTransformMatrix.location, transform);
+	mShader->setMat4(mTransformMatrix.location, transform);
 }
 
 void ComputeTest_Renderer::SimpleGeometryShader::setView(const glm::mat4* view)

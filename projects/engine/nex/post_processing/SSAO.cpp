@@ -23,16 +23,16 @@ namespace nex
 {
 
 
-	class SSAO_AO_Shader : public nex::Shader
+	class SSAO_AO_Shader : public nex::Pass
 	{
 	public:
 
 		SSAO_AO_Shader(unsigned int kernelSampleSize) :
-			Shader(), mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
+			Pass(), mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
 			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr), m_samples(nullptr),
 			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
-			mProgram = ShaderProgram::create("post_processing/ssao/fullscreenquad.vert.glsl",
+			mShader = Shader::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
 
 			mSamplerDepth.setMinFilter(TextureFilter::Linear);
@@ -48,11 +48,11 @@ namespace nex
 			mSamplerNoise.setWrapS(TextureUVTechnique::Repeat);
 			mSamplerNoise.setWrapT(TextureUVTechnique::Repeat);
 
-			UniformLocation depthLoc = mProgram->getUniformLocation("gDepth");
-			mProgram->setBinding(depthLoc, 0);
+			UniformLocation depthLoc = mShader->getUniformLocation("gDepth");
+			mShader->setBinding(depthLoc, 0);
 
-			UniformLocation noiseLoc = mProgram->getUniformLocation("texNoise");
-			mProgram->setBinding(noiseLoc, 1);
+			UniformLocation noiseLoc = mShader->getUniformLocation("texNoise");
+			mShader->setBinding(noiseLoc, 1);
 
 
 		}
@@ -67,8 +67,8 @@ namespace nex
 				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
 				0);
 
-			mProgram->setTexture(m_gDepth, &mSamplerDepth, 0);
-			mProgram->setTexture(m_texNoise, &mSamplerNoise, 1);
+			mShader->setTexture(m_gDepth, &mSamplerDepth, 0);
+			mShader->setTexture(m_texNoise, &mSamplerNoise, 1);
 
 			static auto* renderBackend = RenderBackend::get();
 			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -135,18 +135,18 @@ namespace nex
 		VertexArray m_fullscreenTriangleVAO;
 	};
 
-	class SSAO_Tiled_Blur_Shader : public TransformShader
+	class SSAO_Tiled_Blur_Shader : public TransformPass
 	{
 	public:
 
 		SSAO_Tiled_Blur_Shader() : mBlurSampler(SamplerDesc()){
 
-			mProgram = ShaderProgram::create("post_processing/ssao/ssao_tiled_blur_vs.glsl",
+			mShader = Shader::create("post_processing/ssao/ssao_tiled_blur_vs.glsl",
 				"post_processing/ssao/ssao_tiled_blur_fs.glsl");
 
-			mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-			mAoTexture = { mProgram->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
-			mProgram->setBinding(mAoTexture.location, mAoTexture.bindingSlot);
+			mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+			mAoTexture = { mShader->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
+			mShader->setBinding(mAoTexture.location, mAoTexture.bindingSlot);
 
 			mBlurSampler.setWrapR(TextureUVTechnique::ClampToBorder);
 			mBlurSampler.setWrapS(TextureUVTechnique::ClampToBorder);
@@ -164,11 +164,11 @@ namespace nex
 		}
 
 		void setAOTexture(const Texture* texture) {
-			mProgram->setTexture(texture, &mBlurSampler, mAoTexture.bindingSlot);
+			mShader->setTexture(texture, &mBlurSampler, mAoTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {
-			mProgram->setMat4(mTransform.location, mat);
+			mShader->setMat4(mTransform.location, mat);
 		}
 
 		void onTransformUpdate(const TransformData& data) override
@@ -183,27 +183,27 @@ namespace nex
 	};
 
 
-	class SSAO_AO_Display_Shader : public TransformShader
+	class SSAO_AO_Display_Shader : public TransformPass
 	{
 	public:
 
 		SSAO_AO_Display_Shader() {
-			mProgram = ShaderProgram::create("post_processing/ssao/ssao_ao_display_vs.glsl",
+			mShader = Shader::create("post_processing/ssao/ssao_ao_display_vs.glsl",
 				"post_processing/ssao/ssao_ao_display_fs.glsl");
 
-			mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-			mScreenTexture = { mProgram->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0 };
-			mProgram->setBinding(mScreenTexture.location, mScreenTexture.bindingSlot);
+			mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+			mScreenTexture = { mShader->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0 };
+			mShader->setBinding(mScreenTexture.location, mScreenTexture.bindingSlot);
 		}
 
 		virtual ~SSAO_AO_Display_Shader() = default;
 
 		void setScreenTexture(const Texture* texture) {
-			mProgram->setTexture(texture, &mSampler, mScreenTexture.bindingSlot);
+			mShader->setTexture(texture, &mSampler, mScreenTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {
-			mProgram->setMat4(mTransform.location, mat);
+			mShader->setMat4(mTransform.location, mat);
 		}
 
 		void onTransformUpdate(const TransformData& data) override

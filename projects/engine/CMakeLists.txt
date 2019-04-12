@@ -189,6 +189,8 @@ set(
     #nex/shader
     nex/shader/DepthMapShader.hpp
 	nex/shader/DepthMapShader.cpp
+    nex/shader/Pass.cpp
+    nex/shader/Pass.hpp
     nex/shader/PBRShader.hpp
 	nex/shader/PBRShader.cpp
     nex/shader/ScreenShader.hpp

@@ -1,9 +1,9 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
-	class PointShadowShader : public Shader
+	class PointShadowShader : public Pass
 	{
 	public:
 		PointShadowShader();
@@ -24,7 +24,7 @@ namespace nex
 		Uniform mRange;
 	};
 
-	class ShadowShader : public Shader
+	class ShadowShader : public Pass
 	{
 	public:
 		ShadowShader();
@@ -42,7 +42,7 @@ namespace nex
 		Uniform mLightSpaceMatrix;
 	};
 
-	class VarianceShadowShader : public Shader
+	class VarianceShadowShader : public Pass
 	{
 	public:
 		VarianceShadowShader();

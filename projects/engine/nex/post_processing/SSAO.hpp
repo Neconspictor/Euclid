@@ -10,9 +10,9 @@ namespace nex
 	class Texture2D;
 	class RenderTarget;
 	class RenderTarget2D;
-	class ShaderProgram;
-	class StaticMeshDrawer;
 	class Shader;
+	class StaticMeshDrawer;
+	class Pass;
 
 	const int SSAO_SAMPLING_SIZE = 32;
 
@@ -67,9 +67,9 @@ namespace nex
 		std::unique_ptr<Texture2D> noiseTexture;
 		std::unique_ptr<RenderTarget2D> aoRenderTarget;
 		std::unique_ptr<RenderTarget2D> tiledBlurRenderTarget;
-		std::unique_ptr<nex::Shader> aoPass;
-		std::unique_ptr<nex::Shader> tiledBlurPass;
-		std::unique_ptr<nex::Shader> aoDisplay;
+		std::unique_ptr<nex::Pass> aoPass;
+		std::unique_ptr<nex::Pass> tiledBlurPass;
+		std::unique_ptr<nex::Pass> aoDisplay;
 
 		unsigned int windowWidth;
 		unsigned int windowHeight;

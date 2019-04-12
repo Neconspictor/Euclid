@@ -4,7 +4,7 @@
 #include <nex/texture/Image.hpp>
 #include <nex/texture/Texture.hpp>
 #include <cassert>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <nex/opengl/opengl.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
 #include "nex/opengl/CacheGL.hpp"

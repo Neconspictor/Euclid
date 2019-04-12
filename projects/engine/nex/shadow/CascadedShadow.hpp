@@ -1,10 +1,10 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
 #include "nex/shader/ShaderBuffer.hpp"
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
@@ -36,7 +36,7 @@ namespace nex
 			bool operator==(const PCFFilter& o);
 		};
 
-		class CascadeDataShader : public ComputeShader
+		class CascadeDataShader : public ComputePass
 		{
 		public:
 
@@ -135,7 +135,7 @@ namespace nex
 
 		const CascadeData& getCascadeData() const;
 
-		Shader* getDepthPassShader();
+		Pass* getDepthPassShader();
 
 		unsigned getHeight() const;
 
@@ -180,7 +180,7 @@ namespace nex
 			float radius;
 		};
 
-		class DepthPassShader : public Shader
+		class DepthPassShader : public Pass
 		{
 		public:
 			DepthPassShader(unsigned numCascades);

@@ -16,9 +16,9 @@ using namespace nex;
 
 PbrProbe::PbrProbe(Texture* backgroundHDR) :
 	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::None),
-	mConvolutionPass(std::make_unique<PbrConvolutionShader>()),
-	mPrefilterPass(std::make_unique<PbrPrefilterShader>()),
-	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputeShader>())
+	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
+	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
+	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputePass>())
 {
 
 	skybox.init();

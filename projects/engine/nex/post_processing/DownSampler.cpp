@@ -1,17 +1,17 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/texture/Texture.hpp>
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
 
-class nex::DownSampler::DownSampleShader : public Shader
+class nex::DownSampler::DownSampleShader : public Pass
 {
 public:
 	DownSampleShader()
 	{
-		mProgram = ShaderProgram::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
-		mSourceUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
-		mProgram->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
+		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
+		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
+		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
 
 private:
@@ -65,7 +65,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	//dest->clear(Color);
 
 	mDownSampleShader->bind();
-	mDownSampleShader->getProgram()->setTexture(src, mSampler.get(), 0);
+	mDownSampleShader->getShader()->setTexture(src, mSampler.get(), 0);
 
 	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
 

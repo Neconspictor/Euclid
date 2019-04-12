@@ -7,16 +7,16 @@ using namespace nex;
 
 CubeDepthMapShader::CubeDepthMapShader()
 {
-	mProgram = ShaderProgram::create(
+	mShader = Shader::create(
 		"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
 
-	mModel = { mProgram->getUniformLocation("model"), UniformType::MAT4};
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mLightPos = { mProgram->getUniformLocation("lightPos"), UniformType::VEC3 };
-	mRange = { mProgram->getUniformLocation("range"), UniformType::FLOAT };
-	mCubeMap = { mProgram->getUniformLocation("cubeDepthMap"), UniformType::CUBE_MAP, 0};
+	mModel = { mShader->getUniformLocation("model"), UniformType::MAT4};
+	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	mLightPos = { mShader->getUniformLocation("lightPos"), UniformType::VEC3 };
+	mRange = { mShader->getUniformLocation("range"), UniformType::FLOAT };
+	mCubeMap = { mShader->getUniformLocation("cubeDepthMap"), UniformType::CUBE_MAP, 0};
 
-	mProgram->setBinding(mCubeMap.location, mCubeMap.bindingSlot);
+	mShader->setBinding(mCubeMap.location, mCubeMap.bindingSlot);
 
 	auto state = mSampler.getState();
 	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToBorder;
@@ -26,38 +26,38 @@ CubeDepthMapShader::CubeDepthMapShader()
 
 void CubeDepthMapShader::useCubeDepthMap(const CubeMap* map)
 {
-	mProgram->setTexture(map, &mSampler, mCubeMap.bindingSlot);
+	mShader->setTexture(map, &mSampler, mCubeMap.bindingSlot);
 }
 
 void CubeDepthMapShader::setLightPos(const vec3& pos)
 {
-	mProgram->setVec3(mLightPos.location, pos);
+	mShader->setVec3(mLightPos.location, pos);
 }
 
 void CubeDepthMapShader::setRange(float range)
 {
-	mProgram->setFloat(mRange.location, range);
+	mShader->setFloat(mRange.location, range);
 }
 
 void CubeDepthMapShader::setModelMatrix(const glm::mat4& model)
 {
-	mProgram->setMat4(mModel.location, model);
+	mShader->setMat4(mModel.location, model);
 }
 
 void CubeDepthMapShader::setMVP(const glm::mat4& trafo)
 {
-	mProgram->setMat4(mTransform.location, trafo);
+	mShader->setMat4(mTransform.location, trafo);
 }
 
 DepthMapShader::DepthMapShader()
 {
-	mProgram = ShaderProgram::create(
+	mShader = Shader::create(
 		"depth_map_vs.glsl", "depth_map_fs.glsl");
 
-	mDephTexture = { mProgram->getUniformLocation("depthMap"), UniformType::TEXTURE2D, 0};
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mDephTexture = { mShader->getUniformLocation("depthMap"), UniformType::TEXTURE2D, 0};
+	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 
-	mProgram->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
+	mShader->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
 
 	auto state = mSampler.getState();
 	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToBorder;
@@ -72,23 +72,23 @@ void DepthMapShader::onTransformUpdate(const TransformData& data)
 
 void DepthMapShader::useDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
+	mShader->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
 }
 
 void DepthMapShader::setMVP(const glm::mat4& trafo)
 {
-	mProgram->setMat4(mTransform.location, trafo);
+	mShader->setMat4(mTransform.location, trafo);
 }
 
 VarianceDepthMapShader::VarianceDepthMapShader()
 {
-	mProgram = ShaderProgram::create (
+	mShader = Shader::create (
 		"variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
 
-	mDephTexture = { mProgram->getUniformLocation("vDepthMap"), UniformType::TEXTURE2D, 0 };
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
+	mDephTexture = { mShader->getUniformLocation("vDepthMap"), UniformType::TEXTURE2D, 0 };
+	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 
-	mProgram->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
+	mShader->setBinding(mDephTexture.location, mDephTexture.bindingSlot);
 
 	auto state = mSampler.getState();
 	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToBorder;
@@ -98,11 +98,11 @@ VarianceDepthMapShader::VarianceDepthMapShader()
 
 void VarianceDepthMapShader::setMVP(const glm::mat4& trafo)
 {
-	mProgram->setMat4(mTransform.location, trafo);
+	mShader->setMat4(mTransform.location, trafo);
 }
 
 
 void VarianceDepthMapShader::useVDepthMapTexture(const Texture* texture)
 {
-	mProgram->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
+	mShader->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
 }

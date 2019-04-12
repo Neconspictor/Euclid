@@ -70,12 +70,12 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 {
 	std::vector<std::string> result;
 
-	result.emplace_back(ShaderProgram::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
-	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
-	result.emplace_back(ShaderProgram::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
-	result.emplace_back(ShaderProgram::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
-	result.emplace_back(ShaderProgram::makeDefine("CSM_ENABLED", mEnabled));
-	result.emplace_back(ShaderProgram::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
+	result.emplace_back(Shader::makeDefine("CSM_NUM_CASCADES", getCascadeData().numCascades));
+	result.emplace_back(Shader::makeDefine("CSM_SAMPLE_COUNT_X", mPCF.sampleCountX));
+	result.emplace_back(Shader::makeDefine("CSM_SAMPLE_COUNT_Y", mPCF.sampleCountY));
+	result.emplace_back(Shader::makeDefine("CSM_USE_LERP_FILTER", mPCF.useLerpFiltering));
+	result.emplace_back(Shader::makeDefine("CSM_ENABLED", mEnabled));
+	result.emplace_back(Shader::makeDefine("CSM_BIAS_MULTIPLIER", mBiasMultiplier));
 
 	return result;
 }
@@ -602,20 +602,20 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 CascadedShadow::DepthPassShader::DepthPassShader(unsigned numCascades) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mProgram = ShaderProgram::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
+	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
 }
 
 void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
 {
 	static const UniformLocation MODEL_MATRIX_LOCATION = 1;
-	mProgram->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
+	mShader->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
 void CascadedShadow::DepthPassShader::setCascadeIndex(unsigned index)
 {
 	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
-	mProgram->setUInt(CASCADE_INDEX_LOCATION, index);
+	mShader->setUInt(CASCADE_INDEX_LOCATION, index);
 }
 
 void CascadedShadow::DepthPassShader::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
@@ -624,19 +624,19 @@ void CascadedShadow::DepthPassShader::setCascadeShaderBuffer(ShaderStorageBuffer
 	//buffer->syncWithGPU();
 }
 
-CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputeShader(), mNumCascades(numCascades)
+CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
 {
 	std::vector<std::string> defines{ std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mProgram = ShaderProgram::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
+	mShader = Shader::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
-	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY, mProgram.get());
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY, mShader.get());
 
 	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	
-	mUseAntiFlickering = { mProgram->getUniformLocation("useAntiFlickering"), UniformType::UINT};
+	mUseAntiFlickering = { mShader->getUniformLocation("useAntiFlickering"), UniformType::UINT};
 
 	resetPrivateData();
 }
@@ -654,7 +654,7 @@ void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuff
 
 void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
 {
-	mProgram->setUInt(mUseAntiFlickering.location, use);
+	mShader->setUInt(mUseAntiFlickering.location, use);
 }
 
 void CascadedShadow::CascadeDataShader::update(const Input& input)
@@ -732,7 +732,7 @@ void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
 	if (informObservers) informCascadeChanges();
 }
 
-Shader* CascadedShadow::getDepthPassShader()
+Pass* CascadedShadow::getDepthPassShader()
 {
 	return mDepthPassShader.get();
 }

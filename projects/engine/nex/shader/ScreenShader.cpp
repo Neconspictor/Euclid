@@ -9,10 +9,10 @@ using namespace glm;
 
 ScreenShader::ScreenShader()
 {
-	mProgram = ShaderProgram::create("screen_vs.glsl", "screen_fs.glsl");
+	mShader = Shader::create("screen_vs.glsl", "screen_fs.glsl");
 
-	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
-	mTexture = mProgram->createTextureUniform("screenTexture", UniformType::TEXTURE2D, 0);
+	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	mTexture = mShader->createTextureUniform("screenTexture", UniformType::TEXTURE2D, 0);
 
 	mSampler.setMinFilter(TextureFilter::NearestNeighbor);
 	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
@@ -20,12 +20,12 @@ ScreenShader::ScreenShader()
 
 void ScreenShader::useTexture(const Texture* texture)
 {
-	mProgram->setTexture(texture, &mSampler, mTexture.bindingSlot);
+	mShader->setTexture(texture, &mSampler, mTexture.bindingSlot);
 }
 
 void ScreenShader::setMVP(const glm::mat4& mat)
 {
-	mProgram->setMat4(mTransform.location, mat);
+	mShader->setMat4(mTransform.location, mat);
 }
 
 void ScreenShader::onTransformUpdate(const TransformData& data)

@@ -8,7 +8,7 @@
 
 namespace nex
 {
-	class PbrCommonGeometryShader
+	class PbrCommonGeometryPass
 	{
 	public:
 
@@ -38,8 +38,8 @@ namespace nex
 		void doModelMatrixUpdate(const glm::mat4& model);
 
 	protected:
-		PbrCommonGeometryShader();
-		void init(ShaderProgram* program);
+		PbrCommonGeometryPass();
+		void init(Shader* program);
 
 	private:
 		// mesh material
@@ -56,11 +56,11 @@ namespace nex
 		glm::mat4 const* mProjectionMatrixSource;
 		glm::mat4 const* mViewMatrixSource;
 
-		ShaderProgram* mProgram;
+		Shader* mProgram;
 		Sampler* mDefaultImageSampler;
 	};
 
-	class PbrCommonLightingShader
+	class PbrCommonLightingPass
 	{
 	public:
 		void setBrdfLookupTexture(const Texture* brdfLUT);
@@ -85,8 +85,8 @@ namespace nex
 
 
 	protected:
-		PbrCommonLightingShader(const CascadedShadow& cascadedShadow);
-		void init(ShaderProgram* program);
+		PbrCommonLightingPass(const CascadedShadow& cascadedShadow);
+		void init(Shader* program);
 
 	private:
 		//ibl
@@ -109,12 +109,12 @@ namespace nex
 
 		Uniform mNearFarPlane;
 
-		ShaderProgram* mProgram;
+		Shader* mProgram;
 		Sampler mSampler;
 		Sampler mCascadedShadowMapSampler;
 	};
 
-	class PbrForwardShader : public Shader, public PbrCommonGeometryShader, public PbrCommonLightingShader
+	class PbrForwardPass : public Pass, public PbrCommonGeometryPass, public PbrCommonLightingPass
 	{
 	public:
 
@@ -124,24 +124,24 @@ namespace nex
 			glm::vec3 color;
 		};
 
-		PbrForwardShader(const CascadedShadow& cascadedShadow);
+		PbrForwardPass(const CascadedShadow& cascadedShadow);
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
 	};
 
-	class PbrDeferredGeometryShader : public Shader, public PbrCommonGeometryShader {
+	class PbrDeferredGeometryPass : public Pass, public PbrCommonGeometryPass {
 	public:
-		PbrDeferredGeometryShader();
+		PbrDeferredGeometryPass();
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
 	};
 
-	class PbrDeferredLightingShader : public TransformShader, public PbrCommonLightingShader {
+	class PbrDeferredLightingPass : public TransformPass, public PbrCommonLightingPass {
 	public:
 
-		PbrDeferredLightingShader(const CascadedShadow& cascadedShadow);
+		PbrDeferredLightingPass(const CascadedShadow& cascadedShadow);
 
 		void setMVP(const glm::mat4& trafo);
 
@@ -166,12 +166,12 @@ namespace nex
 		Uniform mInverseProjFromGPass;
 	};
 
-	class PbrConvolutionShader : public Shader
+	class PbrConvolutionPass : public Pass
 	{
 	public:
-		PbrConvolutionShader();
+		PbrConvolutionPass();
 
-		virtual ~PbrConvolutionShader() = default;
+		virtual ~PbrConvolutionPass() = default;
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
@@ -184,12 +184,12 @@ namespace nex
 		Sampler mSampler;
 	};
 
-	class PbrPrefilterShader : public Shader
+	class PbrPrefilterPass : public Pass
 	{
 	public:
-		PbrPrefilterShader();
+		PbrPrefilterPass();
 
-		virtual ~PbrPrefilterShader() = default;
+		virtual ~PbrPrefilterPass() = default;
 
 		void setMapToPrefilter(CubeMap* cubeMap);
 
@@ -205,12 +205,12 @@ namespace nex
 		Uniform mRoughness;
 	};
 
-	class PbrBrdfPrecomputeShader : public TransformShader
+	class PbrBrdfPrecomputePass : public TransformPass
 	{
 	public:
-		PbrBrdfPrecomputeShader();
+		PbrBrdfPrecomputePass();
 
-		virtual ~PbrBrdfPrecomputeShader() = default;
+		virtual ~PbrBrdfPrecomputePass() = default;
 
 		void setMVP(const glm::mat4& mat);
 

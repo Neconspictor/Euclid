@@ -12,7 +12,7 @@ namespace nex
 	class Sampler;
 	enum class InternFormat;
 	enum class TextureAccess;
-	class Shader;
+	class Pass;
 	struct ResolvedShaderStageDesc;
 	class Material;
 	class Texture;
@@ -62,21 +62,21 @@ namespace nex
 /**
  * Represents a shader program for an OpenGL renderer.
  */
-	class ShaderProgram
+	class Shader
 	{
 	public:
 
 		class Impl;
 
-		ShaderProgram(std::unique_ptr<Impl> impl);
+		Shader(std::unique_ptr<Impl> impl);
 
-		virtual ~ShaderProgram() = default;
+		virtual ~Shader() = default;
 
 		template<typename T>
 		static std::string makeDefine(const char* str, T value);
 
 		/**
-		 * Binds this shader program.
+		 * Binds this shader.
 		 */
 		void bind();
 
@@ -91,12 +91,12 @@ namespace nex
 
 		UniformLocation getShaderStorageBufferLocation(const char* name) const;
 
-		static std::unique_ptr<ShaderProgram> create(const FilePath& vertexFile, const FilePath& fragmentFile,
+		static std::unique_ptr<Shader> create(const FilePath& vertexFile, const FilePath& fragmentFile,
 			const FilePath& geometryShaderFile = "", const std::vector<std::string>& defines = {});
 
-		static std::unique_ptr<ShaderProgram> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
+		static std::unique_ptr<Shader> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
 
-		static std::unique_ptr<ShaderProgram> create(const std::vector<Guard<ShaderStage>>& stages);
+		static std::unique_ptr<Shader> create(const std::vector<Guard<ShaderStage>>& stages);
 
 
 		void setBinding(UniformLocation locationID, unsigned int bindingSlot);
@@ -195,98 +195,26 @@ namespace nex
 		void setDebugName(const char* name);
 
 		/**
-		 * Unbinds this shader program.
+		 * Unbinds this shader.
 		 */
 		void unbind();
 
 
 	protected:
 
-		friend Shader;
+		friend Pass;
 		std::unique_ptr<Impl> mImpl;
 
 	private:
-		ShaderProgram& operator=(const ShaderProgram& other) = delete;
-		ShaderProgram(const ShaderProgram& other) = delete;
+		Shader& operator=(const Shader& other) = delete;
+		Shader(const Shader& other) = delete;
 	};
 
 	template <typename T>
-	std::string ShaderProgram::makeDefine(const char* str, T value)
+	std::string Shader::makeDefine(const char* str, T value)
 	{
 		return std::string("#define ") + std::string(str) + std::string(" ") + std::to_string(value);
 	}
 
-
-	class Shader
-	{
-	public:
-
-		Shader(std::unique_ptr<ShaderProgram> program = nullptr);
-
-		virtual ~Shader() = default;
-
-		/**
-		 * Binds this shader and the underlying shader program.
-		 */
-		void bind();
-
-		ShaderProgram* getProgram();
-
-		void setProgram(std::unique_ptr<ShaderProgram> program);
-
-		/**
-		 * Unbinds this shader and the underlying shader program.
-		 */
-		void unbind();
-
-		virtual void onModelMatrixUpdate(const glm::mat4& modelMatrix);
-
-		virtual void onMaterialUpdate(const Material* material);
-
-		// Function that should be called before render calls
-		virtual void setupRenderState();
-
-		// Reverse the state of the function setupRenderState
-		// TODO
-		virtual void reverseRenderState();
-
-	protected:
-
-		Shader(const Shader&) = delete;
-		Shader& operator=(const Shader&) = delete;
-
-		std::unique_ptr<ShaderProgram> mProgram;
-
-		// Many passes need a sampler object, so we specify one default one here.
-		Sampler mSampler;
-	};
-
-	class TransformShader : public Shader
-	{
-	public:
-		TransformShader(std::unique_ptr<ShaderProgram> program = nullptr);
-		virtual ~TransformShader() = default;
-
-		virtual void onTransformUpdate(const TransformData& data) = 0;
-	};
-
-	class ComputeShader : public Shader
-	{
-	public:
-		ComputeShader(std::unique_ptr<ShaderProgram> program = nullptr);
-		virtual ~ComputeShader() = default;
-
-		/**
-		 * Notice: Has to be implemented by the render backend implementation!
-		 * Notice: The shader has to be bound (with bind()) before this function is called!
-		 * Otherwise the behaviour is undefined!
-		 * 
-		 * @param workGroupsX: The number of work groups to be launched in the X dimension. 
-		 * @param workGroupsY: The number of work groups to be launched in the Y dimension. 
-		 * @param workGroupsZ: The number of work groups to be launched in the Z dimension. 
-		 */
-		void dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ);
-	};
-
 	std::ostream& operator<<(std::ostream& os, nex::ShaderStageType stageType);
-};
+}

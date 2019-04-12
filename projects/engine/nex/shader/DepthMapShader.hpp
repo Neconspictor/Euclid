@@ -1,11 +1,11 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/Sampler.hpp>
 
 namespace nex
 {
-	class CubeDepthMapShader : public Shader
+	class CubeDepthMapShader : public Pass
 	{
 	public:
 		CubeDepthMapShader();
@@ -28,7 +28,7 @@ namespace nex
 		Sampler mSampler;
 	};
 
-	class DepthMapShader : public TransformShader
+	class DepthMapShader : public TransformPass
 	{
 	public:
 		DepthMapShader();
@@ -46,7 +46,7 @@ namespace nex
 		Sampler mSampler;
 	};
 
-	class VarianceDepthMapShader : public Shader
+	class VarianceDepthMapShader : public Pass
 	{
 	public:
 		VarianceDepthMapShader();

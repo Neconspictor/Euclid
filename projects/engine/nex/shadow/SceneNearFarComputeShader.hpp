@@ -1,12 +1,12 @@
 #pragma once
-#include "nex/shader/Shader.hpp"
+#include "nex/shader/Pass.hpp"
 
 namespace nex
 {
 
 	class ShaderStorageBuffer;
 
-	class SceneNearFarComputeShader : public nex::ComputeShader
+	class SceneNearFarComputeShader : public nex::ComputePass
 	{
 	public:
 		struct Constant

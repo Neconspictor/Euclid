@@ -15,7 +15,7 @@ namespace nex
 	{
 	public:
 
-		class ComputeTestShader : public nex::ComputeShader
+		class ComputeTestShader : public nex::ComputePass
 		{
 		public:
 			static const unsigned width = 2048;
@@ -72,13 +72,13 @@ namespace nex
 
 		};
 
-		class ComputeClearColorShader : public nex::ComputeShader
+		class ComputeClearColorShader : public nex::ComputePass
 		{
 		public:
 			ComputeClearColorShader(Texture* texture);
 		};
 
-		class SimpleBlinnPhong : public Shader
+		class SimpleBlinnPhong : public Pass
 		{
 		public:
 			SimpleBlinnPhong();
@@ -101,7 +101,7 @@ namespace nex
 			const glm::mat4* mProjection;
 		};
 
-		class SimpleGeometryShader : public Shader
+		class SimpleGeometryShader : public Pass
 		{
 		public:
 			SimpleGeometryShader();

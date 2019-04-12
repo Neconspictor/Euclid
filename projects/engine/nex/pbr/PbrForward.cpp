@@ -17,7 +17,7 @@ using namespace std;
 namespace nex {
 
 	PbrForward::PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardShader>(*cascadeShadow))
+	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardPass>(*cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -28,7 +28,7 @@ namespace nex {
 
 	void PbrForward::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
-		mForwardShader = std::make_unique<PbrForwardShader>(cascadedShadow);
+		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
 	}
 
 
@@ -63,8 +63,8 @@ namespace nex {
 
 		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
 
-		mForwardShader->PbrCommonGeometryShader::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
-		mForwardShader->PbrCommonLightingShader::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mForwardShader->PbrCommonGeometryPass::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mForwardShader->PbrCommonLightingPass::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 
 		//TODO
 		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());

@@ -2,7 +2,7 @@
 
 #include <nex/texture/Sprite.hpp>
 #include <nex/gui/Drawable.hpp>
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 #include <glm/glm.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
 #include <nex/mesh/VertexArray.hpp>
@@ -59,7 +59,7 @@ namespace nex {
 	};
 
 
-	class BilateralBlur : public Shader {
+	class BilateralBlur : public Pass {
 	public:
 
 		explicit BilateralBlur();
@@ -79,7 +79,7 @@ namespace nex {
 		unsigned int m_textureWidth;
  	};
 
-	class DepthLinearizer : public Shader {
+	class DepthLinearizer : public Pass {
 	public:
 
 		DepthLinearizer();
@@ -95,7 +95,7 @@ namespace nex {
 		std::unique_ptr<Sampler> mSampler;
 	};
 
-	class DisplayTex : public Shader {
+	class DisplayTex : public Pass {
 	public:
 
 		DisplayTex();
@@ -108,7 +108,7 @@ namespace nex {
 		Texture* m_input;
 	};
 
-	class HBAO_Shader : public Shader {
+	class HBAO_Shader : public Pass {
 	public:
 
 		HBAO_Shader();

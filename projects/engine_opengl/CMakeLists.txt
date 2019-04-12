@@ -41,6 +41,7 @@ set(
     nex/opengl/mesh/VertexBuffer.cpp
     
     #nex/opengl/shader
+    nex/opengl/shader/PassGL.cpp
     nex/opengl/shader/ShaderBufferGL.hpp
 	nex/opengl/shader/ShaderBufferGL.cpp
     nex/opengl/shader/ShaderGL.hpp

@@ -39,7 +39,7 @@ namespace nex
 	/**
 	 * Represents a shader program for an OpenGL renderer.
 	 */
-	class ShaderProgram::Impl
+	class Shader::Impl
 	{
 	public:
 
@@ -92,7 +92,7 @@ namespace nex
 
 	protected:
 
-		friend ShaderProgram;
+		friend Shader;
 		friend ShaderStage;
 
 		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);

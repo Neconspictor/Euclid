@@ -16,8 +16,8 @@ namespace nex {
 
 	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
 		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe),
-		mGeometryPass(std::make_unique<PbrDeferredGeometryShader>()),
-		mLightPass(std::make_unique<PbrDeferredLightingShader>(*cascadeShadow))
+		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
+		mLightPass(std::make_unique<PbrDeferredLightingPass>(*cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -111,6 +111,6 @@ namespace nex {
 
 	void PbrDeferred::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
-		mLightPass = std::make_unique<PbrDeferredLightingShader>(cascadedShadow);
+		mLightPass = std::make_unique<PbrDeferredLightingPass>(cascadedShadow);
 	}
 }

@@ -8,7 +8,7 @@
 
 namespace nex
 {
-	class SceneNearFarComputeShader : public nex::ComputeShader
+	class SceneNearFarComputeShader : public nex::ComputePass
 	{
 	public:
 		struct Constant

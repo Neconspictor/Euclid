@@ -1,11 +1,11 @@
 #pragma once
-#include <nex/shader/Shader.hpp>
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
 	class CubeMap;
 
-	class SkyBoxShader : public Shader
+	class SkyBoxShader : public Pass
 	{
 	public:
 		SkyBoxShader();
@@ -28,7 +28,7 @@ namespace nex
 		Uniform mView;
 	};
 
-	class PanoramaSkyBoxShader : public Shader
+	class PanoramaSkyBoxShader : public Pass
 	{
 	public:
 		PanoramaSkyBoxShader();
@@ -44,7 +44,7 @@ namespace nex
 		Uniform mView;
 	};
 
-	class EquirectangularSkyBoxShader : public Shader
+	class EquirectangularSkyBoxShader : public Pass
 	{
 	public:
 		EquirectangularSkyBoxShader();
