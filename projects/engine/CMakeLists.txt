@@ -203,6 +203,8 @@ set(
 	nex/shader/ShadowPass.cpp
     nex/shader/SkyBoxPass.hpp
 	nex/shader/SkyBoxPass.cpp
+    nex/shader/Technique.cpp
+    nex/shader/Technique.hpp
 	#nex/shader/post_processing/blur
     nex/shader/post_processing/blur/GaussianBlurPass.hpp
 	nex/shader/post_processing/blur/GaussianBlurPass.cpp
