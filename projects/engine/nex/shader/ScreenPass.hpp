@@ -3,10 +3,10 @@
 
 namespace nex
 {
-	class ScreenShader : public TransformPass
+	class ScreenPass : public TransformPass
 	{
 	public:
-		ScreenShader();
+		ScreenPass();
 
 		void useTexture(const Texture* texture);
 

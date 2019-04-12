@@ -187,25 +187,25 @@ set(
     
     
     #nex/shader
-    nex/shader/DepthMapShader.hpp
-	nex/shader/DepthMapShader.cpp
+    nex/shader/DepthMapPass.hpp
+	nex/shader/DepthMapPass.cpp
     nex/shader/Pass.cpp
     nex/shader/Pass.hpp
-    nex/shader/PBRShader.hpp
-	nex/shader/PBRShader.cpp
-    nex/shader/ScreenShader.hpp
-	nex/shader/ScreenShader.cpp
+    nex/shader/PbrPass.hpp
+	nex/shader/PbrPass.cpp
+    nex/shader/ScreenPass.hpp
+	nex/shader/ScreenPass.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
     nex/shader/ShaderType.hpp
-    nex/shader/ShadowShader.hpp
-	nex/shader/ShadowShader.cpp
-    nex/shader/SkyBoxShader.hpp
-	nex/shader/SkyBoxShader.cpp
+    nex/shader/ShadowPass.hpp
+	nex/shader/ShadowPass.cpp
+    nex/shader/SkyBoxPass.hpp
+	nex/shader/SkyBoxPass.cpp
 	#nex/shader/post_processing/blur
-    nex/shader/post_processing/blur/GaussianBlurShader.hpp
-	nex/shader/post_processing/blur/GaussianBlurShader.cpp
+    nex/shader/post_processing/blur/GaussianBlurPass.hpp
+	nex/shader/post_processing/blur/GaussianBlurPass.cpp
 	
     
     #nex/shader_generator
@@ -225,8 +225,8 @@ set(
     #nex/shadow
 	nex/shadow/CascadedShadow.cpp
 	nex/shadow/CascadedShadow.hpp
-    nex/shadow/SceneNearFarComputeShader.cpp
-    nex/shadow/SceneNearFarComputeShader.hpp
+    nex/shadow/SceneNearFarComputePass.cpp
+    nex/shadow/SceneNearFarComputePass.hpp
     
     #nex/sky
     nex/sky/AtmosphericScattering.cpp

@@ -2,10 +2,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/shader/SkyBoxPass.hpp>
 #include <nex/SceneNode.hpp>
-#include <nex/shader/DepthMapShader.hpp>
-#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/DepthMapPass.hpp>
+#include <nex/shader/ScreenPass.hpp>
 #include <nex/util/Math.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
@@ -28,7 +28,7 @@
 #include "nex/sky/AtmosphericScattering.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
-#include <nex/shadow/SceneNearFarComputeShader.hpp>
+#include <nex/shadow/SceneNearFarComputePass.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
 #include "nex/camera/FPCamera.hpp"
 

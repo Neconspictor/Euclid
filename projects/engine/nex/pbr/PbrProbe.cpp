@@ -1,10 +1,10 @@
 #include <nex/pbr/PbrProbe.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/shader/SkyBoxpass.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/RenderBackend.hpp>
-#include "nex/shader/PBRShader.hpp"
+#include "nex/shader/PbrPass.hpp"
 #include "nex/EffectLibrary.hpp"
 #include "nex/texture/Attachment.hpp"
 #include "nex/drawing/StaticMeshDrawer.hpp"

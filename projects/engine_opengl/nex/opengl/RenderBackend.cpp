@@ -9,7 +9,7 @@
 #include <nex/opengl/opengl.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/texture/Attachment.hpp"
-#include "nex/shader/SkyBoxShader.hpp"
+#include "nex/shader/SkyBoxPass.hpp"
 #include <nex/EffectLibrary.hpp>
 
 using namespace std;

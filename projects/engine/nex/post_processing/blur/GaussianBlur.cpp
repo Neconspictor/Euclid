@@ -1,6 +1,6 @@
 #include<nex/post_processing/blur/GaussianBlur.hpp>
 
-#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/texture/Sampler.hpp>

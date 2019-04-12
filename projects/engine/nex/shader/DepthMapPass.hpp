@@ -28,12 +28,12 @@ namespace nex
 		Sampler mSampler;
 	};
 
-	class DepthMapShader : public TransformPass
+	class DepthMapPass : public TransformPass
 	{
 	public:
-		DepthMapShader();
+		DepthMapPass();
 
-		virtual ~DepthMapShader() = default;
+		virtual ~DepthMapPass() = default;
 
 		void useDepthMapTexture(const Texture* texture);
 

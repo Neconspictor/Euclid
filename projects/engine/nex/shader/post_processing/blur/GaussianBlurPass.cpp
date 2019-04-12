@@ -1,4 +1,4 @@
-#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
 #include "nex/texture/TextureManager.hpp"
 
 using namespace glm;

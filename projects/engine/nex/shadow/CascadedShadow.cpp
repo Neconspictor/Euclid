@@ -10,7 +10,7 @@
 #include "nex/gui/Util.hpp"
 #include "imgui/imgui_internal.h"
 #include "nex/texture/Attachment.hpp"
-#include <nex/shadow/SceneNearFarComputeShader.hpp>
+#include <nex/shadow/SceneNearFarComputePass.hpp>
 
 using namespace nex;
 

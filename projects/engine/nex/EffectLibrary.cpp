@@ -1,14 +1,14 @@
 #include <nex/EffectLibrary.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
-#include <nex/shader/SkyBoxShader.hpp>
-#include <nex/shader/DepthMapShader.hpp>
-#include <nex/shader/ShadowShader.hpp>
-#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/SkyBoxPass.hpp>
+#include <nex/shader/DepthMapPass.hpp>
+#include <nex/shader/ShadowPass.hpp>
+#include <nex/shader/ScreenPass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/texture/Sampler.hpp>
 #include <nex/post_processing/DownSampler.hpp>
-#include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
 
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
@@ -16,9 +16,9 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mEquirectangualrSkyBox(std::make_unique<EquirectangularSkyBoxPass>()),
 	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxPass>()),
 	mSkyBox(std::make_unique<SkyBoxPass>()),
-	mDepthMap(std::make_unique<DepthMapShader>()),
+	mDepthMap(std::make_unique<DepthMapPass>()),
 	mShadow(std::make_unique<ShadowPass>()),
-	mScreen(std::make_unique<ScreenShader>()),
+	mScreen(std::make_unique<ScreenPass>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
 	mPostProcessor = std::make_unique<PostProcessor>(width, height, mDownSampler.get(), mGaussianBlur.get());
@@ -46,7 +46,7 @@ nex::SkyBoxPass* nex::EffectLibrary::getSkyBoxShader()
 	return mSkyBox.get();
 }
 
-nex::DepthMapShader* nex::EffectLibrary::getDepthMapShader()
+nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 {
 	return mDepthMap.get();
 }
@@ -56,7 +56,7 @@ nex::ShadowPass* nex::EffectLibrary::getShadowVisualizer()
 	return mShadow.get();
 }
 
-nex::ScreenShader* nex::EffectLibrary::getScreenShader()
+nex::ScreenPass* nex::EffectLibrary::getScreenShader()
 {
 	return mScreen.get();
 }

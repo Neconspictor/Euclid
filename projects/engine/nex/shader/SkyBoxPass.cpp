@@ -1,4 +1,4 @@
-#include <nex/shader/SkyBoxShader.hpp>
+#include <nex/shader/SkyBoxPass.hpp>
 #include <nex/RenderBackend.hpp>
 
 using namespace glm;

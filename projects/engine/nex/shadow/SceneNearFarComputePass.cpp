@@ -1,4 +1,4 @@
-#include "SceneNearFarComputeShader.hpp"
+#include "SceneNearFarComputePass.hpp"
 #include <nex/shader/Pass.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/RenderBackend.hpp"

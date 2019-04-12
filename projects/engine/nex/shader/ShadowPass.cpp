@@ -1,4 +1,4 @@
-#include <nex/shader/ShadowShader.hpp>
+#include <nex/shader/ShadowPass.hpp>
 #include <nex/mesh/SubMesh.hpp>
 
 using namespace std;

@@ -1,4 +1,4 @@
-#include <nex/shader/ScreenShader.hpp>
+#include <nex/shader/ScreenPass.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.inl>
 
@@ -7,7 +7,7 @@ using namespace nex;
 using namespace std;
 using namespace glm;
 
-ScreenShader::ScreenShader()
+ScreenPass::ScreenPass()
 {
 	mShader = Shader::create("screen_vs.glsl", "screen_fs.glsl");
 
@@ -18,17 +18,17 @@ ScreenShader::ScreenShader()
 	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 }
 
-void ScreenShader::useTexture(const Texture* texture)
+void ScreenPass::useTexture(const Texture* texture)
 {
 	mShader->setTexture(texture, &mSampler, mTexture.bindingSlot);
 }
 
-void ScreenShader::setMVP(const glm::mat4& mat)
+void ScreenPass::setMVP(const glm::mat4& mat)
 {
 	mShader->setMat4(mTransform.location, mat);
 }
 
-void ScreenShader::onTransformUpdate(const TransformData& data)
+void ScreenPass::onTransformUpdate(const TransformData& data)
 {
 	setMVP((*data.projection)*(*data.view)*(*data.model));
 }

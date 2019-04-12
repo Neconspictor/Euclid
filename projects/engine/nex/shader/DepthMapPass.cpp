@@ -1,4 +1,4 @@
-#include <nex/shader/DepthMapShader.hpp>
+#include <nex/shader/DepthMapPass.hpp>
 #include <glm/glm.hpp>
 
 using namespace glm;
@@ -49,7 +49,7 @@ void CubeDepthMapPass::setMVP(const glm::mat4& trafo)
 	mShader->setMat4(mTransform.location, trafo);
 }
 
-DepthMapShader::DepthMapShader()
+DepthMapPass::DepthMapPass()
 {
 	mShader = Shader::create(
 		"depth_map_vs.glsl", "depth_map_fs.glsl");
@@ -65,17 +65,17 @@ DepthMapShader::DepthMapShader()
 	mSampler.setState(state);
 }
 
-void DepthMapShader::onTransformUpdate(const TransformData& data)
+void DepthMapPass::onTransformUpdate(const TransformData& data)
 {
 	setMVP(*data.projection * *data.view * *data.model);
 }
 
-void DepthMapShader::useDepthMapTexture(const Texture* texture)
+void DepthMapPass::useDepthMapTexture(const Texture* texture)
 {
 	mShader->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
 }
 
-void DepthMapShader::setMVP(const glm::mat4& trafo)
+void DepthMapPass::setMVP(const glm::mat4& trafo)
 {
 	mShader->setMat4(mTransform.location, trafo);
 }

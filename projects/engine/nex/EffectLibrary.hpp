@@ -10,9 +10,9 @@ namespace nex
 	class EquirectangularSkyBoxPass;
 	class PanoramaSkyBoxPass;
 	class SkyBoxPass;
-	class DepthMapShader;
+	class DepthMapPass;
 	class ShadowPass;
-	class ScreenShader;
+	class ScreenPass;
 	class PostProcessor;
 	class DownSampler;
 
@@ -33,11 +33,11 @@ namespace nex
 		PanoramaSkyBoxPass* getPanoramaSkyBoxShader();
 		SkyBoxPass* getSkyBoxShader();
 
-		DepthMapShader* getDepthMapShader();
+		DepthMapPass* getDepthMapShader();
 
 		ShadowPass* getShadowVisualizer();
 
-		ScreenShader* getScreenShader();
+		ScreenPass* getScreenShader();
 
 		PostProcessor* getPostProcessor();
 
@@ -50,9 +50,9 @@ namespace nex
 		std::unique_ptr<EquirectangularSkyBoxPass> mEquirectangualrSkyBox;
 		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
-		std::unique_ptr<DepthMapShader> mDepthMap;
+		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<ShadowPass> mShadow;
-		std::unique_ptr<ScreenShader> mScreen;
+		std::unique_ptr<ScreenPass> mScreen;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;
 		
