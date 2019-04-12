@@ -20,12 +20,12 @@ void PbrCommonGeometryShader::init(ShaderProgram* program)
 	mProgram = program;
 	assert(mProgram != nullptr);
 	// mesh material
-	mAlbedoMap = mProgram->createTextureUniform("material.albedoMap", UniformType::TEXTURE2D, 0);
+	mAlbedoMap = mProgram->createTextureUniform("material.albedoMap", UniformType::TEXTURE2D, ALBEDO_BINDING_POINT);
 
-	mAmbientOcclusionMap = mProgram->createTextureUniform("material.aoMap", UniformType::TEXTURE2D, 1);
-	mMetalMap = mProgram->createTextureUniform("material.metallicMap", UniformType::TEXTURE2D, 2);
-	mNormalMap = mProgram->createTextureUniform("material.normalMap", UniformType::TEXTURE2D, 3);
-	mRoughnessMap = mProgram->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, 4);
+	mAmbientOcclusionMap = mProgram->createTextureUniform("material.aoMap", UniformType::TEXTURE2D, AO_BINDING_POINT);
+	mMetalMap = mProgram->createTextureUniform("material.metallicMap", UniformType::TEXTURE2D, METALLIC_BINDING_POINT);
+	mNormalMap = mProgram->createTextureUniform("material.normalMap", UniformType::TEXTURE2D, NORMAL_BINDING_POINT);
+	mRoughnessMap = mProgram->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, ROUGHNESS_BINDING_POINT);
 
 	mModelView = { mProgram->getUniformLocation("modelView"), UniformType::MAT4 };
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };

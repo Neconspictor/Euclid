@@ -1,7 +1,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/shader/Shader.hpp>
-#include "nex/texture/TextureManager.hpp"
+#include "nex/shader/PBRShader.hpp"
 
 using namespace std;
 using namespace nex;
@@ -207,12 +207,12 @@ PbrMaterial::PbrMaterial(
 
 const Texture * PbrMaterial::getAlbedoMap() const
 {
-	return mTextures.at(ALBEDO_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryShader::ALBEDO_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getAoMap() const
 {
-	return mTextures.at(AO_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryShader::AO_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getEmissionMap() const
@@ -222,27 +222,27 @@ const Texture * PbrMaterial::getEmissionMap() const
 
 const Texture * PbrMaterial::getMetallicMap() const
 {
-	return mTextures.at(METALLIC_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryShader::METALLIC_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getNormalMap() const
 {
-	return mTextures.at(NORMAL_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryShader::NORMAL_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getRoughnessMap() const
 {
-	return mTextures.at(ROUGHNESS_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryShader::ROUGHNESS_BINDING_POINT);
 }
 
 void PbrMaterial::setAlbedoMap(Texture * albedoMap)
 {
-	set(ALBEDO_BINDING_POINT, albedoMap);
+	set(PbrCommonGeometryShader::ALBEDO_BINDING_POINT, albedoMap);
 }
 
 void PbrMaterial::setAoMap(Texture * aoMap)
 {
-	set(AO_BINDING_POINT, aoMap);
+	set(PbrCommonGeometryShader::AO_BINDING_POINT, aoMap);
 }
 
 void PbrMaterial::setEmissionMap(Texture * emissionMap)
@@ -251,15 +251,15 @@ void PbrMaterial::setEmissionMap(Texture * emissionMap)
 
 void PbrMaterial::setMetallicMap(Texture * metallicMap)
 {
-	set(METALLIC_BINDING_POINT, metallicMap);
+	set(PbrCommonGeometryShader::METALLIC_BINDING_POINT, metallicMap);
 }
 
 void PbrMaterial::setNormalMap(Texture * normalMap)
 {
-	set(NORMAL_BINDING_POINT, normalMap);
+	set(PbrCommonGeometryShader::NORMAL_BINDING_POINT, normalMap);
 }
 
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
-	set(ROUGHNESS_BINDING_POINT, roughnessMap);
+	set(PbrCommonGeometryShader::ROUGHNESS_BINDING_POINT, roughnessMap);
 }

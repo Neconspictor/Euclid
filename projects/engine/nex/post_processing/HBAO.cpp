@@ -385,7 +385,6 @@ namespace nex
 	}
 
 	DepthLinearizer::DepthLinearizer() :
-		Shader(),
 		m_input(nullptr),
 		m_projection(nullptr)
 	{
@@ -454,9 +453,8 @@ namespace nex
 	}
 
 	HBAO_Shader::HBAO_Shader() :
-		Shader(),
-		m_linearDepth(nullptr),
 		m_hbao_randomview(nullptr),
+		m_linearDepth(nullptr),
 		m_hbao_ubo(nullptr)
 	{
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
