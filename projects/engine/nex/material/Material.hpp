@@ -83,6 +83,13 @@ namespace nex
 	class PbrMaterial : public Material
 	{
 	public:
+
+		static const unsigned ALBEDO_BINDING_POINT = 0;
+		static const unsigned AO_BINDING_POINT = 1;
+		static const unsigned METALLIC_BINDING_POINT = 2;
+		static const unsigned NORMAL_BINDING_POINT = 3;
+		static const unsigned ROUGHNESS_BINDING_POINT = 4;
+
 		PbrMaterial();
 		PbrMaterial(Texture* albedoMap,
 			Texture* aoMap,

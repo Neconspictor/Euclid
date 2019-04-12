@@ -13,11 +13,14 @@ ScreenShader::ScreenShader()
 
 	mTransform = { mProgram->getUniformLocation("transform"), UniformType::MAT4 };
 	mTexture = mProgram->createTextureUniform("screenTexture", UniformType::TEXTURE2D, 0);
+
+	mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 }
 
 void ScreenShader::useTexture(const Texture* texture)
 {
-	mProgram->setTexture(texture, mTexture.bindingSlot);
+	mProgram->setTexture(texture, &mSampler, mTexture.bindingSlot);
 }
 
 void ScreenShader::setMVP(const glm::mat4& mat)

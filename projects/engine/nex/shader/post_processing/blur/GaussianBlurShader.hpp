@@ -3,6 +3,9 @@
 
 namespace nex
 {
+
+	class Sampler;
+
 	class GaussianBlurHorizontalShader : public TransformShader
 	{
 	public:

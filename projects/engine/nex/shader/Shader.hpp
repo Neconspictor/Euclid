@@ -3,11 +3,13 @@
 #include <nex/util/Memory.hpp>
 #include <ostream>
 #include <nex/shader/ShaderType.hpp>
+#include <nex/texture/Sampler.hpp>
 
 //namespace glm { class mat3; class mat4; class vec2; class vec3; class vec4; }
 
 namespace nex
 {
+	class Sampler;
 	enum class InternFormat;
 	enum class TextureAccess;
 	class Shader;
@@ -177,9 +179,14 @@ namespace nex
 		void setMat4(UniformLocation locationID, const glm::mat4& data);
 
 		/**
+		 * Binds a texture and a sampler object to a texture binding point. 
+		 * @param texture : The texture to bind
+		 * @param sampler : The sampler to bind or nullptr if no sampler should be bound
+		 * @param bindingSlot : The binding point
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
+		 * 
 		 */
-		void setTexture(const nex::Texture* data, unsigned int bindingSlot);
+		void setTexture(const nex::Texture* texture, const Sampler* sampler, unsigned int bindingSlot);
 
 		
 		/**
@@ -249,6 +256,9 @@ namespace nex
 		Shader& operator=(const Shader&) = delete;
 
 		std::unique_ptr<ShaderProgram> mProgram;
+
+		// Many passes need a sampler object, so we specify one default one here.
+		Sampler mSampler;
 	};
 
 	class TransformShader : public Shader

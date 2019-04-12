@@ -6,7 +6,7 @@ namespace nex
 {
 	class Camera;
 	class SceneNode;
-	class PBRShader;
+	class PbrForwardShader;
 	class Sampler;
 
 	class PbrForward : public Pbr {
@@ -20,7 +20,7 @@ namespace nex
 		void reloadLightingShader(const CascadedShadow& cascadedShadow) override;
 
 	private:
-		std::unique_ptr<PBRShader> mForwardShader;
+		std::unique_ptr<PbrForwardShader> mForwardShader;
 		std::unique_ptr<Sampler> mPointSampler;
 	};
 }

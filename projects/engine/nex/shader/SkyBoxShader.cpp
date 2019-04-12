@@ -32,7 +32,7 @@ void SkyBoxShader::setView(const glm::mat4& mat)
 
 void SkyBoxShader::setSkyTexture(const CubeMap* texture)
 {
-	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
 }
 
 void SkyBoxShader::setupRenderState()
@@ -72,7 +72,7 @@ void PanoramaSkyBoxShader::setView(const glm::mat4& mat)
 
 void PanoramaSkyBoxShader::setSkyTexture(const Texture* texture)
 {
-	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
 }
 
 
@@ -97,5 +97,5 @@ void EquirectangularSkyBoxShader::setView(const glm::mat4& mat)
 
 void EquirectangularSkyBoxShader::setSkyTexture(const Texture * texture)
 {
-	mProgram->setTexture(texture, mSkyTexture.bindingSlot);
+	mProgram->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
 }

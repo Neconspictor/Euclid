@@ -62,7 +62,7 @@ nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readRes
 
 void nex::SceneNearFarComputeShader::setDepthTexture(Texture* depth)
 {
-	mProgram->setTexture(depth, mDepthTextureUniform.bindingSlot);
+	mProgram->setTexture(depth, &mSampler, mDepthTextureUniform.bindingSlot);
 }
 
 nex::ShaderStorageBuffer* nex::SceneNearFarComputeShader::getConstantBuffer()

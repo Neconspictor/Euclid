@@ -37,7 +37,7 @@ namespace nex
 
 		void setColorTexGamma(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mColorTexGamma.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mColorTexGamma.bindingSlot);
 		}
 
 	private:
@@ -67,17 +67,17 @@ namespace nex
 
 		void setEdgeTex(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mEdgeTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mEdgeTex.bindingSlot);
 		}
 
 		void setAreaTex(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mAreaTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mAreaTex.bindingSlot);
 		}
 
 		void setSearchTex(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mSearchTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mSearchTex.bindingSlot);
 		}
 
 	private:
@@ -108,12 +108,12 @@ namespace nex
 
 		void setBlendTex(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mBlendTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mBlendTex.bindingSlot);
 		}
 
 		void setColorTex(Texture2D* tex)
 		{
-			mProgram->setTexture(tex, mColorTex.bindingSlot);
+			mProgram->setTexture(tex, nullptr, mColorTex.bindingSlot);
 		}
 
 	private:

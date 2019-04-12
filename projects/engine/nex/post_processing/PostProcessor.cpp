@@ -14,7 +14,7 @@
 class nex::PostProcessor::PostProcessShader : public nex::Shader
 {
 public:
-	PostProcessShader() : mSampler({})
+	PostProcessShader()
 	{
 		mProgram = nex::ShaderProgram::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
 		sourceTextureUniform = { mProgram->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
@@ -25,20 +25,14 @@ public:
 
 		aoMap = { mProgram->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
 
-		mSampler.setAnisotropy(1.0f);
-		mSampler.setMinFilter(TextureFilter::Linear);
-		mSampler.setMagFilter(TextureFilter::Linear);
-		mSampler.setWrapR(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapS(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapT(TextureUVTechnique::ClampToEdge);
-
-
 		mProgram->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mProgram->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
 		mProgram->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
 		mProgram->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
 		mProgram->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
 		mProgram->setBinding(aoMap.location, aoMap.bindingSlot);
+
+		mSampler = &(Shader::mSampler);
 	}
 
 	UniformTex sourceTextureUniform;
@@ -47,7 +41,7 @@ public:
 	UniformTex bloomEigth;
 	UniformTex bloomSixteenth;
 	UniformTex aoMap;
-	Sampler mSampler;
+	Sampler* mSampler;
 };
 
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
@@ -134,25 +128,19 @@ nex::AmbientOcclusionSelector* nex::PostProcessor::getAOSelector()
 void nex::PostProcessor::setAoMap(Texture2D* aoMap)
 {
 	auto& uniform = mPostprocessPass->aoMap;
-	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(aoMap, uniform.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(aoMap, mPostprocessPass->mSampler, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
 	auto& uniform = mPostprocessPass->sourceTextureUniform;
-	mPostprocessPass->mSampler.bind(uniform.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(texture, uniform.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(texture, mPostprocessPass->mSampler, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setGlowTextures(Texture* halfth, nex::Texture* quarter, nex::Texture* eigth, nex::Texture* sixteenth)
 {
-	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomHalfth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(halfth, mPostprocessPass->bloomHalfth.bindingSlot);
-	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomQuarter.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(quarter, mPostprocessPass->bloomQuarter.bindingSlot);
-	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomEigth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(eigth, mPostprocessPass->bloomEigth.bindingSlot);
-	mPostprocessPass->mSampler.bind(mPostprocessPass->bloomSixteenth.bindingSlot);
-	mPostprocessPass->getProgram()->setTexture(sixteenth, mPostprocessPass->bloomSixteenth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(halfth, mPostprocessPass->mSampler, mPostprocessPass->bloomHalfth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(quarter, mPostprocessPass->mSampler, mPostprocessPass->bloomQuarter.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(eigth, mPostprocessPass->mSampler, mPostprocessPass->bloomEigth.bindingSlot);
+	mPostprocessPass->getProgram()->setTexture(sixteenth, mPostprocessPass->mSampler, mPostprocessPass->bloomSixteenth.bindingSlot);
 }

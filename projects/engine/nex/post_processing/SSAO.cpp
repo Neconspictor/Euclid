@@ -67,10 +67,8 @@ namespace nex
 				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
 				0);
 
-			mProgram->setTexture(m_gDepth, 0);
-			mSamplerDepth.bind(0);
-			mProgram->setTexture(m_texNoise, 1);
-			mSamplerNoise.bind(1);
+			mProgram->setTexture(m_gDepth, &mSamplerDepth, 0);
+			mProgram->setTexture(m_texNoise, &mSamplerNoise, 1);
 
 			static auto* renderBackend = RenderBackend::get();
 			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
@@ -166,8 +164,7 @@ namespace nex
 		}
 
 		void setAOTexture(const Texture* texture) {
-			mBlurSampler.bind(mAoTexture.bindingSlot);
-			mProgram->setTexture(texture, mAoTexture.bindingSlot);
+			mProgram->setTexture(texture, &mBlurSampler, mAoTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {
@@ -202,7 +199,7 @@ namespace nex
 		virtual ~SSAO_AO_Display_Shader() = default;
 
 		void setScreenTexture(const Texture* texture) {
-			mProgram->setTexture(texture, mScreenTexture.bindingSlot);
+			mProgram->setTexture(texture, &mSampler, mScreenTexture.bindingSlot);
 		}
 
 		void setMVP(const glm::mat4& mat) {

@@ -1,6 +1,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/shader/Shader.hpp>
+#include "nex/texture/TextureManager.hpp"
 
 using namespace std;
 using namespace nex;
@@ -112,7 +113,8 @@ void Material::upload() const
 
 	for (auto& uniform : mTextures)
 	{
-		mProgram->setTexture(uniform.second, uniform.first);
+		// Note: samplers are not handled by materials. Thus no sampler object is submitted
+		mProgram->setTexture(uniform.second, nullptr, uniform.first);
 	}
 
 	for (auto& uniform : mFloats)
@@ -195,21 +197,22 @@ PbrMaterial::PbrMaterial(
 	Texture * normalMap,
 	Texture * roughnessMap)
 {
-	mTextures[0] = albedoMap;
-	mTextures[1] = aoMap;
-	mTextures[2] = metallicMap;
-	mTextures[3] = normalMap;
-	mTextures[4] = roughnessMap;
+	setAlbedoMap(albedoMap);
+	setAoMap(aoMap);
+	setEmissionMap(emissionMap);
+	setMetallicMap(metallicMap);
+	setNormalMap(normalMap);
+	setRoughnessMap(roughnessMap);
 }
 
 const Texture * PbrMaterial::getAlbedoMap() const
 {
-	return mTextures.at(0);
+	return mTextures.at(ALBEDO_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getAoMap() const
 {
-	return mTextures.at(1);
+	return mTextures.at(AO_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getEmissionMap() const
@@ -219,27 +222,27 @@ const Texture * PbrMaterial::getEmissionMap() const
 
 const Texture * PbrMaterial::getMetallicMap() const
 {
-	return mTextures.at(2);
+	return mTextures.at(METALLIC_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getNormalMap() const
 {
-	return mTextures.at(3);
+	return mTextures.at(NORMAL_BINDING_POINT);
 }
 
 const Texture * PbrMaterial::getRoughnessMap() const
 {
-	return mTextures.at(4);
+	return mTextures.at(ROUGHNESS_BINDING_POINT);
 }
 
 void PbrMaterial::setAlbedoMap(Texture * albedoMap)
 {
-	mTextures[0] = albedoMap;
+	set(ALBEDO_BINDING_POINT, albedoMap);
 }
 
 void PbrMaterial::setAoMap(Texture * aoMap)
 {
-	mTextures[1] = aoMap;
+	set(AO_BINDING_POINT, aoMap);
 }
 
 void PbrMaterial::setEmissionMap(Texture * emissionMap)
@@ -248,15 +251,15 @@ void PbrMaterial::setEmissionMap(Texture * emissionMap)
 
 void PbrMaterial::setMetallicMap(Texture * metallicMap)
 {
-	mTextures[2] = metallicMap;
+	set(METALLIC_BINDING_POINT, metallicMap);
 }
 
 void PbrMaterial::setNormalMap(Texture * normalMap)
 {
-	mTextures[3] = normalMap;
+	set(NORMAL_BINDING_POINT, normalMap);
 }
 
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
-	mTextures[4] = roughnessMap;
+	set(ROUGHNESS_BINDING_POINT, roughnessMap);
 }

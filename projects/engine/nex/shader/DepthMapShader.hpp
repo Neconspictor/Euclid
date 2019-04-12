@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
+#include <nex/texture/Sampler.hpp>
 
 namespace nex
 {
@@ -24,6 +25,7 @@ namespace nex
 		Uniform mRange;
 		Uniform mModel;
 		Uniform mTransform;
+		Sampler mSampler;
 	};
 
 	class DepthMapShader : public TransformShader
@@ -41,6 +43,7 @@ namespace nex
 	private:
 		UniformTex mDephTexture;
 		Uniform mTransform;
+		Sampler mSampler;
 	};
 
 	class VarianceDepthMapShader : public Shader
@@ -57,5 +60,6 @@ namespace nex
 	private:
 		UniformTex mDephTexture;
 		Uniform mTransform;
+		Sampler mSampler;
 	};
 }

@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include "nex/texture/Attachment.hpp"
+#include "nex/texture/TextureManager.hpp"
 
 using namespace glm;
 
@@ -323,6 +324,10 @@ namespace nex
 		m_source(nullptr)
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
+
+		auto state = mSampler.getState();
+		state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
+		mSampler.setState(state);
 	}
 
 	void BilateralBlur::setLinearDepth(Texture * linearDepth)
@@ -354,35 +359,25 @@ namespace nex
 		temp->bind();
 		bind();
 
-		//TextureGL* sourceGL = (TextureGL*)m_source->getImpl();
-		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
-		//GLCall(glBindTextureUnit(0, *sourceGL->getTexture()));
-		mProgram->setTexture(m_source, 0); // TODO: check binding point!
-		//GLCall(glBindTextureUnit(1, *linearDepthGL->getTexture()));
-		mProgram->setTexture(m_linearDepth, 1); // TODO: check binding point!
+		mProgram->setTexture(m_source, &mSampler, 0); // TODO: check binding point!
+		mProgram->setTexture(m_linearDepth, &mSampler, 1); // TODO: check binding point!
 
-		//GLCall(glUniform1f(0, m_sharpness));
 		static UniformLocation sharpnessLoc = mProgram->getUniformLocation("g_Sharpness");
 		mProgram->setFloat(sharpnessLoc, m_sharpness);
 
 		// blur horizontal
-		//GLCall(glUniform2f(1, 1.0f / (float)m_textureWidth, 0));
-		//g_InvResolutionDirection
 		static UniformLocation invResolutionDirectionLoc = mProgram->getUniformLocation("g_InvResolutionDirection");
 		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
-		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 
 		// blur vertically
 		result->bind();
-		//TextureGL* tempTexGL = (TextureGL*)temp->getRenderResult()->getImpl();
-		//GLCall(glBindTextureUnit(0, *tempTexGL->getTexture()));
 		auto* renderResult = temp->getColorAttachments()[0].texture.get();
-		mProgram->setTexture(renderResult, 0); // TODO: check binding point!
-		//GLCall(glUniform2f(1, 0, 1.0f / (float)m_textureHeight));
-		//g_InvResolutionDirection
+
+		// Note: mSampler is already bound to binding point 0!
+		mProgram->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
 		mProgram->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
@@ -412,11 +407,6 @@ namespace nex
 	void DepthLinearizer::draw()
 	{
 		bind();
-		//GLCall(glUniform4f(0, m_projection->nearplane * m_projection->farplane,
-		//	m_projection->nearplane - m_projection->farplane,
-		//	m_projection->farplane,
-		//	m_projection->perspective ? 1.0f : 0.0f));
-
 
 		glm::vec4 vecData(m_projection->nearplane * m_projection->farplane,
 			m_projection->nearplane - m_projection->farplane,
@@ -424,17 +414,10 @@ namespace nex
 			m_projection->perspective ? 1.0f : 0.0f);
 		mProgram->setVec4(0, vecData);
 
-		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
-		//GLuint texture = *inputGL->getTexture();
-		//GLCall(glBindTextureUnit(0, texture));
-		mProgram->setTexture(m_input, 0);
-		mSampler->bind(0);
+		mProgram->setTexture(m_input, mSampler.get(), 0);
 		
-		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
-		mSampler->unbind(0);
-		//GLCall(glUseProgram(0));
 	}
 
 	void DepthLinearizer::setInputTexture(Texture * input)
@@ -451,17 +434,16 @@ namespace nex
 		m_input(nullptr)
 	{
 		mProgram = ShaderProgram::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
+
+		UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
+		mProgram->setBinding(inputLoc, 0);
 	}
 
 	void DisplayTex::draw()
 	{
 		bind();
-		//TextureGL* inputGL = (TextureGL*)m_input->getImpl();
-		//GLCall(glBindTextureUnit(0, *inputGL->getTexture()));
-		static UniformLocation inputLoc = mProgram->getUniformLocation("inputTexture");
-		mProgram->setTexture(m_input, 0); // TODO: check binding point!
+		mProgram->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
 		
-		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
@@ -486,23 +468,27 @@ namespace nex
 
 		UniformLocation randomLoc = mProgram->getUniformLocation("texRandom");
 		mProgram->setBinding(randomLoc, 1);
+
+		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+		mSampler.setWrapR(TextureUVTechnique::ClampToEdge);
+		mSampler.setWrapS(TextureUVTechnique::ClampToEdge);
+		mSampler.setWrapT(TextureUVTechnique::ClampToEdge);
+
+
+		auto state = mSampler.getState();
+		state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::Repeat;
+		mPointSampler2.setState(state);
 	}
 
 	void HBAO_Shader::draw()
 	{
 		bind();
-		//GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_hbao_ubo));
 		m_hbao_ubo->bind();
-		//GLCall(glNamedBufferSubData(m_hbao_ubo, 0, sizeof(HBAOData), &m_hbao_data));
 		m_hbao_ubo->update(&m_hbao_data, sizeof(HBAOData));
-		
 
-		//TextureGL* linearDepthGL = (TextureGL*)m_linearDepth->getImpl();
-		//TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
-		//GLCall(glBindTextureUnit(0, *linearDepthGL->getTexture()));
-		mProgram->setTexture(m_linearDepth, 0); // TODO: check binding point!
-		//GLCall(glBindTextureUnit(1, *randomViewGL->getTexture()));
-		mProgram->setTexture(m_hbao_randomview, 1); // TODO: check binding point!
+		mProgram->setTexture(m_linearDepth, &mSampler, 0);
+		mProgram->setTexture(m_hbao_randomview, &mPointSampler2, 1);
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();

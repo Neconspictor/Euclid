@@ -5,31 +5,15 @@
 
 using namespace nex;
 
-Sampler::Sampler(const SamplerDesc& samplerState) : mImpl(std::make_unique<SamplerGL>(samplerState))
+Sampler::Sampler(const SamplerDesc& samplerState) : mImpl(std::make_unique<SamplerGL>())
 {
-	
-	setMinFilter(samplerState.minFilter);
-	setMagFilter(samplerState.magFilter);
-	setAnisotropy(samplerState.maxAnisotropy);
-	setWrapS(samplerState.wrapS);
-	setWrapR(samplerState.wrapR);
-	setWrapT(samplerState.wrapT);
-	setBorderColor(samplerState.borderColor);
-	setMinLOD(samplerState.minLOD);
-	setMaxLOD(samplerState.maxLOD);
-	setLodBias(samplerState.biasLOD);
-	useDepthComparison(samplerState.useDepthComparison);
-	setCompareFunction(samplerState.compareFunction);
+	setState(samplerState);
 }
 
-Sampler::~Sampler()
-{
-};
-
-
+Sampler::~Sampler() = default;
 Sampler::Impl::~Impl() = default;
 
-SamplerGL::SamplerGL(const SamplerDesc& state) :  m_samplerID(GL_FALSE), mState(state)
+SamplerGL::SamplerGL() :  m_samplerID(GL_FALSE)
 {
 	GLCall(glGenSamplers(1, &m_samplerID));
 }
@@ -47,7 +31,7 @@ GLuint SamplerGL::getID() const
 	return m_samplerID;
 }
 
-void Sampler::bind(unsigned textureBindingSlot)
+void Sampler::bind(unsigned textureBindingSlot) const
 {
 	GLCall(glBindSampler(textureBindingSlot, ((SamplerGL*)mImpl.get())->getID()));
 }
@@ -165,6 +149,22 @@ void Sampler::setLodBias(float bias)
 	auto* impl = ((SamplerGL*)mImpl.get());
 	GLCall(glSamplerParameterf(impl->getID(), GL_TEXTURE_LOD_BIAS, bias));
 	GLCall(glGetSamplerParameterfv(impl->getID(), GL_TEXTURE_LOD_BIAS, &impl->mState.biasLOD));
+}
+
+void Sampler::setState(const SamplerDesc& desc)
+{
+	setMinFilter(desc.minFilter);
+	setMagFilter(desc.magFilter);
+	setAnisotropy(desc.maxAnisotropy);
+	setWrapS(desc.wrapS);
+	setWrapR(desc.wrapR);
+	setWrapT(desc.wrapT);
+	setBorderColor(desc.borderColor);
+	setMinLOD(desc.minLOD);
+	setMaxLOD(desc.maxLOD);
+	setLodBias(desc.biasLOD);
+	useDepthComparison(desc.useDepthComparison);
+	setCompareFunction(desc.compareFunction);
 }
 
 void Sampler::unbind(unsigned textureBindingSlot)

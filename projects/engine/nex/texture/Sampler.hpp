@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/detail/type_vec4.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
 
 namespace nex
 {
@@ -20,12 +21,12 @@ namespace nex
 		Sampler(const Sampler&) = delete;
 		Sampler& operator=(const Sampler&) = delete;
 
-		Sampler(const SamplerDesc& samplerState);
+		Sampler(const SamplerDesc& samplerState = {});
 
 		~Sampler();
 
 		// Has to be implemented by renderer backend
-		void bind(unsigned textureBindingSlot);
+		void bind(unsigned textureBindingSlot) const;
 
 		const SamplerDesc& getState() const;
 
@@ -64,6 +65,9 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		void setLodBias(float bias);
+
+		// Has to be implemented by renderer backend
+		void setState(const SamplerDesc& desc);
 
 		// Has to be implemented by renderer backend
 		/**

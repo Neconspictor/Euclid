@@ -12,8 +12,8 @@ namespace nex
 	class PBR_GBuffer;
 	class Sampler;
 	class PbrProbe;
-	class PBRShader_Deferred_Geometry;
-	class PBRShader_Deferred_Lighting;
+	class PbrDeferredGeometryShader;
+	class PbrDeferredLightingShader;
 
 	class PbrDeferred : public Pbr {
 
@@ -31,8 +31,8 @@ namespace nex
 		void reloadLightingShader(const CascadedShadow& cascadedShadow) override;
 
 	private:
-		std::unique_ptr<PBRShader_Deferred_Geometry> mGeometryPass;
-		std::unique_ptr<PBRShader_Deferred_Lighting> mLightPass;
+		std::unique_ptr<PbrDeferredGeometryShader> mGeometryPass;
+		std::unique_ptr<PbrDeferredLightingShader> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;
 	};
 }

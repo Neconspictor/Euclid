@@ -165,17 +165,25 @@ namespace nex
 	struct SamplerDesc
 	{
 		glm::vec4 borderColor = { 0,0,0,0 };
-		TextureFilter minFilter = TextureFilter::Near_Mipmap_Linear;
+		TextureFilter minFilter = TextureFilter::Linear;
 		TextureFilter magFilter = TextureFilter::Linear;
-		TextureUVTechnique wrapS = TextureUVTechnique::Repeat;
-		TextureUVTechnique wrapT = TextureUVTechnique::Repeat;
-		TextureUVTechnique wrapR = TextureUVTechnique::Repeat;
+		TextureUVTechnique wrapS = TextureUVTechnique::ClampToEdge;
+		TextureUVTechnique wrapT = TextureUVTechnique::ClampToEdge;
+		TextureUVTechnique wrapR = TextureUVTechnique::ClampToEdge;
 		int minLOD = -1000;
 		int maxLOD = 1000;
 		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
 		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
 		float maxAnisotropy = 1.0f;
+
+		static SamplerDesc createMipMapRepeat()
+		{
+			SamplerDesc desc;
+			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::Repeat;
+			return desc;
+		}
 	};
 
 	struct BaseTextureDesc : public SamplerDesc

@@ -34,7 +34,7 @@ namespace nex
 	class SamplerGL : public Sampler::Impl
 	{
 	public:
-		SamplerGL(const SamplerDesc& state);
+		SamplerGL();
 
 		virtual ~SamplerGL();
 

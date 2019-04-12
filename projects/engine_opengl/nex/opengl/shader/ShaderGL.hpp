@@ -75,7 +75,7 @@ namespace nex
 
 		void setInt(UniformLocation locationID, int data);
 
-		void setTexture(const Texture* data, unsigned bindingSlot);
+		void setTexture(const Texture* texture, const Sampler* sampler, unsigned bindingSlot);
 
 		void setUInt(UniformLocation locationID, unsigned data);
 		void setUVec2(UniformLocation locationID, const glm::uvec2& data);

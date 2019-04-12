@@ -1,9 +1,7 @@
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/texture/TextureManager.hpp>
-#include <nex/gui/Util.hpp>
 #include <nex/shader/PBRShader.hpp>
 
-#include <imgui/imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/RenderBackend.hpp>
@@ -19,7 +17,7 @@ using namespace std;
 namespace nex {
 
 	PbrForward::PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PBRShader>(*cascadeShadow))
+	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardShader>(*cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -30,7 +28,7 @@ namespace nex {
 
 	void PbrForward::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
-		mForwardShader = std::make_unique<PBRShader>(cascadedShadow);
+		mForwardShader = std::make_unique<PbrForwardShader>(cascadedShadow);
 	}
 
 
@@ -65,8 +63,8 @@ namespace nex {
 
 		mForwardShader->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
 
-		mForwardShader->pbr::CommonGeometryMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
-		mForwardShader->pbr::CommonLightingMaterial::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mForwardShader->PbrCommonGeometryShader::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mForwardShader->PbrCommonLightingShader::setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 
 		//TODO
 		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());

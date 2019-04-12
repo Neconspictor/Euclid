@@ -13,6 +13,7 @@
 #include <nex/opengl/opengl.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
+#include "nex/texture/Sampler.hpp"
 
 using namespace glm;
 
@@ -153,9 +154,9 @@ void nex::ShaderProgram::setMat4(UniformLocation locationID, const glm::mat4& da
 }
 
 //void setTexture(const UniformLocation* locationID, const Texture* data, unsigned int bindingSlot);
-void nex::ShaderProgram::setTexture(const nex::Texture* data, unsigned int bindingSlot)
+void nex::ShaderProgram::setTexture(const nex::Texture* texture, const Sampler* sampler, unsigned int bindingSlot)
 {
-	mImpl->setTexture(data, bindingSlot);
+	mImpl->setTexture(texture, sampler, bindingSlot);
 }
 
 void nex::ShaderProgram::setDebugName(const char* name)
@@ -325,12 +326,14 @@ void nex::ShaderProgram::Impl::setInt(UniformLocation locationID, int data)
 	mCache.Uniform1i(glID, data);
 }
 
-void nex::ShaderProgram::Impl::setTexture(const Texture* data, unsigned bindingSlot)
+void nex::ShaderProgram::Impl::setTexture(const Texture* texture, const Sampler* sampler, unsigned bindingSlot)
 {
-	auto* gl = data->getImpl();
+	auto* gl = texture->getImpl();
 
 	//GLCall(glBindTextureUnit(bindingSlot, *data->getImpl()->getTexture()));
 	GlobalCacheGL::get()->BindTextureUnit(bindingSlot, *gl->getTexture());
+
+	if (sampler != nullptr) sampler->bind(bindingSlot);
 	//mCache.Uniform1i(glID, bindingSlot);
 }
 

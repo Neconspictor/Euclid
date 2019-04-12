@@ -3,110 +3,111 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
+#include <nex/texture/Sampler.hpp>
 
 
 namespace nex
 {
-	namespace pbr
+	class PbrCommonGeometryShader
 	{
-		class CommonGeometryMaterial
-		{
-		public:
-			void setAlbedoMap(const Texture* texture);
-			void setAmbientOcclusionMap(const Texture* texture);
-			void setMetalMap(const Texture* texture);
-			void setNormalMap(const Texture* texture);
-			void setRoughnessMap(const Texture* texture);
+	public:
+		void setAlbedoMap(const Texture* texture);
+		void setAmbientOcclusionMap(const Texture* texture);
+		void setMetalMap(const Texture* texture);
+		void setNormalMap(const Texture* texture);
+		void setRoughnessMap(const Texture* texture);
 
-			void setModelViewMatrix(const glm::mat4& mat);
-			void setTransform(const glm::mat4& mat);
+		void setModelViewMatrix(const glm::mat4& mat);
+		void setTransform(const glm::mat4& mat);
 
-			void setProjection(const glm::mat4& mat);
-			void setView(const glm::mat4& mat);
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
 
-			void setNearFarPlane(const glm::vec2& nearFarPlane);
+		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
-			/**
-			 * Prerequisites: prjection and view matrix are set (and mustn't be null!) 
-			 */
-			void doModelMatrixUpdate(const glm::mat4& model);
+		/**
+		 * Prerequisites: projection and view matrix are set (and mustn't be null!) 
+		 */
+		void doModelMatrixUpdate(const glm::mat4& model);
 
-		protected:
-			CommonGeometryMaterial();
-			void init(ShaderProgram* program);
+	protected:
+		PbrCommonGeometryShader();
+		void init(ShaderProgram* program);
 
-		private:
-			// mesh material
-			UniformTex mAlbedoMap;
-			UniformTex mAmbientOcclusionMap;
-			UniformTex mMetalMap;
-			UniformTex mNormalMap;
-			UniformTex mRoughnessMap;
+	private:
+		// mesh material
+		UniformTex mAlbedoMap;
+		UniformTex mAmbientOcclusionMap;
+		UniformTex mMetalMap;
+		UniformTex mNormalMap;
+		UniformTex mRoughnessMap;
 
-			Uniform mModelView;
-			Uniform mTransform;
-			Uniform mNearFarPlane;
+		Uniform mModelView;
+		Uniform mTransform;
+		Uniform mNearFarPlane;
 
-			glm::mat4 const* mProjectionMatrixSource;
-			glm::mat4 const* mViewMatrixSource;
+		glm::mat4 const* mProjectionMatrixSource;
+		glm::mat4 const* mViewMatrixSource;
 
-			ShaderProgram* mProgram;
-		};
+		ShaderProgram* mProgram;
+		Sampler* mDefaultImageSampler;
+	};
 
-		class CommonLightingMaterial
-		{
-		public:
-			void setBrdfLookupTexture(const Texture* brdfLUT);
-			void setIrradianceMap(const CubeMap* irradianceMap);
-			void setPrefilterMap(const CubeMap* prefilterMap);
+	class PbrCommonLightingShader
+	{
+	public:
+		void setBrdfLookupTexture(const Texture* brdfLUT);
+		void setIrradianceMap(const CubeMap* irradianceMap);
+		void setPrefilterMap(const CubeMap* prefilterMap);
 
-			void setCascadedDepthMap(const Texture* cascadedDepthMap);
-			void setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera);
-			void setCascadedData(ShaderStorageBuffer* buffer);
-			
-			
-			void setEyeLightDirection(const glm::vec3& direction);
-			void setLightColor(const glm::vec3& color);
-			void setLightPower(float power);
-			void setAmbientLightPower(float power);
-			void setShadowStrength(float strength);
+		void setCascadedDepthMap(const Texture* cascadedDepthMap);
+		void setCascadedData(const CascadedShadow::CascadeData& cascadedData, Camera* camera);
+		void setCascadedData(ShaderStorageBuffer* buffer);
+		
+		
+		void setEyeLightDirection(const glm::vec3& direction);
+		void setLightColor(const glm::vec3& color);
+		void setLightPower(float power);
+		void setAmbientLightPower(float power);
+		void setShadowStrength(float strength);
 
-			void setInverseViewMatrix(const glm::mat4& mat);
+		void setInverseViewMatrix(const glm::mat4& mat);
 
-			void setNearFarPlane(const glm::vec2& nearFarPlane);
-
+		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 
-		protected:
-			CommonLightingMaterial(const CascadedShadow& cascadedShadow);
-			void init(ShaderProgram* program);
 
-		private:
-			//ibl
-			UniformTex mBrdfLUT;
-			UniformTex mIrradianceMap;
-			UniformTex mPrefilterMap;
+	protected:
+		PbrCommonLightingShader(const CascadedShadow& cascadedShadow);
+		void init(ShaderProgram* program);
 
-			// CSM
-			UniformTex mCascadedDepthMap;
-			ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
+	private:
+		//ibl
+		UniformTex mBrdfLUT;
+		UniformTex mIrradianceMap;
+		UniformTex mPrefilterMap;
+
+		// CSM
+		UniformTex mCascadedDepthMap;
+		ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
 
 
-			Uniform mEyeLightDirection;
-			Uniform mLightColor;
-			Uniform mLightPower;
-			Uniform mAmbientLightPower;
-			Uniform mShadowStrength;
+		Uniform mEyeLightDirection;
+		Uniform mLightColor;
+		Uniform mLightPower;
+		Uniform mAmbientLightPower;
+		Uniform mShadowStrength;
 
-			Uniform mInverseView;
+		Uniform mInverseView;
 
-			Uniform mNearFarPlane;
+		Uniform mNearFarPlane;
 
-			ShaderProgram* mProgram;
-		};
-	}
+		ShaderProgram* mProgram;
+		Sampler mSampler;
+		Sampler mCascadedShadowMapSampler;
+	};
 
-	class PBRShader : public Shader, public pbr::CommonGeometryMaterial, public pbr::CommonLightingMaterial
+	class PbrForwardShader : public Shader, public PbrCommonGeometryShader, public PbrCommonLightingShader
 	{
 	public:
 
@@ -116,24 +117,24 @@ namespace nex
 			glm::vec3 color;
 		};
 
-		PBRShader(const CascadedShadow& cascadedShadow);
+		PbrForwardShader(const CascadedShadow& cascadedShadow);
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
 	};
 
-	class PBRShader_Deferred_Geometry : public Shader, public pbr::CommonGeometryMaterial {
+	class PbrDeferredGeometryShader : public Shader, public PbrCommonGeometryShader {
 	public:
-		PBRShader_Deferred_Geometry();
+		PbrDeferredGeometryShader();
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
 	};
 
-	class PBRShader_Deferred_Lighting : public TransformShader, public pbr::CommonLightingMaterial {
+	class PbrDeferredLightingShader : public TransformShader, public PbrCommonLightingShader {
 	public:
 
-		PBRShader_Deferred_Lighting(const CascadedShadow& cascadedShadow);
+		PbrDeferredLightingShader(const CascadedShadow& cascadedShadow);
 
 		void setMVP(const glm::mat4& trafo);
 
@@ -158,12 +159,12 @@ namespace nex
 		Uniform mInverseProjFromGPass;
 	};
 
-	class PBR_ConvolutionShader : public Shader
+	class PbrConvolutionShader : public Shader
 	{
 	public:
-		PBR_ConvolutionShader();
+		PbrConvolutionShader();
 
-		virtual ~PBR_ConvolutionShader() = default;
+		virtual ~PbrConvolutionShader() = default;
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
@@ -173,14 +174,15 @@ namespace nex
 		Uniform mProjection;
 		Uniform mView;
 		UniformTex mEnvironmentMap;
+		Sampler mSampler;
 	};
 
-	class PBR_PrefilterShader : public Shader
+	class PbrPrefilterShader : public Shader
 	{
 	public:
-		PBR_PrefilterShader();
+		PbrPrefilterShader();
 
-		virtual ~PBR_PrefilterShader() = default;
+		virtual ~PbrPrefilterShader() = default;
 
 		void setMapToPrefilter(CubeMap* cubeMap);
 
@@ -196,12 +198,12 @@ namespace nex
 		Uniform mRoughness;
 	};
 
-	class PBR_BrdfPrecomputeShader : public TransformShader
+	class PbrBrdfPrecomputeShader : public TransformShader
 	{
 	public:
-		PBR_BrdfPrecomputeShader();
+		PbrBrdfPrecomputeShader();
 
-		virtual ~PBR_BrdfPrecomputeShader() = default;
+		virtual ~PbrBrdfPrecomputeShader() = default;
 
 		void setMVP(const glm::mat4& mat);
 

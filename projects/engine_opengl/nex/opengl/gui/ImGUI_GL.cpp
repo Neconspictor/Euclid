@@ -28,7 +28,7 @@ namespace nex::gui
 
 		void setTexture(nex::Texture2D* texture)
 		{
-			mProgram->setTexture(texture, mTexture.bindingSlot);
+			mProgram->setTexture(texture, &mSampler, mTexture.bindingSlot);
 		}
 
 		void setProjMtx(const glm::mat4& mat)

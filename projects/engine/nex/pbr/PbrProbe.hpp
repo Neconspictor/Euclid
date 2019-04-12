@@ -48,9 +48,9 @@ namespace nex
 		std::shared_ptr<CubeMap> environmentMap;
 		std::shared_ptr<Texture2D> brdfLookupTexture;
 
-		std::unique_ptr<PBR_ConvolutionShader> mConvolutionPass;
-		std::unique_ptr<PBR_PrefilterShader> mPrefilterPass;
-		std::unique_ptr<PBR_BrdfPrecomputeShader> mBrdfPrecomputePass;
+		std::unique_ptr<PbrConvolutionShader> mConvolutionPass;
+		std::unique_ptr<PbrPrefilterShader> mPrefilterPass;
+		std::unique_ptr<PbrBrdfPrecomputeShader> mBrdfPrecomputePass;
 
 		Sprite brdfSprite;
 		Vob skybox;

@@ -1,4 +1,5 @@
 #include <nex/shader/post_processing/blur/GaussianBlurShader.hpp>
+#include "nex/texture/TextureManager.hpp"
 
 using namespace glm;
 using namespace nex;
@@ -21,7 +22,7 @@ GaussianBlurHorizontalShader::GaussianBlurHorizontalShader()
 
 void GaussianBlurHorizontalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(tex, image.bindingSlot);
+	mProgram->setTexture(tex, &mSampler, image.bindingSlot);
 }
 
 void GaussianBlurHorizontalShader::setMVP(const mat4& mvp)
@@ -63,7 +64,7 @@ GaussianBlurVerticalShader::GaussianBlurVerticalShader()
 
 void GaussianBlurVerticalShader::setTexture(const Texture* tex)
 {
-	mProgram->setTexture(tex, image.bindingSlot);
+	mProgram->setTexture(tex, &mSampler, image.bindingSlot);
 }
 
 void GaussianBlurVerticalShader::setMVP(const mat4& mvp)

@@ -125,6 +125,7 @@ namespace nex {
 		Texture* m_hbao_randomview;
 		UniformBuffer* m_hbao_ubo;
 		Texture* m_linearDepth;
+		Sampler mPointSampler2;
 	};
 
 
