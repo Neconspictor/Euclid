@@ -85,7 +85,7 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* shader)
+void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* pass)
 {
 	//TODO
 	//shader->bind();
@@ -95,10 +95,10 @@ void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* shader)
 		auto* material = mesh.get()->getMaterial();
 		if (material != nullptr)
 		{
-			material->setProgram(shader->getShader());
+			material->setShader(pass->getShader());
 			material->upload();
 		}
-		shader->onMaterialUpdate(mesh.get()->getMaterial());
+		pass->onMaterialUpdate(mesh.get()->getMaterial());
 
 		const VertexArray* vertexArray = mesh->getVertexArray();
 		const IndexBuffer* indexBuffer = mesh->getIndexBuffer();

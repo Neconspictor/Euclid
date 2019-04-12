@@ -18,10 +18,10 @@ namespace nex
 			return ss.str();
 	}
 
-	class SMAA::EdgeDetectionShader : public nex::Pass {
+	class SMAA::EdgeDetectionPass : public nex::Pass {
 	public:
 
-		EdgeDetectionShader(unsigned width, unsigned height)
+		EdgeDetectionPass(unsigned width, unsigned height)
 		{
 
 			std::vector<std::string> defines {
@@ -45,10 +45,10 @@ namespace nex
 		UniformTex mColorTexGamma;
 	};
 
-	class SMAA::BlendingWeightCalculationShader : public nex::Pass {
+	class SMAA::BlendingWeightCalculationPass : public nex::Pass {
 	public:
 
-		BlendingWeightCalculationShader(unsigned width, unsigned height)
+		BlendingWeightCalculationPass(unsigned width, unsigned height)
 		{
 			std::vector<std::string> defines{
 				calcMetricDefine(width, height)
@@ -88,10 +88,10 @@ namespace nex
 	};
 
 
-	class SMAA::NeighborhoodBlendingShader : public nex::Pass {
+	class SMAA::NeighborhoodBlendingPass : public nex::Pass {
 	public:
 
-		NeighborhoodBlendingShader(unsigned width, unsigned height)
+		NeighborhoodBlendingPass(unsigned width, unsigned height)
 		{
 			std::vector<std::string> defines{
 				calcMetricDefine(width, height)
@@ -206,9 +206,9 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 	data.pixelDataType = PixelDataType::UBYTE;
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
 
-	mEdgeDetectionShader = std::make_unique<EdgeDetectionShader>(width, height);
-	mBlendingWeightCalculationShader = std::make_unique<BlendingWeightCalculationShader>(width, height);
-	mNeighborhoodBlendingShader = std::make_unique<NeighborhoodBlendingShader>(width, height);
+	mEdgeDetectionShader = std::make_unique<EdgeDetectionPass>(width, height);
+	mBlendingWeightCalculationShader = std::make_unique<BlendingWeightCalculationPass>(width, height);
+	mNeighborhoodBlendingShader = std::make_unique<NeighborhoodBlendingPass>(width, height);
 }
 
 nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)

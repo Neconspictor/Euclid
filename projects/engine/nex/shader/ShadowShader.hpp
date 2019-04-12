@@ -3,12 +3,12 @@
 
 namespace nex
 {
-	class PointShadowShader : public Pass
+	class PointShadowPass : public Pass
 	{
 	public:
-		PointShadowShader();
+		PointShadowPass();
 
-		virtual ~PointShadowShader() = default;
+		virtual ~PointShadowPass() = default;
 
 		void setLightPosition(const glm::vec3& pos);
 		void setRange(float range);
@@ -24,12 +24,12 @@ namespace nex
 		Uniform mRange;
 	};
 
-	class ShadowShader : public Pass
+	class ShadowPass : public Pass
 	{
 	public:
-		ShadowShader();
+		ShadowPass();
 
-		virtual ~ShadowShader() = default;
+		virtual ~ShadowPass() = default;
 
 		void setModel(const glm::mat4& mat);
 		void setLightSpaceMatrix(const glm::mat4& mat);
@@ -42,12 +42,12 @@ namespace nex
 		Uniform mLightSpaceMatrix;
 	};
 
-	class VarianceShadowShader : public Pass
+	class VarianceShadowPass : public Pass
 	{
 	public:
-		VarianceShadowShader();
+		VarianceShadowPass();
 
-		virtual ~VarianceShadowShader() = default;
+		virtual ~VarianceShadowPass() = default;
 
 		void setModel(const glm::mat4& mat);
 		void setLightSpaceMatrix(const glm::mat4& mat);

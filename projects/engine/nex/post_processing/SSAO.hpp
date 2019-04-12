@@ -69,7 +69,7 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> tiledBlurRenderTarget;
 		std::unique_ptr<nex::Pass> aoPass;
 		std::unique_ptr<nex::Pass> tiledBlurPass;
-		std::unique_ptr<nex::Pass> aoDisplay;
+		std::unique_ptr<nex::Pass> aoDisplayPass;
 
 		unsigned int windowWidth;
 		unsigned int windowHeight;

@@ -476,7 +476,7 @@ void ComputeTest_Renderer::init(int windowWidth, int windowHeight)
 
 	mSimpleGeometry = make_unique<SimpleGeometryShader>();
 
-	mSceneNearFarComputeShader = make_unique<SceneNearFarComputeShader>();
+	mSceneNearFarComputeShader = make_unique<SceneNearFarComputePass>();
 
 
 	m_renderBackend->getRasterizer()->enableScissorTest(false);

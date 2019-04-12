@@ -40,10 +40,10 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mEnabled(true),
 	mBiasMultiplier(biasMultiplier),
 	mShadowStrength(0.0f),
-	mDepthPassShader(std::make_unique<DepthPassShader>(numCascades)),
-	mDataComputeShader(std::make_unique<CascadeDataShader>(numCascades)),
+	mDepthPass(std::make_unique<DepthPass>(numCascades)),
+	mDataComputePass(std::make_unique<CascadeDataPass>(numCascades)),
 	mUseTightNearFarPlane(true),
-	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputeShader>())
+	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputePass>())
 {
 	mCascadeData.numCascades = numCascades;
 	mCascadeData.lightViewProjectionMatrices.resize(numCascades);
@@ -82,7 +82,7 @@ std::vector<std::string> CascadedShadow::generateCsmDefines() const
 
 void CascadedShadow::begin(int cascadeIndex)
 {
-	mDepthPassShader->setCascadeIndex(cascadeIndex);
+	mDepthPass->setCascadeIndex(cascadeIndex);
 
 	auto* depth = mRenderTarget.getDepthAttachment();
 	depth->layer = cascadeIndex;
@@ -118,7 +118,7 @@ void CascadedShadow::enable(bool enable, bool informObservers)
 void CascadedShadow::end()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	mDepthPassShader->unbind();
+	mDepthPass->unbind();
 	// disable depth clamping
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(false);
 	//RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
@@ -143,7 +143,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 		mSplitDistances[i] = 0.0f;
 	}
 
-	mDataComputeShader->resetPrivateData();
+	mDataComputePass->resetPrivateData();
 
 	updateTextureArray();
 }
@@ -195,11 +195,11 @@ void CascadedShadow::updateTextureArray()
 void nex::CascadedShadow::frameUpdateTightNearFarPlane(Camera * camera, const glm::vec3 & lightDirection, nex::ShaderStorageBuffer * minMaxOutputBuffer)
 {
 	//mDataComputeShader->getSharedOutput()->unbind();
-	mDataComputeShader->bind();
-	mDataComputeShader->setUseAntiFlickering(mAntiFlickerOn);
-	mDataComputeShader->useDistanceInputBuffer(minMaxOutputBuffer);
+	mDataComputePass->bind();
+	mDataComputePass->setUseAntiFlickering(mAntiFlickerOn);
+	mDataComputePass->useDistanceInputBuffer(minMaxOutputBuffer);
 
-	CascadeDataShader::Input constantInput;
+	CascadeDataPass::Input constantInput;
 
 	const auto& frustum = camera->getFrustum(Perspective);
 	constantInput.lightDirection = glm::vec4(lightDirection, 0.0f);
@@ -210,10 +210,10 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(Camera * camera, const gl
 	constantInput.viewMatrix = camera->getView();
 	constantInput.projectionMatrix = camera->getPerspProjection();
 
-	mDataComputeShader->mInputBuffer->bind();
-	mDataComputeShader->update(constantInput);
+	mDataComputePass->mInputBuffer->bind();
+	mDataComputePass->update(constantInput);
 
-	mDataComputeShader->mPrivateOutput->bind();
+	mDataComputePass->mPrivateOutput->bind();
 
 	struct TestCascadeData
 	{
@@ -223,10 +223,10 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(Camera * camera, const gl
 		glm::vec4 cascadedSplits[4];
 	};
 
-	auto* cs = mDataComputeShader->getSharedOutput();
+	auto* cs = mDataComputePass->getSharedOutput();
 	cs->bind();
 
-	mDataComputeShader->dispatch(1, 1, 1);
+	mDataComputePass->dispatch(1, 1, 1);
 }
 
 void CascadedShadow::frameUpdateNoTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection,
@@ -359,7 +359,7 @@ void CascadedShadow::updateCascadeData()
 
 	assert(offset == size);
 
-	mDataComputeShader->getSharedOutput()->update(mCascadeData.shaderBuffer.data(), mCascadeData.shaderBuffer.size());
+	mDataComputePass->getSharedOutput()->update(mCascadeData.shaderBuffer.data(), mCascadeData.shaderBuffer.size());
 }
 
 
@@ -599,32 +599,32 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 	return needUpdate;
 }
 
-CascadedShadow::DepthPassShader::DepthPassShader(unsigned numCascades) : mNumCascades(numCascades)
+CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
 	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
 }
 
-void CascadedShadow::DepthPassShader::onModelMatrixUpdate(const glm::mat4& modelMatrix)
+void CascadedShadow::DepthPass::onModelMatrixUpdate(const glm::mat4& modelMatrix)
 {
 	static const UniformLocation MODEL_MATRIX_LOCATION = 1;
 	mShader->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
 	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
 }
 
-void CascadedShadow::DepthPassShader::setCascadeIndex(unsigned index)
+void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 {
 	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
 	mShader->setUInt(CASCADE_INDEX_LOCATION, index);
 }
 
-void CascadedShadow::DepthPassShader::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
+void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(0);
 	//buffer->syncWithGPU();
 }
 
-CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
+CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
 {
 	std::vector<std::string> defines{ std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
 	mShader = Shader::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
@@ -641,29 +641,29 @@ CascadedShadow::CascadeDataShader::CascadeDataShader(unsigned numCascades) : Com
 	resetPrivateData();
 }
 
-ShaderStorageBuffer* CascadedShadow::CascadeDataShader::getSharedOutput()
+ShaderStorageBuffer* CascadedShadow::CascadeDataPass::getSharedOutput()
 {
 	return mSharedOutput.get();
 }
 
-void CascadedShadow::CascadeDataShader::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
+void CascadedShadow::CascadeDataPass::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
 {
 	buffer->bind(3);
 	//buffer->syncWithGPU();
 }
 
-void CascadedShadow::CascadeDataShader::setUseAntiFlickering(bool use)
+void CascadedShadow::CascadeDataPass::setUseAntiFlickering(bool use)
 {
 	mShader->setUInt(mUseAntiFlickering.location, use);
 }
 
-void CascadedShadow::CascadeDataShader::update(const Input& input)
+void CascadedShadow::CascadeDataPass::update(const Input& input)
 {
 	mInputBuffer->bind();
 	mInputBuffer->update(&input, sizeof(Input), 0);
 }
 
-void CascadedShadow::CascadeDataShader::resetPrivateData()
+void CascadedShadow::CascadeDataPass::resetPrivateData()
 {
 	mPrivateOutput->bind();
 
@@ -710,10 +710,10 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 	}
 
 
-	mDepthPassShader->bind();
+	mDepthPass->bind();
 	mRenderTarget.bind();
 	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
-	mDepthPassShader->setCascadeShaderBuffer(mDataComputeShader->getSharedOutput());
+	mDepthPass->setCascadeShaderBuffer(mDataComputePass->getSharedOutput());
 }
 
 bool CascadedShadow::getAntiFlickering() const
@@ -732,9 +732,9 @@ void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
 	if (informObservers) informCascadeChanges();
 }
 
-Pass* CascadedShadow::getDepthPassShader()
+Pass* CascadedShadow::getDepthPass()
 {
-	return mDepthPassShader.get();
+	return mDepthPass.get();
 }
 
 unsigned CascadedShadow::getHeight() const
@@ -759,7 +759,7 @@ void CascadedShadow::setShadowStrength(float strength)
 
 ShaderStorageBuffer* CascadedShadow::getCascadeBuffer()
 {
-	return mDataComputeShader->getSharedOutput();
+	return mDataComputePass->getSharedOutput();
 }
 
 void CascadedShadow::useTightNearFarPlane(bool use)
@@ -824,8 +824,8 @@ void CascadedShadow::resizeCascadeData(unsigned numCascades, bool informObserver
 
 	updateTextureArray();
 
-	mDataComputeShader = std::make_unique<CascadeDataShader>(numCascades);
-	mDepthPassShader = std::make_unique<DepthPassShader>(numCascades);
+	mDataComputePass = std::make_unique<CascadeDataPass>(numCascades);
+	mDepthPass = std::make_unique<DepthPass>(numCascades);
 
 	if (informObservers)
 	{

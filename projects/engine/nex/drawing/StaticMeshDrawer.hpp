@@ -29,7 +29,7 @@ namespace nex
 		{
 			const glm::mat4* projection;
 			const glm::mat4* view;
-			nex::Pass* shader;
+			nex::Pass* pass;
 		};
 
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
@@ -48,7 +48,7 @@ namespace nex
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		static void draw(StaticMesh* model, nex::Pass* shader);
+		static void draw(StaticMesh* model, nex::Pass* pass);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);

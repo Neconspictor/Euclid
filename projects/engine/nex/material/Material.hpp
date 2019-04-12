@@ -38,7 +38,7 @@ namespace nex
 		void set(UniformLocation loc, const glm::vec4& value);
 		void set(unsigned bindingSlot, const Texture* texture);
 
-		void setProgram(Shader* program);
+		void setShader(Shader* shader);
 
 		/**
 		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
@@ -66,7 +66,7 @@ namespace nex
 		Map<glm::vec3> mVec3s;
 		Map<glm::vec4> mVec4s;
 
-		Shader* mProgram;
+		Shader* mShader;
 	};
 
 	/**

@@ -31,8 +31,8 @@ namespace nex {
 
 	private:
 
-		class DownSampleShader;
-		std::unique_ptr<DownSampleShader> mDownSampleShader;
+		class DownSamplePass;
+		std::unique_ptr<DownSamplePass> mDownSampleShader;
 		std::unique_ptr<RenderTarget2D> mHalfResolution;
 		std::unique_ptr<RenderTarget2D> mQuarterResolution;
 		std::unique_ptr<RenderTarget2D> mEigthResolution;

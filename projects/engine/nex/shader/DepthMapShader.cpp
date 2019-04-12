@@ -5,7 +5,7 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-CubeDepthMapShader::CubeDepthMapShader()
+CubeDepthMapPass::CubeDepthMapPass()
 {
 	mShader = Shader::create(
 		"depth_map_cube_vs.glsl", "depth_map_cube_fs.glsl");
@@ -24,27 +24,27 @@ CubeDepthMapShader::CubeDepthMapShader()
 	mSampler.setState(state);
 }
 
-void CubeDepthMapShader::useCubeDepthMap(const CubeMap* map)
+void CubeDepthMapPass::useCubeDepthMap(const CubeMap* map)
 {
 	mShader->setTexture(map, &mSampler, mCubeMap.bindingSlot);
 }
 
-void CubeDepthMapShader::setLightPos(const vec3& pos)
+void CubeDepthMapPass::setLightPos(const vec3& pos)
 {
 	mShader->setVec3(mLightPos.location, pos);
 }
 
-void CubeDepthMapShader::setRange(float range)
+void CubeDepthMapPass::setRange(float range)
 {
 	mShader->setFloat(mRange.location, range);
 }
 
-void CubeDepthMapShader::setModelMatrix(const glm::mat4& model)
+void CubeDepthMapPass::setModelMatrix(const glm::mat4& model)
 {
 	mShader->setMat4(mModel.location, model);
 }
 
-void CubeDepthMapShader::setMVP(const glm::mat4& trafo)
+void CubeDepthMapPass::setMVP(const glm::mat4& trafo)
 {
 	mShader->setMat4(mTransform.location, trafo);
 }
@@ -80,7 +80,7 @@ void DepthMapShader::setMVP(const glm::mat4& trafo)
 	mShader->setMat4(mTransform.location, trafo);
 }
 
-VarianceDepthMapShader::VarianceDepthMapShader()
+VarianceDepthMapPass::VarianceDepthMapPass()
 {
 	mShader = Shader::create (
 		"variance_depth_map_vs.glsl", "variance_depth_map_fs.glsl");
@@ -96,13 +96,13 @@ VarianceDepthMapShader::VarianceDepthMapShader()
 	mSampler.setState(state);
 }
 
-void VarianceDepthMapShader::setMVP(const glm::mat4& trafo)
+void VarianceDepthMapPass::setMVP(const glm::mat4& trafo)
 {
 	mShader->setMat4(mTransform.location, trafo);
 }
 
 
-void VarianceDepthMapShader::useVDepthMapTexture(const Texture* texture)
+void VarianceDepthMapPass::useVDepthMapTexture(const Texture* texture)
 {
 	mShader->setTexture(texture, &mSampler, mDephTexture.bindingSlot);
 }

@@ -13,11 +13,11 @@
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
-	mEquirectangualrSkyBox(std::make_unique<EquirectangularSkyBoxShader>()),
-	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxShader>()),
-	mSkyBox(std::make_unique<SkyBoxShader>()),
+	mEquirectangualrSkyBox(std::make_unique<EquirectangularSkyBoxPass>()),
+	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxPass>()),
+	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapShader>()),
-	mShadow(std::make_unique<ShadowShader>()),
+	mShadow(std::make_unique<ShadowPass>()),
 	mScreen(std::make_unique<ScreenShader>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
@@ -31,17 +31,17 @@ nex::GaussianBlur* nex::EffectLibrary::getGaussianBlur()
 	return mGaussianBlur.get();
 }
 
-nex::EquirectangularSkyBoxShader* nex::EffectLibrary::getEquirectangularSkyBoxShader()
+nex::EquirectangularSkyBoxPass* nex::EffectLibrary::getEquirectangularSkyBoxShader()
 {
 	return mEquirectangualrSkyBox.get();
 }
 
-nex::PanoramaSkyBoxShader* nex::EffectLibrary::getPanoramaSkyBoxShader()
+nex::PanoramaSkyBoxPass* nex::EffectLibrary::getPanoramaSkyBoxShader()
 {
 	return mPanoramaSkyBox.get();
 }
 
-nex::SkyBoxShader* nex::EffectLibrary::getSkyBoxShader()
+nex::SkyBoxPass* nex::EffectLibrary::getSkyBoxShader()
 {
 	return mSkyBox.get();
 }
@@ -51,7 +51,7 @@ nex::DepthMapShader* nex::EffectLibrary::getDepthMapShader()
 	return mDepthMap.get();
 }
 
-nex::ShadowShader* nex::EffectLibrary::getShadowVisualizer()
+nex::ShadowPass* nex::EffectLibrary::getShadowVisualizer()
 {
 	return mShadow.get();
 }

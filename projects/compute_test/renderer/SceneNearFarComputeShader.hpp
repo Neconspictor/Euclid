@@ -8,7 +8,7 @@
 
 namespace nex
 {
-	class SceneNearFarComputeShader : public nex::ComputePass
+	class SceneNearFarComputePass : public nex::ComputePass
 	{
 	public:
 		struct Constant
@@ -26,7 +26,7 @@ namespace nex
 			
 		};
 
-		SceneNearFarComputeShader();
+		SceneNearFarComputePass();
 
 		/**
 		 * Note: This function only works correct, if this shader is bound!

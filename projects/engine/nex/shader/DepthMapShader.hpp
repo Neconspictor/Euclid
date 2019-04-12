@@ -5,10 +5,10 @@
 
 namespace nex
 {
-	class CubeDepthMapShader : public Pass
+	class CubeDepthMapPass : public Pass
 	{
 	public:
-		CubeDepthMapShader();
+		CubeDepthMapPass();
 
 		void useCubeDepthMap(const CubeMap* map);
 
@@ -46,12 +46,12 @@ namespace nex
 		Sampler mSampler;
 	};
 
-	class VarianceDepthMapShader : public Pass
+	class VarianceDepthMapPass : public Pass
 	{
 	public:
-		VarianceDepthMapShader();
+		VarianceDepthMapPass();
 
-		virtual ~VarianceDepthMapShader() = default;
+		virtual ~VarianceDepthMapPass() = default;
 
 		void useVDepthMapTexture(const Texture* texture);
 

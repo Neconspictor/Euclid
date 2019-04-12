@@ -23,12 +23,12 @@ namespace nex
 {
 
 
-	class SSAO_AO_Shader : public nex::Pass
+	class SsaoPass : public nex::Pass
 	{
 	public:
 
-		SSAO_AO_Shader(unsigned int kernelSampleSize) :
-			Pass(), mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
+		SsaoPass(unsigned int kernelSampleSize) :
+			mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
 			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr), m_samples(nullptr),
 			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
@@ -284,14 +284,14 @@ namespace nex
 		aoRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 		tiledBlurRenderTarget = createSSAO_FBO(windowWidth, windowHeight);
 
-		aoPass = make_unique <SSAO_AO_Shader>(32);
+		aoPass = make_unique <SsaoPass>(32);
 
 		tiledBlurPass = make_unique <SSAO_Tiled_Blur_Shader>();
 
-		aoDisplay = make_unique <SSAO_AO_Display_Shader>();
+		aoDisplayPass = make_unique <SSAO_AO_Display_Shader>();
 
 
-		SSAO_AO_Shader*  configAO = dynamic_cast<SSAO_AO_Shader*>(aoPass.get());
+		SsaoPass*  configAO = dynamic_cast<SsaoPass*>(aoPass.get());
 		configAO->setGNoiseTexture(noiseTexture.get());
 
 		for (int i = 0; i < SSAO_SAMPLING_SIZE; ++i)
@@ -329,7 +329,7 @@ namespace nex
 	{
 		static auto* renderBackend = RenderBackend::get();
 
-		SSAO_AO_Shader&  aoShader = dynamic_cast<SSAO_AO_Shader&>(*aoPass);
+		SsaoPass&  aoShader = dynamic_cast<SsaoPass&>(*aoPass);
 		const unsigned width = aoRenderTarget->getWidth();
 		const unsigned height = aoRenderTarget->getHeight();
 
@@ -367,7 +367,7 @@ namespace nex
 
 	void SSAO_Deferred::displayAOTexture(Texture* aoTexture)
 	{
-		SSAO_AO_Display_Shader* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_Shader*>(aoDisplay.get());
+		SSAO_AO_Display_Shader* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_Shader*>(aoDisplayPass.get());
 		//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
 
 		aoDisplayShader->bind();

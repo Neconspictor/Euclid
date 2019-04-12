@@ -8,7 +8,7 @@
 
 namespace nex
 {
-	class SceneNearFarComputeShader;
+	class SceneNearFarComputePass;
 
 
 	class CascadedShadow
@@ -36,7 +36,7 @@ namespace nex
 			bool operator==(const PCFFilter& o);
 		};
 
-		class CascadeDataShader : public ComputePass
+		class CascadeDataPass : public ComputePass
 		{
 		public:
 
@@ -61,7 +61,7 @@ namespace nex
 			};
 
 
-			CascadeDataShader(unsigned numCascades);
+			CascadeDataPass(unsigned numCascades);
 
 			ShaderStorageBuffer* getSharedOutput();
 
@@ -135,7 +135,7 @@ namespace nex
 
 		const CascadeData& getCascadeData() const;
 
-		Pass* getDepthPassShader();
+		Pass* getDepthPass();
 
 		unsigned getHeight() const;
 
@@ -180,10 +180,10 @@ namespace nex
 			float radius;
 		};
 
-		class DepthPassShader : public Pass
+		class DepthPass : public Pass
 		{
 		public:
-			DepthPassShader(unsigned numCascades);
+			DepthPass(unsigned numCascades);
 			void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 
 			void setCascadeIndex(unsigned index);
@@ -215,9 +215,9 @@ namespace nex
 
 
 
-		std::unique_ptr<DepthPassShader> mDepthPassShader;
-		std::unique_ptr<CascadeDataShader> mDataComputeShader;
-		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
+		std::unique_ptr<DepthPass> mDepthPass;
+		std::unique_ptr<CascadeDataPass> mDataComputePass;
+		std::unique_ptr<SceneNearFarComputePass> mSceneNearFarComputeShader;
 		RenderTarget mRenderTarget;
 
 		unsigned int mCascadeWidth;

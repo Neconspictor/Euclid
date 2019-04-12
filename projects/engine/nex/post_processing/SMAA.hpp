@@ -30,9 +30,9 @@ namespace nex
 
 	private:
 
-		class EdgeDetectionShader;
-		class BlendingWeightCalculationShader;
-		class NeighborhoodBlendingShader;
+		class EdgeDetectionPass;
+		class BlendingWeightCalculationPass;
+		class NeighborhoodBlendingPass;
 
 		std::unique_ptr<RenderTarget2D> mEdgesTex;
 		std::unique_ptr<RenderTarget2D> mBlendTex;
@@ -42,9 +42,9 @@ namespace nex
 		std::unique_ptr<Sampler> mBilinearFilter;
 		std::unique_ptr<Sampler> mPointFilter;
 
-		std::unique_ptr<EdgeDetectionShader> mEdgeDetectionShader;
-		std::unique_ptr<BlendingWeightCalculationShader> mBlendingWeightCalculationShader;
-		std::unique_ptr<NeighborhoodBlendingShader> mNeighborhoodBlendingShader;
+		std::unique_ptr<EdgeDetectionPass> mEdgeDetectionShader;
+		std::unique_ptr<BlendingWeightCalculationPass> mBlendingWeightCalculationShader;
+		std::unique_ptr<NeighborhoodBlendingPass> mNeighborhoodBlendingShader;
 
 		VertexArray* mFullscreenTriangle;
 	};

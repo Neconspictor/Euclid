@@ -4,10 +4,10 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
 
-class nex::DownSampler::DownSampleShader : public Pass
+class nex::DownSampler::DownSamplePass : public Pass
 {
 public:
-	DownSampleShader()
+	DownSamplePass()
 	{
 		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
 		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
@@ -20,7 +20,7 @@ private:
 };
 
 
-nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSampleShader>()),
+nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSamplePass>()),
 mSampler(std::make_unique<Sampler>(SamplerDesc()))
 {
 	mSampler->setAnisotropy(1.0f);

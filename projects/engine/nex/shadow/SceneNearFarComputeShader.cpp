@@ -6,7 +6,7 @@
 #include "nex/shader/ShaderBuffer.hpp"
 
 
-void nex::SceneNearFarComputeShader::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)
+void nex::SceneNearFarComputePass::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)
 {
 	mConstantBuffer->bind();
 	Constant data;
@@ -16,7 +16,7 @@ void nex::SceneNearFarComputeShader::setConstants(float positiveViewNearZ, float
 	mConstantBuffer->update(&data, sizeof(Constant));
 }
 
-nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputePass()
+nex::SceneNearFarComputePass::SceneNearFarComputePass() : ComputePass()
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);
@@ -51,7 +51,7 @@ nex::SceneNearFarComputeShader::SceneNearFarComputeShader() : ComputePass()
 	
 }
 
-nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readResult()
+nex::SceneNearFarComputePass::WriteOut nex::SceneNearFarComputePass::readResult()
 {
 	mWriteOutBuffer->bind();
 	WriteOut* result = (WriteOut*)mWriteOutBuffer->map(ShaderBuffer::Access::READ_WRITE);
@@ -60,22 +60,22 @@ nex::SceneNearFarComputeShader::WriteOut nex::SceneNearFarComputeShader::readRes
 	return copy;
 }
 
-void nex::SceneNearFarComputeShader::setDepthTexture(Texture* depth)
+void nex::SceneNearFarComputePass::setDepthTexture(Texture* depth)
 {
 	mShader->setTexture(depth, &mSampler, mDepthTextureUniform.bindingSlot);
 }
 
-nex::ShaderStorageBuffer* nex::SceneNearFarComputeShader::getConstantBuffer()
+nex::ShaderStorageBuffer* nex::SceneNearFarComputePass::getConstantBuffer()
 {
 	return mConstantBuffer.get();
 }
 
-nex::ShaderStorageBuffer* nex::SceneNearFarComputeShader::getWriteOutBuffer()
+nex::ShaderStorageBuffer* nex::SceneNearFarComputePass::getWriteOutBuffer()
 {
 	return mWriteOutBuffer.get();
 }
 
-void nex::SceneNearFarComputeShader::reset()
+void nex::SceneNearFarComputePass::reset()
 {
 	WriteOut out;
 	out.minMax.x = FLT_MAX;

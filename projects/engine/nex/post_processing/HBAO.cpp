@@ -105,10 +105,10 @@ namespace nex
 
 
 
-		m_aoDisplay = std::make_unique<DisplayTex>();
-		m_bilateralBlur = std::make_unique<BilateralBlur>();
-		m_depthLinearizer = std::make_unique<DepthLinearizer>();
-		m_hbaoShader = std::make_unique<HBAO_Shader>();
+		m_aoDisplay = std::make_unique<DisplayTexPass>();
+		m_bilateralBlur = std::make_unique<BilateralBlurPass>();
+		m_depthLinearizer = std::make_unique<DepthLinearizerPass>();
+		m_hbaoShader = std::make_unique<HbaoPass>();
 
 
 		initRenderTargets(windowWidth, windowHeight);
@@ -315,8 +315,7 @@ namespace nex
 		m_tempRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
 	}
 
-	BilateralBlur::BilateralBlur() :
-		Pass(),
+	BilateralBlurPass::BilateralBlurPass() :
 		m_linearDepth(nullptr),
 		m_sharpness(0),
 		m_textureWidth(0),
@@ -330,17 +329,17 @@ namespace nex
 		mSampler.setState(state);
 	}
 
-	void BilateralBlur::setLinearDepth(Texture * linearDepth)
+	void BilateralBlurPass::setLinearDepth(Texture * linearDepth)
 	{
 		m_linearDepth = linearDepth;
 	}
 
-	void BilateralBlur::setSharpness(float sharpness)
+	void BilateralBlurPass::setSharpness(float sharpness)
 	{
 		m_sharpness = sharpness;
 	}
 
-	void BilateralBlur::setSourceTexture(Texture * source, unsigned int textureWidth, unsigned int textureHeight)
+	void BilateralBlurPass::setSourceTexture(Texture * source, unsigned int textureWidth, unsigned int textureHeight)
 	{
 		m_source = source;
 		m_textureHeight = textureHeight;
@@ -354,7 +353,7 @@ namespace nex
 
 	}
 
-	void BilateralBlur::draw(RenderTarget2D* temp, RenderTarget2D* result)
+	void BilateralBlurPass::draw(RenderTarget2D* temp, RenderTarget2D* result)
 	{
 		temp->bind();
 		bind();
@@ -384,7 +383,7 @@ namespace nex
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
-	DepthLinearizer::DepthLinearizer() :
+	DepthLinearizerPass::DepthLinearizerPass() :
 		m_input(nullptr),
 		m_projection(nullptr)
 	{
@@ -403,7 +402,7 @@ namespace nex
 		mShader->setBinding(inputLoc, 0);
 	}
 
-	void DepthLinearizer::draw()
+	void DepthLinearizerPass::draw()
 	{
 		bind();
 
@@ -419,17 +418,17 @@ namespace nex
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
-	void DepthLinearizer::setInputTexture(Texture * input)
+	void DepthLinearizerPass::setInputTexture(Texture * input)
 	{
 		m_input = input;
 	}
 
-	void DepthLinearizer::setProjection(const Projection* projection)
+	void DepthLinearizerPass::setProjection(const Projection* projection)
 	{
 		m_projection = projection;
 	}
 
-	DisplayTex::DisplayTex() : Pass(),
+	DisplayTexPass::DisplayTexPass() : Pass(),
 		m_input(nullptr)
 	{
 		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/displaytex.frag.glsl");
@@ -438,7 +437,7 @@ namespace nex
 		mShader->setBinding(inputLoc, 0);
 	}
 
-	void DisplayTex::draw()
+	void DisplayTexPass::draw()
 	{
 		bind();
 		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
@@ -447,12 +446,12 @@ namespace nex
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
-	void DisplayTex::setInputTexture(Texture * input)
+	void DisplayTexPass::setInputTexture(Texture * input)
 	{
 		m_input = input;
 	}
 
-	HBAO_Shader::HBAO_Shader() :
+	HbaoPass::HbaoPass() :
 		m_hbao_randomview(nullptr),
 		m_linearDepth(nullptr),
 		m_hbao_ubo(nullptr)
@@ -479,7 +478,7 @@ namespace nex
 		mPointSampler2.setState(state);
 	}
 
-	void HBAO_Shader::draw()
+	void HbaoPass::draw()
 	{
 		bind();
 		m_hbao_ubo->bind();
@@ -493,22 +492,22 @@ namespace nex
 		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
 	}
 
-	void HBAO_Shader::setHbaoData(const HBAOData& hbao)
+	void HbaoPass::setHbaoData(const HBAOData& hbao)
 	{
 		m_hbao_data = hbao;
 	}
 
-	void HBAO_Shader::setHbaoUBO(UniformBuffer* hbao_ubo)
+	void HbaoPass::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
 		m_hbao_ubo = hbao_ubo;
 	}
 
-	void HBAO_Shader::setLinearDepth(Texture * linearDepth)
+	void HbaoPass::setLinearDepth(Texture * linearDepth)
 	{
 		m_linearDepth = linearDepth;
 	}
 
-	void HBAO_Shader::setRamdomView(Texture * randomView)
+	void HbaoPass::setRamdomView(Texture * randomView)
 	{
 		m_hbao_randomview = randomView;
 	}
@@ -547,12 +546,12 @@ namespace nex
 		return a + f * (b - a);
 	}
 
-	HBAO_ConfigurationView::HBAO_ConfigurationView(HBAO * hbao) : m_hbao(hbao), m_parent(nullptr), m_test(0)
+	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : m_hbao(hbao), m_parent(nullptr), m_test(0)
 	{
 		m_isVisible = true;
 	}
 
-	void HBAO_ConfigurationView::drawSelf()
+	void HbaoConfigurationView::drawSelf()
 	{
 		// render configuration properties
 		ImGui::PushID(m_id.c_str());

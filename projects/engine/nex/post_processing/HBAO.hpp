@@ -9,7 +9,7 @@
 #include <nex/texture/RenderTarget.hpp>
 
 namespace nex {
-	class HBAO_ConfigurationView;
+	class HbaoConfigurationView;
 	class Sampler;
 
 #define UBO_SCENE     0
@@ -59,11 +59,11 @@ namespace nex {
 	};
 
 
-	class BilateralBlur : public Pass {
+	class BilateralBlurPass : public Pass {
 	public:
 
-		explicit BilateralBlur();
-		virtual ~BilateralBlur() = default;
+		explicit BilateralBlurPass();
+		virtual ~BilateralBlurPass() = default;
 
 		void setLinearDepth(Texture* linearDepth);
 		void setSharpness(float sharpness);
@@ -79,11 +79,11 @@ namespace nex {
 		unsigned int m_textureWidth;
  	};
 
-	class DepthLinearizer : public Pass {
+	class DepthLinearizerPass : public Pass {
 	public:
 
-		DepthLinearizer();
-		virtual ~DepthLinearizer() = default;
+		DepthLinearizerPass();
+		virtual ~DepthLinearizerPass() = default;
 
 		void draw();
 		void setInputTexture(Texture* input);
@@ -95,11 +95,11 @@ namespace nex {
 		std::unique_ptr<Sampler> mSampler;
 	};
 
-	class DisplayTex : public Pass {
+	class DisplayTexPass : public Pass {
 	public:
 
-		DisplayTex();
-		virtual ~DisplayTex() = default;
+		DisplayTexPass();
+		virtual ~DisplayTexPass() = default;
 
 		void draw();
 		void setInputTexture(Texture* input);
@@ -108,11 +108,11 @@ namespace nex {
 		Texture* m_input;
 	};
 
-	class HBAO_Shader : public Pass {
+	class HbaoPass : public Pass {
 	public:
 
-		HBAO_Shader();
-		virtual ~HBAO_Shader() = default;
+		HbaoPass();
+		virtual ~HbaoPass() = default;
 
 		void draw();
 		void setHbaoData(const HBAOData& hbao);
@@ -163,10 +163,10 @@ namespace nex {
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
 	protected:
-		std::unique_ptr<BilateralBlur> m_bilateralBlur;
-		std::unique_ptr<DepthLinearizer> m_depthLinearizer;
-		std::unique_ptr<DisplayTex> m_aoDisplay;
-		std::unique_ptr<HBAO_Shader> m_hbaoShader;
+		std::unique_ptr<BilateralBlurPass> m_bilateralBlur;
+		std::unique_ptr<DepthLinearizerPass> m_depthLinearizer;
+		std::unique_ptr<DisplayTexPass> m_aoDisplay;
+		std::unique_ptr<HbaoPass> m_hbaoShader;
 
 		std::unique_ptr<RenderTarget2D> m_depthLinearRT;
 		std::unique_ptr<RenderTarget2D> m_aoResultRT;
@@ -187,7 +187,7 @@ namespace nex {
 
 
 	protected:
-		friend HBAO_ConfigurationView;
+		friend HbaoConfigurationView;
 
 		float m_blur_sharpness;
 		float m_meters2viewspace;
@@ -206,9 +206,9 @@ namespace nex {
 	};
 
 
-	class HBAO_ConfigurationView : public nex::gui::Drawable {
+	class HbaoConfigurationView : public nex::gui::Drawable {
 	public:
-		HBAO_ConfigurationView(HBAO* hbao);
+		HbaoConfigurationView(HBAO* hbao);
 
 	protected:
 		void drawSelf() override;

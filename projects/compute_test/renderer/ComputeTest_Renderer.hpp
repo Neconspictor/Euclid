@@ -158,7 +158,7 @@ namespace nex
 		std::unique_ptr<SimpleBlinnPhong> mSimpleBlinnPhong;
 		std::unique_ptr<SimpleGeometryShader> mSimpleGeometry;
 		std::unique_ptr<GBuffer> mGBuffer;
-		std::unique_ptr<SceneNearFarComputeShader> mSceneNearFarComputeShader;
+		std::unique_ptr<SceneNearFarComputePass> mSceneNearFarComputeShader;
 		Input* mInput;
 	};
 }

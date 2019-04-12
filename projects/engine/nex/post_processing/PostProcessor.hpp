@@ -55,7 +55,7 @@ namespace nex
 
 	private:
 
-		class PostProcessShader;
+		class PostProcessPass;
 
 		void setAoMap(Texture2D* aoMap);
 		void setPostProcessTexture(Texture* texture);
@@ -66,7 +66,7 @@ namespace nex
 		DownSampler* mDownSampler;
 		GaussianBlur* mGaussianBlur;
 
-		std::unique_ptr<PostProcessShader> mPostprocessPass;
+		std::unique_ptr<PostProcessPass> mPostprocessPass;
 		std::unique_ptr<AmbientOcclusionSelector> mAoSelector;
 
 		//Bloom

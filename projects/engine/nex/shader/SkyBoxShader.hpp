@@ -5,10 +5,10 @@ namespace nex
 {
 	class CubeMap;
 
-	class SkyBoxShader : public Pass
+	class SkyBoxPass : public Pass
 	{
 	public:
-		SkyBoxShader();
+		SkyBoxPass();
 
 		void setMVP(const glm::mat4& mat);
 		void setProjection(const glm::mat4& mat);
@@ -28,10 +28,10 @@ namespace nex
 		Uniform mView;
 	};
 
-	class PanoramaSkyBoxShader : public Pass
+	class PanoramaSkyBoxPass : public Pass
 	{
 	public:
-		PanoramaSkyBoxShader();
+		PanoramaSkyBoxPass();
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
@@ -44,10 +44,10 @@ namespace nex
 		Uniform mView;
 	};
 
-	class EquirectangularSkyBoxShader : public Pass
+	class EquirectangularSkyBoxPass : public Pass
 	{
 	public:
-		EquirectangularSkyBoxShader();
+		EquirectangularSkyBoxPass();
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);

@@ -11,10 +11,10 @@
 #include "AmbientOcclusion.hpp"
 
 
-class nex::PostProcessor::PostProcessShader : public nex::Pass
+class nex::PostProcessor::PostProcessPass : public nex::Pass
 {
 public:
-	PostProcessShader()
+	PostProcessPass()
 	{
 		mShader = nex::Shader::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
 		sourceTextureUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
@@ -45,7 +45,7 @@ public:
 };
 
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
-mPostprocessPass(std::make_unique<PostProcessShader>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
+mPostprocessPass(std::make_unique<PostProcessPass>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
 mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
 {
 	mFullscreenPlane = StaticMeshManager::get()->getNDCFullscreenPlane();

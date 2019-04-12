@@ -7,11 +7,11 @@ namespace nex
 	class Texture2D;
 	class Pass;
 	class GaussianBlur;
-	class EquirectangularSkyBoxShader;
-	class PanoramaSkyBoxShader;
-	class SkyBoxShader;
+	class EquirectangularSkyBoxPass;
+	class PanoramaSkyBoxPass;
+	class SkyBoxPass;
 	class DepthMapShader;
-	class ShadowShader;
+	class ShadowPass;
 	class ScreenShader;
 	class PostProcessor;
 	class DownSampler;
@@ -29,13 +29,13 @@ namespace nex
 		// Inherited via EffectLibrary
 		GaussianBlur* getGaussianBlur();
 
-		EquirectangularSkyBoxShader* getEquirectangularSkyBoxShader();
-		PanoramaSkyBoxShader* getPanoramaSkyBoxShader();
-		SkyBoxShader* getSkyBoxShader();
+		EquirectangularSkyBoxPass* getEquirectangularSkyBoxShader();
+		PanoramaSkyBoxPass* getPanoramaSkyBoxShader();
+		SkyBoxPass* getSkyBoxShader();
 
 		DepthMapShader* getDepthMapShader();
 
-		ShadowShader* getShadowVisualizer();
+		ShadowPass* getShadowVisualizer();
 
 		ScreenShader* getScreenShader();
 
@@ -47,11 +47,11 @@ namespace nex
 
 	protected:
 		std::unique_ptr<GaussianBlur> mGaussianBlur;
-		std::unique_ptr<EquirectangularSkyBoxShader> mEquirectangualrSkyBox;
-		std::unique_ptr<PanoramaSkyBoxShader> mPanoramaSkyBox;
-		std::unique_ptr<SkyBoxShader> mSkyBox;
+		std::unique_ptr<EquirectangularSkyBoxPass> mEquirectangualrSkyBox;
+		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
+		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapShader> mDepthMap;
-		std::unique_ptr<ShadowShader> mShadow;
+		std::unique_ptr<ShadowPass> mShadow;
 		std::unique_ptr<ScreenShader> mScreen;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;

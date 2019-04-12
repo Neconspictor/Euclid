@@ -278,7 +278,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
-			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPassShader());
+			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
 			//mCascadedShadow->end();
 		}
 
@@ -373,7 +373,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
-			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPassShader());
+			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
 			mCascadedShadow->end();
 		}
 
