@@ -7,24 +7,12 @@ using namespace std;
 using namespace nex;
 
 
-Material::Material() : mShader(nullptr)
+Material::Material()
 {
 }
 
-Shader* Material::getProgram()
+void Material::init()
 {
-	return mShader;
-}
-
-void Material::setShader(Shader* shader)
-{
-	mShader = shader;
-}
-
-void Material::init(Shader* program)
-{
-	setShader(program);
-
 	mFloats.clear();
 	mInts.clear();
 	mMat2s.clear();
@@ -105,76 +93,76 @@ void Material::set(unsigned bindingSlot, const Texture* texture)
 	mTextures[bindingSlot] = texture;
 }
 
-void Material::upload() const
+void Material::upload(Shader* shader) const
 {
-	if (mShader == nullptr) return;
+	if (shader == nullptr) return;
 
-	mShader->bind();
+	shader->bind();
 
 	for (auto& uniform : mTextures)
 	{
 		// Note: samplers are not handled by materials. Thus no sampler object is submitted
-		mShader->setTexture(uniform.second, nullptr, uniform.first);
+		shader->setTexture(uniform.second, nullptr, uniform.first);
 	}
 
 	for (auto& uniform : mFloats)
 	{
-		mShader->setFloat(uniform.first, uniform.second);
+		shader->setFloat(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mInts)
 	{
-		mShader->setInt(uniform.first, uniform.second);
+		shader->setInt(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mMat2s)
 	{
-		mShader->setMat3(uniform.first, uniform.second);
+		shader->setMat3(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mMat3s)
 	{
-		mShader->setMat3(uniform.first, uniform.second);
+		shader->setMat3(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mMat4s)
 	{
-		mShader->setMat4(uniform.first, uniform.second);
+		shader->setMat4(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mUints)
 	{
-		mShader->setUInt(uniform.first, uniform.second);
+		shader->setUInt(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mUVec2s)
 	{
-		mShader->setUVec2(uniform.first, uniform.second);
+		shader->setUVec2(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mUVec3s)
 	{
-		mShader->setUVec3(uniform.first, uniform.second);
+		shader->setUVec3(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mUVec4s)
 	{
-		mShader->setUVec4(uniform.first, uniform.second);
+		shader->setUVec4(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mVec2s)
 	{
-		mShader->setVec2(uniform.first, uniform.second);
+		shader->setVec2(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mVec3s)
 	{
-		mShader->setVec3(uniform.first, uniform.second);
+		shader->setVec3(uniform.first, uniform.second);
 	}
 
 	for (auto& uniform : mVec4s)
 	{
-		mShader->setVec4(uniform.first, uniform.second);
+		shader->setVec4(uniform.first, uniform.second);
 	}
 }
 

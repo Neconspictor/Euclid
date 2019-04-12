@@ -20,9 +20,7 @@ namespace nex
 
 		virtual ~Material() = default;
 
-		Shader* getProgram();
-
-		void init(Shader* program);
+		void init();
 
 		void set(UniformLocation loc, float value);
 		void set(UniformLocation loc, int value);
@@ -38,12 +36,10 @@ namespace nex
 		void set(UniformLocation loc, const glm::vec4& value);
 		void set(unsigned bindingSlot, const Texture* texture);
 
-		void setShader(Shader* shader);
-
 		/**
 		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
 		 */
-		void upload() const;
+		void upload(Shader* shader) const;
 
 
 	protected:
@@ -65,8 +61,6 @@ namespace nex
 		Map<glm::vec2> mVec2s;
 		Map<glm::vec3> mVec3s;
 		Map<glm::vec4> mVec4s;
-
-		Shader* mShader;
 	};
 
 	/**

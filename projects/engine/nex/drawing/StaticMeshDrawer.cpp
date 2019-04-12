@@ -95,8 +95,7 @@ void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* pass)
 		auto* material = mesh.get()->getMaterial();
 		if (material != nullptr)
 		{
-			material->setShader(pass->getShader());
-			material->upload();
+			material->upload(pass->getShader());
 		}
 		pass->onMaterialUpdate(mesh.get()->getMaterial());
 
