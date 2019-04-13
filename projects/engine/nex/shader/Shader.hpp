@@ -70,8 +70,14 @@ namespace nex
 
 		Shader(std::unique_ptr<Impl> impl);
 
-		virtual ~Shader() = default;
-
+		Shader(const Shader&) = delete;
+		Shader(Shader&&) = default;
+		Shader& operator=(const Shader&) = delete;
+		Shader& operator=(Shader&&)  = default;
+		
+		//Has to be default implemented by render implementation
+		~Shader();
+		
 		template<typename T>
 		static std::string makeDefine(const char* str, T value);
 
@@ -204,10 +210,6 @@ namespace nex
 
 		friend Pass;
 		std::unique_ptr<Impl> mImpl;
-
-	private:
-		Shader& operator=(const Shader& other) = delete;
-		Shader(const Shader& other) = delete;
 	};
 
 	template <typename T>

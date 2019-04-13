@@ -11,7 +11,14 @@ namespace nex
 
 		Pass(std::unique_ptr<Shader> shader = nullptr);
 
+		/**
+		 * base class needs virtual destructor. Rule of five.
+		 */
 		virtual ~Pass() = default;
+		Pass(const Pass&) = delete;
+		Pass(Pass&&) = default;
+		Pass& operator=(const Pass&) = delete;
+		Pass& operator=(Pass&&) = default;
 
 		/**
 		 * Binds this shader and the underlying shader program.
@@ -40,9 +47,6 @@ namespace nex
 
 	protected:
 
-		Pass(const Pass&) = delete;
-		Pass& operator=(const Pass&) = delete;
-
 		std::unique_ptr<Shader> mShader;
 
 		// Many passes need a sampler object, so we specify one default one here.
@@ -53,7 +57,12 @@ namespace nex
 	{
 	public:
 		TransformPass(std::unique_ptr<Shader> program = nullptr);
+		
 		virtual ~TransformPass() = default;
+		TransformPass(const TransformPass&) = delete;
+		TransformPass(TransformPass&&) = default;
+		TransformPass& operator=(const TransformPass&) = delete;
+		TransformPass& operator=(TransformPass&&) = default;
 
 		virtual void onTransformUpdate(const TransformData& data) = 0;
 	};
@@ -62,7 +71,12 @@ namespace nex
 	{
 	public:
 		ComputePass(std::unique_ptr<Shader> program = nullptr);
+
 		virtual ~ComputePass() = default;
+		ComputePass(const ComputePass&) = delete;
+		ComputePass(ComputePass&&) = default;
+		ComputePass& operator=(const ComputePass&) = delete;
+		ComputePass& operator=(ComputePass&&) = default;
 
 		/**
 		 * Notice: Has to be implemented by the render backend implementation!

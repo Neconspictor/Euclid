@@ -28,15 +28,13 @@ namespace nex
 	class Sampler::Impl
 	{
 	public:
-		virtual ~Impl();
-	};
+		Impl();
+		Impl(const Impl&) = delete;
+		Impl(Impl&&) noexcept;
+		Impl& operator=(const Impl&) = delete;
+		Impl& operator=(Impl&&) noexcept;
 
-	class SamplerGL : public Sampler::Impl
-	{
-	public:
-		SamplerGL();
-
-		virtual ~SamplerGL();
+		~Impl();
 
 		GLuint getID() const;
 		static GLfloat getMaxAnisotropicFiltering();
@@ -45,7 +43,7 @@ namespace nex
 
 	protected:
 		friend Sampler;
-		GLuint m_samplerID;
+		GLuint mSamplerID;
 		SamplerDesc mState;
 	};
 }

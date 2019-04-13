@@ -2,7 +2,6 @@
 #include <nex/util/StringUtils.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 
-
 nex::UniformTex nex::Shader::createTextureUniform(const char* name, UniformType type, unsigned bindingSlot)
 {
 	UniformLocation loc = getUniformLocation(name);

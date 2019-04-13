@@ -73,6 +73,8 @@ std::ostream& nex::operator<<(std::ostream& os, ShaderStageTypeGL type)
 	return os;
 }
 
+nex::Shader::~Shader() = default;
+
 void nex::Shader::setBinding(UniformLocation locationID, unsigned bindingSlot)
 {
 	bind();
@@ -221,6 +223,23 @@ nex::Shader::Shader(std::unique_ptr<Impl> impl) : mImpl(std::move(impl))
 
 nex::Shader::Impl::Impl(GLuint program) : mProgramID(program), mCache(program)
 {
+}
+
+nex::Shader::Impl::Impl(Impl&& other) noexcept : mDebugName(std::move(other.mDebugName)), 
+mProgramID(other.mProgramID), 
+mCache(std::move(other.mCache))
+{
+	other.mProgramID = GL_FALSE;
+}
+
+nex::Shader::Impl& nex::Shader::Impl::operator=(Impl&& other) noexcept
+{
+	if (this == &other) return *this;
+	mProgramID = other.mProgramID;
+	mDebugName = std::move(other.mDebugName);
+	mCache = std::move(other.mCache);
+	other.mProgramID = GL_FALSE;
+	return *this;
 }
 
 nex::Shader::Impl::~Impl()

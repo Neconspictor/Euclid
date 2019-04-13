@@ -10,7 +10,7 @@ using namespace std;
 using namespace nex;
 
 PbrCommonGeometryPass::PbrCommonGeometryPass() : mProjectionMatrixSource(nullptr), mViewMatrixSource(nullptr),
-                                                        mProgram(nullptr)
+                                                 mProgram(nullptr), mDefaultImageSampler(nullptr)
 {
 	assert(mProgram == nullptr);
 }

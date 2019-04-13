@@ -42,12 +42,15 @@ namespace nex
 	class Shader::Impl
 	{
 	public:
-
-		Impl(const Impl& other) = delete;
-		Impl& operator=(const Impl& other) = delete;
-
+		
 		Impl(GLuint program);
+		Impl() = delete;
+		Impl(const Impl& other) = delete;
+		Impl(Impl&& other) noexcept;
+		Impl& operator=(const Impl& other) = delete;
+		Impl& operator=(Impl&& other) noexcept;
 		~Impl();
+		
 
 		void bind();
 

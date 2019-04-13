@@ -15,13 +15,16 @@ namespace nex
 
 		class Impl;
 
-		// Class and subclasses shouldn't be movable/copiable
-		// Implicitly removes auto-generated move constructor/assignment operator
-		// Inherited classes cannot be copied/moved as well
-		Sampler(const Sampler&) = delete;
-		Sampler& operator=(const Sampler&) = delete;
-
 		Sampler(const SamplerDesc& samplerState = {});
+		
+		// Class and subclasses shouldn't be copiable
+		// Implicitly removes auto-generated move constructor/assignment operator
+		Sampler(const Sampler&) = delete;
+		Sampler(Sampler&&) = default;
+		Sampler& operator=(const Sampler&) = delete;
+		Sampler& operator=(Sampler&&) = default;
+
+		
 
 		~Sampler();
 

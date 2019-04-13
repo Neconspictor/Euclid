@@ -4,45 +4,25 @@ namespace nex
 {
 	class Pass;
 
-	template<class T>
-	class Selector
+	class Technique
 	{
 	public:
+		virtual ~Technique() = default;
+		Technique(const Technique&) = default;
+		Technique(Technique&&) = default;
+		Technique& operator=(Technique&&) = default;
+		Technique& operator=(const Technique&) = default;
 
-		T* getActive() const
+		/**
+		 * provides the current active pass for rendering a submesh.
+		 */
+		Pass* getActiveSubMeshPass() const
 		{
 			return mActive;
 		}
 
 	protected:
-		T* mActive = nullptr;
+		Pass* mActive = nullptr;
+		
 	};
-
-
-	class Technique : public Selector<Pass>
-	{
-	public:
-		virtual ~Technique() = default;
-
-		Pass* getActivePass() const
-		{
-			return mActive;
-		}
-	};
-
-	/*class TechniqueSelector : public Selector<Technique>
-	{
-	public:
-		virtual ~TechniqueSelector() = default;
-
-		Technique* getActiveTechnique() const
-		{
-			return mActive;
-		}
-
-		Pass* getActivePass() const
-		{
-			return mActive->getActivePass();
-		}
-	};*/
 }
