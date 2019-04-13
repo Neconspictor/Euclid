@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/gui/Drawable.hpp>
+#include <nex/shader/Technique.hpp>
 
 namespace nex
 {
@@ -9,10 +10,10 @@ namespace nex
 	class AmbientLight;
 	class PbrProbe;
 
-	class Pbr  {
+	class Pbr : public Technique {
 
 	public:
-		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
+		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, Pass* submeshPass);
 
 		virtual ~Pbr();
 

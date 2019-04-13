@@ -15,7 +15,7 @@
 namespace nex {
 
 	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
-		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe),
+		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe, nullptr),
 		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
 		mLightPass(std::make_unique<PbrDeferredLightingPass>(*cascadeShadow))
 	{
@@ -24,6 +24,9 @@ namespace nex {
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
+
+		// set the active submesh pass
+		setSelected(mGeometryPass.get());
 	}
 
 	void PbrDeferred::drawGeometryScene(SceneNode * scene, Camera* camera)

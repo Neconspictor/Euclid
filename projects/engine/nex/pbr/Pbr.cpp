@@ -4,10 +4,11 @@
 #include "nex/gui/Util.hpp"
 #include "nex/shadow/CascadedShadow.hpp"
 
-nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
+nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, Pass* submeshPass) :
+	Technique(submeshPass),
+	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
 {
-	mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)->void
+	mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)-> void
 	{
 		reloadLightingShader(cascade);
 	});

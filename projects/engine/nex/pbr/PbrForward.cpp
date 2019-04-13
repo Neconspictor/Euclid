@@ -17,18 +17,22 @@ using namespace std;
 namespace nex {
 
 	PbrForward::PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardPass>(*cascadeShadow))
+	Pbr(ambientLight, cascadeShadow, dirLight, probe, nullptr), mForwardShader(std::make_unique<PbrForwardPass>(*cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
+
+		// set the active submesh pass
+		setSelected(mForwardShader.get());
 	}
 
 	void PbrForward::reloadLightingShader(const CascadedShadow& cascadedShadow)
 	{
 		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
+		setSelected(mForwardShader.get());
 	}
 
 
