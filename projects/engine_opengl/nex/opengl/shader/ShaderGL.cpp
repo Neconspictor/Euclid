@@ -344,9 +344,9 @@ void nex::Shader::Impl::setTexture(const Texture* texture, const Sampler* sample
 	auto* gl = texture->getImpl();
 
 	//GLCall(glBindTextureUnit(bindingSlot, *data->getImpl()->getTexture()));
+	if (sampler != nullptr) sampler->bind(bindingSlot);
 	GlobalCacheGL::get()->BindTextureUnit(bindingSlot, *gl->getTexture());
 
-	if (sampler != nullptr) sampler->bind(bindingSlot);
 	//mCache.Uniform1i(glID, bindingSlot);
 }
 

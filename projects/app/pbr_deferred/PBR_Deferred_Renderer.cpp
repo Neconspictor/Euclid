@@ -46,7 +46,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	//shadowMap(nullptr),
 	mShowDepthMap(false),
 	mInput(input),
-	mAtmosphericScattering(std::make_unique<AtmosphericScattering>())
+	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
+	mPbrSelector(nullptr)
 {
 }
 
@@ -143,6 +144,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mPbrDeferred = std::make_unique<PbrDeferred>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
+
+	mPbrSelector.setSelected(mPbrDeferred.get());
 
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
@@ -261,7 +264,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	mPbrDeferred->drawGeometryScene(scene, camera);
+	mPbrDeferred->configureSubMeshPass(camera);
+	mPbrDeferred->getActiveSubMeshPass()->updateConstants();
+	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
@@ -392,7 +397,9 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
-	mPbrForward->drawLighting(scene, camera);
+	mPbrForward->configureSubMeshPass(camera);
+	mPbrForward->getActiveSubMeshPass()->updateConstants();
+	StaticMeshDrawer::draw(scene, mPbrForward->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());

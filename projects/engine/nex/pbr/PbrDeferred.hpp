@@ -20,7 +20,7 @@ namespace nex
 	public:
 		PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
-		void drawGeometryScene(SceneNode * scene, Camera* camera);
+		void configureSubMeshPass(Camera* camera) override;
 
 		void drawLighting(SceneNode * scene,
 			PBR_GBuffer* gBuffer,

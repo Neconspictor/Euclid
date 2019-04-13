@@ -18,12 +18,6 @@ namespace nex
 		static const unsigned NORMAL_BINDING_POINT = 3;
 		static const unsigned ROUGHNESS_BINDING_POINT = 4;
 
-		void setAlbedoMap(const Texture* texture);
-		void setAmbientOcclusionMap(const Texture* texture);
-		void setMetalMap(const Texture* texture);
-		void setNormalMap(const Texture* texture);
-		void setRoughnessMap(const Texture* texture);
-
 		void setModelViewMatrix(const glm::mat4& mat);
 		void setTransform(const glm::mat4& mat);
 
@@ -36,6 +30,8 @@ namespace nex
 		 * Prerequisites: projection and view matrix are set (and mustn't be null!) 
 		 */
 		void doModelMatrixUpdate(const glm::mat4& model);
+
+		void updateConstants();
 
 	protected:
 		PbrCommonGeometryPass();
@@ -128,6 +124,7 @@ namespace nex
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
+		void updateConstants() override;
 	};
 
 	class PbrDeferredGeometryPass : public Pass, public PbrCommonGeometryPass {
@@ -136,6 +133,7 @@ namespace nex
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void onMaterialUpdate(const Material* material) override;
+		void updateConstants() override;
 	};
 
 	class PbrDeferredLightingPass : public TransformPass, public PbrCommonLightingPass {

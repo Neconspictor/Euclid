@@ -14,11 +14,9 @@ namespace nex
 	public:
 		PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
-		void drawLighting(SceneNode * scene,
-			Camera* camera);
-
 		void reloadLightingShader(const CascadedShadow& cascadedShadow) override;
 
+		void configureSubMeshPass(Camera* camera) override;
 	private:
 		std::unique_ptr<PbrForwardPass> mForwardShader;
 		std::unique_ptr<Sampler> mPointSampler;

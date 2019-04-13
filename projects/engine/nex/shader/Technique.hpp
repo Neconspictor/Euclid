@@ -2,6 +2,7 @@
 
 namespace nex
 {
+	class Camera;
 	class Pass;
 
 
@@ -39,7 +40,7 @@ namespace nex
 	public:
 		
 		Technique(Pass* active) : BaseSelector(active) {}
-		
+
 		virtual ~Technique() = default;
 
 		// Techniques should not be movable or copyable
@@ -47,6 +48,11 @@ namespace nex
 		Technique(Technique&&) = delete;
 		Technique& operator=(Technique&&) = delete;
 		Technique& operator=(const Technique&) = delete;
+
+		/**
+		 *
+		 */
+		virtual void configureSubMeshPass(Camera* camera) = 0;
 
 		/**
 		 * provides the current active pass for rendering a submesh.
@@ -61,6 +67,8 @@ namespace nex
 	{
 	public:
 
+		//using Selectables = std::vector<std::unique_ptr<Technique>>;
+
 		TechniqueSelector(Technique* active) : BaseSelector(active) {}
 
 		virtual ~TechniqueSelector() = default;
@@ -71,6 +79,16 @@ namespace nex
 		TechniqueSelector& operator=(TechniqueSelector&&) = delete;
 		TechniqueSelector& operator=(const TechniqueSelector&) = delete;
 
+		/*void addSelectable(std::unique_ptr<Technique> selectable)
+		{
+			mSelectables.emplace_back(std::move(selectable));
+		}
+
+		const Selectables& getSelectables() const
+		{
+			return mSelectables;
+		}*/
+
 		/**
 		 * provides the current active pass for rendering a submesh.
 		 */
@@ -79,5 +97,8 @@ namespace nex
 			if (getSelected() == nullptr) return nullptr;
 			return getSelected()->getActiveSubMeshPass();
 		}
+
+	//protected:
+	//	Selectables mSelectables;
 	};
 }

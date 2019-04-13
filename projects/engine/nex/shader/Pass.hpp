@@ -45,6 +45,8 @@ namespace nex
 		// TODO
 		virtual void reverseRenderState();
 
+		virtual void updateConstants();
+
 	protected:
 
 		std::unique_ptr<Shader> mShader;

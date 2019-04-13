@@ -35,19 +35,10 @@ namespace nex {
 		setSelected(mForwardShader.get());
 	}
 
-
-	void PbrForward::drawLighting(SceneNode * scene,
-		Camera* camera)
+	void PbrForward::configureSubMeshPass(Camera* camera)
 	{
 		mForwardShader->bind();
 
-		static Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
-
-		for (int i = 0; i < 5; ++i)
-		{
-			sampler->bind(i);
-		}
-		
 		//TODO update!!!
 		mForwardShader->setInverseViewMatrix(inverse(camera->getView()));
 		mForwardShader->setView(camera->getView());
@@ -73,12 +64,5 @@ namespace nex {
 		//TODO
 		mForwardShader->setCascadedData(mCascadeShadow->getCascadeBuffer());
 		mForwardShader->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
-
-		StaticMeshDrawer::draw(scene, mForwardShader.get());
-
-		for (int i = 0; i < 5; ++i)
-		{
-			sampler->unbind(i);
-		}
 	}
 }

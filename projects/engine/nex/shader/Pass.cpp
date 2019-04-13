@@ -4,6 +4,10 @@ nex::Pass::Pass(std::unique_ptr<Shader> program) : mShader(std::move(program))
 {
 }
 
+void nex::Pass::updateConstants()
+{
+}
+
 void nex::Pass::bind()
 {
 	mShader->bind();

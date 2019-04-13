@@ -36,36 +36,6 @@ void PbrCommonGeometryPass::init(Shader* program)
 }
 
 
-void PbrCommonGeometryPass::setAlbedoMap(const Texture* texture)
-{
-	assert(mProgram != nullptr);
-	mProgram->setTexture(texture, mDefaultImageSampler, mAlbedoMap.bindingSlot);
-}
-
-void PbrCommonGeometryPass::setAmbientOcclusionMap(const Texture* texture)
-{
-	assert(mProgram != nullptr);
-	mProgram->setTexture(texture, mDefaultImageSampler, mAmbientOcclusionMap.bindingSlot);
-}
-
-void PbrCommonGeometryPass::setMetalMap(const Texture* texture)
-{
-	assert(mProgram != nullptr);
-	mProgram->setTexture(texture, mDefaultImageSampler, mMetalMap.bindingSlot);
-}
-
-void PbrCommonGeometryPass::setNormalMap(const Texture* texture)
-{
-	assert(mProgram != nullptr);
-	mProgram->setTexture(texture, mDefaultImageSampler, mNormalMap.bindingSlot);
-}
-
-void PbrCommonGeometryPass::setRoughnessMap(const Texture* texture)
-{
-	assert(mProgram != nullptr);
-	mProgram->setTexture(texture, mDefaultImageSampler, mRoughnessMap.bindingSlot);
-}
-
 void PbrCommonGeometryPass::setModelViewMatrix(const glm::mat4& mat)
 {
 	assert(mProgram != nullptr);
@@ -99,6 +69,15 @@ void PbrCommonGeometryPass::doModelMatrixUpdate(const glm::mat4& model)
 	mat4 modelView = *mViewMatrixSource * model;
 	setModelViewMatrix(modelView);
 	setTransform(*mProjectionMatrixSource * modelView);
+}
+
+void PbrCommonGeometryPass::updateConstants()
+{
+	mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
+	mDefaultImageSampler->bind(AO_BINDING_POINT);
+	mDefaultImageSampler->bind(METALLIC_BINDING_POINT);
+	mDefaultImageSampler->bind(NORMAL_BINDING_POINT);
+	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);
 }
 
 PbrCommonLightingPass::PbrCommonLightingPass(const CascadedShadow& cascadedShadow) : mProgram(nullptr),
@@ -271,16 +250,12 @@ void PbrForwardPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 
 void PbrForwardPass::onMaterialUpdate(const Material* materialSource)
 {
-	const PbrMaterial* material = reinterpret_cast<const PbrMaterial*>(materialSource);
+}
 
-	if (material == nullptr)
-		return;
-
-	setAlbedoMap(material->getAlbedoMap());
-	setAmbientOcclusionMap(material->getAoMap());
-	setMetalMap(material->getMetallicMap());
-	setNormalMap(material->getNormalMap());
-	setRoughnessMap(material->getRoughnessMap());
+void PbrForwardPass::updateConstants()
+{
+	bind();
+	PbrCommonGeometryPass::updateConstants();
 }
 
 PbrDeferredLightingPass::PbrDeferredLightingPass(const CascadedShadow& cascadedShadow) : PbrCommonLightingPass(cascadedShadow)
@@ -358,6 +333,12 @@ void PbrDeferredGeometryPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 
 void PbrDeferredGeometryPass::onMaterialUpdate(const Material* materialSource)
 {
+}
+
+void PbrDeferredGeometryPass::updateConstants()
+{
+	bind();
+	PbrCommonGeometryPass::updateConstants();
 }
 
 PbrConvolutionPass::PbrConvolutionPass()

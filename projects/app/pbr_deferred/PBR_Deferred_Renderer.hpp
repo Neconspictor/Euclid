@@ -7,6 +7,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/Renderer.hpp>
+#include "nex/shader/Technique.hpp"
 
 namespace nex
 {
@@ -76,6 +77,8 @@ namespace nex
 		//DepthMap* shadowMap;
 		bool mShowDepthMap;
 		Input* mInput;
+
+		TechniqueSelector mPbrSelector;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

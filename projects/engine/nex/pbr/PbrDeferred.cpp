@@ -29,7 +29,7 @@ namespace nex {
 		setSelected(mGeometryPass.get());
 	}
 
-	void PbrDeferred::drawGeometryScene(SceneNode * scene, Camera* camera)
+	void PbrDeferred::configureSubMeshPass(Camera* camera)
 	{
 		const auto & view = camera->getView();
 		const auto & projection = camera->getPerspProjection();
@@ -37,20 +37,6 @@ namespace nex {
 		mGeometryPass->setView(view);
 		mGeometryPass->setProjection(projection);
 		mGeometryPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
-
-		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
-
-		for (int i = 0; i < 6; ++i)
-		{
-			sampler->bind(i);
-		}
-
-		StaticMeshDrawer::draw(scene, mGeometryPass.get());
-
-		for (int i = 0; i < 6; ++i)
-		{
-			sampler->unbind(i);
-		}
 	}
 
 	void PbrDeferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera)
