@@ -3,6 +3,7 @@
 
 namespace nex
 {
+	class Camera;
 	class Material;
 
 	class Pass
@@ -45,7 +46,7 @@ namespace nex
 		// TODO
 		virtual void reverseRenderState();
 
-		virtual void updateConstants();
+		virtual void updateConstants(Camera* camera);
 
 	protected:
 

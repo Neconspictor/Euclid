@@ -10,14 +10,13 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 #include "PbrProbe.hpp"
-#include <nex/SceneNode.hpp>
 
 namespace nex {
 
 	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
 		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe, nullptr),
 		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
-		mLightPass(std::make_unique<PbrDeferredLightingPass>(*cascadeShadow))
+		mLightPass(std::make_unique<PbrDeferredLightingPass>(cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -27,6 +26,10 @@ namespace nex {
 
 		// set the active submesh pass
 		setSelected(mGeometryPass.get());
+
+		mLightPass->setProbe(mProbe);
+		mLightPass->setAmbientLight(mAmbientLight);
+		mLightPass->setDirLight(mLight);
 	}
 
 	void PbrDeferred::configureSubMeshPass(Camera* camera)
@@ -34,24 +37,14 @@ namespace nex {
 		const auto & view = camera->getView();
 		const auto & projection = camera->getPerspProjection();
 		mGeometryPass->bind();
-		mGeometryPass->setView(view);
-		mGeometryPass->setProjection(projection);
-		mGeometryPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+		mGeometryPass->updateConstants(camera);
 	}
 
-	void PbrDeferred::drawLighting(SceneNode * scene, PBR_GBuffer * gBuffer, Camera* camera)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Camera* camera)
 	{
 		mLightPass->bind();
 
-		Sampler* sampler = TextureManager::get()->getDefaultImageSampler();
-
-		for (int i = 0; i < 4; ++i)
-		{
-			//mPointSampler->bind(i);
-		}
-
-		//sampler->bind(4);
-		//sampler->bind(5);
+		mLightPass->updateConstants(camera);
 
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
@@ -59,38 +52,7 @@ namespace nex {
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
-		mLightPass->setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
-		mLightPass->setInverseViewMatrix(inverse(camera->getView()));
-		mLightPass->setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
-		mLightPass->setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
-		mLightPass->setLightColor(mLight->getColor());
-
-		glm::vec4 lightEyeDirection = camera->getView() * glm::vec4(mLight->getDirection(), 0);
-		mLightPass->setEyeLightDirection(glm::vec3(lightEyeDirection));
-		mLightPass->setLightPower(mLight->getLightPower());
-		mLightPass->setAmbientLightPower(mAmbientLight->getPower());
-		mLightPass->setShadowStrength(mCascadeShadow->getShadowStrength());
-
-		mLightPass->setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
-
-		mLightPass->setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
-
-		//TODO
-		mLightPass->setCascadedData(mCascadeShadow->getCascadeBuffer());
-		mLightPass->setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
-
-
 		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mLightPass.get());
-
-
-		for (int i = 0; i < 4; ++i)
-		{
-			//mPointSampler->unbind(i);
-			//sampler->unbind(i);
-		}
-
-		//sampler->bind(4);
-		//sampler->bind(5);
 	}
 
 	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)
@@ -98,7 +60,7 @@ namespace nex {
 		return std::make_unique<PBR_GBuffer>(width, height);
 	}
 
-	void PbrDeferred::reloadLightingShader(const CascadedShadow& cascadedShadow)
+	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mLightPass = std::make_unique<PbrDeferredLightingPass>(cascadedShadow);
 	}

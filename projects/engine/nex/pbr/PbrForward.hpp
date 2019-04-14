@@ -14,7 +14,7 @@ namespace nex
 	public:
 		PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
-		void reloadLightingShader(const CascadedShadow& cascadedShadow) override;
+		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
 		void configureSubMeshPass(Camera* camera) override;
 	private:

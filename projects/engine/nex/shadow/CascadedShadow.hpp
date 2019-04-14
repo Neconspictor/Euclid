@@ -114,7 +114,7 @@ namespace nex
 		void resize(unsigned int cascadeWidth, unsigned int cascadeHeight);
 		void resizeCascadeData(unsigned numCascades, bool informObservers = true);
 
-		void addCascadeChangeCallback(std::function<void(const CascadedShadow&)> callback);
+		void addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback);
 		void informCascadeChanges();
 
 		bool isEnabled() const;
@@ -230,7 +230,7 @@ namespace nex
 		std::vector<glm::vec3> mCascadeBoundCenters;
 		GlobalShadow mGlobal;
 		PCFFilter mPCF;
-		std::list<std::function<void(const CascadedShadow&)>> mCallbacks;
+		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
 		bool mEnabled;
 		float mBiasMultiplier;
 		float mShadowStrength;

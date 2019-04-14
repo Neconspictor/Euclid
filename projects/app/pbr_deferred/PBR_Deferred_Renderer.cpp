@@ -265,7 +265,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 	mPbrDeferred->configureSubMeshPass(camera);
-	mPbrDeferred->getActiveSubMeshPass()->updateConstants();
+	mPbrDeferred->getActiveSubMeshPass()->updateConstants(camera);
 	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);
@@ -284,7 +284,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 		{
 			mCascadedShadow->begin(i);
 			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
-			//mCascadedShadow->end();
 		}
 
 		mCascadedShadow->frameReset();
@@ -298,26 +297,10 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
-
-	/*Dimension blitRegion = { 0,0, windowWidth * ssaaSamples, windowHeight * ssaaSamples };
-	m_renderBackend->blitRenderTargets(pbr_mrt.get(),
-		renderTargetSingleSampled,
-		blitRegion,
-		RenderComponent::Depth | RenderComponent::Stencil);*/
-
-		//m_pbr_deferred->drawSky(camera->getPerspProjection(), camera->getView());
-
-		//m_pbr_deferred->drawSky(camera);
-
 	mPbrDeferred->setDirLight(&mGlobalLight);
-
-
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
-
-	mPbrDeferred->drawLighting(scene,
-		mPbrMrt.get(),
-		camera);
+	mPbrDeferred->drawLighting(mPbrMrt.get(), camera);
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
@@ -332,16 +315,10 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 
 	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
 
-	/*screenRenderTarget->bind();
-	screenRenderTarget->clear(Color | Depth | Stencil);
-	screenShader->bind();
-	screenShader->useTexture(colorTex);
-	StaticMeshDrawer::draw(Sprite::getScreenSprite(), screenShader);*/
-
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
-	//RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
-	//RenderBackend::get()->getStencilTest()->enableStencilTest(false);
+	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
+	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	
@@ -398,7 +375,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 	mPbrForward->configureSubMeshPass(camera);
-	mPbrForward->getActiveSubMeshPass()->updateConstants();
+	mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
 	StaticMeshDrawer::draw(scene, mPbrForward->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);

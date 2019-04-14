@@ -7,7 +7,6 @@ namespace nex
 	class Camera;
 	class CascadedShadow;
 	class DirectionalLight;
-	class SceneNode;
 
 	class PBR_GBuffer;
 	class Sampler;
@@ -22,13 +21,11 @@ namespace nex
 
 		void configureSubMeshPass(Camera* camera) override;
 
-		void drawLighting(SceneNode * scene,
-			PBR_GBuffer* gBuffer,
-			Camera* camera);
+		void drawLighting(PBR_GBuffer* gBuffer, Camera* camera);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
-		void reloadLightingShader(const CascadedShadow& cascadedShadow) override;
+		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
 	private:
 		std::unique_ptr<PbrDeferredGeometryPass> mGeometryPass;

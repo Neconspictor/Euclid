@@ -25,7 +25,7 @@ namespace nex
 
 		PbrProbe* getProbe();
 
-		virtual void reloadLightingShader(const CascadedShadow& cascadedShadow) = 0;
+		virtual void reloadLightingShader(CascadedShadow* cascadedShadow) = 0;
 
 		void setAmbientLight(AmbientLight * light);
 

@@ -3,12 +3,13 @@
 #include "imgui/imgui.h"
 #include "nex/gui/Util.hpp"
 #include "nex/shadow/CascadedShadow.hpp"
+#include "nex/texture/TextureManager.hpp"
 
 nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, Pass* submeshPass) :
 	Technique(submeshPass),
 	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
 {
-	mCascadeShadow->addCascadeChangeCallback([&](const CascadedShadow& cascade)-> void
+	mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
 	{
 		reloadLightingShader(cascade);
 	});
@@ -109,10 +110,6 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 
 	if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05f))
 	{
-		//temp = clamp(temp, glm::vec2(-1.0f), glm::vec2(1.0f));
-		//temp[0] = std::clamp<float>(temp[0], 0, M_PI);
-		//temp[0] = std::clamp<float>(temp[0], -2 * M_PI, 2 * M_PI);
-		//temp[1] = std::clamp<float>(temp[1], -2*M_PI, 2*M_PI);
 		sphericalCoordinate.polar = temp[0];
 		sphericalCoordinate.azimuth = temp[1];
 		lightDirection = -SphericalCoordinate::cartesian(sphericalCoordinate);

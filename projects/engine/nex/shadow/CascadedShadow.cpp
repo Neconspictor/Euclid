@@ -148,7 +148,7 @@ void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 	updateTextureArray();
 }
 
-void CascadedShadow::addCascadeChangeCallback(std::function<void(const CascadedShadow&)> callback)
+void CascadedShadow::addCascadeChangeCallback(std::function<void(CascadedShadow*)> callback)
 {
 	mCallbacks.emplace_back(std::move(callback));
 }
@@ -157,7 +157,7 @@ void CascadedShadow::informCascadeChanges()
 {
 	for (auto& callback : mCallbacks)
 	{
-		callback(*this);
+		callback(this);
 	}
 }
 
