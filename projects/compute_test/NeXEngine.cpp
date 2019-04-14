@@ -71,7 +71,7 @@ void NeXEngine::init()
 
 	// init model manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	StaticMeshManager::get()->init(&mMeshFileSystem);
+	StaticMeshManager::get()->init(&mPbrSelector, &mMeshFileSystem);
 
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());

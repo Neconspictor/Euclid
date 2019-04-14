@@ -25,7 +25,7 @@ namespace nex
 	public:
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RenderBackend* renderer, Input* input);
+		PBR_Deferred_Renderer(RenderBackend* renderer, TechniqueSelector* pbrSelector, Input* input);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
@@ -78,7 +78,7 @@ namespace nex
 		bool mShowDepthMap;
 		Input* mInput;
 
-		TechniqueSelector mPbrSelector;
+		TechniqueSelector* mPbrSelector;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

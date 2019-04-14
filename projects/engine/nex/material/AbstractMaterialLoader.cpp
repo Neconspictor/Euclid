@@ -4,14 +4,13 @@
 using namespace std;
 using namespace nex;
 
-AbstractMaterialLoader::AbstractMaterialLoader(TextureManager * textureManager)
+AbstractMaterialLoader::AbstractMaterialLoader(TechniqueSelector* selector, TextureManager * textureManager)
 {
 	this->textureManager = textureManager;
+	mSelector = selector;
 }
 
-AbstractMaterialLoader::~AbstractMaterialLoader()
-{
-}
+AbstractMaterialLoader::~AbstractMaterialLoader() = default;
 
 vector<string> AbstractMaterialLoader::loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data) const
 {

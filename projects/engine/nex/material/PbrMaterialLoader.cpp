@@ -8,7 +8,7 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TextureManager* textureManager) : AbstractMaterialLoader(textureManager)
+PbrMaterialLoader::PbrMaterialLoader(TechniqueSelector* selector, TextureManager* textureManager) : AbstractMaterialLoader(selector, textureManager)
 {
 }
 
@@ -21,7 +21,7 @@ std::vector<std::unique_ptr<Material>> PbrMaterialLoader::loadShadingMaterial(co
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
 		aiMaterial* mat = scene->mMaterials[i];
-		auto material = make_unique<PbrMaterial>();
+		auto material = make_unique<PbrMaterial>(mSelector);
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,

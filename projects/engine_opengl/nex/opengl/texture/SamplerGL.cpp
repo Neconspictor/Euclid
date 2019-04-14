@@ -24,6 +24,8 @@ Sampler::Impl& Sampler::Impl::operator=(Impl&& o) noexcept
 	mSamplerID = o.mSamplerID;
 	o.mSamplerID = GL_FALSE;
 	mState = std::move(o.mState);
+
+	return *this;
 }
 
 Sampler::Impl::Impl() :  mSamplerID(GL_FALSE)

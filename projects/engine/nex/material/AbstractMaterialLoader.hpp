@@ -15,7 +15,7 @@ namespace nex
 	class AbstractMaterialLoader
 	{
 	public:
-		AbstractMaterialLoader(TextureManager* textureManager);
+		AbstractMaterialLoader(TechniqueSelector* selector, TextureManager* textureManager);
 
 		virtual ~AbstractMaterialLoader();
 
@@ -26,12 +26,13 @@ namespace nex
 		std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data) const;
 
 		TextureManager* textureManager;
+		TechniqueSelector* mSelector;
 	};
 
 	class DefaultMaterialLoader : public AbstractMaterialLoader
 	{
 	public:
-		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
+		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr, nullptr) {}
 		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override { return {}; }
 	};
 }

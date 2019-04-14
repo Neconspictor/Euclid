@@ -22,7 +22,6 @@ const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::custom
 
 
 	nex::StaticMeshManager::StaticMeshManager() :
-		pbrMaterialLoader(TextureManager::get()),
 		mFileSystem(nullptr)
 	{
 		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
@@ -163,9 +162,11 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-	void nex::StaticMeshManager::init(FileSystem* meshFileSystem)
+	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, TechniqueSelector* selector)
 	{
 		mFileSystem = meshFileSystem;
+		pbrMaterialLoader = std::make_unique<PbrMaterialLoader>(selector, TextureManager::get());
+		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
 	}
 
 	nex::StaticMesh* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
@@ -194,10 +195,10 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 
 		nex::AbstractMaterialLoader* materialLoader = nullptr;
 		if (type == MaterialType::Pbr) {
-			materialLoader = &pbrMaterialLoader;
+			materialLoader = pbrMaterialLoader.get();
 		} else if (type == MaterialType::None)
 		{
-			materialLoader = &mDefaultMaterialLoader;
+			materialLoader = mDefaultMaterialLoader.get();
 		}
 		else {
 			std::stringstream msg;

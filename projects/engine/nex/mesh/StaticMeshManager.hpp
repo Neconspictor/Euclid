@@ -82,7 +82,7 @@ namespace nex
 		 * Initializes the model manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		void init(FileSystem* meshFileSystem);
+		void init(FileSystem* meshFileSystem, TechniqueSelector* selector);
 
 
 		/**
@@ -102,8 +102,8 @@ namespace nex
 		std::vector<std::unique_ptr<StaticMesh>> models;
 		std::unordered_map<unsigned int, StaticMesh*> modelTable;
 		MeshLoader assimpLoader;
-		PbrMaterialLoader pbrMaterialLoader;
-		DefaultMaterialLoader mDefaultMaterialLoader;
+		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader;
+		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
 		FileSystem* mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;

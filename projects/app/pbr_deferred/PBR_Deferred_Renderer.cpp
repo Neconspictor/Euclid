@@ -37,7 +37,7 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, nex::Input* input) :
+nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, TechniqueSelector* pbrSelector, nex::Input* input) :
 	Renderer(backend),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
@@ -47,7 +47,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, n
 	mShowDepthMap(false),
 	mInput(input),
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
-	mPbrSelector(nullptr)
+	mPbrSelector(pbrSelector)
 {
 }
 
@@ -145,7 +145,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 
-	mPbrSelector.setSelected(mPbrDeferred.get());
+	mPbrSelector->setSelected(mPbrDeferred.get());
 
 
 	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
@@ -183,9 +183,15 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 	}
 
 	if (switcher)
+	{
+		mPbrSelector->setSelected(mPbrDeferred.get());
 		renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
+	}
 	else
+	{
+		mPbrSelector->setSelected(mPbrForward.get());
 		renderForward(scene, camera, frameTime, windowWidth, windowHeight);
+	}
 
 
 	//ShaderStorageBuffer::syncWithGPU();

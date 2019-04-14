@@ -8,7 +8,7 @@ namespace nex
 
 	public:
 
-		PbrMaterialLoader(TextureManager* textureManager);
+		PbrMaterialLoader(TechniqueSelector* selector, TextureManager* textureManager);
 
 		virtual ~PbrMaterialLoader();
 

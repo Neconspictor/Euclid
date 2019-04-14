@@ -36,7 +36,8 @@ NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	m_scene(nullptr),
 	m_isRunning(false),
 	m_systemLogLevel(nex::Debug),
-	m_configFileName("config.ini")
+	m_configFileName("config.ini"),
+	mPbrSelector(nullptr)
 {
 	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, std::string(""));
 	m_config.addOption("General", "rootDirectory", &m_systemLogLevelStr, std::string("./"));
@@ -76,21 +77,25 @@ void NeXEngine::init()
 	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
 	TextureManager::get()->init(&mTextureFileSystem);
 
-	// init model manager (filesystem)
-	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	StaticMeshManager::get()->init(&mMeshFileSystem);
-
 	// init shader file system
 	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
 	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
 
 	//init render backend
 	initRenderBackend();
+	
+	
+	// init mesh manager (filesystem)
+	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
+	StaticMeshManager::get()->init(&mMeshFileSystem, &mPbrSelector);
 
+	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), &mPbrSelector, m_window->getInputDevice());
 
 
 	m_gui = m_windowSystem->createGUI(m_window);
-	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), m_window->getInputDevice());
+	
+	
+
 	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
 		m_input,
 		m_renderer.get(),

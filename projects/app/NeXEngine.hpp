@@ -70,5 +70,7 @@ namespace nex
 		nex::FileSystem mMeshFileSystem;
 		nex::FileSystem mShaderFileSystem;
 		nex::FileSystem mTextureFileSystem;
+
+		TechniqueSelector mPbrSelector;
 	};
 }
