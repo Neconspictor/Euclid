@@ -27,6 +27,7 @@
 #include "nex/pbr/PbrDeferred.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
+#include <nex/shadow/SceneNearFarComputePass.hpp>
 
 using namespace nex;
 
