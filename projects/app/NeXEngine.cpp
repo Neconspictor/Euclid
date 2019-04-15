@@ -218,8 +218,8 @@ SceneNode* NeXEngine::createScene()
 	mNodes.emplace_back(SceneNode());
 	SceneNode* ground = &mNodes.back();
 	mVobs.emplace_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
-	ground->vob = &mVobs.back();
-	ground->vob->setPosition({ 10, 0, 0 });
+	ground->mVob = &mVobs.back();
+	ground->mVob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
 	/*m_nodes.emplace_back(SceneNode());

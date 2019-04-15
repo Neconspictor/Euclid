@@ -2,104 +2,57 @@
 
 namespace nex
 {
-	SceneNode::SceneNode() : parent(nullptr), vob(nullptr), drawingType(DrawingTypes::SOLID), instanceCount(0)
+	SceneNode::SceneNode() : mParent(nullptr), mVob(nullptr), mDrawingType(DrawingTypes::SOLID), mInstanceCount(0)
 	{
-	}
-
-	SceneNode::SceneNode(const SceneNode& copy) :
-		parent(copy.parent), vob(copy.vob), worldTrafo(copy.worldTrafo), localTrafo(copy.localTrafo),
-		childs(copy.childs), drawingType(copy.drawingType), instanceCount(copy.instanceCount)
-	{
-
-	}
-
-	SceneNode::SceneNode(SceneNode&& copy) :
-		parent(copy.parent), vob(copy.vob), worldTrafo(copy.worldTrafo), localTrafo(copy.localTrafo),
-		childs(copy.childs), drawingType(copy.drawingType), instanceCount(copy.instanceCount)
-	{
-		copy.parent = nullptr;
-		copy.vob = nullptr;
-		copy.childs.clear();
-	}
-
-	SceneNode& SceneNode::operator=(const SceneNode& copy)
-	{
-		if (this == &copy) return *this;
-		parent = copy.parent;
-		vob = copy.vob;
-		worldTrafo = copy.worldTrafo;
-		localTrafo = copy.localTrafo;
-		childs = copy.childs;
-		drawingType = copy.drawingType;
-		instanceCount = copy.instanceCount;
-		return *this;
-	}
-
-	SceneNode&& SceneNode::operator=(SceneNode&& copy)
-	{
-		if (this == &copy) return std::move(*this);
-		parent = copy.parent;
-		vob = copy.vob;
-		worldTrafo = copy.worldTrafo;
-		localTrafo = copy.localTrafo;
-		childs = move(copy.childs);
-		drawingType = copy.drawingType;
-		instanceCount = copy.instanceCount;
-
-		copy.parent = nullptr;
-		copy.vob = nullptr;
-		copy.childs.clear();
-
-		return std::move(*this);
 	}
 
 	void SceneNode::addChild(SceneNode* child)
 	{
-		auto it = find(childs.begin(), childs.end(), child);
-		if (it == childs.end())
+		auto it = find(mChilds.begin(), mChilds.end(), child);
+		if (it == mChilds.end())
 		{
-			childs.push_back(child);
-			child->parent = this;
+			mChilds.push_back(child);
+			child->mParent = this;
 		}
 	}
 
 	void SceneNode::removeChild(SceneNode* child)
 	{
-		auto it = find(childs.begin(), childs.end(), child);
-		if (it != childs.end())
+		auto it = find(mChilds.begin(), mChilds.end(), child);
+		if (it != mChilds.end())
 		{
-			(*it)->parent = nullptr;
-			childs.erase(it);
+			(*it)->mParent = nullptr;
+			mChilds.erase(it);
 		}
 	}
 
 	void SceneNode::init()
 	{
-		for (auto it = childs.begin(); it != childs.end(); ++it)
+		for (auto it = mChilds.begin(); it != mChilds.end(); ++it)
 			(*it)->init();
 
-		if (!vob) return;
+		if (!mVob) return;
 
-		vob->init();
+		mVob->init();
 	}
 
 	void SceneNode::update(float frameTime)
 	{
 		glm::mat4 localTrafo;
-		if (vob)
+		if (mVob)
 		{
-			vob->calcTrafo();
-			localTrafo = vob->getTrafo();
+			mVob->calcTrafo();
+			localTrafo = mVob->getTrafo();
 		}
 		else
 			localTrafo = glm::mat4();
 
-		if (parent)
-			worldTrafo = parent->worldTrafo * localTrafo;
+		if (mParent)
+			mWorldTrafo = mParent->mWorldTrafo * localTrafo;
 		else
-			worldTrafo = localTrafo;
+			mWorldTrafo = localTrafo;
 
-		for (auto it = childs.begin(); it != childs.end(); ++it)
+		for (auto it = mChilds.begin(); it != mChilds.end(); ++it)
 			(*it)->update(frameTime);
 	}
 }

@@ -11,14 +11,7 @@ namespace nex
 	class SceneNode
 	{
 	public:
-		explicit SceneNode();
-
-		SceneNode(const SceneNode& copy);
-		SceneNode(SceneNode&& copy);
-		SceneNode& operator=(const SceneNode& copy);
-		SceneNode&& operator=(SceneNode&& copy);
-
-		virtual ~SceneNode() = default;
+		SceneNode();
 
 		void addChild(SceneNode* child);
 		void removeChild(SceneNode* child);
@@ -28,12 +21,12 @@ namespace nex
 		void update(float frameTime);
 
 		// public for convenient editing!
-		SceneNode* parent;
-		Vob* vob;
-		glm::mat4 worldTrafo;
-		glm::mat4 localTrafo;
-		std::vector<SceneNode*> childs;
-		DrawingTypes drawingType;
-		int instanceCount;
+		SceneNode* mParent;
+		Vob* mVob;
+		glm::mat4 mWorldTrafo;
+		glm::mat4 mLocalTrafo;
+		std::vector<SceneNode*> mChilds;
+		DrawingTypes mDrawingType;
+		int mInstanceCount;
 	};
 }

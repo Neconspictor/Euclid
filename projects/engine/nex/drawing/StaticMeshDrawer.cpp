@@ -15,17 +15,17 @@ using namespace nex;
 
 void nex::StaticMeshDrawer::draw(SceneNode* root, Pass* shader)
 {
-	for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
+	for (auto it = root->mChilds.begin(); it != root->mChilds.end(); ++it)
 		draw(*it, shader);
 
-	if (!root->vob) return;
+	if (!root->mVob) return;
 
-	if (root->drawingType == DrawingTypes::SOLID)
+	if (root->mDrawingType == DrawingTypes::SOLID)
 	{
-		shader->onModelMatrixUpdate(root->vob->getTrafo());
-		draw(root->vob->getModel(), shader);
+		shader->onModelMatrixUpdate(root->mVob->getTrafo());
+		draw(root->mVob->getModel(), shader);
 	}
-	else if (root->drawingType == DrawingTypes::INSTANCED)
+	else if (root->mDrawingType == DrawingTypes::INSTANCED)
 	{
 		nex::Logger("ModelDrawerGL")(nex::Warning) << "Instanced Drawing type currently not supported";
 		//drawer->drawInstanced(vob, type, data, instanceCount);
