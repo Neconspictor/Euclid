@@ -154,15 +154,12 @@ void PbrCommonLightingPass::setNearFarPlane(const glm::vec2& nearFarPlane)
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-void PbrCommonLightingPass::setProbe(PbrProbe* probe)
-{
-	mProbe = probe;
-}
-
 nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShadow* cascadedShadow) :
-PbrBaseCommon(shader),
-cascadeBufferUBO(0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mCascadeShadow(cascadedShadow)
+	PbrBaseCommon(shader),
+	cascadeBufferUBO(
+		0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
+		ShaderBuffer::UsageHint::DYNAMIC_COPY), mProbe(nullptr),
+	mCascadeShadow(cascadedShadow)
 {
 	assert(mShader != nullptr);
 	assert(mCascadeShadow != nullptr);
@@ -179,15 +176,15 @@ mCascadeShadow(cascadedShadow)
 	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
 
-	mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
-	mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
-	mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
-	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
-	mShadowStrength = { mShader->getUniformLocation("shadowStrength"), UniformType::FLOAT };
+	mEyeLightDirection = {mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3};
+	mLightColor = {mShader->getUniformLocation("dirLight.color"), UniformType::VEC3};
+	mLightPower = {mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT};
+	mAmbientLightPower = {mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT};
+	mShadowStrength = {mShader->getUniformLocation("shadowStrength"), UniformType::FLOAT};
 
-	mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
+	mInverseView = {mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4};
 
-	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
+	mNearFarPlane = {mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2};
 }
 
 void PbrCommonLightingPass::setAmbientLight(AmbientLight* light)
@@ -205,12 +202,17 @@ void PbrCommonLightingPass::setDirLight(DirectionalLight* light)
 	mLight = light;
 }
 
+void PbrCommonLightingPass::setProbe(PbrProbe* probe)
+{
+	mProbe = probe;
+}
+
 void PbrCommonLightingPass::updateConstants(Camera* camera)
 {
 	assert(mLight != nullptr);
 	assert(mAmbientLight != nullptr);
-	assert(mCascadeShadow != nullptr);
 	assert(mProbe != nullptr);
+	assert(mCascadeShadow != nullptr);
 	assert(camera != nullptr);
 	
 

@@ -36,6 +36,9 @@ namespace nex
 
 		SceneNode * createScene();
 		Window* createWindow();
+		void initLights();
+		void initPbr();
+		void initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();
@@ -43,34 +46,41 @@ namespace nex
 		void setupCamera();
 		void updateWindowTitle(float frameTime, float fps);
 	private:
-		nex::Logger m_logger;
-		std::unique_ptr<PBR_Deferred_Renderer> m_renderer;
-		std::unique_ptr<gui::ControllerStateMachine> m_controllerSM;
-		std::unique_ptr<Camera> m_camera;
-		SubSystemProvider* m_windowSystem;
-		std::unique_ptr<gui::ImGUI_Impl> m_gui;
-		Window* m_window;
+		nex::Logger mLogger;
+		std::unique_ptr<PBR_Deferred_Renderer> mRenderer;
+		std::unique_ptr<gui::ControllerStateMachine> mControllerSM;
+		std::unique_ptr<Camera> mCamera;
+		SubSystemProvider* mWindowSystem;
+		std::unique_ptr<gui::ImGUI_Impl> mGui;
+		Window* mWindow;
 		std::unique_ptr<Cursor> mCursor;
-		Input* m_input;
-		std::string m_baseTitle;
-		Timer m_timer;
-		FPSCounter m_counter;
-		std::list<SceneNode> m_nodes;
-		std::list<Vob> m_vobs;
+		Input* mInput;
+		std::string mBaseTitle;
+		Timer mTimer;
+		FPSCounter mCounter;
+		std::list<SceneNode> mNodes;
+		std::list<Vob> mVobs;
 		std::list<std::unique_ptr<StaticMesh>> mModels;
-		SceneNode* m_scene;
-		bool m_isRunning;
+		SceneNode* mScene;
+		bool mIsRunning;
 
-		Configuration m_config;
-		VideoConfig m_video;
-		std::string m_configFileName;
-		std::string m_systemLogLevelStr;
-		nex::LogLevel m_systemLogLevel;
+		Configuration mConfig;
+		VideoConfig mVideo;
+		std::string mConfigFileName;
+		std::string mSystemLogLevelStr;
+		nex::LogLevel mSystemLogLevel;
 
 		nex::FileSystem mMeshFileSystem;
 		nex::FileSystem mShaderFileSystem;
 		nex::FileSystem mTextureFileSystem;
 
-		TechniqueSelector mPbrSelector;
+		std::unique_ptr<CascadedShadow> mCascadedShadow;
+		std::unique_ptr<PbrProbe> mPbrProbe;
+		std::unique_ptr<PbrDeferred> mPbrDeferred;
+		std::unique_ptr<PbrForward> mPbrForward;
+
+		AmbientLight mAmbientLight;
+		DirectionalLight mSun;
+		Texture* panoramaSky;
 	};
 }

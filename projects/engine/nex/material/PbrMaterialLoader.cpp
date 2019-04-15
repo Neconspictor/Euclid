@@ -3,12 +3,15 @@
 #include <string>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/pbr/PbrDeferred.hpp>
+
 
 using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(TechniqueSelector* selector, TextureManager* textureManager) : AbstractMaterialLoader(selector, textureManager)
+PbrMaterialLoader::PbrMaterialLoader(PbrDeferred* pbrDeferred, PbrForward* pbrForward, TextureManager* textureManager) : AbstractMaterialLoader(textureManager),
+mPbrDeferred(pbrDeferred), mPbrForward(pbrForward)
 {
 }
 
@@ -21,7 +24,9 @@ std::vector<std::unique_ptr<Material>> PbrMaterialLoader::loadShadingMaterial(co
 	for (unsigned i = 0; i < scene->mNumMaterials; ++i)
 	{
 		aiMaterial* mat = scene->mMaterials[i];
-		auto material = make_unique<PbrMaterial>(mSelector);
+
+		// TODO decide when to use pbrForward!
+		auto material = make_unique<PbrMaterial>(mPbrDeferred);
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,

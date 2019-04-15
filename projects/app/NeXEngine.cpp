@@ -15,7 +15,6 @@
 #include <nex/exception/EnumFormatException.hpp>
 #include <Globals.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
-#include <nex/mesh/Sphere.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/RenderBackend.hpp"
 #include "nex/mesh/Vob.hpp"
@@ -24,53 +23,57 @@
 #include "nex/post_processing/HBAO.hpp"
 #include "nex/post_processing/SSAO.hpp"
 #include "nex/post_processing/AmbientOcclusion.hpp"
+#include "nex/pbr/PbrForward.hpp"
+#include "nex/pbr/PbrDeferred.hpp"
+#include "nex/pbr/PbrProbe.hpp"
+#include <nex/shadow/CascadedShadow.hpp>
 
 using namespace nex;
 
 
 NeXEngine::NeXEngine(SubSystemProvider* provider) :
-	m_logger("NeX-Engine"),
-	m_windowSystem(provider),
-	m_window(nullptr), 
-	m_input(nullptr), 
-	m_scene(nullptr),
-	m_isRunning(false),
-	m_systemLogLevel(nex::Debug),
-	m_configFileName("config.ini"),
-	mPbrSelector(nullptr)
+	mLogger("NeX-Engine"),
+	mWindowSystem(provider),
+	mWindow(nullptr),
+	mInput(nullptr),
+	mScene(nullptr),
+	mIsRunning(false),
+	mConfigFileName("config.ini"),
+	mSystemLogLevel(nex::Debug),
+	panoramaSky(nullptr)
 {
-	m_config.addOption("Logging", "logLevel", &m_systemLogLevelStr, std::string(""));
-	m_config.addOption("General", "rootDirectory", &m_systemLogLevelStr, std::string("./"));
+	mConfig.addOption("Logging", "logLevel", &mSystemLogLevelStr, std::string(""));
+	mConfig.addOption("General", "rootDirectory", &mSystemLogLevelStr, std::string("./"));
 }
 
 NeXEngine::~NeXEngine()
 {
-	m_windowSystem = nullptr;
+	mWindowSystem = nullptr;
 }
 
 nex::LogLevel NeXEngine::getLogLevel() const
 {
-	return m_systemLogLevel;
+	return mSystemLogLevel;
 }
 
 void NeXEngine::init()
 {
 
-	LOG(m_logger, nex::Info) << "Initializing Engine...";
+	LOG(mLogger, nex::Info) << "Initializing Engine...";
 
 
-	m_video.handle(m_config);
-	Configuration::setGlobalConfiguration(&m_config);
+	mVideo.handle(mConfig);
+	Configuration::setGlobalConfiguration(&mConfig);
 	readConfig();
 	
 	nex::util::Globals::initGlobals();
-	LOG(m_logger, nex::Info) << "root Directory = " << ::util::Globals::getRootDirectory();
+	LOG(mLogger, nex::Info) << "root Directory = " << ::util::Globals::getRootDirectory();
 
 
-	m_window = createWindow();
-	m_input = m_window->getInputDevice();
-	m_camera = std::make_unique<FPCamera>(FPCamera());
-	m_baseTitle = m_window->getTitle();
+	mWindow = createWindow();
+	mInput = mWindow->getInputDevice();
+	mCamera = std::make_unique<FPCamera>(FPCamera());
+	mBaseTitle = mWindow->getTitle();
 
 
 	// init texture manager (filesystem)
@@ -83,43 +86,57 @@ void NeXEngine::init()
 
 	//init render backend
 	initRenderBackend();
-	
-	
+
+	initLights();
+
+	//init pbr 
+	initPbr();
+
 	// init mesh manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	StaticMeshManager::get()->init(&mMeshFileSystem, &mPbrSelector);
+	StaticMeshManager::get()->init(&mMeshFileSystem, 
+		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
+	//StaticMeshManager::get()->setPbrMaterialLoader(std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
 
-	m_renderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), &mPbrSelector, m_window->getInputDevice());
+
+	initProbes();
 
 
-	m_gui = m_windowSystem->createGUI(m_window);
+	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), 
+		mPbrDeferred.get(), 
+		mPbrForward.get(), 
+		mCascadedShadow.get(), 
+		mWindow->getInputDevice());
+
+
+	mGui = mWindowSystem->createGUI(mWindow);
 	
 	
 
-	m_controllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(m_window,
-		m_input,
-		m_renderer.get(),
-		m_camera.get(),
-		m_gui.get(),
+	mControllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(mWindow,
+		mInput,
+		mRenderer.get(),
+		mCamera.get(),
+		mGui.get(),
 		std::unique_ptr<nex::gui::Drawable>()));
 
-	m_window->activate();
+	mWindow->activate();
 
 	mCursor = std::make_unique<Cursor>(StandardCursorType::Hand);
-	m_window->setCursor(mCursor.get());
+	mWindow->setCursor(mCursor.get());
 
 
-	m_renderer->init(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
-	m_controllerSM->init();
+	mRenderer->init(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+	mControllerSM->init();
 	setupCamera();
 	setupCallbacks();
 	setupGUI();
 
-	m_scene = createScene();
+	mScene = createScene();
 
-	m_scene->init();
+	mScene->init();
 
-	m_input->addWindowCloseCallback([](Window* window)
+	mInput->addWindowCloseCallback([](Window* window)
 	{
 		void* nativeWindow = window->getNativeWindow();
 		boxer::Selection selection = boxer::show("Do you really want to quit?", "Exit NeX", boxer::Style::Warning, boxer::Buttons::OKCancel, nativeWindow);
@@ -132,47 +149,47 @@ void NeXEngine::init()
 
 bool NeXEngine::isRunning() const
 {
-	return m_isRunning;
+	return mIsRunning;
 }
 
 void NeXEngine::run()
 {
-	m_isRunning = true;
-	m_window->activate();
+	mIsRunning = true;
+	mWindow->activate();
 
 	SimpleTimer timer;
 
-	while (m_window->isOpen())
+	while (mWindow->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
 		// the window is likely to hang or crash (at least on windows platform)
-		m_windowSystem->pollEvents();
+		mWindowSystem->pollEvents();
 
-		m_timer.update();
-		float frameTime = m_timer.getTimeInSeconds();
+		mTimer.update();
+		float frameTime = mTimer.getTimeInSeconds();
 		//timer.update(ImGui::GetTime());
 		//float frameTime = timer.diff;
 		
-		float fps = m_counter.update(frameTime);
+		float fps = mCounter.update(frameTime);
 
 		updateWindowTitle(frameTime, fps);
 
 		if (isRunning())
 		{
 
-			m_gui->newFrame(frameTime);
-			m_scene->update(frameTime);
-			m_controllerSM->frameUpdate(frameTime);
-			m_camera->Projectional::update(true);
+			mGui->newFrame(frameTime);
+			mScene->update(frameTime);
+			mControllerSM->frameUpdate(frameTime);
+			mCamera->Projectional::update(true);
 
-			m_renderer->render(m_scene, m_camera.get(), frameTime, m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
-			m_controllerSM->getCurrentController()->getDrawable()->drawGUI();
+			mRenderer->render(mScene, mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+			mControllerSM->getCurrentController()->getDrawable()->drawGUI();
 			
 			ImGui::Render();
-			m_gui->renderDrawData(ImGui::GetDrawData());
+			mGui->renderDrawData(ImGui::GetDrawData());
 			
 			// present rendered frame
-			m_window->swapBuffers();
+			mWindow->swapBuffers();
 		}
 		else
 		{
@@ -184,23 +201,23 @@ void NeXEngine::run()
 
 void NeXEngine::setConfigFileName(const char*  fileName)
 {
-	m_configFileName = fileName;
+	mConfigFileName = fileName;
 }
 
 void NeXEngine::setRunning(bool isRunning)
 {
-	m_isRunning = isRunning;
+	mIsRunning = isRunning;
 }
 
 SceneNode* NeXEngine::createScene()
 {
-	m_nodes.emplace_back(SceneNode());
-	SceneNode* root = &m_nodes.back();
+	mNodes.emplace_back(SceneNode());
+	SceneNode* root = &mNodes.back();
 
-	m_nodes.emplace_back(SceneNode());
-	SceneNode* ground = &m_nodes.back();
-	m_vobs.emplace_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
-	ground->vob = &m_vobs.back();
+	mNodes.emplace_back(SceneNode());
+	SceneNode* ground = &mNodes.back();
+	mVobs.emplace_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
+	ground->vob = &mVobs.back();
 	ground->vob->setPosition({ 10, 0, 0 });
 	root->addChild(ground);
 
@@ -286,69 +303,112 @@ SceneNode* NeXEngine::createScene()
 Window* NeXEngine::createWindow()
 {
 	Window::WindowStruct desc;
-	desc.title = m_video.windowTitle;
-	desc.fullscreen = m_video.fullscreen;
-	desc.colorBitDepth = m_video.colorBitDepth;
-	desc.refreshRate = m_video.refreshRate;
+	desc.title = mVideo.windowTitle;
+	desc.fullscreen = mVideo.fullscreen;
+	desc.colorBitDepth = mVideo.colorBitDepth;
+	desc.refreshRate = mVideo.refreshRate;
 	desc.posX = 0;
 	desc.posY = 0;
 
 	// Note that framebuffer width and height are inferred!
-	desc.virtualScreenWidth = m_video.width;
-	desc.virtualScreenHeight = m_video.height;
+	desc.virtualScreenWidth = mVideo.width;
+	desc.virtualScreenHeight = mVideo.height;
 	desc.visible = true;
-	desc.vSync = m_video.vSync;
+	desc.vSync = mVideo.vSync;
 
-	return m_windowSystem->createWindow(desc);
+	return mWindowSystem->createWindow(desc);
+}
+
+void NeXEngine::initLights()
+{
+	mSun.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	mSun.setPower(3.0f);
+	mSun.setDirection({ -1,-1,-1 });
+}
+
+void NeXEngine::initPbr()
+{
+	CascadedShadow::PCFFilter pcf;
+	pcf.sampleCountX = 2;
+	pcf.sampleCountY = 2;
+	pcf.useLerpFiltering = true;
+	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
+
+
+	mPbrDeferred = std::make_unique<PbrDeferred>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
+	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
+}
+
+void NeXEngine::initProbes()
+{
+	TextureManager* textureManager = TextureManager::get();
+
+	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr",
+		{
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			false }
+	);
+
+	mPbrProbe = std::make_unique<PbrProbe>(panoramaSky);
+
+	mPbrDeferred->setProbe(mPbrProbe.get());
+	mPbrForward->setProbe(mPbrProbe.get());
 }
 
 void NeXEngine::initRenderBackend()
 {
-	m_window->activate();
+	mWindow->activate();
 	auto* backend = RenderBackend::get();
-	backend->setViewPort(0, 0, m_video.width, m_video.height);
-	backend->setMSAASamples(m_video.msaaSamples);
+	backend->setViewPort(0, 0, mVideo.width, mVideo.height);
+	backend->setMSAASamples(mVideo.msaaSamples);
 	backend->init();
 }
 
 
 void NeXEngine::readConfig()
 {
-	LOG(m_logger, nex::Info) << "Loading configuration file...";
-	if (!m_config.load(m_configFileName))
+	LOG(mLogger, nex::Info) << "Loading configuration file...";
+	if (!mConfig.load(mConfigFileName))
 	{
-		LOG(m_logger, nex::Warning) << "Configuration file couldn't be read. Default values are used.";
+		LOG(mLogger, nex::Warning) << "Configuration file couldn't be read. Default values are used.";
 	}
 	else
 	{
-		LOG(m_logger, nex::Info) << "Configuration file loaded.";
+		LOG(mLogger, nex::Info) << "Configuration file loaded.";
 	}
 
 	try
 	{
-		m_systemLogLevel = nex::stringToLogLevel(m_systemLogLevelStr);
+		mSystemLogLevel = nex::stringToLogLevel(mSystemLogLevelStr);
 	}
 	catch (const EnumFormatException& e)
 	{
 
 		//log error and set default log level
-		LOG(m_logger, nex::Error) << e.what();
+		LOG(mLogger, nex::Error) << e.what();
 
-		LOG(m_logger, nex::Warning) << "Couldn't get log level from " << m_systemLogLevelStr << std::endl
+		LOG(mLogger, nex::Warning) << "Couldn't get log level from " << mSystemLogLevelStr << std::endl
 			<< "Log level is set now to 'Warning'" << std::endl;
 
-		m_systemLogLevel = nex::Warning;
-		m_systemLogLevelStr = "Warning";
+		mSystemLogLevel = nex::Warning;
+		mSystemLogLevelStr = "Warning";
 	}
 
-	nex::LoggerManager::get()->setMinLogLevel(m_systemLogLevel);
-	m_config.write(m_configFileName);
+	nex::LoggerManager::get()->setMinLogLevel(mSystemLogLevel);
+	mConfig.write(mConfigFileName);
 }
 
 
 void NeXEngine::setupCallbacks()
 {
-	Input* input = m_window->getInputDevice();
+	Input* input = mWindow->getInputDevice();
 
 	//auto focusCallback = bind(&PBR_Deferred_Renderer::onWindowsFocus, this, placeholders::_1, placeholders::_2);
 	//auto scrollCallback = std::bind(&Camera::onScroll, m_camera.get(), std::placeholders::_1, std::placeholders::_2);
@@ -358,12 +418,12 @@ void NeXEngine::setupCallbacks()
 		setRunning(receivedFocus);
 		if (receivedFocus)
 		{
-			LOG(m_logger, nex::Debug) << "received focus!";
+			LOG(mLogger, nex::Debug) << "received focus!";
 			//isRunning = true;
 		}
 		else
 		{
-			LOG(m_logger, nex::Debug) << "lost focus!";
+			LOG(mLogger, nex::Debug) << "lost focus!";
 			//isRunning = false;
 			if (window_s->isInFullscreenMode())
 			{
@@ -375,20 +435,20 @@ void NeXEngine::setupCallbacks()
 
 	input->addFrameBufferResizeCallback([=](unsigned width, unsigned height)
 	{
-		LOG(m_logger, nex::Debug) << "addFrameBufferResizeCallback : width: " << width << ", height: " << height;
+		LOG(mLogger, nex::Debug) << "addFrameBufferResizeCallback : width: " << width << ", height: " << height;
 
-		if (!m_window->hasFocus()) {
-			LOG(m_logger, nex::Debug) << "addFrameBufferResizeCallback : no focus!";
+		if (!mWindow->hasFocus()) {
+			LOG(mLogger, nex::Debug) << "addFrameBufferResizeCallback : no focus!";
 		}
 
 		if (width == 0 || height == 0) {
-			LOG(m_logger, nex::Warning) << "addFrameBufferResizeCallback : width or height is 0!";
+			LOG(mLogger, nex::Warning) << "addFrameBufferResizeCallback : width or height is 0!";
 			return;
 		}
 
-		m_camera->setAspectRatio((float)width / (float)height);
+		mCamera->setAspectRatio((float)width / (float)height);
 
-		m_renderer->updateRenderTargets(width, height);
+		mRenderer->updateRenderTargets(width, height);
 	});
 }
 
@@ -399,7 +459,7 @@ void NeXEngine::setupGUI()
 	nex::gui::AppStyle style;
 	style.apply();
 
-	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(m_controllerSM.get());
+	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(mControllerSM.get());
 	std::unique_ptr<nex::gui::ConfigurationWindow> configurationWindow = std::make_unique<nex::gui::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
 	gui::Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
@@ -408,57 +468,57 @@ void NeXEngine::setupGUI()
 	gui::Tab* generalTab = configurationWindow->getGeneralTab();
 
 
-	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(m_renderer->getCSM());
+	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(mCascadedShadow.get());
 	graphicsTechniques->addChild(std::move(csmView));
 
-	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(m_renderer->getAOSelector()->getHBAO());
+	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(mRenderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
 
-	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(m_renderer->getAOSelector()->getSSAO());
+	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(mRenderer->getAOSelector()->getSSAO());
 	graphicsTechniques->addChild(std::move(ssaoView));
 
-	auto pbrView = std::make_unique<Pbr_ConfigurationView>(m_renderer->getPBR());
+	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrDeferred.get());
 	graphicsTechniques->addChild(std::move(pbrView));
 
-	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(m_camera.get()));
+	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(mCamera.get()));
 	cameraTab->addChild(move(cameraView));
 
 
-	auto windowView = std::make_unique<Window_ConfigurationView>(m_window);
+	auto windowView = std::make_unique<Window_ConfigurationView>(mWindow);
 	videoTab->addChild(move(windowView));
 
 	auto textureManagerView = std::make_unique<TextureManager_Configuration>(TextureManager::get());
 	generalTab->addChild(move(textureManagerView));
 
-	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(m_renderer.get());
+	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
-	m_controllerSM->getCurrentController()->setDrawable(move(root));
+	mControllerSM->getCurrentController()->setDrawable(move(root));
 }
 
 void NeXEngine::setupCamera()
 {
-	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(m_camera.get()))
+	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(mCamera.get()))
 	{
 		auto cameraResizeCallback = std::bind(&TrackballQuatCamera::updateOnResize, casted, std::placeholders::_1, std::placeholders::_2);
-		casted->updateOnResize(m_window->getFrameBufferWidth(), m_window->getFrameBufferHeight());
-		m_input->addFrameBufferResizeCallback(cameraResizeCallback);
+		casted->updateOnResize(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+		mInput->addFrameBufferResizeCallback(cameraResizeCallback);
 	}
 
-	int windowWidth = m_window->getFrameBufferWidth();
-	int windowHeight = m_window->getFrameBufferHeight();
+	int windowWidth = mWindow->getFrameBufferWidth();
+	int windowHeight = mWindow->getFrameBufferHeight();
 
-	m_camera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
-	m_camera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
-	m_camera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-	m_camera->setAspectRatio((float)windowWidth / (float)windowHeight);
+	mCamera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
+	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
+	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
+	mCamera->setAspectRatio((float)windowWidth / (float)windowHeight);
 
 
-	m_camera->setNearPlane(0.1f);
-	m_camera->setFarPlane(150.0f);
+	mCamera->setNearPlane(0.1f);
+	mCamera->setFarPlane(150.0f);
 }
 
 void NeXEngine::updateWindowTitle(float frameTime, float fps)
@@ -479,8 +539,8 @@ void NeXEngine::updateWindowTitle(float frameTime, float fps)
 		ss << baseTitle << " : FPS = " << std::setw(6) << std::setfill(' ') << temp << " : frame time (ms) = " << frameTime * 1000;
 		window->setTitle(ss.str());*/
 
-		ss << m_baseTitle << " : FPS = " << fps;
-		m_window->setTitle(ss.str());
+		ss << mBaseTitle << " : FPS = " << fps;
+		mWindow->setTitle(ss.str());
 		ss.str("");
 		runtime = 0;
 	}

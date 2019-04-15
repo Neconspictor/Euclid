@@ -42,7 +42,7 @@ namespace nex {
 	void PbrForward::configureSubMeshPass(Camera* camera)
 	{
 		mForwardShader->bind();
-
+		mForwardShader->setProbe(mProbe);
 		mForwardShader->updateConstants(camera);
 	}
 }

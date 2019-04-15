@@ -10,12 +10,13 @@
 #include "nex/drawing/StaticMeshDrawer.hpp"
 #include "nex/light/Light.hpp"
 #include <nex/texture/Sprite.hpp>
+#include "nex/mesh/SampleMeshes.hpp"
 
 using namespace glm;
 using namespace nex;
 
 PbrProbe::PbrProbe(Texture* backgroundHDR) :
-	environmentMap(nullptr), skybox("misc/SkyBoxCube.obj", MaterialType::None),
+	environmentMap(nullptr), skybox(sample_meshes::SKY_BOX_NAME, MaterialType::None),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
 	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputePass>())

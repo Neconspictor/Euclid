@@ -6,7 +6,6 @@
 #include <nex/SceneNode.hpp>
 #include <nex/shader/DepthMapPass.hpp>
 #include <nex/shader/ScreenPass.hpp>
-#include <nex/util/Math.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
@@ -21,15 +20,12 @@
 #include <nex/EffectLibrary.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/post_processing/PostProcessor.hpp"
-#include "nex/post_processing/SMAA.hpp"
 #include "imgui/imgui.h"
 #include <nex/pbr/PbrDeferred.hpp>
 #include "nex/pbr/PbrProbe.hpp"
 #include "nex/sky/AtmosphericScattering.hpp"
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
-#include <nex/shadow/SceneNearFarComputePass.hpp>
-#include <nex/shader/ShaderBuffer.hpp>
 #include "nex/camera/FPCamera.hpp"
 
 int ssaaSamples = 1;
@@ -37,18 +33,29 @@ int ssaaSamples = 1;
 //misc/sphere.obj
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
-nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(nex::RenderBackend* backend, TechniqueSelector* pbrSelector, nex::Input* input) :
+nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
+	nex::RenderBackend* backend, 
+	PbrDeferred* pbrDeferred,
+	PbrForward* pbrForward,
+	CascadedShadow* cascadedShadow,
+	nex::Input* input) :
+
 	Renderer(backend),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
-	panoramaSky(nullptr),
 	mRenderTargetSingleSampled(nullptr),
 	//shadowMap(nullptr),
 	mShowDepthMap(false),
-	mInput(input),
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
-	mPbrSelector(pbrSelector)
+	mInput(input),
+	mPbrDeferred(pbrDeferred),
+	mPbrForward(pbrForward), 
+	mCascadedShadow(cascadedShadow)
 {
+	assert(mPbrDeferred != nullptr);
+	assert(mPbrForward != nullptr);
+	assert(mCascadedShadow != nullptr);
+	assert(mInput != nullptr);
 }
 
 
@@ -59,103 +66,35 @@ bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
 
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
-	using namespace std::placeholders;
-
-
 	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
 
-	StaticMeshManager* modelManager = StaticMeshManager::get();
-	TextureManager* textureManager = TextureManager::get();
-
-	//auto rendererResizeCallback = bind(&Renderer::setViewPort, renderer, 0, 0, _1, _2);
-	//window->addResizeCallback(rendererResizeCallback);
-
-
-	modelManager->loadModels();
-
-	//panoramaSky = textureManager->getHDRImage("skyboxes/panoramas/pisa.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
-	//panoramaSky = textureManager->getImage("skyboxes/panoramas/pisa.hdr", { true, true, Linear_Mipmap_Linear, Linear, ClampToEdge });
-	//panoramaSky = textureManager->getHDRImage("hdr/newport_loft.hdr", { false, true, Linear_Mipmap_Linear, Linear, ClampToEdge, RGB, true, BITS_32 });
-	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr", 
-		{ 
-			TextureFilter::Linear,
-			TextureFilter::Linear, 
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB, 
-			PixelDataType::FLOAT, 
-			InternFormat::RGB32F, 
-			false}
-	);
-
-
-	nex::TextureData data = {
-				nex::TextureFilter::Linear_Mipmap_Linear,
-				nex::TextureFilter::Linear,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
-				nex::ColorSpace::RGBA,
-				nex::PixelDataType::UBYTE,
-				nex::InternFormat::RGBA8,
-				true };
-	smaaTestTex = static_cast<Texture2D*>(textureManager->getImage("trash/Unigine01.png", data));
-	smaaTestSRGBTex = static_cast<Texture2D*>(textureManager->getImage("trash/Unigine01.png"));
-
-	testTexture = textureManager->getImage("container.png");
-
-	//HDR_Free_City_Night_Lights_Ref
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 
 	auto* effectLib = m_renderBackend->getEffectLibrary();
-	auto* equirectangularSkyBoxShader = effectLib->getEquirectangularSkyBoxShader();
-	auto* panoramaSkyBoxShader = effectLib->getPanoramaSkyBoxShader();
-	auto* skyboxShader = effectLib->getSkyBoxShader();
+	//auto* equirectangularSkyBoxShader = effectLib->getEquirectangularSkyBoxShader();
+	//auto* panoramaSkyBoxShader = effectLib->getPanoramaSkyBoxShader();
+	//auto* skyboxShader = effectLib->getSkyBoxShader();
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	mRenderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
 	mPingPong = m_renderBackend->createRenderTarget();
 
-	panoramaSkyBoxShader->bind();
-	panoramaSkyBoxShader->setSkyTexture(panoramaSky);
+	//panoramaSkyBoxShader->bind();
+	//panoramaSkyBoxShader->setSkyTexture(panoramaSky);
 
-	equirectangularSkyBoxShader->bind();
-	equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
+	//equirectangularSkyBoxShader->bind();
+	//equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
 
-
-
-	mGlobalLight.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	mGlobalLight.setPower(3.0f);
-	mGlobalLight.setDirection({-1,-1,-1});
 
 	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
 
-	CascadedShadow::PCFFilter pcf;
-	pcf.sampleCountX = 2;
-	pcf.sampleCountY = 2;
-	pcf.useLerpFiltering = true;
-	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
-
-	mPbrProbe = std::make_unique<PbrProbe>(panoramaSky);
-	mPbrDeferred = std::make_unique<PbrDeferred>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mGlobalLight, mPbrProbe.get());
 
-	mPbrSelector->setSelected(mPbrDeferred.get());
-
-
-	//renderTargetSingleSampled->useDepthStencilMap(pbr_mrt->getDepthStencilMapShared());
 	
 	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
-
-	//CubeMap* background = mPbrProbe->getEnvironmentMap();
-	//skyboxShader->bind();
-	//skyboxShader->setSkyTexture(background);
-	//pbrShader->setSkyBox(background);
 
 	m_renderBackend->getRasterizer()->enableScissorTest(false);
 
@@ -165,7 +104,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 }
 
 
-void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight)
+void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
 {
 
 	/*FPCamera* fp = (FPCamera*)camera;
@@ -184,13 +123,11 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 	if (switcher)
 	{
-		mPbrSelector->setSelected(mPbrDeferred.get());
-		renderDeferred(scene, camera, frameTime, windowWidth, windowHeight);
+		renderDeferred(scene, camera, sun, frameTime, windowWidth, windowHeight);
 	}
 	else
 	{
-		mPbrSelector->setSelected(mPbrForward.get());
-		renderForward(scene, camera, frameTime, windowWidth, windowHeight);
+		renderForward(scene, camera, sun, frameTime, windowWidth, windowHeight);
 	}
 
 
@@ -220,27 +157,24 @@ nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
 	return m_renderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
-nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCSM()
+void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera, DirectionalLight* sun, Texture2D* depth)
 {
-	return mCascadedShadow.get();
+	if (mCascadedShadow->isEnabled())
+	{
+		mCascadedShadow->useTightNearFarPlane(false);
+		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
+
+		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
+		{
+			mCascadedShadow->begin(i);
+			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
+		}
+
+		mCascadedShadow->frameReset();
+	}
 }
 
-nex::Pbr* nex::PBR_Deferred_Renderer::getPBR()
-{
-	return mPbrDeferred.get();
-}
-
-nex::PbrDeferred* nex::PBR_Deferred_Renderer::getDeferred()
-{
-	return mPbrDeferred.get();
-}
-
-nex::PbrForward* nex::PBR_Deferred_Renderer::getForward()
-{
-	return mPbrForward.get();
-}
-
-void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* depthMapShader = RenderBackend::get()->getEffectLibrary()->getDepthMapShader();
@@ -280,20 +214,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
 
-	// Update CSM if it is enabled
-	if (mCascadedShadow->isEnabled())
-	{
-		mCascadedShadow->useTightNearFarPlane(false);
-		mCascadedShadow->frameUpdate(camera, mGlobalLight.getDirection(), mPbrMrt->getNormalizedViewSpaceZ());
-
-		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
-		{
-			mCascadedShadow->begin(i);
-			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
-		}
-
-		mCascadedShadow->frameReset();
-	}
+	renderShadows(scene, camera, sun, mPbrMrt->getNormalizedViewSpaceZ());
 
 
 	// render scene to a offscreen buffer
@@ -303,14 +224,14 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
-	mPbrDeferred->setDirLight(&mGlobalLight);
+	mPbrDeferred->setDirLight(sun);
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 	mPbrDeferred->drawLighting(mPbrMrt.get(), camera);
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-	renderSky(camera, windowWidth, windowHeight);
+	renderSky(camera, sun, windowWidth, windowHeight);
 	stencilTest->enableStencilTest(false);
 
 
@@ -337,7 +258,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
@@ -354,19 +275,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 
 	// Update CSM if it is enabled
-	if (mCascadedShadow->isEnabled())
-	{
-		mCascadedShadow->frameUpdate(camera, mGlobalLight.getDirection(), nullptr);
-
-		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
-		{
-			mCascadedShadow->begin(i);
-			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
-			mCascadedShadow->end();
-		}
-
-		mCascadedShadow->frameReset();
-	}
+	renderShadows(scene, camera, sun, nullptr);
 
 
 	// render scene to a offscreen buffer
@@ -393,7 +302,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 
-	renderSky(camera, windowWidth, windowHeight);
+	renderSky(camera, sun, windowWidth, windowHeight);
 
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
@@ -410,7 +319,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, unsigned width, unsigned height)
+void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, DirectionalLight* sun, unsigned width, unsigned height)
 {
 	mAtmosphericScattering->bind();
 	mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
@@ -422,7 +331,7 @@ void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, unsigned width, unsig
 	mAtmosphericScattering->setViewport(width, height);
 
 	AtmosphericScattering::Light light;
-	light.direction = -normalize(mGlobalLight.getDirection());
+	light.direction = -normalize(sun->getDirection());
 	light.intensity = 1.8f;
 	mAtmosphericScattering->setLight(light);
 

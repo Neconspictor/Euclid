@@ -25,50 +25,35 @@ namespace nex
 	public:
 		typedef unsigned int uint;
 
-		PBR_Deferred_Renderer(RenderBackend* renderer, TechniqueSelector* pbrSelector, Input* input);
+		PBR_Deferred_Renderer(RenderBackend* renderer,
+			PbrDeferred* pbrDeferred,
+			PbrForward* pbrForward,
+			CascadedShadow* cascadedShadow,
+			Input* input);
 
 		bool getShowDepthMap() const;
 		void init(int windowWidth, int windowHeight);
-		void render(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight) override;
+		void render(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight) override;
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(unsigned width, unsigned height);
 
 		AmbientOcclusionSelector* getAOSelector();
 
-		CascadedShadow* getCSM();
-
-		Pbr* getPBR();
-
-		PbrDeferred* getDeferred();
-		PbrForward* getForward();
-
-
 	private:
 
-		void renderDeferred(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderForward(SceneNode* scene, Camera* camera, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderSky(Camera* camera, unsigned width, unsigned height);
+		void renderShadows(SceneNode* scene, Camera* camera, DirectionalLight* sun, Texture2D* depth);
+		void renderDeferred(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderForward(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderSky(Camera* camera, DirectionalLight* sun, unsigned width, unsigned height);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
 
 		// Allow the UI mode classes accessing private members
 
 		GaussianBlur* blurEffect;
-		AmbientLight mAmbientLight;
-		DirectionalLight mGlobalLight;
 		nex::Logger m_logger;
-		Texture* panoramaSky;
-		Texture* testTexture;
-		Texture2D* smaaTestTex;
-		Texture2D* smaaTestSRGBTex;
 
-		std::unique_ptr<PbrProbe> mPbrProbe;
-		std::unique_ptr<PbrDeferred> mPbrDeferred;
 		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
-		std::unique_ptr<CascadedShadow> mCascadedShadow;
-
-		// forward
-		std::unique_ptr<PbrForward> mPbrForward;
 
 		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
 		std::unique_ptr<RenderTarget2D> mPingPong;
@@ -78,7 +63,9 @@ namespace nex
 		bool mShowDepthMap;
 		Input* mInput;
 
-		TechniqueSelector* mPbrSelector;
+		PbrDeferred* mPbrDeferred;
+		PbrForward* mPbrForward;
+		CascadedShadow* mCascadedShadow;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

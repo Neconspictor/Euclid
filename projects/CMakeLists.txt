@@ -40,6 +40,4 @@ ADD_DEFINITIONS(-DNEC_BUILD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
 # Sub-directories where more CMakeLists.txt exist
 add_subdirectory(engine)
 add_subdirectory(engine_opengl)
-#add_subdirectory(test)
 add_subdirectory(app)
-add_subdirectory(compute_test)

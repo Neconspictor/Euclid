@@ -7,18 +7,18 @@ using namespace std;
 using namespace nex;
 
 
-Material::Material(TechniqueSelector* selector) : mTechniqueSelector(selector)
+Material::Material(Technique* technique) : mTechnique(technique)
 {
 }
 
-TechniqueSelector* Material::getTechniqueSelector()
+Technique* Material::getTechnique()
 {
-	return mTechniqueSelector;
+	return mTechnique;
 }
 
-void Material::setTechniqueSelector(TechniqueSelector* selector)
+void Material::setTechnique(Technique* technique)
 {
-	mTechniqueSelector = selector;
+	mTechnique = technique;
 }
 
 void Material::init()
@@ -182,20 +182,20 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 	return os;
 }
 
-PbrMaterial::PbrMaterial(TechniqueSelector* selector):
-	PbrMaterial(selector, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
+PbrMaterial::PbrMaterial(Technique* technique):
+	PbrMaterial(technique, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
 }
 
 PbrMaterial::PbrMaterial(
-	TechniqueSelector* selector,
+	Technique* technique,
 	Texture * albedoMap,
 	Texture * aoMap,
 	Texture * emissionMap,
 	Texture * metallicMap,
 	Texture * normalMap,
 	Texture * roughnessMap) :
-Material(selector)
+Material(technique)
 {
 	setAlbedoMap(albedoMap);
 	setAoMap(aoMap);

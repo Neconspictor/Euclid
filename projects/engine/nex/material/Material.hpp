@@ -4,6 +4,7 @@
 
 namespace nex
 {
+	class Technique;
 	class TechniqueSelector;
 	class Shader;
 	class Texture;
@@ -17,11 +18,11 @@ namespace nex
 	class Material
 	{
 	public:
-		Material(TechniqueSelector* selector);
+		Material(Technique* technique);
 
 		virtual ~Material() = default;
 
-		TechniqueSelector* getTechniqueSelector();
+		Technique* getTechnique();
 
 		void init();
 
@@ -40,7 +41,7 @@ namespace nex
 		void set(unsigned bindingSlot, const Texture* texture);
 
 
-		void setTechniqueSelector(TechniqueSelector* selector);
+		void setTechnique(Technique* technique);
 
 		/**
 		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
@@ -70,7 +71,7 @@ namespace nex
 		Map<glm::vec3> mVec3s;
 		Map<glm::vec4> mVec4s;
 
-		TechniqueSelector* mTechniqueSelector;
+		Technique* mTechnique;
 	};
 
 	/**
@@ -88,9 +89,9 @@ namespace nex
 	{
 	public:
 
-		PbrMaterial(TechniqueSelector* selector);
+		PbrMaterial(Technique* technique);
 		PbrMaterial(
-			TechniqueSelector* selector,
+			Technique* technique,
 			Texture* albedoMap,
 			Texture* aoMap,
 			Texture* emissionMap,

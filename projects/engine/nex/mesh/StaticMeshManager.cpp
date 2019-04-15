@@ -17,14 +17,13 @@
 #include "VertexBuffer.hpp"
 
 
-const unsigned int nex::StaticMeshManager::SKYBOX_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SKYBOX");
-	const unsigned int nex::StaticMeshManager::SPRITE_MODEL_HASH = nex::util::customSimpleHash("_INTERN_MODELS__SPRITE");
-
-
 	nex::StaticMeshManager::StaticMeshManager() :
-		mFileSystem(nullptr)
+		mFileSystem(nullptr),
+		mInitialized(false)
 	{
-		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(nex::sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
+		CUBE_POSITION_NORMAL_TEX_HASH = nex::util::customSimpleHash(sample_meshes::CUBE_POSITION_NORMAL_TEX_NAME);
+		SKYBOX_MODEL_HASH = nex::util::customSimpleHash(sample_meshes::SKY_BOX_NAME);
+		SPRITE_MODEL_HASH = nex::util::customSimpleHash(sample_meshes::RECTANGLE_NAME);
 
 		mFullscreenPlane = std::make_unique<VertexArray>();
 		static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
@@ -162,15 +161,20 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, TechniqueSelector* selector)
+	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
+		//if (pbrMaterialLoader == nullptr) throw std::runtime_error("pbr material loader mustn't be null!");
 		mFileSystem = meshFileSystem;
-		pbrMaterialLoader = std::make_unique<PbrMaterialLoader>(selector, TextureManager::get());
+		mPbrMaterialLoader = std::move(pbrMaterialLoader);
 		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
+		mInitialized = true;
 	}
 
 	nex::StaticMesh* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
 	{
+		// else case: assume the model name is a 3d model that can be load from file.
+		if (!mInitialized) throw std::runtime_error("StaticMeshManager isn't initialized!");
+
 		auto hash = nex::util::customSimpleHash(meshPath);
 
 		auto it = modelTable.find(hash);
@@ -189,18 +193,18 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-		// else case: assume the model name is a 3d model that can be load from file.
-
 		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 
 		nex::AbstractMaterialLoader* materialLoader = nullptr;
 		if (type == MaterialType::Pbr) {
-			materialLoader = pbrMaterialLoader.get();
+			materialLoader = mPbrMaterialLoader.get();
 		} else if (type == MaterialType::None)
 		{
 			materialLoader = mDefaultMaterialLoader.get();
 		}
-		else {
+		
+		if (materialLoader == nullptr) 
+		{
 			std::stringstream msg;
 			msg << "No suitable material loader found for shader type: " << type << std::endl; //TODO
 
@@ -299,7 +303,12 @@ nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
 		mFullscreenTriangleData.reset(nullptr);
 	}
 
-	/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
+void nex::StaticMeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
+{
+	mPbrMaterialLoader = std::move(pbrMaterialLoader);
+}
+
+/*void ModelManagerGL::useInstances(ModelGL* source, mat4* modelMatrices, unsigned int amount)
 	{
 		ModelGL* model = static_cast<ModelGL*>(source);
 		model->createInstanced(amount, modelMatrices);

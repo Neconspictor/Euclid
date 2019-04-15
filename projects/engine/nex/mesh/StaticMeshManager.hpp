@@ -22,9 +22,6 @@ namespace nex
 	{
 	public:
 
-		static const unsigned int SKYBOX_MODEL_HASH;
-		static const  unsigned int SPRITE_MODEL_HASH;
-
 		StaticMeshManager();
 
 		static std::unique_ptr<StaticMesh> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
@@ -82,7 +79,7 @@ namespace nex
 		 * Initializes the model manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		void init(FileSystem* meshFileSystem, TechniqueSelector* selector);
+		void init(FileSystem* meshFileSystem, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
 
 		/**
@@ -91,6 +88,8 @@ namespace nex
 		void loadModels();
 
 		void release();
+
+		void setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
 		//void useInstances(ModelGL* model, glm::mat4* modelMatrices, unsigned int amount);
 
@@ -102,14 +101,17 @@ namespace nex
 		std::vector<std::unique_ptr<StaticMesh>> models;
 		std::unordered_map<unsigned int, StaticMesh*> modelTable;
 		MeshLoader assimpLoader;
-		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader;
+		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
 		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
 		FileSystem* mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
 		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
+		bool mInitialized;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
+		unsigned int SKYBOX_MODEL_HASH;
+		unsigned int SPRITE_MODEL_HASH;
 	};
 }

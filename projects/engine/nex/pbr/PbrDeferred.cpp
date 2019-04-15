@@ -44,6 +44,7 @@ namespace nex {
 	{
 		mLightPass->bind();
 
+		mLightPass->setProbe(mProbe);
 		mLightPass->updateConstants(camera);
 
 
