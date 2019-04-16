@@ -16,13 +16,13 @@ using namespace glm;
 using namespace nex;
 
 PbrProbe::PbrProbe(Texture* backgroundHDR) :
-	environmentMap(nullptr), skybox(sample_meshes::SKY_BOX_NAME, MaterialType::None),
+	environmentMap(nullptr),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
 	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputePass>())
 {
 
-	skybox.init();
+	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME, MaterialType::None);
 
 	init(backgroundHDR);
 	environmentMap.reset();
@@ -284,7 +284,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
-		StaticMeshDrawer::draw(skybox.getModel(), shader);
+		StaticMeshDrawer::draw(mSkyBox, shader);
 	}
 
 
@@ -343,7 +343,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	for (int side = 0; side < 6; ++side) {
 		mConvolutionPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
-		StaticMeshDrawer::draw(skybox.getModel(), mConvolutionPass.get());
+		StaticMeshDrawer::draw(mSkyBox, mConvolutionPass.get());
 	}
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
@@ -411,7 +411,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		for (unsigned int side = 0; side < 6; ++side) {
 			mPrefilterPass->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X), mipLevel);
-			StaticMeshDrawer::draw(skybox.getModel(), mPrefilterPass.get());
+			StaticMeshDrawer::draw(mSkyBox, mPrefilterPass.get());
 		}
 	}
 
@@ -562,13 +562,13 @@ void PbrProbe::init(Texture* backgroundHDR)
 	pos.x = 0.5f * (1.0f - dim.x);
 	pos.y = 0.5f * (1.0f - dim.y);
 
-	brdfSprite.setPosition(pos);
-	brdfSprite.setWidth(dim.x);
-	brdfSprite.setHeight(dim.y);
+	mBrdfSprite.setPosition(pos);
+	mBrdfSprite.setWidth(dim.x);
+	mBrdfSprite.setHeight(dim.y);
 
 	// we don't need a texture
 	// we use the sprite only as a polygon model
-	brdfSprite.setTexture(nullptr);
+	mBrdfSprite.setTexture(nullptr);
 
 	
 

@@ -10,8 +10,6 @@ using namespace glm;
 
 namespace nex
 {
-
-
 	MeshLoader::MeshLoader() : m_logger("MeshLoader")
 	{
 	}

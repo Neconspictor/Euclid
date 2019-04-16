@@ -13,23 +13,16 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-void nex::StaticMeshDrawer::draw(SceneNode* root, Pass* shader)
+void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
 {
-	for (auto it = root->mChilds.begin(); it != root->mChilds.end(); ++it)
+	auto range = node->getChildren();
+	for (auto it = range.begin; it != range.end; ++it)
 		draw(*it, shader);
 
-	if (!root->mVob) return;
+	if (!node->getMesh()) return;
 
-	if (root->mDrawingType == DrawingTypes::SOLID)
-	{
-		shader->onModelMatrixUpdate(root->mVob->getTrafo());
-		draw(root->mVob->getModel(), shader);
-	}
-	else if (root->mDrawingType == DrawingTypes::INSTANCED)
-	{
-		nex::Logger("ModelDrawerGL")(nex::Warning) << "Instanced Drawing type currently not supported";
-		//drawer->drawInstanced(vob, type, data, instanceCount);
-	}
+	shader->onModelMatrixUpdate(node->getLocalTrafo());
+	draw(node->getMesh(), node->getMaterial(), shader);
 }
 
 void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
@@ -85,32 +78,36 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(StaticMeshContainer* model, Pass* pass)
+void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 {
-	//TODO
-	//shader->bind();
-	//shader->setTransformData(data);
-	for (auto& mesh : model->getMeshes())
+	if (material != nullptr)
 	{
-		auto* material = mesh.get()->getMaterial();
-		if (material != nullptr)
-		{
-			material->upload(pass->getShader());
-		}
-		pass->onMaterialUpdate(mesh.get()->getMaterial());
+		material->upload(pass->getShader());
+	}
+	pass->onMaterialUpdate(material);
 
-		const VertexArray* vertexArray = mesh->getVertexArray();
-		const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
+	const VertexArray* vertexArray = mesh->getVertexArray();
+	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
 
-		vertexArray->bind();
-		indexBuffer->bind();
+	vertexArray->bind();
+	indexBuffer->bind();
 
-		static auto* backend = RenderBackend::get();
+	static auto* backend = RenderBackend::get();
 
-		backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+	backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 
-		//indexBuffer->unbind();
-		//vertexArray->unbind();
+	//indexBuffer->unbind();
+	//vertexArray->unbind();
+}
+
+void StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass)
+{
+	auto& meshes = container->getMeshes();
+	auto& mappings = container->getMappings();
+
+	for (auto& mesh : meshes)
+	{
+		draw(mesh.get(), mappings.at(mesh.get()), pass);
 	}
 }
 
@@ -188,5 +185,11 @@ void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, 
 	backend->setLineThickness(static_cast<float>(lineStrength));
 	backend->getRasterizer()->setFillMode(FillMode::LINE, PolygonSide::FRONT_BACK);
 
-	draw(model, shader);
+	auto& meshes = model->getMeshes();
+	auto& mappings = model->getMappings();
+
+	for (auto& mesh : meshes)
+	{
+		draw(mesh.get(), mappings.at(mesh.get()), shader);
+	}
 }

@@ -1,16 +1,13 @@
 #include "Sphere.hpp"
-#include <math.h>
+#include <cmath>
 #include <nex/util/Math.hpp>
 #include "VertexBuffer.hpp"
 #include "VertexLayout.hpp"
 
 namespace nex
 {
-	Sphere::Sphere(unsigned int xSegments, unsigned int ySegments, Material* material)
+	Sphere::Sphere(unsigned int xSegments, unsigned int ySegments)
 	{
-		setMaterial(material);
-
-
 		struct Vertex
 		{
 			glm::vec3 position;
@@ -42,7 +39,6 @@ namespace nex
 			}
 		}
 
-		bool oddRow = false;
 		for (unsigned y = 0; y < ySegments; ++y)
 		{
 			for (unsigned x = 0; x < xSegments; ++x)
@@ -56,9 +52,6 @@ namespace nex
 				indices.push_back((y + 1) * (xSegments + 1) + x + 1);
 			}
 		}
-
-
-
 
 
 		mVertexBuffer.bind();
@@ -78,6 +71,5 @@ namespace nex
 
 		mVertexArray.unbind();
 		mIndexBuffer.unbind();
-
 	}
 }

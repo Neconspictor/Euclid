@@ -52,7 +52,7 @@ namespace nex
 		std::unique_ptr<PbrPrefilterPass> mPrefilterPass;
 		std::unique_ptr<PbrBrdfPrecomputePass> mBrdfPrecomputePass;
 
-		Sprite brdfSprite;
-		Vob skybox;
+		Sprite mBrdfSprite;
+		StaticMeshContainer* mSkyBox;
 	};
 }

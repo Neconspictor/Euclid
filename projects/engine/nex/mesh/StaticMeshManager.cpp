@@ -60,11 +60,11 @@
 std::unique_ptr<nex::StaticMeshContainer> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)
 {
-	std::vector<std::unique_ptr<Mesh>> meshes;
-	std::vector<std::unique_ptr<Material>> materials;
-	materials.emplace_back(std::move(material));
-	meshes.emplace_back(std::make_unique<Sphere>(xSegments, ySegments, materials.back().get()));
-	return std::make_unique<StaticMeshContainer>(std::move(meshes), std::move(materials));
+	auto mesh = std::make_unique<Sphere>(xSegments, ySegments);
+	auto model = std::make_unique<StaticMeshContainer>();
+	model->add(std::move(mesh), std::move(material));
+
+	return model;
 }
 
 nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
@@ -82,10 +82,8 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
 				sample_meshes::skyBoxIndices, (int)indexCount);
 
-			std::vector<std::unique_ptr<Mesh>> meshes;
-			meshes.push_back(move(mesh));
-
-			auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
+			auto model = std::make_unique<StaticMeshContainer>();
+			model->add(std::move(mesh), nullptr);
 
 			models.push_back(move(model));
 			StaticMeshContainer* result = models.back().get();
@@ -148,11 +146,8 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		std::unique_ptr<Mesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
-
-		std::vector<std::unique_ptr<Mesh>> meshes;
-		meshes.push_back(move(mesh));
-
-		auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
+		auto model = std::make_unique<StaticMeshContainer>();
+		model->add(std::move(mesh), nullptr);
 
 		models.push_back(std::move(model));
 
@@ -265,10 +260,9 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 		std::unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
-		std::vector<std::unique_ptr<Mesh>> meshes;
-		meshes.push_back(move(mesh));
 
-		auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
+		auto model = std::make_unique<StaticMeshContainer>();
+		model->add(std::move(mesh), nullptr);
 
 		models.push_back(std::move(model));
 

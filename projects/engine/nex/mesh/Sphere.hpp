@@ -8,7 +8,7 @@ namespace nex
 	class Sphere : public Mesh
 	{
 	public:
-		Sphere(unsigned int xSegments, unsigned int ySegments, Material* material = nullptr);
+		Sphere(unsigned int xSegments, unsigned int ySegments);
 
 		~Sphere() override = default;
 	};

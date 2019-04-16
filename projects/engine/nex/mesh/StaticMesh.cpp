@@ -1,5 +1,6 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/Scene.hpp>
+#include <nex/material/Material.hpp>
 
 namespace nex
 {

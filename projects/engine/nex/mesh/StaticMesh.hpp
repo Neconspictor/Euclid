@@ -8,6 +8,7 @@ namespace nex
 {
 	class SceneNode;
 	class Scene;
+	class Material;
 
 	class StaticMeshContainer
 	{

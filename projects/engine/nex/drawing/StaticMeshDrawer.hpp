@@ -48,7 +48,12 @@ namespace nex
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		static void draw(StaticMeshContainer* model, nex::Pass* pass);
+		static void draw(Mesh* mesh, Material* material, Pass* pass);
+
+		/**
+		 * Draws the specified static mesh container with a given shader onto the screen.
+		 */
+		static void draw(StaticMeshContainer* container, Pass* pass);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
