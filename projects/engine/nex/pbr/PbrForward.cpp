@@ -9,6 +9,7 @@
 #include "PbrProbe.hpp"
 #include "nex/light/Light.hpp"
 #include "nex/drawing/StaticMeshDrawer.hpp"
+#include <nex/material/Material.hpp>
 
 using namespace glm;
 

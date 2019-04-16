@@ -1,6 +1,8 @@
 #pragma once
 #include "nex/util/StringUtils.hpp"
 #include <nex/shader/ShaderType.hpp>
+#include <nex/RenderTypes.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
 
 namespace nex
 {
@@ -15,16 +17,34 @@ namespace nex
 		None
 	};
 
+	struct RenderState
+	{
+		bool doDepthTest = true;
+		bool doDepthWrite = true;
+		CompareFunction depthCompare = CompareFunction::LESS;
+		bool doCullFaces = true;
+		PolygonSide cullSide = PolygonSide::BACK;
+		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
+		bool doBlend = false;
+		BlendDesc blendDesc = {BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD};
+
+		bool doShadowCast = true;
+		bool doShadowReceive = true;
+		FillMode fillMode = FillMode::FILL;
+	};
+
 	class Material
 	{
 	public:
 		Material(Technique* technique);
 
-		virtual ~Material() = default;
+		virtual ~Material();
+
+		RenderState& getRenderState();
 
 		Technique* getTechnique();
 
-		void init();
+		void clear();
 
 		void set(UniformLocation loc, float value);
 		void set(UniformLocation loc, int value);
@@ -72,6 +92,7 @@ namespace nex
 		Map<glm::vec4> mVec4s;
 
 		Technique* mTechnique;
+		RenderState mRenderState;
 	};
 
 	/**

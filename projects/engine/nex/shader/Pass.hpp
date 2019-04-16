@@ -15,7 +15,7 @@ namespace nex
 		/**
 		 * base class needs virtual destructor. Rule of five.
 		 */
-		virtual ~Pass() = default;
+		virtual ~Pass();
 		Pass(const Pass&) = delete;
 		Pass(Pass&&) = default;
 		Pass& operator=(const Pass&) = delete;
@@ -61,7 +61,7 @@ namespace nex
 	public:
 		TransformPass(std::unique_ptr<Shader> program = nullptr);
 		
-		virtual ~TransformPass() = default;
+		virtual ~TransformPass();
 		TransformPass(const TransformPass&) = delete;
 		TransformPass(TransformPass&&) = default;
 		TransformPass& operator=(const TransformPass&) = delete;
@@ -75,7 +75,7 @@ namespace nex
 	public:
 		ComputePass(std::unique_ptr<Shader> program = nullptr);
 
-		virtual ~ComputePass() = default;
+		virtual ~ComputePass();
 		ComputePass(const ComputePass&) = delete;
 		ComputePass(ComputePass&&) = default;
 		ComputePass& operator=(const ComputePass&) = delete;

@@ -5,6 +5,7 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/Scene.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/material/Material.hpp>
 
 //TODO get it from repo history again
 //#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
@@ -93,6 +94,19 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 	indexBuffer->bind();
 
 	static auto* backend = RenderBackend::get();
+
+
+	//set render state
+	const auto& state = material->getRenderState();
+	backend->getBlender()->enableBlend(state.doBlend);
+	backend->getBlender()->setBlendDesc(state.blendDesc);
+	backend->getRasterizer()->enableFaceCulling(state.doCullFaces);
+	backend->getRasterizer()->setCullMode(state.cullSide);
+	backend->getRasterizer()->setWindingOrder(state.windingOrder);
+	backend->getDepthBuffer()->enableDepthTest(state.doDepthTest);
+	backend->getDepthBuffer()->enableDepthBufferWriting(state.doDepthWrite);
+	backend->getDepthBuffer()->setDefaultDepthFunc(state.depthCompare);
+	backend->getRasterizer()->setFillMode(state.fillMode, PolygonSide::FRONT_BACK);
 
 	backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 

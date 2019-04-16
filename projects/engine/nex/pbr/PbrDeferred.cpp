@@ -10,6 +10,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 #include "PbrProbe.hpp"
+#include <nex/material/Material.hpp>
 
 namespace nex {
 

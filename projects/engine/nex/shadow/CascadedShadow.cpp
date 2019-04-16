@@ -11,6 +11,7 @@
 #include "imgui/imgui_internal.h"
 #include "nex/texture/Attachment.hpp"
 #include <nex/shadow/SceneNearFarComputePass.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace nex;
 

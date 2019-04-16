@@ -4,6 +4,7 @@
 #include "nex/RenderBackend.hpp"
 #include <glm/glm.hpp>
 #include "nex/shader/ShaderBuffer.hpp"
+#include <nex/material/Material.hpp>
 
 
 void nex::SceneNearFarComputePass::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)

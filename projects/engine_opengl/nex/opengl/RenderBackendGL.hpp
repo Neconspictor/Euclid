@@ -88,6 +88,12 @@ namespace nex {
 		OFFSET_POINT = GL_POLYGON_OFFSET_POINT,
 	};
 
+	enum class WindingOrderGL
+	{
+		CLOCKWISE = GL_CW,
+		COUNTER_CLOWCKWISE = GL_CCW,
+	};
+
 
 
 	class RenderBackend::Impl
@@ -190,6 +196,7 @@ namespace nex {
 
 		FillModeCache mFillModeCache;
 		PolygonSideGL mCullMode;
+		WindingOrderGL mWindingOrder;
 
 		bool mFrontCounterClockwise;
 		float mDepthBias;
@@ -204,7 +211,6 @@ namespace nex {
 		bool mEnableOffsetPolygonFill;
 		bool mEnableOffsetLine;
 		bool mEnableOffsetPoint;
-
 	};
 
 	class StencilTest::Impl
@@ -257,4 +263,5 @@ namespace nex {
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
 	FillModeGL translate(FillMode type);
+	WindingOrderGL translate(WindingOrder order);
 }

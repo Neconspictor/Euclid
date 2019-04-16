@@ -1,5 +1,6 @@
 #include <nex/shader/SkyBoxPass.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace glm;
 using namespace nex;

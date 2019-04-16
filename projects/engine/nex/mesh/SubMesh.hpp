@@ -4,52 +4,11 @@
 #include "VertexArray.hpp"
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
+#include <nex/mesh/MeshTypes.hpp>
 
 namespace nex
 {
 	class MeshFactory;
-
-	struct VertexPositionNormalTexTangent {
-		glm::vec3 position;
-		glm::vec3 normal;
-		glm::vec2 texCoords;
-		glm::vec3 tangent;
-		glm::vec3 bitangent;
-	};
-
-	struct VertexPositionNormalTex {
-		glm::vec3 position;
-		glm::vec3 normal;
-		glm::vec2 texCoords;
-	};
-
-	struct VertexPosition
-	{
-		glm::vec3 position;
-	};
-
-	struct VertexPositionTex
-	{
-		glm::vec3 position;
-		glm::vec2 texCoords;
-	};
-
-	enum class Topology
-	{
-		LINES, FIRST = LINES,
-		LINES_ADJACENCY,
-		LINE_LOOP,
-		LINE_STRIP,
-		LINE_STRIP_ADJACENCY,
-		PATCHES,
-		POINTS,
-		TRIANGLES,
-		TRIANGLES_ADJACENCY,
-		TRIANGLE_FAN,
-		TRIANGLE_STRIP,
-		TRIANGLE_STRIP_ADJACENCY, LAST = TRIANGLE_STRIP_ADJACENCY,
-	};
-
 
 	/**
 	 * Represents a 3d mesh consisting of vertices and a list of indices describing

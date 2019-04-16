@@ -9,6 +9,7 @@ set(
     nex/RenderBackend.hpp
     nex/Renderer.hpp
     nex/Renderer.cpp
+    nex/RenderTypes.hpp
     
     nex/Scene.cpp
     nex/Scene.hpp
@@ -123,6 +124,7 @@ set(
 	nex/mesh/MeshFactory.cpp
     nex/mesh/MeshLoader.hpp
 	nex/mesh/MeshLoader.cpp
+    nex/mesh/MeshTypes.hpp
     nex/mesh/SampleMeshes.hpp
     nex/mesh/Sphere.cpp
     nex/mesh/Sphere.hpp

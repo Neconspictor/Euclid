@@ -5,7 +5,7 @@
 namespace nex
 {
 	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
-		mParent(nullptr), mLocalTrafo(), mWorldTrafo()
+		mParent(nullptr)
 	{
 	}
 

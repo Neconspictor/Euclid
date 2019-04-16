@@ -1,8 +1,10 @@
 #pragma once
 #include <memory>
-#include <nex/mesh/StaticMeshManager.hpp>
+//#include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include <nex/RenderTypes.hpp>
+#include <nex/mesh/MeshTypes.hpp>
 
 namespace nex
 {
@@ -34,30 +36,6 @@ namespace nex
 		DIRECTX
 	};
 
-	enum class FillMode
-	{
-		FILL, FIRST = FILL,
-		LINE,
-		POINT, LAST = POINT,
-	};
-
-	enum class PolygonSide
-	{
-		BACK, FIRST = BACK,
-		FRONT,
-		FRONT_BACK, LAST = FRONT_BACK,
-	};
-
-	struct Viewport
-	{
-		int x;
-		int y;
-		int width;
-		int height;
-
-		Viewport() : x(0), y(0), width(0), height(0) {}
-	};
-
 	/**
 	* Adds a string representation of the renderer type to an output stream.
 	*/
@@ -71,60 +49,6 @@ namespace nex
 		};
 		return os << static_cast<uint16_t>(type);
 	}
-
-
-	class SMAA;
-	class RenderBackend;
-
-	enum class BlendFunc
-	{
-		ZERO, FIRST = ZERO,
-		ONE,
-		
-		SOURCE_COLOR,
-		ONE_MINUS_SOURCE_COLOR,
-		DESTINATION_COLOR,
-		ONE_MINUS_DESTINATION_COLOR,
-		
-		SOURCE_ALPHA,
-		ONE_MINUS_SOURCE_ALPHA,		
-		DESTINATION_ALPHA,
-		ONE_MINUS_DESTINATION_ALPHA,
-
-		CONSTANT_COLOR,
-		ONE_MINUS_CONSTANT_COLOR,
-		CONSTANT_ALPHA,
-		ONE_MINUS_CONSTANT_ALPHA, LAST = ONE_MINUS_CONSTANT_ALPHA,
-	};
-
-	enum class BlendOperation
-	{
-		ADD, FIRST = ADD,// source + destination
-		SUBTRACT, // source - destination
-		REV_SUBTRACT, // destination - source
-		MIN, // min(source, destination)
-		MAX, LAST = MAX,// max(source, destination)
-	};
-
-
-	struct BlendDesc
-	{
-		BlendFunc source = BlendFunc::ONE;
-		BlendFunc destination = BlendFunc::ZERO;
-		BlendOperation operation = BlendOperation::ADD;
-	};
-
-	struct BlendState
-	{
-		bool enableBlend = false;
-		bool enableAlphaToCoverage = false;
-		float sampleCoverage = 1.0f;
-		bool invertSampleConverage = false;
-		glm::vec4 constantBlendColor = glm::vec4(0, 0, 0, 0);
-		//bool enableIndependentBlend = false; // not possible for opengl
-
-		BlendDesc globalBlendDesc;
-	};
 
 	 /**
 	  * Configuration class for blending
@@ -204,7 +128,7 @@ namespace nex
 	{
 		std::map<PolygonSide, FillMode> fillModes;
 		PolygonSide cullMode = PolygonSide::BACK;
-		bool frontCounterClockwise = false;
+		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
 		float depthBias = 0.0f;
 		float depthBiasClamp = 0.0f;
 		float slopeScaledDepthBias = 0.0f;
@@ -235,7 +159,7 @@ namespace nex
 
 		void setFillMode(FillMode fillMode, PolygonSide faceSide);
 		void setCullMode(PolygonSide faceSide);
-		void setFrontCounterClockwise(bool set);
+		void setWindingOrder(WindingOrder order);
 		void setDepthBias(float slopeScale, float unit, float clamp);
 
 		void setState(const RasterizerState& state);

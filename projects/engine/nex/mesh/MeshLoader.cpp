@@ -4,6 +4,7 @@
 #include <nex/util/Timer.hpp>
 #include <nex/mesh/MeshFactory.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace std;
 using namespace glm;

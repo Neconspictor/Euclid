@@ -245,11 +245,10 @@ namespace nex
 		GLCall(glCullFace((GLenum)mImpl->mCullMode));
 	}
 
-	void nex::Rasterizer::setFrontCounterClockwise(bool set)
+	void Rasterizer::setWindingOrder(WindingOrder order)
 	{
-		mImpl->mFrontCounterClockwise = set;
-		const auto enumGL = set ? GL_CCW : GL_CW;
-		GLCall(glFrontFace(enumGL));
+		mImpl->mWindingOrder = translate(order);
+		GLCall(glFrontFace((GLenum)mImpl->mWindingOrder));
 	}
 
 	void nex::Rasterizer::setDepthBias(float slopeScale, float unit, float clamp)
@@ -270,7 +269,7 @@ namespace nex
 		}
 
 		setCullMode(state.cullMode);
-		setFrontCounterClockwise(state.frontCounterClockwise);
+		setWindingOrder(state.windingOrder);
 		setDepthBias(state.slopeScaledDepthBias, state.depthBias, state.depthBiasClamp);
 		enableFaceCulling(state.enableFaceCulling);
 		enableScissorTest(state.enableScissorTest);
@@ -503,7 +502,7 @@ namespace nex
 		GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)); // TODO abstract?
 
 		// we want counter clock wise winding order
-		getRasterizer()->setFrontCounterClockwise(true);
+		getRasterizer()->setWindingOrder(WindingOrder::COUNTER_CLOCKWISE);
 		getStencilTest()->enableStencilTest(true);
 		getRasterizer()->enableFaceCulling(true);
 		getRasterizer()->setCullMode(PolygonSide::BACK);
@@ -962,5 +961,19 @@ namespace nex
 		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: PolygonRasterizationType and PolygonRasterizationTypeGL don't match!");
 
 		return table[(unsigned)type];
+	}
+
+	WindingOrderGL translate(WindingOrder order)
+	{
+		static WindingOrderGL table[]
+		{
+			WindingOrderGL::CLOCKWISE,
+			WindingOrderGL::COUNTER_CLOWCKWISE,
+		};
+
+		static const unsigned size = (unsigned)WindingOrder::LAST - (unsigned)WindingOrder::FIRST + 1;
+		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: WindingOrder and WindingOrderGL don't match!");
+
+		return table[(unsigned)order];
 	}
 }

@@ -4,6 +4,8 @@ nex::Pass::Pass(std::unique_ptr<Shader> program) : mShader(std::move(program))
 {
 }
 
+nex::Pass::~Pass() = default;
+
 void nex::Pass::updateConstants(Camera* camera)
 {
 }
@@ -48,6 +50,10 @@ nex::TransformPass::TransformPass(std::unique_ptr<Shader> program) : Pass(std::m
 {
 }
 
+nex::TransformPass::~TransformPass() = default;
+
 nex::ComputePass::ComputePass(std::unique_ptr<Shader> program) : Pass(std::move(program))
 {
 }
+
+nex::ComputePass::~ComputePass() = default;

@@ -7,6 +7,8 @@
 #include <extern/SMAA/SearchTex.h>
 #include <nex/shader/Pass.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/material/Material.hpp>
+#include "nex/mesh/StaticMeshManager.hpp"
 
 
 namespace nex

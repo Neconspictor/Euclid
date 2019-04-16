@@ -3,6 +3,8 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
+#include <nex/material/Material.hpp>
+#include "nex/mesh/StaticMeshManager.hpp"
 
 class nex::DownSampler::DownSamplePass : public Pass
 {

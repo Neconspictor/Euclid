@@ -11,6 +11,13 @@ Material::Material(Technique* technique) : mTechnique(technique)
 {
 }
 
+Material::~Material() = default;
+
+RenderState& Material::getRenderState()
+{
+	return mRenderState;
+}
+
 Technique* Material::getTechnique()
 {
 	return mTechnique;
@@ -21,7 +28,7 @@ void Material::setTechnique(Technique* technique)
 	mTechnique = technique;
 }
 
-void Material::init()
+void Material::clear()
 {
 	mFloats.clear();
 	mInts.clear();

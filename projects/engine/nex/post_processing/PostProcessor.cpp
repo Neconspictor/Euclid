@@ -9,6 +9,7 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/post_processing//SMAA.hpp>
 #include "AmbientOcclusion.hpp"
+#include <nex/material/Material.hpp>
 
 
 class nex::PostProcessor::PostProcessPass : public nex::Pass

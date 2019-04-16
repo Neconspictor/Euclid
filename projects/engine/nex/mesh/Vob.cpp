@@ -1,6 +1,7 @@
 #include <nex/mesh/Vob.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include <nex/material/Material.hpp>
 
 using namespace std;
 using namespace glm;

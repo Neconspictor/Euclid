@@ -5,6 +5,7 @@
 #include <nex/mesh/MeshLoader.hpp>
 #include <nex/material/PbrMaterialLoader.hpp>
 #include <memory>
+#include <nex/material/Material.hpp>
 
 
 namespace nex
@@ -23,6 +24,7 @@ namespace nex
 	public:
 
 		StaticMeshManager();
+		~StaticMeshManager();
 
 		static std::unique_ptr<StaticMeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
 

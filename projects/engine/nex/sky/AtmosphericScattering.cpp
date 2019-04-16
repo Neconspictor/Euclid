@@ -1,6 +1,7 @@
 #include <nex/sky/AtmosphericScattering.hpp>
 #include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
 
 nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 	Shader::create("atmospheric_scattering/atmosphericScattering_vs.glsl", "atmospheric_scattering/atmosphericScattering_fs.glsl"))

@@ -2,11 +2,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
+#include <nex/material/Material.hpp>
 
 
 namespace nex
 {
-	enum class MaterialType;
 	class StaticMeshContainer;
 	class StaticMeshManager;
 

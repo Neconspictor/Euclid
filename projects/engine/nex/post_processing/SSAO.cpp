@@ -15,6 +15,7 @@
 #include <nex/shader/Shader.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/texture/Sampler.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace std; 
 using namespace glm;

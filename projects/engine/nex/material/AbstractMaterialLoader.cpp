@@ -1,5 +1,6 @@
 #include <nex/material/AbstractMaterialLoader.hpp>
 #include <nex/texture/TextureManager.hpp>
+#include <nex/material/Material.hpp>
 
 using namespace std;
 using namespace nex;
@@ -25,3 +26,5 @@ vector<string> AbstractMaterialLoader::loadMaterialTextures(aiMaterial* mat, aiT
 
 	return textures;
 }
+
+DefaultMaterialLoader::~DefaultMaterialLoader() = default;

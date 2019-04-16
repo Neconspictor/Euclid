@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "nex/texture/Attachment.hpp"
 #include "nex/texture/TextureManager.hpp"
+#include <nex/material/Material.hpp>
 
 using namespace glm;
 

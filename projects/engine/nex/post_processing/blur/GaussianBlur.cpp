@@ -5,6 +5,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/texture/Sampler.hpp>
 #include "nex/texture/Sprite.hpp"
+#include <nex/material/Material.hpp>
 
 namespace nex {
 

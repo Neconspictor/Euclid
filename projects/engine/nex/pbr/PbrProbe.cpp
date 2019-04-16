@@ -11,6 +11,8 @@
 #include "nex/light/Light.hpp"
 #include <nex/texture/Sprite.hpp>
 #include "nex/mesh/SampleMeshes.hpp"
+#include <nex/material/Material.hpp>
+#include "nex/mesh/StaticMeshManager.hpp"
 
 using namespace glm;
 using namespace nex;

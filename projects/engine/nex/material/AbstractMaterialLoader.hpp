@@ -3,7 +3,6 @@
 #include <memory>
 #include <assimp/scene.h>
 #include<vector>
-#include "Material.hpp"
 
 
 namespace nex
@@ -11,6 +10,7 @@ namespace nex
 
 	class TextureManager;
 	struct TextureData;
+	class Material;
 
 	class AbstractMaterialLoader
 	{
@@ -32,6 +32,7 @@ namespace nex
 	{
 	public:
 		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
+		virtual ~DefaultMaterialLoader();
 		std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const override { return nullptr; }
 	};
 }
