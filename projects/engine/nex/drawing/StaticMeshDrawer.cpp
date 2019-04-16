@@ -21,7 +21,7 @@ void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
 
 	if (!node->getMesh()) return;
 
-	shader->onModelMatrixUpdate(node->getLocalTrafo());
+	shader->onModelMatrixUpdate(node->getWorldTrafo());
 	draw(node->getMesh(), node->getMaterial(), shader);
 }
 

@@ -105,7 +105,7 @@ namespace nex
 
 			auto children = node->getChildren();
 
-			for (auto it = children.begin; children.begin != children.end; ++it)
+			for (auto it = children.begin; it != children.end; ++it)
 				queue.push(*it);
 		}
 	}
@@ -136,6 +136,7 @@ namespace nex
 		mNodes.emplace_back(std::make_unique<SceneNode>());
 		auto* node = mNodes.back().get();
 		node->setParent(parent);
+		if (parent) parent->addChild(node);
 
 		return node;
 	}
