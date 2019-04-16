@@ -1,72 +1,46 @@
 #include <nex/mesh/StaticMesh.hpp>
-
-using namespace std;
-using namespace glm;
+#include <nex/Scene.hpp>
 
 namespace nex
 {
-	StaticMesh::StaticMesh(vector<unique_ptr<SubMesh>> meshes, std::vector<std::unique_ptr<Material>> materials) :
-		mMeshes(std::move(meshes)), mMaterials(std::move(materials)), instanced(false)
+	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
+		mMeshes.emplace_back(std::move(mesh));
+		mMaterials.emplace_back(std::move(material));
+
+		auto* pMesh = mMeshes.back().get();
+		auto* pMaterial = mMaterials.back().get();
+		mMappings[pMesh] = pMaterial;
 	}
 
-	// TODO code has to be updated for new MeshGL class
-	/*void ModelGL::createInstanced(unsigned amount, mat4* modelMatrices)
+	void StaticMeshContainer::addToNode(SceneNode* parent, Scene* scene)
 	{
-		// Vertex Buffer Object
-		GLCall(glGenBuffers(1, &vertexAttributeBuffer));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer));
-		GLCall(glBufferData(GL_ARRAY_BUFFER, amount * sizeof(mat4), &modelMatrices[0], GL_STATIC_DRAW));
+		assert(parent != nullptr);
+		assert(scene != nullptr);
 
-		for (GLuint i = 0; i < meshes.size(); i++)
+		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)
 		{
-			MeshGL& mesh = *meshes[i];
-			GLuint VAO = mesh.getVertexArrayObject();
-			GLCall(glBindVertexArray(VAO));
-
-			// Vertex Attributes
-			size_t vec4Size = sizeof(vec4);
-			GLCall(glEnableVertexAttribArray(3));
-			GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer));
-			GLCall(glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)0));
-			GLCall(glEnableVertexAttribArray(4));
-			glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(vec4Size));
-			glEnableVertexAttribArray(5);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(2 * vec4Size));
-			glEnableVertexAttribArray(6);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexAttributeBuffer);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * (GLsizei)vec4Size, (GLvoid*)(3 * vec4Size));
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			GLCall(glBindVertexArray(0));
+			auto* material = mMappings[it->get()];
+			SceneNode* node = scene->createNode();
+			node->setMesh(it->get());
+			node->setMaterial(material);
+			parent->addChild(node);
 		}
-	}*/
-
-	bool StaticMesh::instancedUsed()const
-	{
-		return instanced;
 	}
 
-	void StaticMesh::setInstanced(bool value)
+
+	const StaticMeshContainer::Mappings& StaticMeshContainer::getMappings() const
 	{
-		instanced = value;
+		return mMappings;
 	}
 
-	const std::vector<std::unique_ptr<SubMesh>>& StaticMesh::getMeshes() const
-	{
-		return mMeshes;
-	}
-
-	const std::vector<std::unique_ptr<Material>>& StaticMesh::getMaterials() const
+	const StaticMeshContainer::Materials& StaticMeshContainer::getMaterials() const
 	{
 		return mMaterials;
+	}
+
+	const StaticMeshContainer::Meshes& StaticMeshContainer::getMeshes() const
+	{
+		return mMeshes;
 	}
 }

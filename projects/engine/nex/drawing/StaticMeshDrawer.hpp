@@ -9,8 +9,8 @@ namespace nex
 	class RenderBackend;
 	class Sprite;
 	class Vob;
-	class SubMesh;
-	class StaticMesh;
+	class Mesh;
+	class StaticMeshContainer;
 	class SceneNode;
 
 	enum class DrawingTypes
@@ -33,7 +33,7 @@ namespace nex
 		};
 
 		using VobRenderCallback = void(const Vob* vob, const RenderContext* context);
-		using MeshRenderCallback = void(const nex::SubMesh* mesh, const RenderContext* context);
+		using MeshRenderCallback = void(const nex::Mesh* mesh, const RenderContext* context);
 
 		/**
 		 * Draws this scene node and all its children using a specific pass.
@@ -48,7 +48,7 @@ namespace nex
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		static void draw(StaticMesh* model, nex::Pass* pass);
+		static void draw(StaticMeshContainer* model, nex::Pass* pass);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);
@@ -59,6 +59,6 @@ namespace nex
 		 */
 		 //void drawOutlined(Vob* vob, glm::vec4 borderColor);
 
-		static void drawWired(StaticMesh* model, nex::Pass* pass, int lineStrength);
+		static void drawWired(StaticMeshContainer* model, nex::Pass* pass, int lineStrength);
 	};
 }

@@ -1,36 +1,43 @@
 #pragma once
 #include <nex/mesh/SubMesh.hpp>
-#include <vector>
+#include <unordered_map>
 #include <memory>
 
 
 namespace nex
 {
-	class Shader;
+	class SceneNode;
+	class Scene;
 
-	class StaticMesh
+	class StaticMeshContainer
 	{
 	public:
 
-		StaticMesh(std::vector<std::unique_ptr<SubMesh>> meshes, std::vector<std::unique_ptr<Material>> materials);
+		using Meshes = std::vector<std::unique_ptr<Mesh>>;
+		using Materials = std::vector<std::unique_ptr<Material>>;
+		using Mappings = std::unordered_map<Mesh*, Material*>;
 
-		StaticMesh(const StaticMesh&) = delete;
-		StaticMesh& operator=(const StaticMesh& o) = delete;
+		StaticMeshContainer() = default;
 
-		//void createInstanced(unsigned instanceAmount, glm::mat4* modelMatrices);
+		StaticMeshContainer(const StaticMeshContainer&) = delete;
+		StaticMeshContainer& operator=(const StaticMeshContainer& o) = delete;
 
-		bool instancedUsed() const;
+		StaticMeshContainer(StaticMeshContainer&&) = default;
+		StaticMeshContainer& operator=(StaticMeshContainer&&) = default;
 
-		void setInstanced(bool value);
+		~StaticMeshContainer() = default;
 
-		const std::vector<std::unique_ptr<SubMesh>>& getMeshes() const;
-		const std::vector<std::unique_ptr<Material>>& getMaterials() const;
+		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
 
-		void draw(Shader* shader) {};
+		void addToNode(SceneNode* parent, Scene* scene);
 
+		const Mappings& getMappings() const;
+		const Materials& getMaterials() const;
+		const Meshes& getMeshes() const;
+		
 	protected:
-		std::vector<std::unique_ptr<SubMesh>> mMeshes;
-		std::vector<std::unique_ptr<Material>> mMaterials;
-		bool instanced;
+		Mappings mMappings;
+		Materials mMaterials;
+		Meshes mMeshes;
 	};
 }

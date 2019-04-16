@@ -10,8 +10,8 @@ set(
     nex/Renderer.hpp
     nex/Renderer.cpp
     
-    nex/SceneNode.cpp
-    nex/SceneNode.hpp
+    nex/Scene.cpp
+    nex/Scene.hpp
 	
 	
 	#nex

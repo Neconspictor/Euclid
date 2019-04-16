@@ -7,7 +7,7 @@
 namespace nex
 {
 	enum class MaterialType;
-	class StaticMesh;
+	class StaticMeshContainer;
 	class StaticMeshManager;
 
 
@@ -21,7 +21,7 @@ namespace nex
 	public:
 		explicit Vob(std::string meshName, MaterialType  materialType);
 
-		explicit Vob(StaticMesh* model);
+		explicit Vob(StaticMeshContainer* model);
 
 		/**
 		 * Calculates the transformatino matrix of this model
@@ -40,7 +40,7 @@ namespace nex
 		 */
 		std::string const& getMeshName() const;
 
-		StaticMesh* getModel();
+		StaticMeshContainer* getModel();
 
 
 		glm::vec3 getPosition() const;
@@ -62,7 +62,7 @@ namespace nex
 		/**
 		 * Sets the model of this vob.
 		 */
-		void setModel(StaticMesh* model);
+		void setModel(StaticMeshContainer* model);
 
 		/**
 		 * Sets the position of this model.
@@ -81,7 +81,7 @@ namespace nex
 
 	protected:
 		std::string meshName;
-		StaticMesh* m_model;
+		StaticMeshContainer* m_model;
 		MaterialType mMaterialType;
 		glm::quat orientation;
 		glm::vec3 position;

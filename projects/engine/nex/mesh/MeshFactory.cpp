@@ -10,7 +10,7 @@ using namespace std;
 namespace nex
 {
 
-	unique_ptr<SubMesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 	{
 		using Vertex = VertexPositionNormalTexTangent;
 
@@ -35,10 +35,10 @@ namespace nex
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
-	unique_ptr<SubMesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
+	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount)
 	{
 		using Vertex = VertexPositionNormalTex;
 
@@ -58,11 +58,11 @@ namespace nex
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
 
-	unique_ptr<SubMesh> MeshFactory::createPosition(const VertexPosition* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+	unique_ptr<Mesh> MeshFactory::createPosition(const VertexPosition* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 	{
 		using Vertex = VertexPosition;
 
@@ -80,10 +80,10 @@ namespace nex
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 
-	unique_ptr<SubMesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+	unique_ptr<Mesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 	{
 		using Vertex = VertexPositionTex;
 
@@ -102,6 +102,6 @@ namespace nex
 		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<SubMesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 	}
 }

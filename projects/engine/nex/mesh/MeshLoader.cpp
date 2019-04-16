@@ -16,7 +16,7 @@ namespace nex
 	{
 	}
 
-	unique_ptr<StaticMesh> MeshLoader::loadStaticMesh(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
+	unique_ptr<StaticMeshContainer> MeshLoader::loadStaticMesh(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
 	{
 		Timer timer;
 
@@ -42,17 +42,17 @@ namespace nex
 
 		auto materials = materialLoader.loadShadingMaterial(scene);
 
-		vector<unique_ptr<SubMesh>> meshes;
+		vector<unique_ptr<Mesh>> meshes;
 
 		processNode(scene->mRootNode, scene, &meshes, materials);
 
 		timer.update();
 		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
 
-		return make_unique<StaticMesh>(move(meshes), move(materials));
+		return make_unique<StaticMeshContainer>(move(meshes), move(materials));
 	}
 
-	void MeshLoader::processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<SubMesh>>* meshes, const std::vector<std::unique_ptr<Material>>& materials) const
+	void MeshLoader::processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<Mesh>>* meshes, const std::vector<std::unique_ptr<Material>>& materials) const
 	{
 		// process all the node's meshes (if any)
 		for (unsigned i = 0; i < node->mNumMeshes; ++i)
@@ -68,7 +68,7 @@ namespace nex
 		}
 	}
 
-	unique_ptr<SubMesh> MeshLoader::processMesh(aiMesh* mesh, const aiScene* scene, const std::vector<std::unique_ptr<Material>>& materials) const
+	unique_ptr<Mesh> MeshLoader::processMesh(aiMesh* mesh, const aiScene* scene, const std::vector<std::unique_ptr<Material>>& materials) const
 	{
 		// Vertex and index count can be large -> store temp objects on heap
 		auto vertices = make_unique<vector<Vertex>>();
@@ -151,7 +151,7 @@ namespace nex
 		if (materials.size() > mesh->mMaterialIndex)
 			material = materials[mesh->mMaterialIndex].get();
 
-		unique_ptr<SubMesh> result = MeshFactory::create(vertices->data(), mesh->mNumVertices,
+		unique_ptr<Mesh> result = MeshFactory::create(vertices->data(), mesh->mNumVertices,
 			indices->data(), mesh->mNumFaces * 3);
 
 		result->setMaterial(material);

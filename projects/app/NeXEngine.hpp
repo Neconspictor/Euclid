@@ -34,7 +34,7 @@ namespace nex
 
 	protected:
 
-		SceneNode * createScene();
+		void createScene();
 		Window* createWindow();
 		void initLights();
 		void initPbr();
@@ -58,10 +58,8 @@ namespace nex
 		std::string mBaseTitle;
 		Timer mTimer;
 		FPSCounter mCounter;
-		std::list<SceneNode> mNodes;
-		std::list<Vob> mVobs;
-		std::list<std::unique_ptr<StaticMesh>> mModels;
-		SceneNode* mScene;
+		Scene mScene;
+		std::list<std::unique_ptr<StaticMeshContainer>> mModels;
 		bool mIsRunning;
 
 		Configuration mConfig;

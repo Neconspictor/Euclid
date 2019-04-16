@@ -60,21 +60,21 @@ namespace nex
 	 * consists of. Theoretically, a vertex isn't bound to floating point units, but this
 	 * implementation narrows it to floats for ease of use.
 	 */
-	class SubMesh
+	class Mesh
 	{
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		SubMesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
-		SubMesh();
+		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
+		Mesh();
 
-		SubMesh(SubMesh&& other) noexcept = default;
-		SubMesh& operator=(SubMesh&& o) noexcept = default;
+		Mesh(Mesh&& other) noexcept = default;
+		Mesh& operator=(Mesh&& o) noexcept = default;
 
-		SubMesh(const SubMesh& o) = delete;
-		SubMesh& operator=(const SubMesh& o) = delete;
+		Mesh(const Mesh& o) = delete;
+		Mesh& operator=(const Mesh& o) = delete;
 
-		virtual ~SubMesh() = default;
+		virtual ~Mesh() = default;
 
 		IndexBuffer* getIndexBuffer();
 		Material* getMaterial() const;

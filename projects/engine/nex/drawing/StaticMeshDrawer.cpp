@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Sprite.hpp>
-#include <nex/SceneNode.hpp>
+#include <nex/Scene.hpp>
 #include <nex/RenderBackend.hpp>
 
 //TODO get it from repo history again
@@ -34,7 +34,7 @@ void nex::StaticMeshDrawer::draw(SceneNode* root, Pass* shader)
 
 void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 {
-	StaticMesh* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
+	StaticMeshContainer* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
@@ -85,7 +85,7 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 	}
 }
 
-void nex::StaticMeshDrawer::draw(StaticMesh* model, Pass* pass)
+void nex::StaticMeshDrawer::draw(StaticMeshContainer* model, Pass* pass)
 {
 	//TODO
 	//shader->bind();
@@ -179,7 +179,7 @@ void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const Transfor
 	glStencilMask(0x00);
 }*/
 
-void nex::StaticMeshDrawer::drawWired(StaticMesh* model, Pass* shader, int lineStrength)
+void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
 {	
 	//TODO
 	//vob->calcTrafo();

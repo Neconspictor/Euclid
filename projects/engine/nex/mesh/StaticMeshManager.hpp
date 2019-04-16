@@ -24,7 +24,7 @@ namespace nex
 
 		StaticMeshManager();
 
-		static std::unique_ptr<StaticMesh> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
+		static std::unique_ptr<StaticMeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
 
 		/**
 		 * NOTE: Has to be initialized on first use
@@ -33,13 +33,13 @@ namespace nex
 
 
 
-		StaticMesh* getSkyBox();
+		StaticMeshContainer* getSkyBox();
 
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMesh* getModel(const std::string& meshName, MaterialType type);
+		StaticMeshContainer* getModel(const std::string& meshName, MaterialType type);
 
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
@@ -63,7 +63,7 @@ namespace nex
 		/*
 		 * Provides read acces to a cube that has position, normal and texture coordinates.
 		 */
-		StaticMesh* getPositionNormalTexCube();
+		StaticMeshContainer* getPositionNormalTexCube();
 
 		/*
 		* \param xPos : The x position of the sprite model measured in screen space.
@@ -72,7 +72,7 @@ namespace nex
 		*		A value of 1.0f means full viewport width, 0.0f means no width analogously.
 		* \param heightWeight : specifies the height of the model as a percentage of the active viewport height.
 		*/
-		StaticMesh* getSprite();
+		StaticMeshContainer* getSprite();
 
 
 		/**
@@ -98,8 +98,8 @@ namespace nex
 		StaticMeshManager(const StaticMeshManager&) = delete;
 		StaticMeshManager& operator=(const StaticMeshManager&) = delete;
 
-		std::vector<std::unique_ptr<StaticMesh>> models;
-		std::unordered_map<unsigned int, StaticMesh*> modelTable;
+		std::vector<std::unique_ptr<StaticMeshContainer>> models;
+		std::unordered_map<unsigned int, StaticMeshContainer*> modelTable;
 		MeshLoader assimpLoader;
 		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
 		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;

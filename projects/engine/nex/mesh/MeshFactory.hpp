@@ -19,22 +19,22 @@ namespace nex
 		 * The default mesh generation method.
 		 * Creates a gl mesh with position and normal data, and uv coordinates.
 		 */
-		static std::unique_ptr<SubMesh> create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount,
+		static std::unique_ptr<Mesh> create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount);
 
-		static std::unique_ptr<SubMesh> create(const VertexPositionNormalTex* vertices, uint32_t vertexCount,
+		static std::unique_ptr<Mesh> create(const VertexPositionNormalTex* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount);
 
 		/**
 		* Creates a gl mesh with position data.
 		*/
-		static std::unique_ptr<SubMesh> createPosition(const VertexPosition* vertices, uint32_t vertexCount,
+		static std::unique_ptr<Mesh> createPosition(const VertexPosition* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount);
 
 		/**
 		* Creates a gl mesh with position data and uv coordinates.
 		*/
-		static std::unique_ptr<SubMesh> createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount,
+		static std::unique_ptr<Mesh> createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount);
 	};
 }

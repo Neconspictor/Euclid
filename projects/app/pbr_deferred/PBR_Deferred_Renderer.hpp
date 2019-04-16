@@ -1,7 +1,7 @@
 #pragma once
 #include <nex/event/Task.hpp>
 #include <nex/camera/Camera.hpp>
-#include <nex/SceneNode.hpp>
+#include <nex/Scene.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>

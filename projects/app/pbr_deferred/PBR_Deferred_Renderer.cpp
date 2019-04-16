@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/shader/SkyBoxPass.hpp>
-#include <nex/SceneNode.hpp>
+#include <nex/Scene.hpp>
 #include <nex/shader/DepthMapPass.hpp>
 #include <nex/shader/ScreenPass.hpp>
 #include <nex/texture/TextureManager.hpp>

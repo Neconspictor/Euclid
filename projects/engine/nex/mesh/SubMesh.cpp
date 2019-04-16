@@ -6,7 +6,7 @@
 using namespace std;
 using namespace nex;
 
-SubMesh::SubMesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology, Material* material) :
+Mesh::Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology, Material* material) :
 mVertexArray(std::move(vertexArray)),
 mVertexBuffer(std::move(vertexBuffer)),
 mIndexBuffer(std::move(indexBuffer)),
@@ -15,56 +15,56 @@ mTopology(topology)
 {
 }
 
-void SubMesh::setVertexBuffer(VertexBuffer buffer)
+void Mesh::setVertexBuffer(VertexBuffer buffer)
 {
 	mVertexBuffer = std::move(buffer);
 }
 
-SubMesh::SubMesh(): mMaterial(nullptr), mTopology(Topology::TRIANGLES)
+Mesh::Mesh(): mMaterial(nullptr), mTopology(Topology::TRIANGLES)
 {
 }
 
-IndexBuffer* SubMesh::getIndexBuffer()
+IndexBuffer* Mesh::getIndexBuffer()
 {
 	return &mIndexBuffer;
 }
 
-Material* SubMesh::getMaterial() const
+Material* Mesh::getMaterial() const
 {
 	return mMaterial;
 }
 
-Topology SubMesh::getTopology() const
+Topology Mesh::getTopology() const
 {
 	return mTopology;
 }
 
-void SubMesh::setTopology(Topology topology)
+void Mesh::setTopology(Topology topology)
 {
 	mTopology = topology;
 }
 
-VertexArray* SubMesh::getVertexArray()
+VertexArray* Mesh::getVertexArray()
 {
 	return &mVertexArray;
 }
 
-VertexBuffer* SubMesh::getVertexBuffer()
+VertexBuffer* Mesh::getVertexBuffer()
 {
 	return &mVertexBuffer;
 }
 
-void SubMesh::setIndexBuffer(IndexBuffer buffer)
+void Mesh::setIndexBuffer(IndexBuffer buffer)
 {
 	mIndexBuffer = std::move(buffer);
 }
 
-void SubMesh::setVertexArray(VertexArray vertexArray)
+void Mesh::setVertexArray(VertexArray vertexArray)
 {
 	mVertexArray = std::move(vertexArray);
 }
 
-void SubMesh::setMaterial(Material* material)
+void Mesh::setMaterial(Material* material)
 {
 	mMaterial = material;
 }

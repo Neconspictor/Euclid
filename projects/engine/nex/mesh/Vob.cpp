@@ -16,7 +16,7 @@ namespace nex {
 		orientation = {1, 0, 0, 0};
 	}
 
-	Vob::Vob(StaticMesh* model) : m_model(model), mMaterialType(MaterialType::None), position(0, 0, 0), scale(1, 1, 1),
+	Vob::Vob(StaticMeshContainer* model) : m_model(model), mMaterialType(MaterialType::None), position(0, 0, 0), scale(1, 1, 1),
 	                           orientation(1, 0, 0, 0)
 	{
 	}
@@ -35,7 +35,7 @@ namespace nex {
 		return meshName;
 	}
 
-	StaticMesh* Vob::getModel()
+	StaticMeshContainer* Vob::getModel()
 	{
 		return m_model;
 	}
@@ -83,7 +83,7 @@ namespace nex {
 		trafo = move(mat);
 	}
 
-	void Vob::setModel(StaticMesh* model)
+	void Vob::setModel(StaticMeshContainer* model)
 	{
 		m_model = model;
 	}

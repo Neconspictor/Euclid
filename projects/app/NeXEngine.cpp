@@ -37,7 +37,6 @@ NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	mWindowSystem(provider),
 	mWindow(nullptr),
 	mInput(nullptr),
-	mScene(nullptr),
 	mIsRunning(false),
 	mConfigFileName("config.ini"),
 	mSystemLogLevel(nex::Debug),
@@ -133,9 +132,7 @@ void NeXEngine::init()
 	setupCallbacks();
 	setupGUI();
 
-	mScene = createScene();
-
-	mScene->init();
+	createScene();
 
 	mInput->addWindowCloseCallback([](Window* window)
 	{
@@ -179,11 +176,10 @@ void NeXEngine::run()
 		{
 
 			mGui->newFrame(frameTime);
-			mScene->update(frameTime);
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->Projectional::update(true);
 
-			mRenderer->render(mScene, mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+			mRenderer->render(mScene.getRoot(), mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 			mControllerSM->getCurrentController()->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -210,17 +206,17 @@ void NeXEngine::setRunning(bool isRunning)
 	mIsRunning = isRunning;
 }
 
-SceneNode* NeXEngine::createScene()
+void NeXEngine::createScene()
 {
-	mNodes.emplace_back(SceneNode());
-	SceneNode* root = &mNodes.back();
+	mScene.clear();
+	auto* root = mScene.getRoot();
 
-	mNodes.emplace_back(SceneNode());
-	SceneNode* ground = &mNodes.back();
-	mVobs.emplace_back(Vob("misc/textured_plane.obj", MaterialType::Pbr));
-	ground->mVob = &mVobs.back();
-	ground->mVob->setPosition({ 10, 0, 0 });
-	root->addChild(ground);
+	auto* ground = mScene.createNode(root);
+	ground->setPositionLocal({ 10, 0, 0 });
+	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj", MaterialType::Pbr);
+	meshContainer->addToNode(ground, &mScene);
+
+	root->updateWorldTrafoHierarchy();
 
 	/*m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();
@@ -276,29 +272,6 @@ SceneNode* NeXEngine::createScene()
 	sphere2->vob = &m_vobs.back();
 	sphere2->vob->setPosition({ 4.0f, 4.8f, -1.0f });
 	root->addChild(sphere2);*/
-
-	//m_nodes.push_back(SceneNode());
-	//SceneNode* cube1 = &m_nodes.back();
-	//root->addChild(cube1);
-
-	//m_nodes.push_back(SceneNode());
-	//SceneNode* sphere = &m_nodes.back();
-	//root->addChild(sphere);
-
-	//m_vobs.push_back(Vob("sponza/firstTest.obj", Shaders::Pbr));
-	//m_vobs.push_back(Vob("misc/textured_cube.obj"));
-	//m_vobs.push_back(Vob("normal_map_test/normal_map_test.obj", Shaders::Pbr));
-	//cube1->setVob(&m_vobs.back());
-
-	//m_vobs.push_back(Vob("normal_map_test/normal_map_sphere.obj", Shaders::Pbr));
-	//sphere->setVob(&m_vobs.back());
-
-	//ground->getVob()->setPosition({ 10, 0, 0 });
-	//cube1->getVob()->setPosition({ 0.0f, 1.3f, 0.0f });
-
-	//sphere->getVob()->setPosition({ 3.0f, 3.8f, -1.0f });
-
-	return root;
 }
 
 Window* NeXEngine::createWindow()

@@ -57,17 +57,17 @@
 		mFullscreenTriangle->unbind();
 	}
 
-std::unique_ptr<nex::StaticMesh> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
+std::unique_ptr<nex::StaticMeshContainer> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)
 {
-	std::vector<std::unique_ptr<SubMesh>> meshes;
+	std::vector<std::unique_ptr<Mesh>> meshes;
 	std::vector<std::unique_ptr<Material>> materials;
 	materials.emplace_back(std::move(material));
 	meshes.emplace_back(std::make_unique<Sphere>(xSegments, ySegments, materials.back().get()));
-	return std::make_unique<StaticMesh>(std::move(meshes), std::move(materials));
+	return std::make_unique<StaticMeshContainer>(std::move(meshes), std::move(materials));
 }
 
-nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
+nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 	{
 		using Vertex = VertexPosition;
 
@@ -79,16 +79,16 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 			int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
 			int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
 
-			std::unique_ptr<SubMesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
+			std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
 				sample_meshes::skyBoxIndices, (int)indexCount);
 
-			std::vector<std::unique_ptr<SubMesh>> meshes;
+			std::vector<std::unique_ptr<Mesh>> meshes;
 			meshes.push_back(move(mesh));
 
-			auto model = std::make_unique<StaticMesh>(move(meshes), std::vector<std::unique_ptr<Material>>());
+			auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 			models.push_back(move(model));
-			StaticMesh* result = models.back().get();
+			StaticMeshContainer* result = models.back().get();
 			modelTable[SKYBOX_MODEL_HASH] = result;
 			return result;
 		}
@@ -96,14 +96,14 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		return it->second;
 	}
 
-	nex::StaticMesh* nex::StaticMeshManager::getSprite()
+	nex::StaticMeshContainer* nex::StaticMeshManager::getSprite()
 	{
 		using Vertex = VertexPositionTex;
 
 		auto it = modelTable.find(SPRITE_MODEL_HASH);
 		if (it != modelTable.end())
 		{
-			return dynamic_cast<StaticMesh*>(it->second);
+			return dynamic_cast<StaticMeshContainer*>(it->second);
 		}
 
 		// create a Quad mesh that fills up the enter screen; normalized device coordinates range from [-1, 1] in x,y and z axis;
@@ -145,18 +145,18 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		indices.push_back(2);
 		indices.push_back(3);
 
-		std::unique_ptr<SubMesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
+		std::unique_ptr<Mesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
 
-		std::vector<std::unique_ptr<SubMesh>> meshes;
+		std::vector<std::unique_ptr<Mesh>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = std::make_unique<StaticMesh>(move(meshes), std::vector<std::unique_ptr<Material>>());
+		auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 		models.push_back(std::move(model));
 
-		StaticMesh* result = models.back().get();
+		StaticMeshContainer* result = models.back().get();
 		modelTable[SPRITE_MODEL_HASH] = result;
 		return result;
 	}
@@ -170,7 +170,7 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 		mInitialized = true;
 	}
 
-	nex::StaticMesh* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
+	nex::StaticMeshContainer* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
 	{
 		// else case: assume the model name is a 3d model that can be load from file.
 		if (!mInitialized) throw std::runtime_error("StaticMeshManager isn't initialized!");
@@ -214,7 +214,7 @@ nex::StaticMesh* nex::StaticMeshManager::getSkyBox()
 
 
 		models.push_back(move(assimpLoader.loadStaticMesh(resolvedPath, *materialLoader)));
-		StaticMesh* result = models.back().get();
+		StaticMeshContainer* result = models.back().get();
 		modelTable[hash] = result;
 		return result;
 	}
@@ -230,7 +230,7 @@ nex::VertexArray* nex::StaticMeshManager::getNDCFullscreenTriangle()
 }
 
 
-nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
+nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 	{
 		using Vertex = VertexPositionNormalTex;
 
@@ -262,17 +262,17 @@ nex::StaticMesh* nex::StaticMeshManager::getPositionNormalTexCube()
 			indices.push_back(sample_meshes::cubePositionNormalTexIndices[i]);
 		}
 
-		std::unique_ptr<SubMesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
+		std::unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
 			indices.data(), (int)indices.size());
 
-		std::vector<std::unique_ptr<SubMesh>> meshes;
+		std::vector<std::unique_ptr<Mesh>> meshes;
 		meshes.push_back(move(mesh));
 
-		auto model = std::make_unique<StaticMesh>(move(meshes), std::vector<std::unique_ptr<Material>>());
+		auto model = std::make_unique<StaticMeshContainer>(move(meshes), std::vector<std::unique_ptr<Material>>());
 
 		models.push_back(std::move(model));
 
-		StaticMesh* result = models.back().get();
+		StaticMeshContainer* result = models.back().get();
 		modelTable[CUBE_POSITION_NORMAL_TEX_HASH] = result;
 
 		return result;
