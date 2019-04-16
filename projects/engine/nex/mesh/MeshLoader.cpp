@@ -39,36 +39,33 @@ namespace nex
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
+		auto container = make_unique<StaticMeshContainer>();
 
-		auto materials = materialLoader.loadShadingMaterial(scene);
-
-		vector<unique_ptr<Mesh>> meshes;
-
-		processNode(scene->mRootNode, scene, &meshes, materials);
+		processNode(scene->mRootNode, scene, container.get(), materialLoader);
 
 		timer.update();
 		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
 
-		return make_unique<StaticMeshContainer>(move(meshes), move(materials));
+		return std::move(container);
 	}
 
-	void MeshLoader::processNode(aiNode* node, const aiScene* scene, std::vector<std::unique_ptr<Mesh>>* meshes, const std::vector<std::unique_ptr<Material>>& materials) const
+	void MeshLoader::processNode(aiNode* node, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
 	{
 		// process all the node's meshes (if any)
 		for (unsigned i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			meshes->push_back(move(processMesh(mesh, scene, materials)));
+			processMesh(mesh, scene, container, materialLoader);
 		}
 
 		// then do the same for each of its children
 		for (unsigned i = 0; i < node->mNumChildren; ++i)
 		{
-			processNode(node->mChildren[i], scene, meshes, materials);
+			processNode(node->mChildren[i], scene, container, materialLoader);
 		}
 	}
 
-	unique_ptr<Mesh> MeshLoader::processMesh(aiMesh* mesh, const aiScene* scene, const std::vector<std::unique_ptr<Material>>& materials) const
+	void MeshLoader::processMesh(aiMesh* assimpMesh, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
 	{
 		// Vertex and index count can be large -> store temp objects on heap
 		auto vertices = make_unique<vector<Vertex>>();
@@ -81,40 +78,40 @@ namespace nex
 		//vertices->reserve(mesh->mNumVertices);
 		//indices->reserve(mesh->mNumFaces * 3);
 
-		bool tangentData = mesh->mTangents != nullptr;
+		bool tangentData = assimpMesh->mTangents != nullptr;
 
 		if (!tangentData) {
 			std::runtime_error("No tangent data available!");
 		}
 
-		for (unsigned i = 0; i < mesh->mNumVertices; ++i)
+		for (unsigned i = 0; i < assimpMesh->mNumVertices; ++i)
 		{
 
 			Vertex vertex;
 			// position
-			vertex.position.x = mesh->mVertices[i].x;
-			vertex.position.y = mesh->mVertices[i].y;
-			vertex.position.z = mesh->mVertices[i].z;
+			vertex.position.x = assimpMesh->mVertices[i].x;
+			vertex.position.y = assimpMesh->mVertices[i].y;
+			vertex.position.z = assimpMesh->mVertices[i].z;
 
 			// normal
-			vertex.normal.x = mesh->mNormals[i].x;
-			vertex.normal.y = mesh->mNormals[i].y;
-			vertex.normal.z = mesh->mNormals[i].z;
+			vertex.normal.x = assimpMesh->mNormals[i].x;
+			vertex.normal.y = assimpMesh->mNormals[i].y;
+			vertex.normal.z = assimpMesh->mNormals[i].z;
 
 			// tangent
 			if (tangentData) {
-				vertex.tangent.x = mesh->mTangents[i].x;
-				vertex.tangent.y = mesh->mTangents[i].y;
-				vertex.tangent.z = mesh->mTangents[i].z;
+				vertex.tangent.x = assimpMesh->mTangents[i].x;
+				vertex.tangent.y = assimpMesh->mTangents[i].y;
+				vertex.tangent.z = assimpMesh->mTangents[i].z;
 
-				vertex.bitangent.x = mesh->mBitangents[i].x;
-				vertex.bitangent.y = mesh->mBitangents[i].y;
-				vertex.bitangent.z = mesh->mBitangents[i].z;
+				vertex.bitangent.x = assimpMesh->mBitangents[i].x;
+				vertex.bitangent.y = assimpMesh->mBitangents[i].y;
+				vertex.bitangent.z = assimpMesh->mBitangents[i].z;
 			}
 
 
 			// uv
-			if (!mesh->mTextureCoords[0]) { // does the mesh contain no uv data?
+			if (!assimpMesh->mTextureCoords[0]) { // does the mesh contain no uv data?
 				vertex.texCoords = { 0.0f,0.0f };
 				//texCoords->push_back({0.0f, 0.0f});
 			}
@@ -123,8 +120,8 @@ namespace nex
 				// We thus make the assumption that we won't 
 				// use models (currently!) where a vertex can have multiple texture coordinates 
 				// so we always take the first set (0).
-				vertex.texCoords.x = mesh->mTextureCoords[0][i].x;
-				vertex.texCoords.y = mesh->mTextureCoords[0][i].y;
+				vertex.texCoords.x = assimpMesh->mTextureCoords[0][i].x;
+				vertex.texCoords.y = assimpMesh->mTextureCoords[0][i].y;
 				//auto x = mesh->mTextureCoords[0][i].x;
 				//auto y = mesh->mTextureCoords[0][i].y;
 				//texCoords->push_back({ x , y});
@@ -137,25 +134,20 @@ namespace nex
 
 		// now walk through all mesh's faces to retrieve index data. 
 		// As the mesh is triangulated, all faces are triangles.
-		for (unsigned i = 0; i < mesh->mNumFaces; ++i)
+		for (unsigned i = 0; i < assimpMesh->mNumFaces; ++i)
 		{
-			aiFace face = mesh->mFaces[i];
+			aiFace face = assimpMesh->mFaces[i];
 			for (unsigned j = 0; j < face.mNumIndices; ++j)
 			{
 				indices->push_back(face.mIndices[j]);
 			}
 		}
 
-		Material* material = nullptr;
-		
-		if (materials.size() > mesh->mMaterialIndex)
-			material = materials[mesh->mMaterialIndex].get();
+		auto material = materialLoader.loadShadingMaterial(scene, assimpMesh->mMaterialIndex);
 
-		unique_ptr<Mesh> result = MeshFactory::create(vertices->data(), mesh->mNumVertices,
-			indices->data(), mesh->mNumFaces * 3);
+		unique_ptr<Mesh> mesh = MeshFactory::create(vertices->data(), assimpMesh->mNumVertices,
+			indices->data(), assimpMesh->mNumFaces * 3);
 
-		result->setMaterial(material);
-
-		return result;
+		container->add(std::move(mesh), std::move(material));
 	}
 }

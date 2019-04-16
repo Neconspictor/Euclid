@@ -19,7 +19,7 @@ namespace nex
 
 		virtual ~AbstractMaterialLoader();
 
-		virtual std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const = 0;
+		virtual std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const = 0;
 
 
 	protected:
@@ -32,6 +32,6 @@ namespace nex
 	{
 	public:
 		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
-		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override { return {}; }
+		std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const override { return nullptr; }
 	};
 }

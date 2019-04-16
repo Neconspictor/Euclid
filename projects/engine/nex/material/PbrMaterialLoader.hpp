@@ -15,7 +15,7 @@ namespace nex
 
 		virtual ~PbrMaterialLoader();
 
-		std::vector<std::unique_ptr<Material>> loadShadingMaterial(const aiScene* scene) const override;
+		std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const override;
 	
 	private:
 		PbrDeferred* mPbrDeferred;

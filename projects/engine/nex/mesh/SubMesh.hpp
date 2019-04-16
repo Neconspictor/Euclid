@@ -4,7 +4,6 @@
 #include "VertexArray.hpp"
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
-#include <nex/material/Material.hpp>
 
 namespace nex
 {
@@ -65,7 +64,7 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES, Material* material = nullptr);
+		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES);
 		Mesh();
 
 		Mesh(Mesh&& other) noexcept = default;
@@ -77,13 +76,11 @@ namespace nex
 		virtual ~Mesh() = default;
 
 		IndexBuffer* getIndexBuffer();
-		Material* getMaterial() const;
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
 		VertexBuffer* getVertexBuffer();
 
 		void setIndexBuffer(IndexBuffer buffer);
-		void setMaterial(Material* material);
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
 		void setVertexBuffer(VertexBuffer buffer);
@@ -93,8 +90,6 @@ namespace nex
 		VertexArray mVertexArray;
 		IndexBuffer mIndexBuffer;
 		VertexBuffer mVertexBuffer;
-
-		Material* mMaterial;
 
 		Topology mTopology;
 	};
