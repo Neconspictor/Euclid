@@ -16,10 +16,6 @@ namespace nex
 
 		void setSkyTexture(const CubeMap* sky);
 
-		void setupRenderState() override;
-
-		void reverseRenderState() override;
-
 	private:
 
 		UniformTex mSkyTexture;

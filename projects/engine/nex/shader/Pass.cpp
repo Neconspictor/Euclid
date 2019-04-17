@@ -31,14 +31,6 @@ void nex::Pass::unbind()
 	mShader->unbind();
 }
 
-void nex::Pass::setupRenderState()
-{
-}
-
-void nex::Pass::reverseRenderState()
-{
-}
-
 nex::TransformPass::TransformPass(std::unique_ptr<Shader> program) : Pass(std::move(program)),
 mTransformBuffer(0, sizeof(Transforms), ShaderBuffer::UsageHint::DYNAMIC_DRAW)
 {

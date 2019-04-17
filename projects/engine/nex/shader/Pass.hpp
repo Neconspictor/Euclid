@@ -36,13 +36,6 @@ namespace nex
 		 */
 		void unbind();
 
-		// Function that should be called before render calls
-		virtual void setupRenderState();
-
-		// Reverse the state of the function setupRenderState
-		// TODO
-		virtual void reverseRenderState();
-
 		virtual void updateConstants(Camera* camera);
 
 	protected:

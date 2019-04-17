@@ -36,20 +36,6 @@ void SkyBoxPass::setSkyTexture(const CubeMap* texture)
 	mShader->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
 }
 
-void SkyBoxPass::setupRenderState()
-{
-	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
-	depthConfig->enableDepthBufferWriting(false);
-	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
-}
-
-void SkyBoxPass::reverseRenderState()
-{
-	static auto* depthConfig = RenderBackend::get()->getDepthBuffer();
-	depthConfig->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
-	depthConfig->enableDepthBufferWriting(true);
-}
-
 
 PanoramaSkyBoxPass::PanoramaSkyBoxPass()
 {
