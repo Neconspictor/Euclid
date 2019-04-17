@@ -4,7 +4,6 @@ namespace nex
 {
 	class Camera;
 
-	class VertexArray;
 	class RenderTarget2D;
 	class Texture;
 	class Texture2D;
@@ -60,8 +59,6 @@ namespace nex
 		void setAoMap(Texture2D* aoMap);
 		void setPostProcessTexture(Texture* texture);
 		void setGlowTextures(Texture* halfth, Texture* quarter, Texture* eigth, Texture* sixteenth);
-
-		VertexArray* mFullscreenPlane;
 
 		DownSampler* mDownSampler;
 		GaussianBlur* mGaussianBlur;

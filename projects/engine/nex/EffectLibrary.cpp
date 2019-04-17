@@ -6,10 +6,7 @@
 #include <nex/shader/ShadowPass.hpp>
 #include <nex/shader/ScreenPass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
-#include <nex/texture/Sampler.hpp>
 #include <nex/post_processing/DownSampler.hpp>
-#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
-#include <nex/material/Material.hpp>
 
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
@@ -18,7 +15,6 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxPass>()),
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
-	mShadow(std::make_unique<ShadowPass>()),
 	mScreen(std::make_unique<ScreenPass>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
@@ -50,11 +46,6 @@ nex::SkyBoxPass* nex::EffectLibrary::getSkyBoxShader()
 nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 {
 	return mDepthMap.get();
-}
-
-nex::ShadowPass* nex::EffectLibrary::getShadowVisualizer()
-{
-	return mShadow.get();
 }
 
 nex::ScreenPass* nex::EffectLibrary::getScreenShader()

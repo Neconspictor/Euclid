@@ -114,7 +114,7 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* p
 	static auto* backend = RenderBackend::get();
 	auto* quad = StaticMeshManager::get()->getNDCFullscreenPlane();
 	quad->bind();
-	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
+	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
 void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)

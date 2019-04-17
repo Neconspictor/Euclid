@@ -8,7 +8,6 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
-#include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
 #include "nex/texture/Attachment.hpp"
 #include "nex/texture/Sprite.hpp"
@@ -61,7 +60,6 @@ namespace nex
 		void drawCustom()
 		{
 			bind();
-			m_fullscreenTriangleVAO.bind();
 			
 			m_ssaoUBO.bind();
 			m_ssaoUBO.update(m_ssaoData,
@@ -71,9 +69,8 @@ namespace nex
 			mShader->setTexture(m_gDepth, &mSamplerDepth, 0);
 			mShader->setTexture(m_texNoise, &mSamplerNoise, 1);
 
-			static auto* renderBackend = RenderBackend::get();
 			RenderState state = RenderState::createNoDepthTest();
-			renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
+			StaticMeshDrawer::drawFullscreenTriangle(state, this);
 
 			mSamplerDepth.unbind(0);
 			mSamplerNoise.unbind(1);
@@ -91,10 +88,6 @@ namespace nex
 			assert(kernelSampleSize == vec.size());
 
 			m_samples = &vec;
-
-			/*const vec3* ptr = vec.data();
-			for (unsigned int i = 0; i < vec.size(); ++i)
-				attributes.setData("samples[" + std::to_string(i) + "]", &ptr[i]);*/
 		}
 
 		void setSSAOData(SSAOData* data)
@@ -102,24 +95,9 @@ namespace nex
 			m_ssaoData = data;
 
 			bind();
-			//glBindVertexArray(m_fullscreenTriangleVAO)
-			m_fullscreenTriangleVAO.bind(); // TODO shouldn't be needed????
-			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_ssaoUBO);
 			m_ssaoUBO.bind();
-			//glNamedBufferSubData(m_ssaoUBO, 0, sizeof(SSAOData), m_ssaoData);
 			m_ssaoUBO.update(m_ssaoData, sizeof(SSAOData), 0);
-			//glBindVertexArray(0);
-			//glUseProgram(0);
 		}
-
-		/*virtual void update(const MeshGL& mesh, const TransformData& data) {
-			mat4 const& projection = *data.projection;
-			mat4 const& view = *data.view;
-			mat4 const& model = *data.model;
-
-			transform = projection * view * model;
-			attributes.setData("transform", &transform);
-		}*/
 
 
 
@@ -132,8 +110,6 @@ namespace nex
 		const std::vector<vec3>* m_samples;
 		Sampler mSamplerDepth;
 		Sampler mSamplerNoise;
-
-		VertexArray m_fullscreenTriangleVAO;
 	};
 
 	class SSAO_Tiled_Blur_Shader : public Pass
@@ -321,24 +297,19 @@ namespace nex
 		tiledBlurShader->setAOTexture(aoRenderTarget->getColorAttachments()[0].texture.get());
 
 		static auto* renderBackend = RenderBackend::get();
-		//glViewport(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		renderBackend->setViewPort(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
-		//glScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		renderBackend->setScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		tiledBlurRenderTarget->bind();
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 		RenderState state = RenderState::createNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, tiledBlurShader);
 
 		tiledBlurShader->afterBlur();
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	void SSAO_Deferred::displayAOTexture(Texture* aoTexture)
 	{
 		SSAO_AO_Display_Shader* aoDisplayShader = reinterpret_cast<SSAO_AO_Display_Shader*>(aoDisplayPass.get());
-		//aoDisplayShader.setScreenTexture(tiledBlurRenderTarget.getTexture());
 
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);

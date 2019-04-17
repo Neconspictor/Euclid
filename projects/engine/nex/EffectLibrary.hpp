@@ -35,8 +35,6 @@ namespace nex
 
 		DepthMapPass* getDepthMapShader();
 
-		ShadowPass* getShadowVisualizer();
-
 		ScreenPass* getScreenShader();
 
 		PostProcessor* getPostProcessor();
@@ -51,7 +49,6 @@ namespace nex
 		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
-		std::unique_ptr<ShadowPass> mShadow;
 		std::unique_ptr<ScreenPass> mScreen;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;

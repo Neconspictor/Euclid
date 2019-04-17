@@ -4,10 +4,14 @@ layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
 layout (location = 4) in vec3 bitangent;
 
-uniform mat4 transform;
-uniform mat4 modelView;
-uniform mat3 modelView_normalMatrix;
-uniform mat4 biasMatrix;
+layout(binding = 0) uniform buffer TransformBuffer {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+    mat4 transform;
+    mat4 modelView;
+    mat3 normalMatrix;
+} transforms;
 
 out VS_OUT {
 	//vec4 fragment_position_eye;
@@ -18,18 +22,14 @@ out VS_OUT {
 } vs_out;
 
 void commonVertexShader() {
-    gl_Position = transform * vec4(position, 1.0f);
-	//vs_out.fragment_position_eye = modelView * vec4(position, 1.0f);
-    //vs_out.viewSpaceZ = vs_out.fragment_position_eye.z;
+    gl_Position = transforms.transform * vec4(position, 1.0f);
 	vs_out.tex_coords = texCoords;
 	
-	mat3 normalMatrix = mat3(inverse(transpose(modelView)));
-	
-	vec3 normal_eye = normalize(normalMatrix * normal);
-	vec3 tangent_eye = normalize(normalMatrix * tangent);
+	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
+	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);
 	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
-	vec3 bitangent_eye = normalize(normalMatrix * bitangent);
+	vec3 bitangent_eye = normalize(transforms.normalMatrix * bitangent);
 	
 	float dotTN = dot(normal_eye, tangent_eye);
 	

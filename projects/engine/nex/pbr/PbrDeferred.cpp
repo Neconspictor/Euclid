@@ -1,9 +1,6 @@
 #include <nex/pbr/PbrDeferred.hpp>
-#include <nex/texture/TextureManager.hpp>
 #include <nex/shader/PbrPass.hpp>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/RenderBackend.hpp>
@@ -53,7 +50,7 @@ namespace nex {
 
 		static RenderState state;
 
-		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mLightPass.get());
+		StaticMeshDrawer::drawFullscreenTriangle(state, mLightPass.get());
 	}
 
 	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)

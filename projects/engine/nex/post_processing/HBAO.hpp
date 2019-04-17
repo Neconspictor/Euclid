@@ -5,7 +5,6 @@
 #include <nex/shader/Pass.hpp>
 #include <glm/glm.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
-#include <nex/mesh/VertexArray.hpp>
 #include <nex/texture/RenderTarget.hpp>
 
 namespace nex {
@@ -183,7 +182,6 @@ namespace nex {
 
 
 		HBAOData   m_hbaoDataSource;
-		VertexArray m_fullscreenTriangleVAO;
 
 
 	protected:

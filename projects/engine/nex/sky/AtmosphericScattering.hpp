@@ -117,7 +117,5 @@ namespace nex
 		Uniform mMieCollectionPowerUniform;
 		Uniform mRayleighStrengthUniform;
 		Uniform mMieStrengthUniform;
-
-		VertexArray* mFullscreenTriangleStrip;
 	};
 }

@@ -9,7 +9,7 @@
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/post_processing//SMAA.hpp>
 #include "AmbientOcclusion.hpp"
-#include <nex/material/Material.hpp>
+#include "nex/drawing/StaticMeshDrawer.hpp"
 
 
 class nex::PostProcessor::PostProcessPass : public nex::Pass
@@ -48,9 +48,7 @@ public:
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
 mPostprocessPass(std::make_unique<PostProcessPass>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
 mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
-{
-	mFullscreenPlane = StaticMeshManager::get()->getNDCFullscreenPlane();
-	
+{	
 	resize(width, height);
 }
 
@@ -76,15 +74,12 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	output->clear(Depth);
 	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
 	mPostprocessPass->bind();
-	//TextureManager::get()->getDefaultImageSampler()->bind(0);
 	setPostProcessTexture(source);
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
-	//setGlowTextures(glowTexture, glowHalfth, glowHalfth, glowHalfth);
 	setAoMap(aoMap);
 
-	mFullscreenPlane->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
 	return output->getColor0AttachmentTexture();
 }
 

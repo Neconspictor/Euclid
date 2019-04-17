@@ -417,11 +417,6 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 		InternFormat::RG16F,
 		false};
 
-	TextureData depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL,
-		ColorSpace::DEPTH_STENCIL,
-		PixelDataType::UNSIGNED_INT_24_8,
-		InternFormat::DEPTH24_STENCIL8);
-
 	static auto* renderBackend = RenderBackend::get();
 
 	//auto target = renderBackend->create2DRenderTarget(1024, 1024, data, depthData, 1);
@@ -434,7 +429,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 
 	mBrdfPrecomputePass->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mBrdfPrecomputePass.get());
+	StaticMeshDrawer::drawFullscreenTriangle(state, mBrdfPrecomputePass.get());
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);

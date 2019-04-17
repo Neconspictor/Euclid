@@ -4,7 +4,7 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
 #include <nex/material/Material.hpp>
-#include "nex/mesh/StaticMeshManager.hpp"
+#include "nex/drawing/StaticMeshDrawer.hpp"
 
 class nex::DownSampler::DownSamplePass : public Pass
 {
@@ -69,11 +69,8 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	mDownSampleShader->bind();
 	mDownSampleShader->getShader()->setTexture(src, mSampler.get(), 0);
 
-	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
-
-	vertexArray->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, mDownSampleShader.get());
 
 	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
 	//renderImage->generateMipMaps();

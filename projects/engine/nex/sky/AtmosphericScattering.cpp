@@ -1,7 +1,7 @@
 #include <nex/sky/AtmosphericScattering.hpp>
-#include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
+#include "nex/drawing/StaticMeshDrawer.hpp"
 
 nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 	Shader::create("atmospheric_scattering/atmosphericScattering_vs.glsl", "atmospheric_scattering/atmosphericScattering_fs.glsl"))
@@ -27,15 +27,13 @@ nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 
 	mRayleighStrengthUniform = { mShader->getUniformLocation("rayleigh_strength"), UniformType::FLOAT };
 	mMieStrengthUniform = { mShader->getUniformLocation("mie_strength"), UniformType::FLOAT };
-
-	mFullscreenTriangleStrip = StaticMeshManager::get()->getNDCFullscreenPlane();
 }
 
 void nex::AtmosphericScattering::renderSky()
 {
-	mFullscreenTriangleStrip->bind();
 	RenderState state = RenderState::createNoDepthTest();
 	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, this);
 }
 
 void nex::AtmosphericScattering::setRayleigh(const Rayleigh& rayleigh)

@@ -18,11 +18,8 @@ namespace nex
 
 		void setTexture(const Texture* tex);
 
-		void setMVP(const glm::mat4& mvp);
-
 	protected:
 		UniformTex image;
-		Uniform transform;
 		Uniform windowWidth;
 		Uniform windowHeight;
 	};
@@ -39,11 +36,8 @@ namespace nex
 
 		void setTexture(const Texture* tex);
 
-		void setMVP(const glm::mat4& mvp);
-
 	protected:
 		UniformTex image;
-		Uniform transform;
 		Uniform windowWidth;
 		Uniform windowHeight;
 	};

@@ -62,7 +62,7 @@ void nex::TransformPass::uploadTransformMatrices()
 	bind();
 	mTransforms.modelView = mTransforms.view * mTransforms.model;
 	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
-	mTransforms.normalMatrix = inverse(transpose(glm::mat3(mTransforms.modelView)));
+	mTransforms.normalMatrix = inverse(transpose(mTransforms.modelView));
 	mTransformBuffer.bind();
 	mTransformBuffer.update(&mTransforms, sizeof(Transforms));
 }

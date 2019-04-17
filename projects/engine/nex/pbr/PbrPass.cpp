@@ -11,7 +11,7 @@ using namespace std;
 using namespace nex;
 
 PbrCommonGeometryPass::PbrCommonGeometryPass(Shader* shader) : PbrBaseCommon(shader),
-mProjectionMatrixSource(nullptr), mViewMatrixSource(nullptr), mDefaultImageSampler(nullptr)
+mDefaultImageSampler(nullptr)
 {
 	assert(mShader != nullptr);
 
@@ -23,35 +23,11 @@ mProjectionMatrixSource(nullptr), mViewMatrixSource(nullptr), mDefaultImageSampl
 	mNormalMap = mShader->createTextureUniform("material.normalMap", UniformType::TEXTURE2D, NORMAL_BINDING_POINT);
 	mRoughnessMap = mShader->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, ROUGHNESS_BINDING_POINT);
 
-	mModelView = { mShader->getUniformLocation("modelView"), UniformType::MAT4 };
-	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-
 	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
 	mDefaultImageSampler = TextureManager::get()->getDefaultImageSampler();
 }
 
-
-void PbrCommonGeometryPass::setModelViewMatrix(const glm::mat4& mat)
-{
-	assert(mShader != nullptr);
-	mShader->setMat4(mModelView.location, mat);
-}
-
-void PbrCommonGeometryPass::setTransform(const glm::mat4& mat)
-{
-	mShader->setMat4(mTransform.location, mat);
-}
-
-void PbrCommonGeometryPass::setProjection(const glm::mat4& mat)
-{
-	mProjectionMatrixSource = &mat;
-}
-
-void PbrCommonGeometryPass::setView(const glm::mat4& mat)
-{
-	mViewMatrixSource = &mat;
-}
 
 void PbrCommonGeometryPass::setNearFarPlane(const glm::vec2& nearFarPlane)
 {
@@ -67,15 +43,6 @@ void PbrBaseCommon::setShader(Shader* shader)
 	mShader = shader;
 }
 
-void PbrCommonGeometryPass::doModelMatrixUpdate(const glm::mat4& model)
-{
-	assert(mViewMatrixSource != nullptr);
-	assert(mProjectionMatrixSource != nullptr);
-	mat4 modelView = *mViewMatrixSource * model;
-	setModelViewMatrix(modelView);
-	setTransform(*mProjectionMatrixSource * modelView);
-}
-
 void PbrCommonGeometryPass::updateConstants(Camera* camera)
 {
 	mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
@@ -84,8 +51,6 @@ void PbrCommonGeometryPass::updateConstants(Camera* camera)
 	mDefaultImageSampler->bind(NORMAL_BINDING_POINT);
 	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);
 
-	setView(camera->getView());
-	setProjection(camera->getPerspProjection());
 	setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
 }
 
@@ -241,7 +206,7 @@ void PbrCommonLightingPass::updateConstants(Camera* camera)
 }
 
 PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) : 
-	Pass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", "", cascadedShadow->generateCsmDefines())),
+	TransformPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", "", cascadedShadow->generateCsmDefines())),
 	mGeometryPass(mShader.get()),
     mLightingPass(mShader.get(), cascadedShadow)
 {
@@ -257,14 +222,10 @@ PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) :
 	//unbind();
 }
 
-void PbrForwardPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
-{
-	mGeometryPass.doModelMatrixUpdate(modelMatrix);
-}
-
 void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
+	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
 	mGeometryPass.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
@@ -285,11 +246,9 @@ void PbrForwardPass::setDirLight(DirectionalLight* light)
 }
 
 PbrDeferredLightingPass::PbrDeferredLightingPass(CascadedShadow* cascadedShadow) : 
-	TransformPass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs_optimized.glsl", "", cascadedShadow->generateCsmDefines())),
+	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs_optimized.glsl", "", cascadedShadow->generateCsmDefines())),
 	mLightingPass(mShader.get(), cascadedShadow)
 {
-	mTransform = { Pass::mShader->getUniformLocation("transform"), UniformType::MAT4 };
-
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
 	mAoMetalRoughnessMap = Pass::mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
 	mNormalEyeMap = Pass::mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
@@ -301,11 +260,6 @@ PbrDeferredLightingPass::PbrDeferredLightingPass(CascadedShadow* cascadedShadow)
 	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToEdge;
 	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
 	Pass::mSampler.setState(state);
-}
-
-void PbrDeferredLightingPass::setMVP(const glm::mat4& trafo)
-{
-	Pass::mShader->setMat4(mTransform.location, trafo);
 }
 
 void PbrDeferredLightingPass::setAlbedoMap(const Texture* texture)
@@ -333,11 +287,6 @@ void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat
 	Pass::mShader->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void PbrDeferredLightingPass::onTransformUpdate(const TransformData& data)
-{
-	setMVP((*data.projection) * (*data.view) * (*data.model));
-}
-
 void PbrDeferredLightingPass::updateConstants(Camera* camera)
 {
 	bind();
@@ -362,20 +311,16 @@ void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
 
 
 PbrDeferredGeometryPass::PbrDeferredGeometryPass() : 
-	Pass(Shader::create(
+	TransformPass(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl")),
 	mGeometryPass(mShader.get())
 {
 }
 
-void PbrDeferredGeometryPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
-{
-	mGeometryPass.doModelMatrixUpdate(modelMatrix);
-}
-
 void PbrDeferredGeometryPass::updateConstants(Camera* camera)
 {
 	bind();
+	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
 	mGeometryPass.updateConstants(camera);
 }
 
@@ -444,16 +389,4 @@ PbrBrdfPrecomputePass::PbrBrdfPrecomputePass()
 {
 	mShader = Shader::create(
 		"pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
-
-	mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-}
-
-void PbrBrdfPrecomputePass::setMVP(const glm::mat4& mat)
-{
-	mShader->setMat4(mTransform.location, mat);
-}
-
-void PbrBrdfPrecomputePass::onTransformUpdate(const TransformData& data)
-{
-	setMVP(*data.projection * (*data.view) * (*data.model));
 }

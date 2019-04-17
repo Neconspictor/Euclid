@@ -64,7 +64,7 @@ namespace nex
 			glm::mat4 projection;
 			glm::mat4 transform;
 			glm::mat4 modelView;
-			glm::mat4 normalMatrix;
+			glm::mat3 normalMatrix;
 		};
 
 		/**

@@ -46,7 +46,7 @@ namespace nex {
 		mHorizontalPass->setTexture(texture);
 		mHorizontalPass->setImageHeight((float)cache->getHeight());
 		mHorizontalPass->setImageWidth((float)cache->getWidth());
-		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mHorizontalPass.get());
+		StaticMeshDrawer::drawFullscreenTriangle(state, mHorizontalPass.get());
 
 		// vertical pass
 		out->bind();
@@ -56,7 +56,7 @@ namespace nex {
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)out->getHeight());
 		mVerticalPass->setImageWidth((float)out->getWidth());
-		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mVerticalPass.get());
+		StaticMeshDrawer::drawFullscreenTriangle(state, mVerticalPass.get());
 
 		mSampler->unbind(0);
 

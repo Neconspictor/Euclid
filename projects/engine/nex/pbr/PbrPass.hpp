@@ -38,20 +38,9 @@ namespace nex
 
 		PbrCommonGeometryPass(Shader* shader);
 
-		/**
-		 * Prerequisites: projection and view matrix are set (and mustn't be null!) 
-		 */
-		void doModelMatrixUpdate(const glm::mat4& model);
-
 		void updateConstants(Camera* camera);
 
 	private:
-
-		void setModelViewMatrix(const glm::mat4& mat);
-		void setTransform(const glm::mat4& mat);
-
-		void setProjection(const glm::mat4& mat);
-		void setView(const glm::mat4& mat);
 
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
@@ -62,12 +51,7 @@ namespace nex
 		UniformTex mNormalMap;
 		UniformTex mRoughnessMap;
 
-		Uniform mModelView;
-		Uniform mTransform;
 		Uniform mNearFarPlane;
-
-		glm::mat4 const* mProjectionMatrixSource;
-		glm::mat4 const* mViewMatrixSource;
 
 		Sampler* mDefaultImageSampler;
 	};
@@ -136,12 +120,11 @@ namespace nex
 		DirectionalLight* mLight;
 	};
 
-	class PbrForwardPass : public Pass
+	class PbrForwardPass : public TransformPass
 	{
 	public:
 		PbrForwardPass(CascadedShadow* cascadedShadow);
 
-		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void updateConstants(Camera* camera) override;
 
 		void setProbe(PbrProbe* probe);
@@ -153,23 +136,20 @@ namespace nex
 		PbrCommonLightingPass mLightingPass;
 	};
 
-	class PbrDeferredGeometryPass : public Pass {
+	class PbrDeferredGeometryPass : public TransformPass {
 	public:
 		PbrDeferredGeometryPass();
 
-		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 		void updateConstants(Camera* camera) override;
 
 	private:
 		PbrCommonGeometryPass mGeometryPass;
 	};
 
-	class PbrDeferredLightingPass : public TransformPass {
+	class PbrDeferredLightingPass : public Pass {
 	public:
 
 		PbrDeferredLightingPass(CascadedShadow* cascadedShadow);
-
-		void setMVP(const glm::mat4& trafo);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -178,9 +158,6 @@ namespace nex
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-
-		void onTransformUpdate(const TransformData& data) override;
-
 		void updateConstants(Camera* camera) override;
 
 		void setProbe(PbrProbe* probe);
@@ -188,8 +165,6 @@ namespace nex
 		void setDirLight(DirectionalLight* light);
 
 	private:
-		Uniform mTransform;
-
 		UniformTex mAlbedoMap;
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
@@ -239,17 +214,11 @@ namespace nex
 		Uniform mRoughness;
 	};
 
-	class PbrBrdfPrecomputePass : public TransformPass
+	class PbrBrdfPrecomputePass : public Pass
 	{
 	public:
 		PbrBrdfPrecomputePass();
 
 		virtual ~PbrBrdfPrecomputePass() = default;
-
-		void setMVP(const glm::mat4& mat);
-
-		void onTransformUpdate(const TransformData& data) override;
-	private:
-		Uniform mTransform;
 	};
 }

@@ -9,6 +9,7 @@
 #include <nex/texture/TextureManager.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
+#include "nex/drawing/StaticMeshDrawer.hpp"
 
 
 namespace nex
@@ -163,9 +164,6 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", true, searchDesc);
 
-	//release memory
-	//temp.resize(0);
-
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::NearestNeighbor;
 	samplerDesc.maxAnisotropy = 1.0f;
@@ -174,9 +172,6 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::Linear;
 	mBilinearFilter = std::make_unique<Sampler>(samplerDesc);
-
-
-	mFullscreenTriangle = StaticMeshManager::get()->getNDCFullscreenPlane();
 }
 
 nex::SMAA::~SMAA() = default;
@@ -221,9 +216,8 @@ nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
 	mBilinearFilter->bind(0);
 	mEdgeDetectionShader->setColorTexGamma(colorTexGamma);
 
-	mFullscreenTriangle->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, mEdgeDetectionShader.get());
 
 	return mEdgesTex->getColor0AttachmentTexture();
 }
@@ -240,9 +234,8 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 	mBlendingWeightCalculationShader->setAreaTex(mAreaTex.get());
 	mBlendingWeightCalculationShader->setSearchTex(mSearchTex.get());
 
-	mFullscreenTriangle->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, mBlendingWeightCalculationShader.get());
 
 	return mBlendTex->getColor0AttachmentTexture();
 }
@@ -258,9 +251,8 @@ void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* c
 	mNeighborhoodBlendingShader->setBlendTex(blendTex);
 	mNeighborhoodBlendingShader->setColorTex(colorTex);
 
-	mFullscreenTriangle->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
+	StaticMeshDrawer::drawFullscreenTriangle(state, mNeighborhoodBlendingShader.get());
 }
 
 

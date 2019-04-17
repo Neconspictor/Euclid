@@ -6,7 +6,6 @@ namespace nex
 	class RenderTarget2D;
 	class Texture2D;
 	class Sampler;
-	class VertexArray;
 
 	class SMAA
 	{
@@ -45,7 +44,5 @@ namespace nex
 		std::unique_ptr<EdgeDetectionPass> mEdgeDetectionShader;
 		std::unique_ptr<BlendingWeightCalculationPass> mBlendingWeightCalculationShader;
 		std::unique_ptr<NeighborhoodBlendingPass> mNeighborhoodBlendingShader;
-
-		VertexArray* mFullscreenTriangle;
 	};
 }

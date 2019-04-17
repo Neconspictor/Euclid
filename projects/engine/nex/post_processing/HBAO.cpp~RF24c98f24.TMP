@@ -11,6 +11,7 @@
 #include <random>
 #include <nex/gui/Util.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
+#include <nex/mesh/VertexArray.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/texture/Sampler.hpp>
 
@@ -71,6 +72,9 @@ namespace nex
 #undef SCALE
 		}
 
+		//GLuint temp;
+		//GLCall(glGenTextures(1, &temp));
+
 		TextureData data;
 		data.colorspace = ColorSpace::RGBA;
 		data.pixelDataType = PixelDataType::SHORT;
@@ -78,7 +82,29 @@ namespace nex
 		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
 
 		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
+		/*TextureGL* randomGL = (TextureGL*)m_hbao_random->getImpl();
+		GLCall(glActiveTexture(GL_TEXTURE0));
+		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, temp));
+		GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA16_SNORM, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1));
+		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, GL_RGBA, GL_SHORT, hbaoRandomShort));
+		GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+		GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));*/
+
+
+		//glGenTextures(1, &temp);
 		m_hbao_randomview = Texture::createView(m_hbao_random.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
+		/*m_hbao_randomview = make_unique<Texture2D>(HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, data, nullptr);
+		TextureGL* randomViewGL = (TextureGL*)m_hbao_randomview->getImpl();
+		GLCall(glTextureView(*randomViewGL->getTexture(), GL_TEXTURE_2D, *randomGL->getTexture(), GL_RGBA16_SNORM, 0, 1, 0, 1));
+		GLCall(glBindTexture(GL_TEXTURE_2D, *randomViewGL->getTexture()));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+		GLCall(glBindTexture(GL_TEXTURE_2D, 0));*/
+
+		//GLCall(glCreateBuffers(1, &m_hbao_ubo));
+		//GLCall(glNamedBufferStorage(m_hbao_ubo, sizeof(HBAOData), NULL, GL_DYNAMIC_STORAGE_BIT));
+
 
 
 		m_aoDisplay = std::make_unique<DisplayTexPass>();
@@ -92,12 +118,28 @@ namespace nex
 		// initialize static shader attributes
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
+
+		// create a vao for rendering fullscreen triangles directly with glDrawArrays
+		//GLCall(glGenVertexArrays(1, &m_fullscreenTriangleVAO));
 		
 	}
 
+	/*HBAO_GL::~HBAO_GL()
+	{
+		if (m_hbao_ubo != GL_FALSE) {
+			glDeleteBuffers(1, &m_hbao_ubo);
+			m_hbao_ubo = GL_FALSE;
+		}
+
+		if (m_fullscreenTriangleVAO != GL_FALSE) {
+			glDeleteVertexArrays(1, &m_fullscreenTriangleVAO);
+			m_fullscreenTriangleVAO = GL_FALSE;
+		}
+	}*/
 
 	Texture2D * HBAO::getAO_Result()
 	{
+		//return (Texture2D*)m_aoResultRT->getRenderResult();
 		return m_aoResultRT->getColor0AttachmentTexture();
 	}
 
@@ -123,39 +165,57 @@ namespace nex
 		prepareHbaoData(projection, width, height);
 
 
+		//GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
+		m_fullscreenTriangleVAO.bind();
 		renderBackend->setViewPort(0, 0, width, height);
+		//GLCall(glViewport(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
+		//GLCall(glScissor(0, 0, m_aoResultRT->getWidth(), m_aoResultRT->getHeight()));
 
 		drawLinearDepth(depthTexture, projection);
 
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
+		//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 		m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 		m_hbaoShader->setHbaoData(std::move(m_hbaoDataSource));
+		//m_hbaoShader->setLinearDepth(m_depthLinearRT->getRenderResult());
 		m_hbaoShader->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->draw();
 
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 		if (blur) {
 			// clear color/depth/stencil for all involved render targets
 			m_aoBlurredResultRT->bind();
+			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 			m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 			m_tempRT->bind();
+			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
+			//m_bilateralBlur->setLinearDepth(m_depthLinearRT->getRenderResult());
 			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
+			//m_bilateralBlur->setSourceTexture(m_aoResultRT->getRenderResult(), width, height);
 			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
 			m_bilateralBlur->setSharpness(m_blur_sharpness);
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 		}
+
+		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		//GLCall(glBindVertexArray(0));
 	}
 
 	void HBAO::displayAOTexture(Texture* texture)
 	{
+		//modelDrawer->draw(&screenSprite, *aoDisplay);
+		//GLCall(glBindVertexArray(m_fullscreenTriangleVAO));
+		m_fullscreenTriangleVAO.bind();
 		m_aoDisplay->setInputTexture(texture);
 		m_aoDisplay->draw();
+		//GLCall(glBindVertexArray(0));
 	}
 
 
@@ -310,8 +370,10 @@ namespace nex
 		static UniformLocation invResolutionDirectionLoc = mShader->getUniformLocation("g_InvResolutionDirection");
 		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
+		static auto* renderBackend = RenderBackend::get();
 		RenderState state = RenderState::createNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 
 		// blur vertically
 		result->bind();
@@ -321,7 +383,8 @@ namespace nex
 		mShader->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
 		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	DepthLinearizerPass::DepthLinearizerPass() :
@@ -355,8 +418,9 @@ namespace nex
 
 		mShader->setTexture(m_input, mSampler.get(), 0);
 		
+		static auto* renderBackend = RenderBackend::get();
 		RenderState state = RenderState::createNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	void DepthLinearizerPass::setInputTexture(Texture * input)
@@ -383,8 +447,9 @@ namespace nex
 		bind();
 		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
 		
+		static auto* renderBackend = RenderBackend::get();
 		RenderState state = RenderState::createNoDepthTest();
-		StaticMeshDrawer::drawFullscreenTriangle(state, this);
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	void DisplayTexPass::setInputTexture(Texture * input)

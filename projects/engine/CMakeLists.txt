@@ -157,6 +157,8 @@ set(
     nex/pbr/PbrDeferred.hpp
     nex/pbr/PbrForward.cpp
     nex/pbr/PbrForward.hpp
+    nex/pbr/PbrPass.hpp
+	nex/pbr/PbrPass.cpp
     nex/pbr/PbrProbe.cpp
     nex/pbr/PbrProbe.hpp
 	
@@ -186,6 +188,8 @@ set(
     #nex/post_processing/blur
 	nex/post_processing/blur/GaussianBlur.hpp
 	nex/post_processing/blur/GaussianBlur.cpp
+    nex/post_processing/blur/GaussianBlurPass.hpp
+	nex/post_processing/blur/GaussianBlurPass.cpp
     
     
     #nex/shader
@@ -193,23 +197,16 @@ set(
 	nex/shader/DepthMapPass.cpp
     nex/shader/Pass.cpp
     nex/shader/Pass.hpp
-    nex/shader/PbrPass.hpp
-	nex/shader/PbrPass.cpp
     nex/shader/ScreenPass.hpp
 	nex/shader/ScreenPass.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
     nex/shader/ShaderType.hpp
-    nex/shader/ShadowPass.hpp
-	nex/shader/ShadowPass.cpp
     nex/shader/SkyBoxPass.hpp
 	nex/shader/SkyBoxPass.cpp
     nex/shader/Technique.cpp
     nex/shader/Technique.hpp
-	#nex/shader/post_processing/blur
-    nex/shader/post_processing/blur/GaussianBlurPass.hpp
-	nex/shader/post_processing/blur/GaussianBlurPass.cpp
 	
     
     #nex/shader_generator
