@@ -1,6 +1,6 @@
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/texture/TextureManager.hpp>
-#include <nex/shader/PbrPass.hpp>
+#include <nex/pbr/PbrPass.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

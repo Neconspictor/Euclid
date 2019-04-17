@@ -1,6 +1,6 @@
 #include<nex/post_processing/blur/GaussianBlur.hpp>
 
-#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
+#include <nex/post_processing/blur/GaussianBlurPass.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/texture/Sampler.hpp>
@@ -23,6 +23,8 @@ namespace nex {
 		mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
 		resize(width, height);
 	}
+
+	GaussianBlur::~GaussianBlur() = default;
 
 	void GaussianBlur::resize(unsigned width, unsigned height)
 	{

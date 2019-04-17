@@ -180,14 +180,14 @@ namespace nex
 			float radius;
 		};
 
-		class DepthPass : public Pass
+		class DepthPass : public TransformPass
 		{
 		public:
 			DepthPass(unsigned numCascades);
-			void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
 
 			void setCascadeIndex(unsigned index);
 			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
+			void updateConstants(Camera* camera);
 
 		private:
 			unsigned mNumCascades;

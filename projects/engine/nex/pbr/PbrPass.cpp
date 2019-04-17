@@ -1,4 +1,4 @@
-#include <nex/shader/PbrPass.hpp>
+#include <nex/pbr/PbrPass.hpp>
 #include <glm/glm.hpp>
 #include <nex/mesh/SubMesh.hpp>
 #include <nex/material/Material.hpp>

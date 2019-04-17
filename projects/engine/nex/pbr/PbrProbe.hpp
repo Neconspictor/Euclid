@@ -3,7 +3,7 @@
 #include <nex/mesh/Vob.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
-#include "nex/shader/PbrPass.hpp"
+#include "PbrPass.hpp"
 
 
 namespace nex

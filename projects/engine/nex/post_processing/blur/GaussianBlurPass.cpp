@@ -1,4 +1,4 @@
-#include <nex/shader/post_processing/blur/GaussianBlurPass.hpp>
+#include <nex/post_processing/blur/GaussianBlurPass.hpp>
 #include "nex/texture/TextureManager.hpp"
 
 

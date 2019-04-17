@@ -1,5 +1,5 @@
 #include <nex/pbr/PbrDeferred.hpp>
-#include <nex/shader/PbrPass.hpp>
+#include <nex/pbr/PbrPass.hpp>
 
 #include <nex/texture/GBuffer.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>

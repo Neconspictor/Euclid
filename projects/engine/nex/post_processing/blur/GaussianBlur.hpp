@@ -12,6 +12,8 @@ namespace nex {
 	public:
 		GaussianBlur(unsigned width, unsigned height);
 
+		~GaussianBlur();
+
 		Texture2D* blur(Texture2D* texture, RenderTarget2D* out, RenderTarget2D* cache);
 
 		Texture2D* blurHalfResolution(Texture2D* texture, RenderTarget2D* out);

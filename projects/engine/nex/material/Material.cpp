@@ -1,7 +1,7 @@
 #include <nex/material/Material.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/shader/Shader.hpp>
-#include "nex/shader/PbrPass.hpp"
+#include <nex/pbr/PbrPass.hpp>
 
 using namespace std;
 using namespace nex;

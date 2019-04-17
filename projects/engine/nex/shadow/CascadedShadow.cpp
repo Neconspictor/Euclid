@@ -606,13 +606,6 @@ CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCas
 	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
 }
 
-void CascadedShadow::DepthPass::onModelMatrixUpdate(const glm::mat4& modelMatrix)
-{
-	static const UniformLocation MODEL_MATRIX_LOCATION = 1;
-	mShader->setMat4(MODEL_MATRIX_LOCATION, modelMatrix);
-	//glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, &(*modelMatrix)[0][0]);
-}
-
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 {
 	static const UniformLocation CASCADE_INDEX_LOCATION = 0;
@@ -623,6 +616,11 @@ void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buff
 {
 	buffer->bind(0);
 	//buffer->syncWithGPU();
+}
+
+void CascadedShadow::DepthPass::updateConstants(Camera* camera)
+{
+	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)

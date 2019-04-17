@@ -163,6 +163,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera,
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
 		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
+		mCascadedShadow->getDepthPass()->updateConstants(camera);
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{

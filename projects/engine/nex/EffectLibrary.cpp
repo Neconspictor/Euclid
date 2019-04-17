@@ -3,7 +3,6 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/shader/SkyBoxPass.hpp>
 #include <nex/shader/DepthMapPass.hpp>
-#include <nex/shader/ShadowPass.hpp>
 #include <nex/shader/ScreenPass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
