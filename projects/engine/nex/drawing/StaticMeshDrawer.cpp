@@ -4,17 +4,17 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/material/Material.hpp>
 
-void nex::StaticMeshDrawer::draw(SceneNode* node, TransformPass* shader)
+void nex::StaticMeshDrawer::draw(SceneNode* node, TransformPass* shader, const RenderState* overwriteState)
 {
 	auto range = node->getChildren();
 	for (auto it = range.begin; it != range.end; ++it)
-		draw(*it, shader);
+		draw(*it, shader, overwriteState);
 
 	if (!node->getMesh()) return;
 
 	shader->setModelMatrix(node->getWorldTrafo());
 	shader->uploadTransformMatrices();
-	draw(node->getMesh(), node->getMaterial(), shader);
+	draw(node->getMesh(), node->getMaterial(), shader, overwriteState);
 }
 
 /*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformPass* shader)
@@ -67,7 +67,7 @@ void nex::StaticMeshDrawer::draw(SceneNode* node, TransformPass* shader)
 	}
 }*/
 
-void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
+void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, const RenderState* overwriteState)
 {
 	if (material != nullptr)
 	{
@@ -84,12 +84,14 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 
 
 	//set render state
-	const auto& state = material->getRenderState();
+	const RenderState* state = nullptr;
+	if (overwriteState != nullptr) state = overwriteState;
+	else state = &material->getRenderState();
 
-	backend->drawWithIndices(state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 }
 
-void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass)
+void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState)
 {
 	auto& meshes = container->getMeshes();
 	auto& mappings = container->getMappings();

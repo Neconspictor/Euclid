@@ -199,7 +199,10 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 
 	mPbrDeferred->configureSubMeshPass(camera);
 	mPbrDeferred->getActiveSubMeshPass()->updateConstants(camera);
-	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass());
+	RenderState state;
+	state.doCullFaces = false;
+	//state.fillMode = FillMode::LINE;
+	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass(), &state);
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);

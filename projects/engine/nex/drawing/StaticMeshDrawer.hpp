@@ -39,7 +39,7 @@ namespace nex
 		/**
 		 * Draws this scene node and all its children using a specific pass.
 		 */
-		static void draw(SceneNode* root, nex::TransformPass* pass);
+		static void draw(SceneNode* root, nex::TransformPass* pass, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a sprite onto the screen
@@ -49,12 +49,12 @@ namespace nex
 		/**
 		 * Draws the specified model with a given shader onto the screen.
 		 */
-		static void draw(Mesh* mesh, Material* material, Pass* pass);
+		static void draw(Mesh* mesh, Material* material, Pass* pass, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws the specified static mesh container with a given shader onto the screen.
 		 */
-		static void draw(StaticMeshContainer* container, Pass* pass);
+		static void draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState = nullptr);
 
 		static void drawFullscreenTriangle(const RenderState& state, Pass* pass);
 
