@@ -39,7 +39,7 @@ namespace nex
 		/**
 		 * Draws this scene node and all its children using a specific pass.
 		 */
-		static void draw(SceneNode* root, nex::Pass* pass);
+		static void draw(SceneNode* root, nex::TransformPass* pass);
 
 		/**
 		 * Draws a sprite onto the screen

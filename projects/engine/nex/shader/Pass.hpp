@@ -80,12 +80,12 @@ namespace nex
 		TransformPass& operator=(const TransformPass&) = delete;
 		TransformPass& operator=(TransformPass&&) = default;
 
-		void setViewProjectionMatrices(const glm::mat4* projection, const glm::mat4* view);
+		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view);
 
 		/**
 		 * Note: setViewProjectionMatrices has to be called before calling this function!
 		 */
-		void setModelMatrix(const glm::mat4* model);
+		void setModelMatrix(const glm::mat4& model);
 
 		/**
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
@@ -94,7 +94,7 @@ namespace nex
 		void uploadTransformMatrices();
 
 	protected:
-		UniformBuffer mTransformBuffer;
+		ShaderStorageBuffer mTransformBuffer;
 		Transforms mTransforms;
 	};
 

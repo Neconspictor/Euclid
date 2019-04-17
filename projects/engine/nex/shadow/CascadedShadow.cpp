@@ -614,13 +614,13 @@ void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 
 void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
 {
-	buffer->bind(0);
+	buffer->bind(1);
 	//buffer->syncWithGPU();
 }
 
 void CascadedShadow::DepthPass::updateConstants(Camera* camera)
 {
-	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
+	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
@@ -710,9 +710,11 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 
 
 	mDepthPass->bind();
+	mDepthPass->updateConstants(camera);
 	mRenderTarget.bind();
 	RenderBackend::get()->setViewPort(0, 0, mCascadeWidth, mCascadeHeight);
 	mDepthPass->setCascadeShaderBuffer(mDataComputePass->getSharedOutput());
+
 }
 
 bool CascadedShadow::getAntiFlickering() const
@@ -731,7 +733,7 @@ void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
 	if (informObservers) informCascadeChanges();
 }
 
-Pass* CascadedShadow::getDepthPass()
+TransformPass* CascadedShadow::getDepthPass()
 {
 	return mDepthPass.get();
 }

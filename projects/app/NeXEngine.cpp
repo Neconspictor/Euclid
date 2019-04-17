@@ -216,8 +216,8 @@ void NeXEngine::createScene()
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj", MaterialType::Pbr);
 	meshContainer->addToNode(ground, &mScene);
 
-	meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
-	meshContainer->getMaterials()[0]->getRenderState().doCullFaces = false;
+	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
+	//meshContainer->getMaterials()[0]->getRenderState().doCullFaces = false;
 
 	root->updateWorldTrafoHierarchy();
 

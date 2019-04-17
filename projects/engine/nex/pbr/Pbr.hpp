@@ -13,7 +13,7 @@ namespace nex
 	class Pbr : public Technique {
 
 	public:
-		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, Pass* submeshPass);
+		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, TransformPass* submeshPass);
 
 		virtual ~Pbr();
 

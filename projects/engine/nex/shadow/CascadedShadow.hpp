@@ -135,7 +135,7 @@ namespace nex
 
 		const CascadeData& getCascadeData() const;
 
-		Pass* getDepthPass();
+		TransformPass* getDepthPass();
 
 		unsigned getHeight() const;
 

@@ -1,13 +1,10 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include <nex/mesh/Vob.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
-#include <nex/texture/Sprite.hpp>
 #include <nex/Scene.hpp>
 #include <nex/RenderBackend.hpp>
 #include <nex/material/Material.hpp>
 
-void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
+void nex::StaticMeshDrawer::draw(SceneNode* node, TransformPass* shader)
 {
 	auto range = node->getChildren();
 	for (auto it = range.begin; it != range.end; ++it)
@@ -15,6 +12,8 @@ void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
 
 	if (!node->getMesh()) return;
 
+	shader->setModelMatrix(node->getWorldTrafo());
+	shader->uploadTransformMatrices();
 	draw(node->getMesh(), node->getMaterial(), shader);
 }
 

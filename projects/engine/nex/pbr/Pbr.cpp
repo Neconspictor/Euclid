@@ -3,9 +3,8 @@
 #include "imgui/imgui.h"
 #include "nex/gui/Util.hpp"
 #include "nex/shadow/CascadedShadow.hpp"
-#include "nex/texture/TextureManager.hpp"
 
-nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, Pass* submeshPass) :
+nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, TransformPass* submeshPass) :
 	Technique(submeshPass),
 	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
 {

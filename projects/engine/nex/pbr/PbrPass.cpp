@@ -122,7 +122,8 @@ void PbrCommonLightingPass::setNearFarPlane(const glm::vec2& nearFarPlane)
 nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShadow* cascadedShadow) :
 	PbrBaseCommon(shader),
 	cascadeBufferUBO(
-		0, CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
+		CSM_CASCADE_BUFFER_BINDING_POINT, 
+		CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
 		ShaderBuffer::UsageHint::DYNAMIC_COPY), mProbe(nullptr),
 	mCascadeShadow(cascadedShadow)
 {
@@ -225,7 +226,7 @@ PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) :
 void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
+	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
 	mGeometryPass.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
@@ -320,7 +321,7 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
 void PbrDeferredGeometryPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(&camera->getPerspProjection(), &camera->getView());
+	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
 	mGeometryPass.updateConstants(camera);
 }
 

@@ -7,5 +7,5 @@ out VS_OUT2 {
 
 void main() {
     commonVertexShader();
-    vs_out2.fragment_position_eye = modelView * vec4(position, 1.0f);
+    vs_out2.fragment_position_eye = transforms.modelView * vec4(position, 1.0f);
 }

@@ -60,6 +60,8 @@ namespace nex
 	{
 	public:
 
+		static const unsigned CSM_CASCADE_BUFFER_BINDING_POINT = 1;
+
 		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow);
 
 		void setAmbientLight(AmbientLight* light);
