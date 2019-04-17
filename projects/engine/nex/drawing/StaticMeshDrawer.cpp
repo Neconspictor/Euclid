@@ -7,13 +7,6 @@
 #include <nex/RenderBackend.hpp>
 #include <nex/material/Material.hpp>
 
-//TODO get it from repo history again
-//#include "nex/opengl/shader/SimpleExtrudeShaderGL.hpp"
-
-using namespace glm;
-using namespace std;
-using namespace nex;
-
 void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
 {
 	auto range = node->getChildren();
@@ -22,24 +15,23 @@ void nex::StaticMeshDrawer::draw(SceneNode* node, Pass* shader)
 
 	if (!node->getMesh()) return;
 
-	shader->onModelMatrixUpdate(node->getWorldTrafo());
 	draw(node->getMesh(), node->getMaterial(), shader);
 }
 
-void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
+/*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformPass* shader)
 {
 	StaticMeshContainer* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);
 	//TextureGL* texture = dynamic_cast<TextureGL*>(sprite->getTexture());
 
 	//assert(texture);
 
-	mat4 projection = ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
-	mat4 view = mat4(); // just use identity matrix
-	mat4 model = mat4();
-	vec2 spriteOrigin(0.5f * sprite.getWidth(), 0.5f * sprite.getHeight());
-	vec3 rotation = sprite.getRotation();
-	vec3 translation = vec3(sprite.getPosition(), 0.0f);
-	vec3 scaling = vec3(sprite.getWidth(), sprite.getHeight(), 1.0f);
+	glm::mat4 projection = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+	glm::mat4 view = glm::mat4(); // just use identity matrix
+	glm::mat4 model = glm::mat4();
+	glm::vec2 spriteOrigin(0.5f * sprite.getWidth(), 0.5f * sprite.getHeight());
+	glm::vec3 rotation = sprite.getRotation();
+	glm::vec3 translation = glm::vec3(sprite.getPosition(), 0.0f);
+	glm::vec3 scaling = glm::vec3(sprite.getWidth(), sprite.getHeight(), 1.0f);
 
 	// Matrix application order is scale->rotate->translate
 	// But as multiplication is resolved from right to left the order is reversed
@@ -49,11 +41,11 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 	model = translate(model, translation);
 
 	// rotate around origin
-	model = translate(model, vec3(spriteOrigin, 0.0f));
-	model = rotate(model, rotation.z, vec3(0, 0, 1)); // rotate around z-axis
-	model = rotate(model, rotation.y, vec3(0, 1, 0)); // rotate around y-axis
-	model = rotate(model, rotation.x, vec3(1, 0, 0)); // rotate around x-axis
-	model = translate(model, vec3(-spriteOrigin, 0.0f));
+	model = translate(model, glm::vec3(spriteOrigin, 0.0f));
+	model = rotate(model, rotation.z, glm::vec3(0, 0, 1)); // rotate around z-axis
+	model = rotate(model, rotation.y, glm::vec3(0, 1, 0)); // rotate around y-axis
+	model = rotate(model, rotation.x, glm::vec3(1, 0, 0)); // rotate around x-axis
+	model = translate(model, glm::vec3(-spriteOrigin, 0.0f));
 
 
 	// finally scale
@@ -72,12 +64,9 @@ void nex::StaticMeshDrawer::draw(const Sprite& sprite, TransformPass* shader)
 		vertexArray->bind();
 		indexBuffer->bind();
 		static auto* backend = RenderBackend::get();
-		backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
-
-		//indexBuffer->unbind();
-		//vertexArray->unbind();
+		backend->drawWithIndices(state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 	}
-}
+}*/
 
 void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 {
@@ -85,7 +74,6 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 	{
 		material->upload(pass->getShader());
 	}
-	pass->onMaterialUpdate(material);
 
 	const VertexArray* vertexArray = mesh->getVertexArray();
 	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
@@ -98,23 +86,11 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass)
 
 	//set render state
 	const auto& state = material->getRenderState();
-	backend->getBlender()->enableBlend(state.doBlend);
-	backend->getBlender()->setBlendDesc(state.blendDesc);
-	backend->getRasterizer()->enableFaceCulling(state.doCullFaces);
-	backend->getRasterizer()->setCullMode(state.cullSide);
-	backend->getRasterizer()->setWindingOrder(state.windingOrder);
-	backend->getDepthBuffer()->enableDepthTest(state.doDepthTest);
-	backend->getDepthBuffer()->enableDepthBufferWriting(state.doDepthWrite);
-	backend->getDepthBuffer()->setDefaultDepthFunc(state.depthCompare);
-	backend->getRasterizer()->setFillMode(state.fillMode, PolygonSide::FRONT_BACK);
 
-	backend->drawWithIndices(mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
-
-	//indexBuffer->unbind();
-	//vertexArray->unbind();
+	backend->drawWithIndices(state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 }
 
-void StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass)
+void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass)
 {
 	auto& meshes = container->getMeshes();
 	auto& mappings = container->getMappings();
@@ -125,85 +101,38 @@ void StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass)
 	}
 }
 
-/*void ModelDrawerGL::drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount)
+void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pass* pass)
 {
-	ShaderGL* shader = ShaderManagerGL::get()->getShader(shaderType);
-	//vob->calcTrafo();
-	ModelGL* model = vob->getModel();//ModelManagerGL::get()->getModel(vob->getMeshName(), vob->getMaterialShaderType());
+	static auto* backend = RenderBackend::get();
+	auto* triangle = StaticMeshManager::get()->getNDCFullscreenTriangle();
+	triangle->bind();
+	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
+}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	shader->setTransformData(data);
-	for (auto& mesh : model->getMeshes())
-	{
-		shader->drawInstanced(mesh, amount);
-	}
-}*/
-
-//TODO
-/*
-void ModelDrawerGL::drawOutlined(Vob* vob, ShaderType shaderType, const TransformData& data, vec4 borderColor)
+void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* pass)
 {
-	glEnable(GL_STENCIL_TEST);
-
-	// always set 1 to the stencil buffer, regardless of the current stencil value
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-
-	// regardless of fragment will be drawn, update the stencil buffer
-	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-
-	glStencilMask(0xFF); // enable stencil buffer
-	
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-
-	//glPolygonMode(GL_FRONT, GL_FILL);
-	draw(vob, shaderType, data);
-
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-
-	// only update stencil buffer, if depth and stencil test succeeded
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilMask(0x00);
-	//glDisable(GL_DEPTH_TEST);
-
-
-	//draw a slightly scaled up version
-	//mat4 scaled = scale(*data.model, vec3(1.1f, 1.1f, 1.1f));
-	SimpleExtrudeShaderGL* simpleExtrude = static_cast<SimpleExtrudeShaderGL*>
-										(ShaderManagerGL::get()->getShader(ShaderType::SimpleExtrude));
-	
-	simpleExtrude->setObjectColor(borderColor);
-	simpleExtrude->setExtrudeValue(0.05f);
-	// use 3 pixel as outline border
-	glDepthFunc(GL_ALWAYS);
-	draw(vob, ShaderType::SimpleExtrude, data);
-	//glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-
-	// clear stencil buffer state
-	glStencilMask(0xFF);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	
-	// make stencil buffer read-only again!
-	glStencilMask(0x00);
-}*/
+	static auto* backend = RenderBackend::get();
+	auto* quad = StaticMeshManager::get()->getNDCFullscreenPlane();
+	quad->bind();
+	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
+}
 
 void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
 {	
-	//TODO
-	//vob->calcTrafo();
-
 	static auto* backend = RenderBackend::get();
 	backend->setLineThickness(static_cast<float>(lineStrength));
-	backend->getRasterizer()->setFillMode(FillMode::LINE, PolygonSide::FRONT_BACK);
+	backend->getRasterizer()->setFillMode(FillMode::LINE);
 
 	auto& meshes = model->getMeshes();
 	auto& mappings = model->getMappings();
 
 	for (auto& mesh : meshes)
 	{
+		auto* material = mappings.at(mesh.get());
+		auto& renderState = material->getRenderState();
+		auto backupFillMode = renderState.fillMode;
+		renderState.fillMode = FillMode::LINE;
 		draw(mesh.get(), mappings.at(mesh.get()), shader);
+		renderState.fillMode = backupFillMode;
 	}
 }

@@ -72,7 +72,8 @@ namespace nex
 			mShader->setTexture(m_texNoise, &mSamplerNoise, 1);
 
 			static auto* renderBackend = RenderBackend::get();
-			renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+			RenderState state = RenderState::createNoDepthTest();
+			renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 
 			mSamplerDepth.unbind(0);
 			mSamplerNoise.unbind(1);
@@ -123,7 +124,6 @@ namespace nex
 
 
 	private:
-		glm::mat4 transform;
 		unsigned int kernelSampleSize;
 		SSAOData* m_ssaoData;
 		UniformBuffer m_ssaoUBO;
@@ -136,7 +136,7 @@ namespace nex
 		VertexArray m_fullscreenTriangleVAO;
 	};
 
-	class SSAO_Tiled_Blur_Shader : public TransformPass
+	class SSAO_Tiled_Blur_Shader : public Pass
 	{
 	public:
 
@@ -145,7 +145,6 @@ namespace nex
 			mShader = Shader::create("post_processing/ssao/ssao_tiled_blur_vs.glsl",
 				"post_processing/ssao/ssao_tiled_blur_fs.glsl");
 
-			mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 			mAoTexture = { mShader->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
 			mShader->setBinding(mAoTexture.location, mAoTexture.bindingSlot);
 
@@ -168,23 +167,13 @@ namespace nex
 			mShader->setTexture(texture, &mBlurSampler, mAoTexture.bindingSlot);
 		}
 
-		void setMVP(const glm::mat4& mat) {
-			mShader->setMat4(mTransform.location, mat);
-		}
-
-		void onTransformUpdate(const TransformData& data) override
-		{
-			setMVP((*data.projection)*(*data.view)*(*data.model));
-		}
-
 	private:
 		UniformTex mAoTexture;
-		Uniform mTransform;
 		Sampler mBlurSampler;
 	};
 
 
-	class SSAO_AO_Display_Shader : public TransformPass
+	class SSAO_AO_Display_Shader : public Pass
 	{
 	public:
 
@@ -192,7 +181,6 @@ namespace nex
 			mShader = Shader::create("post_processing/ssao/ssao_ao_display_vs.glsl",
 				"post_processing/ssao/ssao_ao_display_fs.glsl");
 
-			mTransform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 			mScreenTexture = { mShader->getUniformLocation("screenTexture"), UniformType::TEXTURE2D, 0 };
 			mShader->setBinding(mScreenTexture.location, mScreenTexture.bindingSlot);
 		}
@@ -203,28 +191,8 @@ namespace nex
 			mShader->setTexture(texture, &mSampler, mScreenTexture.bindingSlot);
 		}
 
-		void setMVP(const glm::mat4& mat) {
-			mShader->setMat4(mTransform.location, mat);
-		}
-
-		void onTransformUpdate(const TransformData& data) override
-		{
-			setMVP((*data.projection)*(*data.view)*(*data.model));
-		}
-
-		//TODO
-		/*virtual void update(const MeshGL& mesh, const TransformData& data) {
-			mat4 const& projection = *data.projection;
-			mat4 const& view = *data.view;
-			mat4 const& model = *data.model;
-
-			transform = projection * view * model;
-			attributes.setData("transform", &transform);
-		}*/
-
 	private:
 		UniformTex mScreenTexture;
-		Uniform mTransform;
 	};
 
 
@@ -360,7 +328,8 @@ namespace nex
 		tiledBlurRenderTarget->bind();
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), tiledBlurShader);
+		RenderState state = RenderState::createNoDepthTest();
+		StaticMeshDrawer::drawFullscreenTriangle(state, tiledBlurShader);
 
 		tiledBlurShader->afterBlur();
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -373,7 +342,8 @@ namespace nex
 
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), aoDisplayShader);
+		RenderState state = RenderState::createNoDepthTest();
+		StaticMeshDrawer::drawFullscreenTriangle(state, aoDisplayShader);
 	}
 
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)

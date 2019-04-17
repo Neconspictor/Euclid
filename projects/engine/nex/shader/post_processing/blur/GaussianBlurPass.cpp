@@ -30,11 +30,6 @@ void GaussianBlurHorizontalShader::setMVP(const mat4& mvp)
 	mShader->setMat4(transform.location, mvp);
 }
 
-void GaussianBlurHorizontalShader::onTransformUpdate(const TransformData& data)
-{
-	setMVP((*data.projection)*(*data.view)*(*data.model));
-}
-
 void GaussianBlurHorizontalShader::setImageWidth(float width)
 {
 	mShader->setFloat(windowWidth.location, width);
@@ -70,11 +65,6 @@ void GaussianBlurVerticalShader::setTexture(const Texture* tex)
 void GaussianBlurVerticalShader::setMVP(const mat4& mvp)
 {
 	mShader->setMat4(transform.location, mvp);
-}
-
-void GaussianBlurVerticalShader::onTransformUpdate(const TransformData& data)
-{
-	setMVP((*data.projection)*(*data.view)*(*data.model));
 }
 
 void GaussianBlurVerticalShader::setImageWidth(float width)

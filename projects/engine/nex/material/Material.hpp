@@ -2,7 +2,6 @@
 #include "nex/util/StringUtils.hpp"
 #include <nex/shader/ShaderType.hpp>
 #include <nex/RenderTypes.hpp>
-#include <nex/texture/TextureSamplerData.hpp>
 
 namespace nex
 {
@@ -15,22 +14,6 @@ namespace nex
 	{
 		Pbr,
 		None
-	};
-
-	struct RenderState
-	{
-		bool doDepthTest = true;
-		bool doDepthWrite = true;
-		CompareFunction depthCompare = CompareFunction::LESS;
-		bool doCullFaces = true;
-		PolygonSide cullSide = PolygonSide::BACK;
-		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
-		bool doBlend = false;
-		BlendDesc blendDesc = {BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD};
-
-		bool doShadowCast = true;
-		bool doShadowReceive = true;
-		FillMode fillMode = FillMode::FILL;
 	};
 
 	class Material
@@ -52,9 +35,9 @@ namespace nex
 		void set(UniformLocation loc, const glm::mat3& value);
 		void set(UniformLocation loc, const glm::mat4& value);
 		void set(UniformLocation loc, unsigned value);
-		void set(UniformLocation loc, const glm::u32vec2& value);
-		void set(UniformLocation loc, const glm::u32vec3& value);
-		void set(UniformLocation loc, const glm::u32vec4& value);
+		void set(UniformLocation loc, const glm::uvec2& value);
+		void set(UniformLocation loc, const glm::uvec3& value);
+		void set(UniformLocation loc, const glm::uvec4& value);
 		void set(UniformLocation loc, const glm::vec2& value);
 		void set(UniformLocation loc, const glm::vec3& value);
 		void set(UniformLocation loc, const glm::vec4& value);

@@ -83,7 +83,8 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	setAoMap(aoMap);
 
 	mFullscreenPlane->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 	return output->getColor0AttachmentTexture();
 }
 

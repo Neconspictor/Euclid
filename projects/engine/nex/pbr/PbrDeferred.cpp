@@ -10,7 +10,6 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 #include "PbrProbe.hpp"
-#include <nex/material/Material.hpp>
 
 namespace nex {
 
@@ -35,8 +34,6 @@ namespace nex {
 
 	void PbrDeferred::configureSubMeshPass(Camera* camera)
 	{
-		const auto & view = camera->getView();
-		const auto & projection = camera->getPerspProjection();
 		mGeometryPass->bind();
 		mGeometryPass->updateConstants(camera);
 	}
@@ -54,7 +51,9 @@ namespace nex {
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mLightPass.get());
+		static RenderState state;
+
+		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mLightPass.get());
 	}
 
 	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)
@@ -65,5 +64,9 @@ namespace nex {
 	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mLightPass = std::make_unique<PbrDeferredLightingPass>(cascadedShadow);
+
+		mLightPass->setProbe(mProbe);
+		mLightPass->setAmbientLight(mAmbientLight);
+		mLightPass->setDirLight(mLight);
 	}
 }

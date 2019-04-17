@@ -177,17 +177,9 @@ void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera,
 void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
-	static auto* depthMapShader = RenderBackend::get()->getEffectLibrary()->getDepthMapShader();
-	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 
 	using namespace std::chrono;
-
-	//m_renderBackend->newFrame();
-	RenderBackend::get()->getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
-	RenderBackend::get()->getRasterizer()->enableFaceCulling(true);
-	RenderBackend::get()->getRasterizer()->setCullMode(PolygonSide::BACK);
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
 
 
 	// update and render into cascades
@@ -219,7 +211,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 
 	// render scene to a offscreen buffer
 	mRenderTargetSingleSampled->bind();
-
 	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 

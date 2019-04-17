@@ -1,5 +1,6 @@
 #pragma once
 #include <nex/shader/Shader.hpp>
+#include "ShaderBuffer.hpp"
 
 namespace nex
 {
@@ -35,10 +36,6 @@ namespace nex
 		 */
 		void unbind();
 
-		virtual void onModelMatrixUpdate(const glm::mat4& modelMatrix);
-
-		virtual void onMaterialUpdate(const Material* material);
-
 		// Function that should be called before render calls
 		virtual void setupRenderState();
 
@@ -59,6 +56,22 @@ namespace nex
 	class TransformPass : public Pass
 	{
 	public:
+
+		struct Transforms
+		{
+			glm::mat4 model;
+			glm::mat4 view;
+			glm::mat4 projection;
+			glm::mat4 transform;
+			glm::mat4 modelView;
+			glm::mat4 normalMatrix;
+		};
+
+		/**
+		 * Every shader used by a TransformPass has to have a Transforms uniform buffer on this binding point.
+		 */
+		static const unsigned TRANSFORM_BUFFER_BINDING_POINT = 0;
+
 		TransformPass(std::unique_ptr<Shader> program = nullptr);
 		
 		virtual ~TransformPass();
@@ -67,7 +80,22 @@ namespace nex
 		TransformPass& operator=(const TransformPass&) = delete;
 		TransformPass& operator=(TransformPass&&) = default;
 
-		virtual void onTransformUpdate(const TransformData& data) = 0;
+		void setViewProjectionMatrices(const glm::mat4* projection, const glm::mat4* view);
+
+		/**
+		 * Note: setViewProjectionMatrices has to be called before calling this function!
+		 */
+		void setModelMatrix(const glm::mat4* model);
+
+		/**
+		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
+		 * Pass has to be bound.
+		 */
+		void uploadTransformMatrices();
+
+	protected:
+		UniformBuffer mTransformBuffer;
+		Transforms mTransforms;
 	};
 
 	class ComputePass : public Pass

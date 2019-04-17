@@ -108,6 +108,5 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(const aiScene *
 		material->setNormalMap(texture);
 	}
 
-
 	return material;
 }

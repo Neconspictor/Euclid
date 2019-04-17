@@ -225,16 +225,15 @@ namespace nex
 		glGetBooleanv(GL_POLYGON_OFFSET_POINT, (GLboolean*)&mEnableOffsetPoint);
 	}
 
-	void nex::Rasterizer::setFillMode(FillMode fillMode, PolygonSide faceSide)
+	void nex::Rasterizer::setFillMode(FillMode fillMode)
 	{
 		const auto fillModeGL = translate(fillMode);
-		const auto faceSideGL = translate(faceSide);
 
-		if (mImpl->mFillModeCache.mode == fillModeGL && mImpl->mFillModeCache.side == faceSideGL) return;
+		if (mImpl->mFillModeCache.mode == fillModeGL) return;
 
 		mImpl->mFillModeCache.mode = fillModeGL;
-		mImpl->mFillModeCache.side = faceSideGL;
-		GLCall(glPolygonMode((GLenum)faceSideGL, (GLenum)fillModeGL));
+		mImpl->mFillModeCache.side = PolygonSideGL::FRONT_BACK;
+		GLCall(glPolygonMode((GLenum)PolygonSideGL::FRONT_BACK, (GLenum)fillModeGL));
 	}
 
 	void nex::Rasterizer::setCullMode(PolygonSide faceSide)
@@ -263,11 +262,7 @@ namespace nex
 
 	void nex::Rasterizer::setState(const RasterizerState& state)
 	{
-		for (auto& mode : state.fillModes)
-		{
-			setFillMode(mode.second, mode.first);
-		}
-
+		setFillMode(state.fillMode);
 		setCullMode(state.cullMode);
 		setWindingOrder(state.windingOrder);
 		setDepthBias(state.slopeScaledDepthBias, state.depthBias, state.depthBiasClamp);
@@ -539,7 +534,7 @@ namespace nex
 
 	void RenderBackend::newFrame()
 	{
-		getRasterizer()->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
+		getRasterizer()->setFillMode(FillMode::FILL);
 		getRasterizer()->enableFaceCulling(true);
 		getRasterizer()->setCullMode(PolygonSide::BACK);
 	}
@@ -589,8 +584,9 @@ namespace nex
 		return create2DRenderTarget(width, height, TextureData::createRenderTargetRGBAHDR(), depthData, samples);
 	}
 
-	void RenderBackend::drawWithIndices(Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset)
+	void RenderBackend::drawWithIndices(const RenderState& state, Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset)
 	{
+		setRenderState(state);
 		GLCall(glDrawElements((GLenum)translate(topology), static_cast<GLsizei>(indexCount), (GLenum)translate(indexType), (GLvoid*)byteOffset));
 	}
 
@@ -689,6 +685,26 @@ namespace nex
 
 		//if (effectLibrary)
 		//	effectLibrary->getGaussianBlur()->init();
+	}
+
+	void RenderBackend::setRenderState(const RenderState& state)
+	{
+		auto* blender = getBlender();
+		auto* rasterizer = getRasterizer();
+		auto* depthBuffer = getDepthBuffer();
+
+		blender->enableBlend(state.doBlend);
+		blender->setBlendDesc(state.blendDesc);
+
+		depthBuffer->enableDepthTest(state.doDepthTest);
+		depthBuffer->enableDepthBufferWriting(state.doDepthWrite);
+		depthBuffer->setDefaultDepthFunc(state.depthCompare);
+
+		rasterizer->enableFaceCulling(state.doCullFaces);
+		rasterizer->setCullMode(state.cullSide);
+		rasterizer->setWindingOrder(state.windingOrder);
+		rasterizer->setFillMode(state.fillMode);
+		
 	}
 
 	/*void RendererOpenGL::useDepthMap(DepthMap* depthMap)
@@ -795,9 +811,11 @@ namespace nex
 		return target;
 	}*/
 
-	void RenderBackend::drawArray(Topology primitiveType, unsigned startingIndex,
+	void RenderBackend::drawArray(const RenderState& state, Topology primitiveType, unsigned startingIndex,
 		unsigned indexCount)
 	{
+		setRenderState(state);
+
 		const auto primitiveTypeGL = translate(primitiveType);
 		GLCall(glDrawArrays((GLenum)primitiveTypeGL, startingIndex, indexCount));
 	}

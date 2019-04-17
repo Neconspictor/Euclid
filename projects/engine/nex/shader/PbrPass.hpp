@@ -142,7 +142,6 @@ namespace nex
 		PbrForwardPass(CascadedShadow* cascadedShadow);
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
-		void onMaterialUpdate(const Material* material) override;
 		void updateConstants(Camera* camera) override;
 
 		void setProbe(PbrProbe* probe);
@@ -159,7 +158,6 @@ namespace nex
 		PbrDeferredGeometryPass();
 
 		void onModelMatrixUpdate(const glm::mat4& modelMatrix) override;
-		void onMaterialUpdate(const Material* material) override;
 		void updateConstants(Camera* camera) override;
 
 	private:

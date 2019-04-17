@@ -4,6 +4,7 @@
 
 namespace nex
 {
+	struct RenderState;
 	enum class Topology;
 	class VertexArray;
 	class RenderBackend;
@@ -43,7 +44,7 @@ namespace nex
 		/**
 		 * Draws a sprite onto the screen
 		 */
-		static void draw(const Sprite& sprite, nex::TransformPass* pass);
+		//static void draw(const RenderState& state, const Sprite& sprite, nex::TransformPass* pass);
 
 		/**
 		 * Draws the specified model with a given shader onto the screen.
@@ -54,6 +55,10 @@ namespace nex
 		 * Draws the specified static mesh container with a given shader onto the screen.
 		 */
 		static void draw(StaticMeshContainer* container, Pass* pass);
+
+		static void drawFullscreenTriangle(const RenderState& state, Pass* pass);
+
+		static void drawFullscreenQuad(const RenderState& state, Pass* pass);
 
 		//TODO implement
 		//void drawInstanced(Vob* vob, Shaders shaderType, const TransformData& data, unsigned amount);

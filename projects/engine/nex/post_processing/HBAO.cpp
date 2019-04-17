@@ -370,7 +370,9 @@ namespace nex
 		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
 		static auto* renderBackend = RenderBackend::get();
-		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		RenderState state = RenderState::createNoDepthTest();
+
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 
 		// blur vertically
 		result->bind();
@@ -381,7 +383,7 @@ namespace nex
 		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
-		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	DepthLinearizerPass::DepthLinearizerPass() :
@@ -416,7 +418,8 @@ namespace nex
 		mShader->setTexture(m_input, mSampler.get(), 0);
 		
 		static auto* renderBackend = RenderBackend::get();
-		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		RenderState state = RenderState::createNoDepthTest();
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	void DepthLinearizerPass::setInputTexture(Texture * input)
@@ -444,7 +447,8 @@ namespace nex
 		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
 		
 		static auto* renderBackend = RenderBackend::get();
-		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		RenderState state = RenderState::createNoDepthTest();
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	void DisplayTexPass::setInputTexture(Texture * input)
@@ -490,7 +494,8 @@ namespace nex
 
 		//GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		static auto* renderBackend = RenderBackend::get();
-		renderBackend->drawArray(Topology::TRIANGLES, 0, 3);
+		RenderState state = RenderState::createNoDepthTest();
+		renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3);
 	}
 
 	void HbaoPass::setHbaoData(const HBAOData& hbao)

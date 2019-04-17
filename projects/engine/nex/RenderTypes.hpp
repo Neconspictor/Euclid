@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/texture/RenderTarget.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
 
 namespace nex
 {
@@ -81,5 +81,29 @@ namespace nex
 		//bool enableIndependentBlend = false; // not possible for opengl
 
 		BlendDesc globalBlendDesc;
+	};
+
+	struct RenderState
+	{
+		bool doDepthTest = true;
+		bool doDepthWrite = true;
+		CompareFunction depthCompare = CompareFunction::LESS;
+		bool doCullFaces = true;
+		PolygonSide cullSide = PolygonSide::BACK;
+		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
+		bool doBlend = false;
+		BlendDesc blendDesc = { BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+
+		bool doShadowCast = true;
+		bool doShadowReceive = true;
+		FillMode fillMode = FillMode::FILL;
+
+		static RenderState createNoDepthTest()
+		{
+			RenderState state;
+			state.doDepthTest = false;
+			state.doDepthWrite = false;
+			return state;
+		}
 	};
 }

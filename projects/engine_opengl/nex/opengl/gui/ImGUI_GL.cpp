@@ -157,17 +157,24 @@ namespace nex::gui
 		draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
 		// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
-		blender->enableBlend(true);
+		//blender->enableBlend(true);
 		BlendDesc desc;
 		desc.operation = BlendOperation::ADD;
 		desc.source = BlendFunc::SOURCE_ALPHA;
 		desc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
-		blender->setBlendDesc(desc);
+		//blender->setBlendDesc(desc);
 		
-		rasterizer->enableFaceCulling(false);
-		depthTest->enableDepthTest(false);
+		//rasterizer->enableFaceCulling(false);
+		//depthTest->enableDepthTest(false);
 		rasterizer->enableScissorTest(true);
-		rasterizer->setFillMode(FillMode::FILL, PolygonSide::FRONT_BACK);
+		//rasterizer->setFillMode(FillMode::FILL);
+
+		RenderState state;
+		state.doDepthTest = false;
+		state.doCullFaces = false;
+		state.fillMode = FillMode::FILL;
+		state.blendDesc = desc;
+		state.doBlend = true;
 		
 
 		// Setup viewport, orthographic projection matrix
@@ -215,7 +222,7 @@ namespace nex::gui
 					auto* texture = (Texture2D*)pcmd->TextureId;
 					mShader->setTexture(texture);
 					backend->setScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-					backend->drawWithIndices(Topology::TRIANGLES, pcmd->ElemCount, mIndices->getType(), idx_buffer_offset);
+					backend->drawWithIndices(state, Topology::TRIANGLES, pcmd->ElemCount, mIndices->getType(), idx_buffer_offset);
 				}
 				idx_buffer_offset += pcmd->ElemCount * sizeof(ImDrawIdx);
 			}

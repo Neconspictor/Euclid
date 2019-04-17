@@ -75,17 +75,17 @@ void Material::set(UniformLocation loc, unsigned value)
 	mUints[loc] = value;
 }
 
-void Material::set(UniformLocation loc, const glm::u32vec2& value)
+void Material::set(UniformLocation loc, const glm::uvec2& value)
 {
 	mUVec2s[loc] = value;
 }
 
-void Material::set(UniformLocation loc, const glm::u32vec3& value)
+void Material::set(UniformLocation loc, const glm::uvec3& value)
 {
 	mUVec3s[loc] = value;
 }
 
-void Material::set(UniformLocation loc, const glm::u32vec4& value)
+void Material::set(UniformLocation loc, const glm::uvec4& value)
 {
 	mUVec4s[loc] = value;
 }

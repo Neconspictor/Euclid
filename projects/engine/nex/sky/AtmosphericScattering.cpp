@@ -34,7 +34,8 @@ nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 void nex::AtmosphericScattering::renderSky()
 {
 	mFullscreenTriangleStrip->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
 void nex::AtmosphericScattering::setRayleigh(const Rayleigh& rayleigh)

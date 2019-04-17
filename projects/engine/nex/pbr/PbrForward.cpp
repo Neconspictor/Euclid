@@ -38,6 +38,9 @@ namespace nex {
 	{
 		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
 		setSelected(mForwardShader.get());
+		mForwardShader->setProbe(mProbe);
+		mForwardShader->setAmbientLight(mAmbientLight);
+		mForwardShader->setDirLight(mLight);
 	}
 
 	void PbrForward::configureSubMeshPass(Camera* camera)

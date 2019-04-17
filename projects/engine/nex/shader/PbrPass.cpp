@@ -262,10 +262,6 @@ void PbrForwardPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 	mGeometryPass.doModelMatrixUpdate(modelMatrix);
 }
 
-void PbrForwardPass::onMaterialUpdate(const Material* materialSource)
-{
-}
-
 void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
@@ -375,10 +371,6 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
 void PbrDeferredGeometryPass::onModelMatrixUpdate(const glm::mat4 & modelMatrix)
 {
 	mGeometryPass.doModelMatrixUpdate(modelMatrix);
-}
-
-void PbrDeferredGeometryPass::onMaterialUpdate(const Material* materialSource)
-{
 }
 
 void PbrDeferredGeometryPass::updateConstants(Camera* camera)

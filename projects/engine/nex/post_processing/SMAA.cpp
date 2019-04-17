@@ -222,7 +222,8 @@ nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
 	mEdgeDetectionShader->setColorTexGamma(colorTexGamma);
 
 	mFullscreenTriangle->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 
 	return mEdgesTex->getColor0AttachmentTexture();
 }
@@ -240,7 +241,8 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 	mBlendingWeightCalculationShader->setSearchTex(mSearchTex.get());
 
 	mFullscreenTriangle->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 
 	return mBlendTex->getColor0AttachmentTexture();
 }
@@ -257,7 +259,8 @@ void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* c
 	mNeighborhoodBlendingShader->setColorTex(colorTex);
 
 	mFullscreenTriangle->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 }
 
 

@@ -34,6 +34,8 @@ namespace nex {
 
 	Texture2D* GaussianBlur::blur(Texture2D* texture, RenderTarget2D* out, RenderTarget2D* cache)
 	{
+		RenderState state = RenderState::createNoDepthTest();
+
 		mSampler->bind(0);
 		cache->bind();
 		RenderBackend::get()->setViewPort(0, 0, cache->getWidth(), cache->getHeight());
@@ -44,7 +46,7 @@ namespace nex {
 		mHorizontalPass->setTexture(texture);
 		mHorizontalPass->setImageHeight((float)cache->getHeight());
 		mHorizontalPass->setImageWidth((float)cache->getWidth());
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mHorizontalPass.get());
+		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mHorizontalPass.get());
 
 		// vertical pass
 		out->bind();
@@ -54,7 +56,7 @@ namespace nex {
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
 		mVerticalPass->setImageHeight((float)out->getHeight());
 		mVerticalPass->setImageWidth((float)out->getWidth());
-		StaticMeshDrawer::draw(Sprite::getScreenSprite(), mVerticalPass.get());
+		StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mVerticalPass.get());
 
 		mSampler->unbind(0);
 

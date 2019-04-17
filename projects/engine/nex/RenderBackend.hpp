@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-//#include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/RenderTypes.hpp>
@@ -126,7 +125,7 @@ namespace nex
 
 	struct RasterizerState
 	{
-		std::map<PolygonSide, FillMode> fillModes;
+		FillMode fillMode;
 		PolygonSide cullMode = PolygonSide::BACK;
 		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
 		float depthBias = 0.0f;
@@ -144,7 +143,7 @@ namespace nex
 
 		RasterizerState()
 		{
-			fillModes[PolygonSide::FRONT_BACK] = FillMode::FILL;
+			fillMode = FillMode::FILL;
 		}
 	};
 
@@ -157,7 +156,7 @@ namespace nex
 	public:
 		Rasterizer();
 
-		void setFillMode(FillMode fillMode, PolygonSide faceSide);
+		void setFillMode(FillMode fillMode);
 		void setCullMode(PolygonSide faceSide);
 		void setWindingOrder(WindingOrder order);
 		void setDepthBias(float slopeScale, float unit, float clamp);
@@ -295,13 +294,13 @@ namespace nex
 		 * @param startingIndex Specifies the first vertex to use for drawing
 		 * @param indexCount Specifies the number of indices used to draw the primitives beginning from the starting index.
 		 */
-		static void drawArray(Topology primitiveType, unsigned startingIndex, unsigned indexCount);
+		void drawArray(const RenderState& state, Topology primitiveType, unsigned startingIndex, unsigned indexCount);
 
 		/**
 		 * This functions draws a mesh from the currently bound VertexArray object and the currently bound
 		 * IndexBuffer object.
 		 */
-		void drawWithIndices(Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset = 0);
+		void drawWithIndices(const RenderState& state, Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset = 0);
 
 		/**
 		* Finishes the current active scene and sends the resulting data to the GPU.
@@ -378,6 +377,8 @@ namespace nex
 		void setViewPort(int x, int y, int width, int height);
 
 	protected:
+
+		void setRenderState(const RenderState& state);
 
 		class Impl;
 		std::unique_ptr<Impl> mPimpl;

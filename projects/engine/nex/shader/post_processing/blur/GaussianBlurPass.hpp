@@ -6,7 +6,7 @@ namespace nex
 
 	class Sampler;
 
-	class GaussianBlurHorizontalShader : public TransformPass
+	class GaussianBlurHorizontalShader : public Pass
 	{
 	public:
 		GaussianBlurHorizontalShader();
@@ -20,8 +20,6 @@ namespace nex
 
 		void setMVP(const glm::mat4& mvp);
 
-
-		void onTransformUpdate(const TransformData& data) override;
 	protected:
 		UniformTex image;
 		Uniform transform;
@@ -29,7 +27,7 @@ namespace nex
 		Uniform windowHeight;
 	};
 
-	class GaussianBlurVerticalShader : public TransformPass
+	class GaussianBlurVerticalShader : public Pass
 	{
 	public:
 		GaussianBlurVerticalShader();
@@ -43,7 +41,6 @@ namespace nex
 
 		void setMVP(const glm::mat4& mvp);
 
-		void onTransformUpdate(const TransformData& data) override;
 	protected:
 		UniformTex image;
 		Uniform transform;

@@ -30,27 +30,6 @@ PbrProbe::PbrProbe(Texture* backgroundHDR) :
 	environmentMap.reset();
 }
 
-/*void PbrProbe::drawSky(const mat4& projection, const mat4& view)
-{
-	static auto* skyboxShader = RenderBackend::get()->getEffectLibrary()->getSkyBoxShader();
-
-	mat4 skyBoxView = mat4(mat3(view));
-
-	skyboxShader->bind();
-	skyboxShader->setupRenderState();
-	
-	skyboxShader->setView(skyBoxView);
-	skyboxShader->setProjection(projection);
-	skyboxShader->setMVP(projection * skyBoxView);
-	//skyboxShader->setSkyTexture(prefilterRenderTarget->getCubeMap());
-	skyboxShader->setSkyTexture(getEnvironmentMap());
-
-	StaticMeshDrawer::draw(skybox.getModel(), skyboxShader);
-
-	//TODO optimize out
-	skyboxShader->reverseRenderState();
-}*/
-
 CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
 {
 	return convolutedEnvironmentMap.get();
@@ -454,7 +433,8 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	mBrdfPrecomputePass->bind();
-	StaticMeshDrawer::draw(Sprite::getScreenSprite(), mBrdfPrecomputePass.get());
+	RenderState state = RenderState::createNoDepthTest();
+	StaticMeshDrawer::draw(state, Sprite::getScreenSprite(), mBrdfPrecomputePass.get());
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);

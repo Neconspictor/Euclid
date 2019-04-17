@@ -72,7 +72,8 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	static auto* vertexArray = StaticMeshManager::get()->getNDCFullscreenPlane();
 
 	vertexArray->bind();
-	RenderBackend::drawArray(Topology::TRIANGLE_STRIP, 0, 4);
+	RenderState state = RenderState::createNoDepthTest();
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 
 	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
 	//renderImage->generateMipMaps();
