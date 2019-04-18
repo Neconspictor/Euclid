@@ -27,7 +27,6 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
-#include <nex/sky/AtmosphericScattering.hpp>
 
 int ssaaSamples = 1;
 
@@ -174,7 +173,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(Camera* camera, DirectionalLight*
 
 		const auto& commands = mCommandQueue.getShadowCommands();
 
-		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
+		for (unsigned i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
 			for (const auto& command : commands)

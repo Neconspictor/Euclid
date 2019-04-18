@@ -185,7 +185,9 @@ void NeXEngine::run()
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->Projectional::update(true);
 
+			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene.getRoot());
+			commandQueue->sort();
 
 			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 			mControllerSM->getCurrentController()->getDrawable()->drawGUI();
@@ -216,8 +218,6 @@ void NeXEngine::setRunning(bool isRunning)
 
 void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, SceneNode* root)
 {
-	commandQueue->clear();
-
 	std::queue<SceneNode*> queue;
 	queue.emplace(root);
 
@@ -225,7 +225,7 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, SceneNod
 
 	while(!queue.empty())
 	{
-		auto* node = queue.front();
+		auto* node = queue.back();
 		queue.pop();
 
 		auto range = node->getChildren();
@@ -258,6 +258,7 @@ void NeXEngine::createScene()
 	meshContainer->addToNode(ground, &mScene);
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
+	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
 	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
 	root->updateWorldTrafoHierarchy();

@@ -34,6 +34,9 @@ namespace nex
 
 		bool isOutsideFrustum(const RenderCommand& command) const;
 
+		static bool defaultCompare(const RenderCommand& a, const RenderCommand& b);
+		bool transparentCompare(const RenderCommand& a, const RenderCommand& b);
+
 		std::vector<RenderCommand> mDeferredCommands;
 		std::vector<RenderCommand> mForwardCommands;
 		std::vector<RenderCommand> mShadowCommands;
