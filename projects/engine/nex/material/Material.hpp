@@ -1,7 +1,7 @@
 #pragma once
 #include "nex/util/StringUtils.hpp"
 #include <nex/shader/ShaderType.hpp>
-#include <nex/RenderTypes.hpp>
+#include <nex/renderer/RenderTypes.hpp>
 
 namespace nex
 {

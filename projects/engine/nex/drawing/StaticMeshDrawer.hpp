@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/shader/Pass.hpp>
+#include "nex/renderer/RenderCommand.hpp"
 
 namespace nex
 {
@@ -37,9 +38,9 @@ namespace nex
 		using MeshRenderCallback = void(const nex::Mesh* mesh, const RenderContext* context);
 
 		/**
-		 * Draws this scene node and all its children using a specific pass.
+		 * Draws a list of render commands with a specific transform pass and an optional render state (overwrites the render state of the mesh materials);
 		 */
-		static void draw(SceneNode* root, nex::TransformPass* pass, const RenderState* overwriteState = nullptr);
+		static void draw(const std::vector<RenderCommand>& commands, nex::TransformPass* pass, const RenderState* overwriteState = nullptr);
 
 		/**
 		 * Draws a sprite onto the screen

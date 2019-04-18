@@ -6,8 +6,8 @@
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/texture/GBuffer.hpp>
 #include <nex/post_processing/blur/GaussianBlur.hpp>
-#include <nex/Renderer.hpp>
 #include "nex/shader/Technique.hpp"
+#include "nex/renderer/RenderCommandQueue.hpp"
 
 namespace nex
 {
@@ -20,7 +20,7 @@ namespace nex
 	class PbrForward;
 	class Pbr;
 
-	class PBR_Deferred_Renderer : public Renderer
+	class PBR_Deferred_Renderer
 	{
 	public:
 		typedef unsigned int uint;
@@ -32,8 +32,10 @@ namespace nex
 			Input* input);
 
 		bool getShowDepthMap() const;
+		RenderCommandQueue* getCommandQueue();
+
 		void init(int windowWidth, int windowHeight);
-		void render(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight) override;
+		void render(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(unsigned width, unsigned height);
 
@@ -41,9 +43,9 @@ namespace nex
 
 	private:
 
-		void renderShadows(SceneNode* scene, Camera* camera, DirectionalLight* sun, Texture2D* depth);
-		void renderDeferred(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderForward(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderShadows(Camera* camera, DirectionalLight* sun, Texture2D* depth);
+		void renderDeferred(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderForward(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
 		void renderSky(Camera* camera, DirectionalLight* sun, unsigned width, unsigned height);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
@@ -66,6 +68,8 @@ namespace nex
 		PbrDeferred* mPbrDeferred;
 		PbrForward* mPbrForward;
 		CascadedShadow* mCascadedShadow;
+		RenderBackend* mRenderBackend;
+		RenderCommandQueue mCommandQueue;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

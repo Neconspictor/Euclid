@@ -2,7 +2,7 @@
 #include <memory>
 #include <nex/texture/Texture.hpp>
 #include <nex/texture/RenderTarget.hpp>
-#include <nex/RenderTypes.hpp>
+#include <nex/renderer/RenderTypes.hpp>
 #include <nex/mesh/MeshTypes.hpp>
 
 namespace nex

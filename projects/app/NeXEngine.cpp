@@ -16,7 +16,7 @@
 #include <Globals.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
-#include "nex/RenderBackend.hpp"
+#include "nex/renderer/RenderBackend.hpp"
 #include "nex/mesh/Vob.hpp"
 #include "nex/material/Material.hpp"
 #include "nex/pbr/Pbr.hpp"
@@ -28,6 +28,9 @@
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/shadow/SceneNearFarComputePass.hpp>
+#include <nex/sky/AtmosphericScattering.hpp>
+#include <queue>
+#include <nex/Scene.hpp>
 
 using namespace nex;
 
@@ -172,6 +175,9 @@ void NeXEngine::run()
 
 		updateWindowTitle(frameTime, fps);
 
+		auto* commandQueue = mRenderer->getCommandQueue();
+		commandQueue->setCamera(mCamera.get());
+
 		if (isRunning())
 		{
 
@@ -179,7 +185,9 @@ void NeXEngine::run()
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->Projectional::update(true);
 
-			mRenderer->render(mScene.getRoot(), mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+			collectRenderCommands(commandQueue, mScene.getRoot());
+
+			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 			mControllerSM->getCurrentController()->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -206,6 +214,39 @@ void NeXEngine::setRunning(bool isRunning)
 	mIsRunning = isRunning;
 }
 
+void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, SceneNode* root)
+{
+	commandQueue->clear();
+
+	std::queue<SceneNode*> queue;
+	queue.emplace(root);
+
+	RenderCommand command;
+
+	while(!queue.empty())
+	{
+		auto* node = queue.front();
+		queue.pop();
+
+		auto range = node->getChildren();
+
+		for (auto it = range.begin; it != range.end; ++it)
+		{
+			queue.emplace(*it);
+		}
+
+		auto* mesh = node->getMesh();
+		if (mesh != nullptr)
+		{
+			command.mesh = mesh;
+			command.material = node->getMaterial();
+			command.worldTrafo = node->getWorldTrafo();
+			// TODO min and max AABB positions!
+			commandQueue->push(command, true);
+		}
+	}
+}
+
 void NeXEngine::createScene()
 {
 	mScene.clear();
@@ -217,7 +258,7 @@ void NeXEngine::createScene()
 	meshContainer->addToNode(ground, &mScene);
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
-	//meshContainer->getMaterials()[0]->getRenderState().doCullFaces = false;
+	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
 	root->updateWorldTrafoHierarchy();
 

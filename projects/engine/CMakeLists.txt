@@ -6,11 +6,6 @@ set(
     nex/EffectLibrary.cpp
     nex/EffectLibrary.hpp
     
-    nex/RenderBackend.hpp
-    nex/Renderer.hpp
-    nex/Renderer.cpp
-    nex/RenderTypes.hpp
-    
     nex/Scene.cpp
     nex/Scene.hpp
 	
@@ -190,6 +185,15 @@ set(
 	nex/post_processing/blur/GaussianBlur.cpp
     nex/post_processing/blur/GaussianBlurPass.hpp
 	nex/post_processing/blur/GaussianBlurPass.cpp
+    
+    #nex/renderer
+    nex/renderer/RenderBackend.hpp
+    nex/renderer/RenderCommand.hpp
+    nex/renderer/RenderCommandQueue.cpp
+    nex/renderer/RenderCommandQueue.hpp
+    nex/renderer/Renderer.cpp
+    nex/renderer/Renderer.hpp
+    nex/renderer/RenderTypes.hpp
     
     
     #nex/shader

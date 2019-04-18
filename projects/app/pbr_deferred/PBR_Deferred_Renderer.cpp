@@ -12,7 +12,7 @@
 #include <nex/texture/GBuffer.hpp>
 #include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include "nex/RenderBackend.hpp"
+#include "nex/renderer/RenderBackend.hpp"
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/gtx/string_cast.hpp>
 
@@ -27,7 +27,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
-#include <nex/Scene.hpp>
+#include <nex/sky/AtmosphericScattering.hpp>
 
 int ssaaSamples = 1;
 
@@ -41,7 +41,6 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	CascadedShadow* cascadedShadow,
 	nex::Input* input) :
 
-	Renderer(backend),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
 	mRenderTargetSingleSampled(nullptr),
@@ -51,7 +50,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mPbrDeferred(pbrDeferred),
 	mPbrForward(pbrForward), 
-	mCascadedShadow(cascadedShadow)
+	mCascadedShadow(cascadedShadow),
+	mRenderBackend(backend)
 {
 	assert(mPbrDeferred != nullptr);
 	assert(mPbrForward != nullptr);
@@ -65,6 +65,11 @@ bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
 	return mShowDepthMap;
 }
 
+nex::RenderCommandQueue* nex::PBR_Deferred_Renderer::getCommandQueue()
+{
+	return &mCommandQueue;
+}
+
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
@@ -74,14 +79,14 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
 	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
 
-	auto* effectLib = m_renderBackend->getEffectLibrary();
+	auto* effectLib = mRenderBackend->getEffectLibrary();
 	//auto* equirectangularSkyBoxShader = effectLib->getEquirectangularSkyBoxShader();
 	//auto* panoramaSkyBoxShader = effectLib->getPanoramaSkyBoxShader();
 	//auto* skyboxShader = effectLib->getSkyBoxShader();
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
 	mRenderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
-	mPingPong = m_renderBackend->createRenderTarget();
+	mPingPong = mRenderBackend->createRenderTarget();
 
 	//panoramaSkyBoxShader->bind();
 	//panoramaSkyBoxShader->setSkyTexture(panoramaSky);
@@ -90,22 +95,22 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
 
 
-	blurEffect = m_renderBackend->getEffectLibrary()->getGaussianBlur();
+	blurEffect = mRenderBackend->getEffectLibrary()->getGaussianBlur();
 
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	
 	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
 
-	m_renderBackend->getRasterizer()->enableScissorTest(false);
+	mRenderBackend->getRasterizer()->enableScissorTest(false);
 
-	auto* mAoSelector = m_renderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
+	auto* mAoSelector = mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 	mAoSelector->setUseAmbientOcclusion(true);
 	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
 }
 
 
-void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
+void nex::PBR_Deferred_Renderer::render(nex::Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
 {
 
 	/*FPCamera* fp = (FPCamera*)camera;
@@ -124,11 +129,11 @@ void nex::PBR_Deferred_Renderer::render(nex::SceneNode* scene, nex::Camera* came
 
 	if (switcher)
 	{
-		renderDeferred(scene, camera, sun, frameTime, windowWidth, windowHeight);
+		renderDeferred(camera, sun, frameTime, windowWidth, windowHeight);
 	}
 	else
 	{
-		renderForward(scene, camera, sun, frameTime, windowWidth, windowHeight);
+		renderForward(camera, sun, frameTime, windowWidth, windowHeight);
 	}
 
 
@@ -145,20 +150,20 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
-	m_renderBackend->resize(width, height);
+	mRenderBackend->resize(width, height);
 	mRenderTargetSingleSampled = createLightingTarget(width, height);
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(width, height);
 	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
 
-	mPingPong = m_renderBackend->createRenderTarget();
+	mPingPong = mRenderBackend->createRenderTarget();
 }
 
 nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
 {
-	return m_renderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
+	return mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
-void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera, DirectionalLight* sun, Texture2D* depth)
+void nex::PBR_Deferred_Renderer::renderShadows(Camera* camera, DirectionalLight* sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
@@ -166,35 +171,25 @@ void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera,
 		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
 		TransformPass* depthPass = mCascadedShadow->getDepthPass();
 		depthPass->updateConstants(camera);
-		
 
-		static std::function<void(SceneNode*, TransformPass*)> draw = [](SceneNode* node, TransformPass* depthPass)
-		{
-			auto range = node->getChildren();
-			for (auto it = range.begin; it != range.end; ++it)
-				draw(*it, depthPass);
-
-			if (!node->getMesh()) return;
-			auto* material = node->getMaterial();
-			const auto& state = material->getRenderState();
-			if (!state.doShadowCast) return;
-
-			depthPass->setModelMatrix(node->getWorldTrafo());
-			depthPass->uploadTransformMatrices();
-			StaticMeshDrawer::draw(node->getMesh(), material, depthPass);
-		};
+		const auto& commands = mCommandQueue.getShadowCommands();
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
-			draw(scene, depthPass);
+			for (const auto& command : commands)
+			{
+				depthPass->setModelMatrix(command.worldTrafo);
+				depthPass->uploadTransformMatrices();
+				StaticMeshDrawer::draw(command.mesh, command.material, depthPass);
+			}
 		}
 
 		mCascadedShadow->frameReset();
 	}
 }
 
-void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderDeferred(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -206,7 +201,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	mPbrMrt->bind();
 
 
-	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	//renderer->beginScene();
 
 	mPbrMrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
@@ -221,7 +216,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	RenderState state;
 	//state.doCullFaces = false;
 	//state.fillMode = FillMode::LINE;
-	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass());
+	StaticMeshDrawer::draw(mCommandQueue.getDeferredCommands(), mPbrDeferred->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
@@ -229,12 +224,12 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
 
-	renderShadows(scene, camera, sun, mPbrMrt->getNormalizedViewSpaceZ());
+	renderShadows(camera, sun, mPbrMrt->getNormalizedViewSpaceZ());
 
 
 	// render scene to a offscreen buffer
 	mRenderTargetSingleSampled->bind();
-	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
@@ -254,7 +249,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	auto* luminanceTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(1));
 
 
-	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
@@ -272,7 +267,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderForward(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
@@ -289,13 +284,13 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 
 	// Update CSM if it is enabled
-	renderShadows(scene, camera, sun, nullptr);
+	renderShadows(camera, sun, nullptr);
 
 
 	// render scene to a offscreen buffer
 	mRenderTargetSingleSampled->bind();
 
-	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
@@ -305,13 +300,14 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 
 	mPbrForward->configureSubMeshPass(camera);
 	mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
-	StaticMeshDrawer::draw(scene, mPbrForward->getActiveSubMeshPass());
+	StaticMeshDrawer::draw(mCommandQueue.getDeferredCommands(), mPbrForward->getActiveSubMeshPass()); //TODO
+	StaticMeshDrawer::draw(mCommandQueue.getForwardCommands(), mPbrForward->getActiveSubMeshPass()); //TODO
 
 	stencilTest->enableStencilTest(false);
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
 
 
-	m_renderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 	mRenderTargetSingleSampled->bind();
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
@@ -327,7 +323,7 @@ void nex::PBR_Deferred_Renderer::renderForward(SceneNode* scene, Camera* camera,
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
-	RenderTarget2D* screenRenderTarget = m_renderBackend->getDefaultRenderTarget();
+	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
 	postProcessor->antialias(postProcessed, screenRenderTarget);

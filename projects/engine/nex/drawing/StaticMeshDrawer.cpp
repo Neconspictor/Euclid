@@ -1,20 +1,17 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/Scene.hpp>
-#include <nex/RenderBackend.hpp>
+#include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
 
-void nex::StaticMeshDrawer::draw(SceneNode* node, TransformPass* shader, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformPass* shader, const RenderState* overwriteState)
 {
-	auto range = node->getChildren();
-	for (auto it = range.begin; it != range.end; ++it)
-		draw(*it, shader, overwriteState);
-
-	if (!node->getMesh()) return;
-
-	shader->setModelMatrix(node->getWorldTrafo());
-	shader->uploadTransformMatrices();
-	draw(node->getMesh(), node->getMaterial(), shader, overwriteState);
+	for (const auto& command : commands)
+	{
+		shader->setModelMatrix(command.worldTrafo);
+		shader->uploadTransformMatrices();
+		StaticMeshDrawer::draw(command.mesh, command.material, shader, overwriteState);
+	}
 }
 
 /*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformPass* shader)
