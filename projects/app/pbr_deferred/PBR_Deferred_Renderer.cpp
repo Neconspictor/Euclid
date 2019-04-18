@@ -27,6 +27,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
+#include <nex/Scene.hpp>
 
 int ssaaSamples = 1;
 
@@ -163,12 +164,30 @@ void nex::PBR_Deferred_Renderer::renderShadows(SceneNode* scene, Camera* camera,
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
 		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
-		mCascadedShadow->getDepthPass()->updateConstants(camera);
+		TransformPass* depthPass = mCascadedShadow->getDepthPass();
+		depthPass->updateConstants(camera);
+		
+
+		static std::function<void(SceneNode*, TransformPass*)> draw = [](SceneNode* node, TransformPass* depthPass)
+		{
+			auto range = node->getChildren();
+			for (auto it = range.begin; it != range.end; ++it)
+				draw(*it, depthPass);
+
+			if (!node->getMesh()) return;
+			auto* material = node->getMaterial();
+			const auto& state = material->getRenderState();
+			if (!state.doShadowCast) return;
+
+			depthPass->setModelMatrix(node->getWorldTrafo());
+			depthPass->uploadTransformMatrices();
+			StaticMeshDrawer::draw(node->getMesh(), material, depthPass);
+		};
 
 		for (int i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
-			StaticMeshDrawer::draw(scene, mCascadedShadow->getDepthPass());
+			draw(scene, depthPass);
 		}
 
 		mCascadedShadow->frameReset();
@@ -200,9 +219,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(SceneNode* scene, Camera* camera
 	mPbrDeferred->configureSubMeshPass(camera);
 	mPbrDeferred->getActiveSubMeshPass()->updateConstants(camera);
 	RenderState state;
-	state.doCullFaces = false;
+	//state.doCullFaces = false;
 	//state.fillMode = FillMode::LINE;
-	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass(), &state);
+	StaticMeshDrawer::draw(scene, mPbrDeferred->getActiveSubMeshPass());
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
