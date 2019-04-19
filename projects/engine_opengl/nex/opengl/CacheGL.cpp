@@ -19,9 +19,9 @@ void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer)
 	}
 }
 
-void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer)
+void nex::GlobalCacheGL::BindFramebuffer(GLuint framebuffer, bool rebind)
 {
-	if (mActiveDrawFrameBuffer != framebuffer || mActiveReadFrameBuffer != framebuffer)
+	if (mActiveDrawFrameBuffer != framebuffer || mActiveReadFrameBuffer != framebuffer || rebind)
 	{
 		mActiveDrawFrameBuffer = framebuffer;
 		mActiveReadFrameBuffer = framebuffer;

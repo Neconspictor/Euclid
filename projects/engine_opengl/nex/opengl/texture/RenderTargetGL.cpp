@@ -486,7 +486,7 @@ void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
 	auto readBuffer = cache->getActiveReadFrameBuffer();
 	auto drawBuffer = cache->getActiveDrawFrameBuffer();
 
-	cache->BindFramebuffer(frameBufferID);
+	cache->BindFramebuffer(frameBufferID, true);
 	
 	cache->BindDrawFramebuffer(drawBuffer);
 	cache->BindReadFramebuffer(readBuffer);

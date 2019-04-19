@@ -85,7 +85,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 				sample_meshes::skyBoxIndices, (int)indexCount);
 
 			auto model = std::make_unique<StaticMeshContainer>();
-			model->add(std::move(mesh), nullptr);
+			model->add(std::move(mesh), std::make_unique<Material>(nullptr));
 
 			models.push_back(move(model));
 			StaticMeshContainer* result = models.back().get();

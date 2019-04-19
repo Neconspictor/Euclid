@@ -20,7 +20,11 @@ namespace nex
 	{
 	public:
 		void BindDrawFramebuffer(GLuint framebuffer);
-		void BindFramebuffer(GLuint framebuffer);
+
+		/**
+		 * @param rebind: binds the framebuffer always and ignores cached values
+		 */
+		void BindFramebuffer(GLuint framebuffer, bool rebind = false);
 		void BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
 		void BindReadFramebuffer(GLuint framebuffer);
 		void BindTextureUnit(GLuint unit, GLuint texture);

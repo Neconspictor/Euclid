@@ -6,6 +6,9 @@ namespace nex
 {
 	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
+		assert(mesh != nullptr);
+		assert(material != nullptr);
+
 		mMeshes.emplace_back(std::move(mesh));
 		mMaterials.emplace_back(std::move(material));
 
