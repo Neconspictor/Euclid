@@ -34,6 +34,8 @@ namespace nex
 			node->setMaterial(material);
 			parent->addChild(node);
 		}
+
+		return parent;
 	}
 
 
