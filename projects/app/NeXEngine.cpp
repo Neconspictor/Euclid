@@ -186,7 +186,7 @@ void NeXEngine::run()
 			mCamera->Projectional::update(true);
 
 			commandQueue->clear();
-			collectRenderCommands(commandQueue, mScene.getRoot());
+			collectRenderCommands(commandQueue, mScene);
 			commandQueue->sort();
 
 			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
@@ -216,33 +216,37 @@ void NeXEngine::setRunning(bool isRunning)
 	mIsRunning = isRunning;
 }
 
-void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, SceneNode* root)
+void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Scene& scene)
 {
 	std::queue<SceneNode*> queue;
-	queue.emplace(root);
-
 	RenderCommand command;
 
-	while(!queue.empty())
+
+	for (const auto& root : scene.getRoots())
 	{
-		auto* node = queue.back();
-		queue.pop();
+		queue.emplace(root);
 
-		auto range = node->getChildren();
-
-		for (auto it = range.begin; it != range.end; ++it)
+		while (!queue.empty())
 		{
-			queue.emplace(*it);
-		}
+			auto* node = queue.back();
+			queue.pop();
 
-		auto* mesh = node->getMesh();
-		if (mesh != nullptr)
-		{
-			command.mesh = mesh;
-			command.material = node->getMaterial();
-			command.worldTrafo = node->getWorldTrafo();
-			// TODO min and max AABB positions!
-			commandQueue->push(command, true);
+			auto range = node->getChildren();
+
+			for (auto it = range.begin; it != range.end; ++it)
+			{
+				queue.emplace(*it);
+			}
+
+			auto* mesh = node->getMesh();
+			if (mesh != nullptr)
+			{
+				command.mesh = mesh;
+				command.material = node->getMaterial();
+				command.worldTrafo = node->getWorldTrafo();
+				// TODO min and max AABB positions!
+				commandQueue->push(command, true);
+			}
 		}
 	}
 }
@@ -250,18 +254,16 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, SceneNod
 void NeXEngine::createScene()
 {
 	mScene.clear();
-	auto* root = mScene.getRoot();
 
-	auto* ground = mScene.createNode(root);
-	ground->setPositionLocal({ 10, 0, 0 });
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj", MaterialType::Pbr);
-	meshContainer->addToNode(ground, &mScene);
+	auto* ground = meshContainer->createNodeHierarchy(&mScene);
+	ground->setPositionLocal({ 10, 0, 0 });
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
 	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
-	root->updateWorldTrafoHierarchy();
+	mScene.updateWorldTrafoHierarchy();
 
 	/*m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();

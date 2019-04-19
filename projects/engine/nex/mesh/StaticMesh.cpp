@@ -17,10 +17,14 @@ namespace nex
 		mMappings[pMesh] = pMaterial;
 	}
 
-	void StaticMeshContainer::addToNode(SceneNode* parent, Scene* scene)
+	SceneNode* StaticMeshContainer::createNodeHierarchy(Scene* scene, SceneNode* parent)
 	{
-		assert(parent != nullptr);
 		assert(scene != nullptr);
+
+		if (!parent) {
+			parent = scene->createNode();
+			scene->addRoot(parent);
+		}
 
 		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)
 		{

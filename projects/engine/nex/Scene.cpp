@@ -37,6 +37,11 @@ namespace nex
 		return mMaterial;
 	}
 
+	SceneNode* SceneNode::getParent()
+	{
+		return mParent;
+	}
+
 	const glm::mat4& SceneNode::getLocalTrafo() const
 	{
 		return mLocalTrafo;
@@ -127,9 +132,16 @@ namespace nex
 		}
 	}
 
-	Scene::Scene() : mRoot(std::make_unique<SceneNode>())
+	Scene::Scene()
 	{
 	}
+
+	void Scene::addRoot(SceneNode* node)
+	{
+		assert(node->getParent() == nullptr);
+		mRoots.emplace_back(node);
+	}
+
 
 	SceneNode* Scene::createNode(SceneNode* parent)
 	{
@@ -141,14 +153,20 @@ namespace nex
 		return node;
 	}
 
-	SceneNode* Scene::getRoot() const
-	{
-		return mRoot.get();
-	}
-
 	void Scene::clear()
 	{
-		mRoot->clear();
+		mRoots.clear();
 		mNodes.clear();
+	}
+
+	void Scene::updateWorldTrafoHierarchy()
+	{
+		for (auto& root : mRoots)
+			root->updateWorldTrafoHierarchy();
+	}
+
+	const std::vector<SceneNode*> Scene::getRoots() const
+	{
+		return mRoots;
 	}
 }

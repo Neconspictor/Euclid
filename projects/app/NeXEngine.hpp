@@ -34,7 +34,7 @@ namespace nex
 
 	protected:
 
-		void collectRenderCommands(RenderCommandQueue* queue, SceneNode* root);
+		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
 		void createScene();
 		Window* createWindow();
 		void initLights();

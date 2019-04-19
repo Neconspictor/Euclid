@@ -31,6 +31,7 @@ namespace nex
 		Children getChildren() const;
 		Mesh* getMesh() const;
 		Material* getMaterial() const;
+		SceneNode* getParent();
 
 		const glm::mat4& getLocalTrafo() const;
 		const glm::mat4& getWorldTrafo() const;
@@ -60,6 +61,7 @@ namespace nex
 
 	/**
 	 * A scene manages the creation and lifetime of scene nodes.
+	 * A scene is a list of trees;
 	 */
 	class Scene
 	{
@@ -71,22 +73,29 @@ namespace nex
 		Scene();
 
 		/**
-		 * Creates a new node. the node is valid until the function clear is called or the scene object is destroyed.
+		 * Creates a new node.
 		 */
 		SceneNode* createNode(SceneNode* parent = nullptr);
 
 		/**
-		 * Provides the root node.
+		 * Adds a root node.
+		 * Note: The node is expected to have no parent node. An assertion error is thrown in debug mode otherwise.
 		 */
-		SceneNode* getRoot() const;
+		void addRoot(SceneNode* node);
+
+		/**
+		 * Provides the list of root nodes.
+		 */
+		const std::vector<SceneNode*> getRoots() const;
 
 		/**
 		 * Deletes all nodes except the root node.
 		 */
 		void clear();
+		void updateWorldTrafoHierarchy();
 
 	private:
-		std::unique_ptr<SceneNode> mRoot;
+		std::vector<SceneNode*> mRoots;
 		std::vector<std::unique_ptr<SceneNode>> mNodes;
 	};
 }
