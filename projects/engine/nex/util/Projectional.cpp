@@ -9,152 +9,99 @@ using namespace glm;
 
 namespace nex
 {
-
-	Projectional::Projectional(float aspectRatio, float fov, float perspNear, float perspFar, Frustum frustum,
-		vec3 look, vec3 position, vec3 up) : aspectRatio(aspectRatio), fov(fov),
-		m_logger("Projectional"), look(look), orthoFrustum(frustum), mCurrentPosition(position), mTargetPosition(position),
-		revalidate(true), up(up)
+	PerspectiveCamera::PerspectiveCamera(float aspectRatio, float fovY, float nearDistance, float farDistance,
+		PULCoordinateSystem coordinateSystem) : mAspectRatio(aspectRatio), mFovY(fovY),
+		mCoordSystem(std::move(coordinateSystem)), mLogger("PerspectiveProjectional"), mTargetPosition(mCoordSystem.position),
+		mRevalidate(true), mFarDistance(farDistance), mNearDistance(nearDistance)
 	{
-		perspFrustum.nearPlane = perspNear;
-		perspFrustum.farPlane = perspFar;
+		setLook(mCoordSystem.look);
+		setUp(mCoordSystem.up);
+		update(true);
 	}
 
-	void Projectional::calcView()
+	void PerspectiveCamera::calcView()
 	{
-		view = glm::lookAt(
-			mCurrentPosition,
-			mCurrentPosition + look,
-			up
+		mView = glm::lookAt(
+			mCoordSystem.position,
+			mCoordSystem.position + mCoordSystem.look,
+			mCoordSystem.up
 		);
 	}
 
-	float Projectional::getAspectRatio() const
+	float PerspectiveCamera::getAspectRatio() const
 	{
-		return aspectRatio;
+		return mAspectRatio;
 	}
 
-	const vec3& Projectional::getLook() const
+	float PerspectiveCamera::getFarDistance() const
 	{
-		return look;
+		return mFarDistance;
 	}
 
-	float Projectional::getFOV() const
+	float PerspectiveCamera::getNearDistance() const
 	{
-		return fov;
+		return mNearDistance;
 	}
 
-	const Frustum& Projectional::getFrustum(ProjectionMode mode)
+	const glm::vec3& PerspectiveCamera::getLook() const
 	{
-		//update();
-		if (mode == Orthographic)
-			return orthoFrustum;
-		else
-			return perspFrustum;
+		return mCoordSystem.look;
 	}
 
-	FrustumCuboid Projectional::getFrustumCuboid(ProjectionMode mode, float zStart, float zEnd)
+	float PerspectiveCamera::getFovY() const
 	{
-		assert(isInRange(zStart, 0.0f, 1.0f));
-		assert(isInRange(zEnd, 0.0f, 1.0f));
-
-		FrustumCuboid cube;
-		cube.m_near = getFrustumPlane(mode, zStart);
-		cube.m_far = getFrustumPlane(mode, zEnd);
-
-		return move(cube);
+		return mFovY;
 	}
 
-	FrustumPlane Projectional::getFrustumPlane(ProjectionMode mode, float zValue)
+	const Frustum& PerspectiveCamera::getFrustum()
 	{
-		//update();
-		FrustumPlane result;
-		float l, r, t, b, n, f, z;
-
-#ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
-		zValue *= -1; // the z-axis is inverted on right handed systems
-#endif
-
-		switch (mode)
-		{
-		case Orthographic: {
-			l = orthoFrustum.left;
-			r = orthoFrustum.right;
-			t = orthoFrustum.top;
-			b = orthoFrustum.bottom;
-			n = orthoFrustum.nearPlane;
-			f = orthoFrustum.farPlane;
-			z = zValue * (f - n) + n;
-			break;
-		}
-		case Perspective: {
-			n = perspFrustum.nearPlane;
-			f = perspFrustum.farPlane;
-			z = zValue * (f - n) + n;
-			l = perspFrustum.left * z;
-			r = perspFrustum.right * z;
-			t = perspFrustum.top * z;
-			b = perspFrustum.bottom * z;
-			break;
-		}
-		default: throw_with_trace(runtime_error("Projectional::getFrustumPlane(): Unknown projection mode: " + to_string(mode)));
-		}
-
-		result.leftBottom = { l,b,z };
-		result.leftTop = { l,t,z };
-		result.rightBottom = { r,b,z };
-		result.rightTop = { r,t,z };
-
-		return move(result);
+		return mFrustum;
 	}
 
-	const mat4& Projectional::getOrthoProjection()
+	Frustum PerspectiveCamera::calcFrustumWorld() const
 	{
-		update();
-		return orthographic;
+		Frustum f = mFrustum;
+		const auto inverseView = inverse(mView);
+
+		f.farLeftBottom = glm::vec3(inverseView * glm::vec4(f.farLeftBottom, 1.0f));
+		f.farLeftTop = glm::vec3(inverseView * glm::vec4(f.farLeftTop, 1.0f));
+		f.farRightBottom = glm::vec3(inverseView * glm::vec4(f.farRightBottom, 1.0f));
+		f.farRightTop = glm::vec3(inverseView * glm::vec4(f.farRightTop, 1.0f));
+
+		f.nearLeftBottom = glm::vec3(inverseView * glm::vec4(f.nearLeftBottom, 1.0f));
+		f.nearLeftTop = glm::vec3(inverseView * glm::vec4(f.nearLeftTop, 1.0f));
+		f.nearRightBottom = glm::vec3(inverseView * glm::vec4(f.nearRightBottom, 1.0f));
+		f.nearRightTop = glm::vec3(inverseView * glm::vec4(f.nearRightTop, 1.0f));
+
+		return f;
 	}
 
-	const mat4& Projectional::getPerspProjection()
+	const glm::mat4& PerspectiveCamera::getProjectionMatrix() const
 	{
-		update();
-		return perspective;
+		return mProjection;
 	}
 
-	const mat4& Projectional::getProjection(ProjectionMode mode)
+	const glm::vec3& PerspectiveCamera::getPosition() const
 	{
-		switch (mode)
-		{
-		case ProjectionMode::Orthographic: return getOrthoProjection();
-		case ProjectionMode::Perspective: return getPerspProjection();
-		default:
-			throw_with_trace(runtime_error("Projectional::getProjection: Unknown projection mode: " + to_string(mode)));
-		}
-
-		// won't be reached
-		return getPerspProjection();
+		return mCoordSystem.position;
 	}
 
-	const vec3& Projectional::getPosition() const
+	const glm::vec3& PerspectiveCamera::getRight() const
 	{
-		return mCurrentPosition;
+		return mRight;
 	}
 
-	const glm::vec3& Projectional::getRight() const
+	const glm::vec3& PerspectiveCamera::getUp() const
 	{
-		return right;
+		return mCoordSystem.up;
 	}
 
-	const vec3& Projectional::getUp() const
+	const glm::mat4& PerspectiveCamera::getView() const
 	{
-		return up;
+		return mView;
 	}
 
-	const mat4& Projectional::getView()
-	{
-		update();
-		return view;
-	}
-
-	float Projectional::getViewSpaceZfromPlaneDistance(float distance)
+	float PerspectiveCamera::getViewSpaceZfromDistance(float distance)
 	{
 #ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
 		distance *= -1; // the z-axis is inverted on right handed systems
@@ -162,112 +109,118 @@ namespace nex
 		return distance;
 	}
 
-	glm::vec2 nex::Projectional::getNearFarPlaneViewSpace(ProjectionMode mode)
+	void PerspectiveCamera::lookAt(glm::vec3 location)
 	{
-		const auto& frustum = getFrustum(mode);
-		return glm::vec2(getViewSpaceZfromPlaneDistance(frustum.nearPlane), 
-			getViewSpaceZfromPlaneDistance(frustum.farPlane));
+		mCoordSystem.look = normalize(location - mCoordSystem.position);
+		mRevalidate = true;
 	}
 
-	void Projectional::lookAt(vec3 location)
+	void PerspectiveCamera::setAspectRatio(float ratio)
 	{
-		//setLook(location - position);
-		look = normalize(location - mCurrentPosition);
-		revalidate = true;
+		mAspectRatio = ratio;
+		mRevalidate = true;
 	}
 
-	void Projectional::setAspectRatio(float ratio)
+	void PerspectiveCamera::setFovY(float fovY)
 	{
-		if (ratio <= 0)
-			throw_with_trace(runtime_error("Projectional::setAspectRatio(float): aspect ratio has to be greater 0!"));
-		this->aspectRatio = ratio;
-		revalidate = true;
+		mFovY = fovY;
+		mRevalidate = true;
 	}
 
-
-	void Projectional::setFOV(float fov)
+	void PerspectiveCamera::setNearDistance(float nearDistance)
 	{
-		this->fov = fov;
-		revalidate = true;
+		mNearDistance = nearDistance;
+		mRevalidate = true;
 	}
 
-	void Projectional::setOrthoFrustum(Frustum frustum)
+	void PerspectiveCamera::setFarDistance(float farDistance)
 	{
-		orthoFrustum = move(frustum);
-		revalidate = true;
+		mFarDistance = farDistance;
+		mRevalidate = true;
 	}
 
-	void Projectional::setNearPlane(float nearPlane)
-	{
-		orthoFrustum.nearPlane = nearPlane;
-		perspFrustum.nearPlane = nearPlane;
-		revalidate = true;
-	}
-
-	void Projectional::setFarPlane(float farPlane)
-	{
-		orthoFrustum.farPlane = farPlane;
-		perspFrustum.farPlane = farPlane;
-		revalidate = true;
-	}
-
-	void Projectional::setLook(vec3 look)
-	{
+	void PerspectiveCamera::setLook(glm::vec3 look)
+	{		
 		look = normalize(look);
-		if (isnan(look.x) ||
-			isnan(look.y) ||
-			isnan(look.z))
+		assertValidVector(look);
+
+		mCoordSystem.look = std::move(look);		
+		mRevalidate = true;
+	}
+
+	void PerspectiveCamera::setPosition(glm::vec3 position)
+	{
+		mCoordSystem.position = std::move(position);
+		mRevalidate = true;
+	}
+
+	void PerspectiveCamera::setUp(glm::vec3 up)
+	{
+		up = normalize(up);
+		assertValidVector(up);
+
+		mCoordSystem.up = std::move(up);
+		mRevalidate = true;
+	}
+
+	void PerspectiveCamera::update(bool updateAlways)
+	{
+		if (mRevalidate || updateAlways)
 		{
-			throw_with_trace(runtime_error("Projectional::setDirection(glm::vec3): specified a non valid direction vector!"));
-		}
+			mRight = normalize(cross(mCoordSystem.look, mCoordSystem.up));
+			mProjection = glm::perspective(radians(mFovY),
+				mAspectRatio, mNearDistance, mFarDistance);
 
-		// no we can savely change the object state!
-		this->look = look;
-		revalidate = true;
-	}
-
-	void Projectional::setPosition(vec3 position)
-	{
-		mCurrentPosition = move(position);
-		mTargetPosition = mCurrentPosition;
-		revalidate = true;
-	}
-
-	void Projectional::setUp(vec3 up)
-	{
-		this->up = move(up);
-		revalidate = true;
-	}
-
-	void Projectional::calcPerspFrustum()
-	{
-		// calculate near plane 
-		float x = tan(radians(fov * aspectRatio / 2.0f));
-		float y = tan(radians(fov / 2.0f));
-
-
-		perspFrustum.left = -x;
-		perspFrustum.right = x;
-		perspFrustum.bottom = -y;
-		perspFrustum.top = y;
-	}
-
-	void Projectional::update(bool updateAlways)
-	{
-		// only update if changes have occurred
-		if (revalidate || updateAlways)
-		{
-			orthographic = ortho(orthoFrustum.left, orthoFrustum.right,
-				orthoFrustum.bottom, orthoFrustum.top,
-				orthoFrustum.nearPlane, orthoFrustum.farPlane);
-			perspective = glm::perspective(radians(fov),
-				aspectRatio, perspFrustum.nearPlane, perspFrustum.farPlane);
+			calcFrustum();
 			calcView();
-			calcPerspFrustum();
-
-			right = normalize(cross(look, up));
-
-			revalidate = false;
+			mRevalidate = false;
 		}
+	}
+
+	void PerspectiveCamera::assertValidVector(const glm::vec3& vec)
+	{
+		if (isnan(vec.x) ||
+			isnan(vec.y) ||
+			isnan(vec.z))
+		{
+			throw_with_trace(runtime_error("PerspectiveProjectional::assertValidVector: specified a non valid vector!"));
+		}
+	}
+
+	void PerspectiveCamera::calcFrustum()
+	{
+		const auto zNear = getViewSpaceZfromDistance(mNearDistance);
+		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
+
+
+		const auto halfFovY = radians(mFovY/2.0f);
+
+		/**
+		 * Calculate constants for the (half of the) width and height of the near and far planes. 
+		 * 
+		 * Math background:
+		 * To calculate the corners of a view frustum plane, let z' = 'z coordinate in viewspace' and r = 'aspect ratio'.
+		 * The corners than can be calculated in viewspace, by:
+		 * 
+		 * z = z'
+		 * y = +/- tan(fovY/2) * z'  (positive for top corners, negative for bottom corners)
+		 * x = +/- r * tan(fovY/2) * z' (positive for right corners, negative for left corners)
+		 * 
+		 **/
+		const auto halfHeightTop = tan(halfFovY);
+		const auto halfHeightBottom = -halfHeightTop;
+		const auto halfWidthRight = mAspectRatio * tan(halfFovY);
+		const auto halfWidthLeft = -halfWidthRight;
+
+
+		mFrustum.nearLeftBottom = glm::vec3(halfWidthLeft * zNear, halfHeightBottom * zNear, zNear);
+		mFrustum.nearLeftTop = glm::vec3(halfWidthLeft * zNear, halfHeightTop * zNear, zNear);
+		mFrustum.nearRightBottom = glm::vec3(halfWidthRight * zNear, halfHeightBottom * zNear, zNear);
+		mFrustum.nearRightTop = glm::vec3(halfWidthRight * zNear, halfHeightTop * zNear, zNear);
+
+		mFrustum.farLeftBottom = glm::vec3(halfWidthLeft * zFar, halfHeightBottom * zFar, zFar);
+		mFrustum.farLeftTop = glm::vec3(halfWidthLeft * zFar, halfHeightTop * zFar, zFar);
+		mFrustum.farRightBottom = glm::vec3(halfWidthRight * zFar, halfHeightBottom * zFar, zFar);
+		mFrustum.farRightTop = glm::vec3(halfWidthRight * zFar, halfHeightTop * zFar, zFar);
 	}
 }

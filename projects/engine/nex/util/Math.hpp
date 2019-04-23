@@ -92,10 +92,10 @@ namespace nex
 
 	inline FrustumCuboid operator*(const glm::mat4& matrix, const FrustumCuboid& frustum) {
 		FrustumCuboid result;
-		FrustumPlane& nearDest = result.m_near;
-		FrustumPlane& farDest = result.m_far;
-		const FrustumPlane& nearSource = frustum.m_near;
-		const FrustumPlane& farSource = frustum.m_far;
+		FrustumRectangle& nearDest = result.m_near;
+		FrustumRectangle& farDest = result.m_far;
+		const FrustumRectangle& nearSource = frustum.m_near;
+		const FrustumRectangle& farSource = frustum.m_far;
 
 		nearDest.leftBottom = matrix * glm::vec4(nearSource.leftBottom, 1);
 		nearDest.leftTop = matrix * glm::vec4(nearSource.leftTop, 1);
