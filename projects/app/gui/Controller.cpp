@@ -183,6 +183,6 @@ void nex::gui::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, fl
 
 void nex::gui::CameraMode::updateCamera(Input * input, float deltaTime)
 {
-	m_camera->update(input, deltaTime);
+	m_camera->frameUpdate(input, deltaTime);
 	m_window->setCursorPosition(m_window->getFrameBufferWidth() / 2, m_window->getFrameBufferHeight() / 2);
 }

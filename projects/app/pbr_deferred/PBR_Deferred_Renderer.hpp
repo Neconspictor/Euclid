@@ -1,6 +1,4 @@
 #pragma once
-#include <nex/event/Task.hpp>
-#include <nex/camera/Camera.hpp>
 #include <nex/Scene.hpp>
 #include <nex/light/Light.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
@@ -19,6 +17,7 @@ namespace nex
 	class PbrProbe;
 	class PbrForward;
 	class Pbr;
+	class Camera;
 
 	class PBR_Deferred_Renderer
 	{
@@ -35,7 +34,7 @@ namespace nex
 		RenderCommandQueue* getCommandQueue();
 
 		void init(int windowWidth, int windowHeight);
-		void render(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void render(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(unsigned width, unsigned height);
 
@@ -43,10 +42,10 @@ namespace nex
 
 	private:
 
-		void renderShadows(Camera* camera, DirectionalLight* sun, Texture2D* depth);
-		void renderDeferred(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderForward(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderSky(Camera* camera, DirectionalLight* sun, unsigned width, unsigned height);
+		void renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth);
+		void renderDeferred(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
 

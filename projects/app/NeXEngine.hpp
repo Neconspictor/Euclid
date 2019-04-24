@@ -12,6 +12,7 @@ namespace nex
 	class SubSystemProvider;
 	class SubSystemProviderGLFW;
 	class Cursor;
+	class Window;
 
 	class NeXEngine
 	{
@@ -50,7 +51,7 @@ namespace nex
 		nex::Logger mLogger;
 		std::unique_ptr<PBR_Deferred_Renderer> mRenderer;
 		std::unique_ptr<gui::ControllerStateMachine> mControllerSM;
-		std::unique_ptr<Camera> mCamera;
+		std::unique_ptr<PerspectiveCamera> mCamera;
 		SubSystemProvider* mWindowSystem;
 		std::unique_ptr<gui::ImGUI_Impl> mGui;
 		Window* mWindow;

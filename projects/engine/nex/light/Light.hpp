@@ -1,6 +1,5 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <nex/util/Projectional.hpp>
 
 namespace nex {
 
@@ -54,22 +53,4 @@ namespace nex {
 		glm::vec3 mColor;
 		float mPower;
 	};
-
-	class PointLight : public Projectional
-	{
-	public:
-		PointLight();
-
-		glm::mat4* getMatrices();
-
-		float getRange() const;
-
-		void setRange(float range);
-
-	protected:
-		glm::mat4 shadowMatrices[6];
-
-		void update(bool alwaysUpdate = false) override;
-	};
-
 }

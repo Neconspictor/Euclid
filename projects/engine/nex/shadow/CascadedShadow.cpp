@@ -202,14 +202,13 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(Camera * camera, const gl
 
 	CascadeDataPass::Input constantInput;
 
-	const auto& frustum = camera->getFrustum(Perspective);
 	constantInput.lightDirection = glm::vec4(lightDirection, 0.0f);
-	constantInput.nearFarPlane = glm::vec4(frustum.nearPlane, frustum.farPlane, 0.0f, 0.0f);
+	constantInput.nearFarPlane = glm::vec4(camera->getNearDistance(), camera->getFarDistance(), 0.0f, 0.0f);
 	constantInput.shadowMapSize = glm::vec4(mShadowMapSize, 0.0f, 0.0f, 0.0f);
 	constantInput.cameraPostionWS = glm::vec4(camera->getPosition(), 0.0f);
 	constantInput.cameraLook = glm::vec4(camera->getLook(), 0.0f);
 	constantInput.viewMatrix = camera->getView();
-	constantInput.projectionMatrix = camera->getPerspProjection();
+	constantInput.projectionMatrix = camera->getProjectionMatrix();
 
 	mDataComputePass->mInputBuffer->bind();
 	mDataComputePass->update(constantInput);
@@ -366,13 +365,14 @@ void CascadedShadow::updateCascadeData()
 
 CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection)
 {
-	const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
-	const float cascadeTotalRange = frustum.farPlane - frustum.nearPlane;
-	const auto shadowBounds = extractFrustumBoundSphere(camera, frustum.nearPlane, frustum.farPlane);
+	const auto nearDistance = camera->getNearDistance();
+	const auto farDistance = camera->getFarDistance();
+	const float cascadeTotalRange = farDistance - nearDistance;
+	const auto shadowBounds = extractFrustumBoundSphere(camera, nearDistance, farDistance);
 
 	// Find the view matrix
 	const glm::vec3 cameraFrustumCenterWS = camera->getPosition() + camera->getLook() * cascadeTotalRange * 0.5f;
-	const glm::vec3 lookAt = cameraFrustumCenterWS + normalize(lightDirection) * frustum.farPlane;
+	const glm::vec3 lookAt = cameraFrustumCenterWS + normalize(lightDirection) * farDistance;
 
 	const glm::vec3 lightPos = cameraFrustumCenterWS + normalize(lightDirection) * shadowBounds.radius;
 
@@ -546,16 +546,15 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistanc
 	};
 
 	// Now we transform the frustum corners back to world space
-	glm::mat4 invViewProj = glm::inverse(camera->getPerspProjection() * camera->getView());
+	glm::mat4 invViewProj = glm::inverse(camera->getProjectionMatrix() * camera->getView());
 	for (unsigned int i = 0; i < 8; ++i)
 	{
 		glm::vec4 inversePoint = invViewProj * glm::vec4(frustumCornersWS[i], 1.0f);
 		frustumCornersWS[i] = glm::vec3(inversePoint / inversePoint.w);
 	}
 
-	const Frustum& frustum = camera->getFrustum(Perspective);
-	const float nearClip = frustum.nearPlane;
-	const float farClip = frustum.farPlane;
+	const float nearClip = camera->getNearDistance();
+	const float farClip = camera->getFarDistance();
 	const float clipRange = farClip - nearClip;
 
 	// Calculate rays that define the near and far plane of each cascade split.
@@ -620,7 +619,7 @@ void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buff
 
 void CascadedShadow::DepthPass::updateConstants(Camera* camera)
 {
-	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
+	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView());
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)
@@ -681,6 +680,9 @@ void CascadedShadow::CascadeDataPass::resetPrivateData()
 
 void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection, Texture2D* depth)
 {
+	const auto nearDistance = camera->getNearDistance();
+	const auto farDistance = camera->getFarDistance();
+
 	if (mUseTightNearFarPlane && depth != nullptr)
 	{
 		mSceneNearFarComputeShader->bind();
@@ -694,9 +696,9 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		unsigned dispatchX = width % xDim == 0 ? width / xDim : width / xDim + 1;
 		unsigned dispatchY = height % yDim == 0 ? height / yDim : height / yDim + 1;
 
-		const auto frustum = camera->getFrustum(Perspective);
+		const auto frustum = camera->getFrustum();
 
-		mSceneNearFarComputeShader->setConstants(frustum.nearPlane + 0.05, frustum.farPlane - 0.05, camera->getPerspProjection());
+		mSceneNearFarComputeShader->setConstants(nearDistance + 0.05, farDistance - 0.05, camera->getProjectionMatrix());
 		mSceneNearFarComputeShader->setDepthTexture(depth);
 
 		mSceneNearFarComputeShader->dispatch(dispatchX, dispatchY, 1);
@@ -704,8 +706,7 @@ void CascadedShadow::frameUpdate(Camera* camera, const glm::vec3& lightDirection
 		frameUpdateTightNearFarPlane(camera, lightDirection, mSceneNearFarComputeShader->getWriteOutBuffer());
 	} else
 	{
-		const auto& frustum = camera->getFrustum(Perspective);
-		frameUpdateNoTightNearFarPlane(camera, lightDirection, glm::vec2(frustum.nearPlane, frustum.farPlane));
+		frameUpdateNoTightNearFarPlane(camera, lightDirection, glm::vec2(nearDistance, farDistance));
 	}
 
 

@@ -1,22 +1,19 @@
 #pragma once
-#include <nex/camera/FPCameraBase.hpp>
 #include <nex/gui/Drawable.hpp>
+#include <nex/camera/Camera.hpp>
 
 namespace nex
 {
 	class FPCamera_ConfigurationView;
 
-	class FPCamera : public FPCameraBase
+	class FPCamera : public PerspectiveCamera
 	{
 	public:
 		FPCamera();
 		FPCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
-		FPCamera(const FPCamera& other);
 
-
-		float limit(float source, float min, float max);
-		virtual void setLook(glm::vec3 direction) override;
-		virtual void update(Input* input, float frameTime) override;
+		void setLook(glm::vec3 look) override;
+		void frameUpdate(Input* input, float frameTime) override;
 
 		float getYaw() const;
 		float getPitch() const;
@@ -37,6 +34,7 @@ namespace nex
 
 		friend FPCamera_ConfigurationView;
 
+		static float limit(float source, float min, float max);
 
 		float yaw, pitch;
 	};

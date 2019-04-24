@@ -51,7 +51,7 @@ void PbrCommonGeometryPass::updateConstants(Camera* camera)
 	mDefaultImageSampler->bind(NORMAL_BINDING_POINT);
 	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);
 
-	setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 }
 
 void PbrCommonLightingPass::setBrdfLookupTexture(const Texture* brdfLUT)
@@ -196,7 +196,7 @@ void PbrCommonLightingPass::updateConstants(Camera* camera)
 
 	setInverseViewMatrix(inverse(camera->getView()));
 
-	setNearFarPlane(camera->getNearFarPlaneViewSpace(Perspective));
+	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 	setShadowStrength(mCascadeShadow->getShadowStrength());
 	setCascadedData(mCascadeShadow->getCascadeData());
 
@@ -226,7 +226,7 @@ PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) :
 void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
+	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView());
 	mGeometryPass.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
@@ -292,7 +292,7 @@ void PbrDeferredLightingPass::updateConstants(Camera* camera)
 {
 	bind();
 	mLightingPass.updateConstants(camera);
-	setInverseProjMatrixFromGPass(inverse(camera->getPerspProjection()));
+	setInverseProjMatrixFromGPass(inverse(camera->getProjectionMatrix()));
 }
 
 void PbrDeferredLightingPass::setProbe(PbrProbe* probe)
@@ -321,7 +321,7 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
 void PbrDeferredGeometryPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getPerspProjection(), camera->getView());
+	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView());
 	mGeometryPass.updateConstants(camera);
 }
 

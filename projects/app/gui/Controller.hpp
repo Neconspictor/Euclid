@@ -6,8 +6,11 @@
 #include "pbr_deferred/PBR_Deferred_Renderer.hpp"
 
 
-class Input;
-class PBR_Deferred_Renderer;
+namespace nex {
+	class Input;
+	class Window;
+	class PBR_Deferred_Renderer;
+	}
 
 namespace nex::gui
 {

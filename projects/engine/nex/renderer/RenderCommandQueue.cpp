@@ -69,6 +69,10 @@ bool nex::RenderCommandQueue::isOutsideFrustum(const RenderCommand& command) con
 	if (mCamera == nullptr) return false;
 
 	//TODO
+
+	//const auto& frustum = mCamera->getFrustum(Perspective);
+	//frustum.
+
 	return false;
 }
 

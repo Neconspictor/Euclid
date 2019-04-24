@@ -80,7 +80,7 @@ void calcLighting(in float ao,
 	color += directLighting;
     
     colorOut = color;
-    luminanceOut = directLighting;
+    luminanceOut = 0.1 * directLighting;
     
     /*return;
     

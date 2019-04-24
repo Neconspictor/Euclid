@@ -2,7 +2,6 @@
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
-#include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/camera/FPCamera.hpp>
 #include <gui/AppStyle.hpp>
 #include <gui/ConfigurationWindow.hpp>
@@ -180,10 +179,9 @@ void NeXEngine::run()
 
 		if (isRunning())
 		{
-
 			mGui->newFrame(frameTime);
 			mControllerSM->frameUpdate(frameTime);
-			mCamera->Projectional::update(true);
+			mCamera->update();
 
 			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene);
@@ -258,6 +256,10 @@ void NeXEngine::createScene()
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj", MaterialType::Pbr);
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	ground->setPositionLocal({ 10, 0, 0 });
+
+	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
+	auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
+	cerberus->setPositionLocal({0, 2, 0});
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
@@ -502,7 +504,7 @@ void NeXEngine::setupGUI()
 	graphicsTechniques->addChild(std::move(pbrView));
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(mCamera.get()));
-	cameraTab->addChild(move(cameraView));
+	cameraTab->addChild(std::move(cameraView));
 
 
 	auto windowView = std::make_unique<Window_ConfigurationView>(mWindow);
@@ -522,24 +524,17 @@ void NeXEngine::setupGUI()
 
 void NeXEngine::setupCamera()
 {
-	if (TrackballQuatCamera* casted = dynamic_cast<TrackballQuatCamera*>(mCamera.get()))
-	{
-		auto cameraResizeCallback = std::bind(&TrackballQuatCamera::updateOnResize, casted, std::placeholders::_1, std::placeholders::_2);
-		casted->updateOnResize(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-		mInput->addFrameBufferResizeCallback(cameraResizeCallback);
-	}
-
 	int windowWidth = mWindow->getFrameBufferWidth();
 	int windowHeight = mWindow->getFrameBufferHeight();
 
-	mCamera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f));
+	mCamera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f), true);
 	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 	mCamera->setAspectRatio((float)windowWidth / (float)windowHeight);
 
 
-	mCamera->setNearPlane(0.1f);
-	mCamera->setFarPlane(150.0f);
+	mCamera->setNearDistance(0.1f);
+	mCamera->setFarDistance(150.0f);
 }
 
 void NeXEngine::updateWindowTitle(float frameTime, float fps)

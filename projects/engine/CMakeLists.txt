@@ -9,7 +9,6 @@ set(
     nex/Scene.cpp
     nex/Scene.hpp
 	
-	
 	#nex
     nex/FileSystem.hpp
 	nex/FileSystem.cpp
@@ -24,21 +23,6 @@ set(
 	nex/camera/Camera.cpp
     nex/camera/FPCamera.hpp
 	nex/camera/FPCamera.cpp
-    nex/camera/FPCameraBase.hpp
-	nex/camera/FPCameraBase.cpp
-    nex/camera/FPQuaternionCamera.hpp
-	nex/camera/FPQuaternionCamera.cpp
-    nex/camera/TrackballCamera.hpp
-	nex/camera/TrackballCamera.cpp
-    nex/camera/TrackballQuatCamera.hpp
-	nex/camera/TrackballQuatCamera.cpp
-    #nex/camera/cell
-    nex/camera/cell/camera.h
-    nex/camera/cell/camera.cpp
-    nex/camera/cell/camera_frustum.h
-    nex/camera/cell/camera_frustum.cpp
-    nex/camera/cell/fly_camera.cpp
-    nex/camera/cell/fly_camera.h
     
     #nex/common
     nex/common/BinaryReader.h
@@ -64,16 +48,6 @@ set(
     nex/exception/OpenglException.hpp
     nex/exception/UnexpectedPlatformException.hpp
     
-    #nex/event
-    nex/event/EventChannel.hpp
-    nex/event/EventHandler.hpp
-    nex/event/EventHandlerQueue.hpp
-    nex/event/GlobalEventChannel.hpp
-    nex/event/Task.hpp
-	nex/event/Task.cpp
-    nex/event/TaskManager.hpp
-	nex/event/TaskManager.cpp
-    
 	
 	#nex/gui
 	nex/gui/Controller.hpp
@@ -93,25 +67,6 @@ set(
 	#nex/light
 	nex/light/Light.hpp
 	nex/light/Light.cpp
-		
-    #nex/listener
-    nex/listener/ScrollListener.hpp
-	
-	#nex/memory
-    nex/memory/Allocator.hpp
-    nex/memory/FreeListAllocator.hpp
-	nex/memory/FreeListAllocator.cpp
-    nex/memory/LinearAllocator.hpp
-	nex/memory/LinearAllocator.cpp
-    nex/memory/MemoryManager.hpp
-	nex/memory/MemoryManager.cpp
-    nex/memory/ObjectPool.hpp
-    nex/memory/PoolAllocator.hpp
-	nex/memory/PoolAllocator.cpp
-    nex/memory/ProxyAllocator.hpp
-	nex/memory/ProxyAllocator.cpp
-    nex/memory/StackAllocator.hpp
-	nex/memory/StackAllocator.cpp
     
     #nex/mesh
     nex/mesh/IndexBuffer.hpp
@@ -260,8 +215,6 @@ set(
     nex/util/Math.hpp
     nex/util/Memory.hpp
     nex/util/PointerUtils.hpp
-	nex/util/Projectional.hpp
-	nex/util/Projectional.cpp
     nex/util/Signal.hpp
     nex/util/StringUtils.hpp
 	nex/util/StringUtils.cpp

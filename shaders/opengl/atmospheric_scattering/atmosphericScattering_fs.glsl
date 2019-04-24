@@ -202,6 +202,6 @@ void main() {
 
 color = vec4(result, 1.0);    
 
-luminance = color;
+luminance = 0.3 * color;
 
 }

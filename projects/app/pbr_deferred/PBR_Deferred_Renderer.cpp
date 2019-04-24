@@ -1,7 +1,6 @@
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <nex/camera/TrackballQuatCamera.hpp>
 #include <nex/shader/SkyBoxPass.hpp>
 #include <nex/Scene.hpp>
 #include <nex/shader/DepthMapPass.hpp>
@@ -27,6 +26,7 @@
 #include <nex/texture/Sampler.hpp>
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
+#include <nex/Input.hpp>
 
 int ssaaSamples = 1;
 
@@ -109,7 +109,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 }
 
 
-void nex::PBR_Deferred_Renderer::render(nex::Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
+void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
 {
 
 	/*FPCamera* fp = (FPCamera*)camera;
@@ -162,7 +162,7 @@ nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
 	return mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
-void nex::PBR_Deferred_Renderer::renderShadows(Camera* camera, DirectionalLight* sun, Texture2D* depth)
+void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
@@ -188,7 +188,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(Camera* camera, DirectionalLight*
 	}
 }
 
-void nex::PBR_Deferred_Renderer::renderDeferred(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -266,7 +266,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(Camera* camera, DirectionalLight
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* screenShader = RenderBackend::get()->getEffectLibrary()->getScreenShader();
@@ -328,11 +328,11 @@ void nex::PBR_Deferred_Renderer::renderForward(Camera* camera, DirectionalLight*
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(Camera* camera, DirectionalLight* sun, unsigned width, unsigned height)
+void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height)
 {
 	mAtmosphericScattering->bind();
-	mAtmosphericScattering->setInverseProjection(inverse(camera->getPerspProjection()));
-	mAtmosphericScattering->setInverseViewRotation(inverse(camera->getView()));
+	mAtmosphericScattering->setInverseProjection(glm::inverse(camera->getProjectionMatrix()));
+	mAtmosphericScattering->setInverseViewRotation(glm::inverse(camera->getView()));
 	mAtmosphericScattering->setStepCount(16);
 	mAtmosphericScattering->setSurfaceHeight(0.99f);
 	mAtmosphericScattering->setScatterStrength(0.028f);

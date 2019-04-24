@@ -21,12 +21,14 @@ void main() {
     vec4 color = texture(sourceTexture, fs_in.texCoord).rgba;
     
     // Bloom
-    const float strength = 0.5 * 1.0;
+    const float strength = 1.0;
     vec4 bloomHalfthSample = texture(bloomHalfth, fs_in.texCoord) * strength;
     vec4 bloomQuarterSample = texture(bloomQuarter, fs_in.texCoord) * strength * 0.75;
     vec4 bloomEigthSample = texture(bloomEigth, fs_in.texCoord) * strength * 0.5;
     vec4 bloomSixteenthSample = texture(bloomSixteenth, fs_in.texCoord) * strength * 0.25;
-    color += (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
+    vec4 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
+    
+    color += bloom;
 
     // HDR tonemapping
     const float exposure = 1.0;
