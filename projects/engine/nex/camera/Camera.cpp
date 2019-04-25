@@ -1,13 +1,12 @@
 #include <nex/camera/Camera.hpp>
-#include <stdexcept>
 #include <nex/util/Math.hpp>
-#include <nex/util/ExceptionHandling.hpp>
 #include <nex/Input.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include "nex/util/ExceptionHandling.hpp"
 
 
 namespace nex
@@ -65,6 +64,20 @@ namespace nex
 		f.nearLeftTop = glm::vec3(inverseView * glm::vec4(f.nearLeftTop, 1.0f));
 		f.nearRightBottom = glm::vec3(inverseView * glm::vec4(f.nearRightBottom, 1.0f));
 		f.nearRightTop = glm::vec3(inverseView * glm::vec4(f.nearRightTop, 1.0f));
+
+		// For transforming the planes, we use the fact, that 
+		// planes can be interpreted as 4D vectors. The transformed plane p' of p 
+		// is than given by:
+		// p' = transpose(inverse(trafo)) * p
+		const auto transposeInverse = transpose(mView);
+
+		f.nearPlane = transform(transposeInverse, mFrustum.nearPlane);
+		f.farPlane = transform(transposeInverse, mFrustum.farPlane);
+		f.leftPlane = transform(transposeInverse, mFrustum.leftPlane);
+		f.rightPlane = transform(transposeInverse, mFrustum.rightPlane);
+		f.bottomPlane = transform(transposeInverse, mFrustum.bottomPlane);
+		f.topPlane = transform(transposeInverse, mFrustum.topPlane);
+
 
 		return f;
 	}
@@ -292,6 +305,30 @@ namespace nex
 		mFrustum.farLeftTop = glm::vec3(halfWidthLeft * zFar, halfHeightTop * zFar, zFar);
 		mFrustum.farRightBottom = glm::vec3(halfWidthRight * zFar, halfHeightBottom * zFar, zFar);
 		mFrustum.farRightTop = glm::vec3(halfWidthRight * zFar, halfHeightTop * zFar, zFar);
+
+
+		/**
+		 * We define now the 6 planes of the frustum.
+		 * For math derivation see 
+		 * 'Mathematics for 3D Game Programming and Computer Graphics (Third Edition)' by Eric Lengyel, page 106 (Chapter 5.3.2 Frustum Planes)
+		 * Note that we use the vertical field of view for calculating the focal length e, so the plane equations are slightly different.
+		 * The equations have been also generalized, so that they are valid for left and right handed coordination systems.
+		 */
+
+		const float e = 1.0f / tan(halfFovY); // focal length (using vertical field of view)
+		const float a = mAspectRatio; // aspect ratio width over height (note, Lengyel uses height over width)
+		const float zA = getViewSpaceZfromDistance(-a); // a as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(-1.0f); // One as signed depth (for switching between left and right handed)
+		const float divLeftRight = std::sqrtf(e*e + a*a); // divisor for normalization
+		const float divBottTop = std::sqrtf(e*e + 1.0f); // divisor for normalization
+
+		mFrustum.nearPlane = {0, 0, zOne, -mNearDistance };
+		mFrustum.farPlane = { 0, 0, -zOne, mFarDistance };
+
+		mFrustum.leftPlane = { e / divLeftRight, 0, zA / divLeftRight, 0 };
+		mFrustum.rightPlane = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
+		mFrustum.bottomPlane = { 0, e / divBottTop, zOne / divBottTop, 0 };
+		mFrustum.topPlane = { 0, -e / divBottTop, zOne / divBottTop, 0 };
 	}
 
 	void PerspectiveCamera::calcProjection()
@@ -341,6 +378,17 @@ namespace nex
 		mFrustum.farLeftTop = glm::vec3(-mHalfWidth, mHalfHeight, zFar);
 		mFrustum.farRightBottom = glm::vec3(mHalfWidth, -mHalfHeight, zFar);
 		mFrustum.farRightTop = glm::vec3(mHalfWidth, mHalfHeight, zFar);
+
+
+		const float zOne = getViewSpaceZfromDistance(-1.0f); // One as signed depth (for switching between left and right handed)
+
+		mFrustum.nearPlane = { 0, 0, zOne, -mNearDistance };
+		mFrustum.farPlane = { 0, 0, -zOne, mFarDistance };
+
+		mFrustum.leftPlane =   { 1.0f,  0,     0, mHalfWidth  };
+		mFrustum.rightPlane =  { -1.0f, 0,     0, mHalfWidth  };
+		mFrustum.bottomPlane = { 0,     1.0f,  0, mHalfHeight };
+		mFrustum.topPlane =    { 0,     -1.0f, 0, mHalfHeight };
 	}
 
 	void OrthographicCamera::calcProjection()

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "nex/common/Log.hpp"
+#include <nex/common/Log.hpp>
+#include <nex/util/Math.hpp>
 
 namespace nex
 {
@@ -18,6 +19,13 @@ namespace nex
 		glm::vec3 nearLeftTop;
 		glm::vec3 nearRightBottom;
 		glm::vec3 nearRightTop;
+
+		Plane nearPlane;
+		Plane farPlane;
+		Plane leftPlane;
+		Plane rightPlane;
+		Plane bottomPlane;
+		Plane topPlane;
 	};
 
 	/**
