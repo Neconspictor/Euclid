@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
+#include <nex/util/Math.hpp>
 
 namespace nex
 {
@@ -13,7 +14,6 @@ namespace nex
 
 		// bounding box information (world space); needed for sorting 
 		// meshes by distance and for transparent materials
-		glm::vec3 minAABB;
-		glm::vec3 maxAABB;
+		AABB boundingBox;
 	};
 }

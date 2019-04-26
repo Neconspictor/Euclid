@@ -8,24 +8,54 @@ namespace nex
 {
 	class Input;
 
+	enum class FrustumPlane
+	{
+		Near = 0,
+		Far = 1,
+		Left = 2,
+		Right = 3,
+		Bottom = 4,
+		Top = 5
+	};
+
+	enum class FrustumCorners
+	{
+		FarLeftBottom = 0,
+		FarLeftTop = 1,
+		FarRightBottom = 2,
+		FarRightTop = 3,
+
+		NearLeftBottom = 4,
+		NearLeftTop = 5,
+		NearRightBottom = 6,
+		NearRightTop = 7
+	};
+
 	struct Frustum
 	{
-		glm::vec3 farLeftBottom;
-		glm::vec3 farLeftTop;
-		glm::vec3 farRightBottom;
-		glm::vec3 farRightTop;
+		/**
+		 * corner order: 
+		 * 0: FarLeftBottom
+		 * 1: FarLeftTop
+		 * 2: FarRightBottom
+		 * 3: FarRightTop
+		 * 4: NearLeftBottom
+		 * 5: NearLeftTop
+		 * 6: NearRightBottom
+		 * 7: NearRightTop
+		 */
+		glm::vec3 corners[8];
 
-		glm::vec3 nearLeftBottom;
-		glm::vec3 nearLeftTop;
-		glm::vec3 nearRightBottom;
-		glm::vec3 nearRightTop;
-
-		Plane nearPlane;
-		Plane farPlane;
-		Plane leftPlane;
-		Plane rightPlane;
-		Plane bottomPlane;
-		Plane topPlane;
+		/**
+		 * plane order:
+		 * 0: near 
+		 * 1: far
+		 * 2: left
+		 * 3: right
+		 * 4: bottom
+		 * 5: top
+		 */
+		Plane planes[6];
 	};
 
 	/**
@@ -67,17 +97,17 @@ namespace nex
 		/**
 		 * Provides the current calculated view frustum (in view space).
 		 */
-		const Frustum& getFrustum();
+		const Frustum& getFrustum() const;
+
+		/**
+		 * Provides the current calculated view frustum (in world space).
+		 */
+		const Frustum& getFrustumWorld() const;
 
 		/**
 		 * Provides the speed of the camera.
 		 */
 		float getSpeed() const;
-
-		/**
-		 * Calculates the view frustum in world space.
-		 */
-		Frustum calcFrustumWorld() const;
 
 		/**
 		 * Provides the current look direction of the camera.
@@ -192,6 +222,11 @@ namespace nex
 		virtual void calcFrustum() = 0;
 
 		/**
+		 * Calculates the view frustum in world space.
+		 */
+		void calcFrustumWorld();
+
+		/**
 		 * Recalculates the camera's projection matrix.
 		 */
 		virtual void calcProjection() = 0;
@@ -203,6 +238,7 @@ namespace nex
 
 		PULCoordinateSystem mCoordSystem;
 		Frustum mFrustum;
+		Frustum mFrustumWorld;
 		nex::Logger mLogger;
 		glm::mat4 mProjection;
 		glm::vec3 mTargetPosition;

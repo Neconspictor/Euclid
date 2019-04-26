@@ -10,6 +10,7 @@ namespace nex
 
 
 	struct TextureData;
+	struct AABB;
 
 	class MeshLoader
 	{
@@ -24,6 +25,7 @@ namespace nex
 
 		void processNode(aiNode* node, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const;
 
+		static AABB calcBoundingBox(const std::vector<Vertex>& vertices);
 		/**
 		 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */

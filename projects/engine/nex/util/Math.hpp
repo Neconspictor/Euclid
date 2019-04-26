@@ -14,8 +14,8 @@ namespace nex
 
 	struct AABB
 	{
-		glm::vec3 min;
-		glm::vec3 max;
+		glm::vec3 min = glm::vec3(FLT_MAX);
+		glm::vec3 max = glm::vec3(-FLT_MAX);
 	};
 
 	struct Dimension
@@ -51,6 +51,8 @@ namespace nex
 	 * Transforms a plane by a transformation matrix
 	 */
 	Plane operator*(const glm::mat4& trafo, const Plane& plane);
+
+	AABB operator*(const glm::mat4& trafo, const AABB& box);
 	Plane transform(const glm::mat4& trafo, const Plane& plane);
 
 	glm::vec3 perspectiveDivide(const glm::vec3& source, float w);

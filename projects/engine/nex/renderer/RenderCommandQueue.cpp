@@ -2,6 +2,7 @@
 #include <nex/camera/Camera.hpp>
 #include "nex/material/Material.hpp"
 #include <algorithm>
+#include "nex/Scene.hpp"
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
@@ -63,17 +64,49 @@ void nex::RenderCommandQueue::sort()
 	auto compareBind = std::bind(&nex::RenderCommandQueue::transparentCompare, this, std::placeholders::_1, std::placeholders::_2);
 	std::sort(mForwardCommands.begin(), mForwardCommands.end(), compareBind);
 }
+
+
+// false if fully outside, true if inside or intersects
+bool nex::RenderCommandQueue::boxInFrustum(const nex::Frustum& frustum, const nex::AABB& box)
+{
+	const byte ALL_CORNERS = 8;
+	byte out = 0;
+
+	// check box outside/inside of frustum
+	for (int i = 0; i < 6; i++)
+	{
+
+		const auto& plane = frustum.planes[i];
+		glm::vec4 planeAsVec(plane.normal, plane.signedDistance);
+
+		// check all corners against the plane;
+		out = 0;
+		out += ((dot(planeAsVec, glm::vec4(box.min.x, box.min.y, box.min.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.max.x, box.min.y, box.min.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.min.x, box.max.y, box.min.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.min.x, box.min.y, box.max.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.max.x, box.max.y, box.min.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.max.x, box.min.y, box.max.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.min.x, box.max.y, box.max.z, 1.0f)) < 0.0) ? 1 : 0);
+		out += ((dot(planeAsVec, glm::vec4(box.max.x, box.max.y, box.max.z, 1.0f)) < 0.0) ? 1 : 0);
+		if (out == ALL_CORNERS) return false;
+	}
+
+	// check frustum outside/inside box
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.x > box.max.x) ? 1 : 0); if (out == ALL_CORNERS) return false;
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.x < box.min.x) ? 1 : 0); if (out == ALL_CORNERS) return false;
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.y > box.max.y) ? 1 : 0); if (out == ALL_CORNERS) return false;
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.y < box.min.y) ? 1 : 0); if (out == ALL_CORNERS) return false;
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.z > box.max.z) ? 1 : 0); if (out == ALL_CORNERS) return false;
+	out = 0; for (const auto& corner : frustum.corners) out += ((corner.z < box.min.z) ? 1 : 0); if (out == ALL_CORNERS) return false;
+
+	return true;
+}
  
 bool nex::RenderCommandQueue::isOutsideFrustum(const RenderCommand& command) const
 {
 	if (mCamera == nullptr) return false;
-
-	//TODO
-
-	//const auto& frustum = mCamera->getFrustum(Perspective);
-	//frustum.
-
-	return false;
+	return !boxInFrustum(mCamera->getFrustum(), command.boundingBox);
 }
 
 bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const RenderCommand& b)
@@ -96,8 +129,8 @@ bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const R
 	// We calculate the middle point of the world space AABB from each mesh as a rough approximation for getting the distance.
 	// This approach will fail for some special cases, but should be good enough for most scenes.
 
-	auto aMiddle = a.minAABB + (a.maxAABB - a.minAABB) * 0.5f;
-	auto bMiddle = b.minAABB + (b.maxAABB - b.minAABB) * 0.5f;
+	auto aMiddle = a.boundingBox.min + (a.boundingBox.max - a.boundingBox.min) * 0.5f;
+	auto bMiddle = b.boundingBox.min + (b.boundingBox.max - b.boundingBox.min) * 0.5f;
 
 	auto cameraPosition = mCamera->getPosition();
 

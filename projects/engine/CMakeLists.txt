@@ -212,6 +212,7 @@ set(
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
 	nex/util/Macro.hpp
+    nex/util/Math.cpp
     nex/util/Math.hpp
     nex/util/Memory.hpp
     nex/util/PointerUtils.hpp

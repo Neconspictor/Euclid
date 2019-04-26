@@ -242,6 +242,7 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.mesh = mesh;
 				command.material = node->getMaterial();
 				command.worldTrafo = node->getWorldTrafo();
+				command.boundingBox = (mCamera->getView() * command.worldTrafo) * mesh->getAABB();
 				// TODO min and max AABB positions!
 				commandQueue->push(command, true);
 			}

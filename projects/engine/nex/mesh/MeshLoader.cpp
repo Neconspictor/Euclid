@@ -64,18 +64,22 @@ namespace nex
 		}
 	}
 
+	AABB MeshLoader::calcBoundingBox(const std::vector<Vertex>& vertices)
+	{
+		AABB result;
+		for (const auto& vertex : vertices)
+		{
+			result.min = minVec(result.min, vertex.position);
+			result.max = maxVec(result.max, vertex.position);
+		}
+
+		return result;
+	}
+
 	void MeshLoader::processMesh(aiMesh* assimpMesh, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
 	{
-		// Vertex and index count can be large -> store temp objects on heap
-		auto vertices = make_unique<vector<Vertex>>();
-		auto indices = make_unique<vector<unsigned int>>();
-		//auto texCoords = make_unique<vector<vec2>>();
-		//auto positions = make_unique<vector<vec3>>();
-		//auto normals = make_unique<vector<vec3>>();
-		// We set the size of the vectors initially to avoid unnecessary reallocations.
-		// It is assumed that the mesh is triangulated, so each face has exactly three indices.
-		//vertices->reserve(mesh->mNumVertices);
-		//indices->reserve(mesh->mNumFaces * 3);
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
 
 		bool tangentData = assimpMesh->mTangents != nullptr;
 
@@ -128,7 +132,7 @@ namespace nex
 			}
 
 			// don't make a copy
-			vertices->emplace_back(vertex);
+			vertices.emplace_back(vertex);
 		}
 
 		// now walk through all mesh's faces to retrieve index data. 
@@ -138,14 +142,17 @@ namespace nex
 			aiFace face = assimpMesh->mFaces[i];
 			for (unsigned j = 0; j < face.mNumIndices; ++j)
 			{
-				indices->push_back(face.mIndices[j]);
+				indices.push_back(face.mIndices[j]);
 			}
 		}
 
 		auto material = materialLoader.loadShadingMaterial(scene, assimpMesh->mMaterialIndex);
 
-		unique_ptr<Mesh> mesh = MeshFactory::create(vertices->data(), assimpMesh->mNumVertices,
-			indices->data(), assimpMesh->mNumFaces * 3);
+		unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), assimpMesh->mNumVertices,
+			indices.data(), assimpMesh->mNumFaces * 3);
+
+		auto boundingBox = calcBoundingBox(vertices);
+		mesh->setBoundingBox(boundingBox);
 
 		container->add(std::move(mesh), std::move(material));
 	}

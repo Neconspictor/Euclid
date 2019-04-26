@@ -7,6 +7,7 @@ namespace nex
 {
 
 	class Camera;
+	struct Frustum;
 
 	class RenderCommandQueue
 	{
@@ -33,6 +34,8 @@ namespace nex
 	private:
 
 		bool isOutsideFrustum(const RenderCommand& command) const;
+		static bool boxInFrustum(const nex::Frustum& frustum, const nex::AABB& box);
+
 
 		static bool defaultCompare(const RenderCommand& a, const RenderCommand& b);
 		bool transparentCompare(const RenderCommand& a, const RenderCommand& b);

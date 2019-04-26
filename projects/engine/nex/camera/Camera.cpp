@@ -40,9 +40,14 @@ namespace nex
 		return mFarDistance;
 	}
 
-	const Frustum& Camera::getFrustum()
+	const Frustum& Camera::getFrustum() const
 	{
 		return mFrustum;
+	}
+
+	const Frustum& Camera::getFrustumWorld() const
+	{
+		return mFrustumWorld;
 	}
 
 	float Camera::getSpeed() const
@@ -50,20 +55,21 @@ namespace nex
 		return mCameraSpeed;
 	}
 
-	Frustum Camera::calcFrustumWorld() const
+	void Camera::calcFrustumWorld()
 	{
-		Frustum f = mFrustum;
+		auto& f = mFrustumWorld;
+		const auto& g = mFrustum;
 		const auto inverseView = inverse(mView);
 
-		f.farLeftBottom = glm::vec3(inverseView * glm::vec4(f.farLeftBottom, 1.0f));
-		f.farLeftTop = glm::vec3(inverseView * glm::vec4(f.farLeftTop, 1.0f));
-		f.farRightBottom = glm::vec3(inverseView * glm::vec4(f.farRightBottom, 1.0f));
-		f.farRightTop = glm::vec3(inverseView * glm::vec4(f.farRightTop, 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftTop], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightTop], 1.0f));
 
-		f.nearLeftBottom = glm::vec3(inverseView * glm::vec4(f.nearLeftBottom, 1.0f));
-		f.nearLeftTop = glm::vec3(inverseView * glm::vec4(f.nearLeftTop, 1.0f));
-		f.nearRightBottom = glm::vec3(inverseView * glm::vec4(f.nearRightBottom, 1.0f));
-		f.nearRightTop = glm::vec3(inverseView * glm::vec4(f.nearRightTop, 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftTop], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(inverseView * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightTop], 1.0f));
 
 		// For transforming the planes, we use the fact, that 
 		// planes can be interpreted as 4D vectors. The transformed plane p' of p 
@@ -71,15 +77,12 @@ namespace nex
 		// p' = transpose(inverse(trafo)) * p
 		const auto transposeInverse = transpose(mView);
 
-		f.nearPlane = transform(transposeInverse, mFrustum.nearPlane);
-		f.farPlane = transform(transposeInverse, mFrustum.farPlane);
-		f.leftPlane = transform(transposeInverse, mFrustum.leftPlane);
-		f.rightPlane = transform(transposeInverse, mFrustum.rightPlane);
-		f.bottomPlane = transform(transposeInverse, mFrustum.bottomPlane);
-		f.topPlane = transform(transposeInverse, mFrustum.topPlane);
-
-
-		return f;
+		f.planes[(unsigned)FrustumPlane::Near] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Near]);
+		f.planes[(unsigned)FrustumPlane::Far] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Far]);
+		f.planes[(unsigned)FrustumPlane::Left] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Left]);
+		f.planes[(unsigned)FrustumPlane::Right] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Right]);
+		f.planes[(unsigned)FrustumPlane::Bottom] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Bottom]);
+		f.planes[(unsigned)FrustumPlane::Top] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Top]);
 	}
 
 	const glm::vec3& Camera::getLook() const
@@ -188,9 +191,10 @@ namespace nex
 	void Camera::update()
 	{
 		mRight = normalize(cross(mCoordSystem.look, mCoordSystem.up));
+		calcView();
 		calcProjection();
 		calcFrustum();
-		calcView();
+		calcFrustumWorld();
 	}
 
 	void Camera::assertValidVector(const glm::vec3& vec)
@@ -296,15 +300,15 @@ namespace nex
 		const auto halfWidthLeft = -halfWidthRight;
 
 
-		mFrustum.nearLeftBottom = glm::vec3(halfWidthLeft * zNear, halfHeightBottom * zNear, zNear);
-		mFrustum.nearLeftTop = glm::vec3(halfWidthLeft * zNear, halfHeightTop * zNear, zNear);
-		mFrustum.nearRightBottom = glm::vec3(halfWidthRight * zNear, halfHeightBottom * zNear, zNear);
-		mFrustum.nearRightTop = glm::vec3(halfWidthRight * zNear, halfHeightTop * zNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * zNear, halfHeightBottom * zNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * zNear, halfHeightTop * zNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * zNear, halfHeightBottom * zNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * zNear, halfHeightTop * zNear, zNear);
 
-		mFrustum.farLeftBottom = glm::vec3(halfWidthLeft * zFar, halfHeightBottom * zFar, zFar);
-		mFrustum.farLeftTop = glm::vec3(halfWidthLeft * zFar, halfHeightTop * zFar, zFar);
-		mFrustum.farRightBottom = glm::vec3(halfWidthRight * zFar, halfHeightBottom * zFar, zFar);
-		mFrustum.farRightTop = glm::vec3(halfWidthRight * zFar, halfHeightTop * zFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * zFar, halfHeightBottom * zFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * zFar, halfHeightTop * zFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * zFar, halfHeightBottom * zFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * zFar, halfHeightTop * zFar, zFar);
 
 
 		/**
@@ -317,18 +321,18 @@ namespace nex
 
 		const float e = 1.0f / tan(halfFovY); // focal length (using vertical field of view)
 		const float a = mAspectRatio; // aspect ratio width over height (note, Lengyel uses height over width)
-		const float zA = getViewSpaceZfromDistance(-a); // a as signed depth (for switching between left and right handed)
-		const float zOne = getViewSpaceZfromDistance(-1.0f); // One as signed depth (for switching between left and right handed)
+		const float zA = getViewSpaceZfromDistance(a); // a as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
 		const float divLeftRight = std::sqrtf(e*e + a*a); // divisor for normalization
 		const float divBottTop = std::sqrtf(e*e + 1.0f); // divisor for normalization
 
-		mFrustum.nearPlane = {0, 0, zOne, -mNearDistance };
-		mFrustum.farPlane = { 0, 0, -zOne, mFarDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Near] = {0, 0, zOne, -mNearDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
 
-		mFrustum.leftPlane = { e / divLeftRight, 0, zA / divLeftRight, 0 };
-		mFrustum.rightPlane = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
-		mFrustum.bottomPlane = { 0, e / divBottTop, zOne / divBottTop, 0 };
-		mFrustum.topPlane = { 0, -e / divBottTop, zOne / divBottTop, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Left] = { e / divLeftRight, 0, zA / divLeftRight, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Right] = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Bottom] = { 0, e / divBottTop, zOne / divBottTop, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Top] = { 0, -e / divBottTop, zOne / divBottTop, 0 };
 	}
 
 	void PerspectiveCamera::calcProjection()
@@ -369,26 +373,26 @@ namespace nex
 		const auto zNear = getViewSpaceZfromDistance(mNearDistance);
 		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
 
-		mFrustum.nearLeftBottom = glm::vec3(-mHalfWidth, -mHalfHeight, zNear);
-		mFrustum.nearLeftTop = glm::vec3(-mHalfWidth, mHalfHeight, zNear);
-		mFrustum.nearRightBottom = glm::vec3(mHalfWidth, -mHalfHeight, zNear);
-		mFrustum.nearRightTop = glm::vec3(mHalfWidth, mHalfHeight, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(-mHalfWidth, -mHalfHeight, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(-mHalfWidth, mHalfHeight, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(mHalfWidth, -mHalfHeight, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(mHalfWidth, mHalfHeight, zNear);
 
-		mFrustum.farLeftBottom = glm::vec3(-mHalfWidth, -mHalfHeight, zFar);
-		mFrustum.farLeftTop = glm::vec3(-mHalfWidth, mHalfHeight, zFar);
-		mFrustum.farRightBottom = glm::vec3(mHalfWidth, -mHalfHeight, zFar);
-		mFrustum.farRightTop = glm::vec3(mHalfWidth, mHalfHeight, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(-mHalfWidth, -mHalfHeight, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(-mHalfWidth, mHalfHeight, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(mHalfWidth, -mHalfHeight, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(mHalfWidth, mHalfHeight, zFar);
 
 
-		const float zOne = getViewSpaceZfromDistance(-1.0f); // One as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
 
-		mFrustum.nearPlane = { 0, 0, zOne, -mNearDistance };
-		mFrustum.farPlane = { 0, 0, -zOne, mFarDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Near] = { 0, 0, zOne, -mNearDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
 
-		mFrustum.leftPlane =   { 1.0f,  0,     0, mHalfWidth  };
-		mFrustum.rightPlane =  { -1.0f, 0,     0, mHalfWidth  };
-		mFrustum.bottomPlane = { 0,     1.0f,  0, mHalfHeight };
-		mFrustum.topPlane =    { 0,     -1.0f, 0, mHalfHeight };
+		mFrustum.planes[(unsigned)FrustumPlane::Left] =   { 1.0f,  0,     0, mHalfWidth  };
+		mFrustum.planes[(unsigned)FrustumPlane::Right] =  { -1.0f, 0,     0, mHalfWidth  };
+		mFrustum.planes[(unsigned)FrustumPlane::Bottom] = { 0,     1.0f,  0, mHalfHeight };
+		mFrustum.planes[(unsigned)FrustumPlane::Top] =    { 0,     -1.0f, 0, mHalfHeight };
 	}
 
 	void OrthographicCamera::calcProjection()

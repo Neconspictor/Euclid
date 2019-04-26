@@ -23,6 +23,16 @@ Mesh::Mesh(): mTopology(Topology::TRIANGLES)
 {
 }
 
+const AABB& Mesh::getAABB() const
+{
+	return mBoundingBox;
+}
+
+void Mesh::setBoundingBox(const AABB& box)
+{
+	mBoundingBox = box;
+}
+
 IndexBuffer* Mesh::getIndexBuffer()
 {
 	return &mIndexBuffer;

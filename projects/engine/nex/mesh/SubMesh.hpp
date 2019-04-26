@@ -1,10 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include "VertexArray.hpp"
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
 #include <nex/mesh/MeshTypes.hpp>
+#include <nex/util/Math.hpp>
 
 namespace nex
 {
@@ -34,6 +34,7 @@ namespace nex
 
 		virtual ~Mesh() = default;
 
+		const AABB& getAABB() const;
 		IndexBuffer* getIndexBuffer();
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
@@ -43,12 +44,15 @@ namespace nex
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
 		void setVertexBuffer(VertexBuffer buffer);
+		void setBoundingBox(const AABB& box);
 		
+
 
 	protected:
 		VertexArray mVertexArray;
 		IndexBuffer mIndexBuffer;
 		VertexBuffer mVertexBuffer;
+		AABB mBoundingBox;
 
 		Topology mTopology;
 	};
