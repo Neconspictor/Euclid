@@ -234,7 +234,7 @@ luminance = 0.3 * color;
     previousPos /= previousPos.w;
     // Use this frame's position and last frame's to compute the pixel
    // velocity.
-   vec2 velocity = (currentPos.xy - previousPos.xy) * 0.5;
+   vec2 velocity = (currentPos.xy - previousPos.xy) * 0.1;
     
 motion = velocity;
 
