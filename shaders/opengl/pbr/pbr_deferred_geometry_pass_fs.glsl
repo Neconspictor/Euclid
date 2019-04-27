@@ -31,6 +31,6 @@ void main()
     
     
     
-    motion = fs_in.position_ndc.xy/fs_in.position_ndc.w - 
-            fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w;
+    motion = (fs_in.position_ndc.xy/fs_in.position_ndc.w - 
+            fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w)/2.f;
 }

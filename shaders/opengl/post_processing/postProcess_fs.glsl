@@ -15,8 +15,8 @@ layout(binding = 5) uniform sampler2D aoMap;
 layout(binding = 6) uniform sampler2D motionMap;
 
 
-#define MOTION_BLUR_SAMPLES 12.0
-#define MOTION_SCALE 1.0
+#define MOTION_BLUR_SAMPLES 20.0
+#define MOTION_SCALE 2.0
 
 
 
