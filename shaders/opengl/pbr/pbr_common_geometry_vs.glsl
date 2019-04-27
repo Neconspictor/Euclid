@@ -9,6 +9,7 @@ layout(binding = 0) buffer TransformBuffer {
     mat4 view;
     mat4 projection;
     mat4 transform;
+    mat4 prevTransform;
     mat4 modelView;
     mat3 normalMatrix;
 } transforms;
@@ -16,6 +17,8 @@ layout(binding = 0) buffer TransformBuffer {
 out VS_OUT {
 	//vec4 fragment_position_eye;
     //float viewSpaceZ;
+    vec4 position_ndc;
+    vec4 position_ndc_previous;
 	vec2 tex_coords;
 	mat3 TBN_eye_directions; // used to transform the normal vector from tangent to eye space. 
 						  //  This matrix mustn't be used with positions!!!	
@@ -23,7 +26,12 @@ out VS_OUT {
 
 void commonVertexShader() {
     gl_Position = transforms.transform * vec4(position, 1.0f);
-	vs_out.tex_coords = texCoords;
+	
+    vs_out.position_ndc = gl_Position / gl_Position.w;
+    vs_out.position_ndc_previous = transforms.prevTransform *  vec4(position, 1.0f);
+    vs_out.position_ndc_previous /= vs_out.position_ndc_previous.w;
+    
+    vs_out.tex_coords = texCoords;
     
     mat3 normalMatrix = mat3(inverse(transpose(transforms.modelView)));
 	

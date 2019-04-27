@@ -262,7 +262,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, mPbrMrt->getNormalizedViewSpaceZ());
 
-	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
+	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPbrMrt->getMotion(), mPingPong.get());
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
@@ -324,7 +324,7 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	// finally render the offscreen buffer to a quad and do post processing stuff
 	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 
-	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPingPong.get());
+	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, aoMap, mPingPong.get());
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 

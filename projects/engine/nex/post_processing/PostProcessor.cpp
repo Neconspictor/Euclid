@@ -26,12 +26,15 @@ public:
 
 		aoMap = { mShader->getUniformLocation("aoMap"), UniformType::TEXTURE2D, 5 };
 
+		motionMap = { mShader->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
+
 		mShader->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mShader->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
 		mShader->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
 		mShader->setBinding(bloomEigth.location, bloomEigth.bindingSlot);
 		mShader->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
 		mShader->setBinding(aoMap.location, aoMap.bindingSlot);
+		mShader->setBinding(motionMap.location, motionMap.bindingSlot);
 
 		mSampler = &(Pass::mSampler);
 	}
@@ -42,6 +45,7 @@ public:
 	UniformTex bloomEigth;
 	UniformTex bloomSixteenth;
 	UniformTex aoMap;
+	UniformTex motionMap;
 	Sampler* mSampler;
 };
 
@@ -54,7 +58,7 @@ mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
 
 nex::PostProcessor::~PostProcessor() = default;
 
-nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, RenderTarget2D* output)
+nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, Texture2D* motionMap,  RenderTarget2D* output)
 {
 	// Bloom
 	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
@@ -77,6 +81,7 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 	setPostProcessTexture(source);
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
 	setAoMap(aoMap);
+	setMotionMap(motionMap);
 
 	RenderState state = RenderState::createNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
@@ -126,6 +131,12 @@ void nex::PostProcessor::setAoMap(Texture2D* aoMap)
 {
 	auto& uniform = mPostprocessPass->aoMap;
 	mPostprocessPass->getShader()->setTexture(aoMap, mPostprocessPass->mSampler, uniform.bindingSlot);
+}
+
+void nex::PostProcessor::setMotionMap(Texture2D* motionMap)
+{
+	auto& uniform = mPostprocessPass->motionMap;
+	mPostprocessPass->getShader()->setTexture(motionMap, mPostprocessPass->mSampler, uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)

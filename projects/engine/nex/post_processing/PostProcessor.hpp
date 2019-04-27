@@ -38,6 +38,7 @@ namespace nex
 			Texture2D* source, 
 			Texture2D* glowTexture,
 			Texture2D* aoMap,
+			Texture2D* motionMap,
 			RenderTarget2D* output);
 
 		void antialias(Texture2D* source, RenderTarget2D* output);
@@ -57,6 +58,7 @@ namespace nex
 		class PostProcessPass;
 
 		void setAoMap(Texture2D* aoMap);
+		void setMotionMap(Texture2D* motionMap);
 		void setPostProcessTexture(Texture* texture);
 		void setGlowTextures(Texture* halfth, Texture* quarter, Texture* eigth, Texture* sixteenth);
 

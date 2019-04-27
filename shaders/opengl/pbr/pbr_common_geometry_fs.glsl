@@ -12,6 +12,8 @@ struct Material {
 in VS_OUT {	
 	//vec4 fragment_position_eye;
     //float viewSpaceZ;
+    vec4 position_ndc;
+    vec4 position_ndc_previous;
 	vec2 tex_coords;
 	mat3 TBN_eye_directions; // used to transform the normal vector from tangent to eye space.
 						  //  This matrix mustn't be used with positions!!!

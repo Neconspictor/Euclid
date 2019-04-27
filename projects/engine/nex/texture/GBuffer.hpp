@@ -13,13 +13,16 @@ namespace nex
 
 		Texture2D* getAlbedo() const;
 		Texture2D* getAoMetalRoughness() const;
+		Texture2D* getMotion() const;
 		Texture2D* getNormal() const;
 		Texture2D* getNormalizedViewSpaceZ() const;
 
 	private:
 		Texture2D* mAlbedo;
 		Texture2D* mAoMetalRoughness;
+		Texture2D* mMotion;
 		Texture2D* mNormal;
 		Texture2D* mNormalizedViewSpaceZ;
+
 	};
 }

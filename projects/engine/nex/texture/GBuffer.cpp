@@ -52,11 +52,21 @@ namespace nex
 
 		// normalized viewspace z
 		data.internalFormat = InternFormat::R32F;
+		data.colorspace = ColorSpace::R;
 		//data.colorspace = ColorSpace::DEPTH;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 3;
 		mNormalizedViewSpaceZ = static_cast<Texture2D*>(temp.texture.get());
+		addColorAttachment(temp);
+
+		// motion
+		data.internalFormat = InternFormat::RG8;
+		data.colorspace = ColorSpace::RG;
+		data.pixelDataType = PixelDataType::UBYTE;
+		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
+		temp.colorAttachIndex = 4;
+		mMotion = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 
@@ -90,6 +100,11 @@ namespace nex
 	Texture2D* PBR_GBuffer::getAoMetalRoughness() const
 	{
 		return mAoMetalRoughness;
+	}
+
+	Texture2D* PBR_GBuffer::getMotion() const
+	{
+		return mMotion;
 	}
 
 	Texture2D* PBR_GBuffer::getNormal() const

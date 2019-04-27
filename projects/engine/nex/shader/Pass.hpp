@@ -56,6 +56,7 @@ namespace nex
 			glm::mat4 view;
 			glm::mat4 projection;
 			glm::mat4 transform;
+			glm::mat4 prevTransform;
 			glm::mat4 modelView;
 			glm::mat3 normalMatrix;
 		};
