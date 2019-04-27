@@ -116,4 +116,9 @@ namespace nex
 	{
 		return mNormalizedViewSpaceZ;
 	}
+
+	const RenderAttachment& PBR_GBuffer::getMotionRenderTarget() const
+	{
+		return getColorAttachments()[4];
+	}
 }

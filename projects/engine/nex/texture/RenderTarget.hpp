@@ -48,20 +48,27 @@ namespace nex
 		void clear(int components) const;
 
 		// Has to be implemented by renderer backend
-		void enableDrawToColorAttachments(bool enable) const;
+		void enableDrawToColorAttachments() const;
 
 		// Has to be implemented by renderer backend
-		void enableReadFromColorAttachments(bool enable) const;
+		void enableDrawToColorAttachment(unsigned index, bool enable);
+
+		// Has to be implemented by renderer backend
+		void enableReadFromColorAttachments() const;
 
 		// Has to be implemented by renderer backend
 		void finalizeAttachments() const;
 
+		// Has to be implemented by renderer backend
 		std::vector<RenderAttachment>& getColorAttachments();
+
+		// Has to be implemented by renderer backend
+		const std::vector<RenderAttachment>& getColorAttachments() const;
 
 		Texture* getColorAttachmentTexture(std::size_t attachmentIndex);
 
 		// Has to be implemented by renderer backend
-		RenderAttachment* getDepthAttachment();
+		RenderAttachment* getDepthAttachment() const;
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);

@@ -27,6 +27,10 @@ nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 
 	mRayleighStrengthUniform = { mShader->getUniformLocation("rayleigh_strength"), UniformType::FLOAT };
 	mMieStrengthUniform = { mShader->getUniformLocation("mie_strength"), UniformType::FLOAT };
+
+	mInvViewProjUniform = { mShader->getUniformLocation("invViewProj"), UniformType::MAT4 };
+	mPrevViewProjUniform = { mShader->getUniformLocation("prevViewProj"), UniformType::MAT4 };
+
 }
 
 void nex::AtmosphericScattering::renderSky()
@@ -90,4 +94,14 @@ void nex::AtmosphericScattering::setLight(const Light& light)
 void nex::AtmosphericScattering::setScatterStrength(float strength)
 {
 	mShader->setFloat(mScatterStrengthUniform.location, strength);
+}
+
+void nex::AtmosphericScattering::setPrevViewProj(const glm::mat4& mat)
+{
+	mShader->setMat4(mPrevViewProjUniform.location, mat);
+}
+
+void nex::AtmosphericScattering::setInvViewProj(const glm::mat4& mat)
+{
+	mShader->setMat4(mInvViewProjUniform.location, mat);
 }

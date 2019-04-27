@@ -44,9 +44,13 @@ namespace nex
 
 		void bind() const;
 
-		void enableDrawToColorAttachments(bool enable) const;
+		void updateDrawColorAttachmentList() const;
 
-		void enableReadFromColorAttachments(bool enable) const;
+		void enableReadColorAttachment(unsigned index, bool enable);
+
+		void enableDrawColorAttachment(unsigned index, bool enable);
+
+		void updateReadFromColorAttachmentList() const;
 
 		void finalizeColorAttachments() const;
 
@@ -76,13 +80,16 @@ namespace nex
 
 		GLuint mFrameBuffer;
 		std::vector<RenderAttachment> mColorAttachments;
+		std::vector<bool> mColorAttachmentReadStatus;
+		std::vector<bool> mColorAttachmentDrawStatus;
 		std::unique_ptr<RenderAttachment> mDepthAttachment;
 
 		const RenderAttachment* getByIndex(const unsigned colorAttachIndex) const;
 		static bool isArrayTarget(GLenum textureTarget);
 		void updateAttachment(const RenderAttachment& attachment) const;
 
-		std::vector<GLenum> calcColorAttachments() const;
+		std::vector<GLenum> calcEnabledReadColorAttachments() const;
+		std::vector<GLenum> calcEnabledDrawColorAttachments() const;
 
 		/**
 		 * This function binds the specified framebuffer and reverse it again, so that the OpenGL state remains unchanged.

@@ -258,9 +258,9 @@ void NeXEngine::createScene()
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	ground->setPositionLocal({ 10, 0, 0 });
 
-	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
-	auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
-	cerberus->setPositionLocal({0, 2, 0});
+	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
+	//auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
+	//cerberus->setPositionLocal({0, 2, 0});
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;

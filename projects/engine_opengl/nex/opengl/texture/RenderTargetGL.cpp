@@ -246,14 +246,19 @@ void nex::RenderTarget::clear(int components) const
 	//GLCall(glClear(renderComponentsComponentsGL));
 }
 
-void nex::RenderTarget::enableDrawToColorAttachments(bool enable) const
+void nex::RenderTarget::enableDrawToColorAttachments() const
 {
-	mImpl->enableDrawToColorAttachments(enable);
+	mImpl->updateDrawColorAttachmentList();
 }
 
-void nex::RenderTarget::enableReadFromColorAttachments(bool enable) const
+void nex::RenderTarget::enableDrawToColorAttachment(unsigned index, bool enable)
 {
-	mImpl->enableReadFromColorAttachments(enable);
+	mImpl->enableDrawColorAttachment(index, enable);
+}
+
+void nex::RenderTarget::enableReadFromColorAttachments() const
+{
+	mImpl->updateReadFromColorAttachmentList();
 }
 
 void nex::RenderTarget::finalizeAttachments() const
@@ -266,12 +271,17 @@ std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments()
 	return mImpl->getColorAttachments();
 }
 
+const std::vector<nex::RenderAttachment>& nex::RenderTarget::getColorAttachments() const
+{
+	return mImpl->getColorAttachments();
+}
+
 nex::Texture* nex::RenderTarget::getColorAttachmentTexture(std::size_t attachmentIndex)
 {
 	return getColorAttachments()[attachmentIndex].texture.get();
 }
 
-nex::RenderAttachment* nex::RenderTarget::getDepthAttachment()
+nex::RenderAttachment* nex::RenderTarget::getDepthAttachment() const
 {
 	return &mImpl->getDepthAttachment();
 }
@@ -340,6 +350,8 @@ void nex::RenderTarget::Impl::addColorAttachment(RenderAttachment attachment)
 	}
 
 	mColorAttachments.emplace_back(std::move(attachment));
+	mColorAttachmentReadStatus.push_back(true);
+	mColorAttachmentDrawStatus.push_back(true);
 	updateColorAttachment(static_cast<unsigned>(mColorAttachments.size() - 1));
 }
 
@@ -357,38 +369,36 @@ void nex::RenderTarget::Impl::bind() const
 	GlobalCacheGL::get()->BindFramebuffer(mFrameBuffer);
 }
 
-void nex::RenderTarget::Impl::enableDrawToColorAttachments(bool enable) const
+void nex::RenderTarget::Impl::updateDrawColorAttachmentList() const
 {
-	if (enable)
-	{
-		const auto colorAttachments = calcColorAttachments();
-		GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, static_cast<unsigned>(colorAttachments.size()), colorAttachments.data()));
-	}
-	else
-	{
-		GLCall(glNamedFramebufferDrawBuffer(mFrameBuffer, GL_NONE));
-	}
+	const auto colorAttachments = calcEnabledDrawColorAttachments();
+	GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, static_cast<unsigned>(colorAttachments.size()), colorAttachments.data()));
 }
 
-void nex::RenderTarget::Impl::enableReadFromColorAttachments(bool enable) const
+void nex::RenderTarget::Impl::enableReadColorAttachment(unsigned index, bool enable)
 {
-	if (enable)
+	mColorAttachmentReadStatus[index] = enable;
+	updateReadFromColorAttachmentList();
+}
+
+void nex::RenderTarget::Impl::enableDrawColorAttachment(unsigned index, bool enable)
+{
+	mColorAttachmentDrawStatus[index] = enable;
+	updateDrawColorAttachmentList();
+}
+
+void nex::RenderTarget::Impl::updateReadFromColorAttachmentList() const
+{
+	const auto colorAttachments = calcEnabledReadColorAttachments();
+
+	GLenum buf = 0;
+
+	for (auto buffer : colorAttachments)
 	{
-		const auto colorAttachments = calcColorAttachments();
-
-		GLenum buf = 0;
-
-		for (auto buffer : colorAttachments)
-		{
-			buf |= buffer;
-		}
-
-		GLCall(glNamedFramebufferReadBuffer(mFrameBuffer, buf));
+		buf |= buffer;
 	}
-	else
-	{
-		GLCall(glNamedFramebufferReadBuffer(mFrameBuffer, GL_NONE));
-	}
+
+	GLCall(glNamedFramebufferReadBuffer(mFrameBuffer, buf));
 }
 
 void nex::RenderTarget::Impl::updateColorAttachment(unsigned index) const
@@ -465,12 +475,31 @@ void nex::RenderTarget::Impl::updateAttachment(const RenderAttachment& attachmen
 	}
 }
 
-std::vector<GLenum> nex::RenderTarget::Impl::calcColorAttachments() const
+std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledReadColorAttachments() const
 {
 	std::vector<GLenum> result;
-	for (const auto& attachment : mColorAttachments)
+	for (auto i = 0; i < mColorAttachments.size(); ++i)
 	{
-		if (attachment.type == RenderAttachmentType::COLOR)
+		const auto& attachment = mColorAttachments[i];
+
+		if (attachment.type == RenderAttachmentType::COLOR && mColorAttachmentReadStatus[i])
+		{
+			const auto glEnum = translate(attachment.type, attachment.colorAttachIndex);
+			result.push_back(glEnum);
+		}
+	}
+
+	return result;
+}
+
+std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledDrawColorAttachments() const
+{
+	std::vector<GLenum> result;
+	for (auto i = 0; i < mColorAttachments.size(); ++i)
+	{
+		const auto& attachment = mColorAttachments[i];
+
+		if (attachment.type == RenderAttachmentType::COLOR && mColorAttachmentDrawStatus[i])
 		{
 			const auto glEnum = translate(attachment.type, attachment.colorAttachIndex);
 			result.push_back(glEnum);
@@ -645,7 +674,7 @@ void nex::RenderTarget::Impl::setFrameBuffer(GLuint newValue)
 
 void nex::RenderTarget::Impl::finalizeColorAttachments() const
 {
-	enableDrawToColorAttachments(true);
+	updateDrawColorAttachmentList();
 }
 
 std::vector<nex::RenderAttachment>& nex::RenderTarget::Impl::getColorAttachments()
@@ -701,13 +730,6 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	depth.side = CubeMapSide::POSITIVE_X;
 
 	useDepthAttachment(std::move(depth));
-
-	// TODO validate!
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
-
-	// A depth map only needs depth (z-value) informations; therefore disable any color buffers
-	enableDrawToColorAttachments(false);
-	enableReadFromColorAttachments(false);
 
 	assertCompletion();
 }

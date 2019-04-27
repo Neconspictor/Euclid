@@ -88,7 +88,17 @@ namespace nex
 		 * NOTE: This shader has to be bound for this function to work correctly!
 		 */
 		void setScatterStrength(float strength);
-		 
+
+		/**
+		 * NOTE: This shader has to be bound for this function to work correctly!
+		 */
+		void setPrevViewProj(const glm::mat4& mat);
+
+		/**
+		 * NOTE: This shader has to be bound for this function to work correctly!
+		 */
+		void setInvViewProj(const glm::mat4& mat);
+
 	private:
 		/*glm::vec2 mViewPort;
 		glm::mat4 mInvProj;
@@ -117,5 +127,8 @@ namespace nex
 		Uniform mMieCollectionPowerUniform;
 		Uniform mRayleighStrengthUniform;
 		Uniform mMieStrengthUniform;
+
+		Uniform mInvViewProjUniform;
+		Uniform mPrevViewProjUniform;
 	};
 }

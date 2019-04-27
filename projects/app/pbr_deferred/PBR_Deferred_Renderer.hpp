@@ -47,7 +47,7 @@ namespace nex
 		void renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
 		void renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height);
 
-		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height);
+		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
 
 		// Allow the UI mode classes accessing private members
 

@@ -28,6 +28,7 @@ void main() {
     
     // Motion blur
     vec2 motion = texture(motionMap, fs_in.texCoord).xy;
+    //motion = vec2(0.1, 0.1);
     motion     *= MOTION_SCALE;
     
     vec4 avgColor = color;

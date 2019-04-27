@@ -84,7 +84,10 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	//auto* skyboxShader = effectLib->getSkyBoxShader();
 
 	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
-	mRenderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight);
+
+
+	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	mRenderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight, mPbrMrt.get());
 	mPingPong = mRenderBackend->createRenderTarget();
 
 	//panoramaSkyBoxShader->bind();
@@ -95,11 +98,6 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 	blurEffect = mRenderBackend->getEffectLibrary()->getGaussianBlur();
-
-	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-
-	
-	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
 
 	mRenderBackend->getRasterizer()->enableScissorTest(false);
 
@@ -150,10 +148,8 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets
 	mRenderBackend->resize(width, height);
-	mRenderTargetSingleSampled = createLightingTarget(width, height);
 	mPbrMrt = mPbrDeferred->createMultipleRenderTarget(width, height);
-	mRenderTargetSingleSampled->useDepthAttachment(*mPbrMrt->getDepthAttachment());
-
+	mRenderTargetSingleSampled = createLightingTarget(width, height, mPbrMrt.get());
 	mPingPong = mRenderBackend->createRenderTarget();
 }
 
@@ -229,6 +225,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	// render scene to a offscreen buffer
 	mRenderTargetSingleSampled->bind();
 	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, false);
 	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
@@ -239,6 +237,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
 	renderSky(camera, sun, windowWidth, windowHeight);
 	stencilTest->enableStencilTest(false);
 
@@ -339,6 +338,16 @@ void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, Directiona
 	mAtmosphericScattering->setSpotBrightness(10.0f);
 	mAtmosphericScattering->setViewport(width, height);
 
+	const auto& view = camera->getView();
+	const auto& prevView = camera->getPrevView();
+	const auto& proj = camera->getProjectionMatrix();
+	const auto prevViewProj = proj * prevView;
+	const auto viewProjInverse = inverse(proj*view);
+
+	mAtmosphericScattering->setPrevViewProj(prevViewProj);
+	mAtmosphericScattering->setInvViewProj(viewProjInverse);
+
+
 	AtmosphericScattering::Light light;
 	light.direction = -normalize(sun->getDirection());
 	light.intensity = 1.8f;
@@ -360,7 +369,7 @@ void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, Directiona
 	mAtmosphericScattering->renderSky();
 }
 
-std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height)
+std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer)
 {
 	auto result = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR());
 
@@ -372,6 +381,12 @@ std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingT
 	luminance.texture = std::make_shared<Texture2D>(width, height, TextureData::createRenderTargetRGBAHDR(), nullptr);
 
 	result->addColorAttachment(std::move(luminance));
+
+	RenderAttachment motion = gBuffer->getMotionRenderTarget();
+	motion.colorAttachIndex = 2;
+	result->addColorAttachment(std::move(motion));
+
+	result->useDepthAttachment(*gBuffer->getDepthAttachment());
 
 	result->finalizeAttachments();
 

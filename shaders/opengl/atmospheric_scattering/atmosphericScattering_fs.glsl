@@ -11,6 +11,8 @@
 uniform vec2 viewport;
 uniform mat4 inv_proj;
 uniform mat3 inv_view_rot;
+uniform mat4 invViewProj;
+uniform mat4 prevViewProj;
 uniform vec3 lightdir;
 
 // phase (molecular reflection) factors
@@ -33,8 +35,8 @@ uniform float rayleigh_strength;
 uniform float mie_strength;
 
 out vec4 color;
-
 out vec4 luminance;
+out vec2 motion;
 
 
 /**
@@ -131,7 +133,14 @@ vec3 absorb(float dist, vec3 color, float factor){
 
 void main() {
 
-    vec3 eyedir = get_world_normal();
+    vec2 frag_coord = gl_FragCoord.xy/viewport;
+    frag_coord = (frag_coord-0.5)*2.0;
+    vec4 device_normal = vec4(frag_coord, 0.0, 1.0);
+    vec3 eye_normal = normalize((inv_proj * device_normal).xyz);
+    vec3 eyedir = normalize(inv_view_rot*eye_normal);
+    
+    
+    
     float alpha = dot(eyedir, lightdir);
     
     // reflection distribution factors
@@ -203,5 +212,18 @@ void main() {
 color = vec4(result, 1.0);    
 
 luminance = 0.3 * color;
+
+    //motion vector
+    
+   // Note, that we render on the far plane -> depth is 1.0
+   float depth = 1.0;
+    // H is the viewport position at this pixel in the range -1 to 1.
+   vec4 H = vec4(frag_coord.x * 2 - 1, (1 - frag_coord.y) * 2 - 1, depth, 1);
+    // Transform by the view-projection inverse.
+   vec4 D = invViewProj * H;
+    // Divide by w to get the world position.
+   vec4 worldPos = D / D.w;
+    
+motion = vec2(0.0);
 
 }

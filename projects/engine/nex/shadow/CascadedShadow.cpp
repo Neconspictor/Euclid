@@ -188,8 +188,6 @@ void CascadedShadow::updateTextureArray()
 	mRenderTarget.bind();
 	mRenderTarget.useDepthAttachment(std::move(depth));
 	mRenderTarget.finalizeAttachments();
-	mRenderTarget.enableDrawToColorAttachments(false);
-	mRenderTarget.enableReadFromColorAttachments(false);
 	mRenderTarget.assertCompletion();
 }
 
