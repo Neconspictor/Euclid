@@ -11,6 +11,7 @@ namespace nex
 		Mesh* mesh;
 		Material* material;
 		glm::mat4 worldTrafo;
+		glm::mat4 prevWorldTrafo;
 
 		// bounding box information (world space); needed for sorting 
 		// meshes by distance and for transparent materials

@@ -151,6 +151,11 @@ namespace nex
 		const glm::mat4& getView() const;
 
 		/**
+		 * Provides the previous view matrix.
+		 */
+		const glm::mat4& getPrevView() const;
+
+		/**
 		 * Provides the near and far plane in viewspace 
 		 */
 		glm::vec2 getNearFarPlaneViewSpace() const;
@@ -244,6 +249,7 @@ namespace nex
 		glm::vec3 mTargetPosition;
 		glm::vec3 mRight;
 		glm::mat4 mView;
+		glm::mat4 mPrevView;
 		float mFarDistance;
 		float mNearDistance;
 		float mCameraSpeed;

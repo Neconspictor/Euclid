@@ -28,5 +28,9 @@ void main()
     //normalizedViewSpaceZ = normalizeViewSpaceZ(fs_in.viewSpaceZ, nearFarPlane.x, nearFarPlane.y);
     normalizedViewSpaceZ = gl_FragCoord.z;
     
-    motion = fs_in.position_ndc.xy - fs_in.position_ndc_previous.xy;
+    
+    
+    
+    motion = fs_in.position_ndc.xy/fs_in.position_ndc.w - 
+            fs_in.position_ndc_previous.xy / fs_in.position_ndc_previous.w;
 }

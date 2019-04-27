@@ -52,6 +52,11 @@ namespace nex
 		return mWorldTrafo;
 	}
 
+	const glm::mat4& SceneNode::getPrevWorldTrafo() const
+	{
+		return mPrevWorldTrafo;
+	}
+
 	void SceneNode::removeChild(SceneNode* node)
 	{
 		auto it = std::find(mChildren.begin(), mChildren.end(), node);
@@ -84,6 +89,7 @@ namespace nex
 
 	void SceneNode::setWorldTrafo(const glm::mat4& trafo)
 	{
+		mPrevWorldTrafo = mWorldTrafo;
 		mWorldTrafo = trafo;
 	}
 
@@ -124,11 +130,11 @@ namespace nex
 	{
 		if (mParent)
 		{
-			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+			setWorldTrafo(mParent->mWorldTrafo * mLocalTrafo);
 		}
 		else
 		{
-			mWorldTrafo = mLocalTrafo;
+			setWorldTrafo(mLocalTrafo);
 		}
 	}
 

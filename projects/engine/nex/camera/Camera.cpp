@@ -125,6 +125,11 @@ namespace nex
 		return mView;
 	}
 
+	const glm::mat4& Camera::getPrevView() const
+	{
+		return mPrevView;
+	}
+
 	glm::vec2 Camera::getNearFarPlaneViewSpace() const
 	{
 		return {getViewSpaceZfromDistance(mNearDistance), getViewSpaceZfromDistance(mFarDistance)};
@@ -209,6 +214,7 @@ namespace nex
 
 	void Camera::calcView()
 	{
+		mPrevView = mView;
 		mView = glm::lookAt(
 			mCoordSystem.position,
 			mCoordSystem.position + mCoordSystem.look,

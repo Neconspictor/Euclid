@@ -8,7 +8,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 {
 	for (const auto& command : commands)
 	{
-		shader->setModelMatrix(command.worldTrafo);
+		shader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		shader->uploadTransformMatrices();
 		StaticMeshDrawer::draw(command.mesh, command.material, shader, overwriteState);
 	}

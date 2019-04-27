@@ -38,15 +38,18 @@ mTransformBuffer(0, sizeof(Transforms), ShaderBuffer::UsageHint::DYNAMIC_DRAW)
 
 nex::TransformPass::~TransformPass() = default;
 
-void nex::TransformPass::setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view)
+void nex::TransformPass::setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView)
 {
 	mTransforms.projection = projection;
 	mTransforms.view = view;
+	mPrevView = prevView;
 }
 
-void nex::TransformPass::setModelMatrix(const glm::mat4& model)
+void nex::TransformPass::setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel)
 {
 	mTransforms.model = model;
+	mPrevModel = prevModel;
+	
 }
 
 void nex::TransformPass::uploadTransformMatrices()
@@ -54,7 +57,7 @@ void nex::TransformPass::uploadTransformMatrices()
 	bind();
 	mTransforms.modelView = mTransforms.view * mTransforms.model;
 	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
-	mTransforms.prevTransform = mTransforms.projection * mTransforms.modelView;
+	mTransforms.prevTransform = mTransforms.projection * mPrevView * mPrevModel;
 	mTransforms.normalMatrix = inverse(transpose(mTransforms.modelView));
 	mTransformBuffer.bind();
 	mTransformBuffer.update(&mTransforms, sizeof(Transforms));

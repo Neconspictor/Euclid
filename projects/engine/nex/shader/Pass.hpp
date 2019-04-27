@@ -74,12 +74,16 @@ namespace nex
 		TransformPass& operator=(const TransformPass&) = delete;
 		TransformPass& operator=(TransformPass&&) = default;
 
-		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view);
-
 		/**
+		 * Sets the current and the previous model matrix (from the last frame)
 		 * Note: setViewProjectionMatrices has to be called before calling this function!
 		 */
-		void setModelMatrix(const glm::mat4& model);
+		void setModelMatrix(const glm::mat4& model, const glm::mat4& prevModel);
+
+		/**
+		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
+		 */
+		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView);
 
 		/**
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
@@ -90,6 +94,8 @@ namespace nex
 	protected:
 		ShaderStorageBuffer mTransformBuffer;
 		Transforms mTransforms;
+		glm::mat4 mPrevModel;
+		glm::mat4 mPrevView;
 	};
 
 	class ComputePass : public Pass

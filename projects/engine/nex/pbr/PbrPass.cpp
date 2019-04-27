@@ -226,7 +226,7 @@ PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) :
 void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView());
+	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
 	mGeometryPass.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
@@ -321,7 +321,7 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
 void PbrDeferredGeometryPass::updateConstants(Camera* camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView());
+	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
 	mGeometryPass.updateConstants(camera);
 }
 

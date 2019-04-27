@@ -35,6 +35,7 @@ namespace nex
 
 		const glm::mat4& getLocalTrafo() const;
 		const glm::mat4& getWorldTrafo() const;
+		const glm::mat4& getPrevWorldTrafo() const;
 		void removeChild(SceneNode* node);
 		void setMesh(Mesh* mesh);
 		void setMaterial(Material* material);
@@ -57,6 +58,7 @@ namespace nex
 		SceneNode* mParent;
 		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;
+		glm::mat4 mPrevWorldTrafo;
 	};
 
 	/**

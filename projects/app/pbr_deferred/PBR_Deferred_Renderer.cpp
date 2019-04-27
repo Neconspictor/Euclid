@@ -178,7 +178,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, Direct
 			mCascadedShadow->begin(i);
 			for (const auto& command : commands)
 			{
-				depthPass->setModelMatrix(command.worldTrafo);
+				depthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 				depthPass->uploadTransformMatrices();
 				StaticMeshDrawer::draw(command.mesh, command.material, depthPass);
 			}

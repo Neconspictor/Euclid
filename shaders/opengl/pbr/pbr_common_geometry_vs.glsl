@@ -27,9 +27,8 @@ out VS_OUT {
 void commonVertexShader() {
     gl_Position = transforms.transform * vec4(position, 1.0f);
 	
-    vs_out.position_ndc = gl_Position / gl_Position.w;
+    vs_out.position_ndc = gl_Position;
     vs_out.position_ndc_previous = transforms.prevTransform *  vec4(position, 1.0f);
-    vs_out.position_ndc_previous /= vs_out.position_ndc_previous.w;
     
     vs_out.tex_coords = texCoords;
     

@@ -61,9 +61,9 @@ namespace nex
 		addColorAttachment(temp);
 
 		// motion
-		data.internalFormat = InternFormat::RG8;
+		data.internalFormat = InternFormat::RG32F;
 		data.colorspace = ColorSpace::RG;
-		data.pixelDataType = PixelDataType::UBYTE;
+		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 4;
 		mMotion = static_cast<Texture2D*>(temp.texture.get());

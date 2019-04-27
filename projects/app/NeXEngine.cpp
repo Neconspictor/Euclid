@@ -242,8 +242,8 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.mesh = mesh;
 				command.material = node->getMaterial();
 				command.worldTrafo = node->getWorldTrafo();
+				command.prevWorldTrafo = node->getPrevWorldTrafo();
 				command.boundingBox = (mCamera->getView() * command.worldTrafo) * mesh->getAABB();
-				// TODO min and max AABB positions!
 				commandQueue->push(command, true);
 			}
 		}
@@ -266,6 +266,9 @@ void NeXEngine::createScene()
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
 	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
+	// Note: Do it twice so that prevous world trafo is the same than the current one
+	// TODO Find better solution
+	mScene.updateWorldTrafoHierarchy();
 	mScene.updateWorldTrafoHierarchy();
 
 	/*m_nodes.emplace_back(SceneNode());
