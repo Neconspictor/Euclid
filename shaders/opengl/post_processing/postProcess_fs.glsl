@@ -16,7 +16,9 @@ layout(binding = 6) uniform sampler2D motionMap;
 
 
 #define MOTION_BLUR_SAMPLES 12.0
-#define MOTION_SCALE 1.0
+#define MOTION_SCALE 2.0
+
+const vec4 sepiaColor = vec4(1.2, 1.0, 0.8, 1.0);
 
 
 
@@ -63,6 +65,18 @@ void main() {
     
     // Ambient Occlusion
     color.rgb *= texture(aoMap, fs_in.texCoord).r;
+    
+    //Sepia
+    //vec4 grayscale = vec4(dot(color, vec4(0.299, 0.587, 0.114, 1.0)));
+    //color = mix(color, grayscale * sepiaColor, 0.3);
+    
+    //Vignette
+    const float VignetteStrength = 10.0;
+    const float power = 0.2;
+    vec2 tuv = fs_in.texCoord * (vec2(1.0) - fs_in.texCoord.yx);
+    float vign = tuv.x*tuv.y * VignetteStrength;
+    vign = pow(vign, power);
+    color *= vign;
 
     fragColor = color;
 	//fragColor = bloomQuarterSample;
