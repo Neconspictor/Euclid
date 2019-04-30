@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <glad/glad.h>
-#include <nex/exception/ShaderInitException.hpp>
+#include <nex/exception/ShaderException.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/shader_generator/ShaderSourceFileGenerator.hpp>
@@ -60,6 +60,10 @@ namespace nex
 		nex::UniformLocation getUniformLocation(const char* name) const;
 
 
+		/**
+		 * Creates a new shader program of a list of unresolved shader stage description.
+		 * @throws ShaderException: If the program couldn't be created.
+		 */
 		static GLuint loadShaders(const std::vector<UnresolvedShaderStageDesc>& stageDescs);
 
 		void setBinding(UniformLocation locationID, unsigned bindingSlot);
@@ -100,11 +104,16 @@ namespace nex
 
 		static std::string adjustLineNumbers(char* message, const ResolvedShaderStageDesc& desc);
 		static GLuint compileShaderStage(const ResolvedShaderStageDesc& desc, ShaderStageType type);
+
+		/**
+		 * Creates a new shader program.
+		 * @throws ShaderException: If the program couldn't be created.
+		 */
 		static GLuint createShaderProgram(const std::vector<Guard<ShaderStage>>& stages);
 
 		/**
 		 * @param shaderSourceFile The source file for that an unfolded version should be written for.
-		 * @throws ShaderInitException - if an IO error occurs
+		 * @throws ShaderException - if an IO error occurs
 		 */
 		static void writeUnfoldedShaderContentToFile(const std::string& shaderSourceFile, const std::vector<char>& sourceCode);
 

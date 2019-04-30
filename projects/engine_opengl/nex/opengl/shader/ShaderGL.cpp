@@ -2,7 +2,7 @@
 #include <vector>
 #include <nex/opengl/shader/ShaderGL.hpp>
 #include <nex/FileSystem.hpp>
-#include <nex/exception/ShaderInitException.hpp>
+#include <nex/exception/ShaderException.hpp>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -191,7 +191,7 @@ nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShader
 		std::stringstream ss;
 		ss << "Failed to compile " << desc.type << " shader!";
 
-		throw_with_trace(std::runtime_error(ss.str()));
+		throw_with_trace(ShaderException(ss.str()));
 		//return GL_FALSE;
 	}
 
@@ -446,18 +446,36 @@ nex::UniformLocation nex::Shader::getUniformLocation(const char* name) const
 	return mImpl->getUniformLocation(name);
 }
 
-std::unique_ptr<nex::Shader> nex::Shader::create(const FilePath& vertexFile, const FilePath& fragmentFile, const FilePath& geometryShaderFile, 
+std::unique_ptr<nex::Shader> nex::Shader::create(
+	const ShaderFilePath& vertexFile, 
+	const ShaderFilePath& fragmentFile,
+	const ShaderFilePath& tesselationControlShaderFile,
+	const ShaderFilePath& tesselationEvaluationShader,
+	const ShaderFilePath& geometryShaderFile, 
 	const std::vector<std::string>& defines)
 {
+	bool useGeometryShader = geometryShaderFile != nullptr;
+	bool useControlShader = tesselationControlShaderFile != nullptr;
+	bool useEvaluationShader = tesselationEvaluationShader != nullptr;
 
-	bool useGeometryShader = std::filesystem::exists(geometryShaderFile);
+	if (vertexFile == nullptr || fragmentFile == nullptr)
+	{
+		throw_with_trace(ShaderException("nex::Shader::create: No vertex or fragment shader specified!"));
+	}
+
+
+	if (useControlShader && !useEvaluationShader)
+	{
+		throw_with_trace(ShaderException("nex::Shader::create: Specified a tesselation control shader, but no tesselation evaluation shader!"));
+	}
 
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 
-	if (useGeometryShader)
-		unresolved.resize(3);
-	else
-		unresolved.resize(2);
+	const auto size = 2 + static_cast<unsigned>(useGeometryShader) 
+		+ static_cast<unsigned>(useControlShader)
+		+ static_cast<unsigned>(useEvaluationShader);
+
+	unresolved.resize(size);
 
 
 	unresolved[0].filePath = vertexFile;
@@ -467,20 +485,31 @@ std::unique_ptr<nex::Shader> nex::Shader::create(const FilePath& vertexFile, con
 	unresolved[1].type = ShaderStageType::FRAGMENT;
 	unresolved[1].defines = defines;
 
-	if (useGeometryShader)
+
+	if (useControlShader)
 	{
-		unresolved[2].filePath = geometryShaderFile;
-		unresolved[2].type = ShaderStageType::GEOMETRY;
+		unresolved[2].filePath = tesselationControlShaderFile;
+		unresolved[2].type = ShaderStageType::TESSELATION_CONTROL;
+		unresolved[2].defines = defines;
+	}
+
+
+	if (useEvaluationShader)
+	{
+		unresolved[3].filePath = tesselationEvaluationShader;
+		unresolved[3].type = ShaderStageType::TESSELATION_EVALUATION;
 		unresolved[3].defines = defines;
 	}
 
+	if (useGeometryShader)
+	{
+		unresolved[4].filePath = geometryShaderFile;
+		unresolved[4].type = ShaderStageType::GEOMETRY;
+		unresolved[4].defines = defines;
+	}
 
 
 	GLuint programID = Shader::Impl::loadShaders(unresolved);
-	if (programID == GL_FALSE)
-	{
-		throw_with_trace(ShaderInitException("ShaderProgram::create: couldn't create shader!"));
-	}
 
 	return std::make_unique<Shader>(std::make_unique<Shader::Impl>(programID));
 }
@@ -675,7 +704,7 @@ GLuint nex::Shader::Impl::createShaderProgram(const std::vector<Guard<ShaderStag
 		// release progrom
 		GLCall(glDeleteProgram(program));
 
-		throw_with_trace(ShaderInitException("Error: Shader::loadShaders(): Couldn't create shader program!"));
+		throw_with_trace(ShaderException("Error: Shader::loadShaders(): Couldn't create shader program!"));
 	}
 
 	return program;

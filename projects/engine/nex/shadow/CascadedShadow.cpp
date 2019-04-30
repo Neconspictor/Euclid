@@ -600,7 +600,7 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 CascadedShadow::DepthPass::DepthPass(unsigned numCascades) : mNumCascades(numCascades)
 {
 	std::vector<std::string> defines { std::string("#define CSM_NUM_CASCADES ") + std::to_string(mNumCascades) };
-	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", "", defines);
+	mShader = Shader::create("CascadedShadows/shadowDepthPass_vs.glsl", "CascadedShadows/shadowDepthPass_fs.glsl", nullptr, nullptr, nullptr, defines);
 }
 
 void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)

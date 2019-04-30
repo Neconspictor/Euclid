@@ -41,12 +41,9 @@ set(
 	nex/drawing/StaticMeshDrawer.cpp
     
     #nex/exception
-    nex/exception/MeshNotFoundException.hpp
-    nex/exception/ShaderInitException.hpp
-    nex/exception/ShaderNotFoundException.hpp
+    nex/exception/ShaderException.hpp
     nex/exception/EnumFormatException.hpp
     nex/exception/OpenglException.hpp
-    nex/exception/UnexpectedPlatformException.hpp
     
 	
 	#nex/gui

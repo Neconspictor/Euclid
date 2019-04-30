@@ -5,6 +5,7 @@
 
 namespace nex
 {
+
 	class FileSystem
 	{
 	public:

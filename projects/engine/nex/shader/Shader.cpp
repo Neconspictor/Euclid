@@ -9,7 +9,7 @@ nex::UniformTex nex::Shader::createTextureUniform(const char* name, UniformType 
 	return {loc, type, bindingSlot};
 }
 
-std::unique_ptr<nex::Shader> nex::Shader::createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines)
+std::unique_ptr<nex::Shader> nex::Shader::createComputeShader(const ShaderFilePath& computeFile, const std::vector<std::string>& defines)
 {
 	std::vector<UnresolvedShaderStageDesc> unresolved;
 	unresolved.resize(1);

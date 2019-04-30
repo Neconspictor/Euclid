@@ -17,7 +17,12 @@ namespace nex
 	class Material;
 	class Texture;
 	//class ShaderSourceFileGenerator;
-	using FilePath = const char*;
+
+	/**
+	 * A FilePath specifies a relative file path to a shader. The root directory thereby is the global shader directory which can be configured 
+	 * by the FileSystem of the  ShaderSourceFileGenerator Singleton.
+	 */
+	using ShaderFilePath = const char*;
 
 	enum class ShaderStageType
 	{
@@ -45,6 +50,11 @@ namespace nex
 
 		virtual ~ShaderStage() = default;
 
+		/**
+		 * Creates a new ShaderStage object. The object has to be freed by the caller.
+		 * 
+		 * @throws ShaderInitException: If the shader stage couldn't be compiled.
+		 */
 		static nex::ShaderStage* compileShaderStage(const nex::ResolvedShaderStageDesc& desc);
 
 		ShaderStageType getType() const
@@ -97,11 +107,37 @@ namespace nex
 
 		UniformLocation getShaderStorageBufferLocation(const char* name) const;
 
-		static std::unique_ptr<Shader> create(const FilePath& vertexFile, const FilePath& fragmentFile,
-			const FilePath& geometryShaderFile = "", const std::vector<std::string>& defines = {});
+		/**
+		 * Creates a new shader intended to be used for producing color images. Each specified file plays a different role:
+		 * @param vertexFile : Specifies the vertex shader. Is required and mustn't be nullptr
+		 * @param fragmentFile: Specifies the fragment shader. Is required and mustn't be nullptr
+		 * @param tesselationControlShaderFile: Specifies an optional tesselation control shader. 
+		 * @param tesselationEvaluationShader: Specifies an optional tesselation evaluation shader. If a tesselation control shader is specified, 
+		 *	this parameter mustn't be nullptr!
+		 * @param geometryShaderFile: Specifies an optional geometry shader. 
+		 * @param defines: An optional list of define macros that can be used to configure the shader stages.
+		 * 
+		 * @throws: ShaderInitException: If an error occurs.
+		 */
+		static std::unique_ptr<Shader> create(
+			const ShaderFilePath& vertexFile, 
+			const ShaderFilePath& fragmentFile,
+			const ShaderFilePath& tesselationControlShaderFile = nullptr,
+			const ShaderFilePath& tesselationEvaluationShader = nullptr,
+			const ShaderFilePath& geometryShaderFile = nullptr, 
+			const std::vector<std::string>& defines = {});
 
-		static std::unique_ptr<Shader> createComputeShader(const FilePath& computeFile, const std::vector<std::string>& defines = {});
+		/**
+		 * Creates a compute shader from file.
+		 * @param computeFile: The compute shader file.
+		 * @param defines: An optional list of define macros that can be used to configure the compute shader.
+		 * @throws: ShaderInitException: If an error occurs.
+		 */
+		static std::unique_ptr<Shader> createComputeShader(const ShaderFilePath& computeFile, const std::vector<std::string>& defines = {});
 
+		/**
+		 * Creates a shader from a list of shader stages.
+		 */
 		static std::unique_ptr<Shader> create(const std::vector<Guard<ShaderStage>>& stages);
 
 

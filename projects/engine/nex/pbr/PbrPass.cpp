@@ -207,7 +207,7 @@ void PbrCommonLightingPass::updateConstants(Camera* camera)
 }
 
 PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) : 
-	TransformPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", "", cascadedShadow->generateCsmDefines())),
+	TransformPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
 	mGeometryPass(mShader.get()),
     mLightingPass(mShader.get(), cascadedShadow)
 {
@@ -247,7 +247,7 @@ void PbrForwardPass::setDirLight(DirectionalLight* light)
 }
 
 PbrDeferredLightingPass::PbrDeferredLightingPass(CascadedShadow* cascadedShadow) : 
-	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", "", cascadedShadow->generateCsmDefines())),
+	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
 	mLightingPass(mShader.get(), cascadedShadow)
 {
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);

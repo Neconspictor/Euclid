@@ -32,7 +32,7 @@ namespace nex
 			};
 
 			mShader = Shader::create("post_processing/SMAA/SMAA_EdgeDetection_vs.glsl", 
-				"post_processing/SMAA/SMAA_LumaEdgeDetection_fs.glsl", "", defines);
+				"post_processing/SMAA/SMAA_LumaEdgeDetection_fs.glsl", nullptr, nullptr, nullptr, defines);
 			mColorTexGamma = {mShader->getUniformLocation("colorTexGamma"), UniformType::TEXTURE2D, 0};
 
 			mShader->setBinding(mColorTexGamma.location, mColorTexGamma.bindingSlot);
@@ -58,7 +58,7 @@ namespace nex
 			};
 
 			mShader = Shader::create("post_processing/SMAA/SMAA_BlendingWeightCalculation_vs.glsl",
-				"post_processing/SMAA/SMAA_BlendingWeightCalculation_fs.glsl", "", defines);
+				"post_processing/SMAA/SMAA_BlendingWeightCalculation_fs.glsl", nullptr, nullptr, nullptr, defines);
 			mEdgeTex = { mShader->getUniformLocation("edgeTex"), UniformType::TEXTURE2D, 0};
 			mAreaTex = { mShader->getUniformLocation("areaTex"), UniformType::TEXTURE2D, 1};
 			mSearchTex = { mShader->getUniformLocation("searchTex"), UniformType::TEXTURE2D, 2};
@@ -101,7 +101,7 @@ namespace nex
 			};
 
 			mShader = Shader::create("post_processing/SMAA/SMAA_NeighborhoodBlending_vs.glsl",
-				"post_processing/SMAA/SMAA_NeighborhoodBlending_fs.glsl", "", defines);
+				"post_processing/SMAA/SMAA_NeighborhoodBlending_fs.glsl", nullptr, nullptr, nullptr, defines);
 			mBlendTex = { mShader->getUniformLocation("blendTex"), UniformType::TEXTURE2D, 0 };
 			mColorTex = { mShader->getUniformLocation("colorTex"), UniformType::TEXTURE2D, 1 };
 
