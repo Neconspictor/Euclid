@@ -464,9 +464,14 @@ std::unique_ptr<nex::Shader> nex::Shader::create(
 	}
 
 
-	if (useControlShader && !useEvaluationShader)
+	/**
+	 * Some API's might not support it only specifying a tesselation evaluation shader stage. 
+	 * Thus we force the usage of a tesselation control shader if a tesselation evaluation shader stage is used (either both or none at all).
+	 */
+	if (useControlShader || useEvaluationShader)
 	{
-		throw_with_trace(ShaderException("nex::Shader::create: Specified a tesselation control shader, but no tesselation evaluation shader!"));
+		if (! (useControlShader && useEvaluationShader))
+			throw_with_trace(ShaderException("nex::Shader::create: Specified only one of the tesselation shader stages!"));
 	}
 
 	std::vector<UnresolvedShaderStageDesc> unresolved;

@@ -111,7 +111,8 @@ namespace nex
 		 * Creates a new shader intended to be used for producing color images. Each specified file plays a different role:
 		 * @param vertexFile : Specifies the vertex shader. Is required and mustn't be nullptr
 		 * @param fragmentFile: Specifies the fragment shader. Is required and mustn't be nullptr
-		 * @param tesselationControlShaderFile: Specifies an optional tesselation control shader. 
+		 * @param tesselationControlShaderFile: Specifies an optional tesselation control shader. If a tesselation evaluation shader is specified, 
+		 *	this parameter mustn't be nullptr!
 		 * @param tesselationEvaluationShader: Specifies an optional tesselation evaluation shader. If a tesselation control shader is specified, 
 		 *	this parameter mustn't be nullptr!
 		 * @param geometryShaderFile: Specifies an optional geometry shader. 
