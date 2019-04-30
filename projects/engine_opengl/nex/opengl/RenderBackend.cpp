@@ -11,6 +11,7 @@
 #include "nex/texture/Attachment.hpp"
 #include "nex/shader/SkyBoxPass.hpp"
 #include <nex/EffectLibrary.hpp>
+#include "CacheGL.hpp"
 
 using namespace std;
 using namespace nex;
@@ -607,6 +608,11 @@ namespace nex
 		return &mPimpl->mBlender;
 	}
 
+	unsigned RenderBackend::getMaxPatchVertexCount() const
+	{
+		return GlobalCacheGL::get()->GetConstInteger(GL_MAX_PATCH_VERTICES);
+	}
+
 	Rasterizer * RenderBackend::getRasterizer()
 	{
 		return &mPimpl->mRasterizer;
@@ -668,6 +674,12 @@ namespace nex
 		}
 	}
 
+	void RenderBackend::setPatchVertexCount(unsigned number)
+	{
+		assert(number >= 3 && number <= getMaxPatchVertexCount());
+		GLCall(glPatchParameteri(GL_PATCH_VERTICES, number));
+	}
+
 	void RenderBackend::setScissor(int x, int y, unsigned width, unsigned height)
 	{
 		GLCall(glScissor(x, y, width, height));
@@ -681,10 +693,6 @@ namespace nex
 		mPimpl->mViewport.height = height;
 
 		GLCall(glViewport(x, y, width, height));
-		//LOG(logClient, Debug) << "set view port called: " << width << ", " << height;
-
-		//if (effectLibrary)
-		//	effectLibrary->getGaussianBlur()->init();
 	}
 
 	void RenderBackend::setRenderState(const RenderState& state)
@@ -706,25 +714,6 @@ namespace nex
 		rasterizer->setFillMode(state.fillMode);
 		
 	}
-
-	/*void RendererOpenGL::useDepthMap(DepthMap* depthMap)
-	{
-		DepthMapGL* map = dynamic_cast<DepthMapGL*>(depthMap);
-		assert(map != nullptr);
-		TextureGL* textureGL = static_cast<TextureGL*>(map->getTexture());
-
-		glViewport(xPos, yPos, map->getWidth(), map->getHeight());
-		glScissor(xPos, yPos, map->getWidth(), map->getHeight());
-		glBindFramebuffer(GL_FRAMEBUFFER, map->getFramebuffer());
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureGL->getTexture(), 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-
-		//glEnable(GL_POLYGON_OFFSET_FILL);
-		//glPolygonOffset(1.0f, 15000.0f);
-
-		//glClear(GL_DEPTH_BUFFER_BIT);
-	}*/
 
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{

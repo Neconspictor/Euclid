@@ -28,7 +28,12 @@ namespace nex
 		void BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
 		void BindReadFramebuffer(GLuint framebuffer);
 		void BindTextureUnit(GLuint unit, GLuint texture);
-		
+
+		/**
+		 * Queries an integer from the driver that is constant (won't change at runtime).
+		 */
+		GLint GetConstInteger(GLenum pname);
+
 		static GlobalCacheGL* get();
 
 
@@ -41,6 +46,7 @@ namespace nex
 		GLuint mActiveProgram;
 		GLuint mActiveDrawFrameBuffer;
 		GLuint mActiveReadFrameBuffer;
+		std::unordered_map<GLenum, GLint> mConstIntegers;
 
 		GlobalCacheGL();
 	};

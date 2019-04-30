@@ -169,7 +169,6 @@ namespace nex
 		 */
 		void setFloat(UniformLocation locationID, float data);
 
-
 		/**
 		 * @throws ShaderNotBoundException if this shader program isn't currently bound
 		 */

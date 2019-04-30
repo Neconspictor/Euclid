@@ -100,6 +100,21 @@ void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
 	}
 }
 
+GLint nex::GlobalCacheGL::GetConstInteger(GLenum pname)
+{
+	// check if already cached
+	auto it = mConstIntegers.find(pname);
+	if (it != mConstIntegers.end())
+		return it->second;
+
+	// retrieve value
+	GLint result;
+	GLCall(glGetIntegerv(pname, &result));
+	mConstIntegers[pname] = result;
+
+	return result;
+}
+
 nex::ShaderCacheGL::ShaderCacheGL(GLuint program) : mProgram(program)
 {
 	if (mGlobalCache == nullptr)

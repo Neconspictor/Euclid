@@ -318,6 +318,12 @@ namespace nex
 		// Inherited via RenderBackend
 		EffectLibrary* getEffectLibrary();
 
+		/**
+		 * Provides the maximum allowed number that can be used for specifiying the number of vertices forming a patch 
+		 * when calling a draw command using the Topology::PATCHES topology type.
+		 */
+		unsigned getMaxPatchVertexCount() const;
+
 		Rasterizer* getRasterizer();
 
 		StencilTest* getStencilTest();
@@ -368,6 +374,12 @@ namespace nex
 		 * Sets the number of samples used for msaa
 		 */
 		void setMSAASamples(unsigned int samples);
+
+		/**
+		 * Specifies the number of vertices that form a patch when using a draw call with the Topology::PATCHES topology type.
+		 * @param number: Has to be >= 3 and smaller/equal the maximum patch vertex count (retrievable by getMaxPatchVertexCount)
+		 */
+		void setPatchVertexCount(unsigned number);
 
 		void setScissor(int x, int y, unsigned width, unsigned height);
 
