@@ -6,6 +6,7 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include "nex/shader/Technique.hpp"
 #include "nex/renderer/RenderCommandQueue.hpp"
+#include "TesselationTest.hpp"
 
 namespace nex
 {
@@ -69,6 +70,8 @@ namespace nex
 		CascadedShadow* mCascadedShadow;
 		RenderBackend* mRenderBackend;
 		RenderCommandQueue mCommandQueue;
+
+		TesselationTest mTesselationTest;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

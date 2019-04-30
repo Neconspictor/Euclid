@@ -242,10 +242,12 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	stencilTest->enableStencilTest(false);
 
 
+	stencilTest->enableStencilTest(false);
+	mTesselationTest.draw();
+
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(1));
-
 
 	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 

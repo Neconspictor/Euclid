@@ -23,6 +23,8 @@ set(
 	#pbr_deferred
 	pbr_deferred/PBR_Deferred_Renderer.hpp
 	pbr_deferred/PBR_Deferred_Renderer.cpp
+    pbr_deferred/TesselationTest.cpp
+    pbr_deferred/TesselationTest.hpp
 )
 
 # Create named folders for the sources within the .vcproj
