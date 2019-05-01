@@ -158,6 +158,11 @@ nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
 	return mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
+nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
+{
+	return &mTesselationTest;
+}
+
 void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
@@ -395,7 +400,7 @@ std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingT
 	return result;
 }
 
-nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer)
+nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest())
 {
 }
 
@@ -432,6 +437,8 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 			aoSelector->setAOTechniqueToUse(selectedTechnique);
 		}
 	}
+
+	mTesselationConfig.drawGUI();
 
 	ImGui::PopID();
 }

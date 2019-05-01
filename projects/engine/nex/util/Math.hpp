@@ -124,4 +124,17 @@ namespace nex
 	{
 		return source / w;
 	}
+
+	/**
+	 * Converts a z value between left and right handed coordinate systems.
+	 * @param z: an unsigned z value.
+	 */
+	inline float getZValue(float z)
+	{
+		#ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
+				z *= -1; // the z-axis is inverted on right handed systems
+		#endif
+
+		return z;
+	}
 }

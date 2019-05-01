@@ -237,5 +237,4 @@ luminance = 0.3 * color;
    vec2 velocity = (currentPos.xy - previousPos.xy) * 0.1;
     
 motion = velocity;
-
 }

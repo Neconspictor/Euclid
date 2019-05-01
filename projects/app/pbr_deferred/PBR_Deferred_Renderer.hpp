@@ -40,6 +40,7 @@ namespace nex
 		void updateRenderTargets(unsigned width, unsigned height);
 
 		AmbientOcclusionSelector* getAOSelector();
+		TesselationTest* getTesselationTest();
 
 	private:
 
@@ -83,5 +84,6 @@ namespace nex
 		void drawSelf() override;
 
 		PBR_Deferred_Renderer* mRenderer;
+		gui::TesselationTest_Config mTesselationConfig;
 	};
 }

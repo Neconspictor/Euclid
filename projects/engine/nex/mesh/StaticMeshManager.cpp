@@ -28,9 +28,9 @@
 		mFullscreenPlane = std::make_unique<VertexArray>();
 		static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
 			// position 4 floats, texture coords 2 floats
+			-1.0, +1.0, 0.0, 1.0, 0.0, 1.0,
 			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
 			+1.0, -1.0, 0.0, 1.0, 1.0, 0.0,
-			-1.0, +1.0, 0.0, 1.0, 0.0, 1.0,
 			+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 		};
 
