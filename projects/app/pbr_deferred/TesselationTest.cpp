@@ -3,17 +3,11 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"
 #include "nex/mesh/VertexLayout.hpp"
+#include "HeightMap.hpp"
 
 nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>())
 {
 	mMesh = std::make_unique<VertexArray>();
-	static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
-		// position 4 floats, texture coords 2 floats
-		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		+1.0, -1.0, 0.0, 1.0, 0.0, 1.0,
-		+1.0, +1.0, 0.0, 1.0, 1.0, 1.0,
-		-1.0, +1.0, 0.0, 1.0, 1.0, 0.0,
-	};
 
 	static const float fullscreenPlaneTriangleStripVerticesOpengl2[] = {
 		// position 4 floats, texture coords 2 floats
@@ -38,13 +32,6 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
 	};
 
-	/*
-	    -1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		-1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-	 */
-
 	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
 	VertexLayout layout;
 	layout.push<float>(4);
@@ -52,6 +39,8 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	mMesh->bind();
 	mMesh->useBuffer(*mBuffer, layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
+
+	HeightMap heightMap(4, 4,1,1,1);
 }
 
 void nex::TesselationTest::draw()

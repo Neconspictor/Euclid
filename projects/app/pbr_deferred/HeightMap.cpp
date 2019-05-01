@@ -41,8 +41,8 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 		{
 			Vertex& vertex = vertices[x*vertexZNumber + z];
 
-			vertex.texCoords.x = (float)x / (float)vertexXNumber;
-			vertex.texCoords.y = (float)z / (float)vertexZNumber;
+			vertex.texCoords.x = (float)x / (float)mXSegments;
+			vertex.texCoords.y = (float)z / (float)mZSegments;
 
 			vertex.position.x = vertex.texCoords.x * mWorldDimensionX; // scale by world dimension
 			vertex.position.z = vertex.texCoords.y * mWorldDimensionZ;
@@ -72,7 +72,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 			const unsigned topRight = rightColumn + z + 1;
 			const unsigned bottomRight = rightColumn + z;
 			
-			const auto indexStart = x * mZSegments + z;
+			const auto indexStart = (x * mZSegments + z)*patchVertexCount;
 
 			//Note: CCW order
 			indices[indexStart]   = bottomLeft;
