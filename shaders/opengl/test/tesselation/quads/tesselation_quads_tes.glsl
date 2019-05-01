@@ -1,9 +1,12 @@
 #version 450 core
 
 layout(quads, equal_spacing, ccw) in;
+layout(triangles, equal_spacing, ccw) out;
 
 in vec2 texCoord_ndc_tes_in[];
 out vec2 texCoord_ndc_fs_in;
+
+uniform mat4 transform;
 
 void main() {
     
@@ -18,10 +21,12 @@ void main() {
     const float factor2 = u*v;
     const float factor3 = omu * v;
     
-    gl_Position = factor0 * gl_in[0].gl_Position +
+    vec4 objectSpacePosition = factor0 * gl_in[0].gl_Position +
                   factor1 * gl_in[1].gl_Position +
                   factor2 * gl_in[2].gl_Position +
                   factor3 * gl_in[3].gl_Position;
+                  
+    gl_Position = transform * objectSpacePosition;
                                         
                                         
     texCoord_ndc_fs_in = factor0 * texCoord_ndc_tes_in[0] +

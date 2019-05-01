@@ -30,6 +30,7 @@
 #include <nex/sky/AtmosphericScattering.hpp>
 #include <queue>
 #include <nex/Scene.hpp>
+#include <glm/gtc/matrix_transform.inl>
 
 using namespace nex;
 
@@ -258,9 +259,19 @@ void NeXEngine::createScene()
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	ground->setPositionLocal({ 10, 0, 0 });
 
-	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
-	//auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
+	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
+	auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
 	//cerberus->setPositionLocal({0, 2, 0});
+
+	const glm::mat4 unit(1.0f);
+	//auto translate = unit;
+	auto translateMatrix = glm::translate(unit, glm::vec3(0, 5.0f, 0.0f));
+	auto rotation = glm::rotate(unit, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	//auto scale = glm::mat4();
+	auto scale = glm::scale(unit, glm::vec3(10, 10, 10));
+
+	auto trafo = translateMatrix;
+	cerberus->setLocalTrafo(trafo);
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;

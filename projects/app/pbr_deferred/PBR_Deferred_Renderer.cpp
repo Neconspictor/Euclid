@@ -248,7 +248,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 
 
 	stencilTest->enableStencilTest(false);
-	mTesselationTest.draw();
+	mTesselationTest.draw(camera);
 
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));

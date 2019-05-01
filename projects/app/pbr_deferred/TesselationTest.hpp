@@ -11,14 +11,14 @@ namespace nex
 	public:
 		TesselationTest();
 
-		void draw();
+		void draw(Camera* camera);
 
 		class TesselationPass : public Pass
 		{
 		public:
 			TesselationPass();
 
-			void setUniforms();
+			void setUniforms(Camera* camera);
 
 			unsigned outerLevel0Val;
 			unsigned outerLevel1Val;
@@ -33,6 +33,10 @@ namespace nex
 			Uniform outerLevel3;
 			Uniform innerLevel0;
 			Uniform innerLevel1;
+
+			Uniform transform;
+
+			glm::mat4 mWorldTrafo;
 
 		};
 

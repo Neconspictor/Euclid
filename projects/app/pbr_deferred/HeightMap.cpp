@@ -1,5 +1,6 @@
 #include <pbr_deferred/HeightMap.hpp>
 #include <nex/material/Material.hpp>
+#include "nex/mesh/MeshFactory.hpp"
 
 nex::HeightMap::HeightMap(unsigned xSegments, 
 	unsigned zSegments, 
@@ -46,7 +47,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 			vertex.position.x = vertex.texCoords.x * mWorldDimensionX; // scale by world dimension
 			vertex.position.z = vertex.texCoords.y * mWorldDimensionZ;
-			vertex.position.y = 0.0f;
+			vertex.position.y = 0.0f; // will be set by shader
 
 			vertex.normal = glm::vec3(0,1,0); // normal points up
 			vertex.tangent = glm::vec3(1,0,0); // tangent points to the right
@@ -81,4 +82,14 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 			indices[indexStart+3] = topLeft;
 		}
 	}
+
+	auto mesh = MeshFactory::create(vertices.data(), vertices.size(), indices.data(), indices.size());
+
+	//TODO use a valid initialized material
+	mMeshes.add(std::move(mesh), std::make_unique<Material>(nullptr));
+}
+
+nex::Mesh* nex::HeightMap::getMesh()
+{
+	return mMeshes.getMeshes()[0].get();
 }

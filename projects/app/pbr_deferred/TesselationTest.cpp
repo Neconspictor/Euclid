@@ -4,6 +4,9 @@
 #include "nex/gui/Controller.hpp"
 #include "nex/mesh/VertexLayout.hpp"
 #include "HeightMap.hpp"
+#include <nex/camera/Camera.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>())
 {
@@ -32,7 +35,44 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
 	};
 
-	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
+	static const float fullscreenPlaneTriangleStripVerticesOpengl3[] = {
+		// position 4 floats, texture coords 2 floats
+		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+
+		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+
+		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+
+		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+
+		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		 
+
+		0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+
+		 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		 1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		 1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+
+		0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+		1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+	};
+
+	//mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
+	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl3, sizeof(fullscreenPlaneTriangleStripVerticesOpengl3));
 	VertexLayout layout;
 	layout.push<float>(4);
 	layout.push<float>(2);
@@ -43,29 +83,33 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	HeightMap heightMap(4, 4,1,1,1);
 }
 
-void nex::TesselationTest::draw()
+void nex::TesselationTest::draw(Camera* camera)
 {
 	mPass->bind();
-	mPass->setUniforms();
+	mPass->setUniforms(camera);
 
 	mMesh->bind();
 	RenderBackend::get()->setPatchVertexCount(4);
 	RenderState state;
 	state.doBlend = false;
-	state.doDepthTest = false;
-	state.doCullFaces = true;
+	state.doDepthTest = true;
+	state.doCullFaces = false;
 	state.fillMode = FillMode::LINE;
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawArray(state, Topology::PATCHES, 0, 16);
-	//RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 3);
+	//RenderBackend::get()->drawArray(state, Topology::PATCHES, 0, 16);
+	RenderBackend::get()->drawArray(state, Topology::TRIANGLES, 0, 24);
 }
 
 nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("test/tesselation/quads/tesselation_quads_vs.glsl", 
-	"test/tesselation/quads/tesselation_quads_fs.glsl",
-	"test/tesselation/quads/tesselation_quads_tcs.glsl",
-	"test/tesselation/quads/tesselation_quads_tes.glsl"))
+	"test/tesselation/quads/tesselation_quads_fs.glsl"))
 {
+
+	/*
+	 *
+	 * "test/tesselation/quads/tesselation_quads_tcs.glsl",
+	"test/tesselation/quads/tesselation_quads_tes.glsl"
+	 */
 
 	outerLevel0 = { mShader->getUniformLocation("outerLevel0"), UniformType::UINT };
 	outerLevel1 = { mShader->getUniformLocation("outerLevel1"), UniformType::UINT };
@@ -74,15 +118,26 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	innerLevel0 = { mShader->getUniformLocation("innerLevel0"), UniformType::UINT };
 	innerLevel1 = { mShader->getUniformLocation("innerLevel1"), UniformType::UINT };
 
+	transform = {mShader->getUniformLocation("transform"), UniformType::MAT4};
+
 	outerLevel0Val = 8;
 	outerLevel1Val = 8;
 	outerLevel2Val = 8;
 	outerLevel3Val = 8;
 	innerLevel0Val = 8;
 	innerLevel1Val = 8;
+
+	const glm::mat4 unit(1.0f);
+	//auto translate = unit;
+	auto translateMatrix = glm::translate(unit, glm::vec3(0, 5.0f, 0.0f));
+	auto rotation = glm::rotate(unit, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	//auto scale = glm::mat4();
+	auto scale = glm::scale(unit, glm::vec3(10, 10, 10));
+
+	mWorldTrafo = translateMatrix * rotation;
 }
 
-void nex::TesselationTest::TesselationPass::setUniforms()
+void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)
 {
 	mShader->setUInt(outerLevel0.location, outerLevel0Val);
 	mShader->setUInt(outerLevel1.location, outerLevel1Val);
@@ -90,6 +145,10 @@ void nex::TesselationTest::TesselationPass::setUniforms()
 	mShader->setUInt(outerLevel3.location, outerLevel3Val);
 	mShader->setUInt(innerLevel0.location, innerLevel0Val);
 	mShader->setUInt(innerLevel1.location, innerLevel1Val);
+
+	auto transformMatrix = camera->getProjectionMatrix() * camera->getView() * mWorldTrafo;
+
+	mShader->setMat4(transform.location, transformMatrix);
 }
 
 nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tesselationTest) : mTesselationTest(tesselationTest)

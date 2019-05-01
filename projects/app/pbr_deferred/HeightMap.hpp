@@ -18,6 +18,9 @@ namespace nex
 			float worldDimensionZ,
 			float worldDimensionMaxHeight);
 
+
+		Mesh* getMesh();
+
 	private:
 		unsigned mXSegments;
 		unsigned mZSegments;
