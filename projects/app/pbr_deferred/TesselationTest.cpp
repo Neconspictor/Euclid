@@ -37,50 +37,50 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 
 	static const float fullscreenPlaneTriangleStripVerticesOpengl3[] = {
 		// position 4 floats, texture coords 2 floats
-		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0, -1.0, 0.0, 
+		 0.0, -1.0, 0.0,
+		 0.0,  0.0, 0.0, 
 
-		-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0, -1.0, 0.0, 
+		 0.0,  0.0, 0.0, 
+		-1.0,  0.0, 0.0,
 
-		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0,  0.0, 0.0,
+		 0.0,  0.0, 0.0, 
+		 0.0,  1.0, 0.0, 
 
-		-1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		 0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
-		-1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		-1.0,  0.0, 0.0, 
+		 0.0,  1.0, 0.0,  
+		-1.0,  1.0, 0.0, 
 
-		 0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		 1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		 1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0,  0.0, 0.0, 
+		 1.0,  0.0, 0.0,  
+		 1.0,  1.0, 0.0, 
 		 
 
-		0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		1.0,  1.0, 0.0, 1.0, 0.0, 0.0,
-		0.0,  1.0, 0.0, 1.0, 0.0, 0.0,
+		0.0,  0.0, 0.0, 
+		1.0,  1.0, 0.0, 
+		0.0,  1.0, 0.0,
 
-		 0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		 1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		 1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		 0.0, -1.0, 0.0,
+		 1.0, -1.0, 0.0,
+		 1.0,  0.0, 0.0,
 
-		0.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-		1.0,  0.0, 0.0, 1.0, 0.0, 0.0,
-		0.0,  0.0, 0.0, 1.0, 0.0, 0.0,
+		0.0, -1.0, 0.0,
+		1.0,  0.0, 0.0,
+		0.0,  0.0, 0.0,
 	};
 
 	//mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
 	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl3, sizeof(fullscreenPlaneTriangleStripVerticesOpengl3));
 	VertexLayout layout;
-	layout.push<float>(4);
-	layout.push<float>(2);
+	layout.push<float>(3);
+	//layout.push<float>(2);
 	mMesh->bind();
 	mMesh->useBuffer(*mBuffer, layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
-	HeightMap heightMap(4, 4,1,1,1);
+	//HeightMap heightMap(4, 4,1,1,1);
 }
 
 void nex::TesselationTest::draw(Camera* camera)
@@ -89,12 +89,12 @@ void nex::TesselationTest::draw(Camera* camera)
 	mPass->setUniforms(camera);
 
 	mMesh->bind();
-	RenderBackend::get()->setPatchVertexCount(4);
+	//RenderBackend::get()->setPatchVertexCount(3);
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
 	state.doCullFaces = false;
-	state.fillMode = FillMode::LINE;
+	state.fillMode = FillMode::FILL;
 
 	// Only draw the first triangle
 	//RenderBackend::get()->drawArray(state, Topology::PATCHES, 0, 16);
@@ -129,26 +129,28 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;
-	auto translateMatrix = glm::translate(unit, glm::vec3(0, 5.0f, 0.0f));
-	auto rotation = glm::rotate(unit, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 5.0f, 0.0f));
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	//auto scale = glm::mat4();
-	auto scale = glm::scale(unit, glm::vec3(10, 10, 10));
+	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
-	mWorldTrafo = translateMatrix * rotation;
+	mWorldTrafo = translateMatrix; //* rotation * scale;
 }
 
 void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)
 {
-	mShader->setUInt(outerLevel0.location, outerLevel0Val);
+	/*mShader->setUInt(outerLevel0.location, outerLevel0Val);
 	mShader->setUInt(outerLevel1.location, outerLevel1Val);
 	mShader->setUInt(outerLevel2.location, outerLevel2Val);
 	mShader->setUInt(outerLevel3.location, outerLevel3Val);
 	mShader->setUInt(innerLevel0.location, innerLevel0Val);
-	mShader->setUInt(innerLevel1.location, innerLevel1Val);
+	mShader->setUInt(innerLevel1.location, innerLevel1Val);*/
 
-	auto transformMatrix = camera->getProjectionMatrix() * camera->getView() * mWorldTrafo;
+	auto projection = camera->getProjectionMatrix();
+	auto view = camera->getView();
 
-	mShader->setMat4(transform.location, transformMatrix);
+	mTrafo = projection * view * mWorldTrafo;
+	mShader->setMat4(transform.location, mTrafo);
 }
 
 nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tesselationTest) : mTesselationTest(tesselationTest)

@@ -265,12 +265,12 @@ void NeXEngine::createScene()
 
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;
-	auto translateMatrix = glm::translate(unit, glm::vec3(0, 5.0f, 0.0f));
-	auto rotation = glm::rotate(unit, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(2.0, 5.0f, 0.0f));
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
 	//auto scale = glm::mat4();
-	auto scale = glm::scale(unit, glm::vec3(10, 10, 10));
+	glm::mat4 scale = glm::scale(unit, glm::vec3(10, 10, 10));
 
-	auto trafo = translateMatrix;
+	glm::mat4 trafo = translateMatrix * rotation * scale;
 	cerberus->setLocalTrafo(trafo);
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;

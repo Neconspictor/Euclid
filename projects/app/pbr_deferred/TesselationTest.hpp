@@ -37,6 +37,7 @@ namespace nex
 			Uniform transform;
 
 			glm::mat4 mWorldTrafo;
+			glm::mat4 mTrafo;
 
 		};
 
