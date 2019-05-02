@@ -7,8 +7,9 @@
 #include <nex/camera/Camera.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <pbr_deferred/HeightMap.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>())
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(3,3,1,1,1)
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -72,15 +73,13 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	};
 
 	//mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
-	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl3, sizeof(fullscreenPlaneTriangleStripVerticesOpengl3));
+	mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
 	VertexLayout layout;
-	layout.push<float>(3);
-	//layout.push<float>(2);
+	layout.push<float>(4);
+	layout.push<float>(2);
 	mMesh->bind();
 	mMesh->useBuffer(*mBuffer, layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
-
-	//HeightMap heightMap(4, 4,1,1,1);
 }
 
 void nex::TesselationTest::draw(Camera* camera)
@@ -88,24 +87,29 @@ void nex::TesselationTest::draw(Camera* camera)
 	mPass->bind();
 	mPass->setUniforms(camera);
 
-	mMesh->bind();
-	//RenderBackend::get()->setPatchVertexCount(3);
+	//mMesh->bind();
+	auto* mesh = mHeightMap.getMesh();
+	mesh->getVertexArray()->bind();
+	mesh->getIndexBuffer()->bind();
+	RenderBackend::get()->setPatchVertexCount(4);
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
-	state.doCullFaces = false;
-	state.fillMode = FillMode::FILL;
+	state.doCullFaces = true;
+	state.fillMode = FillMode::LINE;
 
 	state.depthCompare = CompareFunction::LESS;
 
 	// Only draw the first triangle
-	//RenderBackend::get()->drawArray(state, Topology::PATCHES, 0, 16);
-	RenderBackend::get()->drawArray(state, Topology::TRIANGLES, 0, 24);
+	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+	//RenderBackend::get()->drawArray(state, Topology::TRIANGLES, 0, 24);
 }
 
 nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("test/tesselation/quads/tesselation_quads_vs.glsl", 
-	"test/tesselation/quads/tesselation_quads_fs.glsl"))
+	"test/tesselation/quads/tesselation_quads_fs.glsl",
+	"test/tesselation/quads/tesselation_quads_tcs.glsl",
+	"test/tesselation/quads/tesselation_quads_tes.glsl"))
 {
 
 	/*
@@ -130,24 +134,30 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	innerLevel0Val = 8;
 	innerLevel1Val = 8;
 
+	outerLevel0Val = 1;
+	outerLevel1Val = 1;
+	outerLevel2Val = 1;
+	outerLevel3Val = 1;
+	innerLevel0Val = 1;
+	innerLevel1Val = 1;
+
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;
-	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 5.0f, 0.0f));
-	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0.0f));
 	//auto scale = glm::mat4();
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
-	mWorldTrafo = translateMatrix * rotation * scale;
+	mWorldTrafo = translateMatrix;
 }
 
 void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)
 {
-	/*mShader->setUInt(outerLevel0.location, outerLevel0Val);
+	mShader->setUInt(outerLevel0.location, outerLevel0Val);
 	mShader->setUInt(outerLevel1.location, outerLevel1Val);
 	mShader->setUInt(outerLevel2.location, outerLevel2Val);
 	mShader->setUInt(outerLevel3.location, outerLevel3Val);
 	mShader->setUInt(innerLevel0.location, innerLevel0Val);
-	mShader->setUInt(innerLevel1.location, innerLevel1Val);*/
+	mShader->setUInt(innerLevel1.location, innerLevel1Val);
 
 	auto projection = camera->getProjectionMatrix();
 	auto view = camera->getView();

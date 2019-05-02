@@ -1,12 +1,11 @@
 #version 450 core
 
-layout(quads, equal_spacing, ccw) in;
-layout(triangles, equal_spacing, ccw) out;
+layout(quads, equal_spacing, ccw) in; //equal_spacing
 
 in vec2 texCoord_ndc_tes_in[];
 out vec2 texCoord_ndc_fs_in;
 
-uniform mat4 transform;
+//uniform mat4 transform;
 
 void main() {
     
@@ -16,21 +15,21 @@ void main() {
     const float v = gl_TessCoord.y;
     const float omv = 1 - v;
     
-    const float factor0 = omu * omv;
-    const float factor1 = u * omv;
-    const float factor2 = u*v;
-    const float factor3 = omu * v;
+    const float bottomLeft = omu * omv; 
+    const float bottomRight = u * omv;
+    const float topRight = u*v; 
+    const float topLeft = omu * v; 
     
-    vec4 objectSpacePosition = factor0 * gl_in[0].gl_Position +
-                  factor1 * gl_in[1].gl_Position +
-                  factor2 * gl_in[2].gl_Position +
-                  factor3 * gl_in[3].gl_Position;
+    vec4 objectSpacePosition = bottomLeft * gl_in[0].gl_Position +
+                  bottomRight * gl_in[1].gl_Position +
+                  topRight * gl_in[2].gl_Position +
+                  topLeft * gl_in[3].gl_Position;
                   
-    gl_Position = transform * objectSpacePosition;
+    gl_Position = objectSpacePosition;
                                         
                                         
-    texCoord_ndc_fs_in = factor0 * texCoord_ndc_tes_in[0] +
-                         factor1 * texCoord_ndc_tes_in[1] + 
-                         factor2 * texCoord_ndc_tes_in[2] +
-                         factor3 * texCoord_ndc_tes_in[3];                          
+    texCoord_ndc_fs_in = bottomLeft * texCoord_ndc_tes_in[0] +
+                         bottomRight * texCoord_ndc_tes_in[1] + 
+                         topRight * texCoord_ndc_tes_in[2] +
+                         topLeft * texCoord_ndc_tes_in[3];                          
 }

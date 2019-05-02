@@ -3,6 +3,7 @@
 #include "nex/shader/Pass.hpp"
 #include "nex/gui/Drawable.hpp"
 #include "nex/mesh/VertexArray.hpp"
+#include "HeightMap.hpp"
 
 namespace nex
 {
@@ -44,6 +45,7 @@ namespace nex
 		std::unique_ptr<TesselationPass> mPass;
 		std::unique_ptr<VertexArray> mMesh;
 		std::unique_ptr<VertexBuffer> mBuffer;
+		HeightMap mHeightMap;
 
 	};
 
