@@ -7,9 +7,8 @@
 #include <nex/camera/Camera.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <pbr_deferred/HeightMap.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(3,3,1,1,1)
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(32,32,32,32,1)
 {
 	mMesh = std::make_unique<VertexArray>();
 

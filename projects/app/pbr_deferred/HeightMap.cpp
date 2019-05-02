@@ -45,9 +45,9 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 			vertex.texCoords.x = (float)x / (float)mXSegments;
 			vertex.texCoords.y = (float)z / (float)mZSegments;
 
-			vertex.position.x = vertex.texCoords.x * mWorldDimensionX; // scale by world dimension
+			vertex.position.x = vertex.texCoords.x * mWorldDimensionX - mWorldDimensionX/2.0f; // scale and offset by world dimension
 			vertex.position.y = 0.0f; // will be set by shader
-			vertex.position.z = getZValue(vertex.texCoords.y * mWorldDimensionZ);  // scale by world dimension
+			vertex.position.z = getZValue(vertex.texCoords.y * mWorldDimensionZ - mWorldDimensionZ / 2.0f);  // scale and offset by world dimension
 
 			vertex.normal = glm::vec3(0,1,0); // normal points up
 			vertex.tangent = glm::vec3(1,0,0); // tangent points to the right
