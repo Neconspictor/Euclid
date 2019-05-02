@@ -231,9 +231,11 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	mRenderTargetSingleSampled->bind();
 	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
-	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, false);
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, false); // we don't want to clear motion buffer
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(3, false); // we don't want to clear depth (for e.g. ambient occlusion)
 	mRenderTargetSingleSampled->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
-
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
+	mRenderTargetSingleSampled->enableDrawToColorAttachment(3, true);
 
 	mPbrDeferred->setDirLight(sun);
 	stencilTest->enableStencilTest(true);
@@ -246,7 +248,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	
 	
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
+	
 	renderSky(camera, sun, windowWidth, windowHeight);
 	stencilTest->enableStencilTest(false);
 
@@ -395,6 +397,10 @@ std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingT
 	RenderAttachment motion = gBuffer->getMotionRenderTarget();
 	motion.colorAttachIndex = 2;
 	result->addColorAttachment(std::move(motion));
+
+	RenderAttachment depth = gBuffer->getNormalizedViewSpaceZRenderTarget();
+	depth.colorAttachIndex = 3;
+	result->addColorAttachment(std::move(depth));
 
 	result->useDepthAttachment(*gBuffer->getDepthAttachment());
 

@@ -16,6 +16,7 @@ namespace nex
 		Texture2D* getMotion() const;
 		Texture2D* getNormal() const;
 		Texture2D* getNormalizedViewSpaceZ() const;
+		const RenderAttachment& getNormalizedViewSpaceZRenderTarget() const;
 		const RenderAttachment& getMotionRenderTarget() const;
 
 	private:
