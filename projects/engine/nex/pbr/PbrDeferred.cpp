@@ -49,6 +49,7 @@ namespace nex {
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
 
 		static RenderState state;
+		state.doDepthWrite = false;
 
 		StaticMeshDrawer::drawFullscreenTriangle(state, mLightPass.get());
 	}

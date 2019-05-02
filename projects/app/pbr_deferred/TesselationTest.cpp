@@ -93,8 +93,11 @@ void nex::TesselationTest::draw(Camera* camera)
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
+	state.doDepthWrite = true;
 	state.doCullFaces = false;
 	state.fillMode = FillMode::FILL;
+
+	state.depthCompare = CompareFunction::LESS;
 
 	// Only draw the first triangle
 	//RenderBackend::get()->drawArray(state, Topology::PATCHES, 0, 16);
@@ -134,7 +137,7 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	//auto scale = glm::mat4();
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
-	mWorldTrafo = translateMatrix; //* rotation * scale;
+	mWorldTrafo = translateMatrix * rotation * scale;
 }
 
 void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)

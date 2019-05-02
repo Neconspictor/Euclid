@@ -232,7 +232,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
 
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, false);
-	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+	mRenderTargetSingleSampled->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
 	mPbrDeferred->setDirLight(sun);
@@ -240,15 +240,18 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 	mPbrDeferred->drawLighting(mPbrMrt.get(), camera);
 
-
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->enableStencilTest(true);
+	mTesselationTest.draw(camera);
+	
+	
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
 	renderSky(camera, sun, windowWidth, windowHeight);
 	stencilTest->enableStencilTest(false);
 
-
+	
 	stencilTest->enableStencilTest(false);
-	mTesselationTest.draw(camera);
 
 
 	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
