@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(HeightMap::createRandom(10,10,3,3, 0.5f))
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(HeightMap::createZero(10,10, 2,2))
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -96,7 +96,7 @@ void nex::TesselationTest::draw(Camera* camera)
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
 	state.doCullFaces = true;
-	state.fillMode = FillMode::FILL;
+	state.fillMode = FillMode::LINE;
 
 	state.depthCompare = CompareFunction::LESS;
 
