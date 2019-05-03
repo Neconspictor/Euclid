@@ -6,7 +6,8 @@ nex::HeightMap::HeightMap(unsigned xSegments,
 	unsigned zSegments, 
 	float worldDimensionX,
 	float worldDimensionZ,
-	float worldDimensionMaxHeight) :
+	float worldDimensionMaxHeight,
+	const std::vector<float>& heights) :
 mXSegments(xSegments), 
 mZSegments(zSegments), 
 mWorldDimensionX(worldDimensionX), 
@@ -21,32 +22,29 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	const auto vertexZNumber = (zSegments + 1);
 	const auto vertexNumber = vertexXNumber * vertexZNumber;
 
+	if (heights.size() != vertexNumber)
+	{
+		throw_with_trace(std::runtime_error("heights doesn't have (xSegments + 1)*(zSegments + 1) values!"));
+	}
+
 	/** 
-	* We lay the vertices out into columns, going from bottom to top.
-	* The y coordinate is always zero,
-	* since it will be modified by the height map texture.
-	* 
-	* Example: 4x4 segments consisting of 5x5 vertices
-	*  4__9_______
-	*  3|_8|__|__|
-	*  2|_7|__|__|
-	*  1|_6|__|__|
-	*  0|_5|__|__|
+	* We lay the vertices out into rows, going from bottom to top.
 	*/
 	std::vector<Vertex> vertices;
 	vertices.resize(vertexNumber);
 
-	for (unsigned x = 0; x < vertexXNumber; ++x)
+	for (unsigned z = 0; z < vertexZNumber; ++z)
 	{
-		for(unsigned z = 0; z < vertexZNumber; ++z)
+		for(unsigned x = 0; x < vertexXNumber; ++x)
 		{
-			Vertex& vertex = vertices[x*vertexZNumber + z];
+			const auto index = z * vertexXNumber + x;
+			Vertex& vertex = vertices[index];
 
 			vertex.texCoords.x = (float)x / (float)mXSegments;
 			vertex.texCoords.y = (float)z / (float)mZSegments;
 
 			vertex.position.x = vertex.texCoords.x * mWorldDimensionX - mWorldDimensionX/2.0f; // scale and offset by world dimension
-			vertex.position.y = 0.0f; // will be set by shader
+			vertex.position.y = heights[index] * mWorldDimensionMaxHeight;
 			vertex.position.z = getZValue(vertex.texCoords.y * mWorldDimensionZ - mWorldDimensionZ / 2.0f);  // scale and offset by world dimension
 
 			vertex.normal = glm::vec3(0,1,0); // normal points up
@@ -61,19 +59,19 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	const auto patchVertexCount = 4;
 	indices.resize(quadNumber * patchVertexCount);
 
-	for (unsigned x = 0; x < mXSegments; ++x)
+	for (unsigned z = 0; z < mZSegments; ++z)
 	{
-		for (unsigned z = 0; z < mZSegments; ++z)
+		for (unsigned x = 0; x < mXSegments; ++x)
 		{
-			const auto leftColumn = x * vertexZNumber;
-			const auto rightColumn = (x+1) * vertexZNumber;
+			const auto bottomRow = z * vertexXNumber;
+			const auto topRow = (z+1) * vertexXNumber;
 
-			const unsigned bottomLeft = leftColumn + z;
-			const unsigned topLeft = leftColumn + z + 1;
-			const unsigned topRight = rightColumn + z + 1;
-			const unsigned bottomRight = rightColumn + z;
+			const unsigned bottomLeft = bottomRow + x;
+			const unsigned topLeft = topRow + x;
+			const unsigned topRight = topRow + x + 1;
+			const unsigned bottomRight = bottomRow + x + 1;
 			
-			const auto indexStart = (x * mZSegments + z)*patchVertexCount;
+			const auto indexStart = (z * mXSegments + x)*patchVertexCount;
 
 			//Note: CCW order
 			indices[indexStart]   = bottomLeft;
@@ -87,6 +85,28 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 	//TODO use a valid initialized material
 	mMeshes.add(std::move(mesh), std::make_unique<Material>(nullptr));
+}
+
+nex::HeightMap nex::HeightMap::createZero(unsigned xSegments, unsigned zSegments, float worldDimensionX,
+	float worldDimensionZ)
+{
+	std::vector<float> heights((xSegments + 1) * (zSegments + 1), 0.0f);
+	return HeightMap(xSegments, zSegments, worldDimensionX, worldDimensionZ, 0.0f, heights);
+}
+
+nex::HeightMap nex::HeightMap::createRandom(unsigned xSegments, unsigned zSegments, float worldDimensionX,
+	float worldDimensionZ, float worldDimensionMaxHeight)
+{
+	std::vector<float> heights((xSegments + 1) * (zSegments + 1));
+
+	for (unsigned i = 0; i < heights.size(); ++i)
+	{
+		float d = std::rand() / ((RAND_MAX + 1u) / worldDimensionMaxHeight);
+
+		heights[i] = d/worldDimensionMaxHeight;
+	}
+
+	return HeightMap(xSegments, zSegments, worldDimensionX, worldDimensionZ, worldDimensionMaxHeight, heights);
 }
 
 nex::Mesh* nex::HeightMap::getMesh()
