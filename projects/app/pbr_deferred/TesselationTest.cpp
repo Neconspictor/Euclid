@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mHeightMap(HeightMap::createZero(10,10, 2,2))
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(HeightMap::createRandom(10,10, 2, 0.4f, 2))
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -79,12 +79,20 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	mMesh->bind();
 	mMesh->useBuffer(*mBuffer, layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
+
+	const glm::mat4 unit(1.0f);
+	//auto translate = unit;
+	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0.0f));
+	//auto scale = glm::mat4();
+	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
+
+	mWorldTrafo = translateMatrix;
 }
 
 void nex::TesselationTest::draw(Camera* camera)
 {
 	mPass->bind();
-	mPass->setUniforms(camera);
+	mPass->setUniforms(camera, mWorldTrafo);
 
 	//mMesh->bind();
 	auto* mesh = mHeightMap.getMesh();
@@ -96,12 +104,21 @@ void nex::TesselationTest::draw(Camera* camera)
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
 	state.doCullFaces = true;
-	state.fillMode = FillMode::LINE;
+	state.fillMode = FillMode::FILL;
 
 	state.depthCompare = CompareFunction::LESS;
 
 	// Only draw the first triangle
 	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+
+
+	mNormalPass->bind();
+	mNormalPass->setUniforms(camera, *mPass, mWorldTrafo);
+	state.doCullFaces = false;
+	state.doDepthTest = false;
+	state.doDepthWrite = false;
+	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+
 	//RenderBackend::get()->drawArray(state, Topology::TRIANGLES, 0, 24);
 }
 
@@ -145,11 +162,9 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0.0f));
 	//auto scale = glm::mat4();
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
-
-	mWorldTrafo = translateMatrix;
 }
 
-void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)
+void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const glm::mat4& trafo)
 {
 	mShader->setUInt(outerLevel0.location, outerLevel0Val);
 	mShader->setUInt(outerLevel1.location, outerLevel1Val);
@@ -161,8 +176,42 @@ void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera)
 	auto projection = camera->getProjectionMatrix();
 	auto view = camera->getView();
 
-	mTrafo = projection * view * mWorldTrafo;
-	mShader->setMat4(transform.location, mTrafo);
+	mShader->setMat4(transform.location, projection * view * trafo);
+}
+
+nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesselation/quads/normals_vs.glsl",
+	"test/tesselation/quads/normals_fs.glsl",
+	"test/tesselation/quads/normals_tcs.glsl",
+	"test/tesselation/quads/normals_tes.glsl",
+	"test/tesselation/quads/normals_gs.glsl"))
+{
+	transformUniform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT4 };
+	colorUniform = { mShader->getUniformLocation("color"), UniformType::VEC4 };
+
+	outerLevel0 = { mShader->getUniformLocation("outerLevel0"), UniformType::UINT };
+	outerLevel1 = { mShader->getUniformLocation("outerLevel1"), UniformType::UINT };
+	outerLevel2 = { mShader->getUniformLocation("outerLevel2"), UniformType::UINT };
+	outerLevel3 = { mShader->getUniformLocation("outerLevel3"), UniformType::UINT };
+	innerLevel0 = { mShader->getUniformLocation("innerLevel0"), UniformType::UINT };
+	innerLevel1 = { mShader->getUniformLocation("innerLevel1"), UniformType::UINT };
+}
+
+void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo)
+{
+	auto projection = camera->getProjectionMatrix();
+	auto view = camera->getView();
+
+	mShader->setMat4(transformUniform.location, projection * view * trafo);
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(trafo));
+	mShader->setVec4(colorUniform.location, {0,0,1,1});
+
+	mShader->setUInt(outerLevel0.location, transformPass.outerLevel0Val);
+	mShader->setUInt(outerLevel1.location, transformPass.outerLevel1Val);
+	mShader->setUInt(outerLevel2.location, transformPass.outerLevel2Val);
+	mShader->setUInt(outerLevel3.location, transformPass.outerLevel3Val);
+	mShader->setUInt(innerLevel0.location, transformPass.innerLevel0Val);
+	mShader->setUInt(innerLevel1.location, transformPass.innerLevel1Val);
 }
 
 nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tesselationTest) : mTesselationTest(tesselationTest)
