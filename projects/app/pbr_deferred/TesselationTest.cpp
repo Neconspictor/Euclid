@@ -87,6 +87,9 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
 	mWorldTrafo = translateMatrix;
+
+	mWireframe = false;
+	mShowNormals = false;
 }
 
 void nex::TesselationTest::draw(Camera* camera)
@@ -104,7 +107,15 @@ void nex::TesselationTest::draw(Camera* camera)
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
 	state.doCullFaces = true;
-	state.fillMode = FillMode::FILL;
+
+	if (mWireframe)
+	{
+		state.fillMode = FillMode::LINE;
+	} else
+	{
+		state.fillMode = FillMode::FILL;
+	}
+	
 
 	state.depthCompare = CompareFunction::LESS;
 
@@ -112,14 +123,15 @@ void nex::TesselationTest::draw(Camera* camera)
 	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
 
 
-	mNormalPass->bind();
-	mNormalPass->setUniforms(camera, *mPass, mWorldTrafo);
-	state.doCullFaces = false;
-	state.doDepthTest = false;
-	state.doDepthWrite = false;
-	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
-
-	//RenderBackend::get()->drawArray(state, Topology::TRIANGLES, 0, 24);
+	if (mShowNormals)
+	{
+		mNormalPass->bind();
+		mNormalPass->setUniforms(camera, *mPass, mWorldTrafo);
+		state.doCullFaces = false;
+		state.doDepthTest = false;
+		state.doDepthWrite = false;
+		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+	}
 }
 
 nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("test/tesselation/quads/tesselation_quads_vs.glsl", 
@@ -232,6 +244,9 @@ void nex::gui::TesselationTest_Config::drawSelf()
 	ImGui::SliderInt("outer level 3", (int*)&mTesselationTest->mPass->outerLevel3Val, 1, max);
 	ImGui::SliderInt("inner level 0", (int*)&mTesselationTest->mPass->innerLevel0Val, 0, max);
 	ImGui::SliderInt("inner level 1", (int*)&mTesselationTest->mPass->innerLevel1Val, 0, max);
+
+	ImGui::Checkbox("Show normals", &mTesselationTest->mShowNormals);
+	ImGui::Checkbox("Wireframe", &mTesselationTest->mWireframe);
 
 	ImGui::PopID();
 }

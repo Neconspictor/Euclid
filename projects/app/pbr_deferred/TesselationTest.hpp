@@ -65,6 +65,8 @@ namespace nex
 
 		HeightMap mHeightMap;
 
+		bool mShowNormals;
+		bool mWireframe;
 	};
 
 
