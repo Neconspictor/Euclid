@@ -56,6 +56,15 @@ namespace nex
 		Mesh* getMesh();
 
 	private:
+
+		struct TBN
+		{
+			glm::vec3 tangent;
+			glm::vec3 bitangent;
+			glm::vec3 normal;
+		};
+		
+		
 		unsigned mColumns;
 		unsigned mRows;
 		float mWorldDimensionX;
@@ -63,21 +72,31 @@ namespace nex
 		float mWorldDimensionMaxHeight;
 		StaticMeshContainer mMeshes;
 
-		void addPosition(std::vector<glm::vec3>& vec, const std::vector<float>& heights, int row, int column) const;
 
 		/**
-		 * Calculates a (normalized) normal from three positions in CCW order
+		 * Calculates a (unnormalized) normal from three positions in CCW order
 		 */
 		static glm::vec3 calcNormal(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
 
+		/**
+		 * Calculates a (unnormalized) TBN matrix from three vertices in CCW order. 
+		 */
+		static TBN calcTBN(const Vertex& a, const Vertex& b, const Vertex& c);
+
 		glm::vec3 calcPosition(float row, float column, const std::vector<float>& heights) const;
 
-		void generateTBN(Vertex& vertex, const std::vector<float>& heights, int row, int column) const;
+		void generateTBN(std::vector<Vertex>& vertices, int row, int column) const;
 
 
 		int getColumn(int index) const;
 		int getIndex(int row, int column) const;
 		int getRow(int index) const;
+
+		bool isInRange(int row, int column) const;
+
+		static bool isValidTBN(const TBN& tbn);
+
+
 		/**
 		 * samples a position by an index and a list of heights.
 		 * If the index is out of range (negative or greater/equal the size of heights)

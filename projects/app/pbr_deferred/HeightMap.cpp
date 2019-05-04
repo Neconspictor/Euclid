@@ -49,8 +49,15 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 			vertex.texCoords.y = (float)row / (float)(mRows - 1);
 			
 			vertex.position = calcPosition(row, column, heights);
+		}
+	}
 
-			generateTBN(vertex, heights, row, column);
+	// calc normal, tangent, bitangent
+	for (int row = 0; row < mRows; ++row)
+	{
+		for (int column = 0; column < mColumns; ++column)
+		{
+			generateTBN(vertices, row, column);
 		}
 	}
 
@@ -112,51 +119,76 @@ nex::Mesh* nex::HeightMap::getMesh()
 	return mMeshes.getMeshes()[0].get();
 }
 
-void nex::HeightMap::generateTBN(Vertex& vertex, const std::vector<float>& heights, int row, int column) const
+void nex::HeightMap::generateTBN(std::vector<Vertex>& vertices, int row, int column) const
 {
+
+	auto& vertex = vertices[getIndex(row, column)];
+
 	// sample the nearest enivorment (8 surrounding vertices)
 	// Note: We add them in CCW; this way it will be easier to define triangles in CCW for correct normal direction
-	std::vector<glm::vec3> environment;
+	std::vector<unsigned> environment;
 
 	// bottom left
-	addPosition(environment, heights, row - 1, column - 1);
+	if (isInRange(row - 1, column - 1)) environment.push_back(getIndex(row - 1, column - 1));
 	// bottom
-	addPosition(environment, heights, row-1, column);
+	if (isInRange(row - 1, column)) environment.push_back(getIndex(row - 1, column));
 	// bottom right
-	addPosition(environment, heights, row - 1, column + 1);
+	if (isInRange(row - 1, column + 1)) environment.push_back(getIndex(row - 1, column + 1));
 	// right
-	addPosition(environment, heights, row, column + 1);
+	if (isInRange(row, column + 1)) environment.push_back(getIndex(row, column + 1));
 	// top right
-	addPosition(environment, heights, row + 1, column + 1);
+	if (isInRange(row + 1, column + 1)) environment.push_back(getIndex(row + 1, column + 1));
 	// top
-	addPosition(environment, heights, row + 1, column);
+	if (isInRange(row + 1, column)) environment.push_back(getIndex(row + 1, column));
 	// top left
-	addPosition(environment, heights, row + 1, column - 1);
+	if (isInRange(row + 1, column - 1)) environment.push_back(getIndex(row + 1, column - 1));
 	// left
-	addPosition(environment, heights, row, column - 1);
+	if (isInRange(row, column - 1)) environment.push_back(getIndex(row, column - 1));
 
 
 	// To get the tbn's of the environment, we define triangles in a circle around the middle point
-	// Note: this method doesn't match the real defined geometry, but is fine for smooth normals.
-	std::vector<glm::vec3> normals;
-	const glm::vec3& middlePoint = vertex.position;
+	// Note: this method doesn't match the real defined geometry, but is fine for smooth normals in this special case.
+	glm::vec3 accumulatedNormal(0.0f);
+	glm::vec3 accumulatedTangent(0.0f);
+	glm::vec3 accumulatedBitangent(0.0f);
+
+	auto averageSize = environment.size();
+	
 	for (unsigned i = 0; i < environment.size(); ++i)
 	{
-		const unsigned next = (i + 1) % environment.size();
-		normals.emplace_back(calcNormal(middlePoint, environment[i], environment[next]));
+		const unsigned nextI = (i + 1) % environment.size();
+		// note that we use unnormalized normal vectors, so that triangles with more area influence the result more strongly.
+		const auto& current = vertices[environment[i]];
+		const auto& next = vertices[environment[nextI]];
+		const auto tbn = calcTBN(vertex, current, next);
+
+		//if the vertex, current and next lie on a line, the tbn isn't valid -> skip it
+		if (isValidTBN(tbn))
+		{
+			accumulatedNormal += tbn.normal;
+			accumulatedTangent += tbn.tangent;
+			accumulatedBitangent += tbn.bitangent;
+		} else
+		{
+			--averageSize;
+		}
 	}
 
+	averageSize = max(averageSize, 1);
+	vertex.normal = glm::normalize(accumulatedNormal / (float)averageSize);
+	vertex.tangent = glm::normalize(accumulatedTangent / (float)averageSize);
+	vertex.bitangent = glm::normalize(accumulatedBitangent / (float)averageSize);
 
-	glm::vec3 accNormal = std::accumulate(normals.begin(), normals.end(), glm::vec3(0.0f), [](const glm::vec3& accumulated, const glm::vec3& current)
-	{
-		return accumulated + current;
-	});
 
-	vertex.normal = glm::normalize(accNormal / (float)normals.size());
+	// Gram-Schmidt orthogonalize
+	vertex.tangent = normalize((vertex.tangent - vertex.bitangent * dot(vertex.normal, vertex.tangent)));
 
-	//TODO tangent/bitangent!!!
-	vertex.tangent = glm::vec3(1, 0, 0); // tangent points to the right
-	vertex.bitangent = glm::vec3(0, 0, getZValue(1.0)); //bitangent points down
+	// Calculate handiness and recalculate bitangent
+	const float handiness = (dot(cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0F) ? -1.0f : 1.0f;
+	vertex.bitangent = normalize(handiness * cross(vertex.normal, vertex.tangent));
+
+	// TODO store handiness in a 4D tangent vector and remove the need of the bitangent!
+	//tangent[i].w = (dot(cross(n, t), bitangents[i]) < 0.0F) ? -1.0f : 1.0f;
 }
 
 int nex::HeightMap::getColumn(int index) const
@@ -173,6 +205,19 @@ int nex::HeightMap::getIndex(int row, int column) const
 int nex::HeightMap::getRow(int index) const
 {
 	return index / (float)mColumns;
+}
+
+bool nex::HeightMap::isInRange(int row, int column) const
+{
+	return  !(row < 0 || row >= mRows || column < 0 || column >= mColumns);
+}
+
+bool nex::HeightMap::isValidTBN(const TBN& tbn)
+{
+	if (length(tbn.normal) == 0.0f) return false;
+	if (std::isnan(tbn.tangent.x)) return false;
+	if (std::isnan(tbn.bitangent.x)) return false;
+	return true;
 }
 
 bool nex::HeightMap::sample(const std::vector<float>& heights, int row, int column, glm::vec3& out) const
@@ -196,16 +241,6 @@ float nex::HeightMap::sampleHeight(const std::vector<float>& heights, int row, i
 	return heights[getIndex(row, column)];
 }
 
-void nex::HeightMap::addPosition(std::vector<glm::vec3>& vec, const std::vector<float>& heights,
-	int row, int column) const
-{
-	glm::vec3 position;
-	if (sample(heights, row, column, position))
-	{
-		vec.emplace_back(std::move(position));
-	}
-}
-
 glm::vec3 nex::HeightMap::calcPosition(float row, float column, const std::vector<float>& heights) const
 {
 	const auto xNormalized = (float)column / (float)(mColumns - 1);
@@ -219,5 +254,32 @@ glm::vec3 nex::HeightMap::calcPosition(float row, float column, const std::vecto
 
 glm::vec3 nex::HeightMap::calcNormal(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
 {
-	return glm::normalize(glm::cross(b - a, c - a));
+	return glm::cross(b - a, c - a);
+}
+
+nex::HeightMap::TBN nex::HeightMap::calcTBN(const Vertex& a, const Vertex& b, const Vertex& c)
+{
+	TBN result;
+	result.normal = calcNormal(a.position, b.position, c.position);
+
+	const auto vecAB = b.position - a.position;
+	const auto vecAC = c.position - a.position;
+
+	const auto uvAB = b.texCoords - a.texCoords;
+	const auto uvAC = c.texCoords - a.texCoords;
+
+	
+	/**
+	 * For math derivation: Mathematics for 3D Game Programming and Computer Graphics (Third Edition), chapter 7.8.3, p. 180, Eric Lengyel
+	 */
+	float r = 1.0f / (uvAB.x * uvAC.y - uvAC.x * uvAB.y);
+	result.tangent = glm::vec3((uvAC.y * vecAB.x - uvAB.y * vecAC.x) * r,
+		(uvAC.y * vecAB.y - uvAB.y * vecAC.y) * r,
+		(uvAC.y * vecAB.z - uvAB.y * vecAC.z) * r);
+
+	result.bitangent = glm::vec3((uvAB.x * vecAC.x - uvAC.x * vecAB.x) * r,
+		(uvAB.x * vecAC.y - uvAC.x * vecAB.y) * r,
+		(uvAB.x * vecAC.z - uvAC.x * vecAB.z) * r);
+
+	return result;
 }
