@@ -5,10 +5,20 @@ layout (vertices = 4) out;
 
 // attributes of the input CPs
 in vec2 texCoord_ndc_tcs_in[];
-in VS_OUT {vec3 normal;} tcs_in[];
+in VS_OUT {
+    vec3 normal;
+    vec3 tangent;
+    vec3 bitangent;
+    vec3 positionViewSpace;
+} tcs_in[];
 
 // attributes of the output CPs
-out TCS_OUT{vec3 normal;} tes_in[];
+out TCS_OUT{
+    vec3 normal;
+    vec3 tangent;
+    vec3 bitangent;
+    vec3 positionViewSpace;
+} tes_in[];
 
 
 uniform uint outerLevel0;
@@ -23,6 +33,9 @@ void main()
 {
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
     tes_in[gl_InvocationID].normal = tcs_in[gl_InvocationID].normal;
+    tes_in[gl_InvocationID].tangent = tcs_in[gl_InvocationID].tangent;
+    tes_in[gl_InvocationID].bitangent = tcs_in[gl_InvocationID].bitangent;
+    tes_in[gl_InvocationID].positionViewSpace = tcs_in[gl_InvocationID].positionViewSpace;
     
     gl_TessLevelOuter[0] = outerLevel0;
     gl_TessLevelOuter[1] = outerLevel1;

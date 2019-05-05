@@ -106,9 +106,14 @@ nex::HeightMap nex::HeightMap::createRandom(unsigned rows, unsigned columns, flo
 
 	for (unsigned i = 0; i < heights.size(); ++i)
 	{
-		float d = std::rand() / ((RAND_MAX + 1u) / worldDimensionMaxHeight);
-
-		heights[i] = d/worldDimensionMaxHeight;
+		if (worldDimensionMaxHeight != 0.0f)
+		{
+			float d = std::rand() / ((RAND_MAX + 1u) / worldDimensionMaxHeight);
+			heights[i] = d / worldDimensionMaxHeight;
+		} else
+		{
+			heights[i] = 0.0f;
+		}
 	}
 
 	return HeightMap(rows, columns, worldDimensionZ, worldDimensionMaxHeight, worldDimensionX, heights);

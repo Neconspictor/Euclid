@@ -44,6 +44,8 @@ namespace nex
 			NormalPass();
 			void setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo);
 
+			Uniform modelViewUniform;
+			Uniform projectionUniform;
 			Uniform transformUniform;
 			Uniform normalMatrixUniform;
 			Uniform colorUniform;

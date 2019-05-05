@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(HeightMap::createRandom(10,10, 2, 0.4f, 2))
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(HeightMap::createRandom(10,10, 2, 0.2f, 2))
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -125,11 +125,12 @@ void nex::TesselationTest::draw(Camera* camera)
 
 	if (mShowNormals)
 	{
+		RenderBackend::get()->setLineThickness(5.0f);
 		mNormalPass->bind();
 		mNormalPass->setUniforms(camera, *mPass, mWorldTrafo);
 		state.doCullFaces = false;
-		state.doDepthTest = false;
-		state.doDepthWrite = false;
+		//state.doDepthTest = false;
+		//state.doDepthWrite = false;
 		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
 	}
 }
@@ -197,6 +198,8 @@ nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesse
 	"test/tesselation/quads/normals_tes.glsl",
 	"test/tesselation/quads/normals_gs.glsl"))
 {
+	modelViewUniform = { mShader->getUniformLocation("modelView"), UniformType::MAT4 };
+	projectionUniform = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
 	transformUniform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT4 };
 	colorUniform = { mShader->getUniformLocation("color"), UniformType::VEC4 };
@@ -211,11 +214,19 @@ nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesse
 
 void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo)
 {
-	auto projection = camera->getProjectionMatrix();
-	auto view = camera->getView();
+	const auto& projection = camera->getProjectionMatrix();
+	const auto& view = camera->getView();
 
-	mShader->setMat4(transformUniform.location, projection * view * trafo);
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(trafo));
+	auto transform = projection * view * trafo;
+
+	auto modelView = view * trafo;
+
+
+
+	mShader->setMat4(modelViewUniform.location, modelView);
+	mShader->setMat4(projectionUniform.location, projection);
+	mShader->setMat4(transformUniform.location, transform);
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
 	mShader->setVec4(colorUniform.location, {0,0,1,1});
 
 	mShader->setUInt(outerLevel0.location, transformPass.outerLevel0Val);
