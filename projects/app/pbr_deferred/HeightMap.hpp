@@ -4,6 +4,9 @@
 
 namespace nex
 {
+	class Texture2D;
+	class Sampler;
+
 	class HeightMap
 	{
 	public:
@@ -35,6 +38,14 @@ namespace nex
 			float worldDimensionX, 
 			const std::vector<float>& heights);
 
+
+		HeightMap(const HeightMap&) = delete;
+		HeightMap(HeightMap&&) = default;
+		HeightMap& operator=(const HeightMap&) = delete;
+		HeightMap& operator=(HeightMap&&) = default;
+
+		~HeightMap();
+
 		/**
 		 * Creates a height map with zero height
 		 */
@@ -55,6 +66,10 @@ namespace nex
 
 		Mesh* getMesh();
 
+		Sampler* getHeightSampler();
+
+		Texture2D* getHeightTexture();
+
 	private:
 
 		struct TBN
@@ -71,6 +86,9 @@ namespace nex
 		float mWorldDimensionZ;
 		float mWorldDimensionMaxHeight;
 		StaticMeshContainer mMeshes;
+		std::unique_ptr<Sampler> mHeightSampler;
+		std::unique_ptr<Texture2D> mHeightTexture;
+		
 
 
 		/**

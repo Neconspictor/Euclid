@@ -2,6 +2,8 @@
 #include <nex/material/Material.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include <numeric>
+#include "nex/texture/Texture.hpp"
+#include "nex/texture/Sampler.hpp"
 
 nex::HeightMap::HeightMap(unsigned rows,
 	unsigned columns, 
@@ -90,7 +92,26 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 	//TODO use a valid initialized material
 	mMeshes.add(std::move(mesh), std::make_unique<Material>(nullptr));
+
+
+	TextureData heightDesc;
+	heightDesc.colorspace = ColorSpace::R;
+	heightDesc.internalFormat = InternFormat::R32F;
+	heightDesc.pixelDataType = PixelDataType::FLOAT;
+
+	mHeightTexture = std::make_unique<Texture2D>(mRows, mColumns, heightDesc, heights.data());
+
+	SamplerDesc heightSamplerDesc;
+	heightSamplerDesc.minFilter = TextureFilter::NearestNeighbor;
+	heightSamplerDesc.magFilter = TextureFilter::NearestNeighbor;
+	heightSamplerDesc.wrapR = heightSamplerDesc.wrapS = heightSamplerDesc.wrapT = TextureUVTechnique::ClampToBorder;
+	// we specify a negative border, so that we can detect out of range sampling in shaders
+	heightSamplerDesc.borderColor = glm::vec4(-1.0f);
+
+	mHeightSampler = std::make_unique<Sampler>(heightSamplerDesc);
 }
+
+nex::HeightMap::~HeightMap() = default;
 
 nex::HeightMap nex::HeightMap::createZero(unsigned rows, unsigned columns, float worldDimensionZ,
 	float worldDimensionX)
@@ -122,6 +143,16 @@ nex::HeightMap nex::HeightMap::createRandom(unsigned rows, unsigned columns, flo
 nex::Mesh* nex::HeightMap::getMesh()
 {
 	return mMeshes.getMeshes()[0].get();
+}
+
+nex::Sampler* nex::HeightMap::getHeightSampler()
+{
+	return mHeightSampler.get();
+}
+
+nex::Texture2D* nex::HeightMap::getHeightTexture()
+{
+	return mHeightTexture.get();
 }
 
 void nex::HeightMap::generateTBN(std::vector<Vertex>& vertices, int row, int column) const
