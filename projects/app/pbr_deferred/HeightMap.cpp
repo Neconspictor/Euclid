@@ -159,6 +159,11 @@ glm::vec3 nex::HeightMap::getWorldDimension() const
 	return glm::vec3(mWorldDimensionX, mWorldDimensionMaxHeight, mWorldDimensionZ);
 }
 
+glm::uvec2 nex::HeightMap::getVertexCount() const
+{
+	return glm::uvec2(mColumns, mRows);
+}
+
 void nex::HeightMap::generateTBN(std::vector<Vertex>& vertices, int row, int column) const
 {
 

@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(std::move(HeightMap::createZero(2,2, 1, 1)))
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(std::move(HeightMap::createRandom(10,10, 2, 0.2f,  2)))
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -206,6 +206,7 @@ nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesse
 
 	heightMap = { mShader->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0 };
 	worldDimensionUniform = { mShader->getUniformLocation("worldDimension"), UniformType::VEC3 };
+	segmentCountUniform = { mShader->getUniformLocation("segmentCount"), UniformType::VEC2 };
 }
 
 void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo, HeightMap* heightMap)
@@ -234,6 +235,7 @@ void nex::TesselationTest::NormalPass::setUniforms(Camera* camera, const Tessela
 
 	mShader->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
 	mShader->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
+	mShader->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
 }
 
 nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tesselationTest) : mTesselationTest(tesselationTest)

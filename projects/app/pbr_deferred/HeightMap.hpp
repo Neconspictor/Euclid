@@ -72,6 +72,14 @@ namespace nex
 
 		glm::vec3 getWorldDimension() const;
 
+		/**
+		 * Provides the vertex count for the (x,z) plane
+		 * the result will look like this:
+		 *  - x component: vertex count in x direction
+		 *  - y component: vertex count in z direction
+		 */
+		glm::uvec2 getVertexCount() const;
+
 	private:
 
 		struct TBN

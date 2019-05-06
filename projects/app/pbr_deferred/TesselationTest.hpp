@@ -61,6 +61,7 @@ namespace nex
 
 			UniformTex heightMap;
 			Uniform worldDimensionUniform;
+			Uniform segmentCountUniform;
 		};
 
 		std::unique_ptr<TesselationPass> mPass;
