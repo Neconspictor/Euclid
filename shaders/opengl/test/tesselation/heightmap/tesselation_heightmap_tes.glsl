@@ -2,8 +2,15 @@
 
 layout(quads, equal_spacing, ccw) in; //equal_spacing
 
-in vec2 texCoord_ndc_tes_in[];
-out vec2 texCoord_ndc_fs_in;
+in TCS_OUT {
+    vec3 normal;
+    vec2 texCoords;
+} tcs_out[];
+
+out TES_OUT {
+    vec3 normal;
+    vec2 texCoords;
+} tes_out;
 
 //uniform mat4 transform;
 
@@ -28,8 +35,14 @@ void main() {
     gl_Position = objectSpacePosition;
                                         
                                         
-    texCoord_ndc_fs_in = bottomLeft * texCoord_ndc_tes_in[0] +
-                         bottomRight * texCoord_ndc_tes_in[1] + 
-                         topRight * texCoord_ndc_tes_in[2] +
-                         topLeft * texCoord_ndc_tes_in[3];                          
+                                        
+    tes_out.normal = bottomLeft * tcs_out[0].normal +
+                     bottomRight * tcs_out[1].normal + 
+                     topRight * tcs_out[2].normal +
+                     topLeft * tcs_out[3].normal;                                     
+                                        
+    tes_out.texCoords =  bottomLeft * tcs_out[0].texCoords +
+                         bottomRight * tcs_out[1].texCoords + 
+                         topRight * tcs_out[2].texCoords +
+                         topLeft * tcs_out[3].texCoords;                          
 }

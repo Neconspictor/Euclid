@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(std::move(HeightMap::createRandom(10,10, 2, 0.2f,  2)))
+nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass>()), mNormalPass(std::make_unique<NormalPass>()), mHeightMap(std::move(HeightMap::createRandom(10,10, 2, 0.4f,  2)))
 {
 	mMesh = std::make_unique<VertexArray>();
 
@@ -88,14 +88,14 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 
 	mWorldTrafo = translateMatrix;
 
-	mWireframe = true;
-	mShowNormals = true;
+	mWireframe = false;
+	mShowNormals = false;
 }
 
-void nex::TesselationTest::draw(Camera* camera)
+void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 {
 	mPass->bind();
-	mPass->setUniforms(camera, mWorldTrafo, &mHeightMap);
+	mPass->setUniforms(camera, mWorldTrafo, &mHeightMap, lightDir);
 
 	//mMesh->bind();
 	auto* mesh = mHeightMap.getMesh();
@@ -106,7 +106,7 @@ void nex::TesselationTest::draw(Camera* camera)
 	state.doBlend = false;
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
-	state.doCullFaces = true;
+	state.doCullFaces = false;
 
 	if (mWireframe)
 	{
@@ -141,12 +141,6 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	"test/tesselation/heightmap/tesselation_heightmap_tes.glsl"))
 {
 
-	/*
-	 *
-	 * "test/tesselation/quads/tesselation_quads_tcs.glsl",
-	"test/tesselation/quads/tesselation_quads_tes.glsl"
-	 */
-
 	outerLevel0 = { mShader->getUniformLocation("outerLevel0"), UniformType::UINT };
 	outerLevel1 = { mShader->getUniformLocation("outerLevel1"), UniformType::UINT };
 	outerLevel2 = { mShader->getUniformLocation("outerLevel2"), UniformType::UINT };
@@ -157,6 +151,10 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	transform = {mShader->getUniformLocation("transform"), UniformType::MAT4};
 	heightMap = { mShader->getUniformLocation("heightMap"), UniformType::TEXTURE2D, 0};
 	worldDimensionUniform = { mShader->getUniformLocation("worldDimension"), UniformType::VEC3 };
+	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	modelViewUniform = { mShader->getUniformLocation("modelView"), UniformType::MAT4 };
+	segmentCountUniform = { mShader->getUniformLocation("segmentCount"), UniformType::VEC2 };
 
 	outerLevel0Val = 2;
 	outerLevel1Val = 2;
@@ -166,7 +164,7 @@ nex::TesselationTest::TesselationPass::TesselationPass() : Pass(Shader::create("
 	innerLevel1Val = 2;
 }
 
-void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap)
+void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap, const glm::vec3 lightDir)
 {
 	mShader->setUInt(outerLevel0.location, outerLevel0Val);
 	mShader->setUInt(outerLevel1.location, outerLevel1Val);
@@ -178,11 +176,22 @@ void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const gl
 	auto projection = camera->getProjectionMatrix();
 	auto view = camera->getView();
 
+	auto modelView = view * trafo;
+
+	mShader->setMat4(modelViewUniform.location, modelView);
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(trafo));
+
 	mShader->setMat4(transform.location, projection * view * trafo);
 
 
 	mShader->setTexture(heightMap->getHeightTexture(), heightMap->getHeightSampler(), this->heightMap.bindingSlot);
 	mShader->setVec3(worldDimensionUniform.location, heightMap->getWorldDimension());
+
+
+	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
+
+	mShader->setVec3(lightUniform.location, normalize(lightDir));
+	mShader->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
 }
 
 nex::TesselationTest::NormalPass::NormalPass() : Pass(Shader::create("test/tesselation/heightmap/normals_vs.glsl",

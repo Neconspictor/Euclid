@@ -3,11 +3,16 @@
 // define the number of CPs in the output patch
 layout (vertices = 4) out;
 
-// attributes of the input CPs
-in vec2 texCoord_ndc_tcs_in[];
+in VS_OUT {
+    vec3 normal;
+    vec2 texCoords;
+} vs_out[];
 
-// attributes of the output CPs
-out vec2 texCoord_ndc_tes_in[];
+out TCS_OUT {
+    vec3 normal;
+    vec2 texCoords;
+} tcs_out[];
+
 
 
 uniform uint outerLevel0;
@@ -21,7 +26,8 @@ uniform uint innerLevel1;
 void main()
 {
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-    texCoord_ndc_tes_in[gl_InvocationID] = texCoord_ndc_tcs_in[gl_InvocationID];
+    tcs_out[gl_InvocationID].normal = vs_out[gl_InvocationID].normal;
+    tcs_out[gl_InvocationID].texCoords = vs_out[gl_InvocationID].texCoords;
     
     gl_TessLevelOuter[0] = outerLevel0;
     gl_TessLevelOuter[1] = outerLevel1;

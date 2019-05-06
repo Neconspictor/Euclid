@@ -4,7 +4,6 @@
 layout (vertices = 4) out;
 
 // attributes of the input CPs
-in vec2 texCoord_ndc_tcs_in[];
 in VS_OUT {
     vec3 normal;
     vec3 tangent;

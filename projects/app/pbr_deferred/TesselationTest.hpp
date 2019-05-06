@@ -12,14 +12,14 @@ namespace nex
 	public:
 		TesselationTest();
 
-		void draw(Camera* camera);
+		void draw(Camera* camera, const glm::vec3& lightDir);
 
 		class TesselationPass : public Pass
 		{
 		public:
 			TesselationPass();
 
-			void setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap);
+			void setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap, const glm::vec3 lightDir);
 
 			unsigned outerLevel0Val;
 			unsigned outerLevel1Val;
@@ -38,6 +38,10 @@ namespace nex
 			Uniform transform;
 			UniformTex heightMap;
 			Uniform worldDimensionUniform;
+			Uniform lightUniform;
+			Uniform normalMatrixUniform;
+			Uniform modelViewUniform;
+			Uniform segmentCountUniform;
 		};
 
 		class NormalPass : public Pass

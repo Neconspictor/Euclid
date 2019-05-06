@@ -59,7 +59,7 @@ namespace nex
 
 	inline glm::mat3 createNormalMatrix(const glm::mat4& trafo)
 	{
-		return transpose(inverse(glm::mat3(trafo)));
+		return inverse(transpose(trafo));
 	}
 
 

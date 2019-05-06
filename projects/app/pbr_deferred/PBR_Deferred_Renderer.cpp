@@ -244,7 +244,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->enableStencilTest(true);
-	mTesselationTest.draw(camera);
+	mTesselationTest.draw(camera, sun->getDirection());
 	
 	
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
