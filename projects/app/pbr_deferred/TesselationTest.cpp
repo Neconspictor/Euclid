@@ -179,7 +179,7 @@ void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const gl
 	auto modelView = view * trafo;
 
 	mShader->setMat4(modelViewUniform.location, modelView);
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(trafo));
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
 
 	mShader->setMat4(transform.location, projection * view * trafo);
 
@@ -190,7 +190,7 @@ void nex::TesselationTest::TesselationPass::setUniforms(Camera* camera, const gl
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 
-	mShader->setVec3(lightUniform.location, normalize(lightDir));
+	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 	mShader->setVec2(segmentCountUniform.location, glm::vec2(heightMap->getVertexCount().x - 1, heightMap->getVertexCount().y - 1));
 }
 
