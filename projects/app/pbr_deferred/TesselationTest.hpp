@@ -19,7 +19,7 @@ namespace nex
 		public:
 			TesselationPass();
 
-			void setUniforms(Camera* camera, const glm::mat4& trafo);
+			void setUniforms(Camera* camera, const glm::mat4& trafo, HeightMap* heightMap);
 
 			unsigned outerLevel0Val;
 			unsigned outerLevel1Val;
@@ -36,13 +36,15 @@ namespace nex
 			Uniform innerLevel1;
 
 			Uniform transform;
+			UniformTex heightMap;
+			Uniform worldDimensionUniform;
 		};
 
 		class NormalPass : public Pass
 		{
 		public:
 			NormalPass();
-			void setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo);
+			void setUniforms(Camera* camera, const TesselationPass& transformPass, const glm::mat4& trafo, HeightMap* heightMap);
 
 			Uniform modelViewUniform;
 			Uniform projectionUniform;
@@ -56,6 +58,9 @@ namespace nex
 			Uniform outerLevel3;
 			Uniform innerLevel0;
 			Uniform innerLevel1;
+
+			UniformTex heightMap;
+			Uniform worldDimensionUniform;
 		};
 
 		std::unique_ptr<TesselationPass> mPass;
@@ -64,9 +69,8 @@ namespace nex
 		std::unique_ptr<VertexBuffer> mBuffer;
 
 		glm::mat4 mWorldTrafo;
-
 		HeightMap mHeightMap;
-
+		
 		bool mShowNormals;
 		bool mWireframe;
 	};

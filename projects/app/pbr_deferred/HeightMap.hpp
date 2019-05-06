@@ -70,6 +70,8 @@ namespace nex
 
 		Texture2D* getHeightTexture();
 
+		glm::vec3 getWorldDimension() const;
+
 	private:
 
 		struct TBN

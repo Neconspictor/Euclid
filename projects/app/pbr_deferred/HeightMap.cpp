@@ -1,7 +1,6 @@
 #include <pbr_deferred/HeightMap.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/mesh/MeshFactory.hpp"
-#include <numeric>
 #include "nex/texture/Texture.hpp"
 #include "nex/texture/Sampler.hpp"
 
@@ -104,9 +103,9 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	SamplerDesc heightSamplerDesc;
 	heightSamplerDesc.minFilter = TextureFilter::NearestNeighbor;
 	heightSamplerDesc.magFilter = TextureFilter::NearestNeighbor;
-	heightSamplerDesc.wrapR = heightSamplerDesc.wrapS = heightSamplerDesc.wrapT = TextureUVTechnique::ClampToBorder;
+	heightSamplerDesc.wrapR = heightSamplerDesc.wrapS = heightSamplerDesc.wrapT = TextureUVTechnique::ClampToEdge;
 	// we specify a negative border, so that we can detect out of range sampling in shaders
-	heightSamplerDesc.borderColor = glm::vec4(-1.0f);
+	//heightSamplerDesc.borderColor = glm::vec4(-1.0f);
 
 	mHeightSampler = std::make_unique<Sampler>(heightSamplerDesc);
 }
@@ -153,6 +152,11 @@ nex::Sampler* nex::HeightMap::getHeightSampler()
 nex::Texture2D* nex::HeightMap::getHeightTexture()
 {
 	return mHeightTexture.get();
+}
+
+glm::vec3 nex::HeightMap::getWorldDimension() const
+{
+	return glm::vec3(mWorldDimensionX, mWorldDimensionMaxHeight, mWorldDimensionZ);
 }
 
 void nex::HeightMap::generateTBN(std::vector<Vertex>& vertices, int row, int column) const
