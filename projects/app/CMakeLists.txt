@@ -23,6 +23,8 @@ set(
 	#pbr_deferred
     pbr_deferred/HeightMap.hpp
     pbr_deferred/HeightMap.cpp
+    pbr_deferred/Ocean.cpp
+    pbr_deferred/Ocean.hpp
 	pbr_deferred/PBR_Deferred_Renderer.hpp
 	pbr_deferred/PBR_Deferred_Renderer.cpp
     pbr_deferred/TesselationTest.cpp

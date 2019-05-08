@@ -271,7 +271,3 @@ void nex::gui::TesselationTest_Config::drawSelf()
 
 	ImGui::PopID();
 }
-
-
-//"test/tesselation/tesselation_tcs.glsl", 
-//"test/tesselation/tesselation_tes.glsl"
