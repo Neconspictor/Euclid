@@ -122,11 +122,10 @@ namespace nex
 		 */
 		float computeHeight(const glm::vec2& locationXZ, float time);
 
-		float heightTildeDash(int nDash, int mDash, float time);
-
-		float exp(const Complex& exponent);
-
-		void test();
+		static float generateGaussianRand();
+		Complex heightTildeZero(const glm::vec2& wave) const;
+		Complex heightTildeDash(int nDash, int mDash, float time) const;
+		float philipsSpectrum(const glm::vec2& wave) const;
 
 	private:
 		/**
@@ -148,5 +147,8 @@ namespace nex
 		 * (object space) extension of the ocean in z direction.
 		 */
 		float Lz;
+
+		glm::vec2 mWindDirection;
+		float mWindSpeed;
 	};
 }

@@ -188,7 +188,8 @@ glm::vec2 nex::Polar::cartesian() const
 	return glm::vec2(distance * cosf(azimuth), distance * sinf(azimuth));
 }
 
-nex::Ocean::Ocean(unsigned pointNumberX, unsigned pointNumberZ, float dimensionX, float dimensionZ) : N(pointNumberX), M(pointNumberZ), Lx(dimensionX), Lz(dimensionZ)
+nex::Ocean::Ocean(unsigned pointNumberX, unsigned pointNumberZ, float dimensionX, float dimensionZ) : N(pointNumberX), M(pointNumberZ), Lx(dimensionX), Lz(dimensionZ),
+mWindSpeed(10.0f), mWindDirection(1.0f, 1.0f)
 {
 }
 
@@ -225,13 +226,44 @@ float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t)
 	return height;
 }
 
-float nex::Ocean::heightTildeDash(int nDash, int mDash, float t)
+float nex::Ocean::generateGaussianRand()
 {
 	//TODO
 	return 0.0f;
 }
 
-void nex::Ocean::test()
+nex::Complex nex::Ocean::heightTildeZero(const glm::vec2& wave) const
 {
-	
+	static const auto inverseRootTwo = 1 / sqrtf(2);
+	Complex random(generateGaussianRand(), generateGaussianRand());
+
+	return inverseRootTwo * random * philipsSpectrum(wave);
+}
+
+nex::Complex nex::Ocean::heightTildeDash(int nDash, int mDash, float t) const
+{
+	//TODO
+	return Complex();
+}
+
+float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
+{
+	//TODO
+	static const auto A = 1.0f;
+	static const auto g = 9.8f;
+
+
+	const auto L = mWindSpeed * mWindSpeed / g;
+
+	// length of the wave vector
+	const auto lambda = length(wave);
+
+	// magnitude of the wave vector
+	const auto k = 2 * util::PI / lambda;
+
+	const auto kLSquare = k*L * k*L;
+	const auto kFour = k * k*k*k;
+	const auto absAngleWaveWind = abs(dot(wave, mWindDirection));
+
+	return A * exp(-1.0f / kLSquare) / kFour * (absAngleWaveWind * absAngleWaveWind);
 }
