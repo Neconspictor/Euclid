@@ -1,5 +1,6 @@
 ﻿#include <pbr_deferred/Ocean.hpp>
 #include "nex/util/Math.hpp"
+#include <random>
 
 nex::Complex::Complex() : re(0.0f), im(0.0f)
 {
@@ -22,6 +23,11 @@ glm::vec2 nex::Complex::cartesian() const
 nex::Complex nex::Complex::conjugate() const
 {
 	return Complex(re, -im);
+}
+
+nex::Complex nex::Complex::euler(float exponent)
+{
+	return { cos(exponent), sin(exponent) };
 }
 
 nex::Complex nex::Complex::exp() const
@@ -210,11 +216,10 @@ float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t)
 		{
 			const auto kx = (twoPi * nDash - pi * N) / Lx;
 			const auto kz = (twoPi * mDash - pi * M) / Lz;
-			const Complex exponent(0, kx* x + kz*z);
-			const Complex exponential = exponent.exp();
+			const auto euler = Complex::euler(kx* x + kz * z);
 			
 			// will have form e^(0) * (cos(0) + i*sin(kx* x + kz*z)) = 1 + i*sin(kx* x + kz*z)
-			const auto complexResult = heightTildeDash(nDash, mDash, t) * exponential;
+			const auto complexResult = heightTilde(glm::vec2(kx, kz), t) * euler;
 
 			//TODO convert complex number to a reasonable real number
 			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
@@ -226,24 +231,20 @@ float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t)
 	return height;
 }
 
-float nex::Ocean::generateGaussianRand()
-{
-	//TODO
-	return 0.0f;
-}
-
 nex::Complex nex::Ocean::heightTildeZero(const glm::vec2& wave) const
 {
-	static const auto inverseRootTwo = 1 / sqrtf(2);
-	Complex random(generateGaussianRand(), generateGaussianRand());
+	static const auto inverseRootTwo = 1 / std::sqrt(2.0);
+	const Complex random(generateGaussianRand(), generateGaussianRand());
 
-	return inverseRootTwo * random * philipsSpectrum(wave);
+	return inverseRootTwo * random * std::sqrt(philipsSpectrum(wave));
 }
 
-nex::Complex nex::Ocean::heightTildeDash(int nDash, int mDash, float t) const
+nex::Complex nex::Ocean::heightTilde(const glm::vec2& wave, float time) const
 {
-	//TODO
-	return Complex();
+	const auto dispersion = philipsSpectrum(wave);
+	
+	return heightTildeZero(wave) * Complex::euler(dispersion * time)
+			+ heightTildeZero(-wave).conjugate() * Complex::euler(-dispersion * time);
 }
 
 float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
@@ -266,4 +267,14 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 	const auto absAngleWaveWind = abs(dot(wave, mWindDirection));
 
 	return A * exp(-1.0f / kLSquare) / kFour * (absAngleWaveWind * absAngleWaveWind);
+}
+
+float nex::Ocean::generateGaussianRand()
+{
+	static std::random_device device;
+	const static std::mt19937 engine(device());
+
+	// note: we need mean 0 and standard deviation 1!
+	static std::normal_distribution<> distribution(0, 1);
+	return distribution(engine);
 }

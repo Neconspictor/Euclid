@@ -37,6 +37,12 @@ namespace nex
 		Complex conjugate() const;
 
 		/**
+		 * Provides a complex number by a given exponent.
+		 * The result will match euler's formula e^(i*exponent) = cos(exponent) + i*sin(exponent)
+		 */
+		static Complex euler(float exponent);
+
+		/**
 		 * Computes the exponential of this number.
 		 */
 		Complex exp() const;
@@ -122,9 +128,8 @@ namespace nex
 		 */
 		float computeHeight(const glm::vec2& locationXZ, float time);
 
-		static float generateGaussianRand();
 		Complex heightTildeZero(const glm::vec2& wave) const;
-		Complex heightTildeDash(int nDash, int mDash, float time) const;
+		Complex heightTilde(const glm::vec2& wave, float time) const;
 		float philipsSpectrum(const glm::vec2& wave) const;
 
 	private:
@@ -150,5 +155,7 @@ namespace nex
 
 		glm::vec2 mWindDirection;
 		float mWindSpeed;
+
+		static float generateGaussianRand();
 	};
 }
