@@ -273,10 +273,12 @@ void nex::Ocean::simulate(float t)
 				mVerticesRender[mVerticesRender.size() - 1].position.y = vertex.position.y;
 			}
 			if (x == 0) {
-				mVerticesRender[index + mTildePointCount.y * mUniquePointCount.x].position.y = vertex.position.y;
+				auto replicateIndex = index + mUniquePointCount.x;
+				mVerticesRender[replicateIndex].position.y = vertex.position.y;
 			}
 			if (z == 0) {
-				mVerticesRender[index + mUniquePointCount.y].position.y = vertex.position.y;
+				auto replicateIndex = index + mUniquePointCount.y * mTildePointCount.x;
+				mVerticesRender[replicateIndex].position.y = vertex.position.y;
 			}
 		}
 	}
