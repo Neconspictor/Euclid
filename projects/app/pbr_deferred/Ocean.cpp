@@ -94,6 +94,9 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 		}
 	}
 
+
+	simulate(10.0f);
+
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
 	vertexBuffer.fill(mVerticesRender.data(), vertexCount * sizeof(VertexRender));
@@ -246,6 +249,37 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 bool* nex::Ocean::getWireframeState()
 {
 	return &mWireframe;
+}
+
+void nex::Ocean::simulate(float t)
+{
+	for (int z = 0; z < mUniquePointCount.y; z++) {
+		for (int x = 0; x < mUniquePointCount.x; x++) {
+			auto index = z * mTildePointCount.x + x;
+
+
+			auto& vertex = mVerticesRender[index];
+
+			glm::vec2 wave (vertex.position.x, vertex.position.z);
+
+			//auto height = computeHeight(x, t);
+
+			vertex.position.y = computeHeight(wave, t);
+
+
+			// first point has to be replicated three times
+			if (x == 0 && z == 0) {
+
+				mVerticesRender[mVerticesRender.size() - 1].position.y = vertex.position.y;
+			}
+			if (x == 0) {
+				mVerticesRender[index + mTildePointCount.y * mUniquePointCount.x].position.y = vertex.position.y;
+			}
+			if (z == 0) {
+				mVerticesRender[index + mUniquePointCount.y].position.y = vertex.position.y;
+			}
+		}
+	}
 }
 
 float nex::Ocean::generateGaussianRand()

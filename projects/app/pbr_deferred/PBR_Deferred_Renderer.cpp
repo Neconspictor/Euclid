@@ -52,7 +52,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(glm::uvec2(16), glm::vec2(1.0f), glm::vec2(1.0f), 1.0f, glm::vec2(1.0f), 28.0 * 0.277778, 200.0f)
+	mOcean(glm::uvec2(128), glm::vec2(1.0f), glm::vec2(1.0f), 1.0f, glm::vec2(1.0f), 28.0 * 0.277778, 200.0f)
 {
 	assert(mPbrDeferred != nullptr);
 	assert(mPbrForward != nullptr);

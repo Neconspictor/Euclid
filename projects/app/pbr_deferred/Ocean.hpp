@@ -69,6 +69,12 @@ namespace nex
 
 		bool* getWireframeState();
 
+		/**
+		 * Simulates ocean state at time t.
+		 * @param t : time. Has to be > 0
+		 */
+		void simulate(float t);
+
 	private:
 
 
