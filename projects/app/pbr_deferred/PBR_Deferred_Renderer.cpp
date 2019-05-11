@@ -27,6 +27,7 @@
 #include "nex/pbr/PbrForward.hpp"
 #include "nex/camera/FPCamera.hpp"
 #include <nex/Input.hpp>
+#include "nex/gui/Util.hpp"
 
 int ssaaSamples = 1;
 
@@ -34,7 +35,7 @@ int ssaaSamples = 1;
 //ModelManager::SKYBOX_MODEL_NAME
 //misc/SkyBoxPlane.obj
 nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
-	nex::RenderBackend* backend, 
+	nex::RenderBackend* backend,
 	PbrDeferred* pbrDeferred,
 	PbrForward* pbrForward,
 	CascadedShadow* cascadedShadow,
@@ -48,9 +49,10 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
 	mInput(input),
 	mPbrDeferred(pbrDeferred),
-	mPbrForward(pbrForward), 
+	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
-	mRenderBackend(backend)
+	mRenderBackend(backend),
+	mOcean(glm::uvec2(16), glm::vec2(1.0f), glm::vec2(1.0f), 1.0f, glm::vec2(1.0f), 28.0 * 0.277778, 200.0f)
 {
 	assert(mPbrDeferred != nullptr);
 	assert(mPbrForward != nullptr);
@@ -163,6 +165,11 @@ nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 	return &mTesselationTest;
 }
 
+nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
+{
+	return &mOcean;
+}
+
 void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
@@ -244,7 +251,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->enableStencilTest(true);
-	mTesselationTest.draw(camera, sun->getDirection());
+
+	//mTesselationTest.draw(camera, sun->getDirection());
+	mOcean.draw(camera, sun->getDirection());
 	
 	
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
@@ -409,7 +418,8 @@ std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingT
 	return result;
 }
 
-nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest())
+nex::PBR_Deferred_Renderer_ConfigurationView::PBR_Deferred_Renderer_ConfigurationView(PBR_Deferred_Renderer* renderer) : mRenderer(renderer), mTesselationConfig(mRenderer->getTesselationTest()),
+mOceanConfig(mRenderer->getOcean())
 {
 }
 
@@ -447,7 +457,12 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		}
 	}
 
+	nex::gui::Separator(2.0f);
 	mTesselationConfig.drawGUI();
+
+	nex::gui::Separator(2.0f);
+	ImGui::Text("Ocean:");
+	mOceanConfig.drawGUI();
 
 	ImGui::PopID();
 }

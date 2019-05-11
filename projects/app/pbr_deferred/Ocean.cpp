@@ -1,280 +1,290 @@
-﻿#include <pbr_deferred/Ocean.hpp>
-#include "nex/util/Math.hpp"
+﻿#include "Ocean.hpp"
 #include <random>
+#include <complex>
+#include <nex/util/Math.hpp>
+#include "nex/mesh/VertexBuffer.hpp"
+#include "nex/mesh/IndexBuffer.hpp"
+#include "nex/mesh/VertexLayout.hpp"
+#include "nex/mesh/VertexArray.hpp"
+#include "nex/mesh/SubMesh.hpp"
+#include "nex/camera/Camera.hpp"
+#include "nex/renderer/RenderBackend.hpp"
+#include "nex/gui/Controller.hpp"
+#include <glm/gtc/matrix_transform.inl>
 
-nex::Complex::Complex() : re(0.0f), im(0.0f)
+nex::Ocean::Ocean(const glm::uvec2& pointCount,
+	const glm::vec2& maxWaveLength,
+	const glm::vec2& dimension,
+	float spectrumScale,
+	const glm::vec2& windDirection,
+	float windSpeed,
+	float periodTime) :
+	mUniquePointCount(pointCount - glm::uvec2(1, 1)),
+	mTildePointCount(pointCount),
+	mWaveLength(maxWaveLength),
+	mDimension(dimension),
+	mSpectrumScale(spectrumScale),
+	mWindDirection(glm::normalize(windDirection)),
+	mWindSpeed(windSpeed),
+	mPeriodTime(periodTime),
+	mSimpleShadedPass(std::make_unique<SimpleShadedPass>()),
+	mWireframe(true)
 {
+	assert(pointCount.x >= 2);
+	assert(pointCount.y >= 2);
+	assert(dimension.x > 0.0f);
+	assert(dimension.y > 0.0f);
+	assert(spectrumScale > 0.0f);
+	assert(length(windDirection) > 0.0f);
+	assert(periodTime > 0.0f);
+
+	const auto vertexCount = mTildePointCount.x * mTildePointCount.y;
+	const auto quadCount = (mTildePointCount.x - 1) * (mTildePointCount.y - 1);
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
+	const unsigned indicesPerQuad = 6; // two triangles per quad
+
+	mVerticesCompute.resize(vertexCount);
+	mVerticesRender.resize(vertexCount);
+	mIndices.resize(quadCount * indicesPerQuad); // two triangles per quad
+
+	for (int z = 0; z < mTildePointCount.y; ++z)
+	{
+		for (int x = 0; x < mTildePointCount.x; ++x)
+		{
+			unsigned index = z * mTildePointCount.x + x;
+
+			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x;
+			const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y;
+			const auto wave = glm::vec2(kx, kz);
+
+			mVerticesCompute[index].height0 = heightTildeZero(wave);
+			mVerticesCompute[index].height0NegativeWaveConjugate = heightTildeZero(-wave).conjugate();
+			mVerticesCompute[index].originalPosition = glm::vec3(
+				(x - mUniquePointCount.x / 2.0f) * mWaveLength.x / mUniquePointCount.x,
+				0.0f,
+				getZValue((z - mUniquePointCount.y / 2.0f) * mWaveLength.y / mUniquePointCount.y)
+			);
+
+			mVerticesRender[index].position = mVerticesCompute[index].originalPosition;
+			mVerticesRender[index].normal = glm::vec3(0.0f, 1.0f, 0.0f);
+		}
+	}
+
+
+	const glm::uvec2 quadNumber = mUniquePointCount;
+
+	for (int x = 0; x < quadNumber.x; ++x)
+	{
+		for (int z = 0; z < quadNumber.y; ++z)
+		{
+			const unsigned indexStart = indicesPerQuad * (x * quadNumber.y + z);
+
+			const unsigned vertexBottomLeft = x * mTildePointCount.y + z;
+
+			// first triangle
+			mIndices[indexStart] = vertexBottomLeft;
+			mIndices[indexStart + 1] = vertexBottomLeft + 1; // one column to the right
+			mIndices[indexStart + 2] = vertexBottomLeft + mTildePointCount.y + 1; // one row up and one column to the right
+
+			// second triangle
+			mIndices[indexStart + 3] = vertexBottomLeft;
+			mIndices[indexStart + 4] = vertexBottomLeft + mTildePointCount.y + 1;
+			mIndices[indexStart + 5] = vertexBottomLeft + mTildePointCount.y; // one row up
+		}
+	}
+
+	VertexBuffer vertexBuffer;
+	vertexBuffer.bind();
+	vertexBuffer.fill(mVerticesRender.data(), vertexCount * sizeof(VertexRender));
+	IndexBuffer indexBuffer(mIndices.data(), mIndices.size(), IndexElementType::BIT_32);
+	indexBuffer.bind();
+
+	VertexLayout layout;
+	layout.push<glm::vec3>(1); // position
+	layout.push<glm::vec3>(1); // normal
+
+	VertexArray vertexArray;
+	vertexArray.bind();
+	vertexArray.useBuffer(vertexBuffer, layout);
+
+	vertexArray.unbind();
+	indexBuffer.unbind();
+
+	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
-nex::Complex::Complex(float real, float imaginary) : re(real), im(imaginary)
+nex::Ocean::~Ocean() = default;
+
+float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t) const
 {
-}
-
-float nex::Complex::arg() const
-{
-	return atan2(im, re);
-}
-
-glm::vec2 nex::Complex::cartesian() const
-{
-	return glm::vec2(re, im);
-}
-
-nex::Complex nex::Complex::conjugate() const
-{
-	return Complex(re, -im);
-}
-
-nex::Complex nex::Complex::euler(float exponent)
-{
-	return { cos(exponent), sin(exponent) };
-}
-
-nex::Complex nex::Complex::exp() const
-{
-	//e^(a + ib)= e^(a) * e^(ib) = e^(a) * (cos(a)+ i*sin(b))
-	return expf(re) * (Complex(cosf(re), sinf(im)));
-}
-
-float nex::Complex::magnitude() const
-{
-	return sqrt(re*re + im*im);
-}
-
-nex::Polar nex::Complex::polar() const
-{
-	return Polar(magnitude(), arg());
-}
-
-nex::Complex nex::Complex::operator+(const Complex& c) const
-{
-	Complex result(*this);
-	result.add(c);
-	return result;
-}
-
-nex::Complex& nex::Complex::operator+=(const Complex& c)
-{
-	add(c);
-	return *this;
-}
-
-nex::Complex nex::Complex::operator-(const Complex& c) const
-{
-	Complex result(*this);
-	result.subtract(c);
-	return result;
-}
-
-nex::Complex& nex::Complex::operator-=(const Complex& c)
-{
-	subtract(c);
-	return *this;
-}
-
-nex::Complex nex::Complex::operator*(const Complex& c) const
-{
-	Complex result(*this);
-	result.multiply(c);
-	return result;
-}
-
-nex::Complex& nex::Complex::operator*=(const Complex& c)
-{
-	multiply(c);
-	return *this;
-}
-
-nex::Complex nex::Complex::operator*(float scalar) const
-{
-	Complex result(*this);
-	result.multiply(scalar);
-	return result;
-}
-
-nex::Complex& nex::Complex::operator*=(float scalar)
-{
-	multiply(scalar);
-	return *this;
-}
-
-nex::Complex nex::Complex::operator/(const Complex& c) const
-{
-	Complex result(*this);
-	result.divide(c);
-	return result;
-}
-
-nex::Complex& nex::Complex::operator/=(const Complex& c)
-{
-	divide(c);
-	return *this;
-}
-
-nex::Complex nex::Complex::operator/(float scalar) const
-{
-	return operator*(1.0f / scalar);
-}
-
-nex::Complex& nex::Complex::operator/=(float scalar)
-{
-	return operator*=(1.0f / scalar);
-}
-
-
-void nex::Complex::add(const Complex& c)
-{
-	re += c.re;
-	im += c.im;
-}
-
-void nex::Complex::divide(const Complex& c)
-{
-	// (a + ib) / (c + id) =  ((ac + bd) + i(bc - ad)) / (c*c + d*d)
-
-	const float denominator = c.re * c.re + c.im * c.im;
-	re = (re * c.re + im * c.im) / denominator;
-	im = (im * c.re - re * c.im) / denominator;
-}
-
-nex::Complex nex::operator*(float scalar, const Complex& c)
-{
-	return c * scalar;
-}
-
-nex::Complex& nex::operator*=(float scalar, Complex& c)
-{
-	return c *= scalar;
-}
-
-nex::Complex nex::operator/(float scalar, const Complex& c)
-{
-	return c / scalar;
-}
-
-nex::Complex& nex::operator/=(float scalar, Complex& c)
-{
-	return c /= scalar;
-}
-
-nex::Polar::Polar(float distance, float azimuth) : distance(distance), azimuth(azimuth)
-{
-}
-
-nex::Polar::Polar() : distance(0.0f), azimuth(0.0f)
-{
-}
-
-void nex::Complex::multiply(const Complex& c)
-{
-	// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
-	re = re * c.re - im * c.im;
-	im = re * c.im + im * c.re;
-}
-
-void nex::Complex::multiply(float scalar)
-{
-	re *= scalar;
-	im *= scalar;
-}
-
-void nex::Complex::subtract(const Complex& c)
-{
-	re -= c.re;
-	im -= c.im;
-}
-
-nex::Complex nex::Polar::complex() const
-{
-	return Complex(distance * cosf(azimuth), distance * sinf(azimuth));
-}
-
-glm::vec2 nex::Polar::cartesian() const
-{
-	return glm::vec2(distance * cosf(azimuth), distance * sinf(azimuth));
-}
-
-nex::Ocean::Ocean(unsigned pointNumberX, unsigned pointNumberZ, float dimensionX, float dimensionZ) : N(pointNumberX), M(pointNumberZ), Lx(dimensionX), Lz(dimensionZ),
-mWindSpeed(10.0f), mWindDirection(1.0f, 1.0f)
-{
-}
-
-float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t)
-{
-	const auto& twoPi = 2*util::PI;
-	const auto& pi = util::PI;
-
-	const auto& x = locationXZ.x;
-	const auto& z = locationXZ.y;
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
 
 	float height = 0.0f;
 
 
-	for (int mDash = 0; mDash < M; ++mDash)
+	for (int mDash = 0; mDash < mUniquePointCount.y; ++mDash)
 	{
-		for (int nDash = 0; nDash < N; ++nDash)
+		for (int nDash = 0; nDash < mUniquePointCount.x; ++nDash)
 		{
-			const auto kx = (twoPi * nDash - pi * N) / Lx;
-			const auto kz = (twoPi * mDash - pi * M) / Lz;
-			const auto euler = Complex::euler(kx* x + kz * z);
-			
-			// will have form e^(0) * (cos(0) + i*sin(kx* x + kz*z)) = 1 + i*sin(kx* x + kz*z)
-			const auto complexResult = heightTilde(glm::vec2(kx, kz), t) * euler;
+			const float kx = (twoPi * nDash - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
+			const float kz = (twoPi * mDash - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 
-			//TODO convert complex number to a reasonable real number
+			const auto wave = glm::vec2(kx, kz);
+			const auto angle = dot(wave, locationXZ);
+			const auto euler = Complex::euler(angle);
+
+			const auto complexResult = heightTilde(wave, t) * euler;
+
 			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
 			height += complexResult.re;
-
 		}
 	}
 
 	return height;
 }
 
+float nex::Ocean::dispersion(const glm::vec2& wave) const
+{
+	static const float w0 = 2.0f * util::PI / mPeriodTime;
+	return std::floor(std::sqrt(GRAVITY * length(wave)) / w0) * w0;
+}
+
+void nex::Ocean::draw(Camera* camera, const glm::vec3& lightDir)
+{
+	mSimpleShadedPass->bind();
+
+	glm::mat4 model = translate(glm::mat4(), glm::vec3(0,2, -1));
+
+	mSimpleShadedPass->setUniforms(camera, model, lightDir);
+
+	//mMesh->bind();
+	mMesh->getVertexArray()->bind();
+	mMesh->getIndexBuffer()->bind();
+	RenderState state;
+	state.doBlend = false;
+	state.doDepthTest = true;
+	state.doDepthWrite = true;
+	state.doCullFaces = true;
+
+	if (mWireframe)
+	{
+		state.fillMode = FillMode::LINE;
+	}
+	else
+	{
+		state.fillMode = FillMode::FILL;
+	}
+
+
+	state.depthCompare = CompareFunction::LESS;
+
+	// Only draw the first triangle
+	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
+}
+
+float uniformRandomVariable() {
+	return (float)rand() / RAND_MAX;
+}
+
+nex::Complex gaussianRandomVariable() {
+	float x1, x2, w;
+	do {
+		x1 = 2.f * uniformRandomVariable() - 1.f;
+		x2 = 2.f * uniformRandomVariable() - 1.f;
+		w = x1 * x1 + x2 * x2;
+	} while (w >= 1.f);
+	w = sqrt((-2.f * log(w)) / w);
+	return nex::Complex(1.0, 1.0f);
+	//return nex::Complex(1.0 - abs(x1 * w)/10000.0f, 1.0 - abs(x2 * w)/10000.0);
+	return nex::Complex(x1 * w, x2 * w);
+}
+
 nex::Complex nex::Ocean::heightTildeZero(const glm::vec2& wave) const
 {
 	static const auto inverseRootTwo = 1 / std::sqrt(2.0);
-	const Complex random(generateGaussianRand(), generateGaussianRand());
+	const Complex random = gaussianRandomVariable();//(gaussianRandomVariable(), gaussianRandomVariable());
 
-	return inverseRootTwo * random * std::sqrt(philipsSpectrum(wave));
+	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
 }
 
 nex::Complex nex::Ocean::heightTilde(const glm::vec2& wave, float time) const
 {
-	const auto dispersion = philipsSpectrum(wave);
-	
-	return heightTildeZero(wave) * Complex::euler(dispersion * time)
-			+ heightTildeZero(-wave).conjugate() * Complex::euler(-dispersion * time);
+	const auto w = dispersion(wave);
+
+	const auto omegat = w * time;
+	auto cos_ = cos(omegat);
+	auto sin_ = sin(omegat);
+	Complex c0(cos_, sin_);
+	Complex c1(cos_, -sin_);
+
+	return heightTildeZero(wave) * c0//* Complex::euler(w * time)
+		+ heightTildeZero(-wave).conjugate() *c1; //* Complex::euler(-w * time);
 }
 
 float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 {
-	//TODO
-	static const auto A = 1.0f;
-	static const auto g = 9.8f;
-
-
-	const auto L = mWindSpeed * mWindSpeed / g;
+	const auto L = mWindSpeed * mWindSpeed / GRAVITY;
+	const auto L2 = L * L;
+	float damping = 0.001;
+	float l2 = L2 * damping * damping;
 
 	// length of the wave vector
-	const auto lambda = length(wave);
+	const auto k = length(wave);//2 * util::PI / lambda;
 
-	// magnitude of the wave vector
-	const auto k = 2 * util::PI / lambda;
+	if (k < 0.0001) return 0.0f;
 
-	const auto kLSquare = k*L * k*L;
+	const auto kLSquare = k * L * k*L;
 	const auto kFour = k * k*k*k;
-	const auto absAngleWaveWind = abs(dot(wave, mWindDirection));
+	const auto absAngleWaveWind = dot(normalize(wave), normalize(mWindDirection));
 
-	return A * exp(-1.0f / kLSquare) / kFour * (absAngleWaveWind * absAngleWaveWind);
+	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * (absAngleWaveWind * absAngleWaveWind) * std::exp(-k * k*l2);
+}
+
+bool* nex::Ocean::getWireframeState()
+{
+	return &mWireframe;
 }
 
 float nex::Ocean::generateGaussianRand()
 {
 	static std::random_device device;
-	const static std::mt19937 engine(device());
+	static std::mt19937 engine(device());
 
 	// note: we need mean 0 and standard deviation 1!
-	static std::normal_distribution<> distribution(0, 1);
+	static std::normal_distribution<float> distribution(0, 1);
 	return distribution(engine);
+}
+
+nex::Ocean::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
+{
+	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+}
+
+void nex::Ocean::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
+{
+	auto projection = camera->getProjectionMatrix();
+	auto view = camera->getView();
+
+	auto modelView = view * trafo;
+
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mShader->setMat4(transform.location, projection * view * trafo);
+
+
+	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
+	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+}
+
+nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
+{
+}
+
+void nex::gui::OceanConfig::drawSelf()
+{
+	ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
 }

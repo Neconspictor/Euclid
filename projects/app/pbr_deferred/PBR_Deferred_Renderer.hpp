@@ -7,6 +7,7 @@
 #include "nex/shader/Technique.hpp"
 #include "nex/renderer/RenderCommandQueue.hpp"
 #include "TesselationTest.hpp"
+#include "Ocean.hpp"
 
 namespace nex
 {
@@ -41,6 +42,7 @@ namespace nex
 
 		AmbientOcclusionSelector* getAOSelector();
 		TesselationTest* getTesselationTest();
+		Ocean* getOcean();
 
 	private:
 
@@ -73,6 +75,8 @@ namespace nex
 		RenderCommandQueue mCommandQueue;
 
 		TesselationTest mTesselationTest;
+
+		Ocean mOcean;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable
@@ -85,5 +89,6 @@ namespace nex
 
 		PBR_Deferred_Renderer* mRenderer;
 		gui::TesselationTest_Config mTesselationConfig;
+		gui::OceanConfig mOceanConfig;
 	};
 }

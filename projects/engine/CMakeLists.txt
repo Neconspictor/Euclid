@@ -206,6 +206,8 @@ set(
     
 	#nex/util
     nex/util/CallbackContainer.hpp
+    nex/util/Complex.cpp
+    nex/util/Complex.hpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
 	nex/util/Macro.hpp

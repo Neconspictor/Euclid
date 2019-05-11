@@ -1,161 +1,157 @@
 #pragma once
+#include <nex/util/Complex.hpp>
+#include "nex/shader/Pass.hpp"
+#include "nex/gui/Drawable.hpp"
 
 namespace nex
 {
-	struct Polar;
-
-	/**
-	 * A struct for complex numbers
-	 */
-	struct Complex
-	{
-		float re;
-		float im;
-
-		Complex();
-		Complex(float real, float imaginary);
-		Complex(const Complex& c) = default;
-		Complex(Complex&& c) = default;
-		~Complex() = default;
-		Complex& operator=(const Complex&) = default;
-		Complex& operator=(Complex&&) = default;
-
-
-		/**
-		 * Computes the complex argument from this number.
-		 */
-		float arg() const;
-
-		/**
-		 * Transforms this complex number to the cartesian plane.
-		 */
-		glm::vec2 cartesian() const;
-
-		/**
-		 * Computes the complex conjugate of this number.
-		 */
-		Complex conjugate() const;
-
-		/**
-		 * Provides a complex number by a given exponent.
-		 * The result will match euler's formula e^(i*exponent) = cos(exponent) + i*sin(exponent)
-		 */
-		static Complex euler(float exponent);
-
-		/**
-		 * Computes the exponential of this number.
-		 */
-		Complex exp() const;
-
-		/**
-		 * Computes the magnitude of this number.
-		 */
-		float magnitude() const;
-
-		/**
-		 * Transforms this complex number to the polar coordination system.
-		 */
-		Polar polar() const;
-
-		Complex operator+(const Complex& c) const;
-		Complex& operator+=(const Complex& c);
-		Complex operator-(const Complex& c) const;
-		Complex& operator-=(const Complex& c);
-		Complex operator*(const Complex& c) const;
-		Complex& operator*=(const Complex& c);
-		Complex operator*(float scalar) const;
-		Complex& operator*=(float scalar);
-		Complex operator/(const Complex& c) const;
-		Complex& operator/=(const Complex& c);
-		Complex operator/(float scalar) const;
-		Complex& operator/=(float scalar);
-
-	private:
-		void add(const Complex& c);
-		void subtract(const Complex& c);
-		void multiply(const Complex& c);
-		void multiply(float scalar);
-		void divide(const Complex& c);
-	};
-
-	Complex operator*(float scalar, const Complex& c);
-	Complex& operator*=(float scalar, Complex& c);
-	Complex operator/(float scalar, const Complex& c);
-	Complex& operator/=(float scalar, Complex& c);
-
-	struct Polar
-	{
-		float distance; // distance/radius to the origin
-		float azimuth; // azimuth angle in radians
-
-		Polar(float distance, float azimuth);
-		Polar();
-		Polar(const Polar&) = default;
-		Polar(Polar&&) = default;
-		~Polar() = default;
-		Polar& operator=(const Polar&) = default;
-		Polar& operator=(Polar&&) = default;
-
-		/**
-		 * Transforms this polar coordinate into the complex number plane.
-		 */
-		Complex complex() const;
-
-		/**
-		 * Transforms this polar coordinate into the cartesian plane.
-		 */
-		glm::vec2 cartesian() const;
-	};
+	class Mesh;
+	class Camera;
 
 	class Ocean
 	{
 	public:
 
 		/**
-		 * Creates a new Ocean object.
-		 * @param pointNumberX : Amount of points in x direction
-		 * @param pointNumberZ : Amount of points in z direction
-		 * @param dimensionX : (object space) extension of the ocean in x direction.
-		 * @param dimensionZ : (object space) extension of the ocean in z direction.
+		 * A vertex structure containing useful data when generating and updating the water surface.
 		 */
-		Ocean(unsigned pointNumberX, 
-			unsigned pointNumberZ, 
-			float dimensionX, 
-			float dimensionZ);
+		struct VertexCompute
+		{
+			glm::vec3 originalPosition;
+			Complex height0;
+			Complex height0NegativeWaveConjugate;
+		};
 
 		/**
-		 * Computes the height of a location on the (x,z) plane at a specific time. 
+		 * A vertex structure containing data for rendering the water
 		 */
-		float computeHeight(const glm::vec2& locationXZ, float time);
+		struct VertexRender
+		{
+			glm::vec3 position;
+			glm::vec3 normal;
+		};
+
+		/**
+		 * Creates a new Ocean object that is tileable. This means, that the first row and the first column are mirrored, so that
+		 * The last row and last column match the first row resp. column.
+		 *
+		 * @param pointCount : Amount of points. Has to be >= 2. Note that the last row and last column will be a replicate of the first row resp. column for tiling reasons.
+		 * Thus there will be (pointCount.x * pointCount.y) unique points. For performance reasons pointCount.x and pointCount.y should be a power of 2.
+		 * @param maxWaveLength : The maximum extension of a wave in the x-z plane
+		 * @param dimension : The dimension of a tile (in object space)
+		 * @param spectrumScale : Scales the used philip spectrum for wave generation. Has to be > 0.
+		 * @param windDirection : The direction of wind. Its length has to be > 0
+		 * @param windSpeed : The speed of wind.
+		 * @param periodTime : The time of one period (in seconds). After that, the simulation gets repeated. Has to be > 0.
+		 */
+		Ocean(const glm::uvec2& pointCount,
+			const glm::vec2& maxWaveLength,
+			const glm::vec2& dimension,
+			float spectrumScale,
+			const glm::vec2& windDirection,
+			float windSpeed,
+			float periodTime);
+
+		~Ocean();
+
+		/**
+		 * Computes the height of a location on the (x,z) plane at a specific time.
+		 */
+		float computeHeight(const glm::vec2& locationXZ, float time) const;
+
+		float dispersion(const glm::vec2& wave) const;
+
+		void draw(Camera* camera, const glm::vec3& lightDir);
 
 		Complex heightTildeZero(const glm::vec2& wave) const;
 		Complex heightTilde(const glm::vec2& wave, float time) const;
 		float philipsSpectrum(const glm::vec2& wave) const;
 
+		bool* getWireframeState();
+
 	private:
-		/**
-		 * Amount of points in z direction
-		 */
-		unsigned M;
+
+
+		class SimpleShadedPass : public Pass
+		{
+		public:
+			SimpleShadedPass();
+
+			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
+
+			Uniform transform;
+			Uniform lightUniform;
+			Uniform normalMatrixUniform;
+		};
+
 
 		/**
-		 * Amount of points in x direction
+		 * Amount of unique points in the x-z plane.
 		 */
-		unsigned N;
+		glm::uvec2 mUniquePointCount;
 
 		/**
-		 * (object space) extension of the ocean in x direction.
+		 * The totoal amount of points in the x-z plane.
+		 * Note: This matches mUniquePointCount + (1,1).
 		 */
-		float Lx;
+		glm::uvec2 mTildePointCount;
 
 		/**
-		 * (object space) extension of the ocean in z direction.
+		 * max extension of a wave in the x-z plane.
 		 */
-		float Lz;
+		glm::vec2 mWaveLength;
 
+		/**
+		 * Dimension of the ocean tile (in object space)
+		 */
+		glm::vec2 mDimension;
+
+
+		/**
+		 * A scaling factor for the Philip spectrum
+		 */
+		float mSpectrumScale;
+
+		/**
+		 * wind direction on the x-z plane
+		 */
 		glm::vec2 mWindDirection;
+
+		/**
+		 * The speed of wind
+		 */
 		float mWindSpeed;
+
+		/**
+		 * The length of the simulation period.
+		 */
+		float mPeriodTime;
+
+		std::vector<VertexCompute> mVerticesCompute;
+		std::vector<VertexRender> mVerticesRender;
+		std::vector<unsigned> mIndices;
+		std::unique_ptr<Mesh> mMesh;
+		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
+		bool mWireframe;
+
+
+		static constexpr float GRAVITY = 9.81f;
 
 		static float generateGaussianRand();
 	};
+
+
+	namespace gui
+	{
+		class OceanConfig : public nex::gui::Drawable
+		{
+		public:
+			OceanConfig(Ocean* ocean);
+
+		protected:
+			void drawSelf() override;
+
+			Ocean* mOcean;
+		};
+	}
 }
