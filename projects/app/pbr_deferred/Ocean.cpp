@@ -281,12 +281,15 @@ bool* nex::Ocean::getWireframeState()
 
 void nex::Ocean::simulate(float t)
 {
+	const float displacementDirectionScale = -0.9;
+
 	for (int z = 0; z < mUniquePointCount.y; z++) {
 		for (int x = 0; x < mUniquePointCount.x; x++) {
 			auto index = z * mTildePointCount.x + x;
 
 
 			auto& vertex = mVerticesRender[index];
+			const auto& computeData = mVerticesCompute[index];
 
 			glm::vec2 locationXZ (vertex.position.x, vertex.position.z);
 
@@ -295,25 +298,38 @@ void nex::Ocean::simulate(float t)
 			const auto data = simulatePoint(locationXZ, t);
 			const auto height = data.height.re;
 
+			vertex.position.x = computeData.originalPosition.x + displacementDirectionScale * data.displacement.x;
 			vertex.position.y = height;
+			vertex.position.z = computeData.originalPosition.z + displacementDirectionScale * data.displacement.y;
+
 			vertex.normal = data.normal;
 
 			// first point has to be replicated three times
 			if (x == 0 && z == 0) {
-				auto& sample = mVerticesRender[mVerticesRender.size() - 1];
+				const auto replicateIndex = mVerticesRender.size() - 1;
+				auto& sample = mVerticesRender[replicateIndex];
+				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
+				sample.position.x = sampleComputeData.originalPosition.x + displacementDirectionScale * data.displacement.x;
 				sample.position.y = vertex.position.y;
+				sample.position.z = sampleComputeData.originalPosition.z + displacementDirectionScale * data.displacement.y;
 				sample.normal = vertex.normal;
 			}
 			if (x == 0) {
-				auto replicateIndex = index + mUniquePointCount.x;
+				const auto replicateIndex = index + mUniquePointCount.x;
 				auto& sample = mVerticesRender[replicateIndex];
+				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
+				sample.position.x = sampleComputeData.originalPosition.x + displacementDirectionScale * data.displacement.x;
 				sample.position.y = vertex.position.y;
+				sample.position.z = sampleComputeData.originalPosition.z + displacementDirectionScale * data.displacement.y;
 				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
-				auto replicateIndex = index + mUniquePointCount.y * mTildePointCount.x;
+				const auto replicateIndex = index + mUniquePointCount.y * mTildePointCount.x;
 				auto& sample = mVerticesRender[replicateIndex];
+				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
+				sample.position.x = sampleComputeData.originalPosition.x + displacementDirectionScale * data.displacement.x;
 				sample.position.y = vertex.position.y;
+				sample.position.z = sampleComputeData.originalPosition.z + displacementDirectionScale * data.displacement.y;
 				sample.normal = vertex.normal;
 			}
 		}
