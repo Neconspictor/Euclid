@@ -32,6 +32,16 @@ namespace nex
 		};
 
 		/**
+		 * Holds all simulation result data for a point on the x-z plane.
+		 */
+		struct ResultData
+		{
+			Complex height; // The resulting height of the point
+			glm::vec2 displacement; // A displacement vector on the x-z plane for choppy waves
+			glm::vec3 normal; // The normal vector of the point
+		};
+
+		/**
 		 * Creates a new Ocean object that is tileable. This means, that the first row and the first column are mirrored, so that
 		 * The last row and last column match the first row resp. column.
 		 *
@@ -57,14 +67,14 @@ namespace nex
 		/**
 		 * Computes the height of a location on the (x,z) plane at a specific time.
 		 */
-		float computeHeight(const glm::vec2& locationXZ, float time) const;
+		ResultData simulatePoint(const glm::vec2& locationXZ, float time) const;
 
 		float dispersion(const glm::vec2& wave) const;
 
 		void draw(Camera* camera, const glm::vec3& lightDir);
 
-		Complex heightTildeZero(const glm::vec2& wave) const;
-		Complex heightTilde(const glm::vec2& wave, float time) const;
+		Complex heightZero(const glm::vec2& wave) const;
+		Complex height(int x, int z, float time) const;
 		float philipsSpectrum(const glm::vec2& wave) const;
 
 		bool* getWireframeState();

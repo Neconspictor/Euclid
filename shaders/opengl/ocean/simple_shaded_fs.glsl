@@ -22,7 +22,7 @@ void main() {
    vec3 lightDir = normalize(-lightDirViewSpace);
 
   float angle = max(dot(normal, lightDir), 0.0);
-  color =  angle * vec4(1.0, 1.0, 1.0, 1.0) + vec4(0.1);
+  color =  angle * vec4(0.3, 1.0, 1.0, 1.0) + vec4(0.03, 0.1, 0.1, 0.0);
   luminance = vec4(0.0);
   motion = vec2(0.0);
   depth = gl_FragCoord.z;

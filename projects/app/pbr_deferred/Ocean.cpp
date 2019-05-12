@@ -58,8 +58,8 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 			const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y;
 			const auto wave = glm::vec2(kx, kz);
 
-			mVerticesCompute[index].height0 = heightTildeZero(wave);
-			mVerticesCompute[index].height0NegativeWaveConjugate = heightTildeZero(-wave).conjugate();
+			mVerticesCompute[index].height0 = heightZero(wave);
+			mVerticesCompute[index].height0NegativeWaveConjugate = heightZero(-wave).conjugate();
 			mVerticesCompute[index].originalPosition = glm::vec3(
 				(x - mUniquePointCount.x / 2.0f) * mWaveLength.x / mUniquePointCount.x,
 				0.0f,
@@ -119,34 +119,52 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 
 nex::Ocean::~Ocean() = default;
 
-float nex::Ocean::computeHeight(const glm::vec2& locationXZ, float t) const
+nex::Ocean::ResultData nex::Ocean::simulatePoint(const glm::vec2& locationXZ, float t) const
 {
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
 
-	float height = 0.0f;
+	Complex height( 0.0, 0.0);
+	glm::vec2 gradient(0.0f);
+	glm::vec2 displacement(0.0f);
 
 
-	for (int mDash = 0; mDash < mUniquePointCount.y; ++mDash)
+	for (int z = 0; z < mUniquePointCount.y; ++z)
 	{
-		for (int nDash = 0; nDash < mUniquePointCount.x; ++nDash)
+		for (int x = 0; x < mUniquePointCount.x; ++x)
 		{
-			const float kx = (twoPi * nDash - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
-			const float kz = (twoPi * mDash - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+			const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 
 			const auto wave = glm::vec2(kx, kz);
 			const auto angle = dot(wave, locationXZ);
 			const auto euler = Complex::euler(angle);
 
-			const auto complexResult = heightTilde(wave, t) * euler;
+			const auto h = this->height(x, z, t) * euler;
 
 			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
-			height += complexResult.re;
+			height += h;
+
+
+			// Note: We only consider the real part of the gradient, as the imaginary part isn't needed
+			// The gradient is a two dimensional complex vector: i*(kx, kz) * h = <(-h.im * kx) +  i*(h.re * kx), (-h.im * kz) + i*(h.re * kz)>
+			gradient += glm::vec2(-h.im * kx, -h.im * kz);
+
+			//if (k_length < 0.000001) continue;
+			//D = D + glm::vec2(kx / k_length * htilde_c.imag(), kz / k_length * htilde_c.imag());
+			const auto length = glm::length(wave);
+			if (length >= 0.00001)
+			{
+				displacement += glm::vec2(kx / length * h.im, kz / length * h.im);
+			}
 		}
 	}
 
-	return height;
+	// The normal vector can be calculated from the real part of the gradient
+	glm::vec3 normal = normalize(glm::vec3(-gradient.x, 1.0, -gradient.y));
+
+	return {height, displacement, normal};
 }
 
 float nex::Ocean::dispersion(const glm::vec2& wave) const
@@ -200,21 +218,27 @@ nex::Complex gaussianRandomVariable() {
 		w = x1 * x1 + x2 * x2;
 	} while (w >= 1.f);
 	w = sqrt((-2.f * log(w)) / w);
-	return nex::Complex(1.0, 1.0f);
+	//return nex::Complex(1.0, 1.0f);
 	//return nex::Complex(1.0 - abs(x1 * w)/10000.0f, 1.0 - abs(x2 * w)/10000.0);
 	return nex::Complex(x1 * w, x2 * w);
 }
 
-nex::Complex nex::Ocean::heightTildeZero(const glm::vec2& wave) const
+nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
 {
-	static const auto inverseRootTwo = 1 / std::sqrt(2.0);
+	//static const auto inverseRootTwo = 1 / std::sqrt(2.0);
 	const Complex random = gaussianRandomVariable();//(gaussianRandomVariable(), gaussianRandomVariable());
 
 	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
 }
 
-nex::Complex nex::Ocean::heightTilde(const glm::vec2& wave, float time) const
+nex::Complex nex::Ocean::height(int x, int z, float time) const
 {
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
+	const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x;
+	const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y;
+
+	const auto wave = glm::vec2(kx, kz);
 	const auto w = dispersion(wave);
 
 	const auto omegat = w * time;
@@ -223,8 +247,12 @@ nex::Complex nex::Ocean::heightTilde(const glm::vec2& wave, float time) const
 	Complex c0(cos_, sin_);
 	Complex c1(cos_, -sin_);
 
-	return heightTildeZero(wave) * c0//* Complex::euler(w * time)
-		+ heightTildeZero(-wave).conjugate() *c1; //* Complex::euler(-w * time);
+
+	const auto index = x * mTildePointCount.y + z;
+	const auto& vertex = mVerticesCompute[index];
+
+	return vertex.height0 * c0//* Complex::euler(w * time)
+		+ vertex.height0NegativeWaveConjugate * c1; //* Complex::euler(-w * time);
 }
 
 float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
@@ -260,25 +288,33 @@ void nex::Ocean::simulate(float t)
 
 			auto& vertex = mVerticesRender[index];
 
-			glm::vec2 wave (vertex.position.x, vertex.position.z);
+			glm::vec2 locationXZ (vertex.position.x, vertex.position.z);
 
 			//auto height = computeHeight(x, t);
 
-			vertex.position.y = computeHeight(wave, t);
+			const auto data = simulatePoint(locationXZ, t);
+			const auto height = data.height.re;
 
+			vertex.position.y = height;
+			vertex.normal = data.normal;
 
 			// first point has to be replicated three times
 			if (x == 0 && z == 0) {
-
-				mVerticesRender[mVerticesRender.size() - 1].position.y = vertex.position.y;
+				auto& sample = mVerticesRender[mVerticesRender.size() - 1];
+				sample.position.y = vertex.position.y;
+				sample.normal = vertex.normal;
 			}
 			if (x == 0) {
 				auto replicateIndex = index + mUniquePointCount.x;
-				mVerticesRender[replicateIndex].position.y = vertex.position.y;
+				auto& sample = mVerticesRender[replicateIndex];
+				sample.position.y = vertex.position.y;
+				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
 				auto replicateIndex = index + mUniquePointCount.y * mTildePointCount.x;
-				mVerticesRender[replicateIndex].position.y = vertex.position.y;
+				auto& sample = mVerticesRender[replicateIndex];
+				sample.position.y = vertex.position.y;
+				sample.normal = vertex.normal;
 			}
 		}
 	}
