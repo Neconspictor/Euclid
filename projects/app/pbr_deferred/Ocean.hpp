@@ -2,11 +2,35 @@
 #include <nex/util/Complex.hpp>
 #include "nex/shader/Pass.hpp"
 #include "nex/gui/Drawable.hpp"
+#include "nex/util/Math.hpp"
 
 namespace nex
 {
 	class Mesh;
 	class Camera;
+
+	class OceanFFT
+	{
+	public:
+		OceanFFT(unsigned N);
+
+		unsigned reverse(unsigned i) const;
+		nex::Complex twiddle(unsigned x, unsigned N);
+
+		void fft(nex::Complex* input, nex::Complex* output, int stride, int offset);
+
+		void fftInPlace(std::vector<nex::Complex>& x, bool inverse);
+
+	private:
+
+		unsigned N;
+		unsigned which;
+		unsigned log_2_N;
+		static constexpr float pi2 = 2 * nex::util::PI;
+		std::vector<unsigned> reversed;
+		std::vector<std::vector<nex::Complex>> T;
+		std::vector<nex::Complex> c [2];
+	};
 
 	class Ocean
 	{
@@ -85,6 +109,8 @@ namespace nex
 		 */
 		void simulate(float t);
 
+		void simulateFFT(float t);
+
 	private:
 
 
@@ -151,9 +177,18 @@ namespace nex
 		bool mWireframe;
 
 
+		unsigned N;
+		std::vector<nex::Complex> h_tilde, // for fast fourier transform
+			h_tilde_slopex, h_tilde_slopez,
+			h_tilde_dx, h_tilde_dz;
+		OceanFFT fft;
+
+
 		static constexpr float GRAVITY = 9.81f;
 
 		static float generateGaussianRand();
+
+		void simulateFFT(std::vector<ResultData>& out, float t, unsigned startIndex, unsigned N, int stride);
 	};
 
 

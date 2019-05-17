@@ -45,6 +45,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	m_logger("PBR_Deferred_Renderer"),
 	mRenderTargetSingleSampled(nullptr),
 	//shadowMap(nullptr),
+
 	mShowDepthMap(false),
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
 	mInput(input),
@@ -52,8 +53,10 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(glm::uvec2(65), glm::vec2(0.98f), glm::vec2(1.0f), 1.0f, glm::vec2(1.0f), 28.0 * 0.277778, 200.0f)
+	mOcean(glm::uvec2(64+1), glm::vec2(0.9f), glm::vec2(1.0f), 1.0f, glm::vec2(0.1f, 0.2f), 1.0, 200.0f)
 {
+
+	//*28.0 * 0.277778
 	assert(mPbrDeferred != nullptr);
 	assert(mPbrForward != nullptr);
 	assert(mCascadedShadow != nullptr);
@@ -253,6 +256,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	stencilTest->enableStencilTest(true);
 
 	//mTesselationTest.draw(camera, sun->getDirection());
+	static float simulationTime = 0.0f;
+	simulationTime += frameTime;
+	mOcean.simulateFFT(simulationTime * 0.05f);
 	mOcean.draw(camera, sun->getDirection());
 	
 	
