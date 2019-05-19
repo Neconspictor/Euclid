@@ -12,6 +12,47 @@
 #include "nex/gui/Controller.hpp"
 #include <glm/gtc/matrix_transform.inl>
 
+nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
+	const PrimitiveMode mode,
+	const size_t primitiveIndex,
+	const size_t elementNumber) : mVec(&vec), mMode(mode), mPrimitiveIndex(primitiveIndex), mCount(elementNumber)
+{
+	const auto startIndex = getVectorIndex(0);
+	const auto endIndex = getVectorIndex(mCount - 1);
+	if (!isInRange(startIndex) || !isInRange(endIndex))
+	{
+		throw std::out_of_range("nex::RandomAccessIterator: Primitive is out of the range of the specified vector!");
+	}
+}
+
+nex::Complex& nex::Iterator2D::operator[](const size_t index)
+{
+	return (*mVec)[getVectorIndex(index)];
+}
+
+nex::Complex& nex::Iterator2D::operator[](const size_t index) const
+{
+	return (*mVec)[getVectorIndex(index)];
+}
+
+size_t nex::Iterator2D::getVectorIndex(const size_t primitiveIndex) const
+{
+	if (mMode == PrimitiveMode::ROWS)
+	{
+
+		return mPrimitiveIndex * mCount + primitiveIndex;
+
+	}
+
+	// columns
+	return primitiveIndex * mCount + mPrimitiveIndex;
+}
+
+bool nex::Iterator2D::isInRange(const size_t vectorIndex) const
+{
+	return vectorIndex < mVec->size();
+}
+
 
 nex::OceanFFT::OceanFFT(unsigned N) : N(N)
 {
@@ -73,7 +114,7 @@ nex::Complex nex::OceanFFT::twiddle(unsigned x, unsigned N)
 	return Complex(cos(pi2 * x / N), sin(pi2 * x / N));
 }
 
-void nex::OceanFFT::fft(nex::Complex* input, nex::Complex* output, int stride, int offset)
+void nex::OceanFFT::fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical)
 {
 	for (int i = 0; i < N; i++) c[which][i] = input[reversed[i] * stride + offset];
 
@@ -100,7 +141,68 @@ void nex::OceanFFT::fft(nex::Complex* input, nex::Complex* output, int stride, i
 		w_++;
 	}
 
+	for (unsigned k = 0; k < N / 2; ++k)
+	{
+		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
+		std::swap(c[which][k], c[which][k + N / 2]);
+	}
+
+	if (vertical)
+	{
+		for (unsigned k = 1; k < N / 2; ++k)
+		{
+			//std::swap(x[reverse(k)], x[reverse(N - k)]);
+			std::swap(c[which][k], c[which][N - k]);
+		}
+	}
+
 	for (int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
+}
+
+void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, bool vertical)
+{
+	for (int i = 0; i < N; i++) c[which][i] = input[reversed[i]];
+
+	int loops = N >> 1;
+	int size = 1 << 1;
+	int size_over_2 = 1;
+	int w_ = 0;
+	for (int i = 1; i <= log_2_N; i++) {
+		which ^= 1;
+		for (int j = 0; j < loops; j++) {
+			for (int k = 0; k < size_over_2; k++) {
+				c[which][size * j + k] = c[which ^ 1][size * j + k] +
+					c[which ^ 1][size * j + size_over_2 + k] * T[w_][k];
+			}
+
+			for (int k = size_over_2; k < size; k++) {
+				c[which][size * j + k] = c[which ^ 1][size * j - size_over_2 + k] -
+					c[which ^ 1][size * j + k] * T[w_][k - size_over_2];
+			}
+		}
+		loops >>= 1;
+		size <<= 1;
+		size_over_2 <<= 1;
+		w_++;
+	}
+
+	for (unsigned k = 0; k < N / 2; ++k)
+	{
+		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
+		std::swap(c[which][k], c[which][k + N / 2]);
+	}
+
+	if (vertical)
+	{
+		for (unsigned k = 1; k < N / 2; ++k)
+		{
+			//std::swap(x[reverse(k)], x[reverse(N - k)]);
+			std::swap(c[which][k], c[which][N - k]);
+		}
+	}
+
+
+	for (int i = 0; i < N; i++) output[i] = c[which][i];
 }
 
 void nex::OceanFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
@@ -491,7 +593,7 @@ bool* nex::Ocean::getWireframeState()
 
 void nex::Ocean::simulate(float t)
 {
-	const float displacementDirectionScale = -1.0;
+	const float displacementDirectionScale = 0.0;
 
 	for (int z = 0; z < mUniquePointCount.y; z++) {
 		for (int x = 0; x < mUniquePointCount.x; x++) {
@@ -550,14 +652,16 @@ void nex::Ocean::simulate(float t)
 void nex::Ocean::simulateFFT(float t)
 {
 	float lambda = -1.0;
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
 
 	for (int z = 0; z < N; z++) {
 		//kz = M_PI * (2.0f * m_prime - N) / length;
-		const float kz = (2 * util::PI * z - util::PI * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+		const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 		
 		for (int x = 0; x < N; x++) {
 			//kx = M_PI * (2 * n_prime - N) / length;
-			const float kx = (2 * util::PI * x - util::PI * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 
 
 			float len = sqrt(kx * kx + kz * kz);
@@ -566,10 +670,10 @@ void nex::Ocean::simulateFFT(float t)
 			h_tilde[index] = height(x, z, t);
 			// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
 			// (h.re + i*h.im) * (0 + i*kx) = (h.re*0 - h.im * kx) + i(h.re*kx + h.im*0) = (-h.im * kx) + i(h.re*kx)
-			//h_tilde_slopex[index] = h_tilde[index] * Complex(0, kx);
-			h_tilde_slopex[index] = Complex( - h_tilde[index].im *kx, 0);
-			h_tilde_slopez[index] = Complex(-h_tilde[index].im *kz, 0);
-			//h_tilde_slopez[index] = h_tilde[index] * Complex(0, kz);
+			h_tilde_slopex[index] = h_tilde[index] * Complex(0, kx);
+			//h_tilde_slopex[index] = Complex( - h_tilde[index].im *kx, 0);
+			//h_tilde_slopez[index] = Complex(-h_tilde[index].im *kz, 0);
+			h_tilde_slopez[index] = h_tilde[index] * Complex(0, kz);
 
 			//h_tilde_slopex[index] = Complex(0.0f, 0);
 			//h_tilde_slopez[index] = Complex(0.0f, 0);
@@ -594,23 +698,54 @@ void nex::Ocean::simulateFFT(float t)
 	fft.fftInPlace(h_tilde_slopez, inverse);
 	fft.fftInPlace(h_tilde_dx, inverse);
 	fft.fftInPlace(h_tilde_dz, inverse);*/
-
+	
+	
 
 	for (int n_prime = 0; n_prime < N; n_prime++) {
-		fft.fft(h_tilde.data(), h_tilde.data(), N, n_prime);
-		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), N, n_prime);
-		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), N, n_prime);
-		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), N, n_prime);
-		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime);
+
+		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+
+		fft.fft(h_tildeIt, h_tildeIt, false);
+		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, false);
+		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, false);
+		fft.fft(h_tilde_dxIt, h_tilde_dxIt, false);
+		fft.fft(h_tilde_dzIt, h_tilde_dzIt, false);
+
+
+		/*fft.fft(h_tilde.data(), h_tilde.data(), N, n_prime, false);
+
+		
+
+		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), N, n_prime, false);
+		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), N, n_prime, false);
+		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), N, n_prime, false);
+		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime, false);*/
 	}
 	
-	
 	for (int m_prime = 0; m_prime < N; m_prime++) {
-		fft.fft(h_tilde.data(), h_tilde.data(), 1, m_prime * N);
-		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), 1, m_prime * N);
-		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), 1, m_prime * N);
-		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N);
-		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N);
+
+		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+
+		fft.fft(h_tildeIt, h_tildeIt, true);
+		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
+		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
+		fft.fft(h_tilde_dxIt, h_tilde_dxIt, true);
+		fft.fft(h_tilde_dzIt, h_tilde_dzIt, true);
+
+
+		/*fft.fft(h_tilde.data(), h_tilde.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N, true);*/
 	}
 	
 
@@ -625,7 +760,10 @@ void nex::Ocean::simulateFFT(float t)
 
 			sign = signs[(x + z) & 1];
 
-			h_tilde[heightIndex] = h_tilde[heightIndex] * sign;
+
+			const double normalization = (mWaveLength.x ); // (float) 128.0f;
+
+			h_tilde[heightIndex] = h_tilde[heightIndex] * sign / normalization;
 
 			auto& vertex = mVerticesRender[vertexIndex];
 			const auto& computeData = mVerticesCompute[vertexIndex];
@@ -635,14 +773,14 @@ void nex::Ocean::simulateFFT(float t)
 			vertex.position.y = h_tilde[heightIndex].re;
 
 			// displacement
-			h_tilde_dx[heightIndex] = h_tilde_dx[heightIndex] * sign;
-			h_tilde_dz[heightIndex] = h_tilde_dz[heightIndex] * sign;
+			h_tilde_dx[heightIndex] = h_tilde_dx[heightIndex] * sign / normalization;
+			h_tilde_dz[heightIndex] = h_tilde_dz[heightIndex] * sign / normalization;
 			vertex.position.x = computeData.originalPosition.x + h_tilde_dx[heightIndex].re * lambda;
 			vertex.position.z = computeData.originalPosition.z + h_tilde_dz[heightIndex].re * lambda;
 
 			// normal
-			h_tilde_slopex[heightIndex] = h_tilde_slopex[heightIndex] * sign;
-			h_tilde_slopez[heightIndex] = h_tilde_slopez[heightIndex] * sign;
+			h_tilde_slopex[heightIndex] = h_tilde_slopex[heightIndex] * sign / normalization;
+			h_tilde_slopez[heightIndex] = h_tilde_slopez[heightIndex] * sign / normalization;
 			n = normalize(glm::vec3(-h_tilde_slopex[heightIndex].re, 1.0f, -h_tilde_slopez[heightIndex].re));
 			vertex.normal.x = n.x;
 			vertex.normal.y = n.y;

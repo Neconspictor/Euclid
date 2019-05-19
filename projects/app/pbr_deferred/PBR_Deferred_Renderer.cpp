@@ -53,7 +53,14 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(glm::uvec2(64+1), glm::vec2(0.9f), glm::vec2(1.0f), 1.0f, glm::vec2(0.1f, 0.2f), 1.0, 200.0f)
+	mOcean(glm::uvec2(256+1), //pointCount
+		glm::vec2(256.0), // maxWaveLength
+		glm::vec2(1.0f), //dimension
+		0.4f, //spectrumScale
+		glm::vec2(1.0f), //windDirection
+		32.0f, //windSpeed
+		200.0f //periodTime
+	)
 {
 
 	//*28.0 * 0.277778
@@ -61,6 +68,9 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	assert(mPbrForward != nullptr);
 	assert(mCascadedShadow != nullptr);
 	assert(mInput != nullptr);
+
+	//mOcean.simulate(10.0f);
+	mOcean.simulateFFT(10.0f);
 }
 
 
@@ -258,7 +268,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	//mTesselationTest.draw(camera, sun->getDirection());
 	static float simulationTime = 0.0f;
 	simulationTime += frameTime;
-	mOcean.simulateFFT(simulationTime * 0.05f);
+	mOcean.simulateFFT(simulationTime * 0.5f);
 	mOcean.draw(camera, sun->getDirection());
 	
 	

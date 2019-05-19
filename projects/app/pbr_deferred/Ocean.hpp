@@ -9,6 +9,48 @@ namespace nex
 	class Mesh;
 	class Camera;
 
+	class Iterator2D
+	{
+	public:
+
+		enum class PrimitiveMode
+		{
+			ROWS,
+			COLUMNS
+		};
+
+		/**
+		 * @param vec : The vector used for iterating
+		 * @param mode : The mode of iteration
+		 * @param primitiveIndex : Specifies the primitive index to use for iteration (e.g. the 3rd column).
+		 * @param elementNumber : The number of elements that form a primitive.
+		 *
+		 * @throws std::out_of_range : If the specified primitive cannot be mapped by the vec argument.
+		 */
+		Iterator2D(std::vector<nex::Complex>& vec,
+			const PrimitiveMode mode,
+			const size_t primitiveIndex,
+			const size_t elementNumber);
+
+		/**
+		 * Provides access to the ith element of the current mode primitive.
+		 * @throws std::out_of_range : if the index is negative or equal or greater than the primitive mode
+		 * element number.
+		 */
+		nex::Complex& operator[](const size_t index);
+		nex::Complex& operator[](const size_t index) const;
+
+	private:
+		std::vector<nex::Complex>* mVec;
+		PrimitiveMode mMode;
+		size_t mPrimitiveIndex;
+		size_t mCount;
+
+		size_t getVectorIndex(const size_t primitiveIndex) const;
+		bool isInRange(const size_t vectorIndex) const;
+	};
+
+
 	class OceanFFT
 	{
 	public:
@@ -17,7 +59,9 @@ namespace nex
 		unsigned reverse(unsigned i) const;
 		nex::Complex twiddle(unsigned x, unsigned N);
 
-		void fft(nex::Complex* input, nex::Complex* output, int stride, int offset);
+		void fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical);
+
+		void fft(const nex::Iterator2D&  input, nex::Iterator2D&  output, bool vertical);
 
 		void fftInPlace(std::vector<nex::Complex>& x, bool inverse);
 
