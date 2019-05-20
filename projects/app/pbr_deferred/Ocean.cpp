@@ -311,6 +311,8 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	mSimpleShadedPass(std::make_unique<SimpleShadedPass>()),
 	mWireframe(true),
 	N(mUniquePointCount.x),
+	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(4), glm::vec2(4), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
+	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(4), glm::vec2(4), mPeriodTime)),
 	fft(N)
 {
 	assert(pointCount.x >= 2);
@@ -320,6 +322,42 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	assert(spectrumScale > 0.0f);
 	assert(length(windDirection) > 0.0f);
 	assert(periodTime > 0.0f);
+
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
+
+	std::vector<glm::vec2> test(4*4);
+
+	for (int z = 0; z < 4; ++z)
+	{
+		for (int x = 0; x < 4; ++x)
+		{
+			unsigned index = z * 4 + x;
+
+			const float kx = (twoPi * x - pi * 4) / 4.0f;
+			const float kz = (twoPi * z - pi * 4) / 4.0f;
+			auto height = heightZero(glm::vec2(kx, kz));
+			test[index] = glm::vec2(height.re, height.im);
+		}
+	}
+
+	std::vector<glm::vec4> heightZeros(4 * 4);
+	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+
+	mHeightZeroComputePass->compute();
+	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
+	//RenderBackend::get()->sync
+	std::vector<glm::vec2> height(4*4);
+	std::vector<glm::vec2> slopeX(4 * 4);
+	std::vector<glm::vec2> slopeZ(4 * 4);
+	std::vector<glm::vec2> dx(4 * 4);
+	std::vector<glm::vec2> dz(4 * 4);
+	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
 
 
 	h_tilde.resize(N * N);
@@ -331,8 +369,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 
 	const auto vertexCount = mTildePointCount.x * mTildePointCount.y;
 	const auto quadCount = (mTildePointCount.x - 1) * (mTildePointCount.y - 1);
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
+	
 	const unsigned indicesPerQuad = 6; // two triangles per quad
 
 	mVerticesCompute.resize(vertexCount);
@@ -532,7 +569,15 @@ nex::Complex gaussianRandomVariable() {
 	w = sqrt((-2.f * log(w)) / w);
 	//return nex::Complex(1.0, 1.0f);
 	//return nex::Complex(1.0 - abs(x1 * w)/10000.0f, 1.0 - abs(x2 * w)/10000.0);
-	return nex::Complex(x1 * w, x2 * w);
+	//return nex::Complex(x1 * w, x2 * w);
+
+	static std::random_device device;
+	static std::mt19937 engine(device());
+
+	// note: we need mean 0 and standard deviation 1!
+	static std::normal_distribution<float> distribution(0, 1);
+
+	return { distribution(engine), distribution(engine) };
 }
 
 nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
@@ -861,6 +906,223 @@ void nex::Ocean::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+}
+
+nex::Ocean::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
+	float spectrumScale, float windSpeed) : 
+ComputePass(Shader::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
+mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
+{
+	TextureData desc;
+	desc.internalFormat = InternFormat::RGBA32F;
+	desc.colorspace = ColorSpace::RGBA;
+	desc.pixelDataType = PixelDataType::FLOAT;
+	desc.generateMipMaps = false;
+	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	mHeightZero = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+
+	mResultTexture = { mShader->getUniformLocation("result"), UniformType::TEXTURE2D, 0 };
+
+	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2};
+	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
+	mWindDirectionUniform = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
+	mSpectrumScaleUniform = { mShader->getUniformLocation("spectrumScale"), UniformType::FLOAT };
+	mWindSpeedUniform = { mShader->getUniformLocation("windSpeed"), UniformType::FLOAT };
+
+	mShader->bind();
+
+	mShader->setUVec2(mUniquePointCountUniform.location, mUniquePointCount);
+	mShader->setVec2(mWaveLengthUniform.location, mWaveLength);
+	mShader->setVec2(mWindDirectionUniform.location, mWindDirection);
+	mShader->setFloat(mSpectrumScaleUniform.location, mSpectrumScale);
+	mShader->setFloat(mWindSpeedUniform.location, mWindSpeed);
+
+
+
+	std::random_device device;
+	std::mt19937 engine(device());
+
+	// note: we need mean 0 and standard deviation 1!
+	std::normal_distribution<float> distribution(0, 1);
+	
+	std::vector<glm::vec4> randValues(mUniquePointCount.x * mUniquePointCount.y);
+
+	for (unsigned z = 0; z < mUniquePointCount.y; ++z)
+	{
+		for (unsigned x = 0; x < mUniquePointCount.x ;++x)
+		{
+			randValues[z * mUniquePointCount.x + x].x  = distribution(engine);
+			randValues[z * mUniquePointCount.x + x].y  = distribution(engine);
+			randValues[z * mUniquePointCount.x + x].z = distribution(engine);
+			randValues[z * mUniquePointCount.x + x].w = distribution(engine);
+		}
+	}
+
+	TextureData randDesc;
+	randDesc.internalFormat = InternFormat::RGBA32F;
+	randDesc.colorspace = ColorSpace::RGBA;
+	randDesc.pixelDataType = PixelDataType::FLOAT;
+	randDesc.generateMipMaps = false;
+	randDesc.magFilter = randDesc.minFilter = TextureFilter::NearestNeighbor;
+
+	mRandNormalDistributed = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, randDesc, randValues.data());
+	mRandTextureUniform = { mShader->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
+}
+
+void nex::Ocean::HeightZeroComputePass::compute()
+{
+	mShader->bind();
+
+	mShader->setImageLayerOfTexture(mResultTexture.location,
+		mHeightZero.get(),
+		mResultTexture.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RGBA32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mRandTextureUniform.location,
+		mRandNormalDistributed.get(),
+		mRandTextureUniform.bindingSlot,
+		TextureAccess::READ_ONLY,
+		InternFormat::RGBA32F,
+		0,
+		false,
+		0);
+
+	dispatch(mUniquePointCount.x, mUniquePointCount.y, 1);
+}
+
+nex::Texture2D* nex::Ocean::HeightZeroComputePass::getResult()
+{
+	return mHeightZero.get();
+}
+
+nex::Ocean::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength,
+	float periodTime) : 
+ComputePass(Shader::createComputeShader("ocean/height_cs.glsl")),
+mUniquePointCount(uniquePointCount)
+{
+	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
+	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
+
+	mResultHeightTextureUniform = { mShader->getUniformLocation("resultHeight"), UniformType::TEXTURE2D, 0 };
+	mResultSlopeXTextureUniform = { mShader->getUniformLocation("resultSlopeX"), UniformType::TEXTURE2D, 1 };
+	mResultSlopeZTextureUniform = { mShader->getUniformLocation("resultSlopeZ"), UniformType::TEXTURE2D, 2 };
+	mResultDxTextureUniform = { mShader->getUniformLocation("resultDx"), UniformType::TEXTURE2D, 3 };
+	mResultDzTextureUniform = { mShader->getUniformLocation("resultDz"), UniformType::TEXTURE2D, 4 };
+
+	mHeightZeroTextureUniform = { mShader->getUniformLocation("heightZero"), UniformType::TEXTURE2D, 5 };
+
+	mTimeUniform = { mShader->getUniformLocation("currentTime"), UniformType::FLOAT };
+	mPeriodTimeUniform = { mShader->getUniformLocation("periodTime"), UniformType::FLOAT };
+
+	TextureData desc;
+	desc.internalFormat = InternFormat::RG32F;
+	desc.colorspace = ColorSpace::RG;
+	desc.pixelDataType = PixelDataType::FLOAT;
+	desc.generateMipMaps = false;
+	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	mHeight = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+	mHeightSlopeX = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+	mHeightSlopeZ = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+	mHeightDx = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+	mHeightDz = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
+
+	mShader->bind();
+	mShader->setUVec2(mUniquePointCountUniform.location, uniquePointCount);
+	mShader->setVec2(mWaveLengthUniform.location, waveLength);
+	mShader->setFloat(mPeriodTimeUniform.location, periodTime);
+}
+
+void nex::Ocean::HeightComputePass::compute(float time, Texture2D* heightZero)
+{
+	// Ensure that the updated content of heightZero is visible
+	RenderBackend::get()->syncMemoryWithGPU((MemorySync)(MemorySync_ShaderImageAccess | MemorySync_TextureUpdate));
+	mShader->bind();
+	mShader->setFloat(mTimeUniform.location, time);
+
+	mShader->setImageLayerOfTexture(mResultHeightTextureUniform.location,
+		mHeight.get(),
+		mResultHeightTextureUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mResultSlopeXTextureUniform.location,
+		mHeightSlopeX.get(),
+		mResultSlopeXTextureUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mResultSlopeZTextureUniform.location,
+		mHeightSlopeZ.get(),
+		mResultSlopeZTextureUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mResultDxTextureUniform.location,
+		mHeightDx.get(),
+		mResultDxTextureUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mResultDzTextureUniform.location,
+		mHeightDz.get(),
+		mResultDzTextureUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mHeightZeroTextureUniform.location,
+		heightZero,
+		mHeightZeroTextureUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RGBA32F,
+		0,
+		false,
+		0);
+
+	dispatch(mUniquePointCount.x, mUniquePointCount.y, 1);
+}
+
+nex::Texture2D* nex::Ocean::HeightComputePass::getHeight()
+{
+	return mHeight.get();
+}
+
+nex::Texture2D* nex::Ocean::HeightComputePass::getSlopeX()
+{
+	return mHeightSlopeX.get();
+}
+
+nex::Texture2D* nex::Ocean::HeightComputePass::getSlopeZ()
+{
+	return mHeightSlopeZ.get();
+}
+
+nex::Texture2D* nex::Ocean::HeightComputePass::getDx()
+{
+	return mHeightDx.get();
+}
+
+nex::Texture2D* nex::Ocean::HeightComputePass::getDz()
+{
+	return mHeightDz.get();
 }
 
 nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)

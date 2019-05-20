@@ -8,6 +8,7 @@ namespace nex
 {
 	class Mesh;
 	class Camera;
+	class Texture2D;
 
 	class Iterator2D
 	{
@@ -170,6 +171,71 @@ namespace nex
 			Uniform normalMatrixUniform;
 		};
 
+		class HeightZeroComputePass : public ComputePass
+		{
+		public:
+			HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
+				float spectrumScale, float windSpeed);
+
+
+			void compute();
+			Texture2D* getResult();
+
+		private:
+
+			Uniform mWindSpeedUniform;
+			Uniform mWindDirectionUniform;
+			Uniform mSpectrumScaleUniform;
+			Uniform mUniquePointCountUniform;
+			Uniform mWaveLengthUniform;
+			UniformTex mResultTexture;
+			UniformTex mRandTextureUniform;
+			std::unique_ptr<Texture2D> mHeightZero;
+			std::unique_ptr<Texture2D> mRandNormalDistributed;
+			glm::uvec2 mUniquePointCount;
+			glm::vec2 mWaveLength;
+			glm::vec2 mWindDirection;
+			float mSpectrumScale;
+			float mWindSpeed;
+		};
+
+
+		class HeightComputePass : public ComputePass
+		{
+		public:
+			HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, float periodTime);
+
+
+			void compute(float time, Texture2D* heightZero);
+
+			Texture2D* getHeight();
+			Texture2D* getSlopeX();
+			Texture2D* getSlopeZ();
+			Texture2D* getDx();
+			Texture2D* getDz();
+
+		private:
+
+			Uniform mPeriodTimeUniform;
+			Uniform mUniquePointCountUniform;
+			glm::uvec2 mUniquePointCount;
+			Uniform mWaveLengthUniform;
+			UniformTex mHeightZeroTextureUniform;
+			Sampler mHeightZeroSampler;
+			UniformTex mResultHeightTextureUniform;
+			UniformTex mResultSlopeXTextureUniform;
+			UniformTex mResultSlopeZTextureUniform;
+			UniformTex mResultDxTextureUniform;
+			UniformTex mResultDzTextureUniform;
+			std::unique_ptr<Texture2D> mHeight;
+			std::unique_ptr<Texture2D> mHeightSlopeX;
+			std::unique_ptr<Texture2D> mHeightSlopeZ;
+			std::unique_ptr<Texture2D> mHeightDx;
+			std::unique_ptr<Texture2D> mHeightDz;
+
+			Uniform mTimeUniform;
+		};
+
 
 		/**
 		 * Amount of unique points in the x-z plane.
@@ -218,6 +284,8 @@ namespace nex
 		std::vector<unsigned> mIndices;
 		std::unique_ptr<Mesh> mMesh;
 		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
+		std::unique_ptr<HeightZeroComputePass> mHeightZeroComputePass;
+		std::unique_ptr<HeightComputePass> mHeightComputePass;
 		bool mWireframe;
 
 

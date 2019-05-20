@@ -650,6 +650,20 @@ namespace nex
 		mPimpl->mEffectLibrary.reset(nullptr);
 	}
 
+	void RenderBackend::syncMemoryWithGPU(MemorySync flags)
+	{
+		GLuint glFlags = 0;
+		if (flags & MemorySync_ShaderImageAccess)
+			glFlags |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+		if (flags & MemorySync_ShaderStorage)
+			glFlags |= GL_SHADER_STORAGE_BARRIER_BIT;
+		if (flags & MemorySync_TextureUpdate)
+			glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+
+		GLCall(glMemoryBarrier(glFlags));
+		//GLCall(glFinish());
+	}
+
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
 	{
 		mPimpl->backgroundColor = color;

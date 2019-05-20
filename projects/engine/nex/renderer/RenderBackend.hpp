@@ -17,6 +17,14 @@ namespace nex
 	class StaticMeshDrawer;
 	class ShadingModelFactory;
 
+
+	enum MemorySync
+	{
+		MemorySync_ShaderImageAccess = 1 << 0,
+		MemorySync_TextureUpdate = 1 << 1,
+		MemorySync_ShaderStorage = 1 << 2
+	};
+
 	enum RenderComponent {
 		Color = 1 << 0,
 		Depth = 1 << 1,
@@ -357,6 +365,8 @@ namespace nex
 		* Shuts down this renderer and releases all allocated memory.
 		*/
 		void release();
+
+		void syncMemoryWithGPU(MemorySync flags);
 
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
