@@ -41,9 +41,10 @@ set(
 	nex/drawing/StaticMeshDrawer.cpp
     
     #nex/exception
-    nex/exception/ShaderException.hpp
     nex/exception/EnumFormatException.hpp
     nex/exception/OpenglException.hpp
+    nex/exception/ResourceLoadException.hpp
+    nex/exception/ShaderException.hpp
     
 	
 	#nex/gui

@@ -3,7 +3,17 @@
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/exception/ResourceLoadException.hpp>
 #include <nex/util/StringUtils.hpp>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+#include <stb/stb_image_write.h>
+
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#include "nex/common/Log.hpp"
 
 
 using namespace boost::interprocess;
@@ -101,6 +111,108 @@ void GenericImage::write(const GenericImage& image, FILE* file)
 	std::fwrite(image.pixels.data(), image.pixels.size(), 1, file);
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
+}
+
+ImageFactory::ImageResource::ImageResource() noexcept : width(0), height(0), channels(0), pixelSize(0), stride(0), data(nullptr)
+{
+}
+
+ImageFactory::ImageResource::~ImageResource() noexcept
+{
+	if (data)stbi_image_free(data);
+}
+
+ImageFactory::ImageResource::ImageResource(ImageResource&& o) noexcept : width(o.width), height(o.height),  channels(o.channels),
+pixelSize(o.pixelSize), stride(o.stride), data(o.data)
+{
+	o.data = nullptr;
+}
+
+ImageFactory::ImageResource& ImageFactory::ImageResource::operator=(ImageResource&& o) noexcept
+{
+	if (this == &o) return *this;
+
+	width = o.width;
+	height = o.height;
+	channels = o.channels;
+	pixelSize = o.pixelSize;
+	stride = o.stride;
+	data = o.data;
+
+	o.data = nullptr;
+
+	return *this;
+}
+
+void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t width, size_t height, size_t components,
+	size_t stride, bool flipY)
+{
+	stbi__flip_vertically_on_write = flipY;
+	stbi_write_png(filePath, width, height, components, image, stride);
+}
+
+void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY)
+{
+	stbi__flip_vertically_on_write = flipY;
+	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.data());
+}
+
+nex::ImageFactory::ImageResource ImageFactory::loadHDR(const char* filePath, bool flipY, int desiredChannels)
+{
+	stbi_set_flip_vertically_on_load(flipY);
+
+	int width; 
+	int height; 
+	int channels;
+
+	float *rawData = stbi_loadf(filePath, &width, &height, &channels, desiredChannels);
+
+	if (!rawData) {
+		Logger logger("ImageFactory");
+		LOG(logger, Fault) << "Couldn't load image file: " << filePath << std::endl;
+		stringstream ss;
+		ss << "ImageFactory::loadHDR: Couldn't load image file: " << filePath;
+		throw_with_trace(ResourceLoadException(ss.str()));
+	}
+
+	ImageResource resource;
+	resource.width = width;
+	resource.height = height;
+	resource.channels = channels;
+	resource.pixelSize = channels * sizeof(float);
+	resource.stride = width * resource.pixelSize;
+	resource.data = rawData;
+
+	return resource;
+}
+
+ImageFactory::ImageResource ImageFactory::loadNonHDR(const char* filePath, bool flipY, int desiredChannels)
+{
+	stbi_set_flip_vertically_on_load(flipY);
+
+	int width;
+	int height;
+	int channels;
+
+	unsigned char* rawData = stbi_load(filePath, &width, &height, &channels, desiredChannels);
+
+	if (!rawData) {
+		Logger logger("ImageFactory");
+		LOG(logger, Fault) << "Couldn't load image file: " << filePath << std::endl;
+		stringstream ss;
+		ss << "ImageFactory::loadHDR: Couldn't load image file: " << filePath;
+		throw_with_trace(ResourceLoadException(ss.str()));
+	}
+
+	ImageResource resource;
+	resource.width = width;
+	resource.height = height;
+	resource.channels = channels;
+	resource.pixelSize = channels * sizeof(float);
+	resource.stride = width * resource.pixelSize;
+	resource.data = rawData;
+
+	return resource;
 }
 
 

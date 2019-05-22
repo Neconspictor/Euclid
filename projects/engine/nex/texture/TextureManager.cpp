@@ -1,15 +1,3 @@
-//use stb_image -- TODO: replace SOIL completely with this library
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_MSC_SECURE_CRT
-#include <stb/stb_image_write.h>
-
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
-//#define STB_DEFINE                                                     
-//#include <stb/stb.h>
-
 #include <nex/util/ExceptionHandling.hpp>
 #include <imgui/imgui.h>
 
@@ -44,12 +32,6 @@ namespace nex {
 		}
 	}
 
-	void TextureManager::writeHDR(const GenericImage& imageData, const char* filePath)
-	{
-		stbi__flip_vertically_on_write = true;
-		stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.data());
-	}
-
 
 	TextureManager::~TextureManager()
 	{
@@ -78,57 +60,6 @@ namespace nex {
 		mPointSampler->setWrapS(TextureUVTechnique::ClampToEdge);
 		mPointSampler->setWrapT(TextureUVTechnique::ClampToEdge);
 		mPointSampler->setAnisotropy(1.0f);
-	}
-
-	CubeMap* TextureManager::createCubeMap(const string& right, const string& left, const string& top,
-		const string& bottom, const string& back, const string& front, bool useSRGBOnCreation)
-	{
-
-		string rightCStr = mFileSystem->resolvePath(right).generic_string();
-		string leftCStr = mFileSystem->resolvePath(left).generic_string();
-		string topCStr = mFileSystem->resolvePath(top).generic_string();
-		string bottomCStr = mFileSystem->resolvePath(bottom).generic_string();
-		string backCStr = mFileSystem->resolvePath(back).generic_string();
-		string frontCStr = mFileSystem->resolvePath(front).generic_string();
-
-		/*
-		  TODO: implement is with stb_image!
-
-		GLuint cubeMap = SOIL_load_OGL_cubemap(rightCStr.c_str(), leftCStr.c_str(), topCStr.c_str(),
-			bottomCStr.c_str(), backCStr.c_str(), frontCStr.c_str(),
-			SOIL_LOAD_AUTO, 0, 0);
-
-		if (cubeMap == GL_FALSE)
-		{
-			LOG(logClient, Fault) << "Couldn't load cubeMap!" << endl <<
-				"	right: " << rightCStr << endl <<
-				"	left: " << leftCStr << endl <<
-				"	top: " << topCStr << endl <<
-				"	bottom: " << bottomCStr << endl <<
-				"	back: " << backCStr << endl <<
-				"	front: " << frontCStr;
-
-			stringstream ss;
-			ss << "TextureManagerGL::createCubeMap(): CubeMap couldn't successfully be loaded!";
-			throw runtime_error(ss.str());
-		}
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-		//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-		cubeMaps.push_back(CubeMapGL(cubeMap));
-
-		return &cubeMaps.back();*/
-		return nullptr;
 	}
 
 	void TextureManager::flipYAxis(char* imageSource, size_t pitch, size_t height)
@@ -203,52 +134,8 @@ namespace nex {
 			});
 	}
 
-
-	Texture2D* TextureManager::getHDRImage(const string& file, const TextureData& data)
-	{
-		auto it = textureLookupTable.find(file);
-
-		// Don't create duplicate textures!
-		if (it != textureLookupTable.end())
-		{
-			return it->second;
-		}
-
-		string path = mFileSystem->resolvePath(file).generic_string();
-
-
-		stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
-		int width, height, nrComponents;
-		float *rawData = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
-
-		if (!rawData) {
-			LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
-			stringstream ss;
-			ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
-			throw_with_trace(runtime_error(ss.str()));
-		}
-
-		textures.emplace_back(std::make_unique<Texture2D>(width, height, data, rawData));
-
-		stbi_image_free(rawData);
-
-		LOG(m_logger, Debug) << "texture to load: " << path;
-
-
-		auto* result = textures.back().get();
-
-		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(path, result));
-
-		return result;
-	}
-
 	Texture2D* TextureManager::getImage(const string& file, const TextureData& data)
 	{
-		if (data.pixelDataType == PixelDataType::FLOAT) {
-			return getHDRImage(file, data);
-		}
-
-
 		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 
 		auto it = textureLookupTable.find(resolvedPath);
@@ -259,24 +146,10 @@ namespace nex {
 			return it->second;
 		}
 
-		stbi_set_flip_vertically_on_load(true); // opengl uses texture coordinates with origin at bottom left 
-		int width, height, nrComponents;
-		const unsigned requiredComponents  = getComponents(data.colorspace);
-		unsigned char* rawData = stbi_load(resolvedPath.c_str(), &width, &height, &nrComponents, requiredComponents);
-		if (!rawData) {
-			LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
-			stringstream ss;
-			ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
-			throw_with_trace(runtime_error(ss.str()));
-		}
-
-
-		//GLuint format = TextureGL::getFormat(nrComponents);
-
-		textures.emplace_back(std::make_unique<Texture2D>(width, height, data, rawData));
-		stbi_image_free(rawData);
-
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
+
+		auto image = loadImage(resolvedPath, true, data);
+		textures.emplace_back(std::move(image));
 
 
 		auto* result = textures.back().get();
@@ -290,19 +163,16 @@ namespace nex {
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 
-		stbi_set_flip_vertically_on_load(flip); // opengl uses texture coordinates with origin at bottom left 
-		int width, height, nrComponents;
-		const unsigned requiredComponents = getComponents(data.colorspace);
-		unsigned char* rawData = stbi_load(resolvedPath.c_str(), &width, &height, &nrComponents, requiredComponents);
-		if (!rawData) {
-			LOG(m_logger, Fault) << "Couldn't load image file: " << file << endl;
-			stringstream ss;
-			ss << "TextureManagerGL::getImage(const string&): Couldn't load image file: " << file;
-			throw_with_trace(runtime_error(ss.str()));
-		}
+		ImageFactory::ImageResource image;
 
-		auto texture = std::make_unique<Texture2D>(width, height, data, rawData);
-		stbi_image_free(rawData);
+		if (data.pixelDataType == PixelDataType::FLOAT)
+		{
+			image = ImageFactory::loadHDR(resolvedPath.c_str(), flip);
+		} else
+		{
+			image =  ImageFactory::loadNonHDR(resolvedPath.c_str(), flip);
+		}
+		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.data);
 
 		return texture;
 	}
@@ -310,11 +180,6 @@ namespace nex {
 	void TextureManager::init(FileSystem* textureFileSystem)
 	{
 		mFileSystem = textureFileSystem;
-	}
-
-	void TextureManager::loadImages(const string& imageFolder)
-	{
-		//TODO!
 	}
 
 	Sampler* TextureManager::getDefaultImageSampler()

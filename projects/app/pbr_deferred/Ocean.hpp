@@ -265,6 +265,8 @@ namespace nex
 		 */
 		glm::uvec2 mUniquePointCount;
 
+		unsigned N;
+
 		/**
 		 * The totoal amount of points in the x-z plane.
 		 * Note: This matches mUniquePointCount + (1,1).
@@ -313,8 +315,6 @@ namespace nex
 
 		bool mWireframe;
 
-
-		unsigned N;
 		std::vector<nex::Complex> h_tilde, // for fast fourier transform
 			h_tilde_slopex, h_tilde_slopez,
 			h_tilde_dx, h_tilde_dz;

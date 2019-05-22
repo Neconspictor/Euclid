@@ -31,10 +31,6 @@ namespace nex {
 
 		void init();
 
-		CubeMap* createCubeMap(const std::string& right, const std::string& left,
-			const std::string& top, const std::string& bottom,
-			const std::string& back, const std::string& front, bool useSRGBOnCreation = false);
-
 		/**
 		 * Flips the y axis of an image
 		 * Note: imageSize has to have at least width * height bytes!
@@ -46,8 +42,6 @@ namespace nex {
 		nex::Texture2D* getDefaultBlackTexture();
 		nex::Texture2D* getDefaultNormalTexture();
 		nex::Texture2D* getDefaultWhiteTexture();
-
-		nex::Texture2D* getHDRImage(const std::string& file, const nex::TextureData& data);
 
 		nex::Texture2D* getImage(const std::string& file,
 			const nex::TextureData& data = {
@@ -81,7 +75,6 @@ namespace nex {
 		 */
 		void init(nex::FileSystem* textureFileSystem);
 
-		void loadImages(const std::string& imageFolder);
 		Sampler* getDefaultImageSampler();
 		Sampler* getPointSampler();
 
@@ -95,10 +88,6 @@ namespace nex {
 
 		void releaseTexture(nex::Texture * tex);
 
-
-
-
-		void writeHDR(const nex::GenericImage& imageData, const char* filePath);
 
 		//void readGLITest(const char* filePath);
 

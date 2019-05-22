@@ -2,6 +2,7 @@
 #include "nex/util/Memory.hpp"
 #include <vector>
 #include <nex/texture/TextureSamplerData.hpp>
+#include <nex/exception/ResourceLoadException.hpp>
 
 
 namespace nex
@@ -16,6 +17,7 @@ namespace nex
 		unsigned format = 0;
 
 		GenericImage() = default;
+		~GenericImage() = default;
 		GenericImage(GenericImage&& o) = default;
 		GenericImage& operator=(GenericImage&& o) = delete;
 
@@ -24,6 +26,67 @@ namespace nex
 
 		static void load(GenericImage* dest, FILE* file);
 		static void write(const GenericImage& image, FILE* file);
+	};
+
+
+	class ImageFactory
+	{
+	public:
+
+		struct ImageResource
+		{
+			ImageResource() noexcept;
+			~ImageResource() noexcept;
+			ImageResource(ImageResource&& o) noexcept;
+			ImageResource& operator=(ImageResource&& o) noexcept;
+			ImageResource(const ImageResource&) = delete;
+			ImageResource& operator=(const ImageResource&) = delete;
+
+			int width;
+			int height;
+			int channels;
+			int pixelSize;
+			int stride;
+
+			/**
+			 * The image data. 
+			 * Note: Memory is managed by this class!
+			 */
+			void* data;
+		};
+
+
+		/**
+		 * @param stride : byte size of one line (== width * pixel-size)
+		 */
+		static void writeToPNG(const char* filePath, 
+				const char* image, 
+				size_t width, 
+				size_t height, 
+				size_t components, 
+				size_t stride, 
+				bool flipY);
+
+		/**
+		 * Note: Alpha-channel (if present) will be ignored
+		 */
+		static void writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY);
+
+		/**
+		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
+		 * @param flipY : Should the y axis be flipped?
+		 * 
+		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
+		 */
+		static ImageResource loadHDR(const char* filePath, bool flipY, int desiredChannels = 0);
+
+		/**
+		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
+		 * @param flipY : Should the y axis be flipped?
+		 * 
+		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
+		 */
+		static ImageResource loadNonHDR(const char* filePath, bool flipY, int desiredChannels = 0);
 	};
 
 	struct StoreImage
