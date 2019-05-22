@@ -167,10 +167,10 @@ namespace nex {
 
 		if (data.pixelDataType == PixelDataType::FLOAT)
 		{
-			image = ImageFactory::loadHDR(resolvedPath.c_str(), flip);
+			image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
 		} else
 		{
-			image =  ImageFactory::loadNonHDR(resolvedPath.c_str(), flip);
+			image =  ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
 		}
 		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.data);
 

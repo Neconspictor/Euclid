@@ -381,7 +381,7 @@ void NeXEngine::initProbes()
 {
 	TextureManager* textureManager = TextureManager::get();
 
-	panoramaSky = textureManager->getHDRImage("hdr/HDR_040_Field.hdr",
+	panoramaSky = textureManager->getImage("hdr/HDR_040_Field.hdr",
 		{
 			TextureFilter::Linear,
 			TextureFilter::Linear,
