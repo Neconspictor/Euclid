@@ -137,4 +137,9 @@ namespace nex
 
 		return z;
 	}
+
+	constexpr bool isPow2(const size_t _Value) noexcept
+	{
+		return (_Value != 0 && (_Value & (_Value - 1)) == 0);
+	}
 }

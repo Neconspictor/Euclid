@@ -18,7 +18,7 @@ struct Complex {
 layout (local_size_x = GROUP_NUM_X, local_size_y = GROUP_NUM_Y) in;
 
 // writeonly
-layout (rg32f, binding = 0) uniform image2D butterfly;
+layout (rgba32f, binding = 0) uniform image2D butterfly;
 
 uniform int N;
 
@@ -92,7 +92,7 @@ void main(void)
     const ivec2 index = ivec2(gl_GlobalInvocationID.xy);
     
     const int fftStage = index.y;
-    const int stageN = pow(2, fftStage + 1);
+    const int stageN = int(pow(2, fftStage + 1));
     const float stageNFloat = stageN;
     const int fftSampleIndex = index.x;
     const int k = fftSampleIndex % stageN;
@@ -104,19 +104,29 @@ void main(void)
     int oddStageNHalfthSampleIndex;
     
     if (k < (stageN / 2)) {
-        evenStageNHalfthSampleIndex = k;
-        oddStageNHalfthSampleIndex = k +  (stageN / 2);
+        
+        // At the first fft stage we have to bit reverse the indices 
+        if (fftStage == 0) {
+            const int bitCount = int(log2(N));
+            evenStageNHalfthSampleIndex = bitrev(fftSampleIndex, bitCount);
+            oddStageNHalfthSampleIndex = bitrev(fftSampleIndex + 1, bitCount);
+        } else {
+            evenStageNHalfthSampleIndex = fftSampleIndex;
+            oddStageNHalfthSampleIndex = fftSampleIndex +  (stageN / 2);
+        }
     } else {
-        evenStageNHalfthSampleIndex = k - (stageN / 2);
-        oddStageNHalfthSampleIndex = k;
+    
+        // At the first fft stage we have to bit reverse the indices 
+        if (fftStage == 0) {
+            const int bitCount = int(log2(N));
+            evenStageNHalfthSampleIndex = bitrev(fftSampleIndex - 1, bitCount);
+            oddStageNHalfthSampleIndex = bitrev(fftSampleIndex, bitCount);
+        } else {
+            evenStageNHalfthSampleIndex = fftSampleIndex - (stageN / 2);
+            oddStageNHalfthSampleIndex = fftSampleIndex;
+        }
     }
     
-    // At the first fft stage we have to bit reverse the indices 
-    if (ffStage == 0) {
-        const int bitCount = log2(N);
-        evenStageNHalfthSampleIndex = bitrev(evenStageNHalfthSampleIndex);
-        oddStageNHalfthSampleIndex = bitrev(oddStageNHalfthSampleIndex);
-    }
 
     imageStore(butterfly, index, vec4(twiddle.re, twiddle.im, evenStageNHalfthSampleIndex, oddStageNHalfthSampleIndex));
 }

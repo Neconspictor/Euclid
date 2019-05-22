@@ -313,6 +313,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	N(mUniquePointCount.x),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(4), glm::vec2(4), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(4), glm::vec2(4), mPeriodTime)),
+	mButterflyComputePass(std::make_unique<ButterflyComputePass>(8)),
 	fft(N)
 {
 	assert(pointCount.x >= 2);
@@ -359,6 +360,11 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
 	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
 
+
+	mButterflyComputePass->compute();
+	std::vector<glm::vec4> butterfly(8 * std::log2(8));
+	mButterflyComputePass->getButterfly()->
+		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterfly.data(), butterfly.size() * sizeof(glm::vec4));
 
 	h_tilde.resize(N * N);
 	h_tilde_slopex.resize(N * N);
@@ -626,9 +632,13 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 
 	const auto kLSquare = k * L * k*L;
 	const auto kFour = k * k*k*k;
-	const auto absAngleWaveWind = dot(normalize(wave), normalize(mWindDirection));
+	const auto absAngleWaveWind = abs(dot(normalize(wave), normalize(mWindDirection)));
+	auto windAlignmentFactor = absAngleWaveWind * absAngleWaveWind;
+	auto windAlignmentFactor2 = windAlignmentFactor * windAlignmentFactor;
+	auto windAlignmentFactor4 = windAlignmentFactor2 * windAlignmentFactor2;
+	auto windAlignmentFactor8 = windAlignmentFactor4 * windAlignmentFactor4;
 
-	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * (absAngleWaveWind * absAngleWaveWind) * std::exp(-k * k*l2);
+	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor; //* std::exp(-k * k*l2);
 }
 
 bool* nex::Ocean::getWireframeState()
@@ -712,7 +722,7 @@ void nex::Ocean::simulateFFT(float t)
 			float len = sqrt(kx * kx + kz * kz);
 			const unsigned index  = z * N + x;
 
-			h_tilde[index] = height(x, z, t);
+			h_tilde[index] = height(x, z, t) * 1.0f;
 			// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
 			// (h.re + i*h.im) * (0 + i*kx) = (h.re*0 - h.im * kx) + i(h.re*kx + h.im*0) = (-h.im * kx) + i(h.re*kx)
 			h_tilde_slopex[index] = h_tilde[index] * Complex(0, kx);
@@ -921,7 +931,7 @@ mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(win
 	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
 	mHeightZero = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 
-	mResultTexture = { mShader->getUniformLocation("result"), UniformType::TEXTURE2D, 0 };
+	mResultTexture = { mShader->getUniformLocation("result"), UniformType::IMAGE2D, 0 };
 
 	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2};
 	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
@@ -1007,13 +1017,13 @@ mUniquePointCount(uniquePointCount)
 	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
 	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
 
-	mResultHeightTextureUniform = { mShader->getUniformLocation("resultHeight"), UniformType::TEXTURE2D, 0 };
-	mResultSlopeXTextureUniform = { mShader->getUniformLocation("resultSlopeX"), UniformType::TEXTURE2D, 1 };
-	mResultSlopeZTextureUniform = { mShader->getUniformLocation("resultSlopeZ"), UniformType::TEXTURE2D, 2 };
-	mResultDxTextureUniform = { mShader->getUniformLocation("resultDx"), UniformType::TEXTURE2D, 3 };
-	mResultDzTextureUniform = { mShader->getUniformLocation("resultDz"), UniformType::TEXTURE2D, 4 };
+	mResultHeightTextureUniform = { mShader->getUniformLocation("resultHeight"), UniformType::IMAGE2D, 0 };
+	mResultSlopeXTextureUniform = { mShader->getUniformLocation("resultSlopeX"), UniformType::IMAGE2D, 1 };
+	mResultSlopeZTextureUniform = { mShader->getUniformLocation("resultSlopeZ"), UniformType::IMAGE2D, 2 };
+	mResultDxTextureUniform = { mShader->getUniformLocation("resultDx"), UniformType::IMAGE2D, 3 };
+	mResultDzTextureUniform = { mShader->getUniformLocation("resultDz"), UniformType::IMAGE2D, 4 };
 
-	mHeightZeroTextureUniform = { mShader->getUniformLocation("heightZero"), UniformType::TEXTURE2D, 5 };
+	mHeightZeroTextureUniform = { mShader->getUniformLocation("heightZero"), UniformType::IMAGE2D, 5 };
 
 	mTimeUniform = { mShader->getUniformLocation("currentTime"), UniformType::FLOAT };
 	mPeriodTimeUniform = { mShader->getUniformLocation("periodTime"), UniformType::FLOAT };
@@ -1123,6 +1133,48 @@ nex::Texture2D* nex::Ocean::HeightComputePass::getDx()
 nex::Texture2D* nex::Ocean::HeightComputePass::getDz()
 {
 	return mHeightDz.get();
+}
+
+
+nex::Ocean::ButterflyComputePass::ButterflyComputePass(unsigned N) : ComputePass(Shader::createComputeShader("ocean/butterfly_cs.glsl")),
+mN(N)
+{
+	if (!nex::isPow2(mN)) throw std::invalid_argument("nex::Ocean::ButterflyComputePass : N has to be a power of 2!");
+
+	TextureData desc;
+	desc.internalFormat = InternFormat::RGBA32F;
+	desc.colorspace = ColorSpace::RGBA;
+	desc.pixelDataType = PixelDataType::FLOAT;
+	desc.generateMipMaps = false;
+	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	mButterfly = std::make_unique<Texture2D>(mN, std::log2(mN), desc, nullptr);
+
+	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
+	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT};
+
+	mShader->bind();
+	mShader->setInt(mNUniform.location, mN);
+}
+
+void nex::Ocean::ButterflyComputePass::compute()
+{
+	mShader->bind();
+
+	mShader->setImageLayerOfTexture(mButterflyUniform.location,
+		mButterfly.get(),
+		mButterflyUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RGBA32F,
+		0,
+		false,
+		0);
+
+	dispatch(mButterfly->getWidth(), mButterfly->getHeight(), 1);
+}
+
+nex::Texture2D* nex::Ocean::ButterflyComputePass::getButterfly()
+{
+	return mButterfly.get();
 }
 
 nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)

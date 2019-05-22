@@ -236,6 +236,29 @@ namespace nex
 			Uniform mTimeUniform;
 		};
 
+		class ButterflyComputePass : public ComputePass
+		{
+		public:
+			/**
+			 * @param N : The size of the DFT. Must be a power of 2.
+			 * 
+			 * @throws std::invalid_argument : if N is not a power of 2
+			 */
+			ButterflyComputePass(unsigned N);
+
+
+			void compute();
+
+			Texture2D* getButterfly();
+
+		private:
+
+			Uniform mNUniform;
+			unsigned mN;
+			UniformTex mButterflyUniform;
+			std::unique_ptr<Texture2D> mButterfly;
+		};
+
 
 		/**
 		 * Amount of unique points in the x-z plane.
@@ -286,6 +309,8 @@ namespace nex
 		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
 		std::unique_ptr<HeightZeroComputePass> mHeightZeroComputePass;
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
+		std::unique_ptr<ButterflyComputePass> mButterflyComputePass;
+
 		bool mWireframe;
 
 
