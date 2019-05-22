@@ -154,7 +154,7 @@ namespace nex
 		 */
 		void simulate(float t);
 
-		void simulateFFT(float t);
+		void simulateFFT(float t, bool skip = false);
 
 	private:
 
@@ -259,6 +259,104 @@ namespace nex
 			std::unique_ptr<Texture2D> mButterfly;
 		};
 
+		class IfftPass : public ComputePass
+		{
+		public:
+			/**
+			 * A compute pass for transforming frequency domain textures into time domain.
+			 */
+			IfftPass(int N);
+
+			/**
+			 * Note: Shader has to be bound!
+			 * input texture has to have format rgba32f
+			 */
+			void setButterfly(Texture2D* butterfly);
+
+
+			/**
+			 * Note: Shader has to be bound!
+			 * input texture has to have format rg32f
+			 */
+			void setInput(Texture2D* input);
+
+			/**
+			 * Note: Shader has to be bound!
+			 * output texture has to have format rg32f
+			 */
+			void setOutput(Texture2D* output);
+
+			/**
+			 * @param : the stage of the iFFT: has to be greater/equal 0 and  smaller log2(N)
+			 */
+			void setStage(int stage);
+
+			/**
+			 * Note: shader has to be bound!
+			 * @param vertical: Specifies whether the iFFT should operate on columns of the input texture. 
+			 * If vertical is false, the iFFT operates on rows.
+			 */
+			void setVertical(bool vertical);
+
+			/**
+			 * Note: shader has to be bound and uniforms N and vertical has to be set!
+			 * Computes a 1D FFT in the currently set direction (vertical or horizontal). Note, that the content of input will be modified.
+			 */
+			void computeAllStages(Texture2D* texture);
+
+			/**
+			 * Provides the inverse fourier transformed height as as a complex number.
+			 * texture format: rg32f
+			 * r component: real part
+			 * g component: imaginary part
+			 */
+			//Texture2D* getHeight();
+
+			/**
+			 * Provides the inverse fourier transformed slope as as complex numbers.
+			 * texture format: rgba32f
+			 * r component: real part of the x directional slope
+			 * g component: imaginary part of the x directional slope
+			 * b component: real part of the z directional slope
+			 * a component: imaginary part of the z directional slope
+			 */
+			//Texture2D* getSlope();
+
+			/**
+			 * Provides the inverse fourier transformed change in x-/z direction as as complex numbers.
+			 * texture format: rgba32f
+			 * r component: real part of the x directional change
+			 * g component: imaginary part of the x directional change
+			 * b component: real part of the z directional change
+			 * a component: imaginary part of the z directional change
+			 */
+			//Texture2D* getDx();
+
+		private:
+
+			Uniform mNUniform;
+			int mN;
+			int mLog2N;
+			Uniform mStageUniform;
+			Uniform mVerticalUniform;
+			UniformTex mInputUniform;
+			UniformTex mButterflyUniform;
+			UniformTex mOutputUniform;
+
+			std::unique_ptr<ComputePass> mBlit;
+			UniformTex mBlitSourceUniform;
+			UniformTex mBlitDestUniform;
+
+			std::unique_ptr<Texture2D> mPingPong;
+			//std::unique_ptr<Texture2D> mHeightPong;
+
+			//std::unique_ptr<Texture2D> mSlopePing;
+			//std::unique_ptr<Texture2D> mSlopePong;
+			
+			//std::unique_ptr<Texture2D> mDxPing;
+			//std::unique_ptr<Texture2D> mDxPong;
+		};
+
 
 		/**
 		 * Amount of unique points in the x-z plane.
@@ -312,6 +410,7 @@ namespace nex
 		std::unique_ptr<HeightZeroComputePass> mHeightZeroComputePass;
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
 		std::unique_ptr<ButterflyComputePass> mButterflyComputePass;
+		std::unique_ptr<IfftPass> mIfftComputePass;
 
 		bool mWireframe;
 

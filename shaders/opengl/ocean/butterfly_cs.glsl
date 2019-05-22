@@ -130,3 +130,39 @@ void main(void)
 
     imageStore(butterfly, index, vec4(twiddle.re, twiddle.im, evenStageNHalfthSampleIndex, oddStageNHalfthSampleIndex));
 }
+
+/*void main(void)
+{
+	vec2 x = gl_GlobalInvocationID.xy;
+	float k = mod(x.y * (float(N)/ pow(2,x.x+1)), N);
+	Complex twiddle = Complex( cos(TWO_PI*k/float(N)), sin(TWO_PI*k/float(N)));
+	
+	int butterflyspan = int(pow(2, x.x));
+	
+	int butterflywing;
+	
+	if (mod(x.y, pow(2, x.x + 1)) < pow(2, x.x))
+		butterflywing = 1;
+	else butterflywing = 0;
+
+	// first stage, bit reversed indices
+	if (x.x == 0) {
+        const int bitCount = int(log2(N));
+    
+		// top butterfly wing
+		if (butterflywing == 1)
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, bitrev(int(x.y), bitCount), bitrev(int(x.y + 1), bitCount)));
+		// bot butterfly wing
+		else	
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, bitrev(int(x.y - 1), bitCount), bitrev(int(x.y), bitCount)));
+	}
+	// second to log2(N) stage
+	else {
+		// top butterfly wing
+		if (butterflywing == 1)
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, x.y, x.y + butterflyspan));
+		// bot butterfly wing
+		else
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, x.y - butterflyspan, x.y));
+	}
+}*/

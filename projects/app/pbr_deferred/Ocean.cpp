@@ -11,6 +11,8 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"
 #include <glm/gtc/matrix_transform.inl>
+#include "nex/texture/Image.hpp"
+#include "nex/texture/TextureManager.hpp"
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
@@ -186,7 +188,7 @@ void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, b
 		w_++;
 	}
 
-	for (unsigned k = 0; k < N / 2; ++k)
+	/*for (unsigned k = 0; k < N / 2; ++k)
 	{
 		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
 		std::swap(c[which][k], c[which][k + N / 2]);
@@ -199,7 +201,7 @@ void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, b
 			//std::swap(x[reverse(k)], x[reverse(N - k)]);
 			std::swap(c[which][k], c[which][N - k]);
 		}
-	}
+	}*/
 
 
 	for (int i = 0; i < N; i++) output[i] = c[which][i];
@@ -301,6 +303,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	float windSpeed,
 	float periodTime) :
 	mUniquePointCount(pointCount - glm::uvec2(1, 1)),
+	N(mUniquePointCount.x),
 	mTildePointCount(pointCount),
 	mWaveLength(maxWaveLength),
 	mDimension(dimension),
@@ -310,10 +313,10 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	mPeriodTime(periodTime),
 	mSimpleShadedPass(std::make_unique<SimpleShadedPass>()),
 	mWireframe(true),
-	N(mUniquePointCount.x),
-	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(4), glm::vec2(4), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
-	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(4), glm::vec2(4), mPeriodTime)),
-	mButterflyComputePass(std::make_unique<ButterflyComputePass>(8)),
+	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(N), glm::vec2(N), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
+	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(N), glm::vec2(N), mPeriodTime)),
+	mButterflyComputePass(std::make_unique<ButterflyComputePass>(N)),
+	mIfftComputePass(std::make_unique<IfftPass>(N)),
 	fft(N)
 {
 	assert(pointCount.x >= 2);
@@ -327,44 +330,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
 
-	std::vector<glm::vec2> test(4*4);
-
-	for (int z = 0; z < 4; ++z)
-	{
-		for (int x = 0; x < 4; ++x)
-		{
-			unsigned index = z * 4 + x;
-
-			const float kx = (twoPi * x - pi * 4) / 4.0f;
-			const float kz = (twoPi * z - pi * 4) / 4.0f;
-			auto height = heightZero(glm::vec2(kx, kz));
-			test[index] = glm::vec2(height.re, height.im);
-		}
-	}
-
-	std::vector<glm::vec4> heightZeros(4 * 4);
-	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
-
-	mHeightZeroComputePass->compute();
-	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
-	//RenderBackend::get()->sync
-	std::vector<glm::vec2> height(4*4);
-	std::vector<glm::vec2> slopeX(4 * 4);
-	std::vector<glm::vec2> slopeZ(4 * 4);
-	std::vector<glm::vec2> dx(4 * 4);
-	std::vector<glm::vec2> dz(4 * 4);
-	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
-	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
-
-
-	mButterflyComputePass->compute();
-	std::vector<glm::vec4> butterfly(8 * std::log2(8));
-	mButterflyComputePass->getButterfly()->
-		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterfly.data(), butterfly.size() * sizeof(glm::vec4));
+	
 
 	h_tilde.resize(N * N);
 	h_tilde_slopex.resize(N * N);
@@ -430,7 +396,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 
 
 	//simulate(10.0f);
-	//simulateFFT(10.0f);
+	simulateFFT(10.0f, true);
 
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
@@ -450,6 +416,119 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	indexBuffer.unbind();
 
 	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+
+
+
+
+
+
+	std::vector<glm::vec2> test(N*N);
+
+	for (int z = 0; z < N; ++z)
+	{
+		for (int x = 0; x < N; ++x)
+		{
+			unsigned index = z * N + x;
+
+			const float kx = (twoPi * x - pi * N) / (float)N;
+			const float kz = (twoPi * z - pi * N) / (float)N;
+			auto height = heightZero(glm::vec2(kx, kz));
+			test[index] = glm::vec2(height.re, height.im);
+		}
+	}
+
+	std::vector<glm::vec4> heightZeros(N*N);
+	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+
+	mHeightZeroComputePass->compute();
+	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
+	//RenderBackend::get()->sync
+	std::vector<glm::vec2> height(N*N);
+	std::vector<glm::vec2> slopeX(N*N);
+	std::vector<glm::vec2> slopeZ(N*N);
+	std::vector<glm::vec2> dx(N*N);
+	std::vector<glm::vec2> dz(N*N);
+	mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
+
+
+	mButterflyComputePass->compute();
+	std::vector<glm::vec4> butterfly(N * std::log2(N));
+
+	GenericImage genericImage;
+	genericImage.width = N;
+	genericImage.height = std::log2(N);
+	genericImage.components = 3;
+	genericImage.format = (unsigned)InternFormat::RGB32F;
+	genericImage.pixelSize = sizeof(glm::vec3);
+	genericImage.pixels.resize(N * std::log2(N) * sizeof(glm::vec3));
+
+	std::vector<glm::vec4> butterflyImage(N * std::log2(N));
+	std::vector<byte> butterflyOut(N * std::log2(N) * 3);
+
+
+	mButterflyComputePass->getButterfly()->
+		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
+
+
+	for (unsigned i = 0; i < butterflyImage.size(); ++i)
+	{
+		const auto& pixel = butterflyImage[i];
+		char* memory = &genericImage.pixels[i * sizeof(glm::vec3)];
+		const auto source = 127.5f + (255.0f * glm::vec3(pixel)) / 2.0f;
+
+		const auto source2 = 0.5f + glm::vec3(pixel) * 0.5f;
+		memcpy_s(memory, sizeof(glm::vec3), (char*)&source2, sizeof(glm::vec3));
+		byte r = static_cast<byte>(source.x);
+		byte g = static_cast<byte>(source.y);
+		byte b = static_cast<byte>(pixel.z);
+		butterflyOut[i * 3] = r;
+		butterflyOut[i * 3 + 1] = g;
+		butterflyOut[i * 3 + 2] = b;
+	}
+
+	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), N, std::log2(N), 3, N * 3, false);
+	ImageFactory::writeHDR(genericImage, "./oceanTest/butterfly.hdr", false);
+
+	auto* heightFFT = mHeightComputePass->getHeight();
+	auto* dxFFT = mHeightComputePass->getDx();
+	auto* dzFFT = mHeightComputePass->getDz();
+	auto* slopeXFFT = mHeightComputePass->getSlopeX();
+	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
+
+	mIfftComputePass->bind();
+	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
+
+	// horizontal 1D iFFT
+	mIfftComputePass->setVertical(false);
+	mIfftComputePass->computeAllStages(heightFFT);
+	//mIfftComputePass->computeAllStages(slopeXFFT);
+	//mIfftComputePass->computeAllStages(slopeZFFT);
+	//mIfftComputePass->computeAllStages(dxFFT);
+	//mIfftComputePass->computeAllStages(dzFFT);
+
+	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	//dxFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
+	//dzFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
+	//slopeXFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
+	//slopeZFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
+
+	// vertical 1D iFFT
+	mIfftComputePass->setVertical(true);
+	mIfftComputePass->computeAllStages(heightFFT);
+	//mIfftComputePass->computeAllStages(slopeXFFT);
+	//mIfftComputePass->computeAllStages(slopeZFFT);
+	//mIfftComputePass->computeAllStages(dxFFT);
+	//mIfftComputePass->computeAllStages(dzFFT);
+
+
+	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+
+	bool t = true;
 }
 
 nex::Ocean::~Ocean() = default;
@@ -573,7 +652,7 @@ nex::Complex gaussianRandomVariable() {
 		w = x1 * x1 + x2 * x2;
 	} while (w >= 1.f);
 	w = sqrt((-2.f * log(w)) / w);
-	//return nex::Complex(1.0, 1.0f);
+	return nex::Complex(1.0, 1.0f);
 	//return nex::Complex(1.0 - abs(x1 * w)/10000.0f, 1.0 - abs(x2 * w)/10000.0);
 	//return nex::Complex(x1 * w, x2 * w);
 
@@ -622,8 +701,8 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 {
 	const auto L = mWindSpeed * mWindSpeed / GRAVITY;
 	const auto L2 = L * L;
-	float damping = 0.001;
-	float l2 = L2 * damping * damping;
+	const float smallestAllowedWaveLength = L * 0.001f;
+	const float smallestAllowedWaveLength2 = smallestAllowedWaveLength * smallestAllowedWaveLength;
 
 	// length of the wave vector
 	const auto k = length(wave);//2 * util::PI / lambda;
@@ -631,14 +710,17 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 	if (k < 0.0001) return 0.0f;
 
 	const auto kLSquare = k * L * k*L;
-	const auto kFour = k * k*k*k;
+	const auto k2 = k * k;
+	const auto kFour = k2 * k2;
 	const auto absAngleWaveWind = abs(dot(normalize(wave), normalize(mWindDirection)));
 	auto windAlignmentFactor = absAngleWaveWind * absAngleWaveWind;
 	auto windAlignmentFactor2 = windAlignmentFactor * windAlignmentFactor;
 	auto windAlignmentFactor4 = windAlignmentFactor2 * windAlignmentFactor2;
 	auto windAlignmentFactor8 = windAlignmentFactor4 * windAlignmentFactor4;
 
-	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor; //* std::exp(-k * k*l2);
+	const float smallWaveSuppression = std::exp(-k2 * smallestAllowedWaveLength2);
+
+	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor * smallWaveSuppression;
 }
 
 bool* nex::Ocean::getWireframeState()
@@ -704,9 +786,9 @@ void nex::Ocean::simulate(float t)
 	}
 }
 
-void nex::Ocean::simulateFFT(float t)
+void nex::Ocean::simulateFFT(float t, bool skip)
 {
-	float lambda = -1.0;
+	float lambda = -0.8;
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
 
@@ -753,8 +835,6 @@ void nex::Ocean::simulateFFT(float t)
 	fft.fftInPlace(h_tilde_slopez, inverse);
 	fft.fftInPlace(h_tilde_dx, inverse);
 	fft.fftInPlace(h_tilde_dz, inverse);*/
-	
-	
 
 	for (int n_prime = 0; n_prime < N; n_prime++) {
 
@@ -802,7 +882,8 @@ void nex::Ocean::simulateFFT(float t)
 		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N, true);
 		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N, true);*/
 	}
-	
+
+	if (skip)return;
 
 	int sign;
 	float signs[] = { 1.0f, -1.0f };
@@ -965,6 +1046,10 @@ mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(win
 			randValues[z * mUniquePointCount.x + x].y  = distribution(engine);
 			randValues[z * mUniquePointCount.x + x].z = distribution(engine);
 			randValues[z * mUniquePointCount.x + x].w = distribution(engine);
+			randValues[z * mUniquePointCount.x + x].x = 1;
+			randValues[z * mUniquePointCount.x + x].y = 1;
+			randValues[z * mUniquePointCount.x + x].z = 1;
+			randValues[z * mUniquePointCount.x + x].w = 1;
 		}
 	}
 
@@ -1002,6 +1087,7 @@ void nex::Ocean::HeightZeroComputePass::compute()
 		0);
 
 	dispatch(mUniquePointCount.x, mUniquePointCount.y, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
 nex::Texture2D* nex::Ocean::HeightZeroComputePass::getResult()
@@ -1108,6 +1194,7 @@ void nex::Ocean::HeightComputePass::compute(float time, Texture2D* heightZero)
 		0);
 
 	dispatch(mUniquePointCount.x, mUniquePointCount.y, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
 nex::Texture2D* nex::Ocean::HeightComputePass::getHeight()
@@ -1170,11 +1257,134 @@ void nex::Ocean::ButterflyComputePass::compute()
 		0);
 
 	dispatch(mButterfly->getWidth(), mButterfly->getHeight(), 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
 nex::Texture2D* nex::Ocean::ButterflyComputePass::getButterfly()
 {
 	return mButterfly.get();
+}
+
+nex::Ocean::IfftPass::IfftPass(int N) : ComputePass(Shader::createComputeShader("ocean/ifft_cs.glsl")),
+mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit_cs.glsl"))), mN(N), mLog2N(std::log2(mN))
+
+{
+	TextureData desc;
+	desc.internalFormat = InternFormat::RG32F;
+	desc.colorspace = ColorSpace::RG;
+	desc.pixelDataType = PixelDataType::FLOAT;
+	mPingPong = std::make_unique<Texture2D>(N, N, desc, nullptr);
+
+
+	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
+	mStageUniform = { mShader->getUniformLocation("stage"), UniformType::INT };
+	mVerticalUniform = { mShader->getUniformLocation("vertical"), UniformType::INT };
+	mInputUniform = {mShader->getUniformLocation("inputImage"), UniformType::IMAGE2D, 0};
+	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 1 };
+	mOutputUniform = { mShader->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2};
+
+
+	mBlitSourceUniform = { mBlit->getShader()->getUniformLocation("source"), UniformType::IMAGE2D, 0 };
+	mBlitDestUniform = { mBlit->getShader()->getUniformLocation("dest"), UniformType::IMAGE2D, 1 };
+
+
+	mShader->bind();
+	mShader->setInt(mNUniform.location, mN);
+}
+
+void nex::Ocean::IfftPass::setButterfly(Texture2D* butterfly)
+{
+	mShader->setImageLayerOfTexture(mButterflyUniform.location,
+		butterfly,
+		mButterflyUniform.bindingSlot,
+		TextureAccess::READ_ONLY,
+		InternFormat::RGBA32F,
+		0,
+		false,
+		0);
+}
+
+void nex::Ocean::IfftPass::setInput(Texture2D* input)
+{
+	mShader->setImageLayerOfTexture(mInputUniform.location,
+		input,
+		mInputUniform.bindingSlot,
+		TextureAccess::READ_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+}
+
+void nex::Ocean::IfftPass::setOutput(Texture2D* output)
+{
+	mShader->setImageLayerOfTexture(mOutputUniform.location,
+		output,
+		mOutputUniform.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+}
+
+void nex::Ocean::IfftPass::setStage(int stage)
+{
+	mShader->setInt(mStageUniform.location, stage);
+}
+
+void nex::Ocean::IfftPass::setVertical(bool vertical)
+{
+	mShader->setInt(mVerticalUniform.location, (int)vertical);
+}
+
+void nex::Ocean::IfftPass::computeAllStages(Texture2D* input)
+{
+	Texture2D* textures[2] = {input, mPingPong.get()};
+	int index = 0;
+
+	for (unsigned n = 0; n < mLog2N; ++n)
+	{
+		const int nextIndex = (index + 1) % 2;
+
+		setStage(n);
+		setInput(textures[index]);
+		setOutput(textures[nextIndex]);
+		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+		dispatch(mN, mN, 1);
+		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+		index = nextIndex;
+	}
+
+	// Conditionally copy to input texture
+	if (index == 1)
+	{
+		mBlit->bind();
+		auto* blitShader = mBlit->getShader();
+		blitShader->setImageLayerOfTexture(mBlitSourceUniform.location,
+			mPingPong.get(),
+			mBlitSourceUniform.bindingSlot,
+			TextureAccess::READ_ONLY,
+			InternFormat::RG32F,
+			0,
+			false,
+			0);
+
+		blitShader->setImageLayerOfTexture(mBlitDestUniform.location,
+			input,
+			mBlitDestUniform.bindingSlot,
+			TextureAccess::WRITE_ONLY,
+			InternFormat::RG32F,
+			0,
+			false,
+			0);
+
+
+		mBlit->dispatch(mN, mN, 1);
+		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+		// rebind this compute shader
+		bind();
+	}
 }
 
 nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)

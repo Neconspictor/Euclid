@@ -79,7 +79,7 @@ void main(void)
     const Complex heightZeroNegativeWaveConjugate = Complex(heightZeroPack.z, heightZeroPack.w);
     
     const Complex complexHeight = add(mul(heightZero, Complex(real, imag)), 
-                                mul(heightZeroNegativeWaveConjugate, Complex(real, -imag)));
+                                mul(heightZeroNegativeWaveConjugate, Complex(-real, -imag)));
                                 
     const Complex complexSlopeX = mul(complexHeight, Complex(0, wave.x));
     const Complex complexSlopeZ = mul(complexHeight, Complex(0, wave.y));
