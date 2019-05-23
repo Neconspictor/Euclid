@@ -114,24 +114,25 @@ namespace nex
 		 * Creates a new Ocean object that is tileable. This means, that the first row and the first column are mirrored, so that
 		 * The last row and last column match the first row resp. column.
 		 *
-		 * @param pointCount : Amount of points. Has to be >= 2. Note that the last row and last column will be a replicate of the first row resp. column for tiling reasons.
-		 * Thus there will be (pointCount.x * pointCount.y) unique points. For performance reasons pointCount.x and pointCount.y should be a power of 2.
+		 * @param N : Amount of unique points and waves. Must be a power of 2 and must be greater 0.
 		 * @param maxWaveLength : The maximum extension of a wave in the x-z plane
 		 * @param dimension : The dimension of a tile (in object space)
 		 * @param spectrumScale : Scales the used philip spectrum for wave generation. Has to be > 0.
 		 * @param windDirection : The direction of wind. Its length has to be > 0
 		 * @param windSpeed : The speed of wind.
 		 * @param periodTime : The time of one period (in seconds). After that, the simulation gets repeated. Has to be > 0.
+		 * 
+		 * @throws std::invalid_argument : if N is not a power of 2 or is zero; periodTime <= 0; spectrumScale <= 0; windDirection == 0;
 		 */
-		Ocean(const glm::uvec2& pointCount,
-			const glm::vec2& maxWaveLength,
-			const glm::vec2& dimension,
+		Ocean(unsigned N,
+			unsigned maxWaveLength,
+			float dimension,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
 			float periodTime);
 
-		~Ocean();
+		virtual ~Ocean();
 
 		/**
 		 * Computes the height of a location on the (x,z) plane at a specific time.
@@ -141,6 +142,8 @@ namespace nex
 		float dispersion(const glm::vec2& wave) const;
 
 		void draw(Camera* camera, const glm::vec3& lightDir);
+
+		static float generateGaussianRand();
 
 		Complex heightZero(const glm::vec2& wave) const;
 		Complex height(int x, int z, float time) const;
@@ -156,8 +159,7 @@ namespace nex
 
 		void simulateFFT(float t, bool skip = false);
 
-	private:
-
+	protected:
 
 		class SimpleShadedPass : public Pass
 		{
@@ -171,6 +173,83 @@ namespace nex
 			Uniform normalMatrixUniform;
 		};
 
+
+		/**
+		 * Amount of unique points and waves in one axis direction (x resp. z axis).
+		 */
+		unsigned mN;
+
+		/**
+		 * The totoal amount of points in one axis direction (x resp. z axis).
+		 * Note: This matches mN + 1.
+		 */
+		unsigned mPointCount;
+
+		/**
+		 * max extension of a wave in the x-z plane.
+		 */
+		unsigned mWaveLength;
+
+		/**
+		 * Dimension of the ocean tile (in object space)
+		 */
+		float mDimension;
+
+
+		/**
+		 * A scaling factor for the Philip spectrum
+		 */
+		float mSpectrumScale;
+
+		/**
+		 * wind direction on the x-z plane
+		 */
+		glm::vec2 mWindDirection;
+
+		/**
+		 * The speed of wind
+		 */
+		float mWindSpeed;
+
+		/**
+		 * The length of the simulation period.
+		 */
+		float mPeriodTime;
+
+		std::vector<VertexCompute> mVerticesCompute;
+		std::vector<VertexRender> mVerticesRender;
+		std::vector<unsigned> mIndices;
+		std::unique_ptr<Mesh> mMesh;
+		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
+
+		bool mWireframe;
+
+		std::vector<nex::Complex> h_tilde, // for fast fourier transform
+			h_tilde_slopex, h_tilde_slopez,
+			h_tilde_dx, h_tilde_dz;
+		OceanFFT fft;
+
+		static constexpr float GRAVITY = 9.81f;
+	};
+
+
+	/**
+	 * A GPU implementation of the ocean
+	 */
+	class OceanGPU : public Ocean
+	{
+	public:
+		OceanGPU(unsigned N, 
+			unsigned maxWaveLength, 
+			float dimension,
+			float spectrumScale, 
+			const glm::vec2& windDirection, 
+			float windSpeed, 
+			float periodTime);
+
+		virtual ~OceanGPU();
+
+	private:
 		class HeightZeroComputePass : public ComputePass
 		{
 		public:
@@ -241,7 +320,7 @@ namespace nex
 		public:
 			/**
 			 * @param N : The size of the DFT. Must be a power of 2.
-			 * 
+			 *
 			 * @throws std::invalid_argument : if N is not a power of 2
 			 */
 			ButterflyComputePass(unsigned N);
@@ -293,7 +372,7 @@ namespace nex
 
 			/**
 			 * Note: shader has to be bound!
-			 * @param vertical: Specifies whether the iFFT should operate on columns of the input texture. 
+			 * @param vertical: Specifies whether the iFFT should operate on columns of the input texture.
 			 * If vertical is false, the iFFT operates on rows.
 			 */
 			void setVertical(bool vertical);
@@ -303,34 +382,6 @@ namespace nex
 			 * Computes a 1D FFT in the currently set direction (vertical or horizontal). Note, that the content of input will be modified.
 			 */
 			void computeAllStages(Texture2D* texture);
-
-			/**
-			 * Provides the inverse fourier transformed height as as a complex number.
-			 * texture format: rg32f
-			 * r component: real part
-			 * g component: imaginary part
-			 */
-			//Texture2D* getHeight();
-
-			/**
-			 * Provides the inverse fourier transformed slope as as complex numbers.
-			 * texture format: rgba32f
-			 * r component: real part of the x directional slope
-			 * g component: imaginary part of the x directional slope
-			 * b component: real part of the z directional slope
-			 * a component: imaginary part of the z directional slope
-			 */
-			//Texture2D* getSlope();
-
-			/**
-			 * Provides the inverse fourier transformed change in x-/z direction as as complex numbers.
-			 * texture format: rgba32f
-			 * r component: real part of the x directional change
-			 * g component: imaginary part of the x directional change
-			 * b component: real part of the z directional change
-			 * a component: imaginary part of the z directional change
-			 */
-			//Texture2D* getDx();
 
 		private:
 
@@ -348,83 +399,13 @@ namespace nex
 			UniformTex mBlitDestUniform;
 
 			std::unique_ptr<Texture2D> mPingPong;
-			//std::unique_ptr<Texture2D> mHeightPong;
-
-			//std::unique_ptr<Texture2D> mSlopePing;
-			//std::unique_ptr<Texture2D> mSlopePong;
-			
-			//std::unique_ptr<Texture2D> mDxPing;
-			//std::unique_ptr<Texture2D> mDxPong;
 		};
 
 
-		/**
-		 * Amount of unique points in the x-z plane.
-		 */
-		glm::uvec2 mUniquePointCount;
-
-		unsigned N;
-
-		/**
-		 * The totoal amount of points in the x-z plane.
-		 * Note: This matches mUniquePointCount + (1,1).
-		 */
-		glm::uvec2 mTildePointCount;
-
-		/**
-		 * max extension of a wave in the x-z plane.
-		 */
-		glm::vec2 mWaveLength;
-
-		/**
-		 * Dimension of the ocean tile (in object space)
-		 */
-		glm::vec2 mDimension;
-
-
-		/**
-		 * A scaling factor for the Philip spectrum
-		 */
-		float mSpectrumScale;
-
-		/**
-		 * wind direction on the x-z plane
-		 */
-		glm::vec2 mWindDirection;
-
-		/**
-		 * The speed of wind
-		 */
-		float mWindSpeed;
-
-		/**
-		 * The length of the simulation period.
-		 */
-		float mPeriodTime;
-
-		std::vector<VertexCompute> mVerticesCompute;
-		std::vector<VertexRender> mVerticesRender;
-		std::vector<unsigned> mIndices;
-		std::unique_ptr<Mesh> mMesh;
-		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
 		std::unique_ptr<HeightZeroComputePass> mHeightZeroComputePass;
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
 		std::unique_ptr<ButterflyComputePass> mButterflyComputePass;
 		std::unique_ptr<IfftPass> mIfftComputePass;
-
-		bool mWireframe;
-
-		std::vector<nex::Complex> h_tilde, // for fast fourier transform
-			h_tilde_slopex, h_tilde_slopez,
-			h_tilde_dx, h_tilde_dz;
-		OceanFFT fft;
-
-
-		static constexpr float GRAVITY = 9.81f;
-
-		static float generateGaussianRand();
-
-		void simulateFFT(std::vector<ResultData>& out, float t, unsigned startIndex, unsigned N, int stride);
 	};
 
 

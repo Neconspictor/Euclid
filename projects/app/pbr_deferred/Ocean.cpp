@@ -295,16 +295,15 @@ void nex::OceanFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
 }
 
 
-nex::Ocean::Ocean(const glm::uvec2& pointCount,
-	const glm::vec2& maxWaveLength,
-	const glm::vec2& dimension,
+nex::Ocean::Ocean(unsigned N,
+	unsigned maxWaveLength,
+	float dimension,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
 	float periodTime) :
-	mUniquePointCount(pointCount - glm::uvec2(1, 1)),
-	N(mUniquePointCount.x),
-	mTildePointCount(pointCount),
+	mN(N),
+	mPointCount(N+1),
 	mWaveLength(maxWaveLength),
 	mDimension(dimension),
 	mSpectrumScale(spectrumScale),
@@ -313,19 +312,14 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	mPeriodTime(periodTime),
 	mSimpleShadedPass(std::make_unique<SimpleShadedPass>()),
 	mWireframe(true),
-	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(N), glm::vec2(N), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
-	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(N), glm::vec2(N), mPeriodTime)),
-	mButterflyComputePass(std::make_unique<ButterflyComputePass>(N)),
-	mIfftComputePass(std::make_unique<IfftPass>(N)),
-	fft(N)
+	fft(mN)
 {
-	assert(pointCount.x >= 2);
-	assert(pointCount.y >= 2);
-	assert(dimension.x > 0.0f);
-	assert(dimension.y > 0.0f);
-	assert(spectrumScale > 0.0f);
-	assert(length(windDirection) > 0.0f);
-	assert(periodTime > 0.0f);
+	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
+	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
+	if (dimension <= 0) throw std::invalid_argument("dimension has to be greater than 0");
+	if (spectrumScale <= 0) throw std::invalid_argument("spectrumScale has to be greater than 0");
+	if (length(windDirection) <= 0) throw std::invalid_argument("length of windDirection has to be greater than 0");
+	if (periodTime <= 0) throw std::invalid_argument("periodTime has to be greater than 0");
 
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
@@ -339,8 +333,8 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	h_tilde_dz.resize(N * N);
 
 
-	const auto vertexCount = mTildePointCount.x * mTildePointCount.y;
-	const auto quadCount = (mTildePointCount.x - 1) * (mTildePointCount.y - 1);
+	const auto vertexCount = mPointCount * mPointCount;
+	const auto quadCount = (mPointCount - 1) * (mPointCount - 1);
 	
 	const unsigned indicesPerQuad = 6; // two triangles per quad
 
@@ -348,22 +342,22 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	mVerticesRender.resize(vertexCount);
 	mIndices.resize(quadCount * indicesPerQuad); // two triangles per quad
 
-	for (int z = 0; z < mTildePointCount.y; ++z)
+	for (int z = 0; z < mPointCount; ++z)
 	{
-		for (int x = 0; x < mTildePointCount.x; ++x)
+		for (int x = 0; x < mPointCount; ++x)
 		{
-			unsigned index = z * mTildePointCount.x + x;
+			unsigned index = z * mPointCount + x;
 
-			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x;
-			const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y;
+			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength;
+			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength;
 			const auto wave = glm::vec2(kx, kz);
 
 			mVerticesCompute[index].height0 = heightZero(wave);
 			mVerticesCompute[index].height0NegativeWaveConjugate = heightZero(-wave).conjugate();
 			mVerticesCompute[index].originalPosition = glm::vec3(
-				(x - mUniquePointCount.x / 2.0f) * mWaveLength.x / (float)mUniquePointCount.x,
+				(x - mPointCount / 2.0f) * mWaveLength / (float)mN,
 				0.0f,
-				getZValue((z - mUniquePointCount.y / 2.0f) * mWaveLength.y / (float)mUniquePointCount.y)
+				getZValue((z - mPointCount / 2.0f) * mWaveLength / (float)mN)
 			);
 
 			mVerticesRender[index].position = mVerticesCompute[index].originalPosition;
@@ -372,25 +366,25 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	}
 
 
-	const glm::uvec2 quadNumber = mUniquePointCount;
+	const auto quadNumber = mN;
 
-	for (int x = 0; x < quadNumber.x; ++x)
+	for (int x = 0; x < quadNumber; ++x)
 	{
-		for (int z = 0; z < quadNumber.y; ++z)
+		for (int z = 0; z < quadNumber; ++z)
 		{
-			const unsigned indexStart = indicesPerQuad * (x * quadNumber.y + z);
+			const unsigned indexStart = indicesPerQuad * (x * quadNumber + z);
 
-			const unsigned vertexBottomLeft = x * mTildePointCount.y + z;
+			const unsigned vertexBottomLeft = x * mPointCount + z;
 
 			// first triangle
 			mIndices[indexStart] = vertexBottomLeft;
 			mIndices[indexStart + 1] = vertexBottomLeft + 1; // one column to the right
-			mIndices[indexStart + 2] = vertexBottomLeft + mTildePointCount.y + 1; // one row up and one column to the right
+			mIndices[indexStart + 2] = vertexBottomLeft + mPointCount + 1; // one row up and one column to the right
 
 			// second triangle
 			mIndices[indexStart + 3] = vertexBottomLeft;
-			mIndices[indexStart + 4] = vertexBottomLeft + mTildePointCount.y + 1;
-			mIndices[indexStart + 5] = vertexBottomLeft + mTildePointCount.y; // one row up
+			mIndices[indexStart + 4] = vertexBottomLeft + mPointCount + 1;
+			mIndices[indexStart + 5] = vertexBottomLeft + mPointCount; // one row up
 		}
 	}
 
@@ -416,121 +410,6 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	indexBuffer.unbind();
 
 	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
-
-
-
-
-
-
-	std::vector<glm::vec2> test(N*N);
-
-	for (int z = 0; z < N; ++z)
-	{
-		for (int x = 0; x < N; ++x)
-		{
-			unsigned index = z * N + x;
-
-			const float kx = (twoPi * x - pi * N) / (float)N;
-			const float kz = (twoPi * z - pi * N) / (float)N;
-			auto height = heightZero(glm::vec2(kx, kz));
-			test[index] = glm::vec2(height.re, height.im);
-		}
-	}
-
-	std::vector<glm::vec4> heightZeros(N*N);
-	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
-
-	mHeightZeroComputePass->compute();
-	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
-	//RenderBackend::get()->sync
-	std::vector<glm::vec2> height(N*N);
-	std::vector<glm::vec2> slopeX(N*N);
-	std::vector<glm::vec2> slopeZ(N*N);
-	std::vector<glm::vec2> dx(N*N);
-	std::vector<glm::vec2> dz(N*N);
-	mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
-	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
-	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
-	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
-
-
-	mButterflyComputePass->compute();
-	std::vector<glm::vec4> butterfly(N * std::log2(N));
-
-	GenericImage genericImage;
-	genericImage.width = N;
-	genericImage.height = std::log2(N);
-	genericImage.components = 3;
-	genericImage.format = (unsigned)InternFormat::RGB32F;
-	genericImage.pixelSize = sizeof(glm::vec3);
-	genericImage.pixels.resize(N * std::log2(N) * sizeof(glm::vec3));
-
-	std::vector<glm::vec4> butterflyImage(N * std::log2(N));
-	std::vector<byte> butterflyOut(N * std::log2(N) * 3);
-
-
-	mButterflyComputePass->getButterfly()->
-		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
-
-
-	for (unsigned i = 0; i < butterflyImage.size(); ++i)
-	{
-		const auto& pixel = butterflyImage[i];
-		char* memory = &genericImage.pixels[i * sizeof(glm::vec3)];
-		const auto source = 127.5f + (255.0f * glm::vec3(pixel)) / 2.0f;
-
-		const auto source2 = 0.5f + glm::vec3(pixel) * 0.5f;
-		memcpy_s(memory, sizeof(glm::vec3), (char*)&source2, sizeof(glm::vec3));
-		byte r = static_cast<byte>(source.x);
-		byte g = static_cast<byte>(source.y);
-		byte b = static_cast<byte>(pixel.z);
-		butterflyOut[i * 3] = r;
-		butterflyOut[i * 3 + 1] = g;
-		butterflyOut[i * 3 + 2] = b;
-	}
-
-	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), N, std::log2(N), 3, N * 3, false);
-	ImageFactory::writeHDR(genericImage, "./oceanTest/butterfly.hdr", false);
-
-	auto* heightFFT = mHeightComputePass->getHeight();
-	auto* dxFFT = mHeightComputePass->getDx();
-	auto* dzFFT = mHeightComputePass->getDz();
-	auto* slopeXFFT = mHeightComputePass->getSlopeX();
-	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
-
-	mIfftComputePass->bind();
-	
-
-	// horizontal 1D iFFT
-	mIfftComputePass->setVertical(true);
-	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
-	mIfftComputePass->computeAllStages(heightFFT);
-	//mIfftComputePass->computeAllStages(slopeXFFT);
-	//mIfftComputePass->computeAllStages(slopeZFFT);
-	//mIfftComputePass->computeAllStages(dxFFT);
-	//mIfftComputePass->computeAllStages(dzFFT);
-
-	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-	//dxFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
-	//dzFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
-	//slopeXFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
-	//slopeZFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
-
-	// vertical 1D iFFT
-	mIfftComputePass->setVertical(false);
-	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
-	mIfftComputePass->computeAllStages(heightFFT);
-	//mIfftComputePass->computeAllStages(slopeXFFT);
-	//mIfftComputePass->computeAllStages(slopeZFFT);
-	//mIfftComputePass->computeAllStages(dxFFT);
-	//mIfftComputePass->computeAllStages(dzFFT);
-
-
-	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
-
-	bool t = true;
 }
 
 nex::Ocean::~Ocean() = default;
@@ -545,51 +424,34 @@ nex::Ocean::ResultData nex::Ocean::simulatePoint(const glm::vec2& locationXZ, fl
 	glm::vec2 displacement(0.0f);
 
 
-	for (int z = 0; z < mUniquePointCount.y; ++z)
+	for (unsigned z = 0; z < mN; ++z)
 	{
-		for (int x = 0; x < mUniquePointCount.x; ++x)
+		for (unsigned x = 0; x < mN; ++x)
 		{
-			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
-			const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 
 			const auto wave = glm::vec2(kx, kz);
 			const auto angle = dot(wave, locationXZ);
 			
-			
-			/*auto test = -twoPi / (float)(mUniquePointCount.x * mUniquePointCount.y);
-			const auto index = (z - mUniquePointCount.x / 2.0f)* mUniquePointCount.x + (x - mUniquePointCount.x / 2.0f);
-
-			//
-			// * mVerticesCompute[index].originalPosition = glm::vec3(
-			//	(x - mUniquePointCount.x / 2.0f) * mWaveLength.x / mUniquePointCount.x,
-			//	0.0f,
-			//	getZValue((z - mUniquePointCount.y / 2.0f) * mWaveLength.y / mUniquePointCount.y)
-			//);
-			 
-			const auto index2X = (locationXZ.x * mUniquePointCount.x) / (float)mWaveLength.x; //+ (mUniquePointCount.x / 2.0f);
-			const auto index2Z = ((-locationXZ.y) * mUniquePointCount.y) / (float)mWaveLength.y;// +(mUniquePointCount.y / 2.0f);
-
-			test *= index * (index2Z * mUniquePointCount.x + index2X);*/
-			
 			const auto euler = Complex::euler(angle);
-			
-			const auto h = this->height(x, z, t) * euler;
+			const auto sample = this->height(x, z, t) * euler;
 
 			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
-			height += h;
+			height += sample;
 
 
 			// Note: We only consider the real part of the gradient, as the imaginary part isn't needed
 			// The gradient is a two dimensional complex vector: i*(kx, kz) * h = <(-h.im * kx) +  i*(h.re * kx), (-h.im * kz) + i*(h.re * kz)>
-			gradient += glm::vec2(-h.im * kx, -h.im * kz);
+			gradient += glm::vec2(-sample.im * kx, -sample.im * kz);
 
 			//if (k_length < 0.000001) continue;
 			//D = D + glm::vec2(kx / k_length * htilde_c.imag(), kz / k_length * htilde_c.imag());
 			const auto length = glm::length(wave);
 			if (length >= 0.00001)
 			{
-				displacement += glm::vec2(kx / length * h.im, kz / length * h.im);
+				displacement += glm::vec2(kx / length * sample.im, kz / length * sample.im);
 			}
 		}
 	}
@@ -611,7 +473,7 @@ void nex::Ocean::draw(Camera* camera, const glm::vec3& lightDir)
 	mSimpleShadedPass->bind();
 	glm::mat4 model;
 	model = translate(model, glm::vec3(0,2, -1));
-	model = scale(model, glm::vec3(1 / mWaveLength.x));
+	model = scale(model, glm::vec3(1 / (float)mWaveLength));
 
 	mSimpleShadedPass->setUniforms(camera, model, lightDir);
 
@@ -642,35 +504,20 @@ void nex::Ocean::draw(Camera* camera, const glm::vec3& lightDir)
 	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
 }
 
-float uniformRandomVariable() {
-	return (float)rand() / RAND_MAX;
-}
-
-nex::Complex gaussianRandomVariable() {
-	float x1, x2, w;
-	do {
-		x1 = 2.f * uniformRandomVariable() - 1.f;
-		x2 = 2.f * uniformRandomVariable() - 1.f;
-		w = x1 * x1 + x2 * x2;
-	} while (w >= 1.f);
-	w = sqrt((-2.f * log(w)) / w);
-	return nex::Complex(1.0, 1.0f);
-	//return nex::Complex(1.0 - abs(x1 * w)/10000.0f, 1.0 - abs(x2 * w)/10000.0);
-	//return nex::Complex(x1 * w, x2 * w);
-
+float nex::Ocean::generateGaussianRand()
+{
 	static std::random_device device;
 	static std::mt19937 engine(device());
 
 	// note: we need mean 0 and standard deviation 1!
 	static std::normal_distribution<float> distribution(0, 1);
-
-	return { distribution(engine), distribution(engine) };
+	return distribution(engine);
 }
 
 nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
 {
 	//static const auto inverseRootTwo = 1 / std::sqrt(2.0);
-	const Complex random = gaussianRandomVariable();//(gaussianRandomVariable(), gaussianRandomVariable());
+	const Complex random(generateGaussianRand(), generateGaussianRand());
 
 	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
 }
@@ -679,8 +526,8 @@ nex::Complex nex::Ocean::height(int x, int z, float time) const
 {
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
-	const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x;
-	const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y;
+	const float kx = (twoPi * x - pi * mN) / (float)mWaveLength;
+	const float kz = (twoPi * z - pi * mN) / (float)mWaveLength;
 
 	const auto wave = glm::vec2(kx, kz);
 	const auto w = dispersion(wave);
@@ -692,7 +539,7 @@ nex::Complex nex::Ocean::height(int x, int z, float time) const
 	Complex c1(-cos_, -sin_);
 
 
-	const auto index = z * mTildePointCount.y + x;
+	const auto index = z * mPointCount + x;
 	const auto& vertex = mVerticesCompute[index];
 
 	return vertex.height0 * c0//* Complex::euler(w * time)
@@ -734,10 +581,11 @@ void nex::Ocean::simulate(float t)
 {
 	const float displacementDirectionScale = 0.0;
 
-	for (int z = 0; z < mUniquePointCount.y; z++) {
-		for (int x = 0; x < mUniquePointCount.x; x++) {
-			auto index = z * mTildePointCount.x + x;
+	for (int z = 0; z < mN; z++) {
+		for (int x = 0; x < mN; x++) {
 
+			// Note: we need to use mPointCount and not mN!
+			const auto index = z * mPointCount + x;
 
 			auto& vertex = mVerticesRender[index];
 			const auto& computeData = mVerticesCompute[index];
@@ -767,7 +615,7 @@ void nex::Ocean::simulate(float t)
 				sample.normal = vertex.normal;
 			}
 			if (x == 0) {
-				const auto replicateIndex = index + mUniquePointCount.x;
+				const auto replicateIndex = index + mN;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
 				sample.position.x = sampleComputeData.originalPosition.x + displacementDirectionScale * displacement.x;
@@ -776,7 +624,7 @@ void nex::Ocean::simulate(float t)
 				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
-				const auto replicateIndex = index + mUniquePointCount.y * mTildePointCount.x;
+				const auto replicateIndex = index + mN * mPointCount;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
 				sample.position.x = sampleComputeData.originalPosition.x + displacementDirectionScale * displacement.x;
@@ -794,17 +642,17 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
 
-	for (int z = 0; z < N; z++) {
+	for (int z = 0; z < mN; z++) {
 		//kz = M_PI * (2.0f * m_prime - N) / length;
-		const float kz = (twoPi * z - pi * mUniquePointCount.y) / mWaveLength.y; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+		const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 		
-		for (int x = 0; x < N; x++) {
+		for (int x = 0; x < mN; x++) {
 			//kx = M_PI * (2 * n_prime - N) / length;
-			const float kx = (twoPi * x - pi * mUniquePointCount.x) / mWaveLength.x; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 
 
 			float len = sqrt(kx * kx + kz * kz);
-			const unsigned index  = z * N + x;
+			const unsigned index  = z * mN + x;
 
 			h_tilde[index] = height(x, z, t) * 1.0f;
 			// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
@@ -814,8 +662,6 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 			//h_tilde_slopez[index] = Complex(-h_tilde[index].im *kz, 0);
 			h_tilde_slopez[index] = h_tilde[index] * Complex(0, kz);
 
-			//h_tilde_slopex[index] = Complex(0.0f, 0);
-			//h_tilde_slopez[index] = Complex(0.0f, 0);
 			if (len < 0.000001f) {
 				h_tilde_dx[index] = Complex(0.0f, 0.0f);
 				h_tilde_dz[index] = Complex(0.0f, 0.0f);
@@ -823,85 +669,58 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 			else {
 				h_tilde_dx[index] = h_tilde[index] * Complex(0, -kx / len);
 				h_tilde_dz[index] = h_tilde[index] * Complex(0, -kz / len);
-				//h_tilde_dx[index] = Complex(0.0f, 0.0f);
-				//h_tilde_dz[index] = Complex(0.0f, 0.0f);;
 			}
 		}
 	}
 
 
-	//fft.fft(h_tilde.data(), h_tilde.data(), 1, 0);
-	bool inverse = false;
-	/*fft.fftInPlace(h_tilde, inverse);
-	fft.fftInPlace(h_tilde_slopex, inverse);
-	fft.fftInPlace(h_tilde_slopez, inverse);
-	fft.fftInPlace(h_tilde_dx, inverse);
-	fft.fftInPlace(h_tilde_dz, inverse);*/
+	for (int m_prime = 0; m_prime < mN; m_prime++) {
 
-	for (int m_prime = 0; m_prime < N; m_prime++) {
-
-		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
 
 		fft.fft(h_tildeIt, h_tildeIt, true);
 		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
 		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
 		fft.fft(h_tilde_dxIt, h_tilde_dxIt, true);
 		fft.fft(h_tilde_dzIt, h_tilde_dzIt, true);
-
-
-		/*fft.fft(h_tilde.data(), h_tilde.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N, true);*/
 	}
 
 	//if (skip)return;
 
 
-	for (int n_prime = 0; n_prime < N; n_prime++) {
+	for (int n_prime = 0; n_prime < mN; n_prime++) {
 
-		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
-		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
-		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
-		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
-		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
+		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
 
 		fft.fft(h_tildeIt, h_tildeIt, false);
 		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, false);
 		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, false);
 		fft.fft(h_tilde_dxIt, h_tilde_dxIt, false);
 		fft.fft(h_tilde_dzIt, h_tilde_dzIt, false);
-
-
-		/*fft.fft(h_tilde.data(), h_tilde.data(), N, n_prime, false);
-
-
-
-		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), N, n_prime, false);
-		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), N, n_prime, false);
-		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), N, n_prime, false);
-		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime, false);*/
 	}
-	if (skip)return;
+	//if (skip)return;
 
 	int sign;
 	float signs[] = { 1.0f, -1.0f };
 	glm::vec3 n;
 
-	for (int z = 0; z < mUniquePointCount.y; z++) {
-		for (int x = 0; x < mUniquePointCount.x; x++) {
-			const unsigned heightIndex = z * mUniquePointCount.x + x;     // index into h_tilde..
-			const unsigned vertexIndex = z * mTildePointCount.x + x;    // index into vertices
+	for (int z = 0; z < mN; z++) {
+		for (int x = 0; x < mN; x++) {
+			const unsigned heightIndex = z * mN + x;     // index into h_tilde..
+			const unsigned vertexIndex = z * mPointCount + x;    // index into vertices
 
 			sign = signs[(x + z) & 1];
 
 
-			const double normalization = (mWaveLength.x ); // (float) 128.0f;
+			const auto normalization = (double)mWaveLength; // (float) 128.0f;
 
 			h_tilde[heightIndex] = h_tilde[heightIndex] * sign / normalization;
 
@@ -938,7 +757,7 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 				sample.normal = vertex.normal;
 			}
 			if (x == 0) {
-				const auto replicateIndex = vertexIndex + mUniquePointCount.x;
+				const auto replicateIndex = vertexIndex + mN;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
 				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
@@ -947,7 +766,7 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
-				const auto replicateIndex = vertexIndex + mUniquePointCount.y * mTildePointCount.x;
+				const auto replicateIndex = vertexIndex + mN * mPointCount;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
 				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
@@ -957,27 +776,6 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 			}
 
 		}
-	}
-}
-
-float nex::Ocean::generateGaussianRand()
-{
-	static std::random_device device;
-	static std::mt19937 engine(device());
-
-	// note: we need mean 0 and standard deviation 1!
-	static std::normal_distribution<float> distribution(0, 1);
-	return distribution(engine);
-}
-
-void nex::Ocean::simulateFFT(std::vector<ResultData>& out, float t, unsigned startIndex, unsigned N, int stride)
-{
-	if (N == 1)
-	{
-		// index = z * mTildePointCount.x + x;
-		glm::uvec2 index(startIndex % mUniquePointCount.x, startIndex / mUniquePointCount.x);
-
-		
 	}
 }
 
@@ -1003,10 +801,137 @@ void nex::Ocean::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& 
 	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 }
 
-nex::Ocean::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
-	float spectrumScale, float windSpeed) : 
-ComputePass(Shader::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
-mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
+
+nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
+	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
+	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
+	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
+	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
+	mIfftComputePass(std::make_unique<IfftPass>(mN))
+{
+	auto twoPi = 2.0f * util::PI;
+
+	std::vector<glm::vec2> test(mN*mN);
+
+	for (int z = 0; z < mN; ++z)
+	{
+		for (int x = 0; x < mN; ++x)
+		{
+			unsigned index = z * mN + x;
+
+			const float kx = (twoPi * x - util::PI * mN) / (float)mN;
+			const float kz = (twoPi * z - util::PI * mN) / (float)mN;
+			auto height = heightZero(glm::vec2(kx, kz));
+			test[index] = glm::vec2(height.re, height.im);
+		}
+	}
+
+	std::vector<glm::vec4> heightZeros(mN*mN);
+	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+
+	mHeightZeroComputePass->compute();
+	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
+	//RenderBackend::get()->sync
+	std::vector<glm::vec2> height(mN*mN);
+	std::vector<glm::vec2> slopeX(mN*mN);
+	std::vector<glm::vec2> slopeZ(mN*mN);
+	std::vector<glm::vec2> dx(mN*mN);
+	std::vector<glm::vec2> dz(mN*mN);
+	mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
+	mHeightComputePass->getHeight()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeX()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
+	mHeightComputePass->getSlopeZ()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDx()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
+	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
+
+
+	mButterflyComputePass->compute();
+	std::vector<glm::vec4> butterfly(mN * std::log2(mN));
+
+	GenericImage genericImage;
+	genericImage.width = mN;
+	genericImage.height = std::log2(mN);
+	genericImage.components = 3;
+	genericImage.format = (unsigned)InternFormat::RGB32F;
+	genericImage.pixelSize = sizeof(glm::vec3);
+	genericImage.pixels.resize(mN * std::log2(mN) * sizeof(glm::vec3));
+
+	std::vector<glm::vec4> butterflyImage(mN * std::log2(mN));
+	std::vector<byte> butterflyOut(mN * std::log2(mN) * 3);
+
+
+	mButterflyComputePass->getButterfly()->
+		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
+
+
+	for (unsigned i = 0; i < butterflyImage.size(); ++i)
+	{
+		const auto& pixel = butterflyImage[i];
+		char* memory = &genericImage.pixels[i * sizeof(glm::vec3)];
+		const auto source = 127.5f + (255.0f * glm::vec3(pixel)) / 2.0f;
+
+		const auto source2 = 0.5f + glm::vec3(pixel) * 0.5f;
+		memcpy_s(memory, sizeof(glm::vec3), (char*)&source2, sizeof(glm::vec3));
+		byte r = static_cast<byte>(source.x);
+		byte g = static_cast<byte>(source.y);
+		byte b = static_cast<byte>(pixel.z);
+		butterflyOut[i * 3] = r;
+		butterflyOut[i * 3 + 1] = g;
+		butterflyOut[i * 3 + 2] = b;
+	}
+
+	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), mN, std::log2(mN), 3, mN * 3, false);
+	ImageFactory::writeHDR(genericImage, "./oceanTest/butterfly.hdr", false);
+
+	auto* heightFFT = mHeightComputePass->getHeight();
+	auto* dxFFT = mHeightComputePass->getDx();
+	auto* dzFFT = mHeightComputePass->getDz();
+	auto* slopeXFFT = mHeightComputePass->getSlopeX();
+	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
+
+	mIfftComputePass->bind();
+
+
+	// horizontal 1D iFFT
+	mIfftComputePass->setVertical(true);
+	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
+	mIfftComputePass->computeAllStages(heightFFT);
+	//mIfftComputePass->computeAllStages(slopeXFFT);
+	//mIfftComputePass->computeAllStages(slopeZFFT);
+	//mIfftComputePass->computeAllStages(dxFFT);
+	//mIfftComputePass->computeAllStages(dzFFT);
+
+	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+	//dxFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeX.data(), slopeX.size() * sizeof(glm::vec2));
+	//dzFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, slopeZ.data(), slopeZ.size() * sizeof(glm::vec2));
+	//slopeXFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dx.data(), dx.size() * sizeof(glm::vec2));
+	//slopeZFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
+
+	// vertical 1D iFFT
+	mIfftComputePass->setVertical(false);
+	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
+	mIfftComputePass->computeAllStages(heightFFT);
+	//mIfftComputePass->computeAllStages(slopeXFFT);
+	//mIfftComputePass->computeAllStages(slopeZFFT);
+	//mIfftComputePass->computeAllStages(dxFFT);
+	//mIfftComputePass->computeAllStages(dzFFT);
+
+
+	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
+
+	bool t = true;
+}
+
+nex::OceanGPU::~OceanGPU() = default;
+
+
+
+
+nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
+	float spectrumScale, float windSpeed) :
+	ComputePass(Shader::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
+	mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
 {
 	TextureData desc;
 	desc.internalFormat = InternFormat::RGBA32F;
@@ -1018,7 +943,7 @@ mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(win
 
 	mResultTexture = { mShader->getUniformLocation("result"), UniformType::IMAGE2D, 0 };
 
-	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2};
+	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
 	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
 	mWindDirectionUniform = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
 	mSpectrumScaleUniform = { mShader->getUniformLocation("spectrumScale"), UniformType::FLOAT };
@@ -1033,27 +958,17 @@ mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(win
 	mShader->setFloat(mWindSpeedUniform.location, mWindSpeed);
 
 
-
-	std::random_device device;
-	std::mt19937 engine(device());
-
-	// note: we need mean 0 and standard deviation 1!
-	std::normal_distribution<float> distribution(0, 1);
-	
 	std::vector<glm::vec4> randValues(mUniquePointCount.x * mUniquePointCount.y);
 
 	for (unsigned z = 0; z < mUniquePointCount.y; ++z)
 	{
-		for (unsigned x = 0; x < mUniquePointCount.x ;++x)
+		for (unsigned x = 0; x < mUniquePointCount.x; ++x)
 		{
-			randValues[z * mUniquePointCount.x + x].x  = distribution(engine);
-			randValues[z * mUniquePointCount.x + x].y  = distribution(engine);
-			randValues[z * mUniquePointCount.x + x].z = distribution(engine);
-			randValues[z * mUniquePointCount.x + x].w = distribution(engine);
-			randValues[z * mUniquePointCount.x + x].x = 1;
-			randValues[z * mUniquePointCount.x + x].y = 1;
-			randValues[z * mUniquePointCount.x + x].z = 1;
-			randValues[z * mUniquePointCount.x + x].w = 1;
+			const auto index = z * mUniquePointCount.x + x;
+			randValues[index].x = generateGaussianRand();
+			randValues[index].y = generateGaussianRand();
+			randValues[index].z = generateGaussianRand();
+			randValues[index].w = generateGaussianRand();
 		}
 	}
 
@@ -1068,7 +983,7 @@ mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(win
 	mRandTextureUniform = { mShader->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
 }
 
-void nex::Ocean::HeightZeroComputePass::compute()
+void nex::OceanGPU::HeightZeroComputePass::compute()
 {
 	mShader->bind();
 
@@ -1094,15 +1009,15 @@ void nex::Ocean::HeightZeroComputePass::compute()
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
-nex::Texture2D* nex::Ocean::HeightZeroComputePass::getResult()
+nex::Texture2D* nex::OceanGPU::HeightZeroComputePass::getResult()
 {
 	return mHeightZero.get();
 }
 
-nex::Ocean::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength,
-	float periodTime) : 
-ComputePass(Shader::createComputeShader("ocean/height_cs.glsl")),
-mUniquePointCount(uniquePointCount)
+nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength,
+	float periodTime) :
+	ComputePass(Shader::createComputeShader("ocean/height_cs.glsl")),
+	mUniquePointCount(uniquePointCount)
 {
 	mUniquePointCountUniform = { mShader->getUniformLocation("uniquePointCount"), UniformType::UVEC2 };
 	mWaveLengthUniform = { mShader->getUniformLocation("waveLength"), UniformType::VEC2 };
@@ -1136,7 +1051,7 @@ mUniquePointCount(uniquePointCount)
 	mShader->setFloat(mPeriodTimeUniform.location, periodTime);
 }
 
-void nex::Ocean::HeightComputePass::compute(float time, Texture2D* heightZero)
+void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero)
 {
 	// Ensure that the updated content of heightZero is visible
 	RenderBackend::get()->syncMemoryWithGPU((MemorySync)(MemorySync_ShaderImageAccess | MemorySync_TextureUpdate));
@@ -1201,33 +1116,33 @@ void nex::Ocean::HeightComputePass::compute(float time, Texture2D* heightZero)
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
-nex::Texture2D* nex::Ocean::HeightComputePass::getHeight()
+nex::Texture2D* nex::OceanGPU::HeightComputePass::getHeight()
 {
 	return mHeight.get();
 }
 
-nex::Texture2D* nex::Ocean::HeightComputePass::getSlopeX()
+nex::Texture2D* nex::OceanGPU::HeightComputePass::getSlopeX()
 {
 	return mHeightSlopeX.get();
 }
 
-nex::Texture2D* nex::Ocean::HeightComputePass::getSlopeZ()
+nex::Texture2D* nex::OceanGPU::HeightComputePass::getSlopeZ()
 {
 	return mHeightSlopeZ.get();
 }
 
-nex::Texture2D* nex::Ocean::HeightComputePass::getDx()
+nex::Texture2D* nex::OceanGPU::HeightComputePass::getDx()
 {
 	return mHeightDx.get();
 }
 
-nex::Texture2D* nex::Ocean::HeightComputePass::getDz()
+nex::Texture2D* nex::OceanGPU::HeightComputePass::getDz()
 {
 	return mHeightDz.get();
 }
 
 
-nex::Ocean::ButterflyComputePass::ButterflyComputePass(unsigned N) : ComputePass(Shader::createComputeShader("ocean/butterfly_cs.glsl")),
+nex::OceanGPU::ButterflyComputePass::ButterflyComputePass(unsigned N) : ComputePass(Shader::createComputeShader("ocean/butterfly_cs.glsl")),
 mN(N)
 {
 	if (!nex::isPow2(mN)) throw std::invalid_argument("nex::Ocean::ButterflyComputePass : N has to be a power of 2!");
@@ -1241,13 +1156,13 @@ mN(N)
 	mButterfly = std::make_unique<Texture2D>(mN, std::log2(mN), desc, nullptr);
 
 	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
-	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT};
+	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
 
 	mShader->bind();
 	mShader->setInt(mNUniform.location, mN);
 }
 
-void nex::Ocean::ButterflyComputePass::compute()
+void nex::OceanGPU::ButterflyComputePass::compute()
 {
 	mShader->bind();
 
@@ -1264,12 +1179,12 @@ void nex::Ocean::ButterflyComputePass::compute()
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 }
 
-nex::Texture2D* nex::Ocean::ButterflyComputePass::getButterfly()
+nex::Texture2D* nex::OceanGPU::ButterflyComputePass::getButterfly()
 {
 	return mButterfly.get();
 }
 
-nex::Ocean::IfftPass::IfftPass(int N) : ComputePass(Shader::createComputeShader("ocean/ifft_cs.glsl")),
+nex::OceanGPU::IfftPass::IfftPass(int N) : ComputePass(Shader::createComputeShader("ocean/ifft_cs.glsl")),
 mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit_cs.glsl"))), mN(N), mLog2N(std::log2(mN))
 
 {
@@ -1283,9 +1198,9 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
 	mStageUniform = { mShader->getUniformLocation("stage"), UniformType::INT };
 	mVerticalUniform = { mShader->getUniformLocation("vertical"), UniformType::INT };
-	mInputUniform = {mShader->getUniformLocation("inputImage"), UniformType::IMAGE2D, 0};
+	mInputUniform = { mShader->getUniformLocation("inputImage"), UniformType::IMAGE2D, 0 };
 	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 1 };
-	mOutputUniform = { mShader->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2};
+	mOutputUniform = { mShader->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2 };
 
 
 	mShader->bind();
@@ -1296,7 +1211,7 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 	mBlitDestUniform = { mBlit->getShader()->getUniformLocation("dest"), UniformType::IMAGE2D, 1 };
 }
 
-void nex::Ocean::IfftPass::setButterfly(Texture2D* butterfly)
+void nex::OceanGPU::IfftPass::setButterfly(Texture2D* butterfly)
 {
 	mShader->setImageLayerOfTexture(mButterflyUniform.location,
 		butterfly,
@@ -1308,7 +1223,7 @@ void nex::Ocean::IfftPass::setButterfly(Texture2D* butterfly)
 		0);
 }
 
-void nex::Ocean::IfftPass::setInput(Texture2D* input)
+void nex::OceanGPU::IfftPass::setInput(Texture2D* input)
 {
 	mShader->setImageLayerOfTexture(mInputUniform.location,
 		input,
@@ -1320,7 +1235,7 @@ void nex::Ocean::IfftPass::setInput(Texture2D* input)
 		0);
 }
 
-void nex::Ocean::IfftPass::setOutput(Texture2D* output)
+void nex::OceanGPU::IfftPass::setOutput(Texture2D* output)
 {
 	mShader->setImageLayerOfTexture(mOutputUniform.location,
 		output,
@@ -1332,19 +1247,19 @@ void nex::Ocean::IfftPass::setOutput(Texture2D* output)
 		0);
 }
 
-void nex::Ocean::IfftPass::setStage(int stage)
+void nex::OceanGPU::IfftPass::setStage(int stage)
 {
 	mShader->setInt(mStageUniform.location, stage);
 }
 
-void nex::Ocean::IfftPass::setVertical(bool vertical)
+void nex::OceanGPU::IfftPass::setVertical(bool vertical)
 {
 	mShader->setInt(mVerticalUniform.location, (int)vertical);
 }
 
-void nex::Ocean::IfftPass::computeAllStages(Texture2D* input)
+void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 {
-	Texture2D* textures[2] = {input, mPingPong.get()};
+	Texture2D* textures[2] = { input, mPingPong.get() };
 	int index = 0;
 
 	for (unsigned n = 0; n < mLog2N; ++n)
@@ -1391,6 +1306,8 @@ void nex::Ocean::IfftPass::computeAllStages(Texture2D* input)
 		bind();
 	}
 }
+
+
 
 nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
 {
