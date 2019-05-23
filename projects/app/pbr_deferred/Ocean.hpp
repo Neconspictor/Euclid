@@ -158,6 +158,8 @@ namespace nex
 			float windSpeed,
 			float periodTime);
 
+		void generateMesh();
+
 		/**
 		 * A vertex structure containing useful data when generating and updating the water surface.
 		 */
@@ -290,6 +292,18 @@ namespace nex
 		virtual ~OceanGPU();
 
 	private:
+
+		void generateMesh();
+
+
+		/**
+		 * A vertex structure containing data for rendering the water
+		 */
+		struct Vertex
+		{
+			glm::vec3 position;
+		};
+
 		class HeightZeroComputePass : public ComputePass
 		{
 		public:
@@ -446,6 +460,11 @@ namespace nex
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
 		std::unique_ptr<ButterflyComputePass> mButterflyComputePass;
 		std::unique_ptr<IfftPass> mIfftComputePass;
+
+		std::vector<Vertex> mVertices;
+		std::vector<unsigned> mIndices;
+		std::unique_ptr<Mesh> mMesh;
+
 	};
 
 

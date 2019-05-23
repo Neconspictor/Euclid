@@ -137,6 +137,13 @@ nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, flo
 Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
 mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
+	generateMesh();
+}
+
+nex::OceanCpu::~OceanCpu() = default;
+
+void nex::OceanCpu::generateMesh()
+{
 	const float twoPi = static_cast<float>(2.0f * util::PI);
 	const float pi = static_cast<float>(util::PI);
 
@@ -215,8 +222,6 @@ mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
-nex::OceanCpu::~OceanCpu() = default;
-
 float nex::OceanCpu::dispersion(const glm::vec2& wave) const
 {
 	static const float w0 = 2.0f * util::PI / mPeriodTime;
@@ -282,6 +287,7 @@ nex::Complex nex::OceanCpu::height(int x, int z, float time) const
 	return vertex.height0 * c0//* Complex::euler(w * time)
 		+ vertex.height0NegativeWaveConjugate * c1; //* Complex::euler(-w * time);
 }
+
 
 nex::OceanCpu::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
 {
@@ -818,8 +824,6 @@ void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
 	}*/
 }
 
-
-
 nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
 	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
@@ -939,11 +943,78 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
 
 	bool t = true;
+
+	generateMesh();
 }
 
 nex::OceanGPU::~OceanGPU() = default;
 
+void nex::OceanGPU::generateMesh()
+{
+	const auto vertexCount = mPointCount * mPointCount;
+	const auto quadCount = (mPointCount - 1) * (mPointCount - 1);
 
+	const unsigned indicesPerQuad = 6; // two triangles per quad
+
+	mVertices.resize(vertexCount);
+	mIndices.resize(quadCount * indicesPerQuad); // two triangles per quad
+
+	for (unsigned z = 0; z < mPointCount; ++z)
+	{
+		for (unsigned x = 0; x < mPointCount; ++x)
+		{
+			const auto index = z * mPointCount + x;
+
+			mVertices[index].position = glm::vec3(
+				(x - mPointCount / 2.0f) * mWaveLength / (float)mN,
+				0.0f,
+				getZValue((z - mPointCount / 2.0f) * mWaveLength / (float)mN)
+			);
+		}
+	}
+
+
+	const auto quadNumber = mN;
+
+	for (unsigned x = 0; x < quadNumber; ++x)
+	{
+		for (unsigned z = 0; z < quadNumber; ++z)
+		{
+			const auto indexStart = indicesPerQuad * (x * quadNumber + z);
+
+			const auto vertexBottomLeft = x * mPointCount + z;
+
+			// first triangle
+			mIndices[indexStart] = vertexBottomLeft;
+			mIndices[indexStart + 1] = vertexBottomLeft + 1; // one column to the right
+			mIndices[indexStart + 2] = vertexBottomLeft + mPointCount + 1; // one row up and one column to the right
+
+			// second triangle
+			mIndices[indexStart + 3] = vertexBottomLeft;
+			mIndices[indexStart + 4] = vertexBottomLeft + mPointCount + 1;
+			mIndices[indexStart + 5] = vertexBottomLeft + mPointCount; // one row up
+		}
+	}
+
+	VertexBuffer vertexBuffer;
+	vertexBuffer.bind();
+	vertexBuffer.fill(mVertices.data(), vertexCount * sizeof(Vertex), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	IndexBuffer indexBuffer(mIndices.data(), static_cast<unsigned>(mIndices.size()), IndexElementType::BIT_32);
+	indexBuffer.bind();
+
+	VertexLayout layout;
+	layout.push<glm::vec3>(1); // position
+	layout.push<glm::vec3>(1); // normal
+
+	VertexArray vertexArray;
+	vertexArray.bind();
+	vertexArray.useBuffer(vertexBuffer, layout);
+
+	vertexArray.unbind();
+	indexBuffer.unbind();
+
+	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+}
 
 
 nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& uniquePointCount, const glm::vec2& waveLength, const glm::vec2& windDirection,
