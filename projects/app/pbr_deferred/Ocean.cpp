@@ -1032,7 +1032,10 @@ void nex::OceanGPU::generateMesh()
 				getZValue((z - mPointCount / 2.0f) * mWaveLength / (float)mN)
 			);
 
-			mVertices[index].texCoords = glm::vec2(x, z) / (float)mPointCount;
+			/**
+			 * By modulating the texture coordinate with N, the ocean is tilable
+			 */
+			mVertices[index].texCoords = glm::vec2(x % mN, z % mN) / (float)mPointCount;
 		}
 	}
 
