@@ -87,7 +87,7 @@ int bitrev(int n, int bitCount)
  * Calculates twiddle factor W(k,N)= e^(i * 2*pi * k / N ) for the current fft recursion stage
  * (y-component of the global invocation) 
  */
-void main(void)
+/*void main(void)
 {
     const ivec2 index = ivec2(gl_GlobalInvocationID.xy);
     
@@ -129,6 +129,42 @@ void main(void)
     
 
     imageStore(butterfly, index, vec4(twiddle.re, twiddle.im, evenStageNHalfthSampleIndex, oddStageNHalfthSampleIndex));
+}*/
+
+void main(void)
+{
+	vec2 x = gl_GlobalInvocationID.xy;
+	float k = mod(x.x * (float(N)/ pow(2,x.y+1)), N);
+	Complex twiddle = Complex( cos(TWO_PI*k/float(N)), sin(TWO_PI*k/float(N)));
+	
+	int butterflyspan = int(pow(2, x.y));
+	
+	int butterflywing;
+	
+	if (mod(x.x, pow(2, x.y + 1)) < pow(2, x.y))
+		butterflywing = 1;
+	else butterflywing = 0;
+
+	// first stage, bit reversed indices
+	if (x.y == 0) {
+        const int bitCount = int(log2(N));
+    
+		// top butterfly wing
+		if (butterflywing == 1)
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, bitrev(int(x.x), bitCount), bitrev(int(x.x + 1), bitCount)));
+		// bot butterfly wing
+		else	
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, bitrev(int(x.x - 1), bitCount), bitrev(int(x.x), bitCount)));
+	}
+	// second to log2(N) stage
+	else {
+		// top butterfly wing
+		if (butterflywing == 1)
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, x.x, x.x + butterflyspan));
+		// bot butterfly wing
+		else
+			imageStore(butterfly, ivec2(x), vec4(twiddle.re, twiddle.im, x.x - butterflyspan, x.x));
+	}
 }
 
 /*void main(void)

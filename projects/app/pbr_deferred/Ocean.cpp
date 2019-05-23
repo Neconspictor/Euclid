@@ -501,10 +501,11 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
 
 	mIfftComputePass->bind();
-	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
+	
 
 	// horizontal 1D iFFT
 	mIfftComputePass->setVertical(false);
+	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
 	//mIfftComputePass->computeAllStages(slopeZFFT);
@@ -519,6 +520,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 
 	// vertical 1D iFFT
 	mIfftComputePass->setVertical(true);
+	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
 	//mIfftComputePass->computeAllStages(slopeZFFT);
@@ -853,14 +855,15 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 
 		/*fft.fft(h_tilde.data(), h_tilde.data(), N, n_prime, false);
 
-		
+
 
 		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), N, n_prime, false);
 		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), N, n_prime, false);
 		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), N, n_prime, false);
 		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime, false);*/
 	}
-	
+
+
 	for (int m_prime = 0; m_prime < N; m_prime++) {
 
 		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
@@ -1284,12 +1287,12 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 	mOutputUniform = { mShader->getUniformLocation("outputImage"), UniformType::IMAGE2D, 2};
 
 
-	mBlitSourceUniform = { mBlit->getShader()->getUniformLocation("source"), UniformType::IMAGE2D, 0 };
-	mBlitDestUniform = { mBlit->getShader()->getUniformLocation("dest"), UniformType::IMAGE2D, 1 };
-
-
 	mShader->bind();
 	mShader->setInt(mNUniform.location, mN);
+
+	mBlit->bind();
+	mBlitSourceUniform = { mBlit->getShader()->getUniformLocation("source"), UniformType::IMAGE2D, 0 };
+	mBlitDestUniform = { mBlit->getShader()->getUniformLocation("dest"), UniformType::IMAGE2D, 1 };
 }
 
 void nex::Ocean::IfftPass::setButterfly(Texture2D* butterfly)
@@ -1380,6 +1383,7 @@ void nex::Ocean::IfftPass::computeAllStages(Texture2D* input)
 			0);
 
 
+		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		mBlit->dispatch(mN, mN, 1);
 		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		// rebind this compute shader

@@ -660,6 +660,8 @@ namespace nex
 		if (flags & MemorySync_TextureUpdate)
 			glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
 
+		glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+
 		GLCall(glMemoryBarrier(glFlags));
 		GLCall(glFinish());
 	}

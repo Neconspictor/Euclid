@@ -104,7 +104,7 @@ void verticalOperation() {
 
 void main(void)
 {
-    if (vertical) {
+    if (vertical != 0) {
         verticalOperation();
     } else {
         horizontalOperation();

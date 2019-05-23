@@ -53,8 +53,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(glm::uvec2(2+1), //pointCount
-		glm::vec2(2), // maxWaveLength
+	mOcean(glm::uvec2(8+1), //pointCount
+		glm::vec2(8), // maxWaveLength
 		glm::vec2(1.0f), //dimension
 		1.0f, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
