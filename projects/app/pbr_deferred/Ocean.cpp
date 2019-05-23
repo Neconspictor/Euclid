@@ -1537,6 +1537,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_gpu_vs.glsl", "ocean/simple_shaded_gpu_fs.glsl"))
 {
 	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	modelViewUniform = { mShader->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
 	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 
@@ -1564,6 +1565,7 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat
 
 	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
 	mShader->setMat4(transform.location, projection * view * trafo);
+	mShader->setMat4(modelViewUniform.location, modelView);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));

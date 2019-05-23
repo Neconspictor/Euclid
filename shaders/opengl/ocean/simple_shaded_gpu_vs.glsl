@@ -8,6 +8,7 @@ layout (location = 4) in vec3 bitangent;*/
 
 out VS_OUT {
     vec3 normal;
+    vec3 positionView;
     //vec2 texCoords;
 } vs_out;
 
@@ -19,7 +20,9 @@ layout(binding = 3) uniform sampler2D dX;
 layout(binding = 4) uniform sampler2D dZ;
 
 uniform mat4 transform;
+uniform mat4 modelViewMatrix;
 uniform mat3 normalMatrix;
+
 
 void main() { 
     
@@ -40,6 +43,7 @@ void main() {
     
   //vs_out.normal = normalize(normalMatrix * normal);
   vs_out.normal = normalize(normalMatrix * mNormal);
+  vs_out.positionView = vec3(modelViewMatrix * mPosition);
   //vs_out.texCoords = texCoords;
   
   gl_Position = transform * mPosition;  

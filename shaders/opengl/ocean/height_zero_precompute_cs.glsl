@@ -54,7 +54,7 @@ float philipsSpectrum(vec2 k) {
     
     const float exponential = (exp(-1.0 / kWaveLength2) / kLength4);
     
-    const float damping = 0.001;
+    const float damping = 0.002;
     const float L2 = L * L;
 	const float l2 = L2 * damping * damping;
 

@@ -53,10 +53,10 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(128, //N
-		128, // maxWaveLength
+	mOcean(256, //N
+		256, // maxWaveLength
 		1.0f, //dimension
-		1.0f, //spectrumScale
+		0.4f, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
 		32.0f, //windSpeed
 		200.0f //periodTime
