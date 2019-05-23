@@ -55,246 +55,6 @@ bool nex::Iterator2D::isInRange(const size_t vectorIndex) const
 	return vectorIndex < mVec->size();
 }
 
-
-nex::OceanFFT::OceanFFT(unsigned N) : N(N)
-{
-	log_2_N = log2(N);
-
-	// bit reversal precomputation
-	reversed.resize(N);
-	for (int i = 0; i < reversed.size(); ++i) reversed[i] = reverse(i);
-
-	// prepare twiddle factors
-	int pow2 = 1;
-	T.resize(log_2_N);
-	for (int i = 0; i < T.size(); ++i)
-	{
-		T[i].resize(pow2);
-		for (int j = 0; j < pow2; ++j) T[i][j] = twiddle(j, pow2*2);
-		pow2 *= 2;
-	}
-
-	c[0].resize(N);
-	c[1].resize(N);
-	which = 0;
-}
-
-unsigned nex::OceanFFT::reverse(unsigned i) const
-{
-	// Find the max number for bit reversing. All bits higher than this number will be zeroed.
-	// the max number is determined by 2^bitCount - 1.
-	const unsigned maxNumber = (1 << log_2_N) - 1;
-	// Initialize the reversed number 
-	unsigned reversedN = i;
-
-	// Shift n to the right, reversed n to the left, 
-	// and give least-significant bit of n to reversed n.
-	// Do this process as long as n is greater zero.
-	// Technically we have to do this process bitCount times
-	// But we can save some loops by ignoring shifts if n is zero and 
-	// just left shift reversed n by the remaining bits.
-	// Therefore we need the remainingBits variable.
-	unsigned remainingBits = log_2_N - 1;
-	for (i >>= 1; i > 0; i >>= 1)
-	{
-		reversedN <<= 1;
-		reversedN |= i & 1;
-		remainingBits--;
-	}
-
-	// left shift reversed n by the remaining bits.
-	reversedN <<= remainingBits;
-
-	// Clear all bits more significant than the max number 
-	reversedN &= maxNumber;
-
-	return reversedN;
-}
-
-nex::Complex nex::OceanFFT::twiddle(unsigned x, unsigned N)
-{
-	return Complex(cos(pi2 * x / N), sin(pi2 * x / N));
-}
-
-void nex::OceanFFT::fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical)
-{
-	for (int i = 0; i < N; i++) c[which][i] = input[reversed[i] * stride + offset];
-
-	int loops = N >> 1;
-	int size = 1 << 1;
-	int size_over_2 = 1;
-	int w_ = 0;
-	for (int i = 1; i <= log_2_N; i++) {
-		which ^= 1;
-		for (int j = 0; j < loops; j++) {
-			for (int k = 0; k < size_over_2; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j + k] +
-					c[which ^ 1][size * j + size_over_2 + k] * T[w_][k];
-			}
-
-			for (int k = size_over_2; k < size; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j - size_over_2 + k] -
-					c[which ^ 1][size * j + k] * T[w_][k - size_over_2];
-			}
-		}
-		loops >>= 1;
-		size <<= 1;
-		size_over_2 <<= 1;
-		w_++;
-	}
-
-	for (unsigned k = 0; k < N / 2; ++k)
-	{
-		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
-		std::swap(c[which][k], c[which][k + N / 2]);
-	}
-
-	if (vertical)
-	{
-		for (unsigned k = 1; k < N / 2; ++k)
-		{
-			//std::swap(x[reverse(k)], x[reverse(N - k)]);
-			std::swap(c[which][k], c[which][N - k]);
-		}
-	}
-
-	for (int i = 0; i < N; i++) output[i * stride + offset] = c[which][i];
-}
-
-void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, bool vertical)
-{
-	for (int i = 0; i < N; i++) c[which][i] = input[reversed[i]];
-
-	int loops = N >> 1;
-	int size = 1 << 1;
-	int size_over_2 = 1;
-	int w_ = 0;
-	for (int i = 1; i <= log_2_N; i++) {
-		which ^= 1;
-		for (int j = 0; j < loops; j++) {
-			for (int k = 0; k < size_over_2; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j + k] +
-					c[which ^ 1][size * j + size_over_2 + k] * T[w_][k];
-			}
-
-			for (int k = size_over_2; k < size; k++) {
-				c[which][size * j + k] = c[which ^ 1][size * j - size_over_2 + k] -
-					c[which ^ 1][size * j + k] * T[w_][k - size_over_2];
-			}
-		}
-		loops >>= 1;
-		size <<= 1;
-		size_over_2 <<= 1;
-		w_++;
-	}
-
-	for (unsigned k = 0; k < N / 2; ++k)
-	{
-		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
-		std::swap(c[which][k], c[which][k + N / 2]);
-	}
-
-	if (vertical)
-	{
-		for (unsigned k = 1; k < N / 2; ++k)
-		{
-			//std::swap(x[reverse(k)], x[reverse(N - k)]);
-			std::swap(c[which][k], c[which][N - k]);
-		}
-	}
-
-
-	for (int i = 0; i < N; i++) output[i] = c[which][i];
-}
-
-void nex::OceanFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
-{
-	/* Do the bit reversal */
-	{
-		unsigned i2 = N >> 1;
-		unsigned j = 0;
-
-		for (unsigned i = 0; i < N - 1; i++)
-		{
-			if (i < j)
-				std::swap(x[i], x[j]);
-
-			unsigned k = i2;
-
-			while (k <= j)
-			{
-				j -= k;
-				k >>= 1;
-			}
-
-			j += k;
-		}
-	}
-
-
-	/**
-	 * Do FFT
-	 */
-	Complex c(-1.0, 0.0);
-	unsigned l2 = 1;
-	for (unsigned l = 0; l < log_2_N; l++)
-	{
-		unsigned l1 = l2;
-		l2 <<= 1;
-		nex::Complex u(1.0, 0.0);
-
-		for (unsigned j = 0; j < l1; j++)
-		{
-			for (unsigned i = j; i < N; i += l2)
-			{
-				unsigned i1 = i + l1;
-				auto t1 = u * x[i1];
-				x[i1] = x[i] - t1;
-				x[i] += t1;
-			}
-
-			u = u * c;
-		}
-
-		c.im = sqrt((1.0 - c.re) / 2.0);
-		if (!inverse)
-		{
-			c.im = -c.im;
-		}
-		c.re = sqrt((1.0 + c.re) / 2.0);
-	}
-
-	/* Scaling for forward transform */
-	if (inverse)
-	{
-		for (unsigned i = 0; i < N; i++)
-			x[i] /= N;
-	}
-
-	/* Do the bit reversal */
-	/*{
-		unsigned i2 = N >> 1;
-		unsigned j = 0;
-
-		for (unsigned i = 0; i < N - 1; i++)
-		{
-			if (i < j)
-				std::swap(x[i], x[j]);
-
-			unsigned k = i2;
-
-			while (k <= j)
-			{
-				j -= k;
-				k >>= 1;
-			}
-
-			j += k;
-		}
-	}*/
-}
-
-
 nex::Ocean::Ocean(unsigned N,
 	unsigned maxWaveLength,
 	float dimension,
@@ -310,9 +70,7 @@ nex::Ocean::Ocean(unsigned N,
 	mWindDirection(glm::normalize(windDirection)),
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
-	mSimpleShadedPass(std::make_unique<SimpleShadedPass>()),
-	mWireframe(true),
-	fft(mN)
+	mWireframe(true)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -320,22 +78,71 @@ nex::Ocean::Ocean(unsigned N,
 	if (spectrumScale <= 0) throw std::invalid_argument("spectrumScale has to be greater than 0");
 	if (length(windDirection) <= 0) throw std::invalid_argument("length of windDirection has to be greater than 0");
 	if (periodTime <= 0) throw std::invalid_argument("periodTime has to be greater than 0");
+}
 
+nex::Ocean::~Ocean() = default;
+
+float nex::Ocean::generateGaussianRand()
+{
+	static std::random_device device;
+	static std::mt19937 engine(device());
+
+	// note: we need mean 0 and standard deviation 1!
+	static std::normal_distribution<float> distribution(0, 1);
+	return distribution(engine);
+}
+
+bool* nex::Ocean::getWireframeState()
+{
+	return &mWireframe;
+}
+
+nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
+{
+	//static const auto inverseRootTwo = 1 / std::sqrt(2.0);
+	const Complex random(generateGaussianRand(), generateGaussianRand());
+
+	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
+}
+
+float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
+{
+	const auto L = mWindSpeed * mWindSpeed / GRAVITY;
+	const auto L2 = L * L;
+	const float smallestAllowedWaveLength = L * 0.001f;
+	const float smallestAllowedWaveLength2 = smallestAllowedWaveLength * smallestAllowedWaveLength;
+
+	// length of the wave vector
+	const auto k = length(wave);//2 * util::PI / lambda;
+
+	if (k < 0.0001) return 0.0f;
+
+	const auto kLSquare = k * L * k*L;
+	const auto k2 = k * k;
+	const auto kFour = k2 * k2;
+	const auto absAngleWaveWind = abs(dot(normalize(wave), normalize(mWindDirection)));
+	auto windAlignmentFactor = absAngleWaveWind * absAngleWaveWind;
+	auto windAlignmentFactor2 = windAlignmentFactor * windAlignmentFactor;
+	auto windAlignmentFactor4 = windAlignmentFactor2 * windAlignmentFactor2;
+	auto windAlignmentFactor8 = windAlignmentFactor4 * windAlignmentFactor4;
+
+	const float smallWaveSuppression = std::exp(-k2 * smallestAllowedWaveLength2);
+
+	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor * smallWaveSuppression;
+}
+
+
+nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
+	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
+Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
+{
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
 
-	
-
-	h_tilde.resize(N * N);
-	h_tilde_slopex.resize(N * N);
-	h_tilde_slopez.resize(N * N);
-	h_tilde_dx.resize(N * N);
-	h_tilde_dz.resize(N * N);
-
-
 	const auto vertexCount = mPointCount * mPointCount;
 	const auto quadCount = (mPointCount - 1) * (mPointCount - 1);
-	
+
 	const unsigned indicesPerQuad = 6; // two triangles per quad
 
 	mVerticesCompute.resize(vertexCount);
@@ -388,10 +195,6 @@ nex::Ocean::Ocean(unsigned N,
 		}
 	}
 
-
-	//simulate(10.0f);
-	simulateFFT(10.0f, true);
-
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
 	vertexBuffer.fill(mVerticesRender.data(), vertexCount * sizeof(VertexRender), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
@@ -412,67 +215,19 @@ nex::Ocean::Ocean(unsigned N,
 	mMesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
 }
 
-nex::Ocean::~Ocean() = default;
+nex::OceanCpu::~OceanCpu() = default;
 
-nex::Ocean::ResultData nex::Ocean::simulatePoint(const glm::vec2& locationXZ, float t) const
-{
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
-
-	Complex height( 0.0, 0.0);
-	glm::vec2 gradient(0.0f);
-	glm::vec2 displacement(0.0f);
-
-
-	for (unsigned z = 0; z < mN; ++z)
-	{
-		for (unsigned x = 0; x < mN; ++x)
-		{
-			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
-			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
-			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
-
-			const auto wave = glm::vec2(kx, kz);
-			const auto angle = dot(wave, locationXZ);
-			
-			const auto euler = Complex::euler(angle);
-			const auto sample = this->height(x, z, t) * euler;
-
-			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
-			height += sample;
-
-
-			// Note: We only consider the real part of the gradient, as the imaginary part isn't needed
-			// The gradient is a two dimensional complex vector: i*(kx, kz) * h = <(-h.im * kx) +  i*(h.re * kx), (-h.im * kz) + i*(h.re * kz)>
-			gradient += glm::vec2(-sample.im * kx, -sample.im * kz);
-
-			//if (k_length < 0.000001) continue;
-			//D = D + glm::vec2(kx / k_length * htilde_c.imag(), kz / k_length * htilde_c.imag());
-			const auto length = glm::length(wave);
-			if (length >= 0.00001)
-			{
-				displacement += glm::vec2(kx / length * sample.im, kz / length * sample.im);
-			}
-		}
-	}
-
-	// The normal vector can be calculated from the real part of the gradient
-	glm::vec3 normal = normalize(glm::vec3(-gradient.x, 1.0, -gradient.y));
-
-	return {height, displacement, normal};
-}
-
-float nex::Ocean::dispersion(const glm::vec2& wave) const
+float nex::OceanCpu::dispersion(const glm::vec2& wave) const
 {
 	static const float w0 = 2.0f * util::PI / mPeriodTime;
 	return std::floor(std::sqrt(GRAVITY * length(wave)) / w0) * w0;
 }
 
-void nex::Ocean::draw(Camera* camera, const glm::vec3& lightDir)
+void nex::OceanCpu::draw(Camera* camera, const glm::vec3& lightDir)
 {
 	mSimpleShadedPass->bind();
 	glm::mat4 model;
-	model = translate(model, glm::vec3(0,2, -1));
+	model = translate(model, glm::vec3(0, 2, -1));
 	model = scale(model, glm::vec3(1 / (float)mWaveLength));
 
 	mSimpleShadedPass->setUniforms(camera, model, lightDir);
@@ -504,25 +259,7 @@ void nex::Ocean::draw(Camera* camera, const glm::vec3& lightDir)
 	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
 }
 
-float nex::Ocean::generateGaussianRand()
-{
-	static std::random_device device;
-	static std::mt19937 engine(device());
-
-	// note: we need mean 0 and standard deviation 1!
-	static std::normal_distribution<float> distribution(0, 1);
-	return distribution(engine);
-}
-
-nex::Complex nex::Ocean::heightZero(const glm::vec2& wave) const
-{
-	//static const auto inverseRootTwo = 1 / std::sqrt(2.0);
-	const Complex random(generateGaussianRand(), generateGaussianRand());
-
-	return random * std::sqrt(philipsSpectrum(wave) / 2.0f);
-}
-
-nex::Complex nex::Ocean::height(int x, int z, float time) const
+nex::Complex nex::OceanCpu::height(int x, int z, float time) const
 {
 	const float twoPi = 2.0f * util::PI;
 	const float pi = util::PI;
@@ -546,40 +283,90 @@ nex::Complex nex::Ocean::height(int x, int z, float time) const
 		+ vertex.height0NegativeWaveConjugate * c1; //* Complex::euler(-w * time);
 }
 
-float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
+nex::OceanCpu::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
 {
-	const auto L = mWindSpeed * mWindSpeed / GRAVITY;
-	const auto L2 = L * L;
-	const float smallestAllowedWaveLength = L * 0.001f;
-	const float smallestAllowedWaveLength2 = smallestAllowedWaveLength * smallestAllowedWaveLength;
-
-	// length of the wave vector
-	const auto k = length(wave);//2 * util::PI / lambda;
-
-	if (k < 0.0001) return 0.0f;
-
-	const auto kLSquare = k * L * k*L;
-	const auto k2 = k * k;
-	const auto kFour = k2 * k2;
-	const auto absAngleWaveWind = abs(dot(normalize(wave), normalize(mWindDirection)));
-	auto windAlignmentFactor = absAngleWaveWind * absAngleWaveWind;
-	auto windAlignmentFactor2 = windAlignmentFactor * windAlignmentFactor;
-	auto windAlignmentFactor4 = windAlignmentFactor2 * windAlignmentFactor2;
-	auto windAlignmentFactor8 = windAlignmentFactor4 * windAlignmentFactor4;
-
-	const float smallWaveSuppression = std::exp(-k2 * smallestAllowedWaveLength2);
-
-	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor * smallWaveSuppression;
+	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 }
 
-bool* nex::Ocean::getWireframeState()
+void nex::OceanCpu::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
 {
-	return &mWireframe;
+	auto projection = camera->getProjectionMatrix();
+	auto view = camera->getView();
+
+	auto modelView = view * trafo;
+
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mShader->setMat4(transform.location, projection * view * trafo);
+
+
+	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
+	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
 }
 
-void nex::Ocean::simulate(float t)
+
+nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
+	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
+OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime)
 {
-	const float displacementDirectionScale = 0.0;
+}
+
+nex::OceanCpuDFT::~OceanCpuDFT() = default;
+
+nex::OceanCpu::ResultData nex::OceanCpuDFT::simulatePoint(const glm::vec2& locationXZ, float t) const
+{
+	const float twoPi = 2.0f * util::PI;
+	const float pi = util::PI;
+
+	Complex height(0.0, 0.0);
+	glm::vec2 gradient(0.0f);
+	glm::vec2 displacement(0.0f);
+
+	const auto normalization = (double)mWaveLength;
+
+
+	for (unsigned z = 0; z < mN; ++z)
+	{
+		for (unsigned x = 0; x < mN; ++x)
+		{
+			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
+			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+
+			const auto wave = glm::vec2(kx, kz);
+			const auto angle = dot(wave, locationXZ);
+
+			const auto euler = Complex::euler(angle);
+			const auto sample = this->height(x, z, t) * euler / normalization;
+
+			// real component is the amplitude of the sinusoid -> sum up amplitudes to get the height
+			height += sample;
+
+
+			// Note: We only consider the real part of the gradient, as the imaginary part isn't needed
+			// The gradient is a two dimensional complex vector: i*(kx, kz) * h = <(-h.im * kx) +  i*(h.re * kx), (-h.im * kz) + i*(h.re * kz)>
+			gradient += glm::vec2(-sample.im * kx, -sample.im * kz);
+
+			//if (k_length < 0.000001) continue;
+			//D = D + glm::vec2(kx / k_length * htilde_c.imag(), kz / k_length * htilde_c.imag());
+			const auto length = glm::length(wave);
+			if (length >= 0.00001)
+			{
+				displacement += glm::vec2(kx / length * sample.im, kz / length * sample.im);
+			}
+		}
+	}
+
+	// The normal vector can be calculated from the real part of the gradient
+	glm::vec3 normal = normalize(glm::vec3(-gradient.x, 1.0, -gradient.y));
+
+	return { height, displacement, normal };
+}
+
+void nex::OceanCpuDFT::simulate(float t)
+{
+	const float displacementDirectionScale = -1.0;
 
 	for (int z = 0; z < mN; z++) {
 		for (int x = 0; x < mN; x++) {
@@ -590,7 +377,7 @@ void nex::Ocean::simulate(float t)
 			auto& vertex = mVerticesRender[index];
 			const auto& computeData = mVerticesCompute[index];
 
-			glm::vec2 locationXZ (vertex.position.x, vertex.position.z);
+			glm::vec2 locationXZ(vertex.position.x, vertex.position.z);
 
 			//auto height = computeHeight(x, t);
 
@@ -636,7 +423,44 @@ void nex::Ocean::simulate(float t)
 	}
 }
 
-void nex::Ocean::simulateFFT(float t, bool skip)
+nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
+	unsigned maxWaveLength,
+	float dimension,
+	float spectrumScale,
+	const glm::vec2& windDirection,
+	float windSpeed,
+	float periodTime) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	mLog_2_N(log2(mN))
+{
+	// bit reversal precomputation
+	mReversed.resize(N);
+	for (int i = 0; i < mReversed.size(); ++i) mReversed[i] = reverse(i);
+
+	// prepare twiddle factors
+	int pow2 = 1;
+	mT.resize(mLog_2_N);
+	for (int i = 0; i < mT.size(); ++i)
+	{
+		mT[i].resize(pow2);
+		for (int j = 0; j < pow2; ++j) mT[i][j] = twiddle(j, pow2 * 2);
+		pow2 *= 2;
+	}
+
+	mC[0].resize(N);
+	mC[1].resize(N);
+	mWhich = 0;
+
+
+	h_tilde.resize(N * N);
+	h_tilde_slopex.resize(N * N);
+	h_tilde_slopez.resize(N * N);
+	h_tilde_dx.resize(N * N);
+	h_tilde_dz.resize(N * N);
+}
+
+nex::OceanCpuFFT::~OceanCpuFFT() = default;
+
+void nex::OceanCpuFFT::simulate(float t, bool skip)
 {
 	float lambda = -0.8;
 	const float twoPi = 2.0f * util::PI;
@@ -645,14 +469,14 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 	for (int z = 0; z < mN; z++) {
 		//kz = M_PI * (2.0f * m_prime - N) / length;
 		const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
-		
+
 		for (int x = 0; x < mN; x++) {
 			//kx = M_PI * (2 * n_prime - N) / length;
 			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 
 
 			float len = sqrt(kx * kx + kz * kz);
-			const unsigned index  = z * mN + x;
+			const unsigned index = z * mN + x;
 
 			h_tilde[index] = height(x, z, t) * 1.0f;
 			// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
@@ -682,11 +506,11 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
 		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
 
-		fft.fft(h_tildeIt, h_tildeIt, true);
-		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
-		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
-		fft.fft(h_tilde_dxIt, h_tilde_dxIt, true);
-		fft.fft(h_tilde_dzIt, h_tilde_dzIt, true);
+		fft(h_tildeIt, h_tildeIt, true);
+		fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
+		fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
+		fft(h_tilde_dxIt, h_tilde_dxIt, true);
+		fft(h_tilde_dzIt, h_tilde_dzIt, true);
 	}
 
 	//if (skip)return;
@@ -700,11 +524,11 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
 		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
 
-		fft.fft(h_tildeIt, h_tildeIt, false);
-		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, false);
-		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, false);
-		fft.fft(h_tilde_dxIt, h_tilde_dxIt, false);
-		fft.fft(h_tilde_dzIt, h_tilde_dzIt, false);
+		fft(h_tildeIt, h_tildeIt, false);
+		fft(h_tilde_slopexIt, h_tilde_slopexIt, false);
+		fft(h_tilde_slopezIt, h_tilde_slopezIt, false);
+		fft(h_tilde_dxIt, h_tilde_dxIt, false);
+		fft(h_tilde_dzIt, h_tilde_dzIt, false);
 	}
 	//if (skip)return;
 
@@ -762,7 +586,7 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
 				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
 				sample.position.y = vertex.position.y;
-				sample.position.z = sampleComputeData.originalPosition.z +lambda * h_tilde_dz[heightIndex].re;
+				sample.position.z = sampleComputeData.originalPosition.z + lambda * h_tilde_dz[heightIndex].re;
 				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
@@ -779,27 +603,221 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 	}
 }
 
-nex::Ocean::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_vs.glsl", "ocean/simple_shaded_fs.glsl"))
+unsigned nex::OceanCpuFFT::reverse(unsigned i) const
 {
-	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
-	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
-	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	// Find the max number for bit reversing. All bits higher than this number will be zeroed.
+	// the max number is determined by 2^bitCount - 1.
+	const unsigned maxNumber = (1 << mLog_2_N) - 1;
+	// Initialize the reversed number 
+	unsigned reversedN = i;
+
+	// Shift n to the right, reversed n to the left, 
+	// and give least-significant bit of n to reversed n.
+	// Do this process as long as n is greater zero.
+	// Technically we have to do this process bitCount times
+	// But we can save some loops by ignoring shifts if n is zero and 
+	// just left shift reversed n by the remaining bits.
+	// Therefore we need the remainingBits variable.
+	unsigned remainingBits = mLog_2_N - 1;
+	for (i >>= 1; i > 0; i >>= 1)
+	{
+		reversedN <<= 1;
+		reversedN |= i & 1;
+		remainingBits--;
+	}
+
+	// left shift reversed n by the remaining bits.
+	reversedN <<= remainingBits;
+
+	// Clear all bits more significant than the max number 
+	reversedN &= maxNumber;
+
+	return reversedN;
 }
 
-void nex::Ocean::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
+nex::Complex nex::OceanCpuFFT::twiddle(unsigned x, unsigned N)
 {
-	auto projection = camera->getProjectionMatrix();
-	auto view = camera->getView();
-
-	auto modelView = view * trafo;
-
-	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
-	mShader->setMat4(transform.location, projection * view * trafo);
-
-
-	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
-	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+	return Complex(cos(pi2 * x / N), sin(pi2 * x / N));
 }
+
+void nex::OceanCpuFFT::fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical)
+{
+	for (int i = 0; i < mN; i++) mC[mWhich][i] = input[mReversed[i] * stride + offset];
+
+	int loops = mN >> 1;
+	int size = 1 << 1;
+	int size_over_2 = 1;
+	int w_ = 0;
+	for (int i = 1; i <= mLog_2_N; i++) {
+		mWhich ^= 1;
+		for (int j = 0; j < loops; j++) {
+			for (int k = 0; k < size_over_2; k++) {
+				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j + k] +
+					mC[mWhich ^ 1][size * j + size_over_2 + k] * mT[w_][k];
+			}
+
+			for (int k = size_over_2; k < size; k++) {
+				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j - size_over_2 + k] -
+					mC[mWhich ^ 1][size * j + k] * mT[w_][k - size_over_2];
+			}
+		}
+		loops >>= 1;
+		size <<= 1;
+		size_over_2 <<= 1;
+		w_++;
+	}
+
+	for (unsigned k = 0; k < mN / 2; ++k)
+	{
+		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
+		std::swap(mC[mWhich][k], mC[mWhich][k + mN / 2]);
+	}
+
+	if (vertical)
+	{
+		for (unsigned k = 1; k < mN / 2; ++k)
+		{
+			//std::swap(x[reverse(k)], x[reverse(N - k)]);
+			std::swap(mC[mWhich][k], mC[mWhich][mN - k]);
+		}
+	}
+
+	for (int i = 0; i < mN; i++) output[i * stride + offset] = mC[mWhich][i];
+}
+
+void nex::OceanCpuFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, bool vertical)
+{
+	for (int i = 0; i < mN; i++) mC[mWhich][i] = input[mReversed[i]];
+
+	int loops = mN >> 1;
+	int size = 1 << 1;
+	int size_over_2 = 1;
+	int w_ = 0;
+	for (int i = 1; i <= mLog_2_N; i++) {
+		mWhich ^= 1;
+		for (int j = 0; j < loops; j++) {
+			for (int k = 0; k < size_over_2; k++) {
+				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j + k] +
+					mC[mWhich ^ 1][size * j + size_over_2 + k] * mT[w_][k];
+			}
+
+			for (int k = size_over_2; k < size; k++) {
+				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j - size_over_2 + k] -
+					mC[mWhich ^ 1][size * j + k] * mT[w_][k - size_over_2];
+			}
+		}
+		loops >>= 1;
+		size <<= 1;
+		size_over_2 <<= 1;
+		w_++;
+	}
+
+	for (unsigned k = 0; k < mN / 2; ++k)
+	{
+		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
+		std::swap(mC[mWhich][k], mC[mWhich][k + mN / 2]);
+	}
+
+	if (vertical)
+	{
+		for (unsigned k = 1; k < mN / 2; ++k)
+		{
+			//std::swap(x[reverse(k)], x[reverse(N - k)]);
+			std::swap(mC[mWhich][k], mC[mWhich][mN - k]);
+		}
+	}
+
+
+	for (int i = 0; i < mN; i++) output[i] = mC[mWhich][i];
+}
+
+void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
+{
+	/* Do the bit reversal */
+	{
+		unsigned i2 = mN >> 1;
+		unsigned j = 0;
+
+		for (unsigned i = 0; i < mN - 1; i++)
+		{
+			if (i < j)
+				std::swap(x[i], x[j]);
+
+			unsigned k = i2;
+
+			while (k <= j)
+			{
+				j -= k;
+				k >>= 1;
+			}
+
+			j += k;
+		}
+	}
+
+
+	/**
+	 * Do FFT
+	 */
+	Complex c(-1.0, 0.0);
+	unsigned l2 = 1;
+	for (unsigned l = 0; l < mLog_2_N; l++)
+	{
+		unsigned l1 = l2;
+		l2 <<= 1;
+		nex::Complex u(1.0, 0.0);
+
+		for (unsigned j = 0; j < l1; j++)
+		{
+			for (unsigned i = j; i < mN; i += l2)
+			{
+				unsigned i1 = i + l1;
+				auto t1 = u * x[i1];
+				x[i1] = x[i] - t1;
+				x[i] += t1;
+			}
+
+			u = u * c;
+		}
+
+		c.im = sqrt((1.0 - c.re) / 2.0);
+		if (!inverse)
+		{
+			c.im = -c.im;
+		}
+		c.re = sqrt((1.0 + c.re) / 2.0);
+	}
+
+	/* Scaling for forward transform */
+	if (inverse)
+	{
+		for (unsigned i = 0; i < mN; i++)
+			x[i] /= (float)mN;
+	}
+
+	/* Do the bit reversal */
+	/*{
+		unsigned i2 = N >> 1;
+		unsigned j = 0;
+
+		for (unsigned i = 0; i < N - 1; i++)
+		{
+			if (i < j)
+				std::swap(x[i], x[j]);
+
+			unsigned k = i2;
+
+			while (k <= j)
+			{
+				j -= k;
+				k >>= 1;
+			}
+
+			j += k;
+		}
+	}*/
+}
+
 
 
 nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
@@ -814,11 +832,11 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 
 	std::vector<glm::vec2> test(mN*mN);
 
-	for (int z = 0; z < mN; ++z)
+	for (unsigned z = 0; z < mN; ++z)
 	{
-		for (int x = 0; x < mN; ++x)
+		for (unsigned x = 0; x < mN; ++x)
 		{
-			unsigned index = z * mN + x;
+			const auto index = z * mN + x;
 
 			const float kx = (twoPi * x - util::PI * mN) / (float)mN;
 			const float kz = (twoPi * z - util::PI * mN) / (float)mN;

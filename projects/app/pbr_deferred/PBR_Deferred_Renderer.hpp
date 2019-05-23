@@ -76,7 +76,7 @@ namespace nex
 
 		TesselationTest mTesselationTest;
 
-		Ocean mOcean;
+		OceanCpuFFT mOcean;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

@@ -51,64 +51,20 @@ namespace nex
 		bool isInRange(const size_t vectorIndex) const;
 	};
 
-
-	class OceanFFT
-	{
-	public:
-		OceanFFT(unsigned N);
-
-		unsigned reverse(unsigned i) const;
-		nex::Complex twiddle(unsigned x, unsigned N);
-
-		void fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical);
-
-		void fft(const nex::Iterator2D&  input, nex::Iterator2D&  output, bool vertical);
-
-		void fftInPlace(std::vector<nex::Complex>& x, bool inverse);
-
-	private:
-
-		unsigned N;
-		unsigned which;
-		unsigned log_2_N;
-		static constexpr float pi2 = 2 * nex::util::PI;
-		std::vector<unsigned> reversed;
-		std::vector<std::vector<nex::Complex>> T;
-		std::vector<nex::Complex> c [2];
-	};
-
 	class Ocean
 	{
 	public:
 
-		/**
-		 * A vertex structure containing useful data when generating and updating the water surface.
-		 */
-		struct VertexCompute
-		{
-			glm::vec3 originalPosition;
-			Complex height0;
-			Complex height0NegativeWaveConjugate;
-		};
+		virtual ~Ocean();
 
-		/**
-		 * A vertex structure containing data for rendering the water
-		 */
-		struct VertexRender
-		{
-			glm::vec3 position;
-			glm::vec3 normal;
-		};
+		static float generateGaussianRand();
 
-		/**
-		 * Holds all simulation result data for a point on the x-z plane.
-		 */
-		struct ResultData
-		{
-			Complex height; // The resulting height of the point
-			glm::vec2 displacement; // A displacement vector on the x-z plane for choppy waves
-			glm::vec3 normal; // The normal vector of the point
-		};
+		bool* getWireframeState();
+
+		Complex heightZero(const glm::vec2& wave) const;
+		float philipsSpectrum(const glm::vec2& wave) const;
+
+	protected:
 
 		/**
 		 * Creates a new Ocean object that is tileable. This means, that the first row and the first column are mirrored, so that
@@ -121,7 +77,7 @@ namespace nex
 		 * @param windDirection : The direction of wind. Its length has to be > 0
 		 * @param windSpeed : The speed of wind.
 		 * @param periodTime : The time of one period (in seconds). After that, the simulation gets repeated. Has to be > 0.
-		 * 
+		 *
 		 * @throws std::invalid_argument : if N is not a power of 2 or is zero; periodTime <= 0; spectrumScale <= 0; windDirection == 0;
 		 */
 		Ocean(unsigned N,
@@ -131,48 +87,6 @@ namespace nex
 			const glm::vec2& windDirection,
 			float windSpeed,
 			float periodTime);
-
-		virtual ~Ocean();
-
-		/**
-		 * Computes the height of a location on the (x,z) plane at a specific time.
-		 */
-		ResultData simulatePoint(const glm::vec2& locationXZ, float time) const;
-
-		float dispersion(const glm::vec2& wave) const;
-
-		void draw(Camera* camera, const glm::vec3& lightDir);
-
-		static float generateGaussianRand();
-
-		Complex heightZero(const glm::vec2& wave) const;
-		Complex height(int x, int z, float time) const;
-		float philipsSpectrum(const glm::vec2& wave) const;
-
-		bool* getWireframeState();
-
-		/**
-		 * Simulates ocean state at time t.
-		 * @param t : time. Has to be > 0
-		 */
-		void simulate(float t);
-
-		void simulateFFT(float t, bool skip = false);
-
-	protected:
-
-		class SimpleShadedPass : public Pass
-		{
-		public:
-			SimpleShadedPass();
-
-			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
-
-			Uniform transform;
-			Uniform lightUniform;
-			Uniform normalMatrixUniform;
-		};
-
 
 		/**
 		 * Amount of unique points and waves in one axis direction (x resp. z axis).
@@ -216,20 +130,146 @@ namespace nex
 		 */
 		float mPeriodTime;
 
+		bool mWireframe;
+
+
+		static constexpr float GRAVITY = 9.81f;
+	};
+
+	class OceanCpu : public Ocean
+	{
+	public:
+
+		virtual ~OceanCpu();
+
+		float dispersion(const glm::vec2& wave) const;
+
+		void draw(Camera* camera, const glm::vec3& lightDir);
+
+		Complex height(int x, int z, float time) const;
+
+	protected:
+
+		OceanCpu(unsigned N,
+			unsigned maxWaveLength,
+			float dimension,
+			float spectrumScale,
+			const glm::vec2& windDirection,
+			float windSpeed,
+			float periodTime);
+
+		/**
+		 * A vertex structure containing useful data when generating and updating the water surface.
+		 */
+		struct VertexCompute
+		{
+			glm::vec3 originalPosition;
+			Complex height0;
+			Complex height0NegativeWaveConjugate;
+		};
+
+		/**
+		 * A vertex structure containing data for rendering the water
+		 */
+		struct VertexRender
+		{
+			glm::vec3 position;
+			glm::vec3 normal;
+		};
+
+		/**
+		 * Holds all simulation result data for a point on the x-z plane.
+		 */
+		struct ResultData
+		{
+			Complex height; // The resulting height of the point
+			glm::vec2 displacement; // A displacement vector on the x-z plane for choppy waves
+			glm::vec3 normal; // The normal vector of the point
+		};
+
+		class SimpleShadedPass : public Pass
+		{
+		public:
+			SimpleShadedPass();
+
+			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
+
+			Uniform transform;
+			Uniform lightUniform;
+			Uniform normalMatrixUniform;
+		};
+
 		std::vector<VertexCompute> mVerticesCompute;
 		std::vector<VertexRender> mVerticesRender;
 		std::vector<unsigned> mIndices;
 		std::unique_ptr<Mesh> mMesh;
 		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
+	};
 
-		bool mWireframe;
+	class OceanCpuDFT : public OceanCpu
+	{
+	public:
+		OceanCpuDFT(unsigned N,
+			unsigned maxWaveLength,
+			float dimension,
+			float spectrumScale,
+			const glm::vec2& windDirection,
+			float windSpeed,
+			float periodTime);
+
+		virtual ~OceanCpuDFT();
+
+		/**
+		 * Simulates ocean state at time t.
+		 * @param t : time. Has to be > 0
+		 */
+		void simulate(float t);
+
+	protected:
+		/**
+		 * Computes the height of a location on the (x,z) plane at a specific time.
+		 */
+		ResultData simulatePoint(const glm::vec2& locationXZ, float time) const;
+	};
+
+
+
+	class OceanCpuFFT : public OceanCpu
+	{
+	public:
+		OceanCpuFFT(unsigned N,
+			unsigned maxWaveLength,
+			float dimension,
+			float spectrumScale,
+			const glm::vec2& windDirection,
+			float windSpeed,
+			float periodTime);
+
+		virtual ~OceanCpuFFT();
+
+		void simulate(float t, bool skip = false);
+
+	private:
+
+		unsigned reverse(unsigned i) const;
+		nex::Complex twiddle(unsigned x, unsigned N);
+
+		void fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical);
+
+		void fft(const nex::Iterator2D&  input, nex::Iterator2D&  output, bool vertical);
+
+		void fftInPlace(std::vector<nex::Complex>& x, bool inverse);
+
+		unsigned mWhich;
+		unsigned mLog_2_N;
+		static constexpr float pi2 = 2 * nex::util::PI;
+		std::vector<unsigned> mReversed;
+		std::vector<std::vector<nex::Complex>> mT;
+		std::vector<nex::Complex> mC[2];
 
 		std::vector<nex::Complex> h_tilde, // for fast fourier transform
 			h_tilde_slopex, h_tilde_slopez,
 			h_tilde_dx, h_tilde_dz;
-		OceanFFT fft;
-
-		static constexpr float GRAVITY = 9.81f;
 	};
 
 
