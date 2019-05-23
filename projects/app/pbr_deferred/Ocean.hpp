@@ -260,16 +260,16 @@ namespace nex
 
 		void fftInPlace(std::vector<nex::Complex>& x, bool inverse);
 
-		unsigned mWhich;
-		unsigned mLog_2_N;
-		static constexpr float pi2 = 2 * nex::util::PI;
+		unsigned mCurrent;
+		unsigned mLogN;
+		static constexpr float pi2 = static_cast<float>(2 * nex::util::PI);
 		std::vector<unsigned> mReversed;
-		std::vector<std::vector<nex::Complex>> mT;
-		std::vector<nex::Complex> mC[2];
+		std::vector<std::vector<nex::Complex>> mTwiddle;
+		std::vector<nex::Complex> mTemp[2];
 
-		std::vector<nex::Complex> h_tilde, // for fast fourier transform
-			h_tilde_slopex, h_tilde_slopez,
-			h_tilde_dx, h_tilde_dz;
+		std::vector<nex::Complex> mHeights, // for fast fourier transform
+			mSlopeX, mSlopeZ,
+			mHeightDx, mHeightDz;
 	};
 
 

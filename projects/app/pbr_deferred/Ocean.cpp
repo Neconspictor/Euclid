@@ -137,8 +137,8 @@ nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, flo
 Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
 mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
+	const float twoPi = static_cast<float>(2.0f * util::PI);
+	const float pi = static_cast<float>(util::PI);
 
 	const auto vertexCount = mPointCount * mPointCount;
 	const auto quadCount = (mPointCount - 1) * (mPointCount - 1);
@@ -198,7 +198,7 @@ mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
 	vertexBuffer.fill(mVerticesRender.data(), vertexCount * sizeof(VertexRender), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	IndexBuffer indexBuffer(mIndices.data(), mIndices.size(), IndexElementType::BIT_32);
+	IndexBuffer indexBuffer(mIndices.data(), static_cast<unsigned>(mIndices.size()), IndexElementType::BIT_32);
 	indexBuffer.bind();
 
 	VertexLayout layout;
@@ -261,8 +261,8 @@ void nex::OceanCpu::draw(Camera* camera, const glm::vec3& lightDir)
 
 nex::Complex nex::OceanCpu::height(int x, int z, float time) const
 {
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
+	const float twoPi = static_cast<float>(2.0f * util::PI);
+	const float pi = static_cast<float>(util::PI);
 	const float kx = (twoPi * x - pi * mN) / (float)mWaveLength;
 	const float kz = (twoPi * z - pi * mN) / (float)mWaveLength;
 
@@ -316,8 +316,8 @@ nex::OceanCpuDFT::~OceanCpuDFT() = default;
 
 nex::OceanCpu::ResultData nex::OceanCpuDFT::simulatePoint(const glm::vec2& locationXZ, float t) const
 {
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
+	const float twoPi = static_cast<float>(2.0f * util::PI);
+	const float pi = static_cast<float>(util::PI);
 
 	Complex height(0.0, 0.0);
 	glm::vec2 gradient(0.0f);
@@ -430,7 +430,7 @@ nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 	const glm::vec2& windDirection,
 	float windSpeed,
 	float periodTime) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
-	mLog_2_N(log2(mN))
+	mLogN(log2(mN))
 {
 	// bit reversal precomputation
 	mReversed.resize(N);
@@ -438,33 +438,33 @@ nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 
 	// prepare twiddle factors
 	int pow2 = 1;
-	mT.resize(mLog_2_N);
-	for (int i = 0; i < mT.size(); ++i)
+	mTwiddle.resize(mLogN);
+	for (int i = 0; i < mTwiddle.size(); ++i)
 	{
-		mT[i].resize(pow2);
-		for (int j = 0; j < pow2; ++j) mT[i][j] = twiddle(j, pow2 * 2);
+		mTwiddle[i].resize(pow2);
+		for (int j = 0; j < pow2; ++j) mTwiddle[i][j] = twiddle(j, pow2 * 2);
 		pow2 *= 2;
 	}
 
-	mC[0].resize(N);
-	mC[1].resize(N);
-	mWhich = 0;
+	mTemp[0].resize(N);
+	mTemp[1].resize(N);
+	mCurrent = 0;
 
 
-	h_tilde.resize(N * N);
-	h_tilde_slopex.resize(N * N);
-	h_tilde_slopez.resize(N * N);
-	h_tilde_dx.resize(N * N);
-	h_tilde_dz.resize(N * N);
+	mHeights.resize(N * N);
+	mSlopeX.resize(N * N);
+	mSlopeZ.resize(N * N);
+	mHeightDx.resize(N * N);
+	mHeightDz.resize(N * N);
 }
 
 nex::OceanCpuFFT::~OceanCpuFFT() = default;
 
 void nex::OceanCpuFFT::simulate(float t, bool skip)
 {
-	float lambda = -0.8;
-	const float twoPi = 2.0f * util::PI;
-	const float pi = util::PI;
+	float lambda = -0.8f;
+	const float twoPi = static_cast<float>(2.0f * util::PI);
+	const float pi = static_cast<float>(util::PI);
 
 	for (int z = 0; z < mN; z++) {
 		//kz = M_PI * (2.0f * m_prime - N) / length;
@@ -478,21 +478,21 @@ void nex::OceanCpuFFT::simulate(float t, bool skip)
 			float len = sqrt(kx * kx + kz * kz);
 			const unsigned index = z * mN + x;
 
-			h_tilde[index] = height(x, z, t) * 1.0f;
+			mHeights[index] = height(x, z, t) * 1.0f;
 			// (a + ib) * (c + id) = (ac - bd) + i(ad + bc)
 			// (h.re + i*h.im) * (0 + i*kx) = (h.re*0 - h.im * kx) + i(h.re*kx + h.im*0) = (-h.im * kx) + i(h.re*kx)
-			h_tilde_slopex[index] = h_tilde[index] * Complex(0, kx);
+			mSlopeX[index] = mHeights[index] * Complex(0, kx);
 			//h_tilde_slopex[index] = Complex( - h_tilde[index].im *kx, 0);
 			//h_tilde_slopez[index] = Complex(-h_tilde[index].im *kz, 0);
-			h_tilde_slopez[index] = h_tilde[index] * Complex(0, kz);
+			mSlopeZ[index] = mHeights[index] * Complex(0, kz);
 
 			if (len < 0.000001f) {
-				h_tilde_dx[index] = Complex(0.0f, 0.0f);
-				h_tilde_dz[index] = Complex(0.0f, 0.0f);
+				mHeightDx[index] = Complex(0.0f, 0.0f);
+				mHeightDz[index] = Complex(0.0f, 0.0f);
 			}
 			else {
-				h_tilde_dx[index] = h_tilde[index] * Complex(0, -kx / len);
-				h_tilde_dz[index] = h_tilde[index] * Complex(0, -kz / len);
+				mHeightDx[index] = mHeights[index] * Complex(0, -kx / len);
+				mHeightDz[index] = mHeights[index] * Complex(0, -kz / len);
 			}
 		}
 	}
@@ -500,11 +500,11 @@ void nex::OceanCpuFFT::simulate(float t, bool skip)
 
 	for (int m_prime = 0; m_prime < mN; m_prime++) {
 
-		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
-		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
-		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
-		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
-		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tildeIt(mHeights, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_slopexIt(mSlopeX, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_slopezIt(mSlopeZ, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_dxIt(mHeightDx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
+		Iterator2D h_tilde_dzIt(mHeightDz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, mN);
 
 		fft(h_tildeIt, h_tildeIt, true);
 		fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
@@ -518,11 +518,11 @@ void nex::OceanCpuFFT::simulate(float t, bool skip)
 
 	for (int n_prime = 0; n_prime < mN; n_prime++) {
 
-		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
-		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
-		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
-		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
-		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tildeIt(mHeights, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_slopexIt(mSlopeX, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_slopezIt(mSlopeZ, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_dxIt(mHeightDx, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
+		Iterator2D h_tilde_dzIt(mHeightDz, Iterator2D::PrimitiveMode::ROWS, n_prime, mN);
 
 		fft(h_tildeIt, h_tildeIt, false);
 		fft(h_tilde_slopexIt, h_tilde_slopexIt, false);
@@ -546,25 +546,25 @@ void nex::OceanCpuFFT::simulate(float t, bool skip)
 
 			const auto normalization = (double)mWaveLength; // (float) 128.0f;
 
-			h_tilde[heightIndex] = h_tilde[heightIndex] * sign / normalization;
+			mHeights[heightIndex] = mHeights[heightIndex] * sign / normalization;
 
 			auto& vertex = mVerticesRender[vertexIndex];
 			const auto& computeData = mVerticesCompute[vertexIndex];
 
 
 			// height
-			vertex.position.y = h_tilde[heightIndex].re;
+			vertex.position.y = mHeights[heightIndex].re;
 
 			// displacement
-			h_tilde_dx[heightIndex] = h_tilde_dx[heightIndex] * sign / normalization;
-			h_tilde_dz[heightIndex] = h_tilde_dz[heightIndex] * sign / normalization;
-			vertex.position.x = computeData.originalPosition.x + h_tilde_dx[heightIndex].re * lambda;
-			vertex.position.z = computeData.originalPosition.z + h_tilde_dz[heightIndex].re * lambda;
+			mHeightDx[heightIndex] = mHeightDx[heightIndex] * sign / normalization;
+			mHeightDz[heightIndex] = mHeightDz[heightIndex] * sign / normalization;
+			vertex.position.x = computeData.originalPosition.x + mHeightDx[heightIndex].re * lambda;
+			vertex.position.z = computeData.originalPosition.z + mHeightDz[heightIndex].re * lambda;
 
 			// normal
-			h_tilde_slopex[heightIndex] = h_tilde_slopex[heightIndex] * sign / normalization;
-			h_tilde_slopez[heightIndex] = h_tilde_slopez[heightIndex] * sign / normalization;
-			n = normalize(glm::vec3(-h_tilde_slopex[heightIndex].re, 1.0f, -h_tilde_slopez[heightIndex].re));
+			mSlopeX[heightIndex] = mSlopeX[heightIndex] * sign / normalization;
+			mSlopeZ[heightIndex] = mSlopeZ[heightIndex] * sign / normalization;
+			n = normalize(glm::vec3(-mSlopeX[heightIndex].re, 1.0f, -mSlopeZ[heightIndex].re));
 			vertex.normal.x = n.x;
 			vertex.normal.y = n.y;
 			vertex.normal.z = n.z;
@@ -575,27 +575,27 @@ void nex::OceanCpuFFT::simulate(float t, bool skip)
 				const auto replicateIndex = mVerticesRender.size() - 1;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
-				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
+				sample.position.x = sampleComputeData.originalPosition.x + lambda * mHeightDx[heightIndex].re;
 				sample.position.y = vertex.position.y;
-				sample.position.z = sampleComputeData.originalPosition.z + lambda * h_tilde_dz[heightIndex].re;
+				sample.position.z = sampleComputeData.originalPosition.z + lambda * mHeightDz[heightIndex].re;
 				sample.normal = vertex.normal;
 			}
 			if (x == 0) {
 				const auto replicateIndex = vertexIndex + mN;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
-				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
+				sample.position.x = sampleComputeData.originalPosition.x + lambda * mHeightDx[heightIndex].re;
 				sample.position.y = vertex.position.y;
-				sample.position.z = sampleComputeData.originalPosition.z + lambda * h_tilde_dz[heightIndex].re;
+				sample.position.z = sampleComputeData.originalPosition.z + lambda * mHeightDz[heightIndex].re;
 				sample.normal = vertex.normal;
 			}
 			if (z == 0) {
 				const auto replicateIndex = vertexIndex + mN * mPointCount;
 				auto& sample = mVerticesRender[replicateIndex];
 				const auto& sampleComputeData = mVerticesCompute[replicateIndex];
-				sample.position.x = sampleComputeData.originalPosition.x + lambda * h_tilde_dx[heightIndex].re;
+				sample.position.x = sampleComputeData.originalPosition.x + lambda * mHeightDx[heightIndex].re;
 				sample.position.y = vertex.position.y;
-				sample.position.z = sampleComputeData.originalPosition.z + lambda * h_tilde_dz[heightIndex].re;
+				sample.position.z = sampleComputeData.originalPosition.z + lambda * mHeightDz[heightIndex].re;
 				sample.normal = vertex.normal;
 			}
 
@@ -607,7 +607,7 @@ unsigned nex::OceanCpuFFT::reverse(unsigned i) const
 {
 	// Find the max number for bit reversing. All bits higher than this number will be zeroed.
 	// the max number is determined by 2^bitCount - 1.
-	const unsigned maxNumber = (1 << mLog_2_N) - 1;
+	const unsigned maxNumber = (1 << mLogN) - 1;
 	// Initialize the reversed number 
 	unsigned reversedN = i;
 
@@ -618,7 +618,7 @@ unsigned nex::OceanCpuFFT::reverse(unsigned i) const
 	// But we can save some loops by ignoring shifts if n is zero and 
 	// just left shift reversed n by the remaining bits.
 	// Therefore we need the remainingBits variable.
-	unsigned remainingBits = mLog_2_N - 1;
+	unsigned remainingBits = mLogN - 1;
 	for (i >>= 1; i > 0; i >>= 1)
 	{
 		reversedN <<= 1;
@@ -642,23 +642,23 @@ nex::Complex nex::OceanCpuFFT::twiddle(unsigned x, unsigned N)
 
 void nex::OceanCpuFFT::fft(nex::Complex* input, nex::Complex* output, int stride, int offset, bool vertical)
 {
-	for (int i = 0; i < mN; i++) mC[mWhich][i] = input[mReversed[i] * stride + offset];
+	for (int i = 0; i < mN; i++) mTemp[mCurrent][i] = input[mReversed[i] * stride + offset];
 
 	int loops = mN >> 1;
 	int size = 1 << 1;
 	int size_over_2 = 1;
 	int w_ = 0;
-	for (int i = 1; i <= mLog_2_N; i++) {
-		mWhich ^= 1;
+	for (int i = 1; i <= mLogN; i++) {
+		mCurrent ^= 1;
 		for (int j = 0; j < loops; j++) {
 			for (int k = 0; k < size_over_2; k++) {
-				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j + k] +
-					mC[mWhich ^ 1][size * j + size_over_2 + k] * mT[w_][k];
+				mTemp[mCurrent][size * j + k] = mTemp[mCurrent ^ 1][size * j + k] +
+					mTemp[mCurrent ^ 1][size * j + size_over_2 + k] * mTwiddle[w_][k];
 			}
 
 			for (int k = size_over_2; k < size; k++) {
-				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j - size_over_2 + k] -
-					mC[mWhich ^ 1][size * j + k] * mT[w_][k - size_over_2];
+				mTemp[mCurrent][size * j + k] = mTemp[mCurrent ^ 1][size * j - size_over_2 + k] -
+					mTemp[mCurrent ^ 1][size * j + k] * mTwiddle[w_][k - size_over_2];
 			}
 		}
 		loops >>= 1;
@@ -670,7 +670,7 @@ void nex::OceanCpuFFT::fft(nex::Complex* input, nex::Complex* output, int stride
 	for (unsigned k = 0; k < mN / 2; ++k)
 	{
 		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
-		std::swap(mC[mWhich][k], mC[mWhich][k + mN / 2]);
+		std::swap(mTemp[mCurrent][k], mTemp[mCurrent][k + mN / 2]);
 	}
 
 	if (vertical)
@@ -678,32 +678,32 @@ void nex::OceanCpuFFT::fft(nex::Complex* input, nex::Complex* output, int stride
 		for (unsigned k = 1; k < mN / 2; ++k)
 		{
 			//std::swap(x[reverse(k)], x[reverse(N - k)]);
-			std::swap(mC[mWhich][k], mC[mWhich][mN - k]);
+			std::swap(mTemp[mCurrent][k], mTemp[mCurrent][mN - k]);
 		}
 	}
 
-	for (int i = 0; i < mN; i++) output[i * stride + offset] = mC[mWhich][i];
+	for (int i = 0; i < mN; i++) output[i * stride + offset] = mTemp[mCurrent][i];
 }
 
 void nex::OceanCpuFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, bool vertical)
 {
-	for (int i = 0; i < mN; i++) mC[mWhich][i] = input[mReversed[i]];
+	for (int i = 0; i < mN; i++) mTemp[mCurrent][i] = input[mReversed[i]];
 
 	int loops = mN >> 1;
 	int size = 1 << 1;
 	int size_over_2 = 1;
 	int w_ = 0;
-	for (int i = 1; i <= mLog_2_N; i++) {
-		mWhich ^= 1;
+	for (int i = 1; i <= mLogN; i++) {
+		mCurrent ^= 1;
 		for (int j = 0; j < loops; j++) {
 			for (int k = 0; k < size_over_2; k++) {
-				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j + k] +
-					mC[mWhich ^ 1][size * j + size_over_2 + k] * mT[w_][k];
+				mTemp[mCurrent][size * j + k] = mTemp[mCurrent ^ 1][size * j + k] +
+					mTemp[mCurrent ^ 1][size * j + size_over_2 + k] * mTwiddle[w_][k];
 			}
 
 			for (int k = size_over_2; k < size; k++) {
-				mC[mWhich][size * j + k] = mC[mWhich ^ 1][size * j - size_over_2 + k] -
-					mC[mWhich ^ 1][size * j + k] * mT[w_][k - size_over_2];
+				mTemp[mCurrent][size * j + k] = mTemp[mCurrent ^ 1][size * j - size_over_2 + k] -
+					mTemp[mCurrent ^ 1][size * j + k] * mTwiddle[w_][k - size_over_2];
 			}
 		}
 		loops >>= 1;
@@ -715,7 +715,7 @@ void nex::OceanCpuFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output
 	for (unsigned k = 0; k < mN / 2; ++k)
 	{
 		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
-		std::swap(mC[mWhich][k], mC[mWhich][k + mN / 2]);
+		std::swap(mTemp[mCurrent][k], mTemp[mCurrent][k + mN / 2]);
 	}
 
 	if (vertical)
@@ -723,12 +723,12 @@ void nex::OceanCpuFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output
 		for (unsigned k = 1; k < mN / 2; ++k)
 		{
 			//std::swap(x[reverse(k)], x[reverse(N - k)]);
-			std::swap(mC[mWhich][k], mC[mWhich][mN - k]);
+			std::swap(mTemp[mCurrent][k], mTemp[mCurrent][mN - k]);
 		}
 	}
 
 
-	for (int i = 0; i < mN; i++) output[i] = mC[mWhich][i];
+	for (int i = 0; i < mN; i++) output[i] = mTemp[mCurrent][i];
 }
 
 void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
@@ -761,7 +761,7 @@ void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
 	 */
 	Complex c(-1.0, 0.0);
 	unsigned l2 = 1;
-	for (unsigned l = 0; l < mLog_2_N; l++)
+	for (unsigned l = 0; l < mLogN; l++)
 	{
 		unsigned l1 = l2;
 		l2 <<= 1;
@@ -1171,7 +1171,7 @@ mN(N)
 	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
 	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
-	mButterfly = std::make_unique<Texture2D>(mN, std::log2(mN), desc, nullptr);
+	mButterfly = std::make_unique<Texture2D>(mN, static_cast<unsigned>(std::log2(mN)), desc, nullptr);
 
 	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
 	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
