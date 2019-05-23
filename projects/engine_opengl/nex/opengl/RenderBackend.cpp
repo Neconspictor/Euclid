@@ -661,7 +661,7 @@ namespace nex
 			glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
 
 		GLCall(glMemoryBarrier(glFlags));
-		GLCall(glFinish());
+		//GLCall(glFinish());
 	}
 
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)

@@ -414,24 +414,8 @@ namespace nex
 			 */
 			IfftPass(int N);
 
-			/**
-			 * Note: Shader has to be bound!
-			 * input texture has to have format rgba32f
-			 */
-			void setButterfly(Texture2D* butterfly);
 
-
-			/**
-			 * Note: Shader has to be bound!
-			 * input texture has to have format rg32f
-			 */
-			void setInput(Texture2D* input);
-
-			/**
-			 * Note: Shader has to be bound!
-			 * output texture has to have format rg32f
-			 */
-			void setOutput(Texture2D* output);
+			void useButterfly(Texture2D* butterfly);
 
 			/**
 			 * @param : the stage of the iFFT: has to be greater/equal 0 and  smaller log2(N)
@@ -453,6 +437,25 @@ namespace nex
 
 		private:
 
+			/**
+			 * Note: Shader has to be bound!
+			 * input texture has to have format rgba32f
+			 */
+			void setButterfly(Texture2D* butterfly);
+
+
+			/**
+			 * Note: Shader has to be bound!
+			 * input texture has to have format rg32f
+			 */
+			void setInput(Texture2D* input);
+
+			/**
+			 * Note: Shader has to be bound!
+			 * output texture has to have format rg32f
+			 */
+			void setOutput(Texture2D* output);
+
 			Uniform mNUniform;
 			int mN;
 			int mLog2N;
@@ -467,6 +470,8 @@ namespace nex
 			UniformTex mBlitDestUniform;
 
 			std::unique_ptr<Texture2D> mPingPong;
+
+			Texture2D* mButterfly;
 		};
 
 

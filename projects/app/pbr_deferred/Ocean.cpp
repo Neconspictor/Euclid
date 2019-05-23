@@ -852,10 +852,10 @@ void nex::OceanGPU::testHeightGeneration()
 
 	mIfftComputePass->bind();
 
+	mIfftComputePass->useButterfly(mButterflyComputePass->getButterfly());
 
 	// horizontal 1D iFFT
 	mIfftComputePass->setVertical(true);
-	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
 	//mIfftComputePass->computeAllStages(slopeZFFT);
@@ -870,7 +870,6 @@ void nex::OceanGPU::testHeightGeneration()
 
 	// vertical 1D iFFT
 	mIfftComputePass->setVertical(false);
-	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
 	//mIfftComputePass->computeAllStages(slopeZFFT);
@@ -907,6 +906,37 @@ void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
 
 void nex::OceanGPU::simulate(float t)
 {
+	mHeightComputePass->compute(t, mHeightZeroComputePass->getResult());
+
+
+	auto* heightFFT = mHeightComputePass->getHeight();
+	auto* dxFFT = mHeightComputePass->getDx();
+	auto* dzFFT = mHeightComputePass->getDz();
+	auto* slopeXFFT = mHeightComputePass->getSlopeX();
+	auto* slopeZFFT = mHeightComputePass->getSlopeZ();
+
+	mIfftComputePass->bind();
+
+	mIfftComputePass->useButterfly(mButterflyComputePass->getButterfly());
+
+
+	// horizontal 1D iFFT
+	mIfftComputePass->setVertical(true);
+	
+	mIfftComputePass->computeAllStages(heightFFT);
+	mIfftComputePass->computeAllStages(slopeXFFT);
+	mIfftComputePass->computeAllStages(slopeZFFT);
+	mIfftComputePass->computeAllStages(dxFFT);
+	mIfftComputePass->computeAllStages(dzFFT);
+
+	// vertical 1D iFFT
+	mIfftComputePass->setVertical(false);
+	mIfftComputePass->computeAllStages(heightFFT);
+	mIfftComputePass->computeAllStages(slopeXFFT);
+	mIfftComputePass->computeAllStages(slopeZFFT);
+	mIfftComputePass->computeAllStages(dxFFT);
+	mIfftComputePass->computeAllStages(dzFFT);
+
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1290,6 +1320,11 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 	mBlitDestUniform = { mBlit->getShader()->getUniformLocation("dest"), UniformType::IMAGE2D, 1 };
 }
 
+void nex::OceanGPU::IfftPass::useButterfly(Texture2D* butterfly)
+{
+	mButterfly = butterfly;
+}
+
 void nex::OceanGPU::IfftPass::setButterfly(Texture2D* butterfly)
 {
 	mShader->setImageLayerOfTexture(mButterflyUniform.location,
@@ -1341,6 +1376,8 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 	Texture2D* textures[2] = { input, mPingPong.get() };
 	int index = 0;
 
+	setButterfly(mButterfly);
+
 	for (unsigned n = 0; n < mLog2N; ++n)
 	{
 		const int nextIndex = (index + 1) % 2;
@@ -1350,7 +1387,7 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 		setOutput(textures[nextIndex]);
 		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		dispatch(mN, mN, 1);
-		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+		//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		index = nextIndex;
 	}
 
@@ -1380,7 +1417,7 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 
 		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		mBlit->dispatch(mN, mN, 1);
-		RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+		//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 		// rebind this compute shader
 		bind();
 	}
