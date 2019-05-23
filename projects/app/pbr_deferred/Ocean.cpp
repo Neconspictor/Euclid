@@ -188,7 +188,7 @@ void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, b
 		w_++;
 	}
 
-	/*for (unsigned k = 0; k < N / 2; ++k)
+	for (unsigned k = 0; k < N / 2; ++k)
 	{
 		//std::swap(x[reverse(k)], x[reverse(k + N / 2)]);
 		std::swap(c[which][k], c[which][k + N / 2]);
@@ -201,7 +201,7 @@ void nex::OceanFFT::fft(const nex::Iterator2D& input, nex::Iterator2D& output, b
 			//std::swap(x[reverse(k)], x[reverse(N - k)]);
 			std::swap(c[which][k], c[which][N - k]);
 		}
-	}*/
+	}
 
 
 	for (int i = 0; i < N; i++) output[i] = c[which][i];
@@ -504,7 +504,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	
 
 	// horizontal 1D iFFT
-	mIfftComputePass->setVertical(false);
+	mIfftComputePass->setVertical(true);
 	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
@@ -519,7 +519,7 @@ nex::Ocean::Ocean(const glm::uvec2& pointCount,
 	//slopeZFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
 
 	// vertical 1D iFFT
-	mIfftComputePass->setVertical(true);
+	mIfftComputePass->setVertical(false);
 	mIfftComputePass->setButterfly(mButterflyComputePass->getButterfly());
 	mIfftComputePass->computeAllStages(heightFFT);
 	//mIfftComputePass->computeAllStages(slopeXFFT);
@@ -838,6 +838,31 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 	fft.fftInPlace(h_tilde_dx, inverse);
 	fft.fftInPlace(h_tilde_dz, inverse);*/
 
+	for (int m_prime = 0; m_prime < N; m_prime++) {
+
+		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
+
+		fft.fft(h_tildeIt, h_tildeIt, true);
+		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
+		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
+		fft.fft(h_tilde_dxIt, h_tilde_dxIt, true);
+		fft.fft(h_tilde_dzIt, h_tilde_dzIt, true);
+
+
+		/*fft.fft(h_tilde.data(), h_tilde.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N, true);
+		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N, true);*/
+	}
+
+	//if (skip)return;
+
+
 	for (int n_prime = 0; n_prime < N; n_prime++) {
 
 		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::ROWS, n_prime, N);
@@ -862,30 +887,6 @@ void nex::Ocean::simulateFFT(float t, bool skip)
 		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), N, n_prime, false);
 		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), N, n_prime, false);*/
 	}
-
-
-	for (int m_prime = 0; m_prime < N; m_prime++) {
-
-		Iterator2D h_tildeIt(h_tilde, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_slopexIt(h_tilde_slopex, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_slopezIt(h_tilde_slopez, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_dxIt(h_tilde_dx, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-		Iterator2D h_tilde_dzIt(h_tilde_dz, Iterator2D::PrimitiveMode::COLUMNS, m_prime, N);
-
-		fft.fft(h_tildeIt, h_tildeIt, true);
-		fft.fft(h_tilde_slopexIt, h_tilde_slopexIt, true);
-		fft.fft(h_tilde_slopezIt, h_tilde_slopezIt, true);
-		fft.fft(h_tilde_dxIt, h_tilde_dxIt, true);
-		fft.fft(h_tilde_dzIt, h_tilde_dzIt, true);
-
-
-		/*fft.fft(h_tilde.data(), h_tilde.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_slopex.data(), h_tilde_slopex.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_slopez.data(), h_tilde_slopez.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_dx.data(), h_tilde_dx.data(), 1, m_prime * N, true);
-		fft.fft(h_tilde_dz.data(), h_tilde_dz.data(), 1, m_prime * N, true);*/
-	}
-
 	if (skip)return;
 
 	int sign;

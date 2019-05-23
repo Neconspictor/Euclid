@@ -75,8 +75,19 @@ void horizontalOperation() {
     
     Complex result = add(aComplex, mul(twiddle, bComplex));
     
+    ivec2 outputIndex = index;
     
-    imageStore(outputImage, index, vec4(result.re, result.im, 0.0, 0.0));
+    // Do reordering at last ifft stage
+    if (stage == int(log2(N) - 1)) {
+        if (k < N/2) {
+            outputIndex.x = outputIndex.x + N/2;
+        } else {
+            outputIndex.x = outputIndex.x - N/2;
+        }
+    }
+    
+    
+    imageStore(outputImage, outputIndex, vec4(result.re, result.im, 0.0, 0.0));
 }
 
 void verticalOperation() {
@@ -99,7 +110,25 @@ void verticalOperation() {
     Complex result = add(aComplex, mul(twiddle, bComplex));
     
     
-    imageStore(outputImage, index, vec4(result.re, result.im, 0.0, 0.0));
+    ivec2 outputIndex = index;
+    
+    // Do reordering at last ifft stage
+    if (stage == int(log2(N) - 1)) {
+        if (k < N/2) {
+            outputIndex.y = outputIndex.y + N/2;
+            outputIndex.y = N - outputIndex.y;
+            
+        } else {
+            outputIndex.y = outputIndex.y - N/2;
+            
+            if (outputIndex.y != 0) {
+                outputIndex.y = N - outputIndex.y;
+            }
+        }
+    }
+    
+    
+    imageStore(outputImage, outputIndex, vec4(result.re, result.im, 0.0, 0.0));
 }
 
 void main(void)
