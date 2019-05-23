@@ -316,6 +316,7 @@ namespace nex
 		struct Vertex
 		{
 			glm::vec3 position;
+			glm::vec2 texCoords;
 		};
 
 		class HeightZeroComputePass : public ComputePass
@@ -474,16 +475,46 @@ namespace nex
 			Texture2D* mButterfly;
 		};
 
+		class NormalizePermutatePass : public ComputePass
+		{
+		public:
+			/**
+			 * A compute pass for transforming frequency domain textures into time domain.
+			 */
+			NormalizePermutatePass(int N);
+
+			void compute(Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ);
+
+
+		private:
+
+			Uniform mNUniform;
+			int mN;
+			UniformTex mHeightUniform;
+			UniformTex mSlopeXUniform;
+			UniformTex mSlopeZUniform;
+			UniformTex mdXUniform;
+			UniformTex mdZUniform;
+		};
+
 		class SimpleShadedPass : public Pass
 		{
 		public:
 			SimpleShadedPass();
 
-			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
+			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
+				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ);
 
 			Uniform transform;
 			Uniform lightUniform;
 			Uniform normalMatrixUniform;
+			UniformTex heightUniform;
+			UniformTex slopeXUniform;
+			UniformTex slopeZUniform;
+			UniformTex dXUniform;
+			UniformTex dZUniform;
+
+			Sampler sampler;
 		};
 
 
@@ -491,6 +522,7 @@ namespace nex
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
 		std::unique_ptr<ButterflyComputePass> mButterflyComputePass;
 		std::unique_ptr<IfftPass> mIfftComputePass;
+		std::unique_ptr<NormalizePermutatePass> mNormalizePermutatePass;
 
 		std::vector<Vertex> mVertices;
 		std::vector<unsigned> mIndices;

@@ -888,6 +888,7 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
+	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
 	mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
 	mHeightZeroComputePass->compute();
@@ -908,7 +909,12 @@ void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
 	model = translate(model, glm::vec3(0, 2, -1));
 	model = scale(model, glm::vec3(1 / (float)mWaveLength));
 
-	mSimpleShadedPass->setUniforms(camera, model, lightDir);
+	mSimpleShadedPass->setUniforms(camera, model, lightDir, 
+		mHeightComputePass->getHeight(),
+		mHeightComputePass->getSlopeX(),
+		mHeightComputePass->getSlopeZ(),
+		mHeightComputePass->getDx(),
+		mHeightComputePass->getDz());
 
 	//mMesh->bind();
 	mMesh->getVertexArray()->bind();
@@ -970,6 +976,8 @@ void nex::OceanGPU::simulate(float t)
 	mIfftComputePass->computeAllStages(dxFFT);
 	mIfftComputePass->computeAllStages(dzFFT);
 
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+	mNormalizePermutatePass->compute(heightFFT, slopeXFFT, slopeZFFT, dxFFT, dzFFT);
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1023,6 +1031,8 @@ void nex::OceanGPU::generateMesh()
 				0.0f,
 				getZValue((z - mPointCount / 2.0f) * mWaveLength / (float)mN)
 			);
+
+			mVertices[index].texCoords = glm::vec2(x, z) / (float)mPointCount;
 		}
 	}
 
@@ -1057,6 +1067,7 @@ void nex::OceanGPU::generateMesh()
 
 	VertexLayout layout;
 	layout.push<glm::vec3>(1); // position
+	layout.push<glm::vec2>(1); // texCoords
 
 	VertexArray vertexArray;
 	vertexArray.bind();
@@ -1456,14 +1467,95 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 }
 
 
+nex::OceanGPU::NormalizePermutatePass::NormalizePermutatePass(int N) :
+ComputePass(Shader::createComputeShader("ocean/normalize_permutate_cs.glsl")),
+mN(N)
+{
+	mNUniform = { mShader->getUniformLocation("N"), UniformType::INT };
+	mHeightUniform = { mShader->getUniformLocation("height"), UniformType::IMAGE2D, 0 };
+	mSlopeXUniform = { mShader->getUniformLocation("slopeX"), UniformType::IMAGE2D, 1 };
+	mSlopeZUniform = { mShader->getUniformLocation("slopeZ"), UniformType::IMAGE2D, 2 };
+	mdXUniform = { mShader->getUniformLocation("dX"), UniformType::IMAGE2D, 3 };
+	mdZUniform = { mShader->getUniformLocation("dZ"), UniformType::IMAGE2D, 4 };
+
+	mShader->bind();
+	mShader->setInt(mNUniform.location, mN);
+}
+
+void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ)
+{
+	bind();
+
+	mShader->setImageLayerOfTexture(mHeightUniform.location,
+		height,
+		mHeightUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mSlopeXUniform.location,
+		slopeX,
+		mSlopeXUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mSlopeZUniform.location,
+		slopeZ,
+		mSlopeZUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mdXUniform.location,
+		dX,
+		mdXUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	mShader->setImageLayerOfTexture(mdZUniform.location,
+		dZ,
+		mdZUniform.bindingSlot,
+		TextureAccess::READ_WRITE,
+		InternFormat::RG32F,
+		0,
+		false,
+		0);
+
+	dispatch(mN, mN, 1);
+}
+
 nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_gpu_vs.glsl", "ocean/simple_shaded_gpu_fs.glsl"))
 {
 	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+
+	heightUniform = { mShader->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
+
+	slopeXUniform = { mShader->getUniformLocation("slopeX"), UniformType::TEXTURE2D, 1 };
+	slopeZUniform = { mShader->getUniformLocation("slopeZ"), UniformType::TEXTURE2D, 2 };
+	dXUniform = { mShader->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
+	dZUniform = { mShader->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
+
+	sampler.setMinFilter(TextureFilter::NearestNeighbor);
+	sampler.setMagFilter(TextureFilter::NearestNeighbor);
+	sampler.setWrapR(TextureUVTechnique::Repeat);
+	sampler.setWrapS(TextureUVTechnique::Repeat);
+	sampler.setWrapT(TextureUVTechnique::Repeat);
 }
 
-void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
+void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir, 
+	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ)
 {
 	auto projection = camera->getProjectionMatrix();
 	auto view = camera->getView();
@@ -1476,6 +1568,12 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+
+	mShader->setTexture(height, &sampler, heightUniform.bindingSlot);
+	mShader->setTexture(slopeX, &sampler, slopeXUniform.bindingSlot);
+	mShader->setTexture(slopeZ, &sampler, slopeZUniform.bindingSlot);
+	mShader->setTexture(dX, &sampler, dXUniform.bindingSlot);
+	mShader->setTexture(dZ, &sampler, dZUniform.bindingSlot);
 }
 
 
