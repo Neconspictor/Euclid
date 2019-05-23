@@ -887,7 +887,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
-	mIfftComputePass(std::make_unique<IfftPass>(mN))
+	mIfftComputePass(std::make_unique<IfftPass>(mN)),
+	mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -902,6 +903,38 @@ nex::OceanGPU::~OceanGPU() = default;
 
 void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
 {
+	mSimpleShadedPass->bind();
+	glm::mat4 model;
+	model = translate(model, glm::vec3(0, 2, -1));
+	model = scale(model, glm::vec3(1 / (float)mWaveLength));
+
+	mSimpleShadedPass->setUniforms(camera, model, lightDir);
+
+	//mMesh->bind();
+	mMesh->getVertexArray()->bind();
+	mMesh->getIndexBuffer()->bind();
+	RenderState state;
+	state.doBlend = false;
+	state.doDepthTest = true;
+	state.doDepthWrite = true;
+	state.doCullFaces = true;
+
+	if (mWireframe)
+	{
+		state.fillMode = FillMode::LINE;
+	}
+	else
+	{
+		state.fillMode = FillMode::FILL;
+	}
+
+
+	state.depthCompare = CompareFunction::LESS;
+
+	mMesh->getVertexBuffer()->fill(mVertices.data(), sizeof(Vertex) * mVertices.size(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+
+	// Only draw the first triangle
+	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
 }
 
 void nex::OceanGPU::simulate(float t)
@@ -1024,7 +1057,6 @@ void nex::OceanGPU::generateMesh()
 
 	VertexLayout layout;
 	layout.push<glm::vec3>(1); // position
-	layout.push<glm::vec3>(1); // normal
 
 	VertexArray vertexArray;
 	vertexArray.bind();
@@ -1422,6 +1454,30 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 		bind();
 	}
 }
+
+
+nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_gpu_vs.glsl", "ocean/simple_shaded_gpu_fs.glsl"))
+{
+	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
+	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
+	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+}
+
+void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
+{
+	auto projection = camera->getProjectionMatrix();
+	auto view = camera->getView();
+
+	auto modelView = view * trafo;
+
+	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
+	mShader->setMat4(transform.location, projection * view * trafo);
+
+
+	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
+	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
+}
+
 
 
 

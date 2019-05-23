@@ -474,6 +474,18 @@ namespace nex
 			Texture2D* mButterfly;
 		};
 
+		class SimpleShadedPass : public Pass
+		{
+		public:
+			SimpleShadedPass();
+
+			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
+
+			Uniform transform;
+			Uniform lightUniform;
+			Uniform normalMatrixUniform;
+		};
+
 
 		std::unique_ptr<HeightZeroComputePass> mHeightZeroComputePass;
 		std::unique_ptr<HeightComputePass> mHeightComputePass;
@@ -483,7 +495,7 @@ namespace nex
 		std::vector<Vertex> mVertices;
 		std::vector<unsigned> mIndices;
 		std::unique_ptr<Mesh> mMesh;
-
+		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
 	};
 
 
