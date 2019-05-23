@@ -366,7 +366,10 @@ namespace nex
 		*/
 		void release();
 
-		void syncMemoryWithGPU(MemorySync flags);
+		/**
+		 * @param flags: a combination of MemorySync flags 
+		 */
+		void syncMemoryWithGPU(int flags);
 
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;

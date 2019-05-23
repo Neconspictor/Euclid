@@ -265,6 +265,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	//mTesselationTest.draw(camera, sun->getDirection());
 	static float simulationTime = 0.0f;
 	simulationTime += frameTime;
+
 	mOcean.simulate(simulationTime * 0.5f);
 	mOcean.draw(camera, sun->getDirection());
 	

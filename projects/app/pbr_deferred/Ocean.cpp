@@ -824,35 +824,10 @@ void nex::OceanCpuFFT::fftInPlace(std::vector<nex::Complex>& x, bool inverse)
 	}*/
 }
 
-nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
-	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
-	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
-	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
-	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
-	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
-	mIfftComputePass(std::make_unique<IfftPass>(mN))
+void nex::OceanGPU::testHeightGeneration()
 {
-	auto twoPi = 2.0f * util::PI;
-
-	std::vector<glm::vec2> test(mN*mN);
-
-	for (unsigned z = 0; z < mN; ++z)
-	{
-		for (unsigned x = 0; x < mN; ++x)
-		{
-			const auto index = z * mN + x;
-
-			const float kx = (twoPi * x - util::PI * mN) / (float)mN;
-			const float kz = (twoPi * z - util::PI * mN) / (float)mN;
-			auto height = heightZero(glm::vec2(kx, kz));
-			test[index] = glm::vec2(height.re, height.im);
-		}
-	}
-
 	std::vector<glm::vec4> heightZeros(mN*mN);
-	//mHeightZeroComputePass->getResult()->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, heightZeros.data(), heightZeros.size() * sizeof(glm::vec4));
 
-	mHeightZeroComputePass->compute();
 	mHeightComputePass->compute(10.0f, mHeightZeroComputePass->getResult());
 	//RenderBackend::get()->sync
 	std::vector<glm::vec2> height(mN*mN);
@@ -868,43 +843,6 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 	mHeightComputePass->getDz()->readback(0, ColorSpace::RG, PixelDataType::FLOAT, dz.data(), dz.size() * sizeof(glm::vec2));
 
 
-	mButterflyComputePass->compute();
-	std::vector<glm::vec4> butterfly(mN * std::log2(mN));
-
-	GenericImage genericImage;
-	genericImage.width = mN;
-	genericImage.height = std::log2(mN);
-	genericImage.components = 3;
-	genericImage.format = (unsigned)InternFormat::RGB32F;
-	genericImage.pixelSize = sizeof(glm::vec3);
-	genericImage.pixels.resize(mN * std::log2(mN) * sizeof(glm::vec3));
-
-	std::vector<glm::vec4> butterflyImage(mN * std::log2(mN));
-	std::vector<byte> butterflyOut(mN * std::log2(mN) * 3);
-
-
-	mButterflyComputePass->getButterfly()->
-		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
-
-
-	for (unsigned i = 0; i < butterflyImage.size(); ++i)
-	{
-		const auto& pixel = butterflyImage[i];
-		char* memory = &genericImage.pixels[i * sizeof(glm::vec3)];
-		const auto source = 127.5f + (255.0f * glm::vec3(pixel)) / 2.0f;
-
-		const auto source2 = 0.5f + glm::vec3(pixel) * 0.5f;
-		memcpy_s(memory, sizeof(glm::vec3), (char*)&source2, sizeof(glm::vec3));
-		byte r = static_cast<byte>(source.x);
-		byte g = static_cast<byte>(source.y);
-		byte b = static_cast<byte>(pixel.z);
-		butterflyOut[i * 3] = r;
-		butterflyOut[i * 3 + 1] = g;
-		butterflyOut[i * 3 + 2] = b;
-	}
-
-	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), mN, std::log2(mN), 3, mN * 3, false);
-	ImageFactory::writeHDR(genericImage, "./oceanTest/butterfly.hdr", false);
 
 	auto* heightFFT = mHeightComputePass->getHeight();
 	auto* dxFFT = mHeightComputePass->getDx();
@@ -942,12 +880,64 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 
 	heightFFT->readback(0, ColorSpace::RG, PixelDataType::FLOAT, height.data(), height.size() * sizeof(glm::vec2));
 
-	bool t = true;
+}
+
+nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
+	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
+	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
+	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
+	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
+	mIfftComputePass(std::make_unique<IfftPass>(mN))
+{
+	mHeightZeroComputePass->compute();
+	
+	computeButterflyTexture();
+
+	testHeightGeneration();
 
 	generateMesh();
 }
 
 nex::OceanGPU::~OceanGPU() = default;
+
+void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
+{
+}
+
+void nex::OceanGPU::simulate(float t)
+{
+}
+
+void nex::OceanGPU::computeButterflyTexture(bool debug)
+{
+	mButterflyComputePass->compute();
+	std::vector<glm::vec4> butterfly(mN * std::log2(mN));
+
+	if (!debug) return;
+
+	std::vector<glm::vec4> butterflyImage(mN * std::log2(mN));
+	std::vector<byte> butterflyOut(mN * std::log2(mN) * 3);
+
+
+	mButterflyComputePass->getButterfly()->
+		readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, butterflyImage.data(), butterflyImage.size() * sizeof(glm::vec4));
+
+
+	for (unsigned i = 0; i < butterflyImage.size(); ++i)
+	{
+		const auto& pixel = butterflyImage[i];
+		const auto source = 127.5f + (255.0f * glm::vec3(pixel)) / 2.0f;
+		byte r = static_cast<byte>(source.x);
+		byte g = static_cast<byte>(source.y);
+		byte b = static_cast<byte>(pixel.z);
+		butterflyOut[i * 3] = r;
+		butterflyOut[i * 3 + 1] = g;
+		butterflyOut[i * 3 + 2] = b;
+	}
+
+	ImageFactory::writeToPNG("./oceanTest/butterfly.png", (const char*)butterflyOut.data(), mN, std::log2(mN), 3, mN * 3, false);
+}
 
 void nex::OceanGPU::generateMesh()
 {
@@ -1265,7 +1255,7 @@ void nex::OceanGPU::ButterflyComputePass::compute()
 		0);
 
 	dispatch(mButterfly->getWidth(), mButterfly->getHeight(), 1);
-	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 }
 
 nex::Texture2D* nex::OceanGPU::ButterflyComputePass::getButterfly()

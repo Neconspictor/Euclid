@@ -281,6 +281,7 @@ namespace nex
 	class OceanGPU : public Ocean
 	{
 	public:
+		void testHeightGeneration();
 		OceanGPU(unsigned N, 
 			unsigned maxWaveLength, 
 			float dimension,
@@ -291,7 +292,20 @@ namespace nex
 
 		virtual ~OceanGPU();
 
+		/**
+		 * Draws the ocean.
+		 */
+		void draw(Camera* camera, const glm::vec3& lightDir);
+
+		/**
+		 * Simulates ocean state at time t.
+		 * @param t : time. Has to be > 0
+		 */
+		void simulate(float t);
+
 	private:
+
+		void computeButterflyTexture(bool debug = false);
 
 		void generateMesh();
 

@@ -650,7 +650,7 @@ namespace nex
 		mPimpl->mEffectLibrary.reset(nullptr);
 	}
 
-	void RenderBackend::syncMemoryWithGPU(MemorySync flags)
+	void RenderBackend::syncMemoryWithGPU(int flags)
 	{
 		GLuint glFlags = 0;
 		if (flags & MemorySync_ShaderImageAccess)
@@ -659,8 +659,6 @@ namespace nex
 			glFlags |= GL_SHADER_STORAGE_BARRIER_BIT;
 		if (flags & MemorySync_TextureUpdate)
 			glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
-
-		glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
 
 		GLCall(glMemoryBarrier(glFlags));
 		GLCall(glFinish());

@@ -287,6 +287,7 @@ unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
 
 void nex::Texture::readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, size_t destBufferSize)
 {
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 	GLCall(glGetTextureImage(mImpl->mTextureID, mipmapLevel, (GLenum)translate(format), (GLenum)translate(type), destBufferSize, dest));
 }
 
