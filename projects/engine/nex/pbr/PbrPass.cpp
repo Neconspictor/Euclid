@@ -74,15 +74,15 @@ void PbrCommonLightingPass::setCascadedDepthMap(const Texture* cascadedDepthMap)
 	mShader->setTexture(cascadedDepthMap, &mCascadedShadowMapSampler, mCascadedDepthMap.bindingSlot);
 }
 
-void PbrCommonLightingPass::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
-{
-	auto* buffer = (ShaderStorageBuffer*)&cascadeBufferUBO; // UniformBuffer ShaderStorageBuffer
-	buffer->bind();
-
-	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
-
-	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
-}
+//void PbrCommonLightingPass::setCascadedData(const CascadedShadow::CascadeData& cascadedData)
+//{
+//	auto* buffer = (ShaderStorageBuffer*)&cascadeBufferUBO; // UniformBuffer ShaderStorageBuffer
+//	buffer->bind();
+//
+//	assert(cascadeBufferUBO.getSize() == cascadedData.shaderBuffer.size());
+//
+//	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
+//}
 
 void PbrCommonLightingPass::setEyeLightDirection(const glm::vec3& direction)
 {
@@ -119,12 +119,13 @@ void PbrCommonLightingPass::setNearFarPlane(const glm::vec2& nearFarPlane)
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShadow* cascadedShadow) :
+nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint) :
 	PbrBaseCommon(shader),
-	cascadeBufferUBO(
-		CSM_CASCADE_BUFFER_BINDING_POINT, 
-		CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
-		ShaderBuffer::UsageHint::DYNAMIC_COPY), mProbe(nullptr),
+	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
+	//cascadeBufferUBO(
+	//	CSM_CASCADE_BUFFER_BINDING_POINT, 
+	//	CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
+	//	ShaderBuffer::UsageHint::DYNAMIC_COPY), mProbe(nullptr),
 	mCascadeShadow(cascadedShadow)
 {
 	assert(mShader != nullptr);
@@ -198,16 +199,16 @@ void PbrCommonLightingPass::updateConstants(Camera* camera)
 
 	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 	setShadowStrength(mCascadeShadow->getShadowStrength());
-	setCascadedData(mCascadeShadow->getCascadeData());
+	//setCascadedData(mCascadeShadow->getCascadeData());
 
 	auto* buffer = mCascadeShadow->getCascadeBuffer();
-	buffer->bind(0);
-	
+	buffer->bind(mCsmCascadeBindingPoint);	
 	setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 }
 
 PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) : 
-	TransformPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
+	TransformPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, generateDefines(cascadedShadow)), 
+		TRANSFORM_BUFFER_BINDINGPOINT),
 	mGeometryPass(mShader.get()),
     mLightingPass(mShader.get(), cascadedShadow)
 {
@@ -227,6 +228,7 @@ void PbrForwardPass::updateConstants(Camera* camera)
 {
 	bind();
 	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
+	//setInverseProjMatrixFromGPass(inverse(camera->getProjectionMatrix()));
 	mGeometryPass.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
@@ -310,6 +312,17 @@ void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
 	mLightingPass.setDirLight(light);
 }
 
+
+std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
+{
+	auto vec = cascadedShadow->generateCsmDefines();
+
+	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
+	// for the TransformBuffer
+	vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
+
+	return vec;
+}
 
 PbrDeferredGeometryPass::PbrDeferredGeometryPass() : 
 	TransformPass(Shader::create(

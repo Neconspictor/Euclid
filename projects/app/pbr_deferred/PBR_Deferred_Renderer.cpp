@@ -53,8 +53,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mPbrForward(pbrForward),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(256, //N
-		256, // maxWaveLength
+	mOcean(64, //N
+		64, // maxWaveLength
 		1.0f, //dimension
 		0.4f, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
@@ -145,8 +145,55 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 		renderForward(camera, sun, frameTime, windowWidth, windowHeight);
 	}
 
+	auto* stencilTest = mRenderBackend->getStencilTest();
+
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->enableStencilTest(true);
+
+	//mTesselationTest.draw(camera, sun->getDirection());
+	static float simulationTime = 0.0f;
+	simulationTime += frameTime;
+
+	//mOcean.simulate(simulationTime * 0.5f);
+	//mOcean.draw(camera, sun->getDirection());
+
+
+	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
+
+	renderSky(camera, sun, windowWidth, windowHeight);
+	stencilTest->enableStencilTest(false);
+
+
+	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
+	auto* luminanceTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(1));
+	auto* motionTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(2));
+	auto* depthTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(3));
+	auto* depthTexture2 = static_cast<Texture2D*>(mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
+
+	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
+
+
+	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
+	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
+	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
+
+	// finally render the offscreen buffer to a quad and do post processing stuff
+
+
+	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
+
+	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
+
+	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
+	postProcessor->antialias(postProcessed, screenRenderTarget);
+
 
 	//ShaderStorageBuffer::syncWithGPU();
+}
+
+void nex::PBR_Deferred_Renderer::renderToCubeMap(CubeMap* out, OrthographicCamera* camera, DirectionalLight* sun,
+	float frameTime, unsigned windowWidth, unsigned windowHeight)
+{
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -241,7 +288,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
 
-	renderShadows(camera, sun, mPbrMrt->getNormalizedViewSpaceZ());
+	renderShadows(camera, sun, (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get()); //mPbrMrt->getNormalizedViewSpaceZ()
 
 
 	// render scene to a offscreen buffer
@@ -258,46 +305,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 	mPbrDeferred->drawLighting(mPbrMrt.get(), camera);
-
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-	stencilTest->enableStencilTest(true);
-
-	//mTesselationTest.draw(camera, sun->getDirection());
-	static float simulationTime = 0.0f;
-	simulationTime += frameTime;
-
-	mOcean.simulate(simulationTime * 0.5f);
-	mOcean.draw(camera, sun->getDirection());
-	
-	
-	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-	
-	renderSky(camera, sun, windowWidth, windowHeight);
-	stencilTest->enableStencilTest(false);
-
-	
-	stencilTest->enableStencilTest(false);
-
-
-	auto* colorTex = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(0));
-	auto* luminanceTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(1));
-
-	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
-
-
-	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
-	RenderBackend::get()->getDepthBuffer()->enableDepthTest(false);
-	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
-
-	// finally render the offscreen buffer to a quad and do post processing stuff
-	
-
-	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
-
-	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, mPbrMrt->getNormalizedViewSpaceZ());
-
-	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, mPbrMrt->getMotion(), mPingPong.get());
-	postProcessor->antialias(postProcessed, screenRenderTarget);
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
@@ -308,16 +315,65 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	static auto* postProcessor = RenderBackend::get()->getEffectLibrary()->getPostProcessor();
 	static auto* defaultImageSampler = TextureManager::get()->getDefaultImageSampler();
 
-	for (auto i = 0; i < 10; ++i)
-	{
-		defaultImageSampler->unbind(i);
-	}
+	//for (auto i = 0; i < 10; ++i)
+	//{
+		//defaultImageSampler->unbind(i);
+	//}
 
 	RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+	RenderBackend::get()->getDepthBuffer()->enableDepthBufferWriting(true);
 	RenderBackend::get()->getDepthBuffer()->enableDepthClamp(true);
 
-	// Update CSM if it is enabled
-	renderShadows(camera, sun, nullptr);
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// update and render into cascades
+	mPbrMrt->bind();
+
+
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	//renderer->beginScene();
+
+	mPbrMrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
+
+
+	stencilTest->enableStencilTest(true);
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+
+	mPbrDeferred->configureSubMeshPass(camera);
+	mPbrDeferred->getActiveSubMeshPass()->updateConstants(camera);
+	RenderState state;
+	//state.doCullFaces = false;
+	//state.fillMode = FillMode::LINE;
+	StaticMeshDrawer::draw(mCommandQueue.getDeferredCommands(), mPbrDeferred->getActiveSubMeshPass());
+
+	stencilTest->enableStencilTest(false);
+	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
+
+	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
+	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
+
+	renderShadows(camera, sun, (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get()); //mPbrMrt->getNormalizedViewSpaceZ()
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	/*// update and render into cascades
+	mRenderTargetSingleSampled->bind();
+
+
+	mRenderBackend->setViewPort(0, 0, windowWidth * ssaaSamples, windowHeight * ssaaSamples);
+	//renderer->beginScene();
+
+	mRenderTargetSingleSampled->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
+
+
+	stencilTest->enableStencilTest(false);
+	auto* depthPass = mRenderBackend->getEffectLibrary()->getDepthMapShader();
+	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
+	depthPass->bind();
+	depthPass->updateViewProjection(camera->getProjectionMatrix(), camera->getView());
+	StaticMeshDrawer::draw(mCommandQueue.getDeferredCommands(), depthPass);
+	renderShadows(camera, sun, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());*/
 
 
 	// render scene to a offscreen buffer
@@ -331,12 +387,14 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
+	mPbrForward->setDirLight(sun);
 	mPbrForward->configureSubMeshPass(camera);
-	mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
+	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
+	
 	StaticMeshDrawer::draw(mCommandQueue.getDeferredCommands(), mPbrForward->getActiveSubMeshPass()); //TODO
-	StaticMeshDrawer::draw(mCommandQueue.getForwardCommands(), mPbrForward->getActiveSubMeshPass()); //TODO
+	//StaticMeshDrawer::draw(mCommandQueue.getForwardCommands(), mPbrForward->getActiveSubMeshPass()); //TODO
 
-	stencilTest->enableStencilTest(false);
+	/*stencilTest->enableStencilTest(false);
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
 
 
@@ -359,7 +417,7 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, aoMap, mPingPong.get());
-	postProcessor->antialias(postProcessed, screenRenderTarget);
+	postProcessor->antialias(postProcessed, screenRenderTarget);*/
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height)

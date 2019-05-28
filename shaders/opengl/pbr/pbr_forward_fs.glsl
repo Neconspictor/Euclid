@@ -3,17 +3,14 @@
 #include "pbr/pbr_common_geometry_fs.glsl"
 #include "pbr/pbr_common_lighting_fs.glsl"
 
-in VS_OUT2 {
-    vec4 fragment_position_eye;
-} fs_in2;
-
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
 
 void main()
 {    		
 	//position
-    vec3 positionEye = fs_in2.fragment_position_eye.rgb;
+    vec3 positionEye = fs_in.fragment_position_eye.rgb;
+    //positionEye = vec3(0.0);
     
     // albedo color
 	vec3 albedo = texture(material.albedoMap, fs_in.tex_coords).rgb;
@@ -26,7 +23,7 @@ void main()
 	//normal
     vec3 normalEye = getNormalEye();
     
-    vec2 texCoords = fs_in.tex_coords;
+    //vec2 texCoords = fs_in.tex_coords;
     
     
     vec3 colorOut;
@@ -37,7 +34,7 @@ void main()
                 normalEye, 
                 roughness, 
                 positionEye,
-                texCoords,
+                //texCoords,
                 colorOut,
                 luminanceOut);
         

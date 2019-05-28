@@ -43,6 +43,11 @@ namespace nex
 		static void draw(const std::vector<RenderCommand>& commands, nex::TransformPass* pass, const RenderState* overwriteState = nullptr);
 
 		/**
+		 * Draws a list of render commands with a specific (simple) transform pass and an optional render state (overwrites the render state of the mesh materials);
+		 */
+		static void draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformPass* pass, const RenderState* overwriteState = nullptr);
+
+		/**
 		 * Draws a sprite onto the screen
 		 */
 		//static void draw(const RenderState& state, const Sprite& sprite, nex::TransformPass* pass);

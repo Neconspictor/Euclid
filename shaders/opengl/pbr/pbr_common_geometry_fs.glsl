@@ -10,7 +10,7 @@ struct Material {
 
 
 in VS_OUT {	
-	//vec4 fragment_position_eye;
+	vec4 fragment_position_eye;
     //float viewSpaceZ;
     vec4 position_ndc;
     vec4 position_ndc_previous;

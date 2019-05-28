@@ -59,10 +59,7 @@ namespace nex
 	class PbrCommonLightingPass : public PbrBaseCommon
 	{
 	public:
-
-		static const unsigned CSM_CASCADE_BUFFER_BINDING_POINT = 1;
-
-		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow);
+		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
 
 		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
@@ -88,10 +85,12 @@ namespace nex
 		void setInverseViewMatrix(const glm::mat4& mat);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
-		void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
+		//void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
 		void setShadowStrength(float strength);
 
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
+
+		unsigned mCsmCascadeBindingPoint;
 
 		//ibl
 		UniformTex mBrdfLUT;
@@ -100,7 +99,7 @@ namespace nex
 
 		// CSM
 		UniformTex mCascadedDepthMap;
-		ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
+		//ShaderStorageBuffer cascadeBufferUBO; //UniformBuffer ShaderStorageBuffer
 
 
 		Uniform mEyeLightDirection;
@@ -136,6 +135,10 @@ namespace nex
 	private:
 		PbrCommonGeometryPass mGeometryPass;
 		PbrCommonLightingPass mLightingPass;
+
+		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
+
+		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
 	class PbrDeferredGeometryPass : public TransformPass {

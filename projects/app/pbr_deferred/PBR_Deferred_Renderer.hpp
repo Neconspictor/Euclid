@@ -37,6 +37,7 @@ namespace nex
 
 		void init(int windowWidth, int windowHeight);
 		void render(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderToCubeMap(CubeMap* out, OrthographicCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(unsigned width, unsigned height);
 

@@ -66,7 +66,7 @@ namespace nex
 		 */
 		static const unsigned TRANSFORM_BUFFER_BINDING_POINT = 0;
 
-		TransformPass(std::unique_ptr<Shader> program = nullptr);
+		TransformPass(std::unique_ptr<Shader> program = nullptr, unsigned transformBindingPoint = 0);
 		
 		virtual ~TransformPass();
 		TransformPass(const TransformPass&) = delete;
@@ -92,11 +92,43 @@ namespace nex
 		void uploadTransformMatrices();
 
 	protected:
+		unsigned mTransformBindingPoint;
 		ShaderStorageBuffer mTransformBuffer;
 		Transforms mTransforms;
 		glm::mat4 mPrevModel;
 		glm::mat4 mPrevView;
+		
 	};
+
+
+	class SimpleTransformPass : public Pass
+	{
+	public:
+		SimpleTransformPass(std::unique_ptr<Shader> program = nullptr, unsigned transformLocation = 0);
+
+		virtual ~SimpleTransformPass();
+		SimpleTransformPass(const SimpleTransformPass&) = delete;
+		SimpleTransformPass(SimpleTransformPass&&) = default;
+		SimpleTransformPass& operator=(const SimpleTransformPass&) = delete;
+		SimpleTransformPass& operator=(SimpleTransformPass&&) = default;
+
+		/**
+		 * Sets the current and the previous model matrix (from the last frame)
+		 * Note: updateViewProjection has to be called before calling this function!
+		 * NOTE: Pass has to be bound!
+		 */
+		void updateTransformMatrix(const glm::mat4& model);
+
+		/**
+		 * Sets the view-projection matrix used to form the final transformation matrix when combined with a model matrix.
+		 */
+		void updateViewProjection(const glm::mat4& projection, const glm::mat4& view);
+
+	protected:
+		glm::mat4 mViewProjection;
+		unsigned mTransformLocation;
+	};
+
 
 	class ComputePass : public Pass
 	{

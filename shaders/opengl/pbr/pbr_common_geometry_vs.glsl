@@ -1,10 +1,14 @@
+#ifndef PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT
+#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT 0
+#endif
+
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
 layout (location = 4) in vec3 bitangent;
 
-layout(binding = 0) buffer TransformBuffer {
+layout(binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -15,7 +19,7 @@ layout(binding = 0) buffer TransformBuffer {
 } transforms;
 
 out VS_OUT {
-	//vec4 fragment_position_eye;
+	vec4 fragment_position_eye;
     //float viewSpaceZ;
     vec4 position_ndc;
     vec4 position_ndc_previous;
@@ -31,6 +35,8 @@ void commonVertexShader() {
     vs_out.position_ndc_previous = transforms.prevTransform *  vec4(position, 1.0f);
     
     vs_out.tex_coords = texCoords;
+    
+    vs_out.fragment_position_eye = transforms.modelView * vec4(position, 1.0f);
     
     mat3 normalMatrix = mat3(inverse(transpose(transforms.modelView)));
 	

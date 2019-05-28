@@ -43,7 +43,7 @@ void calcLighting(in float ao,
              in vec3 normalEye, 
              in float roughness,
              in vec3 positionEye,             
-             in vec2 texCoord,
+             //in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {

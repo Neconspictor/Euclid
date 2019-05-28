@@ -31,8 +31,8 @@ void nex::Pass::unbind()
 	mShader->unbind();
 }
 
-nex::TransformPass::TransformPass(std::unique_ptr<Shader> program) : Pass(std::move(program)),
-mTransformBuffer(0, sizeof(Transforms), ShaderBuffer::UsageHint::DYNAMIC_DRAW)
+nex::TransformPass::TransformPass(std::unique_ptr<Shader> program, unsigned transformBindingPoint) : Pass(std::move(program)), mTransformBindingPoint(transformBindingPoint),
+mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), ShaderBuffer::UsageHint::DYNAMIC_DRAW)
 {
 }
 
@@ -61,6 +61,24 @@ void nex::TransformPass::uploadTransformMatrices()
 	mTransforms.normalMatrix = inverse(transpose(mTransforms.modelView));
 	mTransformBuffer.bind();
 	mTransformBuffer.update(&mTransforms, sizeof(Transforms));
+}
+
+nex::SimpleTransformPass::SimpleTransformPass(std::unique_ptr<Shader> program, unsigned transformLocation) : Pass(std::move(program)), mTransformLocation(transformLocation)
+{
+}
+
+nex::SimpleTransformPass::~SimpleTransformPass() = default;
+
+void nex::SimpleTransformPass::updateTransformMatrix(const glm::mat4& model)
+{
+	auto transform = mViewProjection * model;
+	mShader->bind();
+	mShader->setMat4(mTransformLocation, transform);
+}
+
+void nex::SimpleTransformPass::updateViewProjection(const glm::mat4& projection, const glm::mat4& view)
+{
+	mViewProjection = projection * view;
 }
 
 nex::ComputePass::ComputePass(std::unique_ptr<Shader> program) : Pass(std::move(program))

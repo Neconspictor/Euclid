@@ -14,6 +14,16 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 	}
 }
 
+void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformPass* pass,
+	const RenderState* overwriteState)
+{
+	for (const auto& command : commands)
+	{
+		pass->updateTransformMatrix(command.worldTrafo);
+		StaticMeshDrawer::draw(command.mesh, command.material, pass, overwriteState);
+	}
+}
+
 /*void nex::StaticMeshDrawer::draw(const RenderState& state, const Sprite& sprite, TransformPass* shader)
 {
 	StaticMeshContainer* spriteModel = StaticMeshManager::get()->getSprite();//getModel(ModelManager::SPRITE_MODEL_NAME, Shaders::Unknown);

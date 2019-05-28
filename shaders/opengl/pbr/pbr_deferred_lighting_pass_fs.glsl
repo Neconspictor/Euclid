@@ -65,7 +65,7 @@ void main()
                 normalEye, 
                 roughness, 
                 positionEye,
-                fs_in.tex_coords,
+                //fs_in.tex_coords,
                 colorOut,
                 luminanceOut);
         
