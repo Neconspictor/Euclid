@@ -3,14 +3,12 @@
 #include <memory>
 #include <assimp/scene.h>
 #include<vector>
-
+#include <nex/material/Material.hpp>
 
 namespace nex
 {
 
 	class TextureManager;
-	struct TextureData;
-	class Material;
 
 	class AbstractMaterialLoader
 	{
@@ -19,11 +17,13 @@ namespace nex
 
 		virtual ~AbstractMaterialLoader();
 
-		virtual std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const = 0;
+		virtual void loadShadingMaterial(const aiScene* scene, MaterialStore& store, unsigned materialIndex) const = 0;
+
+		virtual std::unique_ptr<Material> createMaterial(const MaterialStore& store) const = 0;
 
 
 	protected:
-		std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureData data) const;
+		std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type) const;
 
 		TextureManager* textureManager;
 	};
@@ -33,6 +33,7 @@ namespace nex
 	public:
 		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
 		virtual ~DefaultMaterialLoader();
-		std::unique_ptr<Material> loadShadingMaterial(const aiScene* scene, unsigned materialIndex) const override { return nullptr; }
+		void loadShadingMaterial(const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override { }
+		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override { return nullptr; }
 	};
 }

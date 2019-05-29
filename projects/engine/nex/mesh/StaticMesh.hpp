@@ -2,10 +2,12 @@
 #include <nex/mesh/Mesh.hpp>
 #include <unordered_map>
 #include <memory>
+#include <nex/mesh/MeshStore.hpp>
 
 
 namespace nex
 {
+	class AbstractMaterialLoader;
 	class SceneNode;
 	class Scene;
 	class Material;
@@ -29,6 +31,8 @@ namespace nex
 		~StaticMeshContainer() = default;
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
+
+		static std::unique_ptr<StaticMeshContainer> create(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
 
 		SceneNode* createNodeHierarchy(Scene* scene, SceneNode* parent = nullptr);
 

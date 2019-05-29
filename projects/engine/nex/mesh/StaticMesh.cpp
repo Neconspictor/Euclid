@@ -1,6 +1,8 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/Scene.hpp>
 #include <nex/material/Material.hpp>
+#include "MeshFactory.hpp"
+#include "nex/material/AbstractMaterialLoader.hpp"
 
 namespace nex
 {
@@ -15,6 +17,22 @@ namespace nex
 		auto* pMesh = mMeshes.back().get();
 		auto* pMaterial = mMaterials.back().get();
 		mMappings[pMesh] = pMaterial;
+	}
+
+	std::unique_ptr<StaticMeshContainer> StaticMeshContainer::create(const std::vector<MeshStore>& stores, 
+		const nex::AbstractMaterialLoader& materialLoader)
+	{
+		auto container = std::make_unique<StaticMeshContainer>();
+
+		for (const auto& store : stores)
+		{
+			auto mesh = MeshFactory::create(store);
+			auto material = materialLoader.createMaterial(store.material);
+
+			container->add(std::move(mesh), std::move(material));
+		}
+
+		return container;
 	}
 
 	SceneNode* StaticMeshContainer::createNodeHierarchy(Scene* scene, SceneNode* parent)

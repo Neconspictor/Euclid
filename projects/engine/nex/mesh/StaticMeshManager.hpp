@@ -41,7 +41,7 @@ namespace nex
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMeshContainer* getModel(const std::string& meshName, MaterialType type);
+		StaticMeshContainer* getModel(const std::string& meshName);
 
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
@@ -81,7 +81,7 @@ namespace nex
 		 * Initializes the model manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		void init(FileSystem* meshFileSystem, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
+		void init(FileSystem* meshFileSystem, std::string compiledSubFolder,std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
 
 		/**
@@ -111,6 +111,7 @@ namespace nex
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
 		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
 		bool mInitialized;
+		std::string mCompiledSubFolder;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 		unsigned int SKYBOX_MODEL_HASH;

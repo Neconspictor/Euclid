@@ -158,16 +158,17 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
+	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, std::string compiledSubFolder, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
 		//if (pbrMaterialLoader == nullptr) throw std::runtime_error("pbr material loader mustn't be null!");
 		mFileSystem = meshFileSystem;
 		mPbrMaterialLoader = std::move(pbrMaterialLoader);
 		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
+		mCompiledSubFolder = std::move(compiledSubFolder);
 		mInitialized = true;
 	}
 
-	nex::StaticMeshContainer* nex::StaticMeshManager::getModel(const std::string& meshPath, nex::MaterialType type)
+	nex::StaticMeshContainer* nex::StaticMeshManager::getModel(const std::string& meshPath)
 	{
 		// else case: assume the model name is a 3d model that can be load from file.
 		if (!mInitialized) throw std::runtime_error("StaticMeshManager isn't initialized!");
@@ -190,27 +191,44 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-		const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+		const std::filesystem::path compiledMeshPath = mCompiledSubFolder + meshPath + ".bin";
+		auto resolvedCompiledMeshPath = mFileSystem->resolvePath(compiledMeshPath, true);
 
+		std::vector<MeshStore> stores;
 		nex::AbstractMaterialLoader* materialLoader = nullptr;
-		if (type == MaterialType::Pbr) {
-			materialLoader = mPbrMaterialLoader.get();
-		} else if (type == MaterialType::None)
+		materialLoader = mPbrMaterialLoader.get();
+
+		if (!std::filesystem::exists(resolvedCompiledMeshPath))
 		{
-			materialLoader = mDefaultMaterialLoader.get();
-		}
-		
-		if (materialLoader == nullptr) 
+			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+			stores = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
+
+			File file;
+			auto directory = compiledMeshPath.parent_path();
+			const auto& root = mFileSystem->getIncludeDirectories()[0];
+			mFileSystem->createDirectories(directory.generic_string(), root);
+			
+			resolvedCompiledMeshPath = root / compiledMeshPath;
+			file.open(resolvedCompiledMeshPath, std::ios::binary | std::ios::out | std::ios::trunc);
+			StreamUtil::write(*file, stores.size());
+			for (const auto& store : stores)
+			{
+				*file << store;
+			}
+		} else
 		{
-			std::stringstream msg;
-			msg << "No suitable material loader found for shader type: " << type << std::endl; //TODO
-
-			throw_with_trace(std::runtime_error(msg.str()));
+			File file;
+			file.open(resolvedCompiledMeshPath, std::ios::binary | std::ios::in);
+			size_t size;
+			StreamUtil::read(*file, size);
+			stores.resize(size);
+			for (size_t i = 0; i < size; ++i)
+			{
+				*file >> stores[i];
+			}
 		}
 
-
-
-		models.push_back(move(assimpLoader.loadStaticMesh(resolvedPath, *materialLoader)));
+		models.push_back(StaticMeshContainer::create(stores, *materialLoader));
 		StaticMeshContainer* result = models.back().get();
 		modelTable[hash] = result;
 		return result;

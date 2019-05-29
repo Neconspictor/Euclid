@@ -17,16 +17,8 @@ mPbrDeferred(pbrDeferred), mPbrForward(pbrForward)
 
 PbrMaterialLoader::~PbrMaterialLoader() = default;
 
-std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(const aiScene * scene, unsigned materialIndex) const
+std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	if (scene->mNumMaterials <= materialIndex)
-	{
-		throw std::runtime_error("PbrMaterialLoader: materialIndex out of range!");
-	}
-
-	aiMaterial* mat = scene->mMaterials[materialIndex];
-
-	// TODO decide when to use pbrForward!
 	auto material = make_unique<PbrMaterial>(mPbrDeferred);
 
 	TextureData data = {
@@ -43,29 +35,29 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(const aiScene *
 
 	// a material can have more than one diffuse/specular/normal map,
 	// but we only use the first one by now
-	vector<string> albedoMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE, data);
-	if (albedoMaps.size())
+	if (store.albedoMap != "")
 	{
-		material->setAlbedoMap(textureManager->getImage(albedoMaps[0], data));
-	} else
+		material->setAlbedoMap(textureManager->getImage(store.albedoMap, data));
+	}
+	else
 	{
 		material->setAlbedoMap(textureManager->getDefaultWhiteTexture()); // assume white material
 	}
 
-	vector<string> aoMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT, data);
-	if (aoMaps.size())
+	if (store.aoMap != "")
 	{
-		material->setAoMap(textureManager->getImage(aoMaps[0], data));
-	} else
+		material->setAoMap(textureManager->getImage(store.aoMap, data));
+	}
+	else
 	{
 		material->setAoMap(textureManager->getDefaultWhiteTexture()); // no ao
 	}
 
-	vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE, data);
-	if (emissionMaps.size())
+	if (store.emissionMap != "")
 	{
-		material->setEmissionMap(textureManager->getImage(emissionMaps[0], data));
-	} else
+		material->setEmissionMap(textureManager->getImage(store.emissionMap, data));
+	}
+	else
 	{
 		material->setEmissionMap(textureManager->getDefaultBlackTexture()); // no emission
 	}
@@ -74,20 +66,20 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(const aiScene *
 	data.colorspace = ColorSpace::RGBA;
 	data.internalFormat = InternFormat::RGBA8;
 
-	vector<string> metallicMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, data);
-	if (metallicMaps.size())
+	if (store.metallicMap != "")
 	{
-		material->setMetallicMap(textureManager->getImage(metallicMaps[0], data));
-	} else
+		material->setMetallicMap(textureManager->getImage(store.metallicMap, data));
+	}
+	else
 	{
 		material->setMetallicMap(textureManager->getDefaultBlackTexture()); // we assume a non metallic material
 	}
 
-	vector<string> roughnessMaps = loadMaterialTextures(mat, aiTextureType_SHININESS, data);
-	if (roughnessMaps.size())
+	if (store.roughnessMap != "")
 	{
-		material->setRoughnessMap(textureManager->getImage(roughnessMaps[0], data));
-	} else
+		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, data));
+	}
+	else
 	{
 		material->setRoughnessMap(textureManager->getDefaultWhiteTexture()); // we assume a full rough material
 	}
@@ -96,17 +88,66 @@ std::unique_ptr<Material> PbrMaterialLoader::loadShadingMaterial(const aiScene *
 	//normal maps shouldn't use mipmaps (important for shading!)
 	data.generateMipMaps = true; // TODO use mip maps or not????
 
-	vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, data);
-	if (normalMaps.size())
+
+	if (store.normalMap != "")
 	{
-		Texture* texture = textureManager->getImage(normalMaps[0], data);
+		Texture* texture = textureManager->getImage(store.normalMap, data);
 		material->setNormalMap(texture);
 		//material->setNormalMap(textureManager->getDefaultNormalTexture());
-	} else
+	}
+	else
 	{
 		Texture* texture = textureManager->getDefaultNormalTexture();
 		material->setNormalMap(texture);
 	}
 
 	return material;
+}
+
+void PbrMaterialLoader::loadShadingMaterial(const aiScene * scene, MaterialStore& store, unsigned materialIndex) const
+{
+	if (scene->mNumMaterials <= materialIndex)
+	{
+		throw_with_trace(std::runtime_error("PbrMaterialLoader: materialIndex out of range!"));
+	}
+
+	aiMaterial* mat = scene->mMaterials[materialIndex];
+
+	// a material can have more than one diffuse/specular/normal map,
+	// but we only use the first one by now
+	vector<string> albedoMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
+	if (albedoMaps.size())
+	{
+		store.albedoMap = albedoMaps[0];
+	}
+
+	vector<string> aoMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
+	if (aoMaps.size())
+	{
+		store.aoMap = aoMaps[0];
+	}
+
+	vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
+	if (emissionMaps.size())
+	{
+		store.emissionMap = emissionMaps[0];
+	}
+
+	vector<string> metallicMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
+	if (metallicMaps.size())
+	{
+		store.metallicMap = metallicMaps[0];
+	}
+
+	vector<string> roughnessMaps = loadMaterialTextures(mat, aiTextureType_SHININESS);
+	if (roughnessMaps.size())
+	{
+		store.roughnessMap = roughnessMaps[0];
+	}
+
+	vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT);
+	if (normalMaps.size())
+	{
+		store.normalMap = normalMaps[0];
+	}
 }

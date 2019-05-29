@@ -24,7 +24,7 @@ PbrProbe::PbrProbe(Texture* backgroundHDR) :
 	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputePass>())
 {
 
-	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME, MaterialType::None);
+	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME);
 
 	init(backgroundHDR);
 	environmentMap.reset();

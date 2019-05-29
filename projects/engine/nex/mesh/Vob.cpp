@@ -61,7 +61,7 @@ namespace nex {
 
 		static auto* manager = StaticMeshManager::get();
 		if (m_model == nullptr)
-			m_model = manager->getModel(meshName, mMaterialType);
+			m_model = manager->getModel(meshName);
 	}
 
 	void Vob::setEulerXYZ(vec3 rotation)

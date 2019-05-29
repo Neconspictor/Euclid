@@ -27,6 +27,11 @@ namespace nex::util {
 		}
 	}
 
+	const char* Globals::getCompiledSubFolder()
+	{
+		return COMPILED_SUBFOLDER;
+	}
+
 	std::string Globals::getMeshesPath()
 	{
 

@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 
 	//nex::MeshStore::test();
 
-
+	//nex::MaterialStore::test();
 
 
 	nex::Logger logger("Main");

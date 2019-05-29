@@ -15,13 +15,15 @@ namespace nex
 
 		void addIncludeDirectory(const std::filesystem::path& folder);
 
+		void createDirectories(const std::string& relative,  const std::filesystem::path& root) const;
+
 
 		std::filesystem::path resolveAbsolute(const std::filesystem::path& path) const;
 
-		/**
+		/**,
 		 *
 		 */
-		std::filesystem::path resolvePath(const std::filesystem::path& path) const;
+		std::filesystem::path resolvePath(const std::filesystem::path& path, bool noException = false) const;
 
 		std::filesystem::path resolveRelative(const std::filesystem::path& path,
 			const std::filesystem::path& base = std::filesystem::current_path()) const;
@@ -29,6 +31,8 @@ namespace nex
 		static std::filesystem::path makeRelative(const std::filesystem::path& path,
 			const std::filesystem::path& root = std::filesystem::current_path());
 		static std::filesystem::path getCurrentPath_Relative();
+
+		const std::vector<std::filesystem::path>& getIncludeDirectories() const;
 
 		/**
 		 * Loads a file from a given file path into a string.

@@ -2,7 +2,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <nex/util/Timer.hpp>
-#include <nex/mesh/MeshFactory.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshStore.hpp>
@@ -16,7 +15,7 @@ namespace nex
 	{
 	}
 
-	unique_ptr<StaticMeshContainer> MeshLoader::loadStaticMesh(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
+	std::vector<MeshStore> MeshLoader::loadStaticMesh(const std::filesystem::path& path, const AbstractMaterialLoader& materialLoader) const
 	{
 		Timer timer;
 
@@ -39,29 +38,28 @@ namespace nex
 			throw_with_trace(runtime_error(ss.str()));
 		}
 
-		auto container = make_unique<StaticMeshContainer>();
-
-		processNode(scene->mRootNode, scene, container.get(), materialLoader);
+		std::vector<MeshStore> stores;
+		processNode(scene->mRootNode, scene, stores, materialLoader);
 
 		timer.update();
 		LOG(m_logger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
 
-		return std::move(container);
+		return stores;
 	}
 
-	void MeshLoader::processNode(aiNode* node, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
+	void MeshLoader::processNode(aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const
 	{
 		// process all the node's meshes (if any)
 		for (unsigned i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(mesh, scene, container, materialLoader);
+			processMesh(mesh, scene, stores, materialLoader);
 		}
 
 		// then do the same for each of its children
 		for (unsigned i = 0; i < node->mNumChildren; ++i)
 		{
-			processNode(node->mChildren[i], scene, container, materialLoader);
+			processNode(node->mChildren[i], scene, stores, materialLoader);
 		}
 	}
 
@@ -77,21 +75,23 @@ namespace nex
 		return result;
 	}
 
-	void MeshLoader::processMesh(aiMesh* assimpMesh, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
+	void MeshLoader::processMesh(aiMesh* assimpMesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const
 	{
-		auto store = std::make_unique<MeshStore>();
-		store->indexType = IndexElementType::BIT_32;
-		auto& layout = store->layout;
+		stores.emplace_back(MeshStore());
+		auto& store = stores.back();
+
+		store.indexType = IndexElementType::BIT_32;
+		auto& layout = store.layout;
 		layout.push<glm::vec3>(1); // position
 		layout.push<glm::vec3>(1); // normal
 		layout.push<glm::vec2>(1); // uv
 		layout.push<glm::vec3>(1); // tangent
 		layout.push<glm::vec3>(1); // bitangent
 
-		store->topology = Topology::TRIANGLES;
+		store.topology = Topology::TRIANGLES;
 
-		std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store->vertices);
-		std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store->indices);
+		std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store.vertices);
+		std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store.indices);
 
 		vertices.resize(assimpMesh->mNumVertices);
 		indices.resize(assimpMesh->mNumFaces * 3);
@@ -163,15 +163,10 @@ namespace nex
 			}
 		}
 
-		auto material = materialLoader.loadShadingMaterial(scene, assimpMesh->mMaterialIndex);
-
-		store->boundingBox = calcBoundingBox(vertices);
+		materialLoader.loadShadingMaterial(scene, store.material, assimpMesh->mMaterialIndex);
+		store.boundingBox = calcBoundingBox(vertices);
 		
-		unique_ptr<Mesh> mesh = MeshFactory::create(*store);
-		mesh->setBoundingBox(store->boundingBox);
-		
-		
-
-		container->add(std::move(mesh), std::move(material));
+		//unique_ptr<Mesh> mesh = MeshFactory::create(*store);
+		//mesh->setBoundingBox(store.boundingBox);
 	}
 }

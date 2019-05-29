@@ -97,7 +97,7 @@ void NeXEngine::init()
 
 	// init mesh manager (filesystem)
 	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	StaticMeshManager::get()->init(&mMeshFileSystem, 
+	StaticMeshManager::get()->init(&mMeshFileSystem, util::Globals::getCompiledSubFolder(),
 		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
 	//StaticMeshManager::get()->setPbrMaterialLoader(std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
 
@@ -255,11 +255,11 @@ void NeXEngine::createScene()
 {
 	mScene.clear();
 
-	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj", MaterialType::Pbr);
+	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	ground->setPositionLocal({ 10, 0, 0 });
 
-	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj", MaterialType::Pbr);
+	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
 	auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
 	//cerberus->setPositionLocal({0, 2, 0});
 

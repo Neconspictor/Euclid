@@ -6,6 +6,8 @@ namespace nex::util {
 	public:
 		static void initGlobals();
 
+		static const char* getCompiledSubFolder();
+
 		/**
 		 * Path to the meshes folder. Path ends with a slash
 		 */
@@ -48,5 +50,7 @@ namespace nex::util {
 		* Path to textures
 		*/
 		static inline const char* TEXTURE_PATH = "_work/data/textures/";
+
+		static constexpr const char* COMPILED_SUBFOLDER = "_compiled/";
 	};
 }

@@ -2,6 +2,7 @@
 #include "nex/util/StringUtils.hpp"
 #include <nex/shader/ShaderType.hpp>
 #include <nex/renderer/RenderTypes.hpp>
+#include <string>
 
 namespace nex
 {
@@ -118,4 +119,23 @@ namespace nex
 		void setNormalMap(Texture* normalMap);
 		void setRoughnessMap(Texture* roughnessMap);
 	};
+
+	struct MaterialStore
+	{
+		std::string albedoMap;
+		std::string alphaMap;
+		std::string aoMap;
+		std::string emissionMap;
+		std::string metallicMap;
+		std::string normalMap;
+		std::string roughnessMap;
+
+		MaterialType type = MaterialType::Pbr;
+		RenderState state;
+
+		static void test();
+	};
+
+	std::istream& operator>>(std::istream& in, MaterialStore& store);
+	std::ostream& operator<<(std::ostream& out, const MaterialStore& store);
 }

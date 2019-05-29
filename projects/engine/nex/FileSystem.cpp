@@ -23,12 +23,17 @@ void FileSystem::addIncludeDirectory(const std::filesystem::path& path)
 	mIncludeDirectories.emplace_back(std::move(folder));
 }
 
+void FileSystem::createDirectories(const std::string& relative, const std::filesystem::path& root) const
+{
+	std::filesystem::create_directories(root.generic_string() + relative);
+}
+
 std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& path) const
 {
 	return canonical(resolvePath(path));
 }
 
-std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path) const
+std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, bool noException) const
 {
 
 	static std::string errorBase = "FileSystem::resolvePath: path doesn't exist: ";
@@ -36,7 +41,10 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path)
 	if (path.is_absolute()) {
 
 		if (!exists(path))
+		{
+			if (noException) return {};
 			throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
+		}
 
 		return path;
 	}
@@ -47,9 +55,9 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path)
 		if (exists(p)) return p;
 	}
 
-	throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
+	if (!noException)
+		throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
 
-	// won't be reached
 	return {};
 }
 
@@ -68,6 +76,11 @@ std::filesystem::path FileSystem::makeRelative(const std::filesystem::path& path
 std::filesystem::path FileSystem::getCurrentPath_Relative()
 {
 	return makeRelative(std::filesystem::current_path());
+}
+
+const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() const
+{
+	return mIncludeDirectories;
 }
 
 

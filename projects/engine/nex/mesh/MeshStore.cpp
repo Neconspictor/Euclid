@@ -10,6 +10,7 @@ void nex::MeshStore::read(std::istream& in)
 	in >> layout;
 	in >> boundingBox;
 	in >> topology;
+	in >> material;
 	in >> indices;
 	in >> vertices;
 }
@@ -20,6 +21,7 @@ void nex::MeshStore::write(std::ostream& out) const
 	out << layout;
 	out << boundingBox;
 	out << topology;
+	out << material;
 	out << indices;
 	out << vertices;
 }

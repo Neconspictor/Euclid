@@ -2,6 +2,7 @@
 #include <nex/texture/Texture.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
+#include "nex/common/File.hpp"
 
 using namespace std;
 using namespace nex;
@@ -269,4 +270,72 @@ void PbrMaterial::setNormalMap(Texture * normalMap)
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
 	set(PbrCommonGeometryPass::ROUGHNESS_BINDING_POINT, roughnessMap);
+}
+
+void MaterialStore::test()
+{
+	{
+		MaterialStore store;
+		store.albedoMap = "albedo";
+		store.alphaMap = "alpha";
+		store.aoMap = "ao";
+		store.emissionMap = "emission";
+		store.metallicMap = "metal";
+		store.normalMap = "normal";
+		store.roughnessMap = "roughness";
+		store.state.doCullFaces = false;
+		store.state.cullSide = PolygonSide::FRONT;
+		store.state.doShadowCast = false;
+		store.state.depthCompare = CompareFunction::GREATER_EQUAL;
+		store.state.fillMode = FillMode::LINE;
+		File file;
+		file.open("material.bin", std::ios::binary | std::ios::out | std::ios::trunc) << store;
+		
+	}
+
+	{
+		MaterialStore store;
+		File file;
+		file.open("material.bin", std::ios::binary | std::ios::in) >> store;
+
+		std::cout << "store.albedoMap : " << store.albedoMap << std::endl;
+		std::cout << "store.alphaMap : " << store.alphaMap << std::endl;
+		std::cout << "store.aoMap : " << store.aoMap << std::endl;
+		std::cout << "store.emissionMap : " << store.emissionMap << std::endl;
+		std::cout << "store.metallicMap : " << store.metallicMap << std::endl;
+		std::cout << "store.normalMap : " << store.normalMap << std::endl;
+		std::cout << "store.roughnessMap : " << store.roughnessMap << std::endl;
+		std::cout << "store.state.doCullFaces : " << store.state.doCullFaces << std::endl;
+
+	}
+}
+
+std::istream& nex::operator>>(std::istream& in, MaterialStore& store)
+{
+	StreamUtil::readString(in, store.albedoMap);
+	StreamUtil::readString(in, store.alphaMap);
+	StreamUtil::readString(in, store.aoMap);
+	StreamUtil::readString(in, store.emissionMap);
+	StreamUtil::readString(in, store.metallicMap);
+	StreamUtil::readString(in, store.normalMap);
+	StreamUtil::readString(in, store.roughnessMap);
+
+	StreamUtil::read(in, store.type);
+	StreamUtil::read(in, store.state);
+	return in;
+}
+
+std::ostream& nex::operator<<(std::ostream& out, const MaterialStore& store)
+{
+	StreamUtil::writeString(out, store.albedoMap);
+	StreamUtil::writeString(out, store.alphaMap);
+	StreamUtil::writeString(out, store.aoMap);
+	StreamUtil::writeString(out, store.emissionMap);
+	StreamUtil::writeString(out, store.metallicMap);
+	StreamUtil::writeString(out, store.normalMap);
+	StreamUtil::writeString(out, store.roughnessMap);
+
+	StreamUtil::write(out, store.type);
+	StreamUtil::write(out, store.state);
+	return out;
 }

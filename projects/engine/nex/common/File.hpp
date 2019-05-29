@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <string>
 
 namespace nex
 {
@@ -60,6 +61,23 @@ namespace nex
 			out << bytes;
 			out.write(vec.data(), bytes);
 		}
+
+		template<typename T>
+		static T& read(std::istream& in, T& item)
+		{
+			in.read((char*)&item, sizeof(T));
+			return item;
+		}
+
+		template<typename T>
+		static void write(std::ostream& out, const T& item)
+		{
+			out.write((const char*)&item, sizeof(T));
+		}
+
+		static void readString(std::istream& in, std::string& str);
+
+		static void writeString(std::ostream& out, const std::string& str);
 	};
 
 	template<typename T>

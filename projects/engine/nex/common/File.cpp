@@ -82,3 +82,17 @@ void nex::File::test()
 
 	std::cout << "bytes = " << bytes << std::endl;
 }
+
+void nex::StreamUtil::readString(std::istream& in, std::string& str)
+{
+	size_t size;
+	in.read((char*)&size, sizeof(size));
+	str.resize(size);
+	in.read(str.data(), size);
+}
+
+void nex::StreamUtil::writeString(std::ostream& out, const std::string& str)
+{
+	write<size_t>(out, str.size());
+	out.write(str.data(), str.size());
+}

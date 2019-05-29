@@ -4,6 +4,7 @@
 #include <nex/util/Math.hpp>
 #include <vector>
 #include "VertexLayout.hpp"
+#include "nex/material/Material.hpp"
 
 namespace nex
 {
@@ -13,6 +14,7 @@ namespace nex
 		VertexLayout layout;
 		AABB boundingBox;
 		Topology topology;
+		MaterialStore material;
 		std::vector<char> indices;
 		std::vector<char> vertices;
 
