@@ -6,7 +6,7 @@
 #include "nex/mesh/IndexBuffer.hpp"
 #include "nex/mesh/VertexLayout.hpp"
 #include "nex/mesh/VertexArray.hpp"
-#include "nex/mesh/SubMesh.hpp"
+#include "nex/mesh/Mesh.hpp"
 #include "nex/camera/Camera.hpp"
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"

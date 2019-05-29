@@ -1,6 +1,6 @@
 #include <nex/pbr/PbrPass.hpp>
 #include <glm/glm.hpp>
-#include <nex/mesh/SubMesh.hpp>
+#include <nex/mesh/Mesh.hpp>
 #include <nex/material/Material.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "nex/texture/TextureManager.hpp"

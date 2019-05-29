@@ -1,4 +1,4 @@
-#include <nex/mesh/SubMesh.hpp>
+#include <nex/mesh/Mesh.hpp>
 #include "VertexArray.hpp"
 #include "IndexBuffer.hpp"
 #include "nex/material/Material.hpp"

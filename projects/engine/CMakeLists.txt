@@ -29,6 +29,8 @@ set(
     nex/common/BinaryReader.cpp
     nex/common/Callback.hpp
     nex/common/debug_break.h
+    nex/common/File.hpp
+    nex/common/File.cpp
     nex/common/Log.hpp
     nex/common/Log.cpp
     
@@ -68,10 +70,14 @@ set(
     
     #nex/mesh
     nex/mesh/IndexBuffer.hpp
+    nex/mesh/Mesh.hpp
+    nex/mesh/Mesh.cpp
     nex/mesh/MeshFactory.hpp
 	nex/mesh/MeshFactory.cpp
     nex/mesh/MeshLoader.hpp
 	nex/mesh/MeshLoader.cpp
+    nex/mesh/MeshStore.hpp
+    nex/mesh/MeshStore.cpp
     nex/mesh/MeshTypes.hpp
     nex/mesh/SampleMeshes.hpp
     nex/mesh/Sphere.cpp
@@ -80,8 +86,6 @@ set(
 	nex/mesh/StaticMesh.cpp
     nex/mesh/StaticMeshManager.hpp
 	nex/mesh/StaticMeshManager.cpp
-    nex/mesh/SubMesh.hpp
-    nex/mesh/SubMesh.cpp
     nex/mesh/VertexArray.hpp
     nex/mesh/VertexBuffer.hpp
     nex/mesh/VertexLayout.hpp

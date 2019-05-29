@@ -54,6 +54,10 @@ namespace nex
 
 		inline unsigned int getStride() const;
 		inline const std::vector<LayoutElement>& getElements() const;
+
+		std::istream& operator>>(std::istream& in);
+
+		std::ostream& operator<<(std::ostream& out) const;
 	};
 
 }

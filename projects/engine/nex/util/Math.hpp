@@ -6,6 +6,22 @@
 
 #include <glm/glm.hpp>
 
+namespace glm
+{
+	inline std::istream& operator>>(std::istream& in, glm::vec3& vec)
+	{
+		in.read((char*)&vec, sizeof(vec));
+		return in;
+	}
+
+	inline std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
+	{
+		out.write((const char*)&vec, sizeof(vec));
+		return out;
+	}
+}
+
+
 namespace nex
 {
 	namespace util {
@@ -16,6 +32,21 @@ namespace nex
 	{
 		glm::vec3 min = glm::vec3(FLT_MAX);
 		glm::vec3 max = glm::vec3(-FLT_MAX);
+
+		inline std::istream& operator>>(std::istream& in)
+		{
+			in >> max;
+			in >> min;
+
+			return in;
+		}
+
+		inline std::ostream& operator<<(std::ostream& out) const
+		{
+			out << max;
+			out << min;
+			return out;
+		}
 	};
 
 	struct Dimension
@@ -141,5 +172,16 @@ namespace nex
 	constexpr bool isPow2(const size_t _Value) noexcept
 	{
 		return (_Value != 0 && (_Value & (_Value - 1)) == 0);
+	}
+
+
+	inline std::istream& operator>>(std::istream& in, nex::AABB& box)
+	{
+		return box.operator>>(in);
+	}
+
+	inline std::ostream& operator<<(std::ostream& out, const nex::AABB& box)
+	{
+		return box.operator<<(out);
 	}
 }

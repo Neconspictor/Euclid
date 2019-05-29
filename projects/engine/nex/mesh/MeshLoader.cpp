@@ -5,6 +5,7 @@
 #include <nex/mesh/MeshFactory.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/material/Material.hpp>
+#include <nex/mesh/MeshStore.hpp>
 
 using namespace std;
 using namespace glm;
@@ -78,8 +79,22 @@ namespace nex
 
 	void MeshLoader::processMesh(aiMesh* assimpMesh, const aiScene* scene, StaticMeshContainer* container, const AbstractMaterialLoader& materialLoader) const
 	{
-		std::vector<Vertex> vertices;
-		std::vector<unsigned int> indices;
+		auto store = std::make_unique<MeshStore>();
+		store->indexType = IndexElementType::BIT_32;
+		auto& layout = store->layout;
+		layout.push<glm::vec3>(1); // position
+		layout.push<glm::vec3>(1); // normal
+		layout.push<glm::vec2>(1); // uv
+		layout.push<glm::vec3>(1); // tangent
+		layout.push<glm::vec3>(1); // bitangent
+
+		store->topology = Topology::TRIANGLES;
+
+		std::vector<Vertex>& vertices = reinterpret_cast<std::vector<Vertex>&>(store->vertices);
+		std::vector<unsigned>& indices = reinterpret_cast<std::vector<unsigned>&>(store->indices);
+
+		vertices.resize(assimpMesh->mNumVertices);
+		indices.resize(assimpMesh->mNumFaces * 3);
 
 		bool tangentData = assimpMesh->mTangents != nullptr;
 
@@ -132,7 +147,7 @@ namespace nex
 			}
 
 			// don't make a copy
-			vertices.emplace_back(vertex);
+			vertices[i] = std::move(vertex);
 		}
 
 		// now walk through all mesh's faces to retrieve index data. 
@@ -140,19 +155,22 @@ namespace nex
 		for (unsigned i = 0; i < assimpMesh->mNumFaces; ++i)
 		{
 			aiFace face = assimpMesh->mFaces[i];
+			assert(face.mNumIndices == 3);
+
 			for (unsigned j = 0; j < face.mNumIndices; ++j)
 			{
-				indices.push_back(face.mIndices[j]);
+				indices[i*3 + j] = face.mIndices[j];
 			}
 		}
 
 		auto material = materialLoader.loadShadingMaterial(scene, assimpMesh->mMaterialIndex);
 
-		unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), assimpMesh->mNumVertices,
-			indices.data(), assimpMesh->mNumFaces * 3);
-
-		auto boundingBox = calcBoundingBox(vertices);
-		mesh->setBoundingBox(boundingBox);
+		store->boundingBox = calcBoundingBox(vertices);
+		
+		unique_ptr<Mesh> mesh = MeshFactory::create(*store);
+		mesh->setBoundingBox(store->boundingBox);
+		
+		
 
 		container->add(std::move(mesh), std::move(material));
 	}

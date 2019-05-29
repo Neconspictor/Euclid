@@ -1,5 +1,6 @@
 #pragma once
-#include <nex/mesh/SubMesh.hpp>
+#include <nex/mesh/Mesh.hpp>
+#include <nex/mesh/MeshStore.hpp>
 
 namespace nex
 {
@@ -14,6 +15,8 @@ namespace nex
 			const type* content;
 			uint32_t size;
 		};
+
+		static std::unique_ptr<Mesh> create(const MeshStore& store);
 
 		/**
 		 * The default mesh generation method.

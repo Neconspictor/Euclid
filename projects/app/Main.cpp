@@ -8,6 +8,8 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include "nex/renderer/RenderBackend.hpp"
+#include "nex/common/File.hpp"
+#include "nex/mesh/MeshStore.hpp"
 
 
 #ifdef WIN32
@@ -59,9 +61,14 @@ int main(int argc, char** argv)
 	nex::LoggerManager* logManager = nex::LoggerManager::get();
 	logManager->setMinLogLevel(nex::Debug);
 
+	//nex::MeshStore::test();
+
+
+
+
 	nex::Logger logger("Main");
 
-
+	//return EXIT_SUCCESS;
 
 	logLastCrashReport(logger);
 

@@ -1,5 +1,5 @@
 #include <nex/mesh/StaticMeshManager.hpp>
-#include <nex/mesh/SubMesh.hpp>
+#include <nex/mesh/Mesh.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/mesh/MeshLoader.hpp>
 #include <nex/texture/TextureManager.hpp>

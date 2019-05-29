@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/mesh/SubMesh.hpp>
+#include <nex/mesh/Mesh.hpp>
 #include <unordered_map>
 #include <memory>
 

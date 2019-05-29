@@ -1,5 +1,5 @@
 #include <nex/mesh/MeshFactory.hpp>
-#include "SubMesh.hpp"
+#include "Mesh.hpp"
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
 #include "VertexArray.hpp"
@@ -9,6 +9,25 @@ using namespace std;
 
 namespace nex
 {
+	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
+	{
+		VertexBuffer vertexBuffer;
+		vertexBuffer.bind();
+		vertexBuffer.fill(store.vertices.data(), store.vertices.size());
+		IndexBuffer indexBuffer(store.indices.data(), 
+			store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
+			store.indexType);
+		indexBuffer.bind();
+
+		VertexArray vertexArray;
+		vertexArray.bind();
+		vertexArray.useBuffer(vertexBuffer, store.layout);
+
+		vertexArray.unbind();
+		indexBuffer.unbind();
+
+		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer));
+	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
 	{
