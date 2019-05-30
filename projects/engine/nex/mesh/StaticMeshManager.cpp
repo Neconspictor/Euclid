@@ -203,29 +203,20 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
 			stores = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
 
-			File file;
+			BinStream file;
 			auto directory = compiledMeshPath.parent_path();
 			const auto& root = mFileSystem->getIncludeDirectories()[0];
 			mFileSystem->createDirectories(directory.generic_string(), root);
 			
 			resolvedCompiledMeshPath = root / compiledMeshPath;
-			file.open(resolvedCompiledMeshPath, std::ios::binary | std::ios::out | std::ios::trunc);
-			StreamUtil::write(*file, stores.size());
-			for (const auto& store : stores)
-			{
-				*file << store;
-			}
+			file.open(resolvedCompiledMeshPath, std::ios::out | std::ios::trunc);
+			file << stores;
+
 		} else
 		{
-			File file;
-			file.open(resolvedCompiledMeshPath, std::ios::binary | std::ios::in);
-			size_t size;
-			StreamUtil::read(*file, size);
-			stores.resize(size);
-			for (size_t i = 0; i < size; ++i)
-			{
-				*file >> stores[i];
-			}
+			BinStream file;
+			file.open(resolvedCompiledMeshPath, std::ios::in);
+			file >> stores;
 		}
 
 		models.push_back(StaticMeshContainer::create(stores, *materialLoader));

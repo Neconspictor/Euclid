@@ -18,12 +18,12 @@ namespace nex
 		std::vector<char> indices;
 		std::vector<char> vertices;
 
-		void read(std::istream& in);
-		void write(std::ostream& out) const;
+		void read(nex::BinStream& in);
+		void write(nex::BinStream& out) const;
 
 		static void test();
 	};
 
-	std::ostream& operator<<(std::ostream& out, const nex::MeshStore& mesh);
-	std::istream& operator>>(std::istream& in, nex::MeshStore& mesh);
+	std::ostream& operator<<(nex::BinStream& out, const nex::MeshStore& mesh);
+	std::istream& operator>>(nex::BinStream& in, nex::MeshStore& mesh);
 }

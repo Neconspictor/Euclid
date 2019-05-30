@@ -5,98 +5,109 @@
 
 namespace nex
 {
-	/**
-	 * A small wrapper for std::fstream that makes buffered file processing easier.
-	 */
-	class File
+	class BinStream : public std::fstream
 	{
 	public:
-		File(size_t bufferSize = 1024);
-		File(const File&) = delete;
-		File& operator=(const File&) = delete;
+		BinStream(size_t bufferSize = 1024);
+		BinStream(const BinStream&) = delete;
+		BinStream& operator=(const BinStream&) = delete;
 
-		File(File&&) = default;
-		File& operator=(File&&) = default;
+		BinStream(BinStream&&) = default;
+		BinStream& operator=(BinStream&&) = default;
 
-		~File();
+		virtual ~BinStream();
 
-		/**
-		 * Opens the file and produces a buffered stream.
-		 */
-		std::fstream&  open(const char* filePath, std::ios_base::openmode mode);
-		std::fstream&  open(std::filesystem::path& path, std::ios_base::openmode mode);
-
-		std::fstream& get();
-
-
-		std::fstream& operator*();
-		const std::fstream& operator*() const;
-
-		std::fstream* operator->();
-		const std::fstream* operator->() const;
+		void open(const char* filePath, std::ios_base::openmode mode);
+		void open(std::filesystem::path& path, std::ios_base::openmode mode);
 
 		static void test();
 
 	private:
-		std::fstream mStream;
 		std::vector<char> mBuffer;
 	};
 
-	class StreamUtil
-	{
-	public:
-		template<typename T>
-		static void readVec(std::vector<T>& vec, std::istream& in)
-		{
-			size_t bytes = 0;
-			in >> bytes;
-			vec.resize(bytes);
-			in.read(vec.data(), bytes);
-		}
-
-		template<typename T>
-		static void writeVec(const std::vector<T>& vec, std::ostream& out)
-		{
-			size_t bytes = vec.size() * sizeof(T);
-			out << bytes;
-			out.write(vec.data(), bytes);
-		}
-
-		template<typename T>
-		static T& read(std::istream& in, T& item)
-		{
-			in.read((char*)&item, sizeof(T));
-			return item;
-		}
-
-		template<typename T>
-		static void write(std::ostream& out, const T& item)
-		{
-			out.write((const char*)&item, sizeof(T));
-		}
-
-		static void readString(std::istream& in, std::string& str);
-
-		static void writeString(std::ostream& out, const std::string& str);
-	};
 
 	template<typename T>
-	std::istream& operator>>(std::istream& in, std::vector<T>& vec)
+	nex::BinStream& operator>>(nex::BinStream& in, T& item)
+	{
+		in.read((char*)&item, sizeof(T));
+		return in;
+	}
+
+	template<typename T>
+	nex::BinStream& operator<<(nex::BinStream& out, const T& item)
+	{
+		out.write((const char*)&item, sizeof(T));
+		return out;
+	}
+
+	inline nex::BinStream& operator>>(nex::BinStream& in, std::string& str)
 	{
 		size_t bytes = 0;
-		in.read((char*)&bytes, sizeof(bytes));
-		vec.resize(bytes / sizeof(T));
-		in.read(reinterpret_cast<char*>(vec.data()), bytes);
+		in >> bytes;
+		str.resize(bytes);
+		in.read(str.data(), bytes);
+		return in;
+	}
+
+	inline nex::BinStream& operator<<(nex::BinStream& out, const std::string& str)
+	{
+		out << str.size();
+		out.write(str.data(), str.size());
+		return out;
+	}
+
+
+	template<typename T>
+	nex::BinStream& operator>>(nex::BinStream& in, std::vector<T>& vec)
+	{
+		size_t bytes = 0;
+		in >> bytes;
+		const size_t count = bytes / sizeof(T);
+		vec.resize(count);
+		for (size_t i = 0; i < count; ++i)
+		{
+			in >> vec[i];
+		}
 
 		return in;
 	}
 
 	template<typename T>
-	std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
+	nex::BinStream& operator<<(nex::BinStream& out, const std::vector<T>& vec)
 	{
-		size_t bytes = vec.size() * sizeof(T);
-		out.write((const char*)&bytes ,sizeof(bytes));
-		out.write(reinterpret_cast<const char*>(vec.data()), bytes);
+		const size_t bytes = vec.size() * sizeof(T);
+		out << bytes;
+		for (const auto& item : vec)
+		{
+			out << item;
+		}
+
+		return out;
+	}
+
+	/**
+	 * Specialization for char vectors (improved performance)
+	 */
+	inline nex::BinStream& operator>>(nex::BinStream& in, std::vector<char>& vec)
+	{
+		size_t bytes = 0;
+		in >> bytes;
+		const size_t count = bytes;
+		vec.resize(count);
+		in.read(vec.data(), bytes);
+
+		return in;
+	}
+
+	/**
+	 * Specialization for char vectors (improved performance)
+	 */
+	inline nex::BinStream& operator<<(nex::BinStream& out, const std::vector<char>& vec)
+	{
+		const size_t bytes = vec.size();
+		out << bytes;
+		out.write(vec.data(), bytes);
 
 		return out;
 	}

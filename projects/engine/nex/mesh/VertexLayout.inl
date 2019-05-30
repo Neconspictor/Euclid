@@ -78,28 +78,28 @@ namespace nex
 		static_assert(false);
 	}
 
-	inline std::istream& nex::VertexLayout::operator>>(std::istream& in)
+	inline nex::BinStream& nex::VertexLayout::operator>>(nex::BinStream& in)
 	{
 		in >> mElements;
-		in.read((char*)&mStride, sizeof(mStride));
+		in >> mStride;
 
 		return in;
 	}
 
-	inline std::istream& operator>>(std::istream& in, nex::VertexLayout& layout)
+	inline nex::BinStream& operator>>(nex::BinStream& in, nex::VertexLayout& layout)
 	{
 		return layout.operator>>(in);
 	}
 
-	inline std::ostream& nex::VertexLayout::operator<<(std::ostream& out) const
+	inline nex::BinStream& nex::VertexLayout::operator<<(nex::BinStream& out) const
 	{
 		out << mElements;
-		out.write((const char*)&mStride, sizeof(mStride));
+		out << mStride;
 
 		return out;
 	}
 
-	inline std::ostream& operator<<(std::ostream& out, const nex::VertexLayout& layout)
+	inline nex::BinStream& operator<<(nex::BinStream& out, const nex::VertexLayout& layout)
 	{
 		return layout.operator<<(out);
 	}

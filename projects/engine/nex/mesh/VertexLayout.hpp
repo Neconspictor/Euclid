@@ -4,6 +4,8 @@
 namespace nex
 {
 
+	class BinStream;
+
 	enum class LayoutType
 	{
 		UNSIGNED_INT, FIRST= UNSIGNED_INT,
@@ -55,9 +57,9 @@ namespace nex
 		inline unsigned int getStride() const;
 		inline const std::vector<LayoutElement>& getElements() const;
 
-		std::istream& operator>>(std::istream& in);
+		nex::BinStream& operator>>(nex::BinStream& in);
 
-		std::ostream& operator<<(std::ostream& out) const;
+		nex::BinStream& operator<<(nex::BinStream& out) const;
 	};
 
 }

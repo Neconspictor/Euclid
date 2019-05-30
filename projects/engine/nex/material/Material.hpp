@@ -10,6 +10,7 @@ namespace nex
 	class TechniqueSelector;
 	class Shader;
 	class Texture;
+	class BinStream;
 
 	enum class MaterialType
 	{
@@ -136,6 +137,6 @@ namespace nex
 		static void test();
 	};
 
-	std::istream& operator>>(std::istream& in, MaterialStore& store);
-	std::ostream& operator<<(std::ostream& out, const MaterialStore& store);
+	std::istream& operator>>(nex::BinStream& in, MaterialStore& store);
+	std::ostream& operator<<(nex::BinStream& out, const MaterialStore& store);
 }

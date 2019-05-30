@@ -288,15 +288,17 @@ void MaterialStore::test()
 		store.state.doShadowCast = false;
 		store.state.depthCompare = CompareFunction::GREATER_EQUAL;
 		store.state.fillMode = FillMode::LINE;
-		File file;
-		file.open("material.bin", std::ios::binary | std::ios::out | std::ios::trunc) << store;
+		nex::BinStream file;
+		file.open("material.bin", std::ios::out | std::ios::trunc);
+		file << store;
 		
 	}
 
 	{
 		MaterialStore store;
-		File file;
-		file.open("material.bin", std::ios::binary | std::ios::in) >> store;
+		nex::BinStream file;
+		file.open("material.bin", std::ios::in);
+		file >> store;
 
 		std::cout << "store.albedoMap : " << store.albedoMap << std::endl;
 		std::cout << "store.alphaMap : " << store.alphaMap << std::endl;
@@ -310,32 +312,31 @@ void MaterialStore::test()
 	}
 }
 
-std::istream& nex::operator>>(std::istream& in, MaterialStore& store)
+std::istream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 {
-	StreamUtil::readString(in, store.albedoMap);
-	StreamUtil::readString(in, store.alphaMap);
-	StreamUtil::readString(in, store.aoMap);
-	StreamUtil::readString(in, store.emissionMap);
-	StreamUtil::readString(in, store.metallicMap);
-	StreamUtil::readString(in, store.normalMap);
-	StreamUtil::readString(in, store.roughnessMap);
+	in >> store.albedoMap;
+	in >> store.alphaMap;
+	in >> store.aoMap;
+	in >> store.emissionMap;
+	in >> store.metallicMap;
+	in >> store.normalMap;
+	in >> store.roughnessMap;
+	in >> store.type;
+	in >> store.state;
 
-	StreamUtil::read(in, store.type);
-	StreamUtil::read(in, store.state);
 	return in;
 }
 
-std::ostream& nex::operator<<(std::ostream& out, const MaterialStore& store)
+std::ostream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 {
-	StreamUtil::writeString(out, store.albedoMap);
-	StreamUtil::writeString(out, store.alphaMap);
-	StreamUtil::writeString(out, store.aoMap);
-	StreamUtil::writeString(out, store.emissionMap);
-	StreamUtil::writeString(out, store.metallicMap);
-	StreamUtil::writeString(out, store.normalMap);
-	StreamUtil::writeString(out, store.roughnessMap);
-
-	StreamUtil::write(out, store.type);
-	StreamUtil::write(out, store.state);
+	out << store.albedoMap;
+	out << store.alphaMap;
+	out << store.aoMap;
+	out << store.emissionMap;
+	out << store.metallicMap;
+	out << store.normalMap;
+	out << store.roughnessMap;
+	out << store.type;
+	out << store.state;
 	return out;
 }

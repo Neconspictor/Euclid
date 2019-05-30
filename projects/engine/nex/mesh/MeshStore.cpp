@@ -4,7 +4,7 @@
 #include <nex/mesh/VertexLayout.hpp>
 
 
-void nex::MeshStore::read(std::istream& in)
+void nex::MeshStore::read(nex::BinStream& in)
 {
 	in >> indexType;
 	in >> layout;
@@ -15,7 +15,7 @@ void nex::MeshStore::read(std::istream& in)
 	in >> vertices;
 }
 
-void nex::MeshStore::write(std::ostream& out) const
+void nex::MeshStore::write(nex::BinStream& out) const
 {
 	out << indexType;
 	out << layout;
@@ -38,25 +38,26 @@ void nex::MeshStore::test()
 	store.vertices.resize(8*store.layout.getStride());
 
 	{
-		File file(0);
-		file.open("mesh.mesh", std::ios::binary | std::ios::out | std::ios::trunc) << store;
+		BinStream file(0);
+		file.open("mesh.mesh", std::ios::out | std::ios::trunc);
+		file << store;
 	}
 	{
 		MeshStore store2;
-		File file(0);
-		file.open("mesh.mesh", std::ios::binary | std::ios::in) >> store2;
-		std::cout << "Read store mesh:\n" << store2 << std::endl;
+		BinStream file(0);
+		file.open("mesh.mesh", std::ios::in); 
+		file >> store2;
 	}
 
 }
 
-std::ostream& nex::operator<<(std::ostream& out, const nex::MeshStore& mesh)
+std::ostream& nex::operator<<(nex::BinStream& out, const nex::MeshStore& mesh)
 {
 	mesh.write(out);
 	return out;
 }
 
-std::istream& nex::operator>>(std::istream& in, nex::MeshStore& mesh)
+std::istream& nex::operator>>(nex::BinStream& in, nex::MeshStore& mesh)
 {
 	mesh.read(in);
 	return in;
