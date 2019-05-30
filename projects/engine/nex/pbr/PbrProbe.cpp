@@ -13,11 +13,23 @@
 #include "nex/mesh/SampleMeshes.hpp"
 #include <nex/material/Material.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
+#include "nex/FileSystem.hpp"
 
 using namespace glm;
 using namespace nex;
 
-PbrProbe::PbrProbe(Texture* backgroundHDR) :
+PbrProbeFactory::PbrProbeFactory(std::filesystem::path probeCompiledDirectory)
+{
+	std::vector<std::filesystem::path> includes = {std::move(probeCompiledDirectory)};
+	mFileSystem = std::make_unique<FileSystem>(std::move(includes));
+}
+
+std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
+{
+	return std::make_unique<PbrProbe>(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
+}
+
+PbrProbe::PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot) :
 	environmentMap(nullptr),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
@@ -26,7 +38,7 @@ PbrProbe::PbrProbe(Texture* backgroundHDR) :
 
 	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME);
 
-	init(backgroundHDR);
+	init(backgroundHDR, probeID, probeRoot);
 	environmentMap.reset();
 }
 
@@ -439,7 +451,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 	return result;
 }
 
-void PbrProbe::init(Texture* backgroundHDR)
+void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
 	static auto* renderBackend = RenderBackend::get();
 
@@ -447,10 +459,16 @@ void PbrProbe::init(Texture* backgroundHDR)
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_environmentMap.NeXImage"))
+
+	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_"  + std::to_string(probeID) + ".probe");
+	const std::filesystem::path prefilteredMapPath = probeRoot / ("pbr_prefilteredEnvMap_" + std::to_string(probeID) + ".probe");
+	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(probeID) + ".probe");
+	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT_" + std::to_string(probeID) + ".probe");
+
+	if (std::filesystem::exists(environmentMapPath))
 	{
 		StoreImage readImage;
-		StoreImage::load(&readImage, "pbr_environmentMap.NeXImage");
+		FileSystem::load(environmentMapPath, readImage);
 
 		TextureData data = {
 			TextureFilter::Linear,
@@ -467,15 +485,15 @@ void PbrProbe::init(Texture* backgroundHDR)
 	} else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
-		StoreImage enviromentMapImage = readBackgroundPixelData();
-		StoreImage::write(enviromentMapImage, "pbr_environmentMap.NeXImage");
+		const StoreImage enviromentMapImage = readBackgroundPixelData();
+		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
 
 
-	if (std::filesystem::exists("pbr_prefilteredEnvMap.NeXImage") && true)
+	if (std::filesystem::exists(prefilteredMapPath))
 	{
 		StoreImage readImage;
-		StoreImage::load(&readImage, "pbr_prefilteredEnvMap.NeXImage");
+		FileSystem::load(prefilteredMapPath, readImage);
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
@@ -493,19 +511,17 @@ void PbrProbe::init(Texture* backgroundHDR)
 	else
 	{
 		prefilteredEnvMap = prefilter(getEnvironmentMap());
-		StoreImage enviromentMapImage = readPrefilteredEnvMapPixelData();
-		StoreImage::write(enviromentMapImage, "pbr_prefilteredEnvMap.NeXImage");
+		const StoreImage prefilteredMapImage = readPrefilteredEnvMapPixelData();
+		FileSystem::store(prefilteredMapPath, prefilteredMapImage);
 	}
 
 	
 
-
-
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists("pbr_convolutedEnvMap.NeXImage") && true)
+	if (std::filesystem::exists(convolutedMapPath))
 	{
 		StoreImage readImage;
-		StoreImage::load(&readImage, "pbr_convolutedEnvMap.NeXImage");
+		FileSystem::load(convolutedMapPath, readImage);
 
 		const TextureData data = {
 			TextureFilter::Linear,
@@ -523,8 +539,8 @@ void PbrProbe::init(Texture* backgroundHDR)
 	else
 	{
 		convolutedEnvironmentMap = convolute(getEnvironmentMap());
-		StoreImage enviromentMapImage = readConvolutedEnvMapPixelData();
-		StoreImage::write(enviromentMapImage, "pbr_convolutedEnvMap.NeXImage");
+		const StoreImage convolutedMapImage = readConvolutedEnvMapPixelData();
+		FileSystem::store(convolutedMapPath, convolutedMapImage);
 	}
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
@@ -549,10 +565,10 @@ void PbrProbe::init(Texture* backgroundHDR)
 
 	
 
-	if (std::filesystem::exists("brdfLUT.NeXImage"))
+	if (std::filesystem::exists(brdfMapPath))
 	{
 		StoreImage readImage;
-		StoreImage::load(&readImage, "brdfLUT.NeXImage");
+		FileSystem::load(brdfMapPath, readImage);
 
 		TextureData data = {
 		TextureFilter::Linear,
@@ -571,6 +587,6 @@ void PbrProbe::init(Texture* backgroundHDR)
 	{
 		brdfLookupTexture = createBRDFlookupTexture();
 		StoreImage brdfLUTImage = readBrdfLookupPixelData();
-		StoreImage::write(brdfLUTImage, "brdfLUT.NeXImage");
+		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
 }

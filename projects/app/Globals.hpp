@@ -1,56 +1,46 @@
 #pragma once
 #include <string>
 
+namespace nex {
+	class Configuration;
+}
+
 namespace nex::util {
 	class Globals {
 	public:
-		static void initGlobals();
 
-		static const char* getCompiledSubFolder();
+		static constexpr const char* CONFIGURATION_ROOT_DIRECTORY_KEY = "General.rootDirectory";
+
+		void init(Configuration* globalConfig);
+
+		const std::string& getCompiledMeshSubFolder();
+		const std::string& getCompiledMeshFileExtension();
+		std::string getCompiledPbrFolder();
+		const std::string& getCompiledTextureFileExtension();
+
+		const std::string& getCompiledSubFolder();
 
 		/**
 		 * Path to the meshes folder. Path ends with a slash
 		 */
-		static std::string getMeshesPath();
+		std::string getMeshesPath();
 
 		/**
 		* Path to the meshes folder. Path ends with a slash
 		*/
-		static std::string getOpenGLShaderPath();
+		std::string getOpenGLShaderPath();
 
 		/**
 		* Path to the meshes folder. Path ends with a slash
 		*/
-		static std::string getTexturePath();
+		std::string getTexturePath();
 
 		/**
 		* Path to the root directory. Path ends with a slash
 		*/
-		static std::string getRootDirectory();
+		const std::string& getRootDirectory();
 
 	private:
-		static std::string rootDirectory;
-
-		/**
-		* Path to textures
-		*/
-		static inline const char* MESHES_PATH = "_work/data/meshes/";
-
-		/**
-		* Global shader path
-		*/
-		static inline const char* SHADER_PATH = "shaders/";
-
-		/**
-		* Path to opengl shaders
-		*/
-		static inline const char* SHADER_PATH_OPENGL = "shaders/opengl/";
-
-		/**
-		* Path to textures
-		*/
-		static inline const char* TEXTURE_PATH = "_work/data/textures/";
-
-		static constexpr const char* COMPILED_SUBFOLDER = "_compiled/";
+		std::string mRoot;
 	};
 }

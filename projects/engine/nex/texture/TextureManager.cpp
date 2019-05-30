@@ -38,12 +38,10 @@ namespace nex {
 		release();
 	}
 
-	void TextureManager::init()
+	void TextureManager::init(std::filesystem::path textureRootPath)
 	{
-		//GLuint sampler = mDefaultImageSampler.getID();
-		//glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		//glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
+		std::vector<std::filesystem::path> includeDirectories = {std::move(textureRootPath)};
+		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories));
 
 		mDefaultImageSampler = std::make_unique<Sampler>(SamplerDesc());
 		mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
@@ -175,11 +173,6 @@ namespace nex {
 		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.data);
 
 		return texture;
-	}
-
-	void TextureManager::init(FileSystem* textureFileSystem)
-	{
-		mFileSystem = textureFileSystem;
 	}
 
 	Sampler* TextureManager::getDefaultImageSampler()

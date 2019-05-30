@@ -158,13 +158,18 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		return result;
 	}
 
-	void nex::StaticMeshManager::init(FileSystem* meshFileSystem, std::string compiledSubFolder, std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
+	void nex::StaticMeshManager::init(std::filesystem::path meshRootPath,
+		std::string compiledSubFolder,
+		std::string compiledFileExtension,
+		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
-		//if (pbrMaterialLoader == nullptr) throw std::runtime_error("pbr material loader mustn't be null!");
-		mFileSystem = meshFileSystem;
+		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
+		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories));
+
 		mPbrMaterialLoader = std::move(pbrMaterialLoader);
 		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
 		mCompiledSubFolder = std::move(compiledSubFolder);
+		mCompiledFileExtension = std::move(compiledFileExtension);
 		mInitialized = true;
 	}
 
@@ -192,8 +197,10 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		}
 
 		std::vector<MeshStore> stores;
-		const std::filesystem::path compiledMeshPath = mCompiledSubFolder + meshPath + ".bin";
-		const auto& root = mFileSystem->getIncludeDirectories()[0];
+		std::filesystem::path compiledMeshPath = mCompiledSubFolder + meshPath;
+		compiledMeshPath.replace_extension(mCompiledFileExtension);
+
+		const auto& root = mFileSystem->getFirstIncludeDirectory();
 		nex::AbstractMaterialLoader* materialLoader = mPbrMaterialLoader.get();
 
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void

@@ -32,7 +32,7 @@ void nex::BinStream::open(const char* filePath, std::ios_base::openmode mode)
 	}
 }
 
-void nex::BinStream::open(std::filesystem::path& path, std::ios_base::openmode mode)
+void nex::BinStream::open(const std::filesystem::path& path, std::ios_base::openmode mode)
 {
 	try
 	{

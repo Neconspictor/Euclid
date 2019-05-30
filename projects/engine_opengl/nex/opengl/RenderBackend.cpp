@@ -475,24 +475,6 @@ namespace nex
 
 		getDepthBuffer()->enableDepthBufferWriting(true);
 
-		// enable alpha blending
-		//glEnable(GL_BLEND); // TODO
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		//checkGLErrors(BOOST_CURRENT_FUNCTION);
-
-		//checkGLErrors(BOOST_CURRENT_FUNCTION);
-
-		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);
-
-		/*ImageLoaderGL imageLoader;
-		GenericImageGL image = imageLoader.loadImageFromDisc("testImage.dds");
-		if (image.pixels)
-		{
-			delete[] image.pixels;
-			image.pixels = nullptr;
-		}*/
-
 
 		//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 		GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)); // TODO abstract?
@@ -517,20 +499,13 @@ namespace nex
 		GLCall(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
 
 		getBlender()->enableBlend(true);
-		//getBlender()->enableAlphaToCoverage(true);
-		RenderTargetBlendDesc desc;
-		//desc.enableBlend = true;
-		//desc.blendDesc.sourceRGB = BlendFunc::SOURCE_ALPHA;
-		//desc.blendDesc.destRGB = BlendFunc::ONE_MINUS_DESTINATION_ALPHA;
-		//desc.blendDesc.sourceAlpha = BlendFunc::SOURCE_ALPHA;
-		//desc.blendDesc.destAlpha = BlendFunc::ONE_MINUS_DESTINATION_ALPHA;
-		//desc.blendDesc.operationRGB = BlendOperation::ADD;
-		//desc.blendDesc.operationAlpha = BlendOperation::ADD;
-		//getBlender()->setRenderTargetBlending(desc);
-
-		TextureManager::get()->init();
 
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
+	}
+
+	void RenderBackend::initEffectLibrary()
+	{
+		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);
 	}
 
 	void RenderBackend::newFrame()

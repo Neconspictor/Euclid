@@ -81,7 +81,10 @@ namespace nex
 		 * Initializes the model manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		void init(FileSystem* meshFileSystem, std::string compiledSubFolder,std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
+		void init(std::filesystem::path meshRootPath,
+			std::string compiledSubFolder,
+			std::string compiledFileExtension,
+			std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
 
 		/**
@@ -105,13 +108,14 @@ namespace nex
 		MeshLoader assimpLoader;
 		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
 		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
-		FileSystem* mFileSystem;
+		std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<VertexArray> mFullscreenPlane;
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
 		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
 		bool mInitialized;
 		std::string mCompiledSubFolder;
+		std::string mCompiledFileExtension;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 		unsigned int SKYBOX_MODEL_HASH;

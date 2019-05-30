@@ -6,6 +6,7 @@
 #include <nex/config/Configuration.hpp>
 #include <VideoConfig.hpp>
 #include <nex/FileSystem.hpp>
+#include "Globals.hpp"
 
 namespace nex
 {
@@ -48,6 +49,7 @@ namespace nex
 		void setupCamera();
 		void updateWindowTitle(float frameTime, float fps);
 	private:
+		util::Globals mGlobals;
 		nex::Logger mLogger;
 		std::unique_ptr<PBR_Deferred_Renderer> mRenderer;
 		std::unique_ptr<gui::ControllerStateMachine> mControllerSM;
@@ -70,9 +72,7 @@ namespace nex
 		std::string mSystemLogLevelStr;
 		nex::LogLevel mSystemLogLevel;
 
-		nex::FileSystem mMeshFileSystem;
-		nex::FileSystem mShaderFileSystem;
-		nex::FileSystem mTextureFileSystem;
+		std::unique_ptr<nex::FileSystem> mShaderFileSystem;
 
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
 		std::unique_ptr<PbrProbe> mPbrProbe;

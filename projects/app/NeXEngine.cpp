@@ -69,8 +69,8 @@ void NeXEngine::init()
 	Configuration::setGlobalConfiguration(&mConfig);
 	readConfig();
 	
-	nex::util::Globals::initGlobals();
-	LOG(mLogger, nex::Info) << "root Directory = " << ::util::Globals::getRootDirectory();
+	mGlobals.init(Configuration::getGlobalConfiguration());
+	LOG(mLogger, nex::Info) << "root Directory = " << mGlobals.getRootDirectory();
 
 
 	mWindow = createWindow();
@@ -78,29 +78,29 @@ void NeXEngine::init()
 	mCamera = std::make_unique<FPCamera>(FPCamera());
 	mBaseTitle = mWindow->getTitle();
 
-
-	// init texture manager (filesystem)
-	mTextureFileSystem.addIncludeDirectory(util::Globals::getTexturePath());
-	TextureManager::get()->init(&mTextureFileSystem);
-
 	// init shader file system
-	mShaderFileSystem.addIncludeDirectory(util::Globals::getOpenGLShaderPath());
-	ShaderSourceFileGenerator::get()->init(&mShaderFileSystem);
+	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderPath()});
+	ShaderSourceFileGenerator::get()->init(mShaderFileSystem.get());
 
 	//init render backend
 	initRenderBackend();
+
+	// init texture manager
+	TextureManager::get()->init(mGlobals.getTexturePath());
+
+	// init effect libary
+	RenderBackend::get()->initEffectLibrary();
 
 	initLights();
 
 	//init pbr 
 	initPbr();
 
-	// init mesh manager (filesystem)
-	mMeshFileSystem.addIncludeDirectory(util::Globals::getMeshesPath());
-	StaticMeshManager::get()->init(&mMeshFileSystem, util::Globals::getCompiledSubFolder(),
+	// init static mesh manager
+	StaticMeshManager::get()->init(mGlobals.getMeshesPath(),
+		mGlobals.getCompiledSubFolder(),
+		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
-	//StaticMeshManager::get()->setPbrMaterialLoader(std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
-
 
 	initProbes();
 
@@ -394,7 +394,9 @@ void NeXEngine::initProbes()
 			false }
 	);
 
-	mPbrProbe = std::make_unique<PbrProbe>(panoramaSky);
+	PbrProbeFactory factory(mGlobals.getCompiledPbrFolder());
+
+	mPbrProbe = factory.create(panoramaSky, 0);
 
 	mPbrDeferred->setProbe(mPbrProbe.get());
 	mPbrForward->setProbe(mPbrProbe.get());

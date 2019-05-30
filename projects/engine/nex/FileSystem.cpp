@@ -11,6 +11,7 @@ using namespace nex;
 FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories) :
 	mIncludeDirectories(std::move(includeDirectories))
 {
+	if (mIncludeDirectories.size() == 0) throw std::invalid_argument("size of include directories must be greater 0!");
 }
 
 void FileSystem::addIncludeDirectory(const std::filesystem::path& path)
@@ -264,4 +265,9 @@ std::vector<std::string> FileSystem::getFilesFromFolder(const std::string& folde
 	}
 
 	return result;
+}
+
+const std::filesystem::path& FileSystem::getFirstIncludeDirectory() const
+{
+	return mIncludeDirectories[0];
 }

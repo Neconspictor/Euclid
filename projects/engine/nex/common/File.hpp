@@ -18,7 +18,7 @@ namespace nex
 		virtual ~BinStream();
 
 		void open(const char* filePath, std::ios_base::openmode mode);
-		void open(std::filesystem::path& path, std::ios_base::openmode mode);
+		void open(const std::filesystem::path& path, std::ios_base::openmode mode);
 
 		static void test();
 

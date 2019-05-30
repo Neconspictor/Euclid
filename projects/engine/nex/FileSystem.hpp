@@ -10,7 +10,11 @@ namespace nex
 	{
 	public:
 
-		FileSystem() = default;
+		/**
+		 * Creates a new file system with a vector of include directories.
+		 * @param includeDirectories : the include directories. Has to contain minimal one entry!
+		 * @throws std::invalid_argument : if size of includeDirectories == 0
+		 */
 		FileSystem(std::vector<std::filesystem::path> includeDirectories);
 
 		void addIncludeDirectory(const std::filesystem::path& folder);
@@ -32,6 +36,16 @@ namespace nex
 
 		static std::vector<std::string> getFilesFromFolder(const std::string& folderPath, bool skipSubFolders = true);
 
+		/**
+		 * A file system has got minimal one include directory, which is assumed to be the most important one.
+		 * This function provides this first include directory.
+		 */
+		const std::filesystem::path& getFirstIncludeDirectory() const;
+
+		/**
+		 * Provides the list of include directories.
+		 * Note: the returned vector has minimal one entry.
+		 */
 		const std::vector<std::filesystem::path>& getIncludeDirectories() const;
 
 		/**
@@ -47,6 +61,14 @@ namespace nex
 		{
 			BinStream file;
 			file.open(root / relative, std::ios::in);
+			file >> out;
+		}
+
+		template<typename T>
+		static void load(const std::filesystem::path& filePath, T& out)
+		{
+			BinStream file;
+			file.open(filePath, std::ios::in);
 			file >> out;
 		}
 
@@ -97,6 +119,20 @@ namespace nex
 			if (trunc) mode |= std::ios::trunc;
 
 			file.open(root / relative, mode);
+			file << input;
+		}
+
+		template<typename T>
+		static void store(const std::filesystem::path& path, const T& input, bool trunc = true)
+		{
+			BinStream file;
+			auto directory = path.parent_path();
+			std::filesystem::create_directories(directory);
+
+			std::ios_base::openmode mode = std::ios::out;
+			if (trunc) mode |= std::ios::trunc;
+
+			file.open(path, mode);
 			file << input;
 		}
 

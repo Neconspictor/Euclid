@@ -1,12 +1,14 @@
 #pragma once
-#include "nex/util/Memory.hpp"
+//#include "nex/util/Memory.hpp"
 #include <vector>
 #include <nex/texture/TextureSamplerData.hpp>
-#include <nex/exception/ResourceLoadException.hpp>
+//#include <nex/exception/ResourceLoadException.hpp>
 
 
 namespace nex
 {
+	class BinStream;
+
 	struct GenericImage
 	{
 		std::vector<char> pixels;
@@ -24,9 +26,12 @@ namespace nex
 		GenericImage(const GenericImage&) = delete;
 		GenericImage& operator=(const GenericImage&) = delete;
 
-		static void load(GenericImage* dest, FILE* file);
-		static void write(const GenericImage& image, FILE* file);
+		//static void load(GenericImage* dest, FILE* file);
+		//static void write(const GenericImage& image, FILE* file);
 	};
+
+	nex::BinStream& operator<<(nex::BinStream& out, const GenericImage& image);
+	nex::BinStream& operator>>(nex::BinStream& in, GenericImage& image);
 
 
 	class ImageFactory
@@ -117,9 +122,12 @@ namespace nex
 		StoreImage(const StoreImage&) = delete;
 		StoreImage& operator=(const StoreImage&) = delete;
 
-		static void load(StoreImage* dest, const char* filePath);
-		static void write(const StoreImage& source, const char* filePath);
+		//static void load(StoreImage* dest, const char* filePath);
+		//static void write(const StoreImage& source, const char* filePath);
 
 		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target);
 	};
+
+	nex::BinStream& operator<<(nex::BinStream& out, const StoreImage& image);
+	nex::BinStream& operator>>(nex::BinStream& in, StoreImage& image);
 }

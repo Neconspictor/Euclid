@@ -351,6 +351,12 @@ namespace nex
 		*/
 		void init();
 
+		/**
+		 * Inits the effect library.
+		 * NOTE: the TextureManager has to be initialized before initializing the effect library!
+		 */
+		void initEffectLibrary();
+
 		void newFrame();
 
 		/**

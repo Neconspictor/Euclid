@@ -83,7 +83,7 @@ struct SerializedStoreImage
 	}
 };
 
-void GenericImage::load(GenericImage* dest, FILE* file)
+/*void GenericImage::load(GenericImage* dest, FILE* file)
 {
 	SerializedGenericImage serialized;
 	std::fread(&serialized, sizeof(SerializedGenericImage), 1, file);
@@ -111,6 +111,30 @@ void GenericImage::write(const GenericImage& image, FILE* file)
 	std::fwrite(image.pixels.data(), image.pixels.size(), 1, file);
 	if ((err = std::ferror(file)) != 0)
 		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
+}*/
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const GenericImage& image)
+{
+	out << image.pixels;
+	out << image.width;
+	out << image.height;
+	out << image.pixelSize;
+	out << image.components;
+	out << image.format;
+
+	return out;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, GenericImage& image)
+{
+	in >> image.pixels;
+	in >> image.width;
+	in >> image.height;
+	in >> image.pixelSize;
+	in >> image.components;
+	in >> image.format;
+
+	return in;
 }
 
 ImageFactory::ImageResource::ImageResource() noexcept : width(0), height(0), channels(0), pixelSize(0), stride(0), data(nullptr)
@@ -215,7 +239,7 @@ ImageFactory::ImageResource ImageFactory::loadNonHDR(const char* filePath, bool 
 	return resource;
 }
 
-
+/*
 void StoreImage::load(StoreImage* dest, const char* filePath)
 {
 	FILE* file = nullptr;
@@ -247,7 +271,9 @@ void StoreImage::load(StoreImage* dest, const char* filePath)
 
 	fclose(file);
 }
+*/
 
+/*
 void StoreImage::write(const StoreImage& source, const char* filePath)
 {
 	FILE* file = nullptr;
@@ -272,6 +298,7 @@ void StoreImage::write(const StoreImage& source, const char* filePath)
 
 	fclose(file);
 }
+*/
 
 void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target)
 {
@@ -291,4 +318,22 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	{
 		vec.resize(result->mipmapCount);
 	}
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const StoreImage& image)
+{
+	out << image.images;
+	out << image.mipmapCount;
+	out << image.textureTarget;
+
+	return out;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, StoreImage& image)
+{
+	in >> image.images;
+	in >> image.mipmapCount;
+	in >> image.textureTarget;
+
+	return in;
 }
