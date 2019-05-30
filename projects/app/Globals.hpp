@@ -13,12 +13,12 @@ namespace nex::util {
 
 		void init(Configuration* globalConfig);
 
-		const std::string& getCompiledMeshSubFolder();
+		std::string getCompiledMeshFolder();
 		const std::string& getCompiledMeshFileExtension();
 		std::string getCompiledPbrFolder();
 		const std::string& getCompiledTextureFileExtension();
 
-		const std::string& getCompiledSubFolder();
+		std::string getCompiledRootFolder();
 
 		/**
 		 * Path to the meshes folder. Path ends with a slash

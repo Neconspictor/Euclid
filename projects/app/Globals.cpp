@@ -23,10 +23,9 @@ namespace nex::util {
 		}
 	}
 
-	const std::string& Globals::getCompiledMeshSubFolder()
+	std::string Globals::getCompiledMeshFolder()
 	{
-		static const auto path = getCompiledSubFolder() + "meshes/";
-		return path;
+		return getCompiledRootFolder() + "meshes/";
 	}
 
 	const std::string& Globals::getCompiledMeshFileExtension()
@@ -37,7 +36,7 @@ namespace nex::util {
 
 	std::string Globals::getCompiledPbrFolder()
 	{
-		return getRootDirectory() + getCompiledSubFolder() + "probes/";
+		return getCompiledRootFolder() + "probes/";
 	}
 
 	const std::string& Globals::getCompiledTextureFileExtension()
@@ -47,14 +46,14 @@ namespace nex::util {
 	}
 
 
-	const std::string& Globals::getCompiledSubFolder()
+	std::string Globals::getCompiledRootFolder()
 	{
 		/**
 		 * Root folder for compilations
 		 */
-		static const std::string COMPILED_SUBFOLDER = "_compiled/";
+		static const std::string COMPILED_SUBFOLDER = "_work/data/_compiled/";
 
-		return COMPILED_SUBFOLDER;
+		return getRootDirectory() + COMPILED_SUBFOLDER;
 	}
 
 	std::string Globals::getMeshesPath()

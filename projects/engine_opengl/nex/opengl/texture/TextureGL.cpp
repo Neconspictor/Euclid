@@ -230,15 +230,29 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 		for (unsigned mipMapLevel = 0; mipMapLevel < store.images[side].size(); ++mipMapLevel)
 		{
 			auto& image = store.images[side][mipMapLevel];
-			GLCall(glTextureSubImage3D(textureID,
-				mipMapLevel,
-				0, 0,
-				side, // zoffset specifies the cubemap side
-				image.width, image.height,
-				1, // depth specifies the number of sides to be updated
-				format,
-				pixelDataType,
-				image.pixels.data()));
+
+			if (isCubeMap)
+			{
+				GLCall(glTextureSubImage3D(textureID,
+					mipMapLevel,
+					0, 0,
+					side, // zoffset specifies the cubemap side
+					image.width, image.height,
+					1, // depth specifies the number of sides to be updated
+					format,
+					pixelDataType,
+					image.pixels.data()));
+			} else
+			{
+				GLCall(glTextureSubImage2D(textureID,
+					mipMapLevel,
+					0, 0,
+					image.width, image.height,
+					format,
+					pixelDataType,
+					image.pixels.data()));
+			}
+			
 		}
 	}
 

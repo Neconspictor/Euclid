@@ -98,7 +98,7 @@ void NeXEngine::init()
 
 	// init static mesh manager
 	StaticMeshManager::get()->init(mGlobals.getMeshesPath(),
-		mGlobals.getCompiledSubFolder(),
+		mGlobals.getCompiledMeshFolder(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
 

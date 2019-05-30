@@ -12,10 +12,10 @@ namespace nex
 		BinStream(const BinStream&) = delete;
 		BinStream& operator=(const BinStream&) = delete;
 
-		BinStream(BinStream&&) = default;
-		BinStream& operator=(BinStream&&) = default;
+		BinStream(BinStream&&) = delete;
+		BinStream& operator=(BinStream&&) = delete;
 
-		virtual ~BinStream();
+		virtual ~BinStream() noexcept;
 
 		void open(const char* filePath, std::ios_base::openmode mode);
 		void open(const std::filesystem::path& path, std::ios_base::openmode mode);
@@ -24,6 +24,7 @@ namespace nex
 
 	private:
 		std::vector<char> mBuffer;
+		std::filesystem::path mFile;
 	};
 
 
@@ -61,10 +62,12 @@ namespace nex
 	template<typename T>
 	nex::BinStream& operator>>(nex::BinStream& in, std::vector<T>& vec)
 	{
-		size_t bytes = 0;
-		in >> bytes;
-		const size_t count = bytes / sizeof(T);
-		vec.resize(count);
+		size_t count = 0;
+		in >> count;
+		
+		if (count > 0)
+			vec.resize(count);
+
 		for (size_t i = 0; i < count; ++i)
 		{
 			in >> vec[i];
@@ -76,8 +79,8 @@ namespace nex
 	template<typename T>
 	nex::BinStream& operator<<(nex::BinStream& out, const std::vector<T>& vec)
 	{
-		const size_t bytes = vec.size() * sizeof(T);
-		out << bytes;
+		const size_t count = vec.size();
+		out << count;
 		for (const auto& item : vec)
 		{
 			out << item;

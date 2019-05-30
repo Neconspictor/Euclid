@@ -73,23 +73,19 @@ namespace nex
 		}
 
 		template<typename T>
-		void loadFromCompiled(const std::filesystem::path& resourcePath, 
-			const std::filesystem::path& compiledPath, 
-			const std::filesystem::path& compiledRootPath,
+		void loadFromCompiled(const std::filesystem::path& compiledResource, 
 			const std::function<void(T&)>& resourceLoader,T& resource)
 		{
-			auto resolvedCompiledPath = resolvePath(compiledPath, true);
-
-			if (!std::filesystem::exists(resolvedCompiledPath))
+			if (!std::filesystem::exists(compiledResource))
 			{
-				const auto resolvedPath = resolvePath(resourcePath);
+				//const auto resolvedPath = resolvePath(resourcePath);
 				resourceLoader(resource);
-				FileSystem::store(compiledRootPath, compiledPath, resource);
+				FileSystem::store(compiledResource, resource);
 			}
 			else
 			{
 				BinStream file;
-				file.open(resolvedCompiledPath, std::ios::in);
+				file.open(compiledResource, std::ios::in);
 				file >> resource;
 			}
 		}
@@ -107,20 +103,6 @@ namespace nex
 
 		std::filesystem::path resolveRelative(const std::filesystem::path& path,
 			const std::filesystem::path& base = std::filesystem::current_path()) const;
-
-		template<typename T>
-		static void store(const std::filesystem::path& root, const std::filesystem::path& relative, const T& input, bool trunc = true)
-		{
-			BinStream file;
-			auto directory = relative.parent_path();
-			createDirectories(directory.generic_string(), root);
-
-			std::ios_base::openmode mode = std::ios::out;
-			if (trunc) mode |= std::ios::trunc;
-
-			file.open(root / relative, mode);
-			file << input;
-		}
 
 		template<typename T>
 		static void store(const std::filesystem::path& path, const T& input, bool trunc = true)

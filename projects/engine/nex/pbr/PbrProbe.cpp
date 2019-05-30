@@ -84,6 +84,8 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 		data.pixels.data(),
 		bufSize);
 
+	auto& test = (std::vector<glm::vec2>&)data.pixels;
+
 	return store;
 }
 
@@ -426,7 +428,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RG, 
 		PixelDataType::FLOAT, 
-		InternFormat::RG16F,
+		InternFormat::RG32F,
 		false};
 
 	static auto* renderBackend = RenderBackend::get();
@@ -468,7 +470,13 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	if (std::filesystem::exists(environmentMapPath))
 	{
 		StoreImage readImage;
-		FileSystem::load(environmentMapPath, readImage);
+		try
+		{
+			FileSystem::load(environmentMapPath, readImage);
+		} catch(const std::exception&e)
+		{
+		}
+		
 
 		TextureData data = {
 			TextureFilter::Linear,
@@ -486,6 +494,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
 		const StoreImage enviromentMapImage = readBackgroundPixelData();
+		std::cout << "environmentMapPath = " << environmentMapPath << std::endl;
 		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
 
@@ -493,7 +502,14 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	if (std::filesystem::exists(prefilteredMapPath))
 	{
 		StoreImage readImage;
-		FileSystem::load(prefilteredMapPath, readImage);
+		try
+		{
+			FileSystem::load(prefilteredMapPath, readImage);
+		}
+		catch (const std::exception&e)
+		{
+		}
+		
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
@@ -521,7 +537,14 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	if (std::filesystem::exists(convolutedMapPath))
 	{
 		StoreImage readImage;
-		FileSystem::load(convolutedMapPath, readImage);
+		try
+		{
+			FileSystem::load(convolutedMapPath, readImage);
+		}
+		catch (const std::exception&e)
+		{
+		}
+		
 
 		const TextureData data = {
 			TextureFilter::Linear,
@@ -568,7 +591,15 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	if (std::filesystem::exists(brdfMapPath))
 	{
 		StoreImage readImage;
-		FileSystem::load(brdfMapPath, readImage);
+		try
+		{
+			FileSystem::load(brdfMapPath, readImage);
+		}
+		catch (const std::exception&e)
+		{
+		}
+
+		auto& test = (std::vector<glm::vec2>&)readImage.images[0][0].pixels;
 
 		TextureData data = {
 		TextureFilter::Linear,
@@ -578,10 +609,11 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		TextureUVTechnique::ClampToEdge,
 		ColorSpace::RG,
 		PixelDataType::FLOAT,
-		InternFormat::RG16F,
+		InternFormat::RG32F,
 		false };
 
 		brdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));
+		StoreImage brdfLUTImage = readBrdfLookupPixelData();
 	}
 	else
 	{
