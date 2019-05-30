@@ -23,7 +23,7 @@ void FileSystem::addIncludeDirectory(const std::filesystem::path& path)
 	mIncludeDirectories.emplace_back(std::move(folder));
 }
 
-void FileSystem::createDirectories(const std::string& relative, const std::filesystem::path& root) const
+void FileSystem::createDirectories(const std::string& relative, const std::filesystem::path& root)
 {
 	std::filesystem::create_directories(root.generic_string() + relative);
 }

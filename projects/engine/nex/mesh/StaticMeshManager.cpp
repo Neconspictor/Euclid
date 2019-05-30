@@ -191,33 +191,19 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-		const std::filesystem::path compiledMeshPath = mCompiledSubFolder + meshPath + ".bin";
-		auto resolvedCompiledMeshPath = mFileSystem->resolvePath(compiledMeshPath, true);
-
 		std::vector<MeshStore> stores;
-		nex::AbstractMaterialLoader* materialLoader = nullptr;
-		materialLoader = mPbrMaterialLoader.get();
+		const std::filesystem::path compiledMeshPath = mCompiledSubFolder + meshPath + ".bin";
+		const auto& root = mFileSystem->getIncludeDirectories()[0];
+		nex::AbstractMaterialLoader* materialLoader = mPbrMaterialLoader.get();
 
-		if (!std::filesystem::exists(resolvedCompiledMeshPath))
+		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
-			stores = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
+			meshes = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
+		};
 
-			BinStream file;
-			auto directory = compiledMeshPath.parent_path();
-			const auto& root = mFileSystem->getIncludeDirectories()[0];
-			mFileSystem->createDirectories(directory.generic_string(), root);
-			
-			resolvedCompiledMeshPath = root / compiledMeshPath;
-			file.open(resolvedCompiledMeshPath, std::ios::out | std::ios::trunc);
-			file << stores;
+		mFileSystem->loadFromCompiled(meshPath, compiledMeshPath, root, loader, stores);
 
-		} else
-		{
-			BinStream file;
-			file.open(resolvedCompiledMeshPath, std::ios::in);
-			file >> stores;
-		}
 
 		models.push_back(StaticMeshContainer::create(stores, *materialLoader));
 		StaticMeshContainer* result = models.back().get();

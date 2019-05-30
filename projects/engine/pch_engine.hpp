@@ -52,6 +52,8 @@
 #include <boost/thread/sync_queue.hpp>
 #include <boost/thread/concurrent_queues/detail/sync_deque_base.hpp>
 
+#include <nex/common/File.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 //#include <glm/gtc/matrix_transform.inl>

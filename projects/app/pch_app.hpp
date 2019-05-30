@@ -36,6 +36,8 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/thread/sync_queue.hpp>
 
+#include <nex/common/File.hpp>
+
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES 1
 #endif
