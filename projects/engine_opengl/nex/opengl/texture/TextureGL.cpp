@@ -241,7 +241,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 					1, // depth specifies the number of sides to be updated
 					format,
 					pixelDataType,
-					image.pixels.data()));
+					image.pixels.getPixels()));
 			} else
 			{
 				GLCall(glTextureSubImage2D(textureID,
@@ -250,7 +250,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 					image.width, image.height,
 					format,
 					pixelDataType,
-					image.pixels.data()));
+					image.pixels.getPixels()));
 			}
 			
 		}

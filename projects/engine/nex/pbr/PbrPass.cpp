@@ -154,8 +154,8 @@ nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShado
 	mNearFarPlane = {mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2};
 
 	SamplerDesc desc;
-	desc.minLOD = 0;
-	desc.maxLOD = 7;
+	//desc.minLOD = 0;
+	//desc.maxLOD = 7;
 	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
 	mSamplerPrefilterMap.setState(desc);
 }

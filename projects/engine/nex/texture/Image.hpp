@@ -1,33 +1,75 @@
 #pragma once
-//#include "nex/util/Memory.hpp"
 #include <vector>
 #include <nex/texture/TextureSamplerData.hpp>
-//#include <nex/exception/ResourceLoadException.hpp>
+#include <variant>
 
 
 namespace nex
 {
 	class BinStream;
 
+	struct ImageResource
+	{
+		ImageResource() noexcept;
+		~ImageResource() noexcept;
+		ImageResource(ImageResource&& o) noexcept;
+		ImageResource& operator=(ImageResource&& o) noexcept;
+		ImageResource(const ImageResource&) = delete;
+		ImageResource& operator=(const ImageResource&) = delete;
+
+		/**
+		 * The image data.
+		 * Note: Memory is managed by this class!
+		 */
+		void* data;
+		size_t bytes;
+	};
+
+	/**
+	 * Note: Serialization will be equal to std::vector<char>
+	 * Note: We define no deserialization, as the memory is managed by external code.
+	 *       If you wish to deserialize an image resource, use std::vector<char>.
+	 */
+	nex::BinStream& operator<<(nex::BinStream& out, const ImageResource& resource);
+
+
+	class PixelVariant : public std::variant<std::vector<char>, ImageResource>
+	{
+	public:
+		PixelVariant();
+
+		const void* getPixels() const;
+		void* getPixels();
+		size_t getBufferSize() const;
+
+		PixelVariant& operator=(ImageResource&& resource);
+		PixelVariant& operator=(std::vector<char>&& vec);
+
+	private:
+		void* getPixelsMutable() const;
+	};
+
+	nex::BinStream& operator<<(nex::BinStream& out, const PixelVariant& variant);
+	nex::BinStream& operator>>(nex::BinStream& in, PixelVariant& variant);
+
+
 	struct GenericImage
 	{
-		std::vector<char> pixels;
+		PixelVariant pixels;
 		unsigned width = 0;
 		unsigned height = 0;
 		size_t pixelSize = 0; // The byte size of one pixel (all components combined)
-		unsigned components = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
+		unsigned channels = 0; // of how many components consists a pixel? E.g. 3 for RGB or 4 for RGBA
 		unsigned format = 0;
+		unsigned stride = 0;
 
 		GenericImage() = default;
 		~GenericImage() = default;
 		GenericImage(GenericImage&& o) = default;
-		GenericImage& operator=(GenericImage&& o) = delete;
+		GenericImage& operator=(GenericImage&& o) = default;
 
 		GenericImage(const GenericImage&) = delete;
 		GenericImage& operator=(const GenericImage&) = delete;
-
-		//static void load(GenericImage* dest, FILE* file);
-		//static void write(const GenericImage& image, FILE* file);
 	};
 
 	nex::BinStream& operator<<(nex::BinStream& out, const GenericImage& image);
@@ -37,30 +79,6 @@ namespace nex
 	class ImageFactory
 	{
 	public:
-
-		struct ImageResource
-		{
-			ImageResource() noexcept;
-			~ImageResource() noexcept;
-			ImageResource(ImageResource&& o) noexcept;
-			ImageResource& operator=(ImageResource&& o) noexcept;
-			ImageResource(const ImageResource&) = delete;
-			ImageResource& operator=(const ImageResource&) = delete;
-
-			int width;
-			int height;
-			int channels;
-			int pixelSize;
-			int stride;
-
-			/**
-			 * The image data. 
-			 * Note: Memory is managed by this class!
-			 */
-			void* data;
-		};
-
-
 		/**
 		 * @param stride : byte size of one line (== width * pixel-size)
 		 */
@@ -83,7 +101,7 @@ namespace nex
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static ImageResource loadHDR(const char* filePath, bool flipY, int desiredChannels = 0);
+		static GenericImage loadHDR(const char* filePath, bool flipY, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
@@ -91,7 +109,7 @@ namespace nex
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static ImageResource loadNonHDR(const char* filePath, bool flipY, int desiredChannels = 0);
+		static GenericImage loadNonHDR(const char* filePath, bool flipY, int desiredChannels = 0);
 	};
 
 	struct StoreImage
@@ -121,9 +139,6 @@ namespace nex
 
 		StoreImage(const StoreImage&) = delete;
 		StoreImage& operator=(const StoreImage&) = delete;
-
-		//static void load(StoreImage* dest, const char* filePath);
-		//static void write(const StoreImage& source, const char* filePath);
 
 		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target);
 	};

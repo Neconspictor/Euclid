@@ -161,7 +161,7 @@ namespace nex {
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 
-		ImageFactory::ImageResource image;
+		GenericImage image;
 
 		if (data.pixelDataType == PixelDataType::FLOAT)
 		{
@@ -170,7 +170,7 @@ namespace nex {
 		{
 			image =  ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
 		}
-		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.data);
+		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
 
 		return texture;
 	}

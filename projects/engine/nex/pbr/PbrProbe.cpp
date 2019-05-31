@@ -70,18 +70,18 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 	GenericImage& data = store.images[0][0];
 	data.width = getBrdfLookupTexture()->getWidth();
 	data.height = getBrdfLookupTexture()->getHeight();
-	data.components = 2; // RG
+	data.channels = 2; // RG
 	data.format = (unsigned)ColorSpace::RG;
-	data.pixelSize = sizeof(float) * data.components;
+	data.pixelSize = sizeof(float) * data.channels;
 
 	auto bufSize = data.width * data.height * data.pixelSize;
-	data.pixels.resize(bufSize);
+	data.pixels = std::vector<char>(bufSize);;
 
 	// read the data back from the gpu
 	brdfLookupTexture->readback(
 		0, ColorSpace::RG, 
 		PixelDataType::FLOAT, 
-		data.pixels.data(),
+		data.pixels.getPixels(),
 		bufSize);
 
 	auto& test = (std::vector<glm::vec2>&)data.pixels;
@@ -116,13 +116,13 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 		GenericImage& data = store.images[i][0];
 		data.width = width;
 		data.height = height;
-		data.components = components; // RGB
+		data.channels = components; // RGB
 		data.format = format;
 		data.pixelSize = pixelDataSize;
 		auto bufSize = sideSlice;
-		data.pixels.resize(bufSize);
+		data.pixels = std::vector<char>(bufSize);
 
-		memcpy_s(data.pixels.data(), bufSize, pixels.data() + i * sideSlice, sideSlice);
+		memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + i * sideSlice, sideSlice);
 	}
 
 	return store;
@@ -158,13 +158,13 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 				GenericImage& data = store.images[side][level];
 				data.width = width;
 				data.height = height;
-				data.components = components;
+				data.channels = components;
 				data.format = format;
 				data.pixelSize = pixelDataSize;
 				auto bufSize = sideSlice;
-				data.pixels.resize(bufSize);
+				data.pixels = std::vector<char>(bufSize);
 
-				memcpy_s(data.pixels.data(), bufSize, pixels.data() + side * sideSlice, sideSlice);
+				memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 
@@ -203,13 +203,13 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 			GenericImage& data = store.images[side][level];
 			data.width = width;
 			data.height = height;
-			data.components = components;
+			data.channels = components;
 			data.format = format;
 			data.pixelSize = pixelDataSize;
 			auto bufSize = sideSlice;
-			data.pixels.resize(bufSize);
+			data.pixels = std::vector<char>(bufSize);
 
-			memcpy_s(data.pixels.data(), bufSize, pixels.data() + side * sideSlice, sideSlice);
+			memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 

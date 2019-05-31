@@ -21,106 +21,15 @@ using namespace boost::interprocess;
 using namespace std;
 using namespace nex;
 
-struct SerializedGenericImage
-{
-	size_t bufferSize = 0;
-	unsigned width = 0;
-	unsigned height = 0;
-	size_t pixelSize = 0;
-	unsigned components = 0;
-	unsigned format = 0;
-
-	SerializedGenericImage() = default;
-
-	SerializedGenericImage(const GenericImage& image)
-	{
-		bufferSize = image.pixels.size();
-		width = image.width;
-		height = image.height;
-		pixelSize = image.pixelSize;
-		components = image.components;
-		format = image.format;
-	}
-
-	void fill(GenericImage& image) const
-	{
-		image.width = width;
-		image.height = height;
-		image.pixelSize = pixelSize;
-		image.pixels.resize(bufferSize);
-		image.components = components;
-		image.format = format;
-	}
-};
-
-
-struct SerializedStoreImage
-{
-	unsigned short levelCount = 1;
-	unsigned short mipMapCount = 1;
-	bool isCubeMap = false;
-	unsigned textureTarget = 0;
-
-	SerializedStoreImage() = default;
-
-	SerializedStoreImage(const StoreImage& image)
-	{
-		levelCount = image.images.size();
-		mipMapCount = image.mipmapCount;
-		textureTarget = static_cast<unsigned>(image.textureTarget);
-	}
-
-	void fill(StoreImage& image) const
-	{
-		image.images.resize(levelCount);
-		image.mipmapCount = mipMapCount;
-		image.textureTarget = static_cast<TextureTarget>(textureTarget);
-
-		for (auto& vec : image.images)
-		{
-			vec.resize(mipMapCount);
-		}
-	}
-};
-
-/*void GenericImage::load(GenericImage* dest, FILE* file)
-{
-	SerializedGenericImage serialized;
-	std::fread(&serialized, sizeof(SerializedGenericImage), 1, file);
-	int err;
-	if ((err = std::ferror(file)) != 0)
-		throw_with_trace(std::runtime_error("Couldn't read from file: Error code =  " + std::to_string(err)));
-
-	serialized.fill(*dest);
-
-	std::fread(dest->pixels.data(), dest->pixels.size(), 1, file);
-
-	if ((err = std::ferror(file)) != 0)
-		throw_with_trace(std::runtime_error("Couldn't read from file: Error code =  " + std::to_string(err)));
-}
-
-void GenericImage::write(const GenericImage& image, FILE* file)
-{
-	SerializedGenericImage serialized(image);
-
-	int err;
-	std::fwrite(&serialized, sizeof(SerializedGenericImage), 1, file);
-	if ((err = std::ferror(file)) != 0)
-		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
-
-	std::fwrite(image.pixels.data(), image.pixels.size(), 1, file);
-	if ((err = std::ferror(file)) != 0)
-		throw_with_trace(std::runtime_error("Couldn't write to file: Error code =  " + std::to_string(err)));
-}*/
-
 nex::BinStream& nex::operator<<(nex::BinStream& out, const GenericImage& image)
 {
 	out << image.pixels;
 	out << image.width;
 	out << image.height;
 	out << image.pixelSize;
-	out << image.components;
+	out << image.channels;
 	out << image.format;
+	out << image.stride;
 
 	return out;
 }
@@ -131,41 +40,132 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, GenericImage& image)
 	in >> image.width;
 	in >> image.height;
 	in >> image.pixelSize;
-	in >> image.components;
+	in >> image.channels;
 	in >> image.format;
+	in >> image.stride;
 
 	return in;
 }
 
-ImageFactory::ImageResource::ImageResource() noexcept : width(0), height(0), channels(0), pixelSize(0), stride(0), data(nullptr)
+ImageResource::ImageResource() noexcept : data(nullptr), bytes(0)
 {
 }
 
-ImageFactory::ImageResource::~ImageResource() noexcept
+ImageResource::~ImageResource() noexcept
 {
 	if (data)stbi_image_free(data);
+	data = nullptr;
+	bytes = 0;
 }
 
-ImageFactory::ImageResource::ImageResource(ImageResource&& o) noexcept : width(o.width), height(o.height),  channels(o.channels),
-pixelSize(o.pixelSize), stride(o.stride), data(o.data)
+ImageResource::ImageResource(ImageResource&& o) noexcept : data(nullptr), bytes(0)
 {
-	o.data = nullptr;
+	*this = std::move(o);
 }
 
-ImageFactory::ImageResource& ImageFactory::ImageResource::operator=(ImageResource&& o) noexcept
+ImageResource& ImageResource::operator=(ImageResource&& o) noexcept
 {
-	if (this == &o) return *this;
-
-	width = o.width;
-	height = o.height;
-	channels = o.channels;
-	pixelSize = o.pixelSize;
-	stride = o.stride;
-	data = o.data;
-
-	o.data = nullptr;
-
+	std::swap(data, o.data);
+	std::swap(bytes, o.bytes);
 	return *this;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const ImageResource& resource)
+{
+	out << resource.bytes;
+	out.write((const char*)resource.data, resource.bytes);
+	return out;
+}
+
+PixelVariant::PixelVariant() : std::variant<std::vector<char>, ImageResource>()
+{
+}
+
+const void* PixelVariant::getPixels() const
+{
+	return getPixelsMutable();
+}
+
+void* PixelVariant::getPixels()
+{
+	return getPixelsMutable();
+}
+
+size_t PixelVariant::getBufferSize() const
+{
+	if (std::holds_alternative<std::vector<char>>(*this))
+	{
+		return std::get<std::vector<char>>(*this).size();
+	}
+	else if (std::holds_alternative<ImageResource>(*this))
+	{
+		return std::get<ImageResource>(*this).bytes;
+	}
+
+	/**
+	 * no pixel data set, yet.
+	 */
+	return 0;
+}
+
+PixelVariant& PixelVariant::operator=(ImageResource&& resource)
+{
+	std::variant<std::vector<char>, ImageResource>::operator=(std::move(resource));
+	return *this;
+}
+
+PixelVariant& PixelVariant::operator=(std::vector<char>&& vec)
+{
+	std::variant<std::vector<char>, ImageResource>::operator=(std::move(vec));
+	return *this;
+}
+
+void* PixelVariant::getPixelsMutable() const
+{
+	if (std::holds_alternative<std::vector<char>>(*this))
+	{
+		return (void*)std::get<std::vector<char>>(*this).data();
+	}
+	else if (std::holds_alternative<ImageResource>(*this))
+	{
+		return std::get<ImageResource>(*this).data;
+	}
+
+	/**
+	 * no pixel data set, yet.
+	 */
+	return nullptr;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const PixelVariant& variant)
+{
+	if (std::holds_alternative<std::vector<char>>(variant))
+	{
+		const auto& vec = std::get<std::vector<char>>(variant);
+		out << vec;
+	}
+	else if (std::holds_alternative<ImageResource>(variant))
+	{
+		const auto& resource = std::get<ImageResource>(variant);
+		out << resource;
+	} else
+	{
+		// No pixels stored;
+		size_t count = 0;
+		out << count;
+	}
+
+	return out;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, PixelVariant& variant)
+{
+	// we always deserialize the data to a std::vector<char>
+	variant = std::vector<char>();
+	auto& vec = std::get<std::vector<char>>(variant);
+	in >> vec;
+
+	return in;
 }
 
 void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t width, size_t height, size_t components,
@@ -178,10 +178,10 @@ void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t wi
 void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.components, (float*)imageData.pixels.data());
+	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.channels, (const float*)imageData.pixels.getPixels());
 }
 
-nex::ImageFactory::ImageResource ImageFactory::loadHDR(const char* filePath, bool flipY, int desiredChannels)
+nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int desiredChannels)
 {
 	stbi_set_flip_vertically_on_load(flipY);
 
@@ -199,18 +199,24 @@ nex::ImageFactory::ImageResource ImageFactory::loadHDR(const char* filePath, boo
 		throw_with_trace(ResourceLoadException(ss.str()));
 	}
 
-	ImageResource resource;
-	resource.width = width;
-	resource.height = height;
-	resource.channels = channels;
-	resource.pixelSize = channels * sizeof(float);
-	resource.stride = width * resource.pixelSize;
-	resource.data = rawData;
+	const size_t pixelSize = channels * sizeof(float);
 
-	return resource;
+	GenericImage image;
+	ImageResource resource;
+	resource.data = rawData;
+	resource.bytes = width * height * pixelSize;
+
+	image.width = width;
+	image.height = height;
+	image.channels = channels;
+	image.pixelSize = pixelSize;
+	image.stride = width * image.pixelSize;
+	image.pixels = std::move(resource);
+
+	return image;
 }
 
-ImageFactory::ImageResource ImageFactory::loadNonHDR(const char* filePath, bool flipY, int desiredChannels)
+GenericImage ImageFactory::loadNonHDR(const char* filePath, bool flipY, int desiredChannels)
 {
 	stbi_set_flip_vertically_on_load(flipY);
 
@@ -228,77 +234,22 @@ ImageFactory::ImageResource ImageFactory::loadNonHDR(const char* filePath, bool 
 		throw_with_trace(ResourceLoadException(ss.str()));
 	}
 
+	const size_t pixelSize = channels * sizeof(unsigned char);
+
+	GenericImage image;
 	ImageResource resource;
-	resource.width = width;
-	resource.height = height;
-	resource.channels = channels;
-	resource.pixelSize = channels * sizeof(float);
-	resource.stride = width * resource.pixelSize;
 	resource.data = rawData;
+	resource.bytes = width * height * pixelSize;
 
-	return resource;
+	image.width = width;
+	image.height = height;
+	image.channels = channels;
+	image.pixelSize = pixelSize;
+	image.stride = width * image.pixelSize;
+	image.pixels = std::move(resource);
+
+	return image;
 }
-
-/*
-void StoreImage::load(StoreImage* dest, const char* filePath)
-{
-	FILE* file = nullptr;
-	errno_t err;
-	if ((err = fopen_s(&file, filePath, "rb")) != 0)
-		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-
-
-	SerializedStoreImage serialized;
-
-	std::fread(&serialized, sizeof(SerializedStoreImage), 1, file);
-
-	if (std::ferror(file) != 0)
-		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-
-	serialized.fill(*dest);
-
-	if (std::ferror(file) != 0)
-		throw_with_trace(std::runtime_error("Couldn't read from file " + std::string(filePath)));
-	
-	for (unsigned i = 0; i < dest->images.size(); ++i)
-	{
-		for (unsigned j = 0; j < dest->mipmapCount; ++j)
-		{
-			GenericImage::load(&dest->images[i][j], file);
-		}
-	}
-
-
-	fclose(file);
-}
-*/
-
-/*
-void StoreImage::write(const StoreImage& source, const char* filePath)
-{
-	FILE* file = nullptr;
-	errno_t err;
-	if ((err = fopen_s(&file, filePath, "w+b")) != 0)
-		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
-
-
-	SerializedStoreImage serialized(source);
-	std::fwrite(&serialized, sizeof(SerializedStoreImage), 1, file);
-
-	for (unsigned i = 0; i < source.images.size(); ++i)
-	{
-		for (unsigned j = 0; j < source.mipmapCount; ++j)
-		{
-			GenericImage::write(source.images[i][j], file);
-		}
-	}
-
-	if (std::ferror(file) != 0)
-		throw_with_trace(std::runtime_error("Couldn't write to file " + std::string(filePath)));
-
-	fclose(file);
-}
-*/
 
 void StoreImage::create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target)
 {
