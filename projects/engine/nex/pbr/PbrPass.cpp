@@ -66,7 +66,7 @@ void PbrCommonLightingPass::setIrradianceMap(const CubeMap* irradianceMap)
 
 void PbrCommonLightingPass::setPrefilterMap(const CubeMap* prefilterMap)
 {
-	mShader->setTexture(prefilterMap, &mSampler, mPrefilterMap.bindingSlot);
+	mShader->setTexture(prefilterMap, &mSamplerPrefilterMap, mPrefilterMap.bindingSlot);
 }
 
 void PbrCommonLightingPass::setCascadedDepthMap(const Texture* cascadedDepthMap)
@@ -152,6 +152,12 @@ nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShado
 	mInverseView = {mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4};
 
 	mNearFarPlane = {mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2};
+
+	SamplerDesc desc;
+	desc.minLOD = 0;
+	desc.maxLOD = 7;
+	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	mSamplerPrefilterMap.setState(desc);
 }
 
 void PbrCommonLightingPass::setAmbientLight(AmbientLight* light)

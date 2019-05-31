@@ -519,7 +519,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
-			InternFormat::RGB16F,
+			InternFormat::RGB32F,
 			true
 		};
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
@@ -554,7 +554,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			TextureUVTechnique::ClampToEdge,
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
-			InternFormat::RGB16F,
+			InternFormat::RGB32F,
 			false };
 
 		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));

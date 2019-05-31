@@ -53,8 +53,11 @@ void calcLighting(in float ao,
 	// reflection direction
     vec3 viewWorld = vec3(inverseViewMatrix * vec4(viewEye, 0.0f));
     vec3 normalWorld = vec3(inverseViewMatrix * vec4(normalEye, 0.0f));
-    vec3 reflectionDirWorld = reflect(-viewWorld, normalWorld);
+    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
 
+    
+    //metallic = 1.0;
+    //roughness = 0.0;
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -69,7 +72,7 @@ void calcLighting(in float ao,
     float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
     
 	
-    vec3 color = ambient; //* ambientShadow; // ssaoAmbientOcclusion;
+    vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
     color -= color*(1.0 - ambientShadow);
 	
@@ -156,16 +159,21 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 diffuse      = irradiance * albedo;
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 4.0;
+    const float MAX_REFLECTION_LOD = 7.0;
 	
     // Important: R has to be in world space, too.
     vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
+    //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+    vec3 withoutRoughness = ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+    vec3 fullRoughness = ambientLightPower * (kD * diffuse) * ao;
+    
+    //return mix(withoutRoughness, fullRoughness, roughness);
+    return withoutRoughness;
 }
 
 

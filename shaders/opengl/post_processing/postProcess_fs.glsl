@@ -76,7 +76,7 @@ void main() {
     vec2 tuv = fs_in.texCoord * (vec2(1.0) - fs_in.texCoord.yx);
     float vign = tuv.x*tuv.y * VignetteStrength;
     vign = pow(vign, power);
-    color *= vign;
+    //color *= vign;
 
     fragColor = color;
 	//fragColor = bloomQuarterSample;
