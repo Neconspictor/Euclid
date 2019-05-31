@@ -13,32 +13,33 @@ namespace nex::util {
 
 		void init(Configuration* globalConfig);
 
-		std::string getCompiledMeshFolder();
-		const std::string& getCompiledMeshFileExtension();
-		std::string getCompiledPbrFolder();
-		const std::string& getCompiledTextureFileExtension();
+		std::string getCompiledMeshDirectory() const;
+		const std::string& getCompiledMeshFileExtension() const;
+		std::string getCompiledPbrDirectory() const;
+		std::string getCompiledTextureDirectory() const;
+		const std::string& getCompiledTextureFileExtension() const;
 
-		std::string getCompiledRootFolder();
+		std::string getCompiledRootDirectory() const;
 
 		/**
 		 * Path to the meshes folder. Path ends with a slash
 		 */
-		std::string getMeshesPath();
+		std::string getMeshDirectory() const;
 
 		/**
-		* Path to the meshes folder. Path ends with a slash
+		* Path to the opengl shader folder. Path ends with a slash
 		*/
-		std::string getOpenGLShaderPath();
+		std::string getOpenGLShaderDirectory() const;
 
 		/**
-		* Path to the meshes folder. Path ends with a slash
+		* Path to the texture folder. Path ends with a slash
 		*/
-		std::string getTexturePath();
+		std::string getTextureDirectory() const;
 
 		/**
 		* Path to the root directory. Path ends with a slash
 		*/
-		const std::string& getRootDirectory();
+		const std::string& getRootDirectory() const;
 
 	private:
 		std::string mRoot;

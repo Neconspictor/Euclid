@@ -84,6 +84,15 @@ const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() co
 	return mIncludeDirectories;
 }
 
+bool FileSystem::isContained(const std::filesystem::path& path, const std::filesystem::path& root)
+{
+	auto canonicalPath = std::filesystem::canonical(path);
+	auto canonicalRoot = std::filesystem::canonical(root);
+
+	const auto pair = std::mismatch(canonicalPath.begin(), canonicalPath.end(), canonicalRoot.begin(), canonicalRoot.end());
+	return pair.second == canonicalRoot.end();
+}
+
 
 bool FileSystem::loadFileIntoString(const std::string& filePath, std::string* destination)
 {

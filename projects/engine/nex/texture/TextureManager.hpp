@@ -33,7 +33,7 @@ namespace nex {
 		 * Initializes the texture manager.
 		 * @param textureRootPath Used to resolve texture file paths
 		 */
-		void init(std::filesystem::path textureRootPath);
+		void init(std::filesystem::path textureRootPath, std::filesystem::path compiledTextureRootPath, std::string compiledTextureFileExtension);
 
 		/**
 		 * Flips the y axis of an image
@@ -97,6 +97,9 @@ namespace nex {
 		std::unique_ptr<Sampler> mDefaultImageSampler;
 		std::unique_ptr<Sampler> mPointSampler;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
+		std::filesystem::path mTextureRootDirectory;
+		std::filesystem::path mCompiledTextureRootDirectory;
+		std::filesystem::path mCompiledTextureFileExtension;
 	};
 
 	class TextureManager_Configuration : public nex::gui::Drawable

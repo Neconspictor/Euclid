@@ -79,14 +79,14 @@ void NeXEngine::init()
 	mBaseTitle = mWindow->getTitle();
 
 	// init shader file system
-	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderPath()});
+	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory()});
 	ShaderSourceFileGenerator::get()->init(mShaderFileSystem.get());
 
 	//init render backend
 	initRenderBackend();
 
 	// init texture manager
-	TextureManager::get()->init(mGlobals.getTexturePath());
+	TextureManager::get()->init(mGlobals.getTextureDirectory(), mGlobals.getCompiledTextureDirectory(), mGlobals.getCompiledTextureFileExtension());
 
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
@@ -97,8 +97,8 @@ void NeXEngine::init()
 	initPbr();
 
 	// init static mesh manager
-	StaticMeshManager::get()->init(mGlobals.getMeshesPath(),
-		mGlobals.getCompiledMeshFolder(),
+	StaticMeshManager::get()->init(mGlobals.getMeshDirectory(),
+		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
 
@@ -394,7 +394,7 @@ void NeXEngine::initProbes()
 			false }
 	);
 
-	PbrProbeFactory factory(mGlobals.getCompiledPbrFolder());
+	PbrProbeFactory factory(mGlobals.getCompiledPbrDirectory());
 
 	mPbrProbe = factory.create(panoramaSky, 0);
 

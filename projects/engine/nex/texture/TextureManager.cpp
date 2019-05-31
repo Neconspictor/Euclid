@@ -38,10 +38,13 @@ namespace nex {
 		release();
 	}
 
-	void TextureManager::init(std::filesystem::path textureRootPath)
+	void TextureManager::init(std::filesystem::path textureRootPath, std::filesystem::path compiledTextureRootPath, std::string compiledTextureFileExtension)
 	{
-		std::vector<std::filesystem::path> includeDirectories = {std::move(textureRootPath)};
+		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
 		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories));
+		mCompiledTextureRootDirectory = std::move(compiledTextureRootPath);
+		mCompiledTextureFileExtension = std::move(compiledTextureFileExtension);
+		mTextureRootDirectory = textureRootPath;
 
 		mDefaultImageSampler = std::make_unique<Sampler>(SamplerDesc());
 		mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
@@ -146,7 +149,7 @@ namespace nex {
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
-		auto image = loadImage(resolvedPath, true, data);
+		auto image = loadImage(file, true, data);
 		textures.emplace_back(std::move(image));
 
 
@@ -159,17 +162,42 @@ namespace nex {
 
 	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, bool flip, const nex::TextureData& data)
 	{
-		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
-
 		GenericImage image;
+		std::filesystem::path resource = file;
 
-		if (data.pixelDataType == PixelDataType::FLOAT)
+		if (resource.is_absolute())
 		{
-			image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+			if (!FileSystem::isContained(resource, mTextureRootDirectory)) throw_with_trace(std::invalid_argument("file isn't contained in texture root directory!"));
+			resource = std::filesystem::relative(resource, mTextureRootDirectory);
+		}
+
+		if (resource == std::filesystem::path("nature\\tileable_wood_texture.jpg"))
+		{
+			bool test = false;
+		}
+
+		std::filesystem::path compiledResource = mCompiledTextureRootDirectory / resource.replace_extension(mCompiledTextureFileExtension);
+
+		if (std::filesystem::exists(compiledResource))
+		{
+			FileSystem::load(compiledResource, image);
+
 		} else
 		{
-			image =  ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
+			if (data.pixelDataType == PixelDataType::FLOAT)
+			{
+				image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+			}
+			else
+			{
+				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+			}
+
+			FileSystem::store(compiledResource, image);
 		}
+
+
 		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
 
 		return texture;

@@ -49,6 +49,11 @@ namespace nex
 		const std::vector<std::filesystem::path>& getIncludeDirectories() const;
 
 		/**
+		 * Checks if a given path is contained in a given 'root' directory or in one of the root's sub directories.
+		 */
+		static bool isContained(const std::filesystem::path & path, const std::filesystem::path& root);
+
+		/**
 		 * Loads a file from a given file path into a string.
 		 * If the file couldn't successfully read or if another error occurs, the destination string
 		 * will be untouched.

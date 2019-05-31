@@ -73,7 +73,8 @@ ImageResource& ImageResource::operator=(ImageResource&& o) noexcept
 nex::BinStream& nex::operator<<(nex::BinStream& out, const ImageResource& resource)
 {
 	out << resource.bytes;
-	out.write((const char*)resource.data, resource.bytes);
+	auto* ptr = (const char*)resource.data;
+	out.write(ptr, resource.bytes);
 	return out;
 }
 
@@ -199,6 +200,7 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int de
 		throw_with_trace(ResourceLoadException(ss.str()));
 	}
 
+	if (desiredChannels != 0) channels = desiredChannels;
 	const size_t pixelSize = channels * sizeof(float);
 
 	GenericImage image;
@@ -234,6 +236,7 @@ GenericImage ImageFactory::loadNonHDR(const char* filePath, bool flipY, int desi
 		throw_with_trace(ResourceLoadException(ss.str()));
 	}
 
+	if (desiredChannels != 0) channels = desiredChannels;
 	const size_t pixelSize = channels * sizeof(unsigned char);
 
 	GenericImage image;

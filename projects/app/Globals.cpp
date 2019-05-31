@@ -23,30 +23,35 @@ namespace nex::util {
 		}
 	}
 
-	std::string Globals::getCompiledMeshFolder()
+	std::string Globals::getCompiledTextureDirectory() const
 	{
-		return getCompiledRootFolder() + "meshes/";
+		return getCompiledRootDirectory() + "textures/";
 	}
 
-	const std::string& Globals::getCompiledMeshFileExtension()
+	std::string Globals::getCompiledMeshDirectory() const
+	{
+		return getCompiledRootDirectory() + "meshes/";
+	}
+
+	const std::string& Globals::getCompiledMeshFileExtension() const
 	{
 		static const std::string extension = ".CMESH";
 		return extension;
 	}
 
-	std::string Globals::getCompiledPbrFolder()
+	std::string Globals::getCompiledPbrDirectory() const
 	{
-		return getCompiledRootFolder() + "probes/";
+		return getCompiledRootDirectory() + "probes/";
 	}
 
-	const std::string& Globals::getCompiledTextureFileExtension()
+	const std::string& Globals::getCompiledTextureFileExtension() const
 	{
 		static const std::string extension = ".CTEX";
 		return extension;
 	}
 
 
-	std::string Globals::getCompiledRootFolder()
+	std::string Globals::getCompiledRootDirectory() const
 	{
 		/**
 		 * Root folder for compilations
@@ -56,22 +61,22 @@ namespace nex::util {
 		return getRootDirectory() + COMPILED_SUBFOLDER;
 	}
 
-	std::string Globals::getMeshesPath()
+	std::string Globals::getMeshDirectory() const
 	{
 		return getRootDirectory() + "_work/data/meshes/";
 	}
 
-	std::string Globals::getOpenGLShaderPath()
+	std::string Globals::getOpenGLShaderDirectory() const
 	{
 		return getRootDirectory() + "shaders/opengl/";
 	}
 
-	std::string Globals::getTexturePath()
+	std::string Globals::getTextureDirectory() const
 	{
 		return getRootDirectory() + "_work/data/textures/";
 	}
 
-	const std::string& Globals::getRootDirectory()
+	const std::string& Globals::getRootDirectory() const
 	{
 		return mRoot;
 	}
