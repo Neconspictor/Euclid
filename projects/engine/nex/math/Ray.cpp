@@ -1,5 +1,6 @@
 #include <nex/math/Ray.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/math/Math.hpp>
 
 nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), dir(normalize(dir))
 {

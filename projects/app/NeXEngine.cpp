@@ -31,6 +31,7 @@
 #include <queue>
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
+#include "nex/math/Ray.hpp"
 
 using namespace nex;
 
@@ -186,6 +187,11 @@ void NeXEngine::run()
 				std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
 			}
 
+			if (mInput->isPressed(Input::Button::LeftMouseButton))
+			{
+				pickingTest(mScene);
+			}
+
 			mGui->newFrame(frameTime);
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->update();
@@ -257,16 +263,66 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 	}
 }
 
+void NeXEngine::pickingTest(const Scene& scene)
+{
+	const auto& mouseData = mInput->getFrameMouseOffset();
+	const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+	//std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
+
+	const auto screenRayWorld = mCamera->calcScreenRay(position);
+
+	std::queue<SceneNode*> queue;
+
+	size_t intersections = 0;
+
+	for (const auto& root : scene.getRoots())
+	{
+		queue.emplace(root);
+
+		while (!queue.empty())
+		{
+			auto* node = queue.back();
+			queue.pop();
+
+			auto range = node->getChildren();
+
+			for (auto it = range.begin; it != range.end; ++it)
+			{
+				queue.emplace(*it);
+			}
+
+			auto* mesh = node->getMesh();
+			if (mesh != nullptr)
+			{
+				const auto invModel = inverse(node->getWorldTrafo());
+				const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
+				const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
+				const auto rayLocal = Ray(origin, direction);
+				const auto& box = mesh->getAABB();
+				const auto result = box.testRayIntersection(rayLocal);
+				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
+				{
+					auto* material = (PbrMaterial*)node->getMaterial();
+					auto* texture = material->getRoughnessMap();
+					++intersections;
+				}
+			}
+		}
+	}
+
+	std::cout << "Total intersections = " << intersections << std::endl;
+}
+
 void NeXEngine::createScene()
 {
 	mScene.clear();
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
-	ground->setPositionLocal({ 10, 0, 0 });
+	//ground->setPositionLocal({ 10, 0, 0 });
 
-	meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
-	auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
+	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
+	//auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
 	//cerberus->setPositionLocal({0, 2, 0});
 
 	const glm::mat4 unit(1.0f);
@@ -277,7 +333,7 @@ void NeXEngine::createScene()
 	glm::mat4 scale = glm::scale(unit, glm::vec3(10, 10, 10));
 
 	glm::mat4 trafo = translateMatrix * rotation * scale;
-	cerberus->setLocalTrafo(trafo);
+	//cerberus->setLocalTrafo(trafo);
 
 	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;

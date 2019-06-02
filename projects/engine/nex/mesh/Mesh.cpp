@@ -6,10 +6,11 @@
 using namespace std;
 using namespace nex;
 
-Mesh::Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology) :
+Mesh::Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, AABB boundingBox, Topology topology) :
 mVertexArray(std::move(vertexArray)),
 mVertexBuffer(std::move(vertexBuffer)),
 mIndexBuffer(std::move(indexBuffer)),
+mBoundingBox(std::move(boundingBox)),
 mTopology(topology)
 {
 }
@@ -21,6 +22,8 @@ void Mesh::setVertexBuffer(VertexBuffer buffer)
 
 Mesh::Mesh(): mTopology(Topology::TRIANGLES)
 {
+	mBoundingBox.min = glm::vec3(0.0f);
+	mBoundingBox.max = glm::vec3(0.0f);
 }
 
 const AABB& Mesh::getAABB() const

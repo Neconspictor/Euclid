@@ -81,8 +81,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
 			int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
 
+			AABB boundingBox;
+			boundingBox.min = glm::vec3(0.0f);
+			boundingBox.max = glm::vec3(0.0f);
+
 			std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const Vertex*)sample_meshes::skyBoxVertices, vertexCount,
-				sample_meshes::skyBoxIndices, (int)indexCount);
+				sample_meshes::skyBoxIndices, (int)indexCount, std::move(boundingBox));
 
 			auto model = std::make_unique<StaticMeshContainer>();
 			model->add(std::move(mesh), std::make_unique<Material>(nullptr));
@@ -145,8 +149,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		indices.push_back(2);
 		indices.push_back(3);
 
+		AABB boundingBox;
+		boundingBox.min = glm::vec3(0.0f);
+		boundingBox.max = glm::vec3(0.0f);
+
 		std::unique_ptr<Mesh> mesh = MeshFactory::createPositionUV(vertices.data(), (int)vertices.size(),
-			indices.data(), (int)indices.size());
+			indices.data(), (int)indices.size(), std::move(boundingBox));
 
 		auto model = std::make_unique<StaticMeshContainer>();
 		model->add(std::move(mesh), nullptr);
@@ -259,8 +267,12 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 			indices.push_back(sample_meshes::cubePositionNormalTexIndices[i]);
 		}
 
+		AABB boundingBox;
+		boundingBox.min = glm::vec3(0.0f);
+		boundingBox.max = glm::vec3(0.0f);
+
 		std::unique_ptr<Mesh> mesh = MeshFactory::create(vertices.data(), (int)vertices.size(),
-			indices.data(), (int)indices.size());
+			indices.data(), (int)indices.size(), std::move(boundingBox));
 
 
 		auto model = std::make_unique<StaticMeshContainer>();

@@ -88,7 +88,10 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 		}
 	}
 
-	auto mesh = MeshFactory::create(vertices.data(), vertices.size(), indices.data(), indices.size());
+	AABB boundingBox;
+	boundingBox.min = glm::vec3(-mWorldDimensionX / 2.0f, 0.0f, -mWorldDimensionZ / 2.0f);
+	boundingBox.max = glm::vec3(mWorldDimensionX / 2.0f, mWorldDimensionMaxHeight, mWorldDimensionZ / 2.0f);
+	auto mesh = MeshFactory::create(vertices.data(), vertices.size(), indices.data(), indices.size(), std::move(boundingBox));
 
 	//TODO use a valid initialized material
 	mMeshes.add(std::move(mesh), std::make_unique<Material>(nullptr));

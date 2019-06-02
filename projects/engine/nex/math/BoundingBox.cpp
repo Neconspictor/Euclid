@@ -25,16 +25,16 @@ nex::AABB::RayIntersection nex::AABB::testRayIntersection(const nex::Ray& ray) c
 	if (tminX > tmin) tmin = tminX;
 	if (tmaxX < tmax) tmax = tmaxX;
 
-	const float tminY = (bounds[sign.x]->y - origin.y) * invDir.y;
-	const float tmaxY = (bounds[1 - sign.x]->y - origin.y) * invDir.y;
+	const float tminY = (bounds[sign.y]->y - origin.y) * invDir.y;
+	const float tmaxY = (bounds[1 - sign.y]->y - origin.y) * invDir.y;
 
 	if ((tmin > tmaxY) || (tminY > tmax)) return {false, 0, 0};
 
 	if (tminY > tmin) tmin = tminY;
 	if (tmaxY < tmax) tmax = tmaxY;
 
-	const float tminZ = (bounds[sign.x]->z - origin.z) * invDir.z;
-	const float tmaxZ = (bounds[1 - sign.x]->z - origin.z) * invDir.z;
+	const float tminZ = (bounds[sign.z]->z - origin.z) * invDir.z;
+	const float tmaxZ = (bounds[1 - sign.z]->z - origin.z) * invDir.z;
 
 	if ((tmin > tmaxZ) || (tminZ > tmax)) return {false, 0, 0};
 

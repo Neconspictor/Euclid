@@ -23,7 +23,7 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, Topology topology = Topology::TRIANGLES);
+		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES);
 		Mesh();
 
 		Mesh(Mesh&& other) noexcept = default;
