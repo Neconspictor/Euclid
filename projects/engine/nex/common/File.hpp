@@ -42,21 +42,9 @@ namespace nex
 		return out;
 	}
 
-	inline nex::BinStream& operator>>(nex::BinStream& in, std::string& str)
-	{
-		size_t bytes = 0;
-		in >> bytes;
-		str.resize(bytes);
-		in.read(str.data(), bytes);
-		return in;
-	}
+	nex::BinStream& operator>>(nex::BinStream& in, std::string& str);
 
-	inline nex::BinStream& operator<<(nex::BinStream& out, const std::string& str)
-	{
-		out << str.size();
-		out.write(str.data(), str.size());
-		return out;
-	}
+	nex::BinStream& operator<<(nex::BinStream& out, const std::string& str);
 
 
 	template<typename T>
@@ -92,26 +80,10 @@ namespace nex
 	/**
 	 * Specialization for char vectors (improved performance)
 	 */
-	inline nex::BinStream& operator>>(nex::BinStream& in, std::vector<char>& vec)
-	{
-		size_t bytes = 0;
-		in >> bytes;
-		const size_t count = bytes;
-		vec.resize(count);
-		in.read(vec.data(), bytes);
-
-		return in;
-	}
+	nex::BinStream& operator>>(nex::BinStream& in, std::vector<char>& vec);
 
 	/**
 	 * Specialization for char vectors (improved performance)
 	 */
-	inline nex::BinStream& operator<<(nex::BinStream& out, const std::vector<char>& vec)
-	{
-		const size_t bytes = vec.size();
-		out << bytes;
-		out.write(vec.data(), bytes);
-
-		return out;
-	}
+	nex::BinStream& operator<<(nex::BinStream& out, const std::vector<char>& vec);
 }

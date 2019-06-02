@@ -3,6 +3,7 @@
 #include "nex/mesh/MeshFactory.hpp"
 #include "nex/texture/Texture.hpp"
 #include "nex/texture/Sampler.hpp"
+#include <nex/math/Math.hpp>
 
 nex::HeightMap::HeightMap(unsigned rows,
 	unsigned columns, 

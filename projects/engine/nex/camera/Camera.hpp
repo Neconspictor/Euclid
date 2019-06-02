@@ -2,11 +2,12 @@
 
 #include <glm/glm.hpp>
 #include <nex/common/Log.hpp>
-#include <nex/util/Math.hpp>
+#include <nex/math/Plane.hpp>
 
 namespace nex
 {
 	class Input;
+	class Ray;
 
 	enum class FrustumPlane
 	{
@@ -261,14 +262,15 @@ namespace nex
 	class PerspectiveCamera : public Camera
 	{
 	public:
-		explicit PerspectiveCamera(float aspectRatio = 16.0f / 9.0f,
-			float fovY = 45.0f, // the vertical field of view (in degrees)
+		explicit PerspectiveCamera(unsigned width,
+			unsigned height,
+			float fovY = glm::radians(45.0f), // the vertical field of view (in radians)
 			float nearDistance = 0.1f, // the distance to the near clipping plane
 			float farDistance = 100.0f, // the distance to the far clipping plane
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem()
 		);
 
-		PerspectiveCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
+		nex::Ray calcScreenRay(const glm::ivec2& screenPosition) const;
 
 		/**
 		 * Enables/Disables zooming 
@@ -284,28 +286,28 @@ namespace nex
 		float getAspectRatio() const;
 
 		/**
-		 * Provides the vertical field of view angle of the camera.
+		 * Provides the vertical field of view angle (measured in radians) of the camera.
 		 */
 		float getFovY() const;
 
+		/**
+		 * Sets the dimension in pixels
+		 */
+		void setDimension(unsigned width, unsigned height);
 
 		/**
-		 * Sets the aspect ratio of the camera's canvas.
-		 * NOTE: ratio as to be greater 0, otherwise a runtime_error will be thrown!
+		 * Sets the vertical field of view angle (measured in radians). 
+		 * The provided angle will be clamped to the range [0, pi]
 		 */
-		void setAspectRatio(float ratio);
-
-		/**
-		 * Sets the vertical field of view angle (measured in degrees). 
-		 * The provided angle will be clamped to the range [0, 180]
-		 */
-		void setFovY(float fov);
+		void setFovY(float fovY);
 
 	protected:
 
 		void calcProjection() override;
 		void calcFrustum() override;
 
+		unsigned mWidth;
+		unsigned mHeight;
 		float mAspectRatio;
 		float mFovY;
 		bool mZoomEnabled;

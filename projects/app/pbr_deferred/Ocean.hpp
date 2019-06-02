@@ -1,8 +1,8 @@
 #pragma once
-#include <nex/util/Complex.hpp>
+#include <nex/math/Complex.hpp>
 #include "nex/shader/Pass.hpp"
 #include "nex/gui/Drawable.hpp"
-#include "nex/util/Math.hpp"
+#include "nex/math/Constant.hpp"
 
 namespace nex
 {
@@ -264,7 +264,7 @@ namespace nex
 
 		unsigned mCurrent;
 		unsigned mLogN;
-		static constexpr float pi2 = static_cast<float>(2 * nex::util::PI);
+		static constexpr float pi2 = static_cast<float>(2 * nex::PI);
 		std::vector<unsigned> mReversed;
 		std::vector<std::vector<nex::Complex>> mTwiddle;
 		std::vector<nex::Complex> mTemp[2];

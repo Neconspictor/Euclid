@@ -8,40 +8,7 @@ nex::BinStream::BinStream(size_t bufferSize) : std::fstream(), mBuffer(bufferSiz
 	exceptions(std::ofstream::failbit | std::ofstream::badbit);
 }
 
-nex::BinStream::~BinStream() noexcept
-{
-	/*Logger logger;
-
-	if (fail())
-	{
-		LOG(logger, Info) << "fail state active : " << mFile.generic_string();
-	}
-
-	if (eof())
-	{
-		LOG(logger, Info) << "eof state active : " << mFile.generic_string();
-	}
-
-	auto state = rdstate();   // get state
-	state &= ~std::ios_base::failbit;
-	state &=  ~std::ios_base::badbit;
-	state &= ~std::ios_base::eofbit;
-	clear(state);
-	
-	LOG(logger, Info) << "cleared BinStream : " << mFile.generic_string();
-
-	if (fail())
-	{
-		LOG(logger, Info) << "fail state still active : " << mFile.generic_string();
-	}
-
-	if (eof())
-	{
-		LOG(logger, Info) << "eof state still active : " << mFile.generic_string();
-	}*/
-
-
-}
+nex::BinStream::~BinStream() noexcept = default;
 
 void nex::BinStream::open(const char* filePath, std::ios_base::openmode mode)
 {
@@ -92,4 +59,40 @@ void nex::BinStream::test()
 	}
 
 	std::cout << "bytes = " << bytes << std::endl;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, std::string& str)
+{
+	size_t bytes = 0;
+	in >> bytes;
+	str.resize(bytes);
+	in.read(str.data(), bytes);
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const std::string& str)
+{
+	out << str.size();
+	out.write(str.data(), str.size());
+	return out;
+}
+
+nex::BinStream& nex::operator>>(nex::BinStream& in, std::vector<char>& vec)
+{
+	size_t bytes = 0;
+	in >> bytes;
+	const size_t count = bytes;
+	vec.resize(count);
+	in.read(vec.data(), bytes);
+
+	return in;
+}
+
+nex::BinStream& nex::operator<<(nex::BinStream& out, const std::vector<char>& vec)
+{
+	const size_t bytes = vec.size();
+	out << bytes;
+	out.write(vec.data(), bytes);
+
+	return out;
 }

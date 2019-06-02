@@ -75,7 +75,7 @@ void NeXEngine::init()
 
 	mWindow = createWindow();
 	mInput = mWindow->getInputDevice();
-	mCamera = std::make_unique<FPCamera>(FPCamera());
+	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getVirtualScreenWidth(), mWindow->getVirtualScreenHeight()));
 	mBaseTitle = mWindow->getTitle();
 
 	// init shader file system
@@ -180,6 +180,12 @@ void NeXEngine::run()
 
 		if (isRunning())
 		{
+			if (mInput->isPressed(Input::KEY_L))
+			{
+				const auto& mouseData = mInput->getFrameMouseOffset();
+				std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
+			}
+
 			mGui->newFrame(frameTime);
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->update();
@@ -486,7 +492,7 @@ void NeXEngine::setupCallbacks()
 			return;
 		}
 
-		mCamera->setAspectRatio((float)width / (float)height);
+		mCamera->setDimension(width, height);
 
 		mRenderer->updateRenderTargets(width, height);
 	});
@@ -547,7 +553,7 @@ void NeXEngine::setupCamera()
 	mCamera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f), true);
 	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-	mCamera->setAspectRatio((float)windowWidth / (float)windowHeight);
+	mCamera->setDimension(windowWidth, windowHeight);
 
 
 	mCamera->setNearDistance(0.1f);

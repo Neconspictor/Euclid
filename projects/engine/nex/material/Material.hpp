@@ -137,6 +137,6 @@ namespace nex
 		static void test();
 	};
 
-	std::istream& operator>>(nex::BinStream& in, MaterialStore& store);
-	std::ostream& operator<<(nex::BinStream& out, const MaterialStore& store);
+	nex::BinStream& operator>>(nex::BinStream& in, MaterialStore& store);
+	nex::BinStream& operator<<(nex::BinStream& out, const MaterialStore& store);
 }

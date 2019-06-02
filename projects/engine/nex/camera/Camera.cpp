@@ -1,5 +1,4 @@
 #include <nex/camera/Camera.hpp>
-#include <nex/util/Math.hpp>
 #include <nex/Input.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL 1
@@ -7,6 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
 #include "nex/util/ExceptionHandling.hpp"
+#include "nex/math/Ray.hpp"
+#include "nex/math/Constant.hpp"
 
 
 namespace nex
@@ -222,19 +223,38 @@ namespace nex
 		);
 	}
 
-	PerspectiveCamera::PerspectiveCamera(float aspectRatio, float fovY, float nearDistance, float farDistance,
-		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), mAspectRatio(aspectRatio), mFovY(fovY),
-		mZoomEnabled(true)
+	PerspectiveCamera::PerspectiveCamera(unsigned width, unsigned height, float fovY, float nearDistance, float farDistance,
+		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), mFovY(fovY),
+		mWidth(width), mHeight(height), mZoomEnabled(true)
 	{
+		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera: height parameter mustn't be 0!"));
+		mAspectRatio = width / (float)height;
 	}
 
-	PerspectiveCamera::PerspectiveCamera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : PerspectiveCamera()
+	nex::Ray PerspectiveCamera::calcScreenRay(const glm::ivec2& screenPosition) const
 	{
+		const auto look = normalize(getLook());
+		const auto up = normalize(getUp());
+		const auto right = normalize(getRight());
+		const auto nearD = getNearDistance();
+		const auto tanFovYHalfth = tanf(getFovY() / 2.0f);
+		const float aspectRatio = getAspectRatio();
 
-		mCoordSystem.position = std::move(position);
-		mTargetPosition = mCoordSystem.position;
-		mCoordSystem.look = std::move(look);
-		mCoordSystem.up = std::move(up);
+		// normalize screen position to [-1, 1] x [-1, 1]
+		// Note: If screen position is out of range, the normalized position won't be in the target range,
+		// but the followed calculations will be correct nevertheless.
+		const glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)mWidth, screenPosition.y / (float)mHeight) - 1.0f;
+
+		// Compute direction vectors of the ray for each axis in the camera coordinate system in world space
+		const glm::vec3 lookComponent = look * nearD;
+		const glm::vec3 rightComponent = normalizedPosition.x * right * aspectRatio * tanFovYHalfth * nearD;
+		const glm::vec3 upComponent = normalizedPosition.y * up * tanFovYHalfth * nearD;
+
+		// the linear combination of the component vectors give as the ray direction to the screen position
+		const glm::vec3 dir = normalize(lookComponent + rightComponent + upComponent);
+		const glm::vec3 origin = getPosition() + dir * nearD;
+
+		return nex::Ray(origin, dir);;
 	}
 
 	void PerspectiveCamera::enableZoom(bool enable)
@@ -248,13 +268,7 @@ namespace nex
 		{
 			double yOffset = input->getFrameScrollOffsetY();
 
-			// zoom
-			if (mFovY >= 1.0f && mFovY <= 45.0f)
-				mFovY -= (float)yOffset;
-			if (mFovY <= 1.0f)
-				mFovY = 1.0f;
-			if (mFovY >= 45.0f)
-				mFovY = 45.0f;
+			setFovY(mFovY - glm::radians((float)yOffset));
 		}
 
 		Camera::frameUpdate(input, frameTime);
@@ -270,15 +284,21 @@ namespace nex
 		return mFovY;
 	}
 
-	void PerspectiveCamera::setAspectRatio(float ratio)
+	void PerspectiveCamera::setDimension(unsigned width, unsigned height)
 	{
-		mAspectRatio = ratio;
+		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera::setDimension: height parameter mustn't be 0!"));
+		mWidth = width;
+		mHeight = height;
+		mAspectRatio = width / (float) height;
 	}
 
 	void PerspectiveCamera::setFovY(float fovY)
 	{
-		mFovY = fovY;
+		static const auto minVal = glm::radians(10.0f);
+		static const auto maxVal = 0.75f * PI;
+		mFovY = std::clamp<float>(fovY, minVal, maxVal);
 	}
+
 
 	void PerspectiveCamera::calcFrustum()
 	{
@@ -286,7 +306,7 @@ namespace nex
 		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
 
 
-		const auto halfFovY = glm::radians(mFovY/2.0f);
+		const auto halfFovY = mFovY/2.0f;
 
 		/**
 		 * Calculate constants for the (half of the) width and height of the near and far planes. 
@@ -343,7 +363,7 @@ namespace nex
 
 	void PerspectiveCamera::calcProjection()
 	{
-		mProjection = glm::perspective(glm::radians(mFovY), mAspectRatio, mNearDistance, mFarDistance);
+		mProjection = glm::perspective(mFovY, mAspectRatio, mNearDistance, mFarDistance);
 	}
 
 	OrthographicCamera::OrthographicCamera(float width, float height, float nearDistance, float farDistance,

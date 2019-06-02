@@ -1,6 +1,6 @@
 #include "Sphere.hpp"
 #include <cmath>
-#include <nex/util/Math.hpp>
+#include <nex/math/Constant.hpp>
 #include "VertexBuffer.hpp"
 #include "VertexLayout.hpp"
 
@@ -27,9 +27,9 @@ namespace nex
 
 				float xSegment = (float)x / (float)xSegments;
 				float ySegment = (float)y / (float)ySegments;
-				float xPos = std::cos(xSegment * 2 * util::PI) * std::sin(ySegment * util::PI); // TAU is 2PI
-				float yPos = std::cos(ySegment * util::PI);
-				float zPos = std::sin(xSegment * 2 * util::PI) * std::sin(ySegment * util::PI);
+				float xPos = std::cos(xSegment * 2 * PI) * std::sin(ySegment * PI); // TAU is 2PI
+				float yPos = std::cos(ySegment * PI);
+				float zPos = std::sin(xSegment * 2 * PI) * std::sin(ySegment * PI);
 
 				vertex.position = glm::vec3(xPos, yPos, zPos);
 				vertex.texCoord = glm::vec2(xSegment, ySegment);

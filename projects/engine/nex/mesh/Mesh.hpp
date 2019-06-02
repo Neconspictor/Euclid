@@ -4,7 +4,7 @@
 #include "VertexBuffer.hpp"
 #include "IndexBuffer.hpp"
 #include <nex/mesh/MeshTypes.hpp>
-#include <nex/util/Math.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 namespace nex
 {

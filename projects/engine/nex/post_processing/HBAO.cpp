@@ -5,7 +5,6 @@
 #include <nex/post_processing/HBAO.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <nex/util/Math.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/gui/ImGUI.hpp>
 #include <random>
@@ -24,6 +23,7 @@
 #include "nex/texture/TextureManager.hpp"
 #include <nex/material/Material.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/math/Constant.hpp"
 
 using namespace glm;
 
@@ -55,7 +55,7 @@ namespace nex
 			float Rand2 = randomFloat(0, 1);
 
 			// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
-			static float pi = static_cast<float>(nex::util::PI);
+			static float pi = static_cast<float>(nex::PI);
 			static float radiantFraction = 2.0f * pi / (float)HBAO_NUM_DIRECTIONS;
 
 			float Angle = Rand1 * radiantFraction;

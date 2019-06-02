@@ -68,6 +68,27 @@ set(
 	nex/light/Light.hpp
 	nex/light/Light.cpp
     
+    #nex/material
+    nex/material/AbstractMaterialLoader.hpp
+	nex/material/AbstractMaterialLoader.cpp
+    nex/material/Material.hpp
+    nex/material/Material.cpp
+	nex/material/PbrMaterialLoader.hpp
+	nex/material/PbrMaterialLoader.cpp
+    
+    #nex/math
+    nex/math/BoundingBox.cpp
+    nex/math/BoundingBox.hpp
+    nex/math/Complex.cpp
+    nex/math/Complex.hpp
+    nex/math/Constant.hpp
+    nex/math/Plane.cpp
+    nex/math/Plane.hpp
+    nex/math/Math.cpp
+    nex/math/Math.hpp
+    nex/math/Ray.cpp
+    nex/math/Ray.hpp
+    
     #nex/mesh
     nex/mesh/IndexBuffer.hpp
     nex/mesh/Mesh.hpp
@@ -88,19 +109,11 @@ set(
 	nex/mesh/StaticMeshManager.cpp
     nex/mesh/VertexArray.hpp
     nex/mesh/VertexBuffer.hpp
+    nex/mesh/VertexLayout.cpp
     nex/mesh/VertexLayout.hpp
     nex/mesh/VertexLayout.inl
     nex/mesh/Vob.hpp
 	nex/mesh/Vob.cpp
-    
-    
-    #nex/material
-    nex/material/AbstractMaterialLoader.hpp
-	nex/material/AbstractMaterialLoader.cpp
-    nex/material/Material.hpp
-    nex/material/Material.cpp
-	nex/material/PbrMaterialLoader.hpp
-	nex/material/PbrMaterialLoader.cpp
     
     #nex/pbr
     nex/pbr/Pbr.cpp
@@ -211,13 +224,9 @@ set(
     
 	#nex/util
     nex/util/CallbackContainer.hpp
-    nex/util/Complex.cpp
-    nex/util/Complex.hpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
 	nex/util/Macro.hpp
-    nex/util/Math.cpp
-    nex/util/Math.hpp
     nex/util/Memory.hpp
     nex/util/PointerUtils.hpp
     nex/util/Signal.hpp

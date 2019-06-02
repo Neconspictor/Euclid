@@ -84,8 +84,6 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 		data.pixels.getPixels(),
 		bufSize);
 
-	auto& test = (std::vector<glm::vec2>&)data.pixels;
-
 	return store;
 }
 
@@ -174,10 +172,10 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 {
 	StoreImage store;
-	auto size = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
+	const auto mipMapLevelZero = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
+	const auto mipMapCount = prefilteredEnvMap->getMipMapCount(mipMapLevelZero);
 
-	// Note: we produced only 5 mip map levels instead of possible 9 (for 256 width/height)
-	StoreImage::create(&store, 6, 5, TextureTarget::CUBE_MAP);
+	StoreImage::create(&store, 6, mipMapCount, TextureTarget::CUBE_MAP);
 
 	for (auto level = 0; level < store.mipmapCount; ++level)
 	{
@@ -385,12 +383,14 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 
 
 	prefilterRenderTarget->bind();
-	unsigned int maxMipLevels = 5;
+	const auto mipMapLevelZero = min<unsigned>(prefilterRenderTarget->getWidth(), prefilterRenderTarget->getHeight());
+	const auto mipMapCount = Texture::getMipMapCount(mipMapLevelZero);
 
-	for (unsigned int mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
+
+	for (unsigned int mipLevel = 0; mipLevel < mipMapCount; ++mipLevel) {
 
 		// update the roughness value for the current mipmap level
-		float roughness = (float)mipLevel / (float)(maxMipLevels - 1);
+		float roughness = (float)mipLevel / (float)(mipMapCount - 1);
 		mPrefilterPass->setRoughness(roughness);
 
 		//resize render target according to mip level size
@@ -520,7 +520,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			ColorSpace::RGB,
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
-			true
+			false
 		};
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
 	}

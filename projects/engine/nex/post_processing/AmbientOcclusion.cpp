@@ -50,7 +50,7 @@ namespace nex
 		if (getActiveAOTechnique() == AOTechnique::HBAO)
 		{
 			nex::Projection projection;
-			projection.fov = glm::radians(camera->getFovY());
+			projection.fov = camera->getFovY();
 			projection.farplane = camera->getFarDistance();
 			projection.matrix = camera->getProjectionMatrix();
 			projection.nearplane = camera->getNearDistance();

@@ -1,7 +1,6 @@
 ﻿#include "Ocean.hpp"
 #include <random>
 #include <complex>
-#include <nex/util/Math.hpp>
 #include "nex/mesh/VertexBuffer.hpp"
 #include "nex/mesh/IndexBuffer.hpp"
 #include "nex/mesh/VertexLayout.hpp"
@@ -144,9 +143,6 @@ nex::OceanCpu::~OceanCpu() = default;
 
 void nex::OceanCpu::generateMesh()
 {
-	const float twoPi = static_cast<float>(2.0f * util::PI);
-	const float pi = static_cast<float>(util::PI);
-
 	const auto vertexCount = mPointCount * mPointCount;
 	const auto quadCount = (mPointCount - 1) * (mPointCount - 1);
 
@@ -162,8 +158,8 @@ void nex::OceanCpu::generateMesh()
 		{
 			unsigned index = z * mPointCount + x;
 
-			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength;
-			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength;
+			const float kx = (TWO_PI * x - PI * mN) / (float)mWaveLength;
+			const float kz = (TWO_PI * z - PI * mN) / (float)mWaveLength;
 			const auto wave = glm::vec2(kx, kz);
 
 			mVerticesCompute[index].height0 = heightZero(wave);
@@ -224,7 +220,7 @@ void nex::OceanCpu::generateMesh()
 
 float nex::OceanCpu::dispersion(const glm::vec2& wave) const
 {
-	static const float w0 = 2.0f * util::PI / mPeriodTime;
+	static const float w0 = TWO_PI / mPeriodTime;
 	return std::floor(std::sqrt(GRAVITY * length(wave)) / w0) * w0;
 }
 
@@ -266,10 +262,8 @@ void nex::OceanCpu::draw(Camera* camera, const glm::vec3& lightDir)
 
 nex::Complex nex::OceanCpu::height(int x, int z, float time) const
 {
-	const float twoPi = static_cast<float>(2.0f * util::PI);
-	const float pi = static_cast<float>(util::PI);
-	const float kx = (twoPi * x - pi * mN) / (float)mWaveLength;
-	const float kz = (twoPi * z - pi * mN) / (float)mWaveLength;
+	const float kx = (TWO_PI * x - PI * mN) / (float)mWaveLength;
+	const float kz = (TWO_PI * z - PI * mN) / (float)mWaveLength;
 
 	const auto wave = glm::vec2(kx, kz);
 	const auto w = dispersion(wave);
@@ -322,9 +316,6 @@ nex::OceanCpuDFT::~OceanCpuDFT() = default;
 
 nex::OceanCpu::ResultData nex::OceanCpuDFT::simulatePoint(const glm::vec2& locationXZ, float t) const
 {
-	const float twoPi = static_cast<float>(2.0f * util::PI);
-	const float pi = static_cast<float>(util::PI);
-
 	Complex height(0.0, 0.0);
 	glm::vec2 gradient(0.0f);
 	glm::vec2 displacement(0.0f);
@@ -336,9 +327,9 @@ nex::OceanCpu::ResultData nex::OceanCpuDFT::simulatePoint(const glm::vec2& locat
 	{
 		for (unsigned x = 0; x < mN; ++x)
 		{
-			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (TWO_PI * x - PI * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 			//const float kx2 = (twoPi * nDash - pi * N) / Lx;
-			const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+			const float kz = (TWO_PI * z - PI * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 
 			const auto wave = glm::vec2(kx, kz);
 			const auto angle = dot(wave, locationXZ);
@@ -469,16 +460,14 @@ nex::OceanCpuFFT::~OceanCpuFFT() = default;
 void nex::OceanCpuFFT::simulate(float t, bool skip)
 {
 	float lambda = -0.8f;
-	const float twoPi = static_cast<float>(2.0f * util::PI);
-	const float pi = static_cast<float>(util::PI);
 
 	for (int z = 0; z < mN; z++) {
 		//kz = M_PI * (2.0f * m_prime - N) / length;
-		const float kz = (twoPi * z - pi * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
+		const float kz = (TWO_PI * z - PI * mN) / (float)mWaveLength; //(twoPi * mDash - pi * M) / Lz;  nex::util::PI * (2.0f * mDash - M) / Lz;
 
 		for (int x = 0; x < mN; x++) {
 			//kx = M_PI * (2 * n_prime - N) / length;
-			const float kx = (twoPi * x - pi * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
+			const float kx = (TWO_PI * x - PI * mN) / (float)mWaveLength; //(twoPi * nDash - pi * N) / Lx;   (nex::util::PI * ((2.0f * nDash) - N)) / Lx;
 
 
 			float len = sqrt(kx * kx + kz * kz);

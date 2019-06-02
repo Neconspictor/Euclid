@@ -1,7 +1,6 @@
 #pragma once
 #include <nex/mesh/VertexLayout.hpp>
 #include <string>
-#include "nex/common/File.hpp"
 
 namespace nex
 {
@@ -76,31 +75,5 @@ namespace nex
 	inline void VertexLayout::push(unsigned count)
 	{
 		static_assert(false);
-	}
-
-	inline nex::BinStream& nex::VertexLayout::operator>>(nex::BinStream& in)
-	{
-		in >> mElements;
-		in >> mStride;
-
-		return in;
-	}
-
-	inline nex::BinStream& operator>>(nex::BinStream& in, nex::VertexLayout& layout)
-	{
-		return layout.operator>>(in);
-	}
-
-	inline nex::BinStream& nex::VertexLayout::operator<<(nex::BinStream& out) const
-	{
-		out << mElements;
-		out << mStride;
-
-		return out;
-	}
-
-	inline nex::BinStream& operator<<(nex::BinStream& out, const nex::VertexLayout& layout)
-	{
-		return layout.operator<<(out);
 	}
 }

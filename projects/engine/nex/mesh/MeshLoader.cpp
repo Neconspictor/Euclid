@@ -5,6 +5,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/mesh/MeshStore.hpp>
+#include <nex/math/Math.hpp>
 
 using namespace std;
 using namespace glm;

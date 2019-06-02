@@ -209,21 +209,17 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	// For now only cubemaps and 2d tetures are supported (other targets are not tested yet)!
 	assert(store.textureTarget == TextureTarget::TEXTURE2D || store.textureTarget == TextureTarget::CUBE_MAP);
 
-	auto dataCopy = data;
-	if (store.mipmapCount > 1)
-	{
-		dataCopy.generateMipMaps = true;
-	}
+	const bool createMipMapStorage = store.mipmapCount > 1;
 
 	GLuint textureID;
-	Impl::generateTexture(&textureID, dataCopy, bindTarget);
+	Impl::generateTexture(&textureID, data, bindTarget);
 
 	const auto baseWidth = store.images[0][0].width;
 	const auto baseHeight = store.images[0][0].height;
 
 	// allocate texture storage
 	// Note: for cubemaps six sides are allocated automatically!
-	Impl::resizeTexImage2D(textureID, store.mipmapCount, baseWidth, baseHeight, internalFormat, dataCopy.generateMipMaps);
+	Impl::resizeTexImage2D(textureID, store.mipmapCount, baseWidth, baseHeight, internalFormat, createMipMapStorage);
 
 	for (unsigned int side = 0; side < store.images.size(); ++side)
 	{
@@ -260,10 +256,10 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	if (isCubeMap)
 	{
-		impl = std::make_unique<CubeMapGL>(textureID, store.images[0][0].width, store.images[0][0].height);
+		impl = std::make_unique<CubeMapGL>(textureID, baseWidth, baseHeight);
 	} else
 	{
-		impl = std::make_unique<Texture2DGL>(textureID, data, store.images[0][0].width, store.images[0][0].height);
+		impl = std::make_unique<Texture2DGL>(textureID, data, baseWidth, baseHeight);
 	}
 
 	auto result = std::make_unique<Texture2D>(std::move(impl));

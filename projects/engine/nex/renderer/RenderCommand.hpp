@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
-#include <nex/util/Math.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 namespace nex
 {

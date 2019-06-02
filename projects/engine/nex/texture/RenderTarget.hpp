@@ -1,5 +1,5 @@
 #pragma once
-#include <nex/util/Math.hpp>
+#include <nex/math/Math.hpp>
 
 namespace nex
 {

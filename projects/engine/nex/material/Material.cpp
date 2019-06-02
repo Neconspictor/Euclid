@@ -312,7 +312,7 @@ void MaterialStore::test()
 	}
 }
 
-std::istream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
+nex::BinStream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 {
 	in >> store.albedoMap;
 	in >> store.alphaMap;
@@ -327,7 +327,7 @@ std::istream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 	return in;
 }
 
-std::ostream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
+nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 {
 	out << store.albedoMap;
 	out << store.alphaMap;

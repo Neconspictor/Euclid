@@ -9,12 +9,7 @@
 using namespace std;
 using namespace glm;
 
-nex::FPCamera::FPCamera() : PerspectiveCamera(), yaw(0), pitch(0)
-{
-	mLogger.setPrefix("FPCamera");
-}
-
-nex::FPCamera::FPCamera(vec3 position, vec3 look, vec3 up) : PerspectiveCamera(position, look, up), yaw(0), pitch(0)
+nex::FPCamera::FPCamera(unsigned width, unsigned height) : PerspectiveCamera(width, height), yaw(0), pitch(0)
 {
 	mLogger.setPrefix("FPCamera");
 }
@@ -129,7 +124,11 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 	ImGui::PushID(m_id.c_str());
 	ImGui::DragFloat("yaw", &m_camera->yaw, 1.0f, -180.0f, 180.0f);
 	ImGui::DragFloat("pitch", &m_camera->pitch, 1.0f, -89.0f, 89.0f);
-	ImGui::DragFloat("fov", &m_camera->mFovY, 1.0f, 0.0f, 90.0f);
+
+
+	float fovY = glm::degrees(m_camera->getFovY());
+	ImGui::DragFloat("fov", &fovY, 1.0f, -1000.0f, 1000.0f);
+	m_camera->setFovY(glm::radians(fovY));
 	ImGui::DragFloat("aspect ratio", &m_camera->mAspectRatio, 0.1f, 0.1f, 90.0f);
 	ImGui::DragFloat("near plane", &m_camera->mNearDistance, 0.01f, 0.01f, 10.0f);
 	ImGui::DragFloat("far plane", &m_camera->mFarDistance, 1.0f, 1.0f, 10000.0f);

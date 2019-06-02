@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nex/mesh/MeshTypes.hpp>
-#include <nex/util/Math.hpp>
+#include <nex/math/BoundingBox.hpp>
 #include <vector>
 #include "VertexLayout.hpp"
 #include "nex/material/Material.hpp"

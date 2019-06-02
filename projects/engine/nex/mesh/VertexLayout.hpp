@@ -57,10 +57,13 @@ namespace nex
 		inline unsigned int getStride() const;
 		inline const std::vector<LayoutElement>& getElements() const;
 
-		nex::BinStream& operator>>(nex::BinStream& in);
-
-		nex::BinStream& operator<<(nex::BinStream& out) const;
+		void read(nex::BinStream& in);
+		void write(nex::BinStream& out) const;
 	};
+
+	nex::BinStream& operator>>(nex::BinStream& in, VertexLayout& layout);
+
+	nex::BinStream& operator<<(nex::BinStream& out, const VertexLayout& layout);
 
 }
 
