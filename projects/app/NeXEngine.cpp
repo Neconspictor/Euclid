@@ -285,6 +285,7 @@ void NeXEngine::pickingTest(const Scene& scene)
 
 	size_t intersections = 0;
 	static bool addedBoundingBox = false;
+	static bool addedLine = false;
 
 	for (const auto& root : scene.getRoots())
 	{
@@ -296,6 +297,7 @@ void NeXEngine::pickingTest(const Scene& scene)
 			queue.pop();
 
 			if (node == mBoundingBoxNode) continue;
+			if (node == mLineNode) continue;
 
 			auto range = node->getChildren();
 
@@ -315,6 +317,9 @@ void NeXEngine::pickingTest(const Scene& scene)
 				const auto result = box.testRayIntersection(rayLocal);
 				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 				{
+					std::cout << "screenRayWorld.getOrigin() = " << screenRayWorld.getOrigin() << std::endl;
+					std::cout << "screenRayWorld.getDir() = " << screenRayWorld.getDir() << std::endl;
+
 					++intersections;
 					if (!addedBoundingBox)
 					{
@@ -329,6 +334,24 @@ void NeXEngine::pickingTest(const Scene& scene)
 						mBoundingBoxNode->updateWorldTrafoHierarchy();
 						mScene.addRoot(mBoundingBoxNode);
 					}
+
+					{
+						auto lineOrigin = origin;
+						glm::mat4 lineTrafo = glm::translate(glm::mat4(1.0f), screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f);
+						auto lineScale = 100.0f * screenRayWorld.getDir();
+						lineTrafo = glm::scale(lineTrafo, lineScale);
+
+						mLineNode->setLocalTrafo(lineTrafo);
+						mLineNode->updateWorldTrafoHierarchy();
+						mLineNode->updateWorldTrafoHierarchy();
+					}
+
+
+					if (!addedLine)
+					{
+						mScene.addRoot(mLineNode);
+						addedLine = true;
+					}
 				}
 			}
 		}
@@ -338,7 +361,9 @@ void NeXEngine::pickingTest(const Scene& scene)
 	if (intersections == 0)
 	{
 		mScene.removeRoot(mBoundingBoxNode);
+		mScene.removeRoot(mLineNode);
 		addedBoundingBox = false;
+		addedLine = false;
 	}
 }
 
@@ -414,6 +439,25 @@ std::unique_ptr<Mesh> NeXEngine::createBoundingBoxMesh()
 
 }
 
+std::unique_ptr<Mesh> NeXEngine::createLineMesh()
+{
+	//create vertices in CCW
+	VertexPosition vertices[2];
+
+	vertices[0].position = glm::vec3(0.0f);
+	vertices[1].position = glm::vec3(1.0f);
+
+	unsigned indices[2];
+
+	// bottom plane
+	indices[0] = 0;
+	indices[1] = 1;
+
+	auto mesh = MeshFactory::createPosition(vertices, 2, indices, 2, {glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX)});
+	mesh->setTopology(Topology::LINES);
+	return mesh;
+}
+
 void NeXEngine::createScene()
 {
 	mScene.clear();
@@ -437,6 +481,28 @@ void NeXEngine::createScene()
 	mBoundingBoxNode->setLocalTrafo(boxTrafo);
 
 	mScene.removeRoot(mBoundingBoxNode);
+
+	// create debug line 
+	{
+		auto lineMesh = createLineMesh();
+		lineMesh->mDebugName = "Line mesh";
+		static auto lineContainer = std::make_unique<StaticMeshContainer>();
+		auto material = std::make_unique<Material>(&technique);
+		material->getRenderState().fillMode = FillMode::LINE;
+		material->getRenderState().doCullFaces = false;
+		material->getRenderState().doShadowCast = false;
+		material->getRenderState().doDepthTest = true;
+		lineContainer->add(std::move(lineMesh), std::move(material));
+		mLineNode = lineContainer->createNodeHierarchy(&mScene);
+		mScene.removeRoot(mLineNode);
+
+		/*auto boxOrigin = (box.max + box.min) / 2.0f;
+		glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
+		auto boxScale = (box.max - box.min) / 2.0f;
+		boxTrafo = glm::scale(boxTrafo, boxScale);
+		mLineNode->setLocalTrafo(boxTrafo);*/
+		
+	}
 
 	//ground->setPositionLocal({ 10, 0, 0 });
 

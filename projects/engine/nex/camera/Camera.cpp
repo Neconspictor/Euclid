@@ -234,8 +234,8 @@ namespace nex
 	nex::Ray PerspectiveCamera::calcScreenRay(const glm::ivec2& screenPosition) const
 	{
 		const auto look = normalize(getLook());
-		const auto up = normalize(getUp());
-		const auto right = normalize(getRight());
+		const auto right = normalize(glm::cross(look, normalize(getUp())));
+		const auto up = normalize(glm::cross(right, look));
 		const auto nearD = getNearDistance();
 		const auto tanFovYHalfth = tanf(getFovY() / 2.0f);
 		const float aspectRatio = getAspectRatio();

@@ -8,8 +8,18 @@
 #include <nex/FileSystem.hpp>
 #include "Globals.hpp"
 
+namespace glm
+{
+	inline std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
+	{
+		os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
+		return os;
+	}
+}
+
 namespace nex
 {
+
 	class SubSystemProvider;
 	class SubSystemProviderGLFW;
 	class Cursor;
@@ -39,6 +49,7 @@ namespace nex
 		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
 		void pickingTest( const Scene& scene);
 		std::unique_ptr<Mesh> createBoundingBoxMesh();
+		std::unique_ptr<Mesh> createLineMesh();
 		void createScene();
 		Window* createWindow();
 		void initLights();
@@ -85,5 +96,6 @@ namespace nex
 		Texture* panoramaSky;
 
 		SceneNode* mBoundingBoxNode;
+		SceneNode* mLineNode;
 	};
 }
