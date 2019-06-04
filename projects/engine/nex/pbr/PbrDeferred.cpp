@@ -11,7 +11,7 @@
 namespace nex {
 
 	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
-		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe, nullptr),
+		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe),
 		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
 		mLightPass(std::make_unique<PbrDeferredLightingPass>(cascadeShadow))
 	{
@@ -21,15 +21,12 @@ namespace nex {
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 
-		// set the active submesh pass
-		setSelected(mGeometryPass.get());
-
 		mLightPass->setProbe(mProbe);
 		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
 	}
 
-	void PbrDeferred::configureSubMeshPass(Camera* camera)
+	void PbrDeferred::configureGeometryPass(Camera* camera)
 	{
 		mGeometryPass->bind();
 		mGeometryPass->updateConstants(camera);
@@ -58,6 +55,16 @@ namespace nex {
 	std::unique_ptr<PBR_GBuffer> PbrDeferred::createMultipleRenderTarget(int width, int height)
 	{
 		return std::make_unique<PBR_GBuffer>(width, height);
+	}
+
+	PbrDeferredGeometryPass* PbrDeferred::getGeometryPass()
+	{
+		return mGeometryPass.get();
+	}
+
+	PbrDeferredLightingPass* PbrDeferred::getLightingPass()
+	{
+		return mLightPass.get();
 	}
 
 	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)

@@ -29,13 +29,13 @@ namespace nex
 			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
 
 		/**
-		* Creates a gl mesh with position data.
+		* Creates a mesh with position data.
 		*/
 		static std::unique_ptr<Mesh> createPosition(const VertexPosition* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);
 
 		/**
-		* Creates a gl mesh with position data and uv coordinates.
+		* Creates a mesh with position data and uv coordinates.
 		*/
 		static std::unique_ptr<Mesh> createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount,
 			const uint32_t* indices, uint32_t indexCount, AABB boundingBox);

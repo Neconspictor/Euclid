@@ -38,6 +38,7 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
 		void pickingTest( const Scene& scene);
+		std::unique_ptr<Mesh> createMeshFromBoundingBox(const AABB& box);
 		void createScene();
 		Window* createWindow();
 		void initLights();
@@ -77,8 +78,7 @@ namespace nex
 
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
 		std::unique_ptr<PbrProbe> mPbrProbe;
-		std::unique_ptr<PbrDeferred> mPbrDeferred;
-		std::unique_ptr<PbrForward> mPbrForward;
+		std::unique_ptr<PbrTechnique> mPbrTechnique;
 
 		AmbientLight mAmbientLight;
 		DirectionalLight mSun;

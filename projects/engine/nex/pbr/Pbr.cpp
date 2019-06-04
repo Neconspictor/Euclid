@@ -3,9 +3,13 @@
 #include "imgui/imgui.h"
 #include "nex/gui/Util.hpp"
 #include "nex/shadow/CascadedShadow.hpp"
+#include "PbrDeferred.hpp"
+#include "PbrForward.hpp"
+#include <nex/shader/Pass.hpp>
+#include <nex/pbr/PbrPass.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 
-nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, TransformPass* submeshPass) :
-	Technique(submeshPass),
+nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
 	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
 {
 	mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
@@ -56,7 +60,52 @@ void nex::Pbr::setProbe(PbrProbe* probe)
 	mProbe = probe;
 }
 
-nex::Pbr_ConfigurationView::Pbr_ConfigurationView(Pbr* pbr) : mPbr(pbr)
+nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
+	PbrProbe* probe) : 
+Technique(nullptr), 
+mDeferred(std::make_unique<PbrDeferred>(ambientLight, cascadeShadow, dirLight, probe)),
+mForward(std::make_unique<PbrForward>(ambientLight, cascadeShadow, dirLight, probe))
+{
+	useDeferred();
+}
+
+void nex::PbrTechnique::setProbe(PbrProbe* probe)
+{
+	mDeferred->setProbe(probe);
+	mForward->setProbe(probe);
+}
+
+nex::PbrTechnique::~PbrTechnique() = default;
+
+void nex::PbrTechnique::useDeferred()
+{
+	mDeferredUsed = true;
+	setSelected(mDeferred->getGeometryPass());
+}
+
+void nex::PbrTechnique::useForward()
+{
+	mDeferredUsed = false;
+	setSelected(mForward->getPass());
+}
+
+nex::PbrDeferred* nex::PbrTechnique::getDeferred()
+{
+	return mDeferred.get();
+}
+
+nex::PbrForward* nex::PbrTechnique::getForward()
+{
+	return mForward.get();
+}
+
+nex::Pbr* nex::PbrTechnique::getActive()
+{
+	if (mDeferredUsed) return mDeferred.get();
+	return mForward.get();
+}
+
+nex::Pbr_ConfigurationView::Pbr_ConfigurationView(PbrTechnique* pbr) : mPbr(pbr)
 {
 }
 
@@ -66,7 +115,9 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	ImGui::LabelText("", "PBR:");
 
 
-	auto* dirLight = mPbr->getDirLight();
+	auto* active = mPbr->getDeferred();
+
+	auto* dirLight = active->getDirLight();
 
 	glm::vec3 lightColor = dirLight->getColor();
 	float dirLightPower = dirLight->getLightPower();
@@ -86,11 +137,11 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	drawLightSphericalDirection();
 
 
-	float ambientLightPower = mPbr->getAmbientLight()->getPower();
+	float ambientLightPower = active->getAmbientLight()->getPower();
 
 	if (ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
 	{
-		mPbr->getAmbientLight()->setPower(ambientLightPower);
+		active->getAmbientLight()->setPower(ambientLightPower);
 	}
 
 
@@ -100,7 +151,8 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 {
-	auto* dirLight = mPbr->getDirLight();
+	auto* active = mPbr->getDeferred();
+	auto* dirLight = active->getDirLight();
 	glm::vec3 lightDirection = normalize(dirLight->getDirection());
 
 	static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);

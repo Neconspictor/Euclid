@@ -46,7 +46,7 @@ namespace nex
 		void setVertexBuffer(VertexBuffer buffer);
 		void setBoundingBox(const AABB& box);
 		
-
+		std::string mDebugName;
 
 	protected:
 		VertexArray mVertexArray;

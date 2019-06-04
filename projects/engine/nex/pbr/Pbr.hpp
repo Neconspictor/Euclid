@@ -2,6 +2,9 @@
 
 #include <nex/gui/Drawable.hpp>
 #include <nex/shader/Technique.hpp>
+#include "nex/camera/Camera.hpp"
+#include "nex/texture/GBuffer.hpp"
+#include <memory>
 
 namespace nex
 {
@@ -9,11 +12,13 @@ namespace nex
 	class DirectionalLight;
 	class AmbientLight;
 	class PbrProbe;
+	class PbrDeferred;
+	class PbrForward;
 
-	class Pbr : public Technique {
+	class Pbr {
 
 	public:
-		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe, TransformPass* submeshPass);
+		Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
 		virtual ~Pbr();
 
@@ -42,9 +47,28 @@ namespace nex
 		PbrProbe* mProbe;
 	};
 
+	class PbrTechnique : public Technique
+	{
+	public:
+		PbrTechnique(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
+		virtual ~PbrTechnique();
+
+
+		void useDeferred();
+		void useForward();
+		PbrDeferred* getDeferred();
+		PbrForward* getForward();
+		Pbr* getActive();
+		void setProbe(PbrProbe* probe);
+	private:
+		std::unique_ptr<PbrDeferred> mDeferred;
+		std::unique_ptr<PbrForward> mForward;
+		bool mDeferredUsed;
+	};
+
 	class Pbr_ConfigurationView : public nex::gui::Drawable {
 	public:
-		Pbr_ConfigurationView(Pbr* pbr);
+		Pbr_ConfigurationView(PbrTechnique* pbr);
 
 	protected:
 		void drawSelf() override;
@@ -52,6 +76,6 @@ namespace nex
 		void drawLightSphericalDirection();
 
 	private:
-		Pbr* mPbr;
+		PbrTechnique* mPbr;
 	};
 }

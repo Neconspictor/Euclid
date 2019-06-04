@@ -3,14 +3,19 @@
 #include <nex/Scene.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
+#include <nex/shader/Technique.hpp>
 
-void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformPass* shader, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, TransformPass* pass, const RenderState* overwriteState)
 {
 	for (const auto& command : commands)
 	{
-		shader->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
-		shader->uploadTransformMatrices();
-		StaticMeshDrawer::draw(command.mesh, command.material, shader, overwriteState);
+		auto* currentPass = pass;
+		if (!currentPass)
+			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
+		
+		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentPass->uploadTransformMatrices();
+		StaticMeshDrawer::draw(command.mesh, command.material, currentPass, overwriteState);
 	}
 }
 

@@ -53,7 +53,7 @@ namespace nex
 		/**
 		 *
 		 */
-		virtual void configureSubMeshPass(Camera* camera) = 0;
+		virtual void configureSubMeshPass(Camera* camera) {};
 
 		/**
 		 * provides the current active pass for rendering a submesh.

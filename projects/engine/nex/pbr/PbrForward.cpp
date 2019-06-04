@@ -9,7 +9,6 @@
 #include "PbrProbe.hpp"
 #include "nex/light/Light.hpp"
 #include "nex/drawing/StaticMeshDrawer.hpp"
-#include <nex/material/Material.hpp>
 
 using namespace glm;
 
@@ -18,16 +17,13 @@ using namespace std;
 namespace nex {
 
 	PbrForward::PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	Pbr(ambientLight, cascadeShadow, dirLight, probe, nullptr), mForwardShader(std::make_unique<PbrForwardPass>(cascadeShadow))
+	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardPass>(cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
-
-		// set the active submesh pass
-		setSelected(mForwardShader.get());
 
 		mForwardShader->setProbe(mProbe);
 		mForwardShader->setAmbientLight(mAmbientLight);
@@ -37,16 +33,20 @@ namespace nex {
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
-		setSelected(mForwardShader.get());
 		mForwardShader->setProbe(mProbe);
 		mForwardShader->setAmbientLight(mAmbientLight);
 		mForwardShader->setDirLight(mLight);
 	}
 
-	void PbrForward::configureSubMeshPass(Camera* camera)
+	void PbrForward::configurePass(Camera* camera)
 	{
 		mForwardShader->bind();
 		mForwardShader->setProbe(mProbe);
 		mForwardShader->updateConstants(camera);
+	}
+
+	PbrForwardPass* PbrForward::getPass()
+	{
+		return mForwardShader.get();
 	}
 }

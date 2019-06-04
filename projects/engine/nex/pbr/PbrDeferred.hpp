@@ -19,11 +19,14 @@ namespace nex
 	public:
 		PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
-		void configureSubMeshPass(Camera* camera) override;
+		void configureGeometryPass(Camera* camera);
 
 		void drawLighting(PBR_GBuffer* gBuffer, Camera* camera);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
+
+		PbrDeferredGeometryPass* getGeometryPass();
+		PbrDeferredLightingPass* getLightingPass();
 
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 

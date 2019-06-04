@@ -11,7 +11,7 @@
 
 namespace nex
 {
-
+	class PbrTechnique;
 	class PbrDeferred;
 	class AmbientOcclusionSelector;
 	class RenderTarget2D;
@@ -27,8 +27,7 @@ namespace nex
 		typedef unsigned int uint;
 
 		PBR_Deferred_Renderer(RenderBackend* renderer,
-			PbrDeferred* pbrDeferred,
-			PbrForward* pbrForward,
+			PbrTechnique* pbrTechnique,
 			CascadedShadow* cascadedShadow,
 			Input* input);
 
@@ -69,8 +68,7 @@ namespace nex
 		bool mShowDepthMap;
 		Input* mInput;
 
-		PbrDeferred* mPbrDeferred;
-		PbrForward* mPbrForward;
+		PbrTechnique* mPbrTechnique;
 		CascadedShadow* mCascadedShadow;
 		RenderBackend* mRenderBackend;
 		RenderCommandQueue mCommandQueue;

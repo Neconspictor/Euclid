@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/renderer/RenderCommand.hpp>
 #include <vector>
+#include <unordered_set>
 
 
 namespace nex
@@ -8,6 +9,7 @@ namespace nex
 
 	class Camera;
 	struct Frustum;
+	class Technique;
 
 	class RenderCommandQueue
 	{
@@ -17,9 +19,17 @@ namespace nex
 
 		void clear();
 
-		const std::vector<RenderCommand>& getDeferredCommands() const;
+		/**
+		 * Provides pbr render commands that can be rendered in a deferred way.
+		 */
+		const std::vector<RenderCommand>& getDeferrablePbrCommands() const;
+
+		/**
+		 * Render commands that must be rendered in a forward way.
+		 */
 		const std::vector<RenderCommand>& getForwardCommands() const;
 		const std::vector<RenderCommand>& getShadowCommands() const;
+		const std::unordered_set<nex::Technique*>& getTechniques() const;
 
 		void push(const RenderCommand& command, bool cull = false);
 
@@ -40,9 +50,10 @@ namespace nex
 		static bool defaultCompare(const RenderCommand& a, const RenderCommand& b);
 		bool transparentCompare(const RenderCommand& a, const RenderCommand& b);
 
-		std::vector<RenderCommand> mDeferredCommands;
+		std::vector<RenderCommand> mPbrCommands;
 		std::vector<RenderCommand> mForwardCommands;
 		std::vector<RenderCommand> mShadowCommands;
+		std::unordered_set<nex::Technique*> mTechniques;
 		Camera* mCamera;
 	};
 }

@@ -32,6 +32,8 @@
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/math/Ray.hpp"
+#include "nex/mesh/MeshFactory.hpp"
+#include "nex/shader/SimpleColorPass.hpp"
 
 using namespace nex;
 
@@ -101,14 +103,13 @@ void NeXEngine::init()
 	StaticMeshManager::get()->init(mGlobals.getMeshDirectory(),
 		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
-		std::make_unique<PbrMaterialLoader>(mPbrDeferred.get(), mPbrForward.get(), TextureManager::get()));
+		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
 
 	initProbes();
 
 
 	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), 
-		mPbrDeferred.get(), 
-		mPbrForward.get(), 
+		mPbrTechnique.get(),
 		mCascadedShadow.get(), 
 		mWindow->getInputDevice());
 
@@ -257,6 +258,16 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.worldTrafo = node->getWorldTrafo();
 				command.prevWorldTrafo = node->getPrevWorldTrafo();
 				command.boundingBox = (mCamera->getView() * command.worldTrafo) * mesh->getAABB();
+
+				if (mesh->mDebugName == "AABB Bounding box")
+				{
+					command.forceForward = true;
+					auto& state = command.material->getRenderState();
+					state.doCullFaces = false;
+					state.doShadowCast = false;
+					//state.fillMode = FillMode::LINE;
+				}
+
 				commandQueue->push(command, true);
 			}
 		}
@@ -302,8 +313,6 @@ void NeXEngine::pickingTest(const Scene& scene)
 				const auto result = box.testRayIntersection(rayLocal);
 				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 				{
-					auto* material = (PbrMaterial*)node->getMaterial();
-					auto* texture = material->getRoughnessMap();
 					++intersections;
 				}
 			}
@@ -313,12 +322,93 @@ void NeXEngine::pickingTest(const Scene& scene)
 	std::cout << "Total intersections = " << intersections << std::endl;
 }
 
+std::unique_ptr<Mesh> NeXEngine::createMeshFromBoundingBox(const AABB& box)
+{
+	//create vertices in CCW
+	VertexPosition vertices[8];
+
+	// bottom plane
+	vertices[0].position = box.min;
+	vertices[1].position = glm::vec3(box.min.x, box.min.y, box.max.z);
+	vertices[2].position = glm::vec3(box.max.x, box.min.y, box.max.z);
+	vertices[3].position = glm::vec3(box.max.x, box.min.y, box.min.z);
+
+	// top plane
+	vertices[4].position = glm::vec3(box.min.x, box.max.y, box.min.z);
+	vertices[5].position = glm::vec3(box.min.x, box.max.y, box.max.z);
+	vertices[6].position = box.max;
+	vertices[7].position = glm::vec3(box.max.x, box.max.y, box.min.z);
+
+	unsigned indices[36];
+
+	// bottom plane
+	indices[0] = 0;
+	indices[1] = 3;
+	indices[2] = 2;
+	indices[3] = 0;
+	indices[4] = 2;
+	indices[5] = 1;
+
+	// front plane
+	indices[6] = 0;
+	indices[7] = 1;
+	indices[8] = 5;
+	indices[9] = 0;
+	indices[10] = 5;
+	indices[11] = 4;
+
+	// back plane
+	indices[12] = 3;
+	indices[13] = 2;
+	indices[14] = 6;
+	indices[15] = 3;
+	indices[16] = 6;
+	indices[17] = 7;
+
+	// left plane
+	indices[18] = 0;
+	indices[19] = 3;
+	indices[20] = 7;
+	indices[21] = 0;
+	indices[22] = 7;
+	indices[23] = 4;
+
+	// right plane
+	indices[24] = 1;
+	indices[25] = 2;
+	indices[26] = 6;
+	indices[27] = 1;
+	indices[28] = 6;
+	indices[29] = 5;
+
+	// top plane
+	indices[30] = 4;
+	indices[31] = 5;
+	indices[32] = 6;
+	indices[33] = 4;
+	indices[34] = 6;
+	indices[35] = 7;
+
+	return MeshFactory::createPosition(vertices, 8, indices, 36, box);
+
+
+}
+
 void NeXEngine::createScene()
 {
 	mScene.clear();
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
+	const AABB& box = (*ground->getChildren().begin)->getMesh()->getAABB();
+	auto boxMesh = createMeshFromBoundingBox(box);
+	boxMesh->mDebugName = "AABB Bounding box";
+	static auto boxContainer = std::make_unique<StaticMeshContainer>();
+	static auto pass = std::make_unique<SimpleColorPass>();
+	static auto technique = Technique(pass.get());
+	boxContainer->add(std::move(boxMesh), std::make_unique<Material>(&technique));
+	boxContainer->createNodeHierarchy(&mScene);
+
 	//ground->setPositionLocal({ 10, 0, 0 });
 
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
@@ -435,8 +525,7 @@ void NeXEngine::initPbr()
 	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
 
 
-	mPbrDeferred = std::make_unique<PbrDeferred>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
-	mPbrForward = std::make_unique<PbrForward>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
+	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
 void NeXEngine::initProbes()
@@ -460,8 +549,8 @@ void NeXEngine::initProbes()
 
 	mPbrProbe = factory.create(panoramaSky, 0);
 
-	mPbrDeferred->setProbe(mPbrProbe.get());
-	mPbrForward->setProbe(mPbrProbe.get());
+
+	mPbrTechnique->setProbe(mPbrProbe.get());
 }
 
 void NeXEngine::initRenderBackend()
@@ -579,7 +668,7 @@ void NeXEngine::setupGUI()
 	auto ssaoView = std::make_unique<SSAO_ConfigurationView>(mRenderer->getAOSelector()->getSSAO());
 	graphicsTechniques->addChild(std::move(ssaoView));
 
-	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrDeferred.get());
+	auto pbrView = std::make_unique<Pbr_ConfigurationView>(mPbrTechnique.get());
 	graphicsTechniques->addChild(std::move(pbrView));
 
 	auto cameraView = std::make_unique<FPCamera_ConfigurationView>(static_cast<FPCamera*>(mCamera.get()));

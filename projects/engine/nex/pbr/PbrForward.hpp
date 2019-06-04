@@ -16,7 +16,9 @@ namespace nex
 
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
-		void configureSubMeshPass(Camera* camera) override;
+		void configurePass(Camera* camera);
+		PbrForwardPass* getPass();
+
 	private:
 		std::unique_ptr<PbrForwardPass> mForwardShader;
 		std::unique_ptr<Sampler> mPointSampler;

@@ -243,8 +243,8 @@ namespace nex
 		// normalize screen position to [-1, 1] x [-1, 1]
 		// Note: If screen position is out of range, the normalized position won't be in the target range,
 		// but the followed calculations will be correct nevertheless.
-		const glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)mWidth, screenPosition.y / (float)mHeight) - 1.0f;
-
+		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)mWidth, (mHeight - screenPosition.y) / (float)mHeight) - 1.0f;
+		
 		// Compute direction vectors of the ray for each axis in the camera coordinate system in world space
 		const glm::vec3 lookComponent = look * nearD;
 		const glm::vec3 rightComponent = normalizedPosition.x * right * aspectRatio * tanFovYHalfth * nearD;

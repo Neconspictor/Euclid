@@ -4,14 +4,13 @@
 
 namespace nex
 {
-	class PbrDeferred;
-	class PbrForward;
+	class PbrTechnique;
 
 	class PbrMaterialLoader : public AbstractMaterialLoader {
 
 	public:
 
-		PbrMaterialLoader(PbrDeferred* pbrDeferred, PbrForward* pbrForward, TextureManager* textureManager);
+		PbrMaterialLoader(PbrTechnique* pbrTechnique, TextureManager* textureManager);
 
 		virtual ~PbrMaterialLoader();
 
@@ -19,7 +18,6 @@ namespace nex
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override;
 	
 	private:
-		PbrDeferred* mPbrDeferred;
-		PbrForward* mPbrForward;
+		PbrTechnique* mTechnique;
 	};
 }

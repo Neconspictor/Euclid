@@ -3,6 +3,7 @@
 #include "nex/material/Material.hpp"
 #include <algorithm>
 #include "nex/Scene.hpp"
+#include <nex/shader/Technique.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
@@ -10,14 +11,15 @@ nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 
 void nex::RenderCommandQueue::clear()
 {
-	mDeferredCommands.clear();
+	mPbrCommands.clear();
 	mForwardCommands.clear();
 	mShadowCommands.clear();
+	mTechniques.clear();
 }
 
-const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getDeferredCommands() const
+const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getDeferrablePbrCommands() const
 {
-	return mDeferredCommands;
+	return mPbrCommands;
 }
 
 const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getForwardCommands() const
@@ -30,25 +32,33 @@ const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getShadowCommand
 	return mShadowCommands;
 }
 
+const std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechniques() const
+{
+	return mTechniques;
+}
+
 void nex::RenderCommandQueue::push(const RenderCommand& command, bool cull)
 {
 	if (cull && isOutsideFrustum(command)) return;
 
+	bool isPbr = typeid(*command.material).hash_code() == typeid(PbrMaterial).hash_code();
+
 	const auto& state = command.material->getRenderState();
 
-	if (state.doBlend)
+	if (isPbr && !state.doBlend)
+	{
+		mPbrCommands.emplace_back(command);
+	} else
 	{
 		mForwardCommands.emplace_back(command);
-	}
-	else
-	{
-		mDeferredCommands.emplace_back(command);
 	}
 
 	if (state.doShadowCast)
 	{
 		mShadowCommands.emplace_back(command);
 	}
+
+	mTechniques.insert(command.material->getTechnique());
 }
 
 void nex::RenderCommandQueue::setCamera(Camera* camera)
@@ -58,7 +68,7 @@ void nex::RenderCommandQueue::setCamera(Camera* camera)
 
 void nex::RenderCommandQueue::sort()
 {
-	std::sort(mDeferredCommands.begin(), mDeferredCommands.end(), defaultCompare);
+	std::sort(mPbrCommands.begin(), mPbrCommands.end(), defaultCompare);
 	std::sort(mShadowCommands.begin(), mShadowCommands.end(), defaultCompare);
 
 	auto compareBind = std::bind(&nex::RenderCommandQueue::transparentCompare, this, std::placeholders::_1, std::placeholders::_2);

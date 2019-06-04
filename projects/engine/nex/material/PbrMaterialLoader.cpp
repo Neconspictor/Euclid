@@ -10,8 +10,8 @@ using namespace std;
 using namespace nex;
 
 
-PbrMaterialLoader::PbrMaterialLoader(PbrDeferred* pbrDeferred, PbrForward* pbrForward, TextureManager* textureManager) : AbstractMaterialLoader(textureManager),
-mPbrDeferred(pbrDeferred), mPbrForward(pbrForward)
+PbrMaterialLoader::PbrMaterialLoader(PbrTechnique* pbrTechnique, TextureManager* textureManager) : AbstractMaterialLoader(textureManager),
+mTechnique(pbrTechnique)
 {
 }
 
@@ -19,7 +19,7 @@ PbrMaterialLoader::~PbrMaterialLoader() = default;
 
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	auto material = make_unique<PbrMaterial>(mPbrDeferred);
+	auto material = make_unique<PbrMaterial>(mTechnique);
 
 	TextureData data = {
 		TextureFilter::Linear_Mipmap_Linear,

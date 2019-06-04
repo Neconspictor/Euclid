@@ -177,6 +177,8 @@ set(
     nex/shader/Shader.hpp
     nex/shader/ShaderBuffer.hpp
     nex/shader/ShaderType.hpp
+    nex/shader/SimpleColorPass.hpp
+    nex/shader/SimpleColorPass.cpp
     nex/shader/SkyBoxPass.hpp
 	nex/shader/SkyBoxPass.cpp
     nex/shader/Technique.cpp

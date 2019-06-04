@@ -1,11 +1,17 @@
-#version 330 core
+#version 430 core
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 texCoords;
 
-uniform mat4 transform;
+layout(binding = 0) buffer TransformBuffer {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+    mat4 transform;
+    mat4 prevTransform;
+    mat4 modelView;
+    mat3 normalMatrix;
+} transforms;
 
 void main()
 { 
-    gl_Position = transform * vec4(position, 1.0f);
+    gl_Position = transforms.transform * vec4(position, 1.0f);
 } 
