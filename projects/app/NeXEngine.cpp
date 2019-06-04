@@ -261,11 +261,10 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 
 				if (mesh->mDebugName == "AABB Bounding box")
 				{
-					command.forceForward = true;
 					auto& state = command.material->getRenderState();
 					state.doCullFaces = false;
 					state.doShadowCast = false;
-					//state.fillMode = FillMode::LINE;
+					state.fillMode = FillMode::LINE;
 				}
 
 				commandQueue->push(command, true);

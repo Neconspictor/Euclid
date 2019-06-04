@@ -16,6 +16,5 @@ namespace nex
 		// bounding box information (world space); needed for sorting 
 		// meshes by distance and for transparent materials
 		AABB boundingBox;
-		bool forceForward = false;
 	};
 }
