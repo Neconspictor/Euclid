@@ -284,6 +284,7 @@ void NeXEngine::pickingTest(const Scene& scene)
 	std::queue<SceneNode*> queue;
 
 	size_t intersections = 0;
+	static bool addedBoundingBox = false;
 
 	for (const auto& root : scene.getRoots())
 	{
@@ -293,6 +294,8 @@ void NeXEngine::pickingTest(const Scene& scene)
 		{
 			auto* node = queue.back();
 			queue.pop();
+
+			if (node == mBoundingBoxNode) continue;
 
 			auto range = node->getChildren();
 
@@ -313,30 +316,48 @@ void NeXEngine::pickingTest(const Scene& scene)
 				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 				{
 					++intersections;
+					if (!addedBoundingBox)
+					{
+						addedBoundingBox = true;
+						auto boxOrigin = (box.max + box.min) / 2.0f;
+						glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
+						auto boxScale = (box.max - box.min) / 2.0f;
+						boxTrafo = glm::scale(boxTrafo, boxScale);
+
+						mBoundingBoxNode->setLocalTrafo(boxTrafo);
+						mBoundingBoxNode->updateWorldTrafoHierarchy();
+						mBoundingBoxNode->updateWorldTrafoHierarchy();
+						mScene.addRoot(mBoundingBoxNode);
+					}
 				}
 			}
 		}
 	}
 
 	std::cout << "Total intersections = " << intersections << std::endl;
+	if (intersections == 0)
+	{
+		mScene.removeRoot(mBoundingBoxNode);
+		addedBoundingBox = false;
+	}
 }
 
-std::unique_ptr<Mesh> NeXEngine::createMeshFromBoundingBox(const AABB& box)
+std::unique_ptr<Mesh> NeXEngine::createBoundingBoxMesh()
 {
 	//create vertices in CCW
 	VertexPosition vertices[8];
 
 	// bottom plane
-	vertices[0].position = box.min;
-	vertices[1].position = glm::vec3(box.min.x, box.min.y, box.max.z);
-	vertices[2].position = glm::vec3(box.max.x, box.min.y, box.max.z);
-	vertices[3].position = glm::vec3(box.max.x, box.min.y, box.min.z);
+	vertices[0].position = glm::vec3(-1);
+	vertices[1].position = glm::vec3(-1, -1, 1);
+	vertices[2].position = glm::vec3(1, -1, 1);
+	vertices[3].position = glm::vec3(1, -1, -1);
 
 	// top plane
-	vertices[4].position = glm::vec3(box.min.x, box.max.y, box.min.z);
-	vertices[5].position = glm::vec3(box.min.x, box.max.y, box.max.z);
-	vertices[6].position = box.max;
-	vertices[7].position = glm::vec3(box.max.x, box.max.y, box.min.z);
+	vertices[4].position = glm::vec3(-1, 1, -1);
+	vertices[5].position = glm::vec3(-1, 1, 1);
+	vertices[6].position = glm::vec3(1);
+	vertices[7].position = glm::vec3(1, 1, -1);
 
 	unsigned indices[36];
 
@@ -388,7 +409,7 @@ std::unique_ptr<Mesh> NeXEngine::createMeshFromBoundingBox(const AABB& box)
 	indices[34] = 6;
 	indices[35] = 7;
 
-	return MeshFactory::createPosition(vertices, 8, indices, 36, box);
+	return MeshFactory::createPosition(vertices, 8, indices, 36, {});
 
 
 }
@@ -400,13 +421,22 @@ void NeXEngine::createScene()
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	const AABB& box = (*ground->getChildren().begin)->getMesh()->getAABB();
-	auto boxMesh = createMeshFromBoundingBox(box);
+	auto boxMesh = createBoundingBoxMesh();
+	boxMesh->setBoundingBox(box);
 	boxMesh->mDebugName = "AABB Bounding box";
 	static auto boxContainer = std::make_unique<StaticMeshContainer>();
 	static auto pass = std::make_unique<SimpleColorPass>();
 	static auto technique = Technique(pass.get());
 	boxContainer->add(std::move(boxMesh), std::make_unique<Material>(&technique));
-	boxContainer->createNodeHierarchy(&mScene);
+	mBoundingBoxNode = boxContainer->createNodeHierarchy(&mScene);
+
+	auto boxOrigin = (box.max + box.min) / 2.0f;
+	glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
+	auto boxScale = (box.max - box.min) / 2.0f;
+	boxTrafo = glm::scale(boxTrafo, boxScale);
+	mBoundingBoxNode->setLocalTrafo(boxTrafo);
+
+	mScene.removeRoot(mBoundingBoxNode);
 
 	//ground->setPositionLocal({ 10, 0, 0 });
 
@@ -428,7 +458,7 @@ void NeXEngine::createScene()
 	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
 	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
-	// Note: Do it twice so that prevous world trafo is the same than the current one
+	// Note: Do it twice so that previous world trafo is the same than the current one
 	// TODO Find better solution
 	mScene.updateWorldTrafoHierarchy();
 	mScene.updateWorldTrafoHierarchy();

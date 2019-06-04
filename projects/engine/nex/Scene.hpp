@@ -85,6 +85,8 @@ namespace nex
 		 */
 		void addRoot(SceneNode* node);
 
+		void removeRoot(SceneNode* node);
+
 		/**
 		 * Provides the list of root nodes.
 		 */

@@ -38,7 +38,7 @@ namespace nex
 
 		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
 		void pickingTest( const Scene& scene);
-		std::unique_ptr<Mesh> createMeshFromBoundingBox(const AABB& box);
+		std::unique_ptr<Mesh> createBoundingBoxMesh();
 		void createScene();
 		Window* createWindow();
 		void initLights();
@@ -83,5 +83,7 @@ namespace nex
 		AmbientLight mAmbientLight;
 		DirectionalLight mSun;
 		Texture* panoramaSky;
+
+		SceneNode* mBoundingBoxNode;
 	};
 }

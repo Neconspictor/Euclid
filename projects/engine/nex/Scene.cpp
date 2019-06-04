@@ -148,6 +148,11 @@ namespace nex
 		mRoots.emplace_back(node);
 	}
 
+	void Scene::removeRoot(SceneNode* node)
+	{
+		mRoots.erase(std::remove(mRoots.begin(), mRoots.end(), node), mRoots.end());
+	}
+
 
 	SceneNode* Scene::createNode(SceneNode* parent)
 	{
