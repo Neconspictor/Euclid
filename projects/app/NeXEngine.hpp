@@ -25,6 +25,11 @@ namespace nex
 	class Cursor;
 	class Window;
 
+	namespace gui
+	{
+		class Picker;
+	}
+
 	class NeXEngine
 	{
 	public:
@@ -47,9 +52,6 @@ namespace nex
 	protected:
 
 		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
-		void pickingTest( const Scene& scene);
-		std::unique_ptr<Mesh> createBoundingBoxMesh();
-		std::unique_ptr<Mesh> createLineMesh();
 		void createScene();
 		Window* createWindow();
 		void initLights();
@@ -95,7 +97,6 @@ namespace nex
 		DirectionalLight mSun;
 		Texture* panoramaSky;
 
-		SceneNode* mBoundingBoxNode;
-		SceneNode* mLineNode;
+		std::unique_ptr<gui::Picker> mPicker;
 	};
 }

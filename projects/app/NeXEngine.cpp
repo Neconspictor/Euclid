@@ -34,6 +34,7 @@
 #include "nex/math/Ray.hpp"
 #include "nex/mesh/MeshFactory.hpp"
 #include "nex/shader/SimpleColorPass.hpp"
+#include "nex/gui/Picker.hpp"
 
 using namespace nex;
 
@@ -139,6 +140,8 @@ void NeXEngine::init()
 
 	createScene();
 
+	mPicker = std::make_unique<gui::Picker>();
+
 	mInput->addWindowCloseCallback([](Window* window)
 	{
 		void* nativeWindow = window->getNativeWindow();
@@ -190,7 +193,9 @@ void NeXEngine::run()
 
 				if (mInput->isPressed(Input::Button::LeftMouseButton))
 				{
-					pickingTest(mScene);
+					const auto& mouseData = mInput->getFrameMouseOffset();
+					const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+					mPicker->pick(mScene, mCamera->calcScreenRay(position));
 				}
 
 				if (mInput->isPressed(Input::KEY_L))
@@ -263,205 +268,12 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.worldTrafo = node->getWorldTrafo();
 				command.prevWorldTrafo = node->getPrevWorldTrafo();
 				command.boundingBox = (mCamera->getView() * command.worldTrafo) * mesh->getAABB();
-
-				if (mesh->mDebugName == "AABB Bounding box")
-				{
-					auto& state = command.material->getRenderState();
-					state.doCullFaces = false;
-					state.doShadowCast = false;
-					state.fillMode = FillMode::LINE;
-				}
-
 				commandQueue->push(command, true);
 			}
 		}
 	}
 }
 
-void NeXEngine::pickingTest(const Scene& scene)
-{
-	const auto& mouseData = mInput->getFrameMouseOffset();
-	const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-	//std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
-
-	const auto screenRayWorld = mCamera->calcScreenRay(position);
-
-	std::queue<SceneNode*> queue;
-
-	size_t intersections = 0;
-	static bool addedBoundingBox = false;
-	static bool addedLine = false;
-
-	for (const auto& root : scene.getRoots())
-	{
-		queue.emplace(root);
-
-		while (!queue.empty())
-		{
-			auto* node = queue.back();
-			queue.pop();
-
-			if (node == mBoundingBoxNode) continue;
-			if (node == mLineNode) continue;
-
-			auto range = node->getChildren();
-
-			for (auto it = range.begin; it != range.end; ++it)
-			{
-				queue.emplace(*it);
-			}
-
-			auto* mesh = node->getMesh();
-			if (mesh != nullptr)
-			{
-				const auto invModel = inverse(node->getWorldTrafo());
-				const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
-				const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
-				const auto rayLocal = Ray(origin, direction);
-				const auto& box = mesh->getAABB();
-				const auto result = box.testRayIntersection(rayLocal);
-				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
-				{
-					std::cout << "screenRayWorld.getOrigin() = " << screenRayWorld.getOrigin() << std::endl;
-					std::cout << "screenRayWorld.getDir() = " << screenRayWorld.getDir() << std::endl;
-
-					++intersections;
-					if (!addedBoundingBox)
-					{
-						addedBoundingBox = true;
-						auto boxOrigin = (box.max + box.min) / 2.0f;
-						glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
-						auto boxScale = (box.max - box.min) / 2.0f;
-						boxTrafo = glm::scale(boxTrafo, boxScale);
-
-						mBoundingBoxNode->setLocalTrafo(boxTrafo);
-						mBoundingBoxNode->updateWorldTrafoHierarchy();
-						mBoundingBoxNode->updateWorldTrafoHierarchy();
-						mScene.addRoot(mBoundingBoxNode);
-					}
-
-					{
-						auto lineOrigin = origin;
-						glm::mat4 lineTrafo = glm::translate(glm::mat4(1.0f), screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f);
-						auto lineScale = 100.0f * screenRayWorld.getDir();
-						lineTrafo = glm::scale(lineTrafo, lineScale);
-
-						mLineNode->setLocalTrafo(lineTrafo);
-						mLineNode->updateWorldTrafoHierarchy();
-						mLineNode->updateWorldTrafoHierarchy();
-					}
-
-
-					if (!addedLine)
-					{
-						mScene.addRoot(mLineNode);
-						addedLine = true;
-					}
-				}
-			}
-		}
-	}
-
-	std::cout << "Total intersections = " << intersections << std::endl;
-	if (intersections == 0)
-	{
-		mScene.removeRoot(mBoundingBoxNode);
-		mScene.removeRoot(mLineNode);
-		addedBoundingBox = false;
-		addedLine = false;
-	}
-}
-
-std::unique_ptr<Mesh> NeXEngine::createBoundingBoxMesh()
-{
-	//create vertices in CCW
-	VertexPosition vertices[8];
-
-	// bottom plane
-	vertices[0].position = glm::vec3(-1);
-	vertices[1].position = glm::vec3(-1, -1, 1);
-	vertices[2].position = glm::vec3(1, -1, 1);
-	vertices[3].position = glm::vec3(1, -1, -1);
-
-	// top plane
-	vertices[4].position = glm::vec3(-1, 1, -1);
-	vertices[5].position = glm::vec3(-1, 1, 1);
-	vertices[6].position = glm::vec3(1);
-	vertices[7].position = glm::vec3(1, 1, -1);
-
-	unsigned indices[36];
-
-	// bottom plane
-	indices[0] = 0;
-	indices[1] = 3;
-	indices[2] = 2;
-	indices[3] = 0;
-	indices[4] = 2;
-	indices[5] = 1;
-
-	// front plane
-	indices[6] = 0;
-	indices[7] = 1;
-	indices[8] = 5;
-	indices[9] = 0;
-	indices[10] = 5;
-	indices[11] = 4;
-
-	// back plane
-	indices[12] = 3;
-	indices[13] = 2;
-	indices[14] = 6;
-	indices[15] = 3;
-	indices[16] = 6;
-	indices[17] = 7;
-
-	// left plane
-	indices[18] = 0;
-	indices[19] = 3;
-	indices[20] = 7;
-	indices[21] = 0;
-	indices[22] = 7;
-	indices[23] = 4;
-
-	// right plane
-	indices[24] = 1;
-	indices[25] = 2;
-	indices[26] = 6;
-	indices[27] = 1;
-	indices[28] = 6;
-	indices[29] = 5;
-
-	// top plane
-	indices[30] = 4;
-	indices[31] = 5;
-	indices[32] = 6;
-	indices[33] = 4;
-	indices[34] = 6;
-	indices[35] = 7;
-
-	return MeshFactory::createPosition(vertices, 8, indices, 36, {});
-
-
-}
-
-std::unique_ptr<Mesh> NeXEngine::createLineMesh()
-{
-	//create vertices in CCW
-	VertexPosition vertices[2];
-
-	vertices[0].position = glm::vec3(0.0f);
-	vertices[1].position = glm::vec3(1.0f);
-
-	unsigned indices[2];
-
-	// bottom plane
-	indices[0] = 0;
-	indices[1] = 1;
-
-	auto mesh = MeshFactory::createPosition(vertices, 2, indices, 2, {glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX)});
-	mesh->setTopology(Topology::LINES);
-	return mesh;
-}
 
 void NeXEngine::createScene()
 {
@@ -469,45 +281,6 @@ void NeXEngine::createScene()
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
-	const AABB& box = (*ground->getChildren().begin)->getMesh()->getAABB();
-	auto boxMesh = createBoundingBoxMesh();
-	boxMesh->setBoundingBox(box);
-	boxMesh->mDebugName = "AABB Bounding box";
-	static auto boxContainer = std::make_unique<StaticMeshContainer>();
-	static auto pass = std::make_unique<SimpleColorPass>();
-	static auto technique = Technique(pass.get());
-	boxContainer->add(std::move(boxMesh), std::make_unique<Material>(&technique));
-	mBoundingBoxNode = boxContainer->createNodeHierarchy(&mScene);
-
-	auto boxOrigin = (box.max + box.min) / 2.0f;
-	glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
-	auto boxScale = (box.max - box.min) / 2.0f;
-	boxTrafo = glm::scale(boxTrafo, boxScale);
-	mBoundingBoxNode->setLocalTrafo(boxTrafo);
-
-	mScene.removeRoot(mBoundingBoxNode);
-
-	// create debug line 
-	{
-		auto lineMesh = createLineMesh();
-		lineMesh->mDebugName = "Line mesh";
-		static auto lineContainer = std::make_unique<StaticMeshContainer>();
-		auto material = std::make_unique<Material>(&technique);
-		material->getRenderState().fillMode = FillMode::LINE;
-		material->getRenderState().doCullFaces = false;
-		material->getRenderState().doShadowCast = false;
-		material->getRenderState().doDepthTest = true;
-		lineContainer->add(std::move(lineMesh), std::move(material));
-		mLineNode = lineContainer->createNodeHierarchy(&mScene);
-		mScene.removeRoot(mLineNode);
-
-		/*auto boxOrigin = (box.max + box.min) / 2.0f;
-		glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
-		auto boxScale = (box.max - box.min) / 2.0f;
-		boxTrafo = glm::scale(boxTrafo, boxScale);
-		mLineNode->setLocalTrafo(boxTrafo);*/
-		
-	}
 
 	//ground->setPositionLocal({ 10, 0, 0 });
 
@@ -525,9 +298,6 @@ void NeXEngine::createScene()
 	glm::mat4 trafo = translateMatrix * rotation * scale;
 	//cerberus->setLocalTrafo(trafo);
 
-	//meshContainer->getMaterials()[0]->getRenderState().fillMode = FillMode::LINE;
-	//meshContainer->getMaterials()[0]->getRenderState().doBlend = true;
-	//meshContainer->getMaterials()[0]->getRenderState().doShadowCast = false;
 
 	// Note: Do it twice so that previous world trafo is the same than the current one
 	// TODO Find better solution
