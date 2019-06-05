@@ -28,6 +28,13 @@ namespace nex::gui
 		 */
 		SceneNode* pick(Scene& scene, const Ray& screenRayWorld);
 
+		SceneNode* getPicked();
+
+		/**
+		 * Updates the world transformation matrix of the bounding box if a scene node is currently selected.
+		 */
+		void updateBoundingBoxTrafo();
+
 	private:
 
 		static std::unique_ptr<Mesh> createBoundingBoxMesh();
@@ -43,5 +50,6 @@ namespace nex::gui
 
 		SceneNode* mBoundingBoxNode;
 		SceneNode* mLineNode;
+		SceneNode* mSelectedNode;
 	};
 }

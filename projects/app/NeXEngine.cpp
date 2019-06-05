@@ -196,6 +196,7 @@ void NeXEngine::run()
 					const auto& mouseData = mInput->getFrameMouseOffset();
 					const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 					mPicker->pick(mScene, mCamera->calcScreenRay(position));
+					mPickedSceneNodeProperty->setPicker(mPicker.get());
 				}
 
 				if (mInput->isPressed(Input::KEY_L))
@@ -553,6 +554,10 @@ void NeXEngine::setupGUI()
 
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
+
+	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>();
+	mPickedSceneNodeProperty = sceneNodeProperty.get();
+	generalTab->addChild(std::move(sceneNodeProperty));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

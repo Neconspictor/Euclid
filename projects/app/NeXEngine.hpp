@@ -97,6 +97,7 @@ namespace nex
 		DirectionalLight mSun;
 		Texture* panoramaSky;
 
+		gui::SceneNodeProperty* mPickedSceneNodeProperty;
 		std::unique_ptr<gui::Picker> mPicker;
 	};
 }

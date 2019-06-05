@@ -5,8 +5,15 @@
 #include <nex/gui/ControllerStateMachine.hpp>
 
 
+namespace nex
+{
+	class SceneNode;
+}
+
 namespace nex::gui
 {
+	class Picker;
+
 	class SceneGUI : public Drawable
 	{
 	public:
@@ -29,5 +36,18 @@ namespace nex::gui
 		Menu* m_optionMenu;
 		Menu* m_fileMenu;
 		ControllerStateMachine* m_controllerSM;
+	};
+
+	class SceneNodeProperty : public nex::gui::Drawable
+	{
+	public:
+		SceneNodeProperty();
+
+		void setPicker(Picker* picker);
+
+	protected:
+		void drawSelf() override;
+
+		Picker* mPicker;
 	};
 }

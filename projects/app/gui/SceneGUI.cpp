@@ -1,6 +1,8 @@
 #include <gui/SceneGUI.hpp>
 #include <imgui/imgui.h>
 #include <gui/Controller.hpp>
+#include "nex/gui/Util.hpp"
+#include "nex/gui/Picker.hpp"
 
 namespace nex::gui
 {
@@ -49,5 +51,42 @@ namespace nex::gui
 	void SceneGUI::drawSelf()
 	{
 		m_menuBar.drawGUI();
+	}
+
+	SceneNodeProperty::SceneNodeProperty() :  mPicker(nullptr)
+	{
+	}
+
+	void SceneNodeProperty::setPicker(Picker* picker)
+	{
+		mPicker = picker;
+	}
+
+	void SceneNodeProperty::drawSelf()
+	{
+		ImGui::PushID(m_id.c_str());
+		nex::gui::Separator(2.0f);
+		ImGui::Text("Selected scene node:");
+		if (!mPicker || !mPicker->getPicked()) {
+			ImGui::Text("No scene node selected.");
+			ImGui::PopID();
+			return;
+		}
+
+		auto* node = mPicker->getPicked();
+
+		auto trafo = node->getLocalTrafo();
+		glm::vec3 position = trafo[3];
+		nex::gui::Vector3D(&position, "Position");
+
+		trafo[3].x = position.x;
+		trafo[3].y = position.y;
+		trafo[3].z = position.z;
+
+		node->setLocalTrafo(trafo);
+		node->updateWorldTrafoHierarchy();
+		mPicker->updateBoundingBoxTrafo();
+
+		ImGui::PopID();
 	}
 }

@@ -16,7 +16,8 @@ mLineMesh(std::make_unique<StaticMeshContainer>()),
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mNodeGeneratorScene(std::make_unique<Scene>()),
-mBoundingBoxNode(nullptr), mLineNode(nullptr)
+mBoundingBoxNode(nullptr), mLineNode(nullptr),
+mSelectedNode(nullptr)
 {
 	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
@@ -40,12 +41,9 @@ nex::gui::Picker::~Picker() = default;
 
 nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 {
-	SceneNode* selectedNode = nullptr;
-
 	std::queue<SceneNode*> queue;
 
 	size_t intersections = 0;
-	static bool addedBoundingBox = false;
 	static bool addedLine = false;
 
 	for (const auto& root : scene.getRoots())
@@ -79,18 +77,10 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 				{
 					++intersections;
-					if (!addedBoundingBox)
 					{
-						addedBoundingBox = true;
-						selectedNode = node;
-						auto boxOrigin = (box.max + box.min) / 2.0f;
-						glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
-						auto boxScale = (box.max - box.min) / 2.0f;
-						boxTrafo = glm::scale(boxTrafo, boxScale);
-
-						mBoundingBoxNode->setLocalTrafo(boxTrafo);
-						mBoundingBoxNode->updateWorldTrafoHierarchy();
-						mBoundingBoxNode->updateWorldTrafoHierarchy();
+						mSelectedNode = node;
+						updateBoundingBoxTrafo();
+						scene.removeRoot(mBoundingBoxNode);
 						scene.addRoot(mBoundingBoxNode);
 					}
 
@@ -121,11 +111,34 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		scene.removeRoot(mBoundingBoxNode);
 		scene.removeRoot(mLineNode);
-		addedBoundingBox = false;
 		addedLine = false;
+		mSelectedNode = nullptr;
 	}
 
-	return selectedNode;
+	return mSelectedNode;
+}
+
+nex::SceneNode* nex::gui::Picker::getPicked()
+{
+	return mSelectedNode;
+}
+
+void nex::gui::Picker::updateBoundingBoxTrafo()
+{
+	if (!mSelectedNode) return;
+
+	const auto& box = mSelectedNode->getMesh()->getAABB();
+
+
+	const auto worldBox = mSelectedNode->getWorldTrafo() * box;
+	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
+	glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
+	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
+	boxTrafo = glm::scale(boxTrafo, boxScale);
+
+	mBoundingBoxNode->setLocalTrafo(boxTrafo);
+	mBoundingBoxNode->updateWorldTrafoHierarchy();
+	mBoundingBoxNode->updateWorldTrafoHierarchy();
 }
 
 std::unique_ptr<nex::Mesh> nex::gui::Picker::createBoundingBoxMesh()
