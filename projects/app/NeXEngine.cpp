@@ -299,11 +299,7 @@ void NeXEngine::createScene()
 	glm::mat4 trafo = translateMatrix * rotation * scale;
 	//cerberus->setLocalTrafo(trafo);
 
-
-	// Note: Do it twice so that previous world trafo is the same than the current one
-	// TODO Find better solution
-	mScene.updateWorldTrafoHierarchy();
-	mScene.updateWorldTrafoHierarchy();
+	mScene.updateWorldTrafoHierarchy(true);
 
 	/*m_nodes.emplace_back(SceneNode());
 	SceneNode* cerberus = &m_nodes.back();

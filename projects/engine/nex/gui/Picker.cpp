@@ -86,13 +86,10 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 
 					{
 						auto lineOrigin = screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f;
-						glm::mat4 lineTrafo = glm::translate(glm::mat4(1.0f), lineOrigin);
 						auto lineScale = 100.0f * screenRayWorld.getDir();
-						lineTrafo = glm::scale(lineTrafo, lineScale);
-
-						mLineNode->setLocalTrafo(lineTrafo);
-						mLineNode->updateWorldTrafoHierarchy();
-						mLineNode->updateWorldTrafoHierarchy();
+						mLineNode->setPosition(lineOrigin);
+						mLineNode->setScale(lineScale);
+						mLineNode->updateWorldTrafoHierarchy(true);
 					}
 
 
@@ -132,12 +129,10 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 
 	const auto worldBox = mSelectedNode->getWorldTrafo() * box;
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
-	glm::mat4 boxTrafo = glm::translate(glm::mat4(1.0f), boxOrigin);
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
-	boxTrafo = glm::scale(boxTrafo, boxScale);
 
-	mBoundingBoxNode->setLocalTrafo(boxTrafo);
-	mBoundingBoxNode->updateWorldTrafoHierarchy();
+	mBoundingBoxNode->setPosition(boxOrigin);
+	mBoundingBoxNode->setScale(boxScale);
 	mBoundingBoxNode->updateWorldTrafoHierarchy();
 }
 

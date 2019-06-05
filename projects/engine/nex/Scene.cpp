@@ -1,11 +1,12 @@
 #include <nex/Scene.hpp>
 #include <queue>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace nex
 {
 	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
-		mParent(nullptr)
+		mParent(nullptr), mPosition(0.0f), mRotation(1.0f, 0.0f, 0.0f, 0.0f), mScale(1.0f)
 	{
 	}
 
@@ -42,9 +43,19 @@ namespace nex
 		return mParent;
 	}
 
-	const glm::mat4& SceneNode::getLocalTrafo() const
+	const glm::vec3& SceneNode::getPosition() const
 	{
-		return mLocalTrafo;
+		return mPosition;
+	}
+
+	const glm::quat& SceneNode::getRotation() const
+	{
+		return mRotation;
+	}
+
+	const glm::vec3& SceneNode::getScale() const
+	{
+		return mScale;
 	}
 
 	const glm::mat4& SceneNode::getWorldTrafo() const
@@ -82,27 +93,16 @@ namespace nex
 		mParent = parent;
 	}
 
-	void SceneNode::setLocalTrafo(const glm::mat4& trafo)
-	{
-		mLocalTrafo = trafo;
-	}
-
-	void SceneNode::setWorldTrafo(const glm::mat4& trafo)
-	{
-		mPrevWorldTrafo = mWorldTrafo;
-		mWorldTrafo = trafo;
-	}
-
-	void SceneNode::updateChildrenWorldTrafos()
+	void SceneNode::updateChildrenWorldTrafos(bool resetPrevWorldTrafo)
 	{
 		//assume that the world trafo of the current node is up to date (needs no update from the parent)
 		auto* backup = mParent;
 		mParent = nullptr;
-		updateWorldTrafoHierarchy();
+		updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 		mParent = backup;
 	}
 
-	void SceneNode::updateWorldTrafoHierarchy()
+	void SceneNode::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
 	{
 		std::queue<SceneNode*> queue;
 		queue.push(this);
@@ -112,7 +112,7 @@ namespace nex
 			auto* node = queue.front();
 			queue.pop();
 
-			node->updateWorldTrafo();
+			node->updateWorldTrafo(resetPrevWorldTrafo);
 
 			auto children = node->getChildren();
 
@@ -121,21 +121,39 @@ namespace nex
 		}
 	}
 
-	void SceneNode::setPositionLocal(glm::vec3 position)
+	void SceneNode::setPosition(const glm::vec3& position)
 	{
-		mLocalTrafo[3] = glm::vec4(position, 1.0f);
+		mPosition = position;
 	}
 
-	void SceneNode::updateWorldTrafo()
+	void SceneNode::setRotation(const glm::quat& rotation)
 	{
+		mRotation = rotation;
+	}
+
+	void SceneNode::setScale(const glm::vec3 scale)
+	{
+		mScale = scale;
+	}
+
+	void SceneNode::updateWorldTrafo(bool resetPrevWorldTrafo)
+	{
+
+		mPrevWorldTrafo = mWorldTrafo;
+		mWorldTrafo = glm::mat4(1.0f);
+
+		auto scale = glm::scale(glm::mat4(), mScale);
+		auto trans = glm::translate(glm::mat4(), mPosition);
+
+		mWorldTrafo = trans * glm::toMat4(mRotation) * scale;
+
 		if (mParent)
 		{
-			setWorldTrafo(mParent->mWorldTrafo * mLocalTrafo);
+			mWorldTrafo = mParent->mWorldTrafo * mWorldTrafo;
 		}
-		else
-		{
-			setWorldTrafo(mLocalTrafo);
-		}
+
+		if (resetPrevWorldTrafo)
+			mPrevWorldTrafo = mWorldTrafo;
 	}
 
 	Scene::Scene()
@@ -170,10 +188,10 @@ namespace nex
 		mNodes.clear();
 	}
 
-	void Scene::updateWorldTrafoHierarchy()
+	void Scene::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
 	{
 		for (auto& root : mRoots)
-			root->updateWorldTrafoHierarchy();
+			root->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
 	}
 
 	const std::vector<SceneNode*> Scene::getRoots() const

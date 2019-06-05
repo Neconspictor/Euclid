@@ -131,43 +131,45 @@ namespace nex::gui
 
 		auto* node = mPicker->getPicked();
 
-		auto trafo = node->getLocalTrafo();
-		glm::vec3 position = trafo[3];
+		glm::vec3 position = node->getPosition();
 		nex::gui::Vector3D(&position, "Position");
+		node->setPosition(position);
 
 		glm::vec3 euler(0.0f);//glm::degrees(rotationMatrixToEulerAngles(trafo));
+		glm::quat rotation = node->getRotation();
 
 		glm::vec3 eulerCopy = euler;
 		nex::gui::Vector3D(&eulerCopy, "Rotation (Euler (X-Y-Z))");
 
+		glm::vec3 scale = node->getScale();
+		nex::gui::Vector3D(&scale, "Scale");
+		scale = maxVec(scale, glm::vec3(0.0f));
 
-		glm::mat4 rotation = glm::mat3(trafo);
-		rotation[3].w = 1.0f;
 
+		node->setScale(scale);
+
+
+		//rotations
 		if (eulerCopy.x != euler.x)
 		{
-			rotation = glm::rotate(rotation, glm::radians(eulerCopy.x - euler.x), glm::vec3(1, 0, 0));
+			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.x - euler.x), glm::vec3(1, 0, 0));
+			rotation = rotation * glm::toQuat(rot);
 		}
 
 		if (eulerCopy.y != euler.y)
 		{
-			rotation = glm::rotate(rotation, glm::radians(eulerCopy.y - euler.y), glm::vec3(0, -1, 0));
+			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.y - euler.y), glm::vec3(0, -1, 0));
+			rotation = rotation * glm::toQuat(rot);
 		}
 
 		if (eulerCopy.z != euler.z)
 		{
-			rotation = glm::rotate(rotation, glm::radians(eulerCopy.z - euler.z), glm::vec3(0, 0, 1));
+			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.z - euler.z), glm::vec3(0, 0, 1));
+			rotation = rotation * glm::toQuat(rot);
 		}
-			
 
+		node->setRotation(rotation);
 
-
-		rotation[3].x = position.x;
-		rotation[3].y = position.y;
-		rotation[3].z = position.z;
-		rotation[3].w = 1.0f;
-
-		node->setLocalTrafo(rotation);
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
 

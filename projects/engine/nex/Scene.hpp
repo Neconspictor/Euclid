@@ -5,6 +5,11 @@
 #include <vector>
 #include <memory>
 
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+#include <glm/gtx/quaternion.hpp>
+
 namespace nex
 {
 	class Mesh;
@@ -33,32 +38,36 @@ namespace nex
 		Material* getMaterial() const;
 		SceneNode* getParent();
 
-		const glm::mat4& getLocalTrafo() const;
+		const glm::vec3& getPosition() const;
+		const glm::quat& getRotation() const;
+		const glm::vec3& getScale() const;
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
 		void removeChild(SceneNode* node);
 		void setMesh(Mesh* mesh);
 		void setMaterial(Material* material);
 		void setParent(SceneNode* parent);
-		void setLocalTrafo(const glm::mat4& trafo);
-		void setWorldTrafo(const glm::mat4& trafo);
 
 
-		void updateChildrenWorldTrafos();
-		void updateWorldTrafoHierarchy();
-		void setPositionLocal(glm::vec3 position);
+		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
+		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
+		void setPosition(const glm::vec3 &position);
+		void setRotation(const glm::quat& rotation);
+		void setScale(const glm::vec3 scale);
 
 	private:
 
-		void updateWorldTrafo();
+		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
 		std::set<SceneNode*> mChildren;
 		Mesh* mMesh;
 		Material* mMaterial;
 		SceneNode* mParent;
-		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;
 		glm::mat4 mPrevWorldTrafo;
+		glm::vec3 mPosition;
+		glm::quat mRotation;
+		glm::vec3 mScale;
 	};
 
 	/**
@@ -96,7 +105,7 @@ namespace nex
 		 * Deletes all nodes except the root node.
 		 */
 		void clear();
-		void updateWorldTrafoHierarchy();
+		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo);
 
 	private:
 		std::vector<SceneNode*> mRoots;
