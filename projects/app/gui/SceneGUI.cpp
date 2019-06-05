@@ -3,6 +3,7 @@
 #include <gui/Controller.hpp>
 #include "nex/gui/Util.hpp"
 #include "nex/gui/Picker.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace nex::gui
 {
@@ -62,6 +63,61 @@ namespace nex::gui
 		mPicker = picker;
 	}
 
+
+
+	// Calculates rotation matrix given euler angles.
+	glm::mat3 eulerAnglesToRotationMatrix(const glm::vec3& theta)
+	{
+		// Calculate rotation about x axis
+		glm::mat3 R_x = {
+			1, 0, 0,
+			0, cos(theta[0]), -sin(theta[0]),
+			0, sin(theta[0]), cos(theta[0])
+		};
+
+		// Calculate rotation about y axis
+		glm::mat3 R_y = {
+			cos(theta[1]), 0, sin(theta[1]),
+			0, 1, 0,
+			-sin(theta[1]), 0, cos(theta[1])
+		};
+
+		// Calculate rotation about z axis
+		glm::mat3 R_z = {
+			cos(theta[2]), -sin(theta[2]), 0,
+			sin(theta[2]), cos(theta[2]), 0,
+			0, 0, 1 };
+
+
+		// Combined rotation matrix
+		return transpose(R_z) * transpose(R_y) * transpose(R_x);
+	}
+
+	// Calculates rotation matrix to euler angles
+// The result is the same as MATLAB except the order
+// of the euler angles ( x and z are swapped ).
+	glm::vec3 rotationMatrixToEulerAngles(const glm::mat4 &R)
+	{
+		float sy = sqrt(R[0][0] * R[0][0] + R[0][1] * R[0][1]);
+
+		bool singular = sy < 1e-6; // If
+
+		float x, y, z;
+		if (!singular)
+		{
+			x = atan2(R[1][2], R[2][2]);
+			y = atan2(-R[0][2], sy);
+			z = atan2(R[0][1], R[0][0]);
+		}
+		else
+		{
+			x = atan2(-R[2][1], R[1][1]);
+			y = atan2(-R[0][2], sy);
+			z = 0;
+		}
+		return { x, y, z };
+	}
+
 	void SceneNodeProperty::drawSelf()
 	{
 		ImGui::PushID(m_id.c_str());
@@ -79,11 +135,39 @@ namespace nex::gui
 		glm::vec3 position = trafo[3];
 		nex::gui::Vector3D(&position, "Position");
 
-		trafo[3].x = position.x;
-		trafo[3].y = position.y;
-		trafo[3].z = position.z;
+		glm::vec3 euler(0.0f);//glm::degrees(rotationMatrixToEulerAngles(trafo));
 
-		node->setLocalTrafo(trafo);
+		glm::vec3 eulerCopy = euler;
+		nex::gui::Vector3D(&eulerCopy, "Rotation (Euler (X-Y-Z))");
+
+
+		glm::mat4 rotation = glm::mat3(trafo);
+		rotation[3].w = 1.0f;
+
+		if (eulerCopy.x != euler.x)
+		{
+			rotation = glm::rotate(rotation, glm::radians(eulerCopy.x - euler.x), glm::vec3(1, 0, 0));
+		}
+
+		if (eulerCopy.y != euler.y)
+		{
+			rotation = glm::rotate(rotation, glm::radians(eulerCopy.y - euler.y), glm::vec3(0, -1, 0));
+		}
+
+		if (eulerCopy.z != euler.z)
+		{
+			rotation = glm::rotate(rotation, glm::radians(eulerCopy.z - euler.z), glm::vec3(0, 0, 1));
+		}
+			
+
+
+
+		rotation[3].x = position.x;
+		rotation[3].y = position.y;
+		rotation[3].z = position.z;
+		rotation[3].w = 1.0f;
+
+		node->setLocalTrafo(rotation);
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
 
