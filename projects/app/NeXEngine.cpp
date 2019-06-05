@@ -182,19 +182,24 @@ void NeXEngine::run()
 
 		if (isRunning())
 		{
-			if (mInput->isPressed(Input::KEY_L))
-			{
-				const auto& mouseData = mInput->getFrameMouseOffset();
-				std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
-			}
-
-			if (mInput->isPressed(Input::Button::LeftMouseButton))
-			{
-				pickingTest(mScene);
-			}
-
 			mGui->newFrame(frameTime);
-			mControllerSM->frameUpdate(frameTime);
+
+			if (!mGui->isActive() || mControllerSM->getCurrentController()->isNotInterruptibleActionActive())
+			{
+				mControllerSM->frameUpdate(frameTime);
+
+				if (mInput->isPressed(Input::Button::LeftMouseButton))
+				{
+					pickingTest(mScene);
+				}
+
+				if (mInput->isPressed(Input::KEY_L))
+				{
+					const auto& mouseData = mInput->getFrameMouseOffset();
+					std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
+				}
+			}
+
 			mCamera->update();
 
 			commandQueue->clear();

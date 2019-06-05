@@ -43,6 +43,8 @@ namespace nex::gui
 		virtual ~EditMode() = default;
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
 
+		bool isNotInterruptibleActionActive()const override;
+
 	private:
 		Camera * m_camera;
 	};
@@ -57,6 +59,8 @@ namespace nex::gui
 			std::unique_ptr<nex::gui::Drawable> drawable);
 		virtual ~CameraMode() = default;
 		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
+
+		bool isNotInterruptibleActionActive()const override;
 
 	private:
 		void updateCamera(Input* input, float deltaTime);

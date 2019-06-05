@@ -22,6 +22,11 @@ namespace nex::gui
 		virtual void frameUpdate(nex::gui::ControllerStateMachine& stateMachine, float frameTime) = 0;
 		virtual void init() = 0;
 
+		/**
+		 * Checks if a not interruptible  action is active
+		 */
+		virtual bool isNotInterruptibleActionActive()const = 0;
+
 		DrawablePtr getDrawable()const
 		{
 			return m_drawable.get();

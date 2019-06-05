@@ -62,6 +62,7 @@ set(
 	nex/gui/imgui_tabs.h
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
+    nex/gui/ImGUI.cpp
 	nex/gui/ImGUI.hpp
     
 	#nex/light

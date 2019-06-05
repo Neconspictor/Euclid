@@ -22,6 +22,8 @@ namespace nex::gui
 
 		virtual void newFrame(float frameTime) = 0;
 
+		static bool isActive();
+
 		virtual void renderDrawData(ImDrawData* draw_data) = 0;
 	};
 }

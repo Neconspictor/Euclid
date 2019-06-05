@@ -153,6 +153,12 @@ void nex::gui::EditMode::frameUpdate(ControllerStateMachine & stateMachine, floa
 	}
 }
 
+bool nex::gui::EditMode::isNotInterruptibleActionActive() const
+{
+	// There is no non interruptible action
+	return false;
+}
+
 nex::gui::CameraMode::CameraMode(nex::Window* window,
 	nex::Input* input,
 	PBR_Deferred_Renderer* mainTask, 
@@ -179,6 +185,12 @@ void nex::gui::CameraMode::frameUpdate(ControllerStateMachine & stateMachine, fl
 	if (m_input->isPressed(Input::KEY_C)) {
 		stateMachine.setCurrentController(std::make_unique<EditMode>(m_window, m_input, m_mainTask, m_camera, guiRenderer, move(m_drawable)));
 	}
+}
+
+bool nex::gui::CameraMode::isNotInterruptibleActionActive() const
+{
+	// During this mode we don't want to get interrupted!
+	return true;
 }
 
 void nex::gui::CameraMode::updateCamera(Input * input, float deltaTime)
