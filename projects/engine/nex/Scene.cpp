@@ -2,11 +2,13 @@
 #include <queue>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <nex/math/Math.hpp>
+#include <nex/mesh/Mesh.hpp>
 
 namespace nex
 {
 	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
-		mParent(nullptr), mPosition(0.0f), mRotation(1.0f, 0.0f, 0.0f, 0.0f), mScale(1.0f)
+		mParent(nullptr), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f)
 	{
 	}
 
@@ -126,9 +128,31 @@ namespace nex
 		mPosition = position;
 	}
 
-	void SceneNode::setRotation(const glm::quat& rotation)
+	void SceneNode::setRotation(const glm::mat4& rotation)
 	{
 		mRotation = rotation;
+	}
+
+	void SceneNode::setOrientation(const glm::vec3& eulerAngles)
+	{
+		auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
+		auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
+		auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+		mRotation = rotZ * rotY * rotX;
+	}
+
+	void SceneNode::rotateLocal(const glm::vec3& eulerAngles)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, glm::vec3(0, 1, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+	}
+
+	void SceneNode::rotateGlobal(const glm::vec3& eulerAngles)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, inverse(mRotation) * glm::vec3(1, 0, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, inverse(mRotation) * glm::vec3(0, 1, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, inverse(mRotation) * glm::vec3(0, 0, 1.0f)));
 	}
 
 	void SceneNode::setScale(const glm::vec3 scale)
@@ -143,6 +167,7 @@ namespace nex
 		mWorldTrafo = glm::mat4(1.0f);
 
 		auto scale = glm::scale(glm::mat4(), mScale);
+
 		auto trans = glm::translate(glm::mat4(), mPosition);
 
 		mWorldTrafo = trans * glm::toMat4(mRotation) * scale;

@@ -566,7 +566,7 @@ void NeXEngine::setupCamera()
 	int windowWidth = mWindow->getFrameBufferWidth();
 	int windowHeight = mWindow->getFrameBufferHeight();
 
-	mCamera->setPosition(glm::vec3(0.0f, 3.0f, 2.0f), true);
+	mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
 	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 	mCamera->setDimension(windowWidth, windowHeight);

@@ -129,16 +129,66 @@ namespace nex::gui
 		}
 	}
 
-	void Vector3D(glm::vec3* vec, const char* label)
+	void Vector3D(glm::vec3* vec, const char* label, float speed)
 	{
 		std::stringstream ss;
 		ss << label << ":";
-		ImGui::LabelText("", ss.str().c_str());
+		ImGui::TextUnformatted(ss.str().c_str());
 
 		ImGui::PushID(label);
-		ImGui::DragFloat("###X", &vec->x);
-		ImGui::DragFloat("###Y", &vec->y);
-		ImGui::DragFloat("###Z", &vec->z);
+		ImGui::TextUnformatted("X: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###X", &vec->x, speed);
+		ImGui::TextUnformatted("Y: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Y", &vec->y, speed);
+		ImGui::TextUnformatted("Z: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Z", &vec->z, speed);
+		ImGui::PopID();
+	}
+
+	void EulerRot(glm::vec3* vec, const char* label, float speed)
+	{
+		std::stringstream ss;
+		ss << label << ":";
+		ImGui::TextUnformatted(ss.str().c_str());
+
+		ImGui::PushID(label);
+		ImGui::TextUnformatted("X: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###X", &vec->x, speed);
+
+		ImGui::TextUnformatted("Y: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Y", &vec->y, speed);
+		
+		
+		ImGui::TextUnformatted("Z: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Z", &vec->z, speed);
+		ImGui::PopID();
+	}
+
+	void Quat(glm::quat* quat, const char* label)
+	{
+		std::stringstream ss;
+		ss << label << ":";
+		ImGui::TextUnformatted(ss.str().c_str());
+
+		ImGui::PushID(label);
+		ImGui::TextUnformatted("X: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###X", &quat->x, 0.1f);
+		ImGui::TextUnformatted("Y: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Y", &quat->y, 0.1f);
+		ImGui::TextUnformatted("Z: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###Z", &quat->z, 0.1f);
+		ImGui::TextUnformatted("W: ");
+		ImGui::SameLine();
+		ImGui::DragFloat("###W", &quat->w, 0.1f);
 		ImGui::PopID();
 	}
 }

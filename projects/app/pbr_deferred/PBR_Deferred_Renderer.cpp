@@ -12,7 +12,10 @@
 #include "nex/shadow/CascadedShadow.hpp"
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
-#define GLM_ENABLE_EXPERIMENTAL 1
+
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
 #include <glm/gtx/string_cast.hpp>
 
 #include  <nex/post_processing/AmbientOcclusion.hpp>

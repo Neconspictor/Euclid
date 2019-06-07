@@ -52,7 +52,10 @@ namespace nex
 		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
 		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 		void setPosition(const glm::vec3 &position);
-		void setRotation(const glm::quat& rotation);
+		void setRotation(const glm::mat4& rotation);
+		void setOrientation(const glm::vec3& eulerAngles);
+		void rotateLocal(const glm::vec3& eulerAngles);
+		void rotateGlobal(const glm::vec3& eulerAngles);
 		void setScale(const glm::vec3 scale);
 
 	private:
@@ -61,6 +64,7 @@ namespace nex
 
 		std::set<SceneNode*> mChildren;
 		Mesh* mMesh;
+
 		Material* mMaterial;
 		SceneNode* mParent;
 		glm::mat4 mWorldTrafo;

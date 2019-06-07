@@ -135,40 +135,39 @@ namespace nex::gui
 		nex::gui::Vector3D(&position, "Position");
 		node->setPosition(position);
 
-		glm::vec3 euler(0.0f);//glm::degrees(rotationMatrixToEulerAngles(trafo));
+		//glm::degrees(rotationMatrixToEulerAngles(trafo));
 		glm::quat rotation = node->getRotation();
+		nex::gui::Quat(&rotation, "Orientation (Quaternion) - Radians");
+		rotation = normalize(rotation);
+		glm::vec3 euler = glm::degrees(glm::eulerAngles(rotation));
 
-		glm::vec3 eulerCopy = euler;
-		nex::gui::Vector3D(&eulerCopy, "Rotation (Euler (X-Y-Z))");
+		if (euler.x == -180.0f) euler.x = 180.0f;
+		if (euler.z == -180.0f) euler.z = 180.0f;
+		
+		nex::gui::Vector3D(&euler, "Orientation (Euler X-Y-Z) - Degrees");
+
+		//eulerCopy.x = fmod((eulerCopy.x + 180.0f),360.0f) - 180.0f;
+		//eulerCopy.z = fmod((eulerCopy.z + 180.0f), 360.0f) - 180.0f;
+		//eulerCopy.y = fmod((eulerCopy.y + 90.0f), 180.0f) - 90.0f;
+
+		euler.y = std::clamp(euler.y, -89.0f, 89.0f);
+
+		node->setOrientation(radians(euler));
+
+
+		euler = glm::vec3(0.0f);
+		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Local - Degrees");
+		node->rotateLocal(radians(euler));
+
+		euler = glm::vec3(0.0f);
+		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Global - Degrees");
+		node->rotateGlobal(radians(euler));
+
 
 		glm::vec3 scale = node->getScale();
-		nex::gui::Vector3D(&scale, "Scale");
+		nex::gui::Vector3D(&scale, "Scale", 0.1f);
 		scale = maxVec(scale, glm::vec3(0.0f));
-
-
 		node->setScale(scale);
-
-
-		//rotations
-		if (eulerCopy.x != euler.x)
-		{
-			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.x - euler.x), glm::vec3(1, 0, 0));
-			rotation = rotation * glm::toQuat(rot);
-		}
-
-		if (eulerCopy.y != euler.y)
-		{
-			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.y - euler.y), glm::vec3(0, -1, 0));
-			rotation = rotation * glm::toQuat(rot);
-		}
-
-		if (eulerCopy.z != euler.z)
-		{
-			auto rot = glm::rotate(glm::mat4(), glm::radians(eulerCopy.z - euler.z), glm::vec3(0, 0, 1));
-			rotation = rotation * glm::toQuat(rot);
-		}
-
-		node->setRotation(rotation);
 
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
