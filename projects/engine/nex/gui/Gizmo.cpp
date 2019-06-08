@@ -7,6 +7,7 @@
 #include <nex/mesh/MeshFactory.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
+#include <nex/math/Math.hpp>
 
 nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr)
 {
@@ -31,7 +32,7 @@ nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTran
 
 nex::gui::Gizmo::~Gizmo() = default;
 
-nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld)
+nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld, const float cameraViewFieldRange)
 {
 
 	const auto& position = mTranslationGizmoNode->getPosition();
@@ -39,35 +40,31 @@ nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld)
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, 1.0f });
 
-	struct Data
-	{
-		Ray::RayRayDistance result;
-		Axis axis;
-	};
-
 	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), Axis::X };
 	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), Axis::Y };
 	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), Axis::Z };
 
 	const auto* nearest = &xTest;
 
-	if (nearest->result.distance > yTest.result.distance)
+	const auto& yResult = yTest.result;
+	const auto& zResult = zTest.result;
+
+	if (compare(*nearest, yTest) > 0) {
 		nearest = &yTest;
+	}
 
-	if (nearest->result.distance > zTest.result.distance)
+	if (compare(*nearest, zTest) > 0) {
 		nearest = &zTest;
+	}
 
-
-	const float zNear = 0.1f;
-	const float zFar = 150.0f;
-
-	const float range = zFar - zNear;
 	const float distanceToCamera = length(position - screenRayWorld.getOrigin());
-	const float a = distanceToCamera / range;
+	float a = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
 
 	std::cout << "a = " << a << std::endl;
 
-	bool selected = nearest->result.distance <= a;
+	const auto& scale = mTranslationGizmoNode->getScale();
+	bool selected = (nearest->result.distance <= a)  
+					&& 	isInRange(nearest->result.multipler, 0.0f, scale[(unsigned)nearest->axis]);
 
 	
 	std::cout << "nearest->result.multipler = " << nearest->result.multipler 
@@ -80,6 +77,25 @@ nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld)
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
 {
 	return mTranslationGizmoNode;
+}
+
+int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
+{
+	const auto& scale = mTranslationGizmoNode->getScale();
+
+	const auto scaleFirst = scale[(unsigned)first.axis];
+	const auto scaleSecond = scale[(unsigned)second.axis];
+
+	if (!isInRange(first.result.multipler, 0.0f, scaleFirst))
+		return 1;
+	if (!isInRange(second.result.multipler, 0.0f, scaleSecond))
+		return -1;
+
+	if (first.result.distance < second.result.distance)
+		return -1;
+	else if (first.result.distance == second.result.distance)
+		return 0;
+	return 1;
 }
 
 std::unique_ptr<nex::Mesh> nex::gui::Gizmo::createTranslationMesh()

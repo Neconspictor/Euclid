@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include "nex/math/Ray.hpp"
 
 
 namespace nex
@@ -21,9 +22,9 @@ namespace nex::gui
 
 		enum class Axis
 		{
-			X,
-			Y,
-			Z
+			X = 0,
+			Y = 1,
+			Z = 2
 		};
 
 		struct Active
@@ -39,12 +40,21 @@ namespace nex::gui
 		 * Traverses a scene and picks a scene node by a screen ray.
 		 * If the ray intersects no node nullptr will be returned.
 		 */
-		Active isActive(const Ray& screenRayWorld);
+		Active isActive(const Ray& screenRayWorld, float cameraViewFieldRange);
 
 		SceneNode* getGizmoNode();
 
 	private:
+
+		struct Data
+		{
+			Ray::RayRayDistance result;
+			Axis axis;
+		};
+
+		int compare(const Data& first, const Data& second) const;
 		static std::unique_ptr<Mesh> createTranslationMesh();
+
 
 		std::unique_ptr<StaticMeshContainer> mTranslationMesh;
 		std::unique_ptr<TransformPass> mGizmoPass;

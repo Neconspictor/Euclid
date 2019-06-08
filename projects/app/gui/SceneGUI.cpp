@@ -66,7 +66,7 @@ namespace nex::gui
 		mPicker = picker;
 	}
 
-	void SceneNodeProperty::update(Scene& scene, const Ray& ray)
+	void SceneNodeProperty::update(Scene& scene, const Ray& ray, const Camera& camera)
 	{
 		bool alreadyPicked = mPicker->getPicked() != nullptr;
 		auto picked = mPicker->pick(scene, ray);
@@ -78,7 +78,7 @@ namespace nex::gui
 			scene.removeRoot(mGizmo->getGizmoNode());
 		} else if (alreadyPicked)
 		{
-			auto active = mGizmo->isActive(ray);
+			auto active = mGizmo->isActive(ray, camera.getFarDistance() - camera.getNearDistance());
 			std::cout << "Gizmo active = " << active.isActive << ", Axis = " << (unsigned)active.axis << std::endl;
 		}
 	}

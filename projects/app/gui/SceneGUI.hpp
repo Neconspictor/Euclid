@@ -7,6 +7,7 @@
 
 namespace nex
 {
+	class Camera;
 	class Ray;
 	class Scene;
 	class SceneNode;
@@ -48,7 +49,7 @@ namespace nex::gui
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
 
-		void update(Scene& scene, const Ray& ray);
+		void update(Scene& scene, const Ray& ray, const Camera& camera);
 
 	protected:
 		void drawSelf() override;

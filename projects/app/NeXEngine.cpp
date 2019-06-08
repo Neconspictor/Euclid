@@ -194,7 +194,7 @@ void NeXEngine::run()
 				{
 					const auto& mouseData = mInput->getFrameMouseOffset();
 					const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-					mPickedSceneNodeProperty->update(mScene, mCamera->calcScreenRay(position));
+					mPickedSceneNodeProperty->update(mScene, mCamera->calcScreenRay(position), *mCamera.get());
 				}
 
 				if (mInput->isPressed(Input::KEY_L))
