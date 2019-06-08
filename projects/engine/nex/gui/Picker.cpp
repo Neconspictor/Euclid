@@ -106,7 +106,7 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		}
 	}
 
-	std::cout << "Total intersections = " << intersections << std::endl;
+	//std::cout << "Total intersections = " << intersections << std::endl;
 	if (intersections == 0)
 	{
 		scene.removeRoot(mBoundingBoxNode);

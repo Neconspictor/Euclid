@@ -6,6 +6,7 @@
 #include <nex/Scene.hpp>
 #include <nex/mesh/MeshFactory.hpp>
 #include <nex/mesh/Mesh.hpp>
+#include "nex/math/Ray.hpp"
 
 nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr)
 {
@@ -33,9 +34,47 @@ nex::gui::Gizmo::~Gizmo() = default;
 nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld)
 {
 
+	const auto& position = mTranslationGizmoNode->getPosition();
+	const Ray xAxis(position, {1.0f, 0.0f, 0.0f});
+	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
+	const Ray zAxis(position, { 0.0f, 0.0f, 1.0f });
+
+	struct Data
+	{
+		Ray::RayRayDistance result;
+		Axis axis;
+	};
+
+	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), Axis::X };
+	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), Axis::Y };
+	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), Axis::Z };
+
+	const auto* nearest = &xTest;
+
+	if (nearest->result.distance > yTest.result.distance)
+		nearest = &yTest;
+
+	if (nearest->result.distance > zTest.result.distance)
+		nearest = &zTest;
 
 
-	return {false, Axis::X};
+	const float zNear = 0.1f;
+	const float zFar = 150.0f;
+
+	const float range = zFar - zNear;
+	const float distanceToCamera = length(position - screenRayWorld.getOrigin());
+	const float a = distanceToCamera / range;
+
+	std::cout << "a = " << a << std::endl;
+
+	bool selected = nearest->result.distance <= a;
+
+	
+	std::cout << "nearest->result.multipler = " << nearest->result.multipler 
+	<< ", nearest->result.otherMultiplier = " << nearest->result.otherMultiplier 
+	<< ", parallel = " << nearest->result.parallel << std::endl;
+
+	return { selected, nearest->axis};
 }
 
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()

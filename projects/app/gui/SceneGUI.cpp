@@ -76,6 +76,10 @@ namespace nex::gui
 		} else if (!picked)
 		{
 			scene.removeRoot(mGizmo->getGizmoNode());
+		} else if (alreadyPicked)
+		{
+			auto active = mGizmo->isActive(ray);
+			std::cout << "Gizmo active = " << active.isActive << ", Axis = " << (unsigned)active.axis << std::endl;
 		}
 	}
 
