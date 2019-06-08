@@ -55,6 +55,8 @@ set(
 	nex/gui/ControllerStateMachine.cpp
 	nex/gui/Drawable.cpp
 	nex/gui/Drawable.hpp
+    nex/gui/Gizmo.cpp
+    nex/gui/Gizmo.hpp
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
     nex/gui/Picker.cpp

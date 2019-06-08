@@ -7,12 +7,15 @@
 
 namespace nex
 {
+	class Ray;
+	class Scene;
 	class SceneNode;
 }
 
 namespace nex::gui
 {
 	class Picker;
+	class Gizmo;
 
 	class SceneGUI : public Drawable
 	{
@@ -42,12 +45,15 @@ namespace nex::gui
 	{
 	public:
 		SceneNodeProperty();
-
+		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
+
+		void update(Scene& scene, const Ray& ray);
 
 	protected:
 		void drawSelf() override;
 
 		Picker* mPicker;
+		std::unique_ptr<gui::Gizmo> mGizmo;
 	};
 }

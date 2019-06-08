@@ -32,8 +32,11 @@ mSelectedNode(nullptr)
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
 	mBoundingBoxNode = mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get());
+	mBoundingBoxNode->setSelectable(false);
+	
 	mLineMesh->add(createLineMesh(), std::move(lineMaterial));
 	mLineNode = mLineMesh->createNodeHierarchy(mNodeGeneratorScene.get());
+	mLineNode->setSelectable(false);
 }
 
 nex::gui::Picker::~Picker() = default;
@@ -55,8 +58,8 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 			auto* node = queue.back();
 			queue.pop();
 
-			if (node == mBoundingBoxNode) continue;
-			if (node == mLineNode) continue;
+			//TODO don't skip childrens!
+			if (!node->getSelectable()) continue;
 
 			auto range = node->getChildren();
 

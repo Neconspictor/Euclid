@@ -41,12 +41,14 @@ namespace nex
 		const glm::vec3& getPosition() const;
 		const glm::quat& getRotation() const;
 		const glm::vec3& getScale() const;
+		bool getSelectable() const;
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
 		void removeChild(SceneNode* node);
 		void setMesh(Mesh* mesh);
 		void setMaterial(Material* material);
 		void setParent(SceneNode* parent);
+		void setSelectable(bool selectable);
 
 
 		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
@@ -72,6 +74,7 @@ namespace nex
 		glm::vec3 mPosition;
 		glm::quat mRotation;
 		glm::vec3 mScale;
+		bool mSelectable;
 	};
 
 	/**

@@ -34,7 +34,8 @@
 #include "nex/math/Ray.hpp"
 #include "nex/mesh/MeshFactory.hpp"
 #include "nex/shader/SimpleColorPass.hpp"
-#include "nex/gui/Picker.hpp"
+#include <nex/gui/Picker.hpp>
+#include <nex/gui/Gizmo.hpp>
 
 using namespace nex;
 
@@ -140,8 +141,6 @@ void NeXEngine::init()
 
 	createScene();
 
-	mPicker = std::make_unique<gui::Picker>();
-
 	mInput->addWindowCloseCallback([](Window* window)
 	{
 		void* nativeWindow = window->getNativeWindow();
@@ -195,8 +194,7 @@ void NeXEngine::run()
 				{
 					const auto& mouseData = mInput->getFrameMouseOffset();
 					const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-					mPicker->pick(mScene, mCamera->calcScreenRay(position));
-					mPickedSceneNodeProperty->setPicker(mPicker.get());
+					mPickedSceneNodeProperty->update(mScene, mCamera->calcScreenRay(position));
 				}
 
 				if (mInput->isPressed(Input::KEY_L))
@@ -551,8 +549,12 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
+
+	mPicker = std::make_unique<gui::Picker>();
 	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>();
 	mPickedSceneNodeProperty = sceneNodeProperty.get();
+	mPickedSceneNodeProperty->setPicker(mPicker.get());
+
 	generalTab->addChild(std::move(sceneNodeProperty));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());

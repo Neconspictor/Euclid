@@ -8,12 +8,26 @@ namespace nex
 	class Ray
 	{
 	public:
+
+		struct RayRayDistance
+		{
+			float multipler;
+			float otherMultiplier;
+			bool parallel;
+			float distance;
+		};
+
 		/**
 		 * Constructs a new ray from a starting point (origin) and a direction.
 		 * Note: length of direction vector must be != 0.
 		 * @throws std::invalid_argument : if length of the direction vector is 0.
 		 */
 		Ray(const glm::vec3& origin, const glm::vec3& dir);
+
+		/**
+		 * Calculates the closest (perpendicular) signed distance to another ray.
+		 */
+		RayRayDistance calcClosestDistance(const Ray& ray) const;
 
 		const glm::vec3& getDir() const;
 

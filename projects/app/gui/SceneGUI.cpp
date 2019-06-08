@@ -4,6 +4,7 @@
 #include "nex/gui/Util.hpp"
 #include "nex/gui/Picker.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/gui/Gizmo.hpp>
 
 namespace nex::gui
 {
@@ -54,15 +55,29 @@ namespace nex::gui
 		m_menuBar.drawGUI();
 	}
 
-	SceneNodeProperty::SceneNodeProperty() :  mPicker(nullptr)
+	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), mGizmo(std::make_unique<gui::Gizmo>())
 	{
 	}
+
+	SceneNodeProperty::~SceneNodeProperty() = default;
 
 	void SceneNodeProperty::setPicker(Picker* picker)
 	{
 		mPicker = picker;
 	}
 
+	void SceneNodeProperty::update(Scene& scene, const Ray& ray)
+	{
+		bool alreadyPicked = mPicker->getPicked() != nullptr;
+		auto picked = mPicker->pick(scene, ray);
+		if (picked && !alreadyPicked)
+		{
+			scene.addRoot(mGizmo->getGizmoNode());
+		} else if (!picked)
+		{
+			scene.removeRoot(mGizmo->getGizmoNode());
+		}
+	}
 
 
 	// Calculates rotation matrix given euler angles.
@@ -172,6 +187,10 @@ namespace nex::gui
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
 
+		mGizmo->getGizmoNode()->setScale(glm::vec3(3.0f));
+		mGizmo->getGizmoNode()->setPosition(position);
+		mGizmo->getGizmoNode()->updateWorldTrafoHierarchy();
+	
 		ImGui::PopID();
 	}
 }

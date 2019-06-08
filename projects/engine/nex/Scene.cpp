@@ -8,7 +8,7 @@
 namespace nex
 {
 	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
-		mParent(nullptr), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f)
+		mParent(nullptr), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true)
 	{
 	}
 
@@ -58,6 +58,16 @@ namespace nex
 	const glm::vec3& SceneNode::getScale() const
 	{
 		return mScale;
+	}
+
+	bool SceneNode::getSelectable() const
+	{
+		return mSelectable;
+	}
+
+	void SceneNode::setSelectable(bool selectable)
+	{
+		mSelectable = selectable;
 	}
 
 	const glm::mat4& SceneNode::getWorldTrafo() const
