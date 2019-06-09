@@ -9,10 +9,31 @@
 #include "nex/math/Ray.hpp"
 #include <nex/math/Math.hpp>
 
+class nex::gui::Gizmo::TranslationGizmoPass : public TransformPass
+{
+public:
+	TranslationGizmoPass() : TransformPass(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
+	{
+		bind();
+		mSelectedAxis = {mShader->getUniformLocation("selectedAxis"), UniformType::UINT};
+
+		// Default state: No axis is selected
+		setSelectedAxis(Axis::INVALID);
+	}
+
+	void setSelectedAxis(Axis axis)
+	{
+		mShader->setUInt(mSelectedAxis.location, (unsigned)axis);
+	}
+
+private:
+	Uniform mSelectedAxis;
+};
+
 nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr)
 {
-	mGizmoPass = std::make_unique<TransformPass>(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"));
-	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
+	mTranslationGizmoPass = std::make_unique<TranslationGizmoPass>();
+	mGizmoTechnique = std::make_unique<Technique>(mTranslationGizmoPass.get());
 	auto material = std::make_unique<Material>(mGizmoTechnique.get());
 
 	auto& state = material->getRenderState();
@@ -72,6 +93,12 @@ nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld, con
 	<< ", parallel = " << nearest->result.parallel << std::endl;
 
 	return { selected, nearest->axis};
+}
+
+void nex::gui::Gizmo::highlightAxis(Axis axis)
+{
+	mTranslationGizmoPass->bind();
+	mTranslationGizmoPass->setSelectedAxis(axis);
 }
 
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()

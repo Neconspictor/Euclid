@@ -80,6 +80,14 @@ namespace nex::gui
 		{
 			auto active = mGizmo->isActive(ray, camera.getFarDistance() - camera.getNearDistance());
 			std::cout << "Gizmo active = " << active.isActive << ", Axis = " << (unsigned)active.axis << std::endl;
+
+			if (active.isActive)
+			{
+				mGizmo->highlightAxis(active.axis);
+			} else
+			{
+				mGizmo->highlightAxis(Gizmo::Axis::INVALID);
+			}
 		}
 	}
 

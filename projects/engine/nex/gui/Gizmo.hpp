@@ -24,7 +24,8 @@ namespace nex::gui
 		{
 			X = 0,
 			Y = 1,
-			Z = 2
+			Z = 2,
+			INVALID = 3,
 		};
 
 		struct Active
@@ -42,6 +43,19 @@ namespace nex::gui
 		 */
 		Active isActive(const Ray& screenRayWorld, float cameraViewFieldRange);
 
+		/**
+		 * Configures internal shaders so that the specified axis will be highlighted 
+		 * on the next render call.
+		 * Note: The current bound shader might change!
+		 * 
+		 * @param axis : The axis that should be highlighted. 
+		 *				 If axis is Axis::INVALID no axis will be highlighted (default state).
+		 */
+		void highlightAxis(Axis axis);
+
+		/**
+		 * Provides a scene node that can be used to render the gizmo.
+		 */
 		SceneNode* getGizmoNode();
 
 	private:
@@ -52,12 +66,14 @@ namespace nex::gui
 			Axis axis;
 		};
 
+		class TranslationGizmoPass;
+
 		int compare(const Data& first, const Data& second) const;
 		static std::unique_ptr<Mesh> createTranslationMesh();
 
 
 		std::unique_ptr<StaticMeshContainer> mTranslationMesh;
-		std::unique_ptr<TransformPass> mGizmoPass;
+		std::unique_ptr<TranslationGizmoPass> mTranslationGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
