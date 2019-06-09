@@ -3,12 +3,13 @@
 #include <nex/gui/Drawable.hpp>
 #include <nex/gui/Menu.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
+#include "nex/math/Ray.hpp"
 
 
 namespace nex
 {
-	class Camera;
-	class Ray;
+	class PerspectiveCamera;
+	class Input;
 	class Scene;
 	class SceneNode;
 }
@@ -49,9 +50,11 @@ namespace nex::gui
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
 
-		void update(Scene& scene, const Ray& ray, const Camera& camera);
+		void update(Scene& scene, const PerspectiveCamera& camera, const Input& input);
 
 	protected:
+		void activate(Scene& scene, const Ray& ray, float viewRange);
+
 		void drawSelf() override;
 
 		Picker* mPicker;

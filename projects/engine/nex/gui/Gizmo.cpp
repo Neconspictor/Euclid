@@ -30,7 +30,8 @@ private:
 	Uniform mSelectedAxis;
 };
 
-nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr)
+nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
+							mActivationState({ false, Axis::INVALID })
 {
 	mTranslationGizmoPass = std::make_unique<TranslationGizmoPass>();
 	mGizmoTechnique = std::make_unique<Technique>(mTranslationGizmoPass.get());
@@ -49,11 +50,14 @@ nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTran
 	mTranslationMesh->add(std::move(createTranslationMesh()), std::move(material));
 	mTranslationGizmoNode = mTranslationMesh->createNodeHierarchy(mNodeGeneratorScene.get());
 	mTranslationGizmoNode->setSelectable(false);
+
+	mTranslationGizmoNode->setScale(glm::vec3(3.0f));
+	mTranslationGizmoNode->updateWorldTrafoHierarchy();
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
 
-nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld, const float cameraViewFieldRange)
+void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraViewFieldRange)
 {
 
 	const auto& position = mTranslationGizmoNode->getPosition();
@@ -61,14 +65,11 @@ nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld, con
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, 1.0f });
 
-	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), Axis::X };
-	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), Axis::Y };
-	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), Axis::Z };
+	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), xAxis.getDir(), Axis::X };
+	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), yAxis.getDir(), Axis::Y };
+	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), zAxis.getDir(), Axis::Z };
 
 	const auto* nearest = &xTest;
-
-	const auto& yResult = yTest.result;
-	const auto& zResult = zTest.result;
 
 	if (compare(*nearest, yTest) > 0) {
 		nearest = &yTest;
@@ -79,20 +80,41 @@ nex::gui::Gizmo::Active nex::gui::Gizmo::isActive(const Ray& screenRayWorld, con
 	}
 
 	const float distanceToCamera = length(position - screenRayWorld.getOrigin());
-	float a = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
+	const float a = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
 
 	std::cout << "a = " << a << std::endl;
 
 	const auto& scale = mTranslationGizmoNode->getScale();
-	bool selected = (nearest->result.distance <= a)  
-					&& 	isInRange(nearest->result.multipler, 0.0f, scale[(unsigned)nearest->axis]);
+	const bool selected = (nearest->result.distance <= a)  
+					&& 	isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
 	
-	std::cout << "nearest->result.multipler = " << nearest->result.multipler 
+	std::cout << "nearest->result.multipler = " << nearest->result.multiplier 
 	<< ", nearest->result.otherMultiplier = " << nearest->result.otherMultiplier 
 	<< ", parallel = " << nearest->result.parallel << std::endl;
 
-	return { selected, nearest->axis};
+
+	mActivationState.isActive = selected;
+
+	if (mActivationState.isActive) {
+		mActivationState.axis = nearest->axis;
+		mActivationState.originalPosition = mTranslationGizmoNode->getPosition() + nearest->result.multiplier * nearest->axisVector;
+	}
+	else {
+		mActivationState.axis = Axis::INVALID;
+		mActivationState.originalPosition = glm::vec3(0.0f);
+	}
+
+
+	std::cout << "Gizmo active = " << mActivationState.isActive << ", Axis = " << (unsigned)mActivationState.axis << std::endl;
+
+	highlightAxis(mActivationState.axis);
+	mLastFrameMultiplier = 0.0f;
+}
+
+const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
+{
+	return mActivationState;
 }
 
 void nex::gui::Gizmo::highlightAxis(Axis axis)
@@ -106,6 +128,39 @@ nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
 	return mTranslationGizmoNode;
 }
 
+void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, const MouseOffset& frameData)
+{
+	if (!mActivationState.isActive) return;
+
+	const auto& position = mActivationState.originalPosition;
+
+	Ray axis(position, { 1.0f, 0.0f, 0.0f });
+
+	if (mActivationState.axis == Axis::Y)
+		axis = { position, { 0.0f, 1.0f, 0.0f } };
+	if (mActivationState.axis == Axis::Z)
+		axis = { position, { 0.0f, 0.0f, 1.0f } };
+
+	const auto test = axis.calcClosestDistance(screenRayWorld);
+
+	if (!test.parallel)
+	{
+		auto frameTranslationDiff = test.multiplier - mLastFrameMultiplier;
+		mLastFrameMultiplier = test.multiplier;
+		node.setPosition(node.getPosition() + frameTranslationDiff * axis.getDir());
+		mTranslationGizmoNode->setPosition(node.getPosition());
+		node.updateWorldTrafoHierarchy(true);
+		mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
+	}
+}
+
+void nex::gui::Gizmo::deactivate()
+{
+	mActivationState = { false, Axis::INVALID };
+	std::cout << "Gizmo active = " << mActivationState.isActive << ", Axis = " << (unsigned)mActivationState.axis << std::endl;
+	highlightAxis(mActivationState.axis);
+}
+
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
 	const auto& scale = mTranslationGizmoNode->getScale();
@@ -113,9 +168,9 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 	const auto scaleFirst = scale[(unsigned)first.axis];
 	const auto scaleSecond = scale[(unsigned)second.axis];
 
-	if (!isInRange(first.result.multipler, 0.0f, scaleFirst))
+	if (!isInRange(first.result.multiplier, 0.0f, scaleFirst))
 		return 1;
-	if (!isInRange(second.result.multipler, 0.0f, scaleSecond))
+	if (!isInRange(second.result.multiplier, 0.0f, scaleSecond))
 		return -1;
 
 	if (first.result.distance < second.result.distance)

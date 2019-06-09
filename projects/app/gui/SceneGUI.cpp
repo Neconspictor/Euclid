@@ -5,6 +5,7 @@
 #include "nex/gui/Picker.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/gui/Gizmo.hpp>
+#include <nex/Input.hpp>
 
 namespace nex::gui
 {
@@ -27,7 +28,7 @@ namespace nex::gui
 
 
 		std::unique_ptr<Menu> optionMenu = std::make_unique<Menu>("Options");
-		
+
 		m_fileMenu = fileMenu.get();
 		m_optionMenu = optionMenu.get();
 
@@ -66,28 +67,45 @@ namespace nex::gui
 		mPicker = picker;
 	}
 
-	void SceneNodeProperty::update(Scene& scene, const Ray& ray, const Camera& camera)
+	void SceneNodeProperty::update(Scene& scene, const PerspectiveCamera& camera, const Input& input)
+	{
+		const auto& mouseData = input.getFrameMouseOffset();
+		const auto button = Input::Button::LeftMouseButton;
+
+		if (input.isPressed(button))
+		{
+			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+			const auto ray = camera.calcScreenRay(position);
+			activate(scene, ray, camera.getFarDistance() - camera.getNearDistance());
+
+		} else if (input.isDown(button))
+		{
+			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+			std::cout << "Gizmo transforms node: multiplier = " << position << std::endl;
+			const auto ray = camera.calcScreenRay(position);
+			mGizmo->transform(ray, *mPicker->getPicked(), mouseData);
+			mPicker->updateBoundingBoxTrafo();
+		} else if (input.isReleased(button))
+		{
+			mGizmo->deactivate();
+		}
+	}
+
+	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const float viewRange)
 	{
 		bool alreadyPicked = mPicker->getPicked() != nullptr;
 		auto picked = mPicker->pick(scene, ray);
 		if (picked && !alreadyPicked)
 		{
 			scene.addRoot(mGizmo->getGizmoNode());
-		} else if (!picked)
+		}
+		else if (!picked)
 		{
 			scene.removeRoot(mGizmo->getGizmoNode());
-		} else if (alreadyPicked)
+		}
+		else if (alreadyPicked)
 		{
-			auto active = mGizmo->isActive(ray, camera.getFarDistance() - camera.getNearDistance());
-			std::cout << "Gizmo active = " << active.isActive << ", Axis = " << (unsigned)active.axis << std::endl;
-
-			if (active.isActive)
-			{
-				mGizmo->highlightAxis(active.axis);
-			} else
-			{
-				mGizmo->highlightAxis(Gizmo::Axis::INVALID);
-			}
+			mGizmo->activate(ray, viewRange);
 		}
 	}
 
@@ -145,7 +163,7 @@ namespace nex::gui
 		return { x, y, z };
 	}
 
-	void SceneNodeProperty::drawSelf()
+	void nex::gui::SceneNodeProperty::drawSelf()
 	{
 		ImGui::PushID(m_id.c_str());
 		nex::gui::Separator(2.0f);
@@ -170,7 +188,7 @@ namespace nex::gui
 
 		if (euler.x == -180.0f) euler.x = 180.0f;
 		if (euler.z == -180.0f) euler.z = 180.0f;
-		
+
 		nex::gui::Vector3D(&euler, "Orientation (Euler X-Y-Z) - Degrees");
 
 		//eulerCopy.x = fmod((eulerCopy.x + 180.0f),360.0f) - 180.0f;
@@ -202,7 +220,7 @@ namespace nex::gui
 		mGizmo->getGizmoNode()->setScale(glm::vec3(3.0f));
 		mGizmo->getGizmoNode()->setPosition(position);
 		mGizmo->getGizmoNode()->updateWorldTrafoHierarchy();
-	
+
 		ImGui::PopID();
 	}
 }

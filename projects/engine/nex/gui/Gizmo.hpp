@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "nex/math/Ray.hpp"
+#include "nex/Input.hpp"
 
 
 namespace nex
@@ -32,16 +33,21 @@ namespace nex::gui
 		{
 			bool isActive;
 			Axis axis;
+			glm::vec3 originalPosition;
 		};
 		
 		Gizmo();
 		virtual ~Gizmo();
 
 		/**
-		 * Traverses a scene and picks a scene node by a screen ray.
-		 * If the ray intersects no node nullptr will be returned.
+		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		Active isActive(const Ray& screenRayWorld, float cameraViewFieldRange);
+		void activate(const Ray& screenRayWorld, float cameraViewFieldRange);
+
+		/**
+		 * Provides the current state of the gizmo.
+		 */
+		const Active& getState()const;
 
 		/**
 		 * Configures internal shaders so that the specified axis will be highlighted 
@@ -58,11 +64,15 @@ namespace nex::gui
 		 */
 		SceneNode* getGizmoNode();
 
+		void transform(const Ray& screenRayWorld, SceneNode& node, const MouseOffset& frameData);
+		void deactivate();
+
 	private:
 
 		struct Data
 		{
 			Ray::RayRayDistance result;
+			glm::vec3 axisVector;
 			Axis axis;
 		};
 
@@ -78,5 +88,8 @@ namespace nex::gui
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
 		SceneNode* mTranslationGizmoNode;
+
+		Active mActivationState;
+		float mLastFrameMultiplier;
 	};
 }

@@ -185,26 +185,13 @@ void NeXEngine::run()
 		if (isRunning())
 		{
 			mGui->newFrame(frameTime);
+			mCamera->update();
 
 			if (!mGui->isActive() || mControllerSM->getCurrentController()->isNotInterruptibleActionActive())
 			{
 				mControllerSM->frameUpdate(frameTime);
-
-				if (mInput->isPressed(Input::Button::LeftMouseButton))
-				{
-					const auto& mouseData = mInput->getFrameMouseOffset();
-					const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-					mPickedSceneNodeProperty->update(mScene, mCamera->calcScreenRay(position), *mCamera.get());
-				}
-
-				if (mInput->isPressed(Input::KEY_L))
-				{
-					const auto& mouseData = mInput->getFrameMouseOffset();
-					std::cout << "mouse position = " << mouseData.xAbsolute << ", " << mouseData.yAbsolute << std::endl;
-				}
+				mPickedSceneNodeProperty->update(mScene, *mCamera, *mInput);
 			}
-
-			mCamera->update();
 
 			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene);
