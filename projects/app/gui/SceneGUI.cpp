@@ -83,7 +83,6 @@ namespace nex::gui
 		} else if (input.isDown(button))
 		{
 			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-			std::cout << "Gizmo transforms node: multiplier = " << position << std::endl;
 			const auto ray = camera.calcScreenRay(position);
 			mGizmo->transform(ray, *mPicker->getPicked(), mouseData);
 			mPicker->updateBoundingBoxTrafo();
@@ -95,8 +94,15 @@ namespace nex::gui
 
 	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const float viewRange)
 	{
-		bool alreadyPicked = mPicker->getPicked() != nullptr;
-		auto picked = mPicker->pick(scene, ray);
+		const bool alreadyPicked = mPicker->getPicked() != nullptr;
+		bool picked = true;
+		const auto isHovering = mGizmo->isHovering(ray, viewRange);
+
+		if (!isHovering)
+		{
+			picked =  mPicker->pick(scene, ray) != nullptr;
+		}
+
 		if (picked && !alreadyPicked)
 		{
 			scene.addRoot(mGizmo->getGizmoNode());
@@ -105,7 +111,7 @@ namespace nex::gui
 		{
 			scene.removeRoot(mGizmo->getGizmoNode());
 		}
-		else if (alreadyPicked)
+		else if (isHovering)
 		{
 			mGizmo->activate(ray, viewRange);
 		}
@@ -219,7 +225,6 @@ namespace nex::gui
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
 
-		mGizmo->getGizmoNode()->setScale(glm::vec3(3.0f));
 		mGizmo->getGizmoNode()->setPosition(position);
 		mGizmo->getGizmoNode()->updateWorldTrafoHierarchy();
 

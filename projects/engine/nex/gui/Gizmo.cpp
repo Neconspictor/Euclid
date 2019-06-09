@@ -70,9 +70,27 @@ void nex::gui::Gizmo::update(const glm::vec3 cameraPosition)
 
 void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraViewFieldRange)
 {
+	isHovering(screenRayWorld, cameraViewFieldRange, &mActivationState);
 
+	highlightAxis(mActivationState.axis);
+	mLastFrameMultiplier = 0.0f;
+}
+
+const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
+{
+	return mActivationState;
+}
+
+void nex::gui::Gizmo::highlightAxis(Axis axis)
+{
+	mTranslationGizmoPass->bind();
+	mTranslationGizmoPass->setSelectedAxis(axis);
+}
+
+bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active) const
+{
 	const auto& position = mTranslationGizmoNode->getPosition();
-	const Ray xAxis(position, {1.0f, 0.0f, 0.0f});
+	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, 1.0f });
 
@@ -91,36 +109,26 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 	}
 
 	const float distanceToCamera = length(position - screenRayWorld.getOrigin());
-	const float a = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
-
-	std::cout << "a = " << a << std::endl;
+	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
 
 	const auto& scale = mTranslationGizmoNode->getScale();
-	mActivationState.isActive = (nearest->result.distance <= a)
-					&& 	isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
+	bool selected = (nearest->result.distance <= range)
+		&& isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
-	if (mActivationState.isActive) {
-		mActivationState.axis = nearest->axis;
-		mActivationState.originalPosition = mTranslationGizmoNode->getPosition() + nearest->result.multiplier * nearest->axisVector;
+	if (active)
+	{
+		active->isActive = selected;
+		if (active->isActive) {
+			active->axis = nearest->axis;
+			active->originalPosition = mTranslationGizmoNode->getPosition() + nearest->result.multiplier * nearest->axisVector;
+		}
+		else {
+			active->axis = Axis::INVALID;
+			active->originalPosition = glm::vec3(0.0f);
+		}
 	}
-	else {
-		mActivationState.axis = Axis::INVALID;
-		mActivationState.originalPosition = glm::vec3(0.0f);
-	}
 
-	highlightAxis(mActivationState.axis);
-	mLastFrameMultiplier = 0.0f;
-}
-
-const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
-{
-	return mActivationState;
-}
-
-void nex::gui::Gizmo::highlightAxis(Axis axis)
-{
-	mTranslationGizmoPass->bind();
-	mTranslationGizmoPass->setSelectedAxis(axis);
+	return selected;
 }
 
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
@@ -157,7 +165,6 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 void nex::gui::Gizmo::deactivate()
 {
 	mActivationState = { false, Axis::INVALID };
-	std::cout << "Gizmo active = " << mActivationState.isActive << ", Axis = " << (unsigned)mActivationState.axis << std::endl;
 	highlightAxis(mActivationState.axis);
 }
 

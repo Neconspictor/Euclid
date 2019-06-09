@@ -61,6 +61,8 @@ namespace nex::gui
 		 */
 		void highlightAxis(Axis axis);
 
+		bool isHovering(const Ray& screenRayWorld, float cameraViewFieldRange, Active* active = nullptr) const;
+
 		/**
 		 * Provides a scene node that can be used to render the gizmo.
 		 */
