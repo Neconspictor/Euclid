@@ -39,6 +39,8 @@ namespace nex::gui
 		Gizmo();
 		virtual ~Gizmo();
 
+		void update(const glm::vec3 cameraPosition);
+
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */

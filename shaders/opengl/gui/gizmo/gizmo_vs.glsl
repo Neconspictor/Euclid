@@ -16,6 +16,10 @@ out vec3 interpolatedVertexColor;
 
 void main()
 { 
-    gl_Position = transforms.transform * vec4(position, 1.0f);
+    const float reciprScaleOnscreen = 0.2; // change value to match resolution.    = (2 * ObjectSizeOnscreenInPixels / ScreenWidthInPixels)
+    float w = (transforms.transform * vec4(0,0,0, 1)).w;
+    w *= reciprScaleOnscreen;
+    gl_Position = transforms.transform * vec4(position, 1.0);
+    
     interpolatedVertexColor = color;
 } 

@@ -52,10 +52,21 @@ nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTran
 	mTranslationGizmoNode->setSelectable(false);
 
 	mTranslationGizmoNode->setScale(glm::vec3(3.0f));
-	mTranslationGizmoNode->updateWorldTrafoHierarchy();
+	mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
+
+void nex::gui::Gizmo::update(const glm::vec3 cameraPosition)
+{
+	const auto distance = length(mTranslationGizmoNode->getPosition() - cameraPosition);
+
+	if (distance > 0.0001)
+	{
+		mTranslationGizmoNode->setScale(glm::vec3(distance / 4.0f));
+		mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
+	}
+}
 
 void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraViewFieldRange)
 {
@@ -85,16 +96,8 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 	std::cout << "a = " << a << std::endl;
 
 	const auto& scale = mTranslationGizmoNode->getScale();
-	const bool selected = (nearest->result.distance <= a)  
+	mActivationState.isActive = (nearest->result.distance <= a)
 					&& 	isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
-
-	
-	std::cout << "nearest->result.multipler = " << nearest->result.multiplier 
-	<< ", nearest->result.otherMultiplier = " << nearest->result.otherMultiplier 
-	<< ", parallel = " << nearest->result.parallel << std::endl;
-
-
-	mActivationState.isActive = selected;
 
 	if (mActivationState.isActive) {
 		mActivationState.axis = nearest->axis;
@@ -104,9 +107,6 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 		mActivationState.axis = Axis::INVALID;
 		mActivationState.originalPosition = glm::vec3(0.0f);
 	}
-
-
-	std::cout << "Gizmo active = " << mActivationState.isActive << ", Axis = " << (unsigned)mActivationState.axis << std::endl;
 
 	highlightAxis(mActivationState.axis);
 	mLastFrameMultiplier = 0.0f;
