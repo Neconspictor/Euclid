@@ -11,7 +11,7 @@ namespace nex
 
 		struct RayRayDistance
 		{
-			float multipler;
+			float multiplier;
 			float otherMultiplier;
 			bool parallel;
 			float distance;
