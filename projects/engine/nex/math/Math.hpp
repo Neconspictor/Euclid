@@ -6,6 +6,12 @@
 
 #include <glm/glm.hpp>
 
+namespace glm
+{
+	std::ostream& operator<<(std::ostream& os, const glm::vec2& vec);
+	std::ostream& operator<<(std::ostream& os, const glm::vec3& vec);
+}
+
 namespace nex
 {
 	struct Dimension

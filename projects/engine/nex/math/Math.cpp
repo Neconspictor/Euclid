@@ -19,3 +19,15 @@ glm::vec3 nex::maxVec(const glm::vec3& a, const glm::vec3& b)
 	                 std::max<float>(a.y, b.y),
 	                 std::max<float>(a.z, b.z));
 }
+
+std::ostream& glm::operator<<(std::ostream& os, const glm::vec2& vec)
+{
+	os << "(" << vec.x << ", " << vec.y << ")";
+	return os;
+}
+
+std::ostream& glm::operator<<(std::ostream& os, const glm::vec3& vec)
+{
+	os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
+	return os;
+}
