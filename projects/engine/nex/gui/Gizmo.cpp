@@ -8,6 +8,8 @@
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
 #include <nex/math/Math.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
+#include "nex/camera/Camera.hpp"
 
 class nex::gui::Gizmo::TranslationGizmoPass : public TransformPass
 {
@@ -35,35 +37,28 @@ nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTran
 {
 	mTranslationGizmoPass = std::make_unique<TranslationGizmoPass>();
 	mGizmoTechnique = std::make_unique<Technique>(mTranslationGizmoPass.get());
-	auto material = std::make_unique<Material>(mGizmoTechnique.get());
 
-	auto& state = material->getRenderState();
-	state.doCullFaces = false;
-	state.doShadowCast = false;
-	state.doShadowReceive = false;
-	state.doBlend = false;
-	state.fillMode = FillMode::LINE;
-	state.doDepthTest = false;
-	state.doDepthWrite = false;
-
-	mTranslationMesh = std::make_unique<StaticMeshContainer>();
-	mTranslationMesh->add(std::move(createTranslationMesh()), std::move(material));
+	//mTranslationMesh = std::make_unique<StaticMeshContainer>();
+	//mTranslationMesh->add(std::move(createTranslationMesh()), std::move(material));
+	mTranslationMesh = loadTranslationGizmo();
 	mTranslationGizmoNode = mTranslationMesh->createNodeHierarchy(mNodeGeneratorScene.get());
 	mTranslationGizmoNode->setSelectable(false);
 
 	mTranslationGizmoNode->setScale(glm::vec3(3.0f));
 	mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
+	mTranslationGizmoNode->mDebugName = "Gizmo";
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
 
-void nex::gui::Gizmo::update(const glm::vec3 cameraPosition)
+void nex::gui::Gizmo::update(const nex::Camera& camera)
 {
-	const auto distance = length(mTranslationGizmoNode->getPosition() - cameraPosition);
+	const auto distance = length(mTranslationGizmoNode->getPosition() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
-		mTranslationGizmoNode->setScale(glm::vec3(distance / 4.0f));
+		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mTranslationGizmoNode->getPosition(), 1.0)).w;
+		mTranslationGizmoNode->setScale(glm::vec3(w) / 8.0f);
 		mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
 	}
 }
@@ -92,7 +87,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 	const auto& position = mTranslationGizmoNode->getPosition();
 	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
-	const Ray zAxis(position, { 0.0f, 0.0f, 1.0f });
+	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
 
 	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), xAxis.getDir(), Axis::X };
 	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), yAxis.getDir(), Axis::Y };
@@ -147,7 +142,7 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 	if (mActivationState.axis == Axis::Y)
 		axis = { position, { 0.0f, 1.0f, 0.0f } };
 	if (mActivationState.axis == Axis::Z)
-		axis = { position, { 0.0f, 0.0f, 1.0f } };
+		axis = { position, { 0.0f, 0.0f, getZValue(1.0f) } };
 
 	const auto test = axis.calcClosestDistance(screenRayWorld);
 
@@ -185,6 +180,40 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 	else if (first.result.distance == second.result.distance)
 		return 0;
 	return 1;
+}
+
+class MaterialLoader : public nex::DefaultMaterialLoader
+{
+public:
+	MaterialLoader(nex::Technique* technique) : DefaultMaterialLoader(), mTechnique(technique) {};
+
+	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
+	{
+		auto material = std::make_unique<nex::Material>(mTechnique);
+
+		auto& state = material->getRenderState();
+		state.doCullFaces = false;
+		state.doShadowCast = false;
+		state.doShadowReceive = false;
+		state.doBlend = false;
+		state.fillMode = nex::FillMode::FILL;
+		state.doDepthTest = false;
+		state.doDepthWrite = false;
+
+		return material;
+	}
+
+private:
+	nex::Technique* mTechnique;
+};
+
+
+nex::StaticMeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
+{
+	return StaticMeshManager::get()->loadModel(
+		"_intern/gizmo/translation-gizmo.obj",
+		MeshLoader<VertexPosition>(),
+		MaterialLoader(mGizmoTechnique.get()));
 }
 
 std::unique_ptr<nex::Mesh> nex::gui::Gizmo::createTranslationMesh()

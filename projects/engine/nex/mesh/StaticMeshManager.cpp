@@ -212,6 +212,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+			MeshLoader<Mesh::Vertex> assimpLoader;
 			meshes = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
 		};
 
@@ -219,6 +220,50 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 
 		models.push_back(StaticMeshContainer::create(stores, *materialLoader));
+		StaticMeshContainer* result = models.back().get();
+		modelTable[hash] = result;
+		return result;
+	}
+
+	nex::StaticMeshContainer* nex::StaticMeshManager::loadModel(const std::string& meshPath, 
+		const AbstractMeshLoader& meshLoader, 
+		const nex::AbstractMaterialLoader& materialLoader)
+	{
+		// else case: assume the model name is a 3d model that can be load from file.
+		if (!mInitialized) throw std::runtime_error("StaticMeshManager isn't initialized!");
+
+		auto hash = nex::util::customSimpleHash(meshPath);
+
+		auto it = modelTable.find(hash);
+		if (it != modelTable.end())
+		{
+			return it->second;
+		}
+
+		if (hash == SPRITE_MODEL_HASH)
+		{
+			return getSprite();
+		}
+
+		if (hash == SKYBOX_MODEL_HASH)
+		{
+			return getSkyBox();
+		}
+
+		std::vector<MeshStore> stores;
+		std::filesystem::path compiledMeshPath = mCompiledRootFolder + meshPath;
+		compiledMeshPath.replace_extension(mCompiledFileExtension);
+
+		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
+		{
+			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
+			meshes = meshLoader.loadStaticMesh(resolvedPath, materialLoader);
+		};
+
+		mFileSystem->loadFromCompiled(compiledMeshPath, loader, stores);
+
+
+		models.push_back(StaticMeshContainer::create(stores, materialLoader));
 		StaticMeshContainer* result = models.back().get();
 		modelTable[hash] = result;
 		return result;

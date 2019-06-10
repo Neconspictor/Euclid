@@ -72,7 +72,7 @@ namespace nex::gui
 		const auto& mouseData = input.getFrameMouseOffset();
 		const auto button = Input::Button::LeftMouseButton;
 
-		mGizmo->update(camera.getPosition());
+		mGizmo->update(camera);
 
 		if (input.isPressed(button))
 		{

@@ -14,10 +14,8 @@ namespace nex
 
 	void SceneNode::addChild(SceneNode* node)
 	{
-		if (mChildren.insert(node).first != mChildren.end())
-		{
-			node->mParent = this;
-		}
+		mChildren.push_back(node);
+		node->mParent = this;
 	}
 
 	void SceneNode::clear()

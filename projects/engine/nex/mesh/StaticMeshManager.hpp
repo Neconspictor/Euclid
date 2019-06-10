@@ -44,6 +44,14 @@ namespace nex
 		StaticMeshContainer* getModel(const std::string& meshName);
 
 		/**
+		 * Provides access to a mesh by its name.
+		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
+		 */
+		StaticMeshContainer* loadModel(const std::string& meshName, 
+			const nex::AbstractMeshLoader& meshLoader,
+			const nex::AbstractMaterialLoader& materialLoader);
+
+		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
 		 * To render the plane, no index buffer is needed. It is sufficient to call
 		 * RenderBackend::drawArrays(Topology::TRIANGLES_STRIP, 0, 4) after binding the returned vertex array.
@@ -105,7 +113,6 @@ namespace nex
 
 		std::vector<std::unique_ptr<StaticMeshContainer>> models;
 		std::unordered_map<unsigned int, StaticMeshContainer*> modelTable;
-		MeshLoader assimpLoader;
 		std::unique_ptr<PbrMaterialLoader> mPbrMaterialLoader;
 		std::unique_ptr<DefaultMaterialLoader> mDefaultMaterialLoader;
 		std::unique_ptr<FileSystem> mFileSystem;

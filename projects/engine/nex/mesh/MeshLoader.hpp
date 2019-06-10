@@ -13,27 +13,42 @@ namespace nex
 	struct AABB;
 	struct MeshStore;
 
-	class MeshLoader
+	class AbstractMeshLoader
 	{
 	public:
 
-		using Vertex = Mesh::Vertex;
-
-		MeshLoader();
+		AbstractMeshLoader();
+		virtual ~AbstractMeshLoader() = default;
 		std::vector<MeshStore> loadStaticMesh(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
 
 	protected:
-
 		void processNode(aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const;
 
-		static AABB calcBoundingBox(const std::vector<Vertex>& vertices);
 		/**
-		 * Creates a MeshGL out of an aiMesh. It is assumed that the given aiMesh is triangulated.
+		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const;
+		virtual void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const = 0;
 
-	private:
-
-		nex::Logger m_logger;
+		nex::Logger mLogger;
 	};
+
+	template<typename T>
+	class MeshLoader : public AbstractMeshLoader
+	{
+	public:
+		virtual ~MeshLoader() = default;
+	protected:
+
+		using Vertex = T;
+
+		AABB calcBoundingBox(const std::vector<Vertex>& vertices) const;
+
+		/**
+		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
+		 */
+		void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const override;
+	};
+
+	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+		const AbstractMaterialLoader& materialLoader) const;
 }

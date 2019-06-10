@@ -226,24 +226,26 @@ void NeXEngine::setRunning(bool isRunning)
 
 void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Scene& scene)
 {
-	std::queue<SceneNode*> queue;
+	//std::queue<SceneNode*> queue;
 	RenderCommand command;
+	std::list<SceneNode*> queue;
 
 
 	for (const auto& root : scene.getRoots())
 	{
-		queue.emplace(root);
+		queue.push_back(root);
 
 		while (!queue.empty())
 		{
-			auto* node = queue.back();
-			queue.pop();
+			auto* node = queue.front();
+			queue.pop_front();
 
 			auto range = node->getChildren();
 
 			for (auto it = range.begin; it != range.end; ++it)
 			{
-				queue.emplace(*it);
+				SceneNode* n = *it;
+				queue.push_back(n);
 			}
 
 			auto* mesh = node->getMesh();

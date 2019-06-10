@@ -27,7 +27,7 @@ namespace nex
 	{
 	public:
 
-		using Children = IteratorRange<std::set<SceneNode*>::const_iterator>;
+		using Children = IteratorRange<std::vector<SceneNode*>::const_iterator>;
 
 		SceneNode();
 
@@ -60,11 +60,13 @@ namespace nex
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void setScale(const glm::vec3 scale);
 
+		std::string mDebugName;
+
 	private:
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
-		std::set<SceneNode*> mChildren;
+		std::vector<SceneNode*> mChildren;
 		Mesh* mMesh;
 
 		Material* mMaterial;

@@ -1,6 +1,5 @@
 #version 430 core
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
 
 layout(binding = 0) buffer TransformBuffer {
     mat4 model;
@@ -13,6 +12,7 @@ layout(binding = 0) buffer TransformBuffer {
 } transforms;
 
 out vec3 interpolatedVertexColor;
+out vec3 positionLocal;
 
 void main()
 { 
@@ -21,5 +21,6 @@ void main()
     w *= reciprScaleOnscreen;
     gl_Position = transforms.transform * vec4(position, 1.0);
     
-    interpolatedVertexColor = color;
+    interpolatedVertexColor = vec3(1,0,0);
+    positionLocal = position;
 } 

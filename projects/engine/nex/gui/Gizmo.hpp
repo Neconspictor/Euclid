@@ -13,6 +13,7 @@ namespace nex
 	class StaticMeshContainer;
 	class Technique;
 	class TransformPass;
+	class Camera;
 }
 
 namespace nex::gui
@@ -39,7 +40,7 @@ namespace nex::gui
 		Gizmo();
 		virtual ~Gizmo();
 
-		void update(const glm::vec3 cameraPosition);
+		void update(const nex::Camera& camera);
 
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
@@ -84,9 +85,9 @@ namespace nex::gui
 
 		int compare(const Data& first, const Data& second) const;
 		static std::unique_ptr<Mesh> createTranslationMesh();
+		StaticMeshContainer* loadTranslationGizmo();
 
-
-		std::unique_ptr<StaticMeshContainer> mTranslationMesh;
+		StaticMeshContainer* mTranslationMesh;
 		std::unique_ptr<TranslationGizmoPass> mTranslationGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
