@@ -12,12 +12,13 @@ out vec4 color;
  * No axis: 3 
  */
 uniform uint selectedAxis;
+uniform vec3 axisColor;
 
-const vec3 selectedAxisColor = vec3(1,1,0);
+const vec3 selectedAxisColor = vec3(10,10,0);
 
 void main()
 {
-    vec3 normalizedPosition = normalize(abs(positionLocal));
+    /*vec3 normalizedPosition = normalize(abs(positionLocal));
     
     uint axis = 0;
     vec3 axisColor = vec3(1,0,0);
@@ -35,23 +36,26 @@ void main()
     if (length(positionLocal) < 0.01) {
         axis = 3;
         axisColor = vec3(1.0);
-    }
+    }*/
     
+    vec3 finalColor = axisColor;
     
     
     // Only one color channel is != 0
     // So this optimization can be used to avoid branches.
-    //const uint axis = uint(0*axisColor.r + 1*axisColor.g + 2*axisColor.b);
+    const uint axis = uint(0*finalColor.r + 1*finalColor.g + 2*finalColor.b);
 
     const uint selected = uint(axis == selectedAxis && axis < 3);
     
-    axisColor += selected * selectedAxisColor;
+    
+    
+    finalColor += selected * selectedAxisColor;
     
     //if axis is the selected one, we have to clear the blue channel
-    axisColor.b = (1-selected) * axisColor.b;
+    finalColor.b = (1-selected) * finalColor.b;
     
     
-    color = vec4(axisColor, 1.0);
+    color = vec4(finalColor, 1.0);
     
     
     /*return;

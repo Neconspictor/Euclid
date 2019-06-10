@@ -131,6 +131,9 @@ namespace nex
 		std::string normalMap;
 		std::string roughnessMap;
 
+		//some materials only use a diffuse color
+		glm::vec4 diffuseColor;
+
 		MaterialType type = MaterialType::Pbr;
 		RenderState state;
 

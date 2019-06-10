@@ -317,6 +317,7 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, MaterialStore& store)
 	in >> store.albedoMap;
 	in >> store.alphaMap;
 	in >> store.aoMap;
+	in >> store.diffuseColor;
 	in >> store.emissionMap;
 	in >> store.metallicMap;
 	in >> store.normalMap;
@@ -332,6 +333,7 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	out << store.albedoMap;
 	out << store.alphaMap;
 	out << store.aoMap;
+	out << store.diffuseColor;
 	out << store.emissionMap;
 	out << store.metallicMap;
 	out << store.normalMap;

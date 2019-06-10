@@ -187,6 +187,16 @@ class MaterialLoader : public nex::DefaultMaterialLoader
 public:
 	MaterialLoader(nex::Technique* technique) : DefaultMaterialLoader(), mTechnique(technique) {};
 
+	virtual void loadShadingMaterial(const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
+	{
+		aiColor3D color;
+		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color) )
+		{
+			store.diffuseColor = glm::vec4(color.r, color.g, color.b, 1.0f);
+		}
+		
+	}
+
 	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
 	{
 		auto material = std::make_unique<nex::Material>(mTechnique);
@@ -199,6 +209,9 @@ public:
 		state.fillMode = nex::FillMode::FILL;
 		state.doDepthTest = false;
 		state.doDepthWrite = false;
+
+		auto* pass = mTechnique->getActiveSubMeshPass();
+		material->set(pass->getShader()->getUniformLocation("axisColor"), glm::vec3(store.diffuseColor));
 
 		return material;
 	}
