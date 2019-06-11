@@ -105,11 +105,11 @@ namespace nex::gui
 
 		if (picked && !alreadyPicked)
 		{
-			scene.addRoot(mGizmo->getGizmoNode());
+			mGizmo->show(scene, *mPicker->getPicked());
 		}
 		else if (!picked)
 		{
-			scene.removeRoot(mGizmo->getGizmoNode());
+			mGizmo->hide(scene);
 		}
 		else if (isHovering)
 		{

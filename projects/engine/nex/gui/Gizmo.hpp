@@ -83,6 +83,9 @@ namespace nex::gui
 
 		void setMode(Mode mode);
 
+		void show(Scene& scene, const SceneNode& node);
+		void hide(Scene& scene);
+
 	private:
 
 		struct Data

@@ -4,7 +4,6 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/shader/Pass.hpp>
 #include <nex/Scene.hpp>
-#include <nex/mesh/MeshFactory.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include "nex/math/Ray.hpp"
 #include <nex/math/Math.hpp>
@@ -44,7 +43,7 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 	mTranslationMesh = loadTranslationGizmo();
 	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
 
-	setMode(mode);
+	setMode(Mode::SCALE);
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
@@ -87,7 +86,8 @@ void nex::gui::Gizmo::highlightAxis(Axis axis)
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active) const
 {
-	const auto& position = mTranslationGizmoNode->getPosition();
+	//TODO Rotation gizmo must be handled differently
+	const auto& position = mActiveGizmoNode->getPosition();
 	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
@@ -109,8 +109,8 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 	const float distanceToCamera = length(position - screenRayWorld.getOrigin());
 	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
 
-	const auto& scale = mTranslationGizmoNode->getScale();
-	bool selected = (nearest->result.distance <= range)
+	const auto& scale = mActiveGizmoNode->getScale();
+	const bool selected = (nearest->result.distance <= range)
 		&& isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
 	if (active)
@@ -118,7 +118,10 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 		active->isActive = selected;
 		if (active->isActive) {
 			active->axis = nearest->axis;
-			active->originalPosition = mTranslationGizmoNode->getPosition() + nearest->result.multiplier * nearest->axisVector;
+			active->originalPosition = mActiveGizmoNode->getPosition(); 
+
+			//if (mMode ==Mode::TRANSLATE)
+				active->originalPosition += nearest->result.multiplier * nearest->axisVector;
 		}
 		else {
 			active->axis = Axis::INVALID;
@@ -138,6 +141,8 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 {
 	if (!mActivationState.isActive) return;
 
+	//TODO Rotation gizmo needs to be handled differently
+
 	const auto& position = mActivationState.originalPosition;
 
 	Ray axis(position, { 1.0f, 0.0f, 0.0f });
@@ -149,15 +154,24 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 
 	const auto test = axis.calcClosestDistance(screenRayWorld);
 
-	if (!test.parallel)
+	if (test.parallel) return;
+
+	const auto frameDiff = test.multiplier - mLastFrameMultiplier;
+	mLastFrameMultiplier = test.multiplier;
+
+	if (mMode == Mode::SCALE)
 	{
-		auto frameTranslationDiff = test.multiplier - mLastFrameMultiplier;
-		mLastFrameMultiplier = test.multiplier;
-		node.setPosition(node.getPosition() + frameTranslationDiff * axis.getDir());
-		mTranslationGizmoNode->setPosition(node.getPosition());
-		node.updateWorldTrafoHierarchy(true);
-		mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
+		auto scale = maxVec(node.getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
+		node.setScale(scale);
+		
+	} else if (mMode == Mode::TRANSLATE)
+	{
+		node.setPosition(node.getPosition() + frameDiff * axis.getDir());
+		mActiveGizmoNode->setPosition(node.getPosition());
 	}
+
+	node.updateWorldTrafoHierarchy(true);
+	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
 }
 
 void nex::gui::Gizmo::deactivate()
@@ -182,11 +196,25 @@ void nex::gui::Gizmo::setMode(Mode mode)
 		mActiveGizmoNode = mTranslationGizmoNode;
 		break;
 	}
+
+	deactivate();
+}
+
+void nex::gui::Gizmo::show(Scene& scene, const SceneNode& node)
+{
+	scene.addRoot(mActiveGizmoNode);
+	mActiveGizmoNode->setPosition(node.getPosition());
+	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+}
+
+void nex::gui::Gizmo::hide(Scene& scene)
+{
+	scene.removeRoot(mActiveGizmoNode);
 }
 
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
-	const auto& scale = mTranslationGizmoNode->getScale();
+	const auto& scale = mActiveGizmoNode->getScale();
 
 	const auto scaleFirst = scale[(unsigned)first.axis];
 	const auto scaleSecond = scale[(unsigned)second.axis];
