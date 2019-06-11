@@ -11,10 +11,10 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/camera/Camera.hpp"
 
-class nex::gui::Gizmo::TranslationGizmoPass : public TransformPass
+class nex::gui::Gizmo::GizmoPass : public TransformPass
 {
 public:
-	TranslationGizmoPass() : TransformPass(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
+	GizmoPass() : TransformPass(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
 	{
 		bind();
 		mSelectedAxis = {mShader->getUniformLocation("selectedAxis"), UniformType::UINT};
@@ -32,34 +32,32 @@ private:
 	Uniform mSelectedAxis;
 };
 
-nex::gui::Gizmo::Gizmo() : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
-							mActivationState({ false, Axis::INVALID })
+nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
+							mActivationState({ false, Axis::INVALID, glm::vec3(0.0f) }), mMode(mode)
 {
-	mTranslationGizmoPass = std::make_unique<TranslationGizmoPass>();
-	mGizmoTechnique = std::make_unique<Technique>(mTranslationGizmoPass.get());
+	mGizmoPass = std::make_unique<GizmoPass>();
+	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
 
-	//mTranslationMesh = std::make_unique<StaticMeshContainer>();
-	//mTranslationMesh->add(std::move(createTranslationMesh()), std::move(material));
+	mScaleMesh = loadScaleGizmo();
+	initSceneNode(mScaleGizmoNode, mScaleMesh, "Scale Gizmo");
+	
 	mTranslationMesh = loadTranslationGizmo();
-	mTranslationGizmoNode = mTranslationMesh->createNodeHierarchy(mNodeGeneratorScene.get());
-	mTranslationGizmoNode->setSelectable(false);
+	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
 
-	mTranslationGizmoNode->setScale(glm::vec3(3.0f));
-	mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
-	mTranslationGizmoNode->mDebugName = "Gizmo";
+	setMode(mode);
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
 
 void nex::gui::Gizmo::update(const nex::Camera& camera)
 {
-	const auto distance = length(mTranslationGizmoNode->getPosition() - camera.getPosition());
+	const auto distance = length(mActiveGizmoNode->getPosition() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
-		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mTranslationGizmoNode->getPosition(), 1.0)).w;
-		mTranslationGizmoNode->setScale(glm::vec3(w) / 8.0f);
-		mTranslationGizmoNode->updateWorldTrafoHierarchy(true);
+		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoNode->getPosition(), 1.0)).w;
+		mActiveGizmoNode->setScale(glm::vec3(w) / 8.0f);
+		mActiveGizmoNode->updateWorldTrafoHierarchy(true);
 	}
 }
 
@@ -71,6 +69,11 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 	mLastFrameMultiplier = 0.0f;
 }
 
+nex::gui::Gizmo::Mode nex::gui::Gizmo::getMode() const
+{
+	return mMode;
+}
+
 const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
 {
 	return mActivationState;
@@ -78,8 +81,8 @@ const nex::gui::Gizmo::Active& nex::gui::Gizmo::getState() const
 
 void nex::gui::Gizmo::highlightAxis(Axis axis)
 {
-	mTranslationGizmoPass->bind();
-	mTranslationGizmoPass->setSelectedAxis(axis);
+	mGizmoPass->bind();
+	mGizmoPass->setSelectedAxis(axis);
 }
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active) const
@@ -128,7 +131,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
 {
-	return mTranslationGizmoNode;
+	return mActiveGizmoNode;
 }
 
 void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, const MouseOffset& frameData)
@@ -163,6 +166,24 @@ void nex::gui::Gizmo::deactivate()
 	highlightAxis(mActivationState.axis);
 }
 
+void nex::gui::Gizmo::setMode(Mode mode)
+{
+	mMode = mode;
+
+	switch(mode)
+	{
+	case Mode::ROTATE:
+		mActiveGizmoNode = mRotationGizmoNode;
+		break;
+	case Mode::SCALE:
+		mActiveGizmoNode = mScaleGizmoNode;
+		break;
+	case Mode::TRANSLATE:
+		mActiveGizmoNode = mTranslationGizmoNode;
+		break;
+	}
+}
+
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
 	const auto& scale = mTranslationGizmoNode->getScale();
@@ -180,6 +201,14 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 	else if (first.result.distance == second.result.distance)
 		return 0;
 	return 1;
+}
+
+void nex::gui::Gizmo::initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName)
+{
+	node = container->createNodeHierarchy(mNodeGeneratorScene.get());
+	node->setSelectable(false);
+	node->updateWorldTrafoHierarchy(true);
+	node->mDebugName = debugName;
 }
 
 class MaterialLoader : public nex::DefaultMaterialLoader
@@ -229,73 +258,10 @@ nex::StaticMeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
 		MaterialLoader(mGizmoTechnique.get()));
 }
 
-std::unique_ptr<nex::Mesh> nex::gui::Gizmo::createTranslationMesh()
+nex::StaticMeshContainer* nex::gui::Gizmo::loadScaleGizmo()
 {
-	//create vertices in CCW
-
-	constexpr size_t vertexCount = 6;
-	constexpr size_t indexCount = 6;
-
-	struct Vertex
-	{
-		glm::vec3 position;
-		glm::vec3 color;
-	};
-
-	Vertex vertices[vertexCount];
-
-	constexpr auto red = glm::vec3(1.0f, 0.0f, 0.0f);
-	constexpr auto green = glm::vec3(0.0f, 1.0f, 0.0f);
-	constexpr auto blue = glm::vec3(0.0f, 0.0f, 1.0f);
-
-
-	vertices[0].position = glm::vec3(0.0f);
-	vertices[0].color = red;
-	vertices[1].position = glm::vec3(1.0f, 0.0f, 0.0f);
-	vertices[1].color = red;
-	
-	vertices[2].position = glm::vec3(0.0f);
-	vertices[2].color = green;
-	vertices[3].position = glm::vec3(0.0f, 1.0f, 0.0f);
-	vertices[3].color = green;
-
-	vertices[4].position = glm::vec3(0.0f);
-	vertices[4].color = blue;
-	vertices[5].position = glm::vec3(0.0f, 0.0f, 1.0f);
-	vertices[5].color = blue;
-
-	unsigned indices[indexCount];
-
-	indices[0] = 0;
-	indices[1] = 1;
-
-	indices[2] = 2;
-	indices[3] = 3;
-
-	indices[4] = 4;
-	indices[5] = 5;
-
-
-	VertexBuffer vertexBuffer;
-	vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-	IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
-
-	VertexLayout layout;
-	layout.push<glm::vec3>(1); // position
-	layout.push<glm::vec3>(1); // color
-
-	VertexArray vertexArray;
-	vertexArray.bind();
-	vertexArray.useBuffer(vertexBuffer, layout);
-
-	vertexArray.unbind();
-	indexBuffer.unbind();
-
-
-	AABB boundingBox = { glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX) };
-	auto mesh = std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer), std::move(boundingBox));
-
-	mesh->setTopology(Topology::LINES);
-	mesh->mDebugName = "Gizmo::Translation";
-	return mesh;
+	return StaticMeshManager::get()->loadModel(
+		"_intern/gizmo/scale-gizmo.obj",
+		MeshLoader<VertexPosition>(),
+		MaterialLoader(mGizmoTechnique.get()));
 }
