@@ -99,7 +99,17 @@ namespace nex::gui
 
 		int compare(const Data& first, const Data& second) const;
 		void initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName);
-		//static std::unique_ptr<Mesh> createTranslationMesh();
+		bool isHoveringRotate(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active = nullptr) const;
+
+		/**
+		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
+		 */
+		bool checkNearPlaneCircle(const Ray::RayPlaneIntersection& testResult, 
+								const Ray& ray,
+								const glm::vec3& circleOrigin, 
+								float minRadius, float maxRadius, float& multiplierOut) const;
+
+		StaticMeshContainer* loadRotationGizmo();
 		StaticMeshContainer* loadTranslationGizmo();
 		StaticMeshContainer* loadScaleGizmo();
 
