@@ -10,13 +10,15 @@ namespace nex
 		glm::vec3 normal = { 0,0,-1 };
 		float signedDistance = 0;
 
-		Plane() {}
-		Plane(glm::vec3 normal, float distance) : normal(normal), signedDistance(distance) {}
-		Plane(float x, float y, float z, float d)
-		{
-			normal = { x,y,z };
-			signedDistance = d;
-		}
+		Plane();
+		Plane(glm::vec3 normal, float distance);
+
+		/**
+		 * Creates a plane from a normal and a point laying on the desired plane.
+		 */
+		Plane(glm::vec3 normal, glm::vec3 pointOnPlane);
+
+		Plane(float x, float y, float z, float d);
 	};
 
 	Plane normalize(const Plane& plane);

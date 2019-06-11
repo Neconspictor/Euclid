@@ -2,9 +2,11 @@
 
 namespace nex
 {
+	struct Plane;
+
 	/**
- * A 3-dimensional ray specified by a starting point (origin) and a direction.
- */
+	 * A 3-dimensional ray specified by a starting point (origin) and a direction.
+	 */
 	class Ray
 	{
 	public:
@@ -17,12 +19,35 @@ namespace nex
 			float distance;
 		};
 
+		struct RayPointDistance
+		{
+			float multiplier; //multiplier for the projection of the point on the line
+			float distance;
+		};
+
+		struct RayPlaneIntersection
+		{
+			// The multiplier for the intersection point.
+			float multiplier = 0.0f;
+
+			// minimal one intersection
+			bool intersected = false;
+
+			// is parallel to the plane (i.d. either infinite solutions (intersected true) or none at all (intersected false))
+			bool parallel = false; 
+		};
+
 		/**
 		 * Constructs a new ray from a starting point (origin) and a direction.
 		 * Note: length of direction vector must be != 0.
 		 * @throws std::invalid_argument : if length of the direction vector is 0.
 		 */
 		Ray(const glm::vec3& origin, const glm::vec3& dir);
+
+		/**
+		 * Calculates the closest (perpendicular) signed distance to a point.
+		 */
+		RayPointDistance calcClosestDistance(const glm::vec3& point) const;
 
 		/**
 		 * Calculates the closest (perpendicular) signed distance to another ray.
@@ -43,6 +68,11 @@ namespace nex
 		glm::vec3 getPoint(float multiplier) const;
 
 		const glm::uvec3& getSign() const;
+
+		/**
+		 * Checks if this ray intersects a plane
+		 */
+		RayPlaneIntersection intersects(const Plane& plane) const;
 
 	private:
 		glm::vec3 origin;

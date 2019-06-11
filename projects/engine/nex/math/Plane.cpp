@@ -20,6 +20,25 @@ nex::Plane nex::transform(const glm::mat4& trafo, const Plane& plane)
 	return { normalize(glm::vec3(vec)), vec.w };
 }
 
+nex::Plane::Plane()
+{
+}
+
+nex::Plane::Plane(glm::vec3 normal, float distance): normal(normal), signedDistance(distance)
+{
+}
+
+nex::Plane::Plane(glm::vec3 normal, glm::vec3 pointOnPlane) : normal(normal)
+{
+	signedDistance = dot(normal, pointOnPlane);
+}
+
+nex::Plane::Plane(float x, float y, float z, float d)
+{
+	normal = {x, y, z};
+	signedDistance = d;
+}
+
 nex::Plane nex::normalize(const Plane& plane)
 {
 	Plane result = plane;
