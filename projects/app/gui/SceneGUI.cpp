@@ -95,25 +95,37 @@ namespace nex::gui
 	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const float viewRange)
 	{
 		const bool alreadyPicked = mPicker->getPicked() != nullptr;
-		bool picked = true;
-		const auto isHovering = mGizmo->isHovering(ray, viewRange);
+		bool picked = false;
+		
+		bool isVisible = mGizmo->isVisible();
 
-		if (!isHovering)
-		{
-			picked =  mPicker->pick(scene, ray) != nullptr;
-		}
 
-		if (picked && !alreadyPicked)
+		if (isVisible)
 		{
-			mGizmo->show(scene, *mPicker->getPicked());
-		}
-		else if (!picked)
+			const auto isHovering = mGizmo->isHovering(ray, viewRange);
+			if (!isHovering)
+			{
+				picked = mPicker->pick(scene, ray) != nullptr;
+			}
+
+			if (!isHovering && !picked)
+			{
+				mGizmo->hide(scene);
+			}
+
+			if (isHovering)
+			{
+				mGizmo->activate(ray, viewRange);
+			}
+
+		} else
 		{
-			mGizmo->hide(scene);
-		}
-		else if (isHovering)
-		{
-			mGizmo->activate(ray, viewRange);
+			picked = mPicker->pick(scene, ray) != nullptr;
+
+			if (picked)
+			{
+				mGizmo->show(scene, *mPicker->getPicked());
+			}
 		}
 	}
 
