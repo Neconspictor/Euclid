@@ -137,6 +137,7 @@ namespace nex::gui
 		Active mActivationState;
 		float mLastFrameMultiplier;
 		float mRotationAcc;
+		glm::vec3 mRotationVecLast;
 		Mode mMode;
 		bool mVisible;
 	};

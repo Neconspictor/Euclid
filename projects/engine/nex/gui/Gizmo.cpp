@@ -72,6 +72,7 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 	highlightAxis(mActivationState.axis);
 	mLastFrameMultiplier = 0.0f;
 	mRotationAcc = 0.0f;
+	mRotationVecLast = normalize(mActiveGizmoNode->getPosition() - mActivationState.originalPosition);
 }
 
 nex::gui::Gizmo::Mode nex::gui::Gizmo::getMode() const
@@ -369,29 +370,68 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
 	const auto vec1 = normalize(origin - mActivationState.originalPosition);
 	const auto vec2 = normalize(origin - newPosition);
 
-	auto angle = acos(dot(vec1, vec2));
+
+	auto d = dot(mRotationVecLast, vec2);
+	auto angle = acos(d);
+
+	//auto dOldZAxis = dot(vec1, mRotationVecLast);
+	auto dNew = dot(glm::vec3(0,0,1), vec2);
+	auto dOld = dot(glm::vec3(0, 0, 1), mRotationVecLast);
+
+	if (dNew < 0)
+	{
+		dNew = dot(glm::vec3(0, 0, -1), vec2);
+		dOld = dot(glm::vec3(0, 0, -1), mRotationVecLast);
+	}
+
+	auto vecDiff = normalize(vec2 - mRotationVecLast);
+	auto dDiff = normalize(vec2 - mRotationVecLast);//acos(dNew) - acos(dOld);
+
+	auto test = dot(cross(mRotationVecLast, vec2), mActivationState.axisVec);
+	angle *= test / abs(test);
 
 	std::cout << "vec1 = " << vec1 << ", vec2 = " << vec2 << std::endl;
 	std::cout << "  original position = " << mActivationState.originalPosition << ", new position = " << newPosition << std::endl;
 
 
-	auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
-	auto xAxis = glm::vec3(1.0f, 0, 0);
-	auto d = dot(xAxis, vec1) - dot(zAxis, vec1);
-	d -= dot(xAxis, vec2) - dot(zAxis, vec2);
+	/*float d = 1.0f;
+
+	if (mActivationState.axis == Axis::X)
+	{
+		const auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
+		const auto yAxis = glm::vec3(0, 1.0f, 0);
+		d = dot(zAxis, vec2) - dot(yAxis, vec2);
+		d -= dot(zAxis, vec1) - dot(yAxis, vec1);
+		
+		
+	} else if (mActivationState.axis == Axis::Y)
+	{
+		const auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
+		const auto xAxis = glm::vec3(1.0f, 0, 0);
+		d = dot(xAxis, vec1) - dot(zAxis, vec1);
+		d -= dot(xAxis, vec2) - dot(zAxis, vec2);
+	} else
+	{
+		const auto yAxis = glm::vec3(0, 1.0f, 0);
+		const auto xAxis = glm::vec3(1.0f, 0, 0);
+		d = dot(xAxis, vec1) - dot(yAxis, vec1);
+		d -= dot(xAxis, vec2) - dot(yAxis, vec2);
+	}
 
 	if (d < 0)
 	{
 		angle *= -1;
-	}
+		//angle += PI / 2.0f;
+	}*/
 
-	std::cout << "     angle = " << angle << ", dot = " << d << std::endl;
+	std::cout << "     angle = " << angle << ", dDiff = " << dDiff <<  std::endl;
 
 	if (!std::isnan(angle))
 	{
 		auto diff = angle - mRotationAcc;
-		mRotationAcc = angle;
-		node.rotateGlobal(mActivationState.axisVec, diff);
+		mRotationAcc += angle;
+		mRotationVecLast = vec2;
+		node.rotateGlobal(mActivationState.axisVec, angle);
 	}
 }
 
