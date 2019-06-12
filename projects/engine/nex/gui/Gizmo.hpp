@@ -34,6 +34,7 @@ namespace nex::gui
 		{
 			bool isActive;
 			Axis axis;
+			glm::vec3 axisVec;
 			glm::vec3 originalPosition;
 		};
 
@@ -73,6 +74,8 @@ namespace nex::gui
 
 		bool isHovering(const Ray& screenRayWorld, float cameraViewFieldRange, Active* active = nullptr) const;
 
+		bool isVisible()const;
+
 		/**
 		 * Provides a scene node that can be used to render the gizmo.
 		 */
@@ -109,6 +112,10 @@ namespace nex::gui
 								const glm::vec3& circleOrigin, 
 								float minRadius, float maxRadius, float& multiplierOut) const;
 
+		static void fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position);
+
+		void transformRotate(const Ray& ray, SceneNode& node);
+
 		StaticMeshContainer* loadRotationGizmo();
 		StaticMeshContainer* loadTranslationGizmo();
 		StaticMeshContainer* loadScaleGizmo();
@@ -129,6 +136,8 @@ namespace nex::gui
 
 		Active mActivationState;
 		float mLastFrameMultiplier;
+		float mRotationAcc;
 		Mode mMode;
+		bool mVisible;
 	};
 }

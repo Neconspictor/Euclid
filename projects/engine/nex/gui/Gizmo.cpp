@@ -10,6 +10,7 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/camera/Camera.hpp"
 #include <nex/math/Math.hpp>
+#include <nex/math/Constant.hpp>
 
 class nex::gui::Gizmo::GizmoPass : public TransformPass
 {
@@ -33,7 +34,7 @@ private:
 };
 
 nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
-							mActivationState({ false, Axis::INVALID, glm::vec3(0.0f) }), mMode(mode)
+							mActivationState({ false, Axis::INVALID, glm::vec3(0.0f), glm::vec3(0.0f) }), mMode(mode), mVisible(false)
 {
 	mGizmoPass = std::make_unique<GizmoPass>();
 	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
@@ -47,7 +48,7 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 	mTranslationMesh = loadTranslationGizmo();
 	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
 
-	setMode(Mode::SCALE);
+	setMode(Mode::ROTATE);
 }
 
 nex::gui::Gizmo::~Gizmo() = default;
@@ -70,6 +71,7 @@ void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraView
 
 	highlightAxis(mActivationState.axis);
 	mLastFrameMultiplier = 0.0f;
+	mRotationAcc = 0.0f;
 }
 
 nex::gui::Gizmo::Mode nex::gui::Gizmo::getMode() const
@@ -90,8 +92,6 @@ void nex::gui::Gizmo::highlightAxis(Axis axis)
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active) const
 {
-	//TODO Rotation gizmo must be handled differently
-
 	if (mMode == Mode::ROTATE)
 	{
 		return isHoveringRotate(screenRayWorld, cameraViewFieldRange, active);
@@ -124,22 +124,15 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 	const bool selected = (nearest->result.distance <= range)
 		&& isInRange(nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
-	if (active)
-	{
-		active->isActive = selected;
-		if (active->isActive) {
-			active->axis = nearest->axis;
-			//active->originalPosition = mActiveGizmoNode->getPosition(); 
-			//active->originalPosition += nearest->result.multiplier * nearest->axisVector;
-			active->originalPosition = screenRayWorld.getPoint(nearest->result.otherMultiplier);
-		}
-		else {
-			active->axis = Axis::INVALID;
-			active->originalPosition = glm::vec3(0.0f);
-		}
-	}
+
+	fillActivationState(active, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier));
 
 	return selected;
+}
+
+bool nex::gui::Gizmo::isVisible() const
+{
+	return mVisible;
 }
 
 nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
@@ -153,32 +146,39 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 
 	//TODO Rotation gizmo needs to be handled differently
 
-	const auto& position = mActivationState.originalPosition;
-
-	Ray axis(position, { 1.0f, 0.0f, 0.0f });
-
-	if (mActivationState.axis == Axis::Y)
-		axis = { position, { 0.0f, 1.0f, 0.0f } };
-	if (mActivationState.axis == Axis::Z)
-		axis = { position, { 0.0f, 0.0f, getZValue(1.0f) } };
-
-	const auto test = axis.calcClosestDistance(screenRayWorld);
-
-	if (test.parallel) return;
-
-	const auto frameDiff = test.multiplier - mLastFrameMultiplier;
-	mLastFrameMultiplier = test.multiplier;
-
-	if (mMode == Mode::SCALE)
+	if (mMode == Mode::ROTATE)
 	{
-		auto scale = maxVec(node.getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
-		node.setScale(scale);
-		
-	} else if (mMode == Mode::TRANSLATE)
+		transformRotate(screenRayWorld, node);
+	} else
 	{
-		node.setPosition(node.getPosition() + frameDiff * axis.getDir());
-		mActiveGizmoNode->setPosition(node.getPosition());
+		const auto& position = mActivationState.originalPosition;
+
+		Ray axis(position, { 1.0f, 0.0f, 0.0f });
+
+		if (mActivationState.axis == Axis::Y)
+			axis = { position, { 0.0f, 1.0f, 0.0f } };
+		if (mActivationState.axis == Axis::Z)
+			axis = { position, { 0.0f, 0.0f, getZValue(1.0f) } };
+
+		const auto test = axis.calcClosestDistance(screenRayWorld);
+		const auto frameDiff = test.multiplier - mLastFrameMultiplier;
+		mLastFrameMultiplier = test.multiplier;
+
+		if (test.parallel) return;
+
+		if (mMode == Mode::SCALE)
+		{
+			auto scale = maxVec(node.getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
+			node.setScale(scale);
+
+		}
+		else if (mMode == Mode::TRANSLATE)
+		{
+			node.setPosition(node.getPosition() + frameDiff * axis.getDir());
+			mActiveGizmoNode->setPosition(node.getPosition());
+		}
 	}
+
 
 	node.updateWorldTrafoHierarchy(true);
 	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
@@ -215,11 +215,13 @@ void nex::gui::Gizmo::show(Scene& scene, const SceneNode& node)
 	scene.addRoot(mActiveGizmoNode);
 	mActiveGizmoNode->setPosition(node.getPosition());
 	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	mVisible = true;
 }
 
 void nex::gui::Gizmo::hide(Scene& scene)
 {
 	scene.removeRoot(mActiveGizmoNode);
+	mVisible = false;
 }
 
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
@@ -254,13 +256,11 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 {
 
 	const auto& origin = mActiveGizmoNode->getPosition();
-	//const auto rayPointResult = screenRayWorld.calcClosestDistance(origin);
 
 	const auto yzPlaneIntersection = screenRayWorld.intersects({ {1,0,0}, origin});
 	const auto xzPlaneIntersection = screenRayWorld.intersects({ {0,1,0}, origin });
 	const auto xyPlaneIntersection = screenRayWorld.intersects({ {0,0,getZValue(1.0f)}, origin });
 
-	//const auto& distance = rayPointResult.distance;
 	const float distanceToCamera = length(origin - screenRayWorld.getOrigin());
 	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
 	
@@ -268,57 +268,33 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	const float maxRange = mActiveGizmoNode->getScale().x + range;
 	const float minRange = mActiveGizmoNode->getScale().x - range;
 
-	
-	// Early exit
-	//if (distance > maxRange || distance < minRange) return false;
-	//std::cout << "Distance to gizmo origin = " << rayPointResult.distance << ", range = " << range << std::endl;
-
 
 	bool selected = true;
 	Axis axis = Axis::INVALID;
-	glm::vec3 axisVector;
 	float multiplier = 0.0f;
 
 	if (checkNearPlaneCircle(yzPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
 	{
 		axis = Axis::X;
-		axisVector = { 1.0f, 0, 0 };
 		std::cout << "Is in range for x rotation!" << std::endl;
 
 	} else if (checkNearPlaneCircle(xzPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
 	{
 		axis = Axis::Y;
-		axisVector = { 0, 1.0f, 0 };
 		std::cout << "Is in range for y rotation!" << std::endl;
 
 	} else if (checkNearPlaneCircle(xyPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
 	{
 		axis = Axis::Z;
-		axisVector = { 0, 0, getZValue(1.0f) };
 		std::cout << "Is in range for z rotation!" << std::endl;
 	} else
 	{
 		selected = false;
 	}
 
+	fillActivationState(active, selected, axis, screenRayWorld.getPoint(multiplier));
 
-	if (active)
-	{
-		active->isActive = selected;
-		if (active->isActive) {
-			active->axis = axis;
-			//active->originalPosition = mActiveGizmoNode->getPosition();
-			//active->originalPosition += multiplier * axisVector;
-			active->originalPosition = screenRayWorld.getPoint(multiplier);
-
-		}
-		else {
-			active->axis = Axis::INVALID;
-			active->originalPosition = glm::vec3(0.0f);
-		}
-	}
-
-	return false;
+	return selected;
 }
 
 bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::RayPlaneIntersection& testResult, const Ray& ray,
@@ -343,6 +319,82 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::RayPlaneIntersection& test
 
 }
 
+void nex::gui::Gizmo::fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position)
+{
+	if (!active) return;
+
+	active->isActive = isActive;
+	if (active->isActive) {
+		active->axis = axis;
+
+		if (active->axis == Axis::X)
+			active->axisVec = { 1.0f, 0.0f, 0.0f };
+		if (active->axis == Axis::Y)
+			active->axisVec = { 0.0f, 1.0f, 0.0f };
+		if (active->axis == Axis::Z)
+			active->axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
+
+		active->originalPosition = position;
+	}
+	else {
+		active->axis = Axis::INVALID;
+		active->originalPosition = glm::vec3(0.0f);
+	}
+}
+
+void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
+{
+	const auto& origin = mActiveGizmoNode->getPosition();
+	const auto planeIntersection = ray.intersects({ mActivationState.axisVec, origin });
+
+	if (!planeIntersection.intersected) return;
+
+	glm::vec3 newPosition;
+
+	if (planeIntersection.parallel)
+	{
+		Ray axisRay(origin, mActivationState.axisVec);
+		const auto distanceToAxis = ray.calcClosestDistance(axisRay);
+		const auto& radius = mActiveGizmoNode->getScale().x;
+		const auto multiplier = length(origin - ray.getOrigin()) - radius;
+
+		//TODO
+		return;
+
+	} else
+	{
+		newPosition = ray.getPoint(planeIntersection.multiplier);
+	}
+
+	const auto vec1 = normalize(origin - mActivationState.originalPosition);
+	const auto vec2 = normalize(origin - newPosition);
+
+	auto angle = acos(dot(vec1, vec2));
+
+	std::cout << "vec1 = " << vec1 << ", vec2 = " << vec2 << std::endl;
+	std::cout << "  original position = " << mActivationState.originalPosition << ", new position = " << newPosition << std::endl;
+
+
+	auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
+	auto xAxis = glm::vec3(1.0f, 0, 0);
+	auto d = dot(xAxis, vec1) - dot(zAxis, vec1);
+	d -= dot(xAxis, vec2) - dot(zAxis, vec2);
+
+	if (d < 0)
+	{
+		angle *= -1;
+	}
+
+	std::cout << "     angle = " << angle << ", dot = " << d << std::endl;
+
+	if (!std::isnan(angle))
+	{
+		auto diff = angle - mRotationAcc;
+		mRotationAcc = angle;
+		node.rotateGlobal(mActivationState.axisVec, diff);
+	}
+}
+
 class MaterialLoader : public nex::DefaultMaterialLoader
 {
 public:
@@ -355,7 +407,6 @@ public:
 		{
 			store.diffuseColor = glm::vec4(color.r, color.g, color.b, 1.0f);
 		}
-		
 	}
 
 	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override

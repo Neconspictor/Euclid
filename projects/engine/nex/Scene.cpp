@@ -149,6 +149,11 @@ namespace nex
 		mRotation = rotZ * rotY * rotX;
 	}
 
+	void SceneNode::rotateGlobal(const glm::vec3& axisWorld, float angle)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
+	}
+
 	void SceneNode::rotateLocal(const glm::vec3& eulerAngles)
 	{
 		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
