@@ -263,11 +263,11 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	const auto xyPlaneIntersection = screenRayWorld.intersects({ {0,0,getZValue(1.0f)}, origin });
 
 	const float distanceToCamera = length(origin - screenRayWorld.getOrigin());
-	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
+	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.500f);
 	
 	// Note: we assume a uniform scale for the gizmo!
-	const float maxRange = mActiveGizmoNode->getScale().x + range;
-	const float minRange = mActiveGizmoNode->getScale().x - range;
+	const float maxRange = mActiveGizmoNode->getScale().x + 2.0*range;
+	const float minRange = mActiveGizmoNode->getScale().x - 2.0*range;
 
 
 	bool selected = true;
@@ -298,7 +298,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	return selected;
 }
 
-bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::RayPlaneIntersection& testResult, const Ray& ray,
+bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::PlaneIntersection& testResult, const Ray& ray,
 	const glm::vec3& circleOrigin, float minRadius, float maxRadius, float& multiplierOut) const
 {
 	if (!testResult.intersected) return false;
@@ -308,15 +308,20 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::RayPlaneIntersection& test
 	{
 		multiplierOut = testResult.multiplier;
 		const auto pointOnPlane = ray.getPoint(testResult.multiplier);
-		const auto distance = length(circleOrigin - pointOnPlane);
-		return isInRange(distance, minRadius, maxRadius);
+		const auto radius = mActiveGizmoNode->getScale().x;
+		const auto point = circleOrigin + radius * normalize(pointOnPlane - circleOrigin);
+		const auto diff = length(pointOnPlane - point);//length(circleOrigin - pointOnPlane);
+		return diff < (maxRadius - minRadius);
+		//return isInRange(distance, minRadius, maxRadius);
 	}
 
 	// ray is parallel to plane, this means min radius doesn't matter
 	// We just check the distance from the circle origin to the ray
-	const auto pointDistance = ray.calcClosestDistance(circleOrigin);
+	const auto pointDistance = ray.calcClosestDistance({{circleOrigin}, {0,1,0}});
+	//const auto pointDistance = ray.calcClosestDistance(circleOrigin);
 	multiplierOut = pointDistance.multiplier;
-	return pointDistance.distance <= maxRadius;
+	const auto radius = mActiveGizmoNode->getScale().x;
+	return pointDistance.distance <= (0.1);
 
 }
 

@@ -7,8 +7,8 @@ namespace nex
 	 */
 	struct Plane
 	{
-		glm::vec3 normal = { 0,0,-1 };
-		float signedDistance = 0;
+		glm::vec3 mNormal = { 0,0,-1 };
+		float mSignedDistance = 0;
 
 		Plane();
 		Plane(glm::vec3 normal, float distance);
@@ -19,6 +19,16 @@ namespace nex
 		Plane(glm::vec3 normal, glm::vec3 pointOnPlane);
 
 		Plane(float x, float y, float z, float d);
+
+		/**
+		 * Tests if a point is on the plane
+		 */
+		bool onPlane(const glm::vec3& point) const;
+
+		/**
+		 * Projects a point orthogonally on the plane.
+		 */
+		glm::vec3 project(const glm::vec3& point) const;
 	};
 
 	Plane normalize(const Plane& plane);

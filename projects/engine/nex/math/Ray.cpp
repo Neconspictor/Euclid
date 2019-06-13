@@ -2,6 +2,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/math/Math.hpp>
 #include "Plane.hpp"
+#include "Circle.hpp"
 
 nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), dir(normalize(dir))
 {
@@ -100,8 +101,8 @@ const glm::uvec3& nex::Ray::getSign() const
 
 nex::Ray::PlaneIntersection nex::Ray::intersects(const Plane& plane) const
 {
-	const double d = plane.signedDistance;
-	const glm::dvec3 n = plane.normal;
+	const double d = plane.mSignedDistance;
+	const glm::dvec3 n = plane.mNormal;
 	const glm::dvec3 dirDouble = dir;
 	constexpr float eps = 0.04f;
 
@@ -134,6 +135,47 @@ nex::Ray::PlaneIntersection nex::Ray::intersects(const Plane& plane) const
 		result.intersected = true;
 		result.parallel = false;
 	}
+
+	return result;
+}
+
+nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle) const
+{
+	const auto& circleOrigin = circle.getOrigin();
+	const auto radius = circle.getRadius();
+	constexpr auto eps = 0.000001f;
+	Circle3DIntersection result;
+
+	const auto originTest = calcClosestDistance(circleOrigin);
+
+	// No intersections
+	if (originTest.distance > radius + eps)
+	{
+		result.intersectionCount = 0;
+		return result;
+	}
+
+	// One intersection
+	if (originTest.distance - radius < eps)
+	{
+		result.intersectionCount = 1;
+		result.firstMultiplier = originTest.multiplier;
+		return result;
+	}
+
+	// Two intersections
+	result.intersectionCount = 2;
+	//const auto projectedOrigin = getPoint(originTest.multiplier);
+	//const auto v = projectedOrigin - circleOrigin;
+
+	// Get the angle between (intersectionPoint - circleOrigin) and (projected circle origin - circleOrigin)
+	const auto angle = acos(originTest.distance / radius);
+
+	// Note: The projected circle origin is equally distant to both two intersection points!
+	const auto distanceIntersectionProjected = sin(angle) * radius;
+
+	result.firstMultiplier = originTest.multiplier - distanceIntersectionProjected;
+	result.secondMultiplier = originTest.multiplier + distanceIntersectionProjected;
 
 	return result;
 }

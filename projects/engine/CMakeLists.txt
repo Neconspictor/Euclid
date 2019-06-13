@@ -84,6 +84,8 @@ set(
     #nex/math
     nex/math/BoundingBox.cpp
     nex/math/BoundingBox.hpp
+    nex/math/Circle.cpp
+    nex/math/Circle.hpp
     nex/math/Complex.cpp
     nex/math/Complex.hpp
     nex/math/Constant.hpp

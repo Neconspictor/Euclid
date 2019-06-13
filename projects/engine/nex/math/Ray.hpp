@@ -3,6 +3,7 @@
 namespace nex
 {
 	struct Plane;
+	class Circle3D;
 
 	/**
 	 * A 3-dimensional ray specified by a starting point (origin) and a direction.
@@ -10,6 +11,17 @@ namespace nex
 	class Ray
 	{
 	public:
+
+		struct Circle3DIntersection
+		{
+			// Specifies how much intersections with the circle exist.
+			// Can be 0, 1 or 2
+			unsigned intersectionCount = 0;
+
+			// multipliers of the intersections
+			float firstMultiplier = 0;
+			float secondMultiplier = 0;
+		};
 
 		struct RayDistance
 		{
@@ -73,6 +85,11 @@ namespace nex
 		 * Checks if this ray intersects a plane
 		 */
 		PlaneIntersection intersects(const Plane& plane) const;
+
+		/**
+		 * Checks if this ray intersects a circle
+		 */
+		Circle3DIntersection intersects(const Circle3D& circle) const;
 
 		/**
 		 * Projects a point orthogonally on the ray line.

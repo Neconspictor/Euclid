@@ -87,7 +87,7 @@ bool nex::RenderCommandQueue::boxInFrustum(const nex::Frustum& frustum, const ne
 	{
 
 		const auto& plane = frustum.planes[i];
-		glm::vec4 planeAsVec(plane.normal, plane.signedDistance);
+		glm::vec4 planeAsVec(plane.mNormal, plane.mSignedDistance);
 
 		// check all corners against the plane;
 		out = 0;
