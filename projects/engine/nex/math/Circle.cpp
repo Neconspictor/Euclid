@@ -28,3 +28,39 @@ bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) con
 	const auto compare = dot(d, d) - radius * radius;
 	return compare <= toleranceRange;
 }
+
+nex::MinMaxCircle3D::MinMaxCircle3D(Plane plane, glm::vec3 origin, float minRadius, float maxRadius) :
+mPlane(plane), mOrigin(origin), mMaxRadius(maxRadius), mMinRadius(minRadius)
+{
+	assert(mPlane.onPlane(mOrigin));
+}
+
+const glm::vec3& nex::MinMaxCircle3D::getOrigin() const
+{
+	return mOrigin;
+}
+
+const nex::Plane& nex::MinMaxCircle3D::getPlane() const
+{
+	return mPlane;
+}
+
+float nex::MinMaxCircle3D::getMaxRadius() const
+{
+	return mMaxRadius;
+}
+
+float nex::MinMaxCircle3D::getMinRadius() const
+{
+	return mMinRadius;
+}
+
+bool nex::MinMaxCircle3D::onSurface(const glm::vec3& point) const
+{
+	if (!mPlane.onPlane(point)) return false;
+
+	const auto d = point - mOrigin;
+	const auto distance = dot(d, d);
+
+	return distance >= mMinRadius && distance <= mMaxRadius;
+}
