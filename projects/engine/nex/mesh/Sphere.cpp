@@ -6,7 +6,7 @@
 
 namespace nex
 {
-	Sphere::Sphere(unsigned int xSegments, unsigned int ySegments)
+	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments)
 	{
 		struct Vertex
 		{

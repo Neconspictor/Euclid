@@ -62,7 +62,7 @@
 std::unique_ptr<nex::StaticMeshContainer> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)
 {
-	auto mesh = std::make_unique<Sphere>(xSegments, ySegments);
+	auto mesh = std::make_unique<SphereMesh>(xSegments, ySegments);
 	auto model = std::make_unique<StaticMeshContainer>();
 	model->add(std::move(mesh), std::move(material));
 

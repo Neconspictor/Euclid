@@ -39,10 +39,10 @@ nex::Plane::Plane(float x, float y, float z, float d) : mNormal(x,y,z), mSignedD
 	normalize(*this);
 }
 
-bool nex::Plane::onPlane(const glm::vec3& point) const
+bool nex::Plane::onPlane(const glm::vec3& v) const
 {
 	constexpr auto eps = 0.000001f;
-	return abs(dot(mNormal, point)) < eps;
+	return abs(dot(mNormal, v)) < eps;
 }
 
 glm::vec3 nex::Plane::project(const glm::vec3& p) const

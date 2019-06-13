@@ -4,6 +4,7 @@ namespace nex
 {
 	struct Plane;
 	class Circle3D;
+	struct Sphere;
 
 	/**
 	 * A 3-dimensional ray specified by a starting point (origin) and a direction.
@@ -49,6 +50,17 @@ namespace nex
 			bool parallel = false; 
 		};
 
+		struct SphereIntersection
+		{
+			// Specifies how much intersections with the sphere exist.
+			// Can be 0, 1 or 2
+			unsigned intersectionCount = 0;
+
+			// multipliers of the intersections
+			float firstMultiplier = 0;
+			float secondMultiplier = 0;
+		};
+
 		/**
 		 * Constructs a new ray from a starting point (origin) and a direction.
 		 * Note: length of direction vector must be != 0.
@@ -82,6 +94,11 @@ namespace nex
 		const glm::uvec3& getSign() const;
 
 		/**
+		 * Checks if this ray intersects a circle
+		 */
+		Circle3DIntersection intersects(const Circle3D& circle) const;
+
+		/**
 		 * Checks if this ray intersects a plane
 		 */
 		PlaneIntersection intersects(const Plane& plane) const;
@@ -89,7 +106,7 @@ namespace nex
 		/**
 		 * Checks if this ray intersects a circle
 		 */
-		Circle3DIntersection intersects(const Circle3D& circle) const;
+		SphereIntersection intersects(const Sphere& sphere) const;
 
 		/**
 		 * Projects a point orthogonally on the ray line.

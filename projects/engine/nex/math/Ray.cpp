@@ -3,6 +3,7 @@
 #include <nex/math/Math.hpp>
 #include "Plane.hpp"
 #include "Circle.hpp"
+#include "Sphere.hpp"
 
 nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), dir(normalize(dir))
 {
@@ -139,6 +140,44 @@ nex::Ray::PlaneIntersection nex::Ray::intersects(const Plane& plane) const
 	return result;
 }
 
+nex::Ray::SphereIntersection nex::Ray::intersects(const Sphere& sphere) const
+{
+	SphereIntersection result;
+	const auto& sphereOrigin = sphere.origin;
+
+	const auto toOrigin = origin - sphere.origin;
+
+	const auto a = 1.0f; //dot(dir, dir);
+	const auto b = 2.0f * dot(dir, toOrigin);
+	const auto c = dot(toOrigin, toOrigin) - sphere.radius * sphere.radius;
+	const auto discriminant = (b * b) - 4.0f * a * c;
+
+	if (discriminant < 0)
+	{
+		// No intersection
+		result.intersectionCount = 0;
+		return result;
+	} 
+	
+	if (discriminant == 0)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+	} else
+	{
+		// Two intersections
+		result.intersectionCount = 2;
+	}
+
+	const auto rootDiscriminant = sqrt(discriminant);
+	const auto twoA = 2.0f * a;
+
+	result.firstMultiplier = (-b - rootDiscriminant) / twoA;
+	result.secondMultiplier = (-b + rootDiscriminant) / twoA;
+
+	return result;
+}
+
 nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle) const
 {
 	const auto& circleOrigin = circle.getOrigin();
@@ -149,17 +188,24 @@ nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle) cons
 	const auto originTest = calcClosestDistance(circleOrigin);
 
 	// No intersections
-	if (originTest.distance > radius + eps)
+	if (originTest.distance > (radius + eps))
 	{
 		result.intersectionCount = 0;
 		return result;
 	}
 
-	// One intersection
-	if (originTest.distance - radius < eps)
+	// One intersection (ray is tangent to circle)
+	if (abs(originTest.distance - radius) < eps)
 	{
 		result.intersectionCount = 1;
 		result.firstMultiplier = originTest.multiplier;
+		return result;
+	}
+
+	// check if ray lies on circle's plane . If yes, we have two intersections, otherwise none.
+	if (!circle.getPlane().onPlane(dir))
+	{
+		result.intersectionCount = 0;
 		return result;
 	}
 

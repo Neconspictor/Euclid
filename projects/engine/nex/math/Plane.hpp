@@ -21,7 +21,7 @@ namespace nex
 		Plane(float x, float y, float z, float d);
 
 		/**
-		 * Tests if a point is on the plane
+		 * Tests if a vector (direction or point) is on the plane
 		 */
 		bool onPlane(const glm::vec3& point) const;
 

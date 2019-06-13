@@ -95,6 +95,8 @@ set(
     nex/math/Math.hpp
     nex/math/Ray.cpp
     nex/math/Ray.hpp
+    nex/math/Sphere.cpp
+    nex/math/Sphere.hpp
     
     #nex/mesh
     nex/mesh/IndexBuffer.hpp
