@@ -11,7 +11,7 @@ namespace nex
 	{
 	public:
 
-		struct RayRayDistance
+		struct RayDistance
 		{
 			float multiplier;
 			float otherMultiplier;
@@ -19,16 +19,16 @@ namespace nex
 			float distance;
 		};
 
-		struct RayPointDistance
+		struct PointDistance
 		{
 			float multiplier; //multiplier for the projection of the point on the line
 			float distance;
 		};
 
-		struct RayPlaneIntersection
+		struct PlaneIntersection
 		{
 			// The multiplier for the intersection point.
-			float multiplier = 0.0f;
+			long double multiplier = 0.0f;
 
 			// minimal one intersection
 			bool intersected = false;
@@ -47,12 +47,12 @@ namespace nex
 		/**
 		 * Calculates the closest (perpendicular) signed distance to a point.
 		 */
-		RayPointDistance calcClosestDistance(const glm::vec3& point) const;
+		PointDistance calcClosestDistance(const glm::vec3& point) const;
 
 		/**
 		 * Calculates the closest (perpendicular) signed distance to another ray.
 		 */
-		RayRayDistance calcClosestDistance(const Ray& ray) const;
+		RayDistance calcClosestDistance(const Ray& ray) const;
 
 		const glm::vec3& getDir() const;
 
@@ -72,7 +72,12 @@ namespace nex
 		/**
 		 * Checks if this ray intersects a plane
 		 */
-		RayPlaneIntersection intersects(const Plane& plane) const;
+		PlaneIntersection intersects(const Plane& plane) const;
+
+		/**
+		 * Projects a point orthogonally on the ray line.
+		 */
+		glm::vec3 project(const glm::vec3& point) const;
 
 	private:
 		glm::vec3 origin;

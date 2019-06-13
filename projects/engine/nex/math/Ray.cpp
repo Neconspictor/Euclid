@@ -15,7 +15,7 @@ nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), di
 	sign.z = invDir.z < 0;
 }
 
-nex::Ray::RayPointDistance nex::Ray::calcClosestDistance(const glm::vec3& point) const
+nex::Ray::PointDistance nex::Ray::calcClosestDistance(const glm::vec3& point) const
 {
 	//Reference for math: http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 
@@ -41,7 +41,7 @@ nex::Ray::RayPointDistance nex::Ray::calcClosestDistance(const glm::vec3& point)
 	return { angle, distance };
 }
 
-nex::Ray::RayRayDistance nex::Ray::calcClosestDistance(const Ray& ray) const
+nex::Ray::RayDistance nex::Ray::calcClosestDistance(const Ray& ray) const
 {
 	const auto dirSquared = dot(dir, dir);
 	const auto rayDirSquared = dot(ray.dir, ray.dir);
@@ -98,16 +98,18 @@ const glm::uvec3& nex::Ray::getSign() const
 	return sign;
 }
 
-nex::Ray::RayPlaneIntersection nex::Ray::intersects(const Plane& plane) const
+nex::Ray::PlaneIntersection nex::Ray::intersects(const Plane& plane) const
 {
-	const auto& d = plane.signedDistance;
-	const auto& n = plane.normal;
-	constexpr float eps = 0.0001f;
+	const double d = plane.signedDistance;
+	const glm::dvec3 n = plane.normal;
+	const glm::dvec3 dirDouble = dir;
+	constexpr float eps = 0.04f;
 
-	const auto dotDir = dot(n, dir);
-	const auto compare = d - dot(n, origin);
+	const auto dotDir = dot(n, dirDouble);
+	const auto compare = d - dot(n, glm::dvec3(origin));
+	std::cout << "abs(dotDir) = " << abs(dotDir) << std::endl;
 
-	RayPlaneIntersection result;
+	PlaneIntersection result;
 
 	// if dotDir = 0 we have to calc differently  
 	if (abs(dotDir) < eps)
@@ -128,10 +130,45 @@ nex::Ray::RayPlaneIntersection nex::Ray::intersects(const Plane& plane) const
 		
 	} else
 	{
-		result.multiplier = compare / dotDir;
+		result.multiplier = (long double)compare / (long double)dotDir;
 		result.intersected = true;
 		result.parallel = false;
 	}
 
 	return result;
+}
+
+glm::vec3 nex::Ray::project(const glm::vec3& p) const
+{
+	// Note: v mustn't be normalized! 
+	// We need its length to calc the distance to the point and the projected point.
+	glm::vec3 v = p - origin;
+	const auto vLen = length(v);
+	v = normalize(v);
+	constexpr auto eps = 0.000001f;
+
+	//Check if p already is on the ray
+	if (length(v - dir) < eps)
+		return p;
+
+	// get orthogonal vector 
+	// Note: It doesn't matter in which way we do the cross product for normal and w.
+	// We fix the direction with the sign of dot(v,w)!
+	const auto normal = normalize(cross(dir, v));
+
+	// w will be a vector that is on the same direction as (p-p') or (p'-p)
+	const auto w = normalize(cross(dir, normal));
+
+	// compute distance to p'
+	// smallest angle between v and w
+	const auto vDotW = dot(v, w);
+
+	// Note: v points from origin to p. Thus if w points to p as well, the angle between v and w will be < 90° => vDotW is positive.
+	// In order to get from p to p' we have to use -w => use -vDotW.
+	// For the other case (w points to p') the angle between v and w will be > 90° => vDotW is negative.
+	// In order to get from p to p' we have to use w => use -vDotW.
+	// So, in both cases we need -vDotW!
+	const auto signedDistance = -vDotW * vLen;
+
+	return p + signedDistance * w;
 }
