@@ -178,51 +178,67 @@ nex::Ray::SphereIntersection nex::Ray::intersects(const Sphere& sphere) const
 	return result;
 }
 
-nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle) const
+nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle, float toleranceRange) const
 {
-	const auto& circleOrigin = circle.getOrigin();
-	const auto radius = circle.getRadius();
-	constexpr auto eps = 0.000001f;
 	Circle3DIntersection result;
 
-	const auto originTest = calcClosestDistance(circleOrigin);
+	//At first do a sphere intersection test for rougher test cases
+	const auto sphereTest = intersects(Sphere(circle.getOrigin(), circle.getRadius()));
 
-	// No intersections
-	if (originTest.distance > (radius + eps))
+	if (sphereTest.intersectionCount == 0)
 	{
+		// No intersections
 		result.intersectionCount = 0;
 		return result;
 	}
 
-	// One intersection (ray is tangent to circle)
-	if (abs(originTest.distance - radius) < eps)
+	if (sphereTest.intersectionCount == 1)
 	{
+		// test if the intersection point is located on the circle's plane.
+		if (!circle.isOnCircle(getPoint(sphereTest.firstMultiplier), toleranceRange))
+		{
+			// No intersections
+			result.intersectionCount = 0;
+			return result;
+		}
+
+		// One intersection
 		result.intersectionCount = 1;
-		result.firstMultiplier = originTest.multiplier;
+		result.firstMultiplier = sphereTest.firstMultiplier;
 		return result;
 	}
 
-	// check if ray lies on circle's plane . If yes, we have two intersections, otherwise none.
-	if (!circle.getPlane().onPlane(dir))
+	// test both points to be located on the circle.
+	const auto firstOnPlane = circle.isOnCircle(getPoint(sphereTest.firstMultiplier), toleranceRange);
+	const auto secondOnPlane = circle.isOnCircle(getPoint(sphereTest.secondMultiplier), toleranceRange);
+
+	if (!firstOnPlane && !secondOnPlane)
 	{
+		// No intersections
 		result.intersectionCount = 0;
 		return result;
 	}
 
-	// Two intersections
+	if (firstOnPlane && !secondOnPlane)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+		result.firstMultiplier = sphereTest.firstMultiplier;
+		return result;
+	}
+
+	if (!firstOnPlane && secondOnPlane)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+		result.firstMultiplier = sphereTest.secondMultiplier;
+		return result;
+	}
+
+	// both intersections are located on the circle
 	result.intersectionCount = 2;
-	//const auto projectedOrigin = getPoint(originTest.multiplier);
-	//const auto v = projectedOrigin - circleOrigin;
-
-	// Get the angle between (intersectionPoint - circleOrigin) and (projected circle origin - circleOrigin)
-	const auto angle = acos(originTest.distance / radius);
-
-	// Note: The projected circle origin is equally distant to both two intersection points!
-	const auto distanceIntersectionProjected = sin(angle) * radius;
-
-	result.firstMultiplier = originTest.multiplier - distanceIntersectionProjected;
-	result.secondMultiplier = originTest.multiplier + distanceIntersectionProjected;
-
+	result.firstMultiplier = sphereTest.firstMultiplier;
+	result.secondMultiplier = sphereTest.secondMultiplier;
 	return result;
 }
 

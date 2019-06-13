@@ -19,3 +19,12 @@ float nex::Circle3D::getRadius() const
 {
 	return radius;
 }
+
+bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) const
+{
+	if (!plane.onPlane(point)) return false;
+
+	const auto d = point - origin;
+	const auto compare = dot(d, d) - radius * radius;
+	return compare <= toleranceRange;
+}

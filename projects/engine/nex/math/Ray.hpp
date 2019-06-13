@@ -95,8 +95,9 @@ namespace nex
 
 		/**
 		 * Checks if this ray intersects a circle
+		 * @param toleranceRange : Points that aren't exactly on the circle, but are within this range, are accepted.
 		 */
-		Circle3DIntersection intersects(const Circle3D& circle) const;
+		Circle3DIntersection intersects(const Circle3D& circle, float toleranceRange = 0.000001f) const;
 
 		/**
 		 * Checks if this ray intersects a plane
