@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 #include <nex/math/Constant.hpp>
+#include <ostream>
 
 namespace glm
 {

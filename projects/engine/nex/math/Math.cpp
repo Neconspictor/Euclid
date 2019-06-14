@@ -1,4 +1,5 @@
 #include <nex/math/Math.hpp>
+#include <algorithm>
 
 glm::vec3 nex::NDCToCameraSpace(const glm::vec3& source, const glm::mat4& inverseProjection)
 {

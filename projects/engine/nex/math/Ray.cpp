@@ -4,6 +4,7 @@
 #include "Plane.hpp"
 #include "Circle.hpp"
 #include "Sphere.hpp"
+#include "Torus.hpp"
 
 nex::Ray::Ray(const glm::vec3& origin, const glm::vec3& dir): origin(origin), dir(normalize(dir))
 {
@@ -239,6 +240,11 @@ nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle, floa
 	result.intersectionCount = 2;
 	result.firstMultiplier = sphereTest.firstMultiplier;
 	result.secondMultiplier = sphereTest.secondMultiplier;
+
+
+	Torus torus;
+	const auto t = torus.isInHull(getPoint(sphereTest.firstMultiplier));
+
 	return result;
 }
 

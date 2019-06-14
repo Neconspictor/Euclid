@@ -1,6 +1,6 @@
-#include "PolynomialSolver.hpp"
-#include "../../extern_sources/engine/extern/quartic/quartic.hpp"
-#include "../../extern_sources/engine/extern/quartic/quartic_real.hpp"
+#include <nex/math/PolynomialSolver.hpp>
+#include <extern/quartic/quartic.hpp>
+#include <extern/quartic/quartic_real.hpp>
 
 std::vector<nex::Complex> nex::PolynomialSolver::solveQuartic(const Complex& a, const Complex& b, const Complex& c,
 	const Complex& d, const Complex& e)

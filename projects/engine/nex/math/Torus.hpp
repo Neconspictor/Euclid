@@ -6,15 +6,15 @@ namespace nex
 {
 	struct Torus
 	{
-		glm::vec3 origin = glm::vec3(0.0f);
-		float radius = 1.0f;
+		float innerRadius = 2.0f;
+		float outerRadius = 0.5f;
 
-		Torus(const glm::vec3& origin, float radius);
+		Torus(float innerRadius, float outerRadius);
 		Torus();
 
 		/**
-		 * Checks if a point lies on the sphere's hull
+		 * Checks if a point is located inside the torus topology.
 		 */
-		bool liesOnHull(const glm::vec3& p) const;
+		bool isInHull(const glm::vec3& p) const;
 	};
 }
