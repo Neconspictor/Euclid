@@ -93,6 +93,13 @@ set(
     nex/math/Plane.hpp
     nex/math/Math.cpp
     nex/math/Math.hpp
+    nex/math/PolynomialSolver.cpp
+    nex/math/PolynomialSolver.hpp
+    ../../extern_sources/engine/extern/quartic/quartic.cpp
+    ../../extern_sources/engine/extern/quartic/quartic.hpp
+    ../../extern_sources/engine/extern/quartic/quartic_real.cpp
+    ../../extern_sources/engine/extern/quartic/quartic_real.hpp
+    
     nex/math/Ray.cpp
     nex/math/Ray.hpp
     nex/math/Sphere.cpp
