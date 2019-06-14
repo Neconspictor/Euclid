@@ -67,7 +67,7 @@ namespace nex
 
 		void enableBlend(bool enable);
 		void enableAlphaToCoverage(bool enable);
-		void setSampleConverage(float sampleCoverage, bool invert);
+		void setSampleConverage(Real sampleCoverage, bool invert);
 		void setConstantBlendColor(const glm::vec4& color);
 		void setBlendDesc(const BlendDesc& desc);
 		void setState(const BlendState& state);
@@ -136,9 +136,9 @@ namespace nex
 		FillMode fillMode;
 		PolygonSide cullMode = PolygonSide::BACK;
 		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
-		float depthBias = 0.0f;
-		float depthBiasClamp = 0.0f;
-		float slopeScaledDepthBias = 0.0f;
+		Real depthBias = 0.0f;
+		Real depthBiasClamp = 0.0f;
+		Real slopeScaledDepthBias = 0.0f;
 		//bool enableDepthClipable = false; // not possible in opengl
 		bool enableFaceCulling = true;
 		bool enableScissorTest = false;
@@ -167,7 +167,7 @@ namespace nex
 		void setFillMode(FillMode fillMode);
 		void setCullMode(PolygonSide faceSide);
 		void setWindingOrder(WindingOrder order);
-		void setDepthBias(float slopeScale, float unit, float clamp);
+		void setDepthBias(Real slopeScale, Real unit, Real clamp);
 
 		void setState(const RasterizerState& state);
 		void enableFaceCulling(bool enable);
@@ -387,7 +387,7 @@ namespace nex
 		/**
 		 * @param thickness: must be >= 0
 		 */
-		void setLineThickness(float thickness);
+		void setLineThickness(Real thickness);
 
 		/**
 		 * Sets the number of samples used for msaa

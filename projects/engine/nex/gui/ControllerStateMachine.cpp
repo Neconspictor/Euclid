@@ -4,7 +4,7 @@ nex::gui::ControllerStateMachine::ControllerStateMachine(ControllerPtr controlle
 {
 }
 
-void nex::gui::ControllerStateMachine::frameUpdate(float frameTime)
+void nex::gui::ControllerStateMachine::frameUpdate(Real frameTime)
 {
 	m_controller->frameUpdate(*this, frameTime);
 }

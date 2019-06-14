@@ -15,11 +15,11 @@ namespace nex
 		};
 		virtual ~FPSCounter() {};
 
-		float update(float timeDiff)
+		Real update(Real timeDiff)
 		{
 			runtime += timeDiff;
 			++counter;
-			float currentFPS = counter / runtime;
+			Real currentFPS = counter / runtime;
 			if (!isValid(currentFPS))
 			{
 				currentFPS = 0;
@@ -35,13 +35,13 @@ namespace nex
 		}
 
 	protected:
-		static bool isValid(float value)
+		static bool isValid(Real value)
 		{
 			return !isnan(value) && value != HUGE_VALL && value != -HUGE_VALL;
 		}
 
 	private:
-		float runtime;
+		Real runtime;
 		int counter;
 	};
 }

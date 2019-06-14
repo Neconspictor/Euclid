@@ -75,7 +75,7 @@ namespace nex
 	{
 		bool enableBlend = false;
 		bool enableAlphaToCoverage = false;
-		float sampleCoverage = 1.0f;
+		Real sampleCoverage = 1.0f;
 		bool invertSampleConverage = false;
 		glm::vec4 constantBlendColor = glm::vec4(0, 0, 0, 0);
 		//bool enableIndependentBlend = false; // not possible for opengl

@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "nex/math/Constant.hpp"
 
 namespace nex {
 
@@ -8,9 +9,9 @@ namespace nex {
 	 */
 	struct SphericalCoordinate
 	{
-		float polar;
-		float azimuth;
-		float radius;
+		Real polar;
+		Real azimuth;
+		Real radius;
 
 		static glm::vec3 cartesian(const SphericalCoordinate& coord);
 		static SphericalCoordinate convert(glm::vec3 cartesian);
@@ -25,18 +26,18 @@ namespace nex {
 
 		const glm::vec3& getDirection() const;
 
-		float getLightPower() const;
+		Real getLightPower() const;
 
 		void setColor(glm::vec3 color);
 
 		void setDirection(glm::vec3 dir);
 
-		void setPower(float power);
+		void setPower(Real power);
 
 	protected:
 		glm::vec3 mColor;
 		glm::vec3 mDirection;
-		float mPower;
+		Real mPower;
 	};
 
 	class AmbientLight
@@ -44,13 +45,13 @@ namespace nex {
 	public:
 		AmbientLight();
 		const glm::vec3& getColor()const;
-		float getPower() const;
+		Real getPower() const;
 		void setColor(glm::vec3 color);
-		void setPower(float power);
+		void setPower(Real power);
 		
 
 	private:
 		glm::vec3 mColor;
-		float mPower;
+		Real mPower;
 	};
 }

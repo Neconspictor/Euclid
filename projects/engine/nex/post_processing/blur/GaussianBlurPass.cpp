@@ -20,12 +20,12 @@ void nex::GaussianBlurHorizontalShader::setTexture(const Texture* tex)
 	mShader->setTexture(tex, &mSampler, image.bindingSlot);
 }
 
-void nex::GaussianBlurHorizontalShader::setImageWidth(float width)
+void nex::GaussianBlurHorizontalShader::setImageWidth(Real width)
 {
 	mShader->setFloat(windowWidth.location, width);
 }
 
-void nex::GaussianBlurHorizontalShader::setImageHeight(float height)
+void nex::GaussianBlurHorizontalShader::setImageHeight(Real height)
 {
 	mShader->setFloat(windowHeight.location, height);
 }
@@ -51,12 +51,12 @@ void nex::GaussianBlurVerticalShader::setTexture(const Texture* tex)
 	mShader->setTexture(tex, &mSampler, image.bindingSlot);
 }
 
-void nex::GaussianBlurVerticalShader::setImageWidth(float width)
+void nex::GaussianBlurVerticalShader::setImageWidth(Real width)
 {
 	mShader->setFloat(windowWidth.location, width);
 }
 
-void nex::GaussianBlurVerticalShader::setImageHeight(float height)
+void nex::GaussianBlurVerticalShader::setImageHeight(Real height)
 {
 	mShader->setFloat(windowHeight.location, height);
 }

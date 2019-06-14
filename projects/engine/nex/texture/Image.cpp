@@ -179,7 +179,7 @@ void ImageFactory::writeToPNG(const char* filePath, const char* image, size_t wi
 void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* filePath, bool flipY)
 {
 	stbi__flip_vertically_on_write = flipY;
-	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.channels, (const float*)imageData.pixels.getPixels());
+	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.channels, (const Real*)imageData.pixels.getPixels());
 }
 
 nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int desiredChannels)
@@ -190,7 +190,7 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int de
 	int height; 
 	int channels;
 
-	float *rawData = stbi_loadf(filePath, &width, &height, &channels, desiredChannels);
+	Real *rawData = stbi_loadf(filePath, &width, &height, &channels, desiredChannels);
 
 	if (!rawData) {
 		Logger logger("ImageFactory");
@@ -201,7 +201,7 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int de
 	}
 
 	if (desiredChannels != 0) channels = desiredChannels;
-	const size_t pixelSize = channels * sizeof(float);
+	const size_t pixelSize = channels * sizeof(Real);
 
 	GenericImage image;
 	ImageResource resource;

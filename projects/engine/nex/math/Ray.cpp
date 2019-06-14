@@ -30,11 +30,11 @@ nex::Ray::PointDistance nex::Ray::calcClosestDistance(const glm::vec3& point) co
 	const glm::vec3 fromPointOnLine = point - pointOnLine;
 
 	// Note that fromPointOnLine - origin is a unit vector -> we don't need to divide by its length!
-	const float distance = length(cross(fromOrigin, fromPointOnLine));
+	const Real distance = length(cross(fromOrigin, fromPointOnLine));
 
 	// get the angle between the vector from origin to point and the ray direction.
 	// This angle can be used to get the projected point on the ray and thus is the multiplier we are looking for.
-	const float angle = dot(fromOrigin, dir);
+	const Real angle = dot(fromOrigin, dir);
 	//const glm::vec3 projectedPoint = origin + angle * dir;
 
 	// Check that the calculated projected point has indeed the previously calculated distance to the point.
@@ -48,7 +48,7 @@ nex::Ray::RayDistance nex::Ray::calcClosestDistance(const Ray& ray) const
 	const auto dirSquared = dot(dir, dir);
 	const auto rayDirSquared = dot(ray.dir, ray.dir);
 	const auto dirDotRayDir = dot(dir, ray.dir);
-	constexpr float eps = 0.00001f;
+	constexpr Real eps = 0.00001f;
 
 	const auto determinant = dirSquared * rayDirSquared - dirDotRayDir * dirDotRayDir;
 
@@ -57,7 +57,7 @@ nex::Ray::RayDistance nex::Ray::calcClosestDistance(const Ray& ray) const
 	if (parallel)
 	{
 		const auto p1p2 = origin - ray.origin;
-		const float distance = length(p1p2 - dot(p1p2, dir)*dir);
+		const Real distance = length(p1p2 - dot(p1p2, dir)*dir);
 
 		return { 0.0f, 0.0f, parallel, distance };
 	}
@@ -70,7 +70,7 @@ nex::Ray::RayDistance nex::Ray::calcClosestDistance(const Ray& ray) const
 												 );
 	const glm::vec2 vec(dot(dir, ray.origin - origin), dot(ray.dir, origin - ray.origin));
 	const glm::vec2 multipliers = invMat * vec;
-	const float distance = length(ray.origin + multipliers.y * ray.dir - origin - multipliers.x * dir);
+	const Real distance = length(ray.origin + multipliers.y * ray.dir - origin - multipliers.x * dir);
 
 	return { multipliers.x, multipliers.y, parallel, distance };
 }
@@ -90,7 +90,7 @@ const glm::vec3& nex::Ray::getOrigin() const
 	return origin;
 }
 
-glm::vec3 nex::Ray::getPoint(float multiplier) const
+glm::vec3 nex::Ray::getPoint(Real multiplier) const
 {
 	return origin + multiplier * dir;
 }
@@ -105,7 +105,7 @@ nex::Ray::PlaneIntersection nex::Ray::intersects(const Plane& plane) const
 	const double d = plane.mSignedDistance;
 	const glm::dvec3 n = plane.mNormal;
 	const glm::dvec3 dirDouble = dir;
-	constexpr float eps = 0.04f;
+	constexpr Real eps = 0.04f;
 
 	const auto dotDir = dot(n, dirDouble);
 	const auto compare = d - dot(n, glm::dvec3(origin));
@@ -178,7 +178,7 @@ nex::Ray::SphereIntersection nex::Ray::intersects(const Sphere& sphere) const
 	return result;
 }
 
-nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle, float toleranceRange) const
+nex::Ray::Circle3DIntersection nex::Ray::intersects(const Circle3D& circle, Real toleranceRange) const
 {
 	Circle3DIntersection result;
 

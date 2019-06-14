@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <nex/math/Constant.hpp>
 
 namespace nex
 {
@@ -18,12 +19,12 @@ namespace nex
 			/**
 			 * Multiplier of the first intersection point.
 			 */
-			float firstIntersection;
+			Real firstIntersection;
 
 			/**
 			 * Multiplier of the second intersection point.
 			 */
-			float secondIntersection;
+			Real secondIntersection;
 		};
 
 		glm::vec3 min = glm::vec3(FLT_MAX);

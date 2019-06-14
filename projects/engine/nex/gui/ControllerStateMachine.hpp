@@ -15,7 +15,7 @@ namespace nex::gui
 		ControllerStateMachine(ControllerPtr controller);
 		virtual ~ControllerStateMachine() = default;
 
-		void frameUpdate(float frameTime);
+		void frameUpdate(Real frameTime);
 
 		Controller* getCurrentController();
 

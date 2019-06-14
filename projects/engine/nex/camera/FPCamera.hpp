@@ -12,30 +12,30 @@ namespace nex
 		FPCamera(unsigned width, unsigned height);
 
 		void setLook(glm::vec3 look) override;
-		void frameUpdate(Input* input, float frameTime) override;
+		void frameUpdate(Input* input, Real frameTime) override;
 
-		float getYaw() const;
-		float getPitch() const;
+		Real getYaw() const;
+		Real getPitch() const;
 
 		void recalculateLookVector();
 
 		/**
 		 * Sets yaw angle in degree
 		 */
-		void setYaw(float yaw);
+		void setYaw(Real yaw);
 		
 		/**
 		 * Sets pitch angle in degree
 		 */
-		void setPitch(float pitch);
+		void setPitch(Real pitch);
 
 	protected:
 
 		friend FPCamera_ConfigurationView;
 
-		static float limit(float source, float min, float max);
+		static Real limit(Real source, Real min, Real max);
 
-		float yaw, pitch;
+		Real yaw, pitch;
 	};
 
 	class FPCamera_ConfigurationView : public nex::gui::Drawable {

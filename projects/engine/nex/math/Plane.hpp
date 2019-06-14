@@ -1,4 +1,5 @@
 #pragma once
+#include "Constant.hpp"
 
 namespace nex
 {
@@ -8,17 +9,17 @@ namespace nex
 	struct Plane
 	{
 		glm::vec3 mNormal = { 0,0,-1 };
-		float mSignedDistance = 0;
+		Real mSignedDistance = 0;
 
 		Plane();
-		Plane(glm::vec3 normal, float distance);
+		Plane(glm::vec3 normal, Real distance);
 
 		/**
 		 * Creates a plane from a normal and a point laying on the desired plane.
 		 */
 		Plane(glm::vec3 normal, glm::vec3 pointOnPlane);
 
-		Plane(float x, float y, float z, float d);
+		Plane(Real x, Real y, Real z, Real d);
 
 		/**
 		 * Tests if a vector (direction or point) is on the plane

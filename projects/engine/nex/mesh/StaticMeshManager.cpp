@@ -15,9 +15,10 @@
 #include <nex/FileSystem.hpp>
 #include "VertexLayout.hpp"
 #include "VertexBuffer.hpp"
+#include "nex/math/Constant.hpp"
 
 
-	nex::StaticMeshManager::StaticMeshManager() :
+nex::StaticMeshManager::StaticMeshManager() :
 		mFileSystem(nullptr),
 		mInitialized(false)
 	{
@@ -26,8 +27,8 @@
 		SPRITE_MODEL_HASH = nex::util::customSimpleHash(sample_meshes::RECTANGLE_NAME);
 
 		mFullscreenPlane = std::make_unique<VertexArray>();
-		static const float fullscreenPlaneTriangleStripVerticesOpengl[] = {
-			// position 4 floats, texture coords 2 floats
+		static const Real fullscreenPlaneTriangleStripVerticesOpengl[] = {
+			// position 4 Reals, texture coords 2 Reals
 			-1.0, +1.0, 0.0, 1.0, 0.0, 1.0,
 			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
 			+1.0, -1.0, 0.0, 1.0, 1.0, 0.0,
@@ -36,16 +37,16 @@
 
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl, sizeof(fullscreenPlaneTriangleStripVerticesOpengl));
 		VertexLayout layout;
-		layout.push<float>(4);
-		layout.push<float>(2);
+		layout.push<Real>(4);
+		layout.push<Real>(2);
 		mFullscreenPlane->bind();
 		mFullscreenPlane->useBuffer(*mFullscreenTriangleData, layout);
 		mFullscreenPlane->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 
 		mFullscreenTriangle = std::make_unique<VertexArray>();
-		static const float fullscreenTriangleVerticesOpengl[] = {
-			// position 4 floats, texture coords 2 floats
+		static const Real fullscreenTriangleVerticesOpengl[] = {
+			// position 4 Reals, texture coords 2 Reals
 			-1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
 			+3.0, -1.0, 0.0, 1.0, 2.0, 0.0,
 			-1.0, +3.0, 0.0, 1.0, 0.0, 2.0
@@ -292,11 +293,11 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 
 		std::vector<Vertex> vertices;
 		unsigned int vertexCount = sizeof(sample_meshes::cubePositionNormalTexVertices) / sizeof(Vertex);
-		unsigned int vertexSlice = sizeof(Vertex) / sizeof(float);
+		unsigned int vertexSlice = sizeof(Vertex) / sizeof(Real);
 		for (unsigned int i = 0; i < vertexCount; ++i)
 		{
 			Vertex vertex;
-			const float* source = &sample_meshes::cubePositionNormalTexVertices[i * vertexSlice];
+			const Real* source = &sample_meshes::cubePositionNormalTexVertices[i * vertexSlice];
 			vertex.position = { *(source), *(source + 1), *(source + 2) };
 			source += 3;
 			vertex.normal = { *(source), *(source + 1), *(source + 2) };

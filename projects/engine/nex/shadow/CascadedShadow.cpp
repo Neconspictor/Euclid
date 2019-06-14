@@ -32,7 +32,7 @@ bool CascadedShadow::PCFFilter::operator==(const PCFFilter& o)
 	&& (useLerpFiltering == o.useLerpFiltering);
 }
 
-CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn) :
+CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, Real biasMultiplier, bool antiFlickerOn) :
 	mCascadeWidth(cascadeWidth),
 	mCascadeHeight(cascadeHeight),
 	mShadowMapSize(std::min<unsigned>(cascadeWidth, cascadeHeight)),
@@ -230,9 +230,9 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(Camera * camera, const gl
 void CascadedShadow::frameUpdateNoTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection,
 	const glm::vec2& minMaxPositiveZ)
 {
-	const float minDistance = 0.0f;//minMaxPositiveZ.x / (minMaxPositiveZ.y - minMaxPositiveZ.x);
+	const Real minDistance = 0.0f;//minMaxPositiveZ.x / (minMaxPositiveZ.y - minMaxPositiveZ.x);
 	//const Frustum& frustum = camera->getFrustum(ProjectionMode::Perspective);
-	//const float cameraNearPlaneVS = frustum.nearPlane;
+	//const Real cameraNearPlaneVS = frustum.nearPlane;
 	calcSplitSchemes(minMaxPositiveZ);
 	mCascadeData.inverseViewMatrix = inverse(camera->getView());
 	mGlobal = calcShadowSpaceMatrix(camera, lightDirection);
@@ -242,16 +242,16 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(Camera* camera, const glm::v
 	for (unsigned int cascadeIterator = 0; cascadeIterator < mCascadeData.numCascades; ++cascadeIterator)
 	{
 		// the far plane of the previous cascade is the near plane of the current cascade
-		//const float nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
-		//const float farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
-		const float nearSplitDistance = minMaxPositiveZ.x + (cascadeIterator == 0 ? minDistance : mSplitDistances[cascadeIterator - 1]);
-		const float farSplitDistance = minMaxPositiveZ.x + mSplitDistances[cascadeIterator];
+		//const Real nearPlane = cascadeIterator == 0 ? cameraNearPlaneVS : mCascadeData.cascadedFarPlanes[cascadeIterator - 1].x;
+		//const Real farPlane = mCascadeData.cascadedFarPlanes[cascadeIterator].x;
+		const Real nearSplitDistance = minMaxPositiveZ.x + (cascadeIterator == 0 ? minDistance : mSplitDistances[cascadeIterator - 1]);
+		const Real farSplitDistance = minMaxPositiveZ.x + mSplitDistances[cascadeIterator];
 
 
 		glm::mat4 cascadeTrans;
 		glm::mat4 cascadeScale;
 		glm::vec3 cascadeCenterShadowSpace;
-		float scale;
+		Real scale;
 
 		if (mAntiFlickerOn)
 		{
@@ -259,7 +259,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(Camera* camera, const glm::v
 			// To avoid anti flickering we need to make the transformation invariant to camera rotation and translation
 			// By encapsulating the cascade frustum with a sphere we achive the rotation invariance
 			const auto boundingSphere = extractFrustumBoundSphere(camera, nearSplitDistance, farSplitDistance);
-			const float radius = boundingSphere.radius;
+			const Real radius = boundingSphere.radius;
 			const glm::vec3& frustumCenterWS = boundingSphere.center;
 
 			// Only update the cascade bounds if it moved at least a full pixel unit
@@ -295,7 +295,7 @@ void CascadedShadow::frameUpdateNoTightNearFarPlane(Camera* camera, const glm::v
 			}
 
 			cascadeCenterShadowSpace = 0.5f * (minExtents + maxExtents);
-			scale = 2.0f / std::max<float>(maxExtents.x - minExtents.x, maxExtents.y - minExtents.y);
+			scale = 2.0f / std::max<Real>(maxExtents.x - minExtents.x, maxExtents.y - minExtents.y);
 		}
 
 
@@ -365,7 +365,7 @@ CascadedShadow::GlobalShadow CascadedShadow::calcShadowSpaceMatrix(Camera* camer
 {
 	const auto nearDistance = camera->getNearDistance();
 	const auto farDistance = camera->getFarDistance();
-	const float cascadeTotalRange = farDistance - nearDistance;
+	const Real cascadeTotalRange = farDistance - nearDistance;
 	const auto shadowBounds = extractFrustumBoundSphere(camera, nearDistance, farDistance);
 
 	// Find the view matrix
@@ -401,7 +401,7 @@ void CascadedShadow::calcSplitSchemes(const glm::vec2& minMaxPositiveZ)
 {
 	calcSplitDistances(minMaxPositiveZ.y - minMaxPositiveZ.x, minMaxPositiveZ);
 
-	const float nearClip = minMaxPositiveZ.x;
+	const Real nearClip = minMaxPositiveZ.x;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
@@ -411,34 +411,34 @@ void CascadedShadow::calcSplitSchemes(const glm::vec2& minMaxPositiveZ)
 	}
 }
 
-void CascadedShadow::calcSplitDistances(float range, const glm::vec2& minMaxPositiveZ)
+void CascadedShadow::calcSplitDistances(Real range, const glm::vec2& minMaxPositiveZ)
 {
 	/*//Between 0 and 1, change in order to see the results
-	const float lambda = 1.0f;
+	const Real lambda = 1.0f;
 	//Between 0 and 1, change these to check the results
-	const float minDistance = 0.0f;
-	const float maxDistance = 1.0f;*/
+	const Real minDistance = 0.0f;
+	const Real maxDistance = 1.0f;*/
 
 
-	/*const float nearClip = minMaxPositiveZ.x;//frustum.nearPlane;
-	//const float farClip = minMaxPositiveZ.y;// frustum.farPlane;
-	const float clipRange = max(minMaxPositiveZ.y - nearClip, 10.0f);
+	/*const Real nearClip = minMaxPositiveZ.x;//frustum.nearPlane;
+	//const Real farClip = minMaxPositiveZ.y;// frustum.farPlane;
+	const Real clipRange = max(minMaxPositiveZ.y - nearClip, 10.0f);
 
-	const float minZ = nearClip + minDistance * clipRange;
-	const float maxZ = nearClip + maxDistance * clipRange;
+	const Real minZ = nearClip + minDistance * clipRange;
+	const Real maxZ = nearClip + maxDistance * clipRange;
 
-	const float range = maxZ - minZ;
-	const float ratio = maxZ / minZ;*/
+	const Real range = maxZ - minZ;
+	const Real ratio = maxZ / minZ;*/
 
-	float step = range / (float)mCascadeData.numCascades;
+	Real step = range / (Real)mCascadeData.numCascades;
 
 	// We calculate the splitting planes of the view frustum by using an algorithm 
 	for (unsigned int i = 0; i < mCascadeData.numCascades; ++i)
 	{
-		//const float p = (i + 1) / static_cast<float>(mCascadeData.numCascades);
-		//const float log = minZ * std::pow(ratio, p);
-		//const float uniform = minZ + range * p;
-		//const float d = lambda * (log - uniform) + uniform;
+		//const Real p = (i + 1) / static_cast<Real>(mCascadeData.numCascades);
+		//const Real log = minZ * std::pow(ratio, p);
+		//const Real uniform = minZ + range * p;
+		//const Real d = lambda * (log - uniform) + uniform;
 		//mSplitDistances[i] = (d - nearClip);
 		mSplitDistances[i] = ((i + 1)*step);
 
@@ -471,7 +471,7 @@ void CascadedShadow::calcSplitDistances(float range, const glm::vec2& minMaxPosi
 	}
 }
 
-CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance)
+CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera* camera, Real nearSplitDistance, Real farSplitDistance)
 {
 	glm::vec3 frustumCornersWS[8];
 	extractFrustumPoints(camera, nearSplitDistance, farSplitDistance, frustumCornersWS);
@@ -484,11 +484,11 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 	// calc sphere that tightly encloses the frustum
 	// We use the max distance from the frustum center to the corners
 	// TODO Actually should the distance ot all corners be the same???
-	float radius = 0.0f;
+	Real radius = 0.0f;
 	for (unsigned int i = 0; i < 8; ++i)
 	{
-		float distance = glm::length(frustumCornersWS[i] - frustumCenter);
-		radius = std::max<float>(radius, distance);
+		Real distance = glm::length(frustumCornersWS[i] - frustumCenter);
+		radius = std::max<Real>(radius, distance);
 	}
 
 	// do some rounding for fighting numerical issues
@@ -499,7 +499,7 @@ CascadedShadow::BoundingSphere CascadedShadow::extractFrustumBoundSphere(Camera*
 	return { frustumCenter, radius };
 }
 
-void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3(& frustumCorners)[8])
+void CascadedShadow::extractFrustumPoints(Camera* camera, Real nearSplitDistance, Real farSplitDistance, glm::vec3(& frustumCorners)[8])
 {
 	// old stuff
 	/*const auto& position = camera->getPosition();
@@ -507,12 +507,12 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistanc
 	const auto& look = camera->getLook(); // glm::vec3(0,0,1);
 	const auto& right = camera->getRight(); // glm::vec3(-1,0,0);
 
-	const float aspectRatio = camera->getAspectRatio();
-	const float fov = glm::radians(camera->getFOV());
+	const Real aspectRatio = camera->getAspectRatio();
+	const Real fov = glm::radians(camera->getFOV());
 
 	// Calculate the tangent values (this can be cached
-	const float tanFOVX = tanf(aspectRatio * fov / 2.0f);
-	const float tanFOVY = tanf(fov / 2.0f);
+	const Real tanFOVX = tanf(aspectRatio * fov / 2.0f);
+	const Real tanFOVY = tanf(fov / 2.0f);
 
 
 
@@ -551,9 +551,9 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistanc
 		frustumCornersWS[i] = glm::vec3(inversePoint / inversePoint.w);
 	}
 
-	const float nearClip = camera->getNearDistance();
-	const float farClip = camera->getFarDistance();
-	const float clipRange = farClip - nearClip;
+	const Real nearClip = camera->getNearDistance();
+	const Real farClip = camera->getFarDistance();
+	const Real clipRange = farClip - nearClip;
 
 	// Calculate rays that define the near and far plane of each cascade split.
 	// Than we translate the frustum corner accordingly so that the frustum starts at the near splitting plane
@@ -569,7 +569,7 @@ void CascadedShadow::extractFrustumPoints(Camera* camera, float nearSplitDistanc
 }
 
 bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
-	const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset)
+	const glm::vec3& oldCenter, Real cascadeBoundRadius, glm::vec3* offset)
 {
 	// Find the offset between the new and old bound center
 	const glm::vec3 oldCenterInCascade = glm::vec3(shadowView * glm::vec4(oldCenter, 1.0f));
@@ -577,11 +577,11 @@ bool CascadedShadow::cascadeNeedsUpdate(const glm::mat4& shadowView, int cascade
 	const glm::vec3 centerDiff = newCenterInCascade - oldCenterInCascade;
 
 	// Find the pixel size based on the diameters and map pixel size
-	const float pixelSize = (float)mShadowMapSize / (2.0f * cascadeBoundRadius);
+	const Real pixelSize = (Real)mShadowMapSize / (2.0f * cascadeBoundRadius);
 
-	const float pixelOffX = centerDiff.x * pixelSize;
-	const float pixelOffY = centerDiff.y * pixelSize;
-	//const float pixelOffZ = centerDiff.z * pixelSize;
+	const Real pixelOffX = centerDiff.x * pixelSize;
+	const Real pixelOffY = centerDiff.y * pixelSize;
+	//const Real pixelOffZ = centerDiff.z * pixelSize;
 
 	// Check if the center moved at least half a pixel unit
 	const bool needUpdate = abs(pixelOffX) > 0.5f || abs(pixelOffY) > 0.5f; //|| abs(pixelOffZ) > 0.5f;
@@ -721,12 +721,12 @@ bool CascadedShadow::getAntiFlickering() const
 	return mAntiFlickerOn;
 }
 
-float CascadedShadow::getBiasMultiplier() const
+Real CascadedShadow::getBiasMultiplier() const
 {
 	return mBiasMultiplier;
 }
 
-void CascadedShadow::setBiasMultiplier(float bias, bool informObservers)
+void CascadedShadow::setBiasMultiplier(Real bias, bool informObservers)
 {
 	mBiasMultiplier = bias;
 	if (informObservers) informCascadeChanges();
@@ -747,12 +747,12 @@ const CascadedShadow::PCFFilter& CascadedShadow::getPCF() const
 	return mPCF;
 }
 
-float CascadedShadow::getShadowStrength() const
+Real CascadedShadow::getShadowStrength() const
 {
 	return mShadowStrength;
 }
 
-void CascadedShadow::setShadowStrength(float strength)
+void CascadedShadow::setShadowStrength(Real strength)
 {
 	mShadowStrength = strength;
 }
@@ -844,7 +844,7 @@ CascadedShadow_ConfigurationView::CascadedShadow_ConfigurationView(CascadedShado
 
 void CascadedShadow_ConfigurationView::drawShadowStrengthConfig()
 {
-	float strength = mModel->getShadowStrength();
+	Real strength = mModel->getShadowStrength();
 	if (ImGui::SliderFloat("Shadow Strength", &strength, 0.0f, 1.0f))
 	{
 		mModel->setShadowStrength(strength);
@@ -888,9 +888,9 @@ void CascadedShadow_ConfigurationView::drawCascadeNumConfig()
 
 void CascadedShadow_ConfigurationView::drawCascadeBiasConfig()
 {
-	const float realBias(mModel->getBiasMultiplier());
+	const Real realBias(mModel->getBiasMultiplier());
 
-	static float bias(realBias);
+	static Real bias(realBias);
 
 	ImGuiContext& g = *GImGui;
 	ImGui::BeginGroup();

@@ -72,12 +72,12 @@ namespace nex {
 		return mDirection;
 	}
 
-	float DirectionalLight::getLightPower() const
+	Real DirectionalLight::getLightPower() const
 	{
 		return mPower;
 	}
 
-	void DirectionalLight::setPower(float power)
+	void DirectionalLight::setPower(Real power)
 	{
 		mPower = power;
 	}
@@ -101,7 +101,7 @@ namespace nex {
 		return mColor;
 	}
 
-	float AmbientLight::getPower() const
+	Real AmbientLight::getPower() const
 	{
 		return mPower;
 	}
@@ -111,7 +111,7 @@ namespace nex {
 		mColor = std::move(color);
 	}
 
-	void AmbientLight::setPower(float power)
+	void AmbientLight::setPower(Real power)
 	{
 		mPower = power;
 	}

@@ -26,7 +26,7 @@ namespace nex
 			lastUpdateTime = currentFrameTime;
 		};
 
-		float getTimeInSeconds()
+		Real getTimeInSeconds()
 		{
 			return diff / (long double)1000000000;
 		}
@@ -91,16 +91,16 @@ namespace nex
 	class SimpleTimer
 	{
 	public:
-		float currentTime = 0;
-		float diff = 0;
+		Real currentTime = 0;
+		Real diff = 0;
 
-		void reset(float time)
+		void reset(Real time)
 		{
 			currentTime = time;
 			diff = 0;
 		}
 
-		void update(float time)
+		void update(Real time)
 		{
 			diff = time - currentTime;
 			currentTime = time;

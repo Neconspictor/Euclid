@@ -53,7 +53,7 @@ namespace nex::gui
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		void activate(const Ray& screenRayWorld, float cameraViewFieldRange);
+		void activate(const Ray& screenRayWorld, Real cameraViewFieldRange);
 
 		Mode getMode()const;
 
@@ -72,7 +72,7 @@ namespace nex::gui
 		 */
 		void highlightAxis(Axis axis);
 
-		bool isHovering(const Ray& screenRayWorld, float cameraViewFieldRange, Active* active = nullptr) const;
+		bool isHovering(const Ray& screenRayWorld, Real cameraViewFieldRange, Active* active = nullptr) const;
 
 		bool isVisible()const;
 
@@ -102,7 +102,7 @@ namespace nex::gui
 
 		int compare(const Data& first, const Data& second) const;
 		void initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName);
-		bool isHoveringRotate(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active = nullptr) const;
+		bool isHoveringRotate(const Ray& screenRayWorld, const Real cameraViewFieldRange, Active* active = nullptr) const;
 
 		/**
 		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
@@ -110,7 +110,7 @@ namespace nex::gui
 		bool checkNearPlaneCircle(const Ray::PlaneIntersection& testResult, 
 								const Ray& ray,
 								const glm::vec3& circleOrigin, 
-								float minRadius, float maxRadius, float& multiplierOut) const;
+								Real minRadius, Real maxRadius, Real& multiplierOut) const;
 
 		static void fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position);
 
@@ -135,8 +135,8 @@ namespace nex::gui
 		SceneNode* mActiveGizmoNode;
 
 		Active mActivationState;
-		float mLastFrameMultiplier;
-		float mRotationAcc;
+		Real mLastFrameMultiplier;
+		Real mRotationAcc;
 		glm::vec3 mRotationVecLast;
 		Mode mMode;
 		bool mVisible;

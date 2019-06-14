@@ -1,4 +1,5 @@
 #pragma once
+#include "nex/math/Constant.hpp"
 
 namespace nex
 {
@@ -172,10 +173,10 @@ namespace nex
 		TextureUVTechnique wrapR = TextureUVTechnique::ClampToEdge;
 		int minLOD = -1000;
 		int maxLOD = 1000;
-		float biasLOD = 0;
+		Real biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
 		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
-		float maxAnisotropy = 1.0f;
+		Real maxAnisotropy = 1.0f;
 
 		static SamplerDesc createMipMapRepeat()
 		{

@@ -94,17 +94,17 @@ void PbrCommonLightingPass::setLightColor(const glm::vec3& color)
 	mShader->setVec3(mLightColor.location, color);
 }
 
-void PbrCommonLightingPass::setLightPower(float power)
+void PbrCommonLightingPass::setLightPower(Real power)
 {
 	mShader->setFloat(mLightPower.location, power);
 }
 
-void PbrCommonLightingPass::setAmbientLightPower(float power)
+void PbrCommonLightingPass::setAmbientLightPower(Real power)
 {
 	mShader->setFloat(mAmbientLightPower.location, power);
 }
 
-void PbrCommonLightingPass::setShadowStrength(float strength)
+void PbrCommonLightingPass::setShadowStrength(Real strength)
 {
 	mShader->setFloat(mShadowStrength.location, strength);
 }
@@ -390,7 +390,7 @@ void PbrPrefilterPass::setMapToPrefilter(CubeMap * cubeMap)
 	mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
-void PbrPrefilterPass::setRoughness(float roughness)
+void PbrPrefilterPass::setRoughness(Real roughness)
 {
 	mShader->setFloat(mRoughness.location, roughness);
 }

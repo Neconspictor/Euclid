@@ -1,18 +1,16 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <nex/math/Constant.hpp>
 
 
 namespace nex
 {
-
 	/**
 	 * A struct for complex numbers
 	 */
 	struct Complex
 	{
-		using Real = float;
-
 		Real re;
 		Real im;
 
@@ -78,7 +76,7 @@ namespace nex
 	};
 }
 
-nex::Complex operator*(nex::Complex::Real scalar, const nex::Complex& c);
-nex::Complex& operator*=(nex::Complex::Real scalar, nex::Complex& c);
-nex::Complex operator/(nex::Complex::Real scalar, const nex::Complex& c);
-nex::Complex& operator/=(nex::Complex::Real scalar, nex::Complex& c);
+nex::Complex operator*(nex::Real scalar, const nex::Complex& c);
+nex::Complex& operator*=(nex::Real scalar, nex::Complex& c);
+nex::Complex operator/(nex::Real scalar, const nex::Complex& c);
+nex::Complex& operator/=(nex::Real scalar, nex::Complex& c);

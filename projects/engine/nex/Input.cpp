@@ -93,7 +93,7 @@ namespace nex
 		}
 	}
 
-	void Input::informScrollListeners(float scrollX, float scrollY)
+	void Input::informScrollListeners(Real scrollX, Real scrollY)
 	{
 		for (const auto& handle : mScrollContainer.getCallbacks())
 		{

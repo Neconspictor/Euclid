@@ -13,7 +13,7 @@ Sprite::~Sprite()
 {
 }
 
-float Sprite::getHeight() const
+Real Sprite::getHeight() const
 {
 	return relativeHeight;
 }
@@ -33,12 +33,12 @@ Texture* Sprite::getTexture() const
 	return texture;
 }
 
-float Sprite::getWidth() const
+Real Sprite::getWidth() const
 {
 	return relativeWidth;
 }
 
-void Sprite::setHeight(float height)
+void Sprite::setHeight(Real height)
 {
 	this->relativeHeight = height;
 }
@@ -48,22 +48,22 @@ void Sprite::setPosition(vec2 position)
 	screenPosition = move(position);
 }
 
-void Sprite::setXRotation(float value)
+void Sprite::setXRotation(Real value)
 {
 	this->rotation.x = value;
 }
 
-void Sprite::setYRotation(float value)
+void Sprite::setYRotation(Real value)
 {
 	rotation.y = value;
 }
 
-void Sprite::setZRotation(float value)
+void Sprite::setZRotation(Real value)
 {
 	rotation.z = value;
 }
 
-void Sprite::setWidth(float width)
+void Sprite::setWidth(Real width)
 {
 	this->relativeWidth = width;
 }

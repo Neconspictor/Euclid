@@ -31,7 +31,7 @@ namespace nex
 
 		void clear();
 
-		void set(UniformLocation loc, float value);
+		void set(UniformLocation loc, Real value);
 		void set(UniformLocation loc, int value);
 		void set(UniformLocation loc, const glm::mat2& value);
 		void set(UniformLocation loc, const glm::mat3& value);
@@ -63,7 +63,7 @@ namespace nex
 		using MapTexture = std::unordered_map<int, const Texture*>;
 
 		MapTexture mTextures;
-		Map<float> mFloats;
+		Map<Real> mFloats;
 		Map<int> mInts;
 		Map<glm::mat2> mMat2s;
 		Map<glm::mat3> mMat3s;

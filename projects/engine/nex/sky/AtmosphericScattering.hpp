@@ -11,24 +11,24 @@ namespace nex
 
 		struct Rayleigh
 		{
-			float brightness;
-			float collectionPower;
-			float strength;
+			Real brightness;
+			Real collectionPower;
+			Real strength;
 		};
 
 		struct Mie
 		{
-			float brightness;
-			float distribution;
-			float collectionPower;
-			float strength;
+			Real brightness;
+			Real distribution;
+			Real collectionPower;
+			Real strength;
 		};
 
 		struct Light
 		{
 			// a normalized direction vector
 			glm::vec3 direction;
-			float intensity;
+			Real intensity;
 		};
 
 		AtmosphericScattering();
@@ -66,13 +66,13 @@ namespace nex
 		/**
 		 * NOTE: This shader has to be bound for this function to work correctly!
 		 */
-		void setSpotBrightness(float brightness);
+		void setSpotBrightness(Real brightness);
 
 		/**
 		 * NOTE: This shader has to be bound for this function to work correctly!
 		 * @param height : in range [0.15, 1.0]
 		 */
-		void setSurfaceHeight(float height);
+		void setSurfaceHeight(Real height);
 
 		/**
 		 * NOTE: This shader has to be bound for this function to work correctly!
@@ -87,7 +87,7 @@ namespace nex
 		/**
 		 * NOTE: This shader has to be bound for this function to work correctly!
 		 */
-		void setScatterStrength(float strength);
+		void setScatterStrength(Real strength);
 
 		/**
 		 * NOTE: This shader has to be bound for this function to work correctly!
@@ -106,10 +106,10 @@ namespace nex
 		Rayleigh mRayleigh;
 		Mie mMie;
 		Light mLight;
-		float mSpotBrightness;
-		float mSurfaceHeight;
+		Real mSpotBrightness;
+		Real mSurfaceHeight;
 		unsigned mStepCount;
-		float mScatterStrength;*/
+		Real mScatterStrength;*/
 
 		Uniform mViewPortUniform;
 		Uniform mInvProjUniform;

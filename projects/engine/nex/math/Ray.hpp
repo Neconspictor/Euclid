@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nex/math/Constant.hpp>
+
 namespace nex
 {
 	struct Plane;
@@ -20,22 +22,22 @@ namespace nex
 			unsigned intersectionCount = 0;
 
 			// multipliers of the intersections
-			float firstMultiplier = 0;
-			float secondMultiplier = 0;
+			Real firstMultiplier = 0;
+			Real secondMultiplier = 0;
 		};
 
 		struct RayDistance
 		{
-			float multiplier;
-			float otherMultiplier;
+			Real multiplier;
+			Real otherMultiplier;
 			bool parallel;
-			float distance;
+			Real distance;
 		};
 
 		struct PointDistance
 		{
-			float multiplier; //multiplier for the projection of the point on the line
-			float distance;
+			Real multiplier; //multiplier for the projection of the point on the line
+			Real distance;
 		};
 
 		struct PlaneIntersection
@@ -57,8 +59,8 @@ namespace nex
 			unsigned intersectionCount = 0;
 
 			// multipliers of the intersections
-			float firstMultiplier = 0;
-			float secondMultiplier = 0;
+			Real firstMultiplier = 0;
+			Real secondMultiplier = 0;
 		};
 
 		/**
@@ -89,7 +91,7 @@ namespace nex
 
 		const glm::vec3& getOrigin() const;
 
-		glm::vec3 getPoint(float multiplier) const;
+		glm::vec3 getPoint(Real multiplier) const;
 
 		const glm::uvec3& getSign() const;
 
@@ -97,7 +99,7 @@ namespace nex
 		 * Checks if this ray intersects a circle
 		 * @param toleranceRange : Points that aren't exactly on the circle, but are within this range, are accepted.
 		 */
-		Circle3DIntersection intersects(const Circle3D& circle, float toleranceRange = 0.000001f) const;
+		Circle3DIntersection intersects(const Circle3D& circle, Real toleranceRange = 0.000001f) const;
 
 		/**
 		 * Checks if this ray intersects a plane

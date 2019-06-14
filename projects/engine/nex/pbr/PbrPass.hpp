@@ -79,14 +79,14 @@ namespace nex
 
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
-		void setLightPower(float power);
-		void setAmbientLightPower(float power);
+		void setLightPower(Real power);
+		void setAmbientLightPower(Real power);
 
 		void setInverseViewMatrix(const glm::mat4& mat);
 
 		void setCascadedDepthMap(const Texture* cascadedDepthMap);
 		//void setCascadedData(const CascadedShadow::CascadeData& cascadedData);
-		void setShadowStrength(float strength);
+		void setShadowStrength(Real strength);
 
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
@@ -208,7 +208,7 @@ namespace nex
 
 		void setMapToPrefilter(CubeMap* cubeMap);
 
-		void setRoughness(float roughness);
+		void setRoughness(Real roughness);
 
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);

@@ -57,7 +57,7 @@ namespace nex
 		void setRotation(const glm::mat4& rotation);
 		void setOrientation(const glm::vec3& eulerAngles);
 
-		void rotateGlobal(const glm::vec3& axisWorld, float angle);
+		void rotateGlobal(const glm::vec3& axisWorld, Real angle);
 		
 		void rotateLocal(const glm::vec3& eulerAngles);
 		void rotateGlobal(const glm::vec3& eulerAngles);

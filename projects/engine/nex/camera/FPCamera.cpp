@@ -27,12 +27,12 @@ void nex::FPCamera::setLook(vec3 direction)
 	pitch = limit(pitch, -89.0f, 89.0f);
 }
 
-void nex::FPCamera::frameUpdate(Input* input, float frameTime)
+void nex::FPCamera::frameUpdate(Input* input, Real frameTime)
 {
-	float sensitivity = 0.05f;
+	Real sensitivity = 0.05f;
 	MouseOffset data = input->getFrameMouseOffset();
-	float yawAddition = static_cast<float>(data.xOffset) * sensitivity;
-	float pitchAddition = static_cast<float>(data.yOffset) * sensitivity;
+	Real yawAddition = static_cast<Real>(data.xOffset) * sensitivity;
+	Real pitchAddition = static_cast<Real>(data.yOffset) * sensitivity;
 	yaw += yawAddition;
 	pitch += pitchAddition;
 
@@ -43,7 +43,7 @@ void nex::FPCamera::frameUpdate(Input* input, float frameTime)
 
 
 	// camera movements
-	float moveAmount = mCameraSpeed * frameTime;
+	Real moveAmount = mCameraSpeed * frameTime;
 
 	vec3 direction(0.0f);
 
@@ -72,22 +72,22 @@ void nex::FPCamera::frameUpdate(Input* input, float frameTime)
 	PerspectiveCamera::frameUpdate(input, frameTime);
 }
 
-float nex::FPCamera::getYaw() const
+nex::Real nex::FPCamera::getYaw() const
 {
 	return yaw;
 }
 
-float nex::FPCamera::getPitch() const
+nex::Real nex::FPCamera::getPitch() const
 {
 	return pitch;
 }
 
-void nex::FPCamera::setYaw(float yaw)
+void nex::FPCamera::setYaw(Real yaw)
 {
 	this->yaw = yaw;
 }
 
-void nex::FPCamera::setPitch(float pitch)
+void nex::FPCamera::setPitch(Real pitch)
 {
 	this->pitch = pitch;
 }
@@ -103,7 +103,7 @@ void nex::FPCamera::recalculateLookVector()
 	setLook(front);
 }
 
-float nex::FPCamera::limit(float source, float minValue, float maxValue)
+nex::Real nex::FPCamera::limit(Real source, Real minValue, Real maxValue)
 {
 	if (source > maxValue)
 		source = maxValue;
@@ -126,7 +126,7 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 	ImGui::DragFloat("pitch", &m_camera->pitch, 1.0f, -89.0f, 89.0f);
 
 
-	float fovY = glm::degrees(m_camera->getFovY());
+	Real fovY = glm::degrees(m_camera->getFovY());
 	ImGui::DragFloat("fov", &fovY, 1.0f, -1000.0f, 1000.0f);
 	m_camera->setFovY(glm::radians(fovY));
 	ImGui::DragFloat("aspect ratio", &m_camera->mAspectRatio, 0.1f, 0.1f, 90.0f);

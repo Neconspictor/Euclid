@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/math/Plane.hpp>
+#include "nex/math/Constant.hpp"
 
 namespace nex
 {
@@ -73,8 +74,8 @@ namespace nex
 	class Camera
 	{
 	public:
-		Camera(float nearDistance = 0.1f, // the distance to the near clipping plane
-			float farDistance = 100.0f, // the distance to the far clipping plane
+		Camera(Real nearDistance = 0.1f, // the distance to the near clipping plane
+			Real farDistance = 100.0f, // the distance to the far clipping plane
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem());
 
 		Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
@@ -88,12 +89,12 @@ namespace nex
 		/**
 		 * Applies changes for the current frame.
 		 */
-		virtual void frameUpdate(Input* input, float frameTime);
+		virtual void frameUpdate(Input* input, Real frameTime);
 
 		/**
 		 * Provides the distance to the far clipping plane.
 		 */
-		float getFarDistance() const;
+		Real getFarDistance() const;
 
 		/**
 		 * Provides the current calculated view frustum (in view space).
@@ -108,7 +109,7 @@ namespace nex
 		/**
 		 * Provides the speed of the camera.
 		 */
-		float getSpeed() const;
+		Real getSpeed() const;
 
 		/**
 		 * Provides the current look direction of the camera.
@@ -118,7 +119,7 @@ namespace nex
 		/**
 		 * Provides the distance to the near clipping plane.
 		 */
-		float getNearDistance() const;
+		Real getNearDistance() const;
 
 		/**
 		 * Provides the position of the camera.
@@ -164,7 +165,7 @@ namespace nex
 		/**
 		 * Calculate viewspace z from a distance to camera
 		 */
-		static float getViewSpaceZfromDistance(float distance);
+		static Real getViewSpaceZfromDistance(Real distance);
 
 		/**
 		 * Orients the camera so that it looks to a given location.
@@ -174,12 +175,12 @@ namespace nex
 		/**
 		 * Sets the distance to the near clipping plane.
 		 */
-		void setNearDistance(float nearPlane);
+		void setNearDistance(Real nearPlane);
 
 		/**
 		 * Sets the distance to the far clipping plane.
 		 */
-		void setFarDistance(float farPlane);
+		void setFarDistance(Real farPlane);
 
 		/**
 		 * Sets the look direction of the camera.
@@ -195,7 +196,7 @@ namespace nex
 		/**
 		 * Sets the speed of the camera.
 		 */
-		void setSpeed(float speed);
+		void setSpeed(Real speed);
 
 		/**
 		 * Sets the target position of the camera.
@@ -251,9 +252,9 @@ namespace nex
 		glm::vec3 mRight;
 		glm::mat4 mView;
 		glm::mat4 mPrevView;
-		float mFarDistance;
-		float mNearDistance;
-		float mCameraSpeed;
+		Real mFarDistance;
+		Real mNearDistance;
+		Real mCameraSpeed;
 	};
 
 	/**
@@ -264,9 +265,9 @@ namespace nex
 	public:
 		explicit PerspectiveCamera(unsigned width,
 			unsigned height,
-			float fovY = glm::radians(45.0f), // the vertical field of view (in radians)
-			float nearDistance = 0.1f, // the distance to the near clipping plane
-			float farDistance = 100.0f, // the distance to the far clipping plane
+			Real fovY = glm::radians(45.0f), // the vertical field of view (in radians)
+			Real nearDistance = 0.1f, // the distance to the near clipping plane
+			Real farDistance = 100.0f, // the distance to the far clipping plane
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem()
 		);
 
@@ -277,18 +278,18 @@ namespace nex
 		 */
 		void enableZoom(bool enable);
 
-		void frameUpdate(Input* input, float frameTime) override;
+		void frameUpdate(Input* input, Real frameTime) override;
 
 
 		/**
 		 * Provides the aspect ratio of the camera's canvas.
 		 */
-		float getAspectRatio() const;
+		Real getAspectRatio() const;
 
 		/**
 		 * Provides the vertical field of view angle (measured in radians) of the camera.
 		 */
-		float getFovY() const;
+		Real getFovY() const;
 
 		/**
 		 * Sets the dimension in pixels
@@ -299,7 +300,7 @@ namespace nex
 		 * Sets the vertical field of view angle (measured in radians). 
 		 * The provided angle will be clamped to the range [0, pi]
 		 */
-		void setFovY(float fovY);
+		void setFovY(Real fovY);
 
 	protected:
 
@@ -308,8 +309,8 @@ namespace nex
 
 		unsigned mWidth;
 		unsigned mHeight;
-		float mAspectRatio;
-		float mFovY;
+		Real mAspectRatio;
+		Real mFovY;
 		bool mZoomEnabled;
 	};
 
@@ -317,25 +318,25 @@ namespace nex
 	{
 	public:
 		OrthographicCamera(
-			float width,
-			float height,
-			float nearDistance = 0.1f,
-			float farDistance = 100.0f,
+			Real width,
+			Real height,
+			Real nearDistance = 0.1f,
+			Real farDistance = 100.0f,
 			PULCoordinateSystem coordSystem = PULCoordinateSystem()
 		);
 
-		float getHeight() const;
-		float getWidth();
+		Real getHeight() const;
+		Real getWidth();
 
-		void setHeight(float height);
-		void setWidth(float width);
+		void setHeight(Real height);
+		void setWidth(Real width);
 
 		protected:
 
 			void calcFrustum() override;
 			void calcProjection() override;
 
-			float mHalfHeight;
-			float mHalfWidth;
+			Real mHalfHeight;
+			Real mHalfWidth;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <imgui/imgui.h>
+#include <nex/math/Constant.hpp>
 
 namespace nex::gui
 {
@@ -20,7 +21,7 @@ namespace nex::gui
 		ImGUI_Impl(ImGUI_Impl&&) = default;
 		ImGUI_Impl& operator=(ImGUI_Impl&&) = default;
 
-		virtual void newFrame(float frameTime) = 0;
+		virtual void newFrame(Real frameTime) = 0;
 
 		static bool isActive();
 

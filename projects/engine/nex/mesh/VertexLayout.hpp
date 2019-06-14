@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "nex/math/Constant.hpp"
 
 namespace nex
 {
@@ -37,7 +38,7 @@ namespace nex
 		inline void push(unsigned int count);
 
 		template<>
-		inline void push<float>(unsigned int count);
+		inline void push<Real>(unsigned int count);
 
 		template<>
 		inline void push<unsigned int>(unsigned int count);

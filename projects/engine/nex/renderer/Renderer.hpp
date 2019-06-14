@@ -1,4 +1,5 @@
 #pragma once
+#include "nex/math/Constant.hpp"
 
 namespace nex
 {
@@ -14,7 +15,7 @@ namespace nex
 		Renderer(RenderBackend* renderBackend);
 		virtual ~Renderer() = default;
 
-		virtual void render(SceneNode* scene, Camera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight) = 0;
+		virtual void render(SceneNode* scene, Camera* camera, DirectionalLight* sun, Real frameTime, unsigned windowWidth, unsigned windowHeight) = 0;
 
 	protected:
 		RenderBackend* m_renderBackend;

@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/util/CallbackContainer.hpp>
 #include <nex/common/Log.hpp>
+#include <nex/math/Constant.hpp>
 
 namespace nex
 {
@@ -31,7 +32,7 @@ namespace nex
 		enum InputItemState;
 		enum Key;
 
-		using ScrollCallbacks = CallbackCollection<void(float scrollX, float scrollY)>;
+		using ScrollCallbacks = CallbackCollection<void(Real scrollX, Real scrollY)>;
 		using CloseCallbacks = CallbackCollection<void(nex::Window*)>;
 		using FocusCallbacks = CallbackCollection<void(nex::Window*, bool)>;
 		using VirtualDimesionResizeCallbacks = CallbackCollection<void(unsigned width, unsigned height)>;
@@ -580,7 +581,7 @@ namespace nex
 		* Calls all regsitered scrolling callbacks.
 		* This function is intended to be called when the user scrolls.
 		*/
-		void informScrollListeners(float scrollX, float scrollY);
+		void informScrollListeners(Real scrollX, Real scrollY);
 
 		/**
 		* Informs windows resize listeners that the window's virtual dimension has changed
@@ -698,7 +699,7 @@ namespace nex
 	protected:
 		MouseOffset mMouseData;
 
-		float mFrameScrollOffsetX, mFrameScrollOffsetY;
+		Real mFrameScrollOffsetX, mFrameScrollOffsetY;
 		bool mHasFocus;
 		bool mFirstMouseInput;
 

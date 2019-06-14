@@ -120,7 +120,7 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	auto* dirLight = active->getDirLight();
 
 	glm::vec3 lightColor = dirLight->getColor();
-	float dirLightPower = dirLight->getLightPower();
+	Real dirLightPower = dirLight->getLightPower();
 
 
 	if (ImGui::InputScalarN("Directional Light Color", ImGuiDataType_Float, &lightColor, 3))
@@ -137,7 +137,7 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	drawLightSphericalDirection();
 
 
-	float ambientLightPower = active->getAmbientLight()->getPower();
+	Real ambientLightPower = active->getAmbientLight()->getPower();
 
 	if (ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
 	{
@@ -157,7 +157,7 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 
 	static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);
 
-	float temp[2] = { sphericalCoordinate.polar, sphericalCoordinate.azimuth };
+	Real temp[2] = { sphericalCoordinate.polar, sphericalCoordinate.azimuth };
 
 	if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05f))
 	{

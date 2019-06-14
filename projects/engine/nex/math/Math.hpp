@@ -5,6 +5,7 @@
 #endif*/
 
 #include <glm/glm.hpp>
+#include <nex/math/Constant.hpp>
 
 namespace glm
 {
@@ -27,7 +28,7 @@ namespace nex
 		return inverse(transpose(trafo));
 	}
 
-	glm::vec3 perspectiveDivide(const glm::vec3& source, float w);
+	glm::vec3 perspectiveDivide(const glm::vec3& source, Real w);
 
 
 	template<typename T>
@@ -45,7 +46,7 @@ namespace nex
 	glm::vec3 maxVec(const glm::vec3& a, const glm::vec3& b);
 
 
-	inline glm::vec3 perspectiveDivide(const glm::vec3& source, float w)
+	inline glm::vec3 perspectiveDivide(const glm::vec3& source, Real w)
 	{
 		return source / w;
 	}
@@ -54,7 +55,7 @@ namespace nex
 	 * Converts a z value between left and right handed coordinate systems.
 	 * @param z: an unsigned z value.
 	 */
-	inline float getZValue(float z)
+	inline Real getZValue(Real z)
 	{
 		#ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
 				z *= -1; // the z-axis is inverted on right handed systems

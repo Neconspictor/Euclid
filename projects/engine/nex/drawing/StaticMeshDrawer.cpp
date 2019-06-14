@@ -133,7 +133,7 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* p
 void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
 {	
 	static auto* backend = RenderBackend::get();
-	backend->setLineThickness(static_cast<float>(lineStrength));
+	backend->setLineThickness(static_cast<Real>(lineStrength));
 	backend->getRasterizer()->setFillMode(FillMode::LINE);
 
 	auto& meshes = model->getMeshes();

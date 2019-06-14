@@ -9,7 +9,7 @@ nex::Complex::Complex(Real real, Real imaginary) : re(real), im(imaginary)
 {
 }
 
-nex::Complex::Real nex::Complex::arg() const
+nex::Real nex::Complex::arg() const
 {
 	return std::atan2<Real>(im, re);
 }
@@ -35,7 +35,7 @@ nex::Complex nex::Complex::euler(Real exponent)
 	return { cos(exponent), sin(exponent) };
 }
 
-nex::Complex::Real nex::Complex::magnitude() const
+nex::Real nex::Complex::magnitude() const
 {
 	return std::sqrt(re*re + im * im);
 }
@@ -134,22 +134,22 @@ void nex::Complex::divide(const Complex& c)
 	im = (im_ * c.re - re_ * c.im) / denominator;
 }
 
-nex::Complex operator*(nex::Complex::Real scalar, const nex::Complex& c)
+nex::Complex operator*(nex::Real scalar, const nex::Complex& c)
 {
 	return c * scalar;
 }
 
-nex::Complex& operator*=(nex::Complex::Real scalar, nex::Complex& c)
+nex::Complex& operator*=(nex::Real scalar, nex::Complex& c)
 {
 	return c *= scalar;
 }
 
-nex::Complex operator/(nex::Complex::Real scalar, const nex::Complex& c)
+nex::Complex operator/(nex::Real scalar, const nex::Complex& c)
 {
 	return c / scalar;
 }
 
-nex::Complex& operator/=(nex::Complex::Real scalar, nex::Complex& c)
+nex::Complex& operator/=(nex::Real scalar, nex::Complex& c)
 {
 	return c /= scalar;
 }

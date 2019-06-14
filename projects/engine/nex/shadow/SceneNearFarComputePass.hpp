@@ -39,7 +39,7 @@ namespace nex
 		/**
 		 * Note: This function only works correct, if this shader is bound!
 		 */
-		void setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection);
+		void setConstants(Real positiveViewNearZ, Real positiveViewFarZ, const glm::mat4& projection);
 
 		/**
 		 * Note: This function only works correct, if this shader is bound!

@@ -6,7 +6,7 @@ namespace nex::sample_meshes
 {
 	static const std::string RECTANGLE_NAME = "SAMPLE_MESHES::RECTANGLE";
 	static unsigned int RECTANGLE_VERTEX_SLICE = 8;
-    static const float rectangleVertices[] = {
+    static const Real rectangleVertices[] = {
         // position			// color			// texture coords
         0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,	// Top Right
         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
@@ -21,7 +21,7 @@ namespace nex::sample_meshes
 
 	static const std::string CUBE_POSITION_NORMAL_TEX_NAME = "SAMPLE_MESHES::CUBE_POSITION_NORMAL_TEX";
 	static unsigned int CUBE_POSITION_NORMAL_TEX_VERTEX_SLICE = 8;
-	static const float cubePositionNormalTexVertices[] = {
+	static const Real cubePositionNormalTexVertices[] = {
 		// Positions           // Normals           // Texture Coords
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
@@ -74,7 +74,7 @@ namespace nex::sample_meshes
 
 	static const std::string SKY_BOX_NAME = "SAMPLE_MESHES::SKY_BOX";
 	static unsigned int SKY_BOX_VERTEX_SLICE = 3;
-	static const float skyBoxVertices[] = {
+	static const Real skyBoxVertices[] = {
 		// Positions
 		1.0, -1.0, -1.0,
 		1.0, -1.0,  1.0,
@@ -103,13 +103,13 @@ namespace nex::sample_meshes
 
 
 
-	static const float triangleVertices[] = {
+	static const Real triangleVertices[] = {
 	-0.5f, -0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f,
 	0.0f,  0.5f, 0.0f
 	};
 
-	static const float coloredTriangleVertices[] = {
+	static const Real coloredTriangleVertices[] = {
 		// Positions			// Colors
 		-0.5f, -0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
@@ -120,19 +120,19 @@ namespace nex::sample_meshes
 		0, 1, 2,   // First Triangle
 	};
 
-	static const float triangle1Vertices[] = {
+	static const Real triangle1Vertices[] = {
 		0.5f,  0.5f, 0.0f,  // Top Right
 		0.5f, -0.5f, 0.0f,  // Bottom Right,
 		-0.5f,  0.5f, 0.0f   // Top Left 
 	};
 
-	static const float triangle2Vertices[] = {
+	static const Real triangle2Vertices[] = {
 		0.5f, -0.5f, 0.0f,  // Bottom Right
 		-0.5f, -0.5f, 0.0f,  // Bottom Left
 		-0.5f,  0.5f, 0.0f   // Top Left 
 	};
 
-	/*static const float rectangleVertices[] = {
+	/*static const Real rectangleVertices[] = {
 		// position			// color			// texture coords
 		0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,	// Top Right
 		0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
@@ -145,7 +145,7 @@ namespace nex::sample_meshes
 		1, 2, 3    // Second Triangle
 	};*/
 
-	static const float cubeVertices[] = {
+	static const Real cubeVertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,

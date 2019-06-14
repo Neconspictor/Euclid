@@ -10,6 +10,8 @@
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/common/File.hpp"
 #include "nex/mesh/MeshStore.hpp"
+#include "nex/math/Circle.hpp"
+#include "nex/math/Sphere.hpp"
 
 
 #ifdef WIN32
@@ -68,7 +70,29 @@ int main(int argc, char** argv)
 
 	nex::Logger logger("Main");
 
-	//return EXIT_SUCCESS;
+	nex::Plane plane(glm::vec3(0, 0, 1), glm::vec3(0.0f, 0.0f, 0.0f));
+	nex::Circle3D circle(std::move(plane), glm::vec3(0.0, 0.0, 0.0), 1.0f);
+	nex::Ray ray(glm::vec3(1.0f, 0.0, 0.0), glm::vec3(1.0f, 1.0f, 0.01f));
+	nex::Sphere sphere = {glm::vec3(0.0f, 0.0f, 0.0f), 1.0f};
+	const auto result = ray.intersects(circle);
+	//const auto result = ray.intersects(sphere);
+
+	std::cout << "result.intersectionCount = " << result.intersectionCount << std::endl;
+	std::cout << "result.firstMultiplier = " << result.firstMultiplier 
+			<< ", first intersection = " << ray.getPoint(result.firstMultiplier)
+			<< ", length = " << length(ray.getPoint(result.firstMultiplier)) <<  std::endl;
+	std::cout << "result.secondMultiplier = " << result.secondMultiplier 
+				<< ", second intersection = " << ray.getPoint(result.secondMultiplier) 
+				<< ", length = " << length(ray.getPoint(result.secondMultiplier)) << std::endl;
+
+	//glm::vec3 point(2.0f, 89.0f, 67.0f);
+	//const auto projectedPoint = plane.project(point);
+	//std::cout << "point = " << point << std::endl;
+	//std::cout << "projected point = " << projectedPoint << std::endl;
+
+
+
+	return EXIT_SUCCESS;
 
 	logLastCrashReport(logger);
 
