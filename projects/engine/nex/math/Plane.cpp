@@ -1,4 +1,5 @@
 #include <nex/math/Plane.hpp>
+#include "Ray.hpp"
 
 nex::Plane nex::operator*(const glm::mat4& trafo, const Plane& plane)
 {
@@ -37,6 +38,48 @@ nex::Plane::Plane(glm::vec3 normal, glm::vec3 pointOnPlane) : mNormal(normalize(
 nex::Plane::Plane(float x, float y, float z, float d) : mNormal(x,y,z), mSignedDistance(d)
 {
 	normalize(*this);
+}
+
+nex::Plane::RayIntersection nex::Plane::intersects(const Ray& ray) const
+{
+	const double d = mSignedDistance;
+	const glm::dvec3& n = mNormal;
+	const glm::dvec3 dirDouble = ray.getDir();
+	constexpr auto eps = 0.04f;
+
+	const auto dotDir = dot(n, dirDouble);
+	const auto compare = d - dot(n, glm::dvec3(ray.getOrigin()));
+	std::cout << "abs(dotDir) = " << abs(dotDir) << std::endl;
+
+	RayIntersection result;
+
+	// if dotDir = 0 we have to calc differently  
+	if (abs(dotDir) < eps)
+	{
+		// No solutions?
+		if (abs(compare) < eps)
+		{
+			result.intersected = false;
+			result.parallel = true;
+		}
+		else // infinite solutions
+		{
+			// It doesn't matter which point we use (since all points on the ray lie on the plane)
+			// just use any valid point
+			result.multiplier = 0.0f;
+			result.intersected = true;
+			result.parallel = true;
+		}
+
+	}
+	else
+	{
+		result.multiplier = (long double)compare / (long double)dotDir;
+		result.intersected = true;
+		result.parallel = false;
+	}
+
+	return result;
 }
 
 bool nex::Plane::onPlane(const glm::vec3& v) const

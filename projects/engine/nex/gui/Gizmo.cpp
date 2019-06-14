@@ -258,9 +258,13 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 
 	const auto& origin = mActiveGizmoNode->getPosition();
 
-	const auto yzPlaneIntersection = screenRayWorld.intersects({ {1,0,0}, origin});
-	const auto xzPlaneIntersection = screenRayWorld.intersects({ {0,1,0}, origin });
-	const auto xyPlaneIntersection = screenRayWorld.intersects({ {0,0,getZValue(1.0f)}, origin });
+	Plane yzPlane = { {1,0,0}, origin };
+	Plane xzPlane = { {0,1,0}, origin };
+	Plane xyPlane = { {0,0,getZValue(1.0f)}, origin };
+
+	const auto yzPlaneIntersection = yzPlane.intersects(screenRayWorld);
+	const auto xzPlaneIntersection = xzPlane.intersects(screenRayWorld);
+	const auto xyPlaneIntersection = xyPlane.intersects(screenRayWorld);
 
 	const float distanceToCamera = length(origin - screenRayWorld.getOrigin());
 	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.500f);
@@ -298,7 +302,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	return selected;
 }
 
-bool nex::gui::Gizmo::checkNearPlaneCircle(const Ray::PlaneIntersection& testResult, const Ray& ray,
+bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testResult, const Ray& ray,
 	const glm::vec3& circleOrigin, float minRadius, float maxRadius, float& multiplierOut) const
 {
 	if (!testResult.intersected) return false;
@@ -351,7 +355,8 @@ void nex::gui::Gizmo::fillActivationState(Active* active, bool isActive, Axis ax
 void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
 {
 	const auto& origin = mActiveGizmoNode->getPosition();
-	const auto planeIntersection = ray.intersects({ mActivationState.axisVec, origin });
+	Plane plane = { mActivationState.axisVec, origin };
+	const auto planeIntersection = plane.intersects(ray);
 
 	if (!planeIntersection.intersected) return;
 

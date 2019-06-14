@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 	nex::Circle3D circle(std::move(plane), glm::vec3(0.0, 0.0, 0.0), 1.0f);
 	nex::Ray ray(glm::vec3(1.0f, 0.0, 0.0), glm::vec3(1.0f, 1.0f, 0.01f));
 	nex::Sphere sphere = {glm::vec3(0.0f, 0.0f, 0.0f), 1.0f};
-	const auto result = ray.intersects(circle);
+	const auto result = circle.intersects(ray);
 	//const auto result = ray.intersects(sphere);
 
 	std::cout << "result.intersectionCount = " << result.intersectionCount << std::endl;

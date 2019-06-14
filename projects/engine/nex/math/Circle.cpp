@@ -1,4 +1,6 @@
 #include <nex/math/Circle.hpp>
+#include "Sphere.hpp"
+#include "Ray.hpp"
 
 nex::Circle3D::Circle3D(Plane plane, glm::vec3 origin, float radius) : plane(std::move(plane)), origin(std::move(origin)), radius(radius)
 {
@@ -18,6 +20,71 @@ const nex::Plane& nex::Circle3D::getPlane() const
 float nex::Circle3D::getRadius() const
 {
 	return radius;
+}
+
+nex::Circle3D::RayIntersection nex::Circle3D::intersects(const Ray& ray, float toleranceRange) const
+{
+	RayIntersection result;
+
+	//At first do a sphere intersection test for rougher test cases
+	const auto sphereTest = Sphere(getOrigin(), getRadius()).intersects(ray);
+
+	if (sphereTest.intersectionCount == 0)
+	{
+		// No intersections
+		result.intersectionCount = 0;
+		return result;
+	}
+
+	if (sphereTest.intersectionCount == 1)
+	{
+		// test if the intersection point is located on the circle's plane.
+		if (!isOnCircle(ray.getPoint(sphereTest.firstMultiplier), toleranceRange))
+		{
+			// No intersections
+			result.intersectionCount = 0;
+			return result;
+		}
+
+		// One intersection
+		result.intersectionCount = 1;
+		result.firstMultiplier = sphereTest.firstMultiplier;
+		return result;
+	}
+
+	// test both points to be located on the circle.
+	const auto firstOnPlane = isOnCircle(ray.getPoint(sphereTest.firstMultiplier), toleranceRange);
+	const auto secondOnPlane = isOnCircle(ray.getPoint(sphereTest.secondMultiplier), toleranceRange);
+
+	if (!firstOnPlane && !secondOnPlane)
+	{
+		// No intersections
+		result.intersectionCount = 0;
+		return result;
+	}
+
+	if (firstOnPlane && !secondOnPlane)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+		result.firstMultiplier = sphereTest.firstMultiplier;
+		return result;
+	}
+
+	if (!firstOnPlane && secondOnPlane)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+		result.firstMultiplier = sphereTest.secondMultiplier;
+		return result;
+	}
+
+	// both intersections are located on the circle
+	result.intersectionCount = 2;
+	result.firstMultiplier = sphereTest.firstMultiplier;
+	result.secondMultiplier = sphereTest.secondMultiplier;
+
+	return result;
 }
 
 bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) const

@@ -2,6 +2,7 @@
 #include <memory>
 #include "nex/math/Ray.hpp"
 #include "nex/Input.hpp"
+#include "nex/math/Plane.hpp"
 
 
 namespace nex
@@ -107,7 +108,7 @@ namespace nex::gui
 		/**
 		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
 		 */
-		bool checkNearPlaneCircle(const Ray::PlaneIntersection& testResult, 
+		bool checkNearPlaneCircle(const Plane::RayIntersection& testResult,
 								const Ray& ray,
 								const glm::vec3& circleOrigin, 
 								float minRadius, float maxRadius, float& multiplierOut) const;

@@ -1,30 +1,13 @@
 #pragma once
 
-#include <nex/math/Constant.hpp>
-
 namespace nex
 {
-	struct Plane;
-	class Circle3D;
-	struct Sphere;
-
 	/**
 	 * A 3-dimensional ray specified by a starting point (origin) and a direction.
 	 */
 	class Ray
 	{
 	public:
-
-		struct Circle3DIntersection
-		{
-			// Specifies how much intersections with the circle exist.
-			// Can be 0, 1 or 2
-			unsigned intersectionCount = 0;
-
-			// multipliers of the intersections
-			float firstMultiplier = 0;
-			float secondMultiplier = 0;
-		};
 
 		struct RayDistance
 		{
@@ -38,29 +21,6 @@ namespace nex
 		{
 			float multiplier; //multiplier for the projection of the point on the line
 			float distance;
-		};
-
-		struct PlaneIntersection
-		{
-			// The multiplier for the intersection point.
-			long double multiplier = 0.0f;
-
-			// minimal one intersection
-			bool intersected = false;
-
-			// is parallel to the plane (i.d. either infinite solutions (intersected true) or none at all (intersected false))
-			bool parallel = false; 
-		};
-
-		struct SphereIntersection
-		{
-			// Specifies how much intersections with the sphere exist.
-			// Can be 0, 1 or 2
-			unsigned intersectionCount = 0;
-
-			// multipliers of the intersections
-			float firstMultiplier = 0;
-			float secondMultiplier = 0;
 		};
 
 		/**
@@ -94,22 +54,6 @@ namespace nex
 		glm::vec3 getPoint(float multiplier) const;
 
 		const glm::uvec3& getSign() const;
-
-		/**
-		 * Checks if this ray intersects a circle
-		 * @param toleranceRange : Points that aren't exactly on the circle, but are within this range, are accepted.
-		 */
-		Circle3DIntersection intersects(const Circle3D& circle, float toleranceRange = 0.000001f) const;
-
-		/**
-		 * Checks if this ray intersects a plane
-		 */
-		PlaneIntersection intersects(const Plane& plane) const;
-
-		/**
-		 * Checks if this ray intersects a circle
-		 */
-		SphereIntersection intersects(const Sphere& sphere) const;
 
 		/**
 		 * Projects a point orthogonally on the ray line.

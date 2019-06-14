@@ -5,17 +5,37 @@
 
 namespace nex
 {
+	class Ray;
+
 	/**
 	 * A Circle in 3D
 	 */
 	class Circle3D
 	{
 	public:
+
+		struct RayIntersection
+		{
+			// Specifies how much intersections with the circle exist.
+			// Can be 0, 1 or 2
+			unsigned intersectionCount = 0;
+
+			// multipliers of the intersections
+			float firstMultiplier = 0;
+			float secondMultiplier = 0;
+		};
+
 		Circle3D(Plane plane, glm::vec3 origin, float radius);
 
 		const glm::vec3& getOrigin()const;
 		const Plane& getPlane() const;
 		float getRadius()const;
+
+		/**
+		 * Checks if a ray intersects this circle
+		 * @param toleranceRange : Points that aren't exactly on the circle, but are within this range, are accepted.
+		 */
+		RayIntersection intersects(const Ray& circle, float toleranceRange = 0.000001f) const;
 
 		/**
 		 * Checks if a point is located on the circle.

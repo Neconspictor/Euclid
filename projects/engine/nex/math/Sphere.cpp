@@ -1,4 +1,5 @@
 #include <nex/math/Sphere.hpp>
+#include "Ray.hpp"
 
 nex::Sphere::Sphere(const glm::vec3& origin, float radius) : origin(origin), radius(radius)
 {
@@ -8,7 +9,45 @@ nex::Sphere::Sphere()
 {
 }
 
-bool nex::Sphere::liesOnHull(const glm::vec3& p) const
+nex::Sphere::RayIntersection nex::Sphere::intersects(const Ray& ray) const
+{
+	RayIntersection result;
+
+	const auto toOrigin = ray.getOrigin() - origin;
+
+	const auto a = 1.0f; //dot(dir, dir);
+	const auto b = 2.0f * dot(ray.getDir(), toOrigin);
+	const auto c = dot(toOrigin, toOrigin) - radius * radius;
+	const auto discriminant = (b * b) - 4.0f * a * c;
+
+	if (discriminant < 0)
+	{
+		// No intersection
+		result.intersectionCount = 0;
+		return result;
+	}
+
+	if (discriminant == 0)
+	{
+		// One intersection
+		result.intersectionCount = 1;
+	}
+	else
+	{
+		// Two intersections
+		result.intersectionCount = 2;
+	}
+
+	const auto rootDiscriminant = sqrt(discriminant);
+	const auto twoA = 2.0f * a;
+
+	result.firstMultiplier = (-b - rootDiscriminant) / twoA;
+	result.secondMultiplier = (-b + rootDiscriminant) / twoA;
+
+	return result;
+}
+
+bool nex::Sphere::isInHull(const glm::vec3& p) const
 {
 	constexpr auto eps = 0.000001f;
 	const auto diff = p - origin;
