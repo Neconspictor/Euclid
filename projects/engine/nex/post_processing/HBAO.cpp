@@ -51,18 +51,18 @@ namespace nex
 
 		for (int i = 0; i < HBAO_RANDOM_ELEMENTS; i++)
 		{
-			Real Rand1 = randomFloat(0, 1);
-			Real Rand2 = randomFloat(0, 1);
+			float Rand1 = randomFloat(0, 1);
+			float Rand2 = randomFloat(0, 1);
 
 			// Use random rotation angles in [0,2PI/NUM_DIRECTIONS)
-			static Real pi = static_cast<Real>(nex::PI);
-			static Real radiantFraction = 2.0f * pi / (Real)HBAO_NUM_DIRECTIONS;
+			static float pi = static_cast<float>(nex::PI);
+			static float radiantFraction = 2.0f * pi / (float)HBAO_NUM_DIRECTIONS;
 
-			Real Angle = Rand1 * radiantFraction;
-			Real x = cosf(Angle);
-			Real y = sinf(Angle);
-			Real z = Rand2;
-			Real w = 0;
+			float Angle = Rand1 * radiantFraction;
+			float x = cosf(Angle);
+			float y = sinf(Angle);
+			float z = Rand2;
+			float w = 0;
 #define SCALE ((1<<15))
 			hbaoRandomShort[i * 4 + 0] = (signed short)(SCALE* x);
 			hbaoRandomShort[i * 4 + 1] = (signed short)(SCALE* y);
@@ -162,7 +162,7 @@ namespace nex
 	void HBAO::prepareHbaoData(const Projection & projection, int width, int height)
 	{
 		// projection
-		const Real* P = glm::value_ptr(projection.matrix);
+		const float* P = glm::value_ptr(projection.matrix);
 
 		glm::vec4 projInfoPerspective = {
 			2.0f / (P[4 * 0 + 0]),       // (x) * (R - L)/N
@@ -182,30 +182,30 @@ namespace nex
 		m_hbaoDataSource.projOrtho = useOrtho;
 		m_hbaoDataSource.projInfo = useOrtho ? projInfoOrtho : projInfoPerspective;
 
-		Real projScale;
+		float projScale;
 		if (useOrtho) {
-			projScale = Real(height) / (projInfoOrtho[1]);
+			projScale = float(height) / (projInfoOrtho[1]);
 		}
 		else {
-			projScale = Real(height) / (tanf(projection.fov * 0.5f) * 2.0f);
+			projScale = float(height) / (tanf(projection.fov * 0.5f) * 2.0f);
 		}
 
-		Real R = m_radius * m_meters2viewspace;
+		float R = m_radius * m_meters2viewspace;
 		m_hbaoDataSource.R2 = R * R;
 		m_hbaoDataSource.NegInvR2 = -1.0f / m_hbaoDataSource.R2;
 		m_hbaoDataSource.RadiusToScreen = R * 0.5f * projScale;
 
 		// ao
-		m_hbaoDataSource.PowExponent = std::max<Real>(m_intensity, 0.0f);
-		m_hbaoDataSource.NDotVBias = std::min<Real>(std::max<Real>(0.0f, m_bias), 1.0f);
+		m_hbaoDataSource.PowExponent = std::max<float>(m_intensity, 0.0f);
+		m_hbaoDataSource.NDotVBias = std::min<float>(std::max<float>(0.0f, m_bias), 1.0f);
 		m_hbaoDataSource.AOMultiplier = 1.0f / (1.0f - m_hbaoDataSource.NDotVBias);
 
 		// resolution
 		const int quarterWidth = ((width + 3) / 4);
 		const int quarterHeight = ((height + 3) / 4);
 
-		m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / Real(quarterWidth), 1.0f / Real(quarterHeight));
-		m_hbaoDataSource.InvFullResolution = vec2(1.0f / Real(width), 1.0f / Real(height));
+		m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / float(quarterWidth), 1.0f / float(quarterHeight));
+		m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
 	}
 
 	void HBAO::drawLinearDepth(Texture* depthTexture, const Projection & projection)
@@ -276,7 +276,7 @@ namespace nex
 		m_linearDepth = linearDepth;
 	}
 
-	void BilateralBlurPass::setSharpness(Real sharpness)
+	void BilateralBlurPass::setSharpness(float sharpness)
 	{
 		m_sharpness = sharpness;
 	}
@@ -308,7 +308,7 @@ namespace nex
 
 		// blur horizontal
 		static UniformLocation invResolutionDirectionLoc = mShader->getUniformLocation("g_InvResolutionDirection");
-		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (Real)m_textureWidth, 0));
+		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
 		RenderState state = RenderState::createNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
@@ -319,7 +319,7 @@ namespace nex
 
 		// Note: mSampler is already bound to binding point 0!
 		mShader->setTexture(renderResult, nullptr, 0); // TODO: check binding point!
-		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (Real)m_textureHeight));
+		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(0, 1.0f / (float)m_textureHeight));
 
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
 	}
@@ -453,17 +453,17 @@ namespace nex
 	}
 
 
-	Real HBAO::getBlurSharpness() const
+	float HBAO::getBlurSharpness() const
 	{
 		return m_blur_sharpness;
 	}
 
-	void HBAO::setBlurSharpness(Real sharpness)
+	void HBAO::setBlurSharpness(float sharpness)
 	{
 		m_blur_sharpness = sharpness;
 	}
 
-	Real HBAO::randomFloat(Real a, Real b)
+	float HBAO::randomFloat(float a, float b)
 	{
 		// GCC under MINGW has no support for a real random device!
 #if defined(__MINGW32__)  && defined(__GNUC__)
@@ -482,7 +482,7 @@ namespace nex
 #endif
 	}
 
-	Real nex::HBAO::lerp(Real a, Real b, Real f) {
+	float nex::HBAO::lerp(float a, float b, float f) {
 		return a + f * (b - a);
 	}
 

@@ -237,9 +237,9 @@ namespace nex {
 	{
 
 		Sampler* sampler = m_textureManager->getDefaultImageSampler();
-		Real anisotropy = sampler->getState().maxAnisotropy;
+		float anisotropy = sampler->getState().maxAnisotropy;
 
-		//Real anisotropyBackup = anisotropy;
+		//float anisotropyBackup = anisotropy;
 
 		// render configuration properties
 		ImGui::PushID(m_id.c_str());

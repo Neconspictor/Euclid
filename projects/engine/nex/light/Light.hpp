@@ -9,9 +9,9 @@ namespace nex {
 	 */
 	struct SphericalCoordinate
 	{
-		Real polar;
-		Real azimuth;
-		Real radius;
+		float polar;
+		float azimuth;
+		float radius;
 
 		static glm::vec3 cartesian(const SphericalCoordinate& coord);
 		static SphericalCoordinate convert(glm::vec3 cartesian);
@@ -26,18 +26,18 @@ namespace nex {
 
 		const glm::vec3& getDirection() const;
 
-		Real getLightPower() const;
+		float getLightPower() const;
 
 		void setColor(glm::vec3 color);
 
 		void setDirection(glm::vec3 dir);
 
-		void setPower(Real power);
+		void setPower(float power);
 
 	protected:
 		glm::vec3 mColor;
 		glm::vec3 mDirection;
-		Real mPower;
+		float mPower;
 	};
 
 	class AmbientLight
@@ -45,13 +45,13 @@ namespace nex {
 	public:
 		AmbientLight();
 		const glm::vec3& getColor()const;
-		Real getPower() const;
+		float getPower() const;
 		void setColor(glm::vec3 color);
-		void setPower(Real power);
+		void setPower(float power);
 		
 
 	private:
 		glm::vec3 mColor;
-		Real mPower;
+		float mPower;
 	};
 }

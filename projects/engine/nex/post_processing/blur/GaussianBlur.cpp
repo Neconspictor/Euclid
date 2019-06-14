@@ -46,8 +46,8 @@ namespace nex {
 		// horizontal pass
 		mHorizontalPass->bind();
 		mHorizontalPass->setTexture(texture);
-		mHorizontalPass->setImageHeight((Real)cache->getHeight());
-		mHorizontalPass->setImageWidth((Real)cache->getWidth());
+		mHorizontalPass->setImageHeight((float)cache->getHeight());
+		mHorizontalPass->setImageWidth((float)cache->getWidth());
 		StaticMeshDrawer::drawFullscreenTriangle(state, mHorizontalPass.get());
 
 		// vertical pass
@@ -56,8 +56,8 @@ namespace nex {
 		//out->clear(Color | Depth | Stencil);
 		mVerticalPass->bind();
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
-		mVerticalPass->setImageHeight((Real)out->getHeight());
-		mVerticalPass->setImageWidth((Real)out->getWidth());
+		mVerticalPass->setImageHeight((float)out->getHeight());
+		mVerticalPass->setImageWidth((float)out->getWidth());
 		StaticMeshDrawer::drawFullscreenTriangle(state, mVerticalPass.get());
 
 		mSampler->unbind(0);

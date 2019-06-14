@@ -5,13 +5,13 @@ nex::Complex::Complex() : re(0.0), im(0.0)
 {
 }
 
-nex::Complex::Complex(Real real, Real imaginary) : re(real), im(imaginary)
+nex::Complex::Complex(float real, float imaginary) : re(real), im(imaginary)
 {
 }
 
-nex::Real nex::Complex::arg() const
+float nex::Complex::arg() const
 {
-	return std::atan2<Real>(im, re);
+	return std::atan2<float>(im, re);
 }
 
 glm::vec2 nex::Complex::cartesian() const
@@ -30,12 +30,12 @@ nex::Complex nex::Complex::exp() const
 	return std::exp(re) * (Complex(cos(re), sin(im)));
 }
 
-nex::Complex nex::Complex::euler(Real exponent)
+nex::Complex nex::Complex::euler(float exponent)
 {
 	return { cos(exponent), sin(exponent) };
 }
 
-nex::Real nex::Complex::magnitude() const
+float nex::Complex::magnitude() const
 {
 	return std::sqrt(re*re + im * im);
 }
@@ -79,14 +79,14 @@ nex::Complex& nex::Complex::operator*=(const Complex& c)
 	return *this;
 }
 
-nex::Complex nex::Complex::operator*(Real scalar) const
+nex::Complex nex::Complex::operator*(float scalar) const
 {
 	Complex result(*this);
 	result.multiply(scalar);
 	return result;
 }
 
-nex::Complex& nex::Complex::operator*=(Real scalar)
+nex::Complex& nex::Complex::operator*=(float scalar)
 {
 	multiply(scalar);
 	return *this;
@@ -105,12 +105,12 @@ nex::Complex& nex::Complex::operator/=(const Complex& c)
 	return *this;
 }
 
-nex::Complex nex::Complex::operator/(Real scalar) const
+nex::Complex nex::Complex::operator/(float scalar) const
 {
 	return operator*(1.0 / scalar);
 }
 
-nex::Complex& nex::Complex::operator/=(Real scalar)
+nex::Complex& nex::Complex::operator/=(float scalar)
 {
 	return operator*=(1.0 / scalar);
 }
@@ -134,22 +134,22 @@ void nex::Complex::divide(const Complex& c)
 	im = (im_ * c.re - re_ * c.im) / denominator;
 }
 
-nex::Complex operator*(nex::Real scalar, const nex::Complex& c)
+nex::Complex operator*(float scalar, const nex::Complex& c)
 {
 	return c * scalar;
 }
 
-nex::Complex& operator*=(nex::Real scalar, nex::Complex& c)
+nex::Complex& operator*=(float scalar, nex::Complex& c)
 {
 	return c *= scalar;
 }
 
-nex::Complex operator/(nex::Real scalar, const nex::Complex& c)
+nex::Complex operator/(float scalar, const nex::Complex& c)
 {
 	return c / scalar;
 }
 
-nex::Complex& operator/=(nex::Real scalar, nex::Complex& c)
+nex::Complex& operator/=(float scalar, nex::Complex& c)
 {
 	return c /= scalar;
 }
@@ -163,7 +163,7 @@ void nex::Complex::multiply(const Complex& c)
 	im = re_ * c.im + im_ * c.re;
 }
 
-void nex::Complex::multiply(Real scalar)
+void nex::Complex::multiply(float scalar)
 {
 	re *= scalar;
 	im *= scalar;

@@ -70,12 +70,12 @@ void nex::AtmosphericScattering::setInverseViewRotation(const glm::mat3& mat)
 	mShader->setMat3(mInvViewRotUniform.location, mat);
 }
 
-void nex::AtmosphericScattering::setSpotBrightness(Real brightness)
+void nex::AtmosphericScattering::setSpotBrightness(float brightness)
 {
 	mShader->setFloat(mSpotBrightnessUniform.location, brightness);
 }
 
-void nex::AtmosphericScattering::setSurfaceHeight(Real height)
+void nex::AtmosphericScattering::setSurfaceHeight(float height)
 {
 	mShader->setFloat(mSurfaceHeightUniform.location, height);
 }
@@ -91,7 +91,7 @@ void nex::AtmosphericScattering::setLight(const Light& light)
 	mShader->setFloat(mIntensityUniform.location, light.intensity);
 }
 
-void nex::AtmosphericScattering::setScatterStrength(Real strength)
+void nex::AtmosphericScattering::setScatterStrength(float strength)
 {
 	mShader->setFloat(mScatterStrengthUniform.location, strength);
 }

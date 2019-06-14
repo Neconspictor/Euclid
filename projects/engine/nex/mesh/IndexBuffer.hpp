@@ -9,7 +9,7 @@ namespace nex
 	class IndexBuffer
 	{
 	public:
-		IndexBuffer(const void* data, unsigned int count, IndexElementType type);
+		IndexBuffer(const void* data, size_t count, IndexElementType type);
 
 		IndexBuffer();
 

@@ -173,10 +173,10 @@ namespace nex
 		TextureUVTechnique wrapR = TextureUVTechnique::ClampToEdge;
 		int minLOD = -1000;
 		int maxLOD = 1000;
-		Real biasLOD = 0;
+		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
 		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
-		Real maxAnisotropy = 1.0f;
+		float maxAnisotropy = 1.0f;
 
 		static SamplerDesc createMipMapRepeat()
 		{

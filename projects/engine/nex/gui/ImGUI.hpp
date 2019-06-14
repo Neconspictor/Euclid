@@ -21,7 +21,7 @@ namespace nex::gui
 		ImGUI_Impl(ImGUI_Impl&&) = default;
 		ImGUI_Impl& operator=(ImGUI_Impl&&) = default;
 
-		virtual void newFrame(Real frameTime) = 0;
+		virtual void newFrame(float frameTime) = 0;
 
 		static bool isActive();
 

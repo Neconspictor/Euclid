@@ -46,7 +46,7 @@ void Material::clear()
 	mTextures.clear();
 }
 
-void Material::set(UniformLocation loc, Real value)
+void Material::set(UniformLocation loc, float value)
 {
 	mFloats[loc] = value;
 }

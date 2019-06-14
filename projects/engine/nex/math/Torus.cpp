@@ -1,6 +1,6 @@
 #include <nex/math/Sphere.hpp>
 
-nex::Sphere::Sphere(const glm::vec3& origin, Real radius) : origin(origin), radius(radius)
+nex::Sphere::Sphere(const glm::vec3& origin, float radius) : origin(origin), radius(radius)
 {
 }
 

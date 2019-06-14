@@ -14,10 +14,10 @@
 
 namespace nex
 {
-	std::string calcMetricDefine(Real width, Real height)
+	std::string calcMetricDefine(float width, float height)
 	{
 		std::stringstream ss;
-		ss << "#define SMAA_RT_METRICS Real4(" << 1.0 / width << ", " << 1.0 / height << ", " << width << ".0, " << height << ".0)";
+		ss << "#define SMAA_RT_METRICS float4(" << 1.0 / width << ", " << 1.0 / height << ", " << width << ".0, " << height << ".0)";
 			return ss.str();
 	}
 

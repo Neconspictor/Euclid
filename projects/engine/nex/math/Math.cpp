@@ -8,16 +8,16 @@ glm::vec3 nex::NDCToCameraSpace(const glm::vec3& source, const glm::mat4& invers
 
 glm::vec3 nex::minVec(const glm::vec3& a, const glm::vec3& b)
 {
-	return glm::vec3(std::min<Real>(a.x, b.x),
-	                 std::min<Real>(a.y, b.y),
-	                 std::min<Real>(a.z, b.z));
+	return glm::vec3(std::min<float>(a.x, b.x),
+	                 std::min<float>(a.y, b.y),
+	                 std::min<float>(a.z, b.z));
 }
 
 glm::vec3 nex::maxVec(const glm::vec3& a, const glm::vec3& b)
 {
-	return glm::vec3(std::max<Real>(a.x, b.x),
-	                 std::max<Real>(a.y, b.y),
-	                 std::max<Real>(a.z, b.z));
+	return glm::vec3(std::max<float>(a.x, b.x),
+	                 std::max<float>(a.y, b.y),
+	                 std::max<float>(a.z, b.z));
 }
 
 std::ostream& glm::operator<<(std::ostream& os, const glm::vec2& vec)

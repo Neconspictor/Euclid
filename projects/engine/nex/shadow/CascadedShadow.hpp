@@ -87,7 +87,7 @@ namespace nex
 			unsigned mNumCascades;
 		};
 
-		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, Real biasMultiplier, bool antiFlickerOn = true);
+		CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHeight, unsigned numCascades, const PCFFilter& pcf, float biasMultiplier, bool antiFlickerOn = true);
 
 
 		std::vector<std::string> generateCsmDefines() const;
@@ -131,7 +131,7 @@ namespace nex
 
 		bool getAntiFlickering() const;
 
-		Real getBiasMultiplier() const;
+		float getBiasMultiplier() const;
 
 		const CascadeData& getCascadeData() const;
 
@@ -141,7 +141,7 @@ namespace nex
 
 		const PCFFilter& getPCF() const;
 
-		Real getShadowStrength()const;
+		float getShadowStrength()const;
 
 		unsigned getWidth() const;
 
@@ -152,14 +152,14 @@ namespace nex
 
 		void setAntiFlickering(bool enable);
 
-		void setBiasMultiplier(Real bias, bool informObservers = true);
+		void setBiasMultiplier(float bias, bool informObservers = true);
 
 		void setPCF(const PCFFilter& filter, bool informOberservers = true);
 
 		/**
-		 * @param strength : a Real in the range [0,1]
+		 * @param strength : a float in the range [0,1]
 		 */
-		void setShadowStrength(Real strength);
+		void setShadowStrength(float strength);
 		ShaderStorageBuffer* getCascadeBuffer();
 
 		void useTightNearFarPlane(bool use);
@@ -170,14 +170,14 @@ namespace nex
 		struct BoundingSphere
 		{
 			glm::vec3 center;
-			Real radius;
+			float radius;
 		};
 
 		struct GlobalShadow
 		{
 			glm::mat4 worldToShadowSpace;
 			glm::mat4 shadowView;
-			Real radius;
+			float radius;
 		};
 
 		class DepthPass : public TransformPass
@@ -197,13 +197,13 @@ namespace nex
 		
 		void calcSplitSchemes(const glm::vec2& minMaxPositiveZ);
 		
-		void calcSplitDistances(Real range, const glm::vec2& minMaxPositiveZ);
+		void calcSplitDistances(float range, const glm::vec2& minMaxPositiveZ);
 		
 		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
-			const glm::vec3& oldCenter, Real cascadeBoundRadius, glm::vec3* offset);
+			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
 
-		BoundingSphere extractFrustumBoundSphere(Camera* camera, Real nearSplitDistance, Real farSplitDistance);
-		void extractFrustumPoints(Camera* camera, Real nearSplitDistance, Real farSplitDistance, glm::vec3 (&frustumCorners)[8]);
+		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance);
+		void extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
 
 		void updateCascadeData();
 
@@ -223,17 +223,17 @@ namespace nex
 		unsigned int mCascadeWidth;
 		unsigned int mCascadeHeight;
 
-		Real mShadowMapSize;
+		float mShadowMapSize;
 		CascadeData mCascadeData;
 		bool mAntiFlickerOn;
-		std::vector<Real> mSplitDistances;
+		std::vector<float> mSplitDistances;
 		std::vector<glm::vec3> mCascadeBoundCenters;
 		GlobalShadow mGlobal;
 		PCFFilter mPCF;
 		std::list<std::function<void(CascadedShadow*)>> mCallbacks;
 		bool mEnabled;
-		Real mBiasMultiplier;
-		Real mShadowStrength;
+		float mBiasMultiplier;
+		float mShadowStrength;
 		bool mUseTightNearFarPlane;
 	};
 

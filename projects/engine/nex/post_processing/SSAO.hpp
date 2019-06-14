@@ -17,10 +17,10 @@ namespace nex
 	const int SSAO_SAMPLING_SIZE = 32;
 
 	struct SSAOData {
-		Real   bias;
-		Real   intensity;
-		Real   radius;
-		Real   _pad0;
+		float   bias;
+		float   intensity;
+		float   radius;
+		float   _pad0;
 
 		glm::vec4 invFullResolution;
 
@@ -52,17 +52,17 @@ namespace nex
 
 		SSAOData* getSSAOData();
 
-		void setBias(Real bias);
-		void setItensity(Real itensity);
-		void setRadius(Real radius);
+		void setBias(float bias);
+		void setItensity(float itensity);
+		void setRadius(float radius);
 
 
 	private:
 
 		static std::unique_ptr<RenderTarget2D> createSSAO_FBO(unsigned int width, unsigned int height);
 
-		Real randomFloat(Real a, Real b);
-		Real lerp(Real a, Real b, Real f);
+		float randomFloat(float a, float b);
+		float lerp(float a, float b, float f);
 
 		std::unique_ptr<Texture2D> noiseTexture;
 		std::unique_ptr<RenderTarget2D> aoRenderTarget;

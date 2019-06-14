@@ -38,7 +38,7 @@ namespace nex
 		inline void push(unsigned int count);
 
 		template<>
-		inline void push<Real>(unsigned int count);
+		inline void push<float>(unsigned int count);
 
 		template<>
 		inline void push<unsigned int>(unsigned int count);

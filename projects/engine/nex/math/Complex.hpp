@@ -11,11 +11,11 @@ namespace nex
 	 */
 	struct Complex
 	{
-		Real re;
-		Real im;
+		float re;
+		float im;
 
 		Complex();
-		Complex(Real real, Real imaginary);
+		Complex(float real, float imaginary);
 		Complex(const Complex& c) = default;
 		Complex(Complex&& c) = default;
 		~Complex() = default;
@@ -26,7 +26,7 @@ namespace nex
 		/**
 		 * Computes the complex argument from this number.
 		 */
-		Real arg() const;
+		float arg() const;
 
 		/**
 		 * Transforms this complex number to the cartesian plane.
@@ -47,12 +47,12 @@ namespace nex
 		 * Provides a complex number by a given exponent.
 		 * The result will match euler's formula e^(i*exponent) = cos(exponent) + i*sin(exponent)
 		 */
-		static Complex euler(Real exponent);
+		static Complex euler(float exponent);
 
 		/**
 		 * Computes the magnitude of this number.
 		 */
-		Real magnitude() const;
+		float magnitude() const;
 
 		Complex operator+(const Complex& c) const;
 		Complex& operator+=(const Complex& c);
@@ -60,23 +60,23 @@ namespace nex
 		Complex& operator-=(const Complex& c);
 		Complex operator*(const Complex& c) const;
 		Complex& operator*=(const Complex& c);
-		Complex operator*(Real scalar) const;
-		Complex& operator*=(Real scalar);
+		Complex operator*(float scalar) const;
+		Complex& operator*=(float scalar);
 		Complex operator/(const Complex& c) const;
 		Complex& operator/=(const Complex& c);
-		Complex operator/(Real scalar) const;
-		Complex& operator/=(Real scalar);
+		Complex operator/(float scalar) const;
+		Complex& operator/=(float scalar);
 
 	private:
 		void add(const Complex& c);
 		void subtract(const Complex& c);
 		void multiply(const Complex& c);
-		void multiply(Real scalar);
+		void multiply(float scalar);
 		void divide(const Complex& c);
 	};
 }
 
-nex::Complex operator*(nex::Real scalar, const nex::Complex& c);
-nex::Complex& operator*=(nex::Real scalar, nex::Complex& c);
-nex::Complex operator/(nex::Real scalar, const nex::Complex& c);
-nex::Complex& operator/=(nex::Real scalar, nex::Complex& c);
+nex::Complex operator*(float scalar, const nex::Complex& c);
+nex::Complex& operator*=(float scalar, nex::Complex& c);
+nex::Complex operator/(float scalar, const nex::Complex& c);
+nex::Complex& operator/=(float scalar, nex::Complex& c);

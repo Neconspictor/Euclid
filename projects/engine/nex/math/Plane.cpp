@@ -24,7 +24,7 @@ nex::Plane::Plane()
 {
 }
 
-nex::Plane::Plane(glm::vec3 normal, Real distance) : mNormal(normal), mSignedDistance(distance)
+nex::Plane::Plane(glm::vec3 normal, float distance) : mNormal(normal), mSignedDistance(distance)
 {
 	normalize(*this);
 }
@@ -34,7 +34,7 @@ nex::Plane::Plane(glm::vec3 normal, glm::vec3 pointOnPlane) : mNormal(normalize(
 	mSignedDistance = dot(normal, pointOnPlane);
 }
 
-nex::Plane::Plane(Real x, Real y, Real z, Real d) : mNormal(x,y,z), mSignedDistance(d)
+nex::Plane::Plane(float x, float y, float z, float d) : mNormal(x,y,z), mSignedDistance(d)
 {
 	normalize(*this);
 }

@@ -7,7 +7,7 @@
 #include <nex/material/Material.hpp>
 
 
-void nex::SceneNearFarComputePass::setConstants(Real positiveViewNearZ, Real positiveViewFarZ, const glm::mat4& projection)
+void nex::SceneNearFarComputePass::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)
 {
 	mConstantBuffer->bind();
 	Constant data;

@@ -9,7 +9,7 @@ namespace nex
 		switch (type)
 		{
 		case LayoutType::UNSIGNED_INT: return sizeof(unsigned int);
-		case LayoutType::FLOAT: return sizeof(Real);
+		case LayoutType::FLOAT: return sizeof(float);
 		case LayoutType::UNSIGNED_BYTE: return sizeof(unsigned char);
 		case LayoutType::UNSIGNED_SHORT: return sizeof(unsigned short);
 		default: throw std::runtime_error("Unsupported type: " + std::to_string((unsigned)type));
@@ -20,7 +20,7 @@ namespace nex
 	}
 
 	template <>
-	inline void VertexLayout::push<Real>(unsigned count)
+	inline void VertexLayout::push<float>(unsigned count)
 	{
 		mElements.push_back({ LayoutType::FLOAT, count, false});
 		mStride += count * LayoutElement::getSizeOfType(LayoutType::FLOAT);

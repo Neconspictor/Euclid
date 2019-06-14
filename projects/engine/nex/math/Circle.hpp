@@ -11,24 +11,24 @@ namespace nex
 	class Circle3D
 	{
 	public:
-		Circle3D(Plane plane, glm::vec3 origin, Real radius);
+		Circle3D(Plane plane, glm::vec3 origin, float radius);
 
 		const glm::vec3& getOrigin()const;
 		const Plane& getPlane() const;
-		Real getRadius()const;
+		float getRadius()const;
 
 		/**
 		 * Checks if a point is located on the circle.
 		 * @param toleranceRange : points that aren't exactly on the circle, but are within this range, are treated to be on the circle.
 		 */
-		bool isOnCircle(const glm::vec3& point, Real toleranceRange = 0.000001f) const;
+		bool isOnCircle(const glm::vec3& point, float toleranceRange = 0.000001f) const;
 
 	private:
 		Plane plane;
 
 		// Note: the origin has to be located in the plane!
 		glm::vec3 origin;
-		Real radius;
+		float radius;
 	};
 
 
@@ -39,12 +39,12 @@ namespace nex
 	class MinMaxCircle3D
 	{
 	public:
-		MinMaxCircle3D(Plane plane, glm::vec3 origin, Real minRadius, Real maxRadius);
+		MinMaxCircle3D(Plane plane, glm::vec3 origin, float minRadius, float maxRadius);
 
 		const glm::vec3& getOrigin()const;
 		const Plane& getPlane() const;
-		Real getMaxRadius()const;
-		Real getMinRadius()const;
+		float getMaxRadius()const;
+		float getMinRadius()const;
 		
 
 		/**
@@ -57,7 +57,7 @@ namespace nex
 
 		// Note: the origin has to be located in the plane!
 		glm::vec3 mOrigin;
-		Real mMaxRadius;
-		Real mMinRadius;
+		float mMaxRadius;
+		float mMinRadius;
 	};
 }

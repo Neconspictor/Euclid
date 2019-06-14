@@ -18,10 +18,10 @@ namespace nex {
 	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
 	struct Projection {
-		Real nearplane;
-		Real farplane;
-		Real fov;
-		Real orthoheight;
+		float nearplane;
+		float farplane;
+		float fov;
+		float orthoheight;
 		bool  perspective;
 		glm::mat4  matrix;
 	};
@@ -36,16 +36,16 @@ namespace nex {
 	};
 
 	struct HBAOData {
-		Real   RadiusToScreen;        // radius
-		Real   R2;     // radius * radius
-		Real   NegInvR2;     // -1/radius
-		Real   NDotVBias;
+		float   RadiusToScreen;        // radius
+		float   R2;     // radius * radius
+		float   NegInvR2;     // -1/radius
+		float   NDotVBias;
 
 		glm::vec2    InvFullResolution;
 		glm::vec2    InvQuarterResolution;
 
-		Real   AOMultiplier;
-		Real   PowExponent;
+		float   AOMultiplier;
+		float   PowExponent;
 		glm::vec2    _pad0;
 
 		glm::vec4    projInfo;
@@ -53,7 +53,7 @@ namespace nex {
 		int     projOrtho;
 		int     _pad1;
 
-		glm::vec4    Real2Offsets[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
+		glm::vec4    float2Offsets[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
 		glm::vec4    jitters[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
 	};
 
@@ -65,14 +65,14 @@ namespace nex {
 		virtual ~BilateralBlurPass() = default;
 
 		void setLinearDepth(Texture* linearDepth);
-		void setSharpness(Real sharpness);
+		void setSharpness(float sharpness);
 		void setSourceTexture(Texture* source, unsigned int textureWidth, unsigned int textureHeight);
 
 		void draw(RenderTarget2D* temp, RenderTarget2D* result);
 
 	private:
 		Texture* m_linearDepth;
-		Real m_sharpness;
+		float m_sharpness;
 		Texture* m_source;
 		unsigned int m_textureHeight;
 		unsigned int m_textureWidth;
@@ -149,13 +149,13 @@ namespace nex {
 
 		void displayAOTexture(Texture* texture);
 
-		Real getBlurSharpness() const;
-		void setBlurSharpness(Real sharpness);
+		float getBlurSharpness() const;
+		void setBlurSharpness(float sharpness);
 
 	protected:
 
-		static Real randomFloat(Real a, Real b);
-		static Real lerp(Real a, Real b, Real f);
+		static float randomFloat(float a, float b);
+		static float lerp(float a, float b, float f);
 
 		void drawLinearDepth(Texture* depthTexture, const Projection & projection);
 		void initRenderTargets(unsigned int width, unsigned int height);
@@ -187,11 +187,11 @@ namespace nex {
 	protected:
 		friend HbaoConfigurationView;
 
-		Real m_blur_sharpness;
-		Real m_meters2viewspace;
-		Real m_radius;
-		Real m_intensity;
-		Real m_bias;
+		float m_blur_sharpness;
+		float m_meters2viewspace;
+		float m_radius;
+		float m_intensity;
+		float m_bias;
 
 		unsigned int windowWidth;
 		unsigned int windowHeight;
@@ -214,6 +214,6 @@ namespace nex {
 	private:
 		HBAO * m_hbao;
 		Drawable* m_parent;
-		Real m_test;
+		float m_test;
 	};
 }

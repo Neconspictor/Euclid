@@ -13,8 +13,8 @@ namespace nex
 
 		virtual ~GaussianBlurHorizontalShader() = default;
 
-		void setImageHeight(Real height);
-		void setImageWidth(Real width);
+		void setImageHeight(float height);
+		void setImageWidth(float width);
 
 		void setTexture(const Texture* tex);
 
@@ -31,8 +31,8 @@ namespace nex
 
 		virtual ~GaussianBlurVerticalShader() = default;
 
-		void setImageHeight(Real height);
-		void setImageWidth(Real width);
+		void setImageHeight(float height);
+		void setImageWidth(float width);
 
 		void setTexture(const Texture* tex);
 

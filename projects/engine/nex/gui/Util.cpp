@@ -59,15 +59,15 @@ namespace nex::gui
 	}
 
 
-	void VerticalSeparatorThickness(Real thickness)
+	void VerticalSeparatorThickness(float thickness)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return;
 		ImGuiContext& g = *GImGui;
 
-		Real y1 = window->DC.CursorPos.y;
-		Real y2 = window->DC.CursorPos.y + window->DC.CurrentLineHeight;
+		float y1 = window->DC.CursorPos.y;
+		float y2 = window->DC.CursorPos.y + window->DC.CurrentLineHeight;
 		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness, y2));
 		ItemSize(ImVec2(bb.GetWidth(), 0.0f));
 		if (!ItemAdd(bb, 0))
@@ -78,7 +78,7 @@ namespace nex::gui
 			LogText(" |");
 	}
 
-	void Separator(Real thickness, bool vertical)
+	void Separator(float thickness, bool vertical)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -103,8 +103,8 @@ namespace nex::gui
 		if (window->DC.ColumnsSet)
 			PopClipRect();
 
-		Real x1 = window->Pos.x;
-		Real x2 = window->Pos.x + window->Size.x;
+		float x1 = window->Pos.x;
+		float x2 = window->Pos.x + window->Size.x;
 		if (!window->DC.GroupStack.empty())
 			x1 += window->DC.IndentX;
 
@@ -129,7 +129,7 @@ namespace nex::gui
 		}
 	}
 
-	void Vector3D(glm::vec3* vec, const char* label, Real speed)
+	void Vector3D(glm::vec3* vec, const char* label, float speed)
 	{
 		std::stringstream ss;
 		ss << label << ":";
@@ -148,7 +148,7 @@ namespace nex::gui
 		ImGui::PopID();
 	}
 
-	void EulerRot(glm::vec3* vec, const char* label, Real speed)
+	void EulerRot(glm::vec3* vec, const char* label, float speed)
 	{
 		std::stringstream ss;
 		ss << label << ":";

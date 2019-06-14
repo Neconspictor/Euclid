@@ -12,29 +12,29 @@ nex::AABB::RayIntersection nex::AABB::testRayIntersection(const nex::Ray& ray) c
 	/**
 	 * Note: the inverse direction can have components that are INF or -INF.
 	 * INF or -INF multiplied by 0 will result into a NaN.
-	 * The following algorithm handles NaNs correctly as comparisons between NaN and any valid Real value
+	 * The following algorithm handles NaNs correctly as comparisons between NaN and any valid float value
 	 * will always be false.
 	 */
 
-	Real tmin = -FLT_MAX;
-	Real tmax = FLT_MAX;
+	float tmin = -FLT_MAX;
+	float tmax = FLT_MAX;
 
-	const Real tminX = (bounds[sign.x]->x - origin.x) * invDir.x;
-	const Real tmaxX = (bounds[1 - sign.x]->x - origin.x) * invDir.x;
+	const float tminX = (bounds[sign.x]->x - origin.x) * invDir.x;
+	const float tmaxX = (bounds[1 - sign.x]->x - origin.x) * invDir.x;
 
 	if (tminX > tmin) tmin = tminX;
 	if (tmaxX < tmax) tmax = tmaxX;
 
-	const Real tminY = (bounds[sign.y]->y - origin.y) * invDir.y;
-	const Real tmaxY = (bounds[1 - sign.y]->y - origin.y) * invDir.y;
+	const float tminY = (bounds[sign.y]->y - origin.y) * invDir.y;
+	const float tmaxY = (bounds[1 - sign.y]->y - origin.y) * invDir.y;
 
 	if ((tmin > tmaxY) || (tminY > tmax)) return {false, 0, 0};
 
 	if (tminY > tmin) tmin = tminY;
 	if (tmaxY < tmax) tmax = tmaxY;
 
-	const Real tminZ = (bounds[sign.z]->z - origin.z) * invDir.z;
-	const Real tmaxZ = (bounds[1 - sign.z]->z - origin.z) * invDir.z;
+	const float tminZ = (bounds[sign.z]->z - origin.z) * invDir.z;
+	const float tmaxZ = (bounds[1 - sign.z]->z - origin.z) * invDir.z;
 
 	if ((tmin > tmaxZ) || (tminZ > tmax)) return {false, 0, 0};
 

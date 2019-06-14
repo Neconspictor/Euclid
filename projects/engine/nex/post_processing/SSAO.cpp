@@ -191,7 +191,7 @@ namespace nex
 
 			//vec *= randomFloat(0, 1);
 
-			Real scale = i / (Real)SSAO_SAMPLING_SIZE;
+			float scale = i / (float)SSAO_SAMPLING_SIZE;
 			scale = lerp(0.1f, 1.0f, scale * scale);
 			//vec *= scale;
 
@@ -281,7 +281,7 @@ namespace nex
 		aoShader.setGDepthTexture(gDepth);
 		m_shaderData.projection_GPass = projectionGPass;
 		m_shaderData.inv_projection_GPass = inverse(projectionGPass);
-		m_shaderData.invFullResolution = glm::vec4(1 / Real(width), 1/Real(height), 0, 0);
+		m_shaderData.invFullResolution = glm::vec4(1 / float(width), 1/float(height), 0, 0);
 
 		renderBackend->setViewPort(0, 0, width, height);
 
@@ -340,29 +340,29 @@ namespace nex
 		return &m_shaderData;
 	}
 
-	void SSAO_Deferred::setBias(Real bias)
+	void SSAO_Deferred::setBias(float bias)
 	{
 		m_shaderData.bias = bias;
 	}
 
-	void SSAO_Deferred::setItensity(Real itensity)
+	void SSAO_Deferred::setItensity(float itensity)
 	{
 		m_shaderData.intensity = itensity;
 	}
 
-	void SSAO_Deferred::setRadius(Real radius)
+	void SSAO_Deferred::setRadius(float radius)
 	{
 		m_shaderData.radius = radius;
 	}
 
-	Real SSAO_Deferred::randomFloat(Real a, Real b) {
-		uniform_real_distribution<Real> dist(a, b);
+	float SSAO_Deferred::randomFloat(float a, float b) {
+		uniform_real_distribution<float> dist(a, b);
 		random_device device;
 		default_random_engine gen(device());
 		return dist(gen);
 	}
 
-	Real SSAO_Deferred::lerp(Real a, Real b, Real f) {
+	float SSAO_Deferred::lerp(float a, float b, float f) {
 		return a + f * (b - a);
 	}
 

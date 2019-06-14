@@ -19,7 +19,7 @@ namespace nex::gui
 
 		Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)) {}
 		virtual ~Controller() = default;
-		virtual void frameUpdate(nex::gui::ControllerStateMachine& stateMachine, Real frameTime) = 0;
+		virtual void frameUpdate(nex::gui::ControllerStateMachine& stateMachine, float frameTime) = 0;
 		virtual void init() = 0;
 
 		/**

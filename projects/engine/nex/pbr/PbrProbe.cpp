@@ -72,7 +72,7 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 	data.height = getBrdfLookupTexture()->getHeight();
 	data.channels = 2; // RG
 	data.format = (unsigned)ColorSpace::RG;
-	data.pixelSize = sizeof(Real) * data.channels;
+	data.pixelSize = sizeof(float) * data.channels;
 
 	auto bufSize = data.width * data.height * data.pixelSize;
 	data.pixels = std::vector<char>(bufSize);;
@@ -95,7 +95,7 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 	// readback the cubemap
 	const auto components = 3;
 	const auto format = (unsigned)ColorSpace::RGB;
-	const auto pixelDataSize = sizeof(Real) * components; // RGB32F
+	const auto pixelDataSize = sizeof(float) * components; // RGB32F
 	const auto width = getEnvironmentMap()->getSideWidth();
 	const auto height = getEnvironmentMap()->getSideHeight();
 	const auto sideSlice = width * height * pixelDataSize;
@@ -137,7 +137,7 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 		// readback the mipmap level of the cubemap
 		const auto components = 3;  // RGB
 		const auto format = (unsigned)ColorSpace::RGB;
-		const auto pixelDataSize = sizeof(Real) * components; // internal format: RGB16F
+		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
 		unsigned mipMapDivisor = std::pow(2, level);
 		const auto width = getConvolutedEnvironmentMap()->getSideWidth() / mipMapDivisor;
 		const auto height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
@@ -182,7 +182,7 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 		// readback the mipmap level of the cubemap
 		const auto components = 3;  // RGB
 		const auto format = (unsigned)ColorSpace::RGB;
-		const auto pixelDataSize = sizeof(Real) * components; // internal format: RGB16F
+		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
 		unsigned mipMapDivisor = std::pow(2, level);
 		const auto width = getPrefilteredEnvironmentMap()->getSideWidth() / mipMapDivisor;
 		const auto height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
@@ -298,7 +298,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 {
 	static auto* renderBackend = RenderBackend::get();
 	
-	// uses RGB and 32bit per component (Reals)
+	// uses RGB and 32bit per component (floats)
 
 	const TextureData& data = {
 				TextureFilter::Linear,
@@ -390,7 +390,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 	for (unsigned int mipLevel = 0; mipLevel < mipMapCount; ++mipLevel) {
 
 		// update the roughness value for the current mipmap level
-		Real roughness = (Real)mipLevel / (Real)(mipMapCount - 1);
+		float roughness = (float)mipLevel / (float)(mipMapCount - 1);
 		mPrefilterPass->setRoughness(roughness);
 
 		//resize render target according to mip level size

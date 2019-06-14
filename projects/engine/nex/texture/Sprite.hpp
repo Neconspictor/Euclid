@@ -15,25 +15,25 @@ namespace nex
 		Sprite();
 		virtual ~Sprite();
 
-		Real getHeight() const;
+		float getHeight() const;
 		glm::vec2 getPosition() const;
 		const glm::vec3& getRotation() const;
 		Texture* getTexture() const;
-		Real getWidth() const;
+		float getWidth() const;
 
-		void setHeight(Real height);
+		void setHeight(float height);
 		void setPosition(glm::vec2 position);
-		void setXRotation(Real value);
-		void setYRotation(Real value);
-		void setZRotation(Real value);
+		void setXRotation(float value);
+		void setYRotation(float value);
+		void setZRotation(float value);
 		void setTexture(Texture* texture);
-		void setWidth(Real width);
+		void setWidth(float width);
 
 		static const Sprite& getScreenSprite();
 
 	protected:
-		Real relativeHeight;
-		Real relativeWidth;
+		float relativeHeight;
+		float relativeWidth;
 		glm::vec3 rotation;
 		glm::vec2 screenPosition;
 		Texture* texture;

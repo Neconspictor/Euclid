@@ -22,22 +22,22 @@ namespace nex
 			unsigned intersectionCount = 0;
 
 			// multipliers of the intersections
-			Real firstMultiplier = 0;
-			Real secondMultiplier = 0;
+			float firstMultiplier = 0;
+			float secondMultiplier = 0;
 		};
 
 		struct RayDistance
 		{
-			Real multiplier;
-			Real otherMultiplier;
+			float multiplier;
+			float otherMultiplier;
 			bool parallel;
-			Real distance;
+			float distance;
 		};
 
 		struct PointDistance
 		{
-			Real multiplier; //multiplier for the projection of the point on the line
-			Real distance;
+			float multiplier; //multiplier for the projection of the point on the line
+			float distance;
 		};
 
 		struct PlaneIntersection
@@ -59,8 +59,8 @@ namespace nex
 			unsigned intersectionCount = 0;
 
 			// multipliers of the intersections
-			Real firstMultiplier = 0;
-			Real secondMultiplier = 0;
+			float firstMultiplier = 0;
+			float secondMultiplier = 0;
 		};
 
 		/**
@@ -91,7 +91,7 @@ namespace nex
 
 		const glm::vec3& getOrigin() const;
 
-		glm::vec3 getPoint(Real multiplier) const;
+		glm::vec3 getPoint(float multiplier) const;
 
 		const glm::uvec3& getSign() const;
 
@@ -99,7 +99,7 @@ namespace nex
 		 * Checks if this ray intersects a circle
 		 * @param toleranceRange : Points that aren't exactly on the circle, but are within this range, are accepted.
 		 */
-		Circle3DIntersection intersects(const Circle3D& circle, Real toleranceRange = 0.000001f) const;
+		Circle3DIntersection intersects(const Circle3D& circle, float toleranceRange = 0.000001f) const;
 
 		/**
 		 * Checks if this ray intersects a plane

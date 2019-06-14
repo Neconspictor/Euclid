@@ -19,12 +19,12 @@ namespace nex
 			/**
 			 * Multiplier of the first intersection point.
 			 */
-			Real firstIntersection;
+			float firstIntersection;
 
 			/**
 			 * Multiplier of the second intersection point.
 			 */
-			Real secondIntersection;
+			float secondIntersection;
 		};
 
 		glm::vec3 min = glm::vec3(FLT_MAX);

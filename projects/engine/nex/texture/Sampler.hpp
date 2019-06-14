@@ -40,7 +40,7 @@ namespace nex
 		void setMagFilter(TextureFilter filter);
 
 		// Has to be implemented by renderer backend
-		void setAnisotropy(Real anisotropy);
+		void setAnisotropy(float anisotropy);
 
 		// Has to be implemented by renderer backend
 		void useDepthComparison(bool use);
@@ -61,13 +61,13 @@ namespace nex
 		void setBorderColor(const glm::vec4& color);
 
 		// Has to be implemented by renderer backend
-		void setMinLOD(Real lod);
+		void setMinLOD(float lod);
 
 		// Has to be implemented by renderer backend
-		void setMaxLOD(Real lod);
+		void setMaxLOD(float lod);
 
 		// Has to be implemented by renderer backend
-		void setLodBias(Real bias);
+		void setLodBias(float bias);
 
 		// Has to be implemented by renderer backend
 		void setState(const SamplerDesc& desc);

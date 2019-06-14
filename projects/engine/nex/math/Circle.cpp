@@ -1,6 +1,6 @@
 #include <nex/math/Circle.hpp>
 
-nex::Circle3D::Circle3D(Plane plane, glm::vec3 origin, Real radius) : plane(std::move(plane)), origin(std::move(origin)), radius(radius)
+nex::Circle3D::Circle3D(Plane plane, glm::vec3 origin, float radius) : plane(std::move(plane)), origin(std::move(origin)), radius(radius)
 {
 	assert(this->plane.onPlane(this->origin));
 }
@@ -15,12 +15,12 @@ const nex::Plane& nex::Circle3D::getPlane() const
 	return plane;
 }
 
-nex::Real nex::Circle3D::getRadius() const
+float nex::Circle3D::getRadius() const
 {
 	return radius;
 }
 
-bool nex::Circle3D::isOnCircle(const glm::vec3& point, Real toleranceRange) const
+bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) const
 {
 	if (!plane.onPlane(point)) return false;
 
@@ -29,7 +29,7 @@ bool nex::Circle3D::isOnCircle(const glm::vec3& point, Real toleranceRange) cons
 	return compare <= toleranceRange;
 }
 
-nex::MinMaxCircle3D::MinMaxCircle3D(Plane plane, glm::vec3 origin, Real minRadius, Real maxRadius) :
+nex::MinMaxCircle3D::MinMaxCircle3D(Plane plane, glm::vec3 origin, float minRadius, float maxRadius) :
 mPlane(plane), mOrigin(origin), mMaxRadius(maxRadius), mMinRadius(minRadius)
 {
 	assert(mPlane.onPlane(mOrigin));
@@ -45,12 +45,12 @@ const nex::Plane& nex::MinMaxCircle3D::getPlane() const
 	return mPlane;
 }
 
-nex::Real nex::MinMaxCircle3D::getMaxRadius() const
+float nex::MinMaxCircle3D::getMaxRadius() const
 {
 	return mMaxRadius;
 }
 
-nex::Real nex::MinMaxCircle3D::getMinRadius() const
+float nex::MinMaxCircle3D::getMinRadius() const
 {
 	return mMinRadius;
 }

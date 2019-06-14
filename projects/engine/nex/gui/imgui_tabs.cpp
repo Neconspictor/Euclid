@@ -53,12 +53,12 @@ struct ImGuiTabItem
 	int             CurrentOrderVisible;// Index for display. Include hidden tabs. Assigned in TabBarLayout() when expected this frame
 	int             LastFrameVisible;
 	int             LastFrameSelected;  // This allows us to rebuild an ordered list of the last activated tabs with little maintenance and zero cost on activation.
-	nex::Real           OffsetAnim;         // Position relative to beginning of tab
-	nex::Real           OffsetTarget;       // Position relative to beginning of tab
-	nex::Real           WidthContents;      // Width of actual contents, stored during TabItem() call
-	nex::Real           WidthAnim;          // Width currently displayed (animating toward TabWidthDesired)
-	nex::Real           WidthTarget;        // Width calculated by tab bar
-	nex::Real           AppearAnim;
+	float           OffsetAnim;         // Position relative to beginning of tab
+	float           OffsetTarget;       // Position relative to beginning of tab
+	float           WidthContents;      // Width of actual contents, stored during TabItem() call
+	float           WidthAnim;          // Width currently displayed (animating toward TabWidthDesired)
+	float           WidthTarget;        // Width calculated by tab bar
+	float           AppearAnim;
 	bool            SkipOffsetAnim;
 	bool            SkipAppearAnim;
 	char            DebugName[16];
@@ -88,9 +88,9 @@ struct ImGuiTabBar
 	int                 LastFrameVisible, CurrFrameVisible;
 	ImRect              BarRect;
 	ImRect              ContentsRect;
-	nex::Real               OffsetMax;
-	nex::Real               ScrollingAnim;
-	nex::Real               ScrollingTarget;
+	float               OffsetMax;
+	float               ScrollingAnim;
+	float               ScrollingTarget;
 	ImGuiTabBarFlags    Flags;
 	ImVector<int>       TabsOrder;
 	int                 ReorderRequestTabIdx;
@@ -201,7 +201,7 @@ static ImU32   TabGetColorU32(int idx)
 static void RenderTabBackground(ImDrawList* draw_list, const ImRect& bb, ImU32 col)
 {
 	ImGuiContext& g = *GImGui;
-	const nex::Real rounding = ImMin(g.FontSize * 0.35f, bb.GetWidth() * 0.5f);
+	const float rounding = ImMin(g.FontSize * 0.35f, bb.GetWidth() * 0.5f);
 	draw_list->PathLineTo(ImVec2(bb.Min.x, bb.Max.y));
 	draw_list->PathArcToFast(ImVec2(bb.Min.x + rounding, bb.Min.y + rounding), rounding, 6, 9);
 	draw_list->PathArcToFast(ImVec2(bb.Max.x - rounding, bb.Min.y + rounding), rounding, 9, 12);
@@ -266,7 +266,7 @@ static int TabBarFindClosestVisibleInDirection(ImGuiTabBar* tab_bar, int order, 
 	return -1;
 }
 
-static void TabBarScrollClamp(ImGuiTabBar* tab_bar, nex::Real& scrolling)
+static void TabBarScrollClamp(ImGuiTabBar* tab_bar, float& scrolling)
 {
 	scrolling = ImMin(scrolling, tab_bar->OffsetMax - tab_bar->BarRect.GetWidth());
 	scrolling = ImMax(scrolling, 0.0f);
@@ -275,9 +275,9 @@ static void TabBarScrollClamp(ImGuiTabBar* tab_bar, nex::Real& scrolling)
 static void TabBarScrollToTab(ImGuiTabBar* tab_bar, ImGuiTabItem* tab)
 {
 	ImGuiContext& g = *GImGui;
-	nex::Real margin = g.FontSize * 1.0f; // When to scroll to make Tab N+1 visible always make a bit of N visible to suggest more scrolling area (since we don't have a scrollbar)
-	nex::Real tab_x1 = tab->OffsetTarget + (tab->CurrentOrderVisible > 0 ? -margin : 0.0f);
-	nex::Real tab_x2 = tab->OffsetTarget + tab->WidthTarget + (tab->CurrentOrderVisible + 1 < tab_bar->CurrVisibleCount ? margin : 0.0f);
+	float margin = g.FontSize * 1.0f; // When to scroll to make Tab N+1 visible always make a bit of N visible to suggest more scrolling area (since we don't have a scrollbar)
+	float tab_x1 = tab->OffsetTarget + (tab->CurrentOrderVisible > 0 ? -margin : 0.0f);
+	float tab_x2 = tab->OffsetTarget + tab->WidthTarget + (tab->CurrentOrderVisible + 1 < tab_bar->CurrVisibleCount ? margin : 0.0f);
 	if (tab_bar->ScrollingTarget > tab_x1)
 		tab_bar->ScrollingTarget = tab_x1;
 	if (tab_bar->ScrollingTarget + tab_bar->BarRect.GetWidth() < tab_x2)
@@ -349,8 +349,8 @@ static void TabBarLayout(ImGuiTabBar* tab_bar)
 	ImGuiTabItem* most_recent_selected_tab = NULL;
 
 	// Layout all active tabs
-	const nex::Real tab_width_equal = (tab_bar->CurrTabCount > 0) ? (nex::Real)(int)((tab_bar->BarRect.GetWidth() - (tab_bar->CurrTabCount - 1) * g.Style.ItemInnerSpacing.x) / tab_bar->CurrTabCount) : 0.0f;
-	nex::Real offset_x = 0.0f;
+	const float tab_width_equal = (tab_bar->CurrTabCount > 0) ? (float)(int)((tab_bar->BarRect.GetWidth() - (tab_bar->CurrTabCount - 1) * g.Style.ItemInnerSpacing.x) / tab_bar->CurrTabCount) : 0.0f;
+	float offset_x = 0.0f;
 	int tab_order_visible_n = 0;
 	for (int tab_order_n = 0; tab_order_n < tab_bar->TabsOrder.Size; tab_order_n++)
 	{
@@ -370,12 +370,12 @@ static void TabBarLayout(ImGuiTabBar* tab_bar)
 			scroll_track_selected_tab = tab;
 		if (tab_bar->Flags & ImGuiTabBarFlags_SizingPolicyEqual)
 		{
-			const nex::Real TAB_MAX_WIDTH = g.FontSize * 13.0f;
+			const float TAB_MAX_WIDTH = g.FontSize * 13.0f;
 			tab->WidthTarget = ImClamp(tab_width_equal, 0.0f, TAB_MAX_WIDTH);
 		}
 		else if (tab_bar->Flags & ImGuiTabBarFlags_SizingPolicyFit)
 		{
-			const nex::Real TAB_MAX_WIDTH = FLT_MAX;// 100.0f; 
+			const float TAB_MAX_WIDTH = FLT_MAX;// 100.0f; 
 			tab->WidthTarget = ImMin(tab->WidthContents, TAB_MAX_WIDTH);
 		}
 
@@ -393,11 +393,11 @@ static void TabBarLayout(ImGuiTabBar* tab_bar)
 
 	// Horizontal scrolling buttons
 	// FIXME: This is not satisfying but I'll leave the polish for later.
-	const nex::Real scrolling_speed = g.IO.DeltaTime * g.FontSize * 70.0f;
+	const float scrolling_speed = g.IO.DeltaTime * g.FontSize * 70.0f;
 	if (tab_bar->OffsetMax > tab_bar->BarRect.GetWidth())
 	{
 		const ImVec2 backup_main_cursor_pos = window->DC.CursorPos;
-		nex::Real buttons_width = g.FontSize * 2.0f + g.Style.ItemInnerSpacing.x;
+		float buttons_width = g.FontSize * 2.0f + g.Style.ItemInnerSpacing.x;
 
 		window->DC.CursorPos = ImVec2(tab_bar->BarRect.Max.x - buttons_width, tab_bar->BarRect.Min.y);
 #if 0
@@ -417,8 +417,8 @@ static void TabBarLayout(ImGuiTabBar* tab_bar)
 		}
 #else
 		// Navigate tab by tab
-		const nex::Real backup_repeat_delay = g.IO.KeyRepeatDelay;
-		const nex::Real backup_repeat_rate = g.IO.KeyRepeatRate;
+		const float backup_repeat_delay = g.IO.KeyRepeatDelay;
+		const float backup_repeat_rate = g.IO.KeyRepeatRate;
 		int select_dir = 0;
 		g.IO.KeyRepeatDelay = 0.250f;
 		g.IO.KeyRepeatRate = 0.200f;
@@ -598,8 +598,8 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 			tab->SkipOffsetAnim = false;
 		}
 
-		const nex::Real speed_x = (tab_bar->Flags & ImGuiTabBarFlags_NoAnim) ? (FLT_MAX) : (g.FontSize * 80.0f * g.IO.DeltaTime);
-		const nex::Real speed_y = (tab_bar->Flags & ImGuiTabBarFlags_NoAnim) ? (FLT_MAX) : (g.FontSize * 0.80f * g.IO.DeltaTime);
+		const float speed_x = (tab_bar->Flags & ImGuiTabBarFlags_NoAnim) ? (FLT_MAX) : (g.FontSize * 80.0f * g.IO.DeltaTime);
+		const float speed_y = (tab_bar->Flags & ImGuiTabBarFlags_NoAnim) ? (FLT_MAX) : (g.FontSize * 0.80f * g.IO.DeltaTime);
 		tab->OffsetAnim = ImLinearSweep(tab->OffsetAnim, tab->OffsetTarget, speed_x);
 		tab->WidthAnim = ImLinearSweep(tab->WidthAnim, tab->WidthTarget, speed_x);
 		tab->AppearAnim = ImLinearSweep(tab->AppearAnim, 1.0f, speed_y);
@@ -609,7 +609,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	size.x = tab->WidthAnim;
 
 	// Layout
-	window->DC.CursorPos = tab_bar->BarRect.Min + ImVec2((nex::Real)(int)tab->OffsetAnim - tab_bar->ScrollingAnim, 0.0f);
+	window->DC.CursorPos = tab_bar->BarRect.Min + ImVec2((float)(int)tab->OffsetAnim - tab_bar->ScrollingAnim, 0.0f);
 	ImVec2 pos = window->DC.CursorPos;
 
 	ImRect bb(pos, pos + size);
@@ -651,7 +651,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 			if (tab_bar->CurrOrderInsideTabsIsValid)
 			{
 				// VisualStudio style
-				const nex::Real anim_dx = (tab->OffsetTarget - tab->OffsetAnim); // Interaction always operated on target positions, ignoring animations!
+				const float anim_dx = (tab->OffsetTarget - tab->OffsetAnim); // Interaction always operated on target positions, ignoring animations!
 				if (g.IO.MouseDelta.x < 0.0f && g.IO.MousePos.x < bb.Min.x + anim_dx)
 					TabBarQueueChangeTabOrder(tab_bar, tab, -1);
 				else if (g.IO.MouseDelta.x > 0.0f && g.IO.MousePos.x > bb.Max.x + anim_dx)
@@ -669,7 +669,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 
 	// Render
 	ImDrawList* draw_list = window->DrawList;
-	const nex::Real close_button_sz = g.FontSize * 0.5f;
+	const float close_button_sz = g.FontSize * 0.5f;
 	if (!tab_appearing)
 	{
 		// Render: very small offset to make selected tab stick out
@@ -677,7 +677,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 
 		// Render: offset vertically + clipping when animating (we don't have enough CPU clipping primitives to clip the CloseButton, so this temporarily adds 1 draw call)
 		if (tab->AppearAnim < 1.0f)
-			bb.Translate(ImVec2(0.0f, (nex::Real)(int)((1.0f - tab->AppearAnim) * size.y)));
+			bb.Translate(ImVec2(0.0f, (float)(int)((1.0f - tab->AppearAnim) * size.y)));
 
 #if 1
 		bool unfocused = (tab_selected) && (!g.NavWindow || g.NavWindow->RootWindowForTitleBarHighlight != window->RootWindow);
@@ -693,11 +693,11 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 		const char* TAB_UNSAVED_MARKER = "*";
 		ImRect text_clip_bb(bb.Min + style.FramePadding, bb.Max);
 		text_clip_bb.Max.x -= g.Style.ItemInnerSpacing.x;
-		nex::Real text_gradient_extent = g.FontSize * 1.5f;
+		float text_gradient_extent = g.FontSize * 1.5f;
 		if (flags & ImGuiTabItemFlags_UnsavedDocument)
 		{
 			text_clip_bb.Max.x -= ImGui::CalcTextSize(TAB_UNSAVED_MARKER, NULL, false).x;
-			ImVec2 unsaved_marker_pos(ImMin(bb.Min.x + style.FramePadding.x + label_size.x + 1, text_clip_bb.Max.x), bb.Min.y + style.FramePadding.y + (nex::Real)(int)(-g.FontSize * 0.25f));
+			ImVec2 unsaved_marker_pos(ImMin(bb.Min.x + style.FramePadding.x + label_size.x + 1, text_clip_bb.Max.x), bb.Min.y + style.FramePadding.y + (float)(int)(-g.FontSize * 0.25f));
 			ImGui::RenderTextClipped(unsaved_marker_pos, bb.Max - style.FramePadding, TAB_UNSAVED_MARKER, NULL, NULL);
 		}
 
@@ -732,7 +732,7 @@ bool    ImGui::TabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 		}
 		if (close_button_visible)
 		{
-			nex::Real dx = close_button_sz + style.FramePadding.x * 1.0f;    // Because we fade clipped label we don't need FramePadding * 2;
+			float dx = close_button_sz + style.FramePadding.x * 1.0f;    // Because we fade clipped label we don't need FramePadding * 2;
 			text_clip_bb.Max.x -= dx;
 			text_gradient_extent = ImMax(0.0f, text_gradient_extent - dx);
 		}

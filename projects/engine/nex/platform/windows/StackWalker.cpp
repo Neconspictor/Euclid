@@ -147,7 +147,7 @@ typedef enum
 {
   AddrMode1616,
   AddrMode1632,
-  AddrModeReal,
+  AddrModefloat,
   AddrModeFlat
 } ADDRESS_MODE;
 typedef struct _tagADDRESS64

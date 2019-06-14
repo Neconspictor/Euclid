@@ -7,9 +7,9 @@ namespace nex
 	struct Sphere
 	{
 		glm::vec3 origin = glm::vec3(0.0f);
-		Real radius = 1.0f;
+		float radius = 1.0f;
 
-		Sphere(const glm::vec3& origin, Real radius);
+		Sphere(const glm::vec3& origin, float radius);
 		Sphere();
 
 		/**

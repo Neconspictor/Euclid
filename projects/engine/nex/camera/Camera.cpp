@@ -12,7 +12,7 @@
 
 namespace nex
 {
-	Camera::Camera(Real nearDistance, Real farDistance, PULCoordinateSystem coordinateSystem) :
+	Camera::Camera(float nearDistance, float farDistance, PULCoordinateSystem coordinateSystem) :
 		mCoordSystem(std::move(coordinateSystem)), mLogger("Camera"), mTargetPosition(mCoordSystem.position),
 		mFarDistance(farDistance), mNearDistance(nearDistance), mCameraSpeed(5.0f)
 	{
@@ -27,16 +27,16 @@ namespace nex
 		mCoordSystem.up = std::move(up);
 	}
 
-	void Camera::frameUpdate(Input* input, Real frameTime)
+	void Camera::frameUpdate(Input* input, float frameTime)
 	{
 		//smooth transition from current position to target position using lerping 
 		// A damping factor slows down speed over time.
-		static const Real DAMPING = 1.0f;
-		const Real alpha = std::clamp<Real>(frameTime*2.0*DAMPING, 0.0f, 1.0f);
+		static const float DAMPING = 1.0f;
+		const float alpha = std::clamp<float>(frameTime*2.0*DAMPING, 0.0f, 1.0f);
 		mCoordSystem.position = glm::lerp<glm::vec3>(mCoordSystem.position, mTargetPosition, glm::vec3(alpha));
 	}
 
-	Real Camera::getFarDistance() const
+	float Camera::getFarDistance() const
 	{
 		return mFarDistance;
 	}
@@ -51,7 +51,7 @@ namespace nex
 		return mFrustumWorld;
 	}
 
-	Real Camera::getSpeed() const
+	float Camera::getSpeed() const
 	{
 		return mCameraSpeed;
 	}
@@ -101,7 +101,7 @@ namespace nex
 		return mCoordSystem.position;
 	}
 
-	Real Camera::getNearDistance() const
+	float Camera::getNearDistance() const
 	{
 		return mNearDistance;
 	}
@@ -136,7 +136,7 @@ namespace nex
 		return {getViewSpaceZfromDistance(mNearDistance), getViewSpaceZfromDistance(mFarDistance)};
 	}
 
-	Real Camera::getViewSpaceZfromDistance(Real distance)
+	float Camera::getViewSpaceZfromDistance(float distance)
 	{
 #ifndef USE_LEFT_HANDED_COORDINATE_SYSTEM
 		distance *= -1; // the z-axis is inverted on right handed systems
@@ -149,12 +149,12 @@ namespace nex
 		mCoordSystem.look = normalize(location - mCoordSystem.position);
 	}
 
-	void Camera::setNearDistance(Real nearDistance)
+	void Camera::setNearDistance(float nearDistance)
 	{
 		mNearDistance = nearDistance;
 	}
 
-	void Camera::setFarDistance(Real farDistance)
+	void Camera::setFarDistance(float farDistance)
 	{
 		mFarDistance = farDistance;
 	}
@@ -176,7 +176,7 @@ namespace nex
 		}
 	}
 
-	void Camera::setSpeed(Real speed)
+	void Camera::setSpeed(float speed)
 	{
 		mCameraSpeed = speed;
 	}
@@ -223,12 +223,12 @@ namespace nex
 		);
 	}
 
-	PerspectiveCamera::PerspectiveCamera(unsigned width, unsigned height, Real fovY, Real nearDistance, Real farDistance,
+	PerspectiveCamera::PerspectiveCamera(unsigned width, unsigned height, float fovY, float nearDistance, float farDistance,
 		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), mFovY(fovY),
 		mWidth(width), mHeight(height), mZoomEnabled(true)
 	{
 		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera: height parameter mustn't be 0!"));
-		mAspectRatio = width / (Real)height;
+		mAspectRatio = width / (float)height;
 	}
 
 	nex::Ray PerspectiveCamera::calcScreenRay(const glm::ivec2& screenPosition) const
@@ -238,14 +238,14 @@ namespace nex
 		const auto up = normalize(glm::cross(right, look));
 		const auto nearD = getNearDistance();
 		const auto tanFovYHalfth = tanf(getFovY() / 2.0f);
-		const Real aspectRatio = getAspectRatio();
+		const auto aspectRatio = getAspectRatio();
 
 		// normalize screen position to [-1, 1] x [-1, 1]
 		// Note: If screen position is out of range, the normalized position won't be in the target range,
 		// but the followed calculations will be correct nevertheless.
-		const Real height = (static_cast<int>(mHeight) - screenPosition.y) / (Real)mHeight;
+		const float height = (static_cast<int>(mHeight) - screenPosition.y) / (float)mHeight;
 
-		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (Real)mWidth, height) - 1.0f;
+		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)mWidth, height) - 1.0f;
 		
 		// Compute direction vectors of the ray for each axis in the camera coordinate system in world space
 		const glm::vec3 lookComponent = look * nearD;
@@ -264,24 +264,24 @@ namespace nex
 		mZoomEnabled = enable;
 	}
 
-	void PerspectiveCamera::frameUpdate(Input* input, Real frameTime)
+	void PerspectiveCamera::frameUpdate(Input* input, float frameTime)
 	{
 		if (mZoomEnabled)
 		{
 			double yOffset = input->getFrameScrollOffsetY();
 
-			setFovY(mFovY - glm::radians((Real)yOffset));
+			setFovY(mFovY - glm::radians((float)yOffset));
 		}
 
 		Camera::frameUpdate(input, frameTime);
 	}
 
-	Real PerspectiveCamera::getAspectRatio() const
+	float PerspectiveCamera::getAspectRatio() const
 	{
 		return mAspectRatio;
 	}
 
-	Real PerspectiveCamera::getFovY() const
+	float PerspectiveCamera::getFovY() const
 	{
 		return mFovY;
 	}
@@ -291,14 +291,14 @@ namespace nex
 		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera::setDimension: height parameter mustn't be 0!"));
 		mWidth = width;
 		mHeight = height;
-		mAspectRatio = width / (Real) height;
+		mAspectRatio = width / (float) height;
 	}
 
-	void PerspectiveCamera::setFovY(Real fovY)
+	void PerspectiveCamera::setFovY(float fovY)
 	{
 		static const auto minVal = glm::radians(10.0f);
 		static const auto maxVal = 0.75f * PI;
-		mFovY = std::clamp<Real>(fovY, minVal, maxVal);
+		mFovY = std::clamp<float>(fovY, minVal, maxVal);
 	}
 
 
@@ -308,7 +308,7 @@ namespace nex
 		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
 
 
-		const Real halfFovY = mFovY/2.0;
+		const float halfFovY = mFovY/2.0;
 
 		/**
 		 * Calculate constants for the (half of the) width and height of the near and far planes. 
@@ -347,12 +347,12 @@ namespace nex
 		 * The equations have been also generalized, so that they are valid for left and right handed coordination systems.
 		 */
 
-		const Real e = 1.0f / tan(halfFovY); // focal length (using vertical field of view)
-		const Real a = mAspectRatio; // aspect ratio width over height (note, Lengyel uses height over width)
-		const Real zA = getViewSpaceZfromDistance(a); // a as signed depth (for switching between left and right handed)
-		const Real zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
-		const Real divLeftRight = std::sqrtf(e*e + a*a); // divisor for normalization
-		const Real divBottTop = std::sqrtf(e*e + 1.0f); // divisor for normalization
+		const float e = 1.0f / tan(halfFovY); // focal length (using vertical field of view)
+		const float a = mAspectRatio; // aspect ratio width over height (note, Lengyel uses height over width)
+		const float zA = getViewSpaceZfromDistance(a); // a as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
+		const float divLeftRight = std::sqrtf(e*e + a*a); // divisor for normalization
+		const float divBottTop = std::sqrtf(e*e + 1.0f); // divisor for normalization
 
 		mFrustum.planes[(unsigned)FrustumPlane::Near] = {0, 0, zOne, -mNearDistance };
 		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
@@ -368,7 +368,7 @@ namespace nex
 		mProjection = glm::perspective(mFovY, mAspectRatio, mNearDistance, mFarDistance);
 	}
 
-	OrthographicCamera::OrthographicCamera(Real width, Real height, Real nearDistance, Real farDistance,
+	OrthographicCamera::OrthographicCamera(float width, float height, float nearDistance, float farDistance,
 		PULCoordinateSystem coordSystem) : Camera(nearDistance, farDistance, std::move(coordSystem)),
 	mHalfHeight(height / 2.0f), mHalfWidth(width / 2.0f)
 	{
@@ -376,22 +376,22 @@ namespace nex
 		assert(mHalfWidth != 0.0f);
 	}
 
-	Real OrthographicCamera::getHeight() const
+	float OrthographicCamera::getHeight() const
 	{
 		return 2.0f * mHalfHeight;
 	}
 
-	Real OrthographicCamera::getWidth()
+	float OrthographicCamera::getWidth()
 	{
 		return 2.0f * mHalfWidth;
 	}
 
-	void OrthographicCamera::setHeight(Real height)
+	void OrthographicCamera::setHeight(float height)
 	{
 		mHalfHeight = height / 2.0f;
 	}
 
-	void OrthographicCamera::setWidth(Real width)
+	void OrthographicCamera::setWidth(float width)
 	{
 		mHalfWidth = width / 2.0f;
 	}
@@ -412,7 +412,7 @@ namespace nex
 		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(mHalfWidth, mHalfHeight, zFar);
 
 
-		const Real zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
 
 		mFrustum.planes[(unsigned)FrustumPlane::Near] = { 0, 0, zOne, -mNearDistance };
 		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
