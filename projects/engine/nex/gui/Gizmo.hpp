@@ -39,6 +39,7 @@ namespace nex::gui
 			bool isActive = false;
 			Axis axis = Axis::INVALID;
 			glm::vec3 axisVec = glm::vec3(0.0f);
+			glm::vec3 orthoAxisVec = glm::vec3(0.0f);
 			glm::vec3 originalPosition = glm::vec3(0.0f);
 			Ray originalRay = Ray(glm::vec3(0.0f), glm::vec3(1.0f));
 			Torus torus = Torus();

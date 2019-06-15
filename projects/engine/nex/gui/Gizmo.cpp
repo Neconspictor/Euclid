@@ -355,11 +355,20 @@ void nex::gui::Gizmo::fillActivationState(Active& active, bool isActive, Axis ax
 		active.axis = axis;
 
 		if (active.axis == Axis::X)
+		{
 			active.axisVec = { 1.0f, 0.0f, 0.0f };
+			active.orthoAxisVec = {0,1,0};
+		}
 		if (active.axis == Axis::Y)
+		{
 			active.axisVec = { 0.0f, 1.0f, 0.0f };
+			active.orthoAxisVec = { 1,0,0 };
+		}
 		if (active.axis == Axis::Z)
+		{
 			active.axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
+			active.orthoAxisVec = { 0,1,0 };
+		}
 
 		active.originalPosition = position;
 	}
@@ -390,34 +399,53 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node, const Cam
 	const Sphere sphere(origin, radius);
 	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
 	const auto sphereInt = sphere.intersects(tRay);
-	glm::vec3 closestPoint;
-	const auto angleToAxis = dot(mActivationState.axisVec, camera.getLook());
-	if (abs(angleToAxis) > 0.07f)
+	const auto angleToAxis = dot(mActivationState.axisVec, normalize(origin - camera.getPosition()));
+	glm::vec3 projectedPoint = origin;
+
+
+
+
+
+	if (abs(angleToAxis) > 0.06f)
 	{
 		const auto clostestDistance = ray.calcClosestDistance(origin);
-		closestPoint = ray.getPoint(clostestDistance.multiplier);
+		auto closestPoint = ray.getPoint(clostestDistance.multiplier);
+		Plane plane = { mActivationState.axisVec, origin };
+		const auto planeIntersection = plane.intersects(ray);
+
+		if (!planeIntersection.parallel)
+		{
+			auto newPoint = ray.getPoint(planeIntersection.multiplier);
+
+			if (glm::length2(newPoint - origin) > 0.01)
+			{
+				projectedPoint = newPoint;
+			}
+
+		}
 	} else
 	{
 		//sphereInt.intersectionCount != 0 &&
-		closestPoint = ray.getPoint(sphereInt.firstMultiplier);
+		auto closestPoint = ray.getPoint(sphereInt.firstMultiplier);
+		Circle3D circle(origin, mActivationState.axisVec, radius);
+
+		if (!circle.project(closestPoint, projectedPoint)) //TODO
+		{
+			projectedPoint = origin;
+		}
 	}
 
 	std::cout << "angleToAxis = " << angleToAxis << std::endl;
 
-	Circle3D circle(origin,mActivationState.axisVec, radius);
 
-	glm::vec3 projectedPoint;
-	if (!circle.project(closestPoint, projectedPoint)) //TODO
-	{
-		projectedPoint = origin;
-	}
+	
 
 
 	auto vec2 = projectedPoint - origin;
 	vec2 = normalize(vec2);
 
 
-	auto d = dot(glm::vec3(0,1,0), vec2);
+	auto d = dot(mActivationState.orthoAxisVec, vec2);
 	auto angle = acos(d);
 
 	if (angle > 2)
@@ -425,7 +453,7 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node, const Cam
 		bool t = false;
 	}
 
-	auto test = dot(normalize(cross(glm::vec3(0, 1, 0), vec2)), normalize(mActivationState.axisVec));
+	auto test = dot(normalize(cross(mActivationState.orthoAxisVec, vec2)), normalize(mActivationState.axisVec));
 	angle *= test / abs(test);
 
 	if (isValid(angle))
