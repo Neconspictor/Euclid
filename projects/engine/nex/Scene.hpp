@@ -55,6 +55,7 @@ namespace nex
 		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
 		void setPosition(const glm::vec3 &position);
 		void setRotation(const glm::mat4& rotation);
+		void setRotation(const glm::quat& rotation);
 		void setOrientation(const glm::vec3& eulerAngles);
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);

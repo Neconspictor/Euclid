@@ -141,6 +141,11 @@ namespace nex
 		mRotation = rotation;
 	}
 
+	void SceneNode::setRotation(const glm::quat& rotation)
+	{
+		mRotation = rotation;
+	}
+
 	void SceneNode::setOrientation(const glm::vec3& eulerAngles)
 	{
 		auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));

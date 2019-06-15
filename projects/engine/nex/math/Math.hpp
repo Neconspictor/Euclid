@@ -69,4 +69,14 @@ namespace nex
 	{
 		return (_Value != 0 && (_Value & (_Value - 1)) == 0);
 	}
+
+	inline bool isValid(float value) noexcept
+	{
+		return !std::isnan(value) && !std::isinf(value);
+	}
+
+	inline bool isValid(double value) noexcept
+	{
+		return !std::isnan(value) && !std::isinf(value);
+	}
 }

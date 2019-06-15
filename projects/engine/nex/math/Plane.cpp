@@ -1,5 +1,6 @@
 #include <nex/math/Plane.hpp>
 #include "Ray.hpp"
+#include "Math.hpp"
 
 nex::Plane nex::operator*(const glm::mat4& trafo, const Plane& plane)
 {
@@ -102,6 +103,9 @@ glm::vec3 nex::Plane::project(const glm::vec3& p) const
 	//Note: if angle between v and normal is < 90°  n is in direction p - p'
 	// But we need the direction p'- p, thus we use -vDotN.
 	const auto distance = -vDotN * vLen;
+
+	if (!isValid(distance))
+		return p;
 
 	return p + distance * n;
 }

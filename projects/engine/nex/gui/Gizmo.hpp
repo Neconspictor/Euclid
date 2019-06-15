@@ -4,6 +4,7 @@
 #include "nex/Input.hpp"
 #include "nex/math/Plane.hpp"
 #include "nex/math/Torus.hpp"
+#include <nex/math/Circle.hpp>
 
 
 namespace nex
@@ -35,10 +36,14 @@ namespace nex::gui
 
 		struct Active
 		{
-			bool isActive;
-			Axis axis;
-			glm::vec3 axisVec;
-			glm::vec3 originalPosition;
+			bool isActive = false;
+			Axis axis = Axis::INVALID;
+			glm::vec3 axisVec = glm::vec3(0.0f);
+			glm::vec3 originalPosition = glm::vec3(0.0f);
+			Ray originalRay = Ray(glm::vec3(0.0f), glm::vec3(1.0f));
+			Torus torus = Torus();
+			float range = 0.0f;
+			glm::quat originalRotation = glm::quat(1, 0, 0, 0);
 		};
 
 		enum class Mode
@@ -56,7 +61,7 @@ namespace nex::gui
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		void activate(const Ray& screenRayWorld, float cameraViewFieldRange);
+		void activate(const Ray& screenRayWorld, float cameraViewFieldRange, SceneNode* node);
 
 		Mode getMode()const;
 
@@ -75,7 +80,7 @@ namespace nex::gui
 		 */
 		void highlightAxis(Axis axis);
 
-		bool isHovering(const Ray& screenRayWorld, float cameraViewFieldRange, Active* active = nullptr) const;
+		bool isHovering(const Ray& screenRayWorld, float cameraViewFieldRange, Active& active) const;
 
 		bool isVisible()const;
 
@@ -84,7 +89,7 @@ namespace nex::gui
 		 */
 		SceneNode* getGizmoNode();
 
-		void transform(const Ray& screenRayWorld, SceneNode& node, const MouseOffset& frameData);
+		void transform(const Ray& screenRayWorld, SceneNode& node, const Camera& camera, const MouseOffset& frameData);
 		void deactivate();
 
 		void setMode(Mode mode);
@@ -105,7 +110,7 @@ namespace nex::gui
 
 		int compare(const Data& first, const Data& second) const;
 		void initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName);
-		bool isHoveringRotate(const Ray& screenRayWorld, const float cameraViewFieldRange, Active* active = nullptr) const;
+		bool isHoveringRotate(const Ray& screenRayWorld, const float cameraViewFieldRange, Active& active) const;
 
 		/**
 		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
@@ -118,9 +123,9 @@ namespace nex::gui
 		static bool hitsTorus(const Torus& torus, const glm::vec3& orientation, const glm::vec3& origin, const Ray& ray,
 			nex::Torus::RayIntersection& intersectionTest);
 
-		static void fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position);
+		void fillActivationState(Active& active, bool isActive, Axis axis, const glm::vec3& position, const Ray& ray, float range) const;
 
-		void transformRotate(const Ray& ray, SceneNode& node);
+		void transformRotate(const Ray& ray, SceneNode& node, const Camera& camera);
 
 		StaticMeshContainer* loadRotationGizmo();
 		StaticMeshContainer* loadTranslationGizmo();
@@ -146,5 +151,7 @@ namespace nex::gui
 		glm::vec3 mRotationVecLast;
 		Mode mMode;
 		bool mVisible;
+
+		SceneNode* mModifiedNode = nullptr;
 	};
 }

@@ -25,7 +25,7 @@ namespace nex
 			float secondMultiplier = 0;
 		};
 
-		Circle3D(Plane plane, glm::vec3 origin, float radius);
+		Circle3D(glm::vec3 origin, glm::vec3 normal, float radius);
 
 		const glm::vec3& getOrigin()const;
 		const Plane& getPlane() const;
@@ -43,10 +43,15 @@ namespace nex
 		 */
 		bool isOnCircle(const glm::vec3& point, float toleranceRange = 0.000001f) const;
 
+		/**
+		 * Projects a point on the circle.
+		 * @return : true if the point could be projected, otherwise false.
+		 *			Note: A point cannot be projected if it is located on the normal direction of the circle.
+		 */
+		bool project(const glm::vec3& point, glm::vec3& projectedPoint) const;
+
 	private:
 		Plane plane;
-
-		// Note: the origin has to be located in the plane!
 		glm::vec3 origin;
 		float radius;
 	};

@@ -1,8 +1,10 @@
 #include <nex/math/Circle.hpp>
 #include "Sphere.hpp"
 #include "Ray.hpp"
+#include "Math.hpp"
 
-nex::Circle3D::Circle3D(Plane plane, glm::vec3 origin, float radius) : plane(std::move(plane)), origin(std::move(origin)), radius(radius)
+nex::Circle3D::Circle3D(glm::vec3 origin, glm::vec3 normal, float radius) : plane({ normal, origin}),
+origin(std::move(origin)), radius(radius)
 {
 	assert(this->plane.onPlane(this->origin));
 }
@@ -94,6 +96,20 @@ bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) con
 	const auto d = point - origin;
 	const auto compare = dot(d, d) - radius * radius;
 	return compare <= toleranceRange;
+}
+
+bool nex::Circle3D::project(const glm::vec3& point, glm::vec3& projectedPoint) const
+{
+	const auto planeProjection = plane.project(point);
+	const auto diff = planeProjection - origin;
+	const auto direction = normalize(diff);
+
+	if (!isValid(direction.x))
+	{
+		return false;
+	}
+	projectedPoint = origin + direction * radius;
+	return true;
 }
 
 nex::MinMaxCircle3D::MinMaxCircle3D(Plane plane, glm::vec3 origin, float minRadius, float maxRadius) :

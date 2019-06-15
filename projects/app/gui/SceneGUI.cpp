@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/gui/Gizmo.hpp>
 #include <nex/Input.hpp>
+#include "NeXEngine.hpp"
 
 namespace nex::gui
 {
@@ -84,7 +85,7 @@ namespace nex::gui
 		{
 			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 			const auto ray = camera.calcScreenRay(position);
-			mGizmo->transform(ray, *mPicker->getPicked(), mouseData);
+			mGizmo->transform(ray, *mPicker->getPicked(), camera, mouseData);
 			mPicker->updateBoundingBoxTrafo();
 		} else if (input.isReleased(button))
 		{
@@ -102,7 +103,8 @@ namespace nex::gui
 
 		if (isVisible)
 		{
-			const auto isHovering = mGizmo->isHovering(ray, viewRange);
+			Gizmo::Active active;
+			const auto isHovering = mGizmo->isHovering(ray, viewRange, active);
 			if (!isHovering)
 			{
 				picked = mPicker->pick(scene, ray) != nullptr;
@@ -115,7 +117,7 @@ namespace nex::gui
 
 			if (isHovering)
 			{
-				mGizmo->activate(ray, viewRange);
+				mGizmo->activate(ray, viewRange, mPicker->getPicked());
 			}
 
 		} else
