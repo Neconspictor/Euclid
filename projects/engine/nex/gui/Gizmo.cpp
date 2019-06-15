@@ -35,6 +35,12 @@ private:
 	Uniform mSelectedAxis;
 };
 
+float nex::gui::Gizmo::Active::calcRange(const Ray& ray, const glm::vec3& position, const Camera& camera)
+{
+	const auto distanceToCamera = length(position - ray.getOrigin());
+	return std::clamp(distanceToCamera / (camera.getFarDistance() - camera.getNearDistance()), 0.0001f, 0.5f);
+}
+
 nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
 							mActivationState({}), mMode(mode), mVisible(false)
 {
@@ -67,15 +73,13 @@ void nex::gui::Gizmo::update(const nex::Camera& camera)
 	}
 }
 
-void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const float cameraViewFieldRange, SceneNode* node)
+void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, SceneNode* node)
 {
 	mModifiedNode = node;
-	isHovering(screenRayWorld, cameraViewFieldRange, mActivationState);
+	isHovering(screenRayWorld, camera, mActivationState);
 
 	highlightAxis(mActivationState.axis);
 	mLastFrameMultiplier = 0.0f;
-	mRotationAcc = 0.0f;
-	mRotationVecLast = normalize(mActivationState.originalPosition - mActiveGizmoNode->getPosition());
 }
 
 nex::gui::Gizmo::Mode nex::gui::Gizmo::getMode() const
@@ -94,11 +98,11 @@ void nex::gui::Gizmo::highlightAxis(Axis axis)
 	mGizmoPass->setSelectedAxis(axis);
 }
 
-bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraViewFieldRange, Active& active) const
+bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, Active& active) const
 {
 	if (mMode == Mode::ROTATE)
 	{
-		return isHoveringRotate(screenRayWorld, cameraViewFieldRange, active);
+		return isHoveringRotate(screenRayWorld, camera, active);
 	}
 
 
@@ -121,15 +125,12 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const float cameraVi
 		nearest = &zTest;
 	}
 
-	const auto distanceToCamera = length(position - screenRayWorld.getOrigin());
-	const auto range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.5f);
-
 	const auto& scale = mActiveGizmoNode->getScale();
-	const bool selected = (nearest->result.distance <= range)
+	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
 		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
 
-	fillActivationState(active, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, range);
+	fillActivationState(active, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, camera);
 
 	return selected;
 }
@@ -246,6 +247,52 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 	return 1;
 }
 
+float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis,
+	const Camera& camera) const
+{
+	const auto& origin = mActiveGizmoNode->getPosition();
+
+	const auto radius = mActiveGizmoNode->getScale().x;
+	const Sphere sphere(origin, radius);
+	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
+	const auto sphereInt = sphere.intersects(tRay);
+	const auto angleToAxis = dot(axis, normalize(origin - camera.getPosition()));
+	glm::vec3 projectedPoint = origin;
+
+	if (abs(angleToAxis) > 0.06f)
+	{
+		Plane plane = { axis, origin };
+		const auto planeIntersection = plane.intersects(ray);
+
+		if (!planeIntersection.parallel)
+		{
+			const auto newPoint = ray.getPoint(planeIntersection.multiplier);
+			if (glm::length2(newPoint - origin) > 0.01)
+			{
+				projectedPoint = newPoint;
+			}
+		}
+	}
+	else
+	{
+		//sphereInt.intersectionCount != 0 &&
+		const auto closestPoint = ray.getPoint(sphereInt.firstMultiplier);
+		Circle3D circle(origin, axis, radius);
+
+		if (!circle.project(closestPoint, projectedPoint))
+		{
+			projectedPoint = origin;
+		}
+	}
+
+	const auto vec2 = normalize(projectedPoint - origin);
+	const auto d = dot(orthoAxis, vec2);
+	const auto angle = acos(d);
+
+	const auto test = dot(normalize(cross(orthoAxis, vec2)), normalize(axis));
+	return angle * (test / abs(test));
+}
+
 void nex::gui::Gizmo::initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName)
 {
 	node = container->createNodeHierarchy(mNodeGeneratorScene.get());
@@ -254,7 +301,7 @@ void nex::gui::Gizmo::initSceneNode(SceneNode*& node, StaticMeshContainer* conta
 	node->mDebugName = debugName;
 }
 
-bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float cameraViewFieldRange,
+bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& camera,
 	Active& active) const
 {
 	const auto& origin = mActiveGizmoNode->getPosition();
@@ -263,8 +310,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	constexpr glm::vec3 yAxis(0, 1, 0);
 	const glm::vec3 zAxis(0, 0, getZValue(1.0f));
 
-	const float distanceToCamera = length(origin - screenRayWorld.getOrigin());
-	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.500f);
+	const float range = Active::calcRange(screenRayWorld, origin, camera);
 
 	bool selected = true;
 	Axis axis = Axis::INVALID;
@@ -301,7 +347,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 		projectedPoint = origin;
 	}
 
-	fillActivationState(active, selected, axis, projectedPoint, screenRayWorld, range);
+	fillActivationState(active, selected, axis, projectedPoint, screenRayWorld, camera);
 
 	return selected;
 }
@@ -339,7 +385,7 @@ bool nex::gui::Gizmo::hitsTorus(const Torus& torus, const glm::vec3& orientation
 	// transform the ray to torus space. 
 	// Note that the torus has its origin at (0,0,0) and its up-vector is (0,1,0) 
 	const auto rotation = nex::rotate(glm::vec3(0.0f, 1.0f, 0.0f), orientation);
-	const auto newOrigin = rotation * ray.getOrigin() + origin;
+	const auto newOrigin =  rotation * (ray.getOrigin() - origin);
 	const auto newDir = rotation * ray.getDir();
 	const Ray transformedRay(newOrigin, newDir);
 
@@ -348,122 +394,57 @@ bool nex::gui::Gizmo::hitsTorus(const Torus& torus, const glm::vec3& orientation
 	return intersectionTest.intersectionCount != 0;
 }
 
-void nex::gui::Gizmo::fillActivationState(Active& active, bool isActive, Axis axis, const glm::vec3& position, const Ray& ray, float range) const
+void nex::gui::Gizmo::fillActivationState(Active& active, 
+	bool isActive, 
+	Axis axis, 
+	const glm::vec3& position, 
+	const Ray& ray, 
+	const Camera& camera) const
 {
 	active.isActive = isActive;
-	if (active.isActive) {
-		active.axis = axis;
 
-		if (active.axis == Axis::X)
-		{
-			active.axisVec = { 1.0f, 0.0f, 0.0f };
-			active.orthoAxisVec = {0,1,0};
-		}
-		if (active.axis == Axis::Y)
-		{
-			active.axisVec = { 0.0f, 1.0f, 0.0f };
-			active.orthoAxisVec = { 1,0,0 };
-		}
-		if (active.axis == Axis::Z)
-		{
-			active.axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
-			active.orthoAxisVec = { 0,1,0 };
-		}
-
-		active.originalPosition = position;
-	}
-	else {
+	if (!active.isActive) {
+		
 		active.axis = Axis::INVALID;
 		active.originalPosition = glm::vec3(0.0f);
+		return;
 	}
 
-	active.originalRay = ray;
-	active.range = range;
+	active.axis = axis;
+
+	if (active.axis == Axis::X)
+	{
+		active.axisVec = { 1.0f, 0.0f, 0.0f };
+		active.orthoAxisVec = {0,1,0};
+	}
+	if (active.axis == Axis::Y)
+	{
+		active.axisVec = { 0.0f, 1.0f, 0.0f };
+		active.orthoAxisVec = { 1,0,0 };
+	}
+	if (active.axis == Axis::Z)
+	{
+		active.axisVec = { 0.0f, 0.0f, getZValue(1.0f) };
+		active.orthoAxisVec = { 0,1,0 };
+	}
+
+	active.originalPosition = position;
 
 	if (mModifiedNode)
+	{
 		active.originalRotation = mModifiedNode->getRotation();
+		active.startRotationAngle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
+		active.range = Active::calcRange(ray, mActiveGizmoNode->getPosition(), camera);
+	}
 }
 
 void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node, const Camera& camera)
 {
-	const auto& origin = mActiveGizmoNode->getPosition();
-	//Plane plane = { mActivationState.axisVec, origin };
-	//const auto planeIntersection = plane.intersects(ray);
-	//const auto intersection = mActivationState.torus.intersects(ray);
-
-	//if (!intersection.intersectionCount == 0) return;
-
-	//const auto newPosition = ray.getPoint(intersection.multipliers[0]);
-
-	const auto radius = mActiveGizmoNode->getScale().x;
-	const Sphere sphere(origin, radius);
-	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
-	const auto sphereInt = sphere.intersects(tRay);
-	const auto angleToAxis = dot(mActivationState.axisVec, normalize(origin - camera.getPosition()));
-	glm::vec3 projectedPoint = origin;
-
-
-
-
-
-	if (abs(angleToAxis) > 0.06f)
-	{
-		const auto clostestDistance = ray.calcClosestDistance(origin);
-		auto closestPoint = ray.getPoint(clostestDistance.multiplier);
-		Plane plane = { mActivationState.axisVec, origin };
-		const auto planeIntersection = plane.intersects(ray);
-
-		if (!planeIntersection.parallel)
-		{
-			auto newPoint = ray.getPoint(planeIntersection.multiplier);
-
-			if (glm::length2(newPoint - origin) > 0.01)
-			{
-				projectedPoint = newPoint;
-			}
-
-		}
-	} else
-	{
-		//sphereInt.intersectionCount != 0 &&
-		auto closestPoint = ray.getPoint(sphereInt.firstMultiplier);
-		Circle3D circle(origin, mActivationState.axisVec, radius);
-
-		if (!circle.project(closestPoint, projectedPoint)) //TODO
-		{
-			projectedPoint = origin;
-		}
-	}
-
-	std::cout << "angleToAxis = " << angleToAxis << std::endl;
-
-
-	
-
-
-	auto vec2 = projectedPoint - origin;
-	vec2 = normalize(vec2);
-
-
-	auto d = dot(mActivationState.orthoAxisVec, vec2);
-	auto angle = acos(d);
-
-	if (angle > 2)
-	{
-		bool t = false;
-	}
-
-	auto test = dot(normalize(cross(mActivationState.orthoAxisVec, vec2)), normalize(mActivationState.axisVec));
-	angle *= test / abs(test);
+	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
 
 	if (isValid(angle))
 	{
-		auto diff = angle - mRotationAcc;
-		mRotationAcc = angle;
-		mRotationVecLast = vec2;
-		//node.rotateGlobal(mActivationState.axisVec, diff);
-
-		const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), mRotationAcc, mActivationState.axisVec);
+		const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
 		node.setRotation(rotationAdd * mActivationState.originalRotation);
 	}
 }

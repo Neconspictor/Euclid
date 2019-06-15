@@ -8,6 +8,7 @@
 
 namespace nex
 {
+	class Camera;
 	class PerspectiveCamera;
 	class Input;
 	class Scene;
@@ -53,7 +54,7 @@ namespace nex::gui
 		void update(Scene& scene, const PerspectiveCamera& camera, const Input& input);
 
 	protected:
-		void activate(Scene& scene, const Ray& ray, float viewRange);
+		void activate(Scene& scene, const Ray& ray, const Camera& camera);
 
 		void drawSelf() override;
 

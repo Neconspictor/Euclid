@@ -79,7 +79,7 @@ namespace nex::gui
 		{
 			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 			const auto ray = camera.calcScreenRay(position);
-			activate(scene, ray, camera.getFarDistance() - camera.getNearDistance());
+			activate(scene, ray, camera);
 
 		} else if (input.isDown(button))
 		{
@@ -93,7 +93,7 @@ namespace nex::gui
 		}
 	}
 
-	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const float viewRange)
+	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const Camera& camera)
 	{
 		const bool alreadyPicked = mPicker->getPicked() != nullptr;
 		bool picked = false;
@@ -104,7 +104,7 @@ namespace nex::gui
 		if (isVisible)
 		{
 			Gizmo::Active active;
-			const auto isHovering = mGizmo->isHovering(ray, viewRange, active);
+			const auto isHovering = mGizmo->isHovering(ray, camera, active);
 			if (!isHovering)
 			{
 				picked = mPicker->pick(scene, ray) != nullptr;
@@ -117,7 +117,7 @@ namespace nex::gui
 
 			if (isHovering)
 			{
-				mGizmo->activate(ray, viewRange, mPicker->getPicked());
+				mGizmo->activate(ray, camera, mPicker->getPicked());
 			}
 
 		} else
