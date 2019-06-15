@@ -11,6 +11,7 @@
 #include "nex/camera/Camera.hpp"
 #include <nex/math/Math.hpp>
 #include <nex/math/Constant.hpp>
+#include "nex/math/Torus.hpp"
 
 class nex::gui::Gizmo::GizmoPass : public TransformPass
 {
@@ -258,13 +259,16 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 
 	const auto& origin = mActiveGizmoNode->getPosition();
 
-	Plane yzPlane = { {1,0,0}, origin };
-	Plane xzPlane = { {0,1,0}, origin };
-	Plane xyPlane = { {0,0,getZValue(1.0f)}, origin };
+	//Plane yzPlane = { {1,0,0}, origin };
+	//Plane xzPlane = { {0,1,0}, origin };
+	//Plane xyPlane = { {0,0,getZValue(1.0f)}, origin };
+	//const auto yzPlaneIntersection = yzPlane.intersects(screenRayWorld);
+	//const auto xzPlaneIntersection = xzPlane.intersects(screenRayWorld);
+	//const auto xyPlaneIntersection = xyPlane.intersects(screenRayWorld);
 
-	const auto yzPlaneIntersection = yzPlane.intersects(screenRayWorld);
-	const auto xzPlaneIntersection = xzPlane.intersects(screenRayWorld);
-	const auto xyPlaneIntersection = xyPlane.intersects(screenRayWorld);
+	constexpr glm::vec3 xAxis(1,0,0);
+	constexpr glm::vec3 yAxis(0, 1, 0);
+	const glm::vec3 zAxis(0, 0, getZValue(1.0f));
 
 	const float distanceToCamera = length(origin - screenRayWorld.getOrigin());
 	const float range = std::clamp(distanceToCamera / cameraViewFieldRange, 0.0001f, 0.500f);
@@ -277,25 +281,31 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const float ca
 	bool selected = true;
 	Axis axis = Axis::INVALID;
 	float multiplier = 0.0f;
+	Torus::RayIntersection intersection;
+	const Torus torus = {mActiveGizmoNode->getScale().x, range};
 
-	if (checkNearPlaneCircle(yzPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
+	if (hitsTorus(torus, xAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::X;
 		std::cout << "Is in range for x rotation!" << std::endl;
 
-	} else if (checkNearPlaneCircle(xzPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
+	} else if (hitsTorus(torus, yAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Y;
 		std::cout << "Is in range for y rotation!" << std::endl;
 
-	} else if (checkNearPlaneCircle(xyPlaneIntersection, screenRayWorld, origin, minRange, maxRange, multiplier))
+	} else if (hitsTorus(torus, zAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Z;
 		std::cout << "Is in range for z rotation!" << std::endl;
+
 	} else
 	{
 		selected = false;
 	}
+
+	if (intersection.intersectionCount != 0)
+		multiplier = intersection.multipliers[0];
 
 	fillActivationState(active, selected, axis, screenRayWorld.getPoint(multiplier));
 
@@ -327,6 +337,21 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 	const auto radius = mActiveGizmoNode->getScale().x;
 	return pointDistance.distance <= (0.1);
 
+}
+
+bool nex::gui::Gizmo::hitsTorus(const Torus& torus, const glm::vec3& orientation, const glm::vec3& origin,
+	const Ray& ray, Torus::RayIntersection& intersectionTest)
+{
+	// transform the ray to torus space. 
+	// Note that the torus has its origin at (0,0,0) and its up-vector is (0,1,0) 
+	const auto rotation = nex::rotate(glm::vec3(0.0f, 1.0f, 0.0f), orientation);
+	const auto newOrigin = rotation * ray.getOrigin() + origin;
+	const auto newDir = rotation * ray.getDir();
+	const Ray transformedRay(newOrigin, newDir);
+
+	intersectionTest = torus.intersects(transformedRay);
+
+	return intersectionTest.intersectionCount != 0;
 }
 
 void nex::gui::Gizmo::fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position)
@@ -362,7 +387,7 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
 
 	glm::vec3 newPosition;
 
-	if (planeIntersection.parallel)
+	/*if (planeIntersection.parallel)
 	{
 		Ray axisRay(origin, mActivationState.axisVec);
 		const auto distanceToAxis = ray.calcClosestDistance(axisRay);
@@ -375,7 +400,9 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
 	} else
 	{
 		newPosition = ray.getPoint(planeIntersection.multiplier);
-	}
+	}*/
+
+	newPosition = ray.getPoint(planeIntersection.multiplier);
 
 	const auto vec1 = normalize(origin - mActivationState.originalPosition);
 	const auto vec2 = normalize(origin - newPosition);
@@ -399,42 +426,6 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node)
 
 	auto test = dot(cross(mRotationVecLast, vec2), mActivationState.axisVec);
 	angle *= test / abs(test);
-
-	std::cout << "vec1 = " << vec1 << ", vec2 = " << vec2 << std::endl;
-	std::cout << "  original position = " << mActivationState.originalPosition << ", new position = " << newPosition << std::endl;
-
-
-	/*float d = 1.0f;
-
-	if (mActivationState.axis == Axis::X)
-	{
-		const auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
-		const auto yAxis = glm::vec3(0, 1.0f, 0);
-		d = dot(zAxis, vec2) - dot(yAxis, vec2);
-		d -= dot(zAxis, vec1) - dot(yAxis, vec1);
-		
-		
-	} else if (mActivationState.axis == Axis::Y)
-	{
-		const auto zAxis = glm::vec3(0, 0, getZValue(1.0f));
-		const auto xAxis = glm::vec3(1.0f, 0, 0);
-		d = dot(xAxis, vec1) - dot(zAxis, vec1);
-		d -= dot(xAxis, vec2) - dot(zAxis, vec2);
-	} else
-	{
-		const auto yAxis = glm::vec3(0, 1.0f, 0);
-		const auto xAxis = glm::vec3(1.0f, 0, 0);
-		d = dot(xAxis, vec1) - dot(yAxis, vec1);
-		d -= dot(xAxis, vec2) - dot(yAxis, vec2);
-	}
-
-	if (d < 0)
-	{
-		angle *= -1;
-		//angle += PI / 2.0f;
-	}*/
-
-	std::cout << "     angle = " << angle << ", dDiff = " << dDiff <<  std::endl;
 
 	if (!std::isnan(angle))
 	{

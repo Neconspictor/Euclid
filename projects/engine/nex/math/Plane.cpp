@@ -49,7 +49,6 @@ nex::Plane::RayIntersection nex::Plane::intersects(const Ray& ray) const
 
 	const auto dotDir = dot(n, dirDouble);
 	const auto compare = d - dot(n, glm::dvec3(ray.getOrigin()));
-	std::cout << "abs(dotDir) = " << abs(dotDir) << std::endl;
 
 	RayIntersection result;
 

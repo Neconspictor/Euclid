@@ -19,7 +19,7 @@ namespace nex
 		Torus(float innerRadius, float outerRadius);
 		Torus();
 
-		RayIntersection intersects(const Ray& ray);
+		RayIntersection intersects(const Ray& ray) const;
 
 		/**
 		 * Checks if a point is located inside the torus topology.

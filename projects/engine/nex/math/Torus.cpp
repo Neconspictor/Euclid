@@ -11,7 +11,7 @@ nex::Torus::Torus()
 {
 }
 
-nex::Torus::RayIntersection nex::Torus::intersects(const Ray& ray)
+nex::Torus::RayIntersection nex::Torus::intersects(const Ray& ray) const
 {
 	RayIntersection result;
 

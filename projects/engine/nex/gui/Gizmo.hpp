@@ -3,10 +3,12 @@
 #include "nex/math/Ray.hpp"
 #include "nex/Input.hpp"
 #include "nex/math/Plane.hpp"
+#include "nex/math/Torus.hpp"
 
 
 namespace nex
 {
+	struct Torus;
 	class Ray;
 	class Scene;
 	class SceneNode;
@@ -112,6 +114,9 @@ namespace nex::gui
 								const Ray& ray,
 								const glm::vec3& circleOrigin, 
 								float minRadius, float maxRadius, float& multiplierOut) const;
+
+		static bool hitsTorus(const Torus& torus, const glm::vec3& orientation, const glm::vec3& origin, const Ray& ray,
+			nex::Torus::RayIntersection& intersectionTest);
 
 		static void fillActivationState(Active* active, bool isActive, Axis axis, const glm::vec3 position);
 
