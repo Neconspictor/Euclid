@@ -1,5 +1,11 @@
 #include <nex/math/Math.hpp>
 #include <algorithm>
+#include "Constant.hpp"
+
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+#include <glm/gtx/quaternion.hpp>
 
 glm::vec3 nex::NDCToCameraSpace(const glm::vec3& source, const glm::mat4& inverseProjection)
 {
@@ -19,6 +25,39 @@ glm::vec3 nex::maxVec(const glm::vec3& a, const glm::vec3& b)
 	return glm::vec3(std::max<float>(a.x, b.x),
 	                 std::max<float>(a.y, b.y),
 	                 std::max<float>(a.z, b.z));
+}
+
+glm::quat nex::rotate(const glm::vec3& s, const glm::vec3& d)
+{
+	const auto src = normalize(s);
+	const auto dest = normalize(d);
+	constexpr auto eps2 = 0.00001 * 0.00001;
+
+	glm::vec3 rotationAxis = src;
+	const float angle = acos(dot(src, dest));
+	const auto diff = (angle - nex::PI);
+
+	if (diff * diff < eps2)
+	{
+		// get any vector that is never axis nor -axis
+		constexpr glm::vec3 yAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+		constexpr glm::vec3 xAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+
+		glm::vec3 A = yAxis;
+		if (glm::length2(src - A) < eps2 || glm::length2(src + A) < eps2)
+		{
+			A = xAxis;
+		}
+
+		// rotation axis is a vector that is orthogonal to axis
+		rotationAxis = normalize(cross(src, A));
+	}
+	else if (angle > eps2)
+	{
+		rotationAxis = normalize(cross(src, dest));
+	}
+
+	return glm::rotate(glm::quat(1, 0, 0, 0), angle, rotationAxis);
 }
 
 std::ostream& glm::operator<<(std::ostream& os, const glm::vec2& vec)

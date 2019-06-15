@@ -1,11 +1,6 @@
 #pragma once
 
-/*#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES 1
-#endif*/
-
 #include <glm/glm.hpp>
-#include <nex/math/Constant.hpp>
 #include <ostream>
 
 namespace glm
@@ -51,6 +46,11 @@ namespace nex
 	{
 		return source / w;
 	}
+
+	/**
+	 * Provides a rotation from one orientation (src) to another (dest)
+	 */
+	glm::quat rotate(const glm::vec3& src, const glm::vec3& dest);
 
 	/**
 	 * Converts a z value between left and right handed coordinate systems.
