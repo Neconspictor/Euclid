@@ -12,11 +12,11 @@
 
 nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
-mLineMesh(std::make_unique<StaticMeshContainer>()), 
+//mLineMesh(std::make_unique<StaticMeshContainer>()), 
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mNodeGeneratorScene(std::make_unique<Scene>()),
-mBoundingBoxNode(nullptr), mLineNode(nullptr),
+mBoundingBoxNode(nullptr), //mLineNode(nullptr),
 mSelectedNode(nullptr)
 {
 	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
@@ -34,9 +34,9 @@ mSelectedNode(nullptr)
 	mBoundingBoxNode = mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get());
 	mBoundingBoxNode->setSelectable(false);
 	
-	mLineMesh->add(createLineMesh(), std::move(lineMaterial));
-	mLineNode = mLineMesh->createNodeHierarchy(mNodeGeneratorScene.get());
-	mLineNode->setSelectable(false);
+	//mLineMesh->add(createLineMesh(), std::move(lineMaterial));
+	//mLineNode = mLineMesh->createNodeHierarchy(mNodeGeneratorScene.get());
+	//mLineNode->setSelectable(false);
 }
 
 nex::gui::Picker::~Picker() = default;
@@ -47,7 +47,7 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	std::queue<SceneNode*> queue;
 
 	size_t intersections = 0;
-	static bool addedLine = false;
+	//static bool addedLine = false;
 
 	for (const auto& root : scene.getRoots())
 	{
@@ -87,20 +87,20 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 						scene.addRoot(mBoundingBoxNode);
 					}
 
-					{
+					/*{
 						auto lineOrigin = screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f;
 						auto lineScale = 100.0f * screenRayWorld.getDir();
 						mLineNode->setPosition(lineOrigin);
 						mLineNode->setScale(lineScale);
 						mLineNode->updateWorldTrafoHierarchy(true);
-					}
+					}*/
 
 
-					if (!addedLine)
+					/*if (!addedLine)
 					{
 						scene.addRoot(mLineNode);
 						addedLine = true;
-					}
+					}*/
 				}
 			}
 		}
@@ -110,8 +110,8 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	if (intersections == 0)
 	{
 		scene.removeRoot(mBoundingBoxNode);
-		scene.removeRoot(mLineNode);
-		addedLine = false;
+		//scene.removeRoot(mLineNode);
+		//addedLine = false;
 		mSelectedNode = nullptr;
 	}
 

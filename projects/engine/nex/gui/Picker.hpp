@@ -43,13 +43,13 @@ namespace nex::gui
 		static std::unique_ptr<Mesh> createLineMesh();
 
 		std::unique_ptr<StaticMeshContainer> mBoundingBoxMesh;
-		std::unique_ptr<StaticMeshContainer> mLineMesh;
+		//std::unique_ptr<StaticMeshContainer> mLineMesh;
 		std::unique_ptr<SimpleColorPass> mSimpleColorPass;
 		std::unique_ptr<Technique> mSimpleColorTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
 		SceneNode* mBoundingBoxNode;
-		SceneNode* mLineNode;
+		//SceneNode* mLineNode;
 		SceneNode* mSelectedNode;
 	};
 }
