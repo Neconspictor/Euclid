@@ -1,25 +1,30 @@
 #include <nex/gui/ControllerStateMachine.hpp>
 
-nex::gui::ControllerStateMachine::ControllerStateMachine(ControllerPtr controller) : m_controller(move(controller))
+nex::gui::ControllerStateMachine::ControllerStateMachine(Input* input, ControllerPtr controller) : Controller(input), mActiveController(controller)
 {
 }
 
-void nex::gui::ControllerStateMachine::frameUpdate(float frameTime)
+void nex::gui::ControllerStateMachine::frameUpdateSelf(float frameTime)
 {
-	m_controller->frameUpdate(*this, frameTime);
+	mActiveController->frameUpdate(frameTime);
 }
 
-nex::gui::Controller * nex::gui::ControllerStateMachine::getCurrentController()
+nex::gui::Controller * nex::gui::ControllerStateMachine::getActiveController()
 {
-	return m_controller.get();
+	return mActiveController;
 }
 
-void nex::gui::ControllerStateMachine::init()
+void nex::gui::ControllerStateMachine::activateSelf()
 {
-	m_controller->init();
+	mActiveController->activate();
 }
 
-void nex::gui::ControllerStateMachine::setCurrentController(ControllerPtr controller)
+void nex::gui::ControllerStateMachine::setActiveController(ControllerPtr controller)
 {
-	m_controller = std::move(controller);
+	mActiveController = controller;
+}
+
+bool nex::gui::ControllerStateMachine::isNotInterruptibleActionActiveSelf() const
+{
+	return mActiveController->isNotInterruptibleActionActiveSelf();
 }

@@ -24,11 +24,7 @@ namespace nex::gui
 		if (m_style) m_style->pushStyleChanges();
 
 		drawSelf();
-		for (auto& child : m_childs)
-		{
-			if (child->isVisible())
-				child->drawGUI();
-		}
+		drawChilds();
 
 		// Revert style class changes
 		if (m_style) m_style->popStyleChanges();
@@ -37,6 +33,11 @@ namespace nex::gui
 	void Drawable::addChild(std::unique_ptr<Drawable> child)
 	{
 		m_childs.emplace_back(std::move(child));
+	}
+
+	void Drawable::addChild(Drawable* child)
+	{
+		mReferencedChilds.push_back(child);
 	}
 
 	void Drawable::useStyleClass(StyleClassPtr styleClass)
@@ -57,6 +58,21 @@ namespace nex::gui
 	const char* Drawable::getID() const
 	{
 		return m_id.c_str();
+	}
+
+	void Drawable::drawChilds()
+	{
+		for (auto& child : m_childs)
+		{
+			if (child->isVisible())
+				child->drawGUI();
+		}
+
+		for (auto& child : mReferencedChilds)
+		{
+			if (child->isVisible())
+				child->drawGUI();
+		}
 	}
 
 	Window::Window(std::string name, bool useCloseCross): Drawable(),
@@ -83,11 +99,8 @@ namespace nex::gui
 		if (m_style) m_style->pushStyleChanges();
 
 		drawSelf();
-		for (auto& child : m_childs)
-		{
-			if (child->isVisible())
-				child->drawGUI();
-		}
+		drawChilds();
+
 		ImGui::End();
 
 		// Revert style class changes
@@ -117,11 +130,7 @@ namespace nex::gui
 
 		if (ImGui::TabItem(m_id.c_str()))
 		{
-			for (auto& child : m_childs)
-			{
-				if (child->isVisible())
-					child->drawGUI();
-			}
+			drawChilds();
 		}
 
 		// Revert style class changes
@@ -175,11 +184,7 @@ namespace nex::gui
 	void TabBar::drawSelf()
 	{
 		ImGui::BeginTabBar(m_name.c_str());
-		for (auto& child : m_childs)
-		{
-			if (child->isVisible())
-				child->drawGUI();
-		}
+		drawChilds();
 		ImGui::EndTabBar();
 	}
 

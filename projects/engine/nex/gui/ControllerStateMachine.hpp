@@ -6,24 +6,26 @@
 namespace nex::gui
 {
 
-	class ControllerStateMachine {
+	class ControllerStateMachine : public Controller {
 
 	public:
 
-		using ControllerPtr = std::unique_ptr<Controller>;
+		using ControllerPtr = Controller*;
 
-		ControllerStateMachine(ControllerPtr controller);
+		ControllerStateMachine(Input* input, ControllerPtr controller);
 		virtual ~ControllerStateMachine() = default;
 
-		void frameUpdate(float frameTime);
+		void frameUpdateSelf(float frameTime) override;
 
-		Controller* getCurrentController();
+		Controller* getActiveController();
 
-		void init();
+		void activateSelf() override;
 
-		void setCurrentController(ControllerPtr controller);
+		void setActiveController(ControllerPtr controller);
 
-	private:
-		ControllerPtr m_controller;
+		bool isNotInterruptibleActionActiveSelf()const override;
+
+	protected:
+		ControllerPtr mActiveController;
 	};
 }

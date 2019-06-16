@@ -50,7 +50,8 @@ set(
     
 	
 	#nex/gui
-	nex/gui/Controller.hpp
+	nex/gui/Controller.cpp
+    nex/gui/Controller.hpp
 	nex/gui/ControllerStateMachine.hpp
 	nex/gui/ControllerStateMachine.cpp
 	nex/gui/Drawable.cpp

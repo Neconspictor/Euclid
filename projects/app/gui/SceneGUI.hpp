@@ -24,7 +24,7 @@ namespace nex::gui
 	{
 	public:
 
-		SceneGUI(ControllerStateMachine* controllerSM);
+		SceneGUI(std::function<void()> exitCallback);
 
 		virtual ~SceneGUI() = default;
 
@@ -41,7 +41,7 @@ namespace nex::gui
 		MainMenuBar m_menuBar;
 		Menu* m_optionMenu;
 		Menu* m_fileMenu;
-		ControllerStateMachine* m_controllerSM;
+		std::function<void()> mExitCallback;
 	};
 
 	class SceneNodeProperty : public nex::gui::Drawable

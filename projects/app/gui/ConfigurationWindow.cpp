@@ -70,6 +70,12 @@ bool nex::gui::ConfigurationWindow::hasVisibleChild() const
 			return true;
 	}
 
+	for (auto &child : mReferencedChilds)
+	{
+		if (child->isVisible())
+			return true;
+	}
+
 	return false;
 }
 

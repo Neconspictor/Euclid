@@ -16,24 +16,15 @@
 #include <nex/mesh/StaticMeshManager.hpp>
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/renderer/RenderBackend.hpp"
-#include "nex/mesh/Vob.hpp"
-#include "nex/material/Material.hpp"
 #include "nex/pbr/Pbr.hpp"
 #include "nex/post_processing/HBAO.hpp"
 #include "nex/post_processing/SSAO.hpp"
 #include "nex/post_processing/AmbientOcclusion.hpp"
-#include "nex/pbr/PbrForward.hpp"
-#include "nex/pbr/PbrDeferred.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
-#include <nex/shadow/SceneNearFarComputePass.hpp>
-#include <nex/sky/AtmosphericScattering.hpp>
-#include <queue>
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include "nex/math/Ray.hpp"
 #include "nex/mesh/MeshFactory.hpp"
-#include "nex/shader/SimpleColorPass.hpp"
 #include <nex/gui/Picker.hpp>
 #include <nex/gui/Gizmo.hpp>
 
@@ -120,12 +111,10 @@ void NeXEngine::init()
 	
 	
 
-	mControllerSM = std::make_unique<gui::ControllerStateMachine>(std::make_unique<nex::gui::EditMode>(mWindow,
+	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
 		mInput,
 		mRenderer.get(),
-		mCamera.get(),
-		mGui.get(),
-		std::unique_ptr<nex::gui::Drawable>()));
+		mCamera.get());
 
 	mWindow->activate();
 
@@ -134,7 +123,7 @@ void NeXEngine::init()
 
 
 	mRenderer->init(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-	mControllerSM->init();
+	mControllerSM->activate();
 	setupCamera();
 	setupCallbacks();
 	setupGUI();
@@ -187,7 +176,7 @@ void NeXEngine::run()
 			mGui->newFrame(frameTime);
 			mCamera->update();
 			mPickedSceneNodeProperty->update(*mCamera);
-			const auto* currentController = mControllerSM->getCurrentController();
+			const auto* currentController = mControllerSM->getActiveController();
 
 			if (!mGui->isActive() || currentController->isNotInterruptibleActionActive())
 			{
@@ -203,7 +192,7 @@ void NeXEngine::run()
 			commandQueue->sort();
 
 			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-			mControllerSM->getCurrentController()->getDrawable()->drawGUI();
+			mControllerSM->getDrawable()->drawGUI();
 			
 			ImGui::Render();
 			mGui->renderDrawData(ImGui::GetDrawData());
@@ -509,7 +498,7 @@ void NeXEngine::setupGUI()
 	nex::gui::AppStyle style;
 	style.apply();
 
-	std::unique_ptr<SceneGUI> root = std::make_unique<SceneGUI>(mControllerSM.get());
+	auto root = mControllerSM->getSceneGUI();
 	std::unique_ptr<nex::gui::ConfigurationWindow> configurationWindow = std::make_unique<nex::gui::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
 
 	gui::Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
@@ -553,8 +542,6 @@ void NeXEngine::setupGUI()
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
-
-	mControllerSM->getCurrentController()->setDrawable(move(root));
 }
 
 void NeXEngine::setupCamera()

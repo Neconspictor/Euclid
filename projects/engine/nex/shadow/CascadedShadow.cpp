@@ -67,6 +67,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	resize(cascadeWidth, cascadeHeight);
 }
 
+CascadedShadow::~CascadedShadow() = default;
+
 std::vector<std::string> CascadedShadow::generateCsmDefines() const
 {
 	std::vector<std::string> result;

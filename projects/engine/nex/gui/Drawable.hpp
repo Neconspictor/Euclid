@@ -26,7 +26,16 @@ namespace nex::gui
 		 */
 		virtual void drawGUI();
 
+		/**
+		 * Adds a child to this Drawable. The Drawable manages the lifetime of the child to be added.
+		 */
 		void addChild(std::unique_ptr<Drawable> child);
+
+		/**
+		 * Adds a child to this Drawable. The caller is responsible for the lifetime
+		 * of the child to be added.
+		 */
+		void addChild(Drawable* child);
 
 		void useStyleClass(StyleClassPtr styleClass);
 
@@ -43,8 +52,11 @@ namespace nex::gui
 		 */
 		virtual void drawSelf() = 0;
 
+		void drawChilds();
+
 	protected:
 		std::vector<std::unique_ptr<Drawable>> m_childs;
+		std::vector<Drawable*> mReferencedChilds;
 		StyleClassPtr m_style;
 		bool m_isVisible;
 		std::string m_id;

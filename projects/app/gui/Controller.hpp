@@ -4,6 +4,8 @@
 #include <nex/gui/Controller.hpp>
 #include <nex/camera/Camera.hpp>
 #include "pbr_deferred/PBR_Deferred_Renderer.hpp"
+#include "nex/gui/ControllerStateMachine.hpp"
+#include "SceneGUI.hpp"
 
 
 namespace nex {
@@ -14,59 +16,86 @@ namespace nex {
 
 namespace nex::gui
 {
+	class Picker;
+	class Gizmo;
+
 	class BaseController : public Controller {
 	public:
-		BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, ImGUI_Impl* guiRenderer, std::unique_ptr<nex::gui::Drawable> drawable);
+		BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask);
 		virtual ~BaseController() = default;
+		
+		void frameUpdateSelf(float frameTime) override;
+		void activateSelf() override;
 
-		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
-		void init() override;
+		bool isNotInterruptibleActionActiveSelf()const override;
 
-		virtual void handleExitEvent();
+		void handleExitEvent();
 
 	protected:
 		nex::Window * m_window;
 		nex::Input* m_input;
-		ImGUI_Impl* guiRenderer;
 		PBR_Deferred_Renderer* m_mainTask;
 		nex::Logger m_logger;
 	};
 
-	class EditMode : public BaseController {
+	class EditMode : public Controller {
 	public:
 		EditMode(nex::Window* window,
-			Input* input, 
-			PBR_Deferred_Renderer* mainTask, 
-			Camera* camera, 
-			ImGUI_Impl* guiRenderer, 
-			std::unique_ptr<nex::gui::Drawable> drawable);
-		virtual ~EditMode() = default;
-		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
-
-		bool isNotInterruptibleActionActive()const override;
+			Input* input,
+			Camera* camera);
+		virtual ~EditMode();
+		void frameUpdateSelf(float frameTime) override;
+		void activateSelf() override;
+		bool isNotInterruptibleActionActiveSelf()const override;
 
 	private:
-		Camera * m_camera;
+		nex::Window* mWindow;
+		Camera * mCamera;
+		std::unique_ptr<Picker> mPicker;
+		std::unique_ptr<Gizmo> mGizmo;
 	};
 
-	class CameraMode : public BaseController {
+	class CameraMode : public Controller {
 	public:
 		CameraMode(nex::Window* window,
-			Input* input, 
-			PBR_Deferred_Renderer* mainTask, 
-			Camera* camera, 
-			ImGUI_Impl* guiRenderer, 
-			std::unique_ptr<nex::gui::Drawable> drawable);
-		virtual ~CameraMode() = default;
-		void frameUpdate(ControllerStateMachine& stateMachine, float frameTime) override;
+			Input* input,
+			Camera* camera);
+		virtual ~CameraMode();
+		void frameUpdateSelf(float frameTime) override;
 
-		bool isNotInterruptibleActionActive()const override;
+		void activateSelf() override;
+		bool isNotInterruptibleActionActiveSelf()const override;
 
 	private:
-		void updateCamera(Input* input, float deltaTime);
+		void updateCamera(float deltaTime);
 
-		nex::Window* m_window;
-		Camera* m_camera;
+		nex::Window* mWindow;
+		Camera* mCamera;
 	};
 
+	class EngineController : public ControllerStateMachine
+	{
+	public:
+		EngineController(nex::Window* window,
+			Input* input,
+			PBR_Deferred_Renderer* mainTask,
+			Camera* camera);
+
+		EngineController(const EngineController&) = delete;
+		EngineController(EngineController&&) = delete;
+		EngineController& operator=(const EngineController&) = delete;
+		EngineController& operator=(EngineController&&) = delete;
+		
+		virtual ~EngineController();
+
+
+		void frameUpdateSelf(float frameTime) override;
+
+		SceneGUI* getSceneGUI();
+	private:
+		BaseController mBaseController;
+		EditMode mEditMode;
+		CameraMode mCameraMode;
+		SceneGUI mSceneGUI;
+	};
 }

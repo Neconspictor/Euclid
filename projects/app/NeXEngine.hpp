@@ -7,6 +7,7 @@
 #include <VideoConfig.hpp>
 #include <nex/FileSystem.hpp>
 #include "Globals.hpp"
+#include "gui/Controller.hpp"
 
 namespace nex
 {
@@ -19,6 +20,7 @@ namespace nex
 	namespace gui
 	{
 		class Picker;
+		class SceneGUI;
 	}
 
 	class NeXEngine
@@ -58,7 +60,7 @@ namespace nex
 		util::Globals mGlobals;
 		nex::Logger mLogger;
 		std::unique_ptr<PBR_Deferred_Renderer> mRenderer;
-		std::unique_ptr<gui::ControllerStateMachine> mControllerSM;
+		std::unique_ptr<gui::EngineController> mControllerSM;
 		std::unique_ptr<PerspectiveCamera> mCamera;
 		SubSystemProvider* mWindowSystem;
 		std::unique_ptr<gui::ImGUI_Impl> mGui;

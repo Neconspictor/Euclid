@@ -10,18 +10,14 @@
 
 namespace nex::gui
 {
-	SceneGUI::SceneGUI(ControllerStateMachine* controllerSM) : m_optionMenu(nullptr), m_controllerSM(controllerSM)
+	SceneGUI::SceneGUI(const std::function<void()> exitCallback) : m_optionMenu(nullptr), mExitCallback(std::move(exitCallback))
 	{
 		std::unique_ptr<Menu> fileMenu = std::make_unique<Menu>("File");
 		std::unique_ptr<MenuItem> exitMenuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 		{
 			if (ImGui::MenuItem("Exit", "Esc"))
 			{
-				//handleExitEvent();
-				nex::gui::BaseController* controller = dynamic_cast<nex::gui::BaseController*>(m_controllerSM->getCurrentController());
-
-				if (controller != nullptr)
-					controller->handleExitEvent();
+				mExitCallback();
 			}
 		});
 
@@ -55,6 +51,29 @@ namespace nex::gui
 	void SceneGUI::drawSelf()
 	{
 		m_menuBar.drawGUI();
+
+		if (ImGui::BeginPopupContextVoid("Gizmo-Selection-Mode", 1))
+		{
+			if (ImGui::Button("Rotate"))
+			{
+				std::cout << "Rotation activated!" << std::endl;
+				ImGui::CloseCurrentPopup();
+			}
+			
+			if (ImGui::Button("Scale"))
+			{
+				std::cout << "Scale activated!" << std::endl;
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::Button("Translate"))
+			{
+				std::cout << "Translate activated!" << std::endl;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 
 	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), mGizmo(std::make_unique<gui::Gizmo>())

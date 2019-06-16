@@ -72,6 +72,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	assert(mInput != nullptr);
 }
 
+nex::PBR_Deferred_Renderer::~PBR_Deferred_Renderer() = default;
+
 
 bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
 {

@@ -31,6 +31,8 @@ namespace nex
 			CascadedShadow* cascadedShadow,
 			Input* input);
 
+		~PBR_Deferred_Renderer();
+
 		bool getShowDepthMap() const;
 		RenderCommandQueue* getCommandQueue();
 

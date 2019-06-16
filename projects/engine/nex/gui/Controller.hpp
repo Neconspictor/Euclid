@@ -1,10 +1,14 @@
-#ifndef UI_MODE_HPP
-#define UI_MODE_HPP
+#pragma once
 
 #include <nex/gui/Drawable.hpp>
 #include <utility>
 #include <memory>
 #include <nex/gui/ImGUI.hpp>
+
+namespace nex
+{
+	class Input;
+}
 
 namespace nex::gui
 {
@@ -13,33 +17,33 @@ namespace nex::gui
 	class Controller {
 
 	public:
-		using Drawable = nex::gui::Drawable;
-		using DrawablePtr = nex::gui::Drawable*;
-		using ManagedDrawable = std::unique_ptr<Drawable>;
+		Controller(Input* input);
+		virtual ~Controller();
 
-		Controller(ManagedDrawable drawable) : m_drawable(std::move(drawable)) {}
-		virtual ~Controller() = default;
-		virtual void frameUpdate(nex::gui::ControllerStateMachine& stateMachine, float frameTime) = 0;
-		virtual void init() = 0;
+		virtual void frameUpdateSelf(float frameTime) = 0;
+		
+		virtual void frameUpdate(float frameTime);
+
+
+		virtual void activateSelf() = 0;
+		virtual void activate();
 
 		/**
 		 * Checks if a not interruptible  action is active
 		 */
-		virtual bool isNotInterruptibleActionActive()const = 0;
+		virtual bool isNotInterruptibleActionActiveSelf()const = 0;
+		virtual bool isNotInterruptibleActionActive()const;
 
-		DrawablePtr getDrawable()const
-		{
-			return m_drawable.get();
-		}
+		Drawable* getDrawable();
 
-		void setDrawable(std::unique_ptr<nex::gui::Drawable> drawable) {
-			m_drawable = std::move(drawable);
-		};
+		void setDrawable(Drawable* drawable);;
+
+		void addChild(Controller* controller);
 
 	protected:
-		ManagedDrawable m_drawable;
+		Drawable* mDrawable;
+		std::vector<Controller*> mChilds;
+		Input* mInput;
 	};
 
 }
-
-#endif
