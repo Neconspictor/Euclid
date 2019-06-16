@@ -51,7 +51,8 @@ namespace nex::gui
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
 
-		void update(Scene& scene, const PerspectiveCamera& camera, const Input& input);
+		void update(const PerspectiveCamera& camera);
+		void handleInput(Scene& scene, const PerspectiveCamera& camera, const Input& input);
 
 	protected:
 		void activate(Scene& scene, const Ray& ray, const Camera& camera);

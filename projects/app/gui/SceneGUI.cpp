@@ -68,26 +68,29 @@ namespace nex::gui
 		mPicker = picker;
 	}
 
-	void SceneNodeProperty::update(Scene& scene, const PerspectiveCamera& camera, const Input& input)
+	void SceneNodeProperty::update(const PerspectiveCamera& camera)
+	{
+		mGizmo->update(camera);	
+	}
+
+	void SceneNodeProperty::handleInput(Scene& scene, const PerspectiveCamera& camera, const Input& input)
 	{
 		const auto& mouseData = input.getFrameMouseOffset();
 		const auto button = Input::Button::LeftMouseButton;
-
-		mGizmo->update(camera);
-
 		if (input.isPressed(button))
 		{
 			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 			const auto ray = camera.calcScreenRay(position);
 			activate(scene, ray, camera);
-
-		} else if (input.isDown(button))
+		}
+		else if (input.isDown(button))
 		{
 			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 			const auto ray = camera.calcScreenRay(position);
 			mGizmo->transform(ray, *mPicker->getPicked(), camera, mouseData);
 			mPicker->updateBoundingBoxTrafo();
-		} else if (input.isReleased(button))
+		}
+		else if (input.isReleased(button))
 		{
 			mGizmo->deactivate();
 		}

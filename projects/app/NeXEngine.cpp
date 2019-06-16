@@ -186,11 +186,12 @@ void NeXEngine::run()
 		{
 			mGui->newFrame(frameTime);
 			mCamera->update();
+			mPickedSceneNodeProperty->update(*mCamera);
 
 			if (!mGui->isActive() || mControllerSM->getCurrentController()->isNotInterruptibleActionActive())
 			{
 				mControllerSM->frameUpdate(frameTime);
-				mPickedSceneNodeProperty->update(mScene, *mCamera, *mInput);
+				mPickedSceneNodeProperty->handleInput(mScene, *mCamera, *mInput);
 			}
 
 			commandQueue->clear();
