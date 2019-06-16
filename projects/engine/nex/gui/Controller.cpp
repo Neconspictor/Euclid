@@ -17,9 +17,21 @@ void nex::gui::Controller::frameUpdate(float frameTime)
 
 void nex::gui::Controller::activate()
 {
+	activateSelf();
+
 	for (auto* child : mChilds)
 	{
 		child->activate();
+	}
+}
+
+void nex::gui::Controller::deactivate()
+{
+	deactivateSelf();
+
+	for (auto* child : mChilds)
+	{
+		child->deactivate();
 	}
 }
 

@@ -12,8 +12,6 @@ namespace nex
 
 namespace nex::gui
 {
-	class ControllerStateMachine;
-
 	class Controller {
 
 	public:
@@ -27,6 +25,9 @@ namespace nex::gui
 
 		virtual void activateSelf() = 0;
 		virtual void activate();
+
+		virtual void deactivateSelf() = 0;
+		virtual void deactivate();
 
 		/**
 		 * Checks if a not interruptible  action is active

@@ -26,6 +26,7 @@ namespace nex::gui
 		
 		void frameUpdateSelf(float frameTime) override;
 		void activateSelf() override;
+		void deactivateSelf() override;
 
 		bool isNotInterruptibleActionActiveSelf()const override;
 
@@ -40,19 +41,50 @@ namespace nex::gui
 
 	class EditMode : public Controller {
 	public:
+
+		class GizmoGUI : public Drawable
+		{
+		public:
+			GizmoGUI(Gizmo* gizmo);
+
+		protected:
+			void drawSelf() override;
+
+			Gizmo* mGizmo;
+		};
+
 		EditMode(nex::Window* window,
 			Input* input,
-			Camera* camera);
+			PerspectiveCamera* camera,
+			Scene* scene,
+			SceneGUI* sceneGUI);
 		virtual ~EditMode();
+
+		/**
+		 * Stuff that should always be updated.
+		 */
+		void updateAlways();
+
 		void frameUpdateSelf(float frameTime) override;
 		void activateSelf() override;
+		void deactivateSelf() override;
+
 		bool isNotInterruptibleActionActiveSelf()const override;
 
+		Picker* getPicker();
+
 	private:
+
+		void activate(const Ray& ray);
+
 		nex::Window* mWindow;
-		Camera * mCamera;
+		PerspectiveCamera * mCamera;
+		Scene* mScene;
+		SceneGUI* mSceneGUI;
 		std::unique_ptr<Picker> mPicker;
 		std::unique_ptr<Gizmo> mGizmo;
+		GizmoGUI mGizmoGUI;
+		
 	};
 
 	class CameraMode : public Controller {
@@ -64,6 +96,8 @@ namespace nex::gui
 		void frameUpdateSelf(float frameTime) override;
 
 		void activateSelf() override;
+		void deactivateSelf() override;
+
 		bool isNotInterruptibleActionActiveSelf()const override;
 
 	private:
@@ -79,7 +113,9 @@ namespace nex::gui
 		EngineController(nex::Window* window,
 			Input* input,
 			PBR_Deferred_Renderer* mainTask,
-			Camera* camera);
+			PerspectiveCamera* camera,
+			Scene* scene,
+			ImGUI_Impl* guiImpl);
 
 		EngineController(const EngineController&) = delete;
 		EngineController(EngineController&&) = delete;
@@ -92,10 +128,13 @@ namespace nex::gui
 		void frameUpdateSelf(float frameTime) override;
 
 		SceneGUI* getSceneGUI();
+		EditMode* getEditMode();
 	private:
 		BaseController mBaseController;
+		SceneGUI mSceneGUI;
 		EditMode mEditMode;
 		CameraMode mCameraMode;
-		SceneGUI mSceneGUI;
+		ImGUI_Impl* mGuiImpl;
+		
 	};
 }

@@ -13,6 +13,7 @@
 #include <nex/math/Constant.hpp>
 #include "nex/math/Torus.hpp"
 #include "nex/math/Sphere.hpp"
+#include "nex/math/Circle.hpp"
 
 class nex::gui::Gizmo::GizmoPass : public TransformPass
 {
@@ -61,22 +62,34 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 
 nex::gui::Gizmo::~Gizmo() = default;
 
+void nex::gui::Gizmo::syncTransformation()
+{
+	if (mModifiedNode)
+	{
+		mActiveGizmoNode->setPosition(mModifiedNode->getPosition());
+		mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	}
+}
+
 void nex::gui::Gizmo::update(const nex::Camera& camera)
 {
+	syncTransformation();
+
 	const auto distance = length(mActiveGizmoNode->getPosition() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
 		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoNode->getPosition(), 1.0)).w;
 		mActiveGizmoNode->setScale(glm::vec3(w) / 8.0f);
-		mActiveGizmoNode->updateWorldTrafoHierarchy(true);
 	}
+
+	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
 }
 
 void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, SceneNode* node)
 {
 	mModifiedNode = node;
-	isHovering(screenRayWorld, camera, mActivationState);
+	isHovering(screenRayWorld, camera, true);
 
 	highlightAxis(mActivationState.axis);
 	mLastFrameMultiplier = 0.0f;
@@ -98,41 +111,9 @@ void nex::gui::Gizmo::highlightAxis(Axis axis)
 	mGizmoPass->setSelectedAxis(axis);
 }
 
-bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, Active& active) const
+bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera)
 {
-	if (mMode == Mode::ROTATE)
-	{
-		return isHoveringRotate(screenRayWorld, camera, active);
-	}
-
-
-	const auto& position = mActiveGizmoNode->getPosition();
-	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
-	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
-	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
-
-	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), xAxis.getDir(), Axis::X };
-	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), yAxis.getDir(), Axis::Y };
-	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), zAxis.getDir(), Axis::Z };
-
-	const auto* nearest = &xTest;
-
-	if (compare(*nearest, yTest) > 0) {
-		nearest = &yTest;
-	}
-
-	if (compare(*nearest, zTest) > 0) {
-		nearest = &zTest;
-	}
-
-	const auto& scale = mActiveGizmoNode->getScale();
-	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
-		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
-
-
-	fillActivationState(active, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, camera);
-
-	return selected;
+	return isHovering(screenRayWorld, camera, false);
 }
 
 bool nex::gui::Gizmo::isVisible() const
@@ -191,12 +172,13 @@ void nex::gui::Gizmo::deactivate()
 {
 	mActivationState = {};
 	highlightAxis(mActivationState.axis);
-	mModifiedNode = nullptr;
 }
 
 void nex::gui::Gizmo::setMode(Mode mode)
 {
 	mMode = mode;
+
+	if (mVisible) mScene->removeRoot(mActiveGizmoNode);
 
 	switch(mode)
 	{
@@ -211,21 +193,27 @@ void nex::gui::Gizmo::setMode(Mode mode)
 		break;
 	}
 
+	if (mVisible) mScene->addRoot(mActiveGizmoNode);
+	syncTransformation();
 	deactivate();
 }
 
-void nex::gui::Gizmo::show(Scene& scene, const SceneNode& node)
+void nex::gui::Gizmo::show(Scene* scene, SceneNode* node)
 {
-	scene.addRoot(mActiveGizmoNode);
-	mActiveGizmoNode->setPosition(node.getPosition());
+	mScene = scene;
+	mScene->addRoot(mActiveGizmoNode);
+	mActiveGizmoNode->setPosition(node->getPosition());
 	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	mModifiedNode = node;
 	mVisible = true;
 }
 
-void nex::gui::Gizmo::hide(Scene& scene)
+void nex::gui::Gizmo::hide()
 {
-	scene.removeRoot(mActiveGizmoNode);
+	mScene->removeRoot(mActiveGizmoNode);
 	mVisible = false;
+	mModifiedNode = nullptr;
+	mScene = nullptr;
 }
 
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
@@ -301,8 +289,46 @@ void nex::gui::Gizmo::initSceneNode(SceneNode*& node, StaticMeshContainer* conta
 	node->mDebugName = debugName;
 }
 
+bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive)
+{
+	if (mMode == Mode::ROTATE)
+	{
+		return isHoveringRotate(screenRayWorld, camera, fillActive);
+	}
+
+
+	const auto& position = mActiveGizmoNode->getPosition();
+	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
+	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
+	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
+
+	const Data xTest = { xAxis.calcClosestDistance(screenRayWorld), xAxis.getDir(), Axis::X };
+	const Data yTest = { yAxis.calcClosestDistance(screenRayWorld), yAxis.getDir(), Axis::Y };
+	const Data zTest = { zAxis.calcClosestDistance(screenRayWorld), zAxis.getDir(), Axis::Z };
+
+	const auto* nearest = &xTest;
+
+	if (compare(*nearest, yTest) > 0) {
+		nearest = &yTest;
+	}
+
+	if (compare(*nearest, zTest) > 0) {
+		nearest = &zTest;
+	}
+
+	const auto& scale = mActiveGizmoNode->getScale();
+	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
+		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
+
+
+	if (fillActive)
+		fillActivationState(mActivationState, selected, nearest->axis, screenRayWorld.getPoint(nearest->result.otherMultiplier), screenRayWorld, camera);
+
+	return selected;
+}
+
 bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& camera,
-	Active& active) const
+	bool fillActive)
 {
 	const auto& origin = mActiveGizmoNode->getPosition();
 
@@ -315,19 +341,20 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 	bool selected = true;
 	Axis axis = Axis::INVALID;
 	Torus::RayIntersection intersection;
-	active.torus = Torus(mActiveGizmoNode->getScale().x, range);
+	Torus torus(mActiveGizmoNode->getScale().x, range);
 
-	if (hitsTorus(active.torus, xAxis, origin, screenRayWorld, intersection))
+
+	if (hitsTorus(torus, xAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::X;
 		std::cout << "Is in range for x rotation!" << std::endl;
 
-	} else if (hitsTorus(active.torus, yAxis, origin, screenRayWorld, intersection))
+	} else if (hitsTorus(torus, yAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Y;
 		std::cout << "Is in range for y rotation!" << std::endl;
 
-	} else if (hitsTorus(active.torus, zAxis, origin, screenRayWorld, intersection))
+	} else if (hitsTorus(torus, zAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Z;
 		std::cout << "Is in range for z rotation!" << std::endl;
@@ -347,7 +374,10 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 		projectedPoint = origin;
 	}
 
-	fillActivationState(active, selected, axis, projectedPoint, screenRayWorld, camera);
+	if (fillActive)
+	{
+		fillActivationState(mActivationState, selected, axis, projectedPoint, screenRayWorld, camera);
+	}
 
 	return selected;
 }

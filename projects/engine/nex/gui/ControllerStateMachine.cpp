@@ -6,7 +6,8 @@ nex::gui::ControllerStateMachine::ControllerStateMachine(Input* input, Controlle
 
 void nex::gui::ControllerStateMachine::frameUpdateSelf(float frameTime)
 {
-	mActiveController->frameUpdate(frameTime);
+	if (mActiveController)
+		mActiveController->frameUpdate(frameTime);
 }
 
 nex::gui::Controller * nex::gui::ControllerStateMachine::getActiveController()
@@ -16,12 +17,23 @@ nex::gui::Controller * nex::gui::ControllerStateMachine::getActiveController()
 
 void nex::gui::ControllerStateMachine::activateSelf()
 {
-	mActiveController->activate();
+	if (mActiveController)
+		mActiveController->activate();
+}
+
+void nex::gui::ControllerStateMachine::deactivateSelf()
+{
+	if (mActiveController)
+		mActiveController->deactivateSelf();
 }
 
 void nex::gui::ControllerStateMachine::setActiveController(ControllerPtr controller)
 {
+	if (mActiveController != nullptr)
+		mActiveController->deactivate();
+
 	mActiveController = controller;
+	mActiveController->activate();
 }
 
 bool nex::gui::ControllerStateMachine::isNotInterruptibleActionActiveSelf() const

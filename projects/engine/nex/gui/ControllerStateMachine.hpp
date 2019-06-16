@@ -12,7 +12,7 @@ namespace nex::gui
 
 		using ControllerPtr = Controller*;
 
-		ControllerStateMachine(Input* input, ControllerPtr controller);
+		ControllerStateMachine(Input* input, ControllerPtr controller = nullptr);
 		virtual ~ControllerStateMachine() = default;
 
 		void frameUpdateSelf(float frameTime) override;
@@ -20,6 +20,7 @@ namespace nex::gui
 		Controller* getActiveController();
 
 		void activateSelf() override;
+		void deactivateSelf() override;
 
 		void setActiveController(ControllerPtr controller);
 

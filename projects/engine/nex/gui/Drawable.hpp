@@ -37,6 +37,8 @@ namespace nex::gui
 		 */
 		void addChild(Drawable* child);
 
+		std::vector<Drawable*>& getReferencedChilds();
+
 		void useStyleClass(StyleClassPtr styleClass);
 
 		void setVisible(bool visible);

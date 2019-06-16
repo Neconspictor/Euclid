@@ -49,6 +49,10 @@ void nex::gui::BaseController::activateSelf()
 {
 }
 
+void nex::gui::BaseController::deactivateSelf()
+{
+}
+
 bool nex::gui::BaseController::isNotInterruptibleActionActiveSelf() const
 {
 	return false;
@@ -60,27 +64,142 @@ void nex::gui::BaseController::handleExitEvent()
 }
 
 
-nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, Camera* camera) :
+nex::gui::EditMode::GizmoGUI::GizmoGUI(Gizmo* gizmo) : mGizmo(gizmo)
+{
+}
+
+void nex::gui::EditMode::GizmoGUI::drawSelf()
+{
+	if (!mGizmo->isVisible()) return;
+
+	if (ImGui::BeginPopupContextVoid("Gizmo-Selection-Mode", 1))
+	{
+		if (ImGui::Button("Rotate"))
+		{
+			mGizmo->setMode(Gizmo::Mode::ROTATE);
+			ImGui::CloseCurrentPopup();
+		}
+
+		if (ImGui::Button("Scale"))
+		{
+			mGizmo->setMode(Gizmo::Mode::SCALE);
+			ImGui::CloseCurrentPopup();
+		}
+
+		if (ImGui::Button("Translate"))
+		{
+			mGizmo->setMode(Gizmo::Mode::TRANSLATE);
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, PerspectiveCamera* camera, Scene* scene, SceneGUI* sceneGUI) :
 	Controller(input),
 	mWindow(window),
-	mCamera(camera)
+	mCamera(camera),
+	mScene(scene),
+	mSceneGUI(sceneGUI),
+	mPicker(std::make_unique<Picker>()),
+	mGizmo(std::make_unique<Gizmo>()),
+	mGizmoGUI(mGizmo.get())
 {
 }
 
 nex::gui::EditMode::~EditMode() = default;
 
+void nex::gui::EditMode::updateAlways()
+{
+	if (mGizmo->isVisible())
+	{
+		mGizmo->update(*mCamera);
+	}
+}
+
 void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 {
+	const auto& mouseData = mInput->getFrameMouseOffset();
+	const auto button = Input::Button::LeftMouseButton;
+	if (mInput->isPressed(button))
+	{
+		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+		const auto ray = mCamera->calcScreenRay(position);
+		activate(ray);
+	}
+	else if (mInput->isDown(button))
+	{
+		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
+		const auto ray = mCamera->calcScreenRay(position);
+		mGizmo->transform(ray, *mPicker->getPicked(), *mCamera, mouseData);
+		mPicker->updateBoundingBoxTrafo();
+	}
+	else if (mInput->isReleased(button))
+	{
+		mGizmo->deactivate();
+	}
 }
 
 void nex::gui::EditMode::activateSelf()
 {
 	mWindow->showCursor(CursorState::Normal);
+
+	auto& childs = mSceneGUI->getReferencedChilds();
+	//childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
+	mSceneGUI->addChild(&mGizmoGUI);
+}
+
+void nex::gui::EditMode::deactivateSelf()
+{
+	auto& childs = mSceneGUI->getReferencedChilds();
+	childs.erase(std::remove(childs.begin(), childs.end(), &mGizmoGUI), childs.end());
 }
 
 bool nex::gui::EditMode::isNotInterruptibleActionActiveSelf() const
 {
 	return false;
+}
+
+nex::gui::Picker* nex::gui::EditMode::getPicker()
+{
+	return mPicker.get();
+}
+
+void nex::gui::EditMode::activate(const Ray& ray)
+{
+	bool picked = false;
+	auto& scene = *mScene;
+	const bool isVisible = mGizmo->isVisible();
+
+	if (isVisible)
+	{
+		const auto isHovering = mGizmo->isHovering(ray, *mCamera);
+		if (!isHovering)
+		{
+			picked = mPicker->pick(scene, ray) != nullptr;
+		}
+
+		if (!isHovering && !picked)
+		{
+			mGizmo->hide();
+		}
+
+		if (isHovering)
+		{
+			mGizmo->activate(ray, *mCamera, mPicker->getPicked());
+		}
+
+	}
+	else
+	{
+		picked = mPicker->pick(scene, ray) != nullptr;
+
+		if (picked)
+		{
+			mGizmo->show(&scene, mPicker->getPicked());
+		}
+	}
 }
 
 nex::gui::CameraMode::CameraMode(nex::Window* window, nex::Input* input, Camera* camera) :
@@ -101,6 +220,10 @@ void nex::gui::CameraMode::activateSelf()
 	mWindow->showCursor(CursorState::Disabled);
 }
 
+void nex::gui::CameraMode::deactivateSelf()
+{
+}
+
 bool nex::gui::CameraMode::isNotInterruptibleActionActiveSelf() const
 {
 	// During this mode we don't want to get interrupted!
@@ -113,12 +236,14 @@ void nex::gui::CameraMode::updateCamera(float deltaTime)
 	mWindow->setCursorPosition(mWindow->getFrameBufferWidth() / 2, mWindow->getFrameBufferHeight() / 2);
 }
 
-nex::gui::EngineController::EngineController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, Camera* camera) : 
+nex::gui::EngineController::EngineController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask, PerspectiveCamera* camera, Scene* scene,
+	ImGUI_Impl* guiImpl) :
 ControllerStateMachine(input,nullptr),
 mBaseController(window, input, mainTask),
-mEditMode(window, input, camera),
+mSceneGUI(std::bind(&BaseController::handleExitEvent, &mBaseController)),
+mEditMode(window, input, camera, scene, &mSceneGUI),
 mCameraMode(window, input, camera),
-mSceneGUI(std::bind(&BaseController::handleExitEvent, &mBaseController))
+mGuiImpl(guiImpl)
 {
 	setActiveController(&mEditMode);
 	addChild(&mBaseController);
@@ -127,9 +252,17 @@ mSceneGUI(std::bind(&BaseController::handleExitEvent, &mBaseController))
 
 void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 {
+	if (mActiveController == &mEditMode)
+	{
+		mEditMode.updateAlways();
+	}
+
+	if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
+		return;
+
 	// Switch mode?
 	if (mInput->isPressed(Input::KEY_C)) {
-		if (getActiveController() == &mEditMode)
+		if (mActiveController == &mEditMode)
 		{
 			setActiveController(&mCameraMode);
 		} else
@@ -144,6 +277,11 @@ void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 nex::gui::SceneGUI* nex::gui::EngineController::getSceneGUI()
 {
 	return &mSceneGUI;
+}
+
+nex::gui::EditMode* nex::gui::EngineController::getEditMode()
+{
+	return &mEditMode;
 }
 
 nex::gui::EngineController::~EngineController() = default;

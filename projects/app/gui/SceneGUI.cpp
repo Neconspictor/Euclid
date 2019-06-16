@@ -51,32 +51,9 @@ namespace nex::gui
 	void SceneGUI::drawSelf()
 	{
 		m_menuBar.drawGUI();
-
-		if (ImGui::BeginPopupContextVoid("Gizmo-Selection-Mode", 1))
-		{
-			if (ImGui::Button("Rotate"))
-			{
-				std::cout << "Rotation activated!" << std::endl;
-				ImGui::CloseCurrentPopup();
-			}
-			
-			if (ImGui::Button("Scale"))
-			{
-				std::cout << "Scale activated!" << std::endl;
-				ImGui::CloseCurrentPopup();
-			}
-
-			if (ImGui::Button("Translate"))
-			{
-				std::cout << "Translate activated!" << std::endl;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
 	}
 
-	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), mGizmo(std::make_unique<gui::Gizmo>())
+	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr)
 	{
 	}
 
@@ -85,72 +62,6 @@ namespace nex::gui
 	void SceneNodeProperty::setPicker(Picker* picker)
 	{
 		mPicker = picker;
-	}
-
-	void SceneNodeProperty::update(const PerspectiveCamera& camera)
-	{
-		mGizmo->update(camera);	
-	}
-
-	void SceneNodeProperty::handleInput(Scene& scene, const PerspectiveCamera& camera, const Input& input)
-	{
-		const auto& mouseData = input.getFrameMouseOffset();
-		const auto button = Input::Button::LeftMouseButton;
-		if (input.isPressed(button))
-		{
-			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-			const auto ray = camera.calcScreenRay(position);
-			activate(scene, ray, camera);
-		}
-		else if (input.isDown(button))
-		{
-			const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-			const auto ray = camera.calcScreenRay(position);
-			mGizmo->transform(ray, *mPicker->getPicked(), camera, mouseData);
-			mPicker->updateBoundingBoxTrafo();
-		}
-		else if (input.isReleased(button))
-		{
-			mGizmo->deactivate();
-		}
-	}
-
-	void SceneNodeProperty::activate(Scene& scene, const Ray& ray, const Camera& camera)
-	{
-		const bool alreadyPicked = mPicker->getPicked() != nullptr;
-		bool picked = false;
-		
-		bool isVisible = mGizmo->isVisible();
-
-
-		if (isVisible)
-		{
-			Gizmo::Active active;
-			const auto isHovering = mGizmo->isHovering(ray, camera, active);
-			if (!isHovering)
-			{
-				picked = mPicker->pick(scene, ray) != nullptr;
-			}
-
-			if (!isHovering && !picked)
-			{
-				mGizmo->hide(scene);
-			}
-
-			if (isHovering)
-			{
-				mGizmo->activate(ray, camera, mPicker->getPicked());
-			}
-
-		} else
-		{
-			picked = mPicker->pick(scene, ray) != nullptr;
-
-			if (picked)
-			{
-				mGizmo->show(scene, *mPicker->getPicked());
-			}
-		}
 	}
 
 
@@ -260,9 +171,6 @@ namespace nex::gui
 
 		node->updateWorldTrafoHierarchy();
 		mPicker->updateBoundingBoxTrafo();
-
-		mGizmo->getGizmoNode()->setPosition(position);
-		mGizmo->getGizmoNode()->updateWorldTrafoHierarchy();
 
 		ImGui::PopID();
 	}

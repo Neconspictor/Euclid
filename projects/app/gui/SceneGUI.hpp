@@ -51,15 +51,10 @@ namespace nex::gui
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
 
-		void update(const PerspectiveCamera& camera);
-		void handleInput(Scene& scene, const PerspectiveCamera& camera, const Input& input);
-
 	protected:
-		void activate(Scene& scene, const Ray& ray, const Camera& camera);
 
 		void drawSelf() override;
 
 		Picker* mPicker;
-		std::unique_ptr<gui::Gizmo> mGizmo;
 	};
 }

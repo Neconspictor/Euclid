@@ -1,6 +1,5 @@
 #pragma once
 #include <pbr_deferred/PBR_Deferred_Renderer.hpp>
-#include <gui/SceneGUI.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 #include <nex/config/Configuration.hpp>
@@ -89,8 +88,5 @@ namespace nex
 		AmbientLight mAmbientLight;
 		DirectionalLight mSun;
 		Texture* panoramaSky;
-
-		gui::SceneNodeProperty* mPickedSceneNodeProperty;
-		std::unique_ptr<gui::Picker> mPicker;
 	};
 }

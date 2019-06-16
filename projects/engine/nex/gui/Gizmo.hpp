@@ -1,14 +1,13 @@
 #pragma once
 #include <memory>
 #include "nex/math/Ray.hpp"
-#include "nex/Input.hpp"
 #include "nex/math/Plane.hpp"
 #include "nex/math/Torus.hpp"
-#include <nex/math/Circle.hpp>
 
 
 namespace nex
 {
+	struct MouseOffset;
 	struct Torus;
 	class Ray;
 	class Scene;
@@ -42,7 +41,6 @@ namespace nex::gui
 			glm::vec3 orthoAxisVec = glm::vec3(0.0f);
 			glm::vec3 originalPosition = glm::vec3(0.0f);
 
-			Torus torus = Torus();
 			float range = 0.0f;
 			glm::quat originalRotation = glm::quat(1, 0, 0, 0);
 			float startRotationAngle = 0.0f;
@@ -60,6 +58,7 @@ namespace nex::gui
 		Gizmo(Mode mode = Mode::TRANSLATE);
 		virtual ~Gizmo();
 
+		void syncTransformation();
 		void update(const nex::Camera& camera);
 
 		/**
@@ -84,8 +83,7 @@ namespace nex::gui
 		 */
 		void highlightAxis(Axis axis);
 
-		bool isHovering(const Ray& screenRayWorld, const Camera& camera, Active& active) const;
-
+		bool isHovering(const Ray& screenRayWorld, const Camera& camera);
 		bool isVisible()const;
 
 		/**
@@ -98,8 +96,8 @@ namespace nex::gui
 
 		void setMode(Mode mode);
 
-		void show(Scene& scene, const SceneNode& node);
-		void hide(Scene& scene);
+		void show(Scene* scene, SceneNode* node);
+		void hide();
 
 	private:
 
@@ -117,7 +115,9 @@ namespace nex::gui
 		float calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis, const Camera& camera) const;
 
 		void initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName);
-		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, Active& active) const;
+
+		bool isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
+		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
 
 		/**
 		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
@@ -158,5 +158,6 @@ namespace nex::gui
 		bool mVisible;
 
 		SceneNode* mModifiedNode = nullptr;
+		Scene* mScene = nullptr;
 	};
 }

@@ -114,7 +114,9 @@ void NeXEngine::init()
 	mControllerSM = std::make_unique<gui::EngineController>(mWindow,
 		mInput,
 		mRenderer.get(),
-		mCamera.get());
+		mCamera.get(),
+		&mScene,
+		mGui.get());
 
 	mWindow->activate();
 
@@ -175,17 +177,7 @@ void NeXEngine::run()
 		{
 			mGui->newFrame(frameTime);
 			mCamera->update();
-			mPickedSceneNodeProperty->update(*mCamera);
-			const auto* currentController = mControllerSM->getActiveController();
-
-			if (!mGui->isActive() || currentController->isNotInterruptibleActionActive())
-			{
-				mControllerSM->frameUpdate(frameTime);
-				if (!currentController->isNotInterruptibleActionActive())
-				{
-					mPickedSceneNodeProperty->handleInput(mScene, *mCamera, *mInput);
-				}
-			}
+			mControllerSM->frameUpdate(frameTime);
 
 			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene);
@@ -532,11 +524,8 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
-
-	mPicker = std::make_unique<gui::Picker>();
 	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>();
-	mPickedSceneNodeProperty = sceneNodeProperty.get();
-	mPickedSceneNodeProperty->setPicker(mPicker.get());
+	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
 
 	generalTab->addChild(std::move(sceneNodeProperty));
 

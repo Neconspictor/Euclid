@@ -15,6 +15,11 @@ namespace nex::gui
 		m_id = ss.str();
 	}
 
+	std::vector<Drawable*>& Drawable::getReferencedChilds()
+	{
+		return mReferencedChilds;
+	}
+
 	void Drawable::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
