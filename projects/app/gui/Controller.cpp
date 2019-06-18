@@ -252,10 +252,7 @@ mGuiImpl(guiImpl)
 
 void nex::gui::EngineController::frameUpdateSelf(float frameTime)
 {
-	if (mActiveController == &mEditMode)
-	{
-		mEditMode.updateAlways();
-	}
+	mEditMode.updateAlways();
 
 	if (mGuiImpl->isActive() && !mActiveController->isNotInterruptibleActionActive())
 		return;
