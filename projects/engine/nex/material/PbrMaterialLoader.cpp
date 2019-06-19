@@ -19,7 +19,7 @@ PbrMaterialLoader::~PbrMaterialLoader() = default;
 
 std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore& store) const
 {
-	auto material = make_unique<PbrMaterial>(mTechnique);
+	auto material = std::make_unique<PbrMaterial>(mTechnique);
 
 	TextureData data = {
 		TextureFilter::Linear_Mipmap_Linear,
@@ -27,26 +27,38 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 		TextureUVTechnique::Repeat,
 		TextureUVTechnique::Repeat,
 		TextureUVTechnique::Repeat,
-		ColorSpace::SRGBA,
+		ColorSpace::SRGB,
 		PixelDataType::UBYTE,
-		InternFormat::SRGBA8,
+		InternFormat::SRGB8,
 		true
 	};
+
+
+	Texture2D* albedoMap = nullptr;
 
 	// a material can have more than one diffuse/specular/normal map,
 	// but we only use the first one by now
 	if (store.albedoMap != "")
 	{
-		material->setAlbedoMap(textureManager->getImage(store.albedoMap, data));
+		albedoMap = textureManager->getImage(store.albedoMap, data, true);
 	}
 	else
 	{
-		material->setAlbedoMap(textureManager->getDefaultWhiteTexture()); // assume white material
+		albedoMap = textureManager->getDefaultWhiteTexture(); // assume white material
 	}
+
+
+	material->setAlbedoMap(albedoMap);
+
+	if (getComponents(albedoMap->getTextureData().colorspace) == 4)
+	{
+		material->getRenderState().doBlend = true;
+	}
+
 
 	if (store.aoMap != "")
 	{
-		material->setAoMap(textureManager->getImage(store.aoMap, data));
+		material->setAoMap(textureManager->getImage(store.aoMap, data, true));
 	}
 	else
 	{
@@ -55,7 +67,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.emissionMap != "")
 	{
-		material->setEmissionMap(textureManager->getImage(store.emissionMap, data));
+		material->setEmissionMap(textureManager->getImage(store.emissionMap, data, true));
 	}
 	else
 	{
@@ -63,12 +75,12 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	}
 
 	// the following textures are linear, so we use the RGBA color space
-	data.colorspace = ColorSpace::RGBA;
-	data.internalFormat = InternFormat::RGBA8;
+	data.colorspace = ColorSpace::RGB;
+	data.internalFormat = InternFormat::RGB8;
 
 	if (store.metallicMap != "")
 	{
-		material->setMetallicMap(textureManager->getImage(store.metallicMap, data));
+		material->setMetallicMap(textureManager->getImage(store.metallicMap, data, true));
 	}
 	else
 	{
@@ -77,7 +89,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.roughnessMap != "")
 	{
-		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, data));
+		material->setRoughnessMap(textureManager->getImage(store.roughnessMap, data, true));
 	}
 	else
 	{
@@ -91,7 +103,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	if (store.normalMap != "")
 	{
-		Texture* texture = textureManager->getImage(store.normalMap, data);
+		Texture* texture = textureManager->getImage(store.normalMap, data, true);
 		material->setNormalMap(texture);
 		//material->setNormalMap(textureManager->getDefaultNormalTexture());
 	}

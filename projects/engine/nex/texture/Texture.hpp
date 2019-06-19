@@ -47,6 +47,7 @@ namespace nex
 		 */
 		void generateMipMaps();
 
+		const TextureData& getTextureData() const;
 
 		/**
 		 * Reads a texture back from the gpu
@@ -132,7 +133,7 @@ namespace nex
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		RenderBuffer(unsigned width, unsigned height, InternFormat format);
+		RenderBuffer(unsigned width, unsigned height, const TextureData& data);
 
 		// Has to be implemented by renderer backend
 		InternFormat getFormat() const;

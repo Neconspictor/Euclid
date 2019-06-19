@@ -232,7 +232,10 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(2048, 2048, textureData);
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
-	depth.texture = std::make_unique<RenderBuffer>(2048, 2048, InternFormat::DEPTH24);
+	TextureData data;
+	data.colorspace = ColorSpace::DEPTH;
+	data.internalFormat = InternFormat::DEPTH24;
+	depth.texture = std::make_unique<RenderBuffer>(2048, 2048, data);
 	depth.type = RenderAttachmentType::DEPTH;
 	cubeRenderTarget->useDepthAttachment(depth);
 	cubeRenderTarget->updateDepthAttachment();

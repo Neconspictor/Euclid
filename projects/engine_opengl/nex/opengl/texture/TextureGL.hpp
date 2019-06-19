@@ -161,10 +161,11 @@ namespace nex
 	class Texture::Impl
 	{
 	public:
-		explicit Impl(TextureTargetGl target);
-		Impl(GLuint texture, TextureTargetGl target);
+		explicit Impl(TextureTargetGl target, const TextureData& data);
+		Impl(GLuint texture, TextureTargetGl target, const TextureData& data);
 
 		virtual ~Impl();
+		const TextureData& getTextureData() const;
 
 		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc);
 
@@ -213,6 +214,7 @@ namespace nex
 
 		GLuint mTextureID;
 		TextureTargetGl mTarget;
+		TextureData mTextureData;
 	};
 
 	class Texture2DGL : public Texture::Impl
@@ -294,7 +296,7 @@ namespace nex
 		static Side translate(CubeMapSide side);
 
 		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
-		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight);
+		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 
 		GLuint getCubeMap() const;
 
@@ -314,9 +316,9 @@ namespace nex
 
 	class RenderBufferGL : public Texture::Impl {
 	public:
-		RenderBufferGL(GLuint width, GLuint height, InternFormat format);
+		RenderBufferGL(GLuint width, GLuint height, const TextureData& data);
 		virtual ~RenderBufferGL();
-		RenderBufferGL(GLuint texture, GLuint width, GLuint height, InternFormat format);
+		RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureData& data);
 
 
 		InternFormat getFormat() const;
@@ -324,7 +326,6 @@ namespace nex
 		void resize(unsigned width, unsigned height);
 
 	private:
-		InternFormat mFormat;
 		unsigned mWidth;
 		unsigned mHeight;
 	};

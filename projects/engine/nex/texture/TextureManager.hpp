@@ -57,7 +57,7 @@ namespace nex {
 				nex::ColorSpace::SRGBA,
 				nex::PixelDataType::UBYTE,
 				nex::InternFormat::SRGBA8,
-				true }
+				true }, bool detectColorSpace = false
 		);
 
 		std::unique_ptr<nex::Texture2D> loadImage(const std::string& file, bool flip,
@@ -70,7 +70,7 @@ namespace nex {
 				nex::ColorSpace::SRGBA,
 				nex::PixelDataType::UBYTE,
 				nex::InternFormat::SRGBA8,
-				true }
+				true }, bool detectColorSpace = false
 		);
 
 		Sampler* getDefaultImageSampler();
@@ -90,6 +90,16 @@ namespace nex {
 		//void readGLITest(const char* filePath);
 
 	protected:
+
+		static ColorSpace getColorSpace(unsigned channels);
+		static ColorSpace getGammaSpace(unsigned channels);
+
+		InternFormat getInternalFormat(unsigned channels);
+		InternFormat getGammaInternalFormat(unsigned channels);
+
+		static bool isLinear(ColorSpace colorspace);
+		static bool isLinear(InternFormat internFormat);
+
 		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;
 		std::map<std::string, Texture2D*> textureLookupTable;

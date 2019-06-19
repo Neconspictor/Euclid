@@ -256,6 +256,12 @@ void NeXEngine::createScene()
 	auto* groundVob = mScene.createVob(ground);
 	groundVob->setSelectable(true);
 
+	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
+	auto* transparent = meshContainer->createNodeHierarchy(&mScene);
+	auto* transparentVob = mScene.createVob(transparent);
+
+	transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
+
 	//ground->setPositionLocal({ 10, 0, 0 });
 
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");

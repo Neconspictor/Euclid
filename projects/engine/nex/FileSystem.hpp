@@ -79,9 +79,9 @@ namespace nex
 
 		template<typename T>
 		void loadFromCompiled(const std::filesystem::path& compiledResource, 
-			const std::function<void(T&)>& resourceLoader,T& resource)
+			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false)
 		{
-			if (!std::filesystem::exists(compiledResource))
+			if (!std::filesystem::exists(compiledResource) || forceLoad)
 			{
 				//const auto resolvedPath = resolvePath(resourcePath);
 				resourceLoader(resource);

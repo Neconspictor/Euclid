@@ -217,7 +217,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			meshes = assimpLoader.loadStaticMesh(resolvedPath, *materialLoader);
 		};
 
-		mFileSystem->loadFromCompiled(compiledMeshPath, loader, stores);
+		mFileSystem->loadFromCompiled(compiledMeshPath, loader, stores, true);
 
 
 		models.push_back(StaticMeshContainer::create(stores, *materialLoader));

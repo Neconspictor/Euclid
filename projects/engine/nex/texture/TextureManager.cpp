@@ -135,7 +135,7 @@ namespace nex {
 			});
 	}
 
-	Texture2D* TextureManager::getImage(const string& file, const TextureData& data)
+	Texture2D* TextureManager::getImage(const string& file, const TextureData& data, bool detectColorSpace)
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 
@@ -149,7 +149,7 @@ namespace nex {
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
-		auto image = loadImage(file, true, data);
+		auto image = loadImage(file, true, data, detectColorSpace);
 		textures.emplace_back(std::move(image));
 
 
@@ -160,7 +160,85 @@ namespace nex {
 		return result;
 	}
 
-	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, bool flip, const nex::TextureData& data)
+	ColorSpace TextureManager::getColorSpace(unsigned channels)
+	{
+		switch(channels)
+		{
+		case 1:
+			return ColorSpace::R;
+		case 2:
+			return ColorSpace::RG;
+		case 3:
+			return ColorSpace::RGB;
+		case 4:
+			return ColorSpace::RGBA;
+		default:
+			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
+		}
+
+		return ColorSpace::R;
+	}
+
+	ColorSpace TextureManager::getGammaSpace(unsigned channels)
+	{
+		switch (channels)
+		{
+		case 3:
+			return ColorSpace::SRGB;
+		case 4:
+			return ColorSpace::SRGBA;
+		default:
+			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
+		}
+
+		return ColorSpace::SRGB;
+	}
+
+	InternFormat TextureManager::getInternalFormat(unsigned channels)
+	{
+		switch (channels)
+		{
+		case 1:
+			return InternFormat::R8;
+		case 2:
+			return InternFormat::RG8;
+		case 3:
+			return InternFormat::RGB8;
+		case 4:
+			return InternFormat::RGBA8;
+		default:
+			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
+		}
+
+		return InternFormat::R8;
+	}
+
+	InternFormat TextureManager::getGammaInternalFormat(unsigned channels)
+	{
+		switch (channels)
+		{
+		case 3:
+			return InternFormat::SRGB8;
+		case 4:
+			return InternFormat::SRGBA8;
+		default:
+			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
+		}
+
+		return InternFormat::SRGB8;
+	}
+
+	bool TextureManager::isLinear(ColorSpace colorspace)
+	{
+		return colorspace != ColorSpace::SRGB && colorspace != ColorSpace::SRGBA;
+	}
+
+	bool TextureManager::isLinear(InternFormat internFormat)
+	{
+		return internFormat != InternFormat::SRGB8 && internFormat != InternFormat::SRGBA8;
+	}
+
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, bool flip, const nex::TextureData& data, bool detectColorSpace)
 	{
 		GenericImage image;
 		std::filesystem::path resource = file;
@@ -169,11 +247,6 @@ namespace nex {
 		{
 			if (!FileSystem::isContained(resource, mTextureRootDirectory)) throw_with_trace(std::invalid_argument("file isn't contained in texture root directory!"));
 			resource = std::filesystem::relative(resource, mTextureRootDirectory);
-		}
-
-		if (resource == std::filesystem::path("nature\\tileable_wood_texture.jpg"))
-		{
-			bool test = false;
 		}
 
 		std::filesystem::path compiledResource = mCompiledTextureRootDirectory / resource.replace_extension(mCompiledTextureFileExtension);
@@ -187,18 +260,29 @@ namespace nex {
 			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
-				image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+				image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 			else
 			{
-				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, getComponents(data.colorspace));
+				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 
 			FileSystem::store(compiledResource, image);
 		}
 
+		std::unique_ptr<nex::Texture2D> texture;
 
-		auto texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
+		if (detectColorSpace)
+		{
+			TextureData copy = data;
+			copy.colorspace = isLinear(copy.colorspace) ?  getColorSpace(image.channels) : getGammaSpace(image.channels);
+			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels) : getGammaInternalFormat(image.channels);
+
+			texture = std::make_unique<Texture2D>(image.width, image.height, copy, image.pixels.getPixels());
+		} else
+		{
+			texture = std::make_unique<Texture2D>(image.width, image.height, data, image.pixels.getPixels());
+		}
 
 		return texture;
 	}

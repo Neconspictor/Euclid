@@ -13,7 +13,7 @@ void main()
     //positionEye = vec3(0.0);
     
     // albedo color
-	vec3 albedo = texture(material.albedoMap, fs_in.tex_coords).rgb;
+	vec4 albedo = texture(material.albedoMap, fs_in.tex_coords).rgba;
 	
 	// ambient occlusion, metallic, roughness
 	float ao = texture(material.aoMap, fs_in.tex_coords).r;
@@ -29,7 +29,7 @@ void main()
     vec3 colorOut;
     vec3 luminanceOut;
     calcLighting(ao, 
-                albedo, 
+                albedo.rgb, 
                 metallic, 
                 normalEye, 
                 roughness, 
@@ -38,6 +38,6 @@ void main()
                 colorOut,
                 luminanceOut);
         
-    FragColor = vec4(colorOut, 1.0);
+    FragColor = vec4(colorOut, albedo.a);
     LuminanceColor = vec4(luminanceOut, FragColor.a);
 }
