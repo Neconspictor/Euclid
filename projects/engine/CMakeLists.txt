@@ -127,8 +127,6 @@ set(
     nex/mesh/VertexLayout.cpp
     nex/mesh/VertexLayout.hpp
     nex/mesh/VertexLayout.inl
-    nex/mesh/Vob.hpp
-	nex/mesh/Vob.cpp
     
     #nex/pbr
     nex/pbr/Pbr.cpp

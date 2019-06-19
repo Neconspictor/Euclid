@@ -22,8 +22,8 @@ void Mesh::setVertexBuffer(VertexBuffer buffer)
 
 Mesh::Mesh(): mTopology(Topology::TRIANGLES)
 {
-	mBoundingBox.min = glm::vec3(0.0f);
-	mBoundingBox.max = glm::vec3(0.0f);
+	//mBoundingBox.min = glm::vec3(0.0f);
+	//mBoundingBox.max = glm::vec3(0.0f);
 }
 
 const AABB& Mesh::getAABB() const

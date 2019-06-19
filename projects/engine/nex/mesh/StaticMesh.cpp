@@ -41,7 +41,6 @@ namespace nex
 
 		if (!parent) {
 			parent = scene->createNode();
-			scene->addRoot(parent);
 		}
 
 		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)

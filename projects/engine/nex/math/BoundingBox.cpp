@@ -52,6 +52,11 @@ nex::AABB::RayIntersection nex::AABB::testRayIntersection(const nex::Ray& ray) c
 	return {true, tmin, tmax};
 }
 
+nex::AABB nex::maxAABB(const AABB& a, const AABB& b)
+{
+	return {minVec(a.min, b.min), maxVec(a.max, b.max)};
+}
+
 nex::AABB nex::operator*(const glm::mat4& trafo, const AABB& box)
 {
 	//we have to transform all 8 corners and than define the min/max from it.

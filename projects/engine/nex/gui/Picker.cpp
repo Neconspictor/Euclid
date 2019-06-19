@@ -16,8 +16,8 @@ mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mNodeGeneratorScene(std::make_unique<Scene>()),
-mBoundingBoxNode(nullptr), //mLineNode(nullptr),
-mSelectedNode(nullptr)
+mBoundingBoxVob(nullptr), //mLineNode(nullptr),
+mSelectedVob(nullptr)
 {
 	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
@@ -31,8 +31,8 @@ mSelectedNode(nullptr)
 	lineMaterial->getRenderState().doShadowCast = false;
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
-	mBoundingBoxNode = mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get());
-	mBoundingBoxNode->setSelectable(false);
+	mBoundingBoxVob = mNodeGeneratorScene->createVob(mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get()));
+	mBoundingBoxVob->setSelectable(false);
 	
 	//mLineMesh->add(createLineMesh(), std::move(lineMaterial));
 	//mLineNode = mLineMesh->createNodeHierarchy(mNodeGeneratorScene.get());
@@ -42,66 +42,50 @@ mSelectedNode(nullptr)
 nex::gui::Picker::~Picker() = default;
 
 
-nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
+nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 {
 	std::queue<SceneNode*> queue;
 
 	size_t intersections = 0;
 	//static bool addedLine = false;
 
-	for (const auto& root : scene.getRoots())
+	for (const auto& root : scene.getActiveVobs())
 	{
-		queue.emplace(root);
+		if (!root->getSelectable()) continue;
 
-		while (!queue.empty())
+		const auto& node = root->getMeshRootNode();
+		if (node != nullptr)
 		{
-			auto* node = queue.back();
-			queue.pop();
-
-			//TODO don't skip childrens!
-			if (!node->getSelectable()) continue;
-
-			auto range = node->getChildren();
-
-			for (auto it = range.begin; it != range.end; ++it)
+			const auto invModel = inverse(node->getWorldTrafo());
+			const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
+			const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
+			const auto rayLocal = Ray(origin, direction);
+			const auto& box = root->getBoundingBox();
+			const auto result = box.testRayIntersection(rayLocal);
+			if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 			{
-				queue.emplace(*it);
-			}
-
-			auto* mesh = node->getMesh();
-			if (mesh != nullptr)
-			{
-				const auto invModel = inverse(node->getWorldTrafo());
-				const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
-				const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
-				const auto rayLocal = Ray(origin, direction);
-				const auto& box = mesh->getAABB();
-				const auto result = box.testRayIntersection(rayLocal);
-				if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
+				++intersections;
 				{
-					++intersections;
-					{
-						mSelectedNode = node;
-						updateBoundingBoxTrafo();
-						scene.removeRoot(mBoundingBoxNode);
-						scene.addRoot(mBoundingBoxNode);
-					}
-
-					/*{
-						auto lineOrigin = screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f;
-						auto lineScale = 100.0f * screenRayWorld.getDir();
-						mLineNode->setPosition(lineOrigin);
-						mLineNode->setScale(lineScale);
-						mLineNode->updateWorldTrafoHierarchy(true);
-					}*/
-
-
-					/*if (!addedLine)
-					{
-						scene.addRoot(mLineNode);
-						addedLine = true;
-					}*/
+					mSelectedVob = root;
+					updateBoundingBoxTrafo();
+					scene.removeActiveVob(mBoundingBoxVob);
+					scene.addActiveVob(mBoundingBoxVob);
 				}
+
+				/*{
+					auto lineOrigin = screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f;
+					auto lineScale = 100.0f * screenRayWorld.getDir();
+					mLineNode->setPosition(lineOrigin);
+					mLineNode->setScale(lineScale);
+					mLineNode->updateWorldTrafoHierarchy(true);
+				}*/
+
+
+				/*if (!addedLine)
+				{
+					scene.addRoot(mLineNode);
+					addedLine = true;
+				}*/
 			}
 		}
 	}
@@ -109,34 +93,35 @@ nex::SceneNode* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	//std::cout << "Total intersections = " << intersections << std::endl;
 	if (intersections == 0)
 	{
-		scene.removeRoot(mBoundingBoxNode);
+		scene.removeActiveVob(mBoundingBoxVob);
 		//scene.removeRoot(mLineNode);
 		//addedLine = false;
-		mSelectedNode = nullptr;
+		mSelectedVob = nullptr;
 	}
 
-	return mSelectedNode;
+	return mSelectedVob;
 }
 
-nex::SceneNode* nex::gui::Picker::getPicked()
+nex::Vob* nex::gui::Picker::getPicked()
 {
-	return mSelectedNode;
+	return mSelectedVob;
 }
 
 void nex::gui::Picker::updateBoundingBoxTrafo()
 {
-	if (!mSelectedNode) return;
+	if (!mSelectedVob) return;
 
-	const auto& box = mSelectedNode->getMesh()->getAABB();
+	auto* node = mSelectedVob->getMeshRootNode();
+	const auto& box = mSelectedVob->getBoundingBox();
 
 
-	const auto worldBox = mSelectedNode->getWorldTrafo() * box;
+	const auto worldBox = node->getWorldTrafo() * box;
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
 
-	mBoundingBoxNode->setPosition(boxOrigin);
-	mBoundingBoxNode->setScale(boxScale);
-	mBoundingBoxNode->updateWorldTrafoHierarchy();
+	mBoundingBoxVob->setPosition(boxOrigin);
+	mBoundingBoxVob->setScale(boxScale);
+	mBoundingBoxVob->updateTrafo();
 }
 
 std::unique_ptr<nex::Mesh> nex::gui::Picker::createBoundingBoxMesh()

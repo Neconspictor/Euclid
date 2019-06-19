@@ -380,7 +380,7 @@ namespace nex
 		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
 		 */
-		CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap);
+		//CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap);
 
 		void setBackgroundColor(const glm::vec3& color);
 

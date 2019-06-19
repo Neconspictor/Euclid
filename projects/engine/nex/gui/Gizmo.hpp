@@ -11,7 +11,7 @@ namespace nex
 	struct Torus;
 	class Ray;
 	class Scene;
-	class SceneNode;
+	class Vob;
 	class Mesh;
 	class StaticMeshContainer;
 	class Technique;
@@ -64,7 +64,7 @@ namespace nex::gui
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		void activate(const Ray& screenRayWorld, const Camera& camera, SceneNode* node);
+		void activate(const Ray& screenRayWorld, const Camera& camera, Vob* node);
 
 		Mode getMode()const;
 
@@ -89,14 +89,14 @@ namespace nex::gui
 		/**
 		 * Provides a scene node that can be used to render the gizmo.
 		 */
-		SceneNode* getGizmoNode();
+		Vob* getGizmoNode();
 
-		void transform(const Ray& screenRayWorld, SceneNode& node, const Camera& camera, const MouseOffset& frameData);
+		void transform(const Ray& screenRayWorld, Vob& node, const Camera& camera, const MouseOffset& frameData);
 		void deactivate();
 
 		void setMode(Mode mode);
 
-		void show(Scene* scene, SceneNode* node);
+		void show(Scene* scene, Vob* node);
 		void hide();
 
 	private:
@@ -114,7 +114,7 @@ namespace nex::gui
 
 		float calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis, const Camera& camera) const;
 
-		void initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName);
+		void initSceneNode(Vob*& node, StaticMeshContainer* container, const char* debugName);
 
 		bool isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
 		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
@@ -132,7 +132,7 @@ namespace nex::gui
 
 		void fillActivationState(Active& active, bool isActive, Axis axis, const glm::vec3& position, const Ray& ray, const Camera& camera) const;
 
-		void transformRotate(const Ray& ray, SceneNode& node, const Camera& camera);
+		void transformRotate(const Ray& ray, Vob& node, const Camera& camera);
 
 		StaticMeshContainer* loadRotationGizmo();
 		StaticMeshContainer* loadTranslationGizmo();
@@ -146,18 +146,18 @@ namespace nex::gui
 		std::unique_ptr<Technique> mGizmoTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
-		SceneNode* mRotationGizmoNode;
-		SceneNode* mScaleGizmoNode;
-		SceneNode* mTranslationGizmoNode;
+		Vob* mRotationGizmoNode;
+		Vob* mScaleGizmoNode;
+		Vob* mTranslationGizmoNode;
 
-		SceneNode* mActiveGizmoNode;
+		Vob* mActiveGizmoVob;
 
 		Active mActivationState;
 		float mLastFrameMultiplier;
 		Mode mMode;
 		bool mVisible;
 
-		SceneNode* mModifiedNode = nullptr;
+		Vob* mModifiedNode = nullptr;
 		Scene* mScene = nullptr;
 	};
 }

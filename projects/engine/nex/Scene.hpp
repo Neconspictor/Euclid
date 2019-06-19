@@ -1,6 +1,5 @@
 #pragma once
-#include <set>
-#include <nex/mesh/Vob.hpp>
+#include <unordered_set>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <vector>
 #include <memory>
@@ -38,31 +37,22 @@ namespace nex
 		Material* getMaterial() const;
 		SceneNode* getParent();
 
-		const glm::vec3& getPosition() const;
-		const glm::quat& getRotation() const;
-		const glm::vec3& getScale() const;
-		bool getSelectable() const;
+		
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
 		void removeChild(SceneNode* node);
+		
+		
 		void setMesh(Mesh* mesh);
 		void setMaterial(Material* material);
 		void setParent(SceneNode* parent);
-		void setSelectable(bool selectable);
 
+		
+		void setLocalTrafo(const glm::mat4& mat);
 
 		void updateChildrenWorldTrafos(bool resetPrevWorldTrafo = false);
 		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo = false);
-		void setPosition(const glm::vec3 &position);
-		void setRotation(const glm::mat4& rotation);
-		void setRotation(const glm::quat& rotation);
-		void setOrientation(const glm::vec3& eulerAngles);
-
-		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		
-		void rotateLocal(const glm::vec3& eulerAngles);
-		void rotateGlobal(const glm::vec3& eulerAngles);
-		void setScale(const glm::vec3 scale);
 
 		std::string mDebugName;
 
@@ -75,12 +65,9 @@ namespace nex
 
 		Material* mMaterial;
 		SceneNode* mParent;
+		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;
 		glm::mat4 mPrevWorldTrafo;
-		glm::vec3 mPosition;
-		glm::quat mRotation;
-		glm::vec3 mScale;
-		bool mSelectable;
 	};
 
 	/**
@@ -96,23 +83,24 @@ namespace nex
 		 */
 		Scene();
 
+		void addActiveVob(Vob* vob);
+		void removeActiveVob(Vob* vob);
+
 		/**
 		 * Creates a new node.
 		 */
 		SceneNode* createNode(SceneNode* parent = nullptr);
+		Vob* createVob(SceneNode* meshRootNode, bool setActive = true);
 
 		/**
-		 * Adds a root node.
-		 * Note: The node is expected to have no parent node. An assertion error is thrown in debug mode otherwise.
+		 * Provides all vobs that are currently active.
 		 */
-		void addRoot(SceneNode* node);
-
-		void removeRoot(SceneNode* node);
+		const std::unordered_set<Vob*>& getActiveVobs() const;
 
 		/**
-		 * Provides the list of root nodes.
+		 * Provides all vobs of this scene.
 		 */
-		const std::vector<SceneNode*> getRoots() const;
+		const std::vector<std::unique_ptr<Vob>>& getVobs() const;
 
 		/**
 		 * Deletes all nodes except the root node.
@@ -121,7 +109,67 @@ namespace nex
 		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo);
 
 	private:
-		std::vector<SceneNode*> mRoots;
+		std::unordered_set<Vob*> mActiveVobs;
 		std::vector<std::unique_ptr<SceneNode>> mNodes;
+		std::vector<std::unique_ptr<Vob>> mVobStore;
+	};
+
+
+	class Vob
+	{
+	public:
+		explicit Vob(SceneNode* meshRootNode);
+
+		SceneNode* getMeshRootNode();
+
+		const AABB& getBoundingBox() const;
+		const glm::vec3& getPosition() const;
+		const glm::quat& getRotation() const;
+		const glm::vec3& getScale() const;
+		bool getSelectable() const;
+
+		void rotateGlobal(const glm::vec3& axisWorld, float angle);
+		void rotateGlobal(const glm::vec3& eulerAngles);
+		void rotateLocal(const glm::vec3& eulerAngles);
+
+		/**
+		 * Sets the root mesh node for this vob.
+		 */
+		void setMeshRootNode(SceneNode* node);
+
+		void setOrientation(const glm::vec3& eulerAngles);
+
+		/**
+		 * Sets the position of this vob.
+		 */
+		void setPosition(const glm::vec3& position);
+
+		/**
+		 * Sets the scale of this vob.
+		 */
+		void setScale(const glm::vec3& scale);
+
+		void setSelectable(bool selectable);
+		void setRotation(const glm::mat4& rotation);
+		void setRotation(const glm::quat& rotation);
+
+
+		/**
+		 * Calculates the transformation matrix of this vob
+		 * based on its position, scale and rotation.
+		 */
+		void updateTrafo(bool resetPrevWorldTrafo = false);
+
+	protected:
+
+		void recalculateBoundingBox();
+
+		SceneNode* mMeshRootNode;
+
+		glm::vec3 mPosition;
+		glm::quat mRotation;
+		glm::vec3 mScale;
+		bool mSelectable;
+		AABB mBoundingBox;
 	};
 }

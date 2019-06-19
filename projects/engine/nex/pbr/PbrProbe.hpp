@@ -1,6 +1,5 @@
 #pragma once
 
-#include <nex/mesh/Vob.hpp>
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
 #include "PbrPass.hpp"
@@ -11,6 +10,7 @@ namespace nex
 	class FileSystem;
 	class SceneNode;
 	class DirectionalLight;
+	class StaticMeshContainer;
 
 
 	class PbrProbeFactory

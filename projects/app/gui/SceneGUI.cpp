@@ -129,14 +129,14 @@ namespace nex::gui
 			return;
 		}
 
-		auto* node = mPicker->getPicked();
+		auto* vob = mPicker->getPicked();
 
-		glm::vec3 position = node->getPosition();
+		glm::vec3 position = vob->getPosition();
 		nex::gui::Vector3D(&position, "Position");
-		node->setPosition(position);
+		vob->setPosition(position);
 
 		//glm::degrees(rotationMatrixToEulerAngles(trafo));
-		glm::quat rotation = node->getRotation();
+		glm::quat rotation = vob->getRotation();
 		nex::gui::Quat(&rotation, "Orientation (Quaternion) - Radians");
 		rotation = normalize(rotation);
 		glm::vec3 euler = glm::degrees(glm::eulerAngles(rotation));
@@ -152,24 +152,24 @@ namespace nex::gui
 
 		euler.y = std::clamp(euler.y, -89.0f, 89.0f);
 
-		node->setOrientation(radians(euler));
+		vob->setOrientation(radians(euler));
 
 
 		euler = glm::vec3(0.0f);
 		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Local - Degrees");
-		node->rotateLocal(radians(euler));
+		vob->rotateLocal(radians(euler));
 
 		euler = glm::vec3(0.0f);
 		nex::gui::Vector3D(&euler, "Rotate (Euler X-Y-Z) - Global - Degrees");
-		node->rotateGlobal(radians(euler));
+		vob->rotateGlobal(radians(euler));
 
 
-		glm::vec3 scale = node->getScale();
+		glm::vec3 scale = vob->getScale();
 		nex::gui::Vector3D(&scale, "Scale", 0.1f);
 		scale = maxVec(scale, glm::vec3(0.0f));
-		node->setScale(scale);
+		vob->setScale(scale);
 
-		node->updateWorldTrafoHierarchy();
+		vob->updateTrafo();
 		mPicker->updateBoundingBoxTrafo();
 
 		ImGui::PopID();

@@ -25,8 +25,6 @@
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
-#include <nex/gui/Picker.hpp>
-#include <nex/gui/Gizmo.hpp>
 
 using namespace nex;
 
@@ -217,9 +215,9 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 	std::list<SceneNode*> queue;
 
 
-	for (const auto& root : scene.getRoots())
+	for (const auto& root : scene.getActiveVobs())
 	{
-		queue.push_back(root);
+		queue.push_back(root->getMeshRootNode());
 
 		while (!queue.empty())
 		{
@@ -255,6 +253,8 @@ void NeXEngine::createScene()
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
+	auto* groundVob = mScene.createVob(ground);
+	groundVob->setSelectable(true);
 
 	//ground->setPositionLocal({ 10, 0, 0 });
 

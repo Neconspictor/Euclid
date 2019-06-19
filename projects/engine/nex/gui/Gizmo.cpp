@@ -66,8 +66,8 @@ void nex::gui::Gizmo::syncTransformation()
 {
 	if (mModifiedNode)
 	{
-		mActiveGizmoNode->setPosition(mModifiedNode->getPosition());
-		mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+		mActiveGizmoVob->setPosition(mModifiedNode->getPosition());
+		mActiveGizmoVob->updateTrafo(true);
 	}
 }
 
@@ -75,18 +75,18 @@ void nex::gui::Gizmo::update(const nex::Camera& camera)
 {
 	syncTransformation();
 
-	const auto distance = length(mActiveGizmoNode->getPosition() - camera.getPosition());
+	const auto distance = length(mActiveGizmoVob->getPosition() - camera.getPosition());
 
 	if (distance > 0.0001)
 	{
-		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoNode->getPosition(), 1.0)).w;
-		mActiveGizmoNode->setScale(glm::vec3(w) / 8.0f);
+		const float w = (camera.getProjectionMatrix() * camera.getView() * glm::vec4(mActiveGizmoVob->getPosition(), 1.0)).w;
+		mActiveGizmoVob->setScale(glm::vec3(w) / 8.0f);
 	}
 
-	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	mActiveGizmoVob->updateTrafo(true);
 }
 
-void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, SceneNode* node)
+void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, Vob* node)
 {
 	mModifiedNode = node;
 	isHovering(screenRayWorld, camera, true);
@@ -121,12 +121,12 @@ bool nex::gui::Gizmo::isVisible() const
 	return mVisible;
 }
 
-nex::SceneNode* nex::gui::Gizmo::getGizmoNode()
+nex::Vob* nex::gui::Gizmo::getGizmoNode()
 {
-	return mActiveGizmoNode;
+	return mActiveGizmoVob;
 }
 
-void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, const Camera& camera, const MouseOffset& frameData)
+void nex::gui::Gizmo::transform(const Ray& screenRayWorld, Vob& node, const Camera& camera, const MouseOffset& frameData)
 {
 	if (!mActivationState.isActive) return;
 
@@ -159,13 +159,13 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, SceneNode& node, cons
 		else if (mMode == Mode::TRANSLATE)
 		{
 			node.setPosition(node.getPosition() + frameDiff * axis.getDir());
-			mActiveGizmoNode->setPosition(node.getPosition());
+			mActiveGizmoVob->setPosition(node.getPosition());
 		}
 	}
 
 
-	node.updateWorldTrafoHierarchy(true);
-	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	node.updateTrafo(true);
+	mActiveGizmoVob->updateTrafo(true);
 }
 
 void nex::gui::Gizmo::deactivate()
@@ -178,39 +178,39 @@ void nex::gui::Gizmo::setMode(Mode mode)
 {
 	mMode = mode;
 
-	if (mVisible) mScene->removeRoot(mActiveGizmoNode);
+	if (mVisible) mScene->removeActiveVob(mActiveGizmoVob);
 
 	switch(mode)
 	{
 	case Mode::ROTATE:
-		mActiveGizmoNode = mRotationGizmoNode;
+		mActiveGizmoVob = mRotationGizmoNode;
 		break;
 	case Mode::SCALE:
-		mActiveGizmoNode = mScaleGizmoNode;
+		mActiveGizmoVob = mScaleGizmoNode;
 		break;
 	case Mode::TRANSLATE:
-		mActiveGizmoNode = mTranslationGizmoNode;
+		mActiveGizmoVob = mTranslationGizmoNode;
 		break;
 	}
 
-	if (mVisible) mScene->addRoot(mActiveGizmoNode);
+	if (mVisible) mScene->addActiveVob(mActiveGizmoVob);
 	syncTransformation();
 	deactivate();
 }
 
-void nex::gui::Gizmo::show(Scene* scene, SceneNode* node)
+void nex::gui::Gizmo::show(Scene* scene, Vob* node)
 {
 	mScene = scene;
-	mScene->addRoot(mActiveGizmoNode);
-	mActiveGizmoNode->setPosition(node->getPosition());
-	mActiveGizmoNode->updateWorldTrafoHierarchy(true);
+	mScene->addActiveVob(mActiveGizmoVob);
+	mActiveGizmoVob->setPosition(node->getPosition());
+	mActiveGizmoVob->updateTrafo(true);
 	mModifiedNode = node;
 	mVisible = true;
 }
 
 void nex::gui::Gizmo::hide()
 {
-	mScene->removeRoot(mActiveGizmoNode);
+	mScene->removeActiveVob(mActiveGizmoVob);
 	mVisible = false;
 	mModifiedNode = nullptr;
 	mScene = nullptr;
@@ -218,7 +218,7 @@ void nex::gui::Gizmo::hide()
 
 int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 {
-	const auto& scale = mActiveGizmoNode->getScale();
+	const auto& scale = mActiveGizmoVob->getScale();
 
 	const auto scaleFirst = scale[(unsigned)first.axis];
 	const auto scaleSecond = scale[(unsigned)second.axis];
@@ -238,9 +238,9 @@ int nex::gui::Gizmo::compare(const Data& first, const Data& second) const
 float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis,
 	const Camera& camera) const
 {
-	const auto& origin = mActiveGizmoNode->getPosition();
+	const auto& origin = mActiveGizmoVob->getPosition();
 
-	const auto radius = mActiveGizmoNode->getScale().x;
+	const auto radius = mActiveGizmoVob->getScale().x;
 	const Sphere sphere(origin, radius);
 	const Ray tRay(ray.getOrigin(), origin - ray.getOrigin());
 	const auto sphereInt = sphere.intersects(tRay);
@@ -281,12 +281,15 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	return angle * (test / abs(test));
 }
 
-void nex::gui::Gizmo::initSceneNode(SceneNode*& node, StaticMeshContainer* container, const char* debugName)
+void nex::gui::Gizmo::initSceneNode(Vob*& vob, StaticMeshContainer* container, const char* debugName)
 {
-	node = container->createNodeHierarchy(mNodeGeneratorScene.get());
-	node->setSelectable(false);
-	node->updateWorldTrafoHierarchy(true);
+	auto*  node = container->createNodeHierarchy(mNodeGeneratorScene.get());
 	node->mDebugName = debugName;
+
+	vob = mNodeGeneratorScene->createVob(node);
+	vob->setSelectable(false);
+	vob->updateTrafo(true);
+	
 }
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive)
@@ -297,7 +300,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 	}
 
 
-	const auto& position = mActiveGizmoNode->getPosition();
+	const auto& position = mActiveGizmoVob->getPosition();
 	const Ray xAxis(position, { 1.0f, 0.0f, 0.0f });
 	const Ray yAxis(position, { 0.0f, 1.0f, 0.0f });
 	const Ray zAxis(position, { 0.0f, 0.0f, getZValue(1.0f) });
@@ -316,7 +319,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 		nearest = &zTest;
 	}
 
-	const auto& scale = mActiveGizmoNode->getScale();
+	const auto& scale = mActiveGizmoVob->getScale();
 	const bool selected = (nearest->result.distance <= Active::calcRange(screenRayWorld, position, camera))
 		&& isInRange((float)nearest->result.multiplier, 0.0f, scale[(unsigned)nearest->axis]);
 
@@ -330,7 +333,7 @@ bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera
 bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& camera,
 	bool fillActive)
 {
-	const auto& origin = mActiveGizmoNode->getPosition();
+	const auto& origin = mActiveGizmoVob->getPosition();
 
 	constexpr glm::vec3 xAxis(1,0,0);
 	constexpr glm::vec3 yAxis(0, 1, 0);
@@ -341,7 +344,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 	bool selected = true;
 	Axis axis = Axis::INVALID;
 	Torus::RayIntersection intersection;
-	Torus torus(mActiveGizmoNode->getScale().x, range);
+	Torus torus(mActiveGizmoVob->getScale().x, range);
 
 
 	if (hitsTorus(torus, xAxis, origin, screenRayWorld, intersection))
@@ -366,7 +369,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 
 	const float closestDistanceMultiplier = screenRayWorld.calcClosestDistance(origin).multiplier;
 	const auto closestPoint = screenRayWorld.getPoint(closestDistanceMultiplier);
-	Circle3D circle(origin, {1,0,0}, mActiveGizmoNode->getScale().x);
+	Circle3D circle(origin, {1,0,0}, mActiveGizmoVob->getScale().x);
 
 	glm::vec3 projectedPoint;
 	if (!circle.project(closestPoint, projectedPoint)) //TODO
@@ -392,7 +395,7 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 	{
 		multiplierOut = testResult.multiplier;
 		const auto pointOnPlane = ray.getPoint(testResult.multiplier);
-		const auto radius = mActiveGizmoNode->getScale().x;
+		const auto radius = mActiveGizmoVob->getScale().x;
 		const auto point = circleOrigin + radius * normalize(pointOnPlane - circleOrigin);
 		const auto diff = length(pointOnPlane - point);//length(circleOrigin - pointOnPlane);
 		return diff < (maxRadius - minRadius);
@@ -404,7 +407,7 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 	const auto pointDistance = ray.calcClosestDistance({{circleOrigin}, {0,1,0}});
 	//const auto pointDistance = ray.calcClosestDistance(circleOrigin);
 	multiplierOut = pointDistance.multiplier;
-	const auto radius = mActiveGizmoNode->getScale().x;
+	const auto radius = mActiveGizmoVob->getScale().x;
 	return pointDistance.distance <= (0.1);
 
 }
@@ -464,11 +467,11 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	{
 		active.originalRotation = mModifiedNode->getRotation();
 		active.startRotationAngle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
-		active.range = Active::calcRange(ray, mActiveGizmoNode->getPosition(), camera);
+		active.range = Active::calcRange(ray, mActiveGizmoVob->getPosition(), camera);
 	}
 }
 
-void nex::gui::Gizmo::transformRotate(const Ray& ray, SceneNode& node, const Camera& camera)
+void nex::gui::Gizmo::transformRotate(const Ray& ray, Vob& node, const Camera& camera)
 {
 	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
 

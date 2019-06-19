@@ -8,7 +8,7 @@
 namespace nex
 {
 	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
-		mParent(nullptr), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true)
+		mParent(nullptr)
 	{
 	}
 
@@ -41,31 +41,6 @@ namespace nex
 	SceneNode* SceneNode::getParent()
 	{
 		return mParent;
-	}
-
-	const glm::vec3& SceneNode::getPosition() const
-	{
-		return mPosition;
-	}
-
-	const glm::quat& SceneNode::getRotation() const
-	{
-		return mRotation;
-	}
-
-	const glm::vec3& SceneNode::getScale() const
-	{
-		return mScale;
-	}
-
-	bool SceneNode::getSelectable() const
-	{
-		return mSelectable;
-	}
-
-	void SceneNode::setSelectable(bool selectable)
-	{
-		mSelectable = selectable;
 	}
 
 	const glm::mat4& SceneNode::getWorldTrafo() const
@@ -131,68 +106,24 @@ namespace nex
 		}
 	}
 
-	void SceneNode::setPosition(const glm::vec3& position)
+	void SceneNode::setLocalTrafo(const glm::mat4& mat)
 	{
-		mPosition = position;
-	}
-
-	void SceneNode::setRotation(const glm::mat4& rotation)
-	{
-		mRotation = rotation;
-	}
-
-	void SceneNode::setRotation(const glm::quat& rotation)
-	{
-		mRotation = rotation;
-	}
-
-	void SceneNode::setOrientation(const glm::vec3& eulerAngles)
-	{
-		auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
-		auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
-		auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
-		mRotation = rotZ * rotY * rotX;
-	}
-
-	void SceneNode::rotateGlobal(const glm::vec3& axisWorld, float angle)
-	{
-		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
-	}
-
-	void SceneNode::rotateLocal(const glm::vec3& eulerAngles)
-	{
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, glm::vec3(0, 1, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, glm::vec3(0, 0, 1.0f)));
-	}
-
-	void SceneNode::rotateGlobal(const glm::vec3& eulerAngles)
-	{
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, inverse(mRotation) * glm::vec3(1, 0, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, inverse(mRotation) * glm::vec3(0, 1, 0)));
-		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, inverse(mRotation) * glm::vec3(0, 0, 1.0f)));
-	}
-
-	void SceneNode::setScale(const glm::vec3 scale)
-	{
-		mScale = scale;
+		mLocalTrafo = mat;
 	}
 
 	void SceneNode::updateWorldTrafo(bool resetPrevWorldTrafo)
 	{
-
-		mPrevWorldTrafo = mWorldTrafo;
-		mWorldTrafo = glm::mat4(1.0f);
-
-		auto scale = glm::scale(glm::mat4(), mScale);
-
-		auto trans = glm::translate(glm::mat4(), mPosition);
-
-		mWorldTrafo = trans * glm::toMat4(mRotation) * scale;
+		if (!resetPrevWorldTrafo)
+		{
+			mPrevWorldTrafo = mWorldTrafo;
+		}
 
 		if (mParent)
 		{
-			mWorldTrafo = mParent->mWorldTrafo * mWorldTrafo;
+			mWorldTrafo = mParent->mWorldTrafo * mLocalTrafo;
+		} else
+		{
+			mWorldTrafo = mLocalTrafo;
 		}
 
 		if (resetPrevWorldTrafo)
@@ -203,17 +134,15 @@ namespace nex
 	{
 	}
 
-	void Scene::addRoot(SceneNode* node)
+	void Scene::addActiveVob(Vob* vob)
 	{
-		assert(node->getParent() == nullptr);
-		mRoots.emplace_back(node);
+		mActiveVobs.insert(vob);
 	}
 
-	void Scene::removeRoot(SceneNode* node)
+	void Scene::removeActiveVob(Vob* vob)
 	{
-		mRoots.erase(std::remove(mRoots.begin(), mRoots.end(), node), mRoots.end());
+		mActiveVobs.erase(vob);
 	}
-
 
 	SceneNode* Scene::createNode(SceneNode* parent)
 	{
@@ -225,20 +154,171 @@ namespace nex
 		return node;
 	}
 
+	Vob* Scene::createVob(SceneNode* meshRootNode, bool setActive)
+	{
+		mVobStore.emplace_back(std::make_unique<Vob>(meshRootNode));
+		auto*  vob = mVobStore.back().get();
+		if (setActive)
+		{
+			addActiveVob(vob);
+		}
+		return vob;
+	}
+
+	const std::vector<std::unique_ptr<Vob>>& Scene::getVobs() const
+	{
+		return mVobStore;
+	}
+
 	void Scene::clear()
 	{
-		mRoots.clear();
 		mNodes.clear();
+		mActiveVobs.clear();
+		mVobStore.clear();
+	}
+
+	const std::unordered_set<Vob*>& Scene::getActiveVobs() const
+	{
+		return mActiveVobs;
 	}
 
 	void Scene::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
 	{
-		for (auto& root : mRoots)
-			root->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
+		for (auto& vob : mActiveVobs)
+			vob->updateTrafo(resetPrevWorldTrafo);
 	}
 
-	const std::vector<SceneNode*> Scene::getRoots() const
+
+	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true)
 	{
-		return mRoots;
+
+	}
+
+	SceneNode* Vob::getMeshRootNode()
+	{
+		return mMeshRootNode;
+	}
+
+	const AABB& Vob::getBoundingBox() const
+	{
+		return mBoundingBox;
+	}
+
+	const glm::vec3& Vob::getPosition() const
+	{
+		return mPosition;
+	}
+
+	const glm::quat& Vob::getRotation() const
+	{
+		return mRotation;
+	}
+
+	const glm::vec3& Vob::getScale() const
+	{
+		return mScale;
+	}
+
+	bool Vob::getSelectable() const
+	{
+		return mSelectable;
+	}
+
+	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
+	}
+
+	void Vob::rotateGlobal(const glm::vec3& eulerAngles)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, inverse(mRotation) * glm::vec3(1, 0, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, inverse(mRotation) * glm::vec3(0, 1, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, inverse(mRotation) * glm::vec3(0, 0, 1.0f)));
+	}
+
+	void Vob::rotateLocal(const glm::vec3& eulerAngles)
+	{
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, glm::vec3(0, 1, 0)));
+		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+	}
+
+	void Vob::setMeshRootNode(SceneNode* node)
+	{
+		mMeshRootNode = node;
+	}
+
+	void Vob::setOrientation(const glm::vec3& eulerAngles)
+	{
+		const auto rotX = glm::normalize(glm::rotate(glm::quat(), eulerAngles.x, glm::vec3(1, 0, 0)));
+		const auto rotY = glm::normalize(glm::rotate(glm::quat(), eulerAngles.y, glm::vec3(0, 1, 0)));
+		const auto rotZ = glm::normalize(glm::rotate(glm::quat(), eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+		mRotation = rotZ * rotY * rotX;
+	}
+
+	void Vob::setRotation(const glm::mat4& rotation)
+	{
+		mRotation = rotation;
+	}
+
+	void Vob::setRotation(const glm::quat& rotation)
+	{
+		mRotation = rotation;
+	}
+
+	void Vob::setPosition(const glm::vec3& position)
+	{
+		mPosition = position;
+	}
+
+	void Vob::setScale(const glm::vec3& scale)
+	{
+		mScale = scale;
+	}
+
+	void Vob::setSelectable(bool selectable)
+	{
+		mSelectable = selectable;
+	}
+
+	void Vob::updateTrafo(bool resetPrevWorldTrafo)
+	{
+		if (!mMeshRootNode) return;
+
+		const auto temp = glm::mat4();
+		const auto rotation = toMat4(mRotation);
+		const auto scaleMat = scale(temp, mScale);
+		const auto transMat = translate(temp, mPosition);
+		mMeshRootNode->setLocalTrafo(transMat * rotation * scaleMat);
+		mMeshRootNode->updateWorldTrafoHierarchy(resetPrevWorldTrafo);
+		recalculateBoundingBox();
+	}
+
+	void Vob::recalculateBoundingBox()
+	{
+		mBoundingBox = { glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
+
+		if (!mMeshRootNode)
+		{
+			return;
+		}
+
+		std::queue<SceneNode*> nodes;
+		nodes.push(mMeshRootNode);
+
+		while (!nodes.empty())
+		{
+			auto* node = nodes.front();
+			nodes.pop();
+
+			const auto children = node->getChildren();
+			for (auto it = children.begin; it != children.end; ++it)
+				nodes.push(*it);
+
+
+			const auto* mesh = node->getMesh();
+			if (!mesh) continue;
+			mBoundingBox = maxAABB(mBoundingBox, mesh->getAABB());
+		}
 	}
 }

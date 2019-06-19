@@ -1,7 +1,6 @@
 ﻿#include "nex/renderer/RenderBackend.hpp"
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/texture/TextureManager.hpp>
-#include <nex/mesh/Vob.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/opengl/texture/TextureGL.hpp>
@@ -704,6 +703,7 @@ namespace nex
 		
 	}
 
+	/*
 	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
 	{
 		auto* shader = mPimpl->mEffectLibrary->getEquirectangularSkyBoxShader();
@@ -765,7 +765,7 @@ namespace nex
 
 		//register and return the cubemap
 		return target.release();
-	}
+	}*/
 
 	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureData& data,
 		unsigned samples)

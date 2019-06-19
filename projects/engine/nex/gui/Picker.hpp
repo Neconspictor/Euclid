@@ -6,7 +6,7 @@ namespace nex
 {
 	class Ray;
 	class Scene;
-	class SceneNode;
+	class Vob;
 	class Mesh;
 	class StaticMeshContainer;
 	class SimpleColorPass;
@@ -26,9 +26,9 @@ namespace nex::gui
 		 * Traverses a scene and picks a scene node by a screen ray.
 		 * If the ray intersects no node nullptr will be returned.
 		 */
-		SceneNode* pick(Scene& scene, const Ray& screenRayWorld);
+		Vob* pick(Scene& scene, const Ray& screenRayWorld);
 
-		SceneNode* getPicked();
+		Vob* getPicked();
 
 		/**
 		 * Updates the world transformation matrix of the bounding box if a scene node is currently selected.
@@ -48,8 +48,8 @@ namespace nex::gui
 		std::unique_ptr<Technique> mSimpleColorTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
-		SceneNode* mBoundingBoxNode;
+		Vob* mBoundingBoxVob;
 		//SceneNode* mLineNode;
-		SceneNode* mSelectedNode;
+		Vob* mSelectedVob;
 	};
 }

@@ -36,5 +36,7 @@ namespace nex
 		RayIntersection testRayIntersection(const nex::Ray& ray) const;
 	};
 
+	AABB maxAABB(const AABB& a, const AABB& b);
+
 	AABB operator*(const glm::mat4& trafo, const AABB& box);
 }
