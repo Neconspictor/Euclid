@@ -71,8 +71,10 @@ void nex::gui::Gizmo::syncTransformation()
 	}
 }
 
-void nex::gui::Gizmo::update(const nex::Camera& camera)
+void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 {
+	mModifiedNode = vob;
+
 	syncTransformation();
 
 	const auto distance = length(mActiveGizmoVob->getPosition() - camera.getPosition());
@@ -83,12 +85,14 @@ void nex::gui::Gizmo::update(const nex::Camera& camera)
 		mActiveGizmoVob->setScale(glm::vec3(w) / 8.0f);
 	}
 
+	
+
 	mActiveGizmoVob->updateTrafo(true);
+
 }
 
-void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera, Vob* node)
+void nex::gui::Gizmo::activate(const Ray& screenRayWorld, const Camera& camera)
 {
-	mModifiedNode = node;
 	isHovering(screenRayWorld, camera, true);
 
 	highlightAxis(mActivationState.axis);
@@ -126,13 +130,13 @@ nex::Vob* nex::gui::Gizmo::getGizmoNode()
 	return mActiveGizmoVob;
 }
 
-void nex::gui::Gizmo::transform(const Ray& screenRayWorld, Vob& node, const Camera& camera, const MouseOffset& frameData)
+void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera, const MouseOffset& frameData)
 {
 	if (!mActivationState.isActive) return;
 
 	if (mMode == Mode::ROTATE)
 	{
-		transformRotate(screenRayWorld, node, camera);
+		transformRotate(screenRayWorld, camera);
 	} else
 	{
 		const auto& position = mActivationState.originalPosition;
@@ -152,19 +156,19 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, Vob& node, const Came
 
 		if (mMode == Mode::SCALE)
 		{
-			auto scale = maxVec(node.getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
-			node.setScale(scale);
+			auto scale = maxVec(mModifiedNode->getScale() + frameDiff * axis.getDir(), glm::vec3(0.0f));
+			mModifiedNode->setScale(scale);
 
 		}
 		else if (mMode == Mode::TRANSLATE)
 		{
-			node.setPosition(node.getPosition() + frameDiff * axis.getDir());
-			mActiveGizmoVob->setPosition(node.getPosition());
+			mModifiedNode->setPosition(mModifiedNode->getPosition() + frameDiff * axis.getDir());
+			mActiveGizmoVob->setPosition(mModifiedNode->getPosition());
 		}
 	}
 
 
-	node.updateTrafo(true);
+	mModifiedNode->updateTrafo(true);
 	mActiveGizmoVob->updateTrafo(true);
 }
 
@@ -198,13 +202,13 @@ void nex::gui::Gizmo::setMode(Mode mode)
 	deactivate();
 }
 
-void nex::gui::Gizmo::show(Scene* scene, Vob* node)
+void nex::gui::Gizmo::show(Scene* scene)
 {
 	mScene = scene;
 	mScene->addActiveVob(mActiveGizmoVob);
-	mActiveGizmoVob->setPosition(node->getPosition());
-	mActiveGizmoVob->updateTrafo(true);
-	mModifiedNode = node;
+	//mActiveGizmoVob->setPosition(node->getPosition());
+	//mActiveGizmoVob->updateTrafo(true);
+	//mModifiedNode = node;
 	mVisible = true;
 }
 
@@ -472,14 +476,14 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	}
 }
 
-void nex::gui::Gizmo::transformRotate(const Ray& ray, Vob& node, const Camera& camera)
+void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 {
 	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
 
 	if (isValid(angle))
 	{
 		const auto rotationAdd = glm::rotate(glm::quat(1, 0, 0, 0), angle - mActivationState.startRotationAngle, mActivationState.axisVec);
-		node.setRotation(rotationAdd * mActivationState.originalRotation);
+		mModifiedNode->setRotation(rotationAdd * mActivationState.originalRotation);
 	}
 }
 

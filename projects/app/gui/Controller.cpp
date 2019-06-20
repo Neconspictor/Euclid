@@ -119,7 +119,7 @@ void nex::gui::EditMode::updateAlways()
 {
 	if (mGizmo->isVisible())
 	{
-		mGizmo->update(*mCamera);
+		mGizmo->update(*mCamera, mPicker->getPicked());
 	}
 }
 
@@ -138,15 +138,14 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 	{
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 		const auto ray = mCamera->calcScreenRay(position);
-		mGizmo->transform(ray, *mPicker->getPicked(), *mCamera, mouseData);
+		mGizmo->transform(ray, *mCamera, mouseData);
 		mPicker->updateBoundingBoxTrafo();
 	}
 	else if (mInput->isReleased(activateButton))
 	{
 		mGizmo->deactivate();
 	}
-
-	if (mInput->isPressed(deactivateButton))
+	else if (mInput->isPressed(deactivateButton))
 	{
 		mPicker->deselect(*mScene);
 		mGizmo->hide();
@@ -199,7 +198,7 @@ void nex::gui::EditMode::activate(const Ray& ray)
 
 		if (isHovering)
 		{
-			mGizmo->activate(ray, *mCamera, mPicker->getPicked());
+			mGizmo->activate(ray, *mCamera);
 		}
 
 	}
@@ -209,7 +208,7 @@ void nex::gui::EditMode::activate(const Ray& ray)
 
 		if (picked)
 		{
-			mGizmo->show(&scene, mPicker->getPicked());
+			mGizmo->show(&scene);
 		}
 	}
 }

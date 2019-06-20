@@ -59,12 +59,12 @@ namespace nex::gui
 		virtual ~Gizmo();
 
 		void syncTransformation();
-		void update(const nex::Camera& camera);
+		void update(const nex::Camera& camera, Vob* vob);
 
 		/**
 		 * Conditionally activates the gizmo if the screen ray traverses near one of the gizmo's axis.
 		 */
-		void activate(const Ray& screenRayWorld, const Camera& camera, Vob* node);
+		void activate(const Ray& screenRayWorld, const Camera& camera);
 
 		Mode getMode()const;
 
@@ -91,12 +91,12 @@ namespace nex::gui
 		 */
 		Vob* getGizmoNode();
 
-		void transform(const Ray& screenRayWorld, Vob& node, const Camera& camera, const MouseOffset& frameData);
+		void transform(const Ray& screenRayWorld, const Camera& camera, const MouseOffset& frameData);
 		void deactivate();
 
 		void setMode(Mode mode);
 
-		void show(Scene* scene, Vob* node);
+		void show(Scene* scene);
 		void hide();
 
 	private:
@@ -132,7 +132,7 @@ namespace nex::gui
 
 		void fillActivationState(Active& active, bool isActive, Axis axis, const glm::vec3& position, const Ray& ray, const Camera& camera) const;
 
-		void transformRotate(const Ray& ray, Vob& node, const Camera& camera);
+		void transformRotate(const Ray& ray, const Camera& camera);
 
 		StaticMeshContainer* loadRotationGizmo();
 		StaticMeshContainer* loadTranslationGizmo();
