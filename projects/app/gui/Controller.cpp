@@ -6,6 +6,7 @@
 #include <nex/gui/Gizmo.hpp>
 #include <nex/gui/Picker.hpp>
 #include <functional>
+#include <imgui/imgui_internal.h>
 
 
 nex::gui::BaseController::BaseController(nex::Window* window, Input* input, PBR_Deferred_Renderer* mainTask) :
@@ -64,7 +65,7 @@ void nex::gui::BaseController::handleExitEvent()
 }
 
 
-nex::gui::EditMode::GizmoGUI::GizmoGUI(Gizmo* gizmo) : mGizmo(gizmo)
+nex::gui::EditMode::GizmoGUI::GizmoGUI(Gizmo* gizmo, Input* input) : mGizmo(gizmo), mInput(input)
 {
 }
 
@@ -72,7 +73,11 @@ void nex::gui::EditMode::GizmoGUI::drawSelf()
 {
 	if (!mGizmo->isVisible()) return;
 
-	if (ImGui::BeginPopupContextVoid("Gizmo-Selection-Mode", 1))
+
+	ImGuiID id = GImGui->CurrentWindow->GetID("Gizmo-Selection-Mode");
+	if (mInput->isPressed(Input::KEY_TAB) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+		ImGui::OpenPopupEx(id);
+	if (ImGui::BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
 	{
 		if (ImGui::Button("Rotate"))
 		{
@@ -104,7 +109,7 @@ nex::gui::EditMode::EditMode(nex::Window* window, nex::Input* input, Perspective
 	mSceneGUI(sceneGUI),
 	mPicker(std::make_unique<Picker>()),
 	mGizmo(std::make_unique<Gizmo>()),
-	mGizmoGUI(mGizmo.get())
+	mGizmoGUI(mGizmo.get(), mInput)
 {
 }
 
@@ -121,23 +126,30 @@ void nex::gui::EditMode::updateAlways()
 void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 {
 	const auto& mouseData = mInput->getFrameMouseOffset();
-	const auto button = Input::Button::LeftMouseButton;
-	if (mInput->isPressed(button))
+	const auto activateButton = Input::Button::LeftMouseButton;
+	const auto deactivateButton = Input::Button::RightMouseButton;
+	if (mInput->isPressed(activateButton))
 	{
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 		const auto ray = mCamera->calcScreenRay(position);
 		activate(ray);
 	}
-	else if (mInput->isDown(button))
+	else if (mInput->isDown(activateButton))
 	{
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
 		const auto ray = mCamera->calcScreenRay(position);
 		mGizmo->transform(ray, *mPicker->getPicked(), *mCamera, mouseData);
 		mPicker->updateBoundingBoxTrafo();
 	}
-	else if (mInput->isReleased(button))
+	else if (mInput->isReleased(activateButton))
 	{
 		mGizmo->deactivate();
+	}
+
+	if (mInput->isPressed(deactivateButton))
+	{
+		mPicker->deselect(*mScene);
+		mGizmo->hide();
 	}
 }
 

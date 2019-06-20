@@ -45,12 +45,13 @@ namespace nex::gui
 		class GizmoGUI : public Drawable
 		{
 		public:
-			GizmoGUI(Gizmo* gizmo);
+			GizmoGUI(Gizmo* gizmo, Input* input);
 
 		protected:
 			void drawSelf() override;
 
 			Gizmo* mGizmo;
+			Input* mInput;
 		};
 
 		EditMode(nex::Window* window,

@@ -41,6 +41,12 @@ mSelectedVob(nullptr)
 
 nex::gui::Picker::~Picker() = default;
 
+void nex::gui::Picker::deselect(Scene& scene)
+{
+	scene.removeActiveVob(mBoundingBoxVob);
+	mSelectedVob = nullptr;
+}
+
 
 nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 {
@@ -93,10 +99,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	//std::cout << "Total intersections = " << intersections << std::endl;
 	if (intersections == 0)
 	{
-		scene.removeActiveVob(mBoundingBoxVob);
-		//scene.removeRoot(mLineNode);
-		//addedLine = false;
-		mSelectedVob = nullptr;
+		deselect(scene);
 	}
 
 	return mSelectedVob;

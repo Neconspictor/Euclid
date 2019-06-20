@@ -210,7 +210,8 @@ void nex::gui::Gizmo::show(Scene* scene, Vob* node)
 
 void nex::gui::Gizmo::hide()
 {
-	mScene->removeActiveVob(mActiveGizmoVob);
+	if (mScene != nullptr)
+		mScene->removeActiveVob(mActiveGizmoVob);
 	mVisible = false;
 	mModifiedNode = nullptr;
 	mScene = nullptr;

@@ -22,6 +22,8 @@ namespace nex::gui
 		Picker();
 		virtual ~Picker();
 
+		void deselect(Scene& scene);
+
 		/**
 		 * Traverses a scene and picks a scene node by a screen ray.
 		 * If the ray intersects no node nullptr will be returned.
