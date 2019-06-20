@@ -53,6 +53,8 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	std::queue<SceneNode*> queue;
 
 	size_t intersections = 0;
+	Vob* selected = nullptr;
+	float selectedVobDistance = 0.0f;
 	//static bool addedLine = false;
 
 	for (const auto& root : scene.getActiveVobs())
@@ -71,27 +73,20 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 			if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 			{
 				++intersections;
-				{
-					mSelectedVob = root;
-					updateBoundingBoxTrafo();
-					scene.removeActiveVob(mBoundingBoxVob);
-					scene.addActiveVob(mBoundingBoxVob);
+				const auto distance = length(root->getPosition() - screenRayWorld.getOrigin());
+				
+				if (selected == nullptr) {
+					selected = root;
+					selectedVobDistance = distance;
 				}
-
-				/*{
-					auto lineOrigin = screenRayWorld.getOrigin() + screenRayWorld.getDir() * 0.1f;
-					auto lineScale = 100.0f * screenRayWorld.getDir();
-					mLineNode->setPosition(lineOrigin);
-					mLineNode->setScale(lineScale);
-					mLineNode->updateWorldTrafoHierarchy(true);
-				}*/
-
-
-				/*if (!addedLine)
+				else
 				{
-					scene.addRoot(mLineNode);
-					addedLine = true;
-				}*/
+					 if (distance < selectedVobDistance)
+					 {
+						 selected = root;
+						 selectedVobDistance = distance;
+					 }
+				}
 			}
 		}
 	}
@@ -100,6 +95,12 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	if (intersections == 0)
 	{
 		deselect(scene);
+	} else
+	{
+		mSelectedVob = selected;
+		updateBoundingBoxTrafo();
+		scene.removeActiveVob(mBoundingBoxVob);
+		scene.addActiveVob(mBoundingBoxVob);
 	}
 
 	return mSelectedVob;

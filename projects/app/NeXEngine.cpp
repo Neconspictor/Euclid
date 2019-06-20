@@ -255,12 +255,16 @@ void NeXEngine::createScene()
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	auto* groundVob = mScene.createVob(ground);
 	groundVob->setSelectable(true);
+	groundVob->mDebugName = "ground";
 
 	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
 	auto* transparent = meshContainer->createNodeHierarchy(&mScene);
 	auto* transparentVob = mScene.createVob(transparent);
+	groundVob->mDebugName = "transparent - 1";
 	auto* transparentVob2 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
+	groundVob->mDebugName = "transparent - 2";
 	auto* transparentVob3 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
+	groundVob->mDebugName = "transparent - 3";
 
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;

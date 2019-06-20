@@ -160,6 +160,8 @@ namespace nex
 		 */
 		void updateTrafo(bool resetPrevWorldTrafo = false);
 
+		std::string mDebugName;
+
 	protected:
 
 		void recalculateBoundingBox();
