@@ -59,6 +59,7 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	size_t intersections = 0;
 	Vob* selected = nullptr;
 	float selectedVobDistance = 0.0f;
+	float selectedVobRayMinDistance = 0.0f;
 	//static bool addedLine = false;
 
 	for (const auto& root : scene.getActiveVobs())
@@ -78,17 +79,20 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 			{
 				++intersections;
 				const auto distance = length(root->getPosition() - screenRayWorld.getOrigin());
+				const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
 				
 				if (selected == nullptr) {
 					selected = root;
 					selectedVobDistance = distance;
+					selectedVobRayMinDistance = rayMinDistance;
 				}
 				else
 				{
-					 if (distance < selectedVobDistance)
+					 if (distance < selectedVobDistance || rayMinDistance < selectedVobRayMinDistance)
 					 {
 						 selected = root;
 						 selectedVobDistance = distance;
+						 selectedVobRayMinDistance = rayMinDistance;
 					 }
 				}
 			}
