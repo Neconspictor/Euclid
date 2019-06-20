@@ -53,6 +53,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	if (getComponents(albedoMap->getTextureData().colorspace) == 4)
 	{
 		material->getRenderState().doBlend = true;
+		material->getRenderState().blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
 	}
 
 

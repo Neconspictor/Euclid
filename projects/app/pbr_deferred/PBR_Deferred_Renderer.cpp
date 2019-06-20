@@ -188,6 +188,15 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
 
+	// After sky we render transparent objects
+	mRenderTargetSingleSampled->bind();
+	mPbrTechnique->useForward();
+	auto* forward = mPbrTechnique->getForward();
+	forward->setDirLight(sun);
+	forward->configurePass(camera);
+	StaticMeshDrawer::draw(mCommandQueue.getTransparentCommands());
+
+
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 

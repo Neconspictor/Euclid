@@ -28,6 +28,7 @@ namespace nex
 		 * Render commands that must be rendered in a forward way.
 		 */
 		const std::vector<RenderCommand>& getForwardCommands() const;
+		const std::vector<RenderCommand>& getTransparentCommands() const;
 		const std::vector<RenderCommand>& getShadowCommands() const;
 		const std::unordered_set<nex::Technique*>& getTechniques() const;
 
@@ -53,6 +54,7 @@ namespace nex
 		std::vector<RenderCommand> mPbrCommands;
 		std::vector<RenderCommand> mForwardCommands;
 		std::vector<RenderCommand> mShadowCommands;
+		std::vector<RenderCommand> mTransparentCommands;
 		std::unordered_set<nex::Technique*> mTechniques;
 		Camera* mCamera;
 	};
