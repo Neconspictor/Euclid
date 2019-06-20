@@ -196,8 +196,15 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	forward->configurePass(camera);
 	StaticMeshDrawer::draw(mCommandQueue.getTransparentCommands());
 
+	// At last we render tools
+	StaticMeshDrawer::draw(mCommandQueue.getToolCommands());
+
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
+	//auto backup = *mPingPong->getDepthAttachment();
+	//mPingPong->useDepthAttachment(*mRenderTargetSingleSampled->getDepthAttachment());
+	//mPingPong->useDepthAttachment(std::move(backup));
+
 	postProcessor->antialias(postProcessed, screenRenderTarget);
 
 

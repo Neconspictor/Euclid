@@ -513,6 +513,7 @@ public:
 		state.fillMode = nex::FillMode::FILL;
 		state.doDepthTest = false;
 		state.doDepthWrite = false;
+		state.isTool = true;
 
 		auto* pass = mTechnique->getActiveSubMeshPass();
 		material->set(pass->getShader()->getUniformLocation("axisColor"), glm::vec3(store.diffuseColor));

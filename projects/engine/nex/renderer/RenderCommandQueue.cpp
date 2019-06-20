@@ -15,6 +15,7 @@ void nex::RenderCommandQueue::clear()
 	mForwardCommands.clear();
 	mShadowCommands.clear();
 	mTechniques.clear();
+	mToolCommands.clear();
 	mTransparentCommands.clear();
 }
 
@@ -26,6 +27,11 @@ const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getDeferrablePbr
 const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getForwardCommands() const
 {
 	return mForwardCommands;
+}
+
+const std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getToolCommands() const
+{
+	return mToolCommands;
 }
 
 const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getTransparentCommands() const
@@ -57,6 +63,9 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool cull)
 	} else if (state.doBlend)
 	{
 		mTransparentCommands.emplace_back(command);
+	} else if (state.isTool)
+	{
+		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state.toolDrawIndex, std::move(command)));
 	} else
 	{
 		mForwardCommands.emplace_back(command);

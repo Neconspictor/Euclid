@@ -23,12 +23,16 @@ mSelectedVob(nullptr)
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
 	boxMaterial->getRenderState().doCullFaces = false;
 	boxMaterial->getRenderState().doShadowCast = false;
+	boxMaterial->getRenderState().isTool = true;
+	boxMaterial->getRenderState().toolDrawIndex = 0;
 
 
 	auto lineMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
 	lineMaterial->getRenderState().fillMode = FillMode::LINE;
 	lineMaterial->getRenderState().doCullFaces = false;
 	lineMaterial->getRenderState().doShadowCast = false;
+	lineMaterial->getRenderState().isTool = true;
+	lineMaterial->getRenderState().toolDrawIndex = 0;
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
 	mBoundingBoxVob = mNodeGeneratorScene->createVob(mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get()));

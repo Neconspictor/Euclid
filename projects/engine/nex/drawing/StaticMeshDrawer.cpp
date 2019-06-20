@@ -19,6 +19,24 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 	}
 }
 
+void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& commands, TransformPass* pass,
+	const RenderState* overwriteState)
+{
+	for (const auto& it : commands)
+	{
+		const auto& command = it.second;
+
+		auto* currentPass = pass;
+		if (!currentPass)
+			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
+
+		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+		currentPass->uploadTransformMatrices();
+		auto rs = command.material->getRenderState();
+		StaticMeshDrawer::draw(command.mesh, command.material, currentPass, &rs);
+	}
+}
+
 void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex::SimpleTransformPass* pass,
 	const RenderState* overwriteState)
 {

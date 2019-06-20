@@ -97,6 +97,8 @@ namespace nex
 		bool doShadowCast = true;
 		bool doShadowReceive = true;
 		FillMode fillMode = FillMode::FILL;
+		bool isTool = false;
+		unsigned short toolDrawIndex = 0xffff;
 
 		static RenderState createNoDepthTest()
 		{
