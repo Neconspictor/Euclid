@@ -17,10 +17,12 @@ namespace nex
 	{
 	public:
 
-		PbrProbeFactory(std::filesystem::path probeCompiledDirectory);
+		static PbrProbeFactory* get(const std::filesystem::path& probeCompiledDirectory);
+
 		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
 	private:
+		PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory);
 		std::unique_ptr<FileSystem> mFileSystem;
 	};
 
@@ -32,6 +34,8 @@ namespace nex
 		//void drawSky(const glm::mat4& projection,
 		//	const glm::mat4& view);
 
+		static void initBrdfLut(const std::filesystem::path& probeRoot);
+
 
 		CubeMap* getConvolutedEnvironmentMap() const;
 
@@ -39,13 +43,14 @@ namespace nex
 
 		CubeMap* getPrefilteredEnvironmentMap() const;
 
-		Texture2D* getBrdfLookupTexture() const;
-
-		StoreImage readBrdfLookupPixelData() const;
+		static Texture2D* getBrdfLookupTexture();
 		StoreImage readBackgroundPixelData() const;
 
 
 	protected:
+
+		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
+		static StoreImage readBrdfLookupPixelData();
 
 		StoreImage readConvolutedEnvMapPixelData();
 		StoreImage readPrefilteredEnvMapPixelData();
@@ -54,18 +59,16 @@ namespace nex
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);
 		std::shared_ptr<CubeMap> prefilter(CubeMap* source);
-		std::shared_ptr<Texture2D> createBRDFlookupTexture();
 
 		std::shared_ptr<CubeMap> convolutedEnvironmentMap;
 		std::shared_ptr<CubeMap> prefilteredEnvMap;
 		std::shared_ptr<CubeMap> environmentMap;
-		std::shared_ptr<Texture2D> brdfLookupTexture;
 
 		std::unique_ptr<PbrConvolutionPass> mConvolutionPass;
 		std::unique_ptr<PbrPrefilterPass> mPrefilterPass;
-		std::unique_ptr<PbrBrdfPrecomputePass> mBrdfPrecomputePass;
 
-		Sprite mBrdfSprite;
+		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
+
 		StaticMeshContainer* mSkyBox;
 	};
 }

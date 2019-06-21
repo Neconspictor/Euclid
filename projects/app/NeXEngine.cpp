@@ -1,5 +1,5 @@
 #include <NeXEngine.hpp>
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <techniques/PBR_Deferred_Renderer.hpp>
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
 #include <glm/glm.hpp>
 #include <nex/camera/FPCamera.hpp>
@@ -25,6 +25,7 @@
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
+#include "techniques/GlobalIllumination.hpp"
 
 using namespace nex;
 
@@ -36,8 +37,7 @@ NeXEngine::NeXEngine(SubSystemProvider* provider) :
 	mInput(nullptr),
 	mIsRunning(false),
 	mConfigFileName("config.ini"),
-	mSystemLogLevel(nex::Debug),
-	panoramaSky(nullptr)
+	mSystemLogLevel(nex::Debug)
 {
 	mConfig.addOption("Logging", "logLevel", &mSystemLogLevelStr, std::string(""));
 	mConfig.addOption("General", "rootDirectory", &mSystemLogLevelStr, std::string("./"));
@@ -391,27 +391,8 @@ void NeXEngine::initPbr()
 
 void NeXEngine::initProbes()
 {
-	TextureManager* textureManager = TextureManager::get();
-
-	panoramaSky = textureManager->getImage("hdr/HDR_040_Field.hdr",
-		{
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
-			false }
-	);
-
-	PbrProbeFactory factory(mGlobals.getCompiledPbrDirectory());
-
-	mPbrProbe = factory.create(panoramaSky, 0);
-
-
-	mPbrTechnique->setProbe(mPbrProbe.get());
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
+	mPbrTechnique->setProbe(mGlobalIllumination->getProbe());
 }
 
 void NeXEngine::initRenderBackend()

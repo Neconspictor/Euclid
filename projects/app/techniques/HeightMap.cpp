@@ -1,4 +1,4 @@
-#include <pbr_deferred/HeightMap.hpp>
+#include <techniques/HeightMap.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include "nex/texture/Texture.hpp"

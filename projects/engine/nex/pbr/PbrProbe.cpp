@@ -18,10 +18,19 @@
 using namespace glm;
 using namespace nex;
 
-PbrProbeFactory::PbrProbeFactory(std::filesystem::path probeCompiledDirectory)
+std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
+
+PbrProbeFactory::PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory)
 {
 	std::vector<std::filesystem::path> includes = {std::move(probeCompiledDirectory)};
 	mFileSystem = std::make_unique<FileSystem>(std::move(includes));
+	PbrProbe::initBrdfLut(mFileSystem->getFirstIncludeDirectory());
+}
+
+PbrProbeFactory* PbrProbeFactory::get(const std::filesystem::path& probeCompiledDirectory)
+{
+	static PbrProbeFactory factory(probeCompiledDirectory);
+	return &factory;
 }
 
 std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
@@ -32,14 +41,64 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 PbrProbe::PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot) :
 	environmentMap(nullptr),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
-	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
-	mBrdfPrecomputePass(std::make_unique<PbrBrdfPrecomputePass>())
+	mPrefilterPass(std::make_unique<PbrPrefilterPass>())
 {
 
 	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME);
 
 	init(backgroundHDR, probeID, probeRoot);
 	environmentMap.reset();
+}
+
+void PbrProbe::initBrdfLut(const std::filesystem::path& probeRoot)
+{
+	PbrBrdfPrecomputePass brdfPrecomputePass;
+	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
+
+	// setup sprite for brdf integration lookup texture
+	const vec2 dim = { 1.0, 1.0 };
+	const vec2 pos = { 0.5f * (1.0f - dim.x), 0.5f * (1.0f - dim.y) };
+
+	Sprite brdfSprite;
+	brdfSprite.setPosition(pos);
+	brdfSprite.setWidth(dim.x);
+	brdfSprite.setHeight(dim.y);
+
+	// we don't need a texture
+	// we use the sprite only as a polygon model
+	brdfSprite.setTexture(nullptr);
+
+	if (std::filesystem::exists(brdfMapPath))
+	{
+		StoreImage readImage;
+		try
+		{
+			FileSystem::load(brdfMapPath, readImage);
+		}
+		catch (const std::exception&e)
+		{
+		}
+
+		TextureData data = {
+		TextureFilter::Linear,
+		TextureFilter::Linear,
+		TextureUVTechnique::ClampToEdge,
+		TextureUVTechnique::ClampToEdge,
+		TextureUVTechnique::ClampToEdge,
+		ColorSpace::RG,
+		PixelDataType::FLOAT,
+		InternFormat::RG32F,
+		false };
+
+		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));
+		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
+	}
+	else
+	{
+		mBrdfLookupTexture = createBRDFlookupTexture(&brdfPrecomputePass);
+		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
+		FileSystem::store(brdfMapPath, brdfLUTImage);
+	}
 }
 
 CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
@@ -57,19 +116,19 @@ CubeMap * PbrProbe::getPrefilteredEnvironmentMap() const
 	return  prefilteredEnvMap.get();
 }
 
-Texture2D * PbrProbe::getBrdfLookupTexture() const
+Texture2D * PbrProbe::getBrdfLookupTexture()
 {
-	return brdfLookupTexture.get();
+	return mBrdfLookupTexture.get();
 }
 
-StoreImage PbrProbe::readBrdfLookupPixelData() const
+StoreImage PbrProbe::readBrdfLookupPixelData()
 {
 	StoreImage store;
 	StoreImage::create(&store, 1, 1, TextureTarget::TEXTURE2D);
 
 	GenericImage& data = store.images[0][0];
-	data.width = getBrdfLookupTexture()->getWidth();
-	data.height = getBrdfLookupTexture()->getHeight();
+	data.width = mBrdfLookupTexture->getWidth();
+	data.height = mBrdfLookupTexture->getHeight();
 	data.channels = 2; // RG
 	data.format = (unsigned)ColorSpace::RG;
 	data.pixelSize = sizeof(float) * data.channels;
@@ -78,7 +137,7 @@ StoreImage PbrProbe::readBrdfLookupPixelData() const
 	data.pixels = std::vector<char>(bufSize);;
 
 	// read the data back from the gpu
-	brdfLookupTexture->readback(
+	mBrdfLookupTexture->readback(
 		0, ColorSpace::RG, 
 		PixelDataType::FLOAT, 
 		data.pixels.getPixels(),
@@ -421,7 +480,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 	return result;
 }
 
-std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
+std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecompute)
 {
 	TextureData data = {
 		TextureFilter::Linear, 
@@ -444,9 +503,9 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture()
 	//renderBackend->setScissor(0, 0, 512, 512);
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
-	mBrdfPrecomputePass->bind();
+	brdfPrecompute->bind();
 	RenderState state = RenderState::createNoDepthTest();
-	StaticMeshDrawer::drawFullscreenTriangle(state, mBrdfPrecomputePass.get());
+	StaticMeshDrawer::drawFullscreenTriangle(state, brdfPrecompute);
 
 	//Texture2D* result = (Texture2D*)target->setRenderResult(nullptr);
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);
@@ -468,7 +527,6 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_"  + std::to_string(probeID) + ".probe");
 	const std::filesystem::path prefilteredMapPath = probeRoot / ("pbr_prefilteredEnvMap_" + std::to_string(probeID) + ".probe");
 	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(probeID) + ".probe");
-	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT_" + std::to_string(probeID) + ".probe");
 
 	if (std::filesystem::exists(environmentMapPath))
 	{
@@ -571,57 +629,4 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
-
-
-	// setup sprite for brdf integration lookup texture
-	vec2 dim = { 1.0, 1.0 };
-	vec2 pos = { 0, 0 };
-
-	// center
-	pos.x = 0.5f * (1.0f - dim.x);
-	pos.y = 0.5f * (1.0f - dim.y);
-
-	mBrdfSprite.setPosition(pos);
-	mBrdfSprite.setWidth(dim.x);
-	mBrdfSprite.setHeight(dim.y);
-
-	// we don't need a texture
-	// we use the sprite only as a polygon model
-	mBrdfSprite.setTexture(nullptr);
-
-	
-
-	if (std::filesystem::exists(brdfMapPath))
-	{
-		StoreImage readImage;
-		try
-		{
-			FileSystem::load(brdfMapPath, readImage);
-		}
-		catch (const std::exception&e)
-		{
-		}
-
-		auto& test = (std::vector<glm::vec2>&)readImage.images[0][0].pixels;
-
-		TextureData data = {
-		TextureFilter::Linear,
-		TextureFilter::Linear,
-		TextureUVTechnique::ClampToEdge,
-		TextureUVTechnique::ClampToEdge,
-		TextureUVTechnique::ClampToEdge,
-		ColorSpace::RG,
-		PixelDataType::FLOAT,
-		InternFormat::RG32F,
-		false };
-
-		brdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));
-		StoreImage brdfLUTImage = readBrdfLookupPixelData();
-	}
-	else
-	{
-		brdfLookupTexture = createBRDFlookupTexture();
-		StoreImage brdfLUTImage = readBrdfLookupPixelData();
-		FileSystem::store(brdfMapPath, brdfLUTImage);
-	}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <techniques/PBR_Deferred_Renderer.hpp>
 #include <nex/util/Timer.hpp>
 #include <nex/util/FPSCounter.hpp>
 #include <nex/config/Configuration.hpp>
@@ -15,6 +15,7 @@ namespace nex
 	class SubSystemProviderGLFW;
 	class Cursor;
 	class Window;
+	class GlobalIllumination;
 
 	namespace gui
 	{
@@ -82,11 +83,10 @@ namespace nex
 		std::unique_ptr<nex::FileSystem> mShaderFileSystem;
 
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
-		std::unique_ptr<PbrProbe> mPbrProbe;
+		std::unique_ptr<GlobalIllumination> mGlobalIllumination;
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
 
 		AmbientLight mAmbientLight;
 		DirectionalLight mSun;
-		Texture* panoramaSky;
 	};
 }

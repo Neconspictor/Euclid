@@ -1,4 +1,4 @@
-#include <pbr_deferred/TesselationTest.hpp>
+#include <techniques/TesselationTest.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/gui/Controller.hpp"

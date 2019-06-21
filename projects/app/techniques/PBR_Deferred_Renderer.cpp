@@ -1,4 +1,4 @@
-#include <pbr_deferred/PBR_Deferred_Renderer.hpp>
+#include <techniques/PBR_Deferred_Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include <nex/shader/SkyBoxPass.hpp>

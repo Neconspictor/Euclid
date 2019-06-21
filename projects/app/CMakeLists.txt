@@ -20,15 +20,17 @@ set(
 	gui/Controller.cpp
 	gui/Controller.hpp
 	
-	#pbr_deferred
-    pbr_deferred/HeightMap.hpp
-    pbr_deferred/HeightMap.cpp
-    pbr_deferred/Ocean.cpp
-    pbr_deferred/Ocean.hpp
-	pbr_deferred/PBR_Deferred_Renderer.hpp
-	pbr_deferred/PBR_Deferred_Renderer.cpp
-    pbr_deferred/TesselationTest.cpp
-    pbr_deferred/TesselationTest.hpp
+	#techniques
+    techniques/GlobalIllumination.cpp
+    techniques/GlobalIllumination.hpp
+    techniques/HeightMap.hpp
+    techniques/HeightMap.cpp
+    techniques/Ocean.cpp
+    techniques/Ocean.hpp
+	techniques/PBR_Deferred_Renderer.hpp
+	techniques/PBR_Deferred_Renderer.cpp
+    techniques/TesselationTest.cpp
+    techniques/TesselationTest.hpp
 )
 
 # Create named folders for the sources within the .vcproj
