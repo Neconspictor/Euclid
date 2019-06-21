@@ -7,7 +7,8 @@
 namespace nex
 {
 	class PbrProbe;
-	class SphereMesh;
+	class Scene;
+	class Vob;
 
 	class GlobalIllumination
 	{
@@ -18,9 +19,11 @@ namespace nex
 
 		PbrProbe* getProbe();
 
+		Vob* createVob(PbrProbe* probe, Scene& scene);
+
 	private:
+
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
-		std::unique_ptr<SphereMesh> mSphere;
 		PbrProbeFactory* mFactory;
 	};
 }

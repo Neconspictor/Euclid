@@ -45,4 +45,14 @@ namespace nex
 		Materials mMaterials;
 		Meshes mMeshes;
 	};
+
+
+	class StaticMesh
+	{
+	public:
+
+		using Mappings = std::unordered_map<Mesh*, Material*>;
+
+		SceneNode* createNodeHierarchy(Scene* scene, const Mappings& mappings, SceneNode* parent = nullptr);
+	};
 }

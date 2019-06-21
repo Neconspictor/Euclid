@@ -11,6 +11,7 @@ namespace nex
 	class Shader;
 	class Texture;
 	class BinStream;
+	class Sampler;
 
 	enum class MaterialType
 	{
@@ -43,7 +44,7 @@ namespace nex
 		void set(UniformLocation loc, const glm::vec2& value);
 		void set(UniformLocation loc, const glm::vec3& value);
 		void set(UniformLocation loc, const glm::vec4& value);
-		void set(unsigned bindingSlot, const Texture* texture);
+		void set(unsigned bindingSlot, const Texture* texture, const Sampler* sampler);
 
 
 		void setTechnique(Technique* technique);
@@ -60,7 +61,7 @@ namespace nex
 		template<typename T>
 		using Map = std::unordered_map<UniformLocation, T>;
 
-		using MapTexture = std::unordered_map<int, const Texture*>;
+		using MapTexture = std::unordered_map<int, std::pair<const Texture*, const Sampler*>> ;
 
 		MapTexture mTextures;
 		Map<float> mFloats;

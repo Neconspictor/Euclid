@@ -14,17 +14,63 @@
 #include <nex/material/Material.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
 #include "nex/FileSystem.hpp"
+#include "nex/shader/Technique.hpp"
+#include "nex/mesh/Sphere.hpp"
 
 using namespace glm;
 using namespace nex;
 
 std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
+std::unique_ptr<PbrProbe::ProbeTechnique> PbrProbe::mTechnique = nullptr;
+std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
+
+class nex::PbrProbe::ProbeTechnique : public nex::Technique {
+public:
+
+	class ProbePass : public TransformPass
+	{
+	public:
+		static constexpr unsigned IRRADIANCE_MAP_BINDING_POINT = 0;
+
+		ProbePass() : TransformPass(Shader::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
+		{
+			mIrradianceMap = { mShader->getUniformLocation("irradiancedMap"), UniformType::CUBE_MAP };
+		}
+
+		Uniform mIrradianceMap;
+		Sampler mSampler;
+	};
+
+
+	ProbeTechnique() : Technique(nullptr)
+	{
+		setSelected(&mProbePass);
+	}
+
+	ProbePass mProbePass;
+};
+
+class nex::PbrProbe::ProbeMaterial : public nex::Material {
+public:
+	ProbeMaterial(ProbeTechnique* technique) : Material(technique),  mProbeTechnique(technique)
+	{
+		assert(technique != nullptr);
+	}
+
+	void setIrradianceMap(CubeMap* map)
+	{
+		set(mProbeTechnique->mProbePass.mIrradianceMap.location, map, &mProbeTechnique->mProbePass.mSampler);
+	}
+
+	ProbeTechnique* mProbeTechnique;
+};
+
 
 PbrProbeFactory::PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory)
 {
 	std::vector<std::filesystem::path> includes = {std::move(probeCompiledDirectory)};
 	mFileSystem = std::make_unique<FileSystem>(std::move(includes));
-	PbrProbe::initBrdfLut(mFileSystem->getFirstIncludeDirectory());
+	PbrProbe::initGlobals(mFileSystem->getFirstIncludeDirectory());
 }
 
 PbrProbeFactory* PbrProbeFactory::get(const std::filesystem::path& probeCompiledDirectory)
@@ -41,7 +87,8 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 PbrProbe::PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot) :
 	environmentMap(nullptr),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
-	mPrefilterPass(std::make_unique<PbrPrefilterPass>())
+	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
+	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
 {
 
 	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME);
@@ -50,8 +97,14 @@ PbrProbe::PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesyst
 	environmentMap.reset();
 }
 
-void PbrProbe::initBrdfLut(const std::filesystem::path& probeRoot)
+PbrProbe::~PbrProbe() = default;
+
+void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
+
+	mTechnique = std::make_unique<ProbeTechnique>();
+	mMesh = std::make_unique<SphereMesh>(16, 16);
+
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
 
@@ -626,6 +679,8 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		const StoreImage convolutedMapImage = readConvolutedEnvMapPixelData();
 		FileSystem::store(convolutedMapPath, convolutedMapImage);
 	}
+
+	mMaterial->setIrradianceMap(convolutedEnvironmentMap.get());
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);

@@ -45,11 +45,11 @@ void PbrBaseCommon::setShader(Shader* shader)
 
 void PbrCommonGeometryPass::updateConstants(Camera* camera)
 {
-	mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
+	/*mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
 	mDefaultImageSampler->bind(AO_BINDING_POINT);
 	mDefaultImageSampler->bind(METALLIC_BINDING_POINT);
 	mDefaultImageSampler->bind(NORMAL_BINDING_POINT);
-	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);
+	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);*/
 
 	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 }

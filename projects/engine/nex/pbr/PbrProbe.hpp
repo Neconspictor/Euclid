@@ -11,6 +11,7 @@ namespace nex
 	class SceneNode;
 	class DirectionalLight;
 	class StaticMeshContainer;
+	class SphereMesh;
 
 
 	class PbrProbeFactory
@@ -31,10 +32,12 @@ namespace nex
 	public:
 		PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 
+		~PbrProbe();
+
 		//void drawSky(const glm::mat4& projection,
 		//	const glm::mat4& view);
 
-		static void initBrdfLut(const std::filesystem::path& probeRoot);
+		static void initGlobals(const std::filesystem::path& probeRoot);
 
 
 		CubeMap* getConvolutedEnvironmentMap() const;
@@ -48,6 +51,9 @@ namespace nex
 
 
 	protected:
+
+		class ProbeTechnique;
+		class ProbeMaterial;
 
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
 		static StoreImage readBrdfLookupPixelData();
@@ -68,6 +74,10 @@ namespace nex
 		std::unique_ptr<PbrPrefilterPass> mPrefilterPass;
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
+		static std::unique_ptr<ProbeTechnique> mTechnique;
+		static std::unique_ptr<SphereMesh> mMesh;
+
+		std::unique_ptr<ProbeMaterial> mMaterial;
 
 		StaticMeshContainer* mSkyBox;
 	};

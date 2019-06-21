@@ -70,4 +70,24 @@ namespace nex
 	{
 		return mMeshes;
 	}
+
+	SceneNode* StaticMesh::createNodeHierarchy(Scene* scene, const Mappings& mappings, SceneNode* parent)
+	{
+		assert(scene != nullptr);
+
+		if (!parent) {
+			parent = scene->createNode();
+		}
+
+		for (auto& mapping : mappings)
+		{
+			auto* material = mapping.second;
+			SceneNode* node = scene->createNode();
+			node->setMesh(mapping.first);
+			node->setMaterial(material);
+			parent->addChild(node);
+		}
+
+		return parent;
+	}
 }

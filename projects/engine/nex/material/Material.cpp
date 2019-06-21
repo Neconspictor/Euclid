@@ -3,6 +3,7 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include "nex/common/File.hpp"
+#include "nex/texture/TextureManager.hpp"
 
 using namespace std;
 using namespace nex;
@@ -106,9 +107,10 @@ void Material::set(UniformLocation loc, const glm::vec4& value)
 	mVec4s[loc] = value;
 }
 
-void Material::set(unsigned bindingSlot, const Texture* texture)
+void Material::set(unsigned bindingSlot, const Texture* texture, const Sampler* sampler)
 {
-	mTextures[bindingSlot] = texture;
+	mTextures[bindingSlot].first = texture;
+	mTextures[bindingSlot].second = sampler;
 }
 
 void Material::upload(Shader* shader) const
@@ -119,8 +121,7 @@ void Material::upload(Shader* shader) const
 
 	for (auto& uniform : mTextures)
 	{
-		// Note: samplers are not handled by materials. Thus no sampler object is submitted
-		shader->setTexture(uniform.second, nullptr, uniform.first);
+		shader->setTexture(uniform.second.first, uniform.second.second, uniform.first);
 	}
 
 	for (auto& uniform : mFloats)
@@ -215,12 +216,12 @@ Material(technique)
 
 const Texture * PbrMaterial::getAlbedoMap() const
 {
-	return mTextures.at(PbrCommonGeometryPass::ALBEDO_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryPass::ALBEDO_BINDING_POINT).first;
 }
 
 const Texture * PbrMaterial::getAoMap() const
 {
-	return mTextures.at(PbrCommonGeometryPass::AO_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryPass::AO_BINDING_POINT).first;
 }
 
 const Texture * PbrMaterial::getEmissionMap() const
@@ -230,27 +231,27 @@ const Texture * PbrMaterial::getEmissionMap() const
 
 const Texture * PbrMaterial::getMetallicMap() const
 {
-	return mTextures.at(PbrCommonGeometryPass::METALLIC_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryPass::METALLIC_BINDING_POINT).first;
 }
 
 const Texture * PbrMaterial::getNormalMap() const
 {
-	return mTextures.at(PbrCommonGeometryPass::NORMAL_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryPass::NORMAL_BINDING_POINT).first;
 }
 
 const Texture * PbrMaterial::getRoughnessMap() const
 {
-	return mTextures.at(PbrCommonGeometryPass::ROUGHNESS_BINDING_POINT);
+	return mTextures.at(PbrCommonGeometryPass::ROUGHNESS_BINDING_POINT).first;
 }
 
 void PbrMaterial::setAlbedoMap(Texture * albedoMap)
 {
-	set(PbrCommonGeometryPass::ALBEDO_BINDING_POINT, albedoMap);
+	set(PbrCommonGeometryPass::ALBEDO_BINDING_POINT, albedoMap, TextureManager::get()->getDefaultImageSampler());
 }
 
 void PbrMaterial::setAoMap(Texture * aoMap)
 {
-	set(PbrCommonGeometryPass::AO_BINDING_POINT, aoMap);
+	set(PbrCommonGeometryPass::AO_BINDING_POINT, aoMap, TextureManager::get()->getDefaultImageSampler());
 }
 
 void PbrMaterial::setEmissionMap(Texture * emissionMap)
@@ -259,17 +260,17 @@ void PbrMaterial::setEmissionMap(Texture * emissionMap)
 
 void PbrMaterial::setMetallicMap(Texture * metallicMap)
 {
-	set(PbrCommonGeometryPass::METALLIC_BINDING_POINT, metallicMap);
+	set(PbrCommonGeometryPass::METALLIC_BINDING_POINT, metallicMap, TextureManager::get()->getDefaultImageSampler());
 }
 
 void PbrMaterial::setNormalMap(Texture * normalMap)
 {
-	set(PbrCommonGeometryPass::NORMAL_BINDING_POINT, normalMap);
+	set(PbrCommonGeometryPass::NORMAL_BINDING_POINT, normalMap, TextureManager::get()->getDefaultImageSampler());
 }
 
 void PbrMaterial::setRoughnessMap(Texture * roughnessMap)
 {
-	set(PbrCommonGeometryPass::ROUGHNESS_BINDING_POINT, roughnessMap);
+	set(PbrCommonGeometryPass::ROUGHNESS_BINDING_POINT, roughnessMap, TextureManager::get()->getDefaultImageSampler());
 }
 
 void MaterialStore::test()

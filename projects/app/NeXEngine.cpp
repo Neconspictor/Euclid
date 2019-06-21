@@ -277,11 +277,12 @@ void NeXEngine::createScene()
 	transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	//ground->setPositionLocal({ 10, 0, 0 });
 
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
-	//auto* cerberus = meshContainer->createNodeHierarchy(&mScene);
-	//cerberus->setPositionLocal({0, 2, 0});
+	//auto* cerberus = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
+	//cerberus->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));
+
+	//ground->setPositionLocal({ 10, 0, 0 });
 
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;
@@ -294,61 +295,6 @@ void NeXEngine::createScene()
 	//cerberus->setLocalTrafo(trafo);
 
 	mScene.updateWorldTrafoHierarchy(true);
-
-	/*m_nodes.emplace_back(SceneNode());
-	SceneNode* cerberus = &m_nodes.back();
-	m_vobs.emplace_back(Vob("cerberus/cerberus.obj", MaterialType::Pbr));
-	cerberus->vob = &m_vobs.back();
-	root->addChild(cerberus);
-
-	m_nodes.emplace_back(SceneNode());
-	SceneNode* cube1 = &m_nodes.back();
-	m_vobs.emplace_back(Vob("normal_map_test/normal_map_test.obj", MaterialType::Pbr));
-	cube1->vob = &m_vobs.back();
-	cube1->vob->setPosition({ 0.0f, 1.3f, 0.0f });
-	root->addChild(cube1);
-
-	m_nodes.emplace_back(SceneNode());
-	SceneNode* sphere = &m_nodes.back();
-	m_vobs.emplace_back(Vob("normal_map_test/normal_map_sphere.obj", MaterialType::Pbr));
-	sphere->vob = &m_vobs.back();
-	sphere->vob->setPosition({ 3.0f, 3.8f, -1.0f });
-	root->addChild(sphere);
-
-
-	auto* textureManager = TextureManager::get();
-	TextureData data = {
-			TextureFilter::Linear_Mipmap_Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::Repeat,
-			TextureUVTechnique::Repeat,
-			TextureUVTechnique::Repeat,
-			ColorSpace::SRGBA,
-			PixelDataType::UBYTE,
-			InternFormat::SRGBA8,
-			true
-	};
-
-	m_nodes.emplace_back(SceneNode());
-	SceneNode* sphere2 = &m_nodes.back();
-	auto material = std::make_unique<PbrMaterial>();
-	material->setAlbedoMap(textureManager->getImage("pbr/albedo.png", data));
-	
-
-	data.colorspace = ColorSpace::RGBA;
-	data.internalFormat = InternFormat::RGBA8;
-	material->setAoMap(textureManager->getImage("pbr/ao.png", data));
-	material->setNormalMap(textureManager->getImage("pbr/normal.png", data));
-	material->setEmissionMap(textureManager->getDefaultBlackTexture());
-	material->setMetallicMap(textureManager->getDefaultBlackTexture());
-	material->setRoughnessMap(textureManager->getImage("pbr/roughness.png", data));
-	mModels.emplace_back(StaticMeshManager::createSphere(16, 16, std::move(material)));
-
-
-	m_vobs.emplace_back(Vob(mModels.back().get()));
-	sphere2->vob = &m_vobs.back();
-	sphere2->vob->setPosition({ 4.0f, 4.8f, -1.0f });
-	root->addChild(sphere2);*/
 }
 
 Window* NeXEngine::createWindow()
