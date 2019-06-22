@@ -71,5 +71,8 @@ namespace nex
 
 		mVertexArray.unbind();
 		mIndexBuffer.unbind();
+
+		mBoundingBox.min = glm::vec3(-1.0);
+		mBoundingBox.max = glm::vec3(1.0);
 	}
 }

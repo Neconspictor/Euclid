@@ -141,6 +141,11 @@ namespace nex
 		 */
 		static std::unique_ptr<Shader> create(const std::vector<Guard<ShaderStage>>& stages);
 
+		/**
+		 * Checks if the shader is currently bound
+		 */
+		bool isBound()const;
+
 
 		void setBinding(UniformLocation locationID, unsigned int bindingSlot);
 

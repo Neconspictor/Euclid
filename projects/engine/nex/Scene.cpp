@@ -154,6 +154,17 @@ namespace nex
 		return node;
 	}
 
+	Vob* Scene::addVob(std::unique_ptr<Vob> vob, bool setActive)
+	{
+		mVobStore.emplace_back(std::move(vob));
+		auto*  vobPtr = mVobStore.back().get();
+		if (setActive)
+		{
+			addActiveVob(vobPtr);
+		}
+		return vobPtr;
+	}
+
 	Vob* Scene::createVob(SceneNode* meshRootNode, bool setActive)
 	{
 		mVobStore.emplace_back(std::make_unique<Vob>(meshRootNode));

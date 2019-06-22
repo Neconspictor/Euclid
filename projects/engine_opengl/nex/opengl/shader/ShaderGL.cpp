@@ -75,6 +75,11 @@ std::ostream& nex::operator<<(std::ostream& os, ShaderStageTypeGL type)
 
 nex::Shader::~Shader() = default;
 
+bool nex::Shader::isBound() const
+{
+	return mImpl->isBound();
+}
+
 void nex::Shader::setBinding(UniformLocation locationID, unsigned bindingSlot)
 {
 	bind();
@@ -298,6 +303,11 @@ nex::UniformLocation nex::Shader::Impl::getUniformLocation(const char* name) con
 	}
 
 	return loc;
+}
+
+bool nex::Shader::Impl::isBound() const
+{
+	return GlobalCacheGL::get()->getActiveProgram() == mProgramID;
 }
 
 void nex::Shader::Impl::setDebugName(const char* name)

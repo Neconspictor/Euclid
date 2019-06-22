@@ -21,6 +21,11 @@ nex::Shader* nex::Pass::getShader()
 	return mShader.get();
 }
 
+bool nex::Pass::isBound() const
+{
+	return mShader->isBound();
+}
+
 void nex::Pass::setShader(std::unique_ptr<Shader> shader)
 {
 	mShader = std::move(shader);

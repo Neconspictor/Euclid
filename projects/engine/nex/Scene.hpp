@@ -90,6 +90,8 @@ namespace nex
 		 * Creates a new node.
 		 */
 		SceneNode* createNode(SceneNode* parent = nullptr);
+
+		Vob* addVob(std::unique_ptr<Vob> vob, bool setActive = true);
 		Vob* createVob(SceneNode* meshRootNode, bool setActive = true);
 
 		/**
@@ -119,6 +121,8 @@ namespace nex
 	{
 	public:
 		explicit Vob(SceneNode* meshRootNode);
+
+		virtual ~Vob() = default;
 
 		SceneNode* getMeshRootNode();
 

@@ -17,18 +17,20 @@ namespace nex::gui
 	class ImGUI_GL::Drawer : public nex::Pass
 	{
 	public:
-		Drawer()
+		Drawer(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader)
 		{
-			mShader = nex::Shader::create("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
+			mShader = nex::Shader::create(vertexShader, fragmentShader);
 
 			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
+			mAxis = { mShader->getUniformLocation("Axis"), nex::UniformType::VEC3 };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
 		}
 
-		void setTexture(nex::Texture2D* texture)
+		void setTexture(nex::Texture* texture, Sampler* sampler)
 		{
-			mShader->setTexture(texture, &mSampler, mTexture.bindingSlot);
+			if (!sampler) sampler = &mSampler;
+			mShader->setTexture(texture, sampler, mTexture.bindingSlot);
 		}
 
 		void setProjMtx(const glm::mat4& mat)
@@ -36,9 +38,15 @@ namespace nex::gui
 			mShader->setMat4(mProjMtx.location, mat);
 		}
 
+		void setAxis(const glm::vec3& vec)
+		{
+			mShader->setVec3(mAxis.location, vec);
+		}
+
 	private:
 
 		nex::UniformTex mTexture;
+		nex::Uniform mAxis;
 		nex::Uniform mProjMtx;
 	};
 
@@ -187,8 +195,8 @@ namespace nex::gui
 			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
 		};
 
-		mShader->bind();
-		mShader->setProjMtx(ortho_projection);
+		mShaderTexture2D->bind();
+		mShaderTexture2D->setProjMtx(ortho_projection);
 
 		// We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
 		Sampler::unbind(0);
@@ -219,8 +227,8 @@ namespace nex::gui
 				}
 				else
 				{
-					auto* texture = (Texture2D*)pcmd->TextureId;
-					mShader->setTexture(texture);
+					bindTextureShader((ImGUI_ImageDesc*)pcmd->TextureId, ortho_projection);
+
 					backend->setScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
 					backend->drawWithIndices(state, Topology::TRIANGLES, pcmd->ElemCount, mIndices->getType(), idx_buffer_offset);
 				}
@@ -327,10 +335,32 @@ namespace nex::gui
 		createDeviceObjects();
 	}
 
+	void ImGUI_GL::bindTextureShader(ImGUI_ImageDesc* desc, const glm::mat4& projection)
+	{
+		Drawer* drawer = mShaderTexture2D.get();
+
+		auto* texture = desc->texture;
+
+		if (auto* cubemap = dynamic_cast<CubeMap*>(desc->texture))
+		{
+			drawer = mShaderCubeMap.get();
+		}
+
+		const bool init = !drawer->isBound();
+		drawer->bind();
+		drawer->setTexture(desc->texture, nullptr);
+
+		if (init)
+		{
+			drawer->setAxis(glm::vec3(1, 0, 0));
+			drawer->setProjMtx(projection);
+		}
+	}
+
 	bool ImGUI_GL::createDeviceObjects()
 	{
-		mShader = std::make_unique<Drawer>();
-		
+		mShaderTexture2D = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
+		mShaderCubeMap = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_fs.glsl");
 		mVertexBuffer = std::make_unique<VertexBuffer>();
 		mIndices = std::make_unique<IndexBuffer>();
 
@@ -368,9 +398,13 @@ namespace nex::gui
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
 
 		mFontTexture = std::make_unique<Texture2D>(width, height, desc, pixels);
+		mFontDesc.texture = mFontTexture.get();
+		mFontDesc.level = 0;
+		mFontDesc.lod = 0;
+		mFontDesc.sampler = nullptr;
 
 		// Store our identifier
-		io.Fonts->TexID = mFontTexture.get();
+		io.Fonts->TexID = &mFontDesc;
 	}
 
 	const char* ImGUI_GL::getClipboardText(void* inputDevice)

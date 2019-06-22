@@ -157,7 +157,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		InternFormat::RG32F,
 		false };
 
-		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data, false));
+		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data));
 		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
 	}
 	else
@@ -557,6 +557,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 	return result;
 }
 
+
 std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecompute)
 {
 	TextureData data = {
@@ -627,7 +628,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			InternFormat::RGB32F,
 			false
 		};
-		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
+		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	} else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
@@ -660,7 +661,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			InternFormat::RGB32F,
 			false
 		};
-		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
+		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
 	else
 	{
@@ -695,7 +696,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			InternFormat::RGB32F,
 			false };
 
-		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data, true));
+		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
 	else
 	{
@@ -709,4 +710,14 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
+}
+
+ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)
+{
+	assert(mProbe != nullptr);
+}
+
+PbrProbe* ProbeVob::getProbe()
+{
+	return mProbe;
 }

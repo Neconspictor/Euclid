@@ -7,6 +7,7 @@
 #include <nex/gui/Gizmo.hpp>
 #include <nex/Input.hpp>
 #include "NeXEngine.hpp"
+#include "nex/pbr/PbrProbe.hpp"
 
 namespace nex::gui
 {
@@ -127,9 +128,28 @@ namespace nex::gui
 			ImGui::Text("No scene node selected.");
 			ImGui::PopID();
 			return;
-		}
+		} 
 
 		auto* vob = mPicker->getPicked();
+
+		ImGui::SameLine();
+		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob))
+		{
+			auto* probe = probeVob->getProbe();
+			ImGui::Text("pbr probe vob");
+
+			//auto* texture = PbrProbe::getBrdfLookupTexture();
+			auto* texture = probe->getPrefilteredEnvironmentMap();
+			mProbePrefiltered.texture = texture;
+			mProbePrefiltered.level = 0;
+			mProbePrefiltered.lod = 0;
+			mProbePrefiltered.sampler = nullptr;
+			ImGui::Image((void*)&mProbePrefiltered, ImVec2(texture->getSideWidth() * 8, texture->getSideHeight() * 8));
+
+		} else
+		{
+			ImGui::Text("normal vob");
+		}
 
 		glm::vec3 position = vob->getPosition();
 		nex::gui::Vector3D(&position, "Position");

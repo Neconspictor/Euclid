@@ -3,6 +3,7 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/texture/Image.hpp>
 #include "PbrPass.hpp"
+#include <nex/Scene.hpp>
 
 
 namespace nex
@@ -84,5 +85,17 @@ namespace nex
 		std::unique_ptr<ProbeMaterial> mMaterial;
 
 		StaticMeshContainer* mSkyBox;
+	};
+
+	class ProbeVob : public Vob
+	{
+	public:
+		ProbeVob(SceneNode* meshRootNode, PbrProbe* probe);
+		virtual ~ProbeVob() = default;
+
+		PbrProbe* getProbe();
+
+	private:
+		PbrProbe* mProbe;
 	};
 }

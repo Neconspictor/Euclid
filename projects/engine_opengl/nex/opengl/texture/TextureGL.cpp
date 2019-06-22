@@ -199,7 +199,7 @@ nex::Texture::Texture(std::unique_ptr<Impl> impl) : mImpl(std::move(impl))
 {
 }
 
-nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap)
+nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data)
 {
 	const auto format = (GLenum)translate(data.colorspace);
 	const auto internalFormat = (GLenum)translate(data.internalFormat);
@@ -208,6 +208,7 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 
 	// For now only cubemaps and 2d tetures are supported (other targets are not tested yet)!
 	assert(store.textureTarget == TextureTarget::TEXTURE2D || store.textureTarget == TextureTarget::CUBE_MAP);
+	const bool isCubeMap = store.textureTarget == TextureTarget::CUBE_MAP;
 
 	const bool createMipMapStorage = store.mipmapCount > 1;
 
@@ -253,16 +254,17 @@ nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const Textu
 	}
 
 	std::unique_ptr<Impl> impl;
+	std::unique_ptr<Texture> result;
 
 	if (isCubeMap)
 	{
 		impl = std::make_unique<CubeMapGL>(textureID, baseWidth, baseHeight, data);
+		result = std::make_unique<CubeMap>(std::move(impl));
 	} else
 	{
 		impl = std::make_unique<Texture2DGL>(textureID, data, baseWidth, baseHeight);
+		result = std::make_unique<Texture2D>(std::move(impl));
 	}
-
-	auto result = std::make_unique<Texture2D>(std::move(impl));
 
 	if (data.generateMipMaps)
 	{

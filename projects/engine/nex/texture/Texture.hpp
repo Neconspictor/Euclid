@@ -31,7 +31,7 @@ namespace nex
 		 *
 		 * @return a Texture or an CubeMap dependent on the state of isCubeMap
 		 */
-		static Texture* createFromImage(const StoreImage& store, const TextureData& data, bool isCubeMap);
+		static Texture* createFromImage(const StoreImage& store, const TextureData& data);
 
 		static std::unique_ptr<Texture> createView(Texture* original,
 			TextureTarget target,
@@ -73,6 +73,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
 
+		virtual ~Texture2D() = default;
+
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
@@ -97,6 +99,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture2DMultisample(unsigned width, unsigned height, const TextureData& textureData, unsigned samples);
 
+		virtual ~Texture2DMultisample() = default;
+
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
@@ -117,6 +121,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		Texture2DArray(unsigned width, unsigned height, unsigned depth, const TextureData& textureData, const void* data);
 
+		virtual ~Texture2DArray() = default;
+
 		/**
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
@@ -135,6 +141,8 @@ namespace nex
 		// Has to be implemented by renderer backend
 		RenderBuffer(unsigned width, unsigned height, const TextureData& data);
 
+		virtual ~RenderBuffer() = default;
+
 		// Has to be implemented by renderer backend
 		InternFormat getFormat() const;
 	};
@@ -149,6 +157,8 @@ namespace nex
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
+
+		virtual ~CubeMap() = default;
 
 		unsigned getSideWidth() const;
 		unsigned getSideHeight() const;

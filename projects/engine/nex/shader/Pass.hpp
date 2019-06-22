@@ -29,6 +29,11 @@ namespace nex
 
 		Shader* getShader();
 
+		/**
+		 * Checks, if the pass is currently bound.
+		 */
+		bool isBound()const;
+
 		void setShader(std::unique_ptr<Shader> shader);
 
 		/**

@@ -35,8 +35,10 @@ nex::PbrProbe* nex::GlobalIllumination::getProbe()
 
 nex::Vob* nex::GlobalIllumination::createVob(PbrProbe* probe, Scene& scene)
 {
-	return scene.createVob(StaticMesh::createNodeHierarchy(
-		&scene, 
-		{std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial())}), 
-		true);
+	auto* meshRootNode = StaticMesh::createNodeHierarchy(&scene,
+		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
+
+	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe);
+
+	return scene.addVob(std::move(vob), true);
 }

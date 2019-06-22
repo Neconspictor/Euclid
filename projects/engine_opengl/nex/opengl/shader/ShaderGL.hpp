@@ -59,6 +59,11 @@ namespace nex
 		nex::UniformLocation getUniformBufferLocation(const char* name) const;
 		nex::UniformLocation getUniformLocation(const char* name) const;
 
+		/**
+		 * Checks if the shader is currently bound
+		 */
+		bool isBound() const;
+
 
 		/**
 		 * Creates a new shader program of a list of unresolved shader stage description.

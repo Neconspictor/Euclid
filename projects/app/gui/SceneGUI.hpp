@@ -56,5 +56,6 @@ namespace nex::gui
 		void drawSelf() override;
 
 		Picker* mPicker;
+		ImGUI_ImageDesc mProbePrefiltered;
 	};
 }

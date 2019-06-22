@@ -40,6 +40,8 @@ namespace nex::gui
 
 		void init();
 
+		void bindTextureShader(ImGUI_ImageDesc* texture, const glm::mat4& projection);
+
 		bool createDeviceObjects();
 
 		void createFontsTexture();
@@ -52,11 +54,13 @@ namespace nex::gui
 		std::unique_ptr<Cursor> mMouseCursors[ImGuiMouseCursor_COUNT];
 		bool         g_MouseJustPressed[3];
 		std::unique_ptr<Texture2D> mFontTexture;
+		ImGUI_ImageDesc mFontDesc;
 		//GLuint g_VboHandle;
 		std::unique_ptr<VertexArray> mVertexArray;
 		std::unique_ptr<VertexBuffer> mVertexBuffer;
 		std::unique_ptr<IndexBuffer> mIndices;
-		std::unique_ptr<Drawer> mShader;
+		std::unique_ptr<Drawer> mShaderTexture2D;
+		std::unique_ptr<Drawer> mShaderCubeMap;
 		nex::Logger m_logger;
 	};
 }
