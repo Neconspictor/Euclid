@@ -34,11 +34,20 @@ public:
 
 		ProbePass() : TransformPass(Shader::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
 		{
-			mIrradianceMap = { mShader->getUniformLocation("irradiancedMap"), UniformType::CUBE_MAP };
+			mIrradianceMap = { mShader->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP };
+			mPrefilterMap = { mShader->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP };
+
+			SamplerDesc desc;
+			//desc.minLOD = 0;
+			//desc.maxLOD = 7;
+			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			mPrefilterSampler.setState(desc);
 		}
 
 		Uniform mIrradianceMap;
+		Uniform mPrefilterMap;
 		Sampler mSampler;
+		Sampler mPrefilterSampler;
 	};
 
 
@@ -60,6 +69,11 @@ public:
 	void setIrradianceMap(CubeMap* map)
 	{
 		set(mProbeTechnique->mProbePass.mIrradianceMap.location, map, &mProbeTechnique->mProbePass.mSampler);
+	}
+
+	void setPrefilterMap(CubeMap* map)
+	{
+		set(mProbeTechnique->mProbePass.mPrefilterMap.location, map, &mProbeTechnique->mProbePass.mPrefilterSampler);
 	}
 
 	ProbeTechnique* mProbeTechnique;
@@ -152,6 +166,16 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
 		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
+}
+
+Mesh* PbrProbe::getSphere()
+{
+	return mMesh.get();
+}
+
+Material* PbrProbe::getMaterial()
+{
+	return mMaterial.get();
 }
 
 CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
@@ -681,6 +705,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	}
 
 	mMaterial->setIrradianceMap(convolutedEnvironmentMap.get());
+	mMaterial->setPrefilterMap(prefilteredEnvMap.get());
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);

@@ -12,6 +12,7 @@ namespace nex
 	class DirectionalLight;
 	class StaticMeshContainer;
 	class SphereMesh;
+	class Mesh;
 
 
 	class PbrProbeFactory
@@ -38,11 +39,14 @@ namespace nex
 		//	const glm::mat4& view);
 
 		static void initGlobals(const std::filesystem::path& probeRoot);
+		static Mesh* getSphere();
 
 
 		CubeMap* getConvolutedEnvironmentMap() const;
 
 		CubeMap* getEnvironmentMap() const;
+
+		Material* getMaterial();
 
 		CubeMap* getPrefilteredEnvironmentMap() const;
 

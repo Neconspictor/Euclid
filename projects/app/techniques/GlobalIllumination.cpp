@@ -1,10 +1,8 @@
 ﻿#include <techniques/GlobalIllumination.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/FileSystem.hpp>
-#include <nex/mesh/Sphere.hpp>
 #include <nex/Scene.hpp>
 #include <nex/mesh/StaticMesh.hpp>
-#include "nex/shader/Technique.hpp"
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory) : 
@@ -37,6 +35,8 @@ nex::PbrProbe* nex::GlobalIllumination::getProbe()
 
 nex::Vob* nex::GlobalIllumination::createVob(PbrProbe* probe, Scene& scene)
 {
-	//scene.createVob(mSphereMeshContainer->createNodeHierarchy(&scene), true);
-	return nullptr;
+	return scene.createVob(StaticMesh::createNodeHierarchy(
+		&scene, 
+		{std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial())}), 
+		true);
 }

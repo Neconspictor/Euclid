@@ -39,5 +39,6 @@ void main()
                 luminanceOut);
         
     FragColor = vec4(colorOut, albedo.a);
-    LuminanceColor = vec4(luminanceOut, FragColor.a);
+    //LuminanceColor = vec4(luminanceOut, FragColor.a);
+    LuminanceColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

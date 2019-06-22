@@ -41,9 +41,10 @@ void main()
 	
 	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
 	const float ao = aoMetalRoughness.r;
-	const float metallic = aoMetalRoughness.g;
+	float metallic = aoMetalRoughness.g;
     //metallic = 0;
-	const float roughness = aoMetalRoughness.b;
+	float roughness = aoMetalRoughness.b;
+    //roughness = 1;
 	
 	const vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
     

@@ -154,7 +154,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     kD *= 1.0 - metallic;	  
     
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
-    // irridianceMap in such a way, that we can use view space normals, too.
+    // irradianceMap in such a way, that we can use view space normals, too.
     vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
     vec3 diffuse      = irradiance * albedo;
     

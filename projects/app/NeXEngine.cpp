@@ -278,6 +278,10 @@ void NeXEngine::createScene()
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
 
+	auto* probe = mGlobalIllumination->createVob(mGlobalIllumination->getProbe(), mScene);
+	probe->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));
+	probe->mDebugName = "pbr probe";
+
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
 	//auto* cerberus = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
 	//cerberus->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));

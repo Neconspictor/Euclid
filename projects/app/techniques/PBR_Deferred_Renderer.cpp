@@ -338,9 +338,12 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	deferred->setDirLight(sun);
 	deferred->drawLighting(mPbrMrt.get(), camera);
 
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
+	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
+	
 	depthTest->enableDepthTest(true);
 	depthTest->enableDepthBufferWriting(true);
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 
 	mPbrTechnique->useForward();
