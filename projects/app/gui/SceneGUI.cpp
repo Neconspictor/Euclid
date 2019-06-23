@@ -54,9 +54,11 @@ namespace nex::gui
 		m_menuBar.drawGUI();
 	}
 
-	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), mTextureView({}, ImVec2(0, 0))
+	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), 
+	mBrdfView({}, ImVec2(256, 256)),
+	mConvolutedView({}, ImVec2(256, 256)),
+	mPrefilteredView({}, ImVec2(256, 256))
 	{
-		mTextureView.setViewSize(ImVec2(256, 256));
 	}
 
 	SceneNodeProperty::~SceneNodeProperty() = default;
@@ -139,17 +141,42 @@ namespace nex::gui
 			auto* probe = probeVob->getProbe();
 			ImGui::Text("pbr probe vob");
 
-			if (ImGui::TreeNode("Prefiltered map"))
+			if (ImGui::TreeNode("Brdf Lookup map"))
 			{
-				//auto* texture = PbrProbe::getBrdfLookupTexture();
-				auto* texture = probe->getPrefilteredEnvironmentMap();
-				auto& probePrefiltered = mTextureView.getTexture();
+				auto* texture = probe->getBrdfLookupTexture();
+				auto& probePrefiltered = mBrdfView.getTexture();
 				probePrefiltered.texture = texture;
 				probePrefiltered.sampler = nullptr;
 
-				mTextureView.updateTexture(true);
-				mTextureView.drawGUI();
+				mBrdfView.updateTexture(true);
+				mBrdfView.drawGUI();
 				
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Convoluted map"))
+			{
+				auto* texture = probe->getConvolutedEnvironmentMap();
+				auto& probePrefiltered = mConvolutedView.getTexture();
+				probePrefiltered.texture = texture;
+				probePrefiltered.sampler = nullptr;
+
+				mConvolutedView.updateTexture(true);
+				mConvolutedView.drawGUI();
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Prefiltered map"))
+			{
+				auto* texture = probe->getPrefilteredEnvironmentMap();
+				auto& probePrefiltered = mPrefilteredView.getTexture();
+				probePrefiltered.texture = texture;
+				probePrefiltered.sampler = nullptr;
+
+				mPrefilteredView.updateTexture(true);
+				mPrefilteredView.drawGUI();
+
 				ImGui::TreePop();
 			}
 

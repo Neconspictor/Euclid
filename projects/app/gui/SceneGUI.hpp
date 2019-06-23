@@ -57,6 +57,9 @@ namespace nex::gui
 		void drawSelf() override;
 
 		Picker* mPicker;
-		TextureView mTextureView;
+		TextureView mBrdfView;
+		TextureView mConvolutedView;
+		TextureView mPrefilteredView;
+		
 	};
 }

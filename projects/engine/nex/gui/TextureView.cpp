@@ -51,6 +51,8 @@ void nex::gui::TextureView::drawSelf()
 {
 	if (mDesc.texture == nullptr) return;
 
+	ImGui::PushID(m_id.c_str());
+
 	//ImGui::SetNextWindowContentSize(ImVec2(128, 128));
 
 	const auto target = mDesc.texture->getTarget();
@@ -71,6 +73,10 @@ void nex::gui::TextureView::drawSelf()
 		}
 
 		ImGui::Combo("Mimmap level", (int*)&mDesc.lod, (const char**)items.data(), items.size());
+	} else
+	{
+		const char* items[] = { "0"};
+		ImGui::Combo("Mimmap level", (int*)&mDesc.lod, (const char**)items, IM_ARRAYSIZE(items));
 	}
 
 	if (target == TextureTarget::CUBE_MAP)
@@ -79,7 +85,10 @@ void nex::gui::TextureView::drawSelf()
 		ImGui::Combo("Side", (int*)&mDesc.side, items, IM_ARRAYSIZE(items));
 	}
 
-	ImGui::BeginChild("scrolling", ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
+	std::stringstream ss;
+	ss << m_id << "scrolling";
+
+	ImGui::BeginChild(ss.str().c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
 	ImGui::Image((void*)&mDesc, { mScale * mTextureSize.x, mScale * mTextureSize.y }, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0.2, 0.2, 0.2, 1.0));
 	ImGui::EndChild();
 	if (ImGui::Button("+"))
@@ -94,7 +103,9 @@ void nex::gui::TextureView::drawSelf()
 	mScale = std::clamp(mScale, 0.0f, 1000.0f);
 
 	ImGui::SameLine();
-	std::stringstream ss;
+	ss.clear();
 	ss << "Scale: " << std::setprecision(2) << mScale;
 	ImGui::Text(ss.str().c_str());
+
+	ImGui::PopID();
 }
