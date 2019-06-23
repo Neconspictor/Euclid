@@ -6,7 +6,7 @@ out vec4 Out_Color;
 
 layout(binding = 0) uniform samplerCube Texture;
 uniform uint Side; 
-uniform uint mipMapLevel;
+uniform int MipMapLevel;
 
 void main()
 {
@@ -62,5 +62,5 @@ void main()
             break;
     }
     
-    Out_Color = Frag_Color * textureLod(Texture, normalize(vec3(x, y, z)), mipMapLevel);
+    Out_Color = Frag_Color * textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
 }

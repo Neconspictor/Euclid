@@ -58,8 +58,20 @@ void nex::gui::TextureView::drawSelf()
 	const auto& data = mDesc.texture->getTextureData();
 
 	std::stringstream ss1;
-	ss1 << "MipMap count: " << data.lodMaxLevel - data.lodBaseLevel;
-	ImGui::Text(ss1.str().c_str());
+	const auto mipMapCount = data.lodMaxLevel - data.lodBaseLevel;
+
+	if (mipMapCount > 0)
+	{
+		std::vector<const char*> items(mipMapCount);
+		std::vector<std::string> content(mipMapCount);
+		for (unsigned i = 0; i < mipMapCount; ++i)
+		{
+			content[i] = std::to_string(i);
+			items[i] = content[i].c_str();
+		}
+
+		ImGui::Combo("Mimmap level", (int*)&mDesc.lod, (const char**)items.data(), items.size());
+	}
 
 	if (target == TextureTarget::CUBE_MAP)
 	{

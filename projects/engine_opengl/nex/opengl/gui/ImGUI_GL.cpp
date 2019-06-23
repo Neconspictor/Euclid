@@ -23,6 +23,7 @@ namespace nex::gui
 
 			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
 			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
+			mMipMapLevel = { mShader->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
 			mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
@@ -45,10 +46,16 @@ namespace nex::gui
 			mShader->setUInt(mSide.location, (unsigned)side);
 		}
 
+		void setMipMapLevel(int level)
+		{
+			mShader->setInt(mMipMapLevel.location, level);
+		}
+
 	private:
 
 		nex::UniformTex mTexture;
 		nex::Uniform mSide;
+		nex::Uniform mMipMapLevel;
 		nex::Uniform mProjMtx;
 	};
 
@@ -353,6 +360,7 @@ namespace nex::gui
 		drawer->bind();
 		drawer->setTexture(desc->texture, nullptr);
 		drawer->setCubeMapSide(desc->side);
+		drawer->setMipMapLevel(desc->lod);
 
 		if (init)
 		{
