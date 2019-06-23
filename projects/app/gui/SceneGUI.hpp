@@ -4,6 +4,7 @@
 #include <nex/gui/Menu.hpp>
 #include <nex/gui/ControllerStateMachine.hpp>
 #include "nex/math/Ray.hpp"
+#include "nex/gui/TextureView.hpp"
 
 
 namespace nex
@@ -56,6 +57,6 @@ namespace nex::gui
 		void drawSelf() override;
 
 		Picker* mPicker;
-		ImGUI_ImageDesc mProbePrefiltered;
+		TextureView mTextureView;
 	};
 }

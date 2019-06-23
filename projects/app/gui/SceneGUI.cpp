@@ -54,8 +54,9 @@ namespace nex::gui
 		m_menuBar.drawGUI();
 	}
 
-	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr)
+	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), mTextureView({}, ImVec2(0, 0))
 	{
+		mTextureView.setViewSize(ImVec2(256, 256));
 	}
 
 	SceneNodeProperty::~SceneNodeProperty() = default;
@@ -138,13 +139,19 @@ namespace nex::gui
 			auto* probe = probeVob->getProbe();
 			ImGui::Text("pbr probe vob");
 
-			//auto* texture = PbrProbe::getBrdfLookupTexture();
-			auto* texture = probe->getPrefilteredEnvironmentMap();
-			mProbePrefiltered.texture = texture;
-			mProbePrefiltered.level = 0;
-			mProbePrefiltered.lod = 0;
-			mProbePrefiltered.sampler = nullptr;
-			ImGui::Image((void*)&mProbePrefiltered, ImVec2(texture->getSideWidth() * 8, texture->getSideHeight() * 8));
+			if (ImGui::TreeNode("Prefiltered map"))
+			{
+				//auto* texture = PbrProbe::getBrdfLookupTexture();
+				auto* texture = probe->getPrefilteredEnvironmentMap();
+				auto& probePrefiltered = mTextureView.getTexture();
+				probePrefiltered.texture = texture;
+				probePrefiltered.sampler = nullptr;
+
+				mTextureView.updateTexture(true);
+				mTextureView.drawGUI();
+				
+				ImGui::TreePop();
+			}
 
 		} else
 		{

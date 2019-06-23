@@ -58,17 +58,19 @@ set(
 	nex/gui/Drawable.hpp
     nex/gui/Gizmo.cpp
     nex/gui/Gizmo.hpp
+    nex/gui/ImGUI.cpp
+	nex/gui/ImGUI.hpp
+    nex/gui/imgui_tabs.cpp
+	nex/gui/imgui_tabs.h
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
     nex/gui/Picker.cpp
     nex/gui/Picker.hpp
 	nex/gui/Style.hpp
-	nex/gui/imgui_tabs.cpp
-	nex/gui/imgui_tabs.h
+    nex/gui/TextureView.cpp
+    nex/gui/TextureView.hpp
 	nex/gui/Util.cpp
 	nex/gui/Util.hpp
-    nex/gui/ImGUI.cpp
-	nex/gui/ImGUI.hpp
     
 	#nex/light
 	nex/light/Light.hpp

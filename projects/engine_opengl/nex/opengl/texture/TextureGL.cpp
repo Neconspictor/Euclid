@@ -51,19 +51,6 @@ nex::CubeMap::CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData
 {
 }
 
-unsigned nex::CubeMap::getSideWidth() const
-{
-	const auto impl = (CubeMapGL*)mImpl.get();
-	return impl->getSideWidth();
-}
-
-unsigned nex::CubeMap::getSideHeight() const
-{
-	const auto impl = (CubeMapGL*)mImpl.get();
-	return impl->getSideHeight();
-}
-
-
 nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 {
 	static Side const table[]
@@ -82,43 +69,23 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : Impl(TextureTargetGl::CUBE_MAP, data), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : Impl(TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 0)
 {
 	const auto internalFormat = (GLenum)nex::translate(data.internalFormat);
 
-	generateTexture(&mTextureID, data, (GLenum)mTarget);
-	resizeTexImage2D(mTextureID, 1, mSideWidth, mSideHeight, internalFormat, data.generateMipMaps);
+	generateTexture(&mTextureID, data, (GLenum)mTargetGL);
+	resizeTexImage2D(mTextureID, 1, mWidth, mHeight, internalFormat, data.generateMipMaps);
 	if (data.generateMipMaps) generateMipMaps();
 }
 
-nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data) : Impl(cubeMap, TextureTargetGl::CUBE_MAP, data), mSideWidth(sideWidth), mSideHeight(sideHeight)
+nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data) : 
+Impl(cubeMap, TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 0)
 {
 }
-
 
 GLuint nex::CubeMapGL::getCubeMap() const
 {
 	return mTextureID;
-}
-
-unsigned nex::CubeMapGL::getSideWidth() const
-{
-	return mSideWidth;
-}
-
-unsigned nex::CubeMapGL::getSideHeight() const
-{
-	return mSideHeight;
-}
-
-void nex::CubeMapGL::setSideWidth(unsigned width)
-{
-	mSideWidth = width;
-}
-
-void nex::CubeMapGL::setSideHeight(unsigned height)
-{
-	mSideHeight = height;
 }
 
 void nex::CubeMapGL::setCubeMap(GLuint id)
@@ -162,7 +129,8 @@ nex::InternFormat nex::RenderBuffer::getFormat() const
 }
 
 
-nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, const TextureData& data) : Impl(GL_FALSE, TextureTargetGl::RENDERBUFFER, data), mWidth(width), mHeight(height)
+nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, const TextureData& data) : 
+Impl(GL_FALSE, TextureTarget::RENDER_BUFFER, data, width, height, 0)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
 	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(data.internalFormat), width, height));
@@ -177,7 +145,7 @@ nex::RenderBufferGL::~RenderBufferGL()
 }
 
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureData& data)
-	: Impl(texture, TextureTargetGl::RENDERBUFFER, data), mWidth(width), mHeight(height)
+	: Impl(texture, TextureTarget::RENDER_BUFFER, data, width, height, 0)
 {
 }
 
@@ -287,9 +255,29 @@ void nex::Texture::generateMipMaps()
 	mImpl->generateMipMaps();
 }
 
+nex::TextureTarget nex::Texture::getTarget() const
+{
+	return mImpl->getTarget();
+}
+
 const nex::TextureData& nex::Texture::getTextureData() const
 {
 	return ((Texture::Impl*)getImpl())->getTextureData();
+}
+
+unsigned nex::Texture::getWidth() const
+{
+	return mImpl->getWidth();
+}
+
+unsigned nex::Texture::getHeight() const
+{
+	return mImpl->getHeight();
+}
+
+unsigned nex::Texture::getDepth() const
+{
+	return mImpl->getDepth();
 }
 
 nex::Texture::Impl* nex::Texture::getImpl() const
@@ -313,11 +301,17 @@ void nex::Texture::setImpl(std::unique_ptr<Impl> impl)
 	mImpl = std::move(impl);
 }
 
-nex::Texture::Impl::Impl(TextureTargetGl target, const TextureData& data) : mTextureID(GL_FALSE), mTarget(target), mTextureData(data)
+nex::Texture::Impl::Impl(TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth) : 
+mTextureID(GL_FALSE), mTarget(target),
+mTargetGL(translate(target)), mTextureData(data),
+mWidth(width), mHeight(height), mDepth(depth)
 {
 }
 
-nex::Texture::Impl::Impl(GLuint texture, TextureTargetGl target, const TextureData& data) : mTextureID(texture), mTarget(target), mTextureData(data)
+nex::Texture::Impl::Impl(GLuint texture, TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth) : 
+mTextureID(texture), mTarget(target),
+mTargetGL(translate(target)), mTextureData(data),
+mWidth(width), mHeight(height), mDepth(depth)
 {
 }
 
@@ -342,7 +336,7 @@ void nex::Texture::Impl::generateMipMaps()
 std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
 	unsigned minLayer, unsigned numLayers, const TextureData& data)
 {
-	auto result = make_unique<Impl>(original->getTarget(), data);
+	auto result = make_unique<Impl>(original->getTarget(), data, original->getWidth(), original->getHeight(), original->getDepth());
 	// TODO check whether target and the target of the original texture are compatible!
 	const auto targetGL = (GLenum)translate(target);
 
@@ -459,9 +453,29 @@ void nex::Texture::Impl::setTexture(GLuint id)
 	mTextureID = id;
 }
 
-nex::TextureTargetGl nex::Texture::Impl::getTarget() const
+nex::TextureTarget nex::Texture::Impl::getTarget() const
 {
 	return mTarget;
+}
+
+nex::TextureTargetGl nex::Texture::Impl::getTargetGL() const
+{
+	return mTargetGL;
+}
+
+unsigned nex::Texture::Impl::getWidth() const
+{
+	return mWidth;
+}
+
+unsigned nex::Texture::Impl::getHeight() const
+{
+	return mHeight;
+}
+
+unsigned nex::Texture::Impl::getDepth() const
+{
+	return mDepth;
 }
 
 nex::Texture2D::Texture2D(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
@@ -474,18 +488,6 @@ nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& te
 {
 }
 
-unsigned nex::Texture2D::getWidth() const
-{
-	auto impl = (Texture2DGL*)mImpl.get();
-	return impl->getWidth();
-}
-
-unsigned nex::Texture2D::getHeight() const
-{
-	auto impl = (Texture2DGL*)mImpl.get();
-	return impl->getHeight();
-}
-
 void nex::Texture2D::resize(unsigned width, unsigned height)
 {
 	Texture2DGL* impl = (Texture2DGL*)mImpl.get();
@@ -493,9 +495,9 @@ void nex::Texture2D::resize(unsigned width, unsigned height)
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
-	Impl(GL_FALSE, TextureTargetGl::TEXTURE2D, textureData), mWidth(width), mHeight(height), mData(textureData)
+	Impl(GL_FALSE, TextureTarget::TEXTURE2D, textureData, width, height, 0), mData(textureData)
 {
-	generateTexture(&mTextureID, textureData, (GLenum)mTarget);
+	generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
 
 	resizeTexImage2D(mTextureID,
@@ -520,28 +522,8 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
-	: Impl(texture, TextureTargetGl::TEXTURE2D, textureData), mWidth(width), mHeight(height), mData(textureData)
+	: Impl(texture, TextureTarget::TEXTURE2D, textureData, width, height, 0), mData(textureData)
 {
-}
-
-unsigned nex::Texture2DGL::getWidth() const
-{
-	return mWidth;
-}
-
-unsigned nex::Texture2DGL::getHeight() const
-{
-	return mHeight;
-}
-
-void nex::Texture2DGL::setHeight(int height)
-{
-	mHeight = height;
-}
-
-void nex::Texture2DGL::setWidth(int width)
-{
-	mWidth = width;
 }
 
 void nex::Texture2DGL::resize(unsigned width, unsigned height)
@@ -577,15 +559,15 @@ unsigned nex::Texture2DMultisample::getSamples() const
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData,
 	unsigned samples) : Texture2DGL(GL_FALSE, textureData, width, height), mSamples(samples)
 {
-	mTarget = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
-	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
+	mTargetGL = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
+	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 	resize(width, height);
 }
 
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples,
 	unsigned width, unsigned height) : Texture2DGL(texture, textureData, width, height), mSamples(samples)
 {
-	mTarget = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
+	mTargetGL = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
 }
 
 void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height)
@@ -616,29 +598,10 @@ void nex::Texture2DArray::resize(unsigned width, unsigned height, unsigned depth
 	impl->resize(width, height, depth);
 }
 
-unsigned nex::Texture2DArray::getWidth() const
-{
-	auto impl = (Texture2DArrayGL*)mImpl.get();
-	return impl->getWidth();
-}
-
-unsigned nex::Texture2DArray::getHeight() const
-{
-	auto impl = (Texture2DArrayGL*)mImpl.get();
-	return impl->getHeight();
-}
-
-unsigned nex::Texture2DArray::getDepth() const
-{
-	auto impl = (Texture2DArrayGL*)mImpl.get();
-	return impl->getDepth();
-}
-
-
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data) :
-	Impl(GL_FALSE, TextureTargetGl::TEXTURE2D_ARRAY, textureData), mWidth(width), mHeight(height), mDepth(depth), mData(textureData)
+	Impl(GL_FALSE, TextureTarget::TEXTURE2D_ARRAY, textureData, width, height, depth), mData(textureData)
 {
-	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTarget);
+	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
 		resizeTexImage3D(mTextureID,
 			1,
@@ -666,23 +629,8 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint dept
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned depth)
-	: Impl(texture, TextureTargetGl::TEXTURE2D_ARRAY, textureData), mWidth(width), mHeight(height), mDepth(depth), mData(textureData)
+	: Impl(texture, TextureTarget::TEXTURE2D_ARRAY, textureData, width, height, depth), mData(textureData)
 {
-}
-
-unsigned nex::Texture2DArrayGL::getWidth() const
-{
-	return mWidth;
-}
-
-unsigned nex::Texture2DArrayGL::getHeight() const
-{
-	return mHeight;
-}
-
-unsigned nex::Texture2DArrayGL::getDepth() const
-{
-	return mDepth;
 }
 
 void nex::Texture2DArrayGL::setHeight(unsigned height)
@@ -903,6 +851,8 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 
 		// cubemap
 		TextureTargetGl::CUBE_MAP,
+
+		TextureTargetGl::RENDERBUFFER,
 	};
 
 	static const unsigned size = (unsigned)TextureTarget::LAST - (unsigned)TextureTarget::FIRST + 1;

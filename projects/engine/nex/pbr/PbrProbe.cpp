@@ -232,8 +232,8 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 	const auto components = 3;
 	const auto format = (unsigned)ColorSpace::RGB;
 	const auto pixelDataSize = sizeof(float) * components; // RGB32F
-	const auto width = getEnvironmentMap()->getSideWidth();
-	const auto height = getEnvironmentMap()->getSideHeight();
+	const auto width = getEnvironmentMap()->getWidth();
+	const auto height = getEnvironmentMap()->getHeight();
 	const auto sideSlice = width * height * pixelDataSize;
 	std::vector<char> pixels(sideSlice * 6);
 	environmentMap->readback(
@@ -275,8 +275,8 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 		const auto format = (unsigned)ColorSpace::RGB;
 		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
 		unsigned mipMapDivisor = std::pow(2, level);
-		const auto width = getConvolutedEnvironmentMap()->getSideWidth() / mipMapDivisor;
-		const auto height = getConvolutedEnvironmentMap()->getSideHeight() / mipMapDivisor;
+		const auto width = getConvolutedEnvironmentMap()->getWidth() / mipMapDivisor;
+		const auto height = getConvolutedEnvironmentMap()->getHeight() / mipMapDivisor;
 		const auto sideSlice = width * height * pixelDataSize;
 		std::vector<char> pixels(sideSlice * 6);
 
@@ -308,7 +308,7 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 {
 	StoreImage store;
-	const auto mipMapLevelZero = min<unsigned>(prefilteredEnvMap->getSideWidth(), prefilteredEnvMap->getSideHeight());
+	const auto mipMapLevelZero = min<unsigned>(prefilteredEnvMap->getWidth(), prefilteredEnvMap->getHeight());
 	const auto mipMapCount = prefilteredEnvMap->getMipMapCount(mipMapLevelZero);
 
 	StoreImage::create(&store, 6, mipMapCount, TextureTarget::CUBE_MAP);
@@ -320,8 +320,8 @@ StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
 		const auto format = (unsigned)ColorSpace::RGB;
 		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
 		unsigned mipMapDivisor = std::pow(2, level);
-		const auto width = getPrefilteredEnvironmentMap()->getSideWidth() / mipMapDivisor;
-		const auto height = getPrefilteredEnvironmentMap()->getSideHeight() / mipMapDivisor;
+		const auto width = getPrefilteredEnvironmentMap()->getWidth() / mipMapDivisor;
+		const auto height = getPrefilteredEnvironmentMap()->getHeight() / mipMapDivisor;
 		const auto sideSlice = width * height * pixelDataSize;
 		std::vector<char> pixels(sideSlice * 6);
 

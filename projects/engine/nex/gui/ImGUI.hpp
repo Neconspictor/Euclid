@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <nex/math/Constant.hpp>
+#include <nex/texture/TextureSamplerData.hpp>
 
 namespace nex
 {
@@ -38,16 +39,19 @@ namespace nex::gui
 
 	struct ImGUI_ImageDesc
 	{
-		// the texture to dispaly. Mustn't be nullptr
-		Texture* texture;
+		// the texture to display.
+		Texture* texture = nullptr;
 
 		// can be nullptr - then a default sampler object is used
-		Sampler* sampler;
+		Sampler* sampler = nullptr;
 
 		// level of Detail (mipmap); only used if the sampler's minfilter supports mipmapping.
-		unsigned lod;
-		// Only for texture arrays, 3d textures or cubemaps. 
+		unsigned lod = 0;
+		// Only for texture arrays, 3d textures or cubemap arrays. 
 		// Specify the index for a texture array, the depth for a 3d texture or the side of a cubemap.
-		unsigned level; 
+		unsigned level = 0;
+
+		// Only used for cubemaps and cubemap arrays
+		CubeMapSide side = CubeMapSide::POSITIVE_X;
 	};
 }

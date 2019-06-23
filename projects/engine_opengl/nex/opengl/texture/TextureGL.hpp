@@ -161,8 +161,8 @@ namespace nex
 	class Texture::Impl
 	{
 	public:
-		explicit Impl(TextureTargetGl target, const TextureData& data);
-		Impl(GLuint texture, TextureTargetGl target, const TextureData& data);
+		explicit Impl(TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth);
+		Impl(GLuint texture, TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth);
 
 		virtual ~Impl();
 		const TextureData& getTextureData() const;
@@ -207,14 +207,39 @@ namespace nex
 			bool generateMipMaps);
 
 		void setTexture(GLuint id);
-		TextureTargetGl getTarget() const;
+		TextureTarget getTarget() const;
+		TextureTargetGl getTargetGL() const;
+
+		/**
+		 * Provides the width of the texture.
+		 * For Cubemaps the width of each side is meant.
+		 */
+		unsigned getWidth() const;
+
+		/**
+		 * Provides the height of the texture.
+		 * For Cubemaps the height of each side is meant.
+		 * If the texture has no height (1D textures), 0 will be returned.
+		 */
+		unsigned getHeight() const;
+
+		/**
+		 * Provides the depth of the texture.
+		 * If the texture has no ´depth (1D/2D and cubemap textures), 0 will be returned.
+		 */
+		unsigned getDepth() const;
 
 	protected:
 		friend Texture;
 
 		GLuint mTextureID;
-		TextureTargetGl mTarget;
+		TextureTarget mTarget;
+		TextureTargetGl mTargetGL;
 		TextureData mTextureData;
+
+		unsigned mWidth;
+		unsigned mHeight;
+		unsigned mDepth;
 	};
 
 	class Texture2DGL : public Texture::Impl
@@ -223,18 +248,10 @@ namespace nex
 		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
 		Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0);
 
-		unsigned getWidth() const;
-		unsigned getHeight() const;
-
-		void setHeight(int height);
-		void setWidth(int width);
-
 		virtual void resize(unsigned width, unsigned height);
 
 	protected:
 		friend Texture2D;
-		unsigned mWidth;
-		unsigned mHeight;
 		unsigned mSamples;
 		TextureData mData;
 	};
@@ -258,10 +275,6 @@ namespace nex
 		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
 		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
-		unsigned getWidth() const;
-		unsigned getHeight() const;
-		unsigned getDepth() const;
-
 		void setHeight(unsigned height);
 		void setWidth(unsigned width);
 		void setDepth(unsigned depth);
@@ -270,9 +283,6 @@ namespace nex
 
 	protected:
 		friend Texture2DArray;
-		unsigned mWidth;
-		unsigned mHeight;
-		unsigned mDepth;
 		TextureData mData;
 	};
 
@@ -300,17 +310,7 @@ namespace nex
 
 		GLuint getCubeMap() const;
 
-		unsigned getSideWidth() const;
-		unsigned getSideHeight() const;
-
 		void setCubeMap(GLuint id);
-
-		void setSideWidth(unsigned width);
-		void setSideHeight(unsigned height);
-
-	protected:
-		unsigned mSideWidth;
-		unsigned mSideHeight;
 	};
 
 
@@ -324,9 +324,5 @@ namespace nex
 		InternFormat getFormat() const;
 
 		void resize(unsigned width, unsigned height);
-
-	private:
-		unsigned mWidth;
-		unsigned mHeight;
 	};
 }

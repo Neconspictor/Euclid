@@ -116,7 +116,11 @@ namespace nex
 		TEXTURE3D,
 
 		// cubemap
-		CUBE_MAP, LAST = CUBE_MAP,
+		CUBE_MAP, 
+		
+		RENDER_BUFFER,
+		
+		LAST = RENDER_BUFFER,
 	};
 
 		/**

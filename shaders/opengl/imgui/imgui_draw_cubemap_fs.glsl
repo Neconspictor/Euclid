@@ -5,7 +5,7 @@ in vec4 Frag_Color;
 out vec4 Out_Color;
 
 layout(binding = 0) uniform samplerCube Texture;
-uniform vec3 Axis; 
+uniform uint Side; 
 
 void main()
 {
@@ -18,36 +18,48 @@ void main()
     
     // flip T
     float transformedT = -(Frag_UV.t - 0.5);
-
-    // top
-    //float x = transformedS;
-    //float y = 0.5;
-    //float z = transformedT;
     
-    // bottom
-    //float x = transformedS;
-    //float y = -0.5;
-    //float z = -transformedT;
+    float x,y,z;
     
-    // front
-    //float x = transformedS;
-    //float y = -transformedT;
-    //float z = 0.5;
     
-    // back
-    //float x = -transformedS;
-    //float y = -transformedT;
-    //float z = -0.5;
-    
-    // right
-    float x = 0.5;
-    float y = -transformedT;
-    float z = -transformedS;
-    
-    // left
-    //float x = -0.5;
-    //float y = -transformedT;
-    //float z = transformedS;
+    switch(Side) {
+        case(0):
+            // right
+            x = 0.5;
+            y = -transformedT;
+            z = -transformedS;
+            break;
+        case(1):
+            // left
+            x = -0.5;
+            y = -transformedT;
+            z = transformedS;
+            break;    
+        case(2):
+            // top
+            x = transformedS;
+            y = 0.5;
+            z = transformedT;
+            break;
+        case(3):
+            // bottom
+            x = transformedS;
+            y = -0.5;
+            z = -transformedT;
+            break;    
+        case(4):
+            // front
+            x = transformedS;
+            y = -transformedT;
+            z = 0.5;
+            break;    
+        case(5):
+            // back
+            x = -transformedS;
+            y = -transformedT;
+            z = -0.5;
+            break;
+    }
     
     Out_Color = Frag_Color * texture( Texture, normalize(vec3(x, y, z)));
 }

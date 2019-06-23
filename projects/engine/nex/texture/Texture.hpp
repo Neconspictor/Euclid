@@ -47,7 +47,30 @@ namespace nex
 		 */
 		void generateMipMaps();
 
+		// Has to be implemented by renderer backend
+		TextureTarget getTarget() const;
+
 		const TextureData& getTextureData() const;
+
+		/**
+		 * Provides the width of the texture.
+		 * For Cubemaps the width of each side is meant.
+		 */
+		unsigned getWidth() const;
+
+		/**
+		 * Provides the height of the texture.
+		 * For Cubemaps the height of each side is meant.
+		 * If the texture has no height (1D textures), 0 will be returned.
+		 */
+		unsigned getHeight() const;
+
+		/**
+		 * Provides the depth of the texture.
+		 * If the texture has no ´depth (1D/2D and cubemap textures), 0 will be returned.
+		 */
+		unsigned getDepth() const;
+
 
 		/**
 		 * Reads a texture back from the gpu
@@ -80,12 +103,6 @@ namespace nex
 		 * NOTE: Has to be implemented by renderer backend
 		 */
 		void resize(unsigned width, unsigned height);
-
-		// Has to be implemented by renderer backend
-		unsigned getWidth() const;
-
-		// Has to be implemented by renderer backend
-		unsigned getHeight() const;
 	};
 
 	class Texture2DMultisample : public Texture2D
@@ -128,10 +145,6 @@ namespace nex
 		 * NOTE: Has to be implemented by renderer backend
 		 */
 		void resize(unsigned width, unsigned height, unsigned depth);
-
-		unsigned getWidth() const;
-		unsigned getHeight() const;
-		unsigned getDepth() const;
 	};
 
 	class RenderBuffer : public Texture {
@@ -159,9 +172,6 @@ namespace nex
 		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
 
 		virtual ~CubeMap() = default;
-
-		unsigned getSideWidth() const;
-		unsigned getSideHeight() const;
 
 		/**
 		 * Provides a 'look at' view matrix for a specific cubemap side

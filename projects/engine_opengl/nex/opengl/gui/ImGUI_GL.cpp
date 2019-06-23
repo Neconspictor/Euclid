@@ -22,7 +22,7 @@ namespace nex::gui
 			mShader = nex::Shader::create(vertexShader, fragmentShader);
 
 			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
-			mAxis = { mShader->getUniformLocation("Axis"), nex::UniformType::VEC3 };
+			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
 		}
@@ -38,15 +38,15 @@ namespace nex::gui
 			mShader->setMat4(mProjMtx.location, mat);
 		}
 
-		void setAxis(const glm::vec3& vec)
+		void setCubeMapSide(CubeMapSide side)
 		{
-			mShader->setVec3(mAxis.location, vec);
+			mShader->setUInt(mSide.location, (unsigned)side);
 		}
 
 	private:
 
 		nex::UniformTex mTexture;
-		nex::Uniform mAxis;
+		nex::Uniform mSide;
 		nex::Uniform mProjMtx;
 	};
 
@@ -340,8 +340,9 @@ namespace nex::gui
 		Drawer* drawer = mShaderTexture2D.get();
 
 		auto* texture = desc->texture;
+		const auto target = texture->getTarget();
 
-		if (auto* cubemap = dynamic_cast<CubeMap*>(desc->texture))
+		if (target == TextureTarget::CUBE_MAP)
 		{
 			drawer = mShaderCubeMap.get();
 		}
@@ -349,10 +350,10 @@ namespace nex::gui
 		const bool init = !drawer->isBound();
 		drawer->bind();
 		drawer->setTexture(desc->texture, nullptr);
+		drawer->setCubeMapSide(desc->side);
 
 		if (init)
 		{
-			drawer->setAxis(glm::vec3(1, 0, 0));
 			drawer->setProjMtx(projection);
 		}
 	}
