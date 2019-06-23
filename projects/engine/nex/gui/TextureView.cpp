@@ -55,6 +55,12 @@ void nex::gui::TextureView::drawSelf()
 
 	const auto target = mDesc.texture->getTarget();
 
+	const auto& data = mDesc.texture->getTextureData();
+
+	std::stringstream ss1;
+	ss1 << "MipMap count: " << data.lodMaxLevel - data.lodBaseLevel;
+	ImGui::Text(ss1.str().c_str());
+
 	if (target == TextureTarget::CUBE_MAP)
 	{
 		const char* items[] = { "Right", "Left", "Top", "Bottom", "Front", "Back" };

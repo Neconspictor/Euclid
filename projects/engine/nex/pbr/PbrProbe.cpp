@@ -116,6 +116,8 @@ PbrProbe::~PbrProbe() = default;
 void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
 
+	Viewport backup = RenderBackend::get()->getViewport();
+
 	mTechnique = std::make_unique<ProbeTechnique>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
 
@@ -157,6 +159,11 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		InternFormat::RG32F,
 		false };
 
+		data.minLOD = 0;
+		data.maxLOD = readImage.mipmapCount-1;
+		data.lodBaseLevel = 0;
+		data.lodMaxLevel = readImage.mipmapCount - 1;
+
 		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data));
 		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
 	}
@@ -166,6 +173,8 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
 		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
+
+	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
 }
 
 Mesh* PbrProbe::getSphere()
@@ -628,6 +637,12 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			InternFormat::RGB32F,
 			false
 		};
+
+		data.minLOD = 0;
+		data.maxLOD = readImage.mipmapCount - 1;
+		data.lodBaseLevel = 0;
+		data.lodMaxLevel = readImage.mipmapCount - 1;
+
 		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	} else
 	{
@@ -661,6 +676,12 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			InternFormat::RGB32F,
 			false
 		};
+
+		data.minLOD = 0;
+		data.maxLOD = readImage.mipmapCount - 1;
+		data.lodBaseLevel = 0;
+		data.lodMaxLevel = readImage.mipmapCount - 1;
+
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
 	else
@@ -685,7 +706,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		}
 		
 
-		const TextureData data = {
+		TextureData data = {
 			TextureFilter::Linear,
 			TextureFilter::Linear,
 			TextureUVTechnique::ClampToEdge,
@@ -695,6 +716,11 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
 			false };
+
+		data.minLOD = 0;
+		data.maxLOD = readImage.mipmapCount - 1;
+		data.lodBaseLevel = 0;
+		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}

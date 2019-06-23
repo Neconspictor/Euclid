@@ -25,6 +25,8 @@ namespace nex::gui
 			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 
+			mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
+
 		}
 
 		void setTexture(nex::Texture* texture, Sampler* sampler)

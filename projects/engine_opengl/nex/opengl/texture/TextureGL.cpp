@@ -331,6 +331,11 @@ void nex::Texture::Impl::generateMipMaps()
 	GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_BASE_LEVEL, 0));
 	GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_MAX_LEVEL, 1000));
 	GLCall(glGenerateTextureMipmap(mTextureID));
+
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, (int*)&mTextureData.lodBaseLevel));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, (int*)&mTextureData.lodMaxLevel));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, &mTextureData.minLOD));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, &mTextureData.maxLOD));
 }
 
 std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
