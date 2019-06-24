@@ -233,14 +233,17 @@ namespace nex::gui
 				if (pcmd->UserCallback)
 				{
 					pcmd->UserCallback(cmd_list, pcmd);
-				}
-				else
+				} else
 				{
 					bindTextureShader((ImGUI_ImageDesc*)pcmd->TextureId, ortho_projection);
+				}
 
+				if (!pcmd->UserCallback || (pcmd->UserCallback && pcmd->ElemCount > 0))
+				{
 					backend->setScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
 					backend->drawWithIndices(state, Topology::TRIANGLES, pcmd->ElemCount, mIndices->getType(), idx_buffer_offset);
 				}
+
 				idx_buffer_offset += pcmd->ElemCount * sizeof(ImDrawIdx);
 			}
 		}

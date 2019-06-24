@@ -1,9 +1,31 @@
 #include <nex/gui/TextureView.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/math/Math.hpp>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui/imgui_internal.h>
+#include "nex/shader/Pass.hpp"
+#include <nex/renderer/RenderTypes.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+
+class nex::gui::TextureView::CheckerboardPattern : public Pass
+{
+public:
+	CheckerboardPattern() : Pass(Shader::create("imgui/checkerboard_vs.glsl", "imgui/checkerboard_fs.glsl"))
+	{
+		mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+	}
+
+	void setProjMtx(const glm::mat4& mat)
+	{
+		mShader->setMat4(mProjMtx.location, mat);
+	}
+
+	nex::Uniform mProjMtx;
+};
+
 
 nex::gui::TextureView::TextureView(const ImGUI_ImageDesc& textureDesc, const ImVec2& viewSize) : mDesc(textureDesc), mViewSize(viewSize),
-mScale(1.0f)
+mScale(1.0f), mOpacity(1.0f)
 {
 	updateScale();
 }
@@ -23,14 +45,13 @@ void nex::gui::TextureView::updateTexture(bool updateScaleWhenChanged)
 		{
 			updateScale();
 		} 
-
 	}
 }
 
 void nex::gui::TextureView::updateScale()
 {
-	auto minTex = std::min(mTextureSize.x, mTextureSize.y);
-	auto minView = std::min(mViewSize.x, mViewSize.y);
+	auto minTex = std::min<float>(mTextureSize.x, mTextureSize.y);
+	auto minView = std::min<float>(mViewSize.x, mViewSize.y);
 	mScale = minView / minTex;
 
 	if (!isValid(mScale)) mScale = 1.0f;
@@ -39,6 +60,56 @@ void nex::gui::TextureView::updateScale()
 void nex::gui::TextureView::setViewSize(const ImVec2& size)
 {
 	mViewSize = size;
+}
+
+const ImVec2& nex::gui::TextureView::getViewSize() const
+{
+	return mViewSize;
+}
+
+const ImVec2& nex::gui::TextureView::getTextureSize() const
+{
+	return mTextureSize;
+}
+
+void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	if (window->SkipItems)
+		return;
+
+	ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	ImGui::ItemSize(bb);
+	if (!ImGui::ItemAdd(bb, 0))
+		return;
+
+	auto* drawList = ImGui::GetWindowDrawList();
+	static ImDrawCallback test = [](const ImDrawList* parent_list, const ImDrawCmd* cmd)-> void
+	{
+		TextureView* view = (TextureView*)cmd->UserCallbackData;
+		view->getTexture();
+		const auto& io = ImGui::GetIO();
+
+		static CheckerboardPattern pass;
+
+		const glm::mat4 ortho_projection =
+		{
+			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
+			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
+			{ 0.0f,                  0.0f,                  -1.0f, 0.0f },
+			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
+		};
+
+		pass.bind();
+		pass.setProjMtx(ortho_projection);
+	};
+	drawList->AddDrawCmd();
+	ImDrawCmd* current_cmd = &drawList->CmdBuffer.back();
+	drawList->PrimReserve(6, 4);
+	drawList->PrimRectUV(bb.Min, bb.Max, ImVec2(0,0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1,1,1,1)));
+
+	current_cmd->UserCallback = test;
+	current_cmd->UserCallbackData = this;
 }
 
 ImVec2 nex::gui::TextureView::calcTextureSize(const ImGUI_ImageDesc& desc)
@@ -72,11 +143,11 @@ void nex::gui::TextureView::drawSelf()
 			items[i] = content[i].c_str();
 		}
 
-		ImGui::Combo("Mimmap level", (int*)&mDesc.lod, (const char**)items.data(), items.size());
+		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
 	} else
 	{
 		const char* items[] = { "0"};
-		ImGui::Combo("Mimmap level", (int*)&mDesc.lod, (const char**)items, IM_ARRAYSIZE(items));
+		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items, IM_ARRAYSIZE(items));
 	}
 
 	if (target == TextureTarget::CUBE_MAP)
@@ -89,7 +160,14 @@ void nex::gui::TextureView::drawSelf()
 	ss << m_id << "scrolling";
 
 	ImGui::BeginChild(ss.str().c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
-	ImGui::Image((void*)&mDesc, { mScale * mTextureSize.x, mScale * mTextureSize.y }, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0.2, 0.2, 0.2, 1.0));
+
+	ImVec2 imageSize(mScale * mTextureSize.x, mScale * mTextureSize.y);
+
+	auto position = ImGui::GetCursorPos();
+
+	addCheckBoardPattern(imageSize);
+	ImGui::SetCursorPos(position);
+	ImGui::Image((void*)&mDesc, imageSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, mOpacity), ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 	ImGui::EndChild();
 	if (ImGui::Button("+"))
 	{
@@ -103,9 +181,10 @@ void nex::gui::TextureView::drawSelf()
 	mScale = std::clamp(mScale, 0.0f, 1000.0f);
 
 	ImGui::SameLine();
-	ss.clear();
+	ss.str("");
 	ss << "Scale: " << std::setprecision(2) << mScale;
 	ImGui::Text(ss.str().c_str());
+	ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
 
 	ImGui::PopID();
 }

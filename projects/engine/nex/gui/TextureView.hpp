@@ -15,8 +15,14 @@ namespace nex::gui
 
 		void setViewSize(const ImVec2& size);
 
+		const ImVec2& getViewSize()const;
+		const ImVec2& getTextureSize()const;
+
 	protected:
 
+		class CheckerboardPattern;
+
+		void addCheckBoardPattern(const ImVec2& size);
 		static ImVec2 calcTextureSize(const ImGUI_ImageDesc& desc);
 
 		/**
@@ -26,6 +32,7 @@ namespace nex::gui
 		ImGUI_ImageDesc mDesc;
 		ImVec2 mViewSize;
 		ImVec2 mTextureSize;
+		float mOpacity;
 		float mScale;
 	};
 }

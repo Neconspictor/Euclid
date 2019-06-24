@@ -10,10 +10,10 @@ uniform int MipMapLevel;
 
 void main()
 {
-    /**
-     * For more info, see https://www.nvidia.com/object/cube_map_ogl_tutorial.html
-     * (Chapter 'Mapping Texture Coordinates to Cube Map Faces')
-     */
+    //
+    // For more info, see https://www.nvidia.com/object/cube_map_ogl_tutorial.html
+    // (Chapter 'Mapping Texture Coordinates to Cube Map Faces')
+    //
 
     float transformedS = (Frag_UV.s - 0.5);
     
@@ -62,5 +62,17 @@ void main()
             break;
     }
     
-    Out_Color = Frag_Color * textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
+    
+    vec4 color = textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
+    
+    // HDR tonemapping
+    const float exposure = 1.0;
+    color *= exposure;
+    color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    
+    // gamma correct
+    const float gamma = 2.2f;
+    color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
+    
+    Out_Color = Frag_Color * color;
 }
