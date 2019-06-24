@@ -53,5 +53,8 @@ namespace nex::gui
 
 		// Only used for cubemaps and cubemap arrays
 		CubeMapSide side = CubeMapSide::POSITIVE_X;
+
+		bool useTransparency = true;
+		bool useToneMapping = false;
 	};
 }

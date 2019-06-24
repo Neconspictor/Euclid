@@ -25,6 +25,9 @@ namespace nex::gui
 			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
 			mMipMapLevel = { mShader->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
+			mUseTransparency = { mShader->getUniformLocation("UseTransparency"), nex::UniformType::INT };
+			mGammaCorrect = { mShader->getUniformLocation("UseGammaCorrection"), nex::UniformType::INT };
+			mToneMapping = { mShader->getUniformLocation("UseToneMapping"), nex::UniformType::INT };
 
 			mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
 
@@ -51,11 +54,29 @@ namespace nex::gui
 			mShader->setInt(mMipMapLevel.location, level);
 		}
 
+		void setUseTransparency(bool value)
+		{
+			mShader->setInt(mUseTransparency.location, value);
+		}
+
+		void setGammaCorrect(bool value)
+		{
+			mShader->setInt(mGammaCorrect.location, value);
+		}
+
+		void setUseToneMapping(bool value)
+		{
+			mShader->setInt(mToneMapping.location, value);
+		}
+
 	private:
 
 		nex::UniformTex mTexture;
 		nex::Uniform mSide;
 		nex::Uniform mMipMapLevel;
+		nex::Uniform mUseTransparency;
+		nex::Uniform mGammaCorrect;
+		nex::Uniform mToneMapping;
 		nex::Uniform mProjMtx;
 	};
 
@@ -352,6 +373,7 @@ namespace nex::gui
 		Drawer* drawer = mShaderTexture2D.get();
 
 		auto* texture = desc->texture;
+		const auto& pixelDataType = texture->getTextureData().pixelDataType;
 		const auto target = texture->getTarget();
 
 		if (target == TextureTarget::CUBE_MAP)
@@ -361,9 +383,22 @@ namespace nex::gui
 
 		const bool init = !drawer->isBound();
 		drawer->bind();
-		drawer->setTexture(desc->texture, nullptr);
+		drawer->setTexture(desc->texture, desc->sampler);
 		drawer->setCubeMapSide(desc->side);
 		drawer->setMipMapLevel(desc->lod);
+		drawer->setUseTransparency(desc->useTransparency);
+
+		auto colorspace = texture->getTextureData().colorspace;
+
+		if (colorspace == ColorSpace::SRGB || colorspace == ColorSpace::SRGBA)
+		{
+			drawer->setGammaCorrect(false);
+		} else
+		{
+			drawer->setGammaCorrect(true);
+		}
+
+		drawer->setUseToneMapping(desc->useToneMapping);
 
 		if (init)
 		{

@@ -4,7 +4,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include "nex/shader/Pass.hpp"
-#include <nex/renderer/RenderTypes.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 
 class nex::gui::TextureView::CheckerboardPattern : public Pass
@@ -25,9 +24,12 @@ public:
 
 
 nex::gui::TextureView::TextureView(const ImGUI_ImageDesc& textureDesc, const ImVec2& viewSize) : mDesc(textureDesc), mViewSize(viewSize),
-mScale(1.0f), mOpacity(1.0f)
+mScale(1.0f), mOpacity(1.0f), mScrollPaneID(m_id + "ScrollPane"), mUseTransparency(false), mUseToneMapping(false), mSelectedFiltering(0)
 {
 	updateScale();
+	SamplerDesc state;
+	state.minFilter = TextureFilter::Near_Mipmap_Near;
+	mSampler.setState(state);
 }
 
 nex::gui::ImGUI_ImageDesc& nex::gui::TextureView::getTexture()
@@ -131,24 +133,18 @@ void nex::gui::TextureView::drawSelf()
 	const auto& data = mDesc.texture->getTextureData();
 
 	std::stringstream ss1;
-	const auto mipMapCount = data.lodMaxLevel - data.lodBaseLevel;
+	const auto mipMapCount = data.lodMaxLevel - data.lodBaseLevel + 1;
 
-	if (mipMapCount > 0)
-	{
-		std::vector<const char*> items(mipMapCount);
-		std::vector<std::string> content(mipMapCount);
-		for (unsigned i = 0; i < mipMapCount; ++i)
-		{
-			content[i] = std::to_string(i);
-			items[i] = content[i].c_str();
-		}
 
-		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
-	} else
+	std::vector<const char*> items(mipMapCount);
+	std::vector<std::string> content(mipMapCount);
+	for (unsigned i = 0; i < mipMapCount; ++i)
 	{
-		const char* items[] = { "0"};
-		ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items, IM_ARRAYSIZE(items));
+		content[i] = std::to_string(i);
+		items[i] = content[i].c_str();
 	}
+
+	ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
 
 	if (target == TextureTarget::CUBE_MAP)
 	{
@@ -156,17 +152,20 @@ void nex::gui::TextureView::drawSelf()
 		ImGui::Combo("Side", (int*)&mDesc.side, items, IM_ARRAYSIZE(items));
 	}
 
-	std::stringstream ss;
-	ss << m_id << "scrolling";
-
-	ImGui::BeginChild(ss.str().c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild(mScrollPaneID.c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);
 
 	ImVec2 imageSize(mScale * mTextureSize.x, mScale * mTextureSize.y);
 
-	auto position = ImGui::GetCursorPos();
-
-	addCheckBoardPattern(imageSize);
-	ImGui::SetCursorPos(position);
+	if (mUseTransparency)
+	{
+		auto position = ImGui::GetCursorPos();
+		addCheckBoardPattern(imageSize);
+		ImGui::SetCursorPos(position);
+	}
+	
+	mDesc.sampler = &mSampler;
+	mDesc.useTransparency = mUseTransparency;
+	mDesc.useToneMapping = mUseToneMapping;
 	ImGui::Image((void*)&mDesc, imageSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, mOpacity), ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 	ImGui::EndChild();
 	if (ImGui::Button("+"))
@@ -181,10 +180,28 @@ void nex::gui::TextureView::drawSelf()
 	mScale = std::clamp(mScale, 0.0f, 1000.0f);
 
 	ImGui::SameLine();
+	std::stringstream ss;
 	ss.str("");
 	ss << "Scale: " << std::setprecision(2) << mScale;
 	ImGui::Text(ss.str().c_str());
 	ImGui::SliderFloat("Opacity: ", &mOpacity, 0.0f, 1.0f);
+	ImGui::Checkbox("show transparency", &mUseTransparency);
+	ImGui::Checkbox("use tone mapping", &mUseToneMapping);
+
+	{
+		const char* filterings[] = { "Nearest", "Linear"};
+		if (ImGui::Combo("Filtering", (int*)&mSelectedFiltering, filterings, IM_ARRAYSIZE(filterings)))
+		{
+			switch (mSelectedFiltering)
+			{
+			case 0:
+				mSampler.setMinFilter(TextureFilter::Near_Mipmap_Near);
+				break;
+			case 1:
+				mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
+			}
+		}
+	}
 
 	ImGui::PopID();
 }

@@ -60,6 +60,6 @@ namespace nex::gui
 		TextureView mBrdfView;
 		TextureView mConvolutedView;
 		TextureView mPrefilteredView;
-		
+		//TextureView mTransparentView;
 	};
 }

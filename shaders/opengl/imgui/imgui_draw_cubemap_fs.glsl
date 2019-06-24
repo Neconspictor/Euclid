@@ -7,6 +7,9 @@ out vec4 Out_Color;
 layout(binding = 0) uniform samplerCube Texture;
 uniform uint Side; 
 uniform int MipMapLevel;
+uniform int UseTransparency;
+uniform int UseGammaCorrection;
+uniform int UseToneMapping;
 
 void main()
 {
@@ -65,14 +68,21 @@ void main()
     
     vec4 color = textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
     
-    // HDR tonemapping
-    const float exposure = 1.0;
-    color *= exposure;
-    color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    if (UseToneMapping) {
+        const float exposure = 1.0;
+        color *= exposure;
+        color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    }
     
-    // gamma correct
-    const float gamma = 2.2f;
-    color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
+    if (UseGammaCorrection) {
+        // gamma correct
+        const float gamma = 2.2f;
+        color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
+    }
     
-    Out_Color = Frag_Color * color;
+    if (UseTransparency) {
+        Out_Color = Frag_Color * color;
+    } else {
+        Out_Color = Frag_Color * vec4(color.rgb, 1.0);
+    }
 }

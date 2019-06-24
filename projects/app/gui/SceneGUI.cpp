@@ -8,6 +8,7 @@
 #include <nex/Input.hpp>
 #include "NeXEngine.hpp"
 #include "nex/pbr/PbrProbe.hpp"
+#include "nex/texture/TextureManager.hpp"
 
 namespace nex::gui
 {
@@ -58,6 +59,7 @@ namespace nex::gui
 	mBrdfView({}, ImVec2(256, 256)),
 	mConvolutedView({}, ImVec2(256, 256)),
 	mPrefilteredView({}, ImVec2(256, 256))
+	//mTransparentView({}, ImVec2(256, 256))
 	{
 	}
 
@@ -179,6 +181,19 @@ namespace nex::gui
 
 				ImGui::TreePop();
 			}
+
+			/*if (ImGui::TreeNode("transparent texture"))
+			{
+				auto* texture = TextureManager::get()->getImage("transparent/blending_transparent_window.png");
+				auto& desc = mTransparentView.getTexture();
+				desc.texture = texture;
+				desc.sampler = nullptr;
+
+				mTransparentView.updateTexture(true);
+				mTransparentView.drawGUI();
+
+				ImGui::TreePop();
+			}*/
 
 		} else
 		{

@@ -1,6 +1,7 @@
 #pragma once
 #include <nex/gui/Drawable.hpp>
 #include <nex/gui/ImGUI.hpp>
+#include <nex/texture/Sampler.hpp>
 
 namespace nex::gui
 {
@@ -32,7 +33,12 @@ namespace nex::gui
 		ImGUI_ImageDesc mDesc;
 		ImVec2 mViewSize;
 		ImVec2 mTextureSize;
-		float mOpacity;
 		float mScale;
+		float mOpacity;
+		std::string mScrollPaneID;
+		Sampler mSampler;
+		bool mUseTransparency;
+		bool mUseToneMapping;
+		int mSelectedFiltering;
 	};
 }
