@@ -26,6 +26,9 @@
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
 #include "techniques/GlobalIllumination.hpp"
+#include "nex/resource/ResourceLoader.hpp"
+#include <nex/pbr/PbrProbe.hpp>
+#include <memory>
 
 using namespace nex;
 
@@ -68,9 +71,36 @@ void NeXEngine::init()
 
 
 	mWindow = createWindow();
+	//mWindow->activate();
+	Window::WindowStruct desc;
+	desc.shared = mWindow;
+	desc.title = mVideo.windowTitle;
+	desc.fullscreen = mVideo.fullscreen;
+	desc.colorBitDepth = mVideo.colorBitDepth;
+	desc.refreshRate = mVideo.refreshRate;
+	desc.posX = 0;
+	desc.posY = 0;
+
+	// Note that framebuffer width and height are inferred!
+	desc.virtualScreenWidth = mVideo.width;
+	desc.virtualScreenHeight = mVideo.height;
+	desc.visible = false;
+	desc.vSync = mVideo.vSync;
+	auto* secondWindow = mWindowSystem->createWindow(desc);
+	ResourceLoader::init(secondWindow);
+
+	mWindow->activate();
+	mWindow->setVisible(true);
+	mWindow->setVsync(mVideo.vSync);
+
+
 	mInput = mWindow->getInputDevice();
 	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getVirtualScreenWidth(), mWindow->getVirtualScreenHeight()));
 	mBaseTitle = mWindow->getTitle();
+
+
+	// init ImageFactory
+	ImageFactory::init(true);
 
 	// init shader file system
 	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory()});
@@ -81,6 +111,7 @@ void NeXEngine::init()
 
 	// init texture manager
 	TextureManager::get()->init(mGlobals.getTextureDirectory(), mGlobals.getCompiledTextureDirectory(), mGlobals.getCompiledTextureFileExtension());
+
 
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
@@ -95,8 +126,6 @@ void NeXEngine::init()
 		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
-
-	initProbes();
 
 
 	mRenderer = std::make_unique<PBR_Deferred_Renderer>(RenderBackend::get(), 
@@ -128,8 +157,6 @@ void NeXEngine::init()
 	setupCallbacks();
 	setupGUI();
 
-	createScene();
-
 	mInput->addWindowCloseCallback([](Window* window)
 	{
 		void* nativeWindow = window->getNativeWindow();
@@ -139,6 +166,19 @@ void NeXEngine::init()
 			window->reopen();
 		}
 	});
+
+	PbrProbeFactory::get(mGlobals.getCompiledPbrDirectory());
+
+
+	
+
+
+	auto future = initProbes();
+	createScene();
+	
+	
+	future.get();
+	PbrProbe::getSphere()->cook();
 }
 
 bool NeXEngine::isRunning() const
@@ -314,7 +354,7 @@ Window* NeXEngine::createWindow()
 	// Note that framebuffer width and height are inferred!
 	desc.virtualScreenWidth = mVideo.width;
 	desc.virtualScreenHeight = mVideo.height;
-	desc.visible = true;
+	desc.visible = false;
 	desc.vSync = mVideo.vSync;
 
 	return mWindowSystem->createWindow(desc);
@@ -339,10 +379,30 @@ void NeXEngine::initPbr()
 	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
-void NeXEngine::initProbes()
+std::future<void> NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
+	mGlobalIllumination->loadHdr();
+
+	auto probe = std::make_unique<PbrProbe>();
+	auto* pointer = probe.get();
+	mGlobalIllumination->loadProbes(std::move(probe));
 	mPbrTechnique->setProbe(mGlobalIllumination->getProbe());
+
+	return ResourceLoader::get()->enqueue([=]
+	{
+		pointer->initBackground(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+		pointer->initPrefiltered(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+		pointer->loadIrradianceFile(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+
+		pointer->createIrradianceTex(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+		pointer->init(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+
+		RenderBackend::get()->flushPendingCommands();
+	});
+
+	//sceneFuture.get();
+	
 }
 
 void NeXEngine::initRenderBackend()

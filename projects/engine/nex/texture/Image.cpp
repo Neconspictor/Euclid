@@ -1,5 +1,5 @@
 #include <nex/texture/Image.hpp>
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 //#include <DDS.h>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #include <nex/util/ExceptionHandling.hpp>
@@ -45,6 +45,11 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, GenericImage& image)
 	in >> image.stride;
 
 	return in;
+}
+
+void ImageFactory::init(bool flipY)
+{
+	stbi_set_flip_vertically_on_load(flipY);
 }
 
 ImageResource::ImageResource() noexcept : data(nullptr), bytes(0)
@@ -182,10 +187,8 @@ void ImageFactory::writeHDR(const nex::GenericImage& imageData, const char* file
 	stbi_write_hdr(filePath, imageData.width, imageData.height, imageData.channels, (const float*)imageData.pixels.getPixels());
 }
 
-nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int desiredChannels)
+nex::GenericImage ImageFactory::loadHDR(const char* filePath, int desiredChannels)
 {
-	stbi_set_flip_vertically_on_load(flipY);
-
 	int width; 
 	int height; 
 	int channels;
@@ -218,10 +221,8 @@ nex::GenericImage ImageFactory::loadHDR(const char* filePath, bool flipY, int de
 	return image;
 }
 
-GenericImage ImageFactory::loadNonHDR(const char* filePath, bool flipY, int desiredChannels)
+GenericImage ImageFactory::loadNonHDR(const char* filePath, int desiredChannels)
 {
-	stbi_set_flip_vertically_on_load(flipY);
-
 	int width;
 	int height;
 	int channels;

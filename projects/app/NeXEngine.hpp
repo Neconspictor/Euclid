@@ -4,9 +4,10 @@
 #include <nex/util/FPSCounter.hpp>
 #include <nex/config/Configuration.hpp>
 #include <VideoConfig.hpp>
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include "Globals.hpp"
 #include "gui/Controller.hpp"
+#include <future>
 
 namespace nex
 {
@@ -16,6 +17,7 @@ namespace nex
 	class Cursor;
 	class Window;
 	class GlobalIllumination;
+	class ResourceLoader;
 
 	namespace gui
 	{
@@ -49,7 +51,7 @@ namespace nex
 		Window* createWindow();
 		void initLights();
 		void initPbr();
-		void initProbes();
+		std::future<void> initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();

@@ -3,7 +3,7 @@
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <glm/gtc/matrix_transform.inl>
-#include "nex/FileSystem.hpp"
+#include "nex/resource/FileSystem.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <nex/gui/ImGUI.hpp>

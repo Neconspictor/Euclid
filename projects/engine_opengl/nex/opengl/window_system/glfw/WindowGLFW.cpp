@@ -120,9 +120,12 @@ WindowGLFW & WindowGLFW::operator=(WindowGLFW && o)
 	return *this;
 }
 
-void WindowGLFW::activate()
+void WindowGLFW::activate(bool deactivate)
 {
-	glfwMakeContextCurrent(window);
+	if (!deactivate)
+		glfwMakeContextCurrent(window);
+	else
+		glfwMakeContextCurrent(nullptr);
 }
 
 void WindowGLFW::close()
@@ -201,7 +204,9 @@ void WindowGLFW::init()
 	mConfig.virtualScreenWidth = static_cast<unsigned>(w);
 	mConfig.virtualScreenHeight = static_cast<unsigned>(h);
 
-	setVsync(mConfig.vSync);
+	//activate();
+	//setVsync(mConfig.vSync);
+	//activate(true);
 }
 
 bool WindowGLFW::isOpen()
@@ -373,7 +378,7 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 	
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
@@ -403,32 +408,50 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
 #endif
 
+	glfwWindowHint(GLFW_VISIBLE, mConfig.visible);
+
+	glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+	glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
 
 
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 	//glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+	WindowGLFW* windowShared = (WindowGLFW*)mConfig.shared;
+	GLFWwindow* shared = nullptr;
+	if (mConfig.shared)
+		shared = windowShared->getSource();
 
-	window = glfwCreateWindow(mConfig.virtualScreenWidth, mConfig.virtualScreenHeight, mConfig.title.c_str(), nullptr, nullptr);
+	window = glfwCreateWindow(mConfig.virtualScreenWidth, mConfig.virtualScreenHeight, mConfig.title.c_str(), nullptr, shared);
 
 	if (!window)
 	{
 		throw_with_trace(runtime_error("WindowGLFW: Error: Couldn't create GLFWwindow!"));
 	}
 
-	activate();
+	activate(true);
 
-	// Load all OpenGL functions using the glfw loader function
-	// If you use SDL you can use: https://wiki.libsdl.org/SDL_GL_GetProcAddress
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	//if (!gladLoadGL())
-	{
-		throw_with_trace(runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context"));
+	static bool once = false;
+
+	if (!once) {
+		once = true;
+	} else if (once) {
+		//once = true;
+		activate();
+
+		// Load all OpenGL functions using the glfw loader function
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+			//if (!gladLoadGL())
+		{
+			throw_with_trace(runtime_error("WindowGLFW::createOpenGLWindow(): Failed to initialize OpenGL context"));
+		}
+
+		LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
+
+		GLCall(glDebugMessageCallback(DebugCallback, nullptr));
+		GLCall(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE));
+		GLCall(glEnable(GL_DEBUG_OUTPUT));
+
+		activate(true);
 	}
-
-	LOG(mLogger, nex::Info) << "OpenGL version: " << GLVersion.major << "." << GLVersion.minor;
-
-	GLCall(glDebugMessageCallback(DebugCallback, nullptr));
-	GLCall(glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE));
-	GLCall(glEnable(GL_DEBUG_OUTPUT));
 }

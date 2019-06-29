@@ -3,18 +3,14 @@ set(
     
     pch_engine.hpp
     
+	#nex
     nex/EffectLibrary.cpp
     nex/EffectLibrary.hpp
-    
-    nex/Scene.cpp
-    nex/Scene.hpp
-	
-	#nex
-    nex/FileSystem.hpp
-	nex/FileSystem.cpp
     nex/Input.hpp
 	nex/Input.cpp
-	nex/SubSystemProvider.hpp
+	nex/Scene.cpp
+    nex/Scene.hpp
+    nex/SubSystemProvider.hpp
     nex/Window.hpp
 	nex/Window.cpp
     
@@ -31,6 +27,8 @@ set(
     nex/common/debug_break.h
     nex/common/File.hpp
     nex/common/File.cpp
+    nex/common/Future.hpp
+    nex/common/Future.cpp
     nex/common/Log.hpp
     nex/common/Log.cpp
     
@@ -179,6 +177,12 @@ set(
     nex/renderer/Renderer.cpp
     nex/renderer/Renderer.hpp
     nex/renderer/RenderTypes.hpp
+    
+    #nex/resource
+    nex/resource/FileSystem.hpp
+	nex/resource/FileSystem.cpp
+    nex/resource/ResourceLoader.cpp
+    nex/resource/ResourceLoader.hpp
     
     
     #nex/shader

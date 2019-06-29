@@ -12,7 +12,7 @@
 #include <nex/mesh/Sphere.hpp>
 #include "nex/material/Material.hpp"
 #include "nex/material/AbstractMaterialLoader.hpp"
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include "VertexLayout.hpp"
 #include "VertexBuffer.hpp"
 #include "nex/math/Constant.hpp"

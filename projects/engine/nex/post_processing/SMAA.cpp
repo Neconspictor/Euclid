@@ -10,6 +10,7 @@
 #include <nex/material/Material.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
 #include "nex/drawing/StaticMeshDrawer.hpp"
+#include "nex/resource/ResourceLoader.hpp"
 
 
 namespace nex
@@ -132,12 +133,6 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	resize(width, height);
 
 	// TODO load area and search textures
-	TextureData areaDesc;
-	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
-	areaDesc.minFilter = areaDesc.magFilter = TextureFilter::Linear;
-	areaDesc.colorspace = ColorSpace::RGB;
-	areaDesc.internalFormat = InternFormat::RGB8;
-	areaDesc.pixelDataType = PixelDataType::UBYTE;
 
 	//flip y axis of areatex
 	/*std::vector<char>temp(AREATEX_PITCH * AREATEX_HEIGHT);
@@ -146,7 +141,14 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 	mAreaTex = std::make_unique<Texture2D>(AREATEX_WIDTH, AREATEX_HEIGHT, areaDesc, temp.data());*/
 
-	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", true, areaDesc);
+
+	TextureData areaDesc;
+	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
+	areaDesc.minFilter = areaDesc.magFilter = TextureFilter::Linear;
+	areaDesc.colorspace = ColorSpace::RGB;
+	areaDesc.internalFormat = InternFormat::RGB8;
+	areaDesc.pixelDataType = PixelDataType::UBYTE;
+	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", areaDesc);
 
 	TextureData searchDesc;
 	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = TextureUVTechnique::ClampToEdge;
@@ -155,19 +157,12 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	searchDesc.internalFormat = InternFormat::RGB8;
 	searchDesc.pixelDataType = PixelDataType::UBYTE;
 
-	//flip y axis of searchtex
-	/*temp.resize(SEARCHTEX_PITCH * SEARCHTEX_HEIGHT);
-	memcpy_s(temp.data(), temp.size(), searchTexBytes, temp.size());
-	TextureManager::flipYAxis(temp.data(), SEARCHTEX_PITCH, SEARCHTEX_HEIGHT);
-
-	mSearchTex = std::make_unique<Texture2D>(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchDesc, temp.data());*/
-
-	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", true, searchDesc);
+	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", searchDesc);
 
 	SamplerDesc samplerDesc;
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::NearestNeighbor;
 	samplerDesc.maxAnisotropy = 1.0f;
-	samplerDesc.wrapR = samplerDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
+	samplerDesc.wrapR = samplerDesc.wrapS = samplerDesc.wrapT = TextureUVTechnique::ClampToEdge;
 	mPointFilter = std::make_unique<Sampler>(samplerDesc);
 
 	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::Linear;

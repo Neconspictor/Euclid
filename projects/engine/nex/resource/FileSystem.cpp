@@ -1,10 +1,10 @@
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include <sstream>
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "nex/common/Log.hpp"
-#include "util/Memory.hpp"
-#include "util/ExceptionHandling.hpp"
+#include <nex/util/Memory.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 using namespace nex;
 

@@ -1,6 +1,6 @@
 ﻿#include <techniques/GlobalIllumination.hpp>
 #include "nex/texture/TextureManager.hpp"
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include <nex/Scene.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 
@@ -8,22 +8,6 @@
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory) : 
 mFactory(PbrProbeFactory::get(compiledProbeDirectory))
 {
-	TextureManager* textureManager = TextureManager::get();
-
-	auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr",
-		{
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
-			false }
-	);
-
-	mProbes.emplace_back(mFactory->create(hdr, mProbes.size()));
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -41,4 +25,37 @@ nex::Vob* nex::GlobalIllumination::createVob(PbrProbe* probe, Scene& scene)
 	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe);
 
 	return scene.addVob(std::move(vob), true);
+}
+
+void nex::GlobalIllumination::loadHdr()
+{
+	TextureManager* textureManager = TextureManager::get();
+	mHdr = textureManager->getImage("hdr/HDR_040_Field.hdr",
+		{
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			false }
+	);
+}
+
+void nex::GlobalIllumination::loadProbes(std::unique_ptr<PbrProbe> probe)
+{
+	mProbes.clear();
+	mProbes.emplace_back(std::move(probe));
+}
+
+nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
+{
+	return mFactory;
+}
+
+nex::Texture2D* nex::GlobalIllumination::getHdr()
+{
+	return mHdr;
 }

@@ -59,7 +59,7 @@ namespace nex
 		WindowGLFW(WindowGLFW&& o);
 		WindowGLFW& operator=(WindowGLFW&&);
 
-		void activate() override;
+		void activate(bool deactivate = false) override;
 
 
 		void close() override;

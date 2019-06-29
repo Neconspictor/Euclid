@@ -79,6 +79,12 @@ namespace nex
 	class ImageFactory
 	{
 	public:
+
+		/**
+		 * @param flipY : Should the y axis be flipped?
+		 */
+		static void init(bool flipY);
+
 		/**
 		 * @param stride : byte size of one line (== width * pixel-size)
 		 */
@@ -97,19 +103,17 @@ namespace nex
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
-		 * @param flipY : Should the y axis be flipped?
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadHDR(const char* filePath, bool flipY, int desiredChannels = 0);
+		static GenericImage loadHDR(const char* filePath, int desiredChannels = 0);
 
 		/**
 		 * @param desiredChannels : the number of channels the image should have. Specify zero, if the channels should be examined automatically.
-		 * @param flipY : Should the y axis be flipped?
 		 * 
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
-		static GenericImage loadNonHDR(const char* filePath, bool flipY, int desiredChannels = 0);
+		static GenericImage loadNonHDR(const char* filePath, int desiredChannels = 0);
 	};
 
 	struct StoreImage

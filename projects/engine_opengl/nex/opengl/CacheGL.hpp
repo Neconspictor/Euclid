@@ -71,8 +71,6 @@ namespace nex
 
 	private:
 
-		static GlobalCacheGL* mGlobalCache;
-
 		GLuint mProgram;
 		std::unordered_map<GLint, GLfloat> mUniform1fValues;
 		std::unordered_map<GLint, GLint> mUniform1iValues;

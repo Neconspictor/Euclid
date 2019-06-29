@@ -315,6 +315,11 @@ namespace nex
 		*/
 		void endScene();
 
+		/**
+		 * Sends any pending render commands (backend specific) to the GPU.
+		 */
+		void flushPendingCommands();
+
 		static RenderBackend* get();
 
 		Blender* getBlender();

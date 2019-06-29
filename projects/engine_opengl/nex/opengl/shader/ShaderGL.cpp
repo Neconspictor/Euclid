@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 #include <nex/opengl/shader/ShaderGL.hpp>
-#include <nex/FileSystem.hpp>
 #include <nex/exception/ShaderException.hpp>
 #include <boost/filesystem.hpp>
 #include <glm/gtc/type_ptr.hpp>

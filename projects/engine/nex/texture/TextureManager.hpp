@@ -60,7 +60,7 @@ namespace nex {
 				true }, bool detectColorSpace = false
 		);
 
-		std::unique_ptr<nex::Texture2D> loadImage(const std::string& file, bool flip,
+		std::unique_ptr<nex::Texture2D> loadImage(const std::string& file,
 			const nex::TextureData& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,

@@ -5,6 +5,7 @@
 #include "IndexBuffer.hpp"
 #include <nex/mesh/MeshTypes.hpp>
 #include <nex/math/BoundingBox.hpp>
+#include "VertexLayout.hpp"
 
 namespace nex
 {
@@ -23,7 +24,8 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES);
+		void cook();
+		Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES, bool defer = true);
 		Mesh();
 
 		Mesh(Mesh&& other) noexcept = default;
@@ -49,7 +51,8 @@ namespace nex
 		std::string mDebugName;
 
 	protected:
-		VertexArray mVertexArray;
+		std::unique_ptr<VertexArray> mVertexArray;
+		VertexLayout mLayout;
 		IndexBuffer mIndexBuffer;
 		VertexBuffer mVertexBuffer;
 		AABB mBoundingBox;

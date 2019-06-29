@@ -13,9 +13,10 @@
 #include "nex/mesh/SampleMeshes.hpp"
 #include <nex/material/Material.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
-#include "nex/FileSystem.hpp"
+#include "nex/resource/FileSystem.hpp"
 #include "nex/shader/Technique.hpp"
 #include "nex/mesh/Sphere.hpp"
+#include "nex/mesh/MeshFactory.hpp"
 
 using namespace glm;
 using namespace nex;
@@ -93,22 +94,17 @@ PbrProbeFactory* PbrProbeFactory::get(const std::filesystem::path& probeCompiled
 	return &factory;
 }
 
-std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
+/*std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
 {
 	return std::make_unique<PbrProbe>(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
-}
+}*/
 
-PbrProbe::PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot) :
+PbrProbe::PbrProbe() :
 	environmentMap(nullptr),
 	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
 {
-
-	mSkyBox = StaticMeshManager::get()->getModel(sample_meshes::SKY_BOX_NAME);
-
-	init(backgroundHDR, probeID, probeRoot);
-	environmentMap.reset();
 }
 
 PbrProbe::~PbrProbe() = default;
@@ -422,10 +418,12 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	//renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
 
+	auto skyBox = createSkyBox();
+
 	for (unsigned int side = 0; side < 6; ++side) {
 		shader->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
-		StaticMeshDrawer::draw(mSkyBox, shader);
+		StaticMeshDrawer::draw(skyBox.get(), shader);
 	}
 
 
@@ -481,10 +479,12 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 	//renderBackend->setScissor(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
+	auto skyBox = createSkyBox();
+
 	for (int side = 0; side < 6; ++side) {
 		mConvolutionPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
-		StaticMeshDrawer::draw(mSkyBox, mConvolutionPass.get());
+		StaticMeshDrawer::draw(skyBox.get(), mConvolutionPass.get());
 	}
 
 	//CubeMap* result = cubeRenderTarget->createCopy();
@@ -550,11 +550,13 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		renderBackend->setViewPort(0, 0, width, height);
 		//renderBackend->setScissor(0, 0, width, height);
 
+		auto skyBox = createSkyBox();
+
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
 			mPrefilterPass->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X), mipLevel);
-			StaticMeshDrawer::draw(mSkyBox, mPrefilterPass.get());
+			StaticMeshDrawer::draw(skyBox.get(), mPrefilterPass.get());
 		}
 	}
 
@@ -566,6 +568,24 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 	return result;
 }
 
+
+std::unique_ptr<StaticMeshContainer> nex::PbrProbe::createSkyBox()
+{
+	int vertexCount = (int)sizeof(sample_meshes::skyBoxVertices);
+	int indexCount = (int)sizeof(sample_meshes::skyBoxIndices);
+
+	AABB boundingBox;
+	boundingBox.min = glm::vec3(0.0f);
+	boundingBox.max = glm::vec3(0.0f);
+
+	std::unique_ptr<Mesh> mesh = MeshFactory::createPosition((const VertexPosition*)sample_meshes::skyBoxVertices, vertexCount,
+		sample_meshes::skyBoxIndices, (int)indexCount, std::move(boundingBox));
+
+	auto model = std::make_unique<StaticMeshContainer>();
+	model->add(std::move(mesh), std::make_unique<Material>(nullptr));
+
+	return model;
+}
 
 std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecompute)
 {
@@ -602,7 +622,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 	return result;
 }
 
-void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+void PbrProbe::initBackground(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
 	static auto* renderBackend = RenderBackend::get();
 
@@ -611,9 +631,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 
 	// if environment map has been compiled already and load it from file 
 
-	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_"  + std::to_string(probeID) + ".probe");
-	const std::filesystem::path prefilteredMapPath = probeRoot / ("pbr_prefilteredEnvMap_" + std::to_string(probeID) + ".probe");
-	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(probeID) + ".probe");
+	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_" + std::to_string(probeID) + ".probe");
 
 	if (std::filesystem::exists(environmentMapPath))
 	{
@@ -621,10 +639,11 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		try
 		{
 			FileSystem::load(environmentMapPath, readImage);
-		} catch(const std::exception&e)
+		}
+		catch (const std::exception&e)
 		{
 		}
-		
+
 
 		TextureData data = {
 			TextureFilter::Linear,
@@ -644,14 +663,26 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
-	} else
+	}
+	else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
 		const StoreImage enviromentMapImage = readBackgroundPixelData();
 		std::cout << "environmentMapPath = " << environmentMapPath << std::endl;
 		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
+}
 
+void PbrProbe::initPrefiltered(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+{
+	static auto* renderBackend = RenderBackend::get();
+
+	Viewport backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
+
+	// if environment map has been compiled already and load it from file 
+
+	const std::filesystem::path prefilteredMapPath = probeRoot / ("pbr_prefilteredEnvMap_" + std::to_string(probeID) + ".probe");
 
 	if (std::filesystem::exists(prefilteredMapPath))
 	{
@@ -663,7 +694,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		catch (const std::exception&e)
 		{
 		}
-		
+
 
 		TextureData data = {
 			TextureFilter::Linear_Mipmap_Linear,
@@ -690,8 +721,18 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		const StoreImage prefilteredMapImage = readPrefilteredEnvMapPixelData();
 		FileSystem::store(prefilteredMapPath, prefilteredMapImage);
 	}
+}
 
-	
+void PbrProbe::initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+{
+	static auto* renderBackend = RenderBackend::get();
+
+	Viewport backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
+
+	// if environment map has been compiled already and load it from file 
+	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(probeID) + ".probe");
+
 
 	// if environment map has been compiled already and load it from file 
 	if (std::filesystem::exists(convolutedMapPath))
@@ -704,7 +745,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		catch (const std::exception&e)
 		{
 		}
-		
+
 
 		TextureData data = {
 			TextureFilter::Linear,
@@ -730,12 +771,50 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 		const StoreImage convolutedMapImage = readConvolutedEnvMapPixelData();
 		FileSystem::store(convolutedMapPath, convolutedMapImage);
 	}
+}
+
+void nex::PbrProbe::loadIrradianceFile(Texture * backgroundHDR, unsigned probeID, const std::filesystem::path & probeRoot)
+{
+	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(probeID) + ".probe");
+	FileSystem::load(convolutedMapPath, mReadImage);
+}
+
+void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+{
+	TextureData data = {
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			false };
+
+	data.minLOD = 0;
+	data.maxLOD = mReadImage.mipmapCount - 1;
+	data.lodBaseLevel = 0;
+	data.lodMaxLevel = mReadImage.mipmapCount - 1;
+
+	convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(mReadImage, data));
+	this->mPrefilterPass->bind();
+	mPrefilterPass->setMapToPrefilter(convolutedEnvironmentMap.get());
+}
+
+void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+{
+	static auto* renderBackend = RenderBackend::get();
+
+	Viewport backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mMaterial->setIrradianceMap(convolutedEnvironmentMap.get());
 	mMaterial->setPrefilterMap(prefilteredEnvMap.get());
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
+	//environmentMap.reset();
 }
 
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)

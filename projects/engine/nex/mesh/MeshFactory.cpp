@@ -17,16 +17,9 @@ namespace nex
 		IndexBuffer indexBuffer(store.indices.data(), 
 			store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
 			store.indexType);
-		indexBuffer.bind();
-
-		VertexArray vertexArray;
-		vertexArray.bind();
-		vertexArray.useBuffer(vertexBuffer, store.layout);
-
-		vertexArray.unbind();
 		indexBuffer.unbind();
 
-		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer), store.boundingBox);
+		return std::make_unique<Mesh>(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES, false);
 	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount, AABB boundingBox)
@@ -38,7 +31,7 @@ namespace nex
 		vertexBuffer.bind();
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
 		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
-		indexBuffer.bind();
+		//indexBuffer.bind();
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
@@ -47,14 +40,9 @@ namespace nex
 		layout.push<glm::vec3>(1); // tangent
 		layout.push<glm::vec3>(1); // bitangent
 
-		VertexArray vertexArray;
-		vertexArray.bind();
-		vertexArray.useBuffer(vertexBuffer, layout);
+		//indexBuffer.unbind();
 
-		vertexArray.unbind();
-		indexBuffer.unbind();
-
-		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer), std::move(boundingBox));
+		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
 	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount,
@@ -65,20 +53,14 @@ namespace nex
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
 		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		indexBuffer.unbind();
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 		layout.push<glm::vec3>(1); // normal
 		layout.push<glm::vec2>(1); // uv
 
-		VertexArray vertexArray;
-		vertexArray.bind();
-		vertexArray.useBuffer(vertexBuffer, layout);
-
-		vertexArray.unbind();
-		indexBuffer.unbind();
-
-		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer), std::move(boundingBox));
+		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
 	}
 
 
@@ -90,18 +72,12 @@ namespace nex
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
 		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		indexBuffer.unbind();
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 
-		VertexArray vertexArray;
-		vertexArray.bind();
-		vertexArray.useBuffer(vertexBuffer, layout);
-
-		vertexArray.unbind();
-		indexBuffer.unbind();
-
-		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer), std::move(boundingBox));
+		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
 	}
 
 	unique_ptr<Mesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount,
@@ -112,19 +88,12 @@ namespace nex
 		VertexBuffer vertexBuffer;
 		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
 		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		indexBuffer.unbind();
 
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 		layout.push<glm::vec2>(1); // uv
 
-		VertexArray vertexArray;
-		vertexArray.bind();
-		vertexArray.useBuffer(vertexBuffer, layout);
-
-		vertexArray.unbind();
-		indexBuffer.unbind();
-
-		return std::make_unique<Mesh>(std::move(vertexArray), std::move(vertexBuffer), std::move(indexBuffer),
-			std::move(boundingBox));
+		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
 	}
 }

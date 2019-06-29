@@ -117,10 +117,6 @@ GLint nex::GlobalCacheGL::GetConstInteger(GLenum pname)
 
 nex::ShaderCacheGL::ShaderCacheGL(GLuint program) : mProgram(program)
 {
-	if (mGlobalCache == nullptr)
-	{
-		mGlobalCache = nex::GlobalCacheGL::get();
-	}
 }
 
 void nex::ShaderCacheGL::Uniform1f(GLint location, GLfloat value)
@@ -137,11 +133,9 @@ void nex::ShaderCacheGL::Uniform1f(GLint location, GLfloat value)
 }
 
 
-nex::GlobalCacheGL* nex::ShaderCacheGL::mGlobalCache = nullptr;
-
 void nex::ShaderCacheGL::UseProgram()
 {
-	mGlobalCache->UseProgram(mProgram);
+	nex::GlobalCacheGL::get()->UseProgram(mProgram);
 }
 
 void nex::ShaderCacheGL::Uniform1i(GLint location, GLint value)
@@ -172,7 +166,7 @@ void nex::ShaderCacheGL::Uniform1ui(GLint location, GLuint value)
 
 void nex::ShaderCacheGL::assertActiveProgram()
 {
-	if (mGlobalCache->getActiveProgram() != mProgram)
+	if (nex::GlobalCacheGL::get()->getActiveProgram() != mProgram)
 	{
 		throw CacheError("nex::ShaderCacheGL::assertActiveProgram: active program and shader program of a cache don't match!");
 	}
@@ -211,6 +205,6 @@ GLuint nex::GlobalCacheGL::getActiveReadFrameBuffer() const
 
 nex::GlobalCacheGL* nex::GlobalCacheGL::get()
 {
-	static GlobalCacheGL cache;
+	static thread_local GlobalCacheGL cache;
 	return &cache;
 }

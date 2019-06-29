@@ -127,6 +127,12 @@ namespace nex
 			 */
 			bool vSync;
 
+			/**
+			 * Specifies a Window object render data should be shared (if render backend needs that).
+			 * Nullptr is a valid value and means "no sharing".
+			 */
+			Window* shared;
+
 			WindowStruct() :
 				frameBufferWidth(0),
 				frameBufferHeight(0),
@@ -139,7 +145,8 @@ namespace nex
 				posY(0),
 				title(""),
 				visible(false),
-				vSync(false)
+				vSync(false),
+				shared(nullptr)
 			{
 			}
 		};
@@ -155,7 +162,7 @@ namespace nex
 		* Activates this window. All drawing calls of an registered renderer are going to this window as long
 		* as it is active.
 		*/
-		virtual void activate() = 0;
+		virtual void activate(bool deactivate=false) = 0;
 
 		/**
 		* Closes this window.

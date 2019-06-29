@@ -22,7 +22,7 @@ namespace nex
 
 		static PbrProbeFactory* get(const std::filesystem::path& probeCompiledDirectory);
 
-		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
+		//std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
 	private:
 		PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory);
@@ -32,7 +32,9 @@ namespace nex
 	class PbrProbe {
 
 	public:
-		PbrProbe(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		PbrProbe();
+
+		PbrProbe& operator=(PbrProbe&&) = default;
 
 		~PbrProbe();
 
@@ -54,18 +56,28 @@ namespace nex
 		static Texture2D* getBrdfLookupTexture();
 		StoreImage readBackgroundPixelData() const;
 
+		void initBackground(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+
+		void initPrefiltered(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+
+		void initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void loadIrradianceFile(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+
+		void init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 
 	protected:
 
 		class ProbeTechnique;
 		class ProbeMaterial;
 
+		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
 		static StoreImage readBrdfLookupPixelData();
 
 		StoreImage readConvolutedEnvMapPixelData();
 		StoreImage readPrefilteredEnvMapPixelData();
-		void init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		
 
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);
@@ -83,8 +95,7 @@ namespace nex
 		static std::unique_ptr<SphereMesh> mMesh;
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
-
-		StaticMeshContainer* mSkyBox;
+		StoreImage mReadImage;
 	};
 
 	class ProbeVob : public Vob

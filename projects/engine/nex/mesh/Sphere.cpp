@@ -59,18 +59,11 @@ namespace nex
 
 		mIndexBuffer.bind();
 		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
-
-		VertexLayout layout;
-		layout.push<glm::vec3>(1); // position
-		layout.push<glm::vec3>(1); // normal
-		layout.push<glm::vec2>(1); // uv
-
-
-		mVertexArray.bind();
-		mVertexArray.useBuffer(mVertexBuffer, layout);
-
-		mVertexArray.unbind();
 		mIndexBuffer.unbind();
+
+		mLayout.push<glm::vec3>(1); // position
+		mLayout.push<glm::vec3>(1); // normal
+		mLayout.push<glm::vec2>(1); // uv
 
 		mBoundingBox.min = glm::vec3(-1.0);
 		mBoundingBox.max = glm::vec3(1.0);

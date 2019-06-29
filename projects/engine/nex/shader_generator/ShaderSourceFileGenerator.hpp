@@ -3,7 +3,7 @@
 #include <string>
 #include <list>
 #include <filesystem>
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include <nex/common/Log.hpp>
 #include <nex/shader/Shader.hpp>
 

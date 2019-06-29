@@ -11,6 +11,7 @@
 #include "nex/shader/SkyBoxPass.hpp"
 #include <nex/EffectLibrary.hpp>
 #include "CacheGL.hpp"
+#include "nex/resource/ResourceLoader.hpp"
 
 using namespace std;
 using namespace nex;
@@ -439,6 +440,7 @@ namespace nex
 	                             backgroundColor(0.0f, 0.0f, 0.0f),
 	                             msaaSamples(1), defaultRenderTarget(nullptr)
 	{
+		bool test = false;
 	}
 
 	RenderBackend::Impl::~Impl() = default;
@@ -504,7 +506,7 @@ namespace nex
 
 	void RenderBackend::initEffectLibrary()
 	{
-		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);
+		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);	
 	}
 
 	void RenderBackend::newFrame()
@@ -571,9 +573,14 @@ namespace nex
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
+	void RenderBackend::flushPendingCommands()
+	{
+		GLCall(glFlush());
+	}
+
 	RenderBackend* RenderBackend::get()
 	{
-		static RenderBackend backend;
+		static thread_local  RenderBackend backend;
 		return &backend;
 	}
 
@@ -635,7 +642,6 @@ namespace nex
 			glFlags |= GL_TEXTURE_UPDATE_BARRIER_BIT;
 
 		GLCall(glMemoryBarrier(glFlags));
-		//GLCall(glFinish());
 	}
 
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)

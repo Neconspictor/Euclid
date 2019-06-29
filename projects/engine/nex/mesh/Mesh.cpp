@@ -2,17 +2,32 @@
 #include "VertexArray.hpp"
 #include "IndexBuffer.hpp"
 #include "nex/material/Material.hpp"
+#include "VertexLayout.hpp"
 
 using namespace std;
 using namespace nex;
 
-Mesh::Mesh(VertexArray vertexArray, VertexBuffer vertexBuffer, IndexBuffer indexBuffer, AABB boundingBox, Topology topology) :
-mVertexArray(std::move(vertexArray)),
-mVertexBuffer(std::move(vertexBuffer)),
+void Mesh::cook()
+{
+	if (mVertexArray) return;
+
+	mVertexArray = std::make_unique<VertexArray>();
+
+	mVertexArray->bind();
+	mVertexArray->useBuffer(mVertexBuffer, mLayout);
+
+	mVertexArray->unbind();
+}
+
+Mesh::Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology, bool defer) :
+mLayout(std::move(layout)),
 mIndexBuffer(std::move(indexBuffer)),
+mVertexBuffer(std::move(vertexBuffer)),
 mBoundingBox(std::move(boundingBox)),
 mTopology(topology)
 {
+	if (!defer)
+		cook();
 }
 
 void Mesh::setVertexBuffer(VertexBuffer buffer)
@@ -53,7 +68,7 @@ void Mesh::setTopology(Topology topology)
 
 VertexArray* Mesh::getVertexArray()
 {
-	return &mVertexArray;
+	return mVertexArray.get();
 }
 
 VertexBuffer* Mesh::getVertexBuffer()
@@ -68,5 +83,5 @@ void Mesh::setIndexBuffer(IndexBuffer buffer)
 
 void Mesh::setVertexArray(VertexArray vertexArray)
 {
-	mVertexArray = std::move(vertexArray);
+	*mVertexArray = std::move(vertexArray);
 }

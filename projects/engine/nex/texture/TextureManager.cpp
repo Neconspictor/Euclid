@@ -6,7 +6,7 @@
 #include <gli/load.hpp>
 #include <gli/save.hpp>*/
 
-#include <nex/FileSystem.hpp>
+#include <nex/resource/FileSystem.hpp>
 #include <nex/texture/Image.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <nex/texture/TextureSamplerData.hpp>
@@ -149,7 +149,7 @@ namespace nex {
 
 		LOG(m_logger, Debug) << "texture to load: " << resolvedPath;
 
-		auto image = loadImage(file, true, data, detectColorSpace);
+		auto image = loadImage(file, data, detectColorSpace);
 		textures.emplace_back(std::move(image));
 
 
@@ -238,7 +238,7 @@ namespace nex {
 		return internFormat != InternFormat::SRGB8 && internFormat != InternFormat::SRGBA8;
 	}
 
-	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, bool flip, const nex::TextureData& data, bool detectColorSpace)
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, const nex::TextureData& data, bool detectColorSpace)
 	{
 		GenericImage image;
 		std::filesystem::path resource = file;
@@ -260,11 +260,11 @@ namespace nex {
 			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
-				image = ImageFactory::loadHDR(resolvedPath.c_str(), flip, detectColorSpace ? 0 : getComponents(data.colorspace));
+				image = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 			else
 			{
-				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), flip, detectColorSpace ? 0 : getComponents(data.colorspace));
+				image = ImageFactory::loadNonHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
 			}
 
 			FileSystem::store(compiledResource, image);
