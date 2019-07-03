@@ -4,17 +4,26 @@
 void nex::FutureTest()
 {
 
-	Promise<std::unique_ptr<int>> promise;
+	auto func = std::function<void()>([]() {return; });
 
-	auto future = promise.get_future();
-	bool isReady = future.is_ready();
+	std::packaged_task<void()> t(func);
 
-	promise.set_value(std::make_unique<int>(100));
+	t.get_future();
 
-	isReady = future.is_ready();
-	auto result = future.get();
+	PackagedTask<int(bool)> packagedTask([=](bool value) {return 42; });
 
-	std::future<bool> f;
-	std::promise<bool> p;
-	p.set_value(true);
+	auto packaged2 = std::move(packagedTask);
+	auto packaged3(std::move(packaged2));
+
+	auto futurePackaged = packaged3.get_future();
+	auto futurePackaged2(std::move(futurePackaged));
+
+	packaged3(false);
+
+	std::cout << "result of packaged task = " << futurePackaged2.get() << std::endl;
+
+
+	PackagedTask<void()> packagedTask2([=]{return ; });
+
+	packagedTask2.get_future();
 }

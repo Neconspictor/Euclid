@@ -7,7 +7,7 @@
 #include <nex/resource/FileSystem.hpp>
 #include "Globals.hpp"
 #include "gui/Controller.hpp"
-#include <future>
+#include <nex/common/Future.hpp>
 
 namespace nex
 {
@@ -51,7 +51,7 @@ namespace nex
 		Window* createWindow();
 		void initLights();
 		void initPbr();
-		std::future<void> initProbes();
+		const Future<void>& initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();

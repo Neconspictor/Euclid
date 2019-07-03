@@ -379,30 +379,18 @@ void NeXEngine::initPbr()
 	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
-std::future<void> NeXEngine::initProbes()
+const Future<void>& NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
 	mGlobalIllumination->loadHdr();
 
-	auto probe = std::make_unique<PbrProbe>();
-	auto* pointer = probe.get();
+	auto probe = mGlobalIllumination->getFactory()->create(mGlobalIllumination->getHdr(), 0);
 	mGlobalIllumination->loadProbes(std::move(probe));
 	mPbrTechnique->setProbe(mGlobalIllumination->getProbe());
 
-	return ResourceLoader::get()->enqueue([=]
-	{
-		pointer->initBackground(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
-		pointer->initPrefiltered(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
-		pointer->loadIrradianceFile(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
+	Future<void> test = mGlobalIllumination->getProbe()->getIsLoadedStatus();
 
-		pointer->createIrradianceTex(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
-		pointer->init(mGlobalIllumination->getHdr(), 0, mGlobals.getCompiledPbrDirectory());
-
-		RenderBackend::get()->flushPendingCommands();
-	});
-
-	//sceneFuture.get();
-	
+	return mGlobalIllumination->getProbe()->getIsLoadedStatus();
 }
 
 void NeXEngine::initRenderBackend()

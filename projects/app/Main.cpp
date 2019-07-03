@@ -12,6 +12,7 @@
 #include "nex/mesh/MeshStore.hpp"
 #include "nex/math/Circle.hpp"
 #include "nex/math/Sphere.hpp"
+#include <nex/common/Future.hpp>
 
 
 #ifdef WIN32
@@ -52,6 +53,10 @@ int main(int argc, char** argv)
 	::signal(SIGSEGV, signal_handler);
 	::signal(SIGABRT, signal_handler);
 #endif
+
+	//nex::FutureTest();
+	//return EXIT_SUCCESS;
+
 
 	nex::SubSystemProviderGLFW* provider = nex::SubSystemProviderGLFW::get();
 

@@ -3,6 +3,8 @@
 #include <nex/resource/FileSystem.hpp>
 #include <nex/Scene.hpp>
 #include <nex/mesh/StaticMesh.hpp>
+#include <nex/resource/ResourceLoader.hpp>
+#include <nex/renderer/RenderBackend.hpp>
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory) : 
@@ -47,6 +49,7 @@ void nex::GlobalIllumination::loadHdr()
 void nex::GlobalIllumination::loadProbes(std::unique_ptr<PbrProbe> probe)
 {
 	mProbes.clear();
+	auto* pointer = probe.get();
 	mProbes.emplace_back(std::move(probe));
 }
 

@@ -2,9 +2,8 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
-#include <future>
 #include "nex/common/Log.hpp"
-
+#include <nex/common/Future.hpp>
 namespace nex
 {
 	class SubSystemProvider;
@@ -25,11 +24,11 @@ namespace nex
 
 
 		template <class Func, class... Args>
-		auto enqueue(Func&& func, Args&&... args)-> std::future<decltype(std::declval<Func>()(std::declval<Args>()...))>
+		auto enqueue(Func&& func, Args&&... args)-> Future<decltype(std::declval<Func>()(std::declval<Args>()...))>
 		{
 
 			using Type = decltype(std::declval<Func>()(std::declval<Args>()...));
-			auto wrapper = std::make_shared<std::packaged_task<Type()>>(
+			auto wrapper = std::make_shared<PackagedTask<Type()>>(
 				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
 				);
 

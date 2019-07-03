@@ -17,6 +17,7 @@
 #include "nex/shader/Technique.hpp"
 #include "nex/mesh/Sphere.hpp"
 #include "nex/mesh/MeshFactory.hpp"
+#include <nex/resource/ResourceLoader.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -94,10 +95,21 @@ PbrProbeFactory* PbrProbeFactory::get(const std::filesystem::path& probeCompiled
 	return &factory;
 }
 
-/*std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
+std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
 {
-	return std::make_unique<PbrProbe>(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
-}*/
+
+	auto probe = std::make_unique<PbrProbe>();
+
+	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]
+	{
+		pointer->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
+		RenderBackend::get()->flushPendingCommands();
+	});
+
+	probe->setIsLoadedStatus(std::move(future));
+
+	return probe;
+}
 
 PbrProbe::PbrProbe() :
 	environmentMap(nullptr),
@@ -805,6 +817,13 @@ void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, con
 void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
 	static auto* renderBackend = RenderBackend::get();
+
+	initBackground(backgroundHDR, probeID, probeRoot);
+	initPrefiltered(backgroundHDR, probeID, probeRoot);
+	initIrradiance(backgroundHDR, probeID, probeRoot);
+	//loadIrradianceFile(backgroundHDR, probeID, probeRoot);
+	//createIrradianceTex(backgroundHDR, probeID, probeRoot);
+
 
 	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);

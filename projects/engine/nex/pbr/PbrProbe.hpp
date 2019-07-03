@@ -4,6 +4,7 @@
 #include <nex/texture/Image.hpp>
 #include "PbrPass.hpp"
 #include <nex/Scene.hpp>
+#include <nex/resource/Resource.hpp>
 
 
 namespace nex
@@ -22,14 +23,14 @@ namespace nex
 
 		static PbrProbeFactory* get(const std::filesystem::path& probeCompiledDirectory);
 
-		//std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
+		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
 	private:
 		PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory);
 		std::unique_ptr<FileSystem> mFileSystem;
 	};
 
-	class PbrProbe {
+	class PbrProbe : public Resource {
 
 	public:
 		PbrProbe();
@@ -56,6 +57,13 @@ namespace nex
 		static Texture2D* getBrdfLookupTexture();
 		StoreImage readBackgroundPixelData() const;
 
+		void init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+
+	protected:
+
+		class ProbeTechnique;
+		class ProbeMaterial;
+
 		void initBackground(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 
 		void initPrefiltered(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
@@ -63,13 +71,6 @@ namespace nex
 		void initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 		void loadIrradianceFile(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 		void createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
-
-		void init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
-
-	protected:
-
-		class ProbeTechnique;
-		class ProbeMaterial;
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);

@@ -181,6 +181,8 @@ set(
     #nex/resource
     nex/resource/FileSystem.hpp
 	nex/resource/FileSystem.cpp
+    nex/resource/Resource.cpp
+    nex/resource/Resource.hpp
     nex/resource/ResourceLoader.cpp
     nex/resource/ResourceLoader.hpp
     
