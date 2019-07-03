@@ -17,6 +17,9 @@ void Mesh::cook()
 	mVertexArray->useBuffer(mVertexBuffer, mLayout);
 
 	mVertexArray->unbind();
+
+	// set 'is loaded' state of this resource.
+	setIsLoaded();
 }
 
 Mesh::Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology, bool defer) :

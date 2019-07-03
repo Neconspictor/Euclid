@@ -6,6 +6,7 @@
 #include <nex/mesh/MeshTypes.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include "VertexLayout.hpp"
+#include <nex/resource/Resource.hpp>
 
 namespace nex
 {
@@ -19,7 +20,7 @@ namespace nex
 	 * consists of. Theoretically, a vertex isn't bound to floating point units, but this
 	 * implementation narrows it to floats for ease of use.
 	 */
-	class Mesh
+	class Mesh : public Resource
 	{
 	public:
 		using Vertex = VertexPositionNormalTexTangent;

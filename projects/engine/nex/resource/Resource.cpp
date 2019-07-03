@@ -1,16 +1,25 @@
 #include <nex/resource/Resource.hpp>
 
+nex::Resource::Resource() 
+{
+}
+
 bool nex::Resource::isLoaded() const
 {
-	return mFuture.is_ready();
+	return mPromise.get_future().is_ready();
 }
 
 void nex::Resource::setIsLoadedStatus(nex::Future<void> future)
 {
-	mFuture = std::move(future);
+	mPromise = Promise<void>(future.get_state());
 }
 
-const nex::Future<void>& nex::Resource::getIsLoadedStatus() const
+void nex::Resource::setIsLoaded()
 {
-	return mFuture;
+	mPromise.set();
+}
+
+nex::Future<void> nex::Resource::getIsLoadedStatus() const
+{
+	return mPromise.get_future();
 }

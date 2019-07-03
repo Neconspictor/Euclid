@@ -24,6 +24,7 @@ set(
     nex/common/BinaryReader.h
     nex/common/BinaryReader.cpp
     nex/common/Callback.hpp
+    nex/common/ConcurrentQueue.hpp
     nex/common/debug_break.h
     nex/common/File.hpp
     nex/common/File.cpp

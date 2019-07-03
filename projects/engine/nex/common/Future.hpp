@@ -10,7 +10,7 @@
 namespace nex
 {
 	template<class T> class _Future;
-	template<class T> class _Promise;
+	template<class T> class _PromiseBase;
 	template<class Ret, class... ArgsTypes> class _PackagedTask;
 
 
@@ -18,8 +18,26 @@ namespace nex
 	 * Typedefs for easy swichting to std::future, std::promise and std::packaged_task
 	 */
 	template<class T> using Future = _Future<T>;
-	template<class T> using Promise = _Promise<T>;
+	template<class T> using Promise = _PromiseBase<T>;
 	template<class Ret, class... ArgsTypes> using PackagedTask = _PackagedTask<Ret, ArgsTypes...>;
+
+	template<class _Fret>
+	struct _P_ArgType
+	{	// type for functions returning T
+		using type = _Fret;
+	};
+
+	template<class _Fret>
+	struct _P_ArgType<_Fret&>
+	{	// type for functions returning reference to T
+		using type = _Fret * ;
+	};
+
+	template<>
+	struct _P_ArgType<void>
+	{	// type for functions returning void
+		using type = int;
+	};
 
 	template<class T>
 	class _FutureSharedState {
@@ -35,6 +53,12 @@ namespace nex
 		virtual ~_FutureSharedState() = default;
 
 		T& get() {
+			std::unique_lock<std::mutex> lock(mMutex);
+			mCondition.wait(lock, [=] {return mFinished.load(); });
+			return mElem;
+		}
+
+		const T& get() const {
 			std::unique_lock<std::mutex> lock(mMutex);
 			mCondition.wait(lock, [=] {return mFinished.load(); });
 			return mElem;
@@ -79,8 +103,8 @@ namespace nex
 		}
 
 	private:
-		friend _Future;
-		friend _Promise;
+		friend Future<T>;
+		friend Promise<T>;
 
 		T mElem;
 		std::condition_variable mCondition;
@@ -190,6 +214,11 @@ namespace nex
 			return mState->get();
 		}
 
+		const T& get_intern() const {
+
+			return mState->get();
+		}
+
 		_FutureSharedState<T>* mState;
 	};
 
@@ -232,7 +261,7 @@ namespace nex
 		{	// destroy
 		}
 
-		T get() 
+		T get() const
 		{
 			return get_intern();
 		}
@@ -276,23 +305,29 @@ namespace nex
 		{	// destroy
 		}
 
-		void get()
+		void get() const
 		{
-			get_state()->get();
+			get_intern();
 		}
 	};
 
 
 
 	template<class T>
-	class _Promise {
+	class _PromiseBase {
 	public:
 
-		_Promise(_FutureSharedState<T>* sharedState) : mManager(sharedState)
+		using InternType = typename _P_ArgType<T>::type;
+
+		_PromiseBase() : mManager(new _FutureSharedState<T>())
 		{
 		}
 
-		_Future<T> get_future()
+		_PromiseBase(_FutureSharedState<T>* sharedState) : mManager(sharedState)
+		{
+		}
+
+		_Future<T> get_future() const
 		{
 			_Future<T> future(mManager, {});
 			return future;
@@ -313,6 +348,43 @@ namespace nex
 
 	private:
 		_FutureStateManager<T> mManager;
+	};
+
+	template<>
+	class _PromiseBase<void> {
+	public:
+
+		using InternType = typename _P_ArgType<void>::type;
+
+		_PromiseBase() : mManager(new _FutureSharedState<InternType>())
+		{
+		}
+
+		_PromiseBase(_FutureSharedState<InternType>* sharedState) : mManager(sharedState)
+		{
+		}
+
+		_Future<void> get_future() const
+		{
+			_Future<void> future(mManager, {});
+			return future;
+		}
+
+		_FutureStateManager<InternType>& get_state_manager() {
+			return mManager;
+		}
+
+		void set()
+		{
+			mManager.set_value(1);
+		}
+
+		_FutureSharedState<InternType>* get_state() {
+			return mManager.get_state();
+		}
+
+	private:
+		_FutureStateManager<InternType> mManager;
 	};
 
 
@@ -416,23 +488,6 @@ namespace nex
 		std::function<void(ArgsType...)> mTask;
 	};
 
-	template<class _Fret>
-	struct _P_ArgType
-	{	// type for functions returning T
-		using type = _Fret;
-	};
-
-	template<class _Fret>
-	struct _P_ArgType<_Fret&>
-	{	// type for functions returning reference to T
-		using type = _Fret * ;
-	};
-
-	template<>
-	struct _P_ArgType<void>
-	{	// type for functions returning void
-		using type = int;
-	};
 
 	template<class _Ty>
 	using remove_reference_t = typename std::remove_reference<_Ty>::type;
@@ -453,8 +508,8 @@ namespace nex
 	class _PackagedTask<Ret(ArgsType...)>
 	{
 	public:
-		using ReturnType = typename _P_ArgType<Ret>::type;// decltype(std::declval<Func>()(std::declval<ArgsType>()...));
-		using PromiseType = _Promise<ReturnType>;
+		//using ReturnType = typename _P_ArgType<Ret>::type;// decltype(std::declval<Func>()(std::declval<ArgsType>()...));
+		using PromiseType = _PromiseBase<Ret>;
 		using PackagedType = _PackagedTaskState<Ret(ArgsType...)>;
 
 		_PackagedTask() noexcept

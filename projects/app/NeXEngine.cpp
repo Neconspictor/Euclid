@@ -179,6 +179,9 @@ void NeXEngine::init()
 	
 	future.get();
 	PbrProbe::getSphere()->cook();
+	PbrProbe::getSphere()->getIsLoadedStatus().get();
+	
+	RenderBackend::get()->flushPendingCommands();
 }
 
 bool NeXEngine::isRunning() const
@@ -379,7 +382,7 @@ void NeXEngine::initPbr()
 	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
-const Future<void>& NeXEngine::initProbes()
+Future<void> NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
 	mGlobalIllumination->loadHdr();

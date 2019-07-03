@@ -51,7 +51,7 @@ namespace nex
 		Window* createWindow();
 		void initLights();
 		void initPbr();
-		const Future<void>& initProbes();
+		Future<void> initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();

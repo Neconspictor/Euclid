@@ -6,6 +6,8 @@ namespace nex {
 	class Resource {
 	public:
 
+		Resource();
+
 		/**
 		 * Checks if the resource has finished loading (non-blocking). 
 		 */
@@ -17,11 +19,16 @@ namespace nex {
 		void setIsLoadedStatus(Future<void> future);
 
 		/**
+		 * Sets the 'is loaded' status to true.
+		 */
+		void setIsLoaded();
+
+		/**
 		 * Returns a future that specifies the 'is loaded' status of the resource.
 		 */
-		const Future<void>& getIsLoadedStatus() const;
+		Future<void> getIsLoadedStatus() const;
 
 	protected:
-		Future<void> mFuture;
+		Promise<void> mPromise;
 	};
 }
