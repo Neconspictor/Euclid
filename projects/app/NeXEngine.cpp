@@ -88,6 +88,7 @@ void NeXEngine::init()
 	desc.vSync = mVideo.vSync;
 	auto* secondWindow = mWindowSystem->createWindow(desc);
 	ResourceLoader::init(secondWindow);
+	ResourceLoader::get()->resetJobCounter();
 
 	mWindow->activate();
 	mWindow->setVisible(true);
@@ -170,17 +171,10 @@ void NeXEngine::init()
 	PbrProbeFactory::get(mGlobals.getCompiledPbrDirectory());
 
 
-	
-
-
-	auto future = initProbes();
+	initProbes();
 	createScene();
 	
-	
-	future.get();
-	PbrProbe::getSphere()->cook();
-	PbrProbe::getSphere()->getIsLoadedStatus().get();
-	
+	ResourceLoader::get()->waitTillAllJobsFinished();
 	RenderBackend::get()->flushPendingCommands();
 
 	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();

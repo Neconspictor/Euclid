@@ -40,6 +40,29 @@ nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue()
 	return mFinalizeResources;
 }
 
+unsigned long nex::ResourceLoader::getFinishedJobs() const
+{
+	return mFinishedJobs;
+}
+
+unsigned long nex::ResourceLoader::getRequestedJobs() const
+{
+	return mRequestedJobs;
+}
+
+void nex::ResourceLoader::waitTillAllJobsFinished()
+{
+	std::unique_lock<std::mutex>lock(mMutex);
+	mCondition.wait(lock, [=] {return mRequestedJobs == mFinishedJobs; });
+}
+
+void nex::ResourceLoader::resetJobCounter()
+{
+	std::unique_lock<std::mutex>lock(mMutex);
+	mFinishedJobs = 0;
+	mRequestedJobs = 0;
+}
+
 void nex::ResourceLoader::shutdown()
 {
 	{

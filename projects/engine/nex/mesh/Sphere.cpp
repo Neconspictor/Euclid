@@ -3,6 +3,7 @@
 #include <nex/math/Constant.hpp>
 #include "VertexBuffer.hpp"
 #include "VertexLayout.hpp"
+#include <nex/resource/ResourceLoader.hpp>
 
 namespace nex
 {
