@@ -310,12 +310,12 @@ void NeXEngine::createScene()
 	auto* transparentVob3 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
 	groundVob->mDebugName = "transparent - 3";
 
-	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
+	/*(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
+	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;*/
 
 	transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
 	transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));

@@ -17,6 +17,8 @@ namespace nex
 	class Technique;
 	class TransformPass;
 	class Camera;
+	class AbstractMaterialLoader;
+	class AbstractMeshLoader;
 }
 
 namespace nex::gui
@@ -109,6 +111,7 @@ namespace nex::gui
 		};
 
 		class GizmoPass;
+		class MaterialLoader;
 
 		int compare(const Data& first, const Data& second) const;
 
@@ -145,6 +148,9 @@ namespace nex::gui
 		std::unique_ptr<GizmoPass> mGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
+
+		std::unique_ptr<MaterialLoader> mMaterialLoader;
+		std::unique_ptr<AbstractMeshLoader> mMeshLoader;
 
 		Vob* mRotationGizmoNode;
 		Vob* mScaleGizmoNode;

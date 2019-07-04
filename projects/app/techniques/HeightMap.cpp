@@ -34,6 +34,8 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 		throw_with_trace(std::runtime_error("nex::HeightMap::HeightMap: heights doesn't have rows * columns values!"));
 	}
 
+	mMeshes = std::make_unique<StaticMeshContainer>();
+
 	/** 
 	* We lay the vertices out into rows, going from bottom to top.
 	*/
@@ -94,7 +96,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	auto mesh = MeshFactory::create(vertices.data(), vertices.size(), indices.data(), indices.size(), std::move(boundingBox));
 
 	//TODO use a valid initialized material
-	mMeshes.add(std::move(mesh), std::make_unique<Material>(nullptr));
+	mMeshes->add(std::move(mesh), std::make_unique<Material>(nullptr));
 
 
 	TextureData heightDesc;
@@ -145,7 +147,7 @@ nex::HeightMap nex::HeightMap::createRandom(unsigned rows, unsigned columns, flo
 
 nex::Mesh* nex::HeightMap::getMesh()
 {
-	return mMeshes.getMeshes()[0].get();
+	return mMeshes->getMeshes()[0].get();
 }
 
 nex::Sampler* nex::HeightMap::getHeightSampler()

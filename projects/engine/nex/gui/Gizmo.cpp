@@ -48,6 +48,9 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 	mGizmoPass = std::make_unique<GizmoPass>();
 	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
 
+	mMaterialLoader = std::make_unique<MaterialLoader>(mGizmoTechnique.get());
+	mMeshLoader = std::make_unique<MeshLoader<VertexPosition>>();
+
 	mRotationMesh = loadRotationGizmo();
 	initSceneNode(mRotationGizmoNode, mRotationMesh, "Rotation Gizmo");
 
@@ -487,7 +490,7 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 	}
 }
 
-class MaterialLoader : public nex::DefaultMaterialLoader
+class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
 {
 public:
 	MaterialLoader(nex::Technique* technique) : DefaultMaterialLoader(), mTechnique(technique) {};
@@ -529,22 +532,22 @@ nex::StaticMeshContainer* nex::gui::Gizmo::loadRotationGizmo()
 {
 	return StaticMeshManager::get()->loadModel(
 		"_intern/gizmo/rotation-gizmo.obj",
-		MeshLoader<VertexPosition>(),
-		MaterialLoader(mGizmoTechnique.get()));
+		mMeshLoader.get(),
+		mMaterialLoader.get());
 }
 
 nex::StaticMeshContainer* nex::gui::Gizmo::loadTranslationGizmo()
 {
 	return StaticMeshManager::get()->loadModel(
 		"_intern/gizmo/translation-gizmo.obj",
-		MeshLoader<VertexPosition>(),
-		MaterialLoader(mGizmoTechnique.get()));
+		mMeshLoader.get(),
+		mMaterialLoader.get());
 }
 
 nex::StaticMeshContainer* nex::gui::Gizmo::loadScaleGizmo()
 {
 	return StaticMeshManager::get()->loadModel(
 		"_intern/gizmo/scale-gizmo.obj",
-		MeshLoader<VertexPosition>(),
-		MaterialLoader(mGizmoTechnique.get()));
+		mMeshLoader.get(),
+		mMaterialLoader.get());
 }

@@ -6,6 +6,16 @@
 
 namespace nex
 {
+	void StaticMeshContainer::init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader & materialLoader)
+	{
+		for (const auto& store : stores)
+		{
+			auto mesh = MeshFactory::create(store, true);
+			auto material = materialLoader.createMaterial(store.material);
+
+			add(std::move(mesh), std::move(material));
+		}
+	}
 	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
 		assert(mesh != nullptr);
@@ -17,22 +27,6 @@ namespace nex
 		auto* pMesh = mMeshes.back().get();
 		auto* pMaterial = mMaterials.back().get();
 		mMappings[pMesh] = pMaterial;
-	}
-
-	std::unique_ptr<StaticMeshContainer> StaticMeshContainer::create(const std::vector<MeshStore>& stores, 
-		const nex::AbstractMaterialLoader& materialLoader)
-	{
-		auto container = std::make_unique<StaticMeshContainer>();
-
-		for (const auto& store : stores)
-		{
-			auto mesh = MeshFactory::create(store);
-			auto material = materialLoader.createMaterial(store.material);
-
-			container->add(std::move(mesh), std::move(material));
-		}
-
-		return container;
 	}
 
 	SceneNode* StaticMeshContainer::createNodeHierarchy(Scene* scene, SceneNode* parent)

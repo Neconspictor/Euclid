@@ -12,7 +12,7 @@ namespace nex
 	class Scene;
 	class Material;
 
-	class StaticMeshContainer
+	class StaticMeshContainer : public nex::Resource
 	{
 	public:
 
@@ -22,17 +22,11 @@ namespace nex
 
 		StaticMeshContainer() = default;
 
-		StaticMeshContainer(const StaticMeshContainer&) = delete;
-		StaticMeshContainer& operator=(const StaticMeshContainer& o) = delete;
-
-		StaticMeshContainer(StaticMeshContainer&&) = default;
-		StaticMeshContainer& operator=(StaticMeshContainer&&) = default;
-
 		~StaticMeshContainer() = default;
 
-		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
+		void init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
 
-		static std::unique_ptr<StaticMeshContainer> create(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
+		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
 
 		SceneNode* createNodeHierarchy(Scene* scene, SceneNode* parent = nullptr);
 

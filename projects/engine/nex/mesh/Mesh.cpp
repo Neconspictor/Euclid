@@ -3,6 +3,7 @@
 #include "IndexBuffer.hpp"
 #include "nex/material/Material.hpp"
 #include "VertexLayout.hpp"
+#include <nex/resource/ResourceLoader.hpp>
 
 using namespace std;
 using namespace nex;
@@ -37,6 +38,12 @@ mTopology(topology)
 {
 	if (!defer)
 		cook();
+	else {
+		ResourceLoader::get()->enqueue([=] {
+			return this;
+		});
+	}
+
 }
 
 void Mesh::setVertexBuffer(VertexBuffer buffer)

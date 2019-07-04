@@ -9,7 +9,7 @@ using namespace std;
 
 namespace nex
 {
-	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
+	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store, bool deferred)
 	{
 		VertexBuffer vertexBuffer;
 		vertexBuffer.bind();
@@ -19,7 +19,7 @@ namespace nex
 			store.indexType);
 		indexBuffer.unbind();
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES, false);
+		return std::make_unique<Mesh>(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES, deferred);
 	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount, AABB boundingBox)

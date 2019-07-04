@@ -48,8 +48,8 @@ namespace nex
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
 		StaticMeshContainer* loadModel(const std::string& meshName, 
-			const nex::AbstractMeshLoader& meshLoader,
-			const nex::AbstractMaterialLoader& materialLoader);
+			const nex::AbstractMeshLoader* meshLoader,
+			const nex::AbstractMaterialLoader* materialLoader);
 
 		/**
 		 * Provides a vertex array holding four vertices forming a fullscreen plane.
