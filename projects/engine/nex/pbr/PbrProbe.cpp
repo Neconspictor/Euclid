@@ -18,6 +18,7 @@
 #include "nex/mesh/Sphere.hpp"
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/resource/ResourceLoader.hpp>
+#include <nex/resource/Resource.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -100,10 +101,11 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 
 	auto probe = std::make_unique<PbrProbe>();
 
-	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]
+	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]()
 	{
 		pointer->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
 		RenderBackend::get()->flushPendingCommands();
+		return pointer;
 	});
 
 	probe->setIsLoadedStatus(std::move(future));

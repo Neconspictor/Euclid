@@ -22,6 +22,12 @@ void Mesh::cook()
 	setIsLoaded();
 }
 
+void nex::Mesh::finalize()
+{
+	std::cout << "Called mesh finalization function!" << std::endl;
+	cook();
+}
+
 Mesh::Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology, bool defer) :
 mLayout(std::move(layout)),
 mIndexBuffer(std::move(indexBuffer)),

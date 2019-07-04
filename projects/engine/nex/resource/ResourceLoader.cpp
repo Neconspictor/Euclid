@@ -1,6 +1,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/SubSystemProvider.hpp>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/resource/Resource.hpp>
 
 std::unique_ptr<nex::ResourceLoader> nex::ResourceLoader::mInstance;
 
@@ -27,6 +28,16 @@ void nex::ResourceLoader::init(Window* shared)
 nex::ResourceLoader* nex::ResourceLoader::get()
 {
 	return mInstance.get();
+}
+
+const nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue() const
+{
+	return mFinalizeResources;
+}
+
+nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue()
+{
+	return mFinalizeResources;
 }
 
 void nex::ResourceLoader::shutdown()

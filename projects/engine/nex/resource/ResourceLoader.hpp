@@ -4,10 +4,14 @@
 #include <condition_variable>
 #include "nex/common/Log.hpp"
 #include <nex/common/Future.hpp>
+#include <nex/common/ConcurrentQueue.hpp>
+
+
 namespace nex
 {
 	class SubSystemProvider;
 	class Window;
+	class Resource;
 
 	class ResourceLoader
 	{
@@ -22,13 +26,18 @@ namespace nex
 		static ResourceLoader* get();
 
 
-
-		template <class Func, class... Args>
-		auto enqueue(Func&& func, Args&&... args)-> Future<decltype(std::declval<Func>()(std::declval<Args>()...))>
+		template <class Func, class... Args
+			,class = std::enable_if_t<!std::is_base_of_v<nex::Resource*, std::invoke_result<Func, Args...>>>
+		>
+			//decltype(std::declval<Func>()(std::declval<Args>()...))
+		auto enqueue(Func&& func, Args&&... args) -> Future<nex::Resource*>
 		{
+			//using Type = decltype(std::declval<Func>()(std::declval<Args>()...));
+			//static_assert(Type == nex::Resource*, "Wrong Signature!");
 
-			using Type = decltype(std::declval<Func>()(std::declval<Args>()...));
-			auto wrapper = std::make_shared<PackagedTask<Type()>>(
+			//decltype(std::declval<Func>()(std::declval<Args>()...))
+			//
+			auto wrapper = std::make_shared<PackagedTask<nex::Resource*()>>(
 				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
 				);
 
@@ -38,6 +47,8 @@ namespace nex
 				mJobs.push([=]
 				{
 					(*wrapper)();
+					auto* resource = (*wrapper).get_future().get();
+					if (resource) mFinalizeResources.push(resource);
 				});
 			}
 
@@ -45,6 +56,9 @@ namespace nex
 
 			return wrapper->get_future();
 		}
+
+		const nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue() const;
+		nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue();
 
 		void shutdown();
 
@@ -60,6 +74,7 @@ namespace nex
 
 		static std::unique_ptr<ResourceLoader> mInstance;
 		Window* mWindow;
+		nex::ConcurrentQueue<nex::Resource*> mFinalizeResources;
 
 
 		void run(Window* window);

@@ -25,7 +25,6 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		void cook();
 		Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES, bool defer = true);
 		Mesh();
 
@@ -36,6 +35,10 @@ namespace nex
 		Mesh& operator=(const Mesh& o) = delete;
 
 		virtual ~Mesh() = default;
+
+		void cook();
+
+		void finalize() override;
 
 		const AABB& getAABB() const;
 		IndexBuffer* getIndexBuffer();

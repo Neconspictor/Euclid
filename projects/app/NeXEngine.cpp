@@ -182,6 +182,13 @@ void NeXEngine::init()
 	PbrProbe::getSphere()->getIsLoadedStatus().get();
 	
 	RenderBackend::get()->flushPendingCommands();
+
+	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
+	while (!finalizeQueue.empty()) {
+		auto* resource = finalizeQueue.pop();
+		std::cout << "finalizeQueue.pop() = " << resource << std::endl;
+		resource->finalize();
+	}
 }
 
 bool NeXEngine::isRunning() const
@@ -382,7 +389,7 @@ void NeXEngine::initPbr()
 	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
-Future<void> NeXEngine::initProbes()
+nex::Resource::FutureType NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
 	mGlobalIllumination->loadHdr();
@@ -390,8 +397,6 @@ Future<void> NeXEngine::initProbes()
 	auto probe = mGlobalIllumination->getFactory()->create(mGlobalIllumination->getHdr(), 0);
 	mGlobalIllumination->loadProbes(std::move(probe));
 	mPbrTechnique->setProbe(mGlobalIllumination->getProbe());
-
-	Future<void> test = mGlobalIllumination->getProbe()->getIsLoadedStatus();
 
 	return mGlobalIllumination->getProbe()->getIsLoadedStatus();
 }

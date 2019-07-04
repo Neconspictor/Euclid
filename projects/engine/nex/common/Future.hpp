@@ -337,6 +337,10 @@ namespace nex
 			return mManager;
 		}
 
+		const _FutureStateManager<T>& get_state_manager() const {
+			return mManager;
+		}
+
 		void set_value(T elem)
 		{
 			mManager.set_value(std::move(elem));
@@ -371,6 +375,10 @@ namespace nex
 		}
 
 		_FutureStateManager<InternType>& get_state_manager() {
+			return mManager;
+		}
+
+		const _FutureStateManager<InternType>& get_state_manager() const {
 			return mManager;
 		}
 
@@ -541,7 +549,7 @@ namespace nex
 			packagedTask->call(std::forward<ArgsType>(args)...);
 		}
 
-		Future<Ret> get_future() {
+		Future<Ret> get_future() const {
 
 			Future<Ret> local(mPromise.get_state_manager(), {});
 
