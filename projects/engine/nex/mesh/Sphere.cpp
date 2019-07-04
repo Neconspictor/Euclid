@@ -9,6 +9,13 @@ namespace nex
 {
 	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments)
 	{
+		ResourceLoader::get()->enqueue([=] {
+			init(xSegments, ySegments);
+			return this;
+		});
+	}
+	void SphereMesh::init(unsigned int xSegments, unsigned int ySegments)
+	{
 		struct Vertex
 		{
 			glm::vec3 position;

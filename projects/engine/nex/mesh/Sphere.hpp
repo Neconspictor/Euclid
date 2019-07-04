@@ -11,5 +11,8 @@ namespace nex
 		SphereMesh(unsigned int xSegments, unsigned int ySegments);
 
 		~SphereMesh() override = default;
+
+	private:
+		void init(unsigned int xSegments, unsigned int ySegments);
 	};
 }

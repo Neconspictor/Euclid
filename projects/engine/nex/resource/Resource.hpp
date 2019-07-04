@@ -12,6 +12,12 @@ namespace nex {
 
 		Resource();
 
+		// A resource mustn't be copyable and movable in order to guarantee asynchronous resource loading.
+		Resource(Resource&& o) noexcept = delete;
+		Resource& operator=(Resource&& o) noexcept = delete;
+		Resource(const Resource& o) noexcept = delete;
+		Resource& operator=(const Resource& o) noexcept = delete;
+
 		virtual ~Resource();
 
 		/**

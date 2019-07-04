@@ -28,12 +28,6 @@ namespace nex
 		Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES, bool defer = true);
 		Mesh();
 
-		Mesh(Mesh&& other) noexcept = default;
-		Mesh& operator=(Mesh&& o) noexcept = default;
-
-		Mesh(const Mesh& o) = delete;
-		Mesh& operator=(const Mesh& o) = delete;
-
 		virtual ~Mesh() = default;
 
 		void cook();

@@ -130,9 +130,6 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 
 	mTechnique = std::make_unique<ProbeTechnique>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
-	ResourceLoader::get()->enqueue([=] {
-		return mMesh.get();
-	});
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
