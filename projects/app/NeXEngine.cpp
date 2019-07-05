@@ -264,7 +264,8 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 	std::list<SceneNode*> queue;
 
 
-	for (const auto& root : scene.getActiveVobs())
+	scene.acquireLock();
+	for (const auto& root : scene.getActiveVobsUnsafe())
 	{
 		queue.push_back(root->getMeshRootNode());
 
@@ -298,7 +299,8 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 
 void NeXEngine::createScene()
 {
-	mScene.clear();
+	mScene.acquireLock();
+	mScene.clearUnsafe();
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
 	
@@ -309,8 +311,8 @@ void NeXEngine::createScene()
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	
-	auto* ground = meshContainer->createNodeHierarchy(&mScene);
-	auto* groundVob = mScene.createVob(ground);
+	auto* ground = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	auto* groundVob = mScene.createVobUnsafe(ground);
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
 
@@ -319,12 +321,12 @@ void NeXEngine::createScene()
 		return meshContainer;
 	});
 	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* transparent = meshContainer->createNodeHierarchy(&mScene);
-	auto* transparentVob = mScene.createVob(transparent);
+	auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	auto* transparentVob = mScene.createVobUnsafe(transparent);
 	groundVob->mDebugName = "transparent - 1";
-	auto* transparentVob2 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
+	auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
 	groundVob->mDebugName = "transparent - 2";
-	auto* transparentVob3 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
+	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
 	groundVob->mDebugName = "transparent - 3";
 
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
@@ -339,7 +341,7 @@ void NeXEngine::createScene()
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
 
-	auto* probe = mGlobalIllumination->createVob(mGlobalIllumination->getProbe(), mScene);
+	auto* probe = mGlobalIllumination->createVobUnsafe(mGlobalIllumination->getProbe(), mScene);
 	probe->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));
 	probe->mDebugName = "pbr probe";
 
@@ -359,7 +361,7 @@ void NeXEngine::createScene()
 	glm::mat4 trafo = translateMatrix * rotation * scale;
 	//cerberus->setLocalTrafo(trafo);
 
-	mScene.updateWorldTrafoHierarchy(true);
+	mScene.updateWorldTrafoHierarchyUnsafe(true);
 }
 
 Window* NeXEngine::createWindow()

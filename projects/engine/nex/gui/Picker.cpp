@@ -36,7 +36,7 @@ mSelectedVob(nullptr)
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
 	mBoundingBoxMesh->finalize();
-	mBoundingBoxVob = mNodeGeneratorScene->createVob(mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get()));
+	mBoundingBoxVob = mNodeGeneratorScene->createVobUnsafe(mBoundingBoxMesh->createNodeHierarchyUnsafe(mNodeGeneratorScene.get()));
 	mBoundingBoxVob->setSelectable(false);
 	
 	//mLineMesh->add(createLineMesh(), std::move(lineMaterial));
@@ -48,7 +48,8 @@ nex::gui::Picker::~Picker() = default;
 
 void nex::gui::Picker::deselect(Scene& scene)
 {
-	scene.removeActiveVob(mBoundingBoxVob);
+	scene.acquireLock();
+	scene.removeActiveVobUnsafe(mBoundingBoxVob);
 	mSelectedVob = nullptr;
 }
 
@@ -57,13 +58,15 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 {
 	std::queue<SceneNode*> queue;
 
+	scene.acquireLock();
+
 	size_t intersections = 0;
 	Vob* selected = nullptr;
 	float selectedVobDistance = 0.0f;
 	float selectedVobRayMinDistance = 0.0f;
 	//static bool addedLine = false;
 
-	for (const auto& root : scene.getActiveVobs())
+	for (const auto& root : scene.getActiveVobsUnsafe())
 	{
 		if (!root->getSelectable()) continue;
 
@@ -108,8 +111,8 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		mSelectedVob = selected;
 		updateBoundingBoxTrafo();
-		scene.removeActiveVob(mBoundingBoxVob);
-		scene.addActiveVob(mBoundingBoxVob);
+		scene.removeActiveVobUnsafe(mBoundingBoxVob);
+		scene.addActiveVobUnsafe(mBoundingBoxVob);
 	}
 
 	return mSelectedVob;

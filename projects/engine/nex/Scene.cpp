@@ -134,17 +134,21 @@ namespace nex
 	{
 	}
 
-	void Scene::addActiveVob(Vob* vob)
+	UniqueLock Scene::acquireLock() const {
+		return UniqueLock(mMutex);
+	}
+
+	void Scene::addActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.insert(vob);
 	}
 
-	void Scene::removeActiveVob(Vob* vob)
+	void Scene::removeActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.erase(vob);
 	}
 
-	SceneNode* Scene::createNode(SceneNode* parent)
+	SceneNode* Scene::createNodeUnsafe(SceneNode* parent)
 	{
 		mNodes.emplace_back(std::make_unique<SceneNode>());
 		auto* node = mNodes.back().get();
@@ -154,46 +158,46 @@ namespace nex
 		return node;
 	}
 
-	Vob* Scene::addVob(std::unique_ptr<Vob> vob, bool setActive)
+	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
 	{
 		mVobStore.emplace_back(std::move(vob));
 		auto*  vobPtr = mVobStore.back().get();
 		if (setActive)
 		{
-			addActiveVob(vobPtr);
+			addActiveVobUnsafe(vobPtr);
 		}
 		return vobPtr;
 	}
 
-	Vob* Scene::createVob(SceneNode* meshRootNode, bool setActive)
+	Vob* Scene::createVobUnsafe(SceneNode* meshRootNode, bool setActive)
 	{
 		mVobStore.emplace_back(std::make_unique<Vob>(meshRootNode));
 		auto*  vob = mVobStore.back().get();
 		if (setActive)
 		{
-			addActiveVob(vob);
+			addActiveVobUnsafe(vob);
 		}
 		return vob;
 	}
 
-	const std::vector<std::unique_ptr<Vob>>& Scene::getVobs() const
+	const std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe() const
 	{
 		return mVobStore;
 	}
 
-	void Scene::clear()
+	void Scene::clearUnsafe()
 	{
 		mNodes.clear();
 		mActiveVobs.clear();
 		mVobStore.clear();
 	}
 
-	const std::unordered_set<Vob*>& Scene::getActiveVobs() const
+	const std::unordered_set<Vob*>& Scene::getActiveVobsUnsafe() const
 	{
 		return mActiveVobs;
 	}
 
-	void Scene::updateWorldTrafoHierarchy(bool resetPrevWorldTrafo)
+	void Scene::updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo)
 	{
 		for (auto& vob : mActiveVobs)
 			vob->updateTrafo(resetPrevWorldTrafo);

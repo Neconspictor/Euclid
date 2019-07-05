@@ -20,7 +20,7 @@ namespace nex
 		PbrProbe* getProbe();
 
 
-		Vob* createVob(PbrProbe* probe, Scene& scene);
+		Vob* createVobUnsafe(PbrProbe* probe, Scene& scene);
 
 		void loadHdr();
 		void loadProbes(std::unique_ptr<PbrProbe>);

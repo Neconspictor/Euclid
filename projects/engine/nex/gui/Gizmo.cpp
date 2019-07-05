@@ -188,7 +188,10 @@ void nex::gui::Gizmo::setMode(Mode mode)
 {
 	mMode = mode;
 
-	if (mVisible) mScene->removeActiveVob(mActiveGizmoVob);
+	if (mVisible) {
+		mScene->acquireLock();
+		mScene->removeActiveVobUnsafe(mActiveGizmoVob);
+	}
 
 	switch(mode)
 	{
@@ -203,7 +206,10 @@ void nex::gui::Gizmo::setMode(Mode mode)
 		break;
 	}
 
-	if (mVisible) mScene->addActiveVob(mActiveGizmoVob);
+	if (mVisible) {
+		mScene->acquireLock();
+		mScene->addActiveVobUnsafe(mActiveGizmoVob);
+	}
 	syncTransformation();
 	deactivate();
 }
@@ -211,7 +217,8 @@ void nex::gui::Gizmo::setMode(Mode mode)
 void nex::gui::Gizmo::show(Scene* scene)
 {
 	mScene = scene;
-	mScene->addActiveVob(mActiveGizmoVob);
+	mScene->acquireLock();
+	mScene->addActiveVobUnsafe(mActiveGizmoVob);
 	//mActiveGizmoVob->setPosition(node->getPosition());
 	//mActiveGizmoVob->updateTrafo(true);
 	//mModifiedNode = node;
@@ -220,8 +227,10 @@ void nex::gui::Gizmo::show(Scene* scene)
 
 void nex::gui::Gizmo::hide()
 {
-	if (mScene != nullptr)
-		mScene->removeActiveVob(mActiveGizmoVob);
+	if (mScene != nullptr) {
+		mScene->acquireLock();
+		mScene->removeActiveVobUnsafe(mActiveGizmoVob);
+	}
 	mVisible = false;
 	mModifiedNode = nullptr;
 	mScene = nullptr;
@@ -294,10 +303,10 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 
 void nex::gui::Gizmo::initSceneNode(Vob*& vob, StaticMeshContainer* container, const char* debugName)
 {
-	auto*  node = container->createNodeHierarchy(mNodeGeneratorScene.get());
+	auto*  node = container->createNodeHierarchyUnsafe(mNodeGeneratorScene.get());
 	node->mDebugName = debugName;
 
-	vob = mNodeGeneratorScene->createVob(node);
+	vob = mNodeGeneratorScene->createVobUnsafe(node);
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
 	

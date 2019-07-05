@@ -29,7 +29,7 @@ namespace nex
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
 
-		SceneNode* createNodeHierarchy(Scene* scene, SceneNode* parent = nullptr);
+		SceneNode* createNodeHierarchyUnsafe(Scene* scene, SceneNode* parent = nullptr);
 
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;

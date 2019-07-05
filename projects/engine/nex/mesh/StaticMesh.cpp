@@ -36,18 +36,18 @@ namespace nex
 		mMappings[pMesh] = pMaterial;
 	}
 
-	SceneNode* StaticMeshContainer::createNodeHierarchy(Scene* scene, SceneNode* parent)
+	SceneNode* StaticMeshContainer::createNodeHierarchyUnsafe(Scene* scene, SceneNode* parent)
 	{
 		assert(scene != nullptr);
 
 		if (!parent) {
-			parent = scene->createNode();
+			parent = scene->createNodeUnsafe();
 		}
 
 		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)
 		{
 			auto* material = mMappings[it->get()];
-			SceneNode* node = scene->createNode();
+			SceneNode* node = scene->createNodeUnsafe();
 			node->setMesh(it->get());
 			node->setMaterial(material);
 			parent->addChild(node);
@@ -77,13 +77,13 @@ namespace nex
 		assert(scene != nullptr);
 
 		if (!parent) {
-			parent = scene->createNode();
+			parent = scene->createNodeUnsafe();
 		}
 
 		for (auto& mapping : mappings)
 		{
 			auto* material = mapping.second;
-			SceneNode* node = scene->createNode();
+			SceneNode* node = scene->createNodeUnsafe();
 			node->setMesh(mapping.first);
 			node->setMaterial(material);
 			parent->addChild(node);

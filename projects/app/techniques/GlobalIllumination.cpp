@@ -19,14 +19,14 @@ nex::PbrProbe* nex::GlobalIllumination::getProbe()
 	return mProbes[0].get();
 }
 
-nex::Vob* nex::GlobalIllumination::createVob(PbrProbe* probe, Scene& scene)
+nex::Vob* nex::GlobalIllumination::createVobUnsafe(PbrProbe* probe, Scene& scene)
 {
 	auto* meshRootNode = StaticMesh::createNodeHierarchy(&scene,
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
 	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe);
 
-	return scene.addVob(std::move(vob), true);
+	return scene.addVobUnsafe(std::move(vob), true);
 }
 
 void nex::GlobalIllumination::loadHdr()

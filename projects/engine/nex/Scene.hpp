@@ -8,6 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #endif
 #include <glm/gtx/quaternion.hpp>
+#include <nex/common/Concurrent.hpp>
 
 namespace nex
 {
@@ -83,37 +84,40 @@ namespace nex
 		 */
 		Scene();
 
-		void addActiveVob(Vob* vob);
-		void removeActiveVob(Vob* vob);
+		UniqueLock acquireLock() const;
+
+		void addActiveVobUnsafe(Vob* vob);
+		void removeActiveVobUnsafe(Vob* vob);
 
 		/**
 		 * Creates a new node.
 		 */
-		SceneNode* createNode(SceneNode* parent = nullptr);
+		SceneNode* createNodeUnsafe(SceneNode* parent = nullptr);
 
-		Vob* addVob(std::unique_ptr<Vob> vob, bool setActive = true);
-		Vob* createVob(SceneNode* meshRootNode, bool setActive = true);
+		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
+		Vob* createVobUnsafe(SceneNode* meshRootNode, bool setActive = true);
 
 		/**
 		 * Provides all vobs that are currently active.
 		 */
-		const std::unordered_set<Vob*>& getActiveVobs() const;
+		const std::unordered_set<Vob*>& getActiveVobsUnsafe() const;
 
 		/**
 		 * Provides all vobs of this scene.
 		 */
-		const std::vector<std::unique_ptr<Vob>>& getVobs() const;
+		const std::vector<std::unique_ptr<Vob>>& getVobsUnsafe() const;
 
 		/**
 		 * Deletes all nodes except the root node.
 		 */
-		void clear();
-		void updateWorldTrafoHierarchy(bool resetPrevWorldTrafo);
+		void clearUnsafe();
+		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
 
 	private:
 		std::unordered_set<Vob*> mActiveVobs;
 		std::vector<std::unique_ptr<SceneNode>> mNodes;
 		std::vector<std::unique_ptr<Vob>> mVobStore;
+		mutable std::mutex mMutex;
 	};
 
 
