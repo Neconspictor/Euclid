@@ -221,7 +221,9 @@ void nex::OceanCpu::generateMesh()
 	//boundingBox.min = glm::vec3(0.0f);
 	//boundingBox.max = glm::vec3(0.0f);
 
-	mMesh = std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+	mMesh = std::make_unique<Mesh>();
+	mMesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+	mMesh->finalize();
 }
 
 float nex::OceanCpu::dispersion(const glm::vec2& wave) const
@@ -1072,7 +1074,9 @@ void nex::OceanGPU::generateMesh()
 	boundingBox.min = glm::vec3(0.0f);
 	boundingBox.max = glm::vec3(0.0f);
 
-	mMesh = std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+	mMesh = std::make_unique<Mesh>();
+	mMesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+	mMesh->finalize();
 }
 
 

@@ -35,6 +35,7 @@ mSelectedVob(nullptr)
 	lineMaterial->getRenderState().toolDrawIndex = 0;
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
+	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = mNodeGeneratorScene->createVob(mBoundingBoxMesh->createNodeHierarchy(mNodeGeneratorScene.get()));
 	mBoundingBoxVob->setSelectable(false);
 	

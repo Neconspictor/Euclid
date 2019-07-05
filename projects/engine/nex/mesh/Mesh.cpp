@@ -8,8 +8,16 @@
 using namespace std;
 using namespace nex;
 
-void Mesh::cook()
+Mesh::Mesh() : mTopology(Topology::TRIANGLES)
 {
+	//mBoundingBox.min = glm::vec3(0.0f);
+	//mBoundingBox.max = glm::vec3(0.0f);
+}
+
+void nex::Mesh::finalize()
+{
+	std::cout << "Called mesh finalization function!" << std::endl;
+
 	if (mVertexArray) return;
 
 	mVertexArray = std::make_unique<VertexArray>();
@@ -23,38 +31,9 @@ void Mesh::cook()
 	setIsLoaded();
 }
 
-void nex::Mesh::finalize()
-{
-	std::cout << "Called mesh finalization function!" << std::endl;
-	cook();
-}
-
-Mesh::Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology, bool defer) :
-mLayout(std::move(layout)),
-mIndexBuffer(std::move(indexBuffer)),
-mVertexBuffer(std::move(vertexBuffer)),
-mBoundingBox(std::move(boundingBox)),
-mTopology(topology)
-{
-	if (!defer)
-		cook();
-	else {
-		ResourceLoader::get()->enqueue([=] {
-			return this;
-		});
-	}
-
-}
-
 void Mesh::setVertexBuffer(VertexBuffer buffer)
 {
 	mVertexBuffer = std::move(buffer);
-}
-
-Mesh::Mesh(): mTopology(Topology::TRIANGLES)
-{
-	//mBoundingBox.min = glm::vec3(0.0f);
-	//mBoundingBox.max = glm::vec3(0.0f);
 }
 
 const AABB& Mesh::getAABB() const
@@ -90,6 +69,17 @@ VertexArray* Mesh::getVertexArray()
 VertexBuffer* Mesh::getVertexBuffer()
 {
 	return &mVertexBuffer;
+}
+
+void nex::Mesh::init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology)
+{
+	mLayout = std::move(layout);
+	mIndexBuffer = std::move(indexBuffer);
+	mVertexBuffer = std::move(vertexBuffer);
+	mBoundingBox = std::move(boundingBox);
+	mTopology = topology;
+	
+	setIsLoaded();
 }
 
 void Mesh::setIndexBuffer(IndexBuffer buffer)

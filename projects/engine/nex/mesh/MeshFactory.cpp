@@ -9,7 +9,7 @@ using namespace std;
 
 namespace nex
 {
-	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store, bool deferred)
+	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
 		VertexBuffer vertexBuffer;
 		vertexBuffer.bind();
@@ -19,7 +19,9 @@ namespace nex
 			store.indexType);
 		indexBuffer.unbind();
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES, deferred);
+		auto mesh = std::make_unique<Mesh>();
+		mesh->init(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES);
+		return mesh;
 	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTexTangent* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount, AABB boundingBox)
@@ -42,7 +44,10 @@ namespace nex
 
 		//indexBuffer.unbind();
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+		auto mesh = std::make_unique<Mesh>();
+		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+
+		return mesh;
 	}
 
 	unique_ptr<Mesh> MeshFactory::create(const VertexPositionNormalTex * vertices, uint32_t vertexCount, const uint32_t * indices, uint32_t indexCount,
@@ -60,7 +65,10 @@ namespace nex
 		layout.push<glm::vec3>(1); // normal
 		layout.push<glm::vec2>(1); // uv
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+		auto mesh = std::make_unique<Mesh>();
+		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+
+		return mesh;
 	}
 
 
@@ -77,7 +85,10 @@ namespace nex
 		VertexLayout layout;
 		layout.push<glm::vec3>(1); // position
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+		auto mesh = std::make_unique<Mesh>();
+		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+
+		return mesh;
 	}
 
 	unique_ptr<Mesh> MeshFactory::createPositionUV(const VertexPositionTex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount,
@@ -94,6 +105,9 @@ namespace nex
 		layout.push<glm::vec3>(1); // position
 		layout.push<glm::vec2>(1); // uv
 
-		return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES, false);
+		auto mesh = std::make_unique<Mesh>();
+		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+
+		return mesh;
 	}
 }

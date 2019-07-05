@@ -25,20 +25,20 @@ namespace nex
 	public:
 		using Vertex = VertexPositionNormalTexTangent;
 
-		Mesh(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES, bool defer = true);
 		Mesh();
 
 		virtual ~Mesh() = default;
 
-		void cook();
-
 		void finalize() override;
+
 
 		const AABB& getAABB() const;
 		IndexBuffer* getIndexBuffer();
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
 		VertexBuffer* getVertexBuffer();
+
+		void init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES);
 
 		void setIndexBuffer(IndexBuffer buffer);
 		void setTopology(Topology topology);

@@ -106,5 +106,6 @@ void nex::ResourceLoader::run(Window* window)
 		}
 		
 		t();
+		backend->flushPendingCommands();
 	}
 }

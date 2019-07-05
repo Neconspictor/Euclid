@@ -597,6 +597,7 @@ std::unique_ptr<StaticMeshContainer> nex::PbrProbe::createSkyBox()
 
 	auto model = std::make_unique<StaticMeshContainer>();
 	model->add(std::move(mesh), std::make_unique<Material>(nullptr));
+	model->finalize();
 
 	return model;
 }
@@ -836,6 +837,8 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
 	//environmentMap.reset();
+
+	setIsLoaded();
 }
 
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)

@@ -172,17 +172,10 @@ void NeXEngine::init()
 
 
 	initProbes();
-	createScene();
-	
-	ResourceLoader::get()->waitTillAllJobsFinished();
-	RenderBackend::get()->flushPendingCommands();
-
-	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
-	while (!finalizeQueue.empty()) {
-		auto* resource = finalizeQueue.pop();
-		std::cout << "finalizeQueue.pop() = " << resource << std::endl;
-		resource->finalize();
-	}
+	ResourceLoader::get()->enqueue([=] {
+		createScene();
+		return nullptr;
+	});
 }
 
 bool NeXEngine::isRunning() const
@@ -194,6 +187,11 @@ void NeXEngine::run()
 {
 	mIsRunning = true;
 	mWindow->activate();
+
+
+	ResourceLoader::get()->waitTillAllJobsFinished();
+
+	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
 
 	SimpleTimer timer;
 
@@ -211,6 +209,13 @@ void NeXEngine::run()
 		float fps = mCounter.update(frameTime);
 
 		updateWindowTitle(frameTime, fps);
+
+		while (!finalizeQueue.empty()) {
+			auto* resource = finalizeQueue.pop();
+			std::cout << "finalizeQueue.pop() = " << resource << std::endl;
+			resource->finalize();
+		}
+
 
 		auto* commandQueue = mRenderer->getCommandQueue();
 		commandQueue->setCamera(mCamera.get());
@@ -296,12 +301,24 @@ void NeXEngine::createScene()
 	mScene.clear();
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
+	
+	ResourceLoader::get()->enqueue([=] {
+		return meshContainer;
+	});
+
+
+	//meshContainer->getIsLoadedStatus().get()->finalize();
+	
 	auto* ground = meshContainer->createNodeHierarchy(&mScene);
 	auto* groundVob = mScene.createVob(ground);
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
 
 	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
+	ResourceLoader::get()->enqueue([=] {
+		return meshContainer;
+	});
+	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* transparent = meshContainer->createNodeHierarchy(&mScene);
 	auto* transparentVob = mScene.createVob(transparent);
 	groundVob->mDebugName = "transparent - 1";
@@ -310,12 +327,12 @@ void NeXEngine::createScene()
 	auto* transparentVob3 = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
 	groundVob->mDebugName = "transparent - 3";
 
-	/*(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
+	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;*/
+	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 
 	transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
 	transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));

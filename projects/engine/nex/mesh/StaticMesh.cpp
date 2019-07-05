@@ -6,15 +6,22 @@
 
 namespace nex
 {
+	void StaticMeshContainer::finalize()
+	{
+		for (auto& mesh : mMeshes)
+			mesh->finalize();
+	}
 	void StaticMeshContainer::init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader & materialLoader)
 	{
 		for (const auto& store : stores)
 		{
-			auto mesh = MeshFactory::create(store, true);
+			auto mesh = MeshFactory::create(store);
 			auto material = materialLoader.createMaterial(store.material);
 
 			add(std::move(mesh), std::move(material));
 		}
+
+		setIsLoaded();
 	}
 	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{

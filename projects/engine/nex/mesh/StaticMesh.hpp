@@ -24,6 +24,7 @@ namespace nex
 
 		~StaticMeshContainer() = default;
 
+		void finalize() override;
 		void init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);

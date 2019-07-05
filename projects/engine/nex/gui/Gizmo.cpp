@@ -52,12 +52,15 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 	mMeshLoader = std::make_unique<MeshLoader<VertexPosition>>();
 
 	mRotationMesh = loadRotationGizmo();
+	mRotationMesh->finalize();
 	initSceneNode(mRotationGizmoNode, mRotationMesh, "Rotation Gizmo");
 
 	mScaleMesh = loadScaleGizmo();
+	mScaleMesh->finalize();
 	initSceneNode(mScaleGizmoNode, mScaleMesh, "Scale Gizmo");
 	
 	mTranslationMesh = loadTranslationGizmo();
+	mTranslationMesh->finalize();
 	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
 
 	setMode(Mode::ROTATE);

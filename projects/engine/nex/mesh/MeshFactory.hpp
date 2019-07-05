@@ -16,7 +16,10 @@ namespace nex
 			uint32_t size;
 		};
 
-		static std::unique_ptr<Mesh> create(const MeshStore& store, bool deferred = false);
+		/**
+		 * Creates an initialized (but not finalized!) mesh from a mesh store.
+		 */
+		static std::unique_ptr<Mesh> create(const MeshStore& store);
 
 		/**
 		 * The default mesh generation method.
