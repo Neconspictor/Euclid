@@ -545,7 +545,7 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
-	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>();
+	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>(mWindow);
 	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
 
 	generalTab->addChild(std::move(sceneNodeProperty));

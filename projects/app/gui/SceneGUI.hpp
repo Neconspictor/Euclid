@@ -14,6 +14,8 @@ namespace nex
 	class Input;
 	class Scene;
 	class SceneNode;
+	class Window;
+
 }
 
 namespace nex::gui
@@ -48,7 +50,7 @@ namespace nex::gui
 	class SceneNodeProperty : public nex::gui::Drawable
 	{
 	public:
-		SceneNodeProperty();
+		SceneNodeProperty(nex::Window* window);
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
 
@@ -60,6 +62,7 @@ namespace nex::gui
 		TextureView mBrdfView;
 		TextureView mConvolutedView;
 		TextureView mPrefilteredView;
+		nex::Window* mWindow;
 		//TextureView mTransparentView;
 	};
 }

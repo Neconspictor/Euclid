@@ -9,6 +9,8 @@
 #include "NeXEngine.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include "nex/texture/TextureManager.hpp"
+#include <nfd/nfd.h>
+#include <nex/Window.hpp>
 
 namespace nex::gui
 {
@@ -55,10 +57,11 @@ namespace nex::gui
 		m_menuBar.drawGUI();
 	}
 
-	SceneNodeProperty::SceneNodeProperty() : mPicker(nullptr), 
+	SceneNodeProperty::SceneNodeProperty(nex::Window* window) : mPicker(nullptr),
 	mBrdfView({}, ImVec2(256, 256)),
 	mConvolutedView({}, ImVec2(256, 256)),
-	mPrefilteredView({}, ImVec2(256, 256))
+	mPrefilteredView({}, ImVec2(256, 256)),
+	mWindow(window)
 	//mTransparentView({}, ImVec2(256, 256))
 	{
 	}
@@ -194,6 +197,23 @@ namespace nex::gui
 
 				ImGui::TreePop();
 			}*/
+
+			if (ImGui::Button("Load Image Test")) {
+				nfdchar_t *outPath = NULL;
+				nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath, mWindow->getNativeWindow());
+
+				if (result == NFD_OKAY) {
+					puts("Success!");
+					puts(outPath);
+					free(outPath);
+				}
+				else if (result == NFD_CANCEL) {
+					puts("User pressed cancel.");
+				}
+				else {
+					printf("Error: %s\n", NFD_GetError());
+				}
+			}
 
 		} else
 		{

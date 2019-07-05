@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/locale/format.hpp>
 #include <nex/texture/TextureSamplerData.hpp>
+#include <nex/resource/Resource.hpp>
 
 namespace nex
 {
@@ -8,7 +9,7 @@ namespace nex
 	class Texture;
 
 
-	class Texture
+	class Texture : public Resource
 	{
 	public:
 		class Impl;
