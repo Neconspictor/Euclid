@@ -5,6 +5,8 @@
 
 namespace nex
 {
+	class Logger;
+
 	typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
 
 	template <class E>
@@ -12,4 +14,10 @@ namespace nex
 		throw boost::enable_error_info(e)
 			<< traced(boost::stacktrace::stacktrace());
 	}
+
+	class ExceptionHandling {
+	public:
+		static void logExceptionWithStackTrace(nex::Logger& logger, const std::exception& e);
+	};
+
 }

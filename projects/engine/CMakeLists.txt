@@ -249,6 +249,7 @@ set(
     
 	#nex/util
     nex/util/CallbackContainer.hpp
+    nex/util/ExceptionHandling.cpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
 	nex/util/Macro.hpp

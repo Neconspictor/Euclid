@@ -92,12 +92,7 @@ int main(int argc, char** argv)
 
 	} catch (const std::exception& e)
 	{
-		LOG(logger, nex::Fault) << "Exception: " << typeid(e).name() << ": "<< e.what();
-		//LOG(logger, nex::Fault) << "Stack trace: " << boost::stacktrace::stacktrace();
-		const boost::stacktrace::stacktrace* st = boost::get_error_info<nex::traced>(e);
-		if (st) {
-			LOG(logger, nex::Fault) << "Stack trace: " << *st;
-		}
+		nex::ExceptionHandling::logExceptionWithStackTrace(logger, e);
 	} catch(...)
 	{
 		LOG(logger, nex::Fault) << "Unknown Exception occurred.";

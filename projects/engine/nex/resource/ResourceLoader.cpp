@@ -102,14 +102,17 @@ nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<Packaged
 		}
 		catch (const std::exception& e) {
 
-			const boost::stacktrace::stacktrace* st = boost::get_error_info<nex::traced>(e);
+			ExceptionHandling::logExceptionWithStackTrace(mLogger, e);
 
-			if (st) {
-				LOG(mLogger, nex::Error) << "Stack trace:\n\n" << *st;
-			}
-
-			LOG(mLogger, nex::Error) << "Exception occurred: " << e.what() << std::endl;
 			auto sharedException = std::make_shared<std::exception>(e);
+			task->set_exception(sharedException);
+			mExceptions.push(sharedException);
+		}
+		catch (...)
+		{
+			const char* msg = "Unknown Exception occurred.";
+			LOG(mLogger, nex::Fault) << msg;
+			auto sharedException = std::make_shared<std::exception>(msg);
 			task->set_exception(sharedException);
 			mExceptions.push(sharedException);
 		}
