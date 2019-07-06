@@ -31,9 +31,9 @@ void FileSystem::createDirectories(const std::string& relative, const std::files
 	std::filesystem::create_directories(root.generic_string() + relative);
 }
 
-std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& path) const
+std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& path, const std::filesystem::path& root) const
 {
-	return canonical(resolvePath(path));
+	return absolute(resolvePath(path, root));
 }
 
 std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, const std::filesystem::path& root, bool noException) const
@@ -41,9 +41,14 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path,
 
 	static std::string errorBase = "FileSystem::resolvePath: path doesn't exist: ";
 
+	bool wasConstructedFromIncludeDirectory;
+
 	if (path.is_absolute()) {
 
-		if (!exists(path))
+		
+		auto compiledResource = getCompiledPath(path, wasConstructedFromIncludeDirectory);
+
+		if (!exists(path) && !exists(compiledResource))
 		{
 			if (noException) return {};
 			throw_with_trace(std::runtime_error(errorBase + path.generic_string()));
@@ -54,14 +59,17 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path,
 
 
 	// try to match the path with the specified base directoy.
-	auto current = root / path;
-	if (exists(current)) return current;
+	auto current = root / path;	 
+	auto compiledResource = getCompiledPath(current, wasConstructedFromIncludeDirectory);
+
+	if (exists(current) || (exists(compiledResource) && !wasConstructedFromIncludeDirectory)) return current;
 
 	// try to match the path wih a registered include directory
 	for (const auto& item : mIncludeDirectories)
 	{
 		std::filesystem::path p = item / path;
-		if (exists(p)) return p;
+		auto compiledResource = getCompiledPath(p, wasConstructedFromIncludeDirectory);
+		if (exists(p) || exists(compiledResource)) return p;
 	}
 
 	if (!noException)
@@ -87,7 +95,7 @@ std::filesystem::path FileSystem::getCurrentPath_Relative()
 	return makeRelative(std::filesystem::current_path());
 }
 
-std::filesystem::path nex::FileSystem::getCompiledPath(const std::filesystem::path & path)
+std::filesystem::path nex::FileSystem::getCompiledPath(const std::filesystem::path & path, bool& wasConstructedFromIncludeDirectory) const
 {
 	std::filesystem::path compiledPath;
 	if (path.is_absolute()) {
@@ -97,13 +105,15 @@ std::filesystem::path nex::FileSystem::getCompiledPath(const std::filesystem::pa
 		root = std::regex_replace(root, re, "");
 
 		compiledPath = mCompiledRootDirectory / root / path.relative_path();
+		wasConstructedFromIncludeDirectory = false;
 		//compiledPath = path.relative_path();
 		//compiledPath = makeRelative(path, mCompiledRootDirectory);
 	}
 		
-	else compiledPath = mCompiledRootDirectory / path;
-
-
+	else {
+		compiledPath = mCompiledRootDirectory / path;
+		wasConstructedFromIncludeDirectory = true;
+	}
 
 	compiledPath.replace_extension(mCompiledFileExtension);
 	return compiledPath;
@@ -116,11 +126,11 @@ const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() co
 
 bool FileSystem::isContained(const std::filesystem::path& path, const std::filesystem::path& root)
 {
-	auto canonicalPath = std::filesystem::canonical(path);
-	auto canonicalRoot = std::filesystem::canonical(root);
+	auto absolutePath = absolute(path);
+	auto absoluteRoot = absolute(root);
 
-	const auto pair = std::mismatch(canonicalPath.begin(), canonicalPath.end(), canonicalRoot.begin(), canonicalRoot.end());
-	return pair.second == canonicalRoot.end();
+	const auto pair = std::mismatch(absolutePath.begin(), absolutePath.end(), absoluteRoot.begin(), absoluteRoot.end());
+	return pair.second == absoluteRoot.end();
 }
 
 

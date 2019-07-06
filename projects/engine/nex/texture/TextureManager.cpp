@@ -248,11 +248,16 @@ namespace nex {
 
 		if (resource.is_absolute())
 		{
-			if (!FileSystem::isContained(resource, mTextureRootDirectory)) throw_with_trace(std::invalid_argument("file isn't contained in texture root directory!"));
-			resource = std::filesystem::relative(resource, mTextureRootDirectory);
+			if (FileSystem::isContained(resource, mTextureRootDirectory)) {
+				//throw_with_trace(std::invalid_argument("file isn't contained in texture root directory!"));
+				resource = std::filesystem::relative(resource, mTextureRootDirectory);
+			}
+			else {
+				bool test = false;
+			}
 		}
-
-		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource);
+		bool wasConstructedFromIncludeDirectory;
+		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource, wasConstructedFromIncludeDirectory);
 
 		if (std::filesystem::exists(compiledResource))
 		{

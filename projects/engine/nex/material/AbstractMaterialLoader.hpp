@@ -23,7 +23,7 @@ namespace nex
 
 
 	protected:
-		std::vector<std::string> loadMaterialTextures(const std::filesystem::path& meshPathAbsolute, aiMaterial* mat, aiTextureType type) const;
+		std::vector<std::string> loadMaterialTextures(const std::filesystem::path& meshDirectoryAbsolute, aiMaterial* mat, aiTextureType type) const;
 
 		TextureManager* textureManager;
 	};

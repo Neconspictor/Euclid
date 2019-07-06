@@ -41,7 +41,10 @@ namespace nex
 		}
 
 		std::vector<MeshStore> stores;
-		processNode(std::filesystem::canonical(path), scene->mRootNode, scene, stores, materialLoader);
+
+		auto meshDirectoryAbsolute = std::filesystem::canonical(path.parent_path());
+
+		processNode(meshDirectoryAbsolute, scene->mRootNode, scene, stores, materialLoader);
 
 		timer.update();
 		LOG(mLogger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();

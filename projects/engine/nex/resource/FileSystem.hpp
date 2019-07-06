@@ -34,7 +34,7 @@ namespace nex
 
 		static std::filesystem::path getCurrentPath_Relative();
 
-		std::filesystem::path getCompiledPath(const std::filesystem::path& path);
+		std::filesystem::path getCompiledPath(const std::filesystem::path& path, bool& wasConstructedFromIncludeDirectory) const;
 
 		static std::streampos getFileSize(const std::string& filePath);
 
@@ -85,7 +85,8 @@ namespace nex
 		void loadFromCompiled(const std::filesystem::path& resourcePath, 
 			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false)
 		{
-			auto compiledPath = getCompiledPath(resourcePath);
+			bool wasConstructedFromIncludeDirectory;
+			auto compiledPath = getCompiledPath(resourcePath, wasConstructedFromIncludeDirectory);
 
 			if (!std::filesystem::exists(compiledPath) || forceLoad)
 			{
@@ -105,7 +106,7 @@ namespace nex
 			const std::filesystem::path& root = std::filesystem::current_path());
 
 
-		std::filesystem::path resolveAbsolute(const std::filesystem::path& path) const;
+		std::filesystem::path resolveAbsolute(const std::filesystem::path& path, const std::filesystem::path& root) const;
 
 		/**
 		 *
