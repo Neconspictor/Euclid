@@ -41,7 +41,7 @@ namespace nex
 		}
 
 		std::vector<MeshStore> stores;
-		processNode(scene->mRootNode, scene, stores, materialLoader);
+		processNode(std::filesystem::canonical(path), scene->mRootNode, scene, stores, materialLoader);
 
 		timer.update();
 		LOG(mLogger, nex::Debug) << "Time needed for mesh loading: " << timer.getTimeInSeconds();
@@ -49,20 +49,20 @@ namespace nex
 		return stores;
 	}
 
-	void AbstractMeshLoader::processNode(aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores,
+	void AbstractMeshLoader::processNode(const std::filesystem::path&  pathAbsolute, aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores,
 		const AbstractMaterialLoader& materialLoader) const
 	{
 		// process all the node's meshes (if any)
 		for (unsigned i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(mesh, scene, stores, materialLoader);
+			processMesh(pathAbsolute, mesh, scene, stores, materialLoader);
 		}
 
 		// then do the same for each of its children
 		for (unsigned i = 0; i < node->mNumChildren; ++i)
 		{
-			processNode(node->mChildren[i], scene, stores, materialLoader);
+			processNode(pathAbsolute, node->mChildren[i], scene, stores, materialLoader);
 		}
 	}
 }
@@ -81,14 +81,14 @@ nex::AABB nex::MeshLoader<Vertex>::calcBoundingBox(const std::vector<Vertex>& ve
 }
 
 template <typename Vertex>
-void nex::MeshLoader<Vertex>::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
 	//Note: Explicit instantiation has to be implemented!
 	static_assert(false);
 }
 
-void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
 	stores.emplace_back(MeshStore());
@@ -177,12 +177,12 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(aiMesh* mesh, const aiScene
 		}
 	}
 
-	materialLoader.loadShadingMaterial(scene, store.material, mesh->mMaterialIndex);
+	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
 }
 
 
-void nex::MeshLoader<nex::VertexPosition>::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 	const AbstractMaterialLoader& materialLoader) const
 {
 	
@@ -226,6 +226,6 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(aiMesh* mesh, const aiSce
 		}
 	}
 
-	materialLoader.loadShadingMaterial(scene, store.material, mesh->mMaterialIndex);
+	materialLoader.loadShadingMaterial(pathAbsolute, scene, store.material, mesh->mMaterialIndex);
 	store.boundingBox = calcBoundingBox(vertices);
 }

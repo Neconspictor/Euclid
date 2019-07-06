@@ -5,6 +5,7 @@
 #include "PbrPass.hpp"
 #include <nex/Scene.hpp>
 #include <nex/resource/Resource.hpp>
+#include <memory>
 
 
 namespace nex
@@ -21,13 +22,18 @@ namespace nex
 	{
 	public:
 
-		static PbrProbeFactory* get(const std::filesystem::path& probeCompiledDirectory);
+		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
+
+		static PbrProbeFactory* get();
 
 		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
+		static std::unique_ptr<PbrProbeFactory> mInstance;
+		
 	private:
-		PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory);
+		PbrProbeFactory(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension);
 		std::unique_ptr<FileSystem> mFileSystem;
+		
 	};
 
 	class PbrProbe : public Resource {

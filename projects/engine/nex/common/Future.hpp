@@ -69,6 +69,26 @@ namespace nex
 			return mFinished;
 		}
 
+		void set_exception(const std::shared_ptr<std::exception>& e) {
+			{
+				std::unique_lock<std::mutex> lock(mMutex);
+				mException = e;
+				mFinished = true;
+			}
+
+			mCondition.notify_all();
+		}
+
+		void set_exception(std::shared_ptr<std::exception>&& e) {
+			{
+				std::unique_lock<std::mutex> lock(mMutex);
+				mException = std::forward<std::shared_ptr<std::exception>>(e);
+				mFinished = true;
+			}
+
+			mCondition.notify_all();
+		}
+
 		void set_value(const T& elem)
 		{
 			{
@@ -107,6 +127,7 @@ namespace nex
 		friend Promise<T>;
 
 		T mElem;
+		std::shared_ptr<std::exception> mException;
 		std::condition_variable mCondition;
 		std::mutex mMutex;
 		std::atomic<bool> mFinished = false;
@@ -187,6 +208,14 @@ namespace nex
 		bool is_ready() const
 		{
 			return mState->is_ready();
+		}
+
+		void set_exception(const std::shared_ptr<std::exception>& e) {
+			mState->set_exception(e);
+		}
+
+		void set_exception(std::shared_ptr<std::exception>&& e) {
+			mState->set_exception(std::forward<std::shared_ptr<std::exception>>(e));
 		}
 
 		void set_value(const T& value) {
@@ -341,6 +370,10 @@ namespace nex
 			return mManager;
 		}
 
+		void set_exception(std::shared_ptr<std::exception> e) {
+			mManager.set_exception(std::move(e));
+		}
+
 		void set_value(T elem)
 		{
 			mManager.set_value(std::move(elem));
@@ -385,6 +418,10 @@ namespace nex
 		void set()
 		{
 			mManager.set_value(1);
+		}
+
+		void set_exception(std::shared_ptr<std::exception> e) {
+			mManager.set_exception(std::move(e));
 		}
 
 		_FutureSharedState<InternType>* get_state() {
@@ -554,6 +591,10 @@ namespace nex
 			Future<Ret> local(mPromise.get_state_manager(), {});
 
 			return local;
+		}
+
+		void set_exception(std::shared_ptr<std::exception> e) {
+			mPromise.set_exception(std::move(e));
 		}
 
 	private:

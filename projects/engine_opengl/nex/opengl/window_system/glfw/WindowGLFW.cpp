@@ -128,12 +128,12 @@ void WindowGLFW::activate(bool deactivate)
 		glfwMakeContextCurrent(nullptr);
 }
 
-void WindowGLFW::close()
+void WindowGLFW::close(bool silent)
 {
 	if (!isOpen()) return;
 	
 	glfwSetWindowShouldClose(window, GLFW_TRUE);
-	inputDevice.informWindowCloseListeners();
+	if (!silent) inputDevice.informWindowCloseListeners();
 
 	if (!isOpen())
 	{

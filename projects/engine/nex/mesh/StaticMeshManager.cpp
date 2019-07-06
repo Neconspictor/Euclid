@@ -184,12 +184,10 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
 		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
-		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories));
+		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
 
 		mPbrMaterialLoader = std::move(pbrMaterialLoader);
 		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
-		mCompiledRootFolder = std::move(compiledRootFolder);
-		mCompiledFileExtension = std::move(compiledFileExtension);
 		mInitialized = true;
 	}
 
@@ -220,9 +218,6 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		StaticMeshContainer* result = models.back().get();
 		modelTable[hash] = result;
 
-		std::filesystem::path compiledMeshPath = mCompiledRootFolder + meshPath;
-		compiledMeshPath.replace_extension(mCompiledFileExtension);
-
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
@@ -231,7 +226,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		};
 
 		std::vector<MeshStore> stores;
-		mFileSystem->loadFromCompiled(compiledMeshPath, loader, stores, true);
+		mFileSystem->loadFromCompiled(meshPath, loader, stores, true);
 		result->init(stores, *mPbrMaterialLoader);
 		
 		return result;
@@ -269,9 +264,6 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		StaticMeshContainer* result = models.back().get();
 		modelTable[hash] = result;
 
-		std::filesystem::path compiledMeshPath = mCompiledRootFolder + meshPath;
-		compiledMeshPath.replace_extension(mCompiledFileExtension);
-
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
@@ -279,7 +271,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		};
 
 		std::vector<MeshStore> stores;
-		mFileSystem->loadFromCompiled(compiledMeshPath, loader, stores, true);
+		mFileSystem->loadFromCompiled(meshPath, loader, stores, true);
 		result->init(stores, *materialLoader);
 
 		return result;

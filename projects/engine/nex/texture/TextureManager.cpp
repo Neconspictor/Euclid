@@ -41,9 +41,7 @@ namespace nex {
 	void TextureManager::init(std::filesystem::path textureRootPath, std::filesystem::path compiledTextureRootPath, std::string compiledTextureFileExtension)
 	{
 		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
-		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories));
-		mCompiledTextureRootDirectory = std::move(compiledTextureRootPath);
-		mCompiledTextureFileExtension = std::move(compiledTextureFileExtension);
+		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledTextureRootPath), std::move(compiledTextureFileExtension));
 		mTextureRootDirectory = textureRootPath;
 
 		mDefaultImageSampler = std::make_unique<Sampler>(SamplerDesc());
@@ -133,6 +131,11 @@ namespace nex {
 				InternFormat::RGB8,
 				true
 			});
+	}
+
+	nex::FileSystem * TextureManager::getFileSystem()
+	{
+		return mFileSystem.get();
 	}
 
 	Texture2D* TextureManager::getImage(const string& file, const TextureData& data, bool detectColorSpace)
@@ -249,7 +252,7 @@ namespace nex {
 			resource = std::filesystem::relative(resource, mTextureRootDirectory);
 		}
 
-		std::filesystem::path compiledResource = mCompiledTextureRootDirectory / resource.replace_extension(mCompiledTextureFileExtension);
+		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource);
 
 		if (std::filesystem::exists(compiledResource))
 		{

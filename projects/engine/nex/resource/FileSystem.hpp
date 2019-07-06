@@ -13,9 +13,11 @@ namespace nex
 		/**
 		 * Creates a new file system with a vector of include directories.
 		 * @param includeDirectories : the include directories. Has to contain minimal one entry!
+		 * @param compiledRootDirectory : The root directory for storing compiled resources
+		 * @param compiledFileExtension : The file extension for compiled resources
 		 * @throws std::invalid_argument : if size of includeDirectories == 0
 		 */
-		FileSystem(std::vector<std::filesystem::path> includeDirectories);
+		FileSystem(std::vector<std::filesystem::path> includeDirectories, std::filesystem::path compiledRootDirectory, std::string compiledFileExtension);
 
 		void addIncludeDirectory(const std::filesystem::path& folder);
 
@@ -31,6 +33,8 @@ namespace nex
 		static char* getBytesFromFile(const std::string& filePath, std::streampos* fileSize);
 
 		static std::filesystem::path getCurrentPath_Relative();
+
+		std::filesystem::path getCompiledPath(const std::filesystem::path& path);
 
 		static std::streampos getFileSize(const std::string& filePath);
 
@@ -78,19 +82,21 @@ namespace nex
 		}
 
 		template<typename T>
-		void loadFromCompiled(const std::filesystem::path& compiledResource, 
+		void loadFromCompiled(const std::filesystem::path& resourcePath, 
 			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false)
 		{
-			if (!std::filesystem::exists(compiledResource) || forceLoad)
+			auto compiledPath = getCompiledPath(resourcePath);
+
+			if (!std::filesystem::exists(compiledPath) || forceLoad)
 			{
 				//const auto resolvedPath = resolvePath(resourcePath);
 				resourceLoader(resource);
-				FileSystem::store(compiledResource, resource);
+				FileSystem::store(compiledPath, resource);
 			}
 			else
 			{
 				BinStream file;
-				file.open(compiledResource, std::ios::in);
+				file.open(compiledPath, std::ios::in);
 				file >> resource;
 			}
 		}
@@ -101,10 +107,12 @@ namespace nex
 
 		std::filesystem::path resolveAbsolute(const std::filesystem::path& path) const;
 
-		/**,
+		/**
 		 *
 		 */
-		std::filesystem::path resolvePath(const std::filesystem::path& path, bool noException = false) const;
+		std::filesystem::path resolvePath(const std::filesystem::path& path, 
+			const std::filesystem::path& relativeRoot = "./", 
+			bool noException = false) const;
 
 		std::filesystem::path resolveRelative(const std::filesystem::path& path,
 			const std::filesystem::path& base = std::filesystem::current_path()) const;
@@ -136,5 +144,7 @@ namespace nex
 
 	private:
 		std::vector<std::filesystem::path> mIncludeDirectories;
+		std::filesystem::path mCompiledRootDirectory;
+		std::string mCompiledFileExtension;
 	};
 }

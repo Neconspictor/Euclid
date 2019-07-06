@@ -507,7 +507,7 @@ class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
 public:
 	MaterialLoader(nex::Technique* technique) : DefaultMaterialLoader(), mTechnique(technique) {};
 
-	virtual void loadShadingMaterial(const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
+	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
 	{
 		aiColor3D color;
 		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color) )

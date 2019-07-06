@@ -44,6 +44,12 @@ namespace nex::util {
 		return getCompiledRootDirectory() + "probes/";
 	}
 
+	const std::string & Globals::getCompiledPbrFileExtension() const
+	{
+		static const std::string extension = ".CPROBE";
+		return extension;
+	}
+
 	const std::string& Globals::getCompiledTextureFileExtension() const
 	{
 		static const std::string extension = ".CTEX";

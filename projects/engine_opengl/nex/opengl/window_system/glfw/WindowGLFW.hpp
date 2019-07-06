@@ -62,7 +62,7 @@ namespace nex
 		void activate(bool deactivate = false) override;
 
 
-		void close() override;
+		void close(bool silent = false) override;
 
 		const Cursor* getCursor() const override;
 

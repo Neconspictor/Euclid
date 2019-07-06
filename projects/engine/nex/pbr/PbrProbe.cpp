@@ -26,6 +26,12 @@ using namespace nex;
 std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
 std::unique_ptr<PbrProbe::ProbeTechnique> PbrProbe::mTechnique = nullptr;
 std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
+std::unique_ptr<nex::PbrProbeFactory> nex::PbrProbeFactory::mInstance;
+
+void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
+{
+	mInstance = std::unique_ptr<nex::PbrProbeFactory>(new PbrProbeFactory(probeCompiledDirectory, std::move(probeFileExtension)));
+}
 
 class nex::PbrProbe::ProbeTechnique : public nex::Technique {
 public:
@@ -83,22 +89,20 @@ public:
 };
 
 
-PbrProbeFactory::PbrProbeFactory(const std::filesystem::path& probeCompiledDirectory)
+PbrProbeFactory::PbrProbeFactory(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
 {
-	std::vector<std::filesystem::path> includes = {std::move(probeCompiledDirectory)};
-	mFileSystem = std::make_unique<FileSystem>(std::move(includes));
+	std::vector<std::filesystem::path> includes = {probeCompiledDirectory};
+	mFileSystem = std::make_unique<FileSystem>(std::move(includes), probeCompiledDirectory, probeFileExtension);
 	PbrProbe::initGlobals(mFileSystem->getFirstIncludeDirectory());
 }
 
-PbrProbeFactory* PbrProbeFactory::get(const std::filesystem::path& probeCompiledDirectory)
+PbrProbeFactory* PbrProbeFactory::get()
 {
-	static PbrProbeFactory factory(probeCompiledDirectory);
-	return &factory;
+	return mInstance.get();
 }
 
 std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
 {
-
 	auto probe = std::make_unique<PbrProbe>();
 
 	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]()

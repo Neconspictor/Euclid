@@ -17,13 +17,13 @@ namespace nex
 
 		virtual ~AbstractMaterialLoader();
 
-		virtual void loadShadingMaterial(const aiScene* scene, MaterialStore& store, unsigned materialIndex) const = 0;
+		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const = 0;
 
 		virtual std::unique_ptr<Material> createMaterial(const MaterialStore& store) const = 0;
 
 
 	protected:
-		std::vector<std::string> loadMaterialTextures(aiMaterial* mat, aiTextureType type) const;
+		std::vector<std::string> loadMaterialTextures(const std::filesystem::path& meshPathAbsolute, aiMaterial* mat, aiTextureType type) const;
 
 		TextureManager* textureManager;
 	};
@@ -33,7 +33,7 @@ namespace nex
 	public:
 		DefaultMaterialLoader() : AbstractMaterialLoader(nullptr) {}
 		virtual ~DefaultMaterialLoader();
-		virtual void loadShadingMaterial(const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override { }
+		virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, MaterialStore& store, unsigned materialIndex) const override { }
 		std::unique_ptr<Material> createMaterial(const MaterialStore& store) const override { return nullptr; }
 	};
 }

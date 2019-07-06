@@ -22,12 +22,12 @@ namespace nex
 		std::vector<MeshStore> loadStaticMesh(const std::filesystem::path&  path, const AbstractMaterialLoader& materialLoader) const;
 
 	protected:
-		void processNode(aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const;
+		void processNode(const std::filesystem::path&  pathAbsolute, aiNode* node, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const;
 
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		virtual void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const = 0;
+		virtual void processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const = 0;
 
 		nex::Logger mLogger;
 	};
@@ -46,9 +46,9 @@ namespace nex
 		/**
 		 * Creates a Mesh out of an aiMesh. It is assumed that the given aiMesh is triangulated.
 		 */
-		void processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const override;
+		void processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores, const AbstractMaterialLoader& materialLoader) const override;
 	};
 
-	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
+	void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path&  pathAbsolute, aiMesh* mesh, const aiScene* scene, std::vector<MeshStore>& stores,
 		const AbstractMaterialLoader& materialLoader) const;
 }

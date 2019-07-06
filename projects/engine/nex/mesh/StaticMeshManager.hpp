@@ -121,8 +121,6 @@ namespace nex
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
 		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
 		bool mInitialized;
-		std::string mCompiledRootFolder;
-		std::string mCompiledFileExtension;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;
 		unsigned int SKYBOX_MODEL_HASH;

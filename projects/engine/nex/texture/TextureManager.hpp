@@ -47,6 +47,8 @@ namespace nex {
 		nex::Texture2D* getDefaultNormalTexture();
 		nex::Texture2D* getDefaultWhiteTexture();
 
+		nex::FileSystem* getFileSystem();
+
 		nex::Texture2D* getImage(const std::string& file,
 			const nex::TextureData& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
@@ -108,8 +110,6 @@ namespace nex {
 		std::unique_ptr<Sampler> mPointSampler;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
 		std::filesystem::path mTextureRootDirectory;
-		std::filesystem::path mCompiledTextureRootDirectory;
-		std::filesystem::path mCompiledTextureFileExtension;
 	};
 
 	class TextureManager_Configuration : public nex::gui::Drawable

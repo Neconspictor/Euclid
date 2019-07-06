@@ -68,39 +68,15 @@ int main(int argc, char** argv)
 	nex::LoggerManager* logManager = nex::LoggerManager::get();
 	logManager->setMinLogLevel(nex::Debug);
 
-	//nex::MeshStore::test();
-
-	//nex::MaterialStore::test();
-
 
 	nex::Logger logger("Main");
-
-	nex::Circle3D circle(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0, 0, 1), 1.0f);
-	nex::Ray ray(glm::vec3(1.0f, 0.0, 0.0), glm::vec3(1.0f, 1.0f, 0.01f));
-	nex::Sphere sphere = {glm::vec3(0.0f, 0.0f, 0.0f), 1.0f};
-	const auto result = circle.intersects(ray);
-	//const auto result = ray.intersects(sphere);
-
-	std::cout << "result.intersectionCount = " << result.intersectionCount << std::endl;
-	std::cout << "result.firstMultiplier = " << result.firstMultiplier 
-			<< ", first intersection = " << ray.getPoint(result.firstMultiplier)
-			<< ", length = " << length(ray.getPoint(result.firstMultiplier)) <<  std::endl;
-	std::cout << "result.secondMultiplier = " << result.secondMultiplier 
-				<< ", second intersection = " << ray.getPoint(result.secondMultiplier) 
-				<< ", length = " << length(ray.getPoint(result.secondMultiplier)) << std::endl;
-
-	//glm::vec3 point(2.0f, 89.0f, 67.0f);
-	//const auto projectedPoint = plane.project(point);
-	//std::cout << "point = " << point << std::endl;
-	//std::cout << "projected point = " << projectedPoint << std::endl;
-
-
 
 	//return EXIT_SUCCESS;
 
 	logLastCrashReport(logger);
 
 	try {
+
 		if (!provider->init())
 		{
 			nex::throw_with_trace(std::runtime_error("Couldn't initialize window system!"));

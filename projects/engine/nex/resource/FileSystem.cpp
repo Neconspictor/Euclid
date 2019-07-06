@@ -5,11 +5,13 @@
 #include "nex/common/Log.hpp"
 #include <nex/util/Memory.hpp>
 #include <nex/util/ExceptionHandling.hpp>
-
+#include <regex>
 using namespace nex;
 
-FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories) :
-	mIncludeDirectories(std::move(includeDirectories))
+FileSystem::FileSystem(std::vector<std::filesystem::path> includeDirectories, std::filesystem::path compiledRootDirectory, std::string compiledFileExtension) :
+	mIncludeDirectories(std::move(includeDirectories)),
+	mCompiledRootDirectory(std::move(compiledRootDirectory)),
+	mCompiledFileExtension(std::move(compiledFileExtension))
 {
 	if (mIncludeDirectories.size() == 0) throw std::invalid_argument("size of include directories must be greater 0!");
 }
@@ -34,7 +36,7 @@ std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& p
 	return canonical(resolvePath(path));
 }
 
-std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, bool noException) const
+std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, const std::filesystem::path& root, bool noException) const
 {
 
 	static std::string errorBase = "FileSystem::resolvePath: path doesn't exist: ";
@@ -50,6 +52,12 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path,
 		return path;
 	}
 
+
+	// try to match the path with the specified base directoy.
+	auto current = root / path;
+	if (exists(current)) return current;
+
+	// try to match the path wih a registered include directory
 	for (const auto& item : mIncludeDirectories)
 	{
 		std::filesystem::path p = item / path;
@@ -77,6 +85,28 @@ std::filesystem::path FileSystem::makeRelative(const std::filesystem::path& path
 std::filesystem::path FileSystem::getCurrentPath_Relative()
 {
 	return makeRelative(std::filesystem::current_path());
+}
+
+std::filesystem::path nex::FileSystem::getCompiledPath(const std::filesystem::path & path)
+{
+	std::filesystem::path compiledPath;
+	if (path.is_absolute()) {
+		// A regex that matches the following tokens: /\?*<>|
+		std::regex re(":|/|\\\\|\\?|\\*|<|>|\\|");
+		auto root = path.root_name().generic_string();
+		root = std::regex_replace(root, re, "");
+
+		compiledPath = mCompiledRootDirectory / root / path.relative_path();
+		//compiledPath = path.relative_path();
+		//compiledPath = makeRelative(path, mCompiledRootDirectory);
+	}
+		
+	else compiledPath = mCompiledRootDirectory / path;
+
+
+
+	compiledPath.replace_extension(mCompiledFileExtension);
+	return compiledPath;
 }
 
 const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() const

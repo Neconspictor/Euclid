@@ -104,7 +104,7 @@ void NeXEngine::init()
 	ImageFactory::init(true);
 
 	// init shader file system
-	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory()});
+	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory()}, "", "");
 	ShaderSourceFileGenerator::get()->init(mShaderFileSystem.get());
 
 	//init render backend
@@ -167,8 +167,8 @@ void NeXEngine::init()
 			window->reopen();
 		}
 	});
-
-	PbrProbeFactory::get(mGlobals.getCompiledPbrDirectory());
+	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
+	PbrProbeFactory::get();
 
 
 	initProbes();
@@ -192,6 +192,7 @@ void NeXEngine::run()
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
 	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
+	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
 
 	SimpleTimer timer;
 
@@ -214,6 +215,11 @@ void NeXEngine::run()
 			auto* resource = finalizeQueue.pop();
 			std::cout << "finalizeQueue.pop() = " << resource << std::endl;
 			resource->finalize();
+		}
+
+		while (!exceptionQueue.empty()) {
+			auto& exception = exceptionQueue.pop();
+			throw *exception;
 		}
 
 
@@ -316,7 +322,8 @@ void NeXEngine::createScene()
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
 
-	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
+	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
+	meshContainer = StaticMeshManager::get()->getModel("C:/Users/Necon/Desktop/testNeX/transparent.obj");
 	ResourceLoader::get()->enqueue([=] {
 		return meshContainer;
 	});

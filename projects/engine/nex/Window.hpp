@@ -167,7 +167,7 @@ namespace nex
 		/**
 		* Closes this window.
 		*/
-		virtual void close() = 0;
+		virtual void close(bool silent = false) = 0;
 
 		/**
 		 * Provides the active cursor.

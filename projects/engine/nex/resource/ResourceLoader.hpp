@@ -47,20 +47,7 @@ namespace nex
 				++mRequestedJobs;
 
 				if (!mIsRunning) throw std::runtime_error("nex::ResourceLoader::enqueue: Already shutdown!");
-				mJobs.push([=]
-				{
-					(*wrapper)();
-					auto* resource = (*wrapper).get_future().get();
-					if (resource) mFinalizeResources.push(resource);
-
-					{
-						std::unique_lock<std::mutex>lock(mMutex);
-						if (mFinishedJobs < mRequestedJobs)
-							++mFinishedJobs;
-					}
-
-					mCondition.notify_all();
-				});
+				mJobs.push(createJob(wrapper));
 			}
 
 			mCondition.notify_all();
@@ -70,6 +57,9 @@ namespace nex
 
 		const nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue() const;
 		nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue();
+
+		const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& getExceptionQueue() const;
+		nex::ConcurrentQueue<std::shared_ptr<std::exception>>& getExceptionQueue();
 
 		
 		unsigned long getFinishedJobs() const;
@@ -96,6 +86,9 @@ namespace nex
 		static std::unique_ptr<ResourceLoader> mInstance;
 		Window* mWindow;
 		nex::ConcurrentQueue<nex::Resource*> mFinalizeResources;
+		nex::ConcurrentQueue<std::shared_ptr<std::exception>> mExceptions;
+
+		Job createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task);
 
 
 		void run(Window* window);

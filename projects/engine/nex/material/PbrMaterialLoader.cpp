@@ -117,7 +117,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	return material;
 }
 
-void PbrMaterialLoader::loadShadingMaterial(const aiScene * scene, MaterialStore& store, unsigned materialIndex) const
+void PbrMaterialLoader::loadShadingMaterial(const std::filesystem::path& meshPath, const aiScene * scene, MaterialStore& store, unsigned materialIndex) const
 {
 	if (scene->mNumMaterials <= materialIndex)
 	{
@@ -128,37 +128,37 @@ void PbrMaterialLoader::loadShadingMaterial(const aiScene * scene, MaterialStore
 
 	// a material can have more than one diffuse/specular/normal map,
 	// but we only use the first one by now
-	vector<string> albedoMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE);
+	vector<string> albedoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_DIFFUSE);
 	if (albedoMaps.size())
 	{
 		store.albedoMap = albedoMaps[0];
 	}
 
-	vector<string> aoMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT);
+	vector<string> aoMaps = loadMaterialTextures(meshPath, mat, aiTextureType_AMBIENT);
 	if (aoMaps.size())
 	{
 		store.aoMap = aoMaps[0];
 	}
 
-	vector<string> emissionMaps = loadMaterialTextures(mat, aiTextureType_EMISSIVE);
+	vector<string> emissionMaps = loadMaterialTextures(meshPath, mat, aiTextureType_EMISSIVE);
 	if (emissionMaps.size())
 	{
 		store.emissionMap = emissionMaps[0];
 	}
 
-	vector<string> metallicMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR);
+	vector<string> metallicMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SPECULAR);
 	if (metallicMaps.size())
 	{
 		store.metallicMap = metallicMaps[0];
 	}
 
-	vector<string> roughnessMaps = loadMaterialTextures(mat, aiTextureType_SHININESS);
+	vector<string> roughnessMaps = loadMaterialTextures(meshPath, mat, aiTextureType_SHININESS);
 	if (roughnessMaps.size())
 	{
 		store.roughnessMap = roughnessMaps[0];
 	}
 
-	vector<string> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT);
+	vector<string> normalMaps = loadMaterialTextures(meshPath, mat, aiTextureType_HEIGHT);
 	if (normalMaps.size())
 	{
 		store.normalMap = normalMaps[0];

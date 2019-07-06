@@ -93,7 +93,7 @@ void SubSystemProviderGLFW::terminate()
 	
 	for (auto& window : windows)
 	{
-		window.close();
+		window.close(true);
 		window.release();
 	}
 

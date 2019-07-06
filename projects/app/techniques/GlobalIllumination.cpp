@@ -8,7 +8,7 @@
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory) : 
-mFactory(PbrProbeFactory::get(compiledProbeDirectory))
+mFactory(PbrProbeFactory::get())
 {
 }
 

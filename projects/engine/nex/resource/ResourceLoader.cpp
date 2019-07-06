@@ -2,6 +2,10 @@
 #include <nex/SubSystemProvider.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/resource/Resource.hpp>
+#include <boost/stacktrace.hpp>
+#include <boost/exception/get_error_info.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <nex/util/ExceptionHandling.hpp>
 
 std::unique_ptr<nex::ResourceLoader> nex::ResourceLoader::mInstance;
 
@@ -40,6 +44,16 @@ nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue()
 	return mFinalizeResources;
 }
 
+const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& nex::ResourceLoader::getExceptionQueue() const
+{
+	return mExceptions;
+}
+
+nex::ConcurrentQueue<std::shared_ptr<std::exception>>& nex::ResourceLoader::getExceptionQueue()
+{
+	return mExceptions;
+}
+
 unsigned long nex::ResourceLoader::getFinishedJobs() const
 {
 	return mFinishedJobs;
@@ -75,6 +89,40 @@ void nex::ResourceLoader::shutdown()
 	mCondition.notify_all();
 
 	mWorker.join();
+}
+
+nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task)
+{
+	return [=]
+	{
+		try {
+			(*task)();
+			auto* resource = (*task).get_future().get();
+			if (resource) mFinalizeResources.push(resource);
+		}
+		catch (const std::exception& e) {
+
+			const boost::stacktrace::stacktrace* st = boost::get_error_info<nex::traced>(e);
+
+			if (st) {
+				LOG(mLogger, nex::Error) << "Stack trace:\n\n" << *st;
+			}
+
+			LOG(mLogger, nex::Error) << "Exception occurred: " << e.what() << std::endl;
+			auto sharedException = std::make_shared<std::exception>(e);
+			task->set_exception(sharedException);
+			mExceptions.push(sharedException);
+		}
+
+		{
+			std::unique_lock<std::mutex>lock(mMutex);
+			if (mFinishedJobs < mRequestedJobs)
+				++mFinishedJobs;
+		}
+
+		mCondition.notify_all();
+
+	};
 }
 
 void nex::ResourceLoader::run(Window* window)
