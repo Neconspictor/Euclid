@@ -21,6 +21,8 @@ using namespace boost::interprocess;
 using namespace std;
 using namespace nex;
 
+bool nex::ImageFactory::mFlipY = false;
+
 nex::BinStream& nex::operator<<(nex::BinStream& out, const GenericImage& image)
 {
 	out << image.pixels;
@@ -49,7 +51,13 @@ nex::BinStream& nex::operator>>(nex::BinStream& in, GenericImage& image)
 
 void ImageFactory::init(bool flipY)
 {
-	stbi_set_flip_vertically_on_load(flipY);
+	mFlipY = flipY;
+	stbi_set_flip_vertically_on_load(mFlipY);
+}
+
+bool nex::ImageFactory::isYFlipped()
+{
+	return mFlipY;
 }
 
 ImageResource::ImageResource() noexcept : data(nullptr), bytes(0)

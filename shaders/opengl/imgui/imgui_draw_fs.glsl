@@ -9,10 +9,12 @@ uniform int MipMapLevel;
 uniform int UseTransparency;
 uniform int UseGammaCorrection;
 uniform int UseToneMapping;
+uniform mat3 transformUV;
+uniform int FlipY;
 
 void main()
 {
-    vec4 color = textureLod( Texture, Frag_UV.st, MipMapLevel);
+    vec4 color = textureLod( Texture, Frag_UV, MipMapLevel);
     
     if (UseToneMapping) {
         const float exposure = 1.0;

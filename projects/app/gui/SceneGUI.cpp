@@ -63,6 +63,7 @@ namespace nex::gui
 	mBrdfView({}, ImVec2(256, 256)),
 	mConvolutedView({}, ImVec2(256, 256)),
 	mPrefilteredView({}, ImVec2(256, 256)),
+	mDynamicLoad({}, ImVec2(256,256)),
 	mWindow(window)
 	//mTransparentView({}, ImVec2(256, 256))
 	{
@@ -153,6 +154,7 @@ namespace nex::gui
 				auto* texture = probe->getBrdfLookupTexture();
 				auto& probePrefiltered = mBrdfView.getTexture();
 				probePrefiltered.texture = texture;
+				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
 
 				mBrdfView.updateTexture(true);
@@ -166,6 +168,7 @@ namespace nex::gui
 				auto* texture = probe->getConvolutedEnvironmentMap();
 				auto& probePrefiltered = mConvolutedView.getTexture();
 				probePrefiltered.texture = texture;
+				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
 
 				mConvolutedView.updateTexture(true);
@@ -179,6 +182,7 @@ namespace nex::gui
 				auto* texture = probe->getPrefilteredEnvironmentMap();
 				auto& probePrefiltered = mPrefilteredView.getTexture();
 				probePrefiltered.texture = texture;
+				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
 
 				mPrefilteredView.updateTexture(true);
@@ -201,22 +205,39 @@ namespace nex::gui
 			}*/
 
 			static Future<Resource*> future;
+			Texture* loadedTexture = nullptr;
+
+			if (future.is_ready())
+				loadedTexture = (Texture*)future.get();
+
+			if (loadedTexture) {
+
+				auto& desc = mDynamicLoad.getTexture();
+				desc.texture = loadedTexture;
+				desc.flipY = ImageFactory::isYFlipped();
+				desc.sampler = TextureManager::get()->getDefaultImageSampler();
+
+				mDynamicLoad.updateTexture(true);
+				mDynamicLoad.drawGUI();
+			}
 
 			if (ImGui::Button("Load Image Test")) {
 
-				
-
-
-
-				if (future.is_ready()) {
-					future = ResourceLoader::get()->enqueue([=] {
+				if (future.is_ready() || !future.valid()) {
+					future = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
 						
 						FileDialog fileDialog(mWindow);
-						auto result = fileDialog.selectFile();
+						auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");
+
+						TextureData data;
+						data.colorspace = ColorSpace::SRGBA;
+						data.internalFormat = InternFormat::SRGBA8;
+						//data.generateMipMaps = true;
 
 						switch (result.state) {
 						case FileDialog::State::Okay:
 							std::cout << "Selected file: " << result.path << std::endl;
+							return TextureManager::get()->getImage(result.path,data, true);
 							break;
 						case FileDialog::State::Cancled:
 							std::cout << "Canceled" << std::endl;
@@ -225,7 +246,6 @@ namespace nex::gui
 							std::cout << "Error: " << result.error << std::endl;
 							break;
 						}
-						
 						
 						return nullptr;
 					});

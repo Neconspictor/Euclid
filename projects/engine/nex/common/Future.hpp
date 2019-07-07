@@ -209,7 +209,7 @@ namespace nex
 		{
 			if (mState)
 				return mState->is_ready();
-			else return true;
+			else return false;
 		}
 
 		void set_exception(const std::shared_ptr<std::exception>& e) {

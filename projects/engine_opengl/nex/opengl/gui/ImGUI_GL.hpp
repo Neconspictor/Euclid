@@ -40,7 +40,7 @@ namespace nex::gui
 
 		void init();
 
-		void bindTextureShader(ImGUI_ImageDesc* texture, const glm::mat4& projection);
+		void bindTextureShader(ImGUI_ImageDesc* texture, const glm::mat4& proj);
 
 		bool createDeviceObjects();
 
@@ -59,6 +59,7 @@ namespace nex::gui
 		std::unique_ptr<VertexArray> mVertexArray;
 		std::unique_ptr<VertexBuffer> mVertexBuffer;
 		std::unique_ptr<IndexBuffer> mIndices;
+		std::unique_ptr<Drawer> mShaderGeneral;
 		std::unique_ptr<Drawer> mShaderTexture2D;
 		std::unique_ptr<Drawer> mShaderCubeMap;
 		nex::Logger m_logger;

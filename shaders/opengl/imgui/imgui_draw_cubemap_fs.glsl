@@ -18,6 +18,8 @@ void main()
     // (Chapter 'Mapping Texture Coordinates to Cube Map Faces')
     //
 
+
+
     float transformedS = (Frag_UV.s - 0.5);
     
     // flip T

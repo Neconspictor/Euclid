@@ -49,7 +49,7 @@ namespace nex {
 
 		nex::FileSystem* getFileSystem();
 
-		nex::Texture2D* getImage(const std::string& file,
+		nex::Texture2D* getImage(const std::filesystem::path& file,
 			const nex::TextureData& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,
@@ -62,7 +62,7 @@ namespace nex {
 				true }, bool detectColorSpace = false
 		);
 
-		std::unique_ptr<nex::Texture2D> loadImage(const std::string& file,
+		std::unique_ptr<nex::Texture2D> loadImage(const std::filesystem::path& file,
 			const nex::TextureData& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,

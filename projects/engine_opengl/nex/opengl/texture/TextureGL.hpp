@@ -229,6 +229,8 @@ namespace nex
 		 */
 		unsigned getDepth() const;
 
+		void updateMipMapCount();
+
 	protected:
 		friend Texture;
 

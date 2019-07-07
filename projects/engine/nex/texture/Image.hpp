@@ -85,6 +85,8 @@ namespace nex
 		 */
 		static void init(bool flipY);
 
+		static bool isYFlipped();
+
 		/**
 		 * @param stride : byte size of one line (== width * pixel-size)
 		 */
@@ -114,6 +116,9 @@ namespace nex
 		 * @throws nex::ResourceLoadException : if the image couldn't be loaded.
 		 */
 		static GenericImage loadNonHDR(const char* filePath, int desiredChannels = 0);
+
+	private:
+		static bool mFlipY;
 	};
 
 	struct StoreImage

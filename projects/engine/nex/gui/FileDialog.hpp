@@ -30,7 +30,7 @@ namespace nex::gui
 		 * Opens a file dialog for the user.
 		 * Note: Is blocking.
 		 */
-		FileSelection selectFile();
+		FileSelection selectFile(const char* filterList = nullptr, const char* defaultPath = nullptr);
 
 
 	private:

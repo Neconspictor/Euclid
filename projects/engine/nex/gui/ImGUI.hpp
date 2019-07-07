@@ -56,5 +56,6 @@ namespace nex::gui
 
 		bool useTransparency = true;
 		bool useToneMapping = false;
+		bool flipY = false;
 	};
 }

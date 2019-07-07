@@ -11,6 +11,8 @@
 
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/texture/Sampler.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace nex::gui
 {
@@ -26,6 +28,8 @@ namespace nex::gui
 			mMipMapLevel = { mShader->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
 			mUseTransparency = { mShader->getUniformLocation("UseTransparency"), nex::UniformType::INT };
+			mTransformUV = { mShader->getUniformLocation("transformUV"), nex::UniformType::MAT3 };
+			mFlipY = { mShader->getUniformLocation("FlipY"), nex::UniformType::MAT3 };
 			mGammaCorrect = { mShader->getUniformLocation("UseGammaCorrection"), nex::UniformType::INT };
 			mToneMapping = { mShader->getUniformLocation("UseToneMapping"), nex::UniformType::INT };
 
@@ -42,6 +46,16 @@ namespace nex::gui
 		void setProjMtx(const glm::mat4& mat)
 		{
 			mShader->setMat4(mProjMtx.location, mat);
+		}
+
+		void setFlipY(bool value)
+		{
+			mShader->setInt(mFlipY.location, value);
+		}
+
+		void setTransformUV(const glm::mat3& mat)
+		{
+			mShader->setMat3(mTransformUV.location, mat);
 		}
 
 		void setCubeMapSide(CubeMapSide side)
@@ -74,6 +88,8 @@ namespace nex::gui
 		nex::UniformTex mTexture;
 		nex::Uniform mSide;
 		nex::Uniform mMipMapLevel;
+		nex::Uniform mTransformUV;
+		nex::Uniform mFlipY;
 		nex::Uniform mUseTransparency;
 		nex::Uniform mGammaCorrect;
 		nex::Uniform mToneMapping;
@@ -217,6 +233,7 @@ namespace nex::gui
 
 		// Setup viewport, orthographic projection matrix
 		RenderBackend::get()->setViewPort(0, 0, fb_width, fb_height);
+		
 		const glm::mat4 ortho_projection =
 		{
 			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
@@ -225,8 +242,10 @@ namespace nex::gui
 			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
 		};
 
-		mShaderTexture2D->bind();
-		mShaderTexture2D->setProjMtx(ortho_projection);
+		mShaderGeneral->bind();
+		mShaderGeneral->setProjMtx(ortho_projection);
+		mShaderGeneral->setTransformUV(glm::mat3(1.0f));
+		mShaderGeneral->setFlipY(false);
 
 		// We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
 		Sampler::unbind(0);
@@ -253,6 +272,7 @@ namespace nex::gui
 				const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 				if (pcmd->UserCallback)
 				{
+					mShaderGeneral->bind();
 					pcmd->UserCallback(cmd_list, pcmd);
 				} else
 				{
@@ -368,9 +388,18 @@ namespace nex::gui
 		createDeviceObjects();
 	}
 
-	void ImGUI_GL::bindTextureShader(ImGUI_ImageDesc* desc, const glm::mat4& projection)
+	void ImGUI_GL::bindTextureShader(ImGUI_ImageDesc* desc, const glm::mat4& proj)
 	{
 		Drawer* drawer = mShaderTexture2D.get();
+
+		static const glm::mat3 flipY =
+		{
+			{ 1.0f, 0.0f, 0.0f},
+			{ 0.0f, -1.0, 0.0f},
+			{ 0.0f, 1.0f, 1.0f}
+		};
+
+		static const glm::mat3 noFlipY(1.0f);
 
 		auto* texture = desc->texture;
 		const auto& pixelDataType = texture->getTextureData().pixelDataType;
@@ -389,25 +418,28 @@ namespace nex::gui
 		drawer->setUseTransparency(desc->useTransparency);
 
 		auto colorspace = texture->getTextureData().colorspace;
-
-		if (colorspace == ColorSpace::SRGB || colorspace == ColorSpace::SRGBA)
-		{
-			drawer->setGammaCorrect(false);
-		} else
-		{
-			drawer->setGammaCorrect(true);
-		}
+		drawer->setGammaCorrect(true);
 
 		drawer->setUseToneMapping(desc->useToneMapping);
 
-		if (init)
-		{
-			drawer->setProjMtx(projection);
+		if (init) {
+			auto& io = ImGui::GetIO();
+			drawer->setProjMtx(proj);
+		}
+
+		if (desc->flipY) {
+			auto& io = ImGui::GetIO();
+			drawer->setTransformUV(flipY);
+		}
+		else {
+			auto& io = ImGui::GetIO();
+			drawer->setTransformUV(noFlipY);
 		}
 	}
 
 	bool ImGUI_GL::createDeviceObjects()
 	{
+		mShaderGeneral = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 		mShaderTexture2D = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 		mShaderCubeMap = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_fs.glsl");
 		mVertexBuffer = std::make_unique<VertexBuffer>();

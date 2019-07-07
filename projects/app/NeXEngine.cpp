@@ -71,7 +71,7 @@ void NeXEngine::init()
 
 
 	mWindow = createWindow();
-	//mWindow->activate();
+
 	Window::WindowStruct desc;
 	desc.shared = mWindow;
 	desc.title = mVideo.windowTitle;
@@ -87,8 +87,9 @@ void NeXEngine::init()
 	desc.visible = false;
 	desc.vSync = mVideo.vSync;
 	auto* secondWindow = mWindowSystem->createWindow(desc);
-	ResourceLoader::init(secondWindow);
-	ResourceLoader::get()->resetJobCounter();
+
+	mWindow->activate();
+
 
 	mWindow->activate();
 	mWindow->setVisible(true);
@@ -116,6 +117,9 @@ void NeXEngine::init()
 
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
+
+	ResourceLoader::init(secondWindow);
+	ResourceLoader::get()->resetJobCounter();
 
 	initLights();
 

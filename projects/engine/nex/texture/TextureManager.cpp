@@ -138,11 +138,11 @@ namespace nex {
 		return mFileSystem.get();
 	}
 
-	Texture2D* TextureManager::getImage(const string& file, const TextureData& data, bool detectColorSpace)
+	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureData& data, bool detectColorSpace)
 	{
-		const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
+		const auto resolvedPath = mFileSystem->resolvePath(file);
 
-		auto it = textureLookupTable.find(resolvedPath);
+		auto it = textureLookupTable.find(resolvedPath.u8string());
 
 		// Don't create duplicate textures!
 		if (it != textureLookupTable.end())
@@ -158,7 +158,7 @@ namespace nex {
 
 		auto* result = textures.back().get();
 
-		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(resolvedPath, result));
+		textureLookupTable.insert(std::pair<std::string, nex::Texture2D*>(resolvedPath.u8string(), result));
 
 		return result;
 	}
@@ -241,10 +241,11 @@ namespace nex {
 		return internFormat != InternFormat::SRGB8 && internFormat != InternFormat::SRGBA8;
 	}
 
-	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::string& file, const nex::TextureData& data, bool detectColorSpace)
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureData& data, bool detectColorSpace)
 	{
 		GenericImage image;
-		std::filesystem::path resource = file;
+
+		auto resource = file;
 
 		if (resource.is_absolute())
 		{
@@ -265,7 +266,7 @@ namespace nex {
 
 		} else
 		{
-			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
+			const auto resolvedPath = mFileSystem->resolvePath(resource).generic_string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
 				image = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));

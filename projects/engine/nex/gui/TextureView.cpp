@@ -5,6 +5,8 @@
 #include <imgui/imgui_internal.h>
 #include "nex/shader/Pass.hpp"
 #include <nex/renderer/RenderBackend.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class nex::gui::TextureView::CheckerboardPattern : public Pass
 {
@@ -94,13 +96,15 @@ void nex::gui::TextureView::addCheckBoardPattern(const ImVec2& size)
 
 		static CheckerboardPattern pass;
 
-		const glm::mat4 ortho_projection =
+		/*const glm::mat4 ortho_projection =
 		{
 			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
 			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
 			{ 0.0f,                  0.0f,                  -1.0f, 0.0f },
 			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
-		};
+		};*/
+
+		const glm::mat4 ortho_projection = glm::ortho(0.0f, io.DisplaySize.x, -io.DisplaySize.y, 0.0f, 0.0f, 1.0f);
 
 		pass.bind();
 		pass.setProjMtx(ortho_projection);

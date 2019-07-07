@@ -139,6 +139,7 @@ void nex::ResourceLoader::run(Window* window)
 	backend->setViewPort(0, 0, 800, 600);
 	backend->setMSAASamples(1);
 	backend->init();
+	backend->initEffectLibrary();
 
 	while (true)
 	{

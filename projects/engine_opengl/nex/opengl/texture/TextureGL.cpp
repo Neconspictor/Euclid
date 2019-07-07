@@ -76,11 +76,13 @@ nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const Texture
 	generateTexture(&mTextureID, data, (GLenum)mTargetGL);
 	resizeTexImage2D(mTextureID, 1, mWidth, mHeight, internalFormat, data.generateMipMaps);
 	if (data.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
 }
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data) : 
 Impl(cubeMap, TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 0)
 {
+	updateMipMapCount();
 }
 
 GLuint nex::CubeMapGL::getCubeMap() const
@@ -134,6 +136,7 @@ Impl(GL_FALSE, TextureTarget::RENDER_BUFFER, data, width, height, 0)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
 	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(data.internalFormat), width, height));
+	updateMipMapCount();
 }
 
 nex::RenderBufferGL::~RenderBufferGL()
@@ -147,6 +150,7 @@ nex::RenderBufferGL::~RenderBufferGL()
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureData& data)
 	: Impl(texture, TextureTarget::RENDER_BUFFER, data, width, height, 0)
 {
+	updateMipMapCount();
 }
 
 nex::InternFormat nex::RenderBufferGL::getFormat() const
@@ -159,6 +163,7 @@ void nex::RenderBufferGL::resize(unsigned width, unsigned height)
 	mWidth = width;
 	mHeight = height;
 	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(mTextureData.internalFormat), width, height));
+	updateMipMapCount();
 }
 
 nex::Texture::~Texture() = default;
@@ -332,10 +337,7 @@ void nex::Texture::Impl::generateMipMaps()
 	GLCall(glTextureParameteri(mTextureID, GL_TEXTURE_MAX_LEVEL, 1000));
 	GLCall(glGenerateTextureMipmap(mTextureID));
 
-	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, (int*)&mTextureData.lodBaseLevel));
-	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, (int*)&mTextureData.lodMaxLevel));
-	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, &mTextureData.minLOD));
-	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, &mTextureData.maxLOD));
+	updateMipMapCount();
 }
 
 std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* original, TextureTarget target, unsigned minLevel, unsigned numLevel,
@@ -431,6 +433,8 @@ void nex::Texture::Impl::resizeTexImage2D(GLuint textureID, GLint levels, unsign
 	}
 
 	GLCall(glTextureStorage2D(textureID, levels, internalFormat, width, height));
+	GLCall(glTextureParameteri(textureID, GL_TEXTURE_BASE_LEVEL, 0));
+	GLCall(glTextureParameteri(textureID, GL_TEXTURE_MAX_LEVEL, levels - 1));
 }
 
 void nex::Texture::Impl::resizeTexImage3D(GLuint textureID, GLint levels, unsigned width, unsigned height,
@@ -443,6 +447,8 @@ void nex::Texture::Impl::resizeTexImage3D(GLuint textureID, GLint levels, unsign
 	}
 
 	GLCall(glTextureStorage3D(textureID, levels, internalFormat, width, height, depth));
+	GLCall(glTextureParameteri(textureID, GL_TEXTURE_BASE_LEVEL, 0));
+	GLCall(glTextureParameteri(textureID, GL_TEXTURE_MAX_LEVEL, levels - 1));
 }
 
 void nex::Texture::Impl::release()
@@ -481,6 +487,15 @@ unsigned nex::Texture::Impl::getHeight() const
 unsigned nex::Texture::Impl::getDepth() const
 {
 	return mDepth;
+}
+
+void nex::Texture::Impl::updateMipMapCount()
+{
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, (int*)&mTextureData.lodBaseLevel));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, (int*)&mTextureData.lodMaxLevel));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, &mTextureData.minLOD));
+	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_MAX_LEVEL, &mTextureData.maxLOD));
+
 }
 
 nex::Texture2D::Texture2D(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
@@ -524,11 +539,13 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 
 	// fill the allocated mipmaps
 	if (mData.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
 	: Impl(texture, TextureTarget::TEXTURE2D, textureData, width, height, 0), mData(textureData)
 {
+	updateMipMapCount();
 }
 
 void nex::Texture2DGL::resize(unsigned width, unsigned height)
@@ -537,6 +554,7 @@ void nex::Texture2DGL::resize(unsigned width, unsigned height)
 	mHeight = height;
 
 	resizeTexImage2D(mTextureID, 1, mWidth, mHeight, (GLenum)translate(mData.internalFormat), mData.generateMipMaps);
+	updateMipMapCount();
 }
 
 
@@ -553,6 +571,7 @@ void nex::Texture2DMultisample::resize(unsigned width, unsigned height)
 {
 	auto impl = (Texture2DMultisampleGL*)mImpl.get();
 	impl->resize(width, height);
+	impl->updateMipMapCount();
 }
 
 unsigned nex::Texture2DMultisample::getSamples() const
@@ -567,6 +586,7 @@ nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint width, GLuint height,
 	mTargetGL = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
 	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 	resize(width, height);
+
 }
 
 nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples,
@@ -581,6 +601,8 @@ void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height)
 	mHeight = height;
 
 	glTextureStorage2DMultisample(mTextureID, mSamples, (GLenum)translate(mData.internalFormat), mWidth, mHeight, GL_TRUE);
+
+	updateMipMapCount();
 }
 
 unsigned nex::Texture2DMultisampleGL::getSamples() const
@@ -630,12 +652,14 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint dept
 
 	// create content of the other mipmaps
 	if (mData.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
 
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned depth)
 	: Impl(texture, TextureTarget::TEXTURE2D_ARRAY, textureData, width, height, depth), mData(textureData)
 {
+	updateMipMapCount();
 }
 
 void nex::Texture2DArrayGL::setHeight(unsigned height)
@@ -666,6 +690,8 @@ void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned dep
 		mDepth, 
 		(GLenum)translate(mData.internalFormat),
 		mData.generateMipMaps);
+
+	updateMipMapCount();
 }
 
 nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)
