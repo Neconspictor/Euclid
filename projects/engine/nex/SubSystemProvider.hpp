@@ -26,5 +26,7 @@ namespace nex
 		virtual void pollEvents() = 0;
 
 		virtual void terminate() = 0;
+
+		virtual void waitForEvents() = 0;
 	};
 }

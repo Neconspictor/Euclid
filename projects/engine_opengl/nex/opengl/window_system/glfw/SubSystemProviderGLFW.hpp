@@ -23,6 +23,8 @@ namespace nex
 
 		void terminate() override;
 
+		void waitForEvents() override;
+
 		static void errorCallback(int error, const char* description);
 
 

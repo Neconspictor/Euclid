@@ -101,3 +101,9 @@ void SubSystemProviderGLFW::terminate()
 	glfwTerminate();
 	m_isInitialized = false;
 }
+
+void nex::SubSystemProviderGLFW::waitForEvents()
+{
+	if (m_isInitialized)
+		glfwWaitEvents();
+}

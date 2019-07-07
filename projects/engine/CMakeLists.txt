@@ -56,6 +56,8 @@ set(
 	nex/gui/ControllerStateMachine.cpp
 	nex/gui/Drawable.cpp
 	nex/gui/Drawable.hpp
+    nex/gui/FileDialog.cpp
+    nex/gui/FileDialog.hpp
     nex/gui/Gizmo.cpp
     nex/gui/Gizmo.hpp
     nex/gui/ImGUI.cpp

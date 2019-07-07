@@ -207,7 +207,9 @@ namespace nex
 
 		bool is_ready() const
 		{
-			return mState->is_ready();
+			if (mState)
+				return mState->is_ready();
+			else return true;
 		}
 
 		void set_exception(const std::shared_ptr<std::exception>& e) {

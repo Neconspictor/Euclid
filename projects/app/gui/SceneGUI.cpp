@@ -11,6 +11,8 @@
 #include "nex/texture/TextureManager.hpp"
 #include <nfd/nfd.h>
 #include <nex/Window.hpp>
+#include <nex/resource/ResourceLoader.hpp>
+#include <nex/gui/FileDialog.hpp>
 
 namespace nex::gui
 {
@@ -198,20 +200,35 @@ namespace nex::gui
 				ImGui::TreePop();
 			}*/
 
-			if (ImGui::Button("Load Image Test")) {
-				nfdchar_t *outPath = NULL;
-				nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath, mWindow->getNativeWindow());
+			static Future<Resource*> future;
 
-				if (result == NFD_OKAY) {
-					puts("Success!");
-					puts(outPath);
-					free(outPath);
-				}
-				else if (result == NFD_CANCEL) {
-					puts("User pressed cancel.");
-				}
-				else {
-					printf("Error: %s\n", NFD_GetError());
+			if (ImGui::Button("Load Image Test")) {
+
+				
+
+
+
+				if (future.is_ready()) {
+					future = ResourceLoader::get()->enqueue([=] {
+						
+						FileDialog fileDialog(mWindow);
+						auto result = fileDialog.selectFile();
+
+						switch (result.state) {
+						case FileDialog::State::Okay:
+							std::cout << "Selected file: " << result.path << std::endl;
+							break;
+						case FileDialog::State::Cancled:
+							std::cout << "Canceled" << std::endl;
+							break;
+						case FileDialog::State::Error:
+							std::cout << "Error: " << result.error << std::endl;
+							break;
+						}
+						
+						
+						return nullptr;
+					});
 				}
 			}
 
