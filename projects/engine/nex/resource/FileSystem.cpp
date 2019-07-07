@@ -38,15 +38,12 @@ std::filesystem::path FileSystem::resolveAbsolute(const std::filesystem::path& p
 
 std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path, const std::filesystem::path& root, bool noException) const
 {
-
 	static std::string errorBase = "FileSystem::resolvePath: path doesn't exist: ";
-
-	bool wasConstructedFromIncludeDirectory;
 
 	if (path.is_absolute()) {
 
 		
-		auto compiledResource = getCompiledPath(path, wasConstructedFromIncludeDirectory);
+		auto compiledResource = getCompiledPath(path).path;
 
 		if (!exists(path) && !exists(compiledResource))
 		{
@@ -60,15 +57,15 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path,
 
 	// try to match the path with the specified base directoy.
 	auto current = root / path;	 
-	auto compiledResource = getCompiledPath(current, wasConstructedFromIncludeDirectory);
+	auto compiledResult = getCompiledPath(current);
 
-	if (exists(current) || (exists(compiledResource) && !wasConstructedFromIncludeDirectory)) return current;
+	if (exists(current) || (exists(compiledResult.path) && !compiledResult.fromIncludeDirectory)) return current;
 
 	// try to match the path wih a registered include directory
 	for (const auto& item : mIncludeDirectories)
 	{
 		std::filesystem::path p = item / path;
-		auto compiledResource = getCompiledPath(p, wasConstructedFromIncludeDirectory);
+		auto compiledResource = getCompiledPath(p).path;
 		if (exists(p) || exists(compiledResource)) return p;
 	}
 
@@ -95,28 +92,26 @@ std::filesystem::path FileSystem::getCurrentPath_Relative()
 	return makeRelative(std::filesystem::current_path());
 }
 
-std::filesystem::path nex::FileSystem::getCompiledPath(const std::filesystem::path & path, bool& wasConstructedFromIncludeDirectory) const
+nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::filesystem::path & path) const
 {
-	std::filesystem::path compiledPath;
+	CompiledPathResult result;
 	if (path.is_absolute()) {
 		// A regex that matches the following tokens: /\?*<>|
 		std::regex re(":|/|\\\\|\\?|\\*|<|>|\\|");
 		auto root = path.root_name().generic_string();
 		root = std::regex_replace(root, re, "");
 
-		compiledPath = mCompiledRootDirectory / root / path.relative_path();
-		wasConstructedFromIncludeDirectory = false;
-		//compiledPath = path.relative_path();
-		//compiledPath = makeRelative(path, mCompiledRootDirectory);
+		result.path = mCompiledRootDirectory / root / path.relative_path();
+		result.fromIncludeDirectory = false;
 	}
 		
 	else {
-		compiledPath = mCompiledRootDirectory / path;
-		wasConstructedFromIncludeDirectory = true;
+		result.path = mCompiledRootDirectory / path;
+		result.fromIncludeDirectory = true;
 	}
 
-	compiledPath.replace_extension(mCompiledFileExtension);
-	return compiledPath;
+	result.path.replace_extension(mCompiledFileExtension);
+	return result;
 }
 
 const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() const

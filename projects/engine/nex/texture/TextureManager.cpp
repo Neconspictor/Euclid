@@ -256,8 +256,8 @@ namespace nex {
 				bool test = false;
 			}
 		}
-		bool wasConstructedFromIncludeDirectory;
-		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource, wasConstructedFromIncludeDirectory);
+
+		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource).path;
 
 		if (std::filesystem::exists(compiledResource))
 		{

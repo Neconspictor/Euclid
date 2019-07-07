@@ -10,6 +10,11 @@ namespace nex
 	{
 	public:
 
+		struct CompiledPathResult {
+			bool fromIncludeDirectory;
+			std::filesystem::path path;
+		};
+
 		/**
 		 * Creates a new file system with a vector of include directories.
 		 * @param includeDirectories : the include directories. Has to contain minimal one entry!
@@ -34,7 +39,7 @@ namespace nex
 
 		static std::filesystem::path getCurrentPath_Relative();
 
-		std::filesystem::path getCompiledPath(const std::filesystem::path& path, bool& wasConstructedFromIncludeDirectory) const;
+		CompiledPathResult getCompiledPath(const std::filesystem::path& path) const;
 
 		static std::streampos getFileSize(const std::string& filePath);
 
@@ -85,8 +90,7 @@ namespace nex
 		void loadFromCompiled(const std::filesystem::path& resourcePath, 
 			const std::function<void(T&)>& resourceLoader,T& resource, bool forceLoad = false)
 		{
-			bool wasConstructedFromIncludeDirectory;
-			auto compiledPath = getCompiledPath(resourcePath, wasConstructedFromIncludeDirectory);
+			auto compiledPath = getCompiledPath(resourcePath).path;
 
 			if (!std::filesystem::exists(compiledPath) || forceLoad)
 			{
