@@ -232,7 +232,7 @@ namespace nex::gui
 						TextureData data;
 						data.colorspace = ColorSpace::SRGBA;
 						data.internalFormat = InternFormat::SRGBA8;
-						//data.generateMipMaps = true;
+						data.generateMipMaps = true;
 
 						switch (result.state) {
 						case FileDialog::State::Okay:
