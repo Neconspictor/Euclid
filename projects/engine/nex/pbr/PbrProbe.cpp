@@ -399,9 +399,9 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	cubeRenderTarget->useDepthAttachment(depth);
 	cubeRenderTarget->updateDepthAttachment();
 
-	static auto* renderBackend = RenderBackend::get();
-	static auto* effectLib = renderBackend->getEffectLibrary();
-	static auto* shader = effectLib->getEquirectangularSkyBoxShader();
+	thread_local auto* renderBackend = RenderBackend::get();
+	thread_local auto* effectLib = renderBackend->getEffectLibrary();
+	thread_local auto* shader = effectLib->getEquirectangularSkyBoxShader();
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
@@ -460,7 +460,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 
 std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 {
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
 	
 	// uses RGB and 32bit per component (floats)
 
@@ -526,7 +526,9 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		true
 	};
 
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
+	auto skyBox = createSkyBox();
+
 
 	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(128, 128, textureData);
 
@@ -547,11 +549,9 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
 	};
 
-
 	prefilterRenderTarget->bind();
 	const auto mipMapLevelZero = min<unsigned>(prefilterRenderTarget->getWidth(), prefilterRenderTarget->getHeight());
 	const auto mipMapCount = Texture::getMipMapCount(mipMapLevelZero);
-
 
 	for (unsigned int mipLevel = 0; mipLevel < mipMapCount; ++mipLevel) {
 
@@ -567,8 +567,6 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		unsigned int height = prefilterRenderTarget->getHeightMipLevel(mipLevel);
 		renderBackend->setViewPort(0, 0, width, height);
 		//renderBackend->setScissor(0, 0, width, height);
-
-		auto skyBox = createSkyBox();
 
 		// render to the cubemap at the specified mip level
 		for (unsigned int side = 0; side < 6; ++side) {
@@ -619,7 +617,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 		InternFormat::RG32F,
 		false};
 
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
 
 	//auto target = renderBackend->create2DRenderTarget(1024, 1024, data, depthData, 1);
 	auto target = std::make_unique<RenderTarget2D>(512, 512, data);
@@ -643,7 +641,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 
 void PbrProbe::initBackground(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
 
 	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
@@ -694,7 +692,7 @@ void PbrProbe::initBackground(Texture* backgroundHDR, unsigned probeID, const st
 
 void PbrProbe::initPrefiltered(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
 
 	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
@@ -744,7 +742,7 @@ void PbrProbe::initPrefiltered(Texture* backgroundHDR, unsigned probeID, const s
 
 void PbrProbe::initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
 
 	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
@@ -823,7 +821,8 @@ void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, con
 
 void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
-	static auto* renderBackend = RenderBackend::get();
+	thread_local auto* renderBackend = RenderBackend::get();
+	Viewport backup = renderBackend->getViewport();
 
 	initBackground(backgroundHDR, probeID, probeRoot);
 	initPrefiltered(backgroundHDR, probeID, probeRoot);
@@ -831,8 +830,6 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	//loadIrradianceFile(backgroundHDR, probeID, probeRoot);
 	//createIrradianceTex(backgroundHDR, probeID, probeRoot);
 
-
-	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	mMaterial->setIrradianceMap(convolutedEnvironmentMap.get());

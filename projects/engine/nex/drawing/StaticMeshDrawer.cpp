@@ -92,7 +92,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 
 		vertexArray->bind();
 		indexBuffer->bind();
-		static auto* backend = RenderBackend::get();
+		thread_local auto* backend = RenderBackend::get();
 		backend->drawWithIndices(state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 	}
 }*/
@@ -110,7 +110,7 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, con
 	vertexArray->bind();
 	indexBuffer->bind();
 
-	static auto* backend = RenderBackend::get();
+	thread_local auto* backend = RenderBackend::get();
 
 
 	//set render state
@@ -134,7 +134,7 @@ void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, con
 
 void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pass* pass)
 {
-	static auto* backend = RenderBackend::get();
+	thread_local auto* backend = RenderBackend::get();
 	auto* triangle = StaticMeshManager::get()->getNDCFullscreenTriangle();
 	triangle->bind();
 	backend->drawArray(state, Topology::TRIANGLES, 0, 3);
@@ -142,7 +142,7 @@ void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pas
 
 void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* pass)
 {
-	static auto* backend = RenderBackend::get();
+	thread_local auto* backend = RenderBackend::get();
 	auto* quad = StaticMeshManager::get()->getNDCFullscreenPlane();
 	quad->bind();
 	backend->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
@@ -150,7 +150,7 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* p
 
 void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
 {	
-	static auto* backend = RenderBackend::get();
+	thread_local auto* backend = RenderBackend::get();
 	backend->setLineThickness(static_cast<float>(lineStrength));
 	backend->getRasterizer()->setFillMode(FillMode::LINE);
 
