@@ -151,7 +151,7 @@ void nex::ResourceLoader::run(Window* window)
 			// Wait till there is a job to process or shutdown has been called
 			mCondition.wait(lock, [=] { return !mJobs.empty() || !mIsRunning; });
 
-			if (!mIsRunning && mJobs.empty()) return;
+			if (!mIsRunning && mJobs.empty()) break;
 
 			t = std::move(mJobs.front());
 			mJobs.pop();
@@ -160,4 +160,6 @@ void nex::ResourceLoader::run(Window* window)
 		t();
 		backend->flushPendingCommands();
 	}
+
+	backend->release();
 }
