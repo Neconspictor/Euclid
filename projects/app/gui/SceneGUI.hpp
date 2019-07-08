@@ -15,7 +15,6 @@ namespace nex
 	class Scene;
 	class SceneNode;
 	class Window;
-
 }
 
 namespace nex::gui
@@ -53,6 +52,7 @@ namespace nex::gui
 		SceneNodeProperty(nex::Window* window);
 		virtual ~SceneNodeProperty();
 		void setPicker(Picker* picker);
+		void setScene(nex::Scene* scene);
 
 	protected:
 
@@ -64,6 +64,7 @@ namespace nex::gui
 		TextureView mPrefilteredView;
 		TextureView mDynamicLoad;
 		nex::Window* mWindow;
+		nex::Scene* mScene;
 		//TextureView mTransparentView;
 	};
 }

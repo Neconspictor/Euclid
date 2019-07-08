@@ -559,6 +559,7 @@ void NeXEngine::setupGUI()
 
 	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>(mWindow);
 	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
+	sceneNodeProperty->setScene(&mScene);
 
 	generalTab->addChild(std::move(sceneNodeProperty));
 

@@ -214,10 +214,6 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-		models.emplace_back(std::make_unique<StaticMeshContainer>());
-		StaticMeshContainer* result = models.back().get();
-		modelTable[hash] = result;
-
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
@@ -227,7 +223,14 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 		std::vector<MeshStore> stores;
 		mFileSystem->loadFromCompiled(meshPath, loader, stores, true);
+
+		auto mesh = std::make_unique<StaticMeshContainer>();
+		StaticMeshContainer* result = mesh.get();
 		result->init(stores, *mPbrMaterialLoader);
+
+		
+		models.emplace_back(std::move(mesh));
+		modelTable[hash] = result;
 		
 		return result;
 	}
@@ -257,13 +260,6 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 			return getSkyBox();
 		}
 
-
-
-
-		models.emplace_back(std::make_unique<StaticMeshContainer>());
-		StaticMeshContainer* result = models.back().get();
-		modelTable[hash] = result;
-
 		const std::function<void(std::vector<MeshStore>&)> loader = [&](auto& meshes)->void
 		{
 			const auto resolvedPath = mFileSystem->resolvePath(meshPath);
@@ -272,7 +268,14 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 		std::vector<MeshStore> stores;
 		mFileSystem->loadFromCompiled(meshPath, loader, stores, true);
-		result->init(stores, *materialLoader);
+
+		auto mesh = std::make_unique<StaticMeshContainer>();
+		StaticMeshContainer* result = mesh.get();
+		result->init(stores, *mPbrMaterialLoader);
+
+
+		models.emplace_back(std::move(mesh));
+		modelTable[hash] = result;
 
 		return result;
 	}

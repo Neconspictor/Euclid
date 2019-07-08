@@ -13,6 +13,7 @@
 #include <nex/Window.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
 
 namespace nex::gui
 {
@@ -64,7 +65,8 @@ namespace nex::gui
 	mConvolutedView({}, ImVec2(256, 256)),
 	mPrefilteredView({}, ImVec2(256, 256)),
 	mDynamicLoad({}, ImVec2(256,256)),
-	mWindow(window)
+	mWindow(window),
+	mScene(nullptr)
 	//mTransparentView({}, ImVec2(256, 256))
 	{
 	}
@@ -74,6 +76,11 @@ namespace nex::gui
 	void SceneNodeProperty::setPicker(Picker* picker)
 	{
 		mPicker = picker;
+	}
+
+	void SceneNodeProperty::setScene(nex::Scene * scene)
+	{
+		mScene = scene;
 	}
 
 
@@ -205,10 +212,15 @@ namespace nex::gui
 			}*/
 
 			static Future<Resource*> future;
+			static Future<Resource*> meshFuture;
 			Texture* loadedTexture = nullptr;
+			StaticMeshContainer* loadedMesh = nullptr;
 
 			if (future.is_ready())
 				loadedTexture = (Texture*)future.get();
+
+			if (meshFuture.is_ready())
+				loadedMesh = (StaticMeshContainer*)meshFuture.get();
 
 			if (loadedTexture) {
 
@@ -247,6 +259,32 @@ namespace nex::gui
 							break;
 						}
 						
+						return nullptr;
+					});
+				}
+			}
+
+
+			if (ImGui::Button("Load Mesh Test")) {
+
+				if (meshFuture.is_ready() || !meshFuture.valid()) {
+					meshFuture = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+
+						FileDialog fileDialog(mWindow);
+						auto result = fileDialog.selectFile("obj");
+
+						if (result.state == FileDialog::State::Okay) {
+							std::cout << "Selected file: " << result.path << std::endl;
+							auto* meshContainer = StaticMeshManager::get()->getModel(result.path.u8string());
+							auto lock = mScene->acquireLock();
+							auto* nodes = meshContainer->createNodeHierarchyUnsafe(mScene);
+							auto* vob = mScene->createVobUnsafe(nodes);
+							vob->setPosition(glm::vec3(-9.0f, 2.0f, 0.0f));
+							mScene->updateWorldTrafoHierarchyUnsafe(true);
+
+							return meshContainer;
+						} 
+
 						return nullptr;
 					});
 				}
