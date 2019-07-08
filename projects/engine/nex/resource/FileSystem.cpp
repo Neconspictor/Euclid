@@ -95,18 +95,32 @@ std::filesystem::path FileSystem::getCurrentPath_Relative()
 nex::FileSystem::CompiledPathResult nex::FileSystem::getCompiledPath(const std::filesystem::path & path) const
 {
 	CompiledPathResult result;
-	if (path.is_absolute()) {
+
+	auto relativePath = path;
+
+	if (relativePath.is_absolute()) {
+		// make the absolute path relative if it is contained in one include directory
+		for (const auto& item : mIncludeDirectories)
+		{
+			if (isContained(relativePath, item)) {
+				relativePath = makeRelative(relativePath, item);
+				break;
+			}
+		}
+	}
+
+	if (relativePath.is_absolute()) {
 		// A regex that matches the following tokens: /\?*<>|
 		std::regex re(":|/|\\\\|\\?|\\*|<|>|\\|");
-		auto root = path.root_name().generic_string();
+		auto root = relativePath.root_name().generic_string();
 		root = std::regex_replace(root, re, "");
 
-		result.path = mCompiledRootDirectory / root / path.relative_path();
+		result.path = mCompiledRootDirectory / root / relativePath.relative_path();
 		result.fromIncludeDirectory = false;
 	}
 		
 	else {
-		result.path = mCompiledRootDirectory / path;
+		result.path = mCompiledRootDirectory / relativePath;
 		result.fromIncludeDirectory = true;
 	}
 

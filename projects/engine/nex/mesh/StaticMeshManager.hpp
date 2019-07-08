@@ -41,13 +41,13 @@ namespace nex
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMeshContainer* getModel(const std::string& meshName);
+		StaticMeshContainer* getModel(const std::filesystem::path& meshPath);
 
 		/**
 		 * Provides access to a mesh by its name.
 		 * NOTE: If the specfied mesh cannot be found, a MeshNotFoundException is thrown.
 		 */
-		StaticMeshContainer* loadModel(const std::string& meshName, 
+		StaticMeshContainer* loadModel(const std::filesystem::path& meshPath,
 			const nex::AbstractMeshLoader* meshLoader,
 			const nex::AbstractMaterialLoader* materialLoader);
 
