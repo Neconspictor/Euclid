@@ -40,9 +40,9 @@ std::filesystem::path FileSystem::resolvePath(const std::filesystem::path& path,
 {
 	static std::string errorBase = "FileSystem::resolvePath: path doesn't exist: ";
 
-	if (path.is_absolute()) {
+	bool isAbsolute = path.is_absolute();
 
-		
+	if (isAbsolute) {
 		auto compiledResource = getCompiledPath(path).path;
 
 		if (!exists(path) && !exists(compiledResource))
@@ -122,10 +122,15 @@ const std::vector<std::filesystem::path>& FileSystem::getIncludeDirectories() co
 bool FileSystem::isContained(const std::filesystem::path& path, const std::filesystem::path& root)
 {
 	auto absolutePath = absolute(path);
-	auto absoluteRoot = absolute(root);
+	// ensure that the root directory ends with a path separator
+	// This is needed for getting an unambigious result using std::mismatch
+	auto absoluteRoot = absolute(root / ""); 
+
+	//path::preferred_separator
 
 	const auto pair = std::mismatch(absolutePath.begin(), absolutePath.end(), absoluteRoot.begin(), absoluteRoot.end());
-	return pair.second == absoluteRoot.end();
+	auto last = --absoluteRoot.end();
+	return pair.second == last;
 }
 
 
