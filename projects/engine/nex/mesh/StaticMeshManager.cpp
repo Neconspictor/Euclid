@@ -233,7 +233,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 
 		auto mesh = std::make_unique<StaticMeshContainer>();
 		StaticMeshContainer* result = mesh.get();
-		result->init(stores, *mPbrMaterialLoader);
+		result->init(stores, *materialLoader);
 
 
 		models.emplace_back(std::move(mesh));
