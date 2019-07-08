@@ -245,20 +245,7 @@ namespace nex {
 	{
 		GenericImage image;
 
-		auto resource = file;
-
-		if (resource.is_absolute())
-		{
-			if (FileSystem::isContained(resource, mTextureRootDirectory)) {
-				//throw_with_trace(std::invalid_argument("file isn't contained in texture root directory!"));
-				resource = std::filesystem::relative(resource, mTextureRootDirectory);
-			}
-			else {
-				bool test = false;
-			}
-		}
-
-		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(resource).path;
+		std::filesystem::path compiledResource = mFileSystem->getCompiledPath(file).path;
 
 		if (std::filesystem::exists(compiledResource))
 		{
@@ -266,7 +253,7 @@ namespace nex {
 
 		} else
 		{
-			const auto resolvedPath = mFileSystem->resolvePath(resource).generic_string();
+			const auto resolvedPath = mFileSystem->resolvePath(file).generic_string();
 			if (data.pixelDataType == PixelDataType::FLOAT)
 			{
 				image = ImageFactory::loadHDR(resolvedPath.c_str(), detectColorSpace ? 0 : getComponents(data.colorspace));
