@@ -11,6 +11,7 @@ namespace nex
 	class StaticMeshContainer;
 	class SimpleColorPass;
 	class Technique;
+	struct AABB;
 }
 
 namespace nex::gui
@@ -39,6 +40,13 @@ namespace nex::gui
 
 	private:
 
+		struct SelectionTest {
+			Vob* vob = nullptr;
+			float vobDistance = 0.0f;
+			float vobRayMinDistance = 0.0f;
+			float vobVolume = 0.0f;
+		};
+
 		static std::unique_ptr<Mesh> createBoundingBoxMesh();
 		static std::unique_ptr<Mesh> createBoundingBoxLineMesh();
 
@@ -50,8 +58,13 @@ namespace nex::gui
 		std::unique_ptr<Technique> mSimpleColorTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;
 
+		float calcVolume(const nex::AABB& box);
+
+		int compare(const SelectionTest& a, const SelectionTest& b);
+		bool checkIntersection(const Vob* vob, const nex::Ray& ray);
+
 		Vob* mBoundingBoxVob;
 		//SceneNode* mLineNode;
-		Vob* mSelectedVob;
+		SelectionTest mSelected;
 	};
 }

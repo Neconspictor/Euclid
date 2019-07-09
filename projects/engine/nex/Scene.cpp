@@ -209,6 +209,11 @@ namespace nex
 
 	}
 
+	const SceneNode* Vob::getMeshRootNode() const
+	{
+		return mMeshRootNode;
+	}
+
 	SceneNode* Vob::getMeshRootNode()
 	{
 		return mMeshRootNode;

@@ -128,6 +128,7 @@ namespace nex
 
 		virtual ~Vob() = default;
 
+		const SceneNode* getMeshRootNode() const;
 		SceneNode* getMeshRootNode();
 
 		const AABB& getBoundingBox() const;

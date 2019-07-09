@@ -335,11 +335,11 @@ void NeXEngine::createScene()
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
 	auto* transparentVob = mScene.createVobUnsafe(transparent);
-	groundVob->mDebugName = "transparent - 1";
+	transparentVob->mDebugName = "transparent - 1";
 	auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
-	groundVob->mDebugName = "transparent - 2";
+	transparentVob2->mDebugName = "transparent - 2";
 	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
-	groundVob->mDebugName = "transparent - 3";
+	transparentVob3->mDebugName = "transparent - 3";
 
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
@@ -355,8 +355,9 @@ void NeXEngine::createScene()
 	size_t counter = 0;
 	for (const auto& probe : mGlobalIllumination->getProbes()) {
 		auto* probeVob = mGlobalIllumination->createVobUnsafe(probe.get(), mScene);
-		probeVob->setPosition(glm::vec3(-7.0f - (float)counter, 2.0f, 0.0f));
+		probeVob->setPosition(glm::vec3(-7.0f - 2.5f * counter, 2.0f, 0.0f));
 		probeVob->mDebugName = "pbr probe" + std::to_string(counter);
+		++counter;
 	}
 
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");

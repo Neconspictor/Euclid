@@ -16,8 +16,7 @@ mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
 mNodeGeneratorScene(std::make_unique<Scene>()),
-mBoundingBoxVob(nullptr), //mLineNode(nullptr),
-mSelectedVob(nullptr)
+mBoundingBoxVob(nullptr)
 {
 	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
@@ -50,7 +49,7 @@ void nex::gui::Picker::deselect(Scene& scene)
 {
 	scene.acquireLock();
 	scene.removeActiveVobUnsafe(mBoundingBoxVob);
-	mSelectedVob = nullptr;
+	mSelected.vob = nullptr;
 }
 
 
@@ -61,10 +60,11 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	scene.acquireLock();
 
 	size_t intersections = 0;
-	Vob* selected = nullptr;
-	float selectedVobDistance = 0.0f;
-	float selectedVobRayMinDistance = 0.0f;
-	//static bool addedLine = false;
+	SelectionTest selected = mSelected;
+
+	if (!checkIntersection(selected.vob, screenRayWorld)) {
+		selected.vob = nullptr;
+	}
 
 	for (const auto& root : scene.getActiveVobsUnsafe())
 	{
@@ -73,32 +73,32 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		const auto& node = root->getMeshRootNode();
 		if (node != nullptr)
 		{
-			const auto invModel = inverse(node->getWorldTrafo());
-			const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
-			const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
+			//const auto invModel = inverse(node->getWorldTrafo());
+			const auto origin = glm::vec3(glm::vec4(screenRayWorld.getOrigin(), 1.0f));
+			const auto direction = glm::vec3(glm::vec4(screenRayWorld.getDir(), 0.0f));
 			const auto rayLocal = Ray(origin, direction);
-			const auto& box = root->getBoundingBox();
+			const auto box = node->getWorldTrafo() * root->getBoundingBox();
 			const auto result = box.testRayIntersection(rayLocal);
 			if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 			{
 				++intersections;
-				const auto distance = length(root->getPosition() - screenRayWorld.getOrigin());
+				const auto boundingBoxOrigin = (box.max + box.min)/2.0f;
+				//root->getPosition();
+				const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
 				const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
-				
-				if (selected == nullptr) {
-					selected = root;
-					selectedVobDistance = distance;
-					selectedVobRayMinDistance = rayMinDistance;
+				const auto volume = calcVolume(box);
+
+				SelectionTest current;
+				current.vob = root;
+				current.vobDistance = distance;
+				current.vobRayMinDistance = rayMinDistance;
+				current.vobVolume = volume;
+
+				if (compare(current, selected) < 0) {
+					if (current.vob != mSelected.vob)
+						selected = current;
 				}
-				else
-				{
-					 if (distance < selectedVobDistance || rayMinDistance < selectedVobRayMinDistance)
-					 {
-						 selected = root;
-						 selectedVobDistance = distance;
-						 selectedVobRayMinDistance = rayMinDistance;
-					 }
-				}
+			
 			}
 		}
 	}
@@ -109,26 +109,26 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		deselect(scene);
 	} else
 	{
-		mSelectedVob = selected;
+		mSelected = selected;
 		updateBoundingBoxTrafo();
 		scene.removeActiveVobUnsafe(mBoundingBoxVob);
 		scene.addActiveVobUnsafe(mBoundingBoxVob);
 	}
 
-	return mSelectedVob;
+	return mSelected.vob;
 }
 
 nex::Vob* nex::gui::Picker::getPicked()
 {
-	return mSelectedVob;
+	return mSelected.vob;
 }
 
 void nex::gui::Picker::updateBoundingBoxTrafo()
 {
-	if (!mSelectedVob) return;
+	if (!mSelected.vob) return;
 
-	auto* node = mSelectedVob->getMeshRootNode();
-	const auto& box = mSelectedVob->getBoundingBox();
+	auto* node = mSelected.vob->getMeshRootNode();
+	const auto& box = mSelected.vob->getBoundingBox();
 
 
 	const auto worldBox = node->getWorldTrafo() * box;
@@ -302,4 +302,37 @@ std::unique_ptr<nex::Mesh> nex::gui::Picker::createLineMesh()
 	mesh->setTopology(Topology::LINES);
 	mesh->mDebugName = "Picker::Line";
 	return mesh;
+}
+
+float nex::gui::Picker::calcVolume(const nex::AABB & box)
+{
+	auto diff = box.max - box.min;
+	return length(diff);
+}
+
+int nex::gui::Picker::compare(const SelectionTest & a, const SelectionTest & b)
+{
+	if (a.vob == nullptr) return 1;
+	if (b.vob == nullptr) return -1;
+
+	// volume has a higher priority
+	if (a.vobVolume < b.vobVolume) return -1;
+	if (a.vobDistance < b.vobDistance) return -1;
+	if (a.vobRayMinDistance < b.vobRayMinDistance) return -1;
+	if (b.vob == mSelected.vob) return -1;
+
+	return 1;
+}
+
+bool nex::gui::Picker::checkIntersection(const Vob * vob, const nex::Ray & ray)
+{
+	if (!vob) return false;
+
+	//const auto invModel = inverse(node->getWorldTrafo());
+	const auto origin = glm::vec3(glm::vec4(ray.getOrigin(), 1.0f));
+	const auto direction = glm::vec3(glm::vec4(ray.getDir(), 0.0f));
+	const auto rayLocal = Ray(origin, direction);
+	const auto box = vob->getMeshRootNode()->getWorldTrafo() * vob->getBoundingBox();
+	const auto result = box.testRayIntersection(rayLocal);
+	return (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0));
 }

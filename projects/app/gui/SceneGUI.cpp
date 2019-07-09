@@ -14,6 +14,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/gui/FileDialog.hpp>
 #include <nex/mesh/StaticMeshManager.hpp>
+#include <boxer/boxer.h>
 
 namespace nex::gui
 {
@@ -275,11 +276,21 @@ namespace nex::gui
 
 						if (result.state == FileDialog::State::Okay) {
 							std::cout << "Selected file: " << result.path << std::endl;
-							auto* meshContainer = StaticMeshManager::get()->getModel(result.path.u8string());
+							StaticMeshContainer* meshContainer = nullptr; 
+							
+							try {
+								meshContainer = StaticMeshManager::get()->getModel(result.path.u8string());
+							}
+							catch (...) {
+								void* nativeWindow = mWindow->getNativeWindow();
+								boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
+								return nullptr;
+							}
+							
 							auto lock = mScene->acquireLock();
 							auto* nodes = meshContainer->createNodeHierarchyUnsafe(mScene);
 							auto* vob = mScene->createVobUnsafe(nodes);
-							vob->setPosition(glm::vec3(-9.0f, 2.0f, 0.0f));
+							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
 							mScene->updateWorldTrafoHierarchyUnsafe(true);
 
 							return meshContainer;
@@ -317,6 +328,10 @@ namespace nex::gui
 		euler.y = std::clamp(euler.y, -89.0f, 89.0f);
 
 		vob->setOrientation(radians(euler));
+
+		vob->mDebugName.reserve(256);
+		if (ImGui::InputText("debug name", vob->mDebugName.data(), vob->mDebugName.capacity())) {
+		}
 
 
 		euler = glm::vec3(0.0f);
