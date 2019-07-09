@@ -359,7 +359,7 @@ namespace nex
 			//mManager.get_state()->retain();
 		}
 
-		_PromiseBase(_Future<T>& future) : mManager(future->get_state())
+		_PromiseBase(_Future<T>& future) : mManager(future.get_state())
 		{
 			// Note: we have to retain since we don't own the future!
 			mManager.get_state()->retain();
