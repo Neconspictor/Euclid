@@ -17,21 +17,17 @@ namespace nex
 		GlobalIllumination(const std::string& compiledProbeDirectory);
 		~GlobalIllumination();
 
-		PbrProbe* getProbe();
+		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 
 		Vob* createVobUnsafe(PbrProbe* probe, Scene& scene);
-
-		void loadHdr();
-		void loadProbes(std::unique_ptr<PbrProbe>);
+		void addProbe(std::unique_ptr<PbrProbe>);
 
 		PbrProbeFactory* getFactory();
-		Texture2D* getHdr();
 
 	private:
 
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		PbrProbeFactory* mFactory;
-		Texture2D* mHdr;
 	};
 }

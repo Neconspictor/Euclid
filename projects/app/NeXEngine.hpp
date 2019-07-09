@@ -51,7 +51,7 @@ namespace nex
 		Window* createWindow();
 		void initLights();
 		void initPbr();
-		nex::Resource::FutureType initProbes();
+		void initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();

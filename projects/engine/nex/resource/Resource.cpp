@@ -15,7 +15,7 @@ bool nex::Resource::isLoaded() const
 
 void nex::Resource::setIsLoadedStatus(FutureType future)
 {
-	mPromise = PromiseType(future.get_state());
+	mPromise = PromiseType(future);
 }
 
 void nex::Resource::setIsLoaded(bool useThisPointer, ResourceType resource)

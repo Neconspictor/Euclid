@@ -93,11 +93,11 @@ void nex::ResourceLoader::shutdown()
 
 nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task)
 {
-	return [=]
+	return[=, taskCopy = std::move(task)]
 	{
 		try {
-			(*task)();
-			auto* resource = (*task).get_future().get();
+			(*taskCopy)();
+			auto* resource = (*taskCopy).get_future().get();
 			if (resource) mFinalizeResources.push(resource);
 		}
 		catch (const std::exception& e) {

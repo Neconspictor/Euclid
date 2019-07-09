@@ -104,7 +104,6 @@ PbrProbeFactory* PbrProbeFactory::get()
 std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsigned probeID)
 {
 	auto probe = std::make_unique<PbrProbe>();
-
 	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]()
 	{
 		pointer->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
@@ -839,7 +838,7 @@ void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesys
 	//renderBackend->setScissor(backup.x, backup.y, backup.width, backup.height);
 	//environmentMap.reset();
 
-	setIsLoaded();
+	//setIsLoaded();
 }
 
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)

@@ -14,9 +14,9 @@ mFactory(PbrProbeFactory::get())
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
 
-nex::PbrProbe* nex::GlobalIllumination::getProbe()
+const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
 {
-	return mProbes[0].get();
+	return mProbes;
 }
 
 nex::Vob* nex::GlobalIllumination::createVobUnsafe(PbrProbe* probe, Scene& scene)
@@ -29,36 +29,12 @@ nex::Vob* nex::GlobalIllumination::createVobUnsafe(PbrProbe* probe, Scene& scene
 	return scene.addVobUnsafe(std::move(vob), true);
 }
 
-void nex::GlobalIllumination::loadHdr()
+void nex::GlobalIllumination::addProbe(std::unique_ptr<PbrProbe> probe)
 {
-	TextureManager* textureManager = TextureManager::get();
-	mHdr = textureManager->getImage("hdr/HDR_040_Field.hdr",
-		{
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
-			false }
-	);
-}
-
-void nex::GlobalIllumination::loadProbes(std::unique_ptr<PbrProbe> probe)
-{
-	mProbes.clear();
-	auto* pointer = probe.get();
 	mProbes.emplace_back(std::move(probe));
 }
 
 nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 {
 	return mFactory;
-}
-
-nex::Texture2D* nex::GlobalIllumination::getHdr()
-{
-	return mHdr;
 }

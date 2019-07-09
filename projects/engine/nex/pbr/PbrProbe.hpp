@@ -41,9 +41,12 @@ namespace nex
 	public:
 		PbrProbe();
 
-		PbrProbe& operator=(PbrProbe&&) = default;
+		PbrProbe(PbrProbe&& o) noexcept = delete;
+		PbrProbe& operator=(PbrProbe&& o) noexcept = delete;
+		PbrProbe(const PbrProbe& o) noexcept = delete;
+		PbrProbe& operator=(const PbrProbe& o) noexcept = delete;
 
-		~PbrProbe();
+		virtual ~PbrProbe();
 
 		//void drawSky(const glm::mat4& projection,
 		//	const glm::mat4& view);

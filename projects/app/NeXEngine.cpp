@@ -352,10 +352,12 @@ void NeXEngine::createScene()
 	transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-
-	auto* probe = mGlobalIllumination->createVobUnsafe(mGlobalIllumination->getProbe(), mScene);
-	probe->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));
-	probe->mDebugName = "pbr probe";
+	size_t counter = 0;
+	for (const auto& probe : mGlobalIllumination->getProbes()) {
+		auto* probeVob = mGlobalIllumination->createVobUnsafe(probe.get(), mScene);
+		probeVob->setPosition(glm::vec3(-7.0f - (float)counter, 2.0f, 0.0f));
+		probeVob->mDebugName = "pbr probe" + std::to_string(counter);
+	}
 
 	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
 	//auto* cerberus = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
@@ -414,16 +416,33 @@ void NeXEngine::initPbr()
 	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
 }
 
-nex::Resource::FutureType NeXEngine::initProbes()
+void NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
-	mGlobalIllumination->loadHdr();
+	TextureManager* textureManager = TextureManager::get();
+	nex::TextureData textureData = {
+			TextureFilter::Linear,
+			TextureFilter::Linear,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			TextureUVTechnique::ClampToEdge,
+			ColorSpace::RGB,
+			PixelDataType::FLOAT,
+			InternFormat::RGB32F,
+			false };
+	auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
+	auto* hdr2 = textureManager->getImage("hdr/newport_loft.hdr", textureData);
 
-	auto probe = mGlobalIllumination->getFactory()->create(mGlobalIllumination->getHdr(), 0);
-	mGlobalIllumination->loadProbes(std::move(probe));
-	mPbrTechnique->setProbe(mGlobalIllumination->getProbe());
+	auto probe = mGlobalIllumination->getFactory()->create(hdr, 0);
+	auto probe2 = mGlobalIllumination->getFactory()->create(hdr2, 1);
+	probe2->getIsLoadedStatus().get();
+	probe->getIsLoadedStatus().get();
+	mGlobalIllumination->addProbe(std::move(probe));
+	mGlobalIllumination->addProbe(std::move(probe2));
+	
+	mPbrTechnique->setProbe(mGlobalIllumination->getProbes()[0].get());
 
-	return mGlobalIllumination->getProbe()->getIsLoadedStatus();
+	//mGlobalIllumination->getProbes()[0]->getIsLoadedStatus().get();
 }
 
 void NeXEngine::initRenderBackend()

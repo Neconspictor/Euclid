@@ -47,7 +47,7 @@ namespace nex
 				++mRequestedJobs;
 
 				if (!mIsRunning) throw std::runtime_error("nex::ResourceLoader::enqueue: Already shutdown!");
-				mJobs.push(createJob(wrapper));
+				mJobs.push(std::move(createJob(wrapper)));
 			}
 
 			mCondition.notify_all();

@@ -356,6 +356,13 @@ namespace nex
 
 		_PromiseBase(_FutureSharedState<T>* sharedState) : mManager(sharedState)
 		{
+			//mManager.get_state()->retain();
+		}
+
+		_PromiseBase(_Future<T>& future) : mManager(future->get_state())
+		{
+			// Note: we have to retain since we don't own the future!
+			mManager.get_state()->retain();
 		}
 
 		_Future<T> get_future() const
@@ -401,6 +408,7 @@ namespace nex
 
 		_PromiseBase(_FutureSharedState<InternType>* sharedState) : mManager(sharedState)
 		{
+			//mManager.get_state()->retain();
 		}
 
 		_Future<void> get_future() const
