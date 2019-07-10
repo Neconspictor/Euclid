@@ -163,7 +163,7 @@ void main() {
     
     // I choose a small radius 0.15 smaller then the surface height, which makes it smooth and extend a 
     // bit beyond the horizon
-    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height-0.15);
+    float eye_extinction = horizon_extinction(eye_position, eyedir, surface_height-0.15); //surface_height-0.15
     //eye_extinction = 1.0f;
     
     // I need some variables to hold the collected light. Since Nitrogen and aerosols reflect different, 
@@ -174,7 +174,7 @@ void main() {
     for(uint i=0; i<step_count; i++){
         float sample_distance = step_length*float(i);
         vec3 position = eye_position + eyedir*sample_distance;
-        float extinction = horizon_extinction(position, lightdir, surface_height-0.35);
+        float extinction = horizon_extinction(position, lightdir, surface_height); //surface_height-0.35
         float sample_depth = atmospheric_depth(position, lightdir);
         
         vec3 influx = absorb(sample_depth, vec3(intensity), scatter_strength)*extinction;

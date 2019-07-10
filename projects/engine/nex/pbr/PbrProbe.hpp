@@ -16,6 +16,7 @@ namespace nex
 	class StaticMeshContainer;
 	class SphereMesh;
 	class Mesh;
+	class CubeMapArray;
 
 
 	class PbrProbeFactory
