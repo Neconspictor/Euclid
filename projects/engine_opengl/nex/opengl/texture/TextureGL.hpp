@@ -135,6 +135,7 @@ namespace nex
 
 		// cubemap
 		CUBE_MAP = GL_TEXTURE_CUBE_MAP,
+		CUBE_MAP_ARRAY = GL_TEXTURE_CUBE_MAP_ARRAY,
 
 		RENDERBUFFER = GL_RENDERBUFFER,
 	};
@@ -229,6 +230,10 @@ namespace nex
 		 */
 		unsigned getDepth() const;
 
+		void setHeight(unsigned height);
+		void setWidth(unsigned width);
+		void setDepth(unsigned depth);
+
 		void updateMipMapCount();
 
 	protected:
@@ -250,7 +255,7 @@ namespace nex
 		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
 		Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0);
 
-		virtual void resize(unsigned width, unsigned height);
+		virtual void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture2D;
@@ -264,7 +269,10 @@ namespace nex
 		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData, unsigned samples = 1);
 		Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples = 1, unsigned width = 0, unsigned height = 0);
 
-		void resize(unsigned width, unsigned height) override;
+		/**
+		 * Note: mipmapCount and autoMipMapCount aren't used for multisample textures!
+		 */
+		void resize(unsigned width, unsigned height, unsigned mipmapCount = 0, bool autoMipMapCount = false) override;
 		unsigned getSamples() const;
 
 	protected:
@@ -277,11 +285,7 @@ namespace nex
 		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
 		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
-		void setHeight(unsigned height);
-		void setWidth(unsigned width);
-		void setDepth(unsigned depth);
-
-		void resize(unsigned width, unsigned height, unsigned size);
+		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture2DArray;
@@ -313,6 +317,24 @@ namespace nex
 		GLuint getCubeMap() const;
 
 		void setCubeMap(GLuint id);
+	};
+
+	class CubeMapArrayGL : public Texture::Impl
+	{
+	public:
+		explicit CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureData& textureData, const void* data);
+		CubeMapArrayGL(GLuint texture, const TextureData& textureData, unsigned sideWidth = 0, unsigned sideHeight = 0, unsigned depth = 0);
+
+		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
+			unsigned sideWidth, unsigned sideHeight, unsigned depth,
+			unsigned mipmapIndex,
+			const void* data);
+
+		void resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+
+	protected:
+		friend Texture2DArray;
+		TextureData mData;
 	};
 
 

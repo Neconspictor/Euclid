@@ -5,6 +5,7 @@ namespace nex
 	enum class UniformType
 	{
 		CUBE_MAP,
+		CUBE_MAP_ARRAY,
 		FLOAT,
 		INT,
 		MAT2,

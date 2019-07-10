@@ -249,6 +249,7 @@ set(
     nex/texture/TextureManager.hpp
 	nex/texture/TextureManager.cpp
     
+    
 	#nex/util
     nex/util/CallbackContainer.hpp
     nex/util/ExceptionHandling.cpp

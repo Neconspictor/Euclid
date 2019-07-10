@@ -16,8 +16,11 @@ namespace nex
 
 		virtual ~Texture();
 
-		// Mustn't be called by user code
+		
 		// Has to be implemented by renderer backend
+		/** Creates a new Texture object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
 		Texture(std::unique_ptr<Impl> impl);
 
 		Impl* getImpl() const;
@@ -90,8 +93,9 @@ namespace nex
 	{
 	public:
 
-		// creates an unintialized texture2D object. Shouldn't be used by user code.
-		// 
+		/** Creates a new Texture2D object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
 		Texture2D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
@@ -103,15 +107,16 @@ namespace nex
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void resize(unsigned width, unsigned height);
+		void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
 	class Texture2DMultisample : public Texture2D
 	{
 	public:
 
-		// creates an unintialized texture2D object. Shouldn't be used by user code.
-		// 
+		/** Creates a new Texture2DMultisample object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
 		Texture2DMultisample(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
@@ -132,8 +137,9 @@ namespace nex
 	{
 	public:
 
-		// creates an unintialized texture2D object. Shouldn't be used by user code.
-		// 
+		/** Creates a new Texture2DArray object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
 		Texture2DArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
@@ -145,13 +151,12 @@ namespace nex
 		 * Resizes this 2d texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
 		 */
-		void resize(unsigned width, unsigned height, unsigned depth);
+		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
 	class RenderBuffer : public Texture {
 	public:
 
-		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
 		RenderBuffer(unsigned width, unsigned height, const TextureData& data);
 
@@ -166,6 +171,9 @@ namespace nex
 	{
 	public:
 
+		/** Creates a new CubeMap object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
 		CubeMap(std::unique_ptr<Impl> impl);
 
 		// Mustn't be called by user code
@@ -188,5 +196,31 @@ namespace nex
 		static glm::mat4 bottomSide;
 		static glm::mat4 frontSide;
 		static glm::mat4 backSide;
+	};
+
+	class CubeMapArray : public Texture
+	{
+	public:
+
+		/** Creates a new CubeMapArray object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible! 
+		 */
+		CubeMapArray(std::unique_ptr<Impl> impl);
+
+		// Has to be implemented by renderer backend
+		CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureData& textureData, const void* data);
+
+		virtual ~CubeMapArray() = default;
+
+		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
+			unsigned sideWidth, unsigned sideHeight, unsigned depth,
+			unsigned mipmapIndex,
+			const void* data);
+
+		/**
+		 * Resizes this array texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 	};
 }

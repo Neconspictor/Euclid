@@ -117,6 +117,7 @@ namespace nex
 
 		// cubemap
 		CUBE_MAP, 
+		CUBE_MAP_ARRAY,
 		
 		RENDER_BUFFER,
 		

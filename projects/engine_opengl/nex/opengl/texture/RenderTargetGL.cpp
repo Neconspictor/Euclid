@@ -122,7 +122,7 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 			renderBuffer->resize(mipWidth, mipHeight);
 		} else if (texture2D)
 		{
-			texture2D->resize(mipWidth, mipHeight);
+			texture2D->resize(mipWidth, mipHeight,1, false);
 		}
 
 		updateDepthAttachment();

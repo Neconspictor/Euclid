@@ -489,6 +489,21 @@ unsigned nex::Texture::Impl::getDepth() const
 	return mDepth;
 }
 
+void nex::Texture::Impl::setHeight(unsigned height)
+{
+	mHeight = height;
+}
+
+void nex::Texture::Impl::setWidth(unsigned width)
+{
+	mWidth = width;
+}
+
+void nex::Texture::Impl::setDepth(unsigned depth)
+{
+	mDepth = depth;
+}
+
 void nex::Texture::Impl::updateMipMapCount()
 {
 	GLCall(glGetTextureParameteriv(mTextureID, GL_TEXTURE_BASE_LEVEL, (int*)&mTextureData.lodBaseLevel));
@@ -508,10 +523,10 @@ nex::Texture2D::Texture2D(unsigned width, unsigned height, const TextureData& te
 {
 }
 
-void nex::Texture2D::resize(unsigned width, unsigned height)
+void nex::Texture2D::resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount)
 {
 	Texture2DGL* impl = (Texture2DGL*)mImpl.get();
-	impl->resize(width, height);
+	impl->resize(width, height, mipmapCount, autoMipMapCount);
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
@@ -548,12 +563,13 @@ nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, un
 	updateMipMapCount();
 }
 
-void nex::Texture2DGL::resize(unsigned width, unsigned height)
+void nex::Texture2DGL::resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount)
 {
 	mWidth = width;
 	mHeight = height;
+	mData.generateMipMaps = autoMipMapCount;
 
-	resizeTexImage2D(mTextureID, 1, mWidth, mHeight, (GLenum)translate(mData.internalFormat), mData.generateMipMaps);
+	resizeTexImage2D(mTextureID, mipmapCount, mWidth, mHeight, (GLenum)translate(mData.internalFormat), autoMipMapCount);
 	updateMipMapCount();
 }
 
@@ -595,7 +611,7 @@ nex::Texture2DMultisampleGL::Texture2DMultisampleGL(GLuint texture, const Textur
 	mTargetGL = TextureTargetGl::TEXTURE2D_MULTISAMPLE;
 }
 
-void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height)
+void nex::Texture2DMultisampleGL::resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount)
 {
 	mWidth = width;
 	mHeight = height;
@@ -619,10 +635,10 @@ nex::Texture2DArray::Texture2DArray(unsigned width, unsigned height, unsigned si
 {
 }
 
-void nex::Texture2DArray::resize(unsigned width, unsigned height, unsigned depth)
+void nex::Texture2DArray::resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
 {
 	auto impl = (Texture2DArrayGL*)mImpl.get();
-	impl->resize(width, height, depth);
+	impl->resize(width, height, depth, mipmapCount, autoMipMapCount);
 }
 
 nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data) :
@@ -630,24 +646,17 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint width, GLuint height, GLuint dept
 {
 	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
-		resizeTexImage3D(mTextureID,
-			1,
-			mWidth,
-			mHeight,
-			mDepth,
-			(GLenum)translate(mData.internalFormat),
-			mData.generateMipMaps);
+	resize(mWidth, mHeight, mDepth, 1, mData.generateMipMaps);
 
-
-		// set base mip map
-		if (data != nullptr) {
-			GLCall(glTextureSubImage3D(mTextureID, 0,
-				0, 0, 0,
-				width, height, depth,
-				(GLenum)translate(mData.colorspace),
-				(GLenum)translate(mData.pixelDataType),
-				data));
-		}
+	// set base mip map
+	if (data != nullptr) {
+		GLCall(glTextureSubImage3D(mTextureID, 0,
+			0, 0, 0,
+			width, height, depth,
+			(GLenum)translate(mData.colorspace),
+			(GLenum)translate(mData.pixelDataType),
+			data));
+	}
 		
 
 	// create content of the other mipmaps
@@ -662,37 +671,92 @@ nex::Texture2DArrayGL::Texture2DArrayGL(GLuint texture, const TextureData& textu
 	updateMipMapCount();
 }
 
-void nex::Texture2DArrayGL::setHeight(unsigned height)
-{
-	mHeight = height;
-}
-
-void nex::Texture2DArrayGL::setWidth(unsigned width)
-{
-	mWidth = width;
-}
-
-void nex::Texture2DArrayGL::setDepth(unsigned depth)
-{
-	mDepth = depth;
-}
-
-void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned depth)
+void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
 {
 	mWidth = width;
 	mHeight = height;
 	mDepth = depth;
+	mData.generateMipMaps = autoMipMapCount;
 
 	resizeTexImage3D(mTextureID, 
-		1, 
+		mipmapCount,
 		mWidth, 
 		mHeight, 
 		mDepth, 
 		(GLenum)translate(mData.internalFormat),
-		mData.generateMipMaps);
+		autoMipMapCount);
 
 	updateMipMapCount();
 }
+
+
+nex::CubeMapArray::CubeMapArray(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
+{
+}
+
+nex::CubeMapArray::CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureData & textureData, const void * data)
+	: Texture(make_unique<CubeMapArrayGL>(sideWidth, sideHeight, depth, textureData, data))
+{
+}
+
+void nex::CubeMapArray::resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
+{
+	((CubeMapArrayGL*)mImpl.get())->resize(sideWidth, sideHeight, depth, mipmapCount, autoMipMapCount);
+}
+
+nex::CubeMapArrayGL::CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureData & textureData, const void * data)
+ : Impl(GL_FALSE, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData)
+{
+	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
+
+	resize(mWidth,mHeight, mDepth, 1, mData.generateMipMaps);
+	fill(0, 0, 0, mWidth, mHeight, depth, 0, data);
+
+	// create content of the other mipmaps
+	if (mData.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
+}
+
+nex::CubeMapArrayGL::CubeMapArrayGL(GLuint texture, const TextureData & textureData, unsigned sideWidth, unsigned sideHeight, unsigned depth)
+	: Impl(texture, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData)
+{
+	updateMipMapCount();
+}
+
+void nex::CubeMapArrayGL::fill(unsigned xOffset, unsigned yOffset, unsigned zOffset, unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapIndex, const void * data)
+{
+	if (data == nullptr) return;
+
+	GLCall(glTextureSubImage3D(mTextureID, 
+		mipmapIndex,
+		xOffset, yOffset, zOffset,
+		sideWidth,
+		sideHeight,
+		depth,
+		(GLenum)translate(mData.colorspace),
+		(GLenum)translate(mData.pixelDataType),
+		data));
+}
+
+void nex::CubeMapArrayGL::resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
+{
+	mWidth = sideWidth;
+	mHeight = sideHeight;
+	mDepth = depth;
+
+	mData.generateMipMaps = autoMipMapCount;
+
+	resizeTexImage3D(mTextureID,
+		mipmapCount,
+		mWidth,
+		mHeight,
+		mDepth,
+		(GLenum)translate(mData.internalFormat),
+		autoMipMapCount);
+
+	updateMipMapCount();
+}
+
 
 nex::TextureAccessGL nex::translate(nex::TextureAccess accessType)
 {
@@ -882,6 +946,7 @@ nex::TextureTargetGl nex::translate(nex::TextureTarget target)
 
 		// cubemap
 		TextureTargetGl::CUBE_MAP,
+		TextureTargetGl::CUBE_MAP_ARRAY,
 
 		TextureTargetGl::RENDERBUFFER,
 	};
