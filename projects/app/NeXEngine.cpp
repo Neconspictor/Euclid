@@ -333,23 +333,23 @@ void NeXEngine::createScene()
 		return meshContainer;
 	});
 	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
-	auto* transparentVob = mScene.createVobUnsafe(transparent);
-	transparentVob->mDebugName = "transparent - 1";
-	auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
-	transparentVob2->mDebugName = "transparent - 2";
+	//auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	//auto* transparentVob = mScene.createVobUnsafe(transparent);
+	//transparentVob->mDebugName = "transparent - 1";
+	//auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
+	//transparentVob2->mDebugName = "transparent - 2";
 	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
 	transparentVob3->mDebugName = "transparent - 3";
 
-	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
-	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
+	//(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
+	//(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
+	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
+	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 
-	transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
-	transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
+	//transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
+	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
 	size_t counter = 0;
@@ -431,17 +431,26 @@ void NeXEngine::initProbes()
 			PixelDataType::FLOAT,
 			InternFormat::RGB32F,
 			false };
-	auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
+	//auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
 	auto* hdr2 = textureManager->getImage("hdr/newport_loft.hdr", textureData);
 
-	auto probe = mGlobalIllumination->getFactory()->create(hdr, 0);
-	auto probe2 = mGlobalIllumination->getFactory()->create(hdr2, 1);
+	//auto probe = mGlobalIllumination->getFactory()->create(hdr, 1);
+	auto probe2 = mGlobalIllumination->getFactory()->create(hdr2, 0);
 	probe2->getIsLoadedStatus().get();
-	probe->getIsLoadedStatus().get();
-	mGlobalIllumination->addProbe(std::move(probe));
+	//probe->getIsLoadedStatus().get();
+	//mGlobalIllumination->addProbe(std::move(probe));
 	mGlobalIllumination->addProbe(std::move(probe2));
 	
-	mPbrTechnique->setProbe(mGlobalIllumination->getProbes()[0].get());
+	//ResourceLoader::get()->enqueue([=]() {
+		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
+		activeProbe->createHandles();
+		activeProbe->activateHandles();
+		mPbrTechnique->setProbe(activeProbe);
+	//	return nullptr;
+	//});
+
+	//auto* activeProbe = mGlobalIllumination->getProbes()[1].get();
+	//mPbrTechnique->setProbe(activeProbe);
 
 	//mGlobalIllumination->getProbes()[0]->getIsLoadedStatus().get();
 }

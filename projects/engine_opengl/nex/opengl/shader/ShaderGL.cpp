@@ -291,6 +291,13 @@ nex::UniformLocation nex::Shader::Impl::getUniformBufferLocation(const char* nam
 	return loc;
 }
 
+int nex::Shader::Impl::getUniformBufferBindingPoint(const char * name) const
+{
+	int result;
+	GLCall(glGetActiveUniformBlockiv(mProgramID, getUniformBufferLocation(name), GL_UNIFORM_BLOCK_BINDING, &result));
+	return result;
+}
+
 nex::UniformLocation nex::Shader::Impl::getUniformLocation(const char* name) const
 {
 	GLCall(const auto loc = glGetUniformLocation(mProgramID, name));
@@ -444,6 +451,11 @@ nex::UniformLocation nex::Shader::getUniformBufferLocation(const char* name) con
 {
 	return mImpl->getUniformBufferLocation(name);
 }
+
+int nex::Shader::getUniformBufferBindingPoint(const char* name) const {
+	return mImpl->getUniformBufferBindingPoint(name);
+}
+
 
 nex::UniformLocation nex::Shader::getShaderStorageBufferLocation(const char* name) const
 {

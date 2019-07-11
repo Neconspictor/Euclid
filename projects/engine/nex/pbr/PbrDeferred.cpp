@@ -9,6 +9,9 @@
 #include "PbrProbe.hpp"
 
 namespace nex {
+	PbrDeferred::~PbrDeferred()
+	{
+	}
 
 	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
 		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe),
@@ -35,8 +38,6 @@ namespace nex {
 	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Camera* camera)
 	{
 		mLightPass->bind();
-
-		mLightPass->setProbe(mProbe);
 		mLightPass->updateConstants(camera);
 
 
@@ -71,8 +72,14 @@ namespace nex {
 	{
 		mLightPass = std::make_unique<PbrDeferredLightingPass>(cascadedShadow);
 
+		setProbe(mProbe);
 		mLightPass->setProbe(mProbe);
 		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
+	}
+	void PbrDeferred::setProbe(PbrProbe * probe)
+	{
+		mProbe = probe;
+		mLightPass->setProbe(probe);
 	}
 }

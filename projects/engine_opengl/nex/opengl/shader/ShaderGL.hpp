@@ -57,6 +57,7 @@ namespace nex
 		GLuint getProgramID() const;
 		nex::UniformLocation getShaderStorageBufferLocation(const char* name) const;
 		nex::UniformLocation getUniformBufferLocation(const char* name) const;
+		int getUniformBufferBindingPoint(const char* name) const;
 		nex::UniformLocation getUniformLocation(const char* name) const;
 
 		/**

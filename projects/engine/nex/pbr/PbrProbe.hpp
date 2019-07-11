@@ -17,7 +17,7 @@ namespace nex
 	class SphereMesh;
 	class Mesh;
 	class CubeMapArray;
-
+	class Sampler;
 
 	class PbrProbeFactory
 	{
@@ -40,6 +40,12 @@ namespace nex
 	class PbrProbe : public Resource {
 
 	public:
+
+		struct Handles {
+			uint64_t convoluted = 0;
+			uint64_t prefiltered = 0;
+		};
+
 		PbrProbe();
 
 		PbrProbe(PbrProbe&& o) noexcept = delete;
@@ -52,6 +58,10 @@ namespace nex
 		//void drawSky(const glm::mat4& projection,
 		//	const glm::mat4& view);
 
+		void createHandles();
+		void activateHandles();
+		void deactivateHandles();
+
 		static void initGlobals(const std::filesystem::path& probeRoot);
 		static Mesh* getSphere();
 
@@ -59,6 +69,8 @@ namespace nex
 		CubeMap* getConvolutedEnvironmentMap() const;
 
 		CubeMap* getEnvironmentMap() const;
+
+		const Handles* getHandles() const;
 
 		Material* getMaterial();
 
@@ -80,7 +92,7 @@ namespace nex
 
 		void initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 		void loadIrradianceFile(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
-		void createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		//void createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
@@ -98,15 +110,17 @@ namespace nex
 		std::shared_ptr<CubeMap> prefilteredEnvMap;
 		std::shared_ptr<CubeMap> environmentMap;
 
-		std::unique_ptr<PbrConvolutionPass> mConvolutionPass;
-		std::unique_ptr<PbrPrefilterPass> mPrefilterPass;
-
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
 		static std::unique_ptr<ProbeTechnique> mTechnique;
 		static std::unique_ptr<SphereMesh> mMesh;
+		static std::unique_ptr<Sampler> mSamplerIrradiance;
+		static std::unique_ptr<Sampler> mSamplerPrefiltered;
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
+		std::unique_ptr< PbrPrefilterPass> mPrefilterPass;
+		std::unique_ptr<PbrConvolutionPass> mConvolutionPass;
 		StoreImage mReadImage;
+		Handles mHandles;
 	};
 
 	class ProbeVob : public Vob

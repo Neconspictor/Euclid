@@ -59,7 +59,7 @@ namespace nex
 	class PbrCommonLightingPass : public PbrBaseCommon
 	{
 	public:
-		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
+		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 2);
 
 		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
@@ -74,8 +74,6 @@ namespace nex
 	private:
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
-		void setIrradianceMap(const CubeMap* irradianceMap);
-		void setPrefilterMap(const CubeMap* prefilterMap);
 
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
@@ -91,11 +89,13 @@ namespace nex
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 		unsigned mCsmCascadeBindingPoint;
+		unsigned mPbrProbesBindingPoint;
 
 		//ibl
 		UniformTex mBrdfLUT;
-		UniformTex mIrradianceMap;
-		UniformTex mPrefilterMap;
+		UniformBuffer mProbesBuffer;
+		//UniformTex mIrradianceMap;
+		//UniformTex mPrefilterMap;
 
 		// CSM
 		UniformTex mCascadedDepthMap;

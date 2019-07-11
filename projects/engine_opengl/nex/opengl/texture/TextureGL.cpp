@@ -8,6 +8,8 @@
 #include <nex/opengl/opengl.hpp>
 #include <nex/opengl/RenderBackendGL.hpp>
 #include "nex/opengl/CacheGL.hpp"
+#include <nex/texture/Sampler.hpp>
+#include <nex/opengl/texture/SamplerGL.hpp>
 
 using namespace std;
 using namespace glm;
@@ -304,6 +306,30 @@ void nex::Texture::readback(unsigned mipmapLevel, ColorSpace format, PixelDataTy
 void nex::Texture::setImpl(std::unique_ptr<Impl> impl)
 {
 	mImpl = std::move(impl);
+}
+
+uint64_t nex::Texture::getHandle()
+{
+	uint64_t handle;
+	GLCall(handle = glGetTextureHandleARB(*mImpl->getTexture()));
+	return handle;
+}
+
+uint64_t nex::Texture::getHandleWithSampler(const nex::Sampler & sampler)
+{
+	uint64_t handle;
+	GLCall(handle = glGetTextureSamplerHandleARB(*mImpl->getTexture(), sampler.getImpl()->getID()));
+	return handle;
+}
+
+void nex::Texture::residentHandle(uint64_t handle)
+{
+	GLCall(glMakeTextureHandleResidentARB(handle));
+}
+
+void nex::Texture::makeHandleNonResident(uint64_t handle)
+{
+	GLCall(glMakeTextureHandleNonResidentARB(handle));
 }
 
 nex::Texture::Impl::Impl(TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth) : 

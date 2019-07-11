@@ -14,10 +14,14 @@ namespace nex
 	public:
 		PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
 
+		virtual ~PbrForward();
+
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
 		void configurePass(Camera* camera);
 		PbrForwardPass* getPass();
+
+		void setProbe(PbrProbe* probe) override;
 
 	private:
 		std::unique_ptr<PbrForwardPass> mForwardShader;

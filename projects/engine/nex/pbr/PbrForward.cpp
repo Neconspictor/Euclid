@@ -30,6 +30,10 @@ namespace nex {
 		mForwardShader->setDirLight(mLight);
 	}
 
+	PbrForward::~PbrForward()
+	{
+	}
+
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
@@ -41,12 +45,16 @@ namespace nex {
 	void PbrForward::configurePass(Camera* camera)
 	{
 		mForwardShader->bind();
-		mForwardShader->setProbe(mProbe);
 		mForwardShader->updateConstants(camera);
 	}
 
 	PbrForwardPass* PbrForward::getPass()
 	{
 		return mForwardShader.get();
+	}
+	void PbrForward::setProbe(PbrProbe * probe)
+	{
+		mProbe = probe;
+		mForwardShader->setProbe(probe);
 	}
 }

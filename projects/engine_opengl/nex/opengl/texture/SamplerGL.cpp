@@ -56,6 +56,14 @@ const SamplerDesc& Sampler::getState() const
 	return mImpl->mState;
 }
 
+const Sampler::Impl* Sampler::getImpl() const {
+	return mImpl.get();
+}
+
+Sampler::Impl* Sampler::getImpl() {
+	return mImpl.get();
+}
+
 void Sampler::setMinFilter(TextureFilter filter)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_MIN_FILTER, (GLenum)translate(filter)));

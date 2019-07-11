@@ -1,5 +1,11 @@
+#extension GL_ARB_bindless_texture : require
+
 #define CSM_CASCADE_BUFFER_BINDING_POINT 0
-#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
+#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 6
+
+// Note: uniform buffers are different from shader storage buffers!
+#define PBR_PROBES_BUFFER_BINDING_POINT 2 
+#define PBR_PROBE_COUNT 1
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
@@ -13,6 +19,11 @@ struct DirLight {
     float power;
 };
 
+struct Probe {
+    samplerCube irradianceMap;
+    samplerCube prefilterMap;
+};
+
 uniform DirLight dirLight;
 
 uniform float ambientLightPower;
@@ -22,9 +33,14 @@ uniform float shadowStrength;
 uniform mat4 inverseViewMatrix;
 
 // IBL
-layout(binding = 5) uniform samplerCube irradianceMap;
-layout(binding = 6) uniform samplerCube prefilterMap;
-layout(binding = 7) uniform sampler2D brdfLUT;
+//layout(binding = 5) uniform samplerCube irradianceMap;
+//layout(binding = 6) uniform samplerCube prefilterMap;
+layout(binding = 5) uniform sampler2D brdfLUT;
+layout(std140, binding = PBR_PROBES_BUFFER_BINDING_POINT) uniform PROBES {
+    //Probe probes[PBR_PROBE_COUNT];
+    samplerCube irradianceMap;
+    samplerCube prefilterMap;
+};
 
 
 

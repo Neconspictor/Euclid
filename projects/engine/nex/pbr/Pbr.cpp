@@ -58,6 +58,7 @@ void nex::Pbr::setDirLight(DirectionalLight* light)
 void nex::Pbr::setProbe(PbrProbe* probe)
 {
 	mProbe = probe;
+	
 }
 
 nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,

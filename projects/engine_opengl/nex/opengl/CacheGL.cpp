@@ -93,9 +93,13 @@ void nex::GlobalCacheGL::BindTextureUnit(GLuint unit, GLuint texture)
 	static std::unordered_map<GLuint, GLuint> cache;
 	const auto it = cache.find(unit);
 
-	if (it == cache.end() || it->second != texture)
+	if (it == cache.end() || it->second != texture || true)
 	{
 		cache[unit] = texture;
+		static bool test = false;
+		if (test) {
+			std::cout << "unit = " << unit << ", texture = " << texture << std::endl;
+		}
 		GLCall(glBindTextureUnit(unit, texture));
 	}
 }

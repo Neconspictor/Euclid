@@ -31,6 +31,10 @@ namespace nex
 		// Has to be implemented by renderer backend
 		void bind(unsigned textureBindingSlot) const;
 
+
+		const Impl* getImpl() const;
+		Impl* getImpl();
+
 		const SamplerDesc& getState() const;
 
 		// Has to be implemented by renderer backend

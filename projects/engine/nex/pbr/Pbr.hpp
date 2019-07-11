@@ -38,7 +38,7 @@ namespace nex
 		
 		void setDirLight(DirectionalLight * light);
 
-		void setProbe(PbrProbe* probe);
+		virtual void setProbe(PbrProbe* probe);
 
 	protected:
 		AmbientLight* mAmbientLight;

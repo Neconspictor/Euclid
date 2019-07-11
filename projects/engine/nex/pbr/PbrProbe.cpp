@@ -19,6 +19,7 @@
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/resource/Resource.hpp>
+#include <nex/texture/Sampler.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -26,7 +27,11 @@ using namespace nex;
 std::shared_ptr<Texture2D> PbrProbe::mBrdfLookupTexture = nullptr;
 std::unique_ptr<PbrProbe::ProbeTechnique> PbrProbe::mTechnique = nullptr;
 std::unique_ptr<SphereMesh> PbrProbe::mMesh = nullptr;
+std::unique_ptr<Sampler> PbrProbe::mSamplerIrradiance = nullptr;
+std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
+
 std::unique_ptr<nex::PbrProbeFactory> nex::PbrProbeFactory::mInstance;
+
 
 void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
 {
@@ -118,13 +123,33 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 
 PbrProbe::PbrProbe() :
 	environmentMap(nullptr),
-	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
+	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
 {
 }
 
-PbrProbe::~PbrProbe() = default;
+PbrProbe::~PbrProbe() {
+	deactivateHandles();
+}
+
+void nex::PbrProbe::createHandles()
+{
+	mHandles.convoluted = convolutedEnvironmentMap->getHandleWithSampler(*mSamplerIrradiance);
+	mHandles.prefiltered = prefilteredEnvMap->getHandleWithSampler(*mSamplerPrefiltered);
+}
+
+void nex::PbrProbe::activateHandles()
+{
+	convolutedEnvironmentMap->residentHandle(mHandles.convoluted);
+	prefilteredEnvMap->residentHandle(mHandles.prefiltered);
+}
+
+void nex::PbrProbe::deactivateHandles()
+{
+	convolutedEnvironmentMap->makeHandleNonResident(mHandles.convoluted);
+	prefilteredEnvMap->makeHandleNonResident(mHandles.prefiltered);
+}
 
 void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
@@ -133,6 +158,9 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 
 	mTechnique = std::make_unique<ProbeTechnique>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
+
+	//mConvolutionPass = std::make_unique<PbrConvolutionPass>();
+	//mPrefilterPass = std::make_unique<PbrPrefilterPass>();
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
@@ -188,6 +216,15 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	}
 
 	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
+
+
+	mSamplerIrradiance = std::make_unique<Sampler>();
+	
+	SamplerDesc desc;
+	//desc.minLOD = 0;
+	//desc.maxLOD = 7;
+	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	mSamplerPrefiltered = std::make_unique<Sampler>(desc);
 }
 
 Mesh* PbrProbe::getSphere()
@@ -208,6 +245,11 @@ CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
 CubeMap* PbrProbe::getEnvironmentMap() const
 {
 	return  environmentMap.get();
+}
+
+const nex::PbrProbe::Handles * nex::PbrProbe::getHandles() const
+{
+	return &mHandles;
 }
 
 CubeMap * PbrProbe::getPrefilteredEnvironmentMap() const
@@ -533,7 +575,6 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-
 	mPrefilterPass->bind();
 	mPrefilterPass->setProjection(projection);
 	mPrefilterPass->setMapToPrefilter(source);
@@ -795,7 +836,7 @@ void nex::PbrProbe::loadIrradianceFile(Texture * backgroundHDR, unsigned probeID
 	FileSystem::load(convolutedMapPath, mReadImage);
 }
 
-void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
+/*void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {
 	TextureData data = {
 			TextureFilter::Linear,
@@ -816,7 +857,7 @@ void PbrProbe::createIrradianceTex(Texture* backgroundHDR, unsigned probeID, con
 	convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(mReadImage, data));
 	this->mPrefilterPass->bind();
 	mPrefilterPass->setMapToPrefilter(convolutedEnvironmentMap.get());
-}
+}*/
 
 void PbrProbe::init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot)
 {

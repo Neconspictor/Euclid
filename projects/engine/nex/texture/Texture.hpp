@@ -7,6 +7,7 @@ namespace nex
 {
 	struct StoreImage;
 	class Texture;
+	class Sampler;
 
 
 	class Texture : public Resource
@@ -84,6 +85,12 @@ namespace nex
 		void readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void* dest, size_t destBufferSize);
 
 		void setImpl(std::unique_ptr<Impl> impl);
+
+		// Functions for bindless textures
+		uint64_t getHandle();
+		uint64_t getHandleWithSampler(const Sampler& sampler);
+		void residentHandle(uint64_t handle);
+		void makeHandleNonResident(uint64_t handle);
 
 	protected:
 		std::unique_ptr<Impl> mImpl;

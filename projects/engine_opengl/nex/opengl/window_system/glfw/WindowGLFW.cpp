@@ -408,6 +408,9 @@ void WindowGLFW::createOpenGLWindow()
 	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
 #endif
 
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
+
 	glfwWindowHint(GLFW_VISIBLE, mConfig.visible);
 
 	glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);

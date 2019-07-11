@@ -104,6 +104,7 @@ namespace nex
 		UniformLocation getUniformLocation(const char* name) const;
 
 		UniformLocation getUniformBufferLocation(const char* name) const;
+		int getUniformBufferBindingPoint(const char* name) const;
 
 		UniformLocation getShaderStorageBufferLocation(const char* name) const;
 
