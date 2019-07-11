@@ -121,10 +121,13 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 	return probe;
 }
 
+void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned probeID)
+{
+	probe->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
+}
+
 PbrProbe::PbrProbe() :
 	environmentMap(nullptr),
-	mPrefilterPass(std::make_unique<PbrPrefilterPass>()),
-	mConvolutionPass(std::make_unique<PbrConvolutionPass>()),
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
 {
 }
@@ -519,6 +522,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
+	auto mConvolutionPass(std::make_unique<PbrConvolutionPass>());
 	mConvolutionPass->bind();
 	mConvolutionPass->setProjection(projection);
 	mConvolutionPass->setEnvironmentMap(source);
@@ -575,6 +579,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
+	auto mPrefilterPass(std::make_unique<PbrPrefilterPass>());
 	mPrefilterPass->bind();
 	mPrefilterPass->setProjection(projection);
 	mPrefilterPass->setMapToPrefilter(source);

@@ -420,26 +420,41 @@ void NeXEngine::initPbr()
 void NeXEngine::initProbes()
 {
 	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
-	TextureManager* textureManager = TextureManager::get();
-	nex::TextureData textureData = {
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
-			false };
-	//auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
-	auto* hdr2 = textureManager->getImage("hdr/newport_loft.hdr", textureData);
 
+
+
+	auto probe = std::make_unique<PbrProbe>();
+
+	//RenderBackend::get()->flushPendingCommands();
+	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]() {
+
+		TextureManager* textureManager = TextureManager::get();
+		nex::TextureData textureData = {
+				TextureFilter::Linear,
+				TextureFilter::Linear,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
+				TextureUVTechnique::ClampToEdge,
+				ColorSpace::RGB,
+				PixelDataType::FLOAT,
+				InternFormat::RGB32F,
+				false };
+		auto* hdr = textureManager->getImage("hdr/newport_loft.hdr", textureData);
+		mGlobalIllumination->getFactory()->initProbe(pointer, hdr, 0);
+
+		return pointer;
+	});
+
+	probe->setIsLoadedStatus(std::move(future));
+
+	probe->getIsLoadedStatus().get();
+
+	//auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
 	//auto probe = mGlobalIllumination->getFactory()->create(hdr, 1);
-	auto probe2 = mGlobalIllumination->getFactory()->create(hdr2, 0);
-	probe2->getIsLoadedStatus().get();
+	
 	//probe->getIsLoadedStatus().get();
 	//mGlobalIllumination->addProbe(std::move(probe));
-	mGlobalIllumination->addProbe(std::move(probe2));
+	mGlobalIllumination->addProbe(std::move(probe));
 	
 	//ResourceLoader::get()->enqueue([=]() {
 		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();

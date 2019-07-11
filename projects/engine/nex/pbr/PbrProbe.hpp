@@ -29,6 +29,11 @@ namespace nex
 
 		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned probeID);
+
 		static std::unique_ptr<PbrProbeFactory> mInstance;
 		
 	private:
@@ -117,8 +122,6 @@ namespace nex
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
-		std::unique_ptr< PbrPrefilterPass> mPrefilterPass;
-		std::unique_ptr<PbrConvolutionPass> mConvolutionPass;
 		StoreImage mReadImage;
 		Handles mHandles;
 	};
