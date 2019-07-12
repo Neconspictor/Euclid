@@ -74,6 +74,8 @@ namespace nex
 	private:
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
+		void setIrradianceTexture(const Texture* texture);
+		void setPrefilteredTexture(const Texture* texture);
 
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
@@ -94,8 +96,8 @@ namespace nex
 		//ibl
 		UniformTex mBrdfLUT;
 		UniformBuffer mProbesBuffer;
-		//UniformTex mIrradianceMap;
-		//UniformTex mPrefilterMap;
+		UniformTex mIrradianceMap;
+		UniformTex mPrefilterMap;
 
 		// CSM
 		UniformTex mCascadedDepthMap;

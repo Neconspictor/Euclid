@@ -59,6 +59,16 @@ void PbrCommonLightingPass::setBrdfLookupTexture(const Texture* brdfLUT)
 	mShader->setTexture(brdfLUT, &mSampler, mBrdfLUT.bindingSlot);
 }
 
+void nex::PbrCommonLightingPass::setIrradianceTexture(const Texture * texture)
+{
+	mShader->setTexture(texture, &mSampler, mIrradianceMap.bindingSlot);
+}
+
+void nex::PbrCommonLightingPass::setPrefilteredTexture(const Texture * texture)
+{
+	mShader->setTexture(texture, &mSamplerPrefilterMap, mPrefilterMap.bindingSlot);
+}
+
 void PbrCommonLightingPass::setCascadedDepthMap(const Texture* cascadedDepthMap)
 {
 	mShader->setTexture(cascadedDepthMap, &mCascadedShadowMapSampler, mCascadedDepthMap.bindingSlot);
@@ -127,16 +137,18 @@ nex::PbrCommonLightingPass::PbrCommonLightingPass(Shader * shader, CascadedShado
 	mCascadedShadowMapSampler.setMagFilter(TextureFilter::NearestNeighbor);
 
 	// ibl
-	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 5);
+	mIrradianceMap = mShader->createTextureUniform("irradianceMap", UniformType::CUBE_MAP, 5);
+	mPrefilterMap = mShader->createTextureUniform("prefilterMap", UniformType::CUBE_MAP, 6);
+	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
 
-	auto brdfLUTLoc = mShader->getUniformLocation("brdfLUT");
-	auto cascadeLoc = mShader->getShaderStorageBufferLocation("CascadeBuffer");
-	auto probesLocation = mShader->getUniformBufferLocation("PROBES");
-	auto probesBindingPint = mShader->getUniformBufferBindingPoint("PROBES");
-	auto test = mShader->getShaderStorageBufferLocation("TransformBuffer");
+	//auto brdfLUTLoc = mShader->getUniformLocation("brdfLUT");
+	//auto cascadeLoc = mShader->getShaderStorageBufferLocation("CascadeBuffer");
+	//auto probesLocation = mShader->getUniformBufferLocation("PROBES");
+	//auto probesBindingPint = mShader->getUniformBufferBindingPoint("PROBES");
+	//auto test = mShader->getShaderStorageBufferLocation("TransformBuffer");
 
 	// shaodw mapping
-	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 6);
+	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
 
 	mEyeLightDirection = {mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3};
@@ -185,6 +197,8 @@ void PbrCommonLightingPass::updateConstants(Camera* camera)
 	assert(camera != nullptr);
 
 	setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
+	setIrradianceTexture(mProbe->getConvolutedEnvironmentMap());
+	setPrefilteredTexture(mProbe->getPrefilteredEnvironmentMap());
 
 	mProbe->createHandles();
 	mProbe->activateHandles();
