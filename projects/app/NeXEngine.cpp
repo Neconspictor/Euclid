@@ -327,6 +327,15 @@ void NeXEngine::createScene()
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
 
+	meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaTest5.obj");
+	ResourceLoader::get()->enqueue([=] {
+		return meshContainer;
+	});
+	//meshContainer->getIsLoadedStatus().get()->finalize();
+	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
+	sponzaVob->mDebugName = "sponza";
+
 	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
 	meshContainer = StaticMeshManager::get()->getModel("C:/Users/Necon/Desktop/testNeX/transparent.obj");
 	ResourceLoader::get()->enqueue([=] {
