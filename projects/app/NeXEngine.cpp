@@ -426,7 +426,7 @@ void NeXEngine::initPbr()
 
 void NeXEngine::initProbes()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 128, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
 
 
 

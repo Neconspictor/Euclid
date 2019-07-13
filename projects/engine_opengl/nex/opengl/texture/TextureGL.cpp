@@ -14,35 +14,23 @@
 using namespace std;
 using namespace glm;
 
-mat4 nex::CubeMap::rightSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f));
-mat4 nex::CubeMap::leftSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f));
-mat4 nex::CubeMap::topSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
-mat4 nex::CubeMap::bottomSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f));
-mat4 nex::CubeMap::frontSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, -1.0f, 0.0f));
-mat4 nex::CubeMap::backSide = lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
+std::vector<glm::mat4> nex::CubeMap::mViewLookAts = {
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f)), // right
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f)), // left
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)), // top
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)), // bottom
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, -1.0f, 0.0f)), // fron
+	lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f)) // back
+};
 
-
-const mat4& nex::CubeMap::getViewLookAtMatrixRH(CubeMapSide side)
+const mat4& nex::CubeMap::getViewLookAtMatrix(CubeMapSide side)
 {
-	switch (side) {
-	case CubeMapSide::POSITIVE_X:
-		return rightSide;
-	case CubeMapSide::NEGATIVE_X:
-		return leftSide;
-	case CubeMapSide::POSITIVE_Y:
-		return topSide;
-	case CubeMapSide::NEGATIVE_Y:
-		return bottomSide;
-	case CubeMapSide::NEGATIVE_Z:
-		return frontSide;
-	case CubeMapSide::POSITIVE_Z:
-		return backSide;
-	default:
-		throw_with_trace(std::runtime_error("No mapping defined for CubeMap side!"));
-	}
+	return mViewLookAts[(unsigned)side];
+}
 
-	// won't be reached
-	return rightSide;
+const std::vector<glm::mat4>& nex::CubeMap::getViewLookAts()
+{
+	return mViewLookAts;
 }
 
 nex::CubeMap::CubeMap(std::unique_ptr<Impl> impl) : Texture(std::move(impl))

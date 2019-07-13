@@ -23,25 +23,22 @@ namespace nex
 	{
 	public:
 
-		static constexpr unsigned IRRADIANCE_SIDE = 32;
-		static const TextureData BRDF_DATA;
-		static const TextureData IRRADIANCE_DATA;
-		static const TextureData PREFILTERED_DATA;
-		static const TextureData SOURCE_DATA;
-
-		PbrProbeFactory(unsigned prefilteredSideWidth, unsigned prefilteredSideHeight, unsigned mapSize);
+		PbrProbeFactory(unsigned prefilteredSize, unsigned mapSize);
 
 		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned probeID);
+		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned storeID);
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
 		std::unique_ptr<CubeMapArray> mIrraddianceMaps;
 		std::unique_ptr<CubeMapArray> mPrefilteredMaps;
+		const unsigned mPrefilteredSide; 
+		const unsigned mMapSize;
+		unsigned mFreeSlots;
 		
 	};
 
@@ -53,6 +50,14 @@ namespace nex
 			uint64_t convoluted = 0;
 			uint64_t prefiltered = 0;
 		};
+
+		static constexpr unsigned IRRADIANCE_SIZE = 32;
+		static constexpr unsigned BRDF_SIZE = 512;
+		static const TextureData BRDF_DATA;
+		static const TextureData IRRADIANCE_DATA;
+		static const TextureData PREFILTERED_DATA;
+		static const TextureData SOURCE_DATA;
+		static constexpr unsigned SOURCE_CUBE_SIZE = 2048;
 
 		PbrProbe();
 
@@ -87,20 +92,21 @@ namespace nex
 		static Texture2D* getBrdfLookupTexture();
 		StoreImage readBackgroundPixelData() const;
 
-		void init(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void init(Texture* backgroundHDR, 
+			unsigned prefilteredSize,
+			unsigned storeID, 
+			const std::filesystem::path& probeRoot);
 
 	protected:
 
 		class ProbeTechnique;
 		class ProbeMaterial;
 
-		void initBackground(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void initBackground(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
 
-		void initPrefiltered(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void initPrefiltered(Texture* backgroundHDR, unsigned prefilteredSize, const std::filesystem::path& probeRoot);
 
-		void initIrradiance(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
-		void loadIrradianceFile(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
-		//void createIrradianceTex(Texture* backgroundHDR, unsigned probeID, const std::filesystem::path& probeRoot);
+		void initIrradiance(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
@@ -112,7 +118,7 @@ namespace nex
 
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);
-		std::shared_ptr<CubeMap> prefilter(CubeMap* source);
+		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
 
 		std::shared_ptr<CubeMap> convolutedEnvironmentMap;
 		std::shared_ptr<CubeMap> prefilteredEnvMap;
@@ -127,6 +133,7 @@ namespace nex
 		std::unique_ptr<ProbeMaterial> mMaterial;
 		StoreImage mReadImage;
 		Handles mHandles;
+		unsigned mStoreID;
 	};
 
 	class ProbeVob : public Vob

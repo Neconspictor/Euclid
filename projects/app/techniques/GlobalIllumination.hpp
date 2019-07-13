@@ -14,7 +14,7 @@ namespace nex
 	{
 	public:
 
-		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned width, unsigned height, unsigned depth);
+		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
 
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;

@@ -7,8 +7,8 @@
 #include <nex/renderer/RenderBackend.hpp>
 
 
-nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned width, unsigned height, unsigned depth) :
-mFactory(width, height, depth)
+nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
+mFactory(prefilteredSize, depth)
 {
 }
 

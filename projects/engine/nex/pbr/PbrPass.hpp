@@ -119,6 +119,7 @@ namespace nex
 
 		Uniform mNearFarPlane;
 		Sampler mSampler;
+		Sampler mPrefilteredSampler;
 		Sampler mCascadedShadowMapSampler;
 
 		PbrProbe* mProbe;

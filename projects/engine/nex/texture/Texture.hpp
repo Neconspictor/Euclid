@@ -191,18 +191,14 @@ namespace nex
 
 		/**
 		 * Provides a 'look at' view matrix for a specific cubemap side
-		 * The returned view matrix is for right handed coordinate systems
 		 */
-		static const glm::mat4& getViewLookAtMatrixRH(CubeMapSide side);
+		static const glm::mat4& getViewLookAtMatrix(CubeMapSide side);
+
+		static const std::vector<glm::mat4>& getViewLookAts();
 
 	protected:
 
-		static glm::mat4 rightSide;
-		static glm::mat4 leftSide;
-		static glm::mat4 topSide;
-		static glm::mat4 bottomSide;
-		static glm::mat4 frontSide;
-		static glm::mat4 backSide;
+		static std::vector<glm::mat4> mViewLookAts;
 	};
 
 	class CubeMapArray : public Texture

@@ -92,7 +92,7 @@ void PbrLightingData::setIrradianceMap(const Texture* irradianceMap)
 void PbrLightingData::setPrefilterMap(const Texture* prefilterMap)
 {
 	//mShader->setTextureByHandle(mPrefilterMap.location, prefilterMap);
-	mShader->setTexture(prefilterMap, &mSampler, mPrefilterMap.bindingSlot);
+	mShader->setTexture(prefilterMap, &mPrefilteredSampler, mPrefilterMap.bindingSlot);
 }
 
 void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
@@ -184,11 +184,11 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, CascadedShadow* cascadedS
 
 	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
 
-	/*SamplerDesc desc;
+	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
 	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
-	mSamplerPrefilterMap.setState(desc);*/
+	mPrefilteredSampler.setState(desc);
 }
 
 void PbrLightingData::setAmbientLight(AmbientLight* light)
