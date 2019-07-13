@@ -34,6 +34,8 @@ namespace nex
 		 * Creates a texture from an image store.
 		 * The returned texture has to be released by the caller!
 		 * NOTE: Supports only TEXTURE2D and CUBEMAP as targets!
+		 * Note: The TextureData members minLOD, maxLOD, lodBaseLevel and lodMaxLevel are not used from the parameter data but inferred from the store image.
+		 *		  The resulting lodBaseLevel will start at index 0 and end at store.mipmapCount - 1.
 		 * NOTE: Has to be implemented by renderer backend
 		 *
 		 * @return a Texture or an CubeMap dependent on the state of isCubeMap

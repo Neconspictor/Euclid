@@ -162,8 +162,14 @@ nex::Texture::Texture(std::unique_ptr<Impl> impl) : mImpl(std::move(impl))
 {
 }
 
-nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& data)
+nex::Texture* nex::Texture::createFromImage(const StoreImage& store, const TextureData& d)
 {
+	TextureData data = d;
+	data.minLOD = 0;
+	data.maxLOD = store.mipmapCount - 1;
+	data.lodBaseLevel = 0;
+	data.lodMaxLevel = store.mipmapCount - 1;
+
 	const auto format = (GLenum)translate(data.colorspace);
 	const auto internalFormat = (GLenum)translate(data.internalFormat);
 	const auto pixelDataType = (GLenum)translate(data.pixelDataType);

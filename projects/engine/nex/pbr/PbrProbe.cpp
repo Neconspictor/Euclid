@@ -230,14 +230,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		{
 		}
 
-		TextureData data = BRDF_DATA;
-
-		data.minLOD = 0;
-		data.maxLOD = readImage.mipmapCount - 1;
-		data.lodBaseLevel = 0;
-		data.lodMaxLevel = readImage.mipmapCount - 1;
-
-		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data));
+		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, BRDF_DATA));
 	}
 	else
 	{
@@ -483,10 +476,6 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 		}
 
 		TextureData data = SOURCE_DATA;
-		data.minLOD = 0;
-		data.maxLOD = readImage.mipmapCount - 1;
-		data.lodBaseLevel = 0;
-		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		environmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
@@ -525,12 +514,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 
 
 		TextureData data = PREFILTERED_DATA;
-
 		data.generateMipMaps = false; // We set the mipmaps manually from store
-		data.minLOD = 0;
-		data.maxLOD = readImage.mipmapCount - 1;
-		data.lodBaseLevel = 0;
-		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
@@ -567,11 +551,6 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 
 
 		TextureData data = IRRADIANCE_DATA;
-
-		data.minLOD = 0;
-		data.maxLOD = readImage.mipmapCount - 1;
-		data.lodBaseLevel = 0;
-		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
