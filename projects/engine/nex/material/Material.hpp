@@ -7,6 +7,7 @@
 namespace nex
 {
 	class Technique;
+	class PbrTechnique;
 	class TechniqueSelector;
 	class Shader;
 	class Texture;
@@ -27,56 +28,13 @@ namespace nex
 		virtual ~Material();
 
 		RenderState& getRenderState();
-
 		Technique* getTechnique();
-
-		void clear();
-
-		void set(UniformLocation loc, float value);
-		void set(UniformLocation loc, int value);
-		void set(UniformLocation loc, const glm::mat2& value);
-		void set(UniformLocation loc, const glm::mat3& value);
-		void set(UniformLocation loc, const glm::mat4& value);
-		void set(UniformLocation loc, unsigned value);
-		void set(UniformLocation loc, const glm::uvec2& value);
-		void set(UniformLocation loc, const glm::uvec3& value);
-		void set(UniformLocation loc, const glm::uvec4& value);
-		void set(UniformLocation loc, const glm::vec2& value);
-		void set(UniformLocation loc, const glm::vec3& value);
-		void set(UniformLocation loc, const glm::vec4& value);
-		void set(unsigned bindingSlot, const Texture* texture, const Sampler* sampler);
-
 
 		void setTechnique(Technique* technique);
 
-		/**
-		 * Transfers the set uniforms from RAM to the GPU for the shader program of this material.
-		 */
-		void upload(Shader* shader) const;
-
-
-
+		virtual void upload();
 
 	protected:
-		template<typename T>
-		using Map = std::unordered_map<UniformLocation, T>;
-
-		using MapTexture = std::unordered_map<int, std::pair<const Texture*, const Sampler*>> ;
-
-		MapTexture mTextures;
-		Map<float> mFloats;
-		Map<int> mInts;
-		Map<glm::mat2> mMat2s;
-		Map<glm::mat3> mMat3s;
-		Map<glm::mat4> mMat4s;
-		Map<unsigned> mUints;
-		Map<glm::uvec2> mUVec2s;
-		Map<glm::uvec3> mUVec3s;
-		Map<glm::uvec4> mUVec4s;
-		Map<glm::vec2> mVec2s;
-		Map<glm::vec3> mVec3s;
-		Map<glm::vec4> mVec4s;
-
 		Technique* mTechnique;
 		RenderState mRenderState;
 	};
@@ -96,9 +54,9 @@ namespace nex
 	{
 	public:
 
-		PbrMaterial(Technique* technique);
+		PbrMaterial(PbrTechnique* technique);
 		PbrMaterial(
-			Technique* technique,
+			PbrTechnique* technique,
 			Texture* albedoMap,
 			Texture* aoMap,
 			Texture* emissionMap,
@@ -120,6 +78,16 @@ namespace nex
 		void setMetallicMap(Texture* metallicMap);
 		void setNormalMap(Texture* normalMap);
 		void setRoughnessMap(Texture* roughnessMap);
+
+		void upload() override;
+
+	private:
+		Texture* mAlbedoMap;
+		Texture* mAoMap;
+		Texture* mEmissionMap;
+		Texture* mMetallicMap;
+		Texture* mNormalMap;
+		Texture* mRoughnessMap;
 	};
 
 	struct MaterialStore

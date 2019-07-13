@@ -19,7 +19,6 @@
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/resource/Resource.hpp>
-#include <nex/texture/Sampler.hpp>
 
 using namespace glm;
 using namespace nex;
@@ -32,7 +31,6 @@ std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
 
 std::unique_ptr<nex::PbrProbeFactory> nex::PbrProbeFactory::mInstance;
 
-
 void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
 {
 	mInstance = std::unique_ptr<nex::PbrProbeFactory>(new PbrProbeFactory(probeCompiledDirectory, std::move(probeFileExtension)));
@@ -44,7 +42,6 @@ public:
 	class ProbePass : public TransformPass
 	{
 	public:
-		static constexpr unsigned IRRADIANCE_MAP_BINDING_POINT = 0;
 
 		ProbePass() : TransformPass(Shader::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
 		{
@@ -56,6 +53,13 @@ public:
 			//desc.maxLOD = 7;
 			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
 			mPrefilterSampler.setState(desc);
+		}
+
+		void setIrradianceMap(CubeMap* map) {
+			mShader->setTexture(map, &mSampler, 0);
+		}
+		void setPrefilteredMap(CubeMap* map) {
+			mShader->setTexture(map, &mPrefilterSampler, 1);
 		}
 
 		Uniform mIrradianceMap;
@@ -75,28 +79,35 @@ public:
 
 class nex::PbrProbe::ProbeMaterial : public nex::Material {
 public:
-	ProbeMaterial(ProbeTechnique* technique) : Material(technique),  mProbeTechnique(technique)
+	ProbeMaterial(ProbeTechnique* technique) : Material(technique), mProbeTechnique(technique)
 	{
 		assert(technique != nullptr);
 	}
 
 	void setIrradianceMap(CubeMap* map)
 	{
-		set(mProbeTechnique->mProbePass.mIrradianceMap.location, map, &mProbeTechnique->mProbePass.mSampler);
+		irradianceMap = map;
 	}
 
 	void setPrefilterMap(CubeMap* map)
 	{
-		set(mProbeTechnique->mProbePass.mPrefilterMap.location, map, &mProbeTechnique->mProbePass.mPrefilterSampler);
+		prefilteredMap = map;
+	}
+
+	void upload() override {
+		mProbeTechnique->mProbePass.setIrradianceMap(irradianceMap);
+		mProbeTechnique->mProbePass.setPrefilteredMap(prefilteredMap);
 	}
 
 	ProbeTechnique* mProbeTechnique;
+	CubeMap* irradianceMap;
+	CubeMap* prefilteredMap;
 };
 
 
 PbrProbeFactory::PbrProbeFactory(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
 {
-	std::vector<std::filesystem::path> includes = {probeCompiledDirectory};
+	std::vector<std::filesystem::path> includes = { probeCompiledDirectory };
 	mFileSystem = std::make_unique<FileSystem>(std::move(includes), probeCompiledDirectory, probeFileExtension);
 	PbrProbe::initGlobals(mFileSystem->getFirstIncludeDirectory());
 }
@@ -111,12 +122,17 @@ std::unique_ptr<PbrProbe> PbrProbeFactory::create(Texture* backgroundHDR, unsign
 	auto probe = std::make_unique<PbrProbe>();
 	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]()
 	{
-		pointer->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
 		RenderBackend::get()->flushPendingCommands();
+		pointer->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
+		//RenderBackend::get()->flushPendingCommands();
 		return pointer;
 	});
 
+	//probe->init(backgroundHDR, probeID, mFileSystem->getFirstIncludeDirectory());
+	//RenderBackend::get()->flushPendingCommands();
+
 	probe->setIsLoadedStatus(std::move(future));
+	//RenderBackend::get()->flushPendingCommands();
 
 	return probe;
 }
@@ -132,9 +148,7 @@ PbrProbe::PbrProbe() :
 {
 }
 
-PbrProbe::~PbrProbe() {
-	deactivateHandles();
-}
+PbrProbe::~PbrProbe() = default;
 
 void nex::PbrProbe::createHandles()
 {
@@ -161,9 +175,6 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 
 	mTechnique = std::make_unique<ProbeTechnique>();
 	mMesh = std::make_unique<SphereMesh>(16, 16);
-
-	//mConvolutionPass = std::make_unique<PbrConvolutionPass>();
-	//mPrefilterPass = std::make_unique<PbrPrefilterPass>();
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
@@ -204,7 +215,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		false };
 
 		data.minLOD = 0;
-		data.maxLOD = readImage.mipmapCount-1;
+		data.maxLOD = readImage.mipmapCount - 1;
 		data.lodBaseLevel = 0;
 		data.lodMaxLevel = readImage.mipmapCount - 1;
 
@@ -218,16 +229,16 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
 
-	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
-
-
 	mSamplerIrradiance = std::make_unique<Sampler>();
-	
+
 	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
 	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
 	mSamplerPrefiltered = std::make_unique<Sampler>(desc);
+
+	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
+
 }
 
 Mesh* PbrProbe::getSphere()
@@ -282,8 +293,8 @@ StoreImage PbrProbe::readBrdfLookupPixelData()
 
 	// read the data back from the gpu
 	mBrdfLookupTexture->readback(
-		0, ColorSpace::RG, 
-		PixelDataType::FLOAT, 
+		0, ColorSpace::RG,
+		PixelDataType::FLOAT,
 		data.pixels.getPixels(),
 		bufSize);
 
@@ -310,7 +321,7 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 		pixels.data(),
 		pixels.size());
 
-	
+
 
 	for (unsigned i = 0; i < store.images.size(); ++i)
 	{
@@ -356,16 +367,16 @@ StoreImage PbrProbe::readConvolutedEnvMapPixelData()
 
 		for (unsigned side = 0; side < store.images.size(); ++side)
 		{
-				GenericImage& data = store.images[side][level];
-				data.width = width;
-				data.height = height;
-				data.channels = components;
-				data.format = format;
-				data.pixelSize = pixelDataSize;
-				auto bufSize = sideSlice;
-				data.pixels = std::vector<char>(bufSize);
+			GenericImage& data = store.images[side][level];
+			data.width = width;
+			data.height = height;
+			data.channels = components;
+			data.format = format;
+			data.pixelSize = pixelDataSize;
+			auto bufSize = sideSlice;
+			data.pixels = std::vector<char>(bufSize);
 
-				memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
+			memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
 		}
 	}
 
@@ -463,8 +474,8 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 		CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
 	};
 
-	
-	
+
+
 
 
 	/*TextureGL* gl = (TextureGL*)cubeRenderTarget->getTexture()->getImpl();
@@ -505,7 +516,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
-	
+
 	// uses RGB and 32bit per component (floats)
 
 	const TextureData& data = {
@@ -571,13 +582,14 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 		true
 	};
 
-	thread_local auto* renderBackend = RenderBackend::get();
+	auto* renderBackend = RenderBackend::get();
 	auto skyBox = createSkyBox();
 
 
 	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(128, 128, textureData);
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+
 
 	auto mPrefilterPass(std::make_unique<PbrPrefilterPass>());
 	mPrefilterPass->bind();
@@ -623,7 +635,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source)
 
 
 	//CubeMap* result = (CubeMap*)prefilterRenderTarget->setRenderResult(nullptr);
-	auto result =  std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
+	auto result = std::dynamic_pointer_cast<CubeMap>(prefilterRenderTarget->getColorAttachments()[0].texture);
 	//result->generateMipMaps();
 
 	return result;
@@ -652,15 +664,15 @@ std::unique_ptr<StaticMeshContainer> nex::PbrProbe::createSkyBox()
 std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecompute)
 {
 	TextureData data = {
-		TextureFilter::Linear, 
-		TextureFilter::Linear, 
-		TextureUVTechnique::ClampToEdge, 
+		TextureFilter::Linear,
+		TextureFilter::Linear,
 		TextureUVTechnique::ClampToEdge,
 		TextureUVTechnique::ClampToEdge,
-		ColorSpace::RG, 
-		PixelDataType::FLOAT, 
+		TextureUVTechnique::ClampToEdge,
+		ColorSpace::RG,
+		PixelDataType::FLOAT,
 		InternFormat::RG32F,
-		false};
+		false };
 
 	thread_local auto* renderBackend = RenderBackend::get();
 

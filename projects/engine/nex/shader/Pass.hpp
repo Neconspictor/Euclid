@@ -42,6 +42,7 @@ namespace nex
 		void unbind();
 
 		virtual void updateConstants(Camera* camera);
+		virtual void updateMaterial(Material* material);
 
 	protected:
 
@@ -72,7 +73,7 @@ namespace nex
 		static const unsigned TRANSFORM_BUFFER_BINDING_POINT = 0;
 
 		TransformPass(std::unique_ptr<Shader> program = nullptr, unsigned transformBindingPoint = 0);
-		
+
 		virtual ~TransformPass();
 		TransformPass(const TransformPass&) = delete;
 		TransformPass(TransformPass&&) = default;
@@ -102,7 +103,7 @@ namespace nex
 		Transforms mTransforms;
 		glm::mat4 mPrevModel;
 		glm::mat4 mPrevView;
-		
+
 	};
 
 
@@ -150,10 +151,10 @@ namespace nex
 		 * Notice: Has to be implemented by the render backend implementation!
 		 * Notice: The shader has to be bound (with bind()) before this function is called!
 		 * Otherwise the behaviour is undefined!
-		 * 
-		 * @param workGroupsX: The number of work groups to be launched in the X dimension. 
-		 * @param workGroupsY: The number of work groups to be launched in the Y dimension. 
-		 * @param workGroupsZ: The number of work groups to be launched in the Z dimension. 
+		 *
+		 * @param workGroupsX: The number of work groups to be launched in the X dimension.
+		 * @param workGroupsY: The number of work groups to be launched in the Y dimension.
+		 * @param workGroupsZ: The number of work groups to be launched in the Z dimension.
 		 */
 		void dispatch(unsigned workGroupsX, unsigned workGroupsY, unsigned workGroupsZ);
 	};

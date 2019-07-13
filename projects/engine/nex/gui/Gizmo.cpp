@@ -21,7 +21,8 @@ public:
 	GizmoPass() : TransformPass(Shader::create("gui/gizmo/gizmo_vs.glsl", "gui/gizmo/gizmo_fs.glsl"))
 	{
 		bind();
-		mSelectedAxis = {mShader->getUniformLocation("selectedAxis"), UniformType::UINT};
+		mSelectedAxis = { mShader->getUniformLocation("selectedAxis"), UniformType::UINT };
+		mAxisColor = { mShader->getUniformLocation("axisColor"), UniformType::VEC3 };
 
 		// Default state: No axis is selected
 		setSelectedAxis(Axis::INVALID);
@@ -32,8 +33,13 @@ public:
 		mShader->setUInt(mSelectedAxis.location, (unsigned)axis);
 	}
 
+	void setAxisColor(const glm::vec3& color) {
+		mShader->setVec3(mAxisColor.location, color);
+	}
+
 private:
 	Uniform mSelectedAxis;
+	Uniform mAxisColor;
 };
 
 float nex::gui::Gizmo::Active::calcRange(const Ray& ray, const glm::vec3& position, const Camera& camera)
@@ -43,7 +49,7 @@ float nex::gui::Gizmo::Active::calcRange(const Ray& ray, const glm::vec3& positi
 }
 
 nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
-							mActivationState({}), mMode(mode), mVisible(false)
+mActivationState({}), mMode(mode), mVisible(false)
 {
 	mGizmoPass = std::make_unique<GizmoPass>();
 	mGizmoTechnique = std::make_unique<Technique>(mGizmoPass.get());
@@ -58,7 +64,7 @@ nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>(
 	mScaleMesh = loadScaleGizmo();
 	mScaleMesh->finalize();
 	initSceneNode(mScaleGizmoNode, mScaleMesh, "Scale Gizmo");
-	
+
 	mTranslationMesh = loadTranslationGizmo();
 	mTranslationMesh->finalize();
 	initSceneNode(mTranslationGizmoNode, mTranslationMesh, "Translation Gizmo");
@@ -91,7 +97,7 @@ void nex::gui::Gizmo::update(const nex::Camera& camera, Vob* vob)
 		mActiveGizmoVob->setScale(glm::vec3(w) / 8.0f);
 	}
 
-	
+
 
 	mActiveGizmoVob->updateTrafo(true);
 
@@ -143,7 +149,8 @@ void nex::gui::Gizmo::transform(const Ray& screenRayWorld, const Camera& camera,
 	if (mMode == Mode::ROTATE)
 	{
 		transformRotate(screenRayWorld, camera);
-	} else
+	}
+	else
 	{
 		const auto& position = mActivationState.originalPosition;
 
@@ -193,7 +200,7 @@ void nex::gui::Gizmo::setMode(Mode mode)
 		mScene->removeActiveVobUnsafe(mActiveGizmoVob);
 	}
 
-	switch(mode)
+	switch (mode)
 	{
 	case Mode::ROTATE:
 		mActiveGizmoVob = mRotationGizmoNode;
@@ -309,7 +316,7 @@ void nex::gui::Gizmo::initSceneNode(Vob*& vob, StaticMeshContainer* container, c
 	vob = mNodeGeneratorScene->createVobUnsafe(node);
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
-	
+
 }
 
 bool nex::gui::Gizmo::isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive)
@@ -355,7 +362,7 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 {
 	const auto& origin = mActiveGizmoVob->getPosition();
 
-	constexpr glm::vec3 xAxis(1,0,0);
+	constexpr glm::vec3 xAxis(1, 0, 0);
 	constexpr glm::vec3 yAxis(0, 1, 0);
 	const glm::vec3 zAxis(0, 0, getZValue(1.0f));
 
@@ -372,24 +379,27 @@ bool nex::gui::Gizmo::isHoveringRotate(const Ray& screenRayWorld, const Camera& 
 		axis = Axis::X;
 		std::cout << "Is in range for x rotation!" << std::endl;
 
-	} else if (hitsTorus(torus, yAxis, origin, screenRayWorld, intersection))
+	}
+	else if (hitsTorus(torus, yAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Y;
 		std::cout << "Is in range for y rotation!" << std::endl;
 
-	} else if (hitsTorus(torus, zAxis, origin, screenRayWorld, intersection))
+	}
+	else if (hitsTorus(torus, zAxis, origin, screenRayWorld, intersection))
 	{
 		axis = Axis::Z;
 		std::cout << "Is in range for z rotation!" << std::endl;
 
-	} else
+	}
+	else
 	{
 		selected = false;
 	}
 
 	const float closestDistanceMultiplier = screenRayWorld.calcClosestDistance(origin).multiplier;
 	const auto closestPoint = screenRayWorld.getPoint(closestDistanceMultiplier);
-	Circle3D circle(origin, {1,0,0}, mActiveGizmoVob->getScale().x);
+	Circle3D circle(origin, { 1,0,0 }, mActiveGizmoVob->getScale().x);
 
 	glm::vec3 projectedPoint;
 	if (!circle.project(closestPoint, projectedPoint)) //TODO
@@ -424,7 +434,7 @@ bool nex::gui::Gizmo::checkNearPlaneCircle(const Plane::RayIntersection& testRes
 
 	// ray is parallel to plane, this means min radius doesn't matter
 	// We just check the distance from the circle origin to the ray
-	const auto pointDistance = ray.calcClosestDistance({{circleOrigin}, {0,1,0}});
+	const auto pointDistance = ray.calcClosestDistance({ {circleOrigin}, {0,1,0} });
 	//const auto pointDistance = ray.calcClosestDistance(circleOrigin);
 	multiplierOut = pointDistance.multiplier;
 	const auto radius = mActiveGizmoVob->getScale().x;
@@ -438,7 +448,7 @@ bool nex::gui::Gizmo::hitsTorus(const Torus& torus, const glm::vec3& orientation
 	// transform the ray to torus space. 
 	// Note that the torus has its origin at (0,0,0) and its up-vector is (0,1,0) 
 	const auto rotation = nex::rotate(glm::vec3(0.0f, 1.0f, 0.0f), orientation);
-	const auto newOrigin =  rotation * (ray.getOrigin() - origin);
+	const auto newOrigin = rotation * (ray.getOrigin() - origin);
 	const auto newDir = rotation * ray.getDir();
 	const Ray transformedRay(newOrigin, newDir);
 
@@ -447,17 +457,17 @@ bool nex::gui::Gizmo::hitsTorus(const Torus& torus, const glm::vec3& orientation
 	return intersectionTest.intersectionCount != 0;
 }
 
-void nex::gui::Gizmo::fillActivationState(Active& active, 
-	bool isActive, 
-	Axis axis, 
-	const glm::vec3& position, 
-	const Ray& ray, 
+void nex::gui::Gizmo::fillActivationState(Active& active,
+	bool isActive,
+	Axis axis,
+	const glm::vec3& position,
+	const Ray& ray,
 	const Camera& camera) const
 {
 	active.isActive = isActive;
 
 	if (!active.isActive) {
-		
+
 		active.axis = Axis::INVALID;
 		active.originalPosition = glm::vec3(0.0f);
 		return;
@@ -468,7 +478,7 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 	if (active.axis == Axis::X)
 	{
 		active.axisVec = { 1.0f, 0.0f, 0.0f };
-		active.orthoAxisVec = {0,1,0};
+		active.orthoAxisVec = { 0,1,0 };
 	}
 	if (active.axis == Axis::Y)
 	{
@@ -502,6 +512,19 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 	}
 }
 
+class nex::gui::Gizmo::Material : public nex::Material {
+public:
+	Material(nex::Technique* technique) : nex::Material(technique) {}
+
+	void upload() override {
+		auto* pass = (nex::gui::Gizmo::GizmoPass*)mTechnique->getSelected();
+		pass->setAxisColor(axisColor);
+	}
+
+	glm::vec3 axisColor;
+};
+
+
 class nex::gui::Gizmo::MaterialLoader : public nex::DefaultMaterialLoader
 {
 public:
@@ -510,7 +533,7 @@ public:
 	virtual void loadShadingMaterial(const std::filesystem::path& meshPathAbsolute, const aiScene* scene, nex::MaterialStore& store, unsigned materialIndex) const override
 	{
 		aiColor3D color;
-		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color) )
+		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color))
 		{
 			store.diffuseColor = glm::vec4(color.r, color.g, color.b, 1.0f);
 		}
@@ -518,7 +541,7 @@ public:
 
 	std::unique_ptr<nex::Material> createMaterial(const nex::MaterialStore& store) const override
 	{
-		auto material = std::make_unique<nex::Material>(mTechnique);
+		auto material = std::make_unique<nex::gui::Gizmo::Material>(mTechnique);
 
 		auto& state = material->getRenderState();
 		state.doCullFaces = false;
@@ -531,7 +554,8 @@ public:
 		state.isTool = true;
 
 		auto* pass = mTechnique->getActiveSubMeshPass();
-		material->set(pass->getShader()->getUniformLocation("axisColor"), glm::vec3(store.diffuseColor));
+
+		material->axisColor = glm::vec3(store.diffuseColor);
 
 		return material;
 	}

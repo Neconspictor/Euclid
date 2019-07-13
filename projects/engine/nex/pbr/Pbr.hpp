@@ -14,6 +14,7 @@ namespace nex
 	class PbrProbe;
 	class PbrDeferred;
 	class PbrForward;
+	class PbrGeometryPass;
 
 	class Pbr {
 
@@ -35,7 +36,7 @@ namespace nex
 		void setAmbientLight(AmbientLight * light);
 
 		void setCascadedShadow(CascadedShadow* shadow);
-		
+
 		void setDirLight(DirectionalLight * light);
 
 		virtual void setProbe(PbrProbe* probe);
@@ -59,6 +60,9 @@ namespace nex
 		PbrDeferred* getDeferred();
 		PbrForward* getForward();
 		Pbr* getActive();
+
+		PbrGeometryPass* getActiveGeometryPass();
+
 		void setProbe(PbrProbe* probe);
 	private:
 		std::unique_ptr<PbrDeferred> mDeferred;

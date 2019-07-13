@@ -87,7 +87,7 @@ nex::RenderCommandQueue* nex::PBR_Deferred_Renderer::getCommandQueue()
 
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
-	LOG(m_logger, LogLevel::Info)<< "PBR_Deferred_Renderer::init called!";
+	LOG(m_logger, LogLevel::Info) << "PBR_Deferred_Renderer::init called!";
 
 
 	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
@@ -132,7 +132,7 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	fp->setPitch(45.052f);
 	fp->recalculateLookVector();
 	fp->calcView();*/
-	
+
 
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
@@ -254,6 +254,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, Direct
 		mCascadedShadow->useTightNearFarPlane(false);
 		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
 		TransformPass* depthPass = mCascadedShadow->getDepthPass();
+		depthPass->bind();
 		depthPass->updateConstants(camera);
 
 		const auto& commands = mCommandQueue.getShadowCommands();
@@ -300,7 +301,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	RenderState state;
 	//state.doCullFaces = false;
 	//state.fillMode = FillMode::LINE;
-	
+
 	mPbrTechnique->useDeferred();
 	for (nex::Technique* technique : mCommandQueue.getTechniques())
 	{
@@ -339,7 +340,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	deferred->drawLighting(mPbrMrt.get(), camera);
 
 	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
-	
+
 	depthTest->enableDepthTest(true);
 	depthTest->enableDepthBufferWriting(true);
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
@@ -399,7 +400,7 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	auto* forward = mPbrTechnique->getForward();
 	forward->setDirLight(sun);
 	forward->configurePass(camera);
-	
+
 	//mPbrForward->configureSubMeshPass(camera);
 	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
 
@@ -409,7 +410,7 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
-	
+
 	StaticMeshDrawer::draw(mCommandQueue.getDeferrablePbrCommands()); //TODO
 	StaticMeshDrawer::draw(mCommandQueue.getForwardCommands());
 }

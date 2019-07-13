@@ -58,14 +58,13 @@ void nex::Pbr::setDirLight(DirectionalLight* light)
 void nex::Pbr::setProbe(PbrProbe* probe)
 {
 	mProbe = probe;
-	
 }
 
 nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
-	PbrProbe* probe) : 
-Technique(nullptr), 
-mDeferred(std::make_unique<PbrDeferred>(ambientLight, cascadeShadow, dirLight, probe)),
-mForward(std::make_unique<PbrForward>(ambientLight, cascadeShadow, dirLight, probe))
+	PbrProbe* probe) :
+	Technique(nullptr),
+	mDeferred(std::make_unique<PbrDeferred>(ambientLight, cascadeShadow, dirLight, probe)),
+	mForward(std::make_unique<PbrForward>(ambientLight, cascadeShadow, dirLight, probe))
 {
 	useDeferred();
 }
@@ -104,6 +103,11 @@ nex::Pbr* nex::PbrTechnique::getActive()
 {
 	if (mDeferredUsed) return mDeferred.get();
 	return mForward.get();
+}
+
+nex::PbrGeometryPass * nex::PbrTechnique::getActiveGeometryPass()
+{
+	return (nex::PbrGeometryPass *)getSelected();
 }
 
 nex::Pbr_ConfigurationView::Pbr_ConfigurationView(PbrTechnique* pbr) : mPbr(pbr)

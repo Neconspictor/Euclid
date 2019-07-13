@@ -12,7 +12,7 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 		auto* currentPass = pass;
 		if (!currentPass)
 			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
-		
+
 		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentPass->uploadTransformMatrices();
 		StaticMeshDrawer::draw(command.mesh, command.material, currentPass, overwriteState);
@@ -101,7 +101,8 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, con
 {
 	if (material != nullptr)
 	{
-		material->upload(pass->getShader());
+		//material->getTechnique()->getActiveSubMeshPass()->bind();
+		material->upload();
 	}
 
 	const VertexArray* vertexArray = mesh->getVertexArray();
@@ -123,6 +124,7 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, con
 
 void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState)
 {
+	pass->bind();
 	auto& meshes = container->getMeshes();
 	auto& mappings = container->getMappings();
 
@@ -134,6 +136,7 @@ void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, con
 
 void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pass* pass)
 {
+	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
 	auto* triangle = StaticMeshManager::get()->getNDCFullscreenTriangle();
 	triangle->bind();
@@ -142,6 +145,7 @@ void nex::StaticMeshDrawer::drawFullscreenTriangle(const RenderState& state, Pas
 
 void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* pass)
 {
+	pass->bind();
 	thread_local auto* backend = RenderBackend::get();
 	auto* quad = StaticMeshManager::get()->getNDCFullscreenPlane();
 	quad->bind();
@@ -149,7 +153,8 @@ void nex::StaticMeshDrawer::drawFullscreenQuad(const RenderState& state, Pass* p
 }
 
 void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, int lineStrength)
-{	
+{
+	shader->bind();
 	thread_local auto* backend = RenderBackend::get();
 	backend->setLineThickness(static_cast<float>(lineStrength));
 	backend->getRasterizer()->setFillMode(FillMode::LINE);

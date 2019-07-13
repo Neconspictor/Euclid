@@ -56,7 +56,7 @@ namespace nex::gui
 			SCALE,
 			TRANSLATE,
 		};
-		
+
 		Gizmo(Mode mode = Mode::TRANSLATE);
 		virtual ~Gizmo();
 
@@ -76,11 +76,11 @@ namespace nex::gui
 		const Active& getState()const;
 
 		/**
-		 * Configures internal shaders so that the specified axis will be highlighted 
+		 * Configures internal shaders so that the specified axis will be highlighted
 		 * on the next render call.
 		 * Note: The current bound shader might change!
-		 * 
-		 * @param axis : The axis that should be highlighted. 
+		 *
+		 * @param axis : The axis that should be highlighted.
 		 *				 If axis is Axis::INVALID no axis will be highlighted (default state).
 		 */
 		void highlightAxis(Axis axis);
@@ -111,6 +111,7 @@ namespace nex::gui
 		};
 
 		class GizmoPass;
+		class Material;
 		class MaterialLoader;
 
 		int compare(const Data& first, const Data& second) const;
@@ -123,12 +124,12 @@ namespace nex::gui
 		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
 
 		/**
-		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.					  
+		 * @param multiplierOut : The multiplier of the ray plane intersection test, if the ray intersects the min-max circle geometry.
 		 */
 		bool checkNearPlaneCircle(const Plane::RayIntersection& testResult,
-								const Ray& ray,
-								const glm::vec3& circleOrigin, 
-								float minRadius, float maxRadius, float& multiplierOut) const;
+			const Ray& ray,
+			const glm::vec3& circleOrigin,
+			float minRadius, float maxRadius, float& multiplierOut) const;
 
 		static bool hitsTorus(const Torus& torus, const glm::vec3& orientation, const glm::vec3& origin, const Ray& ray,
 			nex::Torus::RayIntersection& intersectionTest);
@@ -144,7 +145,7 @@ namespace nex::gui
 		StaticMeshContainer* mRotationMesh;
 		StaticMeshContainer* mScaleMesh;
 		StaticMeshContainer* mTranslationMesh;
-		
+
 		std::unique_ptr<GizmoPass> mGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;
 		std::unique_ptr<Scene> mNodeGeneratorScene;

@@ -26,7 +26,7 @@ namespace nex
 		Shader* mShader;
 	};
 
-	class PbrCommonGeometryPass : public PbrBaseCommon
+	class PbrGeometryData : public PbrBaseCommon
 	{
 	public:
 
@@ -36,7 +36,14 @@ namespace nex
 		static const unsigned NORMAL_BINDING_POINT = 3;
 		static const unsigned ROUGHNESS_BINDING_POINT = 4;
 
-		PbrCommonGeometryPass(Shader* shader);
+		PbrGeometryData(Shader* shader);
+
+
+		void setAlbedoMap(const Texture* albedo);
+		void setAoMap(const Texture* ao);
+		void setMetalMap(const Texture* metal);
+		void setNormalMap(const Texture* normal);
+		void setRoughnessMap(const Texture* roughness);
 
 		void updateConstants(Camera* camera);
 
@@ -56,10 +63,10 @@ namespace nex
 		Sampler* mDefaultImageSampler;
 	};
 
-	class PbrCommonLightingPass : public PbrBaseCommon
+	class PbrLightingData : public PbrBaseCommon
 	{
 	public:
-		PbrCommonLightingPass(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 2);
+		PbrLightingData(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
 
 		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
@@ -74,8 +81,8 @@ namespace nex
 	private:
 
 		void setBrdfLookupTexture(const Texture* brdfLUT);
-		void setIrradianceTexture(const Texture* texture);
-		void setPrefilteredTexture(const Texture* texture);
+		void setIrradianceMap(const Texture* irradianceMap);
+		void setPrefilterMap(const Texture* prefilterMap);
 
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
@@ -91,11 +98,9 @@ namespace nex
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
 		unsigned mCsmCascadeBindingPoint;
-		unsigned mPbrProbesBindingPoint;
 
 		//ibl
 		UniformTex mBrdfLUT;
-		UniformBuffer mProbesBuffer;
 		UniformTex mIrradianceMap;
 		UniformTex mPrefilterMap;
 
@@ -114,7 +119,6 @@ namespace nex
 
 		Uniform mNearFarPlane;
 		Sampler mSampler;
-		Sampler mSamplerPrefilterMap;
 		Sampler mCascadedShadowMapSampler;
 
 		PbrProbe* mProbe;
@@ -124,7 +128,18 @@ namespace nex
 		DirectionalLight* mLight;
 	};
 
-	class PbrForwardPass : public TransformPass
+	class PbrGeometryPass : public TransformPass {
+	public:
+		PbrGeometryPass(std::unique_ptr<Shader> program = nullptr, unsigned transformBindingPoint = 0);
+		PbrGeometryData* getShaderInterface();
+
+	protected:
+		PbrGeometryData mGeometryData;
+	};
+
+
+
+	class PbrForwardPass : public PbrGeometryPass
 	{
 	public:
 		PbrForwardPass(CascadedShadow* cascadedShadow);
@@ -136,22 +151,18 @@ namespace nex
 		void setDirLight(DirectionalLight* light);
 
 	private:
-		PbrCommonGeometryPass mGeometryPass;
-		PbrCommonLightingPass mLightingPass;
+		PbrLightingData mLightingPass;
 
 		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
 
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
-	class PbrDeferredGeometryPass : public TransformPass {
+	class PbrDeferredGeometryPass : public PbrGeometryPass {
 	public:
 		PbrDeferredGeometryPass();
 
 		void updateConstants(Camera* camera) override;
-
-	private:
-		PbrCommonGeometryPass mGeometryPass;
 	};
 
 	class PbrDeferredLightingPass : public Pass {
@@ -180,7 +191,7 @@ namespace nex
 
 		Uniform mInverseProjFromGPass;
 
-		PbrCommonLightingPass mLightingPass;
+		PbrLightingData mLightingPass;
 	};
 
 	class PbrConvolutionPass : public Pass

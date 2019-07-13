@@ -11,6 +11,10 @@ void nex::Pass::updateConstants(Camera* camera)
 {
 }
 
+void nex::Pass::updateMaterial(Material * material)
+{
+}
+
 void nex::Pass::bind()
 {
 	mShader->bind();
@@ -54,7 +58,7 @@ void nex::TransformPass::setModelMatrix(const glm::mat4& model, const glm::mat4&
 {
 	mTransforms.model = model;
 	mPrevModel = prevModel;
-	
+
 }
 
 void nex::TransformPass::uploadTransformMatrices()
