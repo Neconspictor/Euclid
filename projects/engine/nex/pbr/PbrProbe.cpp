@@ -171,7 +171,6 @@ void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, 
 }
 
 PbrProbe::PbrProbe() :
-	environmentMap(nullptr),
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
 {
 }
@@ -275,11 +274,6 @@ CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
 	return convolutedEnvironmentMap.get();
 }
 
-CubeMap* PbrProbe::getEnvironmentMap() const
-{
-	return  environmentMap.get();
-}
-
 const nex::PbrProbe::Handles * nex::PbrProbe::getHandles() const
 {
 	return &mHandles;
@@ -320,7 +314,7 @@ StoreImage PbrProbe::readBrdfLookupPixelData()
 	return store;
 }
 
-StoreImage PbrProbe::readBackgroundPixelData() const
+StoreImage PbrProbe::readSourcePixelData(CubeMap* source) const
 {
 	StoreImage store;
 	StoreImage::create(&store, 6, 1, TextureTarget::CUBE_MAP); // 6 sides, no mipmaps (only base level)
@@ -329,11 +323,11 @@ StoreImage PbrProbe::readBackgroundPixelData() const
 	const auto components = getComponents(SOURCE_DATA.colorspace);
 	const auto format = (unsigned)SOURCE_DATA.colorspace;
 	const auto pixelDataSize = sizeof(float) * components; // RGB32F
-	const auto width = getEnvironmentMap()->getWidth();
-	const auto height = getEnvironmentMap()->getHeight();
+	const auto width = source->getWidth();
+	const auto height = source->getHeight();
 	const auto sideSlice = width * height * pixelDataSize;
 	std::vector<char> pixels(sideSlice * 6);
-	environmentMap->readback(
+	source->readback(
 		0, // base level
 		SOURCE_DATA.colorspace,
 		SOURCE_DATA.pixelDataType,
@@ -540,14 +534,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 	mPrefilterPass->setMapToPrefilter(source);
 
 	//view matrices;
-	const mat4 views[] = {
-		CubeMap::getViewLookAtMatrix(CubeMapSide::POSITIVE_X), //right; sign of up vector is not important
-		CubeMap::getViewLookAtMatrix(CubeMapSide::NEGATIVE_X), //left
-		CubeMap::getViewLookAtMatrix(CubeMapSide::POSITIVE_Y), //top
-		CubeMap::getViewLookAtMatrix(CubeMapSide::NEGATIVE_Y), //bottom
-		CubeMap::getViewLookAtMatrix(CubeMapSide::POSITIVE_Z), //back
-		CubeMap::getViewLookAtMatrix(CubeMapSide::NEGATIVE_Z) //front
-	};
+	const auto& views = CubeMap::getViewLookAts();
 
 	prefilterRenderTarget->bind();
 	const auto mipMapLevelZero = min<unsigned>(prefilterRenderTarget->getWidth(), prefilterRenderTarget->getHeight());
@@ -569,7 +556,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 		//renderBackend->setScissor(0, 0, width, height);
 
 		// render to the cubemap at the specified mip level
-		for (unsigned int side = 0; side < 6; ++side) {
+		for (unsigned int side = 0; side < views.size(); ++side) {
 			mPrefilterPass->setView(views[side]);
 			prefilterRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X), mipLevel);
 			StaticMeshDrawer::draw(skyBox.get(), mPrefilterPass.get());
@@ -625,7 +612,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 	return result;
 }
 
-void PbrProbe::initBackground(Texture* backgroundHDR, const std::filesystem::path& probeRoot)
+std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -635,6 +622,7 @@ void PbrProbe::initBackground(Texture* backgroundHDR, const std::filesystem::pat
 	// if environment map has been compiled already and load it from file 
 
 	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_" + std::to_string(mStoreID) + ".probe");
+	std::shared_ptr<CubeMap> environmentMap;
 
 	if (std::filesystem::exists(environmentMapPath))
 	{
@@ -658,13 +646,15 @@ void PbrProbe::initBackground(Texture* backgroundHDR, const std::filesystem::pat
 	else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
-		const StoreImage enviromentMapImage = readBackgroundPixelData();
+		const StoreImage enviromentMapImage = readSourcePixelData(environmentMap.get());
 		std::cout << "environmentMapPath = " << environmentMapPath << std::endl;
 		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
+
+	return environmentMap;
 }
 
-void PbrProbe::initPrefiltered(Texture* backgroundHDR, unsigned prefilteredSize, const std::filesystem::path& probeRoot)
+void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -699,13 +689,13 @@ void PbrProbe::initPrefiltered(Texture* backgroundHDR, unsigned prefilteredSize,
 	}
 	else
 	{
-		prefilteredEnvMap = prefilter(getEnvironmentMap(), prefilteredSize);
+		prefilteredEnvMap = prefilter(source, prefilteredSize);
 		const StoreImage prefilteredMapImage = readPrefilteredEnvMapPixelData();
 		FileSystem::store(prefilteredMapPath, prefilteredMapImage);
 	}
 }
 
-void PbrProbe::initIrradiance(Texture* backgroundHDR, const std::filesystem::path& probeRoot)
+void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -740,7 +730,7 @@ void PbrProbe::initIrradiance(Texture* backgroundHDR, const std::filesystem::pat
 	}
 	else
 	{
-		convolutedEnvironmentMap = convolute(getEnvironmentMap());
+		convolutedEnvironmentMap = convolute(source);
 		const StoreImage convolutedMapImage = readConvolutedEnvMapPixelData();
 		FileSystem::store(convolutedMapPath, convolutedMapImage);
 	}
@@ -753,9 +743,9 @@ void PbrProbe::init(Texture* backgroundHDR,unsigned prefilteredSize, unsigned st
 
 	mStoreID = storeID;
 
-	initBackground(backgroundHDR, probeRoot);
-	initPrefiltered(backgroundHDR, prefilteredSize, probeRoot);
-	initIrradiance(backgroundHDR, probeRoot);
+	auto source = createSource(backgroundHDR, probeRoot);
+	initPrefiltered(source.get(), prefilteredSize, probeRoot);
+	initIrradiance(source.get(), probeRoot);
 
 	renderBackend->getRasterizer()->enableScissorTest(false);
 

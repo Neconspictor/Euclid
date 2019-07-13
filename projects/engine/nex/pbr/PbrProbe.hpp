@@ -57,7 +57,7 @@ namespace nex
 		static const TextureData IRRADIANCE_DATA;
 		static const TextureData PREFILTERED_DATA;
 		static const TextureData SOURCE_DATA;
-		static constexpr unsigned SOURCE_CUBE_SIZE = 2048;
+		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
 
 		PbrProbe();
 
@@ -81,8 +81,6 @@ namespace nex
 
 		CubeMap* getConvolutedEnvironmentMap() const;
 
-		CubeMap* getEnvironmentMap() const;
-
 		const Handles* getHandles() const;
 
 		Material* getMaterial();
@@ -90,7 +88,7 @@ namespace nex
 		CubeMap* getPrefilteredEnvironmentMap() const;
 
 		static Texture2D* getBrdfLookupTexture();
-		StoreImage readBackgroundPixelData() const;
+		StoreImage readSourcePixelData(CubeMap* source) const;
 
 		void init(Texture* backgroundHDR, 
 			unsigned prefilteredSize,
@@ -102,11 +100,11 @@ namespace nex
 		class ProbeTechnique;
 		class ProbeMaterial;
 
-		void initBackground(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
+		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
 
-		void initPrefiltered(Texture* backgroundHDR, unsigned prefilteredSize, const std::filesystem::path& probeRoot);
+		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot);
 
-		void initIrradiance(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
+		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
@@ -122,7 +120,6 @@ namespace nex
 
 		std::shared_ptr<CubeMap> convolutedEnvironmentMap;
 		std::shared_ptr<CubeMap> prefilteredEnvMap;
-		std::shared_ptr<CubeMap> environmentMap;
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
 		static std::unique_ptr<ProbeTechnique> mTechnique;
@@ -131,7 +128,6 @@ namespace nex
 		static std::unique_ptr<Sampler> mSamplerPrefiltered;
 
 		std::unique_ptr<ProbeMaterial> mMaterial;
-		StoreImage mReadImage;
 		Handles mHandles;
 		unsigned mStoreID;
 	};
