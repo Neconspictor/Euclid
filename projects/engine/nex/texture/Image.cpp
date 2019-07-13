@@ -5,6 +5,7 @@
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/exception/ResourceLoadException.hpp>
 #include <nex/util/StringUtils.hpp>
+#include <nex/texture/Texture.hpp>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_MSC_SECURE_CRT
@@ -280,6 +281,63 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	for (auto& vec : result->images)
 	{
 		vec.resize(result->mipmapCount);
+	}
+}
+
+StoreImage nex::StoreImage::create(CubeMap * texture, bool allMipMaps, unsigned mipmapCount)
+{
+	StoreImage store;
+
+	const auto& data = texture->getTextureData();
+	const auto& mipStart = data.lodBaseLevel;
+	const auto& mipEnd = data.lodMaxLevel;
+
+	if (allMipMaps) {
+		mipmapCount = texture->getMipMapCount(mipStart);
+	}
+
+	StoreImage::create(&store, 6, mipmapCount, TextureTarget::CUBE_MAP);
+	readback(store, texture);
+
+	return store;
+}
+
+void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture)
+{
+	const auto& data = texture->getTextureData();
+
+	for (auto level = 0; level < store.mipmapCount; ++level)
+	{
+		// readback the mipmap level of the cubemap
+		const auto components = getComponents(data.colorspace);
+		const auto format = (unsigned)data.colorspace;
+		const auto pixelDataSize = sizeof(float) * components;
+		unsigned mipMapDivisor = std::pow(2, level);
+		const auto width = texture->getWidth() / mipMapDivisor;
+		const auto height = texture->getHeight() / mipMapDivisor;
+		const auto sideSlice = width * height * pixelDataSize;
+		std::vector<char> pixels(sideSlice * 6);
+
+		texture->readback(
+			level, // mipmap level
+			data.colorspace,
+			data.pixelDataType,
+			pixels.data(),
+			pixels.size());
+
+		for (unsigned side = 0; side < store.images.size(); ++side)
+		{
+			auto& image = store.images[side][level];
+			image.width = width;
+			image.height = height;
+			image.channels = components;
+			image.format = format;
+			image.pixelSize = pixelDataSize;
+			auto bufSize = sideSlice;
+			image.pixels = std::vector<char>(bufSize);
+
+			memcpy_s(image.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
+		}
 	}
 }
 

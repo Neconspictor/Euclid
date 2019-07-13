@@ -7,6 +7,8 @@
 namespace nex
 {
 	class BinStream;
+	class CubeMap;
+	class Texture;
 
 	struct ImageResource
 	{
@@ -150,6 +152,15 @@ namespace nex
 		StoreImage& operator=(const StoreImage&) = delete;
 
 		static void create(StoreImage* result, unsigned short levels, unsigned short mipMapCountPerLevel, TextureTarget target);
+
+		/**
+		 * @param allMipMaps :  Should all mipmaps be stored?
+		 * @param mipmapCount : The number of mipmaps to be stored. Is ignored if allMipMaps is set to true.
+		 */
+		static StoreImage create(CubeMap* cubeMap, bool allMipMaps = true, unsigned mipmapCount = 1);
+
+	private:
+		static void readback(StoreImage& store, Texture* texture);
 	};
 
 	nex::BinStream& operator<<(nex::BinStream& out, const StoreImage& image);
