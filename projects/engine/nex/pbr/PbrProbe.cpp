@@ -314,133 +314,6 @@ StoreImage PbrProbe::readBrdfLookupPixelData()
 	return store;
 }
 
-StoreImage PbrProbe::readSourcePixelData(CubeMap* source) const
-{
-	StoreImage store;
-	StoreImage::create(&store, 6, 1, TextureTarget::CUBE_MAP); // 6 sides, no mipmaps (only base level)
-
-	// readback the cubemap
-	const auto components = getComponents(SOURCE_DATA.colorspace);
-	const auto format = (unsigned)SOURCE_DATA.colorspace;
-	const auto pixelDataSize = sizeof(float) * components; // RGB32F
-	const auto width = source->getWidth();
-	const auto height = source->getHeight();
-	const auto sideSlice = width * height * pixelDataSize;
-	std::vector<char> pixels(sideSlice * 6);
-	source->readback(
-		0, // base level
-		SOURCE_DATA.colorspace,
-		SOURCE_DATA.pixelDataType,
-		pixels.data(),
-		pixels.size());
-
-
-
-	for (unsigned i = 0; i < store.images.size(); ++i)
-	{
-		GenericImage& data = store.images[i][0];
-		data.width = width;
-		data.height = height;
-		data.channels = components; // RGB
-		data.format = format;
-		data.pixelSize = pixelDataSize;
-		auto bufSize = sideSlice;
-		data.pixels = std::vector<char>(bufSize);
-
-		memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + i * sideSlice, sideSlice);
-	}
-
-	return store;
-}
-
-StoreImage PbrProbe::readConvolutedEnvMapPixelData()
-{
-	StoreImage store;
-	// note, that the convoluted environment map has no generated mip maps!
-	StoreImage::create(&store, 6, 1, TextureTarget::CUBE_MAP); // 6 sides, 32/16/8/4/2/1 = 6 levels
-
-	for (auto level = 0; level < store.mipmapCount; ++level)
-	{
-		// readback the mipmap level of the cubemap
-		const auto components = getComponents(IRRADIANCE_DATA.colorspace);  // RGB
-		const auto format = (unsigned)IRRADIANCE_DATA.colorspace;
-		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
-		unsigned mipMapDivisor = std::pow(2, level);
-		const auto width = getConvolutedEnvironmentMap()->getWidth() / mipMapDivisor;
-		const auto height = getConvolutedEnvironmentMap()->getHeight() / mipMapDivisor;
-		const auto sideSlice = width * height * pixelDataSize;
-		std::vector<char> pixels(sideSlice * 6);
-
-		convolutedEnvironmentMap->readback(
-			level, // mipmap level
-			IRRADIANCE_DATA.colorspace,
-			IRRADIANCE_DATA.pixelDataType,
-			pixels.data(),
-			pixels.size());
-
-		for (unsigned side = 0; side < store.images.size(); ++side)
-		{
-			GenericImage& data = store.images[side][level];
-			data.width = width;
-			data.height = height;
-			data.channels = components;
-			data.format = format;
-			data.pixelSize = pixelDataSize;
-			auto bufSize = sideSlice;
-			data.pixels = std::vector<char>(bufSize);
-
-			memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
-		}
-	}
-
-	return store;
-}
-
-StoreImage PbrProbe::readPrefilteredEnvMapPixelData()
-{
-	StoreImage store;
-	const auto mipMapLevelZero = min<unsigned>(prefilteredEnvMap->getWidth(), prefilteredEnvMap->getHeight());
-	const auto mipMapCount = prefilteredEnvMap->getMipMapCount(mipMapLevelZero);
-
-	StoreImage::create(&store, 6, mipMapCount, TextureTarget::CUBE_MAP);
-
-	for (auto level = 0; level < store.mipmapCount; ++level)
-	{
-		// readback the mipmap level of the cubemap
-		const auto components = getComponents(PREFILTERED_DATA.colorspace);  // RGB
-		const auto format = (unsigned)PREFILTERED_DATA.colorspace;
-		const auto pixelDataSize = sizeof(float) * components; // internal format: RGB16F
-		unsigned mipMapDivisor = std::pow(2, level);
-		const auto width = getPrefilteredEnvironmentMap()->getWidth() / mipMapDivisor;
-		const auto height = getPrefilteredEnvironmentMap()->getHeight() / mipMapDivisor;
-		const auto sideSlice = width * height * pixelDataSize;
-		std::vector<char> pixels(sideSlice * 6);
-
-		prefilteredEnvMap->readback(
-			level, // mipmap level
-			PREFILTERED_DATA.colorspace,
-			PREFILTERED_DATA.pixelDataType,
-			pixels.data(),
-			pixels.size());
-
-		for (unsigned side = 0; side < store.images.size(); ++side)
-		{
-			GenericImage& data = store.images[side][level];
-			data.width = width;
-			data.height = height;
-			data.channels = components;
-			data.format = format;
-			data.pixelSize = pixelDataSize;
-			auto bufSize = sideSlice;
-			data.pixels = std::vector<char>(bufSize);
-
-			memcpy_s(data.pixels.getPixels(), bufSize, pixels.data() + side * sideSlice, sideSlice);
-		}
-	}
-
-	return store;
-}
-
 std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 {
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, SOURCE_DATA);
@@ -646,7 +519,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	else
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
-		const StoreImage enviromentMapImage = readSourcePixelData(environmentMap.get());
+		const StoreImage enviromentMapImage = StoreImage::create(environmentMap.get());
 		std::cout << "environmentMapPath = " << environmentMapPath << std::endl;
 		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
@@ -690,7 +563,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 	else
 	{
 		prefilteredEnvMap = prefilter(source, prefilteredSize);
-		const StoreImage prefilteredMapImage = readPrefilteredEnvMapPixelData();
+		const StoreImage prefilteredMapImage = StoreImage::create(prefilteredEnvMap.get());
 		FileSystem::store(prefilteredMapPath, prefilteredMapImage);
 	}
 }
@@ -731,7 +604,7 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	else
 	{
 		convolutedEnvironmentMap = convolute(source);
-		const StoreImage convolutedMapImage = readConvolutedEnvMapPixelData();
+		const StoreImage convolutedMapImage = StoreImage::create(convolutedEnvironmentMap.get());
 		FileSystem::store(convolutedMapPath, convolutedMapImage);
 	}
 }

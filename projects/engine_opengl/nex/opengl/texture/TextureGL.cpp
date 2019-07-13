@@ -280,9 +280,14 @@ nex::Texture::Impl* nex::Texture::getImpl() const
 	return mImpl.get();
 }
 
-unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMap)
+unsigned nex::Texture::getLevelZeroMipMapTextureSize()
 {
-	return std::log2<>(levelZeroMipMap) + 1;
+	return std::max<unsigned>(getWidth(), getHeight());
+}
+
+unsigned nex::Texture::getMipMapCount(unsigned levelZeroMipMapTextureSize)
+{
+	return std::log2<>(levelZeroMipMapTextureSize) + 1;
 }
 
 void nex::Texture::readback(unsigned mipmapLevel, ColorSpace format, PixelDataType type, void * dest, size_t destBufferSize)

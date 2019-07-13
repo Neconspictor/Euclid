@@ -284,29 +284,30 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	}
 }
 
-StoreImage nex::StoreImage::create(CubeMap * texture, bool allMipMaps, unsigned mipmapCount)
+StoreImage nex::StoreImage::create(CubeMap * texture, bool allMipMaps, unsigned mipMapStart, unsigned mipmapCount)
 {
 	StoreImage store;
 
 	const auto& data = texture->getTextureData();
-	const auto& mipStart = data.lodBaseLevel;
-	const auto& mipEnd = data.lodMaxLevel;
 
 	if (allMipMaps) {
-		mipmapCount = texture->getMipMapCount(mipStart);
+		auto maxMipMapCount = texture->getLevelZeroMipMapTextureSize();
+		mipmapCount = data.lodMaxLevel - data.lodBaseLevel + 1;
+		mipmapCount = (maxMipMapCount < mipmapCount) ? maxMipMapCount : mipmapCount;
+		mipMapStart = data.lodBaseLevel;
 	}
 
 	StoreImage::create(&store, 6, mipmapCount, TextureTarget::CUBE_MAP);
-	readback(store, texture);
+	readback(store, texture, mipMapStart);
 
 	return store;
 }
 
-void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture)
+void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture, unsigned mipMapStart)
 {
 	const auto& data = texture->getTextureData();
 
-	for (auto level = 0; level < store.mipmapCount; ++level)
+	for (auto level = mipMapStart; level < mipMapStart + store.mipmapCount; ++level)
 	{
 		// readback the mipmap level of the cubemap
 		const auto components = getComponents(data.colorspace);

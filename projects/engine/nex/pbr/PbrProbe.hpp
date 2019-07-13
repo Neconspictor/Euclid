@@ -110,10 +110,6 @@ namespace nex
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
 		static StoreImage readBrdfLookupPixelData();
 
-		StoreImage readConvolutedEnvMapPixelData();
-		StoreImage readPrefilteredEnvMapPixelData();
-		
-
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);
 		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);

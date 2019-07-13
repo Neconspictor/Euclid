@@ -25,7 +25,9 @@ namespace nex
 		Texture(std::unique_ptr<Impl> impl);
 
 		Impl* getImpl() const;
-		static unsigned getMipMapCount(unsigned levelZeroMipMap);
+
+		unsigned getLevelZeroMipMapTextureSize();
+		static unsigned getMipMapCount(unsigned levelZeroMipMapTextureSize);
 
 
 		/**
