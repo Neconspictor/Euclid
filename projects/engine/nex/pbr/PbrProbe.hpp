@@ -23,22 +23,25 @@ namespace nex
 	{
 	public:
 
+		static constexpr unsigned IRRADIANCE_SIDE = 32;
+		static const TextureData BRDF_DATA;
+		static const TextureData IRRADIANCE_DATA;
+		static const TextureData PREFILTERED_DATA;
+		static const TextureData SOURCE_DATA;
+
+		PbrProbeFactory(unsigned prefilteredSideWidth, unsigned prefilteredSideHeight, unsigned mapSize);
+
 		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
-
-		static PbrProbeFactory* get();
-
-		std::unique_ptr<PbrProbe> create(Texture* backgroundHDR, unsigned probeID);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
 		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned probeID);
-
-		static std::unique_ptr<PbrProbeFactory> mInstance;
 		
 	private:
-		PbrProbeFactory(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension);
-		std::unique_ptr<FileSystem> mFileSystem;
+		static std::unique_ptr<FileSystem> mFileSystem;
+		std::unique_ptr<CubeMapArray> mIrraddianceMaps;
+		std::unique_ptr<CubeMapArray> mPrefilteredMaps;
 		
 	};
 

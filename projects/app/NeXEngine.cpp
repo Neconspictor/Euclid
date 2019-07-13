@@ -172,8 +172,6 @@ void NeXEngine::init()
 		}
 	});
 	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
-	PbrProbeFactory::get();
-
 
 	initProbes();
 	ResourceLoader::get()->enqueue([=] {
@@ -428,7 +426,7 @@ void NeXEngine::initPbr()
 
 void NeXEngine::initProbes()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory());
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 128, 10);
 
 
 

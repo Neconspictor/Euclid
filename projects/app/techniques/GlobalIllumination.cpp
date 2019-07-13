@@ -7,8 +7,8 @@
 #include <nex/renderer/RenderBackend.hpp>
 
 
-nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory) : 
-mFactory(PbrProbeFactory::get())
+nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned width, unsigned height, unsigned depth) :
+mFactory(width, height, depth)
 {
 }
 
@@ -36,5 +36,5 @@ void nex::GlobalIllumination::addProbe(std::unique_ptr<PbrProbe> probe)
 
 nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 {
-	return mFactory;
+	return &mFactory;
 }
