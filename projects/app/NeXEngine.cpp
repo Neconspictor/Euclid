@@ -467,8 +467,8 @@ void NeXEngine::initProbes()
 	
 	//ResourceLoader::get()->enqueue([=]() {
 		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
-		activeProbe->createHandles();
-		activeProbe->activateHandles();
+		//activeProbe->createHandles();
+		//activeProbe->activateHandles();
 		mPbrTechnique->setProbe(activeProbe);
 	//	return nullptr;
 	//});
