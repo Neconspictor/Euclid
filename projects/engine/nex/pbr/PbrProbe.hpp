@@ -108,7 +108,6 @@ namespace nex
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
-		static StoreImage readBrdfLookupPixelData();
 
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);

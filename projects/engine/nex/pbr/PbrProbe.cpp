@@ -238,12 +238,11 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 		data.lodMaxLevel = readImage.mipmapCount - 1;
 
 		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, data));
-		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
 	}
 	else
 	{
 		mBrdfLookupTexture = createBRDFlookupTexture(&brdfPrecomputePass);
-		const StoreImage brdfLUTImage = readBrdfLookupPixelData();
+		const StoreImage brdfLUTImage = StoreImage::create(mBrdfLookupTexture.get());
 		FileSystem::store(brdfMapPath, brdfLUTImage);
 	}
 
@@ -287,31 +286,6 @@ CubeMap * PbrProbe::getPrefilteredEnvironmentMap() const
 Texture2D * PbrProbe::getBrdfLookupTexture()
 {
 	return mBrdfLookupTexture.get();
-}
-
-StoreImage PbrProbe::readBrdfLookupPixelData()
-{
-	StoreImage store;
-	StoreImage::create(&store, 1, 1, TextureTarget::TEXTURE2D);
-
-	GenericImage& data = store.images[0][0];
-	data.width = mBrdfLookupTexture->getWidth();
-	data.height = mBrdfLookupTexture->getHeight();
-	data.channels = getComponents(BRDF_DATA.colorspace);
-	data.format = (unsigned)BRDF_DATA.colorspace;
-	data.pixelSize = sizeof(float) * data.channels;
-
-	auto bufSize = data.width * data.height * data.pixelSize;
-	data.pixels = std::vector<char>(bufSize);;
-
-	// read the data back from the gpu
-	mBrdfLookupTexture->readback(
-		0, BRDF_DATA.colorspace,
-		BRDF_DATA.pixelDataType,
-		data.pixels.getPixels(),
-		bufSize);
-
-	return store;
 }
 
 std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
