@@ -284,11 +284,24 @@ void StoreImage::create(StoreImage* result, unsigned short levels, unsigned shor
 	}
 }
 
-StoreImage nex::StoreImage::create(CubeMap * texture, bool allMipMaps, unsigned mipMapStart, unsigned mipmapCount)
+StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned mipMapStart, unsigned mipmapCount)
 {
 	StoreImage store;
 
+	const auto target = texture->getTarget();
 	const auto& data = texture->getTextureData();
+
+	if (target == TextureTarget::TEXTURE1D
+		|| target == TextureTarget::TEXTURE1D_ARRAY
+		|| target == TextureTarget::CUBE_MAP_ARRAY
+		|| target == TextureTarget::TEXTURE2D_ARRAY) {
+
+		throw std::invalid_argument("nex::StoreImage::create: target " + std::to_string((unsigned)target) + " not supported, yet!");
+	}
+
+	unsigned imageCount = texture->getDepth();
+	if (target == TextureTarget::CUBE_MAP)
+		imageCount = ((CubeMap*)texture)->getLayerFaces();
 
 	if (allMipMaps) {
 		auto maxMipMapCount = texture->getLevelZeroMipMapTextureSize();
@@ -297,7 +310,7 @@ StoreImage nex::StoreImage::create(CubeMap * texture, bool allMipMaps, unsigned 
 		mipMapStart = data.lodBaseLevel;
 	}
 
-	StoreImage::create(&store, 6, mipmapCount, TextureTarget::CUBE_MAP);
+	StoreImage::create(&store, imageCount, mipmapCount, target);
 	readback(store, texture, mipMapStart);
 
 	return store;

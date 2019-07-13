@@ -7,7 +7,6 @@
 namespace nex
 {
 	class BinStream;
-	class CubeMap;
 	class Texture;
 
 	struct ImageResource
@@ -158,7 +157,7 @@ namespace nex
 		 * @param mipMapStart : The start of mipmaps to be stored. Is ignored, if allMipMaps is set to true.
 		 * @param mipmapCount : The number of mipmaps to be stored. Is ignored if allMipMaps is set to true.
 		 */
-		static StoreImage create(CubeMap* cubeMap, bool allMipMaps = true, unsigned mipMapStart = 0, unsigned mipmapCount = 1);
+		static StoreImage create(Texture* texture, bool allMipMaps = true, unsigned mipMapStart = 0, unsigned mipmapCount = 1);
 
 	private:
 		static void readback(StoreImage& store, Texture* texture, unsigned mipMapStart);

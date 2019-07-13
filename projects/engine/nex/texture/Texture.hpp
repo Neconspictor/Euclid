@@ -191,6 +191,8 @@ namespace nex
 
 		virtual ~CubeMap() = default;
 
+		unsigned getLayerFaces() { return 6; };
+
 		/**
 		 * Provides a 'look at' view matrix for a specific cubemap side
 		 */
@@ -221,6 +223,8 @@ namespace nex
 			unsigned sideWidth, unsigned sideHeight, unsigned depth,
 			unsigned mipmapIndex,
 			const void* data);
+
+		unsigned getLayerFaces();
 
 		/**
 		 * Resizes this array texture. Note that the current texels will be discarded.

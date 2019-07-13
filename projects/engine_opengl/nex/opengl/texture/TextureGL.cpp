@@ -59,7 +59,7 @@ nex::CubeMapGL::Side nex::CubeMapGL::translate(CubeMapSide side)
 	return table[(unsigned)side];
 }
 
-nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : Impl(TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 0)
+nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data) : Impl(TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 1)
 {
 	const auto internalFormat = (GLenum)nex::translate(data.internalFormat);
 
@@ -70,7 +70,7 @@ nex::CubeMapGL::CubeMapGL(unsigned sideWidth, unsigned sideHeight, const Texture
 }
 
 nex::CubeMapGL::CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data) : 
-Impl(cubeMap, TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 0)
+Impl(cubeMap, TextureTarget::CUBE_MAP, data, sideWidth, sideHeight, 1)
 {
 	updateMipMapCount();
 }
@@ -122,7 +122,7 @@ nex::InternFormat nex::RenderBuffer::getFormat() const
 
 
 nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, const TextureData& data) : 
-Impl(GL_FALSE, TextureTarget::RENDER_BUFFER, data, width, height, 0)
+Impl(GL_FALSE, TextureTarget::RENDER_BUFFER, data, width, height, 1)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
 	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(data.internalFormat), width, height));
@@ -138,7 +138,7 @@ nex::RenderBufferGL::~RenderBufferGL()
 }
 
 nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureData& data)
-	: Impl(texture, TextureTarget::RENDER_BUFFER, data, width, height, 0)
+	: Impl(texture, TextureTarget::RENDER_BUFFER, data, width, height, 1)
 {
 	updateMipMapCount();
 }
@@ -549,7 +549,7 @@ void nex::Texture2D::resize(unsigned width, unsigned height, unsigned mipmapCoun
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data) :
-	Impl(GL_FALSE, TextureTarget::TEXTURE2D, textureData, width, height, 0), mData(textureData)
+	Impl(GL_FALSE, TextureTarget::TEXTURE2D, textureData, width, height, 1), mData(textureData)
 {
 	generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
@@ -577,7 +577,7 @@ nex::Texture2DGL::Texture2DGL(GLuint width, GLuint height, const TextureData& te
 }
 
 nex::Texture2DGL::Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height)
-	: Impl(texture, TextureTarget::TEXTURE2D, textureData, width, height, 0), mData(textureData)
+	: Impl(texture, TextureTarget::TEXTURE2D, textureData, width, height, 1), mData(textureData)
 {
 	updateMipMapCount();
 }
@@ -718,18 +718,23 @@ nex::CubeMapArray::CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigne
 {
 }
 
+unsigned nex::CubeMapArray::getLayerFaces()
+{
+	return ((CubeMapArrayGL*)mImpl.get())->getLayerFaces();
+}
+
 void nex::CubeMapArray::resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
 {
 	((CubeMapArrayGL*)mImpl.get())->resize(sideWidth, sideHeight, depth, mipmapCount, autoMipMapCount);
 }
 
 nex::CubeMapArrayGL::CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureData & textureData, const void * data)
- : Impl(GL_FALSE, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData)
+ : Impl(GL_FALSE, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData), mLayerFaces(depth * 6)
 {
 	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
 
 	resize(mWidth,mHeight, mDepth, 1, mData.generateMipMaps);
-	fill(0, 0, 0, mWidth, mHeight, depth, 0, data);
+	fill(0, 0, 0, mWidth, mHeight, mLayerFaces, 0, data);
 
 	// create content of the other mipmaps
 	if (mData.generateMipMaps) generateMipMaps();
@@ -737,12 +742,12 @@ nex::CubeMapArrayGL::CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint 
 }
 
 nex::CubeMapArrayGL::CubeMapArrayGL(GLuint texture, const TextureData & textureData, unsigned sideWidth, unsigned sideHeight, unsigned depth)
-	: Impl(texture, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData)
+	: Impl(texture, TextureTarget::CUBE_MAP_ARRAY, textureData, sideWidth, sideHeight, depth), mData(textureData), mLayerFaces(depth * 6)
 {
 	updateMipMapCount();
 }
 
-void nex::CubeMapArrayGL::fill(unsigned xOffset, unsigned yOffset, unsigned zOffset, unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapIndex, const void * data)
+void nex::CubeMapArrayGL::fill(unsigned xOffset, unsigned yOffset, unsigned zOffset, unsigned sideWidth, unsigned sideHeight, unsigned layerFaces, unsigned mipmapIndex, const void * data)
 {
 	if (data == nullptr) return;
 
@@ -751,10 +756,15 @@ void nex::CubeMapArrayGL::fill(unsigned xOffset, unsigned yOffset, unsigned zOff
 		xOffset, yOffset, zOffset,
 		sideWidth,
 		sideHeight,
-		depth,
+		layerFaces,
 		(GLenum)translate(mData.colorspace),
 		(GLenum)translate(mData.pixelDataType),
 		data));
+}
+
+unsigned nex::CubeMapArrayGL::getLayerFaces() const
+{
+	return mLayerFaces;
 }
 
 void nex::CubeMapArrayGL::resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
@@ -762,6 +772,7 @@ void nex::CubeMapArrayGL::resize(unsigned sideWidth, unsigned sideHeight, unsign
 	mWidth = sideWidth;
 	mHeight = sideHeight;
 	mDepth = depth;
+	mLayerFaces = mDepth * 6;
 
 	mData.generateMipMaps = autoMipMapCount;
 
@@ -769,7 +780,7 @@ void nex::CubeMapArrayGL::resize(unsigned sideWidth, unsigned sideHeight, unsign
 		mipmapCount,
 		mWidth,
 		mHeight,
-		mDepth,
+		mLayerFaces,
 		(GLenum)translate(mData.internalFormat),
 		autoMipMapCount);
 

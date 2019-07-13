@@ -326,15 +326,18 @@ namespace nex
 		CubeMapArrayGL(GLuint texture, const TextureData& textureData, unsigned sideWidth = 0, unsigned sideHeight = 0, unsigned depth = 0);
 
 		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
-			unsigned sideWidth, unsigned sideHeight, unsigned depth,
+			unsigned sideWidth, unsigned sideHeight, unsigned layerFaces,
 			unsigned mipmapIndex,
 			const void* data);
+
+		unsigned getLayerFaces() const;
 
 		void resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture2DArray;
 		TextureData mData;
+		unsigned mLayerFaces;
 	};
 
 
