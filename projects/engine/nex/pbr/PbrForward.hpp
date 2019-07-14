@@ -12,7 +12,8 @@ namespace nex
 	class PbrForward : public Pbr {
 
 	public:
-		PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
+		PbrForward(AmbientLight* ambientLight, GlobalIllumination* globalIllumination, 
+			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		virtual ~PbrForward();
 
@@ -20,8 +21,6 @@ namespace nex
 
 		void configurePass(Camera* camera);
 		PbrForwardPass* getPass();
-
-		void setProbe(PbrProbe* probe) override;
 
 	private:
 		std::unique_ptr<PbrForwardPass> mForwardShader;

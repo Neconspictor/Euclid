@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include "nex/pbr/PbrProbe.hpp"
+#include <nex/pbr/GlobalIllumination.hpp>
 
 using namespace glm;
 using namespace std;
@@ -146,9 +147,12 @@ void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 	mShader->setVec2(mNearFarPlane.location, nearFarPlane);
 }
 
-nex::PbrLightingData::PbrLightingData(Shader * shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint) :
+nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globalIllumination, 
+	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint) :
 	PbrBaseCommon(shader),
 	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
+	mGlobalIllumination(globalIllumination),
+	
 	//cascadeBufferUBO(
 	//	CSM_CASCADE_BUFFER_BINDING_POINT, 
 	//	CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
@@ -206,24 +210,21 @@ void PbrLightingData::setDirLight(DirectionalLight* light)
 	mLight = light;
 }
 
-void PbrLightingData::setProbe(PbrProbe* probe)
-{
-	mProbe = probe;
-}
-
 void PbrLightingData::updateConstants(Camera* camera)
 {
 	assert(mLight != nullptr);
 	assert(mAmbientLight != nullptr);
-	assert(mProbe != nullptr);
+	assert(mGlobalIllumination != nullptr);
 	assert(mCascadeShadow != nullptr);
 	assert(camera != nullptr);
 
 
+	auto* probe = mGlobalIllumination->getActiveProbe();
 
-	setBrdfLookupTexture(mProbe->getBrdfLookupTexture());
-	setIrradianceMap(mProbe->getConvolutedEnvironmentMap());
-	setPrefilterMap(mProbe->getPrefilteredEnvironmentMap());
+
+	setBrdfLookupTexture(probe->getBrdfLookupTexture());
+	setIrradianceMap(probe->getConvolutedEnvironmentMap());
+	setPrefilterMap(probe->getPrefilteredEnvironmentMap());
 
 	setAmbientLightPower(mAmbientLight->getPower());
 	setLightColor(mLight->getColor());
@@ -243,10 +244,10 @@ void PbrLightingData::updateConstants(Camera* camera)
 	setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 }
 
-PbrForwardPass::PbrForwardPass(CascadedShadow* cascadedShadow) :
+PbrForwardPass::PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
 	PbrGeometryPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
-	mLightingPass(mShader.get(), cascadedShadow)
+	mLightingPass(mShader.get(), globalIllumination, cascadedShadow)
 {
 	/*mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -269,11 +270,6 @@ void PbrForwardPass::updateConstants(Camera* camera)
 	mLightingPass.updateConstants(camera);
 }
 
-void PbrForwardPass::setProbe(PbrProbe* probe)
-{
-	mLightingPass.setProbe(probe);
-}
-
 void PbrForwardPass::setAmbientLight(AmbientLight* light)
 {
 	mLightingPass.setAmbientLight(light);
@@ -284,9 +280,10 @@ void PbrForwardPass::setDirLight(DirectionalLight* light)
 	mLightingPass.setDirLight(light);
 }
 
-PbrDeferredLightingPass::PbrDeferredLightingPass(CascadedShadow* cascadedShadow) :
-	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
-	mLightingPass(mShader.get(), cascadedShadow)
+PbrDeferredLightingPass::PbrDeferredLightingPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
+	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", 
+						nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
+	mLightingPass(mShader.get(), globalIllumination, cascadedShadow)
 {
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
 	mAoMetalRoughnessMap = Pass::mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
@@ -335,11 +332,6 @@ void PbrDeferredLightingPass::updateConstants(Camera* camera)
 	bind();
 	mLightingPass.updateConstants(camera);
 	setInverseProjMatrixFromGPass(inverse(camera->getProjectionMatrix()));
-}
-
-void PbrDeferredLightingPass::setProbe(PbrProbe* probe)
-{
-	mLightingPass.setProbe(probe);
 }
 
 void PbrDeferredLightingPass::setAmbientLight(AmbientLight* light)

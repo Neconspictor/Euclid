@@ -1,3 +1,4 @@
+#include "..\..\..\..\engine\nex\texture\Texture.hpp"
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <cassert>
 #include <nex/util/ExceptionHandling.hpp>
@@ -722,6 +723,13 @@ nex::CubeMapArray::CubeMapArray(std::unique_ptr<Impl> impl) : Texture(std::move(
 nex::CubeMapArray::CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureData & textureData, const void * data)
 	: Texture(make_unique<CubeMapArrayGL>(sideWidth, sideHeight, depth, textureData, data))
 {
+}
+
+void nex::CubeMapArray::fill(unsigned xOffset, unsigned yOffset, unsigned zOffset, 
+	unsigned sideWidth, unsigned sideHeight, unsigned layerFaces, 
+	unsigned mipmapIndex, const void * data)
+{
+	((CubeMapArrayGL*)mImpl.get())->fill(xOffset, yOffset, zOffset, sideWidth, sideHeight, layerFaces, mipmapIndex, data);
 }
 
 unsigned nex::CubeMapArray::getLayerFaces()

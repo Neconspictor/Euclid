@@ -25,7 +25,7 @@
 #include <nex/Scene.hpp>
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/mesh/MeshFactory.hpp"
-#include "techniques/GlobalIllumination.hpp"
+#include <nex/pbr/GlobalIllumination.hpp>
 #include "nex/resource/ResourceLoader.hpp"
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
@@ -414,6 +414,8 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
+	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;
 	pcf.sampleCountY = 2;
@@ -421,15 +423,11 @@ void NeXEngine::initPbr()
 	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
 
 
-	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mCascadedShadow.get(), &mSun, nullptr);
+	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
 }
 
 void NeXEngine::initProbes()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
-
-
-
 	auto probe = std::make_unique<PbrProbe>();
 
 	//RenderBackend::get()->flushPendingCommands();
@@ -465,9 +463,9 @@ void NeXEngine::initProbes()
 	
 	//ResourceLoader::get()->enqueue([=]() {
 		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
+		mGlobalIllumination->setActiveProbe(activeProbe);
 		//activeProbe->createHandles();
 		//activeProbe->activateHandles();
-		mPbrTechnique->setProbe(activeProbe);
 	//	return nullptr;
 	//});
 

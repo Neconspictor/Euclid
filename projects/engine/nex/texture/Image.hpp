@@ -145,7 +145,7 @@ namespace nex
 
 		StoreImage() = default;
 		StoreImage(StoreImage&& o) noexcept = default;
-		StoreImage& operator=(StoreImage&& o) = delete;
+		StoreImage& operator=(StoreImage&& o) = default;
 
 		StoreImage(const StoreImage&) = delete;
 		StoreImage& operator=(const StoreImage&) = delete;

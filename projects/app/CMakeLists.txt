@@ -21,8 +21,6 @@ set(
 	gui/Controller.hpp
 	
 	#techniques
-    techniques/GlobalIllumination.cpp
-    techniques/GlobalIllumination.hpp
     techniques/HeightMap.hpp
     techniques/HeightMap.cpp
     techniques/Ocean.cpp

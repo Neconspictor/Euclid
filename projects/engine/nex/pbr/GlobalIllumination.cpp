@@ -1,4 +1,4 @@
-﻿#include <techniques/GlobalIllumination.hpp>
+﻿#include <nex/pbr/GlobalIllumination.hpp>
 #include "nex/texture/TextureManager.hpp"
 #include <nex/resource/FileSystem.hpp>
 #include <nex/Scene.hpp>
@@ -34,7 +34,27 @@ void nex::GlobalIllumination::addProbe(std::unique_ptr<PbrProbe> probe)
 	mProbes.emplace_back(std::move(probe));
 }
 
+nex::PbrProbe * nex::GlobalIllumination::getActiveProbe()
+{
+	return mActive;
+}
+
+nex::CubeMapArray * nex::GlobalIllumination::getIrradianceMaps()
+{
+	return mFactory.getIrradianceMaps();
+}
+
+nex::CubeMapArray * nex::GlobalIllumination::getPrefilteredMaps()
+{
+	return mFactory.getPrefilteredMaps();
+}
+
 nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 {
 	return &mFactory;
+}
+
+void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
+{
+	mActive = probe;
 }

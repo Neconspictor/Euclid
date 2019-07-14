@@ -20,7 +20,9 @@ namespace nex
 
 		virtual ~PbrDeferred();
 
-		PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe);
+		PbrDeferred(AmbientLight* ambientLight, 
+			GlobalIllumination* globalIllumination,
+			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		void configureGeometryPass(Camera* camera);
 
@@ -32,8 +34,6 @@ namespace nex
 		PbrDeferredLightingPass* getLightingPass();
 
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
-
-		void setProbe(PbrProbe* probe) override;
 
 	private:
 		std::unique_ptr<PbrDeferredGeometryPass> mGeometryPass;

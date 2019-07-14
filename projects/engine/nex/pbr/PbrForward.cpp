@@ -16,8 +16,11 @@ using namespace std;
 
 namespace nex {
 
-	PbrForward::PbrForward(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	Pbr(ambientLight, cascadeShadow, dirLight, probe), mForwardShader(std::make_unique<PbrForwardPass>(cascadeShadow))
+	PbrForward::PbrForward(AmbientLight* ambientLight, 
+		GlobalIllumination* globalIllumination,
+		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
+	Pbr(ambientLight, globalIllumination, cascadeShadow, dirLight), 
+		mForwardShader(std::make_unique<PbrForwardPass>(globalIllumination, cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -25,7 +28,6 @@ namespace nex {
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 
-		mForwardShader->setProbe(mProbe);
 		mForwardShader->setAmbientLight(mAmbientLight);
 		mForwardShader->setDirLight(mLight);
 	}
@@ -36,8 +38,7 @@ namespace nex {
 
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
-		mForwardShader = std::make_unique<PbrForwardPass>(cascadedShadow);
-		mForwardShader->setProbe(mProbe);
+		mForwardShader = std::make_unique<PbrForwardPass>(mGlobalIllumination, cascadedShadow);
 		mForwardShader->setAmbientLight(mAmbientLight);
 		mForwardShader->setDirLight(mLight);
 	}
@@ -51,10 +52,5 @@ namespace nex {
 	PbrForwardPass* PbrForward::getPass()
 	{
 		return mForwardShader.get();
-	}
-	void PbrForward::setProbe(PbrProbe * probe)
-	{
-		mProbe = probe;
-		mForwardShader->setProbe(probe);
 	}
 }

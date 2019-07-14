@@ -9,7 +9,7 @@
 
 namespace nex
 {
-	class PbrProbe;
+	class GlobalIllumination;
 
 	class PbrBaseCommon
 	{
@@ -66,12 +66,12 @@ namespace nex
 	class PbrLightingData : public PbrBaseCommon
 	{
 	public:
-		PbrLightingData(Shader* shader, CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
+		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
+			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
 
 		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
 		void setDirLight(DirectionalLight* light);
-		void setProbe(PbrProbe* probe);
 
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
@@ -122,7 +122,7 @@ namespace nex
 		Sampler mPrefilteredSampler;
 		Sampler mCascadedShadowMapSampler;
 
-		PbrProbe* mProbe;
+		GlobalIllumination* mGlobalIllumination;
 
 		AmbientLight* mAmbientLight;
 		CascadedShadow* mCascadeShadow;
@@ -143,11 +143,10 @@ namespace nex
 	class PbrForwardPass : public PbrGeometryPass
 	{
 	public:
-		PbrForwardPass(CascadedShadow* cascadedShadow);
+		PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
 		void updateConstants(Camera* camera) override;
 
-		void setProbe(PbrProbe* probe);
 		void setAmbientLight(AmbientLight* light);
 		void setDirLight(DirectionalLight* light);
 
@@ -169,7 +168,7 @@ namespace nex
 	class PbrDeferredLightingPass : public Pass {
 	public:
 
-		PbrDeferredLightingPass(CascadedShadow* cascadedShadow);
+		PbrDeferredLightingPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -180,7 +179,6 @@ namespace nex
 
 		void updateConstants(Camera* camera) override;
 
-		void setProbe(PbrProbe* probe);
 		void setAmbientLight(AmbientLight* light);
 		void setDirLight(DirectionalLight* light);
 

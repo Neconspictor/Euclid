@@ -18,12 +18,17 @@ namespace nex
 	class Mesh;
 	class CubeMapArray;
 	class Sampler;
+	class PbrProbe;
 
 	class PbrProbeFactory
 	{
 	public:
 
 		PbrProbeFactory(unsigned prefilteredSize, unsigned mapSize);
+
+		CubeMapArray* getIrradianceMaps();
+		CubeMapArray* getPrefilteredMaps();
+
 
 		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
 
@@ -34,7 +39,7 @@ namespace nex
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
-		std::unique_ptr<CubeMapArray> mIrraddianceMaps;
+		std::unique_ptr<CubeMapArray> mIrradianceMaps;
 		std::unique_ptr<CubeMapArray> mPrefilteredMaps;
 		const unsigned mPrefilteredSide; 
 		const unsigned mMapSize;
@@ -78,6 +83,7 @@ namespace nex
 		static void initGlobals(const std::filesystem::path& probeRoot);
 		static Mesh* getSphere();
 
+		unsigned getArrayIndex() const;
 
 		CubeMap* getConvolutedEnvironmentMap() const;
 
@@ -88,11 +94,13 @@ namespace nex
 		CubeMap* getPrefilteredEnvironmentMap() const;
 
 		static Texture2D* getBrdfLookupTexture();
-		StoreImage readSourcePixelData(CubeMap* source) const;
 
 		void init(Texture* backgroundHDR, 
 			unsigned prefilteredSize,
 			unsigned storeID, 
+			CubeMapArray* irradianceMaps,
+			CubeMapArray* prefilteredMaps,
+			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot);
 
 	protected:
@@ -125,6 +133,9 @@ namespace nex
 		std::unique_ptr<ProbeMaterial> mMaterial;
 		Handles mHandles;
 		unsigned mStoreID;
+		CubeMapArray* mIrradianceMaps;
+		CubeMapArray* mPrefilteredMaps;
+		unsigned mArrayIndex;
 	};
 
 	class ProbeVob : public Vob

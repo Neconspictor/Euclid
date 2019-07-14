@@ -8,9 +8,12 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <nex/pbr/PbrProbe.hpp>
+#include <nex/pbr/GlobalIllumination.hpp>
 
-nex::Pbr::Pbr(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight, PbrProbe* probe) :
-	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mProbe(probe)
+nex::Pbr::Pbr(AmbientLight* ambientLight, 
+	GlobalIllumination* globalIllumination,
+	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
+	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
 	mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
 	{
@@ -40,9 +43,9 @@ nex::DirectionalLight* nex::Pbr::getDirLight()
 	return mLight;
 }
 
-nex::PbrProbe* nex::Pbr::getProbe()
+nex::GlobalIllumination* nex::Pbr::getGlobalIllumination()
 {
-	return mProbe;
+	return mGlobalIllumination;
 }
 
 void nex::Pbr::setAmbientLight(AmbientLight* light)
@@ -55,24 +58,14 @@ void nex::Pbr::setDirLight(DirectionalLight* light)
 	mLight = light;
 }
 
-void nex::Pbr::setProbe(PbrProbe* probe)
-{
-	mProbe = probe;
-}
-
-nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
-	PbrProbe* probe) :
+nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, 
+	GlobalIllumination* globalIllumination,
+	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
 	Technique(nullptr),
-	mDeferred(std::make_unique<PbrDeferred>(ambientLight, cascadeShadow, dirLight, probe)),
-	mForward(std::make_unique<PbrForward>(ambientLight, cascadeShadow, dirLight, probe))
+	mDeferred(std::make_unique<PbrDeferred>(ambientLight, globalIllumination, cascadeShadow, dirLight)),
+	mForward(std::make_unique<PbrForward>(ambientLight, globalIllumination, cascadeShadow, dirLight))
 {
 	useDeferred();
-}
-
-void nex::PbrTechnique::setProbe(PbrProbe* probe)
-{
-	mDeferred->setProbe(probe);
-	mForward->setProbe(probe);
 }
 
 nex::PbrTechnique::~PbrTechnique() = default;

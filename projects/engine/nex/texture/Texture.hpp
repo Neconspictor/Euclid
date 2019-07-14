@@ -222,7 +222,7 @@ namespace nex
 		virtual ~CubeMapArray() = default;
 
 		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
-			unsigned sideWidth, unsigned sideHeight, unsigned depth,
+			unsigned sideWidth, unsigned sideHeight, unsigned layerFaces,
 			unsigned mipmapIndex,
 			const void* data);
 

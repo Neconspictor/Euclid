@@ -13,10 +13,11 @@ namespace nex {
 	{
 	}
 
-	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, CascadedShadow* cascadeShadow, DirectionalLight* dirLight,
-		PbrProbe* probe) : Pbr(ambientLight, cascadeShadow, dirLight, probe),
+	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, 
+		GlobalIllumination* globalIllumination,
+		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) : Pbr(ambientLight, globalIllumination, cascadeShadow, dirLight),
 		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
-		mLightPass(std::make_unique<PbrDeferredLightingPass>(cascadeShadow))
+		mLightPass(std::make_unique<PbrDeferredLightingPass>(globalIllumination, cascadeShadow))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -24,7 +25,6 @@ namespace nex {
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 
-		mLightPass->setProbe(mProbe);
 		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
 	}
@@ -70,16 +70,9 @@ namespace nex {
 
 	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
-		mLightPass = std::make_unique<PbrDeferredLightingPass>(cascadedShadow);
+		mLightPass = std::make_unique<PbrDeferredLightingPass>(mGlobalIllumination, cascadedShadow);
 
-		setProbe(mProbe);
-		mLightPass->setProbe(mProbe);
 		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
-	}
-	void PbrDeferred::setProbe(PbrProbe * probe)
-	{
-		mProbe = probe;
-		mLightPass->setProbe(probe);
 	}
 }

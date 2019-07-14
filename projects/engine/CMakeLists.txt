@@ -133,6 +133,8 @@ set(
     nex/mesh/VertexLayout.inl
     
     #nex/pbr
+    nex/pbr/GlobalIllumination.cpp
+    nex/pbr/GlobalIllumination.hpp
     nex/pbr/Pbr.cpp
     nex/pbr/Pbr.hpp
     nex/pbr/PbrDeferred.cpp

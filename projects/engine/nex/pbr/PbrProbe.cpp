@@ -83,8 +83,18 @@ const nex::TextureData nex::PbrProbe::SOURCE_DATA = {
 nex::PbrProbeFactory::PbrProbeFactory(unsigned prefilteredSide, unsigned mapSize) : 
 	mPrefilteredSide(prefilteredSide), mMapSize(mapSize), mFreeSlots(mapSize)
 {
-	mIrraddianceMaps = std::make_unique<CubeMapArray>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, mapSize, PbrProbe::IRRADIANCE_DATA, nullptr);
+	mIrradianceMaps = std::make_unique<CubeMapArray>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, mapSize, PbrProbe::IRRADIANCE_DATA, nullptr);
 	mPrefilteredMaps = std::make_unique<CubeMapArray>(mPrefilteredSide, mPrefilteredSide, mapSize, PbrProbe::PREFILTERED_DATA, nullptr);
+}
+
+CubeMapArray * nex::PbrProbeFactory::getIrradianceMaps()
+{
+	return mIrradianceMaps.get();
+}
+
+CubeMapArray * nex::PbrProbeFactory::getPrefilteredMaps()
+{
+	return mPrefilteredMaps.get();
 }
 
 void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
@@ -164,14 +174,26 @@ public:
 
 void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned storeID)
 {
+	if (mFreeSlots == 0) {
+		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
+	}
+
+	const auto arrayIndex = mMapSize - mFreeSlots;
+	--mFreeSlots;
+
 	probe->init(backgroundHDR,
 		mPrefilteredSide,
 		storeID,
+		mIrradianceMaps.get(),
+		mPrefilteredMaps.get(),
+		arrayIndex,
 		mFileSystem->getFirstIncludeDirectory());
 }
 
 PbrProbe::PbrProbe() :
-	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get()))
+	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get())),
+	mIrradianceMaps(nullptr),
+	mPrefilteredMaps(nullptr)
 {
 }
 
@@ -254,6 +276,11 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 Mesh* PbrProbe::getSphere()
 {
 	return mMesh.get();
+}
+
+unsigned nex::PbrProbe::getArrayIndex() const
+{
+	return mArrayIndex;
 }
 
 Material* PbrProbe::getMaterial()
@@ -501,17 +528,12 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 
 	const std::filesystem::path prefilteredMapPath = probeRoot / ("pbr_prefilteredEnvMap_" + std::to_string(mStoreID) + ".probe");
 
+	StoreImage readImage;
+
 	if (std::filesystem::exists(prefilteredMapPath))
 	{
-		StoreImage readImage;
-		try
-		{
-			FileSystem::load(prefilteredMapPath, readImage);
-		}
-		catch (const std::exception&e)
-		{
-		}
-
+		
+		FileSystem::load(prefilteredMapPath, readImage);
 
 		TextureData data = PREFILTERED_DATA;
 		data.generateMipMaps = false; // We set the mipmaps manually from store
@@ -521,8 +543,18 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 	else
 	{
 		prefilteredEnvMap = prefilter(source, prefilteredSize);
-		const StoreImage prefilteredMapImage = StoreImage::create(prefilteredEnvMap.get());
-		FileSystem::store(prefilteredMapPath, prefilteredMapImage);
+		readImage = StoreImage::create(prefilteredEnvMap.get());
+		FileSystem::store(prefilteredMapPath, readImage);
+	}
+
+	for (unsigned mipmap = 0; mipmap < readImage.mipmapCount; ++mipmap) {
+		for (unsigned i = 0; i < readImage.images.size(); ++i) {
+
+			const auto& image = readImage.images[i][mipmap];
+
+			mPrefilteredMaps->fill(0, 0, mArrayIndex,
+				image.width, image.height, 1, mipmap, image.pixels.getPixels());
+		}
 	}
 }
 
@@ -562,12 +594,22 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	}
 }
 
-void PbrProbe::init(Texture* backgroundHDR,unsigned prefilteredSize, unsigned storeID, const std::filesystem::path& probeRoot)
+void PbrProbe::init(Texture* backgroundHDR,
+				unsigned prefilteredSize, unsigned storeID, 
+				CubeMapArray* irradianceMaps, CubeMapArray* prefilteredMaps, unsigned arrayIndex,
+				const std::filesystem::path& probeRoot)
 {
+	if (irradianceMaps == nullptr || prefilteredMaps == nullptr)
+		throw std::invalid_argument("PbrProbe::init: irradianceMaps or prefilteredMaps is null!");
+
+
 	thread_local auto* renderBackend = RenderBackend::get();
 	Viewport backup = renderBackend->getViewport();
 
 	mStoreID = storeID;
+	mArrayIndex = arrayIndex;
+	mIrradianceMaps = irradianceMaps;
+	mPrefilteredMaps = prefilteredMaps;
 
 	auto source = createSource(backgroundHDR, probeRoot);
 	initPrefiltered(source.get(), prefilteredSize, probeRoot);

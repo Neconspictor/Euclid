@@ -23,11 +23,19 @@ namespace nex
 		Vob* createVobUnsafe(PbrProbe* probe, Scene& scene);
 		void addProbe(std::unique_ptr<PbrProbe>);
 
+		PbrProbe* getActiveProbe();
+
+		CubeMapArray* getIrradianceMaps();
+		CubeMapArray* getPrefilteredMaps();
+
 		PbrProbeFactory* getFactory();
+
+		void setActiveProbe(PbrProbe* probe);
 
 	private:
 
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		PbrProbeFactory mFactory;
+		PbrProbe* mActive;
 	};
 }
