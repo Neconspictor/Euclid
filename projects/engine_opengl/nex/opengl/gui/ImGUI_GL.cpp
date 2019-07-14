@@ -24,6 +24,7 @@ namespace nex::gui
 			mShader = nex::Shader::create(vertexShader, fragmentShader);
 
 			mTexture = mShader->createTextureUniform("Texture", UniformType::TEXTURE2D, 0);
+			mIndex = { mShader->getUniformLocation("Index"), nex::UniformType::FLOAT };
 			mSide = { mShader->getUniformLocation("Side"), nex::UniformType::UINT };
 			mMipMapLevel = { mShader->getUniformLocation("MipMapLevel"), nex::UniformType::INT };
 			mProjMtx = { mShader->getUniformLocation("ProjMtx"), nex::UniformType::MAT4 };
@@ -35,6 +36,11 @@ namespace nex::gui
 
 			mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
 
+		}
+
+		void setArrayIndex(float index)
+		{
+			mShader->setFloat(mIndex.location, index);
 		}
 
 		void setTexture(nex::Texture* texture, Sampler* sampler)
@@ -86,6 +92,7 @@ namespace nex::gui
 	private:
 
 		nex::UniformTex mTexture;
+		nex::Uniform mIndex;
 		nex::Uniform mSide;
 		nex::Uniform mMipMapLevel;
 		nex::Uniform mTransformUV;
@@ -409,10 +416,14 @@ namespace nex::gui
 		{
 			drawer = mShaderCubeMap.get();
 		}
+		else if (target == TextureTarget::CUBE_MAP_ARRAY) {
+			drawer = mShaderCubeMapArray.get();
+		}
 
 		const bool init = !drawer->isBound();
 		drawer->bind();
 		drawer->setTexture(desc->texture, desc->sampler);
+		drawer->setArrayIndex(desc->level);
 		drawer->setCubeMapSide(desc->side);
 		drawer->setMipMapLevel(desc->lod);
 		drawer->setUseTransparency(desc->useTransparency);
@@ -442,6 +453,7 @@ namespace nex::gui
 		mShaderGeneral = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 		mShaderTexture2D = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_fs.glsl");
 		mShaderCubeMap = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_fs.glsl");
+		mShaderCubeMapArray = std::make_unique<Drawer>("imgui/imgui_draw_vs.glsl", "imgui/imgui_draw_cubemap_array_fs.glsl");
 		mVertexBuffer = std::make_unique<VertexBuffer>();
 		mIndices = std::make_unique<IndexBuffer>();
 

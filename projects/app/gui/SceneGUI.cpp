@@ -67,7 +67,8 @@ namespace nex::gui
 	mPrefilteredView({}, ImVec2(256, 256)),
 	mDynamicLoad({}, ImVec2(256,256)),
 	mWindow(window),
-	mScene(nullptr)
+	mScene(nullptr),
+	mLastPicked(nullptr)
 	//mTransparentView({}, ImVec2(256, 256))
 	{
 	}
@@ -142,19 +143,30 @@ namespace nex::gui
 	{
 		ImGui::PushID(m_id.c_str());
 		nex::gui::Separator(2.0f);
+
+		Vob* vob = nullptr;
+		bool doOneTimeChanges = false;
+
+		if (mPicker) {
+			vob = mPicker->getPicked();
+			doOneTimeChanges = vob != mLastPicked;
+			mLastPicked = vob;
+		}
+
 		ImGui::Text("Selected scene node:");
-		if (!mPicker || !mPicker->getPicked()) {
+		if (!mPicker || !vob) {
 			ImGui::Text("No scene node selected.");
 			ImGui::PopID();
 			return;
 		} 
 
-		auto* vob = mPicker->getPicked();
+		
 
 		ImGui::SameLine();
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob))
 		{
 			auto* probe = probeVob->getProbe();
+			
 			ImGui::Text("pbr probe vob");
 
 			if (ImGui::TreeNode("Brdf Lookup map"))
@@ -165,6 +177,7 @@ namespace nex::gui
 				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
 
+
 				mBrdfView.updateTexture(true);
 				mBrdfView.drawGUI();
 				
@@ -173,11 +186,12 @@ namespace nex::gui
 
 			if (ImGui::TreeNode("Convoluted map"))
 			{
-				auto* texture = probe->getConvolutedEnvironmentMap();
-				auto& probePrefiltered = mConvolutedView.getTexture();
-				probePrefiltered.texture = texture;
-				probePrefiltered.flipY = ImageFactory::isYFlipped();
-				probePrefiltered.sampler = nullptr;
+				auto* texture = probe->getIrradianceMaps();
+				auto& irradiance = mConvolutedView.getTexture();
+				irradiance.texture = texture;
+				irradiance.flipY = ImageFactory::isYFlipped();
+				irradiance.sampler = nullptr;
+				if (doOneTimeChanges) irradiance.level = probe->getArrayIndex();
 
 				mConvolutedView.updateTexture(true);
 				mConvolutedView.drawGUI();
@@ -187,11 +201,12 @@ namespace nex::gui
 
 			if (ImGui::TreeNode("Prefiltered map"))
 			{
-				auto* texture = probe->getPrefilteredEnvironmentMap();
+				auto* texture = probe->getPrefilteredMaps();
 				auto& probePrefiltered = mPrefilteredView.getTexture();
 				probePrefiltered.texture = texture;
 				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
+				if (doOneTimeChanges) probePrefiltered.level = probe->getArrayIndex();
 
 				mPrefilteredView.updateTexture(true);
 				mPrefilteredView.drawGUI();

@@ -148,10 +148,24 @@ void nex::gui::TextureView::drawSelf()
 
 	ImGui::Combo("Mipmap level", (int*)&mDesc.lod, (const char**)items.data(), (int)items.size());
 
-	if (target == TextureTarget::CUBE_MAP)
+	if (target == TextureTarget::CUBE_MAP || target == TextureTarget::CUBE_MAP_ARRAY)
 	{
 		const char* items[] = { "Right", "Left", "Top", "Bottom", "Front", "Back" };
 		ImGui::Combo("Side", (int*)&mDesc.side, items, IM_ARRAYSIZE(items));
+	}
+
+	if (target == TextureTarget::CUBE_MAP_ARRAY) {
+		std::vector<const char*> items(mDesc.texture->getDepth());
+		std::vector<std::string> content(mDesc.texture->getDepth());
+
+		for (unsigned i = 0; i < mDesc.texture->getDepth(); ++i)
+		{
+			content[i] = std::to_string(i);
+			items[i] = content[i].c_str();
+			
+		}
+
+		ImGui::Combo("Index", (int*)&mDesc.level, (const char**)items.data(), (int)items.size());
 	}
 
 	ImGui::BeginChild(mScrollPaneID.c_str(), ImVec2(mViewSize.x +20, mViewSize.y + 20), true, ImGuiWindowFlags_HorizontalScrollbar);

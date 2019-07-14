@@ -26,6 +26,12 @@ namespace nex
 
 		PbrProbeFactory(unsigned prefilteredSize, unsigned mapSize);
 
+		PbrProbeFactory(const PbrProbeFactory&) = delete;
+		PbrProbeFactory(PbrProbeFactory&&) = delete;
+
+		PbrProbeFactory& operator=(const PbrProbeFactory&) = delete;
+		PbrProbeFactory& operator=(PbrProbeFactory&&) = delete;
+
 		CubeMapArray* getIrradianceMaps();
 		CubeMapArray* getPrefilteredMaps();
 
@@ -85,21 +91,20 @@ namespace nex
 
 		unsigned getArrayIndex() const;
 
-		CubeMap* getConvolutedEnvironmentMap() const;
+		CubeMapArray* getIrradianceMaps() const;
 
 		const Handles* getHandles() const;
 
 		Material* getMaterial();
 
-		CubeMap* getPrefilteredEnvironmentMap() const;
+		CubeMapArray* getPrefilteredMaps() const;
 
 		static Texture2D* getBrdfLookupTexture();
 
 		void init(Texture* backgroundHDR, 
 			unsigned prefilteredSize,
 			unsigned storeID, 
-			CubeMapArray* irradianceMaps,
-			CubeMapArray* prefilteredMaps,
+			PbrProbeFactory* factory,
 			unsigned arrayIndex,
 			const std::filesystem::path& probeRoot);
 
@@ -133,8 +138,7 @@ namespace nex
 		std::unique_ptr<ProbeMaterial> mMaterial;
 		Handles mHandles;
 		unsigned mStoreID;
-		CubeMapArray* mIrradianceMaps;
-		CubeMapArray* mPrefilteredMaps;
+		PbrProbeFactory* mFactory;
 		unsigned mArrayIndex;
 	};
 

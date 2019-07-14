@@ -62,6 +62,7 @@ namespace nex::gui
 		std::unique_ptr<Drawer> mShaderGeneral;
 		std::unique_ptr<Drawer> mShaderTexture2D;
 		std::unique_ptr<Drawer> mShaderCubeMap;
+		std::unique_ptr<Drawer> mShaderCubeMapArray;
 		nex::Logger m_logger;
 	};
 }

@@ -1,0 +1,91 @@
+#version 420
+
+in vec2 Frag_UV;
+in vec4 Frag_Color;
+out vec4 Out_Color;
+
+layout(binding = 0) uniform samplerCubeArray Texture;
+uniform float Index;
+uniform uint Side; 
+uniform int MipMapLevel;
+uniform int UseTransparency;
+uniform int UseGammaCorrection;
+uniform int UseToneMapping;
+
+void main()
+{
+    //
+    // For more info, see https://www.nvidia.com/object/cube_map_ogl_tutorial.html
+    // (Chapter 'Mapping Texture Coordinates to Cube Map Faces')
+    //
+
+
+
+    float transformedS = (Frag_UV.s - 0.5);
+    
+    // flip T
+    float transformedT = -(Frag_UV.t - 0.5);
+    
+    float x,y,z;
+    
+    
+    switch(Side) {
+        case(0):
+            // right
+            x = 0.5;
+            y = -transformedT;
+            z = -transformedS;
+            break;
+        case(1):
+            // left
+            x = -0.5;
+            y = -transformedT;
+            z = transformedS;
+            break;    
+        case(2):
+            // top
+            x = transformedS;
+            y = 0.5;
+            z = transformedT;
+            break;
+        case(3):
+            // bottom
+            x = transformedS;
+            y = -0.5;
+            z = -transformedT;
+            break;    
+        case(4):
+            // front
+            x = transformedS;
+            y = -transformedT;
+            z = 0.5;
+            break;    
+        case(5):
+            // back
+            x = -transformedS;
+            y = -transformedT;
+            z = -0.5;
+            break;
+    }
+    
+    
+    vec4 color = textureLod(Texture, normalize(vec4(x, y, z, Index)), MipMapLevel);
+    
+    if (UseToneMapping) {
+        const float exposure = 1.0;
+        color *= exposure;
+        color.rgb = color.rgb / (color.rgb + vec3(1.0));
+    }
+    
+    if (UseGammaCorrection) {
+        // gamma correct
+        const float gamma = 2.2f;
+        color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
+    }
+    
+    if (UseTransparency) {
+        Out_Color = Frag_Color * color;
+    } else {
+        Out_Color = Frag_Color * vec4(color.rgb, 1.0);
+    }
+}

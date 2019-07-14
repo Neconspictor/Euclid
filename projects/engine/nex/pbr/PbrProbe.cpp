@@ -184,16 +184,14 @@ void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, 
 	probe->init(backgroundHDR,
 		mPrefilteredSide,
 		storeID,
-		mIrradianceMaps.get(),
-		mPrefilteredMaps.get(),
+		this,
 		arrayIndex,
 		mFileSystem->getFirstIncludeDirectory());
 }
 
 PbrProbe::PbrProbe() :
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get())),
-	mIrradianceMaps(nullptr),
-	mPrefilteredMaps(nullptr)
+	mFactory(nullptr)
 {
 }
 
@@ -288,9 +286,9 @@ Material* PbrProbe::getMaterial()
 	return mMaterial.get();
 }
 
-CubeMap * PbrProbe::getConvolutedEnvironmentMap() const
+CubeMapArray * PbrProbe::getIrradianceMaps() const
 {
-	return convolutedEnvironmentMap.get();
+	return mFactory->getIrradianceMaps();
 }
 
 const nex::PbrProbe::Handles * nex::PbrProbe::getHandles() const
@@ -298,9 +296,9 @@ const nex::PbrProbe::Handles * nex::PbrProbe::getHandles() const
 	return &mHandles;
 }
 
-CubeMap * PbrProbe::getPrefilteredEnvironmentMap() const
+CubeMapArray * PbrProbe::getPrefilteredMaps() const
 {
-	return  prefilteredEnvMap.get();
+	return mFactory->getPrefilteredMaps();
 }
 
 Texture2D * PbrProbe::getBrdfLookupTexture()
@@ -547,7 +545,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 		FileSystem::store(prefilteredMapPath, readImage);
 	}
 
-	StoreImage::fill(mPrefilteredMaps, readImage, mArrayIndex);
+	StoreImage::fill(mFactory->getPrefilteredMaps(), readImage, mArrayIndex);
 }
 
 void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot)
@@ -579,16 +577,16 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 		FileSystem::store(convolutedMapPath, readImage);
 	}
 
-	StoreImage::fill(mIrradianceMaps, readImage, mArrayIndex);
+	StoreImage::fill(mFactory->getIrradianceMaps(), readImage, mArrayIndex);
 }
 
 void PbrProbe::init(Texture* backgroundHDR,
 				unsigned prefilteredSize, unsigned storeID, 
-				CubeMapArray* irradianceMaps, CubeMapArray* prefilteredMaps, unsigned arrayIndex,
+				PbrProbeFactory* factory, unsigned arrayIndex,
 				const std::filesystem::path& probeRoot)
 {
-	if (irradianceMaps == nullptr || prefilteredMaps == nullptr)
-		throw std::invalid_argument("PbrProbe::init: irradianceMaps or prefilteredMaps is null!");
+	if (factory == nullptr)
+		throw std::invalid_argument("PbrProbe::init: probe factory is null!");
 
 
 	thread_local auto* renderBackend = RenderBackend::get();
@@ -596,8 +594,7 @@ void PbrProbe::init(Texture* backgroundHDR,
 
 	mStoreID = storeID;
 	mArrayIndex = arrayIndex;
-	mIrradianceMaps = irradianceMaps;
-	mPrefilteredMaps = prefilteredMaps;
+	mFactory = factory;
 
 	auto source = createSource(backgroundHDR, probeRoot);
 	initPrefiltered(source.get(), prefilteredSize, probeRoot);

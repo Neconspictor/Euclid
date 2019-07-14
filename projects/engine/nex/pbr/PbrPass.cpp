@@ -78,27 +78,15 @@ void PbrGeometryData::updateConstants(Camera* camera)
 	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 }
 
-void nex::PbrLightingData::setLayerFaceIndex(float index)
+void nex::PbrLightingData::setArrayIndex(float index)
 {
-	mShader->setFloat(mLayerFaceIndex.location, index);
+	mShader->setFloat(mArrayIndex.location, index);
 }
 
 void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
 {
 	//mShader->setTextureByHandle(mBrdfLUT.location, brdfLUT);
 	mShader->setTexture(brdfLUT, &mSampler, mBrdfLUT.bindingSlot);
-}
-
-void PbrLightingData::setIrradianceMap(const Texture* irradianceMap)
-{
-	//mShader->setTextureByHandle(mIrradianceMap.location, irradianceMap);
-	mShader->setTexture(irradianceMap, &mSampler, mIrradianceMap.bindingSlot);
-}
-
-void PbrLightingData::setPrefilterMap(const Texture* prefilterMap)
-{
-	//mShader->setTextureByHandle(mPrefilterMap.location, prefilterMap);
-	mShader->setTexture(prefilterMap, &mPrefilteredSampler, mPrefilterMap.bindingSlot);
 }
 
 void nex::PbrLightingData::setIrradianceMaps(const CubeMapArray * texture)
@@ -185,16 +173,14 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	//mPrefilterMap = mShader->createTextureHandleUniform("prefilterMap", UniformType::CUBE_MAP);
 	//mBrdfLUT = mShader->createTextureHandleUniform("brdfLUT", UniformType::TEXTURE2D);
 
-	mIrradianceMap = mShader->createTextureUniform("irradianceMap", UniformType::CUBE_MAP, 5);
-	mPrefilterMap = mShader->createTextureUniform("prefilterMap", UniformType::CUBE_MAP, 6);
+	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 5);
+	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, 6);
 	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, 7);
+	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
 	// shaodw mapping
 	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
-	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 9);
-	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, 10);
-	mLayerFaceIndex = { mShader->getUniformLocation("layerFaceIndex"), UniformType::FLOAT };
 
 
 
@@ -241,10 +227,8 @@ void PbrLightingData::updateConstants(Camera* camera)
 
 	auto* probe = mGlobalIllumination->getActiveProbe();
 
-	setLayerFaceIndex((float)CubeMapArray::getLayerFaceIndex(probe->getArrayIndex()));
+	setArrayIndex((float)probe->getArrayIndex());
 	setBrdfLookupTexture(probe->getBrdfLookupTexture());
-	setIrradianceMap(probe->getConvolutedEnvironmentMap());
-	setPrefilterMap(probe->getPrefilteredEnvironmentMap());
 
 	setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
 	setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());

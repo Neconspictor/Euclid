@@ -15,6 +15,7 @@ namespace nex
 	class Scene;
 	class SceneNode;
 	class Window;
+	class Vob;
 }
 
 namespace nex::gui
@@ -58,6 +59,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
+		nex::Vob* mLastPicked;
 		Picker* mPicker;
 		TextureView mBrdfView;
 		TextureView mConvolutedView;
