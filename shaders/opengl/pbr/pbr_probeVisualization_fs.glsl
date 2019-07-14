@@ -11,8 +11,11 @@ in VS_OUT {
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
 
-layout(binding = 0) uniform samplerCube irradianceMap;
-layout(binding = 1) uniform samplerCube prefilterMap;
+layout(binding = 0) uniform samplerCubeArray irradianceMaps;
+layout(binding = 1) uniform samplerCubeArray prefilteredMaps;
+
+uniform float arrayIndex;
+
 // The inverse view matrix. Note, for deferred renderings the inverse view of the geometry pass is meant!
 //uniform mat4 inverseViewMatrix;
 
@@ -20,7 +23,7 @@ void main()
 {    		
     vec3 normalWorld = vec3(fs_in.inverseView * vec4(fs_in.normalEye, 0.0f));
     
-    vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
+    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, arrayIndex)).rgb;
    // irradiance = vec3(1,0,0);
    
    
@@ -32,7 +35,7 @@ void main()
     vec3 viewWorld = vec3(fs_in.inverseView * vec4(viewEye, 0.0f));
     vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
     
-    vec3 prefiltered = textureLod(prefilterMap, reflectionDirWorld, 1.0).rgb;
+    vec3 prefiltered = textureLod(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex), 1.0).rgb;
         
     FragColor = vec4(prefiltered, 1.0);
     LuminanceColor = vec4(0,0,0,1.0);

@@ -82,10 +82,6 @@ namespace nex
 		//void drawSky(const glm::mat4& projection,
 		//	const glm::mat4& view);
 
-		void createHandles();
-		void activateHandles();
-		void deactivateHandles();
-
 		static void initGlobals(const std::filesystem::path& probeRoot);
 		static Mesh* getSphere();
 
@@ -125,9 +121,6 @@ namespace nex
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);
 		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
-
-		std::shared_ptr<CubeMap> convolutedEnvironmentMap;
-		std::shared_ptr<CubeMap> prefilteredEnvMap;
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
 		static std::unique_ptr<ProbeTechnique> mTechnique;

@@ -113,27 +113,33 @@ public:
 
 		ProbePass() : TransformPass(Shader::create("pbr/pbr_probeVisualization_vs.glsl", "pbr/pbr_probeVisualization_fs.glsl"))
 		{
-			mIrradianceMap = { mShader->getUniformLocation("irradianceMap"), UniformType::CUBE_MAP };
-			mPrefilterMap = { mShader->getUniformLocation("prefilterMap"), UniformType::CUBE_MAP };
+			mIrradianceMaps = { mShader->getUniformLocation("irradianceMaps"), UniformType::CUBE_MAP_ARRAY };
+			mPrefilterMaps = { mShader->getUniformLocation("prefilteredMaps"), UniformType::CUBE_MAP_ARRAY };
+			mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
 			SamplerDesc desc;
 			//desc.minLOD = 0;
 			//desc.maxLOD = 7;
 			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
-			mPrefilterSampler.setState(desc);
+			mPrefilteredSampler.setState(desc);
 		}
 
-		void setIrradianceMap(CubeMap* map) {
+		void setIrradianceMaps(CubeMapArray* map) {
 			mShader->setTexture(map, &mSampler, 0);
 		}
-		void setPrefilteredMap(CubeMap* map) {
-			mShader->setTexture(map, &mPrefilterSampler, 1);
+		void setPrefilteredMaps(CubeMapArray* map) {
+			mShader->setTexture(map, &mPrefilteredSampler, 1);
 		}
 
-		Uniform mIrradianceMap;
-		Uniform mPrefilterMap;
+		void setArrayIndex(float index) {
+			mShader->setFloat(mArrayIndex.location, index);
+		}
+
+		Uniform mArrayIndex;
+		Uniform mIrradianceMaps;
+		Uniform mPrefilterMaps;
 		Sampler mSampler;
-		Sampler mPrefilterSampler;
+		Sampler mPrefilteredSampler;
 	};
 
 
@@ -152,24 +158,25 @@ public:
 		assert(technique != nullptr);
 	}
 
-	void setIrradianceMap(CubeMap* map)
+	void setProbeFactory(PbrProbeFactory* factory)
 	{
-		irradianceMap = map;
+		mFactory = factory;
 	}
 
-	void setPrefilterMap(CubeMap* map)
+	void setArrayIndex(float index)
 	{
-		prefilteredMap = map;
+		mArrayIndex = index;
 	}
 
 	void upload() override {
-		mProbeTechnique->mProbePass.setIrradianceMap(irradianceMap);
-		mProbeTechnique->mProbePass.setPrefilteredMap(prefilteredMap);
+		mProbeTechnique->mProbePass.setIrradianceMaps(mFactory->getIrradianceMaps());
+		mProbeTechnique->mProbePass.setPrefilteredMaps(mFactory->getPrefilteredMaps());
+		mProbeTechnique->mProbePass.setArrayIndex(mArrayIndex);
 	}
 
 	ProbeTechnique* mProbeTechnique;
-	CubeMap* irradianceMap;
-	CubeMap* prefilteredMap;
+	PbrProbeFactory* mFactory;
+	float mArrayIndex;
 };
 
 void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned storeID)
@@ -196,24 +203,6 @@ PbrProbe::PbrProbe() :
 }
 
 PbrProbe::~PbrProbe() = default;
-
-void nex::PbrProbe::createHandles()
-{
-	mHandles.convoluted = convolutedEnvironmentMap->getHandleWithSampler(*mSamplerIrradiance);
-	mHandles.prefiltered = prefilteredEnvMap->getHandleWithSampler(*mSamplerPrefiltered);
-}
-
-void nex::PbrProbe::activateHandles()
-{
-	convolutedEnvironmentMap->residentHandle(mHandles.convoluted);
-	prefilteredEnvMap->residentHandle(mHandles.prefiltered);
-}
-
-void nex::PbrProbe::deactivateHandles()
-{
-	convolutedEnvironmentMap->makeHandleNonResident(mHandles.convoluted);
-	prefilteredEnvMap->makeHandleNonResident(mHandles.prefiltered);
-}
 
 void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
@@ -530,18 +519,12 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 
 	if (std::filesystem::exists(prefilteredMapPath))
 	{
-		
 		FileSystem::load(prefilteredMapPath, readImage);
-
-		TextureData data = PREFILTERED_DATA;
-		data.generateMipMaps = false; // We set the mipmaps manually from store
-
-		prefilteredEnvMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
 	else
 	{
-		prefilteredEnvMap = prefilter(source, prefilteredSize);
-		readImage = StoreImage::create(prefilteredEnvMap.get());
+		auto texture = prefilter(source, prefilteredSize);
+		readImage = StoreImage::create(texture.get());
 		FileSystem::store(prefilteredMapPath, readImage);
 	}
 
@@ -558,22 +541,17 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	// if environment map has been compiled already and load it from file 
 	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(mStoreID) + ".probe");
 
-	StoreImage readImage;
-
+	StoreImage readImage; 
 
 	// if environment map has been compiled already and load it from file 
 	if (std::filesystem::exists(convolutedMapPath))
 	{
 		FileSystem::load(convolutedMapPath, readImage);
-
-		TextureData data = IRRADIANCE_DATA;
-
-		convolutedEnvironmentMap.reset((CubeMap*)Texture::createFromImage(readImage, data));
 	}
 	else
 	{
-		convolutedEnvironmentMap = convolute(source);
-		readImage = StoreImage::create(convolutedEnvironmentMap.get());
+		auto texture = convolute(source);
+		readImage = StoreImage::create(texture.get());
 		FileSystem::store(convolutedMapPath, readImage);
 	}
 
@@ -602,8 +580,8 @@ void PbrProbe::init(Texture* backgroundHDR,
 
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
-	mMaterial->setIrradianceMap(convolutedEnvironmentMap.get());
-	mMaterial->setPrefilterMap(prefilteredEnvMap.get());
+	mMaterial->setProbeFactory(mFactory);
+	mMaterial->setArrayIndex(mArrayIndex);
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 }
