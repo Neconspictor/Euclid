@@ -231,13 +231,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	if (std::filesystem::exists(brdfMapPath))
 	{
 		StoreImage readImage;
-		try
-		{
-			FileSystem::load(brdfMapPath, readImage);
-		}
-		catch (const std::exception&e)
-		{
-		}
+		FileSystem::load(brdfMapPath, readImage);
 
 		mBrdfLookupTexture.reset((Texture2D*)Texture::createFromImage(readImage, BRDF_DATA));
 	}
@@ -481,13 +475,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	if (std::filesystem::exists(environmentMapPath))
 	{
 		StoreImage readImage;
-		try
-		{
-			FileSystem::load(environmentMapPath, readImage);
-		}
-		catch (const std::exception&e)
-		{
-		}
+		FileSystem::load(environmentMapPath, readImage);
 
 		TextureData data = SOURCE_DATA;
 
