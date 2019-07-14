@@ -229,6 +229,11 @@ namespace nex
 		unsigned getLayerFaces();
 
 		/**
+		 * Provides the layer face start index of a cubemap having a given array index.
+		 */
+		static unsigned getLayerFaceIndex(unsigned arrayIndex);
+
+		/**
 		 * Resizes this array texture. Note that the current texels will be discarded.
 		 * NOTE: Has to be implemented by renderer backend
 		 */

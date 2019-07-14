@@ -316,6 +316,21 @@ StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned 
 	return store;
 }
 
+void nex::StoreImage::fill(CubeMapArray * texture, const StoreImage & store, unsigned arrayIndex)
+{
+	auto layerFaceStartIndex = CubeMapArray::getLayerFaceIndex(arrayIndex);
+
+	for (unsigned mipmap = 0; mipmap < store.mipmapCount; ++mipmap) {
+		for (unsigned i = 0; i < store.images.size(); ++i) {
+
+			const auto& image = store.images[i][mipmap];
+
+			texture->fill(0, 0, layerFaceStartIndex + i,
+				image.width, image.height, 1, mipmap, image.pixels.getPixels());
+		}
+	}
+}
+
 void nex::StoreImage::readback(nex::StoreImage & store, nex::Texture * texture, unsigned mipMapStart)
 {
 	const auto& data = texture->getTextureData();

@@ -1,4 +1,3 @@
-#include "..\..\..\..\engine\nex\texture\Texture.hpp"
 #include <nex/opengl/texture/TextureGL.hpp>
 #include <cassert>
 #include <nex/util/ExceptionHandling.hpp>
@@ -735,6 +734,11 @@ void nex::CubeMapArray::fill(unsigned xOffset, unsigned yOffset, unsigned zOffse
 unsigned nex::CubeMapArray::getLayerFaces()
 {
 	return ((CubeMapArrayGL*)mImpl.get())->getLayerFaces();
+}
+
+unsigned nex::CubeMapArray::getLayerFaceIndex(unsigned arrayIndex)
+{
+	return arrayIndex * 6;
 }
 
 void nex::CubeMapArray::resize(unsigned sideWidth, unsigned sideHeight, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)

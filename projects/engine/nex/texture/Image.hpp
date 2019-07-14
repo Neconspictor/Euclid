@@ -8,6 +8,7 @@ namespace nex
 {
 	class BinStream;
 	class Texture;
+	class CubeMapArray;
 
 	struct ImageResource
 	{
@@ -158,6 +159,11 @@ namespace nex
 		 * @param mipmapCount : The number of mipmaps to be stored. Is ignored if allMipMaps is set to true.
 		 */
 		static StoreImage create(Texture* texture, bool allMipMaps = true, unsigned mipMapStart = 0, unsigned mipmapCount = 1);
+
+		/**
+		 * Fills a cubemap at a given index from a store image.
+		 */
+		static void fill(CubeMapArray* texture, const StoreImage& store, unsigned arrayIndex);
 
 	private:
 		static void readback(StoreImage& store, Texture* texture, unsigned mipMapStart);
