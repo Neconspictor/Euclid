@@ -241,7 +241,7 @@ void PbrLightingData::updateConstants(Camera* camera)
 
 	auto* probe = mGlobalIllumination->getActiveProbe();
 
-	setLayerFaceIndex((float)probe->getLayerFaceIndex());
+	setLayerFaceIndex((float)CubeMapArray::getLayerFaceIndex(probe->getArrayIndex()));
 	setBrdfLookupTexture(probe->getBrdfLookupTexture());
 	setIrradianceMap(probe->getConvolutedEnvironmentMap());
 	setPrefilterMap(probe->getPrefilteredEnvironmentMap());

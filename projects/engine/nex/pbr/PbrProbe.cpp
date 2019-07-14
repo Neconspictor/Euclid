@@ -283,11 +283,6 @@ unsigned nex::PbrProbe::getArrayIndex() const
 	return mArrayIndex;
 }
 
-unsigned nex::PbrProbe::getLayerFaceIndex() const
-{
-	return mArrayIndex * 6;
-}
-
 Material* PbrProbe::getMaterial()
 {
 	return mMaterial.get();
@@ -552,15 +547,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 		FileSystem::store(prefilteredMapPath, readImage);
 	}
 
-	for (unsigned mipmap = 0; mipmap < readImage.mipmapCount; ++mipmap) {
-		for (unsigned i = 0; i < readImage.images.size(); ++i) {
-
-			const auto& image = readImage.images[i][mipmap];
-
-			mPrefilteredMaps->fill(0, 0, getLayerFaceIndex() + i,
-				image.width, image.height, 1, mipmap, image.pixels.getPixels());
-		}
-	}
+	StoreImage::fill(mPrefilteredMaps, readImage, mArrayIndex);
 }
 
 void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot)
@@ -573,19 +560,13 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	// if environment map has been compiled already and load it from file 
 	const std::filesystem::path convolutedMapPath = probeRoot / ("pbr_convolutedEnvMap_" + std::to_string(mStoreID) + ".probe");
 
+	StoreImage readImage;
+
 
 	// if environment map has been compiled already and load it from file 
 	if (std::filesystem::exists(convolutedMapPath))
 	{
-		StoreImage readImage;
-		try
-		{
-			FileSystem::load(convolutedMapPath, readImage);
-		}
-		catch (const std::exception&e)
-		{
-		}
-
+		FileSystem::load(convolutedMapPath, readImage);
 
 		TextureData data = IRRADIANCE_DATA;
 
@@ -594,9 +575,11 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	else
 	{
 		convolutedEnvironmentMap = convolute(source);
-		const StoreImage convolutedMapImage = StoreImage::create(convolutedEnvironmentMap.get());
-		FileSystem::store(convolutedMapPath, convolutedMapImage);
+		readImage = StoreImage::create(convolutedEnvironmentMap.get());
+		FileSystem::store(convolutedMapPath, readImage);
 	}
+
+	StoreImage::fill(mIrradianceMaps, readImage, mArrayIndex);
 }
 
 void PbrProbe::init(Texture* backgroundHDR,

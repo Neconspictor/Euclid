@@ -177,7 +177,9 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
     // irradianceMap in such a way, that we can use view space normals, too.
-    vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
+    //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
+    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, layerFaceIndex)).rgb;
+    
     vec3 diffuse      = irradiance * albedo;
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
@@ -185,8 +187,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
 	
     // Important: R has to be in world space, too.
     //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
-    //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, 0).rgb;
-    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, layerFaceIndex), 0).rgb;
+    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, layerFaceIndex), roughness * MAX_REFLECTION_LOD).rgb;
     
     
     

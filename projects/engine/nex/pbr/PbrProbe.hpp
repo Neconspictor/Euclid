@@ -84,7 +84,6 @@ namespace nex
 		static Mesh* getSphere();
 
 		unsigned getArrayIndex() const;
-		unsigned getLayerFaceIndex() const;
 
 		CubeMap* getConvolutedEnvironmentMap() const;
 
