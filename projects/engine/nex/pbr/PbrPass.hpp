@@ -79,10 +79,12 @@ namespace nex
 		void updateConstants(Camera* camera);
 
 	private:
-
+		void setLayerFaceIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMap(const Texture* irradianceMap);
 		void setPrefilterMap(const Texture* prefilterMap);
+		void setIrradianceMaps(const CubeMapArray* texture);
+		void setPrefilteredMaps(const CubeMapArray* texture);
 
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
@@ -103,6 +105,10 @@ namespace nex
 		UniformTex mBrdfLUT;
 		UniformTex mIrradianceMap;
 		UniformTex mPrefilterMap;
+		UniformTex mIrradianceMaps;
+		UniformTex mPrefilteredMaps;
+		Uniform mLayerFaceIndex;
+
 
 		// CSM
 		UniformTex mCascadedDepthMap;

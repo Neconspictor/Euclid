@@ -36,6 +36,12 @@ uniform mat4 inverseViewMatrix;
 layout(binding = 5) uniform samplerCube irradianceMap;
 layout(binding = 6) uniform samplerCube prefilterMap;
 layout(binding = 7) uniform sampler2D brdfLUT;
+
+layout(binding = 9) uniform samplerCubeArray irradianceMaps;
+layout(binding = 10) uniform samplerCubeArray prefilteredMaps;
+
+uniform float layerFaceIndex; //Note: an unsigned integer value represented as a float value
+
 /*layout(std140, binding = PBR_PROBES_BUFFER_BINDING_POINT) uniform PROBES {
     //Probe probes[PBR_PROBE_COUNT];
     samplerCube irradianceMap;
@@ -178,7 +184,12 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     const float MAX_REFLECTION_LOD = 7.0;
 	
     // Important: R has to be in world space, too.
-    vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
+    //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
+    //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, 0).rgb;
+    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, layerFaceIndex), 0).rgb;
+    
+    
+    
     //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);

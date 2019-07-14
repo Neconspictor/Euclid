@@ -283,6 +283,11 @@ unsigned nex::PbrProbe::getArrayIndex() const
 	return mArrayIndex;
 }
 
+unsigned nex::PbrProbe::getLayerFaceIndex() const
+{
+	return mArrayIndex * 6;
+}
+
 Material* PbrProbe::getMaterial()
 {
 	return mMaterial.get();
@@ -552,7 +557,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 
 			const auto& image = readImage.images[i][mipmap];
 
-			mPrefilteredMaps->fill(0, 0, mArrayIndex,
+			mPrefilteredMaps->fill(0, 0, getLayerFaceIndex() + i,
 				image.width, image.height, 1, mipmap, image.pixels.getPixels());
 		}
 	}

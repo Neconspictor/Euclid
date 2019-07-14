@@ -78,6 +78,11 @@ void PbrGeometryData::updateConstants(Camera* camera)
 	setNearFarPlane(camera->getNearFarPlaneViewSpace());
 }
 
+void nex::PbrLightingData::setLayerFaceIndex(float index)
+{
+	mShader->setFloat(mLayerFaceIndex.location, index);
+}
+
 void PbrLightingData::setBrdfLookupTexture(const Texture* brdfLUT)
 {
 	//mShader->setTextureByHandle(mBrdfLUT.location, brdfLUT);
@@ -94,6 +99,16 @@ void PbrLightingData::setPrefilterMap(const Texture* prefilterMap)
 {
 	//mShader->setTextureByHandle(mPrefilterMap.location, prefilterMap);
 	mShader->setTexture(prefilterMap, &mPrefilteredSampler, mPrefilterMap.bindingSlot);
+}
+
+void nex::PbrLightingData::setIrradianceMaps(const CubeMapArray * texture)
+{
+	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
+}
+
+void nex::PbrLightingData::setPrefilteredMaps(const CubeMapArray * texture)
+{
+	mShader->setTexture(texture, &mPrefilteredSampler, mPrefilteredMaps.bindingSlot);
 }
 
 void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
@@ -177,6 +192,11 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	// shaodw mapping
 	mCascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
+	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, 9);
+	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, 10);
+	mLayerFaceIndex = { mShader->getUniformLocation("layerFaceIndex"), UniformType::FLOAT };
+
+
 
 	mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
 	mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
@@ -221,10 +241,13 @@ void PbrLightingData::updateConstants(Camera* camera)
 
 	auto* probe = mGlobalIllumination->getActiveProbe();
 
-
+	setLayerFaceIndex((float)probe->getLayerFaceIndex());
 	setBrdfLookupTexture(probe->getBrdfLookupTexture());
 	setIrradianceMap(probe->getConvolutedEnvironmentMap());
 	setPrefilterMap(probe->getPrefilteredEnvironmentMap());
+
+	setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
+	setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
 
 	setAmbientLightPower(mAmbientLight->getPower());
 	setLightColor(mLight->getColor());
