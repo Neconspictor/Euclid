@@ -154,6 +154,7 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint) :
 	PbrBaseCommon(shader),
 	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
+	mProbesBuffer(2,sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 	mGlobalIllumination(globalIllumination),
 	
 	//cascadeBufferUBO(
@@ -249,6 +250,28 @@ void PbrLightingData::updateConstants(Camera* camera)
 	auto* buffer = mCascadeShadow->getCascadeBuffer();
 	buffer->bind(mCsmCascadeBindingPoint);
 	setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
+
+
+	mProbesBuffer.bind();
+
+	const auto&  probes = mGlobalIllumination->getProbes();
+	std::vector<ProbeData> probeData(probes.size());
+
+	for (unsigned i = 0; i < probeData.size(); ++i) {
+		auto& data = probeData[i];
+		const auto& probe = probes[i];
+		data.arrayIndex.x = probe->getArrayIndex();
+		data.positionWorld = glm::vec4(0.0f);
+	}
+
+	const auto oldCount = mProbesBuffer.getSize() / sizeof(ProbeData);
+
+	if (probeData.size() == oldCount) {
+		mProbesBuffer.update(probeData.data(), probeData.size() * sizeof(ProbeData));
+	}
+	else {
+		mProbesBuffer.resize(probeData.data(), probeData.size() * sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	}
 }
 
 PbrForwardPass::PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :

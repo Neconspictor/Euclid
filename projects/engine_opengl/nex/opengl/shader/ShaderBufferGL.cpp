@@ -13,7 +13,7 @@ nex::ShaderStorageBuffer::ShaderStorageBuffer(unsigned binding, size_t size, Sha
 	GLCall(glGenBuffers(1, &mRendererID));
 
 	GLCall(glBindBuffer(GL_SHADER_STORAGE_BUFFER, mRendererID));
-	createStore(nullptr, mSize, mUsageHint);
+	resize(nullptr, mSize, mUsageHint);
 	GLCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mBinding, mRendererID));
 }
 
@@ -73,7 +73,7 @@ void nex::ShaderStorageBuffer::syncWithGPU()
 	GLCall(glFinish());
 }
 
-void nex::ShaderStorageBuffer::createStore(void* data, size_t size, ShaderBuffer::UsageHint hint)
+void nex::ShaderStorageBuffer::resize(void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
 	GLCall(glNamedBufferData(mRendererID, size, data, translate(hint)));
 }

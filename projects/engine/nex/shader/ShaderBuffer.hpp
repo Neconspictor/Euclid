@@ -42,8 +42,6 @@ namespace nex
 
 		~ShaderStorageBuffer();
 
-
-
 		void bind();
 
 		/**
@@ -52,6 +50,7 @@ namespace nex
 		void bind(unsigned binding);
 		
 		size_t getSize() const;
+
 		ShaderBuffer::UsageHint getUsageHint() const;
 
 		/**
@@ -59,14 +58,36 @@ namespace nex
 		 */
 		void* map(ShaderBuffer::Access usage);
 
+		/**
+		 * Note: bind() has to be called before calling this function.
+		 */
 		void unbind();
-		void unmap();
 
 		/**
 		 * Note: bind() has to be called before calling this function.
 		 */
-		void update(const void* data, size_t size, size_t offset = 0);
+		void unmap();
+
+		/**
+		 * @param data : Used to initialize the buffer. Can be null for not initializing the buffer store.
+		 * @param size : The size of the buffer store to be created
+		 * @param hint : An hint how the store is going to be used.
+		 *
+		 */
+		void resize(void* data, size_t size, ShaderBuffer::UsageHint hint);
+
+
 		static void syncWithGPU();
+
+		/**
+		 * Updates the content of the buffer.
+		 * NOTE: The size of the new content mustn't exceed the size of the buffer. 
+		 * A greater size will result to undefined behaviour!
+		 * @param data : the new content
+		 * @param size: the size of the new content.
+		 * @param offset: start position for the update.
+		 */
+		void update(const void* data, size_t size, size_t offset = 0);
 
 
 	private:
@@ -74,15 +95,6 @@ namespace nex
 		unsigned int mBinding;
 		size_t mSize;
 		ShaderBuffer::UsageHint mUsageHint;
-
-		/**
-		 * @param data : Used to initialize the buffer. Can be null for not initializing the buffer store.
-		 * @param size : The size of the buffer store to be created
-		 * @param hint : An hint how the store is going to be used.
-		 *
-		 * Note: bind() has to be called before calling this function.
-		 */
-		void createStore(void* data, size_t size, ShaderBuffer::UsageHint hint);
 	};
 
 

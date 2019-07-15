@@ -4,8 +4,7 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 
 // Note: uniform buffers are different from shader storage buffers!
-#define PBR_PROBES_BUFFER_BINDING_POINT 2 
-#define PBR_PROBE_COUNT 1
+#define PBR_PROBES_BUFFER_BINDING_POINT 1 
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
@@ -38,11 +37,15 @@ layout(binding = 6) uniform samplerCubeArray prefilteredMaps;
 layout(binding = 7) uniform sampler2D brdfLUT;
 uniform float arrayIndex; //Note: an unsigned integer value represented as a float value
 
-/*layout(std140, binding = PBR_PROBES_BUFFER_BINDING_POINT) uniform PROBES {
-    //Probe probes[PBR_PROBE_COUNT];
-    samplerCube irradianceMap;
-    samplerCube prefilterMap;
-};*/
+
+struct Probe {
+    vec4 arrayIndex; // only first component is used
+    vec4 positionWorld; // last component isn't used
+};
+
+layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
+    Probe probes[]; // Each probe will be aligned to a multiple of vec4 
+};
 
 
 

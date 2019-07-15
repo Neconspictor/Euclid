@@ -485,7 +485,6 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	{
 		environmentMap = renderBackgroundToCube(backgroundHDR);
 		const StoreImage enviromentMapImage = StoreImage::create(environmentMap.get());
-		std::cout << "environmentMapPath = " << environmentMapPath << std::endl;
 		FileSystem::store(environmentMapPath, enviromentMapImage);
 	}
 
@@ -582,4 +581,15 @@ ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode)
 PbrProbe* ProbeVob::getProbe()
 {
 	return mProbe;
+}
+
+const PbrProbe::ProbeData * nex::ProbeVob::getProbeData() const
+{
+	return &mData;
+}
+
+void nex::ProbeVob::updateProbeData()
+{
+	mData.arrayIndex.x = mProbe->getArrayIndex();
+	mData.positionWorld = glm::vec4(mPosition, 0.0f);
 }

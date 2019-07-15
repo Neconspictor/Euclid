@@ -62,6 +62,11 @@ namespace nex
 			uint64_t prefiltered = 0;
 		};
 
+		struct ProbeData {
+			glm::vec4 arrayIndex;  // only first component is used
+			glm::vec4 positionWorld; // last component isn't used
+		};
+
 		static constexpr unsigned IRRADIANCE_SIZE = 32;
 		static constexpr unsigned BRDF_SIZE = 512;
 		static const TextureData BRDF_DATA;
@@ -143,7 +148,12 @@ namespace nex
 
 		PbrProbe* getProbe();
 
+		const PbrProbe::ProbeData* getProbeData() const;
+
+		void updateProbeData();
+
 	private:
 		PbrProbe* mProbe;
+		PbrProbe::ProbeData mData;
 	};
 }
