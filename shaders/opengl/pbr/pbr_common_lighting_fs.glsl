@@ -1,16 +1,24 @@
 #extension GL_ARB_bindless_texture : require
 
+#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
 #define CSM_CASCADE_BUFFER_BINDING_POINT 0
+#endif
+
+#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
+#endif
 
 // Note: uniform buffers are different from shader storage buffers!
+#ifndef PBR_PROBES_BUFFER_BINDING_POINT
 #define PBR_PROBES_BUFFER_BINDING_POINT 1 
+#endif
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
 
 
 const float PI = 3.14159265359;
+const float FLT_MAX = 3.402823466e+38;
 
 struct DirLight {
     vec3 directionEye;
@@ -44,7 +52,7 @@ struct Probe {
 };
 
 layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
-    Probe probes[]; // Each probe will be aligned to a multiple of vec4 
+    Probe probesData[]; // Each probe will be aligned to a multiple of vec4 
 };
 
 
@@ -56,6 +64,7 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
+float calcArrayIndex();
 
 
 void calcLighting(in float ao, 
@@ -125,6 +134,7 @@ void calcLighting(in float ao,
     colorOut = 0.5*cascadeColor + 0.5*colorOut;*/
 }
 
+
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
 	
     vec3 L = normalize(-dirLight.directionEye);
@@ -174,10 +184,15 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
+    
+    
+    float index = calcArrayIndex();
+    
+    
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
-    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, arrayIndex)).rgb;
+    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, index)).rgb;
     
     vec3 diffuse      = irradiance * albedo;
     
@@ -186,7 +201,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
 	
     // Important: R has to be in world space, too.
     //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
-    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex), roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, index), roughness * MAX_REFLECTION_LOD).rgb;
     
     
     
@@ -201,6 +216,26 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     
     //return mix(withoutRoughness, fullRoughness, roughness);
     return withoutRoughness;
+}
+
+float calcArrayIndex() {
+
+  float minDistance = FLT_MAX;
+  float arrayIndex = FLT_MAX;
+
+  for(int i = 0; i < probesData.length(); ++i ) {
+    Probe probeData = probesData[i];
+    
+    float currentDistance = length(probeData.positionWorld);
+    
+    if (currentDistance < minDistance) {
+        minDistance = currentDistance;
+        arrayIndex = probeData.arrayIndex.x;
+    }
+    
+  }
+  
+  return arrayIndex;
 }
 
 

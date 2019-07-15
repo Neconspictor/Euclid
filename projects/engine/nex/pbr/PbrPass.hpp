@@ -68,7 +68,7 @@ namespace nex
 	public:
 
 		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
-			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
+			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 1);
 
 		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
@@ -98,7 +98,6 @@ namespace nex
 
 		void setNearFarPlane(const glm::vec2& nearFarPlane);
 
-		unsigned mCsmCascadeBindingPoint;
 
 		//ibl
 		UniformTex mBrdfLUT;
@@ -125,9 +124,12 @@ namespace nex
 		Sampler mPrefilteredSampler;
 		Sampler mCascadedShadowMapSampler;
 
+		unsigned mPbrProbesDataBufferBindingPoint;
 		GlobalIllumination* mGlobalIllumination;
 
 		AmbientLight* mAmbientLight;
+
+		unsigned mCsmCascadeBindingPoint;
 		CascadedShadow* mCascadeShadow;
 		DirectionalLight* mLight;
 	};
@@ -157,6 +159,7 @@ namespace nex
 		PbrLightingData mLightingPass;
 
 		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
+		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 2;
 
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};

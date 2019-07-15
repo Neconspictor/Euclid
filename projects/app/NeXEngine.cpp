@@ -434,10 +434,12 @@ void NeXEngine::initPbr()
 
 void NeXEngine::initProbes()
 {
+
 	auto probe = std::make_unique<PbrProbe>();
+	auto probe2 = std::make_unique<PbrProbe>();
 
 	//RenderBackend::get()->flushPendingCommands();
-	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get()]() {
+	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get(), pointer2 = probe2.get()]() {
 
 		TextureManager* textureManager = TextureManager::get();
 		nex::TextureData textureData = {
@@ -451,14 +453,16 @@ void NeXEngine::initProbes()
 				InternFormat::RGB32F,
 				false };
 		auto* hdr = textureManager->getImage("hdr/newport_loft.hdr", textureData);
+		auto* hdr2 = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
 		mGlobalIllumination->getFactory()->initProbe(pointer, hdr, 0);
+		mGlobalIllumination->getFactory()->initProbe(pointer2, hdr2, 1);
 
 		return pointer;
 	});
 
 	probe->setIsLoadedStatus(std::move(future));
 
-	probe->getIsLoadedStatus().get();
+	//probe->getIsLoadedStatus().get();
 
 	//auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
 	//auto probe = mGlobalIllumination->getFactory()->create(hdr, 1);
@@ -466,6 +470,7 @@ void NeXEngine::initProbes()
 	//probe->getIsLoadedStatus().get();
 	//mGlobalIllumination->addProbe(std::move(probe));
 	mGlobalIllumination->addProbe(std::move(probe));
+	mGlobalIllumination->addProbe(std::move(probe2));
 	
 	//ResourceLoader::get()->enqueue([=]() {
 		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();

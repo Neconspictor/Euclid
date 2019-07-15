@@ -151,10 +151,11 @@ void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 }
 
 nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globalIllumination, 
-	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint) :
+	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned pbrProbesBufferBindingPoint) :
 	PbrBaseCommon(shader),
-	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
+	mPbrProbesDataBufferBindingPoint(pbrProbesBufferBindingPoint),
 	mGlobalIllumination(globalIllumination),
+	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
 	
 	//cascadeBufferUBO(
 	//	CSM_CASCADE_BUFFER_BINDING_POINT, 
@@ -252,13 +253,13 @@ void PbrLightingData::updateConstants(Camera* camera)
 
 
 	auto* probesBuffer = mGlobalIllumination->getProbesShaderBuffer();
-	probesBuffer->bind(2);
+	probesBuffer->bind(mPbrProbesDataBufferBindingPoint);
 }
 
 PbrForwardPass::PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
 	PbrGeometryPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
-	mLightingPass(mShader.get(), globalIllumination, cascadedShadow)
+	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, 0, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	/*mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -363,6 +364,9 @@ std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascade
 	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
 	// for the TransformBuffer
 	vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
+
+	// probes buffer must use another binding point, too.
+	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
 
 	return vec;
 }

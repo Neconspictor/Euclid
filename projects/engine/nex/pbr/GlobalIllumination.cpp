@@ -9,7 +9,7 @@
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
-mFactory(prefilteredSize, depth), mProbesBuffer(2, sizeof(ProbeData), ShaderBuffer::UsageHint::STATIC_READ)
+mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
 {
 }
 
@@ -73,13 +73,13 @@ void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)
 {
 	mProbesData.resize(activeProbes.size());
-	auto* data = mProbesData.data();
+	ProbeVob::ProbeData* data = mProbesData.data();
 
 	unsigned counter = 0;
 
-	for (const auto& vob : activeProbes) {
-
-		data[counter].positionWorld = glm::vec4(vob->getPosition(), 0);
+	for (auto* vob : activeProbes) {
+		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
+		data[counter].positionWorld = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
 		data[counter].arrayIndex.x = vob->getProbe()->getArrayIndex();
 		++counter;
 	}
@@ -90,6 +90,6 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		mProbesBuffer.update(data, mProbesData.memSize());
 	}
 	else {
-		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::STATIC_READ);
+		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	}
 }
