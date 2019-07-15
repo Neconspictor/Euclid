@@ -55,16 +55,22 @@ layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
     Probe probesData[]; // Each probe will be aligned to a multiple of vec4 
 };
 
+struct ArrayIndexWeight {
+    float firstIndex;
+    float firstWeight;
+    float secondIndex;
+};
+
 
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo);
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao);
+vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao, vec3 positionWorld);
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
-float calcArrayIndex();
+ArrayIndexWeight calcArrayIndices(in vec3 positionWorld);
 
 
 void calcLighting(in float ao, 
@@ -97,7 +103,9 @@ void calcLighting(in float ao,
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo);
     
-    vec3 ambient =  pbrAmbientLight(viewEye, normalEye, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao);
+    
+    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+    vec3 ambient =  pbrAmbientLight(viewEye, normalEye, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld);
     
     float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
     
@@ -176,7 +184,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao) {
+vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao, vec3 positionWorld) {
 	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
@@ -184,25 +192,33 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
+    ArrayIndexWeight indexWeight = calcArrayIndices(positionWorld);
     
-    
-    float index = calcArrayIndex();
     
     
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
-    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, index)).rgb;
+    vec3 irradiance1 = texture(irradianceMaps, vec4(normalWorld, indexWeight.firstIndex)).rgb;
+    vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.secondIndex)).rgb;
     
-    vec3 diffuse      = irradiance * albedo;
+    //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
+    vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
+    
+    vec3 diffuse      =  irradiance * albedo;
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 7.0;
+    
+    
+    
 	
     // Important: R has to be in world space, too.
     //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
-    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, index), roughness * MAX_REFLECTION_LOD).rgb;
-    
+    vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.firstIndex), roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.secondIndex), roughness * MAX_REFLECTION_LOD).rgb;
+    //vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
+    vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
     
     
     //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
@@ -218,24 +234,36 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     return withoutRoughness;
 }
 
-float calcArrayIndex() {
+ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
 
   float minDistance = FLT_MAX;
+  float minDistance2 = FLT_MAX;
   float arrayIndex = FLT_MAX;
+  float arrayIndex2 = FLT_MAX;
 
-  for(int i = 0; i < probesData.length(); ++i ) {
-    Probe probeData = probesData[i];
-    
-    float currentDistance = length(probeData.positionWorld);
-    
-    if (currentDistance < minDistance) {
-        minDistance = currentDistance;
-        arrayIndex = probeData.arrayIndex.x;
-    }
-    
+
+  Probe probeData1 = probesData[0];
+  arrayIndex = probeData1.arrayIndex.x;
+  minDistance = length(probeData1.positionWorld.xyz - positionWorld);
+  
+  Probe probeData2 = probesData[1];
+  arrayIndex2 = probeData2.arrayIndex.x;
+  minDistance2 = length(probeData2.positionWorld.xyz - positionWorld);
+  
+  float distanceSum = minDistance + minDistance2;
+  
+  ArrayIndexWeight result;
+  result.firstIndex = arrayIndex;
+  result.firstWeight = 1.0 - smoothstep(8.0, 10.0, minDistance);
+  
+  if (result.firstWeight == 0 && minDistance < minDistance2) {
+    result.firstWeight = 1.0;
   }
   
-  return arrayIndex;
+  
+  result.secondIndex = arrayIndex2;
+  
+  return result;
 }
 
 
