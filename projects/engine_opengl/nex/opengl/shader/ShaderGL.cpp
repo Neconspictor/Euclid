@@ -164,7 +164,7 @@ void nex::Shader::setDebugName(const char* name)
 	mImpl->setDebugName(name);
 }
 
-nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShaderStageDesc& desc)
+std::unique_ptr<nex::ShaderStage> nex::ShaderStage::compileShaderStage(const nex::ResolvedShaderStageDesc& desc)
 {
 	static Logger logger("nex::ShaderStage::compileShaderStage");
 	LOG(logger, LogLevel::Info) << "compiling " << desc.root.filePath;
@@ -199,7 +199,7 @@ nex::ShaderStage* nex::ShaderStage::compileShaderStage(const nex::ResolvedShader
 		//return GL_FALSE;
 	}
 
-	return new ShaderStageGL(id, desc.type);
+	return std::make_unique<ShaderStageGL>(id, desc.type);
 }
 
 
@@ -540,7 +540,7 @@ std::unique_ptr<nex::Shader> nex::Shader::create(
 	return std::make_unique<Shader>(std::make_unique<Shader::Impl>(programID));
 }
 
-std::unique_ptr<nex::Shader> nex::Shader::create(const std::vector<Guard<ShaderStage>>& stages)
+std::unique_ptr<nex::Shader> nex::Shader::create(const std::vector<std::unique_ptr<ShaderStage>>& stages)
 {
 	GLuint programID = Impl::createShaderProgram(stages);
 	return std::make_unique<Shader>(std::make_unique<Shader::Impl>(programID));
@@ -556,7 +556,7 @@ GLuint nex::Shader::Impl::loadShaders(const std::vector<UnresolvedShaderStageDes
 	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get(); 
 	ProgramSources programSources = generator->generate(stageDescs);
 
-	std::vector<Guard<ShaderStage>> shaderStages;
+	std::vector<std::unique_ptr<ShaderStage>> shaderStages;
 	shaderStages.resize(programSources.descs.size());
 	for (auto i = 0;  i < shaderStages.size(); ++i)
 	{
@@ -699,7 +699,7 @@ GLuint nex::Shader::Impl::compileShaderStage(const ResolvedShaderStageDesc& desc
 	return id;
 }
 
-GLuint nex::Shader::Impl::createShaderProgram(const std::vector<Guard<ShaderStage>>& stages)
+GLuint nex::Shader::Impl::createShaderProgram(const std::vector<std::unique_ptr<ShaderStage>>& stages)
 {
 	GLuint program;
 	int infoLogLength;

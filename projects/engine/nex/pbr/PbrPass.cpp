@@ -254,23 +254,15 @@ void PbrLightingData::updateConstants(Camera* camera)
 
 	mProbesBuffer.bind();
 
-	const auto&  probes = mGlobalIllumination->getProbes();
-	std::vector<ProbeData> probeData(probes.size());
+	const auto&  probesData = mGlobalIllumination->getProbesData();
 
-	for (unsigned i = 0; i < probeData.size(); ++i) {
-		auto& data = probeData[i];
-		const auto& probe = probes[i];
-		data.arrayIndex.x = probe->getArrayIndex();
-		data.positionWorld = glm::vec4(0.0f);
-	}
+	const auto oldSize = mProbesBuffer.getSize();
 
-	const auto oldCount = mProbesBuffer.getSize() / sizeof(ProbeData);
-
-	if (probeData.size() == oldCount) {
-		mProbesBuffer.update(probeData.data(), probeData.size() * sizeof(ProbeData));
+	if (probesData.memSize() == oldSize) {
+		mProbesBuffer.update(probesData.data(), probesData.memSize());
 	}
 	else {
-		mProbesBuffer.resize(probeData.data(), probeData.size() * sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+		mProbesBuffer.resize(probesData.data(), probesData.memSize(), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	}
 }
 

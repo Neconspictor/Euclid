@@ -23,9 +23,9 @@ namespace nex
 		mChildren.clear();
 	}
 
-	SceneNode::Children SceneNode::getChildren() const
+	const SceneNode::Children& SceneNode::getChildren() const
 	{
-		return  { mChildren.begin(), mChildren.end() };
+		return  mChildren;
 	}
 
 	Mesh* SceneNode::getMesh() const
@@ -101,8 +101,8 @@ namespace nex
 
 			auto children = node->getChildren();
 
-			for (auto it = children.begin; it != children.end; ++it)
-				queue.push(*it);
+			for (auto* child : children)
+				queue.push(child);
 		}
 	}
 
@@ -130,9 +130,7 @@ namespace nex
 			mPrevWorldTrafo = mWorldTrafo;
 	}
 
-	Scene::Scene()
-	{
-	}
+	Scene::Scene() = default;
 
 	UniqueLock Scene::acquireLock() const {
 		return UniqueLock(mMutex);
@@ -141,11 +139,15 @@ namespace nex
 	void Scene::addActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.insert(vob);
+		if (vob->getType() == VobType::Probe)
+			mActiveProbeVobs.insert((ProbeVob*)vob);
 	}
 
 	void Scene::removeActiveVobUnsafe(Vob* vob)
 	{
 		mActiveVobs.erase(vob);
+		if (vob->getType() == VobType::Probe)
+			mActiveProbeVobs.erase((ProbeVob*)vob);
 	}
 
 	SceneNode* Scene::createNodeUnsafe(SceneNode* parent)
@@ -192,9 +194,14 @@ namespace nex
 		mVobStore.clear();
 	}
 
-	const std::unordered_set<Vob*>& Scene::getActiveVobsUnsafe() const
+	const Scene::VobRange& Scene::getActiveVobsUnsafe() const
 	{
 		return mActiveVobs;
+	}
+
+	const Scene::ProbeRange& Scene::getActiveProbeVobsUnsafe() const
+	{
+		return mActiveProbeVobs;
 	}
 
 	void Scene::updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo)
@@ -204,7 +211,8 @@ namespace nex
 	}
 
 
-	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true)
+	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true),
+		mType(VobType::Normal)
 	{
 
 	}
@@ -242,6 +250,11 @@ namespace nex
 	bool Vob::getSelectable() const
 	{
 		return mSelectable;
+	}
+
+	VobType Vob::getType() const
+	{
+		return mType;
 	}
 
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
@@ -332,8 +345,8 @@ namespace nex
 			nodes.pop();
 
 			const auto children = node->getChildren();
-			for (auto it = children.begin; it != children.end; ++it)
-				nodes.push(*it);
+			for (auto* child : children)
+				nodes.push(child);
 
 
 			const auto* mesh = node->getMesh();

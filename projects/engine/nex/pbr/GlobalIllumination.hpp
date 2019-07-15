@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <nex/pbr/PbrProbe.hpp>
-
+#include <nex/util/Array.hpp>
 
 namespace nex
 {
@@ -14,27 +14,31 @@ namespace nex
 	{
 	public:
 
+		using ProbesData = PerformanceCBuffer<ProbeVob::ProbeData>;
+
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
 
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 
-		Vob* createVobUnsafe(PbrProbe* probe, Scene& scene);
+		ProbeVob* createVobUnsafe(PbrProbe* probe, Scene& scene);
 		void addProbe(std::unique_ptr<PbrProbe>);
 
 		PbrProbe* getActiveProbe();
-
+		PbrProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
 		CubeMapArray* getPrefilteredMaps();
-
-		PbrProbeFactory* getFactory();
+		const ProbesData& getProbesData() const;
 
 		void setActiveProbe(PbrProbe* probe);
+
+		void update(const nex::Scene::ProbeRange& activeProbes);
 
 	private:
 
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
+		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
 	};

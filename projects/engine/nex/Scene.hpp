@@ -3,6 +3,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <vector>
 #include <memory>
+#include <nex/util/Iterator.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -14,12 +15,12 @@ namespace nex
 {
 	class Mesh;
 	class Material;
+	class ProbeVob;
 
-	template<class Iterator>
-	struct IteratorRange
-	{
-		Iterator begin;
-		Iterator end;
+
+	enum class VobType {
+		Normal,
+		Probe
 	};
 
 
@@ -27,13 +28,13 @@ namespace nex
 	{
 	public:
 
-		using Children = IteratorRange<std::vector<SceneNode*>::const_iterator>;
+		using Children = std::vector<SceneNode*>;
 
 		SceneNode();
 
 		void addChild(SceneNode* node);
 		void clear();
-		Children getChildren() const;
+		const Children& getChildren() const;
 		Mesh* getMesh() const;
 		Material* getMaterial() const;
 		SceneNode* getParent();
@@ -79,6 +80,9 @@ namespace nex
 	{
 	public:
 
+		using VobRange = std::unordered_set<Vob*>;
+		using ProbeRange = std::unordered_set<ProbeVob*>;
+
 		/**
 		 * Creates a new scene object.
 		 */
@@ -100,7 +104,12 @@ namespace nex
 		/**
 		 * Provides all vobs that are currently active.
 		 */
-		const std::unordered_set<Vob*>& getActiveVobsUnsafe() const;
+		const VobRange& getActiveVobsUnsafe() const;
+
+		/**
+		 * Provides all probe vobs that are currently active.
+		 */
+		const ProbeRange& getActiveProbeVobsUnsafe() const;
 
 		/**
 		 * Provides all vobs of this scene.
@@ -115,6 +124,7 @@ namespace nex
 
 	private:
 		std::unordered_set<Vob*> mActiveVobs;
+		std::unordered_set<ProbeVob*> mActiveProbeVobs;
 		std::vector<std::unique_ptr<SceneNode>> mNodes;
 		std::vector<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
@@ -136,6 +146,8 @@ namespace nex
 		const glm::quat& getRotation() const;
 		const glm::vec3& getScale() const;
 		bool getSelectable() const;
+
+		VobType getType() const;
 
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		void rotateGlobal(const glm::vec3& eulerAngles);
@@ -182,5 +194,8 @@ namespace nex
 		glm::vec3 mScale;
 		bool mSelectable;
 		AABB mBoundingBox;
+
+		// Note: We use this meber field for optimzation (avoids dynamic casts)
+		VobType mType;
 	};
 }

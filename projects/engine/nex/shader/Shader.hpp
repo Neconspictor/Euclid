@@ -1,6 +1,5 @@
 #pragma once
 #include <nex/util/StringUtils.hpp>
-#include <nex/util/Memory.hpp>
 #include <ostream>
 #include <nex/shader/ShaderType.hpp>
 #include <nex/texture/Sampler.hpp>
@@ -51,11 +50,11 @@ namespace nex
 		virtual ~ShaderStage() = default;
 
 		/**
-		 * Creates a new ShaderStage object. The object has to be freed by the caller.
+		 * Creates a new ShaderStage object.
 		 * 
 		 * @throws ShaderInitException: If the shader stage couldn't be compiled.
 		 */
-		static nex::ShaderStage* compileShaderStage(const nex::ResolvedShaderStageDesc& desc);
+		static std::unique_ptr<nex::ShaderStage> compileShaderStage(const nex::ResolvedShaderStageDesc& desc);
 
 		ShaderStageType getType() const
 		{
@@ -140,7 +139,7 @@ namespace nex
 		/**
 		 * Creates a shader from a list of shader stages.
 		 */
-		static std::unique_ptr<Shader> create(const std::vector<Guard<ShaderStage>>& stages);
+		static std::unique_ptr<Shader> create(const std::vector<std::unique_ptr<ShaderStage>>& stages);
 
 		/**
 		 * Checks if the shader is currently bound

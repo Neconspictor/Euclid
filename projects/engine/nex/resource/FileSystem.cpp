@@ -3,7 +3,6 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "nex/common/Log.hpp"
-#include <nex/util/Memory.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <regex>
 using namespace nex;
@@ -202,7 +201,7 @@ void FileSystem::writeToFile(const std::string& path, const std::vector<char>& s
 char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* fileSize)
 {
 	std::ifstream file;
-	nex::MemGuard content(nullptr);
+	std::unique_ptr<char[]> content;
 	*fileSize = 0;
 	nex::Logger logger("FileSystem");
 
@@ -221,8 +220,7 @@ char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* 
 		buffer->pubseekpos(0, file.in);
 
 		// allocate memory to contain file data
-		char* memory = new char[*fileSize];
-		content.setContent(memory);
+		content = std::make_unique<char[]>(*fileSize);
 
 		//copy data to content buffer
 		buffer->sgetn(content.get(), *fileSize);
@@ -248,10 +246,7 @@ char* FileSystem::getBytesFromFile(const std::string& filePath, std::streampos* 
 	file.exceptions((std::ios_base::iostate)0);
 	file.close();
 
-	char* result = content.get();
-	content.setContent(nullptr);
-
-	return result;
+	return content.release();
 }
 
 std::streampos  FileSystem::getFileSize(const std::string& filePath)

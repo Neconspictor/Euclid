@@ -253,12 +253,13 @@ set(
     
     
 	#nex/util
+    nex/util/Array.hpp
     nex/util/CallbackContainer.hpp
     nex/util/ExceptionHandling.cpp
 	nex/util/ExceptionHandling.hpp
 	nex/util/FPSCounter.hpp
-	nex/util/Macro.hpp
-    nex/util/Memory.hpp
+	nex/util/Iterator.hpp
+    nex/util/Macro.hpp
     nex/util/PointerUtils.hpp
     nex/util/Signal.hpp
     nex/util/StringUtils.hpp

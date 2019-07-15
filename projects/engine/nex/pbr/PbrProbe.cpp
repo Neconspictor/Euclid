@@ -576,6 +576,7 @@ void PbrProbe::init(Texture* backgroundHDR,
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)
 {
 	assert(mProbe != nullptr);
+	mType = VobType::Probe;
 }
 
 PbrProbe* ProbeVob::getProbe()
@@ -583,7 +584,7 @@ PbrProbe* ProbeVob::getProbe()
 	return mProbe;
 }
 
-const PbrProbe::ProbeData * nex::ProbeVob::getProbeData() const
+const nex::ProbeVob::ProbeData * nex::ProbeVob::getProbeData() const
 {
 	return &mData;
 }

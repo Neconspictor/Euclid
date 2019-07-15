@@ -73,7 +73,7 @@ void nex::ShaderStorageBuffer::syncWithGPU()
 	GLCall(glFinish());
 }
 
-void nex::ShaderStorageBuffer::resize(void* data, size_t size, ShaderBuffer::UsageHint hint)
+void nex::ShaderStorageBuffer::resize(const void* data, size_t size, ShaderBuffer::UsageHint hint)
 {
 	GLCall(glNamedBufferData(mRendererID, size, data, translate(hint)));
 }

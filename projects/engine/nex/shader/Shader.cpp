@@ -21,7 +21,7 @@ std::unique_ptr<nex::Shader> nex::Shader::createComputeShader(const ShaderFilePa
 	ShaderSourceFileGenerator* generator = ShaderSourceFileGenerator::get();
 	ProgramSources programSources = generator->generate(unresolved);
 
-	std::vector<Guard<ShaderStage>> shaderStages;
+	std::vector<std::unique_ptr<ShaderStage>> shaderStages;
 	shaderStages.resize(programSources.descs.size());
 	for (unsigned i = 0; i < shaderStages.size(); ++i)
 	{

@@ -115,7 +115,7 @@ namespace nex
 		 * Creates a new shader program.
 		 * @throws ShaderException: If the program couldn't be created.
 		 */
-		static GLuint createShaderProgram(const std::vector<Guard<ShaderStage>>& stages);
+		static GLuint createShaderProgram(const std::vector<std::unique_ptr<ShaderStage>>& stages);
 
 		/**
 		 * @param shaderSourceFile The source file for that an unfolded version should be written for.

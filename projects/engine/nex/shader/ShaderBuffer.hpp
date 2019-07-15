@@ -74,7 +74,7 @@ namespace nex
 		 * @param hint : An hint how the store is going to be used.
 		 *
 		 */
-		void resize(void* data, size_t size, ShaderBuffer::UsageHint hint);
+		void resize(const void* data, size_t size, ShaderBuffer::UsageHint hint);
 
 
 		static void syncWithGPU();

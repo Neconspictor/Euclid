@@ -238,6 +238,13 @@ void NeXEngine::run()
 			collectRenderCommands(commandQueue, mScene);
 			commandQueue->sort();
 
+			{
+				mScene.acquireLock();
+				mGlobalIllumination->update(mScene.getActiveProbeVobsUnsafe());
+			}
+
+			
+
 			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 			mControllerSM->getDrawable()->drawGUI();
 			
@@ -285,10 +292,9 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 
 			auto range = node->getChildren();
 
-			for (auto it = range.begin; it != range.end; ++it)
+			for (auto* node : range)
 			{
-				SceneNode* n = *it;
-				queue.push_back(n);
+				queue.push_back(node);
 			}
 
 			auto* mesh = node->getMesh();
@@ -352,8 +358,8 @@ void NeXEngine::createScene()
 	//(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
 	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
 	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
+	(*(transparentVob3->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
+	(*(transparentVob3->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
 
 	//transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
