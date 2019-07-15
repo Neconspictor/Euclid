@@ -9,7 +9,7 @@
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
-mFactory(prefilteredSize, depth)
+mFactory(prefilteredSize, depth), mProbesBuffer(2, sizeof(ProbeData), ShaderBuffer::UsageHint::STATIC_READ)
 {
 }
 
@@ -55,6 +55,11 @@ const nex::GlobalIllumination::ProbesData & nex::GlobalIllumination::getProbesDa
 	return mProbesData;
 }
 
+nex::ShaderStorageBuffer * nex::GlobalIllumination::getProbesShaderBuffer()
+{
+	return &mProbesBuffer;
+}
+
 nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 {
 	return &mFactory;
@@ -77,5 +82,14 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		data[counter].positionWorld = glm::vec4(vob->getPosition(), 0);
 		data[counter].arrayIndex.x = vob->getProbe()->getArrayIndex();
 		++counter;
+	}
+
+	const auto oldSize = mProbesBuffer.getSize();
+
+	if (mProbesData.memSize() == oldSize) {
+		mProbesBuffer.update(data, mProbesData.memSize());
+	}
+	else {
+		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::STATIC_READ);
 	}
 }

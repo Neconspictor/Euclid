@@ -3,6 +3,8 @@
 #include <memory>
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/util/Array.hpp>
+#include <glm/glm.hpp>
+#include <nex/shader/ShaderBuffer.hpp>
 
 namespace nex
 {
@@ -13,6 +15,11 @@ namespace nex
 	class GlobalIllumination
 	{
 	public:
+
+		struct ProbeData {
+			glm::vec4 arrayIndex;  // only first component is used
+			glm::vec4 positionWorld; // last component isn't used
+		};
 
 		using ProbesData = PerformanceCBuffer<ProbeVob::ProbeData>;
 
@@ -30,6 +37,7 @@ namespace nex
 		CubeMapArray* getIrradianceMaps();
 		CubeMapArray* getPrefilteredMaps();
 		const ProbesData& getProbesData() const;
+		ShaderStorageBuffer* getProbesShaderBuffer();
 
 		void setActiveProbe(PbrProbe* probe);
 
@@ -38,6 +46,7 @@ namespace nex
 	private:
 
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
+		ShaderStorageBuffer mProbesBuffer;
 		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;

@@ -67,11 +67,6 @@ namespace nex
 	{
 	public:
 
-		struct ProbeData {
-			glm::vec4 arrayIndex;  // only first component is used
-			glm::vec4 positionWorld; // last component isn't used
-		};
-
 		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0);
 
@@ -110,7 +105,6 @@ namespace nex
 		UniformTex mIrradianceMaps;
 		UniformTex mPrefilteredMaps;
 		Uniform mArrayIndex;
-		ShaderStorageBuffer mProbesBuffer;
 
 
 		// CSM
