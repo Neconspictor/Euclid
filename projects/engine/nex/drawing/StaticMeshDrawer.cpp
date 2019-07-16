@@ -112,12 +112,20 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, con
 	indexBuffer->bind();
 
 	thread_local auto* backend = RenderBackend::get();
+	thread_local RenderState defaultState;
 
 
 	//set render state
 	const RenderState* state = nullptr;
-	if (overwriteState != nullptr) state = overwriteState;
-	else state = &material->getRenderState();
+	if (overwriteState != nullptr) {
+		state = overwriteState;
+	}
+	else if (material) {
+		state = &material->getRenderState();
+	}
+	else {
+		state = &defaultState;
+	}
 
 	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
 }
