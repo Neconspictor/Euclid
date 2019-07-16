@@ -59,6 +59,7 @@ struct ArrayIndexWeight {
     float firstIndex;
     float firstWeight;
     float secondIndex;
+    float secondWeight;
 };
 
 
@@ -203,7 +204,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.secondIndex)).rgb;
     
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
-    vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
+    vec3 irradiance = indexWeight.firstWeight * irradiance1 + (indexWeight.secondWeight) * irradiance2;
     
     vec3 diffuse      =  irradiance * albedo;
     
@@ -218,7 +219,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.firstIndex), roughness * MAX_REFLECTION_LOD).rgb;
     vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.secondIndex), roughness * MAX_REFLECTION_LOD).rgb;
     //vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
-    vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
+    vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (indexWeight.secondWeight) * prefilteredColor2;
     
     
     //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
@@ -250,18 +251,50 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
   arrayIndex2 = probeData2.arrayIndex.x;
   minDistance2 = length(probeData2.positionWorld.xyz - positionWorld);
   
-  float distanceSum = minDistance + minDistance2;
+  float distanceDiff = length(minDistance - minDistance2);
   
   ArrayIndexWeight result;
   result.firstIndex = arrayIndex;
-  result.firstWeight = 1.0 - smoothstep(8.0, 10.0, minDistance);
+  result.secondIndex = arrayIndex2;
   
-  if (result.firstWeight == 0 && minDistance < minDistance2) {
-    result.firstWeight = 1.0;
+  
+  vec3 normal = normalize(probeData2.positionWorld.xyz - probeData1.positionWorld.xyz);
+  vec3 origin = probeData1.positionWorld.xyz + 0.5 * distanceDiff * normal;
+  float signDist = dot(normal, origin);
+  float signDistMin = dot(normal, positionWorld);
+  float normalizedDistToPlane = abs(signDist - signDistMin) / distanceDiff;
+  
+  
+  
+  const float innerRadius = 2.0;
+  const float outerRadiusDiff = 70.0;
+  
+  if (minDistance < innerRadius) {
+  result.firstWeight = 1.0;
+  } else {
+  
+    result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
   }
   
+   result.secondWeight = 0.2;
   
-  result.secondIndex = arrayIndex2;
+  //if (minDistance2 < innerRadius) {
+  //result.secondWeight = 1.0;
+  //} else {
+ // 
+  //  result.secondWeight = pow(max(1.0 - (minDistance2 - innerRadius) / outerRadiusDiff, 0.0), 2.0);
+  //}
+  
+  
+  //normalize weights
+  //const float weightSum = result.firstWeight + result.secondWeight;
+  
+  /*if (weightSum > 1) {
+    result.firstWeight = clamp(0, 1, result.firstWeight / weightSum);
+    result.secondWeight = clamp(0, 1, result.secondWeight / weightSum);
+  }*/
+  
+  
   
   return result;
 }
