@@ -1,5 +1,6 @@
 #include <nex/math/Sphere.hpp>
 #include "Ray.hpp"
+#include <nex/math/BoundingBox.hpp>
 
 nex::Sphere::Sphere(const glm::vec3& origin, float radius) : origin(origin), radius(radius)
 {
@@ -45,6 +46,20 @@ nex::Sphere::RayIntersection nex::Sphere::intersects(const Ray& ray) const
 	result.secondMultiplier = (-b + rootDiscriminant) / twoA;
 
 	return result;
+}
+
+bool nex::Sphere::intersects(const AABB & box) const
+{
+	if (box.min.x == -FLT_MAX) return true;
+
+	// Algorithm by Jim Arvo in Graphics Gems 2
+	float r2 = radius * radius;
+	float dmin = 0;
+	for (int i = 0; i < 3; i++) {
+		if (origin[i] < box.min[i]) dmin += std::sqrtf(origin[i] - box.min[i]);
+		else if (origin[i] > box.max[i]) dmin += std::sqrtf(origin[i] - box.max[i]);
+	}
+	return dmin <= r2;
 }
 
 bool nex::Sphere::isInHull(const glm::vec3& p) const

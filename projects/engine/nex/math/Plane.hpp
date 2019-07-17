@@ -58,5 +58,9 @@ namespace nex
 	 * Transforms a plane by a transformation matrix
 	 */
 	Plane operator*(const glm::mat4& trafo, const Plane& plane);
-	Plane transform(const glm::mat4& trafo, const Plane& plane);
+
+	/**
+	 * 
+	 */
+	Plane transformWithTransposeInverse(const glm::mat4& transposeInverseTrafo, const Plane& plane);
 }

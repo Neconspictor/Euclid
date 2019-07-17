@@ -2,6 +2,7 @@
 #include <nex/renderer/RenderCommand.hpp>
 #include <vector>
 #include <unordered_set>
+#include <nex/math/Sphere.hpp>
 
 
 namespace nex
@@ -15,49 +16,68 @@ namespace nex
 	{
 	public:
 
+		using BufferCollection = std::vector<const std::vector<RenderCommand>*>;
+		using Buffer = std::vector<RenderCommand>;
+
+		enum class CullingMethod {
+			FRUSTUM,
+			FRUSTUM_SPHERE
+		};
+
+		enum BufferType {
+			Deferrable = 1 << 0,
+			Forward =  1 << 1,
+			Transparent = 1 << 2,
+			Shadow = 1 << 3,
+		};
+
 		RenderCommandQueue(Camera* camera = nullptr);
 
 		void clear();
 
+
+		BufferCollection getCommands(int types) const;
+
 		/**
 		 * Provides pbr render commands that can be rendered in a deferred way.
 		 */
-		const std::vector<RenderCommand>& getDeferrablePbrCommands() const;
+		const Buffer& getDeferrablePbrCommands() const;
 
 		/**
 		 * Render commands that must be rendered in a forward way.
 		 */
-		const std::vector<RenderCommand>& getForwardCommands() const;
+		const Buffer& getForwardCommands() const;
 		const std::multimap<unsigned, nex::RenderCommand>& getToolCommands() const;
-		const std::vector<RenderCommand>& getTransparentCommands() const;
-		const std::vector<RenderCommand>& getShadowCommands() const;
+		const Buffer& getTransparentCommands() const;
+		const Buffer& getShadowCommands() const;
 		const std::unordered_set<nex::Technique*>& getTechniques() const;
 
 		void push(const RenderCommand& command, bool cull = false);
 
-		/**
-		 * Sets the camera used for frustum culling
-		 */
-		void setCamera(Camera* camera);
+		void useCameraCulling(Camera* camera);
+		void useSphereCulling(const glm::vec3& position, float radius);
 
 		void sort();
 
 
 	private:
 
-		bool isOutsideFrustum(const RenderCommand& command) const;
-		static bool boxInFrustum(const nex::Frustum& frustum, const nex::AABB& box);
-
+		bool isInRange(bool doCulling, const RenderCommand& command) const;
+		bool boxInFrustum(const nex::Frustum& frustum, const nex::AABB& box) const;
 
 		static bool defaultCompare(const RenderCommand& a, const RenderCommand& b);
 		bool transparentCompare(const RenderCommand& a, const RenderCommand& b);
 
-		std::vector<RenderCommand> mPbrCommands;
-		std::vector<RenderCommand> mForwardCommands;
-		std::vector<RenderCommand> mShadowCommands;
+		const glm::vec3& getCullPosition() const;
+
+		Buffer mPbrCommands;
+		Buffer mForwardCommands;
+		Buffer mShadowCommands;
 		std::multimap<unsigned, RenderCommand> mToolCommands;
-		std::vector<RenderCommand> mTransparentCommands;
+		Buffer mTransparentCommands;
 		std::unordered_set<nex::Technique*> mTechniques;
 		Camera* mCamera;
+		CullingMethod mCullingMethod;
+		nex::Sphere mSphereCuller;
 	};
 }

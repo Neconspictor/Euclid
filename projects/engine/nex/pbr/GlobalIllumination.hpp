@@ -5,12 +5,16 @@
 #include <nex/util/Array.hpp>
 #include <glm/glm.hpp>
 #include <nex/shader/ShaderBuffer.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
 
 namespace nex
 {
 	class PbrProbe;
 	class Scene;
 	class Vob;
+	class RenderCommandQueue;
+	class CubeMap;
+	class CubeRenderTarget;
 
 	class GlobalIllumination
 	{
@@ -25,6 +29,8 @@ namespace nex
 
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
+
+		void bakeProbes(const Scene& scene);
 
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
@@ -45,6 +51,13 @@ namespace nex
 
 	private:
 
+		void collectBakeCommands(nex::RenderCommandQueue& queue, const Scene& scene, bool doCulling);
+		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue::BufferCollection& buffers, 
+			CubeRenderTarget& renderTarget,
+			const glm::vec3& worldPosition,
+			const glm::mat4& projection);
+
+		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		ShaderStorageBuffer mProbesBuffer;
 		ProbesData mProbesData;

@@ -11,15 +11,16 @@ nex::Plane nex::operator*(const glm::mat4& trafo, const Plane& plane)
 	 * 'Mathematics for 3D Game Programming and Computer Graphics (Third Edition)' by Eric Lengyel, page 101 (Chapter 5.2.3 Transforming Planes)
 	 */
 	const glm::vec4 planeVec4(plane.mNormal, plane.mSignedDistance);
-	const auto trasformed = trafo * planeVec4;
+	const auto trasformed = transpose(inverse(trafo)) * planeVec4;
 	return { glm::vec3(trasformed), trasformed.w };
 }
 
-nex::Plane nex::transform(const glm::mat4& trafo, const Plane& plane)
+nex::Plane nex::transformWithTransposeInverse(const glm::mat4& transposeInverseTrafo, const Plane& plane)
 {
-	glm::vec4 vec(plane.mNormal, plane.mSignedDistance);
-	vec = trafo * vec;
-	return { normalize(glm::vec3(vec)), vec.w };
+
+	const glm::vec4 planeVec4(plane.mNormal, plane.mSignedDistance);
+	const auto trasformed = transposeInverseTrafo * planeVec4;
+	return { glm::vec3(trasformed), trasformed.w };
 }
 
 nex::Plane::Plane()

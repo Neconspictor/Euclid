@@ -37,6 +37,7 @@ namespace nex
 		const Children& getChildren() const;
 		Mesh* getMesh() const;
 		Material* getMaterial() const;
+		const nex::AABB& getMeshBoundingBoxWorld() const;
 		SceneNode* getParent();
 
 		
@@ -70,6 +71,7 @@ namespace nex
 		glm::mat4 mLocalTrafo;
 		glm::mat4 mWorldTrafo;
 		glm::mat4 mPrevWorldTrafo;
+		nex::AABB mBoundingBox;
 	};
 
 	/**

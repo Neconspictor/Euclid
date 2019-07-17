@@ -226,7 +226,12 @@ void NeXEngine::run()
 
 
 		auto* commandQueue = mRenderer->getCommandQueue();
-		commandQueue->setCamera(mCamera.get());
+		commandQueue->useCameraCulling(mCamera.get());
+
+		{
+			mScene.acquireLock();
+			mScene.updateWorldTrafoHierarchyUnsafe(true);
+		}
 
 		if (isRunning())
 		{
@@ -234,6 +239,7 @@ void NeXEngine::run()
 			mCamera->update();
 			mControllerSM->frameUpdate(frameTime);
 
+			//commandQueue->useSphereCulling(mCamera->getPosition(), mCamera->getFarDistance() * 10000);
 			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene);
 			commandQueue->sort();
@@ -304,7 +310,7 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.material = node->getMaterial();
 				command.worldTrafo = node->getWorldTrafo();
 				command.prevWorldTrafo = node->getPrevWorldTrafo();
-				command.boundingBox = (mCamera->getView() * command.worldTrafo) * mesh->getAABB();
+				command.boundingBox = node->getMeshBoundingBoxWorld();
 				commandQueue->push(command, true);
 			}
 		}

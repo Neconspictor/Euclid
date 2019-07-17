@@ -6,6 +6,9 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <glm/glm.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
+#include <list>
+#include <nex/Scene.hpp>
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
@@ -14,6 +17,31 @@ mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuff
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
+
+void nex::GlobalIllumination::bakeProbes(const Scene & scene)
+{
+	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
+	RenderCommandQueue commandQueue;
+
+	TextureData data;
+	data.colorspace = ColorSpace::RGB;
+	data.internalFormat = InternFormat::RGB32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+
+	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, std::move(data));
+
+	for (const auto& spatial : mProbeSpatials) {
+
+		const auto position = glm::vec3(spatial);
+		commandQueue.useSphereCulling(position, camera.getFarDistance());
+		collectBakeCommands(commandQueue, scene, true);
+		auto commandBuffers = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward | RenderCommandQueue::Transparent);
+		auto cubeMap = renderToCubeMap(commandBuffers, *renderTarget, position, camera.getProjectionMatrix());
+
+		//TODO create probes
+	}
+
+}
 
 const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
 {
@@ -92,4 +120,47 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	else {
 		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	}
+}
+
+void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & commandQueue, const Scene& scene, bool doCulling)
+{
+	RenderCommand command;
+	std::list<SceneNode*> queue;
+
+
+	scene.acquireLock();
+	for (const auto& root : scene.getActiveVobsUnsafe())
+	{
+		queue.push_back(root->getMeshRootNode());
+
+		while (!queue.empty())
+		{
+			auto* node = queue.front();
+			queue.pop_front();
+
+			auto range = node->getChildren();
+
+			for (auto* node : range)
+			{
+				queue.push_back(node);
+			}
+
+			auto* mesh = node->getMesh();
+			if (mesh != nullptr)
+			{
+				command.mesh = mesh;
+				command.material = node->getMaterial();
+				command.worldTrafo = node->getWorldTrafo();
+				command.prevWorldTrafo = node->getPrevWorldTrafo();
+				command.boundingBox = node->getMeshBoundingBoxWorld();
+				commandQueue.push(command, doCulling);
+			}
+		}
+	}
+}
+
+std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers, CubeRenderTarget & renderTarget, const glm::vec3 & worldPosition, const glm::mat4 & projection)
+{
+	//TODO implement
+	return std::shared_ptr<nex::CubeMap>();
 }

@@ -38,6 +38,11 @@ namespace nex
 		return mMaterial;
 	}
 
+	const nex::AABB & SceneNode::getMeshBoundingBoxWorld() const
+	{
+		return mBoundingBox;
+	}
+
 	SceneNode* SceneNode::getParent()
 	{
 		return mParent;
@@ -98,6 +103,10 @@ namespace nex
 			queue.pop();
 
 			node->updateWorldTrafo(resetPrevWorldTrafo);
+
+			if (node->mMesh) {
+				node->mBoundingBox = node->mWorldTrafo * node->mMesh->getAABB();
+			}
 
 			auto children = node->getChildren();
 

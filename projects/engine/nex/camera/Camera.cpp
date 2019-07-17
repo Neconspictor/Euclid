@@ -78,12 +78,12 @@ namespace nex
 		// p' = transpose(inverse(trafo)) * p
 		const auto transposeInverse = transpose(mView);
 
-		f.planes[(unsigned)FrustumPlane::Near] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Near]);
-		f.planes[(unsigned)FrustumPlane::Far] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Far]);
-		f.planes[(unsigned)FrustumPlane::Left] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Left]);
-		f.planes[(unsigned)FrustumPlane::Right] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Right]);
-		f.planes[(unsigned)FrustumPlane::Bottom] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Bottom]);
-		f.planes[(unsigned)FrustumPlane::Top] = transform(transposeInverse, mFrustum.planes[(unsigned)FrustumPlane::Top]);
+		f.planes[(unsigned)FrustumPlane::Near] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Near]);
+		f.planes[(unsigned)FrustumPlane::Far] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Far]);
+		f.planes[(unsigned)FrustumPlane::Left] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Left]);
+		f.planes[(unsigned)FrustumPlane::Right] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Right]);
+		f.planes[(unsigned)FrustumPlane::Bottom] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Bottom]);
+		f.planes[(unsigned)FrustumPlane::Top] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Top]);
 	}
 
 	const glm::vec3& Camera::getLook() const

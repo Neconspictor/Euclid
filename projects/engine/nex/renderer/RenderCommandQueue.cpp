@@ -4,9 +4,12 @@
 #include <algorithm>
 #include "nex/Scene.hpp"
 #include <nex/shader/Technique.hpp>
+#include <nex/math/Sphere.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
+	if (camera) useCameraCulling(mCamera);
+	else useSphereCulling(glm::vec3(0.0f), 0.0f);
 }
 
 void nex::RenderCommandQueue::clear()
@@ -19,12 +22,34 @@ void nex::RenderCommandQueue::clear()
 	mTransparentCommands.clear();
 }
 
-const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getDeferrablePbrCommands() const
+nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(int types) const
+{
+	BufferCollection result;
+	if (types & Deferrable) {
+		result.push_back(&getDeferrablePbrCommands());
+	}
+
+	if (types & Forward) {
+		result.push_back(&getForwardCommands());
+	}
+
+	if (types & Transparent) {
+		result.push_back(&getTransparentCommands());
+	}
+
+	if (types & Shadow) {
+		result.push_back(&getShadowCommands());
+	}
+
+	return result;
+}
+
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getDeferrablePbrCommands() const
 {
 	return mPbrCommands;
 }
 
-const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getForwardCommands() const
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getForwardCommands() const
 {
 	return mForwardCommands;
 }
@@ -34,12 +59,12 @@ const std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getT
 	return mToolCommands;
 }
 
-const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getTransparentCommands() const
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getTransparentCommands() const
 {
 	return mTransparentCommands;
 }
 
-const std::vector<nex::RenderCommand>& nex::RenderCommandQueue::getShadowCommands() const
+const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getShadowCommands() const
 {
 	return mShadowCommands;
 }
@@ -49,9 +74,9 @@ const std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechnique
 	return mTechniques;
 }
 
-void nex::RenderCommandQueue::push(const RenderCommand& command, bool cull)
+void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
-	if (cull && isOutsideFrustum(command)) return;
+	if (!isInRange(doCulling, command)) return;
 
 	bool isPbr = typeid(*command.material).hash_code() == typeid(PbrMaterial).hash_code();
 
@@ -79,9 +104,17 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool cull)
 	mTechniques.insert(command.material->getTechnique());
 }
 
-void nex::RenderCommandQueue::setCamera(Camera* camera)
+void nex::RenderCommandQueue::useCameraCulling(Camera* camera)
 {
+	mCullingMethod = CullingMethod::FRUSTUM;
 	mCamera = camera;
+}
+
+void nex::RenderCommandQueue::useSphereCulling(const glm::vec3 & position, float radius)
+{
+	mCamera = nullptr;
+	mCullingMethod = CullingMethod::FRUSTUM_SPHERE;
+	mSphereCuller = Sphere(position, radius);
 }
 
 void nex::RenderCommandQueue::sort()
@@ -95,8 +128,10 @@ void nex::RenderCommandQueue::sort()
 
 
 // false if fully outside, true if inside or intersects
-bool nex::RenderCommandQueue::boxInFrustum(const nex::Frustum& frustum, const nex::AABB& box)
+bool nex::RenderCommandQueue::boxInFrustum(const nex::Frustum& frustum, const nex::AABB& boxOriginal) const
 {
+	auto box = boxOriginal;//mCamera->getView() * boxOriginal;
+
 	const byte ALL_CORNERS = 8;
 	byte out = 0;
 
@@ -131,10 +166,17 @@ bool nex::RenderCommandQueue::boxInFrustum(const nex::Frustum& frustum, const ne
 	return true;
 }
  
-bool nex::RenderCommandQueue::isOutsideFrustum(const RenderCommand& command) const
+bool nex::RenderCommandQueue::isInRange(bool doCulling, const RenderCommand& command) const
 {
-	if (mCamera == nullptr) return false;
-	return !boxInFrustum(mCamera->getFrustum(), command.boundingBox);
+	if (!doCulling) return true;
+	if (mCullingMethod == CullingMethod::FRUSTUM) {
+		if (!mCamera) return false;
+		// TODO use world space frustum!
+		return boxInFrustum(mCamera->getFrustumWorld(), command.boundingBox);
+	}
+	else {
+		return mSphereCuller.intersects(command.boundingBox);
+	}
 }
 
 bool nex::RenderCommandQueue::defaultCompare(const RenderCommand& a, const RenderCommand& b)
@@ -157,10 +199,18 @@ bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const R
 
 	const glm::vec3& positionA = a.worldTrafo[3];
 	const glm::vec3& positionB = b.worldTrafo[3];
-	const auto& cameraPosition = mCamera->getPosition();
 
-	auto aDist = length(positionA - cameraPosition);
-	auto bDist = length(positionB - cameraPosition);
+
+	const auto& cullPosition = getCullPosition();
+
+	auto aDist = length(positionA - cullPosition);
+	auto bDist = length(positionB - cullPosition);
 
 	return aDist > bDist;
+}
+
+const glm::vec3 & nex::RenderCommandQueue::getCullPosition() const
+{
+	if (mCamera) return mCamera->getPosition();
+	else return mSphereCuller.origin;
 }

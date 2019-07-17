@@ -5,6 +5,7 @@
 namespace nex
 {
 	class Ray;
+	struct AABB;
 
 	struct Sphere
 	{
@@ -30,6 +31,8 @@ namespace nex
 		 * Checks if a ray intersects the circle
 		 */
 		RayIntersection intersects(const Ray& ray) const;
+
+		bool intersects(const AABB& box) const;
 
 		/**
 		 * Checks if a point lies on the sphere's hull
