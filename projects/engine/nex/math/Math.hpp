@@ -52,6 +52,12 @@ namespace nex
 	 */
 	glm::quat rotate(const glm::vec3& src, const glm::vec3& dest);
 
+
+	template<class T>
+	T square(const T& t) {
+		return t * t;
+	}
+
 	/**
 	 * Converts a z value between left and right handed coordinate systems.
 	 * @param z: an unsigned z value.
