@@ -239,7 +239,7 @@ void NeXEngine::run()
 			mCamera->update();
 			mControllerSM->frameUpdate(frameTime);
 
-			//commandQueue->useSphereCulling(mCamera->getPosition(), mCamera->getFarDistance() * 10000);
+			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 			commandQueue->clear();
 			collectRenderCommands(commandQueue, mScene);
 			commandQueue->sort();

@@ -9,6 +9,9 @@
 #include <nex/renderer/RenderCommandQueue.hpp>
 #include <list>
 #include <nex/Scene.hpp>
+#include <nex/texture/RenderTarget.hpp>
+#include <nex/texture/Attachment.hpp>
+#include <nex/shader/Pass.hpp>
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
@@ -28,7 +31,18 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 	data.internalFormat = InternFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
 
-	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, std::move(data));
+	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, data);
+
+	RenderAttachment depth;
+	depth.target = TextureTarget::TEXTURE2D;
+	data = TextureData();
+	data.colorspace = ColorSpace::DEPTH;
+	data.internalFormat = InternFormat::DEPTH24;
+	depth.texture = std::make_unique<RenderBuffer>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, data);
+	depth.type = RenderAttachmentType::DEPTH;
+
+	renderTarget->useDepthAttachment(std::move(depth));
+	renderTarget->updateDepthAttachment();
 
 	for (const auto& spatial : mProbeSpatials) {
 
@@ -36,7 +50,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, true);
 		auto commandBuffers = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward | RenderCommandQueue::Transparent);
-		auto cubeMap = renderToCubeMap(commandBuffers, *renderTarget, position, camera.getProjectionMatrix());
+		//auto cubeMap = renderToCubeMap(commandBuffers, *renderTarget, position, camera.getProjectionMatrix());
 
 		//TODO create probes
 	}
@@ -159,8 +173,37 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 	}
 }
 
-std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers, CubeRenderTarget & renderTarget, const glm::vec3 & worldPosition, const glm::mat4 & projection)
+std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers, 
+	TransformPass& pass,
+	CubeRenderTarget & renderTarget, 
+	const glm::vec3 & worldPosition, 
+	const glm::mat4 & projection)
 {
-	//TODO implement
-	return std::shared_ptr<nex::CubeMap>();
+	thread_local auto* renderBackend = RenderBackend::get();
+
+	//view matrices;
+	const auto& views = CubeMap::getViewLookAts();
+
+	renderTarget.bind();
+	renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
+
+	pass.bind();
+
+	for (unsigned side = 0; side < views.size(); ++side) {
+		const auto& view = views[side];
+		pass.setViewProjectionMatrices(projection, view, view);
+		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
+
+		for (const auto& buffer : buffers) {
+			StaticMeshDrawer::draw(*buffer, &pass);
+		}
+	}
+
+
+	auto& resultAttachment = renderTarget.getColorAttachments()[0];
+	auto result = std::dynamic_pointer_cast<CubeMap>(resultAttachment.texture);
+
+	// now create mipmaps for the cubemap fighting render artificats in the prefilter map
+	//result->generateMipMaps();
+	return result;
 }
