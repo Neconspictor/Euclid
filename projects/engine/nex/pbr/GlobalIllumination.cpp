@@ -12,10 +12,76 @@
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/texture/Attachment.hpp>
 #include <nex/shader/Pass.hpp>
+#include <nex/pbr/PbrPass.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
+{
+public:
+
+	ProbeBakePass() :
+		PbrGeometryPass(Shader::create("pbr/probe/pbr_probe_capture_vs.glsl", "pbr/probe/pbr_probe_capture_fs.glsl", nullptr, nullptr, nullptr, generateDefines()),
+			TRANSFORM_BUFFER_BINDINGPOINT)
+	{
+		mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
+		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
+	}
+
+	void setEyeLightDirection(const glm::vec3& dir) {
+		mShader->setVec3(mEyeLightDirection.location, dir);
+	}
+
+	void setLightColor(const glm::vec3& color) {
+		mShader->setVec3(mLightColor.location, color);
+	}
+
+	void setLightPower(float power) {
+		mShader->setFloat(mLightPower.location, power);
+	}
+
+	void setInverseViewMatrix(const glm::mat4& mat) {
+		mShader->setMat4(mInverseView.location, mat);
+	}
+
+	void updateConstants(const DirectionalLight& light, const glm::mat4& projection, const glm::mat4& view) {
+		setLightColor(light.getColor());
+		setLightPower(light.getLightPower());
+
+		glm::vec4 lightEyeDirection = view * glm::vec4(light.getDirection(), 0);
+		setEyeLightDirection(glm::vec3(lightEyeDirection));
+
+		setInverseViewMatrix(inverse(view));
+		setViewProjectionMatrices(projection, view, view);
+	}
+
+private:
+
+	static std::vector<std::string> generateDefines() {
+		auto vec = std::vector<std::string>();
+
+		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
+		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+
+		return vec;
+	}
+
+
+	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
+	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
+
+	Uniform mEyeLightDirection;
+	Uniform mLightColor;
+	Uniform mLightPower;
+	Uniform mInverseView;
+
+};
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
-mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
+mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mProbeBakePass(std::make_unique<ProbeBakePass>())
 {
 }
 
@@ -24,6 +90,7 @@ nex::GlobalIllumination::~GlobalIllumination() = default;
 void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 {
 	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
+	camera.update();
 	RenderCommandQueue commandQueue;
 
 	TextureData data;
@@ -44,15 +111,21 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 	renderTarget->useDepthAttachment(std::move(depth));
 	renderTarget->updateDepthAttachment();
 
-	for (const auto& spatial : mProbeSpatials) {
+	DirectionalLight light;
+	light.setColor(glm::vec3(1.0f));
+	light.setPower(1.0f);
+	light.setDirection(glm::vec3(1.0f));
 
-		const auto position = glm::vec3(spatial);
+	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
+
+		//const auto position = glm::vec3(spatial);
+		const auto position = glm::vec3(4.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, true);
-		auto commandBuffers = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward | RenderCommandQueue::Transparent);
-		//auto cubeMap = renderToCubeMap(commandBuffers, *renderTarget, position, camera.getProjectionMatrix());
-
-		//TODO create probes
+		auto commandBuffers = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Transparent);
+		auto cubeMap = renderToCubeMap(commandBuffers, *mProbeBakePass,*renderTarget, position, camera.getProjectionMatrix(), light);
+		auto readImage = StoreImage::create(cubeMap.get());
+		StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
 	}
 
 }
@@ -174,28 +247,67 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 }
 
 std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers, 
-	TransformPass& pass,
+	ProbeBakePass& pass,
 	CubeRenderTarget & renderTarget, 
 	const glm::vec3 & worldPosition, 
-	const glm::mat4 & projection)
+	const glm::mat4 & projection,
+	const DirectionalLight& light)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
 	//view matrices;
 	const auto& views = CubeMap::getViewLookAts();
+	const auto viewModel = glm::translate(glm::mat4(1.0f), worldPosition);
 
 	renderTarget.bind();
 	renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
+	renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	pass.bind();
 
+	const glm::vec3 ups[6]{
+		glm::vec3(0.0f, -1.0f, 0.0f),
+		glm::vec3(0.0f, -1.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3(0.0f, -1.0f, 0.0f),
+		glm::vec3(0.0f, -1.0f, 0.0f)
+	};
+
+	const glm::vec3 dir[6]{
+		glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(-1.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f, -1.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f)
+	};
+
+
+
 	for (unsigned side = 0; side < views.size(); ++side) {
-		const auto& view = views[side];
-		pass.setViewProjectionMatrices(projection, view, view);
+		
+		const auto view = glm::lookAt(worldPosition, worldPosition + dir[side], ups[side]);
+		pass.updateConstants(light, projection, view);
 		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
 
 		for (const auto& buffer : buffers) {
-			StaticMeshDrawer::draw(*buffer, &pass);
+			for (const auto& command : *buffer)
+			{
+				pass.setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+				pass.uploadTransformMatrices();
+
+				auto* pbrMaterial = (PbrMaterial*)command.material;
+				auto* shaderInterface = pass.getShaderInterface();
+				shaderInterface->setAlbedoMap(pbrMaterial->getAlbedoMap());
+				shaderInterface->setAoMap(pbrMaterial->getAoMap());
+				shaderInterface->setMetalMap(pbrMaterial->getMetallicMap());
+				shaderInterface->setNormalMap(pbrMaterial->getNormalMap());
+				shaderInterface->setRoughnessMap(pbrMaterial->getRoughnessMap());
+
+				StaticMeshDrawer::draw(command.mesh, nullptr, &pass, nullptr);
+			}
+
 		}
 	}
 

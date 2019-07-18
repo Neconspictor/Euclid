@@ -16,6 +16,7 @@ namespace nex
 	class CubeMap;
 	class CubeRenderTarget;
 	class TransformPass;
+	class DirectionalLight;
 
 	class GlobalIllumination
 	{
@@ -52,12 +53,15 @@ namespace nex
 
 	private:
 
+		class ProbeBakePass;
+
 		void collectBakeCommands(nex::RenderCommandQueue& queue, const Scene& scene, bool doCulling);
 		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers,
-			TransformPass& pass,
+			ProbeBakePass& pass,
 			CubeRenderTarget & renderTarget,
 			const glm::vec3 & worldPosition,
-			const glm::mat4 & projection);
+			const glm::mat4 & projection,
+			const DirectionalLight& light);
 
 		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
@@ -65,5 +69,6 @@ namespace nex
 		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
+		std::unique_ptr<ProbeBakePass> mProbeBakePass;
 	};
 }

@@ -158,6 +158,7 @@ namespace nex
 	private:
 		PbrLightingData mLightingPass;
 
+		static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 0;
 		static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 1;
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 2;
 
@@ -197,6 +198,11 @@ namespace nex
 		Uniform mInverseProjFromGPass;
 
 		PbrLightingData mLightingPass;
+
+		static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 0;
+		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
+
+		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};
 
 	class PbrConvolutionPass : public Pass

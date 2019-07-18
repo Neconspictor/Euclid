@@ -174,10 +174,29 @@ void NeXEngine::init()
 	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
 
 	initProbes();
-	ResourceLoader::get()->enqueue([=] {
+	auto future = ResourceLoader::get()->enqueue([=] {
 		createScene();
 		return nullptr;
 	});
+
+	ResourceLoader::get()->waitTillAllJobsFinished();
+
+	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
+	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
+
+	while (!finalizeQueue.empty()) {
+		auto* resource = finalizeQueue.pop();
+		std::cout << "finalizeQueue.pop() = " << resource << std::endl;
+		resource->finalize();
+	}
+
+	while (!exceptionQueue.empty()) {
+		auto& exception = exceptionQueue.pop();
+		throw *exception;
+	}
+
+
+	mGlobalIllumination->bakeProbes(mScene);
 }
 
 bool NeXEngine::isRunning() const
@@ -467,6 +486,7 @@ void NeXEngine::initProbes()
 	});
 
 	probe->setIsLoadedStatus(std::move(future));
+	probe->getIsLoadedStatus().get();
 
 	//probe->getIsLoadedStatus().get();
 
@@ -485,6 +505,7 @@ void NeXEngine::initProbes()
 		//activeProbe->activateHandles();
 	//	return nullptr;
 	//});
+
 
 	//auto* activeProbe = mGlobalIllumination->getProbes()[1].get();
 	//mPbrTechnique->setProbe(activeProbe);

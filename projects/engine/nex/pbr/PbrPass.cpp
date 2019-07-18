@@ -259,7 +259,7 @@ void PbrLightingData::updateConstants(Camera* camera)
 PbrForwardPass::PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
 	PbrGeometryPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
-	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, 0, PBR_PROBES_BUFFER_BINDINPOINT)
+	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	/*mBiasMatrixSource = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -292,10 +292,27 @@ void PbrForwardPass::setDirLight(DirectionalLight* light)
 	mLightingPass.setDirLight(light);
 }
 
+std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
+{
+	auto vec = cascadedShadow->generateCsmDefines();
+
+	//CSM_CASCADE_BUFFER_BINDING_POINT
+
+	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
+	// for the TransformBuffer
+	vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+	vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
+
+	// probes buffer must use another binding point, too.
+	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
+
+	return vec;
+}
+
 PbrDeferredLightingPass::PbrDeferredLightingPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
 	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", 
-						nullptr, nullptr, nullptr, cascadedShadow->generateCsmDefines())),
-	mLightingPass(mShader.get(), globalIllumination, cascadedShadow)
+						nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
+	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
 	mAoMetalRoughnessMap = Pass::mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
@@ -356,20 +373,16 @@ void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
 	mLightingPass.setDirLight(light);
 }
 
-
-std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
+std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedShadow * cascadedShadow)
 {
 	auto vec = cascadedShadow->generateCsmDefines();
 
-	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
-	// for the TransformBuffer
-	vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
-
-	// probes buffer must use another binding point, too.
+	vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
 
 	return vec;
 }
+
 
 PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
 	PbrGeometryPass(Shader::create(
