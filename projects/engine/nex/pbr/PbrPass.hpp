@@ -145,7 +145,8 @@ namespace nex
 	class PbrForwardPass : public PbrGeometryPass
 	{
 	public:
-		PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
+		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
+			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
 		void updateConstants(Camera* camera) override;
 
@@ -163,7 +164,7 @@ namespace nex
 
 	class PbrDeferredGeometryPass : public PbrGeometryPass {
 	public:
-		PbrDeferredGeometryPass();
+		PbrDeferredGeometryPass(std::unique_ptr<Shader> shader);
 
 		void updateConstants(Camera* camera) override;
 	};
@@ -171,7 +172,8 @@ namespace nex
 	class PbrDeferredLightingPass : public Pass {
 	public:
 
-		PbrDeferredLightingPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
+		PbrDeferredLightingPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
+			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);

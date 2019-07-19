@@ -16,10 +16,13 @@ using namespace std;
 
 namespace nex {
 
-	PbrForward::PbrForward(GlobalIllumination* globalIllumination,
+	PbrForward::PbrForward(
+		LightingPassFactory factory,
+		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
 	Pbr(globalIllumination, cascadeShadow, dirLight), 
-		mForwardShader(std::make_unique<PbrForwardPass>(globalIllumination, cascadeShadow))
+		mFactory(std::move(factory)),
+		mForwardShader(mFactory(cascadeShadow, globalIllumination))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -36,7 +39,7 @@ namespace nex {
 
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
-		mForwardShader = std::make_unique<PbrForwardPass>(mGlobalIllumination, cascadedShadow);
+		mForwardShader = mFactory(cascadedShadow, mGlobalIllumination);
 		mForwardShader->setDirLight(mLight);
 	}
 

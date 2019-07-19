@@ -51,11 +51,42 @@ nex::PbrTechnique::PbrTechnique(
 	GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
 	Technique(nullptr),
-	mDeferred(std::make_unique<PbrDeferred>(globalIllumination, cascadeShadow, dirLight)),
-	mForward(std::make_unique<PbrForward>(globalIllumination, cascadeShadow, dirLight)),
 	mOverrideForward(nullptr),
 	mOverrideDeferred(nullptr)
 {
+
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
+		"pbr/pbr_deferred_geometry_pass_vs.glsl" , 
+		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
+
+
+	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+		return std::make_unique<PbrDeferredLightingPass>(
+			"pbr/pbr_deferred_lighting_pass_vs.glsl",
+			"pbr/pbr_deferred_lighting_pass_fs.glsl",
+			g,
+			c);
+	};
+
+	PbrForward::LightingPassFactory forwardFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+		return std::make_unique<PbrForwardPass>(
+			"pbr/pbr_forward_vs.glsl", 
+			"pbr/pbr_forward_fs.glsl",
+			g,
+			c);
+	};
+
+	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass), 
+		std::move(deferredFactory), 
+		globalIllumination, 
+		cascadeShadow, 
+		dirLight);
+
+	mForward = std::make_unique<PbrForward>(std::move(forwardFactory),
+		globalIllumination,
+		cascadeShadow,
+		dirLight);
+
 	useDeferred();
 }
 

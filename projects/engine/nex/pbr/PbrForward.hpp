@@ -12,7 +12,12 @@ namespace nex
 	class PbrForward : public Pbr {
 
 	public:
-		PbrForward(GlobalIllumination* globalIllumination, 
+
+		using LightingPassFactory = std::function<std::unique_ptr<PbrForwardPass>(CascadedShadow*, GlobalIllumination*)>;
+
+		PbrForward(
+			LightingPassFactory factory,
+			GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		virtual ~PbrForward();
@@ -23,6 +28,7 @@ namespace nex
 		PbrForwardPass* getPass();
 
 	private:
+		LightingPassFactory mFactory;
 		std::unique_ptr<PbrForwardPass> mForwardShader;
 		std::unique_ptr<Sampler> mPointSampler;
 	};

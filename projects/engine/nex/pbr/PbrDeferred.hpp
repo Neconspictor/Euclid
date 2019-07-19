@@ -18,9 +18,14 @@ namespace nex
 
 	public:
 
+		using LightingPassFactory = std::function<std::unique_ptr<PbrDeferredLightingPass>(CascadedShadow*, GlobalIllumination*)>;
+
 		virtual ~PbrDeferred();
 
-		PbrDeferred(GlobalIllumination* globalIllumination,
+		PbrDeferred(
+			std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
+			LightingPassFactory lightingPassFactory,
+			GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		void configureGeometryPass(Camera* camera);
@@ -35,6 +40,7 @@ namespace nex
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
 	private:
+		LightingPassFactory mLightingPassFactory;
 		std::unique_ptr<PbrDeferredGeometryPass> mGeometryPass;
 		std::unique_ptr<PbrDeferredLightingPass> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;

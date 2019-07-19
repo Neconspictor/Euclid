@@ -13,10 +13,14 @@ namespace nex {
 	{
 	}
 
-	PbrDeferred::PbrDeferred(GlobalIllumination* globalIllumination,
+	PbrDeferred::PbrDeferred(
+		std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
+		LightingPassFactory lightingPassFactory,
+		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
-		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
-		mLightPass(std::make_unique<PbrDeferredLightingPass>(globalIllumination, cascadeShadow))
+		mLightingPassFactory(std::move(lightingPassFactory)),
+		mGeometryPass(std::move(geometryPass)),
+		mLightPass(mLightingPassFactory(cascadeShadow, globalIllumination))
 	{
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
@@ -68,8 +72,7 @@ namespace nex {
 
 	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
-		mLightPass = std::make_unique<PbrDeferredLightingPass>(mGlobalIllumination, cascadedShadow);
-
+		mLightPass = mLightingPassFactory(cascadedShadow, mGlobalIllumination);
 		mLightPass->setDirLight(mLight);
 	}
 }

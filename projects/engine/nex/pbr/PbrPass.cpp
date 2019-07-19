@@ -215,20 +215,9 @@ void PbrLightingData::setDirLight(DirectionalLight* light)
 void PbrLightingData::updateConstants(Camera* camera)
 {
 	assert(mLight != nullptr);
-	assert(mGlobalIllumination != nullptr);
-	assert(mCascadeShadow != nullptr);
 	assert(camera != nullptr);
 
 
-	auto* probe = mGlobalIllumination->getActiveProbe();
-
-	setArrayIndex((float)probe->getArrayIndex());
-	setBrdfLookupTexture(probe->getBrdfLookupTexture());
-
-	setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
-	setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
-
-	setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 	setLightColor(mLight->getColor());
 	setLightPower(mLight->getLightPower());
 
@@ -238,20 +227,34 @@ void PbrLightingData::updateConstants(Camera* camera)
 	setInverseViewMatrix(inverse(camera->getView()));
 
 	setNearFarPlane(camera->getNearFarPlaneViewSpace());
-	setShadowStrength(mCascadeShadow->getShadowStrength());
-	//setCascadedData(mCascadeShadow->getCascadeData());
 
-	auto* buffer = mCascadeShadow->getCascadeBuffer();
-	buffer->bind(mCsmCascadeBindingPoint);
-	setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
+	if (mCascadeShadow) {
+		setShadowStrength(mCascadeShadow->getShadowStrength());
+		auto* buffer = mCascadeShadow->getCascadeBuffer();
+		buffer->bind(mCsmCascadeBindingPoint);
+		setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
+	}
 
+	if (mGlobalIllumination) {
 
-	auto* probesBuffer = mGlobalIllumination->getProbesShaderBuffer();
-	probesBuffer->bind(mPbrProbesDataBufferBindingPoint);
+		auto* probe = mGlobalIllumination->getActiveProbe();
+
+		setArrayIndex((float)probe->getArrayIndex());
+		setBrdfLookupTexture(probe->getBrdfLookupTexture());
+
+		setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
+		setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
+
+		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
+
+		auto* probesBuffer = mGlobalIllumination->getProbesShaderBuffer();
+		probesBuffer->bind(mPbrProbesDataBufferBindingPoint);
+	}
 }
 
-PbrForwardPass::PbrForwardPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	PbrGeometryPass(Shader::create("pbr/pbr_forward_vs.glsl", "pbr/pbr_forward_fs.glsl", nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
+PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
+	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
+	PbrGeometryPass(Shader::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
 		TRANSFORM_BUFFER_BINDINGPOINT),
 	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
@@ -298,9 +301,9 @@ std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascade
 	return vec;
 }
 
-PbrDeferredLightingPass::PbrDeferredLightingPass(GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
-	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_lighting_pass_fs.glsl", 
-						nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
+PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
+	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
+	Pass(Shader::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow))),
 	mLightingPass(mShader.get(), globalIllumination, cascadedShadow, CASCADE_BUFFER_BINDINGPOINT, PBR_PROBES_BUFFER_BINDINPOINT)
 {
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
@@ -368,9 +371,8 @@ std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedS
 }
 
 
-PbrDeferredGeometryPass::PbrDeferredGeometryPass() :
-	PbrGeometryPass(Shader::create(
-		"pbr/pbr_deferred_geometry_pass_vs.glsl", "pbr/pbr_deferred_geometry_pass_fs.glsl"))
+PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<Shader> shader) :
+	PbrGeometryPass(std::move(shader))
 {
 }
 
