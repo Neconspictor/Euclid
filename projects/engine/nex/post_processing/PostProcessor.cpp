@@ -58,7 +58,7 @@ mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
 
 nex::PostProcessor::~PostProcessor() = default;
 
-nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, Texture2D* motionMap,  RenderTarget2D* output)
+nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, Texture2D* motionMap, RenderTarget* output)
 {
 	// Bloom
 	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
@@ -85,10 +85,10 @@ nex::Texture2D* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2
 
 	RenderState state = RenderState::createNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
-	return output->getColor0AttachmentTexture();
+	return output->getColorAttachmentTexture(0);
 }
 
-void nex::PostProcessor::antialias(Texture2D * source, RenderTarget2D * output)
+void nex::PostProcessor::antialias(Texture2D * source, RenderTarget * output)
 {
 	//Do SMAA antialising after texture is in sRGB (gamma space)
 	//But for best results the input read for the color/luma edge detection should *NOT* be sRGB !

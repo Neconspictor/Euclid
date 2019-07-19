@@ -44,7 +44,8 @@ CascadedShadow::CascadedShadow(unsigned int cascadeWidth, unsigned int cascadeHe
 	mDepthPass(std::make_unique<DepthPass>(numCascades)),
 	mDataComputePass(std::make_unique<CascadeDataPass>(numCascades)),
 	mUseTightNearFarPlane(true),
-	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputePass>())
+	mSceneNearFarComputeShader(std::make_unique<SceneNearFarComputePass>()),
+	mRenderTarget(cascadeWidth, cascadeHeight)
 {
 	mCascadeData.numCascades = numCascades;
 	mCascadeData.lightViewProjectionMatrices.resize(numCascades);

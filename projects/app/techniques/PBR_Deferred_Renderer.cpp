@@ -80,11 +80,6 @@ bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
 	return mShowDepthMap;
 }
 
-nex::RenderCommandQueue* nex::PBR_Deferred_Renderer::getCommandQueue()
-{
-	return &mCommandQueue;
-}
-
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	LOG(m_logger, LogLevel::Info) << "PBR_Deferred_Renderer::init called!";
@@ -123,7 +118,12 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 }
 
 
-void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight)
+void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
+	PerspectiveCamera* camera, 
+	DirectionalLight* sun, 
+	unsigned windowWidth, 
+	unsigned windowHeight, 
+	RenderTarget* out)
 {
 
 	/*FPCamera* fp = (FPCamera*)camera;
@@ -142,11 +142,11 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 
 	if (switcher)
 	{
-		renderDeferred(camera, sun, frameTime, windowWidth, windowHeight);
+		renderDeferred(queue, camera, sun, windowWidth, windowHeight);
 	}
 	else
 	{
-		renderForward(camera, sun, frameTime, windowWidth, windowHeight);
+		renderForward(queue, camera, sun, windowWidth, windowHeight);
 	}
 
 	auto* stencilTest = mRenderBackend->getStencilTest();
@@ -155,8 +155,8 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	stencilTest->enableStencilTest(true);
 
 	//mTesselationTest.draw(camera, sun->getDirection());
-	static float simulationTime = 0.0f;
-	simulationTime += frameTime;
+	//static float simulationTime = 0.0f;
+	//simulationTime += frameTime;
 
 	//mOcean.simulate(simulationTime * 0.5f);
 	//mOcean.draw(camera, sun->getDirection());
@@ -173,8 +173,6 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	auto* motionTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(2));
 	auto* depthTexture = static_cast<Texture2D*>(mRenderTargetSingleSampled->getColorAttachmentTexture(3));
 	auto* depthTexture2 = static_cast<Texture2D*>(mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
-
-	RenderTarget2D* screenRenderTarget = mRenderBackend->getDefaultRenderTarget();
 
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
@@ -194,10 +192,10 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	auto* forward = mPbrTechnique->getForward();
 	forward->setDirLight(sun);
 	forward->configurePass(camera);
-	StaticMeshDrawer::draw(mCommandQueue.getTransparentCommands());
+	StaticMeshDrawer::draw(queue.getTransparentCommands());
 
 	// At last we render tools
-	StaticMeshDrawer::draw(mCommandQueue.getToolCommands());
+	StaticMeshDrawer::draw(queue.getToolCommands());
 
 
 	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
@@ -205,15 +203,10 @@ void nex::PBR_Deferred_Renderer::render(PerspectiveCamera* camera, DirectionalLi
 	//mPingPong->useDepthAttachment(*mRenderTargetSingleSampled->getDepthAttachment());
 	//mPingPong->useDepthAttachment(std::move(backup));
 
-	postProcessor->antialias(postProcessed, screenRenderTarget);
+	postProcessor->antialias((Texture2D*)postProcessed, out);
 
 
 	//ShaderStorageBuffer::syncWithGPU();
-}
-
-void nex::PBR_Deferred_Renderer::renderToCubeMap(CubeMap* out, OrthographicCamera* camera, DirectionalLight* sun,
-	float frameTime, unsigned windowWidth, unsigned windowHeight)
-{
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -247,7 +240,10 @@ nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 	return &mOcean;
 }
 
-void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth)
+void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
+	PerspectiveCamera* camera, 
+	DirectionalLight* sun, 
+	Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
@@ -257,12 +253,10 @@ void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, Direct
 		depthPass->bind();
 		depthPass->updateConstants(camera);
 
-		const auto& commands = mCommandQueue.getShadowCommands();
-
 		for (unsigned i = 0; i < mCascadedShadow->getCascadeData().numCascades; ++i)
 		{
 			mCascadedShadow->begin(i);
-			for (const auto& command : commands)
+			for (const auto& command : shadowCommands)
 			{
 				depthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 				depthPass->uploadTransformMatrices();
@@ -274,7 +268,10 @@ void nex::PBR_Deferred_Renderer::renderShadows(PerspectiveCamera* camera, Direct
 	}
 }
 
-void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
+	PerspectiveCamera* camera, 
+	DirectionalLight* sun, 
+	unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -303,13 +300,13 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	//state.fillMode = FillMode::LINE;
 
 	mPbrTechnique->useDeferred();
-	for (nex::Technique* technique : mCommandQueue.getTechniques())
+	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
 		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
-	StaticMeshDrawer::draw(mCommandQueue.getDeferrablePbrCommands());
+	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);
@@ -317,7 +314,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
 
-	renderShadows(camera, sun, (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get()); //mPbrMrt->getNormalizedViewSpaceZ()
+	renderShadows(queue.getShadowCommands(), camera, sun, (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get()); //mPbrMrt->getNormalizedViewSpaceZ()
 
 
 	// render scene to a offscreen buffer
@@ -351,12 +348,15 @@ void nex::PBR_Deferred_Renderer::renderDeferred(PerspectiveCamera* camera, Direc
 	auto* forward = mPbrTechnique->getForward();
 	forward->setDirLight(sun);
 	forward->configurePass(camera);
-	StaticMeshDrawer::draw(mCommandQueue.getForwardCommands());
+	StaticMeshDrawer::draw(queue.getForwardCommands());
 
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 }
 
-void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth,
+void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
+	PerspectiveCamera* camera,
+	DirectionalLight* sun,
+	unsigned windowWidth,
 	unsigned windowHeight)
 {
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
@@ -381,8 +381,8 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
 	depthPass->bind();
 	depthPass->updateViewProjection(camera->getProjectionMatrix(), camera->getView());
-	StaticMeshDrawer::draw(mCommandQueue.getShadowCommands(), depthPass);
-	renderShadows(camera, sun, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
+	StaticMeshDrawer::draw(queue.getShadowCommands(), depthPass);
+	renderShadows(queue.getShadowCommands(), camera, sun, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
 
 
 	// render scene to a offscreen buffer
@@ -404,15 +404,15 @@ void nex::PBR_Deferred_Renderer::renderForward(PerspectiveCamera* camera, Direct
 	//mPbrForward->configureSubMeshPass(camera);
 	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
 
-	for (nex::Technique* technique : mCommandQueue.getTechniques())
+	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
 		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
 
-	StaticMeshDrawer::draw(mCommandQueue.getDeferrablePbrCommands()); //TODO
-	StaticMeshDrawer::draw(mCommandQueue.getForwardCommands());
+	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands()); //TODO
+	StaticMeshDrawer::draw(queue.getForwardCommands());
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height)

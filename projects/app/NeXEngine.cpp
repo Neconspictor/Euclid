@@ -217,6 +217,9 @@ void NeXEngine::run()
 
 	SimpleTimer timer;
 
+	RenderCommandQueue commandQueue;
+	commandQueue.useCameraCulling(mCamera.get());
+
 	while (mWindow->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
@@ -243,10 +246,6 @@ void NeXEngine::run()
 			throw *exception;
 		}
 
-
-		auto* commandQueue = mRenderer->getCommandQueue();
-		commandQueue->useCameraCulling(mCamera.get());
-
 		{
 			mScene.acquireLock();
 			mScene.updateWorldTrafoHierarchyUnsafe(true);
@@ -259,9 +258,9 @@ void NeXEngine::run()
 			mControllerSM->frameUpdate(frameTime);
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
-			commandQueue->clear();
+			commandQueue.clear();
 			collectRenderCommands(commandQueue, mScene);
-			commandQueue->sort();
+			commandQueue.sort();
 
 			{
 				mScene.acquireLock();
@@ -269,8 +268,8 @@ void NeXEngine::run()
 			}
 
 			
-
-			mRenderer->render(mCamera.get(), &mSun, frameTime, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+			RenderTarget2D* screenRenderTarget = RenderBackend::get()->getDefaultRenderTarget();
+			mRenderer->render(commandQueue, mCamera.get(), &mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), screenRenderTarget);
 			mControllerSM->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -298,7 +297,7 @@ void NeXEngine::setRunning(bool isRunning)
 	mIsRunning = isRunning;
 }
 
-void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Scene& scene)
+void NeXEngine::collectRenderCommands(RenderCommandQueue& commandQueue, const Scene& scene)
 {
 	//std::queue<SceneNode*> queue;
 	RenderCommand command;
@@ -330,7 +329,7 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue* commandQueue, const Sc
 				command.worldTrafo = node->getWorldTrafo();
 				command.prevWorldTrafo = node->getPrevWorldTrafo();
 				command.boundingBox = node->getMeshBoundingBoxWorld();
-				commandQueue->push(command, true);
+				commandQueue.push(command, true);
 			}
 		}
 	}
@@ -454,7 +453,7 @@ void NeXEngine::initPbr()
 	mCascadedShadow = std::make_unique<CascadedShadow>(2048, 2048, 4, pcf, 6.0f, true);
 
 
-	mPbrTechnique = std::make_unique<PbrTechnique>(&mAmbientLight, mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
+	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
 }
 
 void NeXEngine::initProbes()

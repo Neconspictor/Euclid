@@ -8,6 +8,7 @@
 #include "nex/renderer/RenderCommandQueue.hpp"
 #include "TesselationTest.hpp"
 #include "Ocean.hpp"
+#include <nex/renderer/Renderer.hpp>
 
 namespace nex
 {
@@ -21,7 +22,7 @@ namespace nex
 	class Pbr;
 	class Camera;
 
-	class PBR_Deferred_Renderer
+	class PBR_Deferred_Renderer : public Renderer
 	{
 	public:
 		typedef unsigned int uint;
@@ -31,14 +32,19 @@ namespace nex
 			CascadedShadow* cascadedShadow,
 			Input* input);
 
-		~PBR_Deferred_Renderer();
+		virtual ~PBR_Deferred_Renderer();
 
 		bool getShowDepthMap() const;
-		RenderCommandQueue* getCommandQueue();
 
 		void init(int windowWidth, int windowHeight);
-		void render(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderToCubeMap(CubeMap* out, OrthographicCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+
+		virtual void render(const RenderCommandQueue& queue, 
+			PerspectiveCamera* camera, 
+			DirectionalLight* sun, 
+			unsigned viewportWidth, 
+			unsigned viewportHeight, 
+			RenderTarget* out) override;
+
 		void setShowDepthMap(bool showDepthMap);
 		void updateRenderTargets(unsigned width, unsigned height);
 
@@ -48,9 +54,9 @@ namespace nex
 
 	private:
 
-		void renderShadows(PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth);
-		void renderDeferred(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
-		void renderForward(PerspectiveCamera* camera, DirectionalLight* sun, float frameTime, unsigned windowWidth, unsigned windowHeight);
+		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, PerspectiveCamera* camera, DirectionalLight* sun, Texture2D* depth);
+		void renderDeferred(const RenderCommandQueue& queue, PerspectiveCamera* camera, DirectionalLight* sun, unsigned windowWidth, unsigned windowHeight);
+		void renderForward(const RenderCommandQueue& queue, PerspectiveCamera* camera, DirectionalLight* sun, unsigned windowWidth, unsigned windowHeight);
 		void renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
@@ -73,8 +79,7 @@ namespace nex
 		PbrTechnique* mPbrTechnique;
 		CascadedShadow* mCascadedShadow;
 		RenderBackend* mRenderBackend;
-		RenderCommandQueue mCommandQueue;
-
+		
 		TesselationTest mTesselationTest;
 
 		OceanGPU mOcean;

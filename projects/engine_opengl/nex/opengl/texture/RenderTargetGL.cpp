@@ -74,7 +74,7 @@ unsigned nex::CubeRenderTarget::getHeight() const
 
 
 nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat) :
-	Impl(), data(data), mWidth(width), mHeight(height)
+	Impl(width, height)
 {	
 	RenderAttachment color;
 	color.target = TextureTarget::CUBE_MAP;
@@ -103,10 +103,6 @@ void nex::CubeRenderTargetGL::useSide(CubeMapSide side, unsigned mipLevel)
 
 
 void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
-
-	if (!data.generateMipMaps) {
-		throw_with_trace(runtime_error("CubeRenderTargetGL::resizeForMipMap(unsigned int): No mip levels generated for this cube render target!"));
-	}
 
 	unsigned int mipWidth = (unsigned int)(mWidth * std::pow(0.5, mipMapLevel));
 	unsigned int mipHeight = (unsigned int)(mHeight * std::pow(0.5, mipMapLevel));
@@ -189,7 +185,7 @@ nex::RenderTarget::RenderTarget(std::unique_ptr<Impl> impl) : mImpl(std::move(im
 {
 }
 
-nex::RenderTarget::RenderTarget() : mImpl(make_unique<Impl>())
+nex::RenderTarget::RenderTarget(unsigned width, unsigned height) : mImpl(make_unique<Impl>(width, height))
 {
 }
 
@@ -291,6 +287,14 @@ nex::RenderTarget::Impl* nex::RenderTarget::getImpl() const
 	return mImpl.get();
 }
 
+unsigned nex::RenderTarget::getWidth() const {
+	return mImpl->getWidth();
+}
+
+unsigned nex::RenderTarget::getHeight() const {
+	return mImpl->getHeight();
+}
+
 bool nex::RenderTarget::isComplete() const
 {
 	return mImpl->isComplete();
@@ -316,9 +320,11 @@ void nex::RenderTarget::useDepthAttachment(RenderAttachment attachment) const
 	mImpl->useDepthAttachment(std::move(attachment));
 }
 
-nex::RenderTarget::Impl::Impl() :
+nex::RenderTarget::Impl::Impl(unsigned width, unsigned height) :
 	mDepthAttachment(make_unique<RenderAttachment>()),
-	mFrameBuffer(GL_FALSE)
+	mFrameBuffer(GL_FALSE),
+	mWidth(width),
+	mHeight(height)
 {
 	GLCall(glGenFramebuffers(1, &mFrameBuffer));
 
@@ -327,7 +333,7 @@ nex::RenderTarget::Impl::Impl() :
 }
 
 
-nex::RenderTarget::Impl::Impl(GLuint frameBuffer) :
+nex::RenderTarget::Impl::Impl(GLuint frameBuffer, unsigned width, unsigned height) :
 	mFrameBuffer(frameBuffer)
 {
 }
@@ -526,9 +532,7 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	const TextureData& data,
 	unsigned samples) 
 :
-	Impl(),
-	mHeight(height),
-	mWidth(width)
+	Impl(width, height)
 {
 
 	const bool isMultiSample = samples > 1;
@@ -566,9 +570,7 @@ nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 }
 
 nex::RenderTarget2DGL::RenderTarget2DGL(GLuint frameBuffer, unsigned width, unsigned height) : 
-Impl(frameBuffer),
-mHeight(height),
-mWidth(width)
+Impl(frameBuffer, width, height)
 {
 }
 
@@ -623,15 +625,6 @@ GLint nex::RenderTarget2DGL::getRenderComponents(int components)
 
 	return componentsGL;
 }
-unsigned nex::RenderTarget2DGL::getWidth() const
-{
-	return mWidth;
-}
-
-unsigned nex::RenderTarget2DGL::getHeight() const
-{
-	return mHeight;
-}
 
 GLuint nex::RenderTarget::Impl::getFrameBuffer() const
 {
@@ -641,6 +634,16 @@ GLuint nex::RenderTarget::Impl::getFrameBuffer() const
 unsigned nex::RenderTarget::Impl::getLayerFromCubeMapSide(CubeMapSide side)
 {
 	return (unsigned)side;
+}
+
+unsigned nex::RenderTarget::Impl::getWidth() const
+{
+	return mWidth;
+}
+
+unsigned nex::RenderTarget::Impl::getHeight() const
+{
+	return mHeight;
 }
 
 bool nex::RenderTarget::Impl::isComplete() const
@@ -711,7 +714,7 @@ nex::CubeDepthMap::CubeDepthMap(int width, int height) : RenderTarget(make_uniqu
 }
 
 nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
-	Impl()
+	Impl(width, height)
 {
 
 	TextureData desc;

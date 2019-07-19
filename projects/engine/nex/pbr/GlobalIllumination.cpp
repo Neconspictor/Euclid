@@ -81,7 +81,7 @@ private:
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mProbeBakePass(std::make_unique<ProbeBakePass>())
+mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f)
 {
 }
 
@@ -155,6 +155,11 @@ nex::PbrProbe * nex::GlobalIllumination::getActiveProbe()
 	return mActive;
 }
 
+float nex::GlobalIllumination::getAmbientPower() const
+{
+	return mAmbientLightPower;
+}
+
 nex::CubeMapArray * nex::GlobalIllumination::getIrradianceMaps()
 {
 	return mFactory.getIrradianceMaps();
@@ -183,6 +188,11 @@ nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 {
 	mActive = probe;
+}
+
+void nex::GlobalIllumination::setAmbientPower(float ambientPower)
+{
+	mAmbientLightPower = ambientPower;
 }
 
 void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)

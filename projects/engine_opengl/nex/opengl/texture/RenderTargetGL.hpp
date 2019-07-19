@@ -29,12 +29,12 @@ namespace nex
 		/**
 		 * Creates a RenderTargetGL object, that generates a framebuffer
 		 */
-		explicit Impl();
+		explicit Impl(unsigned width, unsigned height);
 
 		/**
 		 * Creates a RenderTargetGL object, that doesn't create a framebuffer, but uses an existing one.
 		 */
-		explicit Impl(GLuint frameBuffer);
+		explicit Impl(GLuint frameBuffer, unsigned width, unsigned height);
 
 		virtual ~Impl();
 
@@ -62,6 +62,10 @@ namespace nex
 
 		static unsigned getLayerFromCubeMapSide(CubeMapSide side);
 
+		unsigned getWidth() const;
+
+		unsigned getHeight() const;
+
 		bool isComplete() const;
 
 		static bool isDepthType(RenderAttachmentType type);
@@ -83,6 +87,9 @@ namespace nex
 		std::vector<bool> mColorAttachmentReadStatus;
 		std::vector<bool> mColorAttachmentDrawStatus;
 		std::unique_ptr<RenderAttachment> mDepthAttachment;
+		unsigned mWidth;
+		unsigned mHeight;
+
 
 		const RenderAttachment* getByIndex(const unsigned colorAttachIndex) const;
 		static bool isArrayTarget(GLenum textureTarget);
@@ -113,13 +120,6 @@ namespace nex
 		// Has to be implemented by renderer backend
 		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const;
 		static GLint getRenderComponents(int components);
-
-		unsigned getWidth() const;
-		unsigned getHeight() const;
-
-	private:
-		unsigned mHeight;
-		unsigned mWidth;
 	};
 
 	
@@ -141,23 +141,6 @@ namespace nex
 		}
 
 		void resizeForMipMap(unsigned mipMapLevel);
-
-		// Has to be implemented by renderer backend
-		unsigned getWidth() const 
-		{
-			return mWidth;
-		}
-
-		// Has to be implemented by renderer backend
-		unsigned getHeight() const
-		{
-			return mHeight;
-		}
-
-	protected:
-		nex::TextureData data;
-		unsigned mWidth;
-		unsigned mHeight;
 	};
 
 

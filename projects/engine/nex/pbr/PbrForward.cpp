@@ -16,10 +16,9 @@ using namespace std;
 
 namespace nex {
 
-	PbrForward::PbrForward(AmbientLight* ambientLight, 
-		GlobalIllumination* globalIllumination,
+	PbrForward::PbrForward(GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
-	Pbr(ambientLight, globalIllumination, cascadeShadow, dirLight), 
+	Pbr(globalIllumination, cascadeShadow, dirLight), 
 		mForwardShader(std::make_unique<PbrForwardPass>(globalIllumination, cascadeShadow))
 	{
 		SamplerDesc desc;
@@ -28,7 +27,6 @@ namespace nex {
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 
-		mForwardShader->setAmbientLight(mAmbientLight);
 		mForwardShader->setDirLight(mLight);
 	}
 
@@ -39,7 +37,6 @@ namespace nex {
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mForwardShader = std::make_unique<PbrForwardPass>(mGlobalIllumination, cascadedShadow);
-		mForwardShader->setAmbientLight(mAmbientLight);
 		mForwardShader->setDirLight(mLight);
 	}
 

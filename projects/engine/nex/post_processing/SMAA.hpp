@@ -23,7 +23,7 @@ namespace nex
 
 		Texture2D* renderBlendingWeigthCalculationPass(Texture2D* edgeTex);
 
-		void renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget2D* output);
+		void renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget* output);
 
 		void reset();
 

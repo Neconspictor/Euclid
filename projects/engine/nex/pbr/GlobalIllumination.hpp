@@ -41,6 +41,10 @@ namespace nex
 		void addProbe(std::unique_ptr<PbrProbe>);
 
 		PbrProbe* getActiveProbe();
+
+		float getAmbientPower() const;
+
+
 		PbrProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
 		CubeMapArray* getPrefilteredMaps();
@@ -48,6 +52,8 @@ namespace nex
 		ShaderStorageBuffer* getProbesShaderBuffer();
 
 		void setActiveProbe(PbrProbe* probe);
+
+		void setAmbientPower(float ambientPower);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
@@ -70,5 +76,6 @@ namespace nex
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
 		std::unique_ptr<ProbeBakePass> mProbeBakePass;
+		float mAmbientLightPower;
 	};
 }

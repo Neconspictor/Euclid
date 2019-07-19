@@ -7,7 +7,7 @@ using namespace std;
 
 namespace nex
 {
-	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(),
+	PBR_GBuffer::PBR_GBuffer(unsigned width, unsigned height) : RenderTarget(width, height),
 	mAlbedo(nullptr), mAoMetalRoughness(nullptr), mNormal(nullptr), mNormalizedViewSpaceZ(nullptr)
 	{
 		bind();

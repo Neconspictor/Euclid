@@ -13,9 +13,8 @@ namespace nex {
 	{
 	}
 
-	PbrDeferred::PbrDeferred(AmbientLight* ambientLight, 
-		GlobalIllumination* globalIllumination,
-		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) : Pbr(ambientLight, globalIllumination, cascadeShadow, dirLight),
+	PbrDeferred::PbrDeferred(GlobalIllumination* globalIllumination,
+		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mGeometryPass(std::make_unique<PbrDeferredGeometryPass>()),
 		mLightPass(std::make_unique<PbrDeferredLightingPass>(globalIllumination, cascadeShadow))
 	{
@@ -25,7 +24,6 @@ namespace nex {
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 
-		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
 	}
 
@@ -72,7 +70,6 @@ namespace nex {
 	{
 		mLightPass = std::make_unique<PbrDeferredLightingPass>(mGlobalIllumination, cascadedShadow);
 
-		mLightPass->setAmbientLight(mAmbientLight);
 		mLightPass->setDirLight(mLight);
 	}
 }

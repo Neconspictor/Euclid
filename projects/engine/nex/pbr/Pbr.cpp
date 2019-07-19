@@ -10,10 +10,9 @@
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
 
-nex::Pbr::Pbr(AmbientLight* ambientLight, 
-	GlobalIllumination* globalIllumination,
+nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
-	mAmbientLight(ambientLight), mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
+	mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
 	mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
 	{
@@ -22,11 +21,6 @@ nex::Pbr::Pbr(AmbientLight* ambientLight,
 }
 
 nex::Pbr::~Pbr() = default;
-
-nex::AmbientLight* nex::Pbr::getAmbientLight()
-{
-	return mAmbientLight;
-}
 
 nex::CascadedShadow* nex::Pbr::getCascadedShadow()
 {
@@ -48,22 +42,19 @@ nex::GlobalIllumination* nex::Pbr::getGlobalIllumination()
 	return mGlobalIllumination;
 }
 
-void nex::Pbr::setAmbientLight(AmbientLight* light)
-{
-	mAmbientLight = light;
-}
-
 void nex::Pbr::setDirLight(DirectionalLight* light)
 {
 	mLight = light;
 }
 
-nex::PbrTechnique::PbrTechnique(AmbientLight* ambientLight, 
+nex::PbrTechnique::PbrTechnique(
 	GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
 	Technique(nullptr),
-	mDeferred(std::make_unique<PbrDeferred>(ambientLight, globalIllumination, cascadeShadow, dirLight)),
-	mForward(std::make_unique<PbrForward>(ambientLight, globalIllumination, cascadeShadow, dirLight))
+	mDeferred(std::make_unique<PbrDeferred>(globalIllumination, cascadeShadow, dirLight)),
+	mForward(std::make_unique<PbrForward>(globalIllumination, cascadeShadow, dirLight)),
+	mOverrideForward(nullptr),
+	mOverrideDeferred(nullptr)
 {
 	useDeferred();
 }
@@ -73,13 +64,15 @@ nex::PbrTechnique::~PbrTechnique() = default;
 void nex::PbrTechnique::useDeferred()
 {
 	mDeferredUsed = true;
-	setSelected(mDeferred->getGeometryPass());
+	auto* active = mOverrideDeferred ? mOverrideDeferred : mDeferred.get();
+	setSelected(active->getGeometryPass());
 }
 
 void nex::PbrTechnique::useForward()
 {
 	mDeferredUsed = false;
-	setSelected(mForward->getPass());
+	auto* active = mOverrideForward ? mOverrideForward : mForward.get();
+	setSelected(active->getPass());
 }
 
 nex::PbrDeferred* nex::PbrTechnique::getDeferred()
@@ -101,6 +94,18 @@ nex::Pbr* nex::PbrTechnique::getActive()
 nex::PbrGeometryPass * nex::PbrTechnique::getActiveGeometryPass()
 {
 	return (nex::PbrGeometryPass *)getSelected();
+}
+
+void nex::PbrTechnique::overrideForward(PbrForward * forward)
+{
+	mOverrideForward = forward;
+	if (!mDeferredUsed) useForward();
+}
+
+void nex::PbrTechnique::overrideDeferred(PbrDeferred * deferred)
+{
+	mOverrideDeferred = deferred;
+	if (mDeferredUsed) useDeferred();
 }
 
 nex::Pbr_ConfigurationView::Pbr_ConfigurationView(PbrTechnique* pbr) : mPbr(pbr)
@@ -135,11 +140,11 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	drawLightSphericalDirection();
 
 
-	float ambientLightPower = active->getAmbientLight()->getPower();
+	float ambientLightPower = active->getGlobalIllumination()->getAmbientPower();
 
 	if (ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
 	{
-		active->getAmbientLight()->setPower(ambientLightPower);
+		active->getGlobalIllumination()->setAmbientPower(ambientLightPower);
 	}
 
 

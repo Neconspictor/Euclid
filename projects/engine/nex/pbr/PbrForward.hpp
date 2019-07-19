@@ -12,7 +12,7 @@ namespace nex
 	class PbrForward : public Pbr {
 
 	public:
-		PbrForward(AmbientLight* ambientLight, GlobalIllumination* globalIllumination, 
+		PbrForward(GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		virtual ~PbrForward();

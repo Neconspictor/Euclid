@@ -4,6 +4,7 @@ namespace nex
 {
 	class Camera;
 
+	class RenderTarget;
 	class RenderTarget2D;
 	class Texture;
 	class Texture2D;
@@ -34,14 +35,14 @@ namespace nex
 		 * @param glowTexture : Used for Bloom
 		 * @param output : The render target that will be used to store the result of the post processing.
 		 */
-		nex::Texture2D* doPostProcessing(
+		nex::Texture* doPostProcessing(
 			Texture2D* source, 
 			Texture2D* glowTexture,
 			Texture2D* aoMap,
 			Texture2D* motionMap,
-			RenderTarget2D* output);
+			RenderTarget* output);
 
-		void antialias(Texture2D* source, RenderTarget2D* output);
+		void antialias(Texture2D* source, RenderTarget* output);
 
 		SMAA* getSMAA();
 

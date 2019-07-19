@@ -235,7 +235,7 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 	return mBlendTex->getColor0AttachmentTexture();
 }
 
-void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget2D* output)
+void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget* output)
 {
 	output->bind();
 	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());

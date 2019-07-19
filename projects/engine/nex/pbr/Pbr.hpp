@@ -10,7 +10,6 @@ namespace nex
 {
 	class CascadedShadow;
 	class DirectionalLight;
-	class AmbientLight;
 	class PbrProbe;
 	class PbrDeferred;
 	class PbrForward;
@@ -20,13 +19,10 @@ namespace nex
 	class Pbr {
 
 	public:
-		Pbr(AmbientLight* ambientLight, 
-			GlobalIllumination* globalIllumination,
+		Pbr(GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		virtual ~Pbr();
-
-		AmbientLight* getAmbientLight();
 
 		CascadedShadow* getCascadedShadow();
 
@@ -36,14 +32,11 @@ namespace nex
 
 		virtual void reloadLightingShader(CascadedShadow* cascadedShadow) = 0;
 
-		void setAmbientLight(AmbientLight * light);
-
 		void setCascadedShadow(CascadedShadow* shadow);
 
 		void setDirLight(DirectionalLight * light);
 
 	protected:
-		AmbientLight* mAmbientLight;
 		CascadedShadow* mCascadeShadow;
 		DirectionalLight* mLight;
 		GlobalIllumination* mGlobalIllumination;
@@ -52,7 +45,7 @@ namespace nex
 	class PbrTechnique : public Technique
 	{
 	public:
-		PbrTechnique(AmbientLight* ambientLight, GlobalIllumination* globalIllumination, CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
+		PbrTechnique(GlobalIllumination* globalIllumination, CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 		virtual ~PbrTechnique();
 
 
@@ -63,9 +56,15 @@ namespace nex
 		Pbr* getActive();
 
 		PbrGeometryPass* getActiveGeometryPass();
+
+		void overrideForward(PbrForward* forward);
+		void overrideDeferred(PbrDeferred* deferred);
+
 	private:
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
+		PbrDeferred* mOverrideDeferred;
+		PbrForward* mOverrideForward;
 		bool mDeferredUsed;
 	};
 

@@ -70,7 +70,6 @@ namespace nex
 		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
 			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 1);
 
-		void setAmbientLight(AmbientLight* light);
 		void setCascadedShadow(CascadedShadow* shadow);
 		void setDirLight(DirectionalLight* light);
 
@@ -127,8 +126,6 @@ namespace nex
 		unsigned mPbrProbesDataBufferBindingPoint;
 		GlobalIllumination* mGlobalIllumination;
 
-		AmbientLight* mAmbientLight;
-
 		unsigned mCsmCascadeBindingPoint;
 		CascadedShadow* mCascadeShadow;
 		DirectionalLight* mLight;
@@ -152,7 +149,6 @@ namespace nex
 
 		void updateConstants(Camera* camera) override;
 
-		void setAmbientLight(AmbientLight* light);
 		void setDirLight(DirectionalLight* light);
 
 	private:
@@ -186,7 +182,6 @@ namespace nex
 
 		void updateConstants(Camera* camera) override;
 
-		void setAmbientLight(AmbientLight* light);
 		void setDirLight(DirectionalLight* light);
 
 	private:

@@ -29,7 +29,7 @@ namespace nex
 		 * Before it can be used for rendering the user has to add attachments, optionally a depth-stencil buffer
 		 * and update the attachments.
 		 */
-		RenderTarget();
+		RenderTarget(unsigned width, unsigned height);
 
 		virtual ~RenderTarget();
 
@@ -75,6 +75,12 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		Impl* getImpl() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getWidth() const;
+
+		// Has to be implemented by renderer backend
+		unsigned getHeight() const;
 
 
 		// Has to be implemented by renderer backend

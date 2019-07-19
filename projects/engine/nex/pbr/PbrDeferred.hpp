@@ -20,8 +20,7 @@ namespace nex
 
 		virtual ~PbrDeferred();
 
-		PbrDeferred(AmbientLight* ambientLight, 
-			GlobalIllumination* globalIllumination,
+		PbrDeferred(GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
 		void configureGeometryPass(Camera* camera);

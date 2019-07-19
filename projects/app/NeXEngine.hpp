@@ -46,7 +46,7 @@ namespace nex
 
 	protected:
 
-		void collectRenderCommands(RenderCommandQueue* queue, const Scene& scene);
+		void collectRenderCommands(RenderCommandQueue& queue, const Scene& scene);
 		void createScene();
 		Window* createWindow();
 		void initLights();
@@ -88,7 +88,6 @@ namespace nex
 		std::unique_ptr<GlobalIllumination> mGlobalIllumination;
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
 
-		AmbientLight mAmbientLight;
 		DirectionalLight mSun;
 	};
 }

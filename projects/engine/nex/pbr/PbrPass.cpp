@@ -202,11 +202,6 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	mPrefilteredSampler.setState(desc);
 }
 
-void PbrLightingData::setAmbientLight(AmbientLight* light)
-{
-	mAmbientLight = light;
-}
-
 void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
 {
 	mCascadeShadow = shadow;
@@ -220,7 +215,6 @@ void PbrLightingData::setDirLight(DirectionalLight* light)
 void PbrLightingData::updateConstants(Camera* camera)
 {
 	assert(mLight != nullptr);
-	assert(mAmbientLight != nullptr);
 	assert(mGlobalIllumination != nullptr);
 	assert(mCascadeShadow != nullptr);
 	assert(camera != nullptr);
@@ -234,7 +228,7 @@ void PbrLightingData::updateConstants(Camera* camera)
 	setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
 	setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
 
-	setAmbientLightPower(mAmbientLight->getPower());
+	setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 	setLightColor(mLight->getColor());
 	setLightPower(mLight->getLightPower());
 
@@ -280,11 +274,6 @@ void PbrForwardPass::updateConstants(Camera* camera)
 
 	mGeometryData.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
-}
-
-void PbrForwardPass::setAmbientLight(AmbientLight* light)
-{
-	mLightingPass.setAmbientLight(light);
 }
 
 void PbrForwardPass::setDirLight(DirectionalLight* light)
@@ -361,11 +350,6 @@ void PbrDeferredLightingPass::updateConstants(Camera* camera)
 	bind();
 	mLightingPass.updateConstants(camera);
 	setInverseProjMatrixFromGPass(inverse(camera->getProjectionMatrix()));
-}
-
-void PbrDeferredLightingPass::setAmbientLight(AmbientLight* light)
-{
-	mLightingPass.setAmbientLight(light);
 }
 
 void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
