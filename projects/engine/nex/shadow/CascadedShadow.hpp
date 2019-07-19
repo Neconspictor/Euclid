@@ -129,7 +129,7 @@ namespace nex
 		/**
 		 * Updates the cascades. Has to be called once per frame and before actual renering to the cascades happens.
 		 */
-		void frameUpdate(Camera* camera, const glm::vec3& lightDirection, Texture2D* depth);
+		void frameUpdate(const Camera& camera, const glm::vec3& lightDirection, Texture2D* depth);
 
 		bool getAntiFlickering() const;
 
@@ -189,13 +189,13 @@ namespace nex
 
 			void setCascadeIndex(unsigned index);
 			void setCascadeShaderBuffer(ShaderStorageBuffer* buffer);
-			void updateConstants(Camera* camera);
+			void updateConstants(const Camera& camera);
 
 		private:
 			unsigned mNumCascades;
 		};
 
-		GlobalShadow calcShadowSpaceMatrix(Camera* camera, const glm::vec3& lightDirection);
+		GlobalShadow calcShadowSpaceMatrix(const Camera& camera, const glm::vec3& lightDirection);
 		
 		void calcSplitSchemes(const glm::vec2& minMaxPositiveZ);
 		
@@ -204,15 +204,15 @@ namespace nex
 		bool cascadeNeedsUpdate(const glm::mat4& shadowView, int cascadeIdx, const glm::vec3& newCenter,
 			const glm::vec3& oldCenter, float cascadeBoundRadius, glm::vec3* offset);
 
-		BoundingSphere extractFrustumBoundSphere(Camera* camera, float nearSplitDistance, float farSplitDistance);
-		void extractFrustumPoints(Camera* camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
+		BoundingSphere extractFrustumBoundSphere(const Camera& camera, float nearSplitDistance, float farSplitDistance);
+		void extractFrustumPoints(const Camera& camera, float nearSplitDistance, float farSplitDistance, glm::vec3 (&frustumCorners)[8]);
 
 		void updateCascadeData();
 
 		void updateTextureArray();
 
-		void frameUpdateTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection, nex::ShaderStorageBuffer* minMaxOutputBuffer);
-		void frameUpdateNoTightNearFarPlane(Camera* camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ);
+		void frameUpdateTightNearFarPlane(const Camera& camera, const glm::vec3& lightDirection, nex::ShaderStorageBuffer* minMaxOutputBuffer);
+		void frameUpdateNoTightNearFarPlane(const Camera& camera, const glm::vec3& lightDirection, const glm::vec2& minMaxPositiveZ);
 		
 
 

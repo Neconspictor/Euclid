@@ -37,7 +37,7 @@ namespace nex {
 
 		void onSizeChange(unsigned width, unsigned height);
 
-		Texture2D* renderAO(PerspectiveCamera* camera, Texture2D* gDepth);
+		Texture2D* renderAO(const PerspectiveCamera& camera, Texture2D* gDepth);
 
 		void setAOTechniqueToUse(AOTechnique technique);
 		void setUseAmbientOcclusion(bool useAO);

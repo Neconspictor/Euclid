@@ -20,6 +20,7 @@ namespace nex
 	class PbrDeferred;
 	class PbrForward;
 	class Renderer;
+	class PerspectiveCamera;
 
 	class GlobalIllumination
 	{
@@ -65,11 +66,11 @@ namespace nex
 		class ProbeBakePass;
 
 		void collectBakeCommands(nex::RenderCommandQueue& queue, const Scene& scene, bool doCulling);
-		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers,
-			ProbeBakePass& pass,
+		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue & queue,
+			Renderer* renderer,
 			CubeRenderTarget & renderTarget,
+			nex::PerspectiveCamera& camera,
 			const glm::vec3 & worldPosition,
-			const glm::mat4 & projection,
 			const DirectionalLight& light);
 
 		std::vector<glm::vec4> mProbeSpatials;

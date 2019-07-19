@@ -22,7 +22,7 @@ void nex::RenderCommandQueue::clear()
 	mTransparentCommands.clear();
 }
 
-nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(int types) const
+nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(int types)
 {
 	BufferCollection result;
 	if (types & Deferrable) {
@@ -44,14 +44,29 @@ nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(i
 	return result;
 }
 
-const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getDeferrablePbrCommands() const
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getDeferrablePbrCommands()
 {
 	return mPbrCommands;
 }
 
-const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getForwardCommands() const
+const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getDeferrablePbrCommands() const
+{
+	return mPbrCommands;
+}
+
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getForwardCommands() 
 {
 	return mForwardCommands;
+}
+
+const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getForwardCommands() const
+{
+	return mForwardCommands;
+}
+
+std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getToolCommands() 
+{
+	return mToolCommands;
 }
 
 const std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getToolCommands() const
@@ -59,14 +74,29 @@ const std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getT
 	return mToolCommands;
 }
 
-const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getTransparentCommands() const
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getTransparentCommands()
 {
 	return mTransparentCommands;
 }
 
-const nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getShadowCommands() const
+const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getTransparentCommands() const
+{
+	return mTransparentCommands;
+}
+
+nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getShadowCommands()
 {
 	return mShadowCommands;
+}
+
+const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getShadowCommands() const
+{
+	return mShadowCommands;
+}
+
+std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechniques()
+{
+	return mTechniques;
 }
 
 const std::unordered_set<nex::Technique*>& nex::RenderCommandQueue::getTechniques() const

@@ -20,7 +20,7 @@ namespace nex
 
 		void setShader(Shader* shader);
 
-		virtual void updateConstants(Camera* camera) = 0;
+		virtual void updateConstants(const Camera& camera) = 0;
 
 	protected:
 		Shader* mShader;
@@ -45,7 +45,7 @@ namespace nex
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
 
-		void updateConstants(Camera* camera);
+		void updateConstants(const Camera& camera);
 
 	private:
 
@@ -71,12 +71,13 @@ namespace nex
 			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 1);
 
 		void setCascadedShadow(CascadedShadow* shadow);
-		void setDirLight(DirectionalLight* light);
 
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
 		 */
-		void updateConstants(Camera* camera);
+		void updateConstants(const Camera& camera);
+
+		void updateLight(const DirectionalLight & light, const Camera& camera);
 
 	private:
 		void setArrayIndex(float index);
@@ -128,7 +129,6 @@ namespace nex
 
 		unsigned mCsmCascadeBindingPoint;
 		CascadedShadow* mCascadeShadow;
-		DirectionalLight* mLight;
 	};
 
 	class PbrGeometryPass : public TransformPass {
@@ -148,9 +148,9 @@ namespace nex
 		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
 			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
-		void updateConstants(Camera* camera) override;
+		void updateConstants(const Camera& camera) override;
 
-		void setDirLight(DirectionalLight* light);
+		void updateLight(const DirectionalLight& light, const Camera& camera);
 
 	private:
 		PbrLightingData mLightingPass;
@@ -166,7 +166,7 @@ namespace nex
 	public:
 		PbrDeferredGeometryPass(std::unique_ptr<Shader> shader);
 
-		void updateConstants(Camera* camera) override;
+		void updateConstants(const Camera& camera) override;
 	};
 
 	class PbrDeferredLightingPass : public Pass {
@@ -182,9 +182,8 @@ namespace nex
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-		void updateConstants(Camera* camera) override;
-
-		void setDirLight(DirectionalLight* light);
+		void updateConstants(const Camera& camera) override;
+		void updateLight(const DirectionalLight& light, const Camera& camera);
 
 	private:
 		UniformTex mAlbedoMap;

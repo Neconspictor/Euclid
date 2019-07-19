@@ -67,7 +67,7 @@ void PbrBaseCommon::setShader(Shader* shader)
 	mShader = shader;
 }
 
-void PbrGeometryData::updateConstants(Camera* camera)
+void PbrGeometryData::updateConstants(const Camera& camera)
 {
 	/*mDefaultImageSampler->bind(ALBEDO_BINDING_POINT);
 	mDefaultImageSampler->bind(AO_BINDING_POINT);
@@ -75,7 +75,7 @@ void PbrGeometryData::updateConstants(Camera* camera)
 	mDefaultImageSampler->bind(NORMAL_BINDING_POINT);
 	mDefaultImageSampler->bind(ROUGHNESS_BINDING_POINT);*/
 
-	setNearFarPlane(camera->getNearFarPlaneViewSpace());
+	setNearFarPlane(camera.getNearFarPlaneViewSpace());
 }
 
 void nex::PbrLightingData::setArrayIndex(float index)
@@ -206,26 +206,11 @@ void PbrLightingData::setCascadedShadow(CascadedShadow* shadow)
 	mCascadeShadow = shadow;
 }
 
-void PbrLightingData::setDirLight(DirectionalLight* light)
+void PbrLightingData::updateConstants(const Camera& camera)
 {
-	mLight = light;
-}
+	setInverseViewMatrix(inverse(camera.getView()));
 
-void PbrLightingData::updateConstants(Camera* camera)
-{
-	assert(mLight != nullptr);
-	assert(camera != nullptr);
-
-
-	setLightColor(mLight->getColor());
-	setLightPower(mLight->getLightPower());
-
-	vec4 lightEyeDirection = camera->getView() * vec4(mLight->getDirection(), 0);
-	setEyeLightDirection(vec3(lightEyeDirection));
-
-	setInverseViewMatrix(inverse(camera->getView()));
-
-	setNearFarPlane(camera->getNearFarPlaneViewSpace());
+	setNearFarPlane(camera.getNearFarPlaneViewSpace());
 
 	if (mCascadeShadow) {
 		setShadowStrength(mCascadeShadow->getShadowStrength());
@@ -251,6 +236,15 @@ void PbrLightingData::updateConstants(Camera* camera)
 	}
 }
 
+void nex::PbrLightingData::updateLight(const DirectionalLight & light, const Camera& camera)
+{
+	setLightColor(light.getColor());
+	setLightPower(light.getLightPower());
+
+	vec4 lightEyeDirection = camera.getView() * vec4(light.getDirection(), 0);
+	setEyeLightDirection(vec3(lightEyeDirection));
+}
+
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
 	GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow) :
 	PbrGeometryPass(Shader::create(vertexShader, fragmentShader, nullptr, nullptr, nullptr, generateDefines(cascadedShadow)),
@@ -269,18 +263,19 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 	//unbind();
 }
 
-void PbrForwardPass::updateConstants(Camera* camera)
+void PbrForwardPass::updateConstants(const Camera& camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
+	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
 
 	mGeometryData.updateConstants(camera);
 	mLightingPass.updateConstants(camera);
 }
 
-void PbrForwardPass::setDirLight(DirectionalLight* light)
+void nex::PbrForwardPass::updateLight(const DirectionalLight & light, const Camera & camera)
 {
-	mLightingPass.setDirLight(light);
+	bind();
+	mLightingPass.updateLight(light, camera);
 }
 
 std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
@@ -350,16 +345,17 @@ void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat
 	Pass::mShader->setMat4(mInverseProjFromGPass.location, mat);
 }
 
-void PbrDeferredLightingPass::updateConstants(Camera* camera)
+void PbrDeferredLightingPass::updateConstants(const Camera& camera)
 {
 	bind();
 	mLightingPass.updateConstants(camera);
-	setInverseProjMatrixFromGPass(inverse(camera->getProjectionMatrix()));
+	setInverseProjMatrixFromGPass(inverse(camera.getProjectionMatrix()));
 }
 
-void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
+void nex::PbrDeferredLightingPass::updateLight(const DirectionalLight & light, const Camera & camera)
 {
-	mLightingPass.setDirLight(light);
+	bind();
+	mLightingPass.updateLight(light, camera);
 }
 
 std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedShadow * cascadedShadow)
@@ -381,10 +377,10 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<Shader> shader)
 {
 }
 
-void PbrDeferredGeometryPass::updateConstants(Camera* camera)
+void PbrDeferredGeometryPass::updateConstants(const Camera& camera)
 {
 	bind();
-	setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
+	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
 	mGeometryData.updateConstants(camera);
 }
 

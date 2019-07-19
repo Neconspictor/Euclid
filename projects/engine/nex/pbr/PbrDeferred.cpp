@@ -17,7 +17,8 @@ namespace nex {
 		std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
 		LightingPassFactory lightingPassFactory,
 		GlobalIllumination* globalIllumination,
-		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
+		CascadedShadow* cascadeShadow, 
+		DirectionalLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
 		mGeometryPass(std::move(geometryPass)),
 		mLightPass(mLightingPassFactory(cascadeShadow, globalIllumination))
@@ -27,20 +28,19 @@ namespace nex {
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
-
-		mLightPass->setDirLight(mLight);
 	}
 
-	void PbrDeferred::configureGeometryPass(Camera* camera)
+	void PbrDeferred::configureGeometryPass(const Camera& camera)
 	{
 		mGeometryPass->bind();
 		mGeometryPass->updateConstants(camera);
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Camera* camera)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Camera& camera, const DirectionalLight& light)
 	{
 		mLightPass->bind();
 		mLightPass->updateConstants(camera);
+		mLightPass->updateLight(light, camera);
 
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
@@ -73,6 +73,5 @@ namespace nex {
 	void PbrDeferred::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mLightPass = mLightingPassFactory(cascadedShadow, mGlobalIllumination);
-		mLightPass->setDirLight(mLight);
 	}
 }

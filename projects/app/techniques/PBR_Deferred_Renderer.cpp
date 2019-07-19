@@ -119,8 +119,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
-	PerspectiveCamera* camera, 
-	DirectionalLight* sun, 
+	const PerspectiveCamera& camera, 
+	const DirectionalLight& sun, 
 	unsigned windowWidth, 
 	unsigned windowHeight, 
 	RenderTarget* out)
@@ -190,8 +190,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	mRenderTargetSingleSampled->bind();
 	mPbrTechnique->useForward();
 	auto* forward = mPbrTechnique->getForward();
-	forward->setDirLight(sun);
 	forward->configurePass(camera);
+	forward->updateLight(sun, camera);
 	StaticMeshDrawer::draw(queue.getTransparentCommands());
 
 	// At last we render tools
@@ -241,14 +241,13 @@ nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
-	PerspectiveCamera* camera, 
-	DirectionalLight* sun, 
+	const PerspectiveCamera&  camera, const DirectionalLight& sun,
 	Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
-		mCascadedShadow->frameUpdate(camera, sun->getDirection(), depth);
+		mCascadedShadow->frameUpdate(camera, sun.getDirection(), depth);
 		TransformPass* depthPass = mCascadedShadow->getDepthPass();
 		depthPass->bind();
 		depthPass->updateConstants(camera);
@@ -269,8 +268,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
-	PerspectiveCamera* camera, 
-	DirectionalLight* sun, 
+	const PerspectiveCamera&  camera, const DirectionalLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -303,7 +301,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
+		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
@@ -333,8 +331,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
 	auto* deferred = mPbrTechnique->getDeferred();
-	deferred->setDirLight(sun);
-	deferred->drawLighting(mPbrMrt.get(), camera);
+	deferred->drawLighting(mPbrMrt.get(), camera, sun);
 
 	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
 
@@ -346,16 +343,15 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 	mPbrTechnique->useForward();
 	auto* forward = mPbrTechnique->getForward();
-	forward->setDirLight(sun);
 	forward->configurePass(camera);
+	forward->updateLight(sun, camera);
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
-	PerspectiveCamera* camera,
-	DirectionalLight* sun,
+	const PerspectiveCamera&  camera, const DirectionalLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -380,7 +376,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	auto* depthPass = mRenderBackend->getEffectLibrary()->getDepthMapShader();
 	//mCommandQueue.getDeferredCommands()  mCommandQueue.getShadowCommands()
 	depthPass->bind();
-	depthPass->updateViewProjection(camera->getProjectionMatrix(), camera->getView());
+	depthPass->updateViewProjection(camera.getProjectionMatrix(), camera.getView());
 	StaticMeshDrawer::draw(queue.getShadowCommands(), depthPass);
 	renderShadows(queue.getShadowCommands(), camera, sun, (Texture2D*)mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
 
@@ -398,8 +394,8 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 	mPbrTechnique->useForward();
 	auto* forward = mPbrTechnique->getForward();
-	forward->setDirLight(sun);
 	forward->configurePass(camera);
+	forward->updateLight(sun, camera);
 
 	//mPbrForward->configureSubMeshPass(camera);
 	//mPbrForward->getActiveSubMeshPass()->updateConstants(camera);
@@ -407,7 +403,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera->getProjectionMatrix(), camera->getView(), camera->getPrevView());
+		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
 
@@ -415,20 +411,20 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, DirectionalLight* sun, unsigned width, unsigned height)
+void nex::PBR_Deferred_Renderer::renderSky(const PerspectiveCamera& camera, const DirectionalLight& sun, unsigned width, unsigned height)
 {
 	mAtmosphericScattering->bind();
-	mAtmosphericScattering->setInverseProjection(glm::inverse(camera->getProjectionMatrix()));
-	mAtmosphericScattering->setInverseViewRotation(glm::inverse(camera->getView()));
+	mAtmosphericScattering->setInverseProjection(glm::inverse(camera.getProjectionMatrix()));
+	mAtmosphericScattering->setInverseViewRotation(glm::inverse(camera.getView()));
 	mAtmosphericScattering->setStepCount(16);
 	mAtmosphericScattering->setSurfaceHeight(0.99f);
 	mAtmosphericScattering->setScatterStrength(0.028f);
 	mAtmosphericScattering->setSpotBrightness(10.0f);
 	mAtmosphericScattering->setViewport(width, height);
 
-	const auto& view = camera->getView();
-	const auto& prevView = camera->getPrevView();
-	const auto& proj = camera->getProjectionMatrix();
+	const auto& view = camera.getView();
+	const auto& prevView = camera.getPrevView();
+	const auto& proj = camera.getProjectionMatrix();
 	const auto prevViewProj = proj * prevView;
 	const auto viewProjInverse = inverse(proj*view);
 
@@ -437,7 +433,7 @@ void nex::PBR_Deferred_Renderer::renderSky(PerspectiveCamera* camera, Directiona
 
 
 	AtmosphericScattering::Light light;
-	light.direction = -normalize(sun->getDirection());
+	light.direction = -normalize(sun.getDirection());
 	light.intensity = 1.8f;
 	mAtmosphericScattering->setLight(light);
 

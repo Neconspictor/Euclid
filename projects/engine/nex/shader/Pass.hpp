@@ -41,7 +41,7 @@ namespace nex
 		 */
 		void unbind();
 
-		virtual void updateConstants(Camera* camera);
+		virtual void updateConstants(const Camera& camera);
 		virtual void updateMaterial(Material* material);
 
 	protected:

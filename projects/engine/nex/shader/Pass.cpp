@@ -7,7 +7,7 @@ nex::Pass::Pass(std::unique_ptr<Shader> program) : mShader(std::move(program))
 
 nex::Pass::~Pass() = default;
 
-void nex::Pass::updateConstants(Camera* camera)
+void nex::Pass::updateConstants(const Camera& camera)
 {
 }
 

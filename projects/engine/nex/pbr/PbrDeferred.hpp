@@ -28,9 +28,9 @@ namespace nex
 			GlobalIllumination* globalIllumination,
 			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
 
-		void configureGeometryPass(Camera* camera);
+		void configureGeometryPass(const Camera& camera);
 
-		void drawLighting(PBR_GBuffer* gBuffer, Camera* camera);
+		void drawLighting(PBR_GBuffer* gBuffer, const Camera& camera, const DirectionalLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 

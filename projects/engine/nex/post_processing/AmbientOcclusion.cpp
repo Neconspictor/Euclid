@@ -41,7 +41,7 @@ namespace nex
 		m_ssao->onSizeChange(width, height);
 	}
 
-	Texture2D* AmbientOcclusionSelector::renderAO(PerspectiveCamera* camera, Texture2D* gDepth)
+	Texture2D* AmbientOcclusionSelector::renderAO(const PerspectiveCamera& camera, Texture2D* gDepth)
 	{
 		if (!isAmbientOcclusionActive())
 			// Return a default white texture (means no ambient occlusion)
@@ -50,10 +50,10 @@ namespace nex
 		if (getActiveAOTechnique() == AOTechnique::HBAO)
 		{
 			nex::Projection projection;
-			projection.fov = camera->getFovY();
-			projection.farplane = camera->getFarDistance();
-			projection.matrix = camera->getProjectionMatrix();
-			projection.nearplane = camera->getNearDistance();
+			projection.fov = camera.getFovY();
+			projection.farplane = camera.getFarDistance();
+			projection.matrix = camera.getProjectionMatrix();
+			projection.nearplane = camera.getNearDistance();
 			projection.orthoheight = 0;
 			projection.perspective = true;
 
@@ -65,7 +65,7 @@ namespace nex
 		// use SSAO
 
 		SSAO_Deferred* ssao = getSSAO();
-		ssao->renderAO(gDepth, camera->getProjectionMatrix());
+		ssao->renderAO(gDepth, camera.getProjectionMatrix());
 		ssao->blur();
 		return ssao->getBlurredResult();
 	}

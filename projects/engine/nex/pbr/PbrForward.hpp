@@ -24,7 +24,10 @@ namespace nex
 
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
-		void configurePass(Camera* camera);
+		void configurePass(const Camera& camera);
+
+		void updateLight(const DirectionalLight & light, const Camera& camera);
+
 		PbrForwardPass* getPass();
 
 	private:

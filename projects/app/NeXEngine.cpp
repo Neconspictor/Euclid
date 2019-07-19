@@ -269,7 +269,7 @@ void NeXEngine::run()
 
 			
 			RenderTarget2D* screenRenderTarget = RenderBackend::get()->getDefaultRenderTarget();
-			mRenderer->render(commandQueue, mCamera.get(), &mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), screenRenderTarget);
+			mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), screenRenderTarget);
 			mControllerSM->getDrawable()->drawGUI();
 			
 			ImGui::Render();

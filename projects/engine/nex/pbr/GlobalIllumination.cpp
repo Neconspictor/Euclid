@@ -124,6 +124,7 @@ nex::GlobalIllumination::~GlobalIllumination() = default;
 
 void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
 {
+	return;
 	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
 	camera.update();
 	RenderCommandQueue commandQueue;
@@ -165,8 +166,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 		const auto position = glm::vec3(4.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, true);
-		auto commandBuffers = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Transparent);
-		auto cubeMap = renderToCubeMap(commandBuffers, *mProbeBakePass,*renderTarget, position, camera.getProjectionMatrix(), light);
+		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
 		auto readImage = StoreImage::create(cubeMap.get());
 		StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
 	}
@@ -299,13 +299,18 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 			}
 		}
 	}
+
+	commandQueue.getForwardCommands().clear();
+	commandQueue.getShadowCommands().clear();
+	commandQueue.getToolCommands().clear();
 }
 
-std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex::RenderCommandQueue::BufferCollection & buffers, 
-	ProbeBakePass& pass,
-	CubeRenderTarget & renderTarget, 
-	const glm::vec3 & worldPosition, 
-	const glm::mat4 & projection,
+std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
+	const nex::RenderCommandQueue & queue,
+	Renderer* renderer,
+	CubeRenderTarget & renderTarget,
+	nex::PerspectiveCamera& camera,
+	const glm::vec3 & worldPosition,
 	const DirectionalLight& light)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
@@ -314,11 +319,11 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex
 	const auto& views = CubeMap::getViewLookAts();
 	const auto viewModel = glm::translate(glm::mat4(1.0f), worldPosition);
 
-	renderTarget.bind();
-	renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
-	renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+	//renderTarget.bind();
+	//renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
+	//renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
-	pass.bind();
+	//pass.bind();
 
 	const glm::vec3 ups[6]{
 		glm::vec3(0.0f, -1.0f, 0.0f),
@@ -343,10 +348,13 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex
 	for (unsigned side = 0; side < views.size(); ++side) {
 		
 		const auto view = glm::lookAt(worldPosition, worldPosition + dir[side], ups[side]);
-		pass.updateConstants(light, projection, view);
+		//pass.updateConstants(light, projection, view);
 		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
+		//camera.setView(view, true);
 
-		for (const auto& buffer : buffers) {
+		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), &renderTarget);
+
+		/*for (const auto& buffer : buffers) {
 			for (const auto& command : *buffer)
 			{
 				pass.setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
@@ -363,7 +371,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(const nex
 				StaticMeshDrawer::draw(command.mesh, nullptr, &pass, nullptr);
 			}
 
-		}
+		}*/
 	}
 
 

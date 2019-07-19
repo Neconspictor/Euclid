@@ -16,7 +16,7 @@ namespace nex
 	{
 	public:
 
-		using BufferCollection = std::vector<const std::vector<RenderCommand>*>;
+		using BufferCollection = std::vector<std::vector<RenderCommand>*>;
 		using Buffer = std::vector<RenderCommand>;
 
 		enum class CullingMethod {
@@ -36,20 +36,27 @@ namespace nex
 		void clear();
 
 
-		BufferCollection getCommands(int types) const;
+		BufferCollection getCommands(int types);
 
 		/**
 		 * Provides pbr render commands that can be rendered in a deferred way.
 		 */
+		Buffer& getDeferrablePbrCommands();
 		const Buffer& getDeferrablePbrCommands() const;
 
 		/**
 		 * Render commands that must be rendered in a forward way.
 		 */
+		Buffer& getForwardCommands();
 		const Buffer& getForwardCommands() const;
+
+		std::multimap<unsigned, nex::RenderCommand>& getToolCommands();
 		const std::multimap<unsigned, nex::RenderCommand>& getToolCommands() const;
+		Buffer& getTransparentCommands();
 		const Buffer& getTransparentCommands() const;
+		Buffer& getShadowCommands();
 		const Buffer& getShadowCommands() const;
+		std::unordered_set<nex::Technique*>& getTechniques();
 		const std::unordered_set<nex::Technique*>& getTechniques() const;
 
 		void push(const RenderCommand& command, bool cull = false);

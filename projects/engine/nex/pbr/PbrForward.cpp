@@ -29,8 +29,6 @@ namespace nex {
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
-
-		mForwardShader->setDirLight(mLight);
 	}
 
 	PbrForward::~PbrForward()
@@ -40,13 +38,18 @@ namespace nex {
 	void PbrForward::reloadLightingShader(CascadedShadow* cascadedShadow)
 	{
 		mForwardShader = mFactory(cascadedShadow, mGlobalIllumination);
-		mForwardShader->setDirLight(mLight);
 	}
 
-	void PbrForward::configurePass(Camera* camera)
+	void PbrForward::configurePass(const Camera& camera)
 	{
 		mForwardShader->bind();
 		mForwardShader->updateConstants(camera);
+	}
+
+	void PbrForward::updateLight(const DirectionalLight & light, const Camera & camera)
+	{
+		mForwardShader->bind();
+		mForwardShader->updateLight(light, camera);
 	}
 
 	PbrForwardPass* PbrForward::getPass()

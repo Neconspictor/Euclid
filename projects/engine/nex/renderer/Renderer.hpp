@@ -19,8 +19,7 @@ namespace nex
 		virtual ~Renderer() = default;
 
 		virtual void render(const RenderCommandQueue& queue, 
-			PerspectiveCamera* camera, 
-			DirectionalLight* sun, 
+			const PerspectiveCamera&  camera, const DirectionalLight& sun,
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
 			RenderTarget* out) = 0;
