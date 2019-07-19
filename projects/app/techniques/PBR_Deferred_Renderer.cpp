@@ -45,6 +45,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	CascadedShadow* cascadedShadow,
 	nex::Input* input) :
 
+	Renderer(pbrTechnique),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
 	mRenderTargetSingleSampled(nullptr),
@@ -53,7 +54,6 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mShowDepthMap(false),
 	mAtmosphericScattering(std::make_unique<AtmosphericScattering>()),
 	mInput(input),
-	mPbrTechnique(pbrTechnique),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
 	mOcean(64, //N

@@ -17,6 +17,9 @@ namespace nex
 	class CubeRenderTarget;
 	class TransformPass;
 	class DirectionalLight;
+	class PbrDeferred;
+	class PbrForward;
+	class Renderer;
 
 	class GlobalIllumination
 	{
@@ -32,7 +35,7 @@ namespace nex
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
 
-		void bakeProbes(const Scene& scene);
+		void bakeProbes(const Scene& scene, Renderer* renderer);
 
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
@@ -77,5 +80,7 @@ namespace nex
 		PbrProbe* mActive;
 		std::unique_ptr<ProbeBakePass> mProbeBakePass;
 		float mAmbientLightPower;
+		std::unique_ptr<PbrDeferred> mDeferred;
+		std::unique_ptr<PbrForward> mForward;
 	};
 }

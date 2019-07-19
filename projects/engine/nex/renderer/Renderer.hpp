@@ -8,10 +8,14 @@ namespace nex
 	class RenderCommandQueue;
 	class PerspectiveCamera;
 	class RenderTarget;
+	class PbrTechnique;
 
 	class Renderer
 	{
 	public:
+
+		Renderer(PbrTechnique* pbrTechnique);
+
 		virtual ~Renderer() = default;
 
 		virtual void render(const RenderCommandQueue& queue, 
@@ -20,5 +24,11 @@ namespace nex
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
 			RenderTarget* out) = 0;
+
+		PbrTechnique* getPbrTechnique();
+		const PbrTechnique* getPbrTechnique() const;
+
+	protected:
+		PbrTechnique* mPbrTechnique;
 	};
 }

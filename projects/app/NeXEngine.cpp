@@ -196,7 +196,7 @@ void NeXEngine::init()
 	}
 
 
-	mGlobalIllumination->bakeProbes(mScene);
+	mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
 }
 
 bool NeXEngine::isRunning() const

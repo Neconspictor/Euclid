@@ -14,10 +14,12 @@ nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
 	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
 	mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
-	mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
-	{
-		reloadLightingShader(cascade);
-	});
+	if (mCascadeShadow) {
+		mCascadeShadow->addCascadeChangeCallback([&](CascadedShadow* cascade)-> void
+		{
+			reloadLightingShader(cascade);
+		});
+	}
 }
 
 nex::Pbr::~Pbr() = default;

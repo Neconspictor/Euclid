@@ -76,7 +76,6 @@ namespace nex
 		bool mShowDepthMap;
 		Input* mInput;
 
-		PbrTechnique* mPbrTechnique;
 		CascadedShadow* mCascadedShadow;
 		RenderBackend* mRenderBackend;
 		

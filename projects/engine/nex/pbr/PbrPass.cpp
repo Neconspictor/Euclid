@@ -164,7 +164,6 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	mCascadeShadow(cascadedShadow)
 {
 	assert(mShader != nullptr);
-	assert(mCascadeShadow != nullptr);
 
 	mCascadedShadowMapSampler.setMinFilter(TextureFilter::NearestNeighbor);
 	mCascadedShadowMapSampler.setMagFilter(TextureFilter::NearestNeighbor);
@@ -286,9 +285,12 @@ void PbrForwardPass::setDirLight(DirectionalLight* light)
 
 std::vector<std::string> PbrForwardPass::generateDefines(CascadedShadow* cascadedShadow)
 {
-	auto vec = cascadedShadow->generateCsmDefines();
 
-	//CSM_CASCADE_BUFFER_BINDING_POINT
+	std::vector<std::string> vec;
+
+	if (cascadedShadow) {
+		vec = cascadedShadow->generateCsmDefines();
+	}
 
 	// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict by using binding point 1 
 	// for the TransformBuffer
@@ -362,7 +364,10 @@ void PbrDeferredLightingPass::setDirLight(DirectionalLight* light)
 
 std::vector<std::string> nex::PbrDeferredLightingPass::generateDefines(CascadedShadow * cascadedShadow)
 {
-	auto vec = cascadedShadow->generateCsmDefines();
+	std::vector<std::string> vec;
+	if (cascadedShadow) {
+		vec = cascadedShadow->generateCsmDefines();
+	}
 
 	vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDING_POINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));

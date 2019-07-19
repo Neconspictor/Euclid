@@ -14,6 +14,10 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/pbr/PbrPass.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/pbr/PbrDeferred.hpp>
+#include <nex/pbr/PbrForward.hpp>
+#include <nex/renderer/Renderer.hpp>
+
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
 public:
@@ -83,11 +87,42 @@ nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDire
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f)
 {
+	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
+		"pbr/pbr_deferred_geometry_pass_vs.glsl",
+		"pbr/pbr_deferred_geometry_pass_fs.glsl"));
+
+
+	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+		return std::make_unique<PbrDeferredLightingPass>(
+			"pbr/pbr_deferred_lighting_pass_vs.glsl",
+			"pbr/pbr_deferred_lighting_pass_fs.glsl",
+			g,
+			c);
+	};
+
+	PbrForward::LightingPassFactory forwardFactory = [](CascadedShadow* c, GlobalIllumination* g) {
+		return std::make_unique<PbrForwardPass>(
+			"pbr/pbr_forward_vs.glsl",
+			"pbr/pbr_forward_fs.glsl",
+			g,
+			c);
+	};
+
+	mDeferred = std::make_unique<PbrDeferred>(std::move(deferredGeometryPass),
+		std::move(deferredFactory),
+		nullptr,
+		nullptr,
+		nullptr);
+
+	mForward = std::make_unique<PbrForward>(std::move(forwardFactory),
+		nullptr,
+		nullptr,
+		nullptr);
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
 
-void nex::GlobalIllumination::bakeProbes(const Scene & scene)
+void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
 {
 	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
 	camera.update();
@@ -116,6 +151,14 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 	light.setPower(1.0f);
 	light.setDirection(glm::vec3(1.0f));
 
+
+	mDeferred->setDirLight(&light);
+	mForward->setDirLight(&light);
+
+	auto* pbrTechnique = renderer->getPbrTechnique();
+	pbrTechnique->overrideForward(mForward.get());
+	pbrTechnique->overrideDeferred(mDeferred.get());
+
 	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
 
 		//const auto position = glm::vec3(spatial);
@@ -128,6 +171,8 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene)
 		StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
 	}
 
+	pbrTechnique->overrideForward(nullptr);
+	pbrTechnique->overrideDeferred(nullptr);
 }
 
 const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
