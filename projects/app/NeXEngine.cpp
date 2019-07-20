@@ -367,10 +367,11 @@ void NeXEngine::createScene()
 	sponzaVob->mDebugName = "sponza";
 
 	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
-	meshContainer = StaticMeshManager::get()->getModel("C:/Users/Necon/Desktop/testNeX/transparent.obj");
+	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");
 	ResourceLoader::get()->enqueue([=] {
 		return meshContainer;
 	});
+	
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	//auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
 	//auto* transparentVob = mScene.createVobUnsafe(transparent);
@@ -380,12 +381,21 @@ void NeXEngine::createScene()
 	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
 	transparentVob3->mDebugName = "transparent - 3";
 
-	//(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	//(*(transparentVob->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
-	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doCullFaces = false;
-	//(*(transparentVob2->getMeshRootNode()->getChildren().begin))->getMaterial()->getRenderState().doShadowCast = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
-	(*(transparentVob3->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
+	//(*(transparentVob->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
+	//(*(transparentVob->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
+	//(*(transparentVob2->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
+	//(*(transparentVob2->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
+
+	auto& childs = transparentVob3->getMeshRootNode()->getChildren();
+
+	for (int i = 0; i < childs.size(); ++i) {
+		childs[i]->getMesh()->mDebugName = "Intersected " + std::to_string(i);
+		childs[i]->getMaterial()->getRenderState().doCullFaces = false;
+		childs[i]->getMaterial()->getRenderState().doShadowCast = false;
+	}
+
+
+
 
 	//transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));

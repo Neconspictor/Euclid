@@ -87,9 +87,12 @@ void calcLighting(in float ao,
     // view direction
 	vec3 viewEye = normalize(-positionEye);
     
+    
+    
 	// reflection direction
     vec3 viewWorld = vec3(inverseViewMatrix * vec4(viewEye, 0.0f));
-    vec3 normalWorld = vec3(inverseViewMatrix * vec4(normalEye, 0.0f));
+    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
+    vec3 normalEx = normalize(vec3(inverse(inverseViewMatrix) * vec4(normalWorld, 0.0f)));
     vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
 
     
@@ -102,14 +105,13 @@ void calcLighting(in float ao,
     F0 = mix(F0, albedo, metallic);
 
     // reflectance equation
-    vec3 Lo = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewEye, normalEx, roughness, F0, metallic, albedo);
     
     
     vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
-    vec3 ambient =  pbrAmbientLight(viewEye, normalEye, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld);
+    vec3 ambient =  pbrAmbientLight(viewEye, normalEx, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld);
     
-    float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-    fragmentLitProportion = 1.0;
+    float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEx, positionEye.z, positionEye);
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
@@ -179,7 +181,7 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	kD *= 1.0 - metallic;	                
 		
 	// scale light by NdotL
-	float NdotL = max(dot(N, L), 0.0);        
+	float NdotL = clamp(0.0, 1.0, max(dot(N, L), 0.0));        
 
 	// add to outgoing radiance Lo
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	

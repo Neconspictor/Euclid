@@ -4,7 +4,7 @@
 #include "pbr/pbr_common_lighting_fs.glsl"
 
 layout(location = 0) out vec4 FragColor;
-//layout(location = 1) out vec4 LuminanceColor;
+layout(location = 1) out vec4 LuminanceColor;
 
 void main()
 {    		
@@ -32,10 +32,10 @@ void main()
     const vec3 directLighting = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo.rgb);            
         
     //FragColor = vec3(0.4 * albedo.rgb + 0.6 * directLighting);
-    FragColor = vec4(0.4 * albedo.rgb + 0.6 * directLighting, 1.0f); //albedo.a
+    FragColor = vec4((0.1 * albedo.rgb + 0.9 * directLighting), albedo.a); //albedo.a
     //FragColor = vec4(1.0f);
 
     
-    //LuminanceColor = vec4(luminanceOut, FragColor.a);
+    LuminanceColor = vec4(directLighting * 0.5, FragColor.a);
     //LuminanceColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

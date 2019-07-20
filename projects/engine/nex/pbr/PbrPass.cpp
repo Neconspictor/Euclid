@@ -212,7 +212,7 @@ void PbrLightingData::updateConstants(const Camera& camera)
 
 	setNearFarPlane(camera.getNearFarPlaneViewSpace());
 
-	if (mCascadeShadow && false) {
+	if (mCascadeShadow) {
 		setShadowStrength(mCascadeShadow->getShadowStrength());
 		auto* buffer = mCascadeShadow->getCascadeBuffer();
 		buffer->bind(mCsmCascadeBindingPoint);

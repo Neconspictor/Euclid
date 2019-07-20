@@ -134,6 +134,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	fp->calcView();*/
 
 
+	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
+	depthTest->enableDepthBufferWriting(true);
+
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
 	{
@@ -206,6 +209,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	postProcessor->antialias((Texture2D*)postProcessed, out);
 
 
+	depthTest->enableDepthBufferWriting(true);
 	//ShaderStorageBuffer::syncWithGPU();
 }
 
@@ -244,7 +248,6 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 	const PerspectiveCamera&  camera, const DirectionalLight& sun,
 	Texture2D* depth)
 {
-	return;
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);

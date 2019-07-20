@@ -94,8 +94,8 @@ mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f)
 
 	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
 		return std::make_unique<PbrDeferredLightingPass>(
-			"pbr/pbr_deferred_lighting_pass_vs.glsl",
-			"pbr/pbr_deferred_lighting_pass_fs.glsl",
+			"pbr/probe/pbr_probe_deferred_capture_vs.glsl",
+			"pbr/probe/pbr_probe_deferred_capture_fs.glsl",
 			g,
 			c);
 	};
@@ -157,15 +157,15 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	mForward->setDirLight(&light);
 
 	auto* pbrTechnique = renderer->getPbrTechnique();
-	//pbrTechnique->overrideForward(mForward.get());
-	//pbrTechnique->overrideDeferred(mDeferred.get());
+	pbrTechnique->overrideForward(mForward.get());
+	pbrTechnique->overrideDeferred(mDeferred.get());
 
 	renderer->updateRenderTargets(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE);
 
 	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
 
 		//const auto position = glm::vec3(spatial);
-		const auto position = glm::vec3(4.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
+		const auto position = glm::vec3(-5.0f, 3.0f, 7.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, false);
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
@@ -304,7 +304,7 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 
 	//commandQueue.getForwardCommands().clear();
 	//commandQueue.getShadowCommands().clear();
-	//commandQueue.getToolCommands().clear();
+	commandQueue.getToolCommands().clear();
 	//commandQueue.getDeferrablePbrCommands().clear();
 }
 
@@ -360,12 +360,12 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		//camera.setView(view, true);
 		
 
-		RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
-		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
-		auto* stencilTest = RenderBackend::get()->getStencilTest();
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+		//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+		//RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+		//auto* stencilTest = RenderBackend::get()->getStencilTest();
+		//stencilTest->enableStencilTest(true);
+		//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		//stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		renderTarget.bind();
 		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X)); // side +

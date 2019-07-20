@@ -117,6 +117,7 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 		mPbrCommands.emplace_back(command);
 	} else if (state.doBlend)
 	{
+		//command.material->getRenderState().doDepthWrite = false;
 		mTransparentCommands.emplace_back(command);
 	} else if (state.isTool)
 	{
@@ -227,8 +228,8 @@ bool nex::RenderCommandQueue::transparentCompare(const RenderCommand& a, const R
 {
 	// we want to render objects further to the camera at first. 
 
-	const glm::vec3& positionA = a.worldTrafo[3];
-	const glm::vec3& positionB = b.worldTrafo[3];
+	const glm::vec3& positionA = (a.boundingBox.max + a.boundingBox.min) * 0.5f;
+	const glm::vec3& positionB = (b.boundingBox.max + b.boundingBox.min) * 0.5f;
 
 
 	const auto& cullPosition = getCullPosition();
