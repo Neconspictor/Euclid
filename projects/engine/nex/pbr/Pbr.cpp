@@ -110,12 +110,14 @@ void nex::PbrTechnique::useForward()
 
 nex::PbrDeferred* nex::PbrTechnique::getDeferred()
 {
-	return mDeferred.get();
+	auto* active = mOverrideDeferred ? mOverrideDeferred : mDeferred.get();
+	return active;
 }
 
 nex::PbrForward* nex::PbrTechnique::getForward()
 {
-	return mForward.get();
+	auto* active = mOverrideForward ? mOverrideForward : mForward.get();
+	return active;
 }
 
 nex::Pbr* nex::PbrTechnique::getActive()

@@ -45,7 +45,7 @@ namespace nex
 			RenderTarget* out) override;
 
 		void setShowDepthMap(bool showDepthMap);
-		void updateRenderTargets(unsigned width, unsigned height);
+		virtual void updateRenderTargets(unsigned width, unsigned height) override;
 
 		AmbientOcclusionSelector* getAOSelector();
 		TesselationTest* getTesselationTest();

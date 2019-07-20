@@ -21,7 +21,7 @@ void main()
 
 
 
-    float transformedS = (Frag_UV.s - 0.5);
+    float transformedS = -(Frag_UV.s - 0.5);
     
     // flip T
     float transformedT = -(Frag_UV.t - 0.5);

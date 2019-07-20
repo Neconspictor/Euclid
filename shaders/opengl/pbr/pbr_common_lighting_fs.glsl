@@ -109,7 +109,7 @@ void calcLighting(in float ao,
     vec3 ambient =  pbrAmbientLight(viewEye, normalEye, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld);
     
     float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEye, positionEye.z, positionEye);
-    
+    fragmentLitProportion = 1.0;
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);

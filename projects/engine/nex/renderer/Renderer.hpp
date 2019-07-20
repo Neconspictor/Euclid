@@ -24,6 +24,8 @@ namespace nex
 			unsigned viewportHeight, 
 			RenderTarget* out) = 0;
 
+		virtual void updateRenderTargets(unsigned width, unsigned height) = 0;
+
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 

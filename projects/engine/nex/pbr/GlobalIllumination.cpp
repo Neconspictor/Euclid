@@ -102,8 +102,8 @@ mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f)
 
 	PbrForward::LightingPassFactory forwardFactory = [](CascadedShadow* c, GlobalIllumination* g) {
 		return std::make_unique<PbrForwardPass>(
-			"pbr/pbr_forward_vs.glsl",
-			"pbr/pbr_forward_fs.glsl",
+			"pbr/probe/pbr_probe_capture_vs.glsl",
+			"pbr/probe/pbr_probe_capture_fs.glsl",
 			g,
 			c);
 	};
@@ -124,7 +124,7 @@ nex::GlobalIllumination::~GlobalIllumination() = default;
 
 void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
 {
-	return;
+	//return;
 	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
 	camera.update();
 	RenderCommandQueue commandQueue;
@@ -139,33 +139,35 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	data = TextureData();
-	data.colorspace = ColorSpace::DEPTH;
-	data.internalFormat = InternFormat::DEPTH24;
+	data.colorspace = ColorSpace::DEPTH_STENCIL;
+	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, data);
-	depth.type = RenderAttachmentType::DEPTH;
+	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
 	renderTarget->useDepthAttachment(std::move(depth));
 	renderTarget->updateDepthAttachment();
 
 	DirectionalLight light;
-	light.setColor(glm::vec3(1.0f));
-	light.setPower(1.0f);
-	light.setDirection(glm::vec3(1.0f));
+	light.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	light.setPower(3.0f);
+	light.setDirection({ -1,-1,-1 });
 
 
 	mDeferred->setDirLight(&light);
 	mForward->setDirLight(&light);
 
 	auto* pbrTechnique = renderer->getPbrTechnique();
-	pbrTechnique->overrideForward(mForward.get());
-	pbrTechnique->overrideDeferred(mDeferred.get());
+	//pbrTechnique->overrideForward(mForward.get());
+	//pbrTechnique->overrideDeferred(mDeferred.get());
+
+	renderer->updateRenderTargets(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE);
 
 	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
 
 		//const auto position = glm::vec3(spatial);
-		const auto position = glm::vec3(4.0f);
+		const auto position = glm::vec3(4.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
-		collectBakeCommands(commandQueue, scene, true);
+		collectBakeCommands(commandQueue, scene, false);
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
 		auto readImage = StoreImage::create(cubeMap.get());
 		StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
@@ -300,9 +302,10 @@ void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & comm
 		}
 	}
 
-	commandQueue.getForwardCommands().clear();
-	commandQueue.getShadowCommands().clear();
-	commandQueue.getToolCommands().clear();
+	//commandQueue.getForwardCommands().clear();
+	//commandQueue.getShadowCommands().clear();
+	//commandQueue.getToolCommands().clear();
+	//commandQueue.getDeferrablePbrCommands().clear();
 }
 
 std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
@@ -319,38 +322,56 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	const auto& views = CubeMap::getViewLookAts();
 	const auto viewModel = glm::translate(glm::mat4(1.0f), worldPosition);
 
-	//renderTarget.bind();
-	//renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
-	//renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-
 	//pass.bind();
 
 	const glm::vec3 ups[6]{
 		glm::vec3(0.0f, -1.0f, 0.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(0.0f, 0.0f, -1.0f),
 		glm::vec3(0.0f, 0.0f, -1.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f)
 	};
 
-	const glm::vec3 dir[6]{
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f)
+	static const glm::vec3 dir[6]{
+		glm::vec3(1.0f, 0.0f, 0.0f), // right
+		glm::vec3(-1.0f, 0.0f, 0.0f), // left
+		glm::vec3(0.0f, 1.0f, 0.0f), // up
+		glm::vec3(0.0f, -1.0f, 0.0f), // bottom
+		glm::vec3(0.0f, 0.0f, 1.0f), // front
+		glm::vec3(0.0f, 0.0f, -1.0f) // back
 	};
 
 
+	camera.setPosition(worldPosition, true);
+	camera.update();
+
+	camera.setUp(ups[0]);
+	camera.setLook(dir[0]);
+	camera.update();
 
 	for (unsigned side = 0; side < views.size(); ++side) {
 		
-		const auto view = glm::lookAt(worldPosition, worldPosition + dir[side], ups[side]);
-		//pass.updateConstants(light, projection, view);
-		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
+		//const auto view = glm::lookAt(worldPosition, worldPosition + dir[5 - side], ups[5 - side]);
+		camera.setUp(ups[side]);
+		camera.setLook(dir[side]);
+		camera.update();
+		camera.update();
 		//camera.setView(view, true);
+		
+
+		RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+		auto* stencilTest = RenderBackend::get()->getStencilTest();
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+
+		renderTarget.bind();
+		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X)); // side +
+		renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
+		renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+		
 
 		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), &renderTarget);
 

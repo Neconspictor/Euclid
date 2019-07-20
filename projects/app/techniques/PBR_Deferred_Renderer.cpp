@@ -244,6 +244,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 	const PerspectiveCamera&  camera, const DirectionalLight& sun,
 	Texture2D* depth)
 {
+	return;
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);

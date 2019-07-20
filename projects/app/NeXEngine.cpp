@@ -195,8 +195,10 @@ void NeXEngine::init()
 		throw *exception;
 	}
 
-
+	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 	mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
+	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);
 }
 
 bool NeXEngine::isRunning() const

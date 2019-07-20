@@ -203,6 +203,15 @@ namespace nex
 		calcFrustumWorld();
 	}
 
+	void Camera::setView(const glm::mat4 & view, bool resetPrev)
+	{
+		mPrevView = mView;
+		mView = view;
+		if (resetPrev) {
+			mPrevView = view;
+		}
+	}
+
 	void Camera::assertValidVector(const glm::vec3& vec)
 	{
 		if (isnan(vec.x) ||

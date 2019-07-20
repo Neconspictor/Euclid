@@ -216,6 +216,8 @@ namespace nex
 		 */
 		virtual void update();
 
+		void setView(const glm::mat4& view, bool resetPrev);
+
 	protected:
 
 		/**
