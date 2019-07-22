@@ -42,6 +42,7 @@ namespace nex
 			const PerspectiveCamera&  camera, const DirectionalLight& sun,
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
+			bool postProcess,
 			RenderTarget* out) override;
 
 		void setShowDepthMap(bool showDepthMap);

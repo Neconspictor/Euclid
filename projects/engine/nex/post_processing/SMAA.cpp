@@ -238,7 +238,8 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* colorTex, RenderTarget* output)
 {
 	output->bind();
-	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
+	RenderBackend::get()->setViewPort(0, 0, static_cast<int>(output->getWidth()), static_cast<int>(output->getHeight()));
+	//LOG(Logger(), Debug) << "width = " << output->getWidth() << ", height = " << output->getHeight();
 	output->clear(Color | Depth | Stencil);
 	mNeighborhoodBlendingShader->bind();
 	mBilinearFilter->bind(0);

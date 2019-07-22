@@ -623,7 +623,9 @@ namespace nex
 		mPimpl->mViewport.width = width;
 		mPimpl->mViewport.height = height;
 		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
+		setViewPort(0, 0, width, height);
 		mPimpl->mEffectLibrary->resize(width, height);
+		
 	}
 
 	void RenderBackend::release()

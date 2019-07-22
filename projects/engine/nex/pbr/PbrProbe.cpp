@@ -179,26 +179,58 @@ public:
 	float mArrayIndex;
 };
 
-void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned storeID)
+void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned storeID, bool useCache)
 {
-	if (mFreeSlots == 0) {
+	const bool alreadyInitialized = probe->isInitialized();
+
+	if (!alreadyInitialized && mFreeSlots == 0) {
 		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
 	}
 
-	const auto arrayIndex = mMapSize - mFreeSlots;
-	--mFreeSlots;
+
+	const auto arrayIndex = alreadyInitialized ? probe ->getArrayIndex() : mMapSize - mFreeSlots;
 
 	probe->init(backgroundHDR,
 		mPrefilteredSide,
 		storeID,
 		this,
 		arrayIndex,
-		mFileSystem->getFirstIncludeDirectory());
+		mFileSystem->getFirstIncludeDirectory(),
+		useCache);
+
+	if (!alreadyInitialized)
+		--mFreeSlots;
+}
+
+void nex::PbrProbeFactory::initProbe(PbrProbe * probe, CubeMap * environmentMap, unsigned storeID, bool useCache)
+{
+	const bool alreadyInitialized = probe->isInitialized();
+
+	if (!alreadyInitialized && mFreeSlots == 0) {
+		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
+	}
+
+
+	const auto arrayIndex = alreadyInitialized ? probe->getArrayIndex() : mMapSize - mFreeSlots;
+
+	probe->init(environmentMap,
+		mPrefilteredSide,
+		storeID,
+		this,
+		arrayIndex,
+		mFileSystem->getFirstIncludeDirectory(),
+		useCache);
+
+	if (!alreadyInitialized)
+		--mFreeSlots;
 }
 
 PbrProbe::PbrProbe() :
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get())),
-	mFactory(nullptr)
+	mFactory(nullptr),
+	mArrayIndex(UINT32_MAX),
+	mStoreID(UINT32_MAX),
+	mInit(false)
 {
 }
 
@@ -287,6 +319,11 @@ CubeMapArray * PbrProbe::getPrefilteredMaps() const
 Texture2D * PbrProbe::getBrdfLookupTexture()
 {
 	return mBrdfLookupTexture.get();
+}
+
+unsigned nex::PbrProbe::getStoreID() const
+{
+	return mStoreID;
 }
 
 std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
@@ -460,11 +497,10 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 	return result;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot)
+std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
-	Viewport backup = renderBackend->getViewport();
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
 	// if environment map has been compiled already and load it from file 
@@ -472,7 +508,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	const std::filesystem::path environmentMapPath = probeRoot / ("pbr_environmentMap_" + std::to_string(mStoreID) + ".probe");
 	std::shared_ptr<CubeMap> environmentMap;
 
-	if (std::filesystem::exists(environmentMapPath))
+	if (std::filesystem::exists(environmentMapPath) && useCache)
 	{
 		StoreImage readImage;
 		FileSystem::load(environmentMapPath, readImage);
@@ -491,7 +527,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	return environmentMap;
 }
 
-void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot)
+void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -504,7 +540,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 
 	StoreImage readImage;
 
-	if (std::filesystem::exists(prefilteredMapPath))
+	if (std::filesystem::exists(prefilteredMapPath) && useCache)
 	{
 		FileSystem::load(prefilteredMapPath, readImage);
 	}
@@ -518,7 +554,7 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 	StoreImage::fill(mFactory->getPrefilteredMaps(), readImage, mArrayIndex);
 }
 
-void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot)
+void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -531,7 +567,7 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 	StoreImage readImage; 
 
 	// if environment map has been compiled already and load it from file 
-	if (std::filesystem::exists(convolutedMapPath))
+	if (std::filesystem::exists(convolutedMapPath) && useCache)
 	{
 		FileSystem::load(convolutedMapPath, readImage);
 	}
@@ -548,7 +584,7 @@ void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& prob
 void PbrProbe::init(Texture* backgroundHDR,
 				unsigned prefilteredSize, unsigned storeID, 
 				PbrProbeFactory* factory, unsigned arrayIndex,
-				const std::filesystem::path& probeRoot)
+				const std::filesystem::path& probeRoot, bool useCache)
 {
 	if (factory == nullptr)
 		throw std::invalid_argument("PbrProbe::init: probe factory is null!");
@@ -561,9 +597,28 @@ void PbrProbe::init(Texture* backgroundHDR,
 	mArrayIndex = arrayIndex;
 	mFactory = factory;
 
-	auto source = createSource(backgroundHDR, probeRoot);
-	initPrefiltered(source.get(), prefilteredSize, probeRoot);
-	initIrradiance(source.get(), probeRoot);
+	auto source = createSource(backgroundHDR, probeRoot, useCache);
+	init(source.get(), prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache);
+	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
+}
+
+void nex::PbrProbe::init(CubeMap * environment, 
+	unsigned prefilteredSize, unsigned storeID, 
+	PbrProbeFactory * factory, unsigned arrayIndex, 
+	const std::filesystem::path & probeRoot, bool useCache)
+{
+	if (factory == nullptr)
+		throw std::invalid_argument("PbrProbe::init: probe factory is null!");
+
+	thread_local auto* renderBackend = RenderBackend::get();
+	Viewport backup = renderBackend->getViewport();
+
+	mStoreID = storeID;
+	mArrayIndex = arrayIndex;
+	mFactory = factory;
+
+	initPrefiltered(environment, prefilteredSize, probeRoot, useCache);
+	initIrradiance(environment, probeRoot, useCache);
 
 	renderBackend->getRasterizer()->enableScissorTest(false);
 
@@ -571,6 +626,13 @@ void PbrProbe::init(Texture* backgroundHDR,
 	mMaterial->setArrayIndex(mArrayIndex);
 
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
+
+	mInit = true;
+}
+
+bool nex::PbrProbe::isInitialized() const
+{
+	return mInit;
 }
 
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)

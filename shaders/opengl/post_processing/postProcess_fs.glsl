@@ -55,7 +55,7 @@ void main() {
     
 
     // HDR tonemapping
-    const float exposure = 1.0;
+    const float exposure = 1;
     color *= exposure;
     color = color / (color + vec4(1.0));
 	

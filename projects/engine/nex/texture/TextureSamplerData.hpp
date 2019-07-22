@@ -276,8 +276,8 @@ namespace nex
 		{
 			TextureData data;
 			data.generateMipMaps = false;
-			data.minFilter = TextureFilter::Linear;
-			data.magFilter = TextureFilter::Linear;
+			data.minFilter = TextureFilter::NearestNeighbor;
+			data.magFilter = TextureFilter::NearestNeighbor;
 			data.colorspace = ColorSpace::RGBA;
 			data.internalFormat = InternFormat::RGBA32F;
 			data.pixelDataType = PixelDataType::FLOAT;

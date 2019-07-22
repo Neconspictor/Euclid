@@ -41,7 +41,12 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned storeID);
+		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned storeID, bool useCache = true);
+
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbe(PbrProbe* probe, CubeMap* environmentMap, unsigned storeID, bool useCache = true);
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
@@ -85,6 +90,9 @@ namespace nex
 		static void initGlobals(const std::filesystem::path& probeRoot);
 		static Mesh* getSphere();
 
+		/**
+		 * Provides the array index of this probe.
+		 */
 		unsigned getArrayIndex() const;
 
 		CubeMapArray* getIrradianceMaps() const;
@@ -97,23 +105,34 @@ namespace nex
 
 		static Texture2D* getBrdfLookupTexture();
 
+		unsigned getStoreID() const;
+
 		void init(Texture* backgroundHDR, 
 			unsigned prefilteredSize,
 			unsigned storeID, 
 			PbrProbeFactory* factory,
 			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot);
+			const std::filesystem::path& probeRoot, bool useCache = true);
+
+		void init(CubeMap* environment,
+			unsigned prefilteredSize,
+			unsigned storeID,
+			PbrProbeFactory* factory,
+			unsigned arrayIndex,
+			const std::filesystem::path& probeRoot, bool useCache);
+
+		bool isInitialized() const;
 
 	protected:
 
 		class ProbeTechnique;
 		class ProbeMaterial;
 
-		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot);
+		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache);
 
-		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot);
+		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache);
 
-		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot);
+		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
@@ -133,6 +152,7 @@ namespace nex
 		unsigned mStoreID;
 		PbrProbeFactory* mFactory;
 		unsigned mArrayIndex;
+		bool mInit;
 	};
 
 	class ProbeVob : public Vob

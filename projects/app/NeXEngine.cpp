@@ -179,6 +179,8 @@ void NeXEngine::init()
 		return nullptr;
 	});
 
+	//std::this_thread::sleep_for(std::chrono::seconds(5));
+
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
 	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
@@ -271,7 +273,7 @@ void NeXEngine::run()
 
 			
 			RenderTarget2D* screenRenderTarget = RenderBackend::get()->getDefaultRenderTarget();
-			mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), screenRenderTarget);
+			mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), true, screenRenderTarget);
 			mControllerSM->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -409,9 +411,12 @@ void NeXEngine::createScene()
 		++counter;
 	}
 
-	//meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
-	//auto* cerberus = mScene.createVob(meshContainer->createNodeHierarchy(&mScene));
-	//cerberus->setPosition(glm::vec3(-7.0f, 2.0f, 0.0f));
+	/*meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
+	ResourceLoader::get()->enqueue([=] {
+		return meshContainer;
+	});
+	auto* cerberus = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
+	cerberus->setPosition(glm::vec3(-9.0f, 2.0f, 0.0f));*/
 
 	//ground->setPositionLocal({ 10, 0, 0 });
 
@@ -456,7 +461,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 512, 10);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -490,8 +495,8 @@ void NeXEngine::initProbes()
 				false };
 		auto* hdr = textureManager->getImage("hdr/newport_loft.hdr", textureData);
 		auto* hdr2 = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
-		mGlobalIllumination->getFactory()->initProbe(pointer, hdr, 0);
-		mGlobalIllumination->getFactory()->initProbe(pointer2, hdr2, 1);
+		mGlobalIllumination->getFactory()->initProbe(pointer, hdr2, 0, true);
+		mGlobalIllumination->getFactory()->initProbe(pointer2, hdr2, 1, true);
 
 		return pointer;
 	});

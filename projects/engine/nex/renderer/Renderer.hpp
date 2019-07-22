@@ -22,6 +22,7 @@ namespace nex
 			const PerspectiveCamera&  camera, const DirectionalLight& sun,
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
+			bool postProcess,
 			RenderTarget* out) = 0;
 
 		virtual void updateRenderTargets(unsigned width, unsigned height) = 0;

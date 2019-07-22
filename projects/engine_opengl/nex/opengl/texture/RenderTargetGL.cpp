@@ -334,7 +334,7 @@ nex::RenderTarget::Impl::Impl(unsigned width, unsigned height) :
 
 
 nex::RenderTarget::Impl::Impl(GLuint frameBuffer, unsigned width, unsigned height) :
-	mFrameBuffer(frameBuffer)
+	mFrameBuffer(frameBuffer), mWidth(width), mHeight(height)
 {
 }
 

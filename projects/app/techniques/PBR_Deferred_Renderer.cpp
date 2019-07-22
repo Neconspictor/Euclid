@@ -122,7 +122,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	const PerspectiveCamera& camera, 
 	const DirectionalLight& sun, 
 	unsigned windowWidth, 
-	unsigned windowHeight, 
+	unsigned windowHeight,
+	bool postProcess,
 	RenderTarget* out)
 {
 
@@ -201,15 +202,20 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getToolCommands());
 
 
-	auto* postProcessed = postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
+	Texture2D* outputTexture = colorTex;
+
+	if (postProcess) {
+		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
+	}
 	//auto backup = *mPingPong->getDepthAttachment();
 	//mPingPong->useDepthAttachment(*mRenderTargetSingleSampled->getDepthAttachment());
 	//mPingPong->useDepthAttachment(std::move(backup));
 
-	postProcessor->antialias((Texture2D*)postProcessed, out);
+	postProcessor->antialias(outputTexture, out);
+	//postProcessor->antialias((Texture2D*)colorTex, out);
 
 
-	depthTest->enableDepthBufferWriting(true);
+	//depthTest->enableDepthBufferWriting(true);
 	//ShaderStorageBuffer::syncWithGPU();
 }
 

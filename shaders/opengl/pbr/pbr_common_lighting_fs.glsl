@@ -76,14 +76,18 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld);
 
 void calcLighting(in float ao, 
              in vec3 albedo, 
-             in float metallic, 
+             in float metallicOriginal, 
              in vec3 normalEye, 
-             in float roughness,
+             in float roughnessOrignal,
              in vec3 positionEye,             
              //in vec2 texCoord,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
+    
+    float roughness = roughnessOrignal;
+    float metallic = metallicOriginal;
+    
     // view direction
 	vec3 viewEye = normalize(-positionEye);
     
@@ -92,8 +96,8 @@ void calcLighting(in float ao,
 	// reflection direction
     vec3 viewWorld = vec3(inverseViewMatrix * vec4(viewEye, 0.0f));
     vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 normalEx = normalize(vec3(inverse(inverseViewMatrix) * vec4(normalWorld, 0.0f)));
-    vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
+    vec3 normalEx = normalEye;//normalize(vec3(inverse(inverseViewMatrix) * vec4(normalWorld, 0.0f)));
+    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
 
     
     //metallic = 1.0;
@@ -278,7 +282,9 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
     result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
   }
   
-   result.secondWeight = 0.2;
+  result.firstWeight = 1.0; 
+  
+   result.secondWeight = 1.0 - result.firstWeight;
   
   //if (minDistance2 < innerRadius) {
   //result.secondWeight = 1.0;

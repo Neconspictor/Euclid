@@ -124,8 +124,9 @@ nex::GlobalIllumination::~GlobalIllumination() = default;
 
 void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer)
 {
-	//return;
-	PerspectiveCamera camera(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, glm::radians(90.0f), 0.1f, 100.0f);
+	const size_t size = 1024;
+
+	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
 	camera.update();
 	RenderCommandQueue commandQueue;
 
@@ -134,14 +135,14 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	data.internalFormat = InternFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
 
-	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, data);
+	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(size, size, data);
 
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	data = TextureData();
 	data.colorspace = ColorSpace::DEPTH_STENCIL;
 	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
-	depth.texture = std::make_unique<RenderBuffer>(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE, data);
+	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
 	renderTarget->useDepthAttachment(std::move(depth));
@@ -160,17 +161,20 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	renderer->updateRenderTargets(PbrProbe::IRRADIANCE_SIZE, PbrProbe::IRRADIANCE_SIZE);
+	renderer->updateRenderTargets(size, size);
 
 	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
 
 		//const auto position = glm::vec3(spatial);
-		const auto position = glm::vec3(-5.0f, 3.0f, 7.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
+		const auto position = glm::vec3(-7.0f, 11.0f, 0.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, false);
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
-		auto readImage = StoreImage::create(cubeMap.get());
-		StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
+
+		mFactory.initProbe(probe.get(), cubeMap.get(), probe->getStoreID(), false);
+
+		//auto readImage = StoreImage::create(cubeMap.get());
+		//StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
 	}
 
 	pbrTechnique->overrideForward(nullptr);
@@ -373,7 +377,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		
 
-		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), &renderTarget);
+		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), false, &renderTarget);
 
 		/*for (const auto& buffer : buffers) {
 			for (const auto& command : *buffer)
