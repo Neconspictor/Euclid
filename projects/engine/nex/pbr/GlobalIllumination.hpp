@@ -69,7 +69,7 @@ namespace nex
 		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue & queue,
 			Renderer* renderer,
 			CubeRenderTarget & renderTarget,
-			nex::PerspectiveCamera& camera,
+			nex::Camera& camera,
 			const glm::vec3 & worldPosition,
 			const DirectionalLight& light);
 

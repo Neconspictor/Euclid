@@ -33,9 +33,14 @@ void main()
     
 	// reflection direction
     vec3 viewWorld = vec3(fs_in.inverseView * vec4(viewEye, 0.0f));
+    //vec3 positionWorld = vec3(fs_in.inverseView * vec4(positionEye, 0.0f));
     vec3 reflectionDirWorld = normalize(reflect(-viewWorld, normalWorld));
     
-    vec3 prefiltered = textureLod(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex), 1.0).rgb;
+    
+    //float dist = length(positionEye);
+    
+    vec3 prefiltered = textureLod(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex), 0.0).rgb;
+    //vec3 prefiltered = texture(prefilteredMaps, vec4(reflectionDirWorld, arrayIndex)).rgb;
         
     FragColor = vec4(prefiltered, 1.0);
     LuminanceColor = vec4(0,0,0,1.0);

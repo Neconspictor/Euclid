@@ -73,13 +73,15 @@ namespace nex
 
 	class Camera
 	{
-	public:
+
+	protected:
 		Camera(float nearDistance = 0.1f, // the distance to the near clipping plane
 			float farDistance = 100.0f, // the distance to the far clipping plane
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem());
 
 		Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
 
+	public:
 		Camera(const Camera&) = default;
 		Camera(Camera&&) = default;
 		Camera& operator=(const Camera&) = default;
@@ -214,7 +216,7 @@ namespace nex
 		 * If changes have been applied to the camera (e.g. updating position) this function has to be called before 
 		 * retrieving members of the camera. Otherwise the retrieved data might be outdated.
 		 */
-		virtual void update();
+		virtual void update(bool inverse = false);
 
 		void setView(const glm::mat4& view, bool resetPrev);
 
@@ -328,7 +330,7 @@ namespace nex
 		);
 
 		float getHeight() const;
-		float getWidth();
+		float getWidth() const;
 
 		void setHeight(float height);
 		void setWidth(float width);

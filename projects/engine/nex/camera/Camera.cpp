@@ -194,9 +194,12 @@ namespace nex
 		mCoordSystem.up = std::move(up);
 	}
 
-	void Camera::update()
+	void Camera::update(bool inverse)
 	{
-		mRight = normalize(cross(mCoordSystem.look, mCoordSystem.up));
+		if (!inverse)
+			mRight = normalize(cross(mCoordSystem.look, mCoordSystem.up));
+		else
+			mRight = normalize(cross(mCoordSystem.up, mCoordSystem.look));
 		calcView();
 		calcProjection();
 		calcFrustum();
@@ -390,7 +393,7 @@ namespace nex
 		return 2.0f * mHalfHeight;
 	}
 
-	float OrthographicCamera::getWidth()
+	float OrthographicCamera::getWidth() const
 	{
 		return 2.0f * mHalfWidth;
 	}

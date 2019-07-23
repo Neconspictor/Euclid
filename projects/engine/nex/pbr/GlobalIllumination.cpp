@@ -127,6 +127,8 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	const size_t size = 1024;
 
 	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
+	
 	camera.update();
 	RenderCommandQueue commandQueue;
 
@@ -134,12 +136,18 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	data.colorspace = ColorSpace::RGB;
 	data.internalFormat = InternFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.generateMipMaps = false;
 
 	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(size, size, data);
 
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	data = TextureData();
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.generateMipMaps = false;
 	data.colorspace = ColorSpace::DEPTH_STENCIL;
 	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
@@ -166,7 +174,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
 
 		//const auto position = glm::vec3(spatial);
-		const auto position = glm::vec3(-7.0f, 11.0f, 0.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
+		const auto position = glm::vec3(4.0f, 4.0f, 5.0f);//glm::vec3(-7.0f, 11.0f, 0.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, false);
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
@@ -316,7 +324,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	const nex::RenderCommandQueue & queue,
 	Renderer* renderer,
 	CubeRenderTarget & renderTarget,
-	nex::PerspectiveCamera& camera,
+	nex::Camera& camera,
 	const glm::vec3 & worldPosition,
 	const DirectionalLight& light)
 {
@@ -342,32 +350,34 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		glm::vec3(-1.0f, 0.0f, 0.0f), // left
 		glm::vec3(0.0f, 1.0f, 0.0f), // up
 		glm::vec3(0.0f, -1.0f, 0.0f), // bottom
-		glm::vec3(0.0f, 0.0f, 1.0f), // front
-		glm::vec3(0.0f, 0.0f, -1.0f) // back
+		glm::vec3(0.0f, 0.0f, -1.0f), // front
+		glm::vec3(0.0f, 0.0f, 1.0f) // back
 	};
 
 
 	camera.setPosition(worldPosition, true);
-	camera.update();
+	camera.update(true);
 
 	camera.setUp(ups[0]);
 	camera.setLook(dir[0]);
-	camera.update();
+	camera.update(true);
 
 	for (unsigned side = 0; side < views.size(); ++side) {
 		
+		//if (side == 0 || side == 1) continue;
+
 		//const auto view = glm::lookAt(worldPosition, worldPosition + dir[5 - side], ups[5 - side]);
 		camera.setUp(ups[side]);
 		camera.setLook(dir[side]);
-		camera.update();
-		camera.update();
+		camera.update(true);
+		camera.update(true);
 		//camera.setView(view, true);
 		
 
 		//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
-		//RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
-		//auto* stencilTest = RenderBackend::get()->getStencilTest();
-		//stencilTest->enableStencilTest(true);
+		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+		auto* stencilTest = RenderBackend::get()->getStencilTest();
+		stencilTest->enableStencilTest(false);
 		//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
 		//stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
@@ -378,6 +388,9 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		
 
 		renderer->render(queue, camera, light, renderTarget.getWidth(), renderTarget.getHeight(), false, &renderTarget);
+
+		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+		stencilTest->enableStencilTest(false);
 
 		/*for (const auto& buffer : buffers) {
 			for (const auto& command : *buffer)

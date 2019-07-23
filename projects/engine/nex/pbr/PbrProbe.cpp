@@ -156,6 +156,8 @@ public:
 	ProbeMaterial(ProbeTechnique* technique) : Material(technique), mProbeTechnique(technique)
 	{
 		assert(technique != nullptr);
+		mRenderState.doCullFaces = true;
+		//mRenderState.cullSide = PolygonSide::FRONT;
 	}
 
 	void setProbeFactory(PbrProbeFactory* factory)
@@ -242,7 +244,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	Viewport backup = RenderBackend::get()->getViewport();
 
 	mTechnique = std::make_unique<ProbeTechnique>();
-	mMesh = std::make_unique<SphereMesh>(16, 16);
+	mMesh = std::make_unique<SphereMesh>(64, 64);
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");

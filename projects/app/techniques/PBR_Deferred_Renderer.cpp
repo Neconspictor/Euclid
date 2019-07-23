@@ -119,7 +119,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
-	const PerspectiveCamera& camera, 
+	const Camera& camera,
 	const DirectionalLight& sun, 
 	unsigned windowWidth, 
 	unsigned windowHeight,
@@ -215,7 +215,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//postProcessor->antialias((Texture2D*)colorTex, out);
 
 
-	//depthTest->enableDepthBufferWriting(true);
+	depthTest->enableDepthBufferWriting(true);
 	//ShaderStorageBuffer::syncWithGPU();
 }
 
@@ -251,7 +251,7 @@ nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
-	const PerspectiveCamera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirectionalLight& sun,
 	Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
@@ -278,7 +278,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
-	const PerspectiveCamera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirectionalLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -361,7 +361,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
-	const PerspectiveCamera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirectionalLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -421,7 +421,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(const PerspectiveCamera& camera, const DirectionalLight& sun, unsigned width, unsigned height)
+void nex::PBR_Deferred_Renderer::renderSky(const Camera& camera, const DirectionalLight& sun, unsigned width, unsigned height)
 {
 	mAtmosphericScattering->bind();
 	mAtmosphericScattering->setInverseProjection(glm::inverse(camera.getProjectionMatrix()));
