@@ -180,6 +180,8 @@ set(
     nex/renderer/RenderCommand.hpp
     nex/renderer/RenderCommandQueue.cpp
     nex/renderer/RenderCommandQueue.hpp
+    nex/renderer/RenderEngine.cpp
+    nex/renderer/RenderEngine.hpp
     nex/renderer/Renderer.cpp
     nex/renderer/Renderer.hpp
     nex/renderer/RenderTypes.hpp

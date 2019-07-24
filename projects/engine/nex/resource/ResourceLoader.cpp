@@ -6,10 +6,12 @@
 #include <boost/exception/get_error_info.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <nex/util/ExceptionHandling.hpp>
+#include <nex/renderer/RenderEngine.hpp>
 
 std::unique_ptr<nex::ResourceLoader> nex::ResourceLoader::mInstance;
 
-nex::ResourceLoader::ResourceLoader(Window* shared) : mWindow(shared)
+nex::ResourceLoader::ResourceLoader(Window* shared, const nex::RenderEngine& renderEngine) : mWindow(shared),
+mCommandQueue(renderEngine.getCommandQueue())
 {
 	mLogger.setPrefix("ResourceLoader");
 
@@ -24,24 +26,14 @@ nex::ResourceLoader::~ResourceLoader()
 	shutdown();
 }
 
-void nex::ResourceLoader::init(Window* shared)
+void nex::ResourceLoader::init(Window* shared, const RenderEngine& renderEngine)
 {
-	mInstance = std::make_unique<ResourceLoader>(shared);
+	mInstance = std::make_unique<ResourceLoader>(shared, renderEngine);
 }
 
 nex::ResourceLoader* nex::ResourceLoader::get()
 {
 	return mInstance.get();
-}
-
-const nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue() const
-{
-	return mFinalizeResources;
-}
-
-nex::ConcurrentQueue<nex::Resource*>& nex::ResourceLoader::getFinalizeQueue()
-{
-	return mFinalizeResources;
 }
 
 const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& nex::ResourceLoader::getExceptionQueue() const
@@ -98,7 +90,6 @@ nex::ResourceLoader::Job nex::ResourceLoader::createJob(std::shared_ptr<Packaged
 		try {
 			(*taskCopy)();
 			auto* resource = (*taskCopy).get_future().get();
-			if (resource) mFinalizeResources.push(resource);
 		}
 		catch (const std::exception& e) {
 

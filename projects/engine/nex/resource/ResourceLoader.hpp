@@ -5,7 +5,27 @@
 #include "nex/common/Log.hpp"
 #include <nex/common/Future.hpp>
 #include <nex/common/ConcurrentQueue.hpp>
+#include <nex/renderer/RenderEngine.hpp>
+#include <functional>
+#include <type_traits>
 
+
+
+namespace detail
+{
+	template < typename T > struct deduce_type;
+
+	template < typename RETURN_TYPE, typename CLASS_TYPE, typename... ARGS >
+	struct deduce_type< RETURN_TYPE(CLASS_TYPE::*)(ARGS...) const >
+	{
+		using type = std::function< RETURN_TYPE(ARGS...) >;
+	};
+}
+
+template < typename CLOSURE > auto wrap(const CLOSURE& fn)
+{
+	return typename detail::deduce_type< decltype(&CLOSURE::operator()) >::type(fn);
+}
 
 namespace nex
 {
@@ -18,18 +38,23 @@ namespace nex
 	public:
 		using Job = std::function<void()>;
 
-		ResourceLoader( Window* shared);
+		ResourceLoader( Window* shared, const nex::RenderEngine& renderEngine);
 
-		~ResourceLoader();
+		virtual ~ResourceLoader();
 
-		static void init(Window* shared);
+		static void init(Window* shared, const RenderEngine& renderEngine);
 		static ResourceLoader* get();
 
 
-		template <class Func, class... Args
+		template <
+			class Func,
+			class... Args
 			,class = std::enable_if_t<!std::is_base_of_v<nex::Resource*, std::invoke_result<Func, Args...>>>
+			, class = std::enable_if_t<std::is_same<detail::deduce_type<decltype(&Func::operator())>::type, 
+						std::function< nex::Resource*(RenderEngine::CommandQueue*, Args...)>>::value>
 		>
 			//decltype(std::declval<Func>()(std::declval<Args>()...))
+			//std::function<nex::Resource*(RenderEngine::CommandQueue*, Args...)>
 		auto enqueue(Func&& func, Args&&... args) -> Future<nex::Resource*>
 		{
 			//using Type = decltype(std::declval<Func>()(std::declval<Args>()...));
@@ -39,7 +64,7 @@ namespace nex
 			//
 
 			auto wrapper = std::make_shared<PackagedTask<nex::Resource*()>>(
-				std::bind(std::forward<Func>(func), std::forward<Args>(args)...)
+				std::bind(std::forward<Func>(func), mCommandQueue.get(), std::forward<Args>(args)...)
 				);
 
 			{
@@ -54,9 +79,6 @@ namespace nex
 
 			return wrapper->get_future();
 		}
-
-		const nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue() const;
-		nex::ConcurrentQueue<nex::Resource*>& getFinalizeQueue();
 
 		const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& getExceptionQueue() const;
 		nex::ConcurrentQueue<std::shared_ptr<std::exception>>& getExceptionQueue();
@@ -85,7 +107,7 @@ namespace nex
 
 		static std::unique_ptr<ResourceLoader> mInstance;
 		Window* mWindow;
-		nex::ConcurrentQueue<nex::Resource*> mFinalizeResources;
+		std::shared_ptr<nex::RenderEngine::CommandQueue> mCommandQueue;
 		nex::ConcurrentQueue<std::shared_ptr<std::exception>> mExceptions;
 
 		Job createJob(std::shared_ptr<PackagedTask<nex::Resource*()>> task);

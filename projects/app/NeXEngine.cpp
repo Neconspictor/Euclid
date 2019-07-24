@@ -118,7 +118,7 @@ void NeXEngine::init()
 	// init effect libary
 	RenderBackend::get()->initEffectLibrary();
 
-	ResourceLoader::init(secondWindow);
+	ResourceLoader::init(secondWindow, *this);
 	ResourceLoader::get()->resetJobCounter();
 
 	initLights();
@@ -171,11 +171,11 @@ void NeXEngine::init()
 			window->reopen();
 		}
 	});
-	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
 
-	initProbes();
-	auto future = ResourceLoader::get()->enqueue([=] {
-		createScene();
+	PbrProbeFactory::init(mGlobals.getCompiledPbrDirectory(), mGlobals.getCompiledPbrFileExtension());
+	
+	auto future = ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
+		createScene(commandQueue);
 		return nullptr;
 	});
 
@@ -183,13 +183,11 @@ void NeXEngine::init()
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
-	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
 	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
 
-	while (!finalizeQueue.empty()) {
-		auto* resource = finalizeQueue.pop();
-		std::cout << "finalizeQueue.pop() = " << resource << std::endl;
-		resource->finalize();
+	while (!mCommandQueue->empty()) {
+		auto task = mCommandQueue->pop();
+		task();
 	}
 
 	while (!exceptionQueue.empty()) {
@@ -216,7 +214,6 @@ void NeXEngine::run()
 
 	ResourceLoader::get()->waitTillAllJobsFinished();
 
-	auto& finalizeQueue = ResourceLoader::get()->getFinalizeQueue();
 	auto& exceptionQueue = ResourceLoader::get()->getExceptionQueue();
 
 	SimpleTimer timer;
@@ -239,10 +236,9 @@ void NeXEngine::run()
 
 		updateWindowTitle(frameTime, fps);
 
-		while (!finalizeQueue.empty()) {
-			auto* resource = finalizeQueue.pop();
-			std::cout << "finalizeQueue.pop() = " << resource << std::endl;
-			resource->finalize();
+		while (!mCommandQueue->empty()) {
+			auto task = mCommandQueue->pop();
+			task();
 		}
 
 		while (!exceptionQueue.empty()) {
@@ -340,15 +336,14 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue& commandQueue, const Sc
 }
 
 
-void NeXEngine::createScene()
+void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 {
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
 	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
-	
-	ResourceLoader::get()->enqueue([=] {
-		return meshContainer;
+	commandQueue->push([=]() {
+		meshContainer->finalize();
 	});
 
 
@@ -360,9 +355,11 @@ void NeXEngine::createScene()
 	groundVob->mDebugName = "ground";
 
 	meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaTest5.obj");
-	ResourceLoader::get()->enqueue([=] {
-		return meshContainer;
+
+	commandQueue->push([=]() {
+		meshContainer->finalize();
 	});
+
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe(&mScene);
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
@@ -370,8 +367,8 @@ void NeXEngine::createScene()
 
 	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
 	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");
-	ResourceLoader::get()->enqueue([=] {
-		return meshContainer;
+	commandQueue->push([=]() {
+		meshContainer->finalize();
 	});
 	
 	//meshContainer->getIsLoadedStatus().get()->finalize();
@@ -475,45 +472,6 @@ void NeXEngine::initPbr()
 
 	mPbrTechnique = std::make_unique<PbrTechnique>(mGlobalIllumination.get(), mCascadedShadow.get(), &mSun);
 }
-
-void NeXEngine::initProbes()
-{
-
-	/*auto probe = std::make_unique<PbrProbe>(glm::vec3(-7.0f, 2.0f, 0.0f));
-	auto probe2 = std::make_unique<PbrProbe>(glm::vec3(-9.5f, 2.0f, 0.0f));
-
-	//RenderBackend::get()->flushPendingCommands();
-	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get(), pointer2 = probe2.get()]() {
-
-		TextureManager* textureManager = TextureManager::get();
-		nex::TextureData textureData = {
-				TextureFilter::Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
-				ColorSpace::RGB,
-				PixelDataType::FLOAT,
-				InternFormat::RGB32F,
-				false };
-		auto* hdr = textureManager->getImage("hdr/newport_loft.hdr", textureData);
-		auto* hdr2 = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
-		mGlobalIllumination->getFactory()->initProbe(pointer, hdr2, 0, true);
-		mGlobalIllumination->getFactory()->initProbe(pointer2, hdr2, 1, true);
-
-		return pointer;
-	});
-
-	probe->setIsLoadedStatus(std::move(future));
-	probe->getIsLoadedStatus().get();
-
-	mGlobalIllumination->addProbe(std::move(probe));
-	mGlobalIllumination->addProbe(std::move(probe2));
-	
-	auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
-	mGlobalIllumination->setActiveProbe(activeProbe);*/
-}
-
 void NeXEngine::initRenderBackend()
 {
 	mWindow->activate();

@@ -252,7 +252,13 @@ namespace nex::gui
 			if (ImGui::Button("Load Image Test")) {
 
 				if (future.is_ready() || !future.valid()) {
-					future = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+
+					std::function<nex::Resource*(RenderEngine::CommandQueue*)> func = [=](RenderEngine::CommandQueue*)->nex::Resource* {return nullptr; };
+
+					ResourceLoader::get()->enqueue(std::move(func));
+
+
+					future = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue, int i)->nex::Resource* {
 						
 						FileDialog fileDialog(mWindow);
 						auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");
@@ -276,7 +282,7 @@ namespace nex::gui
 						}
 						
 						return nullptr;
-					});
+					}, 42);
 				}
 			}
 
@@ -284,7 +290,7 @@ namespace nex::gui
 			if (ImGui::Button("Load Mesh Test")) {
 
 				if (meshFuture.is_ready() || !meshFuture.valid()) {
-					meshFuture = ResourceLoader::get()->enqueue([=]()->nex::Resource* {
+					meshFuture = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
 
 						FileDialog fileDialog(mWindow);
 						auto result = fileDialog.selectFile("obj");
@@ -307,6 +313,10 @@ namespace nex::gui
 							auto* vob = mScene->createVobUnsafe(nodes);
 							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
 							mScene->updateWorldTrafoHierarchyUnsafe(true);
+
+							commandQueue->push([&]() {
+								meshContainer->finalize();
+							});
 
 							return meshContainer;
 						} 

@@ -9,8 +9,11 @@ namespace nex
 {
 	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments)
 	{
-		ResourceLoader::get()->enqueue([=] {
+		ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
 			init(xSegments, ySegments);
+			commandQueue->push([=]() {
+				this->finalize();
+			});
 			return this;
 		});
 	}

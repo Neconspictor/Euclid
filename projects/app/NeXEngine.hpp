@@ -8,6 +8,7 @@
 #include "Globals.hpp"
 #include "gui/Controller.hpp"
 #include <nex/common/Future.hpp>
+#include <nex/renderer/RenderEngine.hpp>
 
 namespace nex
 {
@@ -25,7 +26,7 @@ namespace nex
 		class SceneGUI;
 	}
 
-	class NeXEngine
+	class NeXEngine : public RenderEngine
 	{
 	public:
 
@@ -47,11 +48,10 @@ namespace nex
 	protected:
 
 		void collectRenderCommands(RenderCommandQueue& queue, const Scene& scene);
-		void createScene();
+		void createScene(nex::RenderEngine::CommandQueue*);
 		Window* createWindow();
 		void initLights();
 		void initPbr();
-		void initProbes();
 		void initRenderBackend();
 		void readConfig();
 		void setupCallbacks();
