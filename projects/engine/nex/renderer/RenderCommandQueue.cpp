@@ -5,6 +5,7 @@
 #include "nex/Scene.hpp"
 #include <nex/shader/Technique.hpp>
 #include <nex/math/Sphere.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 
 nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 {
@@ -14,8 +15,9 @@ nex::RenderCommandQueue::RenderCommandQueue(Camera* camera) : mCamera(camera)
 
 void nex::RenderCommandQueue::clear()
 {
-	mPbrCommands.clear();
+	mDeferredPbrCommands.clear();
 	mForwardCommands.clear();
+	mProbeCommands.clear();
 	mShadowCommands.clear();
 	mTechniques.clear();
 	mToolCommands.clear();
@@ -33,6 +35,10 @@ nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(i
 		result.push_back(&getForwardCommands());
 	}
 
+	if (types & Probe) {
+		result.push_back(&getProbeCommands());
+	}
+
 	if (types & Transparent) {
 		result.push_back(&getTransparentCommands());
 	}
@@ -46,12 +52,12 @@ nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(i
 
 nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getDeferrablePbrCommands()
 {
-	return mPbrCommands;
+	return mDeferredPbrCommands;
 }
 
 const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getDeferrablePbrCommands() const
 {
-	return mPbrCommands;
+	return mDeferredPbrCommands;
 }
 
 nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getForwardCommands() 
@@ -62,6 +68,16 @@ nex::RenderCommandQueue::Buffer& nex::RenderCommandQueue::getForwardCommands()
 const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getForwardCommands() const
 {
 	return mForwardCommands;
+}
+
+nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getProbeCommands()
+{
+	return mProbeCommands;
+}
+
+const nex::RenderCommandQueue::Buffer & nex::RenderCommandQueue::getProbeCommands() const
+{
+	return mProbeCommands;
 }
 
 std::multimap<unsigned, nex::RenderCommand>& nex::RenderCommandQueue::getToolCommands() 
@@ -108,20 +124,31 @@ void nex::RenderCommandQueue::push(const RenderCommand& command, bool doCulling)
 {
 	if (!isInRange(doCulling, command)) return;
 
-	bool isPbr = typeid(*command.material).hash_code() == typeid(PbrMaterial).hash_code();
+	const auto materialTypeID = command.material->getTypeHashCode();
+
+	static auto pbrMaterialHash = typeid(PbrMaterial).hash_code();
+	static auto pbrProbeMaterialHash = typeid(PbrProbe::ProbeMaterial).hash_code();
+
+	bool isPbr = materialTypeID == pbrMaterialHash;
+	bool isProbe = materialTypeID == pbrProbeMaterialHash;
 
 	const auto& state = command.material->getRenderState();
 
 	if (isPbr && !state.doBlend)
 	{
-		mPbrCommands.emplace_back(command);
-	} else if (state.doBlend)
+		mDeferredPbrCommands.emplace_back(command);
+	}
+	else if (state.doBlend)
 	{
 		//command.material->getRenderState().doDepthWrite = false;
 		mTransparentCommands.emplace_back(command);
-	} else if (state.isTool)
+	} else if (isProbe)
 	{
-		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state.toolDrawIndex, std::move(command)));
+		mProbeCommands.emplace_back(command);
+
+	}  else if (state.isTool)
+	{
+		mToolCommands.insert(std::pair<unsigned, RenderCommand>(state.toolDrawIndex, command));
 	} else
 	{
 		mForwardCommands.emplace_back(command);
@@ -150,7 +177,7 @@ void nex::RenderCommandQueue::useSphereCulling(const glm::vec3 & position, float
 
 void nex::RenderCommandQueue::sort()
 {
-	std::sort(mPbrCommands.begin(), mPbrCommands.end(), defaultCompare);
+	std::sort(mDeferredPbrCommands.begin(), mDeferredPbrCommands.end(), defaultCompare);
 	std::sort(mShadowCommands.begin(), mShadowCommands.end(), defaultCompare);
 
 	auto compareBind = std::bind(&nex::RenderCommandQueue::transparentCompare, this, std::placeholders::_1, std::placeholders::_2);

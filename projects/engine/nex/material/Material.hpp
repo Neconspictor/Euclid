@@ -27,6 +27,8 @@ namespace nex
 
 		virtual ~Material();
 
+		size_t getTypeHashCode() const;
+
 		RenderState& getRenderState();
 		Technique* getTechnique();
 
@@ -37,6 +39,9 @@ namespace nex
 	protected:
 		Technique* mTechnique;
 		RenderState mRenderState;
+		size_t mHashCode;
+
+		void setTypeHashCode(size_t code);
 	};
 
 	/**

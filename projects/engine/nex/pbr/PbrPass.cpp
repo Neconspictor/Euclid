@@ -220,11 +220,7 @@ void PbrLightingData::updateConstants(const Camera& camera)
 	}
 
 	if (mGlobalIllumination) {
-
-		auto* probe = mGlobalIllumination->getActiveProbe();
-
-		setArrayIndex((float)probe->getArrayIndex());
-		setBrdfLookupTexture(probe->getBrdfLookupTexture());
+		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
 
 		setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
 		setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());

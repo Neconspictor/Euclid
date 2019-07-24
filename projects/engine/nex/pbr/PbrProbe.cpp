@@ -151,48 +151,45 @@ public:
 	ProbePass mProbePass;
 };
 
-class nex::PbrProbe::ProbeMaterial : public nex::Material {
-public:
-	ProbeMaterial(ProbeTechnique* technique) : Material(technique), mProbeTechnique(technique)
-	{
-		assert(technique != nullptr);
-		mRenderState.doCullFaces = true;
-		//mRenderState.cullSide = PolygonSide::FRONT;
-	}
-
-	void setProbeFactory(PbrProbeFactory* factory)
-	{
-		mFactory = factory;
-	}
-
-	void setArrayIndex(float index)
-	{
-		mArrayIndex = index;
-	}
-
-	void upload() override {
-		mProbeTechnique->mProbePass.setIrradianceMaps(mFactory->getIrradianceMaps());
-		mProbeTechnique->mProbePass.setPrefilteredMaps(mFactory->getPrefilteredMaps());
-		mProbeTechnique->mProbePass.setArrayIndex(mArrayIndex);
-	}
-
-	ProbeTechnique* mProbeTechnique;
-	PbrProbeFactory* mFactory;
-	float mArrayIndex;
-};
-
-void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, unsigned storeID, bool useCache)
+nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeTechnique * technique) : Material(technique), mProbeTechnique(technique)
 {
-	const bool alreadyInitialized = probe->isInitialized();
+	assert(technique != nullptr);
+	mRenderState.doCullFaces = true;
+	//mRenderState.cullSide = PolygonSide::FRONT;
+
+	static auto hash = typeid(ProbeMaterial).hash_code();
+	setTypeHashCode(hash);
+}
+
+void nex::PbrProbe::ProbeMaterial::setProbeFactory(PbrProbeFactory * factory)
+{
+	mFactory = factory;
+}
+
+void nex::PbrProbe::ProbeMaterial::setArrayIndex(float index)
+{
+	mArrayIndex = index;
+}
+
+void nex::PbrProbe::ProbeMaterial::upload() {
+	mProbeTechnique->mProbePass.setIrradianceMaps(mFactory->getIrradianceMaps());
+	mProbeTechnique->mProbePass.setPrefilteredMaps(mFactory->getPrefilteredMaps());
+	mProbeTechnique->mProbePass.setArrayIndex(mArrayIndex);
+}
+
+
+void nex::PbrProbeFactory::initProbe(PbrProbe& probe, Texture * backgroundHDR, unsigned storeID, bool useCache)
+{
+	const bool alreadyInitialized = probe.isInitialized();
 
 	if (!alreadyInitialized && mFreeSlots == 0) {
 		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
 	}
 
 
-	const auto arrayIndex = alreadyInitialized ? probe ->getArrayIndex() : mMapSize - mFreeSlots;
+	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
 
-	probe->init(backgroundHDR,
+	probe.init(backgroundHDR,
 		mPrefilteredSide,
 		storeID,
 		this,
@@ -204,18 +201,18 @@ void nex::PbrProbeFactory::initProbe(PbrProbe * probe, Texture * backgroundHDR, 
 		--mFreeSlots;
 }
 
-void nex::PbrProbeFactory::initProbe(PbrProbe * probe, CubeMap * environmentMap, unsigned storeID, bool useCache)
+void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, unsigned storeID, bool useCache)
 {
-	const bool alreadyInitialized = probe->isInitialized();
+	const bool alreadyInitialized = probe.isInitialized();
 
 	if (!alreadyInitialized && mFreeSlots == 0) {
 		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
 	}
 
 
-	const auto arrayIndex = alreadyInitialized ? probe->getArrayIndex() : mMapSize - mFreeSlots;
+	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
 
-	probe->init(environmentMap,
+	probe.init(environmentMap,
 		mPrefilteredSide,
 		storeID,
 		this,
@@ -227,12 +224,13 @@ void nex::PbrProbeFactory::initProbe(PbrProbe * probe, CubeMap * environmentMap,
 		--mFreeSlots;
 }
 
-PbrProbe::PbrProbe() :
+PbrProbe::PbrProbe(const glm::vec3& position) :
 	mMaterial(std::make_unique<ProbeMaterial>(mTechnique.get())),
 	mFactory(nullptr),
 	mArrayIndex(UINT32_MAX),
 	mStoreID(UINT32_MAX),
-	mInit(false)
+	mInit(false),
+	mPosition(position)
 {
 }
 
@@ -321,6 +319,11 @@ CubeMapArray * PbrProbe::getPrefilteredMaps() const
 Texture2D * PbrProbe::getBrdfLookupTexture()
 {
 	return mBrdfLookupTexture.get();
+}
+
+const glm::vec3 & nex::PbrProbe::getPosition() const
+{
+	return mPosition;
 }
 
 unsigned nex::PbrProbe::getStoreID() const
@@ -637,10 +640,17 @@ bool nex::PbrProbe::isInitialized() const
 	return mInit;
 }
 
+void nex::PbrProbe::setPosition(const glm::vec3 & position)
+{
+	mPosition = position;
+}
+
 ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode), mProbe(probe)
 {
 	assert(mProbe != nullptr);
 	mType = VobType::Probe;
+	this->nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
+	mDebugName = "pbr probe " + std::to_string(mProbe->getArrayIndex()) + ", " + std::to_string(mProbe->getStoreID());
 }
 
 PbrProbe* ProbeVob::getProbe()
@@ -651,6 +661,12 @@ PbrProbe* ProbeVob::getProbe()
 const nex::ProbeVob::ProbeData * nex::ProbeVob::getProbeData() const
 {
 	return &mData;
+}
+
+void nex::ProbeVob::setPosition(const glm::vec3 & position)
+{
+	nex::Vob::setPosition(position);
+	mProbe->setPosition(position);
 }
 
 void nex::ProbeVob::updateProbeData()

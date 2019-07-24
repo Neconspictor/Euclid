@@ -514,7 +514,10 @@ void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 
 class nex::gui::Gizmo::Material : public nex::Material {
 public:
-	Material(nex::Technique* technique) : nex::Material(technique) {}
+	Material(nex::Technique* technique) : nex::Material(technique) {
+		static auto hash = typeid(nex::gui::Gizmo::Material).hash_code();
+		setTypeHashCode(hash);
+	}
 
 	void upload() override {
 		auto* pass = (nex::gui::Gizmo::GizmoPass*)mTechnique->getSelected();

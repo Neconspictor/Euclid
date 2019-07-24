@@ -403,12 +403,15 @@ void NeXEngine::createScene()
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	size_t counter = 0;
-	for (const auto& probe : mGlobalIllumination->getProbes()) {
-		auto* probeVob = mGlobalIllumination->createVobUnsafe(probe.get(), mScene);
-		probeVob->setPosition(glm::vec3(-7.0f - 2.5f * counter, 2.0f, 0.0f));
-		probeVob->mDebugName = "pbr probe" + std::to_string(counter);
-		++counter;
+	{
+		auto position = glm::vec3(-17.0f, 2.0f, 0.0f);
+		auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mScene);
+		mScene.addActiveVobUnsafe(probeVob);
+
+		position = glm::vec3(-19.5f, 2.0f, 0.0f);
+		probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mScene);
+		mScene.addActiveVobUnsafe(probeVob);
+
 	}
 
 	/*meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
@@ -476,8 +479,8 @@ void NeXEngine::initPbr()
 void NeXEngine::initProbes()
 {
 
-	auto probe = std::make_unique<PbrProbe>();
-	auto probe2 = std::make_unique<PbrProbe>();
+	/*auto probe = std::make_unique<PbrProbe>(glm::vec3(-7.0f, 2.0f, 0.0f));
+	auto probe2 = std::make_unique<PbrProbe>(glm::vec3(-9.5f, 2.0f, 0.0f));
 
 	//RenderBackend::get()->flushPendingCommands();
 	auto future = ResourceLoader::get()->enqueue([=, pointer = probe.get(), pointer2 = probe2.get()]() {
@@ -504,29 +507,11 @@ void NeXEngine::initProbes()
 	probe->setIsLoadedStatus(std::move(future));
 	probe->getIsLoadedStatus().get();
 
-	//probe->getIsLoadedStatus().get();
-
-	//auto* hdr = textureManager->getImage("hdr/HDR_040_Field.hdr", textureData);
-	//auto probe = mGlobalIllumination->getFactory()->create(hdr, 1);
-	
-	//probe->getIsLoadedStatus().get();
-	//mGlobalIllumination->addProbe(std::move(probe));
 	mGlobalIllumination->addProbe(std::move(probe));
 	mGlobalIllumination->addProbe(std::move(probe2));
 	
-	//ResourceLoader::get()->enqueue([=]() {
-		auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
-		mGlobalIllumination->setActiveProbe(activeProbe);
-		//activeProbe->createHandles();
-		//activeProbe->activateHandles();
-	//	return nullptr;
-	//});
-
-
-	//auto* activeProbe = mGlobalIllumination->getProbes()[1].get();
-	//mPbrTechnique->setProbe(activeProbe);
-
-	//mGlobalIllumination->getProbes()[0]->getIsLoadedStatus().get();
+	auto* activeProbe = mGlobalIllumination->getProbes()[0].get();
+	mGlobalIllumination->setActiveProbe(activeProbe);*/
 }
 
 void NeXEngine::initRenderBackend()

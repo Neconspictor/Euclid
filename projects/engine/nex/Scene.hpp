@@ -165,7 +165,7 @@ namespace nex
 		/**
 		 * Sets the position of this vob.
 		 */
-		void setPosition(const glm::vec3& position);
+		virtual void setPosition(const glm::vec3& position);
 
 		/**
 		 * Sets the scale of this vob.

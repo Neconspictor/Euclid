@@ -66,7 +66,7 @@ void main()
     const vec3 directLighting = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo);            
         
     //FragColor = vec3(0.4 * albedo.rgb + 0.6 * directLighting);
-    FragColor = vec4((0.1 * albedo.rgb + 0.9 * directLighting), 1.0f); //albedo.a
+    FragColor = vec4((0.4 * albedo.rgb + 0.6 * directLighting), 1.0f); //albedo.a
     //FragColor = vec4(1.0f);
     
     LuminanceColor = vec4(directLighting * 0.5, FragColor.a);

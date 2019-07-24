@@ -27,8 +27,9 @@ namespace nex
 		enum BufferType {
 			Deferrable = 1 << 0,
 			Forward =  1 << 1,
-			Transparent = 1 << 2,
-			Shadow = 1 << 3,
+			Probe = 1 << 2,
+			Transparent = 1 << 3,
+			Shadow = 1 << 4,
 		};
 
 		RenderCommandQueue(Camera* camera = nullptr);
@@ -50,12 +51,18 @@ namespace nex
 		Buffer& getForwardCommands();
 		const Buffer& getForwardCommands() const;
 
-		std::multimap<unsigned, nex::RenderCommand>& getToolCommands();
-		const std::multimap<unsigned, nex::RenderCommand>& getToolCommands() const;
-		Buffer& getTransparentCommands();
-		const Buffer& getTransparentCommands() const;
+		Buffer& getProbeCommands();
+		const Buffer& getProbeCommands() const;
+
 		Buffer& getShadowCommands();
 		const Buffer& getShadowCommands() const;
+
+		std::multimap<unsigned, nex::RenderCommand>& getToolCommands();
+		const std::multimap<unsigned, nex::RenderCommand>& getToolCommands() const;
+
+		Buffer& getTransparentCommands();
+		const Buffer& getTransparentCommands() const;
+
 		std::unordered_set<nex::Technique*>& getTechniques();
 		const std::unordered_set<nex::Technique*>& getTechniques() const;
 
@@ -77,11 +84,12 @@ namespace nex
 
 		const glm::vec3& getCullPosition() const;
 
-		Buffer mPbrCommands;
+		Buffer mDeferredPbrCommands;
 		Buffer mForwardCommands;
 		Buffer mShadowCommands;
 		std::multimap<unsigned, RenderCommand> mToolCommands;
 		Buffer mTransparentCommands;
+		Buffer mProbeCommands;
 		std::unordered_set<nex::Technique*> mTechniques;
 		Camera* mCamera;
 		CullingMethod mCullingMethod;

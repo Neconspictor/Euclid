@@ -6,7 +6,7 @@
 #include <nex/Scene.hpp>
 #include <nex/resource/Resource.hpp>
 #include <memory>
-
+#include <nex/material/Material.hpp>
 
 namespace nex
 {
@@ -41,12 +41,12 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe* probe, Texture* backgroundHDR, unsigned storeID, bool useCache = true);
+		void initProbe(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache = true);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe* probe, CubeMap* environmentMap, unsigned storeID, bool useCache = true);
+		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache = true);
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
@@ -62,6 +62,24 @@ namespace nex
 
 	public:
 
+		class ProbeTechnique;
+
+		class ProbeMaterial : public Material {
+		public:
+
+			ProbeMaterial(ProbeTechnique* technique);
+
+			void setProbeFactory(PbrProbeFactory* factory);
+
+			void setArrayIndex(float index);
+
+			void upload() override;
+
+			ProbeTechnique* mProbeTechnique;
+			PbrProbeFactory* mFactory;
+			float mArrayIndex;
+		};
+
 		struct Handles {
 			uint64_t convoluted = 0;
 			uint64_t prefiltered = 0;
@@ -75,7 +93,7 @@ namespace nex
 		static const TextureData SOURCE_DATA;
 		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
 
-		PbrProbe();
+		PbrProbe(const glm::vec3& position);
 
 		PbrProbe(PbrProbe&& o) noexcept = delete;
 		PbrProbe& operator=(PbrProbe&& o) noexcept = delete;
@@ -105,6 +123,8 @@ namespace nex
 
 		static Texture2D* getBrdfLookupTexture();
 
+		const glm::vec3& getPosition() const;
+
 		unsigned getStoreID() const;
 
 		void init(Texture* backgroundHDR, 
@@ -123,10 +143,9 @@ namespace nex
 
 		bool isInitialized() const;
 
-	protected:
+		void setPosition(const glm::vec3& position);
 
-		class ProbeTechnique;
-		class ProbeMaterial;
+	protected:
 
 		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache);
 
@@ -153,6 +172,7 @@ namespace nex
 		PbrProbeFactory* mFactory;
 		unsigned mArrayIndex;
 		bool mInit;
+		glm::vec3 mPosition;
 	};
 
 	class ProbeVob : public Vob
@@ -170,6 +190,8 @@ namespace nex
 		PbrProbe* getProbe();
 
 		const ProbeData* getProbeData() const;
+
+		void setPosition(const glm::vec3& position) override;
 
 		void updateProbeData();
 

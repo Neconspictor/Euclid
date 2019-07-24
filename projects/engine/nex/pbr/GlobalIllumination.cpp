@@ -85,7 +85,8 @@ private:
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f)
+mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
+mProbeScene(std::make_unique<Scene>())
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -171,15 +172,20 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	renderer->updateRenderTargets(size, size);
 
-	for (auto& probe : mProbes) { //const auto& spatial : mProbeSpatials
+	for (auto& probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
-		//const auto position = glm::vec3(spatial);
-		const auto position = glm::vec3(4.0f, 4.0f, 5.0f);//glm::vec3(-7.0f, 11.0f, 0.0f);//glm::vec3(-10.0f, 3.0f, 7.0f);//glm::vec3(4.0f);//glm::vec3(-10.0f, 16.0f, 6.0f);
+		auto& probe = *probeVob->getProbe();
+		if (probe.isInitialized()) continue;
+
+		const auto& position = probe.getPosition();
+
 		commandQueue.useSphereCulling(position, camera.getFarDistance());
 		collectBakeCommands(commandQueue, scene, false);
+		commandQueue.getProbeCommands().clear();
+		commandQueue.getToolCommands().clear();
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
 
-		mFactory.initProbe(probe.get(), cubeMap.get(), probe->getStoreID(), false);
+		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false);
 
 		//auto readImage = StoreImage::create(cubeMap.get());
 		//StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
@@ -194,19 +200,18 @@ const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getP
 	return mProbes;
 }
 
-nex::ProbeVob* nex::GlobalIllumination::createVobUnsafe(PbrProbe* probe, Scene& scene)
+nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, nex::Scene& scene)
 {
-	auto* meshRootNode = StaticMesh::createNodeHierarchy(&scene,
+	auto probe = std::make_unique<PbrProbe>(position);
+
+	auto* meshRootNode = StaticMesh::createNodeHierarchy(mProbeScene.get(),
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
-	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe);
-
-	return (ProbeVob*)scene.addVobUnsafe(std::move(vob), true);
-}
-
-void nex::GlobalIllumination::addProbe(std::unique_ptr<PbrProbe> probe)
-{
+	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe.get());
 	mProbes.emplace_back(std::move(probe));
+	mProbeVobs.emplace_back(std::move(vob));
+
+	return mProbeVobs.back().get();
 }
 
 nex::PbrProbe * nex::GlobalIllumination::getActiveProbe()

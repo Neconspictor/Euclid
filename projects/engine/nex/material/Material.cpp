@@ -12,9 +12,16 @@ using namespace nex;
 
 Material::Material(Technique* technique) : mTechnique(technique)
 {
+	static auto hash = typeid(Material).hash_code();
+	setTypeHashCode(hash);
 }
 
 Material::~Material() = default;
+
+size_t nex::Material::getTypeHashCode() const
+{
+	return mHashCode;
+}
 
 RenderState& Material::getRenderState()
 {
@@ -35,6 +42,11 @@ void nex::Material::upload()
 {
 }
 
+void nex::Material::setTypeHashCode(size_t code)
+{
+	mHashCode = code;
+}
+
 std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 {
 	os << enumToString(type, materialEnumConversion);
@@ -44,6 +56,8 @@ std::ostream& nex::operator<<(std::ostream& os, nex::MaterialType type)
 PbrMaterial::PbrMaterial(PbrTechnique* technique) :
 	PbrMaterial(technique, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr)
 {
+	static auto hash = typeid(PbrMaterial).hash_code();
+	setTypeHashCode(hash);
 }
 
 PbrMaterial::PbrMaterial(

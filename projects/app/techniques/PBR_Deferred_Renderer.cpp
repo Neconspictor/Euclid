@@ -355,7 +355,9 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	auto* forward = mPbrTechnique->getForward();
 	forward->configurePass(camera);
 	forward->updateLight(sun, camera);
+
 	StaticMeshDrawer::draw(queue.getForwardCommands());
+	StaticMeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 }
@@ -419,6 +421,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands()); //TODO
 	StaticMeshDrawer::draw(queue.getForwardCommands());
+	StaticMeshDrawer::draw(queue.getProbeCommands());
 }
 
 void nex::PBR_Deferred_Renderer::renderSky(const Camera& camera, const DirectionalLight& sun, unsigned width, unsigned height)

@@ -21,6 +21,7 @@ namespace nex
 	class PbrForward;
 	class Renderer;
 	class PerspectiveCamera;
+	class ProbeVob;
 
 	class GlobalIllumination
 	{
@@ -41,8 +42,7 @@ namespace nex
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 
-		ProbeVob* createVobUnsafe(PbrProbe* probe, Scene& scene);
-		void addProbe(std::unique_ptr<PbrProbe>);
+		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, Scene& scene);
 
 		PbrProbe* getActiveProbe();
 
@@ -75,6 +75,8 @@ namespace nex
 
 		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
+		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
+		std::unique_ptr<Scene> mProbeScene;
 		ShaderStorageBuffer mProbesBuffer;
 		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
