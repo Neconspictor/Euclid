@@ -416,7 +416,8 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-	auto mConvolutionPass(std::make_unique<PbrConvolutionPass>());
+	thread_local auto mConvolutionPass(std::make_unique<PbrConvolutionPass>());
+
 	mConvolutionPass->bind();
 	mConvolutionPass->setProjection(projection);
 	mConvolutionPass->setEnvironmentMap(source);
@@ -424,7 +425,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
 
-	auto skyBox = createSkyBox();
+	thread_local auto skyBox = createSkyBox();
 
 	const auto& views = CubeMap::getViewLookAts();
 
@@ -439,8 +440,8 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 
 std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilteredSize)
 {
-	auto* renderBackend = RenderBackend::get();
-	auto skyBox = createSkyBox();
+	thread_local auto* renderBackend = RenderBackend::get();
+	thread_local auto skyBox = createSkyBox();
 
 
 	auto prefilterRenderTarget = renderBackend->createCubeRenderTarget(prefilteredSize, prefilteredSize, PREFILTERED_DATA);
@@ -448,7 +449,7 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
 
 
-	auto mPrefilterPass(std::make_unique<PbrPrefilterPass>());
+	thread_local auto mPrefilterPass(std::make_unique<PbrPrefilterPass>());
 	mPrefilterPass->bind();
 	mPrefilterPass->setProjection(projection);
 	mPrefilterPass->setMapToPrefilter(source);
