@@ -34,6 +34,7 @@ namespace nex
 
 		CubeMapArray* getIrradianceMaps();
 		CubeMapArray* getPrefilteredMaps();
+		const std::filesystem::path& getProbeRootDir() const;
 
 
 		static void init(const std::filesystem::path& probeCompiledDirectory, std::string probeFileExtension);
@@ -47,6 +48,11 @@ namespace nex
 		 * Non blocking init function for probes.
 		 */
 		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
+
+		/**
+		 * Non blocking init function for probes.
+		 */
+		void initProbe(PbrProbe& probe, unsigned storeID, bool useCache, bool storeRenderedResult);
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
@@ -145,7 +151,16 @@ namespace nex
 			const std::filesystem::path& probeRoot, bool useCache,
 			bool storeRenderedResult);
 
+		void init(unsigned prefilteredSize,
+			unsigned storeID,
+			PbrProbeFactory* factory,
+			unsigned arrayIndex,
+			const std::filesystem::path& probeRoot, bool useCache,
+			bool storeRenderedResult);
+
 		bool isInitialized() const;
+
+		bool isSourceStored(const std::filesystem::path& probeRoot) const;
 
 		void setPosition(const glm::vec3& position);
 

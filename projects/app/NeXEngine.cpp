@@ -400,15 +400,25 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	{
-		auto position = glm::vec3(-17.0f, 2.0f, 0.0f);
-		auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, 0);
-		mScene.addActiveVobUnsafe(probeVob);
+	const int rows = 4;
+	const int columns = 4;
+	const int depths = 1;
+	const float rowMultiplicator = 11.0f;
+	const float columnMultiplicator = 11.0f;
+	const float depthMultiplicator = 4.0f;
 
-		position = glm::vec3(-19.5f, 2.0f, 0.0f);
-		probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, 1);
-		mScene.addActiveVobUnsafe(probeVob);
+	for (int i = 0; i < rows; ++i) {
+		for (int j = 0; j < columns; ++j) {
+			for (int k = 0; k < depths; ++k) {
+				//if (i == 0 && j == 0 && k == 0) continue;
+				auto position = glm::vec3((i - rows / 2) * rowMultiplicator,
+					(k - depths / 2) * depthMultiplicator,
+					(j - columns / 2) * columnMultiplicator);
 
+				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, (i * rows + j)*columns + k);
+				mScene.addActiveVobUnsafe(probeVob);
+			}
+		}
 	}
 
 	/*meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
@@ -461,7 +471,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 200);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;

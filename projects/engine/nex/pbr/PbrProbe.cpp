@@ -98,6 +98,11 @@ CubeMapArray * nex::PbrProbeFactory::getPrefilteredMaps()
 	return mPrefilteredMaps.get();
 }
 
+const std::filesystem::path & nex::PbrProbeFactory::getProbeRootDir() const
+{
+	return mFileSystem->getFirstIncludeDirectory();
+}
+
 void nex::PbrProbeFactory::init(const std::filesystem::path & probeCompiledDirectory, std::string probeFileExtension)
 {
 	std::vector<std::filesystem::path> includes = { probeCompiledDirectory };
@@ -211,11 +216,34 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, 
 		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
 	}
 
-
 	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
+
 
 	probe.init(environmentMap,
 		mPrefilteredSide,
+		storeID,
+		this,
+		arrayIndex,
+		mFileSystem->getFirstIncludeDirectory(),
+		useCache,
+		storeRenderedResult);
+
+	if (!alreadyInitialized)
+		--mFreeSlots;
+}
+
+void nex::PbrProbeFactory::initProbe(PbrProbe & probe, unsigned storeID, bool useCache, bool storeRenderedResult)
+{
+	const bool alreadyInitialized = probe.isInitialized();
+
+	if (!alreadyInitialized && mFreeSlots == 0) {
+		throw std::runtime_error(" nex::PbrProbeFactory::initProbe: No free slots!");
+	}
+
+
+	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
+
+	probe.init(mPrefilteredSide,
 		storeID,
 		this,
 		arrayIndex,
@@ -615,9 +643,50 @@ void nex::PbrProbe::init(CubeMap * environment,
 	mInit = true;
 }
 
+void nex::PbrProbe::init(unsigned prefilteredSize, unsigned storeID, PbrProbeFactory * factory, unsigned arrayIndex, const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
+{
+	thread_local auto* renderBackend = RenderBackend::get();
+	Viewport backup = renderBackend->getViewport();
+	renderBackend->getRasterizer()->enableScissorTest(false);
+
+	mStoreID = storeID;
+	mArrayIndex = arrayIndex;
+	mFactory = factory;
+
+	std::function<std::shared_ptr<CubeMap>()> renderFunc = []()->std::shared_ptr<CubeMap> {
+		throw_with_trace(std::runtime_error("Expected environment map to exist!"));
+		return nullptr;
+	};
+
+	StoreImage readImage = loadCubeMap(probeRoot,
+		"pbr_environmentMap_",
+		mStoreID,
+		useCache,
+		storeRenderedResult,
+		renderFunc);
+
+	auto environmentMap = std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
+
+	init(environmentMap.get(), prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
+
+
+	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
+}
+
 bool nex::PbrProbe::isInitialized() const
 {
 	return mInit;
+}
+
+bool nex::PbrProbe::isSourceStored(const std::filesystem::path& probeRoot) const
+{
+	if (mStoreID == INVALID_STOREID) return false;
+
+	auto baseName = "pbr_environmentMap_";
+
+	const std::filesystem::path storeFile = probeRoot / (baseName + std::to_string(mStoreID) + std::string(STORE_FILE_EXTENSION));
+
+	return std::filesystem::exists(storeFile);
 }
 
 void nex::PbrProbe::setPosition(const glm::vec3 & position)

@@ -131,7 +131,6 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
 	
 	camera.update();
-	RenderCommandQueue commandQueue;
 
 	TextureData data;
 	data.colorspace = ColorSpace::RGB;
@@ -179,13 +178,22 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 		const auto& position = probe.getPosition();
 
-		commandQueue.useSphereCulling(position, camera.getFarDistance());
-		collectBakeCommands(commandQueue, scene, false);
-		commandQueue.getProbeCommands().clear();
-		commandQueue.getToolCommands().clear();
-		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
+		
 
-		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, true);
+		if (probe.isSourceStored(mFactory.getProbeRootDir())) {
+			mFactory.initProbe(probe, probe.getStoreID(), true, true);
+		}
+		else {
+			RenderCommandQueue commandQueue;
+			commandQueue.useSphereCulling(position, camera.getFarDistance());
+			collectBakeCommands(commandQueue, scene, false);
+			commandQueue.getProbeCommands().clear();
+			commandQueue.getToolCommands().clear();
+			commandQueue.sort();
+
+			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
+			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), true, true);
+		}
 
 		//auto readImage = StoreImage::create(cubeMap.get());
 		//StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
@@ -344,7 +352,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	const glm::vec3 ups[6]{
 		glm::vec3(0.0f, -1.0f, 0.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f),
 		glm::vec3(0.0f, 0.0f, -1.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f),
 		glm::vec3(0.0f, -1.0f, 0.0f)
