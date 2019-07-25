@@ -169,6 +169,14 @@ namespace nex::gui
 			
 			ImGui::Text("pbr probe vob");
 
+			if (doOneTimeChanges) {
+				auto& irradiance = mConvolutedView.getTexture();
+				irradiance.level = probe->getArrayIndex();
+
+				auto& probePrefiltered = mPrefilteredView.getTexture();
+				probePrefiltered.level = probe->getArrayIndex();
+			}
+
 			if (ImGui::TreeNode("Brdf Lookup map"))
 			{
 				auto* texture = probe->getBrdfLookupTexture();
@@ -191,7 +199,6 @@ namespace nex::gui
 				irradiance.texture = texture;
 				irradiance.flipY = ImageFactory::isYFlipped();
 				irradiance.sampler = nullptr;
-				if (doOneTimeChanges) irradiance.level = probe->getArrayIndex();
 
 				mConvolutedView.updateTexture(true);
 				mConvolutedView.drawGUI();
@@ -206,7 +213,6 @@ namespace nex::gui
 				probePrefiltered.texture = texture;
 				probePrefiltered.flipY = ImageFactory::isYFlipped();
 				probePrefiltered.sampler = nullptr;
-				if (doOneTimeChanges) probePrefiltered.level = probe->getArrayIndex();
 
 				mPrefilteredView.updateTexture(true);
 				mPrefilteredView.drawGUI();
