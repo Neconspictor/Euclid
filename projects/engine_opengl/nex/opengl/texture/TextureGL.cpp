@@ -769,6 +769,7 @@ void nex::CubeMapArrayGL::fill(unsigned xOffset, unsigned yOffset, unsigned zOff
 {
 	if (data == nullptr) return;
 
+	GLCall(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 	GLCall(glTextureSubImage3D(mTextureID, 
 		mipmapIndex,
 		xOffset, yOffset, zOffset,
