@@ -41,12 +41,12 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache = true);
+		void initProbe(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache = true);
+		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
 		
 	private:
 		static std::unique_ptr<FileSystem> mFileSystem;
@@ -92,8 +92,10 @@ namespace nex
 		static const TextureData PREFILTERED_DATA;
 		static const TextureData SOURCE_DATA;
 		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
+		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
+		static constexpr unsigned INVALID_ARRAY_INDEX = UINT32_MAX;
 
-		PbrProbe(const glm::vec3& position);
+		PbrProbe(const glm::vec3& position, unsigned storeID = INVALID_STOREID);
 
 		PbrProbe(PbrProbe&& o) noexcept = delete;
 		PbrProbe& operator=(PbrProbe&& o) noexcept = delete;
@@ -132,14 +134,16 @@ namespace nex
 			unsigned storeID, 
 			PbrProbeFactory* factory,
 			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot, bool useCache = true);
+			const std::filesystem::path& probeRoot, bool useCache,
+			bool storeRenderedResult);
 
 		void init(CubeMap* environment,
 			unsigned prefilteredSize,
 			unsigned storeID,
 			PbrProbeFactory* factory,
 			unsigned arrayIndex,
-			const std::filesystem::path& probeRoot, bool useCache);
+			const std::filesystem::path& probeRoot, bool useCache,
+			bool storeRenderedResult);
 
 		bool isInitialized() const;
 
@@ -147,14 +151,23 @@ namespace nex
 
 	protected:
 
-		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache);
+		static constexpr char* STORE_FILE_EXTENSION = ".probe";
 
-		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache);
+		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
-		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache);
+		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+
+		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
+
+		static StoreImage loadCubeMap(const std::filesystem::path& probeRoot,
+			const std::string& baseName,
+			unsigned storeID,
+			bool useCache,
+			bool storeRenderedResult,
+			const std::function<std::shared_ptr<CubeMap>()>& renderFunc);
 
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
 		std::shared_ptr<CubeMap> convolute(CubeMap* source);

@@ -402,11 +402,11 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	{
 		auto position = glm::vec3(-17.0f, 2.0f, 0.0f);
-		auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mScene);
+		auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, 0);
 		mScene.addActiveVobUnsafe(probeVob);
 
 		position = glm::vec3(-19.5f, 2.0f, 0.0f);
-		probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mScene);
+		probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, 1);
 		mScene.addActiveVobUnsafe(probeVob);
 
 	}
@@ -461,7 +461,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 512, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;

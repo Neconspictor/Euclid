@@ -185,7 +185,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 		commandQueue.getToolCommands().clear();
 		auto cubeMap = renderToCubeMap(commandQueue, renderer,*renderTarget, camera, position, light);
 
-		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false);
+		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, true);
 
 		//auto readImage = StoreImage::create(cubeMap.get());
 		//StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
@@ -200,9 +200,9 @@ const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getP
 	return mProbes;
 }
 
-nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, nex::Scene& scene)
+nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(nex::Scene& scene, const glm::vec3& position, unsigned storeID)
 {
-	auto probe = std::make_unique<PbrProbe>(position);
+	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
 	auto* meshRootNode = StaticMesh::createNodeHierarchy(mProbeScene.get(),
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });

@@ -253,11 +253,6 @@ namespace nex::gui
 
 				if (future.is_ready() || !future.valid()) {
 
-					std::function<nex::Resource*(RenderEngine::CommandQueue*)> func = [=](RenderEngine::CommandQueue*)->nex::Resource* {return nullptr; };
-
-					ResourceLoader::get()->enqueue(std::move(func));
-
-
 					future = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue, int i)->nex::Resource* {
 						
 						FileDialog fileDialog(mWindow);

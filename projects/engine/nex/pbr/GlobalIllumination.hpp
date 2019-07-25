@@ -9,7 +9,6 @@
 
 namespace nex
 {
-	class PbrProbe;
 	class Scene;
 	class Vob;
 	class RenderCommandQueue;
@@ -42,7 +41,7 @@ namespace nex
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 
-		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, Scene& scene);
+		ProbeVob* addUninitProbeUnsafe(Scene& scene, const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
 
 		PbrProbe* getActiveProbe();
 
