@@ -69,7 +69,7 @@ void main()
     }
     
     
-    vec4 color = textureLod(Texture, normalize(vec4(x, y, z, Index)), MipMapLevel);
+    vec4 color = textureLod(Texture, vec4(x, y, z, Index), MipMapLevel);
     
     if (UseToneMapping) {
         const float exposure = 1.0;

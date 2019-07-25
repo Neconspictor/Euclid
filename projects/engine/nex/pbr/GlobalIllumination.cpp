@@ -192,7 +192,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			commandQueue.sort();
 
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
-			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), true, true);
+			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
 		}
 
 		//auto readImage = StoreImage::create(cubeMap.get());
@@ -337,7 +337,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	const nex::RenderCommandQueue & queue,
 	Renderer* renderer,
 	CubeRenderTarget & renderTarget,
-	nex::Camera& camera,
+	nex::Camera& camera2,
 	const glm::vec3 & worldPosition,
 	const DirectionalLight& light)
 {
@@ -368,12 +368,13 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	};
 
 
-	camera.setPosition(worldPosition, true);
-	camera.update(true);
+	const size_t size = 1024;
+	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
 
-	camera.setUp(ups[0]);
-	camera.setLook(dir[0]);
-	camera.update(true);
+	camera.update();
+	camera.setPosition(worldPosition, true);
+	camera.update();
 
 	for (unsigned side = 0; side < views.size(); ++side) {
 		
@@ -382,8 +383,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		//const auto view = glm::lookAt(worldPosition, worldPosition + dir[5 - side], ups[5 - side]);
 		camera.setUp(ups[side]);
 		camera.setLook(dir[side]);
-		camera.update(true);
-		camera.update(true);
+		camera.update();
+		camera.update();
 		//camera.setView(view, true);
 		
 
@@ -391,8 +392,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 		auto* stencilTest = RenderBackend::get()->getStencilTest();
 		stencilTest->enableStencilTest(false);
-		//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-		//stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		renderTarget.bind();
 		renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X)); // side +
@@ -404,6 +405,8 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 		stencilTest->enableStencilTest(false);
+		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		/*for (const auto& buffer : buffers) {
 			for (const auto& command : *buffer)

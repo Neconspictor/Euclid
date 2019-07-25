@@ -218,7 +218,6 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, 
 
 	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
 
-
 	probe.init(environmentMap,
 		mPrefilteredSide,
 		storeID,
@@ -273,7 +272,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	Viewport backup = RenderBackend::get()->getViewport();
 
 	mTechnique = std::make_unique<ProbeTechnique>();
-	mMesh = std::make_unique<SphereMesh>(64, 64);
+	mMesh = std::make_unique<SphereMesh>(16, 16);
 
 	PbrBrdfPrecomputePass brdfPrecomputePass;
 	const std::filesystem::path brdfMapPath = probeRoot / ("brdfLUT.probe");
