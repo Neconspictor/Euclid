@@ -400,19 +400,20 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	const int rows = 4;
-	const int columns = 4;
-	const int depths = 1;
+	const int rows = 7;
+	const int columns = 7;
+	const int depths = 4;
 	const float rowMultiplicator = 11.0f;
 	const float columnMultiplicator = 11.0f;
-	const float depthMultiplicator = 4.0f;
+	const float depthMultiplicator = 7.0f;
+	const float depthOffset = 7.0f;
 
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < columns; ++j) {
 			for (int k = 0; k < depths; ++k) {
 				//if (i == 0 && j == 0 && k == 0) continue;
 				auto position = glm::vec3((i - rows / 2) * rowMultiplicator,
-					(k - depths / 2) * depthMultiplicator,
+					(k - depths / 2) * depthMultiplicator + depthOffset,
 					(j - columns / 2) * columnMultiplicator);
 
 				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, (i * rows + j)*columns + k);
@@ -471,7 +472,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 100);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 200);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;

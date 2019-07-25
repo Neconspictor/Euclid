@@ -161,6 +161,8 @@ nex::PbrProbe::ProbeMaterial::ProbeMaterial(ProbeTechnique * technique) : Materi
 {
 	assert(technique != nullptr);
 	mRenderState.doCullFaces = true;
+	mRenderState.doShadowCast = false;
+	mRenderState.doShadowReceive = false;
 	//mRenderState.cullSide = PolygonSide::FRONT;
 
 	static auto hash = typeid(ProbeMaterial).hash_code();

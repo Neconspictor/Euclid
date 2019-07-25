@@ -192,7 +192,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			commandQueue.sort();
 
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
-			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
+			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), true, true);
 		}
 
 		//auto readImage = StoreImage::create(cubeMap.get());
