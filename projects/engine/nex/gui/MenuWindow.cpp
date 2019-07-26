@@ -13,9 +13,11 @@ nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Me
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 	{
 		std::string label = mName + "###" + mId;
-		if (ImGui::Checkbox(label.c_str(), &mIsVisible))
-		{
-		}
+
+		if (!mIsVisible) mSetDefaultPosition = true;
+
+
+		if (ImGui::MenuItem(label.c_str())) mIsVisible = true;
 	});
 
 	menu->addMenuItem(std::move(menuItem));
@@ -48,6 +50,11 @@ void nex::gui::MenuWindow::drawSelf()
 	const float mainbarHeight = mMainMenuBar->getSize().y;
 	const ImVec2 mainbarPos = mMainMenuBar->getPosition();
 
-	ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
+	if (mSetDefaultPosition) {
+		ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
+		mSetDefaultPosition = false;
+	}
+
+
 	Window::drawSelf();
 }

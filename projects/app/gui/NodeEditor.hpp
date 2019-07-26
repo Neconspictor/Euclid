@@ -32,7 +32,6 @@ namespace nex::gui
 		TextureView mBrdfView;
 		TextureView mConvolutedView;
 		TextureView mPrefilteredView;
-		TextureView mDynamicLoad;
 		nex::Window* mWindow;
 		nex::Scene* mScene;
 		//TextureView mTransparentView;

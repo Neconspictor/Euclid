@@ -25,6 +25,8 @@ set(
     gui/ProbeGenerator.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
+    gui/TextureViewer.cpp
+    gui/TextureViewer.hpp
 	
 	#techniques
     techniques/HeightMap.hpp

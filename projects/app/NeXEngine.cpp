@@ -31,6 +31,7 @@
 #include <memory>
 #include <gui/NodeEditor.hpp>
 #include <gui/VobLoader.hpp>
+#include <gui/TextureViewer.hpp>
 
 using namespace nex;
 
@@ -623,7 +624,7 @@ void NeXEngine::setupGUI()
 	root->addChild(move(configurationWindow));
 
 
-	std::unique_ptr<nex::gui::MenuWindow> nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(
+	auto nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(
 		"Scene Node Editor",
 		root->getMainMenuBar(),
 		root->getToolsMenu());
@@ -638,7 +639,7 @@ void NeXEngine::setupGUI()
 	root->addChild(move(nodeEditorWindow));
 
 
-	std::unique_ptr<nex::gui::VobLoader> vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
+	auto vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
 		"Vob Loader",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
@@ -647,6 +648,15 @@ void NeXEngine::setupGUI()
 
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
+
+	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
+		"Texture Loader",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mWindow);
+
+	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(textureViewerWindow));
 
 }
 

@@ -18,7 +18,6 @@ namespace nex::gui
 		mBrdfView({}, ImVec2(256, 256)),
 		mConvolutedView({}, ImVec2(256, 256)),
 		mPrefilteredView({}, ImVec2(256, 256)),
-		mDynamicLoad({}, ImVec2(256, 256)),
 		mWindow(window),
 		mScene(nullptr),
 		mLastPicked(nullptr)
@@ -171,56 +170,6 @@ namespace nex::gui
 				mPrefilteredView.drawGUI();
 
 				ImGui::TreePop();
-			}
-
-			static Future<Resource*> future;
-			Texture* loadedTexture = nullptr;
-
-
-			if (future.is_ready())
-				loadedTexture = (Texture*)future.get();
-
-			if (loadedTexture) {
-
-				auto& desc = mDynamicLoad.getTexture();
-				desc.texture = loadedTexture;
-				desc.flipY = ImageFactory::isYFlipped();
-				desc.sampler = TextureManager::get()->getDefaultImageSampler();
-
-				mDynamicLoad.updateTexture(true);
-				mDynamicLoad.drawGUI();
-			}
-
-			if (ImGui::Button("Load Image Test")) {
-
-				if (future.is_ready() || !future.valid()) {
-
-					future = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue, int i)->nex::Resource* {
-
-						FileDialog fileDialog(mWindow);
-						auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");
-
-						TextureData data;
-						data.colorspace = ColorSpace::SRGBA;
-						data.internalFormat = InternFormat::SRGBA8;
-						data.generateMipMaps = true;
-
-						switch (result.state) {
-						case FileDialog::State::Okay:
-							std::cout << "Selected file: " << result.path << std::endl;
-							return TextureManager::get()->getImage(result.path, data, true);
-							break;
-						case FileDialog::State::Cancled:
-							std::cout << "Canceled" << std::endl;
-							break;
-						case FileDialog::State::Error:
-							std::cout << "Error: " << result.error << std::endl;
-							break;
-						}
-
-						return nullptr;
-					}, 42);
-				}
 			}
 		}
 		else

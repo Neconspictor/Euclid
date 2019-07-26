@@ -8,15 +8,10 @@ namespace nex::gui
 	{
 	public:
 
-		static constexpr int DEFAULT_WINDOW_FLAGS = ImGuiWindowFlags_NoMove 
-			| ImGuiWindowFlags_AlwaysAutoResize 
-			| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoCollapse;
-
 		ConfigurationWindow(std::string title, 
 			MainMenuBar* menuBar, 
 			Menu* menu,
-			int flags = DEFAULT_WINDOW_FLAGS);
+			int flags = MenuWindow::DEFAULT_FLAGS);
 
 		nex::gui::Tab* getGeneralTab();
 

@@ -12,8 +12,9 @@ namespace nex::gui
 	{
 	public:
 
-		static constexpr int DEFAULT_FLAGS = ImGuiWindowFlags_NoMove 
-			| ImGuiWindowFlags_AlwaysAutoResize 
+		static constexpr int DEFAULT_FLAGS = 
+			//ImGuiWindowFlags_NoMove 
+			  ImGuiWindowFlags_AlwaysAutoResize 
 			| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse;
 
@@ -30,5 +31,6 @@ namespace nex::gui
 		void drawSelf() override;
 
 		nex::gui::MainMenuBar* mMainMenuBar;
+		bool mSetDefaultPosition;
 	};
 }
