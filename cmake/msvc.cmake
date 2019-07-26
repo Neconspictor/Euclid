@@ -5,6 +5,8 @@ message(STATUS "Detected MSVC")
 
 #release optimization configuration
 set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
+#for RelWithDebInfo we don't set optimizations for improved debugging capabilities set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
+set(CMAKE_CXX_FLAGS_MINSIZEREL "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
 #set(CMAKE_EXE_LINKER_FLAGS  "/LTCG" CACHE INTERNAL "" FORCE)
 
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
