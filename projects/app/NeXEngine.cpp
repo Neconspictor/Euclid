@@ -30,6 +30,7 @@
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
 #include <gui/NodeEditor.hpp>
+#include <gui/VobLoader.hpp>
 
 using namespace nex;
 
@@ -618,14 +619,35 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
-	auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
-	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
-	sceneNodeProperty->setScene(&mScene);
-
-	generalTab->addChild(std::move(sceneNodeProperty));
-
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
+
+
+	std::unique_ptr<nex::gui::MenuWindow> nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(
+		"Scene Node Editor",
+		root->getMainMenuBar(),
+		root->getToolsMenu());
+
+	nodeEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+		auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
+		sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
+		sceneNodeProperty->setScene(&mScene);
+
+		nodeEditorWindow->addChild(std::move(sceneNodeProperty));
+
+	root->addChild(move(nodeEditorWindow));
+
+
+	std::unique_ptr<nex::gui::VobLoader> vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
+		"Vob Loader",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		&mScene,
+		mWindow);
+
+	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(vobLoaderWindow));
+
 }
 
 void NeXEngine::setupCamera()

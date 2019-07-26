@@ -3,9 +3,9 @@
 #include <nex/gui/imgui_tabs.h>
 #include <nex/gui/Util.hpp>
 
-nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Menu* configurationMenu, int flags) :
+nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Menu* menu, int flags) :
 	Window(std::move(title), true, flags),
-	m_mainMenuBar(mainMenuBar)
+	mMainMenuBar(mainMenuBar)
 {
 	mIsVisible = false;
 	mUseCloseCross = true;
@@ -18,7 +18,7 @@ nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Me
 		}
 	});
 
-	configurationMenu->addMenuItem(std::move(menuItem));
+	menu->addMenuItem(std::move(menuItem));
 }
 
 void nex::gui::MenuWindow::drawGUI()
@@ -45,8 +45,8 @@ bool nex::gui::MenuWindow::hasVisibleChild() const
 
 void nex::gui::MenuWindow::drawSelf()
 {
-	const float mainbarHeight = m_mainMenuBar->getSize().y;
-	const ImVec2 mainbarPos = m_mainMenuBar->getPosition();
+	const float mainbarHeight = mMainMenuBar->getSize().y;
+	const ImVec2 mainbarPos = mMainMenuBar->getPosition();
 
 	ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
 	Window::drawSelf();

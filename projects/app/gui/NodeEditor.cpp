@@ -173,29 +173,12 @@ namespace nex::gui
 				ImGui::TreePop();
 			}
 
-			/*if (ImGui::TreeNode("transparent texture"))
-			{
-				auto* texture = TextureManager::get()->getImage("transparent/blending_transparent_window.png");
-				auto& desc = mTransparentView.getTexture();
-				desc.texture = texture;
-				desc.sampler = nullptr;
-
-				mTransparentView.updateTexture(true);
-				mTransparentView.drawGUI();
-
-				ImGui::TreePop();
-			}*/
-
 			static Future<Resource*> future;
-			static Future<Resource*> meshFuture;
 			Texture* loadedTexture = nullptr;
-			StaticMeshContainer* loadedMesh = nullptr;
+
 
 			if (future.is_ready())
 				loadedTexture = (Texture*)future.get();
-
-			if (meshFuture.is_ready())
-				loadedMesh = (StaticMeshContainer*)meshFuture.get();
 
 			if (loadedTexture) {
 
@@ -239,47 +222,6 @@ namespace nex::gui
 					}, 42);
 				}
 			}
-
-
-			if (ImGui::Button("Load Mesh Test")) {
-
-				if (meshFuture.is_ready() || !meshFuture.valid()) {
-					meshFuture = ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
-
-						FileDialog fileDialog(mWindow);
-						auto result = fileDialog.selectFile("obj");
-
-						if (result.state == FileDialog::State::Okay) {
-							std::cout << "Selected file: " << result.path << std::endl;
-							StaticMeshContainer* meshContainer = nullptr;
-
-							try {
-								meshContainer = StaticMeshManager::get()->getModel(result.path.u8string());
-							}
-							catch (...) {
-								void* nativeWindow = mWindow->getNativeWindow();
-								boxer::show("Couldn't load mesh!", "", boxer::Style::Error, boxer::Buttons::OK, nativeWindow);
-								return nullptr;
-							}
-
-							auto lock = mScene->acquireLock();
-							auto* nodes = meshContainer->createNodeHierarchyUnsafe(mScene);
-							auto* vob = mScene->createVobUnsafe(nodes);
-							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
-							mScene->updateWorldTrafoHierarchyUnsafe(true);
-
-							commandQueue->push([&]() {
-								meshContainer->finalize();
-							});
-
-							return meshContainer;
-						}
-
-						return nullptr;
-					});
-				}
-			}
-
 		}
 		else
 		{

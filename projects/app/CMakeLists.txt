@@ -17,6 +17,8 @@ set(
 	gui/ConfigurationWindow.hpp
     gui/Controller.cpp
 	gui/Controller.hpp
+    gui/VobLoader.cpp
+    gui/VobLoader.hpp
     gui/NodeEditor.cpp
     gui/NodeEditor.hpp
     gui/ProbeGenerator.cpp

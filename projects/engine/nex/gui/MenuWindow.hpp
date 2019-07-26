@@ -29,6 +29,6 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		nex::gui::MainMenuBar* m_mainMenuBar;
+		nex::gui::MainMenuBar* mMainMenuBar;
 	};
 }
