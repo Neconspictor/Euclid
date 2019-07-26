@@ -4,7 +4,8 @@ message(STATUS "Detected MSVC")
 #set(CMAKE_CXX_FLAGS_DEBUG "/DEBUG:FULL")
 
 #release optimization configuration
-set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ot /Oy")
+set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ot /Oy /fp:fast /Ob2 /Oi /GT") #/GL
+#set(CMAKE_EXE_LINKER_FLAGS  "/LTCG" CACHE INTERNAL "" FORCE)
 
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /FC" )
 

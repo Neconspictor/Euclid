@@ -52,7 +52,7 @@ namespace nex
 		BIT_32 = 1, LAST = BIT_32,
 	};
 
-	inline constexpr size_t getIndexElementTypeByteSize(IndexElementType type)
+	inline size_t getIndexElementTypeByteSize(IndexElementType type)
 	{
 		static size_t table[] = 
 		{

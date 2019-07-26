@@ -5,8 +5,7 @@
 
 nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Menu* configurationMenu, int flags) :
 	Window(std::move(title), true, flags),
-	m_mainMenuBar(mainMenuBar),
-	m_tabBar(nullptr)
+	m_mainMenuBar(mainMenuBar)
 {
 	mIsVisible = false;
 	mUseCloseCross = true;

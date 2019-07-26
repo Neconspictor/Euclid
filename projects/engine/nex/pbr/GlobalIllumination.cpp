@@ -151,6 +151,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	data.colorspace = ColorSpace::DEPTH_STENCIL;
 	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
+
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
 
 	renderTarget->useDepthAttachment(std::move(depth));
