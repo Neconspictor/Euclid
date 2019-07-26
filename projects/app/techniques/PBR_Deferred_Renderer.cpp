@@ -502,7 +502,7 @@ mOceanConfig(mRenderer->getOcean())
 void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 {
 	// render configuration properties
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 
 	AmbientOcclusionSelector* aoSelector = mRenderer->getAOSelector();
 	bool useAmbientOcclusion = aoSelector->isAmbientOcclusionActive();

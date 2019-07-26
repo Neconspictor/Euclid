@@ -121,7 +121,7 @@ nex::FPCamera_ConfigurationView::FPCamera_ConfigurationView(FPCamera* camera) : 
 void nex::FPCamera_ConfigurationView::drawSelf()
 {
 	// render configuration properties
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 	ImGui::DragFloat("yaw", &m_camera->yaw, 1.0f, -180.0f, 180.0f);
 	ImGui::DragFloat("pitch", &m_camera->pitch, 1.0f, -89.0f, 89.0f);
 

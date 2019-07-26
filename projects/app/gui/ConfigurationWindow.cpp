@@ -5,20 +5,18 @@
 
 using namespace nex::gui;
 
-nex::gui::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Menu* configurationMenu) :
-	Window("Graphics and Video Settings", false), m_mainMenuBar(mainMenuBar),
-	m_menuTitle("Graphics and Video Settings"), m_tabBar(nullptr)
+nex::gui::ConfigurationWindow::ConfigurationWindow(std::string title, MainMenuBar* mainMenuBar, Menu* configurationMenu, int flags) :
+	Window(std::move(title), true, flags),
+	m_mainMenuBar(mainMenuBar),
+	m_tabBar(nullptr)
 {
-	m_imGuiFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize
-		| ImGuiWindowFlags_NoCollapse;
-	//ImGuiWindowFlags_ResizeFromAnySide | ImGuiWindowFlags_HorizontalScrollbar
-
-	m_isVisible = false;
+	mIsVisible = false;
+	mUseCloseCross = true;
 
 	MenuItemPtr menuItem = std::make_unique<MenuItem>([&](MenuItem* menuItem)
 	{
-		std::string label = m_menuTitle + "###" + m_id;
-		if (ImGui::Checkbox(label.c_str(), &m_isVisible))
+		std::string label = mName + "###" + mId;
+		if (ImGui::Checkbox(label.c_str(), &mIsVisible))
 		{
 		}
 	});
@@ -29,7 +27,7 @@ nex::gui::ConfigurationWindow::ConfigurationWindow(MainMenuBar* mainMenuBar, Men
 
 	m_tabBar = tabBar.get();
 
-	m_childs.emplace_back(std::move(tabBar));
+	mChilds.emplace_back(std::move(tabBar));
 
 	m_tabBar->newTab(GRAPHICS_TECHNIQUES);
 	m_tabBar->newTab(GENERAL);
@@ -64,7 +62,7 @@ Tab* nex::gui::ConfigurationWindow::getVideoTab()
 
 bool nex::gui::ConfigurationWindow::hasVisibleChild() const
 {
-	for (auto &child : m_childs)
+	for (auto &child : mChilds)
 	{
 		if (child->isVisible())
 			return true;
@@ -85,50 +83,5 @@ void nex::gui::ConfigurationWindow::drawSelf()
 	const ImVec2 mainbarPos = m_mainMenuBar->getPosition();
 
 	ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
-	ImGui::Begin(m_name.c_str(), &m_isVisible, m_imGuiFlags);
-
-	/*//ImGui::BeginChild("child", ImVec2(-1, 100), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ResizeFromAnySide);
-	ImGui::BeginGroup();
-	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.15f, 0.15f, 1.0));
-	ImGui::BeginTabBar("Settings#left_tabs_bar");
-
-	// ericb 2017_07_21 : draw the tabs background BEFORE to fill it, to avoid a "colored overlay"
-	//ImGui::DrawTabsBackground();
-	
-	if (ImGui::TabItem("General")) {
-
-	}
-	if (ImGui::TabItem("GUI###1")) {
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 2");
-		ImGui::Text("Tab 20");
-	}
-	if (ImGui::TabItem("Tab Name###2")) {
-		ImGui::Text("Tab 3");
-	}
-	if (ImGui::TabItem("Tab Name###3")) {
-		ImGui::Text("Tab 4");
-	}
-	
-	ImGui::EndTabBar();*/
-
-	//ImGui::Dummy(ImVec2(0, 20));
-	//nex::engine::gui::Separator(2.0f);
-
-	//ImGui::PopStyleColor();
-	//ImGui::EndGroup();
-	//ImGui::EndChild();
-
-	//ImGui::Dummy(ImVec2(0, 100));
-
-	//ImGui::Dummy(ImVec2(0, 100));
-
-	//ImGui::Text("After tab area");
+	Window::drawSelf();
 }

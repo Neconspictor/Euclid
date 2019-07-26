@@ -15,10 +15,14 @@ set(
 	gui/AppStyle.hpp
 	gui/ConfigurationWindow.cpp
 	gui/ConfigurationWindow.hpp
+    gui/Controller.cpp
+	gui/Controller.hpp
+    gui/NodeEditor.cpp
+    gui/NodeEditor.hpp
+    gui/ProbeGenerator.cpp
+    gui/ProbeGenerator.hpp
 	gui/SceneGUI.cpp
 	gui/SceneGUI.hpp
-	gui/Controller.cpp
-	gui/Controller.hpp
 	
 	#techniques
     techniques/HeightMap.hpp

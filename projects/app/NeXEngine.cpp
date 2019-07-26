@@ -29,6 +29,7 @@
 #include "nex/resource/ResourceLoader.hpp"
 #include <nex/pbr/PbrProbe.hpp>
 #include <memory>
+#include <gui/NodeEditor.hpp>
 
 using namespace nex;
 
@@ -400,9 +401,9 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	const int rows = 7;
-	const int columns = 7;
-	const int depths = 4;
+	const int rows = 1;
+	const int columns = 1;
+	const int depths = 2;
 	const float rowMultiplicator = 11.0f;
 	const float columnMultiplicator = 11.0f;
 	const float depthMultiplicator = 7.0f;
@@ -581,7 +582,10 @@ void NeXEngine::setupGUI()
 	style.apply();
 
 	auto root = mControllerSM->getSceneGUI();
-	std::unique_ptr<nex::gui::ConfigurationWindow> configurationWindow = std::make_unique<nex::gui::ConfigurationWindow>(root->getMainMenuBar(), root->getOptionMenu());
+	std::unique_ptr<nex::gui::ConfigurationWindow> configurationWindow =  std::make_unique<nex::gui::ConfigurationWindow>(
+		"Graphics and Video Settings", 
+			root->getMainMenuBar(), 
+			root->getOptionMenu());
 
 	gui::Tab* graphicsTechniques = configurationWindow->getGraphicsTechniquesTab();
 	gui::Tab* cameraTab = configurationWindow->getCameraTab();
@@ -614,7 +618,7 @@ void NeXEngine::setupGUI()
 	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
 	generalTab->addChild(move(pbr_deferred_rendererView));
 
-	auto sceneNodeProperty = std::make_unique<SceneNodeProperty>(mWindow);
+	auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
 	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
 	sceneNodeProperty->setScene(&mScene);
 

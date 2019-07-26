@@ -26,7 +26,7 @@ public:
 
 
 nex::gui::TextureView::TextureView(const ImGUI_ImageDesc& textureDesc, const ImVec2& viewSize) : mDesc(textureDesc), mViewSize(viewSize),
-mScale(1.0f), mOpacity(1.0f), mScrollPaneID(m_id + "ScrollPane"), mUseTransparency(false), mUseToneMapping(false), mSelectedFiltering(0)
+mScale(1.0f), mOpacity(1.0f), mScrollPaneID(mId + "ScrollPane"), mUseTransparency(false), mUseToneMapping(false), mSelectedFiltering(0)
 {
 	updateScale();
 	SamplerDesc state;
@@ -126,7 +126,7 @@ void nex::gui::TextureView::drawSelf()
 {
 	if (mDesc.texture == nullptr) return;
 
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 
 	//ImGui::SetNextWindowContentSize(ImVec2(128, 128));
 

@@ -373,7 +373,7 @@ namespace nex
 	void SSAO_ConfigurationView::drawSelf()
 	{
 		// render configuration properties
-		ImGui::PushID(m_id.c_str());
+		ImGui::PushID(mId.c_str());
 		ImGui::LabelText("", "SSAO:");
 
 		SSAOData* data = m_ssao->getSSAOData();

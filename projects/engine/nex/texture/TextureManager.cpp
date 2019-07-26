@@ -322,7 +322,7 @@ namespace nex {
 		//float anisotropyBackup = anisotropy;
 
 		// render configuration properties
-		ImGui::PushID(m_id.c_str());
+		ImGui::PushID(mId.c_str());
 		if (ImGui::InputFloat("Anisotropic Filtering (read-only)", &anisotropy, 1.0f, 1.0f, "%.3f")) //ImGuiInputTextFlags_ReadOnly
 		{
 			sampler->setAnisotropy(anisotropy);

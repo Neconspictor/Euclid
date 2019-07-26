@@ -1012,7 +1012,7 @@ void CascadedShadow_ConfigurationView::drawPCFConfig()
 
 void CascadedShadow_ConfigurationView::drawSelf()
 {
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 	//m_pbr
 	ImGui::LabelText("", "CSM:");
 	ImGui::Dummy(ImVec2(0, 20));

@@ -21,7 +21,7 @@ namespace nex::gui
 
 	Menu::Menu(const char* name) : Drawable(), m_name(name), m_isSelected(false)
 	{
-		m_name += "###" + m_id;
+		m_name += "###" + mId;
 	}
 
 	void Menu::addMenuItem(MenuItemPtr menuItem)

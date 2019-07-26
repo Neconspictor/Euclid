@@ -149,7 +149,7 @@ nex::Pbr_ConfigurationView::Pbr_ConfigurationView(PbrTechnique* pbr) : mPbr(pbr)
 
 void nex::Pbr_ConfigurationView::drawSelf()
 {
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 	ImGui::LabelText("", "PBR:");
 
 

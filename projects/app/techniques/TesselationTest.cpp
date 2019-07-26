@@ -254,7 +254,7 @@ nex::gui::TesselationTest_Config::TesselationTest_Config(TesselationTest* tessel
 void nex::gui::TesselationTest_Config::drawSelf()
 {
 	// render configuration properties
-	ImGui::PushID(m_id.c_str());
+	ImGui::PushID(mId.c_str());
 
 	auto max = RenderBackend::get()->getMaxPatchVertexCount();
 	max = 8;

@@ -66,6 +66,8 @@ set(
 	nex/gui/imgui_tabs.h
 	nex/gui/Menu.cpp
 	nex/gui/Menu.hpp
+    nex/gui/MenuWindow.cpp
+    nex/gui/MenuWindow.hpp
     nex/gui/Picker.cpp
     nex/gui/Picker.hpp
 	nex/gui/Style.hpp

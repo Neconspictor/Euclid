@@ -78,7 +78,7 @@ namespace nex
 		bool vsync = m_window->getVsync();
 
 		// render configuration properties
-		ImGui::PushID(m_id.c_str());
+		ImGui::PushID(mId.c_str());
 
 		if (ImGui::Checkbox("Vertical Synchronization", &vsync))
 		{

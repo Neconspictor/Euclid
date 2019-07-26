@@ -57,11 +57,11 @@ namespace nex::gui
 		void drawChilds();
 
 	protected:
-		std::vector<std::unique_ptr<Drawable>> m_childs;
+		std::vector<std::unique_ptr<Drawable>> mChilds;
 		std::vector<Drawable*> mReferencedChilds;
-		StyleClassPtr m_style;
-		bool m_isVisible;
-		std::string m_id;
+		StyleClassPtr mStyle;
+		bool mIsVisible;
+		std::string mId;
 	};
 
 	/**
@@ -80,13 +80,16 @@ namespace nex::gui
 
 		void drawGUI() override;
 
+		int getImGuiFlags() const;
+		void setImGuiFlags(int flags);
+
 	protected:
 
 		void drawSelf() override;
 
-		int m_imGuiFlags;
-		std::string m_name;
-		bool m_useCloseCross;
+		int mImGuiFlags;
+		std::string mName;
+		bool mUseCloseCross;
 	};
 
 	class TabBar;
@@ -114,7 +117,7 @@ namespace nex::gui
 
 		const std::string& getName() const
 		{
-			return m_name;
+			return mName;
 		}
 
 	protected:
@@ -122,7 +125,7 @@ namespace nex::gui
 		// not needed
 		void drawSelf() override;
 
-		std::string m_name;
+		std::string mName;
 	};
 
 	class TabBar : public Drawable
@@ -144,7 +147,7 @@ namespace nex::gui
 
 		void drawSelf() override;
 
-		std::string m_name;
+		std::string mName;
 	};
 
 	class Container : public Drawable

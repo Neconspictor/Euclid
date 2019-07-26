@@ -488,13 +488,13 @@ namespace nex
 
 	HbaoConfigurationView::HbaoConfigurationView(HBAO * hbao) : m_hbao(hbao), m_parent(nullptr), m_test(0)
 	{
-		m_isVisible = true;
+		mIsVisible = true;
 	}
 
 	void HbaoConfigurationView::drawSelf()
 	{
 		// render configuration properties
-		ImGui::PushID(m_id.c_str());
+		ImGui::PushID(mId.c_str());
 		ImGui::LabelText("", "HBAO:");
 		ImGui::SliderFloat("bias", &m_hbao->m_bias, 0.0f, 5.0f);
 		ImGui::SliderFloat("blur sharpness", &m_hbao->m_blur_sharpness, 0.0f, 1000.0f);
