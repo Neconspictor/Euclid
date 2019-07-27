@@ -23,13 +23,12 @@ namespace nex::gui
 	void Drawable::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
-		if (!mIsVisible) return;
+		if (!isVisible()) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
-		drawSelf();
-		drawChilds();
+		drawContent();
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();
@@ -65,6 +64,8 @@ namespace nex::gui
 		return mId.c_str();
 	}
 
+	void Drawable::drawSelf() {}
+
 	void Drawable::drawChilds()
 	{
 		for (auto& child : mChilds)
@@ -78,6 +79,14 @@ namespace nex::gui
 			if (child->isVisible())
 				child->drawGUI();
 		}
+	}
+
+	void Drawable::drawContent()
+	{
+		ImGui::PushID(mId.c_str());
+			drawSelf();
+			drawChilds();
+		ImGui::PopID();
 	}
 
 	Window::Window(std::string name, bool useCloseCross): Drawable(),
@@ -98,28 +107,27 @@ namespace nex::gui
 	void Window::drawGUI()
 	{
 		// Do not draw gui if this view is invisible!
-		if (!mIsVisible) return;
+		if (!isVisible()) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
-		drawSelf();
-		drawChilds();
+		if (mUseCloseCross) {
+			bool visible = isVisible();
+			ImGui::Begin(mName.c_str(), &visible, mImGuiFlags);
+			setVisible(visible);
+		} else 
+		{
+			ImGui::Begin(mName.c_str(), nullptr, mImGuiFlags);
+		}
+
+		drawContent();
 
 		ImGui::End();
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();
 	}
-
-	void Window::drawSelf()
-	{
-		if (mUseCloseCross)
-			ImGui::Begin(mName.c_str(), &mIsVisible, mImGuiFlags);
-		else
-			ImGui::Begin(mName.c_str(), nullptr, mImGuiFlags);
-	}
-
 
 	int Window::getImGuiFlags() const
 	{
@@ -140,22 +148,18 @@ namespace nex::gui
 	void Tab::drawGUI()
 	{
 		// Do not draw gui if this drawable is invisible!
-		if (!mIsVisible) return;
+		if (!isVisible()) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
 		if (ImGui::TabItem(mId.c_str()))
 		{
-			drawChilds();
+			drawContent();
 		}
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();
-	}
-
-	void Tab::drawSelf()
-	{
 	}
 
 	TabBar::TabBar(std::string name): Drawable(), mName(std::move(name))
@@ -187,25 +191,16 @@ namespace nex::gui
 	void TabBar::drawGUI()
 	{
 		// Do not draw gui if this drawable is invisible!
-		if (!mIsVisible) return;
+		if (!isVisible()) return;
 
 		// Apply style class changes
 		if (mStyle) mStyle->pushStyleChanges();
 
-		drawSelf();
+		ImGui::BeginTabBar(mName.c_str());
+			drawContent();
+		ImGui::EndTabBar();
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();
-	}
-
-	void TabBar::drawSelf()
-	{
-		ImGui::BeginTabBar(mName.c_str());
-		drawChilds();
-		ImGui::EndTabBar();
-	}
-
-	void Container::drawSelf()
-	{
 	}
 }

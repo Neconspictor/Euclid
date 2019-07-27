@@ -28,8 +28,6 @@ namespace nex::gui
 
 	void nex::gui::VobLoader::drawSelf()
 	{
-		MenuWindow::drawSelf();
-
 		static Future<Resource*> meshFuture;
 		StaticMeshContainer* loadedMesh = nullptr;
 

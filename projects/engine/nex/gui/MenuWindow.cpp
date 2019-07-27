@@ -25,7 +25,17 @@ nex::gui::MenuWindow::MenuWindow(std::string title, MainMenuBar* mainMenuBar, Me
 
 void nex::gui::MenuWindow::drawGUI()
 {
-		Window::drawGUI();
+	if (!mIsVisible) return;
+
+	const float mainbarHeight = mMainMenuBar->getSize().y;
+	const ImVec2 mainbarPos = mMainMenuBar->getPosition();
+
+	if (mSetDefaultPosition) {
+		ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
+		mSetDefaultPosition = false;
+	}
+
+	Window::drawGUI();
 }
 
 bool nex::gui::MenuWindow::hasVisibleChild() const
@@ -43,18 +53,4 @@ bool nex::gui::MenuWindow::hasVisibleChild() const
 	}
 
 	return false;
-}
-
-void nex::gui::MenuWindow::drawSelf()
-{
-	const float mainbarHeight = mMainMenuBar->getSize().y;
-	const ImVec2 mainbarPos = mMainMenuBar->getPosition();
-
-	if (mSetDefaultPosition) {
-		ImGui::SetNextWindowPos(ImVec2(mainbarPos.x, mainbarPos.y + mainbarHeight));
-		mSetDefaultPosition = false;
-	}
-
-
-	Window::drawSelf();
 }

@@ -7,7 +7,6 @@ namespace nex
 {
 	class Scene;
 	class Window;
-	class Vob;
 }
 
 namespace nex::gui

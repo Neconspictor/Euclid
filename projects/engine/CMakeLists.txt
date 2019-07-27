@@ -147,6 +147,8 @@ set(
 	nex/pbr/PbrPass.cpp
     nex/pbr/PbrProbe.cpp
     nex/pbr/PbrProbe.hpp
+    nex/pbr/ProbeGenerator.cpp
+    nex/pbr/ProbeGenerator.hpp
 	
 	#nex/platform/windows
 	nex/platform/windows/CrashHandlerWin32.hpp

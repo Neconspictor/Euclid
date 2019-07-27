@@ -32,6 +32,7 @@
 #include <gui/NodeEditor.hpp>
 #include <gui/VobLoader.hpp>
 #include <gui/TextureViewer.hpp>
+#include <gui/ProbeGeneratorView.hpp>
 
 using namespace nex;
 
@@ -624,19 +625,35 @@ void NeXEngine::setupGUI()
 	root->addChild(move(configurationWindow));
 
 
+
+	auto probeGenerator = std::make_unique<nex::gui::ProbeGeneratorView>(
+		"Probe Generator",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		&mScene);
+	probeGenerator->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(probeGenerator));
+
+
 	auto nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(
 		"Scene Node Editor",
 		root->getMainMenuBar(),
 		root->getToolsMenu());
-
 	nodeEditorWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-		auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
-		sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
-		sceneNodeProperty->setScene(&mScene);
-
-		nodeEditorWindow->addChild(std::move(sceneNodeProperty));
-
+	auto sceneNodeProperty = std::make_unique<NodeEditor>(mWindow);
+	sceneNodeProperty->setPicker(mControllerSM->getEditMode()->getPicker());
+	sceneNodeProperty->setScene(&mScene);
+	nodeEditorWindow->addChild(std::move(sceneNodeProperty));
 	root->addChild(move(nodeEditorWindow));
+
+
+	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
+		"Texture Loader",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mWindow);
+	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(textureViewerWindow));
 
 
 	auto vobLoaderWindow = std::make_unique<nex::gui::VobLoader>(
@@ -645,18 +662,8 @@ void NeXEngine::setupGUI()
 		root->getToolsMenu(),
 		&mScene,
 		mWindow);
-
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
-
-	auto textureViewerWindow = std::make_unique<nex::gui::TextureViewer>(
-		"Texture Loader",
-		root->getMainMenuBar(),
-		root->getToolsMenu(),
-		mWindow);
-
-	textureViewerWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(textureViewerWindow));
 
 }
 

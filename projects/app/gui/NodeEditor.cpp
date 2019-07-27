@@ -93,7 +93,6 @@ namespace nex::gui
 
 	void nex::gui::NodeEditor::drawSelf()
 	{
-		ImGui::PushID(mId.c_str());
 		nex::gui::Separator(2.0f);
 
 		Vob* vob = nullptr;
@@ -221,7 +220,5 @@ namespace nex::gui
 
 		vob->updateTrafo();
 		mPicker->updateBoundingBoxTrafo();
-
-		ImGui::PopID();
 	}
 }

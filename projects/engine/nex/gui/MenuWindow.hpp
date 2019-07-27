@@ -14,8 +14,8 @@ namespace nex::gui
 
 		static constexpr int DEFAULT_FLAGS = 
 			//ImGuiWindowFlags_NoMove 
-			  ImGuiWindowFlags_AlwaysAutoResize 
-			| ImGuiWindowFlags_NoResize
+			ImGuiWindowFlags_AlwaysAutoResize 
+			//| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoCollapse;
 
 		MenuWindow(std::string title, 
@@ -27,8 +27,6 @@ namespace nex::gui
 
 	protected:
 		bool hasVisibleChild() const;
-
-		void drawSelf() override;
 
 		nex::gui::MainMenuBar* mMainMenuBar;
 		bool mSetDefaultPosition;

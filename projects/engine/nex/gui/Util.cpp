@@ -131,21 +131,10 @@ namespace nex::gui
 
 	void Vector3D(glm::vec3* vec, const char* label, float speed)
 	{
-		std::stringstream ss;
-		ss << label << ":";
-		ImGui::TextUnformatted(ss.str().c_str());
-
-		ImGui::PushID(label);
-		ImGui::TextUnformatted("X: ");
-		ImGui::SameLine();
-		ImGui::DragFloat("###X", &vec->x, speed);
-		ImGui::TextUnformatted("Y: ");
-		ImGui::SameLine();
-		ImGui::DragFloat("###Y", &vec->y, speed);
-		ImGui::TextUnformatted("Z: ");
-		ImGui::SameLine();
-		ImGui::DragFloat("###Z", &vec->z, speed);
-		ImGui::PopID();
+		//std::stringstream ss;
+		//ss << label << ":";
+		//ImGui::TextUnformatted(ss.str().c_str());
+		ImGui::DragFloat3(label, (float*)vec);
 	}
 
 	void EulerRot(glm::vec3* vec, const char* label, float speed)

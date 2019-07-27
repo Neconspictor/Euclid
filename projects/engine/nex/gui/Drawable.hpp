@@ -41,7 +41,7 @@ namespace nex::gui
 
 		void useStyleClass(StyleClassPtr styleClass);
 
-		void setVisible(bool visible);
+		virtual void setVisible(bool visible);
 
 		virtual bool isVisible() const;
 
@@ -52,9 +52,10 @@ namespace nex::gui
 		/**
 		 * Draws the GUI of this Drawable.
 		 */
-		virtual void drawSelf() = 0;
+		virtual void drawSelf();
 
 		void drawChilds();
+		void drawContent();
 
 	protected:
 		std::vector<std::unique_ptr<Drawable>> mChilds;
@@ -84,8 +85,6 @@ namespace nex::gui
 		void setImGuiFlags(int flags);
 
 	protected:
-
-		void drawSelf() override;
 
 		int mImGuiFlags;
 		std::string mName;
@@ -122,9 +121,6 @@ namespace nex::gui
 
 	protected:
 
-		// not needed
-		void drawSelf() override;
-
 		std::string mName;
 	};
 
@@ -145,17 +141,6 @@ namespace nex::gui
 
 	protected:
 
-		void drawSelf() override;
-
 		std::string mName;
-	};
-
-	class Container : public Drawable
-	{
-	public:
-		virtual ~Container() = default;
-
-	protected:
-		void drawSelf() override;
 	};
 }

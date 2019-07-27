@@ -25,11 +25,7 @@ namespace nex::gui
 	TextureViewer::~TextureViewer() = default;
 
 	void nex::gui::TextureViewer::drawSelf()
-	{
-		MenuWindow::drawSelf();
-
-		ImGui::PushID(mId.c_str());
-		
+	{		
 		static Future<Resource*> textureFuture;
 		Texture* loadedTexture = nullptr;
 
@@ -78,9 +74,6 @@ namespace nex::gui
 					return nullptr;
 					});
 			}
-		}
-
-		ImGui::PopID();
-     
+		}     
 	}
 }
