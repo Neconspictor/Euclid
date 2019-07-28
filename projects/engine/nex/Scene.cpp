@@ -196,6 +196,11 @@ namespace nex
 		return mVobStore;
 	}
 
+	bool Scene::isActive(Vob* vob) const
+	{
+		return mActiveVobs.find(vob) != mActiveVobs.end();
+	}
+
 	void Scene::clearUnsafe()
 	{
 		mNodes.clear();

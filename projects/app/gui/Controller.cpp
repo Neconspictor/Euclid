@@ -119,7 +119,16 @@ void nex::gui::EditMode::updateAlways()
 {
 	if (mGizmo->isVisible())
 	{
-		mGizmo->update(*mCamera, mPicker->getPicked());
+		auto* activeVob = mPicker->getPicked();
+		if (!mScene->isActive(activeVob)) {
+			mPicker->deselect(*mScene);
+			mGizmo->hide();
+		}
+		else {
+			mGizmo->update(*mCamera, activeVob);
+			mPicker->updateBoundingBoxTrafo();
+		}
+		
 	}
 }
 

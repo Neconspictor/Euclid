@@ -19,6 +19,7 @@ namespace nex
 	class Window;
 	class GlobalIllumination;
 	class ResourceLoader;
+	class ProbeGenerator;
 
 	namespace gui
 	{
@@ -87,6 +88,7 @@ namespace nex
 		std::unique_ptr<CascadedShadow> mCascadedShadow;
 		std::unique_ptr<GlobalIllumination> mGlobalIllumination;
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
+		std::unique_ptr<ProbeGenerator> mProbeGenerator;
 
 		DirectionalLight mSun;
 	};

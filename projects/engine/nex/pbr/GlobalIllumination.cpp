@@ -204,12 +204,89 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideDeferred(nullptr);
 }
 
+
+void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, Renderer* renderer)
+{
+	const size_t size = 1024;
+
+	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
+
+	camera.update();
+
+	TextureData data;
+	data.colorspace = ColorSpace::RGB;
+	data.internalFormat = InternFormat::RGB32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.generateMipMaps = false;
+
+	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(size, size, data);
+
+	RenderAttachment depth;
+	depth.target = TextureTarget::TEXTURE2D;
+	data = TextureData();
+	data.minFilter = TextureFilter::Linear;
+	data.magFilter = TextureFilter::Linear;
+	data.generateMipMaps = false;
+	data.colorspace = ColorSpace::DEPTH_STENCIL;
+	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
+
+	depth.type = RenderAttachmentType::DEPTH_STENCIL;
+
+	renderTarget->useDepthAttachment(std::move(depth));
+	renderTarget->updateDepthAttachment();
+
+	DirectionalLight light;
+	light.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	light.setPower(3.0f);
+	light.setDirection({ -1,-1,-1 });
+
+
+	mDeferred->setDirLight(&light);
+	mForward->setDirLight(&light);
+
+	auto* pbrTechnique = renderer->getPbrTechnique();
+	pbrTechnique->overrideForward(mForward.get());
+	pbrTechnique->overrideDeferred(mDeferred.get());
+
+	auto width = renderer->getWidth();
+	auto height = renderer->getHeight();
+	renderer->updateRenderTargets(size, size);
+
+	auto& probe = *probeVob->getProbe();
+	const auto& position = probe.getPosition();
+
+	if (probe.isSourceStored(mFactory.getProbeRootDir())) {
+		mFactory.initProbe(probe, probe.getStoreID(), true, true);
+	}
+	else {
+		RenderCommandQueue commandQueue;
+		commandQueue.useSphereCulling(position, camera.getFarDistance());
+		collectBakeCommands(commandQueue, scene, false);
+		commandQueue.getProbeCommands().clear();
+		commandQueue.getToolCommands().clear();
+		commandQueue.sort();
+
+		auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
+		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
+	}
+
+	pbrTechnique->overrideForward(nullptr);
+	pbrTechnique->overrideDeferred(nullptr);
+
+
+	renderer->updateRenderTargets(width, height);
+}
+
 const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
 {
 	return mProbes;
 }
 
-nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(nex::Scene& scene, const glm::vec3& position, unsigned storeID)
+nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
 {
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 

@@ -33,6 +33,7 @@
 #include <gui/VobLoader.hpp>
 #include <gui/TextureViewer.hpp>
 #include <gui/ProbeGeneratorView.hpp>
+#include <nex/pbr/ProbeGenerator.hpp>
 
 using namespace nex;
 
@@ -420,7 +421,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 					(k - depths / 2) * depthMultiplicator + depthOffset,
 					(j - columns / 2) * columnMultiplicator);
 
-				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(mScene, position, (i * rows + j)*columns + k);
+				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, (i * rows + j)*columns + k);
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}
@@ -626,13 +627,16 @@ void NeXEngine::setupGUI()
 
 
 
-	auto probeGenerator = std::make_unique<nex::gui::ProbeGeneratorView>(
+	mProbeGenerator = std::make_unique<ProbeGenerator>(&mScene, mGlobalIllumination.get(), mRenderer.get());
+
+	auto probeGeneratorView = std::make_unique<nex::gui::ProbeGeneratorView>(
 		"Probe Generator",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		&mScene);
-	probeGenerator->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(probeGenerator));
+		mProbeGenerator.get(),
+		mCamera.get());
+	probeGeneratorView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(probeGeneratorView));
 
 
 	auto nodeEditorWindow = std::make_unique<nex::gui::MenuWindow>(

@@ -8,11 +8,14 @@ namespace nex
 	class SphereMesh : public Mesh
 	{
 	public:
-		SphereMesh(unsigned int xSegments, unsigned int ySegments);
+		SphereMesh(unsigned int xSegments, unsigned int ySegments, bool finalize = true);
 
 		~SphereMesh() override = default;
 
+		void finalize() override;
+
 	private:
-		void init(unsigned int xSegments, unsigned int ySegments);
+		unsigned mXSegments;
+		unsigned mYSegments;
 	};
 }

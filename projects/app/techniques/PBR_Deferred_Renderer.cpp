@@ -226,6 +226,7 @@ void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
 
 void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned height)
 {
+	Renderer::updateRenderTargets(width, height);
 	//update render target dimension
 	//the render target dimensions are dependent from the viewport size
 	// so first update the viewport and than recreate the render targets

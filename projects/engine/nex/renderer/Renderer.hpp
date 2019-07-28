@@ -18,6 +18,9 @@ namespace nex
 
 		virtual ~Renderer() = default;
 
+		unsigned getWidth()const;
+		unsigned getHeight()const;
+
 		virtual void render(const RenderCommandQueue& queue, 
 			const Camera&  camera, const DirectionalLight& sun,
 			unsigned viewportWidth, 
@@ -25,12 +28,14 @@ namespace nex
 			bool postProcess,
 			RenderTarget* out) = 0;
 
-		virtual void updateRenderTargets(unsigned width, unsigned height) = 0;
+		virtual void updateRenderTargets(unsigned width, unsigned height);
 
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 
 	protected:
 		PbrTechnique* mPbrTechnique;
+		unsigned mWidth;
+		unsigned mHeight;
 	};
 }

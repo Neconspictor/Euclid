@@ -7,17 +7,18 @@
 
 namespace nex
 {
-	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments)
+	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments, bool finalize) : mXSegments(xSegments),
+		mYSegments(ySegments)
 	{
+		if (!finalize) return;
 		ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
-			init(xSegments, ySegments);
 			commandQueue->push([=]() {
 				this->finalize();
 			});
 			return this;
 		});
 	}
-	void SphereMesh::init(unsigned int xSegments, unsigned int ySegments)
+	void SphereMesh::finalize()
 	{
 		struct Vertex
 		{
@@ -29,15 +30,15 @@ namespace nex
 		std::vector<Vertex> vertices;
 		std::vector<unsigned> indices;
 
-		for (unsigned int y = 0; y <= ySegments; ++y)
+		for (unsigned int y = 0; y <= mYSegments; ++y)
 		{
-			for (unsigned int x = 0; x <= xSegments; ++x)
+			for (unsigned int x = 0; x <= mXSegments; ++x)
 			{
 
 				Vertex vertex;
 
-				float xSegment = (float)x / (float)xSegments;
-				float ySegment = (float)y / (float)ySegments;
+				float xSegment = (float)x / (float)mXSegments;
+				float ySegment = (float)y / (float)mYSegments;
 				float xPos = std::cos(xSegment * 2 * PI) * std::sin(ySegment * PI); // TAU is 2PI
 				float yPos = std::cos(ySegment * PI);
 				float zPos = std::sin(xSegment * 2 * PI) * std::sin(ySegment * PI);
@@ -50,17 +51,17 @@ namespace nex
 			}
 		}
 
-		for (unsigned y = 0; y < ySegments; ++y)
+		for (unsigned y = 0; y < mYSegments; ++y)
 		{
-			for (unsigned x = 0; x < xSegments; ++x)
+			for (unsigned x = 0; x < mXSegments; ++x)
 			{
-				indices.push_back((y + 1) * (xSegments + 1) + x);
-				indices.push_back(y       * (xSegments + 1) + x);
-				indices.push_back(y       * (xSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (mXSegments + 1) + x);
+				indices.push_back(y       * (mXSegments + 1) + x);
+				indices.push_back(y       * (mXSegments + 1) + x + 1);
 
-				indices.push_back((y + 1) * (xSegments + 1) + x);
-				indices.push_back(y       * (xSegments + 1) + x + 1);
-				indices.push_back((y + 1) * (xSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (mXSegments + 1) + x);
+				indices.push_back(y       * (mXSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (mXSegments + 1) + x + 1);
 			}
 		}
 
@@ -78,5 +79,8 @@ namespace nex
 
 		mBoundingBox.min = glm::vec3(-1.0);
 		mBoundingBox.max = glm::vec3(1.0);
+
+
+		Mesh::finalize();
 	}
 }

@@ -395,6 +395,11 @@ namespace nex
 		void setLineThickness(float thickness);
 
 		/**
+		 * @param thickness: must be >= 0
+		 */
+		void setPointThickness(float thickness);
+
+		/**
 		 * Sets the number of samples used for msaa
 		 */
 		void setMSAASamples(unsigned int samples);

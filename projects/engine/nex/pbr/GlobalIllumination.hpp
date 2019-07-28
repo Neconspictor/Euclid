@@ -38,10 +38,11 @@ namespace nex
 
 		void bakeProbes(const Scene& scene, Renderer* renderer);
 
+		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 
 
-		ProbeVob* addUninitProbeUnsafe(Scene& scene, const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
+		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
 
 		PbrProbe* getActiveProbe();
 

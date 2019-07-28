@@ -1,21 +1,108 @@
 #include <nex/pbr/ProbeGenerator.hpp>
+#include <nex/mesh/Sphere.hpp>
+#include <nex/resource/ResourceLoader.hpp>
+#include <nex/Scene.hpp>
+#include <nex/shader/Technique.hpp>
+#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/pbr/PbrProbe.hpp>
+#include <nex/camera/Camera.hpp>
+#include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/renderer/Renderer.hpp>
 
-nex::ProbeGenerator::ProbeGenerator(nex::Scene* scene) : mScene(scene)
-{
+nex::ProbeGenerator::ProbeGenerator(nex::Scene* scene, nex::GlobalIllumination* globalIllumination, nex::Renderer* renderer) :
+	mScene(scene),
+mSimpleColorPass(nullptr),
+mSimpleColorTechnique(nullptr),
+mProbeVisualizationVob(nullptr),
+mIsVisible(false),
+mInfluenceRadius(0.5f),
+mGlobalIllumination(globalIllumination),
+mRenderer(renderer)
+{	
+	ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* queue)->nex::Resource * {
+		queue->push([=]() {
+
+			mSimpleColorPass = std::make_unique<SimpleColorPass>();
+			mSimpleColorTechnique = std::make_unique<Technique>(mSimpleColorPass.get());
+			auto material = std::make_unique<Material>(mSimpleColorTechnique.get());
+			auto& state = material->getRenderState();
+			
+			state.fillMode = FillMode::POINT;
+			state.doCullFaces = false;
+			state.doShadowCast = false;
+			state.doShadowReceive = false;
+			state.isTool = true;
+
+			mProbeVisualizationMeshContainer.add(std::make_unique<SphereMesh>(32, 32, false),
+				std::move(material));
+
+			mProbeVisualizationMeshContainer.finalize();
+
+			mProbeVisualizationScene.acquireLock();
+			auto* root = mProbeVisualizationMeshContainer
+									.createNodeHierarchyUnsafe(&mProbeVisualizationScene);
+			mProbeVisualizationVob.setMeshRootNode(root);
+			bool test = false;
+		});
+
+		return &mProbeVisualizationMeshContainer;
+	});
 }
+
+nex::ProbeGenerator::~ProbeGenerator() = default;
 
 void nex::ProbeGenerator::setScene(nex::Scene* scene)
 {
 	mScene = scene;
 }
 
-void nex::ProbeGenerator::show(bool visible)
+void nex::ProbeGenerator::show(bool visible, nex::Camera* camera)
 {
-	//TODO
+	// Skip if no state change
+	if (mIsVisible == visible) return;
+
+	mIsVisible = visible;
+	mScene->acquireLock();
+
+	if (mIsVisible) {
+
+		//update(camera->getPosition() + 2.0f * camera->getLook(), 0.5f);
+
+		mScene->addActiveVobUnsafe(&mProbeVisualizationVob);
+	}
+	else {
+		mScene->removeActiveVobUnsafe(&mProbeVisualizationVob);
+	}
 }
 
-std::unique_ptr<nex::PbrProbe> nex::ProbeGenerator::generate() const
+const glm::vec3& nex::ProbeGenerator::getProbePosition() const
 {
-	//TODO
-	return nullptr;
+	return mProbeVisualizationVob.getPosition();
+}
+
+float nex::ProbeGenerator::getInfluenceRadius() const
+{
+	return mInfluenceRadius;
+}
+
+nex::ProbeVob* nex::ProbeGenerator::generate() const
+{
+	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(mProbeVisualizationVob.getPosition());
+
+	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
+
+
+	probe->getMeshRootNode()->updateWorldTrafoHierarchy();
+
+	mScene->acquireLock();
+	mScene->addActiveVobUnsafe(probe);
+	return probe;
+}
+
+void nex::ProbeGenerator::update(const glm::vec3& position, float influenceRadius)
+{
+	mProbeVisualizationVob.setPosition(position);
+	mInfluenceRadius = influenceRadius;
+	mProbeVisualizationVob.setScale(glm::vec3(mInfluenceRadius));
+	mProbeVisualizationVob.updateTrafo(true);
 }

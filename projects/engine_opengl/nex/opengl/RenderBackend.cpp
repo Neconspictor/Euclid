@@ -1,4 +1,5 @@
-﻿#include "nex/renderer/RenderBackend.hpp"
+﻿#include "..\..\..\engine\nex\renderer\RenderBackend.hpp"
+#include "nex/renderer/RenderBackend.hpp"
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -501,6 +502,8 @@ namespace nex
 
 		getBlender()->enableBlend(true);
 
+		setPointThickness(3.0f);
+
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
@@ -655,6 +658,12 @@ namespace nex
 	{
 		assert(thickness >= 0.0f);
 		GLCall(glLineWidth(thickness));
+	}
+
+	void RenderBackend::setPointThickness(float thickness)
+	{
+		assert(thickness >= 0.0f);
+		GLCall(glPointSize(thickness));
 	}
 
 	void RenderBackend::setMSAASamples(unsigned int samples)

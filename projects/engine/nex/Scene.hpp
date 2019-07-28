@@ -118,6 +118,12 @@ namespace nex
 		 */
 		const std::vector<std::unique_ptr<Vob>>& getVobsUnsafe() const;
 
+
+		/**
+		 * Checks if a vob is active.
+		 */
+		bool isActive(Vob* vob) const;
+
 		/**
 		 * Deletes all nodes except the root node.
 		 */
