@@ -21,7 +21,7 @@ nex::gui::ProbeGeneratorView::~ProbeGeneratorView() = default;
 void nex::gui::ProbeGeneratorView::setVisible(bool visible)
 {
 	MenuWindow::setVisible(visible);
-	mGenerator->show(visible, mCamera);
+	mGenerator->show(visible);
 }
 
 void nex::gui::ProbeGeneratorView::drawSelf()
@@ -53,6 +53,7 @@ void nex::gui::ProbeGeneratorView::drawSelf()
 		ResourceLoader::get()->enqueue([=](nex::RenderEngine::CommandQueue* queue)->nex::Resource * {
 			queue->push([=]() {
 					mGenerator->generate();
+					setVisible(false);
 				});
 
 			return nullptr;

@@ -56,7 +56,7 @@ void nex::ProbeGenerator::setScene(nex::Scene* scene)
 	mScene = scene;
 }
 
-void nex::ProbeGenerator::show(bool visible, nex::Camera* camera)
+void nex::ProbeGenerator::show(bool visible)
 {
 	// Skip if no state change
 	if (mIsVisible == visible) return;
@@ -85,7 +85,7 @@ float nex::ProbeGenerator::getInfluenceRadius() const
 	return mInfluenceRadius;
 }
 
-nex::ProbeVob* nex::ProbeGenerator::generate() const
+nex::ProbeVob* nex::ProbeGenerator::generate()
 {
 	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(mProbeVisualizationVob.getPosition(),
 		mGlobalIllumination->getNextStoreID());
@@ -97,6 +97,7 @@ nex::ProbeVob* nex::ProbeGenerator::generate() const
 
 	mScene->acquireLock();
 	mScene->addActiveVobUnsafe(probe);
+
 	return probe;
 }
 

@@ -22,13 +22,13 @@ namespace nex
 		virtual ~ProbeGenerator();
 
 		void setScene(nex::Scene* scene);
-		void show(bool visible, nex::Camera* camera);
+		void show(bool visible);
 
 
 		const glm::vec3& getProbePosition() const;
 		float getInfluenceRadius() const;
 
-		nex::ProbeVob* generate() const;
+		nex::ProbeVob* generate();
 
 		void update(const glm::vec3& position, float influenceRadius);
 
