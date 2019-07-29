@@ -586,8 +586,8 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		glm::vec3 cornerRay = normalize(frustumCornersWS[i] - frustumCornersWS[i + 4]);
-		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance;// / clipRange;
-		glm::vec3 farCornerRay = cornerRay * farSplitDistance;// / clipRange;
+		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance;
+		glm::vec3 farCornerRay = cornerRay * farSplitDistance;
 		frustumCorners[i + 4] = glm::vec3(frustumCornersWS[i + 4]) + nearCornerRay;
 		frustumCorners[i] = glm::vec3(frustumCornersWS[i + 4]) + farCornerRay;
 	}

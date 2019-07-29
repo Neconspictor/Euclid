@@ -376,6 +376,59 @@ namespace nex
 		mFrustum.planes[(unsigned)FrustumPlane::Top] = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
 	}
 
+	struct ClusterElement {
+		glm::vec3 corners[8];
+	};
+
+	
+	Frustum PerspectiveCamera::calcClusterElementViewSpace(
+		float xOffset, float yOffset,
+		float zNearOffset, float zFarOffset,
+		float xClusterElementSize, float yClusterElementSize) const {
+
+		Frustum elem;
+
+		const auto zNear = getViewSpaceZfromDistance(zNearOffset);
+		const auto zFar = getViewSpaceZfromDistance(zFarOffset);
+
+		const auto halfFovY = getFovY() / 2.0f;
+		const auto globalFrustumTop = tan(halfFovY);
+		const auto globalFrustumBottom = -globalFrustumTop;
+		const auto globalFrustumRight = getAspectRatio() * tan(halfFovY);
+		const auto globalFrustumLeft = -globalFrustumRight;
+
+		const auto globalFrustumWidth = globalFrustumRight - globalFrustumLeft;
+		const auto globalFrustumHeight = globalFrustumTop - globalFrustumBottom;
+		const auto tileWidth = globalFrustumWidth * xClusterElementSize;
+		const auto tileHeight = globalFrustumHeight * yClusterElementSize;
+
+		const auto left = globalFrustumLeft + globalFrustumWidth * xOffset;
+		const auto right = left + tileWidth;
+		const auto bottom = globalFrustumBottom + globalFrustumHeight * yOffset;
+		const auto top = bottom + tileHeight;
+
+
+		elem.corners[(unsigned)nex::FrustumCorners::NearLeftBottom] =
+			glm::vec3(left * zNearOffset, bottom * zNearOffset, zNear);
+		elem.corners[(unsigned)nex::FrustumCorners::NearLeftTop] =
+			glm::vec3(left * zNearOffset, top * zNearOffset, zNear);
+		elem.corners[(unsigned)nex::FrustumCorners::NearRightBottom] =
+			glm::vec3(right * zNearOffset, bottom * zNearOffset, zNear);
+		elem.corners[(unsigned)nex::FrustumCorners::NearRightTop] =
+			glm::vec3(right * zNearOffset, top * zNearOffset, zNear);
+
+		elem.corners[(unsigned)nex::FrustumCorners::FarLeftBottom] =
+			glm::vec3(left * zFarOffset, bottom * zFarOffset, zFar);
+		elem.corners[(unsigned)nex::FrustumCorners::FarLeftTop] =
+			glm::vec3(left * zFarOffset, top * zFarOffset, zFar);
+		elem.corners[(unsigned)nex::FrustumCorners::FarRightBottom] =
+			glm::vec3(right * zFarOffset, bottom * zFarOffset, zFar);
+		elem.corners[(unsigned)nex::FrustumCorners::FarRightTop] =
+			glm::vec3(right * zFarOffset, top * zFarOffset, zFar);
+
+		return elem;
+	}
+
 	void PerspectiveCamera::calcProjection()
 	{
 		mProjection = glm::perspective(mFovY, mAspectRatio, mNearDistance, mFarDistance);
@@ -387,6 +440,12 @@ namespace nex
 	{
 		assert(mHalfHeight != 0.0f);
 		assert(mHalfWidth != 0.0f);
+	}
+
+	Frustum OrthographicCamera::calcClusterElementViewSpace(float xOffset, float yOffset, float zNearOffset, float zFarOffset, float xClusterElementSize, float yClusterElementSize) const
+	{
+		//TODO
+		return Frustum();
 	}
 
 	float OrthographicCamera::getHeight() const

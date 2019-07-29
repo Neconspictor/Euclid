@@ -89,6 +89,20 @@ namespace nex
 		virtual ~Camera() = default;
 
 		/**
+		 * Calculates a frustum cluster element for a frustum of the camera.
+		 *
+		 * @param xOffset				: Relative offset for x-axis; Range: [0,1]
+		 * @param yOffset				: Relative offset for y-axis; Range: [0,1]
+		 * @param zNearOffset			: Relative offset (near) for z-Axis; Range: [0,1]
+		 * @param zFarOffset			: Relative offset (far) for z-axis; Range: [0,1]
+		 * @param xClusterElementSize	: Relative width of the cluster element; Range: [0,1]
+		 * @param yClusterElementSize	: Relative height of the cluster element; Range: [0,1]
+		 */
+		virtual Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
+			float zNearOffset, float zFarOffset,
+			float xClusterElementSize, float yClusterElementSize) const = 0;
+
+		/**
 		 * Applies changes for the current frame.
 		 */
 		virtual void frameUpdate(Input* input, float frameTime);
@@ -275,6 +289,10 @@ namespace nex
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem()
 		);
 
+		Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
+			float zNearOffset, float zFarOffset,
+			float xClusterElementSize, float yClusterElementSize) const override;
+
 		nex::Ray calcScreenRay(const glm::ivec2& screenPosition) const;
 
 		/**
@@ -328,6 +346,10 @@ namespace nex
 			float farDistance = 100.0f,
 			PULCoordinateSystem coordSystem = PULCoordinateSystem()
 		);
+
+		Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
+			float zNearOffset, float zFarOffset,
+			float xClusterElementSize, float yClusterElementSize) const override;
 
 		float getHeight() const;
 		float getWidth() const;
