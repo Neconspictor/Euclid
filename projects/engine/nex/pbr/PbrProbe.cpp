@@ -262,7 +262,8 @@ PbrProbe::PbrProbe(const glm::vec3& position, unsigned storeID) :
 	mArrayIndex(INVALID_ARRAY_INDEX),
 	mStoreID(storeID),
 	mInit(false),
-	mPosition(position)
+	mPosition(position),
+	mInfluenceRadius(10.0f)
 {
 }
 
@@ -270,7 +271,6 @@ PbrProbe::~PbrProbe() = default;
 
 void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 {
-
 	Viewport backup = RenderBackend::get()->getViewport();
 
 	mTechnique = std::make_unique<ProbeTechnique>();
@@ -326,6 +326,11 @@ Mesh* PbrProbe::getSphere()
 unsigned nex::PbrProbe::getArrayIndex() const
 {
 	return mArrayIndex;
+}
+
+float nex::PbrProbe::getInfluenceRadius() const
+{
+	return mInfluenceRadius;
 }
 
 Material* PbrProbe::getMaterial()
@@ -691,6 +696,11 @@ bool nex::PbrProbe::isSourceStored(const std::filesystem::path& probeRoot) const
 	return std::filesystem::exists(storeFile);
 }
 
+void nex::PbrProbe::setInfluenceRadius(float radius)
+{
+	mInfluenceRadius = radius;
+}
+
 void nex::PbrProbe::setPosition(const glm::vec3 & position)
 {
 	mPosition = position;
@@ -721,6 +731,7 @@ void nex::ProbeVob::setPosition(const glm::vec3 & position)
 
 void nex::ProbeVob::updateProbeData()
 {
-	mData.arrayIndex.x = mProbe->getArrayIndex();
+	mData.indexInfluenceRadius.x = mProbe->getArrayIndex();
+	mData.indexInfluenceRadius.y = mProbe->getInfluenceRadius();
 	mData.positionWorld = glm::vec4(mPosition, 0.0f);
 }

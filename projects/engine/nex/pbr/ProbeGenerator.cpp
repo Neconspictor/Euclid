@@ -93,6 +93,8 @@ nex::ProbeVob* nex::ProbeGenerator::generate()
 	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
 
 
+	probe->getProbe()->setInfluenceRadius(mInfluenceRadius);
+
 	probe->getMeshRootNode()->updateWorldTrafoHierarchy();
 
 	mScene->acquireLock();

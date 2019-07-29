@@ -170,6 +170,12 @@ namespace nex::gui
 
 				ImGui::TreePop();
 			}
+
+			auto radius = probe->getInfluenceRadius();
+			if (ImGui::DragFloat("Influence radius", &radius, 0.1f, 0.0f, FLT_MAX)) {
+				probe->setInfluenceRadius(radius);
+			}
+
 		}
 		else
 		{

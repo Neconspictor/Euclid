@@ -367,7 +367,8 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	for (auto* vob : activeProbes) {
 		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
 		data[counter].positionWorld = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
-		data[counter].arrayIndex.x = vob->getProbe()->getArrayIndex();
+		data[counter].indexInfluenceRadius.x = vob->getProbe()->getArrayIndex();
+		data[counter].indexInfluenceRadius.y = vob->getProbe()->getInfluenceRadius();
 		++counter;
 	}
 

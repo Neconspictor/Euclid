@@ -122,6 +122,8 @@ namespace nex
 		 */
 		unsigned getArrayIndex() const;
 
+		float getInfluenceRadius() const;
+
 		CubeMapArray* getIrradianceMaps() const;
 
 		const Handles* getHandles() const;
@@ -163,6 +165,8 @@ namespace nex
 
 		bool isSourceStored(const std::filesystem::path& probeRoot) const;
 
+		void setInfluenceRadius(float radius);
+
 		void setPosition(const glm::vec3& position);
 
 	protected:
@@ -202,6 +206,7 @@ namespace nex
 		unsigned mArrayIndex;
 		bool mInit;
 		glm::vec3 mPosition;
+		float mInfluenceRadius;
 	};
 
 	class ProbeVob : public Vob
@@ -209,7 +214,8 @@ namespace nex
 	public:
 
 		struct ProbeData {
-			glm::vec4 arrayIndex;  // only first component is used
+			// first component: array index, second component: influence radius
+			glm::vec4 indexInfluenceRadius;  
 			glm::vec4 positionWorld; // last component isn't used
 		};
 

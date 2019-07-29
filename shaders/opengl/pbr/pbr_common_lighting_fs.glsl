@@ -47,7 +47,8 @@ uniform float arrayIndex; //Note: an unsigned integer value represented as a flo
 
 
 struct Probe {
-    vec4 arrayIndex; // only first component is used
+    // first component: array index, second component: influence radius
+    vec4 indexInfluenceRadius;
     vec4 positionWorld; // last component isn't used
 };
 
@@ -250,11 +251,11 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
 
 
   Probe probeData1 = probesData[0];
-  arrayIndex = probeData1.arrayIndex.x;
+  arrayIndex = probeData1.indexInfluenceRadius.x;
   minDistance = length(probeData1.positionWorld.xyz - positionWorld);
   
   Probe probeData2 = probesData[1];
-  arrayIndex2 = probeData2.arrayIndex.x;
+  arrayIndex2 = probeData2.indexInfluenceRadius.x;
   minDistance2 = length(probeData2.positionWorld.xyz - positionWorld);
   
   float distanceDiff = length(minDistance - minDistance2);
