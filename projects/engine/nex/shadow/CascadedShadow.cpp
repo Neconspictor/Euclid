@@ -534,7 +534,7 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 
 
 	// At first we define the frustum corners in NDC space
-	glm::vec3 frustumCornersWS[8] =
+	/*glm::vec3 frustumCornersWS[8] =
 	{
 		glm::vec3(-1.0f,  1.0f, -1.0f),
 		glm::vec3(1.0f,  1.0f, -1.0f),
@@ -544,18 +544,40 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 		glm::vec3(1.0f,  1.0f,  1.0f),
 		glm::vec3(1.0f, -1.0f,  1.0f),
 		glm::vec3(-1.0f, -1.0f,  1.0f),
+	};*/
+
+	const float nearClip = camera.getNearDistance();
+	const float farClip = camera.getFarDistance();
+
+	// At first we define the frustum corners in clip space
+	/*glm::vec4 frustumCornersWS[8] =
+	{
+		glm::vec4(-nearClip,  nearClip, -nearClip, nearClip), //NearLeftTop
+		glm::vec4(nearClip,  nearClip, -nearClip, nearClip), //NearRightTop
+		glm::vec4(nearClip, -nearClip, -nearClip, nearClip), //NearRightBottom
+		glm::vec4(-nearClip, -nearClip, -nearClip, nearClip), //NearLeftBottom
+
+		glm::vec4(-farClip,  farClip,  farClip, farClip), //FarLeftTop
+		glm::vec4(farClip,  farClip,  farClip, farClip), //FarRightTop
+		glm::vec4(farClip, -farClip,  farClip, farClip), //FarRightBottom
+		glm::vec4(-farClip, -farClip,  farClip, farClip), //FarLeftBottom
 	};
 
 	// Now we transform the frustum corners back to world space
 	glm::mat4 invViewProj = glm::inverse(camera.getProjectionMatrix() * camera.getView());
 	for (unsigned int i = 0; i < 8; ++i)
 	{
-		glm::vec4 inversePoint = invViewProj * glm::vec4(frustumCornersWS[i], 1.0f);
-		frustumCornersWS[i] = glm::vec3(inversePoint / inversePoint.w);
-	}
+		frustumCornersWS[i] = invViewProj * frustumCornersWS[i];
+	}*/
 
-	const float nearClip = camera.getNearDistance();
-	const float farClip = camera.getFarDistance();
+
+
+	auto frustumWorld = camera.getFrustumWorld();
+
+	glm::vec3* frustumCornersWS = frustumWorld.corners;
+
+
+	
 	const float clipRange = farClip - nearClip;
 
 	// Calculate rays that define the near and far plane of each cascade split.
@@ -563,11 +585,11 @@ void CascadedShadow::extractFrustumPoints(const Camera& camera, float nearSplitD
 	// and ends at the far splitting plane.
 	for (unsigned int i = 0; i < 4; ++i)
 	{
-		glm::vec3 cornerRay = frustumCornersWS[i + 4] - frustumCornersWS[i];
-		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance / clipRange;
-		glm::vec3 farCornerRay = cornerRay * farSplitDistance / clipRange;
-		frustumCorners[i + 4] = frustumCornersWS[i] + farCornerRay;
-		frustumCorners[i] = frustumCornersWS[i] + nearCornerRay;
+		glm::vec3 cornerRay = normalize(frustumCornersWS[i] - frustumCornersWS[i + 4]);
+		glm::vec3 nearCornerRay = cornerRay * nearSplitDistance;// / clipRange;
+		glm::vec3 farCornerRay = cornerRay * farSplitDistance;// / clipRange;
+		frustumCorners[i + 4] = glm::vec3(frustumCornersWS[i + 4]) + nearCornerRay;
+		frustumCorners[i] = glm::vec3(frustumCornersWS[i + 4]) + farCornerRay;
 	}
 }
 

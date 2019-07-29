@@ -340,15 +340,15 @@ namespace nex
 		const auto halfWidthLeft = -halfWidthRight;
 
 
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * zNear, halfHeightBottom * zNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * zNear, halfHeightTop * zNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * zNear, halfHeightBottom * zNear, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * zNear, halfHeightTop * zNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * mNearDistance, halfHeightBottom * mNearDistance, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * mNearDistance, halfHeightTop * mNearDistance, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * mNearDistance, halfHeightBottom * mNearDistance, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * mNearDistance, halfHeightTop * mNearDistance, zNear);
 
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * zFar, halfHeightBottom * zFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * zFar, halfHeightTop * zFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * zFar, halfHeightBottom * zFar, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * zFar, halfHeightTop * zFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * mFarDistance, halfHeightBottom * mFarDistance, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * mFarDistance, halfHeightTop * mFarDistance, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * mFarDistance, halfHeightBottom * mFarDistance, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * mFarDistance, halfHeightTop * mFarDistance, zFar);
 
 
 		/**
@@ -366,13 +366,14 @@ namespace nex
 		const float divLeftRight = std::sqrtf(e*e + a*a); // divisor for normalization
 		const float divBottTop = std::sqrtf(e*e + 1.0f); // divisor for normalization
 
-		mFrustum.planes[(unsigned)FrustumPlane::Near] = {0, 0, zOne, -mNearDistance };
-		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Near] = {0, 0, zOne, zNear }; //-mNearDistance
+		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, -zFar }; //mFarDistance
 
-		mFrustum.planes[(unsigned)FrustumPlane::Left] = { e / divLeftRight, 0, zA / divLeftRight, 0 };
-		mFrustum.planes[(unsigned)FrustumPlane::Right] = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
-		mFrustum.planes[(unsigned)FrustumPlane::Bottom] = { 0, e / divBottTop, zOne / divBottTop, 0 };
-		mFrustum.planes[(unsigned)FrustumPlane::Top] = { 0, -e / divBottTop, zOne / divBottTop, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Left] = { 0, e / divBottTop, zOne / divBottTop, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Right] = { 0, -e / divBottTop, zOne / divBottTop, 0 };
+
+		mFrustum.planes[(unsigned)FrustumPlane::Bottom] = { e / divLeftRight, 0, zA / divLeftRight, 0 };
+		mFrustum.planes[(unsigned)FrustumPlane::Top] = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
 	}
 
 	void PerspectiveCamera::calcProjection()
