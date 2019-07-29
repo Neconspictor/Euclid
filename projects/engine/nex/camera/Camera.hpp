@@ -94,12 +94,12 @@ namespace nex
 		 * @param xOffset				: Relative offset for x-axis; Range: [0,1]
 		 * @param yOffset				: Relative offset for y-axis; Range: [0,1]
 		 * @param zNearOffset			: Relative offset (near) for z-Axis; Range: [0,1]
-		 * @param zFarOffset			: Relative offset (far) for z-axis; Range: [0,1]
+		 * @param zRange				: Relative range for z-axis; Range: [0,1];
 		 * @param xClusterElementSize	: Relative width of the cluster element; Range: [0,1]
 		 * @param yClusterElementSize	: Relative height of the cluster element; Range: [0,1]
 		 */
 		virtual Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
-			float zNearOffset, float zFarOffset,
+			float zNearOffset, float zRange,
 			float xClusterElementSize, float yClusterElementSize) const = 0;
 
 		/**
@@ -348,7 +348,7 @@ namespace nex
 		);
 
 		Frustum calcClusterElementViewSpace(float xOffset, float yOffset,
-			float zNearOffset, float zFarOffset,
+			float zNearOffset, float zRange,
 			float xClusterElementSize, float yClusterElementSize) const override;
 
 		float getHeight() const;

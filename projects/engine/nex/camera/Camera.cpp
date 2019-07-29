@@ -375,21 +375,21 @@ namespace nex
 		mFrustum.planes[(unsigned)FrustumPlane::Bottom] = { e / divLeftRight, 0, zA / divLeftRight, 0 };
 		mFrustum.planes[(unsigned)FrustumPlane::Top] = { -e / divLeftRight, 0, zA / divLeftRight, 0 };
 	}
-
-	struct ClusterElement {
-		glm::vec3 corners[8];
-	};
-
 	
 	Frustum PerspectiveCamera::calcClusterElementViewSpace(
 		float xOffset, float yOffset,
-		float zNearOffset, float zFarOffset,
+		float zNearOffset, float zRange,
 		float xClusterElementSize, float yClusterElementSize) const {
 
 		Frustum elem;
 
-		const auto zNear = getViewSpaceZfromDistance(zNearOffset);
-		const auto zFar = getViewSpaceZfromDistance(zFarOffset);
+		const auto clipRange = getFarDistance() - getNearDistance();
+		const auto zNearDistance = getNearDistance() + clipRange * zNearOffset;
+		const auto zFarDistance = zNearDistance + clipRange * zRange;
+
+
+		const auto zNear = getViewSpaceZfromDistance(zNearDistance);
+		const auto zFar = getViewSpaceZfromDistance(zFarDistance);
 
 		const auto halfFovY = getFovY() / 2.0f;
 		const auto globalFrustumTop = tan(halfFovY);
@@ -402,29 +402,60 @@ namespace nex
 		const auto tileWidth = globalFrustumWidth * xClusterElementSize;
 		const auto tileHeight = globalFrustumHeight * yClusterElementSize;
 
-		const auto left = globalFrustumLeft + globalFrustumWidth * xOffset;
+		const auto widthOffset = globalFrustumWidth * xOffset;
+		const auto widthOffsetViewSpaceZ = getViewSpaceZfromDistance(widthOffset);
+		const auto heightOffset = globalFrustumHeight * yOffset;
+		const auto heightOffsetViewSpaceZ = getViewSpaceZfromDistance(heightOffset);
+
+		const auto left = globalFrustumLeft + widthOffset;
 		const auto right = left + tileWidth;
-		const auto bottom = globalFrustumBottom + globalFrustumHeight * yOffset;
+		const auto bottom = globalFrustumBottom + heightOffset;
 		const auto top = bottom + tileHeight;
 
 
 		elem.corners[(unsigned)nex::FrustumCorners::NearLeftBottom] =
-			glm::vec3(left * zNearOffset, bottom * zNearOffset, zNear);
+			glm::vec3(left * zNearDistance, bottom * zNearDistance, zNear);
 		elem.corners[(unsigned)nex::FrustumCorners::NearLeftTop] =
-			glm::vec3(left * zNearOffset, top * zNearOffset, zNear);
+			glm::vec3(left * zNearDistance, top * zNearDistance, zNear);
 		elem.corners[(unsigned)nex::FrustumCorners::NearRightBottom] =
-			glm::vec3(right * zNearOffset, bottom * zNearOffset, zNear);
+			glm::vec3(right * zNearDistance, bottom * zNearDistance, zNear);
 		elem.corners[(unsigned)nex::FrustumCorners::NearRightTop] =
-			glm::vec3(right * zNearOffset, top * zNearOffset, zNear);
+			glm::vec3(right * zNearDistance, top * zNearDistance, zNear);
 
 		elem.corners[(unsigned)nex::FrustumCorners::FarLeftBottom] =
-			glm::vec3(left * zFarOffset, bottom * zFarOffset, zFar);
+			glm::vec3(left * zFarDistance, bottom * zFarDistance, zFar);
 		elem.corners[(unsigned)nex::FrustumCorners::FarLeftTop] =
-			glm::vec3(left * zFarOffset, top * zFarOffset, zFar);
+			glm::vec3(left * zFarDistance, top * zFarDistance, zFar);
 		elem.corners[(unsigned)nex::FrustumCorners::FarRightBottom] =
-			glm::vec3(right * zFarOffset, bottom * zFarOffset, zFar);
+			glm::vec3(right * zFarDistance, bottom * zFarDistance, zFar);
 		elem.corners[(unsigned)nex::FrustumCorners::FarRightTop] =
-			glm::vec3(right * zFarOffset, top * zFarOffset, zFar);
+			glm::vec3(right * zFarDistance, top * zFarDistance, zFar);
+
+
+		/**
+		 * We define now the 6 planes of the frustum.
+		 * For math derivation see
+		 * 'Mathematics for 3D Game Programming and Computer Graphics (Third Edition)' by Eric Lengyel, page 106 (Chapter 5.3.2 Frustum Planes)
+		 * Note that we use the vertical field of view for calculating the focal length e, so the plane equations are slightly different.
+		 * The equations have been also generalized, so that they are valid for left and right handed coordination systems.
+		 * Additionally the distance parameter for (left,right,bottom,top) was added for supporting xOffset and yOffset parameter.
+		 */
+
+		const float e = 1.0f / tan(halfFovY); // focal length (using vertical field of view)
+		const float a = mAspectRatio; // aspect ratio width over height (note, Lengyel uses height over width)
+		const float zA = getViewSpaceZfromDistance(a); // a as signed depth (for switching between left and right handed)
+		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
+		const float divLeftRight = std::sqrtf(e * e + a * a); // divisor for normalization
+		const float divBottTop = std::sqrtf(e * e + 1.0f); // divisor for normalization
+
+		elem.planes[(unsigned)FrustumPlane::Near] = { 0, 0, zOne, zNear }; //-mNearDistance
+		elem.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, -zFar }; //mFarDistance
+
+		elem.planes[(unsigned)FrustumPlane::Left] = { 0, e / divBottTop, zOne / divBottTop, widthOffsetViewSpaceZ };
+		elem.planes[(unsigned)FrustumPlane::Right] = { 0, -e / divBottTop, zOne / divBottTop, widthOffsetViewSpaceZ };
+
+		elem.planes[(unsigned)FrustumPlane::Bottom] = { e / divLeftRight, 0, zA / divLeftRight, heightOffsetViewSpaceZ };
+		elem.planes[(unsigned)FrustumPlane::Top] = { -e / divLeftRight, 0, zA / divLeftRight, heightOffsetViewSpaceZ };
 
 		return elem;
 	}
@@ -442,7 +473,7 @@ namespace nex
 		assert(mHalfWidth != 0.0f);
 	}
 
-	Frustum OrthographicCamera::calcClusterElementViewSpace(float xOffset, float yOffset, float zNearOffset, float zFarOffset, float xClusterElementSize, float yClusterElementSize) const
+	Frustum OrthographicCamera::calcClusterElementViewSpace(float xOffset, float yOffset, float zNearOffset, float zRange, float xClusterElementSize, float yClusterElementSize) const
 	{
 		//TODO
 		return Frustum();
