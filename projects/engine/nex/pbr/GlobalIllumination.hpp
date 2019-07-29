@@ -36,27 +36,23 @@ namespace nex
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
 
-		void bakeProbes(const Scene& scene, Renderer* renderer);
-
-		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
-		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
-
-
 		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
-
+		void bakeProbes(const Scene& scene, Renderer* renderer);
+		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
+		
 		PbrProbe* getActiveProbe();
-
 		float getAmbientPower() const;
 
 
 		PbrProbeFactory* getFactory();
 		CubeMapArray* getIrradianceMaps();
+		unsigned getNextStoreID() const;
 		CubeMapArray* getPrefilteredMaps();
+		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
 		const ProbesData& getProbesData() const;
 		ShaderStorageBuffer* getProbesShaderBuffer();
 
 		void setActiveProbe(PbrProbe* probe);
-
 		void setAmbientPower(float ambientPower);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
@@ -64,6 +60,8 @@ namespace nex
 	private:
 
 		class ProbeBakePass;
+
+		void advanceNextStoreID(unsigned id);
 
 		void collectBakeCommands(nex::RenderCommandQueue& queue, const Scene& scene, bool doCulling);
 		std::shared_ptr<nex::CubeMap> renderToCubeMap(const nex::RenderCommandQueue & queue,
@@ -85,5 +83,6 @@ namespace nex
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
+		unsigned mNextStoreID;
 	};
 }

@@ -421,7 +421,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 					(k - depths / 2) * depthMultiplicator + depthOffset,
 					(j - columns / 2) * columnMultiplicator);
 
-				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, (i * rows + j)*columns + k);
+				//(i * rows + j)*columns + k
+				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mGlobalIllumination->getNextStoreID());
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}

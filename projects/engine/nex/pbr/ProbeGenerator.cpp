@@ -87,7 +87,8 @@ float nex::ProbeGenerator::getInfluenceRadius() const
 
 nex::ProbeVob* nex::ProbeGenerator::generate() const
 {
-	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(mProbeVisualizationVob.getPosition());
+	auto* probe = mGlobalIllumination->addUninitProbeUnsafe(mProbeVisualizationVob.getPosition(),
+		mGlobalIllumination->getNextStoreID());
 
 	mGlobalIllumination->bakeProbe(probe, *mScene, mRenderer);
 

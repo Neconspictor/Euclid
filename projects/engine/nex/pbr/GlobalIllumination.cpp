@@ -86,7 +86,8 @@ private:
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
-mProbeScene(std::make_unique<Scene>())
+mProbeScene(std::make_unique<Scene>()),
+mNextStoreID(0)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -172,17 +173,17 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	renderer->updateRenderTargets(size, size);
 
-	for (auto& probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
+	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
 		auto& probe = *probeVob->getProbe();
 		if (probe.isInitialized()) continue;
 
 		const auto& position = probe.getPosition();
 
-		
+		const auto storeID = probe.getStoreID();
 
 		if (probe.isSourceStored(mFactory.getProbeRootDir())) {
-			mFactory.initProbe(probe, probe.getStoreID(), true, true);
+			mFactory.initProbe(probe, storeID, true, true);
 		}
 		else {
 			RenderCommandQueue commandQueue;
@@ -193,11 +194,10 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			commandQueue.sort();
 
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
-			mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
+			mFactory.initProbe(probe, cubeMap.get(), storeID, false, false);
 		}
 
-		//auto readImage = StoreImage::create(cubeMap.get());
-		//StoreImage::fill(mFactory.getIrradianceMaps(), readImage, probe->getArrayIndex());
+		probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
 	}
 
 	pbrTechnique->overrideForward(nullptr);
@@ -274,6 +274,8 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 		mFactory.initProbe(probe, cubeMap.get(), probe.getStoreID(), false, false);
 	}
 
+	probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
+
 	pbrTechnique->overrideForward(nullptr);
 	pbrTechnique->overrideDeferred(nullptr);
 
@@ -288,12 +290,17 @@ const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getP
 
 nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
 {
+	advanceNextStoreID(storeID);
+
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
 	auto* meshRootNode = StaticMesh::createNodeHierarchy(mProbeScene.get(),
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
-	auto vob = std::make_unique<ProbeVob>(meshRootNode, probe.get());
+
+	auto* probVobPtr = new ProbeVob(meshRootNode, probe.get());
+	auto vob = std::unique_ptr<ProbeVob>(probVobPtr);
+
 	mProbes.emplace_back(std::move(probe));
 	mProbeVobs.emplace_back(std::move(vob));
 
@@ -313,6 +320,11 @@ float nex::GlobalIllumination::getAmbientPower() const
 nex::CubeMapArray * nex::GlobalIllumination::getIrradianceMaps()
 {
 	return mFactory.getIrradianceMaps();
+}
+
+unsigned nex::GlobalIllumination::getNextStoreID() const
+{
+	return mNextStoreID;
 }
 
 nex::CubeMapArray * nex::GlobalIllumination::getPrefilteredMaps()
@@ -367,6 +379,15 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	else {
 		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	}
+}
+
+void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
+{
+	if (id == PbrProbe::INVALID_STOREID) return;
+
+	mNextStoreID = max(mNextStoreID, id);
+
+	if (mNextStoreID == id) ++mNextStoreID;
 }
 
 void nex::GlobalIllumination::collectBakeCommands(nex::RenderCommandQueue & commandQueue, const Scene& scene, bool doCulling)

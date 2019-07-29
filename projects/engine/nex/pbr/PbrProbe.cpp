@@ -701,7 +701,6 @@ ProbeVob::ProbeVob(SceneNode* meshRootNode, PbrProbe* probe) : Vob(meshRootNode)
 	assert(mProbe != nullptr);
 	mType = VobType::Probe;
 	this->nex::ProbeVob::setPosition(glm::vec3(mProbe->getPosition()));
-	mDebugName = "pbr probe " + std::to_string(mProbe->getArrayIndex()) + ", " + std::to_string(mProbe->getStoreID());
 }
 
 PbrProbe* ProbeVob::getProbe()

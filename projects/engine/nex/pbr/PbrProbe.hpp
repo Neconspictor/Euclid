@@ -19,6 +19,7 @@ namespace nex
 	class CubeMapArray;
 	class Sampler;
 	class PbrProbe;
+	class GlobalIllumination;
 
 	class PbrProbeFactory
 	{
@@ -212,7 +213,6 @@ namespace nex
 			glm::vec4 positionWorld; // last component isn't used
 		};
 
-		ProbeVob(SceneNode* meshRootNode, PbrProbe* probe);
 		virtual ~ProbeVob() = default;
 
 		PbrProbe* getProbe();
@@ -222,6 +222,11 @@ namespace nex
 		void setPosition(const glm::vec3& position) override;
 
 		void updateProbeData();
+
+	protected:
+		friend GlobalIllumination;
+		ProbeVob(SceneNode* meshRootNode, PbrProbe* probe);
+		
 
 	private:
 		PbrProbe* mProbe;
