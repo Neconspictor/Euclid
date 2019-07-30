@@ -160,8 +160,7 @@ namespace nex
 	}
 
 	void Camera::setLook(glm::vec3 look)
-	{
-		look = normalize(look);
+	{		
 		assertValidVector(look);
 
 		mCoordSystem.look = std::move(look);
@@ -188,7 +187,6 @@ namespace nex
 
 	void Camera::setUp(glm::vec3 up)
 	{
-		up = normalize(up);
 		assertValidVector(up);
 
 		mCoordSystem.up = std::move(up);
@@ -196,6 +194,9 @@ namespace nex
 
 	void Camera::update(bool inverse)
 	{
+		mCoordSystem.look = normalize(mCoordSystem.look);
+		mCoordSystem.up = normalize(mCoordSystem.up);
+
 		if (!inverse)
 			mRight = normalize(cross(mCoordSystem.look, mCoordSystem.up));
 		else

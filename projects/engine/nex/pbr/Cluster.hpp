@@ -25,12 +25,14 @@ namespace nex
 		public:
 			ProbeClusterView(std::string title,
 				MainMenuBar* menuBar,
-				Menu* menu, ProbeCluster* cluster);
+				Menu* menu, ProbeCluster* cluster,
+				PerspectiveCamera* activeCamera);
 
 			void drawSelf() override;
 		
 		private:
 			ProbeCluster* mCluster;
+			PerspectiveCamera* mActiveCamera;
 		};
 	}
 }

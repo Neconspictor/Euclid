@@ -34,6 +34,7 @@
 #include <gui/TextureViewer.hpp>
 #include <gui/ProbeGeneratorView.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
+#include <nex/pbr/Cluster.hpp>
 
 using namespace nex;
 
@@ -627,6 +628,16 @@ void NeXEngine::setupGUI()
 	root->addChild(move(configurationWindow));
 
 
+
+	mProbeCluster = std::make_unique<ProbeCluster>();
+	auto mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
+		"Probe Cluster",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mProbeCluster.get(),
+		mCamera.get());
+	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(mProbeClusterView));
 
 	mProbeGenerator = std::make_unique<ProbeGenerator>(&mScene, mGlobalIllumination.get(), mRenderer.get());
 
