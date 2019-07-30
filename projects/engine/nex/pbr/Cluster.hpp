@@ -17,10 +17,13 @@ namespace nex
 
 		void generate();
 
+		void deleteLastGenerated();
+
 	private:
 
 		nex::PerspectiveCamera mCamera;
 		Scene* mScene;
+		Vob* mLastGenerated;
 	};
 
 	namespace gui {

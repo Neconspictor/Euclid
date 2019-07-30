@@ -98,6 +98,7 @@ namespace nex
 
 		void addActiveVobUnsafe(Vob* vob);
 		void removeActiveVobUnsafe(Vob* vob);
+		void deleteVobUnsafe(Vob* vob);
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
@@ -117,6 +118,7 @@ namespace nex
 		 * Provides all vobs of this scene.
 		 */
 		const std::vector<std::unique_ptr<Vob>>& getVobsUnsafe() const;
+		std::vector<std::unique_ptr<Vob>>& getVobsUnsafe();
 
 
 		/**
@@ -156,9 +158,13 @@ namespace nex
 
 		VobType getType() const;
 
+		bool isDeletable() const;
+
 		void rotateGlobal(const glm::vec3& axisWorld, float angle);
 		void rotateGlobal(const glm::vec3& eulerAngles);
 		void rotateLocal(const glm::vec3& eulerAngles);
+
+		void setDeletable(bool deletable);
 
 		/**
 		 * Sets the root mesh node for this vob.
@@ -202,6 +208,7 @@ namespace nex
 		glm::quat mRotation;
 		glm::vec3 mScale;
 		bool mSelectable;
+		bool mIsDeletable;
 		AABB mBoundingBox;
 
 		// Note: We use this meber field for optimzation (avoids dynamic casts)

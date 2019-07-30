@@ -7,7 +7,7 @@
 #include <nex/Scene.hpp>
 
 
-nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene)
+nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), mLastGenerated(nullptr)
 {
 }
 
@@ -42,7 +42,21 @@ void nex::ProbeCluster::generate()
 	container->finalize();
 
 	mScene->acquireLock();
-	mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
+	mLastGenerated = mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
+}
+
+void nex::ProbeCluster::deleteLastGenerated()
+{
+	if (mLastGenerated == nullptr) return;
+
+	mScene->acquireLock();
+	mScene->removeActiveVobUnsafe(mLastGenerated);
+	auto& vobs = mScene->getVobsUnsafe();
+	vobs.erase(std::remove_if(vobs.begin(), vobs.end(), [&](auto& vob) {
+		return vob.get() == mLastGenerated;
+	}));
+
+	mLastGenerated = nullptr;
 }
 
 
@@ -108,5 +122,9 @@ void nex::gui::ProbeClusterView::drawSelf()
 
 	if (ImGui::Button("Create frustum")) {
 		mCluster->generate();
+	}
+
+	if (ImGui::Button("Delete last generated")) {
+		mCluster->deleteLastGenerated();
 	}
 }

@@ -158,6 +158,13 @@ namespace nex
 			mActiveProbeVobs.erase((ProbeVob*)vob);
 	}
 
+	void Scene::deleteVobUnsafe(Vob* vob)
+	{
+		mVobStore.erase(std::remove_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
+			return v.get() == vob;
+		}));
+	}
+
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
 	{
 		mVobStore.emplace_back(std::move(vob));
@@ -181,6 +188,11 @@ namespace nex
 	}
 
 	const std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe() const
+	{
+		return mVobStore;
+	}
+
+	std::vector<std::unique_ptr<Vob>>& Scene::getVobsUnsafe()
 	{
 		return mVobStore;
 	}
@@ -213,7 +225,8 @@ namespace nex
 	}
 
 
-	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), mSelectable(true),
+	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), 
+		mSelectable(true), mIsDeletable(true),
 		mType(VobType::Normal)
 	{
 
@@ -265,6 +278,11 @@ namespace nex
 		return mType;
 	}
 
+	bool Vob::isDeletable() const
+	{
+		return mIsDeletable;
+	}
+
 	void Vob::rotateGlobal(const glm::vec3& axisWorld, float angle)
 	{
 		mRotation = glm::normalize(glm::rotate(mRotation, angle, inverse(mRotation) * axisWorld));
@@ -282,6 +300,11 @@ namespace nex
 		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.x, glm::vec3(1, 0, 0)));
 		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.y, glm::vec3(0, 1, 0)));
 		mRotation = glm::normalize(glm::rotate(mRotation, eulerAngles.z, glm::vec3(0, 0, 1.0f)));
+	}
+
+	void Vob::setDeletable(bool deletable)
+	{
+		mIsDeletable = deletable;
 	}
 
 	void Vob::setMeshRootNode(SceneNode* node)
