@@ -86,7 +86,6 @@ private:
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
-mProbeScene(std::make_unique<Scene>()),
 mNextStoreID(0)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
@@ -294,7 +293,7 @@ nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& po
 
 	auto probe = std::make_unique<PbrProbe>(position, storeID);
 
-	auto* meshRootNode = StaticMesh::createNodeHierarchy(mProbeScene.get(),
+	auto* meshRootNode = StaticMesh::createNodeHierarchy(
 		{ std::pair<Mesh*, Material*>(PbrProbe::getSphere(), probe->getMaterial()) });
 
 

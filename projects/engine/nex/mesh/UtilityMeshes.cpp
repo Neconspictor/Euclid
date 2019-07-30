@@ -145,60 +145,65 @@ namespace nex
 
 		// defines indices
 
-		// front side triangles
+		// front side
 		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
 		indices.push_back((unsigned)FrustumCorners::NearRightTop);
-
-		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::NearRightTop);
 		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
-
-		// back side triangles
-		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
-		indices.push_back((unsigned)FrustumCorners::FarRightTop);
-		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
-
-		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
-		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
-		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-
-
-		// left side triangles
-		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
-		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
-
-		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
 		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
 
-		// right side triangles
-		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
-		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		// back side
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
 		indices.push_back((unsigned)FrustumCorners::FarRightTop);
-
-		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
 		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
 
-		// top side triangles
+		// left side
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+
+		// right side
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
+
+		// top side
 		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
 		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
 		indices.push_back((unsigned)FrustumCorners::FarRightTop);
-
-		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
 		indices.push_back((unsigned)FrustumCorners::FarRightTop);
 		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
 
-		// bottom side triangles
+		// bottom side
 		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
-
-		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
 		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
 		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
 
 
 		// Calc bounding box
@@ -220,5 +225,7 @@ namespace nex
 		mIndexBuffer.bind();
 		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
 		mIndexBuffer.unbind();
+
+		mTopology = Topology::LINES;
 	}
 }

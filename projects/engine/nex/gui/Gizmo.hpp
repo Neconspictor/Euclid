@@ -10,7 +10,6 @@ namespace nex
 	struct MouseOffset;
 	struct Torus;
 	class Ray;
-	class Scene;
 	class Vob;
 	class Mesh;
 	class StaticMeshContainer;
@@ -19,6 +18,7 @@ namespace nex
 	class Camera;
 	class AbstractMaterialLoader;
 	class AbstractMeshLoader;
+	class Scene;
 }
 
 namespace nex::gui
@@ -118,7 +118,7 @@ namespace nex::gui
 
 		float calcRotation(const Ray& ray, const glm::vec3& axis, const glm::vec3& orthoAxis, const Camera& camera) const;
 
-		void initSceneNode(Vob*& node, StaticMeshContainer* container, const char* debugName);
+		void initSceneNode(std::unique_ptr<Vob>&  node, StaticMeshContainer* container, const char* debugName);
 
 		bool isHovering(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
 		bool isHoveringRotate(const Ray& screenRayWorld, const Camera& camera, bool fillActive);
@@ -148,14 +148,13 @@ namespace nex::gui
 
 		std::unique_ptr<GizmoPass> mGizmoPass;
 		std::unique_ptr<Technique> mGizmoTechnique;
-		std::unique_ptr<Scene> mNodeGeneratorScene;
 
 		std::unique_ptr<MaterialLoader> mMaterialLoader;
 		std::unique_ptr<AbstractMeshLoader> mMeshLoader;
 
-		Vob* mRotationGizmoNode;
-		Vob* mScaleGizmoNode;
-		Vob* mTranslationGizmoNode;
+		std::unique_ptr<Vob> mRotationGizmoNode;
+		std::unique_ptr<Vob> mScaleGizmoNode;
+		std::unique_ptr<Vob> mTranslationGizmoNode;
 
 		Vob* mActiveGizmoVob;
 

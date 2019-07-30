@@ -56,14 +56,13 @@ namespace nex::gui
 		//std::unique_ptr<StaticMeshContainer> mLineMesh;
 		std::unique_ptr<SimpleColorPass> mSimpleColorPass;
 		std::unique_ptr<Technique> mSimpleColorTechnique;
-		std::unique_ptr<Scene> mNodeGeneratorScene;
 
 		float calcVolume(const nex::AABB& box);
 
 		int compare(const SelectionTest& a, const SelectionTest& b);
 		bool checkIntersection(const Vob* vob, const nex::Ray& ray);
 
-		Vob* mBoundingBoxVob;
+		std::unique_ptr<Vob> mBoundingBoxVob;
 		//SceneNode* mLineNode;
 		SelectionTest mSelected;
 	};

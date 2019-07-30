@@ -15,9 +15,12 @@ mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
 //mLineMesh(std::make_unique<StaticMeshContainer>()), 
 mSimpleColorPass(std::make_unique<SimpleColorPass>()),
 mSimpleColorTechnique(std::make_unique<Technique>(mSimpleColorPass.get())),
-mNodeGeneratorScene(std::make_unique<Scene>()),
 mBoundingBoxVob(nullptr)
 {
+
+	mSimpleColorPass->bind();
+	mSimpleColorPass->setColor(glm::vec4(2.0f, 2.0f, 2.0f, 1.0f));
+
 	auto boxMaterial = std::make_unique<Material>(mSimpleColorTechnique.get());
 	boxMaterial->getRenderState().fillMode = FillMode::LINE;
 	boxMaterial->getRenderState().doCullFaces = false;
@@ -35,7 +38,7 @@ mBoundingBoxVob(nullptr)
 	
 	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
 	mBoundingBoxMesh->finalize();
-	mBoundingBoxVob = mNodeGeneratorScene->createVobUnsafe(mBoundingBoxMesh->createNodeHierarchyUnsafe(mNodeGeneratorScene.get()));
+	mBoundingBoxVob = std::make_unique<Vob>(mBoundingBoxMesh->createNodeHierarchyUnsafe());
 	mBoundingBoxVob->setSelectable(false);
 	
 	//mLineMesh->add(createLineMesh(), std::move(lineMaterial));
@@ -48,7 +51,7 @@ nex::gui::Picker::~Picker() = default;
 void nex::gui::Picker::deselect(Scene& scene)
 {
 	scene.acquireLock();
-	scene.removeActiveVobUnsafe(mBoundingBoxVob);
+	scene.removeActiveVobUnsafe(mBoundingBoxVob.get());
 	mSelected.vob = nullptr;
 }
 
@@ -111,8 +114,8 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 	{
 		mSelected = selected;
 		updateBoundingBoxTrafo();
-		scene.removeActiveVobUnsafe(mBoundingBoxVob);
-		scene.addActiveVobUnsafe(mBoundingBoxVob);
+		scene.removeActiveVobUnsafe(mBoundingBoxVob.get());
+		scene.addActiveVobUnsafe(mBoundingBoxVob.get());
 	}
 
 	return mSelected.vob;

@@ -29,7 +29,10 @@ namespace nex
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
 
-		SceneNode* createNodeHierarchyUnsafe(Scene* scene, SceneNode* parent = nullptr);
+		/**
+		 * Note: Returned SceneNode* has to be deleted by user!
+		 */
+		SceneNode* createNodeHierarchyUnsafe(SceneNode* parent = nullptr);
 
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;
@@ -48,6 +51,6 @@ namespace nex
 
 		using Mappings = std::unordered_map<Mesh*, Material*>;
 
-		static SceneNode* createNodeHierarchy(Scene* scene, const Mappings& mappings, SceneNode* parent = nullptr);
+		static SceneNode* createNodeHierarchy(const Mappings& mappings, SceneNode* parent = nullptr);
 	};
 }

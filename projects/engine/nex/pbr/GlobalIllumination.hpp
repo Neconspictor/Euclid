@@ -74,7 +74,6 @@ namespace nex
 		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
-		std::unique_ptr<Scene> mProbeScene;
 		ShaderStorageBuffer mProbesBuffer;
 		ProbesData mProbesData;
 		PbrProbeFactory mFactory;

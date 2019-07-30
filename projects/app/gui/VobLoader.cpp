@@ -58,7 +58,7 @@ namespace nex::gui
 						commandQueue->push([=]() {
 							meshContainer->finalize();
 							auto lock = mScene->acquireLock();
-							auto* nodes = meshContainer->createNodeHierarchyUnsafe(mScene);
+							auto* nodes = meshContainer->createNodeHierarchyUnsafe();
 							auto* vob = mScene->createVobUnsafe(nodes);
 							vob->setPosition(glm::vec3(-9.0f, 2.0f, 4.0f));
 							vob->getMeshRootNode()->updateWorldTrafoHierarchy(true);

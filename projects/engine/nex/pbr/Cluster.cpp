@@ -1,13 +1,48 @@
 ﻿#include <nex/pbr/Cluster.hpp>
+#include <nex/mesh/UtilityMeshes.hpp>
+#include <nex/mesh/StaticMesh.hpp>
+#include <nex/material/Material.hpp>
+#include <nex/shader/Technique.hpp>
+#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/Scene.hpp>
 
 
-nex::ProbeCluster::ProbeCluster()
+nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene)
 {
 }
 
 nex::PerspectiveCamera& nex::ProbeCluster::getCamera()
 {
 	return mCamera;
+}
+
+void nex::ProbeCluster::generate()
+{
+	mCamera.update();
+	const auto& frustum = mCamera.getFrustumWorld();
+
+	auto mesh = std::make_unique<FrustumMesh>(frustum);
+
+	auto container = std::make_unique<StaticMeshContainer>();
+
+	thread_local auto pass = std::make_unique<SimpleColorPass>();
+		pass->bind();
+		pass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
+	thread_local auto technique = std::make_unique<Technique>(pass.get());
+
+	auto material = std::make_unique<Material>(technique.get());
+	auto& state = material->getRenderState();
+	state.fillMode = FillMode::LINE;
+	state.doCullFaces = false;
+	state.isTool = true;
+	state.doShadowCast = false;
+	state.doShadowReceive = false;
+
+	container->add(std::move(mesh), std::move(material));
+	container->finalize();
+
+	mScene->acquireLock();
+	mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
 }
 
 
@@ -25,8 +60,8 @@ void nex::gui::ProbeClusterView::drawSelf()
 	auto position = camera.getPosition();
 	auto fovY = glm::degrees(camera.getFovY());
 	auto aspect = camera.getAspectRatio();
-	auto near = camera.getNearDistance();
-	auto far = camera.getFarDistance();
+	auto zNear = camera.getNearDistance();
+	auto zFar = camera.getFarDistance();
 	auto look = camera.getLook();
 	auto up = camera.getUp();
 
@@ -51,12 +86,12 @@ void nex::gui::ProbeClusterView::drawSelf()
 		camera.setAspectRatio(aspect);
 	}
 
-	if (ImGui::DragFloat("Near plane", &near, 0.1f, 0.0f, FLT_MAX)) {
-		camera.setNearDistance(near);
+	if (ImGui::DragFloat("Near plane", &zNear, 0.1f, 0.0f, FLT_MAX)) {
+		camera.setNearDistance(zNear);
 	}
 
-	if (ImGui::DragFloat("Far plane", &far, 0.1f, 0.0f, FLT_MAX)) {
-		camera.setFarDistance(far);
+	if (ImGui::DragFloat("Far plane", &zFar, 0.1f, 0.0f, FLT_MAX)) {
+		camera.setFarDistance(zFar);
 	}
 
 	if (ImGui::Button("Align to active camera")) {
@@ -72,6 +107,6 @@ void nex::gui::ProbeClusterView::drawSelf()
 
 
 	if (ImGui::Button("Create frustum")) {
-
+		mCluster->generate();
 	}
 }

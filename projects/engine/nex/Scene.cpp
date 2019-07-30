@@ -4,12 +4,18 @@
 #include <glm/gtx/quaternion.hpp>
 #include <nex/math/Math.hpp>
 #include <nex/mesh/Mesh.hpp>
+#include <nex/mesh/StaticMesh.hpp>
 
 namespace nex
 {
-	SceneNode::SceneNode() : mMesh(nullptr), mMaterial(nullptr),
+	SceneNode::SceneNode() noexcept : mMesh(nullptr), mMaterial(nullptr),
 		mParent(nullptr)
 	{
+	}
+
+	SceneNode::~SceneNode()
+	{
+		clear();
 	}
 
 	void SceneNode::addChild(SceneNode* node)
@@ -20,6 +26,9 @@ namespace nex
 
 	void SceneNode::clear()
 	{
+		for (auto* child : mChildren) {
+			delete child;
+		}
 		mChildren.clear();
 	}
 
@@ -56,16 +65,6 @@ namespace nex
 	const glm::mat4& SceneNode::getPrevWorldTrafo() const
 	{
 		return mPrevWorldTrafo;
-	}
-
-	void SceneNode::removeChild(SceneNode* node)
-	{
-		auto it = std::find(mChildren.begin(), mChildren.end(), node);
-		if (it != mChildren.end())
-		{
-			(*it)->mParent = nullptr;
-			mChildren.erase(it);
-		}
 	}
 
 	void SceneNode::setMesh(Mesh* mesh)
@@ -108,9 +107,9 @@ namespace nex
 				node->mBoundingBox = node->mWorldTrafo * node->mMesh->getAABB();
 			}
 
-			auto children = node->getChildren();
+			const auto& children = node->getChildren();
 
-			for (auto* child : children)
+			for (auto& child : children)
 				queue.push(child);
 		}
 	}
@@ -159,16 +158,6 @@ namespace nex
 			mActiveProbeVobs.erase((ProbeVob*)vob);
 	}
 
-	SceneNode* Scene::createNodeUnsafe(SceneNode* parent)
-	{
-		mNodes.emplace_back(std::make_unique<SceneNode>());
-		auto* node = mNodes.back().get();
-		node->setParent(parent);
-		if (parent) parent->addChild(node);
-
-		return node;
-	}
-
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
 	{
 		mVobStore.emplace_back(std::move(vob));
@@ -203,7 +192,6 @@ namespace nex
 
 	void Scene::clearUnsafe()
 	{
-		mNodes.clear();
 		mActiveVobs.clear();
 		mVobStore.clear();
 	}
@@ -229,6 +217,12 @@ namespace nex
 		mType(VobType::Normal)
 	{
 
+	}
+
+	Vob::~Vob()
+	{
+		if (mMeshRootNode) delete mMeshRootNode;
+		mMeshRootNode = nullptr;
 	}
 
 	const SceneNode* Vob::getMeshRootNode() const
@@ -292,6 +286,7 @@ namespace nex
 
 	void Vob::setMeshRootNode(SceneNode* node)
 	{
+		if (mMeshRootNode) delete mMeshRootNode;
 		mMeshRootNode = node;
 	}
 
@@ -358,8 +353,8 @@ namespace nex
 			auto* node = nodes.front();
 			nodes.pop();
 
-			const auto children = node->getChildren();
-			for (auto* child : children)
+			const auto& children = node->getChildren();
+			for (auto& child : children)
 				nodes.push(child);
 
 
@@ -368,4 +363,13 @@ namespace nex
 			mBoundingBox = maxAABB(mBoundingBox, mesh->getAABB());
 		}
 	}
+	MeshOwningVob::MeshOwningVob(std::unique_ptr<StaticMeshContainer> container) : 
+		Vob(container->createNodeHierarchyUnsafe()), mContainer(std::move(container))
+	{
+	}
+	StaticMeshContainer* MeshOwningVob::getMesh() const
+	{
+		return mContainer.get();
+	}
+	MeshOwningVob::~MeshOwningVob() = default;
 }

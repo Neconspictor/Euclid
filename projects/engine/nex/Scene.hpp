@@ -16,6 +16,7 @@ namespace nex
 	class Mesh;
 	class Material;
 	class ProbeVob;
+	class StaticMeshContainer;
 
 
 	enum class VobType {
@@ -30,8 +31,12 @@ namespace nex
 
 		using Children = std::vector<SceneNode*>;
 
-		SceneNode();
+		SceneNode() noexcept;
+		~SceneNode();
 
+		/**
+		 * Note: This object takes ownership of the child node!
+		 */
 		void addChild(SceneNode* node);
 		void clear();
 		const Children& getChildren() const;
@@ -43,7 +48,6 @@ namespace nex
 		
 		const glm::mat4& getWorldTrafo() const;
 		const glm::mat4& getPrevWorldTrafo() const;
-		void removeChild(SceneNode* node);
 		
 		
 		void setMesh(Mesh* mesh);
@@ -63,7 +67,7 @@ namespace nex
 
 		void updateWorldTrafo(bool resetPrevWorldTrafo);
 
-		std::vector<SceneNode*> mChildren;
+		Children mChildren;
 		Mesh* mMesh;
 
 		Material* mMaterial;
@@ -95,10 +99,6 @@ namespace nex
 		void addActiveVobUnsafe(Vob* vob);
 		void removeActiveVobUnsafe(Vob* vob);
 
-		/**
-		 * Creates a new node.
-		 */
-		SceneNode* createNodeUnsafe(SceneNode* parent = nullptr);
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
 		Vob* createVobUnsafe(SceneNode* meshRootNode, bool setActive = true);
@@ -133,7 +133,6 @@ namespace nex
 	private:
 		std::unordered_set<Vob*> mActiveVobs;
 		std::unordered_set<ProbeVob*> mActiveProbeVobs;
-		std::vector<std::unique_ptr<SceneNode>> mNodes;
 		std::vector<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
 	};
@@ -144,7 +143,7 @@ namespace nex
 	public:
 		explicit Vob(SceneNode* meshRootNode);
 
-		virtual ~Vob() = default;
+		virtual ~Vob();
 
 		const SceneNode* getMeshRootNode() const;
 		SceneNode* getMeshRootNode();
@@ -163,6 +162,7 @@ namespace nex
 
 		/**
 		 * Sets the root mesh node for this vob.
+		 * Note: Takes ownership of the node! Deletes the old mesh root node (if existing)
 		 */
 		void setMeshRootNode(SceneNode* node);
 
@@ -196,6 +196,7 @@ namespace nex
 		void recalculateBoundingBox();
 
 		SceneNode* mMeshRootNode;
+		std::vector<SceneNode> mNodeStore;
 
 		glm::vec3 mPosition;
 		glm::quat mRotation;
@@ -205,5 +206,17 @@ namespace nex
 
 		// Note: We use this meber field for optimzation (avoids dynamic casts)
 		VobType mType;
+	};
+
+	class MeshOwningVob : public Vob {
+	public:
+
+		MeshOwningVob(std::unique_ptr<StaticMeshContainer> container);
+
+		StaticMeshContainer* getMesh() const;
+
+		virtual ~MeshOwningVob();
+	protected:
+		std::unique_ptr<StaticMeshContainer> mContainer;
 	};
 }

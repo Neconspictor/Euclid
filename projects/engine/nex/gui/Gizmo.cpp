@@ -48,7 +48,7 @@ float nex::gui::Gizmo::Active::calcRange(const Ray& ray, const glm::vec3& positi
 	return std::clamp(distanceToCamera / (camera.getFarDistance() - camera.getNearDistance()), 0.0001f, 0.5f);
 }
 
-nex::gui::Gizmo::Gizmo(Mode mode) : mNodeGeneratorScene(std::make_unique<Scene>()), mTranslationGizmoNode(nullptr),
+nex::gui::Gizmo::Gizmo(Mode mode) : mTranslationGizmoNode(nullptr),
 mActivationState({}), mMode(mode), mVisible(false)
 {
 	mGizmoPass = std::make_unique<GizmoPass>();
@@ -203,13 +203,13 @@ void nex::gui::Gizmo::setMode(Mode mode)
 	switch (mode)
 	{
 	case Mode::ROTATE:
-		mActiveGizmoVob = mRotationGizmoNode;
+		mActiveGizmoVob = mRotationGizmoNode.get();
 		break;
 	case Mode::SCALE:
-		mActiveGizmoVob = mScaleGizmoNode;
+		mActiveGizmoVob = mScaleGizmoNode.get();
 		break;
 	case Mode::TRANSLATE:
-		mActiveGizmoVob = mTranslationGizmoNode;
+		mActiveGizmoVob = mTranslationGizmoNode.get();
 		break;
 	}
 
@@ -308,12 +308,12 @@ float nex::gui::Gizmo::calcRotation(const Ray& ray, const glm::vec3& axis, const
 	return angle * (test / abs(test));
 }
 
-void nex::gui::Gizmo::initSceneNode(Vob*& vob, StaticMeshContainer* container, const char* debugName)
+void nex::gui::Gizmo::initSceneNode(std::unique_ptr<Vob>& vob, StaticMeshContainer* container, const char* debugName)
 {
-	auto*  node = container->createNodeHierarchyUnsafe(mNodeGeneratorScene.get());
+	auto*  node = container->createNodeHierarchyUnsafe();
 	node->mDebugName = debugName;
 
-	vob = mNodeGeneratorScene->createVobUnsafe(node);
+	vob = std::make_unique<Vob>(node);
 	vob->setSelectable(false);
 	vob->updateTrafo(true);
 

@@ -38,9 +38,8 @@ mRenderer(renderer)
 
 			mProbeVisualizationMeshContainer.finalize();
 
-			mProbeVisualizationScene.acquireLock();
 			auto* root = mProbeVisualizationMeshContainer
-									.createNodeHierarchyUnsafe(&mProbeVisualizationScene);
+									.createNodeHierarchyUnsafe();
 			mProbeVisualizationVob.setMeshRootNode(root);
 			bool test = false;
 		});

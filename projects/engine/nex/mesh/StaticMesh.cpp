@@ -36,24 +36,24 @@ namespace nex
 		mMappings[pMesh] = pMaterial;
 	}
 
-	SceneNode* StaticMeshContainer::createNodeHierarchyUnsafe(Scene* scene, SceneNode* parent)
+	SceneNode* StaticMeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)
 	{
-		assert(scene != nullptr);
+		std::unique_ptr<SceneNode> root(parent);
 
-		if (!parent) {
-			parent = scene->createNodeUnsafe();
+		if (!root) {
+			root = std::make_unique<SceneNode>();
 		}
 
 		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)
 		{
 			auto* material = mMappings[it->get()];
-			SceneNode* node = scene->createNodeUnsafe();
+			SceneNode* node = new SceneNode();
 			node->setMesh(it->get());
 			node->setMaterial(material);
-			parent->addChild(node);
+			root->addChild(node);
 		}
 
-		return parent;
+		return root.release();
 	}
 
 
@@ -72,23 +72,23 @@ namespace nex
 		return mMeshes;
 	}
 
-	SceneNode* StaticMesh::createNodeHierarchy(Scene* scene, const Mappings& mappings, SceneNode* parent)
+	SceneNode* StaticMesh::createNodeHierarchy(const Mappings& mappings, SceneNode* parent)
 	{
-		assert(scene != nullptr);
+		std::unique_ptr<SceneNode> root(parent);
 
-		if (!parent) {
-			parent = scene->createNodeUnsafe();
+		if (!root) {
+			root = std::make_unique<SceneNode>();
 		}
 
 		for (auto& mapping : mappings)
 		{
 			auto* material = mapping.second;
-			SceneNode* node = scene->createNodeUnsafe();
+			SceneNode* node = new SceneNode();
 			node->setMesh(mapping.first);
 			node->setMaterial(material);
-			parent->addChild(node);
+			root->addChild(node);
 		}
 
-		return parent;
+		return root.release();
 	}
 }

@@ -2,6 +2,7 @@
 
 #include <nex/gui/MenuWindow.hpp>
 #include <nex/camera/Camera.hpp>
+#include <nex/Scene.hpp>
 
 namespace nex
 {
@@ -10,13 +11,16 @@ namespace nex
 	{
 	public:
 
-		ProbeCluster();
+		ProbeCluster(Scene* scene);
 
 		nex::PerspectiveCamera& getCamera();
+
+		void generate();
 
 	private:
 
 		nex::PerspectiveCamera mCamera;
+		Scene* mScene;
 	};
 
 	namespace gui {

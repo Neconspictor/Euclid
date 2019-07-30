@@ -355,7 +355,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	
-	auto* ground = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	auto* ground = meshContainer->createNodeHierarchyUnsafe();
 	auto* groundVob = mScene.createVobUnsafe(ground);
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
@@ -367,7 +367,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	});
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe(&mScene);
+	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
 	sponzaVob->mDebugName = "sponza";
 
@@ -383,7 +383,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//transparentVob->mDebugName = "transparent - 1";
 	//auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
 	//transparentVob2->mDebugName = "transparent - 2";
-	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
+	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe());
 	transparentVob3->mDebugName = "transparent - 3";
 
 	//(*(transparentVob->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
@@ -629,7 +629,7 @@ void NeXEngine::setupGUI()
 
 
 
-	mProbeCluster = std::make_unique<ProbeCluster>();
+	mProbeCluster = std::make_unique<ProbeCluster>(&mScene);
 	auto mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
 		"Probe Cluster",
 		root->getMainMenuBar(),

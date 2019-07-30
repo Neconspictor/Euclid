@@ -5,6 +5,5 @@ uniform vec4 objectColor;
 
 void main()
 {
-    //color = objectColor;
-    color = vec4(2.0f);
+    color = objectColor;
 }
