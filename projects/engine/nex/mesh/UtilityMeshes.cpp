@@ -9,19 +9,20 @@
 
 namespace nex
 {
-	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments, bool finalize) : mXSegments(xSegments),
-		mYSegments(ySegments)
+	SphereMesh::SphereMesh(unsigned int xSegments, unsigned int ySegments, bool finalize)
 	{
+		std::vector<VertexPositionNormalTex> vertices;
+		std::vector<unsigned> indices;
 
-		for (unsigned int y = 0; y <= mYSegments; ++y)
+		for (unsigned int y = 0; y <= ySegments; ++y)
 		{
-			for (unsigned int x = 0; x <= mXSegments; ++x)
+			for (unsigned int x = 0; x <= xSegments; ++x)
 			{
 
 				VertexPositionNormalTex vertex;
 
-				float xSegment = (float)x / (float)mXSegments;
-				float ySegment = (float)y / (float)mYSegments;
+				float xSegment = (float)x / (float)xSegments;
+				float ySegment = (float)y / (float)ySegments;
 				float xPos = std::cos(xSegment * 2 * PI) * std::sin(ySegment * PI); // TAU is 2PI
 				float yPos = std::cos(ySegment * PI);
 				float zPos = std::sin(xSegment * 2 * PI) * std::sin(ySegment * PI);
@@ -30,21 +31,21 @@ namespace nex
 				vertex.texCoords = glm::vec2(xSegment, ySegment);
 				vertex.normal = glm::vec3(xPos, yPos, zPos);
 
-				mVertices.emplace_back(vertex);
+				vertices.emplace_back(vertex);
 			}
 		}
 
-		for (unsigned y = 0; y < mYSegments; ++y)
+		for (unsigned y = 0; y < ySegments; ++y)
 		{
-			for (unsigned x = 0; x < mXSegments; ++x)
+			for (unsigned x = 0; x < xSegments; ++x)
 			{
-				mIndices.push_back((y + 1) * (mXSegments + 1) + x);
-				mIndices.push_back(y * (mXSegments + 1) + x);
-				mIndices.push_back(y * (mXSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (xSegments + 1) + x);
+				indices.push_back(y * (xSegments + 1) + x);
+				indices.push_back(y * (xSegments + 1) + x + 1);
 
-				mIndices.push_back((y + 1) * (mXSegments + 1) + x);
-				mIndices.push_back(y * (mXSegments + 1) + x + 1);
-				mIndices.push_back((y + 1) * (mXSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (xSegments + 1) + x);
+				indices.push_back(y * (xSegments + 1) + x + 1);
+				indices.push_back((y + 1) * (xSegments + 1) + x + 1);
 			}
 		}
 
@@ -58,6 +59,15 @@ namespace nex
 		mBoundingBox.max = glm::vec3(1.0);
 
 
+		// upload data into buffers
+		mVertexBuffer.bind();
+		mVertexBuffer.fill(vertices.data(), vertices.size() * sizeof(VertexPositionNormalTex));
+
+		mIndexBuffer.bind();
+		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
+		mIndexBuffer.unbind();
+
+
 
 		if (!finalize) return;
 		ResourceLoader::get()->enqueue([=](RenderEngine::CommandQueue* commandQueue)->nex::Resource* {
@@ -67,26 +77,11 @@ namespace nex
 			return this;
 		});
 	}
-	void SphereMesh::finalize()
-	{
-		mVertexBuffer.bind();
-		mVertexBuffer.fill(mVertices.data(), mVertices.size() * sizeof(VertexPositionNormalTex));
-
-		mIndexBuffer.bind();
-		mIndexBuffer.fill(mIndices.data(), mIndices.size(), IndexElementType::BIT_32);
-		mIndexBuffer.unbind();
-
-		Mesh::finalize();
-
-		mVertices.clear();
-		mVertices.shrink_to_fit();
-		mIndices.clear();
-		mIndices.shrink_to_fit();
-	}
 
 
 	FrustumMesh::FrustumMesh(const Frustum& frustum)
 	{
+		std::vector<unsigned> indices;
 
 		/**
 		 * corner order:
@@ -151,65 +146,65 @@ namespace nex
 		// defines indices
 
 		// front side triangles
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
 
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightTop);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
 
 		// back side triangles
-		mIndices.push_back((unsigned)FrustumCorners::FarRightBottom);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
 
-		mIndices.push_back((unsigned)FrustumCorners::FarRightBottom);
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
 
 
 		// left side triangles
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
 
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
 
 		// right side triangles
-		mIndices.push_back((unsigned)FrustumCorners::NearRightBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
 
-		mIndices.push_back((unsigned)FrustumCorners::NearRightBottom);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
 
 		// top side triangles
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
 
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftTop);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightTop);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearLeftTop);
+		indices.push_back((unsigned)FrustumCorners::FarRightTop);
+		indices.push_back((unsigned)FrustumCorners::NearRightTop);
 
 		// bottom side triangles
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
 
-		mIndices.push_back((unsigned)FrustumCorners::FarLeftBottom);
-		mIndices.push_back((unsigned)FrustumCorners::NearRightBottom);
-		mIndices.push_back((unsigned)FrustumCorners::FarRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarLeftBottom);
+		indices.push_back((unsigned)FrustumCorners::NearRightBottom);
+		indices.push_back((unsigned)FrustumCorners::FarRightBottom);
 
 
 		// Calc bounding box
 		for (auto i = 0; i < 8; ++i) {
-			mBoundingBox.min = nex::minVec(mBoundingBox.min, mVertices[i].position);
-			mBoundingBox.max = nex::maxVec(mBoundingBox.max, mVertices[i].position);
+			mBoundingBox.min = nex::minVec(mBoundingBox.min, vertices[i].position);
+			mBoundingBox.max = nex::maxVec(mBoundingBox.max, vertices[i].position);
 		}
 
 		// define layout
@@ -217,22 +212,13 @@ namespace nex
 		mLayout.push<glm::vec3>(1); // normal
 		mLayout.push<glm::vec2>(1); // uv
 
-	}
-	void FrustumMesh::finalize()
-	{
+
+		// upload data into buffers
 		mVertexBuffer.bind();
-		mVertexBuffer.fill(mVertices.data(), mVertices.size() * sizeof(VertexPositionNormalTex));
+		mVertexBuffer.fill(vertices, 8 * sizeof(VertexPositionNormalTex));
 
 		mIndexBuffer.bind();
-		mIndexBuffer.fill(mIndices.data(), mIndices.size(), IndexElementType::BIT_32);
+		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
 		mIndexBuffer.unbind();
-
-
-		Mesh::finalize();
-
-		mVertices.clear();
-		mVertices.shrink_to_fit();
-		mIndices.clear();
-		mIndices.shrink_to_fit();
 	}
 }
