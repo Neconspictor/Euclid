@@ -128,7 +128,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 {
 	const size_t size = 1024;
 
-	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	PerspectiveCamera camera(1.0f, glm::radians(90.0f), 0.1f, 100.0f);
 	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
 	
 	camera.update();
@@ -209,7 +209,7 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 {
 	const size_t size = 1024;
 
-	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	PerspectiveCamera camera(1.0f, glm::radians(90.0f), 0.1f, 100.0f);
 	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
 
 	camera.update();
@@ -469,7 +469,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 
 	const size_t size = 1024;
-	PerspectiveCamera camera(size, size, glm::radians(90.0f), 0.1f, 100.0f);
+	PerspectiveCamera camera(1.0f, glm::radians(90.0f), 0.1f, 100.0f);
 	//OrthographicCamera camera(1.0f, 1.0f, 0.1f, 100.0f);
 
 	camera.update();

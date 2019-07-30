@@ -281,8 +281,7 @@ namespace nex
 	class PerspectiveCamera : public Camera
 	{
 	public:
-		explicit PerspectiveCamera(unsigned width,
-			unsigned height,
+		explicit PerspectiveCamera(float aspectRatio = 1920.0f / 1080.0f,
 			float fovY = glm::radians(45.0f), // the vertical field of view (in radians)
 			float nearDistance = 0.1f, // the distance to the near clipping plane
 			float farDistance = 100.0f, // the distance to the far clipping plane
@@ -293,7 +292,7 @@ namespace nex
 			float zNearOffset, float zFarOffset,
 			float xClusterElementSize, float yClusterElementSize) const override;
 
-		nex::Ray calcScreenRay(const glm::ivec2& screenPosition) const;
+		nex::Ray calcScreenRay(const glm::ivec2& screenPosition, const glm::ivec2 screenDimension) const;
 
 		/**
 		 * Enables/Disables zooming 
@@ -313,10 +312,7 @@ namespace nex
 		 */
 		float getFovY() const;
 
-		/**
-		 * Sets the dimension in pixels
-		 */
-		void setDimension(unsigned width, unsigned height);
+		void setAspectRatio(float ratio);
 
 		/**
 		 * Sets the vertical field of view angle (measured in radians). 
@@ -329,8 +325,6 @@ namespace nex
 		void calcProjection() override;
 		void calcFrustum() override;
 
-		unsigned mWidth;
-		unsigned mHeight;
 		float mAspectRatio;
 		float mFovY;
 		bool mZoomEnabled;

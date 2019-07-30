@@ -235,15 +235,15 @@ namespace nex
 		);
 	}
 
-	PerspectiveCamera::PerspectiveCamera(unsigned width, unsigned height, float fovY, float nearDistance, float farDistance,
-		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), mFovY(fovY),
-		mWidth(width), mHeight(height), mZoomEnabled(true)
+	PerspectiveCamera::PerspectiveCamera(float aspectRatio, float fovY, float nearDistance, float farDistance,
+		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), 
+		mAspectRatio(aspectRatio),
+		mFovY(fovY),
+		mZoomEnabled(true)
 	{
-		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera: height parameter mustn't be 0!"));
-		mAspectRatio = width / (float)height;
 	}
 
-	nex::Ray PerspectiveCamera::calcScreenRay(const glm::ivec2& screenPosition) const
+	nex::Ray PerspectiveCamera::calcScreenRay(const glm::ivec2& screenPosition, const glm::ivec2 screenDimension) const
 	{
 		const auto look = normalize(getLook());
 		const auto right = normalize(glm::cross(look, normalize(getUp())));
@@ -255,9 +255,9 @@ namespace nex
 		// normalize screen position to [-1, 1] x [-1, 1]
 		// Note: If screen position is out of range, the normalized position won't be in the target range,
 		// but the followed calculations will be correct nevertheless.
-		const float height = (static_cast<int>(mHeight) - screenPosition.y) / (float)mHeight;
+		const float height = (screenDimension.y - screenPosition.y) / (float)screenDimension.y;
 
-		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)mWidth, height) - 1.0f;
+		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)screenDimension.x, height) - 1.0f;
 		
 		// Compute direction vectors of the ray for each axis in the camera coordinate system in world space
 		const glm::vec3 lookComponent = look * nearD;
@@ -298,12 +298,9 @@ namespace nex
 		return mFovY;
 	}
 
-	void PerspectiveCamera::setDimension(unsigned width, unsigned height)
+	void PerspectiveCamera::setAspectRatio(float ratio)
 	{
-		if (height == 0) throw_with_trace(std::invalid_argument("PerspectiveCamera::setDimension: height parameter mustn't be 0!"));
-		mWidth = width;
-		mHeight = height;
-		mAspectRatio = width / (float) height;
+		mAspectRatio = ratio;
 	}
 
 	void PerspectiveCamera::setFovY(float fovY)

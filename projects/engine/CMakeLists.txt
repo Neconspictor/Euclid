@@ -136,6 +136,8 @@ set(
     
     
     #nex/pbr
+    nex/pbr/Cluster.cpp
+    nex/pbr/Cluster.hpp
     nex/pbr/GlobalIllumination.cpp
     nex/pbr/GlobalIllumination.hpp
     nex/pbr/Pbr.cpp

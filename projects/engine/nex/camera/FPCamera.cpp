@@ -9,7 +9,7 @@
 using namespace std;
 using namespace glm;
 
-nex::FPCamera::FPCamera(unsigned width, unsigned height) : PerspectiveCamera(width, height), yaw(0), pitch(0)
+nex::FPCamera::FPCamera(float aspectRatio) : PerspectiveCamera(aspectRatio), yaw(0), pitch(0)
 {
 	mLogger.setPrefix("FPCamera");
 }

@@ -102,7 +102,7 @@ void NeXEngine::init()
 
 
 	mInput = mWindow->getInputDevice();
-	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getVirtualScreenWidth(), mWindow->getVirtualScreenHeight()));
+	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getFrameBufferWidth() / (float) mWindow->getFrameBufferHeight()));
 	mBaseTitle = mWindow->getTitle();
 
 
@@ -573,7 +573,7 @@ void NeXEngine::setupCallbacks()
 			return;
 		}
 
-		mCamera->setDimension(width, height);
+		mCamera->setAspectRatio(width / (float)height);
 
 		mRenderer->updateRenderTargets(width, height);
 	});
@@ -680,7 +680,7 @@ void NeXEngine::setupCamera()
 	mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
 	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-	mCamera->setDimension(windowWidth, windowHeight);
+	mCamera->setAspectRatio(windowWidth / (float)windowHeight);
 
 
 	mCamera->setNearDistance(0.1f);

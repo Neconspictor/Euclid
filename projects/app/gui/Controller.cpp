@@ -137,16 +137,20 @@ void nex::gui::EditMode::frameUpdateSelf(float frameTime)
 	const auto& mouseData = mInput->getFrameMouseOffset();
 	const auto activateButton = Input::Button::LeftMouseButton;
 	const auto deactivateButton = Input::Button::RightMouseButton;
+	glm::ivec2 screenDimension(static_cast<int>(mWindow->getFrameBufferWidth()),
+								static_cast<int>(mWindow->getFrameBufferHeight()));
+
 	if (mInput->isPressed(activateButton))
 	{
+
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-		const auto ray = mCamera->calcScreenRay(position);
+		const auto ray = mCamera->calcScreenRay(position, screenDimension);
 		activate(ray);
 	}
 	else if (mInput->isDown(activateButton))
 	{
 		const glm::ivec2 position(mouseData.xAbsolute, mouseData.yAbsolute);
-		const auto ray = mCamera->calcScreenRay(position);
+		const auto ray = mCamera->calcScreenRay(position, screenDimension);
 		mGizmo->transform(ray, *mCamera, mouseData);
 		mPicker->updateBoundingBoxTrafo();
 	}

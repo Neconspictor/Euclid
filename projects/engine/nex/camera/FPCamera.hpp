@@ -9,7 +9,7 @@ namespace nex
 	class FPCamera : public PerspectiveCamera
 	{
 	public:
-		FPCamera(unsigned width, unsigned height);
+		FPCamera(float aspectRatio);
 
 		void setLook(glm::vec3 look) override;
 		void frameUpdate(Input* input, float frameTime) override;
