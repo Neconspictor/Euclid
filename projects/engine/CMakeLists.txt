@@ -122,17 +122,18 @@ set(
     nex/mesh/MeshStore.cpp
     nex/mesh/MeshTypes.hpp
     nex/mesh/SampleMeshes.hpp
-    nex/mesh/Sphere.cpp
-    nex/mesh/Sphere.hpp
     nex/mesh/StaticMesh.hpp
 	nex/mesh/StaticMesh.cpp
     nex/mesh/StaticMeshManager.hpp
 	nex/mesh/StaticMeshManager.cpp
+    nex/mesh/UtilityMeshes.cpp
+    nex/mesh/UtilityMeshes.hpp
     nex/mesh/VertexArray.hpp
     nex/mesh/VertexBuffer.hpp
     nex/mesh/VertexLayout.cpp
     nex/mesh/VertexLayout.hpp
     nex/mesh/VertexLayout.inl
+    
     
     #nex/pbr
     nex/pbr/GlobalIllumination.cpp

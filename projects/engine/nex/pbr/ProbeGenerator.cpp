@@ -1,5 +1,5 @@
 #include <nex/pbr/ProbeGenerator.hpp>
-#include <nex/mesh/Sphere.hpp>
+#include <nex/mesh/UtilityMeshes.hpp>
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/Scene.hpp>
 #include <nex/shader/Technique.hpp>

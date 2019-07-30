@@ -15,7 +15,7 @@
 #include "nex/mesh/StaticMeshManager.hpp"
 #include "nex/resource/FileSystem.hpp"
 #include "nex/shader/Technique.hpp"
-#include "nex/mesh/Sphere.hpp"
+#include <nex/mesh/UtilityMeshes.hpp>
 #include "nex/mesh/MeshFactory.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/resource/Resource.hpp>

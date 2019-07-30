@@ -9,7 +9,7 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/mesh/SampleMeshes.hpp>
 #include <nex/shader/Shader.hpp>
-#include <nex/mesh/Sphere.hpp>
+#include <nex/mesh/UtilityMeshes.hpp>
 #include "nex/material/Material.hpp"
 #include "nex/material/AbstractMaterialLoader.hpp"
 #include <nex/resource/FileSystem.hpp>
