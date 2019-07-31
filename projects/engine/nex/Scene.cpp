@@ -158,11 +158,18 @@ namespace nex
 			mActiveProbeVobs.erase((ProbeVob*)vob);
 	}
 
-	void Scene::deleteVobUnsafe(Vob* vob)
+	bool Scene::deleteVobUnsafe(Vob* vob)
 	{
-		mVobStore.erase(std::remove_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
+		auto it = std::remove_if(mVobStore.begin(), mVobStore.end(), [&](auto& v) {
 			return v.get() == vob;
-		}));
+			});
+
+		if (it != mVobStore.end()) {
+			mVobStore.erase(it);
+			return true;
+		}
+			
+		return false;
 	}
 
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)

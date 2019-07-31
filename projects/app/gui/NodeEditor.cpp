@@ -184,9 +184,12 @@ namespace nex::gui
 
 		if (vob->isDeletable() && ImGui::Button("Delete Vob")) {
 			mScene->acquireLock();
-			mScene->removeActiveVobUnsafe(vob);
-			mScene->deleteVobUnsafe(vob);
-			mPicker->deselect(*mScene);
+			if (mScene->deleteVobUnsafe(vob)) {
+				mScene->removeActiveVobUnsafe(vob);
+				mPicker->deselect(*mScene);
+				return;
+			}
+			
 		}
 
 		glm::vec3 position = vob->getPosition();

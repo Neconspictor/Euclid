@@ -98,7 +98,7 @@ namespace nex
 
 		void addActiveVobUnsafe(Vob* vob);
 		void removeActiveVobUnsafe(Vob* vob);
-		void deleteVobUnsafe(Vob* vob);
+		bool deleteVobUnsafe(Vob* vob);
 
 
 		Vob* addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive = true);
