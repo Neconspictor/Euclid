@@ -11,19 +11,38 @@ namespace nex
 	{
 	public:
 
+		/**
+		 * Defines an element of frustum cluster.
+		 */
+		struct ClusterElement {
+			float xOffset = 0.0f; // Relative: range[0,1]
+			float yOffset = 0.0f; // Relative: range[0,1]
+			float zOffset = 0.0f; // Relative: range[0,1]
+			float width = 1.0f;  // Relative:  range[0,1]; xOffset +  width  <= 1
+			float height = 1.0f; // Relative:  range[0,1]; yOffset +  height <= 1
+			float depth = 1.0f; // Relative:   range[0,1]; zOffset +  depth  <= 1
+		};
+
+		struct ClusterSize {
+			size_t xSize = 1;
+			size_t ySize = 1;
+			size_t zSize = 1;
+		};
+
 		ProbeCluster(Scene* scene);
 
 		nex::PerspectiveCamera& getCamera();
 
-		void generate();
+		void generate(const Frustum& frustum);
 
-		void deleteLastGenerated();
+		void generateClusterElement(const ClusterElement& elem);
+
+		void generateCluster(const ClusterSize& clusterSize);
 
 	private:
 
 		nex::PerspectiveCamera mCamera;
 		Scene* mScene;
-		Vob* mLastGenerated;
 	};
 
 	namespace gui {
@@ -40,6 +59,8 @@ namespace nex
 		private:
 			ProbeCluster* mCluster;
 			PerspectiveCamera* mActiveCamera;
+			ProbeCluster::ClusterElement mClusterElement;
+			ProbeCluster::ClusterSize mClusterSize;
 		};
 	}
 }

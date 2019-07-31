@@ -5,9 +5,10 @@
 #include <nex/shader/Technique.hpp>
 #include <nex/shader/SimpleColorPass.hpp>
 #include <nex/Scene.hpp>
+#include <nex/gui/Util.hpp>
 
 
-nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), mLastGenerated(nullptr)
+nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene)
 {
 }
 
@@ -16,11 +17,8 @@ nex::PerspectiveCamera& nex::ProbeCluster::getCamera()
 	return mCamera;
 }
 
-void nex::ProbeCluster::generate()
+void nex::ProbeCluster::generate(const Frustum& frustum)
 {
-	mCamera.update();
-	const auto& frustum = mCamera.getFrustumWorld();
-
 	auto mesh = std::make_unique<FrustumMesh>(frustum);
 
 	auto container = std::make_unique<StaticMeshContainer>();
@@ -42,23 +40,42 @@ void nex::ProbeCluster::generate()
 	container->finalize();
 
 	mScene->acquireLock();
-	mLastGenerated = mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
+	mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
 }
 
-void nex::ProbeCluster::deleteLastGenerated()
+void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem)
 {
-	if (mLastGenerated == nullptr) return;
+	mCamera.update();
+	auto frustumView = mCamera.calcClusterElementViewSpace(elem.xOffset, elem.yOffset, elem.zOffset, elem.depth, elem.width, elem.height);
+	const auto viewInv = inverse(mCamera.getView());
+	const auto frustumWorld = frustumView * viewInv;
+	generate(frustumWorld);
 
-	mScene->acquireLock();
-	mScene->removeActiveVobUnsafe(mLastGenerated);
-	auto& vobs = mScene->getVobsUnsafe();
-	vobs.erase(std::remove_if(vobs.begin(), vobs.end(), [&](auto& vob) {
-		return vob.get() == mLastGenerated;
-	}));
-
-	mLastGenerated = nullptr;
 }
 
+void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize)
+{
+	mCamera.update();
+	ClusterElement elem;
+
+	elem.width = 1.0f / (float) clusterSize.xSize;
+	elem.height = 1.0f / (float) clusterSize.ySize;
+	elem.depth = 1.0f / (float) clusterSize.zSize;
+
+	for (size_t x = 0; x < clusterSize.xSize; ++x ) {
+		for (size_t y = 0; y < clusterSize.ySize; ++y) {
+			for (size_t z = 0; z < clusterSize.zSize; ++z) {
+
+				elem.xOffset = x * elem.width;
+				elem.yOffset = y * elem.height;
+				elem.zOffset = z * elem.depth;
+
+				generateClusterElement(elem);
+			}
+		}
+	}
+
+}
 
 
 nex::gui::ProbeClusterView::ProbeClusterView(std::string title, MainMenuBar* menuBar, Menu* menu, ProbeCluster* cluster, PerspectiveCamera* activeCamera) :
@@ -121,10 +138,39 @@ void nex::gui::ProbeClusterView::drawSelf()
 
 
 	if (ImGui::Button("Create frustum")) {
-		mCluster->generate();
+		camera.update();
+		mCluster->generate(camera.getFrustumWorld());
 	}
 
-	if (ImGui::Button("Delete last generated")) {
-		mCluster->deleteLastGenerated();
+	ImGui::Dummy(ImVec2(0, 10));
+	nex::gui::Separator(2.0f);
+	ImGui::Dummy(ImVec2(0, 10));
+	ImGui::Text("Cluster element:");
+
+
+	ImGui::DragFloat("X offset", &mClusterElement.xOffset, 0.1f, 0.0f, 1.0f, "%.5f");
+	ImGui::DragFloat("Y offset", &mClusterElement.yOffset, 0.1f, 0.0f, 1.0f, "%.5f");
+	ImGui::DragFloat("Z offset", &mClusterElement.zOffset, 0.1f, 0.0f, 1.0f, "%.5f");
+
+	ImGui::DragFloat("width", &mClusterElement.width, 0.1f, 0.0f, 1.0f, "%.5f");
+	ImGui::DragFloat("height", &mClusterElement.height, 0.1f, 0.0f, 1.0f, "%.5f");
+	ImGui::DragFloat("depth", &mClusterElement.depth, 0.1f, 0.0f, 1.0f, "%.5f");
+
+	if (ImGui::Button("Create cluster element")) {
+		mCluster->generateClusterElement(mClusterElement);
+	}
+
+	ImGui::Dummy(ImVec2(0, 10));
+	nex::gui::Separator(2.0f);
+	ImGui::Dummy(ImVec2(0, 10));
+	ImGui::Text("Cluster:");
+
+
+	ImGui::DragScalar("X size", ImGuiDataType_U64 , &mClusterSize.xSize, 1.0f);
+	ImGui::DragScalar("Y size", ImGuiDataType_U64, &mClusterSize.ySize, 1.0f);
+	ImGui::DragScalar("Z size", ImGuiDataType_U64, &mClusterSize.zSize, 1.0f);
+
+	if (ImGui::Button("Create cluster")) {
+		mCluster->generateCluster(mClusterSize);
 	}
 }

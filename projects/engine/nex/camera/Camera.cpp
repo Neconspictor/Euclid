@@ -528,4 +528,38 @@ namespace nex
 	{
 		mProjection = glm::ortho(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight);
 	}
+
+	Frustum operator*(const Frustum& frustum, const glm::mat4& mat)
+	{
+		return mat * frustum;
+	}
+	Frustum operator*(const glm::mat4& mat, const Frustum& g)
+	{
+		Frustum f;
+
+		f.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::NearLeftTop], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::NearRightTop], 1.0f));
+
+		f.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::FarLeftTop], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightBottom], 1.0f));
+		f.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(mat * glm::vec4(g.corners[(unsigned)FrustumCorners::FarRightTop], 1.0f));
+
+		// For transforming the planes, we use the fact, that 
+		// planes can be interpreted as 4D vectors. The transformed plane p' of p 
+		// is than given by:
+		// p' = transpose(inverse(trafo)) * p
+		const auto transposeInverse = transpose(inverse(mat));
+
+		f.planes[(unsigned)FrustumPlane::Near] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Near]);
+		f.planes[(unsigned)FrustumPlane::Far] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Far]);
+		f.planes[(unsigned)FrustumPlane::Left] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Left]);
+		f.planes[(unsigned)FrustumPlane::Right] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Right]);
+		f.planes[(unsigned)FrustumPlane::Bottom] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Bottom]);
+		f.planes[(unsigned)FrustumPlane::Top] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Top]);
+
+		return f;
+	}
 }

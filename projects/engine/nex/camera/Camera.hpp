@@ -60,6 +60,9 @@ namespace nex
 		Plane planes[6];
 	};
 
+	Frustum operator*(const Frustum& frustum, const glm::mat4& mat);
+	Frustum operator*(const glm::mat4& mat, const Frustum& frustum);
+
 	/**
 	 * Defines a coordinate system by a position and a up and look vector. The right vector is indirectly defined by the cross product of up and look vector:
 	 * right = cross(look, up)
