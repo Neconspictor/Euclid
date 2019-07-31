@@ -14,6 +14,12 @@ set(
     nex/Window.hpp
 	nex/Window.cpp
     
+    #nex/buffer
+    nex/buffer/GpuBuffer.hpp
+    nex/buffer/IndexBuffer.hpp
+    nex/buffer/ShaderBuffer.hpp
+    nex/buffer/VertexBuffer.hpp
+    
     #nex/camera
     nex/camera/Camera.hpp
 	nex/camera/Camera.cpp
@@ -111,7 +117,6 @@ set(
     nex/math/Torus.hpp
     
     #nex/mesh
-    nex/mesh/IndexBuffer.hpp
     nex/mesh/Mesh.hpp
     nex/mesh/Mesh.cpp
     nex/mesh/MeshFactory.hpp
@@ -129,7 +134,6 @@ set(
     nex/mesh/UtilityMeshes.cpp
     nex/mesh/UtilityMeshes.hpp
     nex/mesh/VertexArray.hpp
-    nex/mesh/VertexBuffer.hpp
     nex/mesh/VertexLayout.cpp
     nex/mesh/VertexLayout.hpp
     nex/mesh/VertexLayout.inl
@@ -211,7 +215,6 @@ set(
 	nex/shader/ScreenPass.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
-    nex/shader/ShaderBuffer.hpp
     nex/shader/ShaderType.hpp
     nex/shader/SimpleColorPass.hpp
     nex/shader/SimpleColorPass.cpp

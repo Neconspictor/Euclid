@@ -105,8 +105,8 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, con
 		material->upload();
 	}
 
-	const VertexArray* vertexArray = mesh->getVertexArray();
-	const IndexBuffer* indexBuffer = mesh->getIndexBuffer();
+	VertexArray* vertexArray = mesh->getVertexArray();
+	IndexBuffer* indexBuffer = mesh->getIndexBuffer();
 
 	vertexArray->bind();
 	indexBuffer->bind();

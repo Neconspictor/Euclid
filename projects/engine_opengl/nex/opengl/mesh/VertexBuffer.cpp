@@ -9,13 +9,13 @@ namespace nex
 		fill(data, size);
 	}
 
-	VertexBuffer::VertexBuffer() : mRendererID(GL_FALSE)
+	VertexBuffer::VertexBuffer() : mRendererID(GL_FALSE), mSize(0)
 	{
 		GLCall(glGenBuffers(1, &mRendererID));
 	}
 
 	VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept :
-		mRendererID(other.mRendererID)
+		mRendererID(other.mRendererID), mSize(other.mSize)
 	{
 		other.mRendererID = GL_FALSE;
 	}
@@ -25,6 +25,7 @@ namespace nex
 		if (this == &o) return *this;
 
 		this->mRendererID = o.mRendererID;
+		this->mSize = o.mSize;
 		o.mRendererID = GL_FALSE;
 
 		return *this;
@@ -39,12 +40,12 @@ namespace nex
 		}
 	}
 
-	void VertexBuffer::bind() const
+	void VertexBuffer::bind()
 	{
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, mRendererID));
 	}
 
-	void VertexBuffer::unbind() const
+	void VertexBuffer::unbind()
 	{
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	}
@@ -52,6 +53,23 @@ namespace nex
 	void VertexBuffer::fill(const void* data, size_t size, ShaderBuffer::UsageHint usage)
 	{
 		bind();
-		GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, translate(usage)));
+		GLCall(glNamedBufferData(mRendererID, size, data, translate(usage)));
+		mSize = size;
+	}
+
+	void* VertexBuffer::map(ShaderBuffer::UsageHint usage)
+	{
+		GLCall(glMapNamedBuffer(mRendererID, translate(usage)));
+		return nullptr;
+	}
+
+	void VertexBuffer::unmap()
+	{
+		GLCall(glUnmapNamedBuffer(mRendererID));
+	}
+
+	size_t VertexBuffer::size() const
+	{
+		return mSize;
 	}
 }

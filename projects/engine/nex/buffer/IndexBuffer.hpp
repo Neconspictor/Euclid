@@ -21,8 +21,8 @@ namespace nex
 
 		~IndexBuffer();
 
-		void bind() const;
-		void unbind() const;
+		void bind();
+		void unbind();
 
 		void fill(const void* data, size_t count, IndexElementType type, ShaderBuffer::UsageHint usage = ShaderBuffer::UsageHint::STATIC_DRAW);
 

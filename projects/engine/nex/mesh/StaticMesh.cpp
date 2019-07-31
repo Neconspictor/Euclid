@@ -25,15 +25,29 @@ namespace nex
 	}
 	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material)
 	{
+		auto* pMesh = mesh.get();
+		auto* pMaterial = material.get();
+
+		add(std::move(mesh));
+		addMaterial(std::move(material));
+		addMapping(pMesh, pMaterial);
+	}
+
+	void StaticMeshContainer::add(std::unique_ptr<Mesh> mesh)
+	{
 		assert(mesh != nullptr);
-		assert(material != nullptr);
-
 		mMeshes.emplace_back(std::move(mesh));
-		mMaterials.emplace_back(std::move(material));
+	}
 
-		auto* pMesh = mMeshes.back().get();
-		auto* pMaterial = mMaterials.back().get();
-		mMappings[pMesh] = pMaterial;
+	void StaticMeshContainer::addMaterial(std::unique_ptr<Material> material)
+	{
+		assert(material != nullptr);
+		mMaterials.emplace_back(std::move(material));
+	}
+
+	void StaticMeshContainer::addMapping(Mesh* mesh, Material* material)
+	{
+		mMappings[mesh] = material;
 	}
 
 	SceneNode* StaticMeshContainer::createNodeHierarchyUnsafe(SceneNode* parent)

@@ -59,12 +59,12 @@ namespace nex
 		}
 	}
 
-	void IndexBuffer::bind() const
+	void IndexBuffer::bind()
 	{
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mRendererID));
 	}
 
-	void IndexBuffer::unbind() const
+	void IndexBuffer::unbind()
 	{
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 	}

@@ -28,6 +28,9 @@ namespace nex
 		void init(const std::vector<MeshStore>& stores, const nex::AbstractMaterialLoader& materialLoader);
 
 		void add(std::unique_ptr<Mesh> mesh, std::unique_ptr<Material> material);
+		void add(std::unique_ptr<Mesh> mesh);
+		void addMaterial(std::unique_ptr<Material> material);
+		void addMapping(Mesh* mesh, Material* material);
 
 		/**
 		 * Note: Returned SceneNode* has to be deleted by user!

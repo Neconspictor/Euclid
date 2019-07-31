@@ -29,6 +29,10 @@ set(
     nex/opengl/opengl.cpp
     nex/opengl/RenderBackend.cpp
     nex/opengl/RenderBackendGL.hpp
+    
+    #nex/opengl/buffer
+    nex/opengl/buffer/GpuBufferGL.cpp
+    nex/opengl/buffer/GpuBufferGL.hpp
 	
 	#nex/opengl/gui
 	nex/opengl/gui/ImGUI_GL.hpp

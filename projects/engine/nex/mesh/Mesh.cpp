@@ -51,6 +51,11 @@ IndexBuffer* Mesh::getIndexBuffer()
 	return &mIndexBuffer;
 }
 
+const VertexLayout& nex::Mesh::getLayout() const
+{
+	return mLayout;
+}
+
 Topology Mesh::getTopology() const
 {
 	return mTopology;

@@ -34,6 +34,7 @@ namespace nex
 
 		const AABB& getAABB() const;
 		IndexBuffer* getIndexBuffer();
+		const VertexLayout& getLayout() const;
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
 		VertexBuffer* getVertexBuffer();

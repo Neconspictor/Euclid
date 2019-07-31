@@ -56,7 +56,7 @@ namespace nex
 		}
 	}
 
-	void VertexArray::useBuffer(const VertexBuffer& buffer, const VertexLayout& layout)
+	void VertexArray::useBuffer(VertexBuffer& buffer, const VertexLayout& layout)
 	{
 		buffer.bind();
 
@@ -77,12 +77,12 @@ namespace nex
 		}
 	}
 
-	void VertexArray::bind() const
+	void VertexArray::bind()
 	{
 		GLCall(glBindVertexArray(mRendererID));
 	}
 
-	void VertexArray::unbind() const
+	void VertexArray::unbind()
 	{
 		GLCall(glBindVertexArray(0));
 	}

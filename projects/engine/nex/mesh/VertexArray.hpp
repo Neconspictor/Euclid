@@ -17,11 +17,11 @@ namespace nex
 
 		~VertexArray();
 
-		void useBuffer(const VertexBuffer& buffer, const VertexLayout& layout);
+		void useBuffer(VertexBuffer& buffer, const VertexLayout& layout);
 
-		void bind() const;
+		void bind();
 
-		void unbind() const;
+		void unbind();
 
 	private:
 		unsigned int mRendererID;

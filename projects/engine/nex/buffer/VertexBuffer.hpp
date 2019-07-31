@@ -22,12 +22,32 @@ namespace nex
 
 		~VertexBuffer();
 
-		void bind() const;
-		void unbind() const;
+		void bind();
+		void unbind();
 
+		/**
+		 * Fills and resizes this buffer.
+		 * Any previously hold data will be discarded.
+		 */
 		void fill(const void* data, size_t size, ShaderBuffer::UsageHint usage = ShaderBuffer::UsageHint::STATIC_DRAW);
+
+		/**
+		 * Note: bind() has to be called before calling this function. Otherwise this function behaviour is undefined.
+		 */
+		void* map(ShaderBuffer::UsageHint usage);
+
+		/**
+		 * Note: bind() has to be called before calling this function. Otherwise this function behaviour is undefined.
+		 */
+		void unmap();
+
+		/**
+		 * @return : The (byte) size of this buffer.
+		 */
+		size_t size() const;
 
 	private:
 		unsigned int mRendererID;
+		size_t mSize;
 	};
 }
