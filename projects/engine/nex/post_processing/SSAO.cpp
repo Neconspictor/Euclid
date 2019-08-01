@@ -7,7 +7,7 @@
 #include <nex/gui/Util.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
-#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include "nex/texture/Attachment.hpp"
 #include "nex/texture/Sprite.hpp"
@@ -30,7 +30,7 @@ namespace nex
 		SsaoPass(unsigned int kernelSampleSize) :
 			mSamplerDepth(SamplerDesc()), mSamplerNoise(SamplerDesc()),
 			kernelSampleSize(kernelSampleSize), m_ssaoData(nullptr), m_texNoise(nullptr), m_gDepth(nullptr), m_samples(nullptr),
-			m_ssaoUBO(0, sizeof(SSAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
+			m_ssaoUBO(0, sizeof(SSAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
 		{
 			mShader = Shader::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
@@ -62,8 +62,9 @@ namespace nex
 			bind();
 			
 			m_ssaoUBO.bind();
-			m_ssaoUBO.update(m_ssaoData,
+			m_ssaoUBO.update(
 				sizeof(SSAOData),//4 * 4 + 4 * 4 + 2 * 64, // we update only the first members and exclude the samples
+				m_ssaoData,
 				0);
 
 			mShader->setTexture(m_gDepth, &mSamplerDepth, 0);
@@ -96,7 +97,7 @@ namespace nex
 
 			bind();
 			m_ssaoUBO.bind();
-			m_ssaoUBO.update(m_ssaoData, sizeof(SSAOData), 0);
+			m_ssaoUBO.update(sizeof(SSAOData), m_ssaoData, 0);
 		}
 
 

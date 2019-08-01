@@ -4,8 +4,8 @@
 #include <nex/Input.hpp>
 #include "nex/texture/Texture.hpp"
 #include "nex/mesh/VertexArray.hpp"
-#include <nex/mesh/VertexBuffer.hpp>
-#include "nex/mesh/IndexBuffer.hpp"
+#include <nex/buffer/VertexBuffer.hpp>
+#include "nex/buffer/IndexBuffer.hpp"
 #include <nex/mesh/VertexLayout.hpp>
 #include "nex/shader/Pass.hpp"
 
@@ -267,12 +267,12 @@ namespace nex::gui
 
 			// vertex buffer update
 			mVertexBuffer->bind();
-			mVertexBuffer->fill(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), ShaderBuffer::UsageHint::STREAM_DRAW);
+			mVertexBuffer->resize(cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), cmd_list->VtxBuffer.Data, ShaderBuffer::UsageHint::STREAM_DRAW);
 
 			// index buffer update
 			const IndexElementType type = sizeof(ImDrawIdx) == 4 ? IndexElementType::BIT_32 : IndexElementType::BIT_16;
 			mIndices->bind();
-			mIndices->fill(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, type);
+			mIndices->fill(type, cmd_list->IdxBuffer.Size, cmd_list->IdxBuffer.Data);
 
 			for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 			{

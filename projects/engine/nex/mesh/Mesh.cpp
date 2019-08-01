@@ -1,8 +1,5 @@
 #include <nex/mesh/Mesh.hpp>
-#include "VertexArray.hpp"
-#include "IndexBuffer.hpp"
 #include "nex/material/Material.hpp"
-#include "VertexLayout.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 
 using namespace std;

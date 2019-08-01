@@ -4,7 +4,7 @@
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/util/Array.hpp>
 #include <glm/glm.hpp>
-#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
 
 namespace nex

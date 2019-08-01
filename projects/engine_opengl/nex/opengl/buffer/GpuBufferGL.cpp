@@ -47,6 +47,7 @@ nex::GpuBuffer::Impl::Impl(GLenum target) : mTarget(target), mRendererID(GL_FALS
 	ASSERT(sizeof(unsigned short) == sizeof(GLshort));
 
 	GLCall(glGenBuffers(1, &mRendererID));
+	GLCall(glBindBuffer(mTarget, mRendererID));
 }
 
 nex::GpuBuffer::Impl::Impl(nex::GpuBuffer::Impl&& other) noexcept :
@@ -77,21 +78,44 @@ nex::GpuBuffer::Impl::~Impl()
 }
 
 
-nex::GpuBuffer::GpuBuffer(void* internalBufferType, UsageHint hint, size_t size, void* data) :
+nex::GpuBuffer::GpuBuffer(void* internalBufferType, size_t size, const void* data, UsageHint usage) :
 	mSize(size),
-	mUsageHint(hint),
+	mUsageHint(usage),
 
 #pragma warning( push )
 #pragma warning( disable : 4311) // warning for pointer truncation from void* to GLenum
 #pragma warning( disable : 4302) // warning for  truncation from void* to GLenum
-	mImpl(std::make_unique<Impl>(reinterpret_cast<GLenum>(internalBufferType)))
+	mImpl(new Impl(reinterpret_cast<GLenum>(internalBufferType)))
 #pragma warning( pop ) 
 {
-
-	GLCall(glGenBuffers(1, &mImpl->mRendererID));
-	GLCall(glBindBuffer(mImpl->mTarget, mImpl->mRendererID));
-	resize(nullptr, mSize, mUsageHint);
+	resize(mSize, data, mUsageHint);
 }
+
+nex::GpuBuffer::GpuBuffer(GpuBuffer&& other) : 
+	mSize(other.mSize),
+	mUsageHint(other.mUsageHint),
+	mImpl(other.mImpl)
+
+{
+	other.mImpl = nullptr;
+}
+
+nex::GpuBuffer& nex::GpuBuffer::operator=(GpuBuffer&& o) {
+
+	if (this == &o) return *this;
+
+	this->mSize = o.mSize;
+	mUsageHint = o.mUsageHint;
+	mImpl = o.mImpl;
+	o.mImpl = nullptr;
+	return *this;
+}
+
+
+nex::GpuBuffer::~GpuBuffer() {
+	if (mImpl) delete mImpl;
+	mImpl = nullptr;
+};
 
 void nex::GpuBuffer::bind()
 {
@@ -110,7 +134,7 @@ nex::GpuBuffer::UsageHint nex::GpuBuffer::getUsageHint() const
 
 void* nex::GpuBuffer::map(GpuBuffer::Access usage)
 {
-	GLCall(void* ptr = glMapBuffer(mImpl->mTarget, translate(usage)));
+	GLCall(void* ptr = glMapNamedBuffer(mImpl->mRendererID, translate(usage)));
 	return ptr;
 }
 
@@ -121,10 +145,10 @@ void nex::GpuBuffer::unbind()
 
 void nex::GpuBuffer::unmap()
 {
-	GLCall(glUnmapBuffer(mImpl->mTarget));
+	GLCall(glUnmapNamedBuffer(mImpl->mRendererID));
 }
 
-void nex::GpuBuffer::update(const void* data, size_t size, size_t offset)
+void nex::GpuBuffer::update(size_t size, const void* data, size_t offset)
 {
 	GLCall(glNamedBufferSubData(mImpl->mRendererID, offset, size, data));
 }
@@ -135,8 +159,10 @@ void nex::GpuBuffer::syncWithGPU()
 	GLCall(glFinish());
 }
 
-void nex::GpuBuffer::resize(const void* data, size_t size, GpuBuffer::UsageHint hint)
+void nex::GpuBuffer::resize(size_t size, const void* data, GpuBuffer::UsageHint hint)
 {
+	//bind();
+	mUsageHint = hint;
 	GLCall(glNamedBufferData(mImpl->mRendererID, size, data, translate(hint)));
 }
 
@@ -149,6 +175,7 @@ void nex::ShaderBuffer::bindToTarget()
 
 void nex::ShaderBuffer::bindToTarget(unsigned binding)
 {
+	//bind();
 	GLCall(glBindBufferBase(GpuBuffer::mImpl->mTarget, binding, GpuBuffer::mImpl->mRendererID));
 }
 
@@ -157,8 +184,10 @@ unsigned nex::ShaderBuffer::getDefaultBinding() const
 	return mBinding;
 }
 
-nex::ShaderBuffer::ShaderBuffer(unsigned int binding, void* internalBufferType, UsageHint hint, size_t size, void* data) :
-	GpuBuffer(internalBufferType, hint, size, data), mBinding(binding)
+nex::ShaderBuffer::ShaderBuffer(unsigned int binding, void* internalBufferType, size_t size, const void* data, UsageHint usage) :
+	GpuBuffer(internalBufferType, size, data, usage), mBinding(binding)
 {
 
 }
+
+nex::ShaderBuffer::~ShaderBuffer() = default;

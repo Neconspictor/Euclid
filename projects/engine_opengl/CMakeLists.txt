@@ -34,7 +34,6 @@ set(
     nex/opengl/buffer/GpuBufferGL.cpp
     nex/opengl/buffer/GpuBufferGL.hpp
     nex/opengl/buffer/IndexBuffer.cpp
-    nex/opengl/buffer/ShaderBufferGL.hpp
 	nex/opengl/buffer/ShaderBufferGL.cpp
     nex/opengl/buffer/VertexBuffer.cpp
 	

@@ -2,7 +2,7 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/shadow/CascadedShadow.hpp>
-#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/texture/Sampler.hpp>
 #include "nex/light/Light.hpp"
 

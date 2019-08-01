@@ -33,13 +33,13 @@ namespace nex
 			READ_WRITE, LAST = READ_WRITE,
 		};
 
-		GpuBuffer(GpuBuffer&& other) = default;
-		GpuBuffer& operator=(GpuBuffer&& o) = default;
+		GpuBuffer(GpuBuffer&& other);
+		GpuBuffer& operator=(GpuBuffer&& o);
 
 		GpuBuffer(const GpuBuffer& o) = delete;
 		GpuBuffer& operator=(const GpuBuffer& o) = delete;
 
-		virtual ~GpuBuffer() = default;
+		virtual ~GpuBuffer();
 
 		void bind();
 		
@@ -71,7 +71,7 @@ namespace nex
 		 * @param hint : An hint how the store is going to be used.
 		 *
 		 */
-		void resize(const void* data, size_t size, UsageHint hint);
+		void resize(size_t size, const void* data, UsageHint hint);
 
 
 		static void syncWithGPU();
@@ -84,7 +84,7 @@ namespace nex
 		 * @param size: the size of the new content.
 		 * @param offset: start position for the update.
 		 */
-		void update(const void* data, size_t size, size_t offset = 0);
+		void update(size_t size, const void* data, size_t offset = 0);
 
 	protected:
 
@@ -97,18 +97,24 @@ namespace nex
 		 * @param internalBufferType: A render backend specific argument specifying the buffer type.
 		 * @param size : The size of the buffer. Must be a multiple of four.
 		 */
-		GpuBuffer(void* internalBufferType, UsageHint hint, size_t size, void* data = nullptr);
+		GpuBuffer(void* internalBufferType, size_t size, const void* data, UsageHint usage);
 
 		size_t mSize;
 		UsageHint mUsageHint;
-		std::unique_ptr<Impl> mImpl;
+		Impl* mImpl;
 	};
 
 	class ShaderBuffer : public GpuBuffer
 	{
 	public:
 
-		virtual ~ShaderBuffer() = default;
+		ShaderBuffer(ShaderBuffer&& other) = default;
+		ShaderBuffer& operator=(ShaderBuffer&& o) = default;
+
+		ShaderBuffer(const ShaderBuffer& o) = delete;
+		ShaderBuffer& operator=(const ShaderBuffer& o) = delete;
+
+		virtual ~ShaderBuffer();
 
 		/**
 		 * Binds the buffer to it's specified default binding point.
@@ -129,7 +135,7 @@ namespace nex
 		 * @param binding : The binding location of the buffer in the shader.
 		 * @param size : The size of the buffer. Must be a multiple of four.
 		 */
-		ShaderBuffer(unsigned int binding, void* internalBufferType, UsageHint hint, size_t size, void* data = nullptr);
+		ShaderBuffer(unsigned int binding, void* internalBufferType, size_t size, const void* data, UsageHint usage);
 
 
 		unsigned int mBinding;

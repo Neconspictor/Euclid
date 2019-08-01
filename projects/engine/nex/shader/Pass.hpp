@@ -1,6 +1,6 @@
 #pragma once
 #include <nex/shader/Shader.hpp>
-#include "ShaderBuffer.hpp"
+#include <nex/buffer/ShaderBuffer.hpp>
 
 namespace nex
 {

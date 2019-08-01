@@ -9,7 +9,7 @@
 #include <nex/gui/ImGUI.hpp>
 #include <random>
 #include <nex/gui/Util.hpp>
-#include <nex/shader/ShaderBuffer.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/texture/Sampler.hpp>
 
@@ -43,7 +43,7 @@ namespace nex
 		m_depthLinearRT(nullptr),
 		m_aoResultRT(nullptr),
 		m_tempRT(nullptr),
-		m_hbao_ubo(0, sizeof(HBAOData), ShaderBuffer::UsageHint::DYNAMIC_COPY)
+		m_hbao_ubo(0, sizeof(HBAOData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
 
 	{
 
@@ -422,8 +422,8 @@ namespace nex
 	void HbaoPass::draw()
 	{
 		bind();
-		m_hbao_ubo->bind();
-		m_hbao_ubo->update(&m_hbao_data, sizeof(HBAOData));
+		m_hbao_ubo->bindToTarget();
+		m_hbao_ubo->update(sizeof(HBAOData), &m_hbao_data);
 
 		mShader->setTexture(m_linearDepth, &mSampler, 0);
 		mShader->setTexture(m_hbao_randomview, &mPointSampler2, 1);

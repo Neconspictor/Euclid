@@ -1,7 +1,7 @@
 #include <nex/mesh/MeshFactory.hpp>
 #include "Mesh.hpp"
-#include "VertexBuffer.hpp"
-#include "IndexBuffer.hpp"
+#include <nex/buffer/VertexBuffer.hpp>
+#include <nex/buffer/IndexBuffer.hpp>
 #include "VertexArray.hpp"
 #include "VertexLayout.hpp"
 
@@ -13,10 +13,10 @@ namespace nex
 	{
 		VertexBuffer vertexBuffer;
 		vertexBuffer.bind();
-		vertexBuffer.fill(store.vertices.data(), store.vertices.size());
-		IndexBuffer indexBuffer(store.indices.data(), 
-			store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
-			store.indexType);
+		vertexBuffer.resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
+			store.indices.data());
+
 		indexBuffer.unbind();
 
 		auto mesh = std::make_unique<Mesh>();
@@ -31,8 +31,8 @@ namespace nex
 
 		VertexBuffer vertexBuffer;
 		vertexBuffer.bind();
-		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 		//indexBuffer.bind();
 
 		VertexLayout layout;
@@ -56,8 +56,8 @@ namespace nex
 		using Vertex = VertexPositionNormalTex;
 
 		VertexBuffer vertexBuffer;
-		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 		indexBuffer.unbind();
 
 		VertexLayout layout;
@@ -78,8 +78,8 @@ namespace nex
 		using Vertex = VertexPosition;
 
 		VertexBuffer vertexBuffer;
-		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 		indexBuffer.unbind();
 
 		VertexLayout layout;
@@ -97,8 +97,8 @@ namespace nex
 		using Vertex = VertexPositionTex;
 
 		VertexBuffer vertexBuffer;
-		vertexBuffer.fill(vertices, vertexCount * sizeof(Vertex));
-		IndexBuffer indexBuffer(indices, indexCount, IndexElementType::BIT_32);
+		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
 		indexBuffer.unbind();
 
 		VertexLayout layout;

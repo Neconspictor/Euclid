@@ -14,7 +14,7 @@
 #include "nex/material/AbstractMaterialLoader.hpp"
 #include <nex/resource/FileSystem.hpp>
 #include "VertexLayout.hpp"
-#include "VertexBuffer.hpp"
+#include <nex/buffer/VertexBuffer.hpp>
 #include "nex/math/Constant.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
@@ -37,7 +37,7 @@ nex::StaticMeshManager::StaticMeshManager() :
 			+1.0, +1.0, 0.0, 1.0, 1.0, 1.0
 		};
 
-		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl, sizeof(fullscreenPlaneTriangleStripVerticesOpengl));
+		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl), fullscreenPlaneTriangleStripVerticesOpengl);
 		VertexLayout layout;
 		layout.push<float>(4);
 		layout.push<float>(2);
@@ -54,7 +54,7 @@ nex::StaticMeshManager::StaticMeshManager() :
 			-1.0, +3.0, 0.0, 1.0, 0.0, 2.0
 		};
 
-		mFullscreenTriangleData = std::make_unique<VertexBuffer>(fullscreenTriangleVerticesOpengl, sizeof(fullscreenTriangleVerticesOpengl));
+		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenTriangleVerticesOpengl), fullscreenTriangleVerticesOpengl);
 		mFullscreenTriangle->bind();
 		mFullscreenTriangle->useBuffer(*mFullscreenTriangleData, layout);
 		mFullscreenTriangle->unbind();

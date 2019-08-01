@@ -1,8 +1,8 @@
 #pragma once
 
 #include "VertexArray.hpp"
-#include "VertexBuffer.hpp"
-#include "IndexBuffer.hpp"
+#include <nex/buffer/VertexBuffer.hpp>
+#include <nex/buffer/IndexBuffer.hpp>
 #include <nex/mesh/MeshTypes.hpp>
 #include <nex/math/BoundingBox.hpp>
 #include "VertexLayout.hpp"

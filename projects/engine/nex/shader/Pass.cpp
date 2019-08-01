@@ -1,5 +1,5 @@
 #include <nex/shader/Pass.hpp>
-#include "ShaderBuffer.hpp"
+#include <nex/buffer/ShaderBuffer.hpp>
 
 nex::Pass::Pass(std::unique_ptr<Shader> program) : mShader(std::move(program))
 {
@@ -41,7 +41,7 @@ void nex::Pass::unbind()
 }
 
 nex::TransformPass::TransformPass(std::unique_ptr<Shader> program, unsigned transformBindingPoint) : Pass(std::move(program)), mTransformBindingPoint(transformBindingPoint),
-mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), ShaderBuffer::UsageHint::DYNAMIC_DRAW)
+mTransformBuffer(mTransformBindingPoint, sizeof(Transforms), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW)
 {
 }
 
@@ -68,8 +68,8 @@ void nex::TransformPass::uploadTransformMatrices()
 	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
 	mTransforms.prevTransform = mTransforms.projection * mPrevView * mPrevModel;
 	mTransforms.normalMatrix = inverse(transpose(mTransforms.modelView));
-	mTransformBuffer.bind();
-	mTransformBuffer.update(&mTransforms, sizeof(Transforms));
+	mTransformBuffer.bindToTarget();
+	mTransformBuffer.update(sizeof(Transforms), &mTransforms);
 }
 
 nex::SimpleTransformPass::SimpleTransformPass(std::unique_ptr<Shader> program, unsigned transformLocation) : Pass(std::move(program)), mTransformLocation(transformLocation)

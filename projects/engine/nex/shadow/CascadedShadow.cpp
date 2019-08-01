@@ -211,10 +211,10 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(const Camera& camera, con
 	constantInput.viewMatrix = camera.getView();
 	constantInput.projectionMatrix = camera.getProjectionMatrix();
 
-	mDataComputePass->mInputBuffer->bind();
+	mDataComputePass->mInputBuffer->bindToTarget();
 	mDataComputePass->update(constantInput);
 
-	mDataComputePass->mPrivateOutput->bind();
+	mDataComputePass->mPrivateOutput->bindToTarget();
 
 	struct TestCascadeData
 	{
@@ -225,7 +225,7 @@ void nex::CascadedShadow::frameUpdateTightNearFarPlane(const Camera& camera, con
 	};
 
 	auto* cs = mDataComputePass->getSharedOutput();
-	cs->bind();
+	cs->bindToTarget();
 
 	mDataComputePass->dispatch(1, 1, 1);
 }
@@ -360,7 +360,7 @@ void CascadedShadow::updateCascadeData()
 
 	assert(offset == size);
 
-	mDataComputePass->getSharedOutput()->update(mCascadeData.shaderBuffer.data(), mCascadeData.shaderBuffer.size());
+	mDataComputePass->getSharedOutput()->update(mCascadeData.shaderBuffer.size(), mCascadeData.shaderBuffer.data());
 }
 
 
@@ -636,7 +636,7 @@ void CascadedShadow::DepthPass::setCascadeIndex(unsigned index)
 
 void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buffer)
 {
-	buffer->bind(1);
+	buffer->bindToTarget(1);
 	//buffer->syncWithGPU();
 }
 
@@ -651,10 +651,10 @@ CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : Compute
 	mShader = Shader::createComputeShader("SDSM/cascade_data_cs.glsl", defines);
 	bind();
 	//CascadeData::calcCascadeDataByteSize(numCascades)
-	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), ShaderBuffer::UsageHint::DYNAMIC_COPY, mShader.get());
+	mSharedOutput = std::make_unique<ShaderStorageBuffer>(0, CascadeData::calcCascadeDataByteSize(numCascades), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 
-	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, ShaderBuffer::UsageHint::DYNAMIC_COPY);
-	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mPrivateOutput = std::make_unique<ShaderStorageBuffer>(1, sizeof(glm::vec4) * numCascades, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
+	mInputBuffer = std::make_unique<ShaderStorageBuffer>(2, sizeof(Input), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY);
 	//mDistanceInputBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(DistanceInput), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	
 	mUseAntiFlickering = { mShader->getUniformLocation("useAntiFlickering"), UniformType::UINT};
@@ -669,7 +669,7 @@ ShaderStorageBuffer* CascadedShadow::CascadeDataPass::getSharedOutput()
 
 void CascadedShadow::CascadeDataPass::useDistanceInputBuffer(ShaderStorageBuffer* buffer)
 {
-	buffer->bind(3);
+	buffer->bindToTarget(3);
 	//buffer->syncWithGPU();
 }
 
@@ -680,13 +680,13 @@ void CascadedShadow::CascadeDataPass::setUseAntiFlickering(bool use)
 
 void CascadedShadow::CascadeDataPass::update(const Input& input)
 {
-	mInputBuffer->bind();
-	mInputBuffer->update(&input, sizeof(Input), 0);
+	mInputBuffer->bindToTarget();
+	mInputBuffer->update(sizeof(Input), &input, 0);
 }
 
 void CascadedShadow::CascadeDataPass::resetPrivateData()
 {
-	mPrivateOutput->bind();
+	mPrivateOutput->bindToTarget();
 
 	std::vector<glm::vec4> data(mNumCascades);
 
@@ -695,7 +695,7 @@ void CascadedShadow::CascadeDataPass::resetPrivateData()
 		data[i] = glm::vec4(0.0f);
 	}
 
-	mPrivateOutput->update(data.data(), data.size() * sizeof(glm::vec4), 0);
+	mPrivateOutput->update(data.size() * sizeof(glm::vec4), data.data(), 0);
 	mPrivateOutput->map(ShaderBuffer::Access::READ_ONLY);
 	mPrivateOutput->unmap();
 }

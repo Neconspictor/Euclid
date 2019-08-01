@@ -1,7 +1,7 @@
 #include <nex/mesh/UtilityMeshes.hpp>
 #include <cmath>
 #include <nex/math/Constant.hpp>
-#include "VertexBuffer.hpp"
+#include <nex/buffer/VertexBuffer.hpp>
 #include "VertexLayout.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/camera/Camera.hpp>
@@ -61,10 +61,10 @@ namespace nex
 
 		// upload data into buffers
 		mVertexBuffer.bind();
-		mVertexBuffer.fill(vertices.data(), vertices.size() * sizeof(VertexPositionNormalTex));
+		mVertexBuffer.resize(vertices.size() * sizeof(VertexPositionNormalTex), vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
 
 		mIndexBuffer.bind();
-		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
+		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
 		mIndexBuffer.unbind();
 
 
@@ -220,10 +220,10 @@ namespace nex
 
 		// upload data into buffers
 		mVertexBuffer.bind();
-		mVertexBuffer.fill(vertices, 8 * sizeof(VertexPositionNormalTex));
+		mVertexBuffer.resize(8 * sizeof(VertexPositionNormalTex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 
 		mIndexBuffer.bind();
-		mIndexBuffer.fill(indices.data(), indices.size(), IndexElementType::BIT_32);
+		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
 		mIndexBuffer.unbind();
 
 		mTopology = Topology::LINES;

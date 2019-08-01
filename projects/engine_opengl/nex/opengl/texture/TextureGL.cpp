@@ -125,6 +125,7 @@ nex::RenderBufferGL::RenderBufferGL(GLuint width, GLuint height, const TextureDa
 Impl(GL_FALSE, TextureTarget::RENDER_BUFFER, data, width, height, 1)
 {
 	GLCall(glGenRenderbuffers(1, &mTextureID));
+	GLCall(glBindRenderbuffer((GLenum)mTargetGL, mTextureID));
 	GLCall(glNamedRenderbufferStorage(mTextureID, (GLenum)translate(data.internalFormat), width, height));
 	updateMipMapCount();
 }

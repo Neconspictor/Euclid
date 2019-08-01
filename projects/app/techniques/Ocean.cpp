@@ -1,8 +1,8 @@
 ﻿#include "Ocean.hpp"
 #include <random>
 #include <complex>
-#include "nex/mesh/VertexBuffer.hpp"
-#include "nex/mesh/IndexBuffer.hpp"
+#include "nex/buffer/VertexBuffer.hpp"
+#include "nex/buffer/IndexBuffer.hpp"
 #include "nex/mesh/VertexLayout.hpp"
 #include "nex/mesh/VertexArray.hpp"
 #include "nex/mesh/Mesh.hpp"
@@ -200,8 +200,8 @@ void nex::OceanCpu::generateMesh()
 
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
-	vertexBuffer.fill(mVerticesRender.data(), vertexCount * sizeof(VertexRender), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	IndexBuffer indexBuffer(mIndices.data(), static_cast<unsigned>(mIndices.size()), IndexElementType::BIT_32);
+	vertexBuffer.resize(vertexCount * sizeof(VertexRender), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.bind();
 
 	VertexLayout layout;
@@ -262,7 +262,7 @@ void nex::OceanCpu::draw(Camera* camera, const glm::vec3& lightDir)
 
 	state.depthCompare = CompareFunction::LESS;
 
-	mMesh->getVertexBuffer()->fill(mVerticesRender.data(), sizeof(VertexRender) * mVerticesRender.size(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mMesh->getVertexBuffer()->resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 	// Only draw the first triangle
 	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
@@ -934,7 +934,7 @@ void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
 
 	state.depthCompare = CompareFunction::LESS;
 
-	mMesh->getVertexBuffer()->fill(mVertices.data(), sizeof(Vertex) * mVertices.size(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mMesh->getVertexBuffer()->resize(sizeof(Vertex) * mVertices.size(), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 	// Only draw the first triangle
 	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
@@ -1061,8 +1061,8 @@ void nex::OceanGPU::generateMesh()
 
 	VertexBuffer vertexBuffer;
 	vertexBuffer.bind();
-	vertexBuffer.fill(mVertices.data(), vertexCount * sizeof(Vertex), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	IndexBuffer indexBuffer(mIndices.data(), static_cast<unsigned>(mIndices.size()), IndexElementType::BIT_32);
+	vertexBuffer.resize(vertexCount * sizeof(Vertex), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.unbind();
 
 	VertexLayout layout;

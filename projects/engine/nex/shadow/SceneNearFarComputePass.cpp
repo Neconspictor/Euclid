@@ -3,18 +3,18 @@
 #include "nex/shader_generator/ShaderSourceFileGenerator.hpp"
 #include "nex/renderer/RenderBackend.hpp"
 #include <glm/glm.hpp>
-#include "nex/shader/ShaderBuffer.hpp"
+#include "nex/buffer/ShaderBuffer.hpp"
 #include <nex/material/Material.hpp>
 
 
 void nex::SceneNearFarComputePass::setConstants(float positiveViewNearZ, float positiveViewFarZ, const glm::mat4& projection)
 {
-	mConstantBuffer->bind();
+	mConstantBuffer->bindToTarget();
 	Constant data;
 	data.mCameraNearFar = glm::vec4(positiveViewNearZ, positiveViewFarZ, 0.0, 0.0);
 	data.mCameraProj = projection;
 
-	mConstantBuffer->update(&data, sizeof(Constant));
+	mConstantBuffer->update(sizeof(Constant), &data);
 }
 
 nex::SceneNearFarComputePass::SceneNearFarComputePass() : ComputePass()
@@ -37,16 +37,15 @@ nex::SceneNearFarComputePass::SceneNearFarComputePass() : ComputePass()
 
 	mShader = Shader::create(shaderStages);
 
-	mConstantBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Constant), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-	mWriteOutBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(WriteOut), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mConstantBuffer = std::make_unique<ShaderStorageBuffer>(0, sizeof(Constant), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	mWriteOutBuffer = std::make_unique<ShaderStorageBuffer>(1, sizeof(WriteOut), nullptr, ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 
 	bind();
 	reset();
 
 	Constant constant;
-	mConstantBuffer->bind();
-	mConstantBuffer->update(&constant, sizeof(constant));
+	mConstantBuffer->update(sizeof(constant), &constant);
 
 	mDepthTextureUniform = mShader->createTextureUniform("depthTexture", UniformType::TEXTURE2D, 0);
 	
@@ -54,7 +53,7 @@ nex::SceneNearFarComputePass::SceneNearFarComputePass() : ComputePass()
 
 nex::SceneNearFarComputePass::WriteOut nex::SceneNearFarComputePass::readResult()
 {
-	mWriteOutBuffer->bind();
+	mWriteOutBuffer->bindToTarget();
 	WriteOut* result = (WriteOut*)mWriteOutBuffer->map(ShaderBuffer::Access::READ_WRITE);
 	WriteOut copy(*result);
 	mWriteOutBuffer->unmap();
@@ -82,6 +81,5 @@ void nex::SceneNearFarComputePass::reset()
 	out.minMax.x = FLT_MAX;
 	out.minMax.y = 0;
 
-	mWriteOutBuffer->bind();
-	mWriteOutBuffer->update(&out, sizeof(WriteOut));
+	mWriteOutBuffer->update(sizeof(WriteOut), &out);
 }

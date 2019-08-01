@@ -84,7 +84,7 @@ private:
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
-mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
 mNextStoreID(0)
 {
@@ -374,10 +374,10 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	const auto oldSize = mProbesBuffer.getSize();
 
 	if (mProbesData.memSize() == oldSize) {
-		mProbesBuffer.update(data, mProbesData.memSize());
+		mProbesBuffer.update(mProbesData.memSize(), data);
 	}
 	else {
-		mProbesBuffer.resize(data, mProbesData.memSize(), ShaderBuffer::UsageHint::DYNAMIC_COPY);
+		mProbesBuffer.resize(mProbesData.memSize(), data, GpuBuffer::UsageHint::DYNAMIC_COPY);
 	}
 }
 

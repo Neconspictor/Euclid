@@ -3,7 +3,7 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/texture/RenderTarget.hpp>
 #include "nex/gui/Drawable.hpp"
-#include "nex/shader/ShaderBuffer.hpp"
+#include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/shader/Pass.hpp>
 
 namespace nex

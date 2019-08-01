@@ -215,7 +215,7 @@ void PbrLightingData::updateConstants(const Camera& camera)
 	if (mCascadeShadow) {
 		setShadowStrength(mCascadeShadow->getShadowStrength());
 		auto* buffer = mCascadeShadow->getCascadeBuffer();
-		buffer->bind(mCsmCascadeBindingPoint);
+		buffer->bindToTarget(mCsmCascadeBindingPoint);
 		setCascadedDepthMap(mCascadeShadow->getDepthTextureArray());
 	}
 
@@ -228,7 +228,7 @@ void PbrLightingData::updateConstants(const Camera& camera)
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
 		auto* probesBuffer = mGlobalIllumination->getProbesShaderBuffer();
-		probesBuffer->bind(mPbrProbesDataBufferBindingPoint);
+		probesBuffer->bindToTarget(mPbrProbesDataBufferBindingPoint);
 	}
 }
 

@@ -1,7 +1,6 @@
 #pragma once
-#include <glad/glad.h>
 #include <nex/buffer/GpuBuffer.hpp>
-
+#include <glad/glad.h>
 namespace nex
 {
 	enum UsageHintGL {

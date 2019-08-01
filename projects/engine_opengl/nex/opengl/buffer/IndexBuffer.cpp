@@ -1,18 +1,21 @@
 #include <nex/buffer/IndexBuffer.hpp>
+#include <nex/opengl/buffer/GpuBufferGL.hpp>
 #include <nex/opengl/opengl.hpp>
 
-nex::IndexBuffer::IndexBuffer(const void* data, size_t count, IndexElementType type) : IndexBuffer()
+nex::IndexBuffer::IndexBuffer(IndexElementType type, size_t count, const void* data, UsageHint usage) : IndexBuffer(usage)
 {
 
-	fill(data, count, type);
+	fill(type, count, data, usage);
 }
 
-nex::IndexBuffer::IndexBuffer() : GpuBuffer((void*)GL_ELEMENT_ARRAY_BUFFER, UsageHint::STATIC_DRAW, 0, nullptr)
+nex::IndexBuffer::IndexBuffer(UsageHint usage) : GpuBuffer((void*)GL_ELEMENT_ARRAY_BUFFER, 0, nullptr, usage)
 {
 
 }
 
-void nex::IndexBuffer::fill(const void* data, size_t count, IndexElementType type, UsageHint usage)
+nex::IndexBuffer::~IndexBuffer() = default;
+
+void nex::IndexBuffer::fill(IndexElementType type, size_t count, const void* data, UsageHint usage)
 {
 	mCount = count;
 	mType = type;
@@ -20,5 +23,5 @@ void nex::IndexBuffer::fill(const void* data, size_t count, IndexElementType typ
 	auto byteSize = sizeof(GLuint);
 	if (mType == IndexElementType::BIT_16) byteSize = sizeof(GLushort);
 
-	resize(data, mCount * byteSize, usage);
+	resize(mCount * byteSize, data, usage);
 }

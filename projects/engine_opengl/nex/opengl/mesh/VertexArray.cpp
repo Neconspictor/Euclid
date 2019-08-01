@@ -2,7 +2,7 @@
 #include <nex/opengl/opengl.hpp>
 #include "nex/opengl/RenderBackendGL.hpp"
 #include "VertexArrayGL.hpp"
-#include <nex/mesh/VertexBuffer.hpp>
+#include <nex/buffer/VertexBuffer.hpp>
 #include <nex/mesh/VertexLayout.hpp>
 
 namespace nex
