@@ -33,21 +33,21 @@ set(
     #nex/opengl/buffer
     nex/opengl/buffer/GpuBufferGL.cpp
     nex/opengl/buffer/GpuBufferGL.hpp
+    nex/opengl/buffer/IndexBuffer.cpp
+    nex/opengl/buffer/ShaderBufferGL.hpp
+	nex/opengl/buffer/ShaderBufferGL.cpp
+    nex/opengl/buffer/VertexBuffer.cpp
 	
 	#nex/opengl/gui
 	nex/opengl/gui/ImGUI_GL.hpp
 	nex/opengl/gui/ImGUI_GL.cpp
     
     #nex/opengl/mesh
-    nex/opengl/mesh/IndexBuffer.cpp
     nex/opengl/mesh/VertexArray.cpp
     nex/opengl/mesh/VertexArrayGL.hpp
-    nex/opengl/mesh/VertexBuffer.cpp
     
     #nex/opengl/shader
     nex/opengl/shader/PassGL.cpp
-    nex/opengl/shader/ShaderBufferGL.hpp
-	nex/opengl/shader/ShaderBufferGL.cpp
     nex/opengl/shader/ShaderGL.hpp
 	nex/opengl/shader/ShaderGL.cpp
     

@@ -33,7 +33,13 @@ namespace nex
 			READ_WRITE, LAST = READ_WRITE,
 		};
 
-		virtual ~GpuBuffer();
+		GpuBuffer(GpuBuffer&& other) = default;
+		GpuBuffer& operator=(GpuBuffer&& o) = default;
+
+		GpuBuffer(const GpuBuffer& o) = delete;
+		GpuBuffer& operator=(const GpuBuffer& o) = delete;
+
+		virtual ~GpuBuffer() = default;
 
 		void bind();
 		
@@ -91,10 +97,42 @@ namespace nex
 		 * @param internalBufferType: A render backend specific argument specifying the buffer type.
 		 * @param size : The size of the buffer. Must be a multiple of four.
 		 */
-		GpuBuffer(void* data, size_t size, void* internalBufferType, UsageHint hint);
+		GpuBuffer(void* internalBufferType, UsageHint hint, size_t size, void* data = nullptr);
 
 		size_t mSize;
 		UsageHint mUsageHint;
 		std::unique_ptr<Impl> mImpl;
 	};
+
+	class ShaderBuffer : public GpuBuffer
+	{
+	public:
+
+		virtual ~ShaderBuffer() = default;
+
+		/**
+		 * Binds the buffer to it's specified default binding point.
+		 */
+		void bindToTarget();
+
+		/**
+		 * Binds the buffer using a specified binding point.
+		 */
+		void bindToTarget(unsigned binding);
+
+		unsigned getDefaultBinding() const;
+
+	protected:
+
+		/**
+		 * Creates a new shader buffer.
+		 * @param binding : The binding location of the buffer in the shader.
+		 * @param size : The size of the buffer. Must be a multiple of four.
+		 */
+		ShaderBuffer(unsigned int binding, void* internalBufferType, UsageHint hint, size_t size, void* data = nullptr);
+
+
+		unsigned int mBinding;
+	};
+
 }

@@ -33,6 +33,14 @@ namespace nex
 
 		Impl(GLenum target);
 
+		Impl(Impl&& other) noexcept;
+		Impl& operator=(Impl&& o) noexcept;
+
+		Impl(const Impl& o) = delete;
+		Impl& operator=(const Impl& o) = delete;
+
+		~Impl();
+
 		GLenum mTarget;
 		GLenum mRendererID;
 	};

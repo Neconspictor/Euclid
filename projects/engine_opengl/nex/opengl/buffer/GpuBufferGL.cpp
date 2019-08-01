@@ -1,29 +1,96 @@
+#include <nex/buffer/GpuBuffer.hpp>
 #include <nex/opengl/buffer/GpuBufferGL.hpp>
 #include <nex/opengl/opengl.hpp>
 
+
+nex::UsageHintGL nex::translate(nex::GpuBuffer::UsageHint hint)
+{
+	static UsageHintGL const table[] =
+	{
+			DYNAMIC_COPY,
+			DYNAMIC_DRAW,
+			DYNAMIC_READ,
+
+			STATIC_COPY,
+			STATIC_READ,
+			STATIC_DRAW,
+
+			STREAM_COPY,
+			STREAM_DRAW,
+			STREAM_READ,
+	};
+
+	static const unsigned size = static_cast<unsigned>(GpuBuffer::UsageHint::LAST) + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: UsageHint and UsageHintGL doesn't match");
+
+	return table[static_cast<unsigned>(hint)];
+}
+
+nex::AccessGL nex::translate(nex::GpuBuffer::Access access)
+{
+	static AccessGL const table[] =
+	{
+		READ_ONLY,
+		WRITE_ONLY,
+		READ_WRITE,
+	};
+
+	static const unsigned size = static_cast<unsigned>(GpuBuffer::Access::LAST) + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: Access and AccessGL doesn't match");
+
+	return table[static_cast<unsigned>(access)];
+}
+
 nex::GpuBuffer::Impl::Impl(GLenum target) : mTarget(target), mRendererID(GL_FALSE)
 {
+	ASSERT(sizeof(unsigned int) == sizeof(GLuint));
+	ASSERT(sizeof(unsigned short) == sizeof(GLshort));
+
+	GLCall(glGenBuffers(1, &mRendererID));
+}
+
+nex::GpuBuffer::Impl::Impl(nex::GpuBuffer::Impl&& other) noexcept :
+	mRendererID(other.mRendererID),
+	mTarget(other.mTarget)
+{
+	other.mRendererID = GL_FALSE;
+}
+
+nex::GpuBuffer::Impl& nex::GpuBuffer::Impl::operator=(nex::GpuBuffer::Impl&& o) noexcept
+{
+	if (this == &o) return *this;
+
+	this->mRendererID = o.mRendererID;
+	o.mRendererID = GL_FALSE;
+
+	this->mTarget = o.mTarget;
+
+	return *this;
+}
+
+nex::GpuBuffer::Impl::~Impl()
+{
+	if (mRendererID != GL_FALSE) {
+		GLCall(glDeleteBuffers(1, &mRendererID));
+		mRendererID = GL_FALSE;
+	}
 }
 
 
-nex::GpuBuffer::GpuBuffer(void* data, size_t size, void* internalBufferType, UsageHint hint) :
+nex::GpuBuffer::GpuBuffer(void* internalBufferType, UsageHint hint, size_t size, void* data) :
 	mSize(size),
 	mUsageHint(hint),
-	mImpl(std::make_unique<Impl>((GLenum)internalBufferType))
+
+#pragma warning( push )
+#pragma warning( disable : 4311) // warning for pointer truncation from void* to GLenum
+#pragma warning( disable : 4302) // warning for  truncation from void* to GLenum
+	mImpl(std::make_unique<Impl>(reinterpret_cast<GLenum>(internalBufferType)))
+#pragma warning( pop ) 
 {
 
 	GLCall(glGenBuffers(1, &mImpl->mRendererID));
 	GLCall(glBindBuffer(mImpl->mTarget, mImpl->mRendererID));
 	resize(nullptr, mSize, mUsageHint);
-}
-
-nex::GpuBuffer::~GpuBuffer()
-{
-	if (mImpl->mRendererID != GL_FALSE)
-	{
-		GLCall(glDeleteBuffers(1, &mImpl->mRendererID));
-		mImpl->mRendererID = GL_FALSE;
-	}
 }
 
 void nex::GpuBuffer::bind()
@@ -73,40 +140,25 @@ void nex::GpuBuffer::resize(const void* data, size_t size, GpuBuffer::UsageHint 
 	GLCall(glNamedBufferData(mImpl->mRendererID, size, data, translate(hint)));
 }
 
-nex::UsageHintGL nex::translate(nex::GpuBuffer::UsageHint hint)
+
+
+void nex::ShaderBuffer::bindToTarget()
 {
-	static UsageHintGL const table[] =
-	{
-			DYNAMIC_COPY,
-			DYNAMIC_DRAW,
-			DYNAMIC_READ,
-
-			STATIC_COPY,
-			STATIC_READ,
-			STATIC_DRAW,
-
-			STREAM_COPY,
-			STREAM_DRAW,
-			STREAM_READ,
-	};
-
-	static const unsigned size = static_cast<unsigned>(GpuBuffer::UsageHint::LAST) + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: UsageHint and UsageHintGL doesn't match");
-
-	return table[static_cast<unsigned>(hint)];
+	bindToTarget(mBinding);
 }
 
-nex::AccessGL nex::translate(nex::GpuBuffer::Access access)
+void nex::ShaderBuffer::bindToTarget(unsigned binding)
 {
-	static AccessGL const table[] =
-	{
-		READ_ONLY,
-		WRITE_ONLY,
-		READ_WRITE,
-	};
+	GLCall(glBindBufferBase(GpuBuffer::mImpl->mTarget, binding, GpuBuffer::mImpl->mRendererID));
+}
 
-	static const unsigned size = static_cast<unsigned>(GpuBuffer::Access::LAST) + 1;
-	static_assert(sizeof(table) / sizeof(table[0]) == size, "NeX error: Access and AccessGL doesn't match");
+unsigned nex::ShaderBuffer::getDefaultBinding() const
+{
+	return mBinding;
+}
 
-	return table[static_cast<unsigned>(access)];
+nex::ShaderBuffer::ShaderBuffer(unsigned int binding, void* internalBufferType, UsageHint hint, size_t size, void* data) :
+	GpuBuffer(internalBufferType, hint, size, data), mBinding(binding)
+{
+
 }
