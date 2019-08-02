@@ -7,6 +7,10 @@
 namespace nex
 {
 
+	class Technique;
+	class SimpleColorPass;
+	class Material;
+
 	class ProbeCluster
 	{
 	public:
@@ -30,6 +34,7 @@ namespace nex
 		};
 
 		ProbeCluster(Scene* scene);
+		virtual ~ProbeCluster();
 
 		nex::PerspectiveCamera& getCamera();
 
@@ -43,6 +48,9 @@ namespace nex
 
 		nex::PerspectiveCamera mCamera;
 		Scene* mScene;
+		std::unique_ptr<SimpleColorPass> mPass;
+		std::unique_ptr<Technique> mTechnique;
+		std::unique_ptr<Material> mMaterial;
 	};
 
 	namespace gui {

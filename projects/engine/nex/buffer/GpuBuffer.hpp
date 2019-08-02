@@ -50,9 +50,7 @@ namespace nex
 
 		UsageHint getUsageHint() const;
 
-		/**
-		 * Note: bind() has to be called before calling this function.
-		 */
+
 		void* map(Access usage);
 
 		/**
@@ -60,9 +58,6 @@ namespace nex
 		 */
 		void unbind();
 
-		/**
-		 * Note: bind() has to be called before calling this function.
-		 */
 		void unmap();
 
 		/**

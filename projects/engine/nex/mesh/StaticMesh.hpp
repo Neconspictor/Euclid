@@ -40,8 +40,23 @@ namespace nex
 		const Mappings& getMappings() const;
 		const Materials& getMaterials() const;
 		const Meshes& getMeshes() const;
+
+		/**
+		 * Merges meshes with same material.
+		 */
+		void merge();
 		
 	protected:
+
+		std::vector<Material*> collectMaterials() const;
+		std::vector<Mesh*> collectMeshes(const Material* material) const;
+
+		std::unique_ptr<Mesh> merge(const std::vector<Mesh*>& meshes, const Material* material, IndexElementType type);
+
+		void removeMeshes(std::vector<Mesh*>& meshes);
+
+		void translate(size_t offset, IndexElementType type, size_t count, void* data);
+
 		Mappings mMappings;
 		Materials mMaterials;
 		Meshes mMeshes;

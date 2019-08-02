@@ -163,6 +163,7 @@ void nex::GpuBuffer::resize(size_t size, const void* data, GpuBuffer::UsageHint 
 {
 	//bind();
 	mUsageHint = hint;
+	mSize = size;
 	GLCall(glNamedBufferData(mImpl->mRendererID, size, data, translate(hint)));
 }
 

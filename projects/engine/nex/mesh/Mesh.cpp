@@ -13,8 +13,6 @@ Mesh::Mesh() : mTopology(Topology::TRIANGLES)
 
 void nex::Mesh::finalize()
 {
-	std::cout << "Called mesh finalization function!" << std::endl;
-
 	if (mVertexArray) return;
 
 	mVertexArray = std::make_unique<VertexArray>();

@@ -8,9 +8,23 @@
 #include <nex/gui/Util.hpp>
 
 
-nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene)
+nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
+mPass(std::make_unique<SimpleColorPass>()),
+mTechnique(std::make_unique<Technique>(mPass.get())), 
+mMaterial(std::make_unique<Material>(mTechnique.get()))
 {
+	mPass->bind();
+	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
+
+	auto& state = mMaterial->getRenderState();
+	state.fillMode = FillMode::LINE;
+	state.doCullFaces = false;
+	state.isTool = true;
+	state.doShadowCast = false;
+	state.doShadowReceive = false;
 }
+
+nex::ProbeCluster::~ProbeCluster() = default;
 
 nex::PerspectiveCamera& nex::ProbeCluster::getCamera()
 {
@@ -23,20 +37,8 @@ void nex::ProbeCluster::generate(const Frustum& frustum)
 
 	auto container = std::make_unique<StaticMeshContainer>();
 
-	thread_local auto pass = std::make_unique<SimpleColorPass>();
-		pass->bind();
-		pass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
-	thread_local auto technique = std::make_unique<Technique>(pass.get());
-
-	auto material = std::make_unique<Material>(technique.get());
-	auto& state = material->getRenderState();
-	state.fillMode = FillMode::LINE;
-	state.doCullFaces = false;
-	state.isTool = true;
-	state.doShadowCast = false;
-	state.doShadowReceive = false;
-
-	container->add(std::move(mesh), std::move(material));
+	container->addMapping(mesh.get(), mMaterial.get());
+	container->add(std::move(mesh));
 	container->finalize();
 
 	mScene->acquireLock();
@@ -57,6 +59,7 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize)
 {
 	mCamera.update();
 	ClusterElement elem;
+	auto container = std::make_unique<StaticMeshContainer>();
 
 	elem.width = 1.0f / (float) clusterSize.xSize;
 	elem.height = 1.0f / (float) clusterSize.ySize;
@@ -70,10 +73,21 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize)
 				elem.yOffset = y * elem.height;
 				elem.zOffset = z * elem.depth;
 
-				generateClusterElement(elem);
+				auto frustumView = mCamera.calcClusterElementViewSpace(elem.xOffset, elem.yOffset, elem.zOffset, elem.depth, elem.width, elem.height);
+				const auto viewInv = inverse(mCamera.getView());
+				const auto frustumWorld = frustumView * viewInv;
+				auto mesh = std::make_unique<FrustumMesh>(frustumWorld);
+
+				container->addMapping(mesh.get(), mMaterial.get());
+				container->add(std::move(mesh));
 			}
 		}
 	}
+
+	container->finalize();
+	container->merge();
+	mScene->acquireLock();
+	mScene->addVobUnsafe(std::make_unique<MeshOwningVob>(std::move(container)), true);
 
 }
 
