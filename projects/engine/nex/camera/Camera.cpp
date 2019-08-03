@@ -253,19 +253,20 @@ namespace nex
 		const auto tanFovYHalfth = tanf(getFovY() / 2.0f);
 		const auto aspectRatio = getAspectRatio();
 
-		// normalize screen position to [-1, 1] x [-1, 1]
+		// normalize screen position to [-1, 1] x [-1, 1] (clip space)
+		// Note: screen space has origin at top left corner, while cip space has origin at bottom left corner.
+		// Therefore we have to flip the y axis.
 		// Note: If screen position is out of range, the normalized position won't be in the target range,
 		// but the followed calculations will be correct nevertheless.
 		const float height = (screenDimension.y - screenPosition.y) / (float)screenDimension.y;
-
-		glm::vec2 normalizedPosition = 2.0f * glm::vec2(screenPosition.x / (float)screenDimension.x, height) - 1.0f;
+		glm::vec2 positionClipSpace = 2.0f * glm::vec2(screenPosition.x / (float)screenDimension.x, height) - 1.0f;
 		
-		// Compute direction vectors of the ray for each axis in the camera coordinate system in world space
+		// Compute direction vectors of the ray for each axis in the camera coordinate system
 		const glm::vec3 lookComponent = look * nearD;
-		const glm::vec3 rightComponent = normalizedPosition.x * right * aspectRatio * tanFovYHalfth * nearD;
-		const glm::vec3 upComponent = normalizedPosition.y * up * tanFovYHalfth * nearD;
+		const glm::vec3 rightComponent = positionClipSpace.x * right * aspectRatio * tanFovYHalfth * nearD;
+		const glm::vec3 upComponent = positionClipSpace.y * up * tanFovYHalfth * nearD;
 
-		// the linear combination of the component vectors give as the ray direction to the screen position
+		// the linear combination of the component vectors give us the ray direction to the screen position
 		const glm::vec3 dir = normalize(lookComponent + rightComponent + upComponent);
 		const glm::vec3 origin = getPosition() + dir * nearD;
 
