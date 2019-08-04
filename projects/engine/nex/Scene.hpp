@@ -188,6 +188,12 @@ namespace nex
 		void setRotation(const glm::mat4& rotation);
 		void setRotation(const glm::quat& rotation);
 
+		/**
+		 * Sets the visual transformation of this vob
+		 * based on a matrix.
+		 */
+		void setTrafo(const glm::mat4& mat);
+
 
 		/**
 		 * Calculates the transformation matrix of this vob

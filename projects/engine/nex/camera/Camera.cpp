@@ -8,6 +8,8 @@
 #include "nex/util/ExceptionHandling.hpp"
 #include "nex/math/Ray.hpp"
 #include "nex/math/Constant.hpp"
+#include <nex/math/BoundingBox.hpp>
+#include <nex/math/Math.hpp>
 
 
 namespace nex
@@ -562,5 +564,16 @@ namespace nex
 		f.planes[(unsigned)FrustumPlane::Top] = transformWithTransposeInverse(transposeInverse, g.planes[(unsigned)FrustumPlane::Top]);
 
 		return f;
+	}
+	nex::AABB Frustum::calcAABB() const
+	{
+		AABB box;
+
+		for (unsigned i = 0; i < 8; ++i) {
+			box.min = minVec(box.min, corners[i]);
+			box.max = maxVec(box.max, corners[i]);
+		}
+
+		return box;
 	}
 }

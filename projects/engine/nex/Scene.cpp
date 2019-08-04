@@ -5,6 +5,7 @@
 #include <nex/math/Math.hpp>
 #include <nex/mesh/Mesh.hpp>
 #include <nex/mesh/StaticMesh.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace nex
 {
@@ -351,6 +352,13 @@ namespace nex
 	void Vob::setSelectable(bool selectable)
 	{
 		mSelectable = selectable;
+	}
+
+	void Vob::setTrafo(const glm::mat4& mat)
+	{
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		glm::decompose(mat, mScale, mRotation, mPosition, skew, perspective);
 	}
 
 	void Vob::updateTrafo(bool resetPrevWorldTrafo)

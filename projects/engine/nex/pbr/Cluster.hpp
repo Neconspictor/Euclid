@@ -44,7 +44,20 @@ namespace nex
 
 		void generateCluster(const ClusterSize& clusterSize);
 
+		void generateClusterCpuTest(const ClusterSize& clusterSize);
+
 	private:
+
+		nex::AABB main(const glm::vec3& gl_WorkGroupID,
+			const glm::vec3& gl_NumWorkGroups, 
+			const glm::vec2& zNearFar, 
+			const glm::uvec4& tileSizes,
+			const glm::mat4& invProj, 
+			const glm::vec2& screenDimension);
+
+		glm::vec3 lineIntersectionToZPlane(const glm::vec3& firstPoint, glm::vec3& secondPoint, float zValueViewSpace);
+		glm::vec4 screen2View(const glm::vec4& screen, const glm::mat4& invProj, const glm::vec2& screenDimension);
+		glm::vec4 clipToView(const glm::vec4& clip, const glm::mat4& invProj);
 
 		nex::PerspectiveCamera mCamera;
 		Scene* mScene;

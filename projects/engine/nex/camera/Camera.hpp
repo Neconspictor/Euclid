@@ -9,6 +9,7 @@ namespace nex
 {
 	class Input;
 	class Ray;
+	struct AABB;
 
 	enum class FrustumPlane
 	{
@@ -58,6 +59,8 @@ namespace nex
 		 * 5: top
 		 */
 		Plane planes[6];
+
+		AABB calcAABB()const;
 	};
 
 	Frustum operator*(const Frustum& frustum, const glm::mat4& mat);
