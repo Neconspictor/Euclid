@@ -48,7 +48,6 @@ namespace nex::gui
 		};
 
 		static std::unique_ptr<Mesh> createBoundingBoxMesh();
-		static std::unique_ptr<Mesh> createBoundingBoxLineMesh();
 
 		static std::unique_ptr<Mesh> createLineMesh();
 

@@ -6,6 +6,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/math/Math.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 namespace nex
 {
@@ -227,5 +228,89 @@ namespace nex
 		mIndexBuffer.unbind();
 
 		mTopology = Topology::LINES;
+	}
+	MeshAABB::MeshAABB(const AABB& box)
+	{
+		//create vertices in CCW
+		const size_t vertexSize = 8;
+		VertexPosition vertices[vertexSize];
+
+		// bottom plane
+		vertices[0].position = box.min;
+		vertices[1].position = glm::vec3(box.min.x, box.min.y, box.max.z);
+		vertices[2].position = glm::vec3(box.max.x, box.min.y, box.max.z);
+		vertices[3].position = glm::vec3(box.max.x, box.min.y, box.min.z);
+
+		// top plane
+		vertices[4].position = glm::vec3(box.min.x, box.max.y, box.min.z);
+		vertices[5].position = glm::vec3(box.min.x, box.max.y, box.max.z);
+		vertices[6].position = box.max;
+		vertices[7].position = glm::vec3(box.max.x, box.max.y, box.min.z);
+
+		const size_t indicesSize = 32;
+		unsigned indices[indicesSize];
+
+		// bottom
+		indices[0] = 0;
+		indices[1] = 1;
+		indices[2] = 0;
+		indices[3] = 3;
+		indices[4] = 1;
+		indices[5] = 2;
+		indices[6] = 2;
+		indices[7] = 3;
+
+		// top
+		indices[8] = 4;
+		indices[9] = 5;
+		indices[10] = 4;
+		indices[11] = 7;
+		indices[12] = 5;
+		indices[13] = 6;
+		indices[14] = 6;
+		indices[15] = 7;
+
+		// front
+		indices[16] = 0;
+		indices[17] = 4;
+		indices[18] = 1;
+		indices[19] = 5;
+
+		// back
+		indices[20] = 3;
+		indices[21] = 7;
+		indices[22] = 2;
+		indices[23] = 6;
+
+		// left
+		indices[24] = 0;
+		indices[25] = 4;
+		indices[26] = 3;
+		indices[27] = 7;
+
+		// right
+		indices[28] = 1;
+		indices[29] = 5;
+		indices[30] = 2;
+		indices[31] = 6;
+
+
+		// Calc bounding box
+		mBoundingBox = box;
+
+		// define layout
+		mLayout.push<glm::vec3>(1); // position
+
+		// upload data into buffers
+		mVertexBuffer.bind();
+		mVertexBuffer.resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+
+		mIndexBuffer.bind();
+		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
+		mIndexBuffer.unbind();
+
+		mTopology = Topology::LINES;
+
+
 	}
 }

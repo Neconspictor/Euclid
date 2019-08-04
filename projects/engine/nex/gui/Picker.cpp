@@ -9,6 +9,7 @@
 #include <queue>
 #include <iostream>
 #include "nex/math/Ray.hpp"
+#include <nex/mesh/UtilityMeshes.hpp>
 
 nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
@@ -36,7 +37,9 @@ mBoundingBoxVob(nullptr)
 	lineMaterial->getRenderState().isTool = true;
 	lineMaterial->getRenderState().toolDrawIndex = 0;
 	
-	mBoundingBoxMesh->add(createBoundingBoxLineMesh(), std::move(boxMaterial));
+	AABB box = { glm::vec3(-1.0f), glm::vec3(1.0f) };
+
+	mBoundingBoxMesh->add(std::make_unique<MeshAABB>(box), std::move(boxMaterial));
 	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = std::make_unique<Vob>(mBoundingBoxMesh->createNodeHierarchyUnsafe());
 	mBoundingBoxVob->setSelectable(false);
@@ -76,19 +79,23 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		const auto& node = root->getMeshRootNode();
 		if (node != nullptr)
 		{
-			//const auto invModel = inverse(node->getWorldTrafo());
-			const auto origin = glm::vec3(glm::vec4(screenRayWorld.getOrigin(), 1.0f));
-			const auto direction = glm::vec3(glm::vec4(screenRayWorld.getDir(), 0.0f));
+			const auto invModel = inverse(node->getWorldTrafo());
+			const auto origin = glm::vec3(invModel * glm::vec4(screenRayWorld.getOrigin(), 1.0f));
+			const auto direction = glm::vec3(invModel * glm::vec4(screenRayWorld.getDir(), 0.0f));
 			const auto rayLocal = Ray(origin, direction);
-			const auto box = node->getWorldTrafo() * root->getBoundingBox();
+			//const auto box = node->getWorldTrafo() * root->getBoundingBox();
+			const auto box = root->getBoundingBox();
 			const auto result = box.testRayIntersection(rayLocal);
 			if (result.intersected && (result.firstIntersection >= 0 || result.secondIntersection >= 0))
 			{
 				++intersections;
 				const auto boundingBoxOrigin = (box.max + box.min)/2.0f;
 				//root->getPosition();
-				const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
-				const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
+				//const auto distance = length(boundingBoxOrigin - screenRayWorld.getOrigin());
+				const auto distance = length(boundingBoxOrigin - rayLocal.getOrigin());
+				//const auto rayMinDistance = screenRayWorld.calcClosestDistance(root->getPosition()).distance;
+				const auto rootPositionLocal = glm::vec3(invModel* glm::vec4(root->getPosition(), 1.0f));
+				const auto rayMinDistance = rayLocal.calcClosestDistance(rootPositionLocal).distance;
 				const auto volume = calcVolume(box);
 
 				SelectionTest current;
@@ -129,6 +136,9 @@ nex::Vob* nex::gui::Picker::getPicked()
 void nex::gui::Picker::updateBoundingBoxTrafo()
 {
 	if (!mSelected.vob) return;
+	
+
+	mSelected.vob->updateTrafo(true);
 
 	auto* node = mSelected.vob->getMeshRootNode();
 	const auto& box = mSelected.vob->getBoundingBox();
@@ -137,10 +147,17 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	const auto worldBox = node->getWorldTrafo() * box;
 	auto boxOrigin = (worldBox.max + worldBox.min) / 2.0f;
 	auto boxScale = (worldBox.max - worldBox.min) / 2.0f;
+	auto boxScaleLocal = (box.max - box.min) / 2.0f;
+	auto boxOriginLocal = (box.max + box.min) / 2.0f;
 
-	mBoundingBoxVob->setPosition(boxOrigin);
-	mBoundingBoxVob->setScale(boxScale);
-	mBoundingBoxVob->updateTrafo();
+	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
+	const auto trafo = node->getWorldTrafo() * objectTrafo;
+
+	mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
+	mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
+	//mBoundingBoxVob->setPosition(boxOrigin);
+	//mBoundingBoxVob->setScale(boxScale);
+	//mBoundingBoxVob->updateTrafo();
 }
 
 std::unique_ptr<nex::Mesh> nex::gui::Picker::createBoundingBoxMesh()
@@ -216,76 +233,6 @@ std::unique_ptr<nex::Mesh> nex::gui::Picker::createBoundingBoxMesh()
 	return mesh;
 }
 
-std::unique_ptr<nex::Mesh> nex::gui::Picker::createBoundingBoxLineMesh()
-{
-	//create vertices in CCW
-	const size_t vertexSize = 8;
-	VertexPosition vertices[vertexSize];
-
-	// bottom plane
-	vertices[0].position = glm::vec3(-1);
-	vertices[1].position = glm::vec3(-1, -1, 1);
-	vertices[2].position = glm::vec3(1, -1, 1);
-	vertices[3].position = glm::vec3(1, -1, -1);
-
-	// top plane
-	vertices[4].position = glm::vec3(-1, 1, -1);
-	vertices[5].position = glm::vec3(-1, 1, 1);
-	vertices[6].position = glm::vec3(1);
-	vertices[7].position = glm::vec3(1, 1, -1);
-
-	const size_t indicesSize = 32;
-	unsigned indices[indicesSize];
-
-	// bottom
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 0;
-	indices[3] = 3;
-	indices[4] = 1;
-	indices[5] = 2;
-	indices[6] = 2;
-	indices[7] = 3;
-
-	// top
-	indices[8] = 4;
-	indices[9] = 5;
-	indices[10] = 4;
-	indices[11] = 7;
-	indices[12] = 5;
-	indices[13] = 6;
-	indices[14] = 6;
-	indices[15] = 7;
-
-	// front
-	indices[16] = 0;
-	indices[17] = 4;
-	indices[18] = 1;
-	indices[19] = 5;
-
-	// back
-	indices[20] = 3;
-	indices[21] = 7;
-	indices[22] = 2;
-	indices[23] = 6;
-
-	// left
-	indices[24] = 0;
-	indices[25] = 4;
-	indices[26] = 3;
-	indices[27] = 7;
-
-	// right
-	indices[28] = 1;
-	indices[29] = 5;
-	indices[30] = 2;
-	indices[31] = 6;
-
-	auto mesh = MeshFactory::createPosition(vertices, vertexSize, indices, indicesSize, { glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX) });
-	mesh->mDebugName = "Picker::BoundingBox Line Mesh";
-	mesh->setTopology(Topology::LINES);
-	return mesh;
-}
 
 std::unique_ptr<nex::Mesh> nex::gui::Picker::createLineMesh()
 {

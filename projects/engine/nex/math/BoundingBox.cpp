@@ -54,7 +54,13 @@ nex::AABB::RayIntersection nex::AABB::testRayIntersection(const nex::Ray& ray) c
 
 nex::AABB nex::maxAABB(const AABB& a, const AABB& b)
 {
-	return {minVec(a.min, b.min), maxVec(a.max, b.max)};
+	AABB result = a;
+	result.min = minVec(result.min, b.min);
+	result.min = minVec(result.min, b.max);
+	result.max = maxVec(result.max, b.min);
+	result.max = maxVec(result.max, b.max);
+
+	return result;
 }
 
 nex::AABB nex::operator*(const glm::mat4& trafo, const AABB& box)

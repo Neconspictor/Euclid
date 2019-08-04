@@ -270,7 +270,7 @@ namespace nex
 		const glm::vec3 dir = normalize(lookComponent + rightComponent + upComponent);
 		const glm::vec3 origin = getPosition() + dir * nearD;
 
-		return nex::Ray(origin, dir);;
+		return nex::Ray(origin, dir);
 	}
 
 	void PerspectiveCamera::enableZoom(bool enable)

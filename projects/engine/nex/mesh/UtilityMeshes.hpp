@@ -5,6 +5,7 @@ namespace nex
 {
 	class Material;
 	struct Frustum;
+	struct AABB;
 
 	class SphereMesh : public Mesh
 	{
@@ -19,5 +20,10 @@ namespace nex
 	public:
 
 		FrustumMesh(const Frustum& frustum);
+	};
+
+	class MeshAABB : public Mesh {
+	public:
+		MeshAABB(const AABB& box);
 	};
 }
