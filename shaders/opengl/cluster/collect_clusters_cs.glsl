@@ -38,7 +38,7 @@ void main(void)
     
     clusterActive[clusterID] = uint(true);
     
-    for (uint i = 0; i < numClusters.x; ++i) {
+    /*for (uint i = 0; i < numClusters.x; ++i) {
         for (uint j = 0; j < numClusters.y; ++j) {
             for (uint k = 0; k < numClusters.z; ++k) {
                 uint id = i + 
@@ -47,6 +47,6 @@ void main(void)
                 clusterActive[id] = uint(true);            
             }
         }
-    }
+    }*/
     
 }
