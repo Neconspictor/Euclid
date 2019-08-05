@@ -107,7 +107,6 @@ namespace nex::gui
 		ImGui::Text("Selected scene node:");
 		if (!mPicker || !vob) {
 			ImGui::Text("No scene node selected.");
-			ImGui::PopID();
 			return;
 		}
 
