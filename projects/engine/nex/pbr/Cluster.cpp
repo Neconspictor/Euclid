@@ -56,13 +56,13 @@ public:
 		glm::uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
 		glm::vec4 constantsAB; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
 
-		// The remaining of the buffer is an unsigned char array of 
+		// The remaining of the buffer is an unsigned int array of 
 		// clusterSize.xSize * clusterSize.ySize * clusterSize.zSize elements.
 	};
 
 	void resizeBuffer(const ClusterSize& clusterSize) {
 		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
-		mBuffer->resize(sizeof(ActiveClusters) + flattenedSize * sizeof(unsigned char), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
+		mBuffer->resize(sizeof(ActiveClusters) + flattenedSize * sizeof(unsigned), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	}
 
 	void setDepthTexture(Texture* texture) {
@@ -332,9 +332,9 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 		auto logzFar_zNear = logf(zFarDistance / zNearDistance);
 		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNearDistance) * clusterSize.zSize / logzFar_zNear, 0.0f, 0.0f);
 	
-		auto* flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
+		auto* flagArray = (unsigned*)((char*)data + sizeof(CollectClustersPass::ActiveClusters));
 		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
-		memset(flagArray, 0, flattenedSize);
+		memset(flagArray, 0, flattenedSize * sizeof(unsigned));
 	buffer->unmap();
 
 	buffer->bindToTarget();
@@ -342,7 +342,7 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 
 	data = buffer->map(GpuBuffer::Access::READ_WRITE);
 		activeClusters = (CollectClustersPass::ActiveClusters*)data;
-		flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
+		flagArray = (unsigned*)((char*)data + sizeof(CollectClustersPass::ActiveClusters));
 	buffer->unmap();
 }
 

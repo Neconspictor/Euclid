@@ -11,51 +11,42 @@ layout (std430, binding = 0) buffer ActiveClusters{
     //vec4 screenDimension;
     uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
     vec4 constantsAB; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
-    bool clusterActive[]; // bool has size of unsigned char
+    uint clusterActive[]; // bool is padded to 4 bytes; for clearity we use uint directly;
 };
 
 layout(binding = 0) uniform sampler2D depthTexture;
 
-uint getClusterIndex(vec3 pixelCoord);
-uint getDepthSlice(float z);
 
 void main(void)
 {
     //Getting the depth value
-    vec2 screenCord = gl_WorkGroupID.xy / vec2(gl_NumWorkGroups.xy);
-    float z = texture(depthTexture, screenCord).r; //reading the depth buffer
+    vec2 texCoord = gl_WorkGroupID.xy / vec2(gl_NumWorkGroups.xy);
+    float z = texture(depthTexture, texCoord).r; //reading the depth buffer
     z = 0.1; //just validation now
     
     //Getting the linear cluster index value
-    //uint clusterID = getClusterIndex(vec3(pixelID.xy, z));
     
     uint clusterZVal  = uint(log(z) * numClusters.z / constantsAB.x - constantsAB.y);
+    
+    vec2 clusterPixelSize = gl_NumWorkGroups.xy / numClusters.xy;
 
-    uvec3 clusters    = uvec3( gl_WorkGroupID.x, 
-                               gl_WorkGroupID.y, 
-                               clusterZVal);
+    uvec3 clusters    = uvec3( uvec2(gl_WorkGroupID.xy / clusterPixelSize), clusterZVal);
                                
     uint clusterID = clusters.x +
                         numClusters.x * clusters.y +
                         (numClusters.x * numClusters.y) * clusters.z;
     
-    clusterActive[clusterID] = true;
-}
-
-uint getClusterIndex(vec3 pixelCoord) {
-    // Uses equation (3) from Building a Cluster Grid section
-    uint clusterZVal  = getDepthSlice(pixelCoord.z);
-
-    uvec3 clusters    = uvec3( pixelCoord.x / float(gl_NumWorkGroups.x), 
-                               pixelCoord.y / float(gl_NumWorkGroups.y), 
-                               clusterZVal);
-                               
-    uint clusterIndex = clusters.x +
-                        numClusters.x * clusters.y +
-                        (numClusters.x * numClusters.y) * clusters.z;
-    return clusterIndex;
-}
-
-uint getDepthSlice(float z) {
-    return uint(log(z) * numClusters.z / constantsAB.x - constantsAB.y);
+    clusterActive[clusterID] = uint(true);
+    
+    for (uint i = 0; i < numClusters.x; ++i) {
+        for (uint j = 0; j < numClusters.y; ++j) {
+            for (uint k = 0; k < numClusters.z; ++k) {
+                uint id = i + 
+                            numClusters.x * j + 
+                            (numClusters.x * numClusters.y) * k;
+                clusterActive[id] = uint(true);            
+            }
+        }
+    }
+    
 }
