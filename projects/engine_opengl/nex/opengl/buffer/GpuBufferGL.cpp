@@ -106,8 +106,7 @@ nex::GpuBuffer& nex::GpuBuffer::operator=(GpuBuffer&& o) {
 
 	this->mSize = o.mSize;
 	mUsageHint = o.mUsageHint;
-	mImpl = o.mImpl;
-	o.mImpl = nullptr;
+	std::swap(mImpl, o.mImpl);
 	return *this;
 }
 
