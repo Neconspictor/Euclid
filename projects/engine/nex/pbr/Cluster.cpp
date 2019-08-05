@@ -8,12 +8,51 @@
 #include <nex/gui/Util.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/math/Math.hpp>
+#include <nex/shader/Shader.hpp>
+#include <nex/buffer/ShaderBuffer.hpp>
+
+class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
+public:
+
+	struct AABB {
+		glm::vec4 min;
+		glm::vec4 max;
+	};
+
+	struct Constants {
+		glm::mat4 invProj;
+		glm::vec4 zNearFar; // near and far plane in view space; z and w component unused
+	};
+
+	GenerateClusterPass() : 
+		ComputePass(Shader::createComputeShader("cluster/clusters_cs.glsl")) 
+	{
+
+	}
+
+	static unsigned getClusterAABBBinding() {
+		return 0;
+	}
+
+	static unsigned getConstantsBinding() {
+		return 1;
+	}
+};
 
 
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
 mPass(std::make_unique<SimpleColorPass>()),
 mTechnique(std::make_unique<Technique>(mPass.get())), 
-mMaterial(std::make_unique<Material>(mTechnique.get()))
+mMaterial(std::make_unique<Material>(mTechnique.get())),
+mGenerateClusterShader(std::make_unique<GenerateClusterPass>()),
+mConstantsBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getConstantsBinding(), 
+	sizeof(GenerateClusterPass::Constants), 
+	nullptr, 
+	GpuBuffer::UsageHint::DYNAMIC_COPY)),
+mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getClusterAABBBinding(), 
+	0, // Note: we dynamically resize the buffer 
+	nullptr, 
+	GpuBuffer::UsageHint::DYNAMIC_COPY))
 {
 	mPass->bind();
 	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
@@ -59,7 +98,8 @@ void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem)
 
 void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize)
 {
-	generateClusterCpuTest(clusterSize); return;
+	//generateClusterCpuTest(clusterSize); return;
+	generateClusterGpu(clusterSize); return;
 	mCamera.update();
 	ClusterElement elem;
 	auto container = std::make_unique<StaticMeshContainer>();
@@ -175,6 +215,64 @@ void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 }
 
+void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
+{
+	mCamera.update();
+	const auto viewInv = inverse(mCamera.getView());
+	const auto middleDistance = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f;
+	const auto lookVecView = glm::vec3(0, 0, Camera::getViewSpaceZfromDistance(1.0f));
+	const auto middleTrans = glm::translate(glm::mat4(), -middleDistance * lookVecView);
+
+	auto container = std::make_unique<StaticMeshContainer>();
+
+	mGenerateClusterShader->bind();
+
+	mConstantsBuffer->bindToTarget();
+	mClusterAABBBuffer->bindToTarget();
+
+	// update buffers
+	const auto flattedClusterSize = clusterSize.xSize* clusterSize.ySize* clusterSize.zSize;
+	mClusterAABBBuffer->resize(sizeof(GenerateClusterPass::AABB) * flattedClusterSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+	GenerateClusterPass::Constants constants;
+	constants.invProj = inverse(mCamera.getProjectionMatrix());
+	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()), 
+		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
+	mConstantsBuffer->update(sizeof(GenerateClusterPass::Constants), &constants);
+	
+	// generate clusters
+	mGenerateClusterShader->dispatch(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize);
+
+
+	// Readback the generated clusters
+	auto* clusters = (GenerateClusterPass::AABB*)mClusterAABBBuffer->map(GpuBuffer::Access::READ_ONLY);
+		for (unsigned i = 0; i < flattedClusterSize; ++i) {
+			auto& cluster = clusters[i];
+
+			AABB box = {glm::vec3(cluster.min), glm::vec3(cluster.max)};
+
+			box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
+			box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
+
+			auto mesh = std::make_unique<MeshAABB>(box);
+			container->addMapping(mesh.get(), mMaterial.get());
+			container->add(std::move(mesh));
+		}
+	mClusterAABBBuffer->unmap();
+
+	container->finalize();
+	container->merge();
+	mScene->acquireLock();
+
+	auto vob = std::make_unique<MeshOwningVob>(std::move(container));
+	vob->setTrafo(viewInv);
+	const auto& look = mCamera.getLook();
+	const auto middlePoint = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f * look;
+	vob->setPosition(vob->getPosition() + middlePoint);
+	vob->updateTrafo(true);
+
+	mScene->addVobUnsafe(std::move(vob), true);
+}
+
 
 nex::AABB nex::ProbeCluster::main(const glm::vec3& gl_WorkGroupID, 
 	const glm::vec3& gl_NumWorkGroups, 
@@ -242,10 +340,11 @@ glm::vec3 nex::ProbeCluster::lineIntersectionToZPlane(const glm::vec3& firstPoin
 
 	// Computing the intersection length for the line and the plane
 	// For formula see 'Mathematics for 3D Game Programming and Computer Graphics', p.99, Eric Lengyel
-	// Note: dot(normal, lineDirection) == lineDirection.z since normal.x == normal.y == 0
-	// and normal.z == 1.0!
-	// Anologously we get dot(normal, firstPoint) == firstPoint.z 
-	float t = -(dot(normal, firstPoint) + zValueViewSpace) / dot(normal, lineDirection);
+	// Note: dot(normal, lineDirection) == -lineDirection.z since normal.x == normal.y == 0
+	// and normal.z == -1.0!
+	// Anologously we get dot(normal, firstPoint) == -firstPoint.z 
+	//float t = -(dot(normal, firstPoint) + zValueViewSpace) / dot(normal, lineDirection);
+	float t = (-firstPoint.z + zValueViewSpace) / lineDirection.z;
 
 	//Computing the actual xyz position of the point along the line
 	vec3 result = firstPoint + t * lineDirection;

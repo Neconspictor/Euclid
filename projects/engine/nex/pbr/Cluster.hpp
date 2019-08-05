@@ -10,6 +10,7 @@ namespace nex
 	class Technique;
 	class SimpleColorPass;
 	class Material;
+	class ShaderStorageBuffer;
 
 	class ProbeCluster
 	{
@@ -46,7 +47,11 @@ namespace nex
 
 		void generateClusterCpuTest(const ClusterSize& clusterSize);
 
+		void generateClusterGpu(const ClusterSize& clusterSize);
+
 	private:
+
+		class GenerateClusterPass;
 
 		nex::AABB main(const glm::vec3& gl_WorkGroupID,
 			const glm::vec3& gl_NumWorkGroups, 
@@ -64,6 +69,9 @@ namespace nex
 		std::unique_ptr<SimpleColorPass> mPass;
 		std::unique_ptr<Technique> mTechnique;
 		std::unique_ptr<Material> mMaterial;
+		std::unique_ptr<GenerateClusterPass> mGenerateClusterShader;
+		std::unique_ptr<ShaderStorageBuffer> mConstantsBuffer;
+		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
 	};
 
 	namespace gui {
