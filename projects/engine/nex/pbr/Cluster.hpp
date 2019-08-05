@@ -50,11 +50,13 @@ namespace nex
 		void generateClusterGpu(const ClusterSize& clusterSize);
 
 		void collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance);
+		void cleanActiveClusterListGpuTest(const ClusterSize& clusterSize, ShaderStorageBuffer* activeClusters);
 
 	private:
 
 		class GenerateClusterPass;
 		class CollectClustersPass;
+		class CleanClusterListPass;
 
 		nex::AABB main(const glm::vec3& gl_WorkGroupID,
 			const glm::vec3& gl_NumWorkGroups, 
@@ -77,6 +79,7 @@ namespace nex
 		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
 
 		std::unique_ptr<CollectClustersPass> mCollectClustersPass;
+		std::unique_ptr<CleanClusterListPass> mCleanClusterListPass;
 	};
 
 	namespace gui {

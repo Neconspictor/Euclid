@@ -81,6 +81,33 @@ private:
 };
 
 
+class nex::ProbeCluster::CleanClusterListPass : public nex::ComputePass {
+public:
+
+	struct OutputHeader {
+		glm::uint globalActiveClusterCount;
+	};
+
+	CleanClusterListPass() :
+		ComputePass(Shader::createComputeShader("cluster/clean_cluster_list_cs.glsl")),
+		mOutput(std::make_unique<ShaderStorageBuffer>(1, 0, nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
+	{
+
+	}
+
+	unsigned getInputBindingPoint() {
+		return 0;
+	}
+
+	ShaderStorageBuffer* getOutput() {
+		return mOutput.get();
+	}
+
+private:
+	std::unique_ptr<ShaderStorageBuffer> mOutput;
+};
+
+
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
 mPass(std::make_unique<SimpleColorPass>()),
 mTechnique(std::make_unique<Technique>(mPass.get())), 
@@ -94,7 +121,8 @@ mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::ge
 	0, // Note: we dynamically resize the buffer 
 	nullptr, 
 	GpuBuffer::UsageHint::DYNAMIC_COPY)),
-mCollectClustersPass(std::make_unique<CollectClustersPass>())
+mCollectClustersPass(std::make_unique<CollectClustersPass>()),
+mCleanClusterListPass(std::make_unique<CleanClusterListPass>())
 {
 	mPass->bind();
 	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
@@ -316,6 +344,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 
 
 	collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance());
+	cleanActiveClusterListGpuTest(clusterSize, mCollectClustersPass->getBuffer());
 }
 
 void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance)
@@ -344,6 +373,29 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 		activeClusters = (CollectClustersPass::ActiveClusters*)data;
 		flagArray = (unsigned*)((char*)data + sizeof(CollectClustersPass::ActiveClusters));
 	buffer->unmap();
+}
+
+void nex::ProbeCluster::cleanActiveClusterListGpuTest(const ClusterSize& clusterSize, ShaderStorageBuffer* activeClusters)
+{
+	mCleanClusterListPass->bind();
+
+
+	auto* output = mCleanClusterListPass->getOutput();
+	unsigned defaultGlobalActiveClusterCount = 0;
+	const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+	output->resize(sizeof(unsigned) * (flattenedSize + 1), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
+	output->update(sizeof(unsigned), &defaultGlobalActiveClusterCount);
+
+	activeClusters->bindToTarget(mCleanClusterListPass->getInputBindingPoint());
+	output->bindToTarget();
+
+	mCleanClusterListPass->dispatch(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize);
+
+	void* data = output->map(GpuBuffer::Access::READ_ONLY);
+		auto* header = (CleanClusterListPass::OutputHeader*)data;
+		auto globalActiveClusterCount = header->globalActiveClusterCount;
+		auto* cleanedClusterList = (unsigned*)((char*)data + sizeof(CleanClusterListPass::OutputHeader));
+	output->unmap();
 }
 
 
