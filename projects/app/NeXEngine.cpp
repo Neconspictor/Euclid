@@ -55,6 +55,7 @@ NeXEngine::NeXEngine(SubSystemProvider* provider) :
 NeXEngine::~NeXEngine()
 {
 	mWindowSystem = nullptr;
+	ResourceLoader::shutdown();
 }
 
 nex::LogLevel NeXEngine::getLogLevel() const

@@ -7,9 +7,11 @@ nex::Logger GLOBAL_RENDERER_LOGGER("Global Renderer");
 namespace nex
 {
 
+	bool glLogDeactivated = false;
+
 	void GLClearError()
 	{
-
+		if (glLogDeactivated) return;
 		unsigned int finite = 4096;
 		GLuint errorCode = glGetError();
 
@@ -35,6 +37,8 @@ namespace nex
 
 		bool noErrorsOccurred = true;
 
+		if (glLogDeactivated) return noErrorsOccurred;
+
 		while (GLenum error = glGetError())
 		{
 			logger.log(nex::LogLevel::Warning) << "Error occurred: " << GLErrorToString(error) << " (0x" << std::hex << error << ")";
@@ -42,6 +46,11 @@ namespace nex
 		}
 
 		return noErrorsOccurred;
+	}
+
+	void GLDeactivateLog()
+	{
+		glLogDeactivated = true;
 	}
 
 	std::string GLErrorToString(GLuint errorCode)

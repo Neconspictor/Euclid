@@ -23,7 +23,7 @@ mCommandQueue(renderEngine.getCommandQueue())
 
 nex::ResourceLoader::~ResourceLoader()
 {
-	shutdown();
+	shutdownSelf();
 }
 
 void nex::ResourceLoader::init(Window* shared, const RenderEngine& renderEngine)
@@ -34,6 +34,11 @@ void nex::ResourceLoader::init(Window* shared, const RenderEngine& renderEngine)
 nex::ResourceLoader* nex::ResourceLoader::get()
 {
 	return mInstance.get();
+}
+
+void nex::ResourceLoader::shutdown()
+{
+	mInstance = nullptr;
 }
 
 const nex::ConcurrentQueue<std::shared_ptr<std::exception>>& nex::ResourceLoader::getExceptionQueue() const
@@ -69,7 +74,7 @@ void nex::ResourceLoader::resetJobCounter()
 	mRequestedJobs = 0;
 }
 
-void nex::ResourceLoader::shutdown()
+void nex::ResourceLoader::shutdownSelf()
 {
 	{
 		std::unique_lock<std::mutex> lock(mMutex);

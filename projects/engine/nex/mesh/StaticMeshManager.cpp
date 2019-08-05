@@ -60,7 +60,10 @@ nex::StaticMeshManager::StaticMeshManager() :
 		mFullscreenTriangle->unbind();
 	}
 
-	nex::StaticMeshManager::~StaticMeshManager() = default;
+nex::StaticMeshManager::~StaticMeshManager() 
+{
+
+}
 
 std::unique_ptr<nex::StaticMeshContainer> nex::StaticMeshManager::createSphere(unsigned xSegments, unsigned ySegments,
 	std::unique_ptr<Material> material)

@@ -1,9 +1,10 @@
 #include <nex/opengl/window_system/glfw/SubSystemProviderGLFW.hpp>
-#include <glad/glad.h>
+#include <nex/opengl/opengl.hpp>
 #include <GLFW/glfw3.h>
 #include <nex/opengl/gui/ImGUI_GL.hpp>
 #include <nex/opengl/window_system/glfw/WindowGLFW.hpp>
 #include <nex/opengl/window_system/glfw/InputGLFW.hpp>
+
 //#include <utf8.h>
 
 using namespace std;
@@ -100,6 +101,7 @@ void SubSystemProviderGLFW::terminate()
 	glfwInit();
 	glfwTerminate();
 	m_isInitialized = false;
+	GLDeactivateLog();
 }
 
 void nex::SubSystemProviderGLFW::waitForEvents()

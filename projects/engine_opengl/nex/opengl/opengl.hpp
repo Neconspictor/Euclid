@@ -25,6 +25,7 @@ namespace nex
 {
 	void GLClearError();
 	bool GLLogCall();
+	void GLDeactivateLog();
 
 	std::string GLErrorToString(GLuint errorCode);
 

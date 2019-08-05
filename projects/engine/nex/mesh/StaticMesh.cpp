@@ -7,6 +7,9 @@
 
 namespace nex
 {
+	StaticMeshContainer::~StaticMeshContainer()
+	{
+	}
 	void StaticMeshContainer::finalize()
 	{
 		for (auto& mesh : mMeshes)

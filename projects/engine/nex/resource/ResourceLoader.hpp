@@ -44,6 +44,7 @@ namespace nex
 
 		static void init(Window* shared, const RenderEngine& renderEngine);
 		static ResourceLoader* get();
+		static void shutdown();
 
 
 		template <
@@ -89,7 +90,7 @@ namespace nex
 	
 		void resetJobCounter();
 
-		void shutdown();
+		void shutdownSelf();
 
 		void waitTillAllJobsFinished();
 

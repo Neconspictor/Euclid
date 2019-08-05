@@ -170,8 +170,15 @@ void Logger::log(const char* msg, LogLevel level) const
 		return;
 	}
 
-	for (auto stream : LogSink::get()->getLogStreams())
+	auto* sink = LogSink::get();
+
+	if (!sink) return;
+
+	for (auto stream : sink->getLogStreams()) {
+		if (!stream) continue;
 		*stream << msg << std::endl;
+	}
+		
 }
 
 void Logger::setPrefix(const char* prefix)
