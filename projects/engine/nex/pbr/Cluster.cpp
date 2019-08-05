@@ -54,7 +54,7 @@ public:
 
 	struct ActiveClusters {
 		glm::uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
-		glm::vec4 constantsAB; // x: log(zFar / zNear), y: log(zNear) * numClusters.z / log(zFar/zNear)
+		glm::vec4 constantsAB; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
 
 		// The remaining of the buffer is an unsigned char array of 
 		// clusterSize.xSize * clusterSize.ySize * clusterSize.zSize elements.
@@ -315,10 +315,10 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 
 
-	collectActiveClusterGpuTest(clusterSize, constants.zNearFar.x, constants.zNearFar.y);
+	collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance());
 }
 
-void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNear, float zFar)
+void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance)
 {
 	mCollectClustersPass->bind();
 	
@@ -329,8 +329,8 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 		auto* activeClusters = (CollectClustersPass::ActiveClusters*)data;
 		activeClusters->numClusters = glm::uvec4(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize, 0);
 
-		auto logzFar_zNear = logf(zFar / zNear);
-		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNear) * clusterSize.zSize / logzFar_zNear, 0.0f, 0.0f);
+		auto logzFar_zNear = logf(zFarDistance / zNearDistance);
+		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNearDistance) * clusterSize.zSize / logzFar_zNear, 0.0f, 0.0f);
 	
 		auto* flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
 		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
@@ -340,9 +340,9 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 	buffer->bindToTarget();
 	mCollectClustersPass->dispatch(1920, 1080, 1);
 
-	void* data = buffer->map(GpuBuffer::Access::READ_WRITE);
-		auto* activeClusters = (CollectClustersPass::ActiveClusters*)data;
-		auto* flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
+	data = buffer->map(GpuBuffer::Access::READ_WRITE);
+		activeClusters = (CollectClustersPass::ActiveClusters*)data;
+		flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
 	buffer->unmap();
 }
 

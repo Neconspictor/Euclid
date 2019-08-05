@@ -10,7 +10,7 @@ layout(local_size_x = 1, local_size_y = 1) in;
 layout (std430, binding = 0) buffer ActiveClusters{
     //vec4 screenDimension;
     uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
-    vec4 constantsAB; // x: log(zFar / zNear), y: log(zNear) * numClusters.z / log(zFar/zNear)
+    vec4 constantsAB; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
     bool clusterActive[]; // bool has size of unsigned char
 };
 

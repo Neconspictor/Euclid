@@ -49,7 +49,7 @@ namespace nex
 
 		void generateClusterGpu(const ClusterSize& clusterSize);
 
-		void collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNear, float zFar);
+		void collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance);
 
 	private:
 
