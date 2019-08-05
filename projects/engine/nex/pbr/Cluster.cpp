@@ -40,6 +40,47 @@ public:
 };
 
 
+class nex::ProbeCluster::CollectClustersPass : public nex::ComputePass {
+public:
+
+	CollectClustersPass() :
+		ComputePass(Shader::createComputeShader("cluster/collect_clusters_cs.glsl")),
+		mBuffer(std::make_unique<ShaderStorageBuffer>(0, 0, nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
+	{
+		auto state = mDepthSampler.getState();
+		state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
+		mDepthSampler.setState(state);
+	}
+
+	struct ActiveClusters {
+		glm::uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
+		glm::vec4 constantsAB; // x: log(zFar / zNear), y: log(zNear) * numClusters.z / log(zFar/zNear)
+
+		// The remaining of the buffer is an unsigned char array of 
+		// clusterSize.xSize * clusterSize.ySize * clusterSize.zSize elements.
+	};
+
+	void resizeBuffer(const ClusterSize& clusterSize) {
+		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+		mBuffer->resize(sizeof(ActiveClusters) + flattenedSize * sizeof(unsigned char), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
+	}
+
+	void setDepthTexture(Texture* texture) {
+		mShader->setTexture(texture, &mDepthSampler, 0);
+	}
+
+	ShaderStorageBuffer* getBuffer() {
+		return mBuffer.get();
+	}
+
+
+private:
+
+	std::unique_ptr<ShaderStorageBuffer> mBuffer;
+	nex::Sampler mDepthSampler;
+};
+
+
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
 mPass(std::make_unique<SimpleColorPass>()),
 mTechnique(std::make_unique<Technique>(mPass.get())), 
@@ -52,7 +93,8 @@ mConstantsBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getC
 mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getClusterAABBBinding(), 
 	0, // Note: we dynamically resize the buffer 
 	nullptr, 
-	GpuBuffer::UsageHint::DYNAMIC_COPY))
+	GpuBuffer::UsageHint::DYNAMIC_COPY)),
+mCollectClustersPass(std::make_unique<CollectClustersPass>())
 {
 	mPass->bind();
 	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
@@ -271,6 +313,37 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 	vob->updateTrafo(true);
 
 	mScene->addVobUnsafe(std::move(vob), true);
+
+
+	collectActiveClusterGpuTest(clusterSize, constants.zNearFar.x, constants.zNearFar.y);
+}
+
+void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNear, float zFar)
+{
+	mCollectClustersPass->bind();
+	
+	mCollectClustersPass->resizeBuffer(clusterSize);
+	auto* buffer = mCollectClustersPass->getBuffer();
+
+	void* data = buffer->map(GpuBuffer::Access::READ_WRITE);
+		auto* activeClusters = (CollectClustersPass::ActiveClusters*)data;
+		activeClusters->numClusters = glm::uvec4(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize, 0);
+
+		auto logzFar_zNear = logf(zFar / zNear);
+		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNear) * clusterSize.zSize / logzFar_zNear, 0.0f, 0.0f);
+	
+		auto* flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
+		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+		memset(flagArray, 0, flattenedSize);
+	buffer->unmap();
+
+	buffer->bindToTarget();
+	mCollectClustersPass->dispatch(1920, 1080, 1);
+
+	void* data = buffer->map(GpuBuffer::Access::READ_WRITE);
+		auto* activeClusters = (CollectClustersPass::ActiveClusters*)data;
+		auto* flagArray = (unsigned char*)data + sizeof(CollectClustersPass::ActiveClusters);
+	buffer->unmap();
 }
 
 
