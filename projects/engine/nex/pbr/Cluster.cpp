@@ -108,6 +108,29 @@ private:
 };
 
 
+class nex::ProbeCluster::CullLightsPass : public nex::ComputePass {
+public:
+
+	struct Constants {
+		glm::mat4 viewMatrix;
+	};
+
+	CullLightsPass() :
+		ComputePass(Shader::createComputeShader("cluster/cull_point_lights_cs.glsl")),
+		mConstants(std::make_unique<UniformBuffer>(0, sizeof(Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
+	{
+
+	}
+
+	UniformBuffer* getConstants() {
+		return mConstants.get();
+	}
+
+private:
+	std::unique_ptr<UniformBuffer> mConstants;
+};
+
+
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
 mPass(std::make_unique<SimpleColorPass>()),
 mTechnique(std::make_unique<Technique>(mPass.get())), 
@@ -122,7 +145,8 @@ mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::ge
 	nullptr, 
 	GpuBuffer::UsageHint::DYNAMIC_COPY)),
 mCollectClustersPass(std::make_unique<CollectClustersPass>()),
-mCleanClusterListPass(std::make_unique<CleanClusterListPass>())
+mCleanClusterListPass(std::make_unique<CleanClusterListPass>()),
+mCullLightsPass(std::make_unique<CullLightsPass>())
 {
 	mPass->bind();
 	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));

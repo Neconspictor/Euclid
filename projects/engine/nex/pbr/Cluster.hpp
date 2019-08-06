@@ -57,6 +57,7 @@ namespace nex
 		class GenerateClusterPass;
 		class CollectClustersPass;
 		class CleanClusterListPass;
+		class CullLightsPass;
 
 		nex::AABB main(const glm::vec3& gl_WorkGroupID,
 			const glm::vec3& gl_NumWorkGroups, 
@@ -80,6 +81,7 @@ namespace nex
 
 		std::unique_ptr<CollectClustersPass> mCollectClustersPass;
 		std::unique_ptr<CleanClusterListPass> mCleanClusterListPass;
+		std::unique_ptr<CullLightsPass> mCullLightsPass;
 	};
 
 	namespace gui {
