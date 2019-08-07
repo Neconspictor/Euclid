@@ -12,6 +12,8 @@ namespace nex
 {
 	enum class ShaderType;
 	class FileSystem;
+	class MeshAABB;
+	class SphereMesh;
 
 	/**
 	 * A mesh manager provides a central access point for creating and receiving
@@ -84,6 +86,11 @@ namespace nex
 		*/
 		StaticMeshContainer* getSprite();
 
+		MeshAABB* getUnitBoundingBoxLines();
+		MeshAABB* getUnitBoundingBoxTriangles();
+		SphereMesh* getUnitSphereTriangles();
+
+
 
 		/**
 		 * Initializes the model manager.
@@ -120,6 +127,10 @@ namespace nex
 		std::unique_ptr<VertexBuffer> mFullscreenPlaneData;
 		std::unique_ptr<VertexArray> mFullscreenTriangle;
 		std::unique_ptr<VertexBuffer> mFullscreenTriangleData;
+		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxLines;
+		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxTriangles;
+		std::unique_ptr<nex::SphereMesh> mUnitSphereTriangles;
+
 		bool mInitialized;
 
 		unsigned int CUBE_POSITION_NORMAL_TEX_HASH;

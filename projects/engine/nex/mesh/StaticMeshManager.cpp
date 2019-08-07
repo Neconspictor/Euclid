@@ -18,6 +18,7 @@
 #include "nex/math/Constant.hpp"
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/mesh/UtilityMeshes.hpp>
 
 
 nex::StaticMeshManager::StaticMeshManager() :
@@ -58,6 +59,12 @@ nex::StaticMeshManager::StaticMeshManager() :
 		mFullscreenTriangle->bind();
 		mFullscreenTriangle->useBuffer(*mFullscreenTriangleData, layout);
 		mFullscreenTriangle->unbind();
+
+
+		AABB unitBox = {glm::vec3(-1.0f), glm::vec3(1.0f)};
+		mUnitBoundingBoxLines = std::make_unique<MeshAABB>(unitBox, Topology::LINES);
+		mUnitBoundingBoxTriangles = std::make_unique<MeshAABB>(unitBox, Topology::TRIANGLES);
+		mUnitSphereTriangles = std::make_unique<SphereMesh>(16, 16, true);
 	}
 
 nex::StaticMeshManager::~StaticMeshManager() 
@@ -179,6 +186,21 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		result->finalize();
 
 		return result;
+	}
+
+	nex::MeshAABB* nex::StaticMeshManager::getUnitBoundingBoxLines()
+	{
+		return mUnitBoundingBoxLines.get();
+	}
+
+	nex::MeshAABB* nex::StaticMeshManager::getUnitBoundingBoxTriangles()
+	{
+		return mUnitBoundingBoxTriangles.get();
+	}
+
+	nex::SphereMesh* nex::StaticMeshManager::getUnitSphereTriangles()
+	{
+		return mUnitSphereTriangles.get();
 	}
 
 	void nex::StaticMeshManager::init(std::filesystem::path meshRootPath,
@@ -332,6 +354,9 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 		mFullscreenTriangle.reset(nullptr);
 		mFullscreenPlaneData.reset(nullptr);
 		mFullscreenTriangleData.reset(nullptr);
+		mUnitSphereTriangles.reset();
+		mUnitBoundingBoxLines.reset();
+		mUnitBoundingBoxTriangles.reset();
 	}
 
 void nex::StaticMeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
