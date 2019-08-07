@@ -129,12 +129,12 @@ namespace nex::gui
 		}
 	}
 
-	void Vector3D(glm::vec3* vec, const char* label, float speed)
+	bool Vector3D(glm::vec3* vec, const char* label, float speed)
 	{
 		//std::stringstream ss;
 		//ss << label << ":";
 		//ImGui::TextUnformatted(ss.str().c_str());
-		ImGui::DragFloat3(label, (float*)vec);
+		return ImGui::DragFloat3(label, (float*)vec);
 	}
 
 	void EulerRot(glm::vec3* vec, const char* label, float speed)

@@ -11,6 +11,7 @@ namespace nex
 	class SimpleColorPass;
 	class Material;
 	class ShaderStorageBuffer;
+	class Window;
 
 	class ProbeCluster
 	{
@@ -43,13 +44,18 @@ namespace nex
 
 		void generateClusterElement(const ClusterElement& elem);
 
-		void generateCluster(const ClusterSize& clusterSize);
+		void generateCluster(const ClusterSize& clusterSize, unsigned width, unsigned height);
 
 		void generateClusterCpuTest(const ClusterSize& clusterSize);
 
-		void generateClusterGpu(const ClusterSize& clusterSize);
+		void generateClusterGpu(const ClusterSize& clusterSize, unsigned width, unsigned height);
 
-		void collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance);
+		void collectActiveClusterGpuTest(const ClusterSize& clusterSize, 
+			float zNearDistance, 
+			float zFarDistance, 
+			unsigned width, 
+			unsigned height);
+
 		void cleanActiveClusterListGpuTest(const ClusterSize& clusterSize, ShaderStorageBuffer* activeClusters);
 
 	private:
@@ -91,7 +97,8 @@ namespace nex
 			ProbeClusterView(std::string title,
 				MainMenuBar* menuBar,
 				Menu* menu, ProbeCluster* cluster,
-				PerspectiveCamera* activeCamera);
+				PerspectiveCamera* activeCamera,
+				nex::Window* window);
 
 			void drawSelf() override;
 		
@@ -100,6 +107,7 @@ namespace nex
 			PerspectiveCamera* mActiveCamera;
 			ProbeCluster::ClusterElement mClusterElement;
 			ProbeCluster::ClusterSize mClusterSize;
+			nex::Window* mWindow;
 		};
 	}
 }

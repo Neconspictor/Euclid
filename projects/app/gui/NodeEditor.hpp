@@ -9,6 +9,7 @@ namespace nex
 	class Scene;
 	class Window;
 	class Vob;
+	class ProbeVob;
 }
 
 namespace nex::gui
@@ -26,6 +27,8 @@ namespace nex::gui
 	protected:
 
 		void drawSelf() override;
+
+		void drawProbeVob(nex::ProbeVob* vob, bool doOneTimeChanges);
 
 		nex::Vob* mLastPicked;
 		Picker* mPicker;

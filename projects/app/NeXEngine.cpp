@@ -636,7 +636,8 @@ void NeXEngine::setupGUI()
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		mProbeCluster.get(),
-		mCamera.get());
+		mCamera.get(),
+		mWindow);
 	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(mProbeClusterView));
 

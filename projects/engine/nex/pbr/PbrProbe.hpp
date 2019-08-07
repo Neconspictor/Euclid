@@ -71,6 +71,11 @@ namespace nex
 
 		class ProbeTechnique;
 
+		enum class InfluenceType {
+			SPHERE = 0,
+			BOX = 1,
+		};
+
 		class ProbeMaterial : public Material {
 		public:
 
@@ -122,7 +127,10 @@ namespace nex
 		 */
 		unsigned getArrayIndex() const;
 
+		const AABB& getInfluenceBox() const;
 		float getInfluenceRadius() const;
+		InfluenceType getInfluenceType() const;
+
 
 		CubeMapArray* getIrradianceMaps() const;
 
@@ -165,7 +173,9 @@ namespace nex
 
 		bool isSourceStored(const std::filesystem::path& probeRoot) const;
 
+		void setInfluenceBox(const glm::vec3& halfWidth);
 		void setInfluenceRadius(float radius);
+		void setInfluenceType(InfluenceType type);
 
 		void setPosition(const glm::vec3& position);
 
@@ -206,7 +216,11 @@ namespace nex
 		unsigned mArrayIndex;
 		bool mInit;
 		glm::vec3 mPosition;
+		
+		//Influence can be either defined by a sphere or an AABB
+		InfluenceType mInfluenceType;
 		float mInfluenceRadius;
+		AABB mInfluenceBox;
 	};
 
 	class ProbeVob : public Vob

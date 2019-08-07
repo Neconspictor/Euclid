@@ -52,6 +52,35 @@ nex::AABB::RayIntersection nex::AABB::testRayIntersection(const nex::Ray& ray) c
 	return {true, tmin, tmax};
 }
 
+nex::AABB::AABB() : min(glm::vec3(std::numeric_limits<float>::max())), max(glm::vec3(-std::numeric_limits<float>::max()))
+{
+};
+
+nex::AABB::AABB(const glm::vec3& min, const glm::vec3& max)
+{
+	this->min = min;
+	this->max = max;
+}
+
+nex::AABB::AABB(glm::vec3&& min, glm::vec3&& max)
+{
+	this->min = std::move(min);
+	this->max = std::move(max);
+}
+
+nex::AABB::AABB(const AABB2& box)
+{
+	*this = box;
+}
+
+nex::AABB& nex::AABB::operator=(const AABB2& box)
+{
+	min = resolveInfinity(box.center - box.halfWidth, std::numeric_limits<float>::max());
+	max = resolveInfinity(box.center + box.halfWidth, -std::numeric_limits<float>::max());
+
+	return *this;
+}
+
 nex::AABB nex::maxAABB(const AABB& a, const AABB& b)
 {
 	AABB result = a;
@@ -89,4 +118,33 @@ nex::AABB nex::operator*(const glm::mat4& trafo, const AABB& box)
 	}
 
 	return result;
+}
+
+nex::AABB2::AABB2() : center(glm::vec3(0.0f)), halfWidth(glm::vec3(-std::numeric_limits<float>::max()))
+{
+}
+
+nex::AABB2::AABB2(const glm::vec3& center, const glm::vec3& halfWidth)
+{
+	this->center = center;
+	this->halfWidth = halfWidth;
+}
+
+nex::AABB2::AABB2(glm::vec3&& center, glm::vec3&& halfWidth)
+{
+	this->center = std::move(center);
+	this->halfWidth = std::move(halfWidth);
+}
+
+nex::AABB2::AABB2(const AABB& box)
+{
+	*this = box;
+}
+
+nex::AABB2& nex::AABB2::operator=(const AABB& box)
+{
+	center = resolveInfinity((box.max + box.min) / 2.0f, 0.0f);
+	halfWidth = resolveInfinity((box.max - box.min) / 2.0f, -std::numeric_limits<float>::max());
+
+	return *this;
 }

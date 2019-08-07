@@ -48,6 +48,8 @@ namespace nex
 		return source / w;
 	}
 
+	glm::vec3 resolveInfinity(const glm::vec3& vec, float defaultValue);
+
 	/**
 	 * Provides a rotation from one orientation (src) to another (dest)
 	 */

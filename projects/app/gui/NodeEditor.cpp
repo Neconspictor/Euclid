@@ -115,66 +115,7 @@ namespace nex::gui
 		ImGui::SameLine();
 		if (auto* probeVob = dynamic_cast<ProbeVob*>(vob))
 		{
-			auto* probe = probeVob->getProbe();
-
-			ImGui::Text("pbr probe vob");
-
-			if (doOneTimeChanges) {
-				auto& irradiance = mConvolutedView.getTexture();
-				irradiance.level = probe->getArrayIndex();
-
-				auto& probePrefiltered = mPrefilteredView.getTexture();
-				probePrefiltered.level = probe->getArrayIndex();
-			}
-
-			if (ImGui::TreeNode("Brdf Lookup map"))
-			{
-				auto* texture = probe->getBrdfLookupTexture();
-				auto& probePrefiltered = mBrdfView.getTexture();
-				probePrefiltered.texture = texture;
-				probePrefiltered.flipY = ImageFactory::isYFlipped();
-				probePrefiltered.sampler = nullptr;
-
-
-				mBrdfView.updateTexture(true);
-				mBrdfView.drawGUI();
-
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Convoluted map"))
-			{
-				auto* texture = probe->getIrradianceMaps();
-				auto& irradiance = mConvolutedView.getTexture();
-				irradiance.texture = texture;
-				irradiance.flipY = ImageFactory::isYFlipped();
-				irradiance.sampler = nullptr;
-
-				mConvolutedView.updateTexture(true);
-				mConvolutedView.drawGUI();
-
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Prefiltered map"))
-			{
-				auto* texture = probe->getPrefilteredMaps();
-				auto& probePrefiltered = mPrefilteredView.getTexture();
-				probePrefiltered.texture = texture;
-				probePrefiltered.flipY = ImageFactory::isYFlipped();
-				probePrefiltered.sampler = nullptr;
-
-				mPrefilteredView.updateTexture(true);
-				mPrefilteredView.drawGUI();
-
-				ImGui::TreePop();
-			}
-
-			auto radius = probe->getInfluenceRadius();
-			if (ImGui::DragFloat("Influence radius", &radius, 0.1f, 0.0f, FLT_MAX)) {
-				probe->setInfluenceRadius(radius);
-			}
-
+			drawProbeVob(probeVob, doOneTimeChanges);
 		}
 		else
 		{
@@ -235,5 +176,93 @@ namespace nex::gui
 
 		vob->updateTrafo();
 		mPicker->updateBoundingBoxTrafo();
+	}
+	void NodeEditor::drawProbeVob(nex::ProbeVob* probeVob, bool doOneTimeChanges)
+	{
+		auto* probe = probeVob->getProbe();
+
+		ImGui::Text("pbr probe vob");
+
+		if (doOneTimeChanges) {
+			auto& irradiance = mConvolutedView.getTexture();
+			irradiance.level = probe->getArrayIndex();
+
+			auto& probePrefiltered = mPrefilteredView.getTexture();
+			probePrefiltered.level = probe->getArrayIndex();
+		}
+
+		if (ImGui::TreeNode("Brdf Lookup map"))
+		{
+			auto* texture = probe->getBrdfLookupTexture();
+			auto& probePrefiltered = mBrdfView.getTexture();
+			probePrefiltered.texture = texture;
+			probePrefiltered.flipY = ImageFactory::isYFlipped();
+			probePrefiltered.sampler = nullptr;
+
+
+			mBrdfView.updateTexture(true);
+			mBrdfView.drawGUI();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Convoluted map"))
+		{
+			auto* texture = probe->getIrradianceMaps();
+			auto& irradiance = mConvolutedView.getTexture();
+			irradiance.texture = texture;
+			irradiance.flipY = ImageFactory::isYFlipped();
+			irradiance.sampler = nullptr;
+
+			mConvolutedView.updateTexture(true);
+			mConvolutedView.drawGUI();
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Prefiltered map"))
+		{
+			auto* texture = probe->getPrefilteredMaps();
+			auto& probePrefiltered = mPrefilteredView.getTexture();
+			probePrefiltered.texture = texture;
+			probePrefiltered.flipY = ImageFactory::isYFlipped();
+			probePrefiltered.sampler = nullptr;
+
+			mPrefilteredView.updateTexture(true);
+			mPrefilteredView.drawGUI();
+
+			ImGui::TreePop();
+		}
+
+
+		auto influenceType = probe->getInfluenceType();
+
+		const char* items[2] = {
+			"SPHERE",
+			"BOX"
+		};
+
+		if (ImGui::Combo("Influence type", (int*)& influenceType, items, 2)) {
+			probe->setInfluenceType(influenceType);
+		}
+
+		auto position = probe->getPosition();
+		if (nex::gui::Vector3D(&position, "Influence center"))
+			probe->setPosition(position);
+		
+
+		if (influenceType == PbrProbe::InfluenceType::SPHERE) {
+			auto radius = probe->getInfluenceRadius();
+			if (ImGui::DragFloat("Influence radius", &radius, 0.1f, 0.0f, FLT_MAX)) {
+				probe->setInfluenceRadius(radius);
+			}
+		}
+		else {
+
+			AABB2 box2(probe->getInfluenceBox());
+			if (nex::gui::Vector3D(&box2.halfWidth, "Influence bounding box halfth width"))
+				probe->setInfluenceBox(box2.halfWidth);
+
+		}
 	}
 }

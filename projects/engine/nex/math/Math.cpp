@@ -27,6 +27,17 @@ glm::vec3 nex::maxVec(const glm::vec3& a, const glm::vec3& b)
 	                 std::max<float>(a.z, b.z));
 }
 
+glm::vec3 nex::resolveInfinity(const glm::vec3& vec, float defaultValue)
+{
+	glm::vec3 result = vec;
+	for (int i = 0; i < 3; ++i) {
+		if (!isValid(result[i]))
+			result[i] = defaultValue;
+	}
+
+	return result;
+}
+
 glm::quat nex::rotate(const glm::vec3& s, const glm::vec3& d)
 {
 	const auto src = normalize(s);

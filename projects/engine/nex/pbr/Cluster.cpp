@@ -10,6 +10,7 @@
 #include <nex/math/Math.hpp>
 #include <nex/shader/Shader.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
+#include <nex/Window.hpp>
 
 class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
 public:
@@ -193,10 +194,10 @@ void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem)
 
 }
 
-void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize)
+void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned width, unsigned height)
 {
 	//generateClusterCpuTest(clusterSize); return;
-	generateClusterGpu(clusterSize); return;
+	generateClusterGpu(clusterSize, width, height); return;
 	mCamera.update();
 	ClusterElement elem;
 	auto container = std::make_unique<StaticMeshContainer>();
@@ -312,7 +313,7 @@ void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 }
 
-void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
+void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize, unsigned width, unsigned height)
 {
 	mCamera.update();
 	const auto viewInv = inverse(mCamera.getView());
@@ -371,11 +372,15 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 
 
-	collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance());
+	collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance(), width, height);
 	cleanActiveClusterListGpuTest(clusterSize, mCollectClustersPass->getBuffer());
 }
 
-void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, float zNearDistance, float zFarDistance)
+void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, 
+	float zNearDistance, 
+	float zFarDistance,
+	unsigned width,
+	unsigned height)
 {
 	mCollectClustersPass->bind();
 	
@@ -395,7 +400,7 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 	buffer->unmap();
 
 	buffer->bindToTarget();
-	mCollectClustersPass->dispatch(1920, 1080, 1);
+	mCollectClustersPass->dispatch(width, height, 1);
 
 	data = buffer->map(GpuBuffer::Access::READ_WRITE);
 		activeClusters = (CollectClustersPass::ActiveClusters*)data;
@@ -530,8 +535,13 @@ glm::vec4 nex::ProbeCluster::screen2View(const glm::vec4& screen, const glm::mat
 }
 
 
-nex::gui::ProbeClusterView::ProbeClusterView(std::string title, MainMenuBar* menuBar, Menu* menu, ProbeCluster* cluster, PerspectiveCamera* activeCamera) :
-	MenuWindow(std::move(title), menuBar, menu), mCluster(cluster), mActiveCamera(activeCamera)
+nex::gui::ProbeClusterView::ProbeClusterView(std::string title, 
+	MainMenuBar* menuBar, 
+	Menu* menu, 
+	ProbeCluster* cluster, 
+	PerspectiveCamera* activeCamera,
+	nex::Window* window) :
+	MenuWindow(std::move(title), menuBar, menu), mCluster(cluster), mActiveCamera(activeCamera), mWindow(window)
 {
 
 }
@@ -623,6 +633,6 @@ void nex::gui::ProbeClusterView::drawSelf()
 	ImGui::DragScalar("Z size", ImGuiDataType_U64, &mClusterSize.zSize, 1.0f);
 
 	if (ImGui::Button("Create cluster")) {
-		mCluster->generateCluster(mClusterSize);
+		mCluster->generateCluster(mClusterSize, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	}
 }
