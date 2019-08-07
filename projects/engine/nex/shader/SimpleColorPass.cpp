@@ -12,3 +12,12 @@ void nex::SimpleColorPass::setColor(const glm::vec4 color)
 	mColor = color;
 	mShader->setVec4(mColorUniform.location, mColor);
 }
+
+nex::SimpleColorTechnique::SimpleColorTechnique() : Technique(&mSimpleColorPass)
+{
+}
+
+nex::SimpleColorPass* nex::SimpleColorTechnique::getSimpleColorPass()
+{
+	return &mSimpleColorPass;
+}

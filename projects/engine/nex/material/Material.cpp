@@ -5,6 +5,7 @@
 #include <nex/pbr/PbrPass.hpp>
 #include "nex/common/File.hpp"
 #include "nex/texture/TextureManager.hpp"
+#include <nex/shader/SimpleColorPass.hpp>
 
 using namespace std;
 using namespace nex;
@@ -220,4 +221,24 @@ nex::BinStream& nex::operator<<(nex::BinStream& out, const MaterialStore& store)
 	out << store.type;
 	out << store.state;
 	return out;
+}
+
+nex::SimpleColorMaterial::SimpleColorMaterial(SimpleColorTechnique* technique) :
+	Material(technique), mColor(1.0f) 
+{
+	mRenderState.blendDesc = BlendDesc::createAlphaTransparency();
+
+	setColor(mColor);
+}
+
+void nex::SimpleColorMaterial::setColor(const glm::vec4& color)
+{
+	mColor = color;
+	mRenderState.doBlend = mColor.w != 1.0f;
+}
+
+void nex::SimpleColorMaterial::upload()
+{
+	auto* pass = (SimpleColorPass*) mTechnique->getSelected();
+	pass->setColor(mColor);
 }

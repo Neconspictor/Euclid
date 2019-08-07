@@ -24,6 +24,10 @@ namespace nex
 
 	class MeshAABB : public Mesh {
 	public:
-		MeshAABB(const AABB& box);
+		MeshAABB(const AABB& box, nex::Topology topology);
+
+	private:
+		void createLineMesh(const AABB& box);
+		void createTriangleMesh(const AABB& box);
 	};
 }

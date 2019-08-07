@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nex/shader/Pass.hpp>
+#include <nex/shader/Technique.hpp>
 
 namespace nex
 {
@@ -14,5 +15,16 @@ namespace nex
 	private:
 		glm::vec4 mColor;
 		Uniform mColorUniform;
+	};
+
+	class SimpleColorTechnique : public Technique 
+	{
+	public:
+		SimpleColorTechnique();
+
+		SimpleColorPass* getSimpleColorPass();
+
+	private:
+		SimpleColorPass mSimpleColorPass;
 	};
 }

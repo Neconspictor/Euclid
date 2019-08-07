@@ -260,7 +260,7 @@ namespace nex::gui
 		else {
 
 			AABB2 box2(probe->getInfluenceBox());
-			if (nex::gui::Vector3D(&box2.halfWidth, "Influence bounding box halfth width"))
+			if (nex::gui::Vector3D(&box2.halfWidth, "Influence bounding box half width"))
 				probe->setInfluenceBox(box2.halfWidth);
 
 		}

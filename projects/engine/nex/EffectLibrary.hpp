@@ -15,8 +15,11 @@ namespace nex
 	class ScreenPass;
 	class PostProcessor;
 	class DownSampler;
+	class SimpleColorTechnique;
 
 	class RenderTarget;
+	class Technique;
+	class SimpleColorMaterial;
 
 
 	class EffectLibrary {
@@ -24,7 +27,7 @@ namespace nex
 
 		EffectLibrary(unsigned width, unsigned height);
 
-		~EffectLibrary();
+		virtual ~EffectLibrary();
 
 		// Inherited via EffectLibrary
 		GaussianBlur* getGaussianBlur();
@@ -35,11 +38,14 @@ namespace nex
 
 		DepthMapPass* getDepthMapShader();
 
-		ScreenPass* getScreenShader();
+		DownSampler* getDownSampler();
 
 		PostProcessor* getPostProcessor();
 
-		DownSampler* getDownSampler();
+		ScreenPass* getScreenShader();
+
+		SimpleColorTechnique* getSimpleColorTechnique();
+		std::unique_ptr<SimpleColorMaterial> createSimpleColorMaterial();
 
 		void resize(unsigned width, unsigned height);
 
@@ -47,6 +53,7 @@ namespace nex
 		std::unique_ptr<GaussianBlur> mGaussianBlur;
 		std::unique_ptr<EquirectangularSkyBoxPass> mEquirectangualrSkyBox;
 		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
+		std::unique_ptr<SimpleColorTechnique> mSimpleColorTechnique;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<ScreenPass> mScreen;

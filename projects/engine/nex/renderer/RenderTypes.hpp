@@ -69,6 +69,10 @@ namespace nex
 		BlendFunc source = BlendFunc::ONE;
 		BlendFunc destination = BlendFunc::ZERO;
 		BlendOperation operation = BlendOperation::ADD;
+
+		static BlendDesc createAlphaTransparency() {
+			return { BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+		}
 	};
 
 	struct BlendState
@@ -92,7 +96,7 @@ namespace nex
 		PolygonSide cullSide = PolygonSide::BACK;
 		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;
 		bool doBlend = false;
-		BlendDesc blendDesc = { BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+		BlendDesc blendDesc = BlendDesc::createAlphaTransparency();
 
 		bool doShadowCast = true;
 		bool doShadowReceive = true;

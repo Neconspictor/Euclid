@@ -229,7 +229,18 @@ namespace nex
 
 		mTopology = Topology::LINES;
 	}
-	MeshAABB::MeshAABB(const AABB& box)
+	MeshAABB::MeshAABB(const AABB& box, nex::Topology topology)
+	{
+
+		if (topology == Topology::LINES) {
+			createLineMesh(box);
+		}
+		else {
+			createTriangleMesh(box);
+		}
+	}
+
+	void MeshAABB::createLineMesh(const AABB& box)
 	{
 		//create vertices in CCW
 		const size_t vertexSize = 8;
@@ -310,7 +321,91 @@ namespace nex
 		mIndexBuffer.unbind();
 
 		mTopology = Topology::LINES;
+	}
+	void MeshAABB::createTriangleMesh(const AABB& box)
+	{
+		//create vertices in CCW
+		const size_t vertexSize = 8;
+		VertexPosition vertices[vertexSize];
+
+		// bottom plane
+		vertices[0].position = box.min; // bottom left front
+		vertices[1].position = glm::vec3(box.min.x, box.min.y, box.max.z); // bottom left back
+		vertices[2].position = glm::vec3(box.max.x, box.min.y, box.max.z); // bottom right back
+		vertices[3].position = glm::vec3(box.max.x, box.min.y, box.min.z); // bottom right front
+
+		// top plane
+		vertices[4].position = glm::vec3(box.min.x, box.max.y, box.min.z); // top left front
+		vertices[5].position = glm::vec3(box.min.x, box.max.y, box.max.z); // top left back
+		vertices[6].position = box.max; // top right back
+		vertices[7].position = glm::vec3(box.max.x, box.max.y, box.min.z); // top right front
+
+		const size_t indicesSize = 36;
+		unsigned indices[indicesSize];
+
+		// bottom
+		indices[0] = 1; // bottom left back
+		indices[1] = 0; // bottom left front
+		indices[2] = 3; // bottom right front
+		indices[3] = 1; // bottom left back
+		indices[4] = 3; // bottom right front
+		indices[5] = 2; // bottom right back
+
+		// top
+		indices[6] = 4;  // top left front
+		indices[7] = 5;  // top left back
+		indices[8] = 6;  // top right back
+		indices[9] = 4;  // top left front
+		indices[10] = 6; // top right back
+		indices[11] = 7; // top right front
+
+		// front
+		indices[12] = 0;  // bottom left front
+		indices[13] = 4;  // top left front
+		indices[14] = 7;  // top right front
+		indices[15] = 0;  // bottom left front
+		indices[16] = 7; // top right front
+		indices[17] = 3; // bottom right front
+
+		// back
+		indices[18] = 2;  // bottom right back
+		indices[19] = 6;  // top right back
+		indices[20] = 5;  // top left back
+		indices[21] = 2;  // bottom right back
+		indices[22] = 5; // top left back
+		indices[23] = 1; // bottom left back
+
+		// left
+		indices[24] = 1;  // bottom left back
+		indices[25] = 5;  // top left back
+		indices[26] = 4;  // top left front
+		indices[27] = 1;  // bottom left back
+		indices[28] = 4; // top left front
+		indices[29] = 0; // bottom left front
+
+		// right
+		indices[30] = 3;  // bottom right front
+		indices[31] = 7;  // top right front
+		indices[32] = 6;  // top right back
+		indices[33] = 3;  // bottom right front
+		indices[34] = 6; // top right back
+		indices[35] = 2; // bottom right back
 
 
+		// Calc bounding box
+		mBoundingBox = box;
+
+		// define layout
+		mLayout.push<glm::vec3>(1); // position
+
+		// upload data into buffers
+		mVertexBuffer.bind();
+		mVertexBuffer.resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+
+		mIndexBuffer.bind();
+		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
+		mIndexBuffer.unbind();
+
+		mTopology = Topology::TRIANGLES;
 	}
 }

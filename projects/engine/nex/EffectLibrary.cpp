@@ -6,7 +6,9 @@
 #include <nex/shader/ScreenPass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
-
+#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/shader/Technique.hpp>
+#include <nex/material/Material.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -15,6 +17,7 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
 	mScreen(std::make_unique<ScreenPass>()),
+	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
 	mPostProcessor = std::make_unique<PostProcessor>(width, height, mDownSampler.get(), mGaussianBlur.get());
@@ -50,6 +53,16 @@ nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 nex::ScreenPass* nex::EffectLibrary::getScreenShader()
 {
 	return mScreen.get();
+}
+
+nex::SimpleColorTechnique* nex::EffectLibrary::getSimpleColorTechnique()
+{
+	return mSimpleColorTechnique.get();
+}
+
+std::unique_ptr<nex::SimpleColorMaterial> nex::EffectLibrary::createSimpleColorMaterial()
+{
+	return std::make_unique<SimpleColorMaterial>(mSimpleColorTechnique.get());
 }
 
 nex::PostProcessor* nex::EffectLibrary::getPostProcessor()

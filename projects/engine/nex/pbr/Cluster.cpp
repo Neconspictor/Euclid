@@ -11,6 +11,8 @@
 #include <nex/shader/Shader.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/Window.hpp>
+#include <nex/EffectLibrary.hpp>
+#include <nex/renderer/RenderBackend.hpp>
 
 class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
 public:
@@ -136,9 +138,7 @@ private:
 
 
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
-mPass(std::make_unique<SimpleColorPass>()),
-mTechnique(std::make_unique<Technique>(mPass.get())), 
-mMaterial(std::make_unique<Material>(mTechnique.get())),
+mMaterial(RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial()),
 mGenerateClusterShader(std::make_unique<GenerateClusterPass>()),
 mConstantsBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getConstantsBinding(), 
 	sizeof(GenerateClusterPass::Constants), 
@@ -152,13 +152,12 @@ mCollectClustersPass(std::make_unique<CollectClustersPass>()),
 mCleanClusterListPass(std::make_unique<CleanClusterListPass>()),
 mCullLightsPass(std::make_unique<CullLightsPass>())
 {
-	mPass->bind();
-	mPass->setColor(glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
+	mMaterial->setColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.3f));
 
 	auto& state = mMaterial->getRenderState();
-	state.fillMode = FillMode::LINE;
+	state.fillMode = FillMode::FILL;
 	state.doCullFaces = false;
-	state.isTool = true;
+	state.isTool = false;
 	state.doShadowCast = false;
 	state.doShadowReceive = false;
 }
@@ -225,7 +224,7 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned
 				//const auto frustumWorld = frustumView * viewInv;
 				//auto mesh = std::make_unique<FrustumMesh>(frustumWorld);
 				frustumView = middleTrans * frustumView;
-				auto mesh = std::make_unique<MeshAABB>(frustumView.calcAABB());
+				auto mesh = std::make_unique<MeshAABB>(frustumView.calcAABB(), Topology::LINES);
 				//auto mesh = std::make_unique<FrustumMesh>(frustumView);
 
 				container->addMapping(mesh.get(), mMaterial.get());
@@ -290,7 +289,7 @@ void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
 				box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
 				box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
 
-				auto mesh = std::make_unique<MeshAABB>(box);
+				auto mesh = std::make_unique<MeshAABB>(box, Topology::LINES);
 
 
 				container->addMapping(mesh.get(), mMaterial.get());
@@ -352,7 +351,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize, unsig
 			//box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
 			//box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
 
-			auto mesh = std::make_unique<MeshAABB>(box);
+			auto mesh = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
 			container->addMapping(mesh.get(), mMaterial.get());
 			container->add(std::move(mesh));
 		}

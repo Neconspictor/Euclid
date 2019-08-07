@@ -13,10 +13,12 @@ namespace nex
 	class Texture;
 	class BinStream;
 	class Sampler;
+	class SimpleColorTechnique;
 
 	enum class MaterialType
 	{
 		Pbr,
+		SimpleColor,
 		None
 	};
 
@@ -49,6 +51,7 @@ namespace nex
 		*/
 	static const util::EnumString<MaterialType> materialEnumConversion[] = {
 		{ nex::MaterialType::Pbr, "PBR" },
+		{ nex::MaterialType::SimpleColor, "SIMPLE_COLOR" },
 		{ nex::MaterialType::None, "NONE" }
 	};
 
@@ -93,6 +96,20 @@ namespace nex
 		Texture* mMetallicMap;
 		Texture* mNormalMap;
 		Texture* mRoughnessMap;
+	};
+
+	class SimpleColorMaterial : public Material 
+	{
+	public:
+
+		SimpleColorMaterial(SimpleColorTechnique* technique);
+
+		void setColor(const glm::vec4& color);
+
+		void upload() override;
+
+	private:
+		glm::vec4 mColor;
 	};
 
 	struct MaterialStore

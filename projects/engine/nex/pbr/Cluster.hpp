@@ -6,10 +6,7 @@
 
 namespace nex
 {
-
-	class Technique;
-	class SimpleColorPass;
-	class Material;
+	class SimpleColorMaterial;
 	class ShaderStorageBuffer;
 	class Window;
 
@@ -78,9 +75,7 @@ namespace nex
 
 		nex::PerspectiveCamera mCamera;
 		Scene* mScene;
-		std::unique_ptr<SimpleColorPass> mPass;
-		std::unique_ptr<Technique> mTechnique;
-		std::unique_ptr<Material> mMaterial;
+		std::unique_ptr<SimpleColorMaterial> mMaterial;
 		std::unique_ptr<GenerateClusterPass> mGenerateClusterShader;
 		std::unique_ptr<ShaderStorageBuffer> mConstantsBuffer;
 		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
