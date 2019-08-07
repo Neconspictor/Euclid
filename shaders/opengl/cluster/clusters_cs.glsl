@@ -3,13 +3,17 @@
  */
 #version 430 core
 
+#define FLT_MAX     3.40282347E+38F
+
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 
 struct AABB
 {
-    vec4 min;
-    vec4 max;
+    vec4 minView;
+    vec4 maxView;
+    vec4 minWorld;
+    vec4 maxWorld;
 };
 
 
@@ -18,6 +22,7 @@ layout (std430, binding = 0) buffer ClusterAABB{
 };
 layout (std430, binding = 1) buffer Constants{
     mat4 invProj;
+    mat4 invView;
     //uvec4 tileSizes;
     vec4 zNearFar; // x: near z value in view space; y: far z value in view space; z and w component unused
     //uvec2 screenDimension;
@@ -86,10 +91,33 @@ void main(void)
 
     vec3 minAABB = min(min(minNear, minFar),min(maxNear, maxFar));
     vec3 maxAABB = max(max(minNear, minFar),max(maxNear, maxFar));
-
-    //Getting the 
-    clusters[clusterIndex].min  = vec4(minAABB , 0.0);
-    clusters[clusterIndex].max  = vec4(maxAABB , 0.0);
+    
+    //project the AABB into world space (is needed for supporting AABB collision test for environment lights)
+    vec3 point[8];
+    point[0] = vec3(invView * vec4(minAABB, 1.0));
+    point[1] = vec3(invView * vec4(minAABB.x, maxAABB.y, minAABB.z, 1.0));
+    point[2] = vec3(invView * vec4(maxAABB.x, minAABB.y, minAABB.z, 1.0));
+    point[3] = vec3(invView * vec4(maxAABB.x, maxAABB.y, minAABB.z, 1.0));
+    
+    point[4] = vec3(invView * vec4(minAABB.x, minAABB.y, maxAABB.z, 1.0));
+    point[5] = vec3(invView * vec4(maxAABB.x, minAABB.y, maxAABB.z, 1.0));
+    point[6] = vec3(invView * vec4(minAABB.x, maxAABB.y, maxAABB.z, 1.0));
+    point[7] = vec3(invView * vec4(maxAABB, 1.0));
+    
+    
+    vec3 minAABBWorld = vec3(FLT_MAX);
+    vec3 maxAABBWorld = vec3(-FLT_MAX);
+    
+    for (uint i = 0; i < 8; ++i) {
+        minAABBWorld = min(minAABBWorld, point[i]);
+        maxAABBWorld = max(maxAABBWorld, point[i]);
+    }
+    
+    
+    clusters[clusterIndex].minView  = vec4(minAABB , 0.0);
+    clusters[clusterIndex].maxView  = vec4(maxAABB , 0.0);
+    clusters[clusterIndex].minWorld = vec4(minAABBWorld , 0.0);
+    clusters[clusterIndex].maxWorld = vec4(maxAABBWorld , 0.0);
 }
 
 

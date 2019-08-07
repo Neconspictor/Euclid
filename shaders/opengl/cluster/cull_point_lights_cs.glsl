@@ -25,8 +25,10 @@ struct LightGrid
 
 struct AABB
 {
-    vec4 minPoint;
-    vec4 maxPoint;
+    vec4 minView;
+    vec4 maxView;
+    vec4 minWorld;
+    vec4 maxWorld;
 };
 
 layout (std140, binding = 0) uniform ConstantsUBO 
@@ -134,14 +136,14 @@ float sqDistPointAABB(vec3 point, uint clusterID)
     for(int i = 0; i < 3; ++i){
         float v = point[i];
                 
-        if(v < currentCell.minPoint[i])
+        if(v < currentCell.minView[i])
         {
-            float dist = currentCell.minPoint[i] - v;
+            float dist = currentCell.minView[i] - v;
             sqDist += dist * dist;
         }
-        if(v > currentCell.maxPoint[i])
+        if(v > currentCell.maxView[i])
         {
-            float dist = v - currentCell.maxPoint[i];
+            float dist = v - currentCell.maxView[i];
             sqDist += dist * dist;
         }
     }

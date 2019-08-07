@@ -15,12 +15,15 @@ class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
 public:
 
 	struct AABB {
-		glm::vec4 min;
-		glm::vec4 max;
+		glm::vec4 minView;
+		glm::vec4 maxView;
+		glm::vec4 minWorld;
+		glm::vec4 maxWorld;
 	};
 
 	struct Constants {
 		glm::mat4 invProj;
+		glm::mat4 invView;
 		glm::vec4 zNearFar; // near and far plane in view space; z and w component unused
 	};
 
@@ -329,6 +332,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 	mClusterAABBBuffer->resize(sizeof(GenerateClusterPass::AABB) * flattedClusterSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
 	GenerateClusterPass::Constants constants;
 	constants.invProj = inverse(mCamera.getProjectionMatrix());
+	constants.invView = viewInv;
 	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()), 
 		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
 	mConstantsBuffer->update(sizeof(GenerateClusterPass::Constants), &constants);
@@ -342,10 +346,10 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 		for (unsigned i = 0; i < flattedClusterSize; ++i) {
 			auto& cluster = clusters[i];
 
-			AABB box = {glm::vec3(cluster.min), glm::vec3(cluster.max)};
+			AABB box = {glm::vec3(cluster.minView), glm::vec3(cluster.maxView)};
 
-			box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
-			box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
+			//box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
+			//box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
 
 			auto mesh = std::make_unique<MeshAABB>(box);
 			container->addMapping(mesh.get(), mMaterial.get());
@@ -361,7 +365,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize)
 	vob->setTrafo(viewInv);
 	const auto& look = mCamera.getLook();
 	const auto middlePoint = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f * look;
-	vob->setPosition(vob->getPosition() + middlePoint);
+	//vob->setPosition(vob->getPosition() + middlePoint);
 	vob->updateTrafo(true);
 
 	mScene->addVobUnsafe(std::move(vob), true);
