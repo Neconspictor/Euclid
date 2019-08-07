@@ -10,6 +10,10 @@
 #include <iostream>
 #include "nex/math/Ray.hpp"
 #include <nex/mesh/UtilityMeshes.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <nex/EffectLibrary.hpp>
+#include <nex/mesh/StaticMeshManager.hpp>
+#include <nex/pbr/PbrProbe.hpp>
 
 nex::gui::Picker::Picker() :
 mBoundingBoxMesh(std::make_unique<StaticMeshContainer>()),
@@ -43,6 +47,45 @@ mBoundingBoxVob(nullptr)
 	mBoundingBoxMesh->finalize();
 	mBoundingBoxVob = std::make_unique<Vob>(mBoundingBoxMesh->createNodeHierarchyUnsafe());
 	mBoundingBoxVob->setSelectable(false);
+
+
+
+
+	auto probeBoxMeshContainer = std::make_unique<StaticMeshContainer>();
+	auto probeBoxMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
+
+	probeBoxMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
+	probeBoxMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
+	probeBoxMaterial->getRenderState().blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+	probeBoxMaterial->getRenderState().doCullFaces = false;
+	probeBoxMaterial->getRenderState().doDepthTest = true;
+	probeBoxMaterial->getRenderState().doShadowCast = false;
+	probeBoxMaterial->getRenderState().doShadowReceive = false;
+	auto* meshManager = StaticMeshManager::get();
+
+	probeBoxMeshContainer->addMapping(meshManager->getUnitBoundingBoxTriangles(), probeBoxMaterial.get());
+	probeBoxMeshContainer->addMaterial(std::move(probeBoxMaterial));
+	probeBoxMeshContainer->finalize();
+	mProbeInfluenceBoundingBoxVob = std::make_unique<MeshOwningVob>(std::move(probeBoxMeshContainer));
+	mProbeInfluenceBoundingBoxVob->setSelectable(false);
+
+	auto sphereMeshContainer = std::make_unique<StaticMeshContainer>();
+	auto sphereMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
+	sphereMaterial->setColor(glm::vec4(1.0f, 0.0f, 1.0f, 0.2f));
+	sphereMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
+	//sphereMaterial->getRenderState().blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+	sphereMaterial->getRenderState().doCullFaces = false;
+	sphereMaterial->getRenderState().doDepthTest = true;
+
+	sphereMaterial->getRenderState().doShadowCast = false;
+	sphereMaterial->getRenderState().doShadowReceive = false;
+
+	sphereMeshContainer->addMapping(meshManager->getUnitSphereTriangles(), sphereMaterial.get());
+	sphereMeshContainer->addMaterial(std::move(sphereMaterial));
+	sphereMeshContainer->finalize();
+	mProbeInfluenceSphereVob = std::make_unique<MeshOwningVob>(std::move(sphereMeshContainer));
+	mProbeInfluenceSphereVob->setSelectable(false);
+
 	
 	//mLineMesh->add(createLineMesh(), std::move(lineMaterial));
 	//mLineNode = mLineMesh->createNodeHierarchy(mNodeGeneratorScene.get());
@@ -55,7 +98,31 @@ void nex::gui::Picker::deselect(Scene& scene)
 {
 	scene.acquireLock();
 	scene.removeActiveVobUnsafe(mBoundingBoxVob.get());
+	scene.removeActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
+	scene.removeActiveVobUnsafe(mProbeInfluenceSphereVob.get());
 	mSelected.vob = nullptr;
+}
+
+void nex::gui::Picker::select(Scene& scene, Vob* vob)
+{
+	deselect(scene);
+
+	mSelected.vob = vob;
+	updateBoundingBoxTrafo();
+	scene.addActiveVobUnsafe(mBoundingBoxVob.get());
+
+	if (mSelected.vob->getType() == VobType::Probe) {
+		auto* probeVob = (ProbeVob*)mSelected.vob;
+		auto* probe = probeVob->getProbe();
+
+		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
+			scene.addActiveVobUnsafe(mProbeInfluenceSphereVob.get());
+		}
+		else {
+			scene.addActiveVobUnsafe(mProbeInfluenceBoundingBoxVob.get());
+		}
+
+	}
 }
 
 
@@ -113,16 +180,12 @@ nex::Vob* nex::gui::Picker::pick(Scene& scene, const Ray& screenRayWorld)
 		}
 	}
 
+	deselect(scene);
+
 	//std::cout << "Total intersections = " << intersections << std::endl;
-	if (intersections == 0)
+	if (intersections > 0)
 	{
-		deselect(scene);
-	} else
-	{
-		mSelected = selected;
-		updateBoundingBoxTrafo();
-		scene.removeActiveVobUnsafe(mBoundingBoxVob.get());
-		scene.addActiveVobUnsafe(mBoundingBoxVob.get());
+		select(scene, selected.vob);
 	}
 
 	return mSelected.vob;
@@ -155,6 +218,23 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 
 	mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
 	mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
+
+
+	if (mSelected.vob->getType() == VobType::Probe) {
+		auto* probeVob = (ProbeVob*)mSelected.vob;
+		auto* probe = probeVob->getProbe();
+
+		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
+			mProbeInfluenceSphereVob->setPosition(mSelected.vob->getPosition());
+			mProbeInfluenceSphereVob->updateTrafo(true);
+		}
+		else {
+			mProbeInfluenceBoundingBoxVob->setPosition(mSelected.vob->getPosition());
+			mProbeInfluenceBoundingBoxVob->updateTrafo(true);
+		}
+
+	}
+
 	//mBoundingBoxVob->setPosition(boxOrigin);
 	//mBoundingBoxVob->setScale(boxScale);
 	//mBoundingBoxVob->updateTrafo();

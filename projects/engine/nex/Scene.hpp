@@ -226,6 +226,8 @@ namespace nex
 
 		MeshOwningVob(std::unique_ptr<StaticMeshContainer> container);
 
+		void setMeshContainer(std::unique_ptr<StaticMeshContainer> container);
+
 		StaticMeshContainer* getMesh() const;
 
 		virtual ~MeshOwningVob();

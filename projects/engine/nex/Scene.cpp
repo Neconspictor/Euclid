@@ -402,8 +402,15 @@ namespace nex
 		}
 	}
 	MeshOwningVob::MeshOwningVob(std::unique_ptr<StaticMeshContainer> container) : 
-		Vob(container->createNodeHierarchyUnsafe()), mContainer(std::move(container))
+		Vob(nullptr)
 	{
+		setMeshContainer(std::move(container));
+	}
+	void MeshOwningVob::setMeshContainer(std::unique_ptr<StaticMeshContainer> container)
+	{
+		mContainer = std::move(container);
+		if (mContainer)
+			setMeshRootNode(mContainer->createNodeHierarchyUnsafe());
 	}
 	StaticMeshContainer* MeshOwningVob::getMesh() const
 	{

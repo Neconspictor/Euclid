@@ -12,6 +12,7 @@ namespace nex
 	class SimpleColorPass;
 	class Technique;
 	struct AABB;
+	class MeshOwningVob;
 }
 
 namespace nex::gui
@@ -24,6 +25,8 @@ namespace nex::gui
 		virtual ~Picker();
 
 		void deselect(Scene& scene);
+
+		void select(Scene& scene, Vob* vob);
 
 		/**
 		 * Traverses a scene and picks a scene node by a screen ray.
@@ -52,6 +55,9 @@ namespace nex::gui
 		static std::unique_ptr<Mesh> createLineMesh();
 
 		std::unique_ptr<StaticMeshContainer> mBoundingBoxMesh;
+
+
+
 		//std::unique_ptr<StaticMeshContainer> mLineMesh;
 		std::unique_ptr<SimpleColorPass> mSimpleColorPass;
 		std::unique_ptr<Technique> mSimpleColorTechnique;
@@ -62,6 +68,10 @@ namespace nex::gui
 		bool checkIntersection(const Vob* vob, const nex::Ray& ray);
 
 		std::unique_ptr<Vob> mBoundingBoxVob;
+
+		std::unique_ptr<nex::MeshOwningVob> mProbeInfluenceBoundingBoxVob;
+		std::unique_ptr<nex::MeshOwningVob> mProbeInfluenceSphereVob;
+
 		//SceneNode* mLineNode;
 		SelectionTest mSelected;
 	};

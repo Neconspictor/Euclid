@@ -23,6 +23,7 @@ namespace nex::gui
 		mLastPicked(nullptr)
 		//mTransparentView({}, ImVec2(256, 256))
 	{
+		
 	}
 
 	NodeEditor::~NodeEditor() = default;
@@ -244,6 +245,7 @@ namespace nex::gui
 
 		if (ImGui::Combo("Influence type", (int*)& influenceType, items, 2)) {
 			probe->setInfluenceType(influenceType);
+			mPicker->select(*mScene, probeVob);
 		}
 
 		auto position = probe->getPosition();

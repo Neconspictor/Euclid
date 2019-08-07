@@ -63,7 +63,9 @@ nex::StaticMeshManager::StaticMeshManager() :
 
 		AABB unitBox = {glm::vec3(-1.0f), glm::vec3(1.0f)};
 		mUnitBoundingBoxLines = std::make_unique<MeshAABB>(unitBox, Topology::LINES);
+		mUnitBoundingBoxLines->finalize();
 		mUnitBoundingBoxTriangles = std::make_unique<MeshAABB>(unitBox, Topology::TRIANGLES);
+		mUnitBoundingBoxTriangles->finalize();
 		mUnitSphereTriangles = std::make_unique<SphereMesh>(16, 16, true);
 	}
 

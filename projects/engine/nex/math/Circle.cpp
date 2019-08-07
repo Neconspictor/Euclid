@@ -101,6 +101,7 @@ bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) con
 bool nex::Circle3D::project(const glm::vec3& point, glm::vec3& projectedPoint) const
 {
 	const auto planeProjection = plane.project(point);
+	assert(plane.onPlane(planeProjection));
 	const auto diff = planeProjection - origin;
 	const auto direction = normalize(diff);
 

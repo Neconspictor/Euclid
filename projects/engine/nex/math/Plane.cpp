@@ -32,7 +32,7 @@ nex::Plane::Plane(glm::vec3 normal, float distance) : mNormal(normal), mSignedDi
 
 nex::Plane::Plane(glm::vec3 normal, glm::vec3 pointOnPlane) : mNormal(normalize(normal))
 {
-	mSignedDistance = dot(normal, pointOnPlane);
+	mSignedDistance = -dot(normal, pointOnPlane);
 }
 
 nex::Plane::Plane(float x, float y, float z, float d) : mNormal(x,y,z), mSignedDistance(d)
@@ -48,7 +48,7 @@ nex::Plane::RayIntersection nex::Plane::intersects(const Ray& ray) const
 	constexpr auto eps = 0.04f;
 
 	const auto dotDir = dot(n, dirDouble);
-	const auto compare = d - dot(n, glm::dvec3(ray.getOrigin()));
+	const auto compare = d + dot(n, glm::dvec3(ray.getOrigin()));
 
 	RayIntersection result;
 
@@ -83,7 +83,7 @@ nex::Plane::RayIntersection nex::Plane::intersects(const Ray& ray) const
 
 bool nex::Plane::onPlane(const glm::vec3& v) const
 {
-	constexpr auto eps = 0.000001f;
+	constexpr auto eps = 0.00001f;
 	return abs(dot(mNormal, v) + mSignedDistance) < eps;
 }
 
@@ -91,7 +91,7 @@ glm::vec3 nex::Plane::project(const glm::vec3& p) const
 {
 	// get a point on the plane
 	const auto n = normalize(mNormal);
-	const glm::vec3 o = mNormal * mSignedDistance;
+	const glm::vec3 o = mNormal * (-mSignedDistance);
 
 	auto v = p - o;
 	const auto vLen = length(v);

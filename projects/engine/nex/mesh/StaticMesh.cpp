@@ -62,12 +62,10 @@ namespace nex
 			root = std::make_unique<SceneNode>();
 		}
 
-		for (auto it = mMeshes.cbegin(); it != mMeshes.cend(); ++it)
-		{
-			auto* material = mMappings[it->get()];
+		for (auto map = mMappings.cbegin(); map != mMappings.cend(); ++map) {
 			SceneNode* node = new SceneNode();
-			node->setMesh(it->get());
-			node->setMaterial(material);
+			node->setMesh(map->first);
+			node->setMaterial(map->second);
 			root->addChild(node);
 		}
 
