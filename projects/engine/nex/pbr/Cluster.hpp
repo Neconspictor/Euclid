@@ -120,6 +120,9 @@ namespace nex
 
 		void initInstance(const glm::uvec3& gl_NumWorkGroups, const glm::uvec3& gl_GlobalInvocationID, const glm::uvec3& gl_LocalInvocationID);
 
+
+		static void test0();
+
 		void main() const;
 
 		void setGlobalIndexCount(glm::uint count);
@@ -145,7 +148,7 @@ namespace nex
 		mutable std::vector<glm::uint> globalLightIndexList;
 		mutable std::vector<LightGrid> lightGrids;
 		mutable glm::uint globalIndexCount;
-		mutable EnvironmentLight sharedLights[LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z];
+		mutable std::vector<EnvironmentLight> sharedLights;
 
 
 		static constexpr glm::uvec3 gl_WorkGroupSize = glm::uvec3(LOCAL_SIZE_X, LOCAL_SIZE_Y, LOCAL_SIZE_Z);

@@ -668,6 +668,49 @@ void nex::CullEnvironmentLightsCsCpuShader::initInstance(const glm::uvec3& gl_Nu
 	this->gl_NumWorkGroups = gl_NumWorkGroups;
 	this->gl_GlobalInvocationID = gl_GlobalInvocationID;
 	this->gl_LocalInvocationID = gl_LocalInvocationID;
+
+	this->gl_LocalInvocationIndex = gl_LocalInvocationID.z * gl_WorkGroupSize.x * gl_WorkGroupSize.y +
+		gl_LocalInvocationID.y * gl_WorkGroupSize.x +
+		gl_LocalInvocationID.x;
+
+	sharedLights.resize(LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z);
+}
+
+void nex::CullEnvironmentLightsCsCpuShader::test0()
+{
+
+	CullEnvironmentLightsCsCpuShader shader;
+	shader.setGlobalIndexCount(0);
+	shader.setViewMatrix(glm::mat4());
+
+	const auto LIGHT_COUNT = 1;
+	shader.getGlobalLightIndexList().resize(LIGHT_COUNT * MAX_VISIBLES_LIGHTS);
+	auto& lights = shader.getEnvironmentLights();
+
+	lights.resize(LIGHT_COUNT);
+
+	// first light
+	lights[0].enabled = true;
+	lights[0].position = glm::vec4(0.0f);
+	lights[0].sphereRange = 10.0f;
+	lights[0].usesBoundingBox = false;
+	lights[0].minWorld = glm::vec4(-1.0f);
+	lights[0].maxWorld = glm::vec4(1.0f);
+
+
+	const auto BATCH_SIZE = LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z;
+	const auto numWorkGroups = glm::uvec3(2,2,2);
+
+	auto& clusters = shader.getClusters();
+	clusters.resize(BATCH_SIZE * numWorkGroups.x * numWorkGroups.y * numWorkGroups.z);
+	shader.getLightGrids().resize(clusters.size());
+	for (auto& cluster : clusters) {
+		cluster.minView = cluster.minWorld = glm::vec4(-10.0f);
+		cluster.maxView = cluster.maxWorld = glm::vec4(10.0f);
+	}
+
+	shader.initInstance(numWorkGroups, glm::uvec3(0,1,1), glm::uvec3(8,2,3));
+	shader.main();
 }
 
 void nex::CullEnvironmentLightsCsCpuShader::main() const
@@ -688,13 +731,26 @@ void nex::CullEnvironmentLightsCsCpuShader::main() const
 	uint visibleLightIndices[MAX_VISIBLES_LIGHTS];
 
 	for (uint batch = 0; batch < numBatches; ++batch) {
-		uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
+		//uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
+
+
+		for (uint index = 0; index < threadCount; ++index) {
+			uint lightIndex = batch * threadCount + index;
+			//Prevent overflow by clamping to last light which is always null
+			lightIndex = min(lightIndex, lightCount);
+			if (lightIndex < lightCount) {
+				sharedLights[index] = environmentLights[lightIndex];
+			}
+			else {
+				sharedLights[index].enabled = false;
+			}
+		}
 
 		//Prevent overflow by clamping to last light which is always null
-		lightIndex = min(lightIndex, lightCount);
+		//lightIndex = min(lightIndex, lightCount - 1);
 
 		//Populating shared light array
-		sharedLights[gl_LocalInvocationIndex] = environmentLights[lightIndex];
+		//sharedLights[gl_LocalInvocationIndex] = environmentLights[lightIndex];
 		//barrier();
 
 		//Iterating within the current batch of lights
