@@ -71,7 +71,7 @@ mBoundingBoxVob(nullptr)
 
 	auto sphereMeshContainer = std::make_unique<StaticMeshContainer>();
 	auto sphereMaterial = RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial();
-	sphereMaterial->setColor(glm::vec4(1.0f, 0.0f, 1.0f, 0.2f));
+	sphereMaterial->setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.2f));
 	sphereMaterial->getRenderState().blendDesc = BlendDesc::createAlphaTransparency();
 	//sphereMaterial->getRenderState().blendDesc = { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
 	sphereMaterial->getRenderState().doCullFaces = false;
@@ -226,10 +226,17 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 
 		if (probe->getInfluenceType() == PbrProbe::InfluenceType::SPHERE) {
 			mProbeInfluenceSphereVob->setPosition(mSelected.vob->getPosition());
+			mProbeInfluenceSphereVob->setScale(glm::vec3(probe->getInfluenceRadius()));
+
 			mProbeInfluenceSphereVob->updateTrafo(true);
 		}
 		else {
 			mProbeInfluenceBoundingBoxVob->setPosition(mSelected.vob->getPosition());
+
+			const auto& box = probe->getInfluenceBox();
+			auto scale = maxVec(resolveInfinity((box.max - box.min) / 2.0f, 0.0f), glm::vec3(0.0f));
+			mProbeInfluenceBoundingBoxVob->setScale(scale);
+
 			mProbeInfluenceBoundingBoxVob->updateTrafo(true);
 		}
 
