@@ -635,3 +635,153 @@ void nex::gui::ProbeClusterView::drawSelf()
 		mCluster->generateCluster(mClusterSize, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	}
 }
+
+std::vector<nex::CullEnvironmentLightsCsCpuShader::AABB>& nex::CullEnvironmentLightsCsCpuShader::getClusters()
+{
+	return clusters;
+}
+
+std::vector<nex::CullEnvironmentLightsCsCpuShader::EnvironmentLight>& nex::CullEnvironmentLightsCsCpuShader::getEnvironmentLights()
+{
+	return environmentLights;
+}
+
+glm::uint nex::CullEnvironmentLightsCsCpuShader::getGlobalLightIndexCount()
+{
+	return globalIndexCount;
+}
+
+std::vector<glm::uint>& nex::CullEnvironmentLightsCsCpuShader::getGlobalLightIndexList()
+{
+	return globalLightIndexList;
+}
+
+std::vector<nex::CullEnvironmentLightsCsCpuShader::LightGrid>& nex::CullEnvironmentLightsCsCpuShader::getLightGrids()
+{
+	return lightGrids;
+}
+
+void nex::CullEnvironmentLightsCsCpuShader::initInstance(const glm::uvec3& gl_NumWorkGroups, 
+	const glm::uvec3& gl_GlobalInvocationID, 
+	const glm::uvec3& gl_LocalInvocationID)
+{
+	this->gl_NumWorkGroups = gl_NumWorkGroups;
+	this->gl_GlobalInvocationID = gl_GlobalInvocationID;
+	this->gl_LocalInvocationID = gl_LocalInvocationID;
+}
+
+void nex::CullEnvironmentLightsCsCpuShader::main() const
+{
+	using namespace glm;
+
+	globalIndexCount = 0;
+	uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
+	uint lightCount = environmentLights.size();
+	uint numBatches = (lightCount + threadCount - 1) / threadCount;
+
+	uvec3 globalSize = gl_NumWorkGroups * gl_WorkGroupSize;
+	uint globalInvocationIndex = gl_GlobalInvocationID.z * globalSize.x * globalSize.y +
+		gl_GlobalInvocationID.y * globalSize.x +
+		gl_GlobalInvocationID.x;
+
+	uint visibleLightCount = 0;
+	uint visibleLightIndices[MAX_VISIBLES_LIGHTS];
+
+	for (uint batch = 0; batch < numBatches; ++batch) {
+		uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
+
+		//Prevent overflow by clamping to last light which is always null
+		lightIndex = min(lightIndex, lightCount);
+
+		//Populating shared light array
+		sharedLights[gl_LocalInvocationIndex] = environmentLights[lightIndex];
+		//barrier();
+
+		//Iterating within the current batch of lights
+		for (uint light = 0; light < threadCount && (visibleLightCount < MAX_VISIBLES_LIGHTS); ++light) {
+			if (sharedLights[light].enabled == 1) {
+
+				if (sharedLights[light].usesBoundingBox) {
+					if (testAABBWorld(light, globalInvocationIndex)) {
+						visibleLightIndices[visibleLightCount] = batch * threadCount + light;
+						visibleLightCount += 1;
+					}
+
+				}
+				else {
+					if (testSphereAABB(light, globalInvocationIndex)) {
+						visibleLightIndices[visibleLightCount] = batch * threadCount + light;
+						visibleLightCount += 1;
+					}
+				}
+			}
+		}
+	}
+
+	//We want all thread groups to have completed the light tests before continuing
+	//barrier();
+
+	//uint offset = atomicAdd(globalIndexCount, visibleLightCount);
+	uint offset = globalIndexCount;
+	globalIndexCount += visibleLightCount;
+	
+
+	for (uint i = 0; i < visibleLightCount; ++i) {
+		globalLightIndexList[offset + i] = visibleLightIndices[i];
+	}
+
+	lightGrids[globalInvocationIndex].offset = offset;
+	lightGrids[globalInvocationIndex].count = visibleLightCount;
+}
+
+void nex::CullEnvironmentLightsCsCpuShader::setGlobalIndexCount(glm::uint count)
+{
+	globalIndexCount = count;
+}
+
+void nex::CullEnvironmentLightsCsCpuShader::setViewMatrix(const glm::mat4& mat)
+{
+	viewMatrix = mat;
+}
+
+float nex::CullEnvironmentLightsCsCpuShader::sqDistPointAABB(glm::vec3 point, glm::uint clusterID) const
+{
+	float sqDist = 0.0;
+	AABB currentCell = clusters[clusterID];
+	//cluster[clusterID].maxPoint[3] = clusterID;
+	for (int i = 0; i < 3; ++i) {
+		float v = point[i];
+
+		if (v < currentCell.minView[i])
+		{
+			float dist = currentCell.minView[i] - v;
+			sqDist += dist * dist;
+		}
+		if (v > currentCell.maxView[i])
+		{
+			float dist = v - currentCell.maxView[i];
+			sqDist += dist * dist;
+		}
+	}
+
+	return sqDist;
+}
+
+bool nex::CullEnvironmentLightsCsCpuShader::testAABBWorld(glm::uint light, glm::uint clusterID) const
+{
+	AABB currentCell = clusters[clusterID];
+	EnvironmentLight envLight = environmentLights[light];
+
+	return (currentCell.minWorld.x <= envLight.maxWorld.x && currentCell.maxWorld.x >= envLight.minWorld.x) &&
+		(currentCell.minWorld.y <= envLight.maxWorld.y && currentCell.maxWorld.y >= envLight.minWorld.y) &&
+		(currentCell.minWorld.z <= envLight.maxWorld.z && currentCell.maxWorld.z >= envLight.minWorld.z);
+}
+
+bool nex::CullEnvironmentLightsCsCpuShader::testSphereAABB(glm::uint light, glm::uint clusterID) const
+{
+	float radius = sharedLights[light].sphereRange;
+	glm::vec3 center = glm::vec3(viewMatrix * sharedLights[light].position);
+	float squaredDistance = sqDistPointAABB(center, clusterID);
+
+	return squaredDistance <= (radius * radius);
+}

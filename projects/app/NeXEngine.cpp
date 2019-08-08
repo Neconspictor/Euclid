@@ -480,7 +480,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 200);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;

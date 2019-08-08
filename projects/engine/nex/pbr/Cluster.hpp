@@ -85,6 +85,76 @@ namespace nex
 		std::unique_ptr<CullLightsPass> mCullLightsPass;
 	};
 
+	class CullEnvironmentLightsCsCpuShader 
+	{
+	public:
+		struct EnvironmentLight
+		{
+			glm::vec4 position;
+			glm::vec4 minWorld;
+			glm::vec4 maxWorld;
+			float sphereRange;
+			glm::uint enabled;
+			glm::uint usesBoundingBox; // specifies whether to use AABB or Sphere volume
+		};
+
+		struct LightGrid
+		{
+			glm::uint offset;
+			glm::uint count;
+		};
+
+		struct AABB
+		{
+			glm::vec4 minView;
+			glm::vec4 maxView;
+			glm::vec4 minWorld;
+			glm::vec4 maxWorld;
+		};
+
+		std::vector<AABB>& getClusters();
+		std::vector<EnvironmentLight>& getEnvironmentLights();
+		glm::uint getGlobalLightIndexCount();
+		std::vector<glm::uint>& getGlobalLightIndexList();
+		std::vector<LightGrid>& getLightGrids();
+
+		void initInstance(const glm::uvec3& gl_NumWorkGroups, const glm::uvec3& gl_GlobalInvocationID, const glm::uvec3& gl_LocalInvocationID);
+
+		void main() const;
+
+		void setGlobalIndexCount(glm::uint count);
+		void setViewMatrix(const glm::mat4& mat);
+
+
+	private:
+
+
+		float sqDistPointAABB(glm::vec3 point, glm::uint clusterID)  const;
+		bool testAABBWorld(glm::uint light, glm::uint clusterID) const;
+		bool testSphereAABB(glm::uint light, glm::uint clusterID) const;
+
+		static const unsigned MAX_VISIBLES_LIGHTS = 100;
+		static const unsigned LOCAL_SIZE_X = 16;
+		static const unsigned LOCAL_SIZE_Y = 9;
+		static const unsigned LOCAL_SIZE_Z = 4;
+
+
+		glm::mat4 viewMatrix;
+		std::vector<AABB> clusters;
+		std::vector<EnvironmentLight> environmentLights;
+		mutable std::vector<glm::uint> globalLightIndexList;
+		mutable std::vector<LightGrid> lightGrids;
+		mutable glm::uint globalIndexCount;
+		mutable EnvironmentLight sharedLights[LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z];
+
+
+		static constexpr glm::uvec3 gl_WorkGroupSize = glm::uvec3(LOCAL_SIZE_X, LOCAL_SIZE_Y, LOCAL_SIZE_Z);
+		glm::uvec3 gl_NumWorkGroups;
+		glm::uvec3 gl_GlobalInvocationID;
+		glm::uvec3 gl_LocalInvocationID;
+		glm::uint gl_LocalInvocationIndex;
+	};
+
 	namespace gui {
 
 		class ProbeClusterView : public nex::gui::MenuWindow {
