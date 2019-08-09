@@ -10,6 +10,85 @@ namespace nex
 	class ShaderStorageBuffer;
 	class Window;
 
+	class EnvLightCuller
+	{
+	public:
+		struct EnvironmentLight
+		{
+			glm::vec4 position;
+			glm::vec4 minWorld;
+			glm::vec4 maxWorld;
+			float sphereRange;
+			glm::uint enabled;
+			glm::uint usesBoundingBox; // specifies whether to use AABB or Sphere volume
+		};
+
+		struct LightGrid
+		{
+			glm::uint offset;
+			glm::uint count;
+		};
+
+		struct AABB
+		{
+			glm::vec4 minView;
+			glm::vec4 maxView;
+			glm::vec4 minWorld;
+			glm::vec4 maxWorld;
+		};
+
+		using GlobalLightIndexCount = glm::uint;
+
+		using GlobalLightIndexListElement = glm::uint;
+
+		/**
+		 * Note: Has to be in sync with shader!
+		 */
+		static const unsigned MAX_VISIBLES_LIGHTS_PER_CLUSTER = 10;
+
+
+		EnvLightCuller();
+		virtual ~EnvLightCuller();
+
+		/**
+		 *  Returns a buffer containing an array of GlobalLightIndexCount
+		 */
+		ShaderStorageBuffer* getGlobalLightIndexCount();
+
+		/**
+		 * Returns a buffer containing an array of GlobalLightIndexListElement
+		 * of size MAX_VISIBLES_LIGHTS * cluster size.
+		 */
+		ShaderStorageBuffer* getGlobalLightIndexList();
+
+		/**
+		 * Returns a buffer containing an array of LightGrid
+		 * of size 'cluster size'
+		 */
+		ShaderStorageBuffer* getLightGrids();
+
+		/**
+		 * Performas light culling of environment lights using the GPU.
+		 * @param clusters : A buffer containing an array of AABB
+		 * @param envLights : A buffer containing an array of EnvironmentLight
+		 */
+		void cullLights(const glm::mat4& viewMatrix,
+			ShaderStorageBuffer* clusters,
+			const glm::vec3& clusterSize,
+			ShaderStorageBuffer* envLights);
+
+	private:
+
+		class CullPass;
+
+		std::unique_ptr<ShaderStorageBuffer> mGlobalLightIndexCountBuffer;
+		std::unique_ptr<ShaderStorageBuffer> mGlobalLightIndexListBuffer;
+		std::unique_ptr<ShaderStorageBuffer> mLightGridsBuffer;
+		std::unique_ptr<CullPass> mCullPass;
+	};
+
+
+
 	class ProbeCluster
 	{
 	public:

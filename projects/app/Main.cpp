@@ -13,6 +13,7 @@
 #include "nex/math/Circle.hpp"
 #include "nex/math/Sphere.hpp"
 #include <nex/common/Future.hpp>
+#include <nex/pbr/Cluster.hpp>
 
 
 #ifdef WIN32
@@ -74,6 +75,10 @@ int main(int argc, char** argv)
 	//return EXIT_SUCCESS;
 
 	logLastCrashReport(logger);
+
+
+	//nex::CullEnvironmentLightsCsCpuShader::test0();
+	//return EXIT_SUCCESS;
 
 	try {
 

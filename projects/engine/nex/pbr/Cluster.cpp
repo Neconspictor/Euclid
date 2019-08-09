@@ -14,6 +14,100 @@
 #include <nex/EffectLibrary.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 
+
+class nex::EnvLightCuller::CullPass : public nex::ComputePass {
+public:
+
+	struct Constants {
+		glm::mat4 viewMatrix;
+	};
+
+	CullPass() :
+		ComputePass(Shader::createComputeShader("cluster/cull_environment_lights_cs.glsl")),
+		mConstants(std::make_unique<UniformBuffer>(0, sizeof(Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
+	{
+
+	}
+
+	void setClusters(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(0);
+	}
+
+	void setConstants(const Constants& constants) {
+		mConstants->update(sizeof(Constants), &constants);
+	}
+
+	void setEnvironmentLights(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(1);
+	}
+
+	void setGlobalLightIndexList(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(2);
+	}
+
+	void setLightGrids(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(3);
+	}
+
+	void setGlobalIndexCount(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(4);
+	}
+
+private:
+	std::unique_ptr<UniformBuffer> mConstants;
+};
+
+
+nex::EnvLightCuller::EnvLightCuller() :
+	mGlobalLightIndexCountBuffer(std::make_unique<ShaderStorageBuffer>(4, sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)),
+	mGlobalLightIndexListBuffer(std::make_unique<ShaderStorageBuffer>(2, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
+	mLightGridsBuffer(std::make_unique<ShaderStorageBuffer>(3, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
+	mCullPass(std::make_unique<CullPass>())
+{
+}
+
+nex::EnvLightCuller::~EnvLightCuller() = default;
+
+nex::ShaderStorageBuffer* nex::EnvLightCuller::getGlobalLightIndexCount()
+{
+	return mGlobalLightIndexCountBuffer.get();
+}
+
+nex::ShaderStorageBuffer* nex::EnvLightCuller::getGlobalLightIndexList()
+{
+	return mGlobalLightIndexListBuffer.get();
+}
+
+nex::ShaderStorageBuffer* nex::EnvLightCuller::getLightGrids()
+{
+	return mLightGridsBuffer.get();
+}
+
+void nex::EnvLightCuller::cullLights(const glm::mat4& viewMatrix, ShaderStorageBuffer* clusters, const glm::vec3& clusterSize, ShaderStorageBuffer* envLights)
+{
+	mCullPass->bind();
+
+
+	const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
+
+	mGlobalLightIndexCountBuffer->resize(flattenedSize * MAX_VISIBLES_LIGHTS_PER_CLUSTER * sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::STREAM_COPY);
+	mLightGridsBuffer->resize(flattenedSize * sizeof(LightGrid), nullptr, GpuBuffer::UsageHint::STREAM_COPY);
+
+
+	mCullPass->setClusters(clusters);
+	mCullPass->setConstants((const CullPass::Constants&) viewMatrix);
+	mCullPass->setEnvironmentLights(envLights);
+	mCullPass->setGlobalIndexCount(mGlobalLightIndexCountBuffer.get());
+	mCullPass->setGlobalLightIndexList(mGlobalLightIndexListBuffer.get());
+	mCullPass->setLightGrids(mLightGridsBuffer.get());
+	
+
+	// TODO : Generify dispatch size!
+	mCullPass->dispatch(1,1, clusterSize.z / 4 );
+}
+
+
+
 class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
 public:
 
