@@ -4,7 +4,7 @@
 namespace nex
 {
 	class Camera;
-	class DirectionalLight;
+	struct DirLight;
 	class RenderCommandQueue;
 	class PerspectiveCamera;
 	class RenderTarget;
@@ -22,7 +22,7 @@ namespace nex
 		unsigned getHeight()const;
 
 		virtual void render(const RenderCommandQueue& queue, 
-			const Camera&  camera, const DirectionalLight& sun,
+			const Camera&  camera, const DirLight& sun,
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
 			bool postProcess,

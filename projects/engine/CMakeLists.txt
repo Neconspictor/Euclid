@@ -299,6 +299,7 @@ add_library (engine ${ENGINE_SOURCES})
 target_include_directories (engine PUBLIC 
 	./
     ../../extern_sources/engine/
+    ../../shaders/interface
     #${CMAKE_SOURCE_DIR}/libs/glm/include 
     #${CMAKE_SOURCE_DIR}/libs/boost_1_67_0/include
     #${CMAKE_SOURCE_DIR}/libs/assimp-3.3.1/include

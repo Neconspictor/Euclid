@@ -33,6 +33,11 @@ namespace nex::util {
 		std::string getOpenGLShaderDirectory() const;
 
 		/**
+		* Path to engine-shader interface folder. Path ends with a slash
+		*/
+		std::string getInterfaceShaderDirectory() const;
+
+		/**
 		* Path to the texture folder. Path ends with a slash
 		*/
 		std::string getTextureDirectory() const;

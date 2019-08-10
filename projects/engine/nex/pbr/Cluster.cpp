@@ -15,6 +15,53 @@
 #include <nex/renderer/RenderBackend.hpp>
 
 
+class nex::ClusterGenerator::GenerateClusterPass : public nex::ComputePass {
+public:
+	GenerateClusterPass() :
+		ComputePass(Shader::createComputeShader("cluster/clusters_cs.glsl")),
+		mConstants(std::make_unique<ShaderStorageBuffer>(getConstantsBufferBingingPoint(), sizeof(Constants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
+	{
+
+	}
+
+	void setClusters(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(0);
+	}
+
+	ShaderStorageBuffer* getConstantsBuffer() {
+		return mConstants.get();
+	}
+
+	static unsigned getConstantsBufferBingingPoint() {
+		return 1;
+	}
+
+private:
+	std::unique_ptr<ShaderStorageBuffer> mConstants;
+};
+
+nex::ClusterGenerator::ClusterGenerator() : 
+	mGenerateClusterPass(std::make_unique<GenerateClusterPass>())
+{
+}
+
+nex::ClusterGenerator::~ClusterGenerator() = default;
+
+void nex::ClusterGenerator::generateClusters(ShaderStorageBuffer* output, const glm::uvec3& clusterSize, const Constants& constants)
+{
+
+	const auto size = clusterSize.x * clusterSize.y * clusterSize.z * sizeof(ClusterAABB);
+
+	output->resize(size, nullptr, nex::GpuBuffer::UsageHint::STREAM_DRAW);
+	
+	mGenerateClusterPass->bind();
+	mGenerateClusterPass->setClusters(output);
+	mGenerateClusterPass->getConstantsBuffer()->update(sizeof(Constants), &constants);
+	mGenerateClusterPass->getConstantsBuffer()->bindToTarget();
+
+	mGenerateClusterPass->dispatch(clusterSize.x, clusterSize.y, clusterSize.z);
+}
+
 class nex::EnvLightCuller::CullPass : public nex::ComputePass {
 public:
 
@@ -35,6 +82,7 @@ public:
 
 	void setConstants(const Constants& constants) {
 		mConstants->update(sizeof(Constants), &constants);
+		mConstants->bindToTarget();
 	}
 
 	void setEnvironmentLights(ShaderStorageBuffer* buffer) {
@@ -91,7 +139,7 @@ void nex::EnvLightCuller::cullLights(const glm::mat4& viewMatrix, ShaderStorageB
 	const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
 
 	mGlobalLightIndexCountBuffer->resize(flattenedSize * MAX_VISIBLES_LIGHTS_PER_CLUSTER * sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::STREAM_COPY);
-	mLightGridsBuffer->resize(flattenedSize * sizeof(LightGrid), nullptr, GpuBuffer::UsageHint::STREAM_COPY);
+	mLightGridsBuffer->resize(flattenedSize * sizeof(ClusterLightGrid), nullptr, GpuBuffer::UsageHint::STREAM_COPY);
 
 
 	mCullPass->setClusters(clusters);
@@ -105,39 +153,6 @@ void nex::EnvLightCuller::cullLights(const glm::mat4& viewMatrix, ShaderStorageB
 	// TODO : Generify dispatch size!
 	mCullPass->dispatch(1,1, clusterSize.z / 4 );
 }
-
-
-
-class nex::ProbeCluster::GenerateClusterPass : public nex::ComputePass {
-public:
-
-	struct AABB {
-		glm::vec4 minView;
-		glm::vec4 maxView;
-		glm::vec4 minWorld;
-		glm::vec4 maxWorld;
-	};
-
-	struct Constants {
-		glm::mat4 invProj;
-		glm::mat4 invView;
-		glm::vec4 zNearFar; // near and far plane in view space; z and w component unused
-	};
-
-	GenerateClusterPass() : 
-		ComputePass(Shader::createComputeShader("cluster/clusters_cs.glsl")) 
-	{
-
-	}
-
-	static unsigned getClusterAABBBinding() {
-		return 0;
-	}
-
-	static unsigned getConstantsBinding() {
-		return 1;
-	}
-};
 
 
 class nex::ProbeCluster::CollectClustersPass : public nex::ComputePass {
@@ -160,8 +175,8 @@ public:
 		// clusterSize.xSize * clusterSize.ySize * clusterSize.zSize elements.
 	};
 
-	void resizeBuffer(const ClusterSize& clusterSize) {
-		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+	void resizeBuffer(const glm::uvec3& clusterSize) {
+		const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
 		mBuffer->resize(sizeof(ActiveClusters) + flattenedSize * sizeof(unsigned), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	}
 
@@ -233,12 +248,7 @@ private:
 
 nex::ProbeCluster::ProbeCluster(Scene* scene) : mScene(scene), 
 mMaterial(RenderBackend::get()->getEffectLibrary()->createSimpleColorMaterial()),
-mGenerateClusterShader(std::make_unique<GenerateClusterPass>()),
-mConstantsBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getConstantsBinding(), 
-	sizeof(GenerateClusterPass::Constants), 
-	nullptr, 
-	GpuBuffer::UsageHint::DYNAMIC_COPY)),
-mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(GenerateClusterPass::getClusterAABBBinding(), 
+mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(0, 
 	0, // Note: we dynamically resize the buffer 
 	nullptr, 
 	GpuBuffer::UsageHint::DYNAMIC_COPY)),
@@ -287,7 +297,7 @@ void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem)
 
 }
 
-void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned width, unsigned height)
+void nex::ProbeCluster::generateCluster(const glm::uvec3& clusterSize, unsigned width, unsigned height)
 {
 	//generateClusterCpuTest(clusterSize); return;
 	generateClusterGpu(clusterSize, width, height); return;
@@ -295,9 +305,9 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned
 	ClusterElement elem;
 	auto container = std::make_unique<StaticMeshContainer>();
 
-	elem.width = 1.0f / (float) clusterSize.xSize;
-	elem.height = 1.0f / (float) clusterSize.ySize;
-	elem.depth = 1.0f / (float) clusterSize.zSize;
+	elem.width = 1.0f / (float) clusterSize.x;
+	elem.height = 1.0f / (float) clusterSize.y;
+	elem.depth = 1.0f / (float) clusterSize.z;
 	const auto viewInv = inverse(mCamera.getView());
 
 	const auto middleDistance = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f;
@@ -305,9 +315,9 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned
 	const auto middleTrans = glm::translate(glm::mat4(), -middleDistance * lookVecView);
 
 
-	for (size_t x = 0; x < clusterSize.xSize; ++x ) {
-		for (size_t y = 0; y < clusterSize.ySize; ++y) {
-			for (size_t z = 0; z < clusterSize.zSize; ++z) {
+	for (size_t x = 0; x < clusterSize.x; ++x ) {
+		for (size_t y = 0; y < clusterSize.y; ++y) {
+			for (size_t z = 0; z < clusterSize.z; ++z) {
 
 				elem.xOffset = x * elem.width;
 				elem.yOffset = y * elem.height;
@@ -342,32 +352,31 @@ void nex::ProbeCluster::generateCluster(const ClusterSize& clusterSize, unsigned
 
 }
 
-void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
+void nex::ProbeCluster::generateClusterCpuTest(const glm::uvec3& clusterSize)
 {
 	mCamera.update();
 	ClusterElement elem;
 	auto container = std::make_unique<StaticMeshContainer>();
 
-	elem.width = 1.0f / (float)clusterSize.xSize;
-	elem.height = 1.0f / (float)clusterSize.ySize;
-	elem.depth = 1.0f / (float)clusterSize.zSize;
+	elem.width = 1.0f / (float)clusterSize.x;
+	elem.height = 1.0f / (float)clusterSize.y;
+	elem.depth = 1.0f / (float)clusterSize.z;
 	const auto viewInv = inverse(mCamera.getView());
 
 	const auto middleDistance = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f;
 	const auto lookVecView = glm::vec3(0, 0, Camera::getViewSpaceZfromDistance(1.0f));
 	const auto middleTrans = glm::translate(glm::mat4(), -middleDistance * lookVecView);
 
-	const glm::vec3 workGroupSize(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize);
 	const glm::vec2 zNearFar (Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()), 
 		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()));
-	const glm::uvec4 tileSizes(1920 / clusterSize.xSize);
+	const glm::uvec4 tileSizes(1920 / clusterSize.x);
 	const auto invProj = inverse(mCamera.getProjectionMatrix());
 	const glm::vec2 screenDimension(1920, 1080);
 
 
-	for (size_t x = 0; x < clusterSize.xSize; ++x) {
-		for (size_t y = 0; y < clusterSize.ySize; ++y) {
-			for (size_t z = 0; z < clusterSize.zSize; ++z) {
+	for (size_t x = 0; x < clusterSize.x; ++x) {
+		for (size_t y = 0; y < clusterSize.y; ++y) {
+			for (size_t z = 0; z < clusterSize.z; ++z) {
 
 				elem.xOffset = x * elem.width;
 				elem.yOffset = y * elem.height;
@@ -378,7 +387,7 @@ void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
 				//const auto frustumWorld = frustumView * viewInv;
 				//auto mesh = std::make_unique<FrustumMesh>(frustumWorld);
 				//frustumView = middleTrans * frustumView;
-				auto box = main(glm::vec3(x,y,z), workGroupSize, zNearFar,tileSizes, invProj,
+				auto box = main(glm::vec3(x,y,z), clusterSize, zNearFar,tileSizes, invProj,
 					screenDimension);
 				box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
 				box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
@@ -406,38 +415,29 @@ void nex::ProbeCluster::generateClusterCpuTest(const ClusterSize& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 }
 
-void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize, unsigned width, unsigned height)
+void nex::ProbeCluster::generateClusterGpu(const glm::uvec3& clusterSize, unsigned width, unsigned height)
 {
 	mCamera.update();
 	const auto viewInv = inverse(mCamera.getView());
 	const auto middleDistance = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f;
 	const auto lookVecView = glm::vec3(0, 0, Camera::getViewSpaceZfromDistance(1.0f));
 	const auto middleTrans = glm::translate(glm::mat4(), -middleDistance * lookVecView);
+	const auto flattenedClusterSize = clusterSize.x * clusterSize.y * clusterSize.z;
 
 	auto container = std::make_unique<StaticMeshContainer>();
-
-	mGenerateClusterShader->bind();
-
-	mConstantsBuffer->bindToTarget();
-	mClusterAABBBuffer->bindToTarget();
-
-	// update buffers
-	const auto flattedClusterSize = clusterSize.xSize* clusterSize.ySize* clusterSize.zSize;
-	mClusterAABBBuffer->resize(sizeof(GenerateClusterPass::AABB) * flattedClusterSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
-	GenerateClusterPass::Constants constants;
-	constants.invProj = inverse(mCamera.getProjectionMatrix());
-	constants.invView = viewInv;
-	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()), 
-		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
-	mConstantsBuffer->update(sizeof(GenerateClusterPass::Constants), &constants);
 	
 	// generate clusters
-	mGenerateClusterShader->dispatch(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize);
+	ClusterGenerator::Constants constants;
+	constants.invProj = inverse(mCamera.getProjectionMatrix());
+	constants.invView = viewInv;
+	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()),
+		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
+	mClusterGenerator.generateClusters(mClusterAABBBuffer.get(), clusterSize, constants);
 
 
 	// Readback the generated clusters
-	auto* clusters = (GenerateClusterPass::AABB*)mClusterAABBBuffer->map(GpuBuffer::Access::READ_ONLY);
-		for (unsigned i = 0; i < flattedClusterSize; ++i) {
+	auto* clusters = (nex::ClusterAABB*)mClusterAABBBuffer->map(GpuBuffer::Access::READ_ONLY);
+		for (unsigned i = 0; i < flattenedClusterSize; ++i) {
 			auto& cluster = clusters[i];
 
 			AABB box = {glm::vec3(cluster.minView), glm::vec3(cluster.maxView)};
@@ -445,7 +445,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize, unsig
 			//box.min = glm::vec3(middleTrans * glm::vec4(box.min, 1.0f));
 			//box.max = glm::vec3(middleTrans * glm::vec4(box.max, 1.0f));
 
-			auto mesh = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
+			auto mesh = std::make_unique<MeshAABB>(box, Topology::LINES);
 			container->addMapping(mesh.get(), mMaterial.get());
 			container->add(std::move(mesh));
 		}
@@ -469,7 +469,7 @@ void nex::ProbeCluster::generateClusterGpu(const ClusterSize& clusterSize, unsig
 	cleanActiveClusterListGpuTest(clusterSize, mCollectClustersPass->getBuffer());
 }
 
-void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSize, 
+void nex::ProbeCluster::collectActiveClusterGpuTest(const glm::uvec3& clusterSize,
 	float zNearDistance, 
 	float zFarDistance,
 	unsigned width,
@@ -482,13 +482,13 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 
 	void* data = buffer->map(GpuBuffer::Access::READ_WRITE);
 		auto* activeClusters = (CollectClustersPass::ActiveClusters*)data;
-		activeClusters->numClusters = glm::uvec4(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize, 0);
+		activeClusters->numClusters = glm::uvec4(clusterSize.x, clusterSize.y, clusterSize.z, 0);
 
 		auto logzFar_zNear = logf(zFarDistance / zNearDistance);
-		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNearDistance) * clusterSize.zSize / logzFar_zNear, 0.0f, 0.0f);
+		activeClusters->constantsAB = glm::vec4(logzFar_zNear, logf(zNearDistance) * clusterSize.z / logzFar_zNear, 0.0f, 0.0f);
 	
 		auto* flagArray = (unsigned*)((char*)data + sizeof(CollectClustersPass::ActiveClusters));
-		const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+		const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
 		memset(flagArray, 0, flattenedSize * sizeof(unsigned));
 	buffer->unmap();
 
@@ -501,21 +501,21 @@ void nex::ProbeCluster::collectActiveClusterGpuTest(const ClusterSize& clusterSi
 	buffer->unmap();
 }
 
-void nex::ProbeCluster::cleanActiveClusterListGpuTest(const ClusterSize& clusterSize, ShaderStorageBuffer* activeClusters)
+void nex::ProbeCluster::cleanActiveClusterListGpuTest(const glm::uvec3& clusterSize, ShaderStorageBuffer* activeClusters)
 {
 	mCleanClusterListPass->bind();
 
 
 	auto* output = mCleanClusterListPass->getOutput();
 	unsigned defaultGlobalActiveClusterCount = 0;
-	const auto flattenedSize = clusterSize.xSize * clusterSize.ySize * clusterSize.zSize;
+	const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
 	output->resize(sizeof(unsigned) * (flattenedSize + 1), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
 	output->update(sizeof(unsigned), &defaultGlobalActiveClusterCount);
 
 	activeClusters->bindToTarget(mCleanClusterListPass->getInputBindingPoint());
 	output->bindToTarget();
 
-	mCleanClusterListPass->dispatch(clusterSize.xSize, clusterSize.ySize, clusterSize.zSize);
+	mCleanClusterListPass->dispatch(clusterSize.x, clusterSize.y, clusterSize.z);
 
 	void* data = output->map(GpuBuffer::Access::READ_ONLY);
 		auto* header = (CleanClusterListPass::OutputHeader*)data;
@@ -525,8 +525,8 @@ void nex::ProbeCluster::cleanActiveClusterListGpuTest(const ClusterSize& cluster
 }
 
 
-nex::AABB nex::ProbeCluster::main(const glm::vec3& gl_WorkGroupID, 
-	const glm::vec3& gl_NumWorkGroups, 
+nex::AABB nex::ProbeCluster::main(const glm::uvec3& gl_WorkGroupID, 
+	const glm::uvec3& gl_NumWorkGroups, 
 	const glm::vec2& zNearFar, 
 	const glm::uvec4& tileSizes,
 	const glm::mat4& invProj, 
@@ -634,7 +634,8 @@ nex::gui::ProbeClusterView::ProbeClusterView(std::string title,
 	ProbeCluster* cluster, 
 	PerspectiveCamera* activeCamera,
 	nex::Window* window) :
-	MenuWindow(std::move(title), menuBar, menu), mCluster(cluster), mActiveCamera(activeCamera), mWindow(window)
+	MenuWindow(std::move(title), menuBar, menu), mCluster(cluster), mActiveCamera(activeCamera), mWindow(window),
+	mClusterSize(glm::uvec3(1))
 {
 
 }
@@ -721,21 +722,21 @@ void nex::gui::ProbeClusterView::drawSelf()
 	ImGui::Text("Cluster:");
 
 
-	ImGui::DragScalar("X size", ImGuiDataType_U64 , &mClusterSize.xSize, 1.0f);
-	ImGui::DragScalar("Y size", ImGuiDataType_U64, &mClusterSize.ySize, 1.0f);
-	ImGui::DragScalar("Z size", ImGuiDataType_U64, &mClusterSize.zSize, 1.0f);
+	ImGui::DragScalar("X size", ImGuiDataType_U32 , &mClusterSize.x, 1.0f);
+	ImGui::DragScalar("Y size", ImGuiDataType_U32, &mClusterSize.y, 1.0f);
+	ImGui::DragScalar("Z size", ImGuiDataType_U32, &mClusterSize.z, 1.0f);
 
 	if (ImGui::Button("Create cluster")) {
 		mCluster->generateCluster(mClusterSize, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
 	}
 }
 
-std::vector<nex::CullEnvironmentLightsCsCpuShader::AABB>& nex::CullEnvironmentLightsCsCpuShader::getClusters()
+std::vector<nex::ClusterAABB>& nex::CullEnvironmentLightsCsCpuShader::getClusters()
 {
 	return clusters;
 }
 
-std::vector<nex::CullEnvironmentLightsCsCpuShader::EnvironmentLight>& nex::CullEnvironmentLightsCsCpuShader::getEnvironmentLights()
+std::vector<nex::EnvironmentLight>& nex::CullEnvironmentLightsCsCpuShader::getEnvironmentLights()
 {
 	return environmentLights;
 }
@@ -750,7 +751,7 @@ std::vector<glm::uint>& nex::CullEnvironmentLightsCsCpuShader::getGlobalLightInd
 	return globalLightIndexList;
 }
 
-std::vector<nex::CullEnvironmentLightsCsCpuShader::LightGrid>& nex::CullEnvironmentLightsCsCpuShader::getLightGrids()
+std::vector<nex::ClusterLightGrid>& nex::CullEnvironmentLightsCsCpuShader::getLightGrids()
 {
 	return lightGrids;
 }
@@ -897,7 +898,7 @@ void nex::CullEnvironmentLightsCsCpuShader::setViewMatrix(const glm::mat4& mat)
 float nex::CullEnvironmentLightsCsCpuShader::sqDistPointAABB(glm::vec3 point, glm::uint clusterID) const
 {
 	float sqDist = 0.0;
-	AABB currentCell = clusters[clusterID];
+	ClusterAABB currentCell = clusters[clusterID];
 	//cluster[clusterID].maxPoint[3] = clusterID;
 	for (int i = 0; i < 3; ++i) {
 		float v = point[i];
@@ -919,7 +920,7 @@ float nex::CullEnvironmentLightsCsCpuShader::sqDistPointAABB(glm::vec3 point, gl
 
 bool nex::CullEnvironmentLightsCsCpuShader::testAABBWorld(glm::uint light, glm::uint clusterID) const
 {
-	AABB currentCell = clusters[clusterID];
+	ClusterAABB currentCell = clusters[clusterID];
 	EnvironmentLight envLight = environmentLights[light];
 
 	return (currentCell.minWorld.x <= envLight.maxWorld.x && currentCell.maxWorld.x >= envLight.minWorld.x) &&

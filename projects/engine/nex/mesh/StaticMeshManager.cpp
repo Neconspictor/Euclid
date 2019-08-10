@@ -20,6 +20,8 @@
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/mesh/UtilityMeshes.hpp>
 
+std::unique_ptr<nex::StaticMeshManager> nex::StaticMeshManager::mInstance;
+
 
 nex::StaticMeshManager::StaticMeshManager() :
 		mFileSystem(nullptr),
@@ -210,12 +212,15 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getSkyBox()
 		std::string compiledFileExtension,
 		std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)
 	{
-		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
-		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
 
-		mPbrMaterialLoader = std::move(pbrMaterialLoader);
-		mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
-		mInitialized = true;
+		mInstance = std::make_unique<StaticMeshManager>();
+
+		std::vector<std::filesystem::path> includeDirectories = { std::move(meshRootPath) };
+		mInstance->mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledRootFolder), std::move(compiledFileExtension));
+
+		mInstance->mPbrMaterialLoader = std::move(pbrMaterialLoader);
+		mInstance->mDefaultMaterialLoader = std::make_unique<DefaultMaterialLoader>();
+		mInstance->mInitialized = true;
 	}
 
 	nex::StaticMeshContainer* nex::StaticMeshManager::getModel(const std::filesystem::path& meshPath)
@@ -335,8 +340,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 
 	nex::StaticMeshManager* nex::StaticMeshManager::get()
 	{
-		static StaticMeshManager instance;
-		return &instance;
+		return mInstance.get();
 	}
 
 	void nex::StaticMeshManager::loadModels()
@@ -350,15 +354,7 @@ nex::StaticMeshContainer* nex::StaticMeshManager::getPositionNormalTexCube()
 
 	void nex::StaticMeshManager::release()
 	{
-		modelTable.clear();
-		models.clear();
-		mFullscreenPlane.reset(nullptr);
-		mFullscreenTriangle.reset(nullptr);
-		mFullscreenPlaneData.reset(nullptr);
-		mFullscreenTriangleData.reset(nullptr);
-		mUnitSphereTriangles.reset();
-		mUnitBoundingBoxLines.reset();
-		mUnitBoundingBoxTriangles.reset();
+		mInstance.reset(nullptr);
 	}
 
 void nex::StaticMeshManager::setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader)

@@ -77,7 +77,7 @@ namespace nex
 		 */
 		void updateConstants(const Camera& camera);
 
-		void updateLight(const DirectionalLight & light, const Camera& camera);
+		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
 		void setArrayIndex(float index);
@@ -150,7 +150,7 @@ namespace nex
 
 		void updateConstants(const Camera& camera) override;
 
-		void updateLight(const DirectionalLight& light, const Camera& camera);
+		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
 		PbrLightingData mLightingPass;
@@ -183,7 +183,7 @@ namespace nex
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
 		void updateConstants(const Camera& camera) override;
-		void updateLight(const DirectionalLight& light, const Camera& camera);
+		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
 		UniformTex mAlbedoMap;

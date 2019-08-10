@@ -120,7 +120,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue, 
 	const Camera& camera,
-	const DirectionalLight& sun, 
+	const DirLight& sun,
 	unsigned windowWidth, 
 	unsigned windowHeight,
 	bool postProcess,
@@ -252,13 +252,13 @@ nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
-	const Camera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirLight& sun,
 	Texture2D* depth)
 {
 	if (mCascadedShadow->isEnabled())
 	{
 		mCascadedShadow->useTightNearFarPlane(false);
-		mCascadedShadow->frameUpdate(camera, sun.getDirection(), depth);
+		mCascadedShadow->frameUpdate(camera, sun.directionWorld, depth);
 		TransformPass* depthPass = mCascadedShadow->getDepthPass();
 		depthPass->bind();
 		depthPass->updateConstants(camera);
@@ -279,7 +279,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 }
 
 void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue, 
-	const Camera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -364,7 +364,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
-	const Camera&  camera, const DirectionalLight& sun,
+	const Camera&  camera, const DirLight& sun,
 	unsigned windowWidth,
 	unsigned windowHeight)
 {
@@ -425,7 +425,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getProbeCommands());
 }
 
-void nex::PBR_Deferred_Renderer::renderSky(const Camera& camera, const DirectionalLight& sun, unsigned width, unsigned height)
+void nex::PBR_Deferred_Renderer::renderSky(const Camera& camera, const DirLight& sun, unsigned width, unsigned height)
 {
 	mAtmosphericScattering->bind();
 	mAtmosphericScattering->setInverseProjection(glm::inverse(camera.getProjectionMatrix()));
@@ -447,7 +447,7 @@ void nex::PBR_Deferred_Renderer::renderSky(const Camera& camera, const Direction
 
 
 	AtmosphericScattering::Light light;
-	light.direction = -normalize(sun.getDirection());
+	light.direction = -normalize(sun.directionWorld);
 	light.intensity = 1.8f;
 	mAtmosphericScattering->setLight(light);
 

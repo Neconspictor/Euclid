@@ -48,11 +48,11 @@ public:
 		mShader->setMat4(mInverseView.location, mat);
 	}
 
-	void updateConstants(const DirectionalLight& light, const glm::mat4& projection, const glm::mat4& view) {
-		setLightColor(light.getColor());
-		setLightPower(light.getLightPower());
+	void updateConstants(const DirLight& light, const glm::mat4& projection, const glm::mat4& view) {
+		setLightColor(light.color);
+		setLightPower(light.power);
 
-		glm::vec4 lightEyeDirection = view * glm::vec4(light.getDirection(), 0);
+		glm::vec4 lightEyeDirection = view * glm::vec4(light.directionWorld, 0);
 		setEyeLightDirection(glm::vec3(lightEyeDirection));
 
 		setInverseViewMatrix(inverse(view));
@@ -157,10 +157,10 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	renderTarget->useDepthAttachment(std::move(depth));
 	renderTarget->updateDepthAttachment();
 
-	DirectionalLight light;
-	light.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	light.setPower(3.0f);
-	light.setDirection({ -1,-1,-1 });
+	DirLight light;
+	light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	light.power = 3.0f;
+	light.directionWorld = { -1,-1,-1 };
 
 
 	mDeferred->setDirLight(&light);
@@ -238,10 +238,10 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 	renderTarget->useDepthAttachment(std::move(depth));
 	renderTarget->updateDepthAttachment();
 
-	DirectionalLight light;
-	light.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	light.setPower(3.0f);
-	light.setDirection({ -1,-1,-1 });
+	DirLight light;
+	light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	light.power = 3.0f;
+	light.directionWorld = { -1,-1,-1 };
 
 
 	mDeferred->setDirLight(&light);
@@ -438,7 +438,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	CubeRenderTarget & renderTarget,
 	nex::Camera& camera2,
 	const glm::vec3 & worldPosition,
-	const DirectionalLight& light)
+	const DirLight& light)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 

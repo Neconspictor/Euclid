@@ -58,40 +58,6 @@ namespace nex {
 		return result;
 	}
 
-	DirectionalLight::DirectionalLight() : mColor(1, 1, 1), mDirection(1,1,1), mPower(1.0f)
-	{
-	}
-
-	const glm::vec3& DirectionalLight::getColor() const
-	{
-		return mColor;
-	}
-
-	const glm::vec3& DirectionalLight::getDirection() const
-	{
-		return mDirection;
-	}
-
-	float DirectionalLight::getLightPower() const
-	{
-		return mPower;
-	}
-
-	void DirectionalLight::setPower(float power)
-	{
-		mPower = power;
-	}
-
-	void DirectionalLight::setColor(glm::vec3 color)
-	{
-		this->mColor = move(color);
-	}
-
-	void DirectionalLight::setDirection(glm::vec3 dir)
-	{
-		mDirection = move(dir);
-	}
-
 	AmbientLight::AmbientLight() : mColor(1.0f), mPower(1.0f)
 	{
 	}

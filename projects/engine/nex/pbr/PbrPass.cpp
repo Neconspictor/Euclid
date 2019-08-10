@@ -232,12 +232,12 @@ void PbrLightingData::updateConstants(const Camera& camera)
 	}
 }
 
-void nex::PbrLightingData::updateLight(const DirectionalLight & light, const Camera& camera)
+void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& camera)
 {
-	setLightColor(light.getColor());
-	setLightPower(light.getLightPower());
+	setLightColor(light.color);
+	setLightPower(light.power);
 
-	vec4 lightEyeDirection = camera.getView() * vec4(light.getDirection(), 0);
+	vec4 lightEyeDirection = camera.getView() * vec4(light.directionWorld, 0.0f);
 	setEyeLightDirection(vec3(lightEyeDirection));
 }
 
@@ -268,7 +268,7 @@ void PbrForwardPass::updateConstants(const Camera& camera)
 	mLightingPass.updateConstants(camera);
 }
 
-void nex::PbrForwardPass::updateLight(const DirectionalLight & light, const Camera & camera)
+void nex::PbrForwardPass::updateLight(const DirLight& light, const Camera & camera)
 {
 	bind();
 	mLightingPass.updateLight(light, camera);
@@ -348,7 +348,7 @@ void PbrDeferredLightingPass::updateConstants(const Camera& camera)
 	setInverseProjMatrixFromGPass(inverse(camera.getProjectionMatrix()));
 }
 
-void nex::PbrDeferredLightingPass::updateLight(const DirectionalLight & light, const Camera & camera)
+void nex::PbrDeferredLightingPass::updateLight(const DirLight& light, const Camera & camera)
 {
 	bind();
 	mLightingPass.updateLight(light, camera);

@@ -9,7 +9,7 @@
 namespace nex
 {
 	class CascadedShadow;
-	class DirectionalLight;
+	struct DirLight;
 	class PbrProbe;
 	class PbrDeferred;
 	class PbrForward;
@@ -20,13 +20,13 @@ namespace nex
 
 	public:
 		Pbr(GlobalIllumination* globalIllumination,
-			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
+			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
 		virtual ~Pbr();
 
 		CascadedShadow* getCascadedShadow();
 
-		DirectionalLight* getDirLight();
+		DirLight* getDirLight();
 
 		GlobalIllumination* getGlobalIllumination();
 
@@ -34,18 +34,18 @@ namespace nex
 
 		void setCascadedShadow(CascadedShadow* shadow);
 
-		void setDirLight(DirectionalLight * light);
+		void setDirLight(DirLight* light);
 
 	protected:
 		CascadedShadow* mCascadeShadow;
-		DirectionalLight* mLight;
+		DirLight* mLight;
 		GlobalIllumination* mGlobalIllumination;
 	};
 
 	class PbrTechnique : public Technique
 	{
 	public:
-		PbrTechnique(GlobalIllumination* globalIllumination, CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
+		PbrTechnique(GlobalIllumination* globalIllumination, CascadedShadow* cascadeShadow, DirLight* dirLight);
 		virtual ~PbrTechnique();
 
 

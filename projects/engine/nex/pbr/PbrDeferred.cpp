@@ -18,7 +18,7 @@ namespace nex {
 		LightingPassFactory lightingPassFactory,
 		GlobalIllumination* globalIllumination,
 		CascadedShadow* cascadeShadow, 
-		DirectionalLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
+		DirLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
 		mGeometryPass(std::move(geometryPass)),
 		mLightPass(mLightingPassFactory(cascadeShadow, globalIllumination))
@@ -36,7 +36,7 @@ namespace nex {
 		mGeometryPass->updateConstants(camera);
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Camera& camera, const DirectionalLight& light)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Camera& camera, const DirLight& light)
 	{
 		mLightPass->bind();
 		mLightPass->updateConstants(camera);

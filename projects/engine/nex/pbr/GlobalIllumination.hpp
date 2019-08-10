@@ -15,12 +15,12 @@ namespace nex
 	class CubeMap;
 	class CubeRenderTarget;
 	class TransformPass;
-	class DirectionalLight;
 	class PbrDeferred;
 	class PbrForward;
 	class Renderer;
 	class PerspectiveCamera;
 	class ProbeVob;
+	struct DirLight;
 
 	class GlobalIllumination
 	{
@@ -69,7 +69,7 @@ namespace nex
 			CubeRenderTarget & renderTarget,
 			nex::Camera& camera,
 			const glm::vec3 & worldPosition,
-			const DirectionalLight& light);
+			const DirLight& light);
 
 		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;

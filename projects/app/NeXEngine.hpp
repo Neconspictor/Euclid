@@ -92,6 +92,6 @@ namespace nex
 		std::unique_ptr<ProbeGenerator> mProbeGenerator;
 		std::unique_ptr<ProbeCluster> mProbeCluster;
 
-		DirectionalLight mSun;
+		DirLight mSun;
 	};
 }

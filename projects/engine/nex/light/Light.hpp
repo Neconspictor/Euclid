@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "nex/math/Constant.hpp"
+#include <interface/light_interface.h>
 
 namespace nex {
 
@@ -15,29 +16,6 @@ namespace nex {
 
 		static glm::vec3 cartesian(const SphericalCoordinate& coord);
 		static SphericalCoordinate convert(glm::vec3 cartesian);
-	};
-
-	class DirectionalLight
-	{
-	public:
-		explicit DirectionalLight();
-
-		const glm::vec3& getColor() const;
-
-		const glm::vec3& getDirection() const;
-
-		float getLightPower() const;
-
-		void setColor(glm::vec3 color);
-
-		void setDirection(glm::vec3 dir);
-
-		void setPower(float power);
-
-	protected:
-		glm::vec3 mColor;
-		glm::vec3 mDirection;
-		float mPower;
 	};
 
 	class AmbientLight

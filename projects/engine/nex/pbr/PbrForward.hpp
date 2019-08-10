@@ -18,7 +18,7 @@ namespace nex
 		PbrForward(
 			LightingPassFactory factory,
 			GlobalIllumination* globalIllumination, 
-			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
+			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
 		virtual ~PbrForward();
 
@@ -26,7 +26,7 @@ namespace nex
 
 		void configurePass(const Camera& camera);
 
-		void updateLight(const DirectionalLight & light, const Camera& camera);
+		void updateLight(const DirLight& light, const Camera& camera);
 
 		PbrForwardPass* getPass();
 

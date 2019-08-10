@@ -11,7 +11,7 @@
 #include <nex/pbr/GlobalIllumination.hpp>
 
 nex::Pbr::Pbr(GlobalIllumination* globalIllumination,
-	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
+	CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	mCascadeShadow(cascadeShadow), mLight(dirLight), mGlobalIllumination(globalIllumination)
 {
 	if (mCascadeShadow) {
@@ -34,7 +34,7 @@ void nex::Pbr::setCascadedShadow(CascadedShadow* shadow)
 	mCascadeShadow = shadow;
 }
 
-nex::DirectionalLight* nex::Pbr::getDirLight()
+nex::DirLight* nex::Pbr::getDirLight()
 {
 	return mLight;
 }
@@ -44,14 +44,14 @@ nex::GlobalIllumination* nex::Pbr::getGlobalIllumination()
 	return mGlobalIllumination;
 }
 
-void nex::Pbr::setDirLight(DirectionalLight* light)
+void nex::Pbr::setDirLight(DirLight* light)
 {
 	mLight = light;
 }
 
 nex::PbrTechnique::PbrTechnique(
 	GlobalIllumination* globalIllumination,
-	CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
+	CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	Technique(nullptr),
 	mOverrideForward(nullptr),
 	mOverrideDeferred(nullptr)
@@ -157,19 +157,19 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 	auto* dirLight = active->getDirLight();
 
-	glm::vec3 lightColor = dirLight->getColor();
-	float dirLightPower = dirLight->getLightPower();
+	glm::vec3 lightColor = dirLight->color;
+	float dirLightPower = dirLight->power;
 
 
 	if (ImGui::InputScalarN("Directional Light Color", ImGuiDataType_Float, &lightColor, 3))
 	{
 		lightColor = clamp(lightColor, glm::vec3(0), glm::vec3(1));
-		dirLight->setColor(lightColor);
+		dirLight->color = lightColor;
 	}
 
 	if (ImGui::DragFloat("Directional Light Power", &dirLightPower, 0.1f, 0.0f, 10.0f))
 	{
-		dirLight->setPower(dirLightPower);
+		dirLight->power = dirLightPower;
 	}
 
 	drawLightSphericalDirection();
@@ -191,7 +191,7 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 {
 	auto* active = mPbr->getDeferred();
 	auto* dirLight = active->getDirLight();
-	glm::vec3 lightDirection = normalize(dirLight->getDirection());
+	glm::vec3 lightDirection = normalize(dirLight->directionWorld);
 
 	static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);
 
@@ -203,6 +203,6 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 		sphericalCoordinate.azimuth = temp[1];
 		lightDirection = -SphericalCoordinate::cartesian(sphericalCoordinate);
 		lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
-		dirLight->setDirection(lightDirection);
+		dirLight->directionWorld = lightDirection;
 	}
 }

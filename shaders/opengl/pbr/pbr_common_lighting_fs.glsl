@@ -15,16 +15,11 @@
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
+#include "interface/light_interface.h"
 
 
 const float PI = 3.14159265359;
 const float FLT_MAX = 3.402823466e+38;
-
-struct DirLight {
-    vec3 directionEye;
-    vec3 color;
-    float power;
-};
 
 /*struct Probe {
     samplerCube irradianceMap;

@@ -6,7 +6,7 @@ namespace nex
 {
 	class Camera;
 	class CascadedShadow;
-	class DirectionalLight;
+	struct DirLight;
 
 	class PBR_GBuffer;
 	class Sampler;
@@ -26,11 +26,11 @@ namespace nex
 			std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
 			LightingPassFactory lightingPassFactory,
 			GlobalIllumination* globalIllumination,
-			CascadedShadow* cascadeShadow, DirectionalLight* dirLight);
+			CascadedShadow* cascadeShadow, DirLight* dirLight);
 
 		void configureGeometryPass(const Camera& camera);
 
-		void drawLighting(PBR_GBuffer* gBuffer, const Camera& camera, const DirectionalLight& light);
+		void drawLighting(PBR_GBuffer* gBuffer, const Camera& camera, const DirLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 

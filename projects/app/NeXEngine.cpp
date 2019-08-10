@@ -112,7 +112,9 @@ void NeXEngine::init()
 	ImageFactory::init(true);
 
 	// init shader file system
-	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory()}, "", "");
+	mShaderFileSystem = std::make_unique<FileSystem>(std::vector<std::filesystem::path>{ mGlobals.getOpenGLShaderDirectory(),
+		mGlobals.getInterfaceShaderDirectory()}, "", "");
+
 	ShaderSourceFileGenerator::get()->init(mShaderFileSystem.get());
 
 	//init render backend
@@ -134,7 +136,7 @@ void NeXEngine::init()
 	initPbr();
 
 	// init static mesh manager
-	StaticMeshManager::get()->init(mGlobals.getMeshDirectory(),
+	StaticMeshManager::init(mGlobals.getMeshDirectory(),
 		mGlobals.getCompiledMeshDirectory(),
 		mGlobals.getCompiledMeshFileExtension(),
 		std::make_unique<PbrMaterialLoader>(mPbrTechnique.get(), TextureManager::get()));
@@ -473,9 +475,9 @@ Window* NeXEngine::createWindow()
 
 void NeXEngine::initLights()
 {
-	mSun.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	mSun.setPower(3.0f);
-	mSun.setDirection({ -1,-1,-1 });
+	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	mSun.power = 3.0f;
+	mSun.directionWorld = { -1,-1,-1 };
 }
 
 void NeXEngine::initPbr()

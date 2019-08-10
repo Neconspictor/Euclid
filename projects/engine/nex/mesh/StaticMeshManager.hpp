@@ -30,6 +30,7 @@ namespace nex
 
 		static std::unique_ptr<StaticMeshContainer> createSphere(unsigned xSegments, unsigned ySegments, std::unique_ptr<Material> material);
 
+
 		/**
 		 * NOTE: Has to be initialized on first use
 		 */
@@ -93,10 +94,10 @@ namespace nex
 
 
 		/**
-		 * Initializes the model manager.
+		 * Initializes the mesh manager.
 		 * @param meshFileSystem Used to resolve mesh file paths
 		 */
-		void init(std::filesystem::path meshRootPath,
+		static void init(std::filesystem::path meshRootPath,
 			std::string compiledSubFolder,
 			std::string compiledFileExtension,
 			std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
@@ -107,7 +108,7 @@ namespace nex
 		 */
 		void loadModels();
 
-		void release();
+		static void release();
 
 		void setPbrMaterialLoader(std::unique_ptr<PbrMaterialLoader> pbrMaterialLoader);
 
@@ -130,6 +131,7 @@ namespace nex
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxLines;
 		std::unique_ptr<nex::MeshAABB> mUnitBoundingBoxTriangles;
 		std::unique_ptr<nex::SphereMesh> mUnitSphereTriangles;
+		static std::unique_ptr<StaticMeshManager> mInstance;
 
 		bool mInitialized;
 

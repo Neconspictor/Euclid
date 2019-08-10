@@ -19,7 +19,7 @@ namespace nex {
 	PbrForward::PbrForward(
 		LightingPassFactory factory,
 		GlobalIllumination* globalIllumination,
-		CascadedShadow* cascadeShadow, DirectionalLight* dirLight) :
+		CascadedShadow* cascadeShadow, DirLight* dirLight) :
 	Pbr(globalIllumination, cascadeShadow, dirLight), 
 		mFactory(std::move(factory)),
 		mForwardShader(mFactory(cascadeShadow, globalIllumination))
@@ -46,7 +46,7 @@ namespace nex {
 		mForwardShader->updateConstants(camera);
 	}
 
-	void PbrForward::updateLight(const DirectionalLight & light, const Camera & camera)
+	void PbrForward::updateLight(const DirLight& light, const Camera & camera)
 	{
 		mForwardShader->bind();
 		mForwardShader->updateLight(light, camera);
