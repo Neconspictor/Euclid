@@ -114,7 +114,7 @@ namespace nex
 			const glm::vec3& clusterSize,
 			ShaderStorageBuffer* envLights);
 
-		bool iOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const;
+		bool isOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const;
 
 	private:
 

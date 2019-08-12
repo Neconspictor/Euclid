@@ -296,7 +296,7 @@ void nex::EnvLightCuller::cullLights(const glm::mat4& viewMatrix, ShaderStorageB
 	mCullPass->dispatch(1,1, clusterSize.z / 4 );
 }
 
-bool nex::EnvLightCuller::iOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const
+bool nex::EnvLightCuller::isOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const
 {
 	return !(mXSize == xSize && 
 		mYSize == ySize &&
@@ -555,7 +555,7 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, unsign
 	//collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance(), width, height);
 	//cleanActiveClusterListGpuTest(clusterSize, mCollectClustersPass->getActiveClustersBuffer());
 
-	if (mEnvLightCuller.iOutOfDate(clusterSize.x, clusterSize.y, clusterSize.z, clusterSize.w, mEnvLightCuller.getMaxVisibleLightsSize())) {
+	if (mEnvLightCuller.isOutOfDate(clusterSize.x, clusterSize.y, clusterSize.z, clusterSize.w, mEnvLightCuller.getMaxVisibleLightsSize())) {
 		mEnvLightCuller = EnvLightCuller(clusterSize.x, clusterSize.y, clusterSize.z, clusterSize.w, mEnvLightCuller.getMaxVisibleLightsSize());
 	}
 }
