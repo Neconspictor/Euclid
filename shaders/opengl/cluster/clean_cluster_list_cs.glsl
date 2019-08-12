@@ -3,8 +3,6 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout (std430, binding = 0) buffer Input{
-    uvec4 numClusters; // cluster dimension in x,y and z axis; w component is unused
-    vec4 constantsAB; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
     uint clusterActive[];
 };
 

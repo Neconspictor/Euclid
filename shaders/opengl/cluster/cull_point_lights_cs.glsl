@@ -7,33 +7,12 @@
 
 layout(local_size_x = LOCAL_SIZE_X, local_size_y = LOCAL_SIZE_Y, local_size_z = LOCAL_SIZE_Z) in;
 
-
-struct PointLight
-{
-    vec4 position;
-    vec4 color;
-    uint enabled;
-    float intensity;
-    float range;
-};
-
-struct LightGrid
-{
-    uint offset;
-    uint count;
-};
-
-struct AABB
-{
-    vec4 minView;
-    vec4 maxView;
-    vec4 minWorld;
-    vec4 maxWorld;
-};
+#include "interface/cluster_interface.h"
+#include "interface/light_interface.h"
 
 layout (std140, binding = 0) uniform ConstantsUBO 
 {
-    mat4 viewMatrix;
+    Constants constants;
 };
 
 layout (std430, binding = 0) buffer clusterAABB 
@@ -154,7 +133,7 @@ float sqDistPointAABB(vec3 point, uint clusterID)
 bool testSphereAABB(uint light, uint clusterID)
 {
     float radius = sharedLights[light].range;
-    vec3 center  = vec3(viewMatrix * sharedLights[light].position);
+    vec3 center  = vec3(constants.view * sharedLights[light].position);
     float squaredDistance = sqDistPointAABB(center, clusterID);
 
     return squaredDistance <= (radius * radius);

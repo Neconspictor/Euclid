@@ -3,29 +3,19 @@
  */
 #version 430 core
 
+#include "interface/cluster_interface.h"
+
 #define FLT_MAX     3.40282347E+38F
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 
-struct AABB
-{
-    vec4 minView;
-    vec4 maxView;
-    vec4 minWorld;
-    vec4 maxWorld;
-};
-
 
 layout (std430, binding = 0) buffer ClusterAABB{
     AABB clusters[];
 };
-layout (std430, binding = 1) buffer Constants{
-    mat4 invProj;
-    mat4 invView;
-    //uvec4 tileSizes;
-    vec4 zNearFar; // x: near z value in view space; y: far z value in view space; z and w component unused
-    //uvec2 screenDimension;
+layout (std430, binding = 1) buffer ConstantsSSBO {
+    Constants constants;
 };
 
 /**
@@ -80,8 +70,8 @@ void main(void)
     vec3 minViewSpace = screen2View(minScreenSpace).xyz;
 
     //Near and far values of the cluster in view space
-    float clusterNear  = zNearFar.x * pow(zNearFar.y / zNearFar.x, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
-    float clusterFar   = zNearFar.x * pow(zNearFar.y / zNearFar.x, (gl_WorkGroupID.z + 1) /float(gl_NumWorkGroups.z));
+    float clusterNear  = constants.zNearFar.x * pow(constants.zNearFar.y / constants.zNearFar.x, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+    float clusterFar   = constants.zNearFar.x * pow(constants.zNearFar.y / constants.zNearFar.x, (gl_WorkGroupID.z + 1) /float(gl_NumWorkGroups.z));
 
     //Finding the 4 intersection points made from the maxPoint to the cluster near/far plane
     vec3 minNear = lineIntersectionToZPlane(eyePos, minViewSpace, clusterNear );
@@ -94,15 +84,15 @@ void main(void)
     
     //project the AABB into world space (is needed for supporting AABB collision test for environment lights)
     vec3 point[8];
-    point[0] = vec3(invView * vec4(minAABB, 1.0));
-    point[1] = vec3(invView * vec4(minAABB.x, maxAABB.y, minAABB.z, 1.0));
-    point[2] = vec3(invView * vec4(maxAABB.x, minAABB.y, minAABB.z, 1.0));
-    point[3] = vec3(invView * vec4(maxAABB.x, maxAABB.y, minAABB.z, 1.0));
+    point[0] = vec3(constants.invView * vec4(minAABB, 1.0));
+    point[1] = vec3(constants.invView * vec4(minAABB.x, maxAABB.y, minAABB.z, 1.0));
+    point[2] = vec3(constants.invView * vec4(maxAABB.x, minAABB.y, minAABB.z, 1.0));
+    point[3] = vec3(constants.invView * vec4(maxAABB.x, maxAABB.y, minAABB.z, 1.0));
     
-    point[4] = vec3(invView * vec4(minAABB.x, minAABB.y, maxAABB.z, 1.0));
-    point[5] = vec3(invView * vec4(maxAABB.x, minAABB.y, maxAABB.z, 1.0));
-    point[6] = vec3(invView * vec4(minAABB.x, maxAABB.y, maxAABB.z, 1.0));
-    point[7] = vec3(invView * vec4(maxAABB, 1.0));
+    point[4] = vec3(constants.invView * vec4(minAABB.x, minAABB.y, maxAABB.z, 1.0));
+    point[5] = vec3(constants.invView * vec4(maxAABB.x, minAABB.y, maxAABB.z, 1.0));
+    point[6] = vec3(constants.invView * vec4(minAABB.x, maxAABB.y, maxAABB.z, 1.0));
+    point[7] = vec3(constants.invView * vec4(maxAABB, 1.0));
     
     
     vec3 minAABBWorld = vec3(FLT_MAX);
@@ -145,7 +135,7 @@ vec3 lineIntersectionToZPlane(vec3 firstPoint, vec3 secondPoint, float zValueVie
 
 vec4 clipToView(vec4 clip){
     //View space transform
-    vec4 view = invProj * clip;
+    vec4 view = constants.invProj * clip;
 
     //Perspective division    
     return view / view.w;

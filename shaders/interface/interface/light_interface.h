@@ -22,6 +22,15 @@ struct EnvironmentLight
 	NEX_UINT usesBoundingBox; // specifies whether to use AABB or Sphere volume
 };
 
+struct PointLight
+{
+    NEX_VEC4 position;
+    NEX_VEC4 color;
+    NEX_UINT enabled;
+    float intensity;
+    float range;
+};
+
 
 #ifdef __cplusplus
     }

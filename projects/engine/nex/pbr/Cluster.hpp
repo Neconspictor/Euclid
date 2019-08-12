@@ -4,6 +4,7 @@
 #include <nex/camera/Camera.hpp>
 #include <nex/Scene.hpp>
 #include <nex/light/Light.hpp>
+#include <interface/cluster_interface.h>
 
 namespace nex
 {
@@ -11,36 +12,15 @@ namespace nex
 	class ShaderStorageBuffer;
 	class Window;
 
-
-	struct ClusterAABB
-	{
-		glm::vec4 minView;
-		glm::vec4 maxView;
-		glm::vec4 minWorld;
-		glm::vec4 maxWorld;
-	};
-
-	struct ClusterLightGrid
-	{
-		glm::uint offset;
-		glm::uint count;
-	};
-
 	class ClusterGenerator {
 	public:
-
-		struct Constants {
-			glm::mat4 invProj;
-			glm::mat4 invView;
-			glm::vec4 zNearFar; // near and far plane in view space; z and w component unused
-		};
 
 		ClusterGenerator();
 		virtual ~ClusterGenerator();
 
 		void generateClusters(ShaderStorageBuffer* output,
 			const glm::uvec3& clusterSize,
-			const Constants& constants);
+			const cluster::Constants& constants);
 
 	private:
 		class GenerateClusterPass;
@@ -63,7 +43,20 @@ namespace nex
 		static const unsigned MAX_VISIBLES_LIGHTS_PER_CLUSTER = 10;
 
 
-		EnvLightCuller();
+		/**
+		 * @param xSize : Cluster size in x direction
+		 * @param ySize : Cluster size in y direction
+		 * @param zLocalSize: cluster size in z direction for one batch
+		 * @param zBatchSize: amount of batches in z direction.
+		 * @param maxVisibleLights: The maximum of environment lights that can influence pixels of a certain cluster.
+		 *
+		 * Note: cluster size inf z direction is zLocalSize * zBatchSize
+		 */
+		EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights = 10);
+
+		EnvLightCuller (EnvLightCuller&& o) = default;
+		EnvLightCuller& operator=(EnvLightCuller&& o) = default;
+
 		virtual ~EnvLightCuller();
 
 		/**
@@ -83,6 +76,8 @@ namespace nex
 		 */
 		ShaderStorageBuffer* getLightGrids();
 
+		unsigned getMaxVisibleLightsSize() const;
+
 		/**
 		 * Performas light culling of environment lights using the GPU.
 		 * @param clusters : A buffer containing an array of AABB
@@ -93,6 +88,8 @@ namespace nex
 			const glm::vec3& clusterSize,
 			ShaderStorageBuffer* envLights);
 
+		bool iOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const;
+
 	private:
 
 		class CullPass;
@@ -101,6 +98,12 @@ namespace nex
 		std::unique_ptr<ShaderStorageBuffer> mGlobalLightIndexListBuffer;
 		std::unique_ptr<ShaderStorageBuffer> mLightGridsBuffer;
 		std::unique_ptr<CullPass> mCullPass;
+
+		unsigned mXSize; 
+		unsigned mYSize; 
+		unsigned mZLocalSize; 
+		unsigned mZBatchSize; 
+		unsigned mMaxVisibleLights;
 	};
 
 
@@ -130,19 +133,19 @@ namespace nex
 
 		void generateClusterElement(const ClusterElement& elem);
 
-		void generateCluster(const glm::uvec3& clusterSize, unsigned width, unsigned height);
+		void generateCluster(const glm::uvec4& clusterSize, unsigned width, unsigned height);
 
-		void generateClusterCpuTest(const glm::uvec3& clusterSize);
+		void generateClusterCpuTest(const glm::uvec4& clusterSize);
 
-		void generateClusterGpu(const glm::uvec3& clusterSize, unsigned width, unsigned height);
+		void generateClusterGpu(const glm::uvec4& clusterSize, unsigned width, unsigned height);
 
-		void collectActiveClusterGpuTest(const glm::uvec3& clusterSize,
+		void collectActiveClusterGpuTest(const glm::uvec4& clusterSize,
 			float zNearDistance, 
 			float zFarDistance, 
 			unsigned width, 
 			unsigned height);
 
-		void cleanActiveClusterListGpuTest(const glm::uvec3& clusterSize, ShaderStorageBuffer* activeClusters);
+		void cleanActiveClusterListGpuTest(const glm::uvec4& clusterSize, ShaderStorageBuffer* activeClusters);
 
 	private:
 		class CollectClustersPass;
@@ -168,6 +171,7 @@ namespace nex
 		std::unique_ptr<CollectClustersPass> mCollectClustersPass;
 		std::unique_ptr<CleanClusterListPass> mCleanClusterListPass;
 		std::unique_ptr<CullLightsPass> mCullLightsPass;
+		EnvLightCuller mEnvLightCuller;
 		ClusterGenerator mClusterGenerator;
 	};
 
@@ -175,11 +179,11 @@ namespace nex
 	{
 	public:
 
-		std::vector<ClusterAABB>& getClusters();
+		std::vector<cluster::AABB>& getClusters();
 		std::vector<EnvironmentLight>& getEnvironmentLights();
 		glm::uint getGlobalLightIndexCount();
 		std::vector<glm::uint>& getGlobalLightIndexList();
-		std::vector<ClusterLightGrid>& getLightGrids();
+		std::vector<cluster::LightGrid>& getLightGrids();
 
 		void initInstance(const glm::uvec3& gl_NumWorkGroups, const glm::uvec3& gl_GlobalInvocationID, const glm::uvec3& gl_LocalInvocationID);
 
@@ -206,10 +210,10 @@ namespace nex
 
 
 		glm::mat4 viewMatrix;
-		std::vector<ClusterAABB> clusters;
+		std::vector<cluster::AABB> clusters;
 		std::vector<EnvironmentLight> environmentLights;
 		mutable std::vector<glm::uint> globalLightIndexList;
-		mutable std::vector<ClusterLightGrid> lightGrids;
+		mutable std::vector<cluster::LightGrid> lightGrids;
 		mutable glm::uint globalIndexCount;
 		mutable std::vector<EnvironmentLight> sharedLights;
 
@@ -237,7 +241,7 @@ namespace nex
 			ProbeCluster* mCluster;
 			PerspectiveCamera* mActiveCamera;
 			ProbeCluster::ClusterElement mClusterElement;
-			glm::uvec3 mClusterSize;
+			glm::uvec4 mClusterSize;
 			nex::Window* mWindow;
 		};
 	}
