@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <nex/gui/imgui_tabs.h>
 #include <sstream>
+#include <functional>
 
 namespace nex::gui
 {
@@ -202,5 +203,59 @@ namespace nex::gui
 
 		// Revert style class changes
 		if (mStyle) mStyle->popStyleChanges();
+	}
+	Button::Button(std::string title) : mTitle(std::move(title))
+	{
+		mStyle = std::make_shared<ButtonStyle>();
+	}
+	void Button::setAction(std::function<void()> action)
+	{
+		mAction = std::move(action);
+	}
+	void Button::enable(bool enabled)
+	{
+		mEnabled = enabled;
+
+		if (!mEnabled) {
+			mStyle = std::make_shared<ButtonStyle>();
+		}
+		else {
+			mStyle = nullptr;
+		}
+	}
+	void Button::drawSelf()
+	{
+		if (mEnabled && ImGui::Button(mTitle.c_str())) {
+			mAction();
+		}
+	}
+	bool Button::drawImmediate()
+	{
+		// Do not draw gui if this drawable is invisible!
+		if (!isVisible()) return false;
+
+		// Apply style class changes
+		if (mStyle) mStyle->pushStyleChanges();
+
+
+		bool clicked = ImGui::Button(mTitle.c_str());
+
+		// Revert style class changes
+		if (mStyle) mStyle->popStyleChanges();
+
+		return clicked && mEnabled;
+	}
+	void Button::ButtonStyle::pushStyleChangesSelf()
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		const auto& buttonColor = style.Colors[ImGuiCol_Button];
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonColor);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * 0.5f);
+	}
+	void Button::ButtonStyle::popStyleChangesSelf()
+	{
+		ImGui::PopStyleVar(1);
+		ImGui::PopStyleColor(2);
 	}
 }

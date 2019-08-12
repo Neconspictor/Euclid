@@ -3,6 +3,7 @@
 #include <nex/gui/Style.hpp>
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace nex::gui
 {
@@ -142,5 +143,32 @@ namespace nex::gui
 	protected:
 
 		std::string mName;
+	};
+
+	class Button : public Drawable {
+	public:
+
+		Button(std::string title);
+
+		void setAction(std::function<void()> action);
+		void enable(bool enabled);
+
+		void drawSelf() override;
+
+		bool drawImmediate();
+
+	protected:
+
+		class ButtonStyle : public StyleClass {
+
+		protected:
+			virtual void pushStyleChangesSelf() override;
+			virtual void popStyleChangesSelf() override;
+		};
+
+		std::function<void()> mAction;
+		bool mEnabled;
+		std::string mTitle;
+
 	};
 }

@@ -1,9 +1,17 @@
 #version 430 core
 
-#define MAX_VISIBLES_LIGHTS 100
-#define LOCAL_SIZE_X 16
-#define LOCAL_SIZE_Y 9
-#define LOCAL_SIZE_Z 4
+#ifndef MAX_VISIBLES_LIGHTS
+    #define MAX_VISIBLES_LIGHTS 100
+#endif
+#ifndef LOCAL_SIZE_X
+    #define LOCAL_SIZE_X 16
+#endif
+#ifndef LOCAL_SIZE_Y
+    #define LOCAL_SIZE_Y 8
+#endif
+#ifndef LOCAL_SIZE_Z
+    #define LOCAL_SIZE_Z 4
+#endif
 
 layout(local_size_x = LOCAL_SIZE_X, local_size_y = LOCAL_SIZE_Y, local_size_z = LOCAL_SIZE_Z) in;
 
@@ -63,7 +71,7 @@ bool testSphereAABB(uint light, uint clusterID);
 
 void main()
 {
-    globalIndexCount = 0;
+    /*globalIndexCount = 0;
     uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
     uint lightCount  = environmentLights.length();
     uint numBatches = (lightCount + threadCount -1) / threadCount;
@@ -90,7 +98,7 @@ void main()
         for( uint light = 0; light < threadCount && (visibleLightCount < MAX_VISIBLES_LIGHTS); ++light){
             if( sharedLights[light].enabled  == 1){
             
-                if (sharedLights[light].usesBoundingBox) {
+                if (sharedLights[light].usesBoundingBox == 1) {
                     if (testAABBWorld(light, globalInvocationIndex)) {
                         visibleLightIndices[visibleLightCount] = batch * threadCount + light;
                         visibleLightCount += 1;
@@ -116,7 +124,7 @@ void main()
     }
 
     lightGrids[globalInvocationIndex].offset = offset;
-    lightGrids[globalInvocationIndex].count = visibleLightCount;
+    lightGrids[globalInvocationIndex].count = visibleLightCount;*/
 }
 
 float sqDistPointAABB(vec3 point, uint clusterID)

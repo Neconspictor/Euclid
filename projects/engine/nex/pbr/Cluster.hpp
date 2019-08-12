@@ -22,10 +22,28 @@ namespace nex
 			const glm::uvec3& clusterSize,
 			const cluster::Constants& constants);
 
+		/**
+		 * Generates a list of active clusters (with duplicates). To get a duplicate free version call cleanActiveClusterList after this function call.
+		 * @param clusterSize : The size of the cluster in all three dimensions.
+		 * @param depth : Used for determining active clusters
+		 * @param zNearDistance : The distance of the near plane. Note: Must be positive!
+		 * @param zFarDistance : The distance to the far plane. Note: Must be positive!
+		 * @param clusterListOutput :	a buffer containing an array of unsigned int, size will be a flat version of clusterSize. The buffer might be resized 
+		 *								if it is not big enough.
+		 */
+		void collectActiveClusterList(const glm::uvec3& clusterSize, Texture* depth, float zNearDistance,
+			float zFarDistance, ShaderStorageBuffer* clusterListOutput);
+
+		void cleanActiveClusterList(const glm::uvec3& clusterSize, ShaderStorageBuffer* clusterListInput, ShaderStorageBuffer* cleanedClusterListOutput);
+
 	private:
 		class GenerateClusterPass;
+		class CollectActiveClustersPass;
+		class CleanActiveClusterListPass;
 
 		std::unique_ptr<GenerateClusterPass> mGenerateClusterPass;
+		std::unique_ptr<CollectActiveClustersPass> mCollectActiveClustersPass;
+		std::unique_ptr<CleanActiveClusterListPass> mCleanActiveClusterListPass;
 
 	};
 
@@ -50,6 +68,7 @@ namespace nex
 		 * @param zBatchSize: amount of batches in z direction.
 		 * @param maxVisibleLights: The maximum of environment lights that can influence pixels of a certain cluster.
 		 *
+		 * @throws invalid_argument : if xSize * ySize * zLocalSize > getMaxLocalWorkgroupSize()
 		 * Note: cluster size inf z direction is zLocalSize * zBatchSize
 		 */
 		EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights = 10);
@@ -77,6 +96,13 @@ namespace nex
 		ShaderStorageBuffer* getLightGrids();
 
 		unsigned getMaxVisibleLightsSize() const;
+
+		/**
+		 * Provides the multiplication of the maximum local workgroup size supported.
+		 * If cluster is a variable of type glm::vec3, than the flattened size is 
+		 * cluster.x * cluster.y * cluster.z .
+		 */
+		static constexpr unsigned getMaxLocalWorkgroupSize();
 
 		/**
 		 * Performas light culling of environment lights using the GPU.
@@ -139,17 +165,7 @@ namespace nex
 
 		void generateClusterGpu(const glm::uvec4& clusterSize, unsigned width, unsigned height);
 
-		void collectActiveClusterGpuTest(const glm::uvec4& clusterSize,
-			float zNearDistance, 
-			float zFarDistance, 
-			unsigned width, 
-			unsigned height);
-
-		void cleanActiveClusterListGpuTest(const glm::uvec4& clusterSize, ShaderStorageBuffer* activeClusters);
-
 	private:
-		class CollectClustersPass;
-		class CleanClusterListPass;
 		class CullLightsPass;
 
 		nex::AABB main(const glm::uvec3& gl_WorkGroupID,
@@ -168,8 +184,6 @@ namespace nex
 		std::unique_ptr<SimpleColorMaterial> mMaterial;
 		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
 
-		std::unique_ptr<CollectClustersPass> mCollectClustersPass;
-		std::unique_ptr<CleanClusterListPass> mCleanClusterListPass;
 		std::unique_ptr<CullLightsPass> mCullLightsPass;
 		EnvLightCuller mEnvLightCuller;
 		ClusterGenerator mClusterGenerator;
@@ -243,6 +257,8 @@ namespace nex
 			ProbeCluster::ClusterElement mClusterElement;
 			glm::uvec4 mClusterSize;
 			nex::Window* mWindow;
+			bool mShowErrorMessage;
+			nex::gui::Button mGenerateButton;
 		};
 	}
 }
