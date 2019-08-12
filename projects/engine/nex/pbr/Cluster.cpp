@@ -519,7 +519,7 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, unsign
 	constants.invView = viewInv;
 	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()),
 		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
-	mClusterGenerator.generateClusters(mClusterAABBBuffer.get(), clusterSize, constants);
+	mClusterGenerator.generateClusters(mClusterAABBBuffer.get(), glm::vec3(clusterSize.x, clusterSize.y, clusterSize.z * clusterSize.w), constants);
 
 
 	// Readback the generated clusters
