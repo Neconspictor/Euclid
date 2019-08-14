@@ -13,6 +13,7 @@
 #include <nex/Window.hpp>
 #include <nex/EffectLibrary.hpp>
 #include <nex/renderer/RenderBackend.hpp>
+#include <nex/renderer/Renderer.hpp>
 
 
 class nex::ClusterGenerator::GenerateClusterPass : public nex::ComputePass {
@@ -126,25 +127,33 @@ void nex::ClusterGenerator::generateClusters(ShaderStorageBuffer* output, const 
 }
 
 void nex::ClusterGenerator::collectActiveClusterList(const glm::uvec3& clusterSize, Texture* depth, float zNearDistance,
-	float zFarDistance, ShaderStorageBuffer* clusterListOutput) {
+	float zFarDistance, const glm::mat4& projMatrix, ShaderStorageBuffer* clusterListOutput) {
 
 	mCollectActiveClustersPass->bind();
 
-	const auto flatSize = clusterSize.x * clusterSize.y * clusterSize.z * sizeof(unsigned);
+	//const auto flatSize = clusterSize.x * clusterSize.y * clusterSize.z * sizeof(unsigned);
+	const auto flatSize = depth->getWidth() * depth->getWidth() * sizeof(unsigned);
 
 	if (clusterListOutput->getSize() < flatSize)
-		clusterListOutput->resize(flatSize, nullptr, nex::GpuBuffer::UsageHint::STATIC_DRAW);
+		clusterListOutput->resize(flatSize, nullptr, nex::GpuBuffer::UsageHint::DYNAMIC_COPY);
+	else {
+		auto* memory = clusterListOutput->map(GpuBuffer::Access::WRITE_ONLY);
+		memset(memory, 0, clusterListOutput->getSize());
+		clusterListOutput->unmap();
+	}
 
 	auto* constantsBuffer = mCollectActiveClustersPass->getConstantsBuffer();
 
 	cluster::ActiveClusterConstants constants;
-	constants.numClusters = glm::uvec4(clusterSize.x, clusterSize.y, clusterSize.z, 0);
+	constants.numClusters = glm::vec4(clusterSize.x, clusterSize.y, clusterSize.z, 0);
 	const auto logzFar_zNear = logf(zFarDistance / zNearDistance);
 	constants.zReproductionConstants = glm::vec4(logzFar_zNear, logf(zNearDistance) * clusterSize.z / logzFar_zNear, 0.0f, 0.0f);
+	constants.proj = projMatrix;
 	constantsBuffer->update(sizeof(cluster::ActiveClusterConstants), &constants);
 
 	constantsBuffer->bindToTarget();
 	clusterListOutput->bindToTarget(CollectActiveClustersPass::getActiveClusterBufferBindingPoint());
+	mCollectActiveClustersPass->setDepthTexture(depth);
 	mCollectActiveClustersPass->dispatch(depth->getWidth(), depth->getHeight(), 1);
 }
 
@@ -155,14 +164,18 @@ void nex::ClusterGenerator::cleanActiveClusterList(const glm::uvec3& clusterSize
 
 	unsigned defaultGlobalActiveClusterCount = 0;
 
-	const auto flattenedSize = clusterSize.x * clusterSize.y * clusterSize.z;
-	cleanedClusterListOutput->resize(sizeof(unsigned) * (flattenedSize + 1), nullptr, GpuBuffer::UsageHint::STREAM_DRAW);
+	const auto expectedByteSize = (clusterSize.x * clusterSize.y * clusterSize.z + 1) * sizeof(unsigned);
+	if (cleanedClusterListOutput->getSize() < expectedByteSize) {
+		cleanedClusterListOutput->resize(expectedByteSize, nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+	}
+
 	cleanedClusterListOutput->update(sizeof(unsigned), &defaultGlobalActiveClusterCount);
 
 	clusterListInput->bindToTarget(CleanActiveClusterListPass::getInputBindingPoint());
 	cleanedClusterListOutput->bindToTarget(CleanActiveClusterListPass::getOutputBindingPoint());
 
 	mCleanActiveClusterListPass->dispatch(clusterSize.x, clusterSize.y, clusterSize.z);
+	//cleanedClusterListOutput->syncWithGPU();
 
 	/*void* data = cleanedClusterListOutput->map(GpuBuffer::Access::READ_ONLY);
 	auto* header = (CleanActiveClusterListPass::OutputHeader*)data;
@@ -335,6 +348,14 @@ mClusterAABBBuffer(std::make_unique<ShaderStorageBuffer>(0,
 	0, // Note: we dynamically resize the buffer 
 	nullptr, 
 	GpuBuffer::UsageHint::DYNAMIC_COPY)),
+mActiveClusterList(std::make_unique<ShaderStorageBuffer>(1,
+		0, // Note: we dynamically resize the buffer 
+		nullptr,
+		GpuBuffer::UsageHint::DYNAMIC_COPY)),
+mCleanActiveClusterList(std::make_unique<ShaderStorageBuffer>(2,
+		0, // Note: we dynamically resize the buffer 
+		nullptr,
+		GpuBuffer::UsageHint::DYNAMIC_COPY)),
 mCullLightsPass(std::make_unique<CullLightsPass>()),
 mEnvLightCuller(16,8,4,6)
 {
@@ -379,10 +400,10 @@ void nex::ProbeCluster::generateClusterElement(const ClusterElement& elem)
 
 }
 
-void nex::ProbeCluster::generateCluster(const glm::uvec4& clusterSize, unsigned width, unsigned height)
+void nex::ProbeCluster::generateCluster(const glm::uvec4& clusterSize, Texture* depth)
 {
 	//generateClusterCpuTest(clusterSize); return;
-	generateClusterGpu(clusterSize, width, height); return;
+	generateClusterGpu(clusterSize, depth); return;
 	mCamera.update();
 	ClusterElement elem;
 	auto container = std::make_unique<StaticMeshContainer>();
@@ -501,25 +522,27 @@ void nex::ProbeCluster::generateClusterCpuTest(const glm::uvec4& clusterSize)
 	mScene->addVobUnsafe(std::move(vob), true);
 }
 
-void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, unsigned width, unsigned height)
+void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, Texture* depth)
 {
 	mCamera.update();
 	const auto viewInv = inverse(mCamera.getView());
+	const auto& projMatrix = mCamera.getProjectionMatrix();
 	const auto middleDistance = (mCamera.getFarDistance() + mCamera.getNearDistance()) / 2.0f;
 	const auto lookVecView = glm::vec3(0, 0, Camera::getViewSpaceZfromDistance(1.0f));
 	const auto middleTrans = glm::translate(glm::mat4(), -middleDistance * lookVecView);
 	const auto flattenedClusterSize = clusterSize.x * clusterSize.y * clusterSize.z * clusterSize.w;
+	glm::vec3 clusterSizeResolved (clusterSize.x, clusterSize.y, clusterSize.z * clusterSize.w);
 
 	auto container = std::make_unique<StaticMeshContainer>();
 	
 	// generate clusters
 	cluster::Constants constants;
-	constants.invProj = inverse(mCamera.getProjectionMatrix());
+	constants.invProj = inverse(projMatrix);
 	constants.view = mCamera.getView();
 	constants.invView = viewInv;
 	constants.zNearFar = glm::vec4(Camera::getViewSpaceZfromDistance(mCamera.getNearDistance()),
 		Camera::getViewSpaceZfromDistance(mCamera.getFarDistance()), 0, 0);
-	mClusterGenerator.generateClusters(mClusterAABBBuffer.get(), glm::vec3(clusterSize.x, clusterSize.y, clusterSize.z * clusterSize.w), constants);
+	mClusterGenerator.generateClusters(mClusterAABBBuffer.get(), clusterSizeResolved, constants);
 
 
 	// Readback the generated clusters
@@ -554,6 +577,23 @@ void nex::ProbeCluster::generateClusterGpu(const glm::uvec4& clusterSize, unsign
 
 	//collectActiveClusterGpuTest(clusterSize, mCamera.getNearDistance(), mCamera.getFarDistance(), width, height);
 	//cleanActiveClusterListGpuTest(clusterSize, mCollectClustersPass->getActiveClustersBuffer());
+
+	mClusterGenerator.collectActiveClusterList(clusterSizeResolved, depth, mCamera.getNearDistance(), mCamera.getFarDistance(), projMatrix, mActiveClusterList.get());
+
+	mActiveClusterList->syncWithGPU();
+
+	auto* activeClusterList = (float*) mActiveClusterList->map(GpuBuffer::Access::READ_ONLY);
+
+	mActiveClusterList->unmap();
+
+
+	mClusterGenerator.cleanActiveClusterList(clusterSizeResolved, mActiveClusterList.get(), mCleanActiveClusterList.get());
+
+	activeClusterList = (float*) mActiveClusterList->map(GpuBuffer::Access::READ_ONLY);
+	auto* cleanActiveClusterList = (unsigned*) mCleanActiveClusterList->map(GpuBuffer::Access::READ_ONLY);
+
+	mActiveClusterList->unmap();
+	mCleanActiveClusterList->unmap();
 
 	if (mEnvLightCuller.isOutOfDate(clusterSize.x, clusterSize.y, clusterSize.z, clusterSize.w, mEnvLightCuller.getMaxVisibleLightsSize())) {
 		mEnvLightCuller = EnvLightCuller(clusterSize.x, clusterSize.y, clusterSize.z, clusterSize.w, mEnvLightCuller.getMaxVisibleLightsSize());
@@ -668,13 +708,21 @@ nex::gui::ProbeClusterView::ProbeClusterView(std::string title,
 	Menu* menu, 
 	ProbeCluster* cluster, 
 	PerspectiveCamera* activeCamera,
-	nex::Window* window) :
+	nex::Window* window,
+	nex::Renderer* renderer) :
 	MenuWindow(std::move(title), menuBar, menu), mCluster(cluster), mActiveCamera(activeCamera), mWindow(window),
-	mClusterSize(glm::uvec4(1)),
+	mClusterSize(glm::uvec4(1,1,4,1)),
 	mShowErrorMessage(false),
-	mGenerateButton("Create Cluster")
+	mGenerateButton("Create Cluster"),
+	mDepth(nullptr),
+	mRenderer(renderer)
 {
 	mGenerateButton.enable(true);
+}
+
+void nex::gui::ProbeClusterView::setDepth(Texture* depth)
+{
+	mDepth = depth;
 }
 
 void nex::gui::ProbeClusterView::drawSelf()
@@ -774,8 +822,12 @@ void nex::gui::ProbeClusterView::drawSelf()
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", msg.c_str());
 	}
 
-	if (mGenerateButton.drawImmediate()) {
-		mCluster->generateCluster(mClusterSize, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+	if (!mDepth) {
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", "Depth texture not available.");
+	} else if (mGenerateButton.drawImmediate()) {
+		mRenderer->pushDepthFunc([&]() {
+			mCluster->generateCluster(mClusterSize, mDepth);
+		});
 	}
 }
 

@@ -49,8 +49,11 @@ namespace nex
 		virtual void updateRenderTargets(unsigned width, unsigned height) override;
 
 		AmbientOcclusionSelector* getAOSelector();
+		PBR_GBuffer* getGbuffer();
 		TesselationTest* getTesselationTest();
 		Ocean* getOcean();
+
+		void pushDepthFunc(std::function<void()> func) override;
 
 	private:
 
@@ -82,6 +85,8 @@ namespace nex
 		TesselationTest mTesselationTest;
 
 		OceanGPU mOcean;
+
+		std::vector<std::function<void()>> mDepthFuncs;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

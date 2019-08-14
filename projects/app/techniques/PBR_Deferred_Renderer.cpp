@@ -241,6 +241,11 @@ nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
 	return mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 }
 
+nex::PBR_GBuffer* nex::PBR_Deferred_Renderer::getGbuffer()
+{
+	return mPbrMrt.get();
+}
+
 nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 {
 	return &mTesselationTest;
@@ -249,6 +254,11 @@ nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 {
 	return &mOcean;
+}
+
+void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
+{
+	mDepthFuncs.emplace_back(std::move(func));
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
@@ -316,6 +326,11 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 		technique->getActiveSubMeshPass()->updateConstants(camera);
 	}
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
+
+	for (auto& func : mDepthFuncs) {
+		func();
+	}
+	mDepthFuncs.clear();
 
 	stencilTest->enableStencilTest(false);
 	//glm::vec2 minMaxPositiveZ(0.0f, 1.0f);

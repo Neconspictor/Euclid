@@ -15,8 +15,9 @@ struct AABB
 };
 
 struct ActiveClusterConstants {
-    NEX_UVEC4 numClusters; // cluster dimension in x,y and z axis; w component is unused
+    NEX_VEC4 numClusters; // cluster dimension in x,y and z axis; w component is unused
     NEX_VEC4 zReproductionConstants; // x: log(zFarDistance / zNearDistance), y: log(zNearDistance) * numClusters.z / log(zFarDistance/zNearDistance)
+    NEX_MAT4 proj;
 };
 
 

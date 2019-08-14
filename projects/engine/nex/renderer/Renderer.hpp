@@ -1,5 +1,6 @@
 #pragma once
 #include "nex/math/Constant.hpp"
+#include <functional>
 
 namespace nex
 {
@@ -32,6 +33,8 @@ namespace nex
 
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
+
+		virtual void pushDepthFunc(std::function<void()> func) = 0;
 
 	protected:
 		PbrTechnique* mPbrTechnique;

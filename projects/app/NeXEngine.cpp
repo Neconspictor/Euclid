@@ -35,6 +35,7 @@
 #include <gui/ProbeGeneratorView.hpp>
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/pbr/Cluster.hpp>
+#include <nex/texture/Attachment.hpp>
 
 using namespace nex;
 
@@ -207,7 +208,9 @@ void NeXEngine::init()
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(false);
 	mGlobalIllumination->bakeProbes(mScene, mRenderer.get());
 	mRenderer->updateRenderTargets(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+	mProbeClusterView->setDepth(mRenderer->getGbuffer()->getDepthAttachment()->texture.get());
 	//mRenderer->getPbrTechnique()->getActive()->getCascadedShadow()->enable(true);
+
 }
 
 bool NeXEngine::isRunning() const
@@ -580,6 +583,8 @@ void NeXEngine::setupCallbacks()
 		mCamera->setAspectRatio(width / (float)height);
 
 		mRenderer->updateRenderTargets(width, height);
+		auto* depth = mRenderer->getGbuffer()->getDepthAttachment()->texture.get();
+		mProbeClusterView->setDepth(depth);
 	});
 }
 
@@ -633,15 +638,16 @@ void NeXEngine::setupGUI()
 
 
 	mProbeCluster = std::make_unique<ProbeCluster>(&mScene);
-	auto mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
+	mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
 		"Probe Cluster",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
 		mProbeCluster.get(),
 		mCamera.get(),
-		mWindow);
+		mWindow,
+		mRenderer.get());
 	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
-	root->addChild(move(mProbeClusterView));
+	root->addChild(mProbeClusterView.get());
 
 	mProbeGenerator = std::make_unique<ProbeGenerator>(&mScene, mGlobalIllumination.get(), mRenderer.get());
 

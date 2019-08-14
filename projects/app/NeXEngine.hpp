@@ -26,6 +26,7 @@ namespace nex
 	{
 		class Picker;
 		class SceneGUI;
+		class ProbeClusterView;
 	}
 
 	class NeXEngine : public RenderEngine
@@ -91,6 +92,7 @@ namespace nex
 		std::unique_ptr<PbrTechnique> mPbrTechnique;
 		std::unique_ptr<ProbeGenerator> mProbeGenerator;
 		std::unique_ptr<ProbeCluster> mProbeCluster;
+		std::unique_ptr<nex::gui::ProbeClusterView> mProbeClusterView;
 
 		DirLight mSun;
 	};

@@ -11,6 +11,7 @@ namespace nex
 	class SimpleColorMaterial;
 	class ShaderStorageBuffer;
 	class Window;
+	class Renderer;
 
 	class ClusterGenerator {
 	public:
@@ -32,8 +33,12 @@ namespace nex
 		 *								if it is not big enough.
 		 */
 		void collectActiveClusterList(const glm::uvec3& clusterSize, Texture* depth, float zNearDistance,
-			float zFarDistance, ShaderStorageBuffer* clusterListOutput);
+			float zFarDistance, const glm::mat4& projMatrix, ShaderStorageBuffer* clusterListOutput);
 
+		/**
+		 * @param clusterLisInput: An array of unsigned int, size will be a flat version of clusterSize.
+		 * @param cleanedClusterListOutput: First element: size of cluster list (unsigned int); Remainder: An array of unsigned int,  
+		 */
 		void cleanActiveClusterList(const glm::uvec3& clusterSize, ShaderStorageBuffer* clusterListInput, ShaderStorageBuffer* cleanedClusterListOutput);
 
 	private:
@@ -159,11 +164,11 @@ namespace nex
 
 		void generateClusterElement(const ClusterElement& elem);
 
-		void generateCluster(const glm::uvec4& clusterSize, unsigned width, unsigned height);
+		void generateCluster(const glm::uvec4& clusterSize, Texture* depth);
 
 		void generateClusterCpuTest(const glm::uvec4& clusterSize);
 
-		void generateClusterGpu(const glm::uvec4& clusterSize, unsigned width, unsigned height);
+		void generateClusterGpu(const glm::uvec4& clusterSize, Texture* depth);
 
 	private:
 		class CullLightsPass;
@@ -183,6 +188,8 @@ namespace nex
 		Scene* mScene;
 		std::unique_ptr<SimpleColorMaterial> mMaterial;
 		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
+		std::unique_ptr<ShaderStorageBuffer> mActiveClusterList;
+		std::unique_ptr<ShaderStorageBuffer> mCleanActiveClusterList;
 
 		std::unique_ptr<CullLightsPass> mCullLightsPass;
 		EnvLightCuller mEnvLightCuller;
@@ -247,7 +254,10 @@ namespace nex
 				MainMenuBar* menuBar,
 				Menu* menu, ProbeCluster* cluster,
 				PerspectiveCamera* activeCamera,
-				nex::Window* window);
+				nex::Window* window,
+				nex::Renderer* renderer);
+
+			void setDepth(Texture* depth);
 
 			void drawSelf() override;
 		
@@ -259,6 +269,8 @@ namespace nex
 			nex::Window* mWindow;
 			bool mShowErrorMessage;
 			nex::gui::Button mGenerateButton;
+			Texture* mDepth;
+			nex::Renderer* mRenderer;
 		};
 	}
 }
