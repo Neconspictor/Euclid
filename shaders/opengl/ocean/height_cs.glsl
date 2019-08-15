@@ -65,7 +65,7 @@ void main(void)
     const ivec2 index = ivec2(gl_GlobalInvocationID.xy);
  
     
-    const vec2 wave = (TWO_PI * index - (PI * uniquePointCount)) / waveLength;
+    const vec2 wave = (TWO_PI * index - (PI * vec2(uniquePointCount))) / waveLength;
     
     const float w0 = TWO_PI / periodTime;
     const float dispersion = floor(sqrt(GRAVITY * length(wave)) / w0) * w0;

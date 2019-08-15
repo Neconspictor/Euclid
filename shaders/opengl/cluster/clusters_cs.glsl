@@ -54,7 +54,7 @@ void main(void)
     
     // How many pixels in x does a square tile use
     // uint tileSizePx = tileSizes[3];
-    vec2 tileSizeRelative = 1.0 / gl_NumWorkGroups.xy;
+    vec2 tileSizeRelative = 1.0 / vec2(gl_NumWorkGroups.xy);
     
     // Linear ID of the thread/cluster
     uint clusterIndex = gl_WorkGroupID.x +

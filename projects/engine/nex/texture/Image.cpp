@@ -304,7 +304,7 @@ StoreImage nex::StoreImage::create(Texture * texture, bool allMipMaps, unsigned 
 		imageCount = ((CubeMap*)texture)->getLayerFaces();
 
 	if (allMipMaps) {
-		auto maxMipMapCount = texture->getLevelZeroMipMapTextureSize();
+		auto maxMipMapCount = texture->getMipMapCount(texture->getLevelZeroMipMapTextureSize());
 		mipmapCount = data.lodMaxLevel - data.lodBaseLevel + 1;
 		mipmapCount = (maxMipMapCount < mipmapCount) ? maxMipMapCount : mipmapCount;
 		mipMapStart = data.lodBaseLevel;

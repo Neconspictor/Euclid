@@ -70,19 +70,19 @@ void main()
     
     vec4 color = textureLod(Texture, normalize(vec3(x, y, z)), MipMapLevel);
     
-    if (UseToneMapping) {
+    if (bool(UseToneMapping)) {
         const float exposure = 1.0;
         color *= exposure;
         color.rgb = color.rgb / (color.rgb + vec3(1.0));
     }
     
-    if (UseGammaCorrection) {
+    if (bool(UseGammaCorrection)) {
         // gamma correct
         const float gamma = 2.2f;
         color.rgb = pow(color.rgb, vec3(1.0/gamma)); 
     }
     
-    if (UseTransparency) {
+    if (bool(UseTransparency)) {
         Out_Color = Frag_Color * color;
     } else {
         Out_Color = Frag_Color * vec4(color.rgb, 1.0);
