@@ -214,19 +214,19 @@ public:
 	}
 
 	void setEnvironmentLights(ShaderStorageBuffer* buffer) {
-		buffer->bindToTarget(1);
+		buffer->bindToTarget(4);
 	}
 
 	void setGlobalLightIndexList(ShaderStorageBuffer* buffer) {
-		buffer->bindToTarget(2);
+		buffer->bindToTarget(1);
 	}
 
 	void setLightGrids(ShaderStorageBuffer* buffer) {
-		buffer->bindToTarget(3);
+		buffer->bindToTarget(2);
 	}
 
 	void setGlobalIndexCount(ShaderStorageBuffer* buffer) {
-		buffer->bindToTarget(4);
+		buffer->bindToTarget(3);
 	}
 
 	static constexpr inline unsigned getMaxLocalWorkgroupSize() {
@@ -248,10 +248,10 @@ private:
 
 
 nex::EnvLightCuller::EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) :
-	mGlobalLightIndexCountBuffer(std::make_unique<ShaderStorageBuffer>(4, sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)),
-	mGlobalLightIndexListBuffer(std::make_unique<ShaderStorageBuffer>(2, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
+	mGlobalLightIndexCountBuffer(std::make_unique<ShaderStorageBuffer>(3, sizeof(GlobalLightIndexCount), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)),
+	mGlobalLightIndexListBuffer(std::make_unique<ShaderStorageBuffer>(1, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
 	mCullPass(std::make_unique<CullPass>(maxVisibleLights, xSize, ySize, zLocalSize, zBatchSize)),
-	mLightGridsBuffer(std::make_unique<ShaderStorageBuffer>(3, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
+	mLightGridsBuffer(std::make_unique<ShaderStorageBuffer>(2, 0, nullptr, GpuBuffer::UsageHint::STREAM_COPY)),
 	mXSize(xSize), mYSize(ySize), mZLocalSize(zLocalSize), mZBatchSize(zBatchSize), mMaxVisibleLights(maxVisibleLights)
 {
 	
