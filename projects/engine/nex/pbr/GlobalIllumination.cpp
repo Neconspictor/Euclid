@@ -85,6 +85,7 @@ private:
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
 mNextStoreID(0)
 {
@@ -346,6 +347,11 @@ nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 	return &mFactory;
 }
 
+nex::ShaderStorageBuffer* nex::GlobalIllumination::getEnvironmentLightShaderBuffer()
+{
+	return &mEnvironmentLights;
+}
+
 void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 {
 	mActive = probe;
@@ -379,6 +385,32 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	else {
 		mProbesBuffer.resize(mProbesData.memSize(), data, GpuBuffer::UsageHint::DYNAMIC_COPY);
 	}
+
+	const auto byteSize = activeProbes.size() * sizeof(EnvironmentLight);
+
+	if (mEnvironmentLights.getSize() < byteSize)
+		mEnvironmentLights.resize(byteSize,nullptr, GpuBuffer::UsageHint::DYNAMIC_COPY);
+
+	std::vector<EnvironmentLight> lights(activeProbes.size());
+
+	counter = 0;
+	for (auto* vob : activeProbes) {
+		auto& light = lights[counter];
+		auto* probe = vob->getProbe();
+		++counter;
+		
+		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
+		light.enabled = true;
+		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
+		light.sphereRange == probe->getInfluenceRadius();
+		const auto& box = probe->getInfluenceBox();
+		light.minWorld = glm::vec4(box.min, 0.0);
+		light.maxWorld = glm::vec4(box.max, 0.0);
+		light.usesBoundingBox = probe->getInfluenceType() == PbrProbe::InfluenceType::BOX;
+		light.arrayIndex = probe->getArrayIndex();
+	}
+
+	mEnvironmentLights.update(byteSize, lights.data());
 }
 
 void nex::GlobalIllumination::advanceNextStoreID(unsigned id)

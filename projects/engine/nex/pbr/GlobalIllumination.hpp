@@ -52,6 +52,11 @@ namespace nex
 		const ProbesData& getProbesData() const;
 		ShaderStorageBuffer* getProbesShaderBuffer();
 
+		/**
+		 * Provides for each pbr probe an EnvironmentLight struct.
+		 */
+		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
+
 		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
 
@@ -75,6 +80,7 @@ namespace nex
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
 		ShaderStorageBuffer mProbesBuffer;
+		ShaderStorageBuffer mEnvironmentLights;
 		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;

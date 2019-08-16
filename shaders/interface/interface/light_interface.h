@@ -20,6 +20,7 @@ struct EnvironmentLight
 	float sphereRange;
 	NEX_UINT enabled;
 	NEX_UINT usesBoundingBox; // specifies whether to use AABB or Sphere volume
+	NEX_UINT arrayIndex;
 };
 
 struct PointLight
