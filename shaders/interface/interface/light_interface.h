@@ -28,7 +28,7 @@ struct PointLight
     NEX_VEC4 color;
     NEX_UINT enabled;
     float intensity;
-    float range;
+    float sphereRange;
 };
 
 

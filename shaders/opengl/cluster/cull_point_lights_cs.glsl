@@ -15,62 +15,29 @@
 
 layout(local_size_x = LOCAL_SIZE_X, local_size_y = LOCAL_SIZE_Y, local_size_z = LOCAL_SIZE_Z) in;
 
-#include "interface/cluster_interface.h"
 #include "interface/light_interface.h"
-
-layout (std140, binding = 0) uniform ConstantsUBO 
-{
-    Constants constants;
-};
-
-layout (std430, binding = 0) buffer clusterAABB 
-{
-    AABB clusters[];
-};
 
 /**
  * Contains the lights to cull.
  */
-layout (std430, binding = 1) buffer lightSSBO 
+layout (std430, binding = 4) buffer lightSSBO 
 {
-    PointLight pointLights[];
-};
-
-
-/**
- * Must have size of MAX_VISIBLES_LIGHTS * clusterCount
- */
-layout (std430, binding = 2) buffer lightIndexSSBO 
-{
-    uint globalLightIndexList[];
-};
-
-/**
- * Stores offset and count into globalLightIndexList for each cluster.
- * => Size of array: amount of clusters
- */
-layout (std430, binding = 3) buffer lightGridSSBO 
-{
-    LightGrid lightGrids[];
-};
-
-layout (std430, binding = 4) buffer globalIndexCountSSBO 
-{
-    uint globalIndexCount;
+    PointLight lights[];
 };
 
 //Shared variables 
-shared PointLight sharedLights[LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z];
+//shared PointLight sharedLights[LOCAL_SIZE_X * LOCAL_SIZE_Y * LOCAL_SIZE_Z];
 
-float sqDistPointAABB(vec3 point, uint clusterID);
-bool testSphereAABB(uint light, uint clusterID);
+#define LIGHT_CLASS PointLight
+#define SUPPORTS_SPHERE_RANGE 1
+#include "cluster/cull_lights_common.glsl"
 
 
 void main()
 {
     globalIndexCount = 0;
     uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-    uint lightCount  = pointLights.length();
+    uint lightCount  = lights.length();
     uint numBatches = (lightCount + threadCount -1) / threadCount;
 
     uvec3 globalSize = gl_NumWorkGroups * gl_WorkGroupSize;
@@ -88,7 +55,7 @@ void main()
         lightIndex = min(lightIndex, lightCount);
 
         //Populating shared light array
-        sharedLights[gl_LocalInvocationIndex] = pointLights[lightIndex];
+        sharedLights[gl_LocalInvocationIndex] = lights[lightIndex];
         barrier();
 
         //Iterating within the current batch of lights
@@ -113,82 +80,4 @@ void main()
 
     lightGrids[globalInvocationIndex].offset = offset;
     lightGrids[globalInvocationIndex].count = visibleLightCount;
-}
-
-float sqDistPointAABB(vec3 point, uint clusterID)
-{
-    float sqDist = 0.0;
-    AABB currentCell = clusters[clusterID];
-	
-	
-	const vec4 minView = currentCell.minView;
-	const vec4 maxView = currentCell.maxView;
-
-	if(point[0] < minView[0])
-	{
-		float dist = minView[0] - point[0];
-		sqDist += dist * dist;
-	}
-	
-	if(point[1] < minView[1])
-	{
-		float dist = minView[1] - point[1];
-		sqDist += dist * dist;
-	}
-	
-	if(point[2] < minView[2])
-	{
-		float dist = minView[2] - point[2];
-		sqDist += dist * dist;
-	}
-	
-	if(point[0] > maxView[0])
-	{
-		float dist = point[0] - maxView[0];
-		sqDist += dist * dist;
-	}
-	
-	if(point[1] > maxView[1])
-	{
-		float dist = point[1] - maxView[1];
-		sqDist += dist * dist;
-	}
-	
-	if(point[2] > maxView[2])
-	{
-		float dist = point[2] - maxView[2];
-		sqDist += dist * dist;
-	}
-		
-	
-    //cluster[clusterID].maxPoint[3] = clusterID;
-    /*for(int i = 0; i < 3; ++i){
-        float v = point[i];
-               
-		const float minView = currentCell.minView[i];
-		const float maxView = currentCell.maxView[i];
-				
-        if(v < minView)
-        {
-            float dist = minView - v;
-            sqDist += dist * dist;
-        }
-        
-		if(v > currentCell.maxView[i])
-        {
-            float dist = v - currentCell.maxView[i];
-            sqDist += dist * dist;
-        }
-    }*/
-
-    return sqDist;
-}
-
-bool testSphereAABB(uint light, uint clusterID)
-{
-    float radius = sharedLights[light].range;
-    vec3 center  = vec3(constants.view * sharedLights[light].position);
-    float squaredDistance = sqDistPointAABB(center, clusterID);
-
-    return squaredDistance <= (radius * radius);
 }
