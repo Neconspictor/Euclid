@@ -232,14 +232,14 @@ float nex::OceanCpu::dispersion(const glm::vec2& wave) const
 	return std::floor(std::sqrt(GRAVITY * length(wave)) / w0) * w0;
 }
 
-void nex::OceanCpu::draw(Camera* camera, const glm::vec3& lightDir)
+void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir)
 {
 	mSimpleShadedPass->bind();
 	glm::mat4 model;
 	model = translate(model, glm::vec3(0, 2, -1));
 	model = scale(model, glm::vec3(1 / (float)mWaveLength));
 
-	mSimpleShadedPass->setUniforms(camera, model, lightDir);
+	mSimpleShadedPass->setUniforms(projection, view, model, lightDir);
 
 	//mMesh->bind();
 	mMesh->getVertexArray()->bind();
@@ -298,11 +298,9 @@ nex::OceanCpu::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 }
 
-void nex::OceanCpu::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir)
+void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
+	const glm::mat4& trafo, const glm::vec3& lightDir)
 {
-	auto projection = camera->getProjectionMatrix();
-	auto view = camera->getView();
-
 	auto modelView = view * trafo;
 
 	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));
@@ -465,7 +463,7 @@ nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 
 nex::OceanCpuFFT::~OceanCpuFFT() = default;
 
-void nex::OceanCpuFFT::simulate(float t, bool skip)
+void nex::OceanCpuFFT::simulate(float t)
 {
 	float lambda = -0.8f;
 
@@ -899,14 +897,14 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 
 nex::OceanGPU::~OceanGPU() = default;
 
-void nex::OceanGPU::draw(Camera* camera, const glm::vec3& lightDir)
+void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir)
 {
 	mSimpleShadedPass->bind();
 	glm::mat4 model;
 	model = translate(model, glm::vec3(0, 2, -1));
 	model = scale(model, glm::vec3(1 / (float)mWaveLength));
 
-	mSimpleShadedPass->setUniforms(camera, model, lightDir, 
+	mSimpleShadedPass->setUniforms(projection, view, model, lightDir, 
 		mHeightComputePass->getHeight(),
 		mHeightComputePass->getSlopeX(),
 		mHeightComputePass->getSlopeZ(),
@@ -1555,12 +1553,10 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	sampler.setWrapT(TextureUVTechnique::Repeat);
 }
 
-void nex::OceanGPU::SimpleShadedPass::setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir, 
+void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
+	const glm::mat4& trafo, const glm::vec3& lightDir,
 	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ)
 {
-	auto projection = camera->getProjectionMatrix();
-	auto view = camera->getView();
-
 	auto modelView = view * trafo;
 
 	mShader->setMat3(normalMatrixUniform.location, createNormalMatrix(modelView));

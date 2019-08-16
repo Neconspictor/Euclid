@@ -269,6 +269,12 @@ void NeXEngine::run()
 			mCamera->update();
 			mControllerSM->frameUpdate(frameTime);
 
+			static float simulationTime = 0.0f;
+			simulationTime += frameTime;
+			mRenderer->getOcean()->simulate(simulationTime * 0.5f);
+			//mOcean.simulate(simulationTime * 0.5f);
+
+
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 			commandQueue.clear();
 			collectRenderCommands(commandQueue, mScene);

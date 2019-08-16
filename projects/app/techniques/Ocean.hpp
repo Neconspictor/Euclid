@@ -64,6 +64,8 @@ namespace nex
 		Complex heightZero(const glm::vec2& wave) const;
 		float philipsSpectrum(const glm::vec2& wave) const;
 
+		virtual void simulate(float t) = 0;
+
 	protected:
 
 		/**
@@ -144,7 +146,7 @@ namespace nex
 
 		float dispersion(const glm::vec2& wave) const;
 
-		void draw(Camera* camera, const glm::vec3& lightDir);
+		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir);
 
 		Complex height(int x, int z, float time) const;
 
@@ -194,7 +196,8 @@ namespace nex
 		public:
 			SimpleShadedPass();
 
-			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir);
+			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
+				const glm::mat4& trafo, const glm::vec3& lightDir);
 
 			Uniform transform;
 			Uniform lightUniform;
@@ -225,7 +228,7 @@ namespace nex
 		 * Simulates ocean state at time t.
 		 * @param t : time. Has to be > 0
 		 */
-		void simulate(float t);
+		void simulate(float t) override;
 
 	protected:
 		/**
@@ -249,7 +252,7 @@ namespace nex
 
 		virtual ~OceanCpuFFT();
 
-		void simulate(float t, bool skip = false);
+		void simulate(float t) override;
 
 	private:
 
@@ -295,13 +298,13 @@ namespace nex
 		/**
 		 * Draws the ocean.
 		 */
-		void draw(Camera* camera, const glm::vec3& lightDir);
+		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir);
 
 		/**
 		 * Simulates ocean state at time t.
 		 * @param t : time. Has to be > 0
 		 */
-		void simulate(float t);
+		void simulate(float t) override;
 
 	private:
 
@@ -502,7 +505,8 @@ namespace nex
 		public:
 			SimpleShadedPass();
 
-			void setUniforms(Camera* camera, const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
+			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
+				const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
 				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ);
 
 			Uniform transform;

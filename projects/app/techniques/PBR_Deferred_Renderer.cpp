@@ -159,11 +159,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(true);
 
 	//mTesselationTest.draw(camera, sun->getDirection());
-	//static float simulationTime = 0.0f;
-	//simulationTime += frameTime;
-
-	//mOcean.simulate(simulationTime * 0.5f);
-	//mOcean.draw(camera, sun->getDirection());
+	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
