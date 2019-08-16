@@ -148,6 +148,8 @@ void NeXEngine::init()
 		mCascadedShadow.get(), 
 		mWindow->getInputDevice());
 
+	mRenderer->getOcean()->simulate(0.0f);
+
 
 	mGui = mWindowSystem->createGUI(mWindow);
 	
