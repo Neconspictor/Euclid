@@ -71,7 +71,7 @@ bool testSphereAABB(uint light, uint clusterID);
 
 void main()
 {
-    /*globalIndexCount = 0;
+    globalIndexCount = 0;
     uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
     uint lightCount  = environmentLights.length();
     uint numBatches = (lightCount + threadCount -1) / threadCount;
@@ -105,7 +105,10 @@ void main()
                     }
                 
                 } else {
-                    if( testSphereAABB(light, globalInvocationIndex) ){
+					
+					bool result = testSphereAABB(light, globalInvocationIndex);
+					
+                    if(result){
                         visibleLightIndices[visibleLightCount] = batch * threadCount + light;
                         visibleLightCount += 1;
                     }
@@ -115,7 +118,7 @@ void main()
     }
 
     //We want all thread groups to have completed the light tests before continuing
-    barrier();
+    /*barrier();
 
     uint offset = atomicAdd(globalIndexCount, visibleLightCount);
 
@@ -131,21 +134,67 @@ float sqDistPointAABB(vec3 point, uint clusterID)
 {
     float sqDist = 0.0;
     AABB currentCell = clusters[clusterID];
+	
+	
+	const vec4 minView = currentCell.minView;
+	const vec4 maxView = currentCell.maxView;
+
+	if(point[0] < minView[0])
+	{
+		float dist = minView[0] - point[0];
+		sqDist += dist * dist;
+	}
+	
+	if(point[1] < minView[1])
+	{
+		float dist = minView[1] - point[1];
+		sqDist += dist * dist;
+	}
+	
+	if(point[2] < minView[2])
+	{
+		float dist = minView[2] - point[2];
+		sqDist += dist * dist;
+	}
+	
+	if(point[0] > maxView[0])
+	{
+		float dist = point[0] - maxView[0];
+		sqDist += dist * dist;
+	}
+	
+	if(point[1] > maxView[1])
+	{
+		float dist = point[1] - maxView[1];
+		sqDist += dist * dist;
+	}
+	
+	if(point[2] > maxView[2])
+	{
+		float dist = point[2] - maxView[2];
+		sqDist += dist * dist;
+	}
+		
+	
     //cluster[clusterID].maxPoint[3] = clusterID;
-    for(int i = 0; i < 3; ++i){
+    /*for(int i = 0; i < 3; ++i){
         float v = point[i];
-                
-        if(v < currentCell.minView[i])
+               
+		const float minView = currentCell.minView[i];
+		const float maxView = currentCell.maxView[i];
+				
+        if(v < minView)
         {
-            float dist = currentCell.minView[i] - v;
+            float dist = minView - v;
             sqDist += dist * dist;
         }
-        if(v > currentCell.maxView[i])
+        
+		if(v > currentCell.maxView[i])
         {
             float dist = v - currentCell.maxView[i];
             sqDist += dist * dist;
         }
-    }
+    }*/
 
     return sqDist;
 }

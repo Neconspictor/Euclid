@@ -356,7 +356,7 @@ mCleanActiveClusterList(std::make_unique<ShaderStorageBuffer>(2,
 		0, // Note: we dynamically resize the buffer 
 		nullptr,
 		GpuBuffer::UsageHint::DYNAMIC_COPY)),
-//mCullLightsPass(std::make_unique<CullLightsPass>()),
+mCullLightsPass(std::make_unique<CullLightsPass>()),
 mEnvLightCuller(16,8,4,6)
 {
 	mMaterial->setColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.3f));

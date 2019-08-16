@@ -1,9 +1,17 @@
 #version 430 core
 
-#define MAX_VISIBLES_LIGHTS 100
-#define LOCAL_SIZE_X 16
-#define LOCAL_SIZE_Y 8
-#define LOCAL_SIZE_Z 4
+#ifndef MAX_VISIBLES_LIGHTS
+    #define MAX_VISIBLES_LIGHTS 100
+#endif
+#ifndef LOCAL_SIZE_X
+    #define LOCAL_SIZE_X 16
+#endif
+#ifndef LOCAL_SIZE_Y
+    #define LOCAL_SIZE_Y 8
+#endif
+#ifndef LOCAL_SIZE_Z
+    #define LOCAL_SIZE_Z 4
+#endif
 
 layout(local_size_x = LOCAL_SIZE_X, local_size_y = LOCAL_SIZE_Y, local_size_z = LOCAL_SIZE_Z) in;
 
@@ -111,21 +119,67 @@ float sqDistPointAABB(vec3 point, uint clusterID)
 {
     float sqDist = 0.0;
     AABB currentCell = clusters[clusterID];
+	
+	
+	const vec4 minView = currentCell.minView;
+	const vec4 maxView = currentCell.maxView;
+
+	if(point[0] < minView[0])
+	{
+		float dist = minView[0] - point[0];
+		sqDist += dist * dist;
+	}
+	
+	if(point[1] < minView[1])
+	{
+		float dist = minView[1] - point[1];
+		sqDist += dist * dist;
+	}
+	
+	if(point[2] < minView[2])
+	{
+		float dist = minView[2] - point[2];
+		sqDist += dist * dist;
+	}
+	
+	if(point[0] > maxView[0])
+	{
+		float dist = point[0] - maxView[0];
+		sqDist += dist * dist;
+	}
+	
+	if(point[1] > maxView[1])
+	{
+		float dist = point[1] - maxView[1];
+		sqDist += dist * dist;
+	}
+	
+	if(point[2] > maxView[2])
+	{
+		float dist = point[2] - maxView[2];
+		sqDist += dist * dist;
+	}
+		
+	
     //cluster[clusterID].maxPoint[3] = clusterID;
-    for(int i = 0; i < 3; ++i){
+    /*for(int i = 0; i < 3; ++i){
         float v = point[i];
-                
-        if(v < currentCell.minView[i])
+               
+		const float minView = currentCell.minView[i];
+		const float maxView = currentCell.maxView[i];
+				
+        if(v < minView)
         {
-            float dist = currentCell.minView[i] - v;
+            float dist = minView - v;
             sqDist += dist * dist;
         }
-        if(v > currentCell.maxView[i])
+        
+		if(v > currentCell.maxView[i])
         {
             float dist = v - currentCell.maxView[i];
             sqDist += dist * dist;
         }
-    }
+    }*/
 
     return sqDist;
 }
