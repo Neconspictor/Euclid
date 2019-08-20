@@ -4,6 +4,7 @@ out vec4 FragColor;
 in vec3 localPos;
 
 layout(binding = 0) uniform samplerCube environmentMap;
+layout(binding = 1) uniform samplerCube depthMap;
 
 const float PI = 3.14159265359;
 
@@ -34,6 +35,8 @@ void main()
 		}
 	}
 	irradiance = PI * irradiance * (1.0 / float(nrSamples));
+    
+    float depth = texture(depthMap, normal).r;
   
     FragColor = vec4(irradiance, 1.0);
 }

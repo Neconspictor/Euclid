@@ -349,7 +349,7 @@ void NeXEngine::collectRenderCommands(RenderCommandQueue& commandQueue, const Sc
 				command.worldTrafo = node->getWorldTrafo();
 				command.prevWorldTrafo = node->getPrevWorldTrafo();
 				command.boundingBox = node->getMeshBoundingBoxWorld();
-				commandQueue.push(command, true);
+				commandQueue.push(command, false);
 			}
 		}
 	}
@@ -436,6 +436,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 					(k - depths / 2) * depthMultiplicator + depthOffset,
 					(j - columns / 2) * columnMultiplicator);
 
+				position += glm::vec3(-15.0f, 1.0f, 0.0f);
+
 				//(i * rows + j)*columns + k
 				auto* probeVob = mGlobalIllumination->addUninitProbeUnsafe(position, mGlobalIllumination->getNextStoreID());
 				mScene.addActiveVobUnsafe(probeVob);
@@ -493,7 +495,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 128, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;

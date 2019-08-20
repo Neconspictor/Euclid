@@ -24,9 +24,9 @@ void nex::RenderCommandQueue::clear()
 	mTransparentCommands.clear();
 }
 
-nex::RenderCommandQueue::BufferCollection nex::RenderCommandQueue::getCommands(int types)
+nex::RenderCommandQueue::ConstBufferCollection nex::RenderCommandQueue::getCommands(int types) const
 {
-	BufferCollection result;
+	ConstBufferCollection result;
 	if (types & Deferrable) {
 		result.push_back(&getDeferrablePbrCommands());
 	}

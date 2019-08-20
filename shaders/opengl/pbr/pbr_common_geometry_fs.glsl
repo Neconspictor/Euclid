@@ -29,5 +29,6 @@ uniform vec2 nearFarPlane;
 vec3 getNormalEye() {
 	float factor = 255/128.0f;	// is better than 2.0f for precision reasons!
 	vec3 normalTangent = (texture(material.normalMap, fs_in.tex_coords).xyz * factor) - 1.0;
+    normalTangent = vec3(0,0,1); //TODO
 	return normalize(fs_in.TBN_eye_directions * normalTangent);
 }

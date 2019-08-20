@@ -17,6 +17,7 @@ namespace nex
 	public:
 
 		using BufferCollection = std::vector<std::vector<RenderCommand>*>;
+		using ConstBufferCollection = std::vector<const std::vector<RenderCommand>*>;
 		using Buffer = std::vector<RenderCommand>;
 
 		enum class CullingMethod {
@@ -37,7 +38,7 @@ namespace nex
 		void clear();
 
 
-		BufferCollection getCommands(int types);
+		ConstBufferCollection getCommands(int types) const;
 
 		/**
 		 * Provides pbr render commands that can be rendered in a deferred way.

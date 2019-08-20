@@ -151,9 +151,9 @@ void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 }
 
 nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globalIllumination, 
-	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned pbrProbesBufferBindingPoint) :
+	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned envLightBindingPoint) :
 	PbrBaseCommon(shader),
-	mPbrProbesDataBufferBindingPoint(pbrProbesBufferBindingPoint),
+	mEnvLightBindingPoint(envLightBindingPoint),
 	mGlobalIllumination(globalIllumination),
 	mCsmCascadeBindingPoint(csmCascadeBindingPoint),
 	
@@ -227,8 +227,8 @@ void PbrLightingData::updateConstants(const Camera& camera)
 
 		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
 
-		auto* probesBuffer = mGlobalIllumination->getProbesShaderBuffer();
-		probesBuffer->bindToTarget(mPbrProbesDataBufferBindingPoint);
+		auto* envLightBuffer = mGlobalIllumination->getEnvironmentLightShaderBuffer();
+		envLightBuffer->bindToTarget(mEnvLightBindingPoint);
 	}
 }
 
@@ -389,6 +389,11 @@ PbrConvolutionPass::PbrConvolutionPass()
 	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
 
 	mEnvironmentMap = mShader->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
+	mDepthMap = mShader->createTextureUniform("depthMap", UniformType::CUBE_MAP, 1);
+
+	auto state = mSampler2.getState();
+	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
+	mSampler2.setState(state);
 }
 
 void PbrConvolutionPass::setProjection(const glm::mat4& mat)
@@ -404,7 +409,13 @@ void PbrConvolutionPass::setView(const glm::mat4& mat)
 void PbrConvolutionPass::setEnvironmentMap(const CubeMap * cubeMap)
 {
 	mShader->setTexture(cubeMap, &mSampler, mEnvironmentMap.bindingSlot);
-	mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
+	//mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
+}
+
+void nex::PbrConvolutionPass::setDepthMap(const CubeMap* depthMap)
+{
+	mShader->setTexture(depthMap, &mSampler2, mDepthMap.bindingSlot);
+	//mShader->setBinding(mDepthMap.location, mDepthMap.bindingSlot);
 }
 
 PbrPrefilterPass::PbrPrefilterPass()

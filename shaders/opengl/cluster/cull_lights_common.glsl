@@ -27,7 +27,7 @@
 
 
 #include "interface/cluster_interface.h"
-#include "interface/light_interface.h"
+//#include "interface/light_interface.h"
 
 
 layout (std140, binding = 0) uniform ConstantsUBO 

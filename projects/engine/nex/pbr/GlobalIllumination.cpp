@@ -84,7 +84,7 @@ private:
 
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
-mFactory(prefilteredSize, depth), mProbesBuffer(1, sizeof(ProbeData), nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mFactory(prefilteredSize, depth),
 mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
 mNextStoreID(0)
@@ -120,6 +120,9 @@ mNextStoreID(0)
 		nullptr,
 		nullptr,
 		nullptr);
+
+	mIrradianceDepthPass = std::make_unique<TransformPass>(Shader::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
+		"pbr/probe/irradiance_depth_pass_fs.glsl"));
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -158,6 +161,34 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	renderTarget->useDepthAttachment(std::move(depth));
 	renderTarget->updateDepthAttachment();
 
+
+	TextureData dataDepth;
+	dataDepth.colorspace = ColorSpace::RGBA;
+	dataDepth.internalFormat = InternFormat::RGBA32F;
+	dataDepth.pixelDataType = PixelDataType::FLOAT;
+	dataDepth.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	dataDepth.magFilter = TextureFilter::Linear;
+	dataDepth.generateMipMaps = false;
+
+	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
+
+	RenderAttachment depthDepth;
+	depthDepth.target = TextureTarget::TEXTURE2D;
+	dataDepth = TextureData();
+	dataDepth.minFilter = TextureFilter::Linear;
+	dataDepth.magFilter = TextureFilter::Linear;
+	dataDepth.generateMipMaps = false;
+	dataDepth.colorspace = ColorSpace::DEPTH_STENCIL;
+	dataDepth.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	depthDepth.texture = std::make_unique<RenderBuffer>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
+
+	depthDepth.type = RenderAttachmentType::DEPTH;
+
+	renderTargetDepth->useDepthAttachment(std::move(depthDepth));
+	renderTargetDepth->updateDepthAttachment();
+
+
+
 	DirLight light;
 	light.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	light.power = 3.0f;
@@ -171,7 +202,6 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	renderer->updateRenderTargets(size, size);
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
@@ -193,8 +223,12 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			commandQueue.getToolCommands().clear();
 			commandQueue.sort();
 
+			renderer->updateRenderTargets(size, size);
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
-			mFactory.initProbe(probe, cubeMap.get(), storeID, false, false);
+
+			renderer->updateRenderTargets(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE);
+			auto cubeMapDepth = renderToDepthCubeMap(commandQueue, renderer, *renderTargetDepth, camera, position, light);
+			mFactory.initProbe(probe, cubeMap.get(), cubeMapDepth.get(), storeID, false, false);
 		}
 
 		probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());
@@ -332,16 +366,6 @@ nex::CubeMapArray * nex::GlobalIllumination::getPrefilteredMaps()
 	return mFactory.getPrefilteredMaps();
 }
 
-const nex::GlobalIllumination::ProbesData & nex::GlobalIllumination::getProbesData() const
-{
-	return mProbesData;
-}
-
-nex::ShaderStorageBuffer * nex::GlobalIllumination::getProbesShaderBuffer()
-{
-	return &mProbesBuffer;
-}
-
 nex::PbrProbeFactory* nex::GlobalIllumination::getFactory()
 {
 	return &mFactory;
@@ -364,28 +388,6 @@ void nex::GlobalIllumination::setAmbientPower(float ambientPower)
 
 void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)
 {
-	mProbesData.resize(activeProbes.size());
-	ProbeVob::ProbeData* data = mProbesData.data();
-
-	unsigned counter = 0;
-
-	for (auto* vob : activeProbes) {
-		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
-		data[counter].positionWorld = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
-		data[counter].indexInfluenceRadius.x = vob->getProbe()->getArrayIndex();
-		data[counter].indexInfluenceRadius.y = vob->getProbe()->getInfluenceRadius();
-		++counter;
-	}
-
-	const auto oldSize = mProbesBuffer.getSize();
-
-	if (mProbesData.memSize() == oldSize) {
-		mProbesBuffer.update(mProbesData.memSize(), data);
-	}
-	else {
-		mProbesBuffer.resize(mProbesData.memSize(), data, GpuBuffer::UsageHint::DYNAMIC_COPY);
-	}
-
 	const auto byteSize = activeProbes.size() * sizeof(EnvironmentLight);
 
 	if (mEnvironmentLights.getSize() < byteSize)
@@ -393,7 +395,7 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 
 	std::vector<EnvironmentLight> lights(activeProbes.size());
 
-	counter = 0;
+	size_t counter = 0;
 	for (auto* vob : activeProbes) {
 		auto& light = lights[counter];
 		auto* probe = vob->getProbe();
@@ -402,7 +404,7 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
 		light.enabled = true;
 		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
-		light.sphereRange == probe->getInfluenceRadius();
+		light.sphereRange = probe->getInfluenceRadius();
 		const auto& box = probe->getInfluenceBox();
 		light.minWorld = glm::vec4(box.min, 0.0);
 		light.maxWorld = glm::vec4(box.max, 0.0);
@@ -567,3 +569,97 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	//result->generateMipMaps();
 	return result;
 }
+
+	std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToDepthCubeMap(const nex::RenderCommandQueue& queue, 
+		Renderer* renderer, 
+		CubeRenderTarget& renderTarget, 
+		nex::Camera& camera2, 
+		const glm::vec3& worldPosition, 
+		const DirLight& light)
+	{
+		thread_local auto* renderBackend = RenderBackend::get();
+
+		//view matrices;
+		const auto& views = CubeMap::getViewLookAts();
+		const auto viewModel = glm::translate(glm::mat4(1.0f), worldPosition);
+
+		//pass.bind();
+
+		const glm::vec3 ups[6]{
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f),
+			glm::vec3(0.0f, 0.0f, -1.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f)
+		};
+
+		static const glm::vec3 dir[6]{
+			glm::vec3(1.0f, 0.0f, 0.0f), // right
+			glm::vec3(-1.0f, 0.0f, 0.0f), // left
+			glm::vec3(0.0f, 1.0f, 0.0f), // up
+			glm::vec3(0.0f, -1.0f, 0.0f), // bottom
+			glm::vec3(0.0f, 0.0f, -1.0f), // front
+			glm::vec3(0.0f, 0.0f, 1.0f) // back
+		};
+
+		PerspectiveCamera camera(1.0f, glm::radians(90.0f), 0.1f, 100.0f);
+
+		camera.update();
+		camera.setPosition(worldPosition, true);
+		camera.update();
+
+		for (unsigned side = 0; side < views.size(); ++side) {
+
+			//if (side == 0 || side == 1) continue;
+
+			//const auto view = glm::lookAt(worldPosition, worldPosition + dir[5 - side], ups[5 - side]);
+			camera.setUp(ups[side]);
+			camera.setLook(dir[side]);
+			camera.update();
+			camera.update();
+			//camera.setView(view, true);
+
+
+			//RenderBackend::get()->getDepthBuffer()->enableDepthTest(true);
+			RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+			auto* stencilTest = RenderBackend::get()->getStencilTest();
+			stencilTest->enableStencilTest(false);
+			stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+			stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+
+			renderTarget.bind();
+			renderTarget.useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X)); // side +
+			renderBackend->setViewPort(0, 0, renderTarget.getWidth(), renderTarget.getHeight());
+			renderTarget.clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+
+			auto collection = queue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward | RenderCommandQueue::Transparent);
+
+			mIrradianceDepthPass->bind();
+
+			RenderState defaultState;
+
+			mIrradianceDepthPass->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getView());
+
+			for (auto* commandQueue : collection) {
+				for (const auto& command : *commandQueue)
+				{
+					mIrradianceDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+					mIrradianceDepthPass->uploadTransformMatrices();
+					StaticMeshDrawer::draw(command.mesh, nullptr, mIrradianceDepthPass.get(), &defaultState);
+				}
+			}
+
+			RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
+			stencilTest->enableStencilTest(false);
+			stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+			stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
+		}
+
+
+		auto& resultAttachment = renderTarget.getColorAttachments()[0];
+		auto result = std::dynamic_pointer_cast<CubeMap>(resultAttachment.texture);
+		result->generateMipMaps();
+
+		return result;
+	}

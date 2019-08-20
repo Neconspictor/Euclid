@@ -26,13 +26,6 @@ namespace nex
 	{
 	public:
 
-		struct ProbeData {
-			glm::vec4 arrayIndex;  // only first component is used
-			glm::vec4 positionWorld; // last component isn't used
-		};
-
-		using ProbesData = PerformanceCBuffer<ProbeVob::ProbeData>;
-
 		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
 		~GlobalIllumination();
 
@@ -49,8 +42,6 @@ namespace nex
 		unsigned getNextStoreID() const;
 		CubeMapArray* getPrefilteredMaps();
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
-		const ProbesData& getProbesData() const;
-		ShaderStorageBuffer* getProbesShaderBuffer();
 
 		/**
 		 * Provides for each pbr probe an EnvironmentLight struct.
@@ -76,18 +67,24 @@ namespace nex
 			const glm::vec3 & worldPosition,
 			const DirLight& light);
 
+		std::shared_ptr<nex::CubeMap> renderToDepthCubeMap(const nex::RenderCommandQueue& queue,
+			Renderer* renderer,
+			CubeRenderTarget& renderTarget,
+			nex::Camera& camera,
+			const glm::vec3& worldPosition,
+			const DirLight& light);
+
 		std::vector<glm::vec4> mProbeSpatials;
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
-		ShaderStorageBuffer mProbesBuffer;
 		ShaderStorageBuffer mEnvironmentLights;
-		ProbesData mProbesData;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
 		std::unique_ptr<ProbeBakePass> mProbeBakePass;
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
+		std::unique_ptr<TransformPass> mIrradianceDepthPass;
 		unsigned mNextStoreID;
 	};
 }

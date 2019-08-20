@@ -68,7 +68,7 @@ namespace nex
 	public:
 
 		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
-			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned pbrProbesBufferBindingPoint = 1);
+			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1);
 
 		void setCascadedShadow(CascadedShadow* shadow);
 
@@ -124,7 +124,7 @@ namespace nex
 		Sampler mPrefilteredSampler;
 		Sampler mCascadedShadowMapSampler;
 
-		unsigned mPbrProbesDataBufferBindingPoint;
+		unsigned mEnvLightBindingPoint;
 		GlobalIllumination* mGlobalIllumination;
 
 		unsigned mCsmCascadeBindingPoint;
@@ -211,12 +211,15 @@ namespace nex
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
 		void setEnvironmentMap(const CubeMap* cubeMap);
+		void setDepthMap(const CubeMap* depthMap);
 
 	private:
 		Uniform mProjection;
 		Uniform mView;
 		UniformTex mEnvironmentMap;
+		UniformTex mDepthMap;
 		Sampler mSampler;
+		Sampler mSampler2;
 	};
 
 	class PbrPrefilterPass : public Pass

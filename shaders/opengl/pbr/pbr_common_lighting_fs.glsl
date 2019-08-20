@@ -41,14 +41,8 @@ layout(binding = 7) uniform sampler2D brdfLUT;
 uniform float arrayIndex; //Note: an unsigned integer value represented as a float value
 
 
-struct Probe {
-    // first component: array index, second component: influence radius
-    vec4 indexInfluenceRadius;
-    vec4 positionWorld; // last component isn't used
-};
-
 layout(std430, binding = PBR_PROBES_BUFFER_BINDING_POINT) buffer ProbesBlock {
-    Probe probesData[]; // Each probe will be aligned to a multiple of vec4 
+    EnvironmentLight environmentLights[];
 };
 
 struct ArrayIndexWeight {
@@ -67,7 +61,7 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
-ArrayIndexWeight calcArrayIndices(in vec3 positionWorld);
+ArrayIndexWeight calcArrayIndices(in vec3 positionWorld, vec3 normalWorld);
 
 
 void calcLighting(in float ao, 
@@ -195,7 +189,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    ArrayIndexWeight indexWeight = calcArrayIndices(positionWorld);
+    ArrayIndexWeight indexWeight = calcArrayIndices(positionWorld, normalWorld);
     
     
     
@@ -203,7 +197,9 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
     vec3 irradiance1 = texture(irradianceMaps, vec4(normalWorld, indexWeight.firstIndex)).rgb;
+    irradiance1 = vec3(1,0,0);
     vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.secondIndex)).rgb;
+    irradiance2 = vec3(0,0,1);
     
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
     vec3 irradiance = indexWeight.firstWeight * irradiance1 + (indexWeight.secondWeight) * irradiance2;
@@ -219,6 +215,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     // Important: R has to be in world space, too.
     //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
     vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.firstIndex), roughness * MAX_REFLECTION_LOD).rgb;
+    
     vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.secondIndex), roughness * MAX_REFLECTION_LOD).rgb;
     //vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
     vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (indexWeight.secondWeight) * prefilteredColor2;
@@ -237,7 +234,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     return withoutRoughness;
 }
 
-ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
+ArrayIndexWeight calcArrayIndices(in vec3 positionWorld, in vec3 normalWorld) {
 
   float minDistance = FLT_MAX;
   float minDistance2 = FLT_MAX;
@@ -245,13 +242,13 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
   float arrayIndex2 = FLT_MAX;
 
 
-  Probe probeData1 = probesData[0];
-  arrayIndex = probeData1.indexInfluenceRadius.x;
-  minDistance = length(probeData1.positionWorld.xyz - positionWorld);
+  EnvironmentLight envLight1 = environmentLights[0];
+  arrayIndex = envLight1.arrayIndex;
+  minDistance = length(envLight1.position.xyz - positionWorld);
   
-  Probe probeData2 = probesData[1];
-  arrayIndex2 = probeData2.indexInfluenceRadius.x;
-  minDistance2 = length(probeData2.positionWorld.xyz - positionWorld);
+  EnvironmentLight envLight2 = environmentLights[1];
+  arrayIndex2 = envLight2.arrayIndex;
+  minDistance2 = length(envLight2.position.xyz - positionWorld);
   
   float distanceDiff = length(minDistance - minDistance2);
   
@@ -260,16 +257,16 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
   result.secondIndex = arrayIndex2;
   
   
-  vec3 normal = normalize(probeData2.positionWorld.xyz - probeData1.positionWorld.xyz);
-  vec3 origin = probeData1.positionWorld.xyz + 0.5 * distanceDiff * normal;
+  vec3 normal = normalize(envLight2.position.xyz - envLight1.position.xyz);
+  vec3 origin = envLight1.position.xyz + 0.5 * distanceDiff * normal;
   float signDist = dot(normal, origin);
   float signDistMin = dot(normal, positionWorld);
   float normalizedDistToPlane = abs(signDist - signDistMin) / distanceDiff;
   
   
-  
-  const float innerRadius = 2.0;
-  const float outerRadiusDiff = 70.0;
+  const float innerRadiusPercentage = 0.5;
+  const float innerRadius = envLight1.sphereRange * innerRadiusPercentage;
+  const float outerRadiusDiff = envLight1.sphereRange - innerRadius;
   
   if (minDistance < innerRadius) {
   result.firstWeight = 1.0;
@@ -278,7 +275,21 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld) {
     result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
   }
   
-  result.firstWeight = 1.0; 
+  vec3 vec = normalize(envLight1.position.xyz - positionWorld);
+  
+  float irradiance1MaxDistance = abs(textureLod(prefilteredMaps, vec4(normalize(-vec), arrayIndex), 0).r);
+  
+  //if (irradiance1MaxDistance < 50.5) {
+  //  irradiance1MaxDistance = 100.0;
+  //}
+  
+  if (irradiance1MaxDistance < minDistance) {
+    result.firstWeight = 0;
+  } else {
+  result.firstWeight = 1.0;
+  }
+  
+  //result.firstWeight = 1.0; 
   
    result.secondWeight = 1.0 - result.firstWeight;
   

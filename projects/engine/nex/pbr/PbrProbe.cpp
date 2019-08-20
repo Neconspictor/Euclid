@@ -51,9 +51,9 @@ const nex::TextureData nex::PbrProbe::IRRADIANCE_DATA = {
 			TextureUVTechnique::ClampToEdge,
 			TextureUVTechnique::ClampToEdge,
 			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
+			ColorSpace::RGBA,
 			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
+			InternFormat::RGBA32F,
 			false
 };
 
@@ -63,9 +63,9 @@ const nex::TextureData nex::PbrProbe::PREFILTERED_DATA = {
 			TextureUVTechnique::ClampToEdge,
 			TextureUVTechnique::ClampToEdge,
 			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
+			ColorSpace::RGBA,
 			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
+			InternFormat::RGBA32F,
 			true
 };
 
@@ -210,7 +210,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, Texture * backgroundHDR, u
 		--mFreeSlots;
 }
 
-void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, CubeMap* irradianceDepth, unsigned storeID, bool useCache, bool storeRenderedResult)
 {
 	const bool alreadyInitialized = probe.isInitialized();
 
@@ -221,6 +221,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, 
 	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
 
 	probe.init(environmentMap,
+		irradianceDepth,
 		mPrefilteredSide,
 		storeID,
 		this,
@@ -426,7 +427,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	return result;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
+std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source, CubeMap* depth)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -440,6 +441,7 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 	mConvolutionPass->bind();
 	mConvolutionPass->setProjection(projection);
 	mConvolutionPass->setEnvironmentMap(source);
+	mConvolutionPass->setDepthMap(depth);
 
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
@@ -589,7 +591,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	return std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 }
 
-void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+void PbrProbe::initPrefiltered(CubeMap* source, CubeMap* depth, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_prefilteredEnvMap_",
@@ -598,18 +600,22 @@ void PbrProbe::initPrefiltered(CubeMap* source, unsigned prefilteredSize, const 
 		storeRenderedResult,
 		std::bind(&PbrProbe::prefilter, this, source, prefilteredSize));
 
+	auto depthImage = StoreImage::create(depth);
+	StoreImage::fill(mFactory->getPrefilteredMaps(), depthImage, mArrayIndex);
 	StoreImage::fill(mFactory->getPrefilteredMaps(), readImage, mArrayIndex);
 }
 
-void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+void PbrProbe::initIrradiance(CubeMap* source, CubeMap* depth, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_convolutedEnvMap_",
 		mStoreID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&PbrProbe::convolute, this, source));
+		std::bind(&PbrProbe::convolute, this, source, depth));
 
+	auto depthImage = StoreImage::create(depth);
+	//StoreImage::fill(mFactory->getIrradianceMaps(), depthImage, mArrayIndex);
 	StoreImage::fill(mFactory->getIrradianceMaps(), readImage, mArrayIndex);
 }
 
@@ -631,11 +637,12 @@ void PbrProbe::init(Texture* backgroundHDR,
 	mFactory = factory;
 
 	auto source = createSource(backgroundHDR, probeRoot, useCache, storeRenderedResult);
-	init(source.get(), prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
+	init(source.get(), nullptr, prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 }
 
 void nex::PbrProbe::init(CubeMap * environment, 
+	CubeMap* irradianceDepth,
 	unsigned prefilteredSize, unsigned storeID, 
 	PbrProbeFactory * factory, unsigned arrayIndex, 
 	const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
@@ -651,8 +658,8 @@ void nex::PbrProbe::init(CubeMap * environment,
 	mArrayIndex = arrayIndex;
 	mFactory = factory;
 
-	initPrefiltered(environment, prefilteredSize, probeRoot, useCache, storeRenderedResult);
-	initIrradiance(environment, probeRoot, useCache, storeRenderedResult);
+	initPrefiltered(environment, irradianceDepth, prefilteredSize, probeRoot, useCache, storeRenderedResult);
+	initIrradiance(environment, irradianceDepth, probeRoot, useCache, storeRenderedResult);
 
 	mMaterial->setProbeFactory(mFactory);
 	mMaterial->setArrayIndex(mArrayIndex);
@@ -744,20 +751,8 @@ PbrProbe* ProbeVob::getProbe()
 	return mProbe;
 }
 
-const nex::ProbeVob::ProbeData * nex::ProbeVob::getProbeData() const
-{
-	return &mData;
-}
-
 void nex::ProbeVob::setPosition(const glm::vec3 & position)
 {
 	nex::Vob::setPosition(position);
 	mProbe->setPosition(position);
-}
-
-void nex::ProbeVob::updateProbeData()
-{
-	mData.indexInfluenceRadius.x = mProbe->getArrayIndex();
-	mData.indexInfluenceRadius.y = mProbe->getInfluenceRadius();
-	mData.positionWorld = glm::vec4(mPosition, 0.0f);
 }
