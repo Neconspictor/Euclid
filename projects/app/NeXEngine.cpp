@@ -645,17 +645,15 @@ void NeXEngine::setupGUI()
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));
 
-
-
-	mProbeCluster = std::make_unique<ProbeCluster>(&mScene);
 	mProbeClusterView = std::make_unique<nex::gui::ProbeClusterView>(
 		"Probe Cluster",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		mProbeCluster.get(),
+		mRenderer->getProbeCluster(),
 		mCamera.get(),
 		mWindow,
-		mRenderer.get());
+		mRenderer.get(),
+		&mScene);
 	mProbeClusterView->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(mProbeClusterView.get());
 

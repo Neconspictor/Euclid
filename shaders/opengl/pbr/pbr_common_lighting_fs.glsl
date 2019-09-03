@@ -234,6 +234,22 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     return withoutRoughness;
 }
 
+
+bool testAABB(in vec3 point, in vec3 minVec, in vec3 maxVec) {
+    
+    return (point.x <= maxVec.x && minVec.x <= point.x) &&
+    (point.y <= maxVec.y && minVec.y <= point.y) &&
+    (point.z <= maxVec.z && minVec.z <= point.z);
+}
+
+float distanceAABB(in vec3 point, in vec3 minVec, in vec3 maxVec) 
+{
+  const float dx = max(max(minVec.x - point.x, 0), point.x - maxVec.x);
+  const float dy = max(max(minVec.y - point.y, 0), point.y - maxVec.y);
+  const float dz = max(max(minVec.z - point.z, 0), point.z - maxVec.z);
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
 ArrayIndexWeight calcArrayIndices(in vec3 positionWorld, in vec3 normalWorld) {
 
   float minDistance = FLT_MAX;
@@ -268,12 +284,19 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld, in vec3 normalWorld) {
   const float innerRadius = envLight1.sphereRange * innerRadiusPercentage;
   const float outerRadiusDiff = envLight1.sphereRange - innerRadius;
   
-  if (minDistance < innerRadius) {
-  result.firstWeight = 1.0;
-  } else {
+  //if (minDistance < innerRadius) {
+  float dist = distanceAABB(positionWorld, envLight1.minWorld.rgb, envLight1.maxWorld.rgb);
   
-    result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
-  }
+  result.firstWeight = clamp(1.0 / (1.0 + 100.0 * dist + 3.0 * dist * dist + + 4.0 * dist * dist * dist), 0.0, 1.0);
+  if (result.firstWeight < 0.01)
+    result.firstWeight = 0.0;
+  
+  /*if (testAABB(positionWorld, envLight1.minWorld.rgb, envLight1.maxWorld.rgb)) {
+    result.firstWeight = 1.0;
+  } else {
+    result.firstWeight = 0.0;
+    //result.firstWeight = clamp(pow(max(1.0 - (minDistance - innerRadius) / outerRadiusDiff, 0.0), 2.0), 0, 1);
+  }*/
   
   vec3 vec = normalize(envLight1.position.xyz - positionWorld);
   
@@ -283,11 +306,11 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionWorld, in vec3 normalWorld) {
   //  irradiance1MaxDistance = 100.0;
   //}
   
-  if (irradiance1MaxDistance < minDistance) {
+  /*if (irradiance1MaxDistance < minDistance) {
     result.firstWeight = 0;
   } else {
   result.firstWeight = 1.0;
-  }
+  }*/
   
   //result.firstWeight = 1.0; 
   

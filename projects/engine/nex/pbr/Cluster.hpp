@@ -63,7 +63,7 @@ namespace nex
 		/**
 		 * Note: Has to be in sync with shader!
 		 */
-		static const unsigned MAX_VISIBLES_LIGHTS_PER_CLUSTER = 10;
+		static const unsigned MAX_VISIBLES_LIGHTS_PER_CLUSTER = 8;
 
 
 		/**
@@ -76,7 +76,7 @@ namespace nex
 		 * @throws invalid_argument : if xSize * ySize * zLocalSize > getMaxLocalWorkgroupSize()
 		 * Note: cluster size inf z direction is zLocalSize * zBatchSize
 		 */
-		EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights = 10);
+		EnvLightCuller(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights = 8);
 
 		EnvLightCuller (EnvLightCuller&& o) = default;
 		EnvLightCuller& operator=(EnvLightCuller&& o) = default;
@@ -116,7 +116,6 @@ namespace nex
 		 */
 		void cullLights(const glm::mat4& viewMatrix,
 			ShaderStorageBuffer* clusters,
-			const glm::vec3& clusterSize,
 			ShaderStorageBuffer* envLights);
 
 		bool isOutOfDate(unsigned xSize, unsigned ySize, unsigned zLocalSize, unsigned zBatchSize, unsigned maxVisibleLights) const;
@@ -155,20 +154,25 @@ namespace nex
 			float depth = 1.0f; // Relative:   range[0,1]; zOffset +  depth  <= 1
 		};
 
-		ProbeCluster(Scene* scene);
+		ProbeCluster();
 		virtual ~ProbeCluster();
 
 		nex::PerspectiveCamera& getCamera();
 
-		void generate(const Frustum& frustum);
+		void generate(const Frustum& frustum, Scene* scene);
 
-		void generateClusterElement(const ClusterElement& elem);
+		void generateClusterElement(const ClusterElement& elem, Scene* scene);
 
-		void generateCluster(const glm::uvec4& clusterSize, Texture* depth);
+		void generateCluster(const glm::uvec4& clusterSize, Texture* depth, const Camera* camera, Scene* scene);
 
-		void generateClusterCpuTest(const glm::uvec4& clusterSize);
+		void generateClusterCpuTest(const glm::uvec4& clusterSize, Scene* scene);
 
-		void generateClusterGpu(const glm::uvec4& clusterSize, Texture* depth);
+		void generateClusterGpu(const glm::uvec4& clusterSize, Texture* depth, const Camera* camera, Scene* scene);
+
+		EnvLightCuller* getEnvLightCuller();
+
+		ShaderStorageBuffer* getClusterAABBBuffer();
+		ShaderStorageBuffer* getActiveClusterList();
 
 	private:
 		class CullLightsPass;
@@ -185,7 +189,6 @@ namespace nex
 		glm::vec4 clipToView(const glm::vec4& clip, const glm::mat4& invProj);
 
 		nex::PerspectiveCamera mCamera;
-		Scene* mScene;
 		std::unique_ptr<SimpleColorMaterial> mMaterial;
 		std::unique_ptr<ShaderStorageBuffer> mClusterAABBBuffer;
 		std::unique_ptr<ShaderStorageBuffer> mActiveClusterList;
@@ -255,7 +258,8 @@ namespace nex
 				Menu* menu, ProbeCluster* cluster,
 				PerspectiveCamera* activeCamera,
 				nex::Window* window,
-				nex::Renderer* renderer);
+				nex::Renderer* renderer,
+				Scene* scene);
 
 			void setDepth(Texture* depth);
 
@@ -263,6 +267,7 @@ namespace nex
 		
 		private:
 			ProbeCluster* mCluster;
+			Scene* mScene;
 			PerspectiveCamera* mActiveCamera;
 			ProbeCluster::ClusterElement mClusterElement;
 			glm::uvec4 mClusterSize;

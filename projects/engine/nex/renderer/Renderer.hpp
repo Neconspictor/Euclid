@@ -10,6 +10,7 @@ namespace nex
 	class PerspectiveCamera;
 	class RenderTarget;
 	class PbrTechnique;
+	class ProbeCluster;
 
 	class Renderer
 	{
@@ -17,7 +18,7 @@ namespace nex
 
 		Renderer(PbrTechnique* pbrTechnique);
 
-		virtual ~Renderer() = default;
+		virtual ~Renderer();
 
 		unsigned getWidth()const;
 		unsigned getHeight()const;
@@ -34,10 +35,14 @@ namespace nex
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 
+		ProbeCluster* getProbeCluster();
+		const ProbeCluster* getProbeCluster() const;
+
 		virtual void pushDepthFunc(std::function<void()> func) = 0;
 
 	protected:
 		PbrTechnique* mPbrTechnique;
+		std::unique_ptr<ProbeCluster> mProbeCluster;
 		unsigned mWidth;
 		unsigned mHeight;
 	};

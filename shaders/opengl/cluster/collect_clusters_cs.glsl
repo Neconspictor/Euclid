@@ -8,11 +8,11 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 #include "interface/cluster_interface.h"
 
 
-layout (std430, binding = 0) buffer ActiveClusterConstantssSSBO {
+layout (std140, binding = 0) uniform ActiveClusterConstantssSSBO {
     ActiveClusterConstants constants;
 };
 
-layout (std430, binding = 1) buffer ActiveClustersSSBO {
+layout (std430, binding = 0) buffer ActiveClustersSSBO {
     float clusterActive[]; // bool is padded to 4 bytes; for clearity we use uint directly;
 };
 

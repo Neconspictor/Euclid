@@ -1,7 +1,7 @@
 #version 430 core
 
 #ifndef MAX_VISIBLES_LIGHTS
-    #define MAX_VISIBLES_LIGHTS 100
+    #define MAX_VISIBLES_LIGHTS 8
 #endif
 #ifndef LOCAL_SIZE_X
     #define LOCAL_SIZE_X 16

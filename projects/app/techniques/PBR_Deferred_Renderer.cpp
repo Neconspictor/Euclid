@@ -33,6 +33,8 @@
 #include "nex/gui/Util.hpp"
 #include <unordered_set>
 #include <nex/pbr/Pbr.hpp>
+#include <nex/pbr/Cluster.hpp>
+#include <nex/pbr/GlobalIllumination.hpp>
 
 int ssaaSamples = 1;
 
@@ -334,7 +336,18 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	//minMaxPositiveZ.x = camera->getFrustum(Perspective).nearPlane;
 	//minMaxPositiveZ.y = camera->getFrustum(Perspective).farPlane;
 
-	renderShadows(queue.getShadowCommands(), camera, sun, (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get()); //mPbrMrt->getNormalizedViewSpaceZ()
+	auto* gBufferDepth = (Texture2D*)mPbrMrt->getDepthAttachment()->texture.get();
+	renderShadows(queue.getShadowCommands(), camera, sun, gBufferDepth); //mPbrMrt->getNormalizedViewSpaceZ()
+
+
+	mProbeCluster->generateCluster(glm::uvec4(16,8,4,6), gBufferDepth, &camera, nullptr);
+	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination(); 
+	if (globalIllumination) {
+		auto* envLightsBuffer = globalIllumination->getEnvironmentLightShaderBuffer();
+		mProbeCluster->getEnvLightCuller()->cullLights(camera.getView(), mProbeCluster->getClusterAABBBuffer(), envLightsBuffer);
+	}
+	
+	
 
 
 	// render scene to a offscreen buffer
@@ -347,10 +360,14 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(3, true);
 
+	
+	
+	
 	depthTest->enableDepthTest(false);
 	depthTest->enableDepthBufferWriting(false);
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
+
 
 	auto* deferred = mPbrTechnique->getDeferred();
 	deferred->drawLighting(mPbrMrt.get(), camera, sun);
