@@ -403,7 +403,7 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 		
 		const auto& trafo = vob->getMeshRootNode()->getWorldTrafo();
 		light.enabled = true;
-		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 0);
+		light.position = glm::vec4(trafo[3][0], trafo[3][1], trafo[3][2], 1.0f);
 		light.sphereRange = probe->getInfluenceRadius();
 		const auto& box = probe->getInfluenceBox();
 		light.minWorld = glm::vec4(box.min, 0.0);

@@ -45,6 +45,8 @@ void main()
     
     uint visibleLightCount = 0;
     uint visibleLightIndices[MAX_VISIBLES_LIGHTS];
+    
+    const uint MAX_INDICES = min(MAX_VISIBLES_LIGHTS, lightCount);
 
     for( uint batch = 0; batch < numBatches; ++batch){
         uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
@@ -57,7 +59,7 @@ void main()
         barrier();
 
         //Iterating within the current batch of lights
-        for( uint light = 0; light < threadCount && (visibleLightCount < MAX_VISIBLES_LIGHTS); ++light){
+        for( uint light = 0; light < threadCount && (visibleLightCount < MAX_INDICES); ++light){
             if( sharedLights[light].enabled  == 1){
             
                 if (sharedLights[light].usesBoundingBox == 1) {

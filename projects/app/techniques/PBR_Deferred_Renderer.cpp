@@ -343,8 +343,26 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	mProbeCluster->generateCluster(glm::uvec4(16,8,4,6), gBufferDepth, &camera, nullptr);
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination(); 
 	if (globalIllumination) {
+		
+		auto* envLightCuller = mProbeCluster->getEnvLightCuller();
 		auto* envLightsBuffer = globalIllumination->getEnvironmentLightShaderBuffer();
-		mProbeCluster->getEnvLightCuller()->cullLights(camera.getView(), mProbeCluster->getClusterAABBBuffer(), envLightsBuffer);
+		envLightCuller->cullLights(camera.getView(), mProbeCluster->getClusterAABBBuffer(), envLightsBuffer);
+
+		// Readback the generated clusters
+		/*auto* clusterBuffer = mProbeCluster->getClusterAABBBuffer();
+
+		auto* clusters = (cluster::AABB*)clusterBuffer->map(GpuBuffer::Access::READ_ONLY);
+		auto* envLights = (EnvironmentLight*)envLightsBuffer->map(GpuBuffer::Access::READ_ONLY);
+
+		auto* globalLightIndexCount = (EnvLightCuller::GlobalLightIndexCount*)envLightCuller->getGlobalLightIndexCount()->map(GpuBuffer::Access::READ_ONLY);
+		auto* globalLightIndexList = (EnvLightCuller::GlobalLightIndexListElement*)envLightCuller->getGlobalLightIndexList()->map(GpuBuffer::Access::READ_ONLY);
+		auto* lightGrids = (cluster::LightGrid*)envLightCuller->getLightGrids()->map(GpuBuffer::Access::READ_ONLY);
+
+		clusterBuffer->unmap();
+		envLightsBuffer->unmap();
+		envLightCuller->getGlobalLightIndexCount()->unmap();
+		envLightCuller->getGlobalLightIndexList()->unmap();
+		envLightCuller->getLightGrids()->unmap();*/
 	}
 	
 	

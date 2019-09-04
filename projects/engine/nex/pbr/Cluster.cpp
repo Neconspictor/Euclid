@@ -291,17 +291,17 @@ void nex::EnvLightCuller::cullLights(const glm::mat4& viewMatrix, ShaderStorageB
 
 
 	const auto flattenedSize = mXSize * mYSize * mZLocalSize * mZBatchSize;
-	const auto globalLightIndexListSize = flattenedSize * MAX_VISIBLES_LIGHTS_PER_CLUSTER * sizeof(GlobalLightIndexCount);
+	const auto globalLightIndexListSize = flattenedSize * MAX_VISIBLES_LIGHTS_PER_CLUSTER * sizeof(GlobalLightIndexListElement);
 	const auto lightGridsSize = flattenedSize * sizeof(cluster::LightGrid);
 
 	//std::vector<char> bytes(flattenedSize * MAX_VISIBLES_LIGHTS_PER_CLUSTER * sizeof(GlobalLightIndexCount));
 	//memset(bytes.data(), 0, bytes.size());
 
-	if (mGlobalLightIndexListBuffer->getSize() == globalLightIndexListSize) {
+	if (mGlobalLightIndexListBuffer->getSize() != globalLightIndexListSize) {
 		mGlobalLightIndexListBuffer->resize(globalLightIndexListSize, nullptr, GpuBuffer::UsageHint::STREAM_COPY);
 	}
 
-	if (mLightGridsBuffer->getSize() == lightGridsSize) {
+	if (mLightGridsBuffer->getSize() != lightGridsSize) {
 		mLightGridsBuffer->resize(lightGridsSize, nullptr, GpuBuffer::UsageHint::STREAM_COPY);
 	}
 
