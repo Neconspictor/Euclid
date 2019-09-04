@@ -30,17 +30,17 @@ namespace nex {
 		mPointSampler = std::make_unique<Sampler>(desc);
 	}
 
-	void PbrDeferred::configureGeometryPass(const Camera& camera)
+	void PbrDeferred::configureGeometryPass(const Pass::Constants& constants)
 	{
 		mGeometryPass->bind();
-		mGeometryPass->updateConstants(camera);
+		mGeometryPass->updateConstants(constants);
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Camera& camera, const DirLight& light)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Pass::Constants& constants, const DirLight& light)
 	{
 		mLightPass->bind();
-		mLightPass->updateConstants(camera);
-		mLightPass->updateLight(light, camera);
+		mLightPass->updateConstants(constants);
+		mLightPass->updateLight(light, *constants.camera);
 
 
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());

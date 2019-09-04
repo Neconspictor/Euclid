@@ -57,10 +57,10 @@ namespace nex
 
 	private:
 
-		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Camera& camera, const DirLight& sun, Texture2D* depth);
-		void renderDeferred(const RenderCommandQueue& queue, const Camera&  camera, const DirLight& sun, unsigned windowWidth, unsigned windowHeight);
-		void renderForward(const RenderCommandQueue& queue, const Camera&  camera, const DirLight& sun, unsigned windowWidth, unsigned windowHeight);
-		void renderSky(const Camera& camera, const DirLight& sun, unsigned width, unsigned height);
+		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants, const DirLight& sun, Texture2D* depth);
+		void renderDeferred(const RenderCommandQueue& queue, const Pass::Constants& constants, const DirLight& sun);
+		void renderForward(const RenderCommandQueue& queue, const Pass::Constants& constants, const DirLight& sun);
+		void renderSky(const Pass::Constants& constants, const DirLight& sun);
 
 		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
 

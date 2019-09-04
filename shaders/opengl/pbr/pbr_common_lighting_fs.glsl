@@ -8,7 +8,7 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 #endif
 
-// Note: uniform buffers are different from shader storage buffers!
+
 #ifndef PBR_PROBES_BUFFER_BINDING_POINT
 #define PBR_PROBES_BUFFER_BINDING_POINT 1 
 #endif
@@ -25,6 +25,11 @@
 #define PBR_CLUSTERS_AABB 4
 #endif
 
+// Note: uniform buffers are different from shader storage buffers!
+#ifndef PBR_CONSTANTS
+#define PBR_CONSTANTS 0
+#endif
+
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
@@ -39,6 +44,12 @@ const float FLT_MAX = 3.402823466e+38;
     samplerCube irradianceMap;
     samplerCube prefilterMap;
 };*/
+
+struct PbrConstants {
+    uvec4 windowDimension;
+    uvec4 clusterDimension;
+    vec4 nearFarDistance;
+};
 
 uniform DirLight dirLight;
 
@@ -69,6 +80,10 @@ layout(std430, binding = PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS) buffer EnvLightLigh
 
 layout(std430, binding = PBR_CLUSTERS_AABB) buffer ClustersAABBBlock {
     AABB clusters[];
+};
+
+layout(std140, binding = PBR_CONSTANTS) uniform ConstantsBlock {
+    PbrConstants constants;
 };
 
 
@@ -280,15 +295,23 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
   //z = 0.1; //just validation now
 
   //Getting the linear cluster index value
+  
+  const float nearDistance = float(constants.nearFarDistance.x);
+  const float farDistance = float(constants.nearFarDistance.y);
+  const float xSlices = float(constants.clusterDimension.x);
+  const float ySlices = float(constants.clusterDimension.y);
+  const float zSlices = float(constants.clusterDimension.z);
 
-  float clusterZVal  = ((logZ * 24.0 / log(150.0 / 0.1)) - 24.0 * log(0.1) / log(150.0 / 0.1));
+  float clusterZVal  = ((logZ * zSlices / log(farDistance / nearDistance)) - 
+                        zSlices * log(nearDistance) / log(farDistance/ nearDistance));
+  
   uint clusterZ = uint(clusterZVal);
-  vec2 clusterPixelSize = vec2(800.0 , 600.0) / vec2(16.0 , 8.0);
-  vec2 pixelLoc = vec2(800.0 * fs_in.tex_coords.x, 600.0 * (fs_in.tex_coords.y));
+  vec2 clusterPixelSize = vec2(constants.windowDimension.x , constants.windowDimension.y) / vec2(xSlices , ySlices);
+  vec2 pixelLoc = vec2(constants.windowDimension.x  * fs_in.tex_coords.x, constants.windowDimension.y * (fs_in.tex_coords.y));
   uvec3 clusters    = uvec3( uvec2(pixelLoc / clusterPixelSize), clusterZ);
   uint clusterID = clusters.x +
-                   16 * clusters.y +
-                   16 * 8 * clusters.z;
+                   constants.clusterDimension.x * clusters.y +
+                   constants.clusterDimension.x * constants.clusterDimension.y * clusters.z;
 
 
   /*float minDistance = FLT_MAX;

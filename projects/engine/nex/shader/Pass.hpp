@@ -11,6 +11,13 @@ namespace nex
 	{
 	public:
 
+		struct Constants 
+		{
+			const Camera* camera;
+			unsigned windowWidth; 
+			unsigned windowHeight;
+		};
+
 		Pass(std::unique_ptr<Shader> shader = nullptr);
 
 		/**
@@ -41,7 +48,7 @@ namespace nex
 		 */
 		void unbind();
 
-		virtual void updateConstants(const Camera& camera);
+		virtual void updateConstants(const Constants& constants);
 		virtual void updateMaterial(Material* material);
 
 	protected:

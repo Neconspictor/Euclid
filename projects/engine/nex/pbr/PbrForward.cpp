@@ -40,10 +40,10 @@ namespace nex {
 		mForwardShader = mFactory(cascadedShadow, mGlobalIllumination);
 	}
 
-	void PbrForward::configurePass(const Camera& camera)
+	void PbrForward::configurePass(const Pass::Constants& constants)
 	{
 		mForwardShader->bind();
-		mForwardShader->updateConstants(camera);
+		mForwardShader->updateConstants(constants);
 	}
 
 	void PbrForward::updateLight(const DirLight& light, const Camera & camera)

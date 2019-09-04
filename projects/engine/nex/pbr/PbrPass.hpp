@@ -20,7 +20,7 @@ namespace nex
 
 		void setShader(Shader* shader);
 
-		virtual void updateConstants(const Camera& camera) = 0;
+		virtual void updateConstants(const Pass::Constants& constants) = 0;
 
 	protected:
 		Shader* mShader;
@@ -45,7 +45,7 @@ namespace nex
 		void setNormalMap(const Texture* normal);
 		void setRoughnessMap(const Texture* roughness);
 
-		void updateConstants(const Camera& camera);
+		void updateConstants(const Pass::Constants& constants) override;
 
 	private:
 
@@ -71,18 +71,26 @@ namespace nex
 			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1,
 			unsigned envLightGlobalLightIndicesBindingPoint = 2,
 			unsigned envLightLightGridsBindingPoint = 3,
-			unsigned clustersAABBBindingPoint = 4);
+			unsigned clustersAABBBindingPoint = 4,
+			unsigned constantsBindingPoint = 0);
 
 		void setCascadedShadow(CascadedShadow* shadow);
 
 		/**
 		 * Updates constants (constant properties for all submesh drawings)
 		 */
-		void updateConstants(const Camera& camera);
+		void updateConstants(const Pass::Constants& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
+
+		struct PbrConstants {
+			glm::uvec4 windowDimension;
+			glm::uvec4 clusterDimension;
+			glm::vec4 nearFarDistance;
+		};
+
 		void setArrayIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
 		void setIrradianceMaps(const CubeMapArray* texture);
@@ -136,6 +144,8 @@ namespace nex
 		unsigned mEnvLightGlobalLightIndicesBindingPoint;
 		unsigned mEnvLightLightGridsBindingPoint;
 		unsigned mClustersAABBBindingPoint;
+		unsigned mConstantsBindingPoint;
+		UniformBuffer mConstantsBuffer;
 	};
 
 	class PbrGeometryPass : public TransformPass {
@@ -155,7 +165,7 @@ namespace nex
 		PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, 
 			GlobalIllumination* globalIllumination, CascadedShadow* cascadedShadow);
 
-		void updateConstants(const Camera& camera) override;
+		void updateConstants(const Constants& constants) override;
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
@@ -173,7 +183,7 @@ namespace nex
 	public:
 		PbrDeferredGeometryPass(std::unique_ptr<Shader> shader);
 
-		void updateConstants(const Camera& camera) override;
+		void updateConstants(const Constants& constants) override;
 	};
 
 	class PbrDeferredLightingPass : public Pass {
@@ -189,7 +199,7 @@ namespace nex
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
-		void updateConstants(const Camera& camera) override;
+		void updateConstants(const Constants& constants) override;
 		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:

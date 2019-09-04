@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Pbr.hpp"
+#include <nex/shader/Pass.hpp>
 
 namespace nex
 {
@@ -24,7 +25,7 @@ namespace nex
 
 		void reloadLightingShader(CascadedShadow* cascadedShadow) override;
 
-		void configurePass(const Camera& camera);
+		void configurePass(const Pass::Constants& constants);
 
 		void updateLight(const DirLight& light, const Camera& camera);
 
