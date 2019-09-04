@@ -6,6 +6,7 @@
 #include "nex/texture/TextureManager.hpp"
 #include "nex/pbr/PbrProbe.hpp"
 #include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/pbr/Cluster.hpp>
 
 using namespace glm;
 using namespace std;
@@ -151,7 +152,10 @@ void PbrLightingData::setNearFarPlane(const glm::vec2& nearFarPlane)
 }
 
 nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globalIllumination, 
-	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned envLightBindingPoint) :
+	CascadedShadow* cascadedShadow, unsigned csmCascadeBindingPoint, unsigned envLightBindingPoint,
+	unsigned envLightGlobalLightIndicesBindingPoint,
+	unsigned envLightLightGridsBindingPoint,
+	unsigned clustersAABBBindingPoint) :
 	PbrBaseCommon(shader),
 	mEnvLightBindingPoint(envLightBindingPoint),
 	mGlobalIllumination(globalIllumination),
@@ -161,7 +165,10 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	//	CSM_CASCADE_BUFFER_BINDING_POINT, 
 	//	CascadedShadow::CascadeData::calcCascadeDataByteSize(cascadedShadow->getCascadeData().numCascades),
 	//	ShaderBuffer::UsageHint::DYNAMIC_COPY), mProbe(nullptr),
-	mCascadeShadow(cascadedShadow)
+	mCascadeShadow(cascadedShadow),
+	mEnvLightGlobalLightIndicesBindingPoint(envLightGlobalLightIndicesBindingPoint),
+	mEnvLightLightGridsBindingPoint(envLightLightGridsBindingPoint),
+	mClustersAABBBindingPoint(clustersAABBBindingPoint)
 {
 	assert(mShader != nullptr);
 
@@ -229,6 +236,16 @@ void PbrLightingData::updateConstants(const Camera& camera)
 
 		auto* envLightBuffer = mGlobalIllumination->getEnvironmentLightShaderBuffer();
 		envLightBuffer->bindToTarget(mEnvLightBindingPoint);
+
+		auto* probeCluster = mGlobalIllumination->getProbeCluster();
+		auto* envLightCuller = probeCluster->getEnvLightCuller();
+
+		probeCluster->getClusterAABBBuffer()->bindToTarget(mClustersAABBBindingPoint);
+		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
+		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
+		//mEnvLightGlobalLightIndicesBindingPoint
+		//mEnvLightLightGridsBindingPoint
+		//mClustersAABBBindingPoint
 	}
 }
 

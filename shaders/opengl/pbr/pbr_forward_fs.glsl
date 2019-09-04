@@ -34,7 +34,6 @@ void main()
                 normalEye, 
                 roughness, 
                 positionEye,
-                //texCoords,
                 colorOut,
                 luminanceOut);
         

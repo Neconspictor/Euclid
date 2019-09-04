@@ -649,7 +649,7 @@ void NeXEngine::setupGUI()
 		"Probe Cluster",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		mRenderer->getProbeCluster(),
+		mGlobalIllumination->getProbeCluster(),
 		mCamera.get(),
 		mWindow,
 		mRenderer.get(),

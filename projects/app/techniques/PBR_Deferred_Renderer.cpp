@@ -340,13 +340,16 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	renderShadows(queue.getShadowCommands(), camera, sun, gBufferDepth); //mPbrMrt->getNormalizedViewSpaceZ()
 
 
-	mProbeCluster->generateCluster(glm::uvec4(16,8,4,6), gBufferDepth, &camera, nullptr);
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination(); 
 	if (globalIllumination) {
-		
-		auto* envLightCuller = mProbeCluster->getEnvLightCuller();
+
+		auto* probeCluster = globalIllumination->getProbeCluster();
+
+		probeCluster->generateCluster(glm::uvec4(16, 8, 4, 6), gBufferDepth, &camera, nullptr);
+
+		auto* envLightCuller = probeCluster->getEnvLightCuller();
 		auto* envLightsBuffer = globalIllumination->getEnvironmentLightShaderBuffer();
-		envLightCuller->cullLights(camera.getView(), mProbeCluster->getClusterAABBBuffer(), envLightsBuffer);
+		envLightCuller->cullLights(camera.getView(), probeCluster->getClusterAABBBuffer(), envLightsBuffer);
 
 		// Readback the generated clusters
 		/*auto* clusterBuffer = mProbeCluster->getClusterAABBBuffer();

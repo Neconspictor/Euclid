@@ -3,8 +3,7 @@
 #include <nex/pbr/Cluster.hpp>
 
 nex::Renderer::Renderer(nex::PbrTechnique * pbrTechnique) : mPbrTechnique(pbrTechnique),
-mWidth(0), mHeight(0),
-mProbeCluster(std::make_unique<ProbeCluster>())
+mWidth(0), mHeight(0)
 {
 }
 
@@ -31,15 +30,7 @@ nex::PbrTechnique * nex::Renderer::getPbrTechnique()
 	return mPbrTechnique;
 }
 
-const nex::PbrTechnique * nex::Renderer::getPbrTechnique() const
+const nex::PbrTechnique* nex::Renderer::getPbrTechnique() const
 {
 	return mPbrTechnique;
-}
-
-nex::ProbeCluster* nex::Renderer::getProbeCluster() {
-	return mProbeCluster.get();
-}
-
-const nex::ProbeCluster* nex::Renderer::getProbeCluster() const {
-	return mProbeCluster.get();
 }

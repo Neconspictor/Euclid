@@ -21,6 +21,7 @@ namespace nex
 	class PerspectiveCamera;
 	class ProbeVob;
 	struct DirLight;
+	class ProbeCluster;
 
 	class GlobalIllumination
 	{
@@ -42,6 +43,9 @@ namespace nex
 		unsigned getNextStoreID() const;
 		CubeMapArray* getPrefilteredMaps();
 		const std::vector<std::unique_ptr<PbrProbe>>& getProbes() const;
+
+		ProbeCluster* getProbeCluster();
+		const ProbeCluster* getProbeCluster() const;
 
 		/**
 		 * Provides for each pbr probe an EnvironmentLight struct.
@@ -86,5 +90,7 @@ namespace nex
 		std::unique_ptr<PbrForward> mForward;
 		std::unique_ptr<TransformPass> mIrradianceDepthPass;
 		unsigned mNextStoreID;
+
+		std::unique_ptr<ProbeCluster> mProbeCluster;
 	};
 }

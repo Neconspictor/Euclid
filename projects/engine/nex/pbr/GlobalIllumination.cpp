@@ -17,6 +17,7 @@
 #include <nex/pbr/PbrDeferred.hpp>
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/renderer/Renderer.hpp>
+#include <nex/pbr/Cluster.hpp>
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
@@ -87,7 +88,8 @@ nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDire
 mFactory(prefilteredSize, depth),
 mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
-mNextStoreID(0)
+mNextStoreID(0),
+mProbeCluster(std::make_unique<ProbeCluster>())
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -320,6 +322,16 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 const std::vector<std::unique_ptr<nex::PbrProbe>>& nex::GlobalIllumination::getProbes() const
 {
 	return mProbes;
+}
+
+nex::ProbeCluster* nex::GlobalIllumination::getProbeCluster()
+{
+	return mProbeCluster.get();
+}
+
+const nex::ProbeCluster* nex::GlobalIllumination::getProbeCluster() const
+{
+	return mProbeCluster.get();
 }
 
 nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)

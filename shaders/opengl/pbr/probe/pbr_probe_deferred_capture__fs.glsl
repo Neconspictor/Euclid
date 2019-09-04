@@ -1,13 +1,13 @@
 #version 450 core
 
-#include "pbr/pbr_common_lighting_fs.glsl"
-
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
 
 in VS_OUT {	
 	vec2 tex_coords;
 } fs_in;
+
+#include "pbr/pbr_common_lighting_fs.glsl"
 
 struct GBuffer {
     layout(binding = 0) sampler2D albedoMap;

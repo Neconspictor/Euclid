@@ -52,7 +52,7 @@ void main()
         uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
 
         //Prevent overflow by clamping to last light which is always null
-        lightIndex = min(lightIndex, lightCount);
+        lightIndex = min(lightIndex, lightCount - 1);
 
         //Populating shared light array
         sharedLights[gl_LocalInvocationIndex] = lights[lightIndex];
@@ -77,6 +77,9 @@ void main()
                         visibleLightCount += 1;
                     }
                 }
+                
+                //visibleLightIndices[visibleLightCount] = batch * threadCount + light;
+                //visibleLightCount += 1;
             }
         }
     }

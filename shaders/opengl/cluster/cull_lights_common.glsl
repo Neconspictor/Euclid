@@ -73,8 +73,8 @@ float sqDistPointAABB(vec3 point, uint clusterID)
     AABB currentCell = clusters[clusterID];
 	
 	
-	const vec4 minView = currentCell.minView;
-	const vec4 maxView = currentCell.maxView;
+	const vec4 minView = currentCell.minWorld;
+	const vec4 maxView = currentCell.maxWorld;
 
 	if(point[0] < minView[0])
 	{
@@ -133,7 +133,7 @@ bool testAABBWorld(uint lightID, uint clusterID) {
 bool testSphereAABB(uint light, uint clusterID)
 {
     float radius = sharedLights[light].sphereRange;
-    vec3 center  = vec3(constants.view * sharedLights[light].position);
+    vec3 center  = vec3(sharedLights[light].position);
     float squaredDistance = sqDistPointAABB(center, clusterID);
 
     return squaredDistance <= (radius * radius);

@@ -68,7 +68,10 @@ namespace nex
 	public:
 
 		PbrLightingData(Shader* shader, GlobalIllumination* globalIllumination, 
-			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1);
+			CascadedShadow* cascadedShadow, unsigned csmCascadeBufferBindingPoint = 0, unsigned envLightBindingPoint = 1,
+			unsigned envLightGlobalLightIndicesBindingPoint = 2,
+			unsigned envLightLightGridsBindingPoint = 3,
+			unsigned clustersAABBBindingPoint = 4);
 
 		void setCascadedShadow(CascadedShadow* shadow);
 
@@ -129,6 +132,10 @@ namespace nex
 
 		unsigned mCsmCascadeBindingPoint;
 		CascadedShadow* mCascadeShadow;
+
+		unsigned mEnvLightGlobalLightIndicesBindingPoint;
+		unsigned mEnvLightLightGridsBindingPoint;
+		unsigned mClustersAABBBindingPoint;
 	};
 
 	class PbrGeometryPass : public TransformPass {
