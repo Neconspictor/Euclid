@@ -43,12 +43,12 @@ namespace nex
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
+		void initProbeBackground(PbrProbe& probe, Texture* backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult);
 
 		/**
 		 * Non blocking init function for probes.
 		 */
-		void initProbe(PbrProbe& probe, CubeMap* environmentMap, CubeMap* irradianceDepth, unsigned storeID, bool useCache, bool storeRenderedResult);
+		void initProbe(PbrProbe& probe, CubeMap* environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult);
 
 		/**
 		 * Non blocking init function for probes.
@@ -155,7 +155,6 @@ namespace nex
 			bool storeRenderedResult);
 
 		void init(CubeMap* environment,
-			CubeMap* irradianceDepth,
 			unsigned prefilteredSize,
 			unsigned storeID,
 			PbrProbeFactory* factory,
@@ -186,9 +185,10 @@ namespace nex
 
 		std::shared_ptr<CubeMap> createSource(Texture* backgroundHDR, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
-		void initPrefiltered(CubeMap* source, CubeMap* depth, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+		void initPrefiltered(CubeMap* source, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
-		void initIrradiance(CubeMap* source, CubeMap* depth, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+		void initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
+		void initIrradianceSH(Texture2D* shCoefficients, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult);
 
 		static std::unique_ptr<StaticMeshContainer> createSkyBox();
 		static std::shared_ptr<Texture2D> createBRDFlookupTexture(Pass* brdfPrecompute);
@@ -201,8 +201,10 @@ namespace nex
 			const std::function<std::shared_ptr<CubeMap>()>& renderFunc);
 
 		std::shared_ptr<CubeMap> renderBackgroundToCube(Texture* background);
-		std::shared_ptr<CubeMap> convolute(CubeMap* source, CubeMap* depth);
+		std::shared_ptr<CubeMap> convolute(CubeMap* source);
+		std::shared_ptr<CubeMap> createIrradianceSH(Texture2D* shCoefficients);
 		std::shared_ptr<CubeMap> prefilter(CubeMap* source, unsigned prefilteredSize);
+		void convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex);
 
 		static std::shared_ptr<Texture2D> mBrdfLookupTexture;
 		static std::unique_ptr<ProbeTechnique> mTechnique;

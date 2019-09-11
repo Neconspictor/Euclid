@@ -228,16 +228,61 @@ namespace nex
 		void setProjection(const glm::mat4& mat);
 		void setView(const glm::mat4& mat);
 		void setEnvironmentMap(const CubeMap* cubeMap);
-		void setDepthMap(const CubeMap* depthMap);
 
 	private:
 		Uniform mProjection;
 		Uniform mView;
 		UniformTex mEnvironmentMap;
-		UniformTex mDepthMap;
 		Sampler mSampler;
 		Sampler mSampler2;
 	};
+
+	class PbrIrradianceShPass : public Pass
+	{
+	public:
+		PbrIrradianceShPass();
+
+		virtual ~PbrIrradianceShPass() = default;
+
+		void setProjection(const glm::mat4& mat);
+		void setView(const glm::mat4& mat);
+		void setCoefficientMap(const Texture2D* coefficients);
+
+	private:
+		Uniform mProjection;
+		Uniform mView;
+		UniformTex mCoefficientMap;
+		Sampler mSampler;
+	};
+
+
+	/**
+	 * Computes Spherical harmonics of an environment map
+	 */
+	class SHComputePass : public ComputePass
+	{
+	public:
+		SHComputePass();
+
+		virtual ~SHComputePass() = default;
+
+		/**
+		 * @param texture: Sets the output texture where the SH coefficients will be written to.
+		 * Note: The texture has to have internal format InternFormat::RGB32F
+		 * @param mipmap : The mipmap level of the texture to write to.
+		 * @param environmentMaps: An array of environment maps used for generating the sh coefficients.
+		 * @param rowStart : The starting index used for locating the first environment map and the first row in the output texture.
+		 * @param rowCount : Specifies how much sets of sh coefficients should be generated.
+		 */
+		void compute(Texture2D* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount);
+
+	private:
+		Uniform mRowStart;
+		UniformTex mEnvironmentMap;
+		UniformTex mOutputMap;
+		Sampler mSampler;
+	};
+
 
 	class PbrPrefilterPass : public Pass
 	{

@@ -273,7 +273,7 @@ void NeXEngine::run()
 
 			static float simulationTime = 0.0f;
 			simulationTime += frameTime;
-			mRenderer->getOcean()->simulate(simulationTime * 0.5f);
+			//mRenderer->getOcean()->simulate(simulationTime * 0.5f);
 			//mOcean.simulate(simulationTime * 0.5f);
 
 
@@ -283,8 +283,8 @@ void NeXEngine::run()
 			commandQueue.sort();
 
 			{
-				mScene.acquireLock();
-				mGlobalIllumination->update(mScene.getActiveProbeVobsUnsafe());
+				//mScene.acquireLock();
+				//mGlobalIllumination->update(mScene.getActiveProbeVobsUnsafe());
 			}
 
 			
@@ -369,7 +369,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	
-	auto* ground = meshContainer->createNodeHierarchyUnsafe();
+	/*auto* ground = meshContainer->createNodeHierarchyUnsafe();
 	auto* groundVob = mScene.createVobUnsafe(ground);
 	groundVob->setSelectable(true);
 	groundVob->mDebugName = "ground";
@@ -383,7 +383,21 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	//meshContainer->getIsLoadedStatus().get()->finalize();
 	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
-	sponzaVob->mDebugName = "sponza";
+	sponzaVob->mDebugName = "sponza";*/
+
+
+
+	/*meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
+
+	commandQueue->push([=]() {
+		meshContainer->finalize();
+		});
+
+	//meshContainer->getIsLoadedStatus().get()->finalize();
+	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
+	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
+	sponzaVob->mDebugName = "sponzaSimple1";
+	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 30.0f));*/
 
 	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
 	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");

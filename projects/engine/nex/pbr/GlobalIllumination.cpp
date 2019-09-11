@@ -204,6 +204,12 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
+	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
+	TextureData backgroundHDRData;
+	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
+	backgroundHDRData.internalFormat = InternFormat::RGB32F;
+	auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", backgroundHDRData, true);
+	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
@@ -213,6 +219,8 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 		const auto& position = probe.getPosition();
 
 		const auto storeID = probe.getStoreID();
+
+		//if (storeID == 0) continue;
 
 		if (probe.isSourceStored(mFactory.getProbeRootDir())) {
 			mFactory.initProbe(probe, storeID, true, true);
@@ -229,8 +237,8 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 			auto cubeMap = renderToCubeMap(commandQueue, renderer, *renderTarget, camera, position, light);
 
 			renderer->updateRenderTargets(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE);
-			auto cubeMapDepth = renderToDepthCubeMap(commandQueue, renderer, *renderTargetDepth, camera, position, light);
-			mFactory.initProbe(probe, cubeMap.get(), cubeMapDepth.get(), storeID, false, false);
+			//auto cubeMapDepth = renderToDepthCubeMap(commandQueue, renderer, *renderTargetDepth, camera, position, light);
+			mFactory.initProbe(probe, cubeMap.get(), storeID, false, false);
 		}
 
 		probeVob->mDebugName = "pbr probe " + std::to_string(probe.getArrayIndex()) + ", " + std::to_string(probe.getStoreID());

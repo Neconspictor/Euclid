@@ -227,20 +227,20 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    ArrayIndexWeight indexWeight = calcArrayIndices(positionEye, normalWorld);
+   // ArrayIndexWeight indexWeight = calcArrayIndices(positionEye, normalWorld);
     
     
     
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
-    vec3 irradiance1 = texture(irradianceMaps, vec4(normalWorld, indexWeight.indices[0])).rgb;
-    irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
-    vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.indices[1])).rgb;
-    irradiance2 = vec3(1 - indexWeight.indices[1],0, indexWeight.indices[1]);
+    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+    //irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
+    //vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.indices[1])).rgb;
+    //irradiance2 = vec3(1 - indexWeight.indices[1],0, indexWeight.indices[1]);
     
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
-    vec3 irradiance = indexWeight.weights[0] * irradiance1 + (indexWeight.weights[1]) * irradiance2;
+    //vec3 irradiance = indexWeight.weights[0] * irradiance1 + (indexWeight.weights[1]) * irradiance2;
     
     vec3 diffuse      =  irradiance * albedo;
     
@@ -251,13 +251,13 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     
 	
     // Important: R has to be in world space, too.
-    //vec3 prefilteredColor = textureLod(prefilterMap, reflectionDirWorld, roughness * MAX_REFLECTION_LOD).rgb;
-    vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[0]), roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    /*vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[0]), roughness * MAX_REFLECTION_LOD).rgb;
     
     vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[1]), roughness * MAX_REFLECTION_LOD).rgb;
     //vec3 prefilteredColor = indexWeight.firstWeight * prefilteredColor1 + (1.0-indexWeight.firstWeight) * prefilteredColor2;
     vec3 prefilteredColor = indexWeight.weights[0] * prefilteredColor1 + (indexWeight.weights[1]) * prefilteredColor2;
-    
+    */
     
     //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
@@ -287,6 +287,29 @@ float distanceAABB(in vec3 point, in vec3 minVec, in vec3 maxVec)
   const float dz = max(max(minVec.z - point.z, 0), point.z - maxVec.z);
   return sqrt(dx*dx + dy*dy + dz*dz);
 }
+
+
+struct EnvLightData {
+	float influence;
+	float volume;
+    uint lightID;
+    uint arrayIndex;
+  };
+  
+  
+#define CSWAP_INFLUENCE(arr, indexA, indexB, tmp) \
+if (arr[indexA].influence < arr[indexB].influence) { \
+	tmp = arr[indexB]; \
+	arr[indexB] = arr[indexA];\
+	arr[indexA] = tmp;\
+} 
+
+#define CSWAP_VOLUME(arr, indexA, indexB, tmp) \
+if (arr[indexA].volume > arr[indexB].volume && arr[indexB].influence > 0.0001) { \
+	tmp = arr[indexB]; \
+	arr[indexB] = arr[indexA];\
+	arr[indexA] = tmp;\
+}   
 
 ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
 
@@ -371,6 +394,55 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
   
   //clusterID
   LightGrid lightGrid = lightGrids[clusterID];
+
+  
+  EnvLightData lightDataSource[4];
+  
+  for (uint i = 0; i < 4; ++i) {
+    lightDataSource[i].influence = 0.0;
+    lightDataSource[i].volume = 0.0;
+    lightDataSource[i].lightID = 0;
+    lightDataSource[i].arrayIndex = 0;
+  }
+  
+  for (int i = 0; i < lightGrid.count; ++i) {
+  
+    const uint lightID = globalLightIndexList[lightGrid.offset + i];
+    lightDataSource[i].lightID = lightID;
+    EnvironmentLight envLight = environmentLights[lightID];
+    lightDataSource[i].arrayIndex = envLight.arrayIndex;
+    const float r = envLight.sphereRange;
+    const float r2 = r*r;
+    
+    
+    // volume
+    lightDataSource[i].volume = 4.0 / 3.0 * PI * r2*r;
+    
+    //influence
+    vec3 diff  = envLight.position.xyz - positionWorld;
+    float squaredDistance = dot(diff, diff);
+    
+    // if squaredDistance <= r*r
+    lightDataSource[i].influence = 1.0 - smoothstep(0.8 * r2, r2, squaredDistance);
+  }
+  
+  EnvLightData tmp;
+  
+  // sort by influence
+  CSWAP_INFLUENCE(lightDataSource, 0, 1, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 2, 3, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 0, 2, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 1, 3, tmp);
+  CSWAP_INFLUENCE(lightDataSource, 1, 2, tmp);
+  
+  // sort by volume
+  CSWAP_VOLUME(lightDataSource, 0, 1, tmp);
+  CSWAP_VOLUME(lightDataSource, 2, 3, tmp);
+  CSWAP_VOLUME(lightDataSource, 0, 2, tmp);
+  CSWAP_VOLUME(lightDataSource, 1, 3, tmp);
+  CSWAP_VOLUME(lightDataSource, 1, 2, tmp);
+  
+  
   
   ArrayIndexWeight result;
   result.indices[0] = 0;
@@ -381,26 +453,8 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
   float summedWeights = 0.0;
   
   for (int i = 0; i < lightGrid.count; ++i) {
-    uint lightID = globalLightIndexList[lightGrid.offset + i];
-    result.indices[i] = environmentLights[lightID].arrayIndex;
-    
-    
-    
-    float radius = environmentLights[lightID].sphereRange;
-    vec3 center  = environmentLights[lightID].position.xyz;
-    float squaredDistance = length(center - positionWorld);
-
-    bool check = squaredDistance <= radius;
-    
-    //result.weights[i] = 0.5;
-					
-    if(check){
-        result.weights[i] = 0.5;    
-    } else {
-        result.weights[i] = 0.0;
-    }
-    
-    
+    result.indices[i] = lightDataSource[i].arrayIndex;
+    result.weights[i] = lightDataSource[i].influence;    
     
     summedWeights = clamp(summedWeights + result.weights[i], 0.0, 1.0);
   }

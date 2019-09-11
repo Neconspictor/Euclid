@@ -186,7 +186,7 @@ void nex::PbrProbe::ProbeMaterial::upload() {
 }
 
 
-void nex::PbrProbeFactory::initProbe(PbrProbe& probe, Texture * backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::PbrProbeFactory::initProbeBackground(PbrProbe& probe, Texture * backgroundHDR, unsigned storeID, bool useCache, bool storeRenderedResult)
 {
 	const bool alreadyInitialized = probe.isInitialized();
 
@@ -210,7 +210,7 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, Texture * backgroundHDR, u
 		--mFreeSlots;
 }
 
-void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, CubeMap* irradianceDepth, unsigned storeID, bool useCache, bool storeRenderedResult)
+void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, unsigned storeID, bool useCache, bool storeRenderedResult)
 {
 	const bool alreadyInitialized = probe.isInitialized();
 
@@ -221,7 +221,6 @@ void nex::PbrProbeFactory::initProbe(PbrProbe& probe, CubeMap * environmentMap, 
 	const auto arrayIndex = alreadyInitialized ? probe.getArrayIndex() : mMapSize - mFreeSlots;
 
 	probe.init(environmentMap,
-		irradianceDepth,
 		mPrefilteredSide,
 		storeID,
 		this,
@@ -427,7 +426,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	return result;
 }
 
-std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source, CubeMap* depth)
+std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 
@@ -441,7 +440,6 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source, CubeMap* depth)
 	mConvolutionPass->bind();
 	mConvolutionPass->setProjection(projection);
 	mConvolutionPass->setEnvironmentMap(source);
-	mConvolutionPass->setDepthMap(depth);
 
 	cubeRenderTarget->bind();
 	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
@@ -454,6 +452,37 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source, CubeMap* depth)
 		mConvolutionPass->setView(views[side]);
 		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
 		StaticMeshDrawer::draw(skyBox.get(), mConvolutionPass.get());
+	}
+
+	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
+}
+
+std::shared_ptr<CubeMap> nex::PbrProbe::createIrradianceSH(Texture2D* shCoefficients)
+{
+	thread_local auto* renderBackend = RenderBackend::get();
+
+	auto cubeRenderTarget = renderBackend->createCubeRenderTarget(IRRADIANCE_SIZE, IRRADIANCE_SIZE,
+		IRRADIANCE_DATA);
+
+	mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+	thread_local auto mIrradianceShPass(std::make_unique<PbrIrradianceShPass>());
+
+	mIrradianceShPass->bind();
+	mIrradianceShPass->setProjection(projection);
+	mIrradianceShPass->setCoefficientMap(shCoefficients);
+
+	cubeRenderTarget->bind();
+	renderBackend->setViewPort(0, 0, cubeRenderTarget->getWidth(), cubeRenderTarget->getHeight());
+
+	thread_local auto skyBox = createSkyBox();
+
+	const auto& views = CubeMap::getViewLookAts();
+
+	for (int side = 0; side < views.size(); ++side) {
+		mIrradianceShPass->setView(views[side]);
+		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
+		StaticMeshDrawer::draw(skyBox.get(), mIrradianceShPass.get());
 	}
 
 	return std::dynamic_pointer_cast<CubeMap>(cubeRenderTarget->getColorAttachments()[0].texture);
@@ -511,6 +540,14 @@ std::shared_ptr<CubeMap> PbrProbe::prefilter(CubeMap * source, unsigned prefilte
 	//result->generateMipMaps();
 
 	return result;
+}
+
+void nex::PbrProbe::convoluteSphericalHarmonics(CubeMap* source, Texture2D* output, unsigned rowIndex)
+{
+	thread_local auto shComputePass(std::make_unique<SHComputePass>());
+	shComputePass->bind();
+	shComputePass->compute(output, 0, source, rowIndex, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureUpdate);
 }
 
 
@@ -591,7 +628,7 @@ std::shared_ptr<CubeMap> PbrProbe::createSource(Texture* backgroundHDR, const st
 	return std::shared_ptr<CubeMap>((CubeMap*)Texture::createFromImage(readImage, SOURCE_DATA));
 }
 
-void PbrProbe::initPrefiltered(CubeMap* source, CubeMap* depth, unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+void PbrProbe::initPrefiltered(CubeMap* source,  unsigned prefilteredSize, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_prefilteredEnvMap_",
@@ -600,22 +637,30 @@ void PbrProbe::initPrefiltered(CubeMap* source, CubeMap* depth, unsigned prefilt
 		storeRenderedResult,
 		std::bind(&PbrProbe::prefilter, this, source, prefilteredSize));
 
-	auto depthImage = StoreImage::create(depth);
-	StoreImage::fill(mFactory->getPrefilteredMaps(), depthImage, mArrayIndex);
 	StoreImage::fill(mFactory->getPrefilteredMaps(), readImage, mArrayIndex);
 }
 
-void PbrProbe::initIrradiance(CubeMap* source, CubeMap* depth, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+void PbrProbe::initIrradiance(CubeMap* source, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
 {
 	StoreImage readImage = loadCubeMap(probeRoot,
 		"pbr_convolutedEnvMap_",
 		mStoreID,
 		useCache,
 		storeRenderedResult,
-		std::bind(&PbrProbe::convolute, this, source, depth));
+		std::bind(&PbrProbe::convolute, this, source));
 
-	auto depthImage = StoreImage::create(depth);
-	//StoreImage::fill(mFactory->getIrradianceMaps(), depthImage, mArrayIndex);
+	StoreImage::fill(mFactory->getIrradianceMaps(), readImage, mArrayIndex);
+}
+
+void nex::PbrProbe::initIrradianceSH(Texture2D* shCoefficients, const std::filesystem::path& probeRoot, bool useCache, bool storeRenderedResult)
+{
+	StoreImage readImage = loadCubeMap(probeRoot,
+		"pbr_irradianceMap_sh_",
+		mStoreID,
+		useCache,
+		storeRenderedResult,
+		std::bind(&PbrProbe::createIrradianceSH, this, shCoefficients));
+
 	StoreImage::fill(mFactory->getIrradianceMaps(), readImage, mArrayIndex);
 }
 
@@ -637,12 +682,11 @@ void PbrProbe::init(Texture* backgroundHDR,
 	mFactory = factory;
 
 	auto source = createSource(backgroundHDR, probeRoot, useCache, storeRenderedResult);
-	init(source.get(), nullptr, prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
+	init(source.get(), prefilteredSize, storeID, factory, arrayIndex, probeRoot, useCache, storeRenderedResult);
 	renderBackend->setViewPort(backup.x, backup.y, backup.width, backup.height);
 }
 
-void nex::PbrProbe::init(CubeMap * environment, 
-	CubeMap* irradianceDepth,
+void nex::PbrProbe::init(CubeMap * environment,
 	unsigned prefilteredSize, unsigned storeID, 
 	PbrProbeFactory * factory, unsigned arrayIndex, 
 	const std::filesystem::path & probeRoot, bool useCache, bool storeRenderedResult)
@@ -658,8 +702,24 @@ void nex::PbrProbe::init(CubeMap * environment,
 	mArrayIndex = arrayIndex;
 	mFactory = factory;
 
-	initPrefiltered(environment, irradianceDepth, prefilteredSize, probeRoot, useCache, storeRenderedResult);
-	initIrradiance(environment, irradianceDepth, probeRoot, useCache, storeRenderedResult);
+	initPrefiltered(environment, prefilteredSize, probeRoot, useCache, storeRenderedResult);
+	initIrradiance(environment, probeRoot, useCache, storeRenderedResult);
+
+
+	TextureData data;
+	data.colorspace = ColorSpace::RGBA;
+	data.internalFormat = InternFormat::RGBA32F;
+	data.pixelDataType = PixelDataType::FLOAT;
+	
+	auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
+
+	convoluteSphericalHarmonics(environment, shOutput.get(), 0);
+
+	//glm::vec4 readBackData[9*1 + 5];
+	//const auto readBackDataSize = sizeof(readBackData);
+	//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
+
+	initIrradianceSH(shOutput.get(), probeRoot, useCache, storeRenderedResult);
 
 	mMaterial->setProbeFactory(mFactory);
 	mMaterial->setArrayIndex(mArrayIndex);

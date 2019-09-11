@@ -166,7 +166,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(true);
 
 	//mTesselationTest.draw(camera, sun->getDirection());
-	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+	//mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
@@ -344,7 +344,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination(); 
-	if (globalIllumination) {
+	if (globalIllumination && false) {
 
 		auto* probeCluster = globalIllumination->getProbeCluster();
 

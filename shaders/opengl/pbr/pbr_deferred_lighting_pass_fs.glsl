@@ -58,7 +58,8 @@ void main()
     const float depth = texture(gBuffer.normalizedViewSpaceZMap, fs_in.tex_coords).r;
     //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
     //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.tex_coords, viewSpaceZ, inverseProjMatrix_GPass);
-    const vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
+    vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
+    //positionEye += normalEye;
     
     vec3 colorOut;
     vec3 luminanceOut;

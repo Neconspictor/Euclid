@@ -416,11 +416,6 @@ PbrConvolutionPass::PbrConvolutionPass()
 	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
 
 	mEnvironmentMap = mShader->createTextureUniform("environmentMap", UniformType::CUBE_MAP, 0);
-	mDepthMap = mShader->createTextureUniform("depthMap", UniformType::CUBE_MAP, 1);
-
-	auto state = mSampler2.getState();
-	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
-	mSampler2.setState(state);
 }
 
 void PbrConvolutionPass::setProjection(const glm::mat4& mat)
@@ -436,13 +431,27 @@ void PbrConvolutionPass::setView(const glm::mat4& mat)
 void PbrConvolutionPass::setEnvironmentMap(const CubeMap * cubeMap)
 {
 	mShader->setTexture(cubeMap, &mSampler, mEnvironmentMap.bindingSlot);
-	//mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
-void nex::PbrConvolutionPass::setDepthMap(const CubeMap* depthMap)
+nex::SHComputePass::SHComputePass() : ComputePass(Shader::createComputeShader("pbr/probe/spherical_harmonics_from_cube_map_cs.glsl"))
 {
-	mShader->setTexture(depthMap, &mSampler2, mDepthMap.bindingSlot);
-	//mShader->setBinding(mDepthMap.location, mDepthMap.bindingSlot);
+	mEnvironmentMap = mShader->createTextureUniform("environmentMaps", UniformType::CUBE_MAP, 0);
+	mOutputMap = mShader->createTextureUniform("result", UniformType::IMAGE2D, 1);
+
+	mRowStart = { mShader->getUniformLocation("rowStart"), UniformType::UINT};
+}
+
+void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const CubeMap* environmentMaps, unsigned rowStart, unsigned rowCount)
+{
+	mShader->setTexture(environmentMaps, &mSampler, mEnvironmentMap.bindingSlot);
+
+	mShader->setImageLayerOfTexture(mOutputMap.location, texture, mOutputMap.bindingSlot, nex::TextureAccess::READ_WRITE,
+		InternFormat::RGBA32F, mipmap, false, 0);
+
+	mShader->setUInt(mRowStart.location, rowStart);
+
+	// Each horizontal pixel is a SH coefficient. One row defines a set of sh coefficient for one environment map.
+	this->dispatch(texture->getWidth(), rowCount, 1);
 }
 
 PbrPrefilterPass::PbrPrefilterPass()
@@ -494,4 +503,32 @@ nex::PbrGeometryPass::PbrGeometryPass(std::unique_ptr<Shader> program, unsigned 
 PbrGeometryData * nex::PbrGeometryPass::getShaderInterface()
 {
 	return &mGeometryData;
+}
+
+nex::PbrIrradianceShPass::PbrIrradianceShPass()
+{
+	mShader = Shader::create(
+		"pbr/probe/sh_irradiance_cubemap_vs.glsl", "pbr/probe/sh_irradiance_cubemap_fs.glsl");
+
+	mProjection = { mShader->getUniformLocation("projection"), UniformType::MAT4 };
+	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
+
+	mCoefficientMap = mShader->createTextureUniform("coefficents", UniformType::TEXTURE2D, 0);
+	mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+}
+
+void nex::PbrIrradianceShPass::setProjection(const glm::mat4& mat)
+{
+	mShader->setMat4(mProjection.location, mat);
+}
+
+void nex::PbrIrradianceShPass::setView(const glm::mat4& mat)
+{
+	mShader->setMat4(mView.location, mat);
+}
+
+void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
+{
+	mShader->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
 }
