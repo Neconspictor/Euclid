@@ -208,7 +208,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	TextureData backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternFormat::RGB32F;
-	auto* backgroundHDR = TextureManager::get()->getImage("hdr/grace_cathedral.hdr", backgroundHDRData, true);
+	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", backgroundHDRData, true);
 	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials

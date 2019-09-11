@@ -448,9 +448,9 @@ std::shared_ptr<CubeMap> PbrProbe::convolute(CubeMap * source)
 
 	const auto& views = CubeMap::getViewLookAts();
 
-	for (int side = 0; side < views.size(); ++side) {
+	for (unsigned int side = 0; side < views.size(); ++side) {
 		mConvolutionPass->setView(views[side]);
-		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
+		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
 		StaticMeshDrawer::draw(skyBox.get(), mConvolutionPass.get());
 	}
 
@@ -479,9 +479,9 @@ std::shared_ptr<CubeMap> nex::PbrProbe::createIrradianceSH(Texture2D* shCoeffici
 
 	const auto& views = CubeMap::getViewLookAts();
 
-	for (int side = 0; side < views.size(); ++side) {
+	for (unsigned int side = 0; side < views.size(); ++side) {
 		mIrradianceShPass->setView(views[side]);
-		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side));
+		cubeRenderTarget->useSide(static_cast<CubeMapSide>(side + (unsigned)CubeMapSide::POSITIVE_X));
 		StaticMeshDrawer::draw(skyBox.get(), mIrradianceShPass.get());
 	}
 
@@ -703,23 +703,26 @@ void nex::PbrProbe::init(CubeMap * environment,
 	mFactory = factory;
 
 	initPrefiltered(environment, prefilteredSize, probeRoot, useCache, storeRenderedResult);
-	initIrradiance(environment, probeRoot, useCache, storeRenderedResult);
 
+	if (true) {
+		TextureData data;
+		data.colorspace = ColorSpace::RGBA;
+		data.internalFormat = InternFormat::RGBA32F;
+		data.pixelDataType = PixelDataType::FLOAT;
 
-	TextureData data;
-	data.colorspace = ColorSpace::RGBA;
-	data.internalFormat = InternFormat::RGBA32F;
-	data.pixelDataType = PixelDataType::FLOAT;
-	
-	auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
+		auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);
 
-	convoluteSphericalHarmonics(environment, shOutput.get(), 0);
+		convoluteSphericalHarmonics(environment, shOutput.get(), 0);
 
-	//glm::vec4 readBackData[9*1 + 5];
-	//const auto readBackDataSize = sizeof(readBackData);
-	//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
+		//glm::vec4 readBackData[9*1 + 5];
+		//const auto readBackDataSize = sizeof(readBackData);
+		//shOutput->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, readBackData, readBackDataSize);
 
-	initIrradianceSH(shOutput.get(), probeRoot, useCache, storeRenderedResult);
+		initIrradianceSH(shOutput.get(), probeRoot, useCache, storeRenderedResult);
+	}
+	else {
+		initIrradiance(environment, probeRoot, useCache, storeRenderedResult);
+	}
 
 	mMaterial->setProbeFactory(mFactory);
 	mMaterial->setArrayIndex(mArrayIndex);

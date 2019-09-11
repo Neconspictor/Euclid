@@ -103,7 +103,7 @@ void main()
     //const int l = lookupL(id);
     //const int m = lookupM(id);
     const int mapIndex = int(rowStart + gl_WorkGroupID.y);
-	const float sampleDelta = 0.025; // 0.025
+	const float sampleDelta = 0.005; // 0.025
 	//const int nrSamples = int (TWO_PI / sampleDelta) * int(PI / sampleDelta); 
     
     vec3 irradiance = vec3(0.0);
@@ -122,7 +122,7 @@ void main()
             ++nrSamples;
 		}
 	}
-	irradiance = 2 * PI * getScale(harmonicIndex) * irradiance * (1.0 / float(nrSamples)); //2 * PI * PI *              getScale(harmonicIndex) *
+	irradiance = 2 * PI * irradiance * (1.0 / float(nrSamples)); //2 * PI * PI *              getScale(harmonicIndex) *
    
     //imageStore(result, ivec2(harmonicIndex, mapIndex), vec4(float(harmonicIndex), float(mapIndex), 0.0, 1.0));
     imageStore(result, ivec2(harmonicIndex, mapIndex), vec4(irradiance, 1.0));
