@@ -131,22 +131,24 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, EXPORT_RELATIVE_PA
                 fw('illum 2\n')  # light normaly
 
             # Write images!
-            if face_img:  # We have an image on the face!
-                filepath = face_img.filepath
-                if filepath:  # may be '' for generated images
-                    # write relative image path
-                    filepath = bpy_extras.io_utils.path_reference(filepath, source_dir, dest_dir,
-                                                                  path_mode, "", copy_set, face_img.library)
-                    pattern = bpy.context.user_preferences.addons[__package__].preferences.filepath;                                              
-                    #EXPORT_RELATIVE_PATH
-                    #double back slashes
-                    pattern = re.sub("\\\\", "\\\\\\\\", pattern);
-                    filepath = re.sub(pattern, "", filepath,  1);                                          
-                    fw('map_Kd %s\n' % filepath)  # Diffuse mapping image
-                    del filepath
-                else:
-                    # so we write the materials image.
-                    face_img = None
+            #if face_img:  # We have an image on the face!
+            #    filepath = face_img.filepath
+            #    if filepath:  # may be '' for generated images
+            #        # write relative image path
+            #        filepath = bpy_extras.io_utils.path_reference(filepath, source_dir, dest_dir,
+            #                                                      path_mode, "", copy_set, face_img.library)
+            #        pattern = bpy.context.user_preferences.addons[__package__].preferences.filepath;                                              
+            #        #EXPORT_RELATIVE_PATH
+            #        #double back slashes
+            #        pattern = re.sub("\\\\", "\\\\\\\\", pattern);
+            #        filepath = re.sub(pattern, "", filepath,  1);                                          
+            #        fw('map_Kd %s\n' % filepath)  # Diffuse mapping image
+            #        del filepath
+            #    else:
+            #        # so we write the materials image.
+            #        face_img = None
+            
+            face_img = None
 
             if mat:  # No face image. if we havea material search for MTex image.
                 image_map = {}
@@ -184,7 +186,16 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict, EXPORT_RELATIVE_PA
                                 image_map["map_Ke"] = (mtex, image)
 
                 for key, (mtex, image) in sorted(image_map.items()):
-                    filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
+                    
+                    if EXPORT_RELATIVE_PATH:
+                        #image.filepath = os.path.abspath(image.filepath)
+                        #filepath = image.filepath #os.path.abspath(image.filepath) 
+                        #os.path.relpath(image.filepath, EXPORT_RELATIVE_PATH)  
+                        filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
+                                                                  'ABSOLUTE', "", copy_set, image.library)
+                        filepath = os.path.relpath(filepath, EXPORT_RELATIVE_PATH)                                                                  
+                    else: 
+                      filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
                                                                   path_mode, "", copy_set, image.library)
                     options = []
                     if key == "map_Bump":
