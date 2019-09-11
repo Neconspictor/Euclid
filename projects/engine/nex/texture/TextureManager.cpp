@@ -197,17 +197,21 @@ namespace nex {
 		return ColorSpace::SRGB;
 	}
 
-	InternFormat TextureManager::getInternalFormat(unsigned channels)
+	InternFormat TextureManager::getInternalFormat(unsigned channels, bool isFloat)
 	{
 		switch (channels)
 		{
 		case 1:
+			if (isFloat) return InternFormat::R32F;
 			return InternFormat::R8;
 		case 2:
+			if (isFloat) return InternFormat::RG32F;
 			return InternFormat::RG8;
 		case 3:
+			if (isFloat) return InternFormat::RGB32F;
 			return InternFormat::RGB8;
 		case 4:
+			if (isFloat) return InternFormat::RGBA32F;
 			return InternFormat::RGBA8;
 		default:
 			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
@@ -272,7 +276,8 @@ namespace nex {
 		{
 			TextureData copy = data;
 			copy.colorspace = isLinear(copy.colorspace) ?  getColorSpace(image.channels) : getGammaSpace(image.channels);
-			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels) : getGammaInternalFormat(image.channels);
+			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels, copy.pixelDataType == PixelDataType::FLOAT) : 
+				getGammaInternalFormat(image.channels);
 
 			texture = std::make_unique<Texture2D>(image.width, image.height, copy, image.pixels.getPixels());
 		} else

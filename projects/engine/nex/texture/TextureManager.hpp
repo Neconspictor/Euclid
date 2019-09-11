@@ -96,7 +96,7 @@ namespace nex {
 		static ColorSpace getColorSpace(unsigned channels);
 		static ColorSpace getGammaSpace(unsigned channels);
 
-		InternFormat getInternalFormat(unsigned channels);
+		InternFormat getInternalFormat(unsigned channels, bool isFloat);
 		InternFormat getGammaInternalFormat(unsigned channels);
 
 		static bool isLinear(ColorSpace colorspace);

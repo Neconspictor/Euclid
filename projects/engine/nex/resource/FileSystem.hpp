@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <functional>
+#include <nex/common/File.hpp>
 
 namespace nex
 {
