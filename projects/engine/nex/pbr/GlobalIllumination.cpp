@@ -57,7 +57,7 @@ public:
 		setLightColor(light.color);
 		setLightPower(light.power);
 
-		glm::vec4 lightEyeDirection = view * glm::vec4(light.directionWorld, 0);
+		glm::vec4 lightEyeDirection = view * glm::vec4(-light.directionWorld, 0);
 		setEyeLightDirection(glm::vec3(lightEyeDirection));
 
 		setInverseViewMatrix(inverse(view));
@@ -87,13 +87,71 @@ private:
 
 };
 
+class nex::GlobalIllumination::VoxelizePass : public PbrGeometryPass
+{
+public:
+
+	VoxelizePass() :
+		PbrGeometryPass(Shader::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", generateDefines()),
+			TRANSFORM_BUFFER_BINDINGPOINT)
+	{
+		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
+		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+	}
+
+	void setLightDirectionWS(const glm::vec3& dir) {
+		mShader->setVec3(mWorldLightDirection.location, -dir);
+	}
+
+	void setLightColor(const glm::vec3& color) {
+		mShader->setVec3(mLightColor.location, color);
+	}
+
+	void setLightPower(float power) {
+		mShader->setFloat(mLightPower.location, power);
+	}
+
+	void updateConstants(const DirLight& light, const glm::mat4& projection, const glm::mat4& view) {
+		setLightColor(light.color);
+		setLightPower(light.power);
+		setLightDirectionWS(light.directionWorld);
+		setViewProjectionMatrices(projection, view, view);
+	}
+
+private:
+
+	static std::vector<std::string> generateDefines() {
+		auto vec = std::vector<std::string>();
+
+		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
+		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+
+		return vec;
+	}
+
+
+	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
+	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
+
+	Uniform mWorldLightDirection;
+	Uniform mLightColor;
+	Uniform mLightPower;
+	Uniform mInverseView;
+
+};
+
 
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth),
 mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mProbeBakePass(std::make_unique<ProbeBakePass>()), mAmbientLightPower(1.0f),
+mProbeBakePass(std::make_unique<ProbeBakePass>()), 
+mVoxelizePass(std::make_unique<VoxelizePass>()),
+mAmbientLightPower(1.0f),
 mNextStoreID(0),
-mProbeCluster(std::make_unique<ProbeCluster>())
+mProbeCluster(std::make_unique<ProbeCluster>()),
+mVoxelBuffer(0, VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -219,12 +277,12 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
+	/*PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
 	TextureData backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternFormat::RGB32F;
 	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", backgroundHDRData, true);
-	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
+	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);*/
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
@@ -450,9 +508,14 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	mEnvironmentLights.update(byteSize, lights.data());
 }
 
+void nex::GlobalIllumination::voxelize(const Scene& scene)
+{
+	auto box = scene.getSceneBoundingBox();
+}
+
 void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth)
 {
-	auto& mapping = mSphere->getMappings().begin();
+	/*auto& mapping = mSphere->getMappings().begin();
 	auto* pass = (IrradianceSphereHullDrawPass*) mapping->second->getTechnique()->getActiveSubMeshPass();
 	pass->bind();
 
@@ -493,7 +556,10 @@ void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::m
 	renderState.blendDesc.operation = BlendOperation::ADD;
 	renderState.blendDesc.source = BlendFunc::ONE;
 	renderState.blendDesc.destination = BlendFunc::ONE;
-	StaticMeshDrawer::draw(mapping->first, mapping->second);
+	StaticMeshDrawer::draw(mapping->first, mapping->second);*/
+
+
+
 
 }
 

@@ -96,6 +96,7 @@ namespace nex
 		void setIrradianceMaps(const CubeMapArray* texture);
 		void setPrefilteredMaps(const CubeMapArray* texture);
 
+		void setLightDirectionWS(const glm::vec3& direction);
 		void setEyeLightDirection(const glm::vec3& direction);
 		void setLightColor(const glm::vec3& color);
 		void setLightPower(float power);
@@ -123,6 +124,7 @@ namespace nex
 
 
 		Uniform mEyeLightDirection;
+		Uniform mLightDirectionWS;
 		Uniform mLightColor;
 		Uniform mLightPower;
 		Uniform mAmbientLightPower;

@@ -116,6 +116,11 @@ void PbrLightingData::setCascadedDepthMap(const Texture* cascadedDepthMap)
 //	buffer->update(cascadedData.shaderBuffer.data(), cascadedData.shaderBuffer.size(), 0);
 //}
 
+void nex::PbrLightingData::setLightDirectionWS(const glm::vec3& direction)
+{
+	mShader->setVec3(mLightDirectionWS.location, direction);
+}
+
 void PbrLightingData::setEyeLightDirection(const glm::vec3& direction)
 {
 	mShader->setVec3(mEyeLightDirection.location, direction);
@@ -195,6 +200,7 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 
 
 	mEyeLightDirection = { mShader->getUniformLocation("dirLight.directionEye"), UniformType::VEC3 };
+	mLightDirectionWS = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 	mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 	mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
@@ -264,8 +270,9 @@ void nex::PbrLightingData::updateLight(const DirLight& light, const Camera& came
 	setLightColor(light.color);
 	setLightPower(light.power);
 
-	vec4 lightEyeDirection = camera.getView() * vec4(light.directionWorld, 0.0f);
+	vec4 lightEyeDirection = camera.getView() * vec4(-light.directionWorld, 0.0f);
 	setEyeLightDirection(vec3(lightEyeDirection));
+	setLightDirectionWS(-light.directionWorld);
 }
 
 PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,

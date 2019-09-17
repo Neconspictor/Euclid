@@ -58,11 +58,16 @@ namespace nex
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
+		void voxelize(const Scene& scene);
+
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
 	private:
 
+		static constexpr unsigned VOXEL_BASE_SIZE = 256;
+
 		class ProbeBakePass;
+		class VoxelizePass;
 
 		void advanceNextStoreID(unsigned id);
 
@@ -85,9 +90,11 @@ namespace nex
 		std::vector<std::unique_ptr<PbrProbe>> mProbes;
 		std::vector<std::unique_ptr<ProbeVob>> mProbeVobs;
 		ShaderStorageBuffer mEnvironmentLights;
+		ShaderStorageBuffer mVoxelBuffer;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
 		std::unique_ptr<ProbeBakePass> mProbeBakePass;
+		std::unique_ptr<VoxelizePass> mVoxelizePass;
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;

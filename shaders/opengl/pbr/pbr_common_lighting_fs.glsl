@@ -143,7 +143,7 @@ void calcLighting(in float ao,
     
     vec3 ambient =  pbrAmbientLight(viewEye, normalEx, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionEye);
     
-    float fragmentLitProportion = cascadedShadow(-dirLight.directionEye, normalEx, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEx, positionEye.z, positionEye);
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
@@ -180,7 +180,7 @@ void calcLighting(in float ao,
 
 vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
 	
-    vec3 L = normalize(-dirLight.directionEye);
+    vec3 L = normalize(dirLight.directionEye);
 	vec3 H = normalize(V + L);
 	
 	// directional lights have no distance and thus also no attenuation

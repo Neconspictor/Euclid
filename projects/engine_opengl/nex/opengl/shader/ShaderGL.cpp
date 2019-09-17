@@ -507,31 +507,44 @@ std::unique_ptr<nex::Shader> nex::Shader::create(
 	unresolved[0].filePath = vertexFile;
 	unresolved[0].type = ShaderStageType::VERTEX;
 	unresolved[0].defines = defines;
-	unresolved[1].filePath = fragmentFile;
-	unresolved[1].type = ShaderStageType::FRAGMENT;
-	unresolved[1].defines = defines;
+
+	{
+		auto index = 4;
+		if (!useEvaluationShader) --index;
+		if (!useControlShader) --index;
+		if (!useGeometryShader) --index;
+		unresolved[index].filePath = fragmentFile;
+		unresolved[index].type = ShaderStageType::FRAGMENT;
+		unresolved[index].defines = defines;
+	}
 
 
 	if (useControlShader)
 	{
-		unresolved[2].filePath = tesselationControlShaderFile;
-		unresolved[2].type = ShaderStageType::TESSELATION_CONTROL;
-		unresolved[2].defines = defines;
+		unresolved[1].filePath = tesselationControlShaderFile;
+		unresolved[1].type = ShaderStageType::TESSELATION_CONTROL;
+		unresolved[1].defines = defines;
 	}
 
 
 	if (useEvaluationShader)
 	{
-		unresolved[3].filePath = tesselationEvaluationShader;
-		unresolved[3].type = ShaderStageType::TESSELATION_EVALUATION;
-		unresolved[3].defines = defines;
+		auto index = 2;
+		if (!useControlShader) --index;
+		unresolved[index].filePath = tesselationEvaluationShader;
+		unresolved[index].type = ShaderStageType::TESSELATION_EVALUATION;
+		unresolved[index].defines = defines;
 	}
 
 	if (useGeometryShader)
 	{
-		unresolved[4].filePath = geometryShaderFile;
-		unresolved[4].type = ShaderStageType::GEOMETRY;
-		unresolved[4].defines = defines;
+		auto index = 3;
+		if (!useEvaluationShader) --index;
+		if (!useControlShader) --index;
+
+		unresolved[index].filePath = geometryShaderFile;
+		unresolved[index].type = ShaderStageType::GEOMETRY;
+		unresolved[index].defines = defines;
 	}
 
 

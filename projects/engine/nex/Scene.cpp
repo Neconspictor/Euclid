@@ -232,6 +232,19 @@ namespace nex
 			vob->updateTrafo(resetPrevWorldTrafo);
 	}
 
+	void Scene::calcSceneBoundingBoxUnsafe()
+	{
+		for (const auto& root : getActiveVobsUnsafe())
+		{
+			mBoundingBox = maxAABB(mBoundingBox, root->getBoundingBox());
+		}
+	}
+
+	const AABB& Scene::getSceneBoundingBox() const
+	{
+		return mBoundingBox;
+	}
+
 
 	Vob::Vob(SceneNode* meshRootNode) : mMeshRootNode(meshRootNode), mPosition(0.0f), mRotation(glm::quat()), mScale(1.0f), 
 		mSelectable(true), mIsDeletable(true),

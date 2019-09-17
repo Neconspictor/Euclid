@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <nex/util/Iterator.hpp>
+#include <nex/math/BoundingBox.hpp>
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -132,11 +133,15 @@ namespace nex
 		void clearUnsafe();
 		void updateWorldTrafoHierarchyUnsafe(bool resetPrevWorldTrafo);
 
+		void calcSceneBoundingBoxUnsafe();
+		const AABB& getSceneBoundingBox() const;
+
 	private:
 		std::unordered_set<Vob*> mActiveVobs;
 		std::unordered_set<ProbeVob*> mActiveProbeVobs;
 		std::vector<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
+		AABB mBoundingBox;
 	};
 
 
