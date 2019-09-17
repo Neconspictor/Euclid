@@ -292,6 +292,19 @@ namespace nex
 		TextureData mData;
 	};
 
+	class Texture3DGL : public Texture::Impl
+	{
+	public:
+		explicit Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
+		Texture3DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
+
+		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+
+	protected:
+		friend Texture3D;
+		TextureData mData;
+	};
+
 	class CubeMapGL : public Texture::Impl
 	{
 	public:

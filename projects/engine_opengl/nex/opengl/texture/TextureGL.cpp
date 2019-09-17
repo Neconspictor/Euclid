@@ -715,6 +715,68 @@ void nex::Texture2DArrayGL::resize(unsigned width, unsigned height, unsigned dep
 	updateMipMapCount();
 }
 
+nex::Texture3D::Texture3D(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
+{
+}
+
+nex::Texture3D::Texture3D(unsigned width, unsigned height, unsigned depth, const TextureData& textureData, const void* data) : 
+	Texture(make_unique<Texture3DGL>(width, height, depth, textureData, data))
+{
+
+}
+
+void nex::Texture3D::resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
+{
+	auto impl = (Texture3DGL*)mImpl.get();
+	impl->resize(width, height, depth, mipmapCount, autoMipMapCount);
+}
+
+nex::Texture3DGL::Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data) :
+Impl(GL_FALSE, TextureTarget::TEXTURE3D, textureData, width, height, depth), mData(textureData)
+{
+	Impl::generateTexture(&mTextureID, textureData, (GLenum)mTargetGL);
+
+	resize(mWidth, mHeight, mDepth, 1, mData.generateMipMaps);
+
+	// set base mip map
+	if (data != nullptr) {
+		GLCall(glTextureSubImage3D(mTextureID, 0,
+			0, 0, 0,
+			width, height, depth,
+			(GLenum)translate(mData.colorspace),
+			(GLenum)translate(mData.pixelDataType),
+			data));
+	}
+
+
+	// create content of the other mipmaps
+	if (mData.generateMipMaps) generateMipMaps();
+	else updateMipMapCount();
+}
+
+nex::Texture3DGL::Texture3DGL(GLuint texture, const TextureData& textureData, unsigned width, unsigned height, unsigned depth)
+	: Impl(texture, TextureTarget::TEXTURE3D, textureData, width, height, depth), mData(textureData)
+{
+	updateMipMapCount();
+}
+
+void nex::Texture3DGL::resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount)
+{
+	mWidth = width;
+	mHeight = height;
+	mDepth = depth;
+	mData.generateMipMaps = autoMipMapCount;
+
+	resizeTexImage3D(mTextureID,
+		mipmapCount,
+		mWidth,
+		mHeight,
+		mDepth,
+		(GLenum)translate(mData.internalFormat),
+		autoMipMapCount);
+
+	updateMipMapCount();
+}
 
 nex::CubeMapArray::CubeMapArray(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
 {

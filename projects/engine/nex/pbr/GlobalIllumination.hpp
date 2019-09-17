@@ -22,6 +22,7 @@ namespace nex
 	class ProbeVob;
 	struct DirLight;
 	class ProbeCluster;
+	class StaticMeshContainer;
 
 	class GlobalIllumination
 	{
@@ -56,6 +57,8 @@ namespace nex
 		void setAmbientPower(float ambientPower);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
+
+		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
 	private:
 
@@ -92,5 +95,6 @@ namespace nex
 		unsigned mNextStoreID;
 
 		std::unique_ptr<ProbeCluster> mProbeCluster;
+		std::unique_ptr<StaticMeshContainer> mSphere;
 	};
 }

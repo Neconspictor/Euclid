@@ -18,6 +18,10 @@
 #include <nex/pbr/PbrForward.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/pbr/Cluster.hpp>
+#include <nex/mesh/UtilityMeshes.hpp>
+#include <nex/EffectLibrary.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
@@ -125,6 +129,17 @@ mProbeCluster(std::make_unique<ProbeCluster>())
 
 	mIrradianceDepthPass = std::make_unique<TransformPass>(Shader::create("pbr/probe/irradiance_depth_pass_vs.glsl", 
 		"pbr/probe/irradiance_depth_pass_fs.glsl"));
+
+	mSphere = std::make_unique<StaticMeshContainer>();
+	AABB box = {glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10)};
+	auto sphere = std::make_unique<SphereMesh>(16, 16);
+	//auto sphere = std::make_unique<MeshAABB>(box, Topology::TRIANGLES);
+	//sphere->finalize();
+	auto material = std::make_unique<Material>(RenderBackend::get()->getEffectLibrary()->getIrradianceSphereHullDrawTechnique());
+
+	mSphere->addMapping(sphere.get(), material.get());
+	mSphere->add(std::move(sphere));
+	mSphere->addMaterial(std::move(material));
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -435,6 +450,53 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	mEnvironmentLights.update(byteSize, lights.data());
 }
 
+void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth)
+{
+	auto& mapping = mSphere->getMappings().begin();
+	auto* pass = (IrradianceSphereHullDrawPass*) mapping->second->getTechnique()->getActiveSubMeshPass();
+	pass->bind();
+
+	auto model = glm::mat4();
+	const auto positionWS = glm::vec3(0.0f, 0.0f, 30.0f);
+	const auto radius = 15.0f;
+	model = glm::translate(model, positionWS);
+	model = glm::scale(model, glm::vec3(radius));
+	
+	pass->setColor(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+	pass->setPositionWS(positionWS);
+	pass->setProbeRadius(radius);
+
+	const auto& v = RenderBackend::get()->getViewport();
+	glm::vec2 viewPort = glm::vec2(v.width, v.height);
+
+	const auto zn = 0.1f;
+	const auto zf = 150.0f;
+	glm::vec3 clipInfo = glm::vec3(zn * zf, zn - zf, zf);
+	
+
+	pass->setViewPort(viewPort);
+	pass->setClipInfo(clipInfo);
+	pass->setDepth(depth);
+	pass->setInverseProjMatrix(inverse(projection));
+
+	pass->setModelMatrix(model, model);
+	pass->setViewProjectionMatrices(projection, view, view);
+	pass->uploadTransformMatrices();
+
+	auto& renderState = mapping->second->getRenderState();
+	renderState.cullSide = PolygonSide::FRONT;
+	renderState.doCullFaces = true;
+	renderState.doBlend = true;
+	renderState.doDepthWrite = false;
+	renderState.doDepthTest = true;
+	renderState.depthCompare = CompareFunction::GREATER_EQUAL;
+	renderState.blendDesc.operation = BlendOperation::ADD;
+	renderState.blendDesc.source = BlendFunc::ONE;
+	renderState.blendDesc.destination = BlendFunc::ONE;
+	StaticMeshDrawer::draw(mapping->first, mapping->second);
+
+}
+
 void nex::GlobalIllumination::advanceNextStoreID(unsigned id)
 {
 	if (id == PbrProbe::INVALID_STOREID) return;
@@ -666,7 +728,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 				{
 					mIrradianceDepthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 					mIrradianceDepthPass->uploadTransformMatrices();
-					StaticMeshDrawer::draw(command.mesh, nullptr, mIrradianceDepthPass.get(), &defaultState);
+					StaticMeshDrawer::draw(command.mesh, nullptr, &defaultState);
 				}
 			}
 

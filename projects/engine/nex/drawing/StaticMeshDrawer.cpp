@@ -13,9 +13,10 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, Tra
 		if (!currentPass)
 			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
 
+		currentPass->bind();
 		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentPass->uploadTransformMatrices();
-		StaticMeshDrawer::draw(command.mesh, command.material, currentPass, overwriteState);
+		StaticMeshDrawer::draw(command.mesh, command.material, overwriteState);
 	}
 }
 
@@ -30,10 +31,11 @@ void nex::StaticMeshDrawer::draw(const std::multimap<unsigned, RenderCommand>& c
 		if (!currentPass)
 			currentPass = command.material->getTechnique()->getActiveSubMeshPass();
 
+		currentPass->bind();
 		currentPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 		currentPass->uploadTransformMatrices();
 		auto rs = command.material->getRenderState();
-		StaticMeshDrawer::draw(command.mesh, command.material, currentPass, &rs);
+		StaticMeshDrawer::draw(command.mesh, command.material, &rs);
 	}
 }
 
@@ -42,8 +44,9 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 {
 	for (const auto& command : commands)
 	{
+		pass->bind();
 		pass->updateTransformMatrix(command.worldTrafo);
-		StaticMeshDrawer::draw(command.mesh, command.material, pass, overwriteState);
+		StaticMeshDrawer::draw(command.mesh, command.material, overwriteState);
 	}
 }
 
@@ -97,11 +100,10 @@ void nex::StaticMeshDrawer::draw(const std::vector<RenderCommand>& commands, nex
 	}
 }*/
 
-void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, Pass* pass, const RenderState* overwriteState)
+void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, const RenderState* overwriteState)
 {
 	if (material != nullptr)
 	{
-		//material->getTechnique()->getActiveSubMeshPass()->bind();
 		material->upload();
 	}
 
@@ -138,7 +140,7 @@ void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, con
 
 	for (auto& mesh : meshes)
 	{
-		draw(mesh.get(), mappings.at(mesh.get()), pass);
+		draw(mesh.get(), mappings.at(mesh.get()));
 	}
 }
 
@@ -176,7 +178,7 @@ void nex::StaticMeshDrawer::drawWired(StaticMeshContainer* model, Pass* shader, 
 		auto& renderState = material->getRenderState();
 		auto backupFillMode = renderState.fillMode;
 		renderState.fillMode = FillMode::LINE;
-		draw(mesh.get(), mappings.at(mesh.get()), shader);
+		draw(mesh.get(), mappings.at(mesh.get()));
 		renderState.fillMode = backupFillMode;
 	}
 }

@@ -9,6 +9,7 @@
 #include <nex/shader/SimpleColorPass.hpp>
 #include <nex/shader/Technique.hpp>
 #include <nex/material/Material.hpp>
+#include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -18,6 +19,7 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mDepthMap(std::make_unique<DepthMapPass>()),
 	mScreen(std::make_unique<ScreenPass>()),
 	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
+	mIrradianceSphereHullDrawTechnique(std::make_unique<IrradianceSphereHullDrawTechnique>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
 {
 	mPostProcessor = std::make_unique<PostProcessor>(width, height, mDownSampler.get(), mGaussianBlur.get());
@@ -58,6 +60,11 @@ nex::ScreenPass* nex::EffectLibrary::getScreenShader()
 nex::SimpleColorTechnique* nex::EffectLibrary::getSimpleColorTechnique()
 {
 	return mSimpleColorTechnique.get();
+}
+
+nex::IrradianceSphereHullDrawTechnique* nex::EffectLibrary::getIrradianceSphereHullDrawTechnique()
+{
+	return mIrradianceSphereHullDrawTechnique.get();
 }
 
 std::unique_ptr<nex::SimpleColorMaterial> nex::EffectLibrary::createSimpleColorMaterial()

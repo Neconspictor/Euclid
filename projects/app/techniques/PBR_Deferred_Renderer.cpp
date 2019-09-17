@@ -282,7 +282,7 @@ void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Bu
 			{
 				depthPass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 				depthPass->uploadTransformMatrices();
-				StaticMeshDrawer::draw(command.mesh, nullptr, depthPass);
+				StaticMeshDrawer::draw(command.mesh, nullptr);
 			}
 		}
 
@@ -344,6 +344,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination(); 
+
 	if (globalIllumination && false) {
 
 		auto* probeCluster = globalIllumination->getProbeCluster();
@@ -408,6 +409,10 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	auto* forward = mPbrTechnique->getForward();
 	forward->configurePass(constants);
 	forward->updateLight(sun, camera);
+
+	if (globalIllumination)
+		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
+			mRenderTargetSingleSampled->getDepthAttachment()->texture.get());
 
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 	StaticMeshDrawer::draw(queue.getProbeCommands());

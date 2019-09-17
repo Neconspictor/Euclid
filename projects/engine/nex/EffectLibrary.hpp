@@ -16,6 +16,7 @@ namespace nex
 	class PostProcessor;
 	class DownSampler;
 	class SimpleColorTechnique;
+	class IrradianceSphereHullDrawTechnique;
 
 	class RenderTarget;
 	class Technique;
@@ -45,6 +46,8 @@ namespace nex
 		ScreenPass* getScreenShader();
 
 		SimpleColorTechnique* getSimpleColorTechnique();
+		IrradianceSphereHullDrawTechnique* getIrradianceSphereHullDrawTechnique();
+
 		std::unique_ptr<SimpleColorMaterial> createSimpleColorMaterial();
 
 		void resize(unsigned width, unsigned height);
@@ -54,6 +57,7 @@ namespace nex
 		std::unique_ptr<EquirectangularSkyBoxPass> mEquirectangualrSkyBox;
 		std::unique_ptr<PanoramaSkyBoxPass> mPanoramaSkyBox;
 		std::unique_ptr<SimpleColorTechnique> mSimpleColorTechnique;
+		std::unique_ptr<IrradianceSphereHullDrawTechnique> mIrradianceSphereHullDrawTechnique;
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<ScreenPass> mScreen;

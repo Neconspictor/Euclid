@@ -387,7 +387,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 
 
-	/*meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
+	meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
 
 	commandQueue->push([=]() {
 		meshContainer->finalize();
@@ -397,7 +397,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
 	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
 	sponzaVob->mDebugName = "sponzaSimple1";
-	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 30.0f));*/
+	sponzaVob->setPosition(glm::vec3(0.0f, 0.0f, 30.0f));
 
 	//meshContainer = StaticMeshManager::get()->getModel("transparent/transparent.obj");
 	meshContainer = StaticMeshManager::get()->getModel("transparent/transparent_intersected_resolved.obj");

@@ -144,6 +144,8 @@ set(
     nex/pbr/Cluster.hpp
     nex/pbr/GlobalIllumination.cpp
     nex/pbr/GlobalIllumination.hpp
+    nex/pbr/IrradianceSphereHullDrawPass.cpp
+    nex/pbr/IrradianceSphereHullDrawPass.hpp
     nex/pbr/Pbr.cpp
     nex/pbr/Pbr.hpp
     nex/pbr/PbrDeferred.cpp

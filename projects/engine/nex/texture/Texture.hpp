@@ -165,6 +165,27 @@ namespace nex
 		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 	};
 
+	class Texture3D : public Texture
+	{
+	public:
+
+		/** Creates a new Texture3D object using a given internal implementation.
+		 *  Note: Be aware, that there aren't any checks. So be sure that the implementation is indeed compatible!
+		 */
+		Texture3D(std::unique_ptr<Impl> impl);
+
+		// Has to be implemented by renderer backend
+		Texture3D(unsigned width, unsigned height, unsigned depth, const TextureData& textureData, const void* data);
+
+		virtual ~Texture3D() = default;
+
+		/**
+		 * Resizes this 3d texture. Note that the current texels will be discarded.
+		 * NOTE: Has to be implemented by renderer backend
+		 */
+		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
+	};
+
 	class RenderBuffer : public Texture {
 	public:
 
