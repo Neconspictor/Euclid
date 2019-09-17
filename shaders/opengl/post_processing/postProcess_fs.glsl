@@ -16,7 +16,7 @@ layout(binding = 6) uniform sampler2D motionMap;
 
 
 #define MOTION_BLUR_SAMPLES 12.0
-#define MOTION_SCALE 2.0
+#define MOTION_SCALE 1.0
 
 const vec4 sepiaColor = vec4(1.2, 1.0, 0.8, 1.0);
 
@@ -26,22 +26,6 @@ const vec4 sepiaColor = vec4(1.2, 1.0, 0.8, 1.0);
 void main() {
 
     vec4 color = texture(sourceTexture, fs_in.texCoord).rgba;
-    
-    
-    // Motion blur
-    vec2 motion = texture(motionMap, fs_in.texCoord).xy;
-    //motion = vec2(0.1, 0.1);
-    motion     *= MOTION_SCALE;
-    
-    vec4 avgColor = color;
-    for(int i = 0; i < MOTION_BLUR_SAMPLES; ++i)
-    {
-        vec2 offset = motion * (float(i) / float(MOTION_BLUR_SAMPLES - 1) - 0.5);
-        avgColor += texture(sourceTexture, fs_in.texCoord + offset);
-    }
-    avgColor /= MOTION_BLUR_SAMPLES;
-    color = avgColor;
-    
     
     // Bloom
     const float strength = 1.0;
@@ -53,7 +37,24 @@ void main() {
     
     color += bloom;
     
-
+    // Ambient Occlusion
+    color.rgb *= texture(aoMap, fs_in.texCoord).r;
+    
+    
+    // Motion blur
+    vec2 motion = texture(motionMap, fs_in.texCoord).xy;
+    //motion = vec2(0.1, 0.1);
+    motion     *= MOTION_SCALE;
+    
+    vec4 avgColor = color;
+    for(int i = 0; i < MOTION_BLUR_SAMPLES; ++i)
+    {
+        vec2 offset = motion * (float(i) / float(MOTION_BLUR_SAMPLES - 1) - 0.5);
+        avgColor += texture(aoMap, fs_in.texCoord + offset).r * texture(sourceTexture, fs_in.texCoord + offset);
+    }
+    avgColor /= MOTION_BLUR_SAMPLES;
+    color = avgColor;
+    
     // HDR tonemapping
     const float exposure = 1;
     color *= exposure;
@@ -63,8 +64,7 @@ void main() {
     const float gamma = 2.2f;
     color = pow(color, vec4(1.0/gamma)); 
     
-    // Ambient Occlusion
-    color.rgb *= texture(aoMap, fs_in.texCoord).r;
+    
     
     //Sepia
     //vec4 grayscale = vec4(dot(color, vec4(0.299, 0.587, 0.114, 1.0)));
@@ -77,6 +77,7 @@ void main() {
     float vign = tuv.x*tuv.y * VignetteStrength;
     vign = pow(vign, power);
     //color *= vign;
+   
 
     fragColor = color;
 	//fragColor = bloomQuarterSample;

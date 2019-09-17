@@ -277,12 +277,12 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideForward(mForward.get());
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
-	/*PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
+	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
 	TextureData backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternFormat::RGB32F;
 	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", backgroundHDRData, true);
-	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);*/
+	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
 
 	for (auto* probeVob : scene.getActiveProbeVobsUnsafe()) { //const auto& spatial : mProbeSpatials
 
