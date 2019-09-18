@@ -3,6 +3,10 @@
 #define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT 0
 #endif
 
+#ifndef VOXEL_BASE_SIZE
+#define  VOXEL_BASE_SIZE 128.0
+#endif
+
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
@@ -30,6 +34,6 @@ void main()
 {
     gl_Position = transforms.model * vec4(position, 1.0f); 
     vs_out.position = gl_Position.xyz;
-    vs_out.normal = normalize(mat3(transforms.model) * normal);
+    vs_out.normal = normalize(mat3(transpose(inverse(transforms.model))) * normal);
     vs_out.texCoords = texCoords;
 }

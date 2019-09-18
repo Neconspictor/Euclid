@@ -235,6 +235,13 @@ void NeXEngine::run()
 	RenderCommandQueue commandQueue;
 	commandQueue.useCameraCulling(mCamera.get());
 
+	{
+		mScene.acquireLock();
+		mScene.updateWorldTrafoHierarchyUnsafe(true);
+		mScene.calcSceneBoundingBoxUnsafe();
+		mGlobalIllumination->voxelize(mScene, mSun);
+	}
+
 	while (mWindow->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
@@ -264,7 +271,6 @@ void NeXEngine::run()
 			mScene.acquireLock();
 			mScene.updateWorldTrafoHierarchyUnsafe(true);
 			mScene.calcSceneBoundingBoxUnsafe();
-			mGlobalIllumination->voxelize(mScene);
 		}
 
 		if (isRunning())
@@ -281,7 +287,7 @@ void NeXEngine::run()
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 			commandQueue.clear();
-			collectRenderCommands(commandQueue, mScene);
+			mScene.collectRenderCommands(commandQueue, false);
 			commandQueue.sort();
 
 			{
@@ -317,44 +323,6 @@ void NeXEngine::setConfigFileName(const char*  fileName)
 void NeXEngine::setRunning(bool isRunning)
 {
 	mIsRunning = isRunning;
-}
-
-void NeXEngine::collectRenderCommands(RenderCommandQueue& commandQueue, const Scene& scene)
-{
-	//std::queue<SceneNode*> queue;
-	RenderCommand command;
-	std::list<SceneNode*> queue;
-
-
-	scene.acquireLock();
-	for (const auto& root : scene.getActiveVobsUnsafe())
-	{
-		queue.push_back(root->getMeshRootNode());
-
-		while (!queue.empty())
-		{
-			auto* node = queue.front();
-			queue.pop_front();
-
-			auto range = node->getChildren();
-
-			for (auto* node : range)
-			{
-				queue.push_back(node);
-			}
-
-			auto* mesh = node->getMesh();
-			if (mesh != nullptr)
-			{
-				command.mesh = mesh;
-				command.material = node->getMaterial();
-				command.worldTrafo = node->getWorldTrafo();
-				command.prevWorldTrafo = node->getPrevWorldTrafo();
-				command.boundingBox = node->getMeshBoundingBoxWorld();
-				commandQueue.push(command, false);
-			}
-		}
-	}
 }
 
 

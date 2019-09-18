@@ -91,6 +91,26 @@ class nex::GlobalIllumination::VoxelizePass : public PbrGeometryPass
 {
 public:
 
+	struct VoxelType {
+		glm::uint colorMask;
+		glm::uint normalMask;
+	};
+
+	struct Constants {
+		float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
+		float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent +++
+		glm::uint	g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution +++
+		float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution +++
+
+		glm::uint	g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
+		glm::uint	g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
+		float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
+		float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
+
+		glm::vec4	g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units +++
+		glm::uint	g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not
+	};
+
 	VoxelizePass() :
 		PbrGeometryPass(Shader::create("GI/voxelize_vs.glsl", "GI/voxelize_fs.glsl", nullptr, nullptr, "GI/voxelize_gs.glsl", generateDefines()),
 			TRANSFORM_BUFFER_BINDINGPOINT)
@@ -112,11 +132,18 @@ public:
 		mShader->setFloat(mLightPower.location, power);
 	}
 
-	void updateConstants(const DirLight& light, const glm::mat4& projection, const glm::mat4& view) {
+	void updateLight(const DirLight& light) {
 		setLightColor(light.color);
 		setLightPower(light.power);
 		setLightDirectionWS(light.directionWorld);
-		setViewProjectionMatrices(projection, view, view);
+	}
+
+	void useConstantBuffer(UniformBuffer* buffer) {
+		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
+	}
+
+	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
 	}
 
 private:
@@ -126,14 +153,18 @@ private:
 
 		// csm CascadeBuffer and TransformBuffer both use binding point 0 per default. Resolve this conflict.
 		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
-		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
+		//vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 
 		return vec;
 	}
 
 
 	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
-	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
+	//static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
+	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
+	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
 
 	Uniform mWorldLightDirection;
 	Uniform mLightColor;
@@ -151,7 +182,8 @@ mVoxelizePass(std::make_unique<VoxelizePass>()),
 mAmbientLightPower(1.0f),
 mNextStoreID(0),
 mProbeCluster(std::make_unique<ProbeCluster>()),
-mVoxelBuffer(0, VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY)
+mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
+mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -508,9 +540,67 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	mEnvironmentLights.update(byteSize, lights.data());
 }
 
-void nex::GlobalIllumination::voxelize(const Scene& scene)
+void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light)
 {
+	VoxelizePass::Constants constants;
 	auto box = scene.getSceneBoundingBox();
+	auto diff = box.max - box.min;
+	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
+	
+	constants.g_xFrame_VoxelRadianceDataSize = 1.0f;//voxelExtent / 2.0f;
+	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
+	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
+	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
+	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);//glm::vec4((box.max + box.min) / 2.0f, 1.0);
+	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
+
+
+	RenderCommandQueue commandQueue;
+	scene.collectRenderCommands(commandQueue, false);
+	auto collection = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward 
+												| RenderCommandQueue::Transparent);
+
+
+	auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
+	renderTarget->bind();
+	renderTarget->enableDrawToColorAttachments(false);
+	auto viewPort = RenderBackend::get()->getViewport();
+	RenderBackend::get()->setViewPort(0,0, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
+	
+
+	mVoxelizePass->bind();
+	mVoxelizePass->updateLight(light);
+	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
+	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
+
+	RenderState state;
+
+	for (auto* commands : collection) {
+
+		for (auto& command : *commands) {
+			mVoxelizePass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
+			mVoxelizePass->uploadTransformMatrices();
+			auto state = command.material->getRenderState();
+			state.doDepthTest = false;
+			state.doDepthWrite = false;
+			state.doCullFaces = false;
+			StaticMeshDrawer::draw(command.mesh, command.material, &state);
+		}
+	}
+
+	renderTarget->enableDrawToColorAttachments(true);
+
+	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
+
+	mVoxelBuffer.syncWithGPU();
+	auto* data = (VoxelizePass::VoxelType*)mVoxelBuffer.map(GpuBuffer::Access::READ_ONLY);
+
+	mVoxelBuffer.unmap();
+
+	auto* constantsBufferMemory = (VoxelizePass::Constants*)mVoxelConstantBuffer.map(GpuBuffer::Access::READ_ONLY);
+
+	mVoxelConstantBuffer.unmap();
+
 }
 
 void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth)

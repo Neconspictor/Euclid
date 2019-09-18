@@ -1,5 +1,21 @@
 #version 430 core
 
+#ifndef C_UNIFORM_BUFFER_BINDING_POINT
+#define C_UNIFORM_BUFFER_BINDING_POINT 0
+#endif
+
+#ifndef VOXEL_BUFFER_BINDING_POINT
+#define VOXEL_BUFFER_BINDING_POINT 1
+#endif
+
+#ifndef VOXEL_BASE_SIZE
+#define  VOXEL_BASE_SIZE 128.0
+#endif
+
+#ifndef VOXEL_DATE_SIZE_RCP
+#define  VOXEL_DATE_SIZE_RCP 128.0
+#endif
+
 in GS_OUT {
     vec4 pos;
 	vec2 texCoords;
@@ -18,7 +34,7 @@ struct VoxelType
 
 const float HDR_RANGE = 10.0f;
 
-layout(binding = 0) uniform Cbuffer {
+layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
     float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
 	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
     uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
@@ -29,7 +45,7 @@ layout(binding = 0) uniform Cbuffer {
 	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
 	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
     
-    vec3		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
+    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
 	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
 };
 
@@ -46,7 +62,7 @@ uniform Material material;
 
 uniform DirLight dirLight;
 
-layout(binding = 1) buffer VoxelBuffer {
+layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
 
@@ -80,15 +96,16 @@ void main()
     vec3 N = fs_in.N;
 	vec3 P = fs_in.P;
 
-	vec3 diff = (P - g_xFrame_VoxelRadianceDataCenter) * g_xFrame_VoxelRadianceDataRes_rcp * g_xFrame_VoxelRadianceDataSize_rcp;
+	//vec3 diff = (P - g_xFrame_VoxelRadianceDataCenter.xyz) * g_xFrame_VoxelRadianceDataRes_rcp * g_xFrame_VoxelRadianceDataSize_rcp;
+    vec3 diff = P * 1.0/VOXEL_BASE_SIZE * VOXEL_DATE_SIZE_RCP;
     
     // Note: In original, y component uses -0,5f; but for opengl it should be +0.5f -> verify!
-	vec3 uvw = diff * vec3(0.5f, 0.5f, 0.5f) + 0.5f;
+	vec3 uvw = diff * 0.5 + 0.5;
     
-    if (is_saturated(uvw))
-	{
+    if (!is_saturated(uvw)) {discard;}
+	//{
         vec4 color = vec4(1.0);
-		color = texture(material.albedoMap, fs_in.texCoords);
+		//color = texture(material.albedoMap, fs_in.texCoords);
 		//color.rgb = DEGAMMA(color.rgb); // Shouldn't be needed as we use sRGB textures which map automatically to linear space
         
         
@@ -103,11 +120,23 @@ void main()
 		uint normal_encoded = EncodeNormal(N);
 
 		// output:
-		uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
-		uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
-        atomicMax(voxels[id].colorMask, color_encoded);
-		atomicMax(voxels[id].normalMask, normal_encoded);
-    }
+		//uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
+        uvec3 writecoord = uvec3(floor(uvw * VOXEL_BASE_SIZE));
+		//uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
+        uint id = flatten3D(writecoord, uvec3(VOXEL_BASE_SIZE));
+        atomicAdd(voxels[id].colorMask, color_encoded);
+		atomicAdd(voxels[id].normalMask, normal_encoded);
+        
+        //voxels[id].colorMask = 10;
+        //voxels[id].normalMask = 10;
+        
+        //voxels[writecoord.x].colorMask = 10;
+        //voxels[writecoord.y].normalMask = 10;
+        //voxels[writecoord.z].normalMask = 11;
+        
+        //voxels[1].colorMask = id;
+        //atomicAdd(voxels[1].normalMask, 1);
+    //}
 }  
 
 

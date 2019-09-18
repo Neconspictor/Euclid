@@ -49,8 +49,6 @@ namespace nex
 		void setRunning(bool isRunning);
 
 	protected:
-
-		void collectRenderCommands(RenderCommandQueue& queue, const Scene& scene);
 		void createScene(nex::RenderEngine::CommandQueue*);
 		Window* createWindow();
 		void initLights();

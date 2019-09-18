@@ -242,9 +242,9 @@ void nex::RenderTarget::clear(int components) const
 	//GLCall(glClear(renderComponentsComponentsGL));
 }
 
-void nex::RenderTarget::enableDrawToColorAttachments() const
+void nex::RenderTarget::enableDrawToColorAttachments(bool enable) const
 {
-	mImpl->updateDrawColorAttachmentList();
+	mImpl->enableDrawToColorAttachments(enable);
 }
 
 void nex::RenderTarget::enableDrawToColorAttachment(unsigned index, bool enable)
@@ -379,6 +379,23 @@ void nex::RenderTarget::Impl::updateDrawColorAttachmentList() const
 {
 	const auto colorAttachments = calcEnabledDrawColorAttachments();
 	GLCall(glNamedFramebufferDrawBuffers(mFrameBuffer, static_cast<unsigned>(colorAttachments.size()), colorAttachments.data()));
+}
+
+void nex::RenderTarget::Impl::enableDrawToColorAttachments(bool enable)
+{
+	// Needed for default framebuffer!
+	if (!enable) {
+		glNamedFramebufferDrawBuffer(mFrameBuffer, GL_NONE);
+	}
+	else {
+		glNamedFramebufferDrawBuffer(mFrameBuffer, GL_COLOR_ATTACHMENT0);
+	}
+
+	glColorMask(enable, enable, enable, enable);
+
+	for (auto i = 0; i < mColorAttachmentDrawStatus.size(); ++i) {
+		enableReadColorAttachment(i, enable);
+	}
 }
 
 void nex::RenderTarget::Impl::enableReadColorAttachment(unsigned index, bool enable)

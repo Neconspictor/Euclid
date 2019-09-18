@@ -18,6 +18,7 @@ namespace nex
 	class Material;
 	class ProbeVob;
 	class StaticMeshContainer;
+	class RenderCommandQueue;
 
 
 	enum class VobType {
@@ -135,6 +136,8 @@ namespace nex
 
 		void calcSceneBoundingBoxUnsafe();
 		const AABB& getSceneBoundingBox() const;
+
+		void collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling) const;
 
 	private:
 		std::unordered_set<Vob*> mActiveVobs;

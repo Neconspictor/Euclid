@@ -6,6 +6,7 @@
 #include <nex/mesh/Mesh.hpp>
 #include <nex/mesh/StaticMesh.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <nex/renderer/RenderCommandQueue.hpp>
 
 namespace nex
 {
@@ -243,6 +244,43 @@ namespace nex
 	const AABB& Scene::getSceneBoundingBox() const
 	{
 		return mBoundingBox;
+	}
+
+	void Scene::collectRenderCommands(RenderCommandQueue& commandQueue, bool doCulling) const
+	{
+		RenderCommand command;
+		std::list<SceneNode*> queue;
+
+
+		acquireLock();
+		for (const auto& root : getActiveVobsUnsafe())
+		{
+			queue.push_back(root->getMeshRootNode());
+
+			while (!queue.empty())
+			{
+				auto* node = queue.front();
+				queue.pop_front();
+
+				auto range = node->getChildren();
+
+				for (auto* node : range)
+				{
+					queue.push_back(node);
+				}
+
+				auto* mesh = node->getMesh();
+				if (mesh != nullptr)
+				{
+					command.mesh = mesh;
+					command.material = node->getMaterial();
+					command.worldTrafo = node->getWorldTrafo();
+					command.prevWorldTrafo = node->getPrevWorldTrafo();
+					command.boundingBox = node->getMeshBoundingBoxWorld();
+					commandQueue.push(command, doCulling);
+				}
+			}
+		}
 	}
 
 

@@ -46,6 +46,8 @@ namespace nex
 
 		void updateDrawColorAttachmentList() const;
 
+		void enableDrawToColorAttachments(bool enable);
+
 		void enableReadColorAttachment(unsigned index, bool enable);
 
 		void enableDrawColorAttachment(unsigned index, bool enable);

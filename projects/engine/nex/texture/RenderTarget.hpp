@@ -48,7 +48,7 @@ namespace nex
 		void clear(int components) const;
 
 		// Has to be implemented by renderer backend
-		void enableDrawToColorAttachments() const;
+		void enableDrawToColorAttachments(bool enable) const;
 
 		// Has to be implemented by renderer backend
 		void enableDrawToColorAttachment(unsigned index, bool enable);
