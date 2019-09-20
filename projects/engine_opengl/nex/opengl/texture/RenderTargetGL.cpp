@@ -208,6 +208,14 @@ void nex::RenderTarget::bind()
 
 void nex::RenderTarget::clear(int components) const
 {
+
+	// default framebuffer?
+	if (mImpl->getFrameBuffer() == GL_FALSE) {
+		int renderComponentsComponentsGL = RenderTarget2DGL::getRenderComponents(components);
+		GLCall(glClear(renderComponentsComponentsGL));
+		return;
+	}
+
 	glm::vec4 color(glm::vec3(0.0), 0.0f);
 	float depth = 1.0f;
 	int stencil = 0;
@@ -237,9 +245,7 @@ void nex::RenderTarget::clear(int components) const
 			GLCall(glClearNamedFramebufferiv(mImpl->getFrameBuffer(), GL_STENCIL, 0, &stencil));
 		}
 	}
-
-	//int renderComponentsComponentsGL = RenderTarget2DGL::getRenderComponents(components);
-	//GLCall(glClear(renderComponentsComponentsGL));
+	
 }
 
 void nex::RenderTarget::enableDrawToColorAttachments(bool enable) const
