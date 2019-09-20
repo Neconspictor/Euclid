@@ -239,7 +239,9 @@ void NeXEngine::run()
 		mScene.acquireLock();
 		mScene.updateWorldTrafoHierarchyUnsafe(true);
 		mScene.calcSceneBoundingBoxUnsafe();
+		mWindow->resize(2048, 2048);
 		mGlobalIllumination->voxelize(mScene, mSun);
+		mWindow->resize(1920, 1080);
 	}
 
 	while (mWindow->isOpen())
@@ -297,7 +299,23 @@ void NeXEngine::run()
 
 			
 			RenderTarget2D* screenRenderTarget = RenderBackend::get()->getDefaultRenderTarget();
-			mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), true, screenRenderTarget);
+
+			if (mGlobalIllumination->getVisualize()) {
+
+				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
+				depthTest->enableDepthBufferWriting(true);
+
+				screenRenderTarget->bind();
+				RenderBackend::get()->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				screenRenderTarget->clear(Color | Stencil | Depth);
+				
+				mGlobalIllumination->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
+			}
+			else {
+				mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), true, screenRenderTarget);
+			}
+
+			
 			mControllerSM->getDrawable()->drawGUI();
 			
 			ImGui::Render();
@@ -682,6 +700,14 @@ void NeXEngine::setupGUI()
 		mWindow);
 	vobLoaderWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(vobLoaderWindow));
+
+	auto globalIlluminationWindow = std::make_unique<nex::gui::GlobalIlluminationView>(
+		"Global Illumination",
+		root->getMainMenuBar(),
+		root->getToolsMenu(),
+		mGlobalIllumination.get());
+	globalIlluminationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
+	root->addChild(move(globalIlluminationWindow));
 
 }
 

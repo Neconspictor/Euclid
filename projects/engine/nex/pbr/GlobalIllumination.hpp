@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/renderer/RenderCommandQueue.hpp>
+#include <nex/gui/MenuWindow.hpp>
 
 namespace nex
 {
@@ -48,6 +49,8 @@ namespace nex
 		ProbeCluster* getProbeCluster();
 		const ProbeCluster* getProbeCluster() const;
 
+		bool getVisualize() const;
+
 		/**
 		 * Provides for each pbr probe an EnvironmentLight struct.
 		 */
@@ -56,7 +59,11 @@ namespace nex
 		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
 
+		void setVisualize(bool visualize);
+
 		void update(const nex::Scene::ProbeRange& activeProbes);
+
+		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 
 		void voxelize(const Scene& scene, const DirLight& light);
 
@@ -64,10 +71,12 @@ namespace nex
 
 	private:
 
-		static constexpr unsigned VOXEL_BASE_SIZE = 128;
+		static const unsigned VOXEL_BASE_SIZE;
 
 		class ProbeBakePass;
 		class VoxelizePass;
+		class VoxelVisualizePass;
+		class VoxelFillComputeLightPass;
 
 		void advanceNextStoreID(unsigned id);
 
@@ -92,10 +101,13 @@ namespace nex
 		ShaderStorageBuffer mEnvironmentLights;
 		ShaderStorageBuffer mVoxelBuffer;
 		UniformBuffer mVoxelConstantBuffer;
+		std::unique_ptr<Texture3D> mVoxelTexture;
 		PbrProbeFactory mFactory;
 		PbrProbe* mActive;
 		std::unique_ptr<ProbeBakePass> mProbeBakePass;
 		std::unique_ptr<VoxelizePass> mVoxelizePass;
+		std::unique_ptr<VoxelVisualizePass> mVoxelVisualizePass;
+		std::unique_ptr<VoxelFillComputeLightPass> mVoxelFillComputeLightPass;
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
@@ -104,5 +116,23 @@ namespace nex
 
 		std::unique_ptr<ProbeCluster> mProbeCluster;
 		std::unique_ptr<StaticMeshContainer> mSphere;
+		bool mVisualize;
 	};
+
+
+	namespace gui {
+
+		class GlobalIlluminationView : public nex::gui::MenuWindow {
+		public:
+			GlobalIlluminationView(std::string title,
+				MainMenuBar* menuBar,
+				Menu* menu, 
+				GlobalIllumination* globalIllumination);
+
+			void drawSelf() override;
+
+		private:
+			GlobalIllumination* mGlobalIllumination;
+		};
+	}
 }

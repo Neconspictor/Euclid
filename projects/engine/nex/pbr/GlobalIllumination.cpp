@@ -23,6 +23,8 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
+const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 32;
+
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
 public:
@@ -170,7 +172,94 @@ private:
 	Uniform mLightColor;
 	Uniform mLightPower;
 	Uniform mInverseView;
+};
 
+class nex::GlobalIllumination::VoxelVisualizePass : public Pass
+{
+public:
+
+	VoxelVisualizePass() :
+		Pass(Shader::create("GI/voxel_visualize_vs.glsl", "GI/voxel_visualize_fs.glsl", nullptr, nullptr, 
+			"GI/voxel_visualize_gs.glsl", generateDefines()))
+	{
+		mViewProj = { mShader->getUniformLocation("viewProj"), UniformType::MAT4 };
+	}
+
+	void setViewProjection(const glm::mat4& mat) {
+		mShader->setMat4(mViewProj.location, mat);
+	}
+
+	void useConstantBuffer(UniformBuffer* buffer) {
+		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
+	}
+
+	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	}
+
+private:
+
+	static std::vector<std::string> generateDefines() {
+		auto vec = std::vector<std::string>();
+
+		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
+
+		return vec;
+	}
+
+	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
+	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
+
+	Uniform mViewProj;
+};
+
+
+class nex::GlobalIllumination::VoxelFillComputeLightPass : public ComputePass
+{
+public:
+
+	VoxelFillComputeLightPass(unsigned localSizeX) :
+		ComputePass(Shader::createComputeShader("GI/copy_to_texture_calc_light_cs.glsl", generateDefines(localSizeX)))
+	{
+		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
+	}
+
+	void useConstantBuffer(UniformBuffer* buffer) {
+		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
+	}
+
+	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	}
+
+	void setVoxelOutputImage(Texture3D* voxelImage) {
+		mShader->setImageLayerOfTexture(mVoxelImage.location,
+			voxelImage, mVoxelImage.bindingSlot,
+			TextureAccess::READ_WRITE,
+			InternFormat::RGBA16F,
+			0,
+			true,
+			0);
+	}
+
+private:
+
+	static std::vector<std::string> generateDefines(unsigned localSizeX) {
+		auto vec = std::vector<std::string>();
+
+		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
+		vec.push_back(std::string("#define LOCAL_SIZE_X ") + std::to_string(localSizeX));
+
+		return vec;
+	}
+
+	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
+	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
+	static constexpr unsigned VOXEL_IMAGE_BINDING_POINT = 0;
+
+	UniformTex mVoxelImage;
 };
 
 
@@ -179,11 +268,14 @@ mFactory(prefilteredSize, depth),
 mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), 
 mVoxelizePass(std::make_unique<VoxelizePass>()),
+mVoxelFillComputeLightPass(std::make_unique<VoxelFillComputeLightPass>(VOXEL_BASE_SIZE)),
+mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>()),
 mAmbientLightPower(1.0f),
 mNextStoreID(0),
 mProbeCluster(std::make_unique<ProbeCluster>()),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
-mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
+mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW),
+mVisualize(false)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -230,6 +322,10 @@ mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::Usa
 	mSphere->addMapping(sphere.get(), material.get());
 	mSphere->add(std::move(sphere));
 	mSphere->addMaterial(std::move(material));
+
+	auto data = TextureData::createRenderTargetRGBAHDR(InternFormat::RGBA16F, true);
+	data.pixelDataType = PixelDataType::FLOAT_HALF;
+	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -447,6 +543,11 @@ const nex::ProbeCluster* nex::GlobalIllumination::getProbeCluster() const
 	return mProbeCluster.get();
 }
 
+bool nex::GlobalIllumination::getVisualize() const
+{
+	return mVisualize;
+}
+
 nex::ProbeVob* nex::GlobalIllumination::addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID)
 {
 	advanceNextStoreID(storeID);
@@ -511,6 +612,11 @@ void nex::GlobalIllumination::setAmbientPower(float ambientPower)
 	mAmbientLightPower = ambientPower;
 }
 
+void nex::GlobalIllumination::setVisualize(bool visualize)
+{
+	mVisualize = visualize;
+}
+
 void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)
 {
 	const auto byteSize = activeProbes.size() * sizeof(EnvironmentLight);
@@ -540,6 +646,18 @@ void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes
 	mEnvironmentLights.update(byteSize, lights.data());
 }
 
+void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const glm::mat4& view)
+{
+	mVoxelVisualizePass->bind();
+	mVoxelVisualizePass->setViewProjection(projection * view);
+	mVoxelVisualizePass->useConstantBuffer(&mVoxelConstantBuffer);
+	mVoxelVisualizePass->useVoxelBuffer(&mVoxelBuffer);
+
+	VertexBuffer::unbindAny(); //Make sure we don't use 'zero' data
+	RenderBackend::get()->drawArray(RenderState(), nex::Topology::POINTS, 0, 
+								VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
+}
+
 void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light)
 {
 	VoxelizePass::Constants constants;
@@ -547,11 +665,11 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	auto diff = box.max - box.min;
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
-	constants.g_xFrame_VoxelRadianceDataSize = 1.0f;//voxelExtent / 2.0f;
+	constants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
 	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
 	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
 	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
-	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);//glm::vec4((box.max + box.min) / 2.0f, 1.0);
+	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((box.max + box.min) / 2.0f, 1.0);
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
 
 
@@ -565,7 +683,8 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	renderTarget->bind();
 	renderTarget->enableDrawToColorAttachments(false);
 	auto viewPort = RenderBackend::get()->getViewport();
-	RenderBackend::get()->setViewPort(0,0, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
+	constexpr float scale = 1;
+	RenderBackend::get()->setViewPort(0,0, VOXEL_BASE_SIZE * scale, VOXEL_BASE_SIZE * scale);
 	
 
 	mVoxelizePass->bind();
@@ -592,14 +711,26 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 
 	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
 
-	mVoxelBuffer.syncWithGPU();
+	/*mVoxelBuffer.syncWithGPU();
 	auto* data = (VoxelizePass::VoxelType*)mVoxelBuffer.map(GpuBuffer::Access::READ_ONLY);
 
 	mVoxelBuffer.unmap();
 
 	auto* constantsBufferMemory = (VoxelizePass::Constants*)mVoxelConstantBuffer.map(GpuBuffer::Access::READ_ONLY);
 
-	mVoxelConstantBuffer.unmap();
+	mVoxelConstantBuffer.unmap();*/
+
+	mVoxelFillComputeLightPass->bind();
+	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
+	mVoxelFillComputeLightPass->useConstantBuffer(&mVoxelConstantBuffer);
+	mVoxelFillComputeLightPass->useVoxelBuffer(&mVoxelBuffer);
+	mVoxelFillComputeLightPass->dispatch(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
+
+	std::vector<glm::vec4> dest(VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
+	dest[0].x = 89;
+	mVoxelBuffer.syncWithGPU();
+	mVoxelTexture->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, (void*)dest.data(), dest.size() * sizeof(glm::vec4));
+	auto* data = dest.data();
 
 }
 
@@ -900,4 +1031,21 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		result->generateMipMaps();
 
 		return result;
+	}
+
+	nex::gui::GlobalIlluminationView::GlobalIlluminationView(std::string title, 
+		MainMenuBar* menuBar, Menu* menu, GlobalIllumination* globalIllumination) :
+		MenuWindow(std::move(title), menuBar, menu),
+		mGlobalIllumination(globalIllumination)
+
+	{
+
+	}
+
+	void nex::gui::GlobalIlluminationView::drawSelf()
+	{
+		bool visualize = mGlobalIllumination->getVisualize();
+		if (ImGui::Checkbox("Visualize scene voxelization", &visualize)) {
+			mGlobalIllumination->setVisualize(visualize);
+		}
 	}
