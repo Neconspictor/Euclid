@@ -19,5 +19,8 @@ namespace nex
 		VertexBuffer& operator=(const VertexBuffer& o) = delete;
 
 		virtual ~VertexBuffer();
+
+		//Has to be implemented by render backend
+		static void unbindAny();
 	};
 }
