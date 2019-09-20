@@ -1022,6 +1022,7 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 	static PixelDataTypeGL const table[]
 	{
 		PixelDataTypeGL::FLOAT,
+		PixelDataTypeGL::FLOAT_HALF,
 		PixelDataTypeGL::UBYTE,
 		PixelDataTypeGL::UINT,
 		PixelDataTypeGL::SHORT,

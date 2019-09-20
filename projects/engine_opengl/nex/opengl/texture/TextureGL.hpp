@@ -107,6 +107,7 @@ namespace nex
 	enum class PixelDataTypeGL
 	{
 		FLOAT = GL_FLOAT,
+		FLOAT_HALF = GL_HALF_FLOAT,
 		UBYTE = GL_UNSIGNED_BYTE,
 		UINT = GL_UNSIGNED_INT,
 		SHORT = GL_SHORT,
