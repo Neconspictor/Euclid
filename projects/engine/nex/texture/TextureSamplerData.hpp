@@ -79,6 +79,7 @@ namespace nex
 	enum class PixelDataType
 	{
 		FLOAT, FIRST = FLOAT,
+		FLOAT_HALF,
 		UBYTE,
 		UINT,
 
@@ -272,14 +273,14 @@ namespace nex
 			return result;
 		}
 
-		static TextureData createRenderTargetRGBAHDR()
+		static TextureData createRenderTargetRGBAHDR(InternFormat format = InternFormat::RGBA32F, bool generateMipMaps = false)
 		{
 			TextureData data;
-			data.generateMipMaps = false;
+			data.generateMipMaps = generateMipMaps;
 			data.minFilter = TextureFilter::NearestNeighbor;
 			data.magFilter = TextureFilter::NearestNeighbor;
 			data.colorspace = ColorSpace::RGBA;
-			data.internalFormat = InternFormat::RGBA32F;
+			data.internalFormat = format;
 			data.pixelDataType = PixelDataType::FLOAT;
 			data.wrapR = TextureUVTechnique::ClampToEdge;
 			data.wrapS = TextureUVTechnique::ClampToEdge;
