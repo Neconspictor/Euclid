@@ -241,7 +241,7 @@ void NeXEngine::run()
 		mScene.calcSceneBoundingBoxUnsafe();
 		mWindow->resize(2048, 2048);
 		mGlobalIllumination->voxelize(mScene, mSun);
-		mWindow->resize(1920, 1080);
+		mWindow->resize(800, 600);
 	}
 
 	while (mWindow->isOpen())
@@ -307,6 +307,7 @@ void NeXEngine::run()
 
 				screenRenderTarget->bind();
 				RenderBackend::get()->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				RenderBackend::get()->setBackgroundColor(glm::vec3(1.0f));
 				screenRenderTarget->clear(Color | Stencil | Depth);
 				
 				mGlobalIllumination->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());

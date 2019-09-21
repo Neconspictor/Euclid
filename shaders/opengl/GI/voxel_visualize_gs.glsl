@@ -57,7 +57,7 @@ const vec3 zAxis = vec3(0,0,-1); // Remember: Right handed (important for windin
 void main()
 {
 
-    if (gs_in[0].color.a == 0.0) {
+    if (gs_in[0].color.a < 0.01) {
         return;
     };
 

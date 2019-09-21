@@ -383,6 +383,11 @@ namespace nex
 		void syncMemoryWithGPU(int flags);
 
 		/**
+		 * Blocks till all gpu commands are finished.
+		 */
+		void wait();
+
+		/**
 		 * Renders an equirectangular texture (2D) to a cubemap and returns the result;
 		 */
 		//CubeRenderTarget* renderCubeMap(int width, int height, Texture* equirectangularMap);

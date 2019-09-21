@@ -652,6 +652,7 @@ namespace nex
 	void RenderBackend::setBackgroundColor(const glm::vec3& color)
 	{
 		mPimpl->backgroundColor = color;
+		GLCall(glClearColor(color.r, color.g, color.b, 1.0f));
 	}
 
 	void RenderBackend::setLineThickness(float thickness)
@@ -718,6 +719,11 @@ namespace nex
 		rasterizer->setWindingOrder(state.windingOrder);
 		rasterizer->setFillMode(state.fillMode);
 		
+	}
+
+	void RenderBackend::wait()
+	{
+		GLCall(glFinish());
 	}
 
 	/*

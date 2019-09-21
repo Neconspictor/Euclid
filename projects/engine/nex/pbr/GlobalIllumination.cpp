@@ -183,10 +183,22 @@ public:
 			"GI/voxel_visualize_gs.glsl", generateDefines()))
 	{
 		mViewProj = { mShader->getUniformLocation("viewProj"), UniformType::MAT4 };
+		mMipMap = { mShader->getUniformLocation("mipMap"), UniformType::FLOAT };
+		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, 0);
+		mSampler.setMinFilter(TextureFilter::Near_Mipmap_Near);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+		mSampler.setBorderColor(glm::vec4(0.0));
+		mSampler.setWrapR(TextureUVTechnique::ClampToBorder);
+		mSampler.setWrapS(TextureUVTechnique::ClampToBorder);
+		mSampler.setWrapT(TextureUVTechnique::ClampToBorder);
 	}
 
 	void setViewProjection(const glm::mat4& mat) {
 		mShader->setMat4(mViewProj.location, mat);
+	}
+
+	void setMipMap(int mipMap) {
+		mShader->setFloat(mMipMap.location, mipMap);
 	}
 
 	void useConstantBuffer(UniformBuffer* buffer) {
@@ -195,6 +207,18 @@ public:
 
 	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
 		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	}
+
+	void useVoxelTexture(Texture3D* texture) {
+		mShader->setTexture(texture, &mSampler, 0);
+		return;
+		mShader->setImageLayerOfTexture(mVoxelImage.location,
+			texture, mVoxelImage.bindingSlot,
+			TextureAccess::READ_WRITE,
+			InternFormat::RGBA32F,
+			0,
+			true,
+			0);
 	}
 
 private:
@@ -212,6 +236,8 @@ private:
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
 
 	Uniform mViewProj;
+	Uniform mMipMap;
+	UniformTex mVoxelImage;
 };
 
 
@@ -237,7 +263,7 @@ public:
 		mShader->setImageLayerOfTexture(mVoxelImage.location,
 			voxelImage, mVoxelImage.bindingSlot,
 			TextureAccess::READ_WRITE,
-			InternFormat::RGBA16F,
+			InternFormat::RGBA32F,
 			0,
 			true,
 			0);
@@ -275,7 +301,8 @@ mNextStoreID(0),
 mProbeCluster(std::make_unique<ProbeCluster>()),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW),
-mVisualize(false)
+mVisualize(false),
+mVoxelVisualizeMipMap(0)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -323,8 +350,13 @@ mVisualize(false)
 	mSphere->add(std::move(sphere));
 	mSphere->addMaterial(std::move(material));
 
-	auto data = TextureData::createRenderTargetRGBAHDR(InternFormat::RGBA16F, true);
-	data.pixelDataType = PixelDataType::FLOAT_HALF;
+	// Note: we have to generate mipmaps since memory can only be allocated during texture creation.
+	auto data = TextureData::createRenderTargetRGBAHDR(InternFormat::RGBA32F, true);
+	data.minFilter = TextureFilter::Linear_Mipmap_Linear; //Linear_Mipmap_Linear TODO: which filtering is better?
+	data.magFilter = TextureFilter::Linear; //Linear
+	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToBorder;
+	data.borderColor = glm::vec4(0.0);
+	data.pixelDataType = PixelDataType::FLOAT;
 	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
 }
 
@@ -612,9 +644,10 @@ void nex::GlobalIllumination::setAmbientPower(float ambientPower)
 	mAmbientLightPower = ambientPower;
 }
 
-void nex::GlobalIllumination::setVisualize(bool visualize)
+void nex::GlobalIllumination::setVisualize(bool visualize, int mipMapLevel)
 {
 	mVisualize = visualize;
+	mVoxelVisualizeMipMap = mipMapLevel;
 }
 
 void nex::GlobalIllumination::update(const nex::Scene::ProbeRange & activeProbes)
@@ -650,8 +683,10 @@ void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const gl
 {
 	mVoxelVisualizePass->bind();
 	mVoxelVisualizePass->setViewProjection(projection * view);
+	mVoxelVisualizePass->setMipMap(mVoxelVisualizeMipMap);
 	mVoxelVisualizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelVisualizePass->useVoxelBuffer(&mVoxelBuffer);
+	mVoxelVisualizePass->useVoxelTexture(mVoxelTexture.get());
 
 	VertexBuffer::unbindAny(); //Make sure we don't use 'zero' data
 	RenderBackend::get()->drawArray(RenderState(), nex::Topology::POINTS, 0, 
@@ -683,7 +718,7 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	renderTarget->bind();
 	renderTarget->enableDrawToColorAttachments(false);
 	auto viewPort = RenderBackend::get()->getViewport();
-	constexpr float scale = 1;
+	constexpr float scale = 2;
 	RenderBackend::get()->setViewPort(0,0, VOXEL_BASE_SIZE * scale, VOXEL_BASE_SIZE * scale);
 	
 
@@ -726,11 +761,12 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	mVoxelFillComputeLightPass->useVoxelBuffer(&mVoxelBuffer);
 	mVoxelFillComputeLightPass->dispatch(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
 
-	std::vector<glm::vec4> dest(VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
-	dest[0].x = 89;
-	mVoxelBuffer.syncWithGPU();
-	mVoxelTexture->readback(0, ColorSpace::RGBA, PixelDataType::FLOAT, (void*)dest.data(), dest.size() * sizeof(glm::vec4));
-	auto* data = dest.data();
+	
+	mVoxelTexture->generateMipMaps();
+
+	/*std::vector<glm::vec4> dest(VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
+	mVoxelTexture->readback(3, ColorSpace::RGBA, PixelDataType::FLOAT, (void*)dest.data(), dest.size() * sizeof(glm::vec4));
+	auto* data = dest.data();*/
 
 }
 
@@ -1045,7 +1081,13 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 	void nex::gui::GlobalIlluminationView::drawSelf()
 	{
 		bool visualize = mGlobalIllumination->getVisualize();
+
+		static int mipMap = 0;
+		if (ImGui::DragInt("Voxelization mip map level", &mipMap)) {
+			mGlobalIllumination->setVisualize(visualize, mipMap);
+		}
+
 		if (ImGui::Checkbox("Visualize scene voxelization", &visualize)) {
-			mGlobalIllumination->setVisualize(visualize);
+			mGlobalIllumination->setVisualize(visualize, mipMap);
 		}
 	}

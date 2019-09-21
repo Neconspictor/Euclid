@@ -36,13 +36,16 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
 
+layout(binding = 0) uniform sampler3D voxelTexture;
+uniform float mipMap;
+
 void main()
 {
-    VoxelType voxel = voxels[gl_VertexID];
-    vs_out.color = DecodeColor(voxel.colorMask); 
-    vec3 id = unflatten3D(gl_VertexID, uvec3(g_xFrame_VoxelRadianceDataRes));
-    id = id * g_xFrame_VoxelRadianceDataRes_rcp;
-    id = 2.0 * id - 1.0;
-    vs_out.positionWS = id * g_xFrame_VoxelRadianceDataSize * g_xFrame_VoxelRadianceDataRes;
+    //VoxelType voxel = voxels[gl_VertexID];
+    //vs_out.color = DecodeColor(voxel.colorMask); 
+    uvec3 id = unflatten3D(gl_VertexID, uvec3(g_xFrame_VoxelRadianceDataRes));
+    vec3 texCoord = vec3(id) * g_xFrame_VoxelRadianceDataRes_rcp;  
+    vs_out.color = textureLod(voxelTexture, texCoord, mipMap);
+    vs_out.positionWS = (2.0 * texCoord - 1.0) * g_xFrame_VoxelRadianceDataSize * g_xFrame_VoxelRadianceDataRes;
     gl_Position = vec4(vs_out.positionWS, 1.0f); 
 }

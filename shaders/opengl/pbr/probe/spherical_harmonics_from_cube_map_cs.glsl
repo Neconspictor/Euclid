@@ -28,7 +28,7 @@ void main()
 {		
     const int harmonicIndex = int(gl_WorkGroupID.x);
     const int mapIndex = int(rowStart + gl_WorkGroupID.y);
-	const float sampleDelta = 0.005; // 0.025
+	const float sampleDelta = 0.025; // 0.025
     vec3 irradiance = vec3(0.0);
     float nrSamples = 0.0;
     //const int nrSamples = int (TWO_PI / sampleDelta) * int(PI / sampleDelta); 
@@ -45,7 +45,7 @@ void main()
             ++nrSamples;
 		}
 	}
-	irradiance = TWO_PI * irradiance / nrSamples; 
+	irradiance = TWO_PI * irradiance * 1.0/ float(nrSamples); 
    
     imageStore(result, ivec2(harmonicIndex, mapIndex), vec4(irradiance, 1.0));
 }

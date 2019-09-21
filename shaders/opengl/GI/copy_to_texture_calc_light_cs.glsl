@@ -21,7 +21,7 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
 
-layout (rgba16f, binding = 0) uniform image3D voxelImage;
+layout (rgba32f, binding = 0) uniform image3D voxelImage;
 
 layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
     float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
@@ -43,11 +43,17 @@ void main()
 {
     const uint globalInvocationIndex = getGlobalInvocationIndex();
     VoxelType voxel = voxels[globalInvocationIndex];
-    vec4 color = DecodeColor(voxel.colorMask);
-    imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
-    //imageStore(voxelImage, ivec3(0,0,0) , vec4(0.5,0.5, 0.5,1.0));
     
-    /*if (color.a > 0 && color.r > 0.4) {
-        imageStore(voxelImage, ivec3(0,0,0) , color);
-    }*/
+    if (voxel.colorMask == 0) return;
+    
+    vec4 color = DecodeColor(voxel.colorMask);
+    //color.a = 1;
+    
+   //if (color.a > 0.0) color.a = 1.0;
+    
+    imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
+    
+    //if (color.a > 0 && color.r > 0.6) {
+    //    imageStore(voxelImage, ivec3(0,0,0) , color);
+    //}
 }

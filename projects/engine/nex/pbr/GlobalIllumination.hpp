@@ -59,7 +59,7 @@ namespace nex
 		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
 
-		void setVisualize(bool visualize);
+		void setVisualize(bool visualize, int mipMapLevel = 0);
 
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
@@ -117,6 +117,7 @@ namespace nex
 		std::unique_ptr<ProbeCluster> mProbeCluster;
 		std::unique_ptr<StaticMeshContainer> mSphere;
 		bool mVisualize;
+		int mVoxelVisualizeMipMap;
 	};
 
 
