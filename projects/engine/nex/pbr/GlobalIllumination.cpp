@@ -23,7 +23,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
-const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
+const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 128;
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
@@ -701,10 +701,14 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
 	constants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
+	constants.g_xFrame_VoxelRadianceDataSize = 0.5;
 	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
 	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
 	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
 	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((box.max + box.min) / 2.0f, 1.0);
+	constants.g_xFrame_VoxelRadianceNumCones = 8;
+	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0 / float(constants.g_xFrame_VoxelRadianceNumCones);
+	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::getMipMapCount(mVoxelTexture->getWidth());
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
 
 
