@@ -177,7 +177,7 @@ void nex::Pbr_ConfigurationView::drawSelf()
 
 	float ambientLightPower = active->getGlobalIllumination()->getAmbientPower();
 
-	if (ImGui::DragFloat("Amblient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
+	if (ImGui::DragFloat("Ambient Light Power", &ambientLightPower, 0.1f, 0.0f, 10.0f))
 	{
 		active->getGlobalIllumination()->setAmbientPower(ambientLightPower);
 	}

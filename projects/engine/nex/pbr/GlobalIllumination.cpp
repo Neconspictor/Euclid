@@ -23,7 +23,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
-const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 128;
+const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
@@ -289,12 +289,54 @@ private:
 };
 
 
+class nex::GlobalIllumination::MipMapTexture3DPass : public ComputePass
+{
+public:
+
+	MipMapTexture3DPass() :
+		ComputePass(Shader::createComputeShader("GI/mipmap_texture3d_box_filter_cs.glsl"))
+	{
+		mSourceImage = mShader->createTextureUniform("source", UniformType::IMAGE3D, SOURCE_BINDING_POINT);
+		mDestImage = mShader->createTextureUniform("dest", UniformType::IMAGE3D, DEST_BINDING_POINT);
+	}
+
+	void setInputImage(Texture3D* texture, unsigned mipMap) {
+		mShader->setImageLayerOfTexture(mSourceImage.location,
+			texture, mSourceImage.bindingSlot,
+			TextureAccess::READ_ONLY,
+			InternFormat::RGBA32F,
+			mipMap,
+			true,
+			0);
+	}
+
+	void setOutputImage(Texture3D* texture, unsigned mipMap) {
+		mShader->setImageLayerOfTexture(mDestImage.location,
+			texture, mDestImage.bindingSlot,
+			TextureAccess::WRITE_ONLY,
+			InternFormat::RGBA32F,
+			mipMap,
+			true,
+			0);
+	}
+
+private:
+
+	static constexpr unsigned SOURCE_BINDING_POINT = 0;
+	static constexpr unsigned DEST_BINDING_POINT = 1;
+
+	UniformTex mSourceImage;
+	UniformTex mDestImage;
+};
+
+
 nex::GlobalIllumination::GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth) :
 mFactory(prefilteredSize, depth),
 mEnvironmentLights(0, 0, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mProbeBakePass(std::make_unique<ProbeBakePass>()), 
 mVoxelizePass(std::make_unique<VoxelizePass>()),
 mVoxelFillComputeLightPass(std::make_unique<VoxelFillComputeLightPass>(VOXEL_BASE_SIZE)),
+mMipMapTexture3DPass(std::make_unique<MipMapTexture3DPass>()),
 mVoxelVisualizePass(std::make_unique<VoxelVisualizePass>()),
 mAmbientLightPower(1.0f),
 mNextStoreID(0),
@@ -634,6 +676,16 @@ nex::ShaderStorageBuffer* nex::GlobalIllumination::getEnvironmentLightShaderBuff
 	return &mEnvironmentLights;
 }
 
+nex::UniformBuffer* nex::GlobalIllumination::getVoxelConstants()
+{
+	return &mVoxelConstantBuffer;
+}
+
+nex::Texture3D* nex::GlobalIllumination::getVoxelTexture()
+{
+	return mVoxelTexture.get();
+}
+
 void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 {
 	mActive = probe;
@@ -701,7 +753,7 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
 	constants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
-	constants.g_xFrame_VoxelRadianceDataSize = 0.5;
+	//constants.g_xFrame_VoxelRadianceDataSize = 0.5;
 	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
 	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
 	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
@@ -709,6 +761,7 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	constants.g_xFrame_VoxelRadianceNumCones = 8;
 	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0 / float(constants.g_xFrame_VoxelRadianceNumCones);
 	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::getMipMapCount(mVoxelTexture->getWidth());
+	constants.g_xFrame_VoxelRadianceRayStepSize = 0.25;
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
 
 
@@ -766,7 +819,18 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	mVoxelFillComputeLightPass->dispatch(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
 
 	
-	mVoxelTexture->generateMipMaps();
+	mMipMapTexture3DPass->bind();
+
+	const int lastMipMapIndex = Texture::getMipMapCount(mVoxelTexture->getWidth()) - 1;
+
+	for (int i = 0; i < lastMipMapIndex; ++i) {
+		const auto mipMapSize = mVoxelTexture->getWidth() / std::pow(2, i);
+		mMipMapTexture3DPass->setInputImage(mVoxelTexture.get(), i);
+		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i+1); 
+		mMipMapTexture3DPass->dispatch(mipMapSize, mipMapSize, mipMapSize);
+	}
+
+	//mVoxelTexture->generateMipMaps();
 
 	/*std::vector<glm::vec4> dest(VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
 	mVoxelTexture->readback(3, ColorSpace::RGBA, PixelDataType::FLOAT, (void*)dest.data(), dest.size() * sizeof(glm::vec4));

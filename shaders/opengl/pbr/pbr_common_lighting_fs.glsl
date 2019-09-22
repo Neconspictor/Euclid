@@ -30,6 +30,17 @@
 #define PBR_CONSTANTS 0
 #endif
 
+#ifndef VOXEL_C_UNIFORM_BUFFER_BINDING_POINT
+#define VOXEL_C_UNIFORM_BUFFER_BINDING_POINT 1
+#endif
+
+#ifndef VOXEL_TEXTURE_BINDING_POINT
+#define VOXEL_TEXTURE_BINDING_POINT 9
+#endif
+
+//Feature define macros:
+// USE_CONE_TRACING
+
 
 #include "shadow/cascaded_shadow.glsl"
 #include "pbr/viewspaceNormalization.glsl"
@@ -86,6 +97,30 @@ layout(std140, binding = PBR_CONSTANTS) uniform ConstantsBlock {
     PbrConstants constants;
 };
 
+/**
+ * Cone tracing
+ */
+layout(std140, binding = VOXEL_C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
+    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
+	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
+    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
+	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
+    
+    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
+	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
+	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
+	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
+    
+    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
+	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
+};
+
+layout(binding = VOXEL_TEXTURE_BINDING_POINT) uniform sampler3D voxelTexture;
+
+#include "GI/cone_trace.glsl"
+
+
+
 
 struct ArrayIndexWeight {
     float indices[2];
@@ -94,14 +129,16 @@ struct ArrayIndexWeight {
 
 
 
-vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo);
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao, vec3 positionWorld);
-float DistributionGGX(vec3 N, vec3 H, float roughness);
-float GeometrySchlickGGX(float NdotV, float roughness);
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
-vec3 fresnelSchlick(float cosTheta, vec3 F0);
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
-ArrayIndexWeight calcArrayIndices(in vec3 positionEye, vec3 normalWorld);
+
+
+vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
+vec3 pbrAmbientLight(in vec3 V, in vec3 N, in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
+float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
+float GeometrySchlickGGX(in float NdotV, in float roughness);
+float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness);
+vec3 fresnelSchlick(in float cosTheta, in vec3 F0);
+vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
+ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld);
 
 
 void calcLighting(in float ao, 
@@ -128,6 +165,7 @@ void calcLighting(in float ao,
     vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
     vec3 normalEx = normalEye;//normalize(vec3(inverse(inverseViewMatrix) * vec4(normalWorld, 0.0f)));
     vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
 
     
     //metallic = 1.0;
@@ -141,7 +179,7 @@ void calcLighting(in float ao,
     // reflectance equation
     vec3 Lo = pbrDirectLight(viewEye, normalEx, roughness, F0, metallic, albedo);
     
-    vec3 ambient =  pbrAmbientLight(viewEye, normalEx, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionEye);
+    vec3 ambient =  pbrAmbientLight(viewEye, normalEx, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
     
     float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEx, positionEye.z, positionEye);
 	
@@ -178,7 +216,7 @@ void calcLighting(in float ao,
 }
 
 
-vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, vec3 albedo) {
+vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo) {
 	
     vec3 L = normalize(dirLight.directionEye);
 	vec3 H = normalize(V + L);
@@ -219,7 +257,8 @@ vec3 pbrDirectLight(vec3 V, vec3 N, float roughness, vec3 F0, float metallic, ve
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
-vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0, float metallic, vec3 albedo, vec3 reflectionDirWorld, float ao, vec3 positionEye) {
+vec3 pbrAmbientLight(in vec3 V,in  vec3 N, in vec3 normalWorld, in float roughness, in vec3 F0, 
+in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
 	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
@@ -234,7 +273,14 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     //Important: We need world space normals! TODO: Maybe it is possible to generate 
     // irradianceMap in such a way, that we can use view space normals, too.
     //vec3 irradiance = texture(irradianceMap, normalWorld).rgb;
-    vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+    
+    #ifdef USE_CONE_TRACING
+        vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
+        vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
+    #else 
+        vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+    #endif
+    
     //irradiance1 = vec3(1 - indexWeight.indices[0],0, indexWeight.indices[0]);
     //vec3 irradiance2 = texture(irradianceMaps, vec4(normalWorld, indexWeight.indices[1])).rgb;
     //irradiance2 = vec3(1 - indexWeight.indices[1],0, indexWeight.indices[1]);
@@ -251,7 +297,18 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
     
 	
     // Important: R has to be in world space, too.
-    vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    //vec3 prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor = vec3(0.0);
+    
+    #ifdef USE_CONE_TRACING
+        vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+        prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
+    #else 
+        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    #endif
+    
+    //ConeTraceReflection
+    
     /*vec3 prefilteredColor1 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[0]), roughness * MAX_REFLECTION_LOD).rgb;
     
     vec3 prefilteredColor2 = textureLod(prefilteredMaps, vec4(reflectionDirWorld, indexWeight.indices[1]), roughness * MAX_REFLECTION_LOD).rgb;
@@ -265,11 +322,7 @@ vec3 pbrAmbientLight(vec3 V, vec3 N, vec3 normalWorld, float roughness, vec3 F0,
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    vec3 withoutRoughness = ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
-    vec3 fullRoughness = ambientLightPower * (kD * diffuse) * ao;
-    
-    //return mix(withoutRoughness, fullRoughness, roughness);
-    return withoutRoughness;
+    return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
 
@@ -465,7 +518,7 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
 
 
 // ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
+float DistributionGGX(in vec3 N, in vec3 H, in float roughness)
 {
     float a = roughness*roughness;
     float a2 = a*a;
@@ -479,7 +532,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
+float GeometrySchlickGGX(in float NdotV, in float roughness)
 {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
@@ -490,7 +543,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
@@ -500,12 +553,12 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 // ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
+vec3 fresnelSchlick(in float cosTheta, in vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 // ----------------------------------------------------------------------------
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }   

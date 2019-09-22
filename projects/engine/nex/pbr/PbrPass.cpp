@@ -259,6 +259,10 @@ void PbrLightingData::updateConstants(const Pass::Constants& constants)
 		probeCluster->getClusterAABBBuffer()->bindToTarget(mClustersAABBBindingPoint);
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(mEnvLightGlobalLightIndicesBindingPoint);
 		envLightCuller->getLightGrids()->bindToTarget(mEnvLightLightGridsBindingPoint);
+
+		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mPrefilteredSampler, 9);
+		mGlobalIllumination->getVoxelConstants()->bindToTarget(1);
+
 		//mEnvLightGlobalLightIndicesBindingPoint
 		//mEnvLightLightGridsBindingPoint
 		//mClustersAABBBindingPoint

@@ -9,6 +9,10 @@ in VS_OUT {
 	vec2 tex_coords;
 } fs_in;
 
+#ifndef USE_CONE_TRACING
+#define USE_CONE_TRACING
+#endif
+
 #include "pbr/pbr_common_lighting_fs.glsl"
 
 

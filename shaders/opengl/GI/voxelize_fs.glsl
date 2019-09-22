@@ -73,7 +73,7 @@ void main()
     if (!is_saturated(uvw)) {discard;}
 	//{
         vec4 color = vec4(1.0);
-        color.rgb = texture(material.albedoMap, fs_in.texCoords).rgb;
+        color = texture(material.albedoMap, fs_in.texCoords);
 		//color.rgb = DEGAMMA(color.rgb); // Shouldn't be needed as we use sRGB textures which map automatically to linear space
         
         
@@ -82,7 +82,7 @@ void main()
         
         //TODO: shadow maps!
         
-        //color.xyz *= lightColor;
+        color.xyz *= lightColor;
         
         uint color_encoded = EncodeColor(color);
 		uint normal_encoded = EncodeNormal(N);

@@ -56,6 +56,9 @@ namespace nex
 		 */
 		ShaderStorageBuffer* getEnvironmentLightShaderBuffer();
 
+		UniformBuffer* getVoxelConstants();
+		Texture3D* getVoxelTexture();
+
 		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
 
@@ -77,6 +80,7 @@ namespace nex
 		class VoxelizePass;
 		class VoxelVisualizePass;
 		class VoxelFillComputeLightPass;
+		class MipMapTexture3DPass;
 
 		void advanceNextStoreID(unsigned id);
 
@@ -108,6 +112,7 @@ namespace nex
 		std::unique_ptr<VoxelizePass> mVoxelizePass;
 		std::unique_ptr<VoxelVisualizePass> mVoxelVisualizePass;
 		std::unique_ptr<VoxelFillComputeLightPass> mVoxelFillComputeLightPass;
+		std::unique_ptr<MipMapTexture3DPass> mMipMapTexture3DPass;
 		float mAmbientLightPower;
 		std::unique_ptr<PbrDeferred> mDeferred;
 		std::unique_ptr<PbrForward> mForward;
