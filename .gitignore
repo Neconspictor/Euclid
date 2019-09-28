@@ -37,6 +37,9 @@ lib/boost-1.67.0/*
 lib/glfw-3.2.1/*
 !lib/glfw-3.2.1/COPYING.txt
 
+#GLAD
+!lib/glad
+
 # GLIis included in the repo!!!
 !lib/gli/
 !lib/gli/*
