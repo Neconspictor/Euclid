@@ -524,7 +524,7 @@ namespace nex
 		return std::unique_ptr<CubeDepthMap>(CubeDepthMap::create(width, height));
 	}
 
-	std::unique_ptr<CubeRenderTarget> nex::RenderBackend::createCubeRenderTarget(int width, int height, const TextureData& data)
+	std::unique_ptr<CubeRenderTarget> nex::RenderBackend::createCubeRenderTarget(int width, int height, const TextureDesc& data)
 	{
 		return make_unique<CubeRenderTarget>(width, height, data);
 	}
@@ -539,7 +539,7 @@ namespace nex
 		return &mPimpl->mDepthBuffer;
 	}
 
-	std::unique_ptr <RenderTarget2D> nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureData& data, const TextureData& depthData, int samples) {
+	std::unique_ptr <RenderTarget2D> nex::RenderBackend::create2DRenderTarget(int width, int height, const TextureDesc& data, const TextureDesc& depthData, int samples) {
 		RenderAttachment depth;
 		depth.type = RenderAttachment::translate(depthData.internalFormat);
 		depth.texture = make_shared<Texture2D>(width, height, depthData, nullptr);
@@ -556,12 +556,12 @@ namespace nex
 		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
 		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
-		TextureData depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL,
+		TextureDesc depthData = TextureDesc::createDepth(CompareFunction::LESS_EQUAL,
 			ColorSpace::DEPTH_STENCIL,
 			PixelDataType::UNSIGNED_INT_24_8,
 			InternFormat::DEPTH24_STENCIL8);
 
-		return create2DRenderTarget(width, height, TextureData::createRenderTargetRGBAHDR(), depthData, samples);
+		return create2DRenderTarget(width, height, TextureDesc::createRenderTargetRGBAHDR(), depthData, samples);
 	}
 
 	void RenderBackend::drawWithIndices(const RenderState& state, Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset)
@@ -790,7 +790,7 @@ namespace nex
 		return target.release();
 	}*/
 
-	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureData& data,
+	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureDesc& data,
 		unsigned samples)
 	{
 		assert(samples >= 1);

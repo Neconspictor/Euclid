@@ -142,7 +142,7 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	mAreaTex = std::make_unique<Texture2D>(AREATEX_WIDTH, AREATEX_HEIGHT, areaDesc, temp.data());*/
 
 
-	TextureData areaDesc;
+	TextureDesc areaDesc;
 	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
 	areaDesc.minFilter = areaDesc.magFilter = TextureFilter::Linear;
 	areaDesc.colorspace = ColorSpace::RGB;
@@ -150,7 +150,7 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 	areaDesc.pixelDataType = PixelDataType::UBYTE;
 	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", areaDesc);
 
-	TextureData searchDesc;
+	TextureDesc searchDesc;
 	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = TextureUVTechnique::ClampToEdge;
 	searchDesc.minFilter = searchDesc.magFilter = TextureFilter::NearestNeighbor;
 	searchDesc.colorspace = ColorSpace::RGB;
@@ -183,7 +183,7 @@ nex::Texture2D* nex::SMAA::getSearchTex()
 
 void nex::SMAA::resize(unsigned width, unsigned height)
 {
-	TextureData data;
+	TextureDesc data;
 	data.generateMipMaps = false;
 	data.minFilter = data.magFilter = TextureFilter::Linear;
 	data.colorspace = ColorSpace::RGBA;

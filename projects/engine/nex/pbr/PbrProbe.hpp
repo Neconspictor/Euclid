@@ -99,10 +99,10 @@ namespace nex
 
 		static constexpr unsigned IRRADIANCE_SIZE = 32;
 		static constexpr unsigned BRDF_SIZE = 512;
-		static const TextureData BRDF_DATA;
-		static const TextureData IRRADIANCE_DATA;
-		static const TextureData PREFILTERED_DATA;
-		static const TextureData SOURCE_DATA;
+		static const TextureDesc BRDF_DATA;
+		static const TextureDesc IRRADIANCE_DATA;
+		static const TextureDesc PREFILTERED_DATA;
+		static const TextureDesc SOURCE_DATA;
 		static constexpr unsigned SOURCE_CUBE_SIZE = 1024;
 		static constexpr unsigned INVALID_STOREID = UINT32_MAX;
 		static constexpr unsigned INVALID_ARRAY_INDEX = UINT32_MAX;

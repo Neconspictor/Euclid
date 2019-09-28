@@ -50,8 +50,8 @@ void commonVertexShader() {
 	
 	// TBN must form a right handed coord system.
     // Some models have symetric UVs. Check and fix.
-    if (dot(cross(normal_eye, tangent_eye), bitangent_eye) < 0.0)
-        tangent_eye = tangent_eye * -1.0;
+    //if (dot(cross(normal_eye, tangent_eye), bitangent_eye) < 0.0)
+    //    tangent_eye = tangent_eye * -1.0;
 
 	vs_out.TBN_eye_directions = mat3(tangent_eye, bitangent_eye, normal_eye);
 }

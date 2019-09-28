@@ -100,6 +100,8 @@ namespace nex
 		std::vector<GLenum> calcEnabledReadColorAttachments() const;
 		std::vector<GLenum> calcEnabledDrawColorAttachments() const;
 
+		void init();
+
 		/**
 		 * This function binds the specified framebuffer and reverse it again, so that the OpenGL state remains unchanged.
 		 * The purpose of this function is, that a framebuffer object gets created (certain opengl function are not working correctly otherwise). 
@@ -113,7 +115,7 @@ namespace nex
 
 		explicit RenderTarget2DGL(unsigned width, 
 			unsigned height, 
-			const TextureData& data, 
+			const TextureDesc& data, 
 			unsigned samples);
 
 		explicit RenderTarget2DGL(GLuint frameBuffer, unsigned width,
@@ -128,7 +130,7 @@ namespace nex
 	class CubeRenderTargetGL : public RenderTarget::Impl
 	{
 	public:
-		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat = InternFormat::DEPTH24);
+		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternFormat depthFormat = InternFormat::DEPTH24);
 
 		void useSide(CubeMapSide side, unsigned mipLevel);
 

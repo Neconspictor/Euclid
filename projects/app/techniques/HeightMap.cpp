@@ -99,7 +99,7 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 	mMeshes->add(std::move(mesh), std::make_unique<Material>(nullptr));
 
 
-	TextureData heightDesc;
+	TextureDesc heightDesc;
 	heightDesc.colorspace = ColorSpace::R;
 	heightDesc.internalFormat = InternFormat::R32F;
 	heightDesc.pixelDataType = PixelDataType::FLOAT;

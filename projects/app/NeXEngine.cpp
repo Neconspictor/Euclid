@@ -239,10 +239,30 @@ void NeXEngine::run()
 		mScene.acquireLock();
 		mScene.updateWorldTrafoHierarchyUnsafe(true);
 		mScene.calcSceneBoundingBoxUnsafe();
+		auto box = mScene.getSceneBoundingBox();
+		auto middlePoint = (box.max + box.min) / 2.0f;
 		mWindow->resize(2048, 2048);
-		mGlobalIllumination->voxelize(mScene, mSun);
+
+		mCamera->setPosition(middlePoint, true);
+		mCamera->update();
+
+		mScene.collectRenderCommands(commandQueue, false);
+		auto collection = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
+			| RenderCommandQueue::Transparent);
+
+		nex::Pass::Constants constants;
+		constants.camera = mCamera.get();
+		constants.windowWidth = mWindow->getFrameBufferWidth();
+		constants.windowHeight = mWindow->getFrameBufferHeight();
+		mRenderer->renderShadows(commandQueue.getShadowCommands(), constants, mSun, nullptr);
+
+		mGlobalIllumination->voxelize(collection, box, mSun, mRenderer->getCascadedShadow());
 		mWindow->resize(800, 600);
 	}
+
+	commandQueue.clear();
+	mScene.collectRenderCommands(commandQueue, false);
+	commandQueue.sort();
 
 	while (mWindow->isOpen())
 	{
@@ -288,9 +308,7 @@ void NeXEngine::run()
 
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
-			commandQueue.clear();
-			mScene.collectRenderCommands(commandQueue, false);
-			commandQueue.sort();
+	
 
 			{
 				//mScene.acquireLock();
@@ -493,7 +511,7 @@ void NeXEngine::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = { -1,-1,-1 };
+	mSun.directionWorld = { -0.5,-1,-0.5 };
 }
 
 void NeXEngine::initPbr()

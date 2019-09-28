@@ -172,7 +172,7 @@ bool CascadedShadow::isEnabled() const
 
 void CascadedShadow::updateTextureArray()
 {
-	TextureData data;
+	TextureDesc data;
 	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternFormat::DEPTH16;
 	data.pixelDataType = PixelDataType::UNSIGNED_SHORT;

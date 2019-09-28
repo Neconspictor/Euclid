@@ -53,7 +53,7 @@ namespace nex::gui
 					FileDialog fileDialog(mWindow);
 					auto result = fileDialog.selectFile("jpg,png,psd,bpm,tga,hdr");
 
-					TextureData data;
+					TextureDesc data;
 					data.colorspace = ColorSpace::SRGBA;
 					data.internalFormat = InternFormat::SRGBA8;
 					data.generateMipMaps = true;

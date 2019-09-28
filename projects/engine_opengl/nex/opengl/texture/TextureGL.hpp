@@ -163,11 +163,11 @@ namespace nex
 	class Texture::Impl
 	{
 	public:
-		explicit Impl(TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth);
-		Impl(GLuint texture, TextureTarget target, const TextureData& data, unsigned width, unsigned height, unsigned depth);
+		explicit Impl(TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth);
+		Impl(GLuint texture, TextureTarget target, const TextureDesc& data, unsigned width, unsigned height, unsigned depth);
 
 		virtual ~Impl();
-		const TextureData& getTextureData() const;
+		const TextureDesc& getTextureData() const;
 
 		static void applyTextureData(GLuint texture, const BaseTextureDesc& desc);
 
@@ -177,7 +177,7 @@ namespace nex
 			unsigned numLevel,
 			unsigned minLayer,
 			unsigned numLayers,
-			const TextureData& data);
+			const TextureDesc& data);
 
 		void generateMipMaps();
 
@@ -243,7 +243,7 @@ namespace nex
 		GLuint mTextureID;
 		TextureTarget mTarget;
 		TextureTargetGl mTargetGL;
-		TextureData mTextureData;
+		TextureDesc mTextureData;
 
 		unsigned mWidth;
 		unsigned mHeight;
@@ -253,22 +253,22 @@ namespace nex
 	class Texture2DGL : public Texture::Impl
 	{
 	public:
-		explicit Texture2DGL(GLuint width, GLuint height, const TextureData& textureData, const void* data);
-		Texture2DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0);
+		explicit Texture2DGL(GLuint width, GLuint height, const TextureDesc& textureData, const void* data);
+		Texture2DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0);
 
 		virtual void resize(unsigned width, unsigned height, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture2D;
 		unsigned mSamples;
-		TextureData mData;
+		TextureDesc mData;
 	};
 
 	class Texture2DMultisampleGL : public Texture2DGL
 	{
 	public:
-		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureData& textureData, unsigned samples = 1);
-		Texture2DMultisampleGL(GLuint texture, const TextureData& textureData, unsigned samples = 1, unsigned width = 0, unsigned height = 0);
+		Texture2DMultisampleGL(GLuint width, GLuint height, const TextureDesc& textureData, unsigned samples = 1);
+		Texture2DMultisampleGL(GLuint texture, const TextureDesc& textureData, unsigned samples = 1, unsigned width = 0, unsigned height = 0);
 
 		/**
 		 * Note: mipmapCount and autoMipMapCount aren't used for multisample textures!
@@ -283,27 +283,27 @@ namespace nex
 	class Texture2DArrayGL : public Texture::Impl
 	{
 	public:
-		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
-		Texture2DArrayGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
+		explicit Texture2DArrayGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const void* data);
+		Texture2DArrayGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
 		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture2DArray;
-		TextureData mData;
+		TextureDesc mData;
 	};
 
 	class Texture3DGL : public Texture::Impl
 	{
 	public:
-		explicit Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureData& textureData, const void* data);
-		Texture3DGL(GLuint texture, const TextureData& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
+		explicit Texture3DGL(GLuint width, GLuint height, GLuint depth, const TextureDesc& textureData, const void* data);
+		Texture3DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0, unsigned height = 0, unsigned depth = 0);
 
 		void resize(unsigned width, unsigned height, unsigned depth, unsigned mipmapCount, bool autoMipMapCount);
 
 	protected:
 		friend Texture3D;
-		TextureData mData;
+		TextureDesc mData;
 	};
 
 	class CubeMapGL : public Texture::Impl
@@ -325,8 +325,8 @@ namespace nex
 
 		static Side translate(CubeMapSide side);
 
-		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
-		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureData& data);
+		explicit CubeMapGL(unsigned sideWidth, unsigned sideHeight, const TextureDesc& data);
+		CubeMapGL(GLuint cubeMap, unsigned sideWidth, unsigned sideHeight, const TextureDesc& data);
 
 		GLuint getCubeMap() const;
 
@@ -336,8 +336,8 @@ namespace nex
 	class CubeMapArrayGL : public Texture::Impl
 	{
 	public:
-		explicit CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureData& textureData, const void* data);
-		CubeMapArrayGL(GLuint texture, const TextureData& textureData, unsigned sideWidth = 0, unsigned sideHeight = 0, unsigned depth = 0);
+		explicit CubeMapArrayGL(GLuint sideWidth, GLuint sideHeight, GLuint depth, const TextureDesc& textureData, const void* data);
+		CubeMapArrayGL(GLuint texture, const TextureDesc& textureData, unsigned sideWidth = 0, unsigned sideHeight = 0, unsigned depth = 0);
 
 		void fill(unsigned xOffset, unsigned yOffset, unsigned zOffset,
 			unsigned sideWidth, unsigned sideHeight, unsigned layerFaces,
@@ -350,16 +350,16 @@ namespace nex
 
 	protected:
 		friend Texture2DArray;
-		TextureData mData;
+		TextureDesc mData;
 		unsigned mLayerFaces;
 	};
 
 
 	class RenderBufferGL : public Texture::Impl {
 	public:
-		RenderBufferGL(GLuint width, GLuint height, const TextureData& data);
+		RenderBufferGL(GLuint width, GLuint height, const TextureDesc& data);
 		virtual ~RenderBufferGL();
-		RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureData& data);
+		RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureDesc& data);
 
 
 		InternFormat getFormat() const;

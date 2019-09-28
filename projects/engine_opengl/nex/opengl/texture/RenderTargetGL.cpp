@@ -36,7 +36,7 @@ GLuint nex::translate(RenderAttachmentType type, unsigned attachIndex)
 }
 
 
-nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureData data) : 
+nex::CubeRenderTarget::CubeRenderTarget(int width, int height, TextureDesc data) : 
 	RenderTarget(make_unique<CubeRenderTargetGL>(width, height, data))
 {
 }
@@ -73,7 +73,7 @@ unsigned nex::CubeRenderTarget::getHeight() const
 }
 
 
-nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureData data, InternFormat depthFormat) :
+nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternFormat depthFormat) :
 	Impl(width, height)
 {	
 	RenderAttachment color;
@@ -336,12 +336,15 @@ nex::RenderTarget::Impl::Impl(unsigned width, unsigned height) :
 
 	// Note: We need this as DSA functions might not work correctly if the framebuffer object isn't created 
 	bindOnce(mFrameBuffer);
+
+	init();
 }
 
 
 nex::RenderTarget::Impl::Impl(GLuint frameBuffer, unsigned width, unsigned height) :
 	mFrameBuffer(frameBuffer), mWidth(width), mHeight(height)
 {
+	init();
 }
 
 nex::RenderTarget::Impl::~Impl()
@@ -389,7 +392,7 @@ void nex::RenderTarget::Impl::updateDrawColorAttachmentList() const
 
 void nex::RenderTarget::Impl::enableDrawToColorAttachments(bool enable)
 {
-	// Needed for default framebuffer!
+	// Needed for default and framebuffers with no attachments!
 	if (!enable) {
 		glNamedFramebufferDrawBuffer(mFrameBuffer, GL_NONE);
 	}
@@ -538,6 +541,15 @@ std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledDrawColorAttachments() c
 	return result;
 }
 
+void nex::RenderTarget::Impl::init()
+{
+	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_WIDTH, mWidth);
+	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_HEIGHT, mHeight);
+	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_LAYERS, 0);
+	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 0);
+	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS, GL_FALSE);
+}
+
 void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
 {
 	auto* cache = GlobalCacheGL::get();
@@ -552,7 +564,7 @@ void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
 
 nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,
 	unsigned height,
-	const TextureData& data,
+	const TextureDesc& data,
 	unsigned samples) 
 :
 	Impl(width, height)
@@ -602,7 +614,7 @@ nex::RenderTarget2D::RenderTarget2D(std::unique_ptr<Impl> impl) : RenderTarget(s
 {
 }
 
-nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureData& data, unsigned samples): RenderTarget(make_unique<RenderTarget2DGL>(width, height, data, samples))
+nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureDesc& data, unsigned samples): RenderTarget(make_unique<RenderTarget2DGL>(width, height, data, samples))
 {
 }
 
@@ -740,7 +752,7 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 	Impl(width, height)
 {
 
-	TextureData desc;
+	TextureDesc desc;
 	desc.minFilter = TextureFilter::NearestNeighbor;
 	desc.magFilter = TextureFilter::NearestNeighbor;
 	desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::ClampToEdge;

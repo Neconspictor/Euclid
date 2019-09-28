@@ -261,7 +261,7 @@ namespace nex
 
 		//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
 		std::unique_ptr <CubeRenderTarget> createCubeRenderTarget(int width, int height,
-			const TextureData& data = {
+			const TextureDesc& data = {
 				TextureFilter::Linear,
 				TextureFilter::Linear,
 				TextureUVTechnique::ClampToEdge,
@@ -273,7 +273,7 @@ namespace nex
 				false });
 
 		std::unique_ptr<RenderTarget2D> create2DRenderTarget(int width, int height,
-			const TextureData& data = TextureData::createImage(
+			const TextureDesc& data = TextureDesc::createImage(
 				TextureFilter::Linear,
 				TextureFilter::Linear,
 				TextureUVTechnique::ClampToEdge,
@@ -284,7 +284,7 @@ namespace nex
 				InternFormat::RGB32F,
 				false
 			),
-			const TextureData& depthData = TextureData::createDepth(CompareFunction::LESS_EQUAL, 
+			const TextureDesc& depthData = TextureDesc::createDepth(CompareFunction::LESS_EQUAL, 
 				ColorSpace::DEPTH_STENCIL,
 				PixelDataType::UNSIGNED_INT_24_8,
 				InternFormat::DEPTH24_STENCIL8),
@@ -292,7 +292,7 @@ namespace nex
 
 		std::unique_ptr<RenderTarget2D> createRenderTarget(int samples = 1);
 
-		std::unique_ptr<RenderTarget2D> createRenderTargetGL(int width, int height, const TextureData& data, unsigned samples);
+		std::unique_ptr<RenderTarget2D> createRenderTargetGL(int width, int height, const TextureDesc& data, unsigned samples);
 
 		//RenderTarget* createVarianceShadowMap(int width, int height);
 

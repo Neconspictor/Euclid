@@ -23,7 +23,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
-const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
+const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 128;
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {
@@ -120,6 +120,10 @@ public:
 		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
+
+		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
 	void setLightDirectionWS(const glm::vec3& dir) {
@@ -132,6 +136,11 @@ public:
 
 	void setLightPower(float power) {
 		mShader->setFloat(mLightPower.location, power);
+	}
+
+	void useShadow(CascadedShadow* shadow) {
+		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
+		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
 	}
 
 	void updateLight(const DirLight& light) {
@@ -148,6 +157,8 @@ public:
 		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
 	}
 
+
+
 private:
 
 	static std::vector<std::string> generateDefines() {
@@ -157,21 +168,23 @@ private:
 		vec.push_back(std::string("#define PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT ") + std::to_string(TRANSFORM_BUFFER_BINDINGPOINT));
 		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
-		//vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
 
 		return vec;
 	}
 
 
 	static constexpr unsigned TRANSFORM_BUFFER_BINDINGPOINT = 0;
-	//static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
 	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 1;
+	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 2;
+	static constexpr unsigned CSM_CASCADE_DEPTH_MAP_BINDING_POINT = 5;
 
 	Uniform mWorldLightDirection;
 	Uniform mLightColor;
 	Uniform mLightPower;
 	Uniform mInverseView;
+	UniformTex mCascadedDephMap;
 };
 
 class nex::GlobalIllumination::VoxelVisualizePass : public Pass
@@ -393,7 +406,7 @@ mVoxelVisualizeMipMap(0)
 	mSphere->addMaterial(std::move(material));
 
 	// Note: we have to generate mipmaps since memory can only be allocated during texture creation.
-	auto data = TextureData::createRenderTargetRGBAHDR(InternFormat::RGBA32F, true);
+	auto data = TextureDesc::createRenderTargetRGBAHDR(InternFormat::RGBA32F, true);
 	data.minFilter = TextureFilter::Linear_Mipmap_Linear; //Linear_Mipmap_Linear TODO: which filtering is better?
 	data.magFilter = TextureFilter::Linear; //Linear
 	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToBorder;
@@ -413,7 +426,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	
 	camera.update();
 
-	TextureData data;
+	TextureDesc data;
 	data.colorspace = ColorSpace::RGB;
 	data.internalFormat = InternFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
@@ -425,7 +438,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
-	data = TextureData();
+	data = TextureDesc();
 	data.minFilter = TextureFilter::Linear;
 	data.magFilter = TextureFilter::Linear;
 	data.generateMipMaps = false;
@@ -439,7 +452,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	renderTarget->updateDepthAttachment();
 
 
-	TextureData dataDepth;
+	TextureDesc dataDepth;
 	dataDepth.colorspace = ColorSpace::RGBA;
 	dataDepth.internalFormat = InternFormat::RGBA32F;
 	dataDepth.pixelDataType = PixelDataType::FLOAT;
@@ -451,7 +464,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	RenderAttachment depthDepth;
 	depthDepth.target = TextureTarget::TEXTURE2D;
-	dataDepth = TextureData();
+	dataDepth = TextureDesc();
 	dataDepth.minFilter = TextureFilter::Linear;
 	dataDepth.magFilter = TextureFilter::Linear;
 	dataDepth.generateMipMaps = false;
@@ -480,7 +493,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	pbrTechnique->overrideDeferred(mDeferred.get());
 
 	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
-	TextureData backgroundHDRData;
+	TextureDesc backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
 	backgroundHDRData.internalFormat = InternFormat::RGB32F;
 	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", backgroundHDRData, true);
@@ -533,7 +546,7 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 
 	camera.update();
 
-	TextureData data;
+	TextureDesc data;
 	data.colorspace = ColorSpace::RGB;
 	data.internalFormat = InternFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
@@ -545,7 +558,7 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
-	data = TextureData();
+	data = TextureDesc();
 	data.minFilter = TextureFilter::Linear;
 	data.magFilter = TextureFilter::Linear;
 	data.generateMipMaps = false;
@@ -745,30 +758,24 @@ void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const gl
 								VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
 }
 
-void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light)
+void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, 
+	const AABB& sceneBoundingBox, const DirLight& light, CascadedShadow* shadows)
 {
 	VoxelizePass::Constants constants;
-	auto box = scene.getSceneBoundingBox();
-	auto diff = box.max - box.min;
+	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
 	auto voxelExtent = std::max<float>({ diff.x / (float)VOXEL_BASE_SIZE, diff.y / (float)VOXEL_BASE_SIZE, diff.z / (float)VOXEL_BASE_SIZE });
 	
 	constants.g_xFrame_VoxelRadianceDataSize = voxelExtent / 2.0f;
-	//constants.g_xFrame_VoxelRadianceDataSize = 0.5;
+	//constants.g_xFrame_VoxelRadianceDataSize = 0.125;
 	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
 	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
 	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
-	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((box.max + box.min) / 2.0f, 1.0);
-	constants.g_xFrame_VoxelRadianceNumCones = 8;
-	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0 / float(constants.g_xFrame_VoxelRadianceNumCones);
+	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((sceneBoundingBox.max + sceneBoundingBox.min) / 2.0f, 1.0);
+	constants.g_xFrame_VoxelRadianceNumCones = 1;
+	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(constants.g_xFrame_VoxelRadianceNumCones);
 	constants.g_xFrame_VoxelRadianceDataMIPs = Texture::getMipMapCount(mVoxelTexture->getWidth());
-	constants.g_xFrame_VoxelRadianceRayStepSize = 0.25;
+	constants.g_xFrame_VoxelRadianceRayStepSize = 0.7f;
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
-
-
-	RenderCommandQueue commandQueue;
-	scene.collectRenderCommands(commandQueue, false);
-	auto collection = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward 
-												| RenderCommandQueue::Transparent);
 
 
 	auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
@@ -783,6 +790,8 @@ void nex::GlobalIllumination::voxelize(const Scene& scene, const DirLight& light
 	mVoxelizePass->updateLight(light);
 	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
+	mVoxelizePass->useShadow(shadows);
+	
 
 	RenderState state;
 

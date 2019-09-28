@@ -32,7 +32,7 @@ std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
 
 std::unique_ptr<FileSystem> nex::PbrProbeFactory::mFileSystem;
 
-const nex::TextureData nex::PbrProbe::BRDF_DATA = {
+const nex::TextureDesc nex::PbrProbe::BRDF_DATA = {
 			TextureFilter::Linear,
 			TextureFilter::Linear,
 			TextureUVTechnique::ClampToEdge,
@@ -45,7 +45,7 @@ const nex::TextureData nex::PbrProbe::BRDF_DATA = {
 };
 
 
-const nex::TextureData nex::PbrProbe::IRRADIANCE_DATA = {
+const nex::TextureDesc nex::PbrProbe::IRRADIANCE_DATA = {
 			TextureFilter::Linear,
 			TextureFilter::Linear,
 			TextureUVTechnique::ClampToEdge,
@@ -57,7 +57,7 @@ const nex::TextureData nex::PbrProbe::IRRADIANCE_DATA = {
 			false
 };
 
-const nex::TextureData nex::PbrProbe::PREFILTERED_DATA = {
+const nex::TextureDesc nex::PbrProbe::PREFILTERED_DATA = {
 			TextureFilter::Linear_Mipmap_Linear,
 			TextureFilter::Linear,
 			TextureUVTechnique::ClampToEdge,
@@ -69,7 +69,7 @@ const nex::TextureData nex::PbrProbe::PREFILTERED_DATA = {
 			true
 };
 
-const nex::TextureData nex::PbrProbe::SOURCE_DATA = {
+const nex::TextureDesc nex::PbrProbe::SOURCE_DATA = {
 		TextureFilter::Linear,
 		TextureFilter::Linear,
 		TextureUVTechnique::ClampToEdge,
@@ -385,7 +385,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	auto cubeRenderTarget = std::make_unique<CubeRenderTarget>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, SOURCE_DATA);
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
-	TextureData data;
+	TextureDesc data;
 	data.colorspace = ColorSpace::DEPTH;
 	data.internalFormat = InternFormat::DEPTH24;
 	depth.texture = std::make_unique<RenderBuffer>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, data);
@@ -705,7 +705,7 @@ void nex::PbrProbe::init(CubeMap * environment,
 	initPrefiltered(environment, prefilteredSize, probeRoot, useCache, storeRenderedResult);
 
 	if (true) {
-		TextureData data;
+		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
 		data.internalFormat = InternFormat::RGBA32F;
 		data.pixelDataType = PixelDataType::FLOAT;

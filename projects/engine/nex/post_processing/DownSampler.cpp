@@ -82,17 +82,17 @@ void nex::DownSampler::resize(unsigned width, unsigned height)
 {
 	width = static_cast<unsigned>(width * 0.5);
 	height = static_cast<unsigned>(height * 0.5);
-	mHalfResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+	mHalfResolution = std::make_unique<RenderTarget2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 1);
 
 	width = static_cast<unsigned>(width * 0.5);
 	height = static_cast<unsigned>(height * 0.5);
-	mQuarterResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+	mQuarterResolution = std::make_unique<RenderTarget2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 1);
 
 	width = static_cast<unsigned>(width * 0.5);
 	height = static_cast<unsigned>(height * 0.5);
-	mEigthResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+	mEigthResolution = std::make_unique<RenderTarget2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 1);
 
 	width = static_cast<unsigned>(width * 0.5);
 	height = static_cast<unsigned>(height * 0.5);
-	mSixteenthResolution = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR(), 1);
+	mSixteenthResolution = std::make_unique<RenderTarget2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), 1);
 }

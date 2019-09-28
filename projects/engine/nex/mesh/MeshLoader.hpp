@@ -9,7 +9,7 @@ namespace nex
 {
 
 
-	struct TextureData;
+	struct TextureDesc;
 	struct AABB;
 	struct MeshStore;
 

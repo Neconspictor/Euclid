@@ -3,6 +3,7 @@
 #include <regex>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -15,8 +16,8 @@ namespace nex::util {
 
 	string makeAbsolute(string path)
 	{
-		experimental::filesystem::path systemPath(path);
-		systemPath = canonical(systemPath);
+		std::filesystem::path systemPath(path);
+		systemPath = std::filesystem::canonical(systemPath);
 		if (!systemPath.is_absolute())
 		{
 			cerr << "Couldn't convert file path: " << path << endl;
@@ -53,10 +54,10 @@ namespace nex::util {
 		return{ first, last };
 	}
 
-	bool isParentFolderOf(const experimental::filesystem::path& parent, const experimental::filesystem::path& child)
+	bool isParentFolderOf(const std::filesystem::path& parent, const std::filesystem::path& child)
 	{
-		wstring childStr = canonical(child).generic_wstring();
-		wstring parentStr = canonical(parent).generic_wstring();
+		wstring childStr = std::filesystem::canonical(child).generic_wstring();
+		wstring parentStr = std::filesystem::canonical(parent).generic_wstring();
 
 		// make paths case insensitive
 		transform(childStr.begin(), childStr.end(), childStr.begin(), ::tolower);

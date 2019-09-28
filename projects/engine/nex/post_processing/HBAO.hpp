@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
 #include <nex/texture/RenderTarget.hpp>
+#include <nex/texture/Attachment.hpp>
 
 namespace nex {
 	class HbaoConfigurationView;
@@ -14,8 +15,6 @@ namespace nex {
 #define UBO_SCENE     0
 
 
-
-	static const unsigned int AO_RANDOMTEX_SIZE = 4;
 
 	struct Projection {
 		float nearplane;
@@ -52,6 +51,8 @@ namespace nex {
 		glm::vec2    projScale;
 		int     projOrtho;
 		int     _pad1;
+
+		static constexpr unsigned int AO_RANDOMTEX_SIZE = 4;
 
 		glm::vec4    float2Offsets[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
 		glm::vec4    jitters[AO_RANDOMTEX_SIZE*AO_RANDOMTEX_SIZE];
@@ -127,6 +128,25 @@ namespace nex {
 		Sampler mPointSampler2;
 	};
 
+	class ViewNormalPass : public Pass {
+	public:
+
+		ViewNormalPass();
+		virtual ~ViewNormalPass();
+
+		void setProjInfo(const glm::vec4& projInfo);
+		void setProjOrtho(bool projOrtho);
+		void setInvFullResolution(const glm::vec2& invFullResolution);
+		void setLinearDepth(Texture* linearDepth);
+
+	private:
+		
+		Uniform mProjInfo;
+		Uniform mProjOrtho;
+		Uniform mInvFullResolution;
+		UniformTex mLinearDepth;
+	};
+
 
 	/**
 	 * An Horizon based ambient occlusion (HBAO) implementation for deferred rendering.
@@ -146,6 +166,7 @@ namespace nex {
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
 		void renderAO(Texture* depth, const Projection& projection, bool blur);
+		void renderCacheAwareAO(Texture* depth, const Projection& projection, bool blur);
 
 		void displayAOTexture(Texture* texture);
 
@@ -162,6 +183,26 @@ namespace nex {
 		void prepareHbaoData(const Projection& projection, int width, int height);
 
 	protected:
+		friend HbaoConfigurationView;
+
+		float m_blur_sharpness;
+		float m_meters2viewspace;
+		float m_radius;
+		float m_intensity;
+		float m_bias;
+
+		unsigned int windowWidth;
+		unsigned int windowHeight;
+
+		Sprite screenSprite;
+
+		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
+		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
+		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
+		static const int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
+
+	protected:
+
 		std::unique_ptr<BilateralBlurPass> m_bilateralBlur;
 		std::unique_ptr<DepthLinearizerPass> m_depthLinearizer;
 		std::unique_ptr<DisplayTexPass> m_aoDisplay;
@@ -180,27 +221,17 @@ namespace nex {
 		std::unique_ptr<Texture> m_hbao_randomview;
 		UniformBuffer m_hbao_ubo;
 
+		//cache aware stuff
+		std::unique_ptr<ViewNormalPass> mViewNormalPass;
+		std::unique_ptr<Texture2DArray> mDepthArray4th;
+		std::unique_ptr<Texture2DArray> mDepthArray4thResult;
+		std::shared_ptr<Texture> mDepthView4th[HBAO_RANDOM_ELEMENTS];
+		std::unique_ptr<RenderTarget> mDeinterleaveRT;
+		std::vector<RenderAttachment> mDeinterleaveAttachment[HBAO_RANDOM_ELEMENTS / NUM_MRT];
+		std::unique_ptr<RenderTarget> mCacheAwareAoRT;
+		
 
 		HBAOData   m_hbaoDataSource;
-
-
-	protected:
-		friend HbaoConfigurationView;
-
-		float m_blur_sharpness;
-		float m_meters2viewspace;
-		float m_radius;
-		float m_intensity;
-		float m_bias;
-
-		unsigned int windowWidth;
-		unsigned int windowHeight;
-
-		Sprite screenSprite;
-
-		static const int  HBAO_RANDOM_SIZE = AO_RANDOMTEX_SIZE;
-		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
-		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
 	};
 
 

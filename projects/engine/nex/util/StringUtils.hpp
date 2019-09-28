@@ -43,8 +43,8 @@ namespace nex::util {
 	/**
 	 * Checks if a given path 'parent' is a sub path of another path 'child'. 
 	 */
-	bool isParentFolderOf(const std::experimental::filesystem::path& parent,
-		const std::experimental::filesystem::path& child);
+	bool isParentFolderOf(const std::filesystem::path& parent,
+		const std::filesystem::path& child);
 
 	/**
 	 * Creates from an absolute path 'source' a relative path using a second path 'from'
@@ -113,7 +113,7 @@ namespace nex::util {
 		return {};
 	}
 
-	template<class E, size_t S>
+	template<class E, std::size_t S>
 	std::string enumToString(E e, const EnumString<E>(&converter)[S])
 	{
 		for (int i = 0; i < S; ++i)

@@ -50,7 +50,7 @@ namespace nex {
 		nex::FileSystem* getFileSystem();
 
 		nex::Texture2D* getImage(const std::filesystem::path& file,
-			const nex::TextureData& data = {
+			const nex::TextureDesc& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,
 				nex::TextureUVTechnique::Repeat,
@@ -63,7 +63,7 @@ namespace nex {
 		);
 
 		std::unique_ptr<nex::Texture2D> loadImage(const std::filesystem::path& file,
-			const nex::TextureData& data = {
+			const nex::TextureDesc& data = {
 				nex::TextureFilter::Linear_Mipmap_Linear,
 				nex::TextureFilter::Linear,
 				nex::TextureUVTechnique::Repeat,

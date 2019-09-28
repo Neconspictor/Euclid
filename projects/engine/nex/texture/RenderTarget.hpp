@@ -6,9 +6,9 @@ namespace nex
 	class RenderBuffer;
 	class Texture;
 	class RenderTarget;
-	struct TextureData;
+	struct TextureDesc;
 	enum class CubeMapSide;
-	struct TextureData;
+	struct TextureDesc;
 	struct RenderAttachment;
 	class Texture2D;
 
@@ -25,9 +25,7 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		/**
-		 * Creates an uncompleted render target with no attachments.
-		 * Before it can be used for rendering the user has to add attachments, optionally a depth-stencil buffer
-		 * and update the attachments.
+		 * Creates a render target with no attachments.
 		 */
 		RenderTarget(unsigned width, unsigned height);
 
@@ -118,7 +116,7 @@ namespace nex
 
 
 		//Has to be implemented by renderer backend
-		RenderTarget2D(int width, int height, const TextureData& data,
+		RenderTarget2D(int width, int height, const TextureDesc& data,
 			unsigned samples = 1);
 
 		// Has to be implemented by renderer backend
@@ -147,7 +145,7 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		//TODO depthStencilType isn't used currently
-		CubeRenderTarget(int width, int height, TextureData data);
+		CubeRenderTarget(int width, int height, TextureDesc data);
 
 		void useSide(CubeMapSide side, unsigned int mipLevel = 0);
 

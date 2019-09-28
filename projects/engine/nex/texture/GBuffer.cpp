@@ -12,7 +12,7 @@ namespace nex
 	{
 		bind();
 
-		TextureData data;
+		TextureDesc data;
 		data.minFilter = TextureFilter::NearestNeighbor;
 		data.magFilter = TextureFilter::NearestNeighbor;
 		data.wrapR = TextureUVTechnique::ClampToEdge;

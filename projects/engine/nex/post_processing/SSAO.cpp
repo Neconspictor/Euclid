@@ -214,7 +214,7 @@ namespace nex
 		m_shaderData.radius = 0.25f;
 
 
-		TextureData data;
+		TextureDesc data;
 		data.internalFormat = InternFormat::RGB16F;
 		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
 		data.minFilter = TextureFilter::NearestNeighbor;
@@ -320,7 +320,7 @@ namespace nex
 
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
-		TextureData data;
+		TextureDesc data;
 		data.internalFormat = InternFormat::R8;
 		data.colorspace = ColorSpace::R; // TODO use ColorSpace::R?
 		data.minFilter = TextureFilter::Linear;

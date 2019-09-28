@@ -205,15 +205,15 @@ namespace nex
 	};
 
 
-	struct TextureData : public BaseTextureDesc
+	struct TextureDesc : public BaseTextureDesc
 	{
 		ColorSpace colorspace = ColorSpace::RGBA;
 		PixelDataType pixelDataType = PixelDataType::UBYTE;
 		InternFormat internalFormat = InternFormat::RGBA8;
 
-		TextureData() {}
+		TextureDesc() {}
 
-		TextureData(TextureFilter minFilter, 
+		TextureDesc(TextureFilter minFilter, 
 			TextureFilter magFilter, 
 			TextureUVTechnique wrapR,
 			TextureUVTechnique wrapS,
@@ -234,7 +234,7 @@ namespace nex
 			this->generateMipMaps = generateMipMaps;
 		}
 
-		static TextureData createImage(TextureFilter minFilter,
+		static TextureDesc createImage(TextureFilter minFilter,
 			TextureFilter magFilter,
 			TextureUVTechnique wrapR,
 			TextureUVTechnique wrapS,
@@ -244,7 +244,7 @@ namespace nex
 			InternFormat internalFormat,
 			bool generateMipMaps)
 		{
-			TextureData result;
+			TextureDesc result;
 			result.colorspace = colorspace;
 			result.pixelDataType = pixelDataType;
 			result.internalFormat = internalFormat;
@@ -257,12 +257,12 @@ namespace nex
 			return result;
 		}
 
-		static TextureData createDepth(CompareFunction compareFunction, 
+		static TextureDesc createDepth(CompareFunction compareFunction, 
 			ColorSpace colorSpace,
 			PixelDataType dataType, 
 			InternFormat format)
 		{
-			TextureData result;
+			TextureDesc result;
 			result.useDepthComparison = true;
 			result.compareFunction = compareFunction;
 			result.colorspace = colorSpace;
@@ -273,9 +273,9 @@ namespace nex
 			return result;
 		}
 
-		static TextureData createRenderTargetRGBAHDR(InternFormat format = InternFormat::RGBA32F, bool generateMipMaps = false)
+		static TextureDesc createRenderTargetRGBAHDR(InternFormat format = InternFormat::RGBA32F, bool generateMipMaps = false)
 		{
-			TextureData data;
+			TextureDesc data;
 			data.generateMipMaps = generateMipMaps;
 			data.minFilter = TextureFilter::NearestNeighbor;
 			data.magFilter = TextureFilter::NearestNeighbor;

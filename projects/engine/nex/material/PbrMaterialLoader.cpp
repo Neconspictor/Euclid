@@ -21,7 +21,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 {
 	auto material = std::make_unique<PbrMaterial>(mTechnique);
 
-	TextureData data = {
+	TextureDesc data = {
 		TextureFilter::Linear_Mipmap_Linear,
 		TextureFilter::Linear,
 		TextureUVTechnique::Repeat,

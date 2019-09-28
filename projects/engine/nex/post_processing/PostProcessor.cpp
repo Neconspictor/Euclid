@@ -105,10 +105,10 @@ nex::SMAA* nex::PostProcessor::getSMAA()
 
 void nex::PostProcessor::resize(unsigned width, unsigned height)
 {
-	mBloomHalfth = std::make_unique<RenderTarget2D>(width / 2, height / 2, TextureData::createRenderTargetRGBAHDR());
-	mBloomQuarter = std::make_unique<RenderTarget2D>(width / 4, height / 4, TextureData::createRenderTargetRGBAHDR());
-	mBloomEigth = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureData::createRenderTargetRGBAHDR());
-	mBloomSixteenth = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureData::createRenderTargetRGBAHDR());
+	mBloomHalfth = std::make_unique<RenderTarget2D>(width / 2, height / 2, TextureDesc::createRenderTargetRGBAHDR());
+	mBloomQuarter = std::make_unique<RenderTarget2D>(width / 4, height / 4, TextureDesc::createRenderTargetRGBAHDR());
+	mBloomEigth = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureDesc::createRenderTargetRGBAHDR());
+	mBloomSixteenth = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureDesc::createRenderTargetRGBAHDR());
 
 	// Avoid double resizing of SMAA class.
 	if (!mSmaa)

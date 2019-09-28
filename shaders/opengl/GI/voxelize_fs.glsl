@@ -59,6 +59,16 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
 
+#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
+#define CSM_CASCADE_BUFFER_BINDING_POINT  2
+#endif 
+
+#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
+#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 5
+#endif
+#include "shadow/cascaded_shadow.glsl"
+
+
 void main()
 {
     vec3 N = fs_in.N;
@@ -73,7 +83,7 @@ void main()
     if (!is_saturated(uvw)) {discard;}
 	//{
         vec4 color = vec4(1.0);
-        color = texture(material.albedoMap, fs_in.texCoords);
+        vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
 		//color.rgb = DEGAMMA(color.rgb); // Shouldn't be needed as we use sRGB textures which map automatically to linear space
         
         
@@ -82,7 +92,11 @@ void main()
         
         //TODO: shadow maps!
         
-        color.xyz *= lightColor;
+        float shadow = indexedShadow(L, N, 1, P);
+        
+        color.rgb = albedo.rgb * lightColor * shadow;
+        //color.rgb = max(color.rgb, 0.1 * albedo.rgb);
+        color.a = albedo.a;
         
         uint color_encoded = EncodeColor(color);
 		uint normal_encoded = EncodeNormal(N);

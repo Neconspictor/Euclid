@@ -215,6 +215,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//mPingPong->useDepthAttachment(std::move(backup));
 
 	postProcessor->antialias(outputTexture, out);
+	
 	//postProcessor->antialias((Texture2D*)colorTex, out);
 
 
@@ -257,6 +258,11 @@ nex::TesselationTest* nex::PBR_Deferred_Renderer::getTesselationTest()
 nex::Ocean* nex::PBR_Deferred_Renderer::getOcean()
 {
 	return &mOcean;
+}
+
+nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCascadedShadow()
+{
+	return mCascadedShadow;
 }
 
 void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
@@ -529,14 +535,14 @@ void nex::PBR_Deferred_Renderer::renderSky(const Pass::Constants& constants, con
 
 std::unique_ptr<nex::RenderTarget2D> nex::PBR_Deferred_Renderer::createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer)
 {
-	auto result = std::make_unique<RenderTarget2D>(width, height, TextureData::createRenderTargetRGBAHDR());
+	auto result = std::make_unique<RenderTarget2D>(width, height, TextureDesc::createRenderTargetRGBAHDR());
 
 	RenderAttachment luminance;
 	luminance.colorAttachIndex = 1;
 	luminance.target = TextureTarget::TEXTURE2D;
 	luminance.type = RenderAttachmentType::COLOR;
 	// TODO: use one color channel!
-	luminance.texture = std::make_shared<Texture2D>(width, height, TextureData::createRenderTargetRGBAHDR(), nullptr);
+	luminance.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
 
 	result->addColorAttachment(std::move(luminance));
 

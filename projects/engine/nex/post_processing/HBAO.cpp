@@ -19,7 +19,6 @@
 #endif
 
 #include <algorithm>
-#include "nex/texture/Attachment.hpp"
 #include "nex/texture/TextureManager.hpp"
 #include <nex/material/Material.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
@@ -71,7 +70,7 @@ namespace nex
 #undef SCALE
 		}
 
-		TextureData data;
+		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
 		data.pixelDataType = PixelDataType::SHORT;
 		data.internalFormat = InternFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
@@ -86,6 +85,7 @@ namespace nex
 		m_depthLinearizer = std::make_unique<DepthLinearizerPass>();
 		m_hbaoShader = std::make_unique<HbaoPass>();
 
+		mViewNormalPass = std::make_unique<ViewNormalPass>();
 
 		initRenderTargets(windowWidth, windowHeight);
 
@@ -150,6 +150,22 @@ namespace nex
 			m_bilateralBlur->setSharpness(m_blur_sharpness);
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
 		}
+	}
+
+	void HBAO::renderCacheAwareAO(Texture* depth, const Projection& projection, bool blur)
+	{
+		const auto width = m_aoResultRT->getWidth();
+		const auto height = m_aoResultRT->getHeight();
+		const auto quarterWidth = (width + 3) / 4;
+		const auto quarterHeight = (height + 3) / 4;
+
+		prepareHbaoData(projection, width, height);
+		drawLinearDepth(depth, projection);
+
+		auto* renderBackend = RenderBackend::get();
+
+		renderBackend->setViewPort(0,0, quarterWidth, quarterHeight);
+
 	}
 
 	void HBAO::displayAOTexture(Texture* texture)
@@ -225,36 +241,68 @@ namespace nex
 		m_tempRT = nullptr;
 
 		// m_depthLinearRT
-		TextureData data;
-		data.internalFormat = InternFormat::R32F;
-		data.magFilter = TextureFilter::NearestNeighbor;
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.wrapR = TextureUVTechnique::ClampToEdge;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
-		data.pixelDataType = PixelDataType::FLOAT;
-		data.generateMipMaps = false;
-		data.colorspace = ColorSpace::R;
+		TextureDesc depthDesc;
+		depthDesc.internalFormat = InternFormat::R32F;
+		depthDesc.magFilter = TextureFilter::NearestNeighbor;
+		depthDesc.minFilter = TextureFilter::NearestNeighbor;
+		depthDesc.wrapR = TextureUVTechnique::ClampToEdge;
+		depthDesc.wrapS = TextureUVTechnique::ClampToEdge;
+		depthDesc.wrapT = TextureUVTechnique::ClampToEdge;
+		depthDesc.pixelDataType = PixelDataType::FLOAT;
+		depthDesc.generateMipMaps = false;
+		depthDesc.colorspace = ColorSpace::R;
 
-		m_depthLinearRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
+		m_depthLinearRT = std::make_unique<RenderTarget2D>(width, height, depthDesc, 1);
 
 		// m_aoResultRT
-		data.internalFormat = InternFormat::R8;
-		data.useSwizzle = true;
-		data.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
-		data.wrapR = TextureUVTechnique::ClampToEdge;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
-		data.pixelDataType = PixelDataType::UBYTE;
-		data.generateMipMaps = false;
-		data.colorspace = ColorSpace::R;
-		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
+		TextureDesc aoData; 
+		aoData.internalFormat = InternFormat::R8;
+		aoData.useSwizzle = true;
+		aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
+		aoData.wrapR = TextureUVTechnique::ClampToEdge;
+		aoData.wrapS = TextureUVTechnique::ClampToEdge;
+		aoData.wrapT = TextureUVTechnique::ClampToEdge;
+		aoData.pixelDataType = PixelDataType::UBYTE;
+		aoData.generateMipMaps = false;
+		aoData.colorspace = ColorSpace::R;
+		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
 		// m_aoBlurredResultRT
-		m_aoBlurredResultRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
+		m_aoBlurredResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
 		// m_tempRT
-		m_tempRT = std::make_unique<RenderTarget2D>(width, height, data, 1);
+		m_tempRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
+
+
+		//cache aware stuff
+		mDepthArray4th = std::make_unique<Texture2DArray>(width, height, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
+		mDepthArray4thResult = std::make_unique<Texture2DArray>(width, height, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
+		mDeinterleaveRT = std::make_unique<RenderTarget>(width, height);
+
+		for (auto i = 0; i < HBAO_RANDOM_ELEMENTS / NUM_MRT; ++i) {
+			mDeinterleaveAttachment[i].resize(NUM_MRT);
+		}
+
+		for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; ++i) {
+			mDepthView4th[i] = Texture::createView(mDepthArray4th.get(), TextureTarget::TEXTURE2D, 0, 1, i, 1, depthDesc);
+		}
+
+		for (auto i = 0; i < HBAO_RANDOM_ELEMENTS / NUM_MRT; ++i) {
+			mDeinterleaveAttachment[i].resize(NUM_MRT);
+			for (auto j = 0; j < NUM_MRT; ++j) {
+				mDeinterleaveAttachment[i][j].colorAttachIndex = j;
+				mDeinterleaveAttachment[i][j].texture = mDepthView4th[i * NUM_MRT + j];
+			}
+		}
+
+		for (auto i = 0; i < NUM_MRT; ++i) {
+			mDeinterleaveRT->addColorAttachment(mDeinterleaveAttachment[0][i]);
+		}
+
+		mDeinterleaveRT->getColorAttachments() = mDeinterleaveAttachment[1];
+		mDeinterleaveRT->finalizeAttachments();
+
+		mCacheAwareAoRT = std::make_unique<RenderTarget>(width, height);
 	}
 
 	BilateralBlurPass::BilateralBlurPass() :
@@ -300,8 +348,8 @@ namespace nex
 		temp->bind();
 		bind();
 
-		mShader->setTexture(m_source, &mSampler, 0); // TODO: check binding point!
-		mShader->setTexture(m_linearDepth, &mSampler, 1); // TODO: check binding point!
+		mShader->setTexture(m_source, &mSampler, 0);
+		mShader->setTexture(m_linearDepth, &mSampler, 1); 
 
 		static UniformLocation sharpnessLoc = mShader->getUniformLocation("g_Sharpness");
 		mShader->setFloat(sharpnessLoc, m_sharpness);
@@ -450,6 +498,35 @@ namespace nex
 	void HbaoPass::setRamdomView(Texture * randomView)
 	{
 		m_hbao_randomview = randomView;
+	}
+
+
+	ViewNormalPass::ViewNormalPass()
+	{
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/viewnormal_fs.glsl");
+		mProjInfo = {mShader->getUniformLocation("projInfo"), UniformType::VEC4};
+		mProjOrtho = { mShader->getUniformLocation("projOrtho"), UniformType::INT };
+		mInvFullResolution = { mShader->getUniformLocation("InvFullResolution"), UniformType::VEC2 };
+		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
+	}
+
+	ViewNormalPass::~ViewNormalPass() = default;
+
+	void ViewNormalPass::setProjInfo(const glm::vec4 & projInfo)
+	{
+		mShader->setVec4(mProjInfo.location, projInfo);
+	}
+	void ViewNormalPass::setProjOrtho(bool projOrtho)
+	{
+		mShader->setInt(mProjOrtho.location, static_cast<int>(projOrtho));
+	}
+	void ViewNormalPass::setInvFullResolution(const glm::vec2 & invFullResolution)
+	{
+		mShader->setVec2(mInvFullResolution.location, invFullResolution);
+	}
+	void ViewNormalPass::setLinearDepth(Texture * linearDepth)
+	{
+		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
 	}
 
 

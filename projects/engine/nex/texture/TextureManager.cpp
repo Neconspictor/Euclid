@@ -138,7 +138,7 @@ namespace nex {
 		return mFileSystem.get();
 	}
 
-	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureData& data, bool detectColorSpace)
+	Texture2D* TextureManager::getImage(const std::filesystem::path& file, const TextureDesc& data, bool detectColorSpace)
 	{
 		const auto resolvedPath = mFileSystem->resolvePath(file);
 
@@ -245,7 +245,7 @@ namespace nex {
 		return internFormat != InternFormat::SRGB8 && internFormat != InternFormat::SRGBA8;
 	}
 
-	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureData& data, bool detectColorSpace)
+	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureDesc& data, bool detectColorSpace)
 	{
 		GenericImage image;
 
@@ -274,7 +274,7 @@ namespace nex {
 
 		if (detectColorSpace)
 		{
-			TextureData copy = data;
+			TextureDesc copy = data;
 			copy.colorspace = isLinear(copy.colorspace) ?  getColorSpace(image.channels) : getGammaSpace(image.channels);
 			copy.internalFormat = isLinear(copy.internalFormat) ? getInternalFormat(image.channels, copy.pixelDataType == PixelDataType::FLOAT) : 
 				getGammaInternalFormat(image.channels);

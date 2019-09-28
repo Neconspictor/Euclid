@@ -68,7 +68,8 @@ namespace nex
 
 		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 
-		void voxelize(const Scene& scene, const DirLight& light);
+		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
+			const AABB& sceneBoundingBox, const DirLight& light, CascadedShadow* shadows);
 
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 

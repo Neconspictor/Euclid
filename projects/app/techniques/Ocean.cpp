@@ -1083,7 +1083,7 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 	ComputePass(Shader::createComputeShader("ocean/height_zero_precompute_cs.glsl")),
 	mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
 {
-	TextureData desc;
+	TextureDesc desc;
 	desc.internalFormat = InternFormat::RGBA32F;
 	desc.colorspace = ColorSpace::RGBA;
 	desc.pixelDataType = PixelDataType::FLOAT;
@@ -1122,7 +1122,7 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 		}
 	}
 
-	TextureData randDesc;
+	TextureDesc randDesc;
 	randDesc.internalFormat = InternFormat::RGBA32F;
 	randDesc.colorspace = ColorSpace::RGBA;
 	randDesc.pixelDataType = PixelDataType::FLOAT;
@@ -1183,7 +1183,7 @@ nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePoin
 	mTimeUniform = { mShader->getUniformLocation("currentTime"), UniformType::FLOAT };
 	mPeriodTimeUniform = { mShader->getUniformLocation("periodTime"), UniformType::FLOAT };
 
-	TextureData desc;
+	TextureDesc desc;
 	desc.internalFormat = InternFormat::RG32F;
 	desc.colorspace = ColorSpace::RG;
 	desc.pixelDataType = PixelDataType::FLOAT;
@@ -1297,7 +1297,7 @@ mN(N)
 {
 	if (!nex::isPow2(mN)) throw std::invalid_argument("nex::Ocean::ButterflyComputePass : N has to be a power of 2!");
 
-	TextureData desc;
+	TextureDesc desc;
 	desc.internalFormat = InternFormat::RGBA32F;
 	desc.colorspace = ColorSpace::RGBA;
 	desc.pixelDataType = PixelDataType::FLOAT;
@@ -1338,7 +1338,7 @@ nex::OceanGPU::IfftPass::IfftPass(int N) : ComputePass(Shader::createComputeShad
 mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit_cs.glsl"))), mN(N), mLog2N(std::log2(mN))
 
 {
-	TextureData desc;
+	TextureDesc desc;
 	desc.internalFormat = InternFormat::RG32F;
 	desc.colorspace = ColorSpace::RG;
 	desc.pixelDataType = PixelDataType::FLOAT;

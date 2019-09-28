@@ -40,15 +40,15 @@ namespace nex
 		 *
 		 * @return a Texture or an CubeMap dependent on the state of isCubeMap
 		 */
-		static Texture* createFromImage(const StoreImage& store, const TextureData& data);
+		static Texture* createFromImage(const StoreImage& store, const TextureDesc& data);
 
 		static std::unique_ptr<Texture> createView(Texture* original,
 			TextureTarget target,
-			unsigned minLevel, 
+			unsigned startLevel, 
 			unsigned numLevel, 
-			unsigned minLayer, 
+			unsigned startLayer, 
 			unsigned numLayers,
-			const TextureData& data);
+			const TextureDesc& data);
 
 		/**
 		 *  Generates mipmaps for the current content of this texture.
@@ -59,7 +59,7 @@ namespace nex
 		// Has to be implemented by renderer backend
 		TextureTarget getTarget() const;
 
-		const TextureData& getTextureData() const;
+		const TextureDesc& getTextureData() const;
 
 		/**
 		 * Provides the width of the texture.
@@ -110,7 +110,7 @@ namespace nex
 		Texture2D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2D(unsigned width, unsigned height, const TextureData& textureData, const void* data);
+		Texture2D(unsigned width, unsigned height, const TextureDesc& textureData, const void* data);
 
 		virtual ~Texture2D() = default;
 
@@ -131,7 +131,7 @@ namespace nex
 		Texture2DMultisample(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2DMultisample(unsigned width, unsigned height, const TextureData& textureData, unsigned samples);
+		Texture2DMultisample(unsigned width, unsigned height, const TextureDesc& textureData, unsigned samples);
 
 		virtual ~Texture2DMultisample() = default;
 
@@ -154,7 +154,7 @@ namespace nex
 		Texture2DArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture2DArray(unsigned width, unsigned height, unsigned depth, const TextureData& textureData, const void* data);
+		Texture2DArray(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const void* data);
 
 		virtual ~Texture2DArray() = default;
 
@@ -175,7 +175,7 @@ namespace nex
 		Texture3D(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		Texture3D(unsigned width, unsigned height, unsigned depth, const TextureData& textureData, const void* data);
+		Texture3D(unsigned width, unsigned height, unsigned depth, const TextureDesc& textureData, const void* data);
 
 		virtual ~Texture3D() = default;
 
@@ -190,7 +190,7 @@ namespace nex
 	public:
 
 		// Has to be implemented by renderer backend
-		RenderBuffer(unsigned width, unsigned height, const TextureData& data);
+		RenderBuffer(unsigned width, unsigned height, const TextureDesc& data);
 
 		virtual ~RenderBuffer() = default;
 
@@ -210,7 +210,7 @@ namespace nex
 
 		// Mustn't be called by user code
 		// Has to be implemented by renderer backend
-		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureData& data);
+		CubeMap(unsigned sideWidth, unsigned sideHeight, const TextureDesc& data);
 
 		virtual ~CubeMap() = default;
 
@@ -238,7 +238,7 @@ namespace nex
 		CubeMapArray(std::unique_ptr<Impl> impl);
 
 		// Has to be implemented by renderer backend
-		CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureData& textureData, const void* data);
+		CubeMapArray(unsigned sideWidth, unsigned sideHeight, unsigned depth, const TextureDesc& textureData, const void* data);
 
 		virtual ~CubeMapArray() = default;
 
