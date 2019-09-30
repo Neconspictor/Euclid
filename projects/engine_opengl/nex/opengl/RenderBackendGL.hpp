@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <nex/opengl/opengl.hpp>
 #include "nex/renderer/RenderBackend.hpp"
+#include <nex/texture/Sprite.hpp>
 
 namespace nex {
 
@@ -121,6 +122,7 @@ namespace nex {
 		DepthBuffer mDepthBuffer;
 		Rasterizer mRasterizer;
 		StencilTest mStencilTest;
+		Sprite mScreenSprite;
 		Viewport mViewport;
 	};
 

@@ -4,7 +4,7 @@
 #include <nex/shader/SkyBoxPass.hpp>
 #include <nex/Scene.hpp>
 #include <nex/shader/DepthMapPass.hpp>
-#include <nex/shader/ScreenPass.hpp>
+#include <nex/shader/SpritePass.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"
@@ -210,17 +210,10 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	if (postProcess) {
 		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
 	}
-	//auto backup = *mPingPong->getDepthAttachment();
-	//mPingPong->useDepthAttachment(*mRenderTargetSingleSampled->getDepthAttachment());
-	//mPingPong->useDepthAttachment(std::move(backup));
 
 	postProcessor->antialias(outputTexture, out);
-	
-	//postProcessor->antialias((Texture2D*)colorTex, out);
-
 
 	depthTest->enableDepthBufferWriting(true);
-	//ShaderStorageBuffer::syncWithGPU();
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -268,6 +261,11 @@ nex::CascadedShadow* nex::PBR_Deferred_Renderer::getCascadedShadow()
 void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
 {
 	mDepthFuncs.emplace_back(std::move(func));
+}
+
+nex::RenderTarget* nex::PBR_Deferred_Renderer::getTempRendertTarget()
+{
+	return mRenderTargetSingleSampled.get();
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 

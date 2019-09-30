@@ -1,5 +1,4 @@
-﻿#include "..\..\..\engine\nex\renderer\RenderBackend.hpp"
-#include "nex/renderer/RenderBackend.hpp"
+﻿#include "nex/renderer/RenderBackend.hpp"
 #include <nex/opengl/RenderBackendGL.hpp>
 #include <nex/texture/TextureManager.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -504,19 +503,15 @@ namespace nex
 
 		setPointThickness(3.0f);
 
+
+		mPimpl->mScreenSprite.setPosition({ 0,0 });
+
 		//checkGLErrors(BOOST_CURRENT_FUNCTION);
 	}
 
 	void RenderBackend::initEffectLibrary()
 	{
 		mPimpl->mEffectLibrary = make_unique<EffectLibrary>(mPimpl->mViewport.width, mPimpl->mViewport.height);	
-	}
-
-	void RenderBackend::newFrame()
-	{
-		getRasterizer()->setFillMode(FillMode::FILL);
-		getRasterizer()->enableFaceCulling(true);
-		getRasterizer()->setCullMode(PolygonSide::BACK);
 	}
 
 	std::unique_ptr<CubeDepthMap> RenderBackend::createCubeDepthMap(int width, int height)
@@ -570,12 +565,6 @@ namespace nex
 		GLCall(glDrawElements((GLenum)translate(topology), static_cast<GLsizei>(indexCount), (GLenum)translate(indexType), (GLvoid*)byteOffset));
 	}
 
-	void RenderBackend::endScene()
-	{
-		//glDisable(GL_POLYGON_OFFSET_FILL);
-		//checkGLErrors(BOOST_CURRENT_FUNCTION);
-	}
-
 	void RenderBackend::flushPendingCommands()
 	{
 		GLCall(glFlush());
@@ -602,6 +591,11 @@ namespace nex
 		return &mPimpl->mRasterizer;
 	}
 
+	nex::Sprite* RenderBackend::getScreenSprite()
+	{
+		return &mPimpl->mScreenSprite;
+	}
+
 	StencilTest* RenderBackend::getStencilTest()
 	{
 		return &mPimpl->mStencilTest;
@@ -617,10 +611,6 @@ namespace nex
 		return mPimpl->mViewport;
 	}
 
-	void RenderBackend::present()
-	{
-	}
-
 	void RenderBackend::resize(int width, int height)
 	{
 		mPimpl->mViewport.width = width;
@@ -628,7 +618,9 @@ namespace nex
 		mPimpl->defaultRenderTarget = make_unique<RenderTarget2D>(make_unique<RenderTarget2DGL>(GL_FALSE, mPimpl->mViewport.width, mPimpl->mViewport.height));
 		setViewPort(0, 0, width, height);
 		mPimpl->mEffectLibrary->resize(width, height);
-		
+
+		mPimpl->mScreenSprite.setWidth(width);
+		mPimpl->mScreenSprite.setHeight(height);	
 	}
 
 	void RenderBackend::release()
@@ -726,77 +718,10 @@ namespace nex
 		GLCall(glFinish());
 	}
 
-	/*
-	CubeRenderTarget* RenderBackend::renderCubeMap(int width, int height, Texture* equirectangularMap)
-	{
-		auto* shader = mPimpl->mEffectLibrary->getEquirectangularSkyBoxShader();
-		const mat4 projection = perspective(radians(90.0f), 1.0f, 0.1f, 10.0f);
-
-		shader->bind();
-		shader->setSkyTexture(equirectangularMap);
-		shader->setProjection(projection);
-
-		Vob skyBox("misc/SkyBoxCube.obj", MaterialType::None);
-
-		TextureData textureData = {
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			ColorSpace::RGB,
-			PixelDataType::FLOAT,
-			InternFormat::RGB32F,
-			false };
-
-		auto target = createCubeRenderTarget(width, height, std::move(textureData));
-
-		//view matrices;
-		const mat4 views[] = {
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_X), //right; sign of up vector is not important
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_X), //left
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_Y), //top
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Y), //bottom
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::POSITIVE_Z), //back
-			CubeMap::getViewLookAtMatrixRH(CubeMapSide::NEGATIVE_Z) //front
-		};
-
-
-		//set the viewport to the dimensoion of the cubemap
-		//GLCall(glViewport(0, 0, width, height));
-		//GLCall(glScissor(0, 0, width, height));
-		setViewPort(0, 0, width, height);
-		setScissor(0, 0, width, height);
-		target->bind();
-
-		CubeMapGL* cubeMap = (CubeMapGL*)target->getColorAttachments()[0].texture->getImpl();
-		
-
-		for (int i = 0; i < 6; ++i) {
-			//GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, *cubeMap->getTexture(), 0));
-			target->useSide((CubeMapSide) i, 0);
-			//GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-			target->clear(RenderComponent::Color | RenderComponent::Depth);
-
-			//render into the texture
-			shader->setView(views[i]);
-
-			StaticMeshDrawer::draw(skyBox.getModel(), shader);
-		}
-
-		//GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-		//register and return the cubemap
-		return target.release();
-	}*/
-
 	std::unique_ptr <RenderTarget2D> RenderBackend::createRenderTargetGL(int width, int height, const TextureDesc& data,
 		unsigned samples)
 	{
 		assert(samples >= 1);
-
-		//GLClearError();
-
 		return make_unique<RenderTarget2D>(width, height, data, samples);
 	}
 
@@ -804,13 +729,6 @@ namespace nex
 	{
 		return mPimpl->mEffectLibrary.get();
 	}
-
-	/*RenderTarget* RendererOpenGL::createVarianceShadowMap(int width, int height)
-	{
-		RenderTarget* target = RenderTarget::createVSM(width, height);
-		renderTargets.push_back(target);
-		return target;
-	}*/
 
 	void RenderBackend::drawArray(const RenderState& state, Topology primitiveType, unsigned startingIndex,
 		unsigned indexCount)

@@ -7,7 +7,7 @@ using namespace nex;
 using namespace std;
 using namespace glm;
 
-ScreenPass::ScreenPass()
+SpritePass::SpritePass()
 {
 	mShader = Shader::create("screen_vs.glsl", "screen_fs.glsl");
 
@@ -17,7 +17,7 @@ ScreenPass::ScreenPass()
 	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 }
 
-void ScreenPass::useTexture(const Texture* texture)
+void SpritePass::useTexture(const Texture* texture)
 {
 	mShader->setTexture(texture, &mSampler, mTexture.bindingSlot);
 }

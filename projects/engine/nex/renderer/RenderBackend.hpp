@@ -13,6 +13,7 @@ namespace nex
 	class ShaderManager;
 	class CubeDepthMap;
 	class EffectLibrary;
+	class Sprite;
 
 	class StaticMeshDrawer;
 	class ShadingModelFactory;
@@ -311,11 +312,6 @@ namespace nex
 		void drawWithIndices(const RenderState& state, Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset = 0);
 
 		/**
-		* Finishes the current active scene and sends the resulting data to the GPU.
-		*/
-		void endScene();
-
-		/**
 		 * Sends any pending render commands (backend specific) to the GPU.
 		 */
 		void flushPendingCommands();
@@ -339,6 +335,8 @@ namespace nex
 
 		Rasterizer* getRasterizer();
 
+		Sprite* getScreenSprite();
+
 		StencilTest* getStencilTest();
 
 		/**
@@ -361,14 +359,6 @@ namespace nex
 		 * NOTE: the TextureManager has to be initialized before initializing the effect library!
 		 */
 		void initEffectLibrary();
-
-		void newFrame();
-
-		/**
-		* Displays the calculdated scene on the screen. This function has to be called after
-		* virtual void Renderer::endSene().
-		*/
-		void present();
 
 		void resize(int width, int height);
 

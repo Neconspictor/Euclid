@@ -3,7 +3,7 @@
 in vec2 texCoordsFS;
 out vec4 color;
 
-uniform sampler2D screenTexture;
+uniform sampler2D sprite;
 
 const float offset = 1.0f / 300.0f;
 
@@ -75,6 +75,5 @@ void main()
         col += sampleTex[i] * kernel[i];
 		
 	*/	
-    color = vec4(texture(screenTexture, texCoordsFS).rgb, 1);
-	//color = texture(screenTexture, texCoordsFS);
+    color = texture(sprite, texCoordsFS);
 }

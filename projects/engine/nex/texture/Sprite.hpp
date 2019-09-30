@@ -5,6 +5,8 @@
 
 namespace nex
 {
+	class RenderBackend;
+
 	/**
 	 * A sprite is a 2D image texture that is drawn onto the screen.
 	 * This class serves as an interface for renderer independent Sprite drawing.
@@ -15,27 +17,31 @@ namespace nex
 		Sprite();
 		virtual ~Sprite();
 
-		float getHeight() const;
-		glm::vec2 getPosition() const;
-		const glm::vec3& getRotation() const;
+		unsigned getHeight() const;
+		glm::uvec2 getPosition() const;
 		Texture* getTexture() const;
-		float getWidth() const;
+		unsigned getWidth() const;
 
-		void setHeight(float height);
-		void setPosition(glm::vec2 position);
-		void setXRotation(float value);
-		void setYRotation(float value);
-		void setZRotation(float value);
+		/**
+		 * Renders the sprite into the current active render target.
+		 */
+		void render();
+
+		/**
+		 * Sets the position of the sprite in screen space.
+		 * Note: The origin of the sprite is the lower left corner.
+		 */
+		void setPosition(const glm::uvec2& position);
+		void setTransform(const glm::mat4& mat);
 		void setTexture(Texture* texture);
-		void setWidth(float width);
-
-		static const Sprite& getScreenSprite();
+		void setWidth(unsigned width);
+		void setHeight(unsigned height);
 
 	protected:
-		float relativeHeight;
-		float relativeWidth;
-		glm::vec3 rotation;
-		glm::vec2 screenPosition;
-		Texture* texture;
+		unsigned mWidth;
+		unsigned mHeight;
+		glm::uvec2 mScreenPosition;
+		glm::mat4 mTransform;
+		Texture* mTexture;
 	};
 }

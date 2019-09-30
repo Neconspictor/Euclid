@@ -34,6 +34,8 @@ namespace nex
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 
+		virtual RenderTarget* getTempRendertTarget() = 0;
+
 		virtual void pushDepthFunc(std::function<void()> func) = 0;
 
 	protected:

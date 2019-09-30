@@ -1,11 +1,15 @@
 #include <nex/texture/Sprite.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <nex/EffectLibrary.hpp>
+#include <nex/shader/SpritePass.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 using namespace std;
 using namespace glm;
 using namespace nex;
 
-Sprite::Sprite() : relativeHeight(1.0f), 
-    relativeWidth(1.0f), screenPosition({0,0}), texture(nullptr)
+Sprite::Sprite() : mHeight(1.0f), 
+    mWidth(1.0f), mScreenPosition({0,0}), mTexture(nullptr)
 {
 }
 
@@ -13,68 +17,63 @@ Sprite::~Sprite()
 {
 }
 
-float Sprite::getHeight() const
+unsigned Sprite::getHeight() const
 {
-	return relativeHeight;
+	return mHeight;
 }
 
-vec2 Sprite::getPosition() const
+uvec2 Sprite::getPosition() const
 {
-	return screenPosition;
-}
-
-const vec3& Sprite::getRotation() const
-{
-	return rotation;
+	return mScreenPosition;
 }
 
 Texture* Sprite::getTexture() const
 {
-	return texture;
+	return mTexture;
 }
 
-float Sprite::getWidth() const
+unsigned Sprite::getWidth() const
 {
-	return relativeWidth;
+	return mWidth;
 }
 
-void Sprite::setHeight(float height)
+void nex::Sprite::render()
 {
-	this->relativeHeight = height;
+	thread_local auto* renderBackend = RenderBackend::get();
+	static auto state = RenderState::createNoDepthTest();
+	auto* lib = renderBackend->getEffectLibrary();
+	auto* spritePass = lib->getSpritePass();
+
+	spritePass->bind();
+	spritePass->setTexture(mTexture);
+	spritePass->setTransform(mTransform);
+
+	renderBackend->setViewPort(mScreenPosition.x, mScreenPosition.y, mWidth, mHeight);
+	StaticMeshDrawer::drawFullscreenTriangle(state, spritePass);
 }
 
-void Sprite::setPosition(vec2 position)
+void Sprite::setPosition(const glm::uvec2& position)
 {
-	screenPosition = move(position);
+	mScreenPosition = position;
 }
 
-void Sprite::setXRotation(float value)
-{
-	this->rotation.x = value;
-}
 
-void Sprite::setYRotation(float value)
+void nex::Sprite::setTransform(const glm::mat4& mat)
 {
-	rotation.y = value;
-}
-
-void Sprite::setZRotation(float value)
-{
-	rotation.z = value;
-}
-
-void Sprite::setWidth(float width)
-{
-	this->relativeWidth = width;
-}
-
-const Sprite& Sprite::getScreenSprite()
-{
-	static Sprite screenSprite;
-	return screenSprite;
+	mTransform = mat;
 }
 
 void Sprite::setTexture(Texture* texture)
 {
-	this->texture = texture;
+	mTexture = texture;
+}
+
+void nex::Sprite::setWidth(unsigned width)
+{
+	mWidth = width;
+}
+
+void nex::Sprite::setHeight(unsigned height)
+{
+	mHeight = height;
 }

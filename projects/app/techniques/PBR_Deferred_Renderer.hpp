@@ -52,9 +52,11 @@ namespace nex
 		PBR_GBuffer* getGbuffer();
 		TesselationTest* getTesselationTest();
 		Ocean* getOcean();
-		CascadedShadow* getCascadedShadow();
+		CascadedShadow* getCascadedShadow(); 
 
 		void pushDepthFunc(std::function<void()> func) override;
+
+		RenderTarget* getTempRendertTarget() override;
 
 
 		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants, const DirLight& sun, Texture2D* depth);

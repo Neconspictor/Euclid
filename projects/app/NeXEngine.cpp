@@ -264,6 +264,9 @@ void NeXEngine::run()
 	mScene.collectRenderCommands(commandQueue, false);
 	commandQueue.sort();
 
+	auto* backend = RenderBackend::get();
+	auto* screenSprite = backend->getScreenSprite();
+
 	while (mWindow->isOpen())
 	{
 		// Poll input events before checking if the app is running, otherwise 
@@ -316,23 +319,42 @@ void NeXEngine::run()
 			}
 
 			
-			RenderTarget2D* screenRenderTarget = RenderBackend::get()->getDefaultRenderTarget();
+			auto* screenRT = backend->getDefaultRenderTarget();
+			auto* tempRT = mRenderer->getTempRendertTarget();
+			auto* texture = tempRT->getColorAttachmentTexture(0);
 
 			if (mGlobalIllumination->getVisualize()) {
 
 				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 				depthTest->enableDepthBufferWriting(true);
 
-				screenRenderTarget->bind();
-				RenderBackend::get()->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-				RenderBackend::get()->setBackgroundColor(glm::vec3(1.0f));
-				screenRenderTarget->clear(Color | Stencil | Depth);
+				tempRT->bind();
+				backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				backend->setBackgroundColor(glm::vec3(1.0f));
+				tempRT->clear(Color | Stencil | Depth);
 				
 				mGlobalIllumination->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
 			}
-			else {
-				mRenderer->render(commandQueue, *mCamera, mSun, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight(), true, screenRenderTarget);
+			else
+			{
+				mRenderer->render(commandQueue, 
+					*mCamera, 
+					mSun, 
+					mWindow->getFrameBufferWidth(), 
+					mWindow->getFrameBufferHeight(), 
+					true, 
+					tempRT);
 			}
+			
+			//texture = mRenderer->getGbuffer()->getNormal();
+
+			screenRT->bind();
+			backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+			//backend->setBackgroundColor(glm::vec3(1.0f));
+			//screenRT->clear(Color | Stencil | Depth);
+
+			screenSprite->setTexture(texture);
+			screenSprite->render();
 
 			
 			mControllerSM->getDrawable()->drawGUI();

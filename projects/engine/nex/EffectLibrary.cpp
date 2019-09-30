@@ -3,7 +3,7 @@
 #include <nex/post_processing/blur/GaussianBlur.hpp>
 #include <nex/shader/SkyBoxPass.hpp>
 #include <nex/shader/DepthMapPass.hpp>
-#include <nex/shader/ScreenPass.hpp>
+#include <nex/shader/SpritePass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
 #include <nex/shader/SimpleColorPass.hpp>
@@ -17,7 +17,7 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mPanoramaSkyBox(std::make_unique<PanoramaSkyBoxPass>()),
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
-	mScreen(std::make_unique<ScreenPass>()),
+	mSprite(std::make_unique<SpritePass>()),
 	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
 	mIrradianceSphereHullDrawTechnique(std::make_unique<IrradianceSphereHullDrawTechnique>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
@@ -52,9 +52,9 @@ nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 	return mDepthMap.get();
 }
 
-nex::ScreenPass* nex::EffectLibrary::getScreenShader()
+nex::SpritePass* nex::EffectLibrary::getSpritePass()
 {
-	return mScreen.get();
+	return mSprite.get();
 }
 
 nex::SimpleColorTechnique* nex::EffectLibrary::getSimpleColorTechnique()

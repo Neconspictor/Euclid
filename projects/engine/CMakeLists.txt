@@ -213,8 +213,8 @@ set(
 	nex/shader/DepthMapPass.cpp
     nex/shader/Pass.cpp
     nex/shader/Pass.hpp
-    nex/shader/ScreenPass.hpp
-	nex/shader/ScreenPass.cpp
+    nex/shader/SpritePass.hpp
+	nex/shader/SpritePass.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderType.hpp
