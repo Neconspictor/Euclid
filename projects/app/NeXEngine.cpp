@@ -321,7 +321,7 @@ void NeXEngine::run()
 			
 			auto* screenRT = backend->getDefaultRenderTarget();
 			auto* tempRT = mRenderer->getTempRendertTarget();
-			auto* texture = tempRT->getColorAttachmentTexture(0);
+			Texture* texture = nullptr;
 
 			if (mGlobalIllumination->getVisualize()) {
 
@@ -334,6 +334,8 @@ void NeXEngine::run()
 				tempRT->clear(Color | Stencil | Depth);
 				
 				mGlobalIllumination->renderVoxels(mCamera->getProjectionMatrix(), mCamera->getView());
+
+				texture = tempRT->getColorAttachmentTexture(0);
 			}
 			else
 			{
@@ -344,17 +346,21 @@ void NeXEngine::run()
 					mWindow->getFrameBufferHeight(), 
 					true, 
 					tempRT);
+
+				texture = mRenderer->getActiveRenderLayer();
 			}
 			
 			//texture = mRenderer->getGbuffer()->getNormal();
 
-			screenRT->bind();
-			backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
-			//backend->setBackgroundColor(glm::vec3(1.0f));
-			//screenRT->clear(Color | Stencil | Depth);
+			if (texture != nullptr) {
+				screenRT->bind();
+				backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
+				//backend->setBackgroundColor(glm::vec3(1.0f));
+				//screenRT->clear(Color | Stencil | Depth);
 
-			screenSprite->setTexture(texture);
-			screenSprite->render();
+				screenSprite->setTexture(texture);
+				screenSprite->render();
+			}
 
 			
 			mControllerSM->getDrawable()->drawGUI();
@@ -663,6 +669,9 @@ void NeXEngine::setupGUI()
 	auto csmView = std::make_unique<nex::CascadedShadow_ConfigurationView>(mCascadedShadow.get());
 	graphicsTechniques->addChild(std::move(csmView));
 
+	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
+	graphicsTechniques->addChild(move(pbr_deferred_rendererView));
+
 	auto hbaoView = std::make_unique<nex::HbaoConfigurationView>(mRenderer->getAOSelector()->getHBAO());
 	graphicsTechniques->addChild(std::move(hbaoView));
 
@@ -681,9 +690,6 @@ void NeXEngine::setupGUI()
 
 	auto textureManagerView = std::make_unique<TextureManager_Configuration>(TextureManager::get());
 	generalTab->addChild(move(textureManagerView));
-
-	auto pbr_deferred_rendererView = std::make_unique<PBR_Deferred_Renderer_ConfigurationView>(mRenderer.get());
-	generalTab->addChild(move(pbr_deferred_rendererView));
 
 	configurationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(configurationWindow));

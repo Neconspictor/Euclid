@@ -3,7 +3,7 @@
 #include <nex/pbr/Cluster.hpp>
 
 nex::Renderer::Renderer(nex::PbrTechnique * pbrTechnique) : mPbrTechnique(pbrTechnique),
-mWidth(0), mHeight(0)
+mWidth(0), mHeight(0), mActiveRenderLayerProvider([]() {return nullptr; })
 {
 }
 
@@ -33,4 +33,21 @@ nex::PbrTechnique * nex::Renderer::getPbrTechnique()
 const nex::PbrTechnique* nex::Renderer::getPbrTechnique() const
 {
 	return mPbrTechnique;
+}
+
+const std::vector<std::string>& nex::Renderer::getRenderLayerDescriptions()
+{
+	return mRenderLayerDescs;
+}
+
+nex::Texture* nex::Renderer::getActiveRenderLayer()
+{
+	return mActiveRenderLayerProvider();
+}
+
+void nex::Renderer::setActiveRenderLayer(const std::string& desc)
+{
+	auto it = mRenderlayers.find(desc);
+	if (it != mRenderlayers.end())
+		mActiveRenderLayerProvider = it->second;
 }

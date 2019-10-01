@@ -35,6 +35,18 @@ namespace nex
 		return m_usedAOTechnique;
 	}
 
+	Texture2D* AmbientOcclusionSelector::getRenderResult()
+	{
+		if (!isAmbientOcclusionActive())
+			// Return a default white texture (means no ambient occlusion)
+			return TextureManager::get()->getDefaultWhiteTexture();
+
+		if (getActiveAOTechnique() == AOTechnique::HBAO)
+			return m_hbao->getBlurredResult();
+
+		return m_ssao->getBlurredResult();
+	}
+
 	void AmbientOcclusionSelector::onSizeChange(unsigned width, unsigned height)
 	{
 		m_hbao->onSizeChange(width, height);

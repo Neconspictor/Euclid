@@ -17,6 +17,9 @@ namespace nex
 		Texture2D* getSearchTex();
 
 
+		Texture2D* getEdgeDetection();
+		Texture2D* getBlendingWeight();
+
 		void resize(unsigned width, unsigned height);
 
 		Texture2D* renderEdgeDetectionPass(Texture2D* colorTexGamma);

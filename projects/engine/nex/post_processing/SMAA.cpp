@@ -181,6 +181,16 @@ nex::Texture2D* nex::SMAA::getSearchTex()
 	return mSearchTex.get();
 }
 
+nex::Texture2D* nex::SMAA::getEdgeDetection()
+{
+	return (Texture2D*)mEdgesTex->getColorAttachmentTexture(0);
+}
+
+nex::Texture2D* nex::SMAA::getBlendingWeight()
+{
+	return (Texture2D*)mBlendTex->getColorAttachmentTexture(0);
+}
+
 void nex::SMAA::resize(unsigned width, unsigned height)
 {
 	TextureDesc data;

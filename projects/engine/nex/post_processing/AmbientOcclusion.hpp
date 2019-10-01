@@ -35,6 +35,8 @@ namespace nex {
 
 		AOTechnique getActiveAOTechnique() const;
 
+		Texture2D* getRenderResult();
+
 		void onSizeChange(unsigned width, unsigned height);
 
 		Texture2D* renderAO(const Camera& camera, Texture2D* gDepth);

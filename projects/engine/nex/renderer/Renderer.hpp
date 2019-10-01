@@ -1,6 +1,7 @@
 #pragma once
 #include "nex/math/Constant.hpp"
 #include <functional>
+#include <unordered_map>
 
 namespace nex
 {
@@ -10,6 +11,7 @@ namespace nex
 	class PerspectiveCamera;
 	class RenderTarget;
 	class PbrTechnique;
+	class Texture;
 
 	class Renderer
 	{
@@ -34,13 +36,22 @@ namespace nex
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 
+		const std::vector<std::string>& getRenderLayerDescriptions();
+
+		Texture* getActiveRenderLayer();
+
 		virtual RenderTarget* getTempRendertTarget() = 0;
 
 		virtual void pushDepthFunc(std::function<void()> func) = 0;
+
+		void setActiveRenderLayer(const std::string& desc);
 
 	protected:
 		PbrTechnique* mPbrTechnique;
 		unsigned mWidth;
 		unsigned mHeight;
+		std::vector<std::string> mRenderLayerDescs;
+		std::unordered_map<std::string, std::function<Texture* ()>> mRenderlayers;
+		std::function<Texture*()> mActiveRenderLayerProvider;
 	};
 }

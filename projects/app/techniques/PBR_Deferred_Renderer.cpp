@@ -35,6 +35,9 @@
 #include <nex/pbr/Pbr.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>
+#include <nex/util/StringUtils.hpp>
+#include <nex/post_processing/PostProcessor.hpp>
+#include <nex/post_processing/SMAA.hpp>
 
 int ssaaSamples = 1;
 
@@ -117,6 +120,33 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	auto* mAoSelector = mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
 	mAoSelector->setUseAmbientOcclusion(true);
 	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
+
+
+	mRenderlayers["composited"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); };
+	mRenderlayers["GBuffer: normal - view space"] = [&]() { return  mPbrMrt->getNormal(); };
+	mRenderlayers["GBuffer: albedo"] = [&]() { return mPbrMrt->getAlbedo(); };
+	mRenderlayers["GBuffer: ambient occlusion, metalness, roughness"] = [&]() { return mPbrMrt->getAoMetalRoughness();};
+	mRenderlayers["motion"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(2); };
+	mRenderlayers["luminance"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(1); };
+	mRenderlayers["ambient occlusion"] = [&]() { return getAOSelector()->getRenderResult(); };
+	mRenderlayers["pre-post process"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); };
+	mRenderlayers["post processed (without antialising)"] = [&]() { return mPingPong->getColorAttachmentTexture(0); };
+	mRenderlayers["SMAA - edge"] = []() { return RenderBackend::get()->
+		getEffectLibrary()->
+		getPostProcessor()->
+		getSMAA()->
+		getEdgeDetection(); };
+	mRenderlayers["SMAA - blend"] = []() { return RenderBackend::get()->
+		getEffectLibrary()->
+		getPostProcessor()->
+		getSMAA()->
+		getBlendingWeight(); };
+
+
+	for (const auto& it : mRenderlayers)
+		mRenderLayerDescs.push_back(it.first);
+
+	setActiveRenderLayer("composited");
 }
 
 
@@ -598,12 +628,34 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		}
 	}
 
-	nex::gui::Separator(2.0f);
+	const auto& layerDescs = mRenderer->getRenderLayerDescriptions();
+
+	size_t size = 0;
+	for (const auto& item : layerDescs) {
+		size += item.size() + 1;
+	}
+
+	size_t cursor = 0;
+	std::vector<char> flatDesc(size);
+	for (const auto& item : layerDescs) {
+		memcpy(flatDesc.data() + cursor, item.data(), item.size());
+		cursor += item.size();
+		flatDesc[cursor] = '\0';
+		++cursor;
+	}
+
+	if (ImGui::Combo("Render layer", &mSelectedRenderLayer, flatDesc.data())) {
+		mRenderer->setActiveRenderLayer(layerDescs[mSelectedRenderLayer]);
+	}
+
+	/*nex::gui::Separator(2.0f);
 	mTesselationConfig.drawGUI();
 
 	nex::gui::Separator(2.0f);
 	ImGui::Text("Ocean:");
-	mOceanConfig.drawGUI();
+	mOceanConfig.drawGUI();*/
+
+	nex::gui::Separator(2.0f);
 
 	ImGui::PopID();
 }

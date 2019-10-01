@@ -105,5 +105,6 @@ namespace nex
 		PBR_Deferred_Renderer* mRenderer;
 		gui::TesselationTest_Config mTesselationConfig;
 		gui::OceanConfig mOceanConfig;
+		int mSelectedRenderLayer;
 	};
 }
