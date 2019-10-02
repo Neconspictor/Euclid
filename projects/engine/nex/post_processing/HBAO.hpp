@@ -158,10 +158,9 @@ namespace nex {
 		HBAO(unsigned int windowWidth,
 			unsigned int windowHeight);
 
-		//virtual ~HBAO_GL();
-
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
+		Texture2D* getViewSpaceNormals();
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
@@ -229,6 +228,7 @@ namespace nex {
 		std::unique_ptr<RenderTarget> mDeinterleaveRT;
 		std::vector<RenderAttachment> mDeinterleaveAttachment[HBAO_RANDOM_ELEMENTS / NUM_MRT];
 		std::unique_ptr<RenderTarget> mCacheAwareAoRT;
+		std::unique_ptr<RenderTarget2D> mViewSpaceNormalsRT;
 		
 
 		HBAOData   m_hbaoDataSource;

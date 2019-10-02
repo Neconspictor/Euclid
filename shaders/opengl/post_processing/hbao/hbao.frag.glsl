@@ -4,6 +4,9 @@ https://github.com/NVIDIAGameWorks/D3DSamples/tree/master/samples/DeinterleavedT
 
 */
 
+//10/2/2019 , David Goeth : Fixed uv to view transformation; 
+
+
 #version 430
 
 // common_h
@@ -71,7 +74,7 @@ in vec2 texCoord;
 
 vec3 UVToView(vec2 uv, float eye_z)
 {
-  return vec3((uv * control.projInfo.xy + control.projInfo.zw) * (control.projOrtho != 0 ? 1. : eye_z), eye_z);
+  return vec3((uv * control.projInfo.xy + control.projInfo.zw) * (control.projOrtho != 0 ? 1. : -eye_z), eye_z);
 }
 
 vec3 FetchViewPos(vec2 UV)

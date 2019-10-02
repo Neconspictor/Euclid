@@ -93,6 +93,9 @@ namespace nex
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
 		
+
+
+
 	}
 
 
@@ -104,6 +107,11 @@ namespace nex
 	Texture2D * HBAO::getBlurredResult()
 	{
 		return m_aoBlurredResultRT->getColor0AttachmentTexture();
+	}
+
+	nex::Texture2D* HBAO::getViewSpaceNormals()
+	{
+		return (Texture2D*)mViewSpaceNormalsRT->getColorAttachmentTexture(0);
 	}
 
 	void HBAO::onSizeChange(unsigned int newWidth, unsigned int newHeight)
@@ -120,12 +128,14 @@ namespace nex
 		unsigned int height = m_aoResultRT->getHeight();
 		auto* renderBackend = RenderBackend::get();
 
-		prepareHbaoData(projection, width, height);
+		/*prepareHbaoData(projection, width, height);
 
 
 		renderBackend->setViewPort(0, 0, width, height);
 
-		drawLinearDepth(depthTexture, projection);
+		drawLinearDepth(depthTexture, projection);*/
+
+		renderCacheAwareAO(depthTexture, projection, blur);
 
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
@@ -158,13 +168,37 @@ namespace nex
 		const auto height = m_aoResultRT->getHeight();
 		const auto quarterWidth = (width + 3) / 4;
 		const auto quarterHeight = (height + 3) / 4;
-
-		prepareHbaoData(projection, width, height);
-		drawLinearDepth(depth, projection);
-
 		auto* renderBackend = RenderBackend::get();
 
-		renderBackend->setViewPort(0,0, quarterWidth, quarterHeight);
+		prepareHbaoData(projection, width, height);
+
+		renderBackend->setViewPort(0, 0, width, height);
+		drawLinearDepth(depth, projection);
+
+		//viewspace normals
+		mViewSpaceNormalsRT->bind();
+		mViewNormalPass->bind();
+		mViewNormalPass->setLinearDepth(m_depthLinearRT->getColorAttachmentTexture(0));
+		mViewNormalPass->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
+		mViewNormalPass->setProjInfo(m_hbaoDataSource.projInfo);
+		mViewNormalPass->setProjOrtho(m_hbaoDataSource.projOrtho);
+
+		glm::vec4 projInfo;
+		projInfo.x = projection.matrix[0][0];
+		projInfo.y = projection.matrix[1][1];
+		projInfo.z = projection.matrix[2][2];
+		projInfo.w = projection.matrix[3][2];
+		//mViewNormalPass->setProjInfo(projInfo);
+		//mViewNormalPass->setLinearDepth(depth);
+		
+
+		RenderState state;
+		state.doDepthTest = false;
+
+		StaticMeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
+		
+
+		//renderBackend->setViewPort(0,0, quarterWidth, quarterHeight);
 
 	}
 
@@ -183,8 +217,11 @@ namespace nex
 		glm::vec4 projInfoPerspective = {
 			2.0f / (P[4 * 0 + 0]),       // (x) * (R - L)/N
 			2.0f / (P[4 * 1 + 1]),       // (y) * (T - B)/N
-			-(1.0f - P[4 * 2 + 0]) / P[4 * 0 + 0], // L/N
-			-(1.0f + P[4 * 2 + 1]) / P[4 * 1 + 1], // B/N
+			-1.0f / P[4 * 0 + 0],
+			-1.0f / P[4 * 1 + 1]
+			
+			//-(1.0f - P[4 * 2 + 0]) / P[4 * 0 + 0], // L/N
+			//-(1.0f + P[4 * 2 + 1]) / P[4 * 1 + 1], // B/N
 		};
 
 		glm::vec4 projInfoOrtho = {
@@ -303,6 +340,19 @@ namespace nex
 		mDeinterleaveRT->finalizeAttachments();
 
 		mCacheAwareAoRT = std::make_unique<RenderTarget>(width, height);
+
+
+		TextureDesc normalsDesc;
+		depthDesc.internalFormat = InternFormat::RGBA8;
+		depthDesc.magFilter = TextureFilter::NearestNeighbor;
+		depthDesc.minFilter = TextureFilter::NearestNeighbor;
+		depthDesc.wrapR = TextureUVTechnique::ClampToEdge;
+		depthDesc.wrapS = TextureUVTechnique::ClampToEdge;
+		depthDesc.wrapT = TextureUVTechnique::ClampToEdge;
+		depthDesc.pixelDataType = PixelDataType::UBYTE;
+		depthDesc.generateMipMaps = false;
+		depthDesc.colorspace = ColorSpace::RGBA;
+		mViewSpaceNormalsRT = std::make_unique<RenderTarget2D>(width, height, normalsDesc, 1);
 	}
 
 	BilateralBlurPass::BilateralBlurPass() :
