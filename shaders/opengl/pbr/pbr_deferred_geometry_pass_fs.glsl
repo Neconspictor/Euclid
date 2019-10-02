@@ -20,7 +20,7 @@ void main()
 	aoMetallRoughness.b = texture(material.roughnessMap, fs_in.tex_coords).r;
     
 	//normal
-    normalEye = getNormalEye();
+    normalEye = getEncodedNormalEye();
 	
 	// position
 	//positionEye = fs_in.fragment_position_eye.xyz;

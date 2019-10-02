@@ -21,7 +21,7 @@ void main()
 	float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	
 	//normal
-    vec3 normalEye = getNormalEye();
+    vec3 normalEye = 2.0 * getEncodedNormalEye() - 1.0;
     
     //vec2 texCoords = fs_in.tex_coords;
     

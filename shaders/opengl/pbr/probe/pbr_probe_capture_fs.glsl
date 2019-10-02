@@ -21,7 +21,7 @@ void main()
 	const float roughness = texture(material.roughnessMap, fs_in.tex_coords).r;
 	
 	//normal
-    const vec3 normalEye = getNormalEye();
+    const vec3 normalEye = 2.0 * getEncodedNormalEye() - 1.0;
     
     // view direction
 	const vec3 viewEye = normalize(-positionEye);

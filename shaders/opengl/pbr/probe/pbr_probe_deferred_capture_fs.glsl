@@ -46,7 +46,7 @@ void main()
 	float roughness = aoMetalRoughness.b;
     //roughness = 1;
 	
-	const vec3 normalEye = normalize(texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb);
+	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb - 1.0);
     
     //if (length(normalEye) < 0.01) {
         //discard;
