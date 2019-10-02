@@ -529,7 +529,8 @@ namespace nex
 
 	void OrthographicCamera::calcProjection()
 	{
-		mProjection = glm::ortho(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight);
+		mProjection = glm::orthoRH(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight, mNearDistance, mFarDistance);
+		//mProjection = glm::ortho(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight);
 	}
 
 	Frustum operator*(const Frustum& frustum, const glm::mat4& mat)
