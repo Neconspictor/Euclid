@@ -529,7 +529,7 @@ namespace nex
 
 	void OrthographicCamera::calcProjection()
 	{
-		mProjection = glm::orthoRH(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight, mNearDistance, mFarDistance);
+		mProjection = glm::orthoNO(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight, mNearDistance, mFarDistance);
 		//mProjection = glm::ortho(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight);
 	}
 
