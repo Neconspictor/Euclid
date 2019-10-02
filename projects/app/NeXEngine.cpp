@@ -320,7 +320,7 @@ void NeXEngine::run()
 
 			
 			auto* screenRT = backend->getDefaultRenderTarget();
-			auto* tempRT = mRenderer->getTempRendertTarget();
+			auto* tempRT = mRenderer->getOutRendertTarget();
 			Texture* texture = nullptr;
 
 			if (mGlobalIllumination->getVisualize()) {
@@ -347,7 +347,7 @@ void NeXEngine::run()
 					true, 
 					tempRT);
 
-				texture = mRenderer->getActiveRenderLayer();
+				texture = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()].textureProvider();
 			}
 			
 			//texture = mRenderer->getGbuffer()->getNormal();

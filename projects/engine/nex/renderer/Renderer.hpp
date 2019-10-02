@@ -17,6 +17,11 @@ namespace nex
 	{
 	public:
 
+		struct RenderLayer {
+			std::string desc; 
+			std::function<Texture* ()> textureProvider;
+		};
+
 		Renderer(PbrTechnique* pbrTechnique);
 
 		virtual ~Renderer();
@@ -36,22 +41,22 @@ namespace nex
 		PbrTechnique* getPbrTechnique();
 		const PbrTechnique* getPbrTechnique() const;
 
-		const std::vector<std::string>& getRenderLayerDescriptions();
+		const std::vector<RenderLayer>& getRenderLayers();
 
-		Texture* getActiveRenderLayer();
+		size_t getRenderLayerIndexByName(const std::string& desc) const;
+		size_t getActiveRenderLayer() const;
 
-		virtual RenderTarget* getTempRendertTarget() = 0;
+		virtual RenderTarget* getOutRendertTarget() = 0;
 
 		virtual void pushDepthFunc(std::function<void()> func) = 0;
 
-		void setActiveRenderLayer(const std::string& desc);
+		void setActiveRenderLayer(size_t index);
 
 	protected:
 		PbrTechnique* mPbrTechnique;
 		unsigned mWidth;
 		unsigned mHeight;
-		std::vector<std::string> mRenderLayerDescs;
-		std::unordered_map<std::string, std::function<Texture* ()>> mRenderlayers;
-		std::function<Texture*()> mActiveRenderLayerProvider;
+		std::vector<RenderLayer> mRenderLayers;
+		size_t mActiveRenderLayer;
 	};
 }

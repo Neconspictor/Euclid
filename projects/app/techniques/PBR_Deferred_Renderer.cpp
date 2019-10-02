@@ -38,6 +38,7 @@
 #include <nex/util/StringUtils.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/SMAA.hpp>
+#include <nex/post_processing/HBAO.hpp>
 
 int ssaaSamples = 1;
 
@@ -122,31 +123,32 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
 
 
-	mRenderlayers["composited"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); };
-	mRenderlayers["GBuffer: normal - view space"] = [&]() { return  mPbrMrt->getNormal(); };
-	mRenderlayers["GBuffer: albedo"] = [&]() { return mPbrMrt->getAlbedo(); };
-	mRenderlayers["GBuffer: ambient occlusion, metalness, roughness"] = [&]() { return mPbrMrt->getAoMetalRoughness();};
-	mRenderlayers["motion"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(2); };
-	mRenderlayers["luminance"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(1); };
-	mRenderlayers["ambient occlusion"] = [&]() { return getAOSelector()->getRenderResult(); };
-	mRenderlayers["pre-post process"] = [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); };
-	mRenderlayers["post processed (without antialising)"] = [&]() { return mPingPong->getColorAttachmentTexture(0); };
-	mRenderlayers["SMAA - edge"] = []() { return RenderBackend::get()->
+	mRenderLayers.push_back({ "composited", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
+
+	mRenderLayers.push_back({ "post processed (without antialising)", [&]() { return mPingPong->getColorAttachmentTexture(0); } });
+	mRenderLayers.push_back({ "GBuffer: normal - view space", [&]() { return  mPbrMrt->getNormal(); } });
+	mRenderLayers.push_back({ "GBuffer: albedo", [&]() { return mPbrMrt->getAlbedo(); } });
+	mRenderLayers.push_back({ "GBuffer: ambient occlusion, metalness, roughness", [&]() { return mPbrMrt->getAoMetalRoughness(); } });
+	mRenderLayers.push_back({ "motion", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(2); } });
+	mRenderLayers.push_back({ "luminance", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(1); } });
+	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); } });
+	//mRenderLayers.push_back({ "pre-post process", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
+	
+	mRenderLayers.push_back({ "SMAA - edge", []() { return RenderBackend::get()->
 		getEffectLibrary()->
 		getPostProcessor()->
 		getSMAA()->
-		getEdgeDetection(); };
-	mRenderlayers["SMAA - blend"] = []() { return RenderBackend::get()->
+		getEdgeDetection(); } });
+
+	mRenderLayers.push_back({ "SMAA - blend",[]() { return RenderBackend::get()->
 		getEffectLibrary()->
 		getPostProcessor()->
 		getSMAA()->
-		getBlendingWeight(); };
+		getBlendingWeight(); } });
+	mRenderLayers.push_back({ "HBAO view space normals",[&]() { return getAOSelector()->getHBAO()->getViewSpaceNormals(); } });
 
-
-	for (const auto& it : mRenderlayers)
-		mRenderLayerDescs.push_back(it.first);
-
-	setActiveRenderLayer("composited");
+	//setActiveRenderLayer("composited");
+	setActiveRenderLayer(getRenderLayerIndexByName("composited"));
 }
 
 
@@ -261,6 +263,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mPbrMrt = mPbrTechnique->getDeferred()->createMultipleRenderTarget(width, height);
 	mRenderTargetSingleSampled = createLightingTarget(width, height, mPbrMrt.get());
 	mPingPong = mRenderBackend->createRenderTarget();
+	mOutRT = mRenderBackend->createRenderTarget();
 }
 
 nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
@@ -293,7 +296,7 @@ void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
 	mDepthFuncs.emplace_back(std::move(func));
 }
 
-nex::RenderTarget* nex::PBR_Deferred_Renderer::getTempRendertTarget()
+nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRendertTarget()
 {
 	return mRenderTargetSingleSampled.get();
 }
@@ -628,24 +631,30 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		}
 	}
 
-	const auto& layerDescs = mRenderer->getRenderLayerDescriptions();
+	const auto& layerDescs = mRenderer->getRenderLayers();
 
-	size_t size = 0;
-	for (const auto& item : layerDescs) {
-		size += item.size() + 1;
+	mRenderer->getActiveRenderLayer();
+
+	size_t size = 1;
+	for (const auto& layer : layerDescs) {
+		size += layer.desc.size() +1;
 	}
 
 	size_t cursor = 0;
 	std::vector<char> flatDesc(size);
-	for (const auto& item : layerDescs) {
-		memcpy(flatDesc.data() + cursor, item.data(), item.size());
-		cursor += item.size();
+	for (const auto& layer : layerDescs) {
+		memcpy(flatDesc.data() + cursor, layer.desc.data(), layer.desc.size());
+		cursor += layer.desc.size();
 		flatDesc[cursor] = '\0';
 		++cursor;
 	}
 
-	if (ImGui::Combo("Render layer", &mSelectedRenderLayer, flatDesc.data())) {
-		mRenderer->setActiveRenderLayer(layerDescs[mSelectedRenderLayer]);
+	flatDesc[cursor] = '\0'; // necessary to indicate that no more data follows!
+
+	int index = static_cast<int>(mRenderer->getActiveRenderLayer());
+
+	if (ImGui::Combo("Render layer", &index, flatDesc.data())) {
+		mRenderer->setActiveRenderLayer(index);
 	}
 
 	/*nex::gui::Separator(2.0f);

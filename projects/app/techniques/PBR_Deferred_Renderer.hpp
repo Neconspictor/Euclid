@@ -56,7 +56,7 @@ namespace nex
 
 		void pushDepthFunc(std::function<void()> func) override;
 
-		RenderTarget* getTempRendertTarget() override;
+		RenderTarget* getOutRendertTarget() override;
 
 
 		void renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, const Pass::Constants& constants, const DirLight& sun, Texture2D* depth);
@@ -78,6 +78,7 @@ namespace nex
 
 		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
 		std::unique_ptr<RenderTarget2D> mPingPong;
+		std::unique_ptr<RenderTarget2D> mOutRT;
 
 		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;
@@ -105,6 +106,5 @@ namespace nex
 		PBR_Deferred_Renderer* mRenderer;
 		gui::TesselationTest_Config mTesselationConfig;
 		gui::OceanConfig mOceanConfig;
-		int mSelectedRenderLayer;
 	};
 }

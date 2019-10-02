@@ -3,7 +3,7 @@
 #include <nex/pbr/Cluster.hpp>
 
 nex::Renderer::Renderer(nex::PbrTechnique * pbrTechnique) : mPbrTechnique(pbrTechnique),
-mWidth(0), mHeight(0), mActiveRenderLayerProvider([]() {return nullptr; })
+mWidth(0), mHeight(0), mActiveRenderLayer(0)
 {
 }
 
@@ -35,19 +35,32 @@ const nex::PbrTechnique* nex::Renderer::getPbrTechnique() const
 	return mPbrTechnique;
 }
 
-const std::vector<std::string>& nex::Renderer::getRenderLayerDescriptions()
+const std::vector<nex::Renderer::RenderLayer>& nex::Renderer::getRenderLayers()
 {
-	return mRenderLayerDescs;
+	return mRenderLayers;
 }
 
-nex::Texture* nex::Renderer::getActiveRenderLayer()
+size_t nex::Renderer::getRenderLayerIndexByName(const std::string& desc) const
 {
-	return mActiveRenderLayerProvider();
+	for (int i = 0; i < mRenderLayers.size(); ++i) {
+		if (mRenderLayers[i].desc == desc) return i;
+	}
+
+	//default value
+	return 0;
 }
 
-void nex::Renderer::setActiveRenderLayer(const std::string& desc)
+size_t nex::Renderer::getActiveRenderLayer() const
 {
-	auto it = mRenderlayers.find(desc);
-	if (it != mRenderlayers.end())
-		mActiveRenderLayerProvider = it->second;
+	return mActiveRenderLayer;
+}
+
+void nex::Renderer::setActiveRenderLayer(size_t index)
+{
+	if (mRenderLayers.size() <= index) {
+		throw_with_trace(std::runtime_error("nex::Renderer::setActiveRenderLayer : index out of bounds!"));
+	}
+
+	mActiveRenderLayer = index;
+		
 }
