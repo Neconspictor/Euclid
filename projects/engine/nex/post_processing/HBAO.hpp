@@ -147,6 +147,21 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
+	class DeinterleavePass : public Pass {
+	public:
+
+		DeinterleavePass();
+		virtual ~DeinterleavePass();
+
+		void setInfo(const glm::vec4& info);
+		void setLinearDepth(Texture* linearDepth);
+
+	private:
+
+		Uniform mInfo;
+		UniformTex mLinearDepth;
+	};
+
 
 	/**
 	 * An Horizon based ambient occlusion (HBAO) implementation for deferred rendering.
@@ -161,6 +176,8 @@ namespace nex {
 		Texture2D* getAO_Result();
 		Texture2D* getBlurredResult();
 		Texture2D* getViewSpaceNormals();
+		Texture2D* getLinearDepth();
+		Texture* getDepthView(int index);
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
@@ -222,6 +239,7 @@ namespace nex {
 
 		//cache aware stuff
 		std::unique_ptr<ViewNormalPass> mViewNormalPass;
+		std::unique_ptr<DeinterleavePass> mDeinterleavePass;
 		std::unique_ptr<Texture2DArray> mDepthArray4th;
 		std::unique_ptr<Texture2DArray> mDepthArray4thResult;
 		std::shared_ptr<Texture> mDepthView4th[HBAO_RANDOM_ELEMENTS];

@@ -86,6 +86,7 @@ namespace nex
 		m_hbaoShader = std::make_unique<HbaoPass>();
 
 		mViewNormalPass = std::make_unique<ViewNormalPass>();
+		mDeinterleavePass = std::make_unique<DeinterleavePass>();
 
 		initRenderTargets(windowWidth, windowHeight);
 
@@ -114,6 +115,17 @@ namespace nex
 		return (Texture2D*)mViewSpaceNormalsRT->getColorAttachmentTexture(0);
 	}
 
+	nex::Texture2D* HBAO::getLinearDepth()
+	{
+		return (Texture2D*)m_depthLinearRT->getColorAttachmentTexture(0);
+	}
+
+	Texture* HBAO::getDepthView(int index)
+	{
+		if (index >= HBAO_RANDOM_ELEMENTS) throw_with_trace(std::runtime_error("HBAO::getDepthView: index out of bound"));
+		return mDepthView4th[index].get();
+	}
+
 	void HBAO::onSizeChange(unsigned int newWidth, unsigned int newHeight)
 	{
 		this->windowWidth = newWidth;
@@ -136,6 +148,8 @@ namespace nex
 		drawLinearDepth(depthTexture, projection);*/
 
 		renderCacheAwareAO(depthTexture, projection, blur);
+
+		renderBackend->setViewPort(0, 0, width, height);
 
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
@@ -175,30 +189,47 @@ namespace nex
 		renderBackend->setViewPort(0, 0, width, height);
 		drawLinearDepth(depth, projection);
 
-		//viewspace normals
-		mViewSpaceNormalsRT->bind();
-		mViewNormalPass->bind();
-		mViewNormalPass->setLinearDepth(m_depthLinearRT->getColorAttachmentTexture(0));
-		mViewNormalPass->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
-		mViewNormalPass->setProjInfo(m_hbaoDataSource.projInfo);
-		mViewNormalPass->setProjOrtho(m_hbaoDataSource.projOrtho);
-
-		glm::vec4 projInfo;
-		projInfo.x = projection.matrix[0][0];
-		projInfo.y = projection.matrix[1][1];
-		projInfo.z = projection.matrix[2][2];
-		projInfo.w = projection.matrix[3][2];
-		//mViewNormalPass->setProjInfo(projInfo);
-		//mViewNormalPass->setLinearDepth(depth);
-		
-
+		auto* linearDepth = m_depthLinearRT->getColorAttachmentTexture(0);
 		RenderState state;
 		state.doDepthTest = false;
 
-		StaticMeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
+		//viewspace normals
+		{
+			mViewSpaceNormalsRT->bind();
+			mViewNormalPass->bind();
+			mViewNormalPass->setLinearDepth(linearDepth);
+			mViewNormalPass->setInvFullResolution(m_hbaoDataSource.InvFullResolution);
+			mViewNormalPass->setProjInfo(m_hbaoDataSource.projInfo);
+			mViewNormalPass->setProjOrtho(m_hbaoDataSource.projOrtho);
+
+			StaticMeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
+		}
+
+		renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
+
+		//deinterleave
+		{
+			mDeinterleaveRT->bind();
+			mDeinterleavePass->bind();
+			mDeinterleavePass->setLinearDepth(linearDepth);
+
+			for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; i+= NUM_MRT) {
+				mDeinterleavePass->setInfo({ 
+					float(i % 4) + 0.5f, 
+					float(i / 4) + 0.5f, 
+					m_hbaoDataSource.InvFullResolution.x,
+					m_hbaoDataSource.InvFullResolution.y}
+				);
+
+				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[i / NUM_MRT]);
+				StaticMeshDrawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
+			}
+		}
+		
 		
 
-		//renderBackend->setViewPort(0,0, quarterWidth, quarterHeight);
+		//
+		//renderBackend->setViewPort(0, 0, width, height);
 
 	}
 
@@ -312,9 +343,12 @@ namespace nex
 
 
 		//cache aware stuff
-		mDepthArray4th = std::make_unique<Texture2DArray>(width, height, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
-		mDepthArray4thResult = std::make_unique<Texture2DArray>(width, height, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
-		mDeinterleaveRT = std::make_unique<RenderTarget>(width, height);
+		int quarterWidth = ((width + 3) / 4);
+		int quarterHeight = ((height + 3) / 4);
+
+		mDepthArray4th = std::make_unique<Texture2DArray>(quarterWidth, quarterHeight, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
+		mDepthArray4thResult = std::make_unique<Texture2DArray>(quarterWidth, quarterHeight, HBAO_RANDOM_ELEMENTS, depthDesc, nullptr);
+		mDeinterleaveRT = std::make_unique<RenderTarget>(quarterWidth, quarterHeight);
 
 		for (auto i = 0; i < HBAO_RANDOM_ELEMENTS / NUM_MRT; ++i) {
 			mDeinterleaveAttachment[i].resize(NUM_MRT);
@@ -332,12 +366,7 @@ namespace nex
 			}
 		}
 
-		for (auto i = 0; i < NUM_MRT; ++i) {
-			mDeinterleaveRT->addColorAttachment(mDeinterleaveAttachment[0][i]);
-		}
-
-		mDeinterleaveRT->getColorAttachments() = mDeinterleaveAttachment[1];
-		mDeinterleaveRT->finalizeAttachments();
+		mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[1]);
 
 		mCacheAwareAoRT = std::make_unique<RenderTarget>(width, height);
 
@@ -575,6 +604,25 @@ namespace nex
 		mShader->setVec2(mInvFullResolution.location, invFullResolution);
 	}
 	void ViewNormalPass::setLinearDepth(Texture * linearDepth)
+	{
+		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+	}
+
+
+	DeinterleavePass::DeinterleavePass()
+	{
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_deinterleave_fs.glsl");
+		mInfo = { mShader->getUniformLocation("info"), UniformType::VEC4 };
+		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D, 0);
+	}
+	DeinterleavePass::~DeinterleavePass() = default;
+
+	void DeinterleavePass::setInfo(const glm::vec4 & info)
+	{
+		mShader->setVec4(mInfo.location, info);
+	}
+
+	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
 	{
 		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
 	}
