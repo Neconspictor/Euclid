@@ -369,7 +369,7 @@ void nex::Texture::Impl::generateMipMaps()
 std::unique_ptr<nex::Texture::Impl> nex::Texture::Impl::createView(Impl* original, TextureTarget target, unsigned startLevel, unsigned numLevel,
 	unsigned startLayer, unsigned numLayers, const TextureDesc& data)
 {
-	auto result = make_unique<Impl>(original->getTarget(), data, original->getWidth(), original->getHeight(), original->getDepth());
+	auto result = make_unique<Impl>(target, data, original->getWidth(), original->getHeight(), original->getDepth());
 	// TODO check whether target and the target of the original texture are compatible!
 	const auto targetGL = (GLenum)translate(target);
 
