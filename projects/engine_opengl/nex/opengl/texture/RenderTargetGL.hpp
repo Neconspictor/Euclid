@@ -74,6 +74,8 @@ namespace nex
 
 		void setFrameBuffer(GLuint newValue);
 
+		void resetAttachments(const std::vector<RenderAttachment>& attachments);
+
 		void updateColorAttachment(unsigned index) const;
 
 		void updateDepthAttachment() const;

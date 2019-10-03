@@ -89,6 +89,8 @@ namespace nex
 		 */
 		bool isComplete() const;
 
+		void resetAttachments(const std::vector<RenderAttachment>& attachments);
+
 		// Has to be implemented by renderer backend
 		/**
 		 * @param index: The vector index of the color attachment (see getColorAttachments())
@@ -99,6 +101,7 @@ namespace nex
 
 		// Has to be implemented by renderer backend
 		void useDepthAttachment(RenderAttachment attachment) const;
+
 
 	protected:
 

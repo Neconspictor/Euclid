@@ -311,6 +311,10 @@ void nex::RenderTarget::setImpl(std::unique_ptr<Impl> impl)
 	mImpl = std::move(impl);
 }
 
+void nex::RenderTarget::resetAttachments(const std::vector<RenderAttachment>& attachments) {
+	mImpl->resetAttachments(attachments);
+}
+
 void nex::RenderTarget::updateColorAttachment(unsigned index) const
 {
 	mImpl->updateColorAttachment(index);
@@ -708,6 +712,18 @@ bool nex::RenderTarget::Impl::isDepthType(RenderAttachmentType type)
 void nex::RenderTarget::Impl::setFrameBuffer(GLuint newValue)
 {
 	mFrameBuffer = newValue;
+}
+
+void nex::RenderTarget::Impl::resetAttachments(const std::vector<RenderAttachment>& attachments)
+{
+	mColorAttachments.clear();
+	mColorAttachmentReadStatus.clear();
+	mColorAttachmentDrawStatus.clear();
+
+	for (const auto& attachment : attachments)
+		addColorAttachment(attachment);
+
+	finalizeColorAttachments();
 }
 
 void nex::RenderTarget::Impl::finalizeColorAttachments() const
