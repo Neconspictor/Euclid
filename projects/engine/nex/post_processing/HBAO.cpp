@@ -83,10 +83,12 @@ namespace nex
 		m_aoDisplay = std::make_unique<DisplayTexPass>();
 		m_bilateralBlur = std::make_unique<BilateralBlurPass>();
 		m_depthLinearizer = std::make_unique<DepthLinearizerPass>();
-		m_hbaoShader = std::make_unique<HbaoPass>();
+		m_hbaoShader = std::make_unique<HbaoPass>(false);
 
+		mHbaoDeinterleavedPass = std::make_unique<HbaoPass>(true);
 		mViewNormalPass = std::make_unique<ViewNormalPass>();
 		mDeinterleavePass = std::make_unique<DeinterleavePass>();
+		mHbaoBlur = std::make_unique<HbaoBlur>();
 
 		initRenderTargets(windowWidth, windowHeight);
 
@@ -169,10 +171,25 @@ namespace nex
 			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
-			m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
+			/*m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
 			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
-			m_bilateralBlur->setSharpness(m_blur_sharpness);
-			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());
+			m_bilateralBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
+
+
+			RenderState state = RenderState::createNoDepthTest();
+			mHbaoBlur->bindPreset(0);
+			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setInvResolutionDirection({1.0f / float(width), 1.0f / float(height)});
+			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
+
+			m_aoBlurredResultRT->bind();
+			mHbaoBlur->bindPreset(1);
+			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
+			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
 		}
 	}
 
@@ -224,6 +241,18 @@ namespace nex
 				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[i / NUM_MRT]);
 				StaticMeshDrawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
 			}
+		}
+
+		//calc hbao
+		{
+			mCacheAwareAoRT->bind();
+			
+			mHbaoDeinterleavedPass->setHbaoData(std::move(m_hbaoDataSource));
+			mHbaoDeinterleavedPass->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
+			mHbaoDeinterleavedPass->setRamdomView(m_hbao_randomview.get());
+
+			//TODO generalize!
+			//mHbaoDeinterleavedPass->draw();
 		}
 		
 		
@@ -324,13 +353,14 @@ namespace nex
 
 		// m_aoResultRT
 		TextureDesc aoData; 
-		aoData.internalFormat = InternFormat::R8;
+		aoData.internalFormat = InternFormat::RG16F;
 		aoData.useSwizzle = true;
-		aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
+		//aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
+		aoData.swizzle = { Channel::RED, Channel::GREEN, Channel::ZERO, Channel::ZERO };
 		aoData.wrapR = TextureUVTechnique::ClampToEdge;
 		aoData.wrapS = TextureUVTechnique::ClampToEdge;
 		aoData.wrapT = TextureUVTechnique::ClampToEdge;
-		aoData.pixelDataType = PixelDataType::UBYTE;
+		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
 		aoData.generateMipMaps = false;
 		aoData.colorspace = ColorSpace::R;
 		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
@@ -368,7 +398,7 @@ namespace nex
 
 		mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[1]);
 
-		mCacheAwareAoRT = std::make_unique<RenderTarget>(width, height);
+		mCacheAwareAoRT = std::make_unique<RenderTarget>(quarterWidth, quarterHeight);
 
 
 		TextureDesc normalsDesc;
@@ -519,14 +549,26 @@ namespace nex
 		m_input = input;
 	}
 
-	HbaoPass::HbaoPass() :
+	HbaoPass::HbaoPass(bool deinterleaved) :
 		m_hbao_randomview(nullptr),
 		m_linearDepth(nullptr),
-		m_hbao_ubo(nullptr)
+		m_hbao_ubo(nullptr),
+		mDeinterleaved(deinterleaved)
 	{
 		memset(&m_hbao_data, 0, sizeof(HBAOData));
 
-		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao.frag.glsl");
+		std::vector<std::string> defines;
+
+		if (mDeinterleaved) {
+
+			defines = { "#define AO_DEINTERLEAVED 1", "#define AO_BLUR 1" };
+		}
+		else {
+			defines = { "#define AO_DEINTERLEAVED 0", "#define AO_BLUR 1" };
+		}
+
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_fs.glsl",
+			nullptr, nullptr, nullptr, defines);
 
 		UniformLocation linearDepthLoc = mShader->getUniformLocation("texLinearDepth");
 		mShader->setBinding(linearDepthLoc, 0);
@@ -625,6 +667,53 @@ namespace nex
 	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
 	{
 		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+	}
+
+	HbaoBlur::HbaoBlur() : mActivePreset(0)
+	{
+		mBlurPreset[0] = std::make_unique<Pass>(Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", 
+			"post_processing/hbao/hbao_blur_fs.glsl",
+			nullptr, nullptr, nullptr, {"#define AO_BLUR_PRESENT 0"}));
+
+		mBlurPreset[1] = std::make_unique<Pass>(Shader::create("post_processing/hbao/fullscreenquad.vert.glsl",
+			"post_processing/hbao/hbao_blur_fs.glsl",
+			nullptr, nullptr, nullptr, { "#define AO_BLUR_PRESENT 1" }));
+
+		mSharpness[0] = { mBlurPreset[0]->getShader()->getUniformLocation("g_Sharpness"), UniformType::FLOAT};
+		mSharpness[1] = { mBlurPreset[1]->getShader()->getUniformLocation("g_Sharpness"), UniformType::FLOAT };
+
+		mInvResolutionDirection[0] = { mBlurPreset[0]->getShader()->getUniformLocation("g_InvResolutionDirection"), UniformType::VEC2 };
+		mInvResolutionDirection[1] = { mBlurPreset[1]->getShader()->getUniformLocation("g_InvResolutionDirection"), UniformType::VEC2 };
+
+		mSource.bindingSlot = 0;
+	}
+	HbaoBlur::~HbaoBlur() = default;
+
+	void HbaoBlur::bindPreset(int id)
+	{
+		if (id != 0 && id != 1) throw_with_trace(std::runtime_error("HbaoBlur::bindPreset: id has to be 0 or 1"));
+		mActivePreset = id;
+	}
+
+	nex::Pass* HbaoBlur::getPreset(int id)
+	{
+		return mBlurPreset[id].get();
+	}
+
+	void HbaoBlur::setSharpness(float sharpness)
+	{
+		mBlurPreset[mActivePreset]->getShader()->setFloat(mSharpness[mActivePreset].location, sharpness);
+	}
+
+	void HbaoBlur::setInvResolutionDirection(const glm::vec2 & invResolustion)
+	{
+		mBlurPreset[mActivePreset]->getShader()->setVec2(mInvResolutionDirection[mActivePreset].location, invResolustion);
+	}
+
+	void HbaoBlur::setSource(Texture* source)
+	{
+		auto* sampler = TextureManager::get()->getPointSampler();
+		mBlurPreset[mActivePreset]->getShader()->setTexture(source, sampler, mSource.bindingSlot);
 	}
 
 

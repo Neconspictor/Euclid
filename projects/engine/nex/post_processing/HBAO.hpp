@@ -111,7 +111,7 @@ namespace nex {
 	class HbaoPass : public Pass {
 	public:
 
-		HbaoPass();
+		HbaoPass(bool deinterleaved);
 		virtual ~HbaoPass() = default;
 
 		void draw();
@@ -126,6 +126,7 @@ namespace nex {
 		UniformBuffer* m_hbao_ubo;
 		Texture* m_linearDepth;
 		Sampler mPointSampler2;
+		bool mDeinterleaved;
 	};
 
 	class ViewNormalPass : public Pass {
@@ -160,6 +161,30 @@ namespace nex {
 
 		Uniform mInfo;
 		UniformTex mLinearDepth;
+	};
+
+	class HbaoBlur {
+	public:
+
+		HbaoBlur();
+		virtual ~HbaoBlur();
+
+		void bindPreset(int id);
+
+		Pass* getPreset(int id);
+
+		void setSharpness(float sharpness);
+		void setInvResolutionDirection(const glm::vec2& invResolustion);
+		void setSource(Texture* source);
+
+	private:
+
+		std::unique_ptr<Pass> mBlurPreset[2];
+		int mActivePreset;
+		Uniform mSharpness[2];
+		Uniform mInvResolutionDirection[2];
+		UniformTex mSource;
+
 	};
 
 
@@ -238,8 +263,10 @@ namespace nex {
 		UniformBuffer m_hbao_ubo;
 
 		//cache aware stuff
+		std::unique_ptr<HbaoPass> mHbaoDeinterleavedPass;
 		std::unique_ptr<ViewNormalPass> mViewNormalPass;
 		std::unique_ptr<DeinterleavePass> mDeinterleavePass;
+		std::unique_ptr<HbaoBlur> mHbaoBlur;
 		std::unique_ptr<Texture2DArray> mDepthArray4th;
 		std::unique_ptr<Texture2DArray> mDepthArray4thResult;
 		std::shared_ptr<Texture> mDepthView4th[HBAO_RANDOM_ELEMENTS];
