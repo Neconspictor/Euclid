@@ -97,7 +97,9 @@ namespace nex
 		RED, FIRST = RED,
 		GREEN,
 		BLUE,
-		ALPHA, LAST = ALPHA,
+		ALPHA, 
+		ZERO,
+		LAST = ZERO,
 	};
 
 	enum class TextureTarget

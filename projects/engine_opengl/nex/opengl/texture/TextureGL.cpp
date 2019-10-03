@@ -893,6 +893,7 @@ nex::ChannelGL nex::translate(nex::Channel channel)
 		ChannelGL::GREEN,
 		ChannelGL::BLUE,
 		ChannelGL::ALPHA,
+		ChannelGL::ZERO,
 	};
 
 	static const unsigned size = (unsigned)Channel::LAST - (unsigned)Channel::FIRST + 1;
