@@ -18,6 +18,7 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mSkyBox(std::make_unique<SkyBoxPass>()),
 	mDepthMap(std::make_unique<DepthMapPass>()),
 	mSprite(std::make_unique<SpritePass>()),
+	mDepthSprite(std::make_unique<DepthSpritePass>()),
 	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
 	mIrradianceSphereHullDrawTechnique(std::make_unique<IrradianceSphereHullDrawTechnique>()),
 	mDownSampler(std::make_unique<DownSampler>(width, height))
@@ -55,6 +56,11 @@ nex::DepthMapPass* nex::EffectLibrary::getDepthMapShader()
 nex::SpritePass* nex::EffectLibrary::getSpritePass()
 {
 	return mSprite.get();
+}
+
+nex::DepthSpritePass* nex::EffectLibrary::getDepthSpritePass()
+{
+	return mDepthSprite.get();
 }
 
 nex::SimpleColorTechnique* nex::EffectLibrary::getSimpleColorTechnique()

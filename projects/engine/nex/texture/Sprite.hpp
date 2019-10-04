@@ -6,6 +6,7 @@
 namespace nex
 {
 	class RenderBackend;
+	class SpritePass;
 
 	/**
 	 * A sprite is a 2D image texture that is drawn onto the screen.
@@ -25,7 +26,7 @@ namespace nex
 		/**
 		 * Renders the sprite into the current active render target.
 		 */
-		void render();
+		void render(SpritePass* pass);
 
 		/**
 		 * Sets the position of the sprite in screen space.

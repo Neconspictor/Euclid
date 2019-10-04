@@ -13,6 +13,7 @@ namespace nex
 	class DepthMapPass;
 	class ShadowPass;
 	class SpritePass;
+	class DepthSpritePass;
 	class PostProcessor;
 	class DownSampler;
 	class SimpleColorTechnique;
@@ -44,6 +45,7 @@ namespace nex
 		PostProcessor* getPostProcessor();
 
 		SpritePass* getSpritePass();
+		DepthSpritePass* getDepthSpritePass();
 
 		SimpleColorTechnique* getSimpleColorTechnique();
 		IrradianceSphereHullDrawTechnique* getIrradianceSphereHullDrawTechnique();
@@ -61,6 +63,7 @@ namespace nex
 		std::unique_ptr<SkyBoxPass> mSkyBox;
 		std::unique_ptr<DepthMapPass> mDepthMap;
 		std::unique_ptr<SpritePass> mSprite;
+		std::unique_ptr<DepthSpritePass> mDepthSprite;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;
 		

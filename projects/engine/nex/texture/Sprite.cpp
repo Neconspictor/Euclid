@@ -37,12 +37,15 @@ unsigned Sprite::getWidth() const
 	return mWidth;
 }
 
-void nex::Sprite::render()
+void nex::Sprite::render(SpritePass* spritePass)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
 	static auto state = RenderState::createNoDepthTest();
-	auto* lib = renderBackend->getEffectLibrary();
-	auto* spritePass = lib->getSpritePass();
+
+	if (spritePass == nullptr) {
+		auto* lib = renderBackend->getEffectLibrary();
+		spritePass = lib->getSpritePass();
+	}
 
 	spritePass->bind();
 	spritePass->setTexture(mTexture);

@@ -322,6 +322,7 @@ void NeXEngine::run()
 			auto* screenRT = backend->getDefaultRenderTarget();
 			auto* tempRT = mRenderer->getOutRendertTarget();
 			Texture* texture = nullptr;
+			SpritePass* spritePass = nullptr;
 
 			if (mGlobalIllumination->getVisualize()) {
 
@@ -347,7 +348,9 @@ void NeXEngine::run()
 					true, 
 					tempRT);
 
-				texture = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()].textureProvider();
+				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
+				texture = renderLayer.textureProvider();
+				spritePass = renderLayer.pass;
 			}
 			
 			//texture = mRenderer->getGbuffer()->getNormal();
@@ -359,7 +362,7 @@ void NeXEngine::run()
 				//screenRT->clear(Color | Stencil | Depth);
 
 				screenSprite->setTexture(texture);
-				screenSprite->render();
+				screenSprite->render(spritePass);
 			}
 
 			

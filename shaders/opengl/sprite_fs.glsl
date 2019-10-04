@@ -75,5 +75,7 @@ void main()
         col += sampleTex[i] * kernel[i];
 		
 	*/	
-    color = texture(sprite, texCoordsFS);
+    color = vec4(texture(sprite, texCoordsFS).rgb, 1.0);
+    //float red = texture(sprite, texCoordsFS).r;
+    //color = vec4(red, red, red, 1.0);
 }
