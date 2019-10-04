@@ -118,35 +118,36 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 	mRenderBackend->getRasterizer()->enableScissorTest(false);
 
-	auto* mAoSelector = mRenderBackend->getEffectLibrary()->getPostProcessor()->getAOSelector();
+
+	auto* lib = mRenderBackend->getEffectLibrary();
+	auto* mAoSelector = lib->getPostProcessor()->getAOSelector();
 	mAoSelector->setUseAmbientOcclusion(true);
 	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
 
 
-	mRenderLayers.push_back({ "composited", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
-	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mRenderTargetSingleSampled->getDepthAttachment()->texture.get(); } });
-	mRenderLayers.push_back({ "HBAO - linear depth", [&]() { return getAOSelector()->getHBAO()->getLinearDepth(); } });
+	mRenderLayers.push_back({ "composited", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); },
+	lib->getSpritePass() });
 
-	mRenderLayers.push_back({ "HBAO - depthview[0]", [&]() { return getAOSelector()->getHBAO()->getDepthView(0); } });
-	mRenderLayers.push_back({ "HBAO - depthview[1]", [&]() { return getAOSelector()->getHBAO()->getDepthView(1); } });
-	mRenderLayers.push_back({ "HBAO - depthview[2]", [&]() { return getAOSelector()->getHBAO()->getDepthView(2); } });
-	mRenderLayers.push_back({ "HBAO - depthview[3]", [&]() { return getAOSelector()->getHBAO()->getDepthView(3); } });
+	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mRenderTargetSingleSampled->getDepthAttachment()->texture.get(); },
+	lib->getDepthSpritePass() });
 
-	mRenderLayers.push_back({ "HBAO - depthview[4]", [&]() { return getAOSelector()->getHBAO()->getDepthView(4); } });
-	mRenderLayers.push_back({ "HBAO - depthview[5]", [&]() { return getAOSelector()->getHBAO()->getDepthView(5); } });
-	mRenderLayers.push_back({ "HBAO - depthview[6]", [&]() { return getAOSelector()->getHBAO()->getDepthView(6); } });
-	mRenderLayers.push_back({ "HBAO - depthview[7]", [&]() { return getAOSelector()->getHBAO()->getDepthView(7); } });
 
-	mRenderLayers.push_back({ "HBAO - depthview[8]", [&]() { return getAOSelector()->getHBAO()->getDepthView(8); } });
-	mRenderLayers.push_back({ "HBAO - depthview[9]", [&]() { return getAOSelector()->getHBAO()->getDepthView(9); } });
-	mRenderLayers.push_back({ "HBAO - depthview[10]", [&]() { return getAOSelector()->getHBAO()->getDepthView(10); } });
-	mRenderLayers.push_back({ "HBAO - depthview[11]", [&]() { return getAOSelector()->getHBAO()->getDepthView(11); } });
 
-	mRenderLayers.push_back({ "HBAO - depthview[12]", [&]() { return getAOSelector()->getHBAO()->getDepthView(12); } });
-	mRenderLayers.push_back({ "HBAO - depthview[13]", [&]() { return getAOSelector()->getHBAO()->getDepthView(13); } });
-	mRenderLayers.push_back({ "HBAO - depthview[14]", [&]() { return getAOSelector()->getHBAO()->getDepthView(14); } });
-	mRenderLayers.push_back({ "HBAO - depthview[15]", [&]() { return getAOSelector()->getHBAO()->getDepthView(15); } });
+	mRenderLayers.push_back({ "HBAO - linear depth", [&]() { return getAOSelector()->getHBAO()->getLinearDepth(); }, lib->getDepthSpritePass() });
 
+	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
+
+		mRenderLayers.push_back({ std::string("HBAO - depthview[") + std::to_string(i) + "]", 
+			[=]() { return getAOSelector()->getHBAO()->getDepthView(i); }, 
+			lib->getDepthSpritePass() });
+	}
+
+	for (auto i = 0; i < HBAO::HBAO_RANDOM_ELEMENTS; ++i) {
+
+		mRenderLayers.push_back({ std::string("HBAO - ao_result_view[") + std::to_string(i) + "]",
+			[=]() { return getAOSelector()->getHBAO()->getAoResultView4th(i); },
+			nullptr });
+	}
 
 	mRenderLayers.push_back({ "post processed (without antialising)", [&]() { return mPingPong->getColorAttachmentTexture(0); } });
 	mRenderLayers.push_back({ "GBuffer: normal - view space", [&]() { return  mPbrMrt->getNormal(); } });
@@ -154,7 +155,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "GBuffer: ambient occlusion, metalness, roughness", [&]() { return mPbrMrt->getAoMetalRoughness(); } });
 	mRenderLayers.push_back({ "motion", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(2); } });
 	mRenderLayers.push_back({ "luminance", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(1); } });
-	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); } });
+	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); }, lib->getDepthSpritePass() });
 	//mRenderLayers.push_back({ "pre-post process", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
 	
 	mRenderLayers.push_back({ "SMAA - edge", []() { return RenderBackend::get()->
@@ -170,8 +171,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 		getBlendingWeight(); } });
 	mRenderLayers.push_back({ "HBAO view space normals",[&]() { return getAOSelector()->getHBAO()->getViewSpaceNormals(); } });
 
-	//setActiveRenderLayer("composited");
 	setActiveRenderLayer(getRenderLayerIndexByName("composited"));
+	//setActiveRenderLayer(getRenderLayerIndexByName("HBAO - ao_result_view[0]"));
 }
 
 

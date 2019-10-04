@@ -55,13 +55,15 @@ layout(std140,binding=0) uniform controlBuffer {
   #if AO_LAYERED == 1
   
     #if AO_BLUR
-      layout(binding=0,rg16f) uniform image2DArray imgOutput;
+      layout(binding=0,rgba16f) uniform image2DArray imgOutput;
     #else
       layout(binding=0,r8) uniform image2DArray imgOutput;
     #endif
 
     void outputColor(vec4 color) {
       imageStore(imgOutput, ivec3(ivec2(gl_FragCoord.xy),gl_PrimitiveID), color);
+      //imageStore(imgOutput, ivec3(ivec2(gl_FragCoord.xy),gl_PrimitiveID), vec4(color.g));
+      //imageStore(imgOutput, ivec3(ivec2(gl_FragCoord.xy),gl_PrimitiveID), vec4(0,0,1,1));
     }
   #else
     layout(location=0,index=0) out vec4 out_Color;
@@ -112,7 +114,7 @@ vec3 UVToView(vec2 uv, float eye_z)
 
 vec3 FetchQuarterResViewPos(vec2 UV)
 {
-  float ViewDepth = textureLod(texLinearDepth,getQuarterCoord(UV),0).x;
+  float ViewDepth = textureLod(texLinearDepth,getQuarterCoord(UV), 0).x;
   return UVToView(UV, ViewDepth);
 }
 
@@ -254,7 +256,8 @@ void main()
   float AO = ComputeCoarseAO(uv, RadiusPixels, Rand, ViewPosition, ViewNormal);
 
 #if AO_BLUR
-  outputColor(vec4(pow(AO, control.PowExponent), ViewPosition.z, 0, 0));
+  outputColor(vec4(pow(AO, control.PowExponent), ViewPosition.z, 0, 0)); // float(gl_PrimitiveID)
+ 
 #else
   outputColor(vec4(pow(AO, control.PowExponent)));
 #endif

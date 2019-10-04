@@ -111,22 +111,34 @@ namespace nex {
 	class HbaoPass : public Pass {
 	public:
 
-		HbaoPass(bool deinterleaved);
+		HbaoPass();
 		virtual ~HbaoPass() = default;
 
-		void draw();
-		void setHbaoData(const HBAOData& hbao);
 		void setHbaoUBO(UniformBuffer* hbao_ubo);
 		void setLinearDepth(Texture* linearDepth);
 		void setRamdomView(Texture* randomView);
 
 	private:
-		HBAOData m_hbao_data;
-		Texture* m_hbao_randomview;
-		UniformBuffer* m_hbao_ubo;
-		Texture* m_linearDepth;
 		Sampler mPointSampler2;
-		bool mDeinterleaved;
+	};
+
+
+	class HbaoDeinterleavedPass : public Pass {
+	public:
+
+		HbaoDeinterleavedPass();
+		virtual ~HbaoDeinterleavedPass() = default;
+
+		void setHbaoUBO(UniformBuffer* hbao_ubo);
+		void setLinearDepth(Texture* linearDepth);
+		void setViewNormals(Texture* normals);
+		void setImageOutput(Texture* imgOutput);
+
+	private:
+
+		UniformTex mLinearDepth;
+		UniformTex mViewNormals;
+		UniformTex mImgOutput;
 	};
 
 	class ViewNormalPass : public Pass {
@@ -203,6 +215,7 @@ namespace nex {
 		Texture2D* getViewSpaceNormals();
 		Texture2D* getLinearDepth();
 		Texture* getDepthView(int index);
+		Texture* getAoResultView4th(int index);
 
 		void onSizeChange(unsigned int newWidth, unsigned int newHeight);
 
@@ -213,6 +226,11 @@ namespace nex {
 
 		float getBlurSharpness() const;
 		void setBlurSharpness(float sharpness);
+
+		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
+		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
+		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
+		static const int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
 
 	protected:
 
@@ -237,11 +255,6 @@ namespace nex {
 
 		Sprite screenSprite;
 
-		static const int  HBAO_RANDOM_SIZE = HBAOData::AO_RANDOMTEX_SIZE;
-		static const int  HBAO_RANDOM_ELEMENTS = HBAO_RANDOM_SIZE * HBAO_RANDOM_SIZE;
-		static const int HBAO_NUM_DIRECTIONS = 8; // keep in sync with shader implementation!
-		static const int NUM_MRT = 8; // number of simultaneous framebuffer bindings in cache aware ao calculation
-
 	protected:
 
 		std::unique_ptr<BilateralBlurPass> m_bilateralBlur;
@@ -263,13 +276,14 @@ namespace nex {
 		UniformBuffer m_hbao_ubo;
 
 		//cache aware stuff
-		std::unique_ptr<HbaoPass> mHbaoDeinterleavedPass;
+		std::unique_ptr<HbaoDeinterleavedPass> mHbaoDeinterleavedPass;
 		std::unique_ptr<ViewNormalPass> mViewNormalPass;
 		std::unique_ptr<DeinterleavePass> mDeinterleavePass;
 		std::unique_ptr<HbaoBlur> mHbaoBlur;
 		std::unique_ptr<Texture2DArray> mDepthArray4th;
-		std::unique_ptr<Texture2DArray> mDepthArray4thResult;
+		std::unique_ptr<Texture2DArray> mHbaoResultArray4th;
 		std::shared_ptr<Texture> mDepthView4th[HBAO_RANDOM_ELEMENTS];
+		std::shared_ptr<Texture> mHbaoResultView4th[HBAO_RANDOM_ELEMENTS];
 		std::unique_ptr<RenderTarget> mDeinterleaveRT;
 		std::vector<RenderAttachment> mDeinterleaveAttachment[HBAO_RANDOM_ELEMENTS / NUM_MRT];
 		std::unique_ptr<RenderTarget> mCacheAwareAoRT;
