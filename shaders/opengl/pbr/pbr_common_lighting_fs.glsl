@@ -132,7 +132,7 @@ struct ArrayIndexWeight {
 
 
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
-vec3 pbrAmbientLight(in vec3 V, in vec3 N, in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
+vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
 float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
 float GeometrySchlickGGX(in float NdotV, in float roughness);
 float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness);
@@ -168,7 +168,6 @@ void calcLighting(in float ao,
 	// reflection direction
     vec3 viewWorld = vec3(inverseViewMatrix * vec4(viewEye, 0.0f));
     vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
-    vec3 normalEx = normalEye;//normalize(vec3(inverse(inverseViewMatrix) * vec4(normalWorld, 0.0f)));
     vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
     vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
 
@@ -182,11 +181,11 @@ void calcLighting(in float ao,
     F0 = mix(F0, albedo, metallic);
 
     // reflectance equation
-    vec3 Lo = pbrDirectLight(viewEye, normalEx, roughness, F0, metallic, albedo);
+    vec3 Lo = pbrDirectLight(viewEye, normalEye, roughness, F0, metallic, albedo);
     
-    vec3 ambient =  pbrAmbientLight(viewEye, normalEx, normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
+    vec3 ambient =  pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
     
-    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEx, positionEye.z, positionEye);
+    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
 	
     vec3 color = ambient;// + albedo * 0.01 * ambientLightPower; //* ambientShadow; // ssaoAmbientOcclusion;
     float ambientShadow = clamp(fragmentLitProportion, 1.0 - shadowStrength, 1.0);
@@ -218,6 +217,30 @@ void calcLighting(in float ao,
     };
     
     colorOut = 0.5*cascadeColor + 0.5*colorOut;*/
+}
+
+
+
+
+void calcAmbientLighting(in float ao, 
+             in vec3 albedo, 
+             in float metallic, 
+             in vec3 normalWorld, 
+             in float roughness,
+             in vec3 positionWorld,
+             in vec3 cameraPosition) 
+{    
+	// reflection direction
+    vec3 viewWorld = cameraPosition - positionWorld;
+    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+    
+    vec3 ambient =  pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);    
+
 }
 
 
@@ -262,10 +285,10 @@ vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in flo
 	return (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again	
 }
 
-vec3 pbrAmbientLight(in vec3 V,in  vec3 N, in vec3 normalWorld, in float roughness, in vec3 F0, 
+vec3 pbrAmbientLight(in vec3 normalWorld, in float roughness, in vec3 F0, 
 in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
 	// ambient lighting (we now use IBL as the ambient term)
-    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
     
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
@@ -322,7 +345,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     */
     
     //prefilteredColor = vec3(0.31985, 0.39602, 0.47121);
-    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(normalWorld, viewWorld), 0.0), roughness)).rg;
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
