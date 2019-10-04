@@ -12,6 +12,7 @@ namespace nex
 		MAT3,
 		MAT4,
 		IMAGE2D,
+		IMAGE2D_ARRAY,
 		IMAGE3D,
 		TEXTURE1D,
 		TEXTURE2D,
