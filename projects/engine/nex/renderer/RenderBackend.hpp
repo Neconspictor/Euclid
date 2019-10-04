@@ -23,7 +23,8 @@ namespace nex
 	{
 		MemorySync_ShaderImageAccess = 1 << 0,
 		MemorySync_TextureUpdate = 1 << 1,
-		MemorySync_ShaderStorage = 1 << 2
+		MemorySync_TextureFetch = 1 << 2,
+		MemorySync_ShaderStorage = 1 << 3
 	};
 
 	enum RenderComponent {
