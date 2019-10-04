@@ -5,6 +5,7 @@
 #include <nex/texture/Sampler.hpp>
 #include <nex/material/Material.hpp>
 #include "nex/drawing/StaticMeshDrawer.hpp"
+#include <nex/texture/TextureManager.hpp>
 
 class nex::DownSampler::DownSamplePass : public Pass
 {
@@ -13,6 +14,21 @@ public:
 	{
 		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
 		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
+		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
+	}
+
+private:
+
+	UniformTex mSourceUniform;
+};
+
+class nex::DownSampler::DepthDownSamplePass : public Pass
+{
+public:
+	DepthDownSamplePass()
+	{
+		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_depth_fs.glsl");
+		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
 		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
 
@@ -73,6 +89,25 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	StaticMeshDrawer::drawFullscreenTriangle(state, mDownSampleShader.get());
 
 	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
+	//renderImage->generateMipMaps();
+
+	return renderImage;
+}
+
+nex::Texture2D* nex::DownSampler::downsampleDepth(Texture2D* src, RenderTarget2D* dest)
+{
+	auto* renderBackend = RenderBackend::get();
+	dest->bind();
+	renderBackend->setViewPort(0, 0, dest->getWidth(), dest->getHeight());
+	//dest->clear(Color);
+
+	mDownSampleShader->bind();
+	mDownSampleShader->getShader()->setTexture(src, TextureManager::get()->getPointSampler(), 0);
+
+	RenderState state = RenderState::createNoDepthTest();
+	StaticMeshDrawer::drawFullscreenTriangle(state, mDepthDownSampleShader.get());
+
+	auto* renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
 	//renderImage->generateMipMaps();
 
 	return renderImage;

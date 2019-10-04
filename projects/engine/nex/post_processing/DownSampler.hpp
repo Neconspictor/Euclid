@@ -27,12 +27,20 @@ namespace nex {
 		 */
 		nex::Texture2D* downsample(Texture2D* src, RenderTarget2D* dest);
 
+		/**
+		 * Downsamples the source texture using nearest neighbor filtering.
+		 * Useful for downsampling depth buffers.
+		 */
+		nex::Texture2D* downsampleDepth(Texture2D* src, RenderTarget2D* dest);
+
 		void resize(unsigned width, unsigned height);
 
 	private:
 
 		class DownSamplePass;
+		class DepthDownSamplePass;
 		std::unique_ptr<DownSamplePass> mDownSampleShader;
+		std::unique_ptr<DepthDownSamplePass> mDepthDownSampleShader;
 		std::unique_ptr<RenderTarget2D> mHalfResolution;
 		std::unique_ptr<RenderTarget2D> mQuarterResolution;
 		std::unique_ptr<RenderTarget2D> mEigthResolution;
