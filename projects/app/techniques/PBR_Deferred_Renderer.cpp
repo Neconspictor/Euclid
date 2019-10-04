@@ -156,6 +156,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "motion", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(2); } });
 	mRenderLayers.push_back({ "luminance", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(1); } });
 	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); }, lib->getDepthSpritePass() });
+	mRenderLayers.push_back({ "ambient occlusion - without blur", [&]() { return getAOSelector()->getHBAO()->getAO_Result(); }, lib->getDepthSpritePass() });
 	//mRenderLayers.push_back({ "pre-post process", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
 	
 	mRenderLayers.push_back({ "SMAA - edge", []() { return RenderBackend::get()->
@@ -172,6 +173,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "HBAO view space normals",[&]() { return getAOSelector()->getHBAO()->getViewSpaceNormals(); } });
 
 	setActiveRenderLayer(getRenderLayerIndexByName("composited"));
+	//setActiveRenderLayer(getRenderLayerIndexByName("ambient occlusion - without blur"));
 	//setActiveRenderLayer(getRenderLayerIndexByName("HBAO - ao_result_view[0]"));
 }
 

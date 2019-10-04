@@ -58,17 +58,19 @@ namespace nex
 			static float radiantFraction = 2.0f * pi / (float)HBAO_NUM_DIRECTIONS;
 
 			float Angle = Rand1 * radiantFraction;
-			float x = cosf(Angle);
-			float y = sinf(Angle);
-			float z = Rand2;
-			float w = 0;
+			mHbaoRandom[i].x = cosf(Angle);
+			mHbaoRandom[i].y = sinf(Angle);
+			mHbaoRandom[i].z = Rand2;
+			mHbaoRandom[i].w = 0;
 #define SCALE ((1<<15))
-			hbaoRandomShort[i * 4 + 0] = (signed short)(SCALE* x);
-			hbaoRandomShort[i * 4 + 1] = (signed short)(SCALE* y);
-			hbaoRandomShort[i * 4 + 2] = (signed short)(SCALE* z);
-			hbaoRandomShort[i * 4 + 3] = (signed short)(SCALE* w);
+			hbaoRandomShort[i * 4 + 0] = (signed short)(SCALE* mHbaoRandom[i].x);
+			hbaoRandomShort[i * 4 + 1] = (signed short)(SCALE* mHbaoRandom[i].y);
+			hbaoRandomShort[i * 4 + 2] = (signed short)(SCALE* mHbaoRandom[i].z);
+			hbaoRandomShort[i * 4 + 3] = (signed short)(SCALE* mHbaoRandom[i].w);
 #undef SCALE
 		}
+
+
 
 		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
@@ -88,6 +90,7 @@ namespace nex
 		mHbaoDeinterleavedPass = std::make_unique<HbaoDeinterleavedPass>();
 		mViewNormalPass = std::make_unique<ViewNormalPass>();
 		mDeinterleavePass = std::make_unique<DeinterleavePass>();
+		mReinterleavePass = std::make_unique<ReinterleavePass>();
 		mHbaoBlur = std::make_unique<HbaoBlur>();
 
 		initRenderTargets(windowWidth, windowHeight);
@@ -95,10 +98,6 @@ namespace nex
 		// initialize static shader attributes
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 		m_hbaoShader->setHbaoUBO(&m_hbao_ubo);
-		
-
-
-
 	}
 
 
@@ -148,20 +147,21 @@ namespace nex
 		unsigned int height = m_aoResultRT->getHeight();
 		auto* renderBackend = RenderBackend::get();
 
-		/*prepareHbaoData(projection, width, height);
-
-
-		renderBackend->setViewPort(0, 0, width, height);
-
-		drawLinearDepth(depthTexture, projection);*/
 
 		renderCacheAwareAO(depthTexture, projection, blur);
 
+		return;
+
+		prepareHbaoData(projection, width, height);
+
+
 		renderBackend->setViewPort(0, 0, width, height);
+
+		drawLinearDepth(depthTexture, projection);
 
 		// draw hbao to hbao render target
 		m_aoResultRT->bind();
-		m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+		//m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 		m_hbaoShader->bind();
 
@@ -178,10 +178,10 @@ namespace nex
 
 		if (blur) {
 			// clear color/depth/stencil for all involved render targets
-			m_aoBlurredResultRT->bind();
-			m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			//m_aoBlurredResultRT->bind();
+			//m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 			m_tempRT->bind();
-			m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			//m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
 			// setup bilaterial blur and draw
 			/*m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
@@ -235,23 +235,23 @@ namespace nex
 			StaticMeshDrawer::drawFullscreenTriangle(state, mViewNormalPass.get());
 		}
 
-		renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
-
 		//deinterleave
 		{
 			mDeinterleaveRT->bind();
+			renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
 			mDeinterleavePass->bind();
 			mDeinterleavePass->setLinearDepth(linearDepth);
 
 			for (auto i = 0; i < HBAO_RANDOM_ELEMENTS; i+= NUM_MRT) {
 				mDeinterleavePass->setInfo({ 
 					float(i % 4) + 0.5f, 
-					float(i / 4) + 0.5f, 
+					float(i / 4) + 0.5f, // / 
 					m_hbaoDataSource.InvFullResolution.x,
 					m_hbaoDataSource.InvFullResolution.y}
 				);
 
-				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[i / NUM_MRT]);
+				int index = i / NUM_MRT;
+				mDeinterleaveRT->resetAttachments(mDeinterleaveAttachment[index]);
 				StaticMeshDrawer::drawFullscreenTriangle(state, mDeinterleavePass.get());
 			}
 		}
@@ -259,6 +259,7 @@ namespace nex
 		//calc hbao
 		{
 			mCacheAwareAoRT->bind();
+			renderBackend->setViewPort(0, 0, quarterWidth, quarterHeight);
 			mHbaoDeinterleavedPass->bind();
 
 			m_hbao_ubo.update(sizeof(HBAOData), &m_hbaoDataSource);
@@ -267,15 +268,52 @@ namespace nex
 			mHbaoDeinterleavedPass->setViewNormals(mViewSpaceNormalsRT->getColorAttachmentTexture(0));
 			mHbaoDeinterleavedPass->setImageOutput(mHbaoResultArray4th.get());
 
-			renderBackend->drawArray(RenderState(),Topology::TRIANGLES, 0, 3 * HBAO_RANDOM_ELEMENTS);
+			renderBackend->drawArray(state, Topology::TRIANGLES, 0, 3 * HBAO_RANDOM_ELEMENTS);
 			renderBackend->syncMemoryWithGPU(MemorySync_TextureUpdate | MemorySync_ShaderImageAccess);
 		}
-		
-		
 
-		//
-		//renderBackend->setViewPort(0, 0, width, height);
+		//reinterleave
+		{
+			
+			m_aoResultRT->bind();
+			renderBackend->setViewPort(0, 0, width, height);
+			m_aoResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
 
+			mReinterleavePass->bind();
+			mReinterleavePass->setTextureResultArray(mHbaoResultArray4th.get());
+			StaticMeshDrawer::drawFullscreenTriangle(state, mReinterleavePass.get());
+		}
+
+		//blur
+		if (blur) {
+
+			// clear color/depth/stencil for all involved render targets
+			//m_aoBlurredResultRT->bind();
+			//m_aoBlurredResultRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+			m_tempRT->bind();
+			//m_tempRT->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
+
+			// setup bilaterial blur and draw
+			/*m_bilateralBlur->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
+			m_bilateralBlur->setSourceTexture(m_aoResultRT->getColorAttachments()[0].texture.get(), width, height);
+			m_bilateralBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
+
+
+			RenderState state = RenderState::createNoDepthTest();
+			mHbaoBlur->bindPreset(0);
+			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
+			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(0));
+
+			m_aoBlurredResultRT->bind();
+			mHbaoBlur->bindPreset(1);
+			mHbaoBlur->setSource(m_tempRT->getColorAttachments()[0].texture.get());
+			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
+			mHbaoBlur->setInvResolutionDirection({ 1.0f / float(width), 1.0f / float(height) });
+			StaticMeshDrawer::drawFullscreenTriangle(state, mHbaoBlur->getPreset(1));
+		}
 	}
 
 	void HBAO::displayAOTexture(Texture* texture)
@@ -335,6 +373,12 @@ namespace nex
 
 		m_hbaoDataSource.InvQuarterResolution = vec2(1.0f / float(quarterWidth), 1.0f / float(quarterHeight));
 		m_hbaoDataSource.InvFullResolution = vec2(1.0f / float(width), 1.0f / float(height));
+
+
+		for (int i = 0; i < HBAO_RANDOM_ELEMENTS; i++) {
+			m_hbaoDataSource.float2Offsets[i] = vec4(float(i % 4) + 0.5f, float(i / 4) + 0.5f, 0, 0);
+			m_hbaoDataSource.jitters[i] = mHbaoRandom[i];
+		}
 	}
 
 	void HBAO::drawLinearDepth(Texture* depthTexture, const Projection & projection)
@@ -369,18 +413,18 @@ namespace nex
 
 		// m_aoResultRT
 		TextureDesc aoData; 
-		aoData.internalFormat = InternFormat::RGBA16F;
-		//aoData.useSwizzle = true;
+		aoData.internalFormat = InternFormat::RG16F;
+		aoData.useSwizzle = true;
 		//aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
-		//aoData.swizzle = { Channel::RED, Channel::GREEN, Channel::ZERO, Channel::ZERO };
+		aoData.swizzle = { Channel::RED, Channel::GREEN, Channel::ZERO, Channel::ZERO };
 		aoData.minFilter = TextureFilter::NearestNeighbor;
 		aoData.magFilter = TextureFilter::NearestNeighbor;
 		aoData.wrapR = TextureUVTechnique::ClampToEdge;
 		aoData.wrapS = TextureUVTechnique::ClampToEdge;
 		aoData.wrapT = TextureUVTechnique::ClampToEdge;
-		aoData.pixelDataType = PixelDataType::FLOAT;
+		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
 		aoData.generateMipMaps = false;
-		aoData.colorspace = ColorSpace::RGBA;
+		aoData.colorspace = ColorSpace::RG;
 		m_aoResultRT = std::make_unique<RenderTarget2D>(width, height, aoData, 1);
 
 		// m_aoBlurredResultRT
@@ -652,7 +696,7 @@ namespace nex
 			imgOutput, 
 			mImgOutput.location, 
 			TextureAccess::WRITE_ONLY, 
-			InternFormat::RGBA16F, 
+			InternFormat::RG16F, 
 			0, 
 			true, 0);
 	}
@@ -705,6 +749,23 @@ namespace nex
 	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
 	{
 		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+	}
+
+	ReinterleavePass::ReinterleavePass()
+	{
+		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
+			nullptr, nullptr, nullptr, {"#define AO_BLUR 1"});
+		mResultArray = mShader->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
+
+		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+	}
+
+	ReinterleavePass::~ReinterleavePass() = default;
+
+	void ReinterleavePass::setTextureResultArray(Texture * resultArray)
+	{
+		mShader->setTexture(resultArray, &mSampler, mResultArray.bindingSlot);
 	}
 
 	HbaoBlur::HbaoBlur() : mActivePreset(0)

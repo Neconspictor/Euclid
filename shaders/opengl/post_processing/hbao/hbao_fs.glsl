@@ -55,7 +55,7 @@ layout(std140,binding=0) uniform controlBuffer {
   #if AO_LAYERED == 1
   
     #if AO_BLUR
-      layout(binding=0,rgba16f) uniform image2DArray imgOutput;
+      layout(binding=0,rg16f) uniform image2DArray imgOutput;
     #else
       layout(binding=0,r8) uniform image2DArray imgOutput;
     #endif

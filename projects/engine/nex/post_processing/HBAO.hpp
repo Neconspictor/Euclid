@@ -175,6 +175,18 @@ namespace nex {
 		UniformTex mLinearDepth;
 	};
 
+	class ReinterleavePass : public Pass {
+	public:
+
+		ReinterleavePass();
+		virtual ~ReinterleavePass();
+
+		void setTextureResultArray(Texture* resultArray);
+
+	private:
+		UniformTex mResultArray;
+	};
+
 	class HbaoBlur {
 	public:
 
@@ -273,12 +285,14 @@ namespace nex {
 
 		std::unique_ptr<Texture2DArray> m_hbao_random;
 		std::unique_ptr<Texture> m_hbao_randomview;
+		glm::vec4 mHbaoRandom[HBAO_RANDOM_ELEMENTS];
 		UniformBuffer m_hbao_ubo;
 
 		//cache aware stuff
 		std::unique_ptr<HbaoDeinterleavedPass> mHbaoDeinterleavedPass;
 		std::unique_ptr<ViewNormalPass> mViewNormalPass;
 		std::unique_ptr<DeinterleavePass> mDeinterleavePass;
+		std::unique_ptr<ReinterleavePass> mReinterleavePass;
 		std::unique_ptr<HbaoBlur> mHbaoBlur;
 		std::unique_ptr<Texture2DArray> mDepthArray4th;
 		std::unique_ptr<Texture2DArray> mHbaoResultArray4th;
