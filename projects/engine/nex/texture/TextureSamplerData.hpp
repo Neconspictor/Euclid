@@ -48,6 +48,7 @@ namespace nex
 		RG32I,
 		RG32UI,
 
+		RGB5,
 		RGB8,
 		RGB16,
 		RGB16F,
@@ -62,6 +63,9 @@ namespace nex
 		RGBA32F,
 		RGBA32I,
 		RGBA32UI,
+
+		RGB10_A2,
+		RGB10_A2UI,
 
 		// srgb formats
 		SRGB8,
@@ -89,7 +93,11 @@ namespace nex
 		FLOAT_32_UNSIGNED_INT_24_8_REV,
 		UNSIGNED_SHORT,
 		UNSIGNED_INT_24,
-		UNSIGNED_INT_8, LAST = UNSIGNED_INT_8,
+		UNSIGNED_INT_8, 
+		
+		UNSIGNED_INT_10_10_10_2,
+		
+		LAST = UNSIGNED_INT_10_10_10_2,
 	};
 
 	enum class Channel

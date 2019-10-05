@@ -503,7 +503,9 @@ void nex::gui::Gizmo::fillActivationState(Active& active,
 
 void nex::gui::Gizmo::transformRotate(const Ray& ray, const Camera& camera)
 {
+	std::cout << "direction = " << ray.getDir() << std::endl;
 	const auto angle = calcRotation(ray, mActivationState.axisVec, mActivationState.orthoAxisVec, camera);
+	std::cout << "angle = " << glm::degrees(angle) << std::endl;
 
 	if (isValid(angle))
 	{

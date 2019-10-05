@@ -103,7 +103,6 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 	layout.push<glm::vec3>(1); // normal
 	layout.push<glm::vec2>(1); // uv
 	layout.push<glm::vec3>(1); // tangent
-	layout.push<glm::vec3>(1); // bitangent
 
 	store.topology = Topology::TRIANGLES;
 
@@ -138,10 +137,6 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 			vertex.tangent.x = mesh->mTangents[i].x;
 			vertex.tangent.y = mesh->mTangents[i].y;
 			vertex.tangent.z = mesh->mTangents[i].z;
-
-			vertex.bitangent.x = mesh->mBitangents[i].x;
-			vertex.bitangent.y = mesh->mBitangents[i].y;
-			vertex.bitangent.z = mesh->mBitangents[i].z;
 		}
 
 

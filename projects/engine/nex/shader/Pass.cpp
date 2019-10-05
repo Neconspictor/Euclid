@@ -1,5 +1,7 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/buffer/ShaderBuffer.hpp>
+#include <nex/renderer/RenderBackend.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 nex::Pass::Pass(std::unique_ptr<Shader> program) : mShader(std::move(program))
 {
@@ -67,9 +69,11 @@ void nex::TransformPass::uploadTransformMatrices()
 	mTransforms.modelView = mTransforms.view * mTransforms.model;
 	mTransforms.transform = mTransforms.projection * mTransforms.modelView;
 	mTransforms.prevTransform = mTransforms.projection * mPrevView * mPrevModel;
-	mTransforms.normalMatrix = inverse(transpose(mTransforms.modelView));
+	mTransforms.normalMatrix = glm::inverseTranspose(mTransforms.modelView);
+
 	mTransformBuffer.bindToTarget();
 	mTransformBuffer.update(sizeof(Transforms), &mTransforms);
+	//RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderStorage);
 }
 
 nex::SimpleTransformPass::SimpleTransformPass(std::unique_ptr<Shader> program, unsigned transformLocation) : Pass(std::move(program)), mTransformLocation(transformLocation)

@@ -2,7 +2,7 @@
 
 layout(location = 0) out vec3 albedo;
 layout(location = 1) out vec3 aoMetallRoughness;
-layout(location = 2) out vec3 normalEye;
+layout(location = 2) out vec4 normalEye; // we use 10_10_10_2, so it will be a vec4
 layout(location = 3) out float normalizedViewSpaceZ;
 layout(location = 4) out vec2 motion;
 
@@ -20,7 +20,7 @@ void main()
 	aoMetallRoughness.b = texture(material.roughnessMap, fs_in.tex_coords).r;
     
 	//normal
-    normalEye = getEncodedNormalEye();
+    normalEye = vec4(getEncodedNormalEye(), 0);
 	
 	// position
 	//positionEye = fs_in.fragment_position_eye.xyz;

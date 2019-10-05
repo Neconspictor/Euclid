@@ -26,16 +26,16 @@ namespace nex
 
 		// albedo
 		data.colorspace = ColorSpace::RGB;
-		data.pixelDataType = PixelDataType::FLOAT;
-		data.internalFormat = InternFormat::RGB16F;
+		data.pixelDataType = PixelDataType::UBYTE;
+		data.internalFormat = InternFormat::RGB8;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 0;
 		mAlbedo = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 		// ao metal roughness
-		data.internalFormat = InternFormat::RGB8;
-		data.pixelDataType = PixelDataType::UBYTE;
+		data.internalFormat = InternFormat::RGB5;
+		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 1;
 		mAoMetalRoughness = static_cast<Texture2D*>(temp.texture.get());
@@ -43,8 +43,9 @@ namespace nex
 
 
 		// normal
-		data.internalFormat = InternFormat::RGB16F;
-		data.pixelDataType = PixelDataType::FLOAT;
+		data.colorspace = ColorSpace::RGBA;
+		data.internalFormat = InternFormat::RGB10_A2;
+		data.pixelDataType = PixelDataType::UNSIGNED_INT_10_10_10_2;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 2;
 		mNormal = static_cast<Texture2D*>(temp.texture.get());
@@ -61,9 +62,9 @@ namespace nex
 		addColorAttachment(temp);
 
 		// motion
-		data.internalFormat = InternFormat::RG32F;
+		data.internalFormat = InternFormat::RG8;
 		data.colorspace = ColorSpace::RG;
-		data.pixelDataType = PixelDataType::FLOAT;
+		data.pixelDataType = PixelDataType::UBYTE;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 4;
 		mMotion = static_cast<Texture2D*>(temp.texture.get());

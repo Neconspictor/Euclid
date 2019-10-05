@@ -140,7 +140,9 @@ namespace nex
 			mPrevWorldTrafo = mWorldTrafo;
 	}
 
-	Scene::Scene() = default;
+	Scene::Scene() : mHasChanged(false) 
+	{
+	}
 
 	UniqueLock Scene::acquireLock() const {
 		return UniqueLock(mMutex);
@@ -151,6 +153,7 @@ namespace nex
 		mActiveVobs.insert(vob);
 		if (vob->getType() == VobType::Probe)
 			mActiveProbeVobs.insert((ProbeVob*)vob);
+		mHasChanged = true;
 	}
 
 	void Scene::removeActiveVobUnsafe(Vob* vob)
@@ -158,6 +161,7 @@ namespace nex
 		mActiveVobs.erase(vob);
 		if (vob->getType() == VobType::Probe)
 			mActiveProbeVobs.erase((ProbeVob*)vob);
+		mHasChanged = true;
 	}
 
 	bool Scene::deleteVobUnsafe(Vob* vob)
@@ -168,6 +172,7 @@ namespace nex
 
 		if (it != mVobStore.end()) {
 			mVobStore.erase(it);
+			mHasChanged = true;
 			return true;
 		}
 			
@@ -176,6 +181,7 @@ namespace nex
 
 	Vob* Scene::addVobUnsafe(std::unique_ptr<Vob> vob, bool setActive)
 	{
+		mHasChanged = true;
 		mVobStore.emplace_back(std::move(vob));
 		auto*  vobPtr = mVobStore.back().get();
 		if (setActive)
@@ -187,6 +193,7 @@ namespace nex
 
 	Vob* Scene::createVobUnsafe(SceneNode* meshRootNode, bool setActive)
 	{
+		mHasChanged = true;
 		mVobStore.emplace_back(std::make_unique<Vob>(meshRootNode));
 		auto*  vob = mVobStore.back().get();
 		if (setActive)
@@ -206,6 +213,11 @@ namespace nex
 		return mVobStore;
 	}
 
+	bool Scene::hasChangedUnsafe() const
+	{
+		return mHasChanged;
+	}
+
 	bool Scene::isActive(Vob* vob) const
 	{
 		return mActiveVobs.find(vob) != mActiveVobs.end();
@@ -215,6 +227,7 @@ namespace nex
 	{
 		mActiveVobs.clear();
 		mVobStore.clear();
+		mHasChanged = true;
 	}
 
 	const Scene::VobRange& Scene::getActiveVobsUnsafe() const
@@ -231,6 +244,8 @@ namespace nex
 	{
 		for (auto& vob : mActiveVobs)
 			vob->updateTrafo(resetPrevWorldTrafo);
+
+		mHasChanged = true;
 	}
 
 	void Scene::calcSceneBoundingBoxUnsafe()
@@ -239,6 +254,8 @@ namespace nex
 		{
 			mBoundingBox = maxAABB(mBoundingBox, root->getBoundingBox());
 		}
+
+		mHasChanged = true;
 	}
 
 	const AABB& Scene::getSceneBoundingBox() const

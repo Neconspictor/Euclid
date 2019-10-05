@@ -122,6 +122,8 @@ namespace nex
 		const std::vector<std::unique_ptr<Vob>>& getVobsUnsafe() const;
 		std::vector<std::unique_ptr<Vob>>& getVobsUnsafe();
 
+		bool hasChangedUnsafe() const;
+
 
 		/**
 		 * Checks if a vob is active.
@@ -145,6 +147,7 @@ namespace nex
 		std::vector<std::unique_ptr<Vob>> mVobStore;
 		mutable std::mutex mMutex;
 		AABB mBoundingBox;
+		bool mHasChanged;
 	};
 
 

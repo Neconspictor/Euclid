@@ -71,7 +71,7 @@ namespace nex
 			glm::mat4 transform;
 			glm::mat4 prevTransform;
 			glm::mat4 modelView;
-			glm::mat3 normalMatrix;
+			glm::mat4 normalMatrix; // actually a mat3, but std140 layout extends it to a mat4, so we have to use that.
 		};
 
 		/**

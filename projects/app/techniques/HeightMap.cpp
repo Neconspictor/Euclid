@@ -228,15 +228,15 @@ void nex::HeightMap::generateTBN(std::vector<Vertex>& vertices, int row, int col
 	averageSize = max(averageSize, 1);
 	vertex.normal = glm::normalize(accumulatedNormal / (float)averageSize);
 	vertex.tangent = glm::normalize(accumulatedTangent / (float)averageSize);
-	vertex.bitangent = glm::normalize(accumulatedBitangent / (float)averageSize);
+	auto bitangent = glm::normalize(accumulatedBitangent / (float)averageSize);
 
 
 	// Gram-Schmidt orthogonalize
-	vertex.tangent = normalize((vertex.tangent - vertex.bitangent * dot(vertex.normal, vertex.tangent)));
+	vertex.tangent = normalize((vertex.tangent - bitangent * dot(vertex.normal, vertex.tangent)));
 
 	// Calculate handiness and recalculate bitangent
-	const float handiness = (dot(cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0F) ? -1.0f : 1.0f;
-	vertex.bitangent = normalize(handiness * cross(vertex.normal, vertex.tangent));
+	//const float handiness = (dot(cross(vertex.normal, vertex.tangent), bitangent) < 0.0F) ? -1.0f : 1.0f;
+	//vertex.bitangent = normalize(handiness * cross(vertex.normal, vertex.tangent));
 
 	// TODO store handiness in a 4D tangent vector and remove the need of the bitangent!
 	//tangent[i].w = (dot(cross(n, t), bitangents[i]) < 0.0F) ? -1.0f : 1.0f;

@@ -6,9 +6,8 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
-layout (location = 4) in vec3 bitangent;
 
-layout(binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
+layout(column_major, std140, binding = PBR_COMMON_GEOMETRY_TRANSFORM_BUFFER_BINDING_POINT) buffer TransformBuffer {
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -37,14 +36,12 @@ void commonVertexShader() {
     vs_out.tex_coords = texCoords;
     
     vs_out.fragment_position_eye = transforms.modelView * vec4(position, 1.0f);
-    
-    mat3 normalMatrix = mat3(inverse(transpose(transforms.modelView)));
 	
-	vec3 normal_eye = normalize(normalMatrix * normal);
-	vec3 tangent_eye = normalize(normalMatrix * tangent);
+	vec3 normal_eye = normalize(transforms.normalMatrix * normal);
+	vec3 tangent_eye = normalize(transforms.normalMatrix * tangent);
 	tangent_eye = normalize(tangent_eye - (dot(normal_eye, tangent_eye) * normal_eye));
 	
-	vec3 bitangent_eye = normalize(normalMatrix * bitangent);
+	vec3 bitangent_eye = cross(normal_eye, tangent_eye); //normalize(transforms.normalMatrix * bitangent);
 	
 	float dotTN = dot(normal_eye, tangent_eye);
 	

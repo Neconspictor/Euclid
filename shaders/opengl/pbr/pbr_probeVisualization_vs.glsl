@@ -5,7 +5,7 @@ layout (location = 2) in vec2 texCoords;
 layout (location = 3) in vec3 tangent;
 layout (location = 4) in vec3 bitangent;
 
-layout(binding = 0) buffer TransformBuffer {
+layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
     mat4 view;
     mat4 projection;

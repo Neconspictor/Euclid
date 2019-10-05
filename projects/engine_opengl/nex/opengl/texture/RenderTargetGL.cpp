@@ -152,17 +152,22 @@ nex::RenderAttachmentType nex::RenderAttachment::translate(InternFormat format)
 		RenderAttachmentType::COLOR,
 		RenderAttachmentType::COLOR,
 		RenderAttachmentType::COLOR,
-
-		RenderAttachmentType::COLOR,
-		RenderAttachmentType::COLOR,
-		RenderAttachmentType::COLOR,
-		RenderAttachmentType::COLOR,
-		RenderAttachmentType::COLOR,
-		RenderAttachmentType::COLOR,
 		RenderAttachmentType::COLOR,
 
 		RenderAttachmentType::COLOR,
 		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+
+		RenderAttachmentType::COLOR,
+		RenderAttachmentType::COLOR,
+		
 
 		RenderAttachmentType::DEPTH_STENCIL,
 		RenderAttachmentType::DEPTH_STENCIL,

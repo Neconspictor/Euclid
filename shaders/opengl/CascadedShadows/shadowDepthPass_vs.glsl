@@ -7,7 +7,7 @@ layout (location = 0) in vec3 position;
 //layout(location = 0) uniform mat4 lightViewProjectionMatrix;
 layout(location = 0) uniform uint cascadeIdx;
 
-layout(binding = 0) buffer TransformBuffer {
+layout(std140, binding = 0) buffer TransformBuffer {
     mat4 model;
     mat4 view;
     mat4 projection;

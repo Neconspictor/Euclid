@@ -243,6 +243,7 @@ void NeXEngine::run()
 		auto middlePoint = (box.max + box.min) / 2.0f;
 		mWindow->resize(2048, 2048);
 
+		auto originalPosition = mCamera->getPosition();
 		mCamera->setPosition(middlePoint, true);
 		mCamera->update();
 
@@ -258,6 +259,9 @@ void NeXEngine::run()
 
 		mGlobalIllumination->voxelize(collection, box, mSun, mRenderer->getCascadedShadow());
 		mWindow->resize(800, 600);
+
+		mCamera->setPosition(originalPosition, true);
+		mCamera->update();
 	}
 
 	commandQueue.clear();
@@ -292,10 +296,14 @@ void NeXEngine::run()
 			throw *exception;
 		}
 
-		{
+		if (mScene.hasChangedUnsafe()) {
 			mScene.acquireLock();
-			mScene.updateWorldTrafoHierarchyUnsafe(true);
+			mScene.updateWorldTrafoHierarchyUnsafe(false);
 			mScene.calcSceneBoundingBoxUnsafe();
+
+			commandQueue.clear();
+			mScene.collectRenderCommands(commandQueue, false);
+			commandQueue.sort();
 		}
 
 		if (isRunning())
@@ -766,8 +774,12 @@ void NeXEngine::setupCamera()
 	int windowWidth = mWindow->getFrameBufferWidth();
 	int windowHeight = mWindow->getFrameBufferHeight();
 
-	mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
-	mCamera->setLook(glm::vec3(0.0f, 0.0f, -1.0f));
+	//mCamera->setPosition(glm::vec3(-22.0f, 13.0f, 22.0f), true);
+	mCamera->setPosition(glm::vec3(0.267f, 3.077, 1.306), true);
+
+	auto look = glm::vec3(-3.888f, 2.112, 0.094f) - glm::vec3(0.267f, 3.077, 1.306);
+
+	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 	mCamera->setAspectRatio(windowWidth / (float)windowHeight);
 

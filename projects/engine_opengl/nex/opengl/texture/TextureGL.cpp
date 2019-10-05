@@ -984,6 +984,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		InternFormatGL::RG32I,
 		InternFormatGL::RG32UI,
 
+		InternFormatGL::RGB5,
 		InternFormatGL::RGB8,
 		InternFormatGL::RGB16,
 		InternFormatGL::RGB16F,
@@ -998,6 +999,9 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		InternFormatGL::RGBA32F,
 		InternFormatGL::RGBA32I,
 		InternFormatGL::RGBA32UI,
+
+		InternFormatGL::RGB10_A2,
+		InternFormatGL::RGB10_A2UI,
 
 		// srgb formats
 		InternFormatGL::SRGB8,
@@ -1033,6 +1037,8 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 		PixelDataTypeGL::UNSIGNED_SHORT,
 		PixelDataTypeGL::UNSIGNED_INT_24,
 		PixelDataTypeGL::UNSIGNED_INT_8,
+
+		PixelDataTypeGL::UNSIGNED_INT_10_10_10_2,
 	};
 
 	static const unsigned size = (unsigned)PixelDataType::LAST - (unsigned)PixelDataType::FIRST + 1;

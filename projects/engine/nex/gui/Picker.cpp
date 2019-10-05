@@ -216,8 +216,11 @@ void nex::gui::Picker::updateBoundingBoxTrafo()
 	const auto objectTrafo = glm::translate(glm::mat4(), boxOriginLocal) * glm::scale(glm::mat4(), boxScaleLocal);
 	const auto trafo = node->getWorldTrafo() * objectTrafo;
 
-	mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
-	mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
+	mBoundingBoxVob->setTrafo(trafo);
+	mBoundingBoxVob->updateTrafo(true);
+
+	//mBoundingBoxVob->getMeshRootNode()->setLocalTrafo(trafo);
+	//mBoundingBoxVob->getMeshRootNode()->updateWorldTrafoHierarchy(true);
 
 
 	if (mSelected.vob->getType() == VobType::Probe) {
