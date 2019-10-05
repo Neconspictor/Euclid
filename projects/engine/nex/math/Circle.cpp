@@ -2,6 +2,7 @@
 #include "Sphere.hpp"
 #include "Ray.hpp"
 #include "Math.hpp"
+#include <nex/util/ExceptionHandling.hpp>
 
 nex::Circle3D::Circle3D(glm::vec3 origin, glm::vec3 normal, float radius) : plane({ normal, origin}),
 origin(std::move(origin)), radius(radius)
@@ -101,6 +102,7 @@ bool nex::Circle3D::isOnCircle(const glm::vec3& point, float toleranceRange) con
 bool nex::Circle3D::project(const glm::vec3& point, glm::vec3& projectedPoint) const
 {
 	const auto planeProjection = plane.project(point);
+	if (!plane.onPlane(planeProjection)) throw_with_trace(std::runtime_error("nex::Circle3D::project: plane projected point has to be on plane"));
 	assert(plane.onPlane(planeProjection));
 	const auto diff = planeProjection - origin;
 	const auto direction = normalize(diff);
