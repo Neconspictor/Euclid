@@ -340,7 +340,7 @@ PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexSha
 	mAlbedoMap = Pass::mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, 0);
 	mAoMetalRoughnessMap = Pass::mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, 1);
 	mNormalEyeMap = Pass::mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
-	mNormalizedViewSpaceZMap = Pass::mShader->createTextureUniform("gBuffer.normalizedViewSpaceZMap", UniformType::TEXTURE2D, 3);
+	mNormalizedViewSpaceZMap = Pass::mShader->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
 
 	mInverseProjFromGPass = { Pass::mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 
@@ -542,4 +542,138 @@ void nex::PbrIrradianceShPass::setView(const glm::mat4& mat)
 void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
 {
 	mShader->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
+}
+
+nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, GlobalIllumination* globalIllumination) : 
+	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
+		generateDefines(globalIllumination->isConeTracingUsed()))), 
+	mGlobalIllumination(globalIllumination),
+	mConstantsBuffer(PBR_CONSTANTS, sizeof(PbrConstants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)
+{
+	mAlbedoMap = mShader->createTextureUniform("gBuffer.albedoMap", UniformType::TEXTURE2D, PBR_ALBEDO_BINDINPOINT);
+	mAoMetalRoughnessMap = mShader->createTextureUniform("gBuffer.aoMetalRoughnessMap", UniformType::TEXTURE2D, PBR_AO_METAL_ROUGHNESS_BINDINPOINT);
+	mNormalEyeMap = mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, PBR_NORMAL_BINDINPOINT);
+	mDepthMap = mShader->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, PBR_DEPTH_BINDINPOINT);
+
+	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
+	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
+	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, PBR_BRDF_LUT_BINDING_POINT);
+	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
+
+	mInverseProjFromGPass = { mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
+	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
+	mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
+
+	auto state = mSampler.getState();
+	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToEdge;
+	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
+	mSampler.setState(state);
+
+	SamplerDesc desc;
+	//desc.minLOD = 0;
+	//desc.maxLOD = 7;
+	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	mVoxelSampler.setState(desc);
+}
+
+void nex::PbrDeferredAmbientPass::setAlbedoMap(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mAlbedoMap.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setAoMetalRoughnessMap(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mAoMetalRoughnessMap.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setNormalEyeMap(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mNormalEyeMap.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setDepthMap(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mDepthMap.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setBrdfLookupTexture(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mBrdfLUT.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setIrradianceMaps(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setPrefilteredMaps(const Texture* texture)
+{
+	mShader->setTexture(texture, &mSampler, mPrefilteredMaps.bindingSlot);
+}
+
+void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)
+{
+	mShader->setFloat(mAmbientLightPower.location, power);
+}
+
+void nex::PbrDeferredAmbientPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
+{
+	mShader->setMat4(mInverseProjFromGPass.location, mat);
+}
+
+void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
+{
+	bind();
+	setInverseProjMatrixFromGPass(inverse(constants.camera->getProjectionMatrix()));
+
+	if (mGlobalIllumination) {
+		setBrdfLookupTexture(PbrProbe::getBrdfLookupTexture());
+
+		setIrradianceMaps(mGlobalIllumination->getIrradianceMaps());
+		setPrefilteredMaps(mGlobalIllumination->getPrefilteredMaps());
+
+		setAmbientLightPower(mGlobalIllumination->getAmbientPower());
+
+		auto* envLightBuffer = mGlobalIllumination->getEnvironmentLightShaderBuffer();
+		auto* probeCluster = mGlobalIllumination->getProbeCluster();
+		auto* envLightCuller = probeCluster->getEnvLightCuller();
+
+		envLightBuffer->bindToTarget(PBR_PROBES_BUFFER_BINDINPOINT);
+		probeCluster->getClusterAABBBuffer()->bindToTarget(PBR_CLUSTERS_AABB);
+		envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
+		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
+
+		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, VOXEL_TEXTURE_BINDING_POINT);
+		mGlobalIllumination->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
+	}
+}
+
+std::vector<std::string> nex::PbrDeferredAmbientPass::generateDefines(bool useConeTracing)
+{
+	std::vector<std::string> vec;
+	
+	vec.push_back(std::string("#define PBR_ALBEDO_BINDINPOINT ") + std::to_string(PBR_ALBEDO_BINDINPOINT));
+	vec.push_back(std::string("#define PBR_AO_METAL_ROUGHNESS_BINDINPOINT ") + std::to_string(PBR_AO_METAL_ROUGHNESS_BINDINPOINT));
+	vec.push_back(std::string("#define PBR_NORMAL_BINDINPOINT ") + std::to_string(PBR_NORMAL_BINDINPOINT));
+	vec.push_back(std::string("#define PBR_DEPTH_BINDINPOINT ") + std::to_string(PBR_DEPTH_BINDINPOINT));
+	vec.push_back(std::string("#define PBR_IRRADIANCE_BINDING_POINT ") + std::to_string(PBR_IRRADIANCE_BINDING_POINT));
+	vec.push_back(std::string("#define PBR_PREFILTERED_BINDING_POINT ") + std::to_string(PBR_PREFILTERED_BINDING_POINT));
+	vec.push_back(std::string("#define PBR_BRDF_LUT_BINDING_POINT ") + std::to_string(PBR_BRDF_LUT_BINDING_POINT));
+	vec.push_back(std::string("#define VOXEL_TEXTURE_BINDING_POINT ") + std::to_string(VOXEL_TEXTURE_BINDING_POINT));
+
+	vec.push_back(std::string("#define PBR_CONSTANTS ") + std::to_string(PBR_CONSTANTS));
+	vec.push_back(std::string("#define VOXEL_C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT));
+
+	
+	vec.push_back(std::string("#define PBR_PROBES_BUFFER_BINDINPOINT ") + std::to_string(PBR_PROBES_BUFFER_BINDINPOINT));
+	vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES));
+	vec.push_back(std::string("#define PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS ") + std::to_string(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS));
+	vec.push_back(std::string("#define PBR_CLUSTERS_AABB ") + std::to_string(PBR_CLUSTERS_AABB));
+
+
+
+	if (useConeTracing)
+		vec.push_back(std::string("#define USE_CONE_TRACING"));
+
+	return vec;
 }

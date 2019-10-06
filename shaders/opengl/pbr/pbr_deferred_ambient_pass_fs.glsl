@@ -1,9 +1,6 @@
 #version 430 core
 
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 LuminanceColor;
-
-
 
 in VS_OUT {	
 	vec2 tex_coords;
@@ -48,7 +45,6 @@ uniform GBuffer gBuffer;
 
 //uniform mat4 inverseViewMatrix_GPass; // the inverse view from the geometry pass!
 uniform mat4 inverseProjMatrix_GPass;
-uniform vec2 nearFarPlane;
 
 
 vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
@@ -62,41 +58,17 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
 
 
 void main()
-{   
-	//const vec2 texCoord = fs_in.tex_coords;
-
+{
 	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.tex_coords).rgb;
-	
 	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
 	const float ao = aoMetalRoughness.r;
-	float metallic = aoMetalRoughness.g;
-    //metallic = 0;
-	float roughness = aoMetalRoughness.b;
-    //roughness = 1;
+	const float metallic = aoMetalRoughness.g;
+	const float roughness = aoMetalRoughness.b;
 	
 	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb - 1.0);
-    
-    //if (length(normalEye) < 0.01) {
-        //discard;
-    //}
 	
     const float depth = texture(gBuffer.depthMap, fs_in.tex_coords).r;
-    //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
-    //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.tex_coords, viewSpaceZ, inverseProjMatrix_GPass);
     vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
-    //positionEye += normalEye;
     
-    vec3 colorOut;
-    vec3 luminanceOut;
-    calcLighting(ao, 
-                albedo, 
-                metallic, 
-                normalEye, 
-                roughness, 
-                positionEye,
-                colorOut,
-                luminanceOut);
-        
-    FragColor = vec4(colorOut, 1.0);
-    LuminanceColor = vec4(luminanceOut, FragColor.a);
+    FragColor = vec4(calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness), 1.0);
 }

@@ -36,6 +36,10 @@ namespace nex {
 		mGeometryPass->updateConstants(constants);
 	}
 
+	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants)
+	{
+	}
+
 	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Pass::Constants& constants, const DirLight& light)
 	{
 		mLightPass->bind();

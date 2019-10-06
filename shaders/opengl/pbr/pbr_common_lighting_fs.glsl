@@ -38,6 +38,19 @@
 #define VOXEL_TEXTURE_BINDING_POINT 9
 #endif
 
+
+#ifndef PBR_IRRADIANCE_BINDING_POINT
+#define PBR_IRRADIANCE_BINDING_POINT 5 
+#endif
+
+#ifndef PBR_PREFILTERED_BINDING_POINT
+#define PBR_PREFILTERED_BINDING_POINT 6
+#endif
+
+#ifndef PBR_BRDF_LUT_BINDING_POINT
+#define PBR_BRDF_LUT_BINDING_POINT 7 
+#endif
+
 //Feature define macros:
 // USE_CONE_TRACING
 
@@ -71,9 +84,10 @@ uniform float shadowStrength;
 uniform mat4 inverseViewMatrix;
 
 // IBL
-layout(binding = 5) uniform samplerCubeArray irradianceMaps;
-layout(binding = 6) uniform samplerCubeArray prefilteredMaps;
-layout(binding = 7) uniform sampler2D brdfLUT;
+layout(binding = PBR_IRRADIANCE_BINDING_POINT)  uniform samplerCubeArray irradianceMaps;
+layout(binding = PBR_PREFILTERED_BINDING_POINT) uniform samplerCubeArray prefilteredMaps;
+layout(binding = PBR_BRDF_LUT_BINDING_POINT)    uniform sampler2D brdfLUT;
+
 uniform float arrayIndex; //Note: an unsigned integer value represented as a float value
 
 

@@ -59,8 +59,12 @@ namespace nex
 		UniformBuffer* getVoxelConstants();
 		Texture3D* getVoxelTexture();
 
+		bool isConeTracingUsed() const;
+
 		void setActiveProbe(PbrProbe* probe);
 		void setAmbientPower(float ambientPower);
+
+		void setUseConetracing(bool use);
 
 		void setVisualize(bool visualize, int mipMapLevel = 0);
 
@@ -124,6 +128,7 @@ namespace nex
 		std::unique_ptr<StaticMeshContainer> mSphere;
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
+		bool mUseConeTracing;
 	};
 
 

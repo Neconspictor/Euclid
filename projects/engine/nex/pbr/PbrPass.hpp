@@ -11,6 +11,12 @@ namespace nex
 {
 	class GlobalIllumination;
 
+	struct PbrConstants {
+		glm::uvec4 windowDimension;
+		glm::uvec4 clusterDimension;
+		glm::vec4 nearFarDistance;
+	};
+
 	class PbrBaseCommon
 	{
 	public:
@@ -84,12 +90,6 @@ namespace nex
 		void updateLight(const DirLight& light, const Camera& camera);
 
 	private:
-
-		struct PbrConstants {
-			glm::uvec4 windowDimension;
-			glm::uvec4 clusterDimension;
-			glm::vec4 nearFarDistance;
-		};
 
 		void setArrayIndex(float index);
 		void setBrdfLookupTexture(const Texture* brdfLUT);
@@ -186,6 +186,69 @@ namespace nex
 		PbrDeferredGeometryPass(std::unique_ptr<Shader> shader);
 
 		void updateConstants(const Constants& constants) override;
+	};
+
+	class PbrDeferredAmbientPass : public Pass {
+	public:
+
+		PbrDeferredAmbientPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
+			GlobalIllumination* globalIllumination);
+
+		void setAlbedoMap(const Texture* texture);
+		void setAoMetalRoughnessMap(const Texture* texture);
+		void setNormalEyeMap(const Texture* texture);
+		void setDepthMap(const Texture* texture);
+
+		void setBrdfLookupTexture(const Texture* texture);
+		void setIrradianceMaps(const Texture* texture);
+		void setPrefilteredMaps(const Texture* texture);
+
+		void setAmbientLightPower(float power);
+
+		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
+
+		void updateConstants(const Constants& constants) override;
+
+	private:
+		UniformTex mAlbedoMap;
+		UniformTex mAoMetalRoughnessMap;
+		UniformTex mNormalEyeMap;
+		UniformTex mDepthMap;
+
+		UniformTex mIrradianceMaps;
+		UniformTex mPrefilteredMaps;
+		UniformTex mBrdfLUT;
+		
+		Uniform mArrayIndex;
+		Uniform mAmbientLightPower;
+		Uniform mInverseProjFromGPass;
+		Uniform mInverseView;
+		GlobalIllumination* mGlobalIllumination;
+		Sampler mVoxelSampler;
+		UniformBuffer mConstantsBuffer;
+
+		// textures
+		static constexpr unsigned PBR_ALBEDO_BINDINPOINT = 0;
+		static constexpr unsigned PBR_AO_METAL_ROUGHNESS_BINDINPOINT = 1;
+		static constexpr unsigned PBR_NORMAL_BINDINPOINT = 2;
+		static constexpr unsigned PBR_DEPTH_BINDINPOINT = 3;
+		//static constexpr unsigned PBR_EMISSION_BINDINPOINT = 4; // TODO for later
+		static constexpr unsigned PBR_IRRADIANCE_BINDING_POINT = 5;
+		static constexpr unsigned PBR_PREFILTERED_BINDING_POINT = 6;
+		static constexpr unsigned PBR_BRDF_LUT_BINDING_POINT = 7;
+		static constexpr unsigned VOXEL_TEXTURE_BINDING_POINT = 9;
+
+		//uniform buffers
+		static constexpr unsigned PBR_CONSTANTS = 0;
+		static constexpr unsigned VOXEL_C_UNIFORM_BUFFER_BINDING_POINT = 1;
+
+		//shader storage buffers
+		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
+		static constexpr unsigned PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES = 2;
+		static constexpr unsigned PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS = 3;
+		static constexpr unsigned PBR_CLUSTERS_AABB = 4;
+
+		static std::vector<std::string> generateDefines(bool useConeTracing);
 	};
 
 	class PbrDeferredLightingPass : public Pass {

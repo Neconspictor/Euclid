@@ -357,7 +357,8 @@ mProbeCluster(std::make_unique<ProbeCluster>()),
 mVoxelBuffer(0, sizeof(VoxelizePass::VoxelType) * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE, nullptr, ShaderBuffer::UsageHint::DYNAMIC_COPY),
 mVoxelConstantBuffer(0, sizeof(VoxelizePass::Constants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW),
 mVisualize(false),
-mVoxelVisualizeMipMap(0)
+mVoxelVisualizeMipMap(0),
+mUseConeTracing(true)
 {
 	auto deferredGeometryPass = std::make_unique<PbrDeferredGeometryPass>(Shader::create(
 		"pbr/pbr_deferred_geometry_pass_vs.glsl",
@@ -699,6 +700,11 @@ nex::Texture3D* nex::GlobalIllumination::getVoxelTexture()
 	return mVoxelTexture.get();
 }
 
+bool nex::GlobalIllumination::isConeTracingUsed() const
+{
+	return mUseConeTracing;
+}
+
 void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 {
 	mActive = probe;
@@ -707,6 +713,11 @@ void nex::GlobalIllumination::setActiveProbe(PbrProbe * probe)
 void nex::GlobalIllumination::setAmbientPower(float ambientPower)
 {
 	mAmbientLightPower = ambientPower;
+}
+
+void nex::GlobalIllumination::setUseConetracing(bool use)
+{
+	mUseConeTracing = use;
 }
 
 void nex::GlobalIllumination::setVisualize(bool visualize, int mipMapLevel)
