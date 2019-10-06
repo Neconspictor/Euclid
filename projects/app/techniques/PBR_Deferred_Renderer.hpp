@@ -77,6 +77,7 @@ namespace nex
 		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
 
 		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
+		std::unique_ptr<RenderTarget> mIrradianceAmbientReflectionRT;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 		std::unique_ptr<RenderTarget2D> mOutRT;
 

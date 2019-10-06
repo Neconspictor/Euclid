@@ -342,6 +342,10 @@ PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexSha
 	mNormalEyeMap = Pass::mShader->createTextureUniform("gBuffer.normalEyeMap", UniformType::TEXTURE2D, 2);
 	mNormalizedViewSpaceZMap = Pass::mShader->createTextureUniform("gBuffer.depthMap", UniformType::TEXTURE2D, 3);
 
+
+	mIrradianceOutMap = Pass::mShader->createTextureUniform("irradianceOutMap", UniformType::TEXTURE2D, PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT);
+	mAmbientReflectionOutMap = Pass::mShader->createTextureUniform("ambientReflectionOutMap", UniformType::TEXTURE2D, PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT);
+
 	mInverseProjFromGPass = { Pass::mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
 
 	auto state = Pass::mSampler.getState();
@@ -372,6 +376,16 @@ void PbrDeferredLightingPass::setNormalizedViewSpaceZMap(const Texture* texture)
 {
 	//Pass::mShader->setTextureByHandle(mNormalizedViewSpaceZMap.location, texture);
 	Pass::mShader->setTexture(texture, &(Pass::mSampler), mNormalizedViewSpaceZMap.bindingSlot);
+}
+
+void nex::PbrDeferredLightingPass::setIrradianceOutMap(const Texture* texture)
+{
+	Pass::mShader->setTexture(texture, &(Pass::mSampler), mIrradianceOutMap.bindingSlot);
+}
+
+void nex::PbrDeferredLightingPass::setAmbientReflectionOutMap(const Texture* texture)
+{
+	Pass::mShader->setTexture(texture, &(Pass::mSampler), mAmbientReflectionOutMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
@@ -544,7 +558,7 @@ void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
 	mShader->setTexture(coefficients, &mSampler, mCoefficientMap.bindingSlot);
 }
 
-nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader, GlobalIllumination* globalIllumination) : 
+nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
 	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
 		generateDefines(globalIllumination->isConeTracingUsed()))), 
 	mGlobalIllumination(globalIllumination),
@@ -558,6 +572,10 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(const ShaderFilePath& vertex
 	mIrradianceMaps = mShader->createTextureUniform("irradianceMaps", UniformType::CUBE_MAP_ARRAY, PBR_IRRADIANCE_BINDING_POINT);
 	mPrefilteredMaps = mShader->createTextureUniform("prefilteredMaps", UniformType::CUBE_MAP_ARRAY, PBR_PREFILTERED_BINDING_POINT);
 	mBrdfLUT = mShader->createTextureUniform("brdfLUT", UniformType::TEXTURE2D, PBR_BRDF_LUT_BINDING_POINT);
+
+	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE2D, VOXEL_TEXTURE_BINDING_POINT);
+
+
 	mArrayIndex = { mShader->getUniformLocation("arrayIndex"), UniformType::FLOAT };
 
 	mInverseProjFromGPass = { mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
@@ -616,6 +634,11 @@ void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)
 	mShader->setFloat(mAmbientLightPower.location, power);
 }
 
+void nex::PbrDeferredAmbientPass::setInverseViewMatrix(const glm::mat4& mat)
+{
+	mShader->setMat4(mInverseView.location, mat);
+}
+
 void nex::PbrDeferredAmbientPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
 {
 	mShader->setMat4(mInverseProjFromGPass.location, mat);
@@ -624,6 +647,7 @@ void nex::PbrDeferredAmbientPass::setInverseProjMatrixFromGPass(const glm::mat4&
 void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
 {
 	bind();
+	setInverseViewMatrix(inverse(constants.camera->getView()));
 	setInverseProjMatrixFromGPass(inverse(constants.camera->getProjectionMatrix()));
 
 	if (mGlobalIllumination) {
@@ -643,7 +667,7 @@ void nex::PbrDeferredAmbientPass::updateConstants(const Constants& constants)
 		envLightCuller->getGlobalLightIndexList()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_GLOBAL_LIGHT_INDICES);
 		envLightCuller->getLightGrids()->bindToTarget(PBR_ENVIRONMENT_LIGHTS_LIGHT_GRIDS);
 
-		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, VOXEL_TEXTURE_BINDING_POINT);
+		mShader->setTexture(mGlobalIllumination->getVoxelTexture(), &mVoxelSampler, mVoxelTexture.bindingSlot);
 		mGlobalIllumination->getVoxelConstants()->bindToTarget(VOXEL_C_UNIFORM_BUFFER_BINDING_POINT);
 	}
 }

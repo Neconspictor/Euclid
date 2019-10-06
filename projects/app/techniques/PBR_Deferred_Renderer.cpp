@@ -90,29 +90,9 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	LOG(m_logger, LogLevel::Info) << "PBR_Deferred_Renderer::init called!";
 
-
-	//CubeMap* cubeMapSky = textureManager->createCubeMap("skyboxes/sky_right.jpg", "skyboxes/sky_left.jpg",
-	//	"skyboxes/sky_top.jpg", "skyboxes/sky_bottom.jpg",
-	//	"skyboxes/sky_back.jpg", "skyboxes/sky_front.jpg", true);
-
 	auto* effectLib = mRenderBackend->getEffectLibrary();
-	//auto* equirectangularSkyBoxShader = effectLib->getEquirectangularSkyBoxShader();
-	//auto* panoramaSkyBoxShader = effectLib->getPanoramaSkyBoxShader();
-	//auto* skyboxShader = effectLib->getSkyBoxShader();
 
-	//shadowMap = m_renderBackend->createDepthMap(2048, 2048);
-
-
-	mPbrMrt = mPbrTechnique->getDeferred()->createMultipleRenderTarget(windowWidth * ssaaSamples, windowHeight * ssaaSamples);
-	mRenderTargetSingleSampled = createLightingTarget(windowWidth, windowHeight, mPbrMrt.get());
-	mPingPong = mRenderBackend->createRenderTarget();
-
-	//panoramaSkyBoxShader->bind();
-	//panoramaSkyBoxShader->setSkyTexture(panoramaSky);
-
-	//equirectangularSkyBoxShader->bind();
-	//equirectangularSkyBoxShader->setSkyTexture(panoramaSky);
-
+	updateRenderTargets(windowWidth, windowHeight);
 
 	blurEffect = mRenderBackend->getEffectLibrary()->getGaussianBlur();
 
@@ -186,14 +166,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	bool postProcess,
 	RenderTarget* out)
 {
-
-	/*FPCamera* fp = (FPCamera*)camera;
-	fp->setPosition({3.527f, 5.133f, 1.022f});
-	fp->setYaw(-1.450f);
-	fp->setPitch(45.052f);
-	fp->recalculateLookVector();
-	fp->calcView();*/
-
 	Pass::Constants constants;
 	constants.camera = &camera;
 	constants.windowWidth = windowWidth;
@@ -290,6 +262,27 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mRenderTargetSingleSampled = createLightingTarget(width, height, mPbrMrt.get());
 	mPingPong = mRenderBackend->createRenderTarget();
 	mOutRT = mRenderBackend->createRenderTarget();
+	//mHalfResoultionRT = mRenderBackend->create2DRenderTarget(width / 2, height / 2);
+	
+	
+	const unsigned giWidth = width;
+	const unsigned giHeight = height;
+
+	mIrradianceAmbientReflectionRT = std::make_unique<RenderTarget>(giWidth, giHeight);
+
+	TextureDesc desc;
+	desc.colorspace = ColorSpace::RGB;
+	desc.internalFormat = InternFormat::RGB16;
+
+	RenderAttachment attachment;
+	attachment.colorAttachIndex = 0;
+	attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
+	mIrradianceAmbientReflectionRT->addColorAttachment(attachment);
+
+	attachment.colorAttachIndex = 1;
+	attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
+	mIrradianceAmbientReflectionRT->addColorAttachment(attachment);
+	mIrradianceAmbientReflectionRT->finalizeAttachments();
 }
 
 nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
@@ -368,7 +361,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
-	//renderer->beginScene();
 
 	mPbrMrt->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil); //RenderComponent::Color |
 
@@ -435,7 +427,19 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 		envLightCuller->getLightGrids()->unmap();*/
 	}
 	
+	auto* deferred = mPbrTechnique->getDeferred();
 	
+	if (false) {
+
+		mIrradianceAmbientReflectionRT->bind();
+		mRenderBackend->setViewPort(0, 0, mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight());
+		mIrradianceAmbientReflectionRT->clear(RenderComponent::Color);
+
+		deferred->drawAmbientLighting(mPbrMrt.get(), constants);
+	}
+	
+
+
 
 
 	// render scene to a offscreen buffer
@@ -448,8 +452,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(2, true);
 	mRenderTargetSingleSampled->enableDrawToColorAttachment(3, true);
 
-	
-	
+
+
 	
 	depthTest->enableDepthTest(false);
 	depthTest->enableDepthBufferWriting(false);
@@ -457,8 +461,13 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
 
-	auto* deferred = mPbrTechnique->getDeferred();
-	deferred->drawLighting(mPbrMrt.get(), constants, sun);
+	/*auto* spritePass = mRenderBackend->getEffectLibrary()->getSpritePass();
+	auto* sprite = mRenderBackend->getScreenSprite();
+	sprite->setTexture(mHalfResoultionRT->getColorAttachmentTexture(0));
+	sprite->render(spritePass);*/
+
+	deferred->drawLighting(mPbrMrt.get(), mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), 
+		mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1), constants, sun);
 
 	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
 

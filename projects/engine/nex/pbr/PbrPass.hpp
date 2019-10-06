@@ -191,8 +191,7 @@ namespace nex
 	class PbrDeferredAmbientPass : public Pass {
 	public:
 
-		PbrDeferredAmbientPass(const ShaderFilePath& vertexShader, const ShaderFilePath& fragmentShader,
-			GlobalIllumination* globalIllumination);
+		PbrDeferredAmbientPass(GlobalIllumination* globalIllumination);
 
 		void setAlbedoMap(const Texture* texture);
 		void setAoMetalRoughnessMap(const Texture* texture);
@@ -205,6 +204,7 @@ namespace nex
 
 		void setAmbientLightPower(float power);
 
+		void setInverseViewMatrix(const glm::mat4& mat);
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
 		void updateConstants(const Constants& constants) override;
@@ -218,6 +218,8 @@ namespace nex
 		UniformTex mIrradianceMaps;
 		UniformTex mPrefilteredMaps;
 		UniformTex mBrdfLUT;
+
+		UniformTex mVoxelTexture;
 		
 		Uniform mArrayIndex;
 		Uniform mAmbientLightPower;
@@ -261,6 +263,8 @@ namespace nex
 		void setAoMetalRoughnessMap(const Texture* texture);
 		void setNormalEyeMap(const Texture* texture);
 		void setNormalizedViewSpaceZMap(const Texture* texture);
+		void setIrradianceOutMap(const Texture* texture);
+		void setAmbientReflectionOutMap(const Texture* texture);
 
 		void setInverseProjMatrixFromGPass(const glm::mat4& mat);
 
@@ -272,6 +276,8 @@ namespace nex
 		UniformTex mAoMetalRoughnessMap;
 		UniformTex mNormalEyeMap;
 		UniformTex mNormalizedViewSpaceZMap;
+		UniformTex mIrradianceOutMap;
+		UniformTex mAmbientReflectionOutMap;
 
 		Uniform mInverseProjFromGPass;
 
@@ -279,6 +285,9 @@ namespace nex
 
 		static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 0;
 		static constexpr unsigned PBR_PROBES_BUFFER_BINDINPOINT = 1;
+
+		static constexpr unsigned PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT = 10;
+		static constexpr unsigned PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT = 11;
 
 		static std::vector<std::string> generateDefines(CascadedShadow* cascadedShadow);
 	};

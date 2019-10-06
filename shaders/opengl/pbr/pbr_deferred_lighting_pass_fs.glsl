@@ -86,9 +86,16 @@ void main()
     vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
     //positionEye += normalEye;
     
+    //const vec3 irradiance = texture(irradianceOutMap, fs_in.tex_coords).rgb;
+    //const vec3 ambientReflection = texture(ambientReflectionOutMap, fs_in.tex_coords).rgb;
+    
+ 
+    //vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradiance, ambientReflection);
+    
+    
     vec3 colorOut;
     vec3 luminanceOut;
-    calcLighting(ao, 
+    calcDirectLighting(ao, 
                 albedo, 
                 metallic, 
                 normalEye, 

@@ -1,6 +1,7 @@
 #version 430 core
 
-layout(location = 0) out vec4 FragColor;
+layout(location = 0) out vec3 irradianceOut;
+layout(location = 1) out vec3 ambientReflectionOut;
 
 in VS_OUT {	
 	vec2 tex_coords;
@@ -59,16 +60,18 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
 
 void main()
 {
-	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.tex_coords).rgb;
-	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
+    vec2 texCoords = fs_in.tex_coords;
+
+	const vec3 albedo = texture(gBuffer.albedoMap, texCoords).rgb;
+	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, texCoords).rgb;
 	const float ao = aoMetalRoughness.r;
 	const float metallic = aoMetalRoughness.g;
 	const float roughness = aoMetalRoughness.b;
 	
-	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb - 1.0);
+	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, texCoords).rgb - 1.0);
 	
-    const float depth = texture(gBuffer.depthMap, fs_in.tex_coords).r;
-    vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
+    const float depth = texture(gBuffer.depthMap, texCoords).r;
+    vec3 positionEye = computeViewPositionFromDepth(texCoords, depth);
     
-    FragColor = vec4(calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness), 1.0);
+    calcAmbientLighting3(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceOut, ambientReflectionOut);
 }

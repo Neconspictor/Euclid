@@ -53,7 +53,7 @@ void main() {
         avgColor += texture(aoMap, fs_in.texCoord + offset).r * texture(sourceTexture, fs_in.texCoord + offset);
     }
     avgColor /= MOTION_BLUR_SAMPLES;
-    color = avgColor;
+    //color = avgColor;
     
     // HDR tonemapping
     const float exposure = 1;

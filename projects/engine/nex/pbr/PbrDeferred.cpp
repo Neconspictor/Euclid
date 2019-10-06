@@ -17,12 +17,16 @@ namespace nex {
 		std::unique_ptr<PbrDeferredGeometryPass> geometryPass,
 		LightingPassFactory lightingPassFactory,
 		GlobalIllumination* globalIllumination,
-		CascadedShadow* cascadeShadow, 
+		CascadedShadow* cascadeShadow,
 		DirLight* dirLight) : Pbr(globalIllumination, cascadeShadow, dirLight),
 		mLightingPassFactory(std::move(lightingPassFactory)),
 		mGeometryPass(std::move(geometryPass)),
 		mLightPass(mLightingPassFactory(cascadeShadow, globalIllumination))
 	{
+		if (globalIllumination)
+			mAmbientPass = std::make_unique<PbrDeferredAmbientPass>(globalIllumination);
+
+
 		SamplerDesc desc;
 		desc.minFilter = desc.magFilter = TextureFilter::Linear;
 		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
@@ -38,9 +42,25 @@ namespace nex {
 
 	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants)
 	{
+		if (!mAmbientPass) return;
+
+		mAmbientPass->bind();
+
+		mAmbientPass->setAlbedoMap(gBuffer->getAlbedo());
+		mAmbientPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
+		mAmbientPass->setNormalEyeMap(gBuffer->getNormal());
+		mAmbientPass->setDepthMap(gBuffer->getNormalizedViewSpaceZ());
+
+		mAmbientPass->updateConstants(constants);
+
+		static RenderState state;
+		state.doDepthTest = false;
+		state.doDepthWrite = false;
+
+		StaticMeshDrawer::drawFullscreenTriangle(state, mAmbientPass.get());
 	}
 
-	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, const Pass::Constants& constants, const DirLight& light)
+	void PbrDeferred::drawLighting(PBR_GBuffer * gBuffer, Texture* irradiance, Texture* ambientReflection, const Pass::Constants& constants, const DirLight& light)
 	{
 		mLightPass->bind();
 		mLightPass->updateConstants(constants);
@@ -51,10 +71,16 @@ namespace nex {
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
 		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
+		mLightPass->setIrradianceOutMap(irradiance);
+		mLightPass->setAmbientReflectionOutMap(ambientReflection);
 
 		static RenderState state;
 		state.doDepthTest = false;
 		state.doDepthWrite = false;
+		state.doBlend = true;
+		state.blendDesc.operation = BlendOperation::ADD;
+		state.blendDesc.source = BlendFunc::ONE;
+		state.blendDesc.destination = BlendFunc::ONE;
 
 		StaticMeshDrawer::drawFullscreenTriangle(state, mLightPass.get());
 	}

@@ -51,6 +51,14 @@
 #define PBR_BRDF_LUT_BINDING_POINT 7 
 #endif
 
+#ifndef PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT
+#define PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT 10
+#endif
+
+#ifndef PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT
+#define PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT 11
+#endif
+
 //Feature define macros:
 // USE_CONE_TRACING
 
@@ -130,6 +138,8 @@ layout(std140, binding = VOXEL_C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
 };
 
 layout(binding = VOXEL_TEXTURE_BINDING_POINT) uniform sampler3D voxelTexture;
+layout(binding = PBR_IRRADIANCE_OUT_MAP_BINDINGPOINT)    uniform sampler2D irradianceOutMap;
+layout(binding = PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT)    uniform sampler2D ambientReflectionOutMap;
 
 #include "GI/cone_trace.glsl"
 
@@ -147,6 +157,12 @@ struct ArrayIndexWeight {
 
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
 vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
+vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
+vec3 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
+vec3 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
+in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld);
+
+
 float DistributionGGX(in vec3 N, in vec3 H, in float roughness);
 float GeometrySchlickGGX(in float NdotV, in float roughness);
 float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness);
@@ -155,6 +171,30 @@ vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
 ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld);
 
 vec3 calcAmbientLighting(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness);
+
+void calcDirectLighting(in float ao, 
+             in vec3 albedo, 
+             in float metallic, 
+             in vec3 normalEye, 
+             in float roughness,
+             in vec3 positionEye,             
+             out vec3 colorOut,
+             out vec3 luminanceOut) 
+{
+        // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+
+    vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, roughness, F0, metallic, albedo);
+    vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
+    
+    float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
+    vec3 directLighting = fragmentLitProportion * Lo;
+    
+    colorOut = directLighting + ambient;
+    luminanceOut = 0.01 * directLighting;
+}
 
 
 void calcLighting(in float ao, 
@@ -230,6 +270,45 @@ vec3 calcAmbientLighting(in vec3 normalEye, in vec3 positionEye, in float ao, in
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
+    
+    return pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);    
+
+}
+
+vec3 calcAmbientLighting2(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, in vec3 irradiance, in vec3 ambientReflection)
+{    
+	// reflection direction
+    vec3 viewEye = normalize(-positionEye);
+    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
+    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
+    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+    
+    return pbrAmbientLight2(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld, irradiance, ambientReflection);    
+
+}
+
+vec3 calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, out vec3 irradiance, out vec3 ambientReflection) 
+{    
+	// reflection direction
+    vec3 viewEye = normalize(-positionEye);
+    vec3 viewWorld = normalize(vec3(inverseViewMatrix * vec4(viewEye, 0.0f)));
+    vec3 normalWorld = normalize(vec3(1.0, 1.0, 1.0) * vec3(inverseViewMatrix * vec4(normalEye, 0.0f)));
+    vec3 reflectionDirWorld = normalize(reflect(viewWorld, normalWorld));
+    vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+    
+    irradiance = pbrIrradiance(normalWorld, positionWorld);
+    ambientReflection = pbrAmbientReflection(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
     
     return pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);    
 
@@ -341,6 +420,56 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
 	//brdf = vec2(1.0, 0.0);
 	//brdf = vec2(1,1);
     vec3 ambientLightSpecular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
+}
+
+vec3 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
+    
+    #ifdef USE_CONE_TRACING
+        vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
+        vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
+    #else 
+        vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+    #endif
+
+    return irradiance;
+}
+
+
+vec3 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
+in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
+	// ambient lighting (we now use IBL as the ambient term)
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
+      
+    
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 7.0;
+    vec3 prefilteredColor;
+    
+    #ifdef USE_CONE_TRACING
+        vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+        prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
+    #else 
+        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+    #endif
+
+    return prefilteredColor;
+}
+
+
+vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection) {
+	// ambient lighting (we now use IBL as the ambient term)
+    vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 diffuse      =  irradiance * albedo + 0.01 * albedo;
+    
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(normalWorld, viewWorld), 0.0), roughness)).rg;
+    vec3 ambientLightSpecular = ambientReflection * (F * brdf.x + brdf.y);
 
     return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }

@@ -14,6 +14,7 @@ namespace nex
 	class PbrProbe;
 	class PbrDeferredGeometryPass;
 	class PbrDeferredLightingPass;
+	class PbrDeferredAmbientPass;
 
 	class PbrDeferred : public Pbr {
 
@@ -32,7 +33,7 @@ namespace nex
 		void configureGeometryPass(const Pass::Constants& constants);
 
 		void drawAmbientLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants);
-		void drawLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants, const DirLight& light);
+		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const Pass::Constants& constants, const DirLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);
 
@@ -44,6 +45,7 @@ namespace nex
 	private:
 		LightingPassFactory mLightingPassFactory;
 		std::unique_ptr<PbrDeferredGeometryPass> mGeometryPass;
+		std::unique_ptr<PbrDeferredAmbientPass> mAmbientPass;
 		std::unique_ptr<PbrDeferredLightingPass> mLightPass;
 		std::unique_ptr<Sampler> mPointSampler;
 	};
