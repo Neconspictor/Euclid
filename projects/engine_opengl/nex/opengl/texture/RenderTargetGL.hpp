@@ -44,6 +44,11 @@ namespace nex
 
 		void bind() const;
 
+		// Has to be implemented by renderer backend
+		void blit(RenderTarget::Impl* dest, const Dimension& sourceDim, GLuint components) const;
+
+		static GLint getRenderComponents(int components);
+
 		void updateDrawColorAttachmentList() const;
 
 		void enableDrawToColorAttachments(bool enable);
@@ -122,10 +127,6 @@ namespace nex
 
 		explicit RenderTarget2DGL(GLuint frameBuffer, unsigned width,
 			unsigned height);
-
-		// Has to be implemented by renderer backend
-		void blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const;
-		static GLint getRenderComponents(int components);
 	};
 
 	

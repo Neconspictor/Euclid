@@ -105,6 +105,11 @@ nex::SMAA* nex::PostProcessor::getSMAA()
 	return mSmaa.get();
 }
 
+nex::FXAA* nex::PostProcessor::getFXAA()
+{
+	return mFxaa.get();
+}
+
 void nex::PostProcessor::resize(unsigned width, unsigned height)
 {
 	mBloomHalfth = std::make_unique<RenderTarget2D>(width / 2, height / 2, TextureDesc::createRenderTargetRGBAHDR());

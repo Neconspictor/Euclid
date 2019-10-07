@@ -39,6 +39,7 @@
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/SMAA.hpp>
 #include <nex/post_processing/HBAO.hpp>
+#include <nex/post_processing/FXAA.hpp>
 
 int ssaaSamples = 1;
 
@@ -69,7 +70,10 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		glm::vec2(0.0f, 1.0f), //windDirection
 		32.0f, //windSpeed
 		200.0f //periodTime
-	)
+	),
+	mAntialiasIrradiance(true),
+	mBlurIrradiance(false),
+	mRenderGIinHalfRes(true)
 {
 
 	//*28.0 * 0.277778
@@ -84,6 +88,21 @@ nex::PBR_Deferred_Renderer::~PBR_Deferred_Renderer() = default;
 bool nex::PBR_Deferred_Renderer::getShowDepthMap() const
 {
 	return mShowDepthMap;
+}
+
+bool nex::PBR_Deferred_Renderer::getIrradianceAA() const
+{
+	return mAntialiasIrradiance;
+}
+
+bool nex::PBR_Deferred_Renderer::getBlurIrradiance() const
+{
+	return mBlurIrradiance;
+}
+
+bool nex::PBR_Deferred_Renderer::getRenderGIinHalfRes() const
+{
+	return mRenderGIinHalfRes;
 }
 
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
@@ -106,6 +125,12 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 
 
 	mRenderLayers.push_back({ "composited", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); },
+	lib->getSpritePass() });
+
+	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0); },
+	lib->getSpritePass() });
+
+	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1); },
 	lib->getSpritePass() });
 
 	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mRenderTargetSingleSampled->getDepthAttachment()->texture.get(); },
@@ -241,7 +266,15 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
 	}
 
-	postProcessor->antialias(outputTexture, out);
+	if (true) {
+		postProcessor->antialias(outputTexture, out);
+	}
+	else {
+		out->bind();
+		postProcessor->getFXAA()->antialias(outputTexture, true);
+	}
+
+	
 
 	depthTest->enableDepthBufferWriting(true);
 }
@@ -249,6 +282,21 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
 {
 	this->mShowDepthMap = showDepthMap;
+}
+
+void nex::PBR_Deferred_Renderer::setIrradianceAA(bool antialias)
+{
+	mAntialiasIrradiance = antialias;
+}
+
+void nex::PBR_Deferred_Renderer::setBlurIrradiance(bool value)
+{
+	mBlurIrradiance = value;
+}
+
+void nex::PBR_Deferred_Renderer::setRenderGIinHalfRes(bool value)
+{
+	mRenderGIinHalfRes = value;
 }
 
 void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned height)
@@ -266,8 +314,8 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	//mHalfResoultionRT = mRenderBackend->create2DRenderTarget(width / 2, height / 2);
 	
 	
-	const unsigned giWidth = width / 2;
-	const unsigned giHeight = height / 2;
+	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
+	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;
 
 	mIrradianceAmbientReflectionRT = std::make_unique<RenderTarget>(giWidth, giHeight);
 	
@@ -356,6 +404,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 
+	auto* postProcessor = mRenderBackend->getEffectLibrary()->getPostProcessor();
+
 	using namespace std::chrono;
 
 	const auto& camera = *constants.camera;
@@ -433,7 +483,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	
 	auto* deferred = mPbrTechnique->getDeferred();
 	
-	if (true) {
+	if (true && globalIllumination) {
 
 		mIrradianceAmbientReflectionRT->bind();
 		mRenderBackend->setViewPort(0, 0, mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight());
@@ -441,25 +491,46 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 		deferred->drawAmbientLighting(mPbrMrt.get(), constants);
 
-		auto* blurer = mRenderBackend->getEffectLibrary()->getGaussianBlur();
-		blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), 
-			mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+		if (mAntialiasIrradiance) {
+			mPingPongHalf->bind();
+			postProcessor->getFXAA()->antialias(mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), false);
+			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(1, false);
+			mPingPongHalf->blit(mIrradianceAmbientReflectionRT.get(),
+				{ 0,0,mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight() }, RenderComponent::Color);
 
-		auto backup = mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
-		mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture =
-			mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture;
-		mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(1, true);
+			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(0, false);
+			postProcessor->getFXAA()->antialias(mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1), false);
+			mPingPongHalf->blit(mIrradianceAmbientReflectionRT.get(),
+				{ 0,0,mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight() }, RenderComponent::Color);
+			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(0, true);
+		}
 
-		blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
-			mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+		
+
+		if (mBlurIrradiance) {
+			auto* blurer = mRenderBackend->getEffectLibrary()->getGaussianBlur();
+			blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
+				mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+
+			auto backup = mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
+			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture =
+				mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture;
+			mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+
+			blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
+				mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
 
 
-		mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture =
-			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
-		mIrradianceAmbientReflectionRT->updateColorAttachment(1);
+			mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture =
+				mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
+			mIrradianceAmbientReflectionRT->updateColorAttachment(1);
 
-		mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture = backup;
-		mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture = backup;
+			mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+		}
+		
+
 
 	}
 	
@@ -683,6 +754,24 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 			std::cout << selectedTechnique << " is selected!" << std::endl;
 			aoSelector->setAOTechniqueToUse(selectedTechnique);
 		}
+	}
+
+	bool irradianceAA = mRenderer->getIrradianceAA();
+	if (ImGui::Checkbox("antialias GI", &irradianceAA)) {
+		mRenderer->setIrradianceAA(irradianceAA);
+	}
+
+	bool blurIrradiance = mRenderer->getBlurIrradiance();
+	if (ImGui::Checkbox("blur GI", &blurIrradiance)) {
+		mRenderer->setBlurIrradiance(blurIrradiance);
+	}
+
+	bool renderInHalfRes = mRenderer->getRenderGIinHalfRes();
+	if (ImGui::Checkbox("render GI in half resolution", &renderInHalfRes)) {
+		mRenderer->setRenderGIinHalfRes(renderInHalfRes);
+		auto* out = mRenderer->getOutRendertTarget();
+		mRenderer->updateRenderTargets(out->getWidth(), out->getHeight());
+		
 	}
 
 	const auto& layerDescs = mRenderer->getRenderLayers();

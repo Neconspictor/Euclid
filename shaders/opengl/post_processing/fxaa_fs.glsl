@@ -10,8 +10,8 @@ layout(binding = 0) uniform sampler2D sourceTexture;
 
 uniform vec2 inverseFramebufferSize;
 
-const float EDGE_THRESHOLD_MIN = 0.0312;
-const float EDGE_THRESHOLD_MAX = 0.125;
+const float EDGE_THRESHOLD_MIN = 0;//0.0312;
+const float EDGE_THRESHOLD_MAX = 0;//0.125;
 const int ITERATIONS = 12;
 const float SUBPIXEL_QUALITY = 0.75;
 const vec3 LUMA_CONVERSION = vec3(0.299, 0.587, 0.114);

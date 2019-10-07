@@ -393,6 +393,14 @@ void nex::RenderTarget::Impl::bind() const
 	GlobalCacheGL::get()->BindFramebuffer(mFrameBuffer);
 }
 
+void nex::RenderTarget::blit(RenderTarget* dest, const Dimension& sourceDim, int components)
+{
+	auto self = (RenderTarget::Impl*)getImpl();
+	auto other = (RenderTarget::Impl*)dest->getImpl();
+	GLint componentsGL = RenderTarget::Impl::getRenderComponents(components);
+	self->blit(other, sourceDim, componentsGL);
+}
+
 void nex::RenderTarget::Impl::updateDrawColorAttachmentList() const
 {
 	const auto colorAttachments = calcEnabledDrawColorAttachments();
@@ -550,6 +558,16 @@ std::vector<GLenum> nex::RenderTarget::Impl::calcEnabledDrawColorAttachments() c
 	return result;
 }
 
+GLint nex::RenderTarget::Impl::getRenderComponents(int components)
+{
+	int componentsGL = 0;
+	if (components & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
+	if (components & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
+	if (components & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
+
+	return componentsGL;
+}
+
 void nex::RenderTarget::Impl::init()
 {
 	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_WIDTH, mWidth);
@@ -627,14 +645,6 @@ nex::RenderTarget2D::RenderTarget2D(int width, int height, const TextureDesc& da
 {
 }
 
-void nex::RenderTarget2D::blit(RenderTarget2D * dest, const Dimension & sourceDim, int components)
-{
-	auto self = (RenderTarget2DGL*)getImpl();
-	auto other = (RenderTarget2DGL*)dest->getImpl();
-	GLint componentsGL = RenderTarget2DGL::getRenderComponents(components);
-	self->blit(other, sourceDim, componentsGL);
-}
-
 unsigned nex::RenderTarget2D::getWidth() const
 {
 	return ((RenderTarget2DGL*)getImpl())->getWidth();
@@ -651,23 +661,13 @@ nex::Texture2D* nex::RenderTarget2D::getColor0AttachmentTexture()
 }
 
 
-void nex::RenderTarget2DGL::blit(RenderTarget2DGL* dest, const Dimension& sourceDim, GLuint components) const
+void nex::RenderTarget::Impl::blit(RenderTarget::Impl* dest, const Dimension& sourceDim, GLuint components) const
 {
 	GLCall(glBlitNamedFramebuffer(getFrameBuffer(), dest->getFrameBuffer(), 
 		sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
 		sourceDim.xPos, sourceDim.yPos, sourceDim.width, sourceDim.height,
 		components,
 		GL_NEAREST));
-}
-
-GLint nex::RenderTarget2DGL::getRenderComponents(int components)
-{
-	int componentsGL = 0;
-	if (components & RenderComponent::Color) componentsGL |= GL_COLOR_BUFFER_BIT;
-	if (components & RenderComponent::Depth) componentsGL |= GL_DEPTH_BUFFER_BIT;
-	if (components & RenderComponent::Stencil) componentsGL |= GL_STENCIL_BUFFER_BIT;
-
-	return componentsGL;
 }
 
 GLuint nex::RenderTarget::Impl::getFrameBuffer() const

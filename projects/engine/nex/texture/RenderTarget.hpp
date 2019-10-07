@@ -43,6 +43,9 @@ namespace nex
 		void bind();
 
 		// Has to be implemented by renderer backend
+		void blit(RenderTarget* dest, const Dimension& sourceDim, int components);
+
+		// Has to be implemented by renderer backend
 		void clear(int components) const;
 
 		// Has to be implemented by renderer backend
@@ -121,9 +124,6 @@ namespace nex
 		//Has to be implemented by renderer backend
 		RenderTarget2D(int width, int height, const TextureDesc& data,
 			unsigned samples = 1);
-
-		// Has to be implemented by renderer backend
-		void blit(RenderTarget2D* dest, const Dimension& sourceDim, int components);
 
 		// Has to be implemented by renderer backend
 		//static RenderTarget* createVSM(int width, int height);

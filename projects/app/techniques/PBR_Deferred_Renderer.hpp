@@ -35,6 +35,9 @@ namespace nex
 		virtual ~PBR_Deferred_Renderer();
 
 		bool getShowDepthMap() const;
+		bool getIrradianceAA() const;
+		bool getBlurIrradiance() const;
+		bool getRenderGIinHalfRes() const;
 
 		void init(int windowWidth, int windowHeight);
 
@@ -46,6 +49,10 @@ namespace nex
 			RenderTarget* out) override;
 
 		void setShowDepthMap(bool showDepthMap);
+		void setIrradianceAA(bool antialias);
+		void setBlurIrradiance(bool value);
+		void setRenderGIinHalfRes(bool value);
+
 		virtual void updateRenderTargets(unsigned width, unsigned height) override;
 
 		AmbientOcclusionSelector* getAOSelector();
@@ -95,6 +102,10 @@ namespace nex
 		OceanGPU mOcean;
 
 		std::vector<std::function<void()>> mDepthFuncs;
+
+		bool mAntialiasIrradiance;
+		bool mBlurIrradiance;
+		bool mRenderGIinHalfRes;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable
