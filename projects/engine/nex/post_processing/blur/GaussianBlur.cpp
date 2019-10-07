@@ -34,30 +34,30 @@ namespace nex {
 		mSixteenthBlur = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureDesc::createRenderTargetRGBAHDR());
 	}
 
-	Texture2D* GaussianBlur::blur(Texture2D* texture, RenderTarget2D* out, RenderTarget2D* cache)
+	Texture2D* GaussianBlur::blur(Texture2D* texture, RenderTarget* out, RenderTarget* cache)
 	{
 		RenderState state = RenderState::createNoDepthTest();
 
 		mSampler->bind(0);
 		cache->bind();
-		RenderBackend::get()->setViewPort(0, 0, cache->getWidth(), cache->getHeight());
+		RenderBackend::get()->setViewPort(0, 0, texture->getWidth(), texture->getHeight());
 		//cache->clear(Color | Depth | Stencil);
 
 		// horizontal pass
 		mHorizontalPass->bind();
 		mHorizontalPass->setTexture(texture);
-		mHorizontalPass->setImageHeight((float)cache->getHeight());
-		mHorizontalPass->setImageWidth((float)cache->getWidth());
+		mHorizontalPass->setImageHeight((float)texture->getHeight());
+		mHorizontalPass->setImageWidth((float)texture->getWidth());
 		StaticMeshDrawer::drawFullscreenTriangle(state, mHorizontalPass.get());
 
 		// vertical pass
 		out->bind();
-		RenderBackend::get()->setViewPort(0, 0, out->getWidth(), out->getHeight());
+		RenderBackend::get()->setViewPort(0, 0, texture->getWidth(), texture->getHeight());
 		//out->clear(Color | Depth | Stencil);
 		mVerticalPass->bind();
 		mVerticalPass->setTexture(cache->getColorAttachmentTexture(0));
-		mVerticalPass->setImageHeight((float)out->getHeight());
-		mVerticalPass->setImageWidth((float)out->getWidth());
+		mVerticalPass->setImageHeight((float)texture->getHeight());
+		mVerticalPass->setImageWidth((float)texture->getWidth());
 		StaticMeshDrawer::drawFullscreenTriangle(state, mVerticalPass.get());
 
 		mSampler->unbind(0);

@@ -187,12 +187,12 @@ void calcDirectLighting(in float ao,
     F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = pbrDirectLight(normalize(-positionEye), normalEye, roughness, F0, metallic, albedo);
-    vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
+   // vec3 ambient = calcAmbientLighting(normalEye, positionEye, ao, albedo, metallic, roughness);
     
     float fragmentLitProportion = cascadedShadow(dirLight.directionEye, normalEye, positionEye.z, positionEye);
     vec3 directLighting = fragmentLitProportion * Lo;
     
-    colorOut = directLighting + ambient;
+    colorOut = directLighting;// + ambient;
     luminanceOut = 0.01 * directLighting;
 }
 

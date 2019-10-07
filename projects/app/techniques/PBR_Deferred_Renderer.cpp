@@ -261,18 +261,22 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mPbrMrt = mPbrTechnique->getDeferred()->createMultipleRenderTarget(width, height);
 	mRenderTargetSingleSampled = createLightingTarget(width, height, mPbrMrt.get());
 	mPingPong = mRenderBackend->createRenderTarget();
+	
 	mOutRT = mRenderBackend->createRenderTarget();
 	//mHalfResoultionRT = mRenderBackend->create2DRenderTarget(width / 2, height / 2);
 	
 	
-	const unsigned giWidth = width;
-	const unsigned giHeight = height;
+	const unsigned giWidth = width / 2;
+	const unsigned giHeight = height / 2;
 
 	mIrradianceAmbientReflectionRT = std::make_unique<RenderTarget>(giWidth, giHeight);
+	
 
 	TextureDesc desc;
 	desc.colorspace = ColorSpace::RGB;
 	desc.internalFormat = InternFormat::RGB16;
+
+	mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
 
 	RenderAttachment attachment;
 	attachment.colorAttachIndex = 0;
@@ -429,13 +433,34 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	
 	auto* deferred = mPbrTechnique->getDeferred();
 	
-	if (false) {
+	if (true) {
 
 		mIrradianceAmbientReflectionRT->bind();
 		mRenderBackend->setViewPort(0, 0, mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight());
 		mIrradianceAmbientReflectionRT->clear(RenderComponent::Color);
 
 		deferred->drawAmbientLighting(mPbrMrt.get(), constants);
+
+		auto* blurer = mRenderBackend->getEffectLibrary()->getGaussianBlur();
+		blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), 
+			mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+
+		auto backup = mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
+		mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture =
+			mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture;
+		mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+
+		blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
+			mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+
+
+		mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture =
+			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
+		mIrradianceAmbientReflectionRT->updateColorAttachment(1);
+
+		mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture = backup;
+		mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+
 	}
 	
 
@@ -459,12 +484,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	depthTest->enableDepthBufferWriting(false);
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
-
-
-	/*auto* spritePass = mRenderBackend->getEffectLibrary()->getSpritePass();
-	auto* sprite = mRenderBackend->getScreenSprite();
-	sprite->setTexture(mHalfResoultionRT->getColorAttachmentTexture(0));
-	sprite->render(spritePass);*/
 
 	deferred->drawLighting(mPbrMrt.get(), mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), 
 		mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1), constants, sun);

@@ -86,11 +86,11 @@ void main()
     vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
     //positionEye += normalEye;
     
-    //const vec3 irradiance = texture(irradianceOutMap, fs_in.tex_coords).rgb;
-    //const vec3 ambientReflection = texture(ambientReflectionOutMap, fs_in.tex_coords).rgb;
+    const vec3 irradiance = texture(irradianceOutMap, fs_in.tex_coords).rgb;
+    const vec3 ambientReflection = texture(ambientReflectionOutMap, fs_in.tex_coords).rgb;
     
  
-    //vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradiance, ambientReflection);
+    vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradiance, ambientReflection);
     
     
     vec3 colorOut;
@@ -104,6 +104,6 @@ void main()
                 colorOut,
                 luminanceOut);
         
-    FragColor = vec4(colorOut, 1.0);
+    FragColor = vec4(colorOut + ambient, 1.0);
     LuminanceColor = vec4(luminanceOut, FragColor.a);
 }

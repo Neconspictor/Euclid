@@ -1,6 +1,9 @@
 #pragma once
 
+#include <nex/texture/Texture.hpp>
+
 namespace nex {
+	class RenderTarget;
 	class RenderTarget2D;
 	class Sampler;
 	class Texture2D;
@@ -14,7 +17,7 @@ namespace nex {
 
 		~GaussianBlur();
 
-		Texture2D* blur(Texture2D* texture, RenderTarget2D* out, RenderTarget2D* cache);
+		Texture2D* blur(Texture2D* texture, RenderTarget* out, RenderTarget* cache);
 
 		Texture2D* blurHalfResolution(Texture2D* texture, RenderTarget2D* out);
 		Texture2D* blurQuarterResolution(Texture2D* texture, RenderTarget2D* out);
