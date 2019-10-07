@@ -13,6 +13,7 @@ namespace nex
 	class GaussianBlur;
 	class SMAA;
 	class AmbientOcclusionSelector;
+	class FXAA;
 
 	class PostProcessor {
 	public:
@@ -46,6 +47,8 @@ namespace nex
 
 		SMAA* getSMAA();
 
+		FXAA* getFXAA();
+
 		/**
 		 * Resizes the post processor for a different resolution.
 		 * @param width : The new screen width
@@ -75,5 +78,6 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> mBloomEigth;
 		std::unique_ptr<RenderTarget2D> mBloomSixteenth;
 		std::unique_ptr<SMAA> mSmaa;
+		std::unique_ptr<FXAA> mFxaa;
 	};
 }

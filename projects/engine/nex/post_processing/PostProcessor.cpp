@@ -10,6 +10,7 @@
 #include <nex/post_processing//SMAA.hpp>
 #include "AmbientOcclusion.hpp"
 #include "nex/drawing/StaticMeshDrawer.hpp"
+#include <nex/post_processing/FXAA.hpp>
 
 
 class nex::PostProcessor::PostProcessPass : public nex::Pass
@@ -51,7 +52,8 @@ public:
 
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
 mPostprocessPass(std::make_unique<PostProcessPass>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
-mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height))
+mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height)),
+mFxaa(std::make_unique<FXAA>())
 {	
 	resize(width, height);
 }
