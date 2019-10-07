@@ -273,8 +273,8 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	
 
 	TextureDesc desc;
-	desc.colorspace = ColorSpace::RGB;
-	desc.internalFormat = InternFormat::RGB16;
+	desc.colorspace = ColorSpace::RGBA;
+	desc.internalFormat = InternFormat::RGBA16;
 
 	mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
 

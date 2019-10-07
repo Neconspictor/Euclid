@@ -86,11 +86,11 @@ void main()
     vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
     //positionEye += normalEye;
     
-    const vec3 irradiance = texture(irradianceOutMap, fs_in.tex_coords).rgb;
-    const vec3 ambientReflection = texture(ambientReflectionOutMap, fs_in.tex_coords).rgb;
+    const vec4 irradiance = texture(irradianceOutMap, fs_in.tex_coords);
+    const vec4 ambientReflection = texture(ambientReflectionOutMap, fs_in.tex_coords);
     
  
-    vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradiance, ambientReflection);
+    vec3 ambient = calcAmbientLighting2(normalEye, positionEye, ao, albedo, metallic, roughness, irradiance.a * irradiance.rgb, ambientReflection.a * ambientReflection.rgb);
     
     
     vec3 colorOut;

@@ -158,8 +158,8 @@ struct ArrayIndexWeight {
 vec3 pbrDirectLight(in vec3 V, in vec3 N, in float roughness, in vec3 F0, in float metallic, in vec3 albedo);
 vec3 pbrAmbientLight(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld);
 vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in float metallic, in vec3 albedo, in  vec3 reflectionDirWorld,  in float ao,  in vec3 positionWorld, in vec3 viewWorld, in vec3 irradiance, in vec3 ambientReflection);
-vec3 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
-vec3 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld);
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
 in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld);
 
 
@@ -293,7 +293,7 @@ vec3 calcAmbientLighting2(in vec3 normalEye, in vec3 positionEye, in float ao, i
 
 }
 
-vec3 calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, out vec3 irradiance, out vec3 ambientReflection) 
+void calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness, out vec4 irradiance, out vec4 ambientReflection) 
 {    
 	// reflection direction
     vec3 viewEye = normalize(-positionEye);
@@ -309,9 +309,6 @@ vec3 calcAmbientLighting3(in vec3 normalEye, in vec3 positionEye, in float ao, i
     
     irradiance = pbrIrradiance(normalWorld, positionWorld);
     ambientReflection = pbrAmbientReflection(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);
-    
-    return pbrAmbientLight(normalWorld, roughness, F0, metallic, albedo, reflectionDirWorld, ao, positionWorld, viewWorld);    
-
 }
 
 
@@ -424,20 +421,19 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     return ambientLightPower * (kD * diffuse + ambientLightSpecular) * ao;
 }
 
-vec3 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
+vec4 pbrIrradiance(in vec3 normalWorld, in vec3 positionWorld) {
     
     #ifdef USE_CONE_TRACING
-        vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, normalWorld);
-        vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
+        vec4 irradiance = ConeTraceRadiance(positionWorld, normalWorld);
     #else 
-        vec3 irradiance = texture(irradianceMaps, vec4(normalWorld, 0)).rgb;
+        vec4 irradiance = vec4(texture(irradianceMaps, vec4(normalWorld, 0)).rgb, 1.0);
     #endif
 
     return irradiance;
 }
 
 
-vec3 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
+vec4 pbrAmbientReflection(in vec3 normalWorld, in float roughness, in vec3 F0, 
 in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in vec3 positionWorld, in vec3 viewWorld) {
 	// ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(normalWorld, viewWorld), 0.0), F0, roughness);
@@ -445,13 +441,12 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 7.0;
-    vec3 prefilteredColor;
+    vec4 prefilteredColor;
     
     #ifdef USE_CONE_TRACING
-        vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
-        prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
+        prefilteredColor = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
-        prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
+        prefilteredColor = vec4(textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);
     #endif
 
     return prefilteredColor;

@@ -1,7 +1,7 @@
 #version 430 core
 
-layout(location = 0) out vec3 irradianceOut;
-layout(location = 1) out vec3 ambientReflectionOut;
+layout(location = 0) out vec4 irradianceOut;
+layout(location = 1) out vec4 ambientReflectionOut;
 
 in VS_OUT {	
 	vec2 tex_coords;
