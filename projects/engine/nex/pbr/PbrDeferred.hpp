@@ -32,7 +32,7 @@ namespace nex
 
 		void configureGeometryPass(const Pass::Constants& constants);
 
-		void drawAmbientLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants);
+		void drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Pass::Constants& constants);
 		void drawLighting(PBR_GBuffer* gBuffer, Texture* irradiance, Texture* ambientReflection, const Pass::Constants& constants, const DirLight& light);
 
 		std::unique_ptr<PBR_GBuffer> createMultipleRenderTarget(int width, int height);

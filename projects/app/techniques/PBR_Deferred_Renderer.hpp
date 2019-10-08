@@ -38,6 +38,7 @@ namespace nex
 		bool getIrradianceAA() const;
 		bool getBlurIrradiance() const;
 		bool getRenderGIinHalfRes() const;
+		bool getDownSampledDepth() const;
 
 		void init(int windowWidth, int windowHeight);
 
@@ -52,6 +53,7 @@ namespace nex
 		void setIrradianceAA(bool antialias);
 		void setBlurIrradiance(bool value);
 		void setRenderGIinHalfRes(bool value);
+		void setDownsampledDepth(bool value);
 
 		virtual void updateRenderTargets(unsigned width, unsigned height) override;
 
@@ -84,7 +86,8 @@ namespace nex
 		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
 
 		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
-		std::unique_ptr<RenderTarget> mIrradianceAmbientReflectionRT;
+		std::unique_ptr<RenderTarget> mIrradianceAmbientReflectionRT[2];
+		std::unique_ptr<RenderTarget> mDepthHalf;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 		std::unique_ptr<RenderTarget2D> mPingPongHalf;
 		std::unique_ptr<RenderTarget2D> mOutRT;
@@ -106,6 +109,8 @@ namespace nex
 		bool mAntialiasIrradiance;
 		bool mBlurIrradiance;
 		bool mRenderGIinHalfRes;
+		bool mUseDownSampledDepth;
+		bool mActiveIrradianceRT;
 	};
 
 	class PBR_Deferred_Renderer_ConfigurationView : public nex::gui::Drawable

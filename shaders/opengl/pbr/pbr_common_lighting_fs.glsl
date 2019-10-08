@@ -384,7 +384,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     //vec3 irradiance = indexWeight.firstWeight * irradiance1 + (1.0-indexWeight.firstWeight) * irradiance2;
     //vec3 irradiance = indexWeight.weights[0] * irradiance1 + (indexWeight.weights[1]) * irradiance2;
     
-    vec3 diffuse      =  irradiance * albedo + 0.01 * albedo;
+    vec3 diffuse      =  irradiance * albedo;// + 0.01 * albedo;
     
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 7.0;

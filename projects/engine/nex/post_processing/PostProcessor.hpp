@@ -14,6 +14,7 @@ namespace nex
 	class SMAA;
 	class AmbientOcclusionSelector;
 	class FXAA;
+	class TAA;
 
 	class PostProcessor {
 	public:
@@ -49,6 +50,8 @@ namespace nex
 
 		FXAA* getFXAA();
 
+		TAA* getTAA();
+
 		/**
 		 * Resizes the post processor for a different resolution.
 		 * @param width : The new screen width
@@ -79,5 +82,6 @@ namespace nex
 		std::unique_ptr<RenderTarget2D> mBloomSixteenth;
 		std::unique_ptr<SMAA> mSmaa;
 		std::unique_ptr<FXAA> mFxaa;
+		std::unique_ptr<TAA> mTaa;
 	};
 }

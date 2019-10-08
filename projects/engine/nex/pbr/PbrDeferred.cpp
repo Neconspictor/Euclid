@@ -40,7 +40,7 @@ namespace nex {
 		mGeometryPass->updateConstants(constants);
 	}
 
-	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, const Pass::Constants& constants)
+	void PbrDeferred::drawAmbientLighting(PBR_GBuffer* gBuffer, Texture* depth, const Pass::Constants& constants)
 	{
 		if (!mAmbientPass) return;
 
@@ -49,7 +49,7 @@ namespace nex {
 		mAmbientPass->setAlbedoMap(gBuffer->getAlbedo());
 		mAmbientPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mAmbientPass->setNormalEyeMap(gBuffer->getNormal());
-		mAmbientPass->setDepthMap(gBuffer->getNormalizedViewSpaceZ());
+		mAmbientPass->setDepthMap(depth);
 
 		mAmbientPass->updateConstants(constants);
 
@@ -70,7 +70,7 @@ namespace nex {
 		mLightPass->setAlbedoMap(gBuffer->getAlbedo());
 		mLightPass->setAoMetalRoughnessMap(gBuffer->getAoMetalRoughness());
 		mLightPass->setNormalEyeMap(gBuffer->getNormal());
-		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getNormalizedViewSpaceZ());
+		mLightPass->setNormalizedViewSpaceZMap(gBuffer->getDepth());
 		mLightPass->setIrradianceOutMap(irradiance);
 		mLightPass->setAmbientReflectionOutMap(ambientReflection);
 

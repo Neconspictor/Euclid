@@ -57,20 +57,86 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
   return homogenousLocation.xyz / homogenousLocation.w;
 };
 
+vec3 getNormal() {
+
+    vec3 a1 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(0, 0)).rgb - 1.0);
+    vec3 a2 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(0, 1)).rgb - 1.0);
+    vec3 a3 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(1, 0)).rgb - 1.0);
+    vec3 a4 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(1, 1)).rgb - 1.0);
+    
+    vec3 a5 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(0, -1)).rgb - 1.0);
+    vec3 a6 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(-1, 0)).rgb - 1.0);
+    vec3 a7 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(-1, -1)).rgb - 1.0);
+    vec3 a8 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(1, -1)).rgb - 1.0);
+    vec3 a9 = normalize(2.0 * textureOffset(gBuffer.normalEyeMap, fs_in.tex_coords, ivec2(-1, 1)).rgb - 1.0);
+    
+    return normalize((a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9));
+}
+
+vec3 getAlbedo() {
+
+    vec3 a1 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(0, 0)).rgb;
+    vec3 a2 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(0, 1)).rgb;
+    vec3 a3 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(1, 0)).rgb;
+    vec3 a4 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(1, 1)).rgb;
+    
+    vec3 a5 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(0, -1)).rgb;
+    vec3 a6 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(-1, 0)).rgb;
+    vec3 a7 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(-1, -1)).rgb;
+    vec3 a8 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(1, -1)).rgb;
+    vec3 a9 = textureOffset(gBuffer.albedoMap, fs_in.tex_coords, ivec2(-1, 1)).rgb;
+    
+    return (a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9) / 9.0;
+}
+
+vec3 getAoMetalRoughness() {
+
+    vec3 a1 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(0, 0)).rgb;
+    vec3 a2 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(0, 1)).rgb;
+    vec3 a3 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(1, 0)).rgb;
+    vec3 a4 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(1, 1)).rgb;
+    
+    vec3 a5 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(0, -1)).rgb;
+    vec3 a6 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, 0)).rgb;
+    vec3 a7 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, -1)).rgb;
+    vec3 a8 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(1, -1)).rgb;
+    vec3 a9 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, 1)).rgb;
+    
+    return (a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9) / 9.0;
+}
+
+float getDepth() {
+
+    float a1 = textureOffset(gBuffer.depthMap, fs_in.tex_coords, ivec2(0, 0)).r;
+    float a2 = textureOffset(gBuffer.depthMap, fs_in.tex_coords, ivec2(0, 1)).r;
+    float a3 = textureOffset(gBuffer.depthMap, fs_in.tex_coords, ivec2(1, 0)).r;
+    float a4 = textureOffset(gBuffer.depthMap, fs_in.tex_coords, ivec2(1, 1)).r;
+    
+    float a5 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(0, -1)).r;
+    float a6 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, 0)).r;
+    float a7 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, -1)).r;
+    float a8 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(1, -1)).r;
+    float a9 = textureOffset(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords, ivec2(-1, 1)).r;
+    
+    return a1;
+    //return max(max(max(a1, a2), a3), a4);
+    return (a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9) / 9.0;
+}
+
 
 void main()
 {
     vec2 texCoords = fs_in.tex_coords;
 
-	const vec3 albedo = texture(gBuffer.albedoMap, texCoords).rgb;
-	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, texCoords).rgb;
+	const vec3 albedo = getAlbedo();//texture(gBuffer.albedoMap, texCoords).rgb;
+	const vec3 aoMetalRoughness = getAoMetalRoughness();//texture(gBuffer.aoMetalRoughnessMap, texCoords).rgb;
 	const float ao = aoMetalRoughness.r;
 	const float metallic = aoMetalRoughness.g;
 	const float roughness = aoMetalRoughness.b;
 	
-	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, texCoords).rgb - 1.0);
+	const vec3 normalEye = getNormal();//normalize(2.0 * texture(gBuffer.normalEyeMap, texCoords).rgb - 1.0);
 	
-    const float depth = texture(gBuffer.depthMap, texCoords).r;
+    const float depth = getDepth();//texture(gBuffer.depthMap, texCoords).r;
     vec3 positionEye = computeViewPositionFromDepth(texCoords, depth);
     
     calcAmbientLighting3(normalEye, positionEye, ao, albedo, metallic, roughness, irradianceOut, ambientReflectionOut);

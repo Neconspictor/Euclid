@@ -2,6 +2,8 @@
 #include <memory>
 
 namespace nex {
+	class RenderTarget;
+	class Texture;
 	class RenderTarget2D;
 	class Sampler;
 	class Texture2D;
@@ -31,7 +33,7 @@ namespace nex {
 		 * Downsamples the source texture using nearest neighbor filtering.
 		 * Useful for downsampling depth buffers.
 		 */
-		nex::Texture2D* downsampleDepth(Texture2D* src, RenderTarget2D* dest);
+		nex::Texture* downsampleDepthHalf(Texture2D* src, RenderTarget* dest);
 
 		void resize(unsigned width, unsigned height);
 

@@ -183,6 +183,8 @@ set(
     ../../extern_sources/engine/extern/SMAA/SearchTex.h
     nex/post_processing/SMAA.hpp
 	nex/post_processing/SMAA.cpp
+    nex/post_processing/TAA.cpp
+    nex/post_processing/TAA.hpp
     
     #nex/post_processing/blur
 	nex/post_processing/blur/GaussianBlur.hpp

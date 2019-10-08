@@ -28,8 +28,14 @@ public:
 	DepthDownSamplePass()
 	{
 		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_depth_fs.glsl");
-		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
-		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
+		mSourceUniform = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
+		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+
+	}
+
+	void setSource(Texture* texture) {
+		mShader->setTexture(texture, &mSampler, mSourceUniform.bindingSlot);
 	}
 
 private:
@@ -39,6 +45,7 @@ private:
 
 
 nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSamplePass>()),
+mDepthDownSampleShader(std::make_unique<DepthDownSamplePass>()),
 mSampler(std::make_unique<Sampler>(SamplerDesc()))
 {
 	mSampler->setAnisotropy(1.0f);
@@ -94,21 +101,20 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	return renderImage;
 }
 
-nex::Texture2D* nex::DownSampler::downsampleDepth(Texture2D* src, RenderTarget2D* dest)
+nex::Texture* nex::DownSampler::downsampleDepthHalf(Texture2D* src, RenderTarget* dest)
 {
 	auto* renderBackend = RenderBackend::get();
 	dest->bind();
-	renderBackend->setViewPort(0, 0, dest->getWidth(), dest->getHeight());
+	renderBackend->setViewPort(0, 0, src->getWidth() / 2, src->getHeight() / 2);
 	//dest->clear(Color);
 
-	mDownSampleShader->bind();
-	mDownSampleShader->getShader()->setTexture(src, TextureManager::get()->getPointSampler(), 0);
+	mDepthDownSampleShader->bind();
+	mDepthDownSampleShader->setSource(src);
 
 	RenderState state = RenderState::createNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mDepthDownSampleShader.get());
 
-	auto* renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
-	//renderImage->generateMipMaps();
+	auto* renderImage = dest->getColorAttachmentTexture(0);
 
 	return renderImage;
 }

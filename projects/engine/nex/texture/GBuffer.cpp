@@ -113,7 +113,7 @@ namespace nex
 		return mNormal;
 	}
 
-	Texture2D* PBR_GBuffer::getNormalizedViewSpaceZ() const
+	Texture2D* PBR_GBuffer::getDepth() const
 	{
 		return mNormalizedViewSpaceZ;
 	}

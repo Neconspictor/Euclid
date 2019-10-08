@@ -40,6 +40,8 @@
 #include <nex/post_processing/SMAA.hpp>
 #include <nex/post_processing/HBAO.hpp>
 #include <nex/post_processing/FXAA.hpp>
+#include <nex/post_processing/TAA.hpp>
+#include <nex/post_processing/DownSampler.hpp>
 
 int ssaaSamples = 1;
 
@@ -73,7 +75,9 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),
-	mRenderGIinHalfRes(true)
+	mRenderGIinHalfRes(true),
+	mUseDownSampledDepth(false),
+	mActiveIrradianceRT(0)
 {
 
 	//*28.0 * 0.277778
@@ -105,6 +109,11 @@ bool nex::PBR_Deferred_Renderer::getRenderGIinHalfRes() const
 	return mRenderGIinHalfRes;
 }
 
+bool nex::PBR_Deferred_Renderer::getDownSampledDepth() const
+{
+	return mUseDownSampledDepth;
+}
+
 void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 {
 	LOG(m_logger, LogLevel::Info) << "PBR_Deferred_Renderer::init called!";
@@ -127,10 +136,10 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "composited", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); },
 	lib->getSpritePass() });
 
-	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0); },
+	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
 	lib->getSpritePass() });
 
-	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1); },
+	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(1); },
 	lib->getSpritePass() });
 
 	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mRenderTargetSingleSampled->getDepthAttachment()->texture.get(); },
@@ -299,6 +308,11 @@ void nex::PBR_Deferred_Renderer::setRenderGIinHalfRes(bool value)
 	mRenderGIinHalfRes = value;
 }
 
+void nex::PBR_Deferred_Renderer::setDownsampledDepth(bool value)
+{
+	mUseDownSampledDepth = value;
+}
+
 void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned height)
 {
 	Renderer::updateRenderTargets(width, height);
@@ -317,24 +331,42 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;
 
-	mIrradianceAmbientReflectionRT = std::make_unique<RenderTarget>(giWidth, giHeight);
+	RenderAttachment attachment;
+
+	for (int i = 0; i < 2; ++i) {
+		mIrradianceAmbientReflectionRT[i] = std::make_unique<RenderTarget>(giWidth, giHeight);
+
+
+		TextureDesc desc;
+		desc.colorspace = ColorSpace::RGBA;
+		desc.internalFormat = InternFormat::RGBA16;
+
+		mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
+
+		attachment.colorAttachIndex = 0;
+		attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
+		mIrradianceAmbientReflectionRT[i]->addColorAttachment(attachment);
+
+		attachment.colorAttachIndex = 1;
+		attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
+		mIrradianceAmbientReflectionRT[i]->addColorAttachment(attachment);
+		mIrradianceAmbientReflectionRT[i]->finalizeAttachments();
+	}
+
 	
 
-	TextureDesc desc;
-	desc.colorspace = ColorSpace::RGBA;
-	desc.internalFormat = InternFormat::RGBA16;
 
-	mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
-
-	RenderAttachment attachment;
-	attachment.colorAttachIndex = 0;
-	attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
-	mIrradianceAmbientReflectionRT->addColorAttachment(attachment);
-
-	attachment.colorAttachIndex = 1;
-	attachment.texture = std::make_shared<Texture2D>(giWidth, giHeight, desc, nullptr);
-	mIrradianceAmbientReflectionRT->addColorAttachment(attachment);
-	mIrradianceAmbientReflectionRT->finalizeAttachments();
+	mDepthHalf = std::make_unique<RenderTarget>(width / 2, height / 2);
+	TextureDesc depthHalfDesc;
+	depthHalfDesc.internalFormat = InternFormat::R32F;
+	depthHalfDesc.colorspace = ColorSpace::R;
+	//data.colorspace = ColorSpace::DEPTH;
+	depthHalfDesc.pixelDataType = PixelDataType::FLOAT;
+	attachment.texture = std::make_shared<Texture2D>(width / 2, height / 2, depthHalfDesc, nullptr);
+	attachment.colorAttachIndex = 3;
+	mDepthHalf->addColorAttachment(attachment);
+	mDepthHalf->finalizeAttachments();
+	
 }
 
 nex::AmbientOcclusionSelector* nex::PBR_Deferred_Renderer::getAOSelector()
@@ -404,7 +436,10 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	static auto* stencilTest = RenderBackend::get()->getStencilTest();
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 
-	auto* postProcessor = mRenderBackend->getEffectLibrary()->getPostProcessor();
+	auto* lib = mRenderBackend->getEffectLibrary();
+	auto* postProcessor = lib->getPostProcessor();
+	auto* activeIrradiance = mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
+	auto* historyIrradiance = mIrradianceAmbientReflectionRT[!mActiveIrradianceRT].get();
 
 	using namespace std::chrono;
 
@@ -485,49 +520,87 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	
 	if (true && globalIllumination) {
 
-		mIrradianceAmbientReflectionRT->bind();
-		mRenderBackend->setViewPort(0, 0, mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight());
-		mIrradianceAmbientReflectionRT->clear(RenderComponent::Color);
+		
 
-		deferred->drawAmbientLighting(mPbrMrt.get(), constants);
+		Texture* depth = mPbrMrt->getDepth();
+		
+		if (mRenderGIinHalfRes && mUseDownSampledDepth) {
+			depth = lib->getDownSampler()->downsampleDepthHalf(mPbrMrt->getDepth(), mDepthHalf.get());
+		}
+
+		activeIrradiance->bind();
+		mRenderBackend->setViewPort(0, 0, activeIrradiance->getWidth(), activeIrradiance->getHeight());
+		activeIrradiance->clear(RenderComponent::Color);
+		deferred->drawAmbientLighting(mPbrMrt.get(), depth, constants);
+
+		
+
 
 		if (mAntialiasIrradiance) {
 			mPingPongHalf->bind();
-			postProcessor->getFXAA()->antialias(mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), false);
-			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(1, false);
-			mPingPongHalf->blit(mIrradianceAmbientReflectionRT.get(),
-				{ 0,0,mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight() }, RenderComponent::Color);
+			postProcessor->getFXAA()->antialias(activeIrradiance->getColorAttachmentTexture(0), false);
+			activeIrradiance->enableDrawToColorAttachment(1, false);
+			mPingPongHalf->blit(activeIrradiance,
+				{ 0,0,activeIrradiance->getWidth(), activeIrradiance->getHeight() }, RenderComponent::Color);
 
-			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(1, true);
-			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(0, false);
-			postProcessor->getFXAA()->antialias(mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1), false);
-			mPingPongHalf->blit(mIrradianceAmbientReflectionRT.get(),
-				{ 0,0,mIrradianceAmbientReflectionRT->getWidth(), mIrradianceAmbientReflectionRT->getHeight() }, RenderComponent::Color);
-			mIrradianceAmbientReflectionRT->enableDrawToColorAttachment(0, true);
+			activeIrradiance->enableDrawToColorAttachment(1, true);
+			activeIrradiance->enableDrawToColorAttachment(0, false);
+			postProcessor->getFXAA()->antialias(activeIrradiance->getColorAttachmentTexture(1), false);
+			mPingPongHalf->blit(activeIrradiance,
+				{ 0,0,activeIrradiance->getWidth(), activeIrradiance->getHeight() }, RenderComponent::Color);
+			activeIrradiance->enableDrawToColorAttachment(0, true);
+
+
+			/*mPingPongHalf->bind();
+			//mPingPongHalf->clear(RenderComponent::Color);
+			postProcessor->getTAA()->antialias(	activeIrradiance->getColorAttachmentTexture(0), 
+												historyIrradiance->getColorAttachmentTexture(0), 
+												depth, camera);
+
+			activeIrradiance->enableDrawToColorAttachment(1, false);
+			activeIrradiance->enableDrawToColorAttachment(0, true);
+
+			
+			mPingPongHalf->blit(activeIrradiance,
+				{ 0,0,activeIrradiance->getWidth(), activeIrradiance->getHeight() }, RenderComponent::Color);
+			activeIrradiance->enableDrawToColorAttachment(1, true);
+
+
+			postProcessor->getTAA()->antialias(activeIrradiance->getColorAttachmentTexture(1),
+				historyIrradiance->getColorAttachmentTexture(1),
+				depth, camera);
+
+			activeIrradiance->enableDrawToColorAttachment(0, false);
+			activeIrradiance->enableDrawToColorAttachment(1, true);
+
+
+			mPingPongHalf->blit(activeIrradiance,
+				{ 0,0,activeIrradiance->getWidth(), activeIrradiance->getHeight() }, RenderComponent::Color);
+			activeIrradiance->enableDrawToColorAttachment(0, true);*/
 		}
 
 		
 
 		if (mBlurIrradiance) {
 			auto* blurer = mRenderBackend->getEffectLibrary()->getGaussianBlur();
-			blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
-				mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+			blurer->blur((Texture2D*)activeIrradiance->getColorAttachmentTexture(0),
+				activeIrradiance, mPingPongHalf.get());
 
-			auto backup = mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
-			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture =
-				mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture;
-			mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+			auto backup = activeIrradiance->getColorAttachments()[0].texture;
+			activeIrradiance->getColorAttachments()[0].texture =
+				activeIrradiance->getColorAttachments()[1].texture;
+			activeIrradiance->updateColorAttachment(0);
 
-			blurer->blur((Texture2D*)mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0),
-				mIrradianceAmbientReflectionRT.get(), mPingPongHalf.get());
+			blurer->blur((Texture2D*)activeIrradiance->getColorAttachmentTexture(0),
+				activeIrradiance, mPingPongHalf.get());
 
 
-			mIrradianceAmbientReflectionRT->getColorAttachments()[1].texture =
-				mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture;
-			mIrradianceAmbientReflectionRT->updateColorAttachment(1);
+			activeIrradiance->getColorAttachments()[1].texture =
+				activeIrradiance->getColorAttachments()[0].texture;
+			activeIrradiance->updateColorAttachment(1);
 
-			mIrradianceAmbientReflectionRT->getColorAttachments()[0].texture = backup;
-			mIrradianceAmbientReflectionRT->updateColorAttachment(0);
+			activeIrradiance->getColorAttachments()[0].texture = backup;
+			activeIrradiance->updateColorAttachment(0);
 		}
 		
 
@@ -556,8 +629,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
 
-	deferred->drawLighting(mPbrMrt.get(), mIrradianceAmbientReflectionRT->getColorAttachmentTexture(0), 
-		mIrradianceAmbientReflectionRT->getColorAttachmentTexture(1), constants, sun);
+	deferred->drawLighting(mPbrMrt.get(), activeIrradiance->getColorAttachmentTexture(0),
+		activeIrradiance->getColorAttachmentTexture(1), constants, sun);
 
 	//stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 1);
 
@@ -580,6 +653,8 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
+
+	mActiveIrradianceRT = !mActiveIrradianceRT;
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
@@ -772,6 +847,11 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 		auto* out = mRenderer->getOutRendertTarget();
 		mRenderer->updateRenderTargets(out->getWidth(), out->getHeight());
 		
+	}
+
+	bool useDownSampledDepth = mRenderer->getDownSampledDepth();
+	if (ImGui::Checkbox("Downsample Depth for GI", &useDownSampledDepth)) {
+		mRenderer->setDownsampledDepth(useDownSampledDepth);
 	}
 
 	const auto& layerDescs = mRenderer->getRenderLayers();
