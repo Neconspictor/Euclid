@@ -195,6 +195,9 @@ namespace nex
 
 		void switchTexture(bool update = true);
 		bool getActive() const;
+		Texture* getActiveTexture();
+		Texture* getNonActiveTexture();
+
 		const std::vector<std::shared_ptr<Texture>>& getTextures() const;
 		void setActive(bool active, bool update = true);
 

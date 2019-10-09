@@ -5,7 +5,8 @@
 nex::RenderTargetSwitcher::RenderTargetSwitcher(RenderTarget* target, unsigned colorAttachIndex,
 	std::shared_ptr<Texture> first, std::shared_ptr<Texture> second) :
 	mTarget(target),
-	mColorAttachIndex(colorAttachIndex)
+	mColorAttachIndex(colorAttachIndex),
+	mActive(0)
 {
 	mTextures.resize(2);
 	setTextures(std::move(first), std::move(second));
@@ -22,6 +23,16 @@ void nex::RenderTargetSwitcher::switchTexture(bool update)
 bool nex::RenderTargetSwitcher::getActive() const
 {
 	return mActive;
+}
+
+nex::Texture* nex::RenderTargetSwitcher::getActiveTexture()
+{
+	return mTextures[mActive].get();
+}
+
+nex::Texture* nex::RenderTargetSwitcher::getNonActiveTexture()
+{
+	return mTextures[!mActive].get();
 }
 
 const std::vector<std::shared_ptr<nex::Texture>>& nex::RenderTargetSwitcher::getTextures() const
@@ -57,7 +68,6 @@ void nex::RenderTargetSwitcher::setTextures(std::shared_ptr<Texture> first, std:
 void nex::RenderTargetSwitcher::updateRenderTarget()
 {
 	if (!mTarget) return;
-	if (!mTextures[mActive]) return;
 	mTarget->getColorAttachments()[mColorAttachIndex].texture = mTextures[mActive];
 	mTarget->updateColorAttachment(mColorAttachIndex);
 }
