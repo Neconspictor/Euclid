@@ -57,7 +57,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	Renderer(pbrTechnique),
 	blurEffect(nullptr),
 	m_logger("PBR_Deferred_Renderer"),
-	mOut1RT(nullptr),
+	mOutRT(nullptr),
 	//shadowMap(nullptr),
 
 	mShowDepthMap(false),
@@ -77,7 +77,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mBlurIrradiance(false),
 	mRenderGIinHalfRes(true),
 	mUseDownSampledDepth(false),
-	mActiveIrradianceRT(0)
+	mActiveIrradianceRT(0),
+	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)
 {
 
 	//*28.0 * 0.277778
@@ -133,7 +134,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mAoSelector->setAOTechniqueToUse(AOTechnique::HBAO);
 
 
-	mRenderLayers.push_back({ "composited", [&]() { return mOut1RT->getColorAttachmentTexture(0); },
+	mRenderLayers.push_back({ "composited", [&]() { return mOutRT->getColorAttachmentTexture(0); },
 	lib->getSpritePass() });
 
 	mRenderLayers.push_back({ "irradiance", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(0); },
@@ -142,7 +143,7 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "irradiance - reflection", [&]() { return mIrradianceAmbientReflectionRT[mActiveIrradianceRT]->getColorAttachmentTexture(1); },
 	lib->getSpritePass() });
 
-	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mOut1RT->getDepthAttachment()->texture.get(); },
+	mRenderLayers.push_back({ "GBuffer: depth", [&]() { return mOutRT->getDepthAttachment()->texture.get(); },
 	lib->getDepthSpritePass() });
 
 
@@ -167,8 +168,8 @@ void nex::PBR_Deferred_Renderer::init(int windowWidth, int windowHeight)
 	mRenderLayers.push_back({ "GBuffer: normal - view space", [&]() { return  mPbrMrt->getNormal(); } });
 	mRenderLayers.push_back({ "GBuffer: albedo", [&]() { return mPbrMrt->getAlbedo(); } });
 	mRenderLayers.push_back({ "GBuffer: ambient occlusion, metalness, roughness", [&]() { return mPbrMrt->getAoMetalRoughness(); } });
-	mRenderLayers.push_back({ "motion", [&]() { return mOut1RT->getColorAttachmentTexture(2); } });
-	mRenderLayers.push_back({ "luminance", [&]() { return mOut1RT->getColorAttachmentTexture(1); } });
+	mRenderLayers.push_back({ "motion", [&]() { return mOutRT->getColorAttachmentTexture(2); } });
+	mRenderLayers.push_back({ "luminance", [&]() { return mOutRT->getColorAttachmentTexture(1); } });
 	mRenderLayers.push_back({ "ambient occlusion", [&]() { return getAOSelector()->getRenderResult(); }, lib->getDepthSpritePass() });
 	mRenderLayers.push_back({ "ambient occlusion - without blur", [&]() { return getAOSelector()->getHBAO()->getAO_Result(); }, lib->getDepthSpritePass() });
 	//mRenderLayers.push_back({ "pre-post process", [&]() { return mRenderTargetSingleSampled->getColorAttachmentTexture(0); } });
@@ -213,6 +214,12 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 	depthTest->enableDepthBufferWriting(true);
 
+
+	mOutSwitcherTAA.switchTexture();
+	auto currentOut = mOutSwitcherTAA.getActiveTexture();
+	auto previousOut = mOutSwitcherTAA.getNonActiveTexture();
+
+
 	static bool switcher = true;
 	if (mInput->isPressed(Input::KEY_O))
 	{
@@ -243,11 +250,11 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(false);
 
 
-	auto* colorTex = static_cast<Texture2D*>(mOut1RT->getColorAttachmentTexture(0));
-	auto* luminanceTexture = static_cast<Texture2D*>(mOut1RT->getColorAttachmentTexture(1));
-	auto* motionTexture = static_cast<Texture2D*>(mOut1RT->getColorAttachmentTexture(2));
-	auto* depthTexture = static_cast<Texture2D*>(mOut1RT->getColorAttachmentTexture(3));
-	auto* depthTexture2 = static_cast<Texture2D*>(mOut1RT->getDepthAttachment()->texture.get());
+	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));
+	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
+	auto* motionTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(2));
+	auto* depthTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(3));
+	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
 
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
@@ -259,7 +266,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
 
 	// After sky we render transparent objects
-	mOut1RT->bind();
+	mOutRT->bind();
 	mPbrTechnique->useForward();
 	auto* forward = mPbrTechnique->getForward();
 	forward->configurePass(constants);
@@ -278,19 +285,32 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	if (true) {
 		
-		postProcessor->antialias(outputTexture, mOut1RT.get());
+		postProcessor->antialias(outputTexture, mOutRT.get());
 	}
 	else {
-		mOut1RT->bind();
+		mOutRT->bind();
 		postProcessor->getFXAA()->antialias(outputTexture, true);
 	}
 
+	if (true) {
+
+		
+
+		mPingPong->bind();
+		taa->antialias(currentOut, previousOut, mPbrMrt->getDepth(), camera);
+
+		mOutRT->enableDrawToColorAttachments(false);
+		mOutRT->enableDrawToColorAttachment(0, true);
+		mPingPong->blit(mOutRT.get(), { 0,0, mOutRT->getWidth(), mOutRT->getHeight() }, RenderComponent::Color);
+		mOutRT->enableDrawToColorAttachments(true);
+
+	}
 
 	if (out) {
-		mOut1RT->enableDrawToColorAttachments(false);
-		mOut1RT->enableDrawToColorAttachment(0, true);
-		mOut1RT->blit(out, { 0,0, mOut1RT->getWidth(), mOut1RT->getHeight() }, RenderComponent::Color);
-		mOut1RT->enableDrawToColorAttachments(true);
+		mOutRT->enableDrawToColorAttachments(false);
+		mOutRT->enableDrawToColorAttachment(0, true);
+		mOutRT->blit(out, { 0,0, mOutRT->getWidth(), mOutRT->getHeight() }, RenderComponent::Color);
+		mOutRT->enableDrawToColorAttachments(true);
 	}
 
 	
@@ -331,12 +351,15 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	// so first update the viewport and than recreate the render targets
 	mRenderBackend->resize(width, height);
 	mPbrMrt = mPbrTechnique->getDeferred()->createMultipleRenderTarget(width, height);
-	mOut1RT = createLightingTarget(width, height, mPbrMrt.get());
+	mOutRT = createLightingTarget(width, height, mPbrMrt.get());
+
+	auto outSwitchTexture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
+
+	mOutSwitcherTAA.setTextures(mOutRT->getColorAttachments()[0].texture,
+		outSwitchTexture, false);
+	mOutSwitcherTAA.setTarget(mOutRT.get(), true);
+
 	mPingPong = mRenderBackend->createRenderTarget();
-	
-	mOut2RT = mRenderBackend->createRenderTarget();
-	//mHalfResoultionRT = mRenderBackend->create2DRenderTarget(width / 2, height / 2);
-	
 	
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;
@@ -411,7 +434,7 @@ void nex::PBR_Deferred_Renderer::pushDepthFunc(std::function<void()> func)
 
 nex::RenderTarget* nex::PBR_Deferred_Renderer::getOutRendertTarget()
 {
-	return mOut1RT.get();
+	return mOutRT.get();
 }
 
 void nex::PBR_Deferred_Renderer::renderShadows(const nex::RenderCommandQueue::Buffer& shadowCommands, 
@@ -622,14 +645,14 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	// render scene to a offscreen buffer
-	mOut1RT->bind();
+	mOutRT->bind();
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
 
-	mOut1RT->enableDrawToColorAttachment(2, false); // we don't want to clear motion buffer
-	mOut1RT->enableDrawToColorAttachment(3, false); // we don't want to clear depth (for e.g. ambient occlusion)
-	mOut1RT->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
-	mOut1RT->enableDrawToColorAttachment(2, true);
-	mOut1RT->enableDrawToColorAttachment(3, true);
+	mOutRT->enableDrawToColorAttachment(2, false); // we don't want to clear motion buffer
+	mOutRT->enableDrawToColorAttachment(3, false); // we don't want to clear depth (for e.g. ambient occlusion)
+	mOutRT->clear(RenderComponent::Color);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+	mOutRT->enableDrawToColorAttachment(2, true);
+	mOutRT->enableDrawToColorAttachment(3, true);
 
 
 
@@ -657,7 +680,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 	if (globalIllumination)
 		globalIllumination->drawTest(camera.getProjectionMatrix(), camera.getView(), 
-			mOut1RT->getDepthAttachment()->texture.get());
+			mOutRT->getDepthAttachment()->texture.get());
 
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 	StaticMeshDrawer::draw(queue.getProbeCommands());
@@ -680,13 +703,13 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 
 	// update and render into cascades
-	mOut1RT->bind();
+	mOutRT->bind();
 
 
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
 	//renderer->beginScene();
 
-	mOut1RT->clear(RenderComponent::Depth); //RenderComponent::Color |
+	mOutRT->clear(RenderComponent::Depth); //RenderComponent::Color |
 
 
 	stencilTest->enableStencilTest(false);
@@ -695,14 +718,14 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	depthPass->bind();
 	depthPass->updateViewProjection(constants.camera->getProjectionMatrix(), constants.camera->getView());
 	StaticMeshDrawer::draw(queue.getShadowCommands(), depthPass);
-	renderShadows(queue.getShadowCommands(), constants, sun, (Texture2D*)mOut1RT->getDepthAttachment()->texture.get());
+	renderShadows(queue.getShadowCommands(), constants, sun, (Texture2D*)mOutRT->getDepthAttachment()->texture.get());
 
 
 	// render scene to a offscreen buffer
-	mOut1RT->bind();
+	mOutRT->bind();
 
 	mRenderBackend->setViewPort(0, 0, constants.windowWidth * ssaaSamples, constants.windowHeight * ssaaSamples);
-	mOut1RT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
+	mOutRT->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);//RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil
 
 
 	stencilTest->enableStencilTest(true);
@@ -783,6 +806,7 @@ std::unique_ptr<nex::RenderTarget> nex::PBR_Deferred_Renderer::createLightingTar
 	color.target = TextureTarget::TEXTURE2D;
 	color.type = RenderAttachmentType::COLOR;
 	color.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
+	result->addColorAttachment(std::move(color));
 
 	RenderAttachment luminance;
 	luminance.colorAttachIndex = 1;

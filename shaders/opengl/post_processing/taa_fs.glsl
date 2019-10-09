@@ -246,12 +246,12 @@ void main()
 
   //Initialise the velocity to account for the jitter
   // We ignore for now the velocity buffer TODO: reactivate!
-  /*vec2 vel = uvHISTORY - uvCURRENT;
+  vec2 vel = uvHISTORY - uvCURRENT;
   //Add on the vector that maps the fragment's current position to it's position last frame in unjittered space as it may be dynamic.
-  vel += texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg * pixelSize;
+  //vel += texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg * pixelSize;
   //The previous UV coords are therefore the current ones with this velocity tacked on.
   uvHISTORY = uvCURRENT + vel;
-  */
+  
 
   //Get previous frame colour
   vec4 colourHISTORY = texture(colourANTIALIASED, vec2(uvHISTORY));

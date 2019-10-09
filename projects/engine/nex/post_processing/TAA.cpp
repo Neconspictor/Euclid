@@ -42,8 +42,8 @@ public:
 
 		mState = RenderState::createNoDepthTest();
 
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMinFilter(TextureFilter::Linear);
+		mSampler.setMagFilter(TextureFilter::Linear);
 	}
 
 	const RenderState& getState() const {
@@ -117,11 +117,11 @@ private:
 nex::TAA::TAA() :
 mTaaPass(std::make_unique<TaaPass>(true)),
 mJitterCursor(0),
-mFeedback(0.5f),
+mFeedback(0.25f),
 mJitterMatrix(glm::mat4(1.0f))
 {
-	updateJitterVectors(glm::vec2(1.0f));
-	updateJitterMatrix();
+	//updateJitterVectors(glm::vec2(1.0f));
+	//updateJitterMatrix();
 }
 
 nex::TAA::~TAA() = default;
@@ -148,15 +148,15 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->bind();
 	glm::vec2 textureSize(source->getWidth(), source->getHeight());
 	glm::vec2 inverseSize = glm::vec2(1.0f) / textureSize;
-	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
-	mTaaPass->setInverseCurrentViewProjection(invViewProj);
-	mTaaPass->setViewProjectionHistory(camera.getProjectionMatrix() * camera.getViewPrev());
+	mTaaPass->setInverseCurrentViewProjection(inverse(camera.getViewProj()));
+	mTaaPass->setViewProjectionHistory(camera.getViewProjPrev());
 	mTaaPass->setSource(source);
 	mTaaPass->setDepth(depth);
 	mTaaPass->setSourceHistory(sourceHistory);
 	mTaaPass->setTextureSize(textureSize);
 	mTaaPass->setPixelSize(inverseSize);
-	mTaaPass->setJitter(glm::vec2(0.00f)); // We ignore the jitter for now TODO
+	//mTaaPass->setJitter(glm::vec2(0.00f)); // We ignore the jitter for now TODO
+	mTaaPass->setJitter(mJitterVector[mJitterCursor]);
 	mTaaPass->setFeedBack(mFeedback);
 
 	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
@@ -165,10 +165,10 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
 {
 	for (size_t i = 0; i < mJitterVector.size(); i++) {
-		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace * 0.9f;
+		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace *0.9f;
 	}
 
-	updateJitterMatrix();
+	//updateJitterMatrix();
 }
 
 const glm::mat4& nex::TAA::getJitterMatrix() const

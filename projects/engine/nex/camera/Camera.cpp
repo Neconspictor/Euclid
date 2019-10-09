@@ -231,6 +231,7 @@ namespace nex
 		mProjection = mJitter * mProjection;
 		mViewProjPrev = mViewProj;
 		mViewProj = mProjection * mView;
+		
 
 		calcFrustum();
 		calcFrustumWorld();

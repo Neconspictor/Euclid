@@ -9,6 +9,7 @@
 #include "TesselationTest.hpp"
 #include "Ocean.hpp"
 #include <nex/renderer/Renderer.hpp>
+#include <nex/texture/RenderTarget.hpp>
 
 namespace nex
 {
@@ -90,8 +91,8 @@ namespace nex
 		std::unique_ptr<RenderTarget> mDepthHalf;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 		std::unique_ptr<RenderTarget2D> mPingPongHalf;
-		std::unique_ptr<RenderTarget> mOut1RT;
-		std::unique_ptr<RenderTarget> mOut2RT;
+		std::unique_ptr<RenderTarget> mOutRT;
+		RenderTargetSwitcher mOutSwitcherTAA;
 
 		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;

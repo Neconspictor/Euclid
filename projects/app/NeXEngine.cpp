@@ -315,6 +315,11 @@ void NeXEngine::run()
 		if (isRunning())
 		{
 			mGui->newFrame(frameTime);
+
+			//update jitter for next frame
+			taa->advanceJitter();
+			mCamera->setJitter(taa->getJitterMatrix());
+
 			mCamera->update();
 			mControllerSM->frameUpdate(frameTime);
 
@@ -383,10 +388,6 @@ void NeXEngine::run()
 			
 			ImGui::Render();
 			mGui->renderDrawData(ImGui::GetDrawData());
-
-			//update jitter for next frame
-			taa->advanceJitter();
-			mCamera->setJitter(taa->getJitterMatrix());
 			
 			// present rendered frame
 			mWindow->swapBuffers();
