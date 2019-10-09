@@ -8,17 +8,15 @@ nex::RenderTargetSwitcher::RenderTargetSwitcher(RenderTarget* target, unsigned c
 	mColorAttachIndex(colorAttachIndex)
 {
 	mTextures.resize(2);
-	mTextures[0] = first;
-	mTextures[1] = second;
+	setTextures(std::move(first), std::move(second));
 }
 
-void nex::RenderTargetSwitcher::switchTexture()
+void nex::RenderTargetSwitcher::switchTexture(bool update)
 {
 	mActive = !mActive;
 
-	//update render target
-	mTarget->getColorAttachments()[mColorAttachIndex].texture = mTextures[mActive];
-	mTarget->updateColorAttachment(mColorAttachIndex);
+	if (update)
+		updateRenderTarget();
 }
 
 bool nex::RenderTargetSwitcher::getActive() const
@@ -31,7 +29,35 @@ const std::vector<std::shared_ptr<nex::Texture>>& nex::RenderTargetSwitcher::get
 	return mTextures;
 }
 
-void nex::RenderTargetSwitcher::setActive(bool active)
+void nex::RenderTargetSwitcher::setActive(bool active, bool update)
 {
 	mActive = active;
+
+	if (update)
+		updateRenderTarget();
+}
+
+void nex::RenderTargetSwitcher::setTarget(RenderTarget* target, bool update)
+{
+	mTarget = target;
+	if (update)
+		updateRenderTarget();
+}
+
+void nex::RenderTargetSwitcher::setTextures(std::shared_ptr<Texture> first, std::shared_ptr<Texture> second,
+	bool update)
+{
+	mTextures[0] = first;
+	mTextures[1] = second;
+
+	if (update)
+		updateRenderTarget();
+}
+
+void nex::RenderTargetSwitcher::updateRenderTarget()
+{
+	if (!mTarget) return;
+	if (!mTextures[mActive]) return;
+	mTarget->getColorAttachments()[mColorAttachIndex].texture = mTextures[mActive];
+	mTarget->updateColorAttachment(mColorAttachIndex);
 }

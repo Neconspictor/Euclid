@@ -193,12 +193,20 @@ namespace nex
 			std::shared_ptr<Texture> first,
 			std::shared_ptr<Texture> second);
 
-		void switchTexture();
+		void switchTexture(bool update = true);
 		bool getActive() const;
 		const std::vector<std::shared_ptr<Texture>>& getTextures() const;
-		void setActive(bool active);
+		void setActive(bool active, bool update = true);
+
+		void setTarget(RenderTarget* target, bool update = true);
+
+		void setTextures(std::shared_ptr<Texture> first,
+			std::shared_ptr<Texture> second, bool update = true);
+
+		void updateRenderTarget();
 
 	private:
+
 		RenderTarget* mTarget;
 		std::vector<std::shared_ptr<Texture>> mTextures;
 		bool mActive;
