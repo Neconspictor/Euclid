@@ -10,6 +10,8 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/camera/Camera.hpp>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 
 class nex::TAA::TaaPass : public Pass 
 {
@@ -89,6 +91,7 @@ public:
 
 	void setFeedBack(float value)
 	{
+		value = std::clamp<float>(value, 0.0f, 1.0f);
 		mShader->setFloat(mFeedback.location, value);
 	}
 
@@ -110,11 +113,33 @@ private:
 };
 
 nex::TAA::TAA() :
-mTaaPass(std::make_unique<TaaPass>(true))
+mTaaPass(std::make_unique<TaaPass>(true)),
+mJitterCursor(0),
+mFeedback(0.5f),
+mJitterMatrix(glm::mat4(1.0f))
 {
+	updateJitterVectors(glm::vec2(1.0f));
+	updateJitterMatrix();
 }
 
 nex::TAA::~TAA() = default;
+
+void nex::TAA::advanceJitter()
+{
+	advanceJitterCursor();
+	updateJitterMatrix();
+}
+
+void nex::TAA::advanceJitterCursor()
+{
+	mJitterCursor = (mJitterCursor + 1) % mJitterVector.size();
+}
+
+void nex::TAA::updateJitterMatrix()
+{
+	auto translation = glm::vec3(mJitterVector[mJitterCursor], 0.0f);
+	mJitterMatrix = glm::translate(mJitterMatrix, translation);
+}
 
 void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth, const Camera& camera)
 {
@@ -130,7 +155,29 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setTextureSize(textureSize);
 	mTaaPass->setPixelSize(inverseSize);
 	mTaaPass->setJitter(glm::vec2(0.00f)); // We ignore the jitter for now TODO
-	mTaaPass->setFeedBack(0.5f); // TODO : make it configurable
+	mTaaPass->setFeedBack(mFeedback);
 
 	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
+}
+
+void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
+{
+	for (size_t i = 0; i < mJitterVector.size(); i++) {
+		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace * 0.9f;
+	}
+}
+
+const glm::mat4& nex::TAA::getJitterMatrix() const
+{
+	return mJitterMatrix;
+}
+
+float nex::TAA::getFeedback() const
+{
+	return mFeedback;
+}
+
+void nex::TAA::setFeedback(float value)
+{
+	mFeedback = value;
 }
