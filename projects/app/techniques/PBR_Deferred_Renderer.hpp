@@ -47,7 +47,7 @@ namespace nex
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
 			bool postProcess,
-			RenderTarget* out) override;
+			RenderTarget* out = nullptr) override;
 
 		void setShowDepthMap(bool showDepthMap);
 		void setIrradianceAA(bool antialias);
@@ -76,7 +76,7 @@ namespace nex
 		void renderForward(const RenderCommandQueue& queue, const Pass::Constants& constants, const DirLight& sun);
 		void renderSky(const Pass::Constants& constants, const DirLight& sun);
 
-		std::unique_ptr<RenderTarget2D> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
+		std::unique_ptr<RenderTarget> createLightingTarget(unsigned width, unsigned height, const PBR_GBuffer* gBuffer);
 
 		// Allow the UI mode classes accessing private members
 
@@ -85,12 +85,13 @@ namespace nex
 
 		std::unique_ptr<PBR_GBuffer>  mPbrMrt;
 
-		std::unique_ptr<RenderTarget2D> mRenderTargetSingleSampled;
+		
 		std::unique_ptr<RenderTarget> mIrradianceAmbientReflectionRT[2];
 		std::unique_ptr<RenderTarget> mDepthHalf;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 		std::unique_ptr<RenderTarget2D> mPingPongHalf;
-		std::unique_ptr<RenderTarget2D> mOutRT;
+		std::unique_ptr<RenderTarget> mOut1RT;
+		std::unique_ptr<RenderTarget> mOut2RT;
 
 		std::unique_ptr<AtmosphericScattering> mAtmosphericScattering;
 		//DepthMap* shadowMap;

@@ -118,7 +118,7 @@ namespace nex
 		return mNormalizedViewSpaceZ;
 	}
 
-	const RenderAttachment& PBR_GBuffer::getNormalizedViewSpaceZRenderTarget() const
+	const RenderAttachment& PBR_GBuffer::getDepthRenderTarget() const
 	{
 		return getColorAttachments()[3];
 	}

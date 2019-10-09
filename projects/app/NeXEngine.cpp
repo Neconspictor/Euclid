@@ -36,6 +36,9 @@
 #include <nex/pbr/ProbeGenerator.hpp>
 #include <nex/pbr/Cluster.hpp>
 #include <nex/texture/Attachment.hpp>
+#include <nex/post_processing/PostProcessor.hpp>
+#include <nex/post_processing/TAA.hpp>
+#include <nex/EffectLibrary.hpp>
 
 using namespace nex;
 
@@ -270,6 +273,9 @@ void NeXEngine::run()
 
 	auto* backend = RenderBackend::get();
 	auto* screenSprite = backend->getScreenSprite();
+	auto* lib = backend->getEffectLibrary();
+	auto* postProcessor = lib->getPostProcessor();
+	auto* taa = postProcessor->getTAA();
 
 	while (mWindow->isOpen())
 	{
@@ -328,7 +334,6 @@ void NeXEngine::run()
 
 			
 			auto* screenRT = backend->getDefaultRenderTarget();
-			auto* tempRT = mRenderer->getOutRendertTarget();
 			Texture* texture = nullptr;
 			SpritePass* spritePass = nullptr;
 
@@ -336,6 +341,7 @@ void NeXEngine::run()
 
 				static auto* depthTest = RenderBackend::get()->getDepthBuffer();
 				depthTest->enableDepthBufferWriting(true);
+				auto* tempRT = mRenderer->getOutRendertTarget();
 
 				tempRT->bind();
 				backend->setViewPort(0, 0, mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight());
@@ -353,8 +359,7 @@ void NeXEngine::run()
 					mSun, 
 					mWindow->getFrameBufferWidth(), 
 					mWindow->getFrameBufferHeight(), 
-					true, 
-					tempRT);
+					true);
 
 				const auto& renderLayer = mRenderer->getRenderLayers()[mRenderer->getActiveRenderLayer()];
 				texture = renderLayer.textureProvider();
@@ -378,6 +383,10 @@ void NeXEngine::run()
 			
 			ImGui::Render();
 			mGui->renderDrawData(ImGui::GetDrawData());
+
+			//update jitter for next frame
+			taa->advanceJitter();
+			mCamera->setJitter(taa->getJitterMatrix());
 			
 			// present rendered frame
 			mWindow->swapBuffers();
@@ -655,6 +664,9 @@ void NeXEngine::setupCallbacks()
 		mRenderer->updateRenderTargets(width, height);
 		auto* depth = mRenderer->getGbuffer()->getDepthAttachment()->texture.get();
 		mProbeClusterView->setDepth(depth);
+
+		auto* taa = RenderBackend::get()->getEffectLibrary()->getPostProcessor()->getTAA();
+		taa->updateJitterVectors(glm::vec2(1.0f / (float) width, 1.0f / (float) height));
 	});
 }
 

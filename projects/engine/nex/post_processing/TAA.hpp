@@ -2,11 +2,14 @@
 
 #include <memory>
 #include <glm/glm.hpp>
+#include <vector>
 
 namespace nex
 {
 	class Texture;
 	class Camera;
+	class RenderTarget;
+
 
 	/**
 	 * Implements temporal supersampling anti-aliasing.
@@ -89,7 +92,8 @@ namespace nex
 		  glm::vec2(-0.625f, -0.703703703704f),
 		  glm::vec2(0.375f, -0.037037037037f),
 		  glm::vec2(-0.125f, 0.62962962963f),
-		  glm::vec2(0.875f, -0.481481481481f)
+		  glm::vec2(0.875f, -0.481481481481f),
+		  glm::vec2(0.0f, 0.0f),
 		};
 
 		std::array<glm::vec2, 16> mJitterVector;

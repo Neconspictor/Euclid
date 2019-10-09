@@ -11,6 +11,8 @@
 #include <nex/camera/Camera.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <nex/texture/Attachment.hpp>
+#include <nex/texture/RenderTarget.hpp>
 
 
 class nex::TAA::TaaPass : public Pass 
@@ -138,7 +140,7 @@ void nex::TAA::advanceJitterCursor()
 void nex::TAA::updateJitterMatrix()
 {
 	auto translation = glm::vec3(mJitterVector[mJitterCursor], 0.0f);
-	mJitterMatrix = glm::translate(mJitterMatrix, translation);
+	mJitterMatrix = glm::translate(glm::mat4(1.0f), translation);
 }
 
 void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth, const Camera& camera)
@@ -165,6 +167,8 @@ void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
 	for (size_t i = 0; i < mJitterVector.size(); i++) {
 		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace * 0.9f;
 	}
+
+	updateJitterMatrix();
 }
 
 const glm::mat4& nex::TAA::getJitterMatrix() const
