@@ -183,4 +183,25 @@ namespace nex
 		CubeDepthMap(int width, int height);
 		glm::mat4 matrices[6];
 	};
+
+
+	class RenderTargetSwitcher {
+	public:
+
+		RenderTargetSwitcher(RenderTarget* target,
+			unsigned colorAttachIndex,
+			std::shared_ptr<Texture> first,
+			std::shared_ptr<Texture> second);
+
+		void switchTexture();
+		bool getActive() const;
+		const std::vector<std::shared_ptr<Texture>>& getTextures() const;
+		void setActive(bool active);
+
+	private:
+		RenderTarget* mTarget;
+		std::vector<std::shared_ptr<Texture>> mTextures;
+		bool mActive;
+		unsigned mColorAttachIndex;
+	};
 }

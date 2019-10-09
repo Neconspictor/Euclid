@@ -36,7 +36,7 @@ namespace nex
 			unsigned viewportWidth, 
 			unsigned viewportHeight, 
 			bool postProcess,
-			RenderTarget* out) = 0;
+			RenderTarget* out = nullptr) = 0;
 
 		virtual void updateRenderTargets(unsigned width, unsigned height);
 

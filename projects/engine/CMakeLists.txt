@@ -260,6 +260,7 @@ set(
 	nex/texture/GBuffer.cpp
     nex/texture/Image.hpp
 	nex/texture/Image.cpp
+    nex/texture/RenderTarget.cpp
     nex/texture/RenderTarget.hpp
     nex/texture/Sampler.hpp
     nex/texture/Sprite.cpp
