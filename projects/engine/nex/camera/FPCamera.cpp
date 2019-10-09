@@ -130,8 +130,8 @@ void nex::FPCamera_ConfigurationView::drawSelf()
 	ImGui::DragFloat("fov", &fovY, 1.0f, -1000.0f, 1000.0f);
 	m_camera->setFovY(glm::radians(fovY));
 	ImGui::DragFloat("aspect ratio", &m_camera->mAspectRatio, 0.1f, 0.1f, 90.0f);
-	ImGui::DragFloat("near plane", &m_camera->mNearDistance, 0.01f, 0.01f, 10.0f);
-	ImGui::DragFloat("far plane", &m_camera->mFarDistance, 1.0f, 1.0f, 10000.0f);
+	ImGui::DragFloat("near plane", &m_camera->mDistanceNear, 0.01f, 0.01f, 10.0f);
+	ImGui::DragFloat("far plane", &m_camera->mDistanceFar, 1.0f, 1.0f, 10000.0f);
 	ImGui::DragFloat("speed", &m_camera->mCameraSpeed, 0.2f, 0.0f, 100.0f);
 
 	nex::gui::Vector3D(&m_camera->mCoordSystem.position, "Position");

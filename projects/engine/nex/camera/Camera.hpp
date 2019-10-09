@@ -129,9 +129,9 @@ namespace nex
 		const Frustum& getFrustumWorld() const;
 
 		/**
-		 * Provides the speed of the camera.
+		 * Jitter matrix for the current frame.
 		 */
-		float getSpeed() const;
+		const glm::mat4& getJitter() const;
 
 		/**
 		 * Provides the current look direction of the camera.
@@ -144,12 +144,18 @@ namespace nex
 		float getNearDistance() const;
 
 		/**
+		 * Provides the near and far plane in viewspace
+		 */
+		glm::vec2 getNearFarPlaneViewSpace() const;
+
+		/**
 		 * Provides the position of the camera.
 		 */
 		const glm::vec3& getPosition() const;
 
 		/**
-		 * Provides the perspective projection matrix of the camera.
+		 * Provides the projection matrix of the camera.
+		 * If a jitter matrix is active, the projection matrix will be jittered.
 		 */
 		const glm::mat4& getProjectionMatrix() const;
 
@@ -158,6 +164,11 @@ namespace nex
 		 * right = cross(look, up)
 		 */
 		const glm::vec3& getRight() const;
+
+		/**
+		 * Provides the speed of the camera.
+		 */
+		float getSpeed() const;
 
 		/**
 		 * Provides the target position of the camera.
@@ -177,12 +188,17 @@ namespace nex
 		/**
 		 * Provides the previous view matrix.
 		 */
-		const glm::mat4& getPrevView() const;
+		const glm::mat4& getViewPrev() const;
 
 		/**
-		 * Provides the near and far plane in viewspace 
+		 * Jittered view-projection matrix for the current frame.
 		 */
-		glm::vec2 getNearFarPlaneViewSpace() const;
+		const glm::mat4& getViewProj() const;
+
+		/**
+		 * Jittered view-projection matrix for the previous frame.
+		 */
+		const glm::mat4& getViewProjPrev() const;
 
 		/**
 		 * Calculate viewspace z from a distance to camera
@@ -209,6 +225,11 @@ namespace nex
 		 * NOTE: Has to be a vector that isn't a null vector. So it's length has to be > 0
 		*/
 		virtual void setLook(glm::vec3 look);
+
+		/**
+		 * Sets the jitter matrix for the current frame.
+		 */
+		void setJitter(const glm::mat4& mat);
 
 		/**
 		 * Sets the position of the camera.
@@ -267,18 +288,22 @@ namespace nex
 		 */
 		void calcView();
 
+		float mCameraSpeed;
 		PULCoordinateSystem mCoordSystem;
+		float mDistanceFar;
+		float mDistanceNear;
 		Frustum mFrustum;
 		Frustum mFrustumWorld;
+		glm::mat4 mJitter;
 		nex::Logger mLogger;
 		glm::mat4 mProjection;
-		glm::vec3 mTargetPosition;
 		glm::vec3 mRight;
+		glm::vec3 mTargetPosition;
 		glm::mat4 mView;
-		glm::mat4 mPrevView;
-		float mFarDistance;
-		float mNearDistance;
-		float mCameraSpeed;
+		glm::mat4 mViewPrev;
+		glm::mat4 mViewProj;
+		glm::mat4 mViewProjPrev;
+		
 	};
 
 	/**

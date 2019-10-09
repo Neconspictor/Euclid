@@ -642,7 +642,7 @@ void CascadedShadow::DepthPass::setCascadeShaderBuffer(ShaderStorageBuffer* buff
 
 void CascadedShadow::DepthPass::updateConstants(const Camera& camera)
 {
-	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
+	setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev());
 }
 
 CascadedShadow::CascadeDataPass::CascadeDataPass(unsigned numCascades) : ComputePass(), mNumCascades(numCascades)

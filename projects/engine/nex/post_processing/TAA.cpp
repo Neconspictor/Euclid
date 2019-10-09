@@ -123,7 +123,7 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	glm::vec2 inverseSize = glm::vec2(1.0f) / textureSize;
 	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
 	mTaaPass->setInverseCurrentViewProjection(invViewProj);
-	mTaaPass->setViewProjectionHistory(camera.getProjectionMatrix() * camera.getPrevView());
+	mTaaPass->setViewProjectionHistory(camera.getProjectionMatrix() * camera.getViewPrev());
 	mTaaPass->setSource(source);
 	mTaaPass->setDepth(depth);
 	mTaaPass->setSourceHistory(sourceHistory);

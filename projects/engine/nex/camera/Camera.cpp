@@ -16,7 +16,8 @@ namespace nex
 {
 	Camera::Camera(float nearDistance, float farDistance, PULCoordinateSystem coordinateSystem) :
 		mCoordSystem(std::move(coordinateSystem)), mLogger("Camera"), mTargetPosition(mCoordSystem.position),
-		mFarDistance(farDistance), mNearDistance(nearDistance), mCameraSpeed(5.0f)
+		mDistanceFar(farDistance), mDistanceNear(nearDistance), mCameraSpeed(5.0f),
+		mJitter(glm::mat4(1.0f))
 	{
 		mTargetPosition = mCoordSystem.position;
 	}
@@ -40,7 +41,7 @@ namespace nex
 
 	float Camera::getFarDistance() const
 	{
-		return mFarDistance;
+		return mDistanceFar;
 	}
 
 	const Frustum& Camera::getFrustum() const
@@ -51,6 +52,21 @@ namespace nex
 	const Frustum& Camera::getFrustumWorld() const
 	{
 		return mFrustumWorld;
+	}
+
+	const glm::mat4& Camera::getJitter() const
+	{
+		return mJitter;
+	}
+
+	const glm::mat4& Camera::getViewProj() const
+	{
+		return mViewProj;
+	}
+
+	const glm::mat4& Camera::getViewProjPrev() const
+	{
+		return mViewProjPrev;
 	}
 
 	float Camera::getSpeed() const
@@ -105,7 +121,7 @@ namespace nex
 
 	float Camera::getNearDistance() const
 	{
-		return mNearDistance;
+		return mDistanceNear;
 	}
 
 	const glm::vec3& Camera::getRight() const
@@ -128,14 +144,14 @@ namespace nex
 		return mView;
 	}
 
-	const glm::mat4& Camera::getPrevView() const
+	const glm::mat4& Camera::getViewPrev() const
 	{
-		return mPrevView;
+		return mViewPrev;
 	}
 
 	glm::vec2 Camera::getNearFarPlaneViewSpace() const
 	{
-		return {getViewSpaceZfromDistance(mNearDistance), getViewSpaceZfromDistance(mFarDistance)};
+		return {getViewSpaceZfromDistance(mDistanceNear), getViewSpaceZfromDistance(mDistanceFar)};
 	}
 
 	float Camera::getViewSpaceZfromDistance(float distance)
@@ -153,12 +169,12 @@ namespace nex
 
 	void Camera::setNearDistance(float nearDistance)
 	{
-		mNearDistance = nearDistance;
+		mDistanceNear = nearDistance;
 	}
 
 	void Camera::setFarDistance(float farDistance)
 	{
-		mFarDistance = farDistance;
+		mDistanceFar = farDistance;
 	}
 
 	void Camera::setLook(glm::vec3 look)
@@ -166,6 +182,11 @@ namespace nex
 		assertValidVector(look);
 
 		mCoordSystem.look = std::move(look);
+	}
+
+	void Camera::setJitter(const glm::mat4& mat)
+	{
+		mJitter = mat;		
 	}
 
 	void Camera::setPosition(glm::vec3 position, bool updateTargetPosition)
@@ -205,16 +226,22 @@ namespace nex
 			mRight = normalize(cross(mCoordSystem.up, mCoordSystem.look));
 		calcView();
 		calcProjection();
+
+		// Apply jitter
+		mProjection = mJitter * mProjection;
+		mViewProjPrev = mViewProj;
+		mViewProj = mProjection * mView;
+
 		calcFrustum();
 		calcFrustumWorld();
 	}
 
 	void Camera::setView(const glm::mat4 & view, bool resetPrev)
 	{
-		mPrevView = mView;
+		mViewPrev = mView;
 		mView = view;
 		if (resetPrev) {
-			mPrevView = view;
+			mViewPrev = view;
 		}
 	}
 
@@ -230,7 +257,7 @@ namespace nex
 
 	void Camera::calcView()
 	{
-		mPrevView = mView;
+		mViewPrev = mView;
 		mView = glm::lookAt(
 			mCoordSystem.position,
 			mCoordSystem.position + mCoordSystem.look,
@@ -317,8 +344,8 @@ namespace nex
 
 	void PerspectiveCamera::calcFrustum()
 	{
-		const auto zNear = getViewSpaceZfromDistance(mNearDistance);
-		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
+		const auto zNear = getViewSpaceZfromDistance(mDistanceNear);
+		const auto zFar = getViewSpaceZfromDistance(mDistanceFar);
 
 
 		const float halfFovY = mFovY/2.0;
@@ -341,15 +368,15 @@ namespace nex
 		const auto halfWidthLeft = -halfWidthRight;
 
 
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * mNearDistance, halfHeightBottom * mNearDistance, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * mNearDistance, halfHeightTop * mNearDistance, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * mNearDistance, halfHeightBottom * mNearDistance, zNear);
-		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * mNearDistance, halfHeightTop * mNearDistance, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(halfWidthLeft * mDistanceNear, halfHeightBottom * mDistanceNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(halfWidthLeft * mDistanceNear, halfHeightTop * mDistanceNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightBottom] = glm::vec3(halfWidthRight * mDistanceNear, halfHeightBottom * mDistanceNear, zNear);
+		mFrustum.corners[(unsigned)FrustumCorners::NearRightTop] = glm::vec3(halfWidthRight * mDistanceNear, halfHeightTop * mDistanceNear, zNear);
 
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * mFarDistance, halfHeightBottom * mFarDistance, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * mFarDistance, halfHeightTop * mFarDistance, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * mFarDistance, halfHeightBottom * mFarDistance, zFar);
-		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * mFarDistance, halfHeightTop * mFarDistance, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftBottom] = glm::vec3(halfWidthLeft * mDistanceFar, halfHeightBottom * mDistanceFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarLeftTop] = glm::vec3(halfWidthLeft * mDistanceFar, halfHeightTop * mDistanceFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightBottom] = glm::vec3(halfWidthRight * mDistanceFar, halfHeightBottom * mDistanceFar, zFar);
+		mFrustum.corners[(unsigned)FrustumCorners::FarRightTop] = glm::vec3(halfWidthRight * mDistanceFar, halfHeightTop * mDistanceFar, zFar);
 
 
 		/**
@@ -463,7 +490,7 @@ namespace nex
 
 	void PerspectiveCamera::calcProjection()
 	{
-		mProjection = glm::perspective(mFovY, mAspectRatio, mNearDistance, mFarDistance);
+		mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
 	}
 
 	OrthographicCamera::OrthographicCamera(float width, float height, float nearDistance, float farDistance,
@@ -502,8 +529,8 @@ namespace nex
 
 	void OrthographicCamera::calcFrustum()
 	{
-		const auto zNear = getViewSpaceZfromDistance(mNearDistance);
-		const auto zFar = getViewSpaceZfromDistance(mFarDistance);
+		const auto zNear = getViewSpaceZfromDistance(mDistanceNear);
+		const auto zFar = getViewSpaceZfromDistance(mDistanceFar);
 
 		mFrustum.corners[(unsigned)FrustumCorners::NearLeftBottom] = glm::vec3(-mHalfWidth, -mHalfHeight, zNear);
 		mFrustum.corners[(unsigned)FrustumCorners::NearLeftTop] = glm::vec3(-mHalfWidth, mHalfHeight, zNear);
@@ -518,8 +545,8 @@ namespace nex
 
 		const float zOne = getViewSpaceZfromDistance(1.0f); // One as signed depth (for switching between left and right handed)
 
-		mFrustum.planes[(unsigned)FrustumPlane::Near] = { 0, 0, zOne, -mNearDistance };
-		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mFarDistance };
+		mFrustum.planes[(unsigned)FrustumPlane::Near] = { 0, 0, zOne, -mDistanceNear };
+		mFrustum.planes[(unsigned)FrustumPlane::Far] = { 0, 0, -zOne, mDistanceFar };
 
 		mFrustum.planes[(unsigned)FrustumPlane::Left] =   { 1.0f,  0,     0, mHalfWidth  };
 		mFrustum.planes[(unsigned)FrustumPlane::Right] =  { -1.0f, 0,     0, mHalfWidth  };
@@ -529,7 +556,7 @@ namespace nex
 
 	void OrthographicCamera::calcProjection()
 	{
-		mProjection = glm::orthoNO(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight, mNearDistance, mFarDistance);
+		mProjection = glm::orthoNO(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight, mDistanceNear, mDistanceFar);
 		//mProjection = glm::ortho(-mHalfWidth, mHalfWidth, -mHalfHeight, mHalfHeight);
 	}
 

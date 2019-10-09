@@ -23,7 +23,7 @@
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
 
-const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 512;
+const unsigned nex::GlobalIllumination::VOXEL_BASE_SIZE = 256;
 
 class nex::GlobalIllumination::ProbeBakePass : public PbrGeometryPass 
 {

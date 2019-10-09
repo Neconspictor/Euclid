@@ -467,7 +467,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
+		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev());
 		technique->getActiveSubMeshPass()->updateConstants(constants);
 	}
 	StaticMeshDrawer::draw(queue.getDeferrablePbrCommands());
@@ -710,7 +710,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 	for (nex::Technique* technique : queue.getTechniques())
 	{
 		//technique->configureSubMeshPass(camera);
-		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getPrevView());
+		technique->getActiveSubMeshPass()->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getViewPrev());
 		technique->getActiveSubMeshPass()->updateConstants(constants);
 	}
 
@@ -734,7 +734,7 @@ void nex::PBR_Deferred_Renderer::renderSky(const Pass::Constants& constants, con
 	mAtmosphericScattering->setViewport(constants.windowWidth, constants.windowHeight);
 
 	const auto& view = camera.getView();
-	const auto& prevView = camera.getPrevView();
+	const auto& prevView = camera.getViewPrev();
 	const auto& proj = camera.getProjectionMatrix();
 	const auto prevViewProj = proj * prevView;
 	const auto viewProjInverse = inverse(proj*view);
