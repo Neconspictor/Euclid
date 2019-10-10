@@ -366,7 +366,8 @@ mCleanActiveClusterList(std::make_unique<ShaderStorageBuffer>(2,
 		nullptr,
 		GpuBuffer::UsageHint::DYNAMIC_COPY)),
 mCullLightsPass(std::make_unique<CullLightsPass>()),
-mEnvLightCuller(16,8,4,6)
+mEnvLightCuller(16,8,4,6),
+mCamera(1920.0f, 1080.0f)
 {
 	mMaterial->setColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.3f));
 
@@ -715,6 +716,8 @@ void nex::gui::ProbeClusterView::drawSelf()
 	auto look = camera.getLook();
 	auto up = camera.getUp();
 
+	camera.setDimension(mActiveCamera->getWidth(), mActiveCamera->getHeight());
+
 	
 	if (ImGui::DragFloat3("Start position", (float*)& position)) {
 		camera.setPosition(position, true);
@@ -732,10 +735,6 @@ void nex::gui::ProbeClusterView::drawSelf()
 		camera.setFovY(glm::radians(fovY));
 	}
 
-	if (ImGui::DragFloat("Aspect ratio", &aspect)) {
-		camera.setAspectRatio(aspect);
-	}
-
 	if (ImGui::DragFloat("Near plane", &zNear, 0.1f, 0.0f, FLT_MAX)) {
 		camera.setNearDistance(zNear);
 	}
@@ -747,7 +746,6 @@ void nex::gui::ProbeClusterView::drawSelf()
 	if (ImGui::Button("Align to active camera")) {
 		camera.setPosition(mActiveCamera->getPosition(), true);
 		camera.setFovY(mActiveCamera->getFovY());
-		camera.setAspectRatio(mActiveCamera->getAspectRatio());
 		camera.setNearDistance(mActiveCamera->getNearDistance());
 		camera.setFarDistance(mActiveCamera->getFarDistance());
 		camera.setLook(mActiveCamera->getLook());

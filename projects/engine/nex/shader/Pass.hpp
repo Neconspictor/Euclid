@@ -96,7 +96,7 @@ namespace nex
 		/**
 		 * Sets the projection matrix, the current view matrix and the previous view matrix (from the last frame)
 		 */
-		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView);
+		void setViewProjectionMatrices(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& prevView, const glm::mat4& prevViewProj);
 
 		/**
 		 * Note: setViewProjectionMatrices and setModelMatrix have to be called before calling this function!
@@ -110,6 +110,7 @@ namespace nex
 		Transforms mTransforms;
 		glm::mat4 mPrevModel;
 		glm::mat4 mPrevView;
+		glm::mat4 mPrevViewProjection;
 
 	};
 

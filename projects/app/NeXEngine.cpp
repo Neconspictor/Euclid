@@ -108,7 +108,7 @@ void NeXEngine::init()
 
 
 	mInput = mWindow->getInputDevice();
-	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getFrameBufferWidth() / (float) mWindow->getFrameBufferHeight()));
+	mCamera = std::make_unique<FPCamera>(FPCamera(mWindow->getFrameBufferWidth(), mWindow->getFrameBufferHeight()));
 	mBaseTitle = mWindow->getTitle();
 
 
@@ -319,9 +319,9 @@ void NeXEngine::run()
 			//update jitter for next frame
 			taa->advanceJitter();
 			mCamera->setJitter(taa->getJitterMatrix());
-
-			mCamera->update();
+			mCamera->setJitterVec(taa->getJitterVec());
 			mControllerSM->frameUpdate(frameTime);
+			mCamera->update();
 
 			static float simulationTime = 0.0f;
 			simulationTime += frameTime;
@@ -660,7 +660,7 @@ void NeXEngine::setupCallbacks()
 			return;
 		}
 
-		mCamera->setAspectRatio(width / (float)height);
+		mCamera->setDimension(width, height);
 
 		mRenderer->updateRenderTargets(width, height);
 		auto* depth = mRenderer->getGbuffer()->getDepthAttachment()->texture.get();
@@ -794,7 +794,7 @@ void NeXEngine::setupCamera()
 
 	mCamera->setLook(normalize(look));
 	mCamera->setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-	mCamera->setAspectRatio(windowWidth / (float)windowHeight);
+	mCamera->setDimension(windowWidth, windowHeight);
 
 
 	mCamera->setNearDistance(0.1f);

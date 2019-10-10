@@ -30,6 +30,7 @@ uniform vec2 windowSize;
 uniform vec2 pixelSize;
 //Jitter so that we can unjitter the incoming rendered textures.
 uniform vec2 jitter;
+//uniform vec2 jitterHISTORY;
 //How much of each frame we are keeping, this is controlled by the user.
 uniform float feedback;
 
@@ -53,7 +54,7 @@ bool clipped = false;
 /// @param _inRGB The RGB input
 vec3 YCoCg(vec3 _inRGB)
 {
- return _inRGB;
+  return _inRGB;
   return YCoCGMatrix * _inRGB;
 }
 
@@ -228,15 +229,16 @@ vec2 frontMostNeigbourCoord(vec2 _coord)
 void main()
 {
   //Find the 'UV' coordinates of the current fragment.
-  vec2 uvCURRENT = gl_FragCoord.xy / windowSize;
+  vec2 uvCURRENT = fs_in.texCoord; //gl_FragCoord.xy / windowSize;
 
   //Get current frame data
   vec4 colourCURRENT = texture(colourRENDER, uvCURRENT - jitter);
+  //colourCURRENT = texture(colourRENDER, uvCURRENT + jitter);
   float depthCURRENT = texture(depthRENDER, uvCURRENT - jitter).r;
 
   //Convert current screenspace to world space
   float z = depthCURRENT * 2.0 - 1.0;
-  vec4 CVVPosCURRENT = vec4((uvCURRENT) * 2.f - 1.f, z, 1.f);
+  vec4 CVVPosCURRENT = vec4((uvCURRENT - jitter) * 2.f - 1.f, z, 1.f);
   vec4 worldSpacePosition = inverseViewProjectionCURRENT * CVVPosCURRENT;
   worldSpacePosition /= worldSpacePosition.w;
 
@@ -246,11 +248,11 @@ void main()
 
   //Initialise the velocity to account for the jitter
   // We ignore for now the velocity buffer TODO: reactivate!
-  vec2 vel = uvHISTORY - uvCURRENT;
+  vec2 vel = uvCURRENT - uvHISTORY; //uvCURRENT - uvHISTORY;
   //Add on the vector that maps the fragment's current position to it's position last frame in unjittered space as it may be dynamic.
-  //vel += texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg * pixelSize;
+  vel = texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg;
   //The previous UV coords are therefore the current ones with this velocity tacked on.
-  uvHISTORY = uvCURRENT + vel;
+  uvHISTORY += vel;
   
 
   //Get previous frame colour
@@ -269,7 +271,11 @@ void main()
   //Now we have our two colour values, lerp between them based on the feedback factor.
   fragColor.rgb = mix(colourHISTORYCLIPPEDBLEND, colourCURRENT.rgb, feedback);
   
-  //fragColor = colourHISTORY;
+  //fragColor = (texture(colourRENDER, uvCURRENT - jitter) + texture(colourANTIALIASED, uvHISTORY - jitter)) / 2.0;
+  
+  //fragColor = texture(colourRENDER, uvCURRENT - jitter);//colourCURRENT;
+  //fragColor = vec4(colourHISTORYCLIPPEDBLEND, 1.0);
+  
 }
 
 

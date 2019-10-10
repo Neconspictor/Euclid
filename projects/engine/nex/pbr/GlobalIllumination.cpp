@@ -63,7 +63,7 @@ public:
 		setEyeLightDirection(glm::vec3(lightEyeDirection));
 
 		setInverseViewMatrix(inverse(view));
-		setViewProjectionMatrices(projection, view, view);
+		setViewProjectionMatrices(projection, view, view, projection * view);
 	}
 
 private:
@@ -1132,7 +1132,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 			RenderState defaultState;
 
-			mIrradianceDepthPass->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getView());
+			mIrradianceDepthPass->setViewProjectionMatrices(camera.getProjectionMatrix(), camera.getView(), camera.getView(), camera.getProjectionMatrix() * camera.getView());
 
 			for (auto* commandQueue : collection) {
 				for (const auto& command : *commandQueue)

@@ -300,7 +300,7 @@ PbrForwardPass::PbrForwardPass(const ShaderFilePath& vertexShader, const ShaderF
 void PbrForwardPass::updateConstants(const Pass::Constants& constants)
 {
 	bind();
-	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev());
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
 
 	mGeometryData.updateConstants(constants);
 	mLightingPass.updateConstants(constants);
@@ -428,7 +428,7 @@ PbrDeferredGeometryPass::PbrDeferredGeometryPass(std::unique_ptr<Shader> shader)
 void PbrDeferredGeometryPass::updateConstants(const Pass::Constants& constants)
 {
 	bind();
-	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev());
+	setViewProjectionMatrices(constants.camera->getProjectionMatrix(), constants.camera->getView(), constants.camera->getViewPrev(), constants.camera->getViewProjPrev());
 	mGeometryData.updateConstants(constants);
 }
 

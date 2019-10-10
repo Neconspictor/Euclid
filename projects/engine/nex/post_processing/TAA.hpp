@@ -36,7 +36,7 @@ namespace nex
 		/**
 		 * Renders an antialiased version of the specified source texture into the currently bound render target (color attachment 0).
 		 */
-		void antialias(Texture* source, Texture* sourceHistory, Texture* depth, const Camera& camera);
+		void antialias(Texture* source, Texture* sourceHistory, Texture* depth, Texture* velocity, const Camera& camera);
 
 		/**
 		 * Provides the current feedback value.
@@ -47,6 +47,8 @@ namespace nex
 		 * Provides the current jitter matrix.
 		 */
 		const glm::mat4& getJitterMatrix() const;
+
+		const glm::vec2& getJitterVec() const;
 
 		/**
 		 * Sets the feedback.
@@ -99,6 +101,7 @@ namespace nex
 		std::array<glm::vec2, 16> mJitterVector;
 		glm::mat4 mJitterMatrix;
 		unsigned mJitterCursor;
+		unsigned mJitterCursorPrev;
 		float mFeedback;
 	};
 }

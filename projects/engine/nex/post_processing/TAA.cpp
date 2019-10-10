@@ -38,6 +38,7 @@ public:
 		mTextureSize = { mShader->getUniformLocation("windowSize"), UniformType::VEC2 };
 		mPixelSize = { mShader->getUniformLocation("pixelSize"), UniformType::VEC2 };
 		mJitter = { mShader->getUniformLocation("jitter"), UniformType::VEC2 };
+		mJitterPrev = { mShader->getUniformLocation("jitterHISTORY"), UniformType::VEC2 };
 		mFeedback = { mShader->getUniformLocation("feedback"), UniformType::FLOAT };
 
 		mState = RenderState::createNoDepthTest();
@@ -91,6 +92,11 @@ public:
 		mShader->setVec2(mJitter.location, vec);
 	}
 
+	void setJitterPrev(const glm::vec2& vec)
+	{
+		mShader->setVec2(mJitterPrev.location, vec);
+	}
+
 	void setFeedBack(float value)
 	{
 		value = std::clamp<float>(value, 0.0f, 1.0f);
@@ -109,6 +115,7 @@ private:
 	Uniform mTextureSize;
 	Uniform mPixelSize;
 	Uniform mJitter;
+	Uniform mJitterPrev;
 	Uniform mFeedback;
 
 	RenderState mState;
@@ -117,6 +124,7 @@ private:
 nex::TAA::TAA() :
 mTaaPass(std::make_unique<TaaPass>(true)),
 mJitterCursor(0),
+mJitterCursorPrev(mJitterVector.size()-1),
 mFeedback(0.25f),
 mJitterMatrix(glm::mat4(1.0f))
 {
@@ -134,16 +142,17 @@ void nex::TAA::advanceJitter()
 
 void nex::TAA::advanceJitterCursor()
 {
+	mJitterCursorPrev = mJitterCursor;
 	mJitterCursor = (mJitterCursor + 1) % mJitterVector.size();
 }
 
 void nex::TAA::updateJitterMatrix()
 {
 	auto translation = glm::vec3(mJitterVector[mJitterCursor], 0.0f);
-	mJitterMatrix = glm::translate(glm::mat4(1.0f), translation);
+	mJitterMatrix = glm::translate(glm::mat4(1.0f), translation); //glm::mat4(1.0f)
 }
 
-void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth, const Camera& camera)
+void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth, Texture* velocity, const Camera& camera)
 {
 	mTaaPass->bind();
 	glm::vec2 textureSize(source->getWidth(), source->getHeight());
@@ -153,10 +162,12 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setSource(source);
 	mTaaPass->setDepth(depth);
 	mTaaPass->setSourceHistory(sourceHistory);
+	mTaaPass->setVelocity(velocity);
 	mTaaPass->setTextureSize(textureSize);
 	mTaaPass->setPixelSize(inverseSize);
 	//mTaaPass->setJitter(glm::vec2(0.00f)); // We ignore the jitter for now TODO
-	mTaaPass->setJitter(mJitterVector[mJitterCursor]);
+	mTaaPass->setJitter(0.5f * mJitterVector[mJitterCursor]);
+	//mTaaPass->setJitterPrev(mJitterVector[mJitterCursorPrev]);
 	mTaaPass->setFeedBack(mFeedback);
 
 	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
@@ -165,7 +176,7 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
 {
 	for (size_t i = 0; i < mJitterVector.size(); i++) {
-		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace *0.9f;
+		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace;
 	}
 
 	//updateJitterMatrix();
@@ -174,6 +185,11 @@ void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
 const glm::mat4& nex::TAA::getJitterMatrix() const
 {
 	return mJitterMatrix;
+}
+
+const glm::vec2& nex::TAA::getJitterVec() const
+{
+	return mJitterVector[mJitterCursor];
 }
 
 float nex::TAA::getFeedback() const

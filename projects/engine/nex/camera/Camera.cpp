@@ -14,15 +14,20 @@
 
 namespace nex
 {
-	Camera::Camera(float nearDistance, float farDistance, PULCoordinateSystem coordinateSystem) :
+	Camera::Camera(float width,
+		float height, float nearDistance, float farDistance, PULCoordinateSystem coordinateSystem) :
 		mCoordSystem(std::move(coordinateSystem)), mLogger("Camera"), mTargetPosition(mCoordSystem.position),
 		mDistanceFar(farDistance), mDistanceNear(nearDistance), mCameraSpeed(5.0f),
-		mJitter(glm::mat4(1.0f))
+		mJitter(glm::mat4(1.0f)),
+		mWidth(width),
+		mHeight(height),
+		mJitterVec(0,0)
 	{
 		mTargetPosition = mCoordSystem.position;
 	}
 
-	Camera::Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera()
+	Camera::Camera(float width,
+		float height, glm::vec3 position, glm::vec3 look, glm::vec3 up) : Camera(width, height)
 	{
 		mCoordSystem.position = std::move(position);
 		mTargetPosition = mCoordSystem.position;
@@ -67,6 +72,16 @@ namespace nex
 	const glm::mat4& Camera::getViewProjPrev() const
 	{
 		return mViewProjPrev;
+	}
+
+	float Camera::getHeight() const
+	{
+		return mHeight;
+	}
+
+	float Camera::getWidth() const
+	{
+		return mWidth;
 	}
 
 	float Camera::getSpeed() const
@@ -167,6 +182,12 @@ namespace nex
 		mCoordSystem.look = normalize(location - mCoordSystem.position);
 	}
 
+	void Camera::setDimension(float width, float height)
+	{
+		mWidth = width;
+		mHeight = height;
+	}
+
 	void Camera::setNearDistance(float nearDistance)
 	{
 		mDistanceNear = nearDistance;
@@ -187,6 +208,11 @@ namespace nex
 	void Camera::setJitter(const glm::mat4& mat)
 	{
 		mJitter = mat;		
+	}
+
+	void Camera::setJitterVec(const glm::vec2& jitter)
+	{
+		mJitterVec = jitter;
 	}
 
 	void Camera::setPosition(glm::vec3 position, bool updateTargetPosition)
@@ -228,7 +254,13 @@ namespace nex
 		calcProjection();
 
 		// Apply jitter
-		mProjection = mJitter * mProjection;
+		//mProjection = mJitter * mProjection;
+		//mProjection[2][0] = -mJitter[3][0];
+		//mProjection[2][1] = -mJitter[3][1];
+
+		//mProjection[0][2] = -mJitter[0][3];
+		//mProjection[1][2] = -mJitter[1][3];
+
 		mViewProjPrev = mViewProj;
 		mViewProj = mProjection * mView;
 		
@@ -266,9 +298,9 @@ namespace nex
 		);
 	}
 
-	PerspectiveCamera::PerspectiveCamera(float aspectRatio, float fovY, float nearDistance, float farDistance,
-		PULCoordinateSystem coordinateSystem) : Camera(nearDistance, farDistance, std::move(coordinateSystem)), 
-		mAspectRatio(aspectRatio),
+	PerspectiveCamera::PerspectiveCamera(float width, float height, float fovY, float nearDistance, float farDistance,
+		PULCoordinateSystem coordinateSystem) : Camera(width, height, nearDistance, farDistance, std::move(coordinateSystem)),
+		mAspectRatio(width / height),
 		mFovY(fovY),
 		mZoomEnabled(true)
 	{
@@ -330,9 +362,10 @@ namespace nex
 		return mFovY;
 	}
 
-	void PerspectiveCamera::setAspectRatio(float ratio)
+	void PerspectiveCamera::setDimension(float width, float height)
 	{
-		mAspectRatio = ratio;
+		Camera::setDimension(width, height);
+		mAspectRatio = width / height;
 	}
 
 	void PerspectiveCamera::setFovY(float fovY)
@@ -491,11 +524,57 @@ namespace nex
 
 	void PerspectiveCamera::calcProjection()
 	{
-		mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
+		//mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
+		mProjection = __getProjectionMatrix(mJitterVec.x, mJitterVec.y);
+	}
+
+	glm::mat4 PerspectiveCamera::getPerspectiveProjection(float left, float right, float bottom, float top, float nearPlane, float farPlane)
+	{
+		float x = (2.0f * nearPlane) / (right - left);
+		float y = (2.0f * nearPlane) / (top - bottom);
+		float a = (right + left) / (right - left);
+		float b = (top + bottom) / (top - bottom);
+		float c = -(farPlane + nearPlane) / (farPlane - nearPlane);
+		float d = -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane);
+		float e = -1.0f;
+
+		glm::mat4 m;
+		m[0][0] = x; m[1][0] = 0; m[2][0] = a; m[3][0] = 0;
+		m[0][1] = 0; m[1][1] = y; m[2][1] = b; m[3][1] = 0;
+		m[0][2] = 0; m[1][2] = 0; m[2][2] = c; m[3][2] = d;
+		m[0][3] = 0; m[1][3] = 0; m[2][3] = e; m[3][3] = 0;
+		return m;
+	}
+
+	glm::vec4 PerspectiveCamera::getProjectionExtents(float texelOffsetX, float texelOffsetY)
+	{
+		
+		float oneExtentY = std::tanf(0.5f * mFovY);
+		float oneExtentX = oneExtentY * mAspectRatio;
+		float texelSizeX = oneExtentX / (0.5f * mWidth);
+		float texelSizeY = oneExtentY / (0.5f * mHeight);
+		float oneJitterX = texelSizeX * texelOffsetX;
+		float oneJitterY = texelSizeY * texelOffsetY;
+
+		return glm::vec4(oneExtentX, oneExtentY, oneJitterX, oneJitterY);// xy = frustum extents at distance 1, zw = jitter at distance 1
+	}
+
+	glm::mat4 PerspectiveCamera::__getProjectionMatrix(float texelOffsetX, float texelOffsetY)
+	{
+		auto extents = getProjectionExtents(texelOffsetX, texelOffsetY);
+
+		float cf = mDistanceFar;
+		float cn = mDistanceNear;
+		float xm = extents.z - extents.x;
+		float xp = extents.z + extents.x;
+		float ym = extents.w - extents.y;
+		float yp = extents.w + extents.y;
+
+		return getPerspectiveProjection(xm * cn, xp * cn, ym * cn, yp * cn, cn, cf);
 	}
 
 	OrthographicCamera::OrthographicCamera(float width, float height, float nearDistance, float farDistance,
-		PULCoordinateSystem coordSystem) : Camera(nearDistance, farDistance, std::move(coordSystem)),
+		PULCoordinateSystem coordSystem) : Camera(width, height, nearDistance, farDistance, std::move(coordSystem)),
 	mHalfHeight(height / 2.0f), mHalfWidth(width / 2.0f)
 	{
 		assert(mHalfHeight != 0.0f);
@@ -508,23 +587,10 @@ namespace nex
 		return Frustum();
 	}
 
-	float OrthographicCamera::getHeight() const
+	void OrthographicCamera::setDimension(float width, float height)
 	{
-		return 2.0f * mHalfHeight;
-	}
-
-	float OrthographicCamera::getWidth() const
-	{
-		return 2.0f * mHalfWidth;
-	}
-
-	void OrthographicCamera::setHeight(float height)
-	{
+		Camera::setDimension(width, height);
 		mHalfHeight = height / 2.0f;
-	}
-
-	void OrthographicCamera::setWidth(float width)
-	{
 		mHalfWidth = width / 2.0f;
 	}
 

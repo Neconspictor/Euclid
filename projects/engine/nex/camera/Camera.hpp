@@ -81,11 +81,17 @@ namespace nex
 	{
 
 	protected:
-		Camera(float nearDistance = 0.1f, // the distance to the near clipping plane
+		Camera(
+			float width,
+			float height,
+			float nearDistance = 0.1f, // the distance to the near clipping plane
 			float farDistance = 100.0f, // the distance to the far clipping plane
 			PULCoordinateSystem coordinateSystem = PULCoordinateSystem());
 
-		Camera(glm::vec3 position, glm::vec3 look, glm::vec3 up);
+		Camera(
+			float width,
+			float height,
+			glm::vec3 position, glm::vec3 look, glm::vec3 up);
 
 	public:
 		Camera(const Camera&) = default;
@@ -200,6 +206,9 @@ namespace nex
 		 */
 		const glm::mat4& getViewProjPrev() const;
 
+		float getHeight() const;
+		float getWidth() const;
+
 		/**
 		 * Calculate viewspace z from a distance to camera
 		 */
@@ -209,6 +218,8 @@ namespace nex
 		 * Orients the camera so that it looks to a given location.
 		 */
 		void lookAt(glm::vec3 location);
+
+		virtual void setDimension(float width, float height);
 
 		/**
 		 * Sets the distance to the near clipping plane.
@@ -230,6 +241,7 @@ namespace nex
 		 * Sets the jitter matrix for the current frame.
 		 */
 		void setJitter(const glm::mat4& mat);
+		void setJitterVec(const glm::vec2& jitter);
 
 		/**
 		 * Sets the position of the camera.
@@ -303,6 +315,10 @@ namespace nex
 		glm::mat4 mViewPrev;
 		glm::mat4 mViewProj;
 		glm::mat4 mViewProjPrev;
+
+		float mWidth;
+		float mHeight;
+		glm::vec2 mJitterVec;
 		
 	};
 
@@ -312,7 +328,7 @@ namespace nex
 	class PerspectiveCamera : public Camera
 	{
 	public:
-		explicit PerspectiveCamera(float aspectRatio = 1920.0f / 1080.0f,
+		explicit PerspectiveCamera(float width, float height,
 			float fovY = glm::radians(45.0f), // the vertical field of view (in radians)
 			float nearDistance = 0.1f, // the distance to the near clipping plane
 			float farDistance = 100.0f, // the distance to the far clipping plane
@@ -343,7 +359,7 @@ namespace nex
 		 */
 		float getFovY() const;
 
-		void setAspectRatio(float ratio);
+		void setDimension(float width, float height) override;
 
 		/**
 		 * Sets the vertical field of view angle (measured in radians). 
@@ -355,6 +371,10 @@ namespace nex
 
 		void calcProjection() override;
 		void calcFrustum() override;
+
+		static glm::mat4 getPerspectiveProjection(float left, float right, float bottom, float top, float nearPlane, float farPlane);
+		glm::mat4 __getProjectionMatrix(float texelOffsetX, float texelOffsetY);
+		glm::vec4 getProjectionExtents(float texelOffsetX, float texelOffsetY);
 
 		float mAspectRatio;
 		float mFovY;
@@ -376,11 +396,7 @@ namespace nex
 			float zNearOffset, float zRange,
 			float xClusterElementSize, float yClusterElementSize) const override;
 
-		float getHeight() const;
-		float getWidth() const;
-
-		void setHeight(float height);
-		void setWidth(float width);
+		void setDimension(float width, float height) override;
 
 		protected:
 
