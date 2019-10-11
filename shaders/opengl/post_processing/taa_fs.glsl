@@ -226,57 +226,55 @@ vec2 frontMostNeigbourCoord(vec2 _coord)
   }
 }
 
+vec4 getWorldSpacePosition(in vec2 uv) 
+{
+    float depth = texture(depthRENDER, uv - jitter).r;
+    float z = depth * 2.0 - 1.0;
+    vec4 CVVPos = vec4((uv - jitter) * 2.f - 1.f, z, 1.f);
+    vec4 worldSpacePosition = inverseViewProjectionCURRENT * CVVPos;
+    return worldSpacePosition / worldSpacePosition.w;
+}
+
+vec2 getPreviousUV(in vec2 uvCurrent) 
+{
+    vec4 worldSpacePosition = getWorldSpacePosition(uvCurrent);
+    vec4 rp_cs_pos = viewProjectionHISTORY * worldSpacePosition;
+    vec2 rp_ss_ndc = rp_cs_pos.xy / rp_cs_pos.w;
+    return 0.5 * rp_ss_ndc + 0.5;
+}
+
+vec2 calcVelocity(in vec2 uvCurrent, in vec2 uvHistory) 
+{
+    vec2 vel = uvCurrent - uvHistory;
+    // We ignore for now the velocity buffer TODO: reactivate!
+    //vel = texture(velocityBUF, frontMostNeigbourCoord(uvCurrent - jitter)).rg;
+    return vel;
+}
+
 void main()
 {
   //Find the 'UV' coordinates of the current fragment.
   vec2 uvCURRENT = fs_in.texCoord; //gl_FragCoord.xy / windowSize;
-
-  //Get current frame data
-  vec4 colourCURRENT = texture(colourRENDER, uvCURRENT - jitter);
-  //colourCURRENT = texture(colourRENDER, uvCURRENT + jitter);
-  float depthCURRENT = texture(depthRENDER, uvCURRENT - jitter).r;
-
-  //Convert current screenspace to world space
-  float z = depthCURRENT * 2.0 - 1.0;
-  vec4 CVVPosCURRENT = vec4((uvCURRENT - jitter) * 2.f - 1.f, z, 1.f);
-  vec4 worldSpacePosition = inverseViewProjectionCURRENT * CVVPosCURRENT;
-  worldSpacePosition /= worldSpacePosition.w;
-
-  //Convert this into previous UV coords.
-  vec4 CVVPosHISTORY = viewProjectionHISTORY * worldSpacePosition;
-  vec2 uvHISTORY = 0.5 * (CVVPosHISTORY.xy / CVVPosHISTORY.w) + 0.5;
+  vec2 uvHISTORY = getPreviousUV(uvCURRENT);
 
   //Initialise the velocity to account for the jitter
-  // We ignore for now the velocity buffer TODO: reactivate!
-  vec2 vel = uvCURRENT - uvHISTORY; //uvCURRENT - uvHISTORY;
-  //Add on the vector that maps the fragment's current position to it's position last frame in unjittered space as it may be dynamic.
-  //vel = texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg;
-  //The previous UV coords are therefore the current ones with this velocity tacked on.
+  vec2 vel = calcVelocity(uvCURRENT, uvHISTORY);
   uvHISTORY += vel;
-  //uvHISTORY =  uvHISTORY;
-  
 
-  //Get previous frame colour
-  vec4 colourHISTORY = texture(colourANTIALIASED, vec2(uvHISTORY));
+  //Get current and previous color data
+  vec4 colorCURRENT = texture(colourRENDER, uvCURRENT - jitter);
+  vec4 colorHISTORY = texture(colourANTIALIASED, vec2(uvHISTORY));
 
   //Clip it
-  vec3 colourHISTORYCLIPPED = clipNeighbourhood(colourHISTORY.rgb, uvHISTORY);
+  vec3 colorHISTORYCLIPPED = clipNeighbourhood(colorHISTORY.rgb, uvHISTORY);
 
-  if (colourHISTORY.a == 0.f) {fragColor.a = float(clipped);} //If there's nothing, store the clipped flag (could still be nothing)
-  else {fragColor.a = mix(colourHISTORY.a, float(clipped), feedback);} //If there is something, blend the previous clipped value with the current one (using same feedback as rest of AA)
+  if (colorHISTORY.a == 0.f) {fragColor.a = float(clipped);} //If there's nothing, store the clipped flag (could still be nothing)
+  else {fragColor.a = mix(colorHISTORY.a, float(clipped), feedback);} //If there is something, blend the previous clipped value with the current one (using same feedback as rest of AA)
 
   //This just makes the next line easier to read
   float clipBlendFactor = fragColor.a;
   //Lerp based on recent clipping events
-  vec3 colourHISTORYCLIPPEDBLEND = mix(colourHISTORY.rgb, colourHISTORYCLIPPED, clamp(clipBlendFactor, 0.f, 1.f));
+  vec3 colorHISTORYCLIPPEDBLEND = mix(colorHISTORY.rgb, colorHISTORYCLIPPED, clamp(clipBlendFactor, 0.f, 1.f));
   //Now we have our two colour values, lerp between them based on the feedback factor.
-  fragColor.rgb = mix(colourHISTORYCLIPPEDBLEND, colourCURRENT.rgb, feedback);
-  
-  //fragColor = (texture(colourRENDER, uvCURRENT - jitter) + texture(colourANTIALIASED, uvHISTORY - jitter)) / 2.0;
-  
-  //fragColor = texture(colourRENDER, uvCURRENT - jitter);//colourCURRENT;
-  //fragColor = vec4(colourHISTORYCLIPPEDBLEND, 1.0);
-  
+  fragColor.rgb = mix(colorHISTORYCLIPPEDBLEND, colorCURRENT.rgb, feedback);
 }
-
-
