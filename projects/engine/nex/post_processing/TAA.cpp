@@ -40,6 +40,7 @@ public:
 		mJitter = { mShader->getUniformLocation("jitter"), UniformType::VEC2 };
 		mJitterPrev = { mShader->getUniformLocation("jitterHISTORY"), UniformType::VEC2 };
 		mFeedback = { mShader->getUniformLocation("feedback"), UniformType::FLOAT };
+		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
 
 		mState = RenderState::createNoDepthTest();
 
@@ -103,6 +104,11 @@ public:
 		mShader->setFloat(mFeedback.location, value);
 	}
 
+	void setClipInfo(const glm::vec4& info)
+	{
+		mShader->setVec4(mClipInfo.location, info);
+	}
+
 private:
 
 	Uniform mInverseFrameBufferSize;
@@ -117,6 +123,7 @@ private:
 	Uniform mJitter;
 	Uniform mJitterPrev;
 	Uniform mFeedback;
+	Uniform mClipInfo;
 
 	RenderState mState;
 };
@@ -193,6 +200,7 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setJitter(mJitterVector[mJitterCursor]);
 	//mTaaPass->setJitterPrev(mJitterVector[mJitterCursorPrev]);
 	mTaaPass->setFeedBack(mFeedback);
+	mTaaPass->setClipInfo(camera.getClipInfo());
 
 	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());
 }

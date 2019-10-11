@@ -120,6 +120,16 @@ namespace nex
 		virtual void frameUpdate(Input* input, float frameTime);
 
 		/**
+		 * Provides clipping info of the camera.
+		 * This information can be useful e.g. for retrieving view space z from depth.
+		 * x-component: farPlane * nearPlane
+		 * y-component: nearPlane - farPlane
+		 * z-component: farPlane
+		 * w-component: 1 if camera is perspective, otherwise 0.
+		 */
+		virtual glm::vec4 getClipInfo() const;
+
+		/**
 		 * Provides the distance to the far clipping plane.
 		 */
 		float getFarDistance() const;
@@ -348,6 +358,7 @@ namespace nex
 
 		void frameUpdate(Input* input, float frameTime) override;
 
+		glm::vec4 getClipInfo() const override;
 
 		/**
 		 * Provides the aspect ratio of the camera's canvas.

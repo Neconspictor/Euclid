@@ -8,24 +8,7 @@ layout(location=1, binding=0)  uniform sampler2D inputTexture;
 
 layout(location=0,index=0) out float out_Color;
 
-float reconstructCSZ(float d, vec4 clipInfo) {
-  if (clipInfo[3] != 0) {
-    return (clipInfo[0] / (clipInfo[1] * d + clipInfo[2]));
-  }
-  else {
-    return (clipInfo[1]+clipInfo[2] - d * clipInfo[1]);
-  }
-}
-/*
-    if (in_perspective == 1.0) // perspective
-    {
-        ze = (zNear * zFar) / (zFar - zb * (zFar - zNear)); 
-    }
-    else // orthographic proj 
-    {
-        ze  = zNear + zb  * (zFar - zNear);
-    }
-*/
+#include "util/util.glsl"
 
 
 /**
@@ -52,7 +35,7 @@ float getDepth2() {
 
 void main() {  
   float depth = getDepth2();  
-  out_Color = reconstructCSZ(depth, clipInfo);
+  out_Color = reconstructViewSpaceZ(depth, clipInfo);
 }
 
 /*-----------------------------------------------------------------------

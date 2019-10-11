@@ -44,6 +44,11 @@ namespace nex
 		mCoordSystem.position = glm::lerp<glm::vec3>(mCoordSystem.position, mTargetPosition, glm::vec3(alpha));
 	}
 
+	glm::vec4 Camera::getClipInfo() const
+	{
+		return glm::vec4(mDistanceFar * mDistanceNear, mDistanceFar - mDistanceNear, mDistanceFar, 0);
+	}
+
 	float Camera::getFarDistance() const
 	{
 		return mDistanceFar;
@@ -342,6 +347,13 @@ namespace nex
 		}
 
 		Camera::frameUpdate(input, frameTime);
+	}
+
+	glm::vec4 PerspectiveCamera::getClipInfo() const
+	{
+		glm::vec4 info = Camera::getClipInfo();
+		info.w = 1;
+		return info;
 	}
 
 	float PerspectiveCamera::getAspectRatio() const

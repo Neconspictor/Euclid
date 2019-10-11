@@ -33,9 +33,13 @@ uniform vec2 jitter;
 //uniform vec2 jitterHISTORY;
 //How much of each frame we are keeping, this is controlled by the user.
 uniform float feedback;
+uniform vec4 clipInfo;
 
-//There is only one output
+
 layout (location=0) out vec4 fragColor;
+
+
+#include "util/util.glsl"
 
 //From the vertex shader
 
@@ -226,18 +230,17 @@ vec2 frontMostNeigbourCoord(vec2 _coord)
   }
 }
 
-vec4 getWorldSpacePosition(in vec2 uv) 
+vec4 getWorldSpacePosition(in vec2 uv, float depth) 
 {
-    float depth = texture(depthRENDER, uv - jitter).r;
     float z = depth * 2.0 - 1.0;
     vec4 CVVPos = vec4((uv - jitter) * 2.f - 1.f, z, 1.f);
     vec4 worldSpacePosition = inverseViewProjectionCURRENT * CVVPos;
     return worldSpacePosition / worldSpacePosition.w;
 }
 
-vec2 getPreviousUV(in vec2 uvCurrent) 
+vec2 getPreviousUV(in vec2 uvCurrent, float depth) 
 {
-    vec4 worldSpacePosition = getWorldSpacePosition(uvCurrent);
+    vec4 worldSpacePosition = getWorldSpacePosition(uvCurrent, depth);
     vec4 rp_cs_pos = viewProjectionHISTORY * worldSpacePosition;
     vec2 rp_ss_ndc = rp_cs_pos.xy / rp_cs_pos.w;
     return 0.5 * rp_ss_ndc + 0.5;
@@ -253,13 +256,20 @@ vec2 calcVelocity(in vec2 uvCurrent, in vec2 uvHistory)
 
 void main()
 {
+   
+
   //Find the 'UV' coordinates of the current fragment.
   vec2 uvCURRENT = fs_in.texCoord; //gl_FragCoord.xy / windowSize;
-  vec2 uvHISTORY = getPreviousUV(uvCURRENT);
+  float depth = texture(depthRENDER, uvCURRENT - jitter).r;
+  
+  vec2 uvHISTORY = getPreviousUV(uvCURRENT, depth);
 
   //Initialise the velocity to account for the jitter
   vec2 vel = calcVelocity(uvCURRENT, uvHISTORY);
   uvHISTORY += vel;
+  
+  
+  float viewZ = reconstructViewSpaceZ(depth, clipInfo);
 
   //Get current and previous color data
   vec4 colorCURRENT = texture(colourRENDER, uvCURRENT - jitter);
