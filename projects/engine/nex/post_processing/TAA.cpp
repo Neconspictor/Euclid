@@ -143,7 +143,31 @@ void nex::TAA::advanceJitter()
 void nex::TAA::advanceJitterCursor()
 {
 	mJitterCursorPrev = mJitterCursor;
-	mJitterCursor = (mJitterCursor + 1) % mJitterVector.size();
+	mJitterCursor = (mJitterCursor + 1) % points_Halton_2_3_x16.size();
+}
+
+float nex::TAA::haltonSeq(int prime, int index)
+{
+	float r = 0.0f;
+	float f = 1.0f;
+	int i = index;
+	while (i > 0)
+	{
+		f /= prime;
+		r += f * (i % prime);
+		i = (int)std::floorf(i / (float)prime);
+	}
+	return r;
+}
+
+void nex::TAA::initializeHalton_2_3(glm::vec2* vecs, size_t size)
+{
+	for (auto i = 0; i < size; ++i)
+	{
+		float u = haltonSeq(2, i + 1) - 0.5f;
+		float v = haltonSeq(3, i + 1) - 0.5f;
+		vecs[i] = { u, v };
+	}
 }
 
 void nex::TAA::updateJitterMatrix()
@@ -166,7 +190,7 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setTextureSize(textureSize);
 	mTaaPass->setPixelSize(inverseSize);
 	//mTaaPass->setJitter(glm::vec2(0.00f)); // We ignore the jitter for now TODO
-	mTaaPass->setJitter(0.5f * mJitterVector[mJitterCursor]);
+	mTaaPass->setJitter(mJitterVector[mJitterCursor]);
 	//mTaaPass->setJitterPrev(mJitterVector[mJitterCursorPrev]);
 	mTaaPass->setFeedBack(mFeedback);
 
@@ -175,8 +199,10 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 
 void nex::TAA::updateJitterVectors(const glm::vec2& pixelSizeScreenSpace)
 {
+	initializeHalton_2_3(points_Halton_2_3_x16.data(), points_Halton_2_3_x16.size());
+
 	for (size_t i = 0; i < mJitterVector.size(); i++) {
-		mJitterVector[i] = mSampleVector[i] * pixelSizeScreenSpace;
+		mJitterVector[i] = points_Halton_2_3_x16[i] * pixelSizeScreenSpace;
 	}
 
 	//updateJitterMatrix();
@@ -189,7 +215,7 @@ const glm::mat4& nex::TAA::getJitterMatrix() const
 
 const glm::vec2& nex::TAA::getJitterVec() const
 {
-	return mJitterVector[mJitterCursor];
+	return points_Halton_2_3_x16[mJitterCursor];
 }
 
 float nex::TAA::getFeedback() const

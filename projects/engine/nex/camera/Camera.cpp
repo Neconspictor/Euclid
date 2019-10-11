@@ -253,14 +253,6 @@ namespace nex
 		calcView();
 		calcProjection();
 
-		// Apply jitter
-		//mProjection = mJitter * mProjection;
-		//mProjection[2][0] = -mJitter[3][0];
-		//mProjection[2][1] = -mJitter[3][1];
-
-		//mProjection[0][2] = -mJitter[0][3];
-		//mProjection[1][2] = -mJitter[1][3];
-
 		mViewProjPrev = mViewProj;
 		mViewProj = mProjection * mView;
 		
@@ -525,7 +517,9 @@ namespace nex
 	void PerspectiveCamera::calcProjection()
 	{
 		//mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
+		//mProjection = mJitter * mProjection;
 		mProjection = __getProjectionMatrix(mJitterVec.x, mJitterVec.y);
+		
 	}
 
 	glm::mat4 PerspectiveCamera::getPerspectiveProjection(float left, float right, float bottom, float top, float nearPlane, float farPlane)

@@ -73,6 +73,10 @@ namespace nex
 		 */
 		void advanceJitterCursor();
 
+		// http://en.wikipedia.org/wiki/Halton_sequence
+		static float haltonSeq(int prime, int index = 1/* NOT! zero-based */);
+		static void initializeHalton_2_3(glm::vec2* vecs, size_t size);
+
 		class TaaPass;
 
 		std::unique_ptr<TaaPass> mTaaPass;
@@ -98,6 +102,8 @@ namespace nex
 		  glm::vec2(0.0f, 0.0f),
 		};
 
+		std::array<glm::vec2, 16> points_Halton_2_3_x16;
+		
 		std::array<glm::vec2, 16> mJitterVector;
 		glm::mat4 mJitterMatrix;
 		unsigned mJitterCursor;

@@ -250,16 +250,17 @@ void main()
   // We ignore for now the velocity buffer TODO: reactivate!
   vec2 vel = uvCURRENT - uvHISTORY; //uvCURRENT - uvHISTORY;
   //Add on the vector that maps the fragment's current position to it's position last frame in unjittered space as it may be dynamic.
-  vel = texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg;
+  //vel = texture(velocityBUF, frontMostNeigbourCoord(uvCURRENT - jitter)).rg;
   //The previous UV coords are therefore the current ones with this velocity tacked on.
   uvHISTORY += vel;
+  //uvHISTORY =  uvHISTORY;
   
 
   //Get previous frame colour
   vec4 colourHISTORY = texture(colourANTIALIASED, vec2(uvHISTORY));
 
   //Clip it
-  vec3 colourHISTORYCLIPPED = clipNeighbourhood(colourHISTORY.rgb, uvCURRENT);
+  vec3 colourHISTORYCLIPPED = clipNeighbourhood(colourHISTORY.rgb, uvHISTORY);
 
   if (colourHISTORY.a == 0.f) {fragColor.a = float(clipped);} //If there's nothing, store the clipped flag (could still be nothing)
   else {fragColor.a = mix(colourHISTORY.a, float(clipped), feedback);} //If there is something, blend the previous clipped value with the current one (using same feedback as rest of AA)

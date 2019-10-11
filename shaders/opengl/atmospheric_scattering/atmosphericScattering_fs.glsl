@@ -211,7 +211,7 @@ void main() {
 
 color = vec4(result, 1.0);    
 
-luminance = 0.3 * color;
+luminance = 0.7 * color;
 
     //motion vector
     
@@ -234,7 +234,7 @@ luminance = 0.3 * color;
     previousPos /= previousPos.w;
     // Use this frame's position and last frame's to compute the pixel
    // velocity.
-   vec2 velocity = (currentPos.xy - previousPos.xy) * 0.1;
+   vec2 velocity = (currentPos.xy - previousPos.xy);
     
 motion = velocity;
 }

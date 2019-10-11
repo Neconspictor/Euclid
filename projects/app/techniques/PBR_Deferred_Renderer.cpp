@@ -786,11 +786,8 @@ void nex::PBR_Deferred_Renderer::renderSky(const Pass::Constants& constants, con
 	mAtmosphericScattering->setSpotBrightness(10.0f);
 	mAtmosphericScattering->setViewport(constants.windowWidth, constants.windowHeight);
 
-	const auto& view = camera.getView();
-	const auto& prevView = camera.getViewPrev();
-	const auto& proj = camera.getProjectionMatrix();
-	const auto prevViewProj = proj * prevView;
-	const auto viewProjInverse = inverse(proj*view);
+	const auto prevViewProj = camera.getViewProjPrev();
+	const auto viewProjInverse = inverse(camera.getViewProj());
 
 	mAtmosphericScattering->setPrevViewProj(prevViewProj);
 	mAtmosphericScattering->setInvViewProj(viewProjInverse);
