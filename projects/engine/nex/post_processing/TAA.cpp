@@ -22,8 +22,19 @@ public:
 	{
 		std::vector<std::string> defines;
 		if (useGamma) {
-			defines.push_back("#define SOURCE_GAMMA_SPACE");
+			//defines.push_back("#define SOURCE_GAMMA_SPACE\n");
 		}
+
+		defines.push_back("#define MINMAX_3X3 0\n");
+		defines.push_back("#define MINMAX_3X3_ROUNDED 1\n");
+		defines.push_back("#define MINMAX_4TAP_VARYING 0\n");
+		defines.push_back("#define USE_YCOCG 0\n");
+		defines.push_back("#define USE_CLIPPING 1\n");
+		defines.push_back("#define UNJITTER_COLORSAMPLES 0\n");
+		defines.push_back("#define UNJITTER_NEIGHBORHOOD 0\n");
+		defines.push_back("#define UNJITTER_REPROJECTION 0\n");
+		defines.push_back("#define USE_DILATION 1\n");
+		
 
 		mShader = Shader::create("fullscreenPlane_vs.glsl", "post_processing/taa_fs.glsl", 
 			nullptr, nullptr, nullptr, defines);
@@ -40,6 +51,8 @@ public:
 		mJitter = { mShader->getUniformLocation("jitter"), UniformType::VEC2 };
 		mJitterPrev = { mShader->getUniformLocation("jitterHISTORY"), UniformType::VEC2 };
 		mFeedback = { mShader->getUniformLocation("feedback"), UniformType::FLOAT };
+		mFeedbackMin = { mShader->getUniformLocation("_FeedbackMin"), UniformType::FLOAT };
+		mFeedbackMax = { mShader->getUniformLocation("_FeedbackMax"), UniformType::FLOAT };
 		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
 
 		mState = RenderState::createNoDepthTest();
@@ -104,6 +117,18 @@ public:
 		mShader->setFloat(mFeedback.location, value);
 	}
 
+	void setFeedBackMin(float value)
+	{
+		value = std::clamp<float>(value, 0.0f, 1.0f);
+		mShader->setFloat(mFeedbackMin.location, value);
+	}
+
+	void setFeedBackMax(float value)
+	{
+		value = std::clamp<float>(value, 0.0f, 1.0f);
+		mShader->setFloat(mFeedbackMax.location, value);
+	}
+
 	void setClipInfo(const glm::vec4& info)
 	{
 		mShader->setVec4(mClipInfo.location, info);
@@ -123,6 +148,8 @@ private:
 	Uniform mJitter;
 	Uniform mJitterPrev;
 	Uniform mFeedback;
+	Uniform mFeedbackMin;
+	Uniform mFeedbackMax;
 	Uniform mClipInfo;
 
 	RenderState mState;
@@ -200,6 +227,8 @@ void nex::TAA::antialias(Texture* source, Texture* sourceHistory, Texture* depth
 	mTaaPass->setJitter(mJitterVector[mJitterCursor]);
 	//mTaaPass->setJitterPrev(mJitterVector[mJitterCursorPrev]);
 	mTaaPass->setFeedBack(mFeedback);
+	mTaaPass->setFeedBackMin(0.25f);
+	mTaaPass->setFeedBackMax(1.0f);
 	mTaaPass->setClipInfo(camera.getClipInfo());
 
 	StaticMeshDrawer::drawFullscreenTriangle(mTaaPass->getState(), mTaaPass.get());

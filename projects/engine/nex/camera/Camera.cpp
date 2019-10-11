@@ -528,9 +528,9 @@ namespace nex
 
 	void PerspectiveCamera::calcProjection()
 	{
-		//mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
-		//mProjection = mJitter * mProjection;
-		mProjection = __getProjectionMatrix(mJitterVec.x, mJitterVec.y);
+		mProjection = glm::perspective(mFovY, mAspectRatio, mDistanceNear, mDistanceFar);
+		mProjection = mJitter * mProjection;
+		//mProjection = __getProjectionMatrix(mJitterVec.x, mJitterVec.y);
 		
 	}
 
