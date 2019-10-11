@@ -14,16 +14,6 @@ const float EDGE_THRESHOLD_MIN = 0;//0.0312;
 const float EDGE_THRESHOLD_MAX = 0;//0.125;
 const int ITERATIONS = 12;
 const float SUBPIXEL_QUALITY = 0.75;
-const vec3 LUMA_CONVERSION = vec3(0.299, 0.587, 0.114);
-
-float rgb2luma(in vec4 color)
-{
-  #ifdef SOURCE_GAMMA_SPACE
-    return sqrt(dot(color.rgb, LUMA_CONVERSION));
-  #else
-    return dot(color.rgb, LUMA_CONVERSION);
-  #endif
-}
 
 
 float QUALITY(int i) 
@@ -49,6 +39,8 @@ float QUALITY(int i)
     
     return 1.0;
 }
+
+#include "util/util.glsl"
 
 
 void main() {
