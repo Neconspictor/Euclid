@@ -12,6 +12,12 @@
 #define VOXEL_BUFFER_BINDING_POINT 0
 #endif
 
+#define VOXEL_LIGHTING_WHILE_VOXELIZING 1
+
+#ifndef VOXEL_LIGHTING_WHILE_VOXELIZING
+#define VOXEL_LIGHTING_WHILE_VOXELIZING 1
+#endif
+
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #include "util/compute_util.glsl"
@@ -39,16 +45,19 @@ layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
 	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
 };
 
-uniform DirLight dirLight;
+#if !VOXEL_LIGHTING_WHILE_VOXELIZING
+    uniform DirLight dirLight;
 
-#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-#define CSM_CASCADE_BUFFER_BINDING_POINT  1
-#endif 
+    #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
+    #define CSM_CASCADE_BUFFER_BINDING_POINT  1
+    #endif 
 
-#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
-#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 1
+    #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
+    #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 1
+    #endif
+    #include "shadow/cascaded_shadow.glsl"
+
 #endif
-#include "shadow/cascaded_shadow.glsl"
 
 
 void main()
@@ -58,18 +67,28 @@ void main()
     
     if (voxel.colorMask == 0) return;
     
-    // get middle point (world space) of the voxel
-    vec3 voxelPosition = 2.0 * g_xFrame_VoxelRadianceDataSize * gl_GlobalInvocationID + vec3(1.0 * g_xFrame_VoxelRadianceDataSize) + g_xFrame_VoxelRadianceDataCenter.rgb;
+    
     
     vec4 albedo = DecodeColor(voxel.colorMask);
     vec3 N = normalize(DecodeNormal(voxel.normalMask));
     
-    vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
-    vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-    float shadow = indexedShadow(L, N, 1, voxelPosition);
-    shadow = 1.0;
-    vec4 color = vec4(albedo.rgb, 1.0); //* lightColor * shadow
-   
+    #if VOXEL_LIGHTING_WHILE_VOXELIZING
+        imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , albedo);
+    #else
     
-    imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
+        /*  get position of the voxel:
+            diff = P * g_xFrame_VoxelRadianceDataRes_rcp * g_xFrame_VoxelRadianceDataSize_rcp;
+            uvw = (diff * 0.5 + 0.5);
+            voxelCoordinate = uvw * g_xFrame_VoxelRadianceDataRes;
+        */
+        vec3 uvw = gl_GlobalInvocationID * g_xFrame_VoxelRadianceDataRes_rcp;
+        vec3 diff = 2.0 * uvw - 1.0;
+        vec3 P = diff * float(g_xFrame_VoxelRadianceDataRes) * g_xFrame_VoxelRadianceDataSize;
+    
+        vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+        vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
+        float shadow = indexedShadow(L, N, 1, P);
+        vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a); //* lightColor * shadow    albedo.rgb * lightColor * shadow
+        imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
+    #endif
 }

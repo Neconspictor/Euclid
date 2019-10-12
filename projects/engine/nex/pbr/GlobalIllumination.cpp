@@ -458,7 +458,17 @@ mUseConeTracing(true)
 	data.pixelDataType = PixelDataType::FLOAT;
 	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
 
-	mVoxelizationRT = std::make_unique<RenderTarget>(2048, 2048);
+	// use super-sampling during voxelization (improves coverage and thus reduces holes in voxelization)
+	// For rough approximations, 4x should be enough, but for static voxelization we use higher values for better quality.
+
+
+	auto resolution = min (32 * VOXEL_BASE_SIZE, 8192);
+
+	//8192 is too much data for >256
+	if (VOXEL_BASE_SIZE > 256)
+		resolution = min(resolution, 4096);
+	
+	mVoxelizationRT = std::make_unique<RenderTarget>(resolution, resolution);
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -826,6 +836,8 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	constants.g_xFrame_VoxelRadianceDataSize_rcp = 1.0f / constants.g_xFrame_VoxelRadianceDataSize;
 	constants.g_xFrame_VoxelRadianceDataRes = VOXEL_BASE_SIZE;
 	constants.g_xFrame_VoxelRadianceDataRes_rcp = 1.0f / (float)constants.g_xFrame_VoxelRadianceDataRes;
+
+
 	constants.g_xFrame_VoxelRadianceDataCenter = glm::vec4((sceneBoundingBox.max + sceneBoundingBox.min) / 2.0f, 1.0);
 	constants.g_xFrame_VoxelRadianceNumCones = 1;
 	constants.g_xFrame_VoxelRadianceNumCones_rcp = 1.0f / float(constants.g_xFrame_VoxelRadianceNumCones);
@@ -838,7 +850,6 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	//renderTarget->bind();
 	//renderTarget->enableDrawToColorAttachments(false);
 	auto viewPort = RenderBackend::get()->getViewport();
-	constexpr float scale = 2;
 	mVoxelizationRT->bind();
 	RenderBackend::get()->setViewPort(0,0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
 	
@@ -858,9 +869,7 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			mVoxelizePass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.material->getRenderState();
-			//state.doDepthTest = false;
-			//state.doDepthWrite = false;
-			//state.doCullFaces = false;
+			state.doCullFaces = false; // Is needed, since we project manually the triangles. Culling would be terribly wrong.
 			StaticMeshDrawer::draw(command.mesh, command.material, &state);
 		}
 	}
@@ -870,6 +879,11 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 
 void nex::GlobalIllumination::updateGI(const DirLight& light, CascadedShadow* shadows)
 {
+
+	auto viewPort = RenderBackend::get()->getViewport();
+	mVoxelizationRT->bind();
+	RenderBackend::get()->setViewPort(0, 0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
+
 	mVoxelFillComputeLightPass->bind();
 	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
 	mVoxelFillComputeLightPass->useConstantBuffer(&mVoxelConstantBuffer);
@@ -889,6 +903,8 @@ void nex::GlobalIllumination::updateGI(const DirLight& light, CascadedShadow* sh
 		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i + 1);
 		mMipMapTexture3DPass->dispatch(mipMapSize, mipMapSize, mipMapSize);
 	}
+
+	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
 }
 
 void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth)

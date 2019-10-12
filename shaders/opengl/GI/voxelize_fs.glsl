@@ -16,6 +16,12 @@
 #define  VOXEL_DATE_SIZE_RCP 128.0
 #endif
 
+#define VOXEL_LIGHTING_WHILE_VOXELIZING 1
+
+#ifndef VOXEL_LIGHTING_WHILE_VOXELIZING
+#define VOXEL_LIGHTING_WHILE_VOXELIZING 1
+#endif
+
 in GS_OUT {
     vec4 pos;
 	vec2 texCoords;
@@ -57,16 +63,20 @@ layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
 
-uniform DirLight dirLight;
+#if VOXEL_LIGHTING_WHILE_VOXELIZING
 
-#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
-#define CSM_CASCADE_BUFFER_BINDING_POINT  2
-#endif 
+    uniform DirLight dirLight;
 
-#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
-#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 5
-#endif
-#include "shadow/cascaded_shadow.glsl"
+    #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
+    #define CSM_CASCADE_BUFFER_BINDING_POINT  2
+    #endif 
+
+    #ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
+    #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 5
+    #endif
+    #include "shadow/cascaded_shadow.glsl"
+    
+#endif    
 
 
 void main()
@@ -82,17 +92,17 @@ void main()
     
     if (!is_saturated(uvw)) {discard;}
     
-    vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
+    #if VOXEL_LIGHTING_WHILE_VOXELIZING
+        vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
+        vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+        vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
+        float shadow = indexedShadow(L, N, 1, P);
+        vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a);
+    #else
+        vec4 color = texture(material.albedoMap, fs_in.texCoords);
+    #endif
 
-    vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
-    vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-    float shadow = indexedShadow(L, N, 1, P);
-   shadow = 1.0;
-    vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a); //
-    
-    
-    
-    
+
     uint color_encoded = EncodeColor(color);
     uint normal_encoded = EncodeNormal(N);
 
