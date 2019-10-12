@@ -16,6 +16,7 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #include "util/compute_util.glsl"
 #include "GI/util.glsl"
+#include "interface/light_interface.h"
 
 layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
@@ -38,6 +39,17 @@ layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
 	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
 };
 
+uniform DirLight dirLight;
+
+#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
+#define CSM_CASCADE_BUFFER_BINDING_POINT  1
+#endif 
+
+#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
+#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 1
+#endif
+#include "shadow/cascaded_shadow.glsl"
+
 
 void main()
 {
@@ -46,14 +58,18 @@ void main()
     
     if (voxel.colorMask == 0) return;
     
-    vec4 color = DecodeColor(voxel.colorMask);
-    //color.a = 1;
+    // get middle point (world space) of the voxel
+    vec3 voxelPosition = 2.0 * g_xFrame_VoxelRadianceDataSize * gl_GlobalInvocationID + vec3(1.0 * g_xFrame_VoxelRadianceDataSize) + g_xFrame_VoxelRadianceDataCenter.rgb;
     
-   //if (color.a > 0.0) color.a = 1.0;
+    vec4 albedo = DecodeColor(voxel.colorMask);
+    vec3 N = normalize(DecodeNormal(voxel.normalMask));
+    
+    vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+    vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
+    float shadow = indexedShadow(L, N, 1, voxelPosition);
+    shadow = 1.0;
+    vec4 color = vec4(albedo.rgb, 1.0); //* lightColor * shadow
+   
     
     imageStore(voxelImage, ivec3(gl_GlobalInvocationID) , color);
-    
-    //if (color.a > 0 && color.r > 0.6) {
-    //    imageStore(voxelImage, ivec3(0,0,0) , color);
-    //}
 }

@@ -244,7 +244,6 @@ void NeXEngine::run()
 		mScene.calcSceneBoundingBoxUnsafe();
 		auto box = mScene.getSceneBoundingBox();
 		auto middlePoint = (box.max + box.min) / 2.0f;
-		mWindow->resize(2048, 2048);
 
 		auto originalPosition = mCamera->getPosition();
 		mCamera->setPosition(middlePoint, true);
@@ -256,12 +255,10 @@ void NeXEngine::run()
 
 		nex::Pass::Constants constants;
 		constants.camera = mCamera.get();
-		constants.windowWidth = mWindow->getFrameBufferWidth();
-		constants.windowHeight = mWindow->getFrameBufferHeight();
 		mRenderer->renderShadows(commandQueue.getShadowCommands(), constants, mSun, nullptr);
 
 		mGlobalIllumination->voxelize(collection, box, mSun, mRenderer->getCascadedShadow());
-		mWindow->resize(800, 600);
+		mGlobalIllumination->updateGI(mSun, mRenderer->getCascadedShadow());
 
 		mCamera->setPosition(originalPosition, true);
 		mCamera->update();

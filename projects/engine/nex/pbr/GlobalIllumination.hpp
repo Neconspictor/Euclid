@@ -24,6 +24,7 @@ namespace nex
 	struct DirLight;
 	class ProbeCluster;
 	class StaticMeshContainer;
+	class RenderTarget;
 
 	class GlobalIllumination
 	{
@@ -74,6 +75,8 @@ namespace nex
 
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
 			const AABB& sceneBoundingBox, const DirLight& light, CascadedShadow* shadows);
+
+		void updateGI(const DirLight& light, CascadedShadow* shadows);
 
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
@@ -129,6 +132,7 @@ namespace nex
 		bool mVisualize;
 		int mVoxelVisualizeMipMap;
 		bool mUseConeTracing;
+		std::unique_ptr<RenderTarget> mVoxelizationRT;
 	};
 
 

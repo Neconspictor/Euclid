@@ -126,6 +126,15 @@ public:
 		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
+	void useConstantBuffer(UniformBuffer* buffer) {
+		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
+	}
+
+	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
+		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	}
+
+
 	void setLightDirectionWS(const glm::vec3& dir) {
 		mShader->setVec3(mWorldLightDirection.location, -dir);
 	}
@@ -138,23 +147,15 @@ public:
 		mShader->setFloat(mLightPower.location, power);
 	}
 
-	void useShadow(CascadedShadow* shadow) {
-		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
-		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
-	}
-
-	void updateLight(const DirLight& light) {
+	void useLight(const DirLight& light) {
 		setLightColor(light.color);
 		setLightPower(light.power);
 		setLightDirectionWS(light.directionWorld);
 	}
 
-	void useConstantBuffer(UniformBuffer* buffer) {
-		buffer->bindToTarget(C_UNIFORM_BUFFER_BINDING_POINT);
-	}
-
-	void useVoxelBuffer(ShaderStorageBuffer* buffer) {
-		buffer->bindToTarget(VOXEL_BUFFER_BINDING_POINT);
+	void useShadow(CascadedShadow* shadow) {
+		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
+		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
 	}
 
 
@@ -169,6 +170,7 @@ private:
 		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT ") + std::to_string(CSM_CASCADE_DEPTH_MAP_BINDING_POINT));
 
 		return vec;
 	}
@@ -180,10 +182,10 @@ private:
 	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 2;
 	static constexpr unsigned CSM_CASCADE_DEPTH_MAP_BINDING_POINT = 5;
 
+
 	Uniform mWorldLightDirection;
 	Uniform mLightColor;
 	Uniform mLightPower;
-	Uniform mInverseView;
 	UniformTex mCascadedDephMap;
 };
 
@@ -198,6 +200,7 @@ public:
 		mViewProj = { mShader->getUniformLocation("viewProj"), UniformType::MAT4 };
 		mMipMap = { mShader->getUniformLocation("mipMap"), UniformType::FLOAT };
 		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, 0);
+
 		mSampler.setMinFilter(TextureFilter::Near_Mipmap_Near);
 		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 		mSampler.setBorderColor(glm::vec4(0.0));
@@ -262,6 +265,14 @@ public:
 		ComputePass(Shader::createComputeShader("GI/copy_to_texture_calc_light_cs.glsl", generateDefines(localSizeX)))
 	{
 		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, VOXEL_IMAGE_BINDING_POINT);
+
+		mWorldLightDirection = { mShader->getUniformLocation("dirLight.directionWorld"), UniformType::VEC3 };
+		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
+		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
+		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
+
+		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
 	void useConstantBuffer(UniformBuffer* buffer) {
@@ -282,6 +293,29 @@ public:
 			0);
 	}
 
+	void setLightDirectionWS(const glm::vec3& dir) {
+		mShader->setVec3(mWorldLightDirection.location, -dir);
+	}
+
+	void setLightColor(const glm::vec3& color) {
+		mShader->setVec3(mLightColor.location, color);
+	}
+
+	void setLightPower(float power) {
+		mShader->setFloat(mLightPower.location, power);
+	}
+
+	void useLight(const DirLight& light) {
+		setLightColor(light.color);
+		setLightPower(light.power);
+		setLightDirectionWS(light.directionWorld);
+	}
+
+	void useShadow(CascadedShadow* shadow) {
+		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
+		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
+	}
+
 private:
 
 	static std::vector<std::string> generateDefines(unsigned localSizeX) {
@@ -290,6 +324,8 @@ private:
 		vec.push_back(std::string("#define C_UNIFORM_BUFFER_BINDING_POINT ") + std::to_string(C_UNIFORM_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define VOXEL_BUFFER_BINDING_POINT ") + std::to_string(VOXEL_BUFFER_BINDING_POINT));
 		vec.push_back(std::string("#define LOCAL_SIZE_X ") + std::to_string(localSizeX));
+		vec.push_back(std::string("#define CSM_CASCADE_BUFFER_BINDING_POINT ") + std::to_string(CASCADE_BUFFER_BINDINGPOINT));
+		vec.push_back(std::string("#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT ") + std::to_string(CSM_CASCADE_DEPTH_MAP_BINDING_POINT));
 
 		return vec;
 	}
@@ -297,8 +333,15 @@ private:
 	static constexpr unsigned C_UNIFORM_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_BUFFER_BINDING_POINT = 0;
 	static constexpr unsigned VOXEL_IMAGE_BINDING_POINT = 0;
+	static constexpr unsigned CASCADE_BUFFER_BINDINGPOINT = 1;
+	static constexpr unsigned CSM_CASCADE_DEPTH_MAP_BINDING_POINT = 1;
 
 	UniformTex mVoxelImage;
+
+	Uniform mWorldLightDirection;
+	Uniform mLightColor;
+	Uniform mLightPower;
+	UniformTex mCascadedDephMap;
 };
 
 
@@ -414,6 +457,8 @@ mUseConeTracing(true)
 	data.borderColor = glm::vec4(0.0);
 	data.pixelDataType = PixelDataType::FLOAT;
 	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
+
+	mVoxelizationRT = std::make_unique<RenderTarget>(2048, 2048);
 }
 
 nex::GlobalIllumination::~GlobalIllumination() = default;
@@ -769,8 +814,8 @@ void nex::GlobalIllumination::renderVoxels(const glm::mat4& projection, const gl
 								VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
 }
 
-void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, 
-	const AABB& sceneBoundingBox, const DirLight& light, CascadedShadow* shadows)
+void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection, const AABB& sceneBoundingBox, 
+	const DirLight& light, CascadedShadow* shadows)
 {
 	VoxelizePass::Constants constants;
 	auto diff = sceneBoundingBox.max - sceneBoundingBox.min;
@@ -789,18 +834,19 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	mVoxelConstantBuffer.update(sizeof(VoxelizePass::Constants), &constants);
 
 
-	auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
-	renderTarget->bind();
-	renderTarget->enableDrawToColorAttachments(false);
+	//auto* renderTarget = RenderBackend::get()->getDefaultRenderTarget();
+	//renderTarget->bind();
+	//renderTarget->enableDrawToColorAttachments(false);
 	auto viewPort = RenderBackend::get()->getViewport();
 	constexpr float scale = 2;
-	RenderBackend::get()->setViewPort(0,0, VOXEL_BASE_SIZE * scale, VOXEL_BASE_SIZE * scale);
+	mVoxelizationRT->bind();
+	RenderBackend::get()->setViewPort(0,0, mVoxelizationRT->getWidth(), mVoxelizationRT->getHeight());
 	
 
 	mVoxelizePass->bind();
-	mVoxelizePass->updateLight(light);
 	mVoxelizePass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelizePass->useVoxelBuffer(&mVoxelBuffer);
+	mVoxelizePass->useLight(light);
 	mVoxelizePass->useShadow(shadows);
 	
 
@@ -812,33 +858,27 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 			mVoxelizePass->setModelMatrix(command.worldTrafo, command.prevWorldTrafo);
 			mVoxelizePass->uploadTransformMatrices();
 			auto state = command.material->getRenderState();
-			state.doDepthTest = false;
-			state.doDepthWrite = false;
-			state.doCullFaces = false;
+			//state.doDepthTest = false;
+			//state.doDepthWrite = false;
+			//state.doCullFaces = false;
 			StaticMeshDrawer::draw(command.mesh, command.material, &state);
 		}
 	}
 
-	renderTarget->enableDrawToColorAttachments(true);
-
 	RenderBackend::get()->setViewPort(viewPort.x, viewPort.y, viewPort.width, viewPort.height);
+}
 
-	/*mVoxelBuffer.syncWithGPU();
-	auto* data = (VoxelizePass::VoxelType*)mVoxelBuffer.map(GpuBuffer::Access::READ_ONLY);
-
-	mVoxelBuffer.unmap();
-
-	auto* constantsBufferMemory = (VoxelizePass::Constants*)mVoxelConstantBuffer.map(GpuBuffer::Access::READ_ONLY);
-
-	mVoxelConstantBuffer.unmap();*/
-
+void nex::GlobalIllumination::updateGI(const DirLight& light, CascadedShadow* shadows)
+{
 	mVoxelFillComputeLightPass->bind();
 	mVoxelFillComputeLightPass->setVoxelOutputImage(mVoxelTexture.get());
 	mVoxelFillComputeLightPass->useConstantBuffer(&mVoxelConstantBuffer);
 	mVoxelFillComputeLightPass->useVoxelBuffer(&mVoxelBuffer);
+	mVoxelFillComputeLightPass->useLight(light);
+	mVoxelFillComputeLightPass->useShadow(shadows);
 	mVoxelFillComputeLightPass->dispatch(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE);
 
-	
+
 	mMipMapTexture3DPass->bind();
 
 	const int lastMipMapIndex = Texture::getMipMapCount(mVoxelTexture->getWidth()) - 1;
@@ -846,16 +886,9 @@ void nex::GlobalIllumination::voxelize(const nex::RenderCommandQueue::ConstBuffe
 	for (int i = 0; i < lastMipMapIndex; ++i) {
 		const auto mipMapSize = mVoxelTexture->getWidth() / std::pow(2, i);
 		mMipMapTexture3DPass->setInputImage(mVoxelTexture.get(), i);
-		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i+1); 
+		mMipMapTexture3DPass->setOutputImage(mVoxelTexture.get(), i + 1);
 		mMipMapTexture3DPass->dispatch(mipMapSize, mipMapSize, mipMapSize);
 	}
-
-	//mVoxelTexture->generateMipMaps();
-
-	/*std::vector<glm::vec4> dest(VOXEL_BASE_SIZE * VOXEL_BASE_SIZE * VOXEL_BASE_SIZE);
-	mVoxelTexture->readback(3, ColorSpace::RGBA, PixelDataType::FLOAT, (void*)dest.data(), dest.size() * sizeof(glm::vec4));
-	auto* data = dest.data();*/
-
 }
 
 void nex::GlobalIllumination::drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth)

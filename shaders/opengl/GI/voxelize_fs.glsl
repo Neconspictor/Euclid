@@ -24,8 +24,8 @@ in GS_OUT {
 } fs_in;
 
 
-#include "interface/light_interface.h"
 #include "GI/util.glsl"
+#include "interface/light_interface.h"
 
 layout(std140, binding = C_UNIFORM_BUFFER_BINDING_POINT) uniform Cbuffer {
     float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
@@ -53,11 +53,11 @@ struct Material {
 
 uniform Material material;
 
-uniform DirLight dirLight;
-
 layout(std430, binding = VOXEL_BUFFER_BINDING_POINT) buffer VoxelBuffer {
     VoxelType voxels[];
 };
+
+uniform DirLight dirLight;
 
 #ifndef CSM_CASCADE_BUFFER_BINDING_POINT
 #define CSM_CASCADE_BUFFER_BINDING_POINT  2
@@ -81,42 +81,24 @@ void main()
 	vec3 uvw = diff * 0.5 + 0.5;
     
     if (!is_saturated(uvw)) {discard;}
-	//{
-        vec4 color = vec4(1.0);
-        vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
-		//color.rgb = DEGAMMA(color.rgb); // Shouldn't be needed as we use sRGB textures which map automatically to linear space
-        
-        
-        vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
-        vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
-        
-        //TODO: shadow maps!
-        
-        float shadow = indexedShadow(L, N, 1, P);
-        
-        color.rgb = albedo.rgb * lightColor * shadow;
-        //color.rgb = max(color.rgb, 0.1 * albedo.rgb);
-        color.a = albedo.a;
-        
-        uint color_encoded = EncodeColor(color);
-		uint normal_encoded = EncodeNormal(N);
+    
+    vec4 albedo = texture(material.albedoMap, fs_in.texCoords);
 
-		// output:
-		//uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
-        uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
-		//uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
-        uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
-        atomicMax(voxels[id].colorMask, color_encoded);
-		atomicMax(voxels[id].normalMask, normal_encoded);
-        
-        //voxels[id].colorMask = 10;
-        //voxels[id].normalMask = 10;
-        
-        //voxels[writecoord.x].colorMask = 10;
-        //voxels[writecoord.y].normalMask = 10;
-        //voxels[writecoord.z].normalMask = 11;
-        
-        //voxels[1].colorMask = id;
-        //atomicAdd(voxels[1].normalMask, 1);
-    //}
+    vec3 L = normalize(dirLight.directionWorld); // TODO: check if positive direction is needed!
+    vec3 lightColor = dirLight.color.rgb * dirLight.power * max(dot(N, L), 0);
+    float shadow = indexedShadow(L, N, 1, P);
+   shadow = 1.0;
+    vec4 color = vec4(albedo.rgb * lightColor * shadow, albedo.a); //
+    
+    
+    
+    
+    uint color_encoded = EncodeColor(color);
+    uint normal_encoded = EncodeNormal(N);
+
+    // output:
+    uvec3 writecoord = uvec3(floor(uvw * g_xFrame_VoxelRadianceDataRes));
+    uint id = flatten3D(writecoord, uvec3(g_xFrame_VoxelRadianceDataRes));
+    atomicMax(voxels[id].colorMask, color_encoded);
+    atomicMax(voxels[id].normalMask, normal_encoded);
 }
