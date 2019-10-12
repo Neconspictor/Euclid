@@ -114,12 +114,12 @@ namespace nex
 		/**
 		 * Binds the buffer to it's specified default binding point.
 		 */
-		void bindToTarget();
+		void bindToTarget() const;
 
 		/**
 		 * Binds the buffer using a specified binding point.
 		 */
-		void bindToTarget(unsigned binding);
+		void bindToTarget(unsigned binding) const;
 
 		unsigned getDefaultBinding() const;
 

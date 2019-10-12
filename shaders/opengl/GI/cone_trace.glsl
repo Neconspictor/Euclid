@@ -104,7 +104,7 @@ vec4 ConeTrace(in vec3 P, in vec3 N, in vec3 coneDirection, in float coneApertur
 
 		// this is the correct blending to avoid black-staircase artifact (ray stepped front-to back, so blend front to back):
 		float a = 1 - alpha;
-		color += a * sam.rgb;
+		color += a * sam.rgb; /// (max(dist * 0.1, 1.0))
 		alpha += a * sam.a;
 
 		// step along ray:

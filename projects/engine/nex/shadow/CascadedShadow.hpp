@@ -109,6 +109,7 @@ namespace nex
 		void end();
 
 		nex::Texture* getDepthTextureArray();
+		const nex::Texture* getDepthTextureArray() const;
 
 		/**
 		 * Resizes the cascades
@@ -163,6 +164,7 @@ namespace nex
 		 */
 		void setShadowStrength(float strength);
 		ShaderStorageBuffer* getCascadeBuffer();
+		const ShaderStorageBuffer* getCascadeBuffer() const;
 
 		void useTightNearFarPlane(bool use);
 

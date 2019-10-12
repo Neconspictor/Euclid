@@ -134,6 +134,11 @@ Texture* CascadedShadow::getDepthTextureArray()
 	return mRenderTarget.getDepthAttachment()->texture.get();
 }
 
+const Texture* CascadedShadow::getDepthTextureArray() const
+{
+	return mRenderTarget.getDepthAttachment()->texture.get();
+}
+
 void CascadedShadow::resize(unsigned cascadeWidth, unsigned cascadeHeight)
 {
 	mCascadeWidth = cascadeWidth;
@@ -786,6 +791,12 @@ ShaderStorageBuffer* CascadedShadow::getCascadeBuffer()
 {
 	return mDataComputePass->getSharedOutput();
 }
+
+const ShaderStorageBuffer* CascadedShadow::getCascadeBuffer() const
+{
+	return mDataComputePass->getSharedOutput();
+}
+
 
 void CascadedShadow::useTightNearFarPlane(bool use)
 {

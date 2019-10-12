@@ -165,11 +165,13 @@ void nex::Pbr_ConfigurationView::drawSelf()
 	{
 		lightColor = clamp(lightColor, glm::vec3(0), glm::vec3(1));
 		dirLight->color = lightColor;
+		dirLight->_pad[0] = 1.0f;
 	}
 
 	if (ImGui::DragFloat("Directional Light Power", &dirLightPower, 0.1f, 0.0f, 10.0f))
 	{
 		dirLight->power = dirLightPower;
+		dirLight->_pad[0] = 1.0f;
 	}
 
 	drawLightSphericalDirection();
@@ -197,12 +199,13 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 
 	float temp[2] = { sphericalCoordinate.polar, sphericalCoordinate.azimuth };
 
-	if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.05f))
+	if (ImGui::DragFloat2("Light position (spherical coordinates)", temp, 0.005f))
 	{
 		sphericalCoordinate.polar = temp[0];
 		sphericalCoordinate.azimuth = temp[1];
 		lightDirection = -SphericalCoordinate::cartesian(sphericalCoordinate);
 		lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
 		dirLight->directionWorld = lightDirection;
+		dirLight->_pad[0] = 1.0f;
 	}
 }

@@ -235,8 +235,7 @@ void NeXEngine::run()
 
 	SimpleTimer timer;
 
-	RenderCommandQueue commandQueue;
-	commandQueue.useCameraCulling(mCamera.get());
+	mRenderCommandQueue.useCameraCulling(mCamera.get());
 
 	{
 		mScene.acquireLock();
@@ -249,30 +248,44 @@ void NeXEngine::run()
 		mCamera->setPosition(middlePoint, true);
 		mCamera->update();
 
-		mScene.collectRenderCommands(commandQueue, false);
-		auto collection = commandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
+		mScene.collectRenderCommands(mRenderCommandQueue, false);
+		auto collection = mRenderCommandQueue.getCommands(RenderCommandQueue::Deferrable | RenderCommandQueue::Forward
 			| RenderCommandQueue::Transparent);
 
 		nex::Pass::Constants constants;
 		constants.camera = mCamera.get();
-		mRenderer->renderShadows(commandQueue.getShadowCommands(), constants, mSun, nullptr);
+		mRenderer->renderShadows(mRenderCommandQueue.getShadowCommands(), constants, mSun, nullptr);
 
-		mGlobalIllumination->voxelize(collection, box, mSun, mRenderer->getCascadedShadow());
-		mGlobalIllumination->updateGI(mSun, mRenderer->getCascadedShadow());
+		mGlobalIllumination->deferVoxelizationLighting(true);
+
+		if (mGlobalIllumination->isVoxelLightingDeferred()) 
+		{
+			mGlobalIllumination->voxelize(collection, box, nullptr, nullptr);
+			mGlobalIllumination->updateVoxelTexture(&mSun, mRenderer->getCascadedShadow());
+		}
+		else {
+			mGlobalIllumination->voxelize(collection, box, &mSun, mRenderer->getCascadedShadow());
+			mGlobalIllumination->updateVoxelTexture(nullptr, nullptr);
+		}
+
+		
+		
 
 		mCamera->setPosition(originalPosition, true);
 		mCamera->update();
 	}
 
-	commandQueue.clear();
-	mScene.collectRenderCommands(commandQueue, false);
-	commandQueue.sort();
+	mRenderCommandQueue.clear();
+	mScene.collectRenderCommands(mRenderCommandQueue, false);
+	mRenderCommandQueue.sort();
 
 	auto* backend = RenderBackend::get();
 	auto* screenSprite = backend->getScreenSprite();
 	auto* lib = backend->getEffectLibrary();
 	auto* postProcessor = lib->getPostProcessor();
 	auto* taa = postProcessor->getTAA();
+
+	auto currentSunDir = mSun.directionWorld;
 
 	while (mWindow->isOpen())
 	{
@@ -304,9 +317,9 @@ void NeXEngine::run()
 			mScene.updateWorldTrafoHierarchyUnsafe(false);
 			mScene.calcSceneBoundingBoxUnsafe();
 
-			commandQueue.clear();
-			mScene.collectRenderCommands(commandQueue, false);
-			commandQueue.sort();
+			mRenderCommandQueue.clear();
+			mScene.collectRenderCommands(mRenderCommandQueue, false);
+			mRenderCommandQueue.sort();
 		}
 
 		if (isRunning())
@@ -356,7 +369,12 @@ void NeXEngine::run()
 			}
 			else
 			{
-				mRenderer->render(commandQueue, 
+				
+				
+
+				
+
+				mRenderer->render(mRenderCommandQueue,
 					*mCamera, 
 					mSun, 
 					mWindow->getFrameBufferWidth(), 
@@ -381,9 +399,25 @@ void NeXEngine::run()
 			}
 
 			
+			if (mGlobalIllumination->isVoxelLightingDeferred())
+			{
+				auto diffSun = currentSunDir - mSun.directionWorld;
+				if (mSun._pad[0] != 0.0) {
+					mSun._pad[0] = 0.0;
+					mGlobalIllumination->updateVoxelTexture(&mSun, mCascadedShadow.get());
+				}
+					
+			}
+
+			currentSunDir = mSun.directionWorld;
+
 			mControllerSM->getDrawable()->drawGUI();
-			
+
 			ImGui::Render();
+
+			
+
+
 			mGui->renderDrawData(ImGui::GetDrawData());
 			
 			// present rendered frame
@@ -562,7 +596,7 @@ void NeXEngine::initLights()
 
 void NeXEngine::initPbr()
 {
-	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10);
+	mGlobalIllumination = std::make_unique<GlobalIllumination>(mGlobals.getCompiledPbrDirectory(), 1024, 10, true);
 	
 	CascadedShadow::PCFFilter pcf;
 	pcf.sampleCountX = 2;
@@ -773,7 +807,12 @@ void NeXEngine::setupGUI()
 		"Global Illumination",
 		root->getMainMenuBar(),
 		root->getToolsMenu(),
-		mGlobalIllumination.get());
+		mGlobalIllumination.get(),
+		&mSun,
+		mCascadedShadow.get(),
+		&mRenderCommandQueue,
+		&mScene);
+
 	globalIlluminationWindow->useStyleClass(std::make_shared<nex::gui::ConfigurationStyle>());
 	root->addChild(move(globalIlluminationWindow));
 

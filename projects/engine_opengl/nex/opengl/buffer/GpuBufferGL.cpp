@@ -168,12 +168,12 @@ void nex::GpuBuffer::resize(size_t size, const void* data, GpuBuffer::UsageHint 
 
 
 
-void nex::ShaderBuffer::bindToTarget()
+void nex::ShaderBuffer::bindToTarget() const
 {
 	bindToTarget(mBinding);
 }
 
-void nex::ShaderBuffer::bindToTarget(unsigned binding)
+void nex::ShaderBuffer::bindToTarget(unsigned binding) const
 {
 	//bind();
 	GLCall(glBindBufferBase(GpuBuffer::mImpl->mTarget, binding, GpuBuffer::mImpl->mRendererID));

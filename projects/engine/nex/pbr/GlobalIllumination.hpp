@@ -25,18 +25,26 @@ namespace nex
 	class ProbeCluster;
 	class StaticMeshContainer;
 	class RenderTarget;
+	class CascadedShadow;
 
 	class GlobalIllumination
 	{
 	public:
 
-		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth);
+		GlobalIllumination(const std::string& compiledProbeDirectory, unsigned prefilteredSize, unsigned depth, bool deferredVoxelizationLighting);
 		~GlobalIllumination();
 
 		ProbeVob* addUninitProbeUnsafe(const glm::vec3& position, unsigned storeID = nex::PbrProbe::INVALID_STOREID);
 		void bakeProbes(const Scene& scene, Renderer* renderer);
 		void bakeProbe(ProbeVob*, const Scene& scene, Renderer* renderer);
 		
+		/**
+		 * Specifies whether the voxelization pass should apply lighting or whether it should be deferred 
+		 * while voxel texture is updated.
+		 * NOTE: This is a compute heavy function (shaders will be recompiled).
+		 */
+		void deferVoxelizationLighting(bool deferLighting);
+
 		PbrProbe* getActiveProbe();
 		float getAmbientPower() const;
 
@@ -69,14 +77,29 @@ namespace nex
 
 		void setVisualize(bool visualize, int mipMapLevel = 0);
 
+		bool isVoxelLightingDeferred() const;
+
 		void update(const nex::Scene::ProbeRange& activeProbes);
 
 		void renderVoxels(const glm::mat4& projection, const glm::mat4& view);
 
+		/**
+		 * Creates a voxelization representation from the provided render commands (param collection).
+		 * If deferred lighting is active, no light contribution is calculated.
+		 * @param light : The direct light to use for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
+		 * @param shadows : Used for light contribution. If deferred lighting is active, this argument can be nullptr. Otherwise not!
+		 */
 		void voxelize(const nex::RenderCommandQueue::ConstBufferCollection& collection,
-			const AABB& sceneBoundingBox, const DirLight& light, CascadedShadow* shadows);
+			const AABB& sceneBoundingBox, const DirLight* light, const CascadedShadow* shadows);
 
-		void updateGI(const DirLight& light, CascadedShadow* shadows);
+		/**
+		 * Updates the voxel texture with previously generated voxel data.
+		 * Note: voxelize function has to be called before calling this function.
+		 * If deferred voxel lighting is active, the voxelize function only has to be called prior if geometry has changed.
+		 * @param light : The direct light to use for light contribution. If deferred lighting isn't active, this argument can be nullptr. Otherwise not!
+		 * @param shadows : Used for light contribution. If deferred lighting isn't active, this argument can be nullptr. Otherwise not!
+		 */
+		void updateVoxelTexture(const DirLight* light, const CascadedShadow* shadows);
 
 		void drawTest(const glm::mat4& projection, const glm::mat4& view, Texture* depth);
 
@@ -133,6 +156,7 @@ namespace nex
 		int mVoxelVisualizeMipMap;
 		bool mUseConeTracing;
 		std::unique_ptr<RenderTarget> mVoxelizationRT;
+		bool mDeferLighting;
 	};
 
 
@@ -143,12 +167,20 @@ namespace nex
 			GlobalIlluminationView(std::string title,
 				MainMenuBar* menuBar,
 				Menu* menu, 
-				GlobalIllumination* globalIllumination);
+				GlobalIllumination* globalIllumination,
+				const DirLight* light,
+				const CascadedShadow* shadow,
+				const RenderCommandQueue* queue,
+				const Scene* scene);
 
 			void drawSelf() override;
 
 		private:
 			GlobalIllumination* mGlobalIllumination;
+			const DirLight* mLight;
+			const CascadedShadow* mShadow;
+			const RenderCommandQueue* mQueue;
+			const Scene* mScene;
 		};
 	}
 }
