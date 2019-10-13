@@ -42,10 +42,11 @@ nex::StaticMeshManager::StaticMeshManager() :
 
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl), fullscreenPlaneTriangleStripVerticesOpengl);
 		VertexLayout layout;
-		layout.push<float>(4);
-		layout.push<float>(2);
+		layout.push<float>(4, mFullscreenTriangleData.get());
+		layout.push<float>(2, mFullscreenTriangleData.get());
+
 		mFullscreenPlane->bind();
-		mFullscreenPlane->useBuffer(*mFullscreenTriangleData, layout);
+		mFullscreenPlane->init(layout);
 		mFullscreenPlane->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 
@@ -58,8 +59,13 @@ nex::StaticMeshManager::StaticMeshManager() :
 		};
 
 		mFullscreenTriangleData = std::make_unique<VertexBuffer>(sizeof(fullscreenTriangleVerticesOpengl), fullscreenTriangleVerticesOpengl);
+		
+		layout = VertexLayout();
+		layout.push<float>(4, mFullscreenTriangleData.get());
+		layout.push<float>(2, mFullscreenTriangleData.get());
+		
 		mFullscreenTriangle->bind();
-		mFullscreenTriangle->useBuffer(*mFullscreenTriangleData, layout);
+		mFullscreenTriangle->init(layout);
 		mFullscreenTriangle->unbind();
 
 

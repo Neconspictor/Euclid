@@ -107,11 +107,11 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, const RenderSta
 		material->upload();
 	}
 
-	VertexArray* vertexArray = mesh->getVertexArray();
-	IndexBuffer* indexBuffer = mesh->getIndexBuffer();
+	const auto& vertexArray = mesh->getVertexArray();
+	const auto& indexBuffer = mesh->getIndexBuffer();
 
-	vertexArray->bind();
-	indexBuffer->bind();
+	vertexArray.bind();
+	indexBuffer.bind();
 
 	thread_local auto* backend = RenderBackend::get();
 	thread_local RenderState defaultState;
@@ -129,7 +129,7 @@ void nex::StaticMeshDrawer::draw(Mesh* mesh, Material* material, const RenderSta
 		state = &defaultState;
 	}
 
-	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer->getCount(), indexBuffer->getType());
+	backend->drawWithIndices(*state, mesh->getTopology(), indexBuffer.getCount(), indexBuffer.getType());
 }
 
 void nex::StaticMeshDrawer::draw(StaticMeshContainer* container, Pass* pass, const RenderState* overwriteState)

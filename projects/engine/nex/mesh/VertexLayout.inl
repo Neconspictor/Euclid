@@ -22,42 +22,42 @@ namespace nex
 	template <>
 	inline void VertexLayout::push<float>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::FLOAT, count, false, instanced });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count, false, instanced, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::UNSIGNED_INT, count, true, instanced });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_INT, count, true, instanced, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_INT);
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned char>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, true, instanced });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_BYTE, count, true, instanced, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_BYTE);
 	}
 
 	template <>
 	void VertexLayout::push<unsigned short>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, true, instanced });
+		mAttributes.push_back({ LayoutPrimitive::UNSIGNED_SHORT, count, true, instanced, buffer });
 		mStride += count * VertexAttribute::getSizeOfType(LayoutPrimitive::UNSIGNED_SHORT);
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec3>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::FLOAT, count * 3, false, instanced });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 3, false, instanced, buffer });
 		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec2>(unsigned count, GpuBuffer* buffer, bool instanced)
 	{
-		mElements.push_back({ LayoutPrimitive::FLOAT, count * 2, false, instanced });
+		mAttributes.push_back({ LayoutPrimitive::FLOAT, count * 2, false, instanced, buffer });
 		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutPrimitive::FLOAT);
 	}
 
@@ -66,9 +66,13 @@ namespace nex
 		return mStride;
 	}
 
-	inline const std::vector<VertexAttribute>& VertexLayout::getElements() const
+	inline const std::vector<VertexAttribute>& VertexLayout::getAttributes() const
 	{
-		return mElements;
+		return mAttributes;
+	}
+
+	inline std::vector<VertexAttribute>& VertexLayout::getAttributes() {
+		return mAttributes;
 	}
 
 	template <typename T>

@@ -2,13 +2,13 @@
 
 void nex::VertexLayout::read(nex::BinStream& in)
 {
-	in >> mElements;
+	in >> mAttributes;
 	in >> mStride;
 }
 
 void nex::VertexLayout::write(nex::BinStream& out) const
 {
-	out << mElements;
+	out << mAttributes;
 	out << mStride;
 }
 

@@ -12,6 +12,8 @@ namespace nex
 	{
 	public:
 
+		class Impl;
+
 		enum class UsageHint {
 			DYNAMIC_COPY, FIRST = DYNAMIC_COPY,
 			DYNAMIC_DRAW,
@@ -41,8 +43,21 @@ namespace nex
 
 		virtual ~GpuBuffer();
 
-		void bind();
+		/**
+		 * Binds the buffer.
+		 */
+		void bind() const;
 		
+		/**
+		 * Provides the api specific implementation.
+		 */
+		Impl* getImpl();
+
+		/**
+		 * Provides the api specific implementation.
+		 */
+		const Impl* getImpl() const;
+
 		/**
 		 * Provides the (byte) size of this buffer.
 		 */
@@ -51,14 +66,15 @@ namespace nex
 		UsageHint getUsageHint() const;
 
 
-		void* map(Access usage);
+		void* map(Access usage) const;
 
 		/**
+		 * Unbinds the buffer.
 		 * Note: bind() has to be called before calling this function.
 		 */
-		void unbind();
+		void unbind() const;
 
-		void unmap();
+		void unmap() const;
 
 		/**
 		 * @param data : Used to initialize the buffer. Can be null for not initializing the buffer store.
@@ -82,8 +98,6 @@ namespace nex
 		void update(size_t size, const void* data, size_t offset = 0);
 
 	protected:
-
-		class Impl;
 
 		/**
 		 * Creates a new, but uninitialized buffer.

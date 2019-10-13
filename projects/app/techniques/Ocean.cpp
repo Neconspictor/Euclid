@@ -198,19 +198,20 @@ void nex::OceanCpu::generateMesh()
 		}
 	}
 
-	VertexBuffer vertexBuffer;
-	vertexBuffer.bind();
-	vertexBuffer.resize(vertexCount * sizeof(VertexRender), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>();
+	vertexBuffer->bind();
+	vertexBuffer->resize(vertexCount * sizeof(VertexRender), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+
 	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.bind();
 
 	VertexLayout layout;
-	layout.push<glm::vec3>(1); // position
-	layout.push<glm::vec3>(1); // normal
+	layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+	layout.push<glm::vec3>(1, vertexBuffer.get()); // normal
 
 	VertexArray vertexArray;
 	vertexArray.bind();
-	vertexArray.useBuffer(vertexBuffer, layout);
+	vertexArray.init(layout);
 
 	vertexArray.unbind();
 	indexBuffer.unbind();
@@ -222,7 +223,12 @@ void nex::OceanCpu::generateMesh()
 	//boundingBox.max = glm::vec3(0.0f);
 
 	mMesh = std::make_unique<Mesh>();
-	mMesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+	mMesh->addVertexDataBuffer(std::move(vertexBuffer));
+	mMesh->setIndexBuffer(std::move(indexBuffer));
+	mMesh->setBoundingBox(std::move(boundingBox));
+	mMesh->setLayout(std::move(layout));
+	mMesh->setTopology(Topology::TRIANGLES);
+	mMesh->setVertexArray(std::move(vertexArray));
 	mMesh->finalize();
 }
 
@@ -242,8 +248,8 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 	mSimpleShadedPass->setUniforms(projection, view, model, lightDir);
 
 	//mMesh->bind();
-	mMesh->getVertexArray()->bind();
-	mMesh->getIndexBuffer()->bind();
+	mMesh->getVertexArray().bind();
+	mMesh->getIndexBuffer().bind();
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
@@ -262,10 +268,12 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 
 	state.depthCompare = CompareFunction::LESS;
 
-	mMesh->getVertexBuffer()->resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	auto& buffer = *mMesh->getVertexBuffers()[0];
+
+	buffer.resize(sizeof(VertexRender) * mVerticesRender.size(), mVerticesRender.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
+	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
 }
 
 nex::Complex nex::OceanCpu::height(int x, int z, float time) const
@@ -912,8 +920,8 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 		mHeightComputePass->getDz());
 
 	//mMesh->bind();
-	mMesh->getVertexArray()->bind();
-	mMesh->getIndexBuffer()->bind();
+	mMesh->getVertexArray().bind();
+	mMesh->getIndexBuffer().bind();
 	RenderState state;
 	state.doBlend = false;
 	state.doDepthTest = true;
@@ -932,10 +940,11 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 
 	state.depthCompare = CompareFunction::LESS;
 
-	mMesh->getVertexBuffer()->resize(sizeof(Vertex) * mVertices.size(), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	auto& buffer = *mMesh->getVertexBuffers()[0];
+	buffer.resize(sizeof(Vertex) * mVertices.size(), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer()->getCount(), mMesh->getIndexBuffer()->getType());
+	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
 }
 
 void nex::OceanGPU::simulate(float t)
@@ -1057,15 +1066,14 @@ void nex::OceanGPU::generateMesh()
 		}
 	}
 
-	VertexBuffer vertexBuffer;
-	vertexBuffer.bind();
-	vertexBuffer.resize(vertexCount * sizeof(Vertex), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
+	auto vertexBuffer = std::make_unique<VertexBuffer>();
+	vertexBuffer->resize(vertexCount * sizeof(Vertex), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
 	IndexBuffer indexBuffer(IndexElementType::BIT_32, static_cast<unsigned>(mIndices.size()), mIndices.data());
 	indexBuffer.unbind();
 
 	VertexLayout layout;
-	layout.push<glm::vec3>(1); // position
-	layout.push<glm::vec2>(1); // texCoords
+	layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+	layout.push<glm::vec2>(1, vertexBuffer.get()); // texCoords
 
 	//TODO
 	AABB boundingBox;
@@ -1073,7 +1081,11 @@ void nex::OceanGPU::generateMesh()
 	boundingBox.max = glm::vec3(0.0f);
 
 	mMesh = std::make_unique<Mesh>();
-	mMesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+	mMesh->addVertexDataBuffer(std::move(vertexBuffer));
+	mMesh->setBoundingBox(std::move(boundingBox));
+	mMesh->setIndexBuffer(std::move(indexBuffer));
+	mMesh->setLayout(std::move(layout));
+	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->finalize();
 }
 

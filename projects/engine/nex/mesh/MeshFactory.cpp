@@ -11,16 +11,28 @@ namespace nex
 {
 	std::unique_ptr<Mesh> MeshFactory::create(const MeshStore& store)
 	{
-		VertexBuffer vertexBuffer;
-		vertexBuffer.bind();
-		vertexBuffer.resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(store.vertices.size(), store.vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
 		IndexBuffer indexBuffer(store.indexType, store.indices.size() / getIndexElementTypeByteSize(store.indexType), 
 			store.indices.data());
 
 		indexBuffer.unbind();
 
 		auto mesh = std::make_unique<Mesh>();
-		mesh->init(std::move(vertexBuffer), store.layout, std::move(indexBuffer), store.boundingBox, Topology::TRIANGLES);
+		mesh->setBoundingBox(store.boundingBox);
+		mesh->setIndexBuffer(std::move(indexBuffer));
+
+		auto& layout = mesh->getLayout();
+		layout = store.layout;
+		auto& attributes = layout.getAttributes();
+		for (auto& attribute : attributes)
+		{
+			attribute.buffer = vertexBuffer.get();
+		}
+
+		mesh->addVertexDataBuffer(std::move(vertexBuffer));
+		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setIsLoaded();
 		return mesh;
 	}
 
@@ -29,23 +41,25 @@ namespace nex
 		using Vertex = VertexPositionNormalTexTangent;
 
 
-		VertexBuffer vertexBuffer;
-		vertexBuffer.bind();
-		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+
+		vertexBuffer->resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
-		//indexBuffer.bind();
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1); // position
-		layout.push<glm::vec3>(1); // normal
-		layout.push<glm::vec2>(1); // uv
-		layout.push<glm::vec3>(1); // tangent
-		layout.push<glm::vec3>(1); // bitangent
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // tangent
 
-		//indexBuffer.unbind();
 
 		auto mesh = std::make_unique<Mesh>();
-		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+		mesh->addVertexDataBuffer(std::move(vertexBuffer));
+		mesh->setBoundingBox(std::move(boundingBox));
+		mesh->setIndexBuffer(std::move(indexBuffer));
+		mesh->setLayout(std::move(layout));
+		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -55,18 +69,23 @@ namespace nex
 	{
 		using Vertex = VertexPositionNormalTex;
 
-		VertexBuffer vertexBuffer;
-		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
-		indexBuffer.unbind();
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1); // position
-		layout.push<glm::vec3>(1); // normal
-		layout.push<glm::vec2>(1); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // normal
+		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+
 
 		auto mesh = std::make_unique<Mesh>();
-		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+		mesh->addVertexDataBuffer(std::move(vertexBuffer));
+		mesh->setBoundingBox(std::move(boundingBox));
+		mesh->setIndexBuffer(std::move(indexBuffer));
+		mesh->setLayout(std::move(layout));
+		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -77,16 +96,20 @@ namespace nex
 	{
 		using Vertex = VertexPosition;
 
-		VertexBuffer vertexBuffer;
-		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
-		indexBuffer.unbind();
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1); // position
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
 
 		auto mesh = std::make_unique<Mesh>();
-		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+		mesh->addVertexDataBuffer(std::move(vertexBuffer));
+		mesh->setBoundingBox(std::move(boundingBox));
+		mesh->setIndexBuffer(std::move(indexBuffer));
+		mesh->setLayout(std::move(layout));
+		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setIsLoaded(true);
 
 		return mesh;
 	}
@@ -96,17 +119,21 @@ namespace nex
 	{
 		using Vertex = VertexPositionTex;
 
-		VertexBuffer vertexBuffer;
-		vertexBuffer.resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertexCount * sizeof(Vertex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		IndexBuffer indexBuffer(IndexElementType::BIT_32, indexCount, indices);
-		indexBuffer.unbind();
 
 		VertexLayout layout;
-		layout.push<glm::vec3>(1); // position
-		layout.push<glm::vec2>(1); // uv
+		layout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		layout.push<glm::vec2>(1, vertexBuffer.get()); // uv
 
 		auto mesh = std::make_unique<Mesh>();
-		mesh->init(std::move(vertexBuffer), std::move(layout), std::move(indexBuffer), std::move(boundingBox), Topology::TRIANGLES);
+		mesh->addVertexDataBuffer(std::move(vertexBuffer));
+		mesh->setBoundingBox(std::move(boundingBox));
+		mesh->setIndexBuffer(std::move(indexBuffer));
+		mesh->setLayout(std::move(layout));
+		mesh->setTopology(Topology::TRIANGLES);
+		mesh->setIsLoaded(true);
 
 		return mesh;
 	}

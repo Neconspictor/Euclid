@@ -4,6 +4,7 @@ namespace nex
 {
 	class VertexBuffer;
 	class VertexLayout;
+	class GpuBuffer;
 
 	class VertexArray
 	{
@@ -17,13 +18,21 @@ namespace nex
 
 		~VertexArray();
 
-		void useBuffer(VertexBuffer& buffer, const VertexLayout& layout);
+		void bind() const;
 
-		void bind();
+		/**
+		 * Initializes the vertex array with a given layout.
+		 *
+		 * NOTE: bind() has to be called priorly!
+		 */
+		void init(const VertexLayout& layout);
 
-		void unbind();
+		void unbind() const;
 
 	private:
+
+		void assign(const GpuBuffer*  buffer, const VertexLayout& layout);
+
 		unsigned int mRendererID;
 	};
 }

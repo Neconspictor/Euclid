@@ -102,12 +102,12 @@ namespace nex
 			// so we filter them and merge them separately
 			std::copy_if(meshes.begin(), meshes.end(), std::back_inserter(meshes32BitIndices),
 				[](auto* mesh) {
-					return mesh->getIndexBuffer()->getType() == IndexElementType::BIT_32;
+					return mesh->getIndexBuffer().getType() == IndexElementType::BIT_32;
 				});
 
 			std::copy_if(meshes.begin(), meshes.end(), std::back_inserter(meshes16BitIndices),
 				[](auto* mesh) {
-					return mesh->getIndexBuffer()->getType() == IndexElementType::BIT_16;
+					return mesh->getIndexBuffer().getType() == IndexElementType::BIT_16;
 				});
 
 			auto merged = merge(meshes32BitIndices, material, IndexElementType::BIT_32); 
@@ -143,10 +143,13 @@ namespace nex
 		size_t stride = layout.getStride();
 
 		for (auto* mesh : meshes) {
-			verticesByteSize += mesh->getVertexBuffer()->getSize();
-			indicesCount += mesh->getIndexBuffer()->getCount();
+			for (const auto& buffer : mesh->getVertexBuffers()) {
+				verticesByteSize += buffer->getSize();
+			}
+			
+			indicesCount += mesh->getIndexBuffer().getCount();
 
-			if (mesh->getIndexBuffer()->getType() != type) {
+			if (mesh->getIndexBuffer().getType() != type) {
 				throw_with_trace(std::runtime_error(
 					"StaticMeshContainer::merge : Cannot merge meshes with different index element types!"
 				));
@@ -154,7 +157,7 @@ namespace nex
 		}
 
 		// create merged mesh
-		VertexBuffer vertexBuffer(verticesByteSize, nullptr);
+		auto vertexBuffer = std::make_unique<VertexBuffer>(verticesByteSize, nullptr);
 		IndexBuffer indexBuffer(type, indicesCount, nullptr);
 
 
@@ -163,22 +166,22 @@ namespace nex
 
 		for (auto* mesh : meshes) {
 
-			auto* vBuffer = mesh->getVertexBuffer();
-			auto* iBuffer = mesh->getIndexBuffer();
+			for (const auto& vBuffer : mesh->getVertexBuffers()) {
+				auto* vertexData = vBuffer->map(GpuBuffer::Access::READ_ONLY);
+				vertexBuffer->update(vBuffer->getSize(), vertexData, collectedVerticesBytes);
+				collectedVerticesBytes += vBuffer->getSize();
+				vBuffer->unmap();
+			}
+
+			const auto& iBuffer = mesh->getIndexBuffer();
 
 			auto indexOffset = collectedVerticesBytes / stride;
-
-			auto*  vertexData = vBuffer->map(GpuBuffer::Access::READ_ONLY);
-				vertexBuffer.update(vBuffer->getSize(), vertexData, collectedVerticesBytes);
-				collectedVerticesBytes += vBuffer->getSize();
-			vBuffer->unmap();
-
-			auto* indexData = iBuffer->map(GpuBuffer::Access::READ_ONLY);
+			auto* indexData = iBuffer.map(GpuBuffer::Access::READ_ONLY);
 				// We have to translate the indices so that they specify the right vertices
-				translate(indexOffset, type, iBuffer->getCount(), indexData);
-				indexBuffer.update(iBuffer->getSize(), indexData, collectedIndicesBytes);
-				collectedIndicesBytes += iBuffer->getSize();
-			iBuffer->unmap();
+				translate(indexOffset, type, iBuffer.getCount(), indexData);
+				indexBuffer.update(iBuffer.getSize(), indexData, collectedIndicesBytes);
+				collectedIndicesBytes += iBuffer.getSize();
+			iBuffer.unmap();
 		}
 
 		//Compute bounding box of meshes 
@@ -194,7 +197,11 @@ namespace nex
 		const auto topology = meshes[0]->getTopology();
 
 		auto merged =  std::make_unique<Mesh>();
-		merged->init(std::move(vertexBuffer), layout, std::move(indexBuffer), box, topology);
+		merged->addVertexDataBuffer(std::move(vertexBuffer));
+		merged->setBoundingBox(std::move(box));
+		merged->setIndexBuffer(std::move(indexBuffer));
+		merged->setLayout(std::move(layout));
+		merged->setTopology(topology);
 		merged->finalize();
 		return merged;
 	}

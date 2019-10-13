@@ -4,6 +4,7 @@
 #include "VertexArrayGL.hpp"
 #include <nex/buffer/VertexBuffer.hpp>
 #include <nex/mesh/VertexLayout.hpp>
+#include <nex/opengl/buffer/GpuBufferGL.hpp>
 
 namespace nex
 {
@@ -56,38 +57,56 @@ namespace nex
 		}
 	}
 
-	void VertexArray::useBuffer(VertexBuffer& buffer, const VertexLayout& layout)
-	{
-		buffer.bind();
-
-		const auto& elements = layout.getElements();
-
-		size_t offset = 0;
-
-		for (unsigned int i = 0; i < elements.size(); ++i)
-		{
-			const auto& elem = elements[i];
-			
-			GLCall(glEnableVertexAttribArray(i));
-			GLCall(
-				glVertexAttribPointer(i, elem.count, translate(elem.type),
-					elem.normalized, layout.getStride(), (GLvoid*)offset)
-			);
-
-			GLCall(glVertexAttribDivisor(i, elem.instanced ? 1 : 0));
-
-			offset += elem.count * VertexAttribute::getSizeOfType(elem.type);
-			
-		}
-	}
-
-	void VertexArray::bind()
+	void VertexArray::bind() const
 	{
 		GLCall(glBindVertexArray(mRendererID));
 	}
 
-	void VertexArray::unbind()
+	void VertexArray::init(const VertexLayout& layout)
+	{
+		//collect all used buffers
+		std::set<GpuBuffer*> buffers;
+		for (const auto& attribute : layout.getAttributes())
+		{
+			if (attribute.buffer != nullptr)
+				buffers.insert(attribute.buffer);
+		}
+
+		//Now iterate over all buffers and connect attributes to buffers.
+
+		for (auto* buffer : buffers) {
+			assign(buffer, layout);
+		}
+	}
+
+	void VertexArray::unbind() const
 	{
 		GLCall(glBindVertexArray(0));
+	}
+
+	void VertexArray::assign(const GpuBuffer* buffer, const VertexLayout& layout) {
+		const auto* impl = buffer->getImpl();
+		const auto& attributes = layout.getAttributes();
+
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, impl->mRendererID));
+
+		size_t offset = 0;
+		for (unsigned int i = 0; i < attributes.size(); ++i)
+		{
+			const auto& attribute = attributes[i];
+
+			// Only configure if attribute is assigned to current bound buffer
+			if (attribute.buffer != buffer) continue;
+
+			GLCall(glEnableVertexAttribArray(i));
+			GLCall(
+				glVertexAttribPointer(i, attribute.count, translate(attribute.type),
+					attribute.normalized, layout.getStride(), (GLvoid*)offset)
+			);
+
+			GLCall(glVertexAttribDivisor(i, attribute.instanced ? 1 : 0));
+
+			offset += attribute.count * VertexAttribute::getSizeOfType(attribute.type);
+		}
 	}
 }

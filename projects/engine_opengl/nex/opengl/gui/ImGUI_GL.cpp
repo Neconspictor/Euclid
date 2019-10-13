@@ -459,15 +459,15 @@ namespace nex::gui
 
 
 		VertexLayout layout;
-		layout.push<float>(2); // Position
-		layout.push<float>(2); // UV
-		layout.push<unsigned char>(4); // Color
+		layout.push<float>(2, mVertexBuffer.get()); // Position
+		layout.push<float>(2, mVertexBuffer.get()); // UV
+		layout.push<unsigned char>(4, mVertexBuffer.get()); // Color
 
 		// NOTE: In order to support multiple GL contexts we have to recreate the vertex array on each render request; 
 		// For now we use only one context, so this solution is fine
 		mVertexArray = std::make_unique<VertexArray>();
 		mVertexArray->bind();
-		mVertexArray->useBuffer(*mVertexBuffer, layout);
+		mVertexArray->init(layout);
 		mVertexArray->unbind();
 
 		createFontsTexture();

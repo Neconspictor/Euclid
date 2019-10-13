@@ -74,10 +74,10 @@ nex::TesselationTest::TesselationTest() : mPass(std::make_unique<TesselationPass
 	//mBuffer = std::make_unique<VertexBuffer>(fullscreenPlaneTriangleStripVerticesOpengl2, sizeof(fullscreenPlaneTriangleStripVerticesOpengl2));
 	mBuffer = std::make_unique<VertexBuffer>(sizeof(fullscreenPlaneTriangleStripVerticesOpengl2), fullscreenPlaneTriangleStripVerticesOpengl2);
 	VertexLayout layout;
-	layout.push<float>(4);
-	layout.push<float>(2);
+	layout.push<float>(4, mBuffer.get());
+	layout.push<float>(2, mBuffer.get());
 	mMesh->bind();
-	mMesh->useBuffer(*mBuffer, layout);
+	mMesh->init(layout);
 	mMesh->unbind(); // important: In OpenGL implementation VertexBuffer creation with arguments corrupts state of vertex array, if not unbounded!
 
 	const glm::mat4 unit(1.0f);
@@ -99,8 +99,8 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 
 	//mMesh->bind();
 	auto* mesh = mHeightMap.getMesh();
-	mesh->getVertexArray()->bind();
-	mesh->getIndexBuffer()->bind();
+	mesh->getVertexArray().bind();
+	mesh->getIndexBuffer().bind();
 	RenderBackend::get()->setPatchVertexCount(4);
 	RenderState state;
 	state.doBlend = false;
@@ -120,7 +120,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 	state.depthCompare = CompareFunction::LESS;
 
 	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer().getCount(), mesh->getIndexBuffer().getType());
 
 
 	if (mShowNormals)
@@ -131,7 +131,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 		state.doCullFaces = false;
 		//state.doDepthTest = false;
 		//state.doDepthWrite = false;
-		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer()->getCount(), mesh->getIndexBuffer()->getType());
+		RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer().getCount(), mesh->getIndexBuffer().getType());
 	}
 }
 

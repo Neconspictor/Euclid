@@ -116,9 +116,19 @@ nex::GpuBuffer::~GpuBuffer() {
 	mImpl = nullptr;
 };
 
-void nex::GpuBuffer::bind()
+void nex::GpuBuffer::bind() const
 {
 	GLCall(glBindBuffer(mImpl->mTarget, mImpl->mRendererID));
+}
+
+nex::GpuBuffer::Impl* nex::GpuBuffer::getImpl()
+{
+	return mImpl;
+}
+
+const nex::GpuBuffer::Impl* nex::GpuBuffer::getImpl() const
+{
+	return mImpl;
 }
 
 size_t nex::GpuBuffer::getSize() const
@@ -131,18 +141,18 @@ nex::GpuBuffer::UsageHint nex::GpuBuffer::getUsageHint() const
 	return mUsageHint;
 }
 
-void* nex::GpuBuffer::map(GpuBuffer::Access usage)
+void* nex::GpuBuffer::map(GpuBuffer::Access usage) const
 {
 	GLCall(void* ptr = glMapNamedBuffer(mImpl->mRendererID, translate(usage)));
 	return ptr;
 }
 
-void nex::GpuBuffer::unbind()
+void nex::GpuBuffer::unbind() const
 {
 	GLCall(glBindBuffer(mImpl->mTarget, GL_FALSE));
 }
 
-void nex::GpuBuffer::unmap()
+void nex::GpuBuffer::unmap() const
 {
 	GLCall(glUnmapNamedBuffer(mImpl->mRendererID));
 }

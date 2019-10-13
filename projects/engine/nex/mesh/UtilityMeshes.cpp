@@ -50,10 +50,7 @@ namespace nex
 			}
 		}
 
-		// define layout
-		mLayout.push<glm::vec3>(1); // position
-		mLayout.push<glm::vec3>(1); // normal
-		mLayout.push<glm::vec2>(1); // uv
+		
 
 		// calc bounding box
 		mBoundingBox.min = glm::vec3(-1.0);
@@ -61,12 +58,16 @@ namespace nex
 
 
 		// upload data into buffers
-		mVertexBuffer.bind();
-		mVertexBuffer.resize(vertices.size() * sizeof(VertexPositionNormalTex), vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
-
-		mIndexBuffer.bind();
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertices.size() * sizeof(VertexPositionNormalTex), vertices.data(), GpuBuffer::UsageHint::STATIC_DRAW);
 		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
-		mIndexBuffer.unbind();
+
+		// define layout
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // normal
+		mLayout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+
+		addVertexDataBuffer(std::move(vertexBuffer));
 
 
 
@@ -213,19 +214,19 @@ namespace nex
 			mBoundingBox.max = nex::maxVec(mBoundingBox.max, vertices[i].position);
 		}
 
-		// define layout
-		mLayout.push<glm::vec3>(1); // position
-		mLayout.push<glm::vec3>(1); // normal
-		mLayout.push<glm::vec2>(1); // uv
-
 
 		// upload data into buffers
-		mVertexBuffer.bind();
-		mVertexBuffer.resize(8 * sizeof(VertexPositionNormalTex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-
-		mIndexBuffer.bind();
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(8 * sizeof(VertexPositionNormalTex), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		mIndexBuffer.fill(IndexElementType::BIT_32, indices.size(), indices.data());
-		mIndexBuffer.unbind();
+
+		// define layout
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // normal
+		mLayout.push<glm::vec2>(1, vertexBuffer.get()); // uv
+
+		addVertexDataBuffer(std::move(vertexBuffer));
+
 
 		mTopology = Topology::LINES;
 	}
@@ -309,16 +310,16 @@ namespace nex
 		// Calc bounding box
 		mBoundingBox = box;
 
-		// define layout
-		mLayout.push<glm::vec3>(1); // position
 
 		// upload data into buffers
-		mVertexBuffer.bind();
-		mVertexBuffer.resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-
-		mIndexBuffer.bind();
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
-		mIndexBuffer.unbind();
+
+		// define layout
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+
+		addVertexDataBuffer(std::move(vertexBuffer));
 
 		mTopology = Topology::LINES;
 	}
@@ -395,16 +396,15 @@ namespace nex
 		// Calc bounding box
 		mBoundingBox = box;
 
-		// define layout
-		mLayout.push<glm::vec3>(1); // position
-
 		// upload data into buffers
-		mVertexBuffer.bind();
-		mVertexBuffer.resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
-
-		mIndexBuffer.bind();
+		auto vertexBuffer = std::make_unique<VertexBuffer>();
+		vertexBuffer->resize(vertexSize * sizeof(VertexPosition), vertices, GpuBuffer::UsageHint::STATIC_DRAW);
 		mIndexBuffer.fill(IndexElementType::BIT_32, indicesSize, indices);
-		mIndexBuffer.unbind();
+
+		// define layout
+		mLayout.push<glm::vec3>(1, vertexBuffer.get()); // position
+
+		addVertexDataBuffer(std::move(vertexBuffer));
 
 		mTopology = Topology::TRIANGLES;
 	}

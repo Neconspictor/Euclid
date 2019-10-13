@@ -7,20 +7,18 @@ using namespace nex;
 
 Mesh::Mesh() : mTopology(Topology::TRIANGLES)
 {
-	//mBoundingBox.min = glm::vec3(0.0f);
-	//mBoundingBox.max = glm::vec3(0.0f);
 }
 
 void nex::Mesh::finalize()
 {
-	if (mVertexArray) return;
+	if (!mVertexArray) {
+		mVertexArray = std::make_unique<VertexArray>();
 
-	mVertexArray = std::make_unique<VertexArray>();
+		mVertexArray->bind();
+		mVertexArray->init(mLayout);
 
-	mVertexArray->bind();
-	mVertexArray->useBuffer(mVertexBuffer, mLayout);
-
-	mVertexArray->unbind();
+		mVertexArray->unbind();
+	}
 
 	// set 'is loaded' state of this resource.
 	setIsLoaded();
@@ -36,17 +34,32 @@ void nex::Mesh::addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer)
 	mBuffers.emplace_back(std::move(buffer));
 }
 
-void Mesh::setBoundingBox(const AABB& box)
+void Mesh::setBoundingBox(AABB box)
 {
-	mBoundingBox = box;
+	mBoundingBox = std::move(box);
 }
 
-IndexBuffer* Mesh::getIndexBuffer()
+void nex::Mesh::setLayout(VertexLayout layout)
 {
-	return &mIndexBuffer;
+	mLayout = std::move(layout);
+}
+
+IndexBuffer& Mesh::getIndexBuffer()
+{
+	return mIndexBuffer;
+}
+
+const IndexBuffer& nex::Mesh::getIndexBuffer() const
+{
+	return mIndexBuffer;
 }
 
 const VertexLayout& nex::Mesh::getLayout() const
+{
+	return mLayout;
+}
+
+VertexLayout& nex::Mesh::getLayout()
 {
 	return mLayout;
 }
@@ -61,22 +74,25 @@ void Mesh::setTopology(Topology topology)
 	mTopology = topology;
 }
 
-VertexArray* Mesh::getVertexArray()
+VertexArray& Mesh::getVertexArray()
 {
-	return mVertexArray.get();
+	return *mVertexArray;
 }
 
-/*
-void nex::Mesh::init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology)
+const VertexArray& nex::Mesh::getVertexArray() const
 {
-	mLayout = std::move(layout);
-	mIndexBuffer = std::move(indexBuffer);
-	mVertexBuffer = std::move(vertexBuffer);
-	mBoundingBox = std::move(boundingBox);
-	mTopology = topology;
-	
-	setIsLoaded();
-}*/
+	return *mVertexArray;
+}
+
+std::vector<std::unique_ptr<GpuBuffer>>& nex::Mesh::getVertexBuffers()
+{
+	return mBuffers;
+}
+
+const std::vector<std::unique_ptr<GpuBuffer>>& nex::Mesh::getVertexBuffers() const
+{
+	return mBuffers;
+}
 
 void Mesh::setIndexBuffer(IndexBuffer buffer)
 {

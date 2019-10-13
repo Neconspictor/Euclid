@@ -29,19 +29,25 @@ namespace nex
 
 		virtual ~Mesh() = default;
 
+
+		/**
+		 * The mesh class can be used for conveniently storing buffers containing actual vertex data.
+		 */
+		void addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer);
+
 		void finalize() override;
 
 
 		const AABB& getAABB() const;
-		IndexBuffer* getIndexBuffer();
-		const IndexBuffer* getIndexBuffer() const;
+		IndexBuffer& getIndexBuffer();
+		const IndexBuffer& getIndexBuffer() const;
 
 		const VertexLayout& getLayout() const;
 		VertexLayout& getLayout();
 		
 		Topology getTopology() const;
-		VertexArray* getVertexArray();
-		const VertexArray* getVertexArray() const;
+		VertexArray& getVertexArray();
+		const VertexArray& getVertexArray() const;
 		
 		std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers();
 		const std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers() const;
@@ -49,12 +55,8 @@ namespace nex
 		void setIndexBuffer(IndexBuffer buffer);
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
-
-		/**
-		 * The mesh class can be used for conveniently storing buffers containing actual vertex data.
-		 */
-		void addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer);
-		void setBoundingBox(const AABB& box);
+		void setBoundingBox(AABB box);
+		void setLayout(VertexLayout layout);
 		
 		std::string mDebugName;
 

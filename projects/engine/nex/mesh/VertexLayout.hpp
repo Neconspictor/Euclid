@@ -53,7 +53,7 @@ namespace nex
 	class VertexLayout
 	{
 	private:
-		std::vector<nex::VertexAttribute> mElements;
+		std::vector<nex::VertexAttribute> mAttributes;
 		unsigned int mStride;
 
 	public:
@@ -81,7 +81,8 @@ namespace nex
 		inline void push<glm::vec2>(unsigned int count, GpuBuffer* buffer, bool instanced);
 
 		inline unsigned int getStride() const;
-		inline const std::vector<VertexAttribute>& getElements() const;
+		inline const std::vector<VertexAttribute>& getAttributes() const;
+		inline std::vector<VertexAttribute>& getAttributes();
 
 		void read(nex::BinStream& in);
 		void write(nex::BinStream& out) const;
