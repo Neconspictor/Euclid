@@ -99,10 +99,12 @@ void nex::MeshLoader<nex::Mesh::Vertex>::processMesh(const std::filesystem::path
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
-	layout.push<glm::vec3>(1); // position
-	layout.push<glm::vec3>(1); // normal
-	layout.push<glm::vec2>(1); // uv
-	layout.push<glm::vec3>(1); // tangent
+
+	// Note: we later set the vertex buffer, so nullptr is ok for now
+	layout.push<glm::vec3>(1, nullptr); // position
+	layout.push<glm::vec3>(1, nullptr); // normal
+	layout.push<glm::vec2>(1, nullptr); // uv
+	layout.push<glm::vec3>(1, nullptr); // tangent
 
 	store.topology = Topology::TRIANGLES;
 
@@ -189,7 +191,9 @@ void nex::MeshLoader<nex::VertexPosition>::processMesh(const std::filesystem::pa
 
 	store.indexType = IndexElementType::BIT_32;
 	auto& layout = store.layout;
-	layout.push<glm::vec3>(1); // position
+
+	// Note: we later set the vertex buffer, so nullptr is ok for now
+	layout.push<glm::vec3>(1, nullptr); // position
 
 	store.topology = Topology::TRIANGLES;
 

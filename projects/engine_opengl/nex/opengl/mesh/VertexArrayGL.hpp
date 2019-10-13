@@ -6,7 +6,7 @@
 namespace nex
 {
 
-	enum class LayoutType;
+	enum class LayoutPrimitive;
 
 	enum LayoutTypeGL
 	{
@@ -17,5 +17,5 @@ namespace nex
 	};
 
 
-	LayoutTypeGL translate(LayoutType type);
+	LayoutTypeGL translate(LayoutPrimitive type);
 }

@@ -26,14 +26,14 @@ void nex::Mesh::finalize()
 	setIsLoaded();
 }
 
-void Mesh::setVertexBuffer(VertexBuffer buffer)
-{
-	mVertexBuffer = std::move(buffer);
-}
-
 const AABB& Mesh::getAABB() const
 {
 	return mBoundingBox;
+}
+
+void nex::Mesh::addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer)
+{
+	mBuffers.emplace_back(std::move(buffer));
 }
 
 void Mesh::setBoundingBox(const AABB& box)
@@ -66,11 +66,7 @@ VertexArray* Mesh::getVertexArray()
 	return mVertexArray.get();
 }
 
-VertexBuffer* Mesh::getVertexBuffer()
-{
-	return &mVertexBuffer;
-}
-
+/*
 void nex::Mesh::init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology)
 {
 	mLayout = std::move(layout);
@@ -80,7 +76,7 @@ void nex::Mesh::init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer
 	mTopology = topology;
 	
 	setIsLoaded();
-}
+}*/
 
 void Mesh::setIndexBuffer(IndexBuffer buffer)
 {

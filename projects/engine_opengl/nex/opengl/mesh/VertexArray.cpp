@@ -8,7 +8,7 @@
 namespace nex
 {
 
-	LayoutTypeGL translate(LayoutType type)
+	LayoutTypeGL translate(LayoutPrimitive type)
 	{
 		static LayoutTypeGL const table[]
 		{
@@ -18,7 +18,7 @@ namespace nex
 			UNSIGNED_SHORT,
 		};
 
-		static const unsigned size = (unsigned)LayoutType::LAST - (unsigned)LayoutType::FIRST + 1;
+		static const unsigned size = (unsigned)LayoutPrimitive::LAST - (unsigned)LayoutPrimitive::FIRST + 1;
 		static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: LayoutType and LayoutTypeGL don't match!");
 
 		return table[(unsigned)type];

@@ -34,17 +34,26 @@ namespace nex
 
 		const AABB& getAABB() const;
 		IndexBuffer* getIndexBuffer();
+		const IndexBuffer* getIndexBuffer() const;
+
 		const VertexLayout& getLayout() const;
+		VertexLayout& getLayout();
+		
 		Topology getTopology() const;
 		VertexArray* getVertexArray();
-		VertexBuffer* getVertexBuffer();
-
-		void init(VertexBuffer vertexBuffer, VertexLayout layout, IndexBuffer indexBuffer, AABB boundingBox, Topology topology = Topology::TRIANGLES);
+		const VertexArray* getVertexArray() const;
+		
+		std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers();
+		const std::vector<std::unique_ptr<GpuBuffer>>& getVertexBuffers() const;
 
 		void setIndexBuffer(IndexBuffer buffer);
 		void setTopology(Topology topology);
 		void setVertexArray(VertexArray vertexArray);
-		void setVertexBuffer(VertexBuffer buffer);
+
+		/**
+		 * The mesh class can be used for conveniently storing buffers containing actual vertex data.
+		 */
+		void addVertexDataBuffer(std::unique_ptr<GpuBuffer> buffer);
 		void setBoundingBox(const AABB& box);
 		
 		std::string mDebugName;
@@ -53,7 +62,7 @@ namespace nex
 		std::unique_ptr<VertexArray> mVertexArray;
 		VertexLayout mLayout;
 		IndexBuffer mIndexBuffer;
-		VertexBuffer mVertexBuffer;
+		std::vector<std::unique_ptr<GpuBuffer>> mBuffers;
 		AABB mBoundingBox;
 
 		Topology mTopology;
