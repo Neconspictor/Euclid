@@ -65,12 +65,12 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(64, //N
-		64, // maxWaveLength
-		1.0f, //dimension
+	mOcean(128, //N
+		128, // maxWaveLength
+		5.0f, //dimension
 		0.4f, //spectrumScale
-		glm::vec2(0.0f, 1.0f), //windDirection
-		32.0f, //windSpeed
+		glm::vec2(1.0f, 1.0f), //windDirection
+		6.0f, //windSpeed
 		200.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
@@ -243,7 +243,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	stencilTest->enableStencilTest(true);
 
 	//mTesselationTest.draw(camera, sun->getDirection());
-	//mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
 
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
@@ -939,10 +939,11 @@ void nex::PBR_Deferred_Renderer_ConfigurationView::drawSelf()
 
 	/*nex::gui::Separator(2.0f);
 	mTesselationConfig.drawGUI();
+	*/
 
 	nex::gui::Separator(2.0f);
 	ImGui::Text("Ocean:");
-	mOceanConfig.drawGUI();*/
+	mOceanConfig.drawGUI();
 
 	nex::gui::Separator(2.0f);
 

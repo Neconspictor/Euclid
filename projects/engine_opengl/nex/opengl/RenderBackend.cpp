@@ -565,6 +565,21 @@ namespace nex
 		GLCall(glDrawElements((GLenum)translate(topology), static_cast<GLsizei>(indexCount), (GLenum)translate(indexType), (GLvoid*)byteOffset));
 	}
 
+	void RenderBackend::drawWithIndicesInstanced(	size_t instanceCount, 
+													const RenderState& state, 
+													Topology topology, 
+													size_t indexCount, 
+													IndexElementType indexType, 
+													size_t byteOffset)
+	{
+		setRenderState(state);
+		GLCall(glDrawElementsInstanced(	(GLenum)translate(topology), 
+										static_cast<GLsizei>(indexCount), 
+										(GLenum)translate(indexType), 
+										(GLvoid*)byteOffset, 
+										static_cast<GLsizei>(instanceCount)));
+	}
+
 	void RenderBackend::flushPendingCommands()
 	{
 		GLCall(glFlush());

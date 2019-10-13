@@ -315,7 +315,12 @@ namespace nex
 		/**
 		 * Instanced version of drawWithIndices.
 		 */
-		void drawWithIndicesInstanced(const RenderState& state, Topology topology, size_t indexCount, IndexElementType indexType, size_t byteOffset = 0);
+		void drawWithIndicesInstanced(	size_t instanceCount, 
+										const RenderState& state, 
+										Topology topology, 
+										size_t indexCount, 
+										IndexElementType indexType, 
+										size_t byteOffset = 0);
 
 		/**
 		 * Sends any pending render commands (backend specific) to the GPU.

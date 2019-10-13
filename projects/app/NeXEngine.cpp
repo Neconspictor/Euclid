@@ -335,8 +335,7 @@ void NeXEngine::run()
 
 			static float simulationTime = 0.0f;
 			simulationTime += frameTime;
-			//mRenderer->getOcean()->simulate(simulationTime * 0.5f);
-			//mOcean.simulate(simulationTime * 0.5f);
+			mRenderer->getOcean()->simulate(simulationTime * 0.5f);
 
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
@@ -448,33 +447,13 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	mScene.acquireLock();
 	mScene.clearUnsafe();
 
-	auto* meshContainer = StaticMeshManager::get()->getModel("misc/textured_plane.obj");
-	commandQueue->push([=]() {
-		meshContainer->finalize();
-	});
 
 
-	//meshContainer->getIsLoadedStatus().get()->finalize();
+
+
 	
-	/*auto* ground = meshContainer->createNodeHierarchyUnsafe();
-	auto* groundVob = mScene.createVobUnsafe(ground);
-	groundVob->setSelectable(true);
-	groundVob->mDebugName = "ground";
-
-	meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaTest5.obj");
-
-	commandQueue->push([=]() {
-		meshContainer->finalize();
-	});
-
-	//meshContainer->getIsLoadedStatus().get()->finalize();
-	auto* sponzaNode = meshContainer->createNodeHierarchyUnsafe();
-	auto* sponzaVob = mScene.createVobUnsafe(sponzaNode);
-	sponzaVob->mDebugName = "sponza";*/
-
-
-
-	meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
+	// scene nodes (sponza, transparent)
+	auto* meshContainer = StaticMeshManager::get()->getModel("sponza/sponzaSimple1.obj");
 
 	commandQueue->push([=]() {
 		meshContainer->finalize();
@@ -492,19 +471,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		meshContainer->finalize();
 	});
 	
-	//meshContainer->getIsLoadedStatus().get()->finalize();
-	//auto* transparent = meshContainer->createNodeHierarchyUnsafe(&mScene);
-	//auto* transparentVob = mScene.createVobUnsafe(transparent);
-	//transparentVob->mDebugName = "transparent - 1";
-	//auto* transparentVob2 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
-	//transparentVob2->mDebugName = "transparent - 2";
 	auto* transparentVob3 = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe());
 	transparentVob3->mDebugName = "transparent - 3";
-
-	//(*(transparentVob->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
-	//(*(transparentVob->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
-	//(*(transparentVob2->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doCullFaces = false;
-	//(*(transparentVob2->getMeshRootNode()->getChildren().begin()))->getMaterial()->getRenderState().doShadowCast = false;
 
 	auto& childs = transparentVob3->getMeshRootNode()->getChildren();
 
@@ -514,13 +482,9 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 		childs[i]->getMaterial()->getRenderState().doShadowCast = false;
 	}
 
-
-
-
-	//transparentVob->setPosition(glm::vec3(-2.0f, 2.0f, 0.0f));
-	//transparentVob2->setPosition(glm::vec3(-3.0f, 2.0f, 0.0f));
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
+	/* //probes
 	const int rows = 1;
 	const int columns = 1;
 	const int depths = 2;
@@ -544,16 +508,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}
-	}
-
-	/*meshContainer = StaticMeshManager::get()->getModel("cerberus/cerberus.obj");
-	ResourceLoader::get()->enqueue([=] {
-		return meshContainer;
-	});
-	auto* cerberus = mScene.createVobUnsafe(meshContainer->createNodeHierarchyUnsafe(&mScene));
-	cerberus->setPosition(glm::vec3(-9.0f, 2.0f, 0.0f));*/
-
-	//ground->setPositionLocal({ 10, 0, 0 });
+	}*/
 
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;

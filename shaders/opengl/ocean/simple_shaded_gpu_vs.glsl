@@ -37,6 +37,9 @@ void main() {
                          texture(height, texCoords).x,
                          position.z + mLambda * mDZ.x,
                          1.0);
+                         
+                         
+    mPosition += vec4(128 * (gl_InstanceID % 8),0, 128 * (gl_InstanceID / 8), 0);                     
    
    vec3 mNormal = normalize(vec3(-mSlopeX.x, 1.0f, -mSlopeZ.x));
     
@@ -46,5 +49,5 @@ void main() {
   vs_out.positionView = vec3(modelViewMatrix * mPosition);
   //vs_out.texCoords = texCoords;
   
-  gl_Position = transform * mPosition;  
+  gl_Position = transform * mPosition;
 }

@@ -69,7 +69,7 @@ nex::Ocean::Ocean(unsigned N,
 	mWindDirection(glm::normalize(windDirection)),
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
-	mWireframe(true)
+	mWireframe(false)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -909,8 +909,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 {
 	mSimpleShadedPass->bind();
 	glm::mat4 model;
-	model = translate(model, glm::vec3(0, 2, -1));
-	model = scale(model, glm::vec3(1 / (float)mWaveLength));
+	model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
+	model = translate(model, glm::vec3(0, 3, 0));
+	model = scale(model, glm::vec3(1 / (float)mWaveLength) * mDimension);
 
 	mSimpleShadedPass->setUniforms(projection, view, model, lightDir, 
 		mHeightComputePass->getHeight(),
@@ -937,14 +938,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 		state.fillMode = FillMode::FILL;
 	}
 
-
 	state.depthCompare = CompareFunction::LESS;
 
-	auto& buffer = *mMesh->getVertexBuffers()[0];
-	buffer.resize(sizeof(Vertex) * mVertices.size(), mVertices.data(), ShaderBuffer::UsageHint::DYNAMIC_DRAW);
-
-	// Only draw the first triangle
-	RenderBackend::get()->drawWithIndices(state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
+	RenderBackend::get()->drawWithIndicesInstanced(64, state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
 }
 
 void nex::OceanGPU::simulate(float t)
