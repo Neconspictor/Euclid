@@ -68,12 +68,16 @@ namespace nex
 		{
 			const auto& elem = elements[i];
 			
+			GLCall(glEnableVertexAttribArray(i));
 			GLCall(
 				glVertexAttribPointer(i, elem.count, translate(elem.type),
 					elem.normalized, layout.getStride(), (GLvoid*)offset)
-			); //layout.getStride() TODO
+			);
+
+			GLCall(glVertexAttribDivisor(i, elem.instanced ? 1 : 0));
+
 			offset += elem.count * LayoutElement::getSizeOfType(elem.type);
-			GLCall(glEnableVertexAttribArray(i));
+			
 		}
 	}
 
