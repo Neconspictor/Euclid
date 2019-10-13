@@ -10,12 +10,19 @@ nex::CacheError::CacheError(const char* _Message): runtime_error(_Message)
 {
 }
 
-void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer)
+void nex::GlobalCacheGL::BindDrawFramebuffer(GLuint framebuffer, bool ignoreErrors)
 {
 	if (mActiveDrawFrameBuffer != framebuffer)
 	{
 		mActiveDrawFrameBuffer = framebuffer;
-		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer));
+		if (!ignoreErrors) {
+			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer));
+		}
+		else {
+			nex::GLClearError();
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+			nex::GLClearError();
+		}
 	}
 }
 
@@ -79,12 +86,18 @@ void nex::GlobalCacheGL::BindImageTexture(GLuint unit, GLuint texture, GLint lev
 	}
 }
 
-void nex::GlobalCacheGL::BindReadFramebuffer(GLuint framebuffer)
+void nex::GlobalCacheGL::BindReadFramebuffer(GLuint framebuffer, bool ignoreErrors)
 {
 	if (mActiveReadFrameBuffer != framebuffer)
 	{
 		mActiveReadFrameBuffer = framebuffer;
-		GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer));
+		if (!ignoreErrors) {
+			GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer));
+		} else {
+			nex::GLClearError();
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+			nex::GLClearError();
+		}
 	}
 }
 
@@ -170,7 +183,8 @@ void nex::ShaderCacheGL::Uniform1ui(GLint location, GLuint value)
 
 void nex::ShaderCacheGL::assertActiveProgram()
 {
-	if (nex::GlobalCacheGL::get()->getActiveProgram() != mProgram)
+	auto globalCacheProgram = nex::GlobalCacheGL::get()->getActiveProgram();
+	if (globalCacheProgram != mProgram)
 	{
 		throw CacheError("nex::ShaderCacheGL::assertActiveProgram: active program and shader program of a cache don't match!");
 	}

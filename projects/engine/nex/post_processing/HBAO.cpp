@@ -792,6 +792,7 @@ namespace nex
 	{
 		if (id != 0 && id != 1) throw_with_trace(std::runtime_error("HbaoBlur::bindPreset: id has to be 0 or 1"));
 		mActivePreset = id;
+		mBlurPreset[mActivePreset]->bind();
 	}
 
 	nex::Pass* HbaoBlur::getPreset(int id)

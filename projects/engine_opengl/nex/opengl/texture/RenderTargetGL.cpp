@@ -570,11 +570,14 @@ GLint nex::RenderTarget::Impl::getRenderComponents(int components)
 
 void nex::RenderTarget::Impl::init()
 {
-	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_WIDTH, mWidth);
-	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_HEIGHT, mHeight);
-	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_LAYERS, 0);
-	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 0);
-	glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS, GL_FALSE);
+	if (mFrameBuffer == GL_FALSE) {
+		return;
+	}
+	GLCall(glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_WIDTH, mWidth));
+	GLCall(glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_HEIGHT, mHeight));
+	GLCall(glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_LAYERS, 0));
+	GLCall(glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_SAMPLES, 0));
+	GLCall(glNamedFramebufferParameteri(mFrameBuffer, GL_FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS, GL_FALSE));
 }
 
 void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
@@ -585,8 +588,8 @@ void nex::RenderTarget::Impl::bindOnce(GLuint frameBufferID)
 
 	cache->BindFramebuffer(frameBufferID, true);
 	
-	cache->BindDrawFramebuffer(drawBuffer);
-	cache->BindReadFramebuffer(readBuffer);
+	cache->BindDrawFramebuffer(drawBuffer, true);
+	cache->BindReadFramebuffer(readBuffer, true);
 }
 
 nex::RenderTarget2DGL::RenderTarget2DGL(unsigned width,

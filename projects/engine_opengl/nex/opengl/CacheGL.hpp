@@ -19,14 +19,14 @@ namespace nex
 	class GlobalCacheGL
 	{
 	public:
-		void BindDrawFramebuffer(GLuint framebuffer);
+		void BindDrawFramebuffer(GLuint framebuffer, bool ignoreErrors = false);
 
 		/**
 		 * @param rebind: binds the framebuffer always and ignores cached values
 		 */
 		void BindFramebuffer(GLuint framebuffer, bool rebind = false);
 		void BindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
-		void BindReadFramebuffer(GLuint framebuffer);
+		void BindReadFramebuffer(GLuint framebuffer, bool ignoreErrors = false);
 		void BindTextureUnit(GLuint unit, GLuint texture);
 
 		/**
