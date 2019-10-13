@@ -16,7 +16,7 @@ namespace nex
 	};
 
 
-	struct LayoutElement
+	struct VertexAttribute
 	{
 		LayoutType type;
 		unsigned int count;
@@ -34,7 +34,7 @@ namespace nex
 	class VertexLayout
 	{
 	private:
-		std::vector<nex::LayoutElement> mElements;
+		std::vector<nex::VertexAttribute> mElements;
 		unsigned int mStride;
 
 	public:
@@ -62,7 +62,7 @@ namespace nex
 		inline void push<glm::vec2>(unsigned int count, bool instanced);
 
 		inline unsigned int getStride() const;
-		inline const std::vector<LayoutElement>& getElements() const;
+		inline const std::vector<VertexAttribute>& getElements() const;
 
 		void read(nex::BinStream& in);
 		void write(nex::BinStream& out) const;

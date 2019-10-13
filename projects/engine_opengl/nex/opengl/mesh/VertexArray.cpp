@@ -76,7 +76,7 @@ namespace nex
 
 			GLCall(glVertexAttribDivisor(i, elem.instanced ? 1 : 0));
 
-			offset += elem.count * LayoutElement::getSizeOfType(elem.type);
+			offset += elem.count * VertexAttribute::getSizeOfType(elem.type);
 			
 		}
 	}

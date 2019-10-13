@@ -4,7 +4,7 @@
 
 namespace nex
 {
-	inline unsigned LayoutElement::getSizeOfType(LayoutType type)
+	inline unsigned VertexAttribute::getSizeOfType(LayoutType type)
 	{
 		switch (type)
 		{
@@ -23,42 +23,42 @@ namespace nex
 	inline void VertexLayout::push<float>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::FLOAT, count, false, instanced });
-		mStride += count * LayoutElement::getSizeOfType(LayoutType::FLOAT);
+		mStride += count * VertexAttribute::getSizeOfType(LayoutType::FLOAT);
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::UNSIGNED_INT, count, true, instanced });
-		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_INT);
+		mStride += count * VertexAttribute::getSizeOfType(LayoutType::UNSIGNED_INT);
 	}
 
 	template <>
 	inline void VertexLayout::push<unsigned char>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::UNSIGNED_BYTE, count, true, instanced });
-		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_BYTE);
+		mStride += count * VertexAttribute::getSizeOfType(LayoutType::UNSIGNED_BYTE);
 	}
 
 	template <>
 	void VertexLayout::push<unsigned short>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::UNSIGNED_SHORT, count, true, instanced });
-		mStride += count * LayoutElement::getSizeOfType(LayoutType::UNSIGNED_SHORT);
+		mStride += count * VertexAttribute::getSizeOfType(LayoutType::UNSIGNED_SHORT);
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec3>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::FLOAT, count * 3, false, instanced });
-		mStride += count * 3 * LayoutElement::getSizeOfType(LayoutType::FLOAT);
+		mStride += count * 3 * VertexAttribute::getSizeOfType(LayoutType::FLOAT);
 	}
 
 	template <>
 	inline void VertexLayout::push<glm::vec2>(unsigned count, bool instanced)
 	{
 		mElements.push_back({ LayoutType::FLOAT, count * 2, false, instanced });
-		mStride += count * 2 * LayoutElement::getSizeOfType(LayoutType::FLOAT);
+		mStride += count * 2 * VertexAttribute::getSizeOfType(LayoutType::FLOAT);
 	}
 
 	inline unsigned VertexLayout::getStride() const
@@ -66,7 +66,7 @@ namespace nex
 		return mStride;
 	}
 
-	inline const std::vector<LayoutElement>& VertexLayout::getElements() const
+	inline const std::vector<VertexAttribute>& VertexLayout::getElements() const
 	{
 		return mElements;
 	}
