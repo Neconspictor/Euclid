@@ -71,7 +71,11 @@ namespace nex
 		BlendOperation operation = BlendOperation::ADD;
 
 		static BlendDesc createAlphaTransparency() {
-			return { BlendFunc::ONE, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+			return { BlendFunc::SOURCE_ALPHA, BlendFunc::ONE_MINUS_SOURCE_ALPHA, BlendOperation::ADD };
+		}
+
+		static BlendDesc createMultiplicativeBlending() {
+			return {BlendFunc::DESTINATION_COLOR, BlendFunc::ZERO, BlendOperation::ADD};
 		}
 	};
 

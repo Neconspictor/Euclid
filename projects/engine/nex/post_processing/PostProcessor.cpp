@@ -51,8 +51,27 @@ public:
 	Sampler* mSampler;
 };
 
+
+class nex::PostProcessor::AoPass : public nex::Pass
+{
+public:
+	AoPass()
+	{
+		mShader = nex::Shader::create("fullscreenPlane_vs.glsl", "post_processing/ao_fs.glsl");
+
+		mAoMap = mShader->createTextureUniform("aoMap", UniformType::TEXTURE2D, 0);
+	}
+
+	void setAoMap(Texture* aoMap) {
+		mShader->setTexture(aoMap, &mSampler, mAoMap.bindingSlot);
+	}
+
+	UniformTex mAoMap;
+};
+
 nex::PostProcessor::PostProcessor(unsigned width, unsigned height, DownSampler* downSampler, GaussianBlur* gaussianBlur) :
 mPostprocessPass(std::make_unique<PostProcessPass>()), mDownSampler(downSampler), mGaussianBlur(gaussianBlur),
+mAoPass(std::make_unique<AoPass>()),
 mAoSelector(std::make_unique<AmbientOcclusionSelector>(width, height)),
 mFxaa(std::make_unique<FXAA>()),
 mTaa(std::make_unique<TAA>())
@@ -139,6 +158,19 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 nex::AmbientOcclusionSelector* nex::PostProcessor::getAOSelector()
 {
 	return mAoSelector.get();
+}
+
+void nex::PostProcessor::renderAO(Texture* aoMap)
+{
+	mAoPass->bind();
+	mAoPass->setAoMap(aoMap);
+
+	RenderState state = RenderState::createNoDepthTest();
+	state.doBlend = true;
+	state.blendDesc.operation = BlendOperation::ADD;
+	state.blendDesc.source = BlendFunc::ZERO;
+	state.blendDesc.destination = BlendFunc::SOURCE_COLOR;
+	StaticMeshDrawer::drawFullscreenTriangle(state, mAoPass.get());
 }
 
 void nex::PostProcessor::setAoMap(Texture2D* aoMap)

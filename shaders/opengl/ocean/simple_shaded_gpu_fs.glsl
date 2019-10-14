@@ -54,7 +54,7 @@ void main() {
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
 
-	fragColor.a = 1.0;
+	fragColor.a = 0.5;
   
   
   

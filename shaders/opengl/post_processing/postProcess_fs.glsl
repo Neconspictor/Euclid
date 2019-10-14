@@ -38,7 +38,7 @@ void main() {
     color += bloom;
     
     // Ambient Occlusion
-    color.rgb *= texture(aoMap, fs_in.texCoord).r;
+    //color.rgb *= texture(aoMap, fs_in.texCoord).r;
     
     
     // Motion blur

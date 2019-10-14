@@ -60,9 +60,12 @@ namespace nex
 		void resize(unsigned width, unsigned height);
 		AmbientOcclusionSelector* getAOSelector();
 
+		void renderAO(Texture* aoMap);
+
 	private:
 
 		class PostProcessPass;
+		class AoPass;
 
 		void setAoMap(Texture2D* aoMap);
 		void setMotionMap(Texture2D* motionMap);
@@ -73,6 +76,7 @@ namespace nex
 		GaussianBlur* mGaussianBlur;
 
 		std::unique_ptr<PostProcessPass> mPostprocessPass;
+		std::unique_ptr<AoPass> mAoPass;
 		std::unique_ptr<AmbientOcclusionSelector> mAoSelector;
 
 		//Bloom

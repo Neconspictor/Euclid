@@ -924,7 +924,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 	mMesh->getVertexArray().bind();
 	mMesh->getIndexBuffer().bind();
 	RenderState state;
-	state.doBlend = false;
+	state.doBlend = true;
+	state.blendDesc = BlendDesc::createAlphaTransparency();
+
 	state.doDepthTest = true;
 	state.doDepthWrite = true;
 	state.doCullFaces = true;

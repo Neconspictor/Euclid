@@ -237,19 +237,21 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		renderForward(queue, constants, sun);
 	}
 
+	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
+	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
+
 	auto* stencilTest = mRenderBackend->getStencilTest();
-
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-	stencilTest->enableStencilTest(true);
-
-	//mTesselationTest.draw(camera, sun->getDirection());
-	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
-
-
-	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
-
 	
 
+	mOutRT->bind();
+	stencilTest->enableStencilTest(false);
+	postProcessor->renderAO(aoMap);
+	
+	stencilTest->enableStencilTest(true);
+	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+
+	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
@@ -257,7 +259,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
 	auto* motionTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(2));
 	auto* depthTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(3));
-	auto* depthTexture2 = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
+	
 
 
 	// instead of clearing the buffer we just disable depth and stencil tests for improved performance
@@ -266,7 +268,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
 
-	auto* aoMap = postProcessor->getAOSelector()->renderAO(camera, depthTexture2); //mPbrMrt->getNormalizedViewSpaceZ()
+	
 
 	// After sky we render transparent objects
 	mOutRT->bind();
