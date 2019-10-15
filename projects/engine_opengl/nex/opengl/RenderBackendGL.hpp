@@ -261,7 +261,7 @@ namespace nex {
 	BlendFuncGL translate(BlendFunc func);
 	BlendOperationGL translate(BlendOperation op);
 	StencilTest::Impl::OperationGL translate(StencilTest::Operation op);
-	CompareFunctionGL translate(nex::CompareFunction compareFunc);
+	CompareFunctionGL translate(nex::CompFunc compareFunc);
 	IndexElementTypeGL translate(IndexElementType indexType);
 	PolygonSideGL translate(PolygonSide side);
 	FillModeGL translate(FillMode type);

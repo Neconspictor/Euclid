@@ -86,7 +86,7 @@ void nex::Shader::setBinding(UniformLocation locationID, unsigned bindingSlot)
 }
 
 void nex::Shader::setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot,
-	TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer)
+	TextureAccess accessType, InternalFormat format, unsigned level, bool textureIsArray, unsigned layer)
 {
 	mImpl->setImageLayerOfTexture(locationID, data, bindingSlot, accessType, format, level, textureIsArray, layer);
 }
@@ -321,7 +321,7 @@ void nex::Shader::Impl::setDebugName(const char* name)
 }
 
 void nex::Shader::Impl::setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data,
-	unsigned bindingSlot, TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray,
+	unsigned bindingSlot, TextureAccess accessType, InternalFormat format, unsigned level, bool textureIsArray,
 	unsigned layer)
 {
 	GLint glID = locationID;

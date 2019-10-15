@@ -95,7 +95,7 @@ namespace nex
 	{
 		bool doDepthTest = true;
 		bool doDepthWrite = true;
-		CompareFunction depthCompare = CompareFunction::LESS;
+		CompFunc depthCompare = CompFunc::LESS;
 		bool doCullFaces = true;
 		PolygonSide cullSide = PolygonSide::BACK;
 		WindingOrder windingOrder = WindingOrder::COUNTER_CLOCKWISE;

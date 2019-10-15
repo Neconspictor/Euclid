@@ -143,29 +143,29 @@ nex::SMAA::SMAA(unsigned width, unsigned height)
 
 
 	TextureDesc areaDesc;
-	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = TextureUVTechnique::ClampToEdge;
-	areaDesc.minFilter = areaDesc.magFilter = TextureFilter::Linear;
+	areaDesc.wrapR = areaDesc.wrapS = areaDesc.wrapT = UVTechnique::ClampToEdge;
+	areaDesc.minFilter = areaDesc.magFilter = TexFilter::Linear;
 	areaDesc.colorspace = ColorSpace::RGB;
-	areaDesc.internalFormat = InternFormat::RGB8;
+	areaDesc.internalFormat = InternalFormat::RGB8;
 	areaDesc.pixelDataType = PixelDataType::UBYTE;
 	mAreaTex = TextureManager::get()->loadImage("_intern/smaa/AreaTexDX10.tga", areaDesc);
 
 	TextureDesc searchDesc;
-	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = TextureUVTechnique::ClampToEdge;
-	searchDesc.minFilter = searchDesc.magFilter = TextureFilter::NearestNeighbor;
+	searchDesc.wrapR = searchDesc.wrapS = searchDesc.wrapT = UVTechnique::ClampToEdge;
+	searchDesc.minFilter = searchDesc.magFilter = TexFilter::Nearest;
 	searchDesc.colorspace = ColorSpace::RGB;
-	searchDesc.internalFormat = InternFormat::RGB8;
+	searchDesc.internalFormat = InternalFormat::RGB8;
 	searchDesc.pixelDataType = PixelDataType::UBYTE;
 
 	mSearchTex = TextureManager::get()->loadImage("_intern/smaa/SearchTex.tga", searchDesc);
 
 	SamplerDesc samplerDesc;
-	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::NearestNeighbor;
+	samplerDesc.minFilter = samplerDesc.magFilter = TexFilter::Nearest;
 	samplerDesc.maxAnisotropy = 1.0f;
-	samplerDesc.wrapR = samplerDesc.wrapS = samplerDesc.wrapT = TextureUVTechnique::ClampToEdge;
+	samplerDesc.wrapR = samplerDesc.wrapS = samplerDesc.wrapT = UVTechnique::ClampToEdge;
 	mPointFilter = std::make_unique<Sampler>(samplerDesc);
 
-	samplerDesc.minFilter = samplerDesc.magFilter = TextureFilter::Linear;
+	samplerDesc.minFilter = samplerDesc.magFilter = TexFilter::Linear;
 	mBilinearFilter = std::make_unique<Sampler>(samplerDesc);
 }
 
@@ -195,16 +195,16 @@ void nex::SMAA::resize(unsigned width, unsigned height)
 {
 	TextureDesc data;
 	data.generateMipMaps = false;
-	data.minFilter = data.magFilter = TextureFilter::Linear;
+	data.minFilter = data.magFilter = TexFilter::Linear;
 	data.colorspace = ColorSpace::RGBA;
-	data.internalFormat = InternFormat::RGBA8;
+	data.internalFormat = InternalFormat::RGBA8;
 	data.pixelDataType = PixelDataType::UBYTE;
-	data.wrapR = data.wrapS  = data.wrapT = TextureUVTechnique::ClampToEdge;
+	data.wrapR = data.wrapS  = data.wrapT = UVTechnique::ClampToEdge;
 
 	mEdgesTex = std::make_unique<RenderTarget2D>(width, height, data);
 
 	data.colorspace = ColorSpace::RGBA;
-	data.internalFormat = InternFormat::RGBA8;
+	data.internalFormat = InternalFormat::RGBA8;
 	data.pixelDataType = PixelDataType::UBYTE;
 	mBlendTex = std::make_unique<RenderTarget2D>(width, height, data);
 

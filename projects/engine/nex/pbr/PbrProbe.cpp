@@ -33,51 +33,51 @@ std::unique_ptr<Sampler> PbrProbe::mSamplerPrefiltered = nullptr;
 std::unique_ptr<FileSystem> nex::PbrProbeFactory::mFileSystem;
 
 const nex::TextureDesc nex::PbrProbe::BRDF_DATA = {
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
+			TexFilter::Linear,
+			TexFilter::Linear,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
 			ColorSpace::RG,
 			PixelDataType::FLOAT,
-			InternFormat::RG32F,
+			InternalFormat::RG32F,
 			false
 };
 
 
 const nex::TextureDesc nex::PbrProbe::IRRADIANCE_DATA = {
-			TextureFilter::Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
+			TexFilter::Linear,
+			TexFilter::Linear,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
 			ColorSpace::RGBA,
 			PixelDataType::FLOAT,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			false
 };
 
 const nex::TextureDesc nex::PbrProbe::PREFILTERED_DATA = {
-			TextureFilter::Linear_Mipmap_Linear,
-			TextureFilter::Linear,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
-			TextureUVTechnique::ClampToEdge,
+			TexFilter::Linear_Mipmap_Linear,
+			TexFilter::Linear,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
+			UVTechnique::ClampToEdge,
 			ColorSpace::RGBA,
 			PixelDataType::FLOAT,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			true
 };
 
 const nex::TextureDesc nex::PbrProbe::SOURCE_DATA = {
-		TextureFilter::Linear,
-		TextureFilter::Linear,
-		TextureUVTechnique::ClampToEdge,
-		TextureUVTechnique::ClampToEdge,
-		TextureUVTechnique::ClampToEdge,
+		TexFilter::Linear,
+		TexFilter::Linear,
+		UVTechnique::ClampToEdge,
+		UVTechnique::ClampToEdge,
+		UVTechnique::ClampToEdge,
 		ColorSpace::RGB,
 		PixelDataType::FLOAT,
-		InternFormat::RGB32F,
+		InternalFormat::RGB32F,
 		false
 };
 
@@ -126,7 +126,7 @@ public:
 			SamplerDesc desc;
 			//desc.minLOD = 0;
 			//desc.maxLOD = 7;
-			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			desc.minFilter = TexFilter::Linear_Mipmap_Linear;
 			mPrefilteredSampler.setState(desc);
 		}
 
@@ -313,7 +313,7 @@ void PbrProbe::initGlobals(const std::filesystem::path& probeRoot)
 	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
-	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	desc.minFilter = TexFilter::Linear_Mipmap_Linear;
 	mSamplerPrefiltered = std::make_unique<Sampler>(desc);
 
 	RenderBackend::get()->setViewPort(backup.x, backup.y, backup.width, backup.height);
@@ -387,7 +387,7 @@ std::shared_ptr<CubeMap> PbrProbe::renderBackgroundToCube(Texture* background)
 	depth.target = TextureTarget::TEXTURE2D;
 	TextureDesc data;
 	data.colorspace = ColorSpace::DEPTH;
-	data.internalFormat = InternFormat::DEPTH24;
+	data.internalFormat = InternalFormat::DEPTH24;
 	depth.texture = std::make_unique<RenderBuffer>(SOURCE_CUBE_SIZE, SOURCE_CUBE_SIZE, data);
 	depth.type = RenderAttachmentType::DEPTH;
 	cubeRenderTarget->useDepthAttachment(depth);
@@ -707,7 +707,7 @@ void nex::PbrProbe::init(CubeMap * environment,
 	if (true) {
 		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
-		data.internalFormat = InternFormat::RGBA32F;
+		data.internalFormat = InternalFormat::RGBA32F;
 		data.pixelDataType = PixelDataType::FLOAT;
 
 		auto shOutput = std::make_unique<Texture2D>(9, 1, data, nullptr);

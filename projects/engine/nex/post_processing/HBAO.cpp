@@ -75,8 +75,8 @@ namespace nex
 		TextureDesc data;
 		data.colorspace = ColorSpace::RGBA;
 		data.pixelDataType = PixelDataType::SHORT;
-		data.internalFormat = InternFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
-		data.minFilter = data.magFilter = TextureFilter::NearestNeighbor;
+		data.internalFormat = InternalFormat::RGBA16_SNORM;//RGBA16F RGBA16_SNORM
+		data.minFilter = data.magFilter = TexFilter::Nearest;
 
 		m_hbao_random = std::make_unique<Texture2DArray>( HBAO_RANDOM_SIZE, HBAO_RANDOM_SIZE, 1, data, hbaoRandomShort);
 		m_hbao_randomview = Texture::createView(m_hbao_random.get(), TextureTarget::TEXTURE2D, 0, 1, 0, 1, data);
@@ -399,12 +399,12 @@ namespace nex
 
 		// m_depthLinearRT
 		TextureDesc depthDesc;
-		depthDesc.internalFormat = InternFormat::R32F;
-		depthDesc.magFilter = TextureFilter::NearestNeighbor;
-		depthDesc.minFilter = TextureFilter::NearestNeighbor;
-		depthDesc.wrapR = TextureUVTechnique::ClampToEdge;
-		depthDesc.wrapS = TextureUVTechnique::ClampToEdge;
-		depthDesc.wrapT = TextureUVTechnique::ClampToEdge;
+		depthDesc.internalFormat = InternalFormat::R32F;
+		depthDesc.magFilter = TexFilter::Nearest;
+		depthDesc.minFilter = TexFilter::Nearest;
+		depthDesc.wrapR = UVTechnique::ClampToEdge;
+		depthDesc.wrapS = UVTechnique::ClampToEdge;
+		depthDesc.wrapT = UVTechnique::ClampToEdge;
 		depthDesc.pixelDataType = PixelDataType::FLOAT;
 		depthDesc.generateMipMaps = false;
 		depthDesc.colorspace = ColorSpace::R;
@@ -413,15 +413,15 @@ namespace nex
 
 		// m_aoResultRT
 		TextureDesc aoData; 
-		aoData.internalFormat = InternFormat::RG16F;
+		aoData.internalFormat = InternalFormat::RG16F;
 		aoData.useSwizzle = true;
 		//aoData.swizzle = { Channel::RED, Channel::RED, Channel::RED, Channel::RED };
 		aoData.swizzle = { Channel::RED, Channel::GREEN, Channel::ZERO, Channel::ZERO };
-		aoData.minFilter = TextureFilter::NearestNeighbor;
-		aoData.magFilter = TextureFilter::NearestNeighbor;
-		aoData.wrapR = TextureUVTechnique::ClampToEdge;
-		aoData.wrapS = TextureUVTechnique::ClampToEdge;
-		aoData.wrapT = TextureUVTechnique::ClampToEdge;
+		aoData.minFilter = TexFilter::Nearest;
+		aoData.magFilter = TexFilter::Nearest;
+		aoData.wrapR = UVTechnique::ClampToEdge;
+		aoData.wrapS = UVTechnique::ClampToEdge;
+		aoData.wrapT = UVTechnique::ClampToEdge;
 		aoData.pixelDataType = PixelDataType::FLOAT_HALF;
 		aoData.generateMipMaps = false;
 		aoData.colorspace = ColorSpace::RG;
@@ -468,12 +468,12 @@ namespace nex
 
 
 		TextureDesc normalsDesc;
-		normalsDesc.internalFormat = InternFormat::RGBA8;
-		normalsDesc.magFilter = TextureFilter::NearestNeighbor;
-		normalsDesc.minFilter = TextureFilter::NearestNeighbor;
-		normalsDesc.wrapR = TextureUVTechnique::ClampToEdge;
-		normalsDesc.wrapS = TextureUVTechnique::ClampToEdge;
-		normalsDesc.wrapT = TextureUVTechnique::ClampToEdge;
+		normalsDesc.internalFormat = InternalFormat::RGBA8;
+		normalsDesc.magFilter = TexFilter::Nearest;
+		normalsDesc.minFilter = TexFilter::Nearest;
+		normalsDesc.wrapR = UVTechnique::ClampToEdge;
+		normalsDesc.wrapS = UVTechnique::ClampToEdge;
+		normalsDesc.wrapT = UVTechnique::ClampToEdge;
 		normalsDesc.pixelDataType = PixelDataType::UBYTE;
 		normalsDesc.generateMipMaps = false;
 		normalsDesc.colorspace = ColorSpace::RGBA;
@@ -549,12 +549,12 @@ namespace nex
 	{
 		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/depthlinearize.frag.glsl");
 		mSampler = std::make_unique<Sampler>(SamplerDesc());
-		mSampler->setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler->setMagFilter(TextureFilter::NearestNeighbor);
+		mSampler->setMinFilter(TexFilter::Nearest);
+		mSampler->setMagFilter(TexFilter::Nearest);
 
-		mSampler->setWrapR(TextureUVTechnique::ClampToBorder);
-		mSampler->setWrapS(TextureUVTechnique::ClampToBorder);
-		mSampler->setWrapT(TextureUVTechnique::ClampToBorder);
+		mSampler->setWrapR(UVTechnique::ClampToBorder);
+		mSampler->setWrapS(UVTechnique::ClampToBorder);
+		mSampler->setWrapT(UVTechnique::ClampToBorder);
 		mSampler->setBorderColor(glm::vec4(1.0));
 
 
@@ -625,7 +625,7 @@ namespace nex
 		mShader->setBinding(randomLoc, 1);
 
 		auto state = Sampler::getPoint()->getState();
-		state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::Repeat;
+		state.wrapR = state.wrapS = state.wrapT = UVTechnique::Repeat;
 		mPointSampler2.setState(state);
 	}
 
@@ -677,7 +677,7 @@ namespace nex
 			imgOutput, 
 			mImgOutput.location, 
 			TextureAccess::WRITE_ONLY, 
-			InternFormat::RG16F, 
+			InternalFormat::RG16F, 
 			0, 
 			true, 0);
 	}

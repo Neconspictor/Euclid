@@ -166,7 +166,7 @@ void MaterialStore::test()
 		store.state.doCullFaces = false;
 		store.state.cullSide = PolygonSide::FRONT;
 		store.state.doShadowCast = false;
-		store.state.depthCompare = CompareFunction::GREATER_EQUAL;
+		store.state.depthCompare = CompFunc::GREATER_EQUAL;
 		store.state.fillMode = FillMode::LINE;
 		nex::BinStream file;
 		file.open("material.bin", std::ios::out | std::ios::trunc);

@@ -30,7 +30,7 @@ mScale(1.0f), mOpacity(1.0f), mScrollPaneID(mId + "ScrollPane"), mUseTransparenc
 {
 	updateScale();
 	SamplerDesc state;
-	state.minFilter = TextureFilter::Near_Mipmap_Near;
+	state.minFilter = TexFilter::Near_Mipmap_Near;
 	mSampler.setState(state);
 }
 
@@ -211,10 +211,10 @@ void nex::gui::TextureView::drawSelf()
 			switch (mSelectedFiltering)
 			{
 			case 0:
-				mSampler.setMinFilter(TextureFilter::Near_Mipmap_Near);
+				mSampler.setMinFilter(TexFilter::Near_Mipmap_Near);
 				break;
 			case 1:
-				mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
+				mSampler.setMinFilter(TexFilter::Linear_Mipmap_Linear);
 			}
 		}
 	}

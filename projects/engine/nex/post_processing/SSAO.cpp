@@ -35,18 +35,18 @@ namespace nex
 			mShader = Shader::create("post_processing/ssao/fullscreenquad.vert.glsl",
 			                                 "post_processing/ssao/ssao_deferred_ao_fs.glsl");
 
-			mSamplerDepth.setMinFilter(TextureFilter::Linear);
-			mSamplerDepth.setMagFilter(TextureFilter::Linear);
-			mSamplerDepth.setWrapR(TextureUVTechnique::ClampToBorder);
-			mSamplerDepth.setWrapS(TextureUVTechnique::ClampToBorder);
-			mSamplerDepth.setWrapT(TextureUVTechnique::ClampToBorder);
+			mSamplerDepth.setMinFilter(TexFilter::Linear);
+			mSamplerDepth.setMagFilter(TexFilter::Linear);
+			mSamplerDepth.setWrapR(UVTechnique::ClampToBorder);
+			mSamplerDepth.setWrapS(UVTechnique::ClampToBorder);
+			mSamplerDepth.setWrapT(UVTechnique::ClampToBorder);
 			mSamplerDepth.setBorderColor(glm::vec4(1.0));
 
-			mSamplerNoise.setMinFilter(TextureFilter::NearestNeighbor);
-			mSamplerNoise.setMagFilter(TextureFilter::NearestNeighbor);
-			mSamplerNoise.setWrapR(TextureUVTechnique::Repeat);
-			mSamplerNoise.setWrapS(TextureUVTechnique::Repeat);
-			mSamplerNoise.setWrapT(TextureUVTechnique::Repeat);
+			mSamplerNoise.setMinFilter(TexFilter::Nearest);
+			mSamplerNoise.setMagFilter(TexFilter::Nearest);
+			mSamplerNoise.setWrapR(UVTechnique::Repeat);
+			mSamplerNoise.setWrapS(UVTechnique::Repeat);
+			mSamplerNoise.setWrapT(UVTechnique::Repeat);
 
 			UniformLocation depthLoc = mShader->getUniformLocation("gDepth");
 			mShader->setBinding(depthLoc, 0);
@@ -125,12 +125,12 @@ namespace nex
 			mAoTexture = { mShader->getUniformLocation("ssaoInput"), UniformType::TEXTURE2D, 0 };
 			mShader->setBinding(mAoTexture.location, mAoTexture.bindingSlot);
 
-			mBlurSampler.setWrapR(TextureUVTechnique::ClampToBorder);
-			mBlurSampler.setWrapS(TextureUVTechnique::ClampToBorder);
-			mBlurSampler.setWrapT(TextureUVTechnique::ClampToBorder);
+			mBlurSampler.setWrapR(UVTechnique::ClampToBorder);
+			mBlurSampler.setWrapS(UVTechnique::ClampToBorder);
+			mBlurSampler.setWrapT(UVTechnique::ClampToBorder);
 			mBlurSampler.setBorderColor(glm::vec4(1.0));
-			mBlurSampler.setMinFilter(TextureFilter::Linear);
-			mBlurSampler.setMagFilter(TextureFilter::Linear);
+			mBlurSampler.setMinFilter(TexFilter::Linear);
+			mBlurSampler.setMagFilter(TexFilter::Linear);
 		}
 
 		virtual ~SSAO_Tiled_Blur_Shader() = default;
@@ -215,13 +215,13 @@ namespace nex
 
 
 		TextureDesc data;
-		data.internalFormat = InternFormat::RGB16F;
+		data.internalFormat = InternalFormat::RGB16F;
 		data.colorspace = ColorSpace::RGB; // TODO use ColorSpace::R?
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.magFilter = TextureFilter::NearestNeighbor;
-		data.wrapR = TextureUVTechnique::Repeat;
-		data.wrapS = TextureUVTechnique::Repeat;
-		data.wrapT = TextureUVTechnique::Repeat;
+		data.minFilter = TexFilter::Nearest;
+		data.magFilter = TexFilter::Nearest;
+		data.wrapR = UVTechnique::Repeat;
+		data.wrapS = UVTechnique::Repeat;
+		data.wrapT = UVTechnique::Repeat;
 		data.pixelDataType = PixelDataType::FLOAT;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;
@@ -321,13 +321,13 @@ namespace nex
 	std::unique_ptr<RenderTarget2D> SSAO_Deferred::createSSAO_FBO(unsigned int width, unsigned int height)
 	{
 		TextureDesc data;
-		data.internalFormat = InternFormat::R8;
+		data.internalFormat = InternalFormat::R8;
 		data.colorspace = ColorSpace::R; // TODO use ColorSpace::R?
-		data.minFilter = TextureFilter::Linear;
-		data.magFilter = TextureFilter::Linear;
-		data.wrapR = TextureUVTechnique::ClampToBorder;
-		data.wrapS = TextureUVTechnique::ClampToBorder;
-		data.wrapT = TextureUVTechnique::ClampToBorder;
+		data.minFilter = TexFilter::Linear;
+		data.magFilter = TexFilter::Linear;
+		data.wrapR = UVTechnique::ClampToBorder;
+		data.wrapS = UVTechnique::ClampToBorder;
+		data.wrapT = UVTechnique::ClampToBorder;
 		data.pixelDataType = PixelDataType::UBYTE;
 		data.useSwizzle = false;
 		data.generateMipMaps = false;

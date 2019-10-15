@@ -253,9 +253,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	mOutRT->bind();
 	postProcessor->renderAO(aoMap);
 	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 
-	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
+	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
@@ -397,7 +397,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 
 		TextureDesc desc;
 		desc.colorspace = ColorSpace::RGBA;
-		desc.internalFormat = InternFormat::RGBA16;
+		desc.internalFormat = InternalFormat::RGBA16;
 
 		mPingPongHalf = std::make_unique<RenderTarget2D>(giWidth, giHeight, desc);
 
@@ -416,7 +416,7 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 
 	mDepthHalf = std::make_unique<RenderTarget>(width / 2, height / 2);
 	TextureDesc depthHalfDesc;
-	depthHalfDesc.internalFormat = InternFormat::R32F;
+	depthHalfDesc.internalFormat = InternalFormat::R32F;
 	depthHalfDesc.colorspace = ColorSpace::R;
 	//data.colorspace = ColorSpace::DEPTH;
 	depthHalfDesc.pixelDataType = PixelDataType::FLOAT;
@@ -513,7 +513,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 
 	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 	//mPbrTechnique->getDeferred()->configureGeometryPass(camera);
@@ -686,7 +686,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	depthTest->enableDepthTest(false);
 	depthTest->enableDepthBufferWriting(false);
 	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
+	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
 	deferred->drawLighting(mPbrMrt.get(), activeIrradiance->getColorAttachmentTexture(0),
 		activeIrradiance->getColorAttachmentTexture(1), constants, sun);
@@ -695,7 +695,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 
 	depthTest->enableDepthTest(true);
 	depthTest->enableDepthBufferWriting(true);
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::REPLACE, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 
@@ -711,7 +711,7 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getForwardCommands());
 	StaticMeshDrawer::draw(queue.getProbeCommands());
 
-	stencilTest->setCompareFunc(CompareFunction::EQUAL, 1, 1);
+	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
 
 	mActiveIrradianceRT = !mActiveIrradianceRT;
 }
@@ -755,7 +755,7 @@ void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,
 
 
 	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 	stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 	mPbrTechnique->useForward();

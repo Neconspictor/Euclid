@@ -4,9 +4,9 @@
 
 namespace nex
 {
-	enum class TextureUVTechnique;
-	enum class CompareFunction;
-	enum class TextureFilter;
+	enum class UVTechnique;
+	enum class CompFunc;
+	enum class TexFilter;
 	struct SamplerDesc;
 
 	class Sampler
@@ -38,10 +38,10 @@ namespace nex
 		const SamplerDesc& getState() const;
 
 		// Has to be implemented by renderer backend
-		void setMinFilter(TextureFilter filter);
+		void setMinFilter(TexFilter filter);
 
 		// Has to be implemented by renderer backend
-		void setMagFilter(TextureFilter filter);
+		void setMagFilter(TexFilter filter);
 
 		// Has to be implemented by renderer backend
 		void setAnisotropy(float anisotropy);
@@ -50,16 +50,16 @@ namespace nex
 		void useDepthComparison(bool use);
 
 		// Has to be implemented by renderer backend
-		void setCompareFunction(CompareFunction compareFunction);
+		void setCompareFunction(CompFunc compareFunction);
 
 		// Has to be implemented by renderer backend
-		void setWrapS(TextureUVTechnique wrap);
+		void setWrapS(UVTechnique wrap);
 
 		// Has to be implemented by renderer backend
-		void setWrapT(TextureUVTechnique wrap);
+		void setWrapT(UVTechnique wrap);
 
 		// Has to be implemented by renderer backend
-		void setWrapR(TextureUVTechnique wrap);
+		void setWrapR(UVTechnique wrap);
 
 		// Has to be implemented by renderer backend
 		void setBorderColor(const glm::vec4& color);
@@ -119,8 +119,8 @@ namespace nex
 	private: 
 		static Sampler createPointSampler() {
 			SamplerDesc desc;
-			desc.minFilter = TextureFilter::NearestNeighbor;
-			desc.magFilter = TextureFilter::NearestNeighbor;
+			desc.minFilter = TexFilter::Nearest;
+			desc.magFilter = TexFilter::Nearest;
 			return Sampler(desc);
 		}
 
@@ -130,22 +130,22 @@ namespace nex
 
 		static Sampler createLinearMipMapSampler() {
 			SamplerDesc desc;
-			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			desc.minFilter = TexFilter::Linear_Mipmap_Linear;
 			return Sampler(desc);
 		}
 
 		static Sampler createNearMipMapSampler() {
 			SamplerDesc desc;
-			desc.minFilter = TextureFilter::Near_Mipmap_Near;
-			desc.magFilter = TextureFilter::NearestNeighbor;
+			desc.minFilter = TexFilter::Near_Mipmap_Near;
+			desc.magFilter = TexFilter::Nearest;
 			return Sampler(desc);
 		}
 
 		static Sampler createDefaultImageSampler() {
 			SamplerDesc desc;
-			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
-			desc.magFilter = TextureFilter::Linear;
-			desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::Repeat;
+			desc.minFilter = TexFilter::Linear_Mipmap_Linear;
+			desc.magFilter = TexFilter::Linear;
+			desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
 			desc.maxAnisotropy = 16.0f;
 			return Sampler(desc);
 		}

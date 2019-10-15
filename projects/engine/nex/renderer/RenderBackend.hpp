@@ -109,7 +109,7 @@ namespace nex
 			bool enableDepthBufferWriting = true;
 			bool enableDepthTest = true;
 			bool enableDepthClamp = false;
-			CompareFunction depthFunc = CompareFunction::LESS_EQUAL;
+			CompFunc depthFunc = CompFunc::LESS_EQUAL;
 			Range depthRange = {0.0, 1.0};
 		};
 
@@ -208,7 +208,7 @@ namespace nex
 		struct State
 		{
 			bool enableStencilTest = false;
-			CompareFunction compareFunc = CompareFunction::LESS_EQUAL;
+			CompFunc compareFunc = CompFunc::LESS_EQUAL;
 			int compareReferenceValue = 0;
 			unsigned compareMask = 0xFF;
 
@@ -264,32 +264,32 @@ namespace nex
 		//const TextureData& data = {false, false, Linear, Linear, ClampToEdge, RGB, true, BITS_32}
 		std::unique_ptr <CubeRenderTarget> createCubeRenderTarget(int width, int height,
 			const TextureDesc& data = {
-				TextureFilter::Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
+				TexFilter::Linear,
+				TexFilter::Linear,
+				UVTechnique::ClampToEdge,
+				UVTechnique::ClampToEdge,
+				UVTechnique::ClampToEdge,
 				ColorSpace::RGB,
 				PixelDataType::FLOAT,
-				InternFormat::RGB32F,
+				InternalFormat::RGB32F,
 				false });
 
 		std::unique_ptr<RenderTarget2D> create2DRenderTarget(int width, int height,
 			const TextureDesc& data = TextureDesc::createImage(
-				TextureFilter::Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
-				TextureUVTechnique::ClampToEdge,
+				TexFilter::Linear,
+				TexFilter::Linear,
+				UVTechnique::ClampToEdge,
+				UVTechnique::ClampToEdge,
+				UVTechnique::ClampToEdge,
 				ColorSpace::RGB,
 				PixelDataType::FLOAT,
-				InternFormat::RGB32F,
+				InternalFormat::RGB32F,
 				false
 			),
-			const TextureDesc& depthData = TextureDesc::createDepth(CompareFunction::LESS_EQUAL, 
+			const TextureDesc& depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL, 
 				ColorSpace::DEPTH_STENCIL,
 				PixelDataType::UNSIGNED_INT_24_8,
-				InternFormat::DEPTH24_STENCIL8),
+				InternalFormat::DEPTH24_STENCIL8),
 			int samples = 1);
 
 		std::unique_ptr<RenderTarget2D> createRenderTarget(int samples = 1);

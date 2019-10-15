@@ -133,7 +133,7 @@ namespace nex
 	class CubeRenderTargetGL : public RenderTarget::Impl
 	{
 	public:
-		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternFormat depthFormat = InternFormat::DEPTH24);
+		explicit CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternalFormat depthFormat = InternalFormat::DEPTH24);
 
 		void useSide(CubeMapSide side, unsigned mipLevel);
 

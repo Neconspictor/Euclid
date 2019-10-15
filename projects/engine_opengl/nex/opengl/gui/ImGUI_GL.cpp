@@ -483,9 +483,9 @@ namespace nex::gui
 																  // Upload texture to graphics system
 		TextureDesc desc;
 		desc.colorspace = ColorSpace::RGBA;
-		desc.internalFormat = InternFormat::RGBA8;
+		desc.internalFormat = InternalFormat::RGBA8;
 		desc.pixelDataType = PixelDataType::UBYTE;
-		desc.minFilter = desc.magFilter = TextureFilter::Linear;
+		desc.minFilter = desc.magFilter = TexFilter::Linear;
 
 		mFontTexture = std::make_unique<Texture2D>(width, height, desc, pixels);
 		mFontDesc.texture = mFontTexture.get();

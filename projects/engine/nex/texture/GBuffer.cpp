@@ -13,11 +13,11 @@ namespace nex
 		bind();
 
 		TextureDesc data;
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.magFilter = TextureFilter::NearestNeighbor;
-		data.wrapR = TextureUVTechnique::ClampToEdge;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
+		data.minFilter = TexFilter::Nearest;
+		data.magFilter = TexFilter::Nearest;
+		data.wrapR = UVTechnique::ClampToEdge;
+		data.wrapS = UVTechnique::ClampToEdge;
+		data.wrapT = UVTechnique::ClampToEdge;
 		data.maxAnisotropy = 1.0f;
 		data.generateMipMaps = false;
 		data.useSwizzle = false;
@@ -27,14 +27,14 @@ namespace nex
 		// albedo
 		data.colorspace = ColorSpace::RGB;
 		data.pixelDataType = PixelDataType::UBYTE;
-		data.internalFormat = InternFormat::RGB8;
+		data.internalFormat = InternalFormat::RGB8;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 0;
 		mAlbedo = static_cast<Texture2D*>(temp.texture.get());
 		addColorAttachment(temp);
 
 		// ao metal roughness
-		data.internalFormat = InternFormat::RGB5;
+		data.internalFormat = InternalFormat::RGB5;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 1;
@@ -44,7 +44,7 @@ namespace nex
 
 		// normal
 		data.colorspace = ColorSpace::RGBA;
-		data.internalFormat = InternFormat::RGB10_A2;
+		data.internalFormat = InternalFormat::RGB10_A2;
 		data.pixelDataType = PixelDataType::UNSIGNED_INT_10_10_10_2;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
 		temp.colorAttachIndex = 2;
@@ -52,7 +52,7 @@ namespace nex
 		addColorAttachment(temp);
 
 		// normalized viewspace z
-		data.internalFormat = InternFormat::R32F;
+		data.internalFormat = InternalFormat::R32F;
 		data.colorspace = ColorSpace::R;
 		//data.colorspace = ColorSpace::DEPTH;
 		data.pixelDataType = PixelDataType::FLOAT;
@@ -62,7 +62,7 @@ namespace nex
 		addColorAttachment(temp);
 
 		// motion
-		data.internalFormat = InternFormat::RG16F;
+		data.internalFormat = InternalFormat::RG16F;
 		data.colorspace = ColorSpace::RG;
 		data.pixelDataType = PixelDataType::FLOAT;
 		temp.texture = make_shared<Texture2D>(width, height, data, nullptr);
@@ -76,11 +76,11 @@ namespace nex
 
 		// create and attach depth buffer (renderbuffer)
 		// depth/stencil
-		data.minFilter = TextureFilter::NearestNeighbor;
-		data.magFilter = TextureFilter::NearestNeighbor;
-		data.wrapS = TextureUVTechnique::ClampToEdge;
-		data.wrapT = TextureUVTechnique::ClampToEdge;
-		data.internalFormat = InternFormat::DEPTH24_STENCIL8;
+		data.minFilter = TexFilter::Nearest;
+		data.magFilter = TexFilter::Nearest;
+		data.wrapS = UVTechnique::ClampToEdge;
+		data.wrapT = UVTechnique::ClampToEdge;
+		data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 		data.pixelDataType = PixelDataType::UNSIGNED_INT_24_8;
 		data.colorspace = ColorSpace::DEPTH_STENCIL;
 

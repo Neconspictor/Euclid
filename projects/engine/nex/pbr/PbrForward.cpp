@@ -25,8 +25,8 @@ namespace nex {
 		mForwardShader(mFactory(cascadeShadow, globalIllumination))
 	{
 		SamplerDesc desc;
-		desc.minFilter = desc.magFilter = TextureFilter::Linear;
-		desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::ClampToEdge;
+		desc.minFilter = desc.magFilter = TexFilter::Linear;
+		desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::ClampToEdge;
 		desc.maxAnisotropy = 1.0f;
 		mPointSampler = std::make_unique<Sampler>(desc);
 	}

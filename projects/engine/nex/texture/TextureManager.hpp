@@ -51,27 +51,27 @@ namespace nex {
 
 		nex::Texture2D* getImage(const std::filesystem::path& file,
 			const nex::TextureDesc& data = {
-				nex::TextureFilter::Linear_Mipmap_Linear,
-				nex::TextureFilter::Linear,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
+				nex::TexFilter::Linear_Mipmap_Linear,
+				nex::TexFilter::Linear,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
 				nex::ColorSpace::SRGBA,
 				nex::PixelDataType::UBYTE,
-				nex::InternFormat::SRGBA8,
+				nex::InternalFormat::SRGBA8,
 				true }, bool detectColorSpace = false
 		);
 
 		std::unique_ptr<nex::Texture2D> loadImage(const std::filesystem::path& file,
 			const nex::TextureDesc& data = {
-				nex::TextureFilter::Linear_Mipmap_Linear,
-				nex::TextureFilter::Linear,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
-				nex::TextureUVTechnique::Repeat,
+				nex::TexFilter::Linear_Mipmap_Linear,
+				nex::TexFilter::Linear,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
+				nex::UVTechnique::Repeat,
 				nex::ColorSpace::SRGBA,
 				nex::PixelDataType::UBYTE,
-				nex::InternFormat::SRGBA8,
+				nex::InternalFormat::SRGBA8,
 				true }, bool detectColorSpace = false
 		);
 
@@ -93,11 +93,11 @@ namespace nex {
 		static ColorSpace getColorSpace(unsigned channels);
 		static ColorSpace getGammaSpace(unsigned channels);
 
-		InternFormat getInternalFormat(unsigned channels, bool isFloat);
-		InternFormat getGammaInternalFormat(unsigned channels);
+		InternalFormat getInternalFormat(unsigned channels, bool isFloat);
+		InternalFormat getGammaInternalFormat(unsigned channels);
 
 		static bool isLinear(ColorSpace colorspace);
-		static bool isLinear(InternFormat internFormat);
+		static bool isLinear(InternalFormat internFormat);
 
 		std::list<std::unique_ptr<Texture2D>> textures;
 		std::list<CubeMap> cubeMaps;

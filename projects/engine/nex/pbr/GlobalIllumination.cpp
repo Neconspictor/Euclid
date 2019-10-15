@@ -205,12 +205,12 @@ public:
 		mMipMap = { mShader->getUniformLocation("mipMap"), UniformType::FLOAT };
 		mVoxelImage = mShader->createTextureUniform("voxelImage", UniformType::IMAGE3D, 0);
 
-		mSampler.setMinFilter(TextureFilter::Near_Mipmap_Near);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+		mSampler.setMinFilter(TexFilter::Near_Mipmap_Near);
+		mSampler.setMagFilter(TexFilter::Nearest);
 		mSampler.setBorderColor(glm::vec4(0.0));
-		mSampler.setWrapR(TextureUVTechnique::ClampToBorder);
-		mSampler.setWrapS(TextureUVTechnique::ClampToBorder);
-		mSampler.setWrapT(TextureUVTechnique::ClampToBorder);
+		mSampler.setWrapR(UVTechnique::ClampToBorder);
+		mSampler.setWrapS(UVTechnique::ClampToBorder);
+		mSampler.setWrapT(UVTechnique::ClampToBorder);
 	}
 
 	void setViewProjection(const glm::mat4& mat) {
@@ -235,7 +235,7 @@ public:
 		mShader->setImageLayerOfTexture(mVoxelImage.location,
 			texture, mVoxelImage.bindingSlot,
 			TextureAccess::READ_WRITE,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			0,
 			true,
 			0);
@@ -294,7 +294,7 @@ public:
 		mShader->setImageLayerOfTexture(mVoxelImage.location,
 			voxelImage, mVoxelImage.bindingSlot,
 			TextureAccess::READ_WRITE,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			0,
 			true,
 			0);
@@ -369,7 +369,7 @@ public:
 		mShader->setImageLayerOfTexture(mSourceImage.location,
 			texture, mSourceImage.bindingSlot,
 			TextureAccess::READ_ONLY,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			mipMap,
 			true,
 			0);
@@ -379,7 +379,7 @@ public:
 		mShader->setImageLayerOfTexture(mDestImage.location,
 			texture, mDestImage.bindingSlot,
 			TextureAccess::WRITE_ONLY,
-			InternFormat::RGBA32F,
+			InternalFormat::RGBA32F,
 			mipMap,
 			true,
 			0);
@@ -457,10 +457,10 @@ mUseConeTracing(true)
 	mSphere->addMaterial(std::move(material));
 
 	// Note: we have to generate mipmaps since memory can only be allocated during texture creation.
-	auto data = TextureDesc::createRenderTargetRGBAHDR(InternFormat::RGBA32F, true);
-	data.minFilter = TextureFilter::Linear_Mipmap_Linear; //Linear_Mipmap_Linear TODO: which filtering is better?
-	data.magFilter = TextureFilter::Linear; //Linear
-	data.wrapR = data.wrapS = data.wrapT = TextureUVTechnique::ClampToBorder;
+	auto data = TextureDesc::createRenderTargetRGBAHDR(InternalFormat::RGBA32F, true);
+	data.minFilter = TexFilter::Linear_Mipmap_Linear; //Linear_Mipmap_Linear TODO: which filtering is better?
+	data.magFilter = TexFilter::Linear; //Linear
+	data.wrapR = data.wrapS = data.wrapT = UVTechnique::ClampToBorder;
 	data.borderColor = glm::vec4(0.0);
 	data.pixelDataType = PixelDataType::FLOAT;
 	mVoxelTexture = std::make_unique<Texture3D>(VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, VOXEL_BASE_SIZE, data, nullptr);
@@ -493,10 +493,10 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	TextureDesc data;
 	data.colorspace = ColorSpace::RGB;
-	data.internalFormat = InternFormat::RGB32F;
+	data.internalFormat = InternalFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
-	data.minFilter = TextureFilter::Linear;
-	data.magFilter = TextureFilter::Linear;
+	data.minFilter = TexFilter::Linear;
+	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 
 	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(size, size, data);
@@ -504,11 +504,11 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	data = TextureDesc();
-	data.minFilter = TextureFilter::Linear;
-	data.magFilter = TextureFilter::Linear;
+	data.minFilter = TexFilter::Linear;
+	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 	data.colorspace = ColorSpace::DEPTH_STENCIL;
-	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
 
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
@@ -519,10 +519,10 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 
 	TextureDesc dataDepth;
 	dataDepth.colorspace = ColorSpace::RGBA;
-	dataDepth.internalFormat = InternFormat::RGBA32F;
+	dataDepth.internalFormat = InternalFormat::RGBA32F;
 	dataDepth.pixelDataType = PixelDataType::FLOAT;
-	dataDepth.minFilter = TextureFilter::Linear_Mipmap_Linear;
-	dataDepth.magFilter = TextureFilter::Linear;
+	dataDepth.minFilter = TexFilter::Linear_Mipmap_Linear;
+	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
 
 	auto renderTargetDepth = std::make_unique<nex::CubeRenderTarget>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
@@ -530,11 +530,11 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	RenderAttachment depthDepth;
 	depthDepth.target = TextureTarget::TEXTURE2D;
 	dataDepth = TextureDesc();
-	dataDepth.minFilter = TextureFilter::Linear;
-	dataDepth.magFilter = TextureFilter::Linear;
+	dataDepth.minFilter = TexFilter::Linear;
+	dataDepth.magFilter = TexFilter::Linear;
 	dataDepth.generateMipMaps = false;
 	dataDepth.colorspace = ColorSpace::DEPTH_STENCIL;
-	dataDepth.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	dataDepth.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depthDepth.texture = std::make_unique<RenderBuffer>(PbrProbe::SOURCE_CUBE_SIZE, PbrProbe::SOURCE_CUBE_SIZE, dataDepth);
 
 	depthDepth.type = RenderAttachmentType::DEPTH;
@@ -560,7 +560,7 @@ void nex::GlobalIllumination::bakeProbes(const Scene & scene, Renderer* renderer
 	PbrProbe backgroundProbe(glm::vec3(0, 0, 0), 2);
 	TextureDesc backgroundHDRData;
 	backgroundHDRData.pixelDataType = PixelDataType::FLOAT;
-	backgroundHDRData.internalFormat = InternFormat::RGB32F;
+	backgroundHDRData.internalFormat = InternalFormat::RGB32F;
 	auto* backgroundHDR = TextureManager::get()->getImage("hdr/HDR_Free_City_Night_Lights_Ref.hdr", backgroundHDRData, true);
 	mFactory.initProbeBackground(backgroundProbe, backgroundHDR, 2, false, false);
 
@@ -613,10 +613,10 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 
 	TextureDesc data;
 	data.colorspace = ColorSpace::RGB;
-	data.internalFormat = InternFormat::RGB32F;
+	data.internalFormat = InternalFormat::RGB32F;
 	data.pixelDataType = PixelDataType::FLOAT;
-	data.minFilter = TextureFilter::Linear;
-	data.magFilter = TextureFilter::Linear;
+	data.minFilter = TexFilter::Linear;
+	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 
 	auto renderTarget = std::make_unique<nex::CubeRenderTarget>(size, size, data);
@@ -624,11 +624,11 @@ void nex::GlobalIllumination::bakeProbe(ProbeVob* probeVob, const Scene& scene, 
 	RenderAttachment depth;
 	depth.target = TextureTarget::TEXTURE2D;
 	data = TextureDesc();
-	data.minFilter = TextureFilter::Linear;
-	data.magFilter = TextureFilter::Linear;
+	data.minFilter = TexFilter::Linear;
+	data.magFilter = TexFilter::Linear;
 	data.generateMipMaps = false;
 	data.colorspace = ColorSpace::DEPTH_STENCIL;
-	data.internalFormat = InternFormat::DEPTH24_STENCIL8;
+	data.internalFormat = InternalFormat::DEPTH24_STENCIL8;
 	depth.texture = std::make_unique<RenderBuffer>(size, size, data);
 
 	depth.type = RenderAttachmentType::DEPTH_STENCIL;
@@ -1094,7 +1094,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 		auto* stencilTest = RenderBackend::get()->getStencilTest();
 		stencilTest->enableStencilTest(false);
-		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		renderTarget.bind();
@@ -1107,7 +1107,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 		RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 		stencilTest->enableStencilTest(false);
-		stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 		/*for (const auto& buffer : buffers) {
@@ -1194,7 +1194,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 			RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 			auto* stencilTest = RenderBackend::get()->getStencilTest();
 			stencilTest->enableStencilTest(false);
-			stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+			stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 			stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 
 			renderTarget.bind();
@@ -1221,7 +1221,7 @@ std::shared_ptr<nex::CubeMap> nex::GlobalIllumination::renderToCubeMap(
 
 			RenderBackend::get()->getDepthBuffer()->setState(DepthBuffer::State());
 			stencilTest->enableStencilTest(false);
-			stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
+			stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 			stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 		}
 

@@ -164,11 +164,11 @@ namespace nex
 
 	TextureAccessGL translate(nex::TextureAccess);
 	ChannelGL translate(nex::Channel);
-	TextureFilterGL translate(nex::TextureFilter);
-	TextureUVTechniqueGL translate(nex::TextureUVTechnique);
+	TextureFilterGL translate(nex::TexFilter);
+	TextureUVTechniqueGL translate(nex::UVTechnique);
 	ColorSpaceGL translate(nex::ColorSpace);
-	DepthStencilTextureModeGL translate(nex::DepthStencilTextureMode);
-	InternFormatGL translate(nex::InternFormat);
+	DepthStencilTextureModeGL translate(nex::DepthStencilTexMode);
+	InternFormatGL translate(nex::InternalFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);
 
@@ -376,7 +376,7 @@ namespace nex
 		RenderBufferGL(GLuint texture, GLuint width, GLuint height, const TextureDesc& data);
 
 
-		InternFormat getFormat() const;
+		InternalFormat getFormat() const;
 
 		void resize(unsigned width, unsigned height);
 	};

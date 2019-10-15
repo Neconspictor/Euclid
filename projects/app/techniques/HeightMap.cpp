@@ -101,15 +101,15 @@ mWorldDimensionMaxHeight(worldDimensionMaxHeight)
 
 	TextureDesc heightDesc;
 	heightDesc.colorspace = ColorSpace::R;
-	heightDesc.internalFormat = InternFormat::R32F;
+	heightDesc.internalFormat = InternalFormat::R32F;
 	heightDesc.pixelDataType = PixelDataType::FLOAT;
 
 	mHeightTexture = std::make_unique<Texture2D>(mRows, mColumns, heightDesc, heights.data());
 
 	SamplerDesc heightSamplerDesc;
-	heightSamplerDesc.minFilter = TextureFilter::NearestNeighbor;
-	heightSamplerDesc.magFilter = TextureFilter::NearestNeighbor;
-	heightSamplerDesc.wrapR = heightSamplerDesc.wrapS = heightSamplerDesc.wrapT = TextureUVTechnique::ClampToEdge;
+	heightSamplerDesc.minFilter = TexFilter::Nearest;
+	heightSamplerDesc.magFilter = TexFilter::Nearest;
+	heightSamplerDesc.wrapR = heightSamplerDesc.wrapS = heightSamplerDesc.wrapT = UVTechnique::ClampToEdge;
 	// we specify a negative border, so that we can detect out of range sampling in shaders
 	//heightSamplerDesc.borderColor = glm::vec4(-1.0f);
 

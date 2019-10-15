@@ -22,14 +22,14 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 	auto material = std::make_unique<PbrMaterial>(mTechnique);
 
 	TextureDesc data = {
-		TextureFilter::Linear_Mipmap_Linear,
-		TextureFilter::Linear,
-		TextureUVTechnique::Repeat,
-		TextureUVTechnique::Repeat,
-		TextureUVTechnique::Repeat,
+		TexFilter::Linear_Mipmap_Linear,
+		TexFilter::Linear,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
+		UVTechnique::Repeat,
 		ColorSpace::SRGB,
 		PixelDataType::UBYTE,
-		InternFormat::SRGB8,
+		InternalFormat::SRGB8,
 		true
 	};
 
@@ -77,7 +77,7 @@ std::unique_ptr<Material> PbrMaterialLoader::createMaterial(const MaterialStore&
 
 	// the following textures are linear, so we use the RGBA color space
 	data.colorspace = ColorSpace::RGB;
-	data.internalFormat = InternFormat::RGB8;
+	data.internalFormat = InternalFormat::RGB8;
 
 	if (store.metallicMap != "")
 	{

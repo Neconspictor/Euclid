@@ -30,14 +30,14 @@ namespace nex
 	/**
 	 * Specifies which component should be sampled from a depth-stencil texture in shader code.
 	 */
-	enum class DepthStencilTextureMode {
+	enum class DepthStencilTexMode {
 		DEPTH, FIRST = DEPTH,
 		STENCIL, LAST = STENCIL,
 	};
 
 	unsigned getComponents(const ColorSpace colorspace);
 
-	enum class InternFormat
+	enum class InternalFormat
 	{
 		R8, FIRST = R8, //Note: nothing specified after the bit depth means UNORM = unsigned normalized integers (range [0, 1]) , see: https://www.khronos.org/opengl/wiki/Normalized_Integer
 		R8UI,
@@ -156,7 +156,7 @@ namespace nex
 		NEGATIVE_Z,
 	};
 
-	enum class CompareFunction
+	enum class CompFunc
 	{
 		ALWAYS, FIRST = ALWAYS,
 		EQUAL,
@@ -168,9 +168,9 @@ namespace nex
 		NOT_EQUAL, LAST = NOT_EQUAL
 	};
 
-	enum class TextureFilter
+	enum class TexFilter
 	{
-		NearestNeighbor, FIRST = NearestNeighbor,
+		Nearest, FIRST = Nearest,
 		Linear,
 		Near_Mipmap_Near,     // trilinear filtering with double nearest neighbor filtering
 		Near_Mipmap_Linear,   // trilinear filtering from nearest neighbor to bilinear filtering
@@ -178,7 +178,7 @@ namespace nex
 		Linear_Mipmap_Linear, LAST = Linear_Mipmap_Linear,// trilinear filtering from bilinear to bilinear filtering
 	};
 
-	enum class TextureUVTechnique
+	enum class UVTechnique
 	{
 		ClampToBorder, FIRST = ClampToBorder,
 		ClampToEdge,
@@ -190,30 +190,30 @@ namespace nex
 	struct SamplerDesc
 	{
 		glm::vec4 borderColor = { 0,0,0,0 };
-		TextureFilter minFilter = TextureFilter::Linear;
-		TextureFilter magFilter = TextureFilter::Linear;
-		TextureUVTechnique wrapS = TextureUVTechnique::ClampToEdge;
-		TextureUVTechnique wrapT = TextureUVTechnique::ClampToEdge;
-		TextureUVTechnique wrapR = TextureUVTechnique::ClampToEdge;
+		TexFilter minFilter = TexFilter::Linear;
+		TexFilter magFilter = TexFilter::Linear;
+		UVTechnique wrapS = UVTechnique::ClampToEdge;
+		UVTechnique wrapT = UVTechnique::ClampToEdge;
+		UVTechnique wrapR = UVTechnique::ClampToEdge;
 		int minLOD = -1000;
 		int maxLOD = 1000;
 		float biasLOD = 0;
 		bool useDepthComparison = false; // Only used for depth-stencil maps
-		CompareFunction compareFunction = CompareFunction::LESS_EQUAL;
+		CompFunc compareFunction = CompFunc::LESS_EQUAL;
 		float maxAnisotropy = 1.0f;
 
 		static SamplerDesc createMipMapRepeat()
 		{
 			SamplerDesc desc;
-			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
-			desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::Repeat;
+			desc.minFilter = TexFilter::Linear_Mipmap_Linear;
+			desc.wrapS = desc.wrapR = desc.wrapT = UVTechnique::Repeat;
 			return desc;
 		}
 	};
 
 	struct BaseTextureDesc : public SamplerDesc
 	{
-		CompareFunction compareFunc = CompareFunction::LESS_EQUAL;
+		CompFunc compareFunc = CompFunc::LESS_EQUAL;
 		bool generateMipMaps = false;
 		unsigned lodBaseLevel = 0; // index of the lowest defined mipmap level
 		unsigned lodMaxLevel = 1000.0f; //index of the highest defined mipmap level
@@ -224,7 +224,7 @@ namespace nex
 		/**
 		 * Only used for depth-stencil textures
 		 */
-		DepthStencilTextureMode depthStencilTextureMode = DepthStencilTextureMode::DEPTH;
+		DepthStencilTexMode depthStencilTextureMode = DepthStencilTexMode::DEPTH;
 	};
 
 
@@ -232,18 +232,18 @@ namespace nex
 	{
 		ColorSpace colorspace = ColorSpace::RGBA;
 		PixelDataType pixelDataType = PixelDataType::UBYTE;
-		InternFormat internalFormat = InternFormat::RGBA8;
+		InternalFormat internalFormat = InternalFormat::RGBA8;
 
 		TextureDesc() {}
 
-		TextureDesc(TextureFilter minFilter, 
-			TextureFilter magFilter, 
-			TextureUVTechnique wrapR,
-			TextureUVTechnique wrapS,
-			TextureUVTechnique wrapT,
+		TextureDesc(TexFilter minFilter, 
+			TexFilter magFilter, 
+			UVTechnique wrapR,
+			UVTechnique wrapS,
+			UVTechnique wrapT,
 			ColorSpace colorspace, 
 			PixelDataType pixelDataType, 
-			InternFormat internalFormat,
+			InternalFormat internalFormat,
 			bool generateMipMaps) : 
 			                        colorspace(colorspace),
 			                        pixelDataType(pixelDataType),
@@ -257,14 +257,14 @@ namespace nex
 			this->generateMipMaps = generateMipMaps;
 		}
 
-		static TextureDesc createImage(TextureFilter minFilter,
-			TextureFilter magFilter,
-			TextureUVTechnique wrapR,
-			TextureUVTechnique wrapS,
-			TextureUVTechnique wrapT,
+		static TextureDesc createImage(TexFilter minFilter,
+			TexFilter magFilter,
+			UVTechnique wrapR,
+			UVTechnique wrapS,
+			UVTechnique wrapT,
 			ColorSpace colorspace,
 			PixelDataType pixelDataType,
-			InternFormat internalFormat,
+			InternalFormat internalFormat,
 			bool generateMipMaps)
 		{
 			TextureDesc result;
@@ -280,10 +280,10 @@ namespace nex
 			return result;
 		}
 
-		static TextureDesc createDepth(CompareFunction compareFunction, 
+		static TextureDesc createDepth(CompFunc compareFunction, 
 			ColorSpace colorSpace,
 			PixelDataType dataType, 
-			InternFormat format)
+			InternalFormat format)
 		{
 			TextureDesc result;
 			result.useDepthComparison = true;
@@ -291,23 +291,23 @@ namespace nex
 			result.colorspace = colorSpace;
 			result.pixelDataType = dataType;
 			result.internalFormat = format;
-			result.minFilter = result.magFilter = TextureFilter::NearestNeighbor;
-			result.wrapS = result.wrapR = result.wrapT = TextureUVTechnique::ClampToEdge;
+			result.minFilter = result.magFilter = TexFilter::Nearest;
+			result.wrapS = result.wrapR = result.wrapT = UVTechnique::ClampToEdge;
 			return result;
 		}
 
-		static TextureDesc createRenderTargetRGBAHDR(InternFormat format = InternFormat::RGBA32F, bool generateMipMaps = false)
+		static TextureDesc createRenderTargetRGBAHDR(InternalFormat format = InternalFormat::RGBA32F, bool generateMipMaps = false)
 		{
 			TextureDesc data;
 			data.generateMipMaps = generateMipMaps;
-			data.minFilter = TextureFilter::NearestNeighbor;
-			data.magFilter = TextureFilter::NearestNeighbor;
+			data.minFilter = TexFilter::Nearest;
+			data.magFilter = TexFilter::Nearest;
 			data.colorspace = ColorSpace::RGBA;
 			data.internalFormat = format;
 			data.pixelDataType = PixelDataType::FLOAT;
-			data.wrapR = TextureUVTechnique::ClampToEdge;
-			data.wrapS = TextureUVTechnique::ClampToEdge;
-			data.wrapT = TextureUVTechnique::ClampToEdge;
+			data.wrapR = UVTechnique::ClampToEdge;
+			data.wrapS = UVTechnique::ClampToEdge;
+			data.wrapT = UVTechnique::ClampToEdge;
 
 			return data;
 		}

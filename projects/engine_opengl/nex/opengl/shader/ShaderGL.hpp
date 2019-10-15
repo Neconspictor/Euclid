@@ -77,7 +77,7 @@ namespace nex
 		void setDebugName(const char* name);
 
 		void setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot,
-			TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer);
+			TextureAccess accessType, InternalFormat format, unsigned level, bool textureIsArray, unsigned layer);
 
 
 		void setFloat(UniformLocation locationID, float data);

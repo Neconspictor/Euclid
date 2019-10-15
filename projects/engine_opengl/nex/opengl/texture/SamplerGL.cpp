@@ -64,13 +64,13 @@ Sampler::Impl* Sampler::getImpl() {
 	return mImpl.get();
 }
 
-void Sampler::setMinFilter(TextureFilter filter)
+void Sampler::setMinFilter(TexFilter filter)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_MIN_FILTER, (GLenum)translate(filter)));
 	mImpl->mState.minFilter = filter;
 }
 
-void Sampler::setMagFilter(TextureFilter filter)
+void Sampler::setMagFilter(TexFilter filter)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_MAG_FILTER, (GLenum)translate(filter)));
 	mImpl->mState.magFilter = filter;
@@ -113,25 +113,25 @@ void Sampler::useDepthComparison(bool use)
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_COMPARE_MODE, translated));
 }
 
-void Sampler::setCompareFunction(CompareFunction compareFunction)
+void Sampler::setCompareFunction(CompFunc compareFunction)
 {
 	mImpl->mState.compareFunction = compareFunction;
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_COMPARE_FUNC, (GLenum)translate(mImpl->mState.compareFunction)));
 }
 
-void Sampler::setWrapS(TextureUVTechnique wrap)
+void Sampler::setWrapS(UVTechnique wrap)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_WRAP_S, (GLenum)translate(wrap)));
 	mImpl->mState.wrapS = wrap;
 }
 
-void Sampler::setWrapT(TextureUVTechnique wrap)
+void Sampler::setWrapT(UVTechnique wrap)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_WRAP_T, (GLenum)translate(wrap)));
 	mImpl->mState.wrapT = wrap;
 }
 
-void Sampler::setWrapR(TextureUVTechnique wrap)
+void Sampler::setWrapR(UVTechnique wrap)
 {
 	GLCall(glSamplerParameteri(mImpl->getID(), GL_TEXTURE_WRAP_R, (GLenum)translate(wrap)));
 	mImpl->mState.wrapR = wrap;

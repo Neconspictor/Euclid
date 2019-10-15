@@ -9,7 +9,7 @@
 namespace nex
 {
 	class Sampler;
-	enum class InternFormat;
+	enum class InternalFormat;
 	enum class TextureAccess;
 	class Pass;
 	struct ResolvedShaderStageDesc;
@@ -161,7 +161,7 @@ namespace nex
 		 * @param format: Specifies the format that the elements of the image will be treated as for the purposes of formatted stores.
 		 */
 		void setImageLayerOfTexture(UniformLocation locationID, const nex::Texture* data, unsigned int bindingSlot, 
-			TextureAccess accessType, InternFormat format, unsigned level, bool textureIsArray, unsigned layer);
+			TextureAccess accessType, InternalFormat format, unsigned level, bool textureIsArray, unsigned layer);
 
 
 		/**

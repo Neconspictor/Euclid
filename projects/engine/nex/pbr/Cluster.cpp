@@ -49,7 +49,7 @@ public:
 		mConstants(std::make_unique<UniformBuffer>(0, sizeof(cluster::ActiveClusterConstants), nullptr, GpuBuffer::UsageHint::STREAM_DRAW))
 	{
 		auto state = mDepthSampler.getState();
-		state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
+		state.minFilter = state.magFilter = TexFilter::Nearest;
 		mDepthSampler.setState(state);
 	}
 

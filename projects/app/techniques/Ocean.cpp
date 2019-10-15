@@ -266,7 +266,7 @@ void nex::OceanCpu::draw(const glm::mat4& projection, const glm::mat4& view, con
 	}
 
 
-	state.depthCompare = CompareFunction::LESS;
+	state.depthCompare = CompFunc::LESS;
 
 	auto& buffer = *mMesh->getVertexBuffers()[0];
 
@@ -940,7 +940,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 		state.fillMode = FillMode::FILL;
 	}
 
-	state.depthCompare = CompareFunction::LESS;
+	state.depthCompare = CompFunc::LESS;
 
 	RenderBackend::get()->drawWithIndicesInstanced(64, state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
 }
@@ -1094,11 +1094,11 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 	mUniquePointCount(uniquePointCount), mWaveLength(waveLength), mWindDirection(windDirection), mSpectrumScale(spectrumScale), mWindSpeed(windSpeed)
 {
 	TextureDesc desc;
-	desc.internalFormat = InternFormat::RGBA32F;
+	desc.internalFormat = InternalFormat::RGBA32F;
 	desc.colorspace = ColorSpace::RGBA;
 	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
-	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mHeightZero = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 
 	mResultTexture = { mShader->getUniformLocation("result"), UniformType::IMAGE2D, 0 };
@@ -1133,11 +1133,11 @@ nex::OceanGPU::HeightZeroComputePass::HeightZeroComputePass(const glm::uvec2& un
 	}
 
 	TextureDesc randDesc;
-	randDesc.internalFormat = InternFormat::RGBA32F;
+	randDesc.internalFormat = InternalFormat::RGBA32F;
 	randDesc.colorspace = ColorSpace::RGBA;
 	randDesc.pixelDataType = PixelDataType::FLOAT;
 	randDesc.generateMipMaps = false;
-	randDesc.magFilter = randDesc.minFilter = TextureFilter::NearestNeighbor;
+	randDesc.magFilter = randDesc.minFilter = TexFilter::Nearest;
 
 	mRandNormalDistributed = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, randDesc, randValues.data());
 	mRandTextureUniform = { mShader->getUniformLocation("randTexture"), UniformType::TEXTURE2D, 1 };
@@ -1151,7 +1151,7 @@ void nex::OceanGPU::HeightZeroComputePass::compute()
 		mHeightZero.get(),
 		mResultTexture.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F,
+		InternalFormat::RGBA32F,
 		0,
 		false,
 		0);
@@ -1160,7 +1160,7 @@ void nex::OceanGPU::HeightZeroComputePass::compute()
 		mRandNormalDistributed.get(),
 		mRandTextureUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
-		InternFormat::RGBA32F,
+		InternalFormat::RGBA32F,
 		0,
 		false,
 		0);
@@ -1194,11 +1194,11 @@ nex::OceanGPU::HeightComputePass::HeightComputePass(const glm::uvec2& uniquePoin
 	mPeriodTimeUniform = { mShader->getUniformLocation("periodTime"), UniformType::FLOAT };
 
 	TextureDesc desc;
-	desc.internalFormat = InternFormat::RG32F;
+	desc.internalFormat = InternalFormat::RG32F;
 	desc.colorspace = ColorSpace::RG;
 	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
-	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mHeight = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 	mHeightSlopeX = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
 	mHeightSlopeZ = std::make_unique<Texture2D>(mUniquePointCount.x, mUniquePointCount.y, desc, nullptr);
@@ -1222,7 +1222,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		mHeight.get(),
 		mResultHeightTextureUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1231,7 +1231,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		mHeightSlopeX.get(),
 		mResultSlopeXTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1240,7 +1240,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		mHeightSlopeZ.get(),
 		mResultSlopeZTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1249,7 +1249,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		mHeightDx.get(),
 		mResultDxTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1258,7 +1258,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		mHeightDz.get(),
 		mResultDzTextureUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1267,7 +1267,7 @@ void nex::OceanGPU::HeightComputePass::compute(float time, Texture2D* heightZero
 		heightZero,
 		mHeightZeroTextureUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F,
+		InternalFormat::RGBA32F,
 		0,
 		false,
 		0);
@@ -1308,11 +1308,11 @@ mN(N)
 	if (!nex::isPow2(mN)) throw std::invalid_argument("nex::Ocean::ButterflyComputePass : N has to be a power of 2!");
 
 	TextureDesc desc;
-	desc.internalFormat = InternFormat::RGBA32F;
+	desc.internalFormat = InternalFormat::RGBA32F;
 	desc.colorspace = ColorSpace::RGBA;
 	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.generateMipMaps = false;
-	desc.magFilter = desc.minFilter = TextureFilter::NearestNeighbor;
+	desc.magFilter = desc.minFilter = TexFilter::Nearest;
 	mButterfly = std::make_unique<Texture2D>(mN, static_cast<unsigned>(std::log2(mN)), desc, nullptr);
 
 	mButterflyUniform = { mShader->getUniformLocation("butterfly"), UniformType::IMAGE2D, 0 };
@@ -1330,7 +1330,7 @@ void nex::OceanGPU::ButterflyComputePass::compute()
 		mButterfly.get(),
 		mButterflyUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RGBA32F,
+		InternalFormat::RGBA32F,
 		0,
 		false,
 		0);
@@ -1349,7 +1349,7 @@ mBlit(std::make_unique<ComputePass>(nex::Shader::createComputeShader("ocean/blit
 
 {
 	TextureDesc desc;
-	desc.internalFormat = InternFormat::RG32F;
+	desc.internalFormat = InternalFormat::RG32F;
 	desc.colorspace = ColorSpace::RG;
 	desc.pixelDataType = PixelDataType::FLOAT;
 	mPingPong = std::make_unique<Texture2D>(N, N, desc, nullptr);
@@ -1382,7 +1382,7 @@ void nex::OceanGPU::IfftPass::setButterfly(Texture2D* butterfly)
 		butterfly,
 		mButterflyUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
-		InternFormat::RGBA32F,
+		InternalFormat::RGBA32F,
 		0,
 		false,
 		0);
@@ -1394,7 +1394,7 @@ void nex::OceanGPU::IfftPass::setInput(Texture2D* input)
 		input,
 		mInputUniform.bindingSlot,
 		TextureAccess::READ_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1406,7 +1406,7 @@ void nex::OceanGPU::IfftPass::setOutput(Texture2D* output)
 		output,
 		mOutputUniform.bindingSlot,
 		TextureAccess::WRITE_ONLY,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1451,7 +1451,7 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 			mPingPong.get(),
 			mBlitSourceUniform.bindingSlot,
 			TextureAccess::READ_ONLY,
-			InternFormat::RG32F,
+			InternalFormat::RG32F,
 			0,
 			false,
 			0);
@@ -1460,7 +1460,7 @@ void nex::OceanGPU::IfftPass::computeAllStages(Texture2D* input)
 			input,
 			mBlitDestUniform.bindingSlot,
 			TextureAccess::WRITE_ONLY,
-			InternFormat::RG32F,
+			InternalFormat::RG32F,
 			0,
 			false,
 			0);
@@ -1498,7 +1498,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		height,
 		mHeightUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1507,7 +1507,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		slopeX,
 		mSlopeXUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1516,7 +1516,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		slopeZ,
 		mSlopeZUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1525,7 +1525,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		dX,
 		mdXUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1534,7 +1534,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 		dZ,
 		mdZUniform.bindingSlot,
 		TextureAccess::READ_WRITE,
-		InternFormat::RG32F,
+		InternalFormat::RG32F,
 		0,
 		false,
 		0);
@@ -1557,11 +1557,11 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	dXUniform = { mShader->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
 	dZUniform = { mShader->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
 
-	sampler.setMinFilter(TextureFilter::NearestNeighbor);
-	sampler.setMagFilter(TextureFilter::NearestNeighbor);
-	sampler.setWrapR(TextureUVTechnique::Repeat);
-	sampler.setWrapS(TextureUVTechnique::Repeat);
-	sampler.setWrapT(TextureUVTechnique::Repeat);
+	sampler.setMinFilter(TexFilter::Nearest);
+	sampler.setMagFilter(TexFilter::Nearest);
+	sampler.setWrapR(UVTechnique::Repeat);
+	sampler.setWrapS(UVTechnique::Repeat);
+	sampler.setWrapT(UVTechnique::Repeat);
 }
 
 void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 

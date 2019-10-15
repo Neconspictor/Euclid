@@ -177,8 +177,8 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 {
 	assert(mShader != nullptr);
 
-	mCascadedShadowMapSampler.setMinFilter(TextureFilter::NearestNeighbor);
-	mCascadedShadowMapSampler.setMagFilter(TextureFilter::NearestNeighbor);
+	mCascadedShadowMapSampler.setMinFilter(TexFilter::Nearest);
+	mCascadedShadowMapSampler.setMagFilter(TexFilter::Nearest);
 
 	// ibl
 	//mIrradianceMap = mShader->createTextureHandleUniform("irradianceMap", UniformType::CUBE_MAP);
@@ -210,7 +210,7 @@ nex::PbrLightingData::PbrLightingData(Shader * shader, GlobalIllumination* globa
 	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
-	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	desc.minFilter = TexFilter::Linear_Mipmap_Linear;
 	mPrefilteredSampler.setState(desc);
 }
 
@@ -463,7 +463,7 @@ void nex::SHComputePass::compute(Texture2D* texture, unsigned mipmap, const Cube
 	mShader->setTexture(environmentMaps, &mSampler, mEnvironmentMap.bindingSlot);
 
 	mShader->setImageLayerOfTexture(mOutputMap.location, texture, mOutputMap.bindingSlot, nex::TextureAccess::READ_WRITE,
-		InternFormat::RGBA32F, mipmap, false, 0);
+		InternalFormat::RGBA32F, mipmap, false, 0);
 
 	mShader->setUInt(mRowStart.location, rowStart);
 
@@ -531,8 +531,8 @@ nex::PbrIrradianceShPass::PbrIrradianceShPass()
 	mView = { mShader->getUniformLocation("view"), UniformType::MAT4 };
 
 	mCoefficientMap = mShader->createTextureUniform("coefficents", UniformType::TEXTURE2D, 0);
-	mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-	mSampler.setMagFilter(TextureFilter::NearestNeighbor);
+	mSampler.setMinFilter(TexFilter::Nearest);
+	mSampler.setMagFilter(TexFilter::Nearest);
 }
 
 void nex::PbrIrradianceShPass::setProjection(const glm::mat4& mat)
@@ -577,7 +577,7 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
-	desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+	desc.minFilter = TexFilter::Linear_Mipmap_Linear;
 	mVoxelSampler.setState(desc);
 }
 

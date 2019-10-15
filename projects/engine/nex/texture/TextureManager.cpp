@@ -72,14 +72,14 @@ namespace nex {
 	{
 		return getImage("_intern/black.png",
 			{
-				TextureFilter::Linear_Mipmap_Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
+				TexFilter::Linear_Mipmap_Linear,
+				TexFilter::Linear,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
 				ColorSpace::RGB,
 				PixelDataType::UBYTE,
-				InternFormat::RGB8,
+				InternalFormat::RGB8,
 				true
 			});
 	}
@@ -89,14 +89,14 @@ namespace nex {
 		//normal maps shouldn't use mipmaps (important for shading!)
 		return getImage("_intern/default_normal.png",
 			{
-				TextureFilter::Linear_Mipmap_Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
+				TexFilter::Linear_Mipmap_Linear,
+				TexFilter::Linear,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
 				ColorSpace::RGB,
 				PixelDataType::UBYTE,
-				InternFormat::RGB8,
+				InternalFormat::RGB8,
 				true
 			});
 	}
@@ -105,14 +105,14 @@ namespace nex {
 	{
 		return getImage("_intern/white.png",
 			{
-				TextureFilter::Linear_Mipmap_Linear,
-				TextureFilter::Linear,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
-				TextureUVTechnique::Repeat,
+				TexFilter::Linear_Mipmap_Linear,
+				TexFilter::Linear,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
+				UVTechnique::Repeat,
 				ColorSpace::RGB,
 				PixelDataType::UBYTE,
-				InternFormat::RGB8,
+				InternalFormat::RGB8,
 				true
 			});
 	}
@@ -181,42 +181,42 @@ namespace nex {
 		return ColorSpace::SRGB;
 	}
 
-	InternFormat TextureManager::getInternalFormat(unsigned channels, bool isFloat)
+	InternalFormat TextureManager::getInternalFormat(unsigned channels, bool isFloat)
 	{
 		switch (channels)
 		{
 		case 1:
-			if (isFloat) return InternFormat::R32F;
-			return InternFormat::R8;
+			if (isFloat) return InternalFormat::R32F;
+			return InternalFormat::R8;
 		case 2:
-			if (isFloat) return InternFormat::RG32F;
-			return InternFormat::RG8;
+			if (isFloat) return InternalFormat::RG32F;
+			return InternalFormat::RG8;
 		case 3:
-			if (isFloat) return InternFormat::RGB32F;
-			return InternFormat::RGB8;
+			if (isFloat) return InternalFormat::RGB32F;
+			return InternalFormat::RGB8;
 		case 4:
-			if (isFloat) return InternFormat::RGBA32F;
-			return InternFormat::RGBA8;
+			if (isFloat) return InternalFormat::RGBA32F;
+			return InternalFormat::RGBA8;
 		default:
 			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
 		}
 
-		return InternFormat::R8;
+		return InternalFormat::R8;
 	}
 
-	InternFormat TextureManager::getGammaInternalFormat(unsigned channels)
+	InternalFormat TextureManager::getGammaInternalFormat(unsigned channels)
 	{
 		switch (channels)
 		{
 		case 3:
-			return InternFormat::SRGB8;
+			return InternalFormat::SRGB8;
 		case 4:
-			return InternFormat::SRGBA8;
+			return InternalFormat::SRGBA8;
 		default:
 			throw std::runtime_error("Not supported channel number: " + std::to_string(channels));
 		}
 
-		return InternFormat::SRGB8;
+		return InternalFormat::SRGB8;
 	}
 
 	bool TextureManager::isLinear(ColorSpace colorspace)
@@ -224,9 +224,9 @@ namespace nex {
 		return colorspace != ColorSpace::SRGB && colorspace != ColorSpace::SRGBA;
 	}
 
-	bool TextureManager::isLinear(InternFormat internFormat)
+	bool TextureManager::isLinear(InternalFormat internFormat)
 	{
-		return internFormat != InternFormat::SRGB8 && internFormat != InternFormat::SRGBA8;
+		return internFormat != InternalFormat::SRGB8 && internFormat != InternalFormat::SRGBA8;
 	}
 
 	std::unique_ptr<nex::Texture2D> TextureManager::loadImage(const std::filesystem::path& file, const nex::TextureDesc& data, bool detectColorSpace)

@@ -73,7 +73,7 @@ unsigned nex::CubeRenderTarget::getHeight() const
 }
 
 
-nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternFormat depthFormat) :
+nex::CubeRenderTargetGL::CubeRenderTargetGL(unsigned width, unsigned height, TextureDesc data, InternalFormat depthFormat) :
 	Impl(width, height)
 {	
 	RenderAttachment color;
@@ -125,7 +125,7 @@ void nex::CubeRenderTargetGL::resizeForMipMap(unsigned int mipMapLevel) {
 	}
 }
 
-nex::RenderAttachmentType nex::RenderAttachment::translate(InternFormat format)
+nex::RenderAttachmentType nex::RenderAttachment::translate(InternalFormat format)
 {
 	static nex::RenderAttachmentType const table[]
 	{
@@ -180,7 +180,7 @@ nex::RenderAttachmentType nex::RenderAttachment::translate(InternFormat format)
 		RenderAttachmentType::STENCIL
 	};
 
-	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
+	static const unsigned size = (unsigned)InternalFormat::LAST - (unsigned)InternalFormat::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: InternFormat and nex::RenderAttachment::Type table don't match!");
 
 	return table[(unsigned)format];
@@ -777,12 +777,12 @@ nex::CubeDepthMapGL::CubeDepthMapGL(int width, int height) :
 {
 
 	TextureDesc desc;
-	desc.minFilter = TextureFilter::NearestNeighbor;
-	desc.magFilter = TextureFilter::NearestNeighbor;
-	desc.wrapS = desc.wrapR = desc.wrapT = TextureUVTechnique::ClampToEdge;
+	desc.minFilter = TexFilter::Nearest;
+	desc.magFilter = TexFilter::Nearest;
+	desc.wrapS = desc.wrapR = desc.wrapT = UVTechnique::ClampToEdge;
 	desc.pixelDataType = PixelDataType::FLOAT;
 	desc.colorspace = ColorSpace::DEPTH;
-	desc.internalFormat = InternFormat::DEPTH_COMPONENT32F;
+	desc.internalFormat = InternalFormat::DEPTH_COMPONENT32F;
 
 	RenderAttachment depth;
 

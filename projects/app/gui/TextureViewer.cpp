@@ -55,7 +55,7 @@ namespace nex::gui
 
 					TextureDesc data;
 					data.colorspace = ColorSpace::SRGBA;
-					data.internalFormat = InternFormat::SRGBA8;
+					data.internalFormat = InternalFormat::SRGBA8;
 					data.generateMipMaps = true;
 
 					switch (result.state) {

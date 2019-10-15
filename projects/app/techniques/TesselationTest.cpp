@@ -117,7 +117,7 @@ void nex::TesselationTest::draw(Camera* camera, const glm::vec3& lightDir)
 	}
 	
 
-	state.depthCompare = CompareFunction::LESS;
+	state.depthCompare = CompFunc::LESS;
 
 	// Only draw the first triangle
 	RenderBackend::get()->drawWithIndices(state, Topology::PATCHES, mesh->getIndexBuffer().getCount(), mesh->getIndexBuffer().getType());

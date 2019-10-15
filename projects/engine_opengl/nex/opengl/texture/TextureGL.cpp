@@ -114,7 +114,7 @@ nex::RenderBuffer::RenderBuffer(unsigned width, unsigned height, const TextureDe
 {
 }
 
-nex::InternFormat nex::RenderBuffer::getFormat() const
+nex::InternalFormat nex::RenderBuffer::getFormat() const
 {
 	auto gl = (RenderBufferGL*)mImpl.get();
 	return gl->getFormat();
@@ -144,7 +144,7 @@ nex::RenderBufferGL::RenderBufferGL(GLuint texture, GLuint width, GLuint height,
 	updateMipMapCount();
 }
 
-nex::InternFormat nex::RenderBufferGL::getFormat() const
+nex::InternalFormat nex::RenderBufferGL::getFormat() const
 {
 	return mTextureData.internalFormat;
 }
@@ -903,7 +903,7 @@ nex::ChannelGL nex::translate(nex::Channel channel)
 	return table[(unsigned)channel];
 }
 
-nex::TextureFilterGL nex::translate(nex::TextureFilter filter)
+nex::TextureFilterGL nex::translate(nex::TexFilter filter)
 {
 	static TextureFilterGL const table[]
 	{
@@ -915,13 +915,13 @@ nex::TextureFilterGL nex::translate(nex::TextureFilter filter)
 		TextureFilterGL::Linear_Mipmap_Linear,
 	};
 
-	static const unsigned size = (unsigned)TextureFilter::LAST - (unsigned)TextureFilter::FIRST + 1;
+	static const unsigned size = (unsigned)TexFilter::LAST - (unsigned)TexFilter::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureFilter and TextureFilterGL don't match!");
 
 	return table[(unsigned)filter];
 }
 
-nex::TextureUVTechniqueGL nex::translate(nex::TextureUVTechnique technique)
+nex::TextureUVTechniqueGL nex::translate(nex::UVTechnique technique)
 {
 	static TextureUVTechniqueGL const table[]
 	{
@@ -932,7 +932,7 @@ nex::TextureUVTechniqueGL nex::translate(nex::TextureUVTechnique technique)
 		TextureUVTechniqueGL::Repeat,
 	};
 
-	static const unsigned size = (unsigned)TextureUVTechnique::LAST - (unsigned)TextureUVTechnique::FIRST + 1;
+	static const unsigned size = (unsigned)UVTechnique::LAST - (unsigned)UVTechnique::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: TextureUVTechnique and TextureUVTechniqueGL don't match!");
 
 	return table[(unsigned)technique];
@@ -964,19 +964,19 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 	return table[(unsigned)colorSpace];
 }
 
-nex::DepthStencilTextureModeGL nex::translate(nex::DepthStencilTextureMode mode)
+nex::DepthStencilTextureModeGL nex::translate(nex::DepthStencilTexMode mode)
 {
 	static DepthStencilTextureModeGL const table[]{
 		DepthStencilTextureModeGL::DEPTH,
 		DepthStencilTextureModeGL::STENCIL,
 	};
-	static const unsigned size = (unsigned)DepthStencilTextureMode::LAST - (unsigned)DepthStencilTextureMode::FIRST + 1;
+	static const unsigned size = (unsigned)DepthStencilTexMode::LAST - (unsigned)DepthStencilTexMode::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: DepthStencilTextureMode and DepthStencilTextureModeGL don't match!");
 
 	return table[(unsigned)mode];
 }
 
-nex::InternFormatGL nex::translate(nex::InternFormat format)
+nex::InternFormatGL nex::translate(nex::InternalFormat format)
 {
 	static InternFormatGL const table[]
 	{
@@ -1029,7 +1029,7 @@ nex::InternFormatGL nex::translate(nex::InternFormat format)
 		InternFormatGL::STENCIL8,
 	};
 
-	static const unsigned size = (unsigned)InternFormat::LAST - (unsigned)InternFormat::FIRST + 1;
+	static const unsigned size = (unsigned)InternalFormat::LAST - (unsigned)InternalFormat::FIRST + 1;
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: InternFormat and InternFormatGL don't match!");
 
 	return table[(unsigned)format];

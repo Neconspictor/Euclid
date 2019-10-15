@@ -184,7 +184,7 @@ namespace nex
 		}
 	}
 
-	void DepthBuffer::setDefaultDepthFunc(CompareFunction depthFunc)
+	void DepthBuffer::setDefaultDepthFunc(CompFunc depthFunc)
 	{
 		const auto translated = translate(depthFunc);
 
@@ -398,7 +398,7 @@ namespace nex
 		}
 	}
 
-	void StencilTest::setCompareFunc(CompareFunction func, int referenceValue, unsigned mask)
+	void StencilTest::setCompareFunc(CompFunc func, int referenceValue, unsigned mask)
 	{
 		const auto translated = translate(func);
 		if (mImpl->mCompareFunc == translated && mImpl->mCompareReferenceValue == referenceValue && mImpl->mCompareMask == mask) return;
@@ -472,7 +472,7 @@ namespace nex
 		GLCall(glClearColor(0.0, 0.0, 0.0, 1.0)); // TODO abstract
 
 		getDepthBuffer()->enableDepthTest(true);
-		getDepthBuffer()->setDefaultDepthFunc(CompareFunction::LESS_EQUAL);
+		getDepthBuffer()->setDefaultDepthFunc(CompFunc::LESS_EQUAL);
 
 		getDepthBuffer()->enableDepthBufferWriting(true);
 
@@ -490,7 +490,7 @@ namespace nex
 		GLCall(glClearDepth(1.0f));
 		GLCall(glClearStencil(0)); // TODO abstract?
 		GLCall(glStencilMask(0xFF)); // TODO abstract ?
-		getStencilTest()->setCompareFunc(CompareFunction::LESS_EQUAL, 0, 0xFF); // TODO: Is it right?
+		getStencilTest()->setCompareFunc(CompFunc::LESS_EQUAL, 0, 0xFF); // TODO: Is it right?
 
 
 		
@@ -551,10 +551,10 @@ namespace nex
 		const unsigned width = mPimpl->mViewport.width * ssaaSamples;
 		const unsigned height = mPimpl->mViewport.height * ssaaSamples;
 
-		TextureDesc depthData = TextureDesc::createDepth(CompareFunction::LESS_EQUAL,
+		TextureDesc depthData = TextureDesc::createDepth(CompFunc::LESS_EQUAL,
 			ColorSpace::DEPTH_STENCIL,
 			PixelDataType::UNSIGNED_INT_24_8,
-			InternFormat::DEPTH24_STENCIL8);
+			InternalFormat::DEPTH24_STENCIL8);
 
 		return create2DRenderTarget(width, height, TextureDesc::createRenderTargetRGBAHDR(), depthData, samples);
 	}
@@ -853,7 +853,7 @@ namespace nex
 		return boolean ? GL_TRUE : GL_FALSE;
 	}
 
-	nex::CompareFunctionGL translate(nex::CompareFunction compareFunc)
+	nex::CompareFunctionGL translate(nex::CompFunc compareFunc)
 	{
 		static CompareFunctionGL const typeTable[]
 		{
@@ -867,7 +867,7 @@ namespace nex
 			CompareFunctionGL::NOT_EQUAL,
 		};
 
-		static const unsigned size = (unsigned)CompareFunction::LAST - (unsigned)CompareFunction::FIRST + 1;
+		static const unsigned size = (unsigned)CompFunc::LAST - (unsigned)CompFunc::FIRST + 1;
 		static_assert(sizeof(typeTable) / sizeof(typeTable[0]) == size, "GL error: DepthComparison and DepthComparisonGL don't match!");
 
 		return typeTable[(unsigned)compareFunc];

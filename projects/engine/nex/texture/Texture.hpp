@@ -195,7 +195,7 @@ namespace nex
 		virtual ~RenderBuffer() = default;
 
 		// Has to be implemented by renderer backend
-		InternFormat getFormat() const;
+		InternalFormat getFormat() const;
 	};
 
 

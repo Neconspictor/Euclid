@@ -16,11 +16,11 @@ namespace nex {
 		mSampler(std::make_unique<Sampler>(SamplerDesc()))
 	{
 		mSampler->setAnisotropy(1.0f);
-		mSampler->setMinFilter(TextureFilter::Linear);
-		mSampler->setMagFilter(TextureFilter::Linear);
-		mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
-		mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
-		mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
+		mSampler->setMinFilter(TexFilter::Linear);
+		mSampler->setMagFilter(TexFilter::Linear);
+		mSampler->setWrapR(UVTechnique::ClampToEdge);
+		mSampler->setWrapS(UVTechnique::ClampToEdge);
+		mSampler->setWrapT(UVTechnique::ClampToEdge);
 		resize(width, height);
 	}
 
