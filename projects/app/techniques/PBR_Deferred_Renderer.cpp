@@ -1,10 +1,10 @@
 #include <techniques/PBR_Deferred_Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.inl>
-#include <nex/shader/SkyBoxPass.hpp>
+#include <nex/effects/SkyBoxPass.hpp>
 #include <nex/Scene.hpp>
-#include <nex/shader/DepthMapPass.hpp>
-#include <nex/shader/SpritePass.hpp>
+#include <nex/effects/DepthMapPass.hpp>
+#include <nex/effects/SpritePass.hpp>
 #include <nex/texture/TextureManager.hpp>
 //#include <nex/opengl/shading_model/ShadingModelFactoryGL.hpp>
 #include "nex/mesh/StaticMeshManager.hpp"

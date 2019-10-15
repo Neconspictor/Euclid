@@ -1,7 +1,7 @@
 #include <nex/texture/Sprite.hpp>
 #include <nex/renderer/RenderBackend.hpp>
 #include <nex/EffectLibrary.hpp>
-#include <nex/shader/SpritePass.hpp>
+#include <nex/effects/SpritePass.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 
 using namespace std;

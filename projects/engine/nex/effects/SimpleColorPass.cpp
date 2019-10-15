@@ -1,4 +1,4 @@
-#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/effects/SimpleColorPass.hpp>
 
 nex::SimpleColorPass::SimpleColorPass() : TransformPass(Shader::create("simpleColor_vs.glsl", "simpleColor_fs.glsl")), mColor(1.0f)
 {

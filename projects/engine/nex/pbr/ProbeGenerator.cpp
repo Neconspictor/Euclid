@@ -3,7 +3,7 @@
 #include <nex/resource/ResourceLoader.hpp>
 #include <nex/Scene.hpp>
 #include <nex/shader/Technique.hpp>
-#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/effects/SimpleColorPass.hpp>
 #include <nex/pbr/PbrProbe.hpp>
 #include <nex/camera/Camera.hpp>
 #include <nex/pbr/GlobalIllumination.hpp>

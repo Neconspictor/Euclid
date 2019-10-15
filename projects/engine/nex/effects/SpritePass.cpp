@@ -1,4 +1,4 @@
-#include <nex/shader/SpritePass.hpp>
+#include <nex/effects/SpritePass.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.inl>
 

@@ -5,7 +5,7 @@
 #include <nex/pbr/PbrPass.hpp>
 #include "nex/common/File.hpp"
 #include "nex/texture/TextureManager.hpp"
-#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/effects/SimpleColorPass.hpp>
 
 using namespace std;
 using namespace nex;

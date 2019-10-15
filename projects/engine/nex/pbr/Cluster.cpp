@@ -3,7 +3,7 @@
 #include <nex/mesh/StaticMesh.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/shader/Technique.hpp>
-#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/effects/SimpleColorPass.hpp>
 #include <nex/Scene.hpp>
 #include <nex/gui/Util.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -1,4 +1,4 @@
-#include <nex/shader/SkyBoxPass.hpp>
+#include <nex/effects/SkyBoxPass.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/material/Material.hpp>
 

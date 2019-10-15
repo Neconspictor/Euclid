@@ -8,7 +8,7 @@
 #include <nex/opengl/opengl.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
 #include "nex/texture/Attachment.hpp"
-#include "nex/shader/SkyBoxPass.hpp"
+#include "nex/effects/SkyBoxPass.hpp"
 #include <nex/EffectLibrary.hpp>
 #include "CacheGL.hpp"
 #include "nex/resource/ResourceLoader.hpp"

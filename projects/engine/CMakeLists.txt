@@ -48,6 +48,18 @@ set(
     nex/drawing/StaticMeshDrawer.hpp
 	nex/drawing/StaticMeshDrawer.cpp
     
+    #nex/effects
+    nex/effects/BlitPass.cpp
+    nex/effects/BlitPass.hpp
+    nex/effects/DepthMapPass.hpp
+	nex/effects/DepthMapPass.cpp
+    nex/effects/SpritePass.hpp
+	nex/effects/SpritePass.cpp
+    nex/effects/SimpleColorPass.hpp
+    nex/effects/SimpleColorPass.cpp
+    nex/effects/SkyBoxPass.hpp
+	nex/effects/SkyBoxPass.cpp
+    
     #nex/exception
     nex/exception/EnumFormatException.hpp
     nex/exception/OpenglException.hpp
@@ -213,21 +225,11 @@ set(
     
     
     #nex/shader
-    nex/shader/BlitPass.cpp
-    nex/shader/BlitPass.hpp
-    nex/shader/DepthMapPass.hpp
-	nex/shader/DepthMapPass.cpp
     nex/shader/Pass.cpp
     nex/shader/Pass.hpp
-    nex/shader/SpritePass.hpp
-	nex/shader/SpritePass.cpp
     nex/shader/Shader.cpp
     nex/shader/Shader.hpp
     nex/shader/ShaderType.hpp
-    nex/shader/SimpleColorPass.hpp
-    nex/shader/SimpleColorPass.cpp
-    nex/shader/SkyBoxPass.hpp
-	nex/shader/SkyBoxPass.cpp
     nex/shader/Technique.cpp
     nex/shader/Technique.hpp
 	

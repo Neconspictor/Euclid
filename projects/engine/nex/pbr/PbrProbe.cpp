@@ -1,5 +1,5 @@
 #include <nex/pbr/PbrProbe.hpp>
-#include <nex/shader/SkyBoxpass.hpp>
+#include <nex/effects/SkyBoxpass.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nex/util/ExceptionHandling.hpp>
 #include <nex/texture/Texture.hpp>

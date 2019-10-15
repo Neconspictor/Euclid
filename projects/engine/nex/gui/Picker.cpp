@@ -1,7 +1,7 @@
 #include <nex/gui/Picker.hpp>
 #include <nex/mesh/MeshFactory.hpp>
 #include "nex/mesh/StaticMesh.hpp"
-#include "nex/shader/SimpleColorPass.hpp"
+#include "nex/effects/SimpleColorPass.hpp"
 #include "nex/shader/Technique.hpp"
 #include "nex/Scene.hpp"
 #include <glm/glm.hpp>

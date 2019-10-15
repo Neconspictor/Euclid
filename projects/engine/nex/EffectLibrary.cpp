@@ -1,16 +1,16 @@
 #include <nex/EffectLibrary.hpp>
 #include "nex/renderer/RenderBackend.hpp"
 #include <nex/post_processing/blur/GaussianBlur.hpp>
-#include <nex/shader/SkyBoxPass.hpp>
-#include <nex/shader/DepthMapPass.hpp>
-#include <nex/shader/SpritePass.hpp>
+#include <nex/effects/SkyBoxPass.hpp>
+#include <nex/effects/DepthMapPass.hpp>
+#include <nex/effects/SpritePass.hpp>
 #include <nex/post_processing/PostProcessor.hpp>
 #include <nex/post_processing/DownSampler.hpp>
-#include <nex/shader/SimpleColorPass.hpp>
+#include <nex/effects/SimpleColorPass.hpp>
 #include <nex/shader/Technique.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
-#include <nex/shader/BlitPass.hpp>
+#include <nex/effects/BlitPass.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
