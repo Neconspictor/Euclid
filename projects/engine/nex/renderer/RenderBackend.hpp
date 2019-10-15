@@ -120,7 +120,7 @@ namespace nex
 		void enableDepthClamp(bool enable);
 
 		// depth comparison function being used when depth test is enabled and no sampler is bound
-		void setDefaultDepthFunc(CompareFunction depthFunc);
+		void setDefaultDepthFunc(CompFunc depthFunc);
 		
 		//specify mapping of depth values from normalized device coordinates to window coordinates
 		void setDepthRange(const Range& range);
@@ -225,7 +225,7 @@ namespace nex
 		StencilTest();
 
 		void enableStencilTest(bool enable);
-		void setCompareFunc(CompareFunction func, int referenceValue, unsigned mask);
+		void setCompareFunc(CompFunc func, int referenceValue, unsigned mask);
 		void setOperations(Operation stencilFail, Operation depthFail, Operation depthPass);
 		void setState(const State& state);
 

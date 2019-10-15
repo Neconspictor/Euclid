@@ -39,7 +39,7 @@ namespace nex
 			texture(std::move(texture))
 		{}
 
-		static RenderAttachmentType translate(InternFormat format);
+		static RenderAttachmentType translate(InternalFormat format);
 
 	};
 }
