@@ -36,7 +36,7 @@ namespace nex {
 
 	Texture2D* GaussianBlur::blur(Texture2D* texture, RenderTarget* out, RenderTarget* cache)
 	{
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 
 		mSampler->bind(0);
 		cache->bind();

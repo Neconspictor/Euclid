@@ -40,7 +40,7 @@ unsigned Sprite::getWidth() const
 void nex::Sprite::render(SpritePass* spritePass)
 {
 	thread_local auto* renderBackend = RenderBackend::get();
-	static auto state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 
 	if (spritePass == nullptr) {
 		auto* lib = renderBackend->getEffectLibrary();

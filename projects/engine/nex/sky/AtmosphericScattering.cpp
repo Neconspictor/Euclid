@@ -35,7 +35,7 @@ nex::AtmosphericScattering::AtmosphericScattering() : Pass(
 
 void nex::AtmosphericScattering::renderSky()
 {
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	RenderBackend::get()->drawArray(state, Topology::TRIANGLE_STRIP, 0, 4);
 	StaticMeshDrawer::drawFullscreenTriangle(state, this);
 }

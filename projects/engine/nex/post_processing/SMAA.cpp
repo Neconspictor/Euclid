@@ -221,7 +221,7 @@ nex::Texture2D* nex::SMAA::renderEdgeDetectionPass(Texture2D* colorTexGamma)
 	mBilinearFilter->bind(0);
 	mEdgeDetectionShader->setColorTexGamma(colorTexGamma);
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mEdgeDetectionShader.get());
 
 	return mEdgesTex->getColor0AttachmentTexture();
@@ -239,7 +239,7 @@ nex::Texture2D* nex::SMAA::renderBlendingWeigthCalculationPass(Texture2D* edgeTe
 	mBlendingWeightCalculationShader->setAreaTex(mAreaTex.get());
 	mBlendingWeightCalculationShader->setSearchTex(mSearchTex.get());
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mBlendingWeightCalculationShader.get());
 
 	return mBlendTex->getColor0AttachmentTexture();
@@ -257,7 +257,7 @@ void nex::SMAA::renderNeighborhoodBlendingPass(Texture2D* blendTex, Texture2D* c
 	mNeighborhoodBlendingShader->setBlendTex(blendTex);
 	mNeighborhoodBlendingShader->setColorTex(colorTex);
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mNeighborhoodBlendingShader.get());
 }
 

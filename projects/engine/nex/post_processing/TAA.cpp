@@ -55,14 +55,12 @@ public:
 		mFeedbackMax = { mShader->getUniformLocation("_FeedbackMax"), UniformType::FLOAT };
 		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
 
-		mState = RenderState::createNoDepthTest();
-
 		mSampler.setMinFilter(TextureFilter::Linear);
 		mSampler.setMagFilter(TextureFilter::Linear);
 	}
 
 	const RenderState& getState() const {
-		return mState;
+		return RenderState::getNoDepthTest();
 	}
 
 	void setInverseCurrentViewProjection(const glm::mat4& mat) 

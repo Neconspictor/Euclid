@@ -108,11 +108,32 @@ namespace nex
 		bool isTool = false;
 		unsigned short toolDrawIndex = 0xffff;
 
+		static const RenderState& getNoDepthTest() {
+			static RenderState state = createNoDepthTest();
+			return state;
+		}
+
+		static const RenderState& getMultiplicativeBlending() {
+			static RenderState state = createMultiplicativeBlending();
+			return state;
+		}
+
+	private:
 		static RenderState createNoDepthTest()
 		{
 			RenderState state;
 			state.doDepthTest = false;
 			state.doDepthWrite = false;
+			return state;
+		}
+
+		static RenderState createMultiplicativeBlending()
+		{
+			RenderState state = createNoDepthTest();
+			state.doBlend = true;
+			state.blendDesc.operation = BlendOperation::ADD;
+			state.blendDesc.source = BlendFunc::ZERO;
+			state.blendDesc.destination = BlendFunc::SOURCE_COLOR;
 			return state;
 		}
 	};

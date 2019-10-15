@@ -106,7 +106,7 @@ nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D*
 	setAoMap(aoMap);
 	setMotionMap(motionMap);
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
 	return output->getColorAttachmentTexture(0);
 }
@@ -165,11 +165,7 @@ void nex::PostProcessor::renderAO(Texture* aoMap)
 	mAoPass->bind();
 	mAoPass->setAoMap(aoMap);
 
-	RenderState state = RenderState::createNoDepthTest();
-	state.doBlend = true;
-	state.blendDesc.operation = BlendOperation::ADD;
-	state.blendDesc.source = BlendFunc::ZERO;
-	state.blendDesc.destination = BlendFunc::SOURCE_COLOR;
+	const auto& state = RenderState::getMultiplicativeBlending();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mAoPass.get());
 }
 

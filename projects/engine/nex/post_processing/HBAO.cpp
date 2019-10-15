@@ -172,7 +172,7 @@ namespace nex
 		m_hbaoShader->setLinearDepth(m_depthLinearRT->getColorAttachments()[0].texture.get());
 		m_hbaoShader->setRamdomView(m_hbao_randomview.get());
 
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, m_hbaoShader.get());
 
 
@@ -190,7 +190,7 @@ namespace nex
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
 
 
-			RenderState state = RenderState::createNoDepthTest();
+			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
 			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
@@ -300,7 +300,7 @@ namespace nex
 			m_bilateralBlur->draw(m_tempRT.get(), m_aoBlurredResultRT.get());*/
 
 
-			RenderState state = RenderState::createNoDepthTest();
+			const auto& state = RenderState::getNoDepthTest();
 			mHbaoBlur->bindPreset(0);
 			mHbaoBlur->setSource(m_aoResultRT->getColorAttachments()[0].texture.get());
 			mHbaoBlur->setSharpness(m_blur_sharpness / m_meters2viewspace);
@@ -533,7 +533,7 @@ namespace nex
 		static UniformLocation invResolutionDirectionLoc = mShader->getUniformLocation("g_InvResolutionDirection");
 		mShader->setVec2(invResolutionDirectionLoc, glm::vec2(1.0f / (float)m_textureWidth, 0));
 
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
 
 		// blur vertically
@@ -578,7 +578,7 @@ namespace nex
 
 		mShader->setTexture(m_input, mSampler.get(), 0);
 		
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
 	}
 
@@ -606,7 +606,7 @@ namespace nex
 		bind();
 		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
 		
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
 	}
 

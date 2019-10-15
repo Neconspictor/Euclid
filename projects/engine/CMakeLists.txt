@@ -49,8 +49,8 @@ set(
 	nex/drawing/StaticMeshDrawer.cpp
     
     #nex/effects
-    nex/effects/BlitPass.cpp
-    nex/effects/BlitPass.hpp
+    nex/effects/Blit.cpp
+    nex/effects/Blit.hpp
     nex/effects/DepthMapPass.hpp
 	nex/effects/DepthMapPass.cpp
     nex/effects/SpritePass.hpp

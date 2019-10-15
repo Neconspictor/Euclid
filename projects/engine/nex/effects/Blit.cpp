@@ -1,4 +1,4 @@
-#include <nex/effects/BlitPass.hpp>
+#include <nex/effects/Blit.hpp>
 #include <nex/shader/Pass.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/renderer/RenderTypes.hpp>
@@ -30,7 +30,7 @@ namespace nex {
 		}
 
 		void setStencil(Texture* texture) {
-			if (!mUseStencilTest) throw_with_trace("Blit::BlitPass::setStencil(): stencil mode isn't set!");
+			if (!mUseStencilTest) throw_with_trace(std::runtime_error("Blit::BlitPass::setStencil(): stencil mode isn't set!"));
 			mShader->setTexture(texture, &mSampler, mStencilMap.bindingSlot);
 		}
 

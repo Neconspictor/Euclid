@@ -92,7 +92,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	mDownSampleShader->bind();
 	mDownSampleShader->getShader()->setTexture(src, mSampler.get(), 0);
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mDownSampleShader.get());
 
 	auto*  renderImage = static_cast<Texture2D*>(dest->getColorAttachmentTexture(0));
@@ -111,7 +111,7 @@ nex::Texture* nex::DownSampler::downsampleDepthHalf(Texture2D* src, RenderTarget
 	mDepthDownSampleShader->bind();
 	mDepthDownSampleShader->setSource(src);
 
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mDepthDownSampleShader.get());
 
 	auto* renderImage = dest->getColorAttachmentTexture(0);

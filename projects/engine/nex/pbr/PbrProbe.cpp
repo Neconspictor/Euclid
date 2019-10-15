@@ -581,7 +581,7 @@ std::shared_ptr<Texture2D> PbrProbe::createBRDFlookupTexture(Pass* brdfPrecomput
 	target->clear(RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 
 	brdfPrecompute->bind();
-	RenderState state = RenderState::createNoDepthTest();
+	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, brdfPrecompute);
 
 	auto result = std::dynamic_pointer_cast<Texture2D>(target->getColorAttachments()[0].texture);

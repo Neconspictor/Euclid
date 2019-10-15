@@ -70,7 +70,7 @@ namespace nex
 			mShader->setTexture(m_gDepth, &mSamplerDepth, 0);
 			mShader->setTexture(m_texNoise, &mSamplerNoise, 1);
 
-			RenderState state = RenderState::createNoDepthTest();
+			const auto& state = RenderState::getNoDepthTest();
 			StaticMeshDrawer::drawFullscreenTriangle(state, this);
 
 			mSamplerDepth.unbind(0);
@@ -302,7 +302,7 @@ namespace nex
 		renderBackend->setScissor(0, 0, tiledBlurRenderTarget->getWidth(), tiledBlurRenderTarget->getHeight());
 		tiledBlurRenderTarget->bind();
 		tiledBlurRenderTarget->clear(RenderComponent::Color | RenderComponent::Depth); // | RenderComponent::Stencil
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, tiledBlurShader);
 
 		tiledBlurShader->afterBlur();
@@ -314,7 +314,7 @@ namespace nex
 
 		aoDisplayShader->bind();
 		aoDisplayShader->setScreenTexture(aoTexture);
-		RenderState state = RenderState::createNoDepthTest();
+		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, aoDisplayShader);
 	}
 

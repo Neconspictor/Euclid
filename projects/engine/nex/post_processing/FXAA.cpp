@@ -25,8 +25,6 @@ public:
 
 		mInverseFrameBufferSize = { mShader->getUniformLocation("inverseFramebufferSize"), UniformType::VEC2};
 		mSourceTexture = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
-
-		mState = RenderState::createNoDepthTest();
 	}
 
 	void setInverseFrameBufferSize(const glm::vec2& size) {
@@ -38,14 +36,13 @@ public:
 	}
 
 	const RenderState& getState() const {
-		return mState;
+		return RenderState::getNoDepthTest();
 	}
 
 private:
 
 	Uniform mInverseFrameBufferSize;
 	UniformTex mSourceTexture;
-	RenderState mState;
 };
 
 nex::FXAA::FXAA() : 
