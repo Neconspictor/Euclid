@@ -42,7 +42,7 @@ namespace nex::gui
 
 		void setTexture(nex::Texture* texture, const Sampler* sampler)
 		{
-			if (!sampler) sampler = Sampler::getLinearMiMap();
+			if (!sampler) sampler = Sampler::getLinearMipMap();
 			mShader->setTexture(texture, sampler, mTexture.bindingSlot);
 		}
 

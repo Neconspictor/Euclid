@@ -102,12 +102,12 @@ namespace nex
 			return &sampler;
 		}
 
-		static const Sampler* getLinearMiMap() {
+		static const Sampler* getLinearMipMap() {
 			static auto sampler = createLinearMipMapSampler();
 			return &sampler;
 		}
 
-		static const Sampler* getNearMiMap() {
+		static const Sampler* getNearMipMap() {
 			static auto sampler = createNearMipMapSampler();
 			return &sampler;
 		}
