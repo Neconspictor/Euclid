@@ -510,6 +510,7 @@ namespace nex
 				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ);
 
 			Uniform transform;
+			Uniform modelMatrixUniform;
 			Uniform modelViewUniform;
 			Uniform lightUniform;
 			Uniform normalMatrixUniform;

@@ -20,7 +20,7 @@ public:
 			defines.push_back("#define SOURCE_GAMMA_SPACE");
 		}
 
-		mShader = Shader::create("fullscreenPlane_vs.glsl", "post_processing/fxaa_fs.glsl", 
+		mShader = Shader::create("screen_space_vs.glsl", "post_processing/fxaa_fs.glsl", 
 			nullptr, nullptr, nullptr, defines);
 
 		mInverseFrameBufferSize = { mShader->getUniformLocation("inverseFramebufferSize"), UniformType::VEC2};

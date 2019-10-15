@@ -516,7 +516,7 @@ void PbrPrefilterPass::setView(const glm::mat4& mat)
 PbrBrdfPrecomputePass::PbrBrdfPrecomputePass()
 {
 	mShader = Shader::create(
-		"pbr/pbr_brdf_precompute_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
+		"screen_space_vs.glsl", "pbr/pbr_brdf_precompute_fs.glsl");
 }
 
 nex::PbrGeometryPass::PbrGeometryPass(std::unique_ptr<Shader> program, unsigned transformBindingPoint) :
@@ -559,7 +559,7 @@ void nex::PbrIrradianceShPass::setCoefficientMap(const Texture2D* coefficients)
 }
 
 nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIllumination) : 
-	Pass(Shader::create("pbr/pbr_deferred_lighting_pass_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
+	Pass(Shader::create("screen_space_vs.glsl", "pbr/pbr_deferred_ambient_pass_fs.glsl", nullptr, nullptr, nullptr, 
 		generateDefines(globalIllumination->isConeTracingUsed()))), 
 	mGlobalIllumination(globalIllumination),
 	mConstantsBuffer(PBR_CONSTANTS, sizeof(PbrConstants), nullptr, GpuBuffer::UsageHint::DYNAMIC_DRAW)

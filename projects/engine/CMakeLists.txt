@@ -213,6 +213,8 @@ set(
     
     
     #nex/shader
+    nex/shader/BlitPass.cpp
+    nex/shader/BlitPass.hpp
     nex/shader/DepthMapPass.hpp
 	nex/shader/DepthMapPass.cpp
     nex/shader/Pass.cpp

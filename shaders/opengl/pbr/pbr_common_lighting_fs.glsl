@@ -168,7 +168,7 @@ float GeometrySchlickGGX(in float NdotV, in float roughness);
 float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughness);
 vec3 fresnelSchlick(in float cosTheta, in vec3 F0);
 vec3 fresnelSchlickRoughness(in float cosTheta, in vec3 F0, in float roughness);
-ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld);
+ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord);
 
 vec3 calcAmbientLighting(in vec3 normalEye, in vec3 positionEye, in float ao, in vec3 albedo, in float metallic, in float roughness);
 
@@ -508,7 +508,7 @@ if (arr[indexA].volume > arr[indexB].volume && arr[indexB].influence > 0.0001) {
 	arr[indexA] = tmp;\
 }   
 
-ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
+ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld, in vec2 texCoord) {
 
   vec3 positionWorld = vec3(inverseViewMatrix * vec4(positionEye, 1.0f));
   float logZ = log(-positionEye.z); 
@@ -527,7 +527,7 @@ ArrayIndexWeight calcArrayIndices(in vec3 positionEye, in vec3 normalWorld) {
   
   uint clusterZ = uint(clusterZVal);
   vec2 clusterPixelSize = vec2(constants.windowDimension.x , constants.windowDimension.y) / vec2(xSlices , ySlices);
-  vec2 pixelLoc = vec2(constants.windowDimension.x  * fs_in.tex_coords.x, constants.windowDimension.y * (fs_in.tex_coords.y));
+  vec2 pixelLoc = vec2(constants.windowDimension.x  * texCoord.x, constants.windowDimension.y * (texCoord.y));
   uvec3 clusters    = uvec3( uvec2(pixelLoc / clusterPixelSize), clusterZ);
   uint clusterID = clusters.x +
                    constants.clusterDimension.x * clusters.y +

@@ -18,10 +18,12 @@ namespace nex
 	class DownSampler;
 	class SimpleColorTechnique;
 	class IrradianceSphereHullDrawTechnique;
+	class BlitPass;
 
 	class RenderTarget;
 	class Technique;
 	class SimpleColorMaterial;
+	
 
 
 	class EffectLibrary {
@@ -30,6 +32,8 @@ namespace nex
 		EffectLibrary(unsigned width, unsigned height);
 
 		virtual ~EffectLibrary();
+
+		BlitPass* getBlitPass();
 
 		// Inherited via EffectLibrary
 		GaussianBlur* getGaussianBlur();
@@ -66,6 +70,7 @@ namespace nex
 		std::unique_ptr<DepthSpritePass> mDepthSprite;
 		std::unique_ptr<DownSampler>mDownSampler;
 		std::unique_ptr<PostProcessor>mPostProcessor;
+		std::unique_ptr<BlitPass> mBlitPass;
 		
 	};
 }

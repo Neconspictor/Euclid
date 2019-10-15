@@ -422,7 +422,7 @@ mUseConeTracing(true)
 
 	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
 		return std::make_unique<PbrDeferredLightingPass>(
-			"pbr/probe/pbr_probe_deferred_capture_vs.glsl",
+			"screen_space_vs.glsl",
 			"pbr/probe/pbr_probe_deferred_capture_fs.glsl",
 			g,
 			c);

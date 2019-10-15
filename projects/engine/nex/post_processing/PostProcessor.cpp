@@ -19,7 +19,7 @@ class nex::PostProcessor::PostProcessPass : public nex::Pass
 public:
 	PostProcessPass()
 	{
-		mShader = nex::Shader::create("fullscreenPlane_vs.glsl", "post_processing/postProcess_fs.glsl");
+		mShader = nex::Shader::create("screen_space_vs.glsl", "post_processing/postProcess_fs.glsl");
 		sourceTextureUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0 };
 		bloomHalfth = { mShader->getUniformLocation("bloomHalfth"), UniformType::TEXTURE2D, 1 };
 		bloomQuarter = { mShader->getUniformLocation("bloomQuarter"), UniformType::TEXTURE2D, 2 };
@@ -57,7 +57,7 @@ class nex::PostProcessor::AoPass : public nex::Pass
 public:
 	AoPass()
 	{
-		mShader = nex::Shader::create("fullscreenPlane_vs.glsl", "post_processing/ao_fs.glsl");
+		mShader = nex::Shader::create("screen_space_vs.glsl", "post_processing/ao_fs.glsl");
 
 		mAoMap = mShader->createTextureUniform("aoMap", UniformType::TEXTURE2D, 0);
 	}

@@ -3,8 +3,8 @@
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 LuminanceColor;
 
-in VS_OUT {	
-	vec2 tex_coords;
+in VS_OUT {
+    vec2 texCoord;
 } fs_in;
 
 #include "pbr/pbr_common_lighting_fs.glsl"
@@ -35,27 +35,27 @@ vec3 computeViewPositionFromDepth(in vec2 texCoord, in float depth) {
 
 void main()
 {   
-	//const vec2 texCoord = fs_in.tex_coords;
+	//const vec2 texCoord = fs_in.texCoord;
 
-	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.tex_coords).rgb;
+	const vec3 albedo = texture(gBuffer.albedoMap, fs_in.texCoord).rgb;
 	
-	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.tex_coords).rgb;
+	const vec3 aoMetalRoughness = texture(gBuffer.aoMetalRoughnessMap, fs_in.texCoord).rgb;
 	const float ao = aoMetalRoughness.r;
 	float metallic = aoMetalRoughness.g;
     //metallic = 0;
 	float roughness = aoMetalRoughness.b;
     //roughness = 1;
 	
-	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.tex_coords).rgb - 1.0);
+	const vec3 normalEye = normalize(2.0 * texture(gBuffer.normalEyeMap, fs_in.texCoord).rgb - 1.0);
     
     //if (length(normalEye) < 0.01) {
         //discard;
     //}
 	
-    const float depth = texture(gBuffer.normalizedViewSpaceZMap, fs_in.tex_coords).r;
+    const float depth = texture(gBuffer.normalizedViewSpaceZMap, fs_in.texCoord).r;
     //float viewSpaceZ = denormalizeViewSpaceZ(normalizedViewSpaceZ, nearFarPlane.x, nearFarPlane.y);
-    //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.tex_coords, viewSpaceZ, inverseProjMatrix_GPass);
-    const vec3 positionEye = computeViewPositionFromDepth(fs_in.tex_coords, depth);
+    //vec3 positionEye = getViewPositionFromNormalizedZ(fs_in.texCoord, viewSpaceZ, inverseProjMatrix_GPass);
+    const vec3 positionEye = computeViewPositionFromDepth(fs_in.texCoord, depth);
     
     // view direction
 	const vec3 viewEye = normalize(-positionEye);

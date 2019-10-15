@@ -4,7 +4,9 @@
 in VS_OUT {
     vec3 normal;
     vec3 positionView;
-    //vec2 texCoords;
+    vec3 positionWorld;
+    vec4 positionCS;
+    vec2 texCoords;
 } vs_out;
 
 //in vec2 texCoord_tcs_in;
@@ -16,6 +18,10 @@ layout(location = 3)out float depth;
 
 uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
+
+layout(binding = 5) uniform sampler2D depthMap;
+layout(binding = 6) uniform sampler2D refractionMap;
+layout(binding = 7) uniform sampler2D reflectionMap;
 
 void main() {
 
@@ -30,7 +36,7 @@ void main() {
   
   
   
-    vec4 c = vec4(1,1,1,1);//texture(water, tex_coord);
+    vec4 c = vec4(1,1,1,1);
     float fog_factor = 0.0;
 
 	vec4 emissive_color = vec4(1.0, 1.0, 1.0,  1.0);
@@ -57,9 +63,9 @@ void main() {
 	fragColor.a = 0.5;
   
   
+    vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
   
-  
-  
+    float depth = texture2DProj(depthMap, vs_out.positionCS).r;
   
   
   

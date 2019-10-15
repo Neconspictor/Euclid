@@ -243,13 +243,17 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* stencilTest = mRenderBackend->getStencilTest();
 	
 
-	mOutRT->bind();
-	stencilTest->enableStencilTest(false);
-	postProcessor->renderAO(aoMap);
 	
+	stencilTest->enableStencilTest(false);
+	mPingPong->bind();
+	mPingPong->clear(RenderComponent::Color);
+	
+	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+
+	mOutRT->bind();
+	postProcessor->renderAO(aoMap);
 	stencilTest->enableStencilTest(true);
 	stencilTest->setCompareFunc(CompareFunction::ALWAYS, 1, 0xFF);
-	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
 
 	stencilTest->setCompareFunc(CompareFunction::NOT_EQUAL, 1, 1);
 	renderSky(constants, sun);

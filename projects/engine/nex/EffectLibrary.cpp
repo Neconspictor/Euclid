@@ -10,6 +10,7 @@
 #include <nex/shader/Technique.hpp>
 #include <nex/material/Material.hpp>
 #include <nex/pbr/IrradianceSphereHullDrawPass.hpp>
+#include <nex/shader/BlitPass.hpp>
 
 nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mGaussianBlur(std::make_unique<GaussianBlur>(width, height)),
@@ -21,7 +22,8 @@ nex::EffectLibrary::EffectLibrary(unsigned width, unsigned height) :
 	mDepthSprite(std::make_unique<DepthSpritePass>()),
 	mSimpleColorTechnique(std::make_unique<SimpleColorTechnique>()),
 	mIrradianceSphereHullDrawTechnique(std::make_unique<IrradianceSphereHullDrawTechnique>()),
-	mDownSampler(std::make_unique<DownSampler>(width, height))
+	mDownSampler(std::make_unique<DownSampler>(width, height)),
+	mBlitPass(std::make_unique<BlitPass>())
 {
 	mPostProcessor = std::make_unique<PostProcessor>(width, height, mDownSampler.get(), mGaussianBlur.get());
 }

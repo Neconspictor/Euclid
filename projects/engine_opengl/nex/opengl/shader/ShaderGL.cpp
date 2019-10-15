@@ -188,12 +188,11 @@ std::unique_ptr<nex::ShaderStage> nex::ShaderStage::compileShaderStage(const nex
 
 		std::string modifiedMessage = Shader::Impl::adjustLineNumbers(message, desc);
 
-		LOG(staticLogClient, Error) << modifiedMessage;
-
 		GLCall(glDeleteShader(id));
 
 		std::stringstream ss;
-		ss << "Failed to compile " << desc.type << " shader!";
+		ss << "Failed to compile " << desc.type << " shader: " << desc.root.filePath 
+			<< "\n" << modifiedMessage;
 
 		throw_with_trace(ShaderException(ss.str()));
 		//return GL_FALSE;

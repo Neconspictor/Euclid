@@ -54,8 +54,13 @@ namespace nex
 		SRGBA = RGBA,
 
 		DEPTH = GL_DEPTH_COMPONENT,
-		STENCIL = GL_STENCIL_COMPONENTS,
+		STENCIL = GL_STENCIL_INDEX,
 		DEPTH_STENCIL = GL_DEPTH_STENCIL,
+	};
+
+	enum class DepthStencilTextureModeGL {
+		DEPTH = GL_DEPTH_COMPONENT,
+		STENCIL = GL_STENCIL_INDEX,
 	};
 
 	enum class InternFormatGL
@@ -162,6 +167,7 @@ namespace nex
 	TextureFilterGL translate(nex::TextureFilter);
 	TextureUVTechniqueGL translate(nex::TextureUVTechnique);
 	ColorSpaceGL translate(nex::ColorSpace);
+	DepthStencilTextureModeGL translate(nex::DepthStencilTextureMode);
 	InternFormatGL translate(nex::InternFormat);
 	PixelDataTypeGL translate(nex::PixelDataType);
 	TextureTargetGl translate(nex::TextureTarget);

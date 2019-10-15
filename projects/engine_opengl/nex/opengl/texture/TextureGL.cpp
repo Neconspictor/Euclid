@@ -404,6 +404,7 @@ void nex::Texture::Impl::applyTextureData(GLuint texture, const BaseTextureDesc&
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_BASE_LEVEL, desc.lodBaseLevel));
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, desc.lodMaxLevel));
 	GLCall(glTextureParameteri(texture, GL_TEXTURE_MAX_ANISOTROPY, desc.maxAnisotropy));
+	GLCall(glTextureParameteri(texture, GL_DEPTH_STENCIL_TEXTURE_MODE, (GLenum)translate(desc.depthStencilTextureMode)));
 
 	//swizzle
 	if (desc.useSwizzle)
@@ -961,6 +962,18 @@ nex::ColorSpaceGL nex::translate(nex::ColorSpace colorSpace)
 	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: ColorSpace and ColorSpaceGL don't match!");
 
 	return table[(unsigned)colorSpace];
+}
+
+nex::DepthStencilTextureModeGL nex::translate(nex::DepthStencilTextureMode mode)
+{
+	static DepthStencilTextureModeGL const table[]{
+		DepthStencilTextureModeGL::DEPTH,
+		DepthStencilTextureModeGL::STENCIL,
+	};
+	static const unsigned size = (unsigned)DepthStencilTextureMode::LAST - (unsigned)DepthStencilTextureMode::FIRST + 1;
+	static_assert(sizeof(table) / sizeof(table[0]) == size, "GL error: DepthStencilTextureMode and DepthStencilTextureModeGL don't match!");
+
+	return table[(unsigned)mode];
 }
 
 nex::InternFormatGL nex::translate(nex::InternFormat format)

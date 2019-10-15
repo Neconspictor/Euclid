@@ -64,7 +64,7 @@ nex::PbrTechnique::PbrTechnique(
 
 	PbrDeferred::LightingPassFactory deferredFactory = [](CascadedShadow* c, GlobalIllumination* g) {
 		return std::make_unique<PbrDeferredLightingPass>(
-			"pbr/pbr_deferred_lighting_pass_vs.glsl",
+			"screen_space_vs.glsl",
 			"pbr/pbr_deferred_lighting_pass_fs.glsl",
 			g,
 			c);

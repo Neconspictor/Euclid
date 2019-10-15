@@ -12,7 +12,7 @@ class nex::DownSampler::DownSamplePass : public Pass
 public:
 	DownSamplePass()
 	{
-		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_fs.glsl");
+		mShader = Shader::create("screen_space_vs.glsl", "post_processing/downsample_fs.glsl");
 		mSourceUniform = { mShader->getUniformLocation("sourceTexture"), UniformType::TEXTURE2D, 0};
 		mShader->setBinding(mSourceUniform.location, mSourceUniform.bindingSlot);
 	}
@@ -27,7 +27,7 @@ class nex::DownSampler::DepthDownSamplePass : public Pass
 public:
 	DepthDownSamplePass()
 	{
-		mShader = Shader::create("post_processing/fullscreenPlane_vs.glsl", "post_processing/downsample_depth_fs.glsl");
+		mShader = Shader::create("screen_space_vs.glsl", "post_processing/downsample_depth_fs.glsl");
 		mSourceUniform = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
 		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
 		mSampler.setMagFilter(TextureFilter::NearestNeighbor);

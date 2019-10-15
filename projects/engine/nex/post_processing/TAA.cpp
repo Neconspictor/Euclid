@@ -36,7 +36,7 @@ public:
 		defines.push_back("#define USE_DILATION 1\n");
 		
 
-		mShader = Shader::create("fullscreenPlane_vs.glsl", "post_processing/taa_fs.glsl", 
+		mShader = Shader::create("screen_space_vs.glsl", "post_processing/taa_fs.glsl", 
 			nullptr, nullptr, nullptr, defines);
 
 		mInverseCurrentViewProjection = { mShader->getUniformLocation("inverseViewProjectionCURRENT"), UniformType::MAT4 };

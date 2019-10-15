@@ -27,6 +27,14 @@ namespace nex
 		DEPTH_STENCIL, LAST = DEPTH_STENCIL,
 	};
 
+	/**
+	 * Specifies which component should be sampled from a depth-stencil texture in shader code.
+	 */
+	enum class DepthStencilTextureMode {
+		DEPTH, FIRST = DEPTH,
+		STENCIL, LAST = STENCIL,
+	};
+
 	unsigned getComponents(const ColorSpace colorspace);
 
 	enum class InternFormat
@@ -212,6 +220,11 @@ namespace nex
 		glm::vec<4, Channel, glm::highp> swizzle = { Channel::RED, Channel::GREEN, Channel::BLUE, Channel::ALPHA };
 		unsigned textureIndex = 0;
 		bool useSwizzle = false;
+
+		/**
+		 * Only used for depth-stencil textures
+		 */
+		DepthStencilTextureMode depthStencilTextureMode = DepthStencilTextureMode::DEPTH;
 	};
 
 
