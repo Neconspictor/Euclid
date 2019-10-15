@@ -82,25 +82,34 @@ namespace nex
 		 */
 		static void unbind(unsigned textureBindingSlot);
 
+		/**
+		 * Provides the default image sampler.
+		 * At the opposite to the rest of the static getters, this getter isn't const,
+		 * so that it is possible to change sampling globally for all images (e.g. anisotropic filtering)
+		 */
+		static Sampler* getDefaultImage() {
+			static auto sampler = createDefaultImageSampler();
+			return &sampler;
+		}
 
 		static const Sampler* getPoint() {
 			static auto sampler = createPointSampler();
-			return sampler.get();
+			return &sampler;
 		}
 
 		static const Sampler* getLinear() {
 			static auto sampler = createLinearSampler();
-			return sampler.get();
+			return &sampler;
 		}
 
 		static const Sampler* getLinearMiMap() {
 			static auto sampler = createLinearMipMapSampler();
-			return sampler.get();
+			return &sampler;
 		}
 
 		static const Sampler* getNearMiMap() {
 			static auto sampler = createNearMipMapSampler();
-			return sampler.get();
+			return &sampler;
 		}
 
 	protected:
@@ -108,28 +117,37 @@ namespace nex
 		std::unique_ptr<Impl> mImpl;
 
 	private: 
-		static std::unique_ptr<Sampler> createPointSampler() {
+		static Sampler createPointSampler() {
 			SamplerDesc desc;
 			desc.minFilter = TextureFilter::NearestNeighbor;
 			desc.magFilter = TextureFilter::NearestNeighbor;
-			return std::make_unique<Sampler>(desc);
+			return Sampler(desc);
 		}
 
-		static std::unique_ptr<Sampler> createLinearSampler() {
-			return std::make_unique<Sampler>();
+		static Sampler createLinearSampler() {
+			return Sampler();
 		}
 
-		static std::unique_ptr<Sampler> createLinearMipMapSampler() {
+		static Sampler createLinearMipMapSampler() {
 			SamplerDesc desc;
 			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
-			return std::make_unique<Sampler>(desc);
+			return Sampler(desc);
 		}
 
-		static std::unique_ptr<Sampler> createNearMipMapSampler() {
+		static Sampler createNearMipMapSampler() {
 			SamplerDesc desc;
 			desc.minFilter = TextureFilter::Near_Mipmap_Near;
 			desc.magFilter = TextureFilter::NearestNeighbor;
-			return std::make_unique<Sampler>(desc);
+			return Sampler(desc);
+		}
+
+		static Sampler createDefaultImageSampler() {
+			SamplerDesc desc;
+			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			desc.magFilter = TextureFilter::Linear;
+			desc.wrapR = desc.wrapS = desc.wrapT = TextureUVTechnique::Repeat;
+			desc.maxAnisotropy = 16.0f;
+			return Sampler(desc);
 		}
 	};
 }

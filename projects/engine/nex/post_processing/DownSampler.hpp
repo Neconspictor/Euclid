@@ -47,6 +47,5 @@ namespace nex {
 		std::unique_ptr<RenderTarget2D> mQuarterResolution;
 		std::unique_ptr<RenderTarget2D> mEigthResolution;
 		std::unique_ptr<RenderTarget2D> mSixteenthResolution;
-		std::unique_ptr<Sampler> mSampler;
 	};
 }

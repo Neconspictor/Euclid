@@ -62,7 +62,7 @@ nex::SceneNearFarComputePass::WriteOut nex::SceneNearFarComputePass::readResult(
 
 void nex::SceneNearFarComputePass::setDepthTexture(Texture* depth)
 {
-	mShader->setTexture(depth, &mSampler, mDepthTextureUniform.bindingSlot);
+	mShader->setTexture(depth, Sampler::getPoint(), mDepthTextureUniform.bindingSlot);
 }
 
 nex::ShaderStorageBuffer* nex::SceneNearFarComputePass::getConstantBuffer()

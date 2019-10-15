@@ -54,9 +54,6 @@ namespace nex
 	protected:
 
 		std::unique_ptr<Shader> mShader;
-
-		// Many passes need a sampler object, so we specify one default one here.
-		Sampler mSampler;
 	};
 
 	class TransformPass : public Pass

@@ -12,8 +12,7 @@ using namespace glm;
 using namespace std;
 using namespace nex;
 
-PbrGeometryData::PbrGeometryData(Shader* shader) : PbrBaseCommon(shader),
-mDefaultImageSampler(nullptr)
+PbrGeometryData::PbrGeometryData(Shader* shader) : PbrBaseCommon(shader)
 {
 	assert(mShader != nullptr);
 
@@ -25,33 +24,31 @@ mDefaultImageSampler(nullptr)
 	mRoughnessMap = mShader->createTextureUniform("material.roughnessMap", UniformType::TEXTURE2D, ROUGHNESS_BINDING_POINT);
 
 	mNearFarPlane = { mShader->getUniformLocation("nearFarPlane"), UniformType::VEC2 };
-
-	mDefaultImageSampler = TextureManager::get()->getDefaultImageSampler();
 }
 
 void nex::PbrGeometryData::setAlbedoMap(const Texture* albedo)
 {
-	mShader->setTexture(albedo, mDefaultImageSampler, mAlbedoMap.bindingSlot);
+	mShader->setTexture(albedo, Sampler::getDefaultImage(), mAlbedoMap.bindingSlot);
 }
 
 void nex::PbrGeometryData::setAoMap(const Texture* ao)
 {
-	mShader->setTexture(ao, mDefaultImageSampler, mAmbientOcclusionMap.bindingSlot);
+	mShader->setTexture(ao, Sampler::getDefaultImage(), mAmbientOcclusionMap.bindingSlot);
 }
 
 void nex::PbrGeometryData::setMetalMap(const Texture* metal)
 {
-	mShader->setTexture(metal, mDefaultImageSampler, mMetalMap.bindingSlot);
+	mShader->setTexture(metal, Sampler::getDefaultImage(), mMetalMap.bindingSlot);
 }
 
 void nex::PbrGeometryData::setNormalMap(const Texture* normal)
 {
-	mShader->setTexture(normal, mDefaultImageSampler, mNormalMap.bindingSlot);
+	mShader->setTexture(normal, Sampler::getDefaultImage(), mNormalMap.bindingSlot);
 }
 
 void nex::PbrGeometryData::setRoughnessMap(const Texture* roughness)
 {
-	mShader->setTexture(roughness, mDefaultImageSampler, mRoughnessMap.bindingSlot);
+	mShader->setTexture(roughness, Sampler::getDefaultImage(), mRoughnessMap.bindingSlot);
 }
 
 void PbrGeometryData::setNearFarPlane(const glm::vec2& nearFarPlane)
@@ -347,45 +344,40 @@ PbrDeferredLightingPass::PbrDeferredLightingPass(const ShaderFilePath& vertexSha
 	mAmbientReflectionOutMap = Pass::mShader->createTextureUniform("ambientReflectionOutMap", UniformType::TEXTURE2D, PBR_AMBIENT_REFLECTION_OUT_MAP_BINDINGPOINT);
 
 	mInverseProjFromGPass = { Pass::mShader->getUniformLocation("inverseProjMatrix_GPass"), UniformType::MAT4 };
-
-	auto state = Pass::mSampler.getState();
-	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToEdge;
-	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
-	Pass::mSampler.setState(state);
 }
 
 void PbrDeferredLightingPass::setAlbedoMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mAlbedoMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
 	//Pass::mShader->setTextureByHandle(mAlbedoMap.location, texture);
 }
 
 void PbrDeferredLightingPass::setAoMetalRoughnessMap(const Texture* texture)
 {
 	//Pass::mShader->setTextureByHandle(mAoMetalRoughnessMap.location, texture);
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mAoMetalRoughnessMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setNormalEyeMap(const Texture* texture)
 {
 	//Pass::mShader->setTextureByHandle(mNormalEyeMap.location, texture);
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mNormalEyeMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setNormalizedViewSpaceZMap(const Texture* texture)
 {
 	//Pass::mShader->setTextureByHandle(mNormalizedViewSpaceZMap.location, texture);
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mNormalizedViewSpaceZMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mNormalizedViewSpaceZMap.bindingSlot);
 }
 
 void nex::PbrDeferredLightingPass::setIrradianceOutMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mIrradianceOutMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mIrradianceOutMap.bindingSlot);
 }
 
 void nex::PbrDeferredLightingPass::setAmbientReflectionOutMap(const Texture* texture)
 {
-	Pass::mShader->setTexture(texture, &(Pass::mSampler), mAmbientReflectionOutMap.bindingSlot);
+	Pass::mShader->setTexture(texture, Sampler::getPoint(), mAmbientReflectionOutMap.bindingSlot);
 }
 
 void PbrDeferredLightingPass::setInverseProjMatrixFromGPass(const glm::mat4& mat)
@@ -494,7 +486,7 @@ PbrPrefilterPass::PbrPrefilterPass()
 
 void PbrPrefilterPass::setMapToPrefilter(CubeMap * cubeMap)
 {
-	mShader->setTexture(cubeMap, &mSampler, mEnvironmentMap.bindingSlot);
+	mShader->setTexture(cubeMap, Sampler::getLinear(), mEnvironmentMap.bindingSlot);
 	mShader->setBinding(mEnvironmentMap.location, mEnvironmentMap.bindingSlot);
 }
 
@@ -582,11 +574,6 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 	mAmbientLightPower = { mShader->getUniformLocation("ambientLightPower"), UniformType::FLOAT };
 	mInverseView = { mShader->getUniformLocation("inverseViewMatrix"), UniformType::MAT4 };
 
-	auto state = mSampler.getState();
-	state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::ClampToEdge;
-	state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
-	mSampler.setState(state);
-
 	SamplerDesc desc;
 	//desc.minLOD = 0;
 	//desc.maxLOD = 7;
@@ -596,37 +583,37 @@ nex::PbrDeferredAmbientPass::PbrDeferredAmbientPass(GlobalIllumination* globalIl
 
 void nex::PbrDeferredAmbientPass::setAlbedoMap(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mAlbedoMap.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mAlbedoMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setAoMetalRoughnessMap(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mAoMetalRoughnessMap.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mAoMetalRoughnessMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setNormalEyeMap(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mNormalEyeMap.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mNormalEyeMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setDepthMap(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mDepthMap.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setBrdfLookupTexture(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mBrdfLUT.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mBrdfLUT.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setIrradianceMaps(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mIrradianceMaps.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mIrradianceMaps.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setPrefilteredMaps(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mPrefilteredMaps.bindingSlot);
+	mShader->setTexture(texture, Sampler::getPoint(), mPrefilteredMaps.bindingSlot);
 }
 
 void nex::PbrDeferredAmbientPass::setAmbientLightPower(float power)

@@ -29,13 +29,11 @@ public:
 	{
 		mShader = Shader::create("screen_space_vs.glsl", "post_processing/downsample_depth_fs.glsl");
 		mSourceUniform = mShader->createTextureUniform("sourceTexture", UniformType::TEXTURE2D, 0);
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 
 	}
 
 	void setSource(Texture* texture) {
-		mShader->setTexture(texture, &mSampler, mSourceUniform.bindingSlot);
+		mShader->setTexture(texture, Sampler::getPoint(), mSourceUniform.bindingSlot);
 	}
 
 private:
@@ -45,15 +43,8 @@ private:
 
 
 nex::DownSampler::DownSampler(unsigned width, unsigned height) : mDownSampleShader(std::make_unique<DownSamplePass>()),
-mDepthDownSampleShader(std::make_unique<DepthDownSamplePass>()),
-mSampler(std::make_unique<Sampler>(SamplerDesc()))
+mDepthDownSampleShader(std::make_unique<DepthDownSamplePass>())
 {
-	mSampler->setAnisotropy(1.0f);
-	mSampler->setMinFilter(TextureFilter::Linear);
-	mSampler->setMagFilter(TextureFilter::Linear);
-	mSampler->setWrapR(TextureUVTechnique::ClampToEdge);
-	mSampler->setWrapS(TextureUVTechnique::ClampToEdge);
-	mSampler->setWrapT(TextureUVTechnique::ClampToEdge);
 	resize(width, height);
 }
 
@@ -90,7 +81,7 @@ nex::Texture2D* nex::DownSampler::downsample(Texture2D* src, RenderTarget2D* des
 	//dest->clear(Color);
 
 	mDownSampleShader->bind();
-	mDownSampleShader->getShader()->setTexture(src, mSampler.get(), 0);
+	mDownSampleShader->getShader()->setTexture(src, Sampler::getLinear(), 0);
 
 	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mDownSampleShader.get());

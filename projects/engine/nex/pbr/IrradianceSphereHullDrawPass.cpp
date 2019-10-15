@@ -42,7 +42,7 @@ void nex::IrradianceSphereHullDrawPass::setClipInfo(const glm::vec3& clipInfo)
 
 void nex::IrradianceSphereHullDrawPass::setDepth(Texture* depth)
 {
-	mShader->setTexture(depth, &mSampler, mDepthUniform.bindingSlot);
+	mShader->setTexture(depth, Sampler::getLinear(), mDepthUniform.bindingSlot);
 }
 
 void nex::IrradianceSphereHullDrawPass::setInverseProjMatrix(const glm::mat4& mat)

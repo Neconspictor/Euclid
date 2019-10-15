@@ -65,8 +65,6 @@ namespace nex
 		UniformTex mRoughnessMap;
 
 		Uniform mNearFarPlane;
-
-		Sampler* mDefaultImageSampler;
 	};
 
 	class PbrLightingData : public PbrBaseCommon

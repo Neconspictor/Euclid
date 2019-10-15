@@ -75,9 +75,6 @@ namespace nex {
 				true }, bool detectColorSpace = false
 		);
 
-		Sampler* getDefaultImageSampler();
-		Sampler* getPointSampler();
-
 		/**
 		 * Provides access the texture manager singleton.
 		 * NOTE: Has to be initialized on first use
@@ -106,8 +103,6 @@ namespace nex {
 		std::list<CubeMap> cubeMaps;
 		std::map<std::string, Texture2D*> textureLookupTable;
 		nex::Logger m_logger;
-		std::unique_ptr<Sampler> mDefaultImageSampler;
-		std::unique_ptr<Sampler> mPointSampler;
 		std::unique_ptr<nex::FileSystem> mFileSystem;
 		std::filesystem::path mTextureRootDirectory;
 	};

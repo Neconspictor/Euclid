@@ -37,8 +37,6 @@ public:
 		mShader->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
 		mShader->setBinding(aoMap.location, aoMap.bindingSlot);
 		mShader->setBinding(motionMap.location, motionMap.bindingSlot);
-
-		mSampler = &(Pass::mSampler);
 	}
 
 	UniformTex sourceTextureUniform;
@@ -63,7 +61,7 @@ public:
 	}
 
 	void setAoMap(Texture* aoMap) {
-		mShader->setTexture(aoMap, &mSampler, mAoMap.bindingSlot);
+		mShader->setTexture(aoMap, Sampler::getPoint(), mAoMap.bindingSlot);
 	}
 
 	UniformTex mAoMap;

@@ -20,18 +20,15 @@ namespace nex {
 
 			mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
 			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
-
-			mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-			mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 		}
 
 		void setColor(Texture* texture) {
-			mShader->setTexture(texture, &mSampler, mColorMap.bindingSlot);
+			mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
 		}
 
 		void setStencil(Texture* texture) {
 			if (!mUseStencilTest) throw_with_trace(std::runtime_error("Blit::BlitPass::setStencil(): stencil mode isn't set!"));
-			mShader->setTexture(texture, &mSampler, mStencilMap.bindingSlot);
+			mShader->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
 		}
 
 	private:

@@ -121,9 +121,6 @@ public:
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
-
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
 	bool isLightingApplied() const {
@@ -158,7 +155,7 @@ public:
 	}
 
 	void useShadow(const CascadedShadow* shadow) {
-		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
+		mShader->setTexture(shadow->getDepthTextureArray(), Sampler::getPoint(), mCascadedDephMap.bindingSlot);
 		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
 	}
 
@@ -261,6 +258,7 @@ private:
 	Uniform mViewProj;
 	Uniform mMipMap;
 	UniformTex mVoxelImage;
+	Sampler mSampler;
 };
 
 
@@ -278,9 +276,6 @@ public:
 		mLightColor = { mShader->getUniformLocation("dirLight.color"), UniformType::VEC3 };
 		mLightPower = { mShader->getUniformLocation("dirLight.power"), UniformType::FLOAT };
 		mCascadedDephMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, CSM_CASCADE_DEPTH_MAP_BINDING_POINT);
-
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
 	bool isLightingApplied() const {
@@ -324,7 +319,7 @@ public:
 	}
 
 	void useShadow(const CascadedShadow* shadow) {
-		mShader->setTexture(shadow->getDepthTextureArray(), &mSampler, mCascadedDephMap.bindingSlot);
+		mShader->setTexture(shadow->getDepthTextureArray(), Sampler::getPoint(), mCascadedDephMap.bindingSlot);
 		shadow->getCascadeBuffer()->bindToTarget(CASCADE_BUFFER_BINDINGPOINT);
 	}
 

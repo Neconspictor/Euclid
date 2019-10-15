@@ -488,10 +488,6 @@ namespace nex
 		m_source(nullptr)
 	{
 		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/bilateralblur.frag.glsl");
-
-		auto state = mSampler.getState();
-		state.minFilter = state.magFilter = TextureFilter::NearestNeighbor;
-		mSampler.setState(state);
 	}
 
 	void BilateralBlurPass::setLinearDepth(Texture * linearDepth)
@@ -523,8 +519,8 @@ namespace nex
 		temp->bind();
 		bind();
 
-		mShader->setTexture(m_source, &mSampler, 0);
-		mShader->setTexture(m_linearDepth, &mSampler, 1); 
+		mShader->setTexture(m_source, Sampler::getPoint(), 0);
+		mShader->setTexture(m_linearDepth, Sampler::getPoint(), 1);
 
 		static UniformLocation sharpnessLoc = mShader->getUniformLocation("g_Sharpness");
 		mShader->setFloat(sharpnessLoc, m_sharpness);
@@ -604,7 +600,7 @@ namespace nex
 	void DisplayTexPass::draw()
 	{
 		bind();
-		mShader->setTexture(m_input, &mSampler, 0); // TODO: check binding point!
+		mShader->setTexture(m_input, Sampler::getLinear(), 0); // TODO: check binding point!
 		
 		const auto& state = RenderState::getNoDepthTest();
 		StaticMeshDrawer::drawFullscreenTriangle(state, this);
@@ -628,14 +624,7 @@ namespace nex
 		UniformLocation randomLoc = mShader->getUniformLocation("texRandom");
 		mShader->setBinding(randomLoc, 1);
 
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
-		mSampler.setWrapR(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapS(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapT(TextureUVTechnique::ClampToEdge);
-
-
-		auto state = mSampler.getState();
+		auto state = Sampler::getPoint()->getState();
 		state.wrapR = state.wrapS = state.wrapT = TextureUVTechnique::Repeat;
 		mPointSampler2.setState(state);
 	}
@@ -647,7 +636,7 @@ namespace nex
 
 	void HbaoPass::setLinearDepth(Texture * linearDepth)
 	{
-		mShader->setTexture(linearDepth, &mSampler, 0);
+		mShader->setTexture(linearDepth, Sampler::getPoint(), 0);
 	}
 
 	void HbaoPass::setRamdomView(Texture * randomView)
@@ -668,14 +657,6 @@ namespace nex
 		mLinearDepth = mShader->createTextureUniform("texLinearDepth", UniformType::TEXTURE2D_ARRAY, 0);
 		mViewNormals = mShader->createTextureUniform("texViewNormal", UniformType::TEXTURE2D, 1);
 		mImgOutput = { mShader->getUniformLocation("imgOutput"), UniformType::IMAGE2D_ARRAY, 0 };
-
-
-
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
-		mSampler.setWrapR(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapS(TextureUVTechnique::ClampToEdge);
-		mSampler.setWrapT(TextureUVTechnique::ClampToEdge);
 	}
 	void HbaoDeinterleavedPass::setHbaoUBO(UniformBuffer* hbao_ubo)
 	{
@@ -683,11 +664,11 @@ namespace nex
 	}
 	void HbaoDeinterleavedPass::setLinearDepth(Texture* linearDepth)
 	{
-		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+		mShader->setTexture(linearDepth, Sampler::getPoint(), mLinearDepth.bindingSlot);
 	}
 	void HbaoDeinterleavedPass::setViewNormals(Texture* normals)
 	{
-		mShader->setTexture(normals, &mSampler, mViewNormals.bindingSlot);
+		mShader->setTexture(normals, Sampler::getPoint(), mViewNormals.bindingSlot);
 	}
 
 	void HbaoDeinterleavedPass::setImageOutput(Texture* imgOutput)
@@ -729,7 +710,7 @@ namespace nex
 	}
 	void ViewNormalPass::setLinearDepth(Texture * linearDepth)
 	{
-		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+		mShader->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
 
@@ -748,7 +729,7 @@ namespace nex
 
 	void DeinterleavePass::setLinearDepth(Texture* linearDepth)
 	{
-		mShader->setTexture(linearDepth, &mSampler, mLinearDepth.bindingSlot);
+		mShader->setTexture(linearDepth, Sampler::getLinear(), mLinearDepth.bindingSlot);
 	}
 
 	ReinterleavePass::ReinterleavePass()
@@ -756,16 +737,13 @@ namespace nex
 		mShader = Shader::create("post_processing/hbao/fullscreenquad.vert.glsl", "post_processing/hbao/hbao_reinterleave_fs.glsl",
 			nullptr, nullptr, nullptr, {"#define AO_BLUR 1"});
 		mResultArray = mShader->createTextureUniform("texResultsArray", UniformType::TEXTURE2D_ARRAY, 0);
-
-		mSampler.setMinFilter(TextureFilter::NearestNeighbor);
-		mSampler.setMagFilter(TextureFilter::NearestNeighbor);
 	}
 
 	ReinterleavePass::~ReinterleavePass() = default;
 
 	void ReinterleavePass::setTextureResultArray(Texture * resultArray)
 	{
-		mShader->setTexture(resultArray, &mSampler, mResultArray.bindingSlot);
+		mShader->setTexture(resultArray, Sampler::getPoint(), mResultArray.bindingSlot);
 	}
 
 	HbaoBlur::HbaoBlur() : mActivePreset(0)
@@ -812,8 +790,7 @@ namespace nex
 
 	void HbaoBlur::setSource(Texture* source)
 	{
-		auto* sampler = TextureManager::get()->getPointSampler();
-		mBlurPreset[mActivePreset]->getShader()->setTexture(source, sampler, mSource.bindingSlot);
+		mBlurPreset[mActivePreset]->getShader()->setTexture(source, Sampler::getPoint(), mSource.bindingSlot);
 	}
 
 

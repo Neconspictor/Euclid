@@ -33,7 +33,7 @@ void SkyBoxPass::setView(const glm::mat4& mat)
 
 void SkyBoxPass::setSkyTexture(const CubeMap* texture)
 {
-	mShader->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
+	mShader->setTexture(texture, Sampler::getLinear(), mSkyTexture.bindingSlot);
 }
 
 
@@ -59,7 +59,7 @@ void PanoramaSkyBoxPass::setView(const glm::mat4& mat)
 
 void PanoramaSkyBoxPass::setSkyTexture(const Texture* texture)
 {
-	mShader->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
+	mShader->setTexture(texture, Sampler::getLinear(), mSkyTexture.bindingSlot);
 }
 
 
@@ -84,5 +84,5 @@ void EquirectangularSkyBoxPass::setView(const glm::mat4& mat)
 
 void EquirectangularSkyBoxPass::setSkyTexture(const Texture * texture)
 {
-	mShader->setTexture(texture, &mSampler, mSkyTexture.bindingSlot);
+	mShader->setTexture(texture, Sampler::getLinear(), mSkyTexture.bindingSlot);
 }

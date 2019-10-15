@@ -37,7 +37,7 @@ namespace nex::gui
 			auto& desc = mDynamicLoad.getTexture();
 			desc.texture = loadedTexture;
 			desc.flipY = nex::ImageFactory::isYFlipped();
-			desc.sampler = TextureManager::get()->getDefaultImageSampler();
+			desc.sampler = Sampler::getDefaultImage();
 
 			mDynamicLoad.updateTexture(true);
 			mDynamicLoad.drawGUI();

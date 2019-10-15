@@ -32,7 +32,7 @@ public:
 	}
 
 	void setSource(Texture* texture) {
-		mShader->setTexture(texture, &mSampler, mSourceTexture.bindingSlot);
+		mShader->setTexture(texture, Sampler::getLinear(), mSourceTexture.bindingSlot);
 	}
 
 	const RenderState& getState() const {

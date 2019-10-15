@@ -33,9 +33,6 @@ namespace nex::gui
 			mFlipY = { mShader->getUniformLocation("FlipY"), nex::UniformType::MAT3 };
 			mGammaCorrect = { mShader->getUniformLocation("UseGammaCorrection"), nex::UniformType::INT };
 			mToneMapping = { mShader->getUniformLocation("UseToneMapping"), nex::UniformType::INT };
-
-			mSampler.setMinFilter(TextureFilter::Linear_Mipmap_Linear);
-
 		}
 
 		void setArrayIndex(float index)
@@ -43,9 +40,9 @@ namespace nex::gui
 			mShader->setFloat(mIndex.location, index);
 		}
 
-		void setTexture(nex::Texture* texture, Sampler* sampler)
+		void setTexture(nex::Texture* texture, const Sampler* sampler)
 		{
-			if (!sampler) sampler = &mSampler;
+			if (!sampler) sampler = Sampler::getLinearMiMap();
 			mShader->setTexture(texture, sampler, mTexture.bindingSlot);
 		}
 

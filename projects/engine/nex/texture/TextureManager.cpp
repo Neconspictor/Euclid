@@ -18,7 +18,7 @@ using namespace std;
 namespace nex {
 
 
-	TextureManager::TextureManager() : m_logger("TextureManagerGL"), mDefaultImageSampler(nullptr), mFileSystem(nullptr)
+	TextureManager::TextureManager() : m_logger("TextureManagerGL")
 	{
 	}
 
@@ -43,22 +43,6 @@ namespace nex {
 		std::vector<std::filesystem::path> includeDirectories = {textureRootPath};
 		mFileSystem = std::make_unique<FileSystem>(std::move(includeDirectories), std::move(compiledTextureRootPath), std::move(compiledTextureFileExtension));
 		mTextureRootDirectory = textureRootPath;
-
-		mDefaultImageSampler = std::make_unique<Sampler>(SamplerDesc());
-		mDefaultImageSampler->setMinFilter(TextureFilter::Linear_Mipmap_Linear);
-		mDefaultImageSampler->setMagFilter(TextureFilter::Linear);
-		mDefaultImageSampler->setWrapR(TextureUVTechnique::Repeat);
-		mDefaultImageSampler->setWrapS(TextureUVTechnique::Repeat);
-		mDefaultImageSampler->setWrapT(TextureUVTechnique::Repeat);
-		mDefaultImageSampler->setAnisotropy(16.0f);
-
-		mPointSampler = std::make_unique<Sampler>(SamplerDesc());
-		mPointSampler->setMinFilter(TextureFilter::NearestNeighbor);
-		mPointSampler->setMagFilter(TextureFilter::NearestNeighbor);
-		mPointSampler->setWrapR(TextureUVTechnique::ClampToEdge);
-		mPointSampler->setWrapS(TextureUVTechnique::ClampToEdge);
-		mPointSampler->setWrapT(TextureUVTechnique::ClampToEdge);
-		mPointSampler->setAnisotropy(1.0f);
 	}
 
 	void TextureManager::flipYAxis(char* imageSource, size_t pitch, size_t height)
@@ -288,15 +272,6 @@ namespace nex {
 		return texture;
 	}
 
-	Sampler* TextureManager::getDefaultImageSampler()
-	{
-		return mDefaultImageSampler.get();
-	}
-	Sampler* TextureManager::getPointSampler()
-	{
-		return mPointSampler.get();
-	}
-
 	TextureManager* TextureManager::get()
 	{
 		static TextureManager instance;
@@ -309,8 +284,6 @@ namespace nex {
 		cubeMaps.clear();
 
 		textureLookupTable.clear();
-		mDefaultImageSampler.reset(nullptr);
-		mPointSampler.reset(nullptr);
 	}
 
 
@@ -321,7 +294,7 @@ namespace nex {
 	void TextureManager_Configuration::drawSelf()
 	{
 
-		Sampler* sampler = m_textureManager->getDefaultImageSampler();
+		Sampler* sampler = Sampler::getDefaultImage();
 		float anisotropy = sampler->getState().maxAnisotropy;
 
 		//float anisotropyBackup = anisotropy;

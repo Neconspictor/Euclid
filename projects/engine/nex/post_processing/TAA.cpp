@@ -54,9 +54,6 @@ public:
 		mFeedbackMin = { mShader->getUniformLocation("_FeedbackMin"), UniformType::FLOAT };
 		mFeedbackMax = { mShader->getUniformLocation("_FeedbackMax"), UniformType::FLOAT };
 		mClipInfo = { mShader->getUniformLocation("clipInfo"), UniformType::VEC4 };
-
-		mSampler.setMinFilter(TextureFilter::Linear);
-		mSampler.setMagFilter(TextureFilter::Linear);
 	}
 
 	const RenderState& getState() const {
@@ -74,19 +71,19 @@ public:
 	}
 
 	void setSource(Texture* source) {
-		mShader->setTexture(source, &mSampler, mSource.bindingSlot);
+		mShader->setTexture(source, Sampler::getLinear(), mSource.bindingSlot);
 	}
 
 	void setVelocity(Texture* source) {
-		mShader->setTexture(source, &mSampler, mVelocity.bindingSlot);
+		mShader->setTexture(source, Sampler::getLinear(), mVelocity.bindingSlot);
 	}
 
 	void setDepth(Texture* source) {
-		mShader->setTexture(source, &mSampler, mDepth.bindingSlot);
+		mShader->setTexture(source, Sampler::getLinear(), mDepth.bindingSlot);
 	}
 
 	void setSourceHistory(Texture* source) {
-		mShader->setTexture(source, &mSampler, mSourceHistory.bindingSlot);
+		mShader->setTexture(source, Sampler::getLinear(), mSourceHistory.bindingSlot);
 	}
 
 	void setTextureSize(const glm::vec2& vec)

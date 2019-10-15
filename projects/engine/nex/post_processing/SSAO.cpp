@@ -165,7 +165,7 @@ namespace nex
 		virtual ~SSAO_AO_Display_Shader() = default;
 
 		void setScreenTexture(const Texture* texture) {
-			mShader->setTexture(texture, &mSampler, mScreenTexture.bindingSlot);
+			mShader->setTexture(texture, Sampler::getLinear(), mScreenTexture.bindingSlot);
 		}
 
 	private:

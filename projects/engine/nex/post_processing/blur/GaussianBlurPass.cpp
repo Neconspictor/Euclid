@@ -17,7 +17,7 @@ nex::GaussianBlurHorizontalShader::GaussianBlurHorizontalShader()
 
 void nex::GaussianBlurHorizontalShader::setTexture(const Texture* tex)
 {
-	mShader->setTexture(tex, &mSampler, image.bindingSlot);
+	mShader->setTexture(tex, Sampler::getLinear(), image.bindingSlot);
 }
 
 void nex::GaussianBlurHorizontalShader::setImageWidth(float width)
@@ -48,7 +48,7 @@ nex::GaussianBlurVerticalShader::GaussianBlurVerticalShader()
 
 void nex::GaussianBlurVerticalShader::setTexture(const Texture* tex)
 {
-	mShader->setTexture(tex, &mSampler, image.bindingSlot);
+	mShader->setTexture(tex, Sampler::getLinear(), image.bindingSlot);
 }
 
 void nex::GaussianBlurVerticalShader::setImageWidth(float width)
