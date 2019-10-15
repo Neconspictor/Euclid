@@ -82,8 +82,54 @@ namespace nex
 		 */
 		static void unbind(unsigned textureBindingSlot);
 
+
+		static const Sampler* getPoint() {
+			static auto sampler = createPointSampler();
+			return sampler.get();
+		}
+
+		static const Sampler* getLinear() {
+			static auto sampler = createLinearSampler();
+			return sampler.get();
+		}
+
+		static const Sampler* getLinearMiMap() {
+			static auto sampler = createLinearMipMapSampler();
+			return sampler.get();
+		}
+
+		static const Sampler* getNearMiMap() {
+			static auto sampler = createNearMipMapSampler();
+			return sampler.get();
+		}
+
 	protected:
 		//Used in order to avoid virtual function calls
 		std::unique_ptr<Impl> mImpl;
+
+	private: 
+		static std::unique_ptr<Sampler> createPointSampler() {
+			SamplerDesc desc;
+			desc.minFilter = TextureFilter::NearestNeighbor;
+			desc.magFilter = TextureFilter::NearestNeighbor;
+			return std::make_unique<Sampler>(desc);
+		}
+
+		static std::unique_ptr<Sampler> createLinearSampler() {
+			return std::make_unique<Sampler>();
+		}
+
+		static std::unique_ptr<Sampler> createLinearMipMapSampler() {
+			SamplerDesc desc;
+			desc.minFilter = TextureFilter::Linear_Mipmap_Linear;
+			return std::make_unique<Sampler>(desc);
+		}
+
+		static std::unique_ptr<Sampler> createNearMipMapSampler() {
+			SamplerDesc desc;
+			desc.minFilter = TextureFilter::Near_Mipmap_Near;
+			desc.magFilter = TextureFilter::NearestNeighbor;
+			return std::make_unique<Sampler>(desc);
+		}
 	};
 }
