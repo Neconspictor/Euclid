@@ -12,9 +12,9 @@ in VS_OUT {
 //in vec2 texCoord_tcs_in;
 
 layout(location = 0)out vec4 fragColor;
-layout(location = 1)out vec4 luminance;
-layout(location = 2)out vec2 motion;
-layout(location = 3)out float depth;
+//layout(location = 1)out vec4 luminance;
+//layout(location = 2)out vec2 motion;
+//layout(location = 3)out float depth;
 
 uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
@@ -59,19 +59,19 @@ void main() {
 			vec4(0.0, 0.0, 0.0, 0.0));
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
-
-	fragColor.a = 0.5;
+    
+    fragColor.a = 0.5;
+ 
   
+    //vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
   
-    vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
-  
-    float depth = texture2DProj(depthMap, vs_out.positionCS).r;
+    //float depth = texture2DProj(depthMap, vs_out.positionCS).r;
   
   
   
   
   //color =  angle * vec4(0.3, 1.0, 1.0, 1.0) + vec4(0.03, 0.1, 0.1, 0.0);
-  luminance = vec4(0.0);
-  motion = vec2(0.0);
-  depth = gl_FragCoord.z;
+  //luminance = vec4(0.0);
+  //motion = vec2(0.0);
+  //depth = gl_FragCoord.z;
 }

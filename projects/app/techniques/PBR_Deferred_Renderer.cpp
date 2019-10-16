@@ -42,6 +42,7 @@
 #include <nex/post_processing/FXAA.hpp>
 #include <nex/post_processing/TAA.hpp>
 #include <nex/post_processing/DownSampler.hpp>
+#include <nex/effects/Blit.hpp>
 
 int ssaaSamples = 1;
 
@@ -244,20 +245,89 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	
-	stencilTest->enableStencilTest(false);
-	mPingPong->bind();
-	mPingPong->clear(RenderComponent::Color);
 	
-	mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+	
+	if (true) {
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+		mPingPong->bind();
+		depthTest->enableDepthBufferWriting(true);
+		depthTest->enableDepthTest(true);
+		mPingPong->clear(RenderComponent::Color | RenderComponent::Stencil); // | RenderComponent::Depth
+		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
+
+		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+	}
+	
 
 	mOutRT->bind();
+	stencilTest->enableStencilTest(false);
 	postProcessor->renderAO(aoMap);
 	stencilTest->enableStencilTest(true);
-	stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-
+	
+	depthTest->enableDepthBufferWriting(true);
+	depthTest->enableDepthTest(true);
 	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
+
+	//check if camera is above or under water
+	bool under = camera.getPosition().y < 3.0f;
+
+	if (true) {
+		// After sky we render transparent objects
+		mOutRT->bind();
+		mPbrTechnique->useForward();
+		auto* forward = mPbrTechnique->getForward();
+		forward->configurePass(constants);
+		forward->updateLight(sun, camera);
+		StaticMeshDrawer::draw(queue.getTransparentCommands());
+	}
+
+
+	if (true) {
+		//blit ocean into
+
+	//lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0), mPingPongStencilView.get());
+		//mOutRT->enableDrawToColorAttachment(1, false);
+		//mOutRT->enableDrawToColorAttachment(2, false);
+		//mOutRT->enableDrawToColorAttachment(3, false);
+		//mOutRT->clear(RenderComponent::Color);
+		//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
+		//lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0), mPingPong->getDepthAttachment()->texture.get());
+		//depthTest->setDefaultDepthFunc(CompFunc::LESS);
+		auto state = RenderState();
+		//state.doDepthTest = false;
+		state.doDepthWrite = false;
+		state.doBlend = true;
+		state.blendDesc.operation = BlendOperation::ADD;
+		state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
+		state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
+		lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0),
+			mPingPong->getDepthAttachment()->texture.get(),
+			mPingPongStencilView.get(),
+			state);
+		//mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+		//mOutRT->enableDrawToColorAttachment(1, true);
+		//mOutRT->enableDrawToColorAttachment(2, true);
+		//mOutRT->enableDrawToColorAttachment(3, true);
+	}
+
+	if (false) {
+		// After sky we render transparent objects
+		mOutRT->bind();
+		mPbrTechnique->useForward();
+		auto* forward = mPbrTechnique->getForward();
+		forward->configurePass(constants);
+		forward->updateLight(sun, camera);
+		StaticMeshDrawer::draw(queue.getTransparentCommands());
+	}
+	
+
+	// At last we render tools
+	StaticMeshDrawer::draw(queue.getToolCommands());
+
+
 
 	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
@@ -271,19 +341,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	RenderBackend::get()->getStencilTest()->enableStencilTest(false);
 
 	// finally render the offscreen buffer to a quad and do post processing stuff
-
-	
-
-	// After sky we render transparent objects
-	mOutRT->bind();
-	mPbrTechnique->useForward();
-	auto* forward = mPbrTechnique->getForward();
-	forward->configurePass(constants);
-	forward->updateLight(sun, camera);
-	StaticMeshDrawer::draw(queue.getTransparentCommands());
-
-	// At last we render tools
-	StaticMeshDrawer::draw(queue.getToolCommands());
 
 
 	mOutRT->enableDrawToColorAttachment(1, false);
@@ -385,6 +442,10 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mOutSwitcherTAA.setTarget(mOutRT.get(), true);
 
 	mPingPong = mRenderBackend->createRenderTarget();
+	auto* pingPongDepthStencilTex = mPingPong->getDepthAttachment()->texture.get();
+	auto depthStencilDesc = pingPongDepthStencilTex->getTextureData();
+	depthStencilDesc.depthStencilTextureMode = DepthStencilTexMode::STENCIL;
+	mPingPongStencilView = Texture::createView(pingPongDepthStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
 	
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;

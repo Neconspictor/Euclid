@@ -3,13 +3,14 @@
 namespace nex
 {
 	class Texture;
+	struct RenderState;
 
 	class Blit {
 	public:
 		Blit();
 		~Blit();
-		void blitStencil(Texture* color, Texture* stencil);
-		void blit(Texture* color);
+		void blitStencil(Texture* color, Texture* deph, Texture* stencil, const RenderState& state);
+		void blit(Texture* color, Texture* deph, const RenderState& state);
 
 	private:
 

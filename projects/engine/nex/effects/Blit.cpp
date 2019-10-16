@@ -2,6 +2,7 @@
 #include <nex/shader/Pass.hpp>
 #include <nex/texture/Texture.hpp>
 #include <nex/renderer/RenderTypes.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 namespace nex {
 	class Blit::BlitPass : public Pass
@@ -19,11 +20,16 @@ namespace nex {
 				defines);
 
 			mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
-			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
+			mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 1);
+			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 2);
 		}
 
 		void setColor(Texture* texture) {
 			mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
+		}
+
+		void setDepth(Texture* texture) {
+			mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
 		}
 
 		void setStencil(Texture* texture) {
@@ -33,6 +39,7 @@ namespace nex {
 
 	private:
 		UniformTex mColorMap;
+		UniformTex mDepthMap;
 		UniformTex mStencilMap;
 		bool mUseStencilTest;
 	};
@@ -45,19 +52,23 @@ namespace nex {
 
 	Blit::~Blit() = default;
 
-	void Blit::blitStencil(Texture * color, Texture * stencil)
+	void Blit::blitStencil(Texture * color, Texture* depth, Texture * stencil, const RenderState& state)
 	{
 		mBlitStencilPass->bind();
 		mBlitStencilPass->setColor(color);
+		mBlitPass->setDepth(depth);
 		mBlitStencilPass->setStencil(stencil);
 		
-		const auto& state = RenderState::getNoDepthTest();
+		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitStencilPass.get());
 	}
 
-	void Blit::blit(Texture* color)
+	void Blit::blit(Texture* color, Texture* depth, const RenderState& state)
 	{
 		mBlitPass->bind();
 		mBlitPass->setColor(color);
+		mBlitPass->setDepth(depth);
+
+		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitPass.get());
 	}
 
 }

@@ -479,6 +479,8 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 	for (int i = 0; i < childs.size(); ++i) {
 		childs[i]->getMesh()->mDebugName = "Intersected " + std::to_string(i);
 		childs[i]->getMaterial()->getRenderState().doCullFaces = false;
+		childs[i]->getMaterial()->getRenderState().doDepthTest = true;
+		childs[i]->getMaterial()->getRenderState().doDepthWrite = true;
 		childs[i]->getMaterial()->getRenderState().doShadowCast = false;
 	}
 
