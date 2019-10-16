@@ -46,7 +46,6 @@ public:
 	UniformTex bloomSixteenth;
 	UniformTex aoMap;
 	UniformTex motionMap;
-	Sampler* mSampler;
 };
 
 
@@ -170,25 +169,25 @@ void nex::PostProcessor::renderAO(Texture* aoMap)
 void nex::PostProcessor::setAoMap(Texture2D* aoMap)
 {
 	auto& uniform = mPostprocessPass->aoMap;
-	mPostprocessPass->getShader()->setTexture(aoMap, mPostprocessPass->mSampler, uniform.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(aoMap, Sampler::getLinear(), uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setMotionMap(Texture2D* motionMap)
 {
 	auto& uniform = mPostprocessPass->motionMap;
-	mPostprocessPass->getShader()->setTexture(motionMap, mPostprocessPass->mSampler, uniform.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(motionMap, Sampler::getLinear(), uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setPostProcessTexture(Texture* texture)
 {
 	auto& uniform = mPostprocessPass->sourceTextureUniform;
-	mPostprocessPass->getShader()->setTexture(texture, mPostprocessPass->mSampler, uniform.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(texture, Sampler::getLinear(), uniform.bindingSlot);
 }
 
 void nex::PostProcessor::setGlowTextures(Texture* halfth, nex::Texture* quarter, nex::Texture* eigth, nex::Texture* sixteenth)
 {
-	mPostprocessPass->getShader()->setTexture(halfth, mPostprocessPass->mSampler, mPostprocessPass->bloomHalfth.bindingSlot);
-	mPostprocessPass->getShader()->setTexture(quarter, mPostprocessPass->mSampler, mPostprocessPass->bloomQuarter.bindingSlot);
-	mPostprocessPass->getShader()->setTexture(eigth, mPostprocessPass->mSampler, mPostprocessPass->bloomEigth.bindingSlot);
-	mPostprocessPass->getShader()->setTexture(sixteenth, mPostprocessPass->mSampler, mPostprocessPass->bloomSixteenth.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(halfth, Sampler::getLinear(), mPostprocessPass->bloomHalfth.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(quarter, Sampler::getLinear(), mPostprocessPass->bloomQuarter.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(eigth, Sampler::getLinear(), mPostprocessPass->bloomEigth.bindingSlot);
+	mPostprocessPass->getShader()->setTexture(sixteenth, Sampler::getLinear(), mPostprocessPass->bloomSixteenth.bindingSlot);
 }
