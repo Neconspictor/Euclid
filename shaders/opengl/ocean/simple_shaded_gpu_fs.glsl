@@ -19,9 +19,9 @@ layout(location = 0)out vec4 fragColor;
 uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
 
-layout(binding = 5) uniform sampler2D depthMap;
-layout(binding = 6) uniform sampler2D refractionMap;
-layout(binding = 7) uniform sampler2D reflectionMap;
+layout(binding = 5) uniform sampler2D colorMap;
+layout(binding = 6) uniform sampler2D depthMap;
+//layout(binding = 7) uniform sampler2D reflectionMap;
 
 void main() {
 
@@ -59,11 +59,25 @@ void main() {
 			vec4(0.0, 0.0, 0.0, 0.0));
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
-    
-    fragColor.a = 0.5;
+   
  
   
-    //vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
+    vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
+    
+    const float refractionRatio = 1.0 / 1.3;
+    
+    vec2 refractionNDC = ndcPos ;//+ normal.xy * refractionRatio;
+    vec4 refractionUV = vs_out.positionCS;
+    refractionUV.x += normal.x * refractionRatio * 0.1;
+    refractionUV.y += normal.z * refractionRatio * 0.1;
+    //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
+    vec2 uv = refractionUV.xy / refractionUV.w;
+    uv = clamp(uv, 0.001, 0.999);
+    vec4 refractionColor = texture(colorMap, uv);
+    
+    fragColor = fragColor * 0.5 + 0.5 * refractionColor;
+    
+    fragColor.a = 1.0;
   
     //float depth = texture2DProj(depthMap, vs_out.positionCS).r;
   

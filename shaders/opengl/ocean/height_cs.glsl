@@ -63,7 +63,6 @@ Complex add(in Complex a, in Complex b) {
 void main(void)
 {
     const ivec2 index = ivec2(gl_GlobalInvocationID.xy);
- 
     
     const vec2 wave = (TWO_PI * index - (PI * vec2(uniquePointCount))) / waveLength;
     
@@ -93,6 +92,9 @@ void main(void)
         complexDx = mul(complexHeight, Complex(0, -wave.x / len));
         complexDz = mul(complexHeight, Complex(0, -wave.y / len));
     }
+    
+    
+    
     
     
     const vec2 height = vec2(complexHeight.re, complexHeight.im);//vec2(currentTime, periodTime);

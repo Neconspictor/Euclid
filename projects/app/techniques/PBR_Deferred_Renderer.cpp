@@ -66,13 +66,14 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(128, //N
-		128, // maxWaveLength
+	mOcean(32, //N
+		1000, // maxWaveLength
 		5.0f, //dimension
-		0.4f, //spectrumScale
-		glm::vec2(1.0f, 1.0f), //windDirection
-		6.0f, //windSpeed
-		200.0f //periodTime
+		3.0f, // water height
+		0.4, //spectrumScale
+		glm::vec2(0.0f, 1.0f), //windDirection
+		12.0, //windSpeed
+		10000.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
 	mBlurIrradiance(false),
@@ -251,12 +252,13 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		mPingPong->bind();
-		depthTest->enableDepthBufferWriting(true);
-		depthTest->enableDepthTest(true);
-		mPingPong->clear(RenderComponent::Color | RenderComponent::Stencil); // | RenderComponent::Depth
+		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
 		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
 
-		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
+		Texture* color = mOutRT->getColorAttachmentTexture(0);
+		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
+
+		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, color, depth);
 	}
 	
 
@@ -265,8 +267,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	postProcessor->renderAO(aoMap);
 	stencilTest->enableStencilTest(true);
 	
-	depthTest->enableDepthBufferWriting(true);
-	depthTest->enableDepthTest(true);
 	stencilTest->setCompareFunc(CompFunc::NOT_EQUAL, 1, 1);
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
@@ -274,7 +274,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	//check if camera is above or under water
 	bool under = camera.getPosition().y < 3.0f;
 
-	if (true) {
+	if (false) {
 		// After sky we render transparent objects
 		mOutRT->bind();
 		mPbrTechnique->useForward();
@@ -287,18 +287,15 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	if (true) {
 		//blit ocean into
-
-	//lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0), mPingPongStencilView.get());
+		mOutRT->bind();
 		//mOutRT->enableDrawToColorAttachment(1, false);
 		//mOutRT->enableDrawToColorAttachment(2, false);
 		//mOutRT->enableDrawToColorAttachment(3, false);
 		//mOutRT->clear(RenderComponent::Color);
 		//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
-		//lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0), mPingPong->getDepthAttachment()->texture.get());
-		//depthTest->setDefaultDepthFunc(CompFunc::LESS);
 		auto state = RenderState();
-		//state.doDepthTest = false;
-		state.doDepthWrite = false;
+		state.doDepthTest = true;
+		state.doDepthWrite = true;
 		state.doBlend = true;
 		state.blendDesc.operation = BlendOperation::ADD;
 		state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
@@ -307,7 +304,6 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			mPingPong->getDepthAttachment()->texture.get(),
 			mPingPongStencilView.get(),
 			state);
-		//mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld);
 		//mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, true);
 		//mOutRT->enableDrawToColorAttachment(3, true);
@@ -332,7 +328,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* colorTex = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(0));
 	auto* luminanceTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(1));
 	auto* motionTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(2));
-	auto* depthTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(3));
+	//auto* depthTexture = static_cast<Texture2D*>(mOutRT->getColorAttachmentTexture(3));
+	auto* depthTexture = static_cast<Texture2D*>(mOutRT->getDepthAttachment()->texture.get());
 	
 
 
@@ -350,7 +347,19 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	Texture2D* outputTexture = colorTex;
 
 	if (postProcess) {
-		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, luminanceTexture, aoMap, motionTexture, mPingPong.get()); //mPbrMrt->getMotion()
+
+		auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
+
+		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, 
+			luminanceTexture, 
+			aoMap, 
+			motionTexture,
+			depthTexture,
+			mOcean.getHeightMap(),
+			mOcean.getTileSize(),
+			inverse(mOcean.getModelMatrix()),
+			invViewProj,
+			mPingPong.get()); //mPbrMrt->getMotion()
 	}
 
 	if (true) {

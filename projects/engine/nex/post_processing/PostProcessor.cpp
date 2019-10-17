@@ -30,6 +30,9 @@ public:
 
 		motionMap = { mShader->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
 
+		oceanHeightMap = mShader->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 7);
+		depthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 8);
+
 		mShader->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mShader->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
 		mShader->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
@@ -37,6 +40,31 @@ public:
 		mShader->setBinding(bloomSixteenth.location, bloomSixteenth.bindingSlot);
 		mShader->setBinding(aoMap.location, aoMap.bindingSlot);
 		mShader->setBinding(motionMap.location, motionMap.bindingSlot);
+
+
+		inverseViewProjMatrix_GPass = { mShader->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4};
+		inverseModelMatrix_Ocean = { mShader->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
+		oceanTileSize = { mShader->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
+	}
+
+	void setInverseViewProjMatrix_GPass(const glm::mat4& mat) {
+		mShader->setMat4(inverseViewProjMatrix_GPass.location, mat);
+	}
+
+	void setInverseModelMatrix_Ocean(const glm::mat4& mat) {
+		mShader->setMat4(inverseModelMatrix_Ocean.location, mat);
+	}
+
+	void setOceanTileSize(float tileSize) {
+		mShader->setFloat(oceanTileSize.location, tileSize);
+	}
+
+	void setDepthMap(Texture* texture) {
+		mShader->setTexture(texture,  Sampler::getPoint(), depthMap.bindingSlot);
+	}
+
+	void setOceanHeightMap(Texture* texture) {
+		mShader->setTexture(texture, Sampler::getPoint(), oceanHeightMap.bindingSlot);
 	}
 
 	UniformTex sourceTextureUniform;
@@ -46,6 +74,12 @@ public:
 	UniformTex bloomSixteenth;
 	UniformTex aoMap;
 	UniformTex motionMap;
+	UniformTex oceanHeightMap;
+	UniformTex depthMap;
+
+	Uniform inverseViewProjMatrix_GPass;
+	Uniform inverseModelMatrix_Ocean;
+	Uniform oceanTileSize;
 };
 
 
@@ -78,7 +112,16 @@ mTaa(std::make_unique<TAA>())
 
 nex::PostProcessor::~PostProcessor() = default;
 
-nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D* glowTexture, Texture2D* aoMap, Texture2D* motionMap, RenderTarget* output)
+nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, 
+	Texture2D* glowTexture, 
+	Texture2D* aoMap, 
+	Texture2D* motionMap, 
+	Texture* depth,
+	Texture* oceanHeightMap,
+	float oceanTileSize,
+	const glm::mat4& inverseModelMatrix_Ocean,
+	const glm::mat4& inverseViewProjection_GPass,
+	RenderTarget* output)
 {
 	// Bloom
 	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
@@ -102,6 +145,14 @@ nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, Texture2D*
 	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
 	setAoMap(aoMap);
 	setMotionMap(motionMap);
+
+	//ocean
+	mPostprocessPass->setDepthMap(depth);
+	mPostprocessPass->setOceanHeightMap(oceanHeightMap);
+	mPostprocessPass->setInverseModelMatrix_Ocean(inverseModelMatrix_Ocean);
+	mPostprocessPass->setInverseViewProjMatrix_GPass(inverseViewProjection_GPass);
+	mPostprocessPass->setOceanTileSize(oceanTileSize);
+
 
 	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());

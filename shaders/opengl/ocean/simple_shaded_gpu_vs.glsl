@@ -25,6 +25,8 @@ uniform mat4 transform;
 uniform mat4 modelViewMatrix;
 uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
+uniform vec2 windDirection;
+uniform float animationTime;
 
 
 
@@ -39,20 +41,27 @@ vec4 clipToScreenPos(in vec4 pos)
 
 void main() { 
     
-   vec2 mSlopeX =  texture(slopeX, texCoords).xy;
-   vec2 mSlopeZ =  texture(slopeZ, texCoords).xy;
-   vec2 mDX =  texture(dX, texCoords).xy;
-   vec2 mDZ =  texture(dZ, texCoords).xy;
+   vec2 offset = vec2(0.0);//animationTime * vec2(1, 1);
+    
+   const float scale = 1.0; 
+    
+   vec2 uv = texCoords + offset; 
+    
+   vec2 mSlopeX =  texture(slopeX, uv).xy * scale;
+   vec2 mSlopeZ =  texture(slopeZ, uv).xy * scale;
+   vec2 mDX =  texture(dX, uv).xy * scale;
+   vec2 mDZ =  texture(dZ, uv).xy * scale;
    float mLambda = -1.0;
    
    
    vec4 mPosition = vec4(position.x + mLambda * mDX.x,
-                         texture(height, texCoords).x,
+                         texture(height, uv).x * scale,
                          position.z + mLambda * mDZ.x,
                          1.0);
                          
-                         
-    mPosition += vec4(128 * (gl_InstanceID % 8),0, 128 * (gl_InstanceID / 8), 0);                     
+    const float tileSize = 1000;
+    
+    mPosition += vec4(tileSize * (gl_InstanceID % 8),0, tileSize * (gl_InstanceID / 8), 0);                     
    
    vec3 mNormal = normalize(vec3(-mSlopeX.x, 1.0f, -mSlopeZ.x));
     
@@ -65,7 +74,7 @@ void main() {
   
   vec4 positionCS = transform * mPosition;
   
-  vs_out.positionCS = positionCS;
+  vs_out.positionCS = clipToScreenPos(positionCS);
   
   
   gl_Position = positionCS;

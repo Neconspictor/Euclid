@@ -335,8 +335,8 @@ void NeXEngine::run()
 
 			static float simulationTime = 0.0f;
 			simulationTime += frameTime;
-			mRenderer->getOcean()->simulate(simulationTime * 0.5f);
-
+			mRenderer->getOcean()->simulate(simulationTime);
+			mRenderer->getOcean()->updateAnimationTime(simulationTime);
 
 			//commandQueue->useSphereCulling(mCamera->getPosition(), 10.0f);
 	

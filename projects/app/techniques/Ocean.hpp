@@ -8,6 +8,7 @@ namespace nex
 {
 	class Mesh;
 	class Camera;
+	class Texture;
 	class Texture2D;
 
 	class Iterator2D
@@ -66,6 +67,14 @@ namespace nex
 
 		virtual void simulate(float t) = 0;
 
+		virtual void updateAnimationTime(float t);
+
+		float getTileSize() const;
+		glm::mat4 getModelMatrix() const;
+
+		float getWaterHeight() const;
+		void setWaterHeight(float height);
+
 	protected:
 
 		/**
@@ -85,6 +94,7 @@ namespace nex
 		Ocean(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
+			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -134,6 +144,10 @@ namespace nex
 
 		bool mWireframe;
 
+		float mAnimationTime;
+
+		float mWaterHeight;
+
 
 		static constexpr float GRAVITY = 9.81f;
 	};
@@ -155,6 +169,7 @@ namespace nex
 		OceanCpu(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
+			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -217,6 +232,7 @@ namespace nex
 		OceanCpuDFT(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
+			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -245,6 +261,7 @@ namespace nex
 		OceanCpuFFT(unsigned N,
 			unsigned maxWaveLength,
 			float dimension,
+			float waterHeight,
 			float spectrumScale,
 			const glm::vec2& windDirection,
 			float windSpeed,
@@ -288,6 +305,7 @@ namespace nex
 		OceanGPU(unsigned N, 
 			unsigned maxWaveLength, 
 			float dimension,
+			float waterHeight,
 			float spectrumScale, 
 			const glm::vec2& windDirection, 
 			float windSpeed, 
@@ -298,13 +316,15 @@ namespace nex
 		/**
 		 * Draws the ocean.
 		 */
-		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir);
+		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, Texture* color, Texture* depth);
 
 		/**
 		 * Simulates ocean state at time t.
 		 * @param t : time. Has to be > 0
 		 */
 		void simulate(float t) override;
+
+		Texture* getHeightMap();
 
 	private:
 
@@ -507,18 +527,25 @@ namespace nex
 
 			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
 				const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
-				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ);
+				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
+				Texture* color, Texture* depth,
+				const glm::vec2& windDir,
+				float time);
 
 			Uniform transform;
 			Uniform modelMatrixUniform;
 			Uniform modelViewUniform;
 			Uniform lightUniform;
 			Uniform normalMatrixUniform;
+			Uniform windDirection;
+			Uniform animationTime;
 			UniformTex heightUniform;
 			UniformTex slopeXUniform;
 			UniformTex slopeZUniform;
 			UniformTex dXUniform;
 			UniformTex dZUniform;
+			UniformTex colorUniform;
+			UniformTex depthUniform;
 
 			Sampler sampler;
 		};

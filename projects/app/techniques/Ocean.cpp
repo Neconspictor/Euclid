@@ -57,6 +57,7 @@ bool nex::Iterator2D::isInRange(const size_t vectorIndex) const
 nex::Ocean::Ocean(unsigned N,
 	unsigned maxWaveLength,
 	float dimension,
+	float waterHeight,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
@@ -69,7 +70,8 @@ nex::Ocean::Ocean(unsigned N,
 	mWindDirection(glm::normalize(windDirection)),
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
-	mWireframe(false)
+	mWireframe(false),
+	mWaterHeight(waterHeight)
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -130,10 +132,39 @@ float nex::Ocean::philipsSpectrum(const glm::vec2& wave) const
 	return mSpectrumScale * std::exp(-1.0f / kLSquare) / kFour * windAlignmentFactor * smallWaveSuppression;
 }
 
+void nex::Ocean::updateAnimationTime(float t)
+{
+	mAnimationTime = t;
+}
 
-nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
+float nex::Ocean::getTileSize() const
+{
+	return mWaveLength;
+}
+
+glm::mat4 nex::Ocean::getModelMatrix() const
+{
+	glm::mat4 model;
+	model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
+	model = translate(model, glm::vec3(0, mWaterHeight, 0));
+	model = scale(model, glm::vec3(1 / (float)mWaveLength) * mDimension);
+	return 	model;
+}
+
+float nex::Ocean::getWaterHeight() const
+{
+	return mWaterHeight;
+}
+
+void nex::Ocean::setWaterHeight(float height)
+{
+	mWaterHeight = height;
+}
+
+
+nex::OceanCpu::OceanCpu(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight, float spectrumScale,
 	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
 mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
 {
 	generateMesh();
@@ -320,9 +351,9 @@ void nex::OceanCpu::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 }
 
 
-nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float spectrumScale,
+nex::OceanCpuDFT::OceanCpuDFT(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight, float spectrumScale,
 	const glm::vec2& windDirection, float windSpeed, float periodTime) : 
-OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime)
+OceanCpu(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime)
 {
 }
 
@@ -437,10 +468,11 @@ void nex::OceanCpuDFT::simulate(float t)
 nex::OceanCpuFFT::OceanCpuFFT(unsigned N,
 	unsigned maxWaveLength,
 	float dimension,
+	float waterHeight,
 	float spectrumScale,
 	const glm::vec2& windDirection,
 	float windSpeed,
-	float periodTime) : OceanCpu(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	float periodTime) : OceanCpu(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
 	mLogN(log2(mN))
 {
 	// bit reversal precomputation
@@ -884,9 +916,9 @@ void nex::OceanGPU::testHeightGeneration()
 
 }
 
-nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
+nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, float waterHeight,
 	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
-	Ocean(N, maxWaveLength, dimension, spectrumScale, windDirection, windSpeed, periodTime),
+	Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
 	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
@@ -905,20 +937,23 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension,
 
 nex::OceanGPU::~OceanGPU() = default;
 
-void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir)
+void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, 
+	nex::Texture* color, nex::Texture* depth)
 {
 	mSimpleShadedPass->bind();
-	glm::mat4 model;
-	model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
-	model = translate(model, glm::vec3(0, 3, 0));
-	model = scale(model, glm::vec3(1 / (float)mWaveLength) * mDimension);
+	
+	auto model = getModelMatrix();
 
 	mSimpleShadedPass->setUniforms(projection, view, model, lightDir, 
 		mHeightComputePass->getHeight(),
 		mHeightComputePass->getSlopeX(),
 		mHeightComputePass->getSlopeZ(),
 		mHeightComputePass->getDx(),
-		mHeightComputePass->getDz());
+		mHeightComputePass->getDz(),
+		color,
+		depth,
+		mWindDirection,
+		mAnimationTime);
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
@@ -947,6 +982,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 
 void nex::OceanGPU::simulate(float t)
 {
+	//unsigned mult = mAnimationTime / mPeriodTime;
+	//mAnimationTime = mAnimationTime - mult * mPeriodTime;
+
 	mHeightComputePass->compute(t, mHeightZeroComputePass->getResult());
 
 
@@ -980,6 +1018,11 @@ void nex::OceanGPU::simulate(float t)
 
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess);
 	mNormalizePermutatePass->compute(heightFFT, slopeXFFT, slopeZFFT, dxFFT, dzFFT);
+}
+
+nex::Texture* nex::OceanGPU::getHeightMap()
+{
+	return mHeightComputePass->getHeight();
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1549,6 +1592,8 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	modelMatrixUniform = { mShader->getUniformLocation("modelMatrix"), UniformType::MAT4 };
 	lightUniform = { mShader->getUniformLocation("lightDirViewSpace"), UniformType::VEC3 };
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
+	windDirection = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
+	animationTime = { mShader->getUniformLocation("animationTime"), UniformType::FLOAT };
 
 	heightUniform = { mShader->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
 
@@ -1556,9 +1601,11 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	slopeZUniform = { mShader->getUniformLocation("slopeZ"), UniformType::TEXTURE2D, 2 };
 	dXUniform = { mShader->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
 	dZUniform = { mShader->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
+	colorUniform = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 5);
+	depthUniform = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 6);
 
-	sampler.setMinFilter(TexFilter::Nearest);
-	sampler.setMagFilter(TexFilter::Nearest);
+	sampler.setMinFilter(TexFilter::Linear);
+	sampler.setMagFilter(TexFilter::Linear);
 	sampler.setWrapR(UVTechnique::Repeat);
 	sampler.setWrapS(UVTechnique::Repeat);
 	sampler.setWrapT(UVTechnique::Repeat);
@@ -1566,7 +1613,10 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 
 void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
 	const glm::mat4& trafo, const glm::vec3& lightDir,
-	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ)
+	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
+	Texture* color, Texture* depth,
+	const glm::vec2& windDir,
+	float time)
 {
 	auto modelView = view * trafo;
 
@@ -1574,6 +1624,8 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 	mShader->setMat4(transform.location, projection * view * trafo);
 	mShader->setMat4(modelViewUniform.location, modelView);
 	mShader->setMat4(modelMatrixUniform.location, trafo);
+	mShader->setVec2(windDirection.location, windDir);
+	mShader->setFloat(animationTime.location, time);
 
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
@@ -1584,6 +1636,9 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 	mShader->setTexture(slopeZ, &sampler, slopeZUniform.bindingSlot);
 	mShader->setTexture(dX, &sampler, dXUniform.bindingSlot);
 	mShader->setTexture(dZ, &sampler, dZUniform.bindingSlot);
+
+	mShader->setTexture(color, &sampler, colorUniform.bindingSlot);
+	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
 }
 
 

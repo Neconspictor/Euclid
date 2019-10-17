@@ -45,23 +45,30 @@ Complex mul(in Complex c, float scalar) {
 
 float philipsSpectrum(vec2 k) {
     const float angle = dot(normalize(k), normalize(windDirection));
-    const float absoluteAngle2 = angle * angle;
+    const float absoluteAngle2 = pow(angle, 2);//angle * angle;
     const float kLength = length(k);
     const float kLength4 = kLength * kLength * kLength * kLength;
     const float L = windSpeed * windSpeed / GRAVITY;
     const float kWaveLength = kLength * L;
     const float kWaveLength2 = kWaveLength * kWaveLength;
+    const float l = 0.001 * L;
+    const float A = spectrumScale;
     
-    const float exponential = (exp(-1.0 / kWaveLength2) / kLength4);
+    const float smallWaveSuppression = pow(kLength * l, 2);
+    float exponential = (exp(-kLength / kWaveLength2) / kLength4); // smallWaveSuppression
     
-    const float damping = 0.002;
+    const float damping = 1; // 0.002
     const float L2 = L * L;
 	const float l2 = L2 * damping * damping;
 
     // exponential will be -inf if kLength is 0
     // we want to return 0 in this case.
     if (isnan(exponential)) return 0.0;
-    return spectrumScale * exponential * absoluteAngle2 * exp(-kLength * kLength*l2);
+    //return spectrumScale * exponential * absoluteAngle2 * exp(-kLength * kLength*l2);
+    
+    const float above = exp(-(1.0 / pow(kWaveLength, 8)) - smallWaveSuppression);
+    
+    return A * above  / kLength4;
 }
 
 void main(void)
