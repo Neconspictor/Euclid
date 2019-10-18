@@ -5,14 +5,15 @@ in VS_OUT {
 } fs_in;
 
 layout(binding = 0) uniform sampler2D colorMap;
-layout(binding = 1) uniform sampler2D depthMap;
+layout(binding = 1) uniform sampler2D luminanceMap;
+layout(binding = 2) uniform sampler2D depthMap;
 
 #ifndef USE_STENCIL_TEST
 #define USE_STENCIL_TEST 0
 #endif
 
 #if USE_STENCIL_TEST
-layout(binding = 2) uniform usampler2D stencilMap;
+layout(binding = 3) uniform usampler2D stencilMap;
 #endif
 
 layout(location = 0) out vec4 fragColor;
@@ -32,7 +33,7 @@ void main()
     #endif
 
     fragColor = texture(colorMap, fs_in.texCoord);
-    luminance = vec4(0.0);
+    luminance = texture(luminanceMap, fs_in.texCoord);
     
     gl_FragDepth = texture(depthMap, fs_in.texCoord).r;
 }

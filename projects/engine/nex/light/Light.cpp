@@ -28,7 +28,7 @@ namespace nex {
 		 */
 
 		return glm::vec3(
-			coord.radius * sin(coord.polar) * cos(coord.azimuth), //x
+			-coord.radius * sin(coord.polar) * cos(coord.azimuth), //x
 			coord.radius * cos(coord.polar), //y
 			-coord.radius * sin(coord.polar) * sin(coord.azimuth) //z
 		);
@@ -42,18 +42,20 @@ namespace nex {
 		 * The formula with a zenith direction of (0,0,1) (z-axis) is:
 		 *  radius = length(cartesian)
 		 *  polar = arccos(z / radius)
-		 *  azimuth = arctan(y / z)
+		 *  azimuth = arctan(y / x)
 		 * 	
 		 * For zenith direction = (0,1,0) we replace z with -y and y with z
 		 * This results to:
 		 *  radius = length(cartesian)
-		 *  polar = arccos(-y / radius)
-		 *  azimuth = arctan(z / -y)
+		 *  polar = arccos(y / radius)
+		 *  azimuth = arctan(-z / x)
 		 */
 
 		result.radius = length(cartesian);
-		result.polar = glm::acos(-cartesian.y / result.radius);
-		result.azimuth = glm::atan(cartesian.z / -cartesian.y);
+		result.polar = glm::acos(cartesian.y / result.radius);
+
+		// Note: atan handles infinity properly (if x is 0)
+		result.azimuth = glm::atan(cartesian.z / cartesian.x);
 
 		return result;
 	}

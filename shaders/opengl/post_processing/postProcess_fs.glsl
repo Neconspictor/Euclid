@@ -49,15 +49,17 @@ void main() {
 
     vec4 color = texture(sourceTexture, fs_in.texCoord).rgba;
     
-    // Bloom
-    const float strength = 1.0;
-    vec4 bloomHalfthSample = texture(bloomHalfth, fs_in.texCoord) * strength;
-    vec4 bloomQuarterSample = texture(bloomQuarter, fs_in.texCoord) * strength * 0.75;
-    vec4 bloomEigthSample = texture(bloomEigth, fs_in.texCoord) * strength * 0.5;
-    vec4 bloomSixteenthSample = texture(bloomSixteenth, fs_in.texCoord) * strength * 0.25;
-    vec4 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
     
-    color += bloom;
+    
+    // Bloom
+    const float strength = 0.5;
+    vec3 bloomHalfthSample = clamp(texture(bloomHalfth, fs_in.texCoord).rgb, 0.0, 100.0) * strength;
+    vec3 bloomQuarterSample = clamp(texture(bloomQuarter, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.75;
+    vec3 bloomEigthSample = clamp(texture(bloomEigth, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.5;
+    vec3 bloomSixteenthSample = clamp(texture(bloomSixteenth, fs_in.texCoord).rgb, 0.0, 100.0) * strength * 0.25;
+    vec3 bloom = (bloomHalfthSample + bloomQuarterSample + bloomEigthSample + bloomSixteenthSample);
+    
+    color.rgb += bloom;
     
     // Ambient Occlusion
     //color.rgb *= texture(aoMap, fs_in.texCoord).r;
@@ -123,9 +125,9 @@ void main() {
             color = mix(color, diffuse_color, 0.5);
         }
         
-        if (oceanHeight == oceanPosition.y) {
-            color = color + vec4(1.0, 0.0, 0.0, 0.0);
-        }
+       // if (oceanHeight == oceanPosition.y) {
+       //     color = color + vec4(1.0, 0.0, 0.0, 0.0);
+       // }
     
     }
     

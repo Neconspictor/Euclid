@@ -248,18 +248,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 	
 	
-	if (true) {
-		stencilTest->enableStencilTest(true);
-		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
-		mPingPong->bind();
-		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
-
-		Texture* color = mOutRT->getColorAttachmentTexture(0);
-		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
-
-		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, color, depth);
-	}
+	
 	
 
 	mOutRT->bind();
@@ -276,31 +265,54 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	if (false) {
 		// After sky we render transparent objects
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		mOutRT->bind();
 		mPbrTechnique->useForward();
 		auto* forward = mPbrTechnique->getForward();
 		forward->configurePass(constants);
 		forward->updateLight(sun, camera);
 		StaticMeshDrawer::draw(queue.getTransparentCommands());
+		stencilTest->enableStencilTest(false);
+	}
+
+	if (true) {
+		stencilTest->enableStencilTest(true);
+		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+		mPingPong->bind();
+		mPingPong->enableDrawToColorAttachment(1, true);
+		mPingPong->clear(RenderComponent::Color | RenderComponent::Stencil); // | RenderComponent::Depth
+		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
+
+		Texture* color = mOutRT->getColorAttachmentTexture(0);
+		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
+		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
+
+		
+		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, color, luminance, depth);
+		mPingPong->enableDrawToColorAttachment(1, false);
+		stencilTest->enableStencilTest(false);
 	}
 
 
 	if (true) {
 		//blit ocean into
 		mOutRT->bind();
-		//mOutRT->enableDrawToColorAttachment(1, false);
+		mOutRT->enableDrawToColorAttachment(0, true);
+		mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, false);
 		//mOutRT->enableDrawToColorAttachment(3, false);
 		//mOutRT->clear(RenderComponent::Color);
 		//mPingPong->blit(mOutRT.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth | RenderComponent::Stencil);
 		auto state = RenderState();
-		state.doDepthTest = true;
-		state.doDepthWrite = true;
-		state.doBlend = true;
-		state.blendDesc.operation = BlendOperation::ADD;
-		state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
-		state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
+		//state.doDepthTest = true;
+		//state.doDepthWrite = true;
+		//state.doBlend = false;
+		//state.blendDesc.operation = BlendOperation::ADD;
+		//state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
+		//state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
 		lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0),
+			mPingPong->getColorAttachmentTexture(1),
 			mPingPong->getDepthAttachment()->texture.get(),
 			mPingPongStencilView.get(),
 			state);
@@ -451,6 +463,21 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mOutSwitcherTAA.setTarget(mOutRT.get(), true);
 
 	mPingPong = mRenderBackend->createRenderTarget();
+
+
+	RenderAttachment luminance;
+	luminance.colorAttachIndex = 1;
+	luminance.target = TextureTarget::TEXTURE2D;
+	luminance.type = RenderAttachmentType::COLOR;
+	// TODO: use one color channel!
+	luminance.texture = std::make_shared<Texture2D>(width, height, TextureDesc::createRenderTargetRGBAHDR(), nullptr);
+
+
+
+	mPingPong->addColorAttachment(std::move(luminance));
+	mPingPong->finalizeAttachments();
+	mPingPong->enableDrawToColorAttachment(1, false);
+
 	auto* pingPongDepthStencilTex = mPingPong->getDepthAttachment()->texture.get();
 	auto depthStencilDesc = pingPongDepthStencilTex->getTextureData();
 	depthStencilDesc.depthStencilTextureMode = DepthStencilTexMode::STENCIL;

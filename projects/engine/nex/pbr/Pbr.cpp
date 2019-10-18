@@ -193,9 +193,11 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 {
 	auto* active = mPbr->getDeferred();
 	auto* dirLight = active->getDirLight();
-	glm::vec3 lightDirection = normalize(dirLight->directionWorld);
+	glm::vec3 lightDirection = dirLight->directionWorld;
 
-	static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(-lightDirection);
+	static SphericalCoordinate sphericalCoordinate = SphericalCoordinate::convert(lightDirection);
+	glm::vec3 dirTest = SphericalCoordinate::cartesian(sphericalCoordinate);
+	dirTest = normalize(dirTest);
 
 	float temp[2] = { sphericalCoordinate.polar, sphericalCoordinate.azimuth };
 
@@ -203,8 +205,8 @@ void nex::Pbr_ConfigurationView::drawLightSphericalDirection()
 	{
 		sphericalCoordinate.polar = temp[0];
 		sphericalCoordinate.azimuth = temp[1];
-		lightDirection = -SphericalCoordinate::cartesian(sphericalCoordinate);
-		lightDirection = clamp(lightDirection, glm::vec3(-1), glm::vec3(1));
+		lightDirection = SphericalCoordinate::cartesian(sphericalCoordinate);
+		lightDirection = normalize(lightDirection);
 		dirLight->directionWorld = lightDirection;
 		dirLight->_pad[0] = 1.0f;
 	}

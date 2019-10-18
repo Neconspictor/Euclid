@@ -938,7 +938,7 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 nex::OceanGPU::~OceanGPU() = default;
 
 void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, 
-	nex::Texture* color, nex::Texture* depth)
+	nex::Texture* color, nex::Texture* luminance, nex::Texture* depth)
 {
 	mSimpleShadedPass->bind();
 	
@@ -951,6 +951,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, con
 		mHeightComputePass->getDx(),
 		mHeightComputePass->getDz(),
 		color,
+		luminance, 
 		depth,
 		mWindDirection,
 		mAnimationTime);
@@ -1602,7 +1603,8 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	dXUniform = { mShader->getUniformLocation("dX"), UniformType::TEXTURE2D, 3 };
 	dZUniform = { mShader->getUniformLocation("dZ"), UniformType::TEXTURE2D, 4 };
 	colorUniform = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 5);
-	depthUniform = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 6);
+	luminanceUniform = mShader->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 6);
+	depthUniform = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 7);
 
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
@@ -1614,7 +1616,9 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
 	const glm::mat4& trafo, const glm::vec3& lightDir,
 	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
-	Texture* color, Texture* depth,
+	Texture* color, 
+	Texture* luminance,
+	Texture* depth,
 	const glm::vec2& windDir,
 	float time)
 {
@@ -1638,6 +1642,7 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 	mShader->setTexture(dZ, &sampler, dZUniform.bindingSlot);
 
 	mShader->setTexture(color, &sampler, colorUniform.bindingSlot);
+	mShader->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
 }
 

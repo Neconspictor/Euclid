@@ -423,6 +423,7 @@ void calcLighting(in float ao,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
+return;
     // view direction
 	vec3 viewEye = normalize(-positionEye);
     

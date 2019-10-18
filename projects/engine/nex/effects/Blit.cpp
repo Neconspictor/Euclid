@@ -20,12 +20,17 @@ namespace nex {
 				defines);
 
 			mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
-			mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 1);
-			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 2);
+			mLuminanceMap = mShader->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 1);
+			mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
+			mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
 		}
 
 		void setColor(Texture* texture) {
 			mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
+		}
+
+		void setLuminance(Texture* texture) {
+			mShader->setTexture(texture, Sampler::getPoint(), mLuminanceMap.bindingSlot);
 		}
 
 		void setDepth(Texture* texture) {
@@ -39,6 +44,7 @@ namespace nex {
 
 	private:
 		UniformTex mColorMap;
+		UniformTex mLuminanceMap;
 		UniformTex mDepthMap;
 		UniformTex mStencilMap;
 		bool mUseStencilTest;
@@ -52,10 +58,11 @@ namespace nex {
 
 	Blit::~Blit() = default;
 
-	void Blit::blitStencil(Texture * color, Texture* depth, Texture * stencil, const RenderState& state)
+	void Blit::blitStencil(Texture * color, Texture* luminance, Texture* depth, Texture * stencil, const RenderState& state)
 	{
 		mBlitStencilPass->bind();
 		mBlitStencilPass->setColor(color);
+		mBlitStencilPass->setLuminance(luminance);
 		mBlitPass->setDepth(depth);
 		mBlitStencilPass->setStencil(stencil);
 		

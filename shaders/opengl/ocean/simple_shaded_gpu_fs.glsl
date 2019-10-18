@@ -12,7 +12,7 @@ in VS_OUT {
 //in vec2 texCoord_tcs_in;
 
 layout(location = 0)out vec4 fragColor;
-//layout(location = 1)out vec4 luminance;
+layout(location = 1)out vec4 luminance;
 //layout(location = 2)out vec2 motion;
 //layout(location = 3)out float depth;
 
@@ -20,7 +20,8 @@ uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
 
 layout(binding = 5) uniform sampler2D colorMap;
-layout(binding = 6) uniform sampler2D depthMap;
+layout(binding = 6) uniform sampler2D luminanceMap;
+layout(binding = 7) uniform sampler2D depthMap;
 //layout(binding = 7) uniform sampler2D reflectionMap;
 
 void main() {
@@ -75,9 +76,11 @@ void main() {
     uv = clamp(uv, 0.001, 0.999);
     vec4 refractionColor = texture(colorMap, uv);
     
-    fragColor = fragColor * 0.5 + 0.5 * refractionColor;
+    fragColor = mix(fragColor, refractionColor, 0.5);
+    luminance = texture(luminanceMap, uv);
     
-    fragColor.a = 1.0;
+    
+    //fragColor.a = 1.0;
   
     //float depth = texture2DProj(depthMap, vs_out.positionCS).r;
   

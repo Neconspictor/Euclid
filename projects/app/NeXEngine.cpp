@@ -486,7 +486,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 
 	transparentVob3->setPosition(glm::vec3(-4.0f, 2.0f, 0.0f));
 
-	/* //probes
+	 //probes
 	const int rows = 1;
 	const int columns = 1;
 	const int depths = 2;
@@ -510,7 +510,7 @@ void NeXEngine::createScene(nex::RenderEngine::CommandQueue* commandQueue)
 				mScene.addActiveVobUnsafe(probeVob);
 			}
 		}
-	}*/
+	}
 
 	const glm::mat4 unit(1.0f);
 	//auto translate = unit;
@@ -548,7 +548,8 @@ void NeXEngine::initLights()
 {
 	mSun.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	mSun.power = 3.0f;
-	mSun.directionWorld = { -0.5,-1,-0.5 };
+	mSun.directionWorld = SphericalCoordinate::cartesian({ 2.716f,0.515f, 1.0f});
+	//mSun.directionWorld = normalize(glm::vec3( -0.5, -1,-0.5 ));
 }
 
 void NeXEngine::initPbr()

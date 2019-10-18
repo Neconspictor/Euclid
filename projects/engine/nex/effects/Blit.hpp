@@ -9,7 +9,7 @@ namespace nex
 	public:
 		Blit();
 		~Blit();
-		void blitStencil(Texture* color, Texture* deph, Texture* stencil, const RenderState& state);
+		void blitStencil(Texture* color, Texture* luminance, Texture* deph, Texture* stencil, const RenderState& state);
 		void blit(Texture* color, Texture* deph, const RenderState& state);
 
 	private:

@@ -153,7 +153,7 @@ void main() {
      */
     float rayleigh_factor = phase(alpha, -0.01)*rayleigh_brightness;
     float mie_factor = phase(alpha, mie_distribution)*mie_brightness;
-    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.9995))*spot_brightness * 2;
+    float spot = smoothstep(0.0, 10.0, phase(alpha, 0.9995))*spot_brightness;
     
     // atmospheric depth
     vec3 eye_position = vec3(0.0, surface_height, 0.0);

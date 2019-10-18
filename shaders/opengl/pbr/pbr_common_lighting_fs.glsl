@@ -207,7 +207,7 @@ void calcLighting(in float ao,
              out vec3 colorOut,
              out vec3 luminanceOut) 
 {
-
+    return;
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 
@@ -397,7 +397,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     vec3 prefilteredColor = vec3(0.0);
     
     #ifdef USE_CONE_TRACING
-        vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+        vec4 coneTracedReflection = ConeTraceReflection(positionWorld, normalWorld, viewWorld, 1.0 - roughness);
         prefilteredColor = coneTracedReflection.a * coneTracedReflection.rgb;
     #else 
         prefilteredColor = textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb;
@@ -444,7 +444,7 @@ in float metallic, in vec3 albedo, in vec3 reflectionDirWorld, in float ao, in v
     vec4 prefilteredColor;
     
     #ifdef USE_CONE_TRACING
-        prefilteredColor = ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
+        prefilteredColor = roughness * ConeTraceReflection(positionWorld, normalWorld, viewWorld, roughness);
     #else 
         prefilteredColor = vec4(textureLod(prefilteredMaps, vec4(reflectionDirWorld, 0), roughness * MAX_REFLECTION_LOD).rgb, 1.0);
     #endif
@@ -461,7 +461,7 @@ vec3 pbrAmbientLight2(in  vec3 normalWorld, in float roughness, in vec3 F0, in f
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
     
-    vec3 diffuse      =  irradiance * albedo;
+    vec3 diffuse      =  2.0 * irradiance * albedo  + 0.001 * albedo;
     
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(normalWorld, viewWorld), 0.0), roughness)).rg;
     vec3 ambientLightSpecular = ambientReflection * (F * brdf.x + brdf.y);

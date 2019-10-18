@@ -316,7 +316,7 @@ namespace nex
 		/**
 		 * Draws the ocean.
 		 */
-		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, Texture* color, Texture* depth);
+		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, Texture* color, Texture* luminance, Texture* depth);
 
 		/**
 		 * Simulates ocean state at time t.
@@ -528,7 +528,9 @@ namespace nex
 			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
 				const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
 				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
-				Texture* color, Texture* depth,
+				Texture* color, 
+				Texture* luminance,
+				Texture* depth,
 				const glm::vec2& windDir,
 				float time);
 
@@ -545,6 +547,7 @@ namespace nex
 			UniformTex dXUniform;
 			UniformTex dZUniform;
 			UniformTex colorUniform;
+			UniformTex luminanceUniform;
 			UniformTex depthUniform;
 
 			Sampler sampler;
