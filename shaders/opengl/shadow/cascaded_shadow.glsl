@@ -8,15 +8,15 @@
 #include "shadow/cascade_common.glsl"
 
 #ifndef CSM_SAMPLE_COUNT_X
-#define CSM_SAMPLE_COUNT_X 0
+#define CSM_SAMPLE_COUNT_X 2
 #endif
 
 #ifndef CSM_SAMPLE_COUNT_Y
-#define CSM_SAMPLE_COUNT_Y 0
+#define CSM_SAMPLE_COUNT_Y 2
 #endif
 
 #ifndef CSM_USE_LERP_FILTER
-#define CSM_USE_LERP_FILTER 0
+#define CSM_USE_LERP_FILTER 1
 #endif
 
 #ifndef CSM_ENABLED

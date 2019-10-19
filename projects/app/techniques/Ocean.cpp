@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.inl>
 #include "nex/texture/Image.hpp"
 #include "nex/texture/TextureManager.hpp"
+#include <nex/shadow/CascadedShadow.hpp>
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
@@ -924,7 +925,7 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
-	mSimpleShadedPass(std::make_unique<SimpleShadedPass>())
+	mSimpleShadedPass(std::make_unique<WaterShading>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -937,14 +938,20 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 
 nex::OceanGPU::~OceanGPU() = default;
 
-void nex::OceanGPU::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, 
-	nex::Texture* color, nex::Texture* luminance, nex::Texture* depth)
+void nex::OceanGPU::draw(const glm::mat4& projection, 
+	const glm::mat4& view, 
+	const glm::vec3& lightDir, 
+	nex::CascadedShadow* cascadedShadow,
+	nex::Texture* color, 
+	nex::Texture* luminance, 
+	nex::Texture* depth)
 {
 	mSimpleShadedPass->bind();
 	
 	auto model = getModelMatrix();
 
 	mSimpleShadedPass->setUniforms(projection, view, model, lightDir, 
+		cascadedShadow,
 		mHeightComputePass->getHeight(),
 		mHeightComputePass->getSlopeX(),
 		mHeightComputePass->getSlopeZ(),
@@ -1586,7 +1593,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 	dispatch(mN, mN, 1);
 }
 
-nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean/simple_shaded_gpu_vs.glsl", "ocean/simple_shaded_gpu_fs.glsl"))
+nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_vs.glsl", "ocean/water_fs.glsl"))
 {
 	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 	modelViewUniform = { mShader->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
@@ -1606,6 +1613,8 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	luminanceUniform = mShader->createTextureUniform("luminanceMap", UniformType::TEXTURE2D, 6);
 	depthUniform = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 7);
 
+	cascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
+
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
 	sampler.setWrapR(UVTechnique::Repeat);
@@ -1613,8 +1622,9 @@ nex::OceanGPU::SimpleShadedPass::SimpleShadedPass() : Pass(Shader::create("ocean
 	sampler.setWrapT(UVTechnique::Repeat);
 }
 
-void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
+void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
 	const glm::mat4& trafo, const glm::vec3& lightDir,
+	nex::CascadedShadow* cascadedShadow,
 	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
 	Texture* color, 
 	Texture* luminance,
@@ -1644,6 +1654,8 @@ void nex::OceanGPU::SimpleShadedPass::setUniforms(const glm::mat4& projection, c
 	mShader->setTexture(color, &sampler, colorUniform.bindingSlot);
 	mShader->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
+	mShader->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
+	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
 }
 
 

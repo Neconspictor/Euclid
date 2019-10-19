@@ -104,7 +104,7 @@ void main() {
         //vec4 oceanReferenceWS = model_Ocean * vec4(oceanUV, oceanHeight, 1.0);
         
         // Is fragment below water?
-        if (oceanHeight > (oceanPosition.y - 5.0)) 
+        if (oceanHeight > (oceanPosition.y - 5.0) && false) 
         {
             vec2 texSize = textureSize(sourceTexture, 0);
             vec4 avgColor = color;

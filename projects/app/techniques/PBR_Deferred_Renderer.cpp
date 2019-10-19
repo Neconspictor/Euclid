@@ -289,7 +289,11 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
 
 		
-		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, color, luminance, depth);
+		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, 
+			mCascadedShadow,
+			color, 
+			luminance, 
+			depth);
 		mPingPong->enableDrawToColorAttachment(1, false);
 		stencilTest->enableStencilTest(false);
 	}

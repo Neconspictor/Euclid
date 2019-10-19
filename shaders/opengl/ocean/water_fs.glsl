@@ -1,5 +1,13 @@
 #version 450
 
+#ifndef CSM_CASCADE_BUFFER_BINDING_POINT
+#define CSM_CASCADE_BUFFER_BINDING_POINT 0
+#endif
+
+#ifndef CSM_CASCADE_DEPTH_MAP_BINDING_POINT
+#define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
+#endif
+
 
 in VS_OUT {
     vec3 normal;
@@ -24,6 +32,13 @@ layout(binding = 6) uniform sampler2D luminanceMap;
 layout(binding = 7) uniform sampler2D depthMap;
 //layout(binding = 7) uniform sampler2D reflectionMap;
 
+#include "shadow/cascaded_shadow.glsl"
+
+
+float getLuma(in vec3 rgb) {
+    return 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b; 
+}
+
 void main() {
 
    vec3 normal = normalize(vs_out.normal);
@@ -33,7 +48,7 @@ void main() {
 
   float angle = max(dot(normal, lightDir), 0.0);
   
-  
+  float fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
   
   
   
@@ -60,7 +75,7 @@ void main() {
 			vec4(0.0, 0.0, 0.0, 0.0));
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
-   
+    
  
   
     vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
@@ -77,8 +92,20 @@ void main() {
     vec4 refractionColor = texture(colorMap, uv);
     
     fragColor = mix(fragColor, refractionColor, 0.5);
+    //fragColor.rgb *= fragmentLitProportion;
     luminance = texture(luminanceMap, uv);
     
+    //float len = max(max(fragColor.r, fragColor.g), fragColor.b);
+    //len = 10000.0 * length(texture(luminanceMap, vs_out.positionCS.xy / vs_out.positionCS.w).rgb);
+    //float lit = clamp(len, 0.0, 1.0);
+    //lit = fragmentLitProportion + 0.01;
+    
+    
+    vec3 nonRefractedColor = texture(colorMap, vs_out.positionCS.xy / vs_out.positionCS.w).rgb;
+    float litLuma = clamp(getLuma(refractionColor.rgb), 0.0, 1.0);
+    
+    float lit = max(litLuma, fragmentLitProportion);
+    fragColor.rgb *= litLuma;
     
     //fragColor.a = 1.0;
   

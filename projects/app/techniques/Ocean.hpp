@@ -10,6 +10,7 @@ namespace nex
 	class Camera;
 	class Texture;
 	class Texture2D;
+	class CascadedShadow;
 
 	class Iterator2D
 	{
@@ -316,7 +317,13 @@ namespace nex
 		/**
 		 * Draws the ocean.
 		 */
-		void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& lightDir, Texture* color, Texture* luminance, Texture* depth);
+		void draw(const glm::mat4& projection, 
+			const glm::mat4& view, 
+			const glm::vec3& lightDir, 
+			CascadedShadow* cascadedShadow,
+			Texture* color, 
+			Texture* luminance, 
+			Texture* depth);
 
 		/**
 		 * Simulates ocean state at time t.
@@ -520,13 +527,15 @@ namespace nex
 			UniformTex mdZUniform;
 		};
 
-		class SimpleShadedPass : public Pass
+		class WaterShading : public Pass
 		{
 		public:
-			SimpleShadedPass();
+			WaterShading();
 
 			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
-				const glm::mat4& trafo, const glm::vec3& lightDir, Texture2D* height,
+				const glm::mat4& trafo, const glm::vec3& lightDir, 
+				nex::CascadedShadow* cascadedShadow,
+				Texture2D* height,
 				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
 				Texture* color, 
 				Texture* luminance,
@@ -549,6 +558,7 @@ namespace nex
 			UniformTex colorUniform;
 			UniformTex luminanceUniform;
 			UniformTex depthUniform;
+			UniformTex cascadedDepthMap;
 
 			Sampler sampler;
 		};
@@ -563,7 +573,7 @@ namespace nex
 		std::vector<Vertex> mVertices;
 		std::vector<unsigned> mIndices;
 		std::unique_ptr<Mesh> mMesh;
-		std::unique_ptr<SimpleShadedPass> mSimpleShadedPass;
+		std::unique_ptr<WaterShading> mSimpleShadedPass;
 	};
 
 
