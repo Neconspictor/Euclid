@@ -587,6 +587,15 @@ nex::Texture1DGL::Texture1DGL(GLuint texture, const TextureDesc& textureData, un
 	updateMipMapCount();
 }
 
+void nex::Texture1DGL::resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount)
+{
+	mWidth = width;
+	mTextureData.generateMipMaps = autoMipMapCount;
+
+	resizeTexImage1D(mTextureID, mipmapCount, mWidth, (GLenum)translate(mTextureData.internalFormat), autoMipMapCount);
+	updateMipMapCount();
+}
+
 nex::Texture1D::Texture1D(std::unique_ptr<Impl> impl) : Texture(std::move(impl))
 {
 }
