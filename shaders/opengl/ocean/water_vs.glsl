@@ -39,43 +39,52 @@ vec4 clipToScreenPos(in vec4 pos)
 }
 
 
-void main() { 
-    
-   vec2 offset = vec2(0.0);//animationTime * vec2(1, 1);
-    
-   const float scale = 1.0; 
-    
-   vec2 uv = texCoords + offset; 
-    
-   vec2 mSlopeX =  texture(slopeX, uv).xy * scale;
-   vec2 mSlopeZ =  texture(slopeZ, uv).xy * scale;
+vec4 getDisplacedPosition(in vec2 uv, float scale) {
    vec2 mDX =  texture(dX, uv).xy * scale;
    vec2 mDZ =  texture(dZ, uv).xy * scale;
    float mLambda = -1.0;
    
    
-   vec4 mPosition = vec4(position.x + mLambda * mDX.x,
+   vec4 result =  vec4(position.x + mLambda * mDX.x,
                          texture(height, uv).x * scale,
                          position.z + mLambda * mDZ.x,
                          1.0);
                          
-    const float tileSize = 1000;
+    result.x = position.x;
+    result.z = position.z;
+
+    return result;
+                         
+}
+
+
+void main() { 
+    
+    const float scale = 1.0; 
+    vec2 offset = vec2(0.0);//animationTime * vec2(1, 1);
+    vec2 uv = texCoords + offset; 
+    
+    vec4 mPosition = getDisplacedPosition(uv, scale);
+    vec2 mSlopeX =  texture(slopeX, uv).xy * scale;
+    vec2 mSlopeZ =  texture(slopeZ, uv).xy * scale;
+                         
+    const float tileSize = 128;
     
     mPosition += vec4(tileSize * (gl_InstanceID % 8),0, tileSize * (gl_InstanceID / 8), 0);                     
-   
-   vec3 mNormal = normalize(vec3(-mSlopeX.x, 1.0f, -mSlopeZ.x));
+
+    vec3 mNormal = normalize(vec3(-mSlopeX.x, 1.0f, -mSlopeZ.x));
     
     
-  //vs_out.normal = normalize(normalMatrix * normal);
-  vs_out.normal = normalize(normalMatrix * mNormal);
-  vs_out.positionView = vec3(modelViewMatrix * mPosition);
-  vs_out.positionWorld = vec3(modelMatrix * mPosition);
-  vs_out.texCoords = texCoords;
-  
-  vec4 positionCS = transform * mPosition;
-  
-  vs_out.positionCS = clipToScreenPos(positionCS);
-  
-  
-  gl_Position = positionCS;
+    //vs_out.normal = normalize(normalMatrix * normal);
+    vs_out.normal = normalize(normalMatrix * mNormal);
+    vs_out.positionView = vec3(modelViewMatrix * mPosition);
+    vs_out.positionWorld = vec3(modelMatrix * mPosition);
+    vs_out.texCoords = texCoords;
+
+    vec4 positionCS = transform * mPosition;
+
+    vs_out.positionCS = clipToScreenPos(positionCS);
+
+
+    gl_Position = positionCS;
 }

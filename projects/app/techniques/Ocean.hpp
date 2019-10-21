@@ -76,6 +76,9 @@ namespace nex
 		float getWaterHeight() const;
 		void setWaterHeight(float height);
 
+		const glm::vec3& getPosition() const;
+		void setPosition(const glm::vec3& position);
+
 	protected:
 
 		/**
@@ -148,6 +151,8 @@ namespace nex
 		float mAnimationTime;
 
 		float mWaterHeight;
+
+		glm::vec3 mPosition;
 
 
 		static constexpr float GRAVITY = 9.81f;

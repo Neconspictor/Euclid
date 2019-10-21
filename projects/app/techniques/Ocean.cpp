@@ -72,7 +72,8 @@ nex::Ocean::Ocean(unsigned N,
 	mWindSpeed(windSpeed),
 	mPeriodTime(periodTime),
 	mWireframe(false),
-	mWaterHeight(waterHeight)
+	mWaterHeight(waterHeight),
+	mPosition(glm::vec3(0.0f))
 {
 	if (N <= 0) throw std::invalid_argument("N has to be greater than 0");
 	if (!nex::isPow2(N)) throw std::invalid_argument("N has to be a power of 2");
@@ -146,7 +147,9 @@ float nex::Ocean::getTileSize() const
 glm::mat4 nex::Ocean::getModelMatrix() const
 {
 	glm::mat4 model;
-	model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
+	//model = translate(model, glm::vec3(-1, 0, -1) * mDimension * 4.0f);
+	
+	model = translate(model, mPosition);
 	model = translate(model, glm::vec3(0, mWaterHeight, 0));
 	model = scale(model, glm::vec3(1 / (float)mWaveLength) * mDimension);
 	return 	model;
@@ -160,6 +163,16 @@ float nex::Ocean::getWaterHeight() const
 void nex::Ocean::setWaterHeight(float height)
 {
 	mWaterHeight = height;
+}
+
+const glm::vec3& nex::Ocean::getPosition() const
+{
+	return mPosition;
+}
+
+void nex::Ocean::setPosition(const glm::vec3& position)
+{
+	mPosition = position;
 }
 
 

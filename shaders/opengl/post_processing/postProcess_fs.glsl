@@ -44,6 +44,54 @@ vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
 
 
 
+vec4 getWaterDisplacedPosition(in vec3 position, in vec2 uv, float scale) {
+   vec2 mDX =  texture(oceanDX, uv).xy * scale;
+   vec2 mDZ =  texture(oceanDZ, uv).xy * scale;
+   float mLambda = -1.0;
+   
+   
+   return vec4(position.x + mLambda * mDX.x,
+                         texture(oceanHeightMap, uv).x * scale,
+                         position.z + mLambda * mDZ.x,
+                         1.0);
+}
+
+vec2 getWaterUV(in vec3 oceanPos) {
+    
+    const float lambda = -1.0;
+    const float pointCount = 129;
+    const float waveLength = 128;
+    const float N = 128;
+    vec2 mDX =  texture(oceanDX, oceanPos.xz).xy;
+    vec2 mDZ =  texture(oceanDZ, oceanPos.xz).xy;
+    
+    
+    
+    vec2 oceanUV = vec2(oceanPos.x + lambda * mDX.x, oceanPos.z + lambda * mDZ.x);
+    oceanUV = oceanPos.xz;
+    
+    
+    vec2 uv;
+    
+    //(x - mPointCount / 2.0f) * mWaveLength / (float)mN,
+    uv.x = oceanUV.x * N / waveLength;
+    uv.x += pointCount / 2.0;
+    
+    //getZValue((z - mPointCount / 2.0f) * mWaveLength / (float)mN)
+    
+    uv.y = -oceanUV.y;
+    uv.y = uv.y * N / waveLength;
+    
+    uv.y += pointCount / 2.0;
+    
+    uv.x = float(uint(uv.x) % uint(N)) / pointCount;
+    uv.y = float(uint(uv.y) % uint(N)) / pointCount;
+    
+    return uv; 
+}
+
+
+
 
 void main() {
 
@@ -82,29 +130,41 @@ void main() {
     
     // check if under water
     {
-        vec3 worldPosition = computeWorldPositionFromDepth(fs_in.texCoord, texture(depthMap, fs_in.texCoord).r);
+        vec3 worldPosition = computeWorldPositionFromDepth(fs_in.texCoord, texture(depthMap, fs_in.texCoord).r);        
         vec4 oceanPosition = inverseModelMatrix_Ocean * vec4(worldPosition, 1.0);
         
         
+        const vec2 tileFactor = oceanPosition.xy / uint(8);
+        vec2 oceanUV = oceanPosition.xz - tileFactor * 8;
+        //oceanUV /= 8; // normalize to range [0,1]
+        //const float mLambda = -1.0;
+        
+        //oceanPosition.x -=  texture(oceanDX, oceanUV).x;
+        //oceanPosition.z -= texture(oceanDZ, oceanUV).x;
         
         
-        const vec2 tileFactor = oceanPosition.xy / uint(oceanTileSize);
-        vec2 oceanUV = oceanPosition.xz - tileFactor * oceanTileSize;
-        oceanUV /= oceanTileSize; // normalize to range [0,1]
-        const float mLambda = -1.0;
+        vec3 xyz = oceanPosition.xyz;
         
-        oceanPosition.x += mLambda * texture(oceanDX, oceanUV).x;
-        oceanPosition.z += mLambda * texture(oceanDZ, oceanUV).x;
+        //xyz.x -= texture(oceanDX, oceanUV).x;
+        //xyz.z -= texture(oceanDZ, oceanUV).x;
         
-        oceanUV = oceanPosition.xz - tileFactor * oceanTileSize;
-        oceanUV /= oceanTileSize; 
+        //vec3 factor = xyz / uint(8);
+        //xyz = xyz - factor * uint(8);
         
-        float oceanHeight = texture(oceanHeightMap, oceanUV).r;
+        
+        
+        vec2 waterUV = getWaterUV(xyz);
+        //waterUV /= oceanTileSize;
+        waterUV = oceanUV;
+        waterUV.y *= -1.0;
+        //waterUV.y *= -1.0;
+        
+        float oceanHeight = texture(oceanHeightMap, waterUV).r;
         
         //vec4 oceanReferenceWS = model_Ocean * vec4(oceanUV, oceanHeight, 1.0);
         
         // Is fragment below water?
-        if (oceanHeight > (oceanPosition.y - 5.0) && false) 
+        if ((oceanHeight)> (oceanPosition.y)) 
         {
             vec2 texSize = textureSize(sourceTexture, 0);
             vec4 avgColor = color;
@@ -120,7 +180,7 @@ void main() {
             color /= 64.0;
         
         
-            vec4 diffuse_color  = vec4(0.0, 0.65, 0.75, color.a);
+            vec4 diffuse_color  = vec4(0.0, 0.2, 0.4, color.a);
             diffuse_color.rgb = color.rgb * diffuse_color.rgb + 0.1 * diffuse_color.rgb;
             color = mix(color, diffuse_color, 0.5);
         }

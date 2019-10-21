@@ -76,7 +76,7 @@ void main() {
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
     
- 
+    fragColor = vec4(1,1,1,1);
   
     vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
     
@@ -91,7 +91,10 @@ void main() {
     uv = clamp(uv, 0.001, 0.999);
     vec4 refractionColor = texture(colorMap, uv);
     
-    fragColor = mix(fragColor, refractionColor, 0.5);
+    fragColor = mix(fragColor, refractionColor, 1.0);
+    fragColor = mix(fragColor, vec4(0.0, 0.2, 0.4, 1.0), 0.5);
+    
+
     //fragColor.rgb *= fragmentLitProportion;
     luminance = texture(luminanceMap, uv);
     
@@ -106,6 +109,7 @@ void main() {
     
     float lit = max(litLuma, fragmentLitProportion);
     fragColor.rgb *= litLuma;
+    fragColor = vec4(1,0,0,1);
     
     //fragColor.a = 1.0;
   

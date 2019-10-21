@@ -64,7 +64,7 @@ public:
 	}
 
 	void setOceanHeightMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getPoint(), oceanHeightMap.bindingSlot);
+		mShader->setTexture(texture, Sampler::getLinear(), oceanHeightMap.bindingSlot);
 	}
 
 	UniformTex sourceTextureUniform;

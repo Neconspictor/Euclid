@@ -66,13 +66,13 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mInput(input),
 	mCascadedShadow(cascadedShadow),
 	mRenderBackend(backend),
-	mOcean(32, //N
-		1000, // maxWaveLength
+	mOcean(128, //N
+		128, // maxWaveLength
 		5.0f, //dimension
 		3.0f, // water height
 		0.4, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
-		12.0, //windSpeed
+		32.0, //windSpeed
 		10000.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
@@ -82,6 +82,8 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mActiveIrradianceRT(0),
 	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)
 {
+
+	//mOcean.setPosition(glm::vec3(32.0f, 0.0, 32.0f));
 
 	//*28.0 * 0.277778
 	assert(mPbrTechnique != nullptr);
