@@ -100,6 +100,16 @@ namespace nex
 		std::unique_ptr<Impl> mImpl;
 	};
 
+
+	class Texture1D : public Texture 
+	{
+	public:
+		Texture1D(std::unique_ptr<Impl> impl);
+		Texture1D(unsigned width, const TextureDesc& textureData, const void* data);
+		virtual ~Texture1D() = default;
+		void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
+	};
+
 	class Texture2D : public Texture
 	{
 	public:

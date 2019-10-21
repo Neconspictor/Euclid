@@ -204,6 +204,13 @@ namespace nex
 
 		void release();
 
+		static void resizeTexImage1D(
+			GLuint textureID,
+			GLint levels,
+			unsigned width,
+			GLint  internalFormat,
+			bool generateMipMaps);
+
 		static void resizeTexImage2D(
 			GLuint textureID,
 			GLint levels,
@@ -264,6 +271,17 @@ namespace nex
 		unsigned mDepth;
 	};
 
+	class Texture1DGL : public Texture::Impl
+	{
+	public:
+		explicit Texture1DGL(GLuint width, const TextureDesc& textureData, const void* data);
+		Texture1DGL(GLuint texture, const TextureDesc& textureData, unsigned width = 0);
+
+		virtual void resize(unsigned width, unsigned mipmapCount, bool autoMipMapCount);
+	};
+
+
+
 	class Texture2DGL : public Texture::Impl
 	{
 	public:
@@ -275,7 +293,6 @@ namespace nex
 	protected:
 		friend Texture2D;
 		unsigned mSamples;
-		TextureDesc mData;
 	};
 
 	class Texture2DMultisampleGL : public Texture2DGL
@@ -304,7 +321,6 @@ namespace nex
 
 	protected:
 		friend Texture2DArray;
-		TextureDesc mData;
 	};
 
 	class Texture3DGL : public Texture::Impl
@@ -317,7 +333,6 @@ namespace nex
 
 	protected:
 		friend Texture3D;
-		TextureDesc mData;
 	};
 
 	class CubeMapGL : public Texture::Impl
@@ -364,7 +379,6 @@ namespace nex
 
 	protected:
 		friend Texture2DArray;
-		TextureDesc mData;
 		unsigned mLayerFaces;
 	};
 
