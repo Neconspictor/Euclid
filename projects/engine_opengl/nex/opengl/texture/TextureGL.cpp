@@ -1113,6 +1113,7 @@ nex::PixelDataTypeGL nex::translate(nex::PixelDataType dataType)
 	{
 		PixelDataTypeGL::FLOAT,
 		PixelDataTypeGL::FLOAT_HALF,
+		PixelDataTypeGL::INT,
 		PixelDataTypeGL::UBYTE,
 		PixelDataTypeGL::UINT,
 		PixelDataTypeGL::SHORT,

@@ -320,10 +320,10 @@ namespace nex
 		virtual ~OceanGPU();
 
 		/**
-		 * @param waterDepth : a 1D texture in format R32UI and colorspace RED_INTEGER; 
+		 * @param waterDepth : a 1D texture in format R32I and colorspace RED_INTEGER; 
 		 *                     has to have the same width as depth and stencil texture
 		 */
-		void computeWaterDepths(Texture* waterDepth, Texture* depth, Texture* stencil);
+		void computeWaterDepths(Texture* waterDepth, Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix);
 
 		/**
 		 * Draws the ocean.
@@ -370,6 +370,23 @@ namespace nex
 
 		private:
 			UniformTex mWaterDepth;
+		};
+
+		class WaterDepthPass : public ComputePass
+		{
+		public:
+			WaterDepthPass();
+
+			void setDepth(Texture* depth);
+			void setStencil(Texture* stencil);
+			void setWaterDepthOut(Texture* waterDepth);
+			void setInverseViewProjMatrix(const glm::mat4& mat);
+
+		private:
+			UniformTex mWaterDepth;
+			UniformTex mDepth;
+			UniformTex mStencil;
+			Uniform mInverseViewProjMatrix;
 		};
 
 
@@ -599,7 +616,7 @@ namespace nex
 		std::unique_ptr<Mesh> mMesh;
 		std::unique_ptr<WaterShading> mSimpleShadedPass;
 		std::unique_ptr<WaterDepthClearPass> mWaterDepthClearPass;
-		
+		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
 	};
 
 

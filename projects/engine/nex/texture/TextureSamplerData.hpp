@@ -92,6 +92,7 @@ namespace nex
 	{
 		FLOAT, FIRST = FLOAT,
 		FLOAT_HALF,
+		INT,
 		UBYTE,
 		UINT,
 

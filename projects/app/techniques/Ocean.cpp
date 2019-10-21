@@ -939,7 +939,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
 	mSimpleShadedPass(std::make_unique<WaterShading>()),
-	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>())
+	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>()),
+	mWaterDepthPass(std::make_unique<WaterDepthPass>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -952,7 +953,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 
 nex::OceanGPU::~OceanGPU() = default;
 
-void nex::OceanGPU::computeWaterDepths(Texture * waterDepth, Texture * depth, Texture * stencil)
+void nex::OceanGPU::computeWaterDepths(Texture * waterDepth, Texture * depth, Texture * stencil,
+	const glm::mat4& inverseViewProjMatrix)
 {
 	mWaterDepthClearPass->bind();
 	mWaterDepthClearPass->setWaterDepthOut(waterDepth);
@@ -960,9 +962,27 @@ void nex::OceanGPU::computeWaterDepths(Texture * waterDepth, Texture * depth, Te
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 
 	//std::vector<float> dest(depth->getWidth());
-	//waterDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::UINT, dest.data(), sizeof(float) * dest.size());
+	//waterDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest.data(), sizeof(float) * dest.size());
 	//auto test = dest[0];
 
+	mWaterDepthPass->bind();
+	mWaterDepthPass->setDepth(depth);
+	mWaterDepthPass->setStencil(stencil);
+	mWaterDepthPass->setWaterDepthOut(waterDepth);
+	mWaterDepthPass->setInverseViewProjMatrix(inverseViewProjMatrix);
+
+	constexpr unsigned TILE_WIDTH = 16;
+	constexpr unsigned TILE_HEIGHT = 64;
+
+	unsigned wgX = (depth->getWidth() + TILE_WIDTH - 1) / TILE_WIDTH;
+	unsigned wgY = (depth->getHeight() + TILE_HEIGHT - 1) / TILE_HEIGHT;
+
+	mWaterDepthPass->dispatch(wgX, wgY, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
+	
+	//std::vector<float> dest2(depth->getWidth());
+	//waterDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest2.data(), sizeof(float) * dest2.size());
+	//auto test2 = dest2[0];
 }
 
 void nex::OceanGPU::draw(const glm::mat4& projection, 
@@ -1163,6 +1183,61 @@ void nex::OceanGPU::generateMesh()
 	mMesh->setLayout(std::move(layout));
 	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->finalize();
+}
+
+
+nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() :
+	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
+{
+	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+}
+
+void nex::OceanGPU::WaterDepthClearPass::setWaterDepthOut(Texture* waterDepth)
+{
+	mShader->setImageLayerOfTexture(mWaterDepth.location,
+		waterDepth,
+		mWaterDepth.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternalFormat::R32I,
+		0,
+		false,
+		0);
+}
+
+nex::OceanGPU::WaterDepthPass::WaterDepthPass() : 
+	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_cs.glsl"))
+{
+	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mDepth = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
+	mStencil = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
+	mInverseViewProjMatrix = {mShader->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4};
+}
+
+void nex::OceanGPU::WaterDepthPass::setDepth(Texture* depth)
+{
+	mShader->setTexture(depth, Sampler::getPoint(), mDepth.bindingSlot);
+}
+
+void nex::OceanGPU::WaterDepthPass::setStencil(Texture* stencil)
+{
+	mShader->setTexture(stencil, Sampler::getPoint(), mStencil.bindingSlot);
+}
+
+void nex::OceanGPU::WaterDepthPass::setWaterDepthOut(Texture* waterDepth)
+{
+	mShader->setImageLayerOfTexture(mWaterDepth.location,
+		waterDepth,
+		mWaterDepth.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternalFormat::R32I,
+		0,
+		false,
+		0);
+}
+
+void nex::OceanGPU::WaterDepthPass::setInverseViewProjMatrix(const glm::mat4& mat)
+{
+	mShader->setMat4(mInverseViewProjMatrix.location, mat);
 }
 
 
@@ -1695,22 +1770,4 @@ nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
 void nex::gui::OceanConfig::drawSelf()
 {
 	ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
-}
-
-nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() : 
-	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
-{
-	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::TEXTURE2D, 0);
-}
-
-void nex::OceanGPU::WaterDepthClearPass::setWaterDepthOut(Texture* waterDepth)
-{
-	mShader->setImageLayerOfTexture(mWaterDepth.location, 
-		waterDepth, 
-		mWaterDepth.bindingSlot,
-		TextureAccess::WRITE_ONLY, 
-		InternalFormat::R32UI, 
-		0, 
-		false, 
-		0);
 }

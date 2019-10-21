@@ -14,16 +14,28 @@ layout (local_size_x = TILE_WIDTH, local_size_y = 1) in;
 layout (binding = 0) uniform sampler2D depthMap;
 layout (binding = 1) uniform usampler2D stencilMap;
 
-layout(r32ui, binding = 0) uniform uimage1D waterMinDepths;
+layout(r32i, binding = 0) uniform iimage1D waterMinDepths;
 
-shared float groupMinValues[SHARED_MEMORY_ARRAY_SIZE];
+
+uniform mat4 inverseViewProjMatrix;
+
+
+vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
+  vec4 clipSpaceLocation;
+  clipSpaceLocation.xy = texCoord * 2.0f - 1.0f;
+  clipSpaceLocation.z = depth * 2.0f - 1.0f;
+  clipSpaceLocation.w = 1.0f;
+  vec4 homogenousLocation = inverseViewProjMatrix * clipSpaceLocation;
+  return homogenousLocation.xyz / homogenousLocation.w;
+};
 
 
 void main(void)
 {
-    float localMin = 1.0;
+    float localMin = 1000000000.0;
     
     const ivec2 globalID =  ivec2(gl_WorkGroupID.xy) * ivec2(TILE_WIDTH, TILE_HEIGHT);
+    const vec2 texSize = vec2(textureSize(depthMap, 0).xy);
     
     // Note: y component of gl_LocalInvocationID is always zero
     const ivec2 tileStart = globalID + ivec2(gl_LocalInvocationID.x, 0); 
@@ -34,13 +46,16 @@ void main(void)
         const float depth = texelFetch(depthMap, positionScreen, 0).r;
         const uint stencil = texelFetch(stencilMap, positionScreen, 0).r;
         
-        if (stencil != 0) {
-            localMin = min(localMin, depth);
+        if (stencil == 1) {
+            vec2 texCoord = vec2(positionScreen) / texSize;
+            vec3 positionWorld = computeWorldPositionFromDepth(texCoord, depth);
+        
+            localMin = min(localMin, positionWorld.y);
         }
     }
 
     // Using atomic min/max is much faster than using a spin lock
     // This approach assumes that the values are >= 0 ; otherwise correct number order isn't guaranteed!
-    float normalizedDepth = 0.5 * localMin + 0.5;
-    imageAtomicMin(waterMinDepths, tileStart.x, floatBitsToUint(normalizedDepth));
+    //float normalizedDepth = 0.5 * localMin + 0.5;
+    imageAtomicMin(waterMinDepths, tileStart.x, floatBitsToInt(localMin));
 }
