@@ -1,10 +1,10 @@
 #version 430 core
 
-layout (local_size_x = 1, local_size_y = 1) in;
+layout (local_size_x = 1) in;
 
-layout(r32ui, binding = 0) image1D waterMinDepths;
+layout(r32ui, binding = 0) uniform uimage1D waterMinDepths;
 
 void main(void)
 {   
-    imageStore(waterMinDepths, gl_GlobalInvocationID.y, floatBitsToUint(1.0));
+    imageStore(waterMinDepths, int(gl_GlobalInvocationID.x), uvec4(floatBitsToUint(1.0)));
 }

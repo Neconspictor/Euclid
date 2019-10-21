@@ -938,7 +938,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
-	mSimpleShadedPass(std::make_unique<WaterShading>())
+	mSimpleShadedPass(std::make_unique<WaterShading>()),
+	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -950,6 +951,19 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 }
 
 nex::OceanGPU::~OceanGPU() = default;
+
+void nex::OceanGPU::computeWaterDepths(Texture * waterDepth, Texture * depth, Texture * stencil)
+{
+	mWaterDepthClearPass->bind();
+	mWaterDepthClearPass->setWaterDepthOut(waterDepth);
+	mWaterDepthClearPass->dispatch(depth->getWidth(), 1, 1);
+	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
+
+	//std::vector<float> dest(depth->getWidth());
+	//waterDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::UINT, dest.data(), sizeof(float) * dest.size());
+	//auto test = dest[0];
+
+}
 
 void nex::OceanGPU::draw(const glm::mat4& projection, 
 	const glm::mat4& view, 
@@ -1681,4 +1695,22 @@ nex::gui::OceanConfig::OceanConfig(Ocean* ocean) : mOcean(ocean)
 void nex::gui::OceanConfig::drawSelf()
 {
 	ImGui::Checkbox("Ocean Wireframe", mOcean->getWireframeState());
+}
+
+nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() : 
+	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
+{
+	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::TEXTURE2D, 0);
+}
+
+void nex::OceanGPU::WaterDepthClearPass::setWaterDepthOut(Texture* waterDepth)
+{
+	mShader->setImageLayerOfTexture(mWaterDepth.location, 
+		waterDepth, 
+		mWaterDepth.bindingSlot,
+		TextureAccess::WRITE_ONLY, 
+		InternalFormat::R32UI, 
+		0, 
+		false, 
+		0);
 }

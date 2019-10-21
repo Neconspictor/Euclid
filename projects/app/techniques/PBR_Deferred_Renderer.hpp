@@ -91,6 +91,7 @@ namespace nex
 		std::unique_ptr<RenderTarget> mDepthHalf;
 		std::unique_ptr<RenderTarget2D> mPingPong;
 		std::unique_ptr<Texture> mPingPongStencilView;
+		std::unique_ptr<Texture> mWaterDepth;
 		std::unique_ptr<RenderTarget2D> mPingPongHalf;
 		std::unique_ptr<RenderTarget> mOutRT;
 		RenderTargetSwitcher mOutSwitcherTAA;
