@@ -16,14 +16,18 @@ layout(binding = 6) uniform sampler2D motionMap;
 
 layout(binding = 7) uniform sampler2D oceanHeightMap;
 layout(binding = 8) uniform sampler2D depthMap;
+layout(binding = 9) uniform usampler2D stencilMap;
+//layout(binding = 9) uniform sampler2D oceanDX;
+//layout(binding = 10) uniform sampler2D oceanDZ;
+layout(binding = 10) uniform isampler1D oceanMinHeightMap;
+layout(binding = 11) uniform isampler1D oceanMaxHeightMap;
 
-layout(binding = 9) uniform sampler2D oceanDX;
-layout(binding = 10) uniform sampler2D oceanDZ;
 
 
 uniform mat4 inverseViewProjMatrix_GPass;
 uniform mat4 inverseModelMatrix_Ocean;
 uniform float oceanTileSize;
+uniform vec3 cameraPosition;
 //uniform mat4 model_Ocean;
 
 
@@ -42,28 +46,14 @@ vec3 computeWorldPositionFromDepth(in vec2 texCoord, in float depth) {
   return homogenousLocation.xyz / homogenousLocation.w;
 };
 
-
-
-vec4 getWaterDisplacedPosition(in vec3 position, in vec2 uv, float scale) {
-   vec2 mDX =  texture(oceanDX, uv).xy * scale;
-   vec2 mDZ =  texture(oceanDZ, uv).xy * scale;
-   float mLambda = -1.0;
-   
-   
-   return vec4(position.x + mLambda * mDX.x,
-                         texture(oceanHeightMap, uv).x * scale,
-                         position.z + mLambda * mDZ.x,
-                         1.0);
-}
-
 vec2 getWaterUV(in vec3 oceanPos) {
     
     const float lambda = -1.0;
     const float pointCount = 129;
     const float waveLength = 128;
     const float N = 128;
-    vec2 mDX =  texture(oceanDX, oceanPos.xz).xy;
-    vec2 mDZ =  texture(oceanDZ, oceanPos.xz).xy;
+    vec2 mDX = vec2(0);// texture(oceanDX, oceanPos.xz).xy;
+    vec2 mDZ = vec2(0);// texture(oceanDZ, oceanPos.xz).xy;
     
     
     
@@ -88,6 +78,10 @@ vec2 getWaterUV(in vec3 oceanPos) {
     uv.y = float(uint(uv.y) % uint(N)) / pointCount;
     
     return uv; 
+}
+
+float getLuma(in vec3 rgb) {
+    return 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b; 
 }
 
 
@@ -133,14 +127,16 @@ void main() {
         vec3 worldPosition = computeWorldPositionFromDepth(fs_in.texCoord, texture(depthMap, fs_in.texCoord).r);        
         vec4 oceanPosition = inverseModelMatrix_Ocean * vec4(worldPosition, 1.0);
         
+       
         
-        const vec2 tileFactor = oceanPosition.xy / uint(8);
+       
+        const vec2 tileFactor = oceanPosition.xz / uint(8);
         vec2 oceanUV = oceanPosition.xz - tileFactor * 8;
-        //oceanUV /= 8; // normalize to range [0,1]
+        oceanUV /= 8; // normalize to range [0,1]
         //const float mLambda = -1.0;
         
-        //oceanPosition.x -=  texture(oceanDX, oceanUV).x;
-        //oceanPosition.z -= texture(oceanDZ, oceanUV).x;
+       //oceanPosition.x -=  texture(oceanDX, oceanUV).x;
+       //oceanPosition.z -= texture(oceanDZ, oceanUV).x;
         
         
         vec3 xyz = oceanPosition.xyz;
@@ -155,18 +151,37 @@ void main() {
         
         vec2 waterUV = getWaterUV(xyz);
         //waterUV /= oceanTileSize;
-        waterUV = oceanUV;
-        waterUV.y *= -1.0;
+       //waterUV = oceanUV;
+        //waterUV.y *= -1.0;
         //waterUV.y *= -1.0;
         
         float oceanHeight = texture(oceanHeightMap, waterUV).r;
+        uint oceanStencil = texture(stencilMap, fs_in.texCoord).r;
         
+        float minOceanHeight = intBitsToFloat(texture(oceanMinHeightMap, fs_in.texCoord.x).r);
+        float maxOceanHeight = intBitsToFloat(texture(oceanMaxHeightMap, fs_in.texCoord.x).r);
+        vec2 texSize = textureSize(depthMap, 0);
+        float reference = fs_in.texCoord.y * texSize.y;
+        //float yCoordF = minOceanHeight / texSize.y;
         //vec4 oceanReferenceWS = model_Ocean * vec4(oceanUV, oceanHeight, 1.0);
         
+        bool underWater = minOceanHeight != 1000000000;
+        bool heightCompare = oceanHeight > oceanPosition.y;
+        
+        bool compare1 = maxOceanHeight > fs_in.texCoord.y;
+        bool compare2 = minOceanHeight > fs_in.texCoord.y;
+        bool compare3 = abs(minOceanHeight - fs_in.texCoord.y) < 0.1;
+        bool compare4 = abs(maxOceanHeight - fs_in.texCoord.y) < 0.1;
+        bool compare5 = compare3 ||compare4;
+        bool compare6 = maxOceanHeight > fs_in.texCoord.y && (minOceanHeight < fs_in.texCoord.y);
+        bool compare7 = worldPosition.y < 3.0;
+        bool compare8 = oceanHeight > oceanPosition.y;
+        bool compare9 = cameraPosition.y < 3.0; //&& !underWater;
+       
         // Is fragment below water?
-        if ((oceanHeight)> (oceanPosition.y)) 
+        if (oceanStencil == 0 && (compare1 || compare9) && (cameraPosition.y < 4.0)) //|| coordCompare2 && underWater 
         {
-            vec2 texSize = textureSize(sourceTexture, 0);
+            
             vec4 avgColor = color;
             for(int i = 1; i < 9; ++i)
             {
@@ -179,10 +194,12 @@ void main() {
             }
             color /= 64.0;
         
-        
-            vec4 diffuse_color  = vec4(0.0, 0.2, 0.4, color.a);
-            diffuse_color.rgb = color.rgb * diffuse_color.rgb + 0.1 * diffuse_color.rgb;
-            color = mix(color, diffuse_color, 0.5);
+            float litLuma = clamp(getLuma(color.rgb), 0.0, 1.0);
+            //color = mix(color, vec4(0.5, 0.7, 1.0, color.a), 0.1);
+            //color.rgb *= litLuma * vec3(0.5, 0.7, 1.0);
+            color = mix(color, vec4(1.0, 1.0, 1.0, color.a), 0.1);
+            color.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
+            //color.rgb *= litLuma;
         }
         
        // if (oceanHeight == oceanPosition.y) {

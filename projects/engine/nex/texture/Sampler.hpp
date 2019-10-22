@@ -97,8 +97,18 @@ namespace nex
 			return &sampler;
 		}
 
+		static const Sampler* getPointRepeat() {
+			static auto sampler = createPointRepearSampler();
+			return &sampler;
+		}
+
 		static const Sampler* getLinear() {
 			static auto sampler = createLinearSampler();
+			return &sampler;
+		}
+
+		static const Sampler* getLinearRepeat() {
+			static auto sampler = createLinearRepeatSampler();
 			return &sampler;
 		}
 
@@ -124,8 +134,22 @@ namespace nex
 			return Sampler(desc);
 		}
 
+		static Sampler createPointRepearSampler() {
+			SamplerDesc desc;
+			desc.minFilter = TexFilter::Nearest;
+			desc.magFilter = TexFilter::Nearest;
+			desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
+			return Sampler(desc);
+		}
+
 		static Sampler createLinearSampler() {
 			return Sampler();
+		}
+
+		static Sampler createLinearRepeatSampler() {
+			SamplerDesc desc;
+			desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
+			return Sampler(desc);
 		}
 
 		static Sampler createLinearMipMapSampler() {

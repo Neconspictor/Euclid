@@ -953,31 +953,35 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 
 nex::OceanGPU::~OceanGPU() = default;
 
-void nex::OceanGPU::computeWaterDepths(Texture * waterDepth, Texture * depth, Texture * stencil,
+void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth, 
+	Texture* waterMaxDepth,
+	Texture * depth, Texture * stencil,
 	const glm::mat4& inverseViewProjMatrix)
 {
 	mWaterDepthClearPass->bind();
-	mWaterDepthClearPass->setWaterDepthOut(waterDepth);
+	mWaterDepthClearPass->setWaterMinDepthOut(waterMinDepth);
+	mWaterDepthClearPass->setWaterMaxDepthOut(waterMaxDepth);
 	mWaterDepthClearPass->dispatch(depth->getWidth(), 1, 1);
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 
-	//std::vector<float> dest(depth->getWidth());
-	//waterDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest.data(), sizeof(float) * dest.size());
-	//auto test = dest[0];
+	std::vector<float> dest(depth->getWidth());
+	waterMinDepth->readback(0, ColorSpace::RED_INTEGER, PixelDataType::INT, dest.data(), sizeof(float) * dest.size());
+	auto test = dest[0];
 
 	mWaterDepthPass->bind();
 	mWaterDepthPass->setDepth(depth);
 	mWaterDepthPass->setStencil(stencil);
-	mWaterDepthPass->setWaterDepthOut(waterDepth);
+	mWaterDepthPass->setWaterMinDepthOut(waterMinDepth);
+	mWaterDepthPass->setWaterMaxDepthOut(waterMaxDepth);
 	mWaterDepthPass->setInverseViewProjMatrix(inverseViewProjMatrix);
 
-	constexpr unsigned TILE_WIDTH = 16;
-	constexpr unsigned TILE_HEIGHT = 64;
+	constexpr unsigned TILE_WIDTH = 64;
+	constexpr unsigned TILE_HEIGHT = 128;
 
 	unsigned wgX = (depth->getWidth() + TILE_WIDTH - 1) / TILE_WIDTH;
 	unsigned wgY = (depth->getHeight() + TILE_HEIGHT - 1) / TILE_HEIGHT;
 
-	mWaterDepthPass->dispatch(wgX, wgY, 1);
+	mWaterDepthPass->dispatch(depth->getWidth(), depth->getHeight(), 1);
 	RenderBackend::get()->syncMemoryWithGPU(MemorySync_ShaderImageAccess | MemorySync_TextureFetch);
 	
 	//std::vector<float> dest2(depth->getWidth());
@@ -1078,6 +1082,16 @@ void nex::OceanGPU::simulate(float t)
 nex::Texture* nex::OceanGPU::getHeightMap()
 {
 	return mHeightComputePass->getHeight();
+}
+
+nex::Texture* nex::OceanGPU::getDX()
+{
+	return mHeightComputePass->getDx();
+}
+
+nex::Texture* nex::OceanGPU::getDZ()
+{
+	return mHeightComputePass->getDz();
 }
 
 void nex::OceanGPU::computeButterflyTexture(bool debug)
@@ -1189,14 +1203,27 @@ void nex::OceanGPU::generateMesh()
 nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() :
 	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_clear_cs.glsl"))
 {
-	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMinDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMaxDepth = mShader->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
 }
 
-void nex::OceanGPU::WaterDepthClearPass::setWaterDepthOut(Texture* waterDepth)
+void nex::OceanGPU::WaterDepthClearPass::setWaterMinDepthOut(Texture* waterMinDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterDepth.location,
-		waterDepth,
-		mWaterDepth.bindingSlot,
+	mShader->setImageLayerOfTexture(mWaterMinDepth.location,
+		waterMinDepth,
+		mWaterMinDepth.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternalFormat::R32I,
+		0,
+		false,
+		0);
+}
+
+void nex::OceanGPU::WaterDepthClearPass::setWaterMaxDepthOut(Texture* waterMaxDepth)
+{
+	mShader->setImageLayerOfTexture(mWaterMaxDepth.location,
+		waterMaxDepth,
+		mWaterMaxDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
 		InternalFormat::R32I,
 		0,
@@ -1207,7 +1234,9 @@ void nex::OceanGPU::WaterDepthClearPass::setWaterDepthOut(Texture* waterDepth)
 nex::OceanGPU::WaterDepthPass::WaterDepthPass() : 
 	ComputePass(Shader::createComputeShader("ocean/water_surface_depth_cs.glsl"))
 {
-	mWaterDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMinDepth = mShader->createTextureUniform("waterMinDepths", UniformType::IMAGE1D, 0);
+	mWaterMaxDepth = mShader->createTextureUniform("waterMaxDepths", UniformType::IMAGE1D, 1);
+
 	mDepth = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 0);
 	mStencil = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 1);
 	mInverseViewProjMatrix = {mShader->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4};
@@ -1223,11 +1252,23 @@ void nex::OceanGPU::WaterDepthPass::setStencil(Texture* stencil)
 	mShader->setTexture(stencil, Sampler::getPoint(), mStencil.bindingSlot);
 }
 
-void nex::OceanGPU::WaterDepthPass::setWaterDepthOut(Texture* waterDepth)
+void nex::OceanGPU::WaterDepthPass::setWaterMinDepthOut(Texture* waterMinDepth)
 {
-	mShader->setImageLayerOfTexture(mWaterDepth.location,
-		waterDepth,
-		mWaterDepth.bindingSlot,
+	mShader->setImageLayerOfTexture(mWaterMinDepth.location,
+		waterMinDepth,
+		mWaterMinDepth.bindingSlot,
+		TextureAccess::WRITE_ONLY,
+		InternalFormat::R32I,
+		0,
+		false,
+		0);
+}
+
+void nex::OceanGPU::WaterDepthPass::setWaterMaxDepthOut(Texture* waterMaxDepth)
+{
+	mShader->setImageLayerOfTexture(mWaterMaxDepth.location,
+		waterMaxDepth,
+		mWaterMaxDepth.bindingSlot,
 		TextureAccess::WRITE_ONLY,
 		InternalFormat::R32I,
 		0,

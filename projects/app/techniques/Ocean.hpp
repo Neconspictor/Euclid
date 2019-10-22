@@ -320,10 +320,13 @@ namespace nex
 		virtual ~OceanGPU();
 
 		/**
-		 * @param waterDepth : a 1D texture in format R32I and colorspace RED_INTEGER; 
+		 * @param waterMinDepth : a 1D texture in format R32I and colorspace RED_INTEGER; 
+		 *                     has to have the same width as depth and stencil texture
+		 * @param waterMaxDepth : a 1D texture in format R32I and colorspace RED_INTEGER;
 		 *                     has to have the same width as depth and stencil texture
 		 */
-		void computeWaterDepths(Texture* waterDepth, Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix);
+		void computeWaterDepths(Texture* waterMinDepth, Texture* waterMaxDepth, 
+			Texture* depth, Texture* stencil, const glm::mat4& inverseViewProjMatrix);
 
 		/**
 		 * Draws the ocean.
@@ -343,6 +346,8 @@ namespace nex
 		void simulate(float t) override;
 
 		Texture* getHeightMap();
+		Texture* getDX();
+		Texture* getDZ();
 
 	private:
 
@@ -366,10 +371,12 @@ namespace nex
 		public:
 			WaterDepthClearPass();
 
-			void setWaterDepthOut(Texture* waterDepth);
+			void setWaterMinDepthOut(Texture* waterMinDepth);
+			void setWaterMaxDepthOut(Texture* waterMaxDepth);
 
 		private:
-			UniformTex mWaterDepth;
+			UniformTex mWaterMinDepth;
+			UniformTex mWaterMaxDepth;
 		};
 
 		class WaterDepthPass : public ComputePass
@@ -379,11 +386,13 @@ namespace nex
 
 			void setDepth(Texture* depth);
 			void setStencil(Texture* stencil);
-			void setWaterDepthOut(Texture* waterDepth);
+			void setWaterMinDepthOut(Texture* waterMinDepth);
+			void setWaterMaxDepthOut(Texture* waterMaxDepth);
 			void setInverseViewProjMatrix(const glm::mat4& mat);
 
 		private:
-			UniformTex mWaterDepth;
+			UniformTex mWaterMinDepth;
+			UniformTex mWaterMaxDepth;
 			UniformTex mDepth;
 			UniformTex mStencil;
 			Uniform mInverseViewProjMatrix;

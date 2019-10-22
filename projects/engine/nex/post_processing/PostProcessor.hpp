@@ -43,10 +43,16 @@ namespace nex
 			Texture2D* aoMap,
 			Texture2D* motionMap,
 			Texture* depth,
+			Texture* stencil,
 			Texture* oceanHeightMap,
+			Texture* oceanDX,
+			Texture* oceanDZ,
+			Texture* oceanMinHeightMap,
+			Texture* oceanMaxHeightMap,
 			float oceanTileSize,
 			const glm::mat4& inverseModelMatrix_Ocean,
 			const glm::mat4& inverseViewProjection_GPass,
+			const glm::vec3& cameraPosition,
 			RenderTarget* output);
 
 		void antialias(Texture2D* source, RenderTarget* output);

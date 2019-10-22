@@ -83,7 +83,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 	mOutSwitcherTAA(nullptr, 0, nullptr, nullptr)
 {
 
-	//mOcean.setPosition(glm::vec3(32.0f, 0.0, 32.0f));
+	mOcean.setPosition(glm::vec3(-10.0f, 0.0, -10.0f));
 
 	//*28.0 * 0.277778
 	assert(mPbrTechnique != nullptr);
@@ -283,6 +283,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	if (true) {
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
+		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 		mPingPong->bind();
 		mPingPong->enableDrawToColorAttachment(1, true);
 		mPingPong->clear(RenderComponent::Color | RenderComponent::Stencil); // | RenderComponent::Depth
@@ -304,7 +305,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* depthTex = mPingPong->getDepthAttachment()->texture.get();
 
 		//
-		mOcean.computeWaterDepths(mWaterDepth.get(), depthTex, mPingPongStencilView.get(), invViewProj);
+		mOcean.computeWaterDepths(mWaterMinDepth.get(), 
+			mWaterMaxDepth.get(),
+			depthTex, mPingPongStencilView.get(), invViewProj);
 	}
 
 
@@ -324,11 +327,16 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		//state.blendDesc.operation = BlendOperation::ADD;
 		//state.blendDesc.source = BlendFunc::SOURCE_ALPHA;
 		//state.blendDesc.destination = BlendFunc::ONE_MINUS_SOURCE_ALPHA;
+
+		stencilTest->enableStencilTest(true);
+		mOutRT->clear(RenderComponent::Stencil);
 		lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0),
 			mPingPong->getColorAttachmentTexture(1),
 			mPingPong->getDepthAttachment()->texture.get(),
 			mPingPongStencilView.get(),
 			state);
+
+		stencilTest->enableStencilTest(false);
 		//mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, true);
 		//mOutRT->enableDrawToColorAttachment(3, true);
@@ -378,10 +386,16 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			aoMap, 
 			motionTexture,
 			depthTexture,
+			mOutStencilView.get(),
 			mOcean.getHeightMap(),
+			mOcean.getDX(),
+			mOcean.getDZ(),
+			mWaterMinDepth.get(),
+			mWaterMaxDepth.get(),
 			mOcean.getTileSize(),
 			inverse(mOcean.getModelMatrix()),
 			invViewProj,
+			camera.getPosition(),
 			mPingPong.get()); //mPbrMrt->getMotion()
 	}
 
@@ -490,16 +504,19 @@ void nex::PBR_Deferred_Renderer::updateRenderTargets(unsigned width, unsigned he
 	mPingPong->enableDrawToColorAttachment(1, false);
 
 	auto* pingPongDepthStencilTex = mPingPong->getDepthAttachment()->texture.get();
+	auto* outStencilTex = mOutRT->getDepthAttachment()->texture.get();
 	auto depthStencilDesc = pingPongDepthStencilTex->getTextureData();
 	depthStencilDesc.depthStencilTextureMode = DepthStencilTexMode::STENCIL;
 	mPingPongStencilView = Texture::createView(pingPongDepthStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
+	mOutStencilView = Texture::createView(outStencilTex, TextureTarget::TEXTURE2D, 0, 1, 0, 1, depthStencilDesc);
 
 	TextureDesc waterDepthDesc;
 	waterDepthDesc.internalFormat = InternalFormat::R32I;
 	waterDepthDesc.colorspace = ColorSpace::RED_INTEGER;
 	waterDepthDesc.pixelDataType = PixelDataType::INT;
 	waterDepthDesc.generateMipMaps = false;
-	mWaterDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
+	mWaterMinDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
+	mWaterMaxDepth = std::make_unique<Texture1D>(width, waterDepthDesc, nullptr);
 	
 	const unsigned giWidth = mRenderGIinHalfRes ? width / 2 : width;
 	const unsigned giHeight = mRenderGIinHalfRes ? height / 2 : height;

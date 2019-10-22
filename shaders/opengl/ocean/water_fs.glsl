@@ -36,7 +36,7 @@ layout(binding = 7) uniform sampler2D depthMap;
 
 
 float getLuma(in vec3 rgb) {
-    return 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b; 
+    return 1.0 * rgb.r + 1.0 * rgb.g + 1.0 * rgb.b; 
 }
 
 void main() {
@@ -75,8 +75,6 @@ void main() {
 			vec4(0.0, 0.0, 0.0, 0.0));
 
 	fragColor = fragColor * (1.0-fog_factor) + vec4(0.25, 0.75, 0.65, 1.0) * (fog_factor);
-    
-    fragColor = vec4(1,1,1,1);
   
     vec2 ndcPos = vec2(vs_out.positionCS.xy / vs_out.positionCS.w);
     
@@ -84,15 +82,15 @@ void main() {
     
     vec2 refractionNDC = ndcPos ;//+ normal.xy * refractionRatio;
     vec4 refractionUV = vs_out.positionCS;
-    refractionUV.x += normal.x * refractionRatio * 0.1;
-    refractionUV.y += normal.z * refractionRatio * 0.1;
+    refractionUV.x += normal.x * refractionRatio * 0.05;
+    refractionUV.y += normal.z * refractionRatio * 0.05;
     //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
     vec2 uv = refractionUV.xy / refractionUV.w;
-    uv = clamp(uv, 0.001, 0.999);
+    //uv = clamp(uv, 0.001, 0.999);
     vec4 refractionColor = texture(colorMap, uv);
     
     fragColor = mix(fragColor, refractionColor, 1.0);
-    fragColor = mix(fragColor, vec4(0.0, 0.2, 0.4, 1.0), 0.5);
+    //fragColor = mix(fragColor, vec4(1.0, 1.0, 1.0, 1.0), 0.5);
     
 
     //fragColor.rgb *= fragmentLitProportion;
@@ -108,8 +106,9 @@ void main() {
     float litLuma = clamp(getLuma(refractionColor.rgb), 0.0, 1.0);
     
     float lit = max(litLuma, fragmentLitProportion);
-    fragColor.rgb *= litLuma;
-    fragColor = vec4(1,0,0,1);
+    fragColor = mix(fragColor, vec4(1.0, 1.0, 1.0, fragColor.a), 0.1);
+    fragColor.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
+    //fragColor = vec4(1,0,0,1);
     
     //fragColor.a = 1.0;
   

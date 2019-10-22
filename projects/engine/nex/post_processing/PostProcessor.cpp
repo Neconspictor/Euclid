@@ -32,6 +32,13 @@ public:
 
 		oceanHeightMap = mShader->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 7);
 		depthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 8);
+		stencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 9);
+		//oceanDX = mShader->createTextureUniform("oceanDX", UniformType::TEXTURE2D, 9);
+		//oceanDZ = mShader->createTextureUniform("oceanDZ", UniformType::TEXTURE2D, 10);
+		
+		oceanMinHeightMap = mShader->createTextureUniform("oceanMinHeightMap", UniformType::TEXTURE1D, 10);
+		oceanMaxHeightMap = mShader->createTextureUniform("oceanMaxHeightMap", UniformType::TEXTURE1D, 11);
+		
 
 		mShader->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mShader->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
@@ -45,6 +52,7 @@ public:
 		inverseViewProjMatrix_GPass = { mShader->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4};
 		inverseModelMatrix_Ocean = { mShader->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
 		oceanTileSize = { mShader->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
+		cameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
 	}
 
 	void setInverseViewProjMatrix_GPass(const glm::mat4& mat) {
@@ -64,8 +72,33 @@ public:
 	}
 
 	void setOceanHeightMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getLinear(), oceanHeightMap.bindingSlot);
+		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanHeightMap.bindingSlot);
 	}
+
+	void setOceanDX(Texture* texture) {
+		//mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanDX.bindingSlot);
+	}
+
+	void setOceanDZ(Texture* texture) {
+		//mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanDZ.bindingSlot);
+	}
+
+	void setOceanMinHeightMap(Texture* texture) {
+		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanMinHeightMap.bindingSlot);
+	}
+
+	void setOceanMaxHeightMap(Texture* texture) {
+		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanMaxHeightMap.bindingSlot);
+	}
+
+	void setStencilMap(Texture* texture) {
+		mShader->setTexture(texture, Sampler::getPoint(), stencilMap.bindingSlot);
+	}
+
+	void setCameraPosition(const glm::vec3& pos) {
+		mShader->setVec3(cameraPosition.location, pos);
+	}
+
 
 	UniformTex sourceTextureUniform;
 	UniformTex bloomHalfth;
@@ -76,10 +109,16 @@ public:
 	UniformTex motionMap;
 	UniformTex oceanHeightMap;
 	UniformTex depthMap;
+	UniformTex oceanDX;
+	UniformTex oceanDZ;
+	UniformTex oceanMinHeightMap;
+	UniformTex oceanMaxHeightMap;
+	UniformTex stencilMap;
 
 	Uniform inverseViewProjMatrix_GPass;
 	Uniform inverseModelMatrix_Ocean;
 	Uniform oceanTileSize;
+	Uniform cameraPosition;
 };
 
 
@@ -117,10 +156,16 @@ nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source,
 	Texture2D* aoMap, 
 	Texture2D* motionMap, 
 	Texture* depth,
+	Texture* stencil,
 	Texture* oceanHeightMap,
+	Texture* oceanDX,
+	Texture* oceanDZ,
+	Texture* oceanMinHeightMap,
+	Texture* oceanMaxHeightMap,
 	float oceanTileSize,
 	const glm::mat4& inverseModelMatrix_Ocean,
 	const glm::mat4& inverseViewProjection_GPass,
+	const glm::vec3& cameraPosition,
 	RenderTarget* output)
 {
 	// Bloom
@@ -148,10 +193,16 @@ nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source,
 
 	//ocean
 	mPostprocessPass->setDepthMap(depth);
+	mPostprocessPass->setStencilMap(stencil);
 	mPostprocessPass->setOceanHeightMap(oceanHeightMap);
+	mPostprocessPass->setOceanDX(oceanDX);
+	mPostprocessPass->setOceanDZ(oceanDZ);
+	mPostprocessPass->setOceanMinHeightMap(oceanMinHeightMap);
+	mPostprocessPass->setOceanMaxHeightMap(oceanMaxHeightMap);
 	mPostprocessPass->setInverseModelMatrix_Ocean(inverseModelMatrix_Ocean);
 	mPostprocessPass->setInverseViewProjMatrix_GPass(inverseViewProjection_GPass);
 	mPostprocessPass->setOceanTileSize(oceanTileSize);
+	mPostprocessPass->setCameraPosition(cameraPosition);
 
 
 	const auto& state = RenderState::getNoDepthTest();

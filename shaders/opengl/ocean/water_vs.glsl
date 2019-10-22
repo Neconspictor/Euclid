@@ -50,8 +50,8 @@ vec4 getDisplacedPosition(in vec2 uv, float scale) {
                          position.z + mLambda * mDZ.x,
                          1.0);
                          
-    result.x = position.x;
-    result.z = position.z;
+    //result.x = position.x;
+    //result.z = position.z;
 
     return result;
                          
