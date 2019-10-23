@@ -61,7 +61,7 @@ nex::Texture2D* nex::DownSampler::downsampleQuarterResolution(Texture2D* src)
 	//return downsample(src, mQuarterResolution.get());
 }
 
-nex::Texture2D* nex::DownSampler::downsampleEigthResolution(Texture2D* src)
+nex::Texture2D* nex::DownSampler::downsampleEighthResolution(Texture2D* src)
 {
 	return downsample(src, mEigthResolution.get());
 	//return downsample(src, mEigthResolution.get());

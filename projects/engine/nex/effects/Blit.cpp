@@ -8,12 +8,18 @@ namespace nex {
 	class Blit::BlitPass : public Pass
 	{
 	public:
-		BlitPass(bool useStencilTest) : Pass(), mUseStencilTest(useStencilTest)
+		BlitPass(bool useStencilTest, bool useDepth, bool useLuminance) : Pass(), mUseStencilTest(useStencilTest)
 		{
 			std::vector<std::string> defines;
 
 			if (useStencilTest)
 				defines.push_back("#define USE_STENCIL_TEST 1");
+
+			if (useDepth)
+				defines.push_back("#define USE_DEPTH 1");
+
+			if (useLuminance)
+				defines.push_back("#define USE_LUMINANCE 1");
 
 			mShader = Shader::create("screen_space_vs.glsl", "blit_fs.glsl", 
 				nullptr, nullptr, nullptr,
@@ -51,31 +57,29 @@ namespace nex {
 	};
 
 	Blit::Blit() : 
-		mBlitPass(std::make_unique<BlitPass>(false)),
-		mBlitStencilPass(std::make_unique<BlitPass>(true))
+		mBlitPass(std::make_unique<BlitPass>(false, false, false)),
+		mBlitDepthStencilLumaPass(std::make_unique<BlitPass>(true, true, true))
 	{
 	}
 
 	Blit::~Blit() = default;
 
-	void Blit::blitStencil(Texture * color, Texture* luminance, Texture* depth, Texture * stencil, const RenderState& state)
+	void Blit::blitDepthStencilLuma(Texture * color, Texture* luminance, Texture* depth, Texture * stencil, const RenderState& state)
 	{
-		mBlitStencilPass->bind();
-		mBlitStencilPass->setColor(color);
-		mBlitStencilPass->setLuminance(luminance);
-		mBlitPass->setDepth(depth);
-		mBlitStencilPass->setStencil(stencil);
+		mBlitDepthStencilLumaPass->bind();
+		mBlitDepthStencilLumaPass->setColor(color);
+		mBlitDepthStencilLumaPass->setLuminance(luminance);
+		mBlitDepthStencilLumaPass->setDepth(depth);
+		mBlitDepthStencilLumaPass->setStencil(stencil);
 		
-		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitStencilPass.get());
+		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitDepthStencilLumaPass.get());
 	}
 
-	void Blit::blit(Texture* color, Texture* depth, const RenderState& state)
+	void Blit::blit(Texture* color, const RenderState& state)
 	{
 		mBlitPass->bind();
 		mBlitPass->setColor(color);
-		mBlitPass->setDepth(depth);
 
 		StaticMeshDrawer::drawFullscreenTriangle(state, mBlitPass.get());
 	}
-
 }

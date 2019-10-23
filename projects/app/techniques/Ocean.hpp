@@ -339,6 +339,15 @@ namespace nex
 			Texture* luminance, 
 			Texture* depth);
 
+		void drawUnderWaterView(
+			Texture* color, 
+			Texture* waterMinDepth,
+			Texture* waterMaxDepth,
+			Texture* depth,
+			Texture* waterStencil,
+			const glm::mat4& inverseViewProjMatrix,
+			const glm::vec3& cameraPos);
+
 		/**
 		 * Simulates ocean state at time t.
 		 * @param t : time. Has to be > 0
@@ -363,6 +372,41 @@ namespace nex
 		{
 			glm::vec3 position;
 			glm::vec2 texCoords;
+		};
+
+
+		class UnderWaterView : public Pass
+		{
+		public:
+			UnderWaterView();
+
+			void setColorMap(Texture* texture);
+			void setInverseViewProjMatrix_GPass(const glm::mat4& mat);
+			void setInverseModelMatrix_Ocean(const glm::mat4& mat);
+			void setOceanTileSize(float tileSize);
+			void setDepthMap(Texture* texture);
+			void setOceanHeightMap(Texture* texture);
+			void setOceanDX(Texture* texture);
+			void setOceanDZ(Texture* texture);
+			void setOceanMinHeightMap(Texture* texture);
+			void setOceanMaxHeightMap(Texture* texture);
+			void setStencilMap(Texture* texture);
+			void setCameraPosition(const glm::vec3& pos);
+
+		private:
+			UniformTex mColorMap;
+			UniformTex mOceanHeightMap;
+			UniformTex mDepthMap;
+			UniformTex mOceanDX;
+			UniformTex mOceanDZ;
+			UniformTex mOceanMinHeightMap;
+			UniformTex mOceanMaxHeightMap;
+			UniformTex mStencilMap;
+
+			Uniform mInverseViewProjMatrix_GPass;
+			Uniform mInverseModelMatrix_Ocean;
+			Uniform mOceanTileSize;
+			Uniform mCameraPosition;
 		};
 
 
@@ -626,6 +670,7 @@ namespace nex
 		std::unique_ptr<WaterShading> mSimpleShadedPass;
 		std::unique_ptr<WaterDepthClearPass> mWaterDepthClearPass;
 		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
+		std::unique_ptr<UnderWaterView> mUnderWaterView;
 	};
 
 

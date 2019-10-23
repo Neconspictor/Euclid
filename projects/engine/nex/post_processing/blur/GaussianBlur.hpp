@@ -21,7 +21,7 @@ namespace nex {
 
 		Texture2D* blurHalfResolution(Texture2D* texture, RenderTarget2D* out);
 		Texture2D* blurQuarterResolution(Texture2D* texture, RenderTarget2D* out);
-		Texture2D* blurEigthResolution(Texture2D* texture, RenderTarget2D* out);
+		Texture2D* blurEighthResolution(Texture2D* texture, RenderTarget2D* out);
 		Texture2D* blurSixteenthResolution(Texture2D* texture, RenderTarget2D* out);
 
 		void resize(unsigned width, unsigned height);

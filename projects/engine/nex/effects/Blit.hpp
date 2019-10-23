@@ -9,14 +9,14 @@ namespace nex
 	public:
 		Blit();
 		~Blit();
-		void blitStencil(Texture* color, Texture* luminance, Texture* deph, Texture* stencil, const RenderState& state);
-		void blit(Texture* color, Texture* deph, const RenderState& state);
+		void blitDepthStencilLuma(Texture* color, Texture* luminance, Texture* deph, Texture* stencil, const RenderState& state);
+		void blit(Texture* color, const RenderState& state);
 
 	private:
 
 		class BlitPass;
 
 		std::unique_ptr<BlitPass> mBlitPass;
-		std::unique_ptr<BlitPass> mBlitStencilPass;
+		std::unique_ptr<BlitPass> mBlitDepthStencilLumaPass;
 	};
 }

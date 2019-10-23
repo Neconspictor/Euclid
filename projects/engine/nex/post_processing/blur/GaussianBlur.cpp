@@ -75,7 +75,7 @@ namespace nex {
 		return blur(texture, out, mQuarterBlur.get());
 	}
 
-	Texture2D* GaussianBlur::blurEigthResolution(Texture2D* texture, RenderTarget2D* out)
+	Texture2D* GaussianBlur::blurEighthResolution(Texture2D* texture, RenderTarget2D* out)
 	{
 		return blur(texture, out, mEigthBlur.get());
 	}

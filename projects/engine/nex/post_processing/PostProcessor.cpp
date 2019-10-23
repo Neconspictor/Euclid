@@ -30,16 +30,6 @@ public:
 
 		motionMap = { mShader->getUniformLocation("motionMap"), UniformType::TEXTURE2D, 6 };
 
-		oceanHeightMap = mShader->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 7);
-		depthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 8);
-		stencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 9);
-		//oceanDX = mShader->createTextureUniform("oceanDX", UniformType::TEXTURE2D, 9);
-		//oceanDZ = mShader->createTextureUniform("oceanDZ", UniformType::TEXTURE2D, 10);
-		
-		oceanMinHeightMap = mShader->createTextureUniform("oceanMinHeightMap", UniformType::TEXTURE1D, 10);
-		oceanMaxHeightMap = mShader->createTextureUniform("oceanMaxHeightMap", UniformType::TEXTURE1D, 11);
-		
-
 		mShader->setBinding(sourceTextureUniform.location, sourceTextureUniform.bindingSlot);
 		mShader->setBinding(bloomHalfth.location, bloomHalfth.bindingSlot);
 		mShader->setBinding(bloomQuarter.location, bloomQuarter.bindingSlot);
@@ -49,54 +39,7 @@ public:
 		mShader->setBinding(motionMap.location, motionMap.bindingSlot);
 
 
-		inverseViewProjMatrix_GPass = { mShader->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4};
-		inverseModelMatrix_Ocean = { mShader->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
-		oceanTileSize = { mShader->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
-		cameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
-	}
-
-	void setInverseViewProjMatrix_GPass(const glm::mat4& mat) {
-		mShader->setMat4(inverseViewProjMatrix_GPass.location, mat);
-	}
-
-	void setInverseModelMatrix_Ocean(const glm::mat4& mat) {
-		mShader->setMat4(inverseModelMatrix_Ocean.location, mat);
-	}
-
-	void setOceanTileSize(float tileSize) {
-		mShader->setFloat(oceanTileSize.location, tileSize);
-	}
-
-	void setDepthMap(Texture* texture) {
-		mShader->setTexture(texture,  Sampler::getPoint(), depthMap.bindingSlot);
-	}
-
-	void setOceanHeightMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanHeightMap.bindingSlot);
-	}
-
-	void setOceanDX(Texture* texture) {
-		//mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanDX.bindingSlot);
-	}
-
-	void setOceanDZ(Texture* texture) {
-		//mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanDZ.bindingSlot);
-	}
-
-	void setOceanMinHeightMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanMinHeightMap.bindingSlot);
-	}
-
-	void setOceanMaxHeightMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getLinearRepeat(), oceanMaxHeightMap.bindingSlot);
-	}
-
-	void setStencilMap(Texture* texture) {
-		mShader->setTexture(texture, Sampler::getPoint(), stencilMap.bindingSlot);
-	}
-
-	void setCameraPosition(const glm::vec3& pos) {
-		mShader->setVec3(cameraPosition.location, pos);
+		
 	}
 
 
@@ -107,18 +50,7 @@ public:
 	UniformTex bloomSixteenth;
 	UniformTex aoMap;
 	UniformTex motionMap;
-	UniformTex oceanHeightMap;
-	UniformTex depthMap;
-	UniformTex oceanDX;
-	UniformTex oceanDZ;
-	UniformTex oceanMinHeightMap;
-	UniformTex oceanMaxHeightMap;
-	UniformTex stencilMap;
-
-	Uniform inverseViewProjMatrix_GPass;
-	Uniform inverseModelMatrix_Ocean;
-	Uniform oceanTileSize;
-	Uniform cameraPosition;
+	
 };
 
 
@@ -151,63 +83,36 @@ mTaa(std::make_unique<TAA>())
 
 nex::PostProcessor::~PostProcessor() = default;
 
-nex::Texture* nex::PostProcessor::doPostProcessing(Texture2D* source, 
+nex::PostProcessor::BloomTextures nex::PostProcessor::computeBloom(Texture2D * source, Texture2D * bloomTexture)
+{
+	// Bloom
+	auto* half = mDownSampler->downsampleHalfResolution(bloomTexture);
+	auto* quarter = mDownSampler->downsampleQuarterResolution(half);
+	auto* eighth = mDownSampler->downsampleEighthResolution(quarter);
+	auto* sixteenth = mDownSampler->downsampleSixteenthResolution(eighth);
+
+	half = mGaussianBlur->blurHalfResolution(half, mBloomHalfth.get());
+	quarter = mGaussianBlur->blurQuarterResolution(quarter, mBloomQuarter.get());
+	eighth = mGaussianBlur->blurEighthResolution(eighth, mBloomEighth.get());
+	sixteenth = mGaussianBlur->blurSixteenthResolution(sixteenth, mBloomSixteenth.get());
+
+	return { half , quarter , eighth , sixteenth };
+}
+
+void nex::PostProcessor::doPostProcessing(Texture2D* source, 
 	Texture2D* glowTexture, 
 	Texture2D* aoMap, 
 	Texture2D* motionMap, 
-	Texture* depth,
-	Texture* stencil,
-	Texture* oceanHeightMap,
-	Texture* oceanDX,
-	Texture* oceanDZ,
-	Texture* oceanMinHeightMap,
-	Texture* oceanMaxHeightMap,
-	float oceanTileSize,
-	const glm::mat4& inverseModelMatrix_Ocean,
-	const glm::mat4& inverseViewProjection_GPass,
-	const glm::vec3& cameraPosition,
-	RenderTarget* output)
-{
-	// Bloom
-	auto* glowHalfth = mDownSampler->downsampleHalfResolution(glowTexture);
-	auto* glowQuarter = mDownSampler->downsampleQuarterResolution(glowHalfth);
-	auto* glowEigth = mDownSampler->downsampleEigthResolution(glowQuarter);
-	auto* glowSixteenth = mDownSampler->downsampleSixteenthResolution(glowEigth);
-
-	glowHalfth = mGaussianBlur->blurHalfResolution(glowHalfth, mBloomHalfth.get());
-	glowQuarter = mGaussianBlur->blurQuarterResolution(glowQuarter, mBloomQuarter.get());
-	glowEigth = mGaussianBlur->blurEigthResolution(glowEigth, mBloomEigth.get());
-	glowSixteenth = mGaussianBlur->blurSixteenthResolution(glowSixteenth, mBloomSixteenth.get());
-
-	
-	// Post process
-	output->bind();
-	//output->clear(Color | Depth | Stencil);
-	output->clear(Depth);
-	RenderBackend::get()->setViewPort(0, 0, output->getWidth(), output->getHeight());
+	const BloomTextures& bloomTextures)
+{	
 	mPostprocessPass->bind();
 	setPostProcessTexture(source);
-	setGlowTextures(glowHalfth, glowQuarter, glowEigth, glowSixteenth);
+	setGlowTextures(bloomTextures.bloomHalf, bloomTextures.bloomQuarter, bloomTextures.bloomEighth, bloomTextures.bloomSixteenth);
 	setAoMap(aoMap);
 	setMotionMap(motionMap);
 
-	//ocean
-	mPostprocessPass->setDepthMap(depth);
-	mPostprocessPass->setStencilMap(stencil);
-	mPostprocessPass->setOceanHeightMap(oceanHeightMap);
-	mPostprocessPass->setOceanDX(oceanDX);
-	mPostprocessPass->setOceanDZ(oceanDZ);
-	mPostprocessPass->setOceanMinHeightMap(oceanMinHeightMap);
-	mPostprocessPass->setOceanMaxHeightMap(oceanMaxHeightMap);
-	mPostprocessPass->setInverseModelMatrix_Ocean(inverseModelMatrix_Ocean);
-	mPostprocessPass->setInverseViewProjMatrix_GPass(inverseViewProjection_GPass);
-	mPostprocessPass->setOceanTileSize(oceanTileSize);
-	mPostprocessPass->setCameraPosition(cameraPosition);
-
-
 	const auto& state = RenderState::getNoDepthTest();
 	StaticMeshDrawer::drawFullscreenTriangle(state, mPostprocessPass.get());
-	return output->getColorAttachmentTexture(0);
 }
 
 void nex::PostProcessor::antialias(Texture2D * source, RenderTarget * output)
@@ -239,7 +144,7 @@ void nex::PostProcessor::resize(unsigned width, unsigned height)
 {
 	mBloomHalfth = std::make_unique<RenderTarget2D>(width / 2, height / 2, TextureDesc::createRenderTargetRGBAHDR());
 	mBloomQuarter = std::make_unique<RenderTarget2D>(width / 4, height / 4, TextureDesc::createRenderTargetRGBAHDR());
-	mBloomEigth = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureDesc::createRenderTargetRGBAHDR());
+	mBloomEighth = std::make_unique<RenderTarget2D>(width / 8, height / 8, TextureDesc::createRenderTargetRGBAHDR());
 	mBloomSixteenth = std::make_unique<RenderTarget2D>(width / 16, height / 16, TextureDesc::createRenderTargetRGBAHDR());
 
 	// Avoid double resizing of SMAA class.

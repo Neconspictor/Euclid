@@ -13,6 +13,7 @@
 #include "nex/texture/Image.hpp"
 #include "nex/texture/TextureManager.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
+#include <nex/drawing/StaticMeshDrawer.hpp>
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
@@ -940,7 +941,8 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
 	mSimpleShadedPass(std::make_unique<WaterShading>()),
 	mWaterDepthClearPass(std::make_unique<WaterDepthClearPass>()),
-	mWaterDepthPass(std::make_unique<WaterDepthPass>())
+	mWaterDepthPass(std::make_unique<WaterDepthPass>()),
+	mUnderWaterView(std::make_unique<UnderWaterView>())
 {
 	mHeightZeroComputePass->compute();
 	
@@ -1037,6 +1039,32 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	state.depthCompare = CompFunc::LESS;
 
 	RenderBackend::get()->drawWithIndicesInstanced(64, state, Topology::TRIANGLES, mMesh->getIndexBuffer().getCount(), mMesh->getIndexBuffer().getType());
+}
+
+void nex::OceanGPU::drawUnderWaterView(Texture* color, 
+	Texture* waterMinDepth, 
+	Texture* waterMaxDepth, 
+	Texture* depth, 
+	Texture* waterStencil, 
+	const glm::mat4& inverseViewProjMatrix, 
+	const glm::vec3& cameraPos)
+{
+	mUnderWaterView->bind();
+	mUnderWaterView->setColorMap(color);
+	mUnderWaterView->setOceanMinHeightMap(waterMinDepth);
+	mUnderWaterView->setOceanMaxHeightMap(waterMaxDepth);
+	mUnderWaterView->setDepthMap(depth);
+	mUnderWaterView->setStencilMap(waterStencil);
+	mUnderWaterView->setCameraPosition(cameraPos);
+	mUnderWaterView->setInverseViewProjMatrix_GPass(inverseViewProjMatrix);
+
+	mUnderWaterView->setOceanDX(mHeightComputePass->getDx());
+	mUnderWaterView->setOceanDZ(mHeightComputePass->getDz());
+	mUnderWaterView->setOceanHeightMap(mHeightComputePass->getHeight());
+	mUnderWaterView->setInverseModelMatrix_Ocean(inverse(getModelMatrix()));
+	mUnderWaterView->setOceanTileSize(getTileSize());
+
+	StaticMeshDrawer::drawFullscreenTriangle(RenderState::getNoDepthTest(), mUnderWaterView.get());
 }
 
 void nex::OceanGPU::simulate(float t)
@@ -1198,6 +1226,75 @@ void nex::OceanGPU::generateMesh()
 	mMesh->setTopology(Topology::TRIANGLES);
 	mMesh->finalize();
 }
+
+
+nex::OceanGPU::UnderWaterView::UnderWaterView()
+{
+	mShader = nex::Shader::create("screen_space_vs.glsl", "ocean/under_water_view_fs.glsl");
+
+	mColorMap = mShader->createTextureUniform("colorMap", UniformType::TEXTURE2D, 0);
+	mOceanHeightMap = mShader->createTextureUniform("oceanHeightMap", UniformType::TEXTURE2D, 1);
+	mDepthMap = mShader->createTextureUniform("depthMap", UniformType::TEXTURE2D, 2);
+	mStencilMap = mShader->createTextureUniform("stencilMap", UniformType::TEXTURE2D, 3);
+	//mOceanDX = mShader->createTextureUniform("oceanDX", UniformType::TEXTURE2D, 4);
+	//mOceanDZ = mShader->createTextureUniform("oceanDZ", UniformType::TEXTURE2D, 5);
+	mOceanMinHeightMap = mShader->createTextureUniform("oceanMinHeightMap", UniformType::TEXTURE1D, 4);
+	mOceanMaxHeightMap = mShader->createTextureUniform("oceanMaxHeightMap", UniformType::TEXTURE1D, 5);
+	mInverseViewProjMatrix_GPass = { mShader->getUniformLocation("inverseViewProjMatrix_GPass"), UniformType::MAT4 };
+	mInverseModelMatrix_Ocean = { mShader->getUniformLocation("inverseModelMatrix_Ocean"), UniformType::MAT4 };
+	mOceanTileSize = { mShader->getUniformLocation("oceanTileSize"), UniformType::FLOAT };
+	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+}
+
+void nex::OceanGPU::UnderWaterView::setColorMap(Texture* texture)
+{
+	mShader->setTexture(texture, Sampler::getPoint(), mColorMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setInverseViewProjMatrix_GPass(const glm::mat4& mat) {
+	mShader->setMat4(mInverseViewProjMatrix_GPass.location, mat);
+}
+
+void nex::OceanGPU::UnderWaterView::setInverseModelMatrix_Ocean(const glm::mat4& mat) {
+	mShader->setMat4(mInverseModelMatrix_Ocean.location, mat);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanTileSize(float tileSize) {
+	mShader->setFloat(mOceanTileSize.location, tileSize);
+}
+
+void nex::OceanGPU::UnderWaterView::setDepthMap(Texture* texture) {
+	mShader->setTexture(texture, Sampler::getPoint(), mDepthMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanHeightMap(Texture* texture) {
+	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanHeightMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanDX(Texture* texture) {
+	//mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanDX.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanDZ(Texture* texture) {
+	//mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanDZ.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanMinHeightMap(Texture* texture) {
+	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanMinHeightMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setOceanMaxHeightMap(Texture* texture) {
+	mShader->setTexture(texture, Sampler::getLinearRepeat(), mOceanMaxHeightMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setStencilMap(Texture* texture) {
+	mShader->setTexture(texture, Sampler::getPoint(), mStencilMap.bindingSlot);
+}
+
+void nex::OceanGPU::UnderWaterView::setCameraPosition(const glm::vec3& pos) {
+	mShader->setVec3(mCameraPosition.location, pos);
+}
+
 
 
 nex::OceanGPU::WaterDepthClearPass::WaterDepthClearPass() :

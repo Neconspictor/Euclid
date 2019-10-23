@@ -286,8 +286,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
 		mPingPong->bind();
 		mPingPong->enableDrawToColorAttachment(1, true);
-		mPingPong->clear(RenderComponent::Color | RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
+		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
+		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth);
 
 		Texture* color = mOutRT->getColorAttachmentTexture(0);
 		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
@@ -308,10 +308,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		mOcean.computeWaterDepths(mWaterMinDepth.get(), 
 			mWaterMaxDepth.get(),
 			depthTex, mPingPongStencilView.get(), invViewProj);
-	}
 
-
-	if (true) {
 		//blit ocean into
 		mOutRT->bind();
 		mOutRT->enableDrawToColorAttachment(0, true);
@@ -330,26 +327,36 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 		stencilTest->enableStencilTest(true);
 		mOutRT->clear(RenderComponent::Stencil);
-		lib->getBlit()->blitStencil(mPingPong->getColorAttachmentTexture(0),
+		lib->getBlit()->blitDepthStencilLuma(mPingPong->getColorAttachmentTexture(0),
 			mPingPong->getColorAttachmentTexture(1),
 			mPingPong->getDepthAttachment()->texture.get(),
 			mPingPongStencilView.get(),
 			state);
 
 		stencilTest->enableStencilTest(false);
+
+
+		mPingPong->bind();
+		mPingPong->enableDrawToColorAttachment(1, false);
+
+
+		mOcean.drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
+			mWaterMinDepth.get(),
+			mWaterMaxDepth.get(),
+			mOutRT->getDepthAttachment()->texture.get(),
+			mOutStencilView.get(),
+			invViewProj,
+			camera.getPosition());
+
+
+		mOutRT->bind();
+		lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0),
+			RenderState::getNoDepthTest());
+
+
 		//mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, true);
 		//mOutRT->enableDrawToColorAttachment(3, true);
-	}
-
-	if (false) {
-		// After sky we render transparent objects
-		mOutRT->bind();
-		mPbrTechnique->useForward();
-		auto* forward = mPbrTechnique->getForward();
-		forward->configurePass(constants);
-		forward->updateLight(sun, camera);
-		StaticMeshDrawer::draw(queue.getTransparentCommands());
 	}
 	
 
@@ -381,22 +388,18 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	if (postProcess) {
 
-		outputTexture = (Texture2D*)postProcessor->doPostProcessing(colorTex, 
-			luminanceTexture, 
-			aoMap, 
+		auto bloomTextures = postProcessor->computeBloom(colorTex, luminanceTexture);
+
+		mPingPong->bind();
+		RenderBackend::get()->setViewPort(0, 0, mPingPong->getWidth(), mPingPong->getHeight());
+
+		postProcessor->doPostProcessing(colorTex,
+			luminanceTexture,
+			aoMap,
 			motionTexture,
-			depthTexture,
-			mOutStencilView.get(),
-			mOcean.getHeightMap(),
-			mOcean.getDX(),
-			mOcean.getDZ(),
-			mWaterMinDepth.get(),
-			mWaterMaxDepth.get(),
-			mOcean.getTileSize(),
-			inverse(mOcean.getModelMatrix()),
-			invViewProj,
-			camera.getPosition(),
-			mPingPong.get()); //mPbrMrt->getMotion()
+			bloomTextures);
+
+		outputTexture = (Texture2D*)mPingPong->getColorAttachmentTexture(0);
 	}
 
 	if (true) {

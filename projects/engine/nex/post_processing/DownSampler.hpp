@@ -20,7 +20,7 @@ namespace nex {
 
 		Texture2D* downsampleQuarterResolution(Texture2D* src);
 
-		Texture2D* downsampleEigthResolution(Texture2D* src);
+		Texture2D* downsampleEighthResolution(Texture2D* src);
 
 		Texture2D* downsampleSixteenthResolution(Texture2D* src);
 

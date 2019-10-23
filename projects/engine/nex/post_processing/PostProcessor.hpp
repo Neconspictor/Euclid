@@ -19,6 +19,14 @@ namespace nex
 	class PostProcessor {
 	public:
 
+		struct BloomTextures 
+		{
+			Texture* bloomHalf;
+			Texture* bloomQuarter;
+			Texture* bloomEighth;
+			Texture* bloomSixteenth;
+		};
+
 		/**
 		 * Creates a new post processor.
 		 * @param width : The screen width
@@ -31,29 +39,22 @@ namespace nex
 		// Don't allow inlined destructor for Pimpl 
 		~PostProcessor();
 
+
+		BloomTextures computeBloom(Texture2D* source,
+			Texture2D* bloomTexture);
+
 		/**
 		 * Does post processing. The result is rendered into the given render target.
 		 * @param source : The texture to use as a source for the post processing
 		 * @param glowTexture : Used for Bloom
 		 * @param output : The render target that will be used to store the result of the post processing.
 		 */
-		nex::Texture* doPostProcessing(
+		void doPostProcessing(
 			Texture2D* source, 
 			Texture2D* glowTexture,
 			Texture2D* aoMap,
 			Texture2D* motionMap,
-			Texture* depth,
-			Texture* stencil,
-			Texture* oceanHeightMap,
-			Texture* oceanDX,
-			Texture* oceanDZ,
-			Texture* oceanMinHeightMap,
-			Texture* oceanMaxHeightMap,
-			float oceanTileSize,
-			const glm::mat4& inverseModelMatrix_Ocean,
-			const glm::mat4& inverseViewProjection_GPass,
-			const glm::vec3& cameraPosition,
-			RenderTarget* output);
+			const BloomTextures& bloomTextures);
 
 		void antialias(Texture2D* source, RenderTarget* output);
 
@@ -93,7 +94,7 @@ namespace nex
 		//Bloom
 		std::unique_ptr<RenderTarget2D> mBloomHalfth;
 		std::unique_ptr<RenderTarget2D> mBloomQuarter;
-		std::unique_ptr<RenderTarget2D> mBloomEigth;
+		std::unique_ptr<RenderTarget2D> mBloomEighth;
 		std::unique_ptr<RenderTarget2D> mBloomSixteenth;
 		std::unique_ptr<SMAA> mSmaa;
 		std::unique_ptr<FXAA> mFxaa;

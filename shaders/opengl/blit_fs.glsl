@@ -1,16 +1,31 @@
 #version 330 core
 
+#ifndef USE_LUMINANCE
+#define USE_LUMINANCE 0
+#endif
+
+#ifndef USE_DEPTH
+#define USE_DEPTH 0
+#endif
+
+#ifndef USE_STENCIL_TEST
+#define USE_STENCIL_TEST 0
+#endif
+
 in VS_OUT {
     vec2 texCoord;
 } fs_in;
 
 layout(binding = 0) uniform sampler2D colorMap;
-layout(binding = 1) uniform sampler2D luminanceMap;
-layout(binding = 2) uniform sampler2D depthMap;
 
-#ifndef USE_STENCIL_TEST
-#define USE_STENCIL_TEST 0
+#if USE_LUMINANCE
+layout(binding = 1) uniform sampler2D luminanceMap;
 #endif
+
+#if USE_DEPTH
+layout(binding = 2) uniform sampler2D depthMap;
+#endif
+
 
 #if USE_STENCIL_TEST
 layout(binding = 3) uniform usampler2D stencilMap;
@@ -33,7 +48,12 @@ void main()
     #endif
 
     fragColor = texture(colorMap, fs_in.texCoord);
-    luminance = texture(luminanceMap, fs_in.texCoord);
     
-    gl_FragDepth = texture(depthMap, fs_in.texCoord).r;
+    #if USE_LUMINANCE
+        luminance = texture(luminanceMap, fs_in.texCoord);
+    #endif
+    
+    #if USE_DEPTH
+        gl_FragDepth = texture(depthMap, fs_in.texCoord).r;
+    #endif
 }
