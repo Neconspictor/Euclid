@@ -277,11 +277,16 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
 
-	bool ocean = true;
+	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
+	bool ocean = true && globalIllumination;
 	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
 	underwater = false;
-
+	
 	if (ocean) {
+
+		auto* activeIrradiance = mIrradianceAmbientReflectionRT[mActiveIrradianceRT].get();
+		
+
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
@@ -294,6 +299,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
 		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
 
+
+		auto* irradiance = activeIrradiance->getColorAttachmentTexture(0);
 		
 		mOcean.draw(camera.getProjectionMatrix(), 
 			camera.getView(), 
@@ -302,7 +309,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			mCascadedShadow,
 			color, 
 			luminance, 
-			depth);
+			depth,
+			irradiance,
+			globalIllumination);
 		mPingPong->enableDrawToColorAttachment(1, false);
 		stencilTest->enableStencilTest(false);
 
@@ -455,6 +464,8 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	
 
 	depthTest->enableDepthBufferWriting(true);
+
+	mActiveIrradianceRT = !mActiveIrradianceRT;
 }
 
 void nex::PBR_Deferred_Renderer::setShowDepthMap(bool showDepthMap)
@@ -855,8 +866,6 @@ void nex::PBR_Deferred_Renderer::renderDeferred(const RenderCommandQueue& queue,
 	StaticMeshDrawer::draw(queue.getProbeCommands());
 
 	stencilTest->setCompareFunc(CompFunc::EQUAL, 1, 1);
-
-	mActiveIrradianceRT = !mActiveIrradianceRT;
 }
 
 void nex::PBR_Deferred_Renderer::renderForward(const RenderCommandQueue& queue,

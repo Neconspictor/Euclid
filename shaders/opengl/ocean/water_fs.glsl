@@ -8,9 +8,11 @@
 #define CSM_CASCADE_DEPTH_MAP_BINDING_POINT 8
 #endif
 
+const float PI = 3.14159265359;
 
 in VS_OUT {
     vec3 normal;
+    vec3 normalWorld;
     vec3 positionView;
     vec3 positionWorld;
     vec4 positionCS;
@@ -29,11 +31,36 @@ layout(binding = 6) uniform sampler2D luminanceMap;
 layout(binding = 7) uniform sampler2D depthMap;
 //layout(binding = 7) uniform sampler2D reflectionMap;
 
+
 uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
 uniform mat4 inverseViewProjMatrix;
 
 #include "shadow/cascaded_shadow.glsl"
+
+layout(binding = 9) uniform sampler2D irradianceMap;
+
+/**
+ * Cone tracing
+ */
+layout(std140, binding = 0) uniform Cbuffer {
+    float       g_xFrame_VoxelRadianceDataSize;				// voxel half-extent in world space units
+	float       g_xFrame_VoxelRadianceDataSize_rcp;			// 1.0 / voxel-half extent
+    uint		g_xFrame_VoxelRadianceDataRes;				// voxel grid resolution
+	float		g_xFrame_VoxelRadianceDataRes_rcp;			// 1.0 / voxel grid resolution
+    
+    uint		g_xFrame_VoxelRadianceDataMIPs;				// voxel grid mipmap count
+	uint		g_xFrame_VoxelRadianceNumCones;				// number of diffuse cones to trace
+	float		g_xFrame_VoxelRadianceNumCones_rcp;			// 1.0 / number of diffuse cones to trace
+	float		g_xFrame_VoxelRadianceRayStepSize;			// raymarch step size in voxel space units
+    
+    vec4		g_xFrame_VoxelRadianceDataCenter;			// center of the voxel grid in world space units
+	uint		g_xFrame_VoxelRadianceReflectionsEnabled;	// are voxel gi reflections enabled or not   
+};
+
+layout(binding = 10) uniform sampler3D voxelTexture;
+
+#include "GI/cone_trace.glsl"
 
 
 float getLuma(in vec3 rgb) {
@@ -98,7 +125,8 @@ void main() {
     float angle = max(dot(normal, lightDir), 0.0);
     float fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
     const float refractionRatio = 1.0 / 1.3;
-    vec4 murkColor = calcAmbientColor(normal, halfway, angle); // vec4(0.0, 0.0, 1.0, 1.0);
+     // vec4(0.0, 0.0, 1.0, 1.0);
+    
   
     // uvs
     vec2 uv = vs_out.positionCS.xy / vs_out.positionCS.w;
@@ -111,18 +139,40 @@ void main() {
     refractionUV = clamp(refractionUV, 0.0, 1.0);
     
     
+    
+    
+ 
+    
+    
+    //water depths;
+    float refractionDepth = texture(depthMap, uv).r;
+    float waterHeightDepth = gl_FragCoord.z;
+    
+    
+    //positions
+    vec3 positionWorld = computeWorldPositionFromDepth(uv, waterHeightDepth);
+    vec3 refractionPositionWorld = computeWorldPositionFromDepth(refractionUV, refractionDepth);
+    vec3 testWorld = vec3(refractionPositionWorld.x,positionWorld.y , refractionPositionWorld.z);
+    
+    //y coords
+    float refractionY = refractionPositionWorld.y;
+    float waterY = positionWorld.y;
+    
     // colors
     vec3 nonRefractedColor = texture(colorMap, uv).rgb;
     vec4 refractionColor = texture(colorMap, refractionUV);
+    vec4 irradianceColor = texture(irradianceMap, uv);
     
-    //water depths;
-    float refractionDepth = texture(depthMap, refractionUV).r;
-    float waterHeightDepth = gl_FragCoord.z;
-    float refractionY = computeWorldPositionFromDepth(refractionUV, refractionDepth).y;
-    float waterY = computeWorldPositionFromDepth(uv, waterHeightDepth).y;
+    vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, vs_out.normalWorld);
+    vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
+    
+    float irradianceLuma = 10.0 * getLuma(irradiance.rgb);
     
     //calculate murkiness
     float murk = calcMurkiness(waterY, refractionY, 3.0);
+    float murkLit = max(fragmentLitProportion, irradianceLuma);
+    vec4 ambient = calcAmbientColor(normal, halfway, angle);
+    vec4 murkColor = fragmentLitProportion * ambient;
     
   
   
@@ -134,12 +184,8 @@ void main() {
     fragColor.a = 1.0;
     fragColor = mix(fragColor, vec4(1.0, 1.0, 1.0, fragColor.a), 0.1);
     fragColor.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
-
     
-    fragmentLitProportion = max(fragmentLitProportion, 0.01);
-    
-    fragColor.rgb = mix(fragColor.rgb, murkColor.rgb, murk);
-    
+    fragColor.rgb = mix(fragColor.rgb, murkColor.rgb, murk) + irradiance;
     
       
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);

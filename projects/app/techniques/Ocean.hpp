@@ -11,6 +11,7 @@ namespace nex
 	class Texture;
 	class Texture2D;
 	class CascadedShadow;
+	class GlobalIllumination;
 
 	class Iterator2D
 	{
@@ -338,7 +339,9 @@ namespace nex
 			CascadedShadow* cascadedShadow,
 			Texture* color, 
 			Texture* luminance, 
-			Texture* depth);
+			Texture* depth,
+			Texture* irradiance,
+			GlobalIllumination* gi);
 
 		void drawUnderWaterView(
 			Texture* color, 
@@ -638,6 +641,8 @@ namespace nex
 				Texture* color, 
 				Texture* luminance,
 				Texture* depth,
+				Texture* irradiance,
+				nex::GlobalIllumination* gi,
 				const glm::vec2& windDir,
 				float time);
 
@@ -658,7 +663,8 @@ namespace nex
 			UniformTex luminanceUniform;
 			UniformTex depthUniform;
 			UniformTex cascadedDepthMap;
-
+			UniformTex mIrradiance;
+			UniformTex mVoxelTexture;
 
 			Sampler sampler;
 		};

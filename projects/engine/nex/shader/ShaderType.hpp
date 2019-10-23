@@ -18,6 +18,7 @@ namespace nex
 		TEXTURE1D,
 		TEXTURE2D,
 		TEXTURE2D_ARRAY,
+		TEXTURE3D,
 		UINT,
 		UVEC2,
 		UVEC3,

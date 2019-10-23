@@ -14,6 +14,7 @@
 #include "nex/texture/TextureManager.hpp"
 #include <nex/shadow/CascadedShadow.hpp>
 #include <nex/drawing/StaticMeshDrawer.hpp>
+#include <nex/pbr/GlobalIllumination.hpp>
 
 nex::Iterator2D::Iterator2D(std::vector<nex::Complex>& vec,
 	const PrimitiveMode mode,
@@ -998,7 +999,9 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	nex::CascadedShadow* cascadedShadow,
 	nex::Texture* color, 
 	nex::Texture* luminance, 
-	nex::Texture* depth)
+	nex::Texture* depth,
+	nex::Texture* irradiance,
+	GlobalIllumination* gi)
 {
 	mSimpleShadedPass->bind();
 	
@@ -1018,6 +1021,8 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		color,
 		luminance, 
 		depth,
+		irradiance,
+		gi,
 		mWindDirection,
 		mAnimationTime);
 
@@ -1861,6 +1866,9 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 
 	cascadedDepthMap = mShader->createTextureUniform("cascadedDepthMap", UniformType::TEXTURE2D_ARRAY, 8);
 
+	mIrradiance = mShader->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
+	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
+
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
 	sampler.setWrapR(UVTechnique::Repeat);
@@ -1878,6 +1886,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	Texture* color, 
 	Texture* luminance,
 	Texture* depth,
+	Texture* irradiance,
+	GlobalIllumination* gi,
 	const glm::vec2& windDir,
 	float time)
 {
@@ -1905,7 +1915,11 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setTexture(luminance, &sampler, luminanceUniform.bindingSlot);
 	mShader->setTexture(depth, &sampler, depthUniform.bindingSlot);
 	mShader->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
+	mShader->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
+	mShader->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
+
 	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
+	gi->getVoxelConstants()->bindToTarget(0);
 }
 
 

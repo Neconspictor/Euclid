@@ -8,6 +8,7 @@ layout (location = 4) in vec3 bitangent;*/
 
 out VS_OUT {
     vec3 normal;
+    vec3 normalWorld;
     vec3 positionView;
     vec3 positionWorld;
     vec4 positionCS;
@@ -77,6 +78,7 @@ void main() {
     
     //vs_out.normal = normalize(normalMatrix * normal);
     vs_out.normal = normalize(normalMatrix * mNormal);
+    vs_out.normalWorld = normalize(mat3(inverse(transpose(modelMatrix))) * mNormal); // Note that water isn't rotated normally!
     vs_out.positionView = vec3(modelViewMatrix * mPosition);
     vs_out.positionWorld = vec3(modelMatrix * mPosition);
     vs_out.texCoords = texCoords;
