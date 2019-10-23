@@ -98,7 +98,7 @@ void main() {
     float angle = max(dot(normal, lightDir), 0.0);
     float fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
     const float refractionRatio = 1.0 / 1.3;
-    vec4 murkColor = calcAmbientColor(normal, halfway, angle);
+    vec4 murkColor = calcAmbientColor(normal, halfway, angle); // vec4(0.0, 0.0, 1.0, 1.0);
   
     // uvs
     vec2 uv = vs_out.positionCS.xy / vs_out.positionCS.w;
@@ -107,6 +107,7 @@ void main() {
     refractionUV.y += normal.z * refractionRatio * 0.05;
     //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
     refractionUV= refractionUV.xy / vs_out.positionCS.w;
+    
     refractionUV = clamp(refractionUV, 0.0, 1.0);
     
     
@@ -116,12 +117,12 @@ void main() {
     
     //water depths;
     float refractionDepth = texture(depthMap, refractionUV).r;
-    float waterHeightDepth = gl_FragDepth;
+    float waterHeightDepth = gl_FragCoord.z;
     float refractionY = computeWorldPositionFromDepth(refractionUV, refractionDepth).y;
     float waterY = computeWorldPositionFromDepth(uv, waterHeightDepth).y;
     
     //calculate murkiness
-    float murk = calcMurkiness(waterY, refractionY, 1.0);
+    float murk = calcMurkiness(waterY, refractionY, 3.0);
     
   
   
@@ -129,12 +130,17 @@ void main() {
     float litLuma = clamp(getLuma(refractionColor.rgb), 0.0, 1.0);
     
     // final color output
-    fragColor = mix(fragColor, refractionColor, 1.0);
-    //fragColor.rgb = mix(fragColor.rgb, murkColor.rgb, murk);
-    
-    
+    fragColor = refractionColor;
+    fragColor.a = 1.0;
     fragColor = mix(fragColor, vec4(1.0, 1.0, 1.0, fragColor.a), 0.1);
     fragColor.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
-  
-    luminance = texture(luminanceMap, refractionUV);
+
+    
+    fragmentLitProportion = max(fragmentLitProportion, 0.01);
+    
+    fragColor.rgb = mix(fragColor.rgb, murkColor.rgb, murk);
+    
+    
+      
+    luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }
