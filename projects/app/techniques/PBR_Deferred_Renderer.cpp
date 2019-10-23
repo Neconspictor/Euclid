@@ -262,10 +262,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
-	//check if camera is above or under water
-	bool under = camera.getPosition().y < 3.0f;
-
-	if (false) {
+	if (true) {
 		// After sky we render transparent objects
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
@@ -280,7 +277,11 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	auto invViewProj = inverse(camera.getProjectionMatrix() * camera.getView());
 
-	if (true) {
+	bool ocean = true;
+	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
+
+
+	if (ocean) {
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
 		stencilTest->setOperations(StencilTest::Operation::KEEP, StencilTest::Operation::KEEP, StencilTest::Operation::REPLACE);
@@ -305,9 +306,12 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		auto* depthTex = mPingPong->getDepthAttachment()->texture.get();
 
 		//
-		mOcean.computeWaterDepths(mWaterMinDepth.get(), 
-			mWaterMaxDepth.get(),
-			depthTex, mPingPongStencilView.get(), invViewProj);
+		if (underwater) {
+			mOcean.computeWaterDepths(mWaterMinDepth.get(),
+				mWaterMaxDepth.get(),
+				depthTex, mPingPongStencilView.get(), invViewProj);
+		}
+		
 
 		//blit ocean into
 		mOutRT->bind();
@@ -336,23 +340,24 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		stencilTest->enableStencilTest(false);
 
 
-		mPingPong->bind();
-		mPingPong->enableDrawToColorAttachment(1, false);
+		if (underwater) {
+			mPingPong->bind();
+			mPingPong->enableDrawToColorAttachment(1, false);
 
 
-		mOcean.drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
-			mWaterMinDepth.get(),
-			mWaterMaxDepth.get(),
-			mOutRT->getDepthAttachment()->texture.get(),
-			mOutStencilView.get(),
-			invViewProj,
-			camera.getPosition());
+			mOcean.drawUnderWaterView(mOutRT->getColorAttachmentTexture(0),
+				mWaterMinDepth.get(),
+				mWaterMaxDepth.get(),
+				mOutRT->getDepthAttachment()->texture.get(),
+				mOutStencilView.get(),
+				invViewProj,
+				camera.getPosition());
 
 
-		mOutRT->bind();
-		lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0),
-			RenderState::getNoDepthTest());
-
+			mOutRT->bind();
+			lib->getBlit()->blit(mPingPong->getColorAttachmentTexture(0),
+				RenderState::getNoDepthTest());
+		}
 
 		//mOutRT->enableDrawToColorAttachment(1, true);
 		//mOutRT->enableDrawToColorAttachment(2, true);
