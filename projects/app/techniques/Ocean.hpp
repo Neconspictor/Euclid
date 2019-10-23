@@ -333,6 +333,7 @@ namespace nex
 		 */
 		void draw(const glm::mat4& projection, 
 			const glm::mat4& view, 
+			const glm::mat4& inverseViewProjMatrix,
 			const glm::vec3& lightDir, 
 			CascadedShadow* cascadedShadow,
 			Texture* color, 
@@ -626,8 +627,11 @@ namespace nex
 		public:
 			WaterShading();
 
-			void setUniforms(const glm::mat4& projection, const glm::mat4& view, 
-				const glm::mat4& trafo, const glm::vec3& lightDir, 
+			void setUniforms(const glm::mat4& projection, 
+				const glm::mat4& view, 
+				const glm::mat4& trafo, 
+				const glm::mat4& inverseViewProjMatrix,
+				const glm::vec3& lightDir, 
 				nex::CascadedShadow* cascadedShadow,
 				Texture2D* height,
 				Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
@@ -644,6 +648,7 @@ namespace nex
 			Uniform normalMatrixUniform;
 			Uniform windDirection;
 			Uniform animationTime;
+			Uniform mInverseViewProjMatrix;
 			UniformTex heightUniform;
 			UniformTex slopeXUniform;
 			UniformTex slopeZUniform;
@@ -653,6 +658,7 @@ namespace nex
 			UniformTex luminanceUniform;
 			UniformTex depthUniform;
 			UniformTex cascadedDepthMap;
+
 
 			Sampler sampler;
 		};

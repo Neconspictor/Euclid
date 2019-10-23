@@ -262,7 +262,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	renderSky(constants, sun);
 	stencilTest->enableStencilTest(false);
 
-	if (true) {
+	if (false) {
 		// After sky we render transparent objects
 		stencilTest->enableStencilTest(true);
 		stencilTest->setCompareFunc(CompFunc::ALWAYS, 1, 0xFF);
@@ -279,7 +279,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 
 	bool ocean = true;
 	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
-
+	underwater = false;
 
 	if (ocean) {
 		stencilTest->enableStencilTest(true);
@@ -288,14 +288,17 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		mPingPong->bind();
 		mPingPong->enableDrawToColorAttachment(1, true);
 		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth);
+		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
 
 		Texture* color = mOutRT->getColorAttachmentTexture(0);
 		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
 		Texture* depth = mOutRT->getDepthAttachment()->texture.get();
 
 		
-		mOcean.draw(camera.getProjectionMatrix(), camera.getView(), sun.directionWorld, 
+		mOcean.draw(camera.getProjectionMatrix(), 
+			camera.getView(), 
+			invViewProj,
+			sun.directionWorld, 
 			mCascadedShadow,
 			color, 
 			luminance, 

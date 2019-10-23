@@ -993,6 +993,7 @@ void nex::OceanGPU::computeWaterDepths(Texture * waterMinDepth,
 
 void nex::OceanGPU::draw(const glm::mat4& projection, 
 	const glm::mat4& view, 
+	const glm::mat4& inverseViewProjMatrix,
 	const glm::vec3& lightDir, 
 	nex::CascadedShadow* cascadedShadow,
 	nex::Texture* color, 
@@ -1003,7 +1004,11 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	
 	auto model = getModelMatrix();
 
-	mSimpleShadedPass->setUniforms(projection, view, model, lightDir, 
+	mSimpleShadedPass->setUniforms(projection, 
+		view, 
+		model,
+		inverseViewProjMatrix,
+		lightDir, 
 		cascadedShadow,
 		mHeightComputePass->getHeight(),
 		mHeightComputePass->getSlopeX(),
@@ -1835,6 +1840,7 @@ void nex::OceanGPU::NormalizePermutatePass::compute(Texture2D* height, Texture2D
 
 nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_vs.glsl", "ocean/water_fs.glsl"))
 {
+	mInverseViewProjMatrix = { mShader->getUniformLocation("inverseViewProjMatrix"), UniformType::MAT4 };
 	transform = { mShader->getUniformLocation("transform"), UniformType::MAT4 };
 	modelViewUniform = { mShader->getUniformLocation("modelViewMatrix"), UniformType::MAT4 };
 	modelMatrixUniform = { mShader->getUniformLocation("modelMatrix"), UniformType::MAT4 };
@@ -1862,8 +1868,11 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 	sampler.setWrapT(UVTechnique::Repeat);
 }
 
-void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection, const glm::mat4& view, 
-	const glm::mat4& trafo, const glm::vec3& lightDir,
+void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection, 
+	const glm::mat4& view, 
+	const glm::mat4& trafo, 
+	const glm::mat4& inverseViewProjMatrix,
+	const glm::vec3& lightDir,
 	nex::CascadedShadow* cascadedShadow,
 	Texture2D* height, Texture2D* slopeX, Texture2D* slopeZ, Texture2D* dX, Texture2D* dZ,
 	Texture* color, 
@@ -1878,6 +1887,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection, const
 	mShader->setMat4(transform.location, projection * view * trafo);
 	mShader->setMat4(modelViewUniform.location, modelView);
 	mShader->setMat4(modelMatrixUniform.location, trafo);
+	mShader->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
 	mShader->setVec2(windDirection.location, windDir);
 	mShader->setFloat(animationTime.location, time);
 
