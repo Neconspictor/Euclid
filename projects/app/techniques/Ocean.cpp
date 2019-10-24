@@ -1001,7 +1001,8 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 	nex::Texture* luminance, 
 	nex::Texture* depth,
 	nex::Texture* irradiance,
-	GlobalIllumination* gi)
+	GlobalIllumination* gi,
+	const glm::vec3& cameraPosition)
 {
 	mSimpleShadedPass->bind();
 	
@@ -1023,6 +1024,7 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		depth,
 		irradiance,
 		gi,
+		cameraPosition,
 		mWindDirection,
 		mAnimationTime);
 
@@ -1869,6 +1871,8 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 	mIrradiance = mShader->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
 	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
 
+	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
 	sampler.setWrapR(UVTechnique::Repeat);
@@ -1888,6 +1892,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	Texture* depth,
 	Texture* irradiance,
 	GlobalIllumination* gi,
+	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
 	float time)
 {
@@ -1900,7 +1905,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
 	mShader->setVec2(windDirection.location, windDir);
 	mShader->setFloat(animationTime.location, time);
-
+	mShader->setVec3(mCameraPosition.location, cameraPosition);
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));

@@ -327,9 +327,9 @@ void NeXEngine::run()
 			mGui->newFrame(frameTime);
 
 			//update jitter for next frame
-			taa->advanceJitter();
-			mCamera->setJitter(taa->getJitterMatrix());
-			mCamera->setJitterVec(taa->getJitterVec());
+			//taa->advanceJitter();
+			//mCamera->setJitter(taa->getJitterMatrix());
+			//mCamera->setJitterVec(taa->getJitterVec());
 			mControllerSM->frameUpdate(frameTime);
 			mCamera->update();
 

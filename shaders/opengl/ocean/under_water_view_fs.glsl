@@ -122,7 +122,7 @@ void main() {
     bool compare6 = maxOceanHeight > fs_in.texCoord.y && (minOceanHeight < fs_in.texCoord.y);
     bool compare7 = worldPosition.y < 3.0;
     bool compare8 = oceanHeight > oceanPosition.y;
-    bool compare9 = cameraPosition.y < 3.0; //&& !underWater;
+    bool compare9 = cameraPosition.y < 3.1; //&& !underWater;
    
     // Is fragment below water?
     if (oceanStencil == 0 && (compare1 || compare9) && (cameraPosition.y < 4.0)) //|| coordCompare2 && underWater 
@@ -143,7 +143,7 @@ void main() {
         float litLuma = clamp(getLuma(color.rgb), 0.0, 1.0);
         //color = mix(color, vec4(0.5, 0.7, 1.0, color.a), 0.1);
         //color.rgb *= litLuma * vec3(0.5, 0.7, 1.0);
-        color = mix(color, vec4(1.0, 1.0, 1.0, color.a), 0.1);
+        color = mix(color, vec4(0.3, 0.5, 0.7, color.a), 0.5);
         color.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
         //color.rgb *= litLuma;
     } else {

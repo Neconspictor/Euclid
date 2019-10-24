@@ -35,6 +35,7 @@ layout(binding = 7) uniform sampler2D depthMap;
 uniform vec3 lightDirViewSpace;
 uniform mat3 normalMatrix;
 uniform mat4 inverseViewProjMatrix;
+uniform vec3 cameraPosition;
 
 #include "shadow/cascaded_shadow.glsl"
 
@@ -136,7 +137,7 @@ void main() {
     //refractionUV.xy = clamp(refractionUV.xy, 0.0, 1.0);
     refractionUV= refractionUV.xy / vs_out.positionCS.w;
     
-    refractionUV = clamp(refractionUV, 0.0, 1.0);
+    refractionUV = clamp(refractionUV, 0.001, 0.999);
     
     
     
@@ -150,7 +151,7 @@ void main() {
     
     
     //positions
-    vec3 positionWorld = computeWorldPositionFromDepth(uv, waterHeightDepth);
+    vec3 positionWorld = computeWorldPositionFromDepth(refractionUV, waterHeightDepth);
     vec3 refractionPositionWorld = computeWorldPositionFromDepth(refractionUV, refractionDepth);
     vec3 testWorld = vec3(refractionPositionWorld.x,positionWorld.y , refractionPositionWorld.z);
     
@@ -166,13 +167,13 @@ void main() {
     vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, vs_out.normalWorld);
     vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     
-    float irradianceLuma = 10.0 * getLuma(irradiance.rgb);
+    float irradianceLuma = 2.0 * getLuma(irradiance.rgb);
     
     //calculate murkiness
-    float murk = calcMurkiness(waterY, refractionY, 3.0);
+    float murk = calcMurkiness(waterY, refractionY, 2.0);
     float murkLit = max(fragmentLitProportion, irradianceLuma);
     vec4 ambient = calcAmbientColor(normal, halfway, angle);
-    vec4 murkColor = fragmentLitProportion * ambient;
+    vec4 murkColor = ambient;
     
   
   
@@ -183,10 +184,30 @@ void main() {
     fragColor = refractionColor;
     fragColor.a = 1.0;
     fragColor = mix(fragColor, vec4(1.0, 1.0, 1.0, fragColor.a), 0.1);
-    fragColor.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
+    //fragColor.rgb *= litLuma * vec3(1.0, 0.9, 0.7);
     
-    fragColor.rgb = mix(fragColor.rgb, murkColor.rgb, murk) + irradiance;
     
+    fragColor.rgb = mix(litLuma * refractionColor.rgb, murkColor.rgb, murk);
+    //fragColor.rgb = max(fragmentLitProportion, irradianceLuma) * mix(fragColor.rgb, murkColor.rgb, murk);
+    
+    
+    // realsitic water 
+    vec3 extinction = vec3(4.5, 75.0, 300.0);
+    float D = waterY - refractionY;
+    float A = length(vs_out.positionWorld - refractionPositionWorld) / 9.0;
+    A = 0.001;
+    vec3 surfaceColor = vec3(1.0, 1.0, 1.0);//ambient.rgb;//vec3(1.0, 1.0, 1.0);
+    vec3 bigDepthColor = vec3(0.0, 0.0, 0.0);
+    vec3 testCameraPosition = vec3(0, 12.9, -0.5);
+    float distanceToCamera = length(positionWorld - testCameraPosition); 
+    //distanceToCamera = 9;
+    float visibility = (10.0 - distanceToCamera) / 10.0; // lesser for positions farer away from camera  1 / distanceToCamera
+    visibility = clamp(pow(visibility, 0.5), 0, 1);
+
+    vec3 waterColor = mix(refractionColor.rgb, surfaceColor, clamp( A / visibility, 0.0, 1.0));
+    waterColor = mix(waterColor, bigDepthColor, clamp(D / extinction, 0.0, 1.0));
+    
+    fragColor = vec4(waterColor, 1.0);
       
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }

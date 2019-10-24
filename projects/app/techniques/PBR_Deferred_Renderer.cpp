@@ -72,7 +72,7 @@ nex::PBR_Deferred_Renderer::PBR_Deferred_Renderer(
 		3.0f, // water height
 		0.4, //spectrumScale
 		glm::vec2(0.0f, 1.0f), //windDirection
-		32.0, //windSpeed
+		12.0, //windSpeed
 		10000.0f //periodTime
 	),
 	mAntialiasIrradiance(true),
@@ -280,7 +280,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 	auto* globalIllumination = mPbrTechnique->getDeferred()->getGlobalIllumination();
 	bool ocean = true && globalIllumination;
 	bool underwater = (camera.getPosition().y - 1) < mOcean.getWaterHeight();
-	underwater = false;
+	//underwater = false;
 	
 	if (ocean) {
 
@@ -293,7 +293,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		mPingPong->bind();
 		mPingPong->enableDrawToColorAttachment(1, true);
 		mPingPong->clear(RenderComponent::Stencil); // | RenderComponent::Depth
-		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Depth);
+		mOutRT->blit(mPingPong.get(), { 0,0,windowWidth, windowHeight }, RenderComponent::Color | RenderComponent::Depth);
 
 		Texture* color = mOutRT->getColorAttachmentTexture(0);
 		Texture* luminance = mOutRT->getColorAttachmentTexture(1);
@@ -311,7 +311,9 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 			luminance, 
 			depth,
 			irradiance,
-			globalIllumination);
+			globalIllumination,
+			camera.getPosition());
+
 		mPingPong->enableDrawToColorAttachment(1, false);
 		stencilTest->enableStencilTest(false);
 
@@ -428,7 +430,7 @@ void nex::PBR_Deferred_Renderer::render(const RenderCommandQueue& queue,
 		postProcessor->getFXAA()->antialias(outputTexture, true);
 	}
 
-	if (true) {
+	if (false) {
 
 		
 

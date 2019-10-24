@@ -341,7 +341,8 @@ namespace nex
 			Texture* luminance, 
 			Texture* depth,
 			Texture* irradiance,
-			GlobalIllumination* gi);
+			GlobalIllumination* gi,
+			const glm::vec3& cameraPosition);
 
 		void drawUnderWaterView(
 			Texture* color, 
@@ -643,6 +644,7 @@ namespace nex
 				Texture* depth,
 				Texture* irradiance,
 				nex::GlobalIllumination* gi,
+				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
 				float time);
 
@@ -665,6 +667,7 @@ namespace nex
 			UniformTex cascadedDepthMap;
 			UniformTex mIrradiance;
 			UniformTex mVoxelTexture;
+			Uniform mCameraPosition;
 
 			Sampler sampler;
 		};
