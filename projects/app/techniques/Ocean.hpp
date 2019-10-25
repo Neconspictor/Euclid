@@ -646,7 +646,8 @@ namespace nex
 				nex::GlobalIllumination* gi,
 				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
-				float time);
+				float time,
+				float tileSize);
 
 			Uniform transform;
 			Uniform modelMatrixUniform;
@@ -655,6 +656,7 @@ namespace nex
 			Uniform normalMatrixUniform;
 			Uniform windDirection;
 			Uniform animationTime;
+			Uniform mTileSize;
 			Uniform mInverseViewProjMatrix;
 			UniformTex heightUniform;
 			UniformTex slopeXUniform;

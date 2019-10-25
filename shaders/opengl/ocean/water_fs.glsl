@@ -14,6 +14,7 @@ in VS_OUT {
     vec3 normal;
     vec3 normalWorld;
     vec3 positionView;
+    vec3 waterSurfaceZeroView;
     vec3 positionWorld;
     vec4 positionCS;
     vec2 texCoords;
@@ -29,6 +30,7 @@ layout(location = 1)out vec4 luminance;
 layout(binding = 5) uniform sampler2D colorMap;
 layout(binding = 6) uniform sampler2D luminanceMap;
 layout(binding = 7) uniform sampler2D depthMap;
+
 //layout(binding = 7) uniform sampler2D reflectionMap;
 
 
@@ -37,9 +39,14 @@ uniform mat3 normalMatrix;
 uniform mat4 inverseViewProjMatrix;
 uniform vec3 cameraPosition;
 
+uniform vec2 windDirection;
+uniform float animationTime;
+
 #include "shadow/cascaded_shadow.glsl"
 
 layout(binding = 9) uniform sampler2D irradianceMap;
+
+layout(binding = 10) uniform sampler2D foamMap;
 
 /**
  * Cone tracing
@@ -119,24 +126,45 @@ float calcMurkiness(in float waterY, in float groundY, in float maxY) {
 
 float calcSpecular(in vec3 eyeVecNorm, in vec3 normal, in vec3 lightDir, float shininess, float fresnel) 
 {
-    /*vec3 mirrorEye = (2.0 * dot(eyeVecNorm, normal) * normal - eyeVecNorm);
+    vec3 mirrorEye = (2.0 * dot(eyeVecNorm, normal) * normal - eyeVecNorm);
     float dotSpec = clamp(dot(mirrorEye.xyz, -lightDir) * 0.5 + 0.5, 0, 1);
     float specular = (1.0 - fresnel) * clamp(-lightDir.y, 0, 1) * ((pow(dotSpec, 512.0)) * (shininess * 1.8 + 0.2));
     specular += specular * 25 * clamp(shininess - 0.05, 0, 1);
     
-    return specular;*/
+    return specular;
     
-    vec3 halfway = normalize(-lightDir + eyeVecNorm);
+    /*vec3 halfway = normalize(-lightDir + eyeVecNorm);
     float angle = max(dot(normal, -lightDir), 0.0);
-    float specular_contribution = 1.80 * 10;
+    float specular_contribution = 1.80;
     bool facing = angle > 0.0;
-    return facing ? specular_contribution * max(pow(dot(normal, halfway), 128.0), 0.0) : 0.0;
+    return facing ? specular_contribution * max(pow(dot(normal, halfway), 512.0), 0.0) : 0.0;
+    */
 }
 
-float calcDiffuse(float angle) 
-{
-    float diffuse_contribution  = 0.3;
-    return diffuse_contribution * angle;
+float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld) {
+
+    // Describes at what depth foam starts to fade out and
+    // at what it is completely invisible. The fird value is at
+    // what height foam for waves appear (+ waterLevel).
+    const vec3 foamExistence = vec3(0.65, 1.35, 0.5);
+    
+    const float diffY = waterPositionWorld.y - groundPositionWorld.y;
+    
+    float foam = 0.0;
+    
+    /*if (diffY < foamExistence.x) {
+        foam = (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 0.5;
+    } else if (diffY < foamExistence.y) {
+        foam = mix((texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 0.5, 0.0,
+						 (diffY - foamExistence.x) / (foamExistence.y - foamExistence.x));
+    }*/
+    
+    
+
+//windDirection
+//animationTime
+
+    return foam;
 }
 
 
@@ -168,13 +196,15 @@ void main() {
     
     
     //water depths;
-    float refractionDepth = texture(depthMap, uv).r;
+    float refractionDepth = texture(depthMap, refractionUV).r;
+    float nonRefractionDepth = texture(depthMap, uv).r;
     float waterHeightDepth = gl_FragCoord.z;
     
     
     //positions
-    vec3 positionWorld = computeWorldPositionFromDepth(refractionUV, waterHeightDepth);
+    vec3 positionWorld = computeWorldPositionFromDepth(uv, waterHeightDepth);
     vec3 refractionPositionWorld = computeWorldPositionFromDepth(refractionUV, refractionDepth);
+    vec3 nonRefractionPositionWorld = computeWorldPositionFromDepth(uv, nonRefractionDepth);
     vec3 testWorld = vec3(refractionPositionWorld.x,positionWorld.y , refractionPositionWorld.z);
     
     //y coords
@@ -183,13 +213,13 @@ void main() {
     
     // colors
     vec3 nonRefractedColor = texture(colorMap, uv).rgb;
-    vec4 refractionColor = texture(colorMap, refractionUV);
+    vec3 refractionColor = texture(colorMap, refractionUV).rgb;
     //vec4 irradianceColor = texture(irradianceMap, uv);
     
     vec4 coneTracedIrradiance = ConeTraceRadiance(positionWorld, vs_out.normalWorld);
     vec3 irradiance = coneTracedIrradiance.a * coneTracedIrradiance.rgb;
     
-    float irradianceLuma = clamp(20.0 * getLuma(irradiance.rgb),0, 1);
+    float irradianceLuma = max(clamp(1.0 * getLuma(irradiance.rgb),0, 1), 0.05);
     
     //calculate murkiness
     //float murk = calcMurkiness(waterY, refractionY, 2.0);
@@ -216,30 +246,40 @@ void main() {
     // realsitic water 
     vec3 extinction = vec3(4.5, 75.0, 300.0);
     float D = waterY - refractionY;
-    float murk = 0.29;
-    float A = length(vs_out.positionWorld - refractionPositionWorld) * pow(murk, 2);
-    //A = 0.001;
-    vec3 surfaceColor = vec3(0.0, 0.2, 1.0);//ambient.rgb;//vec3(1.0, 1.0, 1.0);
-    vec3 bigDepthColor = vec3(0.0, 0.0, 0.0);
+    float murk = 0.25;
+    float A = length(vs_out.positionWorld - refractionPositionWorld) * murk;// * pow(murk, 2);
+    vec3 surfaceColor = vec3(0.0078, 0.2176, 0.7);//vec3(0.0078, 0.5176, 0.7);//ambient.rgb;//vec3(1.0, 1.0, 1.0);
+    vec3 bigDepthColor = vec3(0.0039, 0.00196, 0.145);
     vec3 testCameraPosition = vec3(0, 12.9, -0.5);
     float distanceToCamera = length(positionWorld - cameraPosition); 
     //distanceToCamera = 9;
     float fadeDistance = 120;
-    float visibility = clamp((fadeDistance - distanceToCamera) / fadeDistance, 0, 1); // lesser for positions farer away from camera  1 / distanceToCamera
-    visibility = clamp(pow(visibility, 7), 0, 1);
+    float visibility = 3.0;//clamp((fadeDistance - distanceToCamera) / fadeDistance, 0, 1); // lesser for positions farer away from camera  1 / distanceToCamera
+    //visibility = clamp(pow(visibility, 7), 0, 1);
+    vec3 sunColor = vec3(1.0, 0.89, 0.4);//vec3(1.0);
+    float sunScale = 3.0;
 
-    vec3 waterColor = mix(refractionColor.rgb, surfaceColor, clamp( A / visibility, 0.0, 1.0));
-    waterColor = mix(waterColor, bigDepthColor, clamp(D / extinction, 0.0, 1.0));
     
-    vec3 specular_color = mix(waterColor, vec3(0.1, 0.5, 1.0), 0.7) * 
-                        calcSpecular(normalize(-vs_out.positionView.xyz), normal, normalize(lightDirViewSpace), 0.5, 0);
+    vec3 waterColor = vec3(clamp(length(sunColor) / sunScale, 0, 1));
     
-    vec3 diffuse_color = mix(waterColor, vec3(0.0, 0.3, 1.0), 0.7) * calcDiffuse(angle);
+    refractionColor = mix(refractionColor, surfaceColor * waterColor, clamp( A / visibility, 0.0, 1.0));
+    refractionColor = mix(refractionColor, bigDepthColor * waterColor, clamp(D / extinction, 0.0, 1.0));
+    
+    
+    vec3 specular_color = sunColor * 
+                        calcSpecular(normalize(-vs_out.positionView.xyz), normal, normalize(lightDirViewSpace), 0.2, 0);
+    
+    
+    float foam = calcFoam(positionWorld, nonRefractionPositionWorld);
+    
+    
+    vec3 diffuseRefraction = refractionColor * angle * fragmentLitProportion * 0.15;
+    vec3 ambientRefraction = refractionColor * irradianceLuma;
     
     float lit = max(irradianceLuma, fragmentLitProportion);
-    float litSpecular = max(irradianceLuma * 0.01, fragmentLitProportion);
+    float litSpecular = max(0, fragmentLitProportion);
     
-    fragColor = vec4(lit * (waterColor + diffuse_color) + litSpecular * specular_color, 1.0);
+    fragColor = vec4(diffuseRefraction + ambientRefraction + litSpecular * specular_color, 1.0);
       
-    luminance = 0.2 * fragColor;//texture(luminanceMap, refractionUV);
+    luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }

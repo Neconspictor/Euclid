@@ -936,7 +936,7 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	float spectrumScale, const glm::vec2& windDirection, float windSpeed, float periodTime) :
 	Ocean(N, maxWaveLength, dimension, waterHeight, spectrumScale, windDirection, windSpeed, periodTime),
 	mHeightZeroComputePass(std::make_unique<HeightZeroComputePass>(glm::uvec2(mN), glm::vec2(mN), mWindDirection, mSpectrumScale, mWindSpeed)), // mUniquePointCount.x, mUniquePointCount.y
-	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(mN), mPeriodTime)),
+	mHeightComputePass(std::make_unique<HeightComputePass>(glm::uvec2(mN), glm::vec2(maxWaveLength), mPeriodTime)),
 	mButterflyComputePass(std::make_unique<ButterflyComputePass>(mN)),
 	mIfftComputePass(std::make_unique<IfftPass>(mN)),
 	mNormalizePermutatePass(std::make_unique<NormalizePermutatePass>(mN)),
@@ -1026,7 +1026,8 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		gi,
 		cameraPosition,
 		mWindDirection,
-		mAnimationTime);
+		mAnimationTime,
+		mWaveLength);
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
@@ -1855,6 +1856,7 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 	normalMatrixUniform = { mShader->getUniformLocation("normalMatrix"), UniformType::MAT3 };
 	windDirection = { mShader->getUniformLocation("windDirection"), UniformType::VEC2 };
 	animationTime = { mShader->getUniformLocation("animationTime"), UniformType::FLOAT };
+	mTileSize = { mShader->getUniformLocation("tileSize"), UniformType::FLOAT };
 
 	heightUniform = { mShader->getUniformLocation("height"), UniformType::TEXTURE2D, 0 };
 
@@ -1894,7 +1896,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
-	float time)
+	float time,
+	float tileSize)
 {
 	auto modelView = view * trafo;
 
@@ -1905,6 +1908,7 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setMat4(mInverseViewProjMatrix.location, inverseViewProjMatrix);
 	mShader->setVec2(windDirection.location, windDir);
 	mShader->setFloat(animationTime.location, time);
+	mShader->setFloat(mTileSize.location, tileSize);
 	mShader->setVec3(mCameraPosition.location, cameraPosition);
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
