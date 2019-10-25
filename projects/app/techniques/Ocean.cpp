@@ -952,6 +952,12 @@ nex::OceanGPU::OceanGPU(unsigned N, unsigned maxWaveLength, float dimension, flo
 	testHeightGeneration();
 
 	generateMesh();
+
+	TextureDesc desc;
+	desc.generateMipMaps = false;
+	desc.wrapR = desc.wrapS = desc.wrapT = UVTechnique::Repeat;
+	desc.colorspace = ColorSpace::SRGB;
+	mFoamTexture = TextureManager::get()->getImage("_intern/ocean/foam.png", desc);
 }
 
 nex::OceanGPU::~OceanGPU() = default;
@@ -1023,11 +1029,13 @@ void nex::OceanGPU::draw(const glm::mat4& projection,
 		luminance, 
 		depth,
 		irradiance,
+		mFoamTexture, //TODO foam!
 		gi,
 		cameraPosition,
 		mWindDirection,
 		mAnimationTime,
-		mWaveLength);
+		mWaveLength,
+		mWaterHeight);
 
 	//mMesh->bind();
 	mMesh->getVertexArray().bind();
@@ -1872,8 +1880,10 @@ nex::OceanGPU::WaterShading::WaterShading() : Pass(Shader::create("ocean/water_v
 
 	mIrradiance = mShader->createTextureUniform("irradianceMap", UniformType::TEXTURE2D, 9);
 	mVoxelTexture = mShader->createTextureUniform("voxelTexture", UniformType::TEXTURE3D, 10);
+	mFoamTexture = mShader->createTextureUniform("foamMap", UniformType::TEXTURE2D, 11);
 
 	mCameraPosition = { mShader->getUniformLocation("cameraPosition"), UniformType::VEC3 };
+	mWaterLevel = { mShader->getUniformLocation("waterLevel"), UniformType::FLOAT };
 
 	sampler.setMinFilter(TexFilter::Linear);
 	sampler.setMagFilter(TexFilter::Linear);
@@ -1893,11 +1903,13 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	Texture* luminance,
 	Texture* depth,
 	Texture* irradiance,
+	Texture* foam,
 	GlobalIllumination* gi,
 	const glm::vec3& cameraPosition,
 	const glm::vec2& windDir,
 	float time,
-	float tileSize)
+	float tileSize,
+	float waterLevel)
 {
 	auto modelView = view * trafo;
 
@@ -1910,6 +1922,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setFloat(animationTime.location, time);
 	mShader->setFloat(mTileSize.location, tileSize);
 	mShader->setVec3(mCameraPosition.location, cameraPosition);
+	mShader->setFloat(mWaterLevel.location, waterLevel);
+
 
 	glm::vec3 lightDirViewSpace = glm::vec3(view * glm::vec4(lightDir, 0.0));
 	mShader->setVec3(lightUniform.location, normalize(lightDirViewSpace));
@@ -1926,6 +1940,8 @@ void nex::OceanGPU::WaterShading::setUniforms(const glm::mat4& projection,
 	mShader->setTexture(cascadedShadow->getDepthTextureArray(), Sampler::getPoint(), cascadedDepthMap.bindingSlot);
 	mShader->setTexture(irradiance, Sampler::getLinear(), mIrradiance.bindingSlot);
 	mShader->setTexture(gi->getVoxelTexture(), Sampler::getLinearMipMap(), mVoxelTexture.bindingSlot);
+	mShader->setTexture(foam, Sampler::getLinearRepeat(), mFoamTexture.bindingSlot);
+	
 
 	cascadedShadow->getCascadeBuffer()->bindToTarget(0);
 	gi->getVoxelConstants()->bindToTarget(0);

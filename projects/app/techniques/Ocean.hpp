@@ -643,11 +643,13 @@ namespace nex
 				Texture* luminance,
 				Texture* depth,
 				Texture* irradiance,
+				Texture* foam,
 				nex::GlobalIllumination* gi,
 				const glm::vec3& cameraPosition,
 				const glm::vec2& windDir,
 				float time,
-				float tileSize);
+				float tileSize,
+				float waterLevel);
 
 			Uniform transform;
 			Uniform modelMatrixUniform;
@@ -669,7 +671,9 @@ namespace nex
 			UniformTex cascadedDepthMap;
 			UniformTex mIrradiance;
 			UniformTex mVoxelTexture;
+			UniformTex mFoamTexture;
 			Uniform mCameraPosition;
+			Uniform mWaterLevel;
 
 			Sampler sampler;
 		};
@@ -688,6 +692,7 @@ namespace nex
 		std::unique_ptr<WaterDepthClearPass> mWaterDepthClearPass;
 		std::unique_ptr<WaterDepthPass> mWaterDepthPass;
 		std::unique_ptr<UnderWaterView> mUnderWaterView;
+		Texture* mFoamTexture;
 	};
 
 

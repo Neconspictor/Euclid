@@ -46,8 +46,6 @@ uniform float animationTime;
 
 layout(binding = 9) uniform sampler2D irradianceMap;
 
-layout(binding = 10) uniform sampler2D foamMap;
-
 /**
  * Cone tracing
  */
@@ -67,6 +65,10 @@ layout(std140, binding = 0) uniform Cbuffer {
 };
 
 layout(binding = 10) uniform sampler3D voxelTexture;
+
+layout(binding = 11) uniform sampler2D foamMap;
+
+uniform float waterLevel;
 
 #include "GI/cone_trace.glsl"
 
@@ -141,30 +143,49 @@ float calcSpecular(in vec3 eyeVecNorm, in vec3 normal, in vec3 lightDir, float s
     */
 }
 
-float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld) {
+float calcFoam(in vec3 waterPositionWorld, in vec3 groundPositionWorld, in vec3 eyeVecNorm) {
 
     // Describes at what depth foam starts to fade out and
     // at what it is completely invisible. The fird value is at
     // what height foam for waves appear (+ waterLevel).
-    const vec3 foamExistence = vec3(0.65, 1.35, 0.5);
+    const vec3 foamExistence = vec3(0.3, 0.8, 0.25);//vec3(0.65, 1.35, 0.5);
+    const float maxAmplitude = 1.0;
+    const float testWaterLevel = 3.0;
     
     const float diffY = waterPositionWorld.y - groundPositionWorld.y;
+    const float level = waterPositionWorld.y;
     
+    //animationTime * 0.00001 * windDirection
+    vec2 texCoord = (waterPositionWorld.xz + eyeVecNorm.xz * 0.00) * 0.05 + animationTime * 0.003 * windDirection;
+    //vec2 texCoord = (waterPositionWorld.xz) * 0.05 + animationTime * 0.00001 * windDirection + sin(animationTime * 0.001 + groundPositionWorld.x) * 0.005;
+    
+	vec2 texCoord2 = (waterPositionWorld.xz + eyeVecNorm.xz * 0.00) * 0.05 + animationTime * 0.006 * windDirection;
+    //vec2 texCoord2 = (waterPositionWorld.xz) * 0.05 + animationTime * 0.002 * windDirection + sin(animationTime * 0.01 + groundPositionWorld.z) * 0.05;
+
+
     float foam = 0.0;
     
-    /*if (diffY < foamExistence.x) {
-        foam = (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 0.5;
+    if (diffY < foamExistence.x) {
+        foam = (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r);
     } else if (diffY < foamExistence.y) {
-        foam = mix((texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 0.5, 0.0,
-						 (diffY - foamExistence.x) / (foamExistence.y - foamExistence.x));
-    }*/
+        foam = mix((texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r), 0.0,
+					 (diffY - foamExistence.x) / (foamExistence.y - foamExistence.x));
+    }
+    
+    if(maxAmplitude - foamExistence.z > 0.0001f)
+    {
+        foam += (texture(foamMap, texCoord).r + texture(foamMap, texCoord2).r) * 
+            clamp(3.0 * (level - (testWaterLevel + foamExistence.z)) /(maxAmplitude - foamExistence.z), 0.0, 1.0);
+    }
     
     
 
 //windDirection
 //animationTime
 
-    return foam;
+    foam = clamp(foam, 0, 1);
+
+    return pow(0.2 * foam, 1.3);
 }
 
 
@@ -172,7 +193,8 @@ void main() {
 
     vec3 normal = normalize(vs_out.normal);
     vec3 lightDir = normalize(-lightDirViewSpace);
-    vec3 halfway = normalize(lightDir + normalize(-vs_out.positionView.xyz));
+    vec3 eyeVecNorm = normalize(-vs_out.positionView.xyz);
+    vec3 halfway = normalize(lightDir + eyeVecNorm);
     float angle = max(dot(normal, lightDir), 0.0);
     float fragmentLitProportion = cascadedShadow(lightDir, normal, vs_out.positionView.z, vs_out.positionView);
     const float refractionRatio = 1.0 / 1.3;
@@ -267,10 +289,10 @@ void main() {
     
     
     vec3 specular_color = sunColor * 
-                        calcSpecular(normalize(-vs_out.positionView.xyz), normal, normalize(lightDirViewSpace), 0.2, 0);
+                        calcSpecular(eyeVecNorm, normal, normalize(lightDirViewSpace), 0.2, 0);
     
     
-    float foam = calcFoam(positionWorld, nonRefractionPositionWorld);
+    float foam = calcFoam(positionWorld, nonRefractionPositionWorld, eyeVecNorm);
     
     
     vec3 diffuseRefraction = refractionColor * angle * fragmentLitProportion * 0.15;
@@ -279,7 +301,9 @@ void main() {
     float lit = max(irradianceLuma, fragmentLitProportion);
     float litSpecular = max(0, fragmentLitProportion);
     
-    fragColor = vec4(diffuseRefraction + ambientRefraction + litSpecular * specular_color, 1.0);
+    vec3 specular = litSpecular * specular_color;
+    
+    fragColor = vec4(diffuseRefraction + ambientRefraction + max(specular, vec3(lit * foam)), 1.0);
       
     luminance = 0.1 * fragColor;//texture(luminanceMap, refractionUV);
 }
