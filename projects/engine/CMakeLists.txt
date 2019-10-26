@@ -294,6 +294,12 @@ set(
     #nex/util/concurrent
     nex/util/concurrent/Active.hpp
 	nex/util/concurrent/Active.cpp
+    
+    #nex/water
+    nex/water/Ocean.hpp
+    nex/water/Ocean.cpp
+    nex/water/PSSR.hpp
+    nex/water/PSSR.cpp
 )
 
 # Create named folders for the sources within the .vcproj

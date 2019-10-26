@@ -31,8 +31,6 @@ set(
 	#techniques
     techniques/HeightMap.hpp
     techniques/HeightMap.cpp
-    techniques/Ocean.cpp
-    techniques/Ocean.hpp
 	techniques/PBR_Deferred_Renderer.hpp
 	techniques/PBR_Deferred_Renderer.cpp
     techniques/TesselationTest.cpp

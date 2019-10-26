@@ -7,7 +7,7 @@
 #include "nex/shader/Technique.hpp"
 #include "nex/renderer/RenderCommandQueue.hpp"
 #include "TesselationTest.hpp"
-#include "Ocean.hpp"
+#include <nex/water/Ocean.hpp>
 #include <nex/renderer/Renderer.hpp>
 #include <nex/texture/RenderTarget.hpp>
 
