@@ -3,6 +3,7 @@
 
 namespace nex {
 
+	class Texture;
 	class Texture2D;
 
 	/**
@@ -16,10 +17,15 @@ namespace nex {
 
 		Texture2D* getProjHashBuffer();
 
+		void renderProjectionHash(Texture* color, const glm::mat4& viewProj, const glm::mat4& invViewProj);
+
 		void resize(unsigned width, unsigned height);
 
 	private:
 
+		class ProjHashPass;
+
 		std::unique_ptr<Texture2D> mProjHasBuffer;
+		std::unique_ptr<ProjHashPass> mProjHashPass;
 	};
 }
